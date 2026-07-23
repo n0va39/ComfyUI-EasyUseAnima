@@ -64,7 +64,8 @@
       "B-11c29b2",
       "B-11c29c",
       "B-11c29d",
-      "B-11c29b3"
+      "B-11c29b3",
+      "B-11c30"
     ]
   },
   "enums": {
@@ -1176,6 +1177,2999 @@
     "wildcard_sources_signature": [
       "easyuse_anima.nodes.prompt_advanced_nodes",
       "easyuse_anima.nodes.regional_nodes"
+    ]
+  },
+  "runtime_binder_audit": {
+    "summary": {
+      "binder_count": 30,
+      "family_count": 5,
+      "mode_counts": {
+        "comfy_provider_then_root": 15,
+        "root_globals": 13,
+        "explicit_callbacks": 2
+      },
+      "unique_resolver_names": 295,
+      "unique_root_resolver_names": 288,
+      "unique_provider_resolver_names": 7,
+      "unique_direct_root_dependencies": 14,
+      "direct_root_dependency_slots": 32,
+      "provider_consumer_slots": 22,
+      "provider_consumer_modules": 15,
+      "repository_replacement_names": 165,
+      "repository_replacement_files": 20
+    },
+    "families": {
+      "aio": [
+        "_bind_aio_first_pass_cache_runtime",
+        "_bind_aio_legacy_generation_runtime",
+        "_bind_aio_generation_normalization_runtime",
+        "_bind_aio_usdu_planning_runtime",
+        "_bind_aio_postprocess_runtime",
+        "_bind_aio_resource_runtime",
+        "_bind_aio_model_preparation_runtime",
+        "_bind_aio_sampling_runtime",
+        "_bind_aio_preview_runtime",
+        "_bind_aio_output_runtime",
+        "_bind_aio_conditioning_runtime",
+        "_bind_aio_node_runtime"
+      ],
+      "image_sam3_impact": [
+        "_bind_sam3_runtime",
+        "_bind_impact_detailer_node_runtime",
+        "_bind_sam3_node_runtime"
+      ],
+      "prompt_regional": [
+        "_bind_regional_runtime",
+        "_bind_regional_node_runtime",
+        "_bind_advanced_runtime",
+        "_bind_prompt_advanced_node_runtime",
+        "_bind_conditioning_runtime",
+        "_bind_artist_mix_runtime",
+        "_bind_prompt_data_node_runtime",
+        "_bind_prompt_fields_runtime",
+        "_bind_prompt_correction_runtime",
+        "_bind_prompt_node_runtime"
+      ],
+      "wildcard_naia": [
+        "_bind_wildcard_node_runtime",
+        "_bind_naia_node_runtime"
+      ],
+      "lora": [
+        "_bind_lora_metadata_runtime",
+        "_bind_lora_preset_runtime",
+        "_bind_lora_node_runtime"
+      ]
+    },
+    "root_resolver_names": [
+      "AIO_FINAL_FIT_MODES",
+      "AIO_FINAL_UPSCALE_BACKENDS",
+      "AIO_FIRST_PASS_CACHE_MAX_ENTRIES",
+      "AIO_GENERATION_DEFAULT_SETTINGS",
+      "AIO_GENERATION_SETTINGS_SCHEMA",
+      "AIO_GENERATION_SETTINGS_VERSION",
+      "AIO_INPUT_DEFAULT_SETTINGS",
+      "AIO_PREVIEW_CACHE_FORMAT",
+      "AIO_PREVIEW_CACHE_QUALITY",
+      "AIO_PREVIEW_EVENT",
+      "AIO_PREVIEW_STAGE_LABELS",
+      "AIO_RESHIFT_DTYPES",
+      "AIO_RESHIFT_SCALES",
+      "AIO_SPECIAL_SEEDS",
+      "AIO_SPECIAL_SEED_DECREMENT",
+      "AIO_USDU_MODE_TYPES",
+      "AIO_USDU_PROMPT_FULL",
+      "AIO_USDU_PROMPT_MODES",
+      "AIO_USDU_PROMPT_NO_GENERAL",
+      "AIO_USDU_SEAM_FIX_MODES",
+      "ANIMA_CLIP_DEVICES",
+      "ANIMA_CLIP_TYPES",
+      "ANIMA_DEFAULT_CLIP_CANDIDATES",
+      "ANIMA_DEFAULT_DIFFUSION_MODEL_CANDIDATES",
+      "ANIMA_DEFAULT_VAE_CANDIDATES",
+      "ANIMA_MOD_GUIDANCE_DEFAULT_PROFILE",
+      "ANIMA_MOD_GUIDANCE_MODES",
+      "ANIMA_MOD_GUIDANCE_MODE_FROM_PROMPT_DATA",
+      "ANIMA_MOD_GUIDANCE_PROFILE_OFF",
+      "ANIMA_UNET_WEIGHT_DTYPES",
+      "ARTIST_MIX_DEFAULT_CLUSTER_COUNT",
+      "ARTIST_MIX_DEFAULT_DOMINANT_ISOLATION",
+      "ARTIST_MIX_DEFAULT_DOMINANT_THRESHOLD",
+      "ARTIST_MIX_DEFAULT_EXACT_TOP_K",
+      "ARTIST_MIX_DEFAULT_RMS_SCALE_CAP",
+      "ARTIST_MIX_DEFAULT_START_PERCENT",
+      "ARTIST_MIX_DEFAULT_STRENGTH_SCALE",
+      "ARTIST_MIX_DEFAULT_STYLE_GAIN",
+      "ARTIST_MIX_INPUT_MODES",
+      "ARTIST_MIX_MODE_FROM_PROMPT_DATA",
+      "EASY_USE_ANIMA_INPUT_SCHEMA",
+      "EASY_USE_ANIMA_INPUT_SETTINGS_VERSION",
+      "EASY_USE_ANIMA_INPUT_TYPE",
+      "EasyUseAnimaImageScaleByMultiple",
+      "EasyUseAnimaNAIARandomPrompt",
+      "EasyUseAnimaSAM3Detailer",
+      "IMAGE_SCALE_MULTIPLES",
+      "IMAGE_UPSCALE_METHODS",
+      "LATENT_ALIGN",
+      "MAX_SEED",
+      "PROMPT_DATA_TYPE",
+      "SEED_CONTROL_FIXED",
+      "SEED_CONTROL_MODES",
+      "_AIO_DETAILER_CUSTOM_RE",
+      "_AIO_DETAILER_RESERVED_KEYS",
+      "_AIO_FIRST_PASS_CACHE",
+      "_AIO_FIRST_PASS_CACHE_ORDER",
+      "_HASH_COMMENT_RE",
+      "_INLINE_SPACE_RE",
+      "_TRIGGER_WORD_KEYS",
+      "_WEIGHTED_TOKEN_RE",
+      "_adapter_comfy_clip_loader_types",
+      "_adapter_comfy_diffusion_model_names",
+      "_adapter_comfy_text_encoder_names",
+      "_adapter_comfy_vae_names",
+      "_advanced_artist_field_prompt",
+      "_advanced_default_fields",
+      "_advanced_enabled_naia_panes",
+      "_advanced_enabled_pane_fields",
+      "_advanced_field_input_values",
+      "_advanced_field_socket_name",
+      "_advanced_fields_json",
+      "_advanced_has_enabled_naia",
+      "_advanced_outputs_from_prompt_data",
+      "_advanced_prompt_with_artist_override",
+      "_advanced_resolution_from_selection",
+      "_advanced_uses_naia_resolution",
+      "_aio_detailer_has_enabled_targets",
+      "_aio_detailer_target_defaults",
+      "_aio_detailer_target_order",
+      "_aio_final_fit_size",
+      "_aio_first_pass_cache_key",
+      "_aio_generation_settings_json",
+      "_aio_highres_effective_backend",
+      "_aio_image_saver_additional_hashes",
+      "_aio_image_saver_civitai_hash_fetcher_entries",
+      "_aio_input_settings_json",
+      "_aio_lora_metadata_name",
+      "_aio_lora_stack_signature",
+      "_aio_preview_base_directory",
+      "_aio_preview_file_size_bytes",
+      "_aio_prompt_data_fields_for_usdu",
+      "_aio_prompt_with_lora_metadata",
+      "_aio_save_filename_prefix",
+      "_aio_stage_sampler_settings",
+      "_aio_usdu_auto_tile_dimension",
+      "_aio_usdu_conditioning",
+      "_aio_usdu_prompt_without_general",
+      "_aio_usdu_tile_plan",
+      "_align_down",
+      "_align_nearest",
+      "_apply_advanced_field_inputs",
+      "_apply_aio_anima_dave_patch",
+      "_apply_aio_final_fit",
+      "_apply_aio_kj_model_patches",
+      "_apply_aio_lora_stack",
+      "_apply_aio_model_patches",
+      "_apply_aio_safe_pag_patch",
+      "_apply_aio_spectrum_correction_patch_for_comfy_sampler",
+      "_apply_aio_spectrum_forecast_patch_for_comfy_sampler",
+      "_apply_aio_spectrum_model_patches_for_comfy_sampler",
+      "_apply_lora_syntax_format",
+      "_apply_prompt_data_overrides",
+      "_apply_regional_field_inputs",
+      "_apply_spectrum_anima_mod_guidance",
+      "_artist_mix_inline_prompt",
+      "_artist_mix_mode_tooltip",
+      "_artist_prompt_with_position",
+      "_artist_tags_from_prompt",
+      "_as_advanced_height",
+      "_as_bool",
+      "_as_float",
+      "_as_int",
+      "_blend_conditionings",
+      "_bounded_artist_mix_float",
+      "_bounded_artist_mix_int",
+      "_build_advanced_prompt_data",
+      "_build_advanced_prompts",
+      "_build_regional_outputs",
+      "_call_with_supported_kwargs",
+      "_choice",
+      "_cleanup_aio_ephemeral_model",
+      "_clone_advanced_fields",
+      "_clone_aio_cache_value",
+      "_clone_regional_fields",
+      "_comfy_clip_loader_types",
+      "_comfy_diffusion_model_names",
+      "_comfy_sampler_names",
+      "_comfy_scheduler_names",
+      "_comfy_text_encoder_names",
+      "_comfy_vae_names",
+      "_common_upscale_image",
+      "_conditioning_set_values",
+      "_consume_reserved_wildcard_next_seed",
+      "_context_value",
+      "_copy_prompt_data_for_update",
+      "_correct_advanced_field_sequence",
+      "_correct_builder_prompt",
+      "_correct_style_prompt",
+      "_decode_latent_with_comfy",
+      "_dedupe_text_values",
+      "_easy_use_anima_input_signature",
+      "_encode_artist_clustered",
+      "_encode_artist_delta_rms",
+      "_encode_image_with_comfy_vae",
+      "_encode_prompt_data_positive_conditioning",
+      "_expand_advanced_wildcard_fields",
+      "_fallback_lora_path",
+      "_filter_metadata_prompt",
+      "_find_spectrum_anima_mod_guidance_class",
+      "_folder_path_names",
+      "_format_strength",
+      "_generate_empty_latent_with_comfy",
+      "_get_aio_first_pass_cache",
+      "_get_lora_info",
+      "_get_lora_manager_trigger_words",
+      "_get_loras_list",
+      "_get_workflow_node",
+      "_image_tensor_size",
+      "_impact_scheduler_names",
+      "_is_aio_detailer_target_name",
+      "_join_artist_mix_source_prompts",
+      "_join_prompt_tokens",
+      "_json_clone",
+      "_json_object",
+      "_load_aio_resources_from_input_context",
+      "_load_aio_sam3_context",
+      "_load_checkpoint_with_comfy",
+      "_load_clip_with_comfy",
+      "_load_diffusion_model_with_comfy",
+      "_load_lora_manager_metadata",
+      "_load_profile_data",
+      "_load_upscale_model_with_comfy",
+      "_load_vae_with_comfy",
+      "_lora_combo_values",
+      "_lora_manager_trigger_words_from_metadata",
+      "_lora_model_exists",
+      "_lora_stack_name",
+      "_merge_versioned_settings",
+      "_metadata_filter_key",
+      "_metadata_filter_keys",
+      "_metadata_json_paths_for_lora",
+      "_missing_lora_display_name",
+      "_new_aio_random_seed",
+      "_node_output_tuple",
+      "_normalize_advanced_fields",
+      "_normalize_aio_civitai_hash_fetchers",
+      "_normalize_aio_dit_corrections_settings",
+      "_normalize_aio_generation_settings",
+      "_normalize_aio_hash_bundles",
+      "_normalize_aio_input_settings",
+      "_normalize_aio_lora_stack",
+      "_normalize_aio_seed",
+      "_normalize_aio_spectrum_settings",
+      "_normalize_anima_mod_guidance_profile",
+      "_normalize_artist_mix_mode",
+      "_normalize_artist_tag_position",
+      "_normalize_mask_ids",
+      "_normalize_prompt_data",
+      "_normalize_prompt_studio_wildcard_seed_control",
+      "_normalize_regional_config",
+      "_normalize_regional_fields",
+      "_normalize_resolution_bucket",
+      "_parse_artist_mix_items",
+      "_parse_json_object",
+      "_parse_random_response",
+      "_patch_model_sampling_aura_flow",
+      "_post_random",
+      "_preferred_checkpoint_default",
+      "_preferred_clip_type_default",
+      "_preferred_name_default",
+      "_profile_key",
+      "_prompt_data_json_safe",
+      "_prompt_data_parameter_snapshot",
+      "_prompt_tokens",
+      "_prompt_translation_change_key",
+      "_put_aio_first_pass_cache",
+      "_raise_missing_loras",
+      "_ratio_label",
+      "_regional_config_json",
+      "_regional_fields_json",
+      "_regional_mask_bounds_area",
+      "_regional_payload_canvas",
+      "_regional_union_mask_for_ids",
+      "_require_easy_use_anima_input",
+      "_resize_image_to_size_if_needed",
+      "_resolution_label",
+      "_resolve_aio_runtime_seed",
+      "_resolve_anima_mod_guidance_enabled",
+      "_resolve_naia_resolution",
+      "_round_trip_aio_generation_settings",
+      "_run_aio_detailer_stage",
+      "_run_aio_detailer_target",
+      "_run_aio_highres_stage",
+      "_run_aio_legacy_generation",
+      "_run_aio_postprocess_stage",
+      "_run_aio_resshift_upscale_stage",
+      "_run_aio_upscale_stage",
+      "_run_aio_usdu_upscale_stage",
+      "_sam3_context",
+      "_sample_latent_with_aio_backend",
+      "_sample_latent_with_comfy",
+      "_sample_latent_with_spectrum_mod_guidance_advanced",
+      "_sample_latent_with_spectrum_spd",
+      "_save_aio_temp_preview_image",
+      "_save_image_with_comfy",
+      "_save_image_with_image_saver",
+      "_segs_has_items",
+      "_select_profile_values",
+      "_send_aio_preview_event",
+      "_set_naia_field_text",
+      "_single_value",
+      "_split_tag_text",
+      "_stable_change_key",
+      "_tag_aio_preview_images",
+      "_translate_prompt_fields",
+      "_translate_prompt_text",
+      "_trigger_words_from_value",
+      "_wrap_profile_index",
+      "ceil",
+      "correct_prompt",
+      "expand_wildcard_texts",
+      "has_prompt_translation_markers",
+      "has_wildcard_syntax",
+      "json",
+      "load_knowledge_base",
+      "logger",
+      "next_seed",
+      "normalize_prompt_studio_wildcard_mode",
+      "normalize_seed",
+      "parse_prompt",
+      "random",
+      "resolve_metadata_filter_words",
+      "resolve_naia_settings",
+      "resolve_prompt_translation_settings",
+      "sqrt",
+      "translate_prompt_markers",
+      "wildcard_sources_signature"
+    ],
+    "provider_resolver_names": [
+      "_comfy_max_resolution",
+      "_encode_with_comfy_clip",
+      "_find_comfy_node_class",
+      "_find_comfy_node_mapping_class",
+      "_find_loaded_node_class",
+      "_require_any_custom_node_class",
+      "_require_custom_node_class"
+    ],
+    "repository_root_replacements": {
+      "AIO_FIRST_PASS_CACHE_MAX_ENTRIES": [
+        "tests/test_aio_first_pass_cache.py"
+      ],
+      "AIO_GENERATION_DEFAULT_SETTINGS": [
+        "tests/test_aio_output.py",
+        "tests/test_node_contracts.py"
+      ],
+      "AIO_INPUT_DEFAULT_SETTINGS": [
+        "tests/test_node_contracts.py"
+      ],
+      "AIO_PREVIEW_CACHE_FORMAT": [
+        "tests/test_aio_preview.py"
+      ],
+      "AIO_PREVIEW_CACHE_QUALITY": [
+        "tests/test_aio_preview.py"
+      ],
+      "AIO_PREVIEW_EVENT": [
+        "tests/test_aio_preview.py"
+      ],
+      "AIO_SPECIAL_SEEDS": [
+        "tests/test_aio_nodes.py",
+        "tests/test_node_contracts.py"
+      ],
+      "AIO_SPECIAL_SEED_DECREMENT": [
+        "tests/test_node_contracts.py"
+      ],
+      "ANIMA_CLIP_DEVICES": [
+        "tests/test_node_contracts.py"
+      ],
+      "ANIMA_CLIP_TYPES": [
+        "tests/test_node_contracts.py"
+      ],
+      "ANIMA_DEFAULT_CLIP_CANDIDATES": [
+        "tests/test_aio_nodes.py",
+        "tests/test_node_contracts.py"
+      ],
+      "ANIMA_DEFAULT_DIFFUSION_MODEL_CANDIDATES": [
+        "tests/test_aio_nodes.py",
+        "tests/test_node_contracts.py"
+      ],
+      "ANIMA_DEFAULT_VAE_CANDIDATES": [
+        "tests/test_aio_nodes.py",
+        "tests/test_node_contracts.py"
+      ],
+      "ANIMA_UNET_WEIGHT_DTYPES": [
+        "tests/test_node_contracts.py"
+      ],
+      "EASY_USE_ANIMA_INPUT_SCHEMA": [
+        "tests/test_node_contracts.py"
+      ],
+      "EASY_USE_ANIMA_INPUT_SETTINGS_VERSION": [
+        "tests/test_node_contracts.py"
+      ],
+      "EASY_USE_ANIMA_INPUT_TYPE": [
+        "tests/test_aio_nodes.py"
+      ],
+      "EasyUseAnimaNAIARandomPrompt": [
+        "tests/test_node_contracts.py"
+      ],
+      "LATENT_ALIGN": [
+        "tests/test_node_contracts.py"
+      ],
+      "MAX_SEED": [
+        "tests/test_node_contracts.py"
+      ],
+      "PROMPT_DATA_TYPE": [
+        "tests/test_aio_nodes.py"
+      ],
+      "_AIO_DETAILER_CUSTOM_RE": [
+        "tests/test_node_contracts.py"
+      ],
+      "_AIO_DETAILER_RESERVED_KEYS": [
+        "tests/test_node_contracts.py"
+      ],
+      "_AIO_FIRST_PASS_CACHE": [
+        "tests/test_aio_first_pass_cache.py"
+      ],
+      "_AIO_FIRST_PASS_CACHE_ORDER": [
+        "tests/test_aio_first_pass_cache.py"
+      ],
+      "_TRIGGER_WORD_KEYS": [
+        "tests/test_lora_preset.py"
+      ],
+      "_adapter_comfy_clip_loader_types": [
+        "tests/test_node_contracts.py"
+      ],
+      "_adapter_comfy_diffusion_model_names": [
+        "tests/test_node_contracts.py"
+      ],
+      "_adapter_comfy_text_encoder_names": [
+        "tests/test_node_contracts.py"
+      ],
+      "_adapter_comfy_vae_names": [
+        "tests/test_node_contracts.py"
+      ],
+      "_advanced_outputs_from_prompt_data": [
+        "tests/test_aio_legacy_generation.py",
+        "tests/test_aio_nodes.py"
+      ],
+      "_aio_detailer_has_enabled_targets": [
+        "tests/test_aio_legacy_generation.py"
+      ],
+      "_aio_detailer_target_order": [
+        "tests/test_node_contracts.py"
+      ],
+      "_aio_final_fit_size": [
+        "tests/test_node_contracts.py"
+      ],
+      "_aio_first_pass_cache_key": [
+        "tests/test_aio_legacy_generation.py"
+      ],
+      "_aio_generation_settings_json": [
+        "tests/test_aio_nodes.py"
+      ],
+      "_aio_highres_effective_backend": [
+        "tests/test_aio_legacy_generation.py"
+      ],
+      "_aio_image_saver_additional_hashes": [
+        "tests/test_aio_output.py"
+      ],
+      "_aio_image_saver_civitai_hash_fetcher_entries": [
+        "tests/test_aio_output.py"
+      ],
+      "_aio_input_settings_json": [
+        "tests/test_aio_nodes.py"
+      ],
+      "_aio_lora_metadata_name": [
+        "tests/test_aio_output.py"
+      ],
+      "_aio_lora_stack_signature": [
+        "tests/test_aio_first_pass_cache.py",
+        "tests/test_aio_nodes.py"
+      ],
+      "_aio_preview_base_directory": [
+        "tests/test_aio_preview.py"
+      ],
+      "_aio_preview_file_size_bytes": [
+        "tests/test_aio_preview.py"
+      ],
+      "_aio_prompt_with_lora_metadata": [
+        "tests/test_aio_output.py"
+      ],
+      "_aio_save_filename_prefix": [
+        "tests/test_aio_legacy_generation.py"
+      ],
+      "_aio_usdu_auto_tile_dimension": [
+        "tests/test_node_contracts.py"
+      ],
+      "_aio_usdu_prompt_without_general": [
+        "tests/test_aio_conditioning.py"
+      ],
+      "_align_down": [
+        "tests/test_node_contracts.py"
+      ],
+      "_align_nearest": [
+        "tests/test_node_contracts.py"
+      ],
+      "_apply_aio_anima_dave_patch": [
+        "tests/test_aio_model_preparation.py",
+        "tests/test_aio_nodes.py"
+      ],
+      "_apply_aio_final_fit": [
+        "tests/test_aio_nodes.py",
+        "tests/test_node_contracts.py"
+      ],
+      "_apply_aio_kj_model_patches": [
+        "tests/test_aio_model_preparation.py",
+        "tests/test_aio_nodes.py"
+      ],
+      "_apply_aio_lora_stack": [
+        "tests/test_aio_legacy_generation.py",
+        "tests/test_aio_nodes.py"
+      ],
+      "_apply_aio_model_patches": [
+        "tests/test_aio_legacy_generation.py",
+        "tests/test_aio_nodes.py"
+      ],
+      "_apply_aio_safe_pag_patch": [
+        "tests/test_aio_model_preparation.py",
+        "tests/test_aio_nodes.py"
+      ],
+      "_apply_aio_spectrum_correction_patch_for_comfy_sampler": [
+        "tests/test_aio_model_preparation.py"
+      ],
+      "_apply_aio_spectrum_forecast_patch_for_comfy_sampler": [
+        "tests/test_aio_model_preparation.py"
+      ],
+      "_apply_aio_spectrum_model_patches_for_comfy_sampler": [
+        "tests/test_aio_legacy_generation.py",
+        "tests/test_aio_nodes.py"
+      ],
+      "_apply_lora_syntax_format": [
+        "tests/test_lora_preset.py"
+      ],
+      "_apply_spectrum_anima_mod_guidance": [
+        "tests/test_aio_legacy_generation.py",
+        "tests/test_aio_nodes.py"
+      ],
+      "_as_bool": [
+        "tests/test_aio_legacy_generation.py",
+        "tests/test_aio_output.py",
+        "tests/test_node_contracts.py"
+      ],
+      "_as_float": [
+        "tests/test_aio_output.py",
+        "tests/test_node_contracts.py"
+      ],
+      "_as_int": [
+        "tests/test_node_contracts.py"
+      ],
+      "_blend_conditionings": [
+        "tests/test_prompt_corrector.py"
+      ],
+      "_choice": [
+        "tests/test_aio_generation_settings.py",
+        "tests/test_aio_resources.py",
+        "tests/test_aio_schema_contract.py",
+        "tests/test_node_contracts.py"
+      ],
+      "_cleanup_aio_ephemeral_model": [
+        "tests/test_aio_legacy_generation.py",
+        "tests/test_aio_nodes.py"
+      ],
+      "_clone_aio_cache_value": [
+        "tests/test_aio_first_pass_cache.py"
+      ],
+      "_comfy_clip_loader_types": [
+        "tests/test_aio_nodes.py",
+        "tests/test_node_contracts.py"
+      ],
+      "_comfy_diffusion_model_names": [
+        "tests/test_aio_nodes.py",
+        "tests/test_node_contracts.py"
+      ],
+      "_comfy_sampler_names": [
+        "tests/test_aio_generation_migrations.py",
+        "tests/test_aio_generation_settings.py",
+        "tests/test_aio_schema_contract.py",
+        "tests/test_node_contracts.py"
+      ],
+      "_comfy_scheduler_names": [
+        "tests/test_aio_generation_migrations.py",
+        "tests/test_aio_generation_settings.py",
+        "tests/test_aio_nodes.py",
+        "tests/test_aio_schema_contract.py",
+        "tests/test_node_contracts.py"
+      ],
+      "_comfy_text_encoder_names": [
+        "tests/test_aio_nodes.py",
+        "tests/test_node_contracts.py"
+      ],
+      "_comfy_vae_names": [
+        "tests/test_aio_nodes.py",
+        "tests/test_node_contracts.py"
+      ],
+      "_common_upscale_image": [
+        "tests/test_node_contracts.py"
+      ],
+      "_copy_prompt_data_for_update": [
+        "tests/test_aio_nodes.py"
+      ],
+      "_correct_builder_prompt": [
+        "tests/test_node_contracts.py",
+        "tests/test_prompt_corrector.py"
+      ],
+      "_correct_style_prompt": [
+        "tests/test_lora_preset.py",
+        "tests/test_node_contracts.py"
+      ],
+      "_decode_latent_with_comfy": [
+        "tests/test_aio_legacy_generation.py",
+        "tests/test_aio_nodes.py"
+      ],
+      "_easy_use_anima_input_signature": [
+        "tests/test_aio_nodes.py"
+      ],
+      "_encode_artist_clustered": [
+        "tests/test_prompt_corrector.py"
+      ],
+      "_encode_artist_delta_rms": [
+        "tests/test_prompt_corrector.py"
+      ],
+      "_encode_image_with_comfy_vae": [
+        "tests/test_aio_legacy_generation.py",
+        "tests/test_aio_nodes.py"
+      ],
+      "_encode_prompt_data_positive_conditioning": [
+        "tests/test_aio_legacy_generation.py",
+        "tests/test_aio_nodes.py"
+      ],
+      "_fallback_lora_path": [
+        "tests/test_lora_preset.py"
+      ],
+      "_filter_metadata_prompt": [
+        "tests/test_node_contracts.py"
+      ],
+      "_find_spectrum_anima_mod_guidance_class": [
+        "tests/test_prompt_corrector.py"
+      ],
+      "_folder_path_names": [
+        "tests/test_comfy_adapters.py",
+        "tests/test_node_contracts.py"
+      ],
+      "_format_strength": [
+        "tests/test_aio_output.py"
+      ],
+      "_generate_empty_latent_with_comfy": [
+        "tests/test_aio_legacy_generation.py",
+        "tests/test_aio_nodes.py",
+        "tests/test_prompt_corrector.py"
+      ],
+      "_get_aio_first_pass_cache": [
+        "tests/test_aio_legacy_generation.py"
+      ],
+      "_get_lora_info": [
+        "tests/test_lora_preset.py",
+        "tests/test_node_contracts.py"
+      ],
+      "_get_workflow_node": [
+        "tests/test_node_contracts.py"
+      ],
+      "_image_tensor_size": [
+        "tests/test_aio_legacy_generation.py",
+        "tests/test_aio_preview.py",
+        "tests/test_node_contracts.py"
+      ],
+      "_impact_scheduler_names": [
+        "tests/test_aio_generation_migrations.py",
+        "tests/test_aio_generation_settings.py",
+        "tests/test_aio_schema_contract.py",
+        "tests/test_node_contracts.py"
+      ],
+      "_is_aio_detailer_target_name": [
+        "tests/test_node_contracts.py"
+      ],
+      "_join_prompt_tokens": [
+        "tests/test_node_contracts.py"
+      ],
+      "_json_clone": [
+        "tests/test_aio_nodes.py",
+        "tests/test_node_contracts.py"
+      ],
+      "_load_aio_resources_from_input_context": [
+        "tests/test_aio_legacy_generation.py",
+        "tests/test_aio_nodes.py"
+      ],
+      "_load_aio_sam3_context": [
+        "tests/test_aio_nodes.py"
+      ],
+      "_load_checkpoint_with_comfy": [
+        "tests/test_aio_resources.py",
+        "tests/test_sam3_nodes.py"
+      ],
+      "_load_clip_with_comfy": [
+        "tests/test_aio_resources.py"
+      ],
+      "_load_diffusion_model_with_comfy": [
+        "tests/test_aio_resources.py"
+      ],
+      "_load_upscale_model_with_comfy": [
+        "tests/test_aio_nodes.py"
+      ],
+      "_load_vae_with_comfy": [
+        "tests/test_aio_resources.py"
+      ],
+      "_lora_combo_values": [
+        "tests/test_node_contracts.py"
+      ],
+      "_lora_model_exists": [
+        "tests/test_lora_preset.py",
+        "tests/test_node_contracts.py"
+      ],
+      "_merge_versioned_settings": [
+        "tests/test_node_contracts.py"
+      ],
+      "_new_aio_random_seed": [
+        "tests/test_node_contracts.py"
+      ],
+      "_node_output_tuple": [
+        "tests/test_aio_resources.py"
+      ],
+      "_normalize_aio_generation_settings": [
+        "tests/test_aio_legacy_generation.py",
+        "tests/test_aio_nodes.py"
+      ],
+      "_normalize_aio_hash_bundles": [
+        "tests/test_aio_output.py"
+      ],
+      "_normalize_aio_input_settings": [
+        "tests/test_aio_nodes.py",
+        "tests/test_aio_resources.py"
+      ],
+      "_normalize_aio_lora_stack": [
+        "tests/test_node_contracts.py"
+      ],
+      "_normalize_aio_seed": [
+        "tests/test_node_contracts.py"
+      ],
+      "_normalize_anima_mod_guidance_profile": [
+        "tests/test_aio_legacy_generation.py"
+      ],
+      "_normalize_prompt_data": [
+        "tests/test_aio_legacy_generation.py",
+        "tests/test_aio_nodes.py"
+      ],
+      "_patch_model_sampling_aura_flow": [
+        "tests/test_aio_model_preparation.py",
+        "tests/test_aio_nodes.py"
+      ],
+      "_post_random": [
+        "tests/test_naia_settings.py",
+        "tests/test_node_contracts.py",
+        "tests/test_prompt_corrector.py"
+      ],
+      "_preferred_clip_type_default": [
+        "tests/test_aio_nodes.py"
+      ],
+      "_preferred_name_default": [
+        "tests/test_aio_nodes.py"
+      ],
+      "_prompt_data_json_safe": [
+        "tests/test_aio_first_pass_cache.py",
+        "tests/test_aio_legacy_generation.py",
+        "tests/test_aio_nodes.py",
+        "tests/test_aio_preview.py"
+      ],
+      "_prompt_tokens": [
+        "tests/test_node_contracts.py"
+      ],
+      "_prompt_translation_change_key": [
+        "tests/test_node_contracts.py"
+      ],
+      "_put_aio_first_pass_cache": [
+        "tests/test_aio_legacy_generation.py"
+      ],
+      "_require_easy_use_anima_input": [
+        "tests/test_aio_legacy_generation.py"
+      ],
+      "_resize_image_to_size_if_needed": [
+        "tests/test_aio_legacy_generation.py",
+        "tests/test_aio_nodes.py",
+        "tests/test_node_contracts.py"
+      ],
+      "_resolve_aio_runtime_seed": [
+        "tests/test_aio_legacy_generation.py",
+        "tests/test_aio_nodes.py",
+        "tests/test_aio_output.py",
+        "tests/test_aio_sampling.py"
+      ],
+      "_resolve_anima_mod_guidance_enabled": [
+        "tests/test_aio_legacy_generation.py"
+      ],
+      "_run_aio_detailer_stage": [
+        "tests/test_aio_legacy_generation.py",
+        "tests/test_aio_nodes.py"
+      ],
+      "_run_aio_detailer_target": [
+        "tests/test_aio_nodes.py"
+      ],
+      "_run_aio_highres_stage": [
+        "tests/test_aio_legacy_generation.py",
+        "tests/test_aio_nodes.py"
+      ],
+      "_run_aio_legacy_generation": [
+        "tests/test_aio_legacy_generation.py"
+      ],
+      "_run_aio_postprocess_stage": [
+        "tests/test_aio_legacy_generation.py",
+        "tests/test_aio_nodes.py"
+      ],
+      "_run_aio_upscale_stage": [
+        "tests/test_aio_legacy_generation.py",
+        "tests/test_aio_nodes.py"
+      ],
+      "_sam3_context": [
+        "tests/test_aio_resources.py"
+      ],
+      "_sample_latent_with_aio_backend": [
+        "tests/test_aio_legacy_generation.py",
+        "tests/test_aio_nodes.py"
+      ],
+      "_sample_latent_with_comfy": [
+        "tests/test_aio_nodes.py"
+      ],
+      "_sample_latent_with_spectrum_mod_guidance_advanced": [
+        "tests/test_aio_nodes.py"
+      ],
+      "_sample_latent_with_spectrum_spd": [
+        "tests/test_aio_nodes.py"
+      ],
+      "_save_aio_temp_preview_image": [
+        "tests/test_aio_legacy_generation.py",
+        "tests/test_aio_nodes.py"
+      ],
+      "_save_image_with_comfy": [
+        "tests/test_aio_legacy_generation.py"
+      ],
+      "_save_image_with_image_saver": [
+        "tests/test_aio_nodes.py"
+      ],
+      "_send_aio_preview_event": [
+        "tests/test_aio_legacy_generation.py",
+        "tests/test_aio_nodes.py"
+      ],
+      "_single_value": [
+        "tests/test_aio_legacy_generation.py",
+        "tests/test_aio_preview.py"
+      ],
+      "_stable_change_key": [
+        "tests/test_aio_first_pass_cache.py",
+        "tests/test_aio_nodes.py",
+        "tests/test_node_contracts.py"
+      ],
+      "_tag_aio_preview_images": [
+        "tests/test_aio_legacy_generation.py",
+        "tests/test_aio_preview.py"
+      ],
+      "_translate_prompt_text": [
+        "tests/test_node_contracts.py"
+      ],
+      "ceil": [
+        "tests/test_node_contracts.py"
+      ],
+      "correct_prompt": [
+        "tests/test_node_contracts.py"
+      ],
+      "expand_wildcard_texts": [
+        "tests/test_wildcards.py"
+      ],
+      "expand_wildcards": [
+        "tests/test_wildcards.py"
+      ],
+      "has_prompt_translation_markers": [
+        "tests/test_node_contracts.py"
+      ],
+      "json": [
+        "tests/test_node_contracts.py"
+      ],
+      "load_knowledge_base": [
+        "tests/test_node_contracts.py"
+      ],
+      "logger": [
+        "tests/test_node_contracts.py"
+      ],
+      "next_seed": [
+        "tests/test_prompt_studio_regional.py"
+      ],
+      "parse_prompt": [
+        "tests/test_node_contracts.py"
+      ],
+      "random": [
+        "tests/test_aio_legacy_generation.py",
+        "tests/test_node_contracts.py"
+      ],
+      "resolve_metadata_filter_words": [
+        "tests/test_node_contracts.py",
+        "tests/test_prompt_corrector.py"
+      ],
+      "resolve_naia_settings": [
+        "tests/test_naia_settings.py",
+        "tests/test_node_contracts.py",
+        "tests/test_prompt_corrector.py"
+      ],
+      "resolve_prompt_translation_settings": [
+        "tests/test_node_contracts.py",
+        "tests/test_prompt_corrector.py"
+      ],
+      "sqrt": [
+        "tests/test_node_contracts.py"
+      ],
+      "translate_prompt_markers": [
+        "tests/test_node_contracts.py"
+      ],
+      "wildcard_sources_signature": [
+        "tests/test_node_contracts.py"
+      ]
+    },
+    "entries": [
+      {
+        "binder": "_bind_aio_first_pass_cache_runtime",
+        "module": "easyuse_anima.aio.first_pass_cache",
+        "family": "aio",
+        "mode": "root_globals",
+        "root_observation": "call_time_resolver",
+        "root_keywords": [
+          "resolve_helper"
+        ],
+        "bound_globals": [
+          "_RUNTIME_RESOLVER"
+        ],
+        "direct_root_dependencies": [],
+        "resolver_names": [
+          "AIO_FIRST_PASS_CACHE_MAX_ENTRIES",
+          "_AIO_FIRST_PASS_CACHE",
+          "_AIO_FIRST_PASS_CACHE_ORDER",
+          "_aio_lora_stack_signature",
+          "_clone_aio_cache_value",
+          "_prompt_data_json_safe",
+          "_stable_change_key"
+        ],
+        "root_resolver_names": [
+          "AIO_FIRST_PASS_CACHE_MAX_ENTRIES",
+          "_AIO_FIRST_PASS_CACHE",
+          "_AIO_FIRST_PASS_CACHE_ORDER",
+          "_aio_lora_stack_signature",
+          "_clone_aio_cache_value",
+          "_prompt_data_json_safe",
+          "_stable_change_key"
+        ],
+        "provider_resolver_names": [],
+        "repository_replacement_names": [
+          "AIO_FIRST_PASS_CACHE_MAX_ENTRIES",
+          "_AIO_FIRST_PASS_CACHE",
+          "_AIO_FIRST_PASS_CACHE_ORDER",
+          "_aio_lora_stack_signature",
+          "_clone_aio_cache_value",
+          "_prompt_data_json_safe",
+          "_stable_change_key"
+        ]
+      },
+      {
+        "binder": "_bind_aio_legacy_generation_runtime",
+        "module": "easyuse_anima.aio.legacy_generation",
+        "family": "aio",
+        "mode": "comfy_provider_then_root",
+        "root_observation": "call_time_resolver",
+        "root_keywords": [
+          "resolve_helper"
+        ],
+        "bound_globals": [
+          "_RUNTIME_RESOLVER"
+        ],
+        "direct_root_dependencies": [
+          "_resolve_comfy_host_helper"
+        ],
+        "resolver_names": [
+          "AIO_USDU_PROMPT_FULL",
+          "ANIMA_MOD_GUIDANCE_PROFILE_OFF",
+          "EasyUseAnimaImageScaleByMultiple",
+          "EasyUseAnimaSAM3Detailer",
+          "_advanced_outputs_from_prompt_data",
+          "_aio_detailer_has_enabled_targets",
+          "_aio_detailer_target_order",
+          "_aio_first_pass_cache_key",
+          "_aio_highres_effective_backend",
+          "_aio_save_filename_prefix",
+          "_aio_stage_sampler_settings",
+          "_aio_usdu_conditioning",
+          "_aio_usdu_tile_plan",
+          "_apply_aio_lora_stack",
+          "_apply_aio_model_patches",
+          "_apply_aio_spectrum_model_patches_for_comfy_sampler",
+          "_apply_spectrum_anima_mod_guidance",
+          "_as_bool",
+          "_as_float",
+          "_as_int",
+          "_cleanup_aio_ephemeral_model",
+          "_context_value",
+          "_decode_latent_with_comfy",
+          "_encode_image_with_comfy_vae",
+          "_encode_prompt_data_positive_conditioning",
+          "_encode_with_comfy_clip",
+          "_generate_empty_latent_with_comfy",
+          "_get_aio_first_pass_cache",
+          "_image_tensor_size",
+          "_load_aio_resources_from_input_context",
+          "_load_aio_sam3_context",
+          "_load_upscale_model_with_comfy",
+          "_node_output_tuple",
+          "_normalize_aio_generation_settings",
+          "_normalize_anima_mod_guidance_profile",
+          "_normalize_prompt_data",
+          "_prompt_data_json_safe",
+          "_put_aio_first_pass_cache",
+          "_require_custom_node_class",
+          "_require_easy_use_anima_input",
+          "_resize_image_to_size_if_needed",
+          "_resolve_aio_runtime_seed",
+          "_resolve_anima_mod_guidance_enabled",
+          "_run_aio_detailer_stage",
+          "_run_aio_detailer_target",
+          "_run_aio_highres_stage",
+          "_run_aio_postprocess_stage",
+          "_run_aio_resshift_upscale_stage",
+          "_run_aio_upscale_stage",
+          "_run_aio_usdu_upscale_stage",
+          "_sample_latent_with_aio_backend",
+          "_save_aio_temp_preview_image",
+          "_save_image_with_comfy",
+          "_save_image_with_image_saver",
+          "_segs_has_items",
+          "_send_aio_preview_event",
+          "_single_value",
+          "_tag_aio_preview_images",
+          "json",
+          "logger",
+          "random"
+        ],
+        "root_resolver_names": [
+          "AIO_USDU_PROMPT_FULL",
+          "ANIMA_MOD_GUIDANCE_PROFILE_OFF",
+          "EasyUseAnimaImageScaleByMultiple",
+          "EasyUseAnimaSAM3Detailer",
+          "_advanced_outputs_from_prompt_data",
+          "_aio_detailer_has_enabled_targets",
+          "_aio_detailer_target_order",
+          "_aio_first_pass_cache_key",
+          "_aio_highres_effective_backend",
+          "_aio_save_filename_prefix",
+          "_aio_stage_sampler_settings",
+          "_aio_usdu_conditioning",
+          "_aio_usdu_tile_plan",
+          "_apply_aio_lora_stack",
+          "_apply_aio_model_patches",
+          "_apply_aio_spectrum_model_patches_for_comfy_sampler",
+          "_apply_spectrum_anima_mod_guidance",
+          "_as_bool",
+          "_as_float",
+          "_as_int",
+          "_cleanup_aio_ephemeral_model",
+          "_context_value",
+          "_decode_latent_with_comfy",
+          "_encode_image_with_comfy_vae",
+          "_encode_prompt_data_positive_conditioning",
+          "_generate_empty_latent_with_comfy",
+          "_get_aio_first_pass_cache",
+          "_image_tensor_size",
+          "_load_aio_resources_from_input_context",
+          "_load_aio_sam3_context",
+          "_load_upscale_model_with_comfy",
+          "_node_output_tuple",
+          "_normalize_aio_generation_settings",
+          "_normalize_anima_mod_guidance_profile",
+          "_normalize_prompt_data",
+          "_prompt_data_json_safe",
+          "_put_aio_first_pass_cache",
+          "_require_easy_use_anima_input",
+          "_resize_image_to_size_if_needed",
+          "_resolve_aio_runtime_seed",
+          "_resolve_anima_mod_guidance_enabled",
+          "_run_aio_detailer_stage",
+          "_run_aio_detailer_target",
+          "_run_aio_highres_stage",
+          "_run_aio_postprocess_stage",
+          "_run_aio_resshift_upscale_stage",
+          "_run_aio_upscale_stage",
+          "_run_aio_usdu_upscale_stage",
+          "_sample_latent_with_aio_backend",
+          "_save_aio_temp_preview_image",
+          "_save_image_with_comfy",
+          "_save_image_with_image_saver",
+          "_segs_has_items",
+          "_send_aio_preview_event",
+          "_single_value",
+          "_tag_aio_preview_images",
+          "json",
+          "logger",
+          "random"
+        ],
+        "provider_resolver_names": [
+          "_encode_with_comfy_clip",
+          "_require_custom_node_class"
+        ],
+        "repository_replacement_names": [
+          "_advanced_outputs_from_prompt_data",
+          "_aio_detailer_has_enabled_targets",
+          "_aio_detailer_target_order",
+          "_aio_first_pass_cache_key",
+          "_aio_highres_effective_backend",
+          "_aio_save_filename_prefix",
+          "_apply_aio_lora_stack",
+          "_apply_aio_model_patches",
+          "_apply_aio_spectrum_model_patches_for_comfy_sampler",
+          "_apply_spectrum_anima_mod_guidance",
+          "_as_bool",
+          "_as_float",
+          "_as_int",
+          "_cleanup_aio_ephemeral_model",
+          "_decode_latent_with_comfy",
+          "_encode_image_with_comfy_vae",
+          "_encode_prompt_data_positive_conditioning",
+          "_generate_empty_latent_with_comfy",
+          "_get_aio_first_pass_cache",
+          "_image_tensor_size",
+          "_load_aio_resources_from_input_context",
+          "_load_aio_sam3_context",
+          "_load_upscale_model_with_comfy",
+          "_node_output_tuple",
+          "_normalize_aio_generation_settings",
+          "_normalize_anima_mod_guidance_profile",
+          "_normalize_prompt_data",
+          "_prompt_data_json_safe",
+          "_put_aio_first_pass_cache",
+          "_require_easy_use_anima_input",
+          "_resize_image_to_size_if_needed",
+          "_resolve_aio_runtime_seed",
+          "_resolve_anima_mod_guidance_enabled",
+          "_run_aio_detailer_stage",
+          "_run_aio_detailer_target",
+          "_run_aio_highres_stage",
+          "_run_aio_postprocess_stage",
+          "_run_aio_upscale_stage",
+          "_sample_latent_with_aio_backend",
+          "_save_aio_temp_preview_image",
+          "_save_image_with_comfy",
+          "_save_image_with_image_saver",
+          "_send_aio_preview_event",
+          "_single_value",
+          "_tag_aio_preview_images",
+          "json",
+          "logger",
+          "random"
+        ]
+      },
+      {
+        "binder": "_bind_aio_generation_normalization_runtime",
+        "module": "easyuse_anima.aio.generation_normalization",
+        "family": "aio",
+        "mode": "comfy_provider_then_root",
+        "root_observation": "call_time_resolver",
+        "root_keywords": [
+          "resolve_helper"
+        ],
+        "bound_globals": [
+          "_RUNTIME_RESOLVER"
+        ],
+        "direct_root_dependencies": [
+          "_resolve_comfy_host_helper"
+        ],
+        "resolver_names": [
+          "AIO_FINAL_FIT_MODES",
+          "AIO_FINAL_UPSCALE_BACKENDS",
+          "AIO_GENERATION_DEFAULT_SETTINGS",
+          "AIO_GENERATION_SETTINGS_SCHEMA",
+          "AIO_GENERATION_SETTINGS_VERSION",
+          "AIO_RESHIFT_DTYPES",
+          "AIO_RESHIFT_SCALES",
+          "AIO_SPECIAL_SEED_DECREMENT",
+          "AIO_USDU_MODE_TYPES",
+          "AIO_USDU_PROMPT_MODES",
+          "AIO_USDU_PROMPT_NO_GENERAL",
+          "AIO_USDU_SEAM_FIX_MODES",
+          "ANIMA_MOD_GUIDANCE_DEFAULT_PROFILE",
+          "ANIMA_MOD_GUIDANCE_MODES",
+          "ANIMA_MOD_GUIDANCE_MODE_FROM_PROMPT_DATA",
+          "ARTIST_MIX_DEFAULT_CLUSTER_COUNT",
+          "ARTIST_MIX_DEFAULT_DOMINANT_ISOLATION",
+          "ARTIST_MIX_DEFAULT_DOMINANT_THRESHOLD",
+          "ARTIST_MIX_DEFAULT_EXACT_TOP_K",
+          "ARTIST_MIX_DEFAULT_RMS_SCALE_CAP",
+          "ARTIST_MIX_DEFAULT_START_PERCENT",
+          "ARTIST_MIX_DEFAULT_STRENGTH_SCALE",
+          "ARTIST_MIX_DEFAULT_STYLE_GAIN",
+          "ARTIST_MIX_INPUT_MODES",
+          "ARTIST_MIX_MODE_FROM_PROMPT_DATA",
+          "IMAGE_SCALE_MULTIPLES",
+          "IMAGE_UPSCALE_METHODS",
+          "MAX_SEED",
+          "SEED_CONTROL_FIXED",
+          "SEED_CONTROL_MODES",
+          "_AIO_DETAILER_CUSTOM_RE",
+          "_AIO_DETAILER_RESERVED_KEYS",
+          "_aio_detailer_target_defaults",
+          "_aio_detailer_target_order",
+          "_as_bool",
+          "_as_float",
+          "_as_int",
+          "_bounded_artist_mix_float",
+          "_bounded_artist_mix_int",
+          "_choice",
+          "_comfy_max_resolution",
+          "_comfy_sampler_names",
+          "_comfy_scheduler_names",
+          "_impact_scheduler_names",
+          "_is_aio_detailer_target_name",
+          "_json_clone",
+          "_json_object",
+          "_normalize_aio_civitai_hash_fetchers",
+          "_normalize_aio_dit_corrections_settings",
+          "_normalize_aio_hash_bundles",
+          "_normalize_aio_seed",
+          "_normalize_aio_spectrum_settings",
+          "_normalize_anima_mod_guidance_profile",
+          "_prompt_data_json_safe",
+          "_round_trip_aio_generation_settings"
+        ],
+        "root_resolver_names": [
+          "AIO_FINAL_FIT_MODES",
+          "AIO_FINAL_UPSCALE_BACKENDS",
+          "AIO_GENERATION_DEFAULT_SETTINGS",
+          "AIO_GENERATION_SETTINGS_SCHEMA",
+          "AIO_GENERATION_SETTINGS_VERSION",
+          "AIO_RESHIFT_DTYPES",
+          "AIO_RESHIFT_SCALES",
+          "AIO_SPECIAL_SEED_DECREMENT",
+          "AIO_USDU_MODE_TYPES",
+          "AIO_USDU_PROMPT_MODES",
+          "AIO_USDU_PROMPT_NO_GENERAL",
+          "AIO_USDU_SEAM_FIX_MODES",
+          "ANIMA_MOD_GUIDANCE_DEFAULT_PROFILE",
+          "ANIMA_MOD_GUIDANCE_MODES",
+          "ANIMA_MOD_GUIDANCE_MODE_FROM_PROMPT_DATA",
+          "ARTIST_MIX_DEFAULT_CLUSTER_COUNT",
+          "ARTIST_MIX_DEFAULT_DOMINANT_ISOLATION",
+          "ARTIST_MIX_DEFAULT_DOMINANT_THRESHOLD",
+          "ARTIST_MIX_DEFAULT_EXACT_TOP_K",
+          "ARTIST_MIX_DEFAULT_RMS_SCALE_CAP",
+          "ARTIST_MIX_DEFAULT_START_PERCENT",
+          "ARTIST_MIX_DEFAULT_STRENGTH_SCALE",
+          "ARTIST_MIX_DEFAULT_STYLE_GAIN",
+          "ARTIST_MIX_INPUT_MODES",
+          "ARTIST_MIX_MODE_FROM_PROMPT_DATA",
+          "IMAGE_SCALE_MULTIPLES",
+          "IMAGE_UPSCALE_METHODS",
+          "MAX_SEED",
+          "SEED_CONTROL_FIXED",
+          "SEED_CONTROL_MODES",
+          "_AIO_DETAILER_CUSTOM_RE",
+          "_AIO_DETAILER_RESERVED_KEYS",
+          "_aio_detailer_target_defaults",
+          "_aio_detailer_target_order",
+          "_as_bool",
+          "_as_float",
+          "_as_int",
+          "_bounded_artist_mix_float",
+          "_bounded_artist_mix_int",
+          "_choice",
+          "_comfy_sampler_names",
+          "_comfy_scheduler_names",
+          "_impact_scheduler_names",
+          "_is_aio_detailer_target_name",
+          "_json_clone",
+          "_json_object",
+          "_normalize_aio_civitai_hash_fetchers",
+          "_normalize_aio_dit_corrections_settings",
+          "_normalize_aio_hash_bundles",
+          "_normalize_aio_seed",
+          "_normalize_aio_spectrum_settings",
+          "_normalize_anima_mod_guidance_profile",
+          "_prompt_data_json_safe",
+          "_round_trip_aio_generation_settings"
+        ],
+        "provider_resolver_names": [
+          "_comfy_max_resolution"
+        ],
+        "repository_replacement_names": [
+          "AIO_GENERATION_DEFAULT_SETTINGS",
+          "AIO_SPECIAL_SEED_DECREMENT",
+          "MAX_SEED",
+          "_AIO_DETAILER_CUSTOM_RE",
+          "_AIO_DETAILER_RESERVED_KEYS",
+          "_aio_detailer_target_order",
+          "_as_bool",
+          "_as_float",
+          "_as_int",
+          "_choice",
+          "_comfy_sampler_names",
+          "_comfy_scheduler_names",
+          "_impact_scheduler_names",
+          "_is_aio_detailer_target_name",
+          "_json_clone",
+          "_normalize_aio_hash_bundles",
+          "_normalize_aio_seed",
+          "_normalize_anima_mod_guidance_profile",
+          "_prompt_data_json_safe"
+        ]
+      },
+      {
+        "binder": "_bind_aio_usdu_planning_runtime",
+        "module": "easyuse_anima.aio.usdu",
+        "family": "aio",
+        "mode": "root_globals",
+        "root_observation": "call_time_resolver",
+        "root_keywords": [
+          "resolve_helper"
+        ],
+        "bound_globals": [
+          "_RUNTIME_RESOLVER"
+        ],
+        "direct_root_dependencies": [],
+        "resolver_names": [
+          "_aio_usdu_auto_tile_dimension",
+          "_align_nearest",
+          "_as_bool",
+          "_as_int",
+          "_image_tensor_size",
+          "ceil"
+        ],
+        "root_resolver_names": [
+          "_aio_usdu_auto_tile_dimension",
+          "_align_nearest",
+          "_as_bool",
+          "_as_int",
+          "_image_tensor_size",
+          "ceil"
+        ],
+        "provider_resolver_names": [],
+        "repository_replacement_names": [
+          "_aio_usdu_auto_tile_dimension",
+          "_align_nearest",
+          "_as_bool",
+          "_as_int",
+          "_image_tensor_size",
+          "ceil"
+        ]
+      },
+      {
+        "binder": "_bind_aio_postprocess_runtime",
+        "module": "easyuse_anima.aio.postprocess",
+        "family": "aio",
+        "mode": "root_globals",
+        "root_observation": "call_time_resolver",
+        "root_keywords": [
+          "resolve_helper"
+        ],
+        "bound_globals": [
+          "_RUNTIME_RESOLVER"
+        ],
+        "direct_root_dependencies": [],
+        "resolver_names": [
+          "LATENT_ALIGN",
+          "_aio_final_fit_size",
+          "_align_down",
+          "_apply_aio_final_fit",
+          "_as_bool",
+          "_as_float",
+          "_as_int",
+          "_common_upscale_image",
+          "_image_tensor_size",
+          "_resize_image_to_size_if_needed",
+          "logger",
+          "sqrt"
+        ],
+        "root_resolver_names": [
+          "LATENT_ALIGN",
+          "_aio_final_fit_size",
+          "_align_down",
+          "_apply_aio_final_fit",
+          "_as_bool",
+          "_as_float",
+          "_as_int",
+          "_common_upscale_image",
+          "_image_tensor_size",
+          "_resize_image_to_size_if_needed",
+          "logger",
+          "sqrt"
+        ],
+        "provider_resolver_names": [],
+        "repository_replacement_names": [
+          "LATENT_ALIGN",
+          "_aio_final_fit_size",
+          "_align_down",
+          "_apply_aio_final_fit",
+          "_as_bool",
+          "_as_float",
+          "_as_int",
+          "_common_upscale_image",
+          "_image_tensor_size",
+          "_resize_image_to_size_if_needed",
+          "logger",
+          "sqrt"
+        ]
+      },
+      {
+        "binder": "_bind_aio_resource_runtime",
+        "module": "easyuse_anima.aio.resources",
+        "family": "aio",
+        "mode": "comfy_provider_then_root",
+        "root_observation": "call_time_resolver",
+        "root_keywords": [
+          "resolve_helper"
+        ],
+        "bound_globals": [
+          "_RUNTIME_RESOLVER"
+        ],
+        "direct_root_dependencies": [
+          "_resolve_comfy_host_helper"
+        ],
+        "resolver_names": [
+          "AIO_INPUT_DEFAULT_SETTINGS",
+          "ANIMA_CLIP_DEVICES",
+          "ANIMA_CLIP_TYPES",
+          "ANIMA_DEFAULT_CLIP_CANDIDATES",
+          "ANIMA_DEFAULT_DIFFUSION_MODEL_CANDIDATES",
+          "ANIMA_DEFAULT_VAE_CANDIDATES",
+          "ANIMA_UNET_WEIGHT_DTYPES",
+          "EASY_USE_ANIMA_INPUT_SCHEMA",
+          "EASY_USE_ANIMA_INPUT_SETTINGS_VERSION",
+          "_adapter_comfy_clip_loader_types",
+          "_adapter_comfy_diffusion_model_names",
+          "_adapter_comfy_text_encoder_names",
+          "_adapter_comfy_vae_names",
+          "_as_int",
+          "_choice",
+          "_find_comfy_node_class",
+          "_folder_path_names",
+          "_load_checkpoint_with_comfy",
+          "_load_clip_with_comfy",
+          "_load_diffusion_model_with_comfy",
+          "_load_vae_with_comfy",
+          "_merge_versioned_settings",
+          "_node_output_tuple",
+          "_normalize_aio_input_settings",
+          "_sam3_context"
+        ],
+        "root_resolver_names": [
+          "AIO_INPUT_DEFAULT_SETTINGS",
+          "ANIMA_CLIP_DEVICES",
+          "ANIMA_CLIP_TYPES",
+          "ANIMA_DEFAULT_CLIP_CANDIDATES",
+          "ANIMA_DEFAULT_DIFFUSION_MODEL_CANDIDATES",
+          "ANIMA_DEFAULT_VAE_CANDIDATES",
+          "ANIMA_UNET_WEIGHT_DTYPES",
+          "EASY_USE_ANIMA_INPUT_SCHEMA",
+          "EASY_USE_ANIMA_INPUT_SETTINGS_VERSION",
+          "_adapter_comfy_clip_loader_types",
+          "_adapter_comfy_diffusion_model_names",
+          "_adapter_comfy_text_encoder_names",
+          "_adapter_comfy_vae_names",
+          "_as_int",
+          "_choice",
+          "_folder_path_names",
+          "_load_checkpoint_with_comfy",
+          "_load_clip_with_comfy",
+          "_load_diffusion_model_with_comfy",
+          "_load_vae_with_comfy",
+          "_merge_versioned_settings",
+          "_node_output_tuple",
+          "_normalize_aio_input_settings",
+          "_sam3_context"
+        ],
+        "provider_resolver_names": [
+          "_find_comfy_node_class"
+        ],
+        "repository_replacement_names": [
+          "AIO_INPUT_DEFAULT_SETTINGS",
+          "ANIMA_CLIP_DEVICES",
+          "ANIMA_CLIP_TYPES",
+          "ANIMA_DEFAULT_CLIP_CANDIDATES",
+          "ANIMA_DEFAULT_DIFFUSION_MODEL_CANDIDATES",
+          "ANIMA_DEFAULT_VAE_CANDIDATES",
+          "ANIMA_UNET_WEIGHT_DTYPES",
+          "EASY_USE_ANIMA_INPUT_SCHEMA",
+          "EASY_USE_ANIMA_INPUT_SETTINGS_VERSION",
+          "_adapter_comfy_clip_loader_types",
+          "_adapter_comfy_diffusion_model_names",
+          "_adapter_comfy_text_encoder_names",
+          "_adapter_comfy_vae_names",
+          "_as_int",
+          "_choice",
+          "_folder_path_names",
+          "_load_checkpoint_with_comfy",
+          "_load_clip_with_comfy",
+          "_load_diffusion_model_with_comfy",
+          "_load_vae_with_comfy",
+          "_merge_versioned_settings",
+          "_node_output_tuple",
+          "_normalize_aio_input_settings",
+          "_sam3_context"
+        ]
+      },
+      {
+        "binder": "_bind_aio_model_preparation_runtime",
+        "module": "easyuse_anima.aio.model_preparation",
+        "family": "aio",
+        "mode": "comfy_provider_then_root",
+        "root_observation": "call_time_resolver",
+        "root_keywords": [
+          "resolve_helper"
+        ],
+        "bound_globals": [
+          "_RUNTIME_RESOLVER"
+        ],
+        "direct_root_dependencies": [
+          "_resolve_comfy_host_helper"
+        ],
+        "resolver_names": [
+          "_apply_aio_anima_dave_patch",
+          "_apply_aio_kj_model_patches",
+          "_apply_aio_safe_pag_patch",
+          "_apply_aio_spectrum_correction_patch_for_comfy_sampler",
+          "_apply_aio_spectrum_forecast_patch_for_comfy_sampler",
+          "_as_bool",
+          "_as_float",
+          "_as_int",
+          "_call_with_supported_kwargs",
+          "_find_comfy_node_class",
+          "_lora_stack_name",
+          "_node_output_tuple",
+          "_normalize_aio_lora_stack",
+          "_patch_model_sampling_aura_flow",
+          "_require_any_custom_node_class",
+          "_require_custom_node_class",
+          "logger"
+        ],
+        "root_resolver_names": [
+          "_apply_aio_anima_dave_patch",
+          "_apply_aio_kj_model_patches",
+          "_apply_aio_safe_pag_patch",
+          "_apply_aio_spectrum_correction_patch_for_comfy_sampler",
+          "_apply_aio_spectrum_forecast_patch_for_comfy_sampler",
+          "_as_bool",
+          "_as_float",
+          "_as_int",
+          "_call_with_supported_kwargs",
+          "_lora_stack_name",
+          "_node_output_tuple",
+          "_normalize_aio_lora_stack",
+          "_patch_model_sampling_aura_flow",
+          "logger"
+        ],
+        "provider_resolver_names": [
+          "_find_comfy_node_class",
+          "_require_any_custom_node_class",
+          "_require_custom_node_class"
+        ],
+        "repository_replacement_names": [
+          "_apply_aio_anima_dave_patch",
+          "_apply_aio_kj_model_patches",
+          "_apply_aio_safe_pag_patch",
+          "_apply_aio_spectrum_correction_patch_for_comfy_sampler",
+          "_apply_aio_spectrum_forecast_patch_for_comfy_sampler",
+          "_as_bool",
+          "_as_float",
+          "_as_int",
+          "_node_output_tuple",
+          "_normalize_aio_lora_stack",
+          "_patch_model_sampling_aura_flow",
+          "logger"
+        ]
+      },
+      {
+        "binder": "_bind_aio_sampling_runtime",
+        "module": "easyuse_anima.aio.sampling",
+        "family": "aio",
+        "mode": "comfy_provider_then_root",
+        "root_observation": "call_time_resolver",
+        "root_keywords": [
+          "resolve_helper"
+        ],
+        "bound_globals": [
+          "_RUNTIME_RESOLVER"
+        ],
+        "direct_root_dependencies": [
+          "_resolve_comfy_host_helper"
+        ],
+        "resolver_names": [
+          "AIO_SPECIAL_SEEDS",
+          "ANIMA_MOD_GUIDANCE_DEFAULT_PROFILE",
+          "ANIMA_MOD_GUIDANCE_PROFILE_OFF",
+          "MAX_SEED",
+          "SEED_CONTROL_FIXED",
+          "_as_bool",
+          "_as_float",
+          "_as_int",
+          "_call_with_supported_kwargs",
+          "_find_comfy_node_class",
+          "_json_clone",
+          "_new_aio_random_seed",
+          "_node_output_tuple",
+          "_normalize_aio_seed",
+          "_normalize_anima_mod_guidance_profile",
+          "_require_custom_node_class",
+          "_resolve_aio_runtime_seed",
+          "_sample_latent_with_comfy",
+          "_sample_latent_with_spectrum_mod_guidance_advanced",
+          "_sample_latent_with_spectrum_spd",
+          "random"
+        ],
+        "root_resolver_names": [
+          "AIO_SPECIAL_SEEDS",
+          "ANIMA_MOD_GUIDANCE_DEFAULT_PROFILE",
+          "ANIMA_MOD_GUIDANCE_PROFILE_OFF",
+          "MAX_SEED",
+          "SEED_CONTROL_FIXED",
+          "_as_bool",
+          "_as_float",
+          "_as_int",
+          "_call_with_supported_kwargs",
+          "_json_clone",
+          "_new_aio_random_seed",
+          "_node_output_tuple",
+          "_normalize_aio_seed",
+          "_normalize_anima_mod_guidance_profile",
+          "_resolve_aio_runtime_seed",
+          "_sample_latent_with_comfy",
+          "_sample_latent_with_spectrum_mod_guidance_advanced",
+          "_sample_latent_with_spectrum_spd",
+          "random"
+        ],
+        "provider_resolver_names": [
+          "_find_comfy_node_class",
+          "_require_custom_node_class"
+        ],
+        "repository_replacement_names": [
+          "AIO_SPECIAL_SEEDS",
+          "MAX_SEED",
+          "_as_bool",
+          "_as_float",
+          "_as_int",
+          "_json_clone",
+          "_new_aio_random_seed",
+          "_node_output_tuple",
+          "_normalize_aio_seed",
+          "_normalize_anima_mod_guidance_profile",
+          "_resolve_aio_runtime_seed",
+          "_sample_latent_with_comfy",
+          "_sample_latent_with_spectrum_mod_guidance_advanced",
+          "_sample_latent_with_spectrum_spd",
+          "random"
+        ]
+      },
+      {
+        "binder": "_bind_aio_preview_runtime",
+        "module": "easyuse_anima.aio.preview",
+        "family": "aio",
+        "mode": "comfy_provider_then_root",
+        "root_observation": "call_time_resolver",
+        "root_keywords": [
+          "resolve_helper"
+        ],
+        "bound_globals": [
+          "_RUNTIME_RESOLVER"
+        ],
+        "direct_root_dependencies": [
+          "_resolve_comfy_host_helper"
+        ],
+        "resolver_names": [
+          "AIO_PREVIEW_CACHE_FORMAT",
+          "AIO_PREVIEW_CACHE_QUALITY",
+          "AIO_PREVIEW_EVENT",
+          "AIO_PREVIEW_STAGE_LABELS",
+          "_aio_preview_base_directory",
+          "_aio_preview_file_size_bytes",
+          "_find_comfy_node_class",
+          "_image_tensor_size",
+          "_prompt_data_json_safe",
+          "_single_value",
+          "_tag_aio_preview_images",
+          "logger"
+        ],
+        "root_resolver_names": [
+          "AIO_PREVIEW_CACHE_FORMAT",
+          "AIO_PREVIEW_CACHE_QUALITY",
+          "AIO_PREVIEW_EVENT",
+          "AIO_PREVIEW_STAGE_LABELS",
+          "_aio_preview_base_directory",
+          "_aio_preview_file_size_bytes",
+          "_image_tensor_size",
+          "_prompt_data_json_safe",
+          "_single_value",
+          "_tag_aio_preview_images",
+          "logger"
+        ],
+        "provider_resolver_names": [
+          "_find_comfy_node_class"
+        ],
+        "repository_replacement_names": [
+          "AIO_PREVIEW_CACHE_FORMAT",
+          "AIO_PREVIEW_CACHE_QUALITY",
+          "AIO_PREVIEW_EVENT",
+          "_aio_preview_base_directory",
+          "_aio_preview_file_size_bytes",
+          "_image_tensor_size",
+          "_prompt_data_json_safe",
+          "_single_value",
+          "_tag_aio_preview_images",
+          "logger"
+        ]
+      },
+      {
+        "binder": "_bind_aio_output_runtime",
+        "module": "easyuse_anima.aio.output",
+        "family": "aio",
+        "mode": "comfy_provider_then_root",
+        "root_observation": "call_time_resolver",
+        "root_keywords": [
+          "resolve_helper"
+        ],
+        "bound_globals": [
+          "_RUNTIME_RESOLVER"
+        ],
+        "direct_root_dependencies": [
+          "_resolve_comfy_host_helper"
+        ],
+        "resolver_names": [
+          "AIO_GENERATION_DEFAULT_SETTINGS",
+          "_aio_image_saver_additional_hashes",
+          "_aio_image_saver_civitai_hash_fetcher_entries",
+          "_aio_lora_metadata_name",
+          "_aio_prompt_with_lora_metadata",
+          "_as_bool",
+          "_as_float",
+          "_as_int",
+          "_find_comfy_node_class",
+          "_format_strength",
+          "_normalize_aio_civitai_hash_fetchers",
+          "_normalize_aio_hash_bundles",
+          "_require_custom_node_class",
+          "_resolve_aio_runtime_seed",
+          "_single_value",
+          "logger"
+        ],
+        "root_resolver_names": [
+          "AIO_GENERATION_DEFAULT_SETTINGS",
+          "_aio_image_saver_additional_hashes",
+          "_aio_image_saver_civitai_hash_fetcher_entries",
+          "_aio_lora_metadata_name",
+          "_aio_prompt_with_lora_metadata",
+          "_as_bool",
+          "_as_float",
+          "_as_int",
+          "_format_strength",
+          "_normalize_aio_civitai_hash_fetchers",
+          "_normalize_aio_hash_bundles",
+          "_resolve_aio_runtime_seed",
+          "_single_value",
+          "logger"
+        ],
+        "provider_resolver_names": [
+          "_find_comfy_node_class",
+          "_require_custom_node_class"
+        ],
+        "repository_replacement_names": [
+          "AIO_GENERATION_DEFAULT_SETTINGS",
+          "_aio_image_saver_additional_hashes",
+          "_aio_image_saver_civitai_hash_fetcher_entries",
+          "_aio_lora_metadata_name",
+          "_aio_prompt_with_lora_metadata",
+          "_as_bool",
+          "_as_float",
+          "_as_int",
+          "_format_strength",
+          "_normalize_aio_hash_bundles",
+          "_resolve_aio_runtime_seed",
+          "_single_value",
+          "logger"
+        ]
+      },
+      {
+        "binder": "_bind_aio_conditioning_runtime",
+        "module": "easyuse_anima.aio.conditioning",
+        "family": "aio",
+        "mode": "comfy_provider_then_root",
+        "root_observation": "call_time_resolver",
+        "root_keywords": [
+          "resolve_helper"
+        ],
+        "bound_globals": [
+          "_RUNTIME_RESOLVER"
+        ],
+        "direct_root_dependencies": [
+          "_resolve_comfy_host_helper"
+        ],
+        "resolver_names": [
+          "AIO_USDU_PROMPT_FULL",
+          "AIO_USDU_PROMPT_NO_GENERAL",
+          "_advanced_artist_field_prompt",
+          "_advanced_enabled_pane_fields",
+          "_aio_prompt_data_fields_for_usdu",
+          "_aio_usdu_prompt_without_general",
+          "_as_bool",
+          "_correct_advanced_field_sequence",
+          "_encode_with_comfy_clip",
+          "_normalize_advanced_fields",
+          "_normalize_prompt_data"
+        ],
+        "root_resolver_names": [
+          "AIO_USDU_PROMPT_FULL",
+          "AIO_USDU_PROMPT_NO_GENERAL",
+          "_advanced_artist_field_prompt",
+          "_advanced_enabled_pane_fields",
+          "_aio_prompt_data_fields_for_usdu",
+          "_aio_usdu_prompt_without_general",
+          "_as_bool",
+          "_correct_advanced_field_sequence",
+          "_normalize_advanced_fields",
+          "_normalize_prompt_data"
+        ],
+        "provider_resolver_names": [
+          "_encode_with_comfy_clip"
+        ],
+        "repository_replacement_names": [
+          "_aio_usdu_prompt_without_general",
+          "_as_bool",
+          "_normalize_prompt_data"
+        ]
+      },
+      {
+        "binder": "_bind_sam3_runtime",
+        "module": "easyuse_anima.image.sam3",
+        "family": "image_sam3_impact",
+        "mode": "comfy_provider_then_root",
+        "root_observation": "call_time_resolver",
+        "root_keywords": [
+          "resolve_helper"
+        ],
+        "bound_globals": [
+          "_find_comfy_node_class",
+          "_find_comfy_node_mapping_class"
+        ],
+        "direct_root_dependencies": [
+          "_resolve_comfy_host_helper"
+        ],
+        "resolver_names": [
+          "_find_comfy_node_class",
+          "_find_comfy_node_mapping_class"
+        ],
+        "root_resolver_names": [],
+        "provider_resolver_names": [
+          "_find_comfy_node_class",
+          "_find_comfy_node_mapping_class"
+        ],
+        "repository_replacement_names": []
+      },
+      {
+        "binder": "_bind_impact_detailer_node_runtime",
+        "module": "easyuse_anima.nodes.impact_detailer_nodes",
+        "family": "image_sam3_impact",
+        "mode": "comfy_provider_then_root",
+        "root_observation": "call_time_resolver",
+        "root_keywords": [
+          "resolve_helper"
+        ],
+        "bound_globals": [
+          "_comfy_max_resolution",
+          "_impact_scheduler_names"
+        ],
+        "direct_root_dependencies": [
+          "_resolve_comfy_host_helper"
+        ],
+        "resolver_names": [
+          "_comfy_max_resolution",
+          "_impact_scheduler_names"
+        ],
+        "root_resolver_names": [
+          "_impact_scheduler_names"
+        ],
+        "provider_resolver_names": [
+          "_comfy_max_resolution"
+        ],
+        "repository_replacement_names": [
+          "_impact_scheduler_names"
+        ]
+      },
+      {
+        "binder": "_bind_sam3_node_runtime",
+        "module": "easyuse_anima.nodes.sam3_nodes",
+        "family": "image_sam3_impact",
+        "mode": "comfy_provider_then_root",
+        "root_observation": "call_time_resolver",
+        "root_keywords": [
+          "resolve_helper"
+        ],
+        "bound_globals": [
+          "_comfy_max_resolution",
+          "_encode_with_comfy_clip",
+          "_load_checkpoint_with_comfy",
+          "_preferred_checkpoint_default"
+        ],
+        "direct_root_dependencies": [
+          "_resolve_comfy_host_helper"
+        ],
+        "resolver_names": [
+          "_comfy_max_resolution",
+          "_encode_with_comfy_clip",
+          "_load_checkpoint_with_comfy",
+          "_preferred_checkpoint_default"
+        ],
+        "root_resolver_names": [
+          "_load_checkpoint_with_comfy",
+          "_preferred_checkpoint_default"
+        ],
+        "provider_resolver_names": [
+          "_comfy_max_resolution",
+          "_encode_with_comfy_clip"
+        ],
+        "repository_replacement_names": [
+          "_load_checkpoint_with_comfy"
+        ]
+      },
+      {
+        "binder": "_bind_regional_runtime",
+        "module": "easyuse_anima.prompt.regional",
+        "family": "prompt_regional",
+        "mode": "root_globals",
+        "root_observation": "call_time_resolver",
+        "root_keywords": [
+          "resolve_helper"
+        ],
+        "bound_globals": [
+          "_advanced_default_fields",
+          "_advanced_field_input_values",
+          "_advanced_field_socket_name",
+          "_as_advanced_height",
+          "_as_bool",
+          "_as_float",
+          "_as_int",
+          "_correct_advanced_field_sequence",
+          "_filter_metadata_prompt",
+          "_join_prompt_tokens",
+          "_ratio_label",
+          "_single_value",
+          "resolve_metadata_filter_words"
+        ],
+        "direct_root_dependencies": [],
+        "resolver_names": [
+          "_advanced_default_fields",
+          "_advanced_field_input_values",
+          "_advanced_field_socket_name",
+          "_as_advanced_height",
+          "_as_bool",
+          "_as_float",
+          "_as_int",
+          "_correct_advanced_field_sequence",
+          "_filter_metadata_prompt",
+          "_join_prompt_tokens",
+          "_ratio_label",
+          "_single_value",
+          "resolve_metadata_filter_words"
+        ],
+        "root_resolver_names": [
+          "_advanced_default_fields",
+          "_advanced_field_input_values",
+          "_advanced_field_socket_name",
+          "_as_advanced_height",
+          "_as_bool",
+          "_as_float",
+          "_as_int",
+          "_correct_advanced_field_sequence",
+          "_filter_metadata_prompt",
+          "_join_prompt_tokens",
+          "_ratio_label",
+          "_single_value",
+          "resolve_metadata_filter_words"
+        ],
+        "provider_resolver_names": [],
+        "repository_replacement_names": [
+          "_as_bool",
+          "_as_float",
+          "_as_int",
+          "_filter_metadata_prompt",
+          "_join_prompt_tokens",
+          "_single_value",
+          "resolve_metadata_filter_words"
+        ]
+      },
+      {
+        "binder": "_bind_regional_node_runtime",
+        "module": "easyuse_anima.nodes.regional_nodes",
+        "family": "prompt_regional",
+        "mode": "comfy_provider_then_root",
+        "root_observation": "call_time_resolver",
+        "root_keywords": [
+          "flexible_optional_input_type",
+          "resolve_helper"
+        ],
+        "bound_globals": [
+          "_FlexibleOptionalInputType",
+          "_advanced_field_input_values",
+          "_advanced_resolution_from_selection",
+          "_apply_regional_field_inputs",
+          "_as_bool",
+          "_as_float",
+          "_build_regional_outputs",
+          "_clone_regional_fields",
+          "_conditioning_set_values",
+          "_consume_reserved_wildcard_next_seed",
+          "_encode_with_comfy_clip",
+          "_expand_advanced_wildcard_fields",
+          "_get_workflow_node",
+          "_normalize_mask_ids",
+          "_normalize_prompt_studio_wildcard_seed_control",
+          "_normalize_regional_config",
+          "_normalize_regional_fields",
+          "_parse_json_object",
+          "_prompt_translation_change_key",
+          "_regional_config_json",
+          "_regional_fields_json",
+          "_regional_mask_bounds_area",
+          "_regional_payload_canvas",
+          "_regional_union_mask_for_ids",
+          "_single_value",
+          "_stable_change_key",
+          "_translate_prompt_fields",
+          "next_seed",
+          "normalize_prompt_studio_wildcard_mode",
+          "normalize_seed",
+          "resolve_metadata_filter_words",
+          "wildcard_sources_signature"
+        ],
+        "direct_root_dependencies": [
+          "_FlexibleOptionalInputType",
+          "_resolve_comfy_host_helper"
+        ],
+        "resolver_names": [
+          "_advanced_field_input_values",
+          "_advanced_resolution_from_selection",
+          "_apply_regional_field_inputs",
+          "_as_bool",
+          "_as_float",
+          "_build_regional_outputs",
+          "_clone_regional_fields",
+          "_conditioning_set_values",
+          "_consume_reserved_wildcard_next_seed",
+          "_encode_with_comfy_clip",
+          "_expand_advanced_wildcard_fields",
+          "_get_workflow_node",
+          "_normalize_mask_ids",
+          "_normalize_prompt_studio_wildcard_seed_control",
+          "_normalize_regional_config",
+          "_normalize_regional_fields",
+          "_parse_json_object",
+          "_prompt_translation_change_key",
+          "_regional_config_json",
+          "_regional_fields_json",
+          "_regional_mask_bounds_area",
+          "_regional_payload_canvas",
+          "_regional_union_mask_for_ids",
+          "_single_value",
+          "_stable_change_key",
+          "_translate_prompt_fields",
+          "next_seed",
+          "normalize_prompt_studio_wildcard_mode",
+          "normalize_seed",
+          "resolve_metadata_filter_words",
+          "wildcard_sources_signature"
+        ],
+        "root_resolver_names": [
+          "_advanced_field_input_values",
+          "_advanced_resolution_from_selection",
+          "_apply_regional_field_inputs",
+          "_as_bool",
+          "_as_float",
+          "_build_regional_outputs",
+          "_clone_regional_fields",
+          "_conditioning_set_values",
+          "_consume_reserved_wildcard_next_seed",
+          "_expand_advanced_wildcard_fields",
+          "_get_workflow_node",
+          "_normalize_mask_ids",
+          "_normalize_prompt_studio_wildcard_seed_control",
+          "_normalize_regional_config",
+          "_normalize_regional_fields",
+          "_parse_json_object",
+          "_prompt_translation_change_key",
+          "_regional_config_json",
+          "_regional_fields_json",
+          "_regional_mask_bounds_area",
+          "_regional_payload_canvas",
+          "_regional_union_mask_for_ids",
+          "_single_value",
+          "_stable_change_key",
+          "_translate_prompt_fields",
+          "next_seed",
+          "normalize_prompt_studio_wildcard_mode",
+          "normalize_seed",
+          "resolve_metadata_filter_words",
+          "wildcard_sources_signature"
+        ],
+        "provider_resolver_names": [
+          "_encode_with_comfy_clip"
+        ],
+        "repository_replacement_names": [
+          "_as_bool",
+          "_as_float",
+          "_get_workflow_node",
+          "_prompt_translation_change_key",
+          "_single_value",
+          "_stable_change_key",
+          "next_seed",
+          "resolve_metadata_filter_words",
+          "wildcard_sources_signature"
+        ]
+      },
+      {
+        "binder": "_bind_advanced_runtime",
+        "module": "easyuse_anima.prompt.advanced",
+        "family": "prompt_regional",
+        "mode": "root_globals",
+        "root_observation": "call_time_resolver",
+        "root_keywords": [
+          "resolve_helper"
+        ],
+        "bound_globals": [
+          "_RUNTIME_RESOLVER"
+        ],
+        "direct_root_dependencies": [],
+        "resolver_names": [
+          "_artist_mix_inline_prompt",
+          "_artist_tags_from_prompt",
+          "_as_bool",
+          "_as_int",
+          "_bounded_artist_mix_float",
+          "_bounded_artist_mix_int",
+          "_correct_builder_prompt",
+          "_filter_metadata_prompt",
+          "_join_artist_mix_source_prompts",
+          "_join_prompt_tokens",
+          "_normalize_artist_mix_mode",
+          "_normalize_resolution_bucket",
+          "_parse_artist_mix_items",
+          "_single_value",
+          "_translate_prompt_text",
+          "expand_wildcard_texts",
+          "has_prompt_translation_markers",
+          "has_wildcard_syntax",
+          "normalize_prompt_studio_wildcard_mode",
+          "normalize_seed",
+          "resolve_metadata_filter_words"
+        ],
+        "root_resolver_names": [
+          "_artist_mix_inline_prompt",
+          "_artist_tags_from_prompt",
+          "_as_bool",
+          "_as_int",
+          "_bounded_artist_mix_float",
+          "_bounded_artist_mix_int",
+          "_correct_builder_prompt",
+          "_filter_metadata_prompt",
+          "_join_artist_mix_source_prompts",
+          "_join_prompt_tokens",
+          "_normalize_artist_mix_mode",
+          "_normalize_resolution_bucket",
+          "_parse_artist_mix_items",
+          "_single_value",
+          "_translate_prompt_text",
+          "expand_wildcard_texts",
+          "has_prompt_translation_markers",
+          "has_wildcard_syntax",
+          "normalize_prompt_studio_wildcard_mode",
+          "normalize_seed",
+          "resolve_metadata_filter_words"
+        ],
+        "provider_resolver_names": [],
+        "repository_replacement_names": [
+          "_as_bool",
+          "_as_int",
+          "_correct_builder_prompt",
+          "_filter_metadata_prompt",
+          "_join_prompt_tokens",
+          "_single_value",
+          "_translate_prompt_text",
+          "expand_wildcard_texts",
+          "has_prompt_translation_markers",
+          "resolve_metadata_filter_words"
+        ]
+      },
+      {
+        "binder": "_bind_prompt_advanced_node_runtime",
+        "module": "easyuse_anima.nodes.prompt_advanced_nodes",
+        "family": "prompt_regional",
+        "mode": "root_globals",
+        "root_observation": "call_time_resolver",
+        "root_keywords": [
+          "flexible_optional_input_type",
+          "resolve_helper"
+        ],
+        "bound_globals": [
+          "_FlexibleOptionalInputType",
+          "_RUNTIME_RESOLVER",
+          "_advanced_enabled_naia_panes",
+          "_advanced_field_input_values",
+          "_advanced_fields_json",
+          "_advanced_has_enabled_naia",
+          "_advanced_resolution_from_selection",
+          "_advanced_uses_naia_resolution",
+          "_apply_advanced_field_inputs",
+          "_artist_mix_mode_tooltip",
+          "_as_bool",
+          "_as_int",
+          "_bounded_artist_mix_float",
+          "_bounded_artist_mix_int",
+          "_build_advanced_prompt_data",
+          "_build_advanced_prompts",
+          "_clone_advanced_fields",
+          "_consume_reserved_wildcard_next_seed",
+          "_expand_advanced_wildcard_fields",
+          "_get_workflow_node",
+          "_normalize_advanced_fields",
+          "_normalize_artist_mix_mode",
+          "_normalize_prompt_studio_wildcard_seed_control",
+          "_parse_random_response",
+          "_post_random",
+          "_prompt_data_parameter_snapshot",
+          "_prompt_translation_change_key",
+          "_resolution_label",
+          "_resolve_naia_resolution",
+          "_set_naia_field_text",
+          "_single_value",
+          "_stable_change_key",
+          "_translate_prompt_fields",
+          "_translate_prompt_text",
+          "next_seed",
+          "normalize_prompt_studio_wildcard_mode",
+          "normalize_seed",
+          "resolve_metadata_filter_words",
+          "resolve_naia_settings",
+          "wildcard_sources_signature"
+        ],
+        "direct_root_dependencies": [
+          "_FlexibleOptionalInputType"
+        ],
+        "resolver_names": [
+          "EasyUseAnimaNAIARandomPrompt",
+          "_advanced_enabled_naia_panes",
+          "_advanced_field_input_values",
+          "_advanced_fields_json",
+          "_advanced_has_enabled_naia",
+          "_advanced_resolution_from_selection",
+          "_advanced_uses_naia_resolution",
+          "_apply_advanced_field_inputs",
+          "_artist_mix_mode_tooltip",
+          "_as_bool",
+          "_as_int",
+          "_bounded_artist_mix_float",
+          "_bounded_artist_mix_int",
+          "_build_advanced_prompt_data",
+          "_build_advanced_prompts",
+          "_clone_advanced_fields",
+          "_consume_reserved_wildcard_next_seed",
+          "_expand_advanced_wildcard_fields",
+          "_get_workflow_node",
+          "_normalize_advanced_fields",
+          "_normalize_artist_mix_mode",
+          "_normalize_prompt_studio_wildcard_seed_control",
+          "_parse_random_response",
+          "_post_random",
+          "_prompt_data_parameter_snapshot",
+          "_prompt_translation_change_key",
+          "_resolution_label",
+          "_resolve_naia_resolution",
+          "_set_naia_field_text",
+          "_single_value",
+          "_stable_change_key",
+          "_translate_prompt_fields",
+          "_translate_prompt_text",
+          "next_seed",
+          "normalize_prompt_studio_wildcard_mode",
+          "normalize_seed",
+          "resolve_metadata_filter_words",
+          "resolve_naia_settings",
+          "wildcard_sources_signature"
+        ],
+        "root_resolver_names": [
+          "EasyUseAnimaNAIARandomPrompt",
+          "_advanced_enabled_naia_panes",
+          "_advanced_field_input_values",
+          "_advanced_fields_json",
+          "_advanced_has_enabled_naia",
+          "_advanced_resolution_from_selection",
+          "_advanced_uses_naia_resolution",
+          "_apply_advanced_field_inputs",
+          "_artist_mix_mode_tooltip",
+          "_as_bool",
+          "_as_int",
+          "_bounded_artist_mix_float",
+          "_bounded_artist_mix_int",
+          "_build_advanced_prompt_data",
+          "_build_advanced_prompts",
+          "_clone_advanced_fields",
+          "_consume_reserved_wildcard_next_seed",
+          "_expand_advanced_wildcard_fields",
+          "_get_workflow_node",
+          "_normalize_advanced_fields",
+          "_normalize_artist_mix_mode",
+          "_normalize_prompt_studio_wildcard_seed_control",
+          "_parse_random_response",
+          "_post_random",
+          "_prompt_data_parameter_snapshot",
+          "_prompt_translation_change_key",
+          "_resolution_label",
+          "_resolve_naia_resolution",
+          "_set_naia_field_text",
+          "_single_value",
+          "_stable_change_key",
+          "_translate_prompt_fields",
+          "_translate_prompt_text",
+          "next_seed",
+          "normalize_prompt_studio_wildcard_mode",
+          "normalize_seed",
+          "resolve_metadata_filter_words",
+          "resolve_naia_settings",
+          "wildcard_sources_signature"
+        ],
+        "provider_resolver_names": [],
+        "repository_replacement_names": [
+          "EasyUseAnimaNAIARandomPrompt",
+          "_as_bool",
+          "_as_int",
+          "_get_workflow_node",
+          "_post_random",
+          "_prompt_translation_change_key",
+          "_single_value",
+          "_stable_change_key",
+          "_translate_prompt_text",
+          "next_seed",
+          "resolve_metadata_filter_words",
+          "resolve_naia_settings",
+          "wildcard_sources_signature"
+        ]
+      },
+      {
+        "binder": "_bind_aio_node_runtime",
+        "module": "easyuse_anima.nodes.aio_nodes",
+        "family": "aio",
+        "mode": "root_globals",
+        "root_observation": "call_time_resolver",
+        "root_keywords": [
+          "resolve_helper"
+        ],
+        "bound_globals": [
+          "_RUNTIME_RESOLVER"
+        ],
+        "direct_root_dependencies": [],
+        "resolver_names": [
+          "AIO_GENERATION_DEFAULT_SETTINGS",
+          "AIO_INPUT_DEFAULT_SETTINGS",
+          "AIO_SPECIAL_SEEDS",
+          "ANIMA_DEFAULT_CLIP_CANDIDATES",
+          "ANIMA_DEFAULT_DIFFUSION_MODEL_CANDIDATES",
+          "ANIMA_DEFAULT_VAE_CANDIDATES",
+          "EASY_USE_ANIMA_INPUT_SCHEMA",
+          "EASY_USE_ANIMA_INPUT_SETTINGS_VERSION",
+          "EASY_USE_ANIMA_INPUT_TYPE",
+          "PROMPT_DATA_TYPE",
+          "_aio_generation_settings_json",
+          "_aio_input_settings_json",
+          "_aio_lora_stack_signature",
+          "_comfy_clip_loader_types",
+          "_comfy_diffusion_model_names",
+          "_comfy_text_encoder_names",
+          "_comfy_vae_names",
+          "_copy_prompt_data_for_update",
+          "_easy_use_anima_input_signature",
+          "_json_clone",
+          "_normalize_aio_generation_settings",
+          "_normalize_aio_input_settings",
+          "_normalize_prompt_data",
+          "_preferred_clip_type_default",
+          "_preferred_name_default",
+          "_prompt_data_json_safe",
+          "_resolve_aio_runtime_seed",
+          "_run_aio_legacy_generation",
+          "_stable_change_key",
+          "json"
+        ],
+        "root_resolver_names": [
+          "AIO_GENERATION_DEFAULT_SETTINGS",
+          "AIO_INPUT_DEFAULT_SETTINGS",
+          "AIO_SPECIAL_SEEDS",
+          "ANIMA_DEFAULT_CLIP_CANDIDATES",
+          "ANIMA_DEFAULT_DIFFUSION_MODEL_CANDIDATES",
+          "ANIMA_DEFAULT_VAE_CANDIDATES",
+          "EASY_USE_ANIMA_INPUT_SCHEMA",
+          "EASY_USE_ANIMA_INPUT_SETTINGS_VERSION",
+          "EASY_USE_ANIMA_INPUT_TYPE",
+          "PROMPT_DATA_TYPE",
+          "_aio_generation_settings_json",
+          "_aio_input_settings_json",
+          "_aio_lora_stack_signature",
+          "_comfy_clip_loader_types",
+          "_comfy_diffusion_model_names",
+          "_comfy_text_encoder_names",
+          "_comfy_vae_names",
+          "_copy_prompt_data_for_update",
+          "_easy_use_anima_input_signature",
+          "_json_clone",
+          "_normalize_aio_generation_settings",
+          "_normalize_aio_input_settings",
+          "_normalize_prompt_data",
+          "_preferred_clip_type_default",
+          "_preferred_name_default",
+          "_prompt_data_json_safe",
+          "_resolve_aio_runtime_seed",
+          "_run_aio_legacy_generation",
+          "_stable_change_key",
+          "json"
+        ],
+        "provider_resolver_names": [],
+        "repository_replacement_names": [
+          "AIO_GENERATION_DEFAULT_SETTINGS",
+          "AIO_INPUT_DEFAULT_SETTINGS",
+          "AIO_SPECIAL_SEEDS",
+          "ANIMA_DEFAULT_CLIP_CANDIDATES",
+          "ANIMA_DEFAULT_DIFFUSION_MODEL_CANDIDATES",
+          "ANIMA_DEFAULT_VAE_CANDIDATES",
+          "EASY_USE_ANIMA_INPUT_SCHEMA",
+          "EASY_USE_ANIMA_INPUT_SETTINGS_VERSION",
+          "EASY_USE_ANIMA_INPUT_TYPE",
+          "PROMPT_DATA_TYPE",
+          "_aio_generation_settings_json",
+          "_aio_input_settings_json",
+          "_aio_lora_stack_signature",
+          "_comfy_clip_loader_types",
+          "_comfy_diffusion_model_names",
+          "_comfy_text_encoder_names",
+          "_comfy_vae_names",
+          "_copy_prompt_data_for_update",
+          "_easy_use_anima_input_signature",
+          "_json_clone",
+          "_normalize_aio_generation_settings",
+          "_normalize_aio_input_settings",
+          "_normalize_prompt_data",
+          "_preferred_clip_type_default",
+          "_preferred_name_default",
+          "_prompt_data_json_safe",
+          "_resolve_aio_runtime_seed",
+          "_run_aio_legacy_generation",
+          "_stable_change_key",
+          "json"
+        ]
+      },
+      {
+        "binder": "_bind_conditioning_runtime",
+        "module": "easyuse_anima.prompt.conditioning",
+        "family": "prompt_regional",
+        "mode": "comfy_provider_then_root",
+        "root_observation": "call_time_resolver",
+        "root_keywords": [
+          "resolve_helper",
+          "resolve_logger"
+        ],
+        "bound_globals": [
+          "_RUNTIME_LOGGER_RESOLVER",
+          "_RUNTIME_RESOLVER"
+        ],
+        "direct_root_dependencies": [
+          "_resolve_comfy_host_helper",
+          "logger"
+        ],
+        "resolver_names": [
+          "_find_loaded_node_class",
+          "_find_spectrum_anima_mod_guidance_class"
+        ],
+        "root_resolver_names": [
+          "_find_spectrum_anima_mod_guidance_class"
+        ],
+        "provider_resolver_names": [
+          "_find_loaded_node_class"
+        ],
+        "repository_replacement_names": [
+          "_find_spectrum_anima_mod_guidance_class",
+          "logger"
+        ]
+      },
+      {
+        "binder": "_bind_artist_mix_runtime",
+        "module": "easyuse_anima.prompt.artist_mix",
+        "family": "prompt_regional",
+        "mode": "comfy_provider_then_root",
+        "root_observation": "call_time_resolver",
+        "root_keywords": [
+          "resolve_helper"
+        ],
+        "bound_globals": [
+          "_RUNTIME_RESOLVER"
+        ],
+        "direct_root_dependencies": [
+          "_resolve_comfy_host_helper"
+        ],
+        "resolver_names": [
+          "_advanced_enabled_pane_fields",
+          "_advanced_prompt_with_artist_override",
+          "_blend_conditionings",
+          "_correct_builder_prompt",
+          "_encode_artist_clustered",
+          "_encode_artist_delta_rms",
+          "_encode_with_comfy_clip",
+          "_join_prompt_tokens",
+          "_normalize_advanced_fields"
+        ],
+        "root_resolver_names": [
+          "_advanced_enabled_pane_fields",
+          "_advanced_prompt_with_artist_override",
+          "_blend_conditionings",
+          "_correct_builder_prompt",
+          "_encode_artist_clustered",
+          "_encode_artist_delta_rms",
+          "_join_prompt_tokens",
+          "_normalize_advanced_fields"
+        ],
+        "provider_resolver_names": [
+          "_encode_with_comfy_clip"
+        ],
+        "repository_replacement_names": [
+          "_blend_conditionings",
+          "_correct_builder_prompt",
+          "_encode_artist_clustered",
+          "_encode_artist_delta_rms",
+          "_join_prompt_tokens"
+        ]
+      },
+      {
+        "binder": "_bind_prompt_data_node_runtime",
+        "module": "easyuse_anima.nodes.prompt_data_nodes",
+        "family": "prompt_regional",
+        "mode": "comfy_provider_then_root",
+        "root_observation": "call_time_resolver",
+        "root_keywords": [
+          "resolve_helper"
+        ],
+        "bound_globals": [
+          "_RUNTIME_RESOLVER"
+        ],
+        "direct_root_dependencies": [
+          "_resolve_comfy_host_helper"
+        ],
+        "resolver_names": [
+          "_advanced_outputs_from_prompt_data",
+          "_apply_prompt_data_overrides",
+          "_apply_spectrum_anima_mod_guidance",
+          "_artist_mix_inline_prompt",
+          "_artist_mix_mode_tooltip",
+          "_artist_prompt_with_position",
+          "_as_bool",
+          "_bounded_artist_mix_float",
+          "_bounded_artist_mix_int",
+          "_encode_prompt_data_positive_conditioning",
+          "_encode_with_comfy_clip",
+          "_generate_empty_latent_with_comfy",
+          "_join_artist_mix_source_prompts",
+          "_join_prompt_tokens",
+          "_normalize_anima_mod_guidance_profile",
+          "_normalize_artist_mix_mode",
+          "_normalize_artist_tag_position",
+          "_normalize_prompt_data",
+          "_resolve_anima_mod_guidance_enabled",
+          "_stable_change_key"
+        ],
+        "root_resolver_names": [
+          "_advanced_outputs_from_prompt_data",
+          "_apply_prompt_data_overrides",
+          "_apply_spectrum_anima_mod_guidance",
+          "_artist_mix_inline_prompt",
+          "_artist_mix_mode_tooltip",
+          "_artist_prompt_with_position",
+          "_as_bool",
+          "_bounded_artist_mix_float",
+          "_bounded_artist_mix_int",
+          "_encode_prompt_data_positive_conditioning",
+          "_generate_empty_latent_with_comfy",
+          "_join_artist_mix_source_prompts",
+          "_join_prompt_tokens",
+          "_normalize_anima_mod_guidance_profile",
+          "_normalize_artist_mix_mode",
+          "_normalize_artist_tag_position",
+          "_normalize_prompt_data",
+          "_resolve_anima_mod_guidance_enabled",
+          "_stable_change_key"
+        ],
+        "provider_resolver_names": [
+          "_encode_with_comfy_clip"
+        ],
+        "repository_replacement_names": [
+          "_advanced_outputs_from_prompt_data",
+          "_apply_spectrum_anima_mod_guidance",
+          "_as_bool",
+          "_encode_prompt_data_positive_conditioning",
+          "_generate_empty_latent_with_comfy",
+          "_join_prompt_tokens",
+          "_normalize_anima_mod_guidance_profile",
+          "_normalize_prompt_data",
+          "_resolve_anima_mod_guidance_enabled",
+          "_stable_change_key"
+        ]
+      },
+      {
+        "binder": "_bind_prompt_fields_runtime",
+        "module": "easyuse_anima.prompt.fields",
+        "family": "prompt_regional",
+        "mode": "root_globals",
+        "root_observation": "call_time_resolver",
+        "root_keywords": [
+          "resolve_helper"
+        ],
+        "bound_globals": [
+          "_RUNTIME_HELPER_RESOLVER"
+        ],
+        "direct_root_dependencies": [],
+        "resolver_names": [
+          "_HASH_COMMENT_RE",
+          "_INLINE_SPACE_RE",
+          "_WEIGHTED_TOKEN_RE",
+          "_metadata_filter_key",
+          "_metadata_filter_keys",
+          "_prompt_tokens",
+          "correct_prompt",
+          "load_knowledge_base",
+          "parse_prompt"
+        ],
+        "root_resolver_names": [
+          "_HASH_COMMENT_RE",
+          "_INLINE_SPACE_RE",
+          "_WEIGHTED_TOKEN_RE",
+          "_metadata_filter_key",
+          "_metadata_filter_keys",
+          "_prompt_tokens",
+          "correct_prompt",
+          "load_knowledge_base",
+          "parse_prompt"
+        ],
+        "provider_resolver_names": [],
+        "repository_replacement_names": [
+          "_prompt_tokens",
+          "correct_prompt",
+          "load_knowledge_base",
+          "parse_prompt"
+        ]
+      },
+      {
+        "binder": "_bind_prompt_correction_runtime",
+        "module": "easyuse_anima.prompt.correction",
+        "family": "prompt_regional",
+        "mode": "root_globals",
+        "root_observation": "call_time_resolver",
+        "root_keywords": [
+          "resolve_helper"
+        ],
+        "bound_globals": [
+          "has_prompt_translation_markers",
+          "resolve_prompt_translation_settings",
+          "translate_prompt_markers"
+        ],
+        "direct_root_dependencies": [],
+        "resolver_names": [
+          "has_prompt_translation_markers",
+          "resolve_prompt_translation_settings",
+          "translate_prompt_markers"
+        ],
+        "root_resolver_names": [
+          "has_prompt_translation_markers",
+          "resolve_prompt_translation_settings",
+          "translate_prompt_markers"
+        ],
+        "provider_resolver_names": [],
+        "repository_replacement_names": [
+          "has_prompt_translation_markers",
+          "resolve_prompt_translation_settings",
+          "translate_prompt_markers"
+        ]
+      },
+      {
+        "binder": "_bind_prompt_node_runtime",
+        "module": "easyuse_anima.nodes.prompt_nodes",
+        "family": "prompt_regional",
+        "mode": "root_globals",
+        "root_observation": "call_time_resolver",
+        "root_keywords": [
+          "resolve_helper"
+        ],
+        "bound_globals": [
+          "_as_bool",
+          "_correct_builder_prompt",
+          "_filter_metadata_prompt",
+          "_join_prompt_tokens",
+          "_prompt_translation_change_key",
+          "_split_tag_text",
+          "_stable_change_key",
+          "_translate_prompt_text",
+          "correct_prompt",
+          "load_knowledge_base",
+          "resolve_metadata_filter_words"
+        ],
+        "direct_root_dependencies": [],
+        "resolver_names": [
+          "_as_bool",
+          "_correct_builder_prompt",
+          "_filter_metadata_prompt",
+          "_join_prompt_tokens",
+          "_prompt_translation_change_key",
+          "_split_tag_text",
+          "_stable_change_key",
+          "_translate_prompt_text",
+          "correct_prompt",
+          "load_knowledge_base",
+          "resolve_metadata_filter_words"
+        ],
+        "root_resolver_names": [
+          "_as_bool",
+          "_correct_builder_prompt",
+          "_filter_metadata_prompt",
+          "_join_prompt_tokens",
+          "_prompt_translation_change_key",
+          "_split_tag_text",
+          "_stable_change_key",
+          "_translate_prompt_text",
+          "correct_prompt",
+          "load_knowledge_base",
+          "resolve_metadata_filter_words"
+        ],
+        "provider_resolver_names": [],
+        "repository_replacement_names": [
+          "_as_bool",
+          "_correct_builder_prompt",
+          "_filter_metadata_prompt",
+          "_join_prompt_tokens",
+          "_prompt_translation_change_key",
+          "_stable_change_key",
+          "_translate_prompt_text",
+          "correct_prompt",
+          "load_knowledge_base",
+          "resolve_metadata_filter_words"
+        ]
+      },
+      {
+        "binder": "_bind_wildcard_node_runtime",
+        "module": "easyuse_anima.nodes.wildcard_nodes",
+        "family": "wildcard_naia",
+        "mode": "explicit_callbacks",
+        "root_observation": "call_time_callback",
+        "root_keywords": [
+          "expand",
+          "get_workflow_node",
+          "normalize_mode",
+          "normalize_seed_value",
+          "sources_signature"
+        ],
+        "bound_globals": [
+          "_get_workflow_node",
+          "expand_wildcards",
+          "normalize_seed",
+          "normalize_wildcard_mode",
+          "wildcard_sources_signature"
+        ],
+        "direct_root_dependencies": [
+          "_get_workflow_node",
+          "expand_wildcards",
+          "normalize_seed",
+          "normalize_wildcard_mode",
+          "wildcard_sources_signature"
+        ],
+        "resolver_names": [],
+        "root_resolver_names": [],
+        "provider_resolver_names": [],
+        "repository_replacement_names": [
+          "_get_workflow_node",
+          "expand_wildcards",
+          "wildcard_sources_signature"
+        ]
+      },
+      {
+        "binder": "_bind_naia_node_runtime",
+        "module": "easyuse_anima.nodes.naia_nodes",
+        "family": "wildcard_naia",
+        "mode": "explicit_callbacks",
+        "root_observation": "call_time_callback",
+        "root_keywords": [
+          "get_workflow_node",
+          "parse_random_response",
+          "post_random",
+          "resolve_settings"
+        ],
+        "bound_globals": [
+          "_get_workflow_node",
+          "_parse_random_response",
+          "_post_random",
+          "resolve_naia_settings"
+        ],
+        "direct_root_dependencies": [
+          "_get_workflow_node",
+          "_parse_random_response",
+          "_post_random",
+          "resolve_naia_settings"
+        ],
+        "resolver_names": [],
+        "root_resolver_names": [],
+        "provider_resolver_names": [],
+        "repository_replacement_names": [
+          "_get_workflow_node",
+          "_post_random",
+          "resolve_naia_settings"
+        ]
+      },
+      {
+        "binder": "_bind_lora_metadata_runtime",
+        "module": "easyuse_anima.lora.metadata",
+        "family": "lora",
+        "mode": "root_globals",
+        "root_observation": "call_time_resolver",
+        "root_keywords": [
+          "prompt_tokens",
+          "resolve_helper",
+          "resolve_logger"
+        ],
+        "bound_globals": [
+          "_prompt_tokens",
+          "_resolve_helper",
+          "logger"
+        ],
+        "direct_root_dependencies": [
+          "_prompt_tokens",
+          "logger"
+        ],
+        "resolver_names": [
+          "_TRIGGER_WORD_KEYS",
+          "_dedupe_text_values",
+          "_fallback_lora_path",
+          "_get_lora_manager_trigger_words",
+          "_load_lora_manager_metadata",
+          "_lora_manager_trigger_words_from_metadata",
+          "_metadata_json_paths_for_lora",
+          "_trigger_words_from_value"
+        ],
+        "root_resolver_names": [
+          "_TRIGGER_WORD_KEYS",
+          "_dedupe_text_values",
+          "_fallback_lora_path",
+          "_get_lora_manager_trigger_words",
+          "_load_lora_manager_metadata",
+          "_lora_manager_trigger_words_from_metadata",
+          "_metadata_json_paths_for_lora",
+          "_trigger_words_from_value"
+        ],
+        "provider_resolver_names": [],
+        "repository_replacement_names": [
+          "_TRIGGER_WORD_KEYS",
+          "_fallback_lora_path",
+          "_prompt_tokens",
+          "logger"
+        ]
+      },
+      {
+        "binder": "_bind_lora_preset_runtime",
+        "module": "easyuse_anima.lora.preset",
+        "family": "lora",
+        "mode": "root_globals",
+        "root_observation": "call_time_resolver",
+        "root_keywords": [
+          "correct_builder_prompt",
+          "resolve_helper"
+        ],
+        "bound_globals": [
+          "_correct_builder_prompt",
+          "_resolve_helper"
+        ],
+        "direct_root_dependencies": [
+          "_correct_builder_prompt"
+        ],
+        "resolver_names": [
+          "_as_int",
+          "_get_loras_list",
+          "_load_profile_data",
+          "_profile_key",
+          "_wrap_profile_index"
+        ],
+        "root_resolver_names": [
+          "_as_int",
+          "_get_loras_list",
+          "_load_profile_data",
+          "_profile_key",
+          "_wrap_profile_index"
+        ],
+        "provider_resolver_names": [],
+        "repository_replacement_names": [
+          "_as_int",
+          "_correct_builder_prompt"
+        ]
+      },
+      {
+        "binder": "_bind_lora_node_runtime",
+        "module": "easyuse_anima.nodes.lora_nodes",
+        "family": "lora",
+        "mode": "root_globals",
+        "root_observation": "call_time_resolver",
+        "root_keywords": [
+          "any_type",
+          "flexible_optional_input_type",
+          "resolve_helper"
+        ],
+        "bound_globals": [
+          "_ANY_TYPE",
+          "_FlexibleOptionalInputType",
+          "_apply_lora_syntax_format",
+          "_as_bool",
+          "_correct_style_prompt",
+          "_format_strength",
+          "_get_lora_info",
+          "_lora_combo_values",
+          "_lora_model_exists",
+          "_lora_stack_name",
+          "_missing_lora_display_name",
+          "_raise_missing_loras",
+          "_select_profile_values",
+          "_stable_change_key"
+        ],
+        "direct_root_dependencies": [
+          "_ANY_TYPE",
+          "_FlexibleOptionalInputType"
+        ],
+        "resolver_names": [
+          "_apply_lora_syntax_format",
+          "_as_bool",
+          "_correct_style_prompt",
+          "_format_strength",
+          "_get_lora_info",
+          "_lora_combo_values",
+          "_lora_model_exists",
+          "_lora_stack_name",
+          "_missing_lora_display_name",
+          "_raise_missing_loras",
+          "_select_profile_values",
+          "_stable_change_key"
+        ],
+        "root_resolver_names": [
+          "_apply_lora_syntax_format",
+          "_as_bool",
+          "_correct_style_prompt",
+          "_format_strength",
+          "_get_lora_info",
+          "_lora_combo_values",
+          "_lora_model_exists",
+          "_lora_stack_name",
+          "_missing_lora_display_name",
+          "_raise_missing_loras",
+          "_select_profile_values",
+          "_stable_change_key"
+        ],
+        "provider_resolver_names": [],
+        "repository_replacement_names": [
+          "_apply_lora_syntax_format",
+          "_as_bool",
+          "_correct_style_prompt",
+          "_format_strength",
+          "_get_lora_info",
+          "_lora_combo_values",
+          "_lora_model_exists",
+          "_stable_change_key"
+        ]
+      }
     ]
   },
   "documented_transitional_aliases": {

@@ -8,9 +8,9 @@
 - Policy: [ADR-002](adr-002-compatibility-shims.md)
 - Machine-readable audit:
   [`python_compatibility_surface.v1.json`](../../tests/fixtures/python_compatibility_surface.v1.json)
-- Current state: B-11a through B-11c29d are integrated. B-11c is split into
+- Current state: B-11a through B-11c29b3 are integrated. B-11c is split into
   residual-owner Moves and explicit private-contract cleanup before the final
-  root shim; B-11c29b3 general lookup retirement is in PR #334.
+  root shim; B-11c30 binder/resolver Contract audit is in progress.
 
 This is an actionable registry, not a removal schedule. `N` means the first
 published Registry release containing both a canonical target and its root
@@ -684,6 +684,27 @@ convenience-node compatibility; it remains unmapped and is not public support.
   result, and use-time-only optional dependency behavior remain unchanged.
 - The provider interface, canonical capability helper, six production
   consumers, and their binder-owned runtime state remain unchanged.
+
+### B-11c30 runtime binder/resolver audit
+
+- Production files are unchanged. The machine-readable compatibility surface
+  now records every root binder call, canonical target module, owner family,
+  root keyword, bound global, direct root dependency, string resolver name,
+  provider virtual name, call-time observation mode, and repository replacement
+  file.
+- The exact baseline is 30 binders in five owner families: AiO 12,
+  Image/SAM3/Impact 3, Prompt/Regional 10, Wildcard/NAIA 2, and LoRA 3.
+- Resolution modes are 15 provider-then-root, 13 root-only, and two explicit
+  callback binders. There are 295 unique resolved names: 288 root names and all
+  seven E-07 provider virtual seams.
+- Provider use remains 22 slots in 15 canonical modules. The provider does not
+  accept arbitrary feature names; every non-provider name remains classified
+  as a root compatibility/residual or preamble dependency.
+- Repository tests replace 165 root names in 20 files. This is exact migration
+  impact evidence, not external/public support evidence.
+- Cleanup proceeds by owner family. Image/SAM3/Impact is the first candidate;
+  Prompt/Regional and AiO require further sub-splitting, while Wildcard/NAIA
+  remains separate from D-12 behavior.
 
 ### `nodes.py` public node-class surface
 
