@@ -228,3 +228,111 @@ The deterministic compatibility audit records 284 canonical root bindings,
 zero residual root functions, 24 residual root globals, and the unchanged 16
 runtime binders. The whole-backend inventory records 89 shipped and reachable
 Python modules with no missing internal imports.
+
+## S167-01b seed-domain Contract gate
+
+- State: COMPLETE IN PR #357
+- PR type: Contract
+- Baseline: `dev` commit
+  `8cde31a9db6968bd71a45c3bfc19c086179caf66`
+- Production consumers: none; S167-02 and S167-03 have not started
+
+### Blocker found before S167-02
+
+The version-1 request distinguishes selection and after-generate intent but
+does not identify the arithmetic domain. The existing consumers cannot share
+one implicit rule:
+
+- AiO's editable browser domain is `0..1125899906842624` and its current queue
+  arithmetic clamps at both ends;
+- Prompt Studio's editable browser domain is
+  `0..9007199254740991` and its current queue arithmetic wraps at both ends;
+  and
+- Python keeps accepting a concrete legacy seed through
+  `18446744073709551615`. Fixed mode preserves that value, while browser
+  arithmetic cannot safely publish the full uint64 range.
+
+Inferring a policy from `stream_id`, node names, or the current seed would make
+the service feature-aware and would make extension-loaded and headless requests
+diverge. S167-02 therefore remains blocked until the request carries an
+explicit arithmetic maximum and overflow policy.
+
+### Symbol, caller, alias, and state inventory
+
+- `SeedReservationRequest`, `parse_seed_reservation_request`, and
+  `parse_legacy_seed_reservation_request` are the only contract symbols that
+  need the missing domain.
+- No production caller constructs either parser request. Current callers are
+  the contract tests only, so the pre-adapter contract can advance without
+  workflow or payload migration.
+- `SeedReservation`, `SeedReservationService`, and settlement values do not
+  need a signature change.
+- No root compatibility alias exposes the reservation contract.
+- Backend reservation maps, locks, RNG, counters, stream state, and cleanup
+  state are still absent. This Contract must not add them.
+
+### Contract amendment
+
+Advance the contract version and add two required request values:
+
+- `next_seed_max`: the inclusive maximum used only for random selection and
+  increment/decrement arithmetic; and
+- `overflow`: `clamp` or `wrap`.
+
+Concrete execution seeds remain valid through uint64 maximum. Fixed
+after-generate preserves the concrete execution seed even when it is above the
+arithmetic maximum. S167-02 owns the exact arithmetic and lifecycle tests;
+S167-03 supplies each adapter's existing reviewed domain explicitly.
+
+### Implementation result
+
+- the contract version advances from 1 to 2 before any production consumer is
+  connected;
+- `SeedReservationRequest` requires validated `next_seed_max` and `overflow`;
+- concrete request and result seeds are bounded to uint64, independently from
+  the smaller next-seed arithmetic maximum;
+- both existing domains are representable without feature-name inference:
+  AiO's `2^50` clamp domain and Prompt Studio's JavaScript-safe wrap domain;
+- version 1, missing/invalid domains, booleans, negative bounds, and values
+  above uint64 fail closed; and
+- no production caller, state owner, RNG, lock, runtime, workflow, node, or
+  frontend surface changes in this Contract.
+
+### Validation result
+
+- focused contract/import/analyzer checkpoint: 13 tests passed;
+- additional uint64 result-boundary check: 1 test passed;
+- Python compile and `git diff --check`: passed; and
+- the official full runner passed once in 50.2 seconds: 988 Python tests and
+  frontend checks for 114 JavaScript files, with the Pyright baseline and all
+  six import-boundary groups passing.
+
+### Allowed-file boundary
+
+S167-01b may change only:
+
+- `easyuse_anima/seed/reservation.py`;
+- `tests/test_seed_reservation_contract.py`;
+- `tests/fixtures/python_backend_baseline.json`;
+- `docs/architecture/seed-reservation-contract.md`; and
+- `docs/architecture/python-backend-execution-roadmap.md`.
+
+The analyzer fixture may change only by the deterministic contract-symbol and
+signature delta in the existing module.
+
+Forbidden:
+
+- reservation maps, locks, RNG, counters, settlement, retry, cancellation, or
+  cleanup behavior;
+- `RuntimeServices`, bootstrap, routes, node adapters, AiO/Prompt execution,
+  root shims, frontend files, workflows, or hidden payload bytes;
+- changing current AiO or Prompt Studio seed bounds/arithmetic; and
+- beginning S167-02 Behavior or S167-03 Adapter work.
+
+Exit:
+
+- the request cannot be constructed without an explicit domain;
+- version-1 requests fail closed before any state exists;
+- uint64 concrete seeds and both reviewed arithmetic domains are represented
+  without JavaScript-unsafe numeric policy inference; and
+- focused contract/import/analyzer gates pass.

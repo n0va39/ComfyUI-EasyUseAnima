@@ -405,7 +405,7 @@ mechanical retirement series.
 | 12 | B-10a machine-readable compatibility audit | COMPLETE on `dev` | Contract/gate | #184/#188 | PR #271 / `3c7b857` |
 | 13 | B-10b private alias reduction | COMPLETE on `dev` through PR #291 / `c6b4680` | Contract/cleanup, split PRs | #184/#188 | Audited alias surface integrated |
 | 14 | B-11 registration/bootstrap/root shim | COMPLETE in PR #356 | Move/Contract, split PRs | #184 | Zero runtime binders/residual implementation; explicit root `__all__`; frozen compatibility audit |
-| 15 | S167 backend seed reservation series | S167-01 Contract COMPLETE in PR #343 and S167-01a consumer Move COMPLETE in PR #344; Behavior and Adapter remain | Contract then Move then Behavior | #167 | Canonical AiO/node seams |
+| 15 | S167 backend seed reservation series | S167-01/01a complete; S167-01b seed-domain Contract COMPLETE in PR #357 | Contract then Move then Behavior | #167 | Canonical AiO/node seams |
 | 16 | A169 stage pipeline series | READY after #168 and Phase B completion; begin with A169-01 Contract | Contract then Behavior | #169 | Typed config and mechanical AiO move |
 | 17 | A169 first-pass cache policy | BLOCKED by stage/cache ownership seam | Behavior | #169 | Mechanical cache move and benchmark harness |
 | 18 | D-series canonical root consolidation | BLOCKED by relevant C contracts | Move | #186 | Phase B exit; per-feature behavior stable |
@@ -1195,10 +1195,13 @@ Split into at least these rollback units:
 
 1. **S167-01 Contract:** concrete seed payload/service interface and compatibility
    parsing for legacy `-1/-2/-3`; no reservation behavior change.
-2. **S167-02 Behavior:** authoritative, atomic random/increment/decrement
+2. **S167-01b Contract:** make the arithmetic maximum and clamp/wrap policy
+   explicit; the current AiO and Prompt Studio domains differ and must not be
+   inferred from stream IDs.
+3. **S167-02 Behavior:** authoritative, atomic random/increment/decrement
    reservation including concurrent queue, failure, retry, and cancellation
    transitions.
-3. **S167-03 Adapter:** browser queue interceptor becomes a compatibility/display
+4. **S167-03 Adapter:** browser queue interceptor becomes a compatibility/display
    adapter; headless and browser behavior parity is proven.
 
 S167-01 uses
@@ -1211,7 +1214,10 @@ any existing runtime, payload bytes, or reservation behavior. S167-01a uses the
 same document for its exact Move inventory and allowed-file gate. PR #344
 completes that Move while preserving the root aliases and both node-adapter
 binders for B-11c30c2b. PR #345 then retires those two binders without changing
-the seed contract or beginning S167-02 Behavior.
+the seed contract or beginning S167-02 Behavior. The pre-Behavior audit then
+found that version 1 omitted the arithmetic domain: AiO clamps at its editable
+maximum while Prompt Studio wraps at its JavaScript-safe maximum. S167-01b must
+close that Contract gap without adding state or behavior before S167-02 begins.
 
 Do not mix this sequence into B-09 or #169 stages.
 
