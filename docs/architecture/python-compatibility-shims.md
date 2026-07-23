@@ -10,7 +10,7 @@
   [`python_compatibility_surface.v1.json`](../../tests/fixtures/python_compatibility_surface.v1.json)
 - Current state: B-11a through B-11c29b3 are integrated. B-11c is split into
   residual-owner Moves and explicit private-contract cleanup before the final
-  root shim; B-11c30 binder/resolver Contract audit is in progress.
+  root shim; B-11c30 binder/resolver Contract audit is in PR #336.
 
 This is an actionable registry, not a removal schedule. `N` means the first
 published Registry release containing both a canonical target and its root

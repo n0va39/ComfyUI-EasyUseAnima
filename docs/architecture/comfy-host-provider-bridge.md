@@ -1009,7 +1009,7 @@ Forbidden:
 
 ### B-11c30 — Runtime binder/resolver migration audit
 
-- **State:** IN PROGRESS
+- **State:** IN PROGRESS in PR #336
 - **Owner:** #184/#188
 - **Type:** Contract/gate
 - **Production changes:** none
@@ -1129,7 +1129,7 @@ COMPLETE: B-11c29b2 loaded lookup retirement / PR #331
 COMPLETE: B-11c29c requirement helper retirement / PR #332
 COMPLETE: B-11c29d CLIP wrapper retirement / PR #333
 COMPLETE: B-11c29b3 general node lookup retirement / PR #334
-IN PROGRESS: B-11c30 binder/resolver migration audit
+IN PROGRESS: B-11c30 binder/resolver migration audit / PR #336
 BLOCKED:  B-11d final root shim
 
 LATER:    #167 seed reservation
