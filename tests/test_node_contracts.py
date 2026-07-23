@@ -2619,14 +2619,17 @@ class WorkflowLookupMoveContractTests(unittest.TestCase):
             for adapter in (
                 wildcard_nodes,
                 naia_nodes,
-                prompt_advanced_nodes,
-                regional_nodes,
             ):
                 with self.subTest(adapter=adapter.__name__):
                     self.assertIs(
                         adapter._get_workflow_node(None, "3"),
                         patched_result,
                     )
+
+    def test_retired_prompt_adapters_use_the_canonical_workflow_lookup(self):
+        for adapter in (prompt_advanced_nodes, regional_nodes):
+            with self.subTest(adapter=adapter.__name__):
+                self.assertIs(adapter._get_workflow_node, workflow._get_workflow_node)
 
 
 class InputTypeMoveContractTests(unittest.TestCase):
