@@ -433,7 +433,8 @@ Pre-edit inventory at the E-07b base:
 - 22 production consumer slots in 15 canonical modules resolve those names at
   call time through their existing binder/resolver contracts;
 - all seven root replacement seams are `unsupported_test_only`;
-- 13 repository test files still patch one or more root seams;
+- 16 repository test files still replace one or more root seams, including
+  `patch.multiple` and direct assignment forms omitted by the E-01a detector;
 - two repository test files patch canonical consumers directly; and
 - the installed runtime exposes exactly one narrow `ComfyHostProvider`.
 
@@ -450,6 +451,9 @@ Allowed test and gate files:
 tests/comfy_host_fakes.py
 tests/test_comfy_host_wiring.py
 tests/test_aio_conditioning.py
+tests/test_aio_generation_migrations.py
+tests/test_aio_generation_settings.py
+tests/test_aio_legacy_generation.py
 tests/test_aio_model_preparation.py
 tests/test_aio_nodes.py
 tests/test_aio_output.py

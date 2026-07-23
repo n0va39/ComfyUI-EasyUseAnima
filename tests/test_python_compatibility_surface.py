@@ -1163,7 +1163,33 @@ def _comfy_host_runtime_consumers(
     return result
 
 
-def _patch_call_target(node: ast.Call) -> tuple[str, str] | None:
+def _literal_dict_symbol_assignments(tree: ast.Module) -> dict[str, set[str]]:
+    assignments: dict[str, set[str]] = defaultdict(set)
+    for node in ast.walk(tree):
+        if not isinstance(node, (ast.Assign, ast.AnnAssign)):
+            continue
+        targets = node.targets if isinstance(node, ast.Assign) else [node.target]
+        if not isinstance(node.value, ast.Dict):
+            continue
+        symbols = {
+            key.value
+            for key in node.value.keys
+            if (
+                isinstance(key, ast.Constant)
+                and isinstance(key.value, str)
+                and key.value in COMFY_HOST_WRAPPERS
+            )
+        }
+        for target in targets:
+            if isinstance(target, ast.Name):
+                assignments[target.id].update(symbols)
+    return assignments
+
+
+def _patch_call_targets(
+    node: ast.Call,
+    literal_dict_symbols: dict[str, set[str]],
+) -> list[tuple[str, str]]:
     if (
         isinstance(node.func, ast.Name)
         and node.func.id == "patch"
@@ -1174,7 +1200,7 @@ def _patch_call_target(node: ast.Call) -> tuple[str, str] | None:
         target = node.args[0].value
         symbol = target.rsplit(".", 1)[-1]
         if target.startswith("nodes.") and symbol in COMFY_HOST_WRAPPERS:
-            return "root", symbol
+            return [("root", symbol)]
     if (
         isinstance(node.func, ast.Attribute)
         and node.func.attr == "object"
@@ -1186,8 +1212,38 @@ def _patch_call_target(node: ast.Call) -> tuple[str, str] | None:
     ):
         owner = ast.unparse(node.args[0])
         scope = "root" if owner in COMFY_HOST_ROOT_TEST_ALIASES else "canonical"
-        return scope, node.args[1].value
-    return None
+        return [(scope, node.args[1].value)]
+    if (
+        isinstance(node.func, ast.Attribute)
+        and node.func.attr == "multiple"
+        and isinstance(node.func.value, ast.Name)
+        and node.func.value.id == "patch"
+        and node.args
+    ):
+        owner = ast.unparse(node.args[0])
+        scope = "root" if owner in COMFY_HOST_ROOT_TEST_ALIASES else "canonical"
+        symbols = {
+            keyword.arg
+            for keyword in node.keywords
+            if keyword.arg in COMFY_HOST_WRAPPERS
+        }
+        for keyword in node.keywords:
+            if keyword.arg is not None:
+                continue
+            if isinstance(keyword.value, ast.Dict):
+                symbols.update(
+                    key.value
+                    for key in keyword.value.keys
+                    if (
+                        isinstance(key, ast.Constant)
+                        and isinstance(key.value, str)
+                        and key.value in COMFY_HOST_WRAPPERS
+                    )
+                )
+            elif isinstance(keyword.value, ast.Name):
+                symbols.update(literal_dict_symbols.get(keyword.value.id, set()))
+        return [(scope, symbol) for symbol in sorted(symbols)]
+    return []
 
 
 def _comfy_host_monkeypatch_consumers() -> dict[str, dict[str, list[str]]]:
@@ -1197,11 +1253,11 @@ def _comfy_host_monkeypatch_consumers() -> dict[str, dict[str, list[str]]]:
     }
     for path in sorted((ROOT / "tests").glob("test_*.py")):
         tree = _read_tree(path)
+        literal_dict_symbols = _literal_dict_symbol_assignments(tree)
         relative = path.relative_to(ROOT).as_posix()
         for node in ast.walk(tree):
             if isinstance(node, ast.Call):
-                target = _patch_call_target(node)
-                if target is not None:
+                for target in _patch_call_targets(node, literal_dict_symbols):
                     scope, symbol = target
                     consumers[symbol][scope].add(relative)
             if not isinstance(node, (ast.Assign, ast.AnnAssign)):

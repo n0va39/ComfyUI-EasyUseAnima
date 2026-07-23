@@ -16,7 +16,7 @@
   "expected_counts": {
     "production_consumer_slots": 22,
     "unique_production_modules": 15,
-    "root_monkeypatch_test_files": 13,
+    "root_monkeypatch_test_files": 16,
     "canonical_monkeypatch_test_files": 2
   },
   "external_evidence": {
@@ -70,7 +70,10 @@
       ],
       "repository_monkeypatch_consumers": {
         "root": [
-          "tests/test_aio_schema_contract.py"
+          "tests/test_aio_generation_migrations.py",
+          "tests/test_aio_generation_settings.py",
+          "tests/test_aio_schema_contract.py",
+          "tests/test_node_contracts.py"
         ],
         "canonical": [
           "tests/test_node_contracts.py",
@@ -165,6 +168,7 @@
       "repository_monkeypatch_consumers": {
         "root": [
           "tests/test_aio_conditioning.py",
+          "tests/test_aio_legacy_generation.py",
           "tests/test_aio_nodes.py",
           "tests/test_prompt_corrector.py",
           "tests/test_prompt_studio_regional.py",
