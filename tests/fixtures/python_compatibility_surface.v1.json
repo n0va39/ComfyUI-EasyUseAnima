@@ -1108,7 +1108,7 @@
   "runtime_binder_audit": {
     "summary": {
       "binder_count": 24,
-      "family_count": 3,
+      "family_count": 4,
       "mode_counts": {
         "comfy_provider_then_root": 12,
         "root_globals": 10,
@@ -1139,16 +1139,18 @@
         "_bind_aio_conditioning_runtime",
         "_bind_aio_node_runtime"
       ],
-      "prompt_regional": [
+      "prompt_services": [
         "_bind_regional_runtime",
-        "_bind_regional_node_runtime",
         "_bind_advanced_runtime",
-        "_bind_prompt_advanced_node_runtime",
         "_bind_conditioning_runtime",
         "_bind_artist_mix_runtime",
-        "_bind_prompt_data_node_runtime",
         "_bind_prompt_fields_runtime",
-        "_bind_prompt_correction_runtime",
+        "_bind_prompt_correction_runtime"
+      ],
+      "prompt_node_adapters": [
+        "_bind_regional_node_runtime",
+        "_bind_prompt_advanced_node_runtime",
+        "_bind_prompt_data_node_runtime",
         "_bind_prompt_node_runtime"
       ],
       "wildcard_naia": [
@@ -2900,7 +2902,7 @@
       {
         "binder": "_bind_regional_runtime",
         "module": "easyuse_anima.prompt.regional",
-        "family": "prompt_regional",
+        "family": "prompt_services",
         "mode": "root_globals",
         "root_observation": "call_time_resolver",
         "root_keywords": [
@@ -2966,7 +2968,7 @@
       {
         "binder": "_bind_regional_node_runtime",
         "module": "easyuse_anima.nodes.regional_nodes",
-        "family": "prompt_regional",
+        "family": "prompt_node_adapters",
         "mode": "comfy_provider_then_root",
         "root_observation": "call_time_resolver",
         "root_keywords": [
@@ -3094,7 +3096,7 @@
       {
         "binder": "_bind_advanced_runtime",
         "module": "easyuse_anima.prompt.advanced",
-        "family": "prompt_regional",
+        "family": "prompt_services",
         "mode": "root_globals",
         "root_observation": "call_time_resolver",
         "root_keywords": [
@@ -3167,7 +3169,7 @@
       {
         "binder": "_bind_prompt_advanced_node_runtime",
         "module": "easyuse_anima.nodes.prompt_advanced_nodes",
-        "family": "prompt_regional",
+        "family": "prompt_node_adapters",
         "mode": "root_globals",
         "root_observation": "call_time_resolver",
         "root_keywords": [
@@ -3432,7 +3434,7 @@
       {
         "binder": "_bind_conditioning_runtime",
         "module": "easyuse_anima.prompt.conditioning",
-        "family": "prompt_regional",
+        "family": "prompt_services",
         "mode": "comfy_provider_then_root",
         "root_observation": "call_time_resolver",
         "root_keywords": [
@@ -3465,7 +3467,7 @@
       {
         "binder": "_bind_artist_mix_runtime",
         "module": "easyuse_anima.prompt.artist_mix",
-        "family": "prompt_regional",
+        "family": "prompt_services",
         "mode": "comfy_provider_then_root",
         "root_observation": "call_time_resolver",
         "root_keywords": [
@@ -3512,7 +3514,7 @@
       {
         "binder": "_bind_prompt_data_node_runtime",
         "module": "easyuse_anima.nodes.prompt_data_nodes",
-        "family": "prompt_regional",
+        "family": "prompt_node_adapters",
         "mode": "comfy_provider_then_root",
         "root_observation": "call_time_resolver",
         "root_keywords": [
@@ -3586,7 +3588,7 @@
       {
         "binder": "_bind_prompt_fields_runtime",
         "module": "easyuse_anima.prompt.fields",
-        "family": "prompt_regional",
+        "family": "prompt_services",
         "mode": "root_globals",
         "root_observation": "call_time_resolver",
         "root_keywords": [
@@ -3629,7 +3631,7 @@
       {
         "binder": "_bind_prompt_correction_runtime",
         "module": "easyuse_anima.prompt.correction",
-        "family": "prompt_regional",
+        "family": "prompt_services",
         "mode": "root_globals",
         "root_observation": "call_time_resolver",
         "root_keywords": [
@@ -3661,7 +3663,7 @@
       {
         "binder": "_bind_prompt_node_runtime",
         "module": "easyuse_anima.nodes.prompt_nodes",
-        "family": "prompt_regional",
+        "family": "prompt_node_adapters",
         "mode": "root_globals",
         "root_observation": "call_time_resolver",
         "root_keywords": [
