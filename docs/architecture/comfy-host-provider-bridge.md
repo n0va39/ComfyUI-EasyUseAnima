@@ -525,13 +525,68 @@ Forbidden:
 
 ### B-11c29a — Max-resolution wrapper
 
-- **State:** READY after E-07b PR #328
+- **State:** IN PROGRESS after E-07b PR #328
 - **Owner:** #184
 - **Type:** Move or retirement according to the ledger
 
 Move or retire only `_comfy_max_resolution`. Preserve its zero-argument root
 signature when the compatibility decision requires it. Do not combine node
 lookup, requirement helpers, CLIP invocation, schema, or postprocess behavior.
+
+Pre-edit inventory at `dev@14015769634d387fe5afa6a74a5594007e86346c`:
+
+- root `nodes.py` owns one zero-argument `_comfy_max_resolution` wrapper and
+  imports `_adapter_comfy_max_resolution` in relative and flat modes;
+- the wrapper has no mutable state or import-time call and lazily resolves host
+  `nodes.MAX_RESOLUTION`, returning `16384` after missing/invalid host state;
+- three production consumers resolve the name at call time through the E-07b
+  provider wiring: AiO generation normalization, Impact Detailer inputs, and
+  SAM3 inputs;
+- repository root replacements are zero; two tests intentionally replace the
+  canonical consumer slot; external consumer evidence remains zero;
+- the ledger classifies the private root seam as `unsupported_test_only` and
+  does not require call-time root replacement; and
+- therefore this unit retires the root wrapper instead of preserving a direct
+  alias, while the wiring adapter keeps the pre-bootstrap flat-import fallback.
+
+Allowed production files:
+
+```text
+nodes.py
+easyuse_anima/infrastructure/comfy/wiring.py
+```
+
+Allowed test, fixture, and documentation files:
+
+```text
+tests/test_comfy_host_wiring.py
+tests/test_node_contracts.py
+tests/test_python_compatibility_surface.py
+tests/test_nodes_module_analyzer.py
+tests/test_python_backend_analyzer.py
+tests/fixtures/comfy_host_compatibility.v1.json
+tests/fixtures/python_compatibility_surface.v1.json
+tests/fixtures/python_backend_baseline.json
+docs/architecture/*
+```
+
+Exit:
+
+- root `_comfy_max_resolution` and both adapter imports are absent;
+- installed-runtime consumers continue to use
+  `ComfyHostProvider.max_resolution`;
+- pre-bootstrap flat import preserves delayed lookup and `16384` fallback
+  without canonical-to-root imports;
+- root and canonical replacement counts remain executable; and
+- root residual/analyzer/package closure gates pass.
+
+Forbidden:
+
+- changing `ComfyHostProvider`, the domain-neutral capability helper, lookup
+  order, default value, conversion/error behavior, schemas, or node inputs;
+- moving any node-discovery, requirement, or CLIP helper;
+- adding cache, snapshot, mutable override state, or canonical root import; and
+- changing postprocess, seed, stage, route, workflow, or persistence behavior.
 
 ### B-11c29b — Node discovery family
 
@@ -624,7 +679,7 @@ COMPLETE: E-02a minimal runtime shell / PR #327
 COMPLETE: E-07a default host provider / PR #327
 COMPLETE: E-07b wiring and compatibility gate / PR #328
 
-READY:    B-11c29a max-resolution wrapper Move/retirement
+IN PROGRESS: B-11c29a max-resolution wrapper retirement
 BLOCKED:  B-11c29b-d wrapper Moves/retirements
 BLOCKED:  B-11c30 binder/resolver migration audit
 BLOCKED:  B-11d final root shim
