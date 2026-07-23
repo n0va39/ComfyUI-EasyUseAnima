@@ -405,7 +405,7 @@ mechanical retirement series.
 | 12 | B-10a machine-readable compatibility audit | COMPLETE on `dev` | Contract/gate | #184/#188 | PR #271 / `3c7b857` |
 | 13 | B-10b private alias reduction | COMPLETE on `dev` through PR #291 / `c6b4680` | Contract/cleanup, split PRs | #184/#188 | Audited alias surface integrated |
 | 14 | B-11 registration/bootstrap/root shim | COMPLETE in PR #356 | Move/Contract, split PRs | #184 | Zero runtime binders/residual implementation; explicit root `__all__`; frozen compatibility audit |
-| 15 | S167 backend seed reservation series | S167-01/01a/01b complete; S167-02 validated in PR #358 with `dev` merge pending | Contract then Move then Behavior | #167 | Canonical AiO/node seams |
+| 15 | S167 backend seed reservation series | S167-01 through S167-02 COMPLETE on `dev`; S167-03a adapter Contract/docs gate READY | Contract then Move then Behavior | #167 | Canonical AiO/node seams |
 | 16 | A169 stage pipeline series | READY after #168 and Phase B completion; begin with A169-01 Contract | Contract then Behavior | #169 | Typed config and mechanical AiO move |
 | 17 | A169 first-pass cache policy | BLOCKED by stage/cache ownership seam | Behavior | #169 | Mechanical cache move and benchmark harness |
 | 18 | D-series canonical root consolidation | BLOCKED by relevant C contracts | Move | #186 | Phase B exit; per-feature behavior stable |
@@ -1224,7 +1224,12 @@ state-transition, lifetime, allowed-file, and rollback gate; S167-03 remains the
 only adapter/cutover unit.
 PR #358 implements that service boundary, composes one process-lifetime owner
 without adding production callers, and passes its one official full gate.
-S167-03 remains blocked only until #358 reaches `dev`.
+It is complete on `dev` at `d61749a`. The S167-03 pre-adapter audit found two
+missing decisions: headless execution request identity and settlement timing.
+S167-03a now freezes those decisions plus cache, compatibility, display, split,
+and validation ownership in
+[`seed-reservation-contract.md`](seed-reservation-contract.md) before any
+production adapter is added.
 
 Do not mix this sequence into B-09 or #169 stages.
 
