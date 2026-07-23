@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from ..common.serialization import _stable_change_key
 from ..common.values import _single_value
+from ..workflow import _get_workflow_node
 from .input_types import _FlexibleOptionalInputType
 
 try:
@@ -49,25 +50,6 @@ WILDCARD_MODE_DISPLAY_LABELS = {
     WILDCARD_MODE_SEQUENTIAL: WILDCARD_MODE_LABELS[2],
     WILDCARD_MODE_REPRODUCE: WILDCARD_MODE_LABELS[3],
 }
-
-
-def _unbound_runtime(*_args, **_kwargs):
-    raise RuntimeError("Wildcard node runtime dependencies are not bound.")
-
-
-_get_workflow_node = _unbound_runtime
-
-
-def _bind_wildcard_node_runtime(*, get_workflow_node, expand, normalize_seed_value, normalize_mode, sources_signature) -> None:
-    global _get_workflow_node
-    global expand_wildcards
-    global normalize_seed, normalize_wildcard_mode, wildcard_sources_signature
-
-    _get_workflow_node = get_workflow_node
-    expand_wildcards = expand
-    normalize_seed = normalize_seed_value
-    normalize_wildcard_mode = normalize_mode
-    wildcard_sources_signature = sources_signature
 
 
 class EasyUseAnimaWildcard:

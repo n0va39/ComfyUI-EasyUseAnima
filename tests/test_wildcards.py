@@ -9,6 +9,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 import nodes as nodes_module
+from easyuse_anima.nodes import wildcard_nodes
 from easyuse_anima.prompt import advanced as prompt_advanced
 from easyuse_anima.seed import compatibility as seed_compatibility
 from nodes import (
@@ -979,7 +980,11 @@ class WildcardSeedContractTests(unittest.TestCase):
             missing_keys=(),
         )
 
-        with patch("nodes.expand_wildcards", return_value=expansion) as expand:
+        with patch.object(
+            wildcard_nodes,
+            "expand_wildcards",
+            return_value=expansion,
+        ) as expand:
             result = EasyUseAnimaWildcard().generate(
                 "__style__",
                 "",
@@ -1360,7 +1365,7 @@ class WildcardNodeTests(unittest.TestCase):
 
         with (
             patch(
-                "nodes.expand_wildcards",
+                "easyuse_anima.nodes.wildcard_nodes.expand_wildcards",
                 return_value=WildcardExpansionResult(
                     text="expanded style",
                     changed=True,
@@ -1408,7 +1413,7 @@ class WildcardNodeTests(unittest.TestCase):
         }
 
         with patch(
-            "nodes.expand_wildcards",
+            "easyuse_anima.nodes.wildcard_nodes.expand_wildcards",
             return_value=WildcardExpansionResult(
                 text="expanded style",
                 changed=True,
@@ -1465,7 +1470,11 @@ class WildcardNodeTests(unittest.TestCase):
                     used_keys=("style",),
                     missing_keys=(),
                 )
-                with patch("nodes.expand_wildcards", return_value=expansion) as expand:
+                with patch.object(
+                    wildcard_nodes,
+                    "expand_wildcards",
+                    return_value=expansion,
+                ) as expand:
                     result = EasyUseAnimaWildcard().generate(
                         "source text",
                         "cached text",
@@ -1525,7 +1534,7 @@ class WildcardNodeTests(unittest.TestCase):
 
     def test_native_fixed_uses_populated_text_and_current_seed(self):
         with patch(
-            "nodes.expand_wildcards",
+            "easyuse_anima.nodes.wildcard_nodes.expand_wildcards",
             return_value=WildcardExpansionResult(
                 text="expanded style",
                 changed=False,
@@ -1546,7 +1555,7 @@ class WildcardNodeTests(unittest.TestCase):
 
     def test_native_fixed_keeps_empty_populated_text_empty(self):
         with patch(
-            "nodes.expand_wildcards",
+            "easyuse_anima.nodes.wildcard_nodes.expand_wildcards",
             return_value=WildcardExpansionResult(
                 text="",
                 changed=False,
@@ -1577,7 +1586,11 @@ class WildcardNodeTests(unittest.TestCase):
             def expand_from_test_root(text, *, seed, mode):
                 return expand_wildcards(text, seed=seed, mode=mode, roots=[root])
 
-            with patch("nodes.expand_wildcards", side_effect=expand_from_test_root) as expand:
+            with patch.object(
+                wildcard_nodes,
+                "expand_wildcards",
+                side_effect=expand_from_test_root,
+            ) as expand:
                 first = EasyUseAnimaWildcard().generate(
                     "ignored source",
                     "__samples/flower__",

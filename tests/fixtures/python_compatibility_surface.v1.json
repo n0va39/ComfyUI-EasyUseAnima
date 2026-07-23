@@ -81,7 +81,8 @@
       "B-11c30d4",
       "B-11c30d0b",
       "B-11c30d5",
-      "B-11c30d6"
+      "B-11c30d6",
+      "B-11c30e"
     ]
   },
   "enums": {
@@ -116,14 +117,14 @@
   "expected_counts": {
     "root_entrypoints": 3,
     "excluded_preamble_implementation_bindings": 1,
-    "nodes_canonical_bindings": 291,
+    "nodes_canonical_bindings": 289,
     "nodes_legacy_bindings": 27,
     "mapped_public_classes": 18,
     "unmapped_classes": 2,
     "root_residual_functions": 0,
     "root_residual_classes": 0,
     "root_residual_globals": 2,
-    "runtime_binders": 2,
+    "runtime_binders": 0,
     "direct_nodes_import_test_files": 21
   },
   "mapped_public_classes": [
@@ -153,36 +154,28 @@
   "excluded_preamble_implementation_bindings": {
     "logging": "logging:logging"
   },
-  "runtime_binders": [
-    "_bind_wildcard_node_runtime",
-    "_bind_naia_node_runtime"
-  ],
+  "runtime_binders": [],
   "runtime_resolver_consumers": {},
   "runtime_binder_audit": {
     "summary": {
-      "binder_count": 2,
-      "family_count": 1,
+      "binder_count": 0,
+      "family_count": 0,
       "mode_counts": {
         "comfy_provider_then_root": 0,
         "root_globals": 0,
-        "explicit_callbacks": 2
+        "explicit_callbacks": 0
       },
       "unique_resolver_names": 0,
       "unique_root_resolver_names": 0,
       "unique_provider_resolver_names": 0,
-      "unique_direct_root_dependencies": 8,
-      "direct_root_dependency_slots": 9,
+      "unique_direct_root_dependencies": 0,
+      "direct_root_dependency_slots": 0,
       "provider_consumer_slots": 0,
       "provider_consumer_modules": 0,
-      "repository_replacement_names": 5,
-      "repository_replacement_files": 3
+      "repository_replacement_names": 0,
+      "repository_replacement_files": 0
     },
-    "families": {
-      "wildcard_naia": [
-        "_bind_wildcard_node_runtime",
-        "_bind_naia_node_runtime"
-      ]
-    },
+    "families": {},
     "aio_split_gate": {
       "subgroup_order": [
         "B-11c30d1_cache_state",
@@ -253,95 +246,8 @@
     },
     "root_resolver_names": [],
     "provider_resolver_names": [],
-    "repository_root_replacements": {
-      "_get_workflow_node": [
-        "tests/test_node_contracts.py"
-      ],
-      "_post_random": [
-        "tests/test_naia_settings.py"
-      ],
-      "expand_wildcards": [
-        "tests/test_wildcards.py"
-      ],
-      "resolve_naia_settings": [
-        "tests/test_naia_settings.py",
-        "tests/test_node_contracts.py"
-      ],
-      "wildcard_sources_signature": [
-        "tests/test_node_contracts.py"
-      ]
-    },
-    "entries": [
-      {
-        "binder": "_bind_wildcard_node_runtime",
-        "module": "easyuse_anima.nodes.wildcard_nodes",
-        "family": "wildcard_naia",
-        "mode": "explicit_callbacks",
-        "root_observation": "call_time_callback",
-        "root_keywords": [
-          "expand",
-          "get_workflow_node",
-          "normalize_mode",
-          "normalize_seed_value",
-          "sources_signature"
-        ],
-        "bound_globals": [
-          "_get_workflow_node",
-          "expand_wildcards",
-          "normalize_seed",
-          "normalize_wildcard_mode",
-          "wildcard_sources_signature"
-        ],
-        "direct_root_dependencies": [
-          "_get_workflow_node",
-          "expand_wildcards",
-          "normalize_seed",
-          "normalize_wildcard_mode",
-          "wildcard_sources_signature"
-        ],
-        "resolver_names": [],
-        "root_resolver_names": [],
-        "provider_resolver_names": [],
-        "repository_replacement_names": [
-          "_get_workflow_node",
-          "expand_wildcards",
-          "wildcard_sources_signature"
-        ]
-      },
-      {
-        "binder": "_bind_naia_node_runtime",
-        "module": "easyuse_anima.nodes.naia_nodes",
-        "family": "wildcard_naia",
-        "mode": "explicit_callbacks",
-        "root_observation": "call_time_callback",
-        "root_keywords": [
-          "get_workflow_node",
-          "parse_random_response",
-          "post_random",
-          "resolve_settings"
-        ],
-        "bound_globals": [
-          "_get_workflow_node",
-          "_parse_random_response",
-          "_post_random",
-          "resolve_naia_settings"
-        ],
-        "direct_root_dependencies": [
-          "_get_workflow_node",
-          "_parse_random_response",
-          "_post_random",
-          "resolve_naia_settings"
-        ],
-        "resolver_names": [],
-        "root_resolver_names": [],
-        "provider_resolver_names": [],
-        "repository_replacement_names": [
-          "_get_workflow_node",
-          "_post_random",
-          "resolve_naia_settings"
-        ]
-      }
-    ]
+    "repository_root_replacements": {},
+    "entries": []
   },
   "documented_transitional_aliases": {
     "EasyUseAnimaSAM3Context": {
@@ -1985,39 +1891,12 @@
       "lifecycle_state": "unsupported"
     },
     {
-      "id": "nodes_canonical_bindings:easyuse_anima.naia.client:transitional_private_seam",
-      "surface": "nodes_canonical_bindings",
-      "symbols": {
-        "_parse_random_response": "_parse_random_response",
-        "_post_random": "_post_random"
-      },
-      "classification": "transitional_private_seam",
-      "current_target": "nodes.py",
-      "canonical_target": "easyuse_anima.naia.client",
-      "target_state": "canonical",
-      "identity_requirement": "required",
-      "binding_shape": "direct_import",
-      "import_target": "easyuse_anima.naia.client",
-      "owner": "#184/#188",
-      "first_release": null,
-      "known_consumers": [
-        "nodes.py residual runtime"
-      ],
-      "evidence": [
-        "AST:nodes.py direct runtime load"
-      ],
-      "removal_gates": [
-        "canonical production consumer migration",
-        "focused monkeypatch and identity contract review",
-        "separate B-10b or B-11 rollback unit"
-      ],
-      "lifecycle_state": "transitional"
-    },
-    {
       "id": "nodes_canonical_bindings:easyuse_anima.naia.client:unsupported_test_only",
       "surface": "nodes_canonical_bindings",
       "symbols": {
-        "LATENT_ALIGN": "LATENT_ALIGN"
+        "LATENT_ALIGN": "LATENT_ALIGN",
+        "_parse_random_response": "_parse_random_response",
+        "_post_random": "_post_random"
       },
       "classification": "unsupported_test_only",
       "current_target": "nodes.py",
@@ -2260,34 +2139,6 @@
       "lifecycle_state": "supported"
     },
     {
-      "id": "nodes_canonical_bindings:easyuse_anima.nodes.naia_nodes:transitional_private_seam",
-      "surface": "nodes_canonical_bindings",
-      "symbols": {
-        "_bind_naia_node_runtime": "_bind_naia_node_runtime"
-      },
-      "classification": "transitional_private_seam",
-      "current_target": "nodes.py",
-      "canonical_target": "easyuse_anima.nodes.naia_nodes",
-      "target_state": "canonical",
-      "identity_requirement": "required",
-      "binding_shape": "direct_import",
-      "import_target": "easyuse_anima.nodes.naia_nodes",
-      "owner": "#184/#188",
-      "first_release": null,
-      "known_consumers": [
-        "nodes.py residual runtime"
-      ],
-      "evidence": [
-        "AST:nodes.py direct runtime load"
-      ],
-      "removal_gates": [
-        "canonical production consumer migration",
-        "focused monkeypatch and identity contract review",
-        "separate B-10b or B-11 rollback unit"
-      ],
-      "lifecycle_state": "transitional"
-    },
-    {
       "id": "nodes_canonical_bindings:easyuse_anima.nodes.prompt_advanced_nodes:supported_public_reexport",
       "surface": "nodes_canonical_bindings",
       "symbols": {
@@ -2500,34 +2351,6 @@
         "mapping, workflow, and direct identity parity"
       ],
       "lifecycle_state": "supported"
-    },
-    {
-      "id": "nodes_canonical_bindings:easyuse_anima.nodes.wildcard_nodes:transitional_private_seam",
-      "surface": "nodes_canonical_bindings",
-      "symbols": {
-        "_bind_wildcard_node_runtime": "_bind_wildcard_node_runtime"
-      },
-      "classification": "transitional_private_seam",
-      "current_target": "nodes.py",
-      "canonical_target": "easyuse_anima.nodes.wildcard_nodes",
-      "target_state": "canonical",
-      "identity_requirement": "required",
-      "binding_shape": "direct_import",
-      "import_target": "easyuse_anima.nodes.wildcard_nodes",
-      "owner": "#184/#188",
-      "first_release": null,
-      "known_consumers": [
-        "nodes.py residual runtime"
-      ],
-      "evidence": [
-        "AST:nodes.py direct runtime load"
-      ],
-      "removal_gates": [
-        "canonical production consumer migration",
-        "focused monkeypatch and identity contract review",
-        "separate B-10b or B-11 rollback unit"
-      ],
-      "lifecycle_state": "transitional"
     },
     {
       "id": "nodes_canonical_bindings:easyuse_anima.prompt.advanced:unsupported_test_only",
@@ -2842,32 +2665,33 @@
       "lifecycle_state": "unsupported"
     },
     {
-      "id": "nodes_canonical_bindings:easyuse_anima.workflow:transitional_private_seam",
+      "id": "nodes_canonical_bindings:easyuse_anima.workflow:unsupported_test_only",
       "surface": "nodes_canonical_bindings",
       "symbols": {
         "_get_workflow_node": "_get_workflow_node"
       },
-      "classification": "transitional_private_seam",
+      "classification": "unsupported_test_only",
       "current_target": "nodes.py",
       "canonical_target": "easyuse_anima.workflow",
       "target_state": "canonical",
-      "identity_requirement": "required",
+      "identity_requirement": "not_applicable",
       "binding_shape": "direct_import",
       "import_target": "easyuse_anima.workflow",
       "owner": "#184/#188",
       "first_release": null,
       "known_consumers": [
-        "nodes.py residual runtime"
+        "repository tests may import this root name"
       ],
       "evidence": [
-        "AST:nodes.py direct runtime load"
+        "AST:no nodes.py runtime load",
+        "test-only consumption is not public support evidence"
       ],
       "removal_gates": [
-        "canonical production consumer migration",
-        "focused monkeypatch and identity contract review",
-        "separate B-10b or B-11 rollback unit"
+        "test imports migrate to canonical targets",
+        "no production consumer evidence",
+        "separate B-10b removal review"
       ],
-      "lifecycle_state": "transitional"
+      "lifecycle_state": "unsupported"
     },
     {
       "id": "nodes_legacy_bindings:anima_prompt.parser:unsupported_test_only",
@@ -2959,38 +2783,11 @@
       "lifecycle_state": "unsupported"
     },
     {
-      "id": "nodes_legacy_bindings:settings:transitional_private_seam",
-      "surface": "nodes_legacy_bindings",
-      "symbols": {
-        "resolve_naia_settings": "resolve_naia_settings"
-      },
-      "classification": "transitional_private_seam",
-      "current_target": "nodes.py",
-      "canonical_target": null,
-      "target_state": "legacy_owner",
-      "identity_requirement": "required",
-      "binding_shape": "direct_import",
-      "import_target": "settings",
-      "owner": "#163/#186",
-      "first_release": null,
-      "known_consumers": [
-        "nodes.py residual runtime"
-      ],
-      "evidence": [
-        "AST:nodes.py direct runtime load"
-      ],
-      "removal_gates": [
-        "canonical production consumer migration",
-        "focused monkeypatch and identity contract review",
-        "separate B-10b or B-11 rollback unit"
-      ],
-      "lifecycle_state": "transitional"
-    },
-    {
       "id": "nodes_legacy_bindings:settings:unsupported_test_only",
       "surface": "nodes_legacy_bindings",
       "symbols": {
         "resolve_metadata_filter_words": "resolve_metadata_filter_words",
+        "resolve_naia_settings": "resolve_naia_settings",
         "resolve_prompt_translation_settings": "resolve_prompt_translation_settings"
       },
       "classification": "unsupported_test_only",
@@ -3017,37 +2814,6 @@
       "lifecycle_state": "unsupported"
     },
     {
-      "id": "nodes_legacy_bindings:wildcard_engine:transitional_private_seam",
-      "surface": "nodes_legacy_bindings",
-      "symbols": {
-        "expand_wildcards": "expand_wildcards",
-        "normalize_seed": "normalize_seed",
-        "normalize_wildcard_mode": "normalize_wildcard_mode",
-        "wildcard_sources_signature": "wildcard_sources_signature"
-      },
-      "classification": "transitional_private_seam",
-      "current_target": "nodes.py",
-      "canonical_target": null,
-      "target_state": "legacy_owner",
-      "identity_requirement": "required",
-      "binding_shape": "direct_import",
-      "import_target": "wildcard_engine",
-      "owner": "#184/#186",
-      "first_release": null,
-      "known_consumers": [
-        "nodes.py residual runtime"
-      ],
-      "evidence": [
-        "AST:nodes.py direct runtime load"
-      ],
-      "removal_gates": [
-        "canonical production consumer migration",
-        "focused monkeypatch and identity contract review",
-        "separate B-10b or B-11 rollback unit"
-      ],
-      "lifecycle_state": "transitional"
-    },
-    {
       "id": "nodes_legacy_bindings:wildcard_engine:unsupported_test_only",
       "surface": "nodes_legacy_bindings",
       "symbols": {
@@ -3063,9 +2829,13 @@
         "WILDCARD_MODE_POPULATE": "WILDCARD_MODE_POPULATE",
         "WILDCARD_MODE_SEQUENTIAL": "WILDCARD_MODE_SEQUENTIAL",
         "expand_wildcard_texts": "expand_wildcard_texts",
+        "expand_wildcards": "expand_wildcards",
         "has_wildcard_syntax": "has_wildcard_syntax",
         "next_seed": "next_seed",
-        "normalize_prompt_studio_wildcard_mode": "normalize_prompt_studio_wildcard_mode"
+        "normalize_prompt_studio_wildcard_mode": "normalize_prompt_studio_wildcard_mode",
+        "normalize_seed": "normalize_seed",
+        "normalize_wildcard_mode": "normalize_wildcard_mode",
+        "wildcard_sources_signature": "wildcard_sources_signature"
       },
       "classification": "unsupported_test_only",
       "current_target": "nodes.py",

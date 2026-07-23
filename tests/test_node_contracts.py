@@ -265,6 +265,16 @@ def _deterministic_comfy_inputs():
                 "wildcard_sources_signature"
             ],
         ),
+        patch.multiple(
+            wildcard_nodes,
+            wildcard_sources_signature=replacements[
+                "wildcard_sources_signature"
+            ],
+        ),
+        patch.multiple(
+            naia_nodes,
+            resolve_naia_settings=replacements["resolve_naia_settings"],
+        ),
         patch_comfy_helper(
             nodes,
             "_comfy_max_resolution",
@@ -2545,22 +2555,13 @@ class WorkflowLookupMoveContractTests(unittest.TestCase):
                 package_workflow._get_workflow_node,
             )
 
-    def test_existing_binders_keep_the_call_time_root_patch_seam(self):
-        patched_result = object()
-        with patch.object(
-            nodes,
-            "_get_workflow_node",
-            return_value=patched_result,
-        ):
-            for adapter in (
-                wildcard_nodes,
-                naia_nodes,
-            ):
-                with self.subTest(adapter=adapter.__name__):
-                    self.assertIs(
-                        adapter._get_workflow_node(None, "3"),
-                        patched_result,
-                    )
+    def test_wildcard_naia_adapters_use_the_canonical_workflow_lookup(self):
+        for adapter in (wildcard_nodes, naia_nodes):
+            with self.subTest(adapter=adapter.__name__):
+                self.assertIs(
+                    adapter._get_workflow_node,
+                    workflow._get_workflow_node,
+                )
 
     def test_retired_prompt_adapters_use_the_canonical_workflow_lookup(self):
         for adapter in (prompt_advanced_nodes, regional_nodes):

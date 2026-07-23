@@ -7,6 +7,7 @@ from easyuse_anima.naia.client import (
     _build_naia_random_url,
     _fit_to_1mp,
 )
+from easyuse_anima.nodes import naia_nodes
 from nodes import (
     LATENT_ALIGN,
     EasyUseAnimaNAIARandomPrompt,
@@ -121,8 +122,8 @@ class NaiaSettingsTests(unittest.TestCase):
             }
 
         with (
-            patch("nodes.resolve_naia_settings", lambda: settings()),
-            patch("nodes._post_random", fake_post),
+            patch.object(naia_nodes, "resolve_naia_settings", lambda: settings()),
+            patch.object(naia_nodes, "_post_random", fake_post),
         ):
             result = EasyUseAnimaNAIARandomPrompt().request(
                 use_naia_bridge=True,
@@ -161,7 +162,11 @@ class NaiaSettingsTests(unittest.TestCase):
         )
 
     def test_desktop_naia_settings_skip_peng_override(self):
-        with patch("nodes.resolve_naia_settings", lambda: settings(use_naia_settings=True)):
+        with patch.object(
+            naia_nodes,
+            "resolve_naia_settings",
+            lambda: settings(use_naia_settings=True),
+        ):
             body = EasyUseAnimaNAIARandomPrompt._make_request_body(
                 use_naia_settings=True,
                 pre_prompt="unused",

@@ -8,11 +8,11 @@
 - Policy: [ADR-002](adr-002-compatibility-shims.md)
 - Machine-readable audit:
   [`python_compatibility_surface.v1.json`](../../tests/fixtures/python_compatibility_surface.v1.json)
-- Current state: B-11a through B-11c30d5 / PR #353 are integrated in the
-  reviewed sequence, and B-11c30d6 / PR #354 retires the final AiO
-  node-adapter resolver. S167-01a / PR #344 supplies the canonical
-  reserved-seed compatibility consumer while retaining its root aliases. Only
-  the two Wildcard/NAIA callback binders remain before the final root shim.
+- Current state: B-11a through B-11c30d6 / PR #354 are integrated in the
+  reviewed sequence, and B-11c30e / PR #355 retires the final two
+  Wildcard/NAIA callbacks. S167-01a / PR #344 supplies the canonical
+  reserved-seed compatibility consumer while retaining its root aliases. No
+  runtime binder or resolver remains before the final root shim.
 
 This is an actionable registry, not a removal schedule. `N` means the first
 published Registry release containing both a canonical target and its root
@@ -77,8 +77,8 @@ inferring public support from spelling or test imports:
 - `nodes.py` preamble implementation imports: 1 (`logging`), excluded from
   compatibility classification
   by an exact AST allowlist and drift gate;
-- `nodes.py` bindings with an `easyuse_anima` canonical target: 291 in
-  B-11c30d6 (258 at the integrated B-10b20 baseline), with exact
+- `nodes.py` bindings with an `easyuse_anima` canonical target: 289 in
+  B-11c30e (258 at the integrated B-10b20 baseline), with exact
   relative-package/flat-fallback parity;
 - bindings still owned by `anima_prompt`, `settings`, `prompt_translation`, or
   `wildcard_engine`: 27, with the same fallback parity;
@@ -87,10 +87,9 @@ inferring public support from spelling or test imports:
   `EasyUseAnimaSAM3Detailer`; the canonical legacy Extend class remains in its
   owner module without a root alias or backend mapping;
 - root-owned residual implementation: 0 functions, 0 classes, and 2 assigned
-  globals in B-11c30d6 (41/2/33 at the integrated B-10b20 baseline).
-- import-time runtime binders: 2 exact top-level `_bind_*_runtime` calls;
-- no string runtime resolver remains. The two explicit Wildcard/NAIA callback
-  binders reach eight unique direct root dependencies across nine slots;
+  globals in B-11c30e (41/2/33 at the integrated B-10b20 baseline).
+- import-time runtime binders: 0;
+- no string runtime resolver or explicit callback installation remains;
 - retired private bindings: `_comfy_checkpoint_names`,
   `_EasyUseAnimaAlignedDetailerHook`, and
   `_EasyUseAnimaImpactDetailerDelegate`, plus `_impact_core_module`,
@@ -1047,6 +1046,28 @@ convenience-node compatibility; it remains unmapped and is not public support.
   reachable Python modules, and a 1,142-line root shim.
 - B-11c30e Wildcard/NAIA is the next separate Move; #168/#169 Behavior and the
   final root shim remain outside PR #354.
+
+### B-11c30e Wildcard/NAIA callback-binder retirement
+
+- PR #355 retires exactly `_bind_wildcard_node_runtime` and
+  `_bind_naia_node_runtime`.
+- Both adapters import `easyuse_anima.workflow._get_workflow_node` directly.
+  Wildcard keeps its existing package/flat legacy-engine imports. NAIA imports
+  the existing settings owner with the same fallback and retains its direct
+  client imports.
+- The nine bind-time callback installations over eight unique names are
+  absent. Root no longer imports or invokes either binder.
+- Tests patch canonical consumers rather than root callbacks. Wildcard
+  syntax/sources/modes/seeds/expansion/metadata, NAIA
+  settings/HTTP/cache/results, mapped classes, package/flat imports, workflows,
+  and exact errors remain unchanged.
+- Runtime binder families, string resolvers, direct callback dependencies, and
+  binder-owned repository replacement names all reach zero.
+- The compatibility inventory contains 289 canonical root bindings, two
+  residual root globals, one preamble implementation import, 93 shipped and
+  reachable Python modules, and a 1,123-line root shim.
+- B-11d final root shim is the next separate Move; #167/#236 Behavior and
+  D-09/D-12 consolidation remain outside PR #355.
 
 ### `nodes.py` public node-class surface
 
