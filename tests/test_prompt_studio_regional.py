@@ -321,7 +321,7 @@ class PromptStudioRegionalTests(unittest.TestCase):
             }
         }
 
-        with patch("nodes.next_seed") as fallback_next_seed:
+        with patch.object(regional_nodes, "next_seed") as fallback_next_seed:
             result = EasyUseAnimaPromptStudioRegional().build(
                 "",
                 "",
@@ -354,7 +354,11 @@ class PromptStudioRegionalTests(unittest.TestCase):
             "42": {"inputs": {reservation_key: mismatched_reservation}}
         }
 
-        with patch("nodes.next_seed", return_value=3) as fallback_next_seed:
+        with patch.object(
+            regional_nodes,
+            "next_seed",
+            return_value=3,
+        ) as fallback_next_seed:
             result = EasyUseAnimaPromptStudioRegional().build(
                 "",
                 "",

@@ -71,7 +71,8 @@
       "B-11c30c",
       "B-11c30c1",
       "B-11c30c2",
-      "B-11c30c2a"
+      "B-11c30c2a",
+      "B-11c30c2b"
     ]
   },
   "enums": {
@@ -106,14 +107,14 @@
   "expected_counts": {
     "root_entrypoints": 3,
     "excluded_preamble_implementation_bindings": 5,
-    "nodes_canonical_bindings": 284,
+    "nodes_canonical_bindings": 282,
     "nodes_legacy_bindings": 27,
     "mapped_public_classes": 18,
     "unmapped_classes": 2,
     "root_residual_functions": 0,
     "root_residual_classes": 0,
     "root_residual_globals": 24,
-    "runtime_binders": 16,
+    "runtime_binders": 14,
     "direct_nodes_import_test_files": 21
   },
   "mapped_public_classes": [
@@ -159,8 +160,6 @@
     "_bind_aio_preview_runtime",
     "_bind_aio_output_runtime",
     "_bind_aio_conditioning_runtime",
-    "_bind_regional_node_runtime",
-    "_bind_prompt_advanced_node_runtime",
     "_bind_aio_node_runtime",
     "_bind_wildcard_node_runtime",
     "_bind_naia_node_runtime"
@@ -311,9 +310,6 @@
     "EasyUseAnimaImageScaleByMultiple": [
       "easyuse_anima.aio.legacy_generation"
     ],
-    "EasyUseAnimaNAIARandomPrompt": [
-      "easyuse_anima.nodes.prompt_advanced_nodes"
-    ],
     "EasyUseAnimaSAM3Detailer": [
       "easyuse_anima.aio.legacy_generation"
     ],
@@ -367,31 +363,11 @@
     "_advanced_artist_field_prompt": [
       "easyuse_anima.aio.conditioning"
     ],
-    "_advanced_enabled_naia_panes": [
-      "easyuse_anima.nodes.prompt_advanced_nodes"
-    ],
     "_advanced_enabled_pane_fields": [
       "easyuse_anima.aio.conditioning"
     ],
-    "_advanced_field_input_values": [
-      "easyuse_anima.nodes.prompt_advanced_nodes",
-      "easyuse_anima.nodes.regional_nodes"
-    ],
-    "_advanced_fields_json": [
-      "easyuse_anima.nodes.prompt_advanced_nodes"
-    ],
-    "_advanced_has_enabled_naia": [
-      "easyuse_anima.nodes.prompt_advanced_nodes"
-    ],
     "_advanced_outputs_from_prompt_data": [
       "easyuse_anima.aio.legacy_generation"
-    ],
-    "_advanced_resolution_from_selection": [
-      "easyuse_anima.nodes.prompt_advanced_nodes",
-      "easyuse_anima.nodes.regional_nodes"
-    ],
-    "_advanced_uses_naia_resolution": [
-      "easyuse_anima.nodes.prompt_advanced_nodes"
     ],
     "_aio_detailer_has_enabled_targets": [
       "easyuse_anima.aio.legacy_generation"
@@ -467,9 +443,6 @@
     "_align_nearest": [
       "easyuse_anima.aio.usdu"
     ],
-    "_apply_advanced_field_inputs": [
-      "easyuse_anima.nodes.prompt_advanced_nodes"
-    ],
     "_apply_aio_anima_dave_patch": [
       "easyuse_anima.aio.model_preparation"
     ],
@@ -497,14 +470,8 @@
     "_apply_aio_spectrum_model_patches_for_comfy_sampler": [
       "easyuse_anima.aio.legacy_generation"
     ],
-    "_apply_regional_field_inputs": [
-      "easyuse_anima.nodes.regional_nodes"
-    ],
     "_apply_spectrum_anima_mod_guidance": [
       "easyuse_anima.aio.legacy_generation"
-    ],
-    "_artist_mix_mode_tooltip": [
-      "easyuse_anima.nodes.prompt_advanced_nodes"
     ],
     "_as_bool": [
       "easyuse_anima.aio.conditioning",
@@ -514,9 +481,7 @@
       "easyuse_anima.aio.output",
       "easyuse_anima.aio.postprocess",
       "easyuse_anima.aio.sampling",
-      "easyuse_anima.aio.usdu",
-      "easyuse_anima.nodes.prompt_advanced_nodes",
-      "easyuse_anima.nodes.regional_nodes"
+      "easyuse_anima.aio.usdu"
     ],
     "_as_float": [
       "easyuse_anima.aio.generation_normalization",
@@ -524,8 +489,7 @@
       "easyuse_anima.aio.model_preparation",
       "easyuse_anima.aio.output",
       "easyuse_anima.aio.postprocess",
-      "easyuse_anima.aio.sampling",
-      "easyuse_anima.nodes.regional_nodes"
+      "easyuse_anima.aio.sampling"
     ],
     "_as_int": [
       "easyuse_anima.aio.generation_normalization",
@@ -535,25 +499,13 @@
       "easyuse_anima.aio.postprocess",
       "easyuse_anima.aio.resources",
       "easyuse_anima.aio.sampling",
-      "easyuse_anima.aio.usdu",
-      "easyuse_anima.nodes.prompt_advanced_nodes"
+      "easyuse_anima.aio.usdu"
     ],
     "_bounded_artist_mix_float": [
-      "easyuse_anima.aio.generation_normalization",
-      "easyuse_anima.nodes.prompt_advanced_nodes"
+      "easyuse_anima.aio.generation_normalization"
     ],
     "_bounded_artist_mix_int": [
-      "easyuse_anima.aio.generation_normalization",
-      "easyuse_anima.nodes.prompt_advanced_nodes"
-    ],
-    "_build_advanced_prompt_data": [
-      "easyuse_anima.nodes.prompt_advanced_nodes"
-    ],
-    "_build_advanced_prompts": [
-      "easyuse_anima.nodes.prompt_advanced_nodes"
-    ],
-    "_build_regional_outputs": [
-      "easyuse_anima.nodes.regional_nodes"
+      "easyuse_anima.aio.generation_normalization"
     ],
     "_call_with_supported_kwargs": [
       "easyuse_anima.aio.model_preparation",
@@ -566,14 +518,8 @@
     "_cleanup_aio_ephemeral_model": [
       "easyuse_anima.aio.legacy_generation"
     ],
-    "_clone_advanced_fields": [
-      "easyuse_anima.nodes.prompt_advanced_nodes"
-    ],
     "_clone_aio_cache_value": [
       "easyuse_anima.aio.first_pass_cache"
-    ],
-    "_clone_regional_fields": [
-      "easyuse_anima.nodes.regional_nodes"
     ],
     "_comfy_clip_loader_types": [
       "easyuse_anima.nodes.aio_nodes"
@@ -596,13 +542,6 @@
     "_common_upscale_image": [
       "easyuse_anima.aio.postprocess"
     ],
-    "_conditioning_set_values": [
-      "easyuse_anima.nodes.regional_nodes"
-    ],
-    "_consume_reserved_wildcard_next_seed": [
-      "easyuse_anima.nodes.prompt_advanced_nodes",
-      "easyuse_anima.nodes.regional_nodes"
-    ],
     "_context_value": [
       "easyuse_anima.aio.legacy_generation"
     ],
@@ -624,10 +563,6 @@
     "_encode_prompt_data_positive_conditioning": [
       "easyuse_anima.aio.legacy_generation"
     ],
-    "_expand_advanced_wildcard_fields": [
-      "easyuse_anima.nodes.prompt_advanced_nodes",
-      "easyuse_anima.nodes.regional_nodes"
-    ],
     "_folder_path_names": [
       "easyuse_anima.aio.resources"
     ],
@@ -639,10 +574,6 @@
     ],
     "_get_aio_first_pass_cache": [
       "easyuse_anima.aio.legacy_generation"
-    ],
-    "_get_workflow_node": [
-      "easyuse_anima.nodes.prompt_advanced_nodes",
-      "easyuse_anima.nodes.regional_nodes"
     ],
     "_image_tensor_size": [
       "easyuse_anima.aio.legacy_generation",
@@ -701,8 +632,7 @@
       "easyuse_anima.aio.sampling"
     ],
     "_normalize_advanced_fields": [
-      "easyuse_anima.aio.conditioning",
-      "easyuse_anima.nodes.prompt_advanced_nodes"
+      "easyuse_anima.aio.conditioning"
     ],
     "_normalize_aio_civitai_hash_fetchers": [
       "easyuse_anima.aio.generation_normalization",
@@ -738,38 +668,13 @@
       "easyuse_anima.aio.legacy_generation",
       "easyuse_anima.aio.sampling"
     ],
-    "_normalize_artist_mix_mode": [
-      "easyuse_anima.nodes.prompt_advanced_nodes"
-    ],
-    "_normalize_mask_ids": [
-      "easyuse_anima.nodes.regional_nodes"
-    ],
     "_normalize_prompt_data": [
       "easyuse_anima.aio.conditioning",
       "easyuse_anima.aio.legacy_generation",
       "easyuse_anima.nodes.aio_nodes"
     ],
-    "_normalize_prompt_studio_wildcard_seed_control": [
-      "easyuse_anima.nodes.prompt_advanced_nodes",
-      "easyuse_anima.nodes.regional_nodes"
-    ],
-    "_normalize_regional_config": [
-      "easyuse_anima.nodes.regional_nodes"
-    ],
-    "_normalize_regional_fields": [
-      "easyuse_anima.nodes.regional_nodes"
-    ],
-    "_parse_json_object": [
-      "easyuse_anima.nodes.regional_nodes"
-    ],
-    "_parse_random_response": [
-      "easyuse_anima.nodes.prompt_advanced_nodes"
-    ],
     "_patch_model_sampling_aura_flow": [
       "easyuse_anima.aio.model_preparation"
-    ],
-    "_post_random": [
-      "easyuse_anima.nodes.prompt_advanced_nodes"
     ],
     "_preferred_clip_type_default": [
       "easyuse_anima.nodes.aio_nodes"
@@ -784,30 +689,8 @@
       "easyuse_anima.aio.preview",
       "easyuse_anima.nodes.aio_nodes"
     ],
-    "_prompt_data_parameter_snapshot": [
-      "easyuse_anima.nodes.prompt_advanced_nodes"
-    ],
-    "_prompt_translation_change_key": [
-      "easyuse_anima.nodes.prompt_advanced_nodes",
-      "easyuse_anima.nodes.regional_nodes"
-    ],
     "_put_aio_first_pass_cache": [
       "easyuse_anima.aio.legacy_generation"
-    ],
-    "_regional_config_json": [
-      "easyuse_anima.nodes.regional_nodes"
-    ],
-    "_regional_fields_json": [
-      "easyuse_anima.nodes.regional_nodes"
-    ],
-    "_regional_mask_bounds_area": [
-      "easyuse_anima.nodes.regional_nodes"
-    ],
-    "_regional_payload_canvas": [
-      "easyuse_anima.nodes.regional_nodes"
-    ],
-    "_regional_union_mask_for_ids": [
-      "easyuse_anima.nodes.regional_nodes"
     ],
     "_require_easy_use_anima_input": [
       "easyuse_anima.aio.legacy_generation"
@@ -815,9 +698,6 @@
     "_resize_image_to_size_if_needed": [
       "easyuse_anima.aio.legacy_generation",
       "easyuse_anima.aio.postprocess"
-    ],
-    "_resolution_label": [
-      "easyuse_anima.nodes.prompt_advanced_nodes"
     ],
     "_resolve_aio_runtime_seed": [
       "easyuse_anima.aio.legacy_generation",
@@ -827,9 +707,6 @@
     ],
     "_resolve_anima_mod_guidance_enabled": [
       "easyuse_anima.aio.legacy_generation"
-    ],
-    "_resolve_naia_resolution": [
-      "easyuse_anima.nodes.prompt_advanced_nodes"
     ],
     "_round_trip_aio_generation_settings": [
       "easyuse_anima.aio.generation_normalization"
@@ -888,32 +765,18 @@
     "_send_aio_preview_event": [
       "easyuse_anima.aio.legacy_generation"
     ],
-    "_set_naia_field_text": [
-      "easyuse_anima.nodes.prompt_advanced_nodes"
-    ],
     "_single_value": [
       "easyuse_anima.aio.legacy_generation",
       "easyuse_anima.aio.output",
-      "easyuse_anima.aio.preview",
-      "easyuse_anima.nodes.prompt_advanced_nodes",
-      "easyuse_anima.nodes.regional_nodes"
+      "easyuse_anima.aio.preview"
     ],
     "_stable_change_key": [
       "easyuse_anima.aio.first_pass_cache",
-      "easyuse_anima.nodes.aio_nodes",
-      "easyuse_anima.nodes.prompt_advanced_nodes",
-      "easyuse_anima.nodes.regional_nodes"
+      "easyuse_anima.nodes.aio_nodes"
     ],
     "_tag_aio_preview_images": [
       "easyuse_anima.aio.legacy_generation",
       "easyuse_anima.aio.preview"
-    ],
-    "_translate_prompt_fields": [
-      "easyuse_anima.nodes.prompt_advanced_nodes",
-      "easyuse_anima.nodes.regional_nodes"
-    ],
-    "_translate_prompt_text": [
-      "easyuse_anima.nodes.prompt_advanced_nodes"
     ],
     "logger": [
       "easyuse_anima.aio.legacy_generation",
@@ -921,49 +784,26 @@
       "easyuse_anima.aio.output",
       "easyuse_anima.aio.postprocess",
       "easyuse_anima.aio.preview"
-    ],
-    "next_seed": [
-      "easyuse_anima.nodes.prompt_advanced_nodes",
-      "easyuse_anima.nodes.regional_nodes"
-    ],
-    "normalize_prompt_studio_wildcard_mode": [
-      "easyuse_anima.nodes.prompt_advanced_nodes",
-      "easyuse_anima.nodes.regional_nodes"
-    ],
-    "normalize_seed": [
-      "easyuse_anima.nodes.prompt_advanced_nodes",
-      "easyuse_anima.nodes.regional_nodes"
-    ],
-    "resolve_metadata_filter_words": [
-      "easyuse_anima.nodes.prompt_advanced_nodes",
-      "easyuse_anima.nodes.regional_nodes"
-    ],
-    "resolve_naia_settings": [
-      "easyuse_anima.nodes.prompt_advanced_nodes"
-    ],
-    "wildcard_sources_signature": [
-      "easyuse_anima.nodes.prompt_advanced_nodes",
-      "easyuse_anima.nodes.regional_nodes"
     ]
   },
   "runtime_binder_audit": {
     "summary": {
-      "binder_count": 16,
-      "family_count": 3,
+      "binder_count": 14,
+      "family_count": 2,
       "mode_counts": {
-        "comfy_provider_then_root": 9,
-        "root_globals": 5,
+        "comfy_provider_then_root": 8,
+        "root_globals": 4,
         "explicit_callbacks": 2
       },
-      "unique_resolver_names": 237,
-      "unique_root_resolver_names": 232,
+      "unique_resolver_names": 192,
+      "unique_root_resolver_names": 187,
       "unique_provider_resolver_names": 5,
-      "unique_direct_root_dependencies": 10,
-      "direct_root_dependency_slots": 20,
-      "provider_consumer_slots": 14,
-      "provider_consumer_modules": 9,
-      "repository_replacement_names": 142,
-      "repository_replacement_files": 18
+      "unique_direct_root_dependencies": 9,
+      "direct_root_dependency_slots": 17,
+      "provider_consumer_slots": 13,
+      "provider_consumer_modules": 8,
+      "repository_replacement_names": 138,
+      "repository_replacement_files": 16
     },
     "families": {
       "aio": [
@@ -979,10 +819,6 @@
         "_bind_aio_output_runtime",
         "_bind_aio_conditioning_runtime",
         "_bind_aio_node_runtime"
-      ],
-      "prompt_node_adapters": [
-        "_bind_regional_node_runtime",
-        "_bind_prompt_advanced_node_runtime"
       ],
       "wildcard_naia": [
         "_bind_wildcard_node_runtime",
@@ -1034,7 +870,6 @@
       "EASY_USE_ANIMA_INPUT_SETTINGS_VERSION",
       "EASY_USE_ANIMA_INPUT_TYPE",
       "EasyUseAnimaImageScaleByMultiple",
-      "EasyUseAnimaNAIARandomPrompt",
       "EasyUseAnimaSAM3Detailer",
       "IMAGE_SCALE_MULTIPLES",
       "IMAGE_UPSCALE_METHODS",
@@ -1052,14 +887,8 @@
       "_adapter_comfy_text_encoder_names",
       "_adapter_comfy_vae_names",
       "_advanced_artist_field_prompt",
-      "_advanced_enabled_naia_panes",
       "_advanced_enabled_pane_fields",
-      "_advanced_field_input_values",
-      "_advanced_fields_json",
-      "_advanced_has_enabled_naia",
       "_advanced_outputs_from_prompt_data",
-      "_advanced_resolution_from_selection",
-      "_advanced_uses_naia_resolution",
       "_aio_detailer_has_enabled_targets",
       "_aio_detailer_target_defaults",
       "_aio_detailer_target_order",
@@ -1084,7 +913,6 @@
       "_aio_usdu_tile_plan",
       "_align_down",
       "_align_nearest",
-      "_apply_advanced_field_inputs",
       "_apply_aio_anima_dave_patch",
       "_apply_aio_final_fit",
       "_apply_aio_kj_model_patches",
@@ -1094,23 +922,16 @@
       "_apply_aio_spectrum_correction_patch_for_comfy_sampler",
       "_apply_aio_spectrum_forecast_patch_for_comfy_sampler",
       "_apply_aio_spectrum_model_patches_for_comfy_sampler",
-      "_apply_regional_field_inputs",
       "_apply_spectrum_anima_mod_guidance",
-      "_artist_mix_mode_tooltip",
       "_as_bool",
       "_as_float",
       "_as_int",
       "_bounded_artist_mix_float",
       "_bounded_artist_mix_int",
-      "_build_advanced_prompt_data",
-      "_build_advanced_prompts",
-      "_build_regional_outputs",
       "_call_with_supported_kwargs",
       "_choice",
       "_cleanup_aio_ephemeral_model",
-      "_clone_advanced_fields",
       "_clone_aio_cache_value",
-      "_clone_regional_fields",
       "_comfy_clip_loader_types",
       "_comfy_diffusion_model_names",
       "_comfy_sampler_names",
@@ -1118,8 +939,6 @@
       "_comfy_text_encoder_names",
       "_comfy_vae_names",
       "_common_upscale_image",
-      "_conditioning_set_values",
-      "_consume_reserved_wildcard_next_seed",
       "_context_value",
       "_copy_prompt_data_for_update",
       "_correct_advanced_field_sequence",
@@ -1127,12 +946,10 @@
       "_easy_use_anima_input_signature",
       "_encode_image_with_comfy_vae",
       "_encode_prompt_data_positive_conditioning",
-      "_expand_advanced_wildcard_fields",
       "_folder_path_names",
       "_format_strength",
       "_generate_empty_latent_with_comfy",
       "_get_aio_first_pass_cache",
-      "_get_workflow_node",
       "_image_tensor_size",
       "_impact_scheduler_names",
       "_is_aio_detailer_target_name",
@@ -1159,33 +976,16 @@
       "_normalize_aio_seed",
       "_normalize_aio_spectrum_settings",
       "_normalize_anima_mod_guidance_profile",
-      "_normalize_artist_mix_mode",
-      "_normalize_mask_ids",
       "_normalize_prompt_data",
-      "_normalize_prompt_studio_wildcard_seed_control",
-      "_normalize_regional_config",
-      "_normalize_regional_fields",
-      "_parse_json_object",
-      "_parse_random_response",
       "_patch_model_sampling_aura_flow",
-      "_post_random",
       "_preferred_clip_type_default",
       "_preferred_name_default",
       "_prompt_data_json_safe",
-      "_prompt_data_parameter_snapshot",
-      "_prompt_translation_change_key",
       "_put_aio_first_pass_cache",
-      "_regional_config_json",
-      "_regional_fields_json",
-      "_regional_mask_bounds_area",
-      "_regional_payload_canvas",
-      "_regional_union_mask_for_ids",
       "_require_easy_use_anima_input",
       "_resize_image_to_size_if_needed",
-      "_resolution_label",
       "_resolve_aio_runtime_seed",
       "_resolve_anima_mod_guidance_enabled",
-      "_resolve_naia_resolution",
       "_round_trip_aio_generation_settings",
       "_run_aio_detailer_stage",
       "_run_aio_detailer_target",
@@ -1205,23 +1005,14 @@
       "_save_image_with_image_saver",
       "_segs_has_items",
       "_send_aio_preview_event",
-      "_set_naia_field_text",
       "_single_value",
       "_stable_change_key",
       "_tag_aio_preview_images",
-      "_translate_prompt_fields",
-      "_translate_prompt_text",
       "ceil",
       "json",
       "logger",
-      "next_seed",
-      "normalize_prompt_studio_wildcard_mode",
-      "normalize_seed",
       "random",
-      "resolve_metadata_filter_words",
-      "resolve_naia_settings",
-      "sqrt",
-      "wildcard_sources_signature"
+      "sqrt"
     ],
     "provider_resolver_names": [
       "_comfy_max_resolution",
@@ -1286,9 +1077,6 @@
       ],
       "EASY_USE_ANIMA_INPUT_TYPE": [
         "tests/test_aio_nodes.py"
-      ],
-      "EasyUseAnimaNAIARandomPrompt": [
-        "tests/test_node_contracts.py"
       ],
       "LATENT_ALIGN": [
         "tests/test_node_contracts.py"
@@ -1593,9 +1381,7 @@
         "tests/test_aio_nodes.py"
       ],
       "_post_random": [
-        "tests/test_naia_settings.py",
-        "tests/test_node_contracts.py",
-        "tests/test_prompt_corrector.py"
+        "tests/test_naia_settings.py"
       ],
       "_preferred_clip_type_default": [
         "tests/test_aio_nodes.py"
@@ -1608,9 +1394,6 @@
         "tests/test_aio_legacy_generation.py",
         "tests/test_aio_nodes.py",
         "tests/test_aio_preview.py"
-      ],
-      "_prompt_translation_change_key": [
-        "tests/test_node_contracts.py"
       ],
       "_put_aio_first_pass_cache": [
         "tests/test_aio_legacy_generation.py"
@@ -1690,8 +1473,7 @@
       ],
       "_stable_change_key": [
         "tests/test_aio_first_pass_cache.py",
-        "tests/test_aio_nodes.py",
-        "tests/test_node_contracts.py"
+        "tests/test_aio_nodes.py"
       ],
       "_tag_aio_preview_images": [
         "tests/test_aio_legacy_generation.py",
@@ -1709,20 +1491,13 @@
       "logger": [
         "tests/test_node_contracts.py"
       ],
-      "next_seed": [
-        "tests/test_prompt_studio_regional.py"
-      ],
       "random": [
         "tests/test_aio_legacy_generation.py",
         "tests/test_node_contracts.py"
       ],
-      "resolve_metadata_filter_words": [
-        "tests/test_node_contracts.py"
-      ],
       "resolve_naia_settings": [
         "tests/test_naia_settings.py",
-        "tests/test_node_contracts.py",
-        "tests/test_prompt_corrector.py"
+        "tests/test_node_contracts.py"
       ],
       "sqrt": [
         "tests/test_node_contracts.py"
@@ -2640,287 +2415,6 @@
           "_aio_usdu_prompt_without_general",
           "_as_bool",
           "_normalize_prompt_data"
-        ]
-      },
-      {
-        "binder": "_bind_regional_node_runtime",
-        "module": "easyuse_anima.nodes.regional_nodes",
-        "family": "prompt_node_adapters",
-        "mode": "comfy_provider_then_root",
-        "root_observation": "call_time_resolver",
-        "root_keywords": [
-          "flexible_optional_input_type",
-          "resolve_helper"
-        ],
-        "bound_globals": [
-          "_FlexibleOptionalInputType",
-          "_advanced_field_input_values",
-          "_advanced_resolution_from_selection",
-          "_apply_regional_field_inputs",
-          "_as_bool",
-          "_as_float",
-          "_build_regional_outputs",
-          "_clone_regional_fields",
-          "_conditioning_set_values",
-          "_consume_reserved_wildcard_next_seed",
-          "_encode_with_comfy_clip",
-          "_expand_advanced_wildcard_fields",
-          "_get_workflow_node",
-          "_normalize_mask_ids",
-          "_normalize_prompt_studio_wildcard_seed_control",
-          "_normalize_regional_config",
-          "_normalize_regional_fields",
-          "_parse_json_object",
-          "_prompt_translation_change_key",
-          "_regional_config_json",
-          "_regional_fields_json",
-          "_regional_mask_bounds_area",
-          "_regional_payload_canvas",
-          "_regional_union_mask_for_ids",
-          "_single_value",
-          "_stable_change_key",
-          "_translate_prompt_fields",
-          "next_seed",
-          "normalize_prompt_studio_wildcard_mode",
-          "normalize_seed",
-          "resolve_metadata_filter_words",
-          "wildcard_sources_signature"
-        ],
-        "direct_root_dependencies": [
-          "_FlexibleOptionalInputType",
-          "_resolve_comfy_host_helper"
-        ],
-        "resolver_names": [
-          "_advanced_field_input_values",
-          "_advanced_resolution_from_selection",
-          "_apply_regional_field_inputs",
-          "_as_bool",
-          "_as_float",
-          "_build_regional_outputs",
-          "_clone_regional_fields",
-          "_conditioning_set_values",
-          "_consume_reserved_wildcard_next_seed",
-          "_encode_with_comfy_clip",
-          "_expand_advanced_wildcard_fields",
-          "_get_workflow_node",
-          "_normalize_mask_ids",
-          "_normalize_prompt_studio_wildcard_seed_control",
-          "_normalize_regional_config",
-          "_normalize_regional_fields",
-          "_parse_json_object",
-          "_prompt_translation_change_key",
-          "_regional_config_json",
-          "_regional_fields_json",
-          "_regional_mask_bounds_area",
-          "_regional_payload_canvas",
-          "_regional_union_mask_for_ids",
-          "_single_value",
-          "_stable_change_key",
-          "_translate_prompt_fields",
-          "next_seed",
-          "normalize_prompt_studio_wildcard_mode",
-          "normalize_seed",
-          "resolve_metadata_filter_words",
-          "wildcard_sources_signature"
-        ],
-        "root_resolver_names": [
-          "_advanced_field_input_values",
-          "_advanced_resolution_from_selection",
-          "_apply_regional_field_inputs",
-          "_as_bool",
-          "_as_float",
-          "_build_regional_outputs",
-          "_clone_regional_fields",
-          "_conditioning_set_values",
-          "_consume_reserved_wildcard_next_seed",
-          "_expand_advanced_wildcard_fields",
-          "_get_workflow_node",
-          "_normalize_mask_ids",
-          "_normalize_prompt_studio_wildcard_seed_control",
-          "_normalize_regional_config",
-          "_normalize_regional_fields",
-          "_parse_json_object",
-          "_prompt_translation_change_key",
-          "_regional_config_json",
-          "_regional_fields_json",
-          "_regional_mask_bounds_area",
-          "_regional_payload_canvas",
-          "_regional_union_mask_for_ids",
-          "_single_value",
-          "_stable_change_key",
-          "_translate_prompt_fields",
-          "next_seed",
-          "normalize_prompt_studio_wildcard_mode",
-          "normalize_seed",
-          "resolve_metadata_filter_words",
-          "wildcard_sources_signature"
-        ],
-        "provider_resolver_names": [
-          "_encode_with_comfy_clip"
-        ],
-        "repository_replacement_names": [
-          "_as_bool",
-          "_as_float",
-          "_get_workflow_node",
-          "_prompt_translation_change_key",
-          "_single_value",
-          "_stable_change_key",
-          "next_seed",
-          "resolve_metadata_filter_words",
-          "wildcard_sources_signature"
-        ]
-      },
-      {
-        "binder": "_bind_prompt_advanced_node_runtime",
-        "module": "easyuse_anima.nodes.prompt_advanced_nodes",
-        "family": "prompt_node_adapters",
-        "mode": "root_globals",
-        "root_observation": "call_time_resolver",
-        "root_keywords": [
-          "flexible_optional_input_type",
-          "resolve_helper"
-        ],
-        "bound_globals": [
-          "_FlexibleOptionalInputType",
-          "_RUNTIME_RESOLVER",
-          "_advanced_enabled_naia_panes",
-          "_advanced_field_input_values",
-          "_advanced_fields_json",
-          "_advanced_has_enabled_naia",
-          "_advanced_resolution_from_selection",
-          "_advanced_uses_naia_resolution",
-          "_apply_advanced_field_inputs",
-          "_artist_mix_mode_tooltip",
-          "_as_bool",
-          "_as_int",
-          "_bounded_artist_mix_float",
-          "_bounded_artist_mix_int",
-          "_build_advanced_prompt_data",
-          "_build_advanced_prompts",
-          "_clone_advanced_fields",
-          "_consume_reserved_wildcard_next_seed",
-          "_expand_advanced_wildcard_fields",
-          "_get_workflow_node",
-          "_normalize_advanced_fields",
-          "_normalize_artist_mix_mode",
-          "_normalize_prompt_studio_wildcard_seed_control",
-          "_parse_random_response",
-          "_post_random",
-          "_prompt_data_parameter_snapshot",
-          "_prompt_translation_change_key",
-          "_resolution_label",
-          "_resolve_naia_resolution",
-          "_set_naia_field_text",
-          "_single_value",
-          "_stable_change_key",
-          "_translate_prompt_fields",
-          "_translate_prompt_text",
-          "next_seed",
-          "normalize_prompt_studio_wildcard_mode",
-          "normalize_seed",
-          "resolve_metadata_filter_words",
-          "resolve_naia_settings",
-          "wildcard_sources_signature"
-        ],
-        "direct_root_dependencies": [
-          "_FlexibleOptionalInputType"
-        ],
-        "resolver_names": [
-          "EasyUseAnimaNAIARandomPrompt",
-          "_advanced_enabled_naia_panes",
-          "_advanced_field_input_values",
-          "_advanced_fields_json",
-          "_advanced_has_enabled_naia",
-          "_advanced_resolution_from_selection",
-          "_advanced_uses_naia_resolution",
-          "_apply_advanced_field_inputs",
-          "_artist_mix_mode_tooltip",
-          "_as_bool",
-          "_as_int",
-          "_bounded_artist_mix_float",
-          "_bounded_artist_mix_int",
-          "_build_advanced_prompt_data",
-          "_build_advanced_prompts",
-          "_clone_advanced_fields",
-          "_consume_reserved_wildcard_next_seed",
-          "_expand_advanced_wildcard_fields",
-          "_get_workflow_node",
-          "_normalize_advanced_fields",
-          "_normalize_artist_mix_mode",
-          "_normalize_prompt_studio_wildcard_seed_control",
-          "_parse_random_response",
-          "_post_random",
-          "_prompt_data_parameter_snapshot",
-          "_prompt_translation_change_key",
-          "_resolution_label",
-          "_resolve_naia_resolution",
-          "_set_naia_field_text",
-          "_single_value",
-          "_stable_change_key",
-          "_translate_prompt_fields",
-          "_translate_prompt_text",
-          "next_seed",
-          "normalize_prompt_studio_wildcard_mode",
-          "normalize_seed",
-          "resolve_metadata_filter_words",
-          "resolve_naia_settings",
-          "wildcard_sources_signature"
-        ],
-        "root_resolver_names": [
-          "EasyUseAnimaNAIARandomPrompt",
-          "_advanced_enabled_naia_panes",
-          "_advanced_field_input_values",
-          "_advanced_fields_json",
-          "_advanced_has_enabled_naia",
-          "_advanced_resolution_from_selection",
-          "_advanced_uses_naia_resolution",
-          "_apply_advanced_field_inputs",
-          "_artist_mix_mode_tooltip",
-          "_as_bool",
-          "_as_int",
-          "_bounded_artist_mix_float",
-          "_bounded_artist_mix_int",
-          "_build_advanced_prompt_data",
-          "_build_advanced_prompts",
-          "_clone_advanced_fields",
-          "_consume_reserved_wildcard_next_seed",
-          "_expand_advanced_wildcard_fields",
-          "_get_workflow_node",
-          "_normalize_advanced_fields",
-          "_normalize_artist_mix_mode",
-          "_normalize_prompt_studio_wildcard_seed_control",
-          "_parse_random_response",
-          "_post_random",
-          "_prompt_data_parameter_snapshot",
-          "_prompt_translation_change_key",
-          "_resolution_label",
-          "_resolve_naia_resolution",
-          "_set_naia_field_text",
-          "_single_value",
-          "_stable_change_key",
-          "_translate_prompt_fields",
-          "_translate_prompt_text",
-          "next_seed",
-          "normalize_prompt_studio_wildcard_mode",
-          "normalize_seed",
-          "resolve_metadata_filter_words",
-          "resolve_naia_settings",
-          "wildcard_sources_signature"
-        ],
-        "provider_resolver_names": [],
-        "repository_replacement_names": [
-          "EasyUseAnimaNAIARandomPrompt",
-          "_as_bool",
-          "_as_int",
-          "_get_workflow_node",
-          "_post_random",
-          "_prompt_translation_change_key",
-          "_single_value",
-          "_stable_change_key",
-          "next_seed",
-          "resolve_metadata_filter_words",
-          "resolve_naia_settings",
-          "wildcard_sources_signature"
         ]
       },
       {
@@ -4421,17 +3915,13 @@
         "canonical runtime resolver: easyuse_anima.aio.first_pass_cache",
         "canonical runtime resolver: easyuse_anima.aio.generation_normalization",
         "canonical runtime resolver: easyuse_anima.aio.sampling",
-        "canonical runtime resolver: easyuse_anima.nodes.aio_nodes",
-        "canonical runtime resolver: easyuse_anima.nodes.prompt_advanced_nodes",
-        "canonical runtime resolver: easyuse_anima.nodes.regional_nodes"
+        "canonical runtime resolver: easyuse_anima.nodes.aio_nodes"
       ],
       "evidence": [
         "AST:easyuse_anima.aio.first_pass_cache string runtime lookup",
         "AST:easyuse_anima.aio.generation_normalization string runtime lookup",
         "AST:easyuse_anima.aio.sampling string runtime lookup",
-        "AST:easyuse_anima.nodes.aio_nodes string runtime lookup",
-        "AST:easyuse_anima.nodes.prompt_advanced_nodes string runtime lookup",
-        "AST:easyuse_anima.nodes.regional_nodes string runtime lookup"
+        "AST:easyuse_anima.nodes.aio_nodes string runtime lookup"
       ],
       "removal_gates": [
         "canonical production consumer migration",
@@ -4469,9 +3959,7 @@
         "canonical runtime resolver: easyuse_anima.aio.preview",
         "canonical runtime resolver: easyuse_anima.aio.resources",
         "canonical runtime resolver: easyuse_anima.aio.sampling",
-        "canonical runtime resolver: easyuse_anima.aio.usdu",
-        "canonical runtime resolver: easyuse_anima.nodes.prompt_advanced_nodes",
-        "canonical runtime resolver: easyuse_anima.nodes.regional_nodes"
+        "canonical runtime resolver: easyuse_anima.aio.usdu"
       ],
       "evidence": [
         "AST:easyuse_anima.aio.conditioning string runtime lookup",
@@ -4483,9 +3971,7 @@
         "AST:easyuse_anima.aio.preview string runtime lookup",
         "AST:easyuse_anima.aio.resources string runtime lookup",
         "AST:easyuse_anima.aio.sampling string runtime lookup",
-        "AST:easyuse_anima.aio.usdu string runtime lookup",
-        "AST:easyuse_anima.nodes.prompt_advanced_nodes string runtime lookup",
-        "AST:easyuse_anima.nodes.regional_nodes string runtime lookup"
+        "AST:easyuse_anima.aio.usdu string runtime lookup"
       ],
       "removal_gates": [
         "canonical production consumer migration",
@@ -4869,45 +4355,11 @@
       "first_release": null,
       "known_consumers": [
         "nodes.py residual runtime",
-        "canonical runtime resolver: easyuse_anima.aio.postprocess",
-        "canonical runtime resolver: easyuse_anima.nodes.prompt_advanced_nodes"
+        "canonical runtime resolver: easyuse_anima.aio.postprocess"
       ],
       "evidence": [
         "AST:nodes.py direct runtime load",
-        "AST:easyuse_anima.aio.postprocess string runtime lookup",
-        "AST:easyuse_anima.nodes.prompt_advanced_nodes string runtime lookup"
-      ],
-      "removal_gates": [
-        "canonical production consumer migration",
-        "focused monkeypatch and identity contract review",
-        "separate B-10b or B-11 rollback unit"
-      ],
-      "lifecycle_state": "transitional"
-    },
-    {
-      "id": "nodes_canonical_bindings:easyuse_anima.naia.resolution:transitional_private_seam",
-      "surface": "nodes_canonical_bindings",
-      "symbols": {
-        "_advanced_resolution_from_selection": "_advanced_resolution_from_selection",
-        "_resolution_label": "_resolution_label",
-        "_resolve_naia_resolution": "_resolve_naia_resolution"
-      },
-      "classification": "transitional_private_seam",
-      "current_target": "nodes.py",
-      "canonical_target": "easyuse_anima.naia.resolution",
-      "target_state": "canonical",
-      "identity_requirement": "required",
-      "binding_shape": "direct_import",
-      "import_target": "easyuse_anima.naia.resolution",
-      "owner": "#184/#188",
-      "first_release": null,
-      "known_consumers": [
-        "canonical runtime resolver: easyuse_anima.nodes.prompt_advanced_nodes",
-        "canonical runtime resolver: easyuse_anima.nodes.regional_nodes"
-      ],
-      "evidence": [
-        "AST:easyuse_anima.nodes.prompt_advanced_nodes string runtime lookup",
-        "AST:easyuse_anima.nodes.regional_nodes string runtime lookup"
+        "AST:easyuse_anima.aio.postprocess string runtime lookup"
       ],
       "removal_gates": [
         "canonical production consumer migration",
@@ -4920,8 +4372,11 @@
       "id": "nodes_canonical_bindings:easyuse_anima.naia.resolution:unsupported_test_only",
       "surface": "nodes_canonical_bindings",
       "symbols": {
+        "_advanced_resolution_from_selection": "_advanced_resolution_from_selection",
         "_normalize_resolution_bucket": "_normalize_resolution_bucket",
-        "_ratio_label": "_ratio_label"
+        "_ratio_label": "_ratio_label",
+        "_resolution_label": "_resolution_label",
+        "_resolve_naia_resolution": "_resolve_naia_resolution"
       },
       "classification": "unsupported_test_only",
       "current_target": "nodes.py",
@@ -5045,39 +4500,12 @@
       "lifecycle_state": "supported"
     },
     {
-      "id": "nodes_canonical_bindings:easyuse_anima.nodes.input_types:transitional_private_seam",
-      "surface": "nodes_canonical_bindings",
-      "symbols": {
-        "_FlexibleOptionalInputType": "_FlexibleOptionalInputType"
-      },
-      "classification": "transitional_private_seam",
-      "current_target": "nodes.py",
-      "canonical_target": "easyuse_anima.nodes.input_types",
-      "target_state": "canonical",
-      "identity_requirement": "required",
-      "binding_shape": "direct_import",
-      "import_target": "easyuse_anima.nodes.input_types",
-      "owner": "#184/#188",
-      "first_release": null,
-      "known_consumers": [
-        "nodes.py residual runtime"
-      ],
-      "evidence": [
-        "AST:nodes.py direct runtime load"
-      ],
-      "removal_gates": [
-        "canonical production consumer migration",
-        "focused monkeypatch and identity contract review",
-        "separate B-10b or B-11 rollback unit"
-      ],
-      "lifecycle_state": "transitional"
-    },
-    {
       "id": "nodes_canonical_bindings:easyuse_anima.nodes.input_types:unsupported_test_only",
       "surface": "nodes_canonical_bindings",
       "symbols": {
         "_ANY_TYPE": "_ANY_TYPE",
-        "_AnyType": "_AnyType"
+        "_AnyType": "_AnyType",
+        "_FlexibleOptionalInputType": "_FlexibleOptionalInputType"
       },
       "classification": "unsupported_test_only",
       "current_target": "nodes.py",
@@ -5222,34 +4650,6 @@
       "lifecycle_state": "supported"
     },
     {
-      "id": "nodes_canonical_bindings:easyuse_anima.nodes.prompt_advanced_nodes:transitional_private_seam",
-      "surface": "nodes_canonical_bindings",
-      "symbols": {
-        "_bind_prompt_advanced_node_runtime": "_bind_prompt_advanced_node_runtime"
-      },
-      "classification": "transitional_private_seam",
-      "current_target": "nodes.py",
-      "canonical_target": "easyuse_anima.nodes.prompt_advanced_nodes",
-      "target_state": "canonical",
-      "identity_requirement": "required",
-      "binding_shape": "direct_import",
-      "import_target": "easyuse_anima.nodes.prompt_advanced_nodes",
-      "owner": "#184/#188",
-      "first_release": null,
-      "known_consumers": [
-        "nodes.py residual runtime"
-      ],
-      "evidence": [
-        "AST:nodes.py direct runtime load"
-      ],
-      "removal_gates": [
-        "canonical production consumer migration",
-        "focused monkeypatch and identity contract review",
-        "separate B-10b or B-11 rollback unit"
-      ],
-      "lifecycle_state": "transitional"
-    },
-    {
       "id": "nodes_canonical_bindings:easyuse_anima.nodes.prompt_data_nodes:supported_public_reexport",
       "surface": "nodes_canonical_bindings",
       "symbols": {
@@ -5346,34 +4746,6 @@
       "lifecycle_state": "supported"
     },
     {
-      "id": "nodes_canonical_bindings:easyuse_anima.nodes.regional_nodes:transitional_private_seam",
-      "surface": "nodes_canonical_bindings",
-      "symbols": {
-        "_bind_regional_node_runtime": "_bind_regional_node_runtime"
-      },
-      "classification": "transitional_private_seam",
-      "current_target": "nodes.py",
-      "canonical_target": "easyuse_anima.nodes.regional_nodes",
-      "target_state": "canonical",
-      "identity_requirement": "required",
-      "binding_shape": "direct_import",
-      "import_target": "easyuse_anima.nodes.regional_nodes",
-      "owner": "#184/#188",
-      "first_release": null,
-      "known_consumers": [
-        "nodes.py residual runtime"
-      ],
-      "evidence": [
-        "AST:nodes.py direct runtime load"
-      ],
-      "removal_gates": [
-        "canonical production consumer migration",
-        "focused monkeypatch and identity contract review",
-        "separate B-10b or B-11 rollback unit"
-      ],
-      "lifecycle_state": "transitional"
-    },
-    {
       "id": "nodes_canonical_bindings:easyuse_anima.nodes.sam3_nodes:transitional_private_seam",
       "surface": "nodes_canonical_bindings",
       "symbols": {
@@ -5467,22 +4839,9 @@
       "surface": "nodes_canonical_bindings",
       "symbols": {
         "_advanced_artist_field_prompt": "_advanced_artist_field_prompt",
-        "_advanced_enabled_naia_panes": "_advanced_enabled_naia_panes",
         "_advanced_enabled_pane_fields": "_advanced_enabled_pane_fields",
-        "_advanced_field_input_values": "_advanced_field_input_values",
-        "_advanced_fields_json": "_advanced_fields_json",
-        "_advanced_has_enabled_naia": "_advanced_has_enabled_naia",
-        "_advanced_uses_naia_resolution": "_advanced_uses_naia_resolution",
-        "_apply_advanced_field_inputs": "_apply_advanced_field_inputs",
-        "_build_advanced_prompt_data": "_build_advanced_prompt_data",
-        "_build_advanced_prompts": "_build_advanced_prompts",
-        "_clone_advanced_fields": "_clone_advanced_fields",
         "_correct_advanced_field_sequence": "_correct_advanced_field_sequence",
-        "_expand_advanced_wildcard_fields": "_expand_advanced_wildcard_fields",
-        "_normalize_advanced_fields": "_normalize_advanced_fields",
-        "_normalize_prompt_studio_wildcard_seed_control": "_normalize_prompt_studio_wildcard_seed_control",
-        "_set_naia_field_text": "_set_naia_field_text",
-        "_translate_prompt_fields": "_translate_prompt_fields"
+        "_normalize_advanced_fields": "_normalize_advanced_fields"
       },
       "classification": "transitional_private_seam",
       "current_target": "nodes.py",
@@ -5494,14 +4853,10 @@
       "owner": "#184/#188",
       "first_release": null,
       "known_consumers": [
-        "canonical runtime resolver: easyuse_anima.aio.conditioning",
-        "canonical runtime resolver: easyuse_anima.nodes.prompt_advanced_nodes",
-        "canonical runtime resolver: easyuse_anima.nodes.regional_nodes"
+        "canonical runtime resolver: easyuse_anima.aio.conditioning"
       ],
       "evidence": [
-        "AST:easyuse_anima.aio.conditioning string runtime lookup",
-        "AST:easyuse_anima.nodes.prompt_advanced_nodes string runtime lookup",
-        "AST:easyuse_anima.nodes.regional_nodes string runtime lookup"
+        "AST:easyuse_anima.aio.conditioning string runtime lookup"
       ],
       "removal_gates": [
         "canonical production consumer migration",
@@ -5515,9 +4870,22 @@
       "surface": "nodes_canonical_bindings",
       "symbols": {
         "_advanced_default_fields": "_advanced_default_fields",
+        "_advanced_enabled_naia_panes": "_advanced_enabled_naia_panes",
+        "_advanced_field_input_values": "_advanced_field_input_values",
         "_advanced_field_socket_name": "_advanced_field_socket_name",
+        "_advanced_fields_json": "_advanced_fields_json",
+        "_advanced_has_enabled_naia": "_advanced_has_enabled_naia",
         "_advanced_prompt_with_artist_override": "_advanced_prompt_with_artist_override",
-        "_as_advanced_height": "_as_advanced_height"
+        "_advanced_uses_naia_resolution": "_advanced_uses_naia_resolution",
+        "_apply_advanced_field_inputs": "_apply_advanced_field_inputs",
+        "_as_advanced_height": "_as_advanced_height",
+        "_build_advanced_prompt_data": "_build_advanced_prompt_data",
+        "_build_advanced_prompts": "_build_advanced_prompts",
+        "_clone_advanced_fields": "_clone_advanced_fields",
+        "_expand_advanced_wildcard_fields": "_expand_advanced_wildcard_fields",
+        "_normalize_prompt_studio_wildcard_seed_control": "_normalize_prompt_studio_wildcard_seed_control",
+        "_set_naia_field_text": "_set_naia_field_text",
+        "_translate_prompt_fields": "_translate_prompt_fields"
       },
       "classification": "unsupported_test_only",
       "current_target": "nodes.py",
@@ -5556,11 +4924,9 @@
         "ARTIST_MIX_DEFAULT_STYLE_GAIN": "ARTIST_MIX_DEFAULT_STYLE_GAIN",
         "ARTIST_MIX_INPUT_MODES": "ARTIST_MIX_INPUT_MODES",
         "ARTIST_MIX_MODE_FROM_PROMPT_DATA": "ARTIST_MIX_MODE_FROM_PROMPT_DATA",
-        "_artist_mix_mode_tooltip": "_artist_mix_mode_tooltip",
         "_bounded_artist_mix_float": "_bounded_artist_mix_float",
         "_bounded_artist_mix_int": "_bounded_artist_mix_int",
-        "_encode_prompt_data_positive_conditioning": "_encode_prompt_data_positive_conditioning",
-        "_normalize_artist_mix_mode": "_normalize_artist_mix_mode"
+        "_encode_prompt_data_positive_conditioning": "_encode_prompt_data_positive_conditioning"
       },
       "classification": "transitional_private_seam",
       "current_target": "nodes.py",
@@ -5574,14 +4940,12 @@
       "known_consumers": [
         "nodes.py residual runtime",
         "canonical runtime resolver: easyuse_anima.aio.generation_normalization",
-        "canonical runtime resolver: easyuse_anima.aio.legacy_generation",
-        "canonical runtime resolver: easyuse_anima.nodes.prompt_advanced_nodes"
+        "canonical runtime resolver: easyuse_anima.aio.legacy_generation"
       ],
       "evidence": [
         "AST:nodes.py direct runtime load",
         "AST:easyuse_anima.aio.generation_normalization string runtime lookup",
-        "AST:easyuse_anima.aio.legacy_generation string runtime lookup",
-        "AST:easyuse_anima.nodes.prompt_advanced_nodes string runtime lookup"
+        "AST:easyuse_anima.aio.legacy_generation string runtime lookup"
       ],
       "removal_gates": [
         "canonical production consumer migration",
@@ -5595,12 +4959,14 @@
       "surface": "nodes_canonical_bindings",
       "symbols": {
         "_artist_mix_inline_prompt": "_artist_mix_inline_prompt",
+        "_artist_mix_mode_tooltip": "_artist_mix_mode_tooltip",
         "_artist_prompt_with_position": "_artist_prompt_with_position",
         "_artist_tags_from_prompt": "_artist_tags_from_prompt",
         "_blend_conditionings": "_blend_conditionings",
         "_encode_artist_clustered": "_encode_artist_clustered",
         "_encode_artist_delta_rms": "_encode_artist_delta_rms",
         "_join_artist_mix_source_prompts": "_join_artist_mix_source_prompts",
+        "_normalize_artist_mix_mode": "_normalize_artist_mix_mode",
         "_normalize_artist_tag_position": "_normalize_artist_tag_position",
         "_parse_artist_mix_items": "_parse_artist_mix_items"
       },
@@ -5697,41 +5063,12 @@
       "lifecycle_state": "unsupported"
     },
     {
-      "id": "nodes_canonical_bindings:easyuse_anima.prompt.correction:transitional_private_seam",
-      "surface": "nodes_canonical_bindings",
-      "symbols": {
-        "_prompt_translation_change_key": "_prompt_translation_change_key",
-        "_translate_prompt_text": "_translate_prompt_text"
-      },
-      "classification": "transitional_private_seam",
-      "current_target": "nodes.py",
-      "canonical_target": "easyuse_anima.prompt.correction",
-      "target_state": "canonical",
-      "identity_requirement": "required",
-      "binding_shape": "direct_import",
-      "import_target": "easyuse_anima.prompt.correction",
-      "owner": "#184/#188",
-      "first_release": null,
-      "known_consumers": [
-        "canonical runtime resolver: easyuse_anima.nodes.prompt_advanced_nodes",
-        "canonical runtime resolver: easyuse_anima.nodes.regional_nodes"
-      ],
-      "evidence": [
-        "AST:easyuse_anima.nodes.prompt_advanced_nodes string runtime lookup",
-        "AST:easyuse_anima.nodes.regional_nodes string runtime lookup"
-      ],
-      "removal_gates": [
-        "canonical production consumer migration",
-        "focused monkeypatch and identity contract review",
-        "separate B-10b or B-11 rollback unit"
-      ],
-      "lifecycle_state": "transitional"
-    },
-    {
       "id": "nodes_canonical_bindings:easyuse_anima.prompt.correction:unsupported_test_only",
       "surface": "nodes_canonical_bindings",
       "symbols": {
-        "_split_tag_text": "_split_tag_text"
+        "_prompt_translation_change_key": "_prompt_translation_change_key",
+        "_split_tag_text": "_split_tag_text",
+        "_translate_prompt_text": "_translate_prompt_text"
       },
       "classification": "unsupported_test_only",
       "current_target": "nodes.py",
@@ -5764,8 +5101,7 @@
         "_advanced_outputs_from_prompt_data": "_advanced_outputs_from_prompt_data",
         "_copy_prompt_data_for_update": "_copy_prompt_data_for_update",
         "_normalize_prompt_data": "_normalize_prompt_data",
-        "_prompt_data_json_safe": "_prompt_data_json_safe",
-        "_prompt_data_parameter_snapshot": "_prompt_data_parameter_snapshot"
+        "_prompt_data_json_safe": "_prompt_data_json_safe"
       },
       "classification": "transitional_private_seam",
       "current_target": "nodes.py",
@@ -5782,8 +5118,7 @@
         "canonical runtime resolver: easyuse_anima.aio.generation_normalization",
         "canonical runtime resolver: easyuse_anima.aio.legacy_generation",
         "canonical runtime resolver: easyuse_anima.aio.preview",
-        "canonical runtime resolver: easyuse_anima.nodes.aio_nodes",
-        "canonical runtime resolver: easyuse_anima.nodes.prompt_advanced_nodes"
+        "canonical runtime resolver: easyuse_anima.nodes.aio_nodes"
       ],
       "evidence": [
         "AST:easyuse_anima.aio.conditioning string runtime lookup",
@@ -5791,8 +5126,7 @@
         "AST:easyuse_anima.aio.generation_normalization string runtime lookup",
         "AST:easyuse_anima.aio.legacy_generation string runtime lookup",
         "AST:easyuse_anima.aio.preview string runtime lookup",
-        "AST:easyuse_anima.nodes.aio_nodes string runtime lookup",
-        "AST:easyuse_anima.nodes.prompt_advanced_nodes string runtime lookup"
+        "AST:easyuse_anima.nodes.aio_nodes string runtime lookup"
       ],
       "removal_gates": [
         "canonical production consumer migration",
@@ -5805,7 +5139,8 @@
       "id": "nodes_canonical_bindings:easyuse_anima.prompt.data:unsupported_test_only",
       "surface": "nodes_canonical_bindings",
       "symbols": {
-        "_apply_prompt_data_overrides": "_apply_prompt_data_overrides"
+        "_apply_prompt_data_overrides": "_apply_prompt_data_overrides",
+        "_prompt_data_parameter_snapshot": "_prompt_data_parameter_snapshot"
       },
       "classification": "unsupported_test_only",
       "current_target": "nodes.py",
@@ -5868,7 +5203,7 @@
       "lifecycle_state": "unsupported"
     },
     {
-      "id": "nodes_canonical_bindings:easyuse_anima.prompt.regional:transitional_private_seam",
+      "id": "nodes_canonical_bindings:easyuse_anima.prompt.regional:unsupported_test_only",
       "surface": "nodes_canonical_bindings",
       "symbols": {
         "_apply_regional_field_inputs": "_apply_regional_field_inputs",
@@ -5885,64 +5220,36 @@
         "_regional_payload_canvas": "_regional_payload_canvas",
         "_regional_union_mask_for_ids": "_regional_union_mask_for_ids"
       },
-      "classification": "transitional_private_seam",
+      "classification": "unsupported_test_only",
       "current_target": "nodes.py",
       "canonical_target": "easyuse_anima.prompt.regional",
       "target_state": "canonical",
-      "identity_requirement": "required",
+      "identity_requirement": "not_applicable",
       "binding_shape": "direct_import",
       "import_target": "easyuse_anima.prompt.regional",
       "owner": "#184/#188",
       "first_release": null,
       "known_consumers": [
-        "canonical runtime resolver: easyuse_anima.nodes.regional_nodes"
+        "repository tests may import this root name"
       ],
       "evidence": [
-        "AST:easyuse_anima.nodes.regional_nodes string runtime lookup"
+        "AST:no nodes.py runtime load",
+        "test-only consumption is not public support evidence"
       ],
       "removal_gates": [
-        "canonical production consumer migration",
-        "focused monkeypatch and identity contract review",
-        "separate B-10b or B-11 rollback unit"
+        "test imports migrate to canonical targets",
+        "no production consumer evidence",
+        "separate B-10b removal review"
       ],
-      "lifecycle_state": "transitional"
-    },
-    {
-      "id": "nodes_canonical_bindings:easyuse_anima.seed.compatibility:transitional_private_seam",
-      "surface": "nodes_canonical_bindings",
-      "symbols": {
-        "_consume_reserved_wildcard_next_seed": "_consume_reserved_wildcard_next_seed"
-      },
-      "classification": "transitional_private_seam",
-      "current_target": "nodes.py",
-      "canonical_target": "easyuse_anima.seed.compatibility",
-      "target_state": "canonical",
-      "identity_requirement": "required",
-      "binding_shape": "direct_import",
-      "import_target": "easyuse_anima.seed.compatibility",
-      "owner": "#184/#188",
-      "first_release": null,
-      "known_consumers": [
-        "canonical runtime resolver: easyuse_anima.nodes.prompt_advanced_nodes",
-        "canonical runtime resolver: easyuse_anima.nodes.regional_nodes"
-      ],
-      "evidence": [
-        "AST:easyuse_anima.nodes.prompt_advanced_nodes string runtime lookup",
-        "AST:easyuse_anima.nodes.regional_nodes string runtime lookup"
-      ],
-      "removal_gates": [
-        "canonical production consumer migration",
-        "focused monkeypatch and identity contract review",
-        "separate B-10b or B-11 rollback unit"
-      ],
-      "lifecycle_state": "transitional"
+      "lifecycle_state": "unsupported"
     },
     {
       "id": "nodes_canonical_bindings:easyuse_anima.seed.compatibility:unsupported_test_only",
       "surface": "nodes_canonical_bindings",
       "symbols": {
         "WILDCARD_QUEUE_MAX_SAFE_SEED": "WILDCARD_QUEUE_MAX_SAFE_SEED",
-        "WILDCARD_RESERVED_NEXT_SEED_INPUT": "WILDCARD_RESERVED_NEXT_SEED_INPUT"
+        "WILDCARD_RESERVED_NEXT_SEED_INPUT": "WILDCARD_RESERVED_NEXT_SEED_INPUT",
+        "_consume_reserved_wildcard_next_seed": "_consume_reserved_wildcard_next_seed"
       },
       "classification": "unsupported_test_only",
       "current_target": "nodes.py",
@@ -5983,14 +5290,10 @@
       "owner": "#184/#188",
       "first_release": null,
       "known_consumers": [
-        "nodes.py residual runtime",
-        "canonical runtime resolver: easyuse_anima.nodes.prompt_advanced_nodes",
-        "canonical runtime resolver: easyuse_anima.nodes.regional_nodes"
+        "nodes.py residual runtime"
       ],
       "evidence": [
-        "AST:nodes.py direct runtime load",
-        "AST:easyuse_anima.nodes.prompt_advanced_nodes string runtime lookup",
-        "AST:easyuse_anima.nodes.regional_nodes string runtime lookup"
+        "AST:nodes.py direct runtime load"
       ],
       "removal_gates": [
         "canonical production consumer migration",
@@ -6092,7 +5395,6 @@
       "id": "nodes_legacy_bindings:settings:transitional_private_seam",
       "surface": "nodes_legacy_bindings",
       "symbols": {
-        "resolve_metadata_filter_words": "resolve_metadata_filter_words",
         "resolve_naia_settings": "resolve_naia_settings"
       },
       "classification": "transitional_private_seam",
@@ -6105,14 +5407,10 @@
       "owner": "#163/#186",
       "first_release": null,
       "known_consumers": [
-        "nodes.py residual runtime",
-        "canonical runtime resolver: easyuse_anima.nodes.prompt_advanced_nodes",
-        "canonical runtime resolver: easyuse_anima.nodes.regional_nodes"
+        "nodes.py residual runtime"
       ],
       "evidence": [
-        "AST:nodes.py direct runtime load",
-        "AST:easyuse_anima.nodes.prompt_advanced_nodes string runtime lookup",
-        "AST:easyuse_anima.nodes.regional_nodes string runtime lookup"
+        "AST:nodes.py direct runtime load"
       ],
       "removal_gates": [
         "canonical production consumer migration",
@@ -6125,6 +5423,7 @@
       "id": "nodes_legacy_bindings:settings:unsupported_test_only",
       "surface": "nodes_legacy_bindings",
       "symbols": {
+        "resolve_metadata_filter_words": "resolve_metadata_filter_words",
         "resolve_prompt_translation_settings": "resolve_prompt_translation_settings"
       },
       "classification": "unsupported_test_only",
@@ -6158,8 +5457,6 @@
         "SEED_CONTROL_FIXED": "SEED_CONTROL_FIXED",
         "SEED_CONTROL_MODES": "SEED_CONTROL_MODES",
         "expand_wildcards": "expand_wildcards",
-        "next_seed": "next_seed",
-        "normalize_prompt_studio_wildcard_mode": "normalize_prompt_studio_wildcard_mode",
         "normalize_seed": "normalize_seed",
         "normalize_wildcard_mode": "normalize_wildcard_mode",
         "wildcard_sources_signature": "wildcard_sources_signature"
@@ -6176,16 +5473,12 @@
       "known_consumers": [
         "nodes.py residual runtime",
         "canonical runtime resolver: easyuse_anima.aio.generation_normalization",
-        "canonical runtime resolver: easyuse_anima.aio.sampling",
-        "canonical runtime resolver: easyuse_anima.nodes.prompt_advanced_nodes",
-        "canonical runtime resolver: easyuse_anima.nodes.regional_nodes"
+        "canonical runtime resolver: easyuse_anima.aio.sampling"
       ],
       "evidence": [
         "AST:nodes.py direct runtime load",
         "AST:easyuse_anima.aio.generation_normalization string runtime lookup",
-        "AST:easyuse_anima.aio.sampling string runtime lookup",
-        "AST:easyuse_anima.nodes.prompt_advanced_nodes string runtime lookup",
-        "AST:easyuse_anima.nodes.regional_nodes string runtime lookup"
+        "AST:easyuse_anima.aio.sampling string runtime lookup"
       ],
       "removal_gates": [
         "canonical production consumer migration",
@@ -6207,7 +5500,9 @@
         "WILDCARD_MODE_POPULATE": "WILDCARD_MODE_POPULATE",
         "WILDCARD_MODE_SEQUENTIAL": "WILDCARD_MODE_SEQUENTIAL",
         "expand_wildcard_texts": "expand_wildcard_texts",
-        "has_wildcard_syntax": "has_wildcard_syntax"
+        "has_wildcard_syntax": "has_wildcard_syntax",
+        "next_seed": "next_seed",
+        "normalize_prompt_studio_wildcard_mode": "normalize_prompt_studio_wildcard_mode"
       },
       "classification": "unsupported_test_only",
       "current_target": "nodes.py",

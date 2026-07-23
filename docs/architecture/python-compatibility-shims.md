@@ -8,10 +8,10 @@
 - Policy: [ADR-002](adr-002-compatibility-shims.md)
 - Machine-readable audit:
   [`python_compatibility_surface.v1.json`](../../tests/fixtures/python_compatibility_surface.v1.json)
-- Current state: B-11a through B-11c30c2a are integrated. S167-01a / PR #344
-  supplies the canonical reserved-seed compatibility consumer while retaining
-  its root aliases; B-11c30c2b remains the separate Advanced/Regional binder
-  retirement before the final root shim.
+- Current state: B-11a through B-11c30c2b / PR #345 are integrated in the
+  reviewed sequence. S167-01a / PR #344 supplies the canonical reserved-seed
+  compatibility consumer while retaining its root aliases. Fourteen AiO and
+  Wildcard/NAIA binders remain before the final root shim.
 
 This is an actionable registry, not a removal schedule. `N` means the first
 published Registry release containing both a canonical target and its root
@@ -808,8 +808,8 @@ convenience-node compatibility; it remains unmapped and is not public support.
 - Canonical owner:
   `easyuse_anima.seed.compatibility._consume_reserved_wildcard_next_seed`.
 - Root `nodes.py` retains direct aliases for the consumer, hidden input name,
-  and public-safe queue seed bound. Existing Advanced/Regional binders therefore
-  observe the same root object until B-11c30c2b.
+  and public-safe queue seed bound. B-11c30c2b adapters import the canonical
+  consumer directly while those root aliases remain compatibility surface.
 - The canonical owner imports `_single_value` directly and resolves the
   pre-D-12 `wildcard_engine` only at call time. It does not import root
   `nodes.py`, add a callback contract, eagerly import NumPy, or copy Wildcard
@@ -819,6 +819,27 @@ convenience-node compatibility; it remains unmapped and is not public support.
   globals are 24, and runtime binders remain 16.
 - Version-1 payload bytes, pop order, accepted mode/control/seed values, return
   values, workflows, and browser reservation behavior remain unchanged.
+
+### B-11c30c2b Advanced / Regional adapter binder retirement
+
+- Root no longer imports or invokes `_bind_prompt_advanced_node_runtime` or
+  `_bind_regional_node_runtime`; both canonical binder definitions and their
+  bind-time mutation state are absent.
+- Advanced imports canonical common, Prompt, seed, workflow, NAIA, and
+  input-type owners directly. It reuses the Prompt service's call-time
+  Wildcard module resolver and keeps the existing flat settings fallback.
+- Regional imports canonical Prompt/seed/workflow owners directly and resolves
+  `_encode_with_comfy_clip` through the existing E-07 provider at call time.
+  The Comfy host ledger remains 22 slots across 15 modules.
+- Tests that previously patched root only to drive either adapter now patch the
+  canonical adapter owner.
+- Canonical root bindings are 282, root residual functions remain zero, root
+  residual globals remain 24, and the runtime audit is 14 binders in two
+  families: eight provider-then-root, four root-only, and two explicit
+  callbacks.
+- Schema, mapped-class/input-type identity, outputs, provider timing, seed
+  payload/pop order, Wildcard arithmetic, workflows, and optional-dependency
+  timing remain unchanged.
 
 ### `nodes.py` public node-class surface
 

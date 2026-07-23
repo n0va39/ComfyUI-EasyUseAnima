@@ -362,7 +362,6 @@ try:
         EasyUseAnimaPromptStudioAdvanced as EasyUseAnimaPromptStudioAdvanced,
         EasyUseAnimaPromptStudioAdvancedV2 as EasyUseAnimaPromptStudioAdvancedV2,
         # B-10b11 retires the unmapped legacy Extend root alias.
-        _bind_prompt_advanced_node_runtime as _bind_prompt_advanced_node_runtime,
     )
     from .easyuse_anima.nodes.aio_nodes import (
         EasyUseAnimaAIOGenerator as EasyUseAnimaAIOGenerator,
@@ -443,7 +442,6 @@ try:
     from .easyuse_anima.nodes.regional_nodes import (
         EasyUseAnimaPromptStudioRegional as EasyUseAnimaPromptStudioRegional,
         EasyUseAnimaRegionalConditioning as EasyUseAnimaRegionalConditioning,
-        _bind_regional_node_runtime as _bind_regional_node_runtime,
     )
     from .easyuse_anima.naia.client import (
         # B-10b13 retires 13 unsupported NAIA client root aliases.
@@ -908,7 +906,6 @@ except ImportError:  # allows simple local import tests outside ComfyUI's packag
         EasyUseAnimaPromptStudioAdvanced as EasyUseAnimaPromptStudioAdvanced,
         EasyUseAnimaPromptStudioAdvancedV2 as EasyUseAnimaPromptStudioAdvancedV2,
         # B-10b11 retires the unmapped legacy Extend root alias.
-        _bind_prompt_advanced_node_runtime as _bind_prompt_advanced_node_runtime,
     )
     from easyuse_anima.nodes.aio_nodes import (
         EasyUseAnimaAIOGenerator as EasyUseAnimaAIOGenerator,
@@ -989,7 +986,6 @@ except ImportError:  # allows simple local import tests outside ComfyUI's packag
     from easyuse_anima.nodes.regional_nodes import (
         EasyUseAnimaPromptStudioRegional as EasyUseAnimaPromptStudioRegional,
         EasyUseAnimaRegionalConditioning as EasyUseAnimaRegionalConditioning,
-        _bind_regional_node_runtime as _bind_regional_node_runtime,
     )
     from easyuse_anima.naia.client import (
         # B-10b13 retires 13 unsupported NAIA client root aliases.
@@ -1647,17 +1643,6 @@ _bind_aio_conditioning_runtime(
         name,
         lambda fallback_name: globals()[fallback_name],
     ),
-)
-_bind_regional_node_runtime(
-    resolve_helper=lambda name: _resolve_comfy_host_helper(
-        name,
-        lambda fallback_name: globals()[fallback_name],
-    ),
-    flexible_optional_input_type=_FlexibleOptionalInputType,
-)
-_bind_prompt_advanced_node_runtime(
-    resolve_helper=lambda name: globals()[name],
-    flexible_optional_input_type=_FlexibleOptionalInputType,
 )
 _bind_aio_node_runtime(
     resolve_helper=lambda name: globals()[name],

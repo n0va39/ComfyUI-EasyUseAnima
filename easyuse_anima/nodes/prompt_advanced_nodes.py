@@ -5,17 +5,40 @@ from __future__ import annotations
 import json
 from typing import Any
 
+from ..common.serialization import _stable_change_key
+from ..common.values import _as_bool, _as_int, _single_value
+from ..naia.client import _parse_random_response, _post_random
 from ..naia.resolution import (
     CUSTOM_ADVANCED_RESOLUTION_BUCKET,
     DEFAULT_ADVANCED_RESOLUTION_BUCKET,
     DEFAULT_ADVANCED_RESOLUTION_SIZE,
     NAIA_ADVANCED_RESOLUTION_BUCKET,
+    _advanced_resolution_from_selection,
+    _resolution_label,
+    _resolve_naia_resolution,
 )
 from ..prompt.advanced import (
     ADVANCED_FIELDS_WORKFLOW_PROPERTY,
     EXTEND_PROMPT_SLOT_SPECS,
     PROMPT_STUDIO_ADVANCED_RETURN_NAMES,
     PROMPT_STUDIO_ADVANCED_RETURN_TYPES,
+    _advanced_enabled_naia_panes,
+    _advanced_field_input_values,
+    _advanced_fields_json,
+    _advanced_has_enabled_naia,
+    _advanced_uses_naia_resolution,
+    _apply_advanced_field_inputs,
+    _build_advanced_prompt_data,
+    _build_advanced_prompts,
+    _clone_advanced_fields,
+    _expand_advanced_wildcard_fields,
+    _normalize_advanced_fields,
+    _normalize_prompt_studio_wildcard_seed_control,
+    _set_naia_field_text,
+    _translate_prompt_fields,
+    _wildcard_engine_module,
+    normalize_prompt_studio_wildcard_mode,
+    normalize_seed,
 )
 from ..prompt.artist_mix import (
     ARTIST_MIX_DEFAULT_CLUSTER_COUNT,
@@ -28,9 +51,31 @@ from ..prompt.artist_mix import (
     ARTIST_MIX_DEFAULT_STYLE_GAIN,
     ARTIST_MIX_MODE_OFF,
     ARTIST_MIX_STUDIO_MODES,
+    _artist_mix_mode_tooltip,
+    _bounded_artist_mix_float,
+    _bounded_artist_mix_int,
+    _normalize_artist_mix_mode,
 )
-from ..prompt.data import PROMPT_DATA_TYPE
+from ..prompt.correction import (
+    _prompt_translation_change_key,
+    _translate_prompt_text,
+)
+from ..prompt.data import PROMPT_DATA_TYPE, _prompt_data_parameter_snapshot
+from ..seed.compatibility import _consume_reserved_wildcard_next_seed
+from ..workflow import _get_workflow_node
 from .input_types import _FlexibleOptionalInputType
+from .naia_nodes import EasyUseAnimaNAIARandomPrompt
+
+try:
+    from ...settings import (
+        resolve_metadata_filter_words,
+        resolve_naia_settings,
+    )
+except ImportError:
+    from settings import (
+        resolve_metadata_filter_words,
+        resolve_naia_settings,
+    )
 
 WILDCARD_MODE_SEQUENTIAL = "sequential"
 PROMPT_STUDIO_WILDCARD_MODE_LABELS = ("일반", "순차")
@@ -56,109 +101,12 @@ WILDCARD_SEED_RANGE_NOTE = (
 )
 
 
-def _unbound_runtime(*_args, **_kwargs) -> Any:
-    raise RuntimeError("Advanced Prompt Studio node runtime dependencies are not bound.")
+def next_seed(*args, **kwargs):
+    return _wildcard_engine_module().next_seed(*args, **kwargs)
 
 
-_RUNTIME_RESOLVER: Any = None
-_advanced_enabled_naia_panes = _unbound_runtime
-_advanced_field_input_values = _unbound_runtime
-_advanced_fields_json = _unbound_runtime
-_advanced_has_enabled_naia = _unbound_runtime
-_advanced_resolution_from_selection = _unbound_runtime
-_advanced_uses_naia_resolution = _unbound_runtime
-_apply_advanced_field_inputs = _unbound_runtime
-_as_bool = _unbound_runtime
-_as_int = _unbound_runtime
-_bounded_artist_mix_float = _unbound_runtime
-_bounded_artist_mix_int = _unbound_runtime
-_build_advanced_prompt_data = _unbound_runtime
-_build_advanced_prompts = _unbound_runtime
-_clone_advanced_fields = _unbound_runtime
-_consume_reserved_wildcard_next_seed = _unbound_runtime
-_expand_advanced_wildcard_fields = _unbound_runtime
-_get_workflow_node = _unbound_runtime
-_normalize_advanced_fields = _unbound_runtime
-_normalize_artist_mix_mode = _unbound_runtime
-_normalize_prompt_studio_wildcard_seed_control = _unbound_runtime
-_parse_random_response = _unbound_runtime
-_post_random = _unbound_runtime
-_prompt_data_parameter_snapshot = _unbound_runtime
-_prompt_translation_change_key = _unbound_runtime
-_resolution_label = _unbound_runtime
-_resolve_naia_resolution = _unbound_runtime
-_set_naia_field_text = _unbound_runtime
-_single_value = _unbound_runtime
-_stable_change_key = _unbound_runtime
-_translate_prompt_fields = _unbound_runtime
-_translate_prompt_text = _unbound_runtime
-_artist_mix_mode_tooltip = _unbound_runtime
-next_seed = _unbound_runtime
-normalize_prompt_studio_wildcard_mode = _unbound_runtime
-normalize_seed = _unbound_runtime
-resolve_metadata_filter_words = _unbound_runtime
-resolve_naia_settings = _unbound_runtime
-wildcard_sources_signature = _unbound_runtime
-
-
-def _runtime_object(name: str) -> Any:
-    if _RUNTIME_RESOLVER is None:
-        raise RuntimeError("Advanced Prompt Studio node runtime dependencies are not bound.")
-    return _RUNTIME_RESOLVER(name)
-
-
-def _bind_prompt_advanced_node_runtime(*, resolve_helper, flexible_optional_input_type) -> None:
-    global _FlexibleOptionalInputType, _RUNTIME_RESOLVER
-
-    def runtime_helper(name):
-        def call(*args, **kwargs):
-            return resolve_helper(name)(*args, **kwargs)
-
-        return call
-
-    _FlexibleOptionalInputType = flexible_optional_input_type
-    _RUNTIME_RESOLVER = resolve_helper
-    for name in (
-        "_advanced_enabled_naia_panes",
-        "_advanced_field_input_values",
-        "_advanced_fields_json",
-        "_advanced_has_enabled_naia",
-        "_advanced_resolution_from_selection",
-        "_advanced_uses_naia_resolution",
-        "_apply_advanced_field_inputs",
-        "_as_bool",
-        "_as_int",
-        "_bounded_artist_mix_float",
-        "_bounded_artist_mix_int",
-        "_build_advanced_prompt_data",
-        "_build_advanced_prompts",
-        "_clone_advanced_fields",
-        "_consume_reserved_wildcard_next_seed",
-        "_expand_advanced_wildcard_fields",
-        "_get_workflow_node",
-        "_normalize_advanced_fields",
-        "_normalize_artist_mix_mode",
-        "_normalize_prompt_studio_wildcard_seed_control",
-        "_parse_random_response",
-        "_post_random",
-        "_prompt_data_parameter_snapshot",
-        "_prompt_translation_change_key",
-        "_resolution_label",
-        "_resolve_naia_resolution",
-        "_set_naia_field_text",
-        "_single_value",
-        "_stable_change_key",
-        "_translate_prompt_fields",
-        "_translate_prompt_text",
-        "_artist_mix_mode_tooltip",
-        "next_seed",
-        "normalize_prompt_studio_wildcard_mode",
-        "normalize_seed",
-        "resolve_metadata_filter_words",
-        "resolve_naia_settings",
-        "wildcard_sources_signature",
-    ):
-        globals()[name] = runtime_helper(name)
+def wildcard_sources_signature(*args, **kwargs):
+    return _wildcard_engine_module().wildcard_sources_signature(*args, **kwargs)
 
 
 class EasyUseAnimaPromptStudioAdvanced:
@@ -456,7 +404,7 @@ class EasyUseAnimaPromptStudioAdvanced:
 
         if live_use_naia:
             naia_settings = resolve_naia_settings()
-            body = _runtime_object("EasyUseAnimaNAIARandomPrompt")._make_request_body(
+            body = EasyUseAnimaNAIARandomPrompt._make_request_body(
                 _as_bool(naia_settings["use_naia_settings"], True),
                 naia_settings["pre_prompt"],
                 naia_settings["post_prompt"],
@@ -1101,7 +1049,7 @@ class EasyUseAnimaPromptStudioExtend:
 
         if live_fill_naia:
             naia_settings = resolve_naia_settings()
-            body = _runtime_object("EasyUseAnimaNAIARandomPrompt")._make_request_body(
+            body = EasyUseAnimaNAIARandomPrompt._make_request_body(
                 _as_bool(naia_settings["use_naia_settings"], True),
                 naia_settings["pre_prompt"],
                 naia_settings["post_prompt"],

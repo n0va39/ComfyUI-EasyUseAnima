@@ -2060,9 +2060,12 @@ class PromptBuilderTests(unittest.TestCase):
         }
 
         with (
-            patch("nodes.resolve_naia_settings", return_value=settings),
             patch(
-                "nodes._post_random",
+                "easyuse_anima.nodes.prompt_advanced_nodes.resolve_naia_settings",
+                return_value=settings,
+            ),
+            patch(
+                "easyuse_anima.nodes.prompt_advanced_nodes._post_random",
                 return_value={
                     "ok": True,
                     "prompt": "1girl, silver hair",
@@ -2159,9 +2162,12 @@ class PromptBuilderTests(unittest.TestCase):
         }
 
         with (
-            patch("nodes.resolve_naia_settings", return_value=settings),
             patch(
-                "nodes._post_random",
+                "easyuse_anima.nodes.prompt_advanced_nodes.resolve_naia_settings",
+                return_value=settings,
+            ),
+            patch(
+                "easyuse_anima.nodes.prompt_advanced_nodes._post_random",
                 return_value={
                     "ok": True,
                     "prompt": "current image prompt",
@@ -2252,8 +2258,11 @@ class PromptBuilderTests(unittest.TestCase):
             }
 
         with (
-            patch("nodes.resolve_naia_settings", return_value=settings),
-            patch("nodes._post_random", fake_post),
+            patch(
+                "easyuse_anima.nodes.prompt_advanced_nodes.resolve_naia_settings",
+                return_value=settings,
+            ),
+            patch("easyuse_anima.nodes.prompt_advanced_nodes._post_random", fake_post),
         ):
             result = EasyUseAnimaPromptStudioAdvanced().build(
                 True,
@@ -2332,8 +2341,11 @@ class PromptBuilderTests(unittest.TestCase):
             return responses[len(calls) - 1]
 
         with (
-            patch("nodes.resolve_naia_settings", return_value=settings),
-            patch("nodes._post_random", fake_post),
+            patch(
+                "easyuse_anima.nodes.prompt_advanced_nodes.resolve_naia_settings",
+                return_value=settings,
+            ),
+            patch("easyuse_anima.nodes.prompt_advanced_nodes._post_random", fake_post),
         ):
             first = EasyUseAnimaPromptStudioAdvanced().build(
                 True,
@@ -2407,8 +2419,11 @@ class PromptBuilderTests(unittest.TestCase):
             }
 
         with (
-            patch("nodes.resolve_naia_settings", return_value=settings),
-            patch("nodes._post_random", fake_post),
+            patch(
+                "easyuse_anima.nodes.prompt_advanced_nodes.resolve_naia_settings",
+                return_value=settings,
+            ),
+            patch("easyuse_anima.nodes.prompt_advanced_nodes._post_random", fake_post),
         ):
             result = EasyUseAnimaPromptStudioAdvanced().build(
                 True,
@@ -2480,8 +2495,11 @@ class PromptBuilderTests(unittest.TestCase):
             }
 
         with (
-            patch("nodes.resolve_naia_settings", return_value=settings),
-            patch("nodes._post_random", fake_post),
+            patch(
+                "easyuse_anima.nodes.prompt_advanced_nodes.resolve_naia_settings",
+                return_value=settings,
+            ),
+            patch("easyuse_anima.nodes.prompt_advanced_nodes._post_random", fake_post),
         ):
             result = EasyUseAnimaPromptStudioAdvanced().build(
                 True,
@@ -2532,8 +2550,11 @@ class PromptBuilderTests(unittest.TestCase):
             }
 
         with (
-            patch("nodes.resolve_naia_settings", return_value=settings),
-            patch("nodes._post_random", fake_post),
+            patch(
+                "easyuse_anima.nodes.prompt_advanced_nodes.resolve_naia_settings",
+                return_value=settings,
+            ),
+            patch("easyuse_anima.nodes.prompt_advanced_nodes._post_random", fake_post),
         ):
             result = EasyUseAnimaPromptStudioAdvanced().build(
                 True,
@@ -2796,9 +2817,12 @@ class PromptBuilderTests(unittest.TestCase):
         }
 
         with (
-            patch("nodes.resolve_naia_settings", return_value=settings),
             patch(
-                "nodes._post_random",
+                "easyuse_anima.nodes.prompt_advanced_nodes.resolve_naia_settings",
+                return_value=settings,
+            ),
+            patch(
+                "easyuse_anima.nodes.prompt_advanced_nodes._post_random",
                 return_value={
                     "ok": True,
                     "prompt": "1girl, blue eyes",

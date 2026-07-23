@@ -1409,7 +1409,7 @@ Implementation result:
 
 ### B-11c30c2b — Advanced / Regional adapter Move
 
-- **State:** IN PROGRESS
+- **State:** COMPLETE in PR #345
 - **Owner:** #184, prerequisite #167 S167-01a
 - **Type:** Move
 - **Base:** `dev@b69d33857ef85fb81388f02e9ff1cff195a092d1`
@@ -1455,10 +1455,28 @@ wildcard seed arithmetic, warnings/errors, and saved workflows. It must not
 add a callback/binder, import root `nodes.py` from the canonical package, copy
 seed or Wildcard behavior, or begin S167-02 reservation behavior.
 
+Implementation result:
+
+- root no longer imports or invokes the two binders, and both canonical binder
+  definitions plus their bind-time mutation state are absent;
+- Advanced imports its canonical common, Prompt, seed, NAIA, workflow, and
+  input-type owners directly. Its legacy settings fallback remains explicit,
+  and the existing Prompt service's call-time Wildcard module resolver
+  preserves the no-eager-NumPy boundary;
+- Regional imports canonical Prompt/seed/workflow owners directly and resolves
+  CLIP encoding through the existing E-07 provider at call time;
+- tests that previously patched root only to drive Advanced or Regional now
+  patch the canonical adapter owner;
+- mapped classes and input types remain direct canonical identities, and seed
+  reservation payload parsing remains owned by S167-01a;
+- the Comfy host ledger remains 22 slots across 15 modules;
+- the remaining audit is 14 binders in two families: eight provider-then-root,
+  four root-only, and two explicit callbacks; and
+- `nodes.py` is 1,662 lines, down 15 lines from the S167-01a base.
+
 ### B-11d — Final root shim
 
-- **State:** BLOCKED by the remaining B-11c30 family Moves and the separate
-  seed/Wildcard decision for the final non-provider function
+- **State:** BLOCKED by the remaining AiO and Wildcard/NAIA binder families
 - **Owner:** #184
 - **Type:** Move
 
@@ -1474,10 +1492,9 @@ Final conditions remain:
 - actual package/Registry archive closure passes; and
 - representative live ComfyUI execution is recorded.
 
-The provider bridge itself does not authorize moving
-`_consume_reserved_wildcard_next_seed`. S167-01a / PR #344 is the separate
-#167 behavior-preserving owner Move; it does not also authorize c2b binder
-retirement.
+S167-01a / PR #344 supplies the behavior-preserving reserved-seed owner, and
+B-11c30c2b / PR #345 consumes it directly from both canonical adapters. The
+root aliases remain compatibility surface; S167-02 Behavior is still separate.
 
 ## 6. Updated critical path
 
@@ -1501,7 +1518,7 @@ COMPLETE: B-11c30c Prompt/Regional split gate / PR #339
 COMPLETE: B-11c30c1 Prompt/Regional service binder Move / PR #340
 COMPLETE: B-11c30c2 Prompt/Regional node-adapter split gate / PR #341
 COMPLETE: B-11c30c2a Prompt Data / Classic Prompt adapter Move / PR #342
-BLOCKED:  B-11c30c2b Advanced / Regional adapter Move (#167/D-12)
+COMPLETE: B-11c30c2b Advanced / Regional adapter Move / PR #345
 BLOCKED:  B-11d final root shim
 
 LATER:    #167 seed reservation
