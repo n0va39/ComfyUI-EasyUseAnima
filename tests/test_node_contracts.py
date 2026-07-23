@@ -835,6 +835,7 @@ class AioDetailerNormalizationMoveContractTests(unittest.TestCase):
         "_AIO_DETAILER_CUSTOM_RE",
         "_AIO_DETAILER_RESERVED_KEYS",
         "_is_aio_detailer_target_name",
+        "_aio_detailer_has_enabled_targets",
         "_aio_detailer_target_defaults",
         "_aio_detailer_target_order",
     )
@@ -907,6 +908,42 @@ class AioDetailerNormalizationMoveContractTests(unittest.TestCase):
             )
         self.assertEqual(order, ["special", "face", "eye"])
         self.assertNotIn(call("reserved"), is_target.call_args_list)
+
+        disabled = {"enabled": False, "face": {"enabled": True}}
+        with (
+            patch.object(root_module, "_as_bool", return_value=False) as as_bool,
+            patch.object(root_module, "_aio_detailer_target_order") as target_order,
+        ):
+            self.assertFalse(
+                canonical_module._aio_detailer_has_enabled_targets(disabled)
+            )
+        as_bool.assert_called_once_with(False, False)
+        target_order.assert_not_called()
+
+        enabled = {
+            "enabled": "overall",
+            "scalar": "ignored",
+            "first": {"enabled": "first"},
+            "second": {"enabled": "second"},
+        }
+        with (
+            patch.object(
+                root_module,
+                "_as_bool",
+                side_effect=lambda value, default: value in {"overall", "first"},
+            ) as as_bool,
+            patch.object(
+                root_module,
+                "_aio_detailer_target_order",
+                return_value=["scalar", "first", "second"],
+            ) as target_order,
+        ):
+            self.assertTrue(canonical_module._aio_detailer_has_enabled_targets(enabled))
+        target_order.assert_called_once_with(enabled)
+        self.assertEqual(
+            as_bool.call_args_list,
+            [call("overall", False), call("first", False)],
+        )
 
     def test_root_aliases_and_call_time_state(self):
         self._assert_contract(nodes, aio_generation_normalization)

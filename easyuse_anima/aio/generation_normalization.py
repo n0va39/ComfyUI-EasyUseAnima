@@ -85,6 +85,22 @@ def _aio_detailer_target_order(detailer_settings: dict[str, Any]) -> list[str]:
     return output
 
 
+def _aio_detailer_has_enabled_targets(detailer_settings: dict[str, Any]) -> bool:
+    if not _runtime_helper("_as_bool")(
+        detailer_settings.get("enabled"),
+        False,
+    ):
+        return False
+    return any(
+        isinstance(detailer_settings.get(name), dict)
+        and _runtime_helper("_as_bool")(
+            detailer_settings[name].get("enabled"),
+            False,
+        )
+        for name in _runtime_helper("_aio_detailer_target_order")(detailer_settings)
+    )
+
+
 def _normalize_aio_seed(value, default: int = AIO_SPECIAL_SEED_RANDOM) -> int:
     _as_int = _runtime_helper("_as_int")
     max_seed = _runtime_helper("MAX_SEED")

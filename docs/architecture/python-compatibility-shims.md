@@ -3,14 +3,15 @@
 ## Registry status
 
 - Inventory baseline: `dev` commit
-  `7c2fdd50b644fe48e98220ad72f7e5c78a0b070e`
+  `21f8c97ab6a61a03d8eca3aac1864e2c565c3b46`
 - Compatibility provenance: package/workflow version 0.5.2
 - Policy: [ADR-002](adr-002-compatibility-shims.md)
 - Machine-readable audit:
   [`python_compatibility_surface.v1.json`](../../tests/fixtures/python_compatibility_surface.v1.json)
-- Current state: B-11a through B-11c12 are integrated through PR #306. B-11c is
+- Current state: B-11a through B-11c13 are integrated through PR #307. B-11c is
   split into residual-owner Moves and explicit private-contract cleanup before
-  the final root shim; B-11c13 dead USDU wrapper cleanup is tracked by PR #307.
+  the final root shim; B-11c14 Detailer enabled-target predicate Move is tracked
+  by PR #308.
 
 This is an actionable registry, not a removal schedule. `N` means the first
 published Registry release containing both a canonical target and its root
@@ -75,7 +76,7 @@ inferring public support from spelling or test imports:
 - `nodes.py` preamble implementation imports: 6 (`json`, `logging`, `random`,
   `ceil`, `sqrt`, and `Any`), excluded from compatibility classification
   by an exact AST allowlist and drift gate;
-- `nodes.py` bindings with an `easyuse_anima` canonical target: 284 in B-11c12
+- `nodes.py` bindings with an `easyuse_anima` canonical target: 285 in B-11c14
   (258 at the integrated B-10b20 baseline), with exact
   relative-package/flat-fallback parity;
 - bindings still owned by `anima_prompt`, `settings`, `prompt_translation`, or
@@ -84,8 +85,8 @@ inferring public support from spelling or test imports:
 - unmapped root classes: `EasyUseAnimaSAM3Context` and
   `EasyUseAnimaSAM3Detailer`; the canonical legacy Extend class remains in its
   owner module without a root alias or backend mapping;
-- root-owned residual implementation: 23 functions, 0 classes, and 26 assigned
-  globals in B-11c13 (41/2/33 at the integrated B-10b20 baseline).
+- root-owned residual implementation: 22 functions, 0 classes, and 26 assigned
+  globals in B-11c14 (41/2/33 at the integrated B-10b20 baseline).
 - import-time runtime binders: 29 exact top-level `_bind_*_runtime` calls;
 - root names reached by those canonical runtime resolvers: 268, including
   literal lookups and binder-owned helper-name/default collections;
@@ -357,6 +358,20 @@ convenience-node compatibility; it remains unmapped and is not public support.
   live USDU stage remain present and unchanged.
 - PR #307 changes no tile calculation, clamp, rounding, alignment, stage,
   model, conditioning, sampling, logging, metadata, or workflow behavior.
+
+### B-11c14 Detailer enabled-target predicate alias
+
+- Canonical owner: `easyuse_anima.aio.generation_normalization` for
+  `_aio_detailer_has_enabled_targets`.
+- The private root name remains a transitional direct alias in both relative
+  package and flat import modes. Legacy generation continues to resolve and
+  invoke that root name at call time.
+- The existing generation-normalization binder resolves root `_as_bool` and
+  `_aio_detailer_target_order` at use time. The overall disabled short-circuit,
+  dict-only target check, target order, per-target coercion, and `any()` lazy
+  evaluation are preserved.
+- PR #308 changes no Detailer defaults/normalization, stage/target execution,
+  SAM3/Impact behavior, metadata, preview, schema, or workflow behavior.
 
 ### `nodes.py` public node-class surface
 
