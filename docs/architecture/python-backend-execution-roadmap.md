@@ -31,7 +31,7 @@ merged PR, the owning issue's evidence record, and every stated exit gate.
 | Phase | Integrated snapshot / open implementation state | Remaining exit work |
 | --- | --- | --- |
 | A - baseline | Complete; #191 is closed | Keep fixtures and analyzers current during later moves |
-| B - `nodes.py` extraction | Integrated through S167-01a / PR #344; B-11c30c2b completes in PR #345 | Complete the remaining AiO and Wildcard/NAIA binder families, then perform the final root shim as a separate Move |
+| B - `nodes.py` extraction | Integrated through B-11c30c2b / PR #345; B-11c30d completes the AiO split gate in PR #346 | Execute the frozen AiO Moves, then Wildcard/NAIA and the final root shim as separate rollback units |
 | C - feature contracts/behavior | Partially complete through S167-01a / PR #344 | Continue #167 and #169 in separate Contract/Move/Behavior PRs |
 | D - root consolidation | Not started | Execute #186 feature by feature after the corresponding behavior contracts are stable |
 | E - runtime ownership | Partial: E-02a and E-07a/E-07b integrated | Continue #187 only where canonical feature owners and explicit contracts exist |
@@ -115,7 +115,14 @@ merged PR, the owning issue's evidence record, and every stated exit gate.
   and exact owner-Move boundary. S167-01a / PR #344 supplies that canonical
   compatibility owner. B-11c30c2b / PR #345 retires the final two Prompt
   node-adapter binders, leaving 14 binders across the AiO and Wildcard/NAIA
-  families.
+  families. B-11c30d / PR #346 is a production-free gate that freezes the
+  twelve AiO binders into six exact, non-overlapping Move groups and records
+  their per-group resolver and repository-replacement cost. It also records two
+  separate prerequisite owner Moves: d0a breaks the output/settings/sampling
+  import cycle before d2 through d4, and d0b breaks the
+  legacy-orchestration/node-adapter cycle before d5 and d6. d1 cache state is
+  the first READY Move and remains mechanically separate from #169 cache
+  Behavior.
 
 ### Current quality baseline
 
@@ -338,9 +345,11 @@ Copy this block into the owning issue or PR before implementation.
 
 ## 6. Current executable queue
 
-The ordering below is the default critical path at the snapshot. B-07f,
-C168-03, and G-02b may proceed in parallel because they should own disjoint
-surfaces. AiO mechanical extraction must not start until #168 exits.
+The ordering below records the integrated path and the current next boundary.
+B-11c30d freezes the remaining AiO migration cost once; later Moves consume
+their subgroup gate instead of repeating the full inventory. The two cycle
+breakers remain standalone owner Moves, and #169 Behavior does not enter the
+mechanical retirement series.
 
 | Order | Task | State | Type | Owner | Prerequisites |
 | ---: | --- | --- | --- | --- | --- |
@@ -357,7 +366,7 @@ surfaces. AiO mechanical extraction must not start until #168 exits.
 | 11 | B-09b2 AiO generator adapter move | COMPLETE on `dev` | Move | #184 | PR #270 / `57d40b4` |
 | 12 | B-10a machine-readable compatibility audit | COMPLETE on `dev` | Contract/gate | #184/#188 | PR #271 / `3c7b857` |
 | 13 | B-10b private alias reduction | COMPLETE on `dev` through PR #291 / `c6b4680` | Contract/cleanup, split PRs | #184/#188 | Audited alias surface integrated |
-| 14 | B-11 registration/bootstrap/root shim | IN PROGRESS through B-11c30c2b PR #345; remaining AiO and Wildcard/NAIA binder Moves precede B-11d | Move/Contract, split PRs | #184 | S167-01 contract |
+| 14 | B-11 registration/bootstrap/root shim | IN PROGRESS through B-11c30d PR #346; d1 is READY, d0a precedes d2-d4, and d0b precedes d5-d6 | Move/Contract, split PRs | #184 | Frozen AiO split gate; S167-01 contract |
 | 15 | S167 backend seed reservation series | S167-01 Contract COMPLETE in PR #343 and S167-01a consumer Move COMPLETE in PR #344; Behavior and Adapter remain | Contract then Move then Behavior | #167 | Canonical AiO/node seams |
 | 16 | A169 stage pipeline series | BLOCKED by #168 and B exit | Contract then Behavior | #169 | Typed config and mechanical AiO move |
 | 17 | A169 first-pass cache policy | BLOCKED by stage/cache ownership seam | Behavior | #169 | Mechanical cache move and benchmark harness |

@@ -9,9 +9,10 @@
 - Machine-readable audit:
   [`python_compatibility_surface.v1.json`](../../tests/fixtures/python_compatibility_surface.v1.json)
 - Current state: B-11a through B-11c30c2b / PR #345 are integrated in the
-  reviewed sequence. S167-01a / PR #344 supplies the canonical reserved-seed
-  compatibility consumer while retaining its root aliases. Fourteen AiO and
-  Wildcard/NAIA binders remain before the final root shim.
+  reviewed sequence, and B-11c30d / PR #346 freezes the remaining AiO split
+  without production changes. S167-01a / PR #344 supplies the canonical
+  reserved-seed compatibility consumer while retaining its root aliases.
+  Fourteen AiO and Wildcard/NAIA binders remain before the final root shim.
 
 This is an actionable registry, not a removal schedule. `N` means the first
 published Registry release containing both a canonical target and its root
@@ -76,8 +77,8 @@ inferring public support from spelling or test imports:
 - `nodes.py` preamble implementation imports: 5 (`json`, `logging`, `random`,
   `ceil`, and `sqrt`), excluded from compatibility classification
   by an exact AST allowlist and drift gate;
-- `nodes.py` bindings with an `easyuse_anima` canonical target: 281 in
-  B-11c30c2a (258 at the integrated B-10b20 baseline), with exact
+- `nodes.py` bindings with an `easyuse_anima` canonical target: 282 in
+  B-11c30c2b (258 at the integrated B-10b20 baseline), with exact
   relative-package/flat-fallback parity;
 - bindings still owned by `anima_prompt`, `settings`, `prompt_translation`, or
   `wildcard_engine`: 27, with the same fallback parity;
@@ -85,10 +86,10 @@ inferring public support from spelling or test imports:
 - unmapped root classes: `EasyUseAnimaSAM3Context` and
   `EasyUseAnimaSAM3Detailer`; the canonical legacy Extend class remains in its
   owner module without a root alias or backend mapping;
-- root-owned residual implementation: 1 function, 0 classes, and 26 assigned
-  globals in B-11c29b3 (41/2/33 at the integrated B-10b20 baseline).
-- import-time runtime binders: 16 exact top-level `_bind_*_runtime` calls;
-- root names reached by those canonical runtime resolvers: 232, including
+- root-owned residual implementation: 0 functions, 0 classes, and 24 assigned
+  globals in B-11c30c2b (41/2/33 at the integrated B-10b20 baseline).
+- import-time runtime binders: 14 exact top-level `_bind_*_runtime` calls;
+- root names reached by those canonical runtime resolvers: 187, including
   literal lookups and binder-owned helper-name/default collections;
 - retired private bindings: `_comfy_checkpoint_names`,
   `_EasyUseAnimaAlignedDetailerHook`, and
@@ -840,6 +841,28 @@ convenience-node compatibility; it remains unmapped and is not public support.
 - Schema, mapped-class/input-type identity, outputs, provider timing, seed
   payload/pop order, Wildcard arithmetic, workflows, and optional-dependency
   timing remain unchanged.
+
+### B-11c30d AiO binder split gate
+
+- Production files and all fourteen remaining binders are unchanged.
+- The twelve AiO binders are classified exactly once into six non-overlapping
+  rollback units: d1 cache state; d2 normalization/planning; d3 I/O boundary;
+  d4 execution services; d5 legacy orchestration; and d6 node adapter.
+- The machine-readable audit freezes each subgroup's binder names, binding
+  modes, bound globals, root/provider/direct dependency slots, replacement
+  slots, and replacement files. Later retirement tests select their frozen
+  subgroup rather than rebuilding the full AiO inventory.
+- d1 is READY. Its cache dictionary/list identity, order, limit, key, clone,
+  hit, and eviction behavior remain under #169 and are not changed by the
+  binder Move.
+- d0a is a separate pure-owner Move for the two output-settings normalizers.
+  It breaks the output/sampling/generation-normalization import cycle before
+  d2 through d4.
+- d0b is a separate pure-owner Move for the two input-context helpers. It
+  breaks the legacy-generation/node-adapter import cycle before d5 and d6.
+- Neither prerequisite Move is implemented by this gate. No schema, setting,
+  workflow, stage, seed, cache, model, sampling, preview, save, conditioning,
+  provider, optional-dependency, or error behavior changes.
 
 ### `nodes.py` public node-class surface
 

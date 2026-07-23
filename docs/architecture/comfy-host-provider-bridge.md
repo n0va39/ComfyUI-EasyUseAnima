@@ -1474,6 +1474,100 @@ Implementation result:
   four root-only, and two explicit callbacks; and
 - `nodes.py` is 1,662 lines, down 15 lines from the S167-01a base.
 
+### B-11c30d — AiO binder split gate
+
+- **State:** COMPLETE in PR #346
+- **Owner:** #184
+- **Behavior boundary:** #168 and #169
+- **Type:** Contract/gate
+- **Production changes:** none
+- **Base:** `dev@1debd5c3ea75f1d14e66a3cfbba0e93e003f69cb`
+
+Pre-edit inventory:
+
+- twelve AiO binders remain: eight provider-then-root and four root-only;
+- each binder mutates one `_RUNTIME_RESOLVER` slot, for twelve bind-time
+  global slots over one unique name;
+- 260 root resolver slots cover 187 unique names;
+- thirteen provider slots cover `_comfy_max_resolution`,
+  `_encode_with_comfy_clip`, `_find_comfy_node_class`,
+  `_require_any_custom_node_class`, and `_require_custom_node_class`;
+- eight direct root dependency slots all name
+  `_resolve_comfy_host_helper`;
+- repository tests replace 199 binder slots over 133 unique names in fourteen
+  files. This is migration-cost evidence, not public compatibility;
+- `easyuse_anima.aio.first_pass_cache` owns the actual cache dictionary, order
+  list, and entry limit. Their object identity, ordering, eviction, cloning,
+  and key semantics belong to the #169 behavior boundary; and
+- `easyuse_anima.aio.legacy_generation` is the 59-root-slot orchestration
+  consumer, while `easyuse_anima.nodes.aio_nodes` is the separate 30-slot
+  public node adapter.
+
+The production-free split is:
+
+| Move | Owned binders | Root slots / unique | Provider slots | Direct slots | Replacement slots / unique |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| B-11c30d1 cache state | 1 | 7 / 7 | 0 | 0 | 7 / 7 |
+| B-11c30d2 normalization/planning | 3 | 72 / 66 | 1 | 1 | 37 / 31 |
+| B-11c30d3 I/O boundary | 3 | 49 / 46 | 4 | 3 | 47 / 44 |
+| B-11c30d4 execution services | 3 | 43 / 37 | 6 | 3 | 30 / 25 |
+| B-11c30d5 legacy orchestration | 1 | 59 / 59 | 2 | 1 | 48 / 48 |
+| B-11c30d6 node adapter | 1 | 30 / 30 | 0 | 0 | 30 / 30 |
+
+Group ownership is exact:
+
+- d1: `_bind_aio_first_pass_cache_runtime`;
+- d2: `_bind_aio_generation_normalization_runtime`,
+  `_bind_aio_usdu_planning_runtime`, and `_bind_aio_postprocess_runtime`;
+- d3: `_bind_aio_resource_runtime`, `_bind_aio_preview_runtime`, and
+  `_bind_aio_output_runtime`;
+- d4: `_bind_aio_model_preparation_runtime`, `_bind_aio_sampling_runtime`, and
+  `_bind_aio_conditioning_runtime`;
+- d5: `_bind_aio_legacy_generation_runtime`; and
+- d6: `_bind_aio_node_runtime`.
+
+This gate may change only
+`tests/test_python_compatibility_surface.py`,
+`tests/fixtures/python_compatibility_surface.v1.json`,
+`docs/architecture/comfy-host-provider-bridge.md`,
+`docs/architecture/python-backend-execution-roadmap.md`, and
+`docs/architecture/python-compatibility-shims.md`. Production files, runtime
+binders, root imports/calls, schemas, settings, workflows, stage order, seed
+resolution, cache behavior, model preparation, sampling, preview, save,
+conditioning, provider lookup, and error text remain unchanged.
+
+Each Move is a separate rollback unit. d5 cannot begin until its canonical
+service dependencies are direct, and d6 remains last because the public node
+adapter consumes the legacy orchestrator and service owners. No Move may begin
+#169 stage/cache Behavior or combine the Wildcard/NAIA family.
+
+The machine-readable gate records the exact, non-overlapping subgroup
+membership and the per-group mode, root/provider/direct dependency, replacement
+slot, and replacement-file counts. Later Moves consume that frozen subgroup
+instead of reconstructing the full twelve-binder inventory.
+
+Two import cycles require separate behavior-preserving prerequisite Moves:
+
+1. **B-11c30d0a output settings owner:** move only
+   `_normalize_aio_hash_bundles` and
+   `_normalize_aio_civitai_hash_fetchers` from
+   `easyuse_anima.aio.output` to the new pure
+   `easyuse_anima.aio.output_settings` owner. This breaks the
+   generation-normalization → output → sampling → generation-normalization
+   cycle and unblocks d2 through d4.
+2. **B-11c30d0b input context owner:** move only
+   `_easy_use_anima_input_signature` and
+   `_require_easy_use_anima_input` from
+   `easyuse_anima.nodes.aio_nodes` to the new pure
+   `easyuse_anima.aio.input_context` owner. This breaks the
+   legacy-generation ↔ node-adapter cycle and unblocks d5 and d6.
+
+Neither prerequisite is implemented in this Contract/gate. d1 has no blocking
+cycle and is the first READY production Move. d0a may follow as a separate
+Move before d2; d0b remains a separate Move before d5. The two prerequisite
+Moves preserve existing root aliases and do not change normalization, input,
+stage, seed, cache, provider, error, or workflow behavior.
+
 ### B-11d — Final root shim
 
 - **State:** BLOCKED by the remaining AiO and Wildcard/NAIA binder families
@@ -1519,6 +1613,12 @@ COMPLETE: B-11c30c1 Prompt/Regional service binder Move / PR #340
 COMPLETE: B-11c30c2 Prompt/Regional node-adapter split gate / PR #341
 COMPLETE: B-11c30c2a Prompt Data / Classic Prompt adapter Move / PR #342
 COMPLETE: B-11c30c2b Advanced / Regional adapter Move / PR #345
+COMPLETE: B-11c30d AiO binder split gate / PR #346
+READY:    B-11c30d1 AiO cache-state binder Move
+PLANNED:  B-11c30d0a output-settings owner Move before d2-d4
+PLANNED:  B-11c30d2-d4 normalization, I/O, and execution-service Moves
+PLANNED:  B-11c30d0b input-context owner Move before d5-d6
+PLANNED:  B-11c30d5-d6 orchestration and node-adapter Moves
 BLOCKED:  B-11d final root shim
 
 LATER:    #167 seed reservation
