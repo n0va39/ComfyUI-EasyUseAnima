@@ -113,7 +113,7 @@
         },
         {
           "module": "easyuse_anima.nodes.prompt_data_nodes",
-          "binder": "_bind_prompt_data_node_runtime",
+          "binder": null,
           "root_observation": "call_time"
         },
         {

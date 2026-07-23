@@ -214,6 +214,15 @@ def _deterministic_comfy_inputs():
     }
     with (
         patch.multiple(nodes, **replacements),
+        patch.multiple(
+            prompt_nodes,
+            resolve_metadata_filter_words=replacements[
+                "resolve_metadata_filter_words"
+            ],
+            _prompt_translation_change_key=replacements[
+                "_prompt_translation_change_key"
+            ],
+        ),
         patch_comfy_helper(
             nodes,
             "_comfy_max_resolution",
@@ -2808,6 +2817,7 @@ class PromptCorrectorMoveContractTests(unittest.TestCase):
 
     def test_root_prompt_corrector_objects_are_direct_canonical_aliases(self):
         self.assertFalse(hasattr(prompt_correction, "_bind_prompt_correction_runtime"))
+        self.assertFalse(hasattr(prompt_nodes, "_bind_prompt_node_runtime"))
         for name in self.CORRECTION_HELPERS:
             with self.subTest(name=name):
                 self.assertIs(getattr(nodes, name), getattr(prompt_correction, name))
@@ -2832,7 +2842,7 @@ class PromptCorrectorMoveContractTests(unittest.TestCase):
                 with self.subTest(name=name):
                     self.assertIs(getattr(package_nodes, name), getattr(package_prompt_nodes, name))
 
-    def test_canonical_service_and_root_adapter_monkeypatches_drive_prompt_corrector_nodes(self):
+    def test_canonical_service_and_adapter_monkeypatches_drive_prompt_corrector_nodes(self):
         settings = types.SimpleNamespace(provider="off", source="auto", target="en")
         correction_result = types.SimpleNamespace(
             text="canonical result",
@@ -2850,13 +2860,25 @@ class PromptCorrectorMoveContractTests(unittest.TestCase):
                 return_value=settings,
             ) as resolve_settings,
             patch.object(
-                nodes,
+                prompt_nodes,
                 "_prompt_translation_change_key",
                 return_value={"bound": "translation"},
             ) as translation_key,
-            patch.object(nodes, "_stable_change_key", side_effect=lambda payload: payload) as stable_key,
-            patch.object(nodes, "load_knowledge_base", return_value="bound kb") as load_kb,
-            patch.object(nodes, "correct_prompt", return_value=correction_result) as correct,
+            patch.object(
+                prompt_nodes,
+                "_stable_change_key",
+                side_effect=lambda payload: payload,
+            ) as stable_key,
+            patch.object(
+                prompt_nodes,
+                "load_knowledge_base",
+                return_value="bound kb",
+            ) as load_kb,
+            patch.object(
+                prompt_nodes,
+                "correct_prompt",
+                return_value=correction_result,
+            ) as correct,
         ):
             change_key = prompt_nodes.EasyUseAnimaPromptCorrector.IS_CHANGED(
                 prompt="%{bound prompt}",
@@ -2931,11 +2953,19 @@ class PromptCorrectorMoveContractTests(unittest.TestCase):
         translate_markers.assert_called_once_with("%{abc}", settings)
 
     def test_translation_stays_outside_the_correction_error_mapping(self):
-        with patch.object(nodes, "_translate_prompt_text", side_effect=ValueError("translate")):
+        with patch.object(
+            prompt_nodes,
+            "_translate_prompt_text",
+            side_effect=ValueError("translate"),
+        ):
             with self.assertRaisesRegex(ValueError, "^translate$"):
                 prompt_nodes.EasyUseAnimaPromptCorrector().correct("prompt", "", "")
 
-        with patch.object(nodes, "load_knowledge_base", side_effect=ValueError("correct")):
+        with patch.object(
+            prompt_nodes,
+            "load_knowledge_base",
+            side_effect=ValueError("correct"),
+        ):
             with self.assertRaisesRegex(
                 RuntimeError,
                 r"^\[EasyUse Anima\] prompt correction failed: correct$",
@@ -3107,6 +3137,7 @@ class PromptDataConditioningMoveContractTests(unittest.TestCase):
     def test_root_prompt_data_conditioning_objects_are_direct_canonical_aliases(self):
         self.assertFalse(hasattr(prompt_artist_mix, "_bind_artist_mix_runtime"))
         self.assertFalse(hasattr(prompt_conditioning, "_bind_conditioning_runtime"))
+        self.assertFalse(hasattr(prompt_data_nodes, "_bind_prompt_data_node_runtime"))
         for name in (
             *self.RETIRED_PROMPT_DATA_ALIASES,
             *self.RETIRED_CONDITIONING_ALIASES,
@@ -3171,8 +3202,12 @@ class PromptDataConditioningMoveContractTests(unittest.TestCase):
             (nodes.PROMPT_DATA_TYPE, *nodes.EasyUseAnimaPromptStudioAdvanced.RETURN_NAMES),
         )
 
-    def test_root_change_key_monkeypatch_drives_canonical_adapter(self):
-        with patch.object(nodes, "_stable_change_key", side_effect=lambda value: value) as stable:
+    def test_canonical_change_key_monkeypatch_drives_canonical_adapter(self):
+        with patch.object(
+            prompt_data_nodes,
+            "_stable_change_key",
+            side_effect=lambda value: value,
+        ) as stable:
             change_key = prompt_data_nodes.EasyUseAnimaPromptDataUnpack.IS_CHANGED(
                 {nodes.PROMPT_DATA_TYPE: True}
             )
@@ -3244,6 +3279,7 @@ class PromptBuilderStudioMoveContractTests(unittest.TestCase):
 
     def test_root_prompt_builder_studio_objects_are_direct_canonical_aliases(self):
         self.assertFalse(hasattr(prompt_fields, "_bind_prompt_fields_runtime"))
+        self.assertFalse(hasattr(prompt_nodes, "_bind_prompt_node_runtime"))
         for name in self.RETIRED_FIELD_DEFAULTS:
             with self.subTest(retired=name):
                 self.assertFalse(hasattr(nodes, name))
@@ -3327,16 +3363,20 @@ class PromptBuilderStudioMoveContractTests(unittest.TestCase):
             artist_overrides=["bound_artist"],
         )
 
-    def test_root_monkeypatches_drive_canonical_builder_order_and_change_key(self):
+    def test_canonical_adapter_monkeypatches_drive_builder_order_and_change_key(self):
         with (
-            patch.object(nodes, "_stable_change_key", side_effect=lambda value: value) as stable,
             patch.object(
-                nodes,
+                prompt_nodes,
+                "_stable_change_key",
+                side_effect=lambda value: value,
+            ) as stable,
+            patch.object(
+                prompt_nodes,
                 "_prompt_translation_change_key",
                 return_value={"bound": "translation"},
             ) as translation_key,
             patch.object(
-                nodes,
+                prompt_nodes,
                 "resolve_metadata_filter_words",
                 return_value="bound filters",
             ) as resolve_filter,
@@ -3352,20 +3392,32 @@ class PromptBuilderStudioMoveContractTests(unittest.TestCase):
         resolve_filter.assert_called_once_with()
 
         with (
-            patch.object(nodes, "_as_bool", side_effect=(True, False)),
-            patch.object(nodes, "_translate_prompt_text", side_effect=lambda value: f"t:{value}"),
-            patch.object(nodes, "_join_prompt_tokens", side_effect=lambda *parts: "|".join(parts)),
+            patch.object(prompt_nodes, "_as_bool", side_effect=(True, False)),
             patch.object(
-                nodes,
+                prompt_nodes,
+                "_translate_prompt_text",
+                side_effect=lambda value: f"t:{value}",
+            ),
+            patch.object(
+                prompt_nodes,
+                "_join_prompt_tokens",
+                side_effect=lambda *parts: "|".join(parts),
+            ),
+            patch.object(
+                prompt_nodes,
                 "_correct_builder_prompt",
                 side_effect=lambda value, artist_overrides="": f"c:{value}:{artist_overrides}",
             ),
             patch.object(
-                nodes,
+                prompt_nodes,
                 "_filter_metadata_prompt",
                 side_effect=lambda prompt, words: f"f:{prompt}:{words}",
             ),
-            patch.object(nodes, "resolve_metadata_filter_words", return_value="filters"),
+            patch.object(
+                prompt_nodes,
+                "resolve_metadata_filter_words",
+                return_value="filters",
+            ),
         ):
             result = prompt_nodes.EasyUseAnimaPromptBuilder().build(
                 True,

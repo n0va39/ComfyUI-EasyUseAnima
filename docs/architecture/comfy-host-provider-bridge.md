@@ -1364,7 +1364,7 @@ All four binders and production callers remain unchanged in this gate.
 
 ### B-11c30c2a — Prompt Data / Classic Prompt adapter Move
 
-- **State:** IN PROGRESS
+- **State:** COMPLETE in PR #342
 - **Owner:** #184
 - **Type:** Move
 - **Base:** `dev@6a21e2667ea5eb8723346d44d8d913444f230b05`
@@ -1388,6 +1388,22 @@ class identity, prompt and conditioning outputs, provider lookup order,
 warning/error behavior, optional-dependency timing, and saved workflows. It
 must not modify the Advanced/Regional adapters, seed reservation, or wildcard
 behavior.
+
+Implementation result:
+
+- root no longer imports or invokes the two binders, and both canonical binder
+  definitions plus their bind-time mutation state are absent;
+- Prompt Data imports canonical prompt/AiO helpers directly and resolves CLIP
+  encoding through the existing E-07 provider at call time;
+- Classic Prompt uses canonical common/prompt helpers and the existing
+  `anima_prompt`/`settings` fallback imports directly;
+- root mapped classes retain direct canonical identity, and adapter tests now
+  replace the canonical adapter/provider seam instead of root-only binder
+  globals;
+- the Comfy host ledger remains 22 slots across 15 modules;
+- the remaining audit is 16 binders in three families: nine
+  provider-then-root, five root-only, and two explicit callbacks; and
+- `nodes.py` is 1,750 lines, down 13 lines from the B-11c30c2 base.
 
 ### B-11d — Final root shim
 
@@ -1433,7 +1449,7 @@ COMPLETE: B-11c30b LoRA binder Move / PR #338
 COMPLETE: B-11c30c Prompt/Regional split gate / PR #339
 COMPLETE: B-11c30c1 Prompt/Regional service binder Move / PR #340
 COMPLETE: B-11c30c2 Prompt/Regional node-adapter split gate / PR #341
-IN PROGRESS: B-11c30c2a Prompt Data / Classic Prompt adapter Move
+COMPLETE: B-11c30c2a Prompt Data / Classic Prompt adapter Move / PR #342
 BLOCKED:  B-11c30c2b Advanced / Regional adapter Move (#167/D-12)
 BLOCKED:  B-11d final root shim
 
