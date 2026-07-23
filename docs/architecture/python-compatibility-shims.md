@@ -8,9 +8,9 @@
 - Policy: [ADR-002](adr-002-compatibility-shims.md)
 - Machine-readable audit:
   [`python_compatibility_surface.v1.json`](../../tests/fixtures/python_compatibility_surface.v1.json)
-- Current state: B-11a through B-11c29c are integrated. B-11c is split into
+- Current state: B-11a through B-11c29d are integrated. B-11c is split into
   residual-owner Moves and explicit private-contract cleanup before the final
-  root shim; B-11c29d retires the pure CLIP invocation root helper in PR #333.
+  root shim; B-11c29b3 general lookup retirement is in progress.
 
 This is an actionable registry, not a removal schedule. `N` means the first
 published Registry release containing both a canonical target and its root
@@ -668,6 +668,21 @@ convenience-node compatibility; it remains unmapped and is not public support.
   propagation remain unchanged.
 - The provider interface, canonical invocation helper, and six production
   consumers are unchanged. General lookup retires next as B-11c29b3.
+
+### B-11c29b3 general node-lookup retirement
+
+- `_find_comfy_node_class` is an unsupported/test-only provider-owned root seam
+  with six provider-wired production binder modules, 17 lookup call sites, no
+  repository replacement, and no confirmed external consumer.
+- The retirement removes the root definition and both relative/flat
+  `_adapter_find_comfy_node_class` imports.
+- Installed runtime keeps `ComfyHostProvider.find_node_class`; flat
+  pre-bootstrap imports use a fresh default provider at call time.
+- Host mapping, host attribute, and current loaded-module lookup order,
+  exception fallthrough, first non-`None` result identity, missing `None`
+  result, and use-time-only optional dependency behavior remain unchanged.
+- The provider interface, canonical capability helper, six production
+  consumers, and their binder-owned runtime state remain unchanged.
 
 ### `nodes.py` public node-class surface
 

@@ -5,8 +5,8 @@
 - Status: active sequencing addendum
 - Snapshot date: 2026-07-23
 - Snapshot branch: `dev`
-- Snapshot commit: `0bf5229adeda2708426a8d65e75380c9033b1835`
-- Latest integrated slice: B-11c28, PR #322
+- Snapshot commit: `931a80f44bea694f3a91a200fe53123226a70b3a`
+- Latest integrated slice: B-11c29d, PR #333
 - Primary execution issue: [#323](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/323)
 - Parent runtime/lifecycle issue: [#187](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/187)
 - Blocked extraction/final-shim issue: [#184](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/184)
@@ -841,7 +841,7 @@ Forbidden:
 
 ### B-11c29d — CLIP invocation wrapper
 
-- **State:** IN PROGRESS in PR #333; precedes B-11c29b3
+- **State:** COMPLETE in PR #333 / `931a80f`; precedes B-11c29b3
 - **Owner:** #184
 - **Type:** Retirement
 
@@ -921,9 +921,95 @@ Forbidden:
   canonical root imports; and
 - changing seed, stage, route, persistence, or postprocess behavior.
 
+#### B-11c29b3 — General node lookup
+
+- **State:** IN PROGRESS
+- **Owner:** #184
+- **Type:** Retirement
+
+Pre-edit inventory at `dev@931a80f44bea694f3a91a200fe53123226a70b3a`:
+
+- root `nodes.py` owns one `_find_comfy_node_class(node_id: str)` definition
+  and imports `_adapter_find_comfy_node_class` in relative and flat modes;
+- its canonical owner is
+  `ComfyHostProvider.find_node_class`, implemented through
+  `easyuse_anima.infrastructure.comfy.capabilities:_find_comfy_node_class`;
+- six call-time production binder modules own 17 lookup call sites:
+  `easyuse_anima.aio.model_preparation` (2), `aio.output` (1),
+  `aio.preview` (1), `aio.resources` (7), `aio.sampling` (4), and
+  `image.sam3` (2);
+- installed runtime already resolves those calls through
+  `ComfyHostProvider.find_node_class`. Repository root replacements,
+  canonical replacements, and confirmed external consumers are all zero;
+- the root wrapper has no mutable state or import-time call. Every consumer
+  keeps its existing binder-owned resolver state and performs lookup only at
+  feature use time;
+- exact lookup order is lazy host `nodes` import, host
+  `NODE_CLASS_MAPPINGS[node_id]`, host attribute `node_id`, then current
+  `sys.modules` order for `NODE_CLASS_MAPPINGS[node_id]`;
+- host mapping and attribute exceptions fall through to the loaded-module scan,
+  the first non-`None` class object is returned unchanged, and a missing class
+  returns `None`;
+- optional custom-node modules are observed only when already loaded and are
+  never imported by this helper; and
+- the ledger classifies the root seam as `provider_owned`,
+  `unsupported_test_only`, with no call-time root replacement requirement.
+
+Allowed production files:
+
+```text
+nodes.py
+easyuse_anima/infrastructure/comfy/wiring.py
+```
+
+Allowed test, fixture, and documentation files:
+
+```text
+tests/test_comfy_host_wiring.py
+tests/test_comfy_host_provider.py
+tests/test_node_contracts.py
+tests/test_aio_model_preparation.py
+tests/test_aio_output.py
+tests/test_aio_preview.py
+tests/test_aio_resources.py
+tests/test_aio_sampling.py
+tests/test_sam3_nodes.py
+tests/test_python_compatibility_surface.py
+tests/test_nodes_module_analyzer.py
+tests/fixtures/comfy_host_compatibility.v1.json
+tests/fixtures/python_compatibility_surface.v1.json
+tests/fixtures/python_backend_baseline.json
+docs/architecture/*
+```
+
+Exit:
+
+- the root definition and both adapter imports are absent;
+- installed-runtime consumers continue using
+  `ComfyHostProvider.find_node_class`;
+- flat pre-bootstrap calls use a fresh default provider at call time;
+- mapping, attribute, and loaded-module order, exception fallthrough, result
+  identity, missing result, and use-time-only optional dependency behavior
+  remain unchanged;
+- retirement gates reject restored root or adapter bindings; and
+- root residual/analyzer/package closure gates pass.
+
+Forbidden:
+
+- changing `ComfyHostProvider`, its implementation, or the canonical capability
+  helper;
+- changing the six production consumers, binders, schemas, workflows, or
+  feature-selection timing;
+- changing lookup order, exception fallthrough, result identity, missing-result
+  behavior, or optional dependency timing;
+- adding cache, snapshot, mutable override state, optional imports, or
+  canonical root imports; and
+- changing requirement, CLIP, seed, stage, route, persistence, or postprocess
+  behavior.
+
 ### B-11c30 — Runtime binder/resolver migration audit
 
-- **State:** BLOCKED by B-11c29a-d
+- **State:** BLOCKED by B-11c29b3
 - **Owner:** #184/#188
 - **Type:** Contract/gate plus separate cleanup Moves
 
@@ -974,8 +1060,8 @@ COMPLETE: B-11c29a max-resolution wrapper retirement / PR #329
 COMPLETE: B-11c29b1 direct mapping lookup retirement / PR #330
 COMPLETE: B-11c29b2 loaded lookup retirement / PR #331
 COMPLETE: B-11c29c requirement helper retirement / PR #332
-IN PROGRESS: B-11c29d CLIP wrapper retirement / PR #333
-BLOCKED:  B-11c29b3 general node lookup retirement
+COMPLETE: B-11c29d CLIP wrapper retirement / PR #333
+IN PROGRESS: B-11c29b3 general node lookup retirement
 BLOCKED:  B-11c30 binder/resolver migration audit
 BLOCKED:  B-11d final root shim
 
