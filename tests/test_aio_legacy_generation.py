@@ -32,6 +32,10 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
             nodes._run_aio_legacy_generation,
             legacy_generation._run_aio_legacy_generation,
         )
+        self.assertIs(
+            nodes._run_aio_highres_stage,
+            legacy_generation._run_aio_highres_stage,
+        )
 
         with _loaded_package_entrypoint() as (package_entrypoint, package_nodes):
             canonical_module = sys.modules[
@@ -45,6 +49,302 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
                 package_nodes._run_aio_legacy_generation,
                 canonical_module._run_aio_legacy_generation,
             )
+            self.assertIs(
+                package_nodes._run_aio_highres_stage,
+                canonical_module._run_aio_highres_stage,
+            )
+
+    def test_highres_stage_disabled_short_circuits_after_as_bool(self):
+        trace: list[str] = []
+        image = object()
+        base_latent = object()
+
+        def resolve(name):
+            trace.append(f"resolve:{name}")
+            if name == "_as_bool":
+                return lambda value, default: trace.append("as_bool") or False
+            self.fail(f"disabled highres stage resolved unexpected helper: {name}")
+
+        legacy_generation._bind_aio_legacy_generation_runtime(resolve_helper=resolve)
+        try:
+            result = nodes._run_aio_highres_stage(
+                object(),
+                object(),
+                object(),
+                object(),
+                object(),
+                image,
+                base_latent,
+                "64",
+                "96",
+                {},
+                {"enabled": False},
+            )
+        finally:
+            legacy_generation._bind_aio_legacy_generation_runtime(
+                resolve_helper=lambda name: getattr(nodes, name)
+            )
+
+        self.assertIs(result[0], base_latent)
+        self.assertIs(result[1], image)
+        self.assertEqual(result[2:], (64, 96, {"enabled": False}))
+        self.assertEqual(trace, ["resolve:_as_bool", "as_bool"])
+
+    def test_highres_stage_preserves_dependency_and_metadata_order(self):
+        trace: list[str] = []
+        model = _Token("model")
+        stage_model = _Token("stage_model")
+        clip = _Token("clip")
+        vae = _Token("vae")
+        positive = _Token("positive")
+        negative = _Token("negative")
+        image = _Token("image")
+        scaled_image = _Token("scaled_image")
+        initial_latent = _Token("initial_latent")
+        sampled_latent = _Token("sampled_latent")
+        decoded_image = _Token("decoded_image")
+        resized_image = _Token("resized_image")
+        resized_latent = _Token("resized_latent")
+        stage_sampler = {"backend": "comfy_ksampler", "steps": 9}
+        test_case = self
+
+        def as_bool(value, default):
+            trace.append("call:_as_bool")
+            self.assertEqual((value, default), (True, False))
+            return True
+
+        def stage_sampler_settings(base, highres, **kwargs):
+            trace.append("call:_aio_stage_sampler_settings")
+            self.assertEqual(base, {"steps": 20})
+            self.assertEqual(highres["enabled"], True)
+            self.assertEqual(
+                kwargs,
+                {"scheduler_default": "simple", "inherit_backend": True},
+            )
+            return stage_sampler
+
+        class ScaleByMultiple:
+            def __init__(self):
+                trace.append("construct:scaler")
+
+            def upscale(self, *args):
+                trace.append("call:upscale")
+                test_case.assertEqual(args, (image, 1.5, "lanczos", "64", 2048))
+                return scaled_image, 128, 192, 1.5
+
+        def encode(source_vae, source_image):
+            trace.append(f"call:encode:{source_image.name}")
+            self.assertIs(source_vae, vae)
+            if source_image is scaled_image:
+                return initial_latent
+            self.assertIs(source_image, resized_image)
+            return resized_latent
+
+        def apply_patch(source_model, source_clip, conditioning, sampler):
+            trace.append("call:patch")
+            self.assertEqual(
+                (source_model, source_clip, conditioning, sampler),
+                (model, clip, positive, stage_sampler),
+            )
+            return stage_model
+
+        def sample(*args):
+            trace.append("call:sample")
+            self.assertEqual(
+                args,
+                (
+                    stage_model,
+                    clip,
+                    positive,
+                    negative,
+                    initial_latent,
+                    stage_sampler,
+                    {"scale": 3.0},
+                    True,
+                    "quality",
+                    "quality-neg",
+                ),
+            )
+            return sampled_latent
+
+        def cleanup(current_model, original_model):
+            trace.append("call:cleanup")
+            self.assertEqual((current_model, original_model), (stage_model, model))
+
+        def decode(source_vae, latent):
+            trace.append("call:decode")
+            self.assertEqual((source_vae, latent), (vae, sampled_latent))
+            return decoded_image
+
+        def resize(source_image, width, height, method):
+            trace.append("call:resize")
+            self.assertEqual(
+                (source_image, width, height, method),
+                (decoded_image, 128, 192, "lanczos"),
+            )
+            return resized_image, True
+
+        def json_safe(value):
+            trace.append("call:json_safe")
+            self.assertIs(value, stage_sampler)
+            return {"backend": value["backend"], "steps": value["steps"]}
+
+        helpers = {
+            "_as_bool": as_bool,
+            "_aio_stage_sampler_settings": stage_sampler_settings,
+            "EasyUseAnimaImageScaleByMultiple": ScaleByMultiple,
+            "_encode_image_with_comfy_vae": encode,
+            "_apply_aio_spectrum_model_patches_for_comfy_sampler": apply_patch,
+            "_sample_latent_with_aio_backend": sample,
+            "_cleanup_aio_ephemeral_model": cleanup,
+            "_decode_latent_with_comfy": decode,
+            "_resize_image_to_size_if_needed": resize,
+            "_prompt_data_json_safe": json_safe,
+        }
+
+        def resolve(name):
+            trace.append(f"resolve:{name}")
+            return helpers[name]
+
+        legacy_generation._bind_aio_legacy_generation_runtime(resolve_helper=resolve)
+        try:
+            result = nodes._run_aio_highres_stage(
+                model,
+                clip,
+                vae,
+                positive,
+                negative,
+                image,
+                object(),
+                64,
+                96,
+                {"steps": 20},
+                {
+                    "enabled": True,
+                    "scale_by": 1.5,
+                    "upscale_method": "lanczos",
+                    "multiple": "64",
+                    "max_long_edge": 2048,
+                },
+                {"scale": 3.0},
+                True,
+                "quality",
+                "quality-neg",
+            )
+        finally:
+            legacy_generation._bind_aio_legacy_generation_runtime(
+                resolve_helper=lambda name: getattr(nodes, name)
+            )
+
+        self.assertEqual(
+            result,
+            (
+                resized_latent,
+                resized_image,
+                128,
+                192,
+                {
+                    "enabled": True,
+                    "width": 128,
+                    "height": 192,
+                    "applied_scale": 1.5,
+                    "sampler": {"backend": "comfy_ksampler", "steps": 9},
+                },
+            ),
+        )
+        self.assertEqual(
+            trace,
+            [
+                "resolve:_as_bool",
+                "call:_as_bool",
+                "resolve:_aio_stage_sampler_settings",
+                "call:_aio_stage_sampler_settings",
+                "resolve:EasyUseAnimaImageScaleByMultiple",
+                "construct:scaler",
+                "call:upscale",
+                "resolve:_encode_image_with_comfy_vae",
+                "call:encode:scaled_image",
+                "resolve:_apply_aio_spectrum_model_patches_for_comfy_sampler",
+                "call:patch",
+                "resolve:_sample_latent_with_aio_backend",
+                "call:sample",
+                "resolve:_cleanup_aio_ephemeral_model",
+                "call:cleanup",
+                "resolve:_decode_latent_with_comfy",
+                "call:decode",
+                "resolve:_resize_image_to_size_if_needed",
+                "call:resize",
+                "resolve:_encode_image_with_comfy_vae",
+                "call:encode:resized_image",
+                "resolve:_prompt_data_json_safe",
+                "call:json_safe",
+            ],
+        )
+
+    def test_highres_stage_sampling_failure_cleans_original_model_boundary(self):
+        trace: list[str] = []
+        model = _Token("model")
+        stage_sampler = {"backend": "spectrum_mod_guidance_advanced"}
+
+        class ScaleByMultiple:
+            def upscale(self, *args):
+                trace.append("upscale")
+                return _Token("scaled"), 64, 96, 1.0
+
+        def sample(*args):
+            trace.append("sample")
+            raise RuntimeError("sample failed")
+
+        def cleanup(current_model, original_model):
+            trace.append("cleanup")
+            self.assertIs(current_model, model)
+            self.assertIs(original_model, model)
+
+        helpers = {
+            "_as_bool": lambda value, default: True,
+            "_aio_stage_sampler_settings": lambda *args, **kwargs: stage_sampler,
+            "EasyUseAnimaImageScaleByMultiple": ScaleByMultiple,
+            "_encode_image_with_comfy_vae": lambda vae, image: _Token("latent"),
+            "_sample_latent_with_aio_backend": sample,
+            "_cleanup_aio_ephemeral_model": cleanup,
+        }
+
+        def resolve(name):
+            trace.append(f"resolve:{name}")
+            if name not in helpers:
+                self.fail(f"sampling failure resolved unexpected helper: {name}")
+            return helpers[name]
+
+        legacy_generation._bind_aio_legacy_generation_runtime(resolve_helper=resolve)
+        try:
+            with self.assertRaisesRegex(RuntimeError, "sample failed"):
+                nodes._run_aio_highres_stage(
+                    model,
+                    object(),
+                    object(),
+                    object(),
+                    object(),
+                    object(),
+                    object(),
+                    64,
+                    96,
+                    {},
+                    {"enabled": True},
+                )
+        finally:
+            legacy_generation._bind_aio_legacy_generation_runtime(
+                resolve_helper=lambda name: getattr(nodes, name)
+            )
+
+        self.assertEqual(
+            trace[-4:],
+            [
+                "resolve:_sample_latent_with_aio_backend",
+                "sample",
+                "resolve:_cleanup_aio_ephemeral_model",
+                "cleanup",
+            ],
+        )
 
     def test_root_generate_keeps_signature_and_forwards_without_adaptation(self):
         signature = inspect.signature(nodes.EasyUseAnimaAIOGenerator.generate)
