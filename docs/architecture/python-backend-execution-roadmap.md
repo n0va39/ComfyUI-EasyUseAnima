@@ -1076,6 +1076,13 @@ Split into at least these rollback units:
 3. **S167-03 Adapter:** browser queue interceptor becomes a compatibility/display
    adapter; headless and browser behavior parity is proven.
 
+S167-01 uses
+[`seed-reservation-contract.md`](seed-reservation-contract.md) as its exact
+symbol/caller/alias/global-state inventory and allowed-file gate. The contract
+does not itself move the root Prompt Studio compatibility consumer. That
+behavior-preserving owner Move and B-11c30c2b remain separate rollback units
+before S167-02.
+
 Do not mix this sequence into B-09 or #169 stages.
 
 ### A169 — Stage pipeline (#169)
