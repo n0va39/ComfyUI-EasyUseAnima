@@ -1331,7 +1331,7 @@ Forbidden:
 
 ### B-11c30c2 — Prompt/Regional node-adapter split gate
 
-- **State:** IN PROGRESS
+- **State:** COMPLETE in PR #341 / `6a21e26`
 - **Owner:** #184
 - **Blocker owner:** #167 / D-12
 - **Type:** Contract/gate
@@ -1361,6 +1361,33 @@ Split decision:
 The c2b blocker may not be bypassed with a new callback setter/binder,
 canonical-to-root import, copied reservation logic, or changed seed payload.
 All four binders and production callers remain unchanged in this gate.
+
+### B-11c30c2a — Prompt Data / Classic Prompt adapter Move
+
+- **State:** IN PROGRESS
+- **Owner:** #184
+- **Type:** Move
+- **Base:** `dev@6a21e2667ea5eb8723346d44d8d913444f230b05`
+
+Pre-edit inventory:
+
+- `_bind_prompt_data_node_runtime` and `_bind_prompt_node_runtime` are the only
+  owned binders; Advanced and Regional remain excluded;
+- 12 bind-time global slots cover 12 unique names;
+- 30 root resolver slots cover 27 unique names;
+- Prompt Data has one E-07 provider slot for `_encode_with_comfy_clip` and one
+  direct root dependency on `_resolve_comfy_host_helper`;
+- repository tests replace 20 family slots over 17 unique names; this remains
+  migration-cost evidence, not public compatibility; and
+- neither binder resolves `_consume_reserved_wildcard_next_seed`.
+
+Allowed production files are `nodes.py`,
+`easyuse_anima/nodes/prompt_data_nodes.py`, and
+`easyuse_anima/nodes/prompt_nodes.py`. This Move must preserve schemas, mapped
+class identity, prompt and conditioning outputs, provider lookup order,
+warning/error behavior, optional-dependency timing, and saved workflows. It
+must not modify the Advanced/Regional adapters, seed reservation, or wildcard
+behavior.
 
 ### B-11d — Final root shim
 
@@ -1405,8 +1432,8 @@ COMPLETE: B-11c30a Image/SAM3/Impact binder Move / PR #337
 COMPLETE: B-11c30b LoRA binder Move / PR #338
 COMPLETE: B-11c30c Prompt/Regional split gate / PR #339
 COMPLETE: B-11c30c1 Prompt/Regional service binder Move / PR #340
-IN PROGRESS: B-11c30c2 Prompt/Regional node-adapter split gate
-READY:    B-11c30c2a Prompt Data / Classic Prompt adapter Move
+COMPLETE: B-11c30c2 Prompt/Regional node-adapter split gate / PR #341
+IN PROGRESS: B-11c30c2a Prompt Data / Classic Prompt adapter Move
 BLOCKED:  B-11c30c2b Advanced / Regional adapter Move (#167/D-12)
 BLOCKED:  B-11d final root shim
 
