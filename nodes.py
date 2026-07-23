@@ -30,6 +30,7 @@ try:
         AIO_SPECIAL_SEED_RANDOM as AIO_SPECIAL_SEED_RANDOM,
         _AIO_DETAILER_CUSTOM_RE as _AIO_DETAILER_CUSTOM_RE,
         _AIO_DETAILER_RESERVED_KEYS as _AIO_DETAILER_RESERVED_KEYS,
+        _aio_detailer_has_enabled_targets as _aio_detailer_has_enabled_targets,
         _aio_detailer_target_defaults as _aio_detailer_target_defaults,
         _aio_detailer_target_order as _aio_detailer_target_order,
         _bind_aio_generation_normalization_runtime as _bind_aio_generation_normalization_runtime,
@@ -573,6 +574,7 @@ except ImportError:  # allows simple local import tests outside ComfyUI's packag
         AIO_SPECIAL_SEED_RANDOM as AIO_SPECIAL_SEED_RANDOM,
         _AIO_DETAILER_CUSTOM_RE as _AIO_DETAILER_CUSTOM_RE,
         _AIO_DETAILER_RESERVED_KEYS as _AIO_DETAILER_RESERVED_KEYS,
+        _aio_detailer_has_enabled_targets as _aio_detailer_has_enabled_targets,
         _aio_detailer_target_defaults as _aio_detailer_target_defaults,
         _aio_detailer_target_order as _aio_detailer_target_order,
         _bind_aio_generation_normalization_runtime as _bind_aio_generation_normalization_runtime,
@@ -2227,16 +2229,6 @@ def _run_aio_detailer_stage(
         "order": target_order,
         "targets": target_results,
     }
-
-
-def _aio_detailer_has_enabled_targets(detailer_settings: dict[str, Any]) -> bool:
-    if not _as_bool(detailer_settings.get("enabled"), False):
-        return False
-    return any(
-        isinstance(detailer_settings.get(name), dict)
-        and _as_bool(detailer_settings[name].get("enabled"), False)
-        for name in _aio_detailer_target_order(detailer_settings)
-    )
 
 
 def _consume_reserved_wildcard_next_seed(
