@@ -500,7 +500,6 @@ try:
     )
     from .easyuse_anima.lora.metadata import (
         _apply_lora_syntax_format as _apply_lora_syntax_format,
-        _bind_lora_metadata_runtime as _bind_lora_metadata_runtime,
         _dedupe_text_values as _dedupe_text_values,
         _fallback_lora_path as _fallback_lora_path,
         _get_lora_info as _get_lora_info,
@@ -516,7 +515,6 @@ try:
         _trigger_words_from_value as _trigger_words_from_value,
     )
     from .easyuse_anima.lora.preset import (
-        _bind_lora_preset_runtime as _bind_lora_preset_runtime,
         _correct_style_prompt as _correct_style_prompt,
         _format_strength as _format_strength,
         _get_loras_list as _get_loras_list,
@@ -527,7 +525,6 @@ try:
     )
     from .easyuse_anima.nodes.lora_nodes import (
         EasyUseAnimaLoraPreset as EasyUseAnimaLoraPreset,
-        _bind_lora_node_runtime as _bind_lora_node_runtime,
     )
     from .anima_prompt import correct_prompt, load_knowledge_base
     from .anima_prompt.parser import parse_prompt
@@ -1052,7 +1049,6 @@ except ImportError:  # allows simple local import tests outside ComfyUI's packag
     )
     from easyuse_anima.lora.metadata import (
         _apply_lora_syntax_format as _apply_lora_syntax_format,
-        _bind_lora_metadata_runtime as _bind_lora_metadata_runtime,
         _dedupe_text_values as _dedupe_text_values,
         _fallback_lora_path as _fallback_lora_path,
         _get_lora_info as _get_lora_info,
@@ -1068,7 +1064,6 @@ except ImportError:  # allows simple local import tests outside ComfyUI's packag
         _trigger_words_from_value as _trigger_words_from_value,
     )
     from easyuse_anima.lora.preset import (
-        _bind_lora_preset_runtime as _bind_lora_preset_runtime,
         _correct_style_prompt as _correct_style_prompt,
         _format_strength as _format_strength,
         _get_loras_list as _get_loras_list,
@@ -1079,7 +1074,6 @@ except ImportError:  # allows simple local import tests outside ComfyUI's packag
     )
     from easyuse_anima.nodes.lora_nodes import (
         EasyUseAnimaLoraPreset as EasyUseAnimaLoraPreset,
-        _bind_lora_node_runtime as _bind_lora_node_runtime,
     )
     from anima_prompt import correct_prompt, load_knowledge_base
     from anima_prompt.parser import parse_prompt
@@ -1803,18 +1797,4 @@ _bind_naia_node_runtime(
     get_workflow_node=lambda *args, **kwargs: _get_workflow_node(*args, **kwargs),
     post_random=lambda *args, **kwargs: _post_random(*args, **kwargs),
     parse_random_response=lambda *args, **kwargs: _parse_random_response(*args, **kwargs),
-)
-_bind_lora_metadata_runtime(
-    prompt_tokens=lambda *args, **kwargs: _prompt_tokens(*args, **kwargs),
-    resolve_helper=lambda name: globals()[name],
-    resolve_logger=lambda: logger,
-)
-_bind_lora_preset_runtime(
-    correct_builder_prompt=lambda *args, **kwargs: _correct_builder_prompt(*args, **kwargs),
-    resolve_helper=lambda name: globals()[name],
-)
-_bind_lora_node_runtime(
-    resolve_helper=lambda name: globals()[name],
-    flexible_optional_input_type=_FlexibleOptionalInputType,
-    any_type=_ANY_TYPE,
 )

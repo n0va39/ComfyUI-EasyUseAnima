@@ -73,12 +73,12 @@ def load_dynamic():
     def test_current_nodes_module_shape_matches_recorded_baseline(self):
         report = analyzer.analyze_path(ROOT / "nodes.py")
 
-        self.assertEqual(report["git_blob_sha1"], "c08a5d730f6078a8a2211bcc73ea3ca22a9452fa")
-        # B-11c30a retires only the three Image/SAM3/Impact runtime binder
+        self.assertEqual(report["git_blob_sha1"], "256f87b4e83842437b5993661f42a9259a463e17")
+        # B-11c30b retires only the three LoRA runtime binder
         # imports and calls without changing the public class surface.
         self.assertEqual(report["top_level"]["function_count"], 1)
         self.assertEqual(report["top_level"]["class_count"], 0)
-        self.assertEqual(report["line_count"], 1_820)
+        self.assertEqual(report["line_count"], 1_800)
         class_names = {item["name"] for item in report["top_level"]["classes"]}
         self.assertNotIn("EasyUseAnimaAIOGenerator", class_names)
         self.assertNotIn("EasyUseAnimaInput", class_names)

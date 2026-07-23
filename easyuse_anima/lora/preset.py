@@ -7,37 +7,20 @@ from typing import Any
 
 from ..common.values import _as_int
 
-def _unbound_correct_builder_prompt(*_args, **_kwargs):
-    raise RuntimeError("LoRA preset prompt-correction dependency is not bound.")
 
+def _correct_builder_prompt(*args, **kwargs):
+    from ..prompt.fields import _correct_builder_prompt as correct_builder_prompt
 
-_correct_builder_prompt = _unbound_correct_builder_prompt
-
-
-def _default_resolve_helper(name):
-    return globals()[name]
-
-
-_resolve_helper = _default_resolve_helper
-
-
-def _runtime_helper(name):
-    return _resolve_helper(name)
-
-
-def _bind_lora_preset_runtime(*, correct_builder_prompt, resolve_helper) -> None:
-    global _correct_builder_prompt, _resolve_helper
-    _correct_builder_prompt = correct_builder_prompt
-    _resolve_helper = resolve_helper
+    return correct_builder_prompt(*args, **kwargs)
 
 
 def _profile_key(profile_index: int) -> str:
-    return str(max(1, _runtime_helper("_as_int")(profile_index, 1)))
+    return str(max(1, _as_int(profile_index, 1)))
 
 
 def _wrap_profile_index(profile_index: int, profile_count: int) -> int:
-    count = max(1, min(16, _runtime_helper("_as_int")(profile_count, 1)))
-    index = max(1, _runtime_helper("_as_int")(profile_index, 1))
+    count = max(1, min(16, _as_int(profile_count, 1)))
+    index = max(1, _as_int(profile_index, 1))
     return ((index - 1) % count) + 1
 
 
@@ -88,9 +71,9 @@ def _select_profile_values(
     style_prompt: str,
     kwargs: dict,
 ) -> tuple[str, list[dict], int]:
-    selected_index = _runtime_helper("_wrap_profile_index")(profile_index, profile_count)
-    profile = _runtime_helper("_load_profile_data")(profile_data).get(
-        _runtime_helper("_profile_key")(selected_index),
+    selected_index = _wrap_profile_index(profile_index, profile_count)
+    profile = _load_profile_data(profile_data).get(
+        _profile_key(selected_index),
         {},
     )
     selected_style = str(profile.get("style_prompt", style_prompt or ""))
@@ -98,7 +81,7 @@ def _select_profile_values(
     if isinstance(profile_loras, list):
         loras = [item for item in profile_loras if isinstance(item, dict)]
     else:
-        loras = _runtime_helper("_get_loras_list")(kwargs)
+        loras = _get_loras_list(kwargs)
     return selected_style, loras, selected_index
 
 

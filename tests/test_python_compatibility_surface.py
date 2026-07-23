@@ -114,11 +114,6 @@ RUNTIME_BINDER_FAMILIES = {
         "_bind_wildcard_node_runtime",
         "_bind_naia_node_runtime",
     ),
-    "lora": (
-        "_bind_lora_metadata_runtime",
-        "_bind_lora_preset_runtime",
-        "_bind_lora_node_runtime",
-    ),
 }
 RETIRED_ARTIST_MIX_MODE_BINDINGS = (
     "ARTIST_MIX_CONTROL_KEY",
@@ -2130,6 +2125,7 @@ def _build_document() -> dict[str, Any]:
                 "B-11c29b3",
                 "B-11c30",
                 "B-11c30a",
+                "B-11c30b",
             ],
         },
         "enums": {
@@ -2142,14 +2138,14 @@ def _build_document() -> dict[str, Any]:
         "expected_counts": {
             "root_entrypoints": 3,
             "excluded_preamble_implementation_bindings": 5,
-            "nodes_canonical_bindings": 292,
+            "nodes_canonical_bindings": 289,
             "nodes_legacy_bindings": 27,
             "mapped_public_classes": 18,
             "unmapped_classes": 2,
             "root_residual_functions": 1,
             "root_residual_classes": 0,
             "root_residual_globals": 26,
-            "runtime_binders": 27,
+            "runtime_binders": 24,
             "direct_nodes_import_test_files": 21,
         },
         "mapped_public_classes": sorted(mapped_classes),
@@ -2381,7 +2377,7 @@ class PythonCompatibilitySurfaceTests(unittest.TestCase):
             len(self.document["direct_nodes_import_test_files"]),
             counts["direct_nodes_import_test_files"],
         )
-        self.assertEqual(len(set(self.document["runtime_binders"])), 27)
+        self.assertEqual(len(set(self.document["runtime_binders"])), 24)
         self.assertEqual(len(set(self.document["direct_nodes_import_test_files"])), 21)
 
     def test_runtime_binder_audit_covers_provider_and_root_names(self):
@@ -2389,22 +2385,22 @@ class PythonCompatibilitySurfaceTests(unittest.TestCase):
         self.assertEqual(
             audit["summary"],
             {
-                "binder_count": 27,
-                "family_count": 4,
+                "binder_count": 24,
+                "family_count": 3,
                 "mode_counts": {
                     "comfy_provider_then_root": 12,
-                    "root_globals": 13,
+                    "root_globals": 10,
                     "explicit_callbacks": 2,
                 },
-                "unique_resolver_names": 293,
-                "unique_root_resolver_names": 287,
+                "unique_resolver_names": 273,
+                "unique_root_resolver_names": 267,
                 "unique_provider_resolver_names": 6,
-                "unique_direct_root_dependencies": 14,
-                "direct_root_dependency_slots": 29,
+                "unique_direct_root_dependencies": 11,
+                "direct_root_dependency_slots": 24,
                 "provider_consumer_slots": 17,
                 "provider_consumer_modules": 12,
-                "repository_replacement_names": 165,
-                "repository_replacement_files": 19,
+                "repository_replacement_names": 158,
+                "repository_replacement_files": 18,
             },
         )
         self.assertEqual(

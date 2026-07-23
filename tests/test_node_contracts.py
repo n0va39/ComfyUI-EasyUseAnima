@@ -11,7 +11,7 @@ import types
 import unittest
 from contextlib import contextmanager
 from pathlib import Path
-from unittest.mock import call, patch
+from unittest.mock import Mock, call, patch
 
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
@@ -198,7 +198,6 @@ def _deterministic_comfy_inputs():
         "_comfy_vae_names": lambda: ["contract/vae.safetensors"],
         "_comfy_clip_loader_types": lambda: ["qwen_image", "stable_diffusion"],
         "_impact_scheduler_names": lambda: ["contract_impact_scheduler"],
-        "_lora_combo_values": lambda: ["None", "contract/style.safetensors"],
         "resolve_metadata_filter_words": lambda: ["contract-filter"],
         "_prompt_translation_change_key": lambda: {"enabled": False},
         "wildcard_sources_signature": lambda: {"files": []},
@@ -224,6 +223,11 @@ def _deterministic_comfy_inputs():
             sam3_nodes,
             "_comfy_checkpoint_names",
             return_value=["contract/checkpoint.safetensors"],
+        ),
+        patch.object(
+            lora_nodes,
+            "_lora_combo_values",
+            return_value=["None", "contract/style.safetensors"],
         ),
     ):
         yield
@@ -2694,6 +2698,13 @@ class LoraPresetMoveContractTests(unittest.TestCase):
             with self.subTest(module="preset", name=name):
                 self.assertIs(getattr(nodes, name), getattr(lora_preset, name))
         self.assertIs(nodes.EasyUseAnimaLoraPreset, lora_nodes.EasyUseAnimaLoraPreset)
+        for module, binder_name in (
+            (lora_metadata, "_bind_lora_metadata_runtime"),
+            (lora_preset, "_bind_lora_preset_runtime"),
+            (lora_nodes, "_bind_lora_node_runtime"),
+        ):
+            with self.subTest(module=module.__name__, binder=binder_name):
+                self.assertFalse(hasattr(module, binder_name))
 
     def test_package_loaded_root_lora_objects_are_direct_canonical_aliases(self):
         with _loaded_package_entrypoint() as (_, package_nodes):
@@ -2713,12 +2724,12 @@ class LoraPresetMoveContractTests(unittest.TestCase):
                 package_lora_nodes.EasyUseAnimaLoraPreset,
             )
 
-    def test_root_monkeypatches_drive_the_canonical_lora_node(self):
+    def test_canonical_monkeypatches_drive_the_canonical_lora_node(self):
         canonical_node = lora_nodes.EasyUseAnimaLoraPreset()
         with (
-            patch.object(nodes, "_correct_style_prompt", side_effect=lambda value: f"bound:{value}"),
-            patch.object(nodes, "_get_lora_info", return_value=("foo.safetensors", ["@bound"])),
-            patch.object(nodes, "_lora_model_exists", return_value=True),
+            patch.object(lora_nodes, "_correct_style_prompt", side_effect=lambda value: f"bound:{value}"),
+            patch.object(lora_nodes, "_get_lora_info", return_value=("foo.safetensors", ["@bound"])),
+            patch.object(lora_nodes, "_lora_model_exists", return_value=True),
         ):
             result = canonical_node.build(
                 style_prompt="style",
@@ -2729,6 +2740,28 @@ class LoraPresetMoveContractTests(unittest.TestCase):
 
         self.assertEqual(result[0], "bound:style")
         self.assertEqual(result[2], "@bound")
+
+    def test_metadata_and_preset_callbacks_remain_use_time(self):
+        logger = types.SimpleNamespace(warning=Mock())
+        with (
+            patch.object(lora_metadata, "_resolve_logger", return_value=logger),
+            patch.object(prompt_fields, "_prompt_tokens", return_value=["@bound"]) as tokens,
+            patch.object(
+                prompt_fields,
+                "_correct_builder_prompt",
+                return_value="corrected",
+            ) as correct,
+        ):
+            lora_metadata.logger.warning("message")
+            self.assertEqual(
+                lora_metadata._trigger_words_from_value("source"),
+                ["@bound"],
+            )
+            self.assertEqual(lora_preset._correct_style_prompt("style"), "corrected")
+
+        logger.warning.assert_called_once_with("message")
+        tokens.assert_called_once_with("source")
+        correct.assert_called_once_with("style")
 
     def test_fresh_process_direct_imports_do_not_load_root_nodes(self):
         script = f"""

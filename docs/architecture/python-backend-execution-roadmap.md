@@ -31,7 +31,7 @@ merged PR, the owning issue's evidence record, and every stated exit gate.
 | Phase | Integrated snapshot / open implementation state | Remaining exit work |
 | --- | --- | --- |
 | A - baseline | Complete; #191 is closed | Keep fixtures and analyzers current during later moves |
-| B - `nodes.py` extraction | Integrated through B-11c30 / PR #336; B-11c30a Image/SAM3/Impact binder Move implemented in PR #337 | Complete binder families, then the final root shim as a separate Move |
+| B - `nodes.py` extraction | Integrated through B-11c30a / PR #337; B-11c30b LoRA binder Move implemented in PR #338 | Complete binder families, then the final root shim as a separate Move |
 | C - feature contracts/behavior | Partially complete | Finish #168; then #167 and #169 in separate Contract/Behavior PRs |
 | D - root consolidation | Not started | Execute #186 feature by feature after the corresponding behavior contracts are stable |
 | E - runtime ownership | Partial: E-02a and E-07a/E-07b integrated | Continue #187 only where canonical feature owners and explicit contracts exist |
@@ -99,8 +99,9 @@ merged PR, the owning issue's evidence record, and every stated exit gate.
   retired the final general host lookup root wrapper in PR #334. B-11c30
   inventoried the remaining binder/resolver families without production
   changes in PR #336 / `02b8c4a`. B-11c30a retires only the three
-  Image/SAM3/Impact binders in PR #337; the remaining audit contains 27 binders
-  across four families.
+  Image/SAM3/Impact binders in PR #337 / `3647d3a`; the remaining audit
+  contains 27 binders across four families. B-11c30b retires only the three
+  LoRA binders in PR #338; 24 binders across three families remain.
 
 ### Current quality baseline
 
@@ -342,7 +343,7 @@ surfaces. AiO mechanical extraction must not start until #168 exits.
 | 11 | B-09b2 AiO generator adapter move | COMPLETE on `dev` | Move | #184 | PR #270 / `57d40b4` |
 | 12 | B-10a machine-readable compatibility audit | COMPLETE on `dev` | Contract/gate | #184/#188 | PR #271 / `3c7b857` |
 | 13 | B-10b private alias reduction | COMPLETE on `dev` through PR #291 / `c6b4680` | Contract/cleanup, split PRs | #184/#188 | Audited alias surface integrated |
-| 14 | B-11 registration/bootstrap/root shim | IN PROGRESS through B-11c30 audit PR #336; B-11c30a Image/SAM3/Impact binder Move in PR #337 | Move/Contract, split PRs | #184 | Residual owners and binders migrate in rollback-sized units before final shim |
+| 14 | B-11 registration/bootstrap/root shim | IN PROGRESS through B-11c30a PR #337; B-11c30b LoRA binder Move in PR #338 | Move/Contract, split PRs | #184 | Residual owners and binders migrate in rollback-sized units before final shim |
 | 15 | S167 backend seed reservation series | BLOCKED by B exit/interface | Contract then Behavior | #167 | Canonical AiO/node seams |
 | 16 | A169 stage pipeline series | BLOCKED by #168 and B exit | Contract then Behavior | #169 | Typed config and mechanical AiO move |
 | 17 | A169 first-pass cache policy | BLOCKED by stage/cache ownership seam | Behavior | #169 | Mechanical cache move and benchmark harness |

@@ -1093,7 +1093,7 @@ Planned cleanup sequence:
 
 ### B-11c30a — Image/SAM3/Impact binder retirement
 
-- **State:** IMPLEMENTED in PR #337
+- **State:** COMPLETE on `dev` in PR #337 / `3647d3a`
 - **Owner:** #184
 - **Type:** Move
 - **Base:** `dev@02b8c4a17b11011f1381c27cef6bd869b50f81bb`
@@ -1172,6 +1172,94 @@ Implementation result:
 - focused SAM3, Comfy adapter, compatibility, and backend analyzer validation
   passes 61 tests.
 
+### B-11c30b — LoRA binder retirement
+
+- **State:** IMPLEMENTED in PR #338
+- **Owner:** #184
+- **Type:** Move
+- **Base:** `dev@3647d3ad35dffb77b35ca423e1b89c6a4d7c3116`
+
+Pre-edit inventory:
+
+- root `nodes.py` imports three private binders in both package and flat-import
+  paths, then calls `_bind_lora_metadata_runtime`,
+  `_bind_lora_preset_runtime`, and `_bind_lora_node_runtime` once each;
+- the metadata binder installs `_prompt_tokens`, `_resolve_helper`, and a
+  `_RuntimeLoggerProxy` in three module globals. Its resolver observes eight
+  metadata-owned names through root at call time;
+- the preset binder installs the prompt-correction callback and resolver in two
+  module globals. Its resolver observes five preset/value names through root at
+  call time;
+- the node binder replaces twelve already-imported canonical helpers with
+  call-time root closures, then installs the two shared input-type objects by
+  identity, for 14 bound globals total;
+- combined scope is 25 root-name slots, five direct dependency slots, and 19
+  bind-time global installations;
+- repository tests replace 14 names found in this family. The LoRA-specific
+  migrations are in `tests/test_lora_preset.py` and the LoRA contract section
+  of `tests/test_node_contracts.py`; replacements for other owner families do
+  not move in this lane;
+- root direct aliases for the metadata/preset helpers and shared input types
+  remain consumed by other tests or owner families and are not retirement
+  targets here; and
+- metadata/preset internal recursion, logger access, prompt-token/prompt-
+  correction callbacks, and node adapter helper calls all observe their
+  current target at use time after the one-time root binder installation.
+
+Allowed production files:
+
+```text
+nodes.py
+easyuse_anima/lora/metadata.py
+easyuse_anima/lora/preset.py
+easyuse_anima/nodes/lora_nodes.py
+```
+
+Allowed supporting files are focused LoRA/node-contract tests, the Python
+compatibility gate and fixtures, the nodes/backend analyzer baselines, and
+these architecture documents.
+
+Exit:
+
+- root no longer imports or calls the three LoRA binders;
+- canonical LoRA modules own their internal calls and canonical cross-module
+  dependencies without importing root `nodes.py`;
+- logger access and prompt-token/prompt-correction callbacks remain use-time;
+- `_FlexibleOptionalInputType` and `_ANY_TYPE` retain exact canonical object
+  identity;
+- LoRA helper/class root aliases, node schema, workflow payloads, stack order,
+  trigger order, error text, and optional dependency timing remain unchanged;
+  and
+- tests that previously replaced root only to drive LoRA canonical consumers
+  replace the owning canonical module instead.
+
+Forbidden:
+
+- changing LoRA profile/metadata/model-discovery behavior, prompt correction,
+  missing-model policy, schema/workflow serialization, logger message text, or
+  optional imports;
+- retiring root aliases used by another owner family; and
+- including Prompt/Regional, AiO, or Wildcard/NAIA binder cleanup.
+
+Implementation result:
+
+- root imports/calls and the three canonical LoRA binder definitions are
+  removed;
+- metadata and preset internal helper calls resolve their canonical module
+  globals at use time, while prompt tokenization and prompt correction remain
+  lazy use-time callbacks to `prompt.fields`;
+- `_RuntimeLoggerProxy` remains installed at module import and resolves the
+  canonical logger at attribute access time;
+- the LoRA node adapter keeps direct canonical helper imports and exact
+  `_FlexibleOptionalInputType` / `_ANY_TYPE` identity;
+- LoRA-specific root-patch tests now replace the canonical owner, while root
+  aliases and replacements belonging to other families remain unchanged;
+- the remaining root audit is 24 binders in three families: 12
+  provider-then-root, ten root-only, and two explicit callbacks;
+- `nodes.py` is 1,800 lines, down 20 lines from the B-11c30a base; and
+- focused LoRA, contract, compatibility, and analyzer validation passes 61
+  tests.
+
 ### B-11d — Final root shim
 
 - **State:** BLOCKED by the remaining B-11c30 family Moves and the separate
@@ -1211,7 +1299,8 @@ COMPLETE: B-11c29c requirement helper retirement / PR #332
 COMPLETE: B-11c29d CLIP wrapper retirement / PR #333
 COMPLETE: B-11c29b3 general node lookup retirement / PR #334
 COMPLETE: B-11c30 binder/resolver migration audit / PR #336
-IN PROGRESS: B-11c30a Image/SAM3/Impact binder Move / PR #337
+COMPLETE: B-11c30a Image/SAM3/Impact binder Move / PR #337
+IN PROGRESS: B-11c30b LoRA binder Move / PR #338
 BLOCKED:  B-11d final root shim
 
 LATER:    #167 seed reservation

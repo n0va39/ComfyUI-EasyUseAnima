@@ -8,9 +8,9 @@
 - Policy: [ADR-002](adr-002-compatibility-shims.md)
 - Machine-readable audit:
   [`python_compatibility_surface.v1.json`](../../tests/fixtures/python_compatibility_surface.v1.json)
-- Current state: B-11a through B-11c30 are integrated. B-11c is split into
+- Current state: B-11a through B-11c30a are integrated. B-11c is split into
   residual-owner Moves and explicit private-contract cleanup before the final
-  root shim; B-11c30a retires only the Image/SAM3/Impact binder family.
+  root shim; B-11c30b retires only the LoRA binder family.
 
 This is an actionable registry, not a removal schedule. `N` means the first
 published Registry release containing both a canonical target and its root
@@ -720,6 +720,22 @@ convenience-node compatibility; it remains unmapped and is not public support.
   compatibility state.
 - No node schema, workflow, optional-dependency timing, or SAM3/Impact behavior
   changes in this Move.
+
+### B-11c30b LoRA binder retirement
+
+- The three root LoRA binder imports/calls and canonical binder definitions are
+  removed.
+- Metadata and preset keep use-time canonical-module helper lookup. Prompt
+  tokenization and prompt correction remain lazy callbacks, and the logger
+  remains a use-time proxy.
+- The LoRA node adapter keeps direct canonical helper imports and exact shared
+  input-type identity.
+- Root helper/class aliases remain direct canonical aliases. Only tests that
+  used root replacement to drive LoRA canonical consumers move to the owning
+  module.
+- The remaining binder audit contains 24 binders in three owner families. No
+  LoRA schema, workflow, stack/trigger order, missing-model policy, or optional
+  dependency behavior changes in this Move.
 
 ### `nodes.py` public node-class surface
 
