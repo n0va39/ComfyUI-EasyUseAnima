@@ -4,6 +4,11 @@ import re
 from collections.abc import Callable
 from typing import Any, TypeAlias
 
+from .output_settings import (
+    _normalize_aio_civitai_hash_fetchers,
+    _normalize_aio_hash_bundles,
+)
+
 _RuntimeResolver: TypeAlias = Callable[[str], Any]
 _RUNTIME_RESOLVER: _RuntimeResolver | None = None
 
@@ -415,9 +420,7 @@ def _normalize_aio_generation_settings(value) -> dict[str, Any]:
     _comfy_scheduler_names = _runtime_helper("_comfy_scheduler_names")
     _impact_scheduler_names = _runtime_helper("_impact_scheduler_names")
     _json_clone = _runtime_helper("_json_clone")
-    _normalize_aio_civitai_hash_fetchers = _runtime_helper("_normalize_aio_civitai_hash_fetchers")
     _normalize_aio_dit_corrections_settings = _runtime_helper("_normalize_aio_dit_corrections_settings")
-    _normalize_aio_hash_bundles = _runtime_helper("_normalize_aio_hash_bundles")
     _normalize_aio_seed = _runtime_helper("_normalize_aio_seed")
     _normalize_aio_spectrum_settings = _runtime_helper("_normalize_aio_spectrum_settings")
     _normalize_anima_mod_guidance_profile = _runtime_helper("_normalize_anima_mod_guidance_profile")

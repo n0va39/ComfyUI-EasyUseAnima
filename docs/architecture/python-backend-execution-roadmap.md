@@ -31,7 +31,7 @@ merged PR, the owning issue's evidence record, and every stated exit gate.
 | Phase | Integrated snapshot / open implementation state | Remaining exit work |
 | --- | --- | --- |
 | A - baseline | Complete; #191 is closed | Keep fixtures and analyzers current during later moves |
-| B - `nodes.py` extraction | Integrated through B-11c30d / PR #346; B-11c30d1 completes in PR #347 | Execute d0a then the remaining frozen AiO Moves, followed by Wildcard/NAIA and the final root shim as separate rollback units |
+| B - `nodes.py` extraction | Integrated through B-11c30d1 / PR #347; B-11c30d0a completes in PR #348 | Execute d2-d4, then d0b and d5-d6, followed by Wildcard/NAIA and the final root shim as separate rollback units |
 | C - feature contracts/behavior | Partially complete through S167-01a / PR #344 | Continue #167 and #169 in separate Contract/Move/Behavior PRs |
 | D - root consolidation | Not started | Execute #186 feature by feature after the corresponding behavior contracts are stable |
 | E - runtime ownership | Partial: E-02a and E-07a/E-07b integrated | Continue #187 only where canonical feature owners and explicit contracts exist |
@@ -127,7 +127,11 @@ merged PR, the owning issue's evidence record, and every stated exit gate.
   existing serialization, Prompt Data, and LoRA-signature owners. The split
   gate marks d1 retired while keeping d2 through d6 active. Thirteen binders
   remain across AiO and Wildcard/NAIA; cache key, clone, hit/miss, LRU, limit,
-  and eviction behavior are unchanged.
+  and eviction behavior are unchanged. B-11c30d0a / PR #348 then moves only
+  the two output-settings normalizers to the pure
+  `easyuse_anima.aio.output_settings` owner. Generation normalization imports
+  them directly, root aliases retain identity, and the d2-d4 import cycle is
+  removed without retiring another binder or changing settings/save behavior.
 
 ### Current quality baseline
 
@@ -371,7 +375,7 @@ mechanical retirement series.
 | 11 | B-09b2 AiO generator adapter move | COMPLETE on `dev` | Move | #184 | PR #270 / `57d40b4` |
 | 12 | B-10a machine-readable compatibility audit | COMPLETE on `dev` | Contract/gate | #184/#188 | PR #271 / `3c7b857` |
 | 13 | B-10b private alias reduction | COMPLETE on `dev` through PR #291 / `c6b4680` | Contract/cleanup, split PRs | #184/#188 | Audited alias surface integrated |
-| 14 | B-11 registration/bootstrap/root shim | IN PROGRESS through B-11c30d1 PR #347; d0a is READY before d2-d4, and d0b precedes d5-d6 | Move/Contract, split PRs | #184 | Frozen AiO split gate; S167-01 contract |
+| 14 | B-11 registration/bootstrap/root shim | IN PROGRESS through B-11c30d0a PR #348; d2-d4 are next, and d0b precedes d5-d6 | Move/Contract, split PRs | #184 | Frozen AiO split gate; S167-01 contract |
 | 15 | S167 backend seed reservation series | S167-01 Contract COMPLETE in PR #343 and S167-01a consumer Move COMPLETE in PR #344; Behavior and Adapter remain | Contract then Move then Behavior | #167 | Canonical AiO/node seams |
 | 16 | A169 stage pipeline series | BLOCKED by #168 and B exit | Contract then Behavior | #169 | Typed config and mechanical AiO move |
 | 17 | A169 first-pass cache policy | BLOCKED by stage/cache ownership seam | Behavior | #169 | Mechanical cache move and benchmark harness |
@@ -1068,6 +1072,11 @@ unchanged. The separate legacy Wildcard unsupported alias remains for D-12.
     imports the three existing canonical helpers. Root cache aliases and all
     cache semantics remain unchanged. Thirteen AiO and Wildcard/NAIA binders
     remain.
+  - B-11c30d0a moves only `_normalize_aio_hash_bundles` and
+    `_normalize_aio_civitai_hash_fetchers` to
+    `easyuse_anima.aio.output_settings` in PR #348. Generation normalization
+    uses the pure owner directly, output re-exports the same objects, and root
+    aliases retain identity. No binder or settings/save behavior changes.
   - The final B-11c cutover removes remaining root execution ownership and
     leaves the explicit supported `nodes.py` compatibility shim.
 - Add `easyuse_anima/registration.py` as pure mapping composition. It performs no

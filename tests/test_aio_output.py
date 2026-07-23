@@ -6,7 +6,7 @@ import unittest
 from unittest.mock import Mock, patch
 
 import nodes
-from easyuse_anima.aio import output
+from easyuse_anima.aio import output, output_settings
 from tests.comfy_host_fakes import patch_comfy_helper
 
 
@@ -15,6 +15,12 @@ class AIOOutputMoveTests(unittest.TestCase):
         for name in (
             "_normalize_aio_hash_bundles",
             "_normalize_aio_civitai_hash_fetchers",
+        ):
+            with self.subTest(name=name):
+                self.assertIs(getattr(nodes, name), getattr(output_settings, name))
+                self.assertIs(getattr(output, name), getattr(output_settings, name))
+
+        for name in (
             "_aio_image_saver_civitai_hash_fetcher_entries",
             "_aio_image_saver_additional_hashes",
             "_aio_lora_metadata_name",
@@ -26,9 +32,9 @@ class AIOOutputMoveTests(unittest.TestCase):
             with self.subTest(name=name):
                 self.assertIs(getattr(nodes, name), getattr(output, name))
 
-    def test_normalizers_preserve_json_fallback_filtering_and_root_bool_seam(self):
-        self.assertEqual(output._normalize_aio_hash_bundles(" raw, "), ["raw"])
-        self.assertEqual(output._normalize_aio_hash_bundles('"json-string"'), [])
+    def test_normalizers_preserve_json_fallback_filtering_and_canonical_bool_seam(self):
+        self.assertEqual(output_settings._normalize_aio_hash_bundles(" raw, "), ["raw"])
+        self.assertEqual(output_settings._normalize_aio_hash_bundles('"json-string"'), [])
 
         bool_calls = []
 
@@ -36,8 +42,8 @@ class AIOOutputMoveTests(unittest.TestCase):
             bool_calls.append((value, default))
             return value == "yes"
 
-        with patch.object(nodes, "_as_bool", side_effect=as_bool):
-            result = output._normalize_aio_civitai_hash_fetchers([
+        with patch.object(output_settings, "_as_bool", side_effect=as_bool):
+            result = output_settings._normalize_aio_civitai_hash_fetchers([
                 {"enabled": "yes", "username": " user ", "model_name": " model ", "version": " v1 "},
                 {"enabled": "no", "version": "only-version"},
                 {"ignored": True},
@@ -52,7 +58,7 @@ class AIOOutputMoveTests(unittest.TestCase):
             ],
         )
         self.assertEqual(bool_calls, [("yes", True), ("no", True)])
-        self.assertEqual(output._normalize_aio_civitai_hash_fetchers("not-json"), [])
+        self.assertEqual(output_settings._normalize_aio_civitai_hash_fetchers("not-json"), [])
 
     def test_civitai_hashes_preserve_order_success_and_soft_skip_paths(self):
         calls = []

@@ -1655,6 +1655,90 @@ Implementation result:
 - focused cache, compatibility, nodes-analyzer, and backend-analyzer validation
   passes 45 tests.
 
+### B-11c30d0a — AiO output-settings owner Move
+
+- **State:** COMPLETE in PR #348
+- **Owner:** #184
+- **Behavior boundary:** #169
+- **Type:** Move
+- **Base:** `dev@66825e966ba5715e59c9f0cacf539fc8ad19e694`
+
+Pre-edit inventory:
+
+- `_normalize_aio_hash_bundles` and
+  `_normalize_aio_civitai_hash_fetchers` are defined in
+  `easyuse_anima.aio.output`; neither owns mutable module or process state;
+- `easyuse_anima.aio.generation_normalization` resolves both names through its
+  root runtime binder before normalizing the image-saver settings, while
+  `easyuse_anima.aio.output` resolves both names through its own binder for
+  save-time metadata assembly;
+- root `nodes.py` imports both names from `easyuse_anima.aio.output` in package
+  and flat-import modes and exposes exact identity aliases;
+- `_normalize_aio_hash_bundles` depends only on JSON decoding and scalar/list
+  filtering. `_normalize_aio_civitai_hash_fetchers` additionally resolves root
+  `_as_bool` at call time; that root name is already an exact alias of the
+  stateless canonical `easyuse_anima.common.values._as_bool`;
+- direct function coverage is in `tests/test_aio_output.py`; normalized
+  image-saver settings are covered by `tests/test_aio_generation_settings.py`,
+  `tests/test_aio_nodes.py`, and `tests/test_aio_schema_contract.py`; and
+- the only test-only replacement seam owned by these functions patches root
+  `_as_bool`. It moves to the canonical owner seam when the runtime lookup is
+  replaced by a direct import. Save-time output helper replacements remain on
+  the still-active d3 binder and are not changed here.
+
+Allowed production files:
+
+```text
+nodes.py
+easyuse_anima/aio/output.py
+easyuse_anima/aio/output_settings.py
+easyuse_anima/aio/generation_normalization.py
+```
+
+Allowed supporting files are the focused output/generation tests, the Python
+compatibility gate and fixture, the nodes/backend analyzer gate and fixture,
+and the three architecture documents.
+
+Exit:
+
+- the two normalizers have one pure canonical owner in
+  `easyuse_anima.aio.output_settings`;
+- generation normalization imports them directly without creating the
+  generation-normalization → output → sampling → generation-normalization
+  cycle;
+- output may re-export the exact owner objects for local compatibility while
+  its d3 runtime binder remains active;
+- root aliases retain exact canonical object identity in both import modes;
+- normalization results, JSON fallback, filtering, field trimming, default
+  boolean conversion, schemas, save behavior, and error text are unchanged;
+  and
+- d2 through d4 are unblocked without retiring any binder in this Move.
+
+Forbidden:
+
+- changing the accepted settings shape, normalization output, save metadata,
+  dependency/provider behavior, errors, schemas, workflows, seeds, cache, or
+  stage order;
+- retiring the generation-normalization or output binder; and
+- combining d2 through d6, d0b, Wildcard/NAIA, Contract, or Behavior work.
+
+Implementation result:
+
+- `easyuse_anima.aio.output_settings` is the sole definition owner for both
+  normalizers and directly imports canonical `_as_bool`;
+- `generation_normalization` imports both functions directly and no longer
+  resolves either name through its runtime binder;
+- `output` re-exports the exact owner objects while its save-time d3 binder
+  calls remain unchanged;
+- root imports both aliases directly from `output_settings` in package and
+  flat-import modes, preserving exact object identity;
+- the d2 gate drops two root-resolver slots and names plus one replacement slot
+  and name, while all 13 remaining binders and d3 through d6 stay active;
+- backend inventory grows from 89 to 90 shipped and reachable Python modules,
+  with no missing internal imports; and
+- one timeboxed focused process passes 82 output, generation, compatibility,
+  nodes-analyzer, and backend-analyzer tests in 10.495 seconds.
+
 ### B-11d — Final root shim
 
 - **State:** BLOCKED by the remaining AiO and Wildcard/NAIA binder families
@@ -1702,7 +1786,7 @@ COMPLETE: B-11c30c2a Prompt Data / Classic Prompt adapter Move / PR #342
 COMPLETE: B-11c30c2b Advanced / Regional adapter Move / PR #345
 COMPLETE: B-11c30d AiO binder split gate / PR #346
 COMPLETE: B-11c30d1 AiO cache-state binder Move / PR #347
-READY:    B-11c30d0a output-settings owner Move before d2-d4
+COMPLETE: B-11c30d0a output-settings owner Move / PR #348
 PLANNED:  B-11c30d2-d4 normalization, I/O, and execution-service Moves
 PLANNED:  B-11c30d0b input-context owner Move before d5-d6
 PLANNED:  B-11c30d5-d6 orchestration and node-adapter Moves

@@ -8,11 +8,12 @@
 - Policy: [ADR-002](adr-002-compatibility-shims.md)
 - Machine-readable audit:
   [`python_compatibility_surface.v1.json`](../../tests/fixtures/python_compatibility_surface.v1.json)
-- Current state: B-11a through B-11c30d / PR #346 are integrated in the
-  reviewed sequence, and B-11c30d1 / PR #347 retires only the AiO cache-state
-  binder. S167-01a / PR #344 supplies the canonical reserved-seed compatibility
-  consumer while retaining its root aliases. Thirteen AiO and Wildcard/NAIA
-  binders remain before the final root shim.
+- Current state: B-11a through B-11c30d1 / PR #347 are integrated in the
+  reviewed sequence, and B-11c30d0a / PR #348 moves only the two AiO
+  output-settings normalizers to their pure owner. S167-01a / PR #344 supplies
+  the canonical reserved-seed compatibility consumer while retaining its root
+  aliases. Thirteen AiO and Wildcard/NAIA binders remain before the final root
+  shim.
 
 This is an actionable registry, not a removal schedule. `N` means the first
 published Registry release containing both a canonical target and its root
@@ -881,6 +882,25 @@ convenience-node compatibility; it remains unmapped and is not public support.
 - Cache object identity, key schema/order, clone behavior, falsey miss, hit
   refresh, overwrite, limit 2, oldest-first eviction, stage metadata, and #169
   Behavior remain unchanged.
+
+### B-11c30d0a AiO output-settings owner Move
+
+- `_normalize_aio_hash_bundles` and
+  `_normalize_aio_civitai_hash_fetchers` have one definition owner in
+  `easyuse_anima.aio.output_settings`.
+- `easyuse_anima.aio.generation_normalization` imports both normalizers
+  directly, removing their two root runtime-resolver edges without retiring
+  the generation-normalization binder.
+- `easyuse_anima.aio.output` re-exports the same two objects and retains its
+  existing d3 save-time runtime calls. Root `nodes.py` imports the canonical
+  owner in both package and flat modes, so both root aliases preserve exact
+  identity.
+- The new owner directly imports stateless
+  `easyuse_anima.common.values._as_bool`; the previous test-only root patch seam
+  moves to the canonical owner.
+- Accepted settings, JSON fallback, row filtering and trimming, default boolean
+  conversion, schema/workflow, save metadata, provider/error behavior, seed,
+  cache, and stage order remain unchanged.
 
 ### `nodes.py` public node-class surface
 

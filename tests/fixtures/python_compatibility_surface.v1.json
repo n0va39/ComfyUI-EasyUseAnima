@@ -74,7 +74,8 @@
       "B-11c30c2a",
       "B-11c30c2b",
       "B-11c30d",
-      "B-11c30d1"
+      "B-11c30d1",
+      "B-11c30d0a"
     ]
   },
   "enums": {
@@ -623,7 +624,6 @@
       "easyuse_anima.aio.conditioning"
     ],
     "_normalize_aio_civitai_hash_fetchers": [
-      "easyuse_anima.aio.generation_normalization",
       "easyuse_anima.aio.output"
     ],
     "_normalize_aio_dit_corrections_settings": [
@@ -634,7 +634,6 @@
       "easyuse_anima.nodes.aio_nodes"
     ],
     "_normalize_aio_hash_bundles": [
-      "easyuse_anima.aio.generation_normalization",
       "easyuse_anima.aio.output"
     ],
     "_normalize_aio_input_settings": [
@@ -837,14 +836,14 @@
           "unique_bound_globals": [
             "_RUNTIME_RESOLVER"
           ],
-          "root_resolver_slots": 72,
-          "unique_root_resolver_names": 66,
+          "root_resolver_slots": 70,
+          "unique_root_resolver_names": 64,
           "provider_resolver_slots": 1,
           "unique_provider_resolver_names": 1,
           "direct_root_dependency_slots": 1,
           "unique_direct_root_dependencies": 1,
-          "repository_replacement_slots": 37,
-          "unique_repository_replacement_names": 31,
+          "repository_replacement_slots": 36,
+          "unique_repository_replacement_names": 30,
           "repository_replacement_files": [
             "tests/test_aio_generation_migrations.py",
             "tests/test_aio_generation_settings.py",
@@ -1410,7 +1409,6 @@
       ],
       "_as_bool": [
         "tests/test_aio_legacy_generation.py",
-        "tests/test_aio_output.py",
         "tests/test_node_contracts.py"
       ],
       "_as_float": [
@@ -1956,9 +1954,7 @@
           "_is_aio_detailer_target_name",
           "_json_clone",
           "_json_object",
-          "_normalize_aio_civitai_hash_fetchers",
           "_normalize_aio_dit_corrections_settings",
-          "_normalize_aio_hash_bundles",
           "_normalize_aio_seed",
           "_normalize_aio_spectrum_settings",
           "_normalize_anima_mod_guidance_profile",
@@ -2012,9 +2008,7 @@
           "_is_aio_detailer_target_name",
           "_json_clone",
           "_json_object",
-          "_normalize_aio_civitai_hash_fetchers",
           "_normalize_aio_dit_corrections_settings",
-          "_normalize_aio_hash_bundles",
           "_normalize_aio_seed",
           "_normalize_aio_spectrum_settings",
           "_normalize_anima_mod_guidance_profile",
@@ -2040,7 +2034,6 @@
           "_impact_scheduler_names",
           "_is_aio_detailer_target_name",
           "_json_clone",
-          "_normalize_aio_hash_bundles",
           "_normalize_aio_seed",
           "_normalize_anima_mod_guidance_profile",
           "_prompt_data_json_safe"
@@ -3797,8 +3790,6 @@
         "_aio_prompt_with_lora_metadata": "_aio_prompt_with_lora_metadata",
         "_aio_save_filename_prefix": "_aio_save_filename_prefix",
         "_bind_aio_output_runtime": "_bind_aio_output_runtime",
-        "_normalize_aio_civitai_hash_fetchers": "_normalize_aio_civitai_hash_fetchers",
-        "_normalize_aio_hash_bundles": "_normalize_aio_hash_bundles",
         "_save_image_with_comfy": "_save_image_with_comfy",
         "_save_image_with_image_saver": "_save_image_with_image_saver"
       },
@@ -3813,14 +3804,41 @@
       "first_release": null,
       "known_consumers": [
         "nodes.py residual runtime",
-        "canonical runtime resolver: easyuse_anima.aio.generation_normalization",
         "canonical runtime resolver: easyuse_anima.aio.legacy_generation",
         "canonical runtime resolver: easyuse_anima.aio.output"
       ],
       "evidence": [
         "AST:nodes.py direct runtime load",
-        "AST:easyuse_anima.aio.generation_normalization string runtime lookup",
         "AST:easyuse_anima.aio.legacy_generation string runtime lookup",
+        "AST:easyuse_anima.aio.output string runtime lookup"
+      ],
+      "removal_gates": [
+        "canonical production consumer migration",
+        "focused monkeypatch and identity contract review",
+        "separate B-10b or B-11 rollback unit"
+      ],
+      "lifecycle_state": "transitional"
+    },
+    {
+      "id": "nodes_canonical_bindings:easyuse_anima.aio.output_settings:transitional_private_seam",
+      "surface": "nodes_canonical_bindings",
+      "symbols": {
+        "_normalize_aio_civitai_hash_fetchers": "_normalize_aio_civitai_hash_fetchers",
+        "_normalize_aio_hash_bundles": "_normalize_aio_hash_bundles"
+      },
+      "classification": "transitional_private_seam",
+      "current_target": "nodes.py",
+      "canonical_target": "easyuse_anima.aio.output_settings",
+      "target_state": "canonical",
+      "identity_requirement": "required",
+      "binding_shape": "direct_import",
+      "import_target": "easyuse_anima.aio.output_settings",
+      "owner": "#184/#188",
+      "first_release": null,
+      "known_consumers": [
+        "canonical runtime resolver: easyuse_anima.aio.output"
+      ],
+      "evidence": [
         "AST:easyuse_anima.aio.output string runtime lookup"
       ],
       "removal_gates": [

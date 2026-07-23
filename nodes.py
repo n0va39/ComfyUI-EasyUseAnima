@@ -114,10 +114,12 @@ try:
         _aio_prompt_with_lora_metadata as _aio_prompt_with_lora_metadata,
         _aio_save_filename_prefix as _aio_save_filename_prefix,
         _bind_aio_output_runtime as _bind_aio_output_runtime,
-        _normalize_aio_civitai_hash_fetchers as _normalize_aio_civitai_hash_fetchers,
-        _normalize_aio_hash_bundles as _normalize_aio_hash_bundles,
         _save_image_with_comfy as _save_image_with_comfy,
         _save_image_with_image_saver as _save_image_with_image_saver,
+    )
+    from .easyuse_anima.aio.output_settings import (
+        _normalize_aio_civitai_hash_fetchers as _normalize_aio_civitai_hash_fetchers,
+        _normalize_aio_hash_bundles as _normalize_aio_hash_bundles,
     )
     from .easyuse_anima.aio.resources import (
         _bind_aio_resource_runtime as _bind_aio_resource_runtime,
@@ -657,10 +659,12 @@ except ImportError:  # allows simple local import tests outside ComfyUI's packag
         _aio_prompt_with_lora_metadata as _aio_prompt_with_lora_metadata,
         _aio_save_filename_prefix as _aio_save_filename_prefix,
         _bind_aio_output_runtime as _bind_aio_output_runtime,
-        _normalize_aio_civitai_hash_fetchers as _normalize_aio_civitai_hash_fetchers,
-        _normalize_aio_hash_bundles as _normalize_aio_hash_bundles,
         _save_image_with_comfy as _save_image_with_comfy,
         _save_image_with_image_saver as _save_image_with_image_saver,
+    )
+    from easyuse_anima.aio.output_settings import (
+        _normalize_aio_civitai_hash_fetchers as _normalize_aio_civitai_hash_fetchers,
+        _normalize_aio_hash_bundles as _normalize_aio_hash_bundles,
     )
     from easyuse_anima.aio.resources import (
         _bind_aio_resource_runtime as _bind_aio_resource_runtime,
