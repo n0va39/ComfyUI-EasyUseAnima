@@ -1657,7 +1657,7 @@ Implementation result:
 
 ### B-11c30d0a — AiO output-settings owner Move
 
-- **State:** IN REVIEW
+- **State:** COMPLETE in PR #348
 - **Owner:** #184
 - **Behavior boundary:** #169
 - **Type:** Move
@@ -1722,6 +1722,23 @@ Forbidden:
 - retiring the generation-normalization or output binder; and
 - combining d2 through d6, d0b, Wildcard/NAIA, Contract, or Behavior work.
 
+Implementation result:
+
+- `easyuse_anima.aio.output_settings` is the sole definition owner for both
+  normalizers and directly imports canonical `_as_bool`;
+- `generation_normalization` imports both functions directly and no longer
+  resolves either name through its runtime binder;
+- `output` re-exports the exact owner objects while its save-time d3 binder
+  calls remain unchanged;
+- root imports both aliases directly from `output_settings` in package and
+  flat-import modes, preserving exact object identity;
+- the d2 gate drops two root-resolver slots and names plus one replacement slot
+  and name, while all 13 remaining binders and d3 through d6 stay active;
+- backend inventory grows from 89 to 90 shipped and reachable Python modules,
+  with no missing internal imports; and
+- one timeboxed focused process passes 82 output, generation, compatibility,
+  nodes-analyzer, and backend-analyzer tests in 10.495 seconds.
+
 ### B-11d — Final root shim
 
 - **State:** BLOCKED by the remaining AiO and Wildcard/NAIA binder families
@@ -1769,7 +1786,7 @@ COMPLETE: B-11c30c2a Prompt Data / Classic Prompt adapter Move / PR #342
 COMPLETE: B-11c30c2b Advanced / Regional adapter Move / PR #345
 COMPLETE: B-11c30d AiO binder split gate / PR #346
 COMPLETE: B-11c30d1 AiO cache-state binder Move / PR #347
-READY:    B-11c30d0a output-settings owner Move before d2-d4
+COMPLETE: B-11c30d0a output-settings owner Move / PR #348
 PLANNED:  B-11c30d2-d4 normalization, I/O, and execution-service Moves
 PLANNED:  B-11c30d0b input-context owner Move before d5-d6
 PLANNED:  B-11c30d5-d6 orchestration and node-adapter Moves

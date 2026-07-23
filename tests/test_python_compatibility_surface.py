@@ -2317,6 +2317,7 @@ def _build_document() -> dict[str, Any]:
                 "B-11c30c2b",
                 "B-11c30d",
                 "B-11c30d1",
+                "B-11c30d0a",
             ],
         },
         "enums": {
@@ -2696,12 +2697,12 @@ class PythonCompatibilitySurfaceTests(unittest.TestCase):
             summaries,
             {
                 "B-11c30d2_normalization_planning": {
-                    "root_resolver_slots": 72,
-                    "unique_root_resolver_names": 66,
+                    "root_resolver_slots": 70,
+                    "unique_root_resolver_names": 64,
                     "provider_resolver_slots": 1,
                     "direct_root_dependency_slots": 1,
-                    "repository_replacement_slots": 37,
-                    "unique_repository_replacement_names": 31,
+                    "repository_replacement_slots": 36,
+                    "unique_repository_replacement_names": 30,
                 },
                 "B-11c30d3_io_boundary": {
                     "root_resolver_slots": 49,
