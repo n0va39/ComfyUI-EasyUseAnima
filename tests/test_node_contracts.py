@@ -1068,6 +1068,7 @@ class AioUsduTilePlanningMoveContractTests(unittest.TestCase):
 
 class AioFinalFitPlanningMoveContractTests(unittest.TestCase):
     MOVED_NAMES = (
+        "_apply_aio_final_fit",
         "_aio_final_fit_size",
         "_bind_aio_postprocess_runtime",
     )
@@ -1136,6 +1137,169 @@ class AioFinalFitPlanningMoveContractTests(unittest.TestCase):
                 call(round(3000 * expected_scale), 32),
             ],
         )
+
+        image = object()
+        source_fit = {
+            "mode": "max_long_edge",
+            "max_long_edge": "1920",
+            "max_megapixels": "4.25",
+            "method": "",
+        }
+        source_settings = {"enabled": "enabled", "fit": source_fit}
+        events = []
+        copied_fits = []
+
+        def record(name, result):
+            def side_effect(*args):
+                events.append((name, args))
+                return result
+
+            return side_effect
+
+        def final_fit_size(width, height, fit_settings):
+            events.append(("final_fit_size", (width, height, dict(fit_settings))))
+            copied_fits.append(fit_settings)
+            return 640, 480, 1.0
+
+        with (
+            patch.object(
+                root_module,
+                "_as_bool",
+                side_effect=record("as_bool", True),
+            ),
+            patch.object(
+                root_module,
+                "_image_tensor_size",
+                side_effect=record("image_tensor_size", (640, 480)),
+            ) as image_tensor_size,
+            patch.object(
+                root_module,
+                "_aio_final_fit_size",
+                side_effect=final_fit_size,
+            ),
+            patch.object(
+                root_module,
+                "_as_int",
+                side_effect=record("as_int", 1920),
+            ),
+            patch.object(
+                root_module,
+                "_as_float",
+                side_effect=record("as_float", 4.25),
+            ),
+            patch.object(root_module, "_resize_image_to_size_if_needed") as resize,
+        ):
+            output, metadata = canonical_module._apply_aio_final_fit(
+                image,
+                source_settings,
+            )
+
+        self.assertIs(output, image)
+        self.assertEqual(
+            [name for name, _ in events],
+            [
+                "as_bool",
+                "image_tensor_size",
+                "final_fit_size",
+                "as_bool",
+                "as_int",
+                "as_float",
+            ],
+        )
+        image_tensor_size.assert_called_once_with(image, 0, 0)
+        self.assertEqual(
+            copied_fits,
+            [
+                {
+                    "mode": "max_long_edge",
+                    "max_long_edge": "1920",
+                    "max_megapixels": "4.25",
+                    "method": "",
+                    "enabled": True,
+                }
+            ],
+        )
+        self.assertIsNot(copied_fits[0], source_fit)
+        self.assertEqual(
+            source_fit,
+            {
+                "mode": "max_long_edge",
+                "max_long_edge": "1920",
+                "max_megapixels": "4.25",
+                "method": "",
+            },
+        )
+        self.assertEqual(source_settings["enabled"], "enabled")
+        self.assertEqual(
+            list(metadata),
+            [
+                "enabled",
+                "mode",
+                "max_long_edge",
+                "max_megapixels",
+                "method",
+                "applied",
+                "scale",
+                "width",
+                "height",
+                "target_width",
+                "target_height",
+            ],
+        )
+        self.assertEqual(
+            metadata,
+            {
+                "enabled": True,
+                "mode": "max_long_edge",
+                "max_long_edge": 1920,
+                "max_megapixels": 4.25,
+                "method": "bicubic",
+                "applied": False,
+                "scale": 1.0,
+                "width": 640,
+                "height": 480,
+                "target_width": 640,
+                "target_height": 480,
+            },
+        )
+        resize.assert_not_called()
+
+        invalid_fit = ["not", "a", "mapping"]
+        invalid_settings = {"enabled": 1, "fit": invalid_fit}
+        with (
+            patch.object(root_module, "_as_bool", return_value=True) as as_bool,
+            patch.object(
+                root_module,
+                "_image_tensor_size",
+                return_value=(640, 480),
+            ),
+            patch.object(
+                root_module,
+                "_aio_final_fit_size",
+                return_value=(320, 240, 0.5),
+            ) as final_fit,
+            patch.object(root_module, "_as_int", return_value=2048),
+            patch.object(root_module, "_as_float", return_value=4.0),
+            patch.object(
+                root_module,
+                "_resize_image_to_size_if_needed",
+                return_value=("resized", False),
+            ) as resize,
+        ):
+            output, metadata = canonical_module._apply_aio_final_fit(
+                image,
+                invalid_settings,
+            )
+
+        self.assertEqual(output, "resized")
+        self.assertEqual(invalid_settings, {"enabled": 1, "fit": invalid_fit})
+        self.assertEqual(as_bool.call_args_list, [call(1, False), call(1, False)])
+        final_fit.assert_called_once_with(640, 480, {"enabled": True})
+        resize.assert_called_once_with(image, 320, 240, "bicubic")
+        self.assertFalse(metadata["applied"])
+        self.assertEqual(metadata["scale"], 0.5)
+        self.assertEqual(metadata["target_width"], 320)
+        self.assertEqual(metadata["target_height"], 240)
 
     def test_root_aliases_and_call_time_helpers(self):
         self._assert_contract(nodes, aio_postprocess)
