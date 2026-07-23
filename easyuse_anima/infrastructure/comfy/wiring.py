@@ -27,6 +27,32 @@ def _default_loaded_node_class(node_id: str):
     return DefaultComfyHostProvider().find_loaded_node_class(node_id)
 
 
+def _default_require_custom_node_class(
+    node_id: str,
+    node_pack: str,
+    install_hint: str,
+):
+    return _require_custom_node_class(
+        node_id,
+        node_pack,
+        install_hint,
+        find_node_class=DefaultComfyHostProvider().find_node_class,
+    )
+
+
+def _default_require_any_custom_node_class(
+    node_ids: tuple[str, ...],
+    node_pack: str,
+    install_hint: str,
+):
+    return _require_any_custom_node_class(
+        node_ids,
+        node_pack,
+        install_hint,
+        find_node_class=DefaultComfyHostProvider().find_node_class,
+    )
+
+
 def resolve_comfy_host_helper(
     name: str,
     fallback: Callable[[str], Any],
@@ -56,6 +82,10 @@ def resolve_comfy_host_helper(
             return _default_node_mapping_class
         if name == "_find_loaded_node_class":
             return _default_loaded_node_class
+        if name == "_require_custom_node_class":
+            return _default_require_custom_node_class
+        if name == "_require_any_custom_node_class":
+            return _default_require_any_custom_node_class
         return fallback(name)
 
     if name == "_comfy_max_resolution":

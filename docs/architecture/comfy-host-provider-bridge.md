@@ -689,7 +689,7 @@ Forbidden:
 
 #### B-11c29b2 — Loaded node lookup
 
-- **State:** IN PROGRESS
+- **State:** COMPLETE in PR #331 / `164b53e`
 - **Owner:** #184
 - **Type:** Retirement
 
@@ -756,9 +756,9 @@ Forbidden:
 
 ### B-11c29c — Required-node helpers
 
-- **State:** BLOCKED by B-11c29b2; precedes B-11c29b3
+- **State:** IN PROGRESS in PR #332; precedes B-11c29d and B-11c29b3
 - **Owner:** #184
-- **Type:** Move/retirement
+- **Type:** Retirement
 
 Symbols:
 
@@ -767,8 +767,77 @@ _require_custom_node_class
 _require_any_custom_node_class
 ```
 
-Preserve exact search order, tuple result, and error text. These stay pure
-helpers; do not expand the provider interface merely to host them.
+Pre-edit inventory at `dev@164b53ec89947bc5a72889d83641c5db947dbef5`:
+
+- root `nodes.py` owns both definitions and imports
+  `_adapter_require_custom_node_class` and
+  `_adapter_require_any_custom_node_class` in relative and flat modes;
+- `_require_custom_node_class` has four call-time production consumer modules:
+  `easyuse_anima.aio.legacy_generation`, `model_preparation`, `output`, and
+  `sampling`;
+- `_require_any_custom_node_class` has one call-time production consumer module,
+  `easyuse_anima.aio.model_preparation`;
+- installed runtime already resolves both canonical pure helpers with only
+  `ComfyHostProvider.find_node_class` injected. The provider interface does not
+  own requirement or error policy;
+- both wrappers have zero repository root/canonical monkeypatch consumers, zero
+  confirmed external consumers, no import-time calls, and no mutable state;
+- the single helper calls the lookup once, returns the class object unchanged,
+  or raises the exact existing node-id/pack/hint `RuntimeError`;
+- the multi helper checks caller tuple order, returns the first
+  `(node_id, class)` pair, or raises the exact existing joined-candidate
+  `RuntimeError`; and
+- the ledger classifies both as `pure_helper_with_provider_input`,
+  `unsupported_test_only`, with no call-time root replacement requirement.
+
+These symbols form one rollback unit because they share the same pure canonical
+owner, root dependency, relative/flat adapter boundary, provider input, and
+wiring branch. No Contract or Behavior change is included.
+
+Allowed production files:
+
+```text
+nodes.py
+easyuse_anima/infrastructure/comfy/wiring.py
+```
+
+Allowed test, fixture, and documentation files:
+
+```text
+tests/test_comfy_adapters.py
+tests/test_comfy_host_wiring.py
+tests/test_node_contracts.py
+tests/test_python_compatibility_surface.py
+tests/test_nodes_module_analyzer.py
+tests/fixtures/comfy_host_compatibility.v1.json
+tests/fixtures/python_compatibility_surface.v1.json
+tests/fixtures/python_backend_baseline.json
+docs/architecture/*
+```
+
+Exit:
+
+- both root definitions and all four adapter imports are absent;
+- installed-runtime consumers keep the existing provider-injected pure helpers;
+- flat pre-bootstrap calls use a fresh default provider lookup at call time;
+- success identity, candidate order, tuple shape, exact error text, and
+  use-time-only optional dependency behavior remain unchanged;
+- root general lookup remains available to the CLIP wrapper;
+- retirement gates reject restored roots or adapter bindings; and
+- root residual/analyzer/package closure gates pass.
+
+Forbidden:
+
+- changing canonical capability helper implementations or the provider
+  interface/implementation;
+- changing AiO consumers, binders, node/workflow schemas, or selected-feature
+  timing;
+- moving the CLIP or general lookup wrappers;
+- changing search order, tuple/result identity, exception type/text, or error
+  timing;
+- adding cache, snapshot, mutable override state, optional imports, or
+  canonical root imports; and
+- changing seed, stage, route, persistence, or postprocess behavior.
 
 ### B-11c29d — CLIP invocation wrapper
 
@@ -830,8 +899,9 @@ COMPLETE: E-07b wiring and compatibility gate / PR #328
 
 COMPLETE: B-11c29a max-resolution wrapper retirement / PR #329
 COMPLETE: B-11c29b1 direct mapping lookup retirement / PR #330
-IN PROGRESS: B-11c29b2 loaded lookup retirement
-BLOCKED:  B-11c29c-d requirement and CLIP wrapper retirements
+COMPLETE: B-11c29b2 loaded lookup retirement / PR #331
+IN PROGRESS: B-11c29c requirement helper retirement / PR #332
+BLOCKED:  B-11c29d CLIP wrapper retirement
 BLOCKED:  B-11c29b3 general node lookup retirement
 BLOCKED:  B-11c30 binder/resolver migration audit
 BLOCKED:  B-11d final root shim

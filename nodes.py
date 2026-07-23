@@ -413,8 +413,6 @@ try:
         _find_comfy_node_class as _adapter_find_comfy_node_class,
         # B-10b4 omits the retired root _impact_core_module alias.
         _impact_scheduler_names as _impact_scheduler_names,
-        _require_any_custom_node_class as _adapter_require_any_custom_node_class,
-        _require_custom_node_class as _adapter_require_custom_node_class,
     )
     from .easyuse_anima.infrastructure.comfy.invocation import (
         _call_with_supported_kwargs as _call_with_supported_kwargs,
@@ -975,8 +973,6 @@ except ImportError:  # allows simple local import tests outside ComfyUI's packag
         _find_comfy_node_class as _adapter_find_comfy_node_class,
         # B-10b4 omits the retired root _impact_core_module alias.
         _impact_scheduler_names as _impact_scheduler_names,
-        _require_any_custom_node_class as _adapter_require_any_custom_node_class,
-        _require_custom_node_class as _adapter_require_custom_node_class,
     )
     from easyuse_anima.infrastructure.comfy.invocation import (
         _call_with_supported_kwargs as _call_with_supported_kwargs,
@@ -1631,24 +1627,6 @@ def _find_comfy_node_class(node_id: str):
     except Exception:
         comfy_nodes = None
     return _adapter_find_comfy_node_class(node_id, comfy_nodes)
-
-
-def _require_custom_node_class(node_id: str, node_pack: str, install_hint: str):
-    return _adapter_require_custom_node_class(
-        node_id,
-        node_pack,
-        install_hint,
-        _find_comfy_node_class,
-    )
-
-
-def _require_any_custom_node_class(node_ids: tuple[str, ...], node_pack: str, install_hint: str):
-    return _adapter_require_any_custom_node_class(
-        node_ids,
-        node_pack,
-        install_hint,
-        _find_comfy_node_class,
-    )
 
 
 def _encode_with_comfy_clip(clip, text: str):
