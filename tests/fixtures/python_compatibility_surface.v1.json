@@ -65,7 +65,8 @@
       "B-11c29c",
       "B-11c29d",
       "B-11c29b3",
-      "B-11c30"
+      "B-11c30",
+      "B-11c30a"
     ]
   },
   "enums": {
@@ -100,14 +101,14 @@
   "expected_counts": {
     "root_entrypoints": 3,
     "excluded_preamble_implementation_bindings": 5,
-    "nodes_canonical_bindings": 295,
+    "nodes_canonical_bindings": 292,
     "nodes_legacy_bindings": 27,
     "mapped_public_classes": 18,
     "unmapped_classes": 2,
     "root_residual_functions": 1,
     "root_residual_classes": 0,
     "root_residual_globals": 26,
-    "runtime_binders": 30,
+    "runtime_binders": 27,
     "direct_nodes_import_test_files": 21
   },
   "mapped_public_classes": [
@@ -153,9 +154,6 @@
     "_bind_aio_preview_runtime",
     "_bind_aio_output_runtime",
     "_bind_aio_conditioning_runtime",
-    "_bind_sam3_runtime",
-    "_bind_impact_detailer_node_runtime",
-    "_bind_sam3_node_runtime",
     "_bind_regional_runtime",
     "_bind_regional_node_runtime",
     "_bind_advanced_runtime",
@@ -761,8 +759,7 @@
       "easyuse_anima.aio.usdu"
     ],
     "_impact_scheduler_names": [
-      "easyuse_anima.aio.generation_normalization",
-      "easyuse_anima.nodes.impact_detailer_nodes"
+      "easyuse_anima.aio.generation_normalization"
     ],
     "_is_aio_detailer_target_name": [
       "easyuse_anima.aio.generation_normalization"
@@ -793,8 +790,7 @@
       "easyuse_anima.aio.legacy_generation"
     ],
     "_load_checkpoint_with_comfy": [
-      "easyuse_anima.aio.resources",
-      "easyuse_anima.nodes.sam3_nodes"
+      "easyuse_anima.aio.resources"
     ],
     "_load_clip_with_comfy": [
       "easyuse_anima.aio.resources"
@@ -935,9 +931,6 @@
     ],
     "_post_random": [
       "easyuse_anima.nodes.prompt_advanced_nodes"
-    ],
-    "_preferred_checkpoint_default": [
-      "easyuse_anima.nodes.sam3_nodes"
     ],
     "_preferred_clip_type_default": [
       "easyuse_anima.nodes.aio_nodes"
@@ -1181,22 +1174,22 @@
   },
   "runtime_binder_audit": {
     "summary": {
-      "binder_count": 30,
-      "family_count": 5,
+      "binder_count": 27,
+      "family_count": 4,
       "mode_counts": {
-        "comfy_provider_then_root": 15,
+        "comfy_provider_then_root": 12,
         "root_globals": 13,
         "explicit_callbacks": 2
       },
-      "unique_resolver_names": 295,
-      "unique_root_resolver_names": 288,
-      "unique_provider_resolver_names": 7,
+      "unique_resolver_names": 293,
+      "unique_root_resolver_names": 287,
+      "unique_provider_resolver_names": 6,
       "unique_direct_root_dependencies": 14,
-      "direct_root_dependency_slots": 32,
-      "provider_consumer_slots": 22,
-      "provider_consumer_modules": 15,
+      "direct_root_dependency_slots": 29,
+      "provider_consumer_slots": 17,
+      "provider_consumer_modules": 12,
       "repository_replacement_names": 165,
-      "repository_replacement_files": 20
+      "repository_replacement_files": 19
     },
     "families": {
       "aio": [
@@ -1212,11 +1205,6 @@
         "_bind_aio_output_runtime",
         "_bind_aio_conditioning_runtime",
         "_bind_aio_node_runtime"
-      ],
-      "image_sam3_impact": [
-        "_bind_sam3_runtime",
-        "_bind_impact_detailer_node_runtime",
-        "_bind_sam3_node_runtime"
       ],
       "prompt_regional": [
         "_bind_regional_runtime",
@@ -1459,7 +1447,6 @@
       "_parse_random_response",
       "_patch_model_sampling_aura_flow",
       "_post_random",
-      "_preferred_checkpoint_default",
       "_preferred_clip_type_default",
       "_preferred_name_default",
       "_profile_key",
@@ -1534,7 +1521,6 @@
       "_comfy_max_resolution",
       "_encode_with_comfy_clip",
       "_find_comfy_node_class",
-      "_find_comfy_node_mapping_class",
       "_find_loaded_node_class",
       "_require_any_custom_node_class",
       "_require_custom_node_class"
@@ -1890,8 +1876,7 @@
         "tests/test_aio_nodes.py"
       ],
       "_load_checkpoint_with_comfy": [
-        "tests/test_aio_resources.py",
-        "tests/test_sam3_nodes.py"
+        "tests/test_aio_resources.py"
       ],
       "_load_clip_with_comfy": [
         "tests/test_aio_resources.py"
@@ -3026,99 +3011,6 @@
           "_aio_usdu_prompt_without_general",
           "_as_bool",
           "_normalize_prompt_data"
-        ]
-      },
-      {
-        "binder": "_bind_sam3_runtime",
-        "module": "easyuse_anima.image.sam3",
-        "family": "image_sam3_impact",
-        "mode": "comfy_provider_then_root",
-        "root_observation": "call_time_resolver",
-        "root_keywords": [
-          "resolve_helper"
-        ],
-        "bound_globals": [
-          "_find_comfy_node_class",
-          "_find_comfy_node_mapping_class"
-        ],
-        "direct_root_dependencies": [
-          "_resolve_comfy_host_helper"
-        ],
-        "resolver_names": [
-          "_find_comfy_node_class",
-          "_find_comfy_node_mapping_class"
-        ],
-        "root_resolver_names": [],
-        "provider_resolver_names": [
-          "_find_comfy_node_class",
-          "_find_comfy_node_mapping_class"
-        ],
-        "repository_replacement_names": []
-      },
-      {
-        "binder": "_bind_impact_detailer_node_runtime",
-        "module": "easyuse_anima.nodes.impact_detailer_nodes",
-        "family": "image_sam3_impact",
-        "mode": "comfy_provider_then_root",
-        "root_observation": "call_time_resolver",
-        "root_keywords": [
-          "resolve_helper"
-        ],
-        "bound_globals": [
-          "_comfy_max_resolution",
-          "_impact_scheduler_names"
-        ],
-        "direct_root_dependencies": [
-          "_resolve_comfy_host_helper"
-        ],
-        "resolver_names": [
-          "_comfy_max_resolution",
-          "_impact_scheduler_names"
-        ],
-        "root_resolver_names": [
-          "_impact_scheduler_names"
-        ],
-        "provider_resolver_names": [
-          "_comfy_max_resolution"
-        ],
-        "repository_replacement_names": [
-          "_impact_scheduler_names"
-        ]
-      },
-      {
-        "binder": "_bind_sam3_node_runtime",
-        "module": "easyuse_anima.nodes.sam3_nodes",
-        "family": "image_sam3_impact",
-        "mode": "comfy_provider_then_root",
-        "root_observation": "call_time_resolver",
-        "root_keywords": [
-          "resolve_helper"
-        ],
-        "bound_globals": [
-          "_comfy_max_resolution",
-          "_encode_with_comfy_clip",
-          "_load_checkpoint_with_comfy",
-          "_preferred_checkpoint_default"
-        ],
-        "direct_root_dependencies": [
-          "_resolve_comfy_host_helper"
-        ],
-        "resolver_names": [
-          "_comfy_max_resolution",
-          "_encode_with_comfy_clip",
-          "_load_checkpoint_with_comfy",
-          "_preferred_checkpoint_default"
-        ],
-        "root_resolver_names": [
-          "_load_checkpoint_with_comfy",
-          "_preferred_checkpoint_default"
-        ],
-        "provider_resolver_names": [
-          "_comfy_max_resolution",
-          "_encode_with_comfy_clip"
-        ],
-        "repository_replacement_names": [
-          "_load_checkpoint_with_comfy"
         ]
       },
       {
@@ -5326,7 +5218,6 @@
         "_load_upscale_model_with_comfy": "_load_upscale_model_with_comfy",
         "_load_vae_with_comfy": "_load_vae_with_comfy",
         "_normalize_aio_input_settings": "_normalize_aio_input_settings",
-        "_preferred_checkpoint_default": "_preferred_checkpoint_default",
         "_preferred_clip_type_default": "_preferred_clip_type_default",
         "_preferred_name_default": "_preferred_name_default"
       },
@@ -5343,15 +5234,13 @@
         "nodes.py residual runtime",
         "canonical runtime resolver: easyuse_anima.aio.legacy_generation",
         "canonical runtime resolver: easyuse_anima.aio.resources",
-        "canonical runtime resolver: easyuse_anima.nodes.aio_nodes",
-        "canonical runtime resolver: easyuse_anima.nodes.sam3_nodes"
+        "canonical runtime resolver: easyuse_anima.nodes.aio_nodes"
       ],
       "evidence": [
         "AST:nodes.py direct runtime load",
         "AST:easyuse_anima.aio.legacy_generation string runtime lookup",
         "AST:easyuse_anima.aio.resources string runtime lookup",
-        "AST:easyuse_anima.nodes.aio_nodes string runtime lookup",
-        "AST:easyuse_anima.nodes.sam3_nodes string runtime lookup"
+        "AST:easyuse_anima.nodes.aio_nodes string runtime lookup"
       ],
       "removal_gates": [
         "canonical production consumer migration",
@@ -5359,6 +5248,35 @@
         "separate B-10b or B-11 rollback unit"
       ],
       "lifecycle_state": "transitional"
+    },
+    {
+      "id": "nodes_canonical_bindings:easyuse_anima.aio.resources:unsupported_test_only",
+      "surface": "nodes_canonical_bindings",
+      "symbols": {
+        "_preferred_checkpoint_default": "_preferred_checkpoint_default"
+      },
+      "classification": "unsupported_test_only",
+      "current_target": "nodes.py",
+      "canonical_target": "easyuse_anima.aio.resources",
+      "target_state": "canonical",
+      "identity_requirement": "not_applicable",
+      "binding_shape": "direct_import",
+      "import_target": "easyuse_anima.aio.resources",
+      "owner": "#184/#188",
+      "first_release": null,
+      "known_consumers": [
+        "repository tests may import this root name"
+      ],
+      "evidence": [
+        "AST:no nodes.py runtime load",
+        "test-only consumption is not public support evidence"
+      ],
+      "removal_gates": [
+        "test imports migrate to canonical targets",
+        "no production consumer evidence",
+        "separate B-10b removal review"
+      ],
+      "lifecycle_state": "unsupported"
     },
     {
       "id": "nodes_canonical_bindings:easyuse_anima.aio.sampling:transitional_private_seam",
@@ -5597,7 +5515,6 @@
       "id": "nodes_canonical_bindings:easyuse_anima.image.sam3:transitional_private_seam",
       "surface": "nodes_canonical_bindings",
       "symbols": {
-        "_bind_sam3_runtime": "_bind_sam3_runtime",
         "_context_value": "_context_value",
         "_sam3_context": "_sam3_context",
         "_segs_has_items": "_segs_has_items"
@@ -5612,12 +5529,10 @@
       "owner": "#184/#188",
       "first_release": null,
       "known_consumers": [
-        "nodes.py residual runtime",
         "canonical runtime resolver: easyuse_anima.aio.legacy_generation",
         "canonical runtime resolver: easyuse_anima.aio.resources"
       ],
       "evidence": [
-        "AST:nodes.py direct runtime load",
         "AST:easyuse_anima.aio.legacy_generation string runtime lookup",
         "AST:easyuse_anima.aio.resources string runtime lookup"
       ],
@@ -5675,12 +5590,10 @@
       "owner": "#184/#188",
       "first_release": null,
       "known_consumers": [
-        "canonical runtime resolver: easyuse_anima.aio.generation_normalization",
-        "canonical runtime resolver: easyuse_anima.nodes.impact_detailer_nodes"
+        "canonical runtime resolver: easyuse_anima.aio.generation_normalization"
       ],
       "evidence": [
-        "AST:easyuse_anima.aio.generation_normalization string runtime lookup",
-        "AST:easyuse_anima.nodes.impact_detailer_nodes string runtime lookup"
+        "AST:easyuse_anima.aio.generation_normalization string runtime lookup"
       ],
       "removal_gates": [
         "canonical production consumer migration",
@@ -6045,34 +5958,6 @@
         "mapping, workflow, and direct identity parity"
       ],
       "lifecycle_state": "supported"
-    },
-    {
-      "id": "nodes_canonical_bindings:easyuse_anima.nodes.impact_detailer_nodes:transitional_private_seam",
-      "surface": "nodes_canonical_bindings",
-      "symbols": {
-        "_bind_impact_detailer_node_runtime": "_bind_impact_detailer_node_runtime"
-      },
-      "classification": "transitional_private_seam",
-      "current_target": "nodes.py",
-      "canonical_target": "easyuse_anima.nodes.impact_detailer_nodes",
-      "target_state": "canonical",
-      "identity_requirement": "required",
-      "binding_shape": "direct_import",
-      "import_target": "easyuse_anima.nodes.impact_detailer_nodes",
-      "owner": "#184/#188",
-      "first_release": null,
-      "known_consumers": [
-        "nodes.py residual runtime"
-      ],
-      "evidence": [
-        "AST:nodes.py direct runtime load"
-      ],
-      "removal_gates": [
-        "canonical production consumer migration",
-        "focused monkeypatch and identity contract review",
-        "separate B-10b or B-11 rollback unit"
-      ],
-      "lifecycle_state": "transitional"
     },
     {
       "id": "nodes_canonical_bindings:easyuse_anima.nodes.input_types:transitional_private_seam",
@@ -6492,8 +6377,7 @@
       "surface": "nodes_canonical_bindings",
       "symbols": {
         "EasyUseAnimaSAM3Context": "EasyUseAnimaSAM3Context",
-        "EasyUseAnimaSAM3Detailer": "EasyUseAnimaSAM3Detailer",
-        "_bind_sam3_node_runtime": "_bind_sam3_node_runtime"
+        "EasyUseAnimaSAM3Detailer": "EasyUseAnimaSAM3Detailer"
       },
       "classification": "transitional_private_seam",
       "current_target": "nodes.py",
@@ -6505,12 +6389,10 @@
       "owner": "#184/#188",
       "first_release": null,
       "known_consumers": [
-        "nodes.py residual runtime",
         "canonical runtime resolver: easyuse_anima.aio.legacy_generation",
         "historical SAM3 convenience-node compatibility"
       ],
       "evidence": [
-        "AST:nodes.py direct runtime load",
         "AST:easyuse_anima.aio.legacy_generation string runtime lookup",
         "docs/version-plans/0.1.6-Detailer.md"
       ],

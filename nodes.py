@@ -387,7 +387,6 @@ try:
     # Canonical image and Impact Detailer adapters import the owner directly.
     # The root module no longer re-exports this unsupported private helper.
     from .easyuse_anima.image.sam3 import (
-        _bind_sam3_runtime as _bind_sam3_runtime,
         # B-10b9 retires seven root SAM3 helper aliases.
         _context_value as _context_value,
         # Canonical SAM3 and Impact adapters import the owner directly.
@@ -433,14 +432,9 @@ try:
         EasyUseAnimaDetailerAlignHook as EasyUseAnimaDetailerAlignHook,
         EasyUseAnimaImageScaleByMultiple as EasyUseAnimaImageScaleByMultiple,
     )
-    from .easyuse_anima.nodes.impact_detailer_nodes import (
-        # B-10b3 deliberately omits the retired root Impact delegate alias.
-        _bind_impact_detailer_node_runtime as _bind_impact_detailer_node_runtime,
-    )
     from .easyuse_anima.nodes.sam3_nodes import (
         EasyUseAnimaSAM3Context as EasyUseAnimaSAM3Context,
         EasyUseAnimaSAM3Detailer as EasyUseAnimaSAM3Detailer,
-        _bind_sam3_node_runtime as _bind_sam3_node_runtime,
     )
     from .easyuse_anima.nodes.prompt_nodes import (
         EasyUseAnimaPromptBuilder as EasyUseAnimaPromptBuilder,
@@ -945,7 +939,6 @@ except ImportError:  # allows simple local import tests outside ComfyUI's packag
     # Canonical image and Impact Detailer adapters import the owner directly.
     # The root module no longer re-exports this unsupported private helper.
     from easyuse_anima.image.sam3 import (
-        _bind_sam3_runtime as _bind_sam3_runtime,
         # B-10b9 retires seven root SAM3 helper aliases.
         _context_value as _context_value,
         # Canonical SAM3 and Impact adapters import the owner directly.
@@ -991,14 +984,9 @@ except ImportError:  # allows simple local import tests outside ComfyUI's packag
         EasyUseAnimaDetailerAlignHook as EasyUseAnimaDetailerAlignHook,
         EasyUseAnimaImageScaleByMultiple as EasyUseAnimaImageScaleByMultiple,
     )
-    from easyuse_anima.nodes.impact_detailer_nodes import (
-        # B-10b3 deliberately omits the retired root Impact delegate alias.
-        _bind_impact_detailer_node_runtime as _bind_impact_detailer_node_runtime,
-    )
     from easyuse_anima.nodes.sam3_nodes import (
         EasyUseAnimaSAM3Context as EasyUseAnimaSAM3Context,
         EasyUseAnimaSAM3Detailer as EasyUseAnimaSAM3Detailer,
-        _bind_sam3_node_runtime as _bind_sam3_node_runtime,
     )
     from easyuse_anima.nodes.prompt_nodes import (
         EasyUseAnimaPromptBuilder as EasyUseAnimaPromptBuilder,
@@ -1750,24 +1738,6 @@ _bind_aio_output_runtime(
     ),
 )
 _bind_aio_conditioning_runtime(
-    resolve_helper=lambda name: _resolve_comfy_host_helper(
-        name,
-        lambda fallback_name: globals()[fallback_name],
-    ),
-)
-_bind_sam3_runtime(
-    resolve_helper=lambda name: _resolve_comfy_host_helper(
-        name,
-        lambda fallback_name: globals()[fallback_name],
-    ),
-)
-_bind_impact_detailer_node_runtime(
-    resolve_helper=lambda name: _resolve_comfy_host_helper(
-        name,
-        lambda fallback_name: globals()[fallback_name],
-    ),
-)
-_bind_sam3_node_runtime(
     resolve_helper=lambda name: _resolve_comfy_host_helper(
         name,
         lambda fallback_name: globals()[fallback_name],

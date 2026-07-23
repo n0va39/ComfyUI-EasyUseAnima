@@ -3,8 +3,11 @@
 from __future__ import annotations
 
 import logging
-from typing import Any
 
+from ..aio.resources import (
+    _load_checkpoint_with_comfy,
+    _preferred_checkpoint_default,
+)
 from ..common.values import _as_bool
 from ..image.sam3 import (
     _context_value,
@@ -18,35 +21,31 @@ from ..image.sam3 import (
 )
 from ..infrastructure.comfy.invocation import _node_output_tuple
 from ..infrastructure.comfy.resources import _comfy_checkpoint_names
+from ..infrastructure.comfy.wiring import resolve_comfy_host_helper
 from .impact_detailer_nodes import _EasyUseAnimaImpactDetailerDelegate
 
 logger = logging.getLogger("ComfyUI-EasyUseAnima")
 
 
-def _unbound_runtime(*_args, **_kwargs) -> Any:
-    raise RuntimeError("SAM3 node runtime dependencies are not bound.")
+def _missing_host_helper(name: str):
+    raise RuntimeError(f"SAM3 node Comfy host helper is unavailable: {name}")
 
 
-_comfy_max_resolution = _unbound_runtime
-_encode_with_comfy_clip = _unbound_runtime
-_load_checkpoint_with_comfy = _unbound_runtime
-_preferred_checkpoint_default = _unbound_runtime
-
-
-def _bind_sam3_node_runtime(*, resolve_helper) -> None:
-    def runtime_helper(name):
-        def call(*args, **kwargs):
-            return resolve_helper(name)(*args, **kwargs)
-
-        return call
-
-    for name in (
+def _comfy_max_resolution() -> int:
+    helper = resolve_comfy_host_helper(
         "_comfy_max_resolution",
+        _missing_host_helper,
+    )
+    return helper()
+
+
+def _encode_with_comfy_clip(clip, text: str):
+    helper = resolve_comfy_host_helper(
         "_encode_with_comfy_clip",
-        "_load_checkpoint_with_comfy",
-        "_preferred_checkpoint_default",
-    ):
-        globals()[name] = runtime_helper(name)
+        _missing_host_helper,
+    )
+    return helper(clip, text)
+
 
 
 class EasyUseAnimaSAM3Context:

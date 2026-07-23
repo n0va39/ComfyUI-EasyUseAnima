@@ -1093,7 +1093,7 @@ Planned cleanup sequence:
 
 ### B-11c30a — Image/SAM3/Impact binder retirement
 
-- **State:** IN PROGRESS
+- **State:** IMPLEMENTED in PR #337
 - **Owner:** #184
 - **Type:** Move
 - **Base:** `dev@02b8c4a17b11011f1381c27cef6bd869b50f81bb`
@@ -1157,10 +1157,25 @@ Forbidden:
 - removing root aliases still consumed by AiO or another binder family; and
 - including LoRA, Prompt/Regional, AiO, or Wildcard/NAIA binder cleanup.
 
+Implementation result:
+
+- root imports/calls and the three canonical binder definitions are removed;
+- provider-backed helpers now resolve directly in their canonical modules at
+  call time, while the scheduler/checkpoint/default helpers are direct
+  canonical imports;
+- the Comfy host ledger still records 22 provider slots across 15 modules and
+  marks the five moved slots as direct call-time consumers instead of root
+  binder consumers;
+- the remaining root audit is 27 binders in four families: 12
+  provider-then-root, 13 root-only, and two explicit callbacks;
+- `nodes.py` is 1,820 lines, down 30 lines from the B-11c30 base; and
+- focused SAM3, Comfy adapter, compatibility, and backend analyzer validation
+  passes 61 tests.
+
 ### B-11d — Final root shim
 
-- **State:** BLOCKED by B-11c30 and the separate seed/Wildcard decision for the
-  final non-provider function
+- **State:** BLOCKED by the remaining B-11c30 family Moves and the separate
+  seed/Wildcard decision for the final non-provider function
 - **Owner:** #184
 - **Type:** Move
 
@@ -1195,7 +1210,8 @@ COMPLETE: B-11c29b2 loaded lookup retirement / PR #331
 COMPLETE: B-11c29c requirement helper retirement / PR #332
 COMPLETE: B-11c29d CLIP wrapper retirement / PR #333
 COMPLETE: B-11c29b3 general node lookup retirement / PR #334
-IN PROGRESS: B-11c30 binder/resolver migration audit / PR #336
+COMPLETE: B-11c30 binder/resolver migration audit / PR #336
+IN PROGRESS: B-11c30a Image/SAM3/Impact binder Move / PR #337
 BLOCKED:  B-11d final root shim
 
 LATER:    #167 seed reservation

@@ -706,6 +706,21 @@ convenience-node compatibility; it remains unmapped and is not public support.
   Prompt/Regional and AiO require further sub-splitting, while Wildcard/NAIA
   remains separate from D-12 behavior.
 
+### B-11c30a Image/SAM3/Impact binder retirement
+
+- The three root binder imports/calls and the three canonical binder
+  definitions are removed.
+- Five E-07 provider slots remain call-time direct consumers in their canonical
+  modules. The Comfy host ledger keeps the same 22 slots and 15 modules.
+- `_impact_scheduler_names`, `_load_checkpoint_with_comfy`, and
+  `_preferred_checkpoint_default` use their existing canonical owners; their
+  other root consumers and aliases are unchanged.
+- The remaining binder audit contains 27 binders in four owner families. It no
+  longer treats the retired family or its bind-time module globals as active
+  compatibility state.
+- No node schema, workflow, optional-dependency timing, or SAM3/Impact behavior
+  changes in this Move.
+
 ### `nodes.py` public node-class surface
 
 The confirmed 0.5.2 mapped classes are:

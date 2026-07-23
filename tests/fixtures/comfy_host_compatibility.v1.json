@@ -52,12 +52,12 @@
         },
         {
           "module": "easyuse_anima.nodes.impact_detailer_nodes",
-          "binder": "_bind_impact_detailer_node_runtime",
+          "binder": null,
           "root_observation": "call_time"
         },
         {
           "module": "easyuse_anima.nodes.sam3_nodes",
-          "binder": "_bind_sam3_node_runtime",
+          "binder": null,
           "root_observation": "call_time"
         }
       ],
@@ -123,7 +123,7 @@
         },
         {
           "module": "easyuse_anima.nodes.sam3_nodes",
-          "binder": "_bind_sam3_node_runtime",
+          "binder": null,
           "root_observation": "call_time"
         },
         {
@@ -198,7 +198,7 @@
         },
         {
           "module": "easyuse_anima.image.sam3",
-          "binder": "_bind_sam3_runtime",
+          "binder": null,
           "root_observation": "call_time"
         }
       ],
@@ -242,7 +242,7 @@
       "production_consumers": [
         {
           "module": "easyuse_anima.image.sam3",
-          "binder": "_bind_sam3_runtime",
+          "binder": null,
           "root_observation": "call_time"
         }
       ],

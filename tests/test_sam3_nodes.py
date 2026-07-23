@@ -5,7 +5,9 @@ from types import SimpleNamespace
 from unittest.mock import Mock, patch
 
 import nodes
+from easyuse_anima.aio import resources as aio_resources
 from easyuse_anima.image import sam3 as sam3_service
+from easyuse_anima.infrastructure.comfy import capabilities
 from easyuse_anima.nodes import impact_detailer_nodes
 from easyuse_anima.nodes import sam3_nodes
 from tests.comfy_host_fakes import patch_comfy_helper
@@ -84,6 +86,25 @@ class SAM3MoveTests(unittest.TestCase):
             sam3_nodes._EasyUseAnimaImpactDetailerDelegate,
             impact_detailer_nodes._EasyUseAnimaImpactDetailerDelegate,
         )
+        self.assertIs(
+            impact_detailer_nodes._impact_scheduler_names,
+            capabilities._impact_scheduler_names,
+        )
+        self.assertIs(
+            sam3_nodes._load_checkpoint_with_comfy,
+            aio_resources._load_checkpoint_with_comfy,
+        )
+        self.assertIs(
+            sam3_nodes._preferred_checkpoint_default,
+            aio_resources._preferred_checkpoint_default,
+        )
+        for module, binder_name in (
+            (sam3_service, "_bind_sam3_runtime"),
+            (impact_detailer_nodes, "_bind_impact_detailer_node_runtime"),
+            (sam3_nodes, "_bind_sam3_node_runtime"),
+        ):
+            with self.subTest(module=module.__name__, binder=binder_name):
+                self.assertFalse(hasattr(module, binder_name))
         with (
             patch.object(
                 impact_detailer_nodes,
@@ -134,7 +155,7 @@ class SAM3MoveTests(unittest.TestCase):
 
     def test_context_node_keeps_call_time_checkpoint_loader(self):
         with patch.object(
-            nodes,
+            sam3_nodes,
             "_load_checkpoint_with_comfy",
             return_value=("model", "clip", "vae"),
         ) as load:
