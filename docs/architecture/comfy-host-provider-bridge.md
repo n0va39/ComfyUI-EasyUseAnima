@@ -2475,7 +2475,7 @@ Forbidden:
 
 ### B-11c30e — Wildcard/NAIA callback-binder Move
 
-- **State:** IN PROGRESS
+- **State:** COMPLETE IN PR #355
 - **Owner:** #184
 - **Behavior boundaries:** #167, #236, D-12
 - **Type:** Move
@@ -2538,6 +2538,24 @@ Exit:
   node schemas/mappings, workflows, errors, and optional timing remain
   unchanged.
 
+Implementation result:
+
+- both adapters import `easyuse_anima.workflow._get_workflow_node` directly.
+  Wildcard keeps its existing package/flat legacy-engine imports, while NAIA
+  imports its existing settings owner with the same package/flat fallback and
+  retains direct client imports;
+- the two binder definitions and all nine bind-time callback installations are
+  absent. Root no longer imports or invokes either binder;
+- tests patch the canonical adapter dependency instead of the root callback
+  seam. Root mapped-class identity, workflow lookup identity, Wildcard/NAIA
+  behavior, and exact package/flat imports remain frozen;
+- the runtime audit contains zero binders, families, resolver names, direct
+  callback dependencies, and repository replacement names;
+- the compatibility inventory contains 289 canonical root bindings, two
+  residual root globals, one root implementation import, 93 shipped/reachable
+  Python modules, and a 1,124-line root shim; and
+- B-11d is the next separate root-shim Move.
+
 Forbidden:
 
 - moving or consolidating `wildcard_engine.py` or `settings.py`;
@@ -2550,7 +2568,7 @@ Forbidden:
 
 ### B-11d — Final root shim
 
-- **State:** BLOCKED by the remaining Wildcard/NAIA binder family
+- **State:** READY after B-11c30e / PR #355
 - **Owner:** #184
 - **Type:** Move
 
@@ -2602,8 +2620,8 @@ COMPLETE: B-11c30d4 execution-service Move / PR #351
 COMPLETE: B-11c30d0b input-context owner Move / PR #352
 COMPLETE: B-11c30d5 legacy-orchestration Move / PR #353
 COMPLETE: B-11c30d6 node-adapter Move / PR #354
-PLANNED:  B-11c30e Wildcard/NAIA callback binder Move
-BLOCKED:  B-11d final root shim
+COMPLETE: B-11c30e Wildcard/NAIA callback binder Move / PR #355
+READY:    B-11d final root shim
 
 LATER:    #167 seed reservation
 LATER:    #169 stage/cache Behavior

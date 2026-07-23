@@ -18,27 +18,14 @@ from ..naia.client import (
     _parse_random_response,
     _post_random,
 )
+from ..workflow import _get_workflow_node
 
+try:
+    from ...settings import resolve_naia_settings
+except ImportError:
+    from settings import resolve_naia_settings
 
 logger = logging.getLogger("ComfyUI-EasyUseAnima")
-
-
-def _unbound_runtime(*_args, **_kwargs):
-    raise RuntimeError("NAIA node runtime dependencies are not bound.")
-
-
-resolve_naia_settings = _unbound_runtime
-_get_workflow_node = _unbound_runtime
-
-
-def _bind_naia_node_runtime(*, resolve_settings, get_workflow_node, post_random, parse_random_response) -> None:
-    global resolve_naia_settings, _get_workflow_node
-    global _post_random, _parse_random_response
-
-    resolve_naia_settings = resolve_settings
-    _get_workflow_node = get_workflow_node
-    _post_random = post_random
-    _parse_random_response = parse_random_response
 
 
 class EasyUseAnimaNAIARandomPrompt:

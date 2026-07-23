@@ -498,12 +498,10 @@ try:
     )
     from .easyuse_anima.nodes.naia_nodes import (
         EasyUseAnimaNAIARandomPrompt as EasyUseAnimaNAIARandomPrompt,
-        _bind_naia_node_runtime as _bind_naia_node_runtime,
     )
     from .easyuse_anima.nodes.wildcard_nodes import (
         EasyUseAnimaWildcard as EasyUseAnimaWildcard,
         # B-10b8 retires the test-only root wildcard-note alias.
-        _bind_wildcard_node_runtime as _bind_wildcard_node_runtime,
     )
     from .easyuse_anima.lora.metadata import (
         _apply_lora_syntax_format as _apply_lora_syntax_format,
@@ -1057,12 +1055,10 @@ except ImportError:  # allows simple local import tests outside ComfyUI's packag
     )
     from easyuse_anima.nodes.naia_nodes import (
         EasyUseAnimaNAIARandomPrompt as EasyUseAnimaNAIARandomPrompt,
-        _bind_naia_node_runtime as _bind_naia_node_runtime,
     )
     from easyuse_anima.nodes.wildcard_nodes import (
         EasyUseAnimaWildcard as EasyUseAnimaWildcard,
         # B-10b8 retires the test-only root wildcard-note alias.
-        _bind_wildcard_node_runtime as _bind_wildcard_node_runtime,
     )
     from easyuse_anima.lora.metadata import (
         _apply_lora_syntax_format as _apply_lora_syntax_format,
@@ -1125,18 +1121,3 @@ except ImportError:  # allows simple local import tests outside ComfyUI's packag
 logger = logging.getLogger("ComfyUI-EasyUseAnima")
 
 _TRIGGER_WORD_KEYS = ("trainedWords", "trained_words", "trigger_words", "activation_text")
-
-
-_bind_wildcard_node_runtime(
-    get_workflow_node=lambda *args, **kwargs: _get_workflow_node(*args, **kwargs),
-    expand=lambda *args, **kwargs: expand_wildcards(*args, **kwargs),
-    normalize_seed_value=lambda *args, **kwargs: normalize_seed(*args, **kwargs),
-    normalize_mode=lambda *args, **kwargs: normalize_wildcard_mode(*args, **kwargs),
-    sources_signature=lambda *args, **kwargs: wildcard_sources_signature(*args, **kwargs),
-)
-_bind_naia_node_runtime(
-    resolve_settings=lambda: resolve_naia_settings(),
-    get_workflow_node=lambda *args, **kwargs: _get_workflow_node(*args, **kwargs),
-    post_random=lambda *args, **kwargs: _post_random(*args, **kwargs),
-    parse_random_response=lambda *args, **kwargs: _parse_random_response(*args, **kwargs),
-)

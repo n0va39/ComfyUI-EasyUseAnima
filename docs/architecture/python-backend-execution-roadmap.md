@@ -31,7 +31,7 @@ merged PR, the owning issue's evidence record, and every stated exit gate.
 | Phase | Integrated snapshot / open implementation state | Remaining exit work |
 | --- | --- | --- |
 | A - baseline | Complete; #191 is closed | Keep fixtures and analyzers current during later moves |
-| B - `nodes.py` extraction | Integrated through B-11c30d5 / PR #353; B-11c30d6 completes in PR #354 | Execute Wildcard/NAIA and the final root shim as separate rollback units |
+| B - `nodes.py` extraction | Integrated through B-11c30d6 / PR #354; B-11c30e completes in PR #355 | Execute the final root shim as a separate rollback unit |
 | C - feature contracts/behavior | Partially complete through S167-01a / PR #344 | Continue #167 and #169 in separate Contract/Move/Behavior PRs |
 | D - root consolidation | Not started | Execute #186 feature by feature after the corresponding behavior contracts are stable |
 | E - runtime ownership | Partial: E-02a and E-07a/E-07b integrated | Continue #187 only where canonical feature owners and explicit contracts exist |
@@ -42,9 +42,9 @@ merged PR, the owning issue's evidence record, and every stated exit gate.
 ### Measured Phase B progress
 
 - The Phase A baseline recorded root `nodes.py` at 12,663 lines.
-- In B-11c30d6 / PR #354, the analyzer measures root `nodes.py` at 1,142 lines.
-- The mechanical extraction has removed 11,521
-  lines, approximately 91.0% of the Phase A baseline, while preserving the root
+- In B-11c30e / PR #355, the analyzer measures root `nodes.py` at 1,124 lines.
+- The mechanical extraction has removed 11,539
+  lines, approximately 91.1% of the Phase A baseline, while preserving the root
   compatibility surface.
 - B-01 through B-09b2 are integrated. The latest completed implementation slice
   is the AiO generator adapter Move in PR #270.
@@ -156,6 +156,10 @@ merged PR, the owning issue's evidence record, and every stated exit gate.
   constant to the canonical module, and preserves exact root aliases, node
   signatures, widget defaults, change keys, seed behavior, context copies, and
   generation forwarding. Two explicit Wildcard/NAIA callback binders remain.
+  B-11c30e / PR #355 retires those final two callbacks. The adapters consume
+  the existing workflow, Wildcard engine, settings, and NAIA client owners
+  directly while preserving package/flat imports and all node/workflow
+  behavior. Runtime binder and resolver counts reach zero.
 
 ### Current quality baseline
 
@@ -399,7 +403,7 @@ mechanical retirement series.
 | 11 | B-09b2 AiO generator adapter move | COMPLETE on `dev` | Move | #184 | PR #270 / `57d40b4` |
 | 12 | B-10a machine-readable compatibility audit | COMPLETE on `dev` | Contract/gate | #184/#188 | PR #271 / `3c7b857` |
 | 13 | B-10b private alias reduction | COMPLETE on `dev` through PR #291 / `c6b4680` | Contract/cleanup, split PRs | #184/#188 | Audited alias surface integrated |
-| 14 | B-11 registration/bootstrap/root shim | IN PROGRESS through B-11c30d6 PR #354; Wildcard/NAIA is the next separate Move | Move/Contract, split PRs | #184 | Frozen AiO split gate; S167-01 contract |
+| 14 | B-11 registration/bootstrap/root shim | IN PROGRESS through B-11c30e PR #355; final root shim is the next separate Move | Move/Contract, split PRs | #184 | Zero runtime binders; frozen compatibility audit |
 | 15 | S167 backend seed reservation series | S167-01 Contract COMPLETE in PR #343 and S167-01a consumer Move COMPLETE in PR #344; Behavior and Adapter remain | Contract then Move then Behavior | #167 | Canonical AiO/node seams |
 | 16 | A169 stage pipeline series | BLOCKED by #168 and B exit | Contract then Behavior | #169 | Typed config and mechanical AiO move |
 | 17 | A169 first-pass cache policy | BLOCKED by stage/cache ownership seam | Behavior | #169 | Mechanical cache move and benchmark harness |
@@ -1137,6 +1141,13 @@ unchanged. The separate legacy Wildcard unsupported alias remains for D-12.
     hidden widget serialization, change keys, seed handling, context copies,
     and generation forwarding. The root shim falls to 1,142 lines. Only the two
     Wildcard/NAIA callback binders remain before the final root shim.
+  - B-11c30e retires only `_bind_wildcard_node_runtime` and
+    `_bind_naia_node_runtime` in PR #355. Both adapters consume their existing
+    workflow, Wildcard engine, settings, and NAIA client owners directly.
+    Wildcard modes/seeds/expansion/metadata, NAIA settings/HTTP/cache/results,
+    package/flat imports, mappings, workflows, and exact errors remain frozen.
+    Runtime binder/resolver counts reach zero and the root shim falls to 1,124
+    lines. B-11d is the next READY Move.
   - The final B-11c cutover removes remaining root execution ownership and
     leaves the explicit supported `nodes.py` compatibility shim.
 - Add `easyuse_anima/registration.py` as pure mapping composition. It performs no
