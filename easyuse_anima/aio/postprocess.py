@@ -124,4 +124,51 @@ def _apply_aio_final_fit(
     return output, metadata
 
 
+def _run_aio_postprocess_stage(
+    image,
+    postprocess_settings: dict[str, Any],
+) -> tuple[Any, dict[str, Any]]:
+    if not _runtime_helper("_as_bool")(
+        postprocess_settings.get("enabled"),
+        False,
+    ):
+        width, height = _runtime_helper("_image_tensor_size")(image, 0, 0)
+        return image, {
+            "enabled": False,
+            "width": int(width),
+            "height": int(height),
+        }
+    output, fit_metadata = _runtime_helper("_apply_aio_final_fit")(
+        image,
+        postprocess_settings,
+    )
+    width, height = _runtime_helper("_image_tensor_size")(
+        output,
+        fit_metadata.get("target_width", 0),
+        fit_metadata.get("target_height", 0),
+    )
+    limit = (
+        f"{fit_metadata.get('max_megapixels')}MP"
+        if fit_metadata.get("mode") == "megapixels"
+        else f"{fit_metadata.get('max_long_edge')}px"
+    )
+    _runtime_helper("logger").info(
+        "[EasyUseAnima][AiO] Postprocess final fit: input=%sx%s mode=%s limit=%s method=%s applied=%s output=%sx%s",
+        fit_metadata.get("width"),
+        fit_metadata.get("height"),
+        fit_metadata.get("mode"),
+        limit,
+        fit_metadata.get("method"),
+        bool(fit_metadata.get("applied")),
+        width,
+        height,
+    )
+    return output, {
+        "enabled": True,
+        "width": int(width),
+        "height": int(height),
+        "fit": fit_metadata,
+    }
+
+
 __all__ = ()
