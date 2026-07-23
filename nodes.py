@@ -342,6 +342,8 @@ try:
     from .easyuse_anima.nodes.aio_nodes import (
         EasyUseAnimaAIOGenerator as EasyUseAnimaAIOGenerator,
         EasyUseAnimaInput as EasyUseAnimaInput,
+        _aio_generation_settings_json as _aio_generation_settings_json,
+        _aio_input_settings_json as _aio_input_settings_json,
         _bind_aio_node_runtime as _bind_aio_node_runtime,
         _easy_use_anima_input_signature as _easy_use_anima_input_signature,
         _require_easy_use_anima_input as _require_easy_use_anima_input,
@@ -872,6 +874,8 @@ except ImportError:  # allows simple local import tests outside ComfyUI's packag
     from easyuse_anima.nodes.aio_nodes import (
         EasyUseAnimaAIOGenerator as EasyUseAnimaAIOGenerator,
         EasyUseAnimaInput as EasyUseAnimaInput,
+        _aio_generation_settings_json as _aio_generation_settings_json,
+        _aio_input_settings_json as _aio_input_settings_json,
         _bind_aio_node_runtime as _bind_aio_node_runtime,
         _easy_use_anima_input_signature as _easy_use_anima_input_signature,
         _require_easy_use_anima_input as _require_easy_use_anima_input,
@@ -1632,14 +1636,6 @@ def _aio_detailer_target_order(detailer_settings: dict[str, Any]) -> list[str]:
     return output
 
 
-
-
-def _aio_input_settings_json() -> str:
-    return json.dumps(AIO_INPUT_DEFAULT_SETTINGS, ensure_ascii=False, separators=(",", ":"))
-
-
-def _aio_generation_settings_json() -> str:
-    return json.dumps(AIO_GENERATION_DEFAULT_SETTINGS, ensure_ascii=False, separators=(",", ":"))
 
 
 def _comfy_max_resolution() -> int:

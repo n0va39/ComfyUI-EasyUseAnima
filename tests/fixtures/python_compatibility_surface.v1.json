@@ -2,7 +2,7 @@
   "schema_version": 1,
   "snapshot": {
     "base_branch": "dev",
-    "base_commit": "17343eb4fed55d05c349b145119539501f92ad47",
+    "base_commit": "68637353f55758d398c27f89be0ee7c1b52f7389",
     "first_release": null,
     "owner_tasks": [
       "#184",
@@ -37,7 +37,8 @@
       "B-11c5",
       "B-11c6",
       "B-11c7a",
-      "B-11c7b"
+      "B-11c7b",
+      "B-11c8"
     ]
   },
   "enums": {
@@ -72,11 +73,11 @@
   "expected_counts": {
     "root_entrypoints": 3,
     "excluded_preamble_implementation_bindings": 7,
-    "nodes_canonical_bindings": 273,
+    "nodes_canonical_bindings": 275,
     "nodes_legacy_bindings": 27,
     "mapped_public_classes": 18,
     "unmapped_classes": 2,
-    "root_residual_functions": 33,
+    "root_residual_functions": 31,
     "root_residual_classes": 0,
     "root_residual_globals": 28,
     "runtime_binders": 28,
@@ -157,13 +158,17 @@
     ],
     "AIO_GENERATION_DEFAULT_SETTINGS": [
       "easyuse_anima.aio.generation_normalization",
-      "easyuse_anima.aio.output"
+      "easyuse_anima.aio.output",
+      "easyuse_anima.nodes.aio_nodes"
     ],
     "AIO_GENERATION_SETTINGS_SCHEMA": [
       "easyuse_anima.aio.generation_normalization"
     ],
     "AIO_GENERATION_SETTINGS_VERSION": [
       "easyuse_anima.aio.generation_normalization"
+    ],
+    "AIO_INPUT_DEFAULT_SETTINGS": [
+      "easyuse_anima.nodes.aio_nodes"
     ],
     "AIO_PREVIEW_CACHE_FORMAT": [
       "easyuse_anima.aio.preview"
@@ -2756,6 +2761,8 @@
       "id": "nodes_canonical_bindings:easyuse_anima.nodes.aio_nodes:transitional_private_seam",
       "surface": "nodes_canonical_bindings",
       "symbols": {
+        "_aio_generation_settings_json": "_aio_generation_settings_json",
+        "_aio_input_settings_json": "_aio_input_settings_json",
         "_bind_aio_node_runtime": "_bind_aio_node_runtime",
         "_easy_use_anima_input_signature": "_easy_use_anima_input_signature",
         "_require_easy_use_anima_input": "_require_easy_use_anima_input"
@@ -3982,8 +3989,6 @@
         "_aio_detailer_target_defaults": "_aio_detailer_target_defaults",
         "_aio_detailer_target_order": "_aio_detailer_target_order",
         "_aio_final_fit_size": "_aio_final_fit_size",
-        "_aio_generation_settings_json": "_aio_generation_settings_json",
-        "_aio_input_settings_json": "_aio_input_settings_json",
         "_aio_usdu_auto_tile_dimension": "_aio_usdu_auto_tile_dimension",
         "_aio_usdu_tile_plan": "_aio_usdu_tile_plan",
         "_aio_usdu_tile_size": "_aio_usdu_tile_size",

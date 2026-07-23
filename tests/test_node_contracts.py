@@ -37,6 +37,7 @@ from easyuse_anima.lora import preset as lora_preset
 from easyuse_anima.naia import client as naia_client
 from easyuse_anima.naia import resolution as naia_resolution
 from easyuse_anima.nodes import (
+    aio_nodes,
     image_nodes,
     impact_detailer_nodes,
     input_types,
@@ -925,6 +926,74 @@ class AioRuntimeSeedMoveContractTests(unittest.TestCase):
             package_name = package_nodes.__package__
             package_sampling = sys.modules[f"{package_name}.easyuse_anima.aio.sampling"]
             self._assert_contract(package_nodes, package_sampling)
+
+
+class AioWidgetDefaultSerializerMoveContractTests(unittest.TestCase):
+    def _assert_contract(self, root_module, canonical_module):
+        self.assertIs(
+            root_module._aio_input_settings_json,
+            canonical_module._aio_input_settings_json,
+        )
+        self.assertIs(
+            root_module._aio_generation_settings_json,
+            canonical_module._aio_generation_settings_json,
+        )
+
+        input_defaults = {"schema": "입력"}
+        generation_defaults = {"schema": "생성"}
+        dumps_calls = []
+
+        def dumps(value, *, ensure_ascii, separators):
+            dumps_calls.append((value, ensure_ascii, separators))
+            return "input-json" if value is input_defaults else "generation-json"
+
+        with (
+            patch.object(root_module, "json", types.SimpleNamespace(dumps=dumps)),
+            patch.object(root_module, "AIO_INPUT_DEFAULT_SETTINGS", input_defaults),
+            patch.object(
+                root_module,
+                "AIO_GENERATION_DEFAULT_SETTINGS",
+                generation_defaults,
+            ),
+        ):
+            self.assertEqual(canonical_module._aio_input_settings_json(), "input-json")
+            self.assertEqual(
+                canonical_module._aio_generation_settings_json(),
+                "generation-json",
+            )
+
+        self.assertEqual(
+            dumps_calls,
+            [
+                (input_defaults, False, (",", ":")),
+                (generation_defaults, False, (",", ":")),
+            ],
+        )
+
+        mutable_defaults = {"schema": "가"}
+        with patch.object(
+            root_module,
+            "AIO_INPUT_DEFAULT_SETTINGS",
+            mutable_defaults,
+        ):
+            self.assertEqual(
+                canonical_module._aio_input_settings_json(),
+                '{"schema":"가"}',
+            )
+            mutable_defaults["version"] = 1
+            self.assertEqual(
+                canonical_module._aio_input_settings_json(),
+                '{"schema":"가","version":1}',
+            )
+
+    def test_root_aliases_and_call_time_serialization_inputs(self):
+        self._assert_contract(nodes, aio_nodes)
+
+    def test_package_aliases_and_call_time_serialization_inputs(self):
+        with _loaded_package_entrypoint() as (_, package_nodes):
+            package_name = package_nodes.__package__
+            package_aio_nodes = sys.modules[f"{package_name}.easyuse_anima.nodes.aio_nodes"]
+            self._assert_contract(package_nodes, package_aio_nodes)
 
 
 class ComfyAdapterMoveContractTests(unittest.TestCase):
