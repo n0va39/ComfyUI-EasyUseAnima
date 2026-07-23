@@ -223,6 +223,31 @@ def _deterministic_comfy_inputs():
                 "_prompt_translation_change_key"
             ],
         ),
+        patch.multiple(
+            prompt_advanced_nodes,
+            resolve_metadata_filter_words=replacements[
+                "resolve_metadata_filter_words"
+            ],
+            resolve_naia_settings=replacements["resolve_naia_settings"],
+            _prompt_translation_change_key=replacements[
+                "_prompt_translation_change_key"
+            ],
+            wildcard_sources_signature=replacements[
+                "wildcard_sources_signature"
+            ],
+        ),
+        patch.multiple(
+            regional_nodes,
+            resolve_metadata_filter_words=replacements[
+                "resolve_metadata_filter_words"
+            ],
+            _prompt_translation_change_key=replacements[
+                "_prompt_translation_change_key"
+            ],
+            wildcard_sources_signature=replacements[
+                "wildcard_sources_signature"
+            ],
+        ),
         patch_comfy_helper(
             nodes,
             "_comfy_max_resolution",
@@ -2594,14 +2619,17 @@ class WorkflowLookupMoveContractTests(unittest.TestCase):
             for adapter in (
                 wildcard_nodes,
                 naia_nodes,
-                prompt_advanced_nodes,
-                regional_nodes,
             ):
                 with self.subTest(adapter=adapter.__name__):
                     self.assertIs(
                         adapter._get_workflow_node(None, "3"),
                         patched_result,
                     )
+
+    def test_retired_prompt_adapters_use_the_canonical_workflow_lookup(self):
+        for adapter in (prompt_advanced_nodes, regional_nodes):
+            with self.subTest(adapter=adapter.__name__):
+                self.assertIs(adapter._get_workflow_node, workflow._get_workflow_node)
 
 
 class InputTypeMoveContractTests(unittest.TestCase):
@@ -3517,6 +3545,9 @@ class PromptAdvancedMoveContractTests(unittest.TestCase):
 
     def test_root_advanced_objects_are_direct_canonical_aliases(self):
         self.assertFalse(hasattr(prompt_advanced, "_bind_advanced_runtime"))
+        self.assertFalse(
+            hasattr(prompt_advanced_nodes, "_bind_prompt_advanced_node_runtime")
+        )
         for name in (*self.RETIRED_NODE_CLASSES, *self.RETIRED_ADVANCED_ALIASES):
             with self.subTest(retired=name):
                 self.assertFalse(hasattr(nodes, name))
@@ -3567,16 +3598,20 @@ class PromptAdvancedMoveContractTests(unittest.TestCase):
             (prompt_advanced_nodes.EasyUseAnimaPromptStudioAdvanced,),
         )
 
-    def test_root_monkeypatches_drive_the_canonical_advanced_change_key(self):
+    def test_canonical_monkeypatches_drive_the_advanced_change_key(self):
         with (
-            patch.object(nodes, "_stable_change_key", side_effect=lambda value: value) as stable,
             patch.object(
-                nodes,
+                prompt_advanced_nodes,
+                "_stable_change_key",
+                side_effect=lambda value: value,
+            ) as stable,
+            patch.object(
+                prompt_advanced_nodes,
                 "_prompt_translation_change_key",
                 return_value={"bound": "translation"},
             ) as translation_key,
             patch.object(
-                nodes,
+                prompt_advanced_nodes,
                 "resolve_metadata_filter_words",
                 return_value="bound filters",
             ) as resolve_filters,
@@ -3590,7 +3625,7 @@ class PromptAdvancedMoveContractTests(unittest.TestCase):
         translation_key.assert_called_once_with()
         resolve_filters.assert_called_once_with()
 
-    def test_root_naia_class_monkeypatch_drives_advanced_and_extend(self):
+    def test_canonical_naia_monkeypatch_drives_advanced_and_extend(self):
         request_bodies = []
 
         class BoundNAIARandomPrompt:
@@ -3630,9 +3665,21 @@ class PromptAdvancedMoveContractTests(unittest.TestCase):
         ])
 
         with (
-            patch.object(nodes, "EasyUseAnimaNAIARandomPrompt", BoundNAIARandomPrompt),
-            patch.object(nodes, "resolve_naia_settings", return_value=settings),
-            patch.object(nodes, "_post_random", side_effect=post_random),
+            patch.object(
+                prompt_advanced_nodes,
+                "EasyUseAnimaNAIARandomPrompt",
+                BoundNAIARandomPrompt,
+            ),
+            patch.object(
+                prompt_advanced_nodes,
+                "resolve_naia_settings",
+                return_value=settings,
+            ),
+            patch.object(
+                prompt_advanced_nodes,
+                "_post_random",
+                side_effect=post_random,
+            ),
         ):
             advanced = prompt_advanced_nodes.EasyUseAnimaPromptStudioAdvanced().build(
                 True,
@@ -3728,6 +3775,7 @@ class RegionalMoveContractTests(unittest.TestCase):
 
     def test_root_regional_objects_are_direct_canonical_aliases(self):
         self.assertFalse(hasattr(prompt_regional, "_bind_regional_runtime"))
+        self.assertFalse(hasattr(regional_nodes, "_bind_regional_node_runtime"))
         for name in self.RETIRED_REGIONAL_ALIASES:
             with self.subTest(retired=name):
                 self.assertFalse(hasattr(nodes, name))

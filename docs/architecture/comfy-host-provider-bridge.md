@@ -1407,10 +1407,76 @@ Implementation result:
   provider-then-root, five root-only, and two explicit callbacks; and
 - `nodes.py` is 1,750 lines, down 13 lines from the B-11c30c2 base.
 
+### B-11c30c2b — Advanced / Regional adapter Move
+
+- **State:** COMPLETE in PR #345
+- **Owner:** #184, prerequisite #167 S167-01a
+- **Type:** Move
+- **Base:** `dev@b69d33857ef85fb81388f02e9ff1cff195a092d1`
+
+Pre-edit inventory:
+
+- `_bind_prompt_advanced_node_runtime` and `_bind_regional_node_runtime` are the
+  only owned binders;
+- 72 bind-time global slots cover 55 unique names;
+- 69 root resolver slots cover 53 unique names;
+- Regional owns the only provider slot, `_encode_with_comfy_clip`;
+- three direct root dependency slots cover `_FlexibleOptionalInputType` and
+  `_resolve_comfy_host_helper`;
+- repository tests replace 21 family slots over 13 unique names; this remains
+  migration-cost evidence, not public compatibility; and
+- both real build paths call
+  `easyuse_anima.seed.compatibility._consume_reserved_wildcard_next_seed`,
+  whose behavior-preserving canonical owner was completed by S167-01a / PR
+  #344.
+
+Allowed production files are `nodes.py`,
+`easyuse_anima/nodes/prompt_advanced_nodes.py`, and
+`easyuse_anima/nodes/regional_nodes.py`. Gate, focused-test, and deterministic
+fixture updates may touch only:
+
+- `tests/test_node_contracts.py`;
+- `tests/test_prompt_corrector.py`;
+- `tests/test_prompt_studio_regional.py`;
+- `tests/test_naia_settings.py`;
+- `tests/test_nodes_module_analyzer.py`;
+- `tests/test_python_compatibility_surface.py`;
+- `tests/fixtures/comfy_host_compatibility.v1.json`;
+- `tests/fixtures/python_backend_baseline.json`;
+- `tests/fixtures/python_compatibility_surface.v1.json`;
+- `docs/architecture/comfy-host-provider-bridge.md`;
+- `docs/architecture/python-backend-execution-roadmap.md`; and
+- `docs/architecture/python-compatibility-shims.md`.
+
+This Move must preserve schemas, mapped-class and input-type identity, prompt
+and Regional conditioning outputs, call-time Comfy provider lookup order,
+NAIA and optional-dependency timing, seed reservation payloads and pop order,
+wildcard seed arithmetic, warnings/errors, and saved workflows. It must not
+add a callback/binder, import root `nodes.py` from the canonical package, copy
+seed or Wildcard behavior, or begin S167-02 reservation behavior.
+
+Implementation result:
+
+- root no longer imports or invokes the two binders, and both canonical binder
+  definitions plus their bind-time mutation state are absent;
+- Advanced imports its canonical common, Prompt, seed, NAIA, workflow, and
+  input-type owners directly. Its legacy settings fallback remains explicit,
+  and the existing Prompt service's call-time Wildcard module resolver
+  preserves the no-eager-NumPy boundary;
+- Regional imports canonical Prompt/seed/workflow owners directly and resolves
+  CLIP encoding through the existing E-07 provider at call time;
+- tests that previously patched root only to drive Advanced or Regional now
+  patch the canonical adapter owner;
+- mapped classes and input types remain direct canonical identities, and seed
+  reservation payload parsing remains owned by S167-01a;
+- the Comfy host ledger remains 22 slots across 15 modules;
+- the remaining audit is 14 binders in two families: eight provider-then-root,
+  four root-only, and two explicit callbacks; and
+- `nodes.py` is 1,662 lines, down 15 lines from the S167-01a base.
+
 ### B-11d — Final root shim
 
-- **State:** BLOCKED by the remaining B-11c30 family Moves and the separate
-  seed/Wildcard decision for the final non-provider function
+- **State:** BLOCKED by the remaining AiO and Wildcard/NAIA binder families
 - **Owner:** #184
 - **Type:** Move
 
@@ -1426,10 +1492,9 @@ Final conditions remain:
 - actual package/Registry archive closure passes; and
 - representative live ComfyUI execution is recorded.
 
-The provider bridge itself does not authorize moving
-`_consume_reserved_wildcard_next_seed`. S167-01a / PR #344 is the separate
-#167 behavior-preserving owner Move; it does not also authorize c2b binder
-retirement.
+S167-01a / PR #344 supplies the behavior-preserving reserved-seed owner, and
+B-11c30c2b / PR #345 consumes it directly from both canonical adapters. The
+root aliases remain compatibility surface; S167-02 Behavior is still separate.
 
 ## 6. Updated critical path
 
@@ -1453,7 +1518,7 @@ COMPLETE: B-11c30c Prompt/Regional split gate / PR #339
 COMPLETE: B-11c30c1 Prompt/Regional service binder Move / PR #340
 COMPLETE: B-11c30c2 Prompt/Regional node-adapter split gate / PR #341
 COMPLETE: B-11c30c2a Prompt Data / Classic Prompt adapter Move / PR #342
-BLOCKED:  B-11c30c2b Advanced / Regional adapter Move (#167/D-12)
+COMPLETE: B-11c30c2b Advanced / Regional adapter Move / PR #345
 BLOCKED:  B-11d final root shim
 
 LATER:    #167 seed reservation

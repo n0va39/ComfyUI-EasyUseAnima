@@ -118,7 +118,7 @@
         },
         {
           "module": "easyuse_anima.nodes.regional_nodes",
-          "binder": "_bind_regional_node_runtime",
+          "binder": null,
           "root_observation": "call_time"
         },
         {

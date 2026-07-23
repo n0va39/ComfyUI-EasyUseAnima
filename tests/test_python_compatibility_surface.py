@@ -94,13 +94,8 @@ PROMPT_SERVICE_RUNTIME_BINDERS = (
 PROMPT_NODE_ADAPTER_RETIRED_RUNTIME_BINDERS = (
     "_bind_prompt_data_node_runtime",
     "_bind_prompt_node_runtime",
-)
-PROMPT_NODE_ADAPTER_SEED_BLOCKED_RUNTIME_BINDERS = (
     "_bind_regional_node_runtime",
     "_bind_prompt_advanced_node_runtime",
-)
-PROMPT_NODE_ADAPTER_RUNTIME_BINDERS = (
-    *PROMPT_NODE_ADAPTER_SEED_BLOCKED_RUNTIME_BINDERS,
 )
 RUNTIME_BINDER_FAMILIES = {
     "aio": (
@@ -117,7 +112,6 @@ RUNTIME_BINDER_FAMILIES = {
         "_bind_aio_conditioning_runtime",
         "_bind_aio_node_runtime",
     ),
-    "prompt_node_adapters": PROMPT_NODE_ADAPTER_RUNTIME_BINDERS,
     "wildcard_naia": (
         "_bind_wildcard_node_runtime",
         "_bind_naia_node_runtime",
@@ -2138,6 +2132,7 @@ def _build_document() -> dict[str, Any]:
                 "B-11c30c1",
                 "B-11c30c2",
                 "B-11c30c2a",
+                "B-11c30c2b",
             ],
         },
         "enums": {
@@ -2150,14 +2145,14 @@ def _build_document() -> dict[str, Any]:
         "expected_counts": {
             "root_entrypoints": 3,
             "excluded_preamble_implementation_bindings": 5,
-            "nodes_canonical_bindings": 284,
+            "nodes_canonical_bindings": 282,
             "nodes_legacy_bindings": 27,
             "mapped_public_classes": 18,
             "unmapped_classes": 2,
             "root_residual_functions": 0,
             "root_residual_classes": 0,
             "root_residual_globals": 24,
-            "runtime_binders": 16,
+            "runtime_binders": 14,
             "direct_nodes_import_test_files": 21,
         },
         "mapped_public_classes": sorted(mapped_classes),
@@ -2389,7 +2384,7 @@ class PythonCompatibilitySurfaceTests(unittest.TestCase):
             len(self.document["direct_nodes_import_test_files"]),
             counts["direct_nodes_import_test_files"],
         )
-        self.assertEqual(len(set(self.document["runtime_binders"])), 16)
+        self.assertEqual(len(set(self.document["runtime_binders"])), 14)
         self.assertEqual(len(set(self.document["direct_nodes_import_test_files"])), 21)
 
     def test_runtime_binder_audit_covers_provider_and_root_names(self):
@@ -2397,22 +2392,22 @@ class PythonCompatibilitySurfaceTests(unittest.TestCase):
         self.assertEqual(
             audit["summary"],
             {
-                "binder_count": 16,
-                "family_count": 3,
+                "binder_count": 14,
+                "family_count": 2,
                 "mode_counts": {
-                    "comfy_provider_then_root": 9,
-                    "root_globals": 5,
+                    "comfy_provider_then_root": 8,
+                    "root_globals": 4,
                     "explicit_callbacks": 2,
                 },
-                "unique_resolver_names": 237,
-                "unique_root_resolver_names": 232,
+                "unique_resolver_names": 192,
+                "unique_root_resolver_names": 187,
                 "unique_provider_resolver_names": 5,
-                "unique_direct_root_dependencies": 10,
-                "direct_root_dependency_slots": 20,
-                "provider_consumer_slots": 14,
-                "provider_consumer_modules": 9,
-                "repository_replacement_names": 142,
-                "repository_replacement_files": 18,
+                "unique_direct_root_dependencies": 9,
+                "direct_root_dependency_slots": 17,
+                "provider_consumer_slots": 13,
+                "provider_consumer_modules": 8,
+                "repository_replacement_names": 138,
+                "repository_replacement_files": 16,
             },
         )
         self.assertEqual(
@@ -2479,24 +2474,16 @@ class PythonCompatibilitySurfaceTests(unittest.TestCase):
                     "call_time_resolver",
                 )
 
-    def test_prompt_service_and_unblocked_node_adapter_binders_are_retired(self):
+    def test_prompt_service_and_node_adapter_binders_are_retired(self):
         audit = self.document["runtime_binder_audit"]
         self.assertNotIn("prompt_regional", audit["families"])
         self.assertNotIn("prompt_services", audit["families"])
-        self.assertEqual(
-            audit["families"]["prompt_node_adapters"],
-            list(PROMPT_NODE_ADAPTER_RUNTIME_BINDERS),
-        )
+        self.assertNotIn("prompt_node_adapters", audit["families"])
         self.assertEqual(
             list(PROMPT_NODE_ADAPTER_RETIRED_RUNTIME_BINDERS),
             [
                 "_bind_prompt_data_node_runtime",
                 "_bind_prompt_node_runtime",
-            ],
-        )
-        self.assertEqual(
-            list(PROMPT_NODE_ADAPTER_SEED_BLOCKED_RUNTIME_BINDERS),
-            [
                 "_bind_regional_node_runtime",
                 "_bind_prompt_advanced_node_runtime",
             ],
@@ -2516,6 +2503,10 @@ class PythonCompatibilitySurfaceTests(unittest.TestCase):
             "_bind_prompt_correction_runtime": "easyuse_anima.prompt.correction",
             "_bind_prompt_data_node_runtime": "easyuse_anima.nodes.prompt_data_nodes",
             "_bind_prompt_node_runtime": "easyuse_anima.nodes.prompt_nodes",
+            "_bind_regional_node_runtime": "easyuse_anima.nodes.regional_nodes",
+            "_bind_prompt_advanced_node_runtime": (
+                "easyuse_anima.nodes.prompt_advanced_nodes"
+            ),
         }
         for binder, module in retired_modules.items():
             functions = {
@@ -2525,36 +2516,6 @@ class PythonCompatibilitySurfaceTests(unittest.TestCase):
             }
             with self.subTest(module=module, binder=binder):
                 self.assertNotIn(binder, functions)
-        entries = {
-            entry["binder"]: (entry["module"], entry["mode"])
-            for entry in audit["entries"]
-            if entry["binder"] in PROMPT_NODE_ADAPTER_RUNTIME_BINDERS
-        }
-        self.assertEqual(
-            entries,
-            {
-                "_bind_regional_node_runtime": (
-                    "easyuse_anima.nodes.regional_nodes",
-                    "comfy_provider_then_root",
-                ),
-                "_bind_prompt_advanced_node_runtime": (
-                    "easyuse_anima.nodes.prompt_advanced_nodes",
-                    "root_globals",
-                ),
-            },
-        )
-        entry_by_binder = {
-            entry["binder"]: entry
-            for entry in audit["entries"]
-            if entry["binder"] in PROMPT_NODE_ADAPTER_RUNTIME_BINDERS
-        }
-        for binder in PROMPT_NODE_ADAPTER_SEED_BLOCKED_RUNTIME_BINDERS:
-            with self.subTest(seed_blocked=binder):
-                self.assertIn(
-                    "_consume_reserved_wildcard_next_seed",
-                    entry_by_binder[binder]["root_resolver_names"],
-                )
-
     def test_string_runtime_resolvers_keep_production_seams_transitional(self):
         representative = {
             "_run_aio_legacy_generation",
@@ -2562,7 +2523,7 @@ class PythonCompatibilitySurfaceTests(unittest.TestCase):
             "_AIO_FIRST_PASS_CACHE_ORDER",
             "_load_aio_resources_from_input_context",
             "_sample_latent_with_aio_backend",
-            "_advanced_fields_json",
+            "_aio_generation_settings_json",
         }
         consumers = self.document["runtime_resolver_consumers"]
         classifications = {

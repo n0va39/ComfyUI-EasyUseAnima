@@ -3,9 +3,9 @@
 ## Document status
 
 - Status: operational execution runbook
-- Snapshot date: 2026-07-23
+- Snapshot date: 2026-07-24
 - Snapshot branch: `dev`
-- Integrated `dev` snapshot commit: `53d92aa944663a18ee593c027b90fa0b8e9444be`
+- Integrated `dev` snapshot commit: `b69d33857ef85fb81388f02e9ff1cff195a092d1`
 - Scope: Python backend only
 - Target architecture: [`python-backend.md`](python-backend.md)
 - Architecture decisions: [ADR-001](adr-001-modular-monolith.md) and
@@ -31,7 +31,7 @@ merged PR, the owning issue's evidence record, and every stated exit gate.
 | Phase | Integrated snapshot / open implementation state | Remaining exit work |
 | --- | --- | --- |
 | A - baseline | Complete; #191 is closed | Keep fixtures and analyzers current during later moves |
-| B - `nodes.py` extraction | Integrated through B-11c30c2a / PR #342 / `ddcc251` | Complete S167-01a, retire the Advanced/Regional adapter binders separately, complete the remaining binder families, then perform the final root shim as a separate Move |
+| B - `nodes.py` extraction | Integrated through S167-01a / PR #344; B-11c30c2b completes in PR #345 | Complete the remaining AiO and Wildcard/NAIA binder families, then perform the final root shim as a separate Move |
 | C - feature contracts/behavior | Partially complete through S167-01a / PR #344 | Continue #167 and #169 in separate Contract/Move/Behavior PRs |
 | D - root consolidation | Not started | Execute #186 feature by feature after the corresponding behavior contracts are stable |
 | E - runtime ownership | Partial: E-02a and E-07a/E-07b integrated | Continue #187 only where canonical feature owners and explicit contracts exist |
@@ -42,10 +42,9 @@ merged PR, the owning issue's evidence record, and every stated exit gate.
 ### Measured Phase B progress
 
 - The Phase A baseline recorded root `nodes.py` at 12,663 lines.
-- Against the integrated `dev` snapshot above, root `nodes.py` measures 1,850
-  lines after B-11c29b3.
-- The mechanical extraction has removed 10,813
-  lines, approximately 85.4% of the Phase A baseline, while preserving the root
+- In B-11c30c2b / PR #345, root `nodes.py` measures 1,662 lines.
+- The mechanical extraction has removed 11,001
+  lines, approximately 86.9% of the Phase A baseline, while preserving the root
   compatibility surface.
 - B-01 through B-09b2 are integrated. The latest completed implementation slice
   is the AiO generator adapter Move in PR #270.
@@ -114,7 +113,9 @@ merged PR, the owning issue's evidence record, and every stated exit gate.
   dependency has a canonical behavior-preserving owner. B-11c30c2a completes
   the unblocked adapter Move in PR #342. S167-01 / PR #343 freezes the contract
   and exact owner-Move boundary. S167-01a / PR #344 supplies that canonical
-  compatibility owner; c2b is the next separate adapter Move.
+  compatibility owner. B-11c30c2b / PR #345 retires the final two Prompt
+  node-adapter binders, leaving 14 binders across the AiO and Wildcard/NAIA
+  families.
 
 ### Current quality baseline
 
@@ -356,7 +357,7 @@ surfaces. AiO mechanical extraction must not start until #168 exits.
 | 11 | B-09b2 AiO generator adapter move | COMPLETE on `dev` | Move | #184 | PR #270 / `57d40b4` |
 | 12 | B-10a machine-readable compatibility audit | COMPLETE on `dev` | Contract/gate | #184/#188 | PR #271 / `3c7b857` |
 | 13 | B-10b private alias reduction | COMPLETE on `dev` through PR #291 / `c6b4680` | Contract/cleanup, split PRs | #184/#188 | Audited alias surface integrated |
-| 14 | B-11 registration/bootstrap/root shim | IN PROGRESS through B-11c30c2a PR #342; S167-01a / PR #344 unblocks the separate c2b adapter Move | Move/Contract, split PRs | #184 | S167-01 contract |
+| 14 | B-11 registration/bootstrap/root shim | IN PROGRESS through B-11c30c2b PR #345; remaining AiO and Wildcard/NAIA binder Moves precede B-11d | Move/Contract, split PRs | #184 | S167-01 contract |
 | 15 | S167 backend seed reservation series | S167-01 Contract COMPLETE in PR #343 and S167-01a consumer Move COMPLETE in PR #344; Behavior and Adapter remain | Contract then Move then Behavior | #167 | Canonical AiO/node seams |
 | 16 | A169 stage pipeline series | BLOCKED by #168 and B exit | Contract then Behavior | #169 | Typed config and mechanical AiO move |
 | 17 | A169 first-pass cache policy | BLOCKED by stage/cache ownership seam | Behavior | #169 | Mechanical cache move and benchmark harness |
@@ -1037,6 +1038,12 @@ unchanged. The separate legacy Wildcard unsupported alias remains for D-12.
     Classic Prompt uses its canonical prompt, settings, and legacy
     knowledge-base owners directly. Advanced/Regional binders and
     seed-reservation behavior remain outside this Move.
+  - B-11c30c2b retires only `_bind_prompt_advanced_node_runtime` and
+    `_bind_regional_node_runtime` in PR #345. Both adapters import canonical
+    common, Prompt, workflow, and S167-01a seed owners directly. Regional keeps
+    CLIP encoding behind the existing E-07 provider, while Advanced reuses the
+    Prompt service's call-time Wildcard module resolver to preserve
+    optional-dependency timing. Fourteen AiO and Wildcard/NAIA binders remain.
   - The final B-11c cutover removes remaining root execution ownership and
     leaves the explicit supported `nodes.py` compatibility shim.
 - Add `easyuse_anima/registration.py` as pure mapping composition. It performs no
@@ -1088,7 +1095,8 @@ rollback units before S167-02. PR #343 completes the contract without changing
 any existing runtime, payload bytes, or reservation behavior. S167-01a uses the
 same document for its exact Move inventory and allowed-file gate. PR #344
 completes that Move while preserving the root aliases and both node-adapter
-binders for B-11c30c2b.
+binders for B-11c30c2b. PR #345 then retires those two binders without changing
+the seed contract or beginning S167-02 Behavior.
 
 Do not mix this sequence into B-09 or #169 stages.
 
