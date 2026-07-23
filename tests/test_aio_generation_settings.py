@@ -22,6 +22,7 @@ from easyuse_anima.aio.generation_settings import (
     _aio_generation_config_from_dict,
     _aio_generation_config_to_dict,
 )
+from tests.comfy_host_fakes import patch_comfy_helper
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -36,12 +37,18 @@ def _deterministic_capabilities(
     impact_schedulers=("sgm_uniform",),
     max_resolution=16384,
 ):
-    with patch.multiple(
-        nodes,
-        _comfy_sampler_names=lambda: list(samplers),
-        _comfy_scheduler_names=lambda: list(schedulers),
-        _impact_scheduler_names=lambda: list(impact_schedulers),
-        _comfy_max_resolution=lambda: max_resolution,
+    with (
+        patch.multiple(
+            nodes,
+            _comfy_sampler_names=lambda: list(samplers),
+            _comfy_scheduler_names=lambda: list(schedulers),
+            _impact_scheduler_names=lambda: list(impact_schedulers),
+        ),
+        patch_comfy_helper(
+            nodes,
+            "_comfy_max_resolution",
+            return_value=max_resolution,
+        ),
     ):
         yield
 

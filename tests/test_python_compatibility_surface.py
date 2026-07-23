@@ -2127,7 +2127,7 @@ class ComfyHostCompatibilityLedgerTests(unittest.TestCase):
             )
             self.assertEqual(
                 entry["replacement_mechanism"],
-                "migrate_repository_tests_to_fake_provider_or_explicit_lookup_in_E-07b",
+                "repository_tests_use_fake_provider_or_explicit_canonical_lookup",
             )
             self.assertTrue(entry["root_removal_gate"])
             self.assertTrue(entry["host_lookup_order"])
@@ -2206,7 +2206,7 @@ class ComfyHostCompatibilityLedgerTests(unittest.TestCase):
                 (
                     "resolve_comfy_host_helper("
                     "name: str, fallback: Callable[[str], Any]"
-                    ") -> Callable[..., Any]"
+                    ") -> Any"
                 ),
             ],
         )

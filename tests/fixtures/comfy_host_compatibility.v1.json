@@ -16,7 +16,7 @@
   "expected_counts": {
     "production_consumer_slots": 22,
     "unique_production_modules": 15,
-    "root_monkeypatch_test_files": 16,
+    "root_monkeypatch_test_files": 0,
     "canonical_monkeypatch_test_files": 2
   },
   "external_evidence": {
@@ -69,12 +69,7 @@
         }
       ],
       "repository_monkeypatch_consumers": {
-        "root": [
-          "tests/test_aio_generation_migrations.py",
-          "tests/test_aio_generation_settings.py",
-          "tests/test_aio_schema_contract.py",
-          "tests/test_node_contracts.py"
-        ],
+        "root": [],
         "canonical": [
           "tests/test_node_contracts.py",
           "tests/test_sam3_nodes.py"
@@ -100,7 +95,7 @@
       "compatibility_classification": "provider_owned",
       "root_seam_classification": "unsupported_test_only",
       "call_time_replacement_required": false,
-      "replacement_mechanism": "migrate_repository_tests_to_fake_provider_or_explicit_lookup_in_E-07b",
+      "replacement_mechanism": "repository_tests_use_fake_provider_or_explicit_canonical_lookup",
       "root_removal_gate": "E-07b provider parity and repository root-patch migration, then #184 B-11c29a",
       "owner_issue": "#323",
       "move_owner": "#184 B-11c29a"
@@ -166,14 +161,7 @@
         }
       ],
       "repository_monkeypatch_consumers": {
-        "root": [
-          "tests/test_aio_conditioning.py",
-          "tests/test_aio_legacy_generation.py",
-          "tests/test_aio_nodes.py",
-          "tests/test_prompt_corrector.py",
-          "tests/test_prompt_studio_regional.py",
-          "tests/test_sam3_nodes.py"
-        ],
+        "root": [],
         "canonical": []
       },
       "confirmed_external_consumers": [],
@@ -198,7 +186,7 @@
       "compatibility_classification": "pure_helper_with_provider_input",
       "root_seam_classification": "unsupported_test_only",
       "call_time_replacement_required": false,
-      "replacement_mechanism": "migrate_repository_tests_to_fake_provider_or_explicit_lookup_in_E-07b",
+      "replacement_mechanism": "repository_tests_use_fake_provider_or_explicit_canonical_lookup",
       "root_removal_gate": "E-07b injected provider lookup parity and repository root-patch migration, then #184 B-11c29d",
       "owner_issue": "#323",
       "move_owner": "#184 B-11c29d"
@@ -257,18 +245,7 @@
         }
       ],
       "repository_monkeypatch_consumers": {
-        "root": [
-          "tests/test_aio_model_preparation.py",
-          "tests/test_aio_nodes.py",
-          "tests/test_aio_output.py",
-          "tests/test_aio_preview.py",
-          "tests/test_aio_resources.py",
-          "tests/test_aio_sampling.py",
-          "tests/test_comfy_adapters.py",
-          "tests/test_node_contracts.py",
-          "tests/test_prompt_corrector.py",
-          "tests/test_sam3_nodes.py"
-        ],
+        "root": [],
         "canonical": []
       },
       "confirmed_external_consumers": [],
@@ -292,7 +269,7 @@
       "compatibility_classification": "provider_owned",
       "root_seam_classification": "unsupported_test_only",
       "call_time_replacement_required": false,
-      "replacement_mechanism": "migrate_repository_tests_to_fake_provider_or_explicit_lookup_in_E-07b",
+      "replacement_mechanism": "repository_tests_use_fake_provider_or_explicit_canonical_lookup",
       "root_removal_gate": "E-07b fake-provider migration and lookup-order parity, then #184 B-11c29b",
       "owner_issue": "#323",
       "move_owner": "#184 B-11c29b"
@@ -321,9 +298,7 @@
         }
       ],
       "repository_monkeypatch_consumers": {
-        "root": [
-          "tests/test_sam3_nodes.py"
-        ],
+        "root": [],
         "canonical": []
       },
       "confirmed_external_consumers": [],
@@ -344,7 +319,7 @@
       "compatibility_classification": "provider_owned",
       "root_seam_classification": "unsupported_test_only",
       "call_time_replacement_required": false,
-      "replacement_mechanism": "migrate_repository_tests_to_fake_provider_or_explicit_lookup_in_E-07b",
+      "replacement_mechanism": "repository_tests_use_fake_provider_or_explicit_canonical_lookup",
       "root_removal_gate": "E-07b direct-mapping parity and SAM3 test injection, then #184 B-11c29b",
       "owner_issue": "#323",
       "move_owner": "#184 B-11c29b"
@@ -401,7 +376,7 @@
       "compatibility_classification": "provider_owned",
       "root_seam_classification": "unsupported_test_only",
       "call_time_replacement_required": false,
-      "replacement_mechanism": "migrate_repository_tests_to_fake_provider_or_explicit_lookup_in_E-07b",
+      "replacement_mechanism": "repository_tests_use_fake_provider_or_explicit_canonical_lookup",
       "root_removal_gate": "E-07b provider parity with no new root-patch dependency, then #184 B-11c29b",
       "owner_issue": "#323",
       "move_owner": "#184 B-11c29b"
@@ -448,9 +423,7 @@
         }
       ],
       "repository_monkeypatch_consumers": {
-        "root": [
-          "tests/test_aio_model_preparation.py"
-        ],
+        "root": [],
         "canonical": []
       },
       "confirmed_external_consumers": [],
@@ -473,7 +446,7 @@
       "compatibility_classification": "pure_helper_with_provider_input",
       "root_seam_classification": "unsupported_test_only",
       "call_time_replacement_required": false,
-      "replacement_mechanism": "migrate_repository_tests_to_fake_provider_or_explicit_lookup_in_E-07b",
+      "replacement_mechanism": "repository_tests_use_fake_provider_or_explicit_canonical_lookup",
       "root_removal_gate": "E-07b injected lookup and exact error parity, then #184 B-11c29c",
       "owner_issue": "#323",
       "move_owner": "#184 B-11c29c"
@@ -535,12 +508,7 @@
         }
       ],
       "repository_monkeypatch_consumers": {
-        "root": [
-          "tests/test_aio_model_preparation.py",
-          "tests/test_aio_nodes.py",
-          "tests/test_aio_output.py",
-          "tests/test_aio_sampling.py"
-        ],
+        "root": [],
         "canonical": []
       },
       "confirmed_external_consumers": [],
@@ -561,7 +529,7 @@
       "compatibility_classification": "pure_helper_with_provider_input",
       "root_seam_classification": "unsupported_test_only",
       "call_time_replacement_required": false,
-      "replacement_mechanism": "migrate_repository_tests_to_fake_provider_or_explicit_lookup_in_E-07b",
+      "replacement_mechanism": "repository_tests_use_fake_provider_or_explicit_canonical_lookup",
       "root_removal_gate": "E-07b injected lookup and exact error parity, then #184 B-11c29c",
       "owner_issue": "#323",
       "move_owner": "#184 B-11c29c"
@@ -625,7 +593,7 @@
         "easyuse_anima/infrastructure/comfy/wiring.py"
       ],
       "production_symbols": [
-        "resolve_comfy_host_helper(name: str, fallback: Callable[[str], Any]) -> Callable[..., Any]"
+        "resolve_comfy_host_helper(name: str, fallback: Callable[[str], Any]) -> Any"
       ],
       "test_files": [
         "tests/comfy_host_fakes.py",

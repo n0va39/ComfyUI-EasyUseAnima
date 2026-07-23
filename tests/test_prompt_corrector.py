@@ -12,6 +12,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 import autocomplete_dataset
+import nodes
 import settings as easyuse_settings
 from easyuse_anima.naia.client import _clean_prompt
 from easyuse_anima.naia.resolution import ADVANCED_RESOLUTION_BUCKETS
@@ -85,6 +86,7 @@ from settings import (
     resolve_prompt_studio_font_size,
 )
 from wildcard_engine import expand_wildcards
+from tests.comfy_host_fakes import patch_comfy_helper
 
 
 class PromptCorrectorTests(unittest.TestCase):
@@ -592,7 +594,7 @@ class PromptBuilderTests(unittest.TestCase):
             encoded_texts.append(text)
             return [[f"cond:{text}", {"encoded_text": text}]]
 
-        with patch("nodes._encode_with_comfy_clip", fake_encode):
+        with patch_comfy_helper(nodes, "_encode_with_comfy_clip", fake_encode):
             with patch("nodes._correct_builder_prompt", return_value="corrected prompt") as correct_mock:
                 positive = EasyUseAnimaArtistMixConditioning().encode(
                     object(),
@@ -606,7 +608,7 @@ class PromptBuilderTests(unittest.TestCase):
         correct_mock.assert_called_once_with("1girl, artist_a", artist_overrides="artist_a")
 
         encoded_texts.clear()
-        with patch("nodes._encode_with_comfy_clip", fake_encode):
+        with patch_comfy_helper(nodes, "_encode_with_comfy_clip", fake_encode):
             with patch("nodes._correct_builder_prompt") as correct_mock:
                 front_positive = EasyUseAnimaArtistMixConditioning().encode(
                     object(),
@@ -634,7 +636,7 @@ class PromptBuilderTests(unittest.TestCase):
             encoded_texts.append(text)
             return [[f"cond:{text}", {"encoded_text": text}]]
 
-        with patch("nodes._encode_with_comfy_clip", fake_encode):
+        with patch_comfy_helper(nodes, "_encode_with_comfy_clip", fake_encode):
             positive = EasyUseAnimaArtistMixConditioning().encode(
                 object(),
                 prompt="1girl",
@@ -655,7 +657,7 @@ class PromptBuilderTests(unittest.TestCase):
             encoded_texts.append(text)
             return [[f"cond:{text}", {"encoded_text": text}]]
 
-        with patch("nodes._encode_with_comfy_clip", fake_encode):
+        with patch_comfy_helper(nodes, "_encode_with_comfy_clip", fake_encode):
             positive = EasyUseAnimaArtistMixConditioning().encode(
                 object(),
                 prompt="1girl",
@@ -677,7 +679,7 @@ class PromptBuilderTests(unittest.TestCase):
             encoded_texts.append(text)
             return [[f"cond:{text}", {"encoded_text": text}]]
 
-        with patch("nodes._encode_with_comfy_clip", fake_encode):
+        with patch_comfy_helper(nodes, "_encode_with_comfy_clip", fake_encode):
             EasyUseAnimaArtistMixConditioning().encode(
                 object(),
                 prompt="1girl",
@@ -696,7 +698,15 @@ class PromptBuilderTests(unittest.TestCase):
                 calls.append((width, height, batch_size))
                 return ({"samples": "latent"},)
 
-        with patch("nodes._find_comfy_node_class", lambda node_id: FakeEmptyLatentImage if node_id == "EmptyLatentImage" else None):
+        with patch_comfy_helper(
+            nodes,
+            "_find_comfy_node_class",
+            lambda node_id: (
+                FakeEmptyLatentImage
+                if node_id == "EmptyLatentImage"
+                else None
+            ),
+        ):
             latent = _generate_empty_latent_with_comfy(832, 1216)
 
         self.assertEqual(latent, {"samples": "latent"})
@@ -714,7 +724,11 @@ class PromptBuilderTests(unittest.TestCase):
             },
         }
 
-        with patch("nodes._encode_with_comfy_clip", lambda clip, text: [[f"cond:{text}", {"encoded_text": text}]]):
+        with patch_comfy_helper(
+            nodes,
+            "_encode_with_comfy_clip",
+            lambda clip, text: [[f"cond:{text}", {"encoded_text": text}]],
+        ):
             with patch("nodes._generate_empty_latent_with_comfy", lambda width, height: {"samples": (width, height, 1)}):
                 patched_model, positive, negative, latent_image = EasyUseAnimaPromptDataConditioning().apply(
                     model,
@@ -764,7 +778,11 @@ class PromptBuilderTests(unittest.TestCase):
         }
 
         _SPECTRUM_ANIMA_MOD_GUIDANCE_OLD_SIGNATURE_WARNED.clear()
-        with patch("nodes._encode_with_comfy_clip", lambda clip, text: [[f"cond:{text}", {"encoded_text": text}]]):
+        with patch_comfy_helper(
+            nodes,
+            "_encode_with_comfy_clip",
+            lambda clip, text: [[f"cond:{text}", {"encoded_text": text}]],
+        ):
             with patch("nodes._generate_empty_latent_with_comfy", lambda width, height: {"samples": (width, height, 1)}):
                 with patch("nodes._find_spectrum_anima_mod_guidance_class", lambda: FakeAnimaModGuidance):
                     with patch("nodes.logger.warning") as warning_mock:
@@ -820,7 +838,11 @@ class PromptBuilderTests(unittest.TestCase):
         }
 
         _SPECTRUM_ANIMA_MOD_GUIDANCE_OLD_SIGNATURE_WARNED.clear()
-        with patch("nodes._encode_with_comfy_clip", lambda clip, text: [[f"cond:{text}", {"encoded_text": text}]]):
+        with patch_comfy_helper(
+            nodes,
+            "_encode_with_comfy_clip",
+            lambda clip, text: [[f"cond:{text}", {"encoded_text": text}]],
+        ):
             with patch("nodes._generate_empty_latent_with_comfy", lambda width, height: {"samples": (width, height, 1)}):
                 with patch("nodes._find_spectrum_anima_mod_guidance_class", lambda: FakeAnimaModGuidance):
                     with patch("nodes.logger.warning") as warning_mock:
@@ -897,7 +919,7 @@ class PromptBuilderTests(unittest.TestCase):
                 },
             ]]
 
-        with patch("nodes._encode_with_comfy_clip", fake_encode):
+        with patch_comfy_helper(nodes, "_encode_with_comfy_clip", fake_encode):
             with patch("nodes._blend_conditionings", fake_blend):
                 with patch("nodes._generate_empty_latent_with_comfy", lambda width, height: {"samples": (width, height, 1)}):
                     _model, positive, _negative, _latent = EasyUseAnimaPromptDataConditioning().apply(
@@ -935,7 +957,7 @@ class PromptBuilderTests(unittest.TestCase):
             encoded_texts.append(text)
             return [[f"cond:{text}", {"encoded_text": text}]]
 
-        with patch("nodes._encode_with_comfy_clip", fake_encode):
+        with patch_comfy_helper(nodes, "_encode_with_comfy_clip", fake_encode):
             with patch("nodes._generate_empty_latent_with_comfy", lambda width, height: {"samples": (width, height, 1)}):
                 _model, positive, _negative, _latent = EasyUseAnimaPromptDataConditioning().apply(
                     object(),
@@ -971,7 +993,7 @@ class PromptBuilderTests(unittest.TestCase):
             encoded_texts.append(text)
             return [[f"cond:{text}", {"encoded_text": text}]]
 
-        with patch("nodes._encode_with_comfy_clip", fake_encode):
+        with patch_comfy_helper(nodes, "_encode_with_comfy_clip", fake_encode):
             with patch("nodes._generate_empty_latent_with_comfy", lambda width, height: {"samples": (width, height, 1)}):
                 _model, positive, _negative, _latent = EasyUseAnimaPromptDataConditioning().apply(
                     object(),
@@ -1005,7 +1027,7 @@ class PromptBuilderTests(unittest.TestCase):
             delta_calls.append((artists, list(weights or []), kwargs))
             return [["tail", {"strength": kwargs.get("branch_strength")}]]
 
-        with patch("nodes._encode_with_comfy_clip", fake_encode):
+        with patch_comfy_helper(nodes, "_encode_with_comfy_clip", fake_encode):
             with patch("nodes._encode_artist_delta_rms", fake_delta):
                 with patch("nodes._generate_empty_latent_with_comfy", lambda width, height: {"samples": (width, height, 1)}):
                     _model, positive, _negative, _latent = EasyUseAnimaPromptDataConditioning().apply(
@@ -1051,7 +1073,7 @@ class PromptBuilderTests(unittest.TestCase):
             calls.append(("clustered", kwargs))
             return [["clustered", {}]]
 
-        with patch("nodes._encode_with_comfy_clip", fake_encode):
+        with patch_comfy_helper(nodes, "_encode_with_comfy_clip", fake_encode):
             with patch("nodes._encode_artist_delta_rms", fake_delta):
                 with patch("nodes._encode_artist_clustered", fake_clustered):
                     with patch("nodes._generate_empty_latent_with_comfy", lambda width, height: {"samples": (width, height, 1)}):

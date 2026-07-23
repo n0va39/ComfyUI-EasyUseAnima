@@ -7,6 +7,7 @@ from unittest.mock import Mock, patch
 
 import nodes
 from easyuse_anima.aio import preview
+from tests.comfy_host_fakes import patch_comfy_helper
 
 
 class AIOPreviewMoveTests(unittest.TestCase):
@@ -215,7 +216,11 @@ class AIOPreviewMoveTests(unittest.TestCase):
         with (
             patch.dict(sys.modules, {"folder_paths": None}),
             patch.object(nodes, "_image_tensor_size", return_value=(512, 768)),
-            patch.object(nodes, "_find_comfy_node_class", return_value=PreviewImage),
+            patch_comfy_helper(
+                nodes,
+                "_find_comfy_node_class",
+                return_value=PreviewImage,
+            ),
             patch.object(nodes, "_tag_aio_preview_images", tag),
             patch.object(nodes.logger, "warning") as warning,
         ):

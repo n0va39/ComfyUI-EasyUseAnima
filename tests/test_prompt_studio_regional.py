@@ -7,6 +7,7 @@ from unittest.mock import patch
 import nodes as easy_nodes
 from easyuse_anima.nodes import regional_nodes
 from easyuse_anima.prompt import regional as regional_service
+from tests.comfy_host_fakes import patch_comfy_helper
 from nodes import (
     EasyUseAnimaRegionalConditioning,
     EasyUseAnimaPromptStudioRegional,
@@ -208,18 +209,17 @@ class PromptStudioRegionalTests(unittest.TestCase):
                 }
             ],
         }
-        original_encode = easy_nodes._encode_with_comfy_clip
-        try:
-            easy_nodes._encode_with_comfy_clip = lambda clip, text: [[f"cond:{text}", {"encoded_text": text}]]
-
+        with patch_comfy_helper(
+            easy_nodes,
+            "_encode_with_comfy_clip",
+            lambda clip, text: [[f"cond:{text}", {"encoded_text": text}]],
+        ):
             positive, negative = EasyUseAnimaRegionalConditioning().encode(
                 payload,
                 clip=object(),
                 mask_strength=0.75,
                 set_cond_area="mask bounds",
             )
-        finally:
-            easy_nodes._encode_with_comfy_clip = original_encode
 
         self.assertEqual(positive[0][1]["encoded_text"], "masterpiece")
         self.assertEqual(positive[1][1]["encoded_text"], "red dress")

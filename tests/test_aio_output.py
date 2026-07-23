@@ -7,6 +7,7 @@ from unittest.mock import Mock, patch
 
 import nodes
 from easyuse_anima.aio import output
+from tests.comfy_host_fakes import patch_comfy_helper
 
 
 class AIOOutputMoveTests(unittest.TestCase):
@@ -77,7 +78,11 @@ class AIOOutputMoveTests(unittest.TestCase):
             ]
         }
         with (
-            patch.object(nodes, "_require_custom_node_class", return_value=Fetcher) as require,
+            patch_comfy_helper(
+                nodes,
+                "_require_custom_node_class",
+                return_value=Fetcher,
+            ) as require,
             patch.object(nodes.logger, "warning") as warning,
         ):
             result = output._aio_image_saver_civitai_hash_fetcher_entries(settings)
@@ -92,7 +97,7 @@ class AIOOutputMoveTests(unittest.TestCase):
 
     def test_civitai_empty_and_hard_error_paths_keep_dependency_boundaries(self):
         require = Mock(side_effect=AssertionError("must not resolve dependency"))
-        with patch.object(nodes, "_require_custom_node_class", require):
+        with patch_comfy_helper(nodes, "_require_custom_node_class", require):
             self.assertEqual(
                 output._aio_image_saver_civitai_hash_fetcher_entries(
                     {"civitai_hash_fetchers": [{"enabled": False, "username": "u", "model_name": "m"}]}
@@ -105,7 +110,11 @@ class AIOOutputMoveTests(unittest.TestCase):
             def get_autov3_hash(self, *_args):
                 return ("unused",)
 
-        with patch.object(nodes, "_require_custom_node_class", return_value=Fetcher):
+        with patch_comfy_helper(
+            nodes,
+            "_require_custom_node_class",
+            return_value=Fetcher,
+        ):
             with self.assertRaisesRegex(RuntimeError, "both username and model_name"):
                 output._aio_image_saver_civitai_hash_fetcher_entries(
                     {"civitai_hash_fetchers": [{"enabled": True, "username": "u", "version": "v"}]}
@@ -148,7 +157,11 @@ class AIOOutputMoveTests(unittest.TestCase):
                 calls.append((args, kwargs))
                 return {"ui": {"images": ["saved"]}}
 
-        with patch.object(nodes, "_find_comfy_node_class", return_value=SaveImage) as find:
+        with patch_comfy_helper(
+            nodes,
+            "_find_comfy_node_class",
+            return_value=SaveImage,
+        ) as find:
             result = output._save_image_with_comfy(
                 "images", "", workflow_prompt="prompt", extra_pnginfo={"workflow": True}
             )
@@ -191,7 +204,11 @@ class AIOOutputMoveTests(unittest.TestCase):
         }
         seed = Mock(return_value=987654321)
         with (
-            patch.object(nodes, "_require_custom_node_class", return_value=ImageSaver),
+            patch_comfy_helper(
+                nodes,
+                "_require_custom_node_class",
+                return_value=ImageSaver,
+            ),
             patch.object(nodes, "_resolve_aio_runtime_seed", seed),
             patch.object(nodes, "_aio_prompt_with_lora_metadata", return_value="positive <lora:x:1>"),
             patch.object(nodes, "_aio_image_saver_additional_hashes", return_value="Base:A,Model:B"),
