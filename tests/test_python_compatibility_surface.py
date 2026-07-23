@@ -16,7 +16,7 @@ NODES_PATH = ROOT / "nodes.py"
 FIXTURE_PATH = ROOT / "tests" / "fixtures" / "python_compatibility_surface.v1.json"
 
 SCHEMA_VERSION = 1
-BASE_COMMIT = "21f8c97ab6a61a03d8eca3aac1864e2c565c3b46"
+BASE_COMMIT = "5a86162f9063373aedc1718dc6cb5d1cd6a93fee"
 CLASSIFICATIONS = (
     "permanent_entrypoint",
     "supported_public_reexport",
@@ -1317,6 +1317,7 @@ def _build_document() -> dict[str, Any]:
                 "B-11c12",
                 "B-11c13",
                 "B-11c14",
+                "B-11c15",
             ],
         },
         "enums": {
@@ -1329,14 +1330,14 @@ def _build_document() -> dict[str, Any]:
         "expected_counts": {
             "root_entrypoints": 3,
             "excluded_preamble_implementation_bindings": 6,
-            "nodes_canonical_bindings": 285,
+            "nodes_canonical_bindings": 287,
             "nodes_legacy_bindings": 27,
             "mapped_public_classes": 18,
             "unmapped_classes": 2,
-            "root_residual_functions": 22,
+            "root_residual_functions": 21,
             "root_residual_classes": 0,
             "root_residual_globals": 26,
-            "runtime_binders": 29,
+            "runtime_binders": 30,
             "direct_nodes_import_test_files": 21,
         },
         "mapped_public_classes": sorted(mapped_classes),
@@ -1567,7 +1568,7 @@ class PythonCompatibilitySurfaceTests(unittest.TestCase):
             len(self.document["direct_nodes_import_test_files"]),
             counts["direct_nodes_import_test_files"],
         )
-        self.assertEqual(len(set(self.document["runtime_binders"])), 29)
+        self.assertEqual(len(set(self.document["runtime_binders"])), 30)
         self.assertEqual(len(set(self.document["direct_nodes_import_test_files"])), 21)
 
     def test_string_runtime_resolvers_keep_production_seams_transitional(self):

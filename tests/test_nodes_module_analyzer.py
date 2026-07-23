@@ -73,12 +73,12 @@ def load_dynamic():
     def test_current_nodes_module_shape_matches_recorded_baseline(self):
         report = analyzer.analyze_path(ROOT / "nodes.py")
 
-        self.assertEqual(report["git_blob_sha1"], "90e21ddec7a46ab748af1c646973c57d4625ecb5")
-        # Issue #184 B-11c14 moves only the Detailer enabled-target predicate
-        # to the existing generation-normalization owner.
-        self.assertEqual(report["top_level"]["function_count"], 22)
+        self.assertEqual(report["git_blob_sha1"], "bac2b80fa25e96d203376423229014e0c5036a45")
+        # Issue #184 B-11c15 moves only final-fit size planning to the
+        # canonical postprocess owner.
+        self.assertEqual(report["top_level"]["function_count"], 21)
         self.assertEqual(report["top_level"]["class_count"], 0)
-        self.assertEqual(report["line_count"], 2_416)
+        self.assertEqual(report["line_count"], 2_403)
         class_names = {item["name"] for item in report["top_level"]["classes"]}
         self.assertNotIn("EasyUseAnimaAIOGenerator", class_names)
         self.assertNotIn("EasyUseAnimaInput", class_names)

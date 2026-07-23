@@ -20,6 +20,7 @@ PACKAGE_MODULES = (
     "easyuse_anima.aio.generation_values",
     "easyuse_anima.aio.model_preparation",
     "easyuse_anima.aio.output",
+    "easyuse_anima.aio.postprocess",
     "easyuse_anima.aio.preview",
     "easyuse_anima.aio.sampling",
     "easyuse_anima.aio.generation_sampling",
