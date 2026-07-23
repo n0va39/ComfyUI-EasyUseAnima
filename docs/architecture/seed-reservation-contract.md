@@ -122,11 +122,20 @@ migration. The parser does not select a concrete seed or consult mutable state.
 
 S167-01 may change only:
 
+- `easyuse_anima/__init__.py`;
 - `easyuse_anima/seed/__init__.py`;
 - `easyuse_anima/seed/reservation.py`;
 - `tests/test_seed_reservation_contract.py`;
+- `tests/test_python_backend_analyzer.py`;
+- `tests/fixtures/python_backend_baseline.json`;
 - `docs/architecture/seed-reservation-contract.md`;
 - `docs/architecture/python-backend-execution-roadmap.md`.
+
+The root and seed package initializers may expose only the side-effect-free seed
+contract modules needed to keep shipped modules inside the runtime import
+closure. The analyzer test and baseline fixture may change only by that
+deterministic module-inventory delta. These are contract/gate maintenance, not
+a Move or Behavior change.
 
 S167-01 must not change:
 
