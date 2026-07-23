@@ -73,7 +73,8 @@
       "B-11c30c2",
       "B-11c30c2a",
       "B-11c30c2b",
-      "B-11c30d"
+      "B-11c30d",
+      "B-11c30d1"
     ]
   },
   "enums": {
@@ -108,14 +109,14 @@
   "expected_counts": {
     "root_entrypoints": 3,
     "excluded_preamble_implementation_bindings": 5,
-    "nodes_canonical_bindings": 282,
+    "nodes_canonical_bindings": 281,
     "nodes_legacy_bindings": 27,
     "mapped_public_classes": 18,
     "unmapped_classes": 2,
     "root_residual_functions": 0,
     "root_residual_classes": 0,
     "root_residual_globals": 24,
-    "runtime_binders": 14,
+    "runtime_binders": 13,
     "direct_nodes_import_test_files": 21
   },
   "mapped_public_classes": [
@@ -150,7 +151,6 @@
     "sqrt": "math:sqrt"
   },
   "runtime_binders": [
-    "_bind_aio_first_pass_cache_runtime",
     "_bind_aio_legacy_generation_runtime",
     "_bind_aio_generation_normalization_runtime",
     "_bind_aio_usdu_planning_runtime",
@@ -171,9 +171,6 @@
     ],
     "AIO_FINAL_UPSCALE_BACKENDS": [
       "easyuse_anima.aio.generation_normalization"
-    ],
-    "AIO_FIRST_PASS_CACHE_MAX_ENTRIES": [
-      "easyuse_anima.aio.first_pass_cache"
     ],
     "AIO_GENERATION_DEFAULT_SETTINGS": [
       "easyuse_anima.aio.generation_normalization",
@@ -343,12 +340,6 @@
     "_AIO_DETAILER_RESERVED_KEYS": [
       "easyuse_anima.aio.generation_normalization"
     ],
-    "_AIO_FIRST_PASS_CACHE": [
-      "easyuse_anima.aio.first_pass_cache"
-    ],
-    "_AIO_FIRST_PASS_CACHE_ORDER": [
-      "easyuse_anima.aio.first_pass_cache"
-    ],
     "_adapter_comfy_clip_loader_types": [
       "easyuse_anima.aio.resources"
     ],
@@ -405,7 +396,6 @@
       "easyuse_anima.aio.output"
     ],
     "_aio_lora_stack_signature": [
-      "easyuse_anima.aio.first_pass_cache",
       "easyuse_anima.nodes.aio_nodes"
     ],
     "_aio_preview_base_directory": [
@@ -518,9 +508,6 @@
     ],
     "_cleanup_aio_ephemeral_model": [
       "easyuse_anima.aio.legacy_generation"
-    ],
-    "_clone_aio_cache_value": [
-      "easyuse_anima.aio.first_pass_cache"
     ],
     "_comfy_clip_loader_types": [
       "easyuse_anima.nodes.aio_nodes"
@@ -684,7 +671,6 @@
       "easyuse_anima.nodes.aio_nodes"
     ],
     "_prompt_data_json_safe": [
-      "easyuse_anima.aio.first_pass_cache",
       "easyuse_anima.aio.generation_normalization",
       "easyuse_anima.aio.legacy_generation",
       "easyuse_anima.aio.preview",
@@ -772,7 +758,6 @@
       "easyuse_anima.aio.preview"
     ],
     "_stable_change_key": [
-      "easyuse_anima.aio.first_pass_cache",
       "easyuse_anima.nodes.aio_nodes"
     ],
     "_tag_aio_preview_images": [
@@ -789,26 +774,25 @@
   },
   "runtime_binder_audit": {
     "summary": {
-      "binder_count": 14,
+      "binder_count": 13,
       "family_count": 2,
       "mode_counts": {
         "comfy_provider_then_root": 8,
-        "root_globals": 4,
+        "root_globals": 3,
         "explicit_callbacks": 2
       },
-      "unique_resolver_names": 192,
-      "unique_root_resolver_names": 187,
+      "unique_resolver_names": 188,
+      "unique_root_resolver_names": 183,
       "unique_provider_resolver_names": 5,
       "unique_direct_root_dependencies": 9,
       "direct_root_dependency_slots": 17,
       "provider_consumer_slots": 13,
       "provider_consumer_modules": 8,
-      "repository_replacement_names": 138,
-      "repository_replacement_files": 16
+      "repository_replacement_names": 134,
+      "repository_replacement_files": 15
     },
     "families": {
       "aio": [
-        "_bind_aio_first_pass_cache_runtime",
         "_bind_aio_legacy_generation_runtime",
         "_bind_aio_generation_normalization_runtime",
         "_bind_aio_usdu_planning_runtime",
@@ -835,34 +819,10 @@
         "B-11c30d5_legacy_orchestration",
         "B-11c30d6_node_adapter"
       ],
+      "retired_subgroups": [
+        "B-11c30d1_cache_state"
+      ],
       "subgroups": {
-        "B-11c30d1_cache_state": {
-          "binders": [
-            "_bind_aio_first_pass_cache_runtime"
-          ],
-          "mode_counts": {
-            "comfy_provider_then_root": 0,
-            "root_globals": 1
-          },
-          "bound_global_slots": 1,
-          "unique_bound_globals": [
-            "_RUNTIME_RESOLVER"
-          ],
-          "root_resolver_slots": 7,
-          "unique_root_resolver_names": 7,
-          "provider_resolver_slots": 0,
-          "unique_provider_resolver_names": 0,
-          "direct_root_dependency_slots": 0,
-          "unique_direct_root_dependencies": 0,
-          "repository_replacement_slots": 7,
-          "unique_repository_replacement_names": 7,
-          "repository_replacement_files": [
-            "tests/test_aio_first_pass_cache.py",
-            "tests/test_aio_legacy_generation.py",
-            "tests/test_aio_nodes.py",
-            "tests/test_aio_preview.py"
-          ]
-        },
         "B-11c30d2_normalization_planning": {
           "binders": [
             "_bind_aio_generation_normalization_runtime",
@@ -886,7 +846,6 @@
           "repository_replacement_slots": 37,
           "unique_repository_replacement_names": 31,
           "repository_replacement_files": [
-            "tests/test_aio_first_pass_cache.py",
             "tests/test_aio_generation_migrations.py",
             "tests/test_aio_generation_settings.py",
             "tests/test_aio_legacy_generation.py",
@@ -921,7 +880,6 @@
           "repository_replacement_slots": 47,
           "unique_repository_replacement_names": 44,
           "repository_replacement_files": [
-            "tests/test_aio_first_pass_cache.py",
             "tests/test_aio_generation_settings.py",
             "tests/test_aio_legacy_generation.py",
             "tests/test_aio_nodes.py",
@@ -988,7 +946,6 @@
           "repository_replacement_slots": 48,
           "unique_repository_replacement_names": 48,
           "repository_replacement_files": [
-            "tests/test_aio_first_pass_cache.py",
             "tests/test_aio_legacy_generation.py",
             "tests/test_aio_nodes.py",
             "tests/test_aio_output.py",
@@ -1019,7 +976,6 @@
           "repository_replacement_slots": 30,
           "unique_repository_replacement_names": 30,
           "repository_replacement_files": [
-            "tests/test_aio_first_pass_cache.py",
             "tests/test_aio_legacy_generation.py",
             "tests/test_aio_nodes.py",
             "tests/test_aio_output.py",
@@ -1083,7 +1039,6 @@
     "root_resolver_names": [
       "AIO_FINAL_FIT_MODES",
       "AIO_FINAL_UPSCALE_BACKENDS",
-      "AIO_FIRST_PASS_CACHE_MAX_ENTRIES",
       "AIO_GENERATION_DEFAULT_SETTINGS",
       "AIO_GENERATION_SETTINGS_SCHEMA",
       "AIO_GENERATION_SETTINGS_VERSION",
@@ -1135,8 +1090,6 @@
       "SEED_CONTROL_MODES",
       "_AIO_DETAILER_CUSTOM_RE",
       "_AIO_DETAILER_RESERVED_KEYS",
-      "_AIO_FIRST_PASS_CACHE",
-      "_AIO_FIRST_PASS_CACHE_ORDER",
       "_adapter_comfy_clip_loader_types",
       "_adapter_comfy_diffusion_model_names",
       "_adapter_comfy_text_encoder_names",
@@ -1186,7 +1139,6 @@
       "_call_with_supported_kwargs",
       "_choice",
       "_cleanup_aio_ephemeral_model",
-      "_clone_aio_cache_value",
       "_comfy_clip_loader_types",
       "_comfy_diffusion_model_names",
       "_comfy_sampler_names",
@@ -1277,9 +1229,6 @@
       "_require_custom_node_class"
     ],
     "repository_root_replacements": {
-      "AIO_FIRST_PASS_CACHE_MAX_ENTRIES": [
-        "tests/test_aio_first_pass_cache.py"
-      ],
       "AIO_GENERATION_DEFAULT_SETTINGS": [
         "tests/test_aio_output.py",
         "tests/test_node_contracts.py"
@@ -1348,12 +1297,6 @@
       "_AIO_DETAILER_RESERVED_KEYS": [
         "tests/test_node_contracts.py"
       ],
-      "_AIO_FIRST_PASS_CACHE": [
-        "tests/test_aio_first_pass_cache.py"
-      ],
-      "_AIO_FIRST_PASS_CACHE_ORDER": [
-        "tests/test_aio_first_pass_cache.py"
-      ],
       "_adapter_comfy_clip_loader_types": [
         "tests/test_node_contracts.py"
       ],
@@ -1401,7 +1344,6 @@
         "tests/test_aio_output.py"
       ],
       "_aio_lora_stack_signature": [
-        "tests/test_aio_first_pass_cache.py",
         "tests/test_aio_nodes.py"
       ],
       "_aio_preview_base_directory": [
@@ -1487,9 +1429,6 @@
       "_cleanup_aio_ephemeral_model": [
         "tests/test_aio_legacy_generation.py",
         "tests/test_aio_nodes.py"
-      ],
-      "_clone_aio_cache_value": [
-        "tests/test_aio_first_pass_cache.py"
       ],
       "_comfy_clip_loader_types": [
         "tests/test_aio_nodes.py",
@@ -1645,7 +1584,6 @@
         "tests/test_aio_nodes.py"
       ],
       "_prompt_data_json_safe": [
-        "tests/test_aio_first_pass_cache.py",
         "tests/test_aio_legacy_generation.py",
         "tests/test_aio_nodes.py",
         "tests/test_aio_preview.py"
@@ -1727,7 +1665,6 @@
         "tests/test_aio_preview.py"
       ],
       "_stable_change_key": [
-        "tests/test_aio_first_pass_cache.py",
         "tests/test_aio_nodes.py"
       ],
       "_tag_aio_preview_images": [
@@ -1762,48 +1699,6 @@
       ]
     },
     "entries": [
-      {
-        "binder": "_bind_aio_first_pass_cache_runtime",
-        "module": "easyuse_anima.aio.first_pass_cache",
-        "family": "aio",
-        "mode": "root_globals",
-        "root_observation": "call_time_resolver",
-        "root_keywords": [
-          "resolve_helper"
-        ],
-        "bound_globals": [
-          "_RUNTIME_RESOLVER"
-        ],
-        "direct_root_dependencies": [],
-        "resolver_names": [
-          "AIO_FIRST_PASS_CACHE_MAX_ENTRIES",
-          "_AIO_FIRST_PASS_CACHE",
-          "_AIO_FIRST_PASS_CACHE_ORDER",
-          "_aio_lora_stack_signature",
-          "_clone_aio_cache_value",
-          "_prompt_data_json_safe",
-          "_stable_change_key"
-        ],
-        "root_resolver_names": [
-          "AIO_FIRST_PASS_CACHE_MAX_ENTRIES",
-          "_AIO_FIRST_PASS_CACHE",
-          "_AIO_FIRST_PASS_CACHE_ORDER",
-          "_aio_lora_stack_signature",
-          "_clone_aio_cache_value",
-          "_prompt_data_json_safe",
-          "_stable_change_key"
-        ],
-        "provider_resolver_names": [],
-        "repository_replacement_names": [
-          "AIO_FIRST_PASS_CACHE_MAX_ENTRIES",
-          "_AIO_FIRST_PASS_CACHE",
-          "_AIO_FIRST_PASS_CACHE_ORDER",
-          "_aio_lora_stack_signature",
-          "_clone_aio_cache_value",
-          "_prompt_data_json_safe",
-          "_stable_change_key"
-        ]
-      },
       {
         "binder": "_bind_aio_legacy_generation_runtime",
         "module": "easyuse_anima.aio.legacy_generation",
@@ -3640,12 +3535,7 @@
       "id": "nodes_canonical_bindings:easyuse_anima.aio.first_pass_cache:transitional_private_seam",
       "surface": "nodes_canonical_bindings",
       "symbols": {
-        "AIO_FIRST_PASS_CACHE_MAX_ENTRIES": "AIO_FIRST_PASS_CACHE_MAX_ENTRIES",
-        "_AIO_FIRST_PASS_CACHE": "_AIO_FIRST_PASS_CACHE",
-        "_AIO_FIRST_PASS_CACHE_ORDER": "_AIO_FIRST_PASS_CACHE_ORDER",
         "_aio_first_pass_cache_key": "_aio_first_pass_cache_key",
-        "_bind_aio_first_pass_cache_runtime": "_bind_aio_first_pass_cache_runtime",
-        "_clone_aio_cache_value": "_clone_aio_cache_value",
         "_get_aio_first_pass_cache": "_get_aio_first_pass_cache",
         "_put_aio_first_pass_cache": "_put_aio_first_pass_cache"
       },
@@ -3659,13 +3549,9 @@
       "owner": "#184/#188",
       "first_release": null,
       "known_consumers": [
-        "nodes.py residual runtime",
-        "canonical runtime resolver: easyuse_anima.aio.first_pass_cache",
         "canonical runtime resolver: easyuse_anima.aio.legacy_generation"
       ],
       "evidence": [
-        "AST:nodes.py direct runtime load",
-        "AST:easyuse_anima.aio.first_pass_cache string runtime lookup",
         "AST:easyuse_anima.aio.legacy_generation string runtime lookup"
       ],
       "removal_gates": [
@@ -3674,6 +3560,38 @@
         "separate B-10b or B-11 rollback unit"
       ],
       "lifecycle_state": "transitional"
+    },
+    {
+      "id": "nodes_canonical_bindings:easyuse_anima.aio.first_pass_cache:unsupported_test_only",
+      "surface": "nodes_canonical_bindings",
+      "symbols": {
+        "AIO_FIRST_PASS_CACHE_MAX_ENTRIES": "AIO_FIRST_PASS_CACHE_MAX_ENTRIES",
+        "_AIO_FIRST_PASS_CACHE": "_AIO_FIRST_PASS_CACHE",
+        "_AIO_FIRST_PASS_CACHE_ORDER": "_AIO_FIRST_PASS_CACHE_ORDER",
+        "_clone_aio_cache_value": "_clone_aio_cache_value"
+      },
+      "classification": "unsupported_test_only",
+      "current_target": "nodes.py",
+      "canonical_target": "easyuse_anima.aio.first_pass_cache",
+      "target_state": "canonical",
+      "identity_requirement": "not_applicable",
+      "binding_shape": "direct_import",
+      "import_target": "easyuse_anima.aio.first_pass_cache",
+      "owner": "#184/#188",
+      "first_release": null,
+      "known_consumers": [
+        "repository tests may import this root name"
+      ],
+      "evidence": [
+        "AST:no nodes.py runtime load",
+        "test-only consumption is not public support evidence"
+      ],
+      "removal_gates": [
+        "test imports migrate to canonical targets",
+        "no production consumer evidence",
+        "separate B-10b removal review"
+      ],
+      "lifecycle_state": "unsupported"
     },
     {
       "id": "nodes_canonical_bindings:easyuse_anima.aio.generation_normalization:transitional_private_seam",
@@ -3852,14 +3770,12 @@
       "first_release": null,
       "known_consumers": [
         "nodes.py residual runtime",
-        "canonical runtime resolver: easyuse_anima.aio.first_pass_cache",
         "canonical runtime resolver: easyuse_anima.aio.legacy_generation",
         "canonical runtime resolver: easyuse_anima.aio.model_preparation",
         "canonical runtime resolver: easyuse_anima.nodes.aio_nodes"
       ],
       "evidence": [
         "AST:nodes.py direct runtime load",
-        "AST:easyuse_anima.aio.first_pass_cache string runtime lookup",
         "AST:easyuse_anima.aio.legacy_generation string runtime lookup",
         "AST:easyuse_anima.aio.model_preparation string runtime lookup",
         "AST:easyuse_anima.nodes.aio_nodes string runtime lookup"
@@ -4167,13 +4083,11 @@
       "owner": "#184/#188",
       "first_release": null,
       "known_consumers": [
-        "canonical runtime resolver: easyuse_anima.aio.first_pass_cache",
         "canonical runtime resolver: easyuse_anima.aio.generation_normalization",
         "canonical runtime resolver: easyuse_anima.aio.sampling",
         "canonical runtime resolver: easyuse_anima.nodes.aio_nodes"
       ],
       "evidence": [
-        "AST:easyuse_anima.aio.first_pass_cache string runtime lookup",
         "AST:easyuse_anima.aio.generation_normalization string runtime lookup",
         "AST:easyuse_anima.aio.sampling string runtime lookup",
         "AST:easyuse_anima.nodes.aio_nodes string runtime lookup"
@@ -5369,7 +5283,6 @@
       "first_release": null,
       "known_consumers": [
         "canonical runtime resolver: easyuse_anima.aio.conditioning",
-        "canonical runtime resolver: easyuse_anima.aio.first_pass_cache",
         "canonical runtime resolver: easyuse_anima.aio.generation_normalization",
         "canonical runtime resolver: easyuse_anima.aio.legacy_generation",
         "canonical runtime resolver: easyuse_anima.aio.preview",
@@ -5377,7 +5290,6 @@
       ],
       "evidence": [
         "AST:easyuse_anima.aio.conditioning string runtime lookup",
-        "AST:easyuse_anima.aio.first_pass_cache string runtime lookup",
         "AST:easyuse_anima.aio.generation_normalization string runtime lookup",
         "AST:easyuse_anima.aio.legacy_generation string runtime lookup",
         "AST:easyuse_anima.aio.preview string runtime lookup",

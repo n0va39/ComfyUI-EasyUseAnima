@@ -15,6 +15,9 @@ class AIOFirstPassCacheMoveTests(unittest.TestCase):
         first_pass_cache._clear_aio_first_pass_cache()
 
     def test_root_state_and_functions_are_direct_canonical_aliases(self):
+        self.assertFalse(
+            hasattr(first_pass_cache, "_bind_aio_first_pass_cache_runtime")
+        )
         for name in (
             "AIO_FIRST_PASS_CACHE_MAX_ENTRIES",
             "_AIO_FIRST_PASS_CACHE",
@@ -68,10 +71,11 @@ class AIOFirstPassCacheMoveTests(unittest.TestCase):
             [("tensor", "detach"), ("tensor", "clone"), ("tensor-clone", "cpu")],
         )
 
-    def test_recursive_clone_re_resolves_root_helper_for_nested_items(self):
+    def test_recursive_clone_re_resolves_canonical_helper_for_nested_items(self):
         replacement = Mock(side_effect=lambda value: f"cloned:{value}")
-        with patch.object(nodes, "_clone_aio_cache_value", replacement):
-            result = first_pass_cache._clone_aio_cache_value({"a": 1, "b": 2})
+        clone_value = first_pass_cache._clone_aio_cache_value
+        with patch.object(first_pass_cache, "_clone_aio_cache_value", replacement):
+            result = clone_value({"a": 1, "b": 2})
 
         self.assertEqual(result, {"a": "cloned:1", "b": "cloned:2"})
         self.assertEqual([call.args for call in replacement.call_args_list], [(1,), (2,)])
@@ -99,9 +103,17 @@ class AIOFirstPassCacheMoveTests(unittest.TestCase):
             "save": {"excluded": True},
         }
         with (
-            patch.object(nodes, "_stable_change_key", side_effect=stable_change_key),
-            patch.object(nodes, "_prompt_data_json_safe", json_safe),
-            patch.object(nodes, "_aio_lora_stack_signature", lora_signature),
+            patch.object(
+                first_pass_cache,
+                "_stable_change_key",
+                side_effect=stable_change_key,
+            ),
+            patch.object(first_pass_cache, "_prompt_data_json_safe", json_safe),
+            patch.object(
+                first_pass_cache,
+                "_aio_lora_stack_signature",
+                lora_signature,
+            ),
         ):
             result = first_pass_cache._aio_first_pass_cache_key(
                 cache_scope=0,
@@ -156,8 +168,8 @@ class AIOFirstPassCacheMoveTests(unittest.TestCase):
         cache = {"empty": {}}
         order = ["empty"]
         with (
-            patch.object(nodes, "_AIO_FIRST_PASS_CACHE", cache),
-            patch.object(nodes, "_AIO_FIRST_PASS_CACHE_ORDER", order),
+            patch.object(first_pass_cache, "_AIO_FIRST_PASS_CACHE", cache),
+            patch.object(first_pass_cache, "_AIO_FIRST_PASS_CACHE_ORDER", order),
         ):
             self.assertIsNone(first_pass_cache._get_aio_first_pass_cache("empty"))
             self.assertEqual(order, ["empty"])
@@ -201,9 +213,9 @@ class AIOFirstPassCacheMoveTests(unittest.TestCase):
         cache = {}
         order = []
         with (
-            patch.object(nodes, "_AIO_FIRST_PASS_CACHE", cache),
-            patch.object(nodes, "_AIO_FIRST_PASS_CACHE_ORDER", order),
-            patch.object(nodes, "AIO_FIRST_PASS_CACHE_MAX_ENTRIES", 1),
+            patch.object(first_pass_cache, "_AIO_FIRST_PASS_CACHE", cache),
+            patch.object(first_pass_cache, "_AIO_FIRST_PASS_CACHE_ORDER", order),
+            patch.object(first_pass_cache, "AIO_FIRST_PASS_CACHE_MAX_ENTRIES", 1),
         ):
             first_pass_cache._put_aio_first_pass_cache("a", "latent-a", "image-a")
             first_pass_cache._put_aio_first_pass_cache("b", "latent-b", "image-b")

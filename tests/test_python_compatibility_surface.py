@@ -99,7 +99,6 @@ PROMPT_NODE_ADAPTER_RETIRED_RUNTIME_BINDERS = (
 )
 RUNTIME_BINDER_FAMILIES = {
     "aio": (
-        "_bind_aio_first_pass_cache_runtime",
         "_bind_aio_legacy_generation_runtime",
         "_bind_aio_generation_normalization_runtime",
         "_bind_aio_usdu_planning_runtime",
@@ -143,6 +142,9 @@ AIO_RUNTIME_BINDER_SUBGROUPS = {
         "_bind_aio_node_runtime",
     ),
 }
+AIO_RUNTIME_RETIRED_SUBGROUPS = (
+    "B-11c30d1_cache_state",
+)
 AIO_RUNTIME_PREREQUISITE_MOVES = (
     {
         "id": "B-11c30d0a_output_settings_owner",
@@ -1721,9 +1723,14 @@ def _aio_runtime_split_gate(
         for entry in entries
         if entry["family"] == "aio"
     }
+    active_subgroups = {
+        subgroup: binders
+        for subgroup, binders in AIO_RUNTIME_BINDER_SUBGROUPS.items()
+        if subgroup not in AIO_RUNTIME_RETIRED_SUBGROUPS
+    }
     classified_binders = [
         binder
-        for binders in AIO_RUNTIME_BINDER_SUBGROUPS.values()
+        for binders in active_subgroups.values()
         for binder in binders
     ]
     if len(classified_binders) != len(set(classified_binders)):
@@ -1732,7 +1739,7 @@ def _aio_runtime_split_gate(
         raise AssertionError("AiO runtime binder subgroup classification is incomplete")
 
     subgroups = {}
-    for subgroup, binders in AIO_RUNTIME_BINDER_SUBGROUPS.items():
+    for subgroup, binders in active_subgroups.items():
         selected = [entry_by_binder[binder] for binder in binders]
         root_names = [
             name
@@ -1802,6 +1809,7 @@ def _aio_runtime_split_gate(
         })
     return {
         "subgroup_order": list(AIO_RUNTIME_BINDER_SUBGROUPS),
+        "retired_subgroups": list(AIO_RUNTIME_RETIRED_SUBGROUPS),
         "subgroups": subgroups,
         "prerequisite_moves": prerequisite_moves,
     }
@@ -2308,6 +2316,7 @@ def _build_document() -> dict[str, Any]:
                 "B-11c30c2a",
                 "B-11c30c2b",
                 "B-11c30d",
+                "B-11c30d1",
             ],
         },
         "enums": {
@@ -2320,14 +2329,14 @@ def _build_document() -> dict[str, Any]:
         "expected_counts": {
             "root_entrypoints": 3,
             "excluded_preamble_implementation_bindings": 5,
-            "nodes_canonical_bindings": 282,
+            "nodes_canonical_bindings": 281,
             "nodes_legacy_bindings": 27,
             "mapped_public_classes": 18,
             "unmapped_classes": 2,
             "root_residual_functions": 0,
             "root_residual_classes": 0,
             "root_residual_globals": 24,
-            "runtime_binders": 14,
+            "runtime_binders": 13,
             "direct_nodes_import_test_files": 21,
         },
         "mapped_public_classes": sorted(mapped_classes),
@@ -2559,7 +2568,7 @@ class PythonCompatibilitySurfaceTests(unittest.TestCase):
             len(self.document["direct_nodes_import_test_files"]),
             counts["direct_nodes_import_test_files"],
         )
-        self.assertEqual(len(set(self.document["runtime_binders"])), 14)
+        self.assertEqual(len(set(self.document["runtime_binders"])), 13)
         self.assertEqual(len(set(self.document["direct_nodes_import_test_files"])), 21)
 
     def test_runtime_binder_audit_covers_provider_and_root_names(self):
@@ -2567,22 +2576,22 @@ class PythonCompatibilitySurfaceTests(unittest.TestCase):
         self.assertEqual(
             audit["summary"],
             {
-                "binder_count": 14,
+                "binder_count": 13,
                 "family_count": 2,
                 "mode_counts": {
                     "comfy_provider_then_root": 8,
-                    "root_globals": 4,
+                    "root_globals": 3,
                     "explicit_callbacks": 2,
                 },
-                "unique_resolver_names": 192,
-                "unique_root_resolver_names": 187,
+                "unique_resolver_names": 188,
+                "unique_root_resolver_names": 183,
                 "unique_provider_resolver_names": 5,
                 "unique_direct_root_dependencies": 9,
                 "direct_root_dependency_slots": 17,
                 "provider_consumer_slots": 13,
                 "provider_consumer_modules": 8,
-                "repository_replacement_names": 138,
-                "repository_replacement_files": 16,
+                "repository_replacement_names": 134,
+                "repository_replacement_files": 15,
             },
         )
         self.assertEqual(
@@ -2656,6 +2665,10 @@ class PythonCompatibilitySurfaceTests(unittest.TestCase):
             list(AIO_RUNTIME_BINDER_SUBGROUPS),
         )
         self.assertEqual(
+            gate["retired_subgroups"],
+            list(AIO_RUNTIME_RETIRED_SUBGROUPS),
+        )
+        self.assertEqual(
             {
                 binder
                 for subgroup in gate["subgroups"].values()
@@ -2682,14 +2695,6 @@ class PythonCompatibilitySurfaceTests(unittest.TestCase):
         self.assertEqual(
             summaries,
             {
-                "B-11c30d1_cache_state": {
-                    "root_resolver_slots": 7,
-                    "unique_root_resolver_names": 7,
-                    "provider_resolver_slots": 0,
-                    "direct_root_dependency_slots": 0,
-                    "repository_replacement_slots": 7,
-                    "unique_repository_replacement_names": 7,
-                },
                 "B-11c30d2_normalization_planning": {
                     "root_resolver_slots": 72,
                     "unique_root_resolver_names": 66,
@@ -2806,6 +2811,9 @@ class PythonCompatibilitySurfaceTests(unittest.TestCase):
             "_bind_prompt_advanced_node_runtime": (
                 "easyuse_anima.nodes.prompt_advanced_nodes"
             ),
+            "_bind_aio_first_pass_cache_runtime": (
+                "easyuse_anima.aio.first_pass_cache"
+            ),
         }
         for binder, module in retired_modules.items():
             functions = {
@@ -2815,11 +2823,42 @@ class PythonCompatibilitySurfaceTests(unittest.TestCase):
             }
             with self.subTest(module=module, binder=binder):
                 self.assertNotIn(binder, functions)
+
+    def test_aio_cache_runtime_resolver_is_retired(self):
+        tree = _read_tree(_module_path("easyuse_anima.aio.first_pass_cache"))
+        top_level_names = {
+            target.id
+            for node in tree.body
+            if isinstance(node, (ast.Assign, ast.AnnAssign))
+            for target in (
+                node.targets
+                if isinstance(node, ast.Assign)
+                else [node.target]
+            )
+            if isinstance(target, ast.Name)
+        }
+        functions = {
+            node.name
+            for node in tree.body
+            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+        }
+        self.assertNotIn("_RUNTIME_RESOLVER", top_level_names)
+        self.assertNotIn("_runtime_helper", functions)
+        self.assertNotIn("_bind_aio_first_pass_cache_runtime", functions)
+        self.assertTrue(
+            {
+                "AIO_FIRST_PASS_CACHE_MAX_ENTRIES",
+                "_AIO_FIRST_PASS_CACHE",
+                "_AIO_FIRST_PASS_CACHE_ORDER",
+                "_clone_aio_cache_value",
+            }.isdisjoint(self.document["runtime_resolver_consumers"])
+        )
+
     def test_string_runtime_resolvers_keep_production_seams_transitional(self):
         representative = {
             "_run_aio_legacy_generation",
-            "_AIO_FIRST_PASS_CACHE",
-            "_AIO_FIRST_PASS_CACHE_ORDER",
+            "_aio_first_pass_cache_key",
+            "_get_aio_first_pass_cache",
             "_load_aio_resources_from_input_context",
             "_sample_latent_with_aio_backend",
             "_aio_generation_settings_json",

@@ -73,12 +73,12 @@ def load_dynamic():
     def test_current_nodes_module_shape_matches_recorded_baseline(self):
         report = analyzer.analyze_path(ROOT / "nodes.py")
 
-        self.assertEqual(report["git_blob_sha1"], "4821f36548243853249a7a24458a37469985c676")
-        # B-11c30c2b retires the Advanced and Regional adapter binder imports
-        # and calls without changing the public class surface.
+        self.assertEqual(report["git_blob_sha1"], "edcdc8681f64790736a790177ac80dadfda214b6")
+        # B-11c30d1 retires only the AiO cache-state binder import and call
+        # without changing the public class surface.
         self.assertEqual(report["top_level"]["function_count"], 0)
         self.assertEqual(report["top_level"]["class_count"], 0)
-        self.assertEqual(report["line_count"], 1_662)
+        self.assertEqual(report["line_count"], 1_657)
         class_names = {item["name"] for item in report["top_level"]["classes"]}
         self.assertNotIn("EasyUseAnimaAIOGenerator", class_names)
         self.assertNotIn("EasyUseAnimaInput", class_names)

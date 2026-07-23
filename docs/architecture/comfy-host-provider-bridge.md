@@ -1570,7 +1570,7 @@ stage, seed, cache, provider, error, or workflow behavior.
 
 ### B-11c30d1 — AiO cache-state binder Move
 
-- **State:** IN PROGRESS
+- **State:** COMPLETE in PR #347
 - **Owner:** #184
 - **Behavior boundary:** #169
 - **Type:** Move
@@ -1636,6 +1636,25 @@ Forbidden:
   binder; and
 - combining d0a, d2 through d6, Wildcard/NAIA, Contract, or Behavior work.
 
+Implementation result:
+
+- root no longer imports or invokes `_bind_aio_first_pass_cache_runtime`, and
+  the canonical binder, `_RUNTIME_RESOLVER`, and `_runtime_helper` are absent;
+- the cache owner directly uses its module-owned limit, dictionary, order list,
+  and recursive clone function;
+- `_stable_change_key`, `_prompt_data_json_safe`, and
+  `_aio_lora_stack_signature` are direct imports from their existing canonical
+  owners, with no root import or new callback seam;
+- cache-specific tests replace the canonical owner while the root aliases
+  retain exact object identity;
+- the split gate now marks only d1 retired and retains d2 through d6 as the
+  complete active AiO set;
+- the remaining audit is 13 binders in two families: eight provider-then-root,
+  three root-only, and two explicit callbacks;
+- `nodes.py` is 1,657 lines, down 5 lines from the B-11c30d base; and
+- focused cache, compatibility, nodes-analyzer, and backend-analyzer validation
+  passes 45 tests.
+
 ### B-11d — Final root shim
 
 - **State:** BLOCKED by the remaining AiO and Wildcard/NAIA binder families
@@ -1682,8 +1701,8 @@ COMPLETE: B-11c30c2 Prompt/Regional node-adapter split gate / PR #341
 COMPLETE: B-11c30c2a Prompt Data / Classic Prompt adapter Move / PR #342
 COMPLETE: B-11c30c2b Advanced / Regional adapter Move / PR #345
 COMPLETE: B-11c30d AiO binder split gate / PR #346
-READY:    B-11c30d1 AiO cache-state binder Move
-PLANNED:  B-11c30d0a output-settings owner Move before d2-d4
+COMPLETE: B-11c30d1 AiO cache-state binder Move / PR #347
+READY:    B-11c30d0a output-settings owner Move before d2-d4
 PLANNED:  B-11c30d2-d4 normalization, I/O, and execution-service Moves
 PLANNED:  B-11c30d0b input-context owner Move before d5-d6
 PLANNED:  B-11c30d5-d6 orchestration and node-adapter Moves
