@@ -1071,7 +1071,157 @@ class AioFinalFitPlanningMoveContractTests(unittest.TestCase):
         "_apply_aio_final_fit",
         "_aio_final_fit_size",
         "_bind_aio_postprocess_runtime",
+        "_run_aio_postprocess_stage",
     )
+
+    def _assert_stage_contract(self, root_module, canonical_module):
+        image = object()
+        events = []
+
+        class StageLogger:
+            def info(self, *args):
+                events.append(("logger.info", args))
+
+        stage_logger = StageLogger()
+
+        def resolver(name):
+            events.append(("resolve", name))
+            return getattr(root_module, name)
+
+        def disabled_as_bool(value, default):
+            events.append(("as_bool", (value, default)))
+            return False
+
+        def disabled_size(value, width, height):
+            events.append(("image_tensor_size", (value, width, height)))
+            return 640, 480
+
+        def unexpected_apply(*args):
+            raise AssertionError(f"disabled postprocess applied final fit: {args!r}")
+
+        with (
+            patch.object(root_module, "_as_bool", disabled_as_bool),
+            patch.object(root_module, "_image_tensor_size", disabled_size),
+            patch.object(root_module, "_apply_aio_final_fit", unexpected_apply),
+            patch.object(root_module, "logger", stage_logger),
+        ):
+            canonical_module._bind_aio_postprocess_runtime(resolve_helper=resolver)
+            try:
+                output, metadata = canonical_module._run_aio_postprocess_stage(
+                    image,
+                    {"enabled": "off"},
+                )
+            finally:
+                canonical_module._bind_aio_postprocess_runtime(
+                    resolve_helper=lambda name: getattr(root_module, name)
+                )
+
+        self.assertIs(output, image)
+        self.assertEqual(
+            events,
+            [
+                ("resolve", "_as_bool"),
+                ("as_bool", ("off", False)),
+                ("resolve", "_image_tensor_size"),
+                ("image_tensor_size", (image, 0, 0)),
+            ],
+        )
+        self.assertEqual(list(metadata), ["enabled", "width", "height"])
+        self.assertEqual(
+            metadata,
+            {"enabled": False, "width": 640, "height": 480},
+        )
+
+        for mode, expected_limit in (
+            ("max_long_edge", "2048px"),
+            ("megapixels", "4.5MP"),
+        ):
+            with self.subTest(mode=mode):
+                output_image = object()
+                fit_metadata = {
+                    "width": 1024,
+                    "height": 768,
+                    "mode": mode,
+                    "max_long_edge": 2048,
+                    "max_megapixels": 4.5,
+                    "method": "bicubic",
+                    "applied": 1,
+                    "target_width": 800,
+                    "target_height": 600,
+                }
+                settings = {"enabled": "on", "fit": {"mode": mode}}
+                events = []
+
+                def enabled_as_bool(value, default):
+                    events.append(("as_bool", (value, default)))
+                    return True
+
+                def apply_final_fit(value, stage_settings):
+                    events.append(("apply_final_fit", (value, stage_settings)))
+                    return output_image, fit_metadata
+
+                def enabled_size(value, width, height):
+                    events.append(("image_tensor_size", (value, width, height)))
+                    return 800, 600
+
+                with (
+                    patch.object(root_module, "_as_bool", enabled_as_bool),
+                    patch.object(
+                        root_module,
+                        "_apply_aio_final_fit",
+                        apply_final_fit,
+                    ),
+                    patch.object(root_module, "_image_tensor_size", enabled_size),
+                    patch.object(root_module, "logger", stage_logger),
+                ):
+                    canonical_module._bind_aio_postprocess_runtime(
+                        resolve_helper=resolver
+                    )
+                    try:
+                        output, metadata = canonical_module._run_aio_postprocess_stage(
+                            image,
+                            settings,
+                        )
+                    finally:
+                        canonical_module._bind_aio_postprocess_runtime(
+                            resolve_helper=lambda name: getattr(root_module, name)
+                        )
+
+                self.assertIs(output, output_image)
+                self.assertEqual(
+                    events,
+                    [
+                        ("resolve", "_as_bool"),
+                        ("as_bool", ("on", False)),
+                        ("resolve", "_apply_aio_final_fit"),
+                        ("apply_final_fit", (image, settings)),
+                        ("resolve", "_image_tensor_size"),
+                        ("image_tensor_size", (output_image, 800, 600)),
+                        ("resolve", "logger"),
+                        (
+                            "logger.info",
+                            (
+                                "[EasyUseAnima][AiO] Postprocess final fit: input=%sx%s mode=%s limit=%s method=%s applied=%s output=%sx%s",
+                                1024,
+                                768,
+                                mode,
+                                expected_limit,
+                                "bicubic",
+                                True,
+                                800,
+                                600,
+                            ),
+                        ),
+                    ],
+                )
+                self.assertEqual(
+                    list(metadata),
+                    ["enabled", "width", "height", "fit"],
+                )
+                self.assertEqual(metadata["enabled"], True)
+                self.assertEqual(metadata["width"], 800)
+                self.assertEqual(metadata["height"], 600)
+                self.assertIs(metadata["fit"], fit_metadata)
 
     def _assert_contract(self, root_module, canonical_module):
         for name in self.MOVED_NAMES:
@@ -1300,6 +1450,8 @@ class AioFinalFitPlanningMoveContractTests(unittest.TestCase):
         self.assertEqual(metadata["scale"], 0.5)
         self.assertEqual(metadata["target_width"], 320)
         self.assertEqual(metadata["target_height"], 240)
+
+        self._assert_stage_contract(root_module, canonical_module)
 
     def test_root_aliases_and_call_time_helpers(self):
         self._assert_contract(nodes, aio_postprocess)

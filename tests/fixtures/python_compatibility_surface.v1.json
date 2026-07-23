@@ -2,7 +2,7 @@
   "schema_version": 1,
   "snapshot": {
     "base_branch": "dev",
-    "base_commit": "de57090f20aefe00663b7630ba87055333ddf107",
+    "base_commit": "43c30568731e95f2a5d4bf2603678d72ae3a3fda",
     "first_release": null,
     "owner_tasks": [
       "#184",
@@ -50,7 +50,8 @@
       "B-11c17",
       "B-11c18",
       "B-11c19",
-      "B-11c20"
+      "B-11c20",
+      "B-11c21"
     ]
   },
   "enums": {
@@ -85,11 +86,11 @@
   "expected_counts": {
     "root_entrypoints": 3,
     "excluded_preamble_implementation_bindings": 6,
-    "nodes_canonical_bindings": 292,
+    "nodes_canonical_bindings": 293,
     "nodes_legacy_bindings": 27,
     "mapped_public_classes": 18,
     "unmapped_classes": 2,
-    "root_residual_functions": 16,
+    "root_residual_functions": 15,
     "root_residual_classes": 0,
     "root_residual_globals": 26,
     "runtime_binders": 30,
@@ -473,6 +474,9 @@
     ],
     "_apply_aio_anima_dave_patch": [
       "easyuse_anima.aio.model_preparation"
+    ],
+    "_apply_aio_final_fit": [
+      "easyuse_anima.aio.postprocess"
     ],
     "_apply_aio_kj_model_patches": [
       "easyuse_anima.aio.model_preparation"
@@ -1112,6 +1116,7 @@
       "easyuse_anima.aio.legacy_generation",
       "easyuse_anima.aio.model_preparation",
       "easyuse_anima.aio.output",
+      "easyuse_anima.aio.postprocess",
       "easyuse_anima.aio.preview"
     ],
     "next_seed": [
@@ -2208,7 +2213,8 @@
       "symbols": {
         "_aio_final_fit_size": "_aio_final_fit_size",
         "_apply_aio_final_fit": "_apply_aio_final_fit",
-        "_bind_aio_postprocess_runtime": "_bind_aio_postprocess_runtime"
+        "_bind_aio_postprocess_runtime": "_bind_aio_postprocess_runtime",
+        "_run_aio_postprocess_stage": "_run_aio_postprocess_stage"
       },
       "classification": "transitional_private_seam",
       "current_target": "nodes.py",
@@ -2221,10 +2227,12 @@
       "first_release": null,
       "known_consumers": [
         "nodes.py residual runtime",
+        "canonical runtime resolver: easyuse_anima.aio.legacy_generation",
         "canonical runtime resolver: easyuse_anima.aio.postprocess"
       ],
       "evidence": [
         "AST:nodes.py direct runtime load",
+        "AST:easyuse_anima.aio.legacy_generation string runtime lookup",
         "AST:easyuse_anima.aio.postprocess string runtime lookup"
       ],
       "removal_gates": [
@@ -4161,7 +4169,6 @@
         "_run_aio_detailer_stage": "_run_aio_detailer_stage",
         "_run_aio_detailer_target": "_run_aio_detailer_target",
         "_run_aio_highres_stage": "_run_aio_highres_stage",
-        "_run_aio_postprocess_stage": "_run_aio_postprocess_stage",
         "_run_aio_resshift_upscale_stage": "_run_aio_resshift_upscale_stage",
         "_run_aio_upscale_stage": "_run_aio_upscale_stage",
         "_run_aio_usdu_upscale_stage": "_run_aio_usdu_upscale_stage"

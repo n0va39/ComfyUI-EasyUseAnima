@@ -53,6 +53,7 @@ try:
         _apply_aio_final_fit as _apply_aio_final_fit,
         _aio_final_fit_size as _aio_final_fit_size,
         _bind_aio_postprocess_runtime as _bind_aio_postprocess_runtime,
+        _run_aio_postprocess_stage as _run_aio_postprocess_stage,
     )
     from .easyuse_anima.aio.conditioning import (
         _aio_prompt_data_fields_for_usdu as _aio_prompt_data_fields_for_usdu,
@@ -606,6 +607,7 @@ except ImportError:  # allows simple local import tests outside ComfyUI's packag
         _apply_aio_final_fit as _apply_aio_final_fit,
         _aio_final_fit_size as _aio_final_fit_size,
         _bind_aio_postprocess_runtime as _bind_aio_postprocess_runtime,
+        _run_aio_postprocess_stage as _run_aio_postprocess_stage,
     )
     from easyuse_anima.aio.conditioning import (
         _aio_prompt_data_fields_for_usdu as _aio_prompt_data_fields_for_usdu,
@@ -1749,40 +1751,6 @@ def _run_aio_highres_stage(
         "height": int(height),
         "applied_scale": float(applied_scale),
         "sampler": _prompt_data_json_safe(stage_sampler),
-    }
-
-
-def _run_aio_postprocess_stage(image, postprocess_settings: dict[str, Any]) -> tuple[Any, dict[str, Any]]:
-    if not _as_bool(postprocess_settings.get("enabled"), False):
-        width, height = _image_tensor_size(image, 0, 0)
-        return image, {
-            "enabled": False,
-            "width": int(width),
-            "height": int(height),
-        }
-    output, fit_metadata = _apply_aio_final_fit(image, postprocess_settings)
-    width, height = _image_tensor_size(output, fit_metadata.get("target_width", 0), fit_metadata.get("target_height", 0))
-    limit = (
-        f"{fit_metadata.get('max_megapixels')}MP"
-        if fit_metadata.get("mode") == "megapixels"
-        else f"{fit_metadata.get('max_long_edge')}px"
-    )
-    logger.info(
-        "[EasyUseAnima][AiO] Postprocess final fit: input=%sx%s mode=%s limit=%s method=%s applied=%s output=%sx%s",
-        fit_metadata.get("width"),
-        fit_metadata.get("height"),
-        fit_metadata.get("mode"),
-        limit,
-        fit_metadata.get("method"),
-        bool(fit_metadata.get("applied")),
-        width,
-        height,
-    )
-    return output, {
-        "enabled": True,
-        "width": int(width),
-        "height": int(height),
-        "fit": fit_metadata,
     }
 
 
