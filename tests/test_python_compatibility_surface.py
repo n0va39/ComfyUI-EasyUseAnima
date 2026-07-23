@@ -83,6 +83,20 @@ PREAMBLE_IMPLEMENTATION_BINDINGS = {
     "random": "random:random",
     "sqrt": "math:sqrt",
 }
+PROMPT_SERVICE_RUNTIME_BINDERS = (
+    "_bind_regional_runtime",
+    "_bind_advanced_runtime",
+    "_bind_conditioning_runtime",
+    "_bind_artist_mix_runtime",
+    "_bind_prompt_fields_runtime",
+    "_bind_prompt_correction_runtime",
+)
+PROMPT_NODE_ADAPTER_RUNTIME_BINDERS = (
+    "_bind_regional_node_runtime",
+    "_bind_prompt_advanced_node_runtime",
+    "_bind_prompt_data_node_runtime",
+    "_bind_prompt_node_runtime",
+)
 RUNTIME_BINDER_FAMILIES = {
     "aio": (
         "_bind_aio_first_pass_cache_runtime",
@@ -98,18 +112,8 @@ RUNTIME_BINDER_FAMILIES = {
         "_bind_aio_conditioning_runtime",
         "_bind_aio_node_runtime",
     ),
-    "prompt_regional": (
-        "_bind_regional_runtime",
-        "_bind_regional_node_runtime",
-        "_bind_advanced_runtime",
-        "_bind_prompt_advanced_node_runtime",
-        "_bind_conditioning_runtime",
-        "_bind_artist_mix_runtime",
-        "_bind_prompt_data_node_runtime",
-        "_bind_prompt_fields_runtime",
-        "_bind_prompt_correction_runtime",
-        "_bind_prompt_node_runtime",
-    ),
+    "prompt_services": PROMPT_SERVICE_RUNTIME_BINDERS,
+    "prompt_node_adapters": PROMPT_NODE_ADAPTER_RUNTIME_BINDERS,
     "wildcard_naia": (
         "_bind_wildcard_node_runtime",
         "_bind_naia_node_runtime",
@@ -2386,7 +2390,7 @@ class PythonCompatibilitySurfaceTests(unittest.TestCase):
             audit["summary"],
             {
                 "binder_count": 24,
-                "family_count": 3,
+                "family_count": 4,
                 "mode_counts": {
                     "comfy_provider_then_root": 12,
                     "root_globals": 10,
@@ -2463,6 +2467,72 @@ class PythonCompatibilitySurfaceTests(unittest.TestCase):
                     entry["root_observation"],
                     "call_time_resolver",
                 )
+
+    def test_prompt_regional_retirement_subgroups_are_exact(self):
+        audit = self.document["runtime_binder_audit"]
+        self.assertNotIn("prompt_regional", audit["families"])
+        self.assertEqual(
+            audit["families"]["prompt_services"],
+            list(PROMPT_SERVICE_RUNTIME_BINDERS),
+        )
+        self.assertEqual(
+            audit["families"]["prompt_node_adapters"],
+            list(PROMPT_NODE_ADAPTER_RUNTIME_BINDERS),
+        )
+        entries = {
+            entry["binder"]: (entry["module"], entry["mode"])
+            for entry in audit["entries"]
+            if entry["binder"]
+            in {
+                *PROMPT_SERVICE_RUNTIME_BINDERS,
+                *PROMPT_NODE_ADAPTER_RUNTIME_BINDERS,
+            }
+        }
+        self.assertEqual(
+            entries,
+            {
+                "_bind_regional_runtime": (
+                    "easyuse_anima.prompt.regional",
+                    "root_globals",
+                ),
+                "_bind_advanced_runtime": (
+                    "easyuse_anima.prompt.advanced",
+                    "root_globals",
+                ),
+                "_bind_conditioning_runtime": (
+                    "easyuse_anima.prompt.conditioning",
+                    "comfy_provider_then_root",
+                ),
+                "_bind_artist_mix_runtime": (
+                    "easyuse_anima.prompt.artist_mix",
+                    "comfy_provider_then_root",
+                ),
+                "_bind_prompt_fields_runtime": (
+                    "easyuse_anima.prompt.fields",
+                    "root_globals",
+                ),
+                "_bind_prompt_correction_runtime": (
+                    "easyuse_anima.prompt.correction",
+                    "root_globals",
+                ),
+                "_bind_regional_node_runtime": (
+                    "easyuse_anima.nodes.regional_nodes",
+                    "comfy_provider_then_root",
+                ),
+                "_bind_prompt_advanced_node_runtime": (
+                    "easyuse_anima.nodes.prompt_advanced_nodes",
+                    "root_globals",
+                ),
+                "_bind_prompt_data_node_runtime": (
+                    "easyuse_anima.nodes.prompt_data_nodes",
+                    "comfy_provider_then_root",
+                ),
+                "_bind_prompt_node_runtime": (
+                    "easyuse_anima.nodes.prompt_nodes",
+                    "root_globals",
+                ),
+            },
+        )
 
     def test_string_runtime_resolvers_keep_production_seams_transitional(self):
         representative = {
