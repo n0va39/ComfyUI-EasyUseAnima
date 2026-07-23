@@ -3,14 +3,14 @@
 ## Registry status
 
 - Inventory baseline: `dev` commit
-  `68637353f55758d398c27f89be0ee7c1b52f7389`
+  `40e8d940483e265d5a46b2bce1bd8fea83672550`
 - Compatibility provenance: package/workflow version 0.5.2
 - Policy: [ADR-002](adr-002-compatibility-shims.md)
 - Machine-readable audit:
   [`python_compatibility_surface.v1.json`](../../tests/fixtures/python_compatibility_surface.v1.json)
-- Current state: B-11a through B-11c7b are integrated through PR #301. B-11c is
+- Current state: B-11a through B-11c8 are integrated through PR #302. B-11c is
   split into residual-owner and binder Moves before the final root shim;
-  B-11c8 AiO widget-default serializer ownership is tracked by PR #302.
+  B-11c9 AiO input-settings normalizer ownership is tracked by PR #303.
 
 This is an actionable registry, not a removal schedule. `N` means the first
 published Registry release containing both a canonical target and its root
@@ -75,8 +75,8 @@ inferring public support from spelling or test imports:
 - `nodes.py` preamble implementation imports: 7 (`json`, `logging`, `random`,
   `re`, `ceil`, `sqrt`, and `Any`), excluded from compatibility classification
   by an exact AST allowlist and drift gate;
-- `nodes.py` bindings with an `easyuse_anima` canonical target: 275 after
-  B-11c8 (258 at the integrated B-10b20 baseline), with exact
+- `nodes.py` bindings with an `easyuse_anima` canonical target: 276 after
+  B-11c9 (258 at the integrated B-10b20 baseline), with exact
   relative-package/flat-fallback parity;
 - bindings still owned by `anima_prompt`, `settings`, `prompt_translation`, or
   `wildcard_engine`: 27, with the same fallback parity;
@@ -84,10 +84,10 @@ inferring public support from spelling or test imports:
 - unmapped root classes: `EasyUseAnimaSAM3Context` and
   `EasyUseAnimaSAM3Detailer`; the canonical legacy Extend class remains in its
   owner module without a root alias or backend mapping;
-- root-owned residual implementation: 31 functions, 0 classes, and 28 assigned
-  globals after B-11c8 (41/2/33 at the integrated B-10b20 baseline).
+- root-owned residual implementation: 30 functions, 0 classes, and 28 assigned
+  globals after B-11c9 (41/2/33 at the integrated B-10b20 baseline).
 - import-time runtime binders: 28 exact top-level `_bind_*_runtime` calls;
-- root names reached by those canonical runtime resolvers: 256, including
+- root names reached by those canonical runtime resolvers: 263, including
   literal lookups and binder-owned helper-name/default collections;
 - retired private bindings: `_comfy_checkpoint_names`,
   `_EasyUseAnimaAlignedDetailerHook`, and
@@ -281,6 +281,22 @@ convenience-node compatibility; it remains unmapped and is not public support.
 - PR #302 preserves `ensure_ascii=False`, compact `(",", ":")` separators,
   insertion order, and no indent/newline. It does not clone, normalize, mutate,
   or move defaults, schemas, widget metadata, or workflow serialization.
+
+### B-11c9 AiO input-settings normalizer alias
+
+- Canonical owner: `easyuse_anima.aio.resources` for
+  `_normalize_aio_input_settings`.
+- The private root name remains a transitional direct alias in both relative
+  package and flat import modes. The resource loader and both AiO Input adapter
+  callers keep resolving the root name at call time.
+- The moved function resolves root `_merge_versioned_settings`, mutable input
+  defaults, schema/version, `_as_int`, `_choice`, dtype choices, and device
+  choices through the existing resource runtime seam. Root binding replacement
+  therefore remains visible without a new binder.
+- PR #303 preserves unknown keys, merge-result mutation, `loader_mode="split"`,
+  the single clip-loader choice, and dtype/device fallback order. It does not
+  move defaults or schemas, add typed settings, or change widget, workflow,
+  resource-loading, cache, seed, or stage behavior.
 
 ### `nodes.py` public node-class surface
 

@@ -25,6 +25,39 @@ def _runtime_helper(name: str) -> Any:
     return resolver(name)
 
 
+def _normalize_aio_input_settings(value) -> dict[str, Any]:
+    settings = _runtime_helper("_merge_versioned_settings")(
+        _runtime_helper("AIO_INPUT_DEFAULT_SETTINGS"),
+        value,
+    )
+    settings["schema"] = _runtime_helper("EASY_USE_ANIMA_INPUT_SCHEMA")
+    settings["version"] = _runtime_helper("_as_int")(
+        settings.get("version"),
+        _runtime_helper("EASY_USE_ANIMA_INPUT_SETTINGS_VERSION"),
+    )
+    resources = settings.setdefault("resources", {})
+    if not isinstance(resources, dict):
+        resources = {}
+        settings["resources"] = resources
+    resources["loader_mode"] = "split"
+    resources["clip_loader"] = _runtime_helper("_choice")(
+        resources.get("clip_loader"),
+        ("single",),
+        "single",
+    )
+    resources["unet_weight_dtype"] = _runtime_helper("_choice")(
+        resources.get("unet_weight_dtype"),
+        _runtime_helper("ANIMA_UNET_WEIGHT_DTYPES"),
+        "default",
+    )
+    resources["clip_device"] = _runtime_helper("_choice")(
+        resources.get("clip_device"),
+        _runtime_helper("ANIMA_CLIP_DEVICES"),
+        "default",
+    )
+    return settings
+
+
 def _preferred_name_default(names: list[str], candidates: tuple[str, ...]) -> str:
     if not names:
         return candidates[0] if candidates else ""

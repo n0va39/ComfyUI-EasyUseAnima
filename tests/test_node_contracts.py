@@ -21,6 +21,7 @@ import nodes
 from easyuse_anima import workflow
 from easyuse_anima.aio import (
     generation_normalization as aio_generation_normalization,
+    resources as aio_resources,
     sampling as aio_sampling,
 )
 from easyuse_anima.aio import model_preparation as aio_model_preparation
@@ -994,6 +995,91 @@ class AioWidgetDefaultSerializerMoveContractTests(unittest.TestCase):
             package_name = package_nodes.__package__
             package_aio_nodes = sys.modules[f"{package_name}.easyuse_anima.nodes.aio_nodes"]
             self._assert_contract(package_nodes, package_aio_nodes)
+
+
+class AioInputSettingsNormalizerMoveContractTests(unittest.TestCase):
+    def _assert_contract(self, root_module, canonical_module):
+        self.assertIs(
+            root_module._normalize_aio_input_settings,
+            canonical_module._normalize_aio_input_settings,
+        )
+
+        defaults = {"default": "sentinel"}
+        merged = {
+            "version": "legacy-version",
+            "resources": {
+                "clip_loader": "legacy-loader",
+                "unet_weight_dtype": "legacy-dtype",
+                "clip_device": "legacy-device",
+            },
+            "future": {"kept": True},
+        }
+        merge_calls = []
+        as_int_calls = []
+        choice_calls = []
+
+        def merge_versioned_settings(current_defaults, value):
+            merge_calls.append((current_defaults, value))
+            return merged
+
+        def as_int(value, default):
+            as_int_calls.append((value, default))
+            return 9
+
+        def choice(value, choices, default):
+            choice_calls.append((value, choices, default))
+            return f"normalized:{value}"
+
+        with (
+            patch.object(
+                root_module,
+                "_merge_versioned_settings",
+                merge_versioned_settings,
+            ),
+            patch.object(root_module, "AIO_INPUT_DEFAULT_SETTINGS", defaults),
+            patch.object(root_module, "EASY_USE_ANIMA_INPUT_SCHEMA", "input-schema"),
+            patch.object(root_module, "EASY_USE_ANIMA_INPUT_SETTINGS_VERSION", 7),
+            patch.object(root_module, "_as_int", as_int),
+            patch.object(root_module, "_choice", choice),
+            patch.object(root_module, "ANIMA_UNET_WEIGHT_DTYPES", ("dtype-a",)),
+            patch.object(root_module, "ANIMA_CLIP_DEVICES", ("device-a",)),
+        ):
+            result = canonical_module._normalize_aio_input_settings("payload")
+
+        self.assertIs(result, merged)
+        self.assertEqual(merge_calls, [(defaults, "payload")])
+        self.assertEqual(as_int_calls, [("legacy-version", 7)])
+        self.assertEqual(
+            choice_calls,
+            [
+                ("legacy-loader", ("single",), "single"),
+                ("legacy-dtype", ("dtype-a",), "default"),
+                ("legacy-device", ("device-a",), "default"),
+            ],
+        )
+        self.assertEqual(result["schema"], "input-schema")
+        self.assertEqual(result["version"], 9)
+        self.assertEqual(
+            result["resources"],
+            {
+                "loader_mode": "split",
+                "clip_loader": "normalized:legacy-loader",
+                "unet_weight_dtype": "normalized:legacy-dtype",
+                "clip_device": "normalized:legacy-device",
+            },
+        )
+        self.assertEqual(result["future"], {"kept": True})
+
+    def test_root_alias_and_call_time_input_contract(self):
+        self._assert_contract(nodes, aio_resources)
+
+    def test_package_alias_and_call_time_input_contract(self):
+        with _loaded_package_entrypoint() as (_, package_nodes):
+            package_name = package_nodes.__package__
+            package_resources = sys.modules[
+                f"{package_name}.easyuse_anima.aio.resources"
+            ]
+            self._assert_contract(package_nodes, package_resources)
 
 
 class ComfyAdapterMoveContractTests(unittest.TestCase):

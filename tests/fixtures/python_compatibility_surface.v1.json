@@ -2,7 +2,7 @@
   "schema_version": 1,
   "snapshot": {
     "base_branch": "dev",
-    "base_commit": "68637353f55758d398c27f89be0ee7c1b52f7389",
+    "base_commit": "40e8d940483e265d5a46b2bce1bd8fea83672550",
     "first_release": null,
     "owner_tasks": [
       "#184",
@@ -38,7 +38,8 @@
       "B-11c6",
       "B-11c7a",
       "B-11c7b",
-      "B-11c8"
+      "B-11c8",
+      "B-11c9"
     ]
   },
   "enums": {
@@ -73,11 +74,11 @@
   "expected_counts": {
     "root_entrypoints": 3,
     "excluded_preamble_implementation_bindings": 7,
-    "nodes_canonical_bindings": 275,
+    "nodes_canonical_bindings": 276,
     "nodes_legacy_bindings": 27,
     "mapped_public_classes": 18,
     "unmapped_classes": 2,
-    "root_residual_functions": 31,
+    "root_residual_functions": 30,
     "root_residual_classes": 0,
     "root_residual_globals": 28,
     "runtime_binders": 28,
@@ -168,6 +169,7 @@
       "easyuse_anima.aio.generation_normalization"
     ],
     "AIO_INPUT_DEFAULT_SETTINGS": [
+      "easyuse_anima.aio.resources",
       "easyuse_anima.nodes.aio_nodes"
     ],
     "AIO_PREVIEW_CACHE_FORMAT": [
@@ -211,6 +213,9 @@
     "AIO_USDU_SEAM_FIX_MODES": [
       "easyuse_anima.aio.generation_normalization"
     ],
+    "ANIMA_CLIP_DEVICES": [
+      "easyuse_anima.aio.resources"
+    ],
     "ANIMA_DEFAULT_CLIP_CANDIDATES": [
       "easyuse_anima.nodes.aio_nodes"
     ],
@@ -233,6 +238,9 @@
     "ANIMA_MOD_GUIDANCE_PROFILE_OFF": [
       "easyuse_anima.aio.legacy_generation",
       "easyuse_anima.aio.sampling"
+    ],
+    "ANIMA_UNET_WEIGHT_DTYPES": [
+      "easyuse_anima.aio.resources"
     ],
     "ARTIST_MIX_DEFAULT_CLUSTER_COUNT": [
       "easyuse_anima.aio.generation_normalization"
@@ -265,9 +273,11 @@
       "easyuse_anima.aio.generation_normalization"
     ],
     "EASY_USE_ANIMA_INPUT_SCHEMA": [
+      "easyuse_anima.aio.resources",
       "easyuse_anima.nodes.aio_nodes"
     ],
     "EASY_USE_ANIMA_INPUT_SETTINGS_VERSION": [
+      "easyuse_anima.aio.resources",
       "easyuse_anima.nodes.aio_nodes"
     ],
     "EASY_USE_ANIMA_INPUT_TYPE": [
@@ -491,6 +501,7 @@
       "easyuse_anima.aio.generation_normalization",
       "easyuse_anima.aio.model_preparation",
       "easyuse_anima.aio.output",
+      "easyuse_anima.aio.resources",
       "easyuse_anima.aio.sampling",
       "easyuse_anima.lora.preset",
       "easyuse_anima.nodes.prompt_advanced_nodes",
@@ -730,6 +741,9 @@
     "_lora_stack_name": [
       "easyuse_anima.aio.model_preparation",
       "easyuse_anima.nodes.lora_nodes"
+    ],
+    "_merge_versioned_settings": [
+      "easyuse_anima.aio.resources"
     ],
     "_metadata_filter_key": [
       "easyuse_anima.prompt.fields"
@@ -1919,6 +1933,7 @@
         "nodes.py residual runtime",
         "canonical runtime resolver: easyuse_anima.aio.generation_normalization",
         "canonical runtime resolver: easyuse_anima.aio.legacy_generation",
+        "canonical runtime resolver: easyuse_anima.aio.resources",
         "canonical runtime resolver: easyuse_anima.aio.sampling",
         "canonical runtime resolver: easyuse_anima.nodes.aio_nodes"
       ],
@@ -1926,6 +1941,7 @@
         "AST:nodes.py direct runtime load",
         "AST:easyuse_anima.aio.generation_normalization string runtime lookup",
         "AST:easyuse_anima.aio.legacy_generation string runtime lookup",
+        "AST:easyuse_anima.aio.resources string runtime lookup",
         "AST:easyuse_anima.aio.sampling string runtime lookup",
         "AST:easyuse_anima.nodes.aio_nodes string runtime lookup"
       ],
@@ -2168,6 +2184,7 @@
         "_load_diffusion_model_with_comfy": "_load_diffusion_model_with_comfy",
         "_load_upscale_model_with_comfy": "_load_upscale_model_with_comfy",
         "_load_vae_with_comfy": "_load_vae_with_comfy",
+        "_normalize_aio_input_settings": "_normalize_aio_input_settings",
         "_preferred_checkpoint_default": "_preferred_checkpoint_default",
         "_preferred_clip_type_default": "_preferred_clip_type_default",
         "_preferred_name_default": "_preferred_name_default"
@@ -4004,7 +4021,6 @@
         "_find_comfy_node_mapping_class": "_find_comfy_node_mapping_class",
         "_find_loaded_node_class": "_find_loaded_node_class",
         "_is_aio_detailer_target_name": "_is_aio_detailer_target_name",
-        "_normalize_aio_input_settings": "_normalize_aio_input_settings",
         "_require_any_custom_node_class": "_require_any_custom_node_class",
         "_require_custom_node_class": "_require_custom_node_class",
         "_resize_image_to_size_if_needed": "_resize_image_to_size_if_needed",
