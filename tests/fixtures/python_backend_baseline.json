@@ -426,6 +426,31 @@
         "target": "wildcard_engine.py"
       },
       {
+        "alias": "comfy_nodes",
+        "bound_name": "comfy_nodes",
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": false,
+            "kind": "try",
+            "line": 33
+          }
+        ],
+        "classification": "external",
+        "column": 8,
+        "conditional": true,
+        "imported": "nodes",
+        "kind": "static_import",
+        "line": 34,
+        "name": null,
+        "optional": true,
+        "requested": "nodes",
+        "role": "optional_dependency",
+        "scope": "_load_comfy_nodes",
+        "source": "__init__.py"
+      },
+      {
         "alias": null,
         "bound_name": "correct_prompt",
         "branch_context": [],
@@ -7013,6 +7038,60 @@
       },
       {
         "alias": null,
+        "bound_name": "DefaultComfyHostProvider",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".infrastructure.comfy.provider:DefaultComfyHostProvider",
+        "kind": "static_from",
+        "line": 9,
+        "name": "DefaultComfyHostProvider",
+        "optional": false,
+        "requested": ".infrastructure.comfy.provider",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/bootstrap.py",
+        "target": "easyuse_anima/infrastructure/comfy/provider.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "RuntimeServices",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".runtime:RuntimeServices",
+        "kind": "static_from",
+        "line": 10,
+        "name": "RuntimeServices",
+        "optional": false,
+        "requested": ".runtime",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/bootstrap.py",
+        "target": "easyuse_anima/runtime.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "install_runtime",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".runtime:install_runtime",
+        "kind": "static_from",
+        "line": 10,
+        "name": "install_runtime",
+        "optional": false,
+        "requested": ".runtime",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/bootstrap.py",
+        "target": "easyuse_anima/runtime.py"
+      },
+      {
+        "alias": null,
         "bound_name": "json",
         "branch_context": [],
         "classification": "external",
@@ -7923,6 +8002,128 @@
         "role": "ordinary",
         "scope": "_common_upscale_image",
         "source": "easyuse_anima/infrastructure/comfy/invocation.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "annotations",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "__future__:annotations",
+        "kind": "static_from",
+        "line": 3,
+        "name": "annotations",
+        "optional": false,
+        "requested": "__future__",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/infrastructure/comfy/provider.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "sys",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "sys",
+        "kind": "static_import",
+        "line": 5,
+        "name": null,
+        "optional": false,
+        "requested": "sys",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/infrastructure/comfy/provider.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "Callable",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "collections.abc:Callable",
+        "kind": "static_from",
+        "line": 6,
+        "name": "Callable",
+        "optional": false,
+        "requested": "collections.abc",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/infrastructure/comfy/provider.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "Protocol",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "typing:Protocol",
+        "kind": "static_from",
+        "line": 7,
+        "name": "Protocol",
+        "optional": false,
+        "requested": "typing",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/infrastructure/comfy/provider.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "_comfy_max_resolution",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".capabilities:_comfy_max_resolution",
+        "kind": "static_from",
+        "line": 9,
+        "name": "_comfy_max_resolution",
+        "optional": false,
+        "requested": ".capabilities",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/infrastructure/comfy/provider.py",
+        "target": "easyuse_anima/infrastructure/comfy/capabilities.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "_find_comfy_node_class",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".capabilities:_find_comfy_node_class",
+        "kind": "static_from",
+        "line": 9,
+        "name": "_find_comfy_node_class",
+        "optional": false,
+        "requested": ".capabilities",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/infrastructure/comfy/provider.py",
+        "target": "easyuse_anima/infrastructure/comfy/capabilities.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "_find_loaded_node_class",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".capabilities:_find_loaded_node_class",
+        "kind": "static_from",
+        "line": 9,
+        "name": "_find_loaded_node_class",
+        "optional": false,
+        "requested": ".capabilities",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/infrastructure/comfy/provider.py",
+        "target": "easyuse_anima/infrastructure/comfy/capabilities.py"
       },
       {
         "alias": null,
@@ -14205,6 +14406,58 @@
         "scope": "<module>",
         "source": "easyuse_anima/registration.py",
         "target": "easyuse_anima/nodes/wildcard_nodes.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "annotations",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "__future__:annotations",
+        "kind": "static_from",
+        "line": 3,
+        "name": "annotations",
+        "optional": false,
+        "requested": "__future__",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/runtime.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "dataclass",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "dataclasses:dataclass",
+        "kind": "static_from",
+        "line": 5,
+        "name": "dataclass",
+        "optional": false,
+        "requested": "dataclasses",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/runtime.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "ComfyHostProvider",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".infrastructure.comfy.provider:ComfyHostProvider",
+        "kind": "static_from",
+        "line": 7,
+        "name": "ComfyHostProvider",
+        "optional": false,
+        "requested": ".infrastructure.comfy.provider",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/runtime.py",
+        "target": "easyuse_anima/infrastructure/comfy/provider.py"
       },
       {
         "alias": null,
@@ -37331,6 +37584,14 @@
         "to": "easyuse_anima/aio/generation_values.py"
       },
       {
+        "from": "easyuse_anima/bootstrap.py",
+        "to": "easyuse_anima/infrastructure/comfy/provider.py"
+      },
+      {
+        "from": "easyuse_anima/bootstrap.py",
+        "to": "easyuse_anima/runtime.py"
+      },
+      {
         "from": "easyuse_anima/image/detailer.py",
         "to": "easyuse_anima/image/geometry.py"
       },
@@ -37345,6 +37606,10 @@
       {
         "from": "easyuse_anima/image/scaling.py",
         "to": "easyuse_anima/image/geometry.py"
+      },
+      {
+        "from": "easyuse_anima/infrastructure/comfy/provider.py",
+        "to": "easyuse_anima/infrastructure/comfy/capabilities.py"
       },
       {
         "from": "easyuse_anima/lora/preset.py",
@@ -37621,6 +37886,10 @@
       {
         "from": "easyuse_anima/registration.py",
         "to": "easyuse_anima/nodes/wildcard_nodes.py"
+      },
+      {
+        "from": "easyuse_anima/runtime.py",
+        "to": "easyuse_anima/infrastructure/comfy/provider.py"
       },
       {
         "from": "easyuse_anima/workflow.py",
@@ -38129,6 +38398,12 @@
       {
         "cyclic": false,
         "modules": [
+          "easyuse_anima/infrastructure/comfy/provider.py"
+        ]
+      },
+      {
+        "cyclic": false,
+        "modules": [
           "easyuse_anima/infrastructure/comfy/resources.py"
         ]
       },
@@ -38321,6 +38596,12 @@
       {
         "cyclic": false,
         "modules": [
+          "easyuse_anima/runtime.py"
+        ]
+      },
+      {
+        "cyclic": false,
+        "modules": [
           "easyuse_anima/workflow.py"
         ]
       },
@@ -38357,17 +38638,17 @@
     ]
   },
   "inventory": {
-    "module_count": 83,
+    "module_count": 85,
     "modules": [
       {
         "is_package": true,
-        "loc": 42,
+        "loc": 52,
         "module": "__root__",
-        "normalized_git_blob_sha1": "29a0befc1c5aa8c8aa3db3f755ca5816f3f700f4",
+        "normalized_git_blob_sha1": "12ab225bf2436a2c76323d5b8fcd2fe6bd50cffe",
         "path": "__init__.py",
         "top_level": {
           "class_count": 0,
-          "function_count": 0,
+          "function_count": 1,
           "global_count": 2
         }
       },
@@ -38745,14 +39026,14 @@
       },
       {
         "is_package": false,
-        "loc": 37,
+        "loc": 55,
         "module": "easyuse_anima.bootstrap",
-        "normalized_git_blob_sha1": "a114f2473296dbb4cb5f27429f115354448ca698",
+        "normalized_git_blob_sha1": "69651a9eb42f2ce9faae414662e7fa92ea1af62e",
         "path": "easyuse_anima/bootstrap.py",
         "top_level": {
           "class_count": 0,
-          "function_count": 1,
-          "global_count": 4
+          "function_count": 2,
+          "global_count": 5
         }
       },
       {
@@ -38896,6 +39177,18 @@
         "top_level": {
           "class_count": 0,
           "function_count": 4,
+          "global_count": 1
+        }
+      },
+      {
+        "is_package": false,
+        "loc": 64,
+        "module": "easyuse_anima.infrastructure.comfy.provider",
+        "normalized_git_blob_sha1": "734257d54c6eeabf061d2714a2f1e1cbfe7b3834",
+        "path": "easyuse_anima/infrastructure/comfy/provider.py",
+        "top_level": {
+          "class_count": 2,
+          "function_count": 1,
           "global_count": 1
         }
       },
@@ -39281,6 +39574,18 @@
           "class_count": 0,
           "function_count": 0,
           "global_count": 3
+        }
+      },
+      {
+        "is_package": false,
+        "loc": 45,
+        "module": "easyuse_anima.runtime",
+        "normalized_git_blob_sha1": "db75d050be2939fe72a9a5f4e05b20ed406fa49b",
+        "path": "easyuse_anima/runtime.py",
+        "top_level": {
+          "class_count": 1,
+          "function_count": 2,
+          "global_count": 2
         }
       },
       {
@@ -48418,6 +48723,25 @@
     ],
     "external_imports": [
       {
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": false,
+            "kind": "try",
+            "line": 33
+          }
+        ],
+        "classification": "external",
+        "conditional": true,
+        "imported": "nodes",
+        "kind": "static_import",
+        "line": 34,
+        "optional": true,
+        "role": "optional_dependency",
+        "source": "__init__.py"
+      },
+      {
         "branch_context": [],
         "classification": "external",
         "conditional": false,
@@ -50727,6 +51051,50 @@
         "line": 3,
         "optional": false,
         "role": "ordinary",
+        "source": "easyuse_anima/infrastructure/comfy/provider.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "sys",
+        "kind": "static_import",
+        "line": 5,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/infrastructure/comfy/provider.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "collections.abc:Callable",
+        "kind": "static_from",
+        "line": 6,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/infrastructure/comfy/provider.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "typing:Protocol",
+        "kind": "static_from",
+        "line": 7,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/infrastructure/comfy/provider.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "__future__:annotations",
+        "kind": "static_from",
+        "line": 3,
+        "optional": false,
+        "role": "ordinary",
         "source": "easyuse_anima/infrastructure/comfy/resources.py"
       },
       {
@@ -51911,6 +52279,28 @@
         "line": 3,
         "optional": false,
         "role": "ordinary",
+        "source": "easyuse_anima/runtime.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "dataclasses:dataclass",
+        "kind": "static_from",
+        "line": 5,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/runtime.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "__future__:annotations",
+        "kind": "static_from",
+        "line": 3,
+        "optional": false,
+        "role": "ordinary",
         "source": "easyuse_anima/workflow.py"
       },
       {
@@ -52576,6 +52966,25 @@
     "ignore_file_normalized_git_blob_sha1": "e447b6d3726fe4e06da1bef09ed7b035dbd14aa8",
     "missing_internal_imports": [],
     "optional_imports": [
+      {
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": false,
+            "kind": "try",
+            "line": 33
+          }
+        ],
+        "classification": "external",
+        "conditional": true,
+        "imported": "nodes",
+        "kind": "static_import",
+        "line": 34,
+        "optional": true,
+        "role": "optional_dependency",
+        "source": "__init__.py"
+      },
       {
         "branch_context": [
           {
@@ -53599,6 +54008,7 @@
       "easyuse_anima/infrastructure/comfy/__init__.py",
       "easyuse_anima/infrastructure/comfy/capabilities.py",
       "easyuse_anima/infrastructure/comfy/invocation.py",
+      "easyuse_anima/infrastructure/comfy/provider.py",
       "easyuse_anima/infrastructure/comfy/resources.py",
       "easyuse_anima/lora/__init__.py",
       "easyuse_anima/lora/metadata.py",
@@ -53631,6 +54041,7 @@
       "easyuse_anima/prompt/fields.py",
       "easyuse_anima/prompt/regional.py",
       "easyuse_anima/registration.py",
+      "easyuse_anima/runtime.py",
       "easyuse_anima/workflow.py",
       "nodes.py",
       "prompt_translation.py",
@@ -53684,6 +54095,7 @@
       "easyuse_anima/infrastructure/comfy/__init__.py",
       "easyuse_anima/infrastructure/comfy/capabilities.py",
       "easyuse_anima/infrastructure/comfy/invocation.py",
+      "easyuse_anima/infrastructure/comfy/provider.py",
       "easyuse_anima/infrastructure/comfy/resources.py",
       "easyuse_anima/lora/__init__.py",
       "easyuse_anima/lora/metadata.py",
@@ -53716,6 +54128,7 @@
       "easyuse_anima/prompt/fields.py",
       "easyuse_anima/prompt/regional.py",
       "easyuse_anima/registration.py",
+      "easyuse_anima/runtime.py",
       "easyuse_anima/workflow.py",
       "nodes.py",
       "prompt_translation.py",
@@ -53733,7 +54146,7 @@
         "column": 0,
         "context": "expression",
         "kind": "import_time_call",
-        "line": 31,
+        "line": 40,
         "module": "__init__.py",
         "scope": "<module>"
       },
@@ -54507,7 +54920,7 @@
         "column": 10,
         "context": "assign:_LOGGER",
         "kind": "import_time_call",
-        "line": 9,
+        "line": 12,
         "module": "easyuse_anima/bootstrap.py",
         "scope": "<module>"
       },
@@ -54516,7 +54929,7 @@
         "column": 19,
         "context": "assign:_INITIALIZE_LOCK",
         "kind": "import_time_call",
-        "line": 10,
+        "line": 13,
         "module": "easyuse_anima/bootstrap.py",
         "scope": "<module>"
       },
@@ -54905,6 +55318,15 @@
         "kind": "import_time_call",
         "line": 25,
         "module": "easyuse_anima/prompt/fields.py",
+        "scope": "<module>"
+      },
+      {
+        "callee": "dataclass",
+        "column": 1,
+        "context": "decorator:RuntimeServices",
+        "kind": "import_time_call",
+        "line": 10,
+        "module": "easyuse_anima/runtime.py",
         "scope": "<module>"
       },
       {
@@ -55444,7 +55866,7 @@
     "mutable_globals": [
       {
         "kind": "list",
-        "line": 38,
+        "line": 48,
         "module": "__init__.py",
         "name": "__all__"
       },
@@ -55552,7 +55974,7 @@
       },
       {
         "kind": "list",
-        "line": 37,
+        "line": 55,
         "module": "easyuse_anima/bootstrap.py",
         "name": "__all__"
       },
@@ -55914,7 +56336,7 @@
           "lock"
         ],
         "initializer": "threading.Lock",
-        "line": 10,
+        "line": 13,
         "module": "easyuse_anima/bootstrap.py",
         "name": "_INITIALIZE_LOCK"
       },

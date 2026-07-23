@@ -344,7 +344,7 @@ Exit:
 
 ### E-02a — Minimal runtime shell
 
-- **State:** BLOCKED by E-01a
+- **State:** COMPLETE in PR #327 (combined Contract with E-07a)
 - **Owner:** #323 / parent #187
 - **Type:** Contract
 
@@ -378,13 +378,32 @@ mutation, or feature code importing runtime.
 
 ### E-07a — Provider Contract and default lazy provider
 
-- **State:** BLOCKED by E-01a and E-02a interface review
+- **State:** COMPLETE in PR #327 (combined Contract with E-02a)
 - **Owner:** #323 / parent #187
 - **Type:** Contract
+
+PR #327 combines E-02a and E-07a because the package-closure gate cannot admit
+the new runtime/provider modules while both remain unreachable. The production
+boundary is the union of the two Contract units plus the root entrypoint's
+adapter-only host-module loader:
+
+```text
+__init__.py
+easyuse_anima/runtime.py
+easyuse_anima/bootstrap.py
+easyuse_anima/infrastructure/comfy/provider.py
+```
+
+The root entrypoint owns the actual `import nodes` operation and injects a
+call-time loader into bootstrap. Canonical code therefore does not import a
+root shim, while the provider still observes delayed host availability without
+caching. This sequencing correction does not add a package-closure exception
+and does not authorize E-07b wiring, a wrapper Move, or a Behavior change.
 
 Allowed production files:
 
 ```text
+__init__.py
 easyuse_anima/bootstrap.py
 easyuse_anima/infrastructure/comfy/provider.py
 ```
@@ -523,10 +542,10 @@ and D-12 unless a separate behavior-preserving owner is proven.
 ```text
 COMPLETE: B-11c28 / PR #322
 COMPLETE: E-01a scoped inventory / PR #325
+COMPLETE: E-02a minimal runtime shell / PR #327
+COMPLETE: E-07a default host provider / PR #327
 
-READY:    E-02a minimal runtime shell
-BLOCKED:  E-07a default host provider
-BLOCKED:  E-07b wiring and compatibility gate
+READY:    E-07b wiring and compatibility gate
 BLOCKED:  B-11c29a-d wrapper Moves/retirements
 BLOCKED:  B-11c30 binder/resolver migration audit
 BLOCKED:  B-11d final root shim
@@ -584,16 +603,13 @@ Read docs/architecture/comfy-host-provider-bridge.md, Issue #323, Issue #184's
 latest blocker/completion evidence, Issue #187, python-backend.md, ADR-002, and
 the E-01a compatibility ledger before editing.
 
-E-01a is complete in PR #325. Start with E-02a only and follow the exact
-production symbols, allowed files, tests, and forbidden work in
-tests/fixtures/comfy_host_compatibility.v1.json. Declare the narrow
-ComfyHostProvider Protocol needed to type the frozen RuntimeServices shell,
-then implement only install/access semantics. Do not implement the default
-provider, host lookup, bootstrap wiring, feature placeholders, or root/canonical
-caller changes in E-02a.
+E-01a is complete in PR #325. E-02a and E-07a are complete together in PR #327
+because bootstrap reachability is required by the package-closure gate. Start
+with E-07b only and follow its exact compatibility and wiring boundary in
+tests/fixtures/comfy_host_compatibility.v1.json. Do not move or remove the seven
+root wrappers, add lookup caching, or migrate feature behavior in E-07b.
 
-After E-02a merges, execute one Contract unit at a time: E-07a, then E-07b.
-Only after their exit gates pass may #184 resume B-11c29 wrapper Moves.
+Only after the E-07b exit gates pass may #184 resume B-11c29 wrapper Moves.
 Target dev, use one task ID per branch, run focused tests and the official full
 runner, and record exact base/head SHA, compatibility decisions, package/live
 status, rollback boundary, and next task. Do not release from this sequence.
