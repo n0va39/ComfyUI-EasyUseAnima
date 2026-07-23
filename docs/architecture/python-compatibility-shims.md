@@ -3,14 +3,15 @@
 ## Registry status
 
 - Inventory baseline: `dev` commit
-  `3d7e5d21561d9f4501d2b454df4fe8a6ef4cdd3f`
+  `de57090f20aefe00663b7630ba87055333ddf107`
 - Compatibility provenance: package/workflow version 0.5.2
 - Policy: [ADR-002](adr-002-compatibility-shims.md)
 - Machine-readable audit:
   [`python_compatibility_surface.v1.json`](../../tests/fixtures/python_compatibility_surface.v1.json)
-- Current state: B-11a through B-11c18 are integrated through PR #312. B-11c is
+- Current state: B-11a through B-11c19 are integrated through PR #313. B-11c is
   split into residual-owner Moves and explicit private-contract cleanup before
-  the final root shim; B-11c19 VAE name wrapper Move is tracked by PR #313.
+  the final root shim; B-11c20 CLIP loader-type wrapper Move is tracked by PR
+  #314.
 
 This is an actionable registry, not a removal schedule. `N` means the first
 published Registry release containing both a canonical target and its root
@@ -75,7 +76,7 @@ inferring public support from spelling or test imports:
 - `nodes.py` preamble implementation imports: 6 (`json`, `logging`, `random`,
   `ceil`, `sqrt`, and `Any`), excluded from compatibility classification
   by an exact AST allowlist and drift gate;
-- `nodes.py` bindings with an `easyuse_anima` canonical target: 291 in B-11c19
+- `nodes.py` bindings with an `easyuse_anima` canonical target: 292 in B-11c20
   (258 at the integrated B-10b20 baseline), with exact
   relative-package/flat-fallback parity;
 - bindings still owned by `anima_prompt`, `settings`, `prompt_translation`, or
@@ -84,10 +85,10 @@ inferring public support from spelling or test imports:
 - unmapped root classes: `EasyUseAnimaSAM3Context` and
   `EasyUseAnimaSAM3Detailer`; the canonical legacy Extend class remains in its
   owner module without a root alias or backend mapping;
-- root-owned residual implementation: 17 functions, 0 classes, and 26 assigned
-  globals in B-11c19 (41/2/33 at the integrated B-10b20 baseline).
+- root-owned residual implementation: 16 functions, 0 classes, and 26 assigned
+  globals in B-11c20 (41/2/33 at the integrated B-10b20 baseline).
 - import-time runtime binders: 30 exact top-level `_bind_*_runtime` calls;
-- root names reached by those canonical runtime resolvers: 275, including
+- root names reached by those canonical runtime resolvers: 277, including
   literal lookups and binder-owned helper-name/default collections;
 - retired private bindings: `_comfy_checkpoint_names`,
   `_EasyUseAnimaAlignedDetailerHook`, and
@@ -448,6 +449,21 @@ convenience-node compatibility; it remains unmapped and is not public support.
 - PR #313 does not move or change the infrastructure adapter, constants,
   node-class finder, folder lookup, other resource-name wrappers, INPUT_TYPES,
   schema, defaults, or workflow behavior.
+
+### B-11c20 CLIP loader-type wrapper alias
+
+- Canonical owner: `easyuse_anima.aio.resources` for
+  `_comfy_clip_loader_types`.
+- The private root wrapper remains a transitional direct alias in relative
+  package and flat import modes. `EasyUseAnimaInput.INPUT_TYPES` continues to
+  resolve that root name at call time.
+- The existing resource binder resolves `_adapter_comfy_clip_loader_types`,
+  `ANIMA_CLIP_TYPES`, and `_find_comfy_node_class` at use time. CLIPLoader-first
+  discovery, finder exception propagation, loader-processing exception
+  fallback, allowed-type order/copy policy, and adapter result are unchanged.
+- PR #314 does not move or change the infrastructure adapter, constants,
+  node-class finder, other resource-name wrappers, INPUT_TYPES, schema,
+  defaults, or workflow behavior.
 
 ### `nodes.py` public node-class surface
 

@@ -2,7 +2,7 @@
   "schema_version": 1,
   "snapshot": {
     "base_branch": "dev",
-    "base_commit": "3d7e5d21561d9f4501d2b454df4fe8a6ef4cdd3f",
+    "base_commit": "de57090f20aefe00663b7630ba87055333ddf107",
     "first_release": null,
     "owner_tasks": [
       "#184",
@@ -49,7 +49,8 @@
       "B-11c16",
       "B-11c17",
       "B-11c18",
-      "B-11c19"
+      "B-11c19",
+      "B-11c20"
     ]
   },
   "enums": {
@@ -84,11 +85,11 @@
   "expected_counts": {
     "root_entrypoints": 3,
     "excluded_preamble_implementation_bindings": 6,
-    "nodes_canonical_bindings": 291,
+    "nodes_canonical_bindings": 292,
     "nodes_legacy_bindings": 27,
     "mapped_public_classes": 18,
     "unmapped_classes": 2,
-    "root_residual_functions": 17,
+    "root_residual_functions": 16,
     "root_residual_classes": 0,
     "root_residual_globals": 26,
     "runtime_binders": 30,
@@ -227,6 +228,9 @@
     "ANIMA_CLIP_DEVICES": [
       "easyuse_anima.aio.resources"
     ],
+    "ANIMA_CLIP_TYPES": [
+      "easyuse_anima.aio.resources"
+    ],
     "ANIMA_DEFAULT_CLIP_CANDIDATES": [
       "easyuse_anima.aio.resources",
       "easyuse_anima.nodes.aio_nodes"
@@ -346,6 +350,9 @@
     ],
     "_WEIGHTED_TOKEN_RE": [
       "easyuse_anima.prompt.fields"
+    ],
+    "_adapter_comfy_clip_loader_types": [
+      "easyuse_anima.aio.resources"
     ],
     "_adapter_comfy_diffusion_model_names": [
       "easyuse_anima.aio.resources"
@@ -2273,6 +2280,7 @@
       "surface": "nodes_canonical_bindings",
       "symbols": {
         "_bind_aio_resource_runtime": "_bind_aio_resource_runtime",
+        "_comfy_clip_loader_types": "_comfy_clip_loader_types",
         "_comfy_diffusion_model_names": "_comfy_diffusion_model_names",
         "_comfy_text_encoder_names": "_comfy_text_encoder_names",
         "_comfy_vae_names": "_comfy_vae_names",
@@ -2709,11 +2717,9 @@
       "owner": "#184/#188",
       "first_release": null,
       "known_consumers": [
-        "nodes.py residual runtime",
         "canonical runtime resolver: easyuse_anima.aio.resources"
       ],
       "evidence": [
-        "AST:nodes.py direct runtime load",
         "AST:easyuse_anima.aio.resources string runtime lookup"
       ],
       "removal_gates": [
@@ -4143,7 +4149,6 @@
       "surface": "nodes_root_residuals",
       "kind": "functions",
       "symbols": {
-        "_comfy_clip_loader_types": "_comfy_clip_loader_types",
         "_comfy_max_resolution": "_comfy_max_resolution",
         "_consume_reserved_wildcard_next_seed": "_consume_reserved_wildcard_next_seed",
         "_encode_with_comfy_clip": "_encode_with_comfy_clip",

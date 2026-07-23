@@ -80,6 +80,13 @@ def _comfy_vae_names() -> list[str]:
     )
 
 
+def _comfy_clip_loader_types() -> list[str]:
+    return _runtime_helper("_adapter_comfy_clip_loader_types")(
+        _runtime_helper("ANIMA_CLIP_TYPES"),
+        _runtime_helper("_find_comfy_node_class"),
+    )
+
+
 def _preferred_name_default(names: list[str], candidates: tuple[str, ...]) -> str:
     if not names:
         return candidates[0] if candidates else ""
