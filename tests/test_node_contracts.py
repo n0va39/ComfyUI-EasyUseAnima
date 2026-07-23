@@ -215,6 +215,17 @@ def _deterministic_comfy_inputs():
     with (
         patch.multiple(nodes, **replacements),
         patch.multiple(
+            aio_nodes,
+            _comfy_diffusion_model_names=replacements[
+                "_comfy_diffusion_model_names"
+            ],
+            _comfy_text_encoder_names=replacements[
+                "_comfy_text_encoder_names"
+            ],
+            _comfy_vae_names=replacements["_comfy_vae_names"],
+            _comfy_clip_loader_types=replacements["_comfy_clip_loader_types"],
+        ),
+        patch.multiple(
             aio_generation_normalization,
             _comfy_sampler_names=replacements["_comfy_sampler_names"],
             _comfy_scheduler_names=replacements["_comfy_scheduler_names"],
@@ -1923,10 +1934,14 @@ class AioWidgetDefaultSerializerMoveContractTests(unittest.TestCase):
             return "input-json" if value is input_defaults else "generation-json"
 
         with (
-            patch.object(root_module, "json", types.SimpleNamespace(dumps=dumps)),
-            patch.object(root_module, "AIO_INPUT_DEFAULT_SETTINGS", input_defaults),
+            patch.object(canonical_module, "json", types.SimpleNamespace(dumps=dumps)),
             patch.object(
-                root_module,
+                canonical_module,
+                "AIO_INPUT_DEFAULT_SETTINGS",
+                input_defaults,
+            ),
+            patch.object(
+                canonical_module,
                 "AIO_GENERATION_DEFAULT_SETTINGS",
                 generation_defaults,
             ),
@@ -1947,7 +1962,7 @@ class AioWidgetDefaultSerializerMoveContractTests(unittest.TestCase):
 
         mutable_defaults = {"schema": "가"}
         with patch.object(
-            root_module,
+            canonical_module,
             "AIO_INPUT_DEFAULT_SETTINGS",
             mutable_defaults,
         ):

@@ -10,6 +10,7 @@ from unittest.mock import patch
 
 import nodes
 from easyuse_anima.aio import legacy_generation
+from easyuse_anima.nodes import aio_nodes
 from tests.comfy_host_fakes import patch_comfy_helper
 from tests.test_node_contracts import _loaded_package_entrypoint
 
@@ -1790,7 +1791,7 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
         generator = nodes.EasyUseAnimaAIOGenerator()
         forwarded = object()
         with patch.object(
-            nodes,
+            aio_nodes,
             "_run_aio_legacy_generation",
             return_value=forwarded,
         ) as run:

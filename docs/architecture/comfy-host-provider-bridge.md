@@ -2349,7 +2349,7 @@ Forbidden:
 
 ### B-11c30d6 — AiO node-adapter binder Move
 
-- **State:** IN PROGRESS
+- **State:** COMPLETE IN PR #354
 - **Owner:** #184
 - **Behavior boundary:** #167
 - **Type:** Move
@@ -2445,6 +2445,25 @@ Exit:
   callback binders. Node inputs, change keys, seed reservation, context,
   generation, mappings, errors, schemas, and workflows remain unchanged.
 
+Implementation result:
+
+- `easyuse_anima.nodes.aio_nodes` imports the existing common, Prompt Data, AiO
+  defaults/normalization/resources/model/sampling/input-context/orchestration
+  owners directly and owns its existing JSON serialization locally;
+- `EASY_USE_ANIMA_INPUT_TYPE` moves from the residual root assignment to the
+  canonical node adapter, while root keeps an exact package/flat alias;
+- d6 tests patch the canonical consumer instead of installing a process-global
+  string resolver. The two mapped classes, hidden serializer aliases, input
+  context, generation forwarding, and workflow contracts remain unchanged;
+- `_bind_aio_node_runtime`, `_RUNTIME_RESOLVER`, and `_runtime_helper` are
+  absent. All six AiO subgroups are retired, leaving only the two explicit
+  Wildcard/NAIA callback binders in one active family;
+- the active audit has zero string-resolver names, eight unique direct callback
+  dependencies, and five repository replacement names across three files; and
+- the compatibility inventory contains 291 canonical root bindings, two
+  residual root globals, one root implementation import, 93 shipped/reachable
+  Python modules, and a 1,142-line root shim.
+
 Forbidden:
 
 - retiring or otherwise changing the Wildcard/NAIA binders;
@@ -2456,7 +2475,7 @@ Forbidden:
 
 ### B-11d — Final root shim
 
-- **State:** BLOCKED by the remaining AiO and Wildcard/NAIA binder families
+- **State:** BLOCKED by the remaining Wildcard/NAIA binder family
 - **Owner:** #184
 - **Type:** Move
 
@@ -2507,7 +2526,8 @@ COMPLETE: B-11c30d3 I/O-boundary binder Move / PR #350
 COMPLETE: B-11c30d4 execution-service Move / PR #351
 COMPLETE: B-11c30d0b input-context owner Move / PR #352
 COMPLETE: B-11c30d5 legacy-orchestration Move / PR #353
-PLANNED:  B-11c30d6 node-adapter Move
+COMPLETE: B-11c30d6 node-adapter Move / PR #354
+PLANNED:  B-11c30e Wildcard/NAIA callback binder Move
 BLOCKED:  B-11d final root shim
 
 LATER:    #167 seed reservation
