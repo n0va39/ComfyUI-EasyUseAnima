@@ -609,16 +609,19 @@ The ledger requires three rollback units:
 
 1. **B-11c29b1:** direct mapping-only lookup,
    `_find_comfy_node_mapping_class`;
-2. **B-11c29b2:** mapping/attribute/loaded-module lookup,
-   `_find_comfy_node_class`; and
-3. **B-11c29b3:** general lookup followed by loaded-module fallback,
-   `_find_loaded_node_class`.
+2. **B-11c29b2:** general lookup followed by loaded-module fallback,
+   `_find_loaded_node_class`; and
+3. **B-11c29b3:** mapping/attribute/loaded-module lookup,
+   `_find_comfy_node_class`.
 
 The first unit has one production consumer, no adapter import, no nested finder
 dependency, and no repository or confirmed external replacement consumer. The
-other two wrappers retain adapter imports and the loaded lookup depends on the
-general lookup, so combining them with B-11c29b1 would enlarge the rollback and
-compatibility boundary without need.
+other two wrappers retain adapter imports. The loaded wrapper can retire through
+its provider method while the general root lookup remains available to the
+root requirement and CLIP wrappers. Those wrappers must retire before the
+general lookup, so the executable order after B-11c29b2 is B-11c29c,
+B-11c29d, then B-11c29b3. Combining any of these with B-11c29b1 would enlarge
+the rollback and compatibility boundary without need.
 
 #### B-11c29b1 — Direct mapping-only lookup
 
@@ -686,7 +689,7 @@ Forbidden:
 
 ### B-11c29c — Required-node helpers
 
-- **State:** BLOCKED by B-11c29b
+- **State:** BLOCKED by B-11c29b2; precedes B-11c29b3
 - **Owner:** #184
 - **Type:** Move/retirement
 
@@ -702,7 +705,7 @@ helpers; do not expand the provider interface merely to host them.
 
 ### B-11c29d — CLIP invocation wrapper
 
-- **State:** BLOCKED by B-11c29b
+- **State:** BLOCKED by B-11c29b2; precedes B-11c29b3
 - **Owner:** #184
 - **Type:** Move/retirement
 
@@ -759,8 +762,10 @@ COMPLETE: E-07a default host provider / PR #327
 COMPLETE: E-07b wiring and compatibility gate / PR #328
 
 COMPLETE: B-11c29a max-resolution wrapper retirement / PR #329
-READY:    B-11c29b node-discovery wrapper Move/retirement
-BLOCKED:  B-11c29c-d wrapper Moves/retirements
+IN PROGRESS: B-11c29b1 direct mapping lookup retirement / PR #330
+BLOCKED:  B-11c29b2 loaded lookup retirement
+BLOCKED:  B-11c29c-d requirement and CLIP wrapper retirements
+BLOCKED:  B-11c29b3 general node lookup retirement
 BLOCKED:  B-11c30 binder/resolver migration audit
 BLOCKED:  B-11d final root shim
 
