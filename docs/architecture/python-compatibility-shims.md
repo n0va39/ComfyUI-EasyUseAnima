@@ -752,6 +752,8 @@ convenience-node compatibility; it remains unmapped and is not public support.
   for Regional, Advanced, Conditioning, Artist Mix, Prompt Fields, and Prompt
   Correction are removed.
 - Canonical service calls now resolve canonical module globals directly.
+  Advanced keeps the still-legacy `wildcard_engine` behind call-time wrappers,
+  preserving the package skeleton's no-eager-NumPy import boundary before D-12.
   Artist Mix CLIP encoding and Conditioning loaded-node lookup remain direct
   call-time E-07 provider consumers; the Comfy host ledger remains 22 slots
   across 15 modules.

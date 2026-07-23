@@ -13669,130 +13669,6 @@
       },
       {
         "alias": null,
-        "bound_name": "expand_wildcard_texts",
-        "branch_context": [
-          {
-            "branch": "body",
-            "handles_import_failure": true,
-            "has_import_fallback_handler": true,
-            "kind": "try",
-            "line": 44
-          }
-        ],
-        "classification": "internal",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "expand_wildcard_texts",
-          "target": "wildcard_engine.py",
-          "try_line": 44
-        },
-        "conditional": true,
-        "imported": "...wildcard_engine:expand_wildcard_texts",
-        "kind": "static_from",
-        "line": 47,
-        "name": "expand_wildcard_texts",
-        "optional": false,
-        "requested": "...wildcard_engine",
-        "role": "compatibility_primary",
-        "scope": "<module>",
-        "source": "easyuse_anima/prompt/advanced.py",
-        "target": "wildcard_engine.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "has_wildcard_syntax",
-        "branch_context": [
-          {
-            "branch": "body",
-            "handles_import_failure": true,
-            "has_import_fallback_handler": true,
-            "kind": "try",
-            "line": 44
-          }
-        ],
-        "classification": "internal",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "has_wildcard_syntax",
-          "target": "wildcard_engine.py",
-          "try_line": 44
-        },
-        "conditional": true,
-        "imported": "...wildcard_engine:has_wildcard_syntax",
-        "kind": "static_from",
-        "line": 47,
-        "name": "has_wildcard_syntax",
-        "optional": false,
-        "requested": "...wildcard_engine",
-        "role": "compatibility_primary",
-        "scope": "<module>",
-        "source": "easyuse_anima/prompt/advanced.py",
-        "target": "wildcard_engine.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "normalize_prompt_studio_wildcard_mode",
-        "branch_context": [
-          {
-            "branch": "body",
-            "handles_import_failure": true,
-            "has_import_fallback_handler": true,
-            "kind": "try",
-            "line": 44
-          }
-        ],
-        "classification": "internal",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "normalize_prompt_studio_wildcard_mode",
-          "target": "wildcard_engine.py",
-          "try_line": 44
-        },
-        "conditional": true,
-        "imported": "...wildcard_engine:normalize_prompt_studio_wildcard_mode",
-        "kind": "static_from",
-        "line": 47,
-        "name": "normalize_prompt_studio_wildcard_mode",
-        "optional": false,
-        "requested": "...wildcard_engine",
-        "role": "compatibility_primary",
-        "scope": "<module>",
-        "source": "easyuse_anima/prompt/advanced.py",
-        "target": "wildcard_engine.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "normalize_seed",
-        "branch_context": [
-          {
-            "branch": "body",
-            "handles_import_failure": true,
-            "has_import_fallback_handler": true,
-            "kind": "try",
-            "line": 44
-          }
-        ],
-        "classification": "internal",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "normalize_seed",
-          "target": "wildcard_engine.py",
-          "try_line": 44
-        },
-        "conditional": true,
-        "imported": "...wildcard_engine:normalize_seed",
-        "kind": "static_from",
-        "line": 47,
-        "name": "normalize_seed",
-        "optional": false,
-        "requested": "...wildcard_engine",
-        "role": "compatibility_primary",
-        "scope": "<module>",
-        "source": "easyuse_anima/prompt/advanced.py",
-        "target": "wildcard_engine.py"
-      },
-      {
-        "alias": null,
         "bound_name": "has_prompt_translation_markers",
         "branch_context": [
           {
@@ -13801,7 +13677,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 53,
+            "handler_line": 47,
             "kind": "try",
             "line": 44
           }
@@ -13816,7 +13692,7 @@
         "conditional": true,
         "imported": "prompt_translation:has_prompt_translation_markers",
         "kind": "static_from",
-        "line": 54,
+        "line": 48,
         "name": "has_prompt_translation_markers",
         "optional": false,
         "requested": "prompt_translation",
@@ -13835,7 +13711,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 53,
+            "handler_line": 47,
             "kind": "try",
             "line": 44
           }
@@ -13850,7 +13726,7 @@
         "conditional": true,
         "imported": "settings:resolve_metadata_filter_words",
         "kind": "static_from",
-        "line": 55,
+        "line": 49,
         "name": "resolve_metadata_filter_words",
         "optional": false,
         "requested": "settings",
@@ -13860,42 +13736,39 @@
         "target": "settings.py"
       },
       {
-        "alias": null,
-        "bound_name": "expand_wildcard_texts",
+        "alias": "module",
+        "bound_name": "module",
         "branch_context": [
           {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 53,
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": true,
             "kind": "try",
-            "line": 44
+            "line": 136
           }
         ],
-        "classification": "compatibility_fallback",
-        "column": 4,
+        "classification": "internal",
+        "column": 8,
         "compatibility_pair": {
-          "bound_name": "expand_wildcard_texts",
+          "bound_name": "module",
           "target": "wildcard_engine.py",
-          "try_line": 44
+          "try_line": 136
         },
         "conditional": true,
-        "imported": "wildcard_engine:expand_wildcard_texts",
+        "imported": "...:wildcard_engine",
         "kind": "static_from",
-        "line": 56,
-        "name": "expand_wildcard_texts",
+        "line": 137,
+        "name": "wildcard_engine",
         "optional": false,
-        "requested": "wildcard_engine",
-        "role": "compatibility_fallback",
-        "scope": "<module>",
+        "requested": "...",
+        "role": "compatibility_primary",
+        "scope": "_wildcard_engine_module",
         "source": "easyuse_anima/prompt/advanced.py",
         "target": "wildcard_engine.py"
       },
       {
-        "alias": null,
-        "bound_name": "has_wildcard_syntax",
+        "alias": "module",
+        "bound_name": "module",
         "branch_context": [
           {
             "branch": "except",
@@ -13903,95 +13776,27 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 53,
+            "handler_line": 138,
             "kind": "try",
-            "line": 44
+            "line": 136
           }
         ],
         "classification": "compatibility_fallback",
-        "column": 4,
+        "column": 8,
         "compatibility_pair": {
-          "bound_name": "has_wildcard_syntax",
+          "bound_name": "module",
           "target": "wildcard_engine.py",
-          "try_line": 44
+          "try_line": 136
         },
         "conditional": true,
-        "imported": "wildcard_engine:has_wildcard_syntax",
-        "kind": "static_from",
-        "line": 56,
-        "name": "has_wildcard_syntax",
+        "imported": "wildcard_engine",
+        "kind": "static_import",
+        "line": 139,
+        "name": null,
         "optional": false,
         "requested": "wildcard_engine",
         "role": "compatibility_fallback",
-        "scope": "<module>",
-        "source": "easyuse_anima/prompt/advanced.py",
-        "target": "wildcard_engine.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "normalize_prompt_studio_wildcard_mode",
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 53,
-            "kind": "try",
-            "line": 44
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "normalize_prompt_studio_wildcard_mode",
-          "target": "wildcard_engine.py",
-          "try_line": 44
-        },
-        "conditional": true,
-        "imported": "wildcard_engine:normalize_prompt_studio_wildcard_mode",
-        "kind": "static_from",
-        "line": 56,
-        "name": "normalize_prompt_studio_wildcard_mode",
-        "optional": false,
-        "requested": "wildcard_engine",
-        "role": "compatibility_fallback",
-        "scope": "<module>",
-        "source": "easyuse_anima/prompt/advanced.py",
-        "target": "wildcard_engine.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "normalize_seed",
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 53,
-            "kind": "try",
-            "line": 44
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "normalize_seed",
-          "target": "wildcard_engine.py",
-          "try_line": 44
-        },
-        "conditional": true,
-        "imported": "wildcard_engine:normalize_seed",
-        "kind": "static_from",
-        "line": 56,
-        "name": "normalize_seed",
-        "optional": false,
-        "requested": "wildcard_engine",
-        "role": "compatibility_fallback",
-        "scope": "<module>",
+        "scope": "_wildcard_engine_module",
         "source": "easyuse_anima/prompt/advanced.py",
         "target": "wildcard_engine.py"
       },
@@ -39746,13 +39551,13 @@
       },
       {
         "is_package": false,
-        "loc": 858,
+        "loc": 874,
         "module": "easyuse_anima.prompt.advanced",
-        "normalized_git_blob_sha1": "910d0e57e2fbdc3bd79bfaa67c857fae15d8e10d",
+        "normalized_git_blob_sha1": "8b547c9bc6630fd4f3602b5c687596f75907813f",
         "path": "easyuse_anima/prompt/advanced.py",
         "top_level": {
           "class_count": 0,
-          "function_count": 24,
+          "function_count": 29,
           "global_count": 17
         }
       },
@@ -41094,7 +40899,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 53,
+            "handler_line": 47,
             "kind": "try",
             "line": 44
           }
@@ -41103,7 +40908,7 @@
         "conditional": true,
         "imported": "prompt_translation:has_prompt_translation_markers",
         "kind": "static_from",
-        "line": 54,
+        "line": 48,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "easyuse_anima/prompt/advanced.py",
@@ -41117,7 +40922,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 53,
+            "handler_line": 47,
             "kind": "try",
             "line": 44
           }
@@ -41126,7 +40931,7 @@
         "conditional": true,
         "imported": "settings:resolve_metadata_filter_words",
         "kind": "static_from",
-        "line": 55,
+        "line": 49,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "easyuse_anima/prompt/advanced.py",
@@ -41140,85 +40945,16 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 53,
+            "handler_line": 138,
             "kind": "try",
-            "line": 44
+            "line": 136
           }
         ],
         "classification": "compatibility_fallback",
         "conditional": true,
-        "imported": "wildcard_engine:expand_wildcard_texts",
-        "kind": "static_from",
-        "line": 56,
-        "optional": false,
-        "role": "compatibility_fallback",
-        "source": "easyuse_anima/prompt/advanced.py",
-        "target": "wildcard_engine.py"
-      },
-      {
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 53,
-            "kind": "try",
-            "line": 44
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "conditional": true,
-        "imported": "wildcard_engine:has_wildcard_syntax",
-        "kind": "static_from",
-        "line": 56,
-        "optional": false,
-        "role": "compatibility_fallback",
-        "source": "easyuse_anima/prompt/advanced.py",
-        "target": "wildcard_engine.py"
-      },
-      {
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 53,
-            "kind": "try",
-            "line": 44
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "conditional": true,
-        "imported": "wildcard_engine:normalize_prompt_studio_wildcard_mode",
-        "kind": "static_from",
-        "line": 56,
-        "optional": false,
-        "role": "compatibility_fallback",
-        "source": "easyuse_anima/prompt/advanced.py",
-        "target": "wildcard_engine.py"
-      },
-      {
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 53,
-            "kind": "try",
-            "line": 44
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "conditional": true,
-        "imported": "wildcard_engine:normalize_seed",
-        "kind": "static_from",
-        "line": 56,
+        "imported": "wildcard_engine",
+        "kind": "static_import",
+        "line": 139,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "easyuse_anima/prompt/advanced.py",
@@ -54999,7 +54735,7 @@
         "column": 28,
         "context": "assign:_ADVANCED_FIELD_SOCKET_RE",
         "kind": "import_time_call",
-        "line": 144,
+        "line": 132,
         "module": "easyuse_anima/prompt/advanced.py",
         "scope": "<module>"
       },
@@ -55675,37 +55411,37 @@
       },
       {
         "kind": "dict",
-        "line": 65,
+        "line": 53,
         "module": "easyuse_anima/prompt/advanced.py",
         "name": "ADVANCED_FIELD_LABELS"
       },
       {
         "kind": "set",
-        "line": 64,
+        "line": 52,
         "module": "easyuse_anima/prompt/advanced.py",
         "name": "ADVANCED_FIELD_PANES"
       },
       {
         "kind": "set",
-        "line": 63,
+        "line": 51,
         "module": "easyuse_anima/prompt/advanced.py",
         "name": "ADVANCED_FIELD_TYPES"
       },
       {
         "kind": "list",
-        "line": 94,
+        "line": 82,
         "module": "easyuse_anima/prompt/advanced.py",
         "name": "EXTEND_PROMPT_SLOT_SPECS"
       },
       {
         "kind": "set",
-        "line": 88,
+        "line": 76,
         "module": "easyuse_anima/prompt/advanced.py",
         "name": "PROMPT_STUDIO_LEGACY_FIXED_WILDCARD_MODES"
       },
       {
         "kind": "dict",
-        "line": 78,
+        "line": 66,
         "module": "easyuse_anima/prompt/advanced.py",
         "name": "PROMPT_STUDIO_WILDCARD_SEED_CONTROL_ALIASES"
       },

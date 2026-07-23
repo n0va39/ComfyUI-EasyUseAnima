@@ -1308,7 +1308,9 @@ Implementation result:
 - root no longer imports or invokes the six binders, and their canonical
   definitions and bind-time placeholder state are absent;
 - service-internal calls use canonical module globals and explicit canonical
-  imports without importing root `nodes.py`;
+  imports without importing root `nodes.py`; the still-legacy
+  `wildcard_engine` owner remains a call-time import so direct package imports
+  do not eagerly load NumPy before D-12;
 - Artist Mix CLIP encoding and Conditioning loaded-node discovery resolve the
   existing E-07 provider directly at call time. The Comfy host ledger remains
   22 slots across 15 modules;

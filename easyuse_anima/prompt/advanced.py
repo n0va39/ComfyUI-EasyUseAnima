@@ -44,21 +44,9 @@ from .fields import (
 try:
     from ...prompt_translation import has_prompt_translation_markers
     from ...settings import resolve_metadata_filter_words
-    from ...wildcard_engine import (
-        expand_wildcard_texts,
-        has_wildcard_syntax,
-        normalize_prompt_studio_wildcard_mode,
-        normalize_seed,
-    )
 except ImportError:
     from prompt_translation import has_prompt_translation_markers
     from settings import resolve_metadata_filter_words
-    from wildcard_engine import (
-        expand_wildcard_texts,
-        has_wildcard_syntax,
-        normalize_prompt_studio_wildcard_mode,
-        normalize_seed,
-    )
 
 ADVANCED_FIELD_TYPES = {"quality", "artist", "trigger", "general", "naia"}
 ADVANCED_FIELD_PANES = {"positive", "negative"}
@@ -142,6 +130,34 @@ PROMPT_STUDIO_ADVANCED_RETURN_NAMES = (
 
 _ADVANCED_FIELD_SOCKET_PREFIX = "field_"
 _ADVANCED_FIELD_SOCKET_RE = re.compile(r"[^A-Za-z0-9_]")
+
+
+def _wildcard_engine_module():
+    try:
+        from ... import wildcard_engine as module
+    except ImportError:
+        import wildcard_engine as module
+
+    return module
+
+
+def normalize_prompt_studio_wildcard_mode(*args, **kwargs):
+    return _wildcard_engine_module().normalize_prompt_studio_wildcard_mode(
+        *args,
+        **kwargs,
+    )
+
+
+def normalize_seed(*args, **kwargs):
+    return _wildcard_engine_module().normalize_seed(*args, **kwargs)
+
+
+def has_wildcard_syntax(*args, **kwargs):
+    return _wildcard_engine_module().has_wildcard_syntax(*args, **kwargs)
+
+
+def expand_wildcard_texts(*args, **kwargs):
+    return _wildcard_engine_module().expand_wildcard_texts(*args, **kwargs)
 
 
 def _normalize_prompt_studio_wildcard_seed_control(
