@@ -263,8 +263,60 @@ class ComfyInvocationAdapterTests(unittest.TestCase):
         )
         self.assertEqual(calls, [("clip", "prompt")])
 
-        with self.assertRaisesRegex(RuntimeError, "Could not find ComfyUI CLIPTextEncode"):
+        with self.assertRaises(RuntimeError) as missing_class:
             invocation._encode_with_comfy_clip("clip", "prompt", lambda _node_id: None)
+        self.assertEqual(
+            str(missing_class.exception),
+            "[EasyUseAnima] Could not find ComfyUI CLIPTextEncode.",
+        )
+
+        class MissingEncode:
+            pass
+
+        with self.assertRaises(RuntimeError) as missing_method:
+            invocation._encode_with_comfy_clip(
+                "clip",
+                "prompt",
+                lambda _node_id: MissingEncode,
+            )
+        self.assertEqual(
+            str(missing_method.exception),
+            "[EasyUseAnima] CLIPTextEncode does not expose encode.",
+        )
+
+        for invalid_result in ((), ["conditioning"]):
+            class InvalidResult:
+                def encode(self, _clip, _text):
+                    return invalid_result
+
+            with self.subTest(invalid_result=invalid_result):
+                with self.assertRaises(RuntimeError) as invalid:
+                    invocation._encode_with_comfy_clip(
+                        "clip",
+                        "prompt",
+                        lambda _node_id: InvalidResult,
+                    )
+                self.assertEqual(
+                    str(invalid.exception),
+                    "[EasyUseAnima] CLIPTextEncode returned no conditioning.",
+                )
+
+        def failing_lookup(_node_id):
+            raise LookupError("lookup failed")
+
+        with self.assertRaisesRegex(LookupError, "lookup failed"):
+            invocation._encode_with_comfy_clip("clip", "prompt", failing_lookup)
+
+        class FailingEncode:
+            def encode(self, _clip, _text):
+                raise KeyError("encode failed")
+
+        with self.assertRaisesRegex(KeyError, "encode failed"):
+            invocation._encode_with_comfy_clip(
+                "clip",
+                "prompt",
+                lambda _node_id: FailingEncode,
+            )
 
     def test_signature_filtering_var_kwargs_and_missing_required_are_preserved(self):
         calls = []
@@ -386,18 +438,6 @@ class ComfyRootCompatibilityTests(unittest.TestCase):
                 ("text_encoders", list(nodes.ANIMA_DEFAULT_CLIP_CANDIDATES)),
             ],
         )
-
-        class ClipTextEncode:
-            def encode(self, clip, text):
-                return (f"{clip}:{text}",)
-
-        with patch.object(
-            nodes,
-            "NODE_CLASS_MAPPINGS",
-            {"CLIPTextEncode": ClipTextEncode},
-            create=True,
-        ):
-            self.assertEqual(nodes._encode_with_comfy_clip("clip", "prompt"), "clip:prompt")
 
     def test_adapter_modules_remain_below_production_module_loc_guidance(self):
         for path in (

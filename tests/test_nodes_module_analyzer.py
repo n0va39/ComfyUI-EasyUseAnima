@@ -73,12 +73,12 @@ def load_dynamic():
     def test_current_nodes_module_shape_matches_recorded_baseline(self):
         report = analyzer.analyze_path(ROOT / "nodes.py")
 
-        self.assertEqual(report["git_blob_sha1"], "c25e302b3082a6fcefb4af799508ddc489e53d3d")
-        # B-11c29c retires only the two pure requirement root helpers and
-        # their four adapter imports without changing the public class surface.
-        self.assertEqual(report["top_level"]["function_count"], 3)
+        self.assertEqual(report["git_blob_sha1"], "01eb4cea34d49871d438182bb214f53f755d78d9")
+        # B-11c29d retires only the pure CLIP invocation root helper and its
+        # two adapter imports without changing the public class surface.
+        self.assertEqual(report["top_level"]["function_count"], 2)
         self.assertEqual(report["top_level"]["class_count"], 0)
-        self.assertEqual(report["line_count"], 1_866)
+        self.assertEqual(report["line_count"], 1_860)
         class_names = {item["name"] for item in report["top_level"]["classes"]}
         self.assertNotIn("EasyUseAnimaAIOGenerator", class_names)
         self.assertNotIn("EasyUseAnimaInput", class_names)

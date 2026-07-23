@@ -756,7 +756,7 @@ Forbidden:
 
 ### B-11c29c — Required-node helpers
 
-- **State:** IN PROGRESS in PR #332; precedes B-11c29d and B-11c29b3
+- **State:** COMPLETE in PR #332 / `449d9da`; precedes B-11c29d and B-11c29b3
 - **Owner:** #184
 - **Type:** Retirement
 
@@ -841,12 +841,85 @@ Forbidden:
 
 ### B-11c29d — CLIP invocation wrapper
 
-- **State:** BLOCKED by B-11c29b2; precedes B-11c29b3
+- **State:** IN PROGRESS in PR #333; precedes B-11c29b3
 - **Owner:** #184
-- **Type:** Move/retirement
+- **Type:** Retirement
 
-Move or retire only `_encode_with_comfy_clip`. Preserve class lookup timing,
-constructor call, method lookup, result shape validation, and error text.
+Pre-edit inventory at `dev@449d9da6e9f1d296a154a3cb20d9147dfc492467`:
+
+- root `nodes.py` owns one `_encode_with_comfy_clip(clip, text: str)`
+  definition and imports `_adapter_encode_with_comfy_clip` in relative and flat
+  modes;
+- the canonical pure helper is
+  `easyuse_anima.infrastructure.comfy.invocation:_encode_with_comfy_clip` and
+  accepts only the injected node finder in addition to `clip` and `text`;
+- six call-time production binder modules own 28 call sites:
+  `easyuse_anima.aio.conditioning`, `aio.legacy_generation`,
+  `nodes.prompt_data_nodes`, `nodes.regional_nodes`, `nodes.sam3_nodes`, and
+  `prompt.artist_mix`;
+- installed runtime already injects only
+  `ComfyHostProvider.find_node_class`; the provider does not own CLIP
+  construction, invocation, validation, or error policy;
+- the repository has no root/canonical monkeypatch consumer and no confirmed
+  external consumer. Focused tests replace this seam through the E-07 layered
+  fake provider; one legacy direct root invocation assertion is redundant with
+  canonical and flat-wiring coverage and must retire with the root symbol;
+- root/canonical helpers have no mutable state or import-time calls. The six
+  consumers keep binder-owned runtime resolver state, but resolve and invoke
+  the helper only at feature use time;
+- exact order is node lookup for `CLIPTextEncode`, class construction,
+  `encode` attribute read, `encode(clip, text)`, non-empty tuple validation,
+  then `result[0]`;
+- missing class, missing method, and invalid result each use the existing exact
+  `RuntimeError`; lookup, constructor, attribute, and encode exceptions remain
+  uncaught; and
+- the ledger classifies the seam as `pure_helper_with_provider_input`,
+  `unsupported_test_only`, with no call-time root replacement requirement.
+
+Allowed production files:
+
+```text
+nodes.py
+easyuse_anima/infrastructure/comfy/wiring.py
+```
+
+Allowed test, fixture, and documentation files:
+
+```text
+tests/test_comfy_adapters.py
+tests/test_comfy_host_wiring.py
+tests/test_node_contracts.py
+tests/test_python_compatibility_surface.py
+tests/test_nodes_module_analyzer.py
+tests/fixtures/comfy_host_compatibility.v1.json
+tests/fixtures/python_compatibility_surface.v1.json
+tests/fixtures/python_backend_baseline.json
+docs/architecture/*
+```
+
+Exit:
+
+- root definition and both adapter imports are absent;
+- installed-runtime consumers keep the provider-injected canonical helper;
+- flat pre-bootstrap calls inject a fresh default provider lookup at call time;
+- lookup/constructor/method/call/result order, success identity, exact errors,
+  and raw exception propagation remain unchanged;
+- root general lookup remains available for B-11c29b3;
+- retirement gates reject restored root or adapter bindings; and
+- root residual/analyzer/package closure gates pass.
+
+Forbidden:
+
+- changing the canonical invocation helper or provider
+  interface/implementation;
+- changing the six production consumers, binders, schemas, workflows, or
+  feature-selection timing;
+- moving the general node lookup;
+- changing lookup/construction/call order, return identity, result validation,
+  exception type/text/timing, or raw exception propagation;
+- adding cache, snapshot, mutable override state, optional imports, or
+  canonical root imports; and
+- changing seed, stage, route, persistence, or postprocess behavior.
 
 ### B-11c30 — Runtime binder/resolver migration audit
 
@@ -900,8 +973,8 @@ COMPLETE: E-07b wiring and compatibility gate / PR #328
 COMPLETE: B-11c29a max-resolution wrapper retirement / PR #329
 COMPLETE: B-11c29b1 direct mapping lookup retirement / PR #330
 COMPLETE: B-11c29b2 loaded lookup retirement / PR #331
-IN PROGRESS: B-11c29c requirement helper retirement / PR #332
-BLOCKED:  B-11c29d CLIP wrapper retirement
+COMPLETE: B-11c29c requirement helper retirement / PR #332
+IN PROGRESS: B-11c29d CLIP wrapper retirement / PR #333
 BLOCKED:  B-11c29b3 general node lookup retirement
 BLOCKED:  B-11c30 binder/resolver migration audit
 BLOCKED:  B-11d final root shim

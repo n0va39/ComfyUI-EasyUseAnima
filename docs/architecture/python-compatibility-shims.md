@@ -8,10 +8,9 @@
 - Policy: [ADR-002](adr-002-compatibility-shims.md)
 - Machine-readable audit:
   [`python_compatibility_surface.v1.json`](../../tests/fixtures/python_compatibility_surface.v1.json)
-- Current state: B-11a through B-11c29b2 are integrated. B-11c is split into
+- Current state: B-11a through B-11c29c are integrated. B-11c is split into
   residual-owner Moves and explicit private-contract cleanup before the final
-  root shim; B-11c29c retires the two pure required-node root helpers in PR
-  #332.
+  root shim; B-11c29d retires the pure CLIP invocation root helper in PR #333.
 
 This is an actionable registry, not a removal schedule. `N` means the first
 published Registry release containing both a canonical target and its root
@@ -76,7 +75,7 @@ inferring public support from spelling or test imports:
 - `nodes.py` preamble implementation imports: 5 (`json`, `logging`, `random`,
   `ceil`, and `sqrt`), excluded from compatibility classification
   by an exact AST allowlist and drift gate;
-- `nodes.py` bindings with an `easyuse_anima` canonical target: 297 in B-11c29c
+- `nodes.py` bindings with an `easyuse_anima` canonical target: 296 in B-11c29d
   (258 at the integrated B-10b20 baseline), with exact
   relative-package/flat-fallback parity;
 - bindings still owned by `anima_prompt`, `settings`, `prompt_translation`, or
@@ -85,10 +84,10 @@ inferring public support from spelling or test imports:
 - unmapped root classes: `EasyUseAnimaSAM3Context` and
   `EasyUseAnimaSAM3Detailer`; the canonical legacy Extend class remains in its
   owner module without a root alias or backend mapping;
-- root-owned residual implementation: 3 functions, 0 classes, and 26 assigned
-  globals in B-11c29c (41/2/33 at the integrated B-10b20 baseline).
+- root-owned residual implementation: 2 functions, 0 classes, and 26 assigned
+  globals in B-11c29d (41/2/33 at the integrated B-10b20 baseline).
 - import-time runtime binders: 30 exact top-level `_bind_*_runtime` calls;
-- root names reached by those canonical runtime resolvers: 286, including
+- root names reached by those canonical runtime resolvers: 285, including
   literal lookups and binder-owned helper-name/default collections;
 - retired private bindings: `_comfy_checkpoint_names`,
   `_EasyUseAnimaAlignedDetailerHook`, and
@@ -103,9 +102,9 @@ inferring public support from spelling or test imports:
   the five B-10b15 conditioning aliases, the 12 B-10b16 Prompt Advanced aliases,
   the 12 B-10b17 Regional aliases, the 11 B-10b18 Artist Mix parsing/config
   aliases, the 21 B-10b19 Artist Mix mode/key/tag-position aliases, and the 21
-  B-10b20 Artist Mix conditioning/tensor aliases, plus the B-11c29a-c
+  B-10b20 Artist Mix conditioning/tensor aliases, plus the B-11c29a-d
   `_comfy_max_resolution`, direct mapping, loaded lookup, and two requirement
-  root helpers; their production
+  root helpers and the CLIP invocation helper; their production
   consumers import or call the corresponding canonical owners directly;
 - repository test files with a direct `nodes` import: 21, recorded as migration
   consumers rather than public-support evidence.
@@ -652,6 +651,23 @@ convenience-node compatibility; it remains unmapped and is not public support.
   optional dependency behavior remain unchanged.
 - The provider interface and canonical capability helpers are unchanged. CLIP
   invocation retires next, before the general root lookup.
+
+### B-11c29d CLIP invocation retirement
+
+- `_encode_with_comfy_clip` is an unsupported/test-only pure root seam with six
+  provider-wired production modules, no repository replacement, and no
+  confirmed external consumer.
+- PR #333 removes the root definition and both relative/flat adapter imports.
+  The redundant direct root invocation assertion retires; canonical and flat
+  wiring tests retain the behavior evidence.
+- Installed-runtime consumers keep the canonical invocation helper with
+  `ComfyHostProvider.find_node_class` injected. Flat pre-bootstrap calls use a
+  fresh default provider lookup at call time.
+- `CLIPTextEncode` lookup, construction, method resolution, invocation, tuple
+  validation, first-result identity, exact errors, and raw exception
+  propagation remain unchanged.
+- The provider interface, canonical invocation helper, and six production
+  consumers are unchanged. General lookup retires next as B-11c29b3.
 
 ### `nodes.py` public node-class surface
 

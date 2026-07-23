@@ -184,6 +184,28 @@ class ComfyHostWiringTests(unittest.TestCase):
             with self.assertRaisesRegex(LookupError, "lookup failed"):
                 require("Custom", "Pack", "Hint")
 
+    def test_retired_clip_invocation_uses_default_provider_before_runtime_install(self):
+        comfy_nodes = types.ModuleType("nodes")
+        comfy_nodes.NODE_CLASS_MAPPINGS = {"CLIPTextEncode": ClipTextEncode}
+
+        def unexpected_fallback(name: str):
+            self.fail(f"retired helper reached root fallback: {name}")
+
+        with patch.dict(sys.modules, {"nodes": comfy_nodes}):
+            encode = resolve_comfy_host_helper(
+                "_encode_with_comfy_clip",
+                unexpected_fallback,
+            )
+
+            self.assertEqual(encode("clip", "prompt"), "clip:prompt")
+            comfy_nodes.NODE_CLASS_MAPPINGS = {}
+            with self.assertRaises(RuntimeError) as missing:
+                encode("clip", "prompt")
+            self.assertEqual(
+                str(missing.exception),
+                "[EasyUseAnima] Could not find ComfyUI CLIPTextEncode.",
+            )
+
     def test_provider_owned_helpers_delegate_to_narrow_methods(self):
         direct = object()
         mapping = object()
