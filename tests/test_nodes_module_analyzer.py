@@ -73,12 +73,12 @@ def load_dynamic():
     def test_current_nodes_module_shape_matches_recorded_baseline(self):
         report = analyzer.analyze_path(ROOT / "nodes.py")
 
-        self.assertEqual(report["git_blob_sha1"], "54ec149837848c16a459f0f249b33038105bf507")
-        # Issue #184 B-11c11 moves the AiO Detailer target normalizers and
-        # their two implementation constants to the canonical owner.
-        self.assertEqual(report["top_level"]["function_count"], 26)
+        self.assertEqual(report["git_blob_sha1"], "59f8b61ab03fe443fe98068cdc59114dc6672c34")
+        # Issue #184 B-11c12 moves the two live USDU tile-planning helpers
+        # while the dead tile-size wrapper remains root-owned for cleanup.
+        self.assertEqual(report["top_level"]["function_count"], 24)
         self.assertEqual(report["top_level"]["class_count"], 0)
-        self.assertEqual(report["line_count"], 2_464)
+        self.assertEqual(report["line_count"], 2_429)
         class_names = {item["name"] for item in report["top_level"]["classes"]}
         self.assertNotIn("EasyUseAnimaAIOGenerator", class_names)
         self.assertNotIn("EasyUseAnimaInput", class_names)

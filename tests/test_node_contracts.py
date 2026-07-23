@@ -23,6 +23,7 @@ from easyuse_anima.aio import (
     generation_normalization as aio_generation_normalization,
     resources as aio_resources,
     sampling as aio_sampling,
+    usdu as aio_usdu,
 )
 from easyuse_anima.aio import model_preparation as aio_model_preparation
 from easyuse_anima.common import serialization as common_serialization
@@ -917,6 +918,124 @@ class AioDetailerNormalizationMoveContractTests(unittest.TestCase):
                 f"{package_name}.easyuse_anima.aio.generation_normalization"
             ]
             self._assert_contract(package_nodes, package_generation_normalization)
+
+
+class AioUsduTilePlanningMoveContractTests(unittest.TestCase):
+    MOVED_NAMES = (
+        "_aio_usdu_auto_tile_dimension",
+        "_aio_usdu_tile_plan",
+        "_bind_aio_usdu_planning_runtime",
+    )
+
+    def _assert_contract(self, root_module, canonical_module):
+        for name in self.MOVED_NAMES:
+            with self.subTest(name=name):
+                self.assertIs(getattr(root_module, name), getattr(canonical_module, name))
+
+        with (
+            patch.object(root_module, "ceil", wraps=math.ceil) as ceil,
+            patch.object(
+                root_module,
+                "_align_nearest",
+                wraps=root_module._align_nearest,
+            ) as align_nearest,
+        ):
+            self.assertEqual(
+                canonical_module._aio_usdu_auto_tile_dimension(1500, 1000, 512, 2048),
+                768,
+            )
+        self.assertEqual(ceil.call_args_list, [call(1.5), call(750.0)])
+        align_nearest.assert_called_once_with(750, 64)
+
+        with (
+            patch.object(root_module, "_image_tensor_size", return_value=(320, 240)) as image_size,
+            patch.object(root_module, "_as_bool", return_value=False) as as_bool,
+            patch.object(root_module, "_as_int", side_effect=(321, 241)) as as_int,
+        ):
+            manual = canonical_module._aio_usdu_tile_plan(
+                "image",
+                0.01,
+                {
+                    "auto_tile_size": False,
+                    "tile_width": "321",
+                    "tile_height": "241",
+                },
+            )
+        self.assertEqual(
+            manual,
+            {
+                "auto": False,
+                "input_width": 320,
+                "input_height": 240,
+                "target_width": 16,
+                "target_height": 12,
+                "tile_width": 321,
+                "tile_height": 241,
+            },
+        )
+        image_size.assert_called_once_with("image", 512, 512)
+        as_bool.assert_called_once_with(False, True)
+        self.assertEqual(as_int.call_args_list, [call("321", 512), call("241", 512)])
+
+        with (
+            patch.object(root_module, "_image_tensor_size", return_value=(512, 768)),
+            patch.object(root_module, "_as_bool", return_value=True),
+            patch.object(root_module, "_as_int", side_effect=(900, 500, 2000)),
+            patch.object(
+                root_module,
+                "_aio_usdu_auto_tile_dimension",
+                side_effect=(1024, 1536),
+            ) as auto_dimension,
+        ):
+            automatic = canonical_module._aio_usdu_tile_plan(
+                "image",
+                2.0,
+                {
+                    "auto_tile_size": True,
+                    "auto_tile_target": 900,
+                    "auto_tile_min": 500,
+                    "auto_tile_max": 2000,
+                },
+            )
+        self.assertEqual(
+            automatic,
+            {
+                "auto": True,
+                "input_width": 512,
+                "input_height": 768,
+                "target_width": 1024,
+                "target_height": 1536,
+                "preferred": 900,
+                "min": 500,
+                "max": 2000,
+                "tile_width": 1024,
+                "tile_height": 1536,
+            },
+        )
+        self.assertEqual(
+            auto_dimension.call_args_list,
+            [call(1024, 900, 500, 2000), call(1536, 900, 500, 2000)],
+        )
+
+        with patch.object(
+            root_module,
+            "_aio_usdu_tile_plan",
+            return_value={"tile_width": 111, "tile_height": 222},
+        ) as tile_plan:
+            self.assertEqual(
+                root_module._aio_usdu_tile_size("image", 2.0, {"manual": True}),
+                (111, 222),
+            )
+        tile_plan.assert_called_once_with("image", 2.0, {"manual": True})
+
+    def test_root_aliases_and_call_time_helpers(self):
+        self._assert_contract(nodes, aio_usdu)
+
+    def test_package_aliases_and_call_time_helpers(self):
+        with _loaded_package_entrypoint() as (_, package_nodes):
+            package_name = package_nodes.__package__
+            package_usdu = sys.modules[f"{package_name}.easyuse_anima.aio.usdu"]
+            self._assert_contract(package_nodes, package_usdu)
 
 
 class AioSeedNormalizationMoveContractTests(unittest.TestCase):

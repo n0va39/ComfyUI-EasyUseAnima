@@ -5,7 +5,7 @@
 - Status: operational execution runbook
 - Snapshot date: 2026-07-23
 - Snapshot branch: `dev`
-- Integrated `dev` snapshot commit: `236a7f529f786c19a8bd0bcd34fd02d38b9d8af6`
+- Integrated `dev` snapshot commit: `98812ef070096e7416bba08750a7c089f8564d29`
 - Scope: Python backend only
 - Target architecture: [`python-backend.md`](python-backend.md)
 - Architecture decisions: [ADR-001](adr-001-modular-monolith.md) and
@@ -31,7 +31,7 @@ merged PR, the owning issue's evidence record, and every stated exit gate.
 | Phase | Integrated snapshot / open implementation state | Remaining exit work |
 | --- | --- | --- |
 | A - baseline | Complete; #191 is closed | Keep fixtures and analyzers current during later moves |
-| B - `nodes.py` extraction | Integrated through B-11c10 / `236a7f5`; B-11c11 Detailer normalization Move in PR #305 | Complete residual owners and binders, then the final root shim as a separate Move |
+| B - `nodes.py` extraction | Integrated through B-11c11 / `98812ef`; B-11c12 USDU tile-planning Move in PR #306 | Complete residual owners and binders, then the final root shim as a separate Move |
 | C - feature contracts/behavior | Partially complete | Finish #168; then #167 and #169 in separate Contract/Behavior PRs |
 | D - root consolidation | Not started | Execute #186 feature by feature after the corresponding behavior contracts are stable |
 | E - runtime ownership | Not started | Execute #187 after canonical feature owners exist; E-01 inventory may start earlier |
@@ -42,10 +42,10 @@ merged PR, the owning issue's evidence record, and every stated exit gate.
 ### Measured Phase B progress
 
 - The Phase A baseline recorded root `nodes.py` at 12,663 lines.
-- Against the integrated `dev` snapshot above, root `nodes.py` measures 2,496
-  lines after B-11c10.
-- The mechanical extraction has removed 10,167
-  lines, approximately 80.3% of the Phase A baseline, while preserving the root
+- Against the integrated `dev` snapshot above, root `nodes.py` measures 2,464
+  lines after B-11c11.
+- The mechanical extraction has removed 10,199
+  lines, approximately 80.5% of the Phase A baseline, while preserving the root
   compatibility surface.
 - B-01 through B-09b2 are integrated. The latest completed implementation slice
   is the AiO generator adapter Move in PR #270.
@@ -69,8 +69,10 @@ merged PR, the owning issue's evidence record, and every stated exit gate.
   settings normalizer to the existing resource owner in PR #303; mutable defaults
   and schema ownership stay separate. B-11c10 removed only the unused private
   root `_settings_json` definition in PR #304 / `236a7f5`; live serializers
-  remain unchanged. B-11c11 moves only the five Detailer target normalization
-  symbols to their existing generation-normalization owner in PR #305.
+  remain unchanged. B-11c11 moved only the five Detailer target normalization
+  symbols to their existing generation-normalization owner in PR #305 /
+  `98812ef`. B-11c12 moves only the two live USDU tile planners to a dedicated
+  owner in PR #306; the dead tile-size wrapper remains separate.
 
 ### Current quality baseline
 
@@ -312,7 +314,7 @@ surfaces. AiO mechanical extraction must not start until #168 exits.
 | 11 | B-09b2 AiO generator adapter move | COMPLETE on `dev` | Move | #184 | PR #270 / `57d40b4` |
 | 12 | B-10a machine-readable compatibility audit | COMPLETE on `dev` | Contract/gate | #184/#188 | PR #271 / `3c7b857` |
 | 13 | B-10b private alias reduction | COMPLETE on `dev` through PR #291 / `c6b4680` | Contract/cleanup, split PRs | #184/#188 | Audited alias surface integrated |
-| 14 | B-11 registration/bootstrap/root shim | IN PROGRESS: B-11a PR #292 / `20c8b4d`; B-11b PR #293 / `f2a2ec0`; B-11c1 PR #294 / `ebeee89`; B-11c2 PR #295 / `47fef1d`; B-11c3 PR #296 / `1f18c04`; B-11c4 PR #297 / `0980530`; B-11c5 PR #298 / `617ea14`; B-11c6 PR #299 / `bbca312`; B-11c7a PR #300 / `17343eb`; B-11c7b PR #301 / `6863735`; B-11c8 PR #302 / `40e8d94`; B-11c9 PR #303 / `7222f7d`; B-11c10 PR #304 / `236a7f5`; B-11c11 Detailer normalization Move PR #305 | Move/Contract, split PRs | #184 | Residual owners and binders migrate in rollback-sized units before final shim |
+| 14 | B-11 registration/bootstrap/root shim | IN PROGRESS: B-11a PR #292 / `20c8b4d`; B-11b PR #293 / `f2a2ec0`; B-11c1 PR #294 / `ebeee89`; B-11c2 PR #295 / `47fef1d`; B-11c3 PR #296 / `1f18c04`; B-11c4 PR #297 / `0980530`; B-11c5 PR #298 / `617ea14`; B-11c6 PR #299 / `bbca312`; B-11c7a PR #300 / `17343eb`; B-11c7b PR #301 / `6863735`; B-11c8 PR #302 / `40e8d94`; B-11c9 PR #303 / `7222f7d`; B-11c10 PR #304 / `236a7f5`; B-11c11 PR #305 / `98812ef`; B-11c12 USDU tile-planning Move PR #306 | Move/Contract, split PRs | #184 | Residual owners and binders migrate in rollback-sized units before final shim |
 | 15 | S167 backend seed reservation series | BLOCKED by B exit/interface | Contract then Behavior | #167 | Canonical AiO/node seams |
 | 16 | A169 stage pipeline series | BLOCKED by #168 and B exit | Contract then Behavior | #169 | Typed config and mechanical AiO move |
 | 17 | A169 first-pass cache policy | BLOCKED by stage/cache ownership seam | Behavior | #169 | Mechanical cache move and benchmark harness |
@@ -872,6 +874,13 @@ unchanged. The separate legacy Wildcard unsupported alias remains for D-12.
     replacement, regex matching, trim/deduplication/order rules, deep cloning,
     and custom label suffix behavior. Detailer execution, enabled gating,
     schema/default ownership, SAM3, and Impact behavior remain separate.
+  - B-11c12 moves only `_aio_usdu_auto_tile_dimension` and
+    `_aio_usdu_tile_plan` to the dedicated `easyuse_anima.aio.usdu` owner. PR
+    #306 retains direct root alias identity and call-time root `ceil`, alignment,
+    image-size, coercion, and nested auto-dimension replacement. Tile clamp,
+    fallback, scale, rounding, dict order, and stage behavior remain unchanged.
+    The unused `_aio_usdu_tile_size` wrapper remains root-owned for a separate
+    Contract/cleanup decision.
   - The final B-11c cutover removes remaining root execution ownership and
     leaves the explicit supported `nodes.py` compatibility shim.
 - Add `easyuse_anima/registration.py` as pure mapping composition. It performs no

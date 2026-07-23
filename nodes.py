@@ -43,6 +43,11 @@ try:
     from .easyuse_anima.aio.generation_settings import (
         round_trip_aio_generation_settings as _round_trip_aio_generation_settings,
     )
+    from .easyuse_anima.aio.usdu import (
+        _aio_usdu_auto_tile_dimension as _aio_usdu_auto_tile_dimension,
+        _aio_usdu_tile_plan as _aio_usdu_tile_plan,
+        _bind_aio_usdu_planning_runtime as _bind_aio_usdu_planning_runtime,
+    )
     from .easyuse_anima.aio.conditioning import (
         _aio_prompt_data_fields_for_usdu as _aio_prompt_data_fields_for_usdu,
         _aio_usdu_conditioning as _aio_usdu_conditioning,
@@ -580,6 +585,11 @@ except ImportError:  # allows simple local import tests outside ComfyUI's packag
     )
     from easyuse_anima.aio.generation_settings import (
         round_trip_aio_generation_settings as _round_trip_aio_generation_settings,
+    )
+    from easyuse_anima.aio.usdu import (
+        _aio_usdu_auto_tile_dimension as _aio_usdu_auto_tile_dimension,
+        _aio_usdu_tile_plan as _aio_usdu_tile_plan,
+        _bind_aio_usdu_planning_runtime as _bind_aio_usdu_planning_runtime,
     )
     from easyuse_anima.aio.conditioning import (
         _aio_prompt_data_fields_for_usdu as _aio_prompt_data_fields_for_usdu,
@@ -1751,54 +1761,6 @@ def _run_aio_highres_stage(
     }
 
 
-def _aio_usdu_auto_tile_dimension(
-    target_size: int,
-    preferred_size: int = 1024,
-    min_size: int = 512,
-    max_size: int = 2048,
-) -> int:
-    target_size = max(1, int(target_size))
-    min_size = max(64, int(min_size))
-    max_size = max(min_size, int(max_size))
-    preferred = max(min_size, min(max_size, int(preferred_size)))
-    tile_count = max(1, ceil(target_size / preferred))
-    tile_size = ceil(target_size / tile_count)
-    tile_size = _align_nearest(tile_size, 64)
-    return max(min_size, min(max_size, tile_size))
-
-
-def _aio_usdu_tile_plan(image, scale_by: float, usdu_settings: dict[str, Any]) -> dict[str, Any]:
-    width, height = _image_tensor_size(image, 512, 512)
-    target_width = max(1, int(round(width * max(0.05, float(scale_by)))))
-    target_height = max(1, int(round(height * max(0.05, float(scale_by)))))
-    auto_tile = _as_bool(usdu_settings.get("auto_tile_size"), True)
-    if not auto_tile:
-        return {
-            "auto": False,
-            "input_width": int(width),
-            "input_height": int(height),
-            "target_width": int(target_width),
-            "target_height": int(target_height),
-            "tile_width": _as_int(usdu_settings.get("tile_width"), 512),
-            "tile_height": _as_int(usdu_settings.get("tile_height"), 512),
-        }
-    preferred = _as_int(usdu_settings.get("auto_tile_target"), 1024)
-    min_size = _as_int(usdu_settings.get("auto_tile_min"), 512)
-    max_size = _as_int(usdu_settings.get("auto_tile_max"), 2048)
-    return {
-        "auto": True,
-        "input_width": int(width),
-        "input_height": int(height),
-        "target_width": int(target_width),
-        "target_height": int(target_height),
-        "preferred": int(preferred),
-        "min": int(min_size),
-        "max": int(max_size),
-        "tile_width": _aio_usdu_auto_tile_dimension(target_width, preferred, min_size, max_size),
-        "tile_height": _aio_usdu_auto_tile_dimension(target_height, preferred, min_size, max_size),
-    }
-
-
 def _aio_usdu_tile_size(image, scale_by: float, usdu_settings: dict[str, Any]) -> tuple[int, int]:
     tile_plan = _aio_usdu_tile_plan(image, scale_by, usdu_settings)
     return int(tile_plan["tile_width"]), int(tile_plan["tile_height"])
@@ -2370,6 +2332,9 @@ _bind_aio_legacy_generation_runtime(
     resolve_helper=lambda name: globals()[name],
 )
 _bind_aio_generation_normalization_runtime(
+    resolve_helper=lambda name: globals()[name],
+)
+_bind_aio_usdu_planning_runtime(
     resolve_helper=lambda name: globals()[name],
 )
 _bind_aio_resource_runtime(
