@@ -36035,31 +36035,6 @@
         "source": "nodes.py"
       },
       {
-        "alias": "comfy_nodes",
-        "bound_name": "comfy_nodes",
-        "branch_context": [
-          {
-            "branch": "body",
-            "handles_import_failure": true,
-            "has_import_fallback_handler": false,
-            "kind": "try",
-            "line": 1639
-          }
-        ],
-        "classification": "external",
-        "column": 8,
-        "conditional": true,
-        "imported": "nodes",
-        "kind": "static_import",
-        "line": 1640,
-        "name": null,
-        "optional": true,
-        "requested": "nodes",
-        "role": "optional_dependency",
-        "scope": "_find_comfy_node_mapping_class",
-        "source": "nodes.py"
-      },
-      {
         "alias": null,
         "bound_name": "annotations",
         "branch_context": [],
@@ -39365,13 +39340,13 @@
       },
       {
         "is_package": false,
-        "loc": 73,
+        "loc": 79,
         "module": "easyuse_anima.infrastructure.comfy.wiring",
-        "normalized_git_blob_sha1": "cff4535e750467eee9acd8da8e144b99f1f17094",
+        "normalized_git_blob_sha1": "cf4fe1c276a60bbc1f5499096223d62776e84ac3",
         "path": "easyuse_anima/infrastructure/comfy/wiring.py",
         "top_level": {
           "class_count": 0,
-          "function_count": 2,
+          "function_count": 3,
           "global_count": 1
         }
       },
@@ -39773,13 +39748,13 @@
       },
       {
         "is_package": false,
-        "loc": 1905,
+        "loc": 1896,
         "module": "nodes",
-        "normalized_git_blob_sha1": "feb425693e6213764338a87bdda6f5c88b0ed632",
+        "normalized_git_blob_sha1": "6fb2ffb410efe4658d99f17b474fbd8b296a1881",
         "path": "nodes.py",
         "top_level": {
           "class_count": 0,
-          "function_count": 7,
+          "function_count": 6,
           "global_count": 26
         }
       },
@@ -52604,25 +52579,6 @@
         "source": "nodes.py"
       },
       {
-        "branch_context": [
-          {
-            "branch": "body",
-            "handles_import_failure": true,
-            "has_import_fallback_handler": false,
-            "kind": "try",
-            "line": 1639
-          }
-        ],
-        "classification": "external",
-        "conditional": true,
-        "imported": "nodes",
-        "kind": "static_import",
-        "line": 1640,
-        "optional": true,
-        "role": "optional_dependency",
-        "source": "nodes.py"
-      },
-      {
         "branch_context": [],
         "classification": "external",
         "conditional": false,
@@ -54019,25 +53975,6 @@
         "imported": "nodes",
         "kind": "static_import",
         "line": 1632,
-        "optional": true,
-        "role": "optional_dependency",
-        "source": "nodes.py"
-      },
-      {
-        "branch_context": [
-          {
-            "branch": "body",
-            "handles_import_failure": true,
-            "has_import_fallback_handler": false,
-            "kind": "try",
-            "line": 1639
-          }
-        ],
-        "classification": "external",
-        "conditional": true,
-        "imported": "nodes",
-        "kind": "static_import",
-        "line": 1640,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -55522,7 +55459,7 @@
         "column": 0,
         "context": "expression",
         "kind": "import_time_call",
-        "line": 1756,
+        "line": 1747,
         "module": "nodes.py",
         "scope": "<module>"
       },
@@ -55531,7 +55468,7 @@
         "column": 0,
         "context": "expression",
         "kind": "import_time_call",
-        "line": 1759,
+        "line": 1750,
         "module": "nodes.py",
         "scope": "<module>"
       },
@@ -55540,7 +55477,7 @@
         "column": 0,
         "context": "expression",
         "kind": "import_time_call",
-        "line": 1765,
+        "line": 1756,
         "module": "nodes.py",
         "scope": "<module>"
       },
@@ -55549,7 +55486,7 @@
         "column": 0,
         "context": "expression",
         "kind": "import_time_call",
-        "line": 1771,
+        "line": 1762,
         "module": "nodes.py",
         "scope": "<module>"
       },
@@ -55558,7 +55495,7 @@
         "column": 0,
         "context": "expression",
         "kind": "import_time_call",
-        "line": 1774,
+        "line": 1765,
         "module": "nodes.py",
         "scope": "<module>"
       },
@@ -55567,7 +55504,7 @@
         "column": 0,
         "context": "expression",
         "kind": "import_time_call",
-        "line": 1777,
+        "line": 1768,
         "module": "nodes.py",
         "scope": "<module>"
       },
@@ -55576,7 +55513,7 @@
         "column": 0,
         "context": "expression",
         "kind": "import_time_call",
-        "line": 1783,
+        "line": 1774,
         "module": "nodes.py",
         "scope": "<module>"
       },
@@ -55585,7 +55522,7 @@
         "column": 0,
         "context": "expression",
         "kind": "import_time_call",
-        "line": 1789,
+        "line": 1780,
         "module": "nodes.py",
         "scope": "<module>"
       },
@@ -55594,7 +55531,7 @@
         "column": 0,
         "context": "expression",
         "kind": "import_time_call",
-        "line": 1795,
+        "line": 1786,
         "module": "nodes.py",
         "scope": "<module>"
       },
@@ -55603,7 +55540,7 @@
         "column": 0,
         "context": "expression",
         "kind": "import_time_call",
-        "line": 1801,
+        "line": 1792,
         "module": "nodes.py",
         "scope": "<module>"
       },
@@ -55612,7 +55549,7 @@
         "column": 0,
         "context": "expression",
         "kind": "import_time_call",
-        "line": 1807,
+        "line": 1798,
         "module": "nodes.py",
         "scope": "<module>"
       },
@@ -55621,7 +55558,7 @@
         "column": 0,
         "context": "expression",
         "kind": "import_time_call",
-        "line": 1813,
+        "line": 1804,
         "module": "nodes.py",
         "scope": "<module>"
       },
@@ -55630,7 +55567,7 @@
         "column": 0,
         "context": "expression",
         "kind": "import_time_call",
-        "line": 1819,
+        "line": 1810,
         "module": "nodes.py",
         "scope": "<module>"
       },
@@ -55639,7 +55576,7 @@
         "column": 0,
         "context": "expression",
         "kind": "import_time_call",
-        "line": 1825,
+        "line": 1816,
         "module": "nodes.py",
         "scope": "<module>"
       },
@@ -55648,7 +55585,7 @@
         "column": 0,
         "context": "expression",
         "kind": "import_time_call",
-        "line": 1831,
+        "line": 1822,
         "module": "nodes.py",
         "scope": "<module>"
       },
@@ -55657,7 +55594,7 @@
         "column": 0,
         "context": "expression",
         "kind": "import_time_call",
-        "line": 1834,
+        "line": 1825,
         "module": "nodes.py",
         "scope": "<module>"
       },
@@ -55666,7 +55603,7 @@
         "column": 0,
         "context": "expression",
         "kind": "import_time_call",
-        "line": 1841,
+        "line": 1832,
         "module": "nodes.py",
         "scope": "<module>"
       },
@@ -55675,7 +55612,7 @@
         "column": 0,
         "context": "expression",
         "kind": "import_time_call",
-        "line": 1844,
+        "line": 1835,
         "module": "nodes.py",
         "scope": "<module>"
       },
@@ -55684,7 +55621,7 @@
         "column": 0,
         "context": "expression",
         "kind": "import_time_call",
-        "line": 1848,
+        "line": 1839,
         "module": "nodes.py",
         "scope": "<module>"
       },
@@ -55693,7 +55630,7 @@
         "column": 0,
         "context": "expression",
         "kind": "import_time_call",
-        "line": 1851,
+        "line": 1842,
         "module": "nodes.py",
         "scope": "<module>"
       },
@@ -55702,7 +55639,7 @@
         "column": 0,
         "context": "expression",
         "kind": "import_time_call",
-        "line": 1858,
+        "line": 1849,
         "module": "nodes.py",
         "scope": "<module>"
       },
@@ -55711,7 +55648,7 @@
         "column": 0,
         "context": "expression",
         "kind": "import_time_call",
-        "line": 1864,
+        "line": 1855,
         "module": "nodes.py",
         "scope": "<module>"
       },
@@ -55720,7 +55657,7 @@
         "column": 0,
         "context": "expression",
         "kind": "import_time_call",
-        "line": 1870,
+        "line": 1861,
         "module": "nodes.py",
         "scope": "<module>"
       },
@@ -55729,7 +55666,7 @@
         "column": 0,
         "context": "expression",
         "kind": "import_time_call",
-        "line": 1873,
+        "line": 1864,
         "module": "nodes.py",
         "scope": "<module>"
       },
@@ -55738,7 +55675,7 @@
         "column": 0,
         "context": "expression",
         "kind": "import_time_call",
-        "line": 1876,
+        "line": 1867,
         "module": "nodes.py",
         "scope": "<module>"
       },
@@ -55747,7 +55684,7 @@
         "column": 0,
         "context": "expression",
         "kind": "import_time_call",
-        "line": 1879,
+        "line": 1870,
         "module": "nodes.py",
         "scope": "<module>"
       },
@@ -55756,7 +55693,7 @@
         "column": 0,
         "context": "expression",
         "kind": "import_time_call",
-        "line": 1886,
+        "line": 1877,
         "module": "nodes.py",
         "scope": "<module>"
       },
@@ -55765,7 +55702,7 @@
         "column": 0,
         "context": "expression",
         "kind": "import_time_call",
-        "line": 1892,
+        "line": 1883,
         "module": "nodes.py",
         "scope": "<module>"
       },
@@ -55774,7 +55711,7 @@
         "column": 0,
         "context": "expression",
         "kind": "import_time_call",
-        "line": 1897,
+        "line": 1888,
         "module": "nodes.py",
         "scope": "<module>"
       },
@@ -55783,7 +55720,7 @@
         "column": 0,
         "context": "expression",
         "kind": "import_time_call",
-        "line": 1901,
+        "line": 1892,
         "module": "nodes.py",
         "scope": "<module>"
       },

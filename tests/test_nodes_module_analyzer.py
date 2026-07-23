@@ -73,12 +73,12 @@ def load_dynamic():
     def test_current_nodes_module_shape_matches_recorded_baseline(self):
         report = analyzer.analyze_path(ROOT / "nodes.py")
 
-        self.assertEqual(report["git_blob_sha1"], "feb425693e6213764338a87bdda6f5c88b0ed632")
-        # B-11c29a retires the unsupported root max-resolution wrapper and
-        # its two adapter imports without changing the public class surface.
-        self.assertEqual(report["top_level"]["function_count"], 7)
+        self.assertEqual(report["git_blob_sha1"], "6fb2ffb410efe4658d99f17b474fbd8b296a1881")
+        # B-11c29b1 retires only the unsupported direct-mapping root lookup
+        # without changing imports or the public class surface.
+        self.assertEqual(report["top_level"]["function_count"], 6)
         self.assertEqual(report["top_level"]["class_count"], 0)
-        self.assertEqual(report["line_count"], 1_905)
+        self.assertEqual(report["line_count"], 1_896)
         class_names = {item["name"] for item in report["top_level"]["classes"]}
         self.assertNotIn("EasyUseAnimaAIOGenerator", class_names)
         self.assertNotIn("EasyUseAnimaInput", class_names)

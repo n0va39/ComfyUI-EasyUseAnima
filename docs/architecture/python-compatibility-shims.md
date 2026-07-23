@@ -8,10 +8,10 @@
 - Policy: [ADR-002](adr-002-compatibility-shims.md)
 - Machine-readable audit:
   [`python_compatibility_surface.v1.json`](../../tests/fixtures/python_compatibility_surface.v1.json)
-- Current state: B-11a through B-11c28 are integrated. B-11c is split into
+- Current state: B-11a through B-11c29a are integrated. B-11c is split into
   residual-owner Moves and explicit private-contract cleanup before the final
-  root shim; B-11c29a retires the unsupported max-resolution root wrapper in
-  PR #329.
+  root shim; B-11c29b1 retires the unsupported direct mapping node lookup in
+  PR #330.
 
 This is an actionable registry, not a removal schedule. `N` means the first
 published Registry release containing both a canonical target and its root
@@ -85,10 +85,10 @@ inferring public support from spelling or test imports:
 - unmapped root classes: `EasyUseAnimaSAM3Context` and
   `EasyUseAnimaSAM3Detailer`; the canonical legacy Extend class remains in its
   owner module without a root alias or backend mapping;
-- root-owned residual implementation: 7 functions, 0 classes, and 26 assigned
-  globals in B-11c29a (41/2/33 at the integrated B-10b20 baseline).
+- root-owned residual implementation: 6 functions, 0 classes, and 26 assigned
+  globals in B-11c29b1 (41/2/33 at the integrated B-10b20 baseline).
 - import-time runtime binders: 30 exact top-level `_bind_*_runtime` calls;
-- root names reached by those canonical runtime resolvers: 290, including
+- root names reached by those canonical runtime resolvers: 289, including
   literal lookups and binder-owned helper-name/default collections;
 - retired private bindings: `_comfy_checkpoint_names`,
   `_EasyUseAnimaAlignedDetailerHook`, and
@@ -603,6 +603,21 @@ convenience-node compatibility; it remains unmapped and is not public support.
   fallback remain unchanged without importing canonical code from root.
 - No provider cache, mutable override, schema change, or other host-helper Move
   is included.
+
+### B-11c29b1 direct mapping node-lookup retirement
+
+- `_find_comfy_node_mapping_class` is an unsupported/test-only private root seam
+  with one provider-wired SAM3 consumer and no repository replacement or
+  confirmed external consumer.
+- PR #330 removes only the root definition. There was no adapter alias for this
+  mapping-only wrapper.
+- Installed runtime uses `ComfyHostProvider.find_node_mapping_class`; flat
+  pre-bootstrap imports resolve a fresh default provider at call time.
+- Lookup remains limited to `NODE_CLASS_MAPPINGS.get(node_id)`. Host attributes
+  and loaded modules are not scanned, missing/invalid host state returns
+  `None`, and no cache or mutable override is added.
+- Loaded lookup, requirement helpers, CLIP invocation, and the general node
+  lookup remain separate retirement units.
 
 ### `nodes.py` public node-class surface
 

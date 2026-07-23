@@ -625,7 +625,7 @@ the rollback and compatibility boundary without need.
 
 #### B-11c29b1 — Direct mapping-only lookup
 
-- **State:** IN PROGRESS
+- **State:** COMPLETE in PR #330
 - **Owner:** #184
 - **Type:** Retirement
 
@@ -762,8 +762,8 @@ COMPLETE: E-07a default host provider / PR #327
 COMPLETE: E-07b wiring and compatibility gate / PR #328
 
 COMPLETE: B-11c29a max-resolution wrapper retirement / PR #329
-IN PROGRESS: B-11c29b1 direct mapping lookup retirement / PR #330
-BLOCKED:  B-11c29b2 loaded lookup retirement
+COMPLETE: B-11c29b1 direct mapping lookup retirement / PR #330
+READY:    B-11c29b2 loaded lookup retirement
 BLOCKED:  B-11c29c-d requirement and CLIP wrapper retirements
 BLOCKED:  B-11c29b3 general node lookup retirement
 BLOCKED:  B-11c30 binder/resolver migration audit

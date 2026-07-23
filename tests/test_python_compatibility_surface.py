@@ -1062,12 +1062,15 @@ def _comfy_host_root_inventory(
             and node.name == symbol
         ]
         if entries[symbol]["root_signature"] is None:
-            retired_alias = entries[symbol].get("retired_adapter_alias")
-            if retired_alias is None:
+            if "retired_adapter_alias" not in entries[symbol]:
                 raise AssertionError(
                     f"{symbol} must record its retired adapter alias"
                 )
-            if retired_alias in canonical_bindings:
+            retired_alias = entries[symbol]["retired_adapter_alias"]
+            if (
+                retired_alias is not None
+                and retired_alias in canonical_bindings
+            ):
                 raise AssertionError(
                     f"{symbol} retired adapter is still imported as {retired_alias}"
                 )
@@ -1690,6 +1693,7 @@ def _build_document() -> dict[str, Any]:
                 "B-11c27",
                 "B-11c28",
                 "B-11c29a",
+                "B-11c29b1",
             ],
         },
         "enums": {
@@ -1706,7 +1710,7 @@ def _build_document() -> dict[str, Any]:
             "nodes_legacy_bindings": 27,
             "mapped_public_classes": 18,
             "unmapped_classes": 2,
-            "root_residual_functions": 7,
+            "root_residual_functions": 6,
             "root_residual_classes": 0,
             "root_residual_globals": 26,
             "runtime_binders": 30,
@@ -2131,14 +2135,23 @@ class ComfyHostCompatibilityLedgerTests(unittest.TestCase):
             for symbol, entry in self.entries.items()
             if entry["root_signature"] is None
         }
-        self.assertEqual(retired, {"_comfy_max_resolution"})
+        self.assertEqual(
+            retired,
+            {
+                "_comfy_max_resolution",
+                "_find_comfy_node_mapping_class",
+            },
+        )
         self.assertEqual(
             {
                 symbol: entry["retired_adapter_alias"]
                 for symbol, entry in self.entries.items()
                 if "retired_adapter_alias" in entry
             },
-            {"_comfy_max_resolution": "_adapter_comfy_max_resolution"},
+            {
+                "_comfy_max_resolution": "_adapter_comfy_max_resolution",
+                "_find_comfy_node_mapping_class": None,
+            },
         )
         for symbol, entry in self.entries.items():
             expected_classification = (

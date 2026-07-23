@@ -138,7 +138,11 @@ class SAM3MoveTests(unittest.TestCase):
             patch.object(nodes, "NODE_CLASS_MAPPINGS", {}, create=True),
             patch.object(nodes, "DetailerForEach", direct_attribute, create=True),
         ):
-            self.assertIsNone(nodes._find_comfy_node_mapping_class("DetailerForEach"))
+            with self.assertRaisesRegex(
+                RuntimeError,
+                "SAM3 Detailer requires ComfyUI Impact Pack",
+            ):
+                sam3_service._find_impact_detailer_class()
 
     def test_context_node_keeps_call_time_checkpoint_loader(self):
         with patch.object(

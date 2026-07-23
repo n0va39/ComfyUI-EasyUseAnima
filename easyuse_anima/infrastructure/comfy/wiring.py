@@ -19,6 +19,10 @@ def _default_max_resolution() -> int:
     return DefaultComfyHostProvider().max_resolution()
 
 
+def _default_node_mapping_class(node_id: str):
+    return DefaultComfyHostProvider().find_node_mapping_class(node_id)
+
+
 def resolve_comfy_host_helper(
     name: str,
     fallback: Callable[[str], Any],
@@ -44,6 +48,8 @@ def resolve_comfy_host_helper(
         # the remaining B-11 seams keep their existing root resolver.
         if name == "_comfy_max_resolution":
             return _default_max_resolution
+        if name == "_find_comfy_node_mapping_class":
+            return _default_node_mapping_class
         return fallback(name)
 
     if name == "_comfy_max_resolution":
