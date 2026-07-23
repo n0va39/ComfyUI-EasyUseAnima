@@ -115,6 +115,7 @@ try:
     )
     from .easyuse_anima.aio.resources import (
         _bind_aio_resource_runtime as _bind_aio_resource_runtime,
+        _comfy_clip_loader_types as _comfy_clip_loader_types,
         _comfy_diffusion_model_names as _comfy_diffusion_model_names,
         _comfy_text_encoder_names as _comfy_text_encoder_names,
         _comfy_vae_names as _comfy_vae_names,
@@ -667,6 +668,7 @@ except ImportError:  # allows simple local import tests outside ComfyUI's packag
     )
     from easyuse_anima.aio.resources import (
         _bind_aio_resource_runtime as _bind_aio_resource_runtime,
+        _comfy_clip_loader_types as _comfy_clip_loader_types,
         _comfy_diffusion_model_names as _comfy_diffusion_model_names,
         _comfy_text_encoder_names as _comfy_text_encoder_names,
         _comfy_vae_names as _comfy_vae_names,
@@ -1612,13 +1614,6 @@ def _comfy_max_resolution() -> int:
     except Exception:
         comfy_nodes = None
     return _adapter_comfy_max_resolution(comfy_nodes)
-
-
-def _comfy_clip_loader_types() -> list[str]:
-    return _adapter_comfy_clip_loader_types(
-        ANIMA_CLIP_TYPES,
-        _find_comfy_node_class,
-    )
 
 
 def _find_comfy_node_class(node_id: str):

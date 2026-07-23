@@ -1506,6 +1506,66 @@ class AioResourceNameMoveContractTests(unittest.TestCase):
             ]
             self._assert_vae_contract(package_nodes, package_resources)
 
+    def _assert_clip_loader_type_contract(self, root_module, canonical_module):
+        self.assertIs(
+            root_module._comfy_clip_loader_types,
+            canonical_module._comfy_clip_loader_types,
+        )
+
+        candidates = ("qwen_image", "stable_diffusion")
+        returned = ["runtime_clip_type"]
+        events = []
+
+        def find_node_class(_node_id):
+            return None
+
+        def adapter(candidate_values, node_finder):
+            events.append(("adapter_call", candidate_values, node_finder))
+            return returned
+
+        def resolver(name):
+            events.append(name)
+            return getattr(root_module, name)
+
+        with (
+            patch.object(root_module, "ANIMA_CLIP_TYPES", candidates),
+            patch.object(
+                root_module,
+                "_adapter_comfy_clip_loader_types",
+                adapter,
+            ),
+            patch.object(root_module, "_find_comfy_node_class", find_node_class),
+        ):
+            canonical_module._bind_aio_resource_runtime(resolve_helper=resolver)
+            try:
+                result = canonical_module._comfy_clip_loader_types()
+            finally:
+                canonical_module._bind_aio_resource_runtime(
+                    resolve_helper=lambda name: getattr(root_module, name)
+                )
+
+        self.assertIs(result, returned)
+        self.assertEqual(
+            events,
+            [
+                "_adapter_comfy_clip_loader_types",
+                "ANIMA_CLIP_TYPES",
+                "_find_comfy_node_class",
+                ("adapter_call", candidates, find_node_class),
+            ],
+        )
+
+    def test_clip_loader_type_root_alias_and_call_time_dependencies(self):
+        self._assert_clip_loader_type_contract(nodes, aio_resources)
+
+    def test_clip_loader_type_package_alias_and_call_time_dependencies(self):
+        with _loaded_package_entrypoint() as (_, package_nodes):
+            package_name = package_nodes.__package__
+            package_resources = sys.modules[
+                f"{package_name}.easyuse_anima.aio.resources"
+            ]
+            self._assert_clip_loader_type_contract(package_nodes, package_resources)
+
 
 class AioSeedNormalizationMoveContractTests(unittest.TestCase):
     CONSTANT_NAMES = (
