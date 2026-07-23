@@ -31,7 +31,7 @@ merged PR, the owning issue's evidence record, and every stated exit gate.
 | Phase | Integrated snapshot / open implementation state | Remaining exit work |
 | --- | --- | --- |
 | A - baseline | Complete; #191 is closed | Keep fixtures and analyzers current during later moves |
-| B - `nodes.py` extraction | Integrated through B-11c29b2 / PR #331; B-11c29c requirement helper retirement in PR #332 | Complete residual owners and binders, then the final root shim as a separate Move |
+| B - `nodes.py` extraction | Integrated through B-11c29c / PR #332; B-11c29d CLIP invocation retirement in progress | Complete residual owners and binders, then the final root shim as a separate Move |
 | C - feature contracts/behavior | Partially complete | Finish #168; then #167 and #169 in separate Contract/Behavior PRs |
 | D - root consolidation | Not started | Execute #186 feature by feature after the corresponding behavior contracts are stable |
 | E - runtime ownership | Partial: E-02a and E-07a/E-07b integrated | Continue #187 only where canonical feature owners and explicit contracts exist |
@@ -94,8 +94,9 @@ merged PR, the owning issue's evidence record, and every stated exit gate.
   B-11c29b1 retires only the unsupported direct mapping node lookup in PR #330;
   loaded, requirement, CLIP, and general lookup retirements remain separate.
   B-11c29b2 retired only the unsupported loaded-node root lookup in PR #331.
-  B-11c29c next retires the two pure requirement root helpers together while
-  the general root lookup remains for the CLIP wrapper.
+  B-11c29c retired the two pure requirement root helpers together in PR #332.
+  B-11c29d next retires the pure CLIP invocation root helper while the general
+  root lookup remains for its final B-11c29b3 unit.
 
 ### Current quality baseline
 
