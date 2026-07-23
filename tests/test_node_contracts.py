@@ -21,6 +21,7 @@ import nodes
 from easyuse_anima import workflow
 from easyuse_anima.aio import (
     generation_normalization as aio_generation_normalization,
+    postprocess as aio_postprocess,
     resources as aio_resources,
     sampling as aio_sampling,
     usdu as aio_usdu,
@@ -1063,6 +1064,89 @@ class AioUsduTilePlanningMoveContractTests(unittest.TestCase):
             package_name = package_nodes.__package__
             package_usdu = sys.modules[f"{package_name}.easyuse_anima.aio.usdu"]
             self._assert_contract(package_nodes, package_usdu)
+
+
+class AioFinalFitPlanningMoveContractTests(unittest.TestCase):
+    MOVED_NAMES = (
+        "_aio_final_fit_size",
+        "_bind_aio_postprocess_runtime",
+    )
+
+    def _assert_contract(self, root_module, canonical_module):
+        for name in self.MOVED_NAMES:
+            with self.subTest(name=name):
+                self.assertIs(getattr(root_module, name), getattr(canonical_module, name))
+
+        disabled = {"enabled": False, "mode": "megapixels"}
+        with (
+            patch.object(root_module, "_as_bool", return_value=False) as as_bool,
+            patch.object(root_module, "_as_float") as as_float,
+            patch.object(root_module, "_as_int") as as_int,
+            patch.object(root_module, "sqrt") as sqrt,
+            patch.object(root_module, "_align_down") as align_down,
+        ):
+            self.assertEqual(
+                canonical_module._aio_final_fit_size(0, -3, disabled),
+                (1, 1, 1.0),
+            )
+        as_bool.assert_called_once_with(False, False)
+        as_float.assert_not_called()
+        as_int.assert_not_called()
+        sqrt.assert_not_called()
+        align_down.assert_not_called()
+
+        no_downscale = {"enabled": True, "mode": "unknown", "max_long_edge": 2048}
+        with (
+            patch.object(root_module, "_as_bool", return_value=True),
+            patch.object(root_module, "_as_int", return_value=2048) as as_int,
+            patch.object(root_module, "_as_float") as as_float,
+            patch.object(root_module, "sqrt") as sqrt,
+            patch.object(root_module, "_align_down") as align_down,
+        ):
+            self.assertEqual(
+                canonical_module._aio_final_fit_size(1024, 512, no_downscale),
+                (1024, 512, 1.0),
+            )
+        as_int.assert_called_once_with(2048, 2048)
+        as_float.assert_not_called()
+        sqrt.assert_not_called()
+        align_down.assert_not_called()
+
+        megapixels = {"enabled": True, "mode": "megapixels", "max_megapixels": 4}
+        original = dict(megapixels)
+        expected_scale = math.sqrt(4_000_000.0 / 12_000_000.0)
+        with (
+            patch.object(root_module, "_as_bool", return_value=True),
+            patch.object(root_module, "_as_float", return_value=4.0) as as_float,
+            patch.object(root_module, "_as_int") as as_int,
+            patch.object(root_module, "sqrt", wraps=math.sqrt) as sqrt,
+            patch.object(root_module, "LATENT_ALIGN", 32),
+            patch.object(root_module, "_align_down", side_effect=(2304, 1728)) as align_down,
+        ):
+            result = canonical_module._aio_final_fit_size(4000, 3000, megapixels)
+        self.assertEqual(result, (2304, 1728, expected_scale))
+        self.assertEqual(megapixels, original)
+        as_float.assert_called_once_with(4, 4.0)
+        as_int.assert_not_called()
+        sqrt.assert_called_once_with(4_000_000.0 / 12_000_000.0)
+        self.assertEqual(
+            align_down.call_args_list,
+            [
+                call(round(4000 * expected_scale), 32),
+                call(round(3000 * expected_scale), 32),
+            ],
+        )
+
+    def test_root_aliases_and_call_time_helpers(self):
+        self._assert_contract(nodes, aio_postprocess)
+
+    def test_package_aliases_and_call_time_helpers(self):
+        with _loaded_package_entrypoint() as (_, package_nodes):
+            package_name = package_nodes.__package__
+            package_postprocess = sys.modules[
+                f"{package_name}.easyuse_anima.aio.postprocess"
+            ]
+            self._assert_contract(package_nodes, package_postprocess)
 
 
 class AioSeedNormalizationMoveContractTests(unittest.TestCase):

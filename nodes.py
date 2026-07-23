@@ -49,6 +49,10 @@ try:
         _aio_usdu_tile_plan as _aio_usdu_tile_plan,
         _bind_aio_usdu_planning_runtime as _bind_aio_usdu_planning_runtime,
     )
+    from .easyuse_anima.aio.postprocess import (
+        _aio_final_fit_size as _aio_final_fit_size,
+        _bind_aio_postprocess_runtime as _bind_aio_postprocess_runtime,
+    )
     from .easyuse_anima.aio.conditioning import (
         _aio_prompt_data_fields_for_usdu as _aio_prompt_data_fields_for_usdu,
         _aio_usdu_conditioning as _aio_usdu_conditioning,
@@ -592,6 +596,10 @@ except ImportError:  # allows simple local import tests outside ComfyUI's packag
         _aio_usdu_auto_tile_dimension as _aio_usdu_auto_tile_dimension,
         _aio_usdu_tile_plan as _aio_usdu_tile_plan,
         _bind_aio_usdu_planning_runtime as _bind_aio_usdu_planning_runtime,
+    )
+    from easyuse_anima.aio.postprocess import (
+        _aio_final_fit_size as _aio_final_fit_size,
+        _bind_aio_postprocess_runtime as _bind_aio_postprocess_runtime,
     )
     from easyuse_anima.aio.conditioning import (
         _aio_prompt_data_fields_for_usdu as _aio_prompt_data_fields_for_usdu,
@@ -1763,30 +1771,6 @@ def _run_aio_highres_stage(
     }
 
 
-def _aio_final_fit_size(width: int, height: int, fit_settings: dict[str, Any]) -> tuple[int, int, float]:
-    width = max(1, int(width))
-    height = max(1, int(height))
-    if not _as_bool(fit_settings.get("enabled"), False):
-        return width, height, 1.0
-    mode = str(fit_settings.get("mode") or "max_long_edge")
-    scale = 1.0
-    if mode == "megapixels":
-        max_pixels = max(1.0, _as_float(fit_settings.get("max_megapixels"), 4.0) * 1_000_000.0)
-        pixels = float(width * height)
-        if pixels > max_pixels:
-            scale = sqrt(max_pixels / pixels)
-    else:
-        max_long_edge = max(1, _as_int(fit_settings.get("max_long_edge"), 2048))
-        long_edge = max(width, height)
-        if long_edge > max_long_edge:
-            scale = max_long_edge / long_edge
-    if scale >= 1.0:
-        return width, height, 1.0
-    target_width = _align_down(round(width * scale), LATENT_ALIGN)
-    target_height = _align_down(round(height * scale), LATENT_ALIGN)
-    return max(1, target_width), max(1, target_height), scale
-
-
 def _apply_aio_final_fit(image, postprocess_settings: dict[str, Any]) -> tuple[Any, dict[str, Any]]:
     fit_settings = postprocess_settings.get("fit", {})
     if not isinstance(fit_settings, dict):
@@ -2322,6 +2306,9 @@ _bind_aio_generation_normalization_runtime(
     resolve_helper=lambda name: globals()[name],
 )
 _bind_aio_usdu_planning_runtime(
+    resolve_helper=lambda name: globals()[name],
+)
+_bind_aio_postprocess_runtime(
     resolve_helper=lambda name: globals()[name],
 )
 _bind_aio_resource_runtime(

@@ -683,9 +683,9 @@ ignored/
 
         self.assertEqual(analyzer.render_json(report), expected_text)
         self.assertEqual(report["schema_version"], 2)
-        self.assertEqual(report["inventory"]["module_count"], 82)
-        self.assertEqual(len(report["registry"]["shipped_python_modules"]), 82)
-        self.assertEqual(len(report["registry"]["runtime_import_closure"]), 82)
+        self.assertEqual(report["inventory"]["module_count"], 83)
+        self.assertEqual(len(report["registry"]["shipped_python_modules"]), 83)
+        self.assertEqual(len(report["registry"]["runtime_import_closure"]), 83)
         self.assertEqual(report["registry"]["missing_internal_imports"], [])
         self.assertEqual(report["registry"]["unreachable_shipped_python_modules"], [])
         self.assertTrue(
@@ -705,6 +705,7 @@ ignored/
                 "easyuse_anima/aio/generation_settings.py",
                 "easyuse_anima/aio/model_preparation.py",
                 "easyuse_anima/aio/output.py",
+                "easyuse_anima/aio/postprocess.py",
                 "easyuse_anima/aio/preview.py",
                 "easyuse_anima/aio/resources.py",
                 "easyuse_anima/aio/sampling.py",
