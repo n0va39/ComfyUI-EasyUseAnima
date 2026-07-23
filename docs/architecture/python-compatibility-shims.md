@@ -721,6 +721,22 @@ convenience-node compatibility; it remains unmapped and is not public support.
 - No node schema, workflow, optional-dependency timing, or SAM3/Impact behavior
   changes in this Move.
 
+### B-11c30b LoRA binder retirement
+
+- The three root LoRA binder imports/calls and canonical binder definitions are
+  removed.
+- Metadata and preset keep use-time canonical-module helper lookup. Prompt
+  tokenization and prompt correction remain lazy callbacks, and the logger
+  remains a use-time proxy.
+- The LoRA node adapter keeps direct canonical helper imports and exact shared
+  input-type identity.
+- Root helper/class aliases remain direct canonical aliases. Only tests that
+  used root replacement to drive LoRA canonical consumers move to the owning
+  module.
+- The remaining binder audit contains 24 binders in three owner families. No
+  LoRA schema, workflow, stack/trigger order, missing-model policy, or optional
+  dependency behavior changes in this Move.
+
 ### `nodes.py` public node-class surface
 
 The confirmed 0.5.2 mapped classes are:

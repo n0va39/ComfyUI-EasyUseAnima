@@ -19,35 +19,6 @@ from ..lora.preset import _correct_style_prompt, _format_strength, _select_profi
 from .input_types import _ANY_TYPE, _FlexibleOptionalInputType
 
 
-def _bind_lora_node_runtime(*, resolve_helper, flexible_optional_input_type, any_type) -> None:
-    global _as_bool, _stable_change_key
-    global _apply_lora_syntax_format, _get_lora_info, _lora_combo_values
-    global _lora_model_exists, _lora_stack_name, _missing_lora_display_name
-    global _raise_missing_loras, _correct_style_prompt, _format_strength
-    global _select_profile_values, _FlexibleOptionalInputType, _ANY_TYPE
-
-    def runtime_helper(name):
-        def call(*args, **kwargs):
-            return resolve_helper(name)(*args, **kwargs)
-
-        return call
-
-    _as_bool = runtime_helper("_as_bool")
-    _stable_change_key = runtime_helper("_stable_change_key")
-    _apply_lora_syntax_format = runtime_helper("_apply_lora_syntax_format")
-    _get_lora_info = runtime_helper("_get_lora_info")
-    _lora_combo_values = runtime_helper("_lora_combo_values")
-    _lora_model_exists = runtime_helper("_lora_model_exists")
-    _lora_stack_name = runtime_helper("_lora_stack_name")
-    _missing_lora_display_name = runtime_helper("_missing_lora_display_name")
-    _raise_missing_loras = runtime_helper("_raise_missing_loras")
-    _correct_style_prompt = runtime_helper("_correct_style_prompt")
-    _format_strength = runtime_helper("_format_strength")
-    _select_profile_values = runtime_helper("_select_profile_values")
-    _FlexibleOptionalInputType = flexible_optional_input_type
-    _ANY_TYPE = any_type
-
-
 class EasyUseAnimaLoraPreset:
     """Multi-profile LoRA stack preset node for ANIMA style prompts."""
 

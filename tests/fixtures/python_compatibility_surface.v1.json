@@ -66,7 +66,8 @@
       "B-11c29d",
       "B-11c29b3",
       "B-11c30",
-      "B-11c30a"
+      "B-11c30a",
+      "B-11c30b"
     ]
   },
   "enums": {
@@ -101,14 +102,14 @@
   "expected_counts": {
     "root_entrypoints": 3,
     "excluded_preamble_implementation_bindings": 5,
-    "nodes_canonical_bindings": 292,
+    "nodes_canonical_bindings": 289,
     "nodes_legacy_bindings": 27,
     "mapped_public_classes": 18,
     "unmapped_classes": 2,
     "root_residual_functions": 1,
     "root_residual_classes": 0,
     "root_residual_globals": 26,
-    "runtime_binders": 27,
+    "runtime_binders": 24,
     "direct_nodes_import_test_files": 21
   },
   "mapped_public_classes": [
@@ -166,10 +167,7 @@
     "_bind_prompt_correction_runtime",
     "_bind_prompt_node_runtime",
     "_bind_wildcard_node_runtime",
-    "_bind_naia_node_runtime",
-    "_bind_lora_metadata_runtime",
-    "_bind_lora_preset_runtime",
-    "_bind_lora_node_runtime"
+    "_bind_naia_node_runtime"
   ],
   "runtime_resolver_consumers": {
     "AIO_FINAL_FIT_MODES": [
@@ -364,9 +362,6 @@
     "_INLINE_SPACE_RE": [
       "easyuse_anima.prompt.fields"
     ],
-    "_TRIGGER_WORD_KEYS": [
-      "easyuse_anima.lora.metadata"
-    ],
     "_WEIGHTED_TOKEN_RE": [
       "easyuse_anima.prompt.fields"
     ],
@@ -527,9 +522,6 @@
     "_apply_aio_spectrum_model_patches_for_comfy_sampler": [
       "easyuse_anima.aio.legacy_generation"
     ],
-    "_apply_lora_syntax_format": [
-      "easyuse_anima.nodes.lora_nodes"
-    ],
     "_apply_prompt_data_overrides": [
       "easyuse_anima.nodes.prompt_data_nodes"
     ],
@@ -566,7 +558,6 @@
       "easyuse_anima.aio.postprocess",
       "easyuse_anima.aio.sampling",
       "easyuse_anima.aio.usdu",
-      "easyuse_anima.nodes.lora_nodes",
       "easyuse_anima.nodes.prompt_advanced_nodes",
       "easyuse_anima.nodes.prompt_data_nodes",
       "easyuse_anima.nodes.prompt_nodes",
@@ -593,7 +584,6 @@
       "easyuse_anima.aio.resources",
       "easyuse_anima.aio.sampling",
       "easyuse_anima.aio.usdu",
-      "easyuse_anima.lora.preset",
       "easyuse_anima.nodes.prompt_advanced_nodes",
       "easyuse_anima.prompt.advanced",
       "easyuse_anima.prompt.regional"
@@ -685,14 +675,8 @@
       "easyuse_anima.prompt.advanced",
       "easyuse_anima.prompt.artist_mix"
     ],
-    "_correct_style_prompt": [
-      "easyuse_anima.nodes.lora_nodes"
-    ],
     "_decode_latent_with_comfy": [
       "easyuse_anima.aio.legacy_generation"
-    ],
-    "_dedupe_text_values": [
-      "easyuse_anima.lora.metadata"
     ],
     "_easy_use_anima_input_signature": [
       "easyuse_anima.nodes.aio_nodes"
@@ -714,9 +698,6 @@
       "easyuse_anima.nodes.prompt_advanced_nodes",
       "easyuse_anima.nodes.regional_nodes"
     ],
-    "_fallback_lora_path": [
-      "easyuse_anima.lora.metadata"
-    ],
     "_filter_metadata_prompt": [
       "easyuse_anima.nodes.prompt_nodes",
       "easyuse_anima.prompt.advanced",
@@ -729,8 +710,7 @@
       "easyuse_anima.aio.resources"
     ],
     "_format_strength": [
-      "easyuse_anima.aio.output",
-      "easyuse_anima.nodes.lora_nodes"
+      "easyuse_anima.aio.output"
     ],
     "_generate_empty_latent_with_comfy": [
       "easyuse_anima.aio.legacy_generation",
@@ -738,15 +718,6 @@
     ],
     "_get_aio_first_pass_cache": [
       "easyuse_anima.aio.legacy_generation"
-    ],
-    "_get_lora_info": [
-      "easyuse_anima.nodes.lora_nodes"
-    ],
-    "_get_lora_manager_trigger_words": [
-      "easyuse_anima.lora.metadata"
-    ],
-    "_get_loras_list": [
-      "easyuse_anima.lora.preset"
     ],
     "_get_workflow_node": [
       "easyuse_anima.nodes.prompt_advanced_nodes",
@@ -798,30 +769,14 @@
     "_load_diffusion_model_with_comfy": [
       "easyuse_anima.aio.resources"
     ],
-    "_load_lora_manager_metadata": [
-      "easyuse_anima.lora.metadata"
-    ],
-    "_load_profile_data": [
-      "easyuse_anima.lora.preset"
-    ],
     "_load_upscale_model_with_comfy": [
       "easyuse_anima.aio.legacy_generation"
     ],
     "_load_vae_with_comfy": [
       "easyuse_anima.aio.resources"
     ],
-    "_lora_combo_values": [
-      "easyuse_anima.nodes.lora_nodes"
-    ],
-    "_lora_manager_trigger_words_from_metadata": [
-      "easyuse_anima.lora.metadata"
-    ],
-    "_lora_model_exists": [
-      "easyuse_anima.nodes.lora_nodes"
-    ],
     "_lora_stack_name": [
-      "easyuse_anima.aio.model_preparation",
-      "easyuse_anima.nodes.lora_nodes"
+      "easyuse_anima.aio.model_preparation"
     ],
     "_merge_versioned_settings": [
       "easyuse_anima.aio.resources"
@@ -831,12 +786,6 @@
     ],
     "_metadata_filter_keys": [
       "easyuse_anima.prompt.fields"
-    ],
-    "_metadata_json_paths_for_lora": [
-      "easyuse_anima.lora.metadata"
-    ],
-    "_missing_lora_display_name": [
-      "easyuse_anima.nodes.lora_nodes"
     ],
     "_new_aio_random_seed": [
       "easyuse_anima.aio.sampling"
@@ -938,9 +887,6 @@
     "_preferred_name_default": [
       "easyuse_anima.nodes.aio_nodes"
     ],
-    "_profile_key": [
-      "easyuse_anima.lora.preset"
-    ],
     "_prompt_data_json_safe": [
       "easyuse_anima.aio.first_pass_cache",
       "easyuse_anima.aio.generation_normalization",
@@ -961,9 +907,6 @@
     ],
     "_put_aio_first_pass_cache": [
       "easyuse_anima.aio.legacy_generation"
-    ],
-    "_raise_missing_loras": [
-      "easyuse_anima.nodes.lora_nodes"
     ],
     "_ratio_label": [
       "easyuse_anima.prompt.regional"
@@ -1060,9 +1003,6 @@
     "_segs_has_items": [
       "easyuse_anima.aio.legacy_generation"
     ],
-    "_select_profile_values": [
-      "easyuse_anima.nodes.lora_nodes"
-    ],
     "_send_aio_preview_event": [
       "easyuse_anima.aio.legacy_generation"
     ],
@@ -1084,7 +1024,6 @@
     "_stable_change_key": [
       "easyuse_anima.aio.first_pass_cache",
       "easyuse_anima.nodes.aio_nodes",
-      "easyuse_anima.nodes.lora_nodes",
       "easyuse_anima.nodes.prompt_advanced_nodes",
       "easyuse_anima.nodes.prompt_data_nodes",
       "easyuse_anima.nodes.prompt_nodes",
@@ -1102,12 +1041,6 @@
       "easyuse_anima.nodes.prompt_advanced_nodes",
       "easyuse_anima.nodes.prompt_nodes",
       "easyuse_anima.prompt.advanced"
-    ],
-    "_trigger_words_from_value": [
-      "easyuse_anima.lora.metadata"
-    ],
-    "_wrap_profile_index": [
-      "easyuse_anima.lora.preset"
     ],
     "correct_prompt": [
       "easyuse_anima.nodes.prompt_nodes",
@@ -1174,22 +1107,22 @@
   },
   "runtime_binder_audit": {
     "summary": {
-      "binder_count": 27,
-      "family_count": 4,
+      "binder_count": 24,
+      "family_count": 3,
       "mode_counts": {
         "comfy_provider_then_root": 12,
-        "root_globals": 13,
+        "root_globals": 10,
         "explicit_callbacks": 2
       },
-      "unique_resolver_names": 293,
-      "unique_root_resolver_names": 287,
+      "unique_resolver_names": 273,
+      "unique_root_resolver_names": 267,
       "unique_provider_resolver_names": 6,
-      "unique_direct_root_dependencies": 14,
-      "direct_root_dependency_slots": 29,
+      "unique_direct_root_dependencies": 11,
+      "direct_root_dependency_slots": 24,
       "provider_consumer_slots": 17,
       "provider_consumer_modules": 12,
-      "repository_replacement_names": 165,
-      "repository_replacement_files": 19
+      "repository_replacement_names": 158,
+      "repository_replacement_files": 18
     },
     "families": {
       "aio": [
@@ -1221,11 +1154,6 @@
       "wildcard_naia": [
         "_bind_wildcard_node_runtime",
         "_bind_naia_node_runtime"
-      ],
-      "lora": [
-        "_bind_lora_metadata_runtime",
-        "_bind_lora_preset_runtime",
-        "_bind_lora_node_runtime"
       ]
     },
     "root_resolver_names": [
@@ -1288,7 +1216,6 @@
       "_AIO_FIRST_PASS_CACHE_ORDER",
       "_HASH_COMMENT_RE",
       "_INLINE_SPACE_RE",
-      "_TRIGGER_WORD_KEYS",
       "_WEIGHTED_TOKEN_RE",
       "_adapter_comfy_clip_loader_types",
       "_adapter_comfy_diffusion_model_names",
@@ -1340,7 +1267,6 @@
       "_apply_aio_spectrum_correction_patch_for_comfy_sampler",
       "_apply_aio_spectrum_forecast_patch_for_comfy_sampler",
       "_apply_aio_spectrum_model_patches_for_comfy_sampler",
-      "_apply_lora_syntax_format",
       "_apply_prompt_data_overrides",
       "_apply_regional_field_inputs",
       "_apply_spectrum_anima_mod_guidance",
@@ -1377,25 +1303,19 @@
       "_copy_prompt_data_for_update",
       "_correct_advanced_field_sequence",
       "_correct_builder_prompt",
-      "_correct_style_prompt",
       "_decode_latent_with_comfy",
-      "_dedupe_text_values",
       "_easy_use_anima_input_signature",
       "_encode_artist_clustered",
       "_encode_artist_delta_rms",
       "_encode_image_with_comfy_vae",
       "_encode_prompt_data_positive_conditioning",
       "_expand_advanced_wildcard_fields",
-      "_fallback_lora_path",
       "_filter_metadata_prompt",
       "_find_spectrum_anima_mod_guidance_class",
       "_folder_path_names",
       "_format_strength",
       "_generate_empty_latent_with_comfy",
       "_get_aio_first_pass_cache",
-      "_get_lora_info",
-      "_get_lora_manager_trigger_words",
-      "_get_loras_list",
       "_get_workflow_node",
       "_image_tensor_size",
       "_impact_scheduler_names",
@@ -1409,19 +1329,12 @@
       "_load_checkpoint_with_comfy",
       "_load_clip_with_comfy",
       "_load_diffusion_model_with_comfy",
-      "_load_lora_manager_metadata",
-      "_load_profile_data",
       "_load_upscale_model_with_comfy",
       "_load_vae_with_comfy",
-      "_lora_combo_values",
-      "_lora_manager_trigger_words_from_metadata",
-      "_lora_model_exists",
       "_lora_stack_name",
       "_merge_versioned_settings",
       "_metadata_filter_key",
       "_metadata_filter_keys",
-      "_metadata_json_paths_for_lora",
-      "_missing_lora_display_name",
       "_new_aio_random_seed",
       "_node_output_tuple",
       "_normalize_advanced_fields",
@@ -1449,13 +1362,11 @@
       "_post_random",
       "_preferred_clip_type_default",
       "_preferred_name_default",
-      "_profile_key",
       "_prompt_data_json_safe",
       "_prompt_data_parameter_snapshot",
       "_prompt_tokens",
       "_prompt_translation_change_key",
       "_put_aio_first_pass_cache",
-      "_raise_missing_loras",
       "_ratio_label",
       "_regional_config_json",
       "_regional_fields_json",
@@ -1486,7 +1397,6 @@
       "_save_image_with_comfy",
       "_save_image_with_image_saver",
       "_segs_has_items",
-      "_select_profile_values",
       "_send_aio_preview_event",
       "_set_naia_field_text",
       "_single_value",
@@ -1495,8 +1405,6 @@
       "_tag_aio_preview_images",
       "_translate_prompt_fields",
       "_translate_prompt_text",
-      "_trigger_words_from_value",
-      "_wrap_profile_index",
       "ceil",
       "correct_prompt",
       "expand_wildcard_texts",
@@ -1606,9 +1514,6 @@
       "_AIO_FIRST_PASS_CACHE_ORDER": [
         "tests/test_aio_first_pass_cache.py"
       ],
-      "_TRIGGER_WORD_KEYS": [
-        "tests/test_lora_preset.py"
-      ],
       "_adapter_comfy_clip_loader_types": [
         "tests/test_node_contracts.py"
       ],
@@ -1717,9 +1622,6 @@
         "tests/test_aio_legacy_generation.py",
         "tests/test_aio_nodes.py"
       ],
-      "_apply_lora_syntax_format": [
-        "tests/test_lora_preset.py"
-      ],
       "_apply_spectrum_anima_mod_guidance": [
         "tests/test_aio_legacy_generation.py",
         "tests/test_aio_nodes.py"
@@ -1791,10 +1693,6 @@
         "tests/test_node_contracts.py",
         "tests/test_prompt_corrector.py"
       ],
-      "_correct_style_prompt": [
-        "tests/test_lora_preset.py",
-        "tests/test_node_contracts.py"
-      ],
       "_decode_latent_with_comfy": [
         "tests/test_aio_legacy_generation.py",
         "tests/test_aio_nodes.py"
@@ -1816,9 +1714,6 @@
         "tests/test_aio_legacy_generation.py",
         "tests/test_aio_nodes.py"
       ],
-      "_fallback_lora_path": [
-        "tests/test_lora_preset.py"
-      ],
       "_filter_metadata_prompt": [
         "tests/test_node_contracts.py"
       ],
@@ -1839,10 +1734,6 @@
       ],
       "_get_aio_first_pass_cache": [
         "tests/test_aio_legacy_generation.py"
-      ],
-      "_get_lora_info": [
-        "tests/test_lora_preset.py",
-        "tests/test_node_contracts.py"
       ],
       "_get_workflow_node": [
         "tests/test_node_contracts.py"
@@ -1889,13 +1780,6 @@
       ],
       "_load_vae_with_comfy": [
         "tests/test_aio_resources.py"
-      ],
-      "_lora_combo_values": [
-        "tests/test_node_contracts.py"
-      ],
-      "_lora_model_exists": [
-        "tests/test_lora_preset.py",
-        "tests/test_node_contracts.py"
       ],
       "_merge_versioned_settings": [
         "tests/test_node_contracts.py"
@@ -3905,162 +3789,6 @@
           "_post_random",
           "resolve_naia_settings"
         ]
-      },
-      {
-        "binder": "_bind_lora_metadata_runtime",
-        "module": "easyuse_anima.lora.metadata",
-        "family": "lora",
-        "mode": "root_globals",
-        "root_observation": "call_time_resolver",
-        "root_keywords": [
-          "prompt_tokens",
-          "resolve_helper",
-          "resolve_logger"
-        ],
-        "bound_globals": [
-          "_prompt_tokens",
-          "_resolve_helper",
-          "logger"
-        ],
-        "direct_root_dependencies": [
-          "_prompt_tokens",
-          "logger"
-        ],
-        "resolver_names": [
-          "_TRIGGER_WORD_KEYS",
-          "_dedupe_text_values",
-          "_fallback_lora_path",
-          "_get_lora_manager_trigger_words",
-          "_load_lora_manager_metadata",
-          "_lora_manager_trigger_words_from_metadata",
-          "_metadata_json_paths_for_lora",
-          "_trigger_words_from_value"
-        ],
-        "root_resolver_names": [
-          "_TRIGGER_WORD_KEYS",
-          "_dedupe_text_values",
-          "_fallback_lora_path",
-          "_get_lora_manager_trigger_words",
-          "_load_lora_manager_metadata",
-          "_lora_manager_trigger_words_from_metadata",
-          "_metadata_json_paths_for_lora",
-          "_trigger_words_from_value"
-        ],
-        "provider_resolver_names": [],
-        "repository_replacement_names": [
-          "_TRIGGER_WORD_KEYS",
-          "_fallback_lora_path",
-          "_prompt_tokens",
-          "logger"
-        ]
-      },
-      {
-        "binder": "_bind_lora_preset_runtime",
-        "module": "easyuse_anima.lora.preset",
-        "family": "lora",
-        "mode": "root_globals",
-        "root_observation": "call_time_resolver",
-        "root_keywords": [
-          "correct_builder_prompt",
-          "resolve_helper"
-        ],
-        "bound_globals": [
-          "_correct_builder_prompt",
-          "_resolve_helper"
-        ],
-        "direct_root_dependencies": [
-          "_correct_builder_prompt"
-        ],
-        "resolver_names": [
-          "_as_int",
-          "_get_loras_list",
-          "_load_profile_data",
-          "_profile_key",
-          "_wrap_profile_index"
-        ],
-        "root_resolver_names": [
-          "_as_int",
-          "_get_loras_list",
-          "_load_profile_data",
-          "_profile_key",
-          "_wrap_profile_index"
-        ],
-        "provider_resolver_names": [],
-        "repository_replacement_names": [
-          "_as_int",
-          "_correct_builder_prompt"
-        ]
-      },
-      {
-        "binder": "_bind_lora_node_runtime",
-        "module": "easyuse_anima.nodes.lora_nodes",
-        "family": "lora",
-        "mode": "root_globals",
-        "root_observation": "call_time_resolver",
-        "root_keywords": [
-          "any_type",
-          "flexible_optional_input_type",
-          "resolve_helper"
-        ],
-        "bound_globals": [
-          "_ANY_TYPE",
-          "_FlexibleOptionalInputType",
-          "_apply_lora_syntax_format",
-          "_as_bool",
-          "_correct_style_prompt",
-          "_format_strength",
-          "_get_lora_info",
-          "_lora_combo_values",
-          "_lora_model_exists",
-          "_lora_stack_name",
-          "_missing_lora_display_name",
-          "_raise_missing_loras",
-          "_select_profile_values",
-          "_stable_change_key"
-        ],
-        "direct_root_dependencies": [
-          "_ANY_TYPE",
-          "_FlexibleOptionalInputType"
-        ],
-        "resolver_names": [
-          "_apply_lora_syntax_format",
-          "_as_bool",
-          "_correct_style_prompt",
-          "_format_strength",
-          "_get_lora_info",
-          "_lora_combo_values",
-          "_lora_model_exists",
-          "_lora_stack_name",
-          "_missing_lora_display_name",
-          "_raise_missing_loras",
-          "_select_profile_values",
-          "_stable_change_key"
-        ],
-        "root_resolver_names": [
-          "_apply_lora_syntax_format",
-          "_as_bool",
-          "_correct_style_prompt",
-          "_format_strength",
-          "_get_lora_info",
-          "_lora_combo_values",
-          "_lora_model_exists",
-          "_lora_stack_name",
-          "_missing_lora_display_name",
-          "_raise_missing_loras",
-          "_select_profile_values",
-          "_stable_change_key"
-        ],
-        "provider_resolver_names": [],
-        "repository_replacement_names": [
-          "_apply_lora_syntax_format",
-          "_as_bool",
-          "_correct_style_prompt",
-          "_format_strength",
-          "_get_lora_info",
-          "_lora_combo_values",
-          "_lora_model_exists",
-          "_stable_change_key"
-        ]
       }
     ]
   },
@@ -5383,7 +5111,6 @@
         "canonical runtime resolver: easyuse_anima.aio.generation_normalization",
         "canonical runtime resolver: easyuse_anima.aio.sampling",
         "canonical runtime resolver: easyuse_anima.nodes.aio_nodes",
-        "canonical runtime resolver: easyuse_anima.nodes.lora_nodes",
         "canonical runtime resolver: easyuse_anima.nodes.prompt_advanced_nodes",
         "canonical runtime resolver: easyuse_anima.nodes.prompt_data_nodes",
         "canonical runtime resolver: easyuse_anima.nodes.prompt_nodes",
@@ -5394,7 +5121,6 @@
         "AST:easyuse_anima.aio.generation_normalization string runtime lookup",
         "AST:easyuse_anima.aio.sampling string runtime lookup",
         "AST:easyuse_anima.nodes.aio_nodes string runtime lookup",
-        "AST:easyuse_anima.nodes.lora_nodes string runtime lookup",
         "AST:easyuse_anima.nodes.prompt_advanced_nodes string runtime lookup",
         "AST:easyuse_anima.nodes.prompt_data_nodes string runtime lookup",
         "AST:easyuse_anima.nodes.prompt_nodes string runtime lookup",
@@ -5438,8 +5164,6 @@
         "canonical runtime resolver: easyuse_anima.aio.resources",
         "canonical runtime resolver: easyuse_anima.aio.sampling",
         "canonical runtime resolver: easyuse_anima.aio.usdu",
-        "canonical runtime resolver: easyuse_anima.lora.preset",
-        "canonical runtime resolver: easyuse_anima.nodes.lora_nodes",
         "canonical runtime resolver: easyuse_anima.nodes.prompt_advanced_nodes",
         "canonical runtime resolver: easyuse_anima.nodes.prompt_data_nodes",
         "canonical runtime resolver: easyuse_anima.nodes.prompt_nodes",
@@ -5459,8 +5183,6 @@
         "AST:easyuse_anima.aio.resources string runtime lookup",
         "AST:easyuse_anima.aio.sampling string runtime lookup",
         "AST:easyuse_anima.aio.usdu string runtime lookup",
-        "AST:easyuse_anima.lora.preset string runtime lookup",
-        "AST:easyuse_anima.nodes.lora_nodes string runtime lookup",
         "AST:easyuse_anima.nodes.prompt_advanced_nodes string runtime lookup",
         "AST:easyuse_anima.nodes.prompt_data_nodes string runtime lookup",
         "AST:easyuse_anima.nodes.prompt_nodes string runtime lookup",
@@ -5704,21 +5426,7 @@
       "id": "nodes_canonical_bindings:easyuse_anima.lora.metadata:transitional_private_seam",
       "surface": "nodes_canonical_bindings",
       "symbols": {
-        "_apply_lora_syntax_format": "_apply_lora_syntax_format",
-        "_bind_lora_metadata_runtime": "_bind_lora_metadata_runtime",
-        "_dedupe_text_values": "_dedupe_text_values",
-        "_fallback_lora_path": "_fallback_lora_path",
-        "_get_lora_info": "_get_lora_info",
-        "_get_lora_manager_trigger_words": "_get_lora_manager_trigger_words",
-        "_load_lora_manager_metadata": "_load_lora_manager_metadata",
-        "_lora_combo_values": "_lora_combo_values",
-        "_lora_manager_trigger_words_from_metadata": "_lora_manager_trigger_words_from_metadata",
-        "_lora_model_exists": "_lora_model_exists",
-        "_lora_stack_name": "_lora_stack_name",
-        "_metadata_json_paths_for_lora": "_metadata_json_paths_for_lora",
-        "_missing_lora_display_name": "_missing_lora_display_name",
-        "_raise_missing_loras": "_raise_missing_loras",
-        "_trigger_words_from_value": "_trigger_words_from_value"
+        "_lora_stack_name": "_lora_stack_name"
       },
       "classification": "transitional_private_seam",
       "current_target": "nodes.py",
@@ -5730,16 +5438,10 @@
       "owner": "#184/#188",
       "first_release": null,
       "known_consumers": [
-        "nodes.py residual runtime",
-        "canonical runtime resolver: easyuse_anima.aio.model_preparation",
-        "canonical runtime resolver: easyuse_anima.lora.metadata",
-        "canonical runtime resolver: easyuse_anima.nodes.lora_nodes"
+        "canonical runtime resolver: easyuse_anima.aio.model_preparation"
       ],
       "evidence": [
-        "AST:nodes.py direct runtime load",
-        "AST:easyuse_anima.aio.model_preparation string runtime lookup",
-        "AST:easyuse_anima.lora.metadata string runtime lookup",
-        "AST:easyuse_anima.nodes.lora_nodes string runtime lookup"
+        "AST:easyuse_anima.aio.model_preparation string runtime lookup"
       ],
       "removal_gates": [
         "canonical production consumer migration",
@@ -5749,17 +5451,51 @@
       "lifecycle_state": "transitional"
     },
     {
+      "id": "nodes_canonical_bindings:easyuse_anima.lora.metadata:unsupported_test_only",
+      "surface": "nodes_canonical_bindings",
+      "symbols": {
+        "_apply_lora_syntax_format": "_apply_lora_syntax_format",
+        "_dedupe_text_values": "_dedupe_text_values",
+        "_fallback_lora_path": "_fallback_lora_path",
+        "_get_lora_info": "_get_lora_info",
+        "_get_lora_manager_trigger_words": "_get_lora_manager_trigger_words",
+        "_load_lora_manager_metadata": "_load_lora_manager_metadata",
+        "_lora_combo_values": "_lora_combo_values",
+        "_lora_manager_trigger_words_from_metadata": "_lora_manager_trigger_words_from_metadata",
+        "_lora_model_exists": "_lora_model_exists",
+        "_metadata_json_paths_for_lora": "_metadata_json_paths_for_lora",
+        "_missing_lora_display_name": "_missing_lora_display_name",
+        "_raise_missing_loras": "_raise_missing_loras",
+        "_trigger_words_from_value": "_trigger_words_from_value"
+      },
+      "classification": "unsupported_test_only",
+      "current_target": "nodes.py",
+      "canonical_target": "easyuse_anima.lora.metadata",
+      "target_state": "canonical",
+      "identity_requirement": "not_applicable",
+      "binding_shape": "direct_import",
+      "import_target": "easyuse_anima.lora.metadata",
+      "owner": "#184/#188",
+      "first_release": null,
+      "known_consumers": [
+        "repository tests may import this root name"
+      ],
+      "evidence": [
+        "AST:no nodes.py runtime load",
+        "test-only consumption is not public support evidence"
+      ],
+      "removal_gates": [
+        "test imports migrate to canonical targets",
+        "no production consumer evidence",
+        "separate B-10b removal review"
+      ],
+      "lifecycle_state": "unsupported"
+    },
+    {
       "id": "nodes_canonical_bindings:easyuse_anima.lora.preset:transitional_private_seam",
       "surface": "nodes_canonical_bindings",
       "symbols": {
-        "_bind_lora_preset_runtime": "_bind_lora_preset_runtime",
-        "_correct_style_prompt": "_correct_style_prompt",
-        "_format_strength": "_format_strength",
-        "_get_loras_list": "_get_loras_list",
-        "_load_profile_data": "_load_profile_data",
-        "_profile_key": "_profile_key",
-        "_select_profile_values": "_select_profile_values",
-        "_wrap_profile_index": "_wrap_profile_index"
+        "_format_strength": "_format_strength"
       },
       "classification": "transitional_private_seam",
       "current_target": "nodes.py",
@@ -5771,16 +5507,10 @@
       "owner": "#184/#188",
       "first_release": null,
       "known_consumers": [
-        "nodes.py residual runtime",
-        "canonical runtime resolver: easyuse_anima.aio.output",
-        "canonical runtime resolver: easyuse_anima.lora.preset",
-        "canonical runtime resolver: easyuse_anima.nodes.lora_nodes"
+        "canonical runtime resolver: easyuse_anima.aio.output"
       ],
       "evidence": [
-        "AST:nodes.py direct runtime load",
-        "AST:easyuse_anima.aio.output string runtime lookup",
-        "AST:easyuse_anima.lora.preset string runtime lookup",
-        "AST:easyuse_anima.nodes.lora_nodes string runtime lookup"
+        "AST:easyuse_anima.aio.output string runtime lookup"
       ],
       "removal_gates": [
         "canonical production consumer migration",
@@ -5788,6 +5518,40 @@
         "separate B-10b or B-11 rollback unit"
       ],
       "lifecycle_state": "transitional"
+    },
+    {
+      "id": "nodes_canonical_bindings:easyuse_anima.lora.preset:unsupported_test_only",
+      "surface": "nodes_canonical_bindings",
+      "symbols": {
+        "_correct_style_prompt": "_correct_style_prompt",
+        "_get_loras_list": "_get_loras_list",
+        "_load_profile_data": "_load_profile_data",
+        "_profile_key": "_profile_key",
+        "_select_profile_values": "_select_profile_values",
+        "_wrap_profile_index": "_wrap_profile_index"
+      },
+      "classification": "unsupported_test_only",
+      "current_target": "nodes.py",
+      "canonical_target": "easyuse_anima.lora.preset",
+      "target_state": "canonical",
+      "identity_requirement": "not_applicable",
+      "binding_shape": "direct_import",
+      "import_target": "easyuse_anima.lora.preset",
+      "owner": "#184/#188",
+      "first_release": null,
+      "known_consumers": [
+        "repository tests may import this root name"
+      ],
+      "evidence": [
+        "AST:no nodes.py runtime load",
+        "test-only consumption is not public support evidence"
+      ],
+      "removal_gates": [
+        "test imports migrate to canonical targets",
+        "no production consumer evidence",
+        "separate B-10b removal review"
+      ],
+      "lifecycle_state": "unsupported"
     },
     {
       "id": "nodes_canonical_bindings:easyuse_anima.naia.client:transitional_private_seam",
@@ -5963,7 +5727,6 @@
       "id": "nodes_canonical_bindings:easyuse_anima.nodes.input_types:transitional_private_seam",
       "surface": "nodes_canonical_bindings",
       "symbols": {
-        "_ANY_TYPE": "_ANY_TYPE",
         "_FlexibleOptionalInputType": "_FlexibleOptionalInputType"
       },
       "classification": "transitional_private_seam",
@@ -5992,6 +5755,7 @@
       "id": "nodes_canonical_bindings:easyuse_anima.nodes.input_types:unsupported_test_only",
       "surface": "nodes_canonical_bindings",
       "symbols": {
+        "_ANY_TYPE": "_ANY_TYPE",
         "_AnyType": "_AnyType"
       },
       "classification": "unsupported_test_only",
@@ -6046,34 +5810,6 @@
         "mapping, workflow, and direct identity parity"
       ],
       "lifecycle_state": "supported"
-    },
-    {
-      "id": "nodes_canonical_bindings:easyuse_anima.nodes.lora_nodes:transitional_private_seam",
-      "surface": "nodes_canonical_bindings",
-      "symbols": {
-        "_bind_lora_node_runtime": "_bind_lora_node_runtime"
-      },
-      "classification": "transitional_private_seam",
-      "current_target": "nodes.py",
-      "canonical_target": "easyuse_anima.nodes.lora_nodes",
-      "target_state": "canonical",
-      "identity_requirement": "required",
-      "binding_shape": "direct_import",
-      "import_target": "easyuse_anima.nodes.lora_nodes",
-      "owner": "#184/#188",
-      "first_release": null,
-      "known_consumers": [
-        "nodes.py residual runtime"
-      ],
-      "evidence": [
-        "AST:nodes.py direct runtime load"
-      ],
-      "removal_gates": [
-        "canonical production consumer migration",
-        "focused monkeypatch and identity contract review",
-        "separate B-10b or B-11 rollback unit"
-      ],
-      "lifecycle_state": "transitional"
     },
     {
       "id": "nodes_canonical_bindings:easyuse_anima.nodes.naia_nodes:supported_public_reexport",

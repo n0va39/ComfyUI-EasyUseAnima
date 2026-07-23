@@ -1174,7 +1174,7 @@ Implementation result:
 
 ### B-11c30b — LoRA binder retirement
 
-- **State:** IN PROGRESS
+- **State:** IMPLEMENTED in PR #338
 - **Owner:** #184
 - **Type:** Move
 - **Base:** `dev@3647d3ad35dffb77b35ca423e1b89c6a4d7c3116`
@@ -1241,6 +1241,25 @@ Forbidden:
 - retiring root aliases used by another owner family; and
 - including Prompt/Regional, AiO, or Wildcard/NAIA binder cleanup.
 
+Implementation result:
+
+- root imports/calls and the three canonical LoRA binder definitions are
+  removed;
+- metadata and preset internal helper calls resolve their canonical module
+  globals at use time, while prompt tokenization and prompt correction remain
+  lazy use-time callbacks to `prompt.fields`;
+- `_RuntimeLoggerProxy` remains installed at module import and resolves the
+  canonical logger at attribute access time;
+- the LoRA node adapter keeps direct canonical helper imports and exact
+  `_FlexibleOptionalInputType` / `_ANY_TYPE` identity;
+- LoRA-specific root-patch tests now replace the canonical owner, while root
+  aliases and replacements belonging to other families remain unchanged;
+- the remaining root audit is 24 binders in three families: 12
+  provider-then-root, ten root-only, and two explicit callbacks;
+- `nodes.py` is 1,800 lines, down 20 lines from the B-11c30a base; and
+- focused LoRA, contract, compatibility, and analyzer validation passes 61
+  tests.
+
 ### B-11d — Final root shim
 
 - **State:** BLOCKED by the remaining B-11c30 family Moves and the separate
@@ -1281,7 +1300,7 @@ COMPLETE: B-11c29d CLIP wrapper retirement / PR #333
 COMPLETE: B-11c29b3 general node lookup retirement / PR #334
 COMPLETE: B-11c30 binder/resolver migration audit / PR #336
 COMPLETE: B-11c30a Image/SAM3/Impact binder Move / PR #337
-IN PROGRESS: B-11c30b LoRA binder Move
+IN PROGRESS: B-11c30b LoRA binder Move / PR #338
 BLOCKED:  B-11d final root shim
 
 LATER:    #167 seed reservation
