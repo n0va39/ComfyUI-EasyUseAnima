@@ -1569,10 +1569,6 @@ AIO_RESHIFT_DTYPES = ("bf16", "fp32")
 _TRIGGER_WORD_KEYS = ("trainedWords", "trained_words", "trigger_words", "activation_text")
 
 
-def _settings_json(defaults: dict[str, Any]) -> str:
-    return json.dumps(defaults, ensure_ascii=False, indent=2)
-
-
 _AIO_DETAILER_RESERVED_KEYS = {"enabled", "order", "sam3"}
 _AIO_DETAILER_CUSTOM_RE = re.compile(r"^custom_\d+$")
 
