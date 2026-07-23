@@ -201,6 +201,7 @@ S167-01a may change only:
 - `easyuse_anima/seed/compatibility.py`;
 - `tests/test_seed_compatibility.py`;
 - `tests/test_wildcards.py`;
+- `tests/test_nodes_module_analyzer.py`;
 - `tests/test_python_backend_analyzer.py`;
 - `tests/test_python_compatibility_surface.py`;
 - `tests/fixtures/python_backend_baseline.json`;
