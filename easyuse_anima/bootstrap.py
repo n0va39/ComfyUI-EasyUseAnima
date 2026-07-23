@@ -8,6 +8,7 @@ from collections.abc import Callable
 
 from .infrastructure.comfy.provider import DefaultComfyHostProvider
 from .runtime import RuntimeServices, install_runtime
+from .seed.service import InMemorySeedReservationService
 
 _LOGGER = logging.getLogger("ComfyUI-EasyUseAnima")
 _INITIALIZE_LOCK = threading.Lock()
@@ -33,6 +34,7 @@ def initialize(
         if runtime is None:
             runtime = RuntimeServices(
                 comfy=DefaultComfyHostProvider(load_comfy_nodes),
+                seed_reservations=InMemorySeedReservationService(),
             )
             install_runtime(runtime)
             _DEFAULT_RUNTIME = runtime

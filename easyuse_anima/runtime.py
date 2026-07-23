@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from .infrastructure.comfy.provider import ComfyHostProvider
+from .seed.reservation import SeedReservationService
 
 
 @dataclass(frozen=True, slots=True)
@@ -12,6 +13,7 @@ class RuntimeServices:
     """Process-lifetime services currently ready for composition."""
 
     comfy: ComfyHostProvider
+    seed_reservations: SeedReservationService
 
 
 _RUNTIME_SERVICES: RuntimeServices | None = None

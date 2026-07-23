@@ -691,9 +691,9 @@ ignored/
 
         self.assertEqual(analyzer.render_json(report), expected_text)
         self.assertEqual(report["schema_version"], 2)
-        self.assertEqual(report["inventory"]["module_count"], 93)
-        self.assertEqual(len(report["registry"]["shipped_python_modules"]), 93)
-        self.assertEqual(len(report["registry"]["runtime_import_closure"]), 93)
+        self.assertEqual(report["inventory"]["module_count"], 94)
+        self.assertEqual(len(report["registry"]["shipped_python_modules"]), 94)
+        self.assertEqual(len(report["registry"]["runtime_import_closure"]), 94)
         self.assertEqual(
             report["registry"]["entry_modules"],
             ["__init__.py", "nodes.py"],
@@ -766,6 +766,7 @@ ignored/
                 "easyuse_anima/seed/__init__.py",
                 "easyuse_anima/seed/compatibility.py",
                 "easyuse_anima/seed/reservation.py",
+                "easyuse_anima/seed/service.py",
                 "easyuse_anima/prompt/__init__.py",
                 "easyuse_anima/prompt/advanced.py",
                 "easyuse_anima/prompt/correction.py",

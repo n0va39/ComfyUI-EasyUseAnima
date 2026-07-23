@@ -11,7 +11,10 @@ from easyuse_anima import runtime as runtime_module
 from easyuse_anima.infrastructure.comfy.provider import DefaultComfyHostProvider
 from easyuse_anima.infrastructure.comfy.wiring import resolve_comfy_host_helper
 from easyuse_anima.runtime import RuntimeServices
-from tests.comfy_host_fakes import FakeComfyHostProvider
+from tests.comfy_host_fakes import (
+    FakeComfyHostProvider,
+    FakeSeedReservationService,
+)
 
 
 class ClipTextEncode:
@@ -236,7 +239,10 @@ class ComfyHostWiringTests(unittest.TestCase):
             mapping_classes={"Mapping": mapping},
             loaded_classes={"Loaded": loaded},
         )
-        runtime_module._RUNTIME_SERVICES = RuntimeServices(comfy=provider)
+        runtime_module._RUNTIME_SERVICES = RuntimeServices(
+            comfy=provider,
+            seed_reservations=FakeSeedReservationService(),
+        )
 
         self.assertEqual(
             resolve_comfy_host_helper(
@@ -277,7 +283,10 @@ class ComfyHostWiringTests(unittest.TestCase):
                 "CLIPTextEncode": ClipTextEncode,
             },
         )
-        runtime_module._RUNTIME_SERVICES = RuntimeServices(comfy=provider)
+        runtime_module._RUNTIME_SERVICES = RuntimeServices(
+            comfy=provider,
+            seed_reservations=FakeSeedReservationService(),
+        )
 
         require = resolve_comfy_host_helper(
             "_require_custom_node_class",

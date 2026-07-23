@@ -15,6 +15,7 @@ if str(ROOT) not in sys.path:
 from easyuse_anima import bootstrap, runtime as runtime_module
 from easyuse_anima.infrastructure.comfy.provider import DefaultComfyHostProvider
 from easyuse_anima.runtime import RuntimeServices, get_runtime, install_runtime
+from easyuse_anima.seed.service import InMemorySeedReservationService
 
 
 class FakeComfyHostProvider:
@@ -44,7 +45,10 @@ class RuntimeServicesTests(unittest.TestCase):
 
     @staticmethod
     def make_runtime() -> RuntimeServices:
-        return RuntimeServices(comfy=FakeComfyHostProvider())
+        return RuntimeServices(
+            comfy=FakeComfyHostProvider(),
+            seed_reservations=InMemorySeedReservationService(),
+        )
 
     def test_runtime_value_is_frozen(self):
         runtime = self.make_runtime()
@@ -111,6 +115,10 @@ class RuntimeServicesTests(unittest.TestCase):
 
         self.assertIs(first, bootstrap._DEFAULT_RUNTIME)
         self.assertIsInstance(first.comfy, DefaultComfyHostProvider)
+        self.assertIsInstance(
+            first.seed_reservations,
+            InMemorySeedReservationService,
+        )
         self.assertEqual(first.comfy.max_resolution(), 8192)
         self.assertIs(get_runtime(), first)
         load_comfy_nodes.assert_called_once_with()
@@ -160,6 +168,7 @@ from easyuse_anima.infrastructure.comfy.provider import ComfyHostProvider
 from easyuse_anima.infrastructure.comfy.provider import DefaultComfyHostProvider
 from easyuse_anima.runtime import RuntimeServices, get_runtime, install_runtime
 from easyuse_anima.bootstrap import initialize
+from easyuse_anima.seed.service import InMemorySeedReservationService
 """
         result = subprocess.run(
             [sys.executable, "-c", script],

@@ -7,6 +7,16 @@ from contextlib import contextmanager
 from unittest.mock import DEFAULT, Mock, patch
 
 
+class FakeSeedReservationService:
+    def reserve(self, request):
+        raise AssertionError(f"unexpected seed reservation: {request!r}")
+
+    def settle(self, reservation_id, settlement):
+        raise AssertionError(
+            f"unexpected seed settlement: {reservation_id!r} {settlement!r}"
+        )
+
+
 class FakeComfyHostProvider:
     def __init__(
         self,
@@ -92,7 +102,10 @@ def _runtime_module_for(root_module):
 @contextmanager
 def use_fake_comfy_host(root_module, provider):
     runtime_module = _runtime_module_for(root_module)
-    runtime = runtime_module.RuntimeServices(comfy=provider)
+    runtime = runtime_module.RuntimeServices(
+        comfy=provider,
+        seed_reservations=FakeSeedReservationService(),
+    )
     with patch.object(runtime_module, "_RUNTIME_SERVICES", runtime):
         yield provider
 
@@ -121,6 +134,9 @@ def patch_comfy_helper(
         else FakeComfyHostProvider()
     )
     provider = _LayeredFakeComfyHostProvider(base, symbol, replacement)
-    runtime = runtime_module.RuntimeServices(comfy=provider)
+    runtime = runtime_module.RuntimeServices(
+        comfy=provider,
+        seed_reservations=FakeSeedReservationService(),
+    )
     with patch.object(runtime_module, "_RUNTIME_SERVICES", runtime):
         yield replacement
