@@ -16,7 +16,7 @@ NODES_PATH = ROOT / "nodes.py"
 FIXTURE_PATH = ROOT / "tests" / "fixtures" / "python_compatibility_surface.v1.json"
 
 SCHEMA_VERSION = 1
-BASE_COMMIT = "4358ee3f5542a1d925846b726fdc84d102512bc6"
+BASE_COMMIT = "eb0843d3e8c26c326e34e5c77dd1eb302b4a9933"
 CLASSIFICATIONS = (
     "permanent_entrypoint",
     "supported_public_reexport",
@@ -48,7 +48,6 @@ RUNTIME_LOOKUP_CALLS = {
     "runtime_proxy",
 }
 PREAMBLE_IMPLEMENTATION_BINDINGS = {
-    "Any": "typing:Any",
     "ceil": "math:ceil",
     "json": "json:json",
     "logging": "logging:logging",
@@ -1330,6 +1329,7 @@ def _build_document() -> dict[str, Any]:
                 "B-11c25",
                 "B-11c26",
                 "B-11c27",
+                "B-11c28",
             ],
         },
         "enums": {
@@ -1341,12 +1341,12 @@ def _build_document() -> dict[str, Any]:
         },
         "expected_counts": {
             "root_entrypoints": 3,
-            "excluded_preamble_implementation_bindings": 6,
-            "nodes_canonical_bindings": 299,
+            "excluded_preamble_implementation_bindings": 5,
+            "nodes_canonical_bindings": 300,
             "nodes_legacy_bindings": 27,
             "mapped_public_classes": 18,
             "unmapped_classes": 2,
-            "root_residual_functions": 9,
+            "root_residual_functions": 8,
             "root_residual_classes": 0,
             "root_residual_globals": 26,
             "runtime_binders": 30,
