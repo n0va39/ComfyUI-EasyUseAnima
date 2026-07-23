@@ -111,14 +111,14 @@
   "expected_counts": {
     "root_entrypoints": 3,
     "excluded_preamble_implementation_bindings": 3,
-    "nodes_canonical_bindings": 296,
+    "nodes_canonical_bindings": 293,
     "nodes_legacy_bindings": 27,
     "mapped_public_classes": 18,
     "unmapped_classes": 2,
     "root_residual_functions": 0,
     "root_residual_classes": 0,
     "root_residual_globals": 3,
-    "runtime_binders": 7,
+    "runtime_binders": 4,
     "direct_nodes_import_test_files": 21
   },
   "mapped_public_classes": [
@@ -152,9 +152,6 @@
   },
   "runtime_binders": [
     "_bind_aio_legacy_generation_runtime",
-    "_bind_aio_model_preparation_runtime",
-    "_bind_aio_sampling_runtime",
-    "_bind_aio_conditioning_runtime",
     "_bind_aio_node_runtime",
     "_bind_wildcard_node_runtime",
     "_bind_naia_node_runtime"
@@ -167,15 +164,10 @@
       "easyuse_anima.nodes.aio_nodes"
     ],
     "AIO_SPECIAL_SEEDS": [
-      "easyuse_anima.aio.sampling",
       "easyuse_anima.nodes.aio_nodes"
     ],
     "AIO_USDU_PROMPT_FULL": [
-      "easyuse_anima.aio.conditioning",
       "easyuse_anima.aio.legacy_generation"
-    ],
-    "AIO_USDU_PROMPT_NO_GENERAL": [
-      "easyuse_anima.aio.conditioning"
     ],
     "ANIMA_DEFAULT_CLIP_CANDIDATES": [
       "easyuse_anima.nodes.aio_nodes"
@@ -186,12 +178,8 @@
     "ANIMA_DEFAULT_VAE_CANDIDATES": [
       "easyuse_anima.nodes.aio_nodes"
     ],
-    "ANIMA_MOD_GUIDANCE_DEFAULT_PROFILE": [
-      "easyuse_anima.aio.sampling"
-    ],
     "ANIMA_MOD_GUIDANCE_PROFILE_OFF": [
-      "easyuse_anima.aio.legacy_generation",
-      "easyuse_anima.aio.sampling"
+      "easyuse_anima.aio.legacy_generation"
     ],
     "EASY_USE_ANIMA_INPUT_SCHEMA": [
       "easyuse_anima.nodes.aio_nodes"
@@ -208,20 +196,8 @@
     "EasyUseAnimaSAM3Detailer": [
       "easyuse_anima.aio.legacy_generation"
     ],
-    "MAX_SEED": [
-      "easyuse_anima.aio.sampling"
-    ],
     "PROMPT_DATA_TYPE": [
       "easyuse_anima.nodes.aio_nodes"
-    ],
-    "SEED_CONTROL_FIXED": [
-      "easyuse_anima.aio.sampling"
-    ],
-    "_advanced_artist_field_prompt": [
-      "easyuse_anima.aio.conditioning"
-    ],
-    "_advanced_enabled_pane_fields": [
-      "easyuse_anima.aio.conditioning"
     ],
     "_advanced_outputs_from_prompt_data": [
       "easyuse_anima.aio.legacy_generation"
@@ -247,9 +223,6 @@
     "_aio_lora_stack_signature": [
       "easyuse_anima.nodes.aio_nodes"
     ],
-    "_aio_prompt_data_fields_for_usdu": [
-      "easyuse_anima.aio.conditioning"
-    ],
     "_aio_save_filename_prefix": [
       "easyuse_anima.aio.legacy_generation"
     ],
@@ -259,32 +232,14 @@
     "_aio_usdu_conditioning": [
       "easyuse_anima.aio.legacy_generation"
     ],
-    "_aio_usdu_prompt_without_general": [
-      "easyuse_anima.aio.conditioning"
-    ],
     "_aio_usdu_tile_plan": [
       "easyuse_anima.aio.legacy_generation"
-    ],
-    "_apply_aio_anima_dave_patch": [
-      "easyuse_anima.aio.model_preparation"
-    ],
-    "_apply_aio_kj_model_patches": [
-      "easyuse_anima.aio.model_preparation"
     ],
     "_apply_aio_lora_stack": [
       "easyuse_anima.aio.legacy_generation"
     ],
     "_apply_aio_model_patches": [
       "easyuse_anima.aio.legacy_generation"
-    ],
-    "_apply_aio_safe_pag_patch": [
-      "easyuse_anima.aio.model_preparation"
-    ],
-    "_apply_aio_spectrum_correction_patch_for_comfy_sampler": [
-      "easyuse_anima.aio.model_preparation"
-    ],
-    "_apply_aio_spectrum_forecast_patch_for_comfy_sampler": [
-      "easyuse_anima.aio.model_preparation"
     ],
     "_apply_aio_spectrum_model_patches_for_comfy_sampler": [
       "easyuse_anima.aio.legacy_generation"
@@ -293,24 +248,13 @@
       "easyuse_anima.aio.legacy_generation"
     ],
     "_as_bool": [
-      "easyuse_anima.aio.conditioning",
-      "easyuse_anima.aio.legacy_generation",
-      "easyuse_anima.aio.model_preparation",
-      "easyuse_anima.aio.sampling"
+      "easyuse_anima.aio.legacy_generation"
     ],
     "_as_float": [
-      "easyuse_anima.aio.legacy_generation",
-      "easyuse_anima.aio.model_preparation",
-      "easyuse_anima.aio.sampling"
+      "easyuse_anima.aio.legacy_generation"
     ],
     "_as_int": [
-      "easyuse_anima.aio.legacy_generation",
-      "easyuse_anima.aio.model_preparation",
-      "easyuse_anima.aio.sampling"
-    ],
-    "_call_with_supported_kwargs": [
-      "easyuse_anima.aio.model_preparation",
-      "easyuse_anima.aio.sampling"
+      "easyuse_anima.aio.legacy_generation"
     ],
     "_cleanup_aio_ephemeral_model": [
       "easyuse_anima.aio.legacy_generation"
@@ -332,9 +276,6 @@
     ],
     "_copy_prompt_data_for_update": [
       "easyuse_anima.nodes.aio_nodes"
-    ],
-    "_correct_advanced_field_sequence": [
-      "easyuse_anima.aio.conditioning"
     ],
     "_decode_latent_with_comfy": [
       "easyuse_anima.aio.legacy_generation"
@@ -358,7 +299,6 @@
       "easyuse_anima.aio.legacy_generation"
     ],
     "_json_clone": [
-      "easyuse_anima.aio.sampling",
       "easyuse_anima.nodes.aio_nodes"
     ],
     "_load_aio_resources_from_input_context": [
@@ -370,19 +310,8 @@
     "_load_upscale_model_with_comfy": [
       "easyuse_anima.aio.legacy_generation"
     ],
-    "_lora_stack_name": [
-      "easyuse_anima.aio.model_preparation"
-    ],
-    "_new_aio_random_seed": [
-      "easyuse_anima.aio.sampling"
-    ],
     "_node_output_tuple": [
-      "easyuse_anima.aio.legacy_generation",
-      "easyuse_anima.aio.model_preparation",
-      "easyuse_anima.aio.sampling"
-    ],
-    "_normalize_advanced_fields": [
-      "easyuse_anima.aio.conditioning"
+      "easyuse_anima.aio.legacy_generation"
     ],
     "_normalize_aio_generation_settings": [
       "easyuse_anima.aio.legacy_generation",
@@ -391,23 +320,12 @@
     "_normalize_aio_input_settings": [
       "easyuse_anima.nodes.aio_nodes"
     ],
-    "_normalize_aio_lora_stack": [
-      "easyuse_anima.aio.model_preparation"
-    ],
-    "_normalize_aio_seed": [
-      "easyuse_anima.aio.sampling"
-    ],
     "_normalize_anima_mod_guidance_profile": [
-      "easyuse_anima.aio.legacy_generation",
-      "easyuse_anima.aio.sampling"
+      "easyuse_anima.aio.legacy_generation"
     ],
     "_normalize_prompt_data": [
-      "easyuse_anima.aio.conditioning",
       "easyuse_anima.aio.legacy_generation",
       "easyuse_anima.nodes.aio_nodes"
-    ],
-    "_patch_model_sampling_aura_flow": [
-      "easyuse_anima.aio.model_preparation"
     ],
     "_preferred_clip_type_default": [
       "easyuse_anima.nodes.aio_nodes"
@@ -430,7 +348,6 @@
     ],
     "_resolve_aio_runtime_seed": [
       "easyuse_anima.aio.legacy_generation",
-      "easyuse_anima.aio.sampling",
       "easyuse_anima.nodes.aio_nodes"
     ],
     "_resolve_anima_mod_guidance_enabled": [
@@ -463,15 +380,6 @@
     "_sample_latent_with_aio_backend": [
       "easyuse_anima.aio.legacy_generation"
     ],
-    "_sample_latent_with_comfy": [
-      "easyuse_anima.aio.sampling"
-    ],
-    "_sample_latent_with_spectrum_mod_guidance_advanced": [
-      "easyuse_anima.aio.sampling"
-    ],
-    "_sample_latent_with_spectrum_spd": [
-      "easyuse_anima.aio.sampling"
-    ],
     "_save_aio_temp_preview_image": [
       "easyuse_anima.aio.legacy_generation"
     ],
@@ -497,35 +405,31 @@
       "easyuse_anima.aio.legacy_generation"
     ],
     "logger": [
-      "easyuse_anima.aio.legacy_generation",
-      "easyuse_anima.aio.model_preparation"
+      "easyuse_anima.aio.legacy_generation"
     ]
   },
   "runtime_binder_audit": {
     "summary": {
-      "binder_count": 7,
+      "binder_count": 4,
       "family_count": 2,
       "mode_counts": {
-        "comfy_provider_then_root": 4,
+        "comfy_provider_then_root": 1,
         "root_globals": 1,
         "explicit_callbacks": 2
       },
-      "unique_resolver_names": 112,
-      "unique_root_resolver_names": 108,
-      "unique_provider_resolver_names": 4,
+      "unique_resolver_names": 86,
+      "unique_root_resolver_names": 84,
+      "unique_provider_resolver_names": 2,
       "unique_direct_root_dependencies": 9,
-      "direct_root_dependency_slots": 13,
-      "provider_consumer_slots": 8,
-      "provider_consumer_modules": 4,
-      "repository_replacement_names": 85,
-      "repository_replacement_files": 8
+      "direct_root_dependency_slots": 10,
+      "provider_consumer_slots": 2,
+      "provider_consumer_modules": 1,
+      "repository_replacement_names": 71,
+      "repository_replacement_files": 5
     },
     "families": {
       "aio": [
         "_bind_aio_legacy_generation_runtime",
-        "_bind_aio_model_preparation_runtime",
-        "_bind_aio_sampling_runtime",
-        "_bind_aio_conditioning_runtime",
         "_bind_aio_node_runtime"
       ],
       "wildcard_naia": [
@@ -545,40 +449,10 @@
       "retired_subgroups": [
         "B-11c30d1_cache_state",
         "B-11c30d2_normalization_planning",
-        "B-11c30d3_io_boundary"
+        "B-11c30d3_io_boundary",
+        "B-11c30d4_execution_services"
       ],
       "subgroups": {
-        "B-11c30d4_execution_services": {
-          "binders": [
-            "_bind_aio_model_preparation_runtime",
-            "_bind_aio_sampling_runtime",
-            "_bind_aio_conditioning_runtime"
-          ],
-          "mode_counts": {
-            "comfy_provider_then_root": 3,
-            "root_globals": 0
-          },
-          "bound_global_slots": 3,
-          "unique_bound_globals": [
-            "_RUNTIME_RESOLVER"
-          ],
-          "root_resolver_slots": 43,
-          "unique_root_resolver_names": 37,
-          "provider_resolver_slots": 6,
-          "unique_provider_resolver_names": 4,
-          "direct_root_dependency_slots": 3,
-          "unique_direct_root_dependencies": 1,
-          "repository_replacement_slots": 23,
-          "unique_repository_replacement_names": 21,
-          "repository_replacement_files": [
-            "tests/test_aio_conditioning.py",
-            "tests/test_aio_legacy_generation.py",
-            "tests/test_aio_model_preparation.py",
-            "tests/test_aio_nodes.py",
-            "tests/test_aio_sampling.py",
-            "tests/test_node_contracts.py"
-          ]
-        },
         "B-11c30d5_legacy_orchestration": {
           "binders": [
             "_bind_aio_legacy_generation_runtime"
@@ -602,7 +476,6 @@
           "repository_replacement_files": [
             "tests/test_aio_legacy_generation.py",
             "tests/test_aio_nodes.py",
-            "tests/test_aio_sampling.py",
             "tests/test_node_contracts.py"
           ]
         },
@@ -629,7 +502,6 @@
           "repository_replacement_files": [
             "tests/test_aio_legacy_generation.py",
             "tests/test_aio_nodes.py",
-            "tests/test_aio_sampling.py",
             "tests/test_node_contracts.py"
           ]
         }
@@ -689,22 +561,16 @@
       "AIO_INPUT_DEFAULT_SETTINGS",
       "AIO_SPECIAL_SEEDS",
       "AIO_USDU_PROMPT_FULL",
-      "AIO_USDU_PROMPT_NO_GENERAL",
       "ANIMA_DEFAULT_CLIP_CANDIDATES",
       "ANIMA_DEFAULT_DIFFUSION_MODEL_CANDIDATES",
       "ANIMA_DEFAULT_VAE_CANDIDATES",
-      "ANIMA_MOD_GUIDANCE_DEFAULT_PROFILE",
       "ANIMA_MOD_GUIDANCE_PROFILE_OFF",
       "EASY_USE_ANIMA_INPUT_SCHEMA",
       "EASY_USE_ANIMA_INPUT_SETTINGS_VERSION",
       "EASY_USE_ANIMA_INPUT_TYPE",
       "EasyUseAnimaImageScaleByMultiple",
       "EasyUseAnimaSAM3Detailer",
-      "MAX_SEED",
       "PROMPT_DATA_TYPE",
-      "SEED_CONTROL_FIXED",
-      "_advanced_artist_field_prompt",
-      "_advanced_enabled_pane_fields",
       "_advanced_outputs_from_prompt_data",
       "_aio_detailer_has_enabled_targets",
       "_aio_detailer_target_order",
@@ -713,25 +579,17 @@
       "_aio_highres_effective_backend",
       "_aio_input_settings_json",
       "_aio_lora_stack_signature",
-      "_aio_prompt_data_fields_for_usdu",
       "_aio_save_filename_prefix",
       "_aio_stage_sampler_settings",
       "_aio_usdu_conditioning",
-      "_aio_usdu_prompt_without_general",
       "_aio_usdu_tile_plan",
-      "_apply_aio_anima_dave_patch",
-      "_apply_aio_kj_model_patches",
       "_apply_aio_lora_stack",
       "_apply_aio_model_patches",
-      "_apply_aio_safe_pag_patch",
-      "_apply_aio_spectrum_correction_patch_for_comfy_sampler",
-      "_apply_aio_spectrum_forecast_patch_for_comfy_sampler",
       "_apply_aio_spectrum_model_patches_for_comfy_sampler",
       "_apply_spectrum_anima_mod_guidance",
       "_as_bool",
       "_as_float",
       "_as_int",
-      "_call_with_supported_kwargs",
       "_cleanup_aio_ephemeral_model",
       "_comfy_clip_loader_types",
       "_comfy_diffusion_model_names",
@@ -739,7 +597,6 @@
       "_comfy_vae_names",
       "_context_value",
       "_copy_prompt_data_for_update",
-      "_correct_advanced_field_sequence",
       "_decode_latent_with_comfy",
       "_easy_use_anima_input_signature",
       "_encode_image_with_comfy_vae",
@@ -751,17 +608,11 @@
       "_load_aio_resources_from_input_context",
       "_load_aio_sam3_context",
       "_load_upscale_model_with_comfy",
-      "_lora_stack_name",
-      "_new_aio_random_seed",
       "_node_output_tuple",
-      "_normalize_advanced_fields",
       "_normalize_aio_generation_settings",
       "_normalize_aio_input_settings",
-      "_normalize_aio_lora_stack",
-      "_normalize_aio_seed",
       "_normalize_anima_mod_guidance_profile",
       "_normalize_prompt_data",
-      "_patch_model_sampling_aura_flow",
       "_preferred_clip_type_default",
       "_preferred_name_default",
       "_prompt_data_json_safe",
@@ -779,9 +630,6 @@
       "_run_aio_upscale_stage",
       "_run_aio_usdu_upscale_stage",
       "_sample_latent_with_aio_backend",
-      "_sample_latent_with_comfy",
-      "_sample_latent_with_spectrum_mod_guidance_advanced",
-      "_sample_latent_with_spectrum_spd",
       "_save_aio_temp_preview_image",
       "_save_image_with_comfy",
       "_save_image_with_image_saver",
@@ -796,8 +644,6 @@
     ],
     "provider_resolver_names": [
       "_encode_with_comfy_clip",
-      "_find_comfy_node_class",
-      "_require_any_custom_node_class",
       "_require_custom_node_class"
     ],
     "repository_root_replacements": {
@@ -808,8 +654,7 @@
         "tests/test_node_contracts.py"
       ],
       "AIO_SPECIAL_SEEDS": [
-        "tests/test_aio_nodes.py",
-        "tests/test_node_contracts.py"
+        "tests/test_aio_nodes.py"
       ],
       "ANIMA_DEFAULT_CLIP_CANDIDATES": [
         "tests/test_aio_nodes.py"
@@ -822,9 +667,6 @@
       ],
       "EASY_USE_ANIMA_INPUT_TYPE": [
         "tests/test_aio_nodes.py"
-      ],
-      "MAX_SEED": [
-        "tests/test_node_contracts.py"
       ],
       "PROMPT_DATA_TYPE": [
         "tests/test_aio_nodes.py"
@@ -854,17 +696,6 @@
       "_aio_save_filename_prefix": [
         "tests/test_aio_legacy_generation.py"
       ],
-      "_aio_usdu_prompt_without_general": [
-        "tests/test_aio_conditioning.py"
-      ],
-      "_apply_aio_anima_dave_patch": [
-        "tests/test_aio_model_preparation.py",
-        "tests/test_aio_nodes.py"
-      ],
-      "_apply_aio_kj_model_patches": [
-        "tests/test_aio_model_preparation.py",
-        "tests/test_aio_nodes.py"
-      ],
       "_apply_aio_lora_stack": [
         "tests/test_aio_legacy_generation.py",
         "tests/test_aio_nodes.py"
@@ -872,16 +703,6 @@
       "_apply_aio_model_patches": [
         "tests/test_aio_legacy_generation.py",
         "tests/test_aio_nodes.py"
-      ],
-      "_apply_aio_safe_pag_patch": [
-        "tests/test_aio_model_preparation.py",
-        "tests/test_aio_nodes.py"
-      ],
-      "_apply_aio_spectrum_correction_patch_for_comfy_sampler": [
-        "tests/test_aio_model_preparation.py"
-      ],
-      "_apply_aio_spectrum_forecast_patch_for_comfy_sampler": [
-        "tests/test_aio_model_preparation.py"
       ],
       "_apply_aio_spectrum_model_patches_for_comfy_sampler": [
         "tests/test_aio_legacy_generation.py",
@@ -958,9 +779,6 @@
       "_load_upscale_model_with_comfy": [
         "tests/test_aio_nodes.py"
       ],
-      "_new_aio_random_seed": [
-        "tests/test_node_contracts.py"
-      ],
       "_normalize_aio_generation_settings": [
         "tests/test_aio_legacy_generation.py",
         "tests/test_aio_nodes.py"
@@ -968,21 +786,11 @@
       "_normalize_aio_input_settings": [
         "tests/test_aio_nodes.py"
       ],
-      "_normalize_aio_lora_stack": [
-        "tests/test_node_contracts.py"
-      ],
-      "_normalize_aio_seed": [
-        "tests/test_node_contracts.py"
-      ],
       "_normalize_anima_mod_guidance_profile": [
         "tests/test_aio_legacy_generation.py"
       ],
       "_normalize_prompt_data": [
         "tests/test_aio_legacy_generation.py",
-        "tests/test_aio_nodes.py"
-      ],
-      "_patch_model_sampling_aura_flow": [
-        "tests/test_aio_model_preparation.py",
         "tests/test_aio_nodes.py"
       ],
       "_post_random": [
@@ -1010,8 +818,7 @@
       ],
       "_resolve_aio_runtime_seed": [
         "tests/test_aio_legacy_generation.py",
-        "tests/test_aio_nodes.py",
-        "tests/test_aio_sampling.py"
+        "tests/test_aio_nodes.py"
       ],
       "_resolve_anima_mod_guidance_enabled": [
         "tests/test_aio_legacy_generation.py"
@@ -1040,15 +847,6 @@
       ],
       "_sample_latent_with_aio_backend": [
         "tests/test_aio_legacy_generation.py",
-        "tests/test_aio_nodes.py"
-      ],
-      "_sample_latent_with_comfy": [
-        "tests/test_aio_nodes.py"
-      ],
-      "_sample_latent_with_spectrum_mod_guidance_advanced": [
-        "tests/test_aio_nodes.py"
-      ],
-      "_sample_latent_with_spectrum_spd": [
         "tests/test_aio_nodes.py"
       ],
       "_save_aio_temp_preview_image": [
@@ -1081,8 +879,7 @@
         "tests/test_node_contracts.py"
       ],
       "random": [
-        "tests/test_aio_legacy_generation.py",
-        "tests/test_node_contracts.py"
+        "tests/test_aio_legacy_generation.py"
       ],
       "resolve_naia_settings": [
         "tests/test_naia_settings.py",
@@ -1280,199 +1077,6 @@
           "_tag_aio_preview_images",
           "json",
           "random"
-        ]
-      },
-      {
-        "binder": "_bind_aio_model_preparation_runtime",
-        "module": "easyuse_anima.aio.model_preparation",
-        "family": "aio",
-        "mode": "comfy_provider_then_root",
-        "root_observation": "call_time_resolver",
-        "root_keywords": [
-          "resolve_helper"
-        ],
-        "bound_globals": [
-          "_RUNTIME_RESOLVER"
-        ],
-        "direct_root_dependencies": [
-          "_resolve_comfy_host_helper"
-        ],
-        "resolver_names": [
-          "_apply_aio_anima_dave_patch",
-          "_apply_aio_kj_model_patches",
-          "_apply_aio_safe_pag_patch",
-          "_apply_aio_spectrum_correction_patch_for_comfy_sampler",
-          "_apply_aio_spectrum_forecast_patch_for_comfy_sampler",
-          "_as_bool",
-          "_as_float",
-          "_as_int",
-          "_call_with_supported_kwargs",
-          "_find_comfy_node_class",
-          "_lora_stack_name",
-          "_node_output_tuple",
-          "_normalize_aio_lora_stack",
-          "_patch_model_sampling_aura_flow",
-          "_require_any_custom_node_class",
-          "_require_custom_node_class",
-          "logger"
-        ],
-        "root_resolver_names": [
-          "_apply_aio_anima_dave_patch",
-          "_apply_aio_kj_model_patches",
-          "_apply_aio_safe_pag_patch",
-          "_apply_aio_spectrum_correction_patch_for_comfy_sampler",
-          "_apply_aio_spectrum_forecast_patch_for_comfy_sampler",
-          "_as_bool",
-          "_as_float",
-          "_as_int",
-          "_call_with_supported_kwargs",
-          "_lora_stack_name",
-          "_node_output_tuple",
-          "_normalize_aio_lora_stack",
-          "_patch_model_sampling_aura_flow",
-          "logger"
-        ],
-        "provider_resolver_names": [
-          "_find_comfy_node_class",
-          "_require_any_custom_node_class",
-          "_require_custom_node_class"
-        ],
-        "repository_replacement_names": [
-          "_apply_aio_anima_dave_patch",
-          "_apply_aio_kj_model_patches",
-          "_apply_aio_safe_pag_patch",
-          "_apply_aio_spectrum_correction_patch_for_comfy_sampler",
-          "_apply_aio_spectrum_forecast_patch_for_comfy_sampler",
-          "_as_bool",
-          "_normalize_aio_lora_stack",
-          "_patch_model_sampling_aura_flow"
-        ]
-      },
-      {
-        "binder": "_bind_aio_sampling_runtime",
-        "module": "easyuse_anima.aio.sampling",
-        "family": "aio",
-        "mode": "comfy_provider_then_root",
-        "root_observation": "call_time_resolver",
-        "root_keywords": [
-          "resolve_helper"
-        ],
-        "bound_globals": [
-          "_RUNTIME_RESOLVER"
-        ],
-        "direct_root_dependencies": [
-          "_resolve_comfy_host_helper"
-        ],
-        "resolver_names": [
-          "AIO_SPECIAL_SEEDS",
-          "ANIMA_MOD_GUIDANCE_DEFAULT_PROFILE",
-          "ANIMA_MOD_GUIDANCE_PROFILE_OFF",
-          "MAX_SEED",
-          "SEED_CONTROL_FIXED",
-          "_as_bool",
-          "_as_float",
-          "_as_int",
-          "_call_with_supported_kwargs",
-          "_find_comfy_node_class",
-          "_json_clone",
-          "_new_aio_random_seed",
-          "_node_output_tuple",
-          "_normalize_aio_seed",
-          "_normalize_anima_mod_guidance_profile",
-          "_require_custom_node_class",
-          "_resolve_aio_runtime_seed",
-          "_sample_latent_with_comfy",
-          "_sample_latent_with_spectrum_mod_guidance_advanced",
-          "_sample_latent_with_spectrum_spd",
-          "random"
-        ],
-        "root_resolver_names": [
-          "AIO_SPECIAL_SEEDS",
-          "ANIMA_MOD_GUIDANCE_DEFAULT_PROFILE",
-          "ANIMA_MOD_GUIDANCE_PROFILE_OFF",
-          "MAX_SEED",
-          "SEED_CONTROL_FIXED",
-          "_as_bool",
-          "_as_float",
-          "_as_int",
-          "_call_with_supported_kwargs",
-          "_json_clone",
-          "_new_aio_random_seed",
-          "_node_output_tuple",
-          "_normalize_aio_seed",
-          "_normalize_anima_mod_guidance_profile",
-          "_resolve_aio_runtime_seed",
-          "_sample_latent_with_comfy",
-          "_sample_latent_with_spectrum_mod_guidance_advanced",
-          "_sample_latent_with_spectrum_spd",
-          "random"
-        ],
-        "provider_resolver_names": [
-          "_find_comfy_node_class",
-          "_require_custom_node_class"
-        ],
-        "repository_replacement_names": [
-          "AIO_SPECIAL_SEEDS",
-          "MAX_SEED",
-          "_as_bool",
-          "_json_clone",
-          "_new_aio_random_seed",
-          "_normalize_aio_seed",
-          "_normalize_anima_mod_guidance_profile",
-          "_resolve_aio_runtime_seed",
-          "_sample_latent_with_comfy",
-          "_sample_latent_with_spectrum_mod_guidance_advanced",
-          "_sample_latent_with_spectrum_spd",
-          "random"
-        ]
-      },
-      {
-        "binder": "_bind_aio_conditioning_runtime",
-        "module": "easyuse_anima.aio.conditioning",
-        "family": "aio",
-        "mode": "comfy_provider_then_root",
-        "root_observation": "call_time_resolver",
-        "root_keywords": [
-          "resolve_helper"
-        ],
-        "bound_globals": [
-          "_RUNTIME_RESOLVER"
-        ],
-        "direct_root_dependencies": [
-          "_resolve_comfy_host_helper"
-        ],
-        "resolver_names": [
-          "AIO_USDU_PROMPT_FULL",
-          "AIO_USDU_PROMPT_NO_GENERAL",
-          "_advanced_artist_field_prompt",
-          "_advanced_enabled_pane_fields",
-          "_aio_prompt_data_fields_for_usdu",
-          "_aio_usdu_prompt_without_general",
-          "_as_bool",
-          "_correct_advanced_field_sequence",
-          "_encode_with_comfy_clip",
-          "_normalize_advanced_fields",
-          "_normalize_prompt_data"
-        ],
-        "root_resolver_names": [
-          "AIO_USDU_PROMPT_FULL",
-          "AIO_USDU_PROMPT_NO_GENERAL",
-          "_advanced_artist_field_prompt",
-          "_advanced_enabled_pane_fields",
-          "_aio_prompt_data_fields_for_usdu",
-          "_aio_usdu_prompt_without_general",
-          "_as_bool",
-          "_correct_advanced_field_sequence",
-          "_normalize_advanced_fields",
-          "_normalize_prompt_data"
-        ],
-        "provider_resolver_names": [
-          "_encode_with_comfy_clip"
-        ],
-        "repository_replacement_names": [
-          "_aio_usdu_prompt_without_general",
-          "_as_bool",
-          "_normalize_prompt_data"
         ]
       },
       {
@@ -2406,10 +2010,7 @@
       "id": "nodes_canonical_bindings:easyuse_anima.aio.conditioning:transitional_private_seam",
       "surface": "nodes_canonical_bindings",
       "symbols": {
-        "_aio_prompt_data_fields_for_usdu": "_aio_prompt_data_fields_for_usdu",
-        "_aio_usdu_conditioning": "_aio_usdu_conditioning",
-        "_aio_usdu_prompt_without_general": "_aio_usdu_prompt_without_general",
-        "_bind_aio_conditioning_runtime": "_bind_aio_conditioning_runtime"
+        "_aio_usdu_conditioning": "_aio_usdu_conditioning"
       },
       "classification": "transitional_private_seam",
       "current_target": "nodes.py",
@@ -2421,13 +2022,9 @@
       "owner": "#184/#188",
       "first_release": null,
       "known_consumers": [
-        "nodes.py residual runtime",
-        "canonical runtime resolver: easyuse_anima.aio.conditioning",
         "canonical runtime resolver: easyuse_anima.aio.legacy_generation"
       ],
       "evidence": [
-        "AST:nodes.py direct runtime load",
-        "AST:easyuse_anima.aio.conditioning string runtime lookup",
         "AST:easyuse_anima.aio.legacy_generation string runtime lookup"
       ],
       "removal_gates": [
@@ -2436,6 +2033,36 @@
         "separate B-10b or B-11 rollback unit"
       ],
       "lifecycle_state": "transitional"
+    },
+    {
+      "id": "nodes_canonical_bindings:easyuse_anima.aio.conditioning:unsupported_test_only",
+      "surface": "nodes_canonical_bindings",
+      "symbols": {
+        "_aio_prompt_data_fields_for_usdu": "_aio_prompt_data_fields_for_usdu",
+        "_aio_usdu_prompt_without_general": "_aio_usdu_prompt_without_general"
+      },
+      "classification": "unsupported_test_only",
+      "current_target": "nodes.py",
+      "canonical_target": "easyuse_anima.aio.conditioning",
+      "target_state": "canonical",
+      "identity_requirement": "not_applicable",
+      "binding_shape": "direct_import",
+      "import_target": "easyuse_anima.aio.conditioning",
+      "owner": "#184/#188",
+      "first_release": null,
+      "known_consumers": [
+        "repository tests may import this root name"
+      ],
+      "evidence": [
+        "AST:no nodes.py runtime load",
+        "test-only consumption is not public support evidence"
+      ],
+      "removal_gates": [
+        "test imports migrate to canonical targets",
+        "no production consumer evidence",
+        "separate B-10b removal review"
+      ],
+      "lifecycle_state": "unsupported"
     },
     {
       "id": "nodes_canonical_bindings:easyuse_anima.aio.first_pass_cache:transitional_private_seam",
@@ -2505,8 +2132,7 @@
       "symbols": {
         "AIO_GENERATION_DEFAULT_SETTINGS": "AIO_GENERATION_DEFAULT_SETTINGS",
         "AIO_SPECIAL_SEEDS": "AIO_SPECIAL_SEEDS",
-        "AIO_USDU_PROMPT_FULL": "AIO_USDU_PROMPT_FULL",
-        "AIO_USDU_PROMPT_NO_GENERAL": "AIO_USDU_PROMPT_NO_GENERAL"
+        "AIO_USDU_PROMPT_FULL": "AIO_USDU_PROMPT_FULL"
       },
       "classification": "transitional_private_seam",
       "current_target": "nodes.py",
@@ -2518,15 +2144,11 @@
       "owner": "#184/#188",
       "first_release": null,
       "known_consumers": [
-        "canonical runtime resolver: easyuse_anima.aio.conditioning",
         "canonical runtime resolver: easyuse_anima.aio.legacy_generation",
-        "canonical runtime resolver: easyuse_anima.aio.sampling",
         "canonical runtime resolver: easyuse_anima.nodes.aio_nodes"
       ],
       "evidence": [
-        "AST:easyuse_anima.aio.conditioning string runtime lookup",
         "AST:easyuse_anima.aio.legacy_generation string runtime lookup",
-        "AST:easyuse_anima.aio.sampling string runtime lookup",
         "AST:easyuse_anima.nodes.aio_nodes string runtime lookup"
       ],
       "removal_gates": [
@@ -2551,6 +2173,7 @@
         "AIO_SPECIAL_SEED_RANDOM": "AIO_SPECIAL_SEED_RANDOM",
         "AIO_USDU_MODE_TYPES": "AIO_USDU_MODE_TYPES",
         "AIO_USDU_PROMPT_MODES": "AIO_USDU_PROMPT_MODES",
+        "AIO_USDU_PROMPT_NO_GENERAL": "AIO_USDU_PROMPT_NO_GENERAL",
         "AIO_USDU_SEAM_FIX_MODES": "AIO_USDU_SEAM_FIX_MODES"
       },
       "classification": "unsupported_test_only",
@@ -2582,8 +2205,7 @@
       "symbols": {
         "_aio_detailer_has_enabled_targets": "_aio_detailer_has_enabled_targets",
         "_aio_detailer_target_order": "_aio_detailer_target_order",
-        "_normalize_aio_generation_settings": "_normalize_aio_generation_settings",
-        "_normalize_aio_seed": "_normalize_aio_seed"
+        "_normalize_aio_generation_settings": "_normalize_aio_generation_settings"
       },
       "classification": "transitional_private_seam",
       "current_target": "nodes.py",
@@ -2596,12 +2218,10 @@
       "first_release": null,
       "known_consumers": [
         "canonical runtime resolver: easyuse_anima.aio.legacy_generation",
-        "canonical runtime resolver: easyuse_anima.aio.sampling",
         "canonical runtime resolver: easyuse_anima.nodes.aio_nodes"
       ],
       "evidence": [
         "AST:easyuse_anima.aio.legacy_generation string runtime lookup",
-        "AST:easyuse_anima.aio.sampling string runtime lookup",
         "AST:easyuse_anima.nodes.aio_nodes string runtime lookup"
       ],
       "removal_gates": [
@@ -2621,6 +2241,7 @@
         "_is_aio_detailer_target_name": "_is_aio_detailer_target_name",
         "_merge_versioned_settings": "_merge_versioned_settings",
         "_normalize_aio_dit_corrections_settings": "_normalize_aio_dit_corrections_settings",
+        "_normalize_aio_seed": "_normalize_aio_seed",
         "_normalize_aio_spectrum_settings": "_normalize_aio_spectrum_settings"
       },
       "classification": "unsupported_test_only",
@@ -2783,18 +2404,10 @@
       "surface": "nodes_canonical_bindings",
       "symbols": {
         "_aio_lora_stack_signature": "_aio_lora_stack_signature",
-        "_apply_aio_anima_dave_patch": "_apply_aio_anima_dave_patch",
-        "_apply_aio_kj_model_patches": "_apply_aio_kj_model_patches",
         "_apply_aio_lora_stack": "_apply_aio_lora_stack",
         "_apply_aio_model_patches": "_apply_aio_model_patches",
-        "_apply_aio_safe_pag_patch": "_apply_aio_safe_pag_patch",
-        "_apply_aio_spectrum_correction_patch_for_comfy_sampler": "_apply_aio_spectrum_correction_patch_for_comfy_sampler",
-        "_apply_aio_spectrum_forecast_patch_for_comfy_sampler": "_apply_aio_spectrum_forecast_patch_for_comfy_sampler",
         "_apply_aio_spectrum_model_patches_for_comfy_sampler": "_apply_aio_spectrum_model_patches_for_comfy_sampler",
-        "_bind_aio_model_preparation_runtime": "_bind_aio_model_preparation_runtime",
-        "_cleanup_aio_ephemeral_model": "_cleanup_aio_ephemeral_model",
-        "_normalize_aio_lora_stack": "_normalize_aio_lora_stack",
-        "_patch_model_sampling_aura_flow": "_patch_model_sampling_aura_flow"
+        "_cleanup_aio_ephemeral_model": "_cleanup_aio_ephemeral_model"
       },
       "classification": "transitional_private_seam",
       "current_target": "nodes.py",
@@ -2806,15 +2419,11 @@
       "owner": "#184/#188",
       "first_release": null,
       "known_consumers": [
-        "nodes.py residual runtime",
         "canonical runtime resolver: easyuse_anima.aio.legacy_generation",
-        "canonical runtime resolver: easyuse_anima.aio.model_preparation",
         "canonical runtime resolver: easyuse_anima.nodes.aio_nodes"
       ],
       "evidence": [
-        "AST:nodes.py direct runtime load",
         "AST:easyuse_anima.aio.legacy_generation string runtime lookup",
-        "AST:easyuse_anima.aio.model_preparation string runtime lookup",
         "AST:easyuse_anima.nodes.aio_nodes string runtime lookup"
       ],
       "removal_gates": [
@@ -2823,6 +2432,41 @@
         "separate B-10b or B-11 rollback unit"
       ],
       "lifecycle_state": "transitional"
+    },
+    {
+      "id": "nodes_canonical_bindings:easyuse_anima.aio.model_preparation:unsupported_test_only",
+      "surface": "nodes_canonical_bindings",
+      "symbols": {
+        "_apply_aio_anima_dave_patch": "_apply_aio_anima_dave_patch",
+        "_apply_aio_kj_model_patches": "_apply_aio_kj_model_patches",
+        "_apply_aio_safe_pag_patch": "_apply_aio_safe_pag_patch",
+        "_apply_aio_spectrum_correction_patch_for_comfy_sampler": "_apply_aio_spectrum_correction_patch_for_comfy_sampler",
+        "_apply_aio_spectrum_forecast_patch_for_comfy_sampler": "_apply_aio_spectrum_forecast_patch_for_comfy_sampler",
+        "_normalize_aio_lora_stack": "_normalize_aio_lora_stack",
+        "_patch_model_sampling_aura_flow": "_patch_model_sampling_aura_flow"
+      },
+      "classification": "unsupported_test_only",
+      "current_target": "nodes.py",
+      "canonical_target": "easyuse_anima.aio.model_preparation",
+      "target_state": "canonical",
+      "identity_requirement": "not_applicable",
+      "binding_shape": "direct_import",
+      "import_target": "easyuse_anima.aio.model_preparation",
+      "owner": "#184/#188",
+      "first_release": null,
+      "known_consumers": [
+        "repository tests may import this root name"
+      ],
+      "evidence": [
+        "AST:no nodes.py runtime load",
+        "test-only consumption is not public support evidence"
+      ],
+      "removal_gates": [
+        "test imports migrate to canonical targets",
+        "no production consumer evidence",
+        "separate B-10b removal review"
+      ],
+      "lifecycle_state": "unsupported"
     },
     {
       "id": "nodes_canonical_bindings:easyuse_anima.aio.output:transitional_private_seam",
@@ -3117,16 +2761,11 @@
       "symbols": {
         "_aio_highres_effective_backend": "_aio_highres_effective_backend",
         "_aio_stage_sampler_settings": "_aio_stage_sampler_settings",
-        "_bind_aio_sampling_runtime": "_bind_aio_sampling_runtime",
         "_decode_latent_with_comfy": "_decode_latent_with_comfy",
         "_encode_image_with_comfy_vae": "_encode_image_with_comfy_vae",
         "_generate_empty_latent_with_comfy": "_generate_empty_latent_with_comfy",
-        "_new_aio_random_seed": "_new_aio_random_seed",
         "_resolve_aio_runtime_seed": "_resolve_aio_runtime_seed",
-        "_sample_latent_with_aio_backend": "_sample_latent_with_aio_backend",
-        "_sample_latent_with_comfy": "_sample_latent_with_comfy",
-        "_sample_latent_with_spectrum_mod_guidance_advanced": "_sample_latent_with_spectrum_mod_guidance_advanced",
-        "_sample_latent_with_spectrum_spd": "_sample_latent_with_spectrum_spd"
+        "_sample_latent_with_aio_backend": "_sample_latent_with_aio_backend"
       },
       "classification": "transitional_private_seam",
       "current_target": "nodes.py",
@@ -3138,15 +2777,11 @@
       "owner": "#184/#188",
       "first_release": null,
       "known_consumers": [
-        "nodes.py residual runtime",
         "canonical runtime resolver: easyuse_anima.aio.legacy_generation",
-        "canonical runtime resolver: easyuse_anima.aio.sampling",
         "canonical runtime resolver: easyuse_anima.nodes.aio_nodes"
       ],
       "evidence": [
-        "AST:nodes.py direct runtime load",
         "AST:easyuse_anima.aio.legacy_generation string runtime lookup",
-        "AST:easyuse_anima.aio.sampling string runtime lookup",
         "AST:easyuse_anima.nodes.aio_nodes string runtime lookup"
       ],
       "removal_gates": [
@@ -3155,6 +2790,38 @@
         "separate B-10b or B-11 rollback unit"
       ],
       "lifecycle_state": "transitional"
+    },
+    {
+      "id": "nodes_canonical_bindings:easyuse_anima.aio.sampling:unsupported_test_only",
+      "surface": "nodes_canonical_bindings",
+      "symbols": {
+        "_new_aio_random_seed": "_new_aio_random_seed",
+        "_sample_latent_with_comfy": "_sample_latent_with_comfy",
+        "_sample_latent_with_spectrum_mod_guidance_advanced": "_sample_latent_with_spectrum_mod_guidance_advanced",
+        "_sample_latent_with_spectrum_spd": "_sample_latent_with_spectrum_spd"
+      },
+      "classification": "unsupported_test_only",
+      "current_target": "nodes.py",
+      "canonical_target": "easyuse_anima.aio.sampling",
+      "target_state": "canonical",
+      "identity_requirement": "not_applicable",
+      "binding_shape": "direct_import",
+      "import_target": "easyuse_anima.aio.sampling",
+      "owner": "#184/#188",
+      "first_release": null,
+      "known_consumers": [
+        "repository tests may import this root name"
+      ],
+      "evidence": [
+        "AST:no nodes.py runtime load",
+        "test-only consumption is not public support evidence"
+      ],
+      "removal_gates": [
+        "test imports migrate to canonical targets",
+        "no production consumer evidence",
+        "separate B-10b removal review"
+      ],
+      "lifecycle_state": "unsupported"
     },
     {
       "id": "nodes_canonical_bindings:easyuse_anima.aio.usdu:transitional_private_seam",
@@ -3230,11 +2897,9 @@
       "owner": "#184/#188",
       "first_release": null,
       "known_consumers": [
-        "canonical runtime resolver: easyuse_anima.aio.sampling",
         "canonical runtime resolver: easyuse_anima.nodes.aio_nodes"
       ],
       "evidence": [
-        "AST:easyuse_anima.aio.sampling string runtime lookup",
         "AST:easyuse_anima.nodes.aio_nodes string runtime lookup"
       ],
       "removal_gates": [
@@ -3292,16 +2957,10 @@
       "owner": "#184/#188",
       "first_release": null,
       "known_consumers": [
-        "canonical runtime resolver: easyuse_anima.aio.conditioning",
-        "canonical runtime resolver: easyuse_anima.aio.legacy_generation",
-        "canonical runtime resolver: easyuse_anima.aio.model_preparation",
-        "canonical runtime resolver: easyuse_anima.aio.sampling"
+        "canonical runtime resolver: easyuse_anima.aio.legacy_generation"
       ],
       "evidence": [
-        "AST:easyuse_anima.aio.conditioning string runtime lookup",
-        "AST:easyuse_anima.aio.legacy_generation string runtime lookup",
-        "AST:easyuse_anima.aio.model_preparation string runtime lookup",
-        "AST:easyuse_anima.aio.sampling string runtime lookup"
+        "AST:easyuse_anima.aio.legacy_generation string runtime lookup"
       ],
       "removal_gates": [
         "canonical production consumer migration",
@@ -3520,7 +3179,6 @@
       "id": "nodes_canonical_bindings:easyuse_anima.infrastructure.comfy.invocation:transitional_private_seam",
       "surface": "nodes_canonical_bindings",
       "symbols": {
-        "_call_with_supported_kwargs": "_call_with_supported_kwargs",
         "_node_output_tuple": "_node_output_tuple"
       },
       "classification": "transitional_private_seam",
@@ -3533,14 +3191,10 @@
       "owner": "#184/#188",
       "first_release": null,
       "known_consumers": [
-        "canonical runtime resolver: easyuse_anima.aio.legacy_generation",
-        "canonical runtime resolver: easyuse_anima.aio.model_preparation",
-        "canonical runtime resolver: easyuse_anima.aio.sampling"
+        "canonical runtime resolver: easyuse_anima.aio.legacy_generation"
       ],
       "evidence": [
-        "AST:easyuse_anima.aio.legacy_generation string runtime lookup",
-        "AST:easyuse_anima.aio.model_preparation string runtime lookup",
-        "AST:easyuse_anima.aio.sampling string runtime lookup"
+        "AST:easyuse_anima.aio.legacy_generation string runtime lookup"
       ],
       "removal_gates": [
         "canonical production consumer migration",
@@ -3553,6 +3207,7 @@
       "id": "nodes_canonical_bindings:easyuse_anima.infrastructure.comfy.invocation:unsupported_test_only",
       "surface": "nodes_canonical_bindings",
       "symbols": {
+        "_call_with_supported_kwargs": "_call_with_supported_kwargs",
         "_common_upscale_image": "_common_upscale_image"
       },
       "classification": "unsupported_test_only",
@@ -3640,34 +3295,6 @@
       "lifecycle_state": "transitional"
     },
     {
-      "id": "nodes_canonical_bindings:easyuse_anima.lora.metadata:transitional_private_seam",
-      "surface": "nodes_canonical_bindings",
-      "symbols": {
-        "_lora_stack_name": "_lora_stack_name"
-      },
-      "classification": "transitional_private_seam",
-      "current_target": "nodes.py",
-      "canonical_target": "easyuse_anima.lora.metadata",
-      "target_state": "canonical",
-      "identity_requirement": "required",
-      "binding_shape": "direct_import",
-      "import_target": "easyuse_anima.lora.metadata",
-      "owner": "#184/#188",
-      "first_release": null,
-      "known_consumers": [
-        "canonical runtime resolver: easyuse_anima.aio.model_preparation"
-      ],
-      "evidence": [
-        "AST:easyuse_anima.aio.model_preparation string runtime lookup"
-      ],
-      "removal_gates": [
-        "canonical production consumer migration",
-        "focused monkeypatch and identity contract review",
-        "separate B-10b or B-11 rollback unit"
-      ],
-      "lifecycle_state": "transitional"
-    },
-    {
       "id": "nodes_canonical_bindings:easyuse_anima.lora.metadata:unsupported_test_only",
       "surface": "nodes_canonical_bindings",
       "symbols": {
@@ -3680,6 +3307,7 @@
         "_lora_combo_values": "_lora_combo_values",
         "_lora_manager_trigger_words_from_metadata": "_lora_manager_trigger_words_from_metadata",
         "_lora_model_exists": "_lora_model_exists",
+        "_lora_stack_name": "_lora_stack_name",
         "_metadata_json_paths_for_lora": "_metadata_json_paths_for_lora",
         "_missing_lora_display_name": "_missing_lora_display_name",
         "_raise_missing_loras": "_raise_missing_loras",
@@ -4268,42 +3896,13 @@
       "lifecycle_state": "transitional"
     },
     {
-      "id": "nodes_canonical_bindings:easyuse_anima.prompt.advanced:transitional_private_seam",
-      "surface": "nodes_canonical_bindings",
-      "symbols": {
-        "_advanced_artist_field_prompt": "_advanced_artist_field_prompt",
-        "_advanced_enabled_pane_fields": "_advanced_enabled_pane_fields",
-        "_correct_advanced_field_sequence": "_correct_advanced_field_sequence",
-        "_normalize_advanced_fields": "_normalize_advanced_fields"
-      },
-      "classification": "transitional_private_seam",
-      "current_target": "nodes.py",
-      "canonical_target": "easyuse_anima.prompt.advanced",
-      "target_state": "canonical",
-      "identity_requirement": "required",
-      "binding_shape": "direct_import",
-      "import_target": "easyuse_anima.prompt.advanced",
-      "owner": "#184/#188",
-      "first_release": null,
-      "known_consumers": [
-        "canonical runtime resolver: easyuse_anima.aio.conditioning"
-      ],
-      "evidence": [
-        "AST:easyuse_anima.aio.conditioning string runtime lookup"
-      ],
-      "removal_gates": [
-        "canonical production consumer migration",
-        "focused monkeypatch and identity contract review",
-        "separate B-10b or B-11 rollback unit"
-      ],
-      "lifecycle_state": "transitional"
-    },
-    {
       "id": "nodes_canonical_bindings:easyuse_anima.prompt.advanced:unsupported_test_only",
       "surface": "nodes_canonical_bindings",
       "symbols": {
+        "_advanced_artist_field_prompt": "_advanced_artist_field_prompt",
         "_advanced_default_fields": "_advanced_default_fields",
         "_advanced_enabled_naia_panes": "_advanced_enabled_naia_panes",
+        "_advanced_enabled_pane_fields": "_advanced_enabled_pane_fields",
         "_advanced_field_input_values": "_advanced_field_input_values",
         "_advanced_field_socket_name": "_advanced_field_socket_name",
         "_advanced_fields_json": "_advanced_fields_json",
@@ -4315,7 +3914,9 @@
         "_build_advanced_prompt_data": "_build_advanced_prompt_data",
         "_build_advanced_prompts": "_build_advanced_prompts",
         "_clone_advanced_fields": "_clone_advanced_fields",
+        "_correct_advanced_field_sequence": "_correct_advanced_field_sequence",
         "_expand_advanced_wildcard_fields": "_expand_advanced_wildcard_fields",
+        "_normalize_advanced_fields": "_normalize_advanced_fields",
         "_normalize_prompt_studio_wildcard_seed_control": "_normalize_prompt_studio_wildcard_seed_control",
         "_set_naia_field_text": "_set_naia_field_text",
         "_translate_prompt_fields": "_translate_prompt_fields"
@@ -4426,7 +4027,6 @@
       "id": "nodes_canonical_bindings:easyuse_anima.prompt.conditioning:transitional_private_seam",
       "surface": "nodes_canonical_bindings",
       "symbols": {
-        "ANIMA_MOD_GUIDANCE_DEFAULT_PROFILE": "ANIMA_MOD_GUIDANCE_DEFAULT_PROFILE",
         "ANIMA_MOD_GUIDANCE_PROFILE_OFF": "ANIMA_MOD_GUIDANCE_PROFILE_OFF",
         "_apply_spectrum_anima_mod_guidance": "_apply_spectrum_anima_mod_guidance",
         "_normalize_anima_mod_guidance_profile": "_normalize_anima_mod_guidance_profile",
@@ -4442,12 +4042,10 @@
       "owner": "#184/#188",
       "first_release": null,
       "known_consumers": [
-        "canonical runtime resolver: easyuse_anima.aio.legacy_generation",
-        "canonical runtime resolver: easyuse_anima.aio.sampling"
+        "canonical runtime resolver: easyuse_anima.aio.legacy_generation"
       ],
       "evidence": [
-        "AST:easyuse_anima.aio.legacy_generation string runtime lookup",
-        "AST:easyuse_anima.aio.sampling string runtime lookup"
+        "AST:easyuse_anima.aio.legacy_generation string runtime lookup"
       ],
       "removal_gates": [
         "canonical production consumer migration",
@@ -4460,6 +4058,7 @@
       "id": "nodes_canonical_bindings:easyuse_anima.prompt.conditioning:unsupported_test_only",
       "surface": "nodes_canonical_bindings",
       "symbols": {
+        "ANIMA_MOD_GUIDANCE_DEFAULT_PROFILE": "ANIMA_MOD_GUIDANCE_DEFAULT_PROFILE",
         "ANIMA_MOD_GUIDANCE_MODES": "ANIMA_MOD_GUIDANCE_MODES",
         "ANIMA_MOD_GUIDANCE_MODE_FROM_PROMPT_DATA": "ANIMA_MOD_GUIDANCE_MODE_FROM_PROMPT_DATA",
         "_find_spectrum_anima_mod_guidance_class": "_find_spectrum_anima_mod_guidance_class"
@@ -4538,12 +4137,10 @@
       "owner": "#184/#188",
       "first_release": null,
       "known_consumers": [
-        "canonical runtime resolver: easyuse_anima.aio.conditioning",
         "canonical runtime resolver: easyuse_anima.aio.legacy_generation",
         "canonical runtime resolver: easyuse_anima.nodes.aio_nodes"
       ],
       "evidence": [
-        "AST:easyuse_anima.aio.conditioning string runtime lookup",
         "AST:easyuse_anima.aio.legacy_generation string runtime lookup",
         "AST:easyuse_anima.nodes.aio_nodes string runtime lookup"
       ],
@@ -4872,8 +4469,6 @@
       "id": "nodes_legacy_bindings:wildcard_engine:transitional_private_seam",
       "surface": "nodes_legacy_bindings",
       "symbols": {
-        "MAX_SEED": "MAX_SEED",
-        "SEED_CONTROL_FIXED": "SEED_CONTROL_FIXED",
         "expand_wildcards": "expand_wildcards",
         "normalize_seed": "normalize_seed",
         "normalize_wildcard_mode": "normalize_wildcard_mode",
@@ -4889,12 +4484,10 @@
       "owner": "#184/#186",
       "first_release": null,
       "known_consumers": [
-        "nodes.py residual runtime",
-        "canonical runtime resolver: easyuse_anima.aio.sampling"
+        "nodes.py residual runtime"
       ],
       "evidence": [
-        "AST:nodes.py direct runtime load",
-        "AST:easyuse_anima.aio.sampling string runtime lookup"
+        "AST:nodes.py direct runtime load"
       ],
       "removal_gates": [
         "canonical production consumer migration",
@@ -4907,9 +4500,11 @@
       "id": "nodes_legacy_bindings:wildcard_engine:unsupported_test_only",
       "surface": "nodes_legacy_bindings",
       "symbols": {
+        "MAX_SEED": "MAX_SEED",
         "PROMPT_STUDIO_WILDCARD_MODE_LABELS": "PROMPT_STUDIO_WILDCARD_MODE_LABELS",
         "PUBLIC_MAX_SEED": "PUBLIC_MAX_SEED",
         "SEED_CONTROL_DECREMENT": "SEED_CONTROL_DECREMENT",
+        "SEED_CONTROL_FIXED": "SEED_CONTROL_FIXED",
         "SEED_CONTROL_INCREMENT": "SEED_CONTROL_INCREMENT",
         "SEED_CONTROL_MODES": "SEED_CONTROL_MODES",
         "SEED_CONTROL_RANDOMIZE": "SEED_CONTROL_RANDOMIZE",

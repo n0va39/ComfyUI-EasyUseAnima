@@ -98,9 +98,6 @@ PROMPT_NODE_ADAPTER_RETIRED_RUNTIME_BINDERS = (
 RUNTIME_BINDER_FAMILIES = {
     "aio": (
         "_bind_aio_legacy_generation_runtime",
-        "_bind_aio_model_preparation_runtime",
-        "_bind_aio_sampling_runtime",
-        "_bind_aio_conditioning_runtime",
         "_bind_aio_node_runtime",
     ),
     "wildcard_naia": (
@@ -138,6 +135,7 @@ AIO_RUNTIME_RETIRED_SUBGROUPS = (
     "B-11c30d1_cache_state",
     "B-11c30d2_normalization_planning",
     "B-11c30d3_io_boundary",
+    "B-11c30d4_execution_services",
 )
 AIO_RUNTIME_PREREQUISITE_MOVES = (
     {
@@ -2325,14 +2323,14 @@ def _build_document() -> dict[str, Any]:
         "expected_counts": {
             "root_entrypoints": 3,
             "excluded_preamble_implementation_bindings": 3,
-            "nodes_canonical_bindings": 296,
+            "nodes_canonical_bindings": 293,
             "nodes_legacy_bindings": 27,
             "mapped_public_classes": 18,
             "unmapped_classes": 2,
             "root_residual_functions": 0,
             "root_residual_classes": 0,
             "root_residual_globals": 3,
-            "runtime_binders": 7,
+            "runtime_binders": 4,
             "direct_nodes_import_test_files": 21,
         },
         "mapped_public_classes": sorted(mapped_classes),
@@ -2564,7 +2562,7 @@ class PythonCompatibilitySurfaceTests(unittest.TestCase):
             len(self.document["direct_nodes_import_test_files"]),
             counts["direct_nodes_import_test_files"],
         )
-        self.assertEqual(len(set(self.document["runtime_binders"])), 7)
+        self.assertEqual(len(set(self.document["runtime_binders"])), 4)
         self.assertEqual(len(set(self.document["direct_nodes_import_test_files"])), 21)
 
     def test_runtime_binder_audit_covers_provider_and_root_names(self):
@@ -2572,34 +2570,30 @@ class PythonCompatibilitySurfaceTests(unittest.TestCase):
         self.assertEqual(
             audit["summary"],
             {
-                "binder_count": 7,
+                "binder_count": 4,
                 "family_count": 2,
                 "mode_counts": {
-                    "comfy_provider_then_root": 4,
+                    "comfy_provider_then_root": 1,
                     "root_globals": 1,
                     "explicit_callbacks": 2,
                 },
-                "unique_resolver_names": 112,
-                "unique_root_resolver_names": 108,
-                "unique_provider_resolver_names": 4,
+                "unique_resolver_names": 86,
+                "unique_root_resolver_names": 84,
+                "unique_provider_resolver_names": 2,
                 "unique_direct_root_dependencies": 9,
-                "direct_root_dependency_slots": 13,
-                "provider_consumer_slots": 8,
-                "provider_consumer_modules": 4,
-                "repository_replacement_names": 85,
-                "repository_replacement_files": 8,
+                "direct_root_dependency_slots": 10,
+                "provider_consumer_slots": 2,
+                "provider_consumer_modules": 1,
+                "repository_replacement_names": 71,
+                "repository_replacement_files": 5,
             },
         )
         self.assertEqual(
             audit["provider_resolver_names"],
-            sorted(
-                set(COMFY_HOST_WRAPPERS)
-                - {
-                    "_comfy_max_resolution",
-                    "_find_comfy_node_mapping_class",
-                    "_find_loaded_node_class",
-                }
-            ),
+            [
+                "_encode_with_comfy_clip",
+                "_require_custom_node_class",
+            ],
         )
         self.assertEqual(
             set(audit["root_resolver_names"])
@@ -2692,14 +2686,6 @@ class PythonCompatibilitySurfaceTests(unittest.TestCase):
         self.assertEqual(
             summaries,
             {
-                "B-11c30d4_execution_services": {
-                    "root_resolver_slots": 43,
-                    "unique_root_resolver_names": 37,
-                    "provider_resolver_slots": 6,
-                    "direct_root_dependency_slots": 3,
-                    "repository_replacement_slots": 23,
-                    "unique_repository_replacement_names": 21,
-                },
                 "B-11c30d5_legacy_orchestration": {
                     "root_resolver_slots": 59,
                     "unique_root_resolver_names": 59,

@@ -113,7 +113,11 @@ class AIOConditioningMoveTests(unittest.TestCase):
             return f"first:{text}"
 
         with (
-            patch.object(nodes, "_aio_usdu_prompt_without_general", return_value=("", False)),
+            patch.object(
+                conditioning,
+                "_aio_usdu_prompt_without_general",
+                return_value=("", False),
+            ),
             patch_comfy_helper(
                 nodes,
                 "_encode_with_comfy_clip",

@@ -640,14 +640,14 @@ class AioLoraSignatureMoveContractTests(unittest.TestCase):
         }
     ]
 
-    def test_root_alias_and_call_time_normalizer_rebind(self):
+    def test_root_alias_and_canonical_normalizer_rebind(self):
         self.assertIs(
             nodes._aio_lora_stack_signature,
             aio_model_preparation._aio_lora_stack_signature,
         )
         normalized = [("styles/test.safetensors", 0.8, 0.6)]
         with patch.object(
-            nodes,
+            aio_model_preparation,
             "_normalize_aio_lora_stack",
             return_value=normalized,
         ) as normalize:
@@ -657,7 +657,7 @@ class AioLoraSignatureMoveContractTests(unittest.TestCase):
             )
         normalize.assert_called_once_with("raw")
 
-    def test_package_alias_and_call_time_normalizer_rebind(self):
+    def test_package_alias_and_canonical_normalizer_rebind(self):
         with _loaded_package_entrypoint() as (_, package_nodes):
             package_name = package_nodes.__package__
             package_model_preparation = sys.modules[
@@ -669,7 +669,7 @@ class AioLoraSignatureMoveContractTests(unittest.TestCase):
             )
             normalized = [("styles/test.safetensors", 0.8, 0.6)]
             with patch.object(
-                package_nodes,
+                package_model_preparation,
                 "_normalize_aio_lora_stack",
                 return_value=normalized,
             ) as normalize:
@@ -1863,21 +1863,25 @@ class AioRuntimeSeedMoveContractTests(unittest.TestCase):
             randint=lambda lower, upper: randint_calls.append((lower, upper)) or 7
         )
         with (
-            patch.object(root_module, "random", random_module),
-            patch.object(root_module, "MAX_SEED", 12),
+            patch.object(canonical_module, "random", random_module),
+            patch.object(canonical_module, "MAX_SEED", 12),
         ):
             self.assertEqual(canonical_module._new_aio_random_seed(), 7)
         self.assertEqual(randint_calls, [(0, 12)])
 
         with (
             patch.object(
-                root_module,
+                canonical_module,
                 "_normalize_aio_seed",
                 side_effect=(-1, 99, -99),
             ) as normalize_seed,
-            patch.object(root_module, "AIO_SPECIAL_SEEDS", {-1}),
-            patch.object(root_module, "_new_aio_random_seed", return_value=777) as new_seed,
-            patch.object(root_module, "MAX_SEED", 12),
+            patch.object(canonical_module, "AIO_SPECIAL_SEEDS", {-1}),
+            patch.object(
+                canonical_module,
+                "_new_aio_random_seed",
+                return_value=777,
+            ) as new_seed,
+            patch.object(canonical_module, "MAX_SEED", 12),
         ):
             self.assertEqual(canonical_module._resolve_aio_runtime_seed("special"), 777)
             self.assertEqual(canonical_module._resolve_aio_runtime_seed("high"), 12)
@@ -1889,10 +1893,10 @@ class AioRuntimeSeedMoveContractTests(unittest.TestCase):
         )
         new_seed.assert_called_once_with()
 
-    def test_root_aliases_and_runtime_helper_replacements(self):
+    def test_root_aliases_and_canonical_replacements(self):
         self._assert_contract(nodes, aio_sampling)
 
-    def test_package_aliases_and_runtime_helper_replacements(self):
+    def test_package_aliases_and_canonical_replacements(self):
         with _loaded_package_entrypoint() as (_, package_nodes):
             package_name = package_nodes.__package__
             package_sampling = sys.modules[f"{package_name}.easyuse_anima.aio.sampling"]

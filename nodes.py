@@ -85,7 +85,6 @@ try:
         _aio_prompt_data_fields_for_usdu as _aio_prompt_data_fields_for_usdu,
         _aio_usdu_conditioning as _aio_usdu_conditioning,
         _aio_usdu_prompt_without_general as _aio_usdu_prompt_without_general,
-        _bind_aio_conditioning_runtime as _bind_aio_conditioning_runtime,
     )
     from .easyuse_anima.aio.model_preparation import (
         _aio_lora_stack_signature as _aio_lora_stack_signature,
@@ -97,7 +96,6 @@ try:
         _apply_aio_spectrum_correction_patch_for_comfy_sampler as _apply_aio_spectrum_correction_patch_for_comfy_sampler,
         _apply_aio_spectrum_forecast_patch_for_comfy_sampler as _apply_aio_spectrum_forecast_patch_for_comfy_sampler,
         _apply_aio_spectrum_model_patches_for_comfy_sampler as _apply_aio_spectrum_model_patches_for_comfy_sampler,
-        _bind_aio_model_preparation_runtime as _bind_aio_model_preparation_runtime,
         _cleanup_aio_ephemeral_model as _cleanup_aio_ephemeral_model,
         _normalize_aio_lora_stack as _normalize_aio_lora_stack,
         _patch_model_sampling_aura_flow as _patch_model_sampling_aura_flow,
@@ -105,7 +103,6 @@ try:
     from .easyuse_anima.aio.sampling import (
         _aio_highres_effective_backend as _aio_highres_effective_backend,
         _aio_stage_sampler_settings as _aio_stage_sampler_settings,
-        _bind_aio_sampling_runtime as _bind_aio_sampling_runtime,
         _decode_latent_with_comfy as _decode_latent_with_comfy,
         _encode_image_with_comfy_vae as _encode_image_with_comfy_vae,
         _generate_empty_latent_with_comfy as _generate_empty_latent_with_comfy,
@@ -649,7 +646,6 @@ except ImportError:  # allows simple local import tests outside ComfyUI's packag
         _aio_prompt_data_fields_for_usdu as _aio_prompt_data_fields_for_usdu,
         _aio_usdu_conditioning as _aio_usdu_conditioning,
         _aio_usdu_prompt_without_general as _aio_usdu_prompt_without_general,
-        _bind_aio_conditioning_runtime as _bind_aio_conditioning_runtime,
     )
     from easyuse_anima.aio.model_preparation import (
         _aio_lora_stack_signature as _aio_lora_stack_signature,
@@ -661,7 +657,6 @@ except ImportError:  # allows simple local import tests outside ComfyUI's packag
         _apply_aio_spectrum_correction_patch_for_comfy_sampler as _apply_aio_spectrum_correction_patch_for_comfy_sampler,
         _apply_aio_spectrum_forecast_patch_for_comfy_sampler as _apply_aio_spectrum_forecast_patch_for_comfy_sampler,
         _apply_aio_spectrum_model_patches_for_comfy_sampler as _apply_aio_spectrum_model_patches_for_comfy_sampler,
-        _bind_aio_model_preparation_runtime as _bind_aio_model_preparation_runtime,
         _cleanup_aio_ephemeral_model as _cleanup_aio_ephemeral_model,
         _normalize_aio_lora_stack as _normalize_aio_lora_stack,
         _patch_model_sampling_aura_flow as _patch_model_sampling_aura_flow,
@@ -669,7 +664,6 @@ except ImportError:  # allows simple local import tests outside ComfyUI's packag
     from easyuse_anima.aio.sampling import (
         _aio_highres_effective_backend as _aio_highres_effective_backend,
         _aio_stage_sampler_settings as _aio_stage_sampler_settings,
-        _bind_aio_sampling_runtime as _bind_aio_sampling_runtime,
         _decode_latent_with_comfy as _decode_latent_with_comfy,
         _encode_image_with_comfy_vae as _encode_image_with_comfy_vae,
         _generate_empty_latent_with_comfy as _generate_empty_latent_with_comfy,
@@ -1141,24 +1135,6 @@ _TRIGGER_WORD_KEYS = ("trainedWords", "trained_words", "trigger_words", "activat
 
 
 _bind_aio_legacy_generation_runtime(
-    resolve_helper=lambda name: _resolve_comfy_host_helper(
-        name,
-        lambda fallback_name: globals()[fallback_name],
-    ),
-)
-_bind_aio_model_preparation_runtime(
-    resolve_helper=lambda name: _resolve_comfy_host_helper(
-        name,
-        lambda fallback_name: globals()[fallback_name],
-    ),
-)
-_bind_aio_sampling_runtime(
-    resolve_helper=lambda name: _resolve_comfy_host_helper(
-        name,
-        lambda fallback_name: globals()[fallback_name],
-    ),
-)
-_bind_aio_conditioning_runtime(
     resolve_helper=lambda name: _resolve_comfy_host_helper(
         name,
         lambda fallback_name: globals()[fallback_name],

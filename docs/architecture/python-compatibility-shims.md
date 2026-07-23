@@ -950,7 +950,7 @@ convenience-node compatibility; it remains unmapped and is not public support.
 
 ### B-11c30d4 AiO execution-service binder retirement
 
-- The planned Move contains exactly `_bind_aio_model_preparation_runtime`,
+- PR #351 retires exactly `_bind_aio_model_preparation_runtime`,
   `_bind_aio_sampling_runtime`, and `_bind_aio_conditioning_runtime`.
 - The current surface is 43 root-resolver slots over 37 names, six E-07
   provider slots over four names, three direct root-helper dependencies, and
@@ -969,6 +969,11 @@ convenience-node compatibility; it remains unmapped and is not public support.
   VAE encode/decode, stage settings, Prompt Data selection, CLIP conditioning,
   provider timing, errors/logs, schemas/workflows, cache, and stage behavior
   are frozen.
+- The d4 binder definitions, resolver globals/helpers, and root imports/calls
+  are absent. Four binders remain: d5, d6, and the two Wildcard/NAIA callbacks.
+- The compatibility inventory contains 293 canonical root bindings, three
+  residual root globals, 92 shipped and reachable Python modules, and a
+  1,158-line root shim.
 
 ### `nodes.py` public node-class surface
 

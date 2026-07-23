@@ -1950,7 +1950,7 @@ Result:
 
 ### B-11c30d4 — AiO execution-service binder Move
 
-- **State:** READY; Draft PR pending
+- **State:** COMPLETE in PR #351
 - **Owner:** #184
 - **Behavior boundary:** #168 and #169
 - **Type:** Move
@@ -2080,6 +2080,22 @@ Forbidden:
 - combining Contract, Behavior, performance, dependency, or broad formatting
   cleanup.
 
+Result:
+
+- all three d4 binder definitions, resolver globals/helpers, and root
+  imports/calls are absent;
+- model preparation, sampling, and conditioning use direct canonical
+  stateless dependencies and same-module calls. The four existing E-07 host
+  seams retain call-time provider observation;
+- all 26 root execution aliases retain exact canonical identity, while only
+  d4 owner tests moved patch ownership to canonical modules;
+- d4 alone is retired. Four binders remain: the d5 legacy orchestrator, d6 node
+  adapter, and two Wildcard/NAIA callback binders;
+- the compatibility surface contains 293 canonical root bindings, three
+  residual root globals, and 92 shipped and reachable Python modules; and
+- `nodes.py` is 1,158 lines, 11,505 fewer than the 12,663-line Phase A
+  baseline (90.9% removed).
+
 ### B-11d — Final root shim
 
 - **State:** BLOCKED by the remaining AiO and Wildcard/NAIA binder families
@@ -2130,8 +2146,8 @@ COMPLETE: B-11c30d1 AiO cache-state binder Move / PR #347
 COMPLETE: B-11c30d0a output-settings owner Move / PR #348
 COMPLETE: B-11c30d2 normalization/planning binder Move / PR #349
 COMPLETE: B-11c30d3 I/O-boundary binder Move / PR #350
-READY:    B-11c30d4 execution-service Move
-PLANNED:  B-11c30d0b input-context owner Move before d5-d6
+COMPLETE: B-11c30d4 execution-service Move / PR #351
+READY:    B-11c30d0b input-context owner Move before d5-d6
 PLANNED:  B-11c30d5-d6 orchestration and node-adapter Moves
 BLOCKED:  B-11d final root shim
 
