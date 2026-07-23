@@ -467,3 +467,193 @@ and injects one instance through bootstrap into `RuntimeServices`.
   the 77-file Pyright baseline ratchet, and all six import-boundary groups.
 - Production `reserve` and `settle` callers remain zero. S167-03 still owns all
   adapters and behavior cutover.
+
+## S167-03a adapter cutover Contract/docs gate
+
+- State: READY
+- PR type: Contract/docs/gate
+- Baseline: `dev` commit
+  `d61749a5a1e40714037c7b00741bd92a209ff8e2`
+- Production changes: forbidden
+
+### Blocker found before adapter implementation
+
+The version-2 service Contract defines idempotent request identities and
+terminal settlement values, but it does not define how a headless Comfy
+execution obtains its request identity or when a reservation becomes accepted.
+The current browser interceptors settle on the `/prompt` response. A node-only
+backend adapter instead first runs after queue validation and can observe
+execution success, failure, or interruption.
+
+Inferring these missing rules independently in the AiO and Prompt Studio
+adapters would create two authorities and make browser/headless parity
+unprovable. S167-03 therefore starts with this production-free gate.
+
+### Symbol, caller, alias, and state inventory
+
+Backend:
+
+- `RuntimeServices.seed_reservations` owns the sole process service.
+  Production `reserve` and `settle` callers are still zero.
+- `EasyUseAnimaAIOGenerator.generate` receives Comfy `UNIQUE_ID`, `PROMPT`, and
+  `EXTRA_PNGINFO`, but no prompt/request ID. Its `IS_CHANGED` and
+  `_run_aio_legacy_generation` paths still resolve special seeds through
+  `_resolve_aio_runtime_seed`.
+- Advanced and Regional Prompt Studio nodes receive `UNIQUE_ID`. Their
+  `IS_CHANGED` and `build` methods still use browser-mutated concrete seed
+  inputs and the version-1 hidden next-seed compatibility payload.
+- Comfy v0.27.0 exposes `prompt_id`, effective `node_id`, and `list_index`
+  through `comfy_execution.utils.get_executing_context()`. EasyUseAnima has no
+  canonical execution-context adapter and must not import that host module at
+  package import time.
+- Root `nodes.py` retains direct compatibility aliases for
+  `_resolve_aio_runtime_seed`, `_consume_reserved_wildcard_next_seed`, and the
+  two hidden-payload constants. D-12, not S167-03, owns their final root
+  retirement.
+
+Frontend:
+
+- `web/js/aio/generator_queue_runtime.js` owns a `WeakMap` reservation queue,
+  rewrites queued generation settings/workflow values, and publishes accepted
+  seed state.
+- `web/js/prompt_studio/advanced_queue_seed_runtime.js` owns a second state
+  machine, injects the version-1 hidden next-seed payload, rewrites prompt and
+  workflow values, and guards executed seed publication.
+- Prompt Studio already consumes backend `onExecuted` wildcard seed values.
+  AiO `onExecuted` currently updates status/preview only and has no backend seed
+  display payload.
+- Both interceptors are installed through the replacement-safe host-hook
+  registry. Their state and queue callbacks must be retired, not left as a
+  second fallback authority.
+
+Global state:
+
+- backend state is bounded and process-local inside
+  `InMemorySeedReservationService`;
+- browser AiO state is weakly keyed per node;
+- browser Prompt Studio state is keyed by graph/node identity and also retains
+  detached-state guards; and
+- no shared execution-identity, adapter-session, or backend UI-publication
+  state exists.
+
+### Locked execution identity
+
+S167-03b defines one side-effect-free execution identity contract and one
+call-time Comfy host adapter.
+
+- Effective identity fields are `prompt_id`, `node_id`, and optional
+  `list_index`.
+- A backend request ID is namespaced by feature and encodes all three fields.
+  The list index distinguishes repeated mapped calls in one prompt.
+- A stream ID is namespaced by feature and stable effective node ID. It never
+  includes the prompt ID, so accepted state continues across queues.
+- Comfy execution context is authoritative when available. The hidden
+  `UNIQUE_ID` is the compatibility fallback and must not override a different
+  effective context node ID.
+- Older/test hosts with a stable `UNIQUE_ID` but no execution context use a
+  fresh opaque request ID and retain the stable stream ID.
+- A call with neither an execution-context node ID nor a usable `UNIQUE_ID`
+  does not mutate the authoritative service and follows the existing isolated
+  legacy/test path.
+- The host adapter imports `comfy_execution.utils` only at call time, returns a
+  validated value or `None`, owns no mutable state, and does not expand the
+  four-method `ComfyHostProvider` E-02a contract.
+
+### Locked settlement and cache timing
+
+S167-03c supplies one shared backend execution-session adapter.
+
+- reserve occurs after input normalization and before the first seed-dependent
+  operation;
+- a normal adapter return settles `accepted`;
+- a host interruption settles `cancelled` and is re-raised;
+- every other `BaseException` settles `rejected` and is re-raised;
+- retry of the same Comfy execution identity is therefore allowed after
+  rejection/cancellation, while duplicate successful callbacks remain
+  idempotent; and
+- browser queue acceptance alone no longer advances seed state. Browser and
+  headless paths both commit on successful backend node execution.
+
+Cache policy is explicit:
+
+- concrete selection with `fixed` after-generate remains cacheable;
+- randomize/increment/decrement selection or any non-fixed after-generate
+  control must force node execution;
+- cache forcing belongs to the feature node adapter, not the shared service;
+  and
+- accepted service state remains authoritative if UI publication fails.
+
+### Compatibility and publication
+
+- Existing AiO `-1/-2/-3` serialized settings remain valid and are translated
+  through the version-2 legacy parser.
+- Existing concrete seeds and the AiO `2^50` clamp domain remain unchanged.
+- Prompt Studio keeps its JavaScript-safe wrap domain and existing wildcard
+  mode normalization.
+- Old browser bundles may continue sending concrete queue rewrites and the
+  version-1 hidden Prompt Studio payload. Backend adapters scrub that payload
+  but never accept its browser-selected next seed as authoritative.
+- No workflow schema, node socket, widget order, hidden-input name, or saved
+  workflow byte is added for the new service.
+- Prompt Studio continues publishing the accepted `next_seed` through its
+  existing `onExecuted` payload.
+- AiO adds one backend executed-seed display payload without changing its three
+  output sockets or metadata JSON schema.
+- New browser code consumes executed display values and retires queue seed
+  reservation/state transitions. It may keep only serialization, control, and
+  display adapters.
+
+### Rollback units
+
+1. **S167-03a Contract/docs gate:** this production-free identity, settlement,
+   cache, compatibility, and validation ownership gate.
+2. **S167-03b Execution identity Contract:** pure types plus the call-time Comfy
+   execution-context adapter; no reservation caller.
+3. **S167-03c Execution session Behavior:** shared reserve/settle exception-safe
+   adapter; no feature-node or browser caller.
+4. **S167-03d Prompt Studio cutover Behavior:** Advanced and Regional backend
+   callers, cache policy, hidden-payload scrub, executed display publication,
+   and Prompt Studio interceptor retirement.
+5. **S167-03e AiO cutover Behavior:** AiO backend caller, cache policy, executed
+   display publication, AiO interceptor retirement, and final
+   browser/headless/old-bundle parity evidence.
+
+S167-03d and S167-03e may not share a PR. Both are Behavior units, but they
+modify different node schemas, domains, display payloads, frontend owners, and
+regression matrices.
+
+### Validation ownership
+
+- S167-03a: Markdown/diff/cross-reference checks only; no production surface
+  changed, so PR #358 full evidence is reused.
+- S167-03b and S167-03c: focused contract/import/service tests. They have zero
+  feature production callers, so they do not repeat the official full.
+- S167-03d: focused Prompt Studio Python/Node smoke plus one official full.
+- S167-03e: focused AiO Python/Node smoke, one official full, and final isolated
+  Legacy/Node 2.0 browser plus headless API parity.
+- A failed official full is classified once. Deterministic docs/fixture drift
+  after a successful full does not trigger another full run.
+
+### Allowed-file boundary
+
+S167-03a may change only:
+
+- `docs/architecture/seed-reservation-contract.md`; and
+- `docs/architecture/python-backend-execution-roadmap.md`.
+
+Forbidden:
+
+- every Python, JavaScript, JSON fixture, workflow, metadata, and test file;
+- creating a service caller, execution-context adapter, route, hidden payload,
+  node input, browser hook, or migration;
+- changing service state, bounds, arithmetic, settlement, or compatibility
+  aliases; and
+- #169 stage/cache Behavior, D-12 root retirement, E-09 lifecycle, release, or
+  Registry work.
+
+Exit:
+
+- execution identity, settlement timing, cache forcing, old-bundle policy,
+  display ownership, rollback units, and validation ownership are explicit;
+- the diff contains only the two allowed Markdown files; and
+- S167-03b can begin without feature-specific inference.
