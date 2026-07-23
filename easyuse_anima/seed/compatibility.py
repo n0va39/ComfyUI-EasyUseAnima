@@ -20,6 +20,27 @@ def _wildcard_engine_module():
     return module
 
 
+def _scrub_reserved_wildcard_next_seed(
+    reservation_inputs,
+    workflow_prompt,
+    node_id,
+):
+    """Remove the retired browser reservation payload from execution inputs."""
+
+    raw_reservation = None
+    if isinstance(reservation_inputs, dict):
+        raw_reservation = _single_value(
+            reservation_inputs.pop(WILDCARD_RESERVED_NEXT_SEED_INPUT, None)
+        )
+    node_id = _single_value(node_id)
+    if isinstance(workflow_prompt, dict) and node_id is not None:
+        prompt_node = workflow_prompt.get(str(node_id))
+        prompt_inputs = prompt_node.get("inputs") if isinstance(prompt_node, dict) else None
+        if isinstance(prompt_inputs, dict):
+            prompt_inputs.pop(WILDCARD_RESERVED_NEXT_SEED_INPUT, None)
+    return raw_reservation
+
+
 def _consume_reserved_wildcard_next_seed(
     reservation_inputs,
     workflow_prompt,
@@ -30,15 +51,11 @@ def _consume_reserved_wildcard_next_seed(
 ):
     if not isinstance(reservation_inputs, dict):
         return None
-    raw_reservation = _single_value(
-        reservation_inputs.pop(WILDCARD_RESERVED_NEXT_SEED_INPUT, None)
+    raw_reservation = _scrub_reserved_wildcard_next_seed(
+        reservation_inputs,
+        workflow_prompt,
+        node_id,
     )
-    node_id = _single_value(node_id)
-    if isinstance(workflow_prompt, dict) and node_id is not None:
-        prompt_node = workflow_prompt.get(str(node_id))
-        prompt_inputs = prompt_node.get("inputs") if isinstance(prompt_node, dict) else None
-        if isinstance(prompt_inputs, dict):
-            prompt_inputs.pop(WILDCARD_RESERVED_NEXT_SEED_INPUT, None)
     if not isinstance(raw_reservation, str):
         return None
     try:

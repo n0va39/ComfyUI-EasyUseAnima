@@ -97,6 +97,30 @@ class SeedReservationServiceTests(unittest.TestCase):
             (7, 7),
         )
 
+    def test_concrete_fixed_replays_seed_after_nonfixed_acceptance(self):
+        service = InMemorySeedReservationService(
+            reservation_id_factory=sequential_ids(),
+        )
+
+        advancing = service.reserve(
+            make_request(
+                "q1",
+                seed=7,
+                after_generate=SEED_SELECTION_INCREMENT,
+            )
+        )
+        service.settle(advancing.reservation_id, SEED_SETTLEMENT_ACCEPTED)
+        replay = service.reserve(make_request("q2", seed=7))
+
+        self.assertEqual(
+            (advancing.execution_seed, advancing.next_seed),
+            (7, 8),
+        )
+        self.assertEqual(
+            (replay.execution_seed, replay.next_seed),
+            (7, 7),
+        )
+
     def test_repeated_concrete_increment_reserves_unique_fifo_sequence(self):
         service = InMemorySeedReservationService(
             reservation_id_factory=sequential_ids(),

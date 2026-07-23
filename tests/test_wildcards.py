@@ -1127,7 +1127,13 @@ class WildcardNodeTests(unittest.TestCase):
         )
 
     def test_prompt_studio_mode_and_seed_control_matrix_saves_current_seed_as_fixed(self):
-        with patch("wildcard_engine.random.SystemRandom") as system_random:
+        with (
+            patch("wildcard_engine.random.SystemRandom") as system_random,
+            patch(
+                "easyuse_anima.nodes.seed_adapters.get_runtime",
+                side_effect=RuntimeError,
+            ),
+        ):
             system_random.return_value.randrange.return_value = 41
             for mode in ("일반", "순차"):
                 for control, expected_next in (
@@ -1217,7 +1223,13 @@ class WildcardNodeTests(unittest.TestCase):
             "workflow": {"nodes": [{"id": 9, "widgets_values": []}]}
         }
 
-        with patch("wildcard_engine.random.SystemRandom") as system_random:
+        with (
+            patch("wildcard_engine.random.SystemRandom") as system_random,
+            patch(
+                "easyuse_anima.nodes.seed_adapters.get_runtime",
+                side_effect=RuntimeError,
+            ),
+        ):
             system_random.return_value.randrange.return_value = 41
             first = EasyUseAnimaPromptStudioAdvanced().build(
                 False,

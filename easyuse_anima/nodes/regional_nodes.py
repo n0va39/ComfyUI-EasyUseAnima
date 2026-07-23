@@ -40,9 +40,13 @@ from ..prompt.regional import (
     _regional_payload_canvas,
     _regional_union_mask_for_ids,
 )
-from ..seed.compatibility import _consume_reserved_wildcard_next_seed
+from ..seed.compatibility import _scrub_reserved_wildcard_next_seed
 from ..workflow import _get_workflow_node
 from .input_types import _FlexibleOptionalInputType
+from .seed_adapters import (
+    PROMPT_STUDIO_REGIONAL_SEED_FEATURE,
+    prompt_studio_seed_execution,
+)
 
 try:
     from ...settings import resolve_metadata_filter_words
@@ -222,6 +226,8 @@ class EasyUseAnimaPromptStudioRegional:
             wildcard_seed_after_generate,
             wildcard_mode,
         )
+        if wildcard_seed_control != SEED_CONTROL_FIXED:
+            return float("nan")
         return _stable_change_key({
             "mode": "prompt_studio_regional",
             "metadata_filter_words": resolve_metadata_filter_words(),
@@ -341,70 +347,70 @@ class EasyUseAnimaPromptStudioRegional:
             wildcard_seed_after_generate,
             wildcard_mode,
         )
-        reserved_next_wildcard_seed = _consume_reserved_wildcard_next_seed(
+        _scrub_reserved_wildcard_next_seed(
             field_inputs,
             workflow_prompt,
             unique_id,
-            wildcard_seed_value,
-            wildcard_mode_key,
-            wildcard_effective_seed_control,
         )
-        ui_updates: dict[str, Any] = {}
-        metadata_updates: dict[str, Any] = {}
+        with prompt_studio_seed_execution(
+            feature=PROMPT_STUDIO_REGIONAL_SEED_FEATURE,
+            unique_id=unique_id,
+            seed=wildcard_seed_value,
+            after_generate=wildcard_effective_seed_control,
+            fallback_next_seed=lambda: next_seed(
+                wildcard_seed_value,
+                wildcard_effective_seed_control,
+            ),
+        ) as seed_execution:
+            effective_fields, effective_wildcard = _expand_advanced_wildcard_fields(
+                effective_fields,
+                seed_execution.execution_seed,
+                wildcard_mode_key,
+            )
+            effective_fields = _translate_prompt_fields(effective_fields)
+            ui_updates: dict[str, Any] = {
+                "wildcard_mode": wildcard_mode_label,
+                "wildcard_execution_seed": seed_execution.execution_seed,
+                "wildcard_seed": seed_execution.next_seed,
+                "wildcard_seed_after_generate": wildcard_effective_seed_control,
+                "wildcard_used_keys": list(effective_wildcard["used_keys"]),
+                "wildcard_missing_keys": list(effective_wildcard["missing_keys"]),
+            }
+            metadata_updates: dict[str, Any] = {
+                "wildcard_mode": wildcard_mode_label,
+                "wildcard_seed": seed_execution.execution_seed,
+                "wildcard_seed_after_generate": SEED_CONTROL_FIXED,
+            }
 
-        effective_fields, effective_wildcard = _expand_advanced_wildcard_fields(
-            effective_fields,
-            wildcard_seed_value,
-            wildcard_mode_key,
-        )
-        effective_fields = _translate_prompt_fields(effective_fields)
-        next_wildcard_seed = (
-            reserved_next_wildcard_seed
-            if reserved_next_wildcard_seed is not None
-            else next_seed(wildcard_seed_value, wildcard_effective_seed_control)
-        )
-        ui_updates.update({
-            "wildcard_mode": wildcard_mode_label,
-            "wildcard_seed": next_wildcard_seed,
-            "wildcard_seed_after_generate": wildcard_effective_seed_control,
-            "wildcard_used_keys": list(effective_wildcard["used_keys"]),
-            "wildcard_missing_keys": list(effective_wildcard["missing_keys"]),
-        })
-        metadata_updates.update({
-            "wildcard_mode": wildcard_mode_label,
-            "wildcard_seed": wildcard_seed_value,
-            "wildcard_seed_after_generate": SEED_CONTROL_FIXED,
-        })
+            fields_json = _regional_fields_json(saved_fields)
+            config_json = _regional_config_json(config)
+            self._update_metadata_fields(
+                workflow_prompt,
+                extra_pnginfo,
+                unique_id,
+                fields_json,
+                config_json,
+                metadata_updates,
+            )
 
-        fields_json = _regional_fields_json(saved_fields)
-        config_json = _regional_config_json(config)
-        self._update_metadata_fields(
-            workflow_prompt,
-            extra_pnginfo,
-            unique_id,
-            fields_json,
-            config_json,
-            metadata_updates,
-        )
-
-        (
-            positive_prompt,
-            negative_prompt,
-            metadata_prompt,
-            metadata_negative_prompt,
-            regional_prompt_data,
-        ) = _build_regional_outputs(effective_fields, config, width, height)
-
-        return {
-            "ui": self._ui(fields_json, config_json, effective_field_inputs, ui_updates),
-            "result": (
+            (
+                _positive_prompt,
+                _negative_prompt,
                 metadata_prompt,
                 metadata_negative_prompt,
-                width,
-                height,
                 regional_prompt_data,
-            ),
-        }
+            ) = _build_regional_outputs(effective_fields, config, width, height)
+
+            return {
+                "ui": self._ui(fields_json, config_json, effective_field_inputs, ui_updates),
+                "result": (
+                    metadata_prompt,
+                    metadata_negative_prompt,
+                    width,
+                    height,
+                    regional_prompt_data,
+                ),
+            }
 
 
 class EasyUseAnimaRegionalConditioning:

@@ -22,6 +22,7 @@ import {
 } from "./widgets.js";
 import {
   serializePreviousWildcardExecution,
+  writePreviousWildcardExecution,
 } from "./wildcard_seed_history.js";
 
 function syncAdvancedValues(node, serialized = null, hooks = {}) {
@@ -98,12 +99,14 @@ function applyAdvancedExecutedInputs(node, message, hooks = {}) {
     }
   }
   const wildcardSeed = findWidget(node, "wildcard_seed");
-  if (
-    wildcardSeed
-    && payload.wildcard_seed != null
-    && hooks.shouldApplyExecutedSeed?.(node, payload.wildcard_seed) !== false
-  ) {
+  if (wildcardSeed && payload.wildcard_seed != null) {
     wildcardSeed.value = payload.wildcard_seed;
+  }
+  if (writePreviousWildcardExecution(node, {
+    seed: payload.wildcard_execution_seed,
+    mode: payload.wildcard_mode,
+  })) {
+    hooks.markNodeDirty?.(node);
   }
   for (const name of [
     "artist_mix_mode",

@@ -824,3 +824,85 @@ Exit:
 - service retry and duplicate-idempotency behavior remains focused-tested;
 - no heavy host import is needed to classify an active Comfy interruption; and
 - S167-03d can connect Prompt Studio without duplicating lifetime logic.
+
+## S167-03d Prompt Studio cutover Behavior record
+
+- State: VALIDATED; `dev` merge pending
+- PR type: Behavior
+- Baseline: `dev` commit
+  `23cd9990f5b33ec33a02a66bad9e4f77f874bcdc`
+- Feature reservation callers: Advanced, Advanced v2, and Regional Prompt
+  Studio
+
+### Implemented boundary
+
+`easyuse_anima.nodes.seed_adapters` is the feature adapter between Prompt
+Studio and the shared identity/session/service contracts.
+
+- Advanced and Regional use distinct stable feature namespaces.
+- A concrete input seed and normalized after-generate control become one
+  version-2 reservation request in the Prompt Studio JavaScript-safe wrap
+  domain.
+- Compatibility execution without a usable host identity or installed runtime
+  keeps the former local next-seed behavior. Its fallback is evaluated lazily,
+  so an authoritative random reservation does not consume a discarded browser
+  compatibility draw.
+- Advanced v2 keeps one session open through both its compatibility output and
+  structured prompt-data construction. Both wildcard expansion passes use the
+  same authoritative execution seed.
+- Fixed concrete requests always execute and publish their supplied seed,
+  including after an accepted increment/randomize stream. This preserves saved
+  workflow replay instead of inheriting retained advancing state.
+- Non-fixed Prompt Studio controls return an unstable `IS_CHANGED` value so
+  backend reservation cannot be skipped by cache reuse.
+
+The backend executed payload publishes both `wildcard_execution_seed` and the
+accepted next-run `wildcard_seed`. Advanced and Regional browser adapters apply
+the latter unconditionally and persist the former through the existing
+previous-execution workflow property. The browser no longer selects, reserves,
+guards, or commits a seed.
+
+### Compatibility and retirement
+
+- The version-1 hidden
+  `easyuse_anima_reserved_wildcard_next_seed` input is scrubbed from both
+  execution inputs and prompt metadata but its next seed is ignored.
+- The root compatibility consumer and constants remain direct aliases for
+  D-12; production Prompt Studio callers no longer use the consumer.
+- `advanced_queue_seed_runtime.js`, `queue_seed_bridge.js`, their queue/graph
+  hooks, and the obsolete 2,494-line browser authority smoke are removed.
+- Prompt Studio no longer imports Comfy's frontend `api` module because the
+  retired queue interceptor was its only caller.
+- Node sockets, widget order, saved workflow schema, public seed range, wildcard
+  mode normalization, and AiO behavior are unchanged.
+
+### Validation
+
+- focused service/adapter/Prompt Studio/Regional tests: 40 passed, followed by
+  32 post-review service-integration tests;
+- backend analyzer/import/package/Registry gate: 43 passed;
+- frontend module contract: 50 passed;
+- Advanced executed-values, Regional lifecycle, and host-hook Node smokes:
+  passed;
+- Python quality gate: Pyright baseline ratchet passed for 80 files with no new
+  diagnostics; import boundary gate passed with zero violations;
+- official full attempt completed compile, quality, and import gates, then
+  exposed 11 focused contract/test-isolation failures in the Python suite;
+- after correction, the official Python suite passed 1,039 behavior tests with
+  only one deterministic analyzer fixture drift, whose exact regenerated
+  fixture check passed; and
+- every frontend smoke passed, followed by a successful TypeScript 6.0.3 check
+  after removing the retired API argument. The full entrypoint was not
+  restarted solely to repeat already-passed stages.
+
+### Allowed-file boundary and rollback
+
+This unit changes only Prompt Studio Advanced/Regional node adapters, the
+feature seed adapter, fixed replay selection, retired hidden-payload scrubbing,
+Prompt Studio frontend authority/display modules, their focused tests and
+analyzer fixtures, and these two architecture records.
+
+It does not change AiO callers, AiO domains or frontend hooks, reservation
+capacity, execution identity, settlement classification, workflow schemas,
+root compatibility aliases, #169 stages, D-12, release, or Registry behavior.
+S167-03e remains a separate AiO Behavior PR and the next rollback unit.

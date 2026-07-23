@@ -68,11 +68,9 @@ function registerPromptStudioNodeHooks(nodeType, nodeData, hooks) {
     const result = onConfigure?.apply(this, arguments);
     if (isAdvanced) {
       hooks.captureAdvancedConfigure(this, serialized);
-      hooks.attachAdvancedQueueSeedNode?.(this);
       hooks.scheduleHookAdvancedNode(this);
     } else if (isWildcard) {
       hooks.hookWildcardSeedWidget?.(this, { resetSeedControl: true });
-      hooks.attachAdvancedQueueSeedNode?.(this);
     } else {
       hooks.hookStudioNode(this);
     }
@@ -130,17 +128,6 @@ function registerPromptStudioNodeHooks(nodeType, nodeData, hooks) {
         hooks.disposeAdvancedAutocompleteInputs?.(this);
       } catch {
         // Autocomplete cleanup remains isolated from other node removal handlers.
-      }
-      try {
-        hooks.detachAdvancedQueueSeedNode?.(this);
-      } catch {
-        // State cleanup remains isolated from other node removal handlers.
-      }
-    } else if (isWildcard) {
-      try {
-        hooks.detachAdvancedQueueSeedNode?.(this);
-      } catch {
-        // State cleanup remains isolated from other node removal handlers.
       }
     }
     if (didThrow) {

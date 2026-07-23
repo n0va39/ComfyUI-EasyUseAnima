@@ -51,6 +51,7 @@ class ComfyHostWiringTests(unittest.TestCase):
             access_files,
             {
                 "easyuse_anima/infrastructure/comfy/wiring.py",
+                "easyuse_anima/nodes/seed_adapters.py",
                 "easyuse_anima/runtime.py",
             },
         )

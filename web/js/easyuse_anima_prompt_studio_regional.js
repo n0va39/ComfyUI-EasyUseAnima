@@ -33,6 +33,10 @@ import {
 
 const runtime = createRegionalRuntime(app, {
   fieldLabel: promptStudioFieldLabel,
+  markNodeDirty(node) {
+    node?.setDirtyCanvas?.(true, true);
+    app.graph?.setDirtyCanvas?.(true, true);
+  },
 });
 const layout = createRegionalLayout(app, runtime, {
   refreshPromptStudioHighlights,

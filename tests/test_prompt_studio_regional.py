@@ -281,7 +281,7 @@ class PromptStudioRegionalTests(unittest.TestCase):
             {"field_masked_general": "blue hair girl"},
         )
 
-    def test_build_consumes_reserved_queue_seed_and_scrubs_token(self):
+    def test_build_ignores_retired_browser_seed_and_scrubs_token(self):
         reservation_key = easy_nodes.WILDCARD_RESERVED_NEXT_SEED_INPUT
         reservation = json.dumps({
             "version": 1,
@@ -321,7 +321,11 @@ class PromptStudioRegionalTests(unittest.TestCase):
             }
         }
 
-        with patch.object(regional_nodes, "next_seed") as fallback_next_seed:
+        with patch.object(
+            regional_nodes,
+            "next_seed",
+            return_value=3,
+        ) as fallback_next_seed:
             result = EasyUseAnimaPromptStudioRegional().build(
                 "",
                 "",
@@ -334,7 +338,7 @@ class PromptStudioRegionalTests(unittest.TestCase):
                 **{reservation_key: reservation},
             )
 
-        fallback_next_seed.assert_not_called()
+        fallback_next_seed.assert_called_once_with(2, "increment")
         payload = result["ui"]["prompt_studio_regional"][0]
         self.assertEqual(payload["wildcard_seed"], 3)
         self.assertNotIn(reservation_key, payload["field_inputs"])
