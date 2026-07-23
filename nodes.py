@@ -50,6 +50,7 @@ try:
         _bind_aio_usdu_planning_runtime as _bind_aio_usdu_planning_runtime,
     )
     from .easyuse_anima.aio.postprocess import (
+        _apply_aio_final_fit as _apply_aio_final_fit,
         _aio_final_fit_size as _aio_final_fit_size,
         _bind_aio_postprocess_runtime as _bind_aio_postprocess_runtime,
     )
@@ -598,6 +599,7 @@ except ImportError:  # allows simple local import tests outside ComfyUI's packag
         _bind_aio_usdu_planning_runtime as _bind_aio_usdu_planning_runtime,
     )
     from easyuse_anima.aio.postprocess import (
+        _apply_aio_final_fit as _apply_aio_final_fit,
         _aio_final_fit_size as _aio_final_fit_size,
         _bind_aio_postprocess_runtime as _bind_aio_postprocess_runtime,
     )
@@ -1769,39 +1771,6 @@ def _run_aio_highres_stage(
         "applied_scale": float(applied_scale),
         "sampler": _prompt_data_json_safe(stage_sampler),
     }
-
-
-def _apply_aio_final_fit(image, postprocess_settings: dict[str, Any]) -> tuple[Any, dict[str, Any]]:
-    fit_settings = postprocess_settings.get("fit", {})
-    if not isinstance(fit_settings, dict):
-        fit_settings = {}
-    fit_settings = dict(fit_settings)
-    fit_settings["enabled"] = _as_bool(postprocess_settings.get("enabled"), False)
-    width, height = _image_tensor_size(image, 0, 0)
-    target_width, target_height, scale = _aio_final_fit_size(width, height, fit_settings)
-    metadata = {
-        "enabled": _as_bool(postprocess_settings.get("enabled"), False),
-        "mode": str(fit_settings.get("mode") or "max_long_edge"),
-        "max_long_edge": _as_int(fit_settings.get("max_long_edge"), 2048),
-        "max_megapixels": _as_float(fit_settings.get("max_megapixels"), 4.0),
-        "method": str(fit_settings.get("method") or "bicubic"),
-        "applied": scale < 1.0,
-        "scale": float(scale),
-        "width": int(width),
-        "height": int(height),
-        "target_width": int(target_width),
-        "target_height": int(target_height),
-    }
-    if scale >= 1.0:
-        return image, metadata
-    output, resized = _resize_image_to_size_if_needed(
-        image,
-        target_width,
-        target_height,
-        str(fit_settings.get("method") or "bicubic"),
-    )
-    metadata["applied"] = bool(resized)
-    return output, metadata
 
 
 def _run_aio_postprocess_stage(image, postprocess_settings: dict[str, Any]) -> tuple[Any, dict[str, Any]]:

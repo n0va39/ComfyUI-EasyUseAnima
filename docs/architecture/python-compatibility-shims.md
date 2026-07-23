@@ -3,15 +3,14 @@
 ## Registry status
 
 - Inventory baseline: `dev` commit
-  `5a86162f9063373aedc1718dc6cb5d1cd6a93fee`
+  `05beee12624971a784251fc9f4242a213d9accf4`
 - Compatibility provenance: package/workflow version 0.5.2
 - Policy: [ADR-002](adr-002-compatibility-shims.md)
 - Machine-readable audit:
   [`python_compatibility_surface.v1.json`](../../tests/fixtures/python_compatibility_surface.v1.json)
-- Current state: B-11a through B-11c14 are integrated through PR #308. B-11c is
+- Current state: B-11a through B-11c15 are integrated through PR #309. B-11c is
   split into residual-owner Moves and explicit private-contract cleanup before
-  the final root shim; B-11c15 final-fit size planning Move is tracked by PR
-  #309.
+  the final root shim; B-11c16 final-fit application Move is tracked by PR #310.
 
 This is an actionable registry, not a removal schedule. `N` means the first
 published Registry release containing both a canonical target and its root
@@ -76,7 +75,7 @@ inferring public support from spelling or test imports:
 - `nodes.py` preamble implementation imports: 6 (`json`, `logging`, `random`,
   `ceil`, `sqrt`, and `Any`), excluded from compatibility classification
   by an exact AST allowlist and drift gate;
-- `nodes.py` bindings with an `easyuse_anima` canonical target: 287 in B-11c15
+- `nodes.py` bindings with an `easyuse_anima` canonical target: 288 in B-11c16
   (258 at the integrated B-10b20 baseline), with exact
   relative-package/flat-fallback parity;
 - bindings still owned by `anima_prompt`, `settings`, `prompt_translation`, or
@@ -85,10 +84,10 @@ inferring public support from spelling or test imports:
 - unmapped root classes: `EasyUseAnimaSAM3Context` and
   `EasyUseAnimaSAM3Detailer`; the canonical legacy Extend class remains in its
   owner module without a root alias or backend mapping;
-- root-owned residual implementation: 21 functions, 0 classes, and 26 assigned
-  globals in B-11c15 (41/2/33 at the integrated B-10b20 baseline).
+- root-owned residual implementation: 20 functions, 0 classes, and 26 assigned
+  globals in B-11c16 (41/2/33 at the integrated B-10b20 baseline).
 - import-time runtime binders: 30 exact top-level `_bind_*_runtime` calls;
-- root names reached by those canonical runtime resolvers: 270, including
+- root names reached by those canonical runtime resolvers: 271, including
   literal lookups and binder-owned helper-name/default collections;
 - retired private bindings: `_comfy_checkpoint_names`,
   `_EasyUseAnimaAlignedDetailerHook`, and
@@ -388,6 +387,21 @@ convenience-node compatibility; it remains unmapped and is not public support.
 - PR #309 does not move or change `AIO_FINAL_FIT_MODES`, final-fit application,
   resize behavior, postprocess stage execution, logging, metadata, schema, or
   workflow behavior.
+
+### B-11c16 final-fit application alias
+
+- Canonical owner: `easyuse_anima.aio.postprocess` for
+  `_apply_aio_final_fit`.
+- The private root function remains a transitional direct alias in relative
+  package and flat import modes. Root `_run_aio_postprocess_stage` continues to
+  call that alias, so its existing replacement seam is preserved.
+- The existing postprocess binder resolves `_as_bool`, `_image_tensor_size`,
+  `_aio_final_fit_size`, `_as_int`, `_as_float`, and
+  `_resize_image_to_size_if_needed` at use time. Fit-copy behavior, metadata
+  insertion and coercion order, no-scale short-circuit, resize method fallback,
+  and the actual resize-result `applied` override are unchanged.
+- PR #310 does not move or change the shared resize helper, postprocess stage,
+  `AIO_FINAL_FIT_MODES`, logging, schema, defaults, or workflow behavior.
 
 ### `nodes.py` public node-class surface
 
