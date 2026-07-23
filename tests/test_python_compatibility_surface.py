@@ -1694,6 +1694,7 @@ def _build_document() -> dict[str, Any]:
                 "B-11c28",
                 "B-11c29a",
                 "B-11c29b1",
+                "B-11c29b2",
             ],
         },
         "enums": {
@@ -1706,11 +1707,11 @@ def _build_document() -> dict[str, Any]:
         "expected_counts": {
             "root_entrypoints": 3,
             "excluded_preamble_implementation_bindings": 5,
-            "nodes_canonical_bindings": 300,
+            "nodes_canonical_bindings": 299,
             "nodes_legacy_bindings": 27,
             "mapped_public_classes": 18,
             "unmapped_classes": 2,
-            "root_residual_functions": 6,
+            "root_residual_functions": 5,
             "root_residual_classes": 0,
             "root_residual_globals": 26,
             "runtime_binders": 30,
@@ -2140,6 +2141,7 @@ class ComfyHostCompatibilityLedgerTests(unittest.TestCase):
             {
                 "_comfy_max_resolution",
                 "_find_comfy_node_mapping_class",
+                "_find_loaded_node_class",
             },
         )
         self.assertEqual(
@@ -2151,6 +2153,7 @@ class ComfyHostCompatibilityLedgerTests(unittest.TestCase):
             {
                 "_comfy_max_resolution": "_adapter_comfy_max_resolution",
                 "_find_comfy_node_mapping_class": None,
+                "_find_loaded_node_class": "_adapter_find_loaded_node_class",
             },
         )
         for symbol, entry in self.entries.items():

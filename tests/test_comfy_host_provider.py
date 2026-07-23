@@ -101,6 +101,27 @@ class DefaultComfyHostProviderTests(unittest.TestCase):
         self.assertEqual(find_node_class.call_args_list[0].args, (node_id,))
         self.assertEqual(find_node_class.call_args_list[1].args, (node_id,))
 
+    def test_loaded_lookup_uses_first_loaded_mapping(self):
+        node_id = "EasyUseAnimaProviderLoadedOrderNode"
+        first_class = type("FirstLoadedNode", (), {})
+        second_class = type("SecondLoadedNode", (), {})
+        first_module = types.ModuleType("easyuse_anima_provider_loaded_first")
+        first_module.NODE_CLASS_MAPPINGS = {node_id: first_class}
+        second_module = types.ModuleType("easyuse_anima_provider_loaded_second")
+        second_module.NODE_CLASS_MAPPINGS = {node_id: second_class}
+
+        with (
+            patch.dict(
+                sys.modules,
+                {
+                    first_module.__name__: first_module,
+                    second_module.__name__: second_module,
+                },
+            ),
+            patch.object(self.provider, "find_node_class", return_value=None),
+        ):
+            self.assertIs(self.provider.find_loaded_node_class(node_id), first_class)
+
     def test_lookup_is_not_cached_between_host_updates(self):
         node_id = "EasyUseAnimaProviderDynamicNode"
         first_class = type("FirstNode", (), {})

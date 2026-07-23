@@ -411,7 +411,6 @@ try:
         _comfy_sampler_names as _comfy_sampler_names,
         _comfy_scheduler_names as _comfy_scheduler_names,
         _find_comfy_node_class as _adapter_find_comfy_node_class,
-        _find_loaded_node_class as _adapter_find_loaded_node_class,
         # B-10b4 omits the retired root _impact_core_module alias.
         _impact_scheduler_names as _impact_scheduler_names,
         _require_any_custom_node_class as _adapter_require_any_custom_node_class,
@@ -974,7 +973,6 @@ except ImportError:  # allows simple local import tests outside ComfyUI's packag
         _comfy_sampler_names as _comfy_sampler_names,
         _comfy_scheduler_names as _comfy_scheduler_names,
         _find_comfy_node_class as _adapter_find_comfy_node_class,
-        _find_loaded_node_class as _adapter_find_loaded_node_class,
         # B-10b4 omits the retired root _impact_core_module alias.
         _impact_scheduler_names as _impact_scheduler_names,
         _require_any_custom_node_class as _adapter_require_any_custom_node_class,
@@ -1655,12 +1653,6 @@ def _require_any_custom_node_class(node_ids: tuple[str, ...], node_pack: str, in
 
 def _encode_with_comfy_clip(clip, text: str):
     return _adapter_encode_with_comfy_clip(clip, text, _find_comfy_node_class)
-
-
-def _find_loaded_node_class(node_id: str):
-    return _adapter_find_loaded_node_class(node_id, _find_comfy_node_class)
-
-
 
 
 def _consume_reserved_wildcard_next_seed(
