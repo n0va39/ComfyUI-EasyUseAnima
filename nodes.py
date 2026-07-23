@@ -116,6 +116,7 @@ try:
     from .easyuse_anima.aio.resources import (
         _bind_aio_resource_runtime as _bind_aio_resource_runtime,
         _comfy_diffusion_model_names as _comfy_diffusion_model_names,
+        _comfy_text_encoder_names as _comfy_text_encoder_names,
         _load_aio_resources_from_input_context as _load_aio_resources_from_input_context,
         _load_aio_sam3_context as _load_aio_sam3_context,
         _load_checkpoint_with_comfy as _load_checkpoint_with_comfy,
@@ -666,6 +667,7 @@ except ImportError:  # allows simple local import tests outside ComfyUI's packag
     from easyuse_anima.aio.resources import (
         _bind_aio_resource_runtime as _bind_aio_resource_runtime,
         _comfy_diffusion_model_names as _comfy_diffusion_model_names,
+        _comfy_text_encoder_names as _comfy_text_encoder_names,
         _load_aio_resources_from_input_context as _load_aio_resources_from_input_context,
         _load_aio_sam3_context as _load_aio_sam3_context,
         _load_checkpoint_with_comfy as _load_checkpoint_with_comfy,
@@ -1608,13 +1610,6 @@ def _comfy_max_resolution() -> int:
     except Exception:
         comfy_nodes = None
     return _adapter_comfy_max_resolution(comfy_nodes)
-
-
-def _comfy_text_encoder_names() -> list[str]:
-    return _adapter_comfy_text_encoder_names(
-        ANIMA_DEFAULT_CLIP_CANDIDATES,
-        _folder_path_names,
-    )
 
 
 def _comfy_vae_names() -> list[str]:

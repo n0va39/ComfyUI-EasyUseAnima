@@ -1378,6 +1378,66 @@ class AioResourceNameMoveContractTests(unittest.TestCase):
             ]
             self._assert_contract(package_nodes, package_resources)
 
+    def _assert_text_encoder_contract(self, root_module, canonical_module):
+        self.assertIs(
+            root_module._comfy_text_encoder_names,
+            canonical_module._comfy_text_encoder_names,
+        )
+
+        candidates = ("preferred-clip.safetensors", "fallback-clip.safetensors")
+        returned = ["runtime-clip.safetensors"]
+        events = []
+
+        def folder_names(_folder, _fallback):
+            return ["runtime-clip.safetensors"]
+
+        def adapter(candidate_values, folder_lookup):
+            events.append(("adapter_call", candidate_values, folder_lookup))
+            return returned
+
+        def resolver(name):
+            events.append(name)
+            return getattr(root_module, name)
+
+        with (
+            patch.object(root_module, "ANIMA_DEFAULT_CLIP_CANDIDATES", candidates),
+            patch.object(
+                root_module,
+                "_adapter_comfy_text_encoder_names",
+                adapter,
+            ),
+            patch.object(root_module, "_folder_path_names", folder_names),
+        ):
+            canonical_module._bind_aio_resource_runtime(resolve_helper=resolver)
+            try:
+                result = canonical_module._comfy_text_encoder_names()
+            finally:
+                canonical_module._bind_aio_resource_runtime(
+                    resolve_helper=lambda name: getattr(root_module, name)
+                )
+
+        self.assertIs(result, returned)
+        self.assertEqual(
+            events,
+            [
+                "_adapter_comfy_text_encoder_names",
+                "ANIMA_DEFAULT_CLIP_CANDIDATES",
+                "_folder_path_names",
+                ("adapter_call", candidates, folder_names),
+            ],
+        )
+
+    def test_text_encoder_root_alias_and_call_time_dependencies(self):
+        self._assert_text_encoder_contract(nodes, aio_resources)
+
+    def test_text_encoder_package_alias_and_call_time_dependencies(self):
+        with _loaded_package_entrypoint() as (_, package_nodes):
+            package_name = package_nodes.__package__
+            package_resources = sys.modules[
+                f"{package_name}.easyuse_anima.aio.resources"
+            ]
+            self._assert_text_encoder_contract(package_nodes, package_resources)
+
 
 class AioSeedNormalizationMoveContractTests(unittest.TestCase):
     CONSTANT_NAMES = (

@@ -2,7 +2,7 @@
   "schema_version": 1,
   "snapshot": {
     "base_branch": "dev",
-    "base_commit": "f4ab6eb094fcdad900f535f79805f912ec67ffaa",
+    "base_commit": "82247d9b31cd477a3649c22c994fafe25c1fbd40",
     "first_release": null,
     "owner_tasks": [
       "#184",
@@ -47,7 +47,8 @@
       "B-11c14",
       "B-11c15",
       "B-11c16",
-      "B-11c17"
+      "B-11c17",
+      "B-11c18"
     ]
   },
   "enums": {
@@ -82,11 +83,11 @@
   "expected_counts": {
     "root_entrypoints": 3,
     "excluded_preamble_implementation_bindings": 6,
-    "nodes_canonical_bindings": 289,
+    "nodes_canonical_bindings": 290,
     "nodes_legacy_bindings": 27,
     "mapped_public_classes": 18,
     "unmapped_classes": 2,
-    "root_residual_functions": 19,
+    "root_residual_functions": 18,
     "root_residual_classes": 0,
     "root_residual_globals": 26,
     "runtime_binders": 30,
@@ -226,6 +227,7 @@
       "easyuse_anima.aio.resources"
     ],
     "ANIMA_DEFAULT_CLIP_CANDIDATES": [
+      "easyuse_anima.aio.resources",
       "easyuse_anima.nodes.aio_nodes"
     ],
     "ANIMA_DEFAULT_DIFFUSION_MODEL_CANDIDATES": [
@@ -344,6 +346,9 @@
       "easyuse_anima.prompt.fields"
     ],
     "_adapter_comfy_diffusion_model_names": [
+      "easyuse_anima.aio.resources"
+    ],
+    "_adapter_comfy_text_encoder_names": [
       "easyuse_anima.aio.resources"
     ],
     "_advanced_artist_field_prompt": [
@@ -2264,6 +2269,7 @@
       "symbols": {
         "_bind_aio_resource_runtime": "_bind_aio_resource_runtime",
         "_comfy_diffusion_model_names": "_comfy_diffusion_model_names",
+        "_comfy_text_encoder_names": "_comfy_text_encoder_names",
         "_load_aio_resources_from_input_context": "_load_aio_resources_from_input_context",
         "_load_aio_sam3_context": "_load_aio_sam3_context",
         "_load_checkpoint_with_comfy": "_load_checkpoint_with_comfy",
@@ -4133,7 +4139,6 @@
       "symbols": {
         "_comfy_clip_loader_types": "_comfy_clip_loader_types",
         "_comfy_max_resolution": "_comfy_max_resolution",
-        "_comfy_text_encoder_names": "_comfy_text_encoder_names",
         "_comfy_vae_names": "_comfy_vae_names",
         "_consume_reserved_wildcard_next_seed": "_consume_reserved_wildcard_next_seed",
         "_encode_with_comfy_clip": "_encode_with_comfy_clip",
