@@ -1088,6 +1088,10 @@ unchanged. The separate legacy Wildcard unsupported alias remains for D-12.
     `_bind_aio_postprocess_runtime` in PR #349. Generation defaults have one
     pure owner, the E-07 max-resolution seam remains call-time provider-owned,
     and d3 through d6 plus Wildcard/NAIA remain separate rollback units.
+  - B-11c30d3 is the next READY Move. It is limited to the resource, preview,
+    and output binder subgroup. Input defaults move to a pure data owner,
+    optional I/O dependencies stay call-time, and Comfy node lookup remains
+    behind the existing E-07 provider. d0b and d4 through d6 remain separate.
   - The final B-11c cutover removes remaining root execution ownership and
     leaves the explicit supported `nodes.py` compatibility shim.
 - Add `easyuse_anima/registration.py` as pure mapping composition. It performs no

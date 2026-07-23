@@ -922,6 +922,26 @@ convenience-node compatibility; it remains unmapped and is not public support.
 - Settings shape/order, normalization, seed semantics, tile/final-fit behavior,
   provider observation, schema/workflow, and stage order remain unchanged.
 
+### B-11c30d3 AiO I/O-boundary binder retirement
+
+- The planned Move contains exactly `_bind_aio_resource_runtime`,
+  `_bind_aio_preview_runtime`, and `_bind_aio_output_runtime`.
+- The pre-edit surface is 49 root-resolver slots over 46 names, four E-07
+  provider slots, three direct root-helper dependencies, and 45 repository
+  replacement slots over 43 names in eight files.
+- Mutable `AIO_INPUT_DEFAULT_SETTINGS` and its declarative input/resource
+  values move to one pure `easyuse_anima.aio.input_defaults` owner. Root
+  remains an exact compatibility alias; the d0b input-context Move does not
+  begin here.
+- Resource, preview, and output implementations import existing canonical
+  stateless owners directly. Comfy node lookup remains call-time
+  provider-owned, and optional filesystem/server/image dependencies retain
+  their current call-time imports and fallbacks.
+- Only d3-owner tests move their patch ownership to the canonical modules.
+  Root patches that drive d4 through d6 remain until those retirement units.
+- Resource discovery/loading, preview and save I/O, metadata/event payloads,
+  filenames, errors, logs, schemas/workflows, and stage behavior are frozen.
+
 ### `nodes.py` public node-class surface
 
 The confirmed 0.5.2 mapped classes are:
