@@ -41207,9 +41207,9 @@
       },
       {
         "is_package": false,
-        "loc": 516,
+        "loc": 519,
         "module": "easyuse_anima.nodes.regional_nodes",
-        "normalized_git_blob_sha1": "72313693ca62f81c38890da7b33df9827a52d5e1",
+        "normalized_git_blob_sha1": "4f712383ac34109210abddde52674f5f4152b1e3",
         "path": "easyuse_anima/nodes/regional_nodes.py",
         "top_level": {
           "class_count": 2,

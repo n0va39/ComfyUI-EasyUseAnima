@@ -485,7 +485,10 @@ class EasyUseAnimaRegionalConditioning:
 
         if _as_bool(payload.get("regional_enabled"), False):
             use_mask_bounds = str(set_cond_area or "mask bounds") != "default"
-            mask_prompts = payload.get("mask_prompts") if isinstance(payload.get("mask_prompts"), list) else []
+            mask_prompts_value = payload.get("mask_prompts")
+            mask_prompts = (
+                mask_prompts_value if isinstance(mask_prompts_value, list) else []
+            )
             for entry in mask_prompts:
                 if not isinstance(entry, dict):
                     continue
