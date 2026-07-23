@@ -106,13 +106,13 @@
   "expected_counts": {
     "root_entrypoints": 3,
     "excluded_preamble_implementation_bindings": 5,
-    "nodes_canonical_bindings": 281,
+    "nodes_canonical_bindings": 284,
     "nodes_legacy_bindings": 27,
     "mapped_public_classes": 18,
     "unmapped_classes": 2,
-    "root_residual_functions": 1,
+    "root_residual_functions": 0,
     "root_residual_classes": 0,
-    "root_residual_globals": 26,
+    "root_residual_globals": 24,
     "runtime_binders": 16,
     "direct_nodes_import_test_files": 21
   },
@@ -4460,7 +4460,6 @@
       "owner": "#184/#188",
       "first_release": null,
       "known_consumers": [
-        "nodes.py residual runtime",
         "canonical runtime resolver: easyuse_anima.aio.conditioning",
         "canonical runtime resolver: easyuse_anima.aio.generation_normalization",
         "canonical runtime resolver: easyuse_anima.aio.legacy_generation",
@@ -4475,7 +4474,6 @@
         "canonical runtime resolver: easyuse_anima.nodes.regional_nodes"
       ],
       "evidence": [
-        "AST:nodes.py direct runtime load",
         "AST:easyuse_anima.aio.conditioning string runtime lookup",
         "AST:easyuse_anima.aio.generation_normalization string runtime lookup",
         "AST:easyuse_anima.aio.legacy_generation string runtime lookup",
@@ -5910,6 +5908,66 @@
       "lifecycle_state": "transitional"
     },
     {
+      "id": "nodes_canonical_bindings:easyuse_anima.seed.compatibility:transitional_private_seam",
+      "surface": "nodes_canonical_bindings",
+      "symbols": {
+        "_consume_reserved_wildcard_next_seed": "_consume_reserved_wildcard_next_seed"
+      },
+      "classification": "transitional_private_seam",
+      "current_target": "nodes.py",
+      "canonical_target": "easyuse_anima.seed.compatibility",
+      "target_state": "canonical",
+      "identity_requirement": "required",
+      "binding_shape": "direct_import",
+      "import_target": "easyuse_anima.seed.compatibility",
+      "owner": "#184/#188",
+      "first_release": null,
+      "known_consumers": [
+        "canonical runtime resolver: easyuse_anima.nodes.prompt_advanced_nodes",
+        "canonical runtime resolver: easyuse_anima.nodes.regional_nodes"
+      ],
+      "evidence": [
+        "AST:easyuse_anima.nodes.prompt_advanced_nodes string runtime lookup",
+        "AST:easyuse_anima.nodes.regional_nodes string runtime lookup"
+      ],
+      "removal_gates": [
+        "canonical production consumer migration",
+        "focused monkeypatch and identity contract review",
+        "separate B-10b or B-11 rollback unit"
+      ],
+      "lifecycle_state": "transitional"
+    },
+    {
+      "id": "nodes_canonical_bindings:easyuse_anima.seed.compatibility:unsupported_test_only",
+      "surface": "nodes_canonical_bindings",
+      "symbols": {
+        "WILDCARD_QUEUE_MAX_SAFE_SEED": "WILDCARD_QUEUE_MAX_SAFE_SEED",
+        "WILDCARD_RESERVED_NEXT_SEED_INPUT": "WILDCARD_RESERVED_NEXT_SEED_INPUT"
+      },
+      "classification": "unsupported_test_only",
+      "current_target": "nodes.py",
+      "canonical_target": "easyuse_anima.seed.compatibility",
+      "target_state": "canonical",
+      "identity_requirement": "not_applicable",
+      "binding_shape": "direct_import",
+      "import_target": "easyuse_anima.seed.compatibility",
+      "owner": "#184/#188",
+      "first_release": null,
+      "known_consumers": [
+        "repository tests may import this root name"
+      ],
+      "evidence": [
+        "AST:no nodes.py runtime load",
+        "test-only consumption is not public support evidence"
+      ],
+      "removal_gates": [
+        "test imports migrate to canonical targets",
+        "no production consumer evidence",
+        "separate B-10b removal review"
+      ],
+      "lifecycle_state": "unsupported"
+    },
+    {
       "id": "nodes_canonical_bindings:easyuse_anima.workflow:transitional_private_seam",
       "surface": "nodes_canonical_bindings",
       "symbols": {
@@ -6097,15 +6155,8 @@
       "surface": "nodes_legacy_bindings",
       "symbols": {
         "MAX_SEED": "MAX_SEED",
-        "PUBLIC_MAX_SEED": "PUBLIC_MAX_SEED",
-        "SEED_CONTROL_DECREMENT": "SEED_CONTROL_DECREMENT",
         "SEED_CONTROL_FIXED": "SEED_CONTROL_FIXED",
-        "SEED_CONTROL_INCREMENT": "SEED_CONTROL_INCREMENT",
         "SEED_CONTROL_MODES": "SEED_CONTROL_MODES",
-        "SEED_CONTROL_RANDOMIZE": "SEED_CONTROL_RANDOMIZE",
-        "WILDCARD_MODE_FIXED": "WILDCARD_MODE_FIXED",
-        "WILDCARD_MODE_POPULATE": "WILDCARD_MODE_POPULATE",
-        "WILDCARD_MODE_SEQUENTIAL": "WILDCARD_MODE_SEQUENTIAL",
         "expand_wildcards": "expand_wildcards",
         "next_seed": "next_seed",
         "normalize_prompt_studio_wildcard_mode": "normalize_prompt_studio_wildcard_mode",
@@ -6148,6 +6199,13 @@
       "surface": "nodes_legacy_bindings",
       "symbols": {
         "PROMPT_STUDIO_WILDCARD_MODE_LABELS": "PROMPT_STUDIO_WILDCARD_MODE_LABELS",
+        "PUBLIC_MAX_SEED": "PUBLIC_MAX_SEED",
+        "SEED_CONTROL_DECREMENT": "SEED_CONTROL_DECREMENT",
+        "SEED_CONTROL_INCREMENT": "SEED_CONTROL_INCREMENT",
+        "SEED_CONTROL_RANDOMIZE": "SEED_CONTROL_RANDOMIZE",
+        "WILDCARD_MODE_FIXED": "WILDCARD_MODE_FIXED",
+        "WILDCARD_MODE_POPULATE": "WILDCARD_MODE_POPULATE",
+        "WILDCARD_MODE_SEQUENTIAL": "WILDCARD_MODE_SEQUENTIAL",
         "expand_wildcard_texts": "expand_wildcard_texts",
         "has_wildcard_syntax": "has_wildcard_syntax"
       },
@@ -6205,9 +6263,7 @@
       "id": "nodes_root_residuals:functions",
       "surface": "nodes_root_residuals",
       "kind": "functions",
-      "symbols": {
-        "_consume_reserved_wildcard_next_seed": "_consume_reserved_wildcard_next_seed"
-      },
+      "symbols": {},
       "classification": "transitional_private_seam",
       "current_target": "nodes.py",
       "canonical_target": null,
@@ -6257,8 +6313,6 @@
         "EASY_USE_ANIMA_INPUT_SCHEMA": "EASY_USE_ANIMA_INPUT_SCHEMA",
         "EASY_USE_ANIMA_INPUT_SETTINGS_VERSION": "EASY_USE_ANIMA_INPUT_SETTINGS_VERSION",
         "EASY_USE_ANIMA_INPUT_TYPE": "EASY_USE_ANIMA_INPUT_TYPE",
-        "WILDCARD_QUEUE_MAX_SAFE_SEED": "WILDCARD_QUEUE_MAX_SAFE_SEED",
-        "WILDCARD_RESERVED_NEXT_SEED_INPUT": "WILDCARD_RESERVED_NEXT_SEED_INPUT",
         "_TRIGGER_WORD_KEYS": "_TRIGGER_WORD_KEYS",
         "logger": "logger"
       },

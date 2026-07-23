@@ -169,6 +169,7 @@ canonical package, or mix reservation behavior into a Move.
 ## S167-01a seed consumer Move gate
 
 - PR type: Move
+- Implementation: PR #344
 - Inventory baseline: `dev` commit
   `55376cb121fc05817c42d459983ab3c988fd13fb`
 - Canonical target:
@@ -199,7 +200,9 @@ S167-01a may change only:
 - `easyuse_anima/seed/__init__.py`;
 - `easyuse_anima/seed/compatibility.py`;
 - `tests/test_seed_compatibility.py`;
+- `tests/test_wildcards.py`;
 - `tests/test_python_backend_analyzer.py`;
+- `tests/test_python_compatibility_surface.py`;
 - `tests/fixtures/python_backend_baseline.json`;
 - `tests/fixtures/python_compatibility_surface.v1.json`;
 - `docs/architecture/seed-reservation-contract.md`;
@@ -219,3 +222,8 @@ S167-01a must preserve:
 
 The root function and constants remain direct compatibility aliases during this
 Move. B-11c30c2b owns their node-adapter binder retirement separately.
+
+The deterministic compatibility audit records 284 canonical root bindings,
+zero residual root functions, 24 residual root globals, and the unchanged 16
+runtime binders. The whole-backend inventory records 89 shipped and reachable
+Python modules with no missing internal imports.

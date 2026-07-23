@@ -8,10 +8,10 @@
 - Policy: [ADR-002](adr-002-compatibility-shims.md)
 - Machine-readable audit:
   [`python_compatibility_surface.v1.json`](../../tests/fixtures/python_compatibility_surface.v1.json)
-- Current state: B-11a through B-11c30c2 are integrated. B-11c is split into
-  residual-owner Moves and explicit private-contract cleanup before the final
-  root shim; B-11c30c2a retires the unblocked adapters while the #167/D-12 seed
-  reservation boundary remains blocked.
+- Current state: B-11a through B-11c30c2a are integrated. S167-01a / PR #344
+  supplies the canonical reserved-seed compatibility consumer while retaining
+  its root aliases; B-11c30c2b remains the separate Advanced/Regional binder
+  retirement before the final root shim.
 
 This is an actionable registry, not a removal schedule. `N` means the first
 published Registry release containing both a canonical target and its root
@@ -798,10 +798,27 @@ convenience-node compatibility; it remains unmapped and is not public support.
   patched root only to drive either adapter now patch the adapter owner.
 - The remaining audit is 16 binders in three families: nine
   provider-then-root, five root-only, and two explicit callbacks.
-- The two Advanced/Regional binders and
-  `_consume_reserved_wildcard_next_seed` stay unchanged under
-  B-11c30c2b/#167/D-12. No schema, saved-workflow, output, provider order,
-  optional-dependency timing, or wildcard seed behavior changes in this Move.
+- The two Advanced/Regional binders stay unchanged for B-11c30c2b.
+  S167-01a owns the separate behavior-preserving consumer Move; no schema,
+  saved-workflow, output, provider order, optional-dependency timing, or
+  wildcard seed behavior changes in either Move.
+
+### S167-01a reserved Wildcard seed consumer Move
+
+- Canonical owner:
+  `easyuse_anima.seed.compatibility._consume_reserved_wildcard_next_seed`.
+- Root `nodes.py` retains direct aliases for the consumer, hidden input name,
+  and public-safe queue seed bound. Existing Advanced/Regional binders therefore
+  observe the same root object until B-11c30c2b.
+- The canonical owner imports `_single_value` directly and resolves the
+  pre-D-12 `wildcard_engine` only at call time. It does not import root
+  `nodes.py`, add a callback contract, eagerly import NumPy, or copy Wildcard
+  normalization behavior.
+- The machine-readable audit moves three symbols into canonical direct imports:
+  canonical bindings are 284, root residual functions are zero, root residual
+  globals are 24, and runtime binders remain 16.
+- Version-1 payload bytes, pop order, accepted mode/control/seed values, return
+  values, workflows, and browser reservation behavior remain unchanged.
 
 ### `nodes.py` public node-class surface
 
