@@ -23,6 +23,7 @@ try:
         _bind_aio_legacy_generation_runtime as _bind_aio_legacy_generation_runtime,
         _run_aio_highres_stage as _run_aio_highres_stage,
         _run_aio_legacy_generation as _run_aio_legacy_generation,
+        _run_aio_upscale_stage as _run_aio_upscale_stage,
     )
     from .easyuse_anima.aio.generation_normalization import (
         AIO_SPECIAL_SEEDS as AIO_SPECIAL_SEEDS,
@@ -578,6 +579,7 @@ except ImportError:  # allows simple local import tests outside ComfyUI's packag
         _bind_aio_legacy_generation_runtime as _bind_aio_legacy_generation_runtime,
         _run_aio_highres_stage as _run_aio_highres_stage,
         _run_aio_legacy_generation as _run_aio_legacy_generation,
+        _run_aio_upscale_stage as _run_aio_upscale_stage,
     )
     from easyuse_anima.aio.generation_normalization import (
         AIO_SPECIAL_SEEDS as AIO_SPECIAL_SEEDS,
@@ -1873,56 +1875,6 @@ def _run_aio_resshift_upscale_stage(
         "height": int(height),
         "scale": str(resshift_settings.get("scale") or "x2"),
     }
-
-
-def _run_aio_upscale_stage(
-    model,
-    clip,
-    vae,
-    positive,
-    negative,
-    image,
-    sampler_settings: dict[str, Any],
-    upscale_settings: dict[str, Any],
-    quality_tags: str = "",
-    quality_neg: str = "",
-    prompt_data: str | dict | None = None,
-    exclude_positive_quality: bool = False,
-    exclude_negative_quality: bool = False,
-) -> tuple[Any, dict[str, Any]]:
-    if not _as_bool(upscale_settings.get("enabled"), False):
-        return image, {"enabled": False}
-    backend = str(upscale_settings.get("backend") or "usdu")
-    if backend == "usdu":
-        output, metadata = _run_aio_usdu_upscale_stage(
-            model,
-            clip,
-            vae,
-            positive,
-            negative,
-            image,
-            sampler_settings,
-            upscale_settings,
-            quality_tags,
-            quality_neg,
-            prompt_data,
-            exclude_positive_quality,
-            exclude_negative_quality,
-        )
-    elif backend == "resshift":
-        output, metadata = _run_aio_resshift_upscale_stage(
-            image,
-            sampler_settings,
-            upscale_settings,
-            quality_tags,
-            quality_neg,
-            prompt_data,
-            exclude_positive_quality,
-            exclude_negative_quality,
-        )
-    else:
-        raise RuntimeError(f"[EasyUseAnima] Unsupported final upscale backend: {backend}")
-    return output, metadata
 
 
 def _run_aio_detailer_target(
