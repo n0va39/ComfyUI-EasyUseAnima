@@ -7,8 +7,10 @@ from collections.abc import Callable
 from typing import Any, TypeAlias
 
 from .output_settings import (
-    _normalize_aio_civitai_hash_fetchers,
-    _normalize_aio_hash_bundles,
+    _normalize_aio_civitai_hash_fetchers as _normalize_aio_civitai_hash_fetchers,
+)
+from .output_settings import (
+    _normalize_aio_hash_bundles as _normalize_aio_hash_bundles,
 )
 
 _RuntimeResolver: TypeAlias = Callable[[str], Any]

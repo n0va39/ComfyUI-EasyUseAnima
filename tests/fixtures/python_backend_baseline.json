@@ -6471,7 +6471,7 @@
         "source": "easyuse_anima/aio/output.py"
       },
       {
-        "alias": null,
+        "alias": "_normalize_aio_civitai_hash_fetchers",
         "bound_name": "_normalize_aio_civitai_hash_fetchers",
         "branch_context": [],
         "classification": "internal",
@@ -6489,7 +6489,7 @@
         "target": "easyuse_anima/aio/output_settings.py"
       },
       {
-        "alias": null,
+        "alias": "_normalize_aio_hash_bundles",
         "bound_name": "_normalize_aio_hash_bundles",
         "branch_context": [],
         "classification": "internal",
@@ -6497,7 +6497,7 @@
         "conditional": false,
         "imported": ".output_settings:_normalize_aio_hash_bundles",
         "kind": "static_from",
-        "line": 9,
+        "line": 12,
         "name": "_normalize_aio_hash_bundles",
         "optional": false,
         "requested": ".output_settings",
@@ -6515,7 +6515,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 122
+            "line": 124
           }
         ],
         "classification": "external",
@@ -6523,7 +6523,7 @@
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 123,
+        "line": 125,
         "name": null,
         "optional": true,
         "requested": "folder_paths",
@@ -40864,9 +40864,9 @@
       },
       {
         "is_package": false,
-        "loc": 297,
+        "loc": 299,
         "module": "easyuse_anima.aio.output",
-        "normalized_git_blob_sha1": "dd3bcb47670166a280060fb7d4f534e8b80ef77c",
+        "normalized_git_blob_sha1": "390407579549d17f0e887c7bf9c5b4151215eea1",
         "path": "easyuse_anima/aio/output.py",
         "top_level": {
           "class_count": 0,
@@ -51767,14 +51767,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 122
+            "line": 124
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 123,
+        "line": 125,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/aio/output.py"
@@ -54887,14 +54887,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 122
+            "line": 124
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 123,
+        "line": 125,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/aio/output.py"
