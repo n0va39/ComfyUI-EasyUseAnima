@@ -1355,12 +1355,14 @@ Split decision:
    slots over 27 unique names, one provider slot, and no
    `_consume_reserved_wildcard_next_seed` dependency. This Move is READY.
 2. **B-11c30c2b Advanced / Regional:** two binders, 69 root resolver slots over
-   53 unique names, and one provider slot. Both build paths call the root-only
-   `_consume_reserved_wildcard_next_seed`; this Move is BLOCKED by #167/D-12.
+   53 unique names, and one provider slot. Both build paths call the root alias
+   `_consume_reserved_wildcard_next_seed`. S167-01a / PR #344 supplies its
+   canonical behavior-preserving owner; c2b is the next separate Move.
 
-The c2b blocker may not be bypassed with a new callback setter/binder,
+S167-01a does not bypass the boundary with a new callback setter/binder,
 canonical-to-root import, copied reservation logic, or changed seed payload.
-All four binders and production callers remain unchanged in this gate.
+The two remaining c2b binders and production callers stay unchanged in that
+owner Move.
 
 ### B-11c30c2a — Prompt Data / Classic Prompt adapter Move
 
@@ -1424,9 +1426,10 @@ Final conditions remain:
 - actual package/Registry archive closure passes; and
 - representative live ComfyUI execution is recorded.
 
-The provider bridge does not authorize moving
-`_consume_reserved_wildcard_next_seed`; that boundary remains owned by #167
-and D-12 unless a separate behavior-preserving owner is proven.
+The provider bridge itself does not authorize moving
+`_consume_reserved_wildcard_next_seed`. S167-01a / PR #344 is the separate
+#167 behavior-preserving owner Move; it does not also authorize c2b binder
+retirement.
 
 ## 6. Updated critical path
 

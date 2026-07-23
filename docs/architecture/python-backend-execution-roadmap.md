@@ -31,8 +31,8 @@ merged PR, the owning issue's evidence record, and every stated exit gate.
 | Phase | Integrated snapshot / open implementation state | Remaining exit work |
 | --- | --- | --- |
 | A - baseline | Complete; #191 is closed | Keep fixtures and analyzers current during later moves |
-| B - `nodes.py` extraction | Integrated through B-11c30c / PR #339 / `d0188b5` | Retire the Prompt/Regional service and node-adapter binder lanes separately, complete the remaining binder families, then perform the final root shim as a separate Move |
-| C - feature contracts/behavior | Partially complete through S167-01 / PR #343 | Continue #167 and #169 in separate Contract/Move/Behavior PRs |
+| B - `nodes.py` extraction | Integrated through B-11c30c2a / PR #342 / `ddcc251` | Complete S167-01a, retire the Advanced/Regional adapter binders separately, complete the remaining binder families, then perform the final root shim as a separate Move |
+| C - feature contracts/behavior | Partially complete through S167-01a / PR #344 | Continue #167 and #169 in separate Contract/Move/Behavior PRs |
 | D - root consolidation | Not started | Execute #186 feature by feature after the corresponding behavior contracts are stable |
 | E - runtime ownership | Partial: E-02a and E-07a/E-07b integrated | Continue #187 only where canonical feature owners and explicit contracts exist |
 | F - typed boundaries | Partial patterns exist | Extend typed request/result/config and pure migration patterns feature by feature |
@@ -113,7 +113,8 @@ merged PR, the owning issue's evidence record, and every stated exit gate.
   c2b owns Advanced and Regional only after their root seed-reservation
   dependency has a canonical behavior-preserving owner. B-11c30c2a completes
   the unblocked adapter Move in PR #342. S167-01 / PR #343 freezes the contract
-  and exact owner-Move boundary; c2b remains blocked only by that separate Move.
+  and exact owner-Move boundary. S167-01a / PR #344 supplies that canonical
+  compatibility owner; c2b is the next separate adapter Move.
 
 ### Current quality baseline
 
@@ -355,8 +356,8 @@ surfaces. AiO mechanical extraction must not start until #168 exits.
 | 11 | B-09b2 AiO generator adapter move | COMPLETE on `dev` | Move | #184 | PR #270 / `57d40b4` |
 | 12 | B-10a machine-readable compatibility audit | COMPLETE on `dev` | Contract/gate | #184/#188 | PR #271 / `3c7b857` |
 | 13 | B-10b private alias reduction | COMPLETE on `dev` through PR #291 / `c6b4680` | Contract/cleanup, split PRs | #184/#188 | Audited alias surface integrated |
-| 14 | B-11 registration/bootstrap/root shim | IN PROGRESS through B-11c30c2a PR #342; the remaining c2b adapters wait on the S167-01 canonical consumer Move | Move/Contract, split PRs | #184 | S167-01 contract |
-| 15 | S167 backend seed reservation series | S167-01 Contract COMPLETE in PR #343; consumer Move, Behavior, and Adapter remain | Contract then Move then Behavior | #167 | Canonical AiO/node seams |
+| 14 | B-11 registration/bootstrap/root shim | IN PROGRESS through B-11c30c2a PR #342; S167-01a / PR #344 unblocks the separate c2b adapter Move | Move/Contract, split PRs | #184 | S167-01 contract |
+| 15 | S167 backend seed reservation series | S167-01 Contract COMPLETE in PR #343 and S167-01a consumer Move COMPLETE in PR #344; Behavior and Adapter remain | Contract then Move then Behavior | #167 | Canonical AiO/node seams |
 | 16 | A169 stage pipeline series | BLOCKED by #168 and B exit | Contract then Behavior | #169 | Typed config and mechanical AiO move |
 | 17 | A169 first-pass cache policy | BLOCKED by stage/cache ownership seam | Behavior | #169 | Mechanical cache move and benchmark harness |
 | 18 | D-series canonical root consolidation | BLOCKED by relevant C contracts | Move | #186 | Phase B exit; per-feature behavior stable |
@@ -1024,13 +1025,12 @@ unchanged. The separate legacy Wildcard unsupported alias remains for D-12.
     unchanged. B-11c30c2 owns the four node-adapter binders separately.
   - B-11c30c2 changes no production code. Its inventory proves that Prompt Data
     and Classic Prompt adapters have complete canonical/provider owners and form
-    B-11c30c2a. Advanced and Regional both call the root-only
-    `_consume_reserved_wildcard_next_seed` from their real build paths; they
-    form B-11c30c2b. S167-01 / PR #343 freezes the request/service contract but
-    intentionally does not move this consumer. A separate behavior-preserving
-    consumer Move must supply the owner before c2b. Do not add a callback
-    binder, import root `nodes.py`, or duplicate seed reservation merely to
-    retire these binders.
+    B-11c30c2a. Advanced and Regional still resolve
+    `_consume_reserved_wildcard_next_seed` through their root binders from real
+    build paths; they form B-11c30c2b. S167-01 / PR #343 freezes the
+    request/service contract. S167-01a / PR #344 moves the consumer to
+    `easyuse_anima.seed.compatibility` and leaves a direct root alias without
+    changing behavior. B-11c30c2b must retire the two binders separately.
   - B-11c30c2a retires only `_bind_prompt_data_node_runtime` and
     `_bind_prompt_node_runtime` in PR #342. Prompt Data uses canonical
     prompt/AiO owners plus the existing E-07 CLIP provider at call time;
@@ -1083,9 +1083,12 @@ S167-01 uses
 [`seed-reservation-contract.md`](seed-reservation-contract.md) as its exact
 symbol/caller/alias/global-state inventory and allowed-file gate. The contract
 does not itself move the root Prompt Studio compatibility consumer. That
-behavior-preserving owner Move and B-11c30c2b remain separate rollback units
-before S167-02. PR #343 completes this contract without changing any existing
-runtime, payload bytes, or reservation behavior.
+behavior-preserving owner Move is S167-01a. It and B-11c30c2b remain separate
+rollback units before S167-02. PR #343 completes the contract without changing
+any existing runtime, payload bytes, or reservation behavior. S167-01a uses the
+same document for its exact Move inventory and allowed-file gate. PR #344
+completes that Move while preserving the root aliases and both node-adapter
+binders for B-11c30c2b.
 
 Do not mix this sequence into B-09 or #169 stages.
 

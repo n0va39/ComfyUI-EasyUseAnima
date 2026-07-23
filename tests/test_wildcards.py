@@ -10,6 +10,7 @@ from unittest.mock import patch
 
 import nodes as nodes_module
 from easyuse_anima.prompt import advanced as prompt_advanced
+from easyuse_anima.seed import compatibility as seed_compatibility
 from nodes import (
     EasyUseAnimaPromptStudioAdvanced,
     EasyUseAnimaPromptStudioAdvancedV2,
@@ -30,6 +31,20 @@ from wildcard_engine import (
 
 
 class WildcardEngineTests(unittest.TestCase):
+    def test_reserved_seed_consumer_root_symbols_are_direct_aliases(self):
+        self.assertIs(
+            nodes_module._consume_reserved_wildcard_next_seed,
+            seed_compatibility._consume_reserved_wildcard_next_seed,
+        )
+        self.assertEqual(
+            nodes_module.WILDCARD_RESERVED_NEXT_SEED_INPUT,
+            seed_compatibility.WILDCARD_RESERVED_NEXT_SEED_INPUT,
+        )
+        self.assertEqual(
+            nodes_module.WILDCARD_QUEUE_MAX_SAFE_SEED,
+            seed_compatibility.WILDCARD_QUEUE_MAX_SAFE_SEED,
+        )
+
     def test_standalone_modes_remain_distinct_from_prompt_studio_modes(self):
         self.assertEqual(
             wildcard_engine.WILDCARD_MODES,
