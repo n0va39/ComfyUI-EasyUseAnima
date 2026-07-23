@@ -6,9 +6,13 @@ import logging
 import threading
 from collections.abc import Callable
 
+from .infrastructure.comfy.provider import DefaultComfyHostProvider
+from .runtime import RuntimeServices, install_runtime
+
 _LOGGER = logging.getLogger("ComfyUI-EasyUseAnima")
 _INITIALIZE_LOCK = threading.Lock()
 _WILDCARDS_INITIALIZED = False
+_DEFAULT_RUNTIME = RuntimeServices(comfy=DefaultComfyHostProvider())
 
 
 def initialize(
@@ -20,6 +24,7 @@ def initialize(
 
     global _WILDCARDS_INITIALIZED
     with _INITIALIZE_LOCK:
+        install_runtime(_DEFAULT_RUNTIME)
         register_routes()
         if _WILDCARDS_INITIALIZED:
             return

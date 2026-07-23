@@ -5,14 +5,15 @@ import sys
 import unittest
 from dataclasses import FrozenInstanceError
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from easyuse_anima import runtime as runtime_module
+from easyuse_anima import bootstrap, runtime as runtime_module
+from easyuse_anima.infrastructure.comfy.provider import DefaultComfyHostProvider
 from easyuse_anima.runtime import RuntimeServices, get_runtime, install_runtime
 
 
@@ -86,6 +87,52 @@ class RuntimeServicesTests(unittest.TestCase):
 
         self.assertIs(get_runtime(), first)
 
+    def test_bootstrap_installs_and_reuses_the_default_runtime(self):
+        register_routes = Mock(return_value=True)
+        initialize_wildcards = Mock(return_value=object())
+
+        with patch.object(bootstrap, "_WILDCARDS_INITIALIZED", False):
+            bootstrap.initialize(
+                register_routes=register_routes,
+                initialize_wildcards=initialize_wildcards,
+            )
+            first = get_runtime()
+            bootstrap.initialize(
+                register_routes=register_routes,
+                initialize_wildcards=initialize_wildcards,
+            )
+
+        self.assertIs(first, bootstrap._DEFAULT_RUNTIME)
+        self.assertIsInstance(first.comfy, DefaultComfyHostProvider)
+        self.assertIs(get_runtime(), first)
+        self.assertEqual(register_routes.call_count, 2)
+        initialize_wildcards.assert_called_once_with()
+
+    def test_bootstrap_rejects_conflicting_runtime_before_startup_callbacks(self):
+        runtime = self.make_runtime()
+        register_routes = Mock(return_value=True)
+        initialize_wildcards = Mock(return_value=object())
+        install_runtime(runtime)
+
+        with (
+            patch.object(bootstrap, "_WILDCARDS_INITIALIZED", False),
+            self.assertRaisesRegex(
+                RuntimeError,
+                (
+                    r"^\[EasyUseAnima\] A different RuntimeServices instance "
+                    r"is already installed\.$"
+                ),
+            ),
+        ):
+            bootstrap.initialize(
+                register_routes=register_routes,
+                initialize_wildcards=initialize_wildcards,
+            )
+
+        self.assertIs(get_runtime(), runtime)
+        register_routes.assert_not_called()
+        initialize_wildcards.assert_not_called()
+
     def test_import_does_not_require_comfyui_host_modules(self):
         script = """
 import builtins
@@ -101,7 +148,9 @@ def guarded_import(name, globals=None, locals=None, fromlist=(), level=0):
 builtins.__import__ = guarded_import
 
 from easyuse_anima.infrastructure.comfy.provider import ComfyHostProvider
+from easyuse_anima.infrastructure.comfy.provider import DefaultComfyHostProvider
 from easyuse_anima.runtime import RuntimeServices, get_runtime, install_runtime
+from easyuse_anima.bootstrap import initialize
 """
         result = subprocess.run(
             [sys.executable, "-c", script],

@@ -683,9 +683,9 @@ ignored/
 
         self.assertEqual(analyzer.render_json(report), expected_text)
         self.assertEqual(report["schema_version"], 2)
-        self.assertEqual(report["inventory"]["module_count"], 83)
-        self.assertEqual(len(report["registry"]["shipped_python_modules"]), 83)
-        self.assertEqual(len(report["registry"]["runtime_import_closure"]), 83)
+        self.assertEqual(report["inventory"]["module_count"], 85)
+        self.assertEqual(len(report["registry"]["shipped_python_modules"]), 85)
+        self.assertEqual(len(report["registry"]["runtime_import_closure"]), 85)
         self.assertEqual(report["registry"]["missing_internal_imports"], [])
         self.assertEqual(report["registry"]["unreachable_shipped_python_modules"], [])
         self.assertTrue(
@@ -723,6 +723,7 @@ ignored/
                 "easyuse_anima/infrastructure/comfy/__init__.py",
                 "easyuse_anima/infrastructure/comfy/capabilities.py",
                 "easyuse_anima/infrastructure/comfy/invocation.py",
+                "easyuse_anima/infrastructure/comfy/provider.py",
                 "easyuse_anima/infrastructure/comfy/resources.py",
                 "easyuse_anima/lora/__init__.py",
                 "easyuse_anima/lora/metadata.py",
@@ -746,6 +747,7 @@ ignored/
                 "easyuse_anima/profiles/contract.py",
                 "easyuse_anima/profiles/mutation.py",
                 "easyuse_anima/registration.py",
+                "easyuse_anima/runtime.py",
                 "easyuse_anima/prompt/__init__.py",
                 "easyuse_anima/prompt/advanced.py",
                 "easyuse_anima/prompt/correction.py",
@@ -776,6 +778,7 @@ ignored/
                 "easyuse_anima/image/scaling.py",
                 "easyuse_anima/infrastructure/comfy/capabilities.py",
                 "easyuse_anima/infrastructure/comfy/invocation.py",
+                "easyuse_anima/infrastructure/comfy/provider.py",
                 "easyuse_anima/infrastructure/comfy/resources.py",
                 "easyuse_anima/lora/__init__.py",
                 "easyuse_anima/lora/metadata.py",
@@ -805,6 +808,7 @@ ignored/
                 "easyuse_anima/profiles/__init__.py",
                 "easyuse_anima/profiles/contract.py",
                 "easyuse_anima/profiles/mutation.py",
+                "easyuse_anima/runtime.py",
             }.issubset(report["registry"]["runtime_import_closure"])
         )
         self.assertIn(

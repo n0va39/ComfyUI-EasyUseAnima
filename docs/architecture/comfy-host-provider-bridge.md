@@ -344,7 +344,7 @@ Exit:
 
 ### E-02a — Minimal runtime shell
 
-- **State:** BLOCKED in Draft PR #327 by the package-closure gate
+- **State:** COMPLETE in PR #327 (combined Contract with E-07a)
 - **Owner:** #323 / parent #187
 - **Type:** Contract
 
@@ -378,9 +378,22 @@ mutation, or feature code importing runtime.
 
 ### E-07a — Provider Contract and default lazy provider
 
-- **State:** BLOCKED by E-02a / PR #327
+- **State:** COMPLETE in PR #327 (combined Contract with E-02a)
 - **Owner:** #323 / parent #187
 - **Type:** Contract
+
+PR #327 combines E-02a and E-07a because the package-closure gate cannot admit
+the new runtime/provider modules while both remain unreachable. The combined
+production boundary is exactly the union of the two Contract units:
+
+```text
+easyuse_anima/runtime.py
+easyuse_anima/bootstrap.py
+easyuse_anima/infrastructure/comfy/provider.py
+```
+
+This sequencing correction does not add a package-closure exception and does
+not authorize E-07b wiring, a wrapper Move, or a Behavior change.
 
 Allowed production files:
 
@@ -523,10 +536,10 @@ and D-12 unless a separate behavior-preserving owner is proven.
 ```text
 COMPLETE: B-11c28 / PR #322
 COMPLETE: E-01a scoped inventory / PR #325
+COMPLETE: E-02a minimal runtime shell / PR #327
+COMPLETE: E-07a default host provider / PR #327
 
-BLOCKED:  E-02a minimal runtime shell / Draft PR #327
-BLOCKED:  E-07a default host provider
-BLOCKED:  E-07b wiring and compatibility gate
+READY:    E-07b wiring and compatibility gate
 BLOCKED:  B-11c29a-d wrapper Moves/retirements
 BLOCKED:  B-11c30 binder/resolver migration audit
 BLOCKED:  B-11d final root shim
@@ -584,17 +597,14 @@ Read docs/architecture/comfy-host-provider-bridge.md, Issue #323, Issue #184's
 latest blocker/completion evidence, Issue #187, python-backend.md, ADR-002, and
 the E-01a compatibility ledger before editing.
 
-E-01a is complete in PR #325. E-02a Draft PR #327 is blocked because its two
-new production modules are shipped but unreachable from the current runtime
-import closure, while the exact E-02a boundary forbids bootstrap or existing
-caller changes. Do not update only the analyzer snapshot, weaken the
-package-closure gate, or start E-07a until #323 records a revised allowed-file
-and sequencing decision.
+E-01a is complete in PR #325. E-02a and E-07a are complete together in PR #327
+because bootstrap reachability is required by the package-closure gate. Start
+with E-07b only and follow its exact compatibility and wiring boundary in
+tests/fixtures/comfy_host_compatibility.v1.json. Do not move or remove the seven
+root wrappers, add lookup caching, or migrate feature behavior in E-07b.
 
-After the E-02a blocker is resolved and merged, execute E-07a and then E-07b as
-separate Contract/gate units. Only after their exit gates pass may #184 resume
-B-11c29 wrapper Moves. Target dev, use one task ID per branch, run focused
-tests and the official full runner, and record exact base/head SHA,
-compatibility decisions, package/live status, rollback boundary, and next task.
-Do not release from this sequence.
+Only after the E-07b exit gates pass may #184 resume B-11c29 wrapper Moves.
+Target dev, use one task ID per branch, run focused tests and the official full
+runner, and record exact base/head SHA, compatibility decisions, package/live
+status, rollback boundary, and next task. Do not release from this sequence.
 ```
