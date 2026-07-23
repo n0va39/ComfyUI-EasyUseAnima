@@ -1,63 +1,99 @@
 from __future__ import annotations
 
 import re
-from collections.abc import Callable
-from typing import Any, TypeAlias
+from typing import Any
 
+from ..common.serialization import _json_clone, _json_object
+from ..common.values import _as_bool, _as_float, _as_int, _choice
+from ..image.scaling import IMAGE_SCALE_MULTIPLES, IMAGE_UPSCALE_METHODS
+from ..infrastructure.comfy.capabilities import (
+    _comfy_sampler_names,
+    _comfy_scheduler_names,
+    _impact_scheduler_names,
+)
+from ..infrastructure.comfy.wiring import resolve_comfy_host_helper
+from ..prompt.artist_mix import (
+    ARTIST_MIX_DEFAULT_CLUSTER_COUNT,
+    ARTIST_MIX_DEFAULT_DOMINANT_ISOLATION,
+    ARTIST_MIX_DEFAULT_DOMINANT_THRESHOLD,
+    ARTIST_MIX_DEFAULT_EXACT_TOP_K,
+    ARTIST_MIX_DEFAULT_RMS_SCALE_CAP,
+    ARTIST_MIX_DEFAULT_START_PERCENT,
+    ARTIST_MIX_DEFAULT_STRENGTH_SCALE,
+    ARTIST_MIX_DEFAULT_STYLE_GAIN,
+    ARTIST_MIX_INPUT_MODES,
+    ARTIST_MIX_MODE_FROM_PROMPT_DATA,
+    _bounded_artist_mix_float,
+    _bounded_artist_mix_int,
+)
+from ..prompt.conditioning import (
+    ANIMA_MOD_GUIDANCE_DEFAULT_PROFILE,
+    ANIMA_MOD_GUIDANCE_MODE_FROM_PROMPT_DATA,
+    ANIMA_MOD_GUIDANCE_MODES,
+    _normalize_anima_mod_guidance_profile,
+)
+from ..prompt.data import _prompt_data_json_safe
+from .generation_defaults import (
+    AIO_FINAL_FIT_MODES,
+    AIO_FINAL_UPSCALE_BACKENDS,
+    AIO_GENERATION_DEFAULT_SETTINGS,
+    AIO_GENERATION_SETTINGS_SCHEMA,
+    AIO_GENERATION_SETTINGS_VERSION,
+    AIO_RESHIFT_DTYPES,
+    AIO_RESHIFT_SCALES,
+    AIO_SPECIAL_SEED_DECREMENT,
+    AIO_SPECIAL_SEED_RANDOM,
+    AIO_USDU_MODE_TYPES,
+    AIO_USDU_PROMPT_MODES,
+    AIO_USDU_PROMPT_NO_GENERAL,
+    AIO_USDU_SEAM_FIX_MODES,
+)
+from .generation_defaults import (
+    AIO_SPECIAL_SEED_INCREMENT as AIO_SPECIAL_SEED_INCREMENT,
+)
+from .generation_defaults import (
+    AIO_SPECIAL_SEEDS as AIO_SPECIAL_SEEDS,
+)
+from .generation_settings import (
+    round_trip_aio_generation_settings as _round_trip_aio_generation_settings,
+)
 from .output_settings import (
     _normalize_aio_civitai_hash_fetchers,
     _normalize_aio_hash_bundles,
 )
 
-_RuntimeResolver: TypeAlias = Callable[[str], Any]
-_RUNTIME_RESOLVER: _RuntimeResolver | None = None
+try:
+    from ...wildcard_engine import MAX_SEED, SEED_CONTROL_FIXED, SEED_CONTROL_MODES
+except ImportError:  # allows simple local import tests outside ComfyUI's package loader
+    from wildcard_engine import MAX_SEED, SEED_CONTROL_FIXED, SEED_CONTROL_MODES
 
 
-def _bind_aio_generation_normalization_runtime(
-    *,
-    resolve_helper: _RuntimeResolver,
-) -> None:
-    """Bind root compatibility helpers without importing the root module."""
-
-    global _RUNTIME_RESOLVER
-    _RUNTIME_RESOLVER = resolve_helper
+def _missing_host_helper(name: str):
+    raise RuntimeError(
+        f"[EasyUseAnima] AiO generation normalization Comfy host helper is unavailable: {name}"
+    )
 
 
-def _runtime_helper(name: str) -> Any:
-    resolver = _RUNTIME_RESOLVER
-    if resolver is None:
-        raise RuntimeError(
-            f"[EasyUseAnima] AiO generation normalization runtime helper is not bound: {name}"
-        )
-    return resolver(name)
-
-
-AIO_SPECIAL_SEED_RANDOM = -1
-AIO_SPECIAL_SEED_INCREMENT = -2
-AIO_SPECIAL_SEED_DECREMENT = -3
-AIO_SPECIAL_SEEDS = {
-    AIO_SPECIAL_SEED_RANDOM,
-    AIO_SPECIAL_SEED_INCREMENT,
-    AIO_SPECIAL_SEED_DECREMENT,
-}
+def _comfy_max_resolution() -> int:
+    helper = resolve_comfy_host_helper(
+        "_comfy_max_resolution",
+        _missing_host_helper,
+    )
+    return helper()
 
 _AIO_DETAILER_RESERVED_KEYS = {"enabled", "order", "sam3"}
 _AIO_DETAILER_CUSTOM_RE = re.compile(r"^custom_\d+$")
 
 
 def _is_aio_detailer_target_name(name: str) -> bool:
-    return name in ("face", "eye") or bool(
-        _runtime_helper("_AIO_DETAILER_CUSTOM_RE").fullmatch(name)
-    )
+    return name in ("face", "eye") or bool(_AIO_DETAILER_CUSTOM_RE.fullmatch(name))
 
 
 def _aio_detailer_target_defaults(target_name: str) -> dict[str, Any]:
     if target_name == "eye":
-        return _runtime_helper("_json_clone")(
-            _runtime_helper("AIO_GENERATION_DEFAULT_SETTINGS")["detailer"]["eye"]
-        )
-    defaults = _runtime_helper("_json_clone")(
-        _runtime_helper("AIO_GENERATION_DEFAULT_SETTINGS")["detailer"]["face"]
+        return _json_clone(AIO_GENERATION_DEFAULT_SETTINGS["detailer"]["eye"])
+    defaults = _json_clone(
+        AIO_GENERATION_DEFAULT_SETTINGS["detailer"]["face"]
     )
     if target_name not in ("face", "eye"):
         suffix = target_name.rsplit("_", 1)[-1]
@@ -72,7 +108,7 @@ def _aio_detailer_target_order(detailer_settings: dict[str, Any]) -> list[str]:
 
     def append_target(name) -> None:
         text = str(name or "").strip()
-        if _runtime_helper("_is_aio_detailer_target_name")(text) and text not in output:
+        if _is_aio_detailer_target_name(text) and text not in output:
             output.append(text)
 
     order = detailer_settings.get("order")
@@ -80,9 +116,7 @@ def _aio_detailer_target_order(detailer_settings: dict[str, Any]) -> list[str]:
         for name in order:
             append_target(name)
     for name, value in detailer_settings.items():
-        if name in _runtime_helper("_AIO_DETAILER_RESERVED_KEYS") or not isinstance(
-            value, dict
-        ):
+        if name in _AIO_DETAILER_RESERVED_KEYS or not isinstance(value, dict):
             continue
         append_target(name)
     for name in ("face", "eye"):
@@ -91,32 +125,26 @@ def _aio_detailer_target_order(detailer_settings: dict[str, Any]) -> list[str]:
 
 
 def _aio_detailer_has_enabled_targets(detailer_settings: dict[str, Any]) -> bool:
-    if not _runtime_helper("_as_bool")(
+    if not _as_bool(
         detailer_settings.get("enabled"),
         False,
     ):
         return False
     return any(
         isinstance(detailer_settings.get(name), dict)
-        and _runtime_helper("_as_bool")(
+        and _as_bool(
             detailer_settings[name].get("enabled"),
             False,
         )
-        for name in _runtime_helper("_aio_detailer_target_order")(detailer_settings)
+        for name in _aio_detailer_target_order(detailer_settings)
     )
 
 
 def _normalize_aio_seed(value, default: int = AIO_SPECIAL_SEED_RANDOM) -> int:
-    _as_int = _runtime_helper("_as_int")
-    max_seed = _runtime_helper("MAX_SEED")
-    minimum_seed = _runtime_helper("AIO_SPECIAL_SEED_DECREMENT")
-    return max(minimum_seed, min(max_seed, _as_int(value, default)))
+    return max(AIO_SPECIAL_SEED_DECREMENT, min(MAX_SEED, _as_int(value, default)))
 
 
 def _merge_versioned_settings(defaults: dict[str, Any], value) -> dict[str, Any]:
-    _json_clone = _runtime_helper("_json_clone")
-    _json_object = _runtime_helper("_json_object")
-    _prompt_data_json_safe = _runtime_helper("_prompt_data_json_safe")
     merged = _json_clone(defaults)
     incoming = _json_object(value)
 
@@ -136,10 +164,6 @@ def _normalize_aio_spectrum_settings(
     value,
     defaults: dict[str, Any],
 ) -> dict[str, Any]:
-    _as_bool = _runtime_helper("_as_bool")
-    _as_float = _runtime_helper("_as_float")
-    _as_int = _runtime_helper("_as_int")
-    _choice = _runtime_helper("_choice")
     spectrum = value if isinstance(value, dict) else {}
     spectrum["enabled"] = _as_bool(
         spectrum.get("enabled"),
@@ -245,10 +269,6 @@ def _normalize_aio_dit_corrections_settings(
     value,
     defaults: dict[str, Any],
 ) -> dict[str, Any]:
-    _as_bool = _runtime_helper("_as_bool")
-    _as_float = _runtime_helper("_as_float")
-    _as_int = _runtime_helper("_as_int")
-    _choice = _runtime_helper("_choice")
     corrections = value if isinstance(value, dict) else {}
     corrections["enabled"] = _as_bool(
         corrections.get("enabled"),
@@ -379,52 +399,6 @@ def _normalize_aio_dit_corrections_settings(
 
 
 def _normalize_aio_generation_settings(value) -> dict[str, Any]:
-    AIO_FINAL_FIT_MODES = _runtime_helper("AIO_FINAL_FIT_MODES")
-    AIO_FINAL_UPSCALE_BACKENDS = _runtime_helper("AIO_FINAL_UPSCALE_BACKENDS")
-    AIO_GENERATION_DEFAULT_SETTINGS = _runtime_helper("AIO_GENERATION_DEFAULT_SETTINGS")
-    AIO_GENERATION_SETTINGS_SCHEMA = _runtime_helper("AIO_GENERATION_SETTINGS_SCHEMA")
-    AIO_GENERATION_SETTINGS_VERSION = _runtime_helper("AIO_GENERATION_SETTINGS_VERSION")
-    AIO_RESHIFT_DTYPES = _runtime_helper("AIO_RESHIFT_DTYPES")
-    AIO_RESHIFT_SCALES = _runtime_helper("AIO_RESHIFT_SCALES")
-    AIO_USDU_MODE_TYPES = _runtime_helper("AIO_USDU_MODE_TYPES")
-    AIO_USDU_PROMPT_MODES = _runtime_helper("AIO_USDU_PROMPT_MODES")
-    AIO_USDU_PROMPT_NO_GENERAL = _runtime_helper("AIO_USDU_PROMPT_NO_GENERAL")
-    AIO_USDU_SEAM_FIX_MODES = _runtime_helper("AIO_USDU_SEAM_FIX_MODES")
-    ANIMA_MOD_GUIDANCE_DEFAULT_PROFILE = _runtime_helper("ANIMA_MOD_GUIDANCE_DEFAULT_PROFILE")
-    ANIMA_MOD_GUIDANCE_MODES = _runtime_helper("ANIMA_MOD_GUIDANCE_MODES")
-    ANIMA_MOD_GUIDANCE_MODE_FROM_PROMPT_DATA = _runtime_helper("ANIMA_MOD_GUIDANCE_MODE_FROM_PROMPT_DATA")
-    ARTIST_MIX_DEFAULT_CLUSTER_COUNT = _runtime_helper("ARTIST_MIX_DEFAULT_CLUSTER_COUNT")
-    ARTIST_MIX_DEFAULT_DOMINANT_ISOLATION = _runtime_helper("ARTIST_MIX_DEFAULT_DOMINANT_ISOLATION")
-    ARTIST_MIX_DEFAULT_DOMINANT_THRESHOLD = _runtime_helper("ARTIST_MIX_DEFAULT_DOMINANT_THRESHOLD")
-    ARTIST_MIX_DEFAULT_EXACT_TOP_K = _runtime_helper("ARTIST_MIX_DEFAULT_EXACT_TOP_K")
-    ARTIST_MIX_DEFAULT_RMS_SCALE_CAP = _runtime_helper("ARTIST_MIX_DEFAULT_RMS_SCALE_CAP")
-    ARTIST_MIX_DEFAULT_START_PERCENT = _runtime_helper("ARTIST_MIX_DEFAULT_START_PERCENT")
-    ARTIST_MIX_DEFAULT_STRENGTH_SCALE = _runtime_helper("ARTIST_MIX_DEFAULT_STRENGTH_SCALE")
-    ARTIST_MIX_DEFAULT_STYLE_GAIN = _runtime_helper("ARTIST_MIX_DEFAULT_STYLE_GAIN")
-    ARTIST_MIX_INPUT_MODES = _runtime_helper("ARTIST_MIX_INPUT_MODES")
-    ARTIST_MIX_MODE_FROM_PROMPT_DATA = _runtime_helper("ARTIST_MIX_MODE_FROM_PROMPT_DATA")
-    IMAGE_SCALE_MULTIPLES = _runtime_helper("IMAGE_SCALE_MULTIPLES")
-    IMAGE_UPSCALE_METHODS = _runtime_helper("IMAGE_UPSCALE_METHODS")
-    SEED_CONTROL_FIXED = _runtime_helper("SEED_CONTROL_FIXED")
-    SEED_CONTROL_MODES = _runtime_helper("SEED_CONTROL_MODES")
-    _aio_detailer_target_defaults = _runtime_helper("_aio_detailer_target_defaults")
-    _aio_detailer_target_order = _runtime_helper("_aio_detailer_target_order")
-    _as_bool = _runtime_helper("_as_bool")
-    _as_float = _runtime_helper("_as_float")
-    _as_int = _runtime_helper("_as_int")
-    _bounded_artist_mix_float = _runtime_helper("_bounded_artist_mix_float")
-    _bounded_artist_mix_int = _runtime_helper("_bounded_artist_mix_int")
-    _choice = _runtime_helper("_choice")
-    _comfy_max_resolution = _runtime_helper("_comfy_max_resolution")
-    _comfy_sampler_names = _runtime_helper("_comfy_sampler_names")
-    _comfy_scheduler_names = _runtime_helper("_comfy_scheduler_names")
-    _impact_scheduler_names = _runtime_helper("_impact_scheduler_names")
-    _json_clone = _runtime_helper("_json_clone")
-    _normalize_aio_dit_corrections_settings = _runtime_helper("_normalize_aio_dit_corrections_settings")
-    _normalize_aio_seed = _runtime_helper("_normalize_aio_seed")
-    _normalize_aio_spectrum_settings = _runtime_helper("_normalize_aio_spectrum_settings")
-    _normalize_anima_mod_guidance_profile = _runtime_helper("_normalize_anima_mod_guidance_profile")
-    _round_trip_aio_generation_settings = _runtime_helper("_round_trip_aio_generation_settings")
     settings = _merge_versioned_settings(AIO_GENERATION_DEFAULT_SETTINGS, value)
     settings["schema"] = AIO_GENERATION_SETTINGS_SCHEMA
     settings["version"] = _as_int(

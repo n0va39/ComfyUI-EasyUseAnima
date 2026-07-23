@@ -5,7 +5,7 @@
 - Status: operational execution runbook
 - Snapshot date: 2026-07-24
 - Snapshot branch: `dev`
-- Integrated `dev` snapshot commit: `b69d33857ef85fb81388f02e9ff1cff195a092d1`
+- Integrated `dev` snapshot commit: `7c5cd5c41a9a2b777c4acb9c5307b5ad1920692b`
 - Scope: Python backend only
 - Target architecture: [`python-backend.md`](python-backend.md)
 - Architecture decisions: [ADR-001](adr-001-modular-monolith.md) and
@@ -31,7 +31,7 @@ merged PR, the owning issue's evidence record, and every stated exit gate.
 | Phase | Integrated snapshot / open implementation state | Remaining exit work |
 | --- | --- | --- |
 | A - baseline | Complete; #191 is closed | Keep fixtures and analyzers current during later moves |
-| B - `nodes.py` extraction | Integrated through B-11c30d1 / PR #347; B-11c30d0a completes in PR #348 | Execute d2-d4, then d0b and d5-d6, followed by Wildcard/NAIA and the final root shim as separate rollback units |
+| B - `nodes.py` extraction | Integrated through B-11c30d0a / PR #348; B-11c30d2 completes in PR #349 | Execute d3-d4, then d0b and d5-d6, followed by Wildcard/NAIA and the final root shim as separate rollback units |
 | C - feature contracts/behavior | Partially complete through S167-01a / PR #344 | Continue #167 and #169 in separate Contract/Move/Behavior PRs |
 | D - root consolidation | Not started | Execute #186 feature by feature after the corresponding behavior contracts are stable |
 | E - runtime ownership | Partial: E-02a and E-07a/E-07b integrated | Continue #187 only where canonical feature owners and explicit contracts exist |
@@ -42,9 +42,9 @@ merged PR, the owning issue's evidence record, and every stated exit gate.
 ### Measured Phase B progress
 
 - The Phase A baseline recorded root `nodes.py` at 12,663 lines.
-- In B-11c30c2b / PR #345, root `nodes.py` measures 1,662 lines.
-- The mechanical extraction has removed 11,001
-  lines, approximately 86.9% of the Phase A baseline, while preserving the root
+- In B-11c30d2 / PR #349, the analyzer measures root `nodes.py` at 1,239 lines.
+- The mechanical extraction has removed 11,424
+  lines, approximately 90.2% of the Phase A baseline, while preserving the root
   compatibility surface.
 - B-01 through B-09b2 are integrated. The latest completed implementation slice
   is the AiO generator adapter Move in PR #270.
@@ -132,6 +132,12 @@ merged PR, the owning issue's evidence record, and every stated exit gate.
   `easyuse_anima.aio.output_settings` owner. Generation normalization imports
   them directly, root aliases retain identity, and the d2-d4 import cycle is
   removed without retiring another binder or changing settings/save behavior.
+  B-11c30d2 / PR #349 retires only the generation-normalization, USDU-planning,
+  and postprocess-planning binders. A pure `generation_defaults` owner keeps
+  the mutable settings payload and choices out of root, generation
+  normalization uses canonical helpers plus the E-07 max-resolution provider,
+  and USDU/postprocess planning use direct canonical dependencies. Ten binders
+  remain across AiO and Wildcard/NAIA.
 
 ### Current quality baseline
 
@@ -1077,6 +1083,11 @@ unchanged. The separate legacy Wildcard unsupported alias remains for D-12.
     `easyuse_anima.aio.output_settings` in PR #348. Generation normalization
     uses the pure owner directly, output re-exports the same objects, and root
     aliases retain identity. No binder or settings/save behavior changes.
+  - B-11c30d2 retires only `_bind_aio_generation_normalization_runtime`,
+    `_bind_aio_usdu_planning_runtime`, and
+    `_bind_aio_postprocess_runtime` in PR #349. Generation defaults have one
+    pure owner, the E-07 max-resolution seam remains call-time provider-owned,
+    and d3 through d6 plus Wildcard/NAIA remain separate rollback units.
   - The final B-11c cutover removes remaining root execution ownership and
     leaves the explicit supported `nodes.py` compatibility shim.
 - Add `easyuse_anima/registration.py` as pure mapping composition. It performs no

@@ -75,7 +75,8 @@
       "B-11c30c2b",
       "B-11c30d",
       "B-11c30d1",
-      "B-11c30d0a"
+      "B-11c30d0a",
+      "B-11c30d2"
     ]
   },
   "enums": {
@@ -109,15 +110,15 @@
   },
   "expected_counts": {
     "root_entrypoints": 3,
-    "excluded_preamble_implementation_bindings": 5,
-    "nodes_canonical_bindings": 281,
+    "excluded_preamble_implementation_bindings": 3,
+    "nodes_canonical_bindings": 290,
     "nodes_legacy_bindings": 27,
     "mapped_public_classes": 18,
     "unmapped_classes": 2,
     "root_residual_functions": 0,
     "root_residual_classes": 0,
-    "root_residual_globals": 24,
-    "runtime_binders": 13,
+    "root_residual_globals": 12,
+    "runtime_binders": 10,
     "direct_nodes_import_test_files": 21
   },
   "mapped_public_classes": [
@@ -145,17 +146,12 @@
     "EasyUseAnimaSAM3Detailer"
   ],
   "excluded_preamble_implementation_bindings": {
-    "ceil": "math:ceil",
     "json": "json:json",
     "logging": "logging:logging",
-    "random": "random:random",
-    "sqrt": "math:sqrt"
+    "random": "random:random"
   },
   "runtime_binders": [
     "_bind_aio_legacy_generation_runtime",
-    "_bind_aio_generation_normalization_runtime",
-    "_bind_aio_usdu_planning_runtime",
-    "_bind_aio_postprocess_runtime",
     "_bind_aio_resource_runtime",
     "_bind_aio_model_preparation_runtime",
     "_bind_aio_sampling_runtime",
@@ -167,22 +163,9 @@
     "_bind_naia_node_runtime"
   ],
   "runtime_resolver_consumers": {
-    "AIO_FINAL_FIT_MODES": [
-      "easyuse_anima.aio.generation_normalization"
-    ],
-    "AIO_FINAL_UPSCALE_BACKENDS": [
-      "easyuse_anima.aio.generation_normalization"
-    ],
     "AIO_GENERATION_DEFAULT_SETTINGS": [
-      "easyuse_anima.aio.generation_normalization",
       "easyuse_anima.aio.output",
       "easyuse_anima.nodes.aio_nodes"
-    ],
-    "AIO_GENERATION_SETTINGS_SCHEMA": [
-      "easyuse_anima.aio.generation_normalization"
-    ],
-    "AIO_GENERATION_SETTINGS_VERSION": [
-      "easyuse_anima.aio.generation_normalization"
     ],
     "AIO_INPUT_DEFAULT_SETTINGS": [
       "easyuse_anima.aio.resources",
@@ -200,35 +183,16 @@
     "AIO_PREVIEW_STAGE_LABELS": [
       "easyuse_anima.aio.preview"
     ],
-    "AIO_RESHIFT_DTYPES": [
-      "easyuse_anima.aio.generation_normalization"
-    ],
-    "AIO_RESHIFT_SCALES": [
-      "easyuse_anima.aio.generation_normalization"
-    ],
     "AIO_SPECIAL_SEEDS": [
       "easyuse_anima.aio.sampling",
       "easyuse_anima.nodes.aio_nodes"
-    ],
-    "AIO_SPECIAL_SEED_DECREMENT": [
-      "easyuse_anima.aio.generation_normalization"
-    ],
-    "AIO_USDU_MODE_TYPES": [
-      "easyuse_anima.aio.generation_normalization"
     ],
     "AIO_USDU_PROMPT_FULL": [
       "easyuse_anima.aio.conditioning",
       "easyuse_anima.aio.legacy_generation"
     ],
-    "AIO_USDU_PROMPT_MODES": [
-      "easyuse_anima.aio.generation_normalization"
-    ],
     "AIO_USDU_PROMPT_NO_GENERAL": [
-      "easyuse_anima.aio.conditioning",
-      "easyuse_anima.aio.generation_normalization"
-    ],
-    "AIO_USDU_SEAM_FIX_MODES": [
-      "easyuse_anima.aio.generation_normalization"
+      "easyuse_anima.aio.conditioning"
     ],
     "ANIMA_CLIP_DEVICES": [
       "easyuse_anima.aio.resources"
@@ -249,14 +213,7 @@
       "easyuse_anima.nodes.aio_nodes"
     ],
     "ANIMA_MOD_GUIDANCE_DEFAULT_PROFILE": [
-      "easyuse_anima.aio.generation_normalization",
       "easyuse_anima.aio.sampling"
-    ],
-    "ANIMA_MOD_GUIDANCE_MODES": [
-      "easyuse_anima.aio.generation_normalization"
-    ],
-    "ANIMA_MOD_GUIDANCE_MODE_FROM_PROMPT_DATA": [
-      "easyuse_anima.aio.generation_normalization"
     ],
     "ANIMA_MOD_GUIDANCE_PROFILE_OFF": [
       "easyuse_anima.aio.legacy_generation",
@@ -264,36 +221,6 @@
     ],
     "ANIMA_UNET_WEIGHT_DTYPES": [
       "easyuse_anima.aio.resources"
-    ],
-    "ARTIST_MIX_DEFAULT_CLUSTER_COUNT": [
-      "easyuse_anima.aio.generation_normalization"
-    ],
-    "ARTIST_MIX_DEFAULT_DOMINANT_ISOLATION": [
-      "easyuse_anima.aio.generation_normalization"
-    ],
-    "ARTIST_MIX_DEFAULT_DOMINANT_THRESHOLD": [
-      "easyuse_anima.aio.generation_normalization"
-    ],
-    "ARTIST_MIX_DEFAULT_EXACT_TOP_K": [
-      "easyuse_anima.aio.generation_normalization"
-    ],
-    "ARTIST_MIX_DEFAULT_RMS_SCALE_CAP": [
-      "easyuse_anima.aio.generation_normalization"
-    ],
-    "ARTIST_MIX_DEFAULT_START_PERCENT": [
-      "easyuse_anima.aio.generation_normalization"
-    ],
-    "ARTIST_MIX_DEFAULT_STRENGTH_SCALE": [
-      "easyuse_anima.aio.generation_normalization"
-    ],
-    "ARTIST_MIX_DEFAULT_STYLE_GAIN": [
-      "easyuse_anima.aio.generation_normalization"
-    ],
-    "ARTIST_MIX_INPUT_MODES": [
-      "easyuse_anima.aio.generation_normalization"
-    ],
-    "ARTIST_MIX_MODE_FROM_PROMPT_DATA": [
-      "easyuse_anima.aio.generation_normalization"
     ],
     "EASY_USE_ANIMA_INPUT_SCHEMA": [
       "easyuse_anima.aio.resources",
@@ -312,34 +239,14 @@
     "EasyUseAnimaSAM3Detailer": [
       "easyuse_anima.aio.legacy_generation"
     ],
-    "IMAGE_SCALE_MULTIPLES": [
-      "easyuse_anima.aio.generation_normalization"
-    ],
-    "IMAGE_UPSCALE_METHODS": [
-      "easyuse_anima.aio.generation_normalization"
-    ],
-    "LATENT_ALIGN": [
-      "easyuse_anima.aio.postprocess"
-    ],
     "MAX_SEED": [
-      "easyuse_anima.aio.generation_normalization",
       "easyuse_anima.aio.sampling"
     ],
     "PROMPT_DATA_TYPE": [
       "easyuse_anima.nodes.aio_nodes"
     ],
     "SEED_CONTROL_FIXED": [
-      "easyuse_anima.aio.generation_normalization",
       "easyuse_anima.aio.sampling"
-    ],
-    "SEED_CONTROL_MODES": [
-      "easyuse_anima.aio.generation_normalization"
-    ],
-    "_AIO_DETAILER_CUSTOM_RE": [
-      "easyuse_anima.aio.generation_normalization"
-    ],
-    "_AIO_DETAILER_RESERVED_KEYS": [
-      "easyuse_anima.aio.generation_normalization"
     ],
     "_adapter_comfy_clip_loader_types": [
       "easyuse_anima.aio.resources"
@@ -365,15 +272,8 @@
     "_aio_detailer_has_enabled_targets": [
       "easyuse_anima.aio.legacy_generation"
     ],
-    "_aio_detailer_target_defaults": [
-      "easyuse_anima.aio.generation_normalization"
-    ],
     "_aio_detailer_target_order": [
-      "easyuse_anima.aio.generation_normalization",
       "easyuse_anima.aio.legacy_generation"
-    ],
-    "_aio_final_fit_size": [
-      "easyuse_anima.aio.postprocess"
     ],
     "_aio_first_pass_cache_key": [
       "easyuse_anima.aio.legacy_generation"
@@ -417,9 +317,6 @@
     "_aio_stage_sampler_settings": [
       "easyuse_anima.aio.legacy_generation"
     ],
-    "_aio_usdu_auto_tile_dimension": [
-      "easyuse_anima.aio.usdu"
-    ],
     "_aio_usdu_conditioning": [
       "easyuse_anima.aio.legacy_generation"
     ],
@@ -429,17 +326,8 @@
     "_aio_usdu_tile_plan": [
       "easyuse_anima.aio.legacy_generation"
     ],
-    "_align_down": [
-      "easyuse_anima.aio.postprocess"
-    ],
-    "_align_nearest": [
-      "easyuse_anima.aio.usdu"
-    ],
     "_apply_aio_anima_dave_patch": [
       "easyuse_anima.aio.model_preparation"
-    ],
-    "_apply_aio_final_fit": [
-      "easyuse_anima.aio.postprocess"
     ],
     "_apply_aio_kj_model_patches": [
       "easyuse_anima.aio.model_preparation"
@@ -467,44 +355,29 @@
     ],
     "_as_bool": [
       "easyuse_anima.aio.conditioning",
-      "easyuse_anima.aio.generation_normalization",
       "easyuse_anima.aio.legacy_generation",
       "easyuse_anima.aio.model_preparation",
       "easyuse_anima.aio.output",
-      "easyuse_anima.aio.postprocess",
-      "easyuse_anima.aio.sampling",
-      "easyuse_anima.aio.usdu"
+      "easyuse_anima.aio.sampling"
     ],
     "_as_float": [
-      "easyuse_anima.aio.generation_normalization",
       "easyuse_anima.aio.legacy_generation",
       "easyuse_anima.aio.model_preparation",
       "easyuse_anima.aio.output",
-      "easyuse_anima.aio.postprocess",
       "easyuse_anima.aio.sampling"
     ],
     "_as_int": [
-      "easyuse_anima.aio.generation_normalization",
       "easyuse_anima.aio.legacy_generation",
       "easyuse_anima.aio.model_preparation",
       "easyuse_anima.aio.output",
-      "easyuse_anima.aio.postprocess",
       "easyuse_anima.aio.resources",
-      "easyuse_anima.aio.sampling",
-      "easyuse_anima.aio.usdu"
-    ],
-    "_bounded_artist_mix_float": [
-      "easyuse_anima.aio.generation_normalization"
-    ],
-    "_bounded_artist_mix_int": [
-      "easyuse_anima.aio.generation_normalization"
+      "easyuse_anima.aio.sampling"
     ],
     "_call_with_supported_kwargs": [
       "easyuse_anima.aio.model_preparation",
       "easyuse_anima.aio.sampling"
     ],
     "_choice": [
-      "easyuse_anima.aio.generation_normalization",
       "easyuse_anima.aio.resources"
     ],
     "_cleanup_aio_ephemeral_model": [
@@ -516,20 +389,11 @@
     "_comfy_diffusion_model_names": [
       "easyuse_anima.nodes.aio_nodes"
     ],
-    "_comfy_sampler_names": [
-      "easyuse_anima.aio.generation_normalization"
-    ],
-    "_comfy_scheduler_names": [
-      "easyuse_anima.aio.generation_normalization"
-    ],
     "_comfy_text_encoder_names": [
       "easyuse_anima.nodes.aio_nodes"
     ],
     "_comfy_vae_names": [
       "easyuse_anima.nodes.aio_nodes"
-    ],
-    "_common_upscale_image": [
-      "easyuse_anima.aio.postprocess"
     ],
     "_context_value": [
       "easyuse_anima.aio.legacy_generation"
@@ -566,23 +430,11 @@
     ],
     "_image_tensor_size": [
       "easyuse_anima.aio.legacy_generation",
-      "easyuse_anima.aio.postprocess",
-      "easyuse_anima.aio.preview",
-      "easyuse_anima.aio.usdu"
-    ],
-    "_impact_scheduler_names": [
-      "easyuse_anima.aio.generation_normalization"
-    ],
-    "_is_aio_detailer_target_name": [
-      "easyuse_anima.aio.generation_normalization"
+      "easyuse_anima.aio.preview"
     ],
     "_json_clone": [
-      "easyuse_anima.aio.generation_normalization",
       "easyuse_anima.aio.sampling",
       "easyuse_anima.nodes.aio_nodes"
-    ],
-    "_json_object": [
-      "easyuse_anima.aio.generation_normalization"
     ],
     "_load_aio_resources_from_input_context": [
       "easyuse_anima.aio.legacy_generation"
@@ -626,9 +478,6 @@
     "_normalize_aio_civitai_hash_fetchers": [
       "easyuse_anima.aio.output"
     ],
-    "_normalize_aio_dit_corrections_settings": [
-      "easyuse_anima.aio.generation_normalization"
-    ],
     "_normalize_aio_generation_settings": [
       "easyuse_anima.aio.legacy_generation",
       "easyuse_anima.nodes.aio_nodes"
@@ -644,14 +493,9 @@
       "easyuse_anima.aio.model_preparation"
     ],
     "_normalize_aio_seed": [
-      "easyuse_anima.aio.generation_normalization",
       "easyuse_anima.aio.sampling"
     ],
-    "_normalize_aio_spectrum_settings": [
-      "easyuse_anima.aio.generation_normalization"
-    ],
     "_normalize_anima_mod_guidance_profile": [
-      "easyuse_anima.aio.generation_normalization",
       "easyuse_anima.aio.legacy_generation",
       "easyuse_anima.aio.sampling"
     ],
@@ -670,7 +514,6 @@
       "easyuse_anima.nodes.aio_nodes"
     ],
     "_prompt_data_json_safe": [
-      "easyuse_anima.aio.generation_normalization",
       "easyuse_anima.aio.legacy_generation",
       "easyuse_anima.aio.preview",
       "easyuse_anima.nodes.aio_nodes"
@@ -682,8 +525,7 @@
       "easyuse_anima.aio.legacy_generation"
     ],
     "_resize_image_to_size_if_needed": [
-      "easyuse_anima.aio.legacy_generation",
-      "easyuse_anima.aio.postprocess"
+      "easyuse_anima.aio.legacy_generation"
     ],
     "_resolve_aio_runtime_seed": [
       "easyuse_anima.aio.legacy_generation",
@@ -693,9 +535,6 @@
     ],
     "_resolve_anima_mod_guidance_enabled": [
       "easyuse_anima.aio.legacy_generation"
-    ],
-    "_round_trip_aio_generation_settings": [
-      "easyuse_anima.aio.generation_normalization"
     ],
     "_run_aio_detailer_stage": [
       "easyuse_anima.aio.legacy_generation"
@@ -767,35 +606,31 @@
       "easyuse_anima.aio.legacy_generation",
       "easyuse_anima.aio.model_preparation",
       "easyuse_anima.aio.output",
-      "easyuse_anima.aio.postprocess",
       "easyuse_anima.aio.preview"
     ]
   },
   "runtime_binder_audit": {
     "summary": {
-      "binder_count": 13,
+      "binder_count": 10,
       "family_count": 2,
       "mode_counts": {
-        "comfy_provider_then_root": 8,
-        "root_globals": 3,
+        "comfy_provider_then_root": 7,
+        "root_globals": 1,
         "explicit_callbacks": 2
       },
-      "unique_resolver_names": 188,
-      "unique_root_resolver_names": 183,
-      "unique_provider_resolver_names": 5,
+      "unique_resolver_names": 140,
+      "unique_root_resolver_names": 136,
+      "unique_provider_resolver_names": 4,
       "unique_direct_root_dependencies": 9,
-      "direct_root_dependency_slots": 17,
-      "provider_consumer_slots": 13,
-      "provider_consumer_modules": 8,
-      "repository_replacement_names": 134,
-      "repository_replacement_files": 15
+      "direct_root_dependency_slots": 16,
+      "provider_consumer_slots": 12,
+      "provider_consumer_modules": 7,
+      "repository_replacement_names": 116,
+      "repository_replacement_files": 12
     },
     "families": {
       "aio": [
         "_bind_aio_legacy_generation_runtime",
-        "_bind_aio_generation_normalization_runtime",
-        "_bind_aio_usdu_planning_runtime",
-        "_bind_aio_postprocess_runtime",
         "_bind_aio_resource_runtime",
         "_bind_aio_model_preparation_runtime",
         "_bind_aio_sampling_runtime",
@@ -819,43 +654,10 @@
         "B-11c30d6_node_adapter"
       ],
       "retired_subgroups": [
-        "B-11c30d1_cache_state"
+        "B-11c30d1_cache_state",
+        "B-11c30d2_normalization_planning"
       ],
       "subgroups": {
-        "B-11c30d2_normalization_planning": {
-          "binders": [
-            "_bind_aio_generation_normalization_runtime",
-            "_bind_aio_usdu_planning_runtime",
-            "_bind_aio_postprocess_runtime"
-          ],
-          "mode_counts": {
-            "comfy_provider_then_root": 1,
-            "root_globals": 2
-          },
-          "bound_global_slots": 3,
-          "unique_bound_globals": [
-            "_RUNTIME_RESOLVER"
-          ],
-          "root_resolver_slots": 70,
-          "unique_root_resolver_names": 64,
-          "provider_resolver_slots": 1,
-          "unique_provider_resolver_names": 1,
-          "direct_root_dependency_slots": 1,
-          "unique_direct_root_dependencies": 1,
-          "repository_replacement_slots": 36,
-          "unique_repository_replacement_names": 30,
-          "repository_replacement_files": [
-            "tests/test_aio_generation_migrations.py",
-            "tests/test_aio_generation_settings.py",
-            "tests/test_aio_legacy_generation.py",
-            "tests/test_aio_nodes.py",
-            "tests/test_aio_output.py",
-            "tests/test_aio_preview.py",
-            "tests/test_aio_resources.py",
-            "tests/test_aio_schema_contract.py",
-            "tests/test_node_contracts.py"
-          ]
-        },
         "B-11c30d3_io_boundary": {
           "binders": [
             "_bind_aio_resource_runtime",
@@ -876,17 +678,15 @@
           "unique_provider_resolver_names": 2,
           "direct_root_dependency_slots": 3,
           "unique_direct_root_dependencies": 1,
-          "repository_replacement_slots": 47,
-          "unique_repository_replacement_names": 44,
+          "repository_replacement_slots": 45,
+          "unique_repository_replacement_names": 43,
           "repository_replacement_files": [
-            "tests/test_aio_generation_settings.py",
             "tests/test_aio_legacy_generation.py",
             "tests/test_aio_nodes.py",
             "tests/test_aio_output.py",
             "tests/test_aio_preview.py",
             "tests/test_aio_resources.py",
             "tests/test_aio_sampling.py",
-            "tests/test_aio_schema_contract.py",
             "tests/test_comfy_adapters.py",
             "tests/test_node_contracts.py"
           ]
@@ -911,8 +711,8 @@
           "unique_provider_resolver_names": 4,
           "direct_root_dependency_slots": 3,
           "unique_direct_root_dependencies": 1,
-          "repository_replacement_slots": 30,
-          "unique_repository_replacement_names": 25,
+          "repository_replacement_slots": 29,
+          "unique_repository_replacement_names": 24,
           "repository_replacement_files": [
             "tests/test_aio_conditioning.py",
             "tests/test_aio_legacy_generation.py",
@@ -942,8 +742,8 @@
           "unique_provider_resolver_names": 2,
           "direct_root_dependency_slots": 1,
           "unique_direct_root_dependencies": 1,
-          "repository_replacement_slots": 48,
-          "unique_repository_replacement_names": 48,
+          "repository_replacement_slots": 46,
+          "unique_repository_replacement_names": 46,
           "repository_replacement_files": [
             "tests/test_aio_legacy_generation.py",
             "tests/test_aio_nodes.py",
@@ -1036,59 +836,31 @@
       ]
     },
     "root_resolver_names": [
-      "AIO_FINAL_FIT_MODES",
-      "AIO_FINAL_UPSCALE_BACKENDS",
       "AIO_GENERATION_DEFAULT_SETTINGS",
-      "AIO_GENERATION_SETTINGS_SCHEMA",
-      "AIO_GENERATION_SETTINGS_VERSION",
       "AIO_INPUT_DEFAULT_SETTINGS",
       "AIO_PREVIEW_CACHE_FORMAT",
       "AIO_PREVIEW_CACHE_QUALITY",
       "AIO_PREVIEW_EVENT",
       "AIO_PREVIEW_STAGE_LABELS",
-      "AIO_RESHIFT_DTYPES",
-      "AIO_RESHIFT_SCALES",
       "AIO_SPECIAL_SEEDS",
-      "AIO_SPECIAL_SEED_DECREMENT",
-      "AIO_USDU_MODE_TYPES",
       "AIO_USDU_PROMPT_FULL",
-      "AIO_USDU_PROMPT_MODES",
       "AIO_USDU_PROMPT_NO_GENERAL",
-      "AIO_USDU_SEAM_FIX_MODES",
       "ANIMA_CLIP_DEVICES",
       "ANIMA_CLIP_TYPES",
       "ANIMA_DEFAULT_CLIP_CANDIDATES",
       "ANIMA_DEFAULT_DIFFUSION_MODEL_CANDIDATES",
       "ANIMA_DEFAULT_VAE_CANDIDATES",
       "ANIMA_MOD_GUIDANCE_DEFAULT_PROFILE",
-      "ANIMA_MOD_GUIDANCE_MODES",
-      "ANIMA_MOD_GUIDANCE_MODE_FROM_PROMPT_DATA",
       "ANIMA_MOD_GUIDANCE_PROFILE_OFF",
       "ANIMA_UNET_WEIGHT_DTYPES",
-      "ARTIST_MIX_DEFAULT_CLUSTER_COUNT",
-      "ARTIST_MIX_DEFAULT_DOMINANT_ISOLATION",
-      "ARTIST_MIX_DEFAULT_DOMINANT_THRESHOLD",
-      "ARTIST_MIX_DEFAULT_EXACT_TOP_K",
-      "ARTIST_MIX_DEFAULT_RMS_SCALE_CAP",
-      "ARTIST_MIX_DEFAULT_START_PERCENT",
-      "ARTIST_MIX_DEFAULT_STRENGTH_SCALE",
-      "ARTIST_MIX_DEFAULT_STYLE_GAIN",
-      "ARTIST_MIX_INPUT_MODES",
-      "ARTIST_MIX_MODE_FROM_PROMPT_DATA",
       "EASY_USE_ANIMA_INPUT_SCHEMA",
       "EASY_USE_ANIMA_INPUT_SETTINGS_VERSION",
       "EASY_USE_ANIMA_INPUT_TYPE",
       "EasyUseAnimaImageScaleByMultiple",
       "EasyUseAnimaSAM3Detailer",
-      "IMAGE_SCALE_MULTIPLES",
-      "IMAGE_UPSCALE_METHODS",
-      "LATENT_ALIGN",
       "MAX_SEED",
       "PROMPT_DATA_TYPE",
       "SEED_CONTROL_FIXED",
-      "SEED_CONTROL_MODES",
-      "_AIO_DETAILER_CUSTOM_RE",
-      "_AIO_DETAILER_RESERVED_KEYS",
       "_adapter_comfy_clip_loader_types",
       "_adapter_comfy_diffusion_model_names",
       "_adapter_comfy_text_encoder_names",
@@ -1097,9 +869,7 @@
       "_advanced_enabled_pane_fields",
       "_advanced_outputs_from_prompt_data",
       "_aio_detailer_has_enabled_targets",
-      "_aio_detailer_target_defaults",
       "_aio_detailer_target_order",
-      "_aio_final_fit_size",
       "_aio_first_pass_cache_key",
       "_aio_generation_settings_json",
       "_aio_highres_effective_backend",
@@ -1114,14 +884,10 @@
       "_aio_prompt_with_lora_metadata",
       "_aio_save_filename_prefix",
       "_aio_stage_sampler_settings",
-      "_aio_usdu_auto_tile_dimension",
       "_aio_usdu_conditioning",
       "_aio_usdu_prompt_without_general",
       "_aio_usdu_tile_plan",
-      "_align_down",
-      "_align_nearest",
       "_apply_aio_anima_dave_patch",
-      "_apply_aio_final_fit",
       "_apply_aio_kj_model_patches",
       "_apply_aio_lora_stack",
       "_apply_aio_model_patches",
@@ -1133,18 +899,13 @@
       "_as_bool",
       "_as_float",
       "_as_int",
-      "_bounded_artist_mix_float",
-      "_bounded_artist_mix_int",
       "_call_with_supported_kwargs",
       "_choice",
       "_cleanup_aio_ephemeral_model",
       "_comfy_clip_loader_types",
       "_comfy_diffusion_model_names",
-      "_comfy_sampler_names",
-      "_comfy_scheduler_names",
       "_comfy_text_encoder_names",
       "_comfy_vae_names",
-      "_common_upscale_image",
       "_context_value",
       "_copy_prompt_data_for_update",
       "_correct_advanced_field_sequence",
@@ -1157,10 +918,7 @@
       "_generate_empty_latent_with_comfy",
       "_get_aio_first_pass_cache",
       "_image_tensor_size",
-      "_impact_scheduler_names",
-      "_is_aio_detailer_target_name",
       "_json_clone",
-      "_json_object",
       "_load_aio_resources_from_input_context",
       "_load_aio_sam3_context",
       "_load_checkpoint_with_comfy",
@@ -1174,13 +932,11 @@
       "_node_output_tuple",
       "_normalize_advanced_fields",
       "_normalize_aio_civitai_hash_fetchers",
-      "_normalize_aio_dit_corrections_settings",
       "_normalize_aio_generation_settings",
       "_normalize_aio_hash_bundles",
       "_normalize_aio_input_settings",
       "_normalize_aio_lora_stack",
       "_normalize_aio_seed",
-      "_normalize_aio_spectrum_settings",
       "_normalize_anima_mod_guidance_profile",
       "_normalize_prompt_data",
       "_patch_model_sampling_aura_flow",
@@ -1192,7 +948,6 @@
       "_resize_image_to_size_if_needed",
       "_resolve_aio_runtime_seed",
       "_resolve_anima_mod_guidance_enabled",
-      "_round_trip_aio_generation_settings",
       "_run_aio_detailer_stage",
       "_run_aio_detailer_target",
       "_run_aio_highres_stage",
@@ -1214,14 +969,11 @@
       "_single_value",
       "_stable_change_key",
       "_tag_aio_preview_images",
-      "ceil",
       "json",
       "logger",
-      "random",
-      "sqrt"
+      "random"
     ],
     "provider_resolver_names": [
-      "_comfy_max_resolution",
       "_encode_with_comfy_clip",
       "_find_comfy_node_class",
       "_require_any_custom_node_class",
@@ -1246,9 +998,6 @@
       ],
       "AIO_SPECIAL_SEEDS": [
         "tests/test_aio_nodes.py",
-        "tests/test_node_contracts.py"
-      ],
-      "AIO_SPECIAL_SEED_DECREMENT": [
         "tests/test_node_contracts.py"
       ],
       "ANIMA_CLIP_DEVICES": [
@@ -1281,20 +1030,11 @@
       "EASY_USE_ANIMA_INPUT_TYPE": [
         "tests/test_aio_nodes.py"
       ],
-      "LATENT_ALIGN": [
-        "tests/test_node_contracts.py"
-      ],
       "MAX_SEED": [
         "tests/test_node_contracts.py"
       ],
       "PROMPT_DATA_TYPE": [
         "tests/test_aio_nodes.py"
-      ],
-      "_AIO_DETAILER_CUSTOM_RE": [
-        "tests/test_node_contracts.py"
-      ],
-      "_AIO_DETAILER_RESERVED_KEYS": [
-        "tests/test_node_contracts.py"
       ],
       "_adapter_comfy_clip_loader_types": [
         "tests/test_node_contracts.py"
@@ -1314,12 +1054,6 @@
       ],
       "_aio_detailer_has_enabled_targets": [
         "tests/test_aio_legacy_generation.py"
-      ],
-      "_aio_detailer_target_order": [
-        "tests/test_node_contracts.py"
-      ],
-      "_aio_final_fit_size": [
-        "tests/test_node_contracts.py"
       ],
       "_aio_first_pass_cache_key": [
         "tests/test_aio_legacy_generation.py"
@@ -1357,25 +1091,12 @@
       "_aio_save_filename_prefix": [
         "tests/test_aio_legacy_generation.py"
       ],
-      "_aio_usdu_auto_tile_dimension": [
-        "tests/test_node_contracts.py"
-      ],
       "_aio_usdu_prompt_without_general": [
         "tests/test_aio_conditioning.py"
-      ],
-      "_align_down": [
-        "tests/test_node_contracts.py"
-      ],
-      "_align_nearest": [
-        "tests/test_node_contracts.py"
       ],
       "_apply_aio_anima_dave_patch": [
         "tests/test_aio_model_preparation.py",
         "tests/test_aio_nodes.py"
-      ],
-      "_apply_aio_final_fit": [
-        "tests/test_aio_nodes.py",
-        "tests/test_node_contracts.py"
       ],
       "_apply_aio_kj_model_patches": [
         "tests/test_aio_model_preparation.py",
@@ -1408,20 +1129,16 @@
         "tests/test_aio_nodes.py"
       ],
       "_as_bool": [
-        "tests/test_aio_legacy_generation.py",
-        "tests/test_node_contracts.py"
+        "tests/test_aio_legacy_generation.py"
       ],
       "_as_float": [
-        "tests/test_aio_output.py",
-        "tests/test_node_contracts.py"
+        "tests/test_aio_output.py"
       ],
       "_as_int": [
         "tests/test_node_contracts.py"
       ],
       "_choice": [
-        "tests/test_aio_generation_settings.py",
         "tests/test_aio_resources.py",
-        "tests/test_aio_schema_contract.py",
         "tests/test_node_contracts.py"
       ],
       "_cleanup_aio_ephemeral_model": [
@@ -1436,28 +1153,12 @@
         "tests/test_aio_nodes.py",
         "tests/test_node_contracts.py"
       ],
-      "_comfy_sampler_names": [
-        "tests/test_aio_generation_migrations.py",
-        "tests/test_aio_generation_settings.py",
-        "tests/test_aio_schema_contract.py",
-        "tests/test_node_contracts.py"
-      ],
-      "_comfy_scheduler_names": [
-        "tests/test_aio_generation_migrations.py",
-        "tests/test_aio_generation_settings.py",
-        "tests/test_aio_nodes.py",
-        "tests/test_aio_schema_contract.py",
-        "tests/test_node_contracts.py"
-      ],
       "_comfy_text_encoder_names": [
         "tests/test_aio_nodes.py",
         "tests/test_node_contracts.py"
       ],
       "_comfy_vae_names": [
         "tests/test_aio_nodes.py",
-        "tests/test_node_contracts.py"
-      ],
-      "_common_upscale_image": [
         "tests/test_node_contracts.py"
       ],
       "_copy_prompt_data_for_update": [
@@ -1497,21 +1198,10 @@
       ],
       "_image_tensor_size": [
         "tests/test_aio_legacy_generation.py",
-        "tests/test_aio_preview.py",
-        "tests/test_node_contracts.py"
-      ],
-      "_impact_scheduler_names": [
-        "tests/test_aio_generation_migrations.py",
-        "tests/test_aio_generation_settings.py",
-        "tests/test_aio_schema_contract.py",
-        "tests/test_node_contracts.py"
-      ],
-      "_is_aio_detailer_target_name": [
-        "tests/test_node_contracts.py"
+        "tests/test_aio_preview.py"
       ],
       "_json_clone": [
-        "tests/test_aio_nodes.py",
-        "tests/test_node_contracts.py"
+        "tests/test_aio_nodes.py"
       ],
       "_load_aio_resources_from_input_context": [
         "tests/test_aio_legacy_generation.py",
@@ -1594,8 +1284,7 @@
       ],
       "_resize_image_to_size_if_needed": [
         "tests/test_aio_legacy_generation.py",
-        "tests/test_aio_nodes.py",
-        "tests/test_node_contracts.py"
+        "tests/test_aio_nodes.py"
       ],
       "_resolve_aio_runtime_seed": [
         "tests/test_aio_legacy_generation.py",
@@ -1669,16 +1358,10 @@
         "tests/test_aio_legacy_generation.py",
         "tests/test_aio_preview.py"
       ],
-      "ceil": [
-        "tests/test_node_contracts.py"
-      ],
       "expand_wildcards": [
         "tests/test_wildcards.py"
       ],
       "json": [
-        "tests/test_node_contracts.py"
-      ],
-      "logger": [
         "tests/test_node_contracts.py"
       ],
       "random": [
@@ -1687,9 +1370,6 @@
       ],
       "resolve_naia_settings": [
         "tests/test_naia_settings.py",
-        "tests/test_node_contracts.py"
-      ],
-      "sqrt": [
         "tests/test_node_contracts.py"
       ],
       "wildcard_sources_signature": [
@@ -1843,7 +1523,6 @@
         "repository_replacement_names": [
           "_advanced_outputs_from_prompt_data",
           "_aio_detailer_has_enabled_targets",
-          "_aio_detailer_target_order",
           "_aio_first_pass_cache_key",
           "_aio_highres_effective_backend",
           "_aio_save_filename_prefix",
@@ -1887,252 +1566,7 @@
           "_single_value",
           "_tag_aio_preview_images",
           "json",
-          "logger",
           "random"
-        ]
-      },
-      {
-        "binder": "_bind_aio_generation_normalization_runtime",
-        "module": "easyuse_anima.aio.generation_normalization",
-        "family": "aio",
-        "mode": "comfy_provider_then_root",
-        "root_observation": "call_time_resolver",
-        "root_keywords": [
-          "resolve_helper"
-        ],
-        "bound_globals": [
-          "_RUNTIME_RESOLVER"
-        ],
-        "direct_root_dependencies": [
-          "_resolve_comfy_host_helper"
-        ],
-        "resolver_names": [
-          "AIO_FINAL_FIT_MODES",
-          "AIO_FINAL_UPSCALE_BACKENDS",
-          "AIO_GENERATION_DEFAULT_SETTINGS",
-          "AIO_GENERATION_SETTINGS_SCHEMA",
-          "AIO_GENERATION_SETTINGS_VERSION",
-          "AIO_RESHIFT_DTYPES",
-          "AIO_RESHIFT_SCALES",
-          "AIO_SPECIAL_SEED_DECREMENT",
-          "AIO_USDU_MODE_TYPES",
-          "AIO_USDU_PROMPT_MODES",
-          "AIO_USDU_PROMPT_NO_GENERAL",
-          "AIO_USDU_SEAM_FIX_MODES",
-          "ANIMA_MOD_GUIDANCE_DEFAULT_PROFILE",
-          "ANIMA_MOD_GUIDANCE_MODES",
-          "ANIMA_MOD_GUIDANCE_MODE_FROM_PROMPT_DATA",
-          "ARTIST_MIX_DEFAULT_CLUSTER_COUNT",
-          "ARTIST_MIX_DEFAULT_DOMINANT_ISOLATION",
-          "ARTIST_MIX_DEFAULT_DOMINANT_THRESHOLD",
-          "ARTIST_MIX_DEFAULT_EXACT_TOP_K",
-          "ARTIST_MIX_DEFAULT_RMS_SCALE_CAP",
-          "ARTIST_MIX_DEFAULT_START_PERCENT",
-          "ARTIST_MIX_DEFAULT_STRENGTH_SCALE",
-          "ARTIST_MIX_DEFAULT_STYLE_GAIN",
-          "ARTIST_MIX_INPUT_MODES",
-          "ARTIST_MIX_MODE_FROM_PROMPT_DATA",
-          "IMAGE_SCALE_MULTIPLES",
-          "IMAGE_UPSCALE_METHODS",
-          "MAX_SEED",
-          "SEED_CONTROL_FIXED",
-          "SEED_CONTROL_MODES",
-          "_AIO_DETAILER_CUSTOM_RE",
-          "_AIO_DETAILER_RESERVED_KEYS",
-          "_aio_detailer_target_defaults",
-          "_aio_detailer_target_order",
-          "_as_bool",
-          "_as_float",
-          "_as_int",
-          "_bounded_artist_mix_float",
-          "_bounded_artist_mix_int",
-          "_choice",
-          "_comfy_max_resolution",
-          "_comfy_sampler_names",
-          "_comfy_scheduler_names",
-          "_impact_scheduler_names",
-          "_is_aio_detailer_target_name",
-          "_json_clone",
-          "_json_object",
-          "_normalize_aio_dit_corrections_settings",
-          "_normalize_aio_seed",
-          "_normalize_aio_spectrum_settings",
-          "_normalize_anima_mod_guidance_profile",
-          "_prompt_data_json_safe",
-          "_round_trip_aio_generation_settings"
-        ],
-        "root_resolver_names": [
-          "AIO_FINAL_FIT_MODES",
-          "AIO_FINAL_UPSCALE_BACKENDS",
-          "AIO_GENERATION_DEFAULT_SETTINGS",
-          "AIO_GENERATION_SETTINGS_SCHEMA",
-          "AIO_GENERATION_SETTINGS_VERSION",
-          "AIO_RESHIFT_DTYPES",
-          "AIO_RESHIFT_SCALES",
-          "AIO_SPECIAL_SEED_DECREMENT",
-          "AIO_USDU_MODE_TYPES",
-          "AIO_USDU_PROMPT_MODES",
-          "AIO_USDU_PROMPT_NO_GENERAL",
-          "AIO_USDU_SEAM_FIX_MODES",
-          "ANIMA_MOD_GUIDANCE_DEFAULT_PROFILE",
-          "ANIMA_MOD_GUIDANCE_MODES",
-          "ANIMA_MOD_GUIDANCE_MODE_FROM_PROMPT_DATA",
-          "ARTIST_MIX_DEFAULT_CLUSTER_COUNT",
-          "ARTIST_MIX_DEFAULT_DOMINANT_ISOLATION",
-          "ARTIST_MIX_DEFAULT_DOMINANT_THRESHOLD",
-          "ARTIST_MIX_DEFAULT_EXACT_TOP_K",
-          "ARTIST_MIX_DEFAULT_RMS_SCALE_CAP",
-          "ARTIST_MIX_DEFAULT_START_PERCENT",
-          "ARTIST_MIX_DEFAULT_STRENGTH_SCALE",
-          "ARTIST_MIX_DEFAULT_STYLE_GAIN",
-          "ARTIST_MIX_INPUT_MODES",
-          "ARTIST_MIX_MODE_FROM_PROMPT_DATA",
-          "IMAGE_SCALE_MULTIPLES",
-          "IMAGE_UPSCALE_METHODS",
-          "MAX_SEED",
-          "SEED_CONTROL_FIXED",
-          "SEED_CONTROL_MODES",
-          "_AIO_DETAILER_CUSTOM_RE",
-          "_AIO_DETAILER_RESERVED_KEYS",
-          "_aio_detailer_target_defaults",
-          "_aio_detailer_target_order",
-          "_as_bool",
-          "_as_float",
-          "_as_int",
-          "_bounded_artist_mix_float",
-          "_bounded_artist_mix_int",
-          "_choice",
-          "_comfy_sampler_names",
-          "_comfy_scheduler_names",
-          "_impact_scheduler_names",
-          "_is_aio_detailer_target_name",
-          "_json_clone",
-          "_json_object",
-          "_normalize_aio_dit_corrections_settings",
-          "_normalize_aio_seed",
-          "_normalize_aio_spectrum_settings",
-          "_normalize_anima_mod_guidance_profile",
-          "_prompt_data_json_safe",
-          "_round_trip_aio_generation_settings"
-        ],
-        "provider_resolver_names": [
-          "_comfy_max_resolution"
-        ],
-        "repository_replacement_names": [
-          "AIO_GENERATION_DEFAULT_SETTINGS",
-          "AIO_SPECIAL_SEED_DECREMENT",
-          "MAX_SEED",
-          "_AIO_DETAILER_CUSTOM_RE",
-          "_AIO_DETAILER_RESERVED_KEYS",
-          "_aio_detailer_target_order",
-          "_as_bool",
-          "_as_float",
-          "_as_int",
-          "_choice",
-          "_comfy_sampler_names",
-          "_comfy_scheduler_names",
-          "_impact_scheduler_names",
-          "_is_aio_detailer_target_name",
-          "_json_clone",
-          "_normalize_aio_seed",
-          "_normalize_anima_mod_guidance_profile",
-          "_prompt_data_json_safe"
-        ]
-      },
-      {
-        "binder": "_bind_aio_usdu_planning_runtime",
-        "module": "easyuse_anima.aio.usdu",
-        "family": "aio",
-        "mode": "root_globals",
-        "root_observation": "call_time_resolver",
-        "root_keywords": [
-          "resolve_helper"
-        ],
-        "bound_globals": [
-          "_RUNTIME_RESOLVER"
-        ],
-        "direct_root_dependencies": [],
-        "resolver_names": [
-          "_aio_usdu_auto_tile_dimension",
-          "_align_nearest",
-          "_as_bool",
-          "_as_int",
-          "_image_tensor_size",
-          "ceil"
-        ],
-        "root_resolver_names": [
-          "_aio_usdu_auto_tile_dimension",
-          "_align_nearest",
-          "_as_bool",
-          "_as_int",
-          "_image_tensor_size",
-          "ceil"
-        ],
-        "provider_resolver_names": [],
-        "repository_replacement_names": [
-          "_aio_usdu_auto_tile_dimension",
-          "_align_nearest",
-          "_as_bool",
-          "_as_int",
-          "_image_tensor_size",
-          "ceil"
-        ]
-      },
-      {
-        "binder": "_bind_aio_postprocess_runtime",
-        "module": "easyuse_anima.aio.postprocess",
-        "family": "aio",
-        "mode": "root_globals",
-        "root_observation": "call_time_resolver",
-        "root_keywords": [
-          "resolve_helper"
-        ],
-        "bound_globals": [
-          "_RUNTIME_RESOLVER"
-        ],
-        "direct_root_dependencies": [],
-        "resolver_names": [
-          "LATENT_ALIGN",
-          "_aio_final_fit_size",
-          "_align_down",
-          "_apply_aio_final_fit",
-          "_as_bool",
-          "_as_float",
-          "_as_int",
-          "_common_upscale_image",
-          "_image_tensor_size",
-          "_resize_image_to_size_if_needed",
-          "logger",
-          "sqrt"
-        ],
-        "root_resolver_names": [
-          "LATENT_ALIGN",
-          "_aio_final_fit_size",
-          "_align_down",
-          "_apply_aio_final_fit",
-          "_as_bool",
-          "_as_float",
-          "_as_int",
-          "_common_upscale_image",
-          "_image_tensor_size",
-          "_resize_image_to_size_if_needed",
-          "logger",
-          "sqrt"
-        ],
-        "provider_resolver_names": [],
-        "repository_replacement_names": [
-          "LATENT_ALIGN",
-          "_aio_final_fit_size",
-          "_align_down",
-          "_apply_aio_final_fit",
-          "_as_bool",
-          "_as_float",
-          "_as_int",
-          "_common_upscale_image",
-          "_image_tensor_size",
-          "_resize_image_to_size_if_needed",
-          "logger",
-          "sqrt"
         ]
       },
       {
@@ -2299,8 +1733,7 @@
           "_as_int",
           "_node_output_tuple",
           "_normalize_aio_lora_stack",
-          "_patch_model_sampling_aura_flow",
-          "logger"
+          "_patch_model_sampling_aura_flow"
         ]
       },
       {
@@ -2438,8 +1871,7 @@
           "_image_tensor_size",
           "_prompt_data_json_safe",
           "_single_value",
-          "_tag_aio_preview_images",
-          "logger"
+          "_tag_aio_preview_images"
         ]
       },
       {
@@ -2507,8 +1939,7 @@
           "_format_strength",
           "_normalize_aio_hash_bundles",
           "_resolve_aio_runtime_seed",
-          "_single_value",
-          "logger"
+          "_single_value"
         ]
       },
       {
@@ -3587,24 +3018,93 @@
       "lifecycle_state": "unsupported"
     },
     {
+      "id": "nodes_canonical_bindings:easyuse_anima.aio.generation_defaults:transitional_private_seam",
+      "surface": "nodes_canonical_bindings",
+      "symbols": {
+        "AIO_GENERATION_DEFAULT_SETTINGS": "AIO_GENERATION_DEFAULT_SETTINGS",
+        "AIO_SPECIAL_SEEDS": "AIO_SPECIAL_SEEDS",
+        "AIO_USDU_PROMPT_FULL": "AIO_USDU_PROMPT_FULL",
+        "AIO_USDU_PROMPT_NO_GENERAL": "AIO_USDU_PROMPT_NO_GENERAL"
+      },
+      "classification": "transitional_private_seam",
+      "current_target": "nodes.py",
+      "canonical_target": "easyuse_anima.aio.generation_defaults",
+      "target_state": "canonical",
+      "identity_requirement": "required",
+      "binding_shape": "direct_import",
+      "import_target": "easyuse_anima.aio.generation_defaults",
+      "owner": "#184/#188",
+      "first_release": null,
+      "known_consumers": [
+        "canonical runtime resolver: easyuse_anima.aio.conditioning",
+        "canonical runtime resolver: easyuse_anima.aio.legacy_generation",
+        "canonical runtime resolver: easyuse_anima.aio.output",
+        "canonical runtime resolver: easyuse_anima.aio.sampling",
+        "canonical runtime resolver: easyuse_anima.nodes.aio_nodes"
+      ],
+      "evidence": [
+        "AST:easyuse_anima.aio.conditioning string runtime lookup",
+        "AST:easyuse_anima.aio.legacy_generation string runtime lookup",
+        "AST:easyuse_anima.aio.output string runtime lookup",
+        "AST:easyuse_anima.aio.sampling string runtime lookup",
+        "AST:easyuse_anima.nodes.aio_nodes string runtime lookup"
+      ],
+      "removal_gates": [
+        "canonical production consumer migration",
+        "focused monkeypatch and identity contract review",
+        "separate B-10b or B-11 rollback unit"
+      ],
+      "lifecycle_state": "transitional"
+    },
+    {
+      "id": "nodes_canonical_bindings:easyuse_anima.aio.generation_defaults:unsupported_test_only",
+      "surface": "nodes_canonical_bindings",
+      "symbols": {
+        "AIO_FINAL_FIT_MODES": "AIO_FINAL_FIT_MODES",
+        "AIO_FINAL_UPSCALE_BACKENDS": "AIO_FINAL_UPSCALE_BACKENDS",
+        "AIO_GENERATION_SETTINGS_SCHEMA": "AIO_GENERATION_SETTINGS_SCHEMA",
+        "AIO_GENERATION_SETTINGS_VERSION": "AIO_GENERATION_SETTINGS_VERSION",
+        "AIO_RESHIFT_DTYPES": "AIO_RESHIFT_DTYPES",
+        "AIO_RESHIFT_SCALES": "AIO_RESHIFT_SCALES",
+        "AIO_SPECIAL_SEED_DECREMENT": "AIO_SPECIAL_SEED_DECREMENT",
+        "AIO_SPECIAL_SEED_INCREMENT": "AIO_SPECIAL_SEED_INCREMENT",
+        "AIO_SPECIAL_SEED_RANDOM": "AIO_SPECIAL_SEED_RANDOM",
+        "AIO_USDU_MODE_TYPES": "AIO_USDU_MODE_TYPES",
+        "AIO_USDU_PROMPT_MODES": "AIO_USDU_PROMPT_MODES",
+        "AIO_USDU_SEAM_FIX_MODES": "AIO_USDU_SEAM_FIX_MODES"
+      },
+      "classification": "unsupported_test_only",
+      "current_target": "nodes.py",
+      "canonical_target": "easyuse_anima.aio.generation_defaults",
+      "target_state": "canonical",
+      "identity_requirement": "not_applicable",
+      "binding_shape": "direct_import",
+      "import_target": "easyuse_anima.aio.generation_defaults",
+      "owner": "#184/#188",
+      "first_release": null,
+      "known_consumers": [
+        "repository tests may import this root name"
+      ],
+      "evidence": [
+        "AST:no nodes.py runtime load",
+        "test-only consumption is not public support evidence"
+      ],
+      "removal_gates": [
+        "test imports migrate to canonical targets",
+        "no production consumer evidence",
+        "separate B-10b removal review"
+      ],
+      "lifecycle_state": "unsupported"
+    },
+    {
       "id": "nodes_canonical_bindings:easyuse_anima.aio.generation_normalization:transitional_private_seam",
       "surface": "nodes_canonical_bindings",
       "symbols": {
-        "AIO_SPECIAL_SEEDS": "AIO_SPECIAL_SEEDS",
-        "AIO_SPECIAL_SEED_DECREMENT": "AIO_SPECIAL_SEED_DECREMENT",
-        "AIO_SPECIAL_SEED_RANDOM": "AIO_SPECIAL_SEED_RANDOM",
-        "_AIO_DETAILER_CUSTOM_RE": "_AIO_DETAILER_CUSTOM_RE",
-        "_AIO_DETAILER_RESERVED_KEYS": "_AIO_DETAILER_RESERVED_KEYS",
         "_aio_detailer_has_enabled_targets": "_aio_detailer_has_enabled_targets",
-        "_aio_detailer_target_defaults": "_aio_detailer_target_defaults",
         "_aio_detailer_target_order": "_aio_detailer_target_order",
-        "_bind_aio_generation_normalization_runtime": "_bind_aio_generation_normalization_runtime",
-        "_is_aio_detailer_target_name": "_is_aio_detailer_target_name",
         "_merge_versioned_settings": "_merge_versioned_settings",
-        "_normalize_aio_dit_corrections_settings": "_normalize_aio_dit_corrections_settings",
         "_normalize_aio_generation_settings": "_normalize_aio_generation_settings",
-        "_normalize_aio_seed": "_normalize_aio_seed",
-        "_normalize_aio_spectrum_settings": "_normalize_aio_spectrum_settings"
+        "_normalize_aio_seed": "_normalize_aio_seed"
       },
       "classification": "transitional_private_seam",
       "current_target": "nodes.py",
@@ -3616,16 +3116,12 @@
       "owner": "#184/#188",
       "first_release": null,
       "known_consumers": [
-        "nodes.py residual runtime",
-        "canonical runtime resolver: easyuse_anima.aio.generation_normalization",
         "canonical runtime resolver: easyuse_anima.aio.legacy_generation",
         "canonical runtime resolver: easyuse_anima.aio.resources",
         "canonical runtime resolver: easyuse_anima.aio.sampling",
         "canonical runtime resolver: easyuse_anima.nodes.aio_nodes"
       ],
       "evidence": [
-        "AST:nodes.py direct runtime load",
-        "AST:easyuse_anima.aio.generation_normalization string runtime lookup",
         "AST:easyuse_anima.aio.legacy_generation string runtime lookup",
         "AST:easyuse_anima.aio.resources string runtime lookup",
         "AST:easyuse_anima.aio.sampling string runtime lookup",
@@ -3642,7 +3138,12 @@
       "id": "nodes_canonical_bindings:easyuse_anima.aio.generation_normalization:unsupported_test_only",
       "surface": "nodes_canonical_bindings",
       "symbols": {
-        "AIO_SPECIAL_SEED_INCREMENT": "AIO_SPECIAL_SEED_INCREMENT"
+        "_AIO_DETAILER_CUSTOM_RE": "_AIO_DETAILER_CUSTOM_RE",
+        "_AIO_DETAILER_RESERVED_KEYS": "_AIO_DETAILER_RESERVED_KEYS",
+        "_aio_detailer_target_defaults": "_aio_detailer_target_defaults",
+        "_is_aio_detailer_target_name": "_is_aio_detailer_target_name",
+        "_normalize_aio_dit_corrections_settings": "_normalize_aio_dit_corrections_settings",
+        "_normalize_aio_spectrum_settings": "_normalize_aio_spectrum_settings"
       },
       "classification": "unsupported_test_only",
       "current_target": "nodes.py",
@@ -3668,32 +3169,33 @@
       "lifecycle_state": "unsupported"
     },
     {
-      "id": "nodes_canonical_bindings:easyuse_anima.aio.generation_settings:transitional_private_seam",
+      "id": "nodes_canonical_bindings:easyuse_anima.aio.generation_settings:unsupported_test_only",
       "surface": "nodes_canonical_bindings",
       "symbols": {
         "_round_trip_aio_generation_settings": "round_trip_aio_generation_settings"
       },
-      "classification": "transitional_private_seam",
+      "classification": "unsupported_test_only",
       "current_target": "nodes.py",
       "canonical_target": "easyuse_anima.aio.generation_settings",
       "target_state": "canonical",
-      "identity_requirement": "required",
+      "identity_requirement": "not_applicable",
       "binding_shape": "direct_import",
       "import_target": "easyuse_anima.aio.generation_settings",
       "owner": "#184/#188",
       "first_release": null,
       "known_consumers": [
-        "canonical runtime resolver: easyuse_anima.aio.generation_normalization"
+        "repository tests may import this root name"
       ],
       "evidence": [
-        "AST:easyuse_anima.aio.generation_normalization string runtime lookup"
+        "AST:no nodes.py runtime load",
+        "test-only consumption is not public support evidence"
       ],
       "removal_gates": [
-        "canonical production consumer migration",
-        "focused monkeypatch and identity contract review",
-        "separate B-10b or B-11 rollback unit"
+        "test imports migrate to canonical targets",
+        "no production consumer evidence",
+        "separate B-10b removal review"
       ],
-      "lifecycle_state": "transitional"
+      "lifecycle_state": "unsupported"
     },
     {
       "id": "nodes_canonical_bindings:easyuse_anima.aio.legacy_generation:transitional_private_seam",
@@ -3852,9 +3354,6 @@
       "id": "nodes_canonical_bindings:easyuse_anima.aio.postprocess:transitional_private_seam",
       "surface": "nodes_canonical_bindings",
       "symbols": {
-        "_aio_final_fit_size": "_aio_final_fit_size",
-        "_apply_aio_final_fit": "_apply_aio_final_fit",
-        "_bind_aio_postprocess_runtime": "_bind_aio_postprocess_runtime",
         "_resize_image_to_size_if_needed": "_resize_image_to_size_if_needed",
         "_run_aio_postprocess_stage": "_run_aio_postprocess_stage"
       },
@@ -3868,14 +3367,10 @@
       "owner": "#184/#188",
       "first_release": null,
       "known_consumers": [
-        "nodes.py residual runtime",
-        "canonical runtime resolver: easyuse_anima.aio.legacy_generation",
-        "canonical runtime resolver: easyuse_anima.aio.postprocess"
+        "canonical runtime resolver: easyuse_anima.aio.legacy_generation"
       ],
       "evidence": [
-        "AST:nodes.py direct runtime load",
-        "AST:easyuse_anima.aio.legacy_generation string runtime lookup",
-        "AST:easyuse_anima.aio.postprocess string runtime lookup"
+        "AST:easyuse_anima.aio.legacy_generation string runtime lookup"
       ],
       "removal_gates": [
         "canonical production consumer migration",
@@ -3883,6 +3378,36 @@
         "separate B-10b or B-11 rollback unit"
       ],
       "lifecycle_state": "transitional"
+    },
+    {
+      "id": "nodes_canonical_bindings:easyuse_anima.aio.postprocess:unsupported_test_only",
+      "surface": "nodes_canonical_bindings",
+      "symbols": {
+        "_aio_final_fit_size": "_aio_final_fit_size",
+        "_apply_aio_final_fit": "_apply_aio_final_fit"
+      },
+      "classification": "unsupported_test_only",
+      "current_target": "nodes.py",
+      "canonical_target": "easyuse_anima.aio.postprocess",
+      "target_state": "canonical",
+      "identity_requirement": "not_applicable",
+      "binding_shape": "direct_import",
+      "import_target": "easyuse_anima.aio.postprocess",
+      "owner": "#184/#188",
+      "first_release": null,
+      "known_consumers": [
+        "repository tests may import this root name"
+      ],
+      "evidence": [
+        "AST:no nodes.py runtime load",
+        "test-only consumption is not public support evidence"
+      ],
+      "removal_gates": [
+        "test imports migrate to canonical targets",
+        "no production consumer evidence",
+        "separate B-10b removal review"
+      ],
+      "lifecycle_state": "unsupported"
     },
     {
       "id": "nodes_canonical_bindings:easyuse_anima.aio.preview:transitional_private_seam",
@@ -4053,9 +3578,7 @@
       "id": "nodes_canonical_bindings:easyuse_anima.aio.usdu:transitional_private_seam",
       "surface": "nodes_canonical_bindings",
       "symbols": {
-        "_aio_usdu_auto_tile_dimension": "_aio_usdu_auto_tile_dimension",
-        "_aio_usdu_tile_plan": "_aio_usdu_tile_plan",
-        "_bind_aio_usdu_planning_runtime": "_bind_aio_usdu_planning_runtime"
+        "_aio_usdu_tile_plan": "_aio_usdu_tile_plan"
       },
       "classification": "transitional_private_seam",
       "current_target": "nodes.py",
@@ -4067,14 +3590,10 @@
       "owner": "#184/#188",
       "first_release": null,
       "known_consumers": [
-        "nodes.py residual runtime",
-        "canonical runtime resolver: easyuse_anima.aio.legacy_generation",
-        "canonical runtime resolver: easyuse_anima.aio.usdu"
+        "canonical runtime resolver: easyuse_anima.aio.legacy_generation"
       ],
       "evidence": [
-        "AST:nodes.py direct runtime load",
-        "AST:easyuse_anima.aio.legacy_generation string runtime lookup",
-        "AST:easyuse_anima.aio.usdu string runtime lookup"
+        "AST:easyuse_anima.aio.legacy_generation string runtime lookup"
       ],
       "removal_gates": [
         "canonical production consumer migration",
@@ -4084,11 +3603,39 @@
       "lifecycle_state": "transitional"
     },
     {
+      "id": "nodes_canonical_bindings:easyuse_anima.aio.usdu:unsupported_test_only",
+      "surface": "nodes_canonical_bindings",
+      "symbols": {
+        "_aio_usdu_auto_tile_dimension": "_aio_usdu_auto_tile_dimension"
+      },
+      "classification": "unsupported_test_only",
+      "current_target": "nodes.py",
+      "canonical_target": "easyuse_anima.aio.usdu",
+      "target_state": "canonical",
+      "identity_requirement": "not_applicable",
+      "binding_shape": "direct_import",
+      "import_target": "easyuse_anima.aio.usdu",
+      "owner": "#184/#188",
+      "first_release": null,
+      "known_consumers": [
+        "repository tests may import this root name"
+      ],
+      "evidence": [
+        "AST:no nodes.py runtime load",
+        "test-only consumption is not public support evidence"
+      ],
+      "removal_gates": [
+        "test imports migrate to canonical targets",
+        "no production consumer evidence",
+        "separate B-10b removal review"
+      ],
+      "lifecycle_state": "unsupported"
+    },
+    {
       "id": "nodes_canonical_bindings:easyuse_anima.common.serialization:transitional_private_seam",
       "surface": "nodes_canonical_bindings",
       "symbols": {
         "_json_clone": "_json_clone",
-        "_json_object": "_json_object",
         "_stable_change_key": "_stable_change_key"
       },
       "classification": "transitional_private_seam",
@@ -4101,12 +3648,10 @@
       "owner": "#184/#188",
       "first_release": null,
       "known_consumers": [
-        "canonical runtime resolver: easyuse_anima.aio.generation_normalization",
         "canonical runtime resolver: easyuse_anima.aio.sampling",
         "canonical runtime resolver: easyuse_anima.nodes.aio_nodes"
       ],
       "evidence": [
-        "AST:easyuse_anima.aio.generation_normalization string runtime lookup",
         "AST:easyuse_anima.aio.sampling string runtime lookup",
         "AST:easyuse_anima.nodes.aio_nodes string runtime lookup"
       ],
@@ -4116,6 +3661,35 @@
         "separate B-10b or B-11 rollback unit"
       ],
       "lifecycle_state": "transitional"
+    },
+    {
+      "id": "nodes_canonical_bindings:easyuse_anima.common.serialization:unsupported_test_only",
+      "surface": "nodes_canonical_bindings",
+      "symbols": {
+        "_json_object": "_json_object"
+      },
+      "classification": "unsupported_test_only",
+      "current_target": "nodes.py",
+      "canonical_target": "easyuse_anima.common.serialization",
+      "target_state": "canonical",
+      "identity_requirement": "not_applicable",
+      "binding_shape": "direct_import",
+      "import_target": "easyuse_anima.common.serialization",
+      "owner": "#184/#188",
+      "first_release": null,
+      "known_consumers": [
+        "repository tests may import this root name"
+      ],
+      "evidence": [
+        "AST:no nodes.py runtime load",
+        "test-only consumption is not public support evidence"
+      ],
+      "removal_gates": [
+        "test imports migrate to canonical targets",
+        "no production consumer evidence",
+        "separate B-10b removal review"
+      ],
+      "lifecycle_state": "unsupported"
     },
     {
       "id": "nodes_canonical_bindings:easyuse_anima.common.values:transitional_private_seam",
@@ -4138,27 +3712,21 @@
       "first_release": null,
       "known_consumers": [
         "canonical runtime resolver: easyuse_anima.aio.conditioning",
-        "canonical runtime resolver: easyuse_anima.aio.generation_normalization",
         "canonical runtime resolver: easyuse_anima.aio.legacy_generation",
         "canonical runtime resolver: easyuse_anima.aio.model_preparation",
         "canonical runtime resolver: easyuse_anima.aio.output",
-        "canonical runtime resolver: easyuse_anima.aio.postprocess",
         "canonical runtime resolver: easyuse_anima.aio.preview",
         "canonical runtime resolver: easyuse_anima.aio.resources",
-        "canonical runtime resolver: easyuse_anima.aio.sampling",
-        "canonical runtime resolver: easyuse_anima.aio.usdu"
+        "canonical runtime resolver: easyuse_anima.aio.sampling"
       ],
       "evidence": [
         "AST:easyuse_anima.aio.conditioning string runtime lookup",
-        "AST:easyuse_anima.aio.generation_normalization string runtime lookup",
         "AST:easyuse_anima.aio.legacy_generation string runtime lookup",
         "AST:easyuse_anima.aio.model_preparation string runtime lookup",
         "AST:easyuse_anima.aio.output string runtime lookup",
-        "AST:easyuse_anima.aio.postprocess string runtime lookup",
         "AST:easyuse_anima.aio.preview string runtime lookup",
         "AST:easyuse_anima.aio.resources string runtime lookup",
-        "AST:easyuse_anima.aio.sampling string runtime lookup",
-        "AST:easyuse_anima.aio.usdu string runtime lookup"
+        "AST:easyuse_anima.aio.sampling string runtime lookup"
       ],
       "removal_gates": [
         "canonical production consumer migration",
@@ -4171,8 +3739,6 @@
       "id": "nodes_canonical_bindings:easyuse_anima.image.geometry:transitional_private_seam",
       "surface": "nodes_canonical_bindings",
       "symbols": {
-        "_align_down": "_align_down",
-        "_align_nearest": "_align_nearest",
         "_image_tensor_size": "_image_tensor_size"
       },
       "classification": "transitional_private_seam",
@@ -4186,15 +3752,11 @@
       "first_release": null,
       "known_consumers": [
         "canonical runtime resolver: easyuse_anima.aio.legacy_generation",
-        "canonical runtime resolver: easyuse_anima.aio.postprocess",
-        "canonical runtime resolver: easyuse_anima.aio.preview",
-        "canonical runtime resolver: easyuse_anima.aio.usdu"
+        "canonical runtime resolver: easyuse_anima.aio.preview"
       ],
       "evidence": [
         "AST:easyuse_anima.aio.legacy_generation string runtime lookup",
-        "AST:easyuse_anima.aio.postprocess string runtime lookup",
-        "AST:easyuse_anima.aio.preview string runtime lookup",
-        "AST:easyuse_anima.aio.usdu string runtime lookup"
+        "AST:easyuse_anima.aio.preview string runtime lookup"
       ],
       "removal_gates": [
         "canonical production consumer migration",
@@ -4202,6 +3764,36 @@
         "separate B-10b or B-11 rollback unit"
       ],
       "lifecycle_state": "transitional"
+    },
+    {
+      "id": "nodes_canonical_bindings:easyuse_anima.image.geometry:unsupported_test_only",
+      "surface": "nodes_canonical_bindings",
+      "symbols": {
+        "_align_down": "_align_down",
+        "_align_nearest": "_align_nearest"
+      },
+      "classification": "unsupported_test_only",
+      "current_target": "nodes.py",
+      "canonical_target": "easyuse_anima.image.geometry",
+      "target_state": "canonical",
+      "identity_requirement": "not_applicable",
+      "binding_shape": "direct_import",
+      "import_target": "easyuse_anima.image.geometry",
+      "owner": "#184/#188",
+      "first_release": null,
+      "known_consumers": [
+        "repository tests may import this root name"
+      ],
+      "evidence": [
+        "AST:no nodes.py runtime load",
+        "test-only consumption is not public support evidence"
+      ],
+      "removal_gates": [
+        "test imports migrate to canonical targets",
+        "no production consumer evidence",
+        "separate B-10b removal review"
+      ],
+      "lifecycle_state": "unsupported"
     },
     {
       "id": "nodes_canonical_bindings:easyuse_anima.image.sam3:transitional_private_seam",
@@ -4236,70 +3828,71 @@
       "lifecycle_state": "transitional"
     },
     {
-      "id": "nodes_canonical_bindings:easyuse_anima.image.scaling:transitional_private_seam",
+      "id": "nodes_canonical_bindings:easyuse_anima.image.scaling:unsupported_test_only",
       "surface": "nodes_canonical_bindings",
       "symbols": {
         "IMAGE_SCALE_MULTIPLES": "IMAGE_SCALE_MULTIPLES",
         "IMAGE_UPSCALE_METHODS": "IMAGE_UPSCALE_METHODS"
       },
-      "classification": "transitional_private_seam",
+      "classification": "unsupported_test_only",
       "current_target": "nodes.py",
       "canonical_target": "easyuse_anima.image.scaling",
       "target_state": "canonical",
-      "identity_requirement": "required",
+      "identity_requirement": "not_applicable",
       "binding_shape": "direct_import",
       "import_target": "easyuse_anima.image.scaling",
       "owner": "#184/#188",
       "first_release": null,
       "known_consumers": [
-        "canonical runtime resolver: easyuse_anima.aio.generation_normalization"
+        "repository tests may import this root name"
       ],
       "evidence": [
-        "AST:easyuse_anima.aio.generation_normalization string runtime lookup"
+        "AST:no nodes.py runtime load",
+        "test-only consumption is not public support evidence"
       ],
       "removal_gates": [
-        "canonical production consumer migration",
-        "focused monkeypatch and identity contract review",
-        "separate B-10b or B-11 rollback unit"
+        "test imports migrate to canonical targets",
+        "no production consumer evidence",
+        "separate B-10b removal review"
       ],
-      "lifecycle_state": "transitional"
+      "lifecycle_state": "unsupported"
     },
     {
-      "id": "nodes_canonical_bindings:easyuse_anima.infrastructure.comfy.capabilities:transitional_private_seam",
+      "id": "nodes_canonical_bindings:easyuse_anima.infrastructure.comfy.capabilities:unsupported_test_only",
       "surface": "nodes_canonical_bindings",
       "symbols": {
         "_comfy_sampler_names": "_comfy_sampler_names",
         "_comfy_scheduler_names": "_comfy_scheduler_names",
         "_impact_scheduler_names": "_impact_scheduler_names"
       },
-      "classification": "transitional_private_seam",
+      "classification": "unsupported_test_only",
       "current_target": "nodes.py",
       "canonical_target": "easyuse_anima.infrastructure.comfy.capabilities",
       "target_state": "canonical",
-      "identity_requirement": "required",
+      "identity_requirement": "not_applicable",
       "binding_shape": "direct_import",
       "import_target": "easyuse_anima.infrastructure.comfy.capabilities",
       "owner": "#184/#188",
       "first_release": null,
       "known_consumers": [
-        "canonical runtime resolver: easyuse_anima.aio.generation_normalization"
+        "repository tests may import this root name"
       ],
       "evidence": [
-        "AST:easyuse_anima.aio.generation_normalization string runtime lookup"
+        "AST:no nodes.py runtime load",
+        "test-only consumption is not public support evidence"
       ],
       "removal_gates": [
-        "canonical production consumer migration",
-        "focused monkeypatch and identity contract review",
-        "separate B-10b or B-11 rollback unit"
+        "test imports migrate to canonical targets",
+        "no production consumer evidence",
+        "separate B-10b removal review"
       ],
-      "lifecycle_state": "transitional"
+      "lifecycle_state": "unsupported"
     },
     {
       "id": "nodes_canonical_bindings:easyuse_anima.infrastructure.comfy.invocation:transitional_private_seam",
       "surface": "nodes_canonical_bindings",
       "symbols": {
         "_call_with_supported_kwargs": "_call_with_supported_kwargs",
-        "_common_upscale_image": "_common_upscale_image",
         "_node_output_tuple": "_node_output_tuple"
       },
       "classification": "transitional_private_seam",
@@ -4314,14 +3907,12 @@
       "known_consumers": [
         "canonical runtime resolver: easyuse_anima.aio.legacy_generation",
         "canonical runtime resolver: easyuse_anima.aio.model_preparation",
-        "canonical runtime resolver: easyuse_anima.aio.postprocess",
         "canonical runtime resolver: easyuse_anima.aio.resources",
         "canonical runtime resolver: easyuse_anima.aio.sampling"
       ],
       "evidence": [
         "AST:easyuse_anima.aio.legacy_generation string runtime lookup",
         "AST:easyuse_anima.aio.model_preparation string runtime lookup",
-        "AST:easyuse_anima.aio.postprocess string runtime lookup",
         "AST:easyuse_anima.aio.resources string runtime lookup",
         "AST:easyuse_anima.aio.sampling string runtime lookup"
       ],
@@ -4331,6 +3922,35 @@
         "separate B-10b or B-11 rollback unit"
       ],
       "lifecycle_state": "transitional"
+    },
+    {
+      "id": "nodes_canonical_bindings:easyuse_anima.infrastructure.comfy.invocation:unsupported_test_only",
+      "surface": "nodes_canonical_bindings",
+      "symbols": {
+        "_common_upscale_image": "_common_upscale_image"
+      },
+      "classification": "unsupported_test_only",
+      "current_target": "nodes.py",
+      "canonical_target": "easyuse_anima.infrastructure.comfy.invocation",
+      "target_state": "canonical",
+      "identity_requirement": "not_applicable",
+      "binding_shape": "direct_import",
+      "import_target": "easyuse_anima.infrastructure.comfy.invocation",
+      "owner": "#184/#188",
+      "first_release": null,
+      "known_consumers": [
+        "repository tests may import this root name"
+      ],
+      "evidence": [
+        "AST:no nodes.py runtime load",
+        "test-only consumption is not public support evidence"
+      ],
+      "removal_gates": [
+        "test imports migrate to canonical targets",
+        "no production consumer evidence",
+        "separate B-10b removal review"
+      ],
+      "lifecycle_state": "unsupported"
     },
     {
       "id": "nodes_canonical_bindings:easyuse_anima.infrastructure.comfy.resources:transitional_private_seam",
@@ -4527,7 +4147,6 @@
       "id": "nodes_canonical_bindings:easyuse_anima.naia.client:transitional_private_seam",
       "surface": "nodes_canonical_bindings",
       "symbols": {
-        "LATENT_ALIGN": "LATENT_ALIGN",
         "_parse_random_response": "_parse_random_response",
         "_post_random": "_post_random"
       },
@@ -4541,12 +4160,10 @@
       "owner": "#184/#188",
       "first_release": null,
       "known_consumers": [
-        "nodes.py residual runtime",
-        "canonical runtime resolver: easyuse_anima.aio.postprocess"
+        "nodes.py residual runtime"
       ],
       "evidence": [
-        "AST:nodes.py direct runtime load",
-        "AST:easyuse_anima.aio.postprocess string runtime lookup"
+        "AST:nodes.py direct runtime load"
       ],
       "removal_gates": [
         "canonical production consumer migration",
@@ -4554,6 +4171,35 @@
         "separate B-10b or B-11 rollback unit"
       ],
       "lifecycle_state": "transitional"
+    },
+    {
+      "id": "nodes_canonical_bindings:easyuse_anima.naia.client:unsupported_test_only",
+      "surface": "nodes_canonical_bindings",
+      "symbols": {
+        "LATENT_ALIGN": "LATENT_ALIGN"
+      },
+      "classification": "unsupported_test_only",
+      "current_target": "nodes.py",
+      "canonical_target": "easyuse_anima.naia.client",
+      "target_state": "canonical",
+      "identity_requirement": "not_applicable",
+      "binding_shape": "direct_import",
+      "import_target": "easyuse_anima.naia.client",
+      "owner": "#184/#188",
+      "first_release": null,
+      "known_consumers": [
+        "repository tests may import this root name"
+      ],
+      "evidence": [
+        "AST:no nodes.py runtime load",
+        "test-only consumption is not public support evidence"
+      ],
+      "removal_gates": [
+        "test imports migrate to canonical targets",
+        "no production consumer evidence",
+        "separate B-10b removal review"
+      ],
+      "lifecycle_state": "unsupported"
     },
     {
       "id": "nodes_canonical_bindings:easyuse_anima.naia.resolution:unsupported_test_only",
@@ -5101,18 +4747,6 @@
       "id": "nodes_canonical_bindings:easyuse_anima.prompt.artist_mix:transitional_private_seam",
       "surface": "nodes_canonical_bindings",
       "symbols": {
-        "ARTIST_MIX_DEFAULT_CLUSTER_COUNT": "ARTIST_MIX_DEFAULT_CLUSTER_COUNT",
-        "ARTIST_MIX_DEFAULT_DOMINANT_ISOLATION": "ARTIST_MIX_DEFAULT_DOMINANT_ISOLATION",
-        "ARTIST_MIX_DEFAULT_DOMINANT_THRESHOLD": "ARTIST_MIX_DEFAULT_DOMINANT_THRESHOLD",
-        "ARTIST_MIX_DEFAULT_EXACT_TOP_K": "ARTIST_MIX_DEFAULT_EXACT_TOP_K",
-        "ARTIST_MIX_DEFAULT_RMS_SCALE_CAP": "ARTIST_MIX_DEFAULT_RMS_SCALE_CAP",
-        "ARTIST_MIX_DEFAULT_START_PERCENT": "ARTIST_MIX_DEFAULT_START_PERCENT",
-        "ARTIST_MIX_DEFAULT_STRENGTH_SCALE": "ARTIST_MIX_DEFAULT_STRENGTH_SCALE",
-        "ARTIST_MIX_DEFAULT_STYLE_GAIN": "ARTIST_MIX_DEFAULT_STYLE_GAIN",
-        "ARTIST_MIX_INPUT_MODES": "ARTIST_MIX_INPUT_MODES",
-        "ARTIST_MIX_MODE_FROM_PROMPT_DATA": "ARTIST_MIX_MODE_FROM_PROMPT_DATA",
-        "_bounded_artist_mix_float": "_bounded_artist_mix_float",
-        "_bounded_artist_mix_int": "_bounded_artist_mix_int",
         "_encode_prompt_data_positive_conditioning": "_encode_prompt_data_positive_conditioning"
       },
       "classification": "transitional_private_seam",
@@ -5125,13 +4759,9 @@
       "owner": "#184/#188",
       "first_release": null,
       "known_consumers": [
-        "nodes.py residual runtime",
-        "canonical runtime resolver: easyuse_anima.aio.generation_normalization",
         "canonical runtime resolver: easyuse_anima.aio.legacy_generation"
       ],
       "evidence": [
-        "AST:nodes.py direct runtime load",
-        "AST:easyuse_anima.aio.generation_normalization string runtime lookup",
         "AST:easyuse_anima.aio.legacy_generation string runtime lookup"
       ],
       "removal_gates": [
@@ -5145,11 +4775,23 @@
       "id": "nodes_canonical_bindings:easyuse_anima.prompt.artist_mix:unsupported_test_only",
       "surface": "nodes_canonical_bindings",
       "symbols": {
+        "ARTIST_MIX_DEFAULT_CLUSTER_COUNT": "ARTIST_MIX_DEFAULT_CLUSTER_COUNT",
+        "ARTIST_MIX_DEFAULT_DOMINANT_ISOLATION": "ARTIST_MIX_DEFAULT_DOMINANT_ISOLATION",
+        "ARTIST_MIX_DEFAULT_DOMINANT_THRESHOLD": "ARTIST_MIX_DEFAULT_DOMINANT_THRESHOLD",
+        "ARTIST_MIX_DEFAULT_EXACT_TOP_K": "ARTIST_MIX_DEFAULT_EXACT_TOP_K",
+        "ARTIST_MIX_DEFAULT_RMS_SCALE_CAP": "ARTIST_MIX_DEFAULT_RMS_SCALE_CAP",
+        "ARTIST_MIX_DEFAULT_START_PERCENT": "ARTIST_MIX_DEFAULT_START_PERCENT",
+        "ARTIST_MIX_DEFAULT_STRENGTH_SCALE": "ARTIST_MIX_DEFAULT_STRENGTH_SCALE",
+        "ARTIST_MIX_DEFAULT_STYLE_GAIN": "ARTIST_MIX_DEFAULT_STYLE_GAIN",
+        "ARTIST_MIX_INPUT_MODES": "ARTIST_MIX_INPUT_MODES",
+        "ARTIST_MIX_MODE_FROM_PROMPT_DATA": "ARTIST_MIX_MODE_FROM_PROMPT_DATA",
         "_artist_mix_inline_prompt": "_artist_mix_inline_prompt",
         "_artist_mix_mode_tooltip": "_artist_mix_mode_tooltip",
         "_artist_prompt_with_position": "_artist_prompt_with_position",
         "_artist_tags_from_prompt": "_artist_tags_from_prompt",
         "_blend_conditionings": "_blend_conditionings",
+        "_bounded_artist_mix_float": "_bounded_artist_mix_float",
+        "_bounded_artist_mix_int": "_bounded_artist_mix_int",
         "_encode_artist_clustered": "_encode_artist_clustered",
         "_encode_artist_delta_rms": "_encode_artist_delta_rms",
         "_join_artist_mix_source_prompts": "_join_artist_mix_source_prompts",
@@ -5185,8 +4827,6 @@
       "surface": "nodes_canonical_bindings",
       "symbols": {
         "ANIMA_MOD_GUIDANCE_DEFAULT_PROFILE": "ANIMA_MOD_GUIDANCE_DEFAULT_PROFILE",
-        "ANIMA_MOD_GUIDANCE_MODES": "ANIMA_MOD_GUIDANCE_MODES",
-        "ANIMA_MOD_GUIDANCE_MODE_FROM_PROMPT_DATA": "ANIMA_MOD_GUIDANCE_MODE_FROM_PROMPT_DATA",
         "ANIMA_MOD_GUIDANCE_PROFILE_OFF": "ANIMA_MOD_GUIDANCE_PROFILE_OFF",
         "_apply_spectrum_anima_mod_guidance": "_apply_spectrum_anima_mod_guidance",
         "_normalize_anima_mod_guidance_profile": "_normalize_anima_mod_guidance_profile",
@@ -5202,14 +4842,10 @@
       "owner": "#184/#188",
       "first_release": null,
       "known_consumers": [
-        "nodes.py residual runtime",
-        "canonical runtime resolver: easyuse_anima.aio.generation_normalization",
         "canonical runtime resolver: easyuse_anima.aio.legacy_generation",
         "canonical runtime resolver: easyuse_anima.aio.sampling"
       ],
       "evidence": [
-        "AST:nodes.py direct runtime load",
-        "AST:easyuse_anima.aio.generation_normalization string runtime lookup",
         "AST:easyuse_anima.aio.legacy_generation string runtime lookup",
         "AST:easyuse_anima.aio.sampling string runtime lookup"
       ],
@@ -5224,6 +4860,8 @@
       "id": "nodes_canonical_bindings:easyuse_anima.prompt.conditioning:unsupported_test_only",
       "surface": "nodes_canonical_bindings",
       "symbols": {
+        "ANIMA_MOD_GUIDANCE_MODES": "ANIMA_MOD_GUIDANCE_MODES",
+        "ANIMA_MOD_GUIDANCE_MODE_FROM_PROMPT_DATA": "ANIMA_MOD_GUIDANCE_MODE_FROM_PROMPT_DATA",
         "_find_spectrum_anima_mod_guidance_class": "_find_spectrum_anima_mod_guidance_class"
       },
       "classification": "unsupported_test_only",
@@ -5301,14 +4939,12 @@
       "first_release": null,
       "known_consumers": [
         "canonical runtime resolver: easyuse_anima.aio.conditioning",
-        "canonical runtime resolver: easyuse_anima.aio.generation_normalization",
         "canonical runtime resolver: easyuse_anima.aio.legacy_generation",
         "canonical runtime resolver: easyuse_anima.aio.preview",
         "canonical runtime resolver: easyuse_anima.nodes.aio_nodes"
       ],
       "evidence": [
         "AST:easyuse_anima.aio.conditioning string runtime lookup",
-        "AST:easyuse_anima.aio.generation_normalization string runtime lookup",
         "AST:easyuse_anima.aio.legacy_generation string runtime lookup",
         "AST:easyuse_anima.aio.preview string runtime lookup",
         "AST:easyuse_anima.nodes.aio_nodes string runtime lookup"
@@ -5640,7 +5276,6 @@
       "symbols": {
         "MAX_SEED": "MAX_SEED",
         "SEED_CONTROL_FIXED": "SEED_CONTROL_FIXED",
-        "SEED_CONTROL_MODES": "SEED_CONTROL_MODES",
         "expand_wildcards": "expand_wildcards",
         "normalize_seed": "normalize_seed",
         "normalize_wildcard_mode": "normalize_wildcard_mode",
@@ -5657,12 +5292,10 @@
       "first_release": null,
       "known_consumers": [
         "nodes.py residual runtime",
-        "canonical runtime resolver: easyuse_anima.aio.generation_normalization",
         "canonical runtime resolver: easyuse_anima.aio.sampling"
       ],
       "evidence": [
         "AST:nodes.py direct runtime load",
-        "AST:easyuse_anima.aio.generation_normalization string runtime lookup",
         "AST:easyuse_anima.aio.sampling string runtime lookup"
       ],
       "removal_gates": [
@@ -5680,6 +5313,7 @@
         "PUBLIC_MAX_SEED": "PUBLIC_MAX_SEED",
         "SEED_CONTROL_DECREMENT": "SEED_CONTROL_DECREMENT",
         "SEED_CONTROL_INCREMENT": "SEED_CONTROL_INCREMENT",
+        "SEED_CONTROL_MODES": "SEED_CONTROL_MODES",
         "SEED_CONTROL_RANDOMIZE": "SEED_CONTROL_RANDOMIZE",
         "WILDCARD_MODE_FIXED": "WILDCARD_MODE_FIXED",
         "WILDCARD_MODE_POPULATE": "WILDCARD_MODE_POPULATE",
@@ -5771,19 +5405,7 @@
       "surface": "nodes_root_residuals",
       "kind": "globals",
       "symbols": {
-        "AIO_FINAL_FIT_MODES": "AIO_FINAL_FIT_MODES",
-        "AIO_FINAL_UPSCALE_BACKENDS": "AIO_FINAL_UPSCALE_BACKENDS",
-        "AIO_GENERATION_DEFAULT_SETTINGS": "AIO_GENERATION_DEFAULT_SETTINGS",
-        "AIO_GENERATION_SETTINGS_SCHEMA": "AIO_GENERATION_SETTINGS_SCHEMA",
-        "AIO_GENERATION_SETTINGS_VERSION": "AIO_GENERATION_SETTINGS_VERSION",
         "AIO_INPUT_DEFAULT_SETTINGS": "AIO_INPUT_DEFAULT_SETTINGS",
-        "AIO_RESHIFT_DTYPES": "AIO_RESHIFT_DTYPES",
-        "AIO_RESHIFT_SCALES": "AIO_RESHIFT_SCALES",
-        "AIO_USDU_MODE_TYPES": "AIO_USDU_MODE_TYPES",
-        "AIO_USDU_PROMPT_FULL": "AIO_USDU_PROMPT_FULL",
-        "AIO_USDU_PROMPT_MODES": "AIO_USDU_PROMPT_MODES",
-        "AIO_USDU_PROMPT_NO_GENERAL": "AIO_USDU_PROMPT_NO_GENERAL",
-        "AIO_USDU_SEAM_FIX_MODES": "AIO_USDU_SEAM_FIX_MODES",
         "ANIMA_CLIP_DEVICES": "ANIMA_CLIP_DEVICES",
         "ANIMA_CLIP_TYPES": "ANIMA_CLIP_TYPES",
         "ANIMA_DEFAULT_CLIP_CANDIDATES": "ANIMA_DEFAULT_CLIP_CANDIDATES",

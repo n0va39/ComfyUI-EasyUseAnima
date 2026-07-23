@@ -6,7 +6,7 @@ import unittest
 from unittest.mock import patch
 
 import nodes
-from easyuse_anima.aio import first_pass_cache
+from easyuse_anima.aio import first_pass_cache, generation_normalization, postprocess
 from easyuse_anima.nodes import aio_nodes
 from tests.comfy_host_fakes import (
     FakeComfyHostProvider,
@@ -14,7 +14,6 @@ from tests.comfy_host_fakes import (
     use_fake_comfy_host,
 )
 from tests.test_node_contracts import _loaded_package_entrypoint
-
 
 _DEFAULT_COMFY_HOST = use_fake_comfy_host(nodes, FakeComfyHostProvider())
 
@@ -865,7 +864,11 @@ class AIOSettingsStorageTests(unittest.TestCase):
             )
 
     def test_generation_scheduler_uses_comfy_ksampler_choices(self):
-        with patch.object(nodes, "_comfy_scheduler_names", return_value=["normal", "sgm_uniform"]):
+        with patch.object(
+            generation_normalization,
+            "_comfy_scheduler_names",
+            return_value=["normal", "sgm_uniform"],
+        ):
             settings = nodes._normalize_aio_generation_settings(json.dumps({
                 "sampler": {
                     "scheduler": "er_sde",
@@ -2139,7 +2142,7 @@ class AIOFinalUpscaleStageTests(unittest.TestCase):
     def test_postprocess_stage_applies_final_fit(self):
         with (
             patch.object(
-                nodes,
+                postprocess,
                 "_apply_aio_final_fit",
                 return_value=(
                     AIOFinalUpscaleStageTests._Image(2048, 1536),

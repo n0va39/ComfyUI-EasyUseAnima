@@ -1741,7 +1741,7 @@ Implementation result:
 
 ### B-11c30d2 — AiO normalization/planning binder Move
 
-- **State:** IN REVIEW
+- **State:** COMPLETE in PR #349
 - **Owner:** #184
 - **Behavior boundary:** #169
 - **Type:** Move
@@ -1825,6 +1825,32 @@ Forbidden:
 - retiring any d3 through d6 or Wildcard/NAIA binder; and
 - combining d0b, Contract, Behavior, performance, or formatting cleanup.
 
+Implementation result:
+
+- root and all three canonical modules no longer define, import, invoke, or
+  retain the d2 binders, `_RUNTIME_RESOLVER`, or `_runtime_helper`;
+- `easyuse_anima.aio.generation_defaults` is the sole owner of the mutable
+  generation default payload, special-seed set, schema/version aliases, and
+  final-fit/upscale/USDU/ResShift choices. Root and generation normalization
+  import the exact same objects and values;
+- generation normalization imports its stateless feature dependencies
+  directly and keeps only `_comfy_max_resolution` behind the existing E-07
+  call-time provider;
+- USDU planning imports `ceil`, common values, and geometry directly.
+  Postprocess planning imports `sqrt`, logging, common values, geometry,
+  upscale invocation, and `LATENT_ALIGN` directly. Same-module planning calls
+  no longer round-trip through root;
+- d2-specific tests patch the canonical owner. Root replacements that drive
+  d3 through d6 remain on those still-active families;
+- the split gate marks d1 and d2 retired and leaves d3 through d6 as the exact
+  active AiO set. The repository now contains ten binders total: eight AiO and
+  two Wildcard/NAIA;
+- backend inventory grows from 90 to 91 shipped and reachable Python modules,
+  with no missing internal imports; and
+- normalized defaults, key order, clamping, seed interpretation, provider
+  observation time, USDU planning, postprocess resize/metadata/logging, schema,
+  workflow, and stage behavior remain unchanged.
+
 ### B-11d — Final root shim
 
 - **State:** BLOCKED by the remaining AiO and Wildcard/NAIA binder families
@@ -1873,7 +1899,8 @@ COMPLETE: B-11c30c2b Advanced / Regional adapter Move / PR #345
 COMPLETE: B-11c30d AiO binder split gate / PR #346
 COMPLETE: B-11c30d1 AiO cache-state binder Move / PR #347
 COMPLETE: B-11c30d0a output-settings owner Move / PR #348
-PLANNED:  B-11c30d2-d4 normalization, I/O, and execution-service Moves
+COMPLETE: B-11c30d2 normalization/planning binder Move / PR #349
+PLANNED:  B-11c30d3-d4 I/O and execution-service Moves
 PLANNED:  B-11c30d0b input-context owner Move before d5-d6
 PLANNED:  B-11c30d5-d6 orchestration and node-adapter Moves
 BLOCKED:  B-11d final root shim

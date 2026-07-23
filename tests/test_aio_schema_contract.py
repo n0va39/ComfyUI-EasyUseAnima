@@ -12,6 +12,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 import nodes
+from easyuse_anima.aio import generation_normalization
 from easyuse_anima.aio.generation_settings import (
     _aio_generation_config_from_dict,
 )
@@ -21,7 +22,6 @@ from tests.comfy_host_fakes import (
     patch_comfy_helper,
     use_fake_comfy_host,
 )
-
 
 ROOT = Path(__file__).resolve().parents[1]
 MANIFEST_PATH = ROOT / "easyuse_anima" / "aio" / "schemas" / "generation_settings.v1.json"
@@ -370,7 +370,7 @@ def _deterministic_capabilities(
 ):
     with (
         patch.multiple(
-            nodes,
+            generation_normalization,
             _comfy_sampler_names=lambda: list(samplers),
             _comfy_scheduler_names=lambda: list(schedulers),
             _impact_scheduler_names=lambda: list(impact_schedulers),
@@ -451,14 +451,18 @@ def _runtime_static_enum_choices(path: tuple[str, ...]) -> tuple[str, ...]:
 
     marker = "__capture_runtime_static_enum_choices__"
     observed: list[tuple[str, ...]] = []
-    original_choice = nodes._choice
+    original_choice = generation_normalization._choice
 
     def capture_choice(value, choices, default):
         if value == marker:
             observed.append(tuple(choices or ()))
         return original_choice(value, choices, default)
 
-    with _deterministic_capabilities(), patch.object(nodes, "_choice", side_effect=capture_choice):
+    with _deterministic_capabilities(), patch.object(
+        generation_normalization,
+        "_choice",
+        side_effect=capture_choice,
+    ):
         nodes._normalize_aio_generation_settings(_payload_with(path, marker))
     if len(observed) != 1:
         raise AssertionError(f"Expected one runtime choice source for {path}, got {observed}")

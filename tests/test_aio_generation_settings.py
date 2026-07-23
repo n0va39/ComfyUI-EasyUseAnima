@@ -8,7 +8,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 import nodes
-from easyuse_anima.aio import generation_normalization
+from easyuse_anima.aio import generation_defaults, generation_normalization
 from easyuse_anima.aio.generation_detailer import AIOGenerationDetailerTargetConfig
 from easyuse_anima.aio.generation_features import (
     AIOGenerationHighresConfig,
@@ -24,7 +24,6 @@ from easyuse_anima.aio.generation_settings import (
 )
 from tests.comfy_host_fakes import patch_comfy_helper
 
-
 ROOT = Path(__file__).resolve().parents[1]
 FIXTURE_PATH = ROOT / "tests" / "fixtures" / "aio_generation_settings_0_5_2.json"
 
@@ -39,7 +38,7 @@ def _deterministic_capabilities(
 ):
     with (
         patch.multiple(
-            nodes,
+            generation_normalization,
             _comfy_sampler_names=lambda: list(samplers),
             _comfy_scheduler_names=lambda: list(schedulers),
             _impact_scheduler_names=lambda: list(impact_schedulers),
@@ -56,6 +55,10 @@ def _deterministic_capabilities(
 class AIOGenerationConfigTests(unittest.TestCase):
     def test_root_facade_reexports_canonical_normalizers_by_identity(self):
         self.assertIs(
+            nodes.AIO_GENERATION_DEFAULT_SETTINGS,
+            generation_defaults.AIO_GENERATION_DEFAULT_SETTINGS,
+        )
+        self.assertIs(
             nodes._merge_versioned_settings,
             generation_normalization._merge_versioned_settings,
         )
@@ -64,8 +67,8 @@ class AIOGenerationConfigTests(unittest.TestCase):
             generation_normalization._normalize_aio_generation_settings,
         )
 
-    def test_canonical_normalizer_resolves_root_helpers_at_call_time(self):
-        original_choice = nodes._choice
+    def test_canonical_normalizer_uses_canonical_helpers_at_call_time(self):
+        original_choice = generation_normalization._choice
         calls: list[tuple[object, tuple[object, ...], object]] = []
 
         def tracking_choice(value, options, default):
@@ -73,7 +76,7 @@ class AIOGenerationConfigTests(unittest.TestCase):
             return original_choice(value, options, default)
 
         with (
-            patch.object(nodes, "_choice", tracking_choice),
+            patch.object(generation_normalization, "_choice", tracking_choice),
             _deterministic_capabilities(),
         ):
             normalized = generation_normalization._normalize_aio_generation_settings(
