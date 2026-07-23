@@ -383,21 +383,27 @@ mutation, or feature code importing runtime.
 - **Type:** Contract
 
 PR #327 combines E-02a and E-07a because the package-closure gate cannot admit
-the new runtime/provider modules while both remain unreachable. The combined
-production boundary is exactly the union of the two Contract units:
+the new runtime/provider modules while both remain unreachable. The production
+boundary is the union of the two Contract units plus the root entrypoint's
+adapter-only host-module loader:
 
 ```text
+__init__.py
 easyuse_anima/runtime.py
 easyuse_anima/bootstrap.py
 easyuse_anima/infrastructure/comfy/provider.py
 ```
 
-This sequencing correction does not add a package-closure exception and does
-not authorize E-07b wiring, a wrapper Move, or a Behavior change.
+The root entrypoint owns the actual `import nodes` operation and injects a
+call-time loader into bootstrap. Canonical code therefore does not import a
+root shim, while the provider still observes delayed host availability without
+caching. This sequencing correction does not add a package-closure exception
+and does not authorize E-07b wiring, a wrapper Move, or a Behavior change.
 
 Allowed production files:
 
 ```text
+__init__.py
 easyuse_anima/bootstrap.py
 easyuse_anima/infrastructure/comfy/provider.py
 ```

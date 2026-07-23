@@ -593,6 +593,7 @@
     "E-07a": {
       "type": "Contract",
       "production_files": [
+        "__init__.py",
         "easyuse_anima/bootstrap.py",
         "easyuse_anima/infrastructure/comfy/provider.py"
       ],

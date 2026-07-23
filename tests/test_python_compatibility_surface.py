@@ -2123,6 +2123,7 @@ class ComfyHostCompatibilityLedgerTests(unittest.TestCase):
         self.assertEqual(
             contracts["E-07a"]["production_files"],
             [
+                "__init__.py",
                 "easyuse_anima/bootstrap.py",
                 "easyuse_anima/infrastructure/comfy/provider.py",
             ],

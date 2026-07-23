@@ -35,8 +35,11 @@ class RuntimeServicesTests(unittest.TestCase):
     def setUp(self):
         self.runtime_state = patch.object(runtime_module, "_RUNTIME_SERVICES", None)
         self.runtime_state.start()
+        self.default_runtime_state = patch.object(bootstrap, "_DEFAULT_RUNTIME", None)
+        self.default_runtime_state.start()
 
     def tearDown(self):
+        self.default_runtime_state.stop()
         self.runtime_state.stop()
 
     @staticmethod
@@ -90,21 +93,27 @@ class RuntimeServicesTests(unittest.TestCase):
     def test_bootstrap_installs_and_reuses_the_default_runtime(self):
         register_routes = Mock(return_value=True)
         initialize_wildcards = Mock(return_value=object())
+        host = type("Host", (), {"MAX_RESOLUTION": "8192"})()
+        load_comfy_nodes = Mock(return_value=host)
 
         with patch.object(bootstrap, "_WILDCARDS_INITIALIZED", False):
             bootstrap.initialize(
                 register_routes=register_routes,
                 initialize_wildcards=initialize_wildcards,
+                load_comfy_nodes=load_comfy_nodes,
             )
             first = get_runtime()
             bootstrap.initialize(
                 register_routes=register_routes,
                 initialize_wildcards=initialize_wildcards,
+                load_comfy_nodes=load_comfy_nodes,
             )
 
         self.assertIs(first, bootstrap._DEFAULT_RUNTIME)
         self.assertIsInstance(first.comfy, DefaultComfyHostProvider)
+        self.assertEqual(first.comfy.max_resolution(), 8192)
         self.assertIs(get_runtime(), first)
+        load_comfy_nodes.assert_called_once_with()
         self.assertEqual(register_routes.call_count, 2)
         initialize_wildcards.assert_called_once_with()
 
