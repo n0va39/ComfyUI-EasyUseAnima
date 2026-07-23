@@ -117,6 +117,81 @@ RUNTIME_BINDER_FAMILIES = {
         "_bind_naia_node_runtime",
     ),
 }
+AIO_RUNTIME_BINDER_SUBGROUPS = {
+    "B-11c30d1_cache_state": (
+        "_bind_aio_first_pass_cache_runtime",
+    ),
+    "B-11c30d2_normalization_planning": (
+        "_bind_aio_generation_normalization_runtime",
+        "_bind_aio_usdu_planning_runtime",
+        "_bind_aio_postprocess_runtime",
+    ),
+    "B-11c30d3_io_boundary": (
+        "_bind_aio_resource_runtime",
+        "_bind_aio_preview_runtime",
+        "_bind_aio_output_runtime",
+    ),
+    "B-11c30d4_execution_services": (
+        "_bind_aio_model_preparation_runtime",
+        "_bind_aio_sampling_runtime",
+        "_bind_aio_conditioning_runtime",
+    ),
+    "B-11c30d5_legacy_orchestration": (
+        "_bind_aio_legacy_generation_runtime",
+    ),
+    "B-11c30d6_node_adapter": (
+        "_bind_aio_node_runtime",
+    ),
+}
+AIO_RUNTIME_PREREQUISITE_MOVES = (
+    {
+        "id": "B-11c30d0a_output_settings_owner",
+        "source": "easyuse_anima.aio.output",
+        "target": "easyuse_anima.aio.output_settings",
+        "symbols": (
+            "_normalize_aio_hash_bundles",
+            "_normalize_aio_civitai_hash_fetchers",
+        ),
+        "blocking_edges": (
+            {
+                "consumer": "easyuse_anima.aio.generation_normalization",
+                "symbol": "_normalize_aio_hash_bundles",
+            },
+            {
+                "consumer": "easyuse_anima.aio.generation_normalization",
+                "symbol": "_normalize_aio_civitai_hash_fetchers",
+            },
+        ),
+        "unblocks": (
+            "B-11c30d2_normalization_planning",
+            "B-11c30d3_io_boundary",
+            "B-11c30d4_execution_services",
+        ),
+    },
+    {
+        "id": "B-11c30d0b_input_context_owner",
+        "source": "easyuse_anima.nodes.aio_nodes",
+        "target": "easyuse_anima.aio.input_context",
+        "symbols": (
+            "_easy_use_anima_input_signature",
+            "_require_easy_use_anima_input",
+        ),
+        "blocking_edges": (
+            {
+                "consumer": "easyuse_anima.aio.legacy_generation",
+                "symbol": "_require_easy_use_anima_input",
+            },
+            {
+                "consumer": "easyuse_anima.nodes.aio_nodes",
+                "symbol": "_run_aio_legacy_generation",
+            },
+        ),
+        "unblocks": (
+            "B-11c30d5_legacy_orchestration",
+            "B-11c30d6_node_adapter",
+        ),
+    },
+)
 RETIRED_ARTIST_MIX_MODE_BINDINGS = (
     "ARTIST_MIX_CONTROL_KEY",
     "ARTIST_MIX_EXACT_KEY",
@@ -1637,6 +1712,101 @@ def _repository_root_replacements(
     }
 
 
+def _aio_runtime_split_gate(
+    entries: list[dict[str, Any]],
+    root_replacements: dict[str, list[str]],
+) -> dict[str, Any]:
+    entry_by_binder = {
+        entry["binder"]: entry
+        for entry in entries
+        if entry["family"] == "aio"
+    }
+    classified_binders = [
+        binder
+        for binders in AIO_RUNTIME_BINDER_SUBGROUPS.values()
+        for binder in binders
+    ]
+    if len(classified_binders) != len(set(classified_binders)):
+        raise AssertionError("AiO runtime binder subgroup classification overlaps")
+    if set(classified_binders) != set(RUNTIME_BINDER_FAMILIES["aio"]):
+        raise AssertionError("AiO runtime binder subgroup classification is incomplete")
+
+    subgroups = {}
+    for subgroup, binders in AIO_RUNTIME_BINDER_SUBGROUPS.items():
+        selected = [entry_by_binder[binder] for binder in binders]
+        root_names = [
+            name
+            for entry in selected
+            for name in entry["root_resolver_names"]
+        ]
+        provider_names = [
+            name
+            for entry in selected
+            for name in entry["provider_resolver_names"]
+        ]
+        direct_names = [
+            name
+            for entry in selected
+            for name in entry["direct_root_dependencies"]
+        ]
+        replacement_names = [
+            name
+            for entry in selected
+            for name in entry["repository_replacement_names"]
+        ]
+        unique_replacement_names = sorted(set(replacement_names))
+        replacement_files = sorted({
+            path
+            for name in unique_replacement_names
+            for path in root_replacements[name]
+        })
+        subgroups[subgroup] = {
+            "binders": list(binders),
+            "mode_counts": {
+                mode: sum(entry["mode"] == mode for entry in selected)
+                for mode in (
+                    "comfy_provider_then_root",
+                    "root_globals",
+                )
+            },
+            "bound_global_slots": sum(
+                len(entry["bound_globals"]) for entry in selected
+            ),
+            "unique_bound_globals": sorted({
+                name
+                for entry in selected
+                for name in entry["bound_globals"]
+            }),
+            "root_resolver_slots": len(root_names),
+            "unique_root_resolver_names": len(set(root_names)),
+            "provider_resolver_slots": len(provider_names),
+            "unique_provider_resolver_names": len(set(provider_names)),
+            "direct_root_dependency_slots": len(direct_names),
+            "unique_direct_root_dependencies": len(set(direct_names)),
+            "repository_replacement_slots": len(replacement_names),
+            "unique_repository_replacement_names": len(
+                unique_replacement_names
+            ),
+            "repository_replacement_files": replacement_files,
+        }
+
+    prerequisite_moves = []
+    for move in AIO_RUNTIME_PREREQUISITE_MOVES:
+        prerequisite_moves.append({
+            **move,
+            "symbols": list(move["symbols"]),
+            "blocking_edges": [
+                dict(edge) for edge in move["blocking_edges"]
+            ],
+            "unblocks": list(move["unblocks"]),
+        })
+    return {
+        "subgroup_order": list(AIO_RUNTIME_BINDER_SUBGROUPS),
+        "subgroups": subgroups,
+        "prerequisite_moves": prerequisite_moves,
+    }
+
+
 def _runtime_binder_audit(
     tree: ast.Module,
     canonical_bindings: dict[str, str],
@@ -1762,6 +1932,10 @@ def _runtime_binder_audit(
             family: list(family_binders)
             for family, family_binders in RUNTIME_BINDER_FAMILIES.items()
         },
+        "aio_split_gate": _aio_runtime_split_gate(
+            entries,
+            root_replacements,
+        ),
         "root_resolver_names": sorted(all_root_names),
         "provider_resolver_names": sorted(all_provider_names),
         "repository_root_replacements": root_replacements,
@@ -2133,6 +2307,7 @@ def _build_document() -> dict[str, Any]:
                 "B-11c30c2",
                 "B-11c30c2a",
                 "B-11c30c2b",
+                "B-11c30d",
             ],
         },
         "enums": {
@@ -2473,6 +2648,130 @@ class PythonCompatibilitySurfaceTests(unittest.TestCase):
                     entry["root_observation"],
                     "call_time_resolver",
                 )
+
+    def test_aio_binder_split_gate_is_complete_and_records_cycle_breakers(self):
+        gate = self.document["runtime_binder_audit"]["aio_split_gate"]
+        self.assertEqual(
+            gate["subgroup_order"],
+            list(AIO_RUNTIME_BINDER_SUBGROUPS),
+        )
+        self.assertEqual(
+            {
+                binder
+                for subgroup in gate["subgroups"].values()
+                for binder in subgroup["binders"]
+            },
+            set(RUNTIME_BINDER_FAMILIES["aio"]),
+        )
+        summaries = {
+            subgroup: {
+                key: value
+                for key, value in details.items()
+                if key
+                in {
+                    "root_resolver_slots",
+                    "unique_root_resolver_names",
+                    "provider_resolver_slots",
+                    "direct_root_dependency_slots",
+                    "repository_replacement_slots",
+                    "unique_repository_replacement_names",
+                }
+            }
+            for subgroup, details in gate["subgroups"].items()
+        }
+        self.assertEqual(
+            summaries,
+            {
+                "B-11c30d1_cache_state": {
+                    "root_resolver_slots": 7,
+                    "unique_root_resolver_names": 7,
+                    "provider_resolver_slots": 0,
+                    "direct_root_dependency_slots": 0,
+                    "repository_replacement_slots": 7,
+                    "unique_repository_replacement_names": 7,
+                },
+                "B-11c30d2_normalization_planning": {
+                    "root_resolver_slots": 72,
+                    "unique_root_resolver_names": 66,
+                    "provider_resolver_slots": 1,
+                    "direct_root_dependency_slots": 1,
+                    "repository_replacement_slots": 37,
+                    "unique_repository_replacement_names": 31,
+                },
+                "B-11c30d3_io_boundary": {
+                    "root_resolver_slots": 49,
+                    "unique_root_resolver_names": 46,
+                    "provider_resolver_slots": 4,
+                    "direct_root_dependency_slots": 3,
+                    "repository_replacement_slots": 47,
+                    "unique_repository_replacement_names": 44,
+                },
+                "B-11c30d4_execution_services": {
+                    "root_resolver_slots": 43,
+                    "unique_root_resolver_names": 37,
+                    "provider_resolver_slots": 6,
+                    "direct_root_dependency_slots": 3,
+                    "repository_replacement_slots": 30,
+                    "unique_repository_replacement_names": 25,
+                },
+                "B-11c30d5_legacy_orchestration": {
+                    "root_resolver_slots": 59,
+                    "unique_root_resolver_names": 59,
+                    "provider_resolver_slots": 2,
+                    "direct_root_dependency_slots": 1,
+                    "repository_replacement_slots": 48,
+                    "unique_repository_replacement_names": 48,
+                },
+                "B-11c30d6_node_adapter": {
+                    "root_resolver_slots": 30,
+                    "unique_root_resolver_names": 30,
+                    "provider_resolver_slots": 0,
+                    "direct_root_dependency_slots": 0,
+                    "repository_replacement_slots": 30,
+                    "unique_repository_replacement_names": 30,
+                },
+            },
+        )
+        self.assertEqual(
+            [move["id"] for move in gate["prerequisite_moves"]],
+            [
+                "B-11c30d0a_output_settings_owner",
+                "B-11c30d0b_input_context_owner",
+            ],
+        )
+        prerequisite_by_id = {
+            move["id"]: move for move in gate["prerequisite_moves"]
+        }
+        self.assertEqual(
+            prerequisite_by_id[
+                "B-11c30d0a_output_settings_owner"
+            ]["blocking_edges"],
+            [
+                {
+                    "consumer": "easyuse_anima.aio.generation_normalization",
+                    "symbol": "_normalize_aio_hash_bundles",
+                },
+                {
+                    "consumer": "easyuse_anima.aio.generation_normalization",
+                    "symbol": "_normalize_aio_civitai_hash_fetchers",
+                },
+            ],
+        )
+        self.assertEqual(
+            prerequisite_by_id[
+                "B-11c30d0b_input_context_owner"
+            ]["blocking_edges"],
+            [
+                {
+                    "consumer": "easyuse_anima.aio.legacy_generation",
+                    "symbol": "_require_easy_use_anima_input",
+                },
+                {
+                    "consumer": "easyuse_anima.nodes.aio_nodes",
+                    "symbol": "_run_aio_legacy_generation",
+                },
+            ],
+        )
 
     def test_prompt_service_and_node_adapter_binders_are_retired(self):
         audit = self.document["runtime_binder_audit"]

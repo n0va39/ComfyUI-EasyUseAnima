@@ -1476,7 +1476,7 @@ Implementation result:
 
 ### B-11c30d — AiO binder split gate
 
-- **State:** IN PROGRESS
+- **State:** COMPLETE in PR #346
 - **Owner:** #184
 - **Behavior boundary:** #168 and #169
 - **Type:** Contract/gate
@@ -1541,6 +1541,33 @@ service dependencies are direct, and d6 remains last because the public node
 adapter consumes the legacy orchestrator and service owners. No Move may begin
 #169 stage/cache Behavior or combine the Wildcard/NAIA family.
 
+The machine-readable gate records the exact, non-overlapping subgroup
+membership and the per-group mode, root/provider/direct dependency, replacement
+slot, and replacement-file counts. Later Moves consume that frozen subgroup
+instead of reconstructing the full twelve-binder inventory.
+
+Two import cycles require separate behavior-preserving prerequisite Moves:
+
+1. **B-11c30d0a output settings owner:** move only
+   `_normalize_aio_hash_bundles` and
+   `_normalize_aio_civitai_hash_fetchers` from
+   `easyuse_anima.aio.output` to the new pure
+   `easyuse_anima.aio.output_settings` owner. This breaks the
+   generation-normalization → output → sampling → generation-normalization
+   cycle and unblocks d2 through d4.
+2. **B-11c30d0b input context owner:** move only
+   `_easy_use_anima_input_signature` and
+   `_require_easy_use_anima_input` from
+   `easyuse_anima.nodes.aio_nodes` to the new pure
+   `easyuse_anima.aio.input_context` owner. This breaks the
+   legacy-generation ↔ node-adapter cycle and unblocks d5 and d6.
+
+Neither prerequisite is implemented in this Contract/gate. d1 has no blocking
+cycle and is the first READY production Move. d0a may follow as a separate
+Move before d2; d0b remains a separate Move before d5. The two prerequisite
+Moves preserve existing root aliases and do not change normalization, input,
+stage, seed, cache, provider, error, or workflow behavior.
+
 ### B-11d — Final root shim
 
 - **State:** BLOCKED by the remaining AiO and Wildcard/NAIA binder families
@@ -1586,6 +1613,12 @@ COMPLETE: B-11c30c1 Prompt/Regional service binder Move / PR #340
 COMPLETE: B-11c30c2 Prompt/Regional node-adapter split gate / PR #341
 COMPLETE: B-11c30c2a Prompt Data / Classic Prompt adapter Move / PR #342
 COMPLETE: B-11c30c2b Advanced / Regional adapter Move / PR #345
+COMPLETE: B-11c30d AiO binder split gate / PR #346
+READY:    B-11c30d1 AiO cache-state binder Move
+PLANNED:  B-11c30d0a output-settings owner Move before d2-d4
+PLANNED:  B-11c30d2-d4 normalization, I/O, and execution-service Moves
+PLANNED:  B-11c30d0b input-context owner Move before d5-d6
+PLANNED:  B-11c30d5-d6 orchestration and node-adapter Moves
 BLOCKED:  B-11d final root shim
 
 LATER:    #167 seed reservation
