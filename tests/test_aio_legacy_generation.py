@@ -41,6 +41,10 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
             legacy_generation._run_aio_detailer_stage,
         )
         self.assertIs(
+            nodes._run_aio_detailer_target,
+            legacy_generation._run_aio_detailer_target,
+        )
+        self.assertIs(
             nodes._run_aio_highres_stage,
             legacy_generation._run_aio_highres_stage,
         )
@@ -68,6 +72,10 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
             self.assertIs(
                 package_nodes._run_aio_detailer_stage,
                 canonical_module._run_aio_detailer_stage,
+            )
+            self.assertIs(
+                package_nodes._run_aio_detailer_target,
+                canonical_module._run_aio_detailer_target,
             )
             self.assertIs(
                 package_nodes._run_aio_highres_stage,
@@ -699,6 +707,389 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
         )
         self.assertNotIn("target:face", callback_trace)
         self.assertNotIn("context_value", callback_trace)
+
+    def test_detailer_target_disabled_short_circuits_after_as_bool(self):
+        trace: list[str] = []
+        image = object()
+
+        def resolve(name):
+            trace.append(f"resolve:{name}")
+            if name == "_as_bool":
+                return lambda value, default: trace.append("call:_as_bool") or False
+            self.fail(f"disabled Detailer target resolved unexpected helper: {name}")
+
+        legacy_generation._bind_aio_legacy_generation_runtime(resolve_helper=resolve)
+        try:
+            result = nodes._run_aio_detailer_target(
+                "face",
+                {"enabled": False},
+                image,
+                object(),
+                object(),
+                object(),
+                object(),
+                object(),
+                {},
+                {},
+            )
+        finally:
+            legacy_generation._bind_aio_legacy_generation_runtime(
+                resolve_helper=lambda name: getattr(nodes, name)
+            )
+
+        self.assertIs(result[0], image)
+        self.assertEqual(result[1], {"enabled": False})
+        self.assertEqual(trace, ["resolve:_as_bool", "call:_as_bool"])
+
+    def test_detailer_target_preserves_kwargs_cleanup_and_metadata_order(self):
+        trace: list[str] = []
+        captured_kwargs = {}
+        model = _Token("model")
+        stage_model = _Token("stage_model")
+        clip = _Token("clip")
+        vae = _Token("vae")
+        positive = _Token("positive")
+        negative = _Token("negative")
+        image = _Token("image")
+        detailed_image = _Token("detailed_image")
+        sam3_context = {"model": _Token("sam3_model")}
+        segs = ((1, 1), ["seg"])
+        sampler_settings = {"seed": 11}
+        stage_sampler = {
+            "seed": 101,
+            "steps": 22,
+            "cfg": 6.5,
+            "sampler_name": "euler",
+            "scheduler": "sgm_uniform",
+            "denoise": 0.31,
+        }
+        target_settings = {
+            "enabled": True,
+            "detect_prompt": "portrait face",
+            "detect_count": "2",
+            "threshold": "0.63",
+            "refine_iterations": "3",
+            "individual_masks": True,
+            "combined": False,
+            "crop_factor": "3.5",
+            "bbox_fill": True,
+            "drop_size": "88",
+            "contour_fill": False,
+            "guide_size": "896",
+            "guide_size_for": True,
+            "max_size": "1792",
+            "feather": "7",
+            "noise_mask": False,
+            "force_inpaint": True,
+            "wildcard": "detail wildcard",
+            "cycle": "2",
+            "alignment": "64",
+            "inpaint_model": True,
+            "noise_mask_feather": "4",
+            "tiled_encode": True,
+            "tiled_decode": False,
+        }
+
+        def as_bool(value, default):
+            trace.append(("call", "_as_bool", value, default))
+            return bool(value)
+
+        def as_int(value, default):
+            trace.append(("call", "_as_int", value, default))
+            return int(value)
+
+        def as_float(value, default):
+            trace.append(("call", "_as_float", value, default))
+            return float(value)
+
+        def stage_sampler_settings(base, target, **kwargs):
+            trace.append("call:_aio_stage_sampler_settings")
+            self.assertIs(base, sampler_settings)
+            self.assertIs(target, target_settings)
+            self.assertEqual(kwargs, {"scheduler_default": "sgm_uniform"})
+            return stage_sampler
+
+        def apply_patch(source_model, source_clip, conditioning, sampler):
+            trace.append("call:_apply_patch")
+            self.assertEqual(
+                (source_model, source_clip, conditioning, sampler),
+                (model, clip, positive, stage_sampler),
+            )
+            return stage_model
+
+        class Detailer:
+            def __init__(self):
+                trace.append("construct:detailer")
+
+            def doit(self, **kwargs):
+                trace.append("call:doit")
+                captured_kwargs.update(kwargs)
+                return detailed_image, segs, object(), object()
+
+        def cleanup(current_model, original_model):
+            trace.append("call:cleanup")
+            self.assertEqual((current_model, original_model), (stage_model, model))
+
+        def segs_has_items(value):
+            trace.append("call:_segs_has_items")
+            self.assertIs(value, segs)
+            return True
+
+        safe_sampler = {"safe": True}
+
+        def json_safe(value):
+            trace.append("call:_prompt_data_json_safe")
+            self.assertIs(value, stage_sampler)
+            return safe_sampler
+
+        helpers = {
+            "_as_bool": as_bool,
+            "_as_int": as_int,
+            "_as_float": as_float,
+            "_aio_stage_sampler_settings": stage_sampler_settings,
+            "_apply_aio_spectrum_model_patches_for_comfy_sampler": apply_patch,
+            "EasyUseAnimaSAM3Detailer": Detailer,
+            "_cleanup_aio_ephemeral_model": cleanup,
+            "_segs_has_items": segs_has_items,
+            "_prompt_data_json_safe": json_safe,
+        }
+
+        def resolve(name):
+            trace.append(f"resolve:{name}")
+            return helpers[name]
+
+        legacy_generation._bind_aio_legacy_generation_runtime(resolve_helper=resolve)
+        try:
+            result = nodes._run_aio_detailer_target(
+                "face",
+                target_settings,
+                image,
+                model,
+                clip,
+                vae,
+                positive,
+                negative,
+                sampler_settings,
+                sam3_context,
+            )
+        finally:
+            legacy_generation._bind_aio_legacy_generation_runtime(
+                resolve_helper=lambda name: getattr(nodes, name)
+            )
+
+        self.assertIs(result[0], detailed_image)
+        self.assertEqual(
+            result[1],
+            {"enabled": True, "detected": True, "sampler": safe_sampler},
+        )
+        self.assertEqual(list(result[1]), ["enabled", "detected", "sampler"])
+        self.assertIs(result[1]["sampler"], safe_sampler)
+        self.assertEqual(
+            list(captured_kwargs),
+            [
+                "enabled", "image", "ctx_SAM3", "detect_prompt", "detect_count",
+                "threshold", "refine_iterations", "individual_masks", "combined",
+                "crop_factor", "bbox_fill", "drop_size", "contour_fill", "model",
+                "clip", "vae", "guide_size", "guide_size_for", "max_size", "seed",
+                "steps", "cfg", "sampler_name", "scheduler", "positive", "negative",
+                "denoise", "feather", "noise_mask", "force_inpaint", "wildcard",
+                "cycle", "alignment", "preserve_conditioning_metadata",
+                "fail_on_unsupported_opt", "detailer_hook", "inpaint_model",
+                "noise_mask_feather", "scheduler_func_opt", "tiled_encode",
+                "tiled_decode",
+            ],
+        )
+        self.assertEqual(
+            captured_kwargs,
+            {
+                "enabled": True,
+                "image": image,
+                "ctx_SAM3": sam3_context,
+                "detect_prompt": "portrait face",
+                "detect_count": 2,
+                "threshold": 0.63,
+                "refine_iterations": 3,
+                "individual_masks": True,
+                "combined": False,
+                "crop_factor": 3.5,
+                "bbox_fill": True,
+                "drop_size": 88,
+                "contour_fill": False,
+                "model": stage_model,
+                "clip": clip,
+                "vae": vae,
+                "guide_size": 896,
+                "guide_size_for": True,
+                "max_size": 1792,
+                "seed": 101,
+                "steps": 22,
+                "cfg": 6.5,
+                "sampler_name": "euler",
+                "scheduler": "sgm_uniform",
+                "positive": positive,
+                "negative": negative,
+                "denoise": 0.31,
+                "feather": 7,
+                "noise_mask": False,
+                "force_inpaint": True,
+                "wildcard": "detail wildcard",
+                "cycle": 2,
+                "alignment": "64",
+                "preserve_conditioning_metadata": True,
+                "fail_on_unsupported_opt": False,
+                "detailer_hook": None,
+                "inpaint_model": True,
+                "noise_mask_feather": 4,
+                "scheduler_func_opt": None,
+                "tiled_encode": True,
+                "tiled_decode": False,
+            },
+        )
+        resolved_helpers = [
+            item.removeprefix("resolve:")
+            for item in trace
+            if isinstance(item, str) and item.startswith("resolve:")
+        ]
+        self.assertEqual(
+            resolved_helpers,
+            [
+                "_as_bool",
+                "_aio_stage_sampler_settings",
+                "_apply_aio_spectrum_model_patches_for_comfy_sampler",
+                "EasyUseAnimaSAM3Detailer",
+                "_as_int", "_as_float", "_as_int", "_as_bool", "_as_bool",
+                "_as_float", "_as_bool", "_as_int", "_as_bool", "_as_int",
+                "_as_bool", "_as_int", "_as_int", "_as_bool", "_as_bool",
+                "_as_int", "_as_bool", "_as_int", "_as_bool", "_as_bool",
+                "_cleanup_aio_ephemeral_model",
+                "_segs_has_items",
+                "_prompt_data_json_safe",
+            ],
+        )
+        self.assertLess(trace.index("call:cleanup"), trace.index("call:_segs_has_items"))
+        self.assertLess(
+            trace.index("call:_segs_has_items"),
+            trace.index("call:_prompt_data_json_safe"),
+        )
+
+    def test_detailer_target_preserves_cleanup_and_metadata_failure_boundaries(self):
+        image = _Token("image")
+        model = _Token("model")
+        stage_model = _Token("stage_model")
+        stage_sampler = {
+            "seed": 1,
+            "steps": 2,
+            "cfg": 3.0,
+            "sampler_name": "euler",
+            "scheduler": "sgm_uniform",
+            "denoise": 0.4,
+        }
+
+        def execute(overrides, trace):
+            class Detailer:
+                def doit(self, **kwargs):
+                    trace.append("doit")
+                    return _Token("output"), ((1, 1), ["seg"])
+
+            helpers = {
+                "_as_bool": lambda value, default: bool(value),
+                "_as_int": lambda value, default: default,
+                "_as_float": lambda value, default: default,
+                "_aio_stage_sampler_settings": lambda *args, **kwargs: stage_sampler,
+                "_apply_aio_spectrum_model_patches_for_comfy_sampler": (
+                    lambda *args: stage_model
+                ),
+                "EasyUseAnimaSAM3Detailer": Detailer,
+                "_cleanup_aio_ephemeral_model": (
+                    lambda current, original: trace.append("cleanup")
+                ),
+                "_segs_has_items": lambda value: True,
+                "_prompt_data_json_safe": lambda value: value,
+                **overrides,
+            }
+
+            def resolve(name):
+                trace.append(f"resolve:{name}")
+                return helpers[name]
+
+            legacy_generation._bind_aio_legacy_generation_runtime(
+                resolve_helper=resolve
+            )
+            try:
+                return nodes._run_aio_detailer_target(
+                    "face",
+                    {"enabled": True},
+                    image,
+                    model,
+                    object(),
+                    object(),
+                    object(),
+                    object(),
+                    {},
+                    {},
+                )
+            finally:
+                legacy_generation._bind_aio_legacy_generation_runtime(
+                    resolve_helper=lambda name: getattr(nodes, name)
+                )
+
+        planner_trace = []
+
+        def fail_planner(*args, **kwargs):
+            planner_trace.append("planner")
+            raise ValueError("planner failed")
+
+        with self.assertRaisesRegex(ValueError, "planner failed"):
+            execute({"_aio_stage_sampler_settings": fail_planner}, planner_trace)
+        self.assertNotIn("cleanup", planner_trace)
+        self.assertFalse(
+            any(item == "resolve:_cleanup_aio_ephemeral_model" for item in planner_trace)
+        )
+
+        class_trace = []
+
+        def fail_class():
+            class_trace.append("construct")
+            raise LookupError("class failed")
+
+        with self.assertRaisesRegex(LookupError, "class failed"):
+            execute({"EasyUseAnimaSAM3Detailer": fail_class}, class_trace)
+        self.assertEqual(class_trace[-2:], ["resolve:_cleanup_aio_ephemeral_model", "cleanup"])
+
+        cleanup_trace = []
+
+        class FailingDetailer:
+            def doit(self, **kwargs):
+                cleanup_trace.append("doit")
+                raise ValueError("detailer failed")
+
+        def fail_cleanup(current, original):
+            cleanup_trace.append("cleanup")
+            raise RuntimeError("cleanup failed")
+
+        with self.assertRaisesRegex(RuntimeError, "cleanup failed"):
+            execute(
+                {
+                    "EasyUseAnimaSAM3Detailer": FailingDetailer,
+                    "_cleanup_aio_ephemeral_model": fail_cleanup,
+                },
+                cleanup_trace,
+            )
+        self.assertEqual(cleanup_trace[-3:], ["doit", "resolve:_cleanup_aio_ephemeral_model", "cleanup"])
+
+        metadata_trace = []
+
+        def fail_segs(value):
+            metadata_trace.append("segs")
+            raise ArithmeticError("segs failed")
+
+        with self.assertRaisesRegex(ArithmeticError, "segs failed"):
+            execute({"_segs_has_items": fail_segs}, metadata_trace)
+        self.assertIn("cleanup", metadata_trace)
+        self.assertEqual(metadata_trace[-2:], ["resolve:_segs_has_items", "segs"])
+        self.assertFalse(
+            any(item == "resolve:_prompt_data_json_safe" for item in metadata_trace)
+        )
 
     def test_resshift_stage_preserves_provider_argument_and_metadata_order(self):
         trace = []

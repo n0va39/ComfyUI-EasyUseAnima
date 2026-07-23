@@ -22,6 +22,7 @@ try:
     from .easyuse_anima.aio.legacy_generation import (
         _bind_aio_legacy_generation_runtime as _bind_aio_legacy_generation_runtime,
         _run_aio_detailer_stage as _run_aio_detailer_stage,
+        _run_aio_detailer_target as _run_aio_detailer_target,
         _run_aio_highres_stage as _run_aio_highres_stage,
         _run_aio_legacy_generation as _run_aio_legacy_generation,
         _run_aio_resshift_upscale_stage as _run_aio_resshift_upscale_stage,
@@ -580,6 +581,7 @@ except ImportError:  # allows simple local import tests outside ComfyUI's packag
     from easyuse_anima.aio.legacy_generation import (
         _bind_aio_legacy_generation_runtime as _bind_aio_legacy_generation_runtime,
         _run_aio_detailer_stage as _run_aio_detailer_stage,
+        _run_aio_detailer_target as _run_aio_detailer_target,
         _run_aio_highres_stage as _run_aio_highres_stage,
         _run_aio_legacy_generation as _run_aio_legacy_generation,
         _run_aio_resshift_upscale_stage as _run_aio_resshift_upscale_stage,
@@ -1818,88 +1820,6 @@ def _run_aio_usdu_upscale_stage(
         "tile_target_width": int(tile_plan.get("target_width") or 0),
         "tile_target_height": int(tile_plan.get("target_height") or 0),
         "prompt_mode": str(usdu_settings.get("prompt_mode") or AIO_USDU_PROMPT_FULL),
-        "sampler": _prompt_data_json_safe(stage_sampler),
-    }
-
-
-def _run_aio_detailer_target(
-    target_name: str,
-    target_settings: dict[str, Any],
-    image,
-    model,
-    clip,
-    vae,
-    positive,
-    negative,
-    sampler_settings: dict[str, Any],
-    sam3_context: dict[str, Any],
-) -> tuple[Any, dict[str, Any]]:
-    if not _as_bool(target_settings.get("enabled"), False):
-        return image, {"enabled": False}
-
-    stage_sampler = _aio_stage_sampler_settings(
-        sampler_settings,
-        target_settings,
-        scheduler_default="sgm_uniform",
-    )
-    stage_model = _apply_aio_spectrum_model_patches_for_comfy_sampler(
-        model,
-        clip,
-        positive,
-        stage_sampler,
-    )
-    try:
-        result = EasyUseAnimaSAM3Detailer().doit(
-            enabled=True,
-            image=image,
-            ctx_SAM3=sam3_context,
-            detect_prompt=target_settings.get("detect_prompt", target_name),
-            detect_count=_as_int(target_settings.get("detect_count"), 1),
-            threshold=_as_float(target_settings.get("threshold"), 0.5),
-            refine_iterations=_as_int(target_settings.get("refine_iterations"), 2),
-            individual_masks=_as_bool(target_settings.get("individual_masks"), True),
-            combined=_as_bool(target_settings.get("combined"), False),
-            crop_factor=_as_float(target_settings.get("crop_factor"), 4.0),
-            bbox_fill=_as_bool(target_settings.get("bbox_fill"), False),
-            drop_size=_as_int(target_settings.get("drop_size"), 100),
-            contour_fill=_as_bool(target_settings.get("contour_fill"), True),
-            model=stage_model,
-            clip=clip,
-            vae=vae,
-            guide_size=_as_int(target_settings.get("guide_size"), 1024),
-            guide_size_for=_as_bool(target_settings.get("guide_size_for"), False),
-            max_size=_as_int(target_settings.get("max_size"), 2048),
-            seed=stage_sampler["seed"],
-            steps=stage_sampler["steps"],
-            cfg=stage_sampler["cfg"],
-            sampler_name=stage_sampler["sampler_name"],
-            scheduler=stage_sampler["scheduler"],
-            positive=positive,
-            negative=negative,
-            denoise=stage_sampler["denoise"],
-            feather=_as_int(target_settings.get("feather"), 5),
-            noise_mask=_as_bool(target_settings.get("noise_mask"), True),
-            force_inpaint=_as_bool(target_settings.get("force_inpaint"), True),
-            wildcard=str(target_settings.get("wildcard") or ""),
-            cycle=_as_int(target_settings.get("cycle"), 1),
-            alignment=str(target_settings.get("alignment") or "32"),
-            preserve_conditioning_metadata=True,
-            fail_on_unsupported_opt=False,
-            detailer_hook=None,
-            inpaint_model=_as_bool(target_settings.get("inpaint_model"), False),
-            noise_mask_feather=_as_int(target_settings.get("noise_mask_feather"), 0),
-            scheduler_func_opt=None,
-            tiled_encode=_as_bool(target_settings.get("tiled_encode"), False),
-            tiled_decode=_as_bool(target_settings.get("tiled_decode"), False),
-        )
-    finally:
-        _cleanup_aio_ephemeral_model(stage_model, model)
-
-    detailed_image = result[0]
-    segs = result[1] if len(result) > 1 else None
-    return detailed_image, {
-        "enabled": True,
-        "detected": _segs_has_items(segs),
         "sampler": _prompt_data_json_safe(stage_sampler),
     }
 
