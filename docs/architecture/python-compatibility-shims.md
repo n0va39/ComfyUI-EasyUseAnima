@@ -1095,6 +1095,9 @@ convenience-node compatibility; it remains unmapped and is not public support.
   `easyuse_anima.registration` rather than consuming the compatibility shim.
   The backend analyzer treats both root modules as Registry entry modules and
   records all 93 shipped Python modules as reachable.
+- The B-11d exit evidence passes in PR #356: one official full run, Registry
+  validate/pack with exact Python archive closure, all 18 live mapped node
+  registrations, and representative same-seed Wildcard queue execution.
 
 ### `nodes.py` public node-class surface
 

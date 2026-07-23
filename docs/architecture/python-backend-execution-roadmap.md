@@ -5,7 +5,7 @@
 - Status: operational execution runbook
 - Snapshot date: 2026-07-24
 - Snapshot branch: `dev`
-- Integrated `dev` snapshot commit: `cf772f1d8c0fe47999deb2af1a25621587717939`
+- Integrated `dev` snapshot commit: `a45e69b18ac21574f959a9a55a534d3f4d39cda9`
 - Scope: Python backend only
 - Target architecture: [`python-backend.md`](python-backend.md)
 - Architecture decisions: [ADR-001](adr-001-modular-monolith.md) and
@@ -31,7 +31,7 @@ merged PR, the owning issue's evidence record, and every stated exit gate.
 | Phase | Integrated snapshot / open implementation state | Remaining exit work |
 | --- | --- | --- |
 | A - baseline | Complete; #191 is closed | Keep fixtures and analyzers current during later moves |
-| B - `nodes.py` extraction | Integrated through B-11c30e / PR #355; B-11d final shim completes in PR #356 | Finish package/pack/live gates, then close Phase B |
+| B - `nodes.py` extraction | Complete in B-11d / PR #356 | Preserve the audited compatibility shim until ADR-002 retirement gates are met |
 | C - feature contracts/behavior | Partially complete through S167-01a / PR #344 | Continue #167 and #169 in separate Contract/Move/Behavior PRs |
 | D - root consolidation | Not started | Execute #186 feature by feature after the corresponding behavior contracts are stable |
 | E - runtime ownership | Partial: E-02a and E-07a/E-07b integrated | Continue #187 only where canonical feature owners and explicit contracts exist |
@@ -404,9 +404,9 @@ mechanical retirement series.
 | 11 | B-09b2 AiO generator adapter move | COMPLETE on `dev` | Move | #184 | PR #270 / `57d40b4` |
 | 12 | B-10a machine-readable compatibility audit | COMPLETE on `dev` | Contract/gate | #184/#188 | PR #271 / `3c7b857` |
 | 13 | B-10b private alias reduction | COMPLETE on `dev` through PR #291 / `c6b4680` | Contract/cleanup, split PRs | #184/#188 | Audited alias surface integrated |
-| 14 | B-11 registration/bootstrap/root shim | B-11c30e PR #355 integrated; B-11d final root shim implemented in PR #356 with final gates pending | Move/Contract, split PRs | #184 | Zero runtime binders/residual implementation; explicit root `__all__`; frozen compatibility audit |
+| 14 | B-11 registration/bootstrap/root shim | COMPLETE in PR #356 | Move/Contract, split PRs | #184 | Zero runtime binders/residual implementation; explicit root `__all__`; frozen compatibility audit |
 | 15 | S167 backend seed reservation series | S167-01 Contract COMPLETE in PR #343 and S167-01a consumer Move COMPLETE in PR #344; Behavior and Adapter remain | Contract then Move then Behavior | #167 | Canonical AiO/node seams |
-| 16 | A169 stage pipeline series | BLOCKED by #168 and B exit | Contract then Behavior | #169 | Typed config and mechanical AiO move |
+| 16 | A169 stage pipeline series | READY after #168 and Phase B completion; begin with A169-01 Contract | Contract then Behavior | #169 | Typed config and mechanical AiO move |
 | 17 | A169 first-pass cache policy | BLOCKED by stage/cache ownership seam | Behavior | #169 | Mechanical cache move and benchmark harness |
 | 18 | D-series canonical root consolidation | BLOCKED by relevant C contracts | Move | #186 | Phase B exit; per-feature behavior stable |
 | 19 | E-series RuntimeServices/lifecycle | BLOCKED by canonical owners | Move/Contract, split PRs | #187 | Relevant D moves |
@@ -1155,7 +1155,10 @@ unchanged. The separate legacy Wildcard unsupported alias remains for D-12.
     compatibility shim. Audited private/test-only aliases remain outside
     `__all__` under ADR-002 and are not mass-retired in this Move. The backend
     analyzer recognizes both shipped root entry modules independently, keeping
-    all 93 Python modules in the package closure.
+    all 93 Python modules in the package closure. The official full runner,
+    Registry validate/pack archive closure, all 18 live mapped registrations,
+    and representative same-seed Wildcard execution pass in PR #356, completing
+    the Phase B exit gates.
   - The final B-11c cutover removes remaining root execution ownership and
     leaves the explicit supported `nodes.py` compatibility shim.
 - Add `easyuse_anima/registration.py` as pure mapping composition. It performs no

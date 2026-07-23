@@ -2568,7 +2568,7 @@ Forbidden:
 
 ### B-11d — Final root shim
 
-- **State:** IMPLEMENTED IN PR #356; final gates pending
+- **State:** COMPLETE IN PR #356
 - **Owner:** #184
 - **Type:** Move
 
@@ -2647,6 +2647,17 @@ Implementation result:
 - focused compatibility, analyzer, node-contract, package-skeleton, and runtime
   tests pass without changing node behavior.
 
+Validation result:
+
+- the official full runner passed once: 986 Python tests and the frontend
+  checks for 114 JavaScript files;
+- `comfy node validate` and `comfy node pack` passed. The 225-entry archive
+  contains exactly the 93 expected Python modules with zero missing or
+  unexpected Python paths; and
+- the isolated ComfyUI v0.27.0 instance exposed all 18 mapped node IDs. Two
+  queued `EasyUseAnimaWildcard` executions with the same text and seed both
+  completed successfully with the same `blue flower` result.
+
 Exit:
 
 - root `nodes.py` contains explicit supported direct re-exports and `__all__`;
@@ -2708,7 +2719,7 @@ COMPLETE: B-11c30d0b input-context owner Move / PR #352
 COMPLETE: B-11c30d5 legacy-orchestration Move / PR #353
 COMPLETE: B-11c30d6 node-adapter Move / PR #354
 COMPLETE: B-11c30e Wildcard/NAIA callback binder Move / PR #355
-IN PROGRESS: B-11d final root shim / PR #356
+COMPLETE: B-11d final root shim / PR #356
 
 LATER:    #167 seed reservation
 LATER:    #169 stage/cache Behavior
