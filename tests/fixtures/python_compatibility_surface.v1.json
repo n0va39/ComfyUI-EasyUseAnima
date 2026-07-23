@@ -2,7 +2,7 @@
   "schema_version": 1,
   "snapshot": {
     "base_branch": "dev",
-    "base_commit": "5e2b33504a001351f8151f9042fff254cd3b6120",
+    "base_commit": "4358ee3f5542a1d925846b726fdc84d102512bc6",
     "first_release": null,
     "owner_tasks": [
       "#184",
@@ -56,7 +56,8 @@
       "B-11c23",
       "B-11c24",
       "B-11c25",
-      "B-11c26"
+      "B-11c26",
+      "B-11c27"
     ]
   },
   "enums": {
@@ -91,11 +92,11 @@
   "expected_counts": {
     "root_entrypoints": 3,
     "excluded_preamble_implementation_bindings": 6,
-    "nodes_canonical_bindings": 298,
+    "nodes_canonical_bindings": 299,
     "nodes_legacy_bindings": 27,
     "mapped_public_classes": 18,
     "unmapped_classes": 2,
-    "root_residual_functions": 10,
+    "root_residual_functions": 9,
     "root_residual_classes": 0,
     "root_residual_globals": 26,
     "runtime_binders": 30,
@@ -219,7 +220,8 @@
       "easyuse_anima.aio.generation_normalization"
     ],
     "AIO_USDU_PROMPT_FULL": [
-      "easyuse_anima.aio.conditioning"
+      "easyuse_anima.aio.conditioning",
+      "easyuse_anima.aio.legacy_generation"
     ],
     "AIO_USDU_PROMPT_MODES": [
       "easyuse_anima.aio.generation_normalization"
@@ -475,8 +477,14 @@
     "_aio_usdu_auto_tile_dimension": [
       "easyuse_anima.aio.usdu"
     ],
+    "_aio_usdu_conditioning": [
+      "easyuse_anima.aio.legacy_generation"
+    ],
     "_aio_usdu_prompt_without_general": [
       "easyuse_anima.aio.conditioning"
+    ],
+    "_aio_usdu_tile_plan": [
+      "easyuse_anima.aio.legacy_generation"
     ],
     "_align_down": [
       "easyuse_anima.aio.postprocess"
@@ -816,6 +824,9 @@
     ],
     "_load_profile_data": [
       "easyuse_anima.lora.preset"
+    ],
+    "_load_upscale_model_with_comfy": [
+      "easyuse_anima.aio.legacy_generation"
     ],
     "_load_vae_with_comfy": [
       "easyuse_anima.aio.resources"
@@ -1961,11 +1972,13 @@
       "first_release": null,
       "known_consumers": [
         "nodes.py residual runtime",
-        "canonical runtime resolver: easyuse_anima.aio.conditioning"
+        "canonical runtime resolver: easyuse_anima.aio.conditioning",
+        "canonical runtime resolver: easyuse_anima.aio.legacy_generation"
       ],
       "evidence": [
         "AST:nodes.py direct runtime load",
-        "AST:easyuse_anima.aio.conditioning string runtime lookup"
+        "AST:easyuse_anima.aio.conditioning string runtime lookup",
+        "AST:easyuse_anima.aio.legacy_generation string runtime lookup"
       ],
       "removal_gates": [
         "canonical production consumer migration",
@@ -2132,7 +2145,8 @@
         "_run_aio_highres_stage": "_run_aio_highres_stage",
         "_run_aio_legacy_generation": "_run_aio_legacy_generation",
         "_run_aio_resshift_upscale_stage": "_run_aio_resshift_upscale_stage",
-        "_run_aio_upscale_stage": "_run_aio_upscale_stage"
+        "_run_aio_upscale_stage": "_run_aio_upscale_stage",
+        "_run_aio_usdu_upscale_stage": "_run_aio_usdu_upscale_stage"
       },
       "classification": "transitional_private_seam",
       "current_target": "nodes.py",
@@ -2446,10 +2460,12 @@
       "first_release": null,
       "known_consumers": [
         "nodes.py residual runtime",
+        "canonical runtime resolver: easyuse_anima.aio.legacy_generation",
         "canonical runtime resolver: easyuse_anima.aio.usdu"
       ],
       "evidence": [
         "AST:nodes.py direct runtime load",
+        "AST:easyuse_anima.aio.legacy_generation string runtime lookup",
         "AST:easyuse_anima.aio.usdu string runtime lookup"
       ],
       "removal_gates": [
@@ -3807,7 +3823,6 @@
       "owner": "#184/#188",
       "first_release": null,
       "known_consumers": [
-        "nodes.py residual runtime",
         "canonical runtime resolver: easyuse_anima.aio.conditioning",
         "canonical runtime resolver: easyuse_anima.aio.first_pass_cache",
         "canonical runtime resolver: easyuse_anima.aio.generation_normalization",
@@ -3818,7 +3833,6 @@
         "canonical runtime resolver: easyuse_anima.nodes.prompt_data_nodes"
       ],
       "evidence": [
-        "AST:nodes.py direct runtime load",
         "AST:easyuse_anima.aio.conditioning string runtime lookup",
         "AST:easyuse_anima.aio.first_pass_cache string runtime lookup",
         "AST:easyuse_anima.aio.generation_normalization string runtime lookup",
@@ -4215,8 +4229,7 @@
         "_find_loaded_node_class": "_find_loaded_node_class",
         "_require_any_custom_node_class": "_require_any_custom_node_class",
         "_require_custom_node_class": "_require_custom_node_class",
-        "_resize_image_to_size_if_needed": "_resize_image_to_size_if_needed",
-        "_run_aio_usdu_upscale_stage": "_run_aio_usdu_upscale_stage"
+        "_resize_image_to_size_if_needed": "_resize_image_to_size_if_needed"
       },
       "classification": "transitional_private_seam",
       "current_target": "nodes.py",
