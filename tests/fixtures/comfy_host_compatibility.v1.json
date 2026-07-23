@@ -165,24 +165,10 @@
     },
     {
       "symbol": "_find_comfy_node_class",
-      "root_signature": {
-        "parameters": [
-          {
-            "name": "node_id",
-            "kind": "positional_or_keyword",
-            "annotation": "str",
-            "default": null
-          }
-        ],
-        "return": null
-      },
-      "adapter_binding": {
-        "alias": "_adapter_find_comfy_node_class",
-        "target": "easyuse_anima.infrastructure.comfy.capabilities:_find_comfy_node_class"
-      },
-      "root_dependencies": [
-        "_adapter_find_comfy_node_class"
-      ],
+      "root_signature": null,
+      "adapter_binding": null,
+      "retired_adapter_alias": "_adapter_find_comfy_node_class",
+      "root_dependencies": [],
       "canonical_target": "ComfyHostProvider.find_node_class",
       "production_consumers": [
         {
@@ -242,9 +228,9 @@
       "root_seam_classification": "unsupported_test_only",
       "call_time_replacement_required": false,
       "replacement_mechanism": "repository_tests_use_fake_provider_or_explicit_canonical_lookup",
-      "root_removal_gate": "E-07b fake-provider migration and lookup-order parity, then #184 B-11c29b",
+      "root_removal_gate": "completed in #184 B-11c29b3 / PR #334",
       "owner_issue": "#323",
-      "move_owner": "#184 B-11c29b"
+      "move_owner": "#184 B-11c29b3"
     },
     {
       "symbol": "_find_comfy_node_mapping_class",

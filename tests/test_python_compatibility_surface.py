@@ -1697,6 +1697,7 @@ def _build_document() -> dict[str, Any]:
                 "B-11c29b2",
                 "B-11c29c",
                 "B-11c29d",
+                "B-11c29b3",
             ],
         },
         "enums": {
@@ -1709,11 +1710,11 @@ def _build_document() -> dict[str, Any]:
         "expected_counts": {
             "root_entrypoints": 3,
             "excluded_preamble_implementation_bindings": 5,
-            "nodes_canonical_bindings": 296,
+            "nodes_canonical_bindings": 295,
             "nodes_legacy_bindings": 27,
             "mapped_public_classes": 18,
             "unmapped_classes": 2,
-            "root_residual_functions": 2,
+            "root_residual_functions": 1,
             "root_residual_classes": 0,
             "root_residual_globals": 26,
             "runtime_binders": 30,
@@ -2143,6 +2144,7 @@ class ComfyHostCompatibilityLedgerTests(unittest.TestCase):
             {
                 "_comfy_max_resolution",
                 "_encode_with_comfy_clip",
+                "_find_comfy_node_class",
                 "_find_comfy_node_mapping_class",
                 "_find_loaded_node_class",
                 "_require_any_custom_node_class",
@@ -2158,6 +2160,7 @@ class ComfyHostCompatibilityLedgerTests(unittest.TestCase):
             {
                 "_comfy_max_resolution": "_adapter_comfy_max_resolution",
                 "_encode_with_comfy_clip": "_adapter_encode_with_comfy_clip",
+                "_find_comfy_node_class": "_adapter_find_comfy_node_class",
                 "_find_comfy_node_mapping_class": None,
                 "_find_loaded_node_class": "_adapter_find_loaded_node_class",
                 "_require_any_custom_node_class": (

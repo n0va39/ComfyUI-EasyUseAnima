@@ -52,16 +52,36 @@ class ComfyHostWiringTests(unittest.TestCase):
             },
         )
 
-    def test_known_helper_uses_flat_import_fallback_before_runtime_install(self):
-        helper = resolve_comfy_host_helper(
-            "_find_comfy_node_class",
-            self._fallback,
-        )
+    def test_retired_general_lookup_uses_default_provider_before_runtime_install(self):
+        mapping_class = object()
+        attribute_class = object()
+        loaded_class = object()
+        comfy_nodes = types.ModuleType("nodes")
+        comfy_nodes.NODE_CLASS_MAPPINGS = {"Mapping": mapping_class}
+        comfy_nodes.Attribute = attribute_class
+        loaded_nodes = types.ModuleType("easyuse_anima_test_general_lookup")
+        loaded_nodes.NODE_CLASS_MAPPINGS = {"Loaded": loaded_class}
 
-        self.assertEqual(
-            helper("Example"),
-            ("_find_comfy_node_class", ("Example",)),
-        )
+        def unexpected_fallback(name: str):
+            self.fail(f"retired helper reached root fallback: {name}")
+
+        with patch.dict(
+            sys.modules,
+            {
+                "nodes": comfy_nodes,
+                loaded_nodes.__name__: loaded_nodes,
+            },
+        ):
+            helper = resolve_comfy_host_helper(
+                "_find_comfy_node_class",
+                unexpected_fallback,
+            )
+
+            self.assertIs(helper("Mapping"), mapping_class)
+            self.assertIs(helper("Attribute"), attribute_class)
+            self.assertIs(helper("Loaded"), loaded_class)
+            loaded_nodes.NODE_CLASS_MAPPINGS = {}
+            self.assertIsNone(helper("Missing"))
 
     def test_retired_max_resolution_uses_default_provider_before_runtime_install(self):
         comfy_nodes = types.ModuleType("nodes")
