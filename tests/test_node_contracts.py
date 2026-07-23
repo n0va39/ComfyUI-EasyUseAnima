@@ -1071,8 +1071,96 @@ class AioFinalFitPlanningMoveContractTests(unittest.TestCase):
         "_apply_aio_final_fit",
         "_aio_final_fit_size",
         "_bind_aio_postprocess_runtime",
+        "_resize_image_to_size_if_needed",
         "_run_aio_postprocess_stage",
     )
+
+    def _assert_resize_contract(self, root_module, canonical_module):
+        events = []
+
+        class Dimension:
+            def __init__(self, name, value):
+                self.name = name
+                self.value = value
+
+            def __int__(self):
+                events.append(("int", self.name))
+                return self.value
+
+        class Tensor:
+            def __init__(self, name):
+                self.name = name
+
+            def movedim(self, source, target):
+                events.append((f"{self.name}.movedim", (source, target)))
+                return samples if self is image else output
+
+        image = Tensor("image")
+        samples = Tensor("samples")
+        resized = Tensor("resized")
+        output = object()
+
+        def resolver(name):
+            events.append(("resolve", name))
+            return getattr(root_module, name)
+
+        def image_size(value, width, height):
+            events.append(("image_tensor_size", (value, width, height)))
+            return 320, 240
+
+        def upscale(value, width, height, method):
+            events.append(("common_upscale_image", (value, width, height, method)))
+            return resized
+
+        with (
+            patch.object(root_module, "_image_tensor_size", image_size),
+            patch.object(root_module, "_common_upscale_image", upscale),
+        ):
+            canonical_module._bind_aio_postprocess_runtime(resolve_helper=resolver)
+            try:
+                result = canonical_module._resize_image_to_size_if_needed(
+                    image,
+                    Dimension("width", 640),
+                    Dimension("height", 480),
+                    "",
+                )
+            finally:
+                canonical_module._bind_aio_postprocess_runtime(
+                    resolve_helper=lambda name: getattr(root_module, name)
+                )
+
+        self.assertEqual(result, (output, True))
+        self.assertEqual(
+            events,
+            [
+                ("int", "width"),
+                ("int", "height"),
+                ("resolve", "_image_tensor_size"),
+                ("image_tensor_size", (image, 640, 480)),
+                ("image.movedim", (-1, 1)),
+                ("resolve", "_common_upscale_image"),
+                ("common_upscale_image", (samples, 640, 480, "bicubic")),
+                ("resized.movedim", (1, -1)),
+            ],
+        )
+
+        with (
+            patch.object(root_module, "_image_tensor_size", return_value=(1, 1)),
+            patch.object(root_module, "_common_upscale_image") as common_upscale,
+        ):
+            result = canonical_module._resize_image_to_size_if_needed(image, 0, -5)
+        self.assertIs(result[0], image)
+        self.assertFalse(result[1])
+        common_upscale.assert_not_called()
+
+        failure = RuntimeError("resize failed")
+        with (
+            patch.object(root_module, "_image_tensor_size", return_value=(320, 240)),
+            patch.object(root_module, "_common_upscale_image", side_effect=failure),
+            self.assertRaises(RuntimeError) as raised,
+        ):
+            canonical_module._resize_image_to_size_if_needed(image, 640, 480)
+        self.assertIs(raised.exception, failure)
 
     def _assert_stage_contract(self, root_module, canonical_module):
         image = object()
@@ -1227,6 +1315,8 @@ class AioFinalFitPlanningMoveContractTests(unittest.TestCase):
         for name in self.MOVED_NAMES:
             with self.subTest(name=name):
                 self.assertIs(getattr(root_module, name), getattr(canonical_module, name))
+
+        self._assert_resize_contract(root_module, canonical_module)
 
         disabled = {"enabled": False, "mode": "megapixels"}
         with (

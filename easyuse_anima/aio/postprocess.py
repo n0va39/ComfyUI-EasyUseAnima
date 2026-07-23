@@ -25,6 +25,31 @@ def _runtime_helper(name: str) -> Any:
     return resolver(name)
 
 
+def _resize_image_to_size_if_needed(
+    image,
+    target_width: int,
+    target_height: int,
+    upscale_method: str = "bicubic",
+) -> tuple[Any, bool]:
+    target_width = max(1, int(target_width))
+    target_height = max(1, int(target_height))
+    width, height = _runtime_helper("_image_tensor_size")(
+        image,
+        target_width,
+        target_height,
+    )
+    if width == target_width and height == target_height:
+        return image, False
+    samples = image.movedim(-1, 1)
+    resized = _runtime_helper("_common_upscale_image")(
+        samples,
+        target_width,
+        target_height,
+        str(upscale_method or "bicubic"),
+    )
+    return resized.movedim(1, -1), True
+
+
 def _aio_final_fit_size(
     width: int,
     height: int,

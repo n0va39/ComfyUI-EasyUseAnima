@@ -59,6 +59,7 @@ try:
         _apply_aio_final_fit as _apply_aio_final_fit,
         _aio_final_fit_size as _aio_final_fit_size,
         _bind_aio_postprocess_runtime as _bind_aio_postprocess_runtime,
+        _resize_image_to_size_if_needed as _resize_image_to_size_if_needed,
         _run_aio_postprocess_stage as _run_aio_postprocess_stage,
     )
     from .easyuse_anima.aio.conditioning import (
@@ -619,6 +620,7 @@ except ImportError:  # allows simple local import tests outside ComfyUI's packag
         _apply_aio_final_fit as _apply_aio_final_fit,
         _aio_final_fit_size as _aio_final_fit_size,
         _bind_aio_postprocess_runtime as _bind_aio_postprocess_runtime,
+        _resize_image_to_size_if_needed as _resize_image_to_size_if_needed,
         _run_aio_postprocess_stage as _run_aio_postprocess_stage,
     )
     from easyuse_anima.aio.conditioning import (
@@ -1673,22 +1675,6 @@ def _find_loaded_node_class(node_id: str):
     return _adapter_find_loaded_node_class(node_id, _find_comfy_node_class)
 
 
-
-
-def _resize_image_to_size_if_needed(
-    image,
-    target_width: int,
-    target_height: int,
-    upscale_method: str = "bicubic",
-) -> tuple[Any, bool]:
-    target_width = max(1, int(target_width))
-    target_height = max(1, int(target_height))
-    width, height = _image_tensor_size(image, target_width, target_height)
-    if width == target_width and height == target_height:
-        return image, False
-    samples = image.movedim(-1, 1)
-    resized = _common_upscale_image(samples, target_width, target_height, str(upscale_method or "bicubic"))
-    return resized.movedim(1, -1), True
 
 
 def _consume_reserved_wildcard_next_seed(
