@@ -12,7 +12,6 @@ try:
         _AIO_FIRST_PASS_CACHE as _AIO_FIRST_PASS_CACHE,
         _AIO_FIRST_PASS_CACHE_ORDER as _AIO_FIRST_PASS_CACHE_ORDER,
         _aio_first_pass_cache_key as _aio_first_pass_cache_key,
-        _bind_aio_first_pass_cache_runtime as _bind_aio_first_pass_cache_runtime,
         # B-10b7 retires the test-only root cache-clear function alias.
         _clone_aio_cache_value as _clone_aio_cache_value,
         _get_aio_first_pass_cache as _get_aio_first_pass_cache,
@@ -556,7 +555,6 @@ except ImportError:  # allows simple local import tests outside ComfyUI's packag
         _AIO_FIRST_PASS_CACHE as _AIO_FIRST_PASS_CACHE,
         _AIO_FIRST_PASS_CACHE_ORDER as _AIO_FIRST_PASS_CACHE_ORDER,
         _aio_first_pass_cache_key as _aio_first_pass_cache_key,
-        _bind_aio_first_pass_cache_runtime as _bind_aio_first_pass_cache_runtime,
         # B-10b7 retires the test-only root cache-clear function alias.
         _clone_aio_cache_value as _clone_aio_cache_value,
         _get_aio_first_pass_cache as _get_aio_first_pass_cache,
@@ -1587,9 +1585,6 @@ AIO_RESHIFT_DTYPES = ("bf16", "fp32")
 _TRIGGER_WORD_KEYS = ("trainedWords", "trained_words", "trigger_words", "activation_text")
 
 
-_bind_aio_first_pass_cache_runtime(
-    resolve_helper=lambda name: globals()[name],
-)
 _bind_aio_legacy_generation_runtime(
     resolve_helper=lambda name: _resolve_comfy_host_helper(
         name,

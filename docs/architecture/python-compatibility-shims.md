@@ -8,11 +8,11 @@
 - Policy: [ADR-002](adr-002-compatibility-shims.md)
 - Machine-readable audit:
   [`python_compatibility_surface.v1.json`](../../tests/fixtures/python_compatibility_surface.v1.json)
-- Current state: B-11a through B-11c30c2b / PR #345 are integrated in the
-  reviewed sequence, and B-11c30d / PR #346 freezes the remaining AiO split
-  without production changes. S167-01a / PR #344 supplies the canonical
-  reserved-seed compatibility consumer while retaining its root aliases.
-  Fourteen AiO and Wildcard/NAIA binders remain before the final root shim.
+- Current state: B-11a through B-11c30d / PR #346 are integrated in the
+  reviewed sequence, and B-11c30d1 / PR #347 retires only the AiO cache-state
+  binder. S167-01a / PR #344 supplies the canonical reserved-seed compatibility
+  consumer while retaining its root aliases. Thirteen AiO and Wildcard/NAIA
+  binders remain before the final root shim.
 
 This is an actionable registry, not a removal schedule. `N` means the first
 published Registry release containing both a canonical target and its root
@@ -77,8 +77,8 @@ inferring public support from spelling or test imports:
 - `nodes.py` preamble implementation imports: 5 (`json`, `logging`, `random`,
   `ceil`, and `sqrt`), excluded from compatibility classification
   by an exact AST allowlist and drift gate;
-- `nodes.py` bindings with an `easyuse_anima` canonical target: 282 in
-  B-11c30c2b (258 at the integrated B-10b20 baseline), with exact
+- `nodes.py` bindings with an `easyuse_anima` canonical target: 281 in
+  B-11c30d1 (258 at the integrated B-10b20 baseline), with exact
   relative-package/flat-fallback parity;
 - bindings still owned by `anima_prompt`, `settings`, `prompt_translation`, or
   `wildcard_engine`: 27, with the same fallback parity;
@@ -88,8 +88,8 @@ inferring public support from spelling or test imports:
   owner module without a root alias or backend mapping;
 - root-owned residual implementation: 0 functions, 0 classes, and 24 assigned
   globals in B-11c30c2b (41/2/33 at the integrated B-10b20 baseline).
-- import-time runtime binders: 14 exact top-level `_bind_*_runtime` calls;
-- root names reached by those canonical runtime resolvers: 187, including
+- import-time runtime binders: 13 exact top-level `_bind_*_runtime` calls;
+- root names reached by those canonical runtime resolvers: 183, including
   literal lookups and binder-owned helper-name/default collections;
 - retired private bindings: `_comfy_checkpoint_names`,
   `_EasyUseAnimaAlignedDetailerHook`, and
@@ -863,6 +863,24 @@ convenience-node compatibility; it remains unmapped and is not public support.
 - Neither prerequisite Move is implemented by this gate. No schema, setting,
   workflow, stage, seed, cache, model, sampling, preview, save, conditioning,
   provider, optional-dependency, or error behavior changes.
+
+### B-11c30d1 AiO cache-state binder retirement
+
+- Root no longer imports or invokes `_bind_aio_first_pass_cache_runtime`; the
+  canonical binder, `_RUNTIME_RESOLVER`, and `_runtime_helper` are removed.
+- `easyuse_anima.aio.first_pass_cache` uses its module-owned limit, dictionary,
+  order list, and recursive clone function directly. It imports the stable-key,
+  Prompt Data JSON-safe, and LoRA-signature helpers from their existing
+  canonical owners without a root dependency.
+- Root limit/state/clone/key/get/put bindings remain direct canonical aliases.
+  The already-retired cache-clear root alias remains absent.
+- Cache-specific tests replace the canonical owner. Root replacements owned by
+  still-active legacy-generation, node-adapter, or preview binders do not move.
+- The incremental split gate marks d1 retired and keeps d2 through d6 as the
+  exact active AiO set. The total audit is 13 binders in two families.
+- Cache object identity, key schema/order, clone behavior, falsey miss, hit
+  refresh, overwrite, limit 2, oldest-first eviction, stage metadata, and #169
+  Behavior remain unchanged.
 
 ### `nodes.py` public node-class surface
 
