@@ -21,6 +21,89 @@ def _runtime_helper(name: str) -> Any:
     return resolver(name)
 
 
+def _run_aio_highres_stage(
+    model,
+    clip,
+    vae,
+    positive,
+    negative,
+    image,
+    base_latent,
+    base_width: int,
+    base_height: int,
+    sampler_settings: dict[str, Any],
+    highres_settings: dict[str, Any],
+    mod_guidance_settings: dict[str, Any] | None = None,
+    use_mod_guidance: bool = False,
+    quality_tags: str = "",
+    quality_neg: str = "",
+) -> tuple[Any, Any, int, int, dict[str, Any]]:
+    if not _runtime_helper("_as_bool")(
+        highres_settings.get("enabled"), False
+    ):
+        return base_latent, image, int(base_width), int(base_height), {"enabled": False}
+
+    stage_sampler = _runtime_helper("_aio_stage_sampler_settings")(
+        sampler_settings,
+        highres_settings,
+        scheduler_default="simple",
+        inherit_backend=True,
+    )
+    scaled_image, width, height, applied_scale = _runtime_helper(
+        "EasyUseAnimaImageScaleByMultiple"
+    )().upscale(
+        image,
+        highres_settings.get("scale_by", 1.25),
+        highres_settings.get("upscale_method", "bicubic"),
+        highres_settings.get("multiple", "32"),
+        highres_settings.get("max_long_edge", 2560),
+    )
+    latent_image = _runtime_helper("_encode_image_with_comfy_vae")(
+        vae, scaled_image
+    )
+    stage_model = model
+    if stage_sampler.get("backend") == "comfy_ksampler":
+        stage_model = _runtime_helper(
+            "_apply_aio_spectrum_model_patches_for_comfy_sampler"
+        )(
+            model,
+            clip,
+            positive,
+            stage_sampler,
+        )
+    try:
+        latent = _runtime_helper("_sample_latent_with_aio_backend")(
+            stage_model,
+            clip,
+            positive,
+            negative,
+            latent_image,
+            stage_sampler,
+            mod_guidance_settings or {},
+            use_mod_guidance,
+            quality_tags,
+            quality_neg,
+        )
+    finally:
+        _runtime_helper("_cleanup_aio_ephemeral_model")(stage_model, model)
+    decoded = _runtime_helper("_decode_latent_with_comfy")(vae, latent)
+    decoded, resized = _runtime_helper("_resize_image_to_size_if_needed")(
+        decoded,
+        width,
+        height,
+        highres_settings.get("upscale_method", "bicubic"),
+    )
+    if resized:
+        latent = _runtime_helper("_encode_image_with_comfy_vae")(vae, decoded)
+    return latent, decoded, int(width), int(height), {
+        "enabled": True,
+        "width": int(width),
+        "height": int(height),
+        "applied_scale": float(applied_scale),
+        "sampler": _runtime_helper("_prompt_data_json_safe")(stage_sampler),
+    }
+
+
 def _run_aio_legacy_generation(
     generator,
     easy_use_anima_input,
