@@ -58,6 +58,13 @@ def _normalize_aio_input_settings(value) -> dict[str, Any]:
     return settings
 
 
+def _comfy_diffusion_model_names() -> list[str]:
+    return _runtime_helper("_adapter_comfy_diffusion_model_names")(
+        _runtime_helper("ANIMA_DEFAULT_DIFFUSION_MODEL_CANDIDATES"),
+        _runtime_helper("_folder_path_names"),
+    )
+
+
 def _preferred_name_default(names: list[str], candidates: tuple[str, ...]) -> str:
     if not names:
         return candidates[0] if candidates else ""

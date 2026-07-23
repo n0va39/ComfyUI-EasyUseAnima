@@ -1313,6 +1313,72 @@ class AioFinalFitPlanningMoveContractTests(unittest.TestCase):
             self._assert_contract(package_nodes, package_postprocess)
 
 
+class AioResourceNameMoveContractTests(unittest.TestCase):
+    def _assert_contract(self, root_module, canonical_module):
+        self.assertIs(
+            root_module._comfy_diffusion_model_names,
+            canonical_module._comfy_diffusion_model_names,
+        )
+
+        candidates = ("preferred.safetensors", "fallback.safetensors")
+        returned = ["runtime.safetensors"]
+        events = []
+
+        def folder_names(_folder, _fallback):
+            return ["runtime.safetensors"]
+
+        def adapter(candidate_values, folder_lookup):
+            events.append(("adapter_call", candidate_values, folder_lookup))
+            return returned
+
+        def resolver(name):
+            events.append(name)
+            return getattr(root_module, name)
+
+        with (
+            patch.object(
+                root_module,
+                "ANIMA_DEFAULT_DIFFUSION_MODEL_CANDIDATES",
+                candidates,
+            ),
+            patch.object(
+                root_module,
+                "_adapter_comfy_diffusion_model_names",
+                adapter,
+            ),
+            patch.object(root_module, "_folder_path_names", folder_names),
+        ):
+            canonical_module._bind_aio_resource_runtime(resolve_helper=resolver)
+            try:
+                result = canonical_module._comfy_diffusion_model_names()
+            finally:
+                canonical_module._bind_aio_resource_runtime(
+                    resolve_helper=lambda name: getattr(root_module, name)
+                )
+
+        self.assertIs(result, returned)
+        self.assertEqual(
+            events,
+            [
+                "_adapter_comfy_diffusion_model_names",
+                "ANIMA_DEFAULT_DIFFUSION_MODEL_CANDIDATES",
+                "_folder_path_names",
+                ("adapter_call", candidates, folder_names),
+            ],
+        )
+
+    def test_root_alias_and_call_time_dependencies(self):
+        self._assert_contract(nodes, aio_resources)
+
+    def test_package_alias_and_call_time_dependencies(self):
+        with _loaded_package_entrypoint() as (_, package_nodes):
+            package_name = package_nodes.__package__
+            package_resources = sys.modules[
+                f"{package_name}.easyuse_anima.aio.resources"
+            ]
+            self._assert_contract(package_nodes, package_resources)
+
+
 class AioSeedNormalizationMoveContractTests(unittest.TestCase):
     CONSTANT_NAMES = (
         "AIO_SPECIAL_SEED_RANDOM",
