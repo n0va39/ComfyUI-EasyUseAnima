@@ -5,7 +5,7 @@
 - Status: operational execution runbook
 - Snapshot date: 2026-07-23
 - Snapshot branch: `dev`
-- Integrated `dev` snapshot commit: `931a80f44bea694f3a91a200fe53123226a70b3a`
+- Integrated `dev` snapshot commit: `53d92aa944663a18ee593c027b90fa0b8e9444be`
 - Scope: Python backend only
 - Target architecture: [`python-backend.md`](python-backend.md)
 - Architecture decisions: [ADR-001](adr-001-modular-monolith.md) and
@@ -31,7 +31,7 @@ merged PR, the owning issue's evidence record, and every stated exit gate.
 | Phase | Integrated snapshot / open implementation state | Remaining exit work |
 | --- | --- | --- |
 | A - baseline | Complete; #191 is closed | Keep fixtures and analyzers current during later moves |
-| B - `nodes.py` extraction | Integrated through B-11c29d / PR #333; B-11c29b3 general lookup retirement in PR #334 | Complete residual owners and binders, then the final root shim as a separate Move |
+| B - `nodes.py` extraction | Integrated through B-11c29b3 / PR #334; B-11c30 binder/resolver audit in PR #336 | Complete binder families, then the final root shim as a separate Move |
 | C - feature contracts/behavior | Partially complete | Finish #168; then #167 and #169 in separate Contract/Behavior PRs |
 | D - root consolidation | Not started | Execute #186 feature by feature after the corresponding behavior contracts are stable |
 | E - runtime ownership | Partial: E-02a and E-07a/E-07b integrated | Continue #187 only where canonical feature owners and explicit contracts exist |
@@ -42,10 +42,10 @@ merged PR, the owning issue's evidence record, and every stated exit gate.
 ### Measured Phase B progress
 
 - The Phase A baseline recorded root `nodes.py` at 12,663 lines.
-- Against the integrated `dev` snapshot above, root `nodes.py` measures 1,860
-  lines after B-11c29d.
-- The mechanical extraction has removed 10,803
-  lines, approximately 85.3% of the Phase A baseline, while preserving the root
+- Against the integrated `dev` snapshot above, root `nodes.py` measures 1,850
+  lines after B-11c29b3.
+- The mechanical extraction has removed 10,813
+  lines, approximately 85.4% of the Phase A baseline, while preserving the root
   compatibility surface.
 - B-01 through B-09b2 are integrated. The latest completed implementation slice
   is the AiO generator adapter Move in PR #270.
@@ -96,7 +96,9 @@ merged PR, the owning issue's evidence record, and every stated exit gate.
   B-11c29b2 retired only the unsupported loaded-node root lookup in PR #331.
   B-11c29c retired the two pure requirement root helpers together in PR #332.
   B-11c29d retired the pure CLIP invocation root helper in PR #333. B-11c29b3
-  now retires the final general host lookup root wrapper as its own unit.
+  retired the final general host lookup root wrapper in PR #334. B-11c30 now
+  inventories the remaining binder/resolver families without production
+  changes before any cleanup Move starts.
 
 ### Current quality baseline
 
@@ -338,7 +340,7 @@ surfaces. AiO mechanical extraction must not start until #168 exits.
 | 11 | B-09b2 AiO generator adapter move | COMPLETE on `dev` | Move | #184 | PR #270 / `57d40b4` |
 | 12 | B-10a machine-readable compatibility audit | COMPLETE on `dev` | Contract/gate | #184/#188 | PR #271 / `3c7b857` |
 | 13 | B-10b private alias reduction | COMPLETE on `dev` through PR #291 / `c6b4680` | Contract/cleanup, split PRs | #184/#188 | Audited alias surface integrated |
-| 14 | B-11 registration/bootstrap/root shim | IN PROGRESS through B-11c29d CLIP invocation retirement PR #333; B-11c29b3 general lookup retirement in PR #334 | Move/Contract, split PRs | #184 | Residual owners and binders migrate in rollback-sized units before final shim |
+| 14 | B-11 registration/bootstrap/root shim | IN PROGRESS through B-11c29b3 general lookup retirement PR #334; B-11c30 binder/resolver Contract audit in PR #336 | Move/Contract, split PRs | #184 | Residual owners and binders migrate in rollback-sized units before final shim |
 | 15 | S167 backend seed reservation series | BLOCKED by B exit/interface | Contract then Behavior | #167 | Canonical AiO/node seams |
 | 16 | A169 stage pipeline series | BLOCKED by #168 and B exit | Contract then Behavior | #169 | Typed config and mechanical AiO move |
 | 17 | A169 first-pass cache policy | BLOCKED by stage/cache ownership seam | Behavior | #169 | Mechanical cache move and benchmark harness |

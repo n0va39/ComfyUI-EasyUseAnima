@@ -5,8 +5,8 @@
 - Status: active sequencing addendum
 - Snapshot date: 2026-07-23
 - Snapshot branch: `dev`
-- Snapshot commit: `931a80f44bea694f3a91a200fe53123226a70b3a`
-- Latest integrated slice: B-11c29d, PR #333
+- Snapshot commit: `53d92aa944663a18ee593c027b90fa0b8e9444be`
+- Latest integrated slice: B-11c29b3, PR #334
 - Primary execution issue: [#323](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/323)
 - Parent runtime/lifecycle issue: [#187](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/187)
 - Blocked extraction/final-shim issue: [#184](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/184)
@@ -923,7 +923,7 @@ Forbidden:
 
 #### B-11c29b3 — General node lookup
 
-- **State:** IN PROGRESS in PR #334
+- **State:** COMPLETE in PR #334 / `53d92aa`
 - **Owner:** #184
 - **Type:** Retirement
 
@@ -1009,20 +1009,87 @@ Forbidden:
 
 ### B-11c30 — Runtime binder/resolver migration audit
 
-- **State:** BLOCKED by B-11c29b3
+- **State:** IN PROGRESS in PR #336
 - **Owner:** #184/#188
-- **Type:** Contract/gate plus separate cleanup Moves
+- **Type:** Contract/gate
+- **Production changes:** none
 
-Inventory all remaining `_bind_*_runtime` calls and resolver names. For each:
+Pre-edit inventory at `dev@53d92aa944663a18ee593c027b90fa0b8e9444be`:
 
-- migrate host capability access to the provider;
-- keep feature-specific transitional seams only when their owner still requires
-  them;
-- prevent a provider bridge from becoming a generic string-key service locator;
-- update the machine-readable compatibility surface; and
-- split removal by owner family.
+- root `nodes.py` invokes exactly 30 canonical `_bind_*_runtime` functions;
+- 15 binders use the provider-aware resolver followed by root fallback, 13 use
+  root `globals()` resolution only, and two receive explicit root callbacks;
+- the canonical modules resolve 295 unique names: 288 current root names and
+  seven provider virtual seams that no longer exist as root symbols;
+- the 288 root names consist of the existing 284 compatibility/residual
+  resolver names plus the four preamble dependencies `ceil`, `json`, `random`,
+  and `sqrt`;
+- all seven provider seams remain active in 22 consumer slots across 15 modules;
+  they are not generic provider operations and retain the E-07 narrow provider
+  decisions;
+- binder calls also pass 14 unique direct root dependencies in 32 slots;
+- repository tests replace 165 root names across 20 files. This is migration
+  cost evidence, not supported-public compatibility evidence;
+- every string resolver observes the root at call time; the two explicit
+  callback binders receive root-calling closures, so their target lookup also
+  remains use-time; and
+- no binder, resolver, provider, consumer, node/workflow schema, or runtime
+  state changes in this Contract/gate.
 
-Do not collapse 30 binders in one PR.
+Machine-readable owner families:
+
+| Family | Binders | Root name slots | Provider slots | Direct slots | Test-replaced names |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| AiO | 12 | 260 | 13 | 8 | 133 |
+| Image/SAM3/Impact | 3 | 3 | 5 | 3 | 2 |
+| Prompt/Regional | 10 | 154 | 4 | 7 | 37 |
+| Wildcard/NAIA | 2 | 0 | 0 | 9 | 5 |
+| LoRA | 3 | 25 | 0 | 5 | 14 |
+
+Allowed files:
+
+```text
+tests/test_python_compatibility_surface.py
+tests/fixtures/python_compatibility_surface.v1.json
+docs/architecture/*
+```
+
+Exit:
+
+- every binder has one canonical module, one owner family, exact bound globals,
+  root call keywords, direct dependencies, resolver names, provider names, and
+  repository replacement evidence;
+- new or returned provider virtual names, unknown direct resolver names,
+  binder/family drift, and root/provider count drift fail deterministically;
+- the provider remains restricted to the seven E-07 decisions and is not a
+  generic string-key service locator;
+- production code and behavior are unchanged; and
+- the first cleanup candidate can be selected without combining owner families.
+
+Forbidden:
+
+- changing `nodes.py`, any binder, runtime consumer, provider, wiring, schema,
+  workflow, seed, stage, cache, route, persistence, or optional dependency;
+- treating repository test replacement as public support evidence;
+- deleting aliases or rewriting tests before the owning family Move; and
+- collapsing 30 binders or multiple owner families into one cleanup PR.
+
+Planned cleanup sequence:
+
+1. **B-11c30a Image/SAM3/Impact:** three binders, five provider slots, three
+   root-name slots, and two test-replaced names. This is the smallest
+   provider-bearing family and the first focused implementation candidate.
+2. **B-11c30b LoRA:** three non-provider binders with 25 root-name slots;
+   preserve logger proxy, prompt-token callback, input-type identity, and
+   bind-time object installation.
+3. **B-11c30c Prompt/Regional:** ten binders; split service and node-adapter
+   subunits before implementation because 154 root-name slots and 37
+   test-replaced names exceed one rollback unit.
+4. **B-11c30d AiO:** twelve binders; split support/service and node-adapter
+   subunits and retain #169 behavior ownership. Do not migrate 260 root-name
+   slots in one PR.
+5. **B-11c30e Wildcard/NAIA:** two explicit-callback binders; keep separate from
+   D-12 seed/Wildcard behavior and legacy engine consolidation.
 
 ### B-11d — Final root shim
 
@@ -1061,8 +1128,8 @@ COMPLETE: B-11c29b1 direct mapping lookup retirement / PR #330
 COMPLETE: B-11c29b2 loaded lookup retirement / PR #331
 COMPLETE: B-11c29c requirement helper retirement / PR #332
 COMPLETE: B-11c29d CLIP wrapper retirement / PR #333
-IN PROGRESS: B-11c29b3 general node lookup retirement / PR #334
-BLOCKED:  B-11c30 binder/resolver migration audit
+COMPLETE: B-11c29b3 general node lookup retirement / PR #334
+IN PROGRESS: B-11c30 binder/resolver migration audit / PR #336
 BLOCKED:  B-11d final root shim
 
 LATER:    #167 seed reservation

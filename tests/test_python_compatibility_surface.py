@@ -38,6 +38,13 @@ COMFY_HOST_CLASSIFICATIONS = (
     "supported_public",
 )
 COMFY_HOST_ROOT_TEST_ALIASES = {"easy_nodes", "nodes", "root_module"}
+ROOT_COMPAT_TEST_ALIASES = {
+    "easy_nodes",
+    "nodes",
+    "nodes_module",
+    "package_nodes",
+    "root_module",
+}
 CLASSIFICATIONS = (
     "permanent_entrypoint",
     "supported_public_reexport",
@@ -74,6 +81,48 @@ PREAMBLE_IMPLEMENTATION_BINDINGS = {
     "logging": "logging:logging",
     "random": "random:random",
     "sqrt": "math:sqrt",
+}
+RUNTIME_BINDER_FAMILIES = {
+    "aio": (
+        "_bind_aio_first_pass_cache_runtime",
+        "_bind_aio_legacy_generation_runtime",
+        "_bind_aio_generation_normalization_runtime",
+        "_bind_aio_usdu_planning_runtime",
+        "_bind_aio_postprocess_runtime",
+        "_bind_aio_resource_runtime",
+        "_bind_aio_model_preparation_runtime",
+        "_bind_aio_sampling_runtime",
+        "_bind_aio_preview_runtime",
+        "_bind_aio_output_runtime",
+        "_bind_aio_conditioning_runtime",
+        "_bind_aio_node_runtime",
+    ),
+    "image_sam3_impact": (
+        "_bind_sam3_runtime",
+        "_bind_impact_detailer_node_runtime",
+        "_bind_sam3_node_runtime",
+    ),
+    "prompt_regional": (
+        "_bind_regional_runtime",
+        "_bind_regional_node_runtime",
+        "_bind_advanced_runtime",
+        "_bind_prompt_advanced_node_runtime",
+        "_bind_conditioning_runtime",
+        "_bind_artist_mix_runtime",
+        "_bind_prompt_data_node_runtime",
+        "_bind_prompt_fields_runtime",
+        "_bind_prompt_correction_runtime",
+        "_bind_prompt_node_runtime",
+    ),
+    "wildcard_naia": (
+        "_bind_wildcard_node_runtime",
+        "_bind_naia_node_runtime",
+    ),
+    "lora": (
+        "_bind_lora_metadata_runtime",
+        "_bind_lora_preset_runtime",
+        "_bind_lora_node_runtime",
+    ),
 }
 RETIRED_ARTIST_MIX_MODE_BINDINGS = (
     "ARTIST_MIX_CONTROL_KEY",
@@ -903,7 +952,10 @@ def _module_path(module: str) -> Path:
     raise AssertionError(f"canonical runtime binder module is missing: {module}")
 
 
-def _resolver_names_from_module(module: str, available: set[str]) -> set[str]:
+def _resolver_names_from_module(
+    module: str,
+    available: set[str] | None,
+) -> set[str]:
     tree = _read_tree(_module_path(module))
     names: set[str] = set()
     assignment_values: dict[str, ast.AST] = {}
@@ -952,7 +1004,7 @@ def _resolver_names_from_module(module: str, available: set[str]) -> set[str]:
                 for value in ast.walk(assigned)
                 if isinstance(value, ast.Constant) and isinstance(value.value, str)
             )
-    return names.intersection(available)
+    return names if available is None else names.intersection(available)
 
 
 def _runtime_resolver_consumers(
@@ -967,6 +1019,21 @@ def _runtime_resolver_consumers(
     return {
         name: sorted(modules)
         for name, modules in sorted(consumers.items())
+    }
+
+
+def _direct_runtime_lookup_names(module: str) -> set[str]:
+    tree = _read_tree(_module_path(module))
+    return {
+        node.args[0].value
+        for node in ast.walk(tree)
+        if (
+            isinstance(node, ast.Call)
+            and node.args
+            and _call_name(node.func) in RUNTIME_LOOKUP_CALLS | {"resolve_helper"}
+            and isinstance(node.args[0], ast.Constant)
+            and isinstance(node.args[0].value, str)
+        )
     }
 
 
@@ -1348,6 +1415,338 @@ def _runtime_binders(tree: ast.Module) -> list[str]:
     return binders
 
 
+def _runtime_binder_call_modes(tree: ast.Module) -> dict[str, dict[str, Any]]:
+    result: dict[str, dict[str, Any]] = {}
+    for node in tree.body:
+        if not isinstance(node, ast.Expr) or not isinstance(node.value, ast.Call):
+            continue
+        call = node.value
+        if not (
+            isinstance(call.func, ast.Name)
+            and call.func.id.startswith("_bind_")
+            and call.func.id.endswith("_runtime")
+        ):
+            continue
+        keywords = {
+            keyword.arg: keyword.value
+            for keyword in call.keywords
+            if keyword.arg is not None
+        }
+        resolver = keywords.get("resolve_helper")
+        if resolver is None:
+            mode = "explicit_callbacks"
+        elif any(
+            isinstance(value, ast.Name)
+            and value.id == "_resolve_comfy_host_helper"
+            for value in ast.walk(resolver)
+        ):
+            mode = "comfy_provider_then_root"
+        elif any(
+            isinstance(value, ast.Call)
+            and isinstance(value.func, ast.Name)
+            and value.func.id == "globals"
+            for value in ast.walk(resolver)
+        ):
+            mode = "root_globals"
+        else:
+            raise AssertionError(
+                f"unknown runtime binder resolver mode: {call.func.id}"
+            )
+        result[call.func.id] = {
+            "mode": mode,
+            "root_keywords": sorted(keywords),
+            "root_name_candidates": sorted(
+                {
+                    value.id
+                    for keyword_value in keywords.values()
+                    for value in ast.walk(keyword_value)
+                    if isinstance(value, ast.Name)
+                    and isinstance(value.ctx, ast.Load)
+                }
+            ),
+        }
+    return result
+
+
+def _binder_global_names(module: str, binder_name: str) -> list[str]:
+    tree = _read_tree(_module_path(module))
+    binders = [
+        node
+        for node in tree.body
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+        and node.name == binder_name
+    ]
+    if len(binders) != 1:
+        raise AssertionError(f"{module}:{binder_name} must have exactly one binder")
+    module_globals = {
+        target.id
+        for node in tree.body
+        if isinstance(node, (ast.Assign, ast.AnnAssign))
+        for target in (
+            node.targets
+            if isinstance(node, ast.Assign)
+            else [node.target]
+        )
+        if isinstance(target, ast.Name)
+    }
+    return sorted(
+        {
+            name
+            for node in ast.walk(binders[0])
+            if isinstance(node, ast.Global)
+            for name in node.names
+        }
+        | {
+            node.value
+            for node in ast.walk(binders[0])
+            if (
+                isinstance(node, ast.Constant)
+                and isinstance(node.value, str)
+                and node.value in module_globals
+            )
+        }
+    )
+
+
+def _repository_root_replacements(
+    symbols: set[str],
+) -> dict[str, list[str]]:
+    consumers: dict[str, set[str]] = defaultdict(set)
+    for path in sorted((ROOT / "tests").glob("test_*.py")):
+        tree = _read_tree(path)
+        relative = path.relative_to(ROOT).as_posix()
+        literal_dicts: dict[str, set[str]] = defaultdict(set)
+        for node in ast.walk(tree):
+            if not isinstance(node, (ast.Assign, ast.AnnAssign)):
+                continue
+            targets = node.targets if isinstance(node, ast.Assign) else [node.target]
+            if not isinstance(node.value, ast.Dict):
+                continue
+            names = {
+                key.value
+                for key in node.value.keys
+                if (
+                    isinstance(key, ast.Constant)
+                    and isinstance(key.value, str)
+                    and key.value in symbols
+                )
+            }
+            for target in targets:
+                if isinstance(target, ast.Name):
+                    literal_dicts[target.id].update(names)
+
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Call):
+                if (
+                    isinstance(node.func, ast.Name)
+                    and node.func.id == "patch"
+                    and node.args
+                    and isinstance(node.args[0], ast.Constant)
+                    and isinstance(node.args[0].value, str)
+                    and node.args[0].value.startswith("nodes.")
+                ):
+                    name = node.args[0].value.rsplit(".", 1)[-1]
+                    if name in symbols:
+                        consumers[name].add(relative)
+                if (
+                    isinstance(node.func, ast.Attribute)
+                    and node.func.attr == "object"
+                    and isinstance(node.func.value, ast.Name)
+                    and node.func.value.id == "patch"
+                    and len(node.args) >= 2
+                    and ast.unparse(node.args[0]) in ROOT_COMPAT_TEST_ALIASES
+                    and isinstance(node.args[1], ast.Constant)
+                    and node.args[1].value in symbols
+                ):
+                    consumers[node.args[1].value].add(relative)
+                if (
+                    isinstance(node.func, ast.Attribute)
+                    and node.func.attr == "multiple"
+                    and isinstance(node.func.value, ast.Name)
+                    and node.func.value.id == "patch"
+                    and node.args
+                    and ast.unparse(node.args[0]) in ROOT_COMPAT_TEST_ALIASES
+                ):
+                    names = {
+                        keyword.arg
+                        for keyword in node.keywords
+                        if keyword.arg in symbols
+                    }
+                    for keyword in node.keywords:
+                        if keyword.arg is not None:
+                            continue
+                        if isinstance(keyword.value, ast.Name):
+                            names.update(literal_dicts[keyword.value.id])
+                        elif isinstance(keyword.value, ast.Dict):
+                            names.update(
+                                key.value
+                                for key in keyword.value.keys
+                                if (
+                                    isinstance(key, ast.Constant)
+                                    and isinstance(key.value, str)
+                                    and key.value in symbols
+                                )
+                            )
+                    for name in names:
+                        consumers[name].add(relative)
+                if (
+                    isinstance(node.func, ast.Name)
+                    and node.func.id == "setattr"
+                    and len(node.args) >= 2
+                    and ast.unparse(node.args[0]) in ROOT_COMPAT_TEST_ALIASES
+                    and isinstance(node.args[1], ast.Constant)
+                    and node.args[1].value in symbols
+                ):
+                    consumers[node.args[1].value].add(relative)
+            if not isinstance(node, (ast.Assign, ast.AnnAssign)):
+                continue
+            targets = node.targets if isinstance(node, ast.Assign) else [node.target]
+            for target in targets:
+                if (
+                    isinstance(target, ast.Attribute)
+                    and ast.unparse(target.value) in ROOT_COMPAT_TEST_ALIASES
+                    and target.attr in symbols
+                ):
+                    consumers[target.attr].add(relative)
+    return {
+        symbol: sorted(paths)
+        for symbol, paths in sorted(consumers.items())
+        if paths
+    }
+
+
+def _runtime_binder_audit(
+    tree: ast.Module,
+    canonical_bindings: dict[str, str],
+    legacy_bindings: dict[str, str],
+    residuals: dict[str, list[str]],
+) -> dict[str, Any]:
+    binders = _runtime_binders(tree)
+    targets = _runtime_binder_targets(tree, canonical_bindings)
+    call_modes = _runtime_binder_call_modes(tree)
+    family_by_binder = {
+        binder: family
+        for family, family_binders in RUNTIME_BINDER_FAMILIES.items()
+        for binder in family_binders
+    }
+    if set(family_by_binder) != set(binders):
+        raise AssertionError("runtime binder family classification is incomplete")
+    if set(targets) != set(binders) or set(call_modes) != set(binders):
+        raise AssertionError("runtime binder target/call inventory is incomplete")
+
+    root_names = set(canonical_bindings) | set(legacy_bindings)
+    root_names.update(PREAMBLE_IMPLEMENTATION_BINDINGS)
+    for names in residuals.values():
+        root_names.update(names)
+    provider_names = set(COMFY_HOST_WRAPPERS)
+    valid_resolver_names = root_names | provider_names
+    all_root_replacements = _repository_root_replacements(root_names)
+    entries = []
+    all_resolver_names: set[str] = set()
+    all_root_names: set[str] = set()
+    all_provider_names: set[str] = set()
+    all_direct_root_dependencies: set[str] = set()
+    for binder in binders:
+        module = targets[binder]
+        direct_names = _direct_runtime_lookup_names(module)
+        unknown_direct_names = direct_names - valid_resolver_names
+        if unknown_direct_names:
+            raise AssertionError(
+                f"{binder} has unknown direct resolver names: "
+                + ", ".join(sorted(unknown_direct_names))
+            )
+        resolver_names = _resolver_names_from_module(module, valid_resolver_names)
+        classified_root = resolver_names.intersection(root_names)
+        classified_provider = resolver_names.intersection(provider_names)
+        all_resolver_names.update(resolver_names)
+        all_root_names.update(classified_root)
+        all_provider_names.update(classified_provider)
+        direct_root_dependencies = root_names.intersection(
+            call_modes[binder]["root_name_candidates"]
+        )
+        all_direct_root_dependencies.update(direct_root_dependencies)
+        entries.append(
+            {
+                "binder": binder,
+                "module": module,
+                "family": family_by_binder[binder],
+                "mode": call_modes[binder]["mode"],
+                "root_observation": (
+                    "call_time_callback"
+                    if call_modes[binder]["mode"] == "explicit_callbacks"
+                    else "call_time_resolver"
+                ),
+                "root_keywords": call_modes[binder]["root_keywords"],
+                "bound_globals": _binder_global_names(module, binder),
+                "direct_root_dependencies": sorted(direct_root_dependencies),
+                "resolver_names": sorted(resolver_names),
+                "root_resolver_names": sorted(classified_root),
+                "provider_resolver_names": sorted(classified_provider),
+            }
+        )
+
+    binder_root_names = all_root_names | all_direct_root_dependencies
+    root_replacements = {
+        symbol: paths
+        for symbol, paths in all_root_replacements.items()
+        if symbol in binder_root_names
+    }
+    for entry in entries:
+        entry["repository_replacement_names"] = sorted(
+            (
+                set(entry["root_resolver_names"])
+                | set(entry["direct_root_dependencies"])
+            ).intersection(root_replacements)
+        )
+
+    mode_counts = {
+        mode: sum(entry["mode"] == mode for entry in entries)
+        for mode in (
+            "comfy_provider_then_root",
+            "root_globals",
+            "explicit_callbacks",
+        )
+    }
+    return {
+        "summary": {
+            "binder_count": len(entries),
+            "family_count": len(RUNTIME_BINDER_FAMILIES),
+            "mode_counts": mode_counts,
+            "unique_resolver_names": len(all_resolver_names),
+            "unique_root_resolver_names": len(all_root_names),
+            "unique_provider_resolver_names": len(all_provider_names),
+            "unique_direct_root_dependencies": len(
+                all_direct_root_dependencies
+            ),
+            "direct_root_dependency_slots": sum(
+                len(entry["direct_root_dependencies"]) for entry in entries
+            ),
+            "provider_consumer_slots": sum(
+                len(entry["provider_resolver_names"]) for entry in entries
+            ),
+            "provider_consumer_modules": sum(
+                bool(entry["provider_resolver_names"]) for entry in entries
+            ),
+            "repository_replacement_names": len(root_replacements),
+            "repository_replacement_files": len(
+                {
+                    path
+                    for paths in root_replacements.values()
+                    for path in paths
+                }
+            ),
+        },
+        "families": {
+            family: list(family_binders)
+            for family, family_binders in RUNTIME_BINDER_FAMILIES.items()
+        },
+        "root_resolver_names": sorted(all_root_names),
+        "provider_resolver_names": sorted(all_provider_names),
+        "repository_root_replacements": root_replacements,
+        "entries": entries,
+    }
+
+
 def _direct_nodes_import_test_files() -> list[str]:
     consumers = []
     for path in sorted((ROOT / "tests").glob("test_*.py")):
@@ -1553,6 +1952,12 @@ def _build_document() -> dict[str, Any]:
         relative,
         available,
     )
+    runtime_binder_audit = _runtime_binder_audit(
+        nodes_tree,
+        relative,
+        relative_legacy,
+        residuals,
+    )
 
     missing_documented_aliases = set(DOCUMENTED_TRANSITIONAL_ALIASES) - available
     if missing_documented_aliases:
@@ -1698,6 +2103,7 @@ def _build_document() -> dict[str, Any]:
                 "B-11c29c",
                 "B-11c29d",
                 "B-11c29b3",
+                "B-11c30",
             ],
         },
         "enums": {
@@ -1725,6 +2131,7 @@ def _build_document() -> dict[str, Any]:
         "excluded_preamble_implementation_bindings": preamble_bindings,
         "runtime_binders": _runtime_binders(nodes_tree),
         "runtime_resolver_consumers": runtime_resolver_consumers,
+        "runtime_binder_audit": runtime_binder_audit,
         "documented_transitional_aliases": DOCUMENTED_TRANSITIONAL_ALIASES,
         "retired_private_bindings": RETIRED_PRIVATE_BINDINGS,
         "direct_nodes_import_test_files": _direct_nodes_import_test_files(),
@@ -1950,6 +2357,87 @@ class PythonCompatibilitySurfaceTests(unittest.TestCase):
         )
         self.assertEqual(len(set(self.document["runtime_binders"])), 30)
         self.assertEqual(len(set(self.document["direct_nodes_import_test_files"])), 21)
+
+    def test_runtime_binder_audit_covers_provider_and_root_names(self):
+        audit = self.document["runtime_binder_audit"]
+        self.assertEqual(
+            audit["summary"],
+            {
+                "binder_count": 30,
+                "family_count": 5,
+                "mode_counts": {
+                    "comfy_provider_then_root": 15,
+                    "root_globals": 13,
+                    "explicit_callbacks": 2,
+                },
+                "unique_resolver_names": 295,
+                "unique_root_resolver_names": 288,
+                "unique_provider_resolver_names": 7,
+                "unique_direct_root_dependencies": 14,
+                "direct_root_dependency_slots": 32,
+                "provider_consumer_slots": 22,
+                "provider_consumer_modules": 15,
+                "repository_replacement_names": 165,
+                "repository_replacement_files": 20,
+            },
+        )
+        self.assertEqual(
+            audit["provider_resolver_names"],
+            sorted(COMFY_HOST_WRAPPERS),
+        )
+        self.assertEqual(
+            set(audit["root_resolver_names"])
+            - set(self.document["runtime_resolver_consumers"]),
+            {"ceil", "json", "random", "sqrt"},
+        )
+        self.assertTrue(
+            set(self.document["runtime_resolver_consumers"]).issubset(
+                audit["root_resolver_names"]
+            )
+        )
+        self.assertEqual(
+            {entry["binder"] for entry in audit["entries"]},
+            set(self.document["runtime_binders"]),
+        )
+        self.assertEqual(
+            audit["families"],
+            {
+                family: list(binders)
+                for family, binders in RUNTIME_BINDER_FAMILIES.items()
+            },
+        )
+        self.assertEqual(
+            set(audit["repository_root_replacements"]),
+            {
+                name
+                for entry in audit["entries"]
+                for name in entry["repository_replacement_names"]
+            },
+        )
+        for paths in audit["repository_root_replacements"].values():
+            self.assertTrue(paths)
+            self.assertTrue(all(path.startswith("tests/") for path in paths))
+        for entry in audit["entries"]:
+            self.assertTrue(entry["bound_globals"])
+            self.assertEqual(
+                set(entry["resolver_names"]),
+                set(entry["root_resolver_names"])
+                | set(entry["provider_resolver_names"]),
+            )
+            if entry["mode"] == "explicit_callbacks":
+                self.assertNotIn("resolve_helper", entry["root_keywords"])
+                self.assertEqual(entry["resolver_names"], [])
+                self.assertTrue(entry["direct_root_dependencies"])
+                self.assertEqual(
+                    entry["root_observation"],
+                    "call_time_callback",
+                )
+            else:
+                self.assertIn("resolve_helper", entry["root_keywords"])
+                self.assertEqual(
+                    entry["root_observation"],
+                    "call_time_resolver",
+                )
 
     def test_string_runtime_resolvers_keep_production_seams_transitional(self):
         representative = {
