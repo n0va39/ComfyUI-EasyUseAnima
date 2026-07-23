@@ -231,7 +231,7 @@ Python modules with no missing internal imports.
 
 ## S167-01b seed-domain Contract gate
 
-- State: IMPLEMENTED IN PR #357; final gate pending
+- State: COMPLETE IN PR #357
 - PR type: Contract
 - Baseline: `dev` commit
   `8cde31a9db6968bd71a45c3bfc19c086179caf66`
@@ -297,6 +297,15 @@ S167-03 supplies each adapter's existing reviewed domain explicitly.
   above uint64 fail closed; and
 - no production caller, state owner, RNG, lock, runtime, workflow, node, or
   frontend surface changes in this Contract.
+
+### Validation result
+
+- focused contract/import/analyzer checkpoint: 13 tests passed;
+- additional uint64 result-boundary check: 1 test passed;
+- Python compile and `git diff --check`: passed; and
+- the official full runner passed once in 50.2 seconds: 988 Python tests and
+  frontend checks for 114 JavaScript files, with the Pyright baseline and all
+  six import-boundary groups passing.
 
 ### Allowed-file boundary
 
