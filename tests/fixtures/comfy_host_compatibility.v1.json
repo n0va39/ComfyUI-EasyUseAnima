@@ -128,7 +128,7 @@
         },
         {
           "module": "easyuse_anima.prompt.artist_mix",
-          "binder": "_bind_artist_mix_runtime",
+          "binder": null,
           "root_observation": "call_time"
         }
       ],
@@ -283,7 +283,7 @@
       "production_consumers": [
         {
           "module": "easyuse_anima.prompt.conditioning",
-          "binder": "_bind_conditioning_runtime",
+          "binder": null,
           "root_observation": "call_time"
         }
       ],

@@ -6,6 +6,22 @@ import json
 import re
 from typing import Any
 
+from ..common.values import _as_bool, _as_float, _as_int, _single_value
+from ..naia.resolution import _ratio_label
+from .advanced import (
+    _advanced_default_fields,
+    _advanced_field_input_values,
+    _advanced_field_socket_name,
+    _as_advanced_height,
+    _correct_advanced_field_sequence,
+)
+from .fields import _filter_metadata_prompt, _join_prompt_tokens
+
+try:
+    from ...settings import resolve_metadata_filter_words
+except ImportError:
+    from settings import resolve_metadata_filter_words
+
 
 REGIONAL_FIELDS_WORKFLOW_PROPERTY = "easyuse_anima_regional_fields"
 REGIONAL_CONFIG_WORKFLOW_PROPERTY = "easyuse_anima_regional_config"
@@ -22,52 +38,6 @@ ADVANCED_FIELD_LABELS = {
     "trigger": "Trigger Words",
     "general": "General Tags",
 }
-
-
-def _unbound_runtime(*_args, **_kwargs):
-    raise RuntimeError("Regional Prompt Studio runtime dependencies are not bound.")
-
-
-_advanced_default_fields = _unbound_runtime
-_single_value = _unbound_runtime
-_as_int = _unbound_runtime
-_as_bool = _unbound_runtime
-_as_float = _unbound_runtime
-_as_advanced_height = _unbound_runtime
-_advanced_field_input_values = _unbound_runtime
-_advanced_field_socket_name = _unbound_runtime
-_ratio_label = _unbound_runtime
-_correct_advanced_field_sequence = _unbound_runtime
-_join_prompt_tokens = _unbound_runtime
-resolve_metadata_filter_words = _unbound_runtime
-_filter_metadata_prompt = _unbound_runtime
-
-
-def _bind_regional_runtime(*, resolve_helper) -> None:
-    global _advanced_default_fields, _single_value, _as_int, _as_bool, _as_float
-    global _as_advanced_height, _advanced_field_input_values, _advanced_field_socket_name
-    global _ratio_label, _correct_advanced_field_sequence, _join_prompt_tokens
-    global resolve_metadata_filter_words, _filter_metadata_prompt
-
-    def runtime_helper(name):
-        def call(*args, **kwargs):
-            return resolve_helper(name)(*args, **kwargs)
-
-        return call
-
-    _advanced_default_fields = runtime_helper("_advanced_default_fields")
-    _single_value = runtime_helper("_single_value")
-    _as_int = runtime_helper("_as_int")
-    _as_bool = runtime_helper("_as_bool")
-    _as_float = runtime_helper("_as_float")
-    _as_advanced_height = runtime_helper("_as_advanced_height")
-    _advanced_field_input_values = runtime_helper("_advanced_field_input_values")
-    _advanced_field_socket_name = runtime_helper("_advanced_field_socket_name")
-    _ratio_label = runtime_helper("_ratio_label")
-    _correct_advanced_field_sequence = runtime_helper("_correct_advanced_field_sequence")
-    _join_prompt_tokens = runtime_helper("_join_prompt_tokens")
-    resolve_metadata_filter_words = runtime_helper("resolve_metadata_filter_words")
-    _filter_metadata_prompt = runtime_helper("_filter_metadata_prompt")
 
 
 def _regional_default_fields() -> list[dict]:

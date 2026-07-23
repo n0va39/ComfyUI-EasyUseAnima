@@ -2807,6 +2807,7 @@ class PromptCorrectorMoveContractTests(unittest.TestCase):
     )
 
     def test_root_prompt_corrector_objects_are_direct_canonical_aliases(self):
+        self.assertFalse(hasattr(prompt_correction, "_bind_prompt_correction_runtime"))
         for name in self.CORRECTION_HELPERS:
             with self.subTest(name=name):
                 self.assertIs(getattr(nodes, name), getattr(prompt_correction, name))
@@ -2831,7 +2832,7 @@ class PromptCorrectorMoveContractTests(unittest.TestCase):
                 with self.subTest(name=name):
                     self.assertIs(getattr(package_nodes, name), getattr(package_prompt_nodes, name))
 
-    def test_root_monkeypatches_drive_the_canonical_prompt_corrector_nodes(self):
+    def test_canonical_service_and_root_adapter_monkeypatches_drive_prompt_corrector_nodes(self):
         settings = types.SimpleNamespace(provider="off", source="auto", target="en")
         correction_result = types.SimpleNamespace(
             text="canonical result",
@@ -2844,7 +2845,7 @@ class PromptCorrectorMoveContractTests(unittest.TestCase):
 
         with (
             patch.object(
-                nodes,
+                prompt_correction,
                 "resolve_prompt_translation_settings",
                 return_value=settings,
             ) as resolve_settings,
@@ -2888,16 +2889,16 @@ class PromptCorrectorMoveContractTests(unittest.TestCase):
             ["changed", "unknown_tags", "duplicate_tags", "warnings", "sections"],
         )
 
-    def test_root_translation_monkeypatches_drive_the_canonical_helper(self):
+    def test_canonical_translation_monkeypatches_drive_the_canonical_helper(self):
         settings = types.SimpleNamespace(provider="off", source="auto", target="en")
 
         with (
             patch.object(
-                nodes,
+                prompt_correction,
                 "has_prompt_translation_markers",
                 return_value=False,
             ) as has_markers,
-            patch.object(nodes, "translate_prompt_markers") as translate_markers,
+            patch.object(prompt_correction, "translate_prompt_markers") as translate_markers,
         ):
             untranslated = nodes._translate_prompt_text("%{abc}")
 
@@ -2907,17 +2908,17 @@ class PromptCorrectorMoveContractTests(unittest.TestCase):
 
         with (
             patch.object(
-                nodes,
+                prompt_correction,
                 "has_prompt_translation_markers",
                 return_value=True,
             ) as has_markers,
             patch.object(
-                nodes,
+                prompt_correction,
                 "translate_prompt_markers",
                 return_value="bound",
             ) as translate_markers,
             patch.object(
-                nodes,
+                prompt_correction,
                 "resolve_prompt_translation_settings",
                 return_value=settings,
             ) as resolve_settings,
@@ -3104,6 +3105,8 @@ class PromptDataConditioningMoveContractTests(unittest.TestCase):
     }
 
     def test_root_prompt_data_conditioning_objects_are_direct_canonical_aliases(self):
+        self.assertFalse(hasattr(prompt_artist_mix, "_bind_artist_mix_runtime"))
+        self.assertFalse(hasattr(prompt_conditioning, "_bind_conditioning_runtime"))
         for name in (
             *self.RETIRED_PROMPT_DATA_ALIASES,
             *self.RETIRED_CONDITIONING_ALIASES,
@@ -3240,6 +3243,7 @@ class PromptBuilderStudioMoveContractTests(unittest.TestCase):
     )
 
     def test_root_prompt_builder_studio_objects_are_direct_canonical_aliases(self):
+        self.assertFalse(hasattr(prompt_fields, "_bind_prompt_fields_runtime"))
         for name in self.RETIRED_FIELD_DEFAULTS:
             with self.subTest(retired=name):
                 self.assertFalse(hasattr(nodes, name))
@@ -3283,20 +3287,32 @@ class PromptBuilderStudioMoveContractTests(unittest.TestCase):
             )
         )
 
-    def test_root_parser_and_correction_monkeypatches_drive_canonical_fields(self):
+    def test_canonical_parser_and_correction_monkeypatches_drive_canonical_fields(self):
         parsed = types.SimpleNamespace(tokens=("  bound_token  ",))
         correction_result = types.SimpleNamespace(text="bound correction")
 
-        with patch.object(nodes, "parse_prompt", return_value=parsed) as parser:
+        with patch.object(prompt_fields, "parse_prompt", return_value=parsed) as parser:
             tokens = prompt_fields._prompt_tokens("source")
 
         self.assertEqual(tokens, ["bound_token"])
         parser.assert_called_once_with("source", profile="prompt")
 
         with (
-            patch.object(nodes, "_prompt_tokens", return_value=["bound_artist"]) as tokens,
-            patch.object(nodes, "load_knowledge_base", return_value="bound kb") as load_kb,
-            patch.object(nodes, "correct_prompt", return_value=correction_result) as correct,
+            patch.object(
+                prompt_fields,
+                "_prompt_tokens",
+                return_value=["bound_artist"],
+            ) as tokens,
+            patch.object(
+                prompt_fields,
+                "load_knowledge_base",
+                return_value="bound kb",
+            ) as load_kb,
+            patch.object(
+                prompt_fields,
+                "correct_prompt",
+                return_value=correction_result,
+            ) as correct,
         ):
             corrected = prompt_fields._correct_builder_prompt("prompt", "artist")
 
@@ -3448,6 +3464,7 @@ class PromptAdvancedMoveContractTests(unittest.TestCase):
     )
 
     def test_root_advanced_objects_are_direct_canonical_aliases(self):
+        self.assertFalse(hasattr(prompt_advanced, "_bind_advanced_runtime"))
         for name in (*self.RETIRED_NODE_CLASSES, *self.RETIRED_ADVANCED_ALIASES):
             with self.subTest(retired=name):
                 self.assertFalse(hasattr(nodes, name))
@@ -3639,7 +3656,6 @@ class RegionalMoveContractTests(unittest.TestCase):
     )
     SERVICE_OBJECTS = (
         "_apply_regional_field_inputs",
-        "_bind_regional_runtime",
         "_build_regional_outputs",
         "_clone_regional_fields",
         "_conditioning_set_values",
@@ -3659,6 +3675,7 @@ class RegionalMoveContractTests(unittest.TestCase):
     )
 
     def test_root_regional_objects_are_direct_canonical_aliases(self):
+        self.assertFalse(hasattr(prompt_regional, "_bind_regional_runtime"))
         for name in self.RETIRED_REGIONAL_ALIASES:
             with self.subTest(retired=name):
                 self.assertFalse(hasattr(nodes, name))
