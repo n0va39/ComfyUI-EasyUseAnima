@@ -2473,6 +2473,81 @@ Forbidden:
 - beginning #167 Behavior, Wildcard/NAIA, final root-shim, Contract,
   performance, dependency, or broad formatting work.
 
+### B-11c30e — Wildcard/NAIA callback-binder Move
+
+- **State:** IN PROGRESS
+- **Owner:** #184
+- **Behavior boundaries:** #167, #236, D-12
+- **Type:** Move
+- **Base:** `dev@bc59822eb4f1141ffc3697aac352c5fc2c25a0f7`
+
+Pre-edit inventory:
+
+- the only remaining runtime family contains exactly
+  `_bind_wildcard_node_runtime` and `_bind_naia_node_runtime`;
+- both binders use explicit root-calling closures. They contain no string
+  resolver, provider lookup, cache, I/O, or business-state owner;
+- the Wildcard binder installs five module globals:
+  `_get_workflow_node`, `expand_wildcards`, `normalize_seed`,
+  `normalize_wildcard_mode`, and `wildcard_sources_signature`;
+- the NAIA binder installs four module globals:
+  `resolve_naia_settings`, `_get_workflow_node`, `_post_random`, and
+  `_parse_random_response`;
+- combined scope is nine direct callback slots over eight unique root names.
+  The compatibility audit records five repository replacement names in
+  `tests/test_wildcards.py`, `tests/test_naia_settings.py`, and
+  `tests/test_node_contracts.py`;
+- `easyuse_anima.workflow` already owns `_get_workflow_node`;
+  `wildcard_engine` already owns the four Wildcard functions; `settings`
+  already owns `resolve_naia_settings`; and `easyuse_anima.naia.client`
+  already owns `_post_random` and `_parse_random_response`;
+- the Wildcard adapter already imports its legacy engine in relative-package
+  and flat fallback modes. The NAIA adapter already imports its client owner
+  directly. This Move adds no new owner, service, provider, or contract;
+- root imports both mapped classes and both private binder functions in package
+  and flat modes, then calls each binder once during module initialization;
+- `easyuse_anima.registration` consumes the two mapped classes directly; and
+- existing tests freeze Wildcard source signatures, mode/seed normalization,
+  expansion and metadata cache behavior, NAIA settings/request/response and
+  frozen-output behavior, workflow lookup, exact class aliases, schemas,
+  workflows, errors, and HTTP policy.
+
+Allowed production files:
+
+```text
+nodes.py
+easyuse_anima/nodes/wildcard_nodes.py
+easyuse_anima/nodes/naia_nodes.py
+```
+
+Allowed supporting files are the three replacement-owner tests, Python
+compatibility and backend/nodes analyzer gates/fixtures, workflow/package
+contract coverage, and the three architecture documents.
+
+Exit:
+
+- both binder definitions and root imports/calls are absent;
+- the adapters import their existing workflow, Wildcard, settings, and NAIA
+  owners directly in supported package/flat modes;
+- repository tests patch the canonical consumer or true owner rather than root
+  callback installation;
+- both mapped classes retain exact package/flat root identity;
+- runtime binder families, binder calls, string resolvers, and callback
+  installations all reach zero; and
+- Wildcard modes/seeds/expansion/metadata, NAIA settings/HTTP/cache/result,
+  node schemas/mappings, workflows, errors, and optional timing remain
+  unchanged.
+
+Forbidden:
+
+- moving or consolidating `wildcard_engine.py` or `settings.py`;
+- changing Wildcard syntax, source discovery, seed/reservation, sequential,
+  fixed/reproduce, populated-text, workflow metadata, or cache behavior;
+- changing NAIA host policy, request body, response parsing, timeout, frozen
+  output, settings, persistence, or errors;
+- beginning #167/#236 Behavior, D-12/D-09 consolidation, final root-shim,
+  Contract, performance, dependency, or broad formatting work.
+
 ### B-11d — Final root shim
 
 - **State:** BLOCKED by the remaining Wildcard/NAIA binder family
