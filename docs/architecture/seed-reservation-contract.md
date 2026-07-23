@@ -77,6 +77,7 @@ The canonical package boundary is `easyuse_anima.seed.reservation`.
 
 `SeedReservationRequest` carries:
 
+- `schema`: `easyuse_anima_seed_reservation_request`;
 - `version`: contract version 1;
 - `stream_id`: stable logical seed stream identity;
 - `request_id`: idempotency identity for one queue request;
@@ -89,9 +90,9 @@ The request contains intent only. It does not contain a browser-authoritative
 
 ### Reservation and settlement
 
-`SeedReservation` carries the service-selected concrete execution seed and
-opaque reservation identity. `SeedReservationSettlement` is one of
-`accepted`, `rejected`, or `cancelled`.
+`SeedReservation` carries the service-selected concrete execution seed,
+candidate accepted `next_seed`, and opaque reservation identity.
+`SeedReservationSettlement` is one of `accepted`, `rejected`, or `cancelled`.
 
 `SeedReservationService` exposes only:
 
