@@ -336,3 +336,116 @@ Exit:
 - uint64 concrete seeds and both reviewed arithmetic domains are represented
   without JavaScript-unsafe numeric policy inference; and
 - focused contract/import/analyzer gates pass.
+
+## S167-02 authoritative service Behavior gate
+
+- State: READY
+- PR type: Behavior
+- Baseline: `dev` commit
+  `e187f4949651e88057403517e3305cc4150e44d9`
+- Prerequisites: S167-01, S167-01a, B-11c30c2b, and S167-01b complete
+
+### Symbol, caller, alias, and global-state inventory
+
+- The existing public port is
+  `easyuse_anima.seed.reservation.SeedReservationService`; no implementation
+  exists.
+- `RuntimeServices` currently owns only `ComfyHostProvider`. Bootstrap creates
+  one process runtime and has no seed state.
+- Production callers of `reserve` and `settle` remain zero. S167-03 owns node,
+  route, prompt-payload, and browser adapters.
+- No root compatibility alias exposes the port or a future implementation.
+- Backend reservation maps, locks, reservation IDs, stream state, accepted
+  idempotency history, RNG, and cleanup state are all absent.
+- Current frontend owners provide the behavior reference only: per logical
+  stream, reservations are allocated synchronously, settle in FIFO order,
+  accepted entries advance state, rejected trailing entries become reusable,
+  and accepted state remains authoritative after publication failure.
+
+### Locked behavior
+
+One process-lifetime `InMemorySeedReservationService` is injected explicitly
+into `RuntimeServices`. Its single re-entrant lock owns every state transition.
+
+Reservation:
+
+- an exact duplicate `(stream_id, request_id)` returns the same pending or
+  accepted result without consuming RNG or advancing state;
+- reusing the identity with different request data is a conflict;
+- concrete selection establishes or explicitly resets an idle stream. Repeated
+  requests carrying the last observed concrete seed consume the service's
+  accepted/tail state so concurrent increment/randomize controls do not reuse a
+  seed. A concrete edit made while requests are pending takes effect only after
+  the pending epoch drains, matching current browser ownership;
+- random selection always draws from `0..next_seed_max`;
+- increment/decrement selection uses the reserved tail, then committed state,
+  and falls back to one random draw when neither exists; and
+- fixed preserves the execution seed. Other after-generate controls compute
+  `next_seed` from the explicit version-2 domain. Clamp saturates; wrap cycles.
+
+Settlement:
+
+- the first settlement is terminal and later/duplicate/unknown settlements are
+  no-ops;
+- accepted results commit only when every earlier reservation in the same
+  stream has settled;
+- rejected and cancelled results never commit and make their request identity
+  immediately retryable;
+- contiguous rejected/cancelled tails collapse immediately so a retry can reuse
+  the earliest uncommitted candidate; and
+- a caller cancellation followed by a late acceptance cannot resurrect or
+  advance the cancelled reservation.
+
+Lifetime and bounds:
+
+- the implementation is process-local and has no persistence or implicit
+  timeout;
+- active reservation records are bounded; capacity exhaustion fails before
+  mutating stream state;
+- accepted idempotency records and retired reservation IDs use bounded LRU
+  histories;
+- inactive streams use bounded LRU retention, while streams with active
+  reservations are never evicted; and
+- S167-03 must settle every reservation. Runtime shutdown/route lifecycle and
+  persistence remain separate E-09 work.
+
+### Allowed-file boundary
+
+Production:
+
+- `easyuse_anima/seed/service.py`;
+- `easyuse_anima/runtime.py`; and
+- `easyuse_anima/bootstrap.py`.
+
+Supporting:
+
+- `tests/test_seed_reservation_service.py`;
+- `tests/test_runtime_services.py`;
+- `tests/comfy_host_fakes.py`;
+- `tests/test_comfy_host_wiring.py`;
+- `tests/test_python_package_skeleton.py`;
+- `tests/test_python_backend_analyzer.py`;
+- `tests/fixtures/python_backend_baseline.json`;
+- `docs/architecture/seed-reservation-contract.md`; and
+- `docs/architecture/python-backend-execution-roadmap.md`.
+
+Forbidden:
+
+- changing the version-2 request/result/port Contract;
+- root shims, node adapters, routes, workflow schemas, hidden payloads, AiO or
+  Prompt Studio execution paths, or frontend files;
+- browser/headless cutover, queue-hook replacement, or UI publication;
+- persistent storage, cross-process coordination, background cleanup threads,
+  implicit timeout settlement, or broad RuntimeServices lifecycle work; and
+- #169 stage/cache Behavior or Phase D consolidation.
+
+Exit:
+
+- focused arithmetic, idempotency, concurrency, out-of-order FIFO,
+  reject/retry, cancel/late-accept, capacity, LRU, and runtime-composition tests
+  pass;
+- import/package/analyzer gates include the implementation without host or
+  filesystem side effects;
+- the official full runner passes once; and
+- S167-03 receives one composed backend owner without frontend or node behavior
+  changing in this PR.
