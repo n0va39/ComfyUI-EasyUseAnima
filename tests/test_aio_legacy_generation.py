@@ -33,6 +33,10 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
             legacy_generation._run_aio_legacy_generation,
         )
         self.assertIs(
+            nodes._run_aio_detailer_stage,
+            legacy_generation._run_aio_detailer_stage,
+        )
+        self.assertIs(
             nodes._run_aio_highres_stage,
             legacy_generation._run_aio_highres_stage,
         )
@@ -52,6 +56,10 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
             self.assertIs(
                 package_nodes._run_aio_legacy_generation,
                 canonical_module._run_aio_legacy_generation,
+            )
+            self.assertIs(
+                package_nodes._run_aio_detailer_stage,
+                canonical_module._run_aio_detailer_stage,
             )
             self.assertIs(
                 package_nodes._run_aio_highres_stage,
@@ -353,6 +361,336 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
                 "cleanup",
             ],
         )
+
+    def test_detailer_stage_preserves_lazy_filter_and_no_target_short_circuits(self):
+        image = _Token("image")
+
+        def execute(detailer_settings, target_order):
+            trace = []
+
+            def as_bool(value, default):
+                trace.append(("call", "_as_bool", value, default))
+                return bool(value)
+
+            helpers = {
+                "_as_bool": as_bool,
+                "_aio_detailer_target_order": lambda settings: (
+                    trace.append(("call", "_aio_detailer_target_order"))
+                    or target_order
+                ),
+            }
+
+            def resolve(name):
+                trace.append(("resolve", name))
+                if name not in helpers:
+                    self.fail(f"short-circuit resolved unexpected helper: {name}")
+                return helpers[name]
+
+            legacy_generation._bind_aio_legacy_generation_runtime(
+                resolve_helper=resolve
+            )
+            try:
+                result = nodes._run_aio_detailer_stage(
+                    object(),
+                    object(),
+                    object(),
+                    object(),
+                    object(),
+                    image,
+                    {},
+                    detailer_settings,
+                )
+            finally:
+                legacy_generation._bind_aio_legacy_generation_runtime(
+                    resolve_helper=lambda name: getattr(nodes, name)
+                )
+            return result, trace
+
+        disabled_result, disabled_trace = execute({"enabled": False}, [])
+        self.assertIs(disabled_result[0], image)
+        self.assertEqual(disabled_result[1], {"enabled": False})
+        self.assertEqual(
+            disabled_trace,
+            [
+                ("resolve", "_as_bool"),
+                ("call", "_as_bool", False, False),
+            ],
+        )
+
+        no_target_result, no_target_trace = execute(
+            {
+                "enabled": True,
+                "face": {"enabled": False},
+                "missing": "not-a-dict",
+            },
+            ["face", "missing"],
+        )
+        self.assertIs(no_target_result[0], image)
+        self.assertEqual(
+            no_target_result[1],
+            {"enabled": False, "reason": "no target enabled"},
+        )
+        self.assertEqual(
+            no_target_trace,
+            [
+                ("resolve", "_as_bool"),
+                ("call", "_as_bool", True, False),
+                ("resolve", "_aio_detailer_target_order"),
+                ("call", "_aio_detailer_target_order"),
+                ("resolve", "_as_bool"),
+                ("call", "_as_bool", False, False),
+            ],
+        )
+
+    def test_detailer_stage_preserves_order_chaining_callback_and_metadata(self):
+        trace = []
+        model = _Token("model")
+        clip = _Token("clip")
+        vae = _Token("vae")
+        positive = _Token("positive")
+        negative = _Token("negative")
+        image = _Token("image")
+        eye_image = _Token("eye_image")
+        face_image = _Token("face_image")
+        sampler_settings = {"seed": 17}
+        detailer_settings = {
+            "enabled": True,
+            "eye": {"enabled": True},
+            "disabled": {"enabled": False},
+            "missing": "not-a-dict",
+            "face": {"enabled": True},
+        }
+        target_order = ["eye", "disabled", "missing", "face"]
+        sam3_context = {"ckpt_name": "sam3.safetensors"}
+        eye_metadata = {"enabled": True, "target": "eye"}
+        face_metadata = {"enabled": True, "target": "face"}
+
+        def as_bool(value, default):
+            trace.append(("call", "_as_bool", value, default))
+            return bool(value)
+
+        def target_order_helper(settings):
+            trace.append(("call", "_aio_detailer_target_order"))
+            self.assertIs(settings, detailer_settings)
+            return target_order
+
+        def load_context(settings):
+            trace.append(("call", "_load_aio_sam3_context"))
+            self.assertIs(settings, detailer_settings)
+            return sam3_context
+
+        def run_target(*args):
+            target_name = args[0]
+            trace.append(("call", "_run_aio_detailer_target", target_name))
+            expected_image = image if target_name == "eye" else eye_image
+            self.assertEqual(
+                args,
+                (
+                    target_name,
+                    detailer_settings[target_name],
+                    expected_image,
+                    model,
+                    clip,
+                    vae,
+                    positive,
+                    negative,
+                    sampler_settings,
+                    sam3_context,
+                ),
+            )
+            if target_name == "eye":
+                return eye_image, eye_metadata
+            return face_image, face_metadata
+
+        def context_value(context, key):
+            trace.append(("call", "_context_value", key))
+            self.assertIs(context, sam3_context)
+            return context[key]
+
+        helpers = {
+            "_as_bool": as_bool,
+            "_aio_detailer_target_order": target_order_helper,
+            "_load_aio_sam3_context": load_context,
+            "_run_aio_detailer_target": run_target,
+            "_context_value": context_value,
+        }
+
+        def resolve(name):
+            trace.append(("resolve", name))
+            return helpers[name]
+
+        def preview(stage, output):
+            trace.append(("callback", stage, output.name))
+
+        legacy_generation._bind_aio_legacy_generation_runtime(resolve_helper=resolve)
+        try:
+            result = nodes._run_aio_detailer_stage(
+                model,
+                clip,
+                vae,
+                positive,
+                negative,
+                image,
+                sampler_settings,
+                detailer_settings,
+                preview,
+            )
+        finally:
+            legacy_generation._bind_aio_legacy_generation_runtime(
+                resolve_helper=lambda name: getattr(nodes, name)
+            )
+
+        self.assertIs(result[0], face_image)
+        self.assertIs(result[1]["order"], target_order)
+        self.assertIs(result[1]["targets"]["eye"], eye_metadata)
+        self.assertIs(result[1]["targets"]["face"], face_metadata)
+        self.assertEqual(
+            result[1],
+            {
+                "enabled": True,
+                "sam3_checkpoint": "sam3.safetensors",
+                "order": target_order,
+                "targets": {"eye": eye_metadata, "face": face_metadata},
+            },
+        )
+        self.assertEqual(
+            trace,
+            [
+                ("resolve", "_as_bool"),
+                ("call", "_as_bool", True, False),
+                ("resolve", "_aio_detailer_target_order"),
+                ("call", "_aio_detailer_target_order"),
+                ("resolve", "_as_bool"),
+                ("call", "_as_bool", True, False),
+                ("resolve", "_as_bool"),
+                ("call", "_as_bool", False, False),
+                ("resolve", "_as_bool"),
+                ("call", "_as_bool", True, False),
+                ("resolve", "_load_aio_sam3_context"),
+                ("call", "_load_aio_sam3_context"),
+                ("resolve", "_run_aio_detailer_target"),
+                ("call", "_run_aio_detailer_target", "eye"),
+                ("callback", "detailer_eye", "eye_image"),
+                ("resolve", "_run_aio_detailer_target"),
+                ("call", "_run_aio_detailer_target", "face"),
+                ("callback", "detailer_face", "face_image"),
+                ("resolve", "_context_value"),
+                ("call", "_context_value", "ckpt_name"),
+            ],
+        )
+
+    def test_detailer_stage_propagates_target_and_callback_failures_in_place(self):
+        detailer_settings = {
+            "enabled": True,
+            "eye": {"enabled": True},
+            "face": {"enabled": True},
+        }
+
+        def execute(run_target, preview_callback, trace):
+            helpers = {
+                "_as_bool": lambda value, default: bool(value),
+                "_aio_detailer_target_order": lambda settings: ["eye", "face"],
+                "_load_aio_sam3_context": lambda settings: {},
+                "_run_aio_detailer_target": run_target(trace),
+                "_context_value": lambda context, key: trace.append("context_value"),
+            }
+
+            def resolve(name):
+                trace.append(f"resolve:{name}")
+                return helpers[name]
+
+            legacy_generation._bind_aio_legacy_generation_runtime(
+                resolve_helper=resolve
+            )
+            try:
+                nodes._run_aio_detailer_stage(
+                    object(),
+                    object(),
+                    object(),
+                    object(),
+                    object(),
+                    _Token("image"),
+                    {},
+                    detailer_settings,
+                    preview_callback(trace),
+                )
+            finally:
+                legacy_generation._bind_aio_legacy_generation_runtime(
+                    resolve_helper=lambda name: getattr(nodes, name)
+                )
+            return trace
+
+        def failing_target(trace):
+            def run(target_name, *args):
+                trace.append(f"target:{target_name}")
+                raise ValueError("target failed")
+
+            return run
+
+        target_trace = []
+        with self.assertRaisesRegex(ValueError, "target failed"):
+            execute(
+                failing_target,
+                lambda trace: lambda *args: trace.append("preview"),
+                target_trace,
+            )
+        self.assertEqual(
+            target_trace[-2:],
+            ["resolve:_run_aio_detailer_target", "target:eye"],
+        )
+        self.assertNotIn("preview", target_trace)
+        self.assertNotIn("target:face", target_trace)
+        self.assertNotIn("context_value", target_trace)
+
+        def short_target(trace):
+            def run(target_name, *args):
+                trace.append(f"target:{target_name}")
+                return (_Token("only_value"),)
+
+            return run
+
+        unpack_trace = []
+        with self.assertRaisesRegex(ValueError, "not enough values to unpack"):
+            execute(
+                short_target,
+                lambda trace: lambda *args: trace.append("preview"),
+                unpack_trace,
+            )
+        self.assertEqual(
+            unpack_trace[-2:],
+            ["resolve:_run_aio_detailer_target", "target:eye"],
+        )
+        self.assertNotIn("preview", unpack_trace)
+        self.assertNotIn("target:face", unpack_trace)
+        self.assertNotIn("context_value", unpack_trace)
+
+        def successful_target(trace):
+            def run(target_name, *args):
+                trace.append(f"target:{target_name}")
+                return _Token(f"{target_name}_image"), {"target": target_name}
+
+            return run
+
+        def failing_preview(trace):
+            def preview(*args):
+                trace.append("preview:eye")
+                raise LookupError("preview failed")
+
+            return preview
+
+        callback_trace = []
+        with self.assertRaisesRegex(LookupError, "preview failed"):
+            execute(successful_target, failing_preview, callback_trace)
+        self.assertEqual(
+            callback_trace[-3:],
+            [
+                "resolve:_run_aio_detailer_target",
+                "target:eye",
+                "preview:eye",
+            ],
+        )
+        self.assertNotIn("target:face", callback_trace)
+        self.assertNotIn("context_value", callback_trace)
 
     def test_upscale_dispatcher_preserves_lazy_branch_and_exception_contract(self):
         model = _Token("model")

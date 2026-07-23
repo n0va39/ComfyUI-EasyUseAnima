@@ -5,7 +5,7 @@
 - Status: operational execution runbook
 - Snapshot date: 2026-07-23
 - Snapshot branch: `dev`
-- Integrated `dev` snapshot commit: `92506109117e42ea10e4664667481f27ad08623a`
+- Integrated `dev` snapshot commit: `6a5fd7bd2c369921e5ecb18791df187d578d6637`
 - Scope: Python backend only
 - Target architecture: [`python-backend.md`](python-backend.md)
 - Architecture decisions: [ADR-001](adr-001-modular-monolith.md) and
@@ -31,7 +31,7 @@ merged PR, the owning issue's evidence record, and every stated exit gate.
 | Phase | Integrated snapshot / open implementation state | Remaining exit work |
 | --- | --- | --- |
 | A - baseline | Complete; #191 is closed | Keep fixtures and analyzers current during later moves |
-| B - `nodes.py` extraction | Integrated through B-11c22 / `9250610`; B-11c23 AiO upscale dispatcher Move in PR #317 | Complete residual owners and binders, then the final root shim as a separate Move |
+| B - `nodes.py` extraction | Integrated through B-11c23 / `6a5fd7b`; B-11c24 AiO Detailer stage Move in PR #318 | Complete residual owners and binders, then the final root shim as a separate Move |
 | C - feature contracts/behavior | Partially complete | Finish #168; then #167 and #169 in separate Contract/Behavior PRs |
 | D - root consolidation | Not started | Execute #186 feature by feature after the corresponding behavior contracts are stable |
 | E - runtime ownership | Not started | Execute #187 after canonical feature owners exist; E-01 inventory may start earlier |
@@ -42,10 +42,10 @@ merged PR, the owning issue's evidence record, and every stated exit gate.
 ### Measured Phase B progress
 
 - The Phase A baseline recorded root `nodes.py` at 12,663 lines.
-- Against the integrated `dev` snapshot above, root `nodes.py` measures 2,246
-  lines after B-11c22.
-- The mechanical extraction has removed 10,417
-  lines, approximately 82.3% of the Phase A baseline, while preserving the root
+- Against the integrated `dev` snapshot above, root `nodes.py` measures 2,198
+  lines after B-11c23.
+- The mechanical extraction has removed 10,465
+  lines, approximately 82.6% of the Phase A baseline, while preserving the root
   compatibility surface.
 - B-01 through B-09b2 are integrated. The latest completed implementation slice
   is the AiO generator adapter Move in PR #270.
@@ -82,7 +82,8 @@ merged PR, the owning issue's evidence record, and every stated exit gate.
   #313 / `de57090`. B-11c20 moved only the CLIP loader-type wrapper in PR #314 /
   `43c3056`. B-11c21 moved only the AiO postprocess stage in PR #315 /
   `8b3ba38`. B-11c22 moved only the AiO highres stage in PR #316 / `9250610`.
-  B-11c23 moves only the AiO upscale dispatcher in PR #317.
+  B-11c23 moved only the AiO upscale dispatcher in PR #317 / `6a5fd7b`.
+  B-11c24 moves only the AiO Detailer stage coordinator in PR #318.
 
 ### Current quality baseline
 
@@ -324,7 +325,7 @@ surfaces. AiO mechanical extraction must not start until #168 exits.
 | 11 | B-09b2 AiO generator adapter move | COMPLETE on `dev` | Move | #184 | PR #270 / `57d40b4` |
 | 12 | B-10a machine-readable compatibility audit | COMPLETE on `dev` | Contract/gate | #184/#188 | PR #271 / `3c7b857` |
 | 13 | B-10b private alias reduction | COMPLETE on `dev` through PR #291 / `c6b4680` | Contract/cleanup, split PRs | #184/#188 | Audited alias surface integrated |
-| 14 | B-11 registration/bootstrap/root shim | IN PROGRESS: B-11a PR #292 / `20c8b4d`; B-11b PR #293 / `f2a2ec0`; B-11c1 PR #294 / `ebeee89`; B-11c2 PR #295 / `47fef1d`; B-11c3 PR #296 / `1f18c04`; B-11c4 PR #297 / `0980530`; B-11c5 PR #298 / `617ea14`; B-11c6 PR #299 / `bbca312`; B-11c7a PR #300 / `17343eb`; B-11c7b PR #301 / `6863735`; B-11c8 PR #302 / `40e8d94`; B-11c9 PR #303 / `7222f7d`; B-11c10 PR #304 / `236a7f5`; B-11c11 PR #305 / `98812ef`; B-11c12 PR #306 / `7c2fdd5`; B-11c13 PR #307 / `21f8c97`; B-11c14 PR #308 / `5a86162`; B-11c15 PR #309 / `05beee1`; B-11c16 PR #310 / `f4ab6eb`; B-11c17 PR #311 / `82247d9`; B-11c18 PR #312 / `3d7e5d2`; B-11c19 PR #313 / `de57090`; B-11c20 PR #314 / `43c3056`; B-11c21 PR #315 / `8b3ba38`; B-11c22 PR #316 / `9250610`; B-11c23 AiO upscale dispatcher Move PR #317 | Move/Contract, split PRs | #184 | Residual owners and binders migrate in rollback-sized units before final shim |
+| 14 | B-11 registration/bootstrap/root shim | IN PROGRESS: B-11a PR #292 / `20c8b4d`; B-11b PR #293 / `f2a2ec0`; B-11c1 PR #294 / `ebeee89`; B-11c2 PR #295 / `47fef1d`; B-11c3 PR #296 / `1f18c04`; B-11c4 PR #297 / `0980530`; B-11c5 PR #298 / `617ea14`; B-11c6 PR #299 / `bbca312`; B-11c7a PR #300 / `17343eb`; B-11c7b PR #301 / `6863735`; B-11c8 PR #302 / `40e8d94`; B-11c9 PR #303 / `7222f7d`; B-11c10 PR #304 / `236a7f5`; B-11c11 PR #305 / `98812ef`; B-11c12 PR #306 / `7c2fdd5`; B-11c13 PR #307 / `21f8c97`; B-11c14 PR #308 / `5a86162`; B-11c15 PR #309 / `05beee1`; B-11c16 PR #310 / `f4ab6eb`; B-11c17 PR #311 / `82247d9`; B-11c18 PR #312 / `3d7e5d2`; B-11c19 PR #313 / `de57090`; B-11c20 PR #314 / `43c3056`; B-11c21 PR #315 / `8b3ba38`; B-11c22 PR #316 / `9250610`; B-11c23 PR #317 / `6a5fd7b`; B-11c24 AiO Detailer stage Move PR #318 | Move/Contract, split PRs | #184 | Residual owners and binders migrate in rollback-sized units before final shim |
 | 15 | S167 backend seed reservation series | BLOCKED by B exit/interface | Contract then Behavior | #167 | Canonical AiO/node seams |
 | 16 | A169 stage pipeline series | BLOCKED by #168 and B exit | Contract then Behavior | #169 | Typed config and mechanical AiO move |
 | 17 | A169 first-pass cache policy | BLOCKED by stage/cache ownership seam | Behavior | #169 | Mechanical cache move and benchmark harness |
