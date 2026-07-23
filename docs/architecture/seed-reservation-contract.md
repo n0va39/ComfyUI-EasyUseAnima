@@ -231,6 +231,7 @@ Python modules with no missing internal imports.
 
 ## S167-01b seed-domain Contract gate
 
+- State: IMPLEMENTED IN PR #357; final gate pending
 - PR type: Contract
 - Baseline: `dev` commit
   `8cde31a9db6968bd71a45c3bfc19c086179caf66`
@@ -282,6 +283,20 @@ Concrete execution seeds remain valid through uint64 maximum. Fixed
 after-generate preserves the concrete execution seed even when it is above the
 arithmetic maximum. S167-02 owns the exact arithmetic and lifecycle tests;
 S167-03 supplies each adapter's existing reviewed domain explicitly.
+
+### Implementation result
+
+- the contract version advances from 1 to 2 before any production consumer is
+  connected;
+- `SeedReservationRequest` requires validated `next_seed_max` and `overflow`;
+- concrete request and result seeds are bounded to uint64, independently from
+  the smaller next-seed arithmetic maximum;
+- both existing domains are representable without feature-name inference:
+  AiO's `2^50` clamp domain and Prompt Studio's JavaScript-safe wrap domain;
+- version 1, missing/invalid domains, booleans, negative bounds, and values
+  above uint64 fail closed; and
+- no production caller, state owner, RNG, lock, runtime, workflow, node, or
+  frontend surface changes in this Contract.
 
 ### Allowed-file boundary
 
