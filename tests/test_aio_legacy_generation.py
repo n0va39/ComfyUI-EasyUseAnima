@@ -2318,7 +2318,6 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
         with (
             patch.multiple(
                 nodes,
-                _require_easy_use_anima_input=require,
                 _normalize_aio_generation_settings=normalize_settings,
                 _resolve_aio_runtime_seed=resolve_seed,
                 _load_aio_resources_from_input_context=load_resources,
@@ -2368,6 +2367,11 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
                 _save_image_with_comfy=save_comfy,
                 _tag_aio_preview_images=tag_images,
                 _prompt_data_json_safe=copy.deepcopy,
+            ),
+            patch.object(
+                legacy_generation,
+                "_require_easy_use_anima_input",
+                require,
             ),
             patch_comfy_helper(
                 nodes,

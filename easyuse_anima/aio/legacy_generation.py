@@ -3,6 +3,8 @@ from __future__ import annotations
 from collections.abc import Callable
 from typing import Any
 
+from .input_context import _require_easy_use_anima_input
+
 _RuntimeResolver = Callable[[str], Any]
 
 _RUNTIME_RESOLVER: _RuntimeResolver | None = None
@@ -583,7 +585,7 @@ def _run_aio_legacy_generation(
     extra_pnginfo=None,
     unique_id=None,
 ):
-    context = _runtime_helper("_require_easy_use_anima_input")(easy_use_anima_input)
+    context = _require_easy_use_anima_input(easy_use_anima_input)
     settings = _runtime_helper("_normalize_aio_generation_settings")(generation_settings)
     settings["sampler"]["seed"] = _runtime_helper("_resolve_aio_runtime_seed")(
         settings["sampler"].get("seed")

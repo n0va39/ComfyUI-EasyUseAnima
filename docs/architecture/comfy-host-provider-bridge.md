@@ -2098,7 +2098,7 @@ Result:
 
 ### B-11c30d0b — AiO input-context owner Move
 
-- **State:** IN PROGRESS
+- **State:** COMPLETE in PR #352
 - **Owner:** #184
 - **Behavior boundary:** #168 and #169
 - **Type:** Move
@@ -2128,7 +2128,7 @@ Pre-edit inventory:
 - direct behavior and alias coverage is in `tests/test_aio_nodes.py`.
   `tests/test_aio_legacy_generation.py` replaces the root required-input alias
   to drive the still-active d5 binder; that single replacement must move to
-  the new canonical owner when the production caller becomes direct; and
+  the direct consumer module when the production caller becomes direct; and
 - the d5 legacy-generation and d6 node-adapter binders, their two
   `_RUNTIME_RESOLVER` globals, all other resolver slots, and the two
   Wildcard/NAIA callback binders remain outside this Move.
@@ -2167,6 +2167,28 @@ Forbidden:
 - beginning d5/d6 implementation, Wildcard/NAIA retirement, or #168/#169
   Behavior; and
 - combining Contract, performance, dependency, or broad formatting cleanup.
+
+Result:
+
+- both helpers have one pure definition owner in
+  `easyuse_anima.aio.input_context`, which imports only the existing canonical
+  JSON-safe helper and owns no mutable state;
+- legacy generation and the node adapter import the owner directly. The node
+  adapter re-exports the same function objects, and root imports the owner in
+  both package and flat modes;
+- the d5 resolver drops `_require_easy_use_anima_input` and falls from 59 to
+  58 root slots. The d6 resolver drops `_easy_use_anima_input_signature` and
+  falls from 30 to 29 root slots;
+- all four remaining binders stay active. Their combined audit contains 84
+  unique resolver names, 82 root names, two provider names, and 69 repository
+  replacement names across five files;
+- root still contains 293 canonical bindings and three residual globals. The
+  package grows to 93 shipped and reachable Python modules, while `nodes.py`
+  is 1,162 lines because its two compatibility aliases now import their
+  canonical owner directly; and
+- focused input-context, node-adapter, legacy-generation, compatibility,
+  package-closure, and analyzer gates preserve signature shape, JSON-safe
+  conversion, validation/error behavior, object identity, and import closure.
 
 ### B-11d — Final root shim
 
@@ -2219,8 +2241,9 @@ COMPLETE: B-11c30d0a output-settings owner Move / PR #348
 COMPLETE: B-11c30d2 normalization/planning binder Move / PR #349
 COMPLETE: B-11c30d3 I/O-boundary binder Move / PR #350
 COMPLETE: B-11c30d4 execution-service Move / PR #351
-IN PROGRESS: B-11c30d0b input-context owner Move before d5-d6
-PLANNED:  B-11c30d5-d6 orchestration and node-adapter Moves
+COMPLETE: B-11c30d0b input-context owner Move / PR #352
+READY:    B-11c30d5 legacy-orchestration Move
+PLANNED:  B-11c30d6 node-adapter Move
 BLOCKED:  B-11d final root shim
 
 LATER:    #167 seed reservation

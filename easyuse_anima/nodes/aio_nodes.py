@@ -5,6 +5,13 @@ from __future__ import annotations
 from collections.abc import Callable
 from typing import Any, TypeAlias
 
+from ..aio.input_context import (
+    _easy_use_anima_input_signature as _easy_use_anima_input_signature,
+)
+from ..aio.input_context import (
+    _require_easy_use_anima_input as _require_easy_use_anima_input,
+)
+
 _RuntimeResolver: TypeAlias = Callable[[str], Any]
 _RUNTIME_RESOLVER: _RuntimeResolver | None = None
 
@@ -171,40 +178,6 @@ class EasyUseAnimaInput:
         },)
 
 
-def _easy_use_anima_input_signature(value) -> dict[str, Any]:
-    if not isinstance(value, dict):
-        return {"type": str(type(value).__name__)}
-    return {
-        "schema": value.get("schema"),
-        "version": value.get("version"),
-        "resource_info": _runtime_helper("_prompt_data_json_safe")(
-            value.get("resource_info", {})
-        ),
-        "input_settings": _runtime_helper("_prompt_data_json_safe")(
-            value.get("input_settings", {})
-        ),
-        "prompt_data": _runtime_helper("_prompt_data_json_safe")(
-            value.get("prompt_data", {})
-        ),
-    }
-
-
-def _require_easy_use_anima_input(value) -> dict[str, Any]:
-    if not isinstance(value, dict):
-        raise RuntimeError("[EasyUseAnima] easy use anima input is missing or invalid.")
-    missing = [
-        key
-        for key in ("prompt_data", "resource_info", "input_settings")
-        if key not in value
-    ]
-    if missing:
-        raise RuntimeError(
-            "[EasyUseAnima] easy use anima input is missing required value(s): "
-            + ", ".join(missing)
-        )
-    return value
-
-
 class EasyUseAnimaAIOGenerator:
     """Draft all-in-one generator that consumes one easy use anima input context."""
 
@@ -285,9 +258,7 @@ class EasyUseAnimaAIOGenerator:
             change_settings = settings
         return _runtime_helper("_stable_change_key")({
             "mode": "easy_use_anima_generator",
-            "input": _runtime_helper("_easy_use_anima_input_signature")(
-                easy_use_anima_input
-            ),
+            "input": _easy_use_anima_input_signature(easy_use_anima_input),
             "lora_stack": _runtime_helper("_aio_lora_stack_signature")(lora_stack),
             "generation_settings": change_settings,
         })
