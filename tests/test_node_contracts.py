@@ -53,6 +53,7 @@ from easyuse_anima.nodes import (
     sam3_nodes,
     wildcard_nodes,
 )
+from tests.comfy_host_fakes import patch_comfy_helper
 from easyuse_anima.prompt import artist_mix as prompt_artist_mix
 from easyuse_anima.prompt import advanced as prompt_advanced
 from easyuse_anima.prompt import conditioning as prompt_conditioning
@@ -190,7 +191,6 @@ def _input_spec(spec) -> dict:
 @contextmanager
 def _deterministic_comfy_inputs():
     replacements = {
-        "_comfy_max_resolution": lambda: 16384,
         "_comfy_sampler_names": lambda: ["contract_sampler_a", "contract_sampler_b"],
         "_comfy_scheduler_names": lambda: ["contract_scheduler_a", "contract_scheduler_b"],
         "_comfy_diffusion_model_names": lambda: ["contract/diffusion_model.safetensors"],
@@ -213,10 +213,18 @@ def _deterministic_comfy_inputs():
             "allow_remote_api": False,
         },
     }
-    with patch.multiple(nodes, **replacements), patch.object(
-        sam3_nodes,
-        "_comfy_checkpoint_names",
-        return_value=["contract/checkpoint.safetensors"],
+    with (
+        patch.multiple(nodes, **replacements),
+        patch_comfy_helper(
+            nodes,
+            "_comfy_max_resolution",
+            return_value=16384,
+        ),
+        patch.object(
+            sam3_nodes,
+            "_comfy_checkpoint_names",
+            return_value=["contract/checkpoint.safetensors"],
+        ),
     ):
         yield
 
@@ -1689,8 +1697,10 @@ class AioResourceNameMoveContractTests(unittest.TestCase):
         candidates = ("preferred.vae", "fallback.vae")
         returned = ["runtime.vae"]
         events = []
+        find_calls = []
 
-        def find_node_class(_node_id):
+        def find_node_class(node_id):
+            find_calls.append(node_id)
             return None
 
         def folder_names(_folder, _fallback):
@@ -1698,18 +1708,36 @@ class AioResourceNameMoveContractTests(unittest.TestCase):
 
         def adapter(candidate_values, node_finder, folder_lookup):
             events.append(
-                ("adapter_call", candidate_values, node_finder, folder_lookup)
+                (
+                    "adapter_call",
+                    candidate_values,
+                    node_finder("ContractProbe"),
+                    folder_lookup,
+                )
             )
             return returned
 
         def resolver(name):
             events.append(name)
-            return getattr(root_module, name)
+            return root_module._resolve_comfy_host_helper(
+                name,
+                lambda fallback_name: getattr(root_module, fallback_name),
+            )
+
+        def production_resolver(name):
+            return root_module._resolve_comfy_host_helper(
+                name,
+                lambda fallback_name: getattr(root_module, fallback_name),
+            )
 
         with (
             patch.object(root_module, "ANIMA_DEFAULT_VAE_CANDIDATES", candidates),
             patch.object(root_module, "_adapter_comfy_vae_names", adapter),
-            patch.object(root_module, "_find_comfy_node_class", find_node_class),
+            patch_comfy_helper(
+                root_module,
+                "_find_comfy_node_class",
+                find_node_class,
+            ),
             patch.object(root_module, "_folder_path_names", folder_names),
         ):
             canonical_module._bind_aio_resource_runtime(resolve_helper=resolver)
@@ -1717,7 +1745,7 @@ class AioResourceNameMoveContractTests(unittest.TestCase):
                 result = canonical_module._comfy_vae_names()
             finally:
                 canonical_module._bind_aio_resource_runtime(
-                    resolve_helper=lambda name: getattr(root_module, name)
+                    resolve_helper=production_resolver
                 )
 
         self.assertIs(result, returned)
@@ -1731,11 +1759,12 @@ class AioResourceNameMoveContractTests(unittest.TestCase):
                 (
                     "adapter_call",
                     candidates,
-                    find_node_class,
+                    None,
                     folder_names,
                 ),
             ],
         )
+        self.assertEqual(find_calls, ["ContractProbe"])
 
     def test_vae_root_alias_and_call_time_dependencies(self):
         self._assert_vae_contract(nodes, aio_resources)
@@ -1757,17 +1786,30 @@ class AioResourceNameMoveContractTests(unittest.TestCase):
         candidates = ("qwen_image", "stable_diffusion")
         returned = ["runtime_clip_type"]
         events = []
+        find_calls = []
 
-        def find_node_class(_node_id):
+        def find_node_class(node_id):
+            find_calls.append(node_id)
             return None
 
         def adapter(candidate_values, node_finder):
-            events.append(("adapter_call", candidate_values, node_finder))
+            events.append(
+                ("adapter_call", candidate_values, node_finder("ContractProbe"))
+            )
             return returned
 
         def resolver(name):
             events.append(name)
-            return getattr(root_module, name)
+            return root_module._resolve_comfy_host_helper(
+                name,
+                lambda fallback_name: getattr(root_module, fallback_name),
+            )
+
+        def production_resolver(name):
+            return root_module._resolve_comfy_host_helper(
+                name,
+                lambda fallback_name: getattr(root_module, fallback_name),
+            )
 
         with (
             patch.object(root_module, "ANIMA_CLIP_TYPES", candidates),
@@ -1776,14 +1818,18 @@ class AioResourceNameMoveContractTests(unittest.TestCase):
                 "_adapter_comfy_clip_loader_types",
                 adapter,
             ),
-            patch.object(root_module, "_find_comfy_node_class", find_node_class),
+            patch_comfy_helper(
+                root_module,
+                "_find_comfy_node_class",
+                find_node_class,
+            ),
         ):
             canonical_module._bind_aio_resource_runtime(resolve_helper=resolver)
             try:
                 result = canonical_module._comfy_clip_loader_types()
             finally:
                 canonical_module._bind_aio_resource_runtime(
-                    resolve_helper=lambda name: getattr(root_module, name)
+                    resolve_helper=production_resolver
                 )
 
         self.assertIs(result, returned)
@@ -1793,9 +1839,10 @@ class AioResourceNameMoveContractTests(unittest.TestCase):
                 "_adapter_comfy_clip_loader_types",
                 "ANIMA_CLIP_TYPES",
                 "_find_comfy_node_class",
-                ("adapter_call", candidates, find_node_class),
+                ("adapter_call", candidates, None),
             ],
         )
+        self.assertEqual(find_calls, ["ContractProbe"])
 
     def test_clip_loader_type_root_alias_and_call_time_dependencies(self):
         self._assert_clip_loader_type_contract(nodes, aio_resources)

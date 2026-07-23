@@ -19,6 +19,7 @@ from easyuse_anima.aio.generation_migrations import (
 from easyuse_anima.aio.generation_settings import (
     migrate_normalize_and_round_trip_aio_generation_settings,
 )
+from tests.comfy_host_fakes import patch_comfy_helper
 
 
 def _payload(version: int = 1) -> dict[str, object]:
@@ -161,9 +162,15 @@ class AIOGenerationMigrationTests(unittest.TestCase):
             "_comfy_sampler_names": lambda: ["euler"],
             "_comfy_scheduler_names": lambda: ["simple"],
             "_impact_scheduler_names": lambda: ["sgm_uniform"],
-            "_comfy_max_resolution": lambda: 16384,
         }
-        with patch.multiple(nodes, **capabilities):
+        with (
+            patch.multiple(nodes, **capabilities),
+            patch_comfy_helper(
+                nodes,
+                "_comfy_max_resolution",
+                return_value=16384,
+            ),
+        ):
             expected = nodes._normalize_aio_generation_settings(legacy)
             actual = migrate_normalize_and_round_trip_aio_generation_settings(
                 legacy,
@@ -173,7 +180,14 @@ class AIOGenerationMigrationTests(unittest.TestCase):
         self.assertEqual(actual, expected)
         self.assertEqual(legacy, legacy_before)
 
-        with patch.multiple(nodes, **capabilities):
+        with (
+            patch.multiple(nodes, **capabilities),
+            patch_comfy_helper(
+                nodes,
+                "_comfy_max_resolution",
+                return_value=16384,
+            ),
+        ):
             current_runtime = nodes._normalize_aio_generation_settings(
                 {"schema": AIO_GENERATION_SETTINGS_SCHEMA, "version": 2}
             )

@@ -5,6 +5,7 @@ from unittest.mock import Mock, patch
 
 import nodes
 from easyuse_anima.aio import conditioning
+from tests.comfy_host_fakes import patch_comfy_helper
 
 
 class AIOConditioningMoveTests(unittest.TestCase):
@@ -20,7 +21,7 @@ class AIOConditioningMoveTests(unittest.TestCase):
     def test_full_mode_preserves_original_conditioning_identity(self):
         positive = object()
         negative = object()
-        with patch.object(nodes, "_encode_with_comfy_clip") as encode:
+        with patch_comfy_helper(nodes, "_encode_with_comfy_clip") as encode:
             result = conditioning._aio_usdu_conditioning(
                 "clip",
                 positive,
@@ -74,7 +75,11 @@ class AIOConditioningMoveTests(unittest.TestCase):
             encoded.append(text)
             return f"encoded:{text}"
 
-        with patch.object(nodes, "_encode_with_comfy_clip", side_effect=encode):
+        with patch_comfy_helper(
+            nodes,
+            "_encode_with_comfy_clip",
+            side_effect=encode,
+        ):
             result = conditioning._aio_usdu_conditioning(
                 "clip",
                 "original-positive",
@@ -104,12 +109,16 @@ class AIOConditioningMoveTests(unittest.TestCase):
 
         def first_encode(_clip, text):
             calls.append(("first", text))
-            nodes._encode_with_comfy_clip = replacement_encode
+            encode.side_effect = replacement_encode
             return f"first:{text}"
 
         with (
             patch.object(nodes, "_aio_usdu_prompt_without_general", return_value=("", False)),
-            patch.object(nodes, "_encode_with_comfy_clip", side_effect=first_encode),
+            patch_comfy_helper(
+                nodes,
+                "_encode_with_comfy_clip",
+                side_effect=first_encode,
+            ) as encode,
         ):
             result = conditioning._aio_usdu_conditioning(
                 "clip",

@@ -10,10 +10,18 @@ from unittest.mock import patch
 
 import nodes
 from easyuse_anima.aio import legacy_generation
+from tests.comfy_host_fakes import patch_comfy_helper
 from tests.test_node_contracts import _loaded_package_entrypoint
 
 ROOT = Path(__file__).resolve().parents[1]
 TRACE_FIXTURE_PATH = ROOT / "tests" / "fixtures" / "aio_legacy_execution_trace.v1.json"
+
+
+def _production_resolver(name):
+    return nodes._resolve_comfy_host_helper(
+        name,
+        lambda fallback_name: getattr(nodes, fallback_name),
+    )
 
 
 class _Token:
@@ -122,7 +130,7 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
             )
         finally:
             legacy_generation._bind_aio_legacy_generation_runtime(
-                resolve_helper=lambda name: getattr(nodes, name)
+                resolve_helper=_production_resolver
             )
 
         self.assertIs(result[0], base_latent)
@@ -273,7 +281,7 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
             )
         finally:
             legacy_generation._bind_aio_legacy_generation_runtime(
-                resolve_helper=lambda name: getattr(nodes, name)
+                resolve_helper=_production_resolver
             )
 
         self.assertEqual(
@@ -373,7 +381,7 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
                 )
         finally:
             legacy_generation._bind_aio_legacy_generation_runtime(
-                resolve_helper=lambda name: getattr(nodes, name)
+                resolve_helper=_production_resolver
             )
 
         self.assertEqual(
@@ -426,7 +434,7 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
                 )
             finally:
                 legacy_generation._bind_aio_legacy_generation_runtime(
-                    resolve_helper=lambda name: getattr(nodes, name)
+                    resolve_helper=_production_resolver
                 )
             return result, trace
 
@@ -561,7 +569,7 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
             )
         finally:
             legacy_generation._bind_aio_legacy_generation_runtime(
-                resolve_helper=lambda name: getattr(nodes, name)
+                resolve_helper=_production_resolver
             )
 
         self.assertIs(result[0], face_image)
@@ -640,7 +648,7 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
                 )
             finally:
                 legacy_generation._bind_aio_legacy_generation_runtime(
-                    resolve_helper=lambda name: getattr(nodes, name)
+                    resolve_helper=_production_resolver
                 )
             return trace
 
@@ -742,7 +750,7 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
             )
         finally:
             legacy_generation._bind_aio_legacy_generation_runtime(
-                resolve_helper=lambda name: getattr(nodes, name)
+                resolve_helper=_production_resolver
             )
 
         self.assertIs(result[0], image)
@@ -882,7 +890,7 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
             )
         finally:
             legacy_generation._bind_aio_legacy_generation_runtime(
-                resolve_helper=lambda name: getattr(nodes, name)
+                resolve_helper=_production_resolver
             )
 
         self.assertIs(result[0], detailed_image)
@@ -1038,7 +1046,7 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
                 )
             finally:
                 legacy_generation._bind_aio_legacy_generation_runtime(
-                    resolve_helper=lambda name: getattr(nodes, name)
+                    resolve_helper=_production_resolver
                 )
 
         planner_trace = []
@@ -1299,7 +1307,7 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
             )
         finally:
             legacy_generation._bind_aio_legacy_generation_runtime(
-                resolve_helper=lambda name: getattr(nodes, name)
+                resolve_helper=_production_resolver
             )
 
         self.assertIs(result[0], output)
@@ -1473,7 +1481,7 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
                 )
             finally:
                 legacy_generation._bind_aio_legacy_generation_runtime(
-                    resolve_helper=lambda name: getattr(nodes, name)
+                    resolve_helper=_production_resolver
                 )
 
         patch_trace = []
@@ -1638,7 +1646,7 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
             )
         finally:
             legacy_generation._bind_aio_legacy_generation_runtime(
-                resolve_helper=lambda name: getattr(nodes, name)
+                resolve_helper=_production_resolver
             )
 
         self.assertIs(result[0], output)
@@ -1713,7 +1721,7 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
                 )
             finally:
                 legacy_generation._bind_aio_legacy_generation_runtime(
-                    resolve_helper=lambda name: getattr(nodes, name)
+                    resolve_helper=_production_resolver
                 )
 
         first_provider_trace = []
@@ -1885,7 +1893,7 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
                 )
             finally:
                 legacy_generation._bind_aio_legacy_generation_runtime(
-                    resolve_helper=lambda name: getattr(nodes, name)
+                    resolve_helper=_production_resolver
                 )
 
         disabled_trace = []
@@ -2307,53 +2315,65 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
         def unexpected(*args, **kwargs):
             self.fail("standalone Mod Guidance must remain lazy for the fixture cases")
 
-        with patch.multiple(
-            nodes,
-            _require_easy_use_anima_input=require,
-            _normalize_aio_generation_settings=normalize_settings,
-            _resolve_aio_runtime_seed=resolve_seed,
-            _load_aio_resources_from_input_context=load_resources,
-            _apply_aio_lora_stack=apply_lora,
-            _apply_aio_model_patches=apply_model_patches,
-            _normalize_prompt_data=phase("normalize_prompt", context["prompt_data"]),
-            _advanced_outputs_from_prompt_data=advanced_outputs,
-            _encode_prompt_data_positive_conditioning=phase(
-                "encode_positive", "positive-conditioning"
+        with (
+            patch.multiple(
+                nodes,
+                _require_easy_use_anima_input=require,
+                _normalize_aio_generation_settings=normalize_settings,
+                _resolve_aio_runtime_seed=resolve_seed,
+                _load_aio_resources_from_input_context=load_resources,
+                _apply_aio_lora_stack=apply_lora,
+                _apply_aio_model_patches=apply_model_patches,
+                _normalize_prompt_data=phase(
+                    "normalize_prompt",
+                    context["prompt_data"],
+                ),
+                _advanced_outputs_from_prompt_data=advanced_outputs,
+                _encode_prompt_data_positive_conditioning=phase(
+                    "encode_positive",
+                    "positive-conditioning",
+                ),
+                _as_bool=lambda value, default: bool(value),
+                _aio_detailer_has_enabled_targets=phase("detailer_enabled", False),
+                _normalize_anima_mod_guidance_profile=phase("normalize_profile", "off"),
+                _resolve_anima_mod_guidance_enabled=phase("resolve_guidance", False),
+                _aio_highres_effective_backend=phase(
+                    "resolve_highres_backend",
+                    "comfy_ksampler",
+                ),
+                _apply_spectrum_anima_mod_guidance=unexpected,
+                _apply_aio_spectrum_model_patches_for_comfy_sampler=apply_spectrum_model,
+                _single_value=lambda value: value,
+                random=_Random,
+                _aio_first_pass_cache_key=cache_key,
+                _get_aio_first_pass_cache=phase("get_cache", None),
+                _generate_empty_latent_with_comfy=phase("empty_latent", "empty-latent"),
+                _sample_latent_with_aio_backend=phase("sample", "sampled-latent"),
+                _decode_latent_with_comfy=phase("decode", "decoded-image"),
+                _resize_image_to_size_if_needed=phase(
+                    "resize_first_pass",
+                    ("decoded-image", False),
+                ),
+                _put_aio_first_pass_cache=phase("put_cache", None),
+                _run_aio_highres_stage=run_highres,
+                _run_aio_detailer_stage=run_detailer,
+                _run_aio_upscale_stage=run_upscale,
+                _image_tensor_size=image_size,
+                _encode_image_with_comfy_vae=encode_image,
+                _run_aio_postprocess_stage=run_postprocess,
+                _cleanup_aio_ephemeral_model=cleanup,
+                _save_aio_temp_preview_image=save_temp,
+                _send_aio_preview_event=send_preview,
+                _aio_save_filename_prefix=save_prefix,
+                _save_image_with_comfy=save_comfy,
+                _tag_aio_preview_images=tag_images,
+                _prompt_data_json_safe=copy.deepcopy,
             ),
-            _encode_with_comfy_clip=phase("encode_negative", "negative-conditioning"),
-            _as_bool=lambda value, default: bool(value),
-            _aio_detailer_has_enabled_targets=phase("detailer_enabled", False),
-            _normalize_anima_mod_guidance_profile=phase("normalize_profile", "off"),
-            _resolve_anima_mod_guidance_enabled=phase("resolve_guidance", False),
-            _aio_highres_effective_backend=phase(
-                "resolve_highres_backend", "comfy_ksampler"
+            patch_comfy_helper(
+                nodes,
+                "_encode_with_comfy_clip",
+                phase("encode_negative", "negative-conditioning"),
             ),
-            _apply_spectrum_anima_mod_guidance=unexpected,
-            _apply_aio_spectrum_model_patches_for_comfy_sampler=apply_spectrum_model,
-            _single_value=lambda value: value,
-            random=_Random,
-            _aio_first_pass_cache_key=cache_key,
-            _get_aio_first_pass_cache=phase("get_cache", None),
-            _generate_empty_latent_with_comfy=phase("empty_latent", "empty-latent"),
-            _sample_latent_with_aio_backend=phase("sample", "sampled-latent"),
-            _decode_latent_with_comfy=phase("decode", "decoded-image"),
-            _resize_image_to_size_if_needed=phase(
-                "resize_first_pass", ("decoded-image", False)
-            ),
-            _put_aio_first_pass_cache=phase("put_cache", None),
-            _run_aio_highres_stage=run_highres,
-            _run_aio_detailer_stage=run_detailer,
-            _run_aio_upscale_stage=run_upscale,
-            _image_tensor_size=image_size,
-            _encode_image_with_comfy_vae=encode_image,
-            _run_aio_postprocess_stage=run_postprocess,
-            _cleanup_aio_ephemeral_model=cleanup,
-            _save_aio_temp_preview_image=save_temp,
-            _send_aio_preview_event=send_preview,
-            _aio_save_filename_prefix=save_prefix,
-            _save_image_with_comfy=save_comfy,
-            _tag_aio_preview_images=tag_images,
-            _prompt_data_json_safe=copy.deepcopy,
         ):
             output = generator.generate(
                 context,

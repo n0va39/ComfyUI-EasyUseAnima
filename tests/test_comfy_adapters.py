@@ -391,9 +391,13 @@ class ComfyRootCompatibilityTests(unittest.TestCase):
             def encode(self, clip, text):
                 return (f"{clip}:{text}",)
 
-        with patch.object(nodes, "_find_comfy_node_class", return_value=ClipTextEncode) as finder:
+        with patch.object(
+            nodes,
+            "NODE_CLASS_MAPPINGS",
+            {"CLIPTextEncode": ClipTextEncode},
+            create=True,
+        ):
             self.assertEqual(nodes._encode_with_comfy_clip("clip", "prompt"), "clip:prompt")
-        finder.assert_called_once_with("CLIPTextEncode")
 
     def test_adapter_modules_remain_below_production_module_loc_guidance(self):
         for path in (

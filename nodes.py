@@ -424,6 +424,9 @@ try:
         _encode_with_comfy_clip as _adapter_encode_with_comfy_clip,
         _node_output_tuple as _node_output_tuple,
     )
+    from .easyuse_anima.infrastructure.comfy.wiring import (
+        resolve_comfy_host_helper as _resolve_comfy_host_helper,
+    )
     from .easyuse_anima.infrastructure.comfy.resources import (
         # B-10b1 deliberately omits the retired root _comfy_checkpoint_names alias.
         _comfy_clip_loader_types as _adapter_comfy_clip_loader_types,
@@ -984,6 +987,9 @@ except ImportError:  # allows simple local import tests outside ComfyUI's packag
         _common_upscale_image as _common_upscale_image,
         _encode_with_comfy_clip as _adapter_encode_with_comfy_clip,
         _node_output_tuple as _node_output_tuple,
+    )
+    from easyuse_anima.infrastructure.comfy.wiring import (
+        resolve_comfy_host_helper as _resolve_comfy_host_helper,
     )
     from easyuse_anima.infrastructure.comfy.resources import (
         # B-10b1 deliberately omits the retired root _comfy_checkpoint_names alias.
@@ -1761,10 +1767,16 @@ _bind_aio_first_pass_cache_runtime(
     resolve_helper=lambda name: globals()[name],
 )
 _bind_aio_legacy_generation_runtime(
-    resolve_helper=lambda name: globals()[name],
+    resolve_helper=lambda name: _resolve_comfy_host_helper(
+        name,
+        lambda fallback_name: globals()[fallback_name],
+    ),
 )
 _bind_aio_generation_normalization_runtime(
-    resolve_helper=lambda name: globals()[name],
+    resolve_helper=lambda name: _resolve_comfy_host_helper(
+        name,
+        lambda fallback_name: globals()[fallback_name],
+    ),
 )
 _bind_aio_usdu_planning_runtime(
     resolve_helper=lambda name: globals()[name],
@@ -1773,37 +1785,67 @@ _bind_aio_postprocess_runtime(
     resolve_helper=lambda name: globals()[name],
 )
 _bind_aio_resource_runtime(
-    resolve_helper=lambda name: globals()[name],
+    resolve_helper=lambda name: _resolve_comfy_host_helper(
+        name,
+        lambda fallback_name: globals()[fallback_name],
+    ),
 )
 _bind_aio_model_preparation_runtime(
-    resolve_helper=lambda name: globals()[name],
+    resolve_helper=lambda name: _resolve_comfy_host_helper(
+        name,
+        lambda fallback_name: globals()[fallback_name],
+    ),
 )
 _bind_aio_sampling_runtime(
-    resolve_helper=lambda name: globals()[name],
+    resolve_helper=lambda name: _resolve_comfy_host_helper(
+        name,
+        lambda fallback_name: globals()[fallback_name],
+    ),
 )
 _bind_aio_preview_runtime(
-    resolve_helper=lambda name: globals()[name],
+    resolve_helper=lambda name: _resolve_comfy_host_helper(
+        name,
+        lambda fallback_name: globals()[fallback_name],
+    ),
 )
 _bind_aio_output_runtime(
-    resolve_helper=lambda name: globals()[name],
+    resolve_helper=lambda name: _resolve_comfy_host_helper(
+        name,
+        lambda fallback_name: globals()[fallback_name],
+    ),
 )
 _bind_aio_conditioning_runtime(
-    resolve_helper=lambda name: globals()[name],
+    resolve_helper=lambda name: _resolve_comfy_host_helper(
+        name,
+        lambda fallback_name: globals()[fallback_name],
+    ),
 )
 _bind_sam3_runtime(
-    resolve_helper=lambda name: globals()[name],
+    resolve_helper=lambda name: _resolve_comfy_host_helper(
+        name,
+        lambda fallback_name: globals()[fallback_name],
+    ),
 )
 _bind_impact_detailer_node_runtime(
-    resolve_helper=lambda name: globals()[name],
+    resolve_helper=lambda name: _resolve_comfy_host_helper(
+        name,
+        lambda fallback_name: globals()[fallback_name],
+    ),
 )
 _bind_sam3_node_runtime(
-    resolve_helper=lambda name: globals()[name],
+    resolve_helper=lambda name: _resolve_comfy_host_helper(
+        name,
+        lambda fallback_name: globals()[fallback_name],
+    ),
 )
 _bind_regional_runtime(
     resolve_helper=lambda name: globals()[name],
 )
 _bind_regional_node_runtime(
-    resolve_helper=lambda name: globals()[name],
+    resolve_helper=lambda name: _resolve_comfy_host_helper(
+        name,
+        lambda fallback_name: globals()[fallback_name],
+    ),
     flexible_optional_input_type=_FlexibleOptionalInputType,
 )
 _bind_advanced_runtime(
@@ -1817,14 +1859,23 @@ _bind_aio_node_runtime(
     resolve_helper=lambda name: globals()[name],
 )
 _bind_conditioning_runtime(
-    resolve_helper=lambda name: globals()[name],
+    resolve_helper=lambda name: _resolve_comfy_host_helper(
+        name,
+        lambda fallback_name: globals()[fallback_name],
+    ),
     resolve_logger=lambda: logger,
 )
 _bind_artist_mix_runtime(
-    resolve_helper=lambda name: globals()[name],
+    resolve_helper=lambda name: _resolve_comfy_host_helper(
+        name,
+        lambda fallback_name: globals()[fallback_name],
+    ),
 )
 _bind_prompt_data_node_runtime(
-    resolve_helper=lambda name: globals()[name],
+    resolve_helper=lambda name: _resolve_comfy_host_helper(
+        name,
+        lambda fallback_name: globals()[fallback_name],
+    ),
 )
 _bind_prompt_fields_runtime(
     resolve_helper=lambda name: globals()[name],

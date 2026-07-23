@@ -7,6 +7,7 @@ from unittest.mock import Mock, patch
 
 import nodes
 from easyuse_anima.aio import model_preparation
+from tests.comfy_host_fakes import patch_comfy_helper
 
 
 class AIOModelPreparationMoveTests(unittest.TestCase):
@@ -52,7 +53,11 @@ class AIOModelPreparationMoveTests(unittest.TestCase):
                 calls.append((model, clip, name, model_strength, clip_strength))
                 return f"{model}>{name}", f"{clip}>{name}"
 
-        with patch.object(nodes, "_find_comfy_node_class", return_value=LoraLoader):
+        with patch_comfy_helper(
+            nodes,
+            "_find_comfy_node_class",
+            return_value=LoraLoader,
+        ):
             model, clip, applied = model_preparation._apply_aio_lora_stack(
                 "model", "clip", stack
             )
@@ -145,7 +150,11 @@ class AIOModelPreparationMoveTests(unittest.TestCase):
             "PathchSageAttentionKJ": SageAttention,
             "TorchCompileModelAdvanced": TorchCompile,
         }
-        with patch.object(nodes, "_require_custom_node_class", side_effect=lambda node_id, *_: classes[node_id]):
+        with patch_comfy_helper(
+            nodes,
+            "_require_custom_node_class",
+            side_effect=lambda node_id: classes[node_id],
+        ):
             result = model_preparation._apply_aio_kj_model_patches(
                 "base",
                 {
@@ -284,8 +293,14 @@ class AIOModelPreparationMoveTests(unittest.TestCase):
     def test_disabled_spectrum_variants_preserve_model_identity(self):
         model = object()
         with (
-            patch.object(nodes, "_require_custom_node_class") as require_correction,
-            patch.object(nodes, "_require_any_custom_node_class") as require_forecast,
+            patch_comfy_helper(
+                nodes,
+                "_require_custom_node_class",
+            ) as require_correction,
+            patch_comfy_helper(
+                nodes,
+                "_require_any_custom_node_class",
+            ) as require_forecast,
         ):
             self.assertIs(
                 model_preparation._apply_aio_spectrum_correction_patch_for_comfy_sampler(

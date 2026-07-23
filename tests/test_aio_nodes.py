@@ -8,7 +8,23 @@ from unittest.mock import patch
 import nodes
 from easyuse_anima.aio import first_pass_cache
 from easyuse_anima.nodes import aio_nodes
+from tests.comfy_host_fakes import (
+    FakeComfyHostProvider,
+    patch_comfy_helper,
+    use_fake_comfy_host,
+)
 from tests.test_node_contracts import _loaded_package_entrypoint
+
+
+_DEFAULT_COMFY_HOST = use_fake_comfy_host(nodes, FakeComfyHostProvider())
+
+
+def setUpModule():
+    _DEFAULT_COMFY_HOST.__enter__()
+
+
+def tearDownModule():
+    _DEFAULT_COMFY_HOST.__exit__(None, None, None)
 
 
 class AIONodeContractTests(unittest.TestCase):
@@ -876,7 +892,7 @@ class AIOSettingsStorageTests(unittest.TestCase):
 
 class AIOImageSaverDependencyTests(unittest.TestCase):
     def test_missing_image_saver_dependency_names_required_node_pack(self):
-        with patch.object(nodes, "_find_comfy_node_class", return_value=None):
+        with patch_comfy_helper(nodes, "_find_comfy_node_class", return_value=None):
             with self.assertRaisesRegex(RuntimeError, "ComfyUI-Image-Saver"):
                 nodes._save_image_with_image_saver(
                     images=None,
@@ -899,7 +915,11 @@ class AIOImageSaverDependencyTests(unittest.TestCase):
                 fetch_calls.append((username, model_name, version))
                 return ("ABCDEF1234",)
 
-        with patch.object(nodes, "_find_comfy_node_class", return_value=FakeCivitaiHashFetcher):
+        with patch_comfy_helper(
+            nodes,
+            "_find_comfy_node_class",
+            return_value=FakeCivitaiHashFetcher,
+        ):
             result = nodes._aio_image_saver_additional_hashes({
                 "additional_hashes": "Base:AAAAAAAA",
                 "additional_hash_bundles": [
@@ -927,7 +947,11 @@ class AIOImageSaverDependencyTests(unittest.TestCase):
             def get_autov3_hash(self, username, model_name, version=""):
                 return ("Error: API request failed with status 503",)
 
-        with patch.object(nodes, "_find_comfy_node_class", return_value=FakeCivitaiHashFetcher):
+        with patch_comfy_helper(
+            nodes,
+            "_find_comfy_node_class",
+            return_value=FakeCivitaiHashFetcher,
+        ):
             with self.assertLogs("ComfyUI-EasyUseAnima", level="WARNING") as logs:
                 result = nodes._aio_image_saver_additional_hashes({
                     "additional_hashes": "Base:AAAAAAAA",
@@ -949,7 +973,11 @@ class AIOImageSaverDependencyTests(unittest.TestCase):
             def get_autov3_hash(self, username, model_name, version=""):
                 raise RuntimeError("temporary upstream failure")
 
-        with patch.object(nodes, "_find_comfy_node_class", return_value=FakeCivitaiHashFetcher):
+        with patch_comfy_helper(
+            nodes,
+            "_find_comfy_node_class",
+            return_value=FakeCivitaiHashFetcher,
+        ):
             with self.assertLogs("ComfyUI-EasyUseAnima", level="WARNING") as logs:
                 result = nodes._aio_image_saver_additional_hashes({
                     "additional_hashes": "Base:AAAAAAAA",
@@ -1010,7 +1038,11 @@ class AIOImageSaverDependencyTests(unittest.TestCase):
                 "Civitai Hash Fetcher (Image Saver)": FakeCivitaiHashFetcher,
             }.get(node_id)
 
-        with patch.object(nodes, "_find_comfy_node_class", side_effect=fake_find):
+        with patch_comfy_helper(
+            nodes,
+            "_find_comfy_node_class",
+            side_effect=fake_find,
+        ):
             result = nodes._save_image_with_image_saver(
                 images="images",
                 save_settings=settings["save"],
@@ -1048,7 +1080,11 @@ class AIOImageSaverDependencyTests(unittest.TestCase):
                 calls.append(kwargs)
                 return {"ui": {"images": [{"filename": "preview.webp"}]}}
 
-        with patch.object(nodes, "_find_comfy_node_class", return_value=FakeImageSaver):
+        with patch_comfy_helper(
+            nodes,
+            "_find_comfy_node_class",
+            return_value=FakeImageSaver,
+        ):
             nodes._save_image_with_image_saver(
                 images="images",
                 save_settings=nodes._normalize_aio_generation_settings("{}")["save"],
@@ -1085,7 +1121,11 @@ class AIOImageSaverDependencyTests(unittest.TestCase):
             },
         }))
 
-        with patch.object(nodes, "_find_comfy_node_class", return_value=FakeImageSaver):
+        with patch_comfy_helper(
+            nodes,
+            "_find_comfy_node_class",
+            return_value=FakeImageSaver,
+        ):
             nodes._save_image_with_image_saver(
                 images="images",
                 save_settings=settings["save"],
@@ -1129,7 +1169,11 @@ class AIOLoraStackTests(unittest.TestCase):
                 calls.append((model, clip, lora_name, strength_model, strength_clip))
                 return (f"{model}>{lora_name}", f"{clip}>{lora_name}")
 
-        with patch.object(nodes, "_find_comfy_node_class", return_value=FakeLoraLoader):
+        with patch_comfy_helper(
+            nodes,
+            "_find_comfy_node_class",
+            return_value=FakeLoraLoader,
+        ):
             model, clip, applied = nodes._apply_aio_lora_stack(
                 "model",
                 "clip",
@@ -1185,7 +1229,11 @@ class AIOSamplerDependencyTests(unittest.TestCase):
             },
         }))
 
-        with patch.object(nodes, "_find_comfy_node_class", side_effect=fake_find):
+        with patch_comfy_helper(
+            nodes,
+            "_find_comfy_node_class",
+            side_effect=fake_find,
+        ):
             result = nodes._apply_aio_spectrum_model_patches_for_comfy_sampler(
                 "base_model",
                 "clip",
@@ -1224,7 +1272,11 @@ class AIOSamplerDependencyTests(unittest.TestCase):
             },
         }))
 
-        with patch.object(nodes, "_find_comfy_node_class", side_effect=fake_find):
+        with patch_comfy_helper(
+            nodes,
+            "_find_comfy_node_class",
+            side_effect=fake_find,
+        ):
             result = nodes._apply_aio_spectrum_model_patches_for_comfy_sampler(
                 "base_model",
                 "clip",
@@ -1248,7 +1300,7 @@ class AIOSamplerDependencyTests(unittest.TestCase):
             },
         }))
 
-        with patch.object(nodes, "_find_comfy_node_class", return_value=None):
+        with patch_comfy_helper(nodes, "_find_comfy_node_class", return_value=None):
             with self.assertRaisesRegex(RuntimeError, "ComfyUI-Spectrum-KSampler"):
                 nodes._apply_aio_spectrum_model_patches_for_comfy_sampler(
                     "base_model",
@@ -1264,7 +1316,7 @@ class AIOSamplerDependencyTests(unittest.TestCase):
             },
         }))
 
-        with patch.object(nodes, "_find_comfy_node_class", return_value=None):
+        with patch_comfy_helper(nodes, "_find_comfy_node_class", return_value=None):
             with self.assertRaisesRegex(RuntimeError, "ComfyUI-Spectrum-KSampler"):
                 nodes._sample_latent_with_aio_backend(
                     model=None,
@@ -1320,7 +1372,11 @@ class AIOSamplerDependencyTests(unittest.TestCase):
             },
         }))
 
-        with patch.object(nodes, "_require_custom_node_class", return_value=LegacySpectrumAdvanced):
+        with patch_comfy_helper(
+            nodes,
+            "_require_custom_node_class",
+            return_value=LegacySpectrumAdvanced,
+        ):
             result = nodes._sample_latent_with_spectrum_mod_guidance_advanced(
                 "model",
                 "clip",
@@ -1392,7 +1448,11 @@ class AIOSamplerDependencyTests(unittest.TestCase):
             },
         }))
 
-        with patch.object(nodes, "_require_custom_node_class", return_value=FakeSpectrumSPDKSampler):
+        with patch_comfy_helper(
+            nodes,
+            "_require_custom_node_class",
+            return_value=FakeSpectrumSPDKSampler,
+        ):
             result = nodes._sample_latent_with_spectrum_spd(
                 model="model",
                 sampler_settings=settings["sampler"],
@@ -1437,7 +1497,11 @@ class AIOSamplerDependencyTests(unittest.TestCase):
             },
         }))
 
-        with patch.object(nodes, "_require_custom_node_class", return_value=LegacySpd):
+        with patch_comfy_helper(
+            nodes,
+            "_require_custom_node_class",
+            return_value=LegacySpd,
+        ):
             result = nodes._sample_latent_with_spectrum_spd(
                 "model",
                 settings["sampler"],
@@ -1470,7 +1534,11 @@ class AIOSamplerDependencyTests(unittest.TestCase):
             },
         }))
 
-        with patch.object(nodes, "_require_custom_node_class", return_value=FakeAnimaDAVE):
+        with patch_comfy_helper(
+            nodes,
+            "_require_custom_node_class",
+            return_value=FakeAnimaDAVE,
+        ):
             result = nodes._apply_aio_anima_dave_patch("base_model", settings["model_patches"]["dave"])
 
         self.assertEqual(result, "dave_model")
@@ -1500,7 +1568,11 @@ class AIOSamplerDependencyTests(unittest.TestCase):
             },
         }))
 
-        with patch.object(nodes, "_require_custom_node_class", return_value=FakeAnimaSafePAG):
+        with patch_comfy_helper(
+            nodes,
+            "_require_custom_node_class",
+            return_value=FakeAnimaSafePAG,
+        ):
             result = nodes._apply_aio_safe_pag_patch("base_model", settings["model_patches"]["safe_pag"])
 
         self.assertEqual(result, "safe_pag_model")
@@ -2175,9 +2247,17 @@ class AIOFinalUpscaleStageTests(unittest.TestCase):
                 return (AIOFinalUpscaleStageTests._Image(1024, 1536),)
 
         with (
-            patch.object(nodes, "_require_custom_node_class", return_value=FakeUSDU) as require,
+            patch_comfy_helper(
+                nodes,
+                "_require_custom_node_class",
+                return_value=FakeUSDU,
+            ) as require,
             patch.object(nodes, "_load_upscale_model_with_comfy", return_value="upscale_model") as load_upscale,
-            patch.object(nodes, "_encode_with_comfy_clip", side_effect=lambda clip, prompt: f"encoded:{prompt}") as encode,
+            patch_comfy_helper(
+                nodes,
+                "_encode_with_comfy_clip",
+                side_effect=lambda clip, prompt: f"encoded:{prompt}",
+            ) as encode,
             patch.object(nodes, "_apply_aio_spectrum_model_patches_for_comfy_sampler", return_value="stage_model") as patch_stage,
             patch.object(nodes, "_cleanup_aio_ephemeral_model") as cleanup,
             self.assertLogs("ComfyUI-EasyUseAnima", level="INFO") as logs,
@@ -2265,7 +2345,11 @@ class AIOFinalUpscaleStageTests(unittest.TestCase):
 
         input_image = self._Image(512, 768)
         with (
-            patch.object(nodes, "_require_custom_node_class", side_effect=fake_require) as require,
+            patch_comfy_helper(
+                nodes,
+                "_require_custom_node_class",
+                side_effect=fake_require,
+            ) as require,
             patch.object(nodes, "_load_upscale_model_with_comfy") as load_upscale,
             patch.object(nodes, "_apply_aio_spectrum_model_patches_for_comfy_sampler") as patch_stage,
         ):
@@ -2317,7 +2401,7 @@ class AIOGeneratorRuntimeTests(unittest.TestCase):
             patch.object(nodes, "_apply_aio_model_patches", return_value="patched_model"),
             patch.object(nodes, "_advanced_outputs_from_prompt_data", return_value=("p", "n", "q", "qn", False, False, "", "", 512, 768)),
             patch.object(nodes, "_encode_prompt_data_positive_conditioning", return_value="positive"),
-            patch.object(nodes, "_encode_with_comfy_clip", return_value="negative"),
+            patch_comfy_helper(nodes, "_encode_with_comfy_clip", return_value="negative"),
             patch.object(nodes, "_generate_empty_latent_with_comfy", return_value="latent_image"),
             patch.object(nodes, "_sample_latent_with_aio_backend", return_value="latent"),
             patch.object(nodes, "_decode_latent_with_comfy", return_value="image"),
@@ -2344,7 +2428,7 @@ class AIOGeneratorRuntimeTests(unittest.TestCase):
             patch.object(nodes, "_apply_aio_model_patches", return_value="patched_model"),
             patch.object(nodes, "_advanced_outputs_from_prompt_data", return_value=("p", "n", "q", "qn", False, False, "", "", 512, 768)),
             patch.object(nodes, "_encode_prompt_data_positive_conditioning", return_value="positive"),
-            patch.object(nodes, "_encode_with_comfy_clip", return_value="negative"),
+            patch_comfy_helper(nodes, "_encode_with_comfy_clip", return_value="negative"),
             patch.object(nodes, "_generate_empty_latent_with_comfy", return_value="latent_image"),
             patch.object(nodes, "_sample_latent_with_aio_backend", return_value="latent"),
             patch.object(nodes, "_decode_latent_with_comfy", return_value="undersized_image"),
@@ -2387,7 +2471,7 @@ class AIOGeneratorRuntimeTests(unittest.TestCase):
                     patch.object(nodes, "_apply_aio_model_patches", return_value="patched_model"),
                     patch.object(nodes, "_advanced_outputs_from_prompt_data", return_value=("p", "n", "q", "qn", True, False, "", "", 512, 768)),
                     patch.object(nodes, "_encode_prompt_data_positive_conditioning", return_value="positive"),
-                    patch.object(nodes, "_encode_with_comfy_clip", return_value="negative"),
+                    patch_comfy_helper(nodes, "_encode_with_comfy_clip", return_value="negative"),
                     patch.object(nodes, "_generate_empty_latent_with_comfy", return_value="latent_image"),
                     patch.object(nodes, "_apply_spectrum_anima_mod_guidance", return_value="mod_guidance_model") as standalone_mod,
                     patch.object(nodes, "_apply_aio_spectrum_model_patches_for_comfy_sampler", return_value="sampler_patch_model") as comfy_patch,
@@ -2434,7 +2518,7 @@ class AIOGeneratorRuntimeTests(unittest.TestCase):
             patch.object(nodes, "_apply_aio_model_patches", return_value="patched_model"),
             patch.object(nodes, "_advanced_outputs_from_prompt_data", return_value=("p", "n", "q", "qn", True, False, "", "", 512, 768)),
             patch.object(nodes, "_encode_prompt_data_positive_conditioning", return_value="positive"),
-            patch.object(nodes, "_encode_with_comfy_clip", return_value="negative"),
+            patch_comfy_helper(nodes, "_encode_with_comfy_clip", return_value="negative"),
             patch.object(nodes, "_generate_empty_latent_with_comfy", return_value="latent_image"),
             patch.object(nodes, "_apply_spectrum_anima_mod_guidance", return_value="mod_guidance_model") as standalone_mod,
             patch.object(nodes, "_apply_aio_spectrum_model_patches_for_comfy_sampler") as comfy_patch,
@@ -2475,7 +2559,7 @@ class AIOGeneratorRuntimeTests(unittest.TestCase):
             patch.object(nodes, "_apply_aio_model_patches", return_value="patched_model"),
             patch.object(nodes, "_advanced_outputs_from_prompt_data", return_value=("p", "n", "q", "qn", True, False, "", "", 512, 768)),
             patch.object(nodes, "_encode_prompt_data_positive_conditioning", return_value="positive"),
-            patch.object(nodes, "_encode_with_comfy_clip", return_value="negative"),
+            patch_comfy_helper(nodes, "_encode_with_comfy_clip", return_value="negative"),
             patch.object(nodes, "_generate_empty_latent_with_comfy", return_value="latent_image"),
             patch.object(nodes, "_apply_spectrum_anima_mod_guidance", return_value="mod_guidance_model") as standalone_mod,
             patch.object(nodes, "_apply_aio_spectrum_model_patches_for_comfy_sampler") as comfy_patch,
@@ -2544,7 +2628,7 @@ class AIOGeneratorRuntimeTests(unittest.TestCase):
             patch.object(nodes, "_apply_aio_model_patches", return_value="patched_model"),
             patch.object(nodes, "_advanced_outputs_from_prompt_data", return_value=("p", "n", "q", "qn", False, False, "", "", 512, 768)),
             patch.object(nodes, "_encode_prompt_data_positive_conditioning", return_value="positive"),
-            patch.object(nodes, "_encode_with_comfy_clip", return_value="negative"),
+            patch_comfy_helper(nodes, "_encode_with_comfy_clip", return_value="negative"),
             patch.object(nodes, "_generate_empty_latent_with_comfy", return_value="latent_image"),
             patch.object(nodes, "_sample_latent_with_aio_backend", return_value="latent"),
             patch.object(nodes, "_decode_latent_with_comfy", return_value="first_image"),
@@ -2612,7 +2696,7 @@ class AIOGeneratorRuntimeTests(unittest.TestCase):
             patch.object(nodes, "_apply_aio_model_patches", return_value="patched_model"),
             patch.object(nodes, "_advanced_outputs_from_prompt_data", return_value=("p", "n", "q", "qn", False, False, "", "", 512, 768)),
             patch.object(nodes, "_encode_prompt_data_positive_conditioning", return_value="positive"),
-            patch.object(nodes, "_encode_with_comfy_clip", return_value="negative"),
+            patch_comfy_helper(nodes, "_encode_with_comfy_clip", return_value="negative"),
             patch.object(nodes, "_generate_empty_latent_with_comfy", return_value="latent_image"),
             patch.object(nodes, "_sample_latent_with_aio_backend", return_value="latent"),
             patch.object(nodes, "_decode_latent_with_comfy", return_value="image"),
@@ -2680,7 +2764,11 @@ class AIOGeneratorRuntimeTests(unittest.TestCase):
                 ),
             ),
             patch.object(nodes, "_encode_prompt_data_positive_conditioning", return_value="positive") as encode_positive,
-            patch.object(nodes, "_encode_with_comfy_clip", return_value="negative") as encode_negative,
+            patch_comfy_helper(
+                nodes,
+                "_encode_with_comfy_clip",
+                return_value="negative",
+            ) as encode_negative,
             patch.object(nodes, "_generate_empty_latent_with_comfy", return_value="latent_image"),
             patch.object(nodes, "_apply_spectrum_anima_mod_guidance", return_value="mod_guidance_model"),
             patch.object(nodes, "_apply_aio_spectrum_model_patches_for_comfy_sampler", return_value="sampler_patch_model"),
@@ -2725,7 +2813,7 @@ class AIOGeneratorRuntimeTests(unittest.TestCase):
             patch.object(nodes, "_apply_aio_model_patches", return_value="patched_model"),
             patch.object(nodes, "_advanced_outputs_from_prompt_data", return_value=("p", "n", "q", "qn", False, False, "", "", 512, 768)),
             patch.object(nodes, "_encode_prompt_data_positive_conditioning", return_value="positive"),
-            patch.object(nodes, "_encode_with_comfy_clip", return_value="negative"),
+            patch_comfy_helper(nodes, "_encode_with_comfy_clip", return_value="negative"),
             patch.object(nodes, "_generate_empty_latent_with_comfy", return_value="latent_image") as empty_latent,
             patch.object(nodes, "_sample_latent_with_aio_backend", return_value="latent") as sample,
             patch.object(nodes, "_decode_latent_with_comfy", return_value="image") as decode,
@@ -2780,7 +2868,7 @@ class AIOGeneratorRuntimeTests(unittest.TestCase):
             patch.object(nodes, "_apply_aio_model_patches", return_value="patched_model"),
             patch.object(nodes, "_advanced_outputs_from_prompt_data", return_value=("p", "n", "q", "qn", False, False, "", "", 512, 768)),
             patch.object(nodes, "_encode_prompt_data_positive_conditioning", return_value="positive"),
-            patch.object(nodes, "_encode_with_comfy_clip", return_value="negative"),
+            patch_comfy_helper(nodes, "_encode_with_comfy_clip", return_value="negative"),
             patch.object(nodes, "_generate_empty_latent_with_comfy", return_value="latent_image"),
             patch.object(nodes, "_sample_latent_with_aio_backend", return_value="latent"),
             patch.object(nodes, "_decode_latent_with_comfy", return_value="image"),
@@ -2845,7 +2933,7 @@ class AIOGeneratorRuntimeTests(unittest.TestCase):
             patch.object(nodes, "_apply_aio_model_patches", return_value="patched_model"),
             patch.object(nodes, "_advanced_outputs_from_prompt_data", return_value=("p", "n", "q", "qn", False, False, "", "", 512, 768)),
             patch.object(nodes, "_encode_prompt_data_positive_conditioning", return_value="positive"),
-            patch.object(nodes, "_encode_with_comfy_clip", return_value="negative"),
+            patch_comfy_helper(nodes, "_encode_with_comfy_clip", return_value="negative"),
             patch.object(nodes, "_generate_empty_latent_with_comfy", return_value="latent_image"),
             patch.object(nodes, "_sample_latent_with_aio_backend", return_value="latent"),
             patch.object(nodes, "_decode_latent_with_comfy", return_value="image"),

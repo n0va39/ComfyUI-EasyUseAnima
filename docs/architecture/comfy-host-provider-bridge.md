@@ -423,9 +423,76 @@ policy, or cache behavior.
 
 ### E-07b — Wiring and compatibility gate
 
-- **State:** BLOCKED by E-07a
+- **State:** COMPLETE in PR #328
 - **Owner:** #323 / parent #187 and #188 for gates
 - **Type:** Contract/gate
+
+Pre-edit inventory at the E-07b base:
+
+- the seven root implementations remain in `nodes.py`;
+- 22 production consumer slots in 15 canonical modules resolve those names at
+  call time through their existing binder/resolver contracts;
+- all seven root replacement seams are `unsupported_test_only`;
+- 16 repository test files still replace one or more root seams, including
+  `patch.multiple` and direct assignment forms omitted by the E-01a detector;
+- two repository test files patch canonical consumers directly; and
+- the installed runtime exposes exactly one narrow `ComfyHostProvider`.
+
+Completion evidence:
+
+- all 22 host-helper consumer slots in 15 canonical modules resolve the seven
+  owned seams through the installed provider while unrelated names and the
+  pre-bootstrap flat-import compatibility path retain the existing root
+  fallback;
+- all 16 repository root-replacement test files use the fake provider or an
+  explicit canonical lookup, leaving zero repository root replacements;
+- the two intentional canonical `_comfy_max_resolution` replacement files
+  remain recorded separately;
+- `get_runtime()` remains limited to `runtime.py` and the Comfy wiring adapter;
+- the resolver return annotation is `Any` because unrelated names continue
+  through the existing fallback and include non-callable constants and module
+  values; the seven provider-owned resolutions themselves remain callables;
+- the seven root wrapper implementations remain unchanged for the subsequent
+  rollback-sized Moves; and
+- the deterministic backend inventory contains 86 shipped and reachable
+  Python modules with no missing internal import.
+
+Allowed production files:
+
+```text
+nodes.py
+easyuse_anima/infrastructure/comfy/wiring.py
+```
+
+Allowed test and gate files:
+
+```text
+tests/comfy_host_fakes.py
+tests/test_comfy_host_wiring.py
+tests/test_aio_conditioning.py
+tests/test_aio_generation_migrations.py
+tests/test_aio_generation_settings.py
+tests/test_aio_legacy_generation.py
+tests/test_aio_model_preparation.py
+tests/test_aio_nodes.py
+tests/test_aio_output.py
+tests/test_aio_preview.py
+tests/test_aio_resources.py
+tests/test_aio_sampling.py
+tests/test_aio_schema_contract.py
+tests/test_comfy_adapters.py
+tests/test_node_contracts.py
+tests/test_prompt_corrector.py
+tests/test_prompt_studio_regional.py
+tests/test_sam3_nodes.py
+tests/test_python_compatibility_surface.py
+tests/test_python_backend_analyzer.py
+tests/test_nodes_module_analyzer.py
+tests/fixtures/comfy_host_compatibility.v1.json
+tests/fixtures/python_backend_baseline.json
+tests/fixtures/python_compatibility_surface.v1.json
+docs/architecture/*
+```
 
 Required work:
 
@@ -445,9 +512,20 @@ Exit:
 - no new Pyright or import-boundary group appears; and
 - #184 can resume wrapper Moves without redesign.
 
+Forbidden:
+
+- moving, deleting, or changing the seven root implementations;
+- changing lookup order, fallback values, error text, node/workflow schemas, or
+  feature behavior;
+- importing root `nodes.py` from the canonical package;
+- adding a provider cache, snapshot, retry policy, or mutable override
+  registry; and
+- expanding `RuntimeServices` or calling `get_runtime()` from feature, domain,
+  or service modules.
+
 ### B-11c29a — Max-resolution wrapper
 
-- **State:** BLOCKED by E-07b
+- **State:** READY after E-07b PR #328
 - **Owner:** #184
 - **Type:** Move or retirement according to the ledger
 
@@ -457,7 +535,7 @@ lookup, requirement helpers, CLIP invocation, schema, or postprocess behavior.
 
 ### B-11c29b — Node discovery family
 
-- **State:** BLOCKED by B-11c29a and E-07b
+- **State:** BLOCKED by B-11c29a
 - **Owner:** #184
 - **Type:** Move/retirement, split further when the ledger requires
 
@@ -544,9 +622,10 @@ COMPLETE: B-11c28 / PR #322
 COMPLETE: E-01a scoped inventory / PR #325
 COMPLETE: E-02a minimal runtime shell / PR #327
 COMPLETE: E-07a default host provider / PR #327
+COMPLETE: E-07b wiring and compatibility gate / PR #328
 
-READY:    E-07b wiring and compatibility gate
-BLOCKED:  B-11c29a-d wrapper Moves/retirements
+READY:    B-11c29a max-resolution wrapper Move/retirement
+BLOCKED:  B-11c29b-d wrapper Moves/retirements
 BLOCKED:  B-11c30 binder/resolver migration audit
 BLOCKED:  B-11d final root shim
 

@@ -8,6 +8,7 @@ import nodes
 from easyuse_anima.image import sam3 as sam3_service
 from easyuse_anima.nodes import impact_detailer_nodes
 from easyuse_anima.nodes import sam3_nodes
+from tests.comfy_host_fakes import patch_comfy_helper
 
 
 class SAM3MoveTests(unittest.TestCase):
@@ -113,13 +114,21 @@ class SAM3MoveTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "SAM3 detect prompt is empty"):
             sam3_service._format_sam3_detection_prompt("  ", 1)
 
-    def test_sam3_lookup_keeps_call_time_root_resolver(self):
+    def test_sam3_lookup_uses_call_time_provider(self):
         sentinel = object()
-        with patch.object(nodes, "_find_comfy_node_class", return_value=sentinel) as find:
+        with patch_comfy_helper(
+            nodes,
+            "_find_comfy_node_class",
+            return_value=sentinel,
+        ) as find:
             self.assertIs(sam3_service._find_sam3_detect_class(), sentinel)
         find.assert_called_once_with("SAM3_Detect")
 
-        with patch.object(nodes, "_find_comfy_node_mapping_class", return_value=sentinel) as find:
+        with patch_comfy_helper(
+            nodes,
+            "_find_comfy_node_mapping_class",
+            return_value=sentinel,
+        ) as find:
             self.assertIs(sam3_service._find_impact_detailer_class(), sentinel)
         find.assert_called_once_with("DetailerForEach")
 
@@ -163,7 +172,11 @@ class SAM3MoveTests(unittest.TestCase):
         with (
             patch.object(sam3_nodes, "_empty_mask_for_image", return_value="empty-mask"),
             patch.object(sam3_nodes, "_empty_segs_for_image", return_value="empty-segs"),
-            patch.object(nodes, "_encode_with_comfy_clip", return_value="conditioning") as encode,
+            patch_comfy_helper(
+                nodes,
+                "_encode_with_comfy_clip",
+                return_value="conditioning",
+            ) as encode,
             patch.object(sam3_nodes, "_find_sam3_detect_class", return_value=sam3_detect),
             patch.object(sam3_nodes, "_find_impact_mask_to_segs_class", return_value=mask_to_segs),
             patch.object(
@@ -196,7 +209,11 @@ class SAM3MoveTests(unittest.TestCase):
         with (
             patch.object(sam3_nodes, "_empty_mask_for_image", return_value="empty-mask"),
             patch.object(sam3_nodes, "_empty_segs_for_image", return_value="empty-segs"),
-            patch.object(nodes, "_encode_with_comfy_clip", return_value="conditioning"),
+            patch_comfy_helper(
+                nodes,
+                "_encode_with_comfy_clip",
+                return_value="conditioning",
+            ),
             patch.object(sam3_nodes, "_find_sam3_detect_class", return_value=sam3_detect),
             patch.object(sam3_nodes, "_find_impact_mask_to_segs_class", return_value=mask_to_segs),
             patch.object(sam3_nodes._EasyUseAnimaImpactDetailerDelegate, "doit") as detail,

@@ -5,6 +5,7 @@ from unittest.mock import Mock, patch
 
 import nodes
 from easyuse_anima.aio import sampling
+from tests.comfy_host_fakes import patch_comfy_helper
 
 
 class AIOSamplingMoveTests(unittest.TestCase):
@@ -89,7 +90,11 @@ class AIOSamplingMoveTests(unittest.TestCase):
             "VAEEncode": VAEEncode,
         }
         with (
-            patch.object(nodes, "_find_comfy_node_class", side_effect=classes.get),
+            patch_comfy_helper(
+                nodes,
+                "_find_comfy_node_class",
+                side_effect=classes.get,
+            ),
             patch.object(nodes, "_resolve_aio_runtime_seed", return_value=987),
         ):
             empty = sampling._generate_empty_latent_with_comfy(8, 20)
@@ -127,14 +132,22 @@ class AIOSamplingMoveTests(unittest.TestCase):
         class MissingAPI:
             pass
 
-        with patch.object(nodes, "_find_comfy_node_class", return_value=None):
+        with patch_comfy_helper(
+            nodes,
+            "_find_comfy_node_class",
+            return_value=None,
+        ):
             with self.assertRaisesRegex(
                 RuntimeError, "Could not find ComfyUI KSampler"
             ):
                 sampling._sample_latent_with_comfy(
                     None, 0, 1, 1.0, "euler", "normal", None, None, None, 1.0
                 )
-        with patch.object(nodes, "_find_comfy_node_class", return_value=MissingAPI):
+        with patch_comfy_helper(
+            nodes,
+            "_find_comfy_node_class",
+            return_value=MissingAPI,
+        ):
             with self.assertRaisesRegex(
                 RuntimeError, r"VAEEncode does not expose encode\(\)"
             ):
@@ -144,8 +157,10 @@ class AIOSamplingMoveTests(unittest.TestCase):
             def generate(self, *_args):
                 return ()
 
-        with patch.object(
-            nodes, "_find_comfy_node_class", return_value=EmptyLatentImage
+        with patch_comfy_helper(
+            nodes,
+            "_find_comfy_node_class",
+            return_value=EmptyLatentImage,
         ):
             with self.assertRaisesRegex(
                 RuntimeError, "EmptyLatentImage returned no LATENT"
@@ -178,7 +193,7 @@ class AIOSamplingMoveTests(unittest.TestCase):
             "spectrum_extra": {"quality_tags": "must-not-win", "custom": 9},
         }
         with (
-            patch.object(
+            patch_comfy_helper(
                 nodes,
                 "_require_custom_node_class",
                 return_value=SpectrumKSamplerAdvanced,
@@ -218,8 +233,10 @@ class AIOSamplingMoveTests(unittest.TestCase):
                 return {"result": ("spd-latent",)}
 
         with (
-            patch.object(
-                nodes, "_require_custom_node_class", return_value=SpectrumSPDKSampler
+            patch_comfy_helper(
+                nodes,
+                "_require_custom_node_class",
+                return_value=SpectrumSPDKSampler,
             ),
             patch.object(nodes, "_resolve_aio_runtime_seed", return_value=55),
         ):

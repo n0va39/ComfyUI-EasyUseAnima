@@ -6,6 +6,7 @@ from unittest.mock import Mock, patch
 import nodes
 from easyuse_anima.aio import resources as aio_resources
 from easyuse_anima.infrastructure.comfy import capabilities
+from tests.comfy_host_fakes import patch_comfy_helper
 
 
 class AIOResourceMoveTests(unittest.TestCase):
@@ -84,7 +85,11 @@ class AIOResourceMoveTests(unittest.TestCase):
             "CLIPLoader": CLIPLoader,
         }
         with (
-            patch.object(nodes, "_find_comfy_node_class", side_effect=classes.get),
+            patch_comfy_helper(
+                nodes,
+                "_find_comfy_node_class",
+                side_effect=classes.get,
+            ),
             patch.object(nodes, "_node_output_tuple", side_effect=lambda value: tuple(value)) as output_tuple,
         ):
             self.assertEqual(
@@ -113,7 +118,11 @@ class AIOResourceMoveTests(unittest.TestCase):
         self.assertEqual(output_tuple.call_count, 3)
 
     def test_missing_loader_error_text_is_preserved(self):
-        with patch.object(nodes, "_find_comfy_node_class", return_value=None):
+        with patch_comfy_helper(
+            nodes,
+            "_find_comfy_node_class",
+            return_value=None,
+        ):
             with self.assertRaisesRegex(
                 RuntimeError,
                 r"^\[EasyUseAnima\] Could not find ComfyUI UNETLoader\.$",
@@ -130,7 +139,11 @@ class AIOResourceMoveTests(unittest.TestCase):
         load_model = Mock(return_value=("upscale-model",))
         loader_cls = type("UpscaleModelLoader", (), {"load_model": load_model})
         with (
-            patch.object(nodes, "_find_comfy_node_class", return_value=loader_cls),
+            patch_comfy_helper(
+                nodes,
+                "_find_comfy_node_class",
+                return_value=loader_cls,
+            ),
             patch.object(nodes, "_node_output_tuple", side_effect=lambda value: tuple(value)),
         ):
             self.assertEqual(

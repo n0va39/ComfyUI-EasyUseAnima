@@ -16,6 +16,11 @@ from easyuse_anima.aio.generation_settings import (
     _aio_generation_config_from_dict,
 )
 from easyuse_anima.prompt.conditioning import ANIMA_MOD_GUIDANCE_PROFILES
+from tests.comfy_host_fakes import (
+    FakeComfyHostProvider,
+    patch_comfy_helper,
+    use_fake_comfy_host,
+)
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -34,6 +39,16 @@ REQUIRED_SETTING_SURFACES = (
     "ui",
     "documentation",
 )
+
+_DEFAULT_COMFY_HOST = use_fake_comfy_host(nodes, FakeComfyHostProvider())
+
+
+def setUpModule():
+    _DEFAULT_COMFY_HOST.__enter__()
+
+
+def tearDownModule():
+    _DEFAULT_COMFY_HOST.__exit__(None, None, None)
 
 
 def _manifest() -> dict:
@@ -353,12 +368,18 @@ def _deterministic_capabilities(
     schedulers=("simple",),
     impact_schedulers=("sgm_uniform",),
 ):
-    with patch.multiple(
-        nodes,
-        _comfy_sampler_names=lambda: list(samplers),
-        _comfy_scheduler_names=lambda: list(schedulers),
-        _impact_scheduler_names=lambda: list(impact_schedulers),
-        _comfy_max_resolution=lambda: 16384,
+    with (
+        patch.multiple(
+            nodes,
+            _comfy_sampler_names=lambda: list(samplers),
+            _comfy_scheduler_names=lambda: list(schedulers),
+            _impact_scheduler_names=lambda: list(impact_schedulers),
+        ),
+        patch_comfy_helper(
+            nodes,
+            "_comfy_max_resolution",
+            return_value=16384,
+        ),
     ):
         yield
 
@@ -588,7 +609,7 @@ class AIOGenerationSettingsManifestTests(unittest.TestCase):
             schedulers=tuple(capabilities["schedulers"]),
             impact_schedulers=tuple(capabilities["impact_schedulers"]),
         ):
-            with patch.object(
+            with patch_comfy_helper(
                 nodes,
                 "_comfy_max_resolution",
                 return_value=capabilities["max_resolution"],
