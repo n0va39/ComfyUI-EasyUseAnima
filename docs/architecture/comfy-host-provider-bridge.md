@@ -2553,7 +2553,7 @@ Implementation result:
   callback dependencies, and repository replacement names;
 - the compatibility inventory contains 289 canonical root bindings, two
   residual root globals, one root implementation import, 93 shipped/reachable
-  Python modules, and a 1,124-line root shim; and
+  Python modules, and a 1,123-line root shim; and
 - B-11d is the next separate root-shim Move.
 
 Forbidden:

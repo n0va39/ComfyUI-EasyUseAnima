@@ -42,8 +42,8 @@ merged PR, the owning issue's evidence record, and every stated exit gate.
 ### Measured Phase B progress
 
 - The Phase A baseline recorded root `nodes.py` at 12,663 lines.
-- In B-11c30e / PR #355, the analyzer measures root `nodes.py` at 1,124 lines.
-- The mechanical extraction has removed 11,539
+- In B-11c30e / PR #355, the analyzer measures root `nodes.py` at 1,123 lines.
+- The mechanical extraction has removed 11,540
   lines, approximately 91.1% of the Phase A baseline, while preserving the root
   compatibility surface.
 - B-01 through B-09b2 are integrated. The latest completed implementation slice
@@ -1146,7 +1146,7 @@ unchanged. The separate legacy Wildcard unsupported alias remains for D-12.
     workflow, Wildcard engine, settings, and NAIA client owners directly.
     Wildcard modes/seeds/expansion/metadata, NAIA settings/HTTP/cache/results,
     package/flat imports, mappings, workflows, and exact errors remain frozen.
-    Runtime binder/resolver counts reach zero and the root shim falls to 1,124
+    Runtime binder/resolver counts reach zero and the root shim falls to 1,123
     lines. B-11d is the next READY Move.
   - The final B-11c cutover removes remaining root execution ownership and
     leaves the explicit supported `nodes.py` compatibility shim.

@@ -1065,7 +1065,7 @@ convenience-node compatibility; it remains unmapped and is not public support.
   binder-owned repository replacement names all reach zero.
 - The compatibility inventory contains 289 canonical root bindings, two
   residual root globals, one preamble implementation import, 93 shipped and
-  reachable Python modules, and a 1,124-line root shim.
+  reachable Python modules, and a 1,123-line root shim.
 - B-11d final root shim is the next separate Move; #167/#236 Behavior and
   D-09/D-12 consolidation remain outside PR #355.
 
