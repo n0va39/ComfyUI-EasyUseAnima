@@ -2347,9 +2347,135 @@ Forbidden:
 - beginning #168/#169 Behavior, d6, or final root-shim work; and
 - combining Contract, performance, dependency, or broad formatting cleanup.
 
+### B-11c30d6 — AiO node-adapter binder Move
+
+- **State:** COMPLETE IN PR #354
+- **Owner:** #184
+- **Behavior boundary:** #167
+- **Type:** Move
+- **Base:** `dev@cf772f1d8c0fe47999deb2af1a25621587717939`
+
+Pre-edit inventory:
+
+- the final active AiO subgroup contains exactly `_bind_aio_node_runtime`;
+- the binder owns one `_RUNTIME_RESOLVER` global and one `_runtime_helper`
+  dispatcher. After d5 it accounts for 29 root-resolver slots over 29 unique
+  names, no provider or direct-root dependency, and 27 repository replacement
+  slots over 27 names in `tests/test_aio_legacy_generation.py`,
+  `tests/test_aio_nodes.py`, and `tests/test_node_contracts.py`;
+- root imports the binder, both mapped classes (`EasyUseAnimaInput` and
+  `EasyUseAnimaAIOGenerator`), and the two hidden-widget serializers
+  (`_aio_input_settings_json` and `_aio_generation_settings_json`) as exact
+  package/flat aliases, then invokes the binder once during module
+  initialization;
+- `easyuse_anima.registration` consumes the two mapped classes directly.
+  ComfyUI calls their class methods, and `EasyUseAnimaAIOGenerator.generate`
+  is the sole node-adapter caller of the canonical legacy orchestrator;
+- the module also re-exports the two input-context helpers from their existing
+  pure owner. Root already imports those helpers directly from input context,
+  so their identity and ownership do not move here;
+- all 29 resolver names already have canonical owners under common
+  serialization, Prompt Data, AiO defaults/normalization/resources/model/
+  sampling/input-context/legacy orchestration, or the Python `json` module;
+  no provider, process-global state, service, or new contract is required; and
+- existing tests freeze `INPUT_TYPES`, hidden JSON defaults, `IS_CHANGED`
+  special-seed order, input context construction/copy boundaries, generation
+  forwarding/signature, package/flat aliases, mapping identity, workflow
+  serialization, and exact errors.
+
+Exact root-resolver ownership:
+
+```text
+module/defaults/types:
+  json
+  AIO_GENERATION_DEFAULT_SETTINGS
+  AIO_INPUT_DEFAULT_SETTINGS
+  AIO_SPECIAL_SEEDS
+  ANIMA_DEFAULT_CLIP_CANDIDATES
+  ANIMA_DEFAULT_DIFFUSION_MODEL_CANDIDATES
+  ANIMA_DEFAULT_VAE_CANDIDATES
+  EASY_USE_ANIMA_INPUT_SCHEMA
+  EASY_USE_ANIMA_INPUT_SETTINGS_VERSION
+  EASY_USE_ANIMA_INPUT_TYPE
+  PROMPT_DATA_TYPE
+serialization/signature:
+  _aio_generation_settings_json
+  _aio_input_settings_json
+  _aio_lora_stack_signature
+  _copy_prompt_data_for_update
+  _json_clone
+  _stable_change_key
+prompt/settings/resources:
+  _normalize_prompt_data
+  _prompt_data_json_safe
+  _normalize_aio_generation_settings
+  _normalize_aio_input_settings
+  _comfy_clip_loader_types
+  _comfy_diffusion_model_names
+  _comfy_text_encoder_names
+  _comfy_vae_names
+  _preferred_clip_type_default
+  _preferred_name_default
+execution:
+  _resolve_aio_runtime_seed
+  _run_aio_legacy_generation
+```
+
+Allowed production files:
+
+```text
+nodes.py
+easyuse_anima/nodes/aio_nodes.py
+```
+
+Allowed supporting files are the three d6 replacement-owner tests, Python
+compatibility and backend/nodes analyzer gates/fixtures, workflow/package
+contract coverage, and the three architecture documents.
+
+Exit:
+
+- the d6 binder definition, root imports/call, `_RUNTIME_RESOLVER`, and
+  `_runtime_helper` are absent;
+- the adapter imports existing canonical owners directly and owns JSON access;
+- both mapped classes and the two serializer root aliases retain exact
+  identity in package and flat-import modes;
+- only d6 replacement ownership moves from root/binder injection to the
+  canonical consumer module; and
+- the AiO binder family is empty while Wildcard/NAIA remain the only active
+  callback binders. Node inputs, change keys, seed reservation, context,
+  generation, mappings, errors, schemas, and workflows remain unchanged.
+
+Implementation result:
+
+- `easyuse_anima.nodes.aio_nodes` imports the existing common, Prompt Data, AiO
+  defaults/normalization/resources/model/sampling/input-context/orchestration
+  owners directly and owns its existing JSON serialization locally;
+- `EASY_USE_ANIMA_INPUT_TYPE` moves from the residual root assignment to the
+  canonical node adapter, while root keeps an exact package/flat alias;
+- d6 tests patch the canonical consumer instead of installing a process-global
+  string resolver. The two mapped classes, hidden serializer aliases, input
+  context, generation forwarding, and workflow contracts remain unchanged;
+- `_bind_aio_node_runtime`, `_RUNTIME_RESOLVER`, and `_runtime_helper` are
+  absent. All six AiO subgroups are retired, leaving only the two explicit
+  Wildcard/NAIA callback binders in one active family;
+- the active audit has zero string-resolver names, eight unique direct callback
+  dependencies, and five repository replacement names across three files; and
+- the compatibility inventory contains 291 canonical root bindings, two
+  residual root globals, one root implementation import, 93 shipped/reachable
+  Python modules, and a 1,142-line root shim.
+
+Forbidden:
+
+- retiring or otherwise changing the Wildcard/NAIA binders;
+- changing hidden JSON shape/order/options, input/resource defaults, mutable
+  settings or special-seed semantics, `IS_CHANGED`, context copies, generation
+  forwarding, node signatures/IDs/mappings, errors, schemas, or workflows;
+- beginning #167 Behavior, Wildcard/NAIA, final root-shim, Contract,
+  performance, dependency, or broad formatting work.
+
 ### B-11d — Final root shim
 
-- **State:** BLOCKED by the remaining AiO and Wildcard/NAIA binder families
+- **State:** BLOCKED by the remaining Wildcard/NAIA binder family
 - **Owner:** #184
 - **Type:** Move
 
@@ -2400,7 +2526,8 @@ COMPLETE: B-11c30d3 I/O-boundary binder Move / PR #350
 COMPLETE: B-11c30d4 execution-service Move / PR #351
 COMPLETE: B-11c30d0b input-context owner Move / PR #352
 COMPLETE: B-11c30d5 legacy-orchestration Move / PR #353
-PLANNED:  B-11c30d6 node-adapter Move
+COMPLETE: B-11c30d6 node-adapter Move / PR #354
+PLANNED:  B-11c30e Wildcard/NAIA callback binder Move
 BLOCKED:  B-11d final root shim
 
 LATER:    #167 seed reservation

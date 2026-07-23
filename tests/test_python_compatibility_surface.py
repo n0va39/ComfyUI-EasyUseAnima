@@ -77,7 +77,6 @@ RUNTIME_LOOKUP_CALLS = {
     "runtime_proxy",
 }
 PREAMBLE_IMPLEMENTATION_BINDINGS = {
-    "json": "json:json",
     "logging": "logging:logging",
 }
 PROMPT_SERVICE_RUNTIME_BINDERS = (
@@ -95,9 +94,6 @@ PROMPT_NODE_ADAPTER_RETIRED_RUNTIME_BINDERS = (
     "_bind_prompt_advanced_node_runtime",
 )
 RUNTIME_BINDER_FAMILIES = {
-    "aio": (
-        "_bind_aio_node_runtime",
-    ),
     "wildcard_naia": (
         "_bind_wildcard_node_runtime",
         "_bind_naia_node_runtime",
@@ -135,6 +131,7 @@ AIO_RUNTIME_RETIRED_SUBGROUPS = (
     "B-11c30d3_io_boundary",
     "B-11c30d4_execution_services",
     "B-11c30d5_legacy_orchestration",
+    "B-11c30d6_node_adapter",
 )
 AIO_RUNTIME_PREREQUISITE_MOVES = (
     {
@@ -1726,7 +1723,7 @@ def _aio_runtime_split_gate(
     ]
     if len(classified_binders) != len(set(classified_binders)):
         raise AssertionError("AiO runtime binder subgroup classification overlaps")
-    if set(classified_binders) != set(RUNTIME_BINDER_FAMILIES["aio"]):
+    if set(classified_binders) != set(RUNTIME_BINDER_FAMILIES.get("aio", ())):
         raise AssertionError("AiO runtime binder subgroup classification is incomplete")
 
     subgroups = {}
@@ -2314,6 +2311,7 @@ def _build_document() -> dict[str, Any]:
                 "B-11c30d4",
                 "B-11c30d0b",
                 "B-11c30d5",
+                "B-11c30d6",
             ],
         },
         "enums": {
@@ -2325,15 +2323,15 @@ def _build_document() -> dict[str, Any]:
         },
         "expected_counts": {
             "root_entrypoints": 3,
-            "excluded_preamble_implementation_bindings": 2,
+            "excluded_preamble_implementation_bindings": 1,
             "nodes_canonical_bindings": 291,
             "nodes_legacy_bindings": 27,
             "mapped_public_classes": 18,
             "unmapped_classes": 2,
             "root_residual_functions": 0,
             "root_residual_classes": 0,
-            "root_residual_globals": 3,
-            "runtime_binders": 3,
+            "root_residual_globals": 2,
+            "runtime_binders": 2,
             "direct_nodes_import_test_files": 21,
         },
         "mapped_public_classes": sorted(mapped_classes),
@@ -2565,7 +2563,7 @@ class PythonCompatibilitySurfaceTests(unittest.TestCase):
             len(self.document["direct_nodes_import_test_files"]),
             counts["direct_nodes_import_test_files"],
         )
-        self.assertEqual(len(set(self.document["runtime_binders"])), 3)
+        self.assertEqual(len(set(self.document["runtime_binders"])), 2)
         self.assertEqual(len(set(self.document["direct_nodes_import_test_files"])), 21)
 
     def test_runtime_binder_audit_covers_provider_and_root_names(self):
@@ -2573,30 +2571,26 @@ class PythonCompatibilitySurfaceTests(unittest.TestCase):
         self.assertEqual(
             audit["summary"],
             {
-                "binder_count": 3,
-                "family_count": 2,
+                "binder_count": 2,
+                "family_count": 1,
                 "mode_counts": {
                     "comfy_provider_then_root": 0,
-                    "root_globals": 1,
+                    "root_globals": 0,
                     "explicit_callbacks": 2,
                 },
-                "unique_resolver_names": 29,
-                "unique_root_resolver_names": 29,
+                "unique_resolver_names": 0,
+                "unique_root_resolver_names": 0,
                 "unique_provider_resolver_names": 0,
                 "unique_direct_root_dependencies": 8,
                 "direct_root_dependency_slots": 9,
                 "provider_consumer_slots": 0,
                 "provider_consumer_modules": 0,
-                "repository_replacement_names": 32,
-                "repository_replacement_files": 5,
+                "repository_replacement_names": 5,
+                "repository_replacement_files": 3,
             },
         )
         self.assertEqual(audit["provider_resolver_names"], [])
-        self.assertEqual(
-            set(audit["root_resolver_names"])
-            - set(self.document["runtime_resolver_consumers"]),
-            {"json"},
-        )
+        self.assertEqual(audit["root_resolver_names"], [])
         self.assertTrue(
             set(self.document["runtime_resolver_consumers"]).issubset(
                 audit["root_resolver_names"]
@@ -2662,7 +2656,7 @@ class PythonCompatibilitySurfaceTests(unittest.TestCase):
                 for subgroup in gate["subgroups"].values()
                 for binder in subgroup["binders"]
             },
-            set(RUNTIME_BINDER_FAMILIES["aio"]),
+            set(RUNTIME_BINDER_FAMILIES.get("aio", ())),
         )
         summaries = {
             subgroup: {
@@ -2682,16 +2676,7 @@ class PythonCompatibilitySurfaceTests(unittest.TestCase):
         }
         self.assertEqual(
             summaries,
-            {
-                "B-11c30d6_node_adapter": {
-                    "root_resolver_slots": 29,
-                    "unique_root_resolver_names": 29,
-                    "provider_resolver_slots": 0,
-                    "direct_root_dependency_slots": 0,
-                    "repository_replacement_slots": 27,
-                    "unique_repository_replacement_names": 27,
-                },
-            },
+            {},
         )
         self.assertEqual(
             [move["id"] for move in gate["prerequisite_moves"]],
@@ -2773,6 +2758,7 @@ class PythonCompatibilitySurfaceTests(unittest.TestCase):
             "_bind_aio_legacy_generation_runtime": (
                 "easyuse_anima.aio.legacy_generation"
             ),
+            "_bind_aio_node_runtime": "easyuse_anima.nodes.aio_nodes",
         }
         for binder, module in retired_modules.items():
             functions = {
@@ -2835,13 +2821,41 @@ class PythonCompatibilitySurfaceTests(unittest.TestCase):
         self.assertNotIn("_runtime_helper", functions)
         self.assertNotIn("_bind_aio_legacy_generation_runtime", functions)
 
-    def test_string_runtime_resolvers_keep_production_seams_transitional(self):
-        representative = {
-            "_run_aio_legacy_generation",
-            "_aio_generation_settings_json",
-            "_resolve_aio_runtime_seed",
+    def test_aio_node_adapter_runtime_resolver_is_retired(self):
+        tree = _read_tree(_module_path("easyuse_anima.nodes.aio_nodes"))
+        top_level_names = {
+            target.id
+            for node in tree.body
+            if isinstance(node, (ast.Assign, ast.AnnAssign))
+            for target in (
+                node.targets
+                if isinstance(node, ast.Assign)
+                else [node.target]
+            )
+            if isinstance(target, ast.Name)
         }
-        consumers = self.document["runtime_resolver_consumers"]
+        functions = {
+            node.name
+            for node in tree.body
+            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+        }
+        self.assertNotIn("_RUNTIME_RESOLVER", top_level_names)
+        self.assertNotIn("_runtime_helper", functions)
+        self.assertNotIn("_bind_aio_node_runtime", functions)
+
+    def test_only_explicit_callback_runtime_seams_remain_transitional(self):
+        representative = {
+            "_get_workflow_node",
+            "_post_random",
+            "expand_wildcards",
+            "resolve_naia_settings",
+        }
+        self.assertEqual(self.document["runtime_resolver_consumers"], {})
+        callback_dependencies = {
+            name
+            for entry in self.document["runtime_binder_audit"]["entries"]
+            for name in entry["direct_root_dependencies"]
+        }
         classifications = {
             symbol: group["classification"]
             for group in self.document["groups"]
@@ -2850,8 +2864,7 @@ class PythonCompatibilitySurfaceTests(unittest.TestCase):
             for symbol in group["symbols"]
         }
         for symbol in representative:
-            self.assertIn(symbol, consumers)
-            self.assertTrue(consumers[symbol])
+            self.assertIn(symbol, callback_dependencies)
             self.assertEqual(
                 classifications[symbol],
                 "transitional_private_seam",

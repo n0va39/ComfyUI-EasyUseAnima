@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import annotations
 
-import json
 import logging
 
 try:
@@ -382,11 +381,11 @@ try:
         # B-10b11 retires the unmapped legacy Extend root alias.
     )
     from .easyuse_anima.nodes.aio_nodes import (
+        EASY_USE_ANIMA_INPUT_TYPE as EASY_USE_ANIMA_INPUT_TYPE,
         EasyUseAnimaAIOGenerator as EasyUseAnimaAIOGenerator,
         EasyUseAnimaInput as EasyUseAnimaInput,
         _aio_generation_settings_json as _aio_generation_settings_json,
         _aio_input_settings_json as _aio_input_settings_json,
-        _bind_aio_node_runtime as _bind_aio_node_runtime,
     )
     from .easyuse_anima.image.geometry import (
         _align_down as _align_down,
@@ -941,11 +940,11 @@ except ImportError:  # allows simple local import tests outside ComfyUI's packag
         # B-10b11 retires the unmapped legacy Extend root alias.
     )
     from easyuse_anima.nodes.aio_nodes import (
+        EASY_USE_ANIMA_INPUT_TYPE as EASY_USE_ANIMA_INPUT_TYPE,
         EasyUseAnimaAIOGenerator as EasyUseAnimaAIOGenerator,
         EasyUseAnimaInput as EasyUseAnimaInput,
         _aio_generation_settings_json as _aio_generation_settings_json,
         _aio_input_settings_json as _aio_input_settings_json,
-        _bind_aio_node_runtime as _bind_aio_node_runtime,
     )
     from easyuse_anima.image.geometry import (
         _align_down as _align_down,
@@ -1125,13 +1124,9 @@ except ImportError:  # allows simple local import tests outside ComfyUI's packag
 
 logger = logging.getLogger("ComfyUI-EasyUseAnima")
 
-EASY_USE_ANIMA_INPUT_TYPE = "EASY_USE_ANIMA_INPUT"
 _TRIGGER_WORD_KEYS = ("trainedWords", "trained_words", "trigger_words", "activation_text")
 
 
-_bind_aio_node_runtime(
-    resolve_helper=lambda name: globals()[name],
-)
 _bind_wildcard_node_runtime(
     get_workflow_node=lambda *args, **kwargs: _get_workflow_node(*args, **kwargs),
     expand=lambda *args, **kwargs: expand_wildcards(*args, **kwargs),

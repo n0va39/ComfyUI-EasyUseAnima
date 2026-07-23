@@ -8,12 +8,11 @@
 - Policy: [ADR-002](adr-002-compatibility-shims.md)
 - Machine-readable audit:
   [`python_compatibility_surface.v1.json`](../../tests/fixtures/python_compatibility_surface.v1.json)
-- Current state: B-11a through B-11c30d4 / PR #351 are integrated in the
-  reviewed sequence, and B-11c30d0b / PR #352 moves only the two AiO
-  input-context helpers to a pure owner. S167-01a / PR #344 supplies the
-  canonical reserved-seed compatibility consumer while retaining its root
-  aliases. Four AiO and Wildcard/NAIA binders remain before the final root
-  shim.
+- Current state: B-11a through B-11c30d5 / PR #353 are integrated in the
+  reviewed sequence, and B-11c30d6 / PR #354 retires the final AiO
+  node-adapter resolver. S167-01a / PR #344 supplies the canonical
+  reserved-seed compatibility consumer while retaining its root aliases. Only
+  the two Wildcard/NAIA callback binders remain before the final root shim.
 
 This is an actionable registry, not a removal schedule. `N` means the first
 published Registry release containing both a canonical target and its root
@@ -75,11 +74,11 @@ The versioned fixture records the exact post-B-09b2 surface rather than
 inferring public support from spelling or test imports:
 
 - root `__init__.py` permanent entrypoints: 3;
-- `nodes.py` preamble implementation imports: 3 (`json`, `logging`, and
-  `random`), excluded from compatibility classification
+- `nodes.py` preamble implementation imports: 1 (`logging`), excluded from
+  compatibility classification
   by an exact AST allowlist and drift gate;
-- `nodes.py` bindings with an `easyuse_anima` canonical target: 290 in
-  B-11c30d2 (258 at the integrated B-10b20 baseline), with exact
+- `nodes.py` bindings with an `easyuse_anima` canonical target: 291 in
+  B-11c30d6 (258 at the integrated B-10b20 baseline), with exact
   relative-package/flat-fallback parity;
 - bindings still owned by `anima_prompt`, `settings`, `prompt_translation`, or
   `wildcard_engine`: 27, with the same fallback parity;
@@ -87,11 +86,11 @@ inferring public support from spelling or test imports:
 - unmapped root classes: `EasyUseAnimaSAM3Context` and
   `EasyUseAnimaSAM3Detailer`; the canonical legacy Extend class remains in its
   owner module without a root alias or backend mapping;
-- root-owned residual implementation: 0 functions, 0 classes, and 12 assigned
-  globals in B-11c30d2 (41/2/33 at the integrated B-10b20 baseline).
-- import-time runtime binders: 10 exact top-level `_bind_*_runtime` calls;
-- root names reached by those canonical runtime resolvers: 136, including
-  literal lookups and binder-owned helper-name/default collections;
+- root-owned residual implementation: 0 functions, 0 classes, and 2 assigned
+  globals in B-11c30d6 (41/2/33 at the integrated B-10b20 baseline).
+- import-time runtime binders: 2 exact top-level `_bind_*_runtime` calls;
+- no string runtime resolver remains. The two explicit Wildcard/NAIA callback
+  binders reach eight unique direct root dependencies across nine slots;
 - retired private bindings: `_comfy_checkpoint_names`,
   `_EasyUseAnimaAlignedDetailerHook`, and
   `_EasyUseAnimaImpactDetailerDelegate`, plus `_impact_core_module`,
@@ -121,7 +120,7 @@ mapped-public classification drift, and silent promotion of residual root
 implementation. A repository test import can justify migration work, but never
 supported-public classification by itself.
 
-The five preamble imports are implementation dependencies of the remaining
+The single preamble import is an implementation dependency of the remaining
 root body, not compatibility aliases or supported exports. Any addition,
 removal, or retargeting fails the fixture build until it is deliberately
 classified; B-10b must not treat these imports as private-alias cleanup.
@@ -1026,6 +1025,28 @@ convenience-node compatibility; it remains unmapped and is not public support.
   Python modules, and the root shim is 1,147 lines.
 - B-11c30d6 is the next separate Move; Wildcard/NAIA, #168/#169 Behavior, and
   final root-shim work remain outside PR #353.
+
+### B-11c30d6 AiO node-adapter binder retirement
+
+- PR #354 retires exactly `_bind_aio_node_runtime`, its single
+  `_RUNTIME_RESOLVER`, and `_runtime_helper`.
+- `easyuse_anima.nodes.aio_nodes` imports existing common, Prompt Data, AiO
+  defaults/normalization/resources/model/sampling/input-context/orchestration
+  owners directly and owns the existing JSON serializers locally.
+- `EASY_USE_ANIMA_INPUT_TYPE` moves from the residual root assignment to the
+  canonical adapter, while root retains exact package/flat identity.
+- Tests patch the canonical consumer rather than process-global resolver state.
+  Node signatures, hidden widget serialization, change keys, seed handling,
+  input context/copy behavior, generation forwarding, mappings, schemas,
+  workflows, and exact errors remain unchanged.
+- The AiO family and all string runtime resolvers are now absent. Two explicit
+  Wildcard/NAIA callback binders remain in one family, with eight unique direct
+  callback dependencies and five repository replacement names in three files.
+- The compatibility inventory contains 291 canonical root bindings, two
+  residual root globals, one preamble implementation import, 93 shipped and
+  reachable Python modules, and a 1,142-line root shim.
+- B-11c30e Wildcard/NAIA is the next separate Move; #168/#169 Behavior and the
+  final root shim remain outside PR #354.
 
 ### `nodes.py` public node-class surface
 

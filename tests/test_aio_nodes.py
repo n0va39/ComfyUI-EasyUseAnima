@@ -132,7 +132,7 @@ class AIONodeContractTests(unittest.TestCase):
             return '{"schema":"input-test"}'
 
         with patch.multiple(
-            nodes,
+            aio_nodes,
             PROMPT_DATA_TYPE="PROMPT_DATA_TEST",
             ANIMA_DEFAULT_DIFFUSION_MODEL_CANDIDATES=("unet-a",),
             ANIMA_DEFAULT_VAE_CANDIDATES=("vae-a",),
@@ -215,7 +215,7 @@ class AIONodeContractTests(unittest.TestCase):
             return "change-key"
 
         with patch.multiple(
-            nodes,
+            aio_nodes,
             _normalize_prompt_data=normalize_prompt,
             _prompt_data_json_safe=json_safe,
             _normalize_aio_input_settings=normalize_settings,
@@ -263,14 +263,14 @@ class AIONodeContractTests(unittest.TestCase):
 
         with (
             patch.object(
-                nodes,
+                aio_nodes,
                 "_normalize_aio_input_settings",
                 return_value=settings,
             ) as normalize_settings,
             patch.object(
-                nodes,
+                aio_nodes,
                 "_copy_prompt_data_for_update",
-                wraps=nodes._copy_prompt_data_for_update,
+                wraps=aio_nodes._copy_prompt_data_for_update,
             ) as copy_prompt,
         ):
             context = nodes.EasyUseAnimaInput().build(
@@ -371,7 +371,7 @@ class AIONodeContractTests(unittest.TestCase):
             return '{"schema":"generation-test"}'
 
         with patch.multiple(
-            nodes,
+            aio_nodes,
             EASY_USE_ANIMA_INPUT_TYPE="EASY_USE_ANIMA_INPUT_TEST",
             _aio_generation_settings_json=generation_settings_json,
         ):
@@ -431,7 +431,7 @@ class AIONodeContractTests(unittest.TestCase):
 
         with (
             patch.multiple(
-                nodes,
+                aio_nodes,
                 AIO_SPECIAL_SEEDS=special_seeds,
                 _normalize_aio_generation_settings=normalize,
                 _json_clone=clone,
