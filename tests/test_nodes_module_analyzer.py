@@ -73,12 +73,12 @@ def load_dynamic():
     def test_current_nodes_module_shape_matches_recorded_baseline(self):
         report = analyzer.analyze_path(ROOT / "nodes.py")
 
-        self.assertEqual(report["git_blob_sha1"], "9756102e49f8a070a6a2d83a543e5fa1ff70528c")
-        # Issue #184 B-11c16 moves only final-fit application to the
-        # canonical postprocess owner.
-        self.assertEqual(report["top_level"]["function_count"], 20)
+        self.assertEqual(report["git_blob_sha1"], "71771f6ae5d0047243c78b5acc656d6db41c27ed")
+        # Issue #184 B-11c17 moves only the diffusion-model name wrapper to
+        # the canonical AiO resource owner.
+        self.assertEqual(report["top_level"]["function_count"], 19)
         self.assertEqual(report["top_level"]["class_count"], 0)
-        self.assertEqual(report["line_count"], 2_372)
+        self.assertEqual(report["line_count"], 2_367)
         class_names = {item["name"] for item in report["top_level"]["classes"]}
         self.assertNotIn("EasyUseAnimaAIOGenerator", class_names)
         self.assertNotIn("EasyUseAnimaInput", class_names)
