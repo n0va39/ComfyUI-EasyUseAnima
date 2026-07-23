@@ -590,7 +590,7 @@ Forbidden:
 
 ### B-11c29b — Node discovery family
 
-- **State:** READY after B-11c29a
+- **State:** IN PROGRESS, split into B-11c29b1-b3
 - **Owner:** #184
 - **Type:** Move/retirement, split further when the ledger requires
 
@@ -604,6 +604,85 @@ _find_loaded_node_class
 
 Preserve direct mapping, attribute, and loaded-module lookup order. A new lookup
 cache is forbidden.
+
+The ledger requires three rollback units:
+
+1. **B-11c29b1:** direct mapping-only lookup,
+   `_find_comfy_node_mapping_class`;
+2. **B-11c29b2:** mapping/attribute/loaded-module lookup,
+   `_find_comfy_node_class`; and
+3. **B-11c29b3:** general lookup followed by loaded-module fallback,
+   `_find_loaded_node_class`.
+
+The first unit has one production consumer, no adapter import, no nested finder
+dependency, and no repository or confirmed external replacement consumer. The
+other two wrappers retain adapter imports and the loaded lookup depends on the
+general lookup, so combining them with B-11c29b1 would enlarge the rollback and
+compatibility boundary without need.
+
+#### B-11c29b1 — Direct mapping-only lookup
+
+- **State:** IN PROGRESS
+- **Owner:** #184
+- **Type:** Retirement
+
+Pre-edit inventory at `dev@0acc0152e1039d00c9387324faef43e9a7728219`:
+
+- root `nodes.py` owns one `_find_comfy_node_mapping_class(node_id: str)`
+  definition and no canonical adapter import for the symbol;
+- the wrapper has no mutable state or import-time call and performs only a
+  call-time host `nodes.NODE_CLASS_MAPPINGS.get(node_id)` lookup;
+- the one production consumer is `easyuse_anima.image.sam3`, which resolves the
+  name at call time through the E-07b provider wiring;
+- repository root replacements, canonical replacements, and confirmed external
+  consumers are all zero;
+- the ledger classifies the private root seam as `unsupported_test_only` and
+  does not require call-time root replacement; and
+- therefore this unit retires the root definition while the wiring adapter
+  preserves the runtime-missing flat-import path with a fresh default provider.
+
+Allowed production files:
+
+```text
+nodes.py
+easyuse_anima/infrastructure/comfy/wiring.py
+```
+
+Allowed test, fixture, and documentation files:
+
+```text
+tests/test_comfy_host_wiring.py
+tests/test_comfy_host_provider.py
+tests/test_node_contracts.py
+tests/test_sam3_nodes.py
+tests/test_python_compatibility_surface.py
+tests/test_nodes_module_analyzer.py
+tests/fixtures/comfy_host_compatibility.v1.json
+tests/fixtures/python_compatibility_surface.v1.json
+tests/fixtures/python_backend_baseline.json
+docs/architecture/*
+```
+
+Exit:
+
+- root `_find_comfy_node_mapping_class` is absent;
+- installed-runtime SAM3 lookup continues to use
+  `ComfyHostProvider.find_node_mapping_class`;
+- flat pre-bootstrap lookup remains delayed, mapping-only, and returns `None`
+  after missing or invalid host state;
+- retirement gates reject both a restored root definition and an undocumented
+  adapter alias; and
+- root residual/analyzer/package closure gates pass.
+
+Forbidden:
+
+- moving either general or loaded node lookup;
+- changing mapping, attribute, or loaded-module order;
+- changing `ComfyHostProvider`, the provider implementation, SAM3 feature
+  behavior, or node/workflow schemas;
+- adding cache, snapshot, mutable override state, or canonical root import; and
+- changing requirement, CLIP, seed, stage, route, persistence, or postprocess
+  behavior.
 
 ### B-11c29c — Required-node helpers
 
