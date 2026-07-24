@@ -15,6 +15,7 @@ from easyuse_anima.seed import compatibility as seed_compatibility
 from easyuse_anima.wildcard import mode as wildcard_mode
 from easyuse_anima.wildcard import models as wildcard_models
 from easyuse_anima.wildcard import seed as wildcard_seed
+from easyuse_anima.wildcard import selector as wildcard_selector
 from easyuse_anima.wildcard import snapshot as wildcard_snapshot
 from easyuse_anima.wildcard import sources as wildcard_sources
 from nodes import (
@@ -37,6 +38,10 @@ from wildcard_engine import (
 
 
 class WildcardEngineTests(unittest.TestCase):
+    def test_root_selector_has_canonical_identity(self):
+        self.assertEqual(wildcard_selector.__all__, ())
+        self.assertIs(wildcard_engine._Selector, wildcard_selector._Selector)
+
     def test_root_mode_surface_has_canonical_identity(self):
         expected = (
             "WILDCARD_MODE_POPULATE",

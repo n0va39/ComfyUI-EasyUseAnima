@@ -27396,6 +27396,158 @@
         "requested": "__future__",
         "role": "ordinary",
         "scope": "<module>",
+        "source": "easyuse_anima/wildcard/selector.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "Sequence",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "collections.abc:Sequence",
+        "kind": "static_from",
+        "line": 5,
+        "name": "Sequence",
+        "optional": false,
+        "requested": "collections.abc",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/wildcard/selector.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "TYPE_CHECKING",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "typing:TYPE_CHECKING",
+        "kind": "static_from",
+        "line": 6,
+        "name": "TYPE_CHECKING",
+        "optional": false,
+        "requested": "typing",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/wildcard/selector.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "cast",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "typing:cast",
+        "kind": "static_from",
+        "line": 6,
+        "name": "cast",
+        "optional": false,
+        "requested": "typing",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/wildcard/selector.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "WildcardOption",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".models:WildcardOption",
+        "kind": "static_from",
+        "line": 8,
+        "name": "WildcardOption",
+        "optional": false,
+        "requested": ".models",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/wildcard/selector.py",
+        "target": "easyuse_anima/wildcard/models.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "normalize_seed",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".seed:normalize_seed",
+        "kind": "static_from",
+        "line": 9,
+        "name": "normalize_seed",
+        "optional": false,
+        "requested": ".seed",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/wildcard/selector.py",
+        "target": "easyuse_anima/wildcard/seed.py"
+      },
+      {
+        "alias": "np",
+        "bound_name": "np",
+        "branch_context": [
+          {
+            "branch": "body",
+            "kind": "if",
+            "line": 11,
+            "type_checking": true
+          }
+        ],
+        "classification": "external",
+        "column": 4,
+        "conditional": true,
+        "imported": "numpy",
+        "kind": "static_import",
+        "line": 12,
+        "name": null,
+        "optional": true,
+        "requested": "numpy",
+        "role": "optional_dependency",
+        "scope": "<module>",
+        "source": "easyuse_anima/wildcard/selector.py"
+      },
+      {
+        "alias": "np",
+        "bound_name": "np",
+        "branch_context": [
+          {
+            "branch": "else",
+            "kind": "if",
+            "line": 22,
+            "type_checking": false
+          }
+        ],
+        "classification": "external",
+        "column": 12,
+        "conditional": true,
+        "imported": "numpy",
+        "kind": "static_import",
+        "line": 25,
+        "name": null,
+        "optional": false,
+        "requested": "numpy",
+        "role": "ordinary",
+        "scope": "_Selector.__init__",
+        "source": "easyuse_anima/wildcard/selector.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "annotations",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "__future__:annotations",
+        "kind": "static_from",
+        "line": 3,
+        "name": "annotations",
+        "optional": false,
+        "requested": "__future__",
+        "role": "ordinary",
+        "scope": "<module>",
         "source": "easyuse_anima/wildcard/snapshot.py"
       },
       {
@@ -56510,6 +56662,71 @@
         "scope": "<module>",
         "source": "wildcard_engine.py",
         "target": "easyuse_anima/wildcard/mode.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "_Selector",
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": true,
+            "kind": "try",
+            "line": 137
+          }
+        ],
+        "classification": "internal",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "_Selector",
+          "target": "easyuse_anima/wildcard/selector.py",
+          "try_line": 137
+        },
+        "conditional": true,
+        "imported": ".easyuse_anima.wildcard.selector:_Selector",
+        "kind": "static_from",
+        "line": 138,
+        "name": "_Selector",
+        "optional": false,
+        "requested": ".easyuse_anima.wildcard.selector",
+        "role": "compatibility_primary",
+        "scope": "<module>",
+        "source": "wildcard_engine.py",
+        "target": "easyuse_anima/wildcard/selector.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "_Selector",
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 139,
+            "kind": "try",
+            "line": 137
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "_Selector",
+          "target": "easyuse_anima/wildcard/selector.py",
+          "try_line": 137
+        },
+        "conditional": true,
+        "imported": "easyuse_anima.wildcard.selector:_Selector",
+        "kind": "static_from",
+        "line": 140,
+        "name": "_Selector",
+        "optional": false,
+        "requested": "easyuse_anima.wildcard.selector",
+        "role": "compatibility_fallback",
+        "scope": "<module>",
+        "source": "wildcard_engine.py",
+        "target": "easyuse_anima/wildcard/selector.py"
       }
     ],
     "module_graph": [
@@ -57846,6 +58063,14 @@
         "to": "easyuse_anima/translation/providers/google.py"
       },
       {
+        "from": "easyuse_anima/wildcard/selector.py",
+        "to": "easyuse_anima/wildcard/models.py"
+      },
+      {
+        "from": "easyuse_anima/wildcard/selector.py",
+        "to": "easyuse_anima/wildcard/seed.py"
+      },
+      {
         "from": "easyuse_anima/wildcard/snapshot.py",
         "to": "easyuse_anima/wildcard/models.py"
       },
@@ -58132,6 +58357,10 @@
       {
         "from": "wildcard_engine.py",
         "to": "easyuse_anima/wildcard/seed.py"
+      },
+      {
+        "from": "wildcard_engine.py",
+        "to": "easyuse_anima/wildcard/selector.py"
       },
       {
         "from": "wildcard_engine.py",
@@ -58895,6 +59124,12 @@
       {
         "cyclic": false,
         "modules": [
+          "easyuse_anima/wildcard/selector.py"
+        ]
+      },
+      {
+        "cyclic": false,
+        "modules": [
           "easyuse_anima/wildcard/snapshot.py"
         ]
       },
@@ -58943,7 +59178,7 @@
     ]
   },
   "inventory": {
-    "module_count": 131,
+    "module_count": 132,
     "modules": [
       {
         "is_package": true,
@@ -60423,6 +60658,18 @@
       },
       {
         "is_package": false,
+        "loc": 75,
+        "module": "easyuse_anima.wildcard.selector",
+        "normalized_git_blob_sha1": "d08193e78669322a8f14cef5c222e892d10b0ce9",
+        "path": "easyuse_anima/wildcard/selector.py",
+        "top_level": {
+          "class_count": 1,
+          "function_count": 0,
+          "global_count": 1
+        }
+      },
+      {
+        "is_package": false,
         "loc": 66,
         "module": "easyuse_anima.wildcard.snapshot",
         "normalized_git_blob_sha1": "70e40cd3ae10af7b362bf8dd334e6864d6b7059d",
@@ -60507,12 +60754,12 @@
       },
       {
         "is_package": false,
-        "loc": 883,
+        "loc": 831,
         "module": "wildcard_engine",
-        "normalized_git_blob_sha1": "bfbae6d3946b57b0b90b4aa840591eb7e293acd2",
+        "normalized_git_blob_sha1": "58e77e6a5201140a8566b3c37d61a07e7f362a86",
         "path": "wildcard_engine.py",
         "top_level": {
-          "class_count": 7,
+          "class_count": 6,
           "function_count": 18,
           "global_count": 10
         }
@@ -71867,6 +72114,29 @@
         "role": "compatibility_fallback",
         "source": "wildcard_engine.py",
         "target": "easyuse_anima/wildcard/mode.py"
+      },
+      {
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 139,
+            "kind": "try",
+            "line": 137
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "conditional": true,
+        "imported": "easyuse_anima.wildcard.selector:_Selector",
+        "kind": "static_from",
+        "line": 140,
+        "optional": false,
+        "role": "compatibility_fallback",
+        "source": "wildcard_engine.py",
+        "target": "easyuse_anima/wildcard/selector.py"
       }
     ],
     "entry_modules": [
@@ -77326,6 +77596,68 @@
         "line": 3,
         "optional": false,
         "role": "ordinary",
+        "source": "easyuse_anima/wildcard/selector.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "collections.abc:Sequence",
+        "kind": "static_from",
+        "line": 5,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/wildcard/selector.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "typing:TYPE_CHECKING",
+        "kind": "static_from",
+        "line": 6,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/wildcard/selector.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "typing:cast",
+        "kind": "static_from",
+        "line": 6,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/wildcard/selector.py"
+      },
+      {
+        "branch_context": [
+          {
+            "branch": "else",
+            "kind": "if",
+            "line": 22,
+            "type_checking": false
+          }
+        ],
+        "classification": "external",
+        "conditional": true,
+        "imported": "numpy",
+        "kind": "static_import",
+        "line": 25,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/wildcard/selector.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "__future__:annotations",
+        "kind": "static_from",
+        "line": 3,
+        "optional": false,
+        "role": "ordinary",
         "source": "easyuse_anima/wildcard/snapshot.py"
       },
       {
@@ -78739,6 +79071,7 @@
       "easyuse_anima/wildcard/mode.py",
       "easyuse_anima/wildcard/models.py",
       "easyuse_anima/wildcard/seed.py",
+      "easyuse_anima/wildcard/selector.py",
       "easyuse_anima/wildcard/snapshot.py",
       "easyuse_anima/wildcard/sources.py",
       "easyuse_anima/workflow.py",
@@ -78872,6 +79205,7 @@
       "easyuse_anima/wildcard/mode.py",
       "easyuse_anima/wildcard/models.py",
       "easyuse_anima/wildcard/seed.py",
+      "easyuse_anima/wildcard/selector.py",
       "easyuse_anima/wildcard/snapshot.py",
       "easyuse_anima/wildcard/sources.py",
       "easyuse_anima/workflow.py",
@@ -80502,7 +80836,7 @@
         "column": 13,
         "context": "assign:COMMENT_RE",
         "kind": "import_time_call",
-        "line": 137,
+        "line": 142,
         "module": "wildcard_engine.py",
         "scope": "<module>"
       },
@@ -80511,7 +80845,7 @@
         "column": 13,
         "context": "assign:DYNAMIC_RE",
         "kind": "import_time_call",
-        "line": 138,
+        "line": 143,
         "module": "wildcard_engine.py",
         "scope": "<module>"
       },
@@ -80520,7 +80854,7 @@
         "column": 14,
         "context": "assign:WILDCARD_RE",
         "kind": "import_time_call",
-        "line": 139,
+        "line": 144,
         "module": "wildcard_engine.py",
         "scope": "<module>"
       },
@@ -80529,7 +80863,7 @@
         "column": 19,
         "context": "assign:WILDCARD_FULL_RE",
         "kind": "import_time_call",
-        "line": 140,
+        "line": 145,
         "module": "wildcard_engine.py",
         "scope": "<module>"
       },
@@ -80538,7 +80872,7 @@
         "column": 25,
         "context": "assign:WILDCARD_QUANTIFIER_RE",
         "kind": "import_time_call",
-        "line": 141,
+        "line": 146,
         "module": "wildcard_engine.py",
         "scope": "<module>"
       },
@@ -80547,7 +80881,7 @@
         "column": 16,
         "context": "assign:COUNT_SPEC_RE",
         "kind": "import_time_call",
-        "line": 145,
+        "line": 150,
         "module": "wildcard_engine.py",
         "scope": "<module>"
       },
@@ -80556,7 +80890,7 @@
         "column": 22,
         "context": "assign:_SNAPSHOT_CONDITION",
         "kind": "import_time_call",
-        "line": 150,
+        "line": 155,
         "module": "wildcard_engine.py",
         "scope": "<module>"
       },
@@ -80565,7 +80899,7 @@
         "column": 57,
         "context": "assign:_SNAPSHOT_CACHE",
         "kind": "import_time_call",
-        "line": 151,
+        "line": 156,
         "module": "wildcard_engine.py",
         "scope": "<module>"
       },
@@ -80574,7 +80908,7 @@
         "column": 33,
         "context": "assign:_SNAPSHOT_BUILDING",
         "kind": "import_time_call",
-        "line": 152,
+        "line": 157,
         "module": "wildcard_engine.py",
         "scope": "<module>"
       },
@@ -80583,7 +80917,7 @@
         "column": 1,
         "context": "decorator:_ExpansionSegment",
         "kind": "import_time_call",
-        "line": 170,
+        "line": 175,
         "module": "wildcard_engine.py",
         "scope": "<module>"
       },
@@ -80592,7 +80926,7 @@
         "column": 1,
         "context": "decorator:_Replacement",
         "kind": "import_time_call",
-        "line": 243,
+        "line": 248,
         "module": "wildcard_engine.py",
         "scope": "<module>"
       }
@@ -80980,13 +81314,13 @@
       },
       {
         "kind": "set",
-        "line": 152,
+        "line": 157,
         "module": "wildcard_engine.py",
         "name": "_SNAPSHOT_BUILDING"
       },
       {
         "kind": "dict",
-        "line": 151,
+        "line": 156,
         "module": "wildcard_engine.py",
         "name": "_SNAPSHOT_CACHE"
       }
@@ -81151,7 +81485,7 @@
           "single_flight"
         ],
         "initializer": "set",
-        "line": 152,
+        "line": 157,
         "module": "wildcard_engine.py",
         "name": "_SNAPSHOT_BUILDING"
       },
@@ -81161,7 +81495,7 @@
           "mutable_container"
         ],
         "initializer": "OrderedDict",
-        "line": 151,
+        "line": 156,
         "module": "wildcard_engine.py",
         "name": "_SNAPSHOT_CACHE"
       }

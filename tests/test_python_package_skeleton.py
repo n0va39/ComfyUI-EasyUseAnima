@@ -90,6 +90,7 @@ PACKAGE_MODULES = (
     "easyuse_anima.wildcard.mode",
     "easyuse_anima.wildcard.models",
     "easyuse_anima.wildcard.seed",
+    "easyuse_anima.wildcard.selector",
     "easyuse_anima.wildcard.snapshot",
     "easyuse_anima.wildcard.sources",
     "easyuse_anima.seed.execution_identity",
