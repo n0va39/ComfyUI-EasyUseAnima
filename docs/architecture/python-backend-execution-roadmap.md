@@ -406,7 +406,7 @@ mechanical retirement series.
 | 13 | B-10b private alias reduction | COMPLETE on `dev` through PR #291 / `c6b4680` | Contract/cleanup, split PRs | #184/#188 | Audited alias surface integrated |
 | 14 | B-11 registration/bootstrap/root shim | COMPLETE in PR #356 | Move/Contract, split PRs | #184 | Zero runtime binders/residual implementation; explicit root `__all__`; frozen compatibility audit |
 | 15 | S167 backend seed reservation series | S167-01 through S167-03d COMPLETE on `dev`; S167-03e AiO cutover VALIDATED with isolated API/module/browser-load parity | Contract then Move then Behavior | #167 | Canonical AiO/node seams |
-| 16 | A169 stage pipeline series | A169-01/A169-02 MERGED; A169-03 Highres VALIDATED in `aio-highres-stage.md` | Contract then Behavior | #169 | Typed config and mechanical AiO move |
+| 16 | A169 stage pipeline series | A169-01 through A169-03 MERGED; A169-04 Detailer VALIDATED in `aio-detailer-stage.md` | Contract then Behavior | #169 | Typed config and mechanical AiO move |
 | 17 | A169 first-pass cache policy | BLOCKED by stage/cache ownership seam | Behavior | #169 | Mechanical cache move and benchmark harness |
 | 18 | D-series canonical root consolidation | BLOCKED by relevant C contracts | Move | #186 | Phase B exit; per-feature behavior stable |
 | 19 | E-series RuntimeServices/lifecycle | BLOCKED by canonical owners | Move/Contract, split PRs | #187 | Relevant D moves |
