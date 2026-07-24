@@ -64,7 +64,7 @@ import them.
 | `storage.py` | Current implementation; planned filesystem shim | `easyuse_anima.infrastructure.filesystem.*` | #163, #186 D-08 | Existing 0.5.2 surface; convert in D-08/D-14 | `api.py`, `settings.py`, `wildcard_engine.py`, storage/profile tests | Unscheduled; N+1 gate and last-known-good/atomic-write parity |
 | `autocomplete_dataset.py` | Current implementation; planned autocomplete shim | `easyuse_anima.autocomplete.*` | #162, #186 D-11 | Existing 0.5.2 surface; convert in D-11/D-14 | `api.py`, autocomplete/frontend API tests | Unscheduled; N+1 gate and result/ranking/API parity |
 | `wildcard_engine.py` | Current implementation; planned wildcard shim | `easyuse_anima.wildcard.*` | #184, #186 D-12 | Existing 0.5.2 surface; convert in D-12/D-14 | root entrypoint, `nodes.py`, `api.py`, wildcard/workflow tests | Unscheduled; N+1 gate and seed/expansion/workflow parity |
-| `prompt_translation.py` | Current implementation; planned translation shim | `easyuse_anima.translation.*` | #164, #186 D-01 | Existing 0.5.2 surface; convert in D-01/D-14 | `settings.py`, `nodes.py`, `api.py`, `autocomplete_dataset.py`, translation tests | Unscheduled; N+1 gate and provider-off/API parity |
+| `prompt_translation.py` | Explicit direct re-export shim (D-01) | `easyuse_anima.translation.*` | #164, #186 D-01 | Existing 0.5.2 supported module-owned public surface; exact `__all__` and identity fixture | External/legacy imports and translation compatibility tests; production callers use canonical modules | Unscheduled; first canonical+shim release N not yet recorded, then N+1 gate and provider-off/API parity |
 | `anima_prompt/` package | Current implementation; planned package shim | `easyuse_anima.prompt.anima.*` | #184, #186 D-13 | Existing 0.5.2 surface; convert in D-13/D-14 | `nodes.py`, `autocomplete_dataset.py`, prompt tests | Unscheduled; N+1 gate and prompt correction/parser parity |
 
 ## Entry details
@@ -1419,6 +1419,14 @@ EasyUseAnimaWildcard
   parsing, translation execution, and the translation error classes.
 - Canonical target: `easyuse_anima.translation.contracts`, `markers`, `service`,
   and `providers.google` after #164 behavior is stable.
+- D-01 moves the implementation to those canonical owners. The root module
+  lists only the reviewed module-owned public symbols in `__all__` and binds
+  each as the identical canonical object. Private provider registries, locks,
+  cache sentinels, flight state, and the default service are unsupported
+  test-only seams and are not re-exported.
+- Internal production imports use the canonical modules directly. The root shim
+  remains shipped for external/legacy imports through the ADR-002 support
+  window; release N has not yet been recorded.
 - Removal gate: provider-off imports create no client or optional dependency,
   timeout/cache/error/API parity passes, internal imports are canonical, and
   both paths are present in the actual release archive through the support

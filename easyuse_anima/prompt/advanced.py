@@ -12,6 +12,7 @@ from ..naia.resolution import (
     NAIA_ADVANCED_RESOLUTION_BUCKET,
     _normalize_resolution_bucket,
 )
+from ..translation.markers import has_prompt_translation_markers
 from .artist_mix import (
     ARTIST_MIX_DEFAULT_CLUSTER_COUNT,
     ARTIST_MIX_DEFAULT_DOMINANT_ISOLATION,
@@ -42,10 +43,8 @@ from .fields import (
 )
 
 try:
-    from ...prompt_translation import has_prompt_translation_markers
     from ...settings import resolve_metadata_filter_words
 except ImportError:
-    from prompt_translation import has_prompt_translation_markers
     from settings import resolve_metadata_filter_words
 
 ADVANCED_FIELD_TYPES = {"quality", "artist", "trigger", "general", "naia"}

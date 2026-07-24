@@ -36,6 +36,7 @@ EXPECTED_GROUPS = (
     ("lora", 184, "easyuse_anima/lora/", "feature"),
     ("naia", 184, "easyuse_anima/naia/", "feature"),
     ("profiles", 163, "easyuse_anima/profiles/", "feature"),
+    ("translation", 186, "easyuse_anima/translation/", "feature"),
 )
 ALLOWED_ROLES = frozenset({"common", "feature", "infrastructure"})
 BACK_REFERENCE_PREFIXES_BY_ROLE = {

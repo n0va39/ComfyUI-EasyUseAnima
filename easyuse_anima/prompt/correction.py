@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
+from ..translation.markers import has_prompt_translation_markers
+from ..translation.service import translate_prompt_markers
+
 try:
-    from ...prompt_translation import has_prompt_translation_markers, translate_prompt_markers
     from ...settings import resolve_prompt_translation_settings
 except ImportError:
-    from prompt_translation import has_prompt_translation_markers, translate_prompt_markers
     from settings import resolve_prompt_translation_settings
 
 

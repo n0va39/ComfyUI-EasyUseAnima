@@ -36,6 +36,12 @@
       "owner_issue": 163,
       "prefix": "easyuse_anima/profiles/",
       "role": "feature"
+    },
+    {
+      "group": "translation",
+      "owner_issue": 186,
+      "prefix": "easyuse_anima/translation/",
+      "role": "feature"
     }
   ]
 }

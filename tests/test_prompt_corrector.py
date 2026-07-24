@@ -64,11 +64,13 @@ from autocomplete_dataset import (
     resolve_autocomplete_source,
     search_autocomplete,
 )
-from prompt_translation import (
+from easyuse_anima.translation.contracts import (
     PROMPT_TRANSLATION_PROVIDER_GOOGLE,
     PROMPT_TRANSLATION_PROVIDER_OFF,
     PromptTranslationSettings,
     normalize_prompt_translation_provider,
+)
+from easyuse_anima.translation.service import (
     strip_prompt_translation_markers,
     translate_prompt_markers,
 )
@@ -127,7 +129,10 @@ class PromptCorrectorTests(unittest.TestCase):
             self.assertEqual(target, "en")
             return {"빨간 머리의 소녀": "girl with red hair"}[text]
 
-        with patch("prompt_translation.google_translate_text", side_effect=fake_translate):
+        with patch(
+            "easyuse_anima.translation.service.google_translate_text",
+            side_effect=fake_translate,
+        ):
             translated = translate_prompt_markers(
                 "1girl, %{빨간 머리의 소녀}, blue eyes",
                 PromptTranslationSettings(
@@ -148,9 +153,13 @@ class PromptCorrectorTests(unittest.TestCase):
     def test_prompt_translation_defaults_off_and_does_not_auto_read_api_keys(self):
         self.assertEqual(PromptTranslationSettings().provider, PROMPT_TRANSLATION_PROVIDER_OFF)
         self.assertEqual(normalize_prompt_translation_provider("unknown"), PROMPT_TRANSLATION_PROVIDER_OFF)
-        source = (Path(__file__).resolve().parents[1] / "prompt_translation.py").read_text(
-            encoding="utf-8"
-        )
+        source = (
+            Path(__file__).resolve().parents[1]
+            / "easyuse_anima"
+            / "translation"
+            / "providers"
+            / "google.py"
+        ).read_text(encoding="utf-8")
         self.assertNotIn("GOOGLE_TRANSLATION_API_KEY", source)
         self.assertNotIn("requests.post", source)
 
@@ -212,7 +221,10 @@ class PromptCorrectorTests(unittest.TestCase):
                     target="en",
                 ),
             ),
-            patch("prompt_translation.google_translate_text", return_value="long_hair, 1girl"),
+            patch(
+                "easyuse_anima.translation.service.google_translate_text",
+                return_value="long_hair, 1girl",
+            ),
         ):
             corrected, report = EasyUseAnimaPromptCorrector().correct("%{긴 머리 소녀}", "", "")
             simple = EasyUseAnimaPromptCorrectorSimple().correct("%{긴 머리 소녀}")[0]
@@ -231,7 +243,10 @@ class PromptCorrectorTests(unittest.TestCase):
                     target="en",
                 ),
             ),
-            patch("prompt_translation.google_translate_text", return_value="girl with red hair"),
+            patch(
+                "easyuse_anima.translation.service.google_translate_text",
+                return_value="girl with red hair",
+            ),
         ):
             prompt, _quality, _use_amg, metadata_prompt = EasyUseAnimaPromptBuilder().build(
                 False,
@@ -1257,7 +1272,10 @@ class PromptBuilderTests(unittest.TestCase):
                     target="en",
                 ),
             ),
-            patch("prompt_translation.google_translate_text", return_value="girl with red hair"),
+            patch(
+                "easyuse_anima.translation.service.google_translate_text",
+                return_value="girl with red hair",
+            ),
         ):
             result = EasyUseAnimaPromptStudioAdvancedV2().build(
                 False,

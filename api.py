@@ -36,11 +36,13 @@ from .autocomplete_dataset import (
     search_autocomplete,
 )
 from .wildcard_engine import list_wildcards, resolve_wildcard_roots
-from .prompt_translation import (
+from .easyuse_anima.translation.contracts import (
     PromptTranslationError,
     TranslationBusyError,
     TranslationCancelledError,
     TranslationTimeoutError,
+)
+from .easyuse_anima.translation.service import (
     translate_prompt_markers,
 )
 from .api_contract import (
