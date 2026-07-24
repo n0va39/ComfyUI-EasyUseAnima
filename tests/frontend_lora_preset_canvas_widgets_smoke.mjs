@@ -290,6 +290,46 @@ assert.deepEqual(addWidget.computeSize(), [520, 36]);
 }
 
 {
+  // Both Legacy and Node 2.0 route pointer coordinates in the host-supplied
+  // custom-widget width, which can differ from the persisted node width.
+  const node = makeNode({ profileCount: 8, width: 640 });
+  const widget = new runtime.ProfileBarWidget();
+  let drawRequests = 0;
+  widget.triggerDraw = () => { drawRequests += 1; };
+  widget.draw(fakeContext(), node, 440, 73, 170);
+
+  assert.deepEqual(widget.listArea, [8, 107, 424, 132]);
+  assert.deepEqual(widget.listClientArea, [108, 307, 424, 132]);
+  assert.deepEqual(widget.scrollTrackArea, [421, 107, 12, 132]);
+  assert.ok(widget.scrollTrackArea[0] + widget.scrollTrackArea[2] <= 440);
+
+  const trackBottom = [
+    widget.scrollTrackArea[0] + widget.scrollTrackArea[2] / 2,
+    widget.scrollTrackArea[1] + widget.scrollTrackArea[3] - 1,
+  ];
+  assert.equal(widget.mouse({ type: "pointerdown", button: 0 }, trackBottom, node), true);
+  assert.equal(widget.scrollOffset, 2);
+  assert.equal(widget.scrollDragging, true);
+  assert.equal(widget.mouse({ type: "pointerup" }, trackBottom, node), true);
+  assert.equal(widget.scrollDragging, false);
+
+  widget.draw(fakeContext(), node, 440, 73, 170);
+  const thumb = widget.scrollThumbArea;
+  const thumbPos = [thumb[0] + thumb[2] / 2, thumb[1] + 1];
+  assert.equal(widget.mouse({ type: "pointerdown", button: 0 }, thumbPos, node), true);
+  assert.equal(widget.mouse(
+    { type: "pointermove" },
+    [thumbPos[0], widget.scrollTrackArea[1]],
+    node,
+  ), true);
+  assert.equal(widget.scrollOffset, 0);
+  assert.equal(widget.mouse({ type: "pointercancel" }, thumbPos, node), true);
+  assert.equal(widget.scrollDragging, false);
+  assert.equal(widget.scrollDragDelta, 0);
+  assert.equal(drawRequests, 2);
+}
+
+{
   const ctx = fakeContext();
   const narrow = makeNode({ width: 229 });
   const row = new runtime.LoraRowWidget(0);

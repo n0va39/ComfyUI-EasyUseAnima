@@ -269,7 +269,10 @@ export function createLoraPresetCanvasWidgets(dependencies) {
     }
 
     draw(ctx, node, width, y, _height) {
-      const drawWidth = nodeWidgetWidth(node, width);
+      const drawWidth = Math.max(
+        1,
+        Number(width) || Number(node?.size?.[0]) || MIN_NODE_WIDTH,
+      );
       const canvas = getCanvas();
       const liteGraph = getLiteGraph();
       this.hitAreas = [];
