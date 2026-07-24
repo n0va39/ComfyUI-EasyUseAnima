@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from typing import Any
 
 from ..common.serialization import _stable_change_key
@@ -9,7 +10,31 @@ from ..prompt.data import _prompt_data_json_safe
 from .model_preparation import _aio_lora_stack_signature
 
 AIO_FIRST_PASS_CACHE_MAX_ENTRIES = 2
-_AIO_FIRST_PASS_CACHE: dict[str, dict[str, Any]] = {}
+
+
+@dataclass(frozen=True, slots=True)
+class _AIOFirstPassCacheEntry:
+    latent: Any
+    image: Any
+
+    @classmethod
+    def capture(cls, latent, image) -> _AIOFirstPassCacheEntry:
+        return cls(
+            latent=_clone_aio_cache_value(latent),
+            image=_clone_aio_cache_value(image),
+        )
+
+    def checkout(self):
+        return (
+            _clone_aio_cache_value(self.latent),
+            _clone_aio_cache_value(self.image),
+        )
+
+
+_AIO_FIRST_PASS_CACHE: dict[
+    str,
+    _AIOFirstPassCacheEntry | dict[str, Any],
+] = {}
 _AIO_FIRST_PASS_CACHE_ORDER: list[str] = []
 
 
@@ -102,6 +127,8 @@ def _get_aio_first_pass_cache(cache_key: str):
     if cache_key in _AIO_FIRST_PASS_CACHE_ORDER:
         _AIO_FIRST_PASS_CACHE_ORDER.remove(cache_key)
     _AIO_FIRST_PASS_CACHE_ORDER.append(cache_key)
+    if isinstance(entry, _AIOFirstPassCacheEntry):
+        return entry.checkout()
     return (
         _clone_aio_cache_value(entry["latent"]),
         _clone_aio_cache_value(entry["image"]),
@@ -109,10 +136,7 @@ def _get_aio_first_pass_cache(cache_key: str):
 
 
 def _put_aio_first_pass_cache(cache_key: str, latent, image) -> None:
-    entry = {
-        "latent": _clone_aio_cache_value(latent),
-        "image": _clone_aio_cache_value(image),
-    }
+    entry = _AIOFirstPassCacheEntry.capture(latent, image)
     _AIO_FIRST_PASS_CACHE[cache_key] = entry
     if cache_key in _AIO_FIRST_PASS_CACHE_ORDER:
         _AIO_FIRST_PASS_CACHE_ORDER.remove(cache_key)

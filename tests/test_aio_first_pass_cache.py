@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import unittest
+from dataclasses import FrozenInstanceError
 from unittest.mock import Mock, patch
 
 import nodes
@@ -178,6 +179,76 @@ class AIOFirstPassCacheMoveTests(unittest.TestCase):
         self.assertEqual(cache, {})
         self.assertEqual(order, [])
 
+    def test_nonempty_legacy_mapping_entry_remains_readable_and_isolated(self):
+        cache = {
+            "legacy": {
+                "latent": {"samples": [1]},
+                "image": [2],
+            }
+        }
+        order = ["legacy"]
+        with (
+            patch.object(first_pass_cache, "_AIO_FIRST_PASS_CACHE", cache),
+            patch.object(first_pass_cache, "_AIO_FIRST_PASS_CACHE_ORDER", order),
+        ):
+            latent, image = first_pass_cache._get_aio_first_pass_cache("legacy")
+            latent["samples"].append(99)
+            image.append(99)
+
+        self.assertEqual(
+            cache,
+            {
+                "legacy": {
+                    "latent": {"samples": [1]},
+                    "image": [2],
+                }
+            },
+        )
+        self.assertEqual(order, ["legacy"])
+
+    def test_frozen_entry_checkout_and_overwrite_are_copy_on_write(self):
+        first_pass_cache._put_aio_first_pass_cache(
+            "entry",
+            {"samples": [1]},
+            [2],
+        )
+        original_entry = first_pass_cache._AIO_FIRST_PASS_CACHE["entry"]
+
+        self.assertIsInstance(
+            original_entry,
+            first_pass_cache._AIOFirstPassCacheEntry,
+        )
+        with self.assertRaises(FrozenInstanceError):
+            setattr(original_entry, "latent", {"samples": [99]})
+
+        latent, image = first_pass_cache._get_aio_first_pass_cache("entry")
+        self.assertIs(
+            first_pass_cache._AIO_FIRST_PASS_CACHE["entry"],
+            original_entry,
+        )
+        latent["samples"].append(88)
+        image.append(88)
+        self.assertEqual(
+            original_entry.checkout(),
+            ({"samples": [1]}, [2]),
+        )
+
+        first_pass_cache._put_aio_first_pass_cache(
+            "entry",
+            {"samples": [3]},
+            [4],
+        )
+        replacement_entry = first_pass_cache._AIO_FIRST_PASS_CACHE["entry"]
+        self.assertIsNot(replacement_entry, original_entry)
+        self.assertEqual(
+            original_entry.checkout(),
+            ({"samples": [1]}, [2]),
+        )
+        self.assertEqual(
+            replacement_entry.checkout(),
+            ({"samples": [3]}, [4]),
+        )
+
     def test_put_get_clone_isolation_lru_refresh_overwrite_and_eviction(self):
         latent = {"samples": [1]}
         image = [2]
@@ -220,7 +291,15 @@ class AIOFirstPassCacheMoveTests(unittest.TestCase):
             first_pass_cache._put_aio_first_pass_cache("a", "latent-a", "image-a")
             first_pass_cache._put_aio_first_pass_cache("b", "latent-b", "image-b")
 
-        self.assertEqual(cache, {"b": {"latent": "latent-b", "image": "image-b"}})
+        entry = cache["b"]
+        self.assertIsInstance(
+            entry,
+            first_pass_cache._AIOFirstPassCacheEntry,
+        )
+        self.assertEqual(
+            (entry.latent, entry.image),
+            ("latent-b", "image-b"),
+        )
         self.assertEqual(order, ["b"])
 
 

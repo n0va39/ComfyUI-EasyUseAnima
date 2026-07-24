@@ -4640,6 +4640,23 @@
       },
       {
         "alias": null,
+        "bound_name": "dataclass",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "dataclasses:dataclass",
+        "kind": "static_from",
+        "line": 5,
+        "name": "dataclass",
+        "optional": false,
+        "requested": "dataclasses",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/first_pass_cache.py"
+      },
+      {
+        "alias": null,
         "bound_name": "Any",
         "branch_context": [],
         "classification": "external",
@@ -4647,7 +4664,7 @@
         "conditional": false,
         "imported": "typing:Any",
         "kind": "static_from",
-        "line": 5,
+        "line": 6,
         "name": "Any",
         "optional": false,
         "requested": "typing",
@@ -4664,7 +4681,7 @@
         "conditional": false,
         "imported": "..common.serialization:_stable_change_key",
         "kind": "static_from",
-        "line": 7,
+        "line": 8,
         "name": "_stable_change_key",
         "optional": false,
         "requested": "..common.serialization",
@@ -4682,7 +4699,7 @@
         "conditional": false,
         "imported": "..prompt.data:_prompt_data_json_safe",
         "kind": "static_from",
-        "line": 8,
+        "line": 9,
         "name": "_prompt_data_json_safe",
         "optional": false,
         "requested": "..prompt.data",
@@ -4700,7 +4717,7 @@
         "conditional": false,
         "imported": ".model_preparation:_aio_lora_stack_signature",
         "kind": "static_from",
-        "line": 9,
+        "line": 10,
         "name": "_aio_lora_stack_signature",
         "optional": false,
         "requested": ".model_preparation",
@@ -48800,12 +48817,12 @@
       },
       {
         "is_package": false,
-        "loc": 125,
+        "loc": 149,
         "module": "easyuse_anima.aio.first_pass_cache",
-        "normalized_git_blob_sha1": "872fc97c6a338c600cbc141faaaaf9d584d02c4a",
+        "normalized_git_blob_sha1": "c46472b68b24e116d882fbb96ba9c2e1a3ca246b",
         "path": "easyuse_anima/aio/first_pass_cache.py",
         "top_level": {
-          "class_count": 0,
+          "class_count": 1,
           "function_count": 5,
           "global_count": 4
         }
@@ -59684,9 +59701,20 @@
         "branch_context": [],
         "classification": "external",
         "conditional": false,
-        "imported": "typing:Any",
+        "imported": "dataclasses:dataclass",
         "kind": "static_from",
         "line": 5,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/first_pass_cache.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "typing:Any",
+        "kind": "static_from",
+        "line": 6,
         "optional": false,
         "role": "ordinary",
         "source": "easyuse_anima/aio/first_pass_cache.py"
@@ -65692,6 +65720,15 @@
       {
         "callee": "dataclass",
         "column": 1,
+        "context": "decorator:_AIOFirstPassCacheEntry",
+        "kind": "import_time_call",
+        "line": 15,
+        "module": "easyuse_anima/aio/first_pass_cache.py",
+        "scope": "<module>"
+      },
+      {
+        "callee": "dataclass",
+        "column": 1,
         "context": "decorator:AIOGenerationSAM3Config",
         "kind": "import_time_call",
         "line": 25,
@@ -66997,13 +67034,13 @@
       },
       {
         "kind": "dict",
-        "line": 12,
+        "line": 34,
         "module": "easyuse_anima/aio/first_pass_cache.py",
         "name": "_AIO_FIRST_PASS_CACHE"
       },
       {
         "kind": "list",
-        "line": 13,
+        "line": 38,
         "module": "easyuse_anima/aio/first_pass_cache.py",
         "name": "_AIO_FIRST_PASS_CACHE_ORDER"
       },
@@ -67376,7 +67413,7 @@
           "mutable_container"
         ],
         "initializer": "Dict",
-        "line": 12,
+        "line": 34,
         "module": "easyuse_anima/aio/first_pass_cache.py",
         "name": "_AIO_FIRST_PASS_CACHE"
       },
@@ -67386,7 +67423,7 @@
           "mutable_container"
         ],
         "initializer": "List",
-        "line": 13,
+        "line": 38,
         "module": "easyuse_anima/aio/first_pass_cache.py",
         "name": "_AIO_FIRST_PASS_CACHE_ORDER"
       },
