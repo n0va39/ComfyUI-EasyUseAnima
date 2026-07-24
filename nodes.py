@@ -531,7 +531,7 @@ try:
     )
     from .anima_prompt import correct_prompt, load_knowledge_base
     from .anima_prompt.parser import parse_prompt
-    from .settings import (
+    from .easyuse_anima.settings.service import (
         resolve_metadata_filter_words,
         resolve_naia_settings,
         resolve_prompt_translation_settings,
@@ -1093,7 +1093,7 @@ except ImportError:  # allows simple local import tests outside ComfyUI's packag
     )
     from anima_prompt import correct_prompt, load_knowledge_base
     from anima_prompt.parser import parse_prompt
-    from settings import (
+    from easyuse_anima.settings.service import (
         resolve_metadata_filter_words,
         resolve_naia_settings,
         resolve_prompt_translation_settings,

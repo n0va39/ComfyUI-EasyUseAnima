@@ -44,6 +44,12 @@
       "role": "feature"
     },
     {
+      "group": "settings",
+      "owner_issue": 186,
+      "prefix": "easyuse_anima/settings/",
+      "role": "feature"
+    },
+    {
       "group": "translation",
       "owner_issue": 186,
       "prefix": "easyuse_anima/translation/",

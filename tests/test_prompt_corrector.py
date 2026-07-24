@@ -13,7 +13,7 @@ from unittest.mock import patch
 
 import autocomplete_dataset
 import nodes
-import settings as easyuse_settings
+import settings as root_settings
 from easyuse_anima.naia.client import _clean_prompt
 from easyuse_anima.naia.resolution import ADVANCED_RESOLUTION_BUCKETS
 from easyuse_anima.nodes import prompt_data_nodes, prompt_nodes
@@ -37,6 +37,9 @@ from easyuse_anima.prompt.conditioning import (
     _SPECTRUM_ANIMA_MOD_GUIDANCE_OLD_SIGNATURE_WARNED,
 )
 from easyuse_anima.prompt.data import PROMPT_DATA_SCHEMA
+from easyuse_anima.settings import repository as settings_repository
+from easyuse_anima.settings import schema as settings_schema
+from easyuse_anima.settings import service as settings_service
 from easyuse_anima.prompt.fields import (
     DEFAULT_QUALITY_TAGS,
     DEFAULT_TRAILING_QUALITY_TAGS,
@@ -74,8 +77,8 @@ from easyuse_anima.translation.service import (
     strip_prompt_translation_markers,
     translate_prompt_markers,
 )
-from settings import (
-    NAIA_PREPROCESSING_KEYS,
+from easyuse_anima.settings.schema import NAIA_PREPROCESSING_KEYS
+from easyuse_anima.settings.service import (
     public_settings,
     resolve_autocomplete_commit_key,
     resolve_autocomplete_limit,
@@ -2871,6 +2874,27 @@ class PromptBuilderTests(unittest.TestCase):
 
 
 class SettingsTests(unittest.TestCase):
+    def test_root_exports_are_identical_canonical_objects(self):
+        owners = (settings_schema, settings_repository, settings_service)
+        expected = {
+            name
+            for owner in owners
+            for name in owner.__all__
+        }
+
+        self.assertEqual(len(root_settings.__all__), 39)
+        self.assertEqual(set(root_settings.__all__), expected)
+        for name in root_settings.__all__:
+            canonical_owners = [
+                owner for owner in owners if name in owner.__all__
+            ]
+            with self.subTest(name=name):
+                self.assertEqual(len(canonical_owners), 1)
+                self.assertIs(
+                    getattr(root_settings, name),
+                    getattr(canonical_owners[0], name),
+                )
+
     def test_save_setting_round_trips_false_zero_empty_string_and_null(self):
         with tempfile.TemporaryDirectory() as tmp:
             settings_file = Path(tmp) / "settings.json"
@@ -2883,19 +2907,23 @@ class SettingsTests(unittest.TestCase):
             )
 
             with (
-                patch.object(easyuse_settings, "SETTINGS_FILE", settings_file),
+                patch.object(settings_repository, "SETTINGS_FILE", settings_file),
                 patch.object(
-                    easyuse_settings,
+                    settings_repository,
                     "LONG_TEXT_SETTINGS_FILE",
                     long_text_settings_file,
                 ),
-                patch.object(easyuse_settings, "_load_comfy_settings", return_value={}),
+                patch.object(
+                    settings_repository,
+                    "_load_comfy_settings",
+                    return_value={},
+                ),
             ):
                 for key, value, expected in cases:
                     with self.subTest(key=key, value=value):
-                        saved = easyuse_settings.save_setting(key, value)
+                        saved = settings_repository.save_setting(key, value)
                         persisted = json.loads(settings_file.read_text(encoding="utf-8"))
-                        reloaded = easyuse_settings.get_settings()
+                        reloaded = settings_repository.get_settings()
 
                         self.assertEqual(saved[key], expected)
                         self.assertEqual(persisted[key], expected)
@@ -2912,7 +2940,7 @@ class SettingsTests(unittest.TestCase):
         second_started = threading.Event()
         second_done = threading.Event()
         errors: list[BaseException] = []
-        original_read = easyuse_settings._read_json_file
+        original_read = settings_repository._read_json_file
 
         def coordinated_read(path: Path) -> dict:
             data = original_read(path)
@@ -2924,14 +2952,14 @@ class SettingsTests(unittest.TestCase):
 
         def save_first():
             try:
-                easyuse_settings.save_setting("autocomplete.limit", 33)
+                settings_repository.save_setting("autocomplete.limit", 33)
             except BaseException as exc:
                 errors.append(exc)
 
         def save_second():
             second_started.set()
             try:
-                easyuse_settings.save_setting("prompt_studio.font_family", "Inter")
+                settings_repository.save_setting("prompt_studio.font_family", "Inter")
             except BaseException as exc:
                 errors.append(exc)
             finally:
@@ -2939,10 +2967,22 @@ class SettingsTests(unittest.TestCase):
 
         try:
             with (
-                patch.object(easyuse_settings, "SETTINGS_FILE", settings_file),
-                patch.object(easyuse_settings, "LONG_TEXT_SETTINGS_FILE", long_text_settings_file),
-                patch.object(easyuse_settings, "_load_comfy_settings", return_value={}),
-                patch.object(easyuse_settings, "_read_json_file", side_effect=coordinated_read),
+                patch.object(settings_repository, "SETTINGS_FILE", settings_file),
+                patch.object(
+                    settings_repository,
+                    "LONG_TEXT_SETTINGS_FILE",
+                    long_text_settings_file,
+                ),
+                patch.object(
+                    settings_repository,
+                    "_load_comfy_settings",
+                    return_value={},
+                ),
+                patch.object(
+                    settings_repository,
+                    "_read_json_file",
+                    side_effect=coordinated_read,
+                ),
             ):
                 first = threading.Thread(target=save_first, name="first-setting")
                 second = threading.Thread(target=save_second, name="second-setting")
@@ -2975,7 +3015,7 @@ class SettingsTests(unittest.TestCase):
         second_started = threading.Event()
         second_done = threading.Event()
         errors: list[BaseException] = []
-        store_class = easyuse_settings.AtomicJsonStore
+        store_class = settings_repository.AtomicJsonStore
         original_read = store_class._read_unlocked
 
         def coordinated_read(store, *args, **kwargs):
@@ -2991,7 +3031,7 @@ class SettingsTests(unittest.TestCase):
 
         def save_first():
             try:
-                easyuse_settings.save_long_text_settings(
+                settings_repository.save_long_text_settings(
                     {"prompt.metadata_filter_words": "metadata"}
                 )
             except BaseException as exc:
@@ -3000,7 +3040,9 @@ class SettingsTests(unittest.TestCase):
         def save_second():
             second_started.set()
             try:
-                easyuse_settings.save_long_text_settings({"naia.pre_prompt": "prefix"})
+                settings_repository.save_long_text_settings(
+                    {"naia.pre_prompt": "prefix"}
+                )
             except BaseException as exc:
                 errors.append(exc)
             finally:
@@ -3009,7 +3051,7 @@ class SettingsTests(unittest.TestCase):
         try:
             with (
                 patch.object(
-                    easyuse_settings,
+                    settings_repository,
                     "LONG_TEXT_SETTINGS_FILE",
                     long_text_settings_file,
                 ),
@@ -3043,7 +3085,7 @@ class SettingsTests(unittest.TestCase):
 
     def test_save_setting_preserves_unknown_key_rejection_contract(self):
         with self.assertRaisesRegex(KeyError, "Unknown setting"):
-            easyuse_settings.save_setting("future.unknown", "value")
+            settings_repository.save_setting("future.unknown", "value")
 
     def test_public_settings_does_not_expose_token_file(self):
         settings = public_settings()
@@ -3285,9 +3327,9 @@ class SettingsTests(unittest.TestCase):
 
     def test_comfy_settings_override_legacy_settings(self):
         with (
-            patch.object(easyuse_settings, "_read_json_file", return_value={}),
+            patch.object(settings_repository, "_read_json_file", return_value={}),
             patch.object(
-                easyuse_settings,
+                settings_repository,
                 "_load_comfy_settings",
                 return_value={
                     "EasyUseAnima.Prompt.AutocompleteLimit": "7",
@@ -3314,7 +3356,7 @@ class SettingsTests(unittest.TestCase):
                 },
             ),
         ):
-            settings = easyuse_settings.public_settings()
+            settings = settings_service.public_settings()
 
         self.assertEqual(settings["autocomplete.limit"], 7)
         self.assertEqual(settings["autocomplete.commit_key"], "tab")
@@ -3343,12 +3385,12 @@ class SettingsTests(unittest.TestCase):
     def test_comfy_color_settings_merge_into_prompt_studio_colors(self):
         with (
             patch.object(
-                easyuse_settings,
+                settings_repository,
                 "_read_json_file",
                 return_value={"prompt_studio.colors": '{"quality":"#111111"}'},
             ),
             patch.object(
-                easyuse_settings,
+                settings_repository,
                 "_load_comfy_settings",
                 return_value={
                     "EasyUseAnima.Prompt.HighlightColor.quality": "#222222",
@@ -3357,7 +3399,7 @@ class SettingsTests(unittest.TestCase):
                 },
             ),
         ):
-            settings = easyuse_settings.public_settings()
+            settings = settings_service.public_settings()
 
         colors = json.loads(settings["prompt_studio.colors"])
         self.assertEqual(colors["quality"], "#222222")
@@ -3366,9 +3408,9 @@ class SettingsTests(unittest.TestCase):
 
     def test_prompt_studio_highlight_colors_prefer_aggregate_comfy_setting(self):
         with (
-            patch.object(easyuse_settings, "_read_json_file", return_value={}),
+            patch.object(settings_repository, "_read_json_file", return_value={}),
             patch.object(
-                easyuse_settings,
+                settings_repository,
                 "_load_comfy_settings",
                 return_value={
                     "EasyUseAnima.Prompt.HighlightColors": '{"quality":"#111111"}',
@@ -3376,7 +3418,7 @@ class SettingsTests(unittest.TestCase):
                 },
             ),
         ):
-            settings = easyuse_settings.public_settings()
+            settings = settings_service.public_settings()
 
         colors = json.loads(settings["prompt_studio.colors"])
         self.assertEqual(colors["quality"], "#111111")
@@ -3387,14 +3429,18 @@ class SettingsTests(unittest.TestCase):
         root.mkdir(parents=True, exist_ok=True)
         try:
             with (
-                patch.object(easyuse_settings, "SETTINGS_FILE", root / "settings.json"),
                 patch.object(
-                    easyuse_settings,
+                    settings_repository,
+                    "SETTINGS_FILE",
+                    root / "settings.json",
+                ),
+                patch.object(
+                    settings_repository,
                     "LONG_TEXT_SETTINGS_FILE",
                     root / "long_text_settings.json",
                 ),
                 patch.object(
-                    easyuse_settings,
+                    settings_repository,
                     "_load_comfy_settings",
                     return_value={
                         "EasyUseAnima.Prompt.MetadataFilter": "comfy filter",
@@ -3404,7 +3450,7 @@ class SettingsTests(unittest.TestCase):
                     },
                 ),
             ):
-                easyuse_settings.save_long_text_settings(
+                settings_repository.save_long_text_settings(
                     {
                         "prompt.metadata_filter_words": "file filter",
                         "naia.pre_prompt": "file pre",
@@ -3412,8 +3458,8 @@ class SettingsTests(unittest.TestCase):
                         "naia.auto_hide": "file hide",
                     }
                 )
-                settings = easyuse_settings.public_settings()
-                naia_settings = easyuse_settings.resolve_naia_settings()
+                settings = settings_service.public_settings()
+                naia_settings = settings_service.resolve_naia_settings()
         finally:
             shutil.rmtree(root, ignore_errors=True)
 

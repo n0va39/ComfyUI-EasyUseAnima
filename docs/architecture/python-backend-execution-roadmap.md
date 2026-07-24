@@ -33,7 +33,7 @@ merged PR, the owning issue's evidence record, and every stated exit gate.
 | A - baseline | Complete; #191 is closed | Keep fixtures and analyzers current during later moves |
 | B - `nodes.py` extraction | Complete in B-11d / PR #356 | Preserve the audited compatibility shim until ADR-002 retirement gates are met |
 | C - feature contracts/behavior | Partially complete through S167-01a / PR #344 | Continue #167 and #169 in separate Contract/Move/Behavior PRs |
-| D - root consolidation | D-01 complete; D-08 validated in PR #382 | Continue #186 feature by feature after the corresponding behavior contracts are stable |
+| D - root consolidation | D-01 and D-08 complete; D-09 validated in PR #383 | Continue #186 feature by feature after the corresponding behavior contracts are stable |
 | E - runtime ownership | Partial: E-02a and E-07a/E-07b integrated | Continue #187 only where canonical feature owners and explicit contracts exist |
 | F - typed boundaries | Partial patterns exist | Extend typed request/result/config and pure migration patterns feature by feature |
 | G - quality ratchet | G-01, G-02a/G-02b, and G-03a complete | Extend G-03 enrollment, then continue with G-04 through G-06 |
@@ -408,7 +408,7 @@ mechanical retirement series.
 | 15 | S167 backend seed reservation series | S167-01 through S167-03d COMPLETE on `dev`; S167-03e AiO cutover VALIDATED with isolated API/module/browser-load parity | Contract then Move then Behavior | #167 | Canonical AiO/node seams |
 | 16 | A169 stage pipeline series | A169-01 through A169-08 MERGED; A169-09 final adapter/integration VALIDATED in PR #372 | Contract then Behavior | #169 | Typed config and mechanical AiO move |
 | 17 | A169 first-pass cache policy | COMPLETE through CACHE-06; 4K/batch evidence VALIDATED in PR #380 | Contract then Behavior | #169 | Mechanical cache move and stable stage seam |
-| 18 | D-series canonical root consolidation | D-01 translation COMPLETE on `dev` in PR #381; D-08 filesystem VALIDATED in PR #382; behavior prerequisite #163 complete | Move | #186 | Phase B exit; per-feature behavior stable |
+| 18 | D-series canonical root consolidation | D-01 translation and D-08 filesystem COMPLETE on `dev`; D-09 settings VALIDATED in PR #383; behavior prerequisite #163 complete | Move | #186 | Phase B exit; per-feature behavior stable |
 | 19 | E-series RuntimeServices/lifecycle | BLOCKED by canonical owners | Move/Contract, split PRs | #187 | Relevant D moves |
 | 20 | G-04 through G-06 and H | INCREMENTAL/LATER | Gate/Contract | #188 | Appropriate package and release evidence |
 
@@ -547,9 +547,9 @@ relax or block the package-migration rules above.
   effects.
 - Existing root loader compatibility may remain baseline debt until B-11/D-14;
   the gate must not be weakened to accommodate new canonical violations.
-- The current blocking ledger contains exactly eight reviewed prefixes:
+- The current blocking ledger contains exactly nine reviewed prefixes:
   `common`, `image`, `infrastructure/comfy`, `infrastructure/filesystem`,
-  `lora`, `naia`, `profiles`, and `translation`.
+  `lora`, `naia`, `profiles`, `settings`, and `translation`.
   Group id, owner issue, prefix, role, ordering, uniqueness, and the exact group
   set are validated so deleting or broadening an entry cannot silently weaken
   the gate. New Python files beneath an enrolled prefix are covered

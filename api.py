@@ -19,14 +19,16 @@ except ImportError:
     server = None
     web = None
 
-from .settings import (
+from .easyuse_anima.settings.repository import (
     load_long_text_settings,
+    save_long_text_settings,
+    save_setting,
+)
+from .easyuse_anima.settings.service import (
     public_settings,
     resolve_autocomplete_limit,
     resolve_autocomplete_source,
     resolve_prompt_translation_settings,
-    save_setting,
-    save_long_text_settings,
 )
 from .autocomplete_dataset import (
     autocomplete_status,

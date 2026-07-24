@@ -18,12 +18,8 @@ from ..naia.client import (
     _parse_random_response,
     _post_random,
 )
+from ..settings.service import resolve_naia_settings
 from ..workflow import _get_workflow_node
-
-try:
-    from ...settings import resolve_naia_settings
-except ImportError:
-    from settings import resolve_naia_settings
 
 logger = logging.getLogger("ComfyUI-EasyUseAnima")
 

@@ -4,11 +4,7 @@ from __future__ import annotations
 
 from ..translation.markers import has_prompt_translation_markers
 from ..translation.service import translate_prompt_markers
-
-try:
-    from ...settings import resolve_prompt_translation_settings
-except ImportError:
-    from settings import resolve_prompt_translation_settings
+from ..settings.service import resolve_prompt_translation_settings
 
 
 def _split_tag_text(value: str) -> list[str]:

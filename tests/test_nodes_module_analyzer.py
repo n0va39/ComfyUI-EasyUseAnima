@@ -73,7 +73,7 @@ def load_dynamic():
     def test_current_nodes_module_shape_matches_recorded_baseline(self):
         report = analyzer.analyze_path(ROOT / "nodes.py")
 
-        self.assertEqual(report["git_blob_sha1"], "a1503e8f532e717667138686fd6881627eb86814")
+        self.assertEqual(report["git_blob_sha1"], "4988a0b269433da98367bd2410088dc8441749f5")
         # B-11d removes the final residual implementation globals and records
         # the supported mapped class surface in an explicit __all__.
         self.assertEqual(report["top_level"]["function_count"], 0)

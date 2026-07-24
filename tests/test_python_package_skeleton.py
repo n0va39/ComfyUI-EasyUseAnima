@@ -69,6 +69,10 @@ PACKAGE_MODULES = (
     "easyuse_anima.profiles",
     "easyuse_anima.profiles.contract",
     "easyuse_anima.profiles.mutation",
+    "easyuse_anima.settings",
+    "easyuse_anima.settings.repository",
+    "easyuse_anima.settings.schema",
+    "easyuse_anima.settings.service",
     "easyuse_anima.translation",
     "easyuse_anima.translation.contracts",
     "easyuse_anima.translation.markers",
@@ -217,6 +221,57 @@ print(json.dumps({{
             "PACKAGE_ROOT",
             "SYSTEM_USER_NAME",
             "USER_DATA_DIR",
+        ]
+        expected_all[
+            PACKAGE_MODULES.index("easyuse_anima.settings.repository")
+        ] = [
+            "LONG_TEXT_SETTINGS_FILE",
+            "SETTINGS_FILE",
+            "get_settings",
+            "load_long_text_settings",
+            "save_long_text_settings",
+            "save_setting",
+        ]
+        expected_all[
+            PACKAGE_MODULES.index("easyuse_anima.settings.schema")
+        ] = [
+            "AUTOCOMPLETE_COMMIT_KEYS",
+            "AUTOCOMPLETE_MODES",
+            "COMFY_COLOR_SETTING_KEYS",
+            "COMFY_SETTING_KEYS",
+            "DEFAULT_SETTINGS",
+            "LONG_TEXT_SETTING_ALIASES",
+            "LONG_TEXT_SETTING_KEYS",
+            "NAIA_PREPROCESSING_KEYS",
+            "NAIA_RESOLUTION_BUCKETS",
+            "NAIA_RESOLUTION_MODES",
+            "PROMPT_STUDIO_COLOR_KEYS",
+        ]
+        expected_all[
+            PACKAGE_MODULES.index("easyuse_anima.settings.service")
+        ] = [
+            "public_settings",
+            "resolve_autocomplete_commit_key",
+            "resolve_autocomplete_limit",
+            "resolve_autocomplete_mode",
+            "resolve_autocomplete_source",
+            "resolve_lora_preset_menu_mode",
+            "resolve_lora_preset_strength_button_step",
+            "resolve_lora_preset_strength_drag_pixels",
+            "resolve_lora_preset_strength_drag_step",
+            "resolve_metadata_filter_words",
+            "resolve_naia_port",
+            "resolve_naia_resolution_bucket",
+            "resolve_naia_resolution_max_long_edge",
+            "resolve_naia_resolution_mode",
+            "resolve_naia_resolution_scale",
+            "resolve_naia_settings",
+            "resolve_prompt_studio_font_family",
+            "resolve_prompt_studio_font_size",
+            "resolve_prompt_translation_provider",
+            "resolve_prompt_translation_settings",
+            "resolve_prompt_translation_source",
+            "resolve_prompt_translation_target",
         ]
         expected_all[
             PACKAGE_MODULES.index("easyuse_anima.translation.contracts")

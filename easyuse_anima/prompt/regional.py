@@ -15,12 +15,8 @@ from .advanced import (
     _as_advanced_height,
     _correct_advanced_field_sequence,
 )
+from ..settings.service import resolve_metadata_filter_words
 from .fields import _filter_metadata_prompt, _join_prompt_tokens
-
-try:
-    from ...settings import resolve_metadata_filter_words
-except ImportError:
-    from settings import resolve_metadata_filter_words
 
 
 REGIONAL_FIELDS_WORKFLOW_PROPERTY = "easyuse_anima_regional_fields"

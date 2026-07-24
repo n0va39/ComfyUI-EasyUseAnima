@@ -72,16 +72,10 @@ from .seed_adapters import (
     prompt_studio_seed_execution,
 )
 
-try:
-    from ...settings import (
-        resolve_metadata_filter_words,
-        resolve_naia_settings,
-    )
-except ImportError:
-    from settings import (
-        resolve_metadata_filter_words,
-        resolve_naia_settings,
-    )
+from ..settings.service import (
+    resolve_metadata_filter_words,
+    resolve_naia_settings,
+)
 
 WILDCARD_MODE_SEQUENTIAL = "sequential"
 PROMPT_STUDIO_WILDCARD_MODE_LABELS = ("일반", "순차")

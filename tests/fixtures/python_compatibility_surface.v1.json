@@ -118,8 +118,8 @@
   "expected_counts": {
     "root_entrypoints": 3,
     "excluded_preamble_implementation_bindings": 0,
-    "nodes_canonical_bindings": 291,
-    "nodes_legacy_bindings": 25,
+    "nodes_canonical_bindings": 294,
+    "nodes_legacy_bindings": 22,
     "nodes_public_exports": 18,
     "mapped_public_classes": 18,
     "unmapped_classes": 2,
@@ -2685,6 +2685,37 @@
       "lifecycle_state": "unsupported"
     },
     {
+      "id": "nodes_canonical_bindings:easyuse_anima.settings.service:unsupported_test_only",
+      "surface": "nodes_canonical_bindings",
+      "symbols": {
+        "resolve_metadata_filter_words": "resolve_metadata_filter_words",
+        "resolve_naia_settings": "resolve_naia_settings",
+        "resolve_prompt_translation_settings": "resolve_prompt_translation_settings"
+      },
+      "classification": "unsupported_test_only",
+      "current_target": "nodes.py",
+      "canonical_target": "easyuse_anima.settings.service",
+      "target_state": "canonical",
+      "identity_requirement": "not_applicable",
+      "binding_shape": "direct_import",
+      "import_target": "easyuse_anima.settings.service",
+      "owner": "#184/#188",
+      "first_release": null,
+      "known_consumers": [
+        "repository tests may import this root name"
+      ],
+      "evidence": [
+        "AST:no nodes.py runtime load",
+        "test-only consumption is not public support evidence"
+      ],
+      "removal_gates": [
+        "test imports migrate to canonical targets",
+        "no production consumer evidence",
+        "separate B-10b removal review"
+      ],
+      "lifecycle_state": "unsupported"
+    },
+    {
       "id": "nodes_canonical_bindings:easyuse_anima.translation.markers:unsupported_test_only",
       "surface": "nodes_canonical_bindings",
       "symbols": {
@@ -2815,37 +2846,6 @@
       "binding_shape": "direct_import",
       "import_target": "anima_prompt",
       "owner": "#184/#186",
-      "first_release": null,
-      "known_consumers": [
-        "repository tests may import this root name"
-      ],
-      "evidence": [
-        "AST:no nodes.py runtime load",
-        "test-only consumption is not public support evidence"
-      ],
-      "removal_gates": [
-        "test imports migrate to canonical targets",
-        "no production consumer evidence",
-        "separate B-10b removal review"
-      ],
-      "lifecycle_state": "unsupported"
-    },
-    {
-      "id": "nodes_legacy_bindings:settings:unsupported_test_only",
-      "surface": "nodes_legacy_bindings",
-      "symbols": {
-        "resolve_metadata_filter_words": "resolve_metadata_filter_words",
-        "resolve_naia_settings": "resolve_naia_settings",
-        "resolve_prompt_translation_settings": "resolve_prompt_translation_settings"
-      },
-      "classification": "unsupported_test_only",
-      "current_target": "nodes.py",
-      "canonical_target": null,
-      "target_state": "legacy_owner",
-      "identity_requirement": "not_applicable",
-      "binding_shape": "direct_import",
-      "import_target": "settings",
-      "owner": "#163/#186",
       "first_release": null,
       "known_consumers": [
         "repository tests may import this root name"
