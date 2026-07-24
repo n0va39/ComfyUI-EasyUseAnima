@@ -6758,6 +6758,126 @@
         "requested": "__future__",
         "role": "ordinary",
         "scope": "<module>",
+        "source": "easyuse_anima/aio/generation_pipeline.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "Mapping",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "collections.abc:Mapping",
+        "kind": "static_from",
+        "line": 4,
+        "name": "Mapping",
+        "optional": false,
+        "requested": "collections.abc",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/generation_pipeline.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "dataclass",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "dataclasses:dataclass",
+        "kind": "static_from",
+        "line": 5,
+        "name": "dataclass",
+        "optional": false,
+        "requested": "dataclasses",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/generation_pipeline.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "field",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "dataclasses:field",
+        "kind": "static_from",
+        "line": 5,
+        "name": "field",
+        "optional": false,
+        "requested": "dataclasses",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/generation_pipeline.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "Protocol",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "typing:Protocol",
+        "kind": "static_from",
+        "line": 6,
+        "name": "Protocol",
+        "optional": false,
+        "requested": "typing",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/generation_pipeline.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "TypeAlias",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "typing:TypeAlias",
+        "kind": "static_from",
+        "line": 6,
+        "name": "TypeAlias",
+        "optional": false,
+        "requested": "typing",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/generation_pipeline.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "AIOGenerationConfig",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".generation_settings:AIOGenerationConfig",
+        "kind": "static_from",
+        "line": 8,
+        "name": "AIOGenerationConfig",
+        "optional": false,
+        "requested": ".generation_settings",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/generation_pipeline.py",
+        "target": "easyuse_anima/aio/generation_settings.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "annotations",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "__future__:annotations",
+        "kind": "static_from",
+        "line": 2,
+        "name": "annotations",
+        "optional": false,
+        "requested": "__future__",
+        "role": "ordinary",
+        "scope": "<module>",
         "source": "easyuse_anima/aio/generation_sampling.py"
       },
       {
@@ -45013,6 +45133,10 @@
         "to": "easyuse_anima/aio/generation_values.py"
       },
       {
+        "from": "easyuse_anima/aio/generation_pipeline.py",
+        "to": "easyuse_anima/aio/generation_settings.py"
+      },
+      {
         "from": "easyuse_anima/aio/generation_sampling.py",
         "to": "easyuse_anima/aio/generation_values.py"
       },
@@ -46710,7 +46834,7 @@
     ]
   },
   "inventory": {
-    "module_count": 97,
+    "module_count": 98,
     "modules": [
       {
         "is_package": true,
@@ -46974,6 +47098,18 @@
           "class_count": 4,
           "function_count": 0,
           "global_count": 1
+        }
+      },
+      {
+        "is_package": false,
+        "loc": 116,
+        "module": "easyuse_anima.aio.generation_pipeline",
+        "normalized_git_blob_sha1": "0e7e7bc124447e7b183adc52e91ee63d20da89c4",
+        "path": "easyuse_anima/aio/generation_pipeline.py",
+        "top_level": {
+          "class_count": 7,
+          "function_count": 2,
+          "global_count": 3
         }
       },
       {
@@ -62471,6 +62607,7 @@
       "easyuse_anima/aio/generation_migrations.py",
       "easyuse_anima/aio/generation_normalization.py",
       "easyuse_anima/aio/generation_output.py",
+      "easyuse_anima/aio/generation_pipeline.py",
       "easyuse_anima/aio/generation_sampling.py",
       "easyuse_anima/aio/generation_settings.py",
       "easyuse_anima/aio/generation_values.py",
@@ -62547,7 +62684,9 @@
       "storage.py",
       "wildcard_engine.py"
     ],
-    "unreachable_shipped_python_modules": []
+    "unreachable_shipped_python_modules": [
+      "easyuse_anima/aio/generation_pipeline.py"
+    ]
   },
   "schema_version": 2,
   "side_effects": {
@@ -63253,6 +63392,78 @@
         "line": 163,
         "module": "easyuse_anima/aio/generation_output.py",
         "scope": "<module>"
+      },
+      {
+        "callee": "dataclass",
+        "column": 1,
+        "context": "decorator:PromptExecutionData",
+        "kind": "import_time_call",
+        "line": 28,
+        "module": "easyuse_anima/aio/generation_pipeline.py",
+        "scope": "<module>"
+      },
+      {
+        "callee": "dataclass",
+        "column": 1,
+        "context": "decorator:ResourceBundle",
+        "kind": "import_time_call",
+        "line": 41,
+        "module": "easyuse_anima/aio/generation_pipeline.py",
+        "scope": "<module>"
+      },
+      {
+        "callee": "dataclass",
+        "column": 1,
+        "context": "decorator:ConditioningBundle",
+        "kind": "import_time_call",
+        "line": 52,
+        "module": "easyuse_anima/aio/generation_pipeline.py",
+        "scope": "<module>"
+      },
+      {
+        "callee": "dataclass",
+        "column": 1,
+        "context": "decorator:WorkflowContext",
+        "kind": "import_time_call",
+        "line": 58,
+        "module": "easyuse_anima/aio/generation_pipeline.py",
+        "scope": "<module>"
+      },
+      {
+        "callee": "dataclass",
+        "column": 1,
+        "context": "decorator:GenerationRequest",
+        "kind": "import_time_call",
+        "line": 68,
+        "module": "easyuse_anima/aio/generation_pipeline.py",
+        "scope": "<module>"
+      },
+      {
+        "callee": "dataclass",
+        "column": 1,
+        "context": "decorator:GenerationState",
+        "kind": "import_time_call",
+        "line": 77,
+        "module": "easyuse_anima/aio/generation_pipeline.py",
+        "scope": "<module>"
+      },
+      {
+        "callee": "field",
+        "column": 34,
+        "context": "assign:metadata",
+        "kind": "import_time_call",
+        "line": 83,
+        "module": "easyuse_anima/aio/generation_pipeline.py",
+        "scope": "GenerationState"
+      },
+      {
+        "callee": "field",
+        "column": 40,
+        "context": "assign:previews",
+        "kind": "import_time_call",
+        "line": 84,
+        "module": "easyuse_anima/aio/generation_pipeline.py",
+        "scope": "GenerationState"
       },
       {
         "callee": "dataclass",
