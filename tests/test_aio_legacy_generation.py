@@ -1916,6 +1916,30 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
             ],
         )
 
+    def test_highres_stage_failure_keeps_outer_model_cleanup_boundary(self):
+        trace: list[str] = []
+        with patch.object(
+            legacy_generation.AIOHighresStage,
+            "run",
+            side_effect=RuntimeError("highres stage failed"),
+        ):
+            with self.assertRaisesRegex(RuntimeError, "highres stage failed"):
+                self._execute_case(
+                    upscale_enabled=False,
+                    intermediate_preview=False,
+                    unique_id=None,
+                    trace_sink=trace,
+                )
+
+        self.assertEqual(
+            trace[-3:],
+            [
+                "cleanup:sample",
+                "cleanup:model",
+                "cleanup:lora",
+            ],
+        )
+
     def _execute_case(
         self,
         *,
@@ -2005,6 +2029,11 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
                     intermediate_images=normalized_settings[
                         "preview"
                     ]["intermediate_images"]
+                ),
+                highres=SimpleNamespace(
+                    to_dict=lambda: copy.deepcopy(
+                        normalized_settings["highres"]
+                    )
                 ),
             )
 

@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import logging
 import random
+from dataclasses import replace
 from typing import Any
 
 from ..common.values import _as_bool, _as_float, _as_int, _single_value
@@ -32,6 +33,7 @@ from .first_pass_cache import (
 )
 from .generation_defaults import AIO_USDU_PROMPT_FULL
 from .generation_first_pass import AIOFirstPassStage, FirstPassRuntime
+from .generation_highres import AIOHighresStage, HighresRuntime
 from .generation_normalization import (
     _aio_detailer_has_enabled_targets,
     _aio_detailer_target_order,
@@ -878,29 +880,30 @@ def _run_aio_normalized_legacy_generation(
             if will_run_highres
             else (model, False)
         )
-        latent, image, width, height, highres_metadata = _run_aio_highres_stage(
-            highres_model,
-            clip,
-            vae,
-            positive,
-            negative,
-            image,
-            latent,
-            width,
-            height,
-            sampler,
-            settings["highres"],
-            mod_guidance,
-            highres_use_mod_guidance,
-            quality_tags,
-            quality_neg if use_negative_anima_mod_guidance else "",
+        highres_request = replace(
+            generation_request,
+            resources=replace(
+                generation_request.resources,
+                model=highres_model,
+            ),
         )
-        stage_metadata["highres"] = highres_metadata
-        if highres_metadata.get("enabled") and isinstance(
-            highres_metadata.get("sampler"), dict
-        ):
-            if preview_settings["intermediate_images"] and will_run_detailer:
-                add_preview("highres", image)
+        highres_stage = AIOHighresStage(
+            runtime=HighresRuntime(
+                run_highres=_run_aio_highres_stage,
+            ),
+            use_mod_guidance=highres_use_mod_guidance,
+            add_preview=add_preview,
+            preview_before_detailer=will_run_detailer,
+        )
+        highres_stage.validate(
+            highres_request,
+            {"sampler_backend": highres_backend},
+        )
+        highres_stage.run(highres_request, generation_state)
+        latent = generation_state.latent
+        image = generation_state.image
+        width = generation_state.width
+        height = generation_state.height
         image, detailer_metadata = _run_aio_detailer_stage(
             ensure_standalone_mod_guidance_model()
             if will_run_detailer
