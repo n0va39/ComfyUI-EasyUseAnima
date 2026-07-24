@@ -9,7 +9,7 @@
 - Follow-up Move: D-12f2
 - PR type: Contract/docs/gate
 - Baseline: `dev@f5184d3a1fc1c7bc860c914efbfb136dcec7095e`
-- State: READY
+- State: VALIDATED
 - Production behavior changes: forbidden
 
 ## Why a Contract precedes the Move
@@ -162,3 +162,11 @@ Supporting:
 - D-12f2 Move boundary and forbidden changes are exact;
 - existing PCG64 golden behavior remains the acceptance source; and
 - this docs-only Contract merges before D-12f2 production work starts.
+
+## Validation evidence
+
+- allowed-file and production-change boundaries reviewed;
+- `git diff --check` passed;
+- production/test/package inputs are unchanged from `dev@f5184d3`;
+- D-12e official full evidence at that baseline remains valid; and
+- no duplicate full suite was run for this docs-only Contract.
