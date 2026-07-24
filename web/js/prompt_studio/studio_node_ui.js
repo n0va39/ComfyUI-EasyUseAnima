@@ -26,6 +26,7 @@ function hookStudioNode(node, attempt = 0, hooks = {}) {
     isExtendNode = () => false,
     layoutExtendPromptWidgets = () => {},
     refreshNodeSize = () => {},
+    resolveStudioInput = (_node, widget) => findInputEl(widget),
     restoreInputFromWidget = () => {},
     studioFieldNames = () => [],
     syncWidgetValue = () => {},
@@ -92,7 +93,7 @@ function hookStudioNode(node, attempt = 0, hooks = {}) {
     if (!widget) {
       continue;
     }
-    const input = findInputEl(widget);
+    const input = resolveStudioInput(node, widget);
     if (!input) {
       pendingInput = true;
       continue;
@@ -106,7 +107,7 @@ function hookStudioNode(node, attempt = 0, hooks = {}) {
     enhanceResizableInput(node, widget);
     const updateField = getUpdateField(name);
 
-    if (!widget.__easyuseAnimaStudioHooked) {
+    if (!widget.__easyuseAnimaStudioCallbackHooked) {
       const callback = widget.callback;
       widget.callback = function (_value) {
         const result = callback?.apply(this, arguments);
@@ -115,6 +116,9 @@ function hookStudioNode(node, attempt = 0, hooks = {}) {
         updateField();
         return result;
       };
+      widget.__easyuseAnimaStudioCallbackHooked = true;
+    }
+    if (widget.__easyuseAnimaStudioHookInput !== input) {
       input.addEventListener("input", () => {
         widget.value = input.value;
         widget.__easyuseAnimaExecutedText = null;
@@ -130,6 +134,7 @@ function hookStudioNode(node, attempt = 0, hooks = {}) {
       input.addEventListener("blur", () => syncWidgetValue(widget));
       input.addEventListener("click", () => updateHighlight(node, widget));
       input.addEventListener("keyup", () => updateHighlight(node, widget));
+      widget.__easyuseAnimaStudioHookInput = input;
       widget.__easyuseAnimaStudioHooked = true;
     }
     updateField();

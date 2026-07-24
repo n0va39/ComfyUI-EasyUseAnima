@@ -169,6 +169,11 @@ try {
         throw "Frontend Prompt Studio resolution orientation smoke failed with exit code $LASTEXITCODE."
     }
 
+    & node "tests\frontend_prompt_studio_paste_autosize_smoke.mjs"
+    if ($LASTEXITCODE -ne 0) {
+        throw "Frontend Prompt Studio paste autosize smoke failed with exit code $LASTEXITCODE."
+    }
+
     & node "tests\frontend_wildcard_values_smoke.mjs"
     if ($LASTEXITCODE -ne 0) {
         throw "Frontend standalone Wildcard populated-text smoke failed with exit code $LASTEXITCODE."
