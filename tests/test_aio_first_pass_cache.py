@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import threading
 import unittest
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import FrozenInstanceError
 from unittest.mock import Mock, patch
 
@@ -250,6 +252,12 @@ class AIOFirstPassCacheMoveTests(unittest.TestCase):
         self.assertFalse(
             hasattr(first_pass_cache, "_bind_aio_first_pass_cache_runtime")
         )
+        self.assertFalse(
+            hasattr(nodes, "_AIO_FIRST_PASS_CACHE_LOCK")
+        )
+        self.assertFalse(
+            hasattr(nodes, "_AIO_FIRST_PASS_CACHE_GENERATION")
+        )
         for name in (
             "AIO_FIRST_PASS_CACHE_MAX_ENTRIES",
             "_AIO_FIRST_PASS_CACHE",
@@ -261,6 +269,221 @@ class AIOFirstPassCacheMoveTests(unittest.TestCase):
         ):
             with self.subTest(name=name):
                 self.assertIs(getattr(nodes, name), getattr(first_pass_cache, name))
+
+    def test_disable_reenable_during_inflight_capture_prevents_stale_insert(self):
+        clone_started = threading.Event()
+        release_clone = threading.Event()
+        disable_done = threading.Event()
+        errors = []
+
+        class BlockingTensor:
+            def detach(self):
+                return self
+
+            def clone(self):
+                clone_started.set()
+                if not release_clone.wait(2.0):
+                    raise AssertionError("capture clone release timed out")
+                return _SizedTensor(count=1, item_bytes=1)
+
+            def cpu(self):
+                return self
+
+            def numel(self):
+                return 1
+
+            def element_size(self):
+                return 1
+
+        def put():
+            try:
+                first_pass_cache._put_aio_first_pass_cache(
+                    "inflight",
+                    BlockingTensor(),
+                    b"image",
+                )
+            except BaseException as exc:
+                errors.append(exc)
+
+        def disable_reenable():
+            try:
+                first_pass_cache._set_aio_first_pass_cache_enabled(False)
+                first_pass_cache._set_aio_first_pass_cache_enabled(True)
+            except BaseException as exc:
+                errors.append(exc)
+            finally:
+                disable_done.set()
+
+        put_thread = threading.Thread(target=put, daemon=True)
+        disable_thread = threading.Thread(
+            target=disable_reenable,
+            daemon=True,
+        )
+        put_thread.start()
+        self.assertTrue(
+            clone_started.wait(2.0),
+            "capture clone did not start",
+        )
+        try:
+            disable_thread.start()
+            self.assertTrue(
+                disable_done.wait(2.0),
+                "disable was blocked by capture cloning",
+            )
+        finally:
+            release_clone.set()
+            put_thread.join(2.0)
+            disable_thread.join(2.0)
+
+        self.assertFalse(put_thread.is_alive())
+        self.assertFalse(disable_thread.is_alive())
+        self.assertEqual(errors, [])
+        self.assertTrue(first_pass_cache._AIO_FIRST_PASS_CACHE_ENABLED)
+        self.assertEqual(first_pass_cache._AIO_FIRST_PASS_CACHE, {})
+        self.assertEqual(first_pass_cache._AIO_FIRST_PASS_CACHE_ORDER, [])
+
+    def test_clear_during_capture_generation_prevents_stale_insert(self):
+        def capture(latent, image, *, now):
+            first_pass_cache._clear_aio_first_pass_cache()
+            return first_pass_cache._AIOFirstPassCacheEntry(
+                latent=latent,
+                image=image,
+                size_bytes=2,
+                created_at=now,
+                last_access_at=now,
+            )
+
+        with patch.object(
+            first_pass_cache._AIOFirstPassCacheEntry,
+            "capture",
+            side_effect=capture,
+        ) as capture_entry:
+            first_pass_cache._put_aio_first_pass_cache(
+                "stale-after-clear",
+                b"a",
+                b"b",
+            )
+
+        capture_entry.assert_called_once()
+        self.assertTrue(first_pass_cache._AIO_FIRST_PASS_CACHE_ENABLED)
+        self.assertEqual(first_pass_cache._AIO_FIRST_PASS_CACHE, {})
+        self.assertEqual(first_pass_cache._AIO_FIRST_PASS_CACHE_ORDER, [])
+
+    def test_clear_does_not_wait_for_inflight_checkout_clone(self):
+        clone_started = threading.Event()
+        release_clone = threading.Event()
+        clear_done = threading.Event()
+        results = []
+        errors = []
+
+        class BlockingTensor:
+            def detach(self):
+                return self
+
+            def clone(self):
+                clone_started.set()
+                if not release_clone.wait(2.0):
+                    raise AssertionError("checkout clone release timed out")
+                return _SizedTensor(count=1, item_bytes=1)
+
+            def cpu(self):
+                return self
+
+        first_pass_cache._AIO_FIRST_PASS_CACHE["hit"] = (
+            first_pass_cache._AIOFirstPassCacheEntry(
+                latent=BlockingTensor(),
+                image=b"image",
+                size_bytes=1,
+                created_at=0.0,
+                last_access_at=0.0,
+            )
+        )
+        first_pass_cache._AIO_FIRST_PASS_CACHE_ORDER.append("hit")
+
+        def get():
+            try:
+                results.append(
+                    first_pass_cache._get_aio_first_pass_cache("hit")
+                )
+            except BaseException as exc:
+                errors.append(exc)
+
+        def clear():
+            try:
+                first_pass_cache._clear_aio_first_pass_cache()
+            except BaseException as exc:
+                errors.append(exc)
+            finally:
+                clear_done.set()
+
+        with patch.object(
+            first_pass_cache,
+            "_aio_first_pass_cache_now",
+            return_value=1.0,
+        ):
+            get_thread = threading.Thread(target=get, daemon=True)
+            clear_thread = threading.Thread(target=clear, daemon=True)
+            get_thread.start()
+            self.assertTrue(
+                clone_started.wait(2.0),
+                "checkout clone did not start",
+            )
+            try:
+                clear_thread.start()
+                self.assertTrue(
+                    clear_done.wait(2.0),
+                    "clear was blocked by checkout cloning",
+                )
+            finally:
+                release_clone.set()
+                get_thread.join(2.0)
+                clear_thread.join(2.0)
+
+        self.assertFalse(get_thread.is_alive())
+        self.assertFalse(clear_thread.is_alive())
+        self.assertEqual(errors, [])
+        self.assertEqual(len(results), 1)
+        self.assertIsInstance(results[0][0], _SizedTensor)
+        self.assertEqual(results[0][1], b"image")
+        self.assertEqual(first_pass_cache._AIO_FIRST_PASS_CACHE, {})
+        self.assertEqual(first_pass_cache._AIO_FIRST_PASS_CACHE_ORDER, [])
+
+    def test_bounded_concurrent_hit_put_eviction_preserves_invariants(self):
+        worker_count = 8
+        barrier = threading.Barrier(worker_count)
+
+        def exercise(worker_id):
+            barrier.wait(timeout=2.0)
+            for offset in range(40):
+                key = f"entry-{(worker_id + offset) % 4}"
+                payload = bytes((worker_id, offset % 256))
+                first_pass_cache._put_aio_first_pass_cache(
+                    key,
+                    payload,
+                    payload,
+                )
+                first_pass_cache._get_aio_first_pass_cache(key)
+
+        with ThreadPoolExecutor(max_workers=worker_count) as executor:
+            futures = [
+                executor.submit(exercise, worker_id)
+                for worker_id in range(worker_count)
+            ]
+            for future in futures:
+                future.result(timeout=5.0)
+
+        mapping = first_pass_cache._AIO_FIRST_PASS_CACHE
+        order = first_pass_cache._AIO_FIRST_PASS_CACHE_ORDER
+        self.assertLessEqual(
+            len(mapping),
+            first_pass_cache.AIO_FIRST_PASS_CACHE_MAX_ENTRIES,
+        )
+        self.assertEqual(len(order), len(set(order)))
+        self.assertEqual(set(order), set(mapping))
+        self.assertLessEqual(
+            first_pass_cache._aio_first_pass_cache_total_bytes(),
+            first_pass_cache.AIO_FIRST_PASS_CACHE_MAX_BYTES,
+        )
 
     def test_clone_preserves_nested_shape_tensor_clone_and_cpu_failure(self):
         calls = []
