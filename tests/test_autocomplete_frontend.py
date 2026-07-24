@@ -580,6 +580,7 @@ class AutocompleteFrontendBoundaryTests(unittest.TestCase):
         entry_source = AUTOCOMPLETE_ENTRY.read_text(encoding="utf-8")
         expected_exports = {
             "autocompleteQuery",
+            "completionEditRangeContract",
             "currentToken",
             "currentWildcardToken",
             "isCaretInComment",
