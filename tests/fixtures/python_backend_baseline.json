@@ -2439,20 +2439,20 @@
         "column": 4,
         "compatibility_pair": {
           "bound_name": "AutocompleteIndexDiagnostics",
-          "target": "autocomplete_index.py",
+          "target": "easyuse_anima/autocomplete/index.py",
           "try_line": 17
         },
         "conditional": true,
-        "imported": ".autocomplete_index:AutocompleteIndexDiagnostics",
+        "imported": ".easyuse_anima.autocomplete.index:AutocompleteIndexDiagnostics",
         "kind": "static_from",
         "line": 18,
         "name": "AutocompleteIndexDiagnostics",
         "optional": false,
-        "requested": ".autocomplete_index",
+        "requested": ".easyuse_anima.autocomplete.index",
         "role": "compatibility_primary",
         "scope": "<module>",
         "source": "autocomplete_dataset.py",
-        "target": "autocomplete_index.py"
+        "target": "easyuse_anima/autocomplete/index.py"
       },
       {
         "alias": null,
@@ -2470,20 +2470,20 @@
         "column": 4,
         "compatibility_pair": {
           "bound_name": "AutocompleteIndexSource",
-          "target": "autocomplete_index.py",
+          "target": "easyuse_anima/autocomplete/index.py",
           "try_line": 17
         },
         "conditional": true,
-        "imported": ".autocomplete_index:AutocompleteIndexSource",
+        "imported": ".easyuse_anima.autocomplete.index:AutocompleteIndexSource",
         "kind": "static_from",
         "line": 18,
         "name": "AutocompleteIndexSource",
         "optional": false,
-        "requested": ".autocomplete_index",
+        "requested": ".easyuse_anima.autocomplete.index",
         "role": "compatibility_primary",
         "scope": "<module>",
         "source": "autocomplete_dataset.py",
-        "target": "autocomplete_index.py"
+        "target": "easyuse_anima/autocomplete/index.py"
       },
       {
         "alias": null,
@@ -2501,20 +2501,20 @@
         "column": 4,
         "compatibility_pair": {
           "bound_name": "AutocompleteIndexUnavailable",
-          "target": "autocomplete_index.py",
+          "target": "easyuse_anima/autocomplete/index.py",
           "try_line": 17
         },
         "conditional": true,
-        "imported": ".autocomplete_index:AutocompleteIndexUnavailable",
+        "imported": ".easyuse_anima.autocomplete.index:AutocompleteIndexUnavailable",
         "kind": "static_from",
         "line": 18,
         "name": "AutocompleteIndexUnavailable",
         "optional": false,
-        "requested": ".autocomplete_index",
+        "requested": ".easyuse_anima.autocomplete.index",
         "role": "compatibility_primary",
         "scope": "<module>",
         "source": "autocomplete_dataset.py",
-        "target": "autocomplete_index.py"
+        "target": "easyuse_anima/autocomplete/index.py"
       },
       {
         "alias": null,
@@ -2532,20 +2532,20 @@
         "column": 4,
         "compatibility_pair": {
           "bound_name": "search_autocomplete_index",
-          "target": "autocomplete_index.py",
+          "target": "easyuse_anima/autocomplete/index.py",
           "try_line": 17
         },
         "conditional": true,
-        "imported": ".autocomplete_index:search_autocomplete_index",
+        "imported": ".easyuse_anima.autocomplete.index:search_autocomplete_index",
         "kind": "static_from",
         "line": 18,
         "name": "search_autocomplete_index",
         "optional": false,
-        "requested": ".autocomplete_index",
+        "requested": ".easyuse_anima.autocomplete.index",
         "role": "compatibility_primary",
         "scope": "<module>",
         "source": "autocomplete_dataset.py",
-        "target": "autocomplete_index.py"
+        "target": "easyuse_anima/autocomplete/index.py"
       },
       {
         "alias": null,
@@ -2783,20 +2783,20 @@
         "column": 4,
         "compatibility_pair": {
           "bound_name": "AutocompleteIndexDiagnostics",
-          "target": "autocomplete_index.py",
+          "target": "easyuse_anima/autocomplete/index.py",
           "try_line": 17
         },
         "conditional": true,
-        "imported": "autocomplete_index:AutocompleteIndexDiagnostics",
+        "imported": "easyuse_anima.autocomplete.index:AutocompleteIndexDiagnostics",
         "kind": "static_from",
         "line": 36,
         "name": "AutocompleteIndexDiagnostics",
         "optional": false,
-        "requested": "autocomplete_index",
+        "requested": "easyuse_anima.autocomplete.index",
         "role": "compatibility_fallback",
         "scope": "<module>",
         "source": "autocomplete_dataset.py",
-        "target": "autocomplete_index.py"
+        "target": "easyuse_anima/autocomplete/index.py"
       },
       {
         "alias": null,
@@ -2817,20 +2817,20 @@
         "column": 4,
         "compatibility_pair": {
           "bound_name": "AutocompleteIndexSource",
-          "target": "autocomplete_index.py",
+          "target": "easyuse_anima/autocomplete/index.py",
           "try_line": 17
         },
         "conditional": true,
-        "imported": "autocomplete_index:AutocompleteIndexSource",
+        "imported": "easyuse_anima.autocomplete.index:AutocompleteIndexSource",
         "kind": "static_from",
         "line": 36,
         "name": "AutocompleteIndexSource",
         "optional": false,
-        "requested": "autocomplete_index",
+        "requested": "easyuse_anima.autocomplete.index",
         "role": "compatibility_fallback",
         "scope": "<module>",
         "source": "autocomplete_dataset.py",
-        "target": "autocomplete_index.py"
+        "target": "easyuse_anima/autocomplete/index.py"
       },
       {
         "alias": null,
@@ -2851,20 +2851,20 @@
         "column": 4,
         "compatibility_pair": {
           "bound_name": "AutocompleteIndexUnavailable",
-          "target": "autocomplete_index.py",
+          "target": "easyuse_anima/autocomplete/index.py",
           "try_line": 17
         },
         "conditional": true,
-        "imported": "autocomplete_index:AutocompleteIndexUnavailable",
+        "imported": "easyuse_anima.autocomplete.index:AutocompleteIndexUnavailable",
         "kind": "static_from",
         "line": 36,
         "name": "AutocompleteIndexUnavailable",
         "optional": false,
-        "requested": "autocomplete_index",
+        "requested": "easyuse_anima.autocomplete.index",
         "role": "compatibility_fallback",
         "scope": "<module>",
         "source": "autocomplete_dataset.py",
-        "target": "autocomplete_index.py"
+        "target": "easyuse_anima/autocomplete/index.py"
       },
       {
         "alias": null,
@@ -2885,20 +2885,20 @@
         "column": 4,
         "compatibility_pair": {
           "bound_name": "search_autocomplete_index",
-          "target": "autocomplete_index.py",
+          "target": "easyuse_anima/autocomplete/index.py",
           "try_line": 17
         },
         "conditional": true,
-        "imported": "autocomplete_index:search_autocomplete_index",
+        "imported": "easyuse_anima.autocomplete.index:search_autocomplete_index",
         "kind": "static_from",
         "line": 36,
         "name": "search_autocomplete_index",
         "optional": false,
-        "requested": "autocomplete_index",
+        "requested": "easyuse_anima.autocomplete.index",
         "role": "compatibility_fallback",
         "scope": "<module>",
         "source": "autocomplete_dataset.py",
-        "target": "autocomplete_index.py"
+        "target": "easyuse_anima/autocomplete/index.py"
       },
       {
         "alias": null,
@@ -3147,7 +3147,7 @@
         "conditional": false,
         "imported": "__future__:annotations",
         "kind": "static_from",
-        "line": 1,
+        "line": 3,
         "name": "annotations",
         "optional": false,
         "requested": "__future__",
@@ -3157,156 +3157,458 @@
       },
       {
         "alias": null,
-        "bound_name": "hashlib",
-        "branch_context": [],
-        "classification": "external",
-        "column": 0,
-        "conditional": false,
-        "imported": "hashlib",
-        "kind": "static_import",
-        "line": 3,
-        "name": null,
-        "optional": false,
-        "requested": "hashlib",
-        "role": "ordinary",
-        "scope": "<module>",
-        "source": "autocomplete_index.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "os",
-        "branch_context": [],
-        "classification": "external",
-        "column": 0,
-        "conditional": false,
-        "imported": "os",
-        "kind": "static_import",
-        "line": 4,
-        "name": null,
-        "optional": false,
-        "requested": "os",
-        "role": "ordinary",
-        "scope": "<module>",
-        "source": "autocomplete_index.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "sqlite3",
-        "branch_context": [],
-        "classification": "external",
-        "column": 0,
-        "conditional": false,
-        "imported": "sqlite3",
-        "kind": "static_import",
-        "line": 5,
-        "name": null,
-        "optional": false,
-        "requested": "sqlite3",
-        "role": "ordinary",
-        "scope": "<module>",
-        "source": "autocomplete_index.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "tempfile",
-        "branch_context": [],
-        "classification": "external",
-        "column": 0,
-        "conditional": false,
-        "imported": "tempfile",
-        "kind": "static_import",
+        "bound_name": "AUTOCOMPLETE_INDEX_SCHEMA_VERSION",
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": true,
+            "kind": "try",
+            "line": 5
+          }
+        ],
+        "classification": "internal",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "AUTOCOMPLETE_INDEX_SCHEMA_VERSION",
+          "target": "easyuse_anima/autocomplete/index.py",
+          "try_line": 5
+        },
+        "conditional": true,
+        "imported": ".easyuse_anima.autocomplete.index:AUTOCOMPLETE_INDEX_SCHEMA_VERSION",
+        "kind": "static_from",
         "line": 6,
-        "name": null,
+        "name": "AUTOCOMPLETE_INDEX_SCHEMA_VERSION",
         "optional": false,
-        "requested": "tempfile",
-        "role": "ordinary",
+        "requested": ".easyuse_anima.autocomplete.index",
+        "role": "compatibility_primary",
         "scope": "<module>",
-        "source": "autocomplete_index.py"
+        "source": "autocomplete_index.py",
+        "target": "easyuse_anima/autocomplete/index.py"
       },
       {
         "alias": null,
-        "bound_name": "threading",
-        "branch_context": [],
-        "classification": "external",
-        "column": 0,
-        "conditional": false,
-        "imported": "threading",
-        "kind": "static_import",
-        "line": 7,
-        "name": null,
-        "optional": false,
-        "requested": "threading",
-        "role": "ordinary",
-        "scope": "<module>",
-        "source": "autocomplete_index.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "dataclass",
-        "branch_context": [],
-        "classification": "external",
-        "column": 0,
-        "conditional": false,
-        "imported": "dataclasses:dataclass",
+        "bound_name": "AutocompleteIndexDiagnostics",
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": true,
+            "kind": "try",
+            "line": 5
+          }
+        ],
+        "classification": "internal",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "AutocompleteIndexDiagnostics",
+          "target": "easyuse_anima/autocomplete/index.py",
+          "try_line": 5
+        },
+        "conditional": true,
+        "imported": ".easyuse_anima.autocomplete.index:AutocompleteIndexDiagnostics",
         "kind": "static_from",
-        "line": 8,
-        "name": "dataclass",
+        "line": 6,
+        "name": "AutocompleteIndexDiagnostics",
         "optional": false,
-        "requested": "dataclasses",
-        "role": "ordinary",
+        "requested": ".easyuse_anima.autocomplete.index",
+        "role": "compatibility_primary",
         "scope": "<module>",
-        "source": "autocomplete_index.py"
+        "source": "autocomplete_index.py",
+        "target": "easyuse_anima/autocomplete/index.py"
       },
       {
         "alias": null,
-        "bound_name": "Path",
-        "branch_context": [],
-        "classification": "external",
-        "column": 0,
-        "conditional": false,
-        "imported": "pathlib:Path",
+        "bound_name": "AutocompleteIndexResult",
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": true,
+            "kind": "try",
+            "line": 5
+          }
+        ],
+        "classification": "internal",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "AutocompleteIndexResult",
+          "target": "easyuse_anima/autocomplete/index.py",
+          "try_line": 5
+        },
+        "conditional": true,
+        "imported": ".easyuse_anima.autocomplete.index:AutocompleteIndexResult",
         "kind": "static_from",
-        "line": 9,
-        "name": "Path",
+        "line": 6,
+        "name": "AutocompleteIndexResult",
         "optional": false,
-        "requested": "pathlib",
-        "role": "ordinary",
+        "requested": ".easyuse_anima.autocomplete.index",
+        "role": "compatibility_primary",
         "scope": "<module>",
-        "source": "autocomplete_index.py"
+        "source": "autocomplete_index.py",
+        "target": "easyuse_anima/autocomplete/index.py"
       },
       {
         "alias": null,
-        "bound_name": "Callable",
-        "branch_context": [],
-        "classification": "external",
-        "column": 0,
-        "conditional": false,
-        "imported": "typing:Callable",
+        "bound_name": "AutocompleteIndexSource",
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": true,
+            "kind": "try",
+            "line": 5
+          }
+        ],
+        "classification": "internal",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "AutocompleteIndexSource",
+          "target": "easyuse_anima/autocomplete/index.py",
+          "try_line": 5
+        },
+        "conditional": true,
+        "imported": ".easyuse_anima.autocomplete.index:AutocompleteIndexSource",
         "kind": "static_from",
-        "line": 10,
-        "name": "Callable",
+        "line": 6,
+        "name": "AutocompleteIndexSource",
         "optional": false,
-        "requested": "typing",
-        "role": "ordinary",
+        "requested": ".easyuse_anima.autocomplete.index",
+        "role": "compatibility_primary",
         "scope": "<module>",
-        "source": "autocomplete_index.py"
+        "source": "autocomplete_index.py",
+        "target": "easyuse_anima/autocomplete/index.py"
       },
       {
         "alias": null,
-        "bound_name": "Iterable",
-        "branch_context": [],
-        "classification": "external",
-        "column": 0,
-        "conditional": false,
-        "imported": "typing:Iterable",
+        "bound_name": "AutocompleteIndexUnavailable",
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": true,
+            "kind": "try",
+            "line": 5
+          }
+        ],
+        "classification": "internal",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "AutocompleteIndexUnavailable",
+          "target": "easyuse_anima/autocomplete/index.py",
+          "try_line": 5
+        },
+        "conditional": true,
+        "imported": ".easyuse_anima.autocomplete.index:AutocompleteIndexUnavailable",
         "kind": "static_from",
-        "line": 10,
-        "name": "Iterable",
+        "line": 6,
+        "name": "AutocompleteIndexUnavailable",
         "optional": false,
-        "requested": "typing",
-        "role": "ordinary",
+        "requested": ".easyuse_anima.autocomplete.index",
+        "role": "compatibility_primary",
         "scope": "<module>",
-        "source": "autocomplete_index.py"
+        "source": "autocomplete_index.py",
+        "target": "easyuse_anima/autocomplete/index.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "IndexedAutocompleteEntry",
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": true,
+            "kind": "try",
+            "line": 5
+          }
+        ],
+        "classification": "internal",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "IndexedAutocompleteEntry",
+          "target": "easyuse_anima/autocomplete/index.py",
+          "try_line": 5
+        },
+        "conditional": true,
+        "imported": ".easyuse_anima.autocomplete.index:IndexedAutocompleteEntry",
+        "kind": "static_from",
+        "line": 6,
+        "name": "IndexedAutocompleteEntry",
+        "optional": false,
+        "requested": ".easyuse_anima.autocomplete.index",
+        "role": "compatibility_primary",
+        "scope": "<module>",
+        "source": "autocomplete_index.py",
+        "target": "easyuse_anima/autocomplete/index.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "search_autocomplete_index",
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": true,
+            "kind": "try",
+            "line": 5
+          }
+        ],
+        "classification": "internal",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "search_autocomplete_index",
+          "target": "easyuse_anima/autocomplete/index.py",
+          "try_line": 5
+        },
+        "conditional": true,
+        "imported": ".easyuse_anima.autocomplete.index:search_autocomplete_index",
+        "kind": "static_from",
+        "line": 6,
+        "name": "search_autocomplete_index",
+        "optional": false,
+        "requested": ".easyuse_anima.autocomplete.index",
+        "role": "compatibility_primary",
+        "scope": "<module>",
+        "source": "autocomplete_index.py",
+        "target": "easyuse_anima/autocomplete/index.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "AUTOCOMPLETE_INDEX_SCHEMA_VERSION",
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 15,
+            "kind": "try",
+            "line": 5
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "AUTOCOMPLETE_INDEX_SCHEMA_VERSION",
+          "target": "easyuse_anima/autocomplete/index.py",
+          "try_line": 5
+        },
+        "conditional": true,
+        "imported": "easyuse_anima.autocomplete.index:AUTOCOMPLETE_INDEX_SCHEMA_VERSION",
+        "kind": "static_from",
+        "line": 16,
+        "name": "AUTOCOMPLETE_INDEX_SCHEMA_VERSION",
+        "optional": false,
+        "requested": "easyuse_anima.autocomplete.index",
+        "role": "compatibility_fallback",
+        "scope": "<module>",
+        "source": "autocomplete_index.py",
+        "target": "easyuse_anima/autocomplete/index.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "AutocompleteIndexDiagnostics",
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 15,
+            "kind": "try",
+            "line": 5
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "AutocompleteIndexDiagnostics",
+          "target": "easyuse_anima/autocomplete/index.py",
+          "try_line": 5
+        },
+        "conditional": true,
+        "imported": "easyuse_anima.autocomplete.index:AutocompleteIndexDiagnostics",
+        "kind": "static_from",
+        "line": 16,
+        "name": "AutocompleteIndexDiagnostics",
+        "optional": false,
+        "requested": "easyuse_anima.autocomplete.index",
+        "role": "compatibility_fallback",
+        "scope": "<module>",
+        "source": "autocomplete_index.py",
+        "target": "easyuse_anima/autocomplete/index.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "AutocompleteIndexResult",
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 15,
+            "kind": "try",
+            "line": 5
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "AutocompleteIndexResult",
+          "target": "easyuse_anima/autocomplete/index.py",
+          "try_line": 5
+        },
+        "conditional": true,
+        "imported": "easyuse_anima.autocomplete.index:AutocompleteIndexResult",
+        "kind": "static_from",
+        "line": 16,
+        "name": "AutocompleteIndexResult",
+        "optional": false,
+        "requested": "easyuse_anima.autocomplete.index",
+        "role": "compatibility_fallback",
+        "scope": "<module>",
+        "source": "autocomplete_index.py",
+        "target": "easyuse_anima/autocomplete/index.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "AutocompleteIndexSource",
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 15,
+            "kind": "try",
+            "line": 5
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "AutocompleteIndexSource",
+          "target": "easyuse_anima/autocomplete/index.py",
+          "try_line": 5
+        },
+        "conditional": true,
+        "imported": "easyuse_anima.autocomplete.index:AutocompleteIndexSource",
+        "kind": "static_from",
+        "line": 16,
+        "name": "AutocompleteIndexSource",
+        "optional": false,
+        "requested": "easyuse_anima.autocomplete.index",
+        "role": "compatibility_fallback",
+        "scope": "<module>",
+        "source": "autocomplete_index.py",
+        "target": "easyuse_anima/autocomplete/index.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "AutocompleteIndexUnavailable",
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 15,
+            "kind": "try",
+            "line": 5
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "AutocompleteIndexUnavailable",
+          "target": "easyuse_anima/autocomplete/index.py",
+          "try_line": 5
+        },
+        "conditional": true,
+        "imported": "easyuse_anima.autocomplete.index:AutocompleteIndexUnavailable",
+        "kind": "static_from",
+        "line": 16,
+        "name": "AutocompleteIndexUnavailable",
+        "optional": false,
+        "requested": "easyuse_anima.autocomplete.index",
+        "role": "compatibility_fallback",
+        "scope": "<module>",
+        "source": "autocomplete_index.py",
+        "target": "easyuse_anima/autocomplete/index.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "IndexedAutocompleteEntry",
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 15,
+            "kind": "try",
+            "line": 5
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "IndexedAutocompleteEntry",
+          "target": "easyuse_anima/autocomplete/index.py",
+          "try_line": 5
+        },
+        "conditional": true,
+        "imported": "easyuse_anima.autocomplete.index:IndexedAutocompleteEntry",
+        "kind": "static_from",
+        "line": 16,
+        "name": "IndexedAutocompleteEntry",
+        "optional": false,
+        "requested": "easyuse_anima.autocomplete.index",
+        "role": "compatibility_fallback",
+        "scope": "<module>",
+        "source": "autocomplete_index.py",
+        "target": "easyuse_anima/autocomplete/index.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "search_autocomplete_index",
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 15,
+            "kind": "try",
+            "line": 5
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "search_autocomplete_index",
+          "target": "easyuse_anima/autocomplete/index.py",
+          "try_line": 5
+        },
+        "conditional": true,
+        "imported": "easyuse_anima.autocomplete.index:search_autocomplete_index",
+        "kind": "static_from",
+        "line": 16,
+        "name": "search_autocomplete_index",
+        "optional": false,
+        "requested": "easyuse_anima.autocomplete.index",
+        "role": "compatibility_fallback",
+        "scope": "<module>",
+        "source": "autocomplete_index.py",
+        "target": "easyuse_anima/autocomplete/index.py"
       },
       {
         "alias": "_seed",
@@ -11192,6 +11494,210 @@
         "scope": "<module>",
         "source": "easyuse_anima/aio/usdu.py",
         "target": "easyuse_anima/image/geometry.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "annotations",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "__future__:annotations",
+        "kind": "static_from",
+        "line": 1,
+        "name": "annotations",
+        "optional": false,
+        "requested": "__future__",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/autocomplete/index.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "hashlib",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "hashlib",
+        "kind": "static_import",
+        "line": 3,
+        "name": null,
+        "optional": false,
+        "requested": "hashlib",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/autocomplete/index.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "os",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "os",
+        "kind": "static_import",
+        "line": 4,
+        "name": null,
+        "optional": false,
+        "requested": "os",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/autocomplete/index.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "sqlite3",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "sqlite3",
+        "kind": "static_import",
+        "line": 5,
+        "name": null,
+        "optional": false,
+        "requested": "sqlite3",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/autocomplete/index.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "tempfile",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "tempfile",
+        "kind": "static_import",
+        "line": 6,
+        "name": null,
+        "optional": false,
+        "requested": "tempfile",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/autocomplete/index.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "threading",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "threading",
+        "kind": "static_import",
+        "line": 7,
+        "name": null,
+        "optional": false,
+        "requested": "threading",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/autocomplete/index.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "Callable",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "collections.abc:Callable",
+        "kind": "static_from",
+        "line": 8,
+        "name": "Callable",
+        "optional": false,
+        "requested": "collections.abc",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/autocomplete/index.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "Iterable",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "collections.abc:Iterable",
+        "kind": "static_from",
+        "line": 8,
+        "name": "Iterable",
+        "optional": false,
+        "requested": "collections.abc",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/autocomplete/index.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "Sequence",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "collections.abc:Sequence",
+        "kind": "static_from",
+        "line": 8,
+        "name": "Sequence",
+        "optional": false,
+        "requested": "collections.abc",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/autocomplete/index.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "dataclass",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "dataclasses:dataclass",
+        "kind": "static_from",
+        "line": 9,
+        "name": "dataclass",
+        "optional": false,
+        "requested": "dataclasses",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/autocomplete/index.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "Path",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "pathlib:Path",
+        "kind": "static_from",
+        "line": 10,
+        "name": "Path",
+        "optional": false,
+        "requested": "pathlib",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/autocomplete/index.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "Protocol",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "typing:Protocol",
+        "kind": "static_from",
+        "line": 11,
+        "name": "Protocol",
+        "optional": false,
+        "requested": "typing",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/autocomplete/index.py"
       },
       {
         "alias": null,
@@ -52059,7 +52565,7 @@
       },
       {
         "from": "autocomplete_dataset.py",
-        "to": "autocomplete_index.py"
+        "to": "easyuse_anima/autocomplete/index.py"
       },
       {
         "from": "autocomplete_dataset.py",
@@ -52068,6 +52574,10 @@
       {
         "from": "autocomplete_dataset.py",
         "to": "easyuse_anima/translation/markers.py"
+      },
+      {
+        "from": "autocomplete_index.py",
+        "to": "easyuse_anima/autocomplete/index.py"
       },
       {
         "from": "easyuse_anima/__init__.py",
@@ -53774,6 +54284,18 @@
       {
         "cyclic": false,
         "modules": [
+          "easyuse_anima/autocomplete/__init__.py"
+        ]
+      },
+      {
+        "cyclic": false,
+        "modules": [
+          "easyuse_anima/autocomplete/index.py"
+        ]
+      },
+      {
+        "cyclic": false,
+        "modules": [
           "easyuse_anima/bootstrap.py"
         ]
       },
@@ -54231,7 +54753,7 @@
     ]
   },
   "inventory": {
-    "module_count": 121,
+    "module_count": 123,
     "modules": [
       {
         "is_package": true,
@@ -54357,7 +54879,7 @@
         "is_package": false,
         "loc": 987,
         "module": "autocomplete_dataset",
-        "normalized_git_blob_sha1": "2981da53cd185129e00a47c0dee4d82f7b0add39",
+        "normalized_git_blob_sha1": "51c08329c25ec0fc97d15c2b04bef8ae267aeac6",
         "path": "autocomplete_dataset.py",
         "top_level": {
           "class_count": 4,
@@ -54367,14 +54889,14 @@
       },
       {
         "is_package": false,
-        "loc": 580,
+        "loc": 35,
         "module": "autocomplete_index",
-        "normalized_git_blob_sha1": "885fefac3b7ba0b71f5ce22a3aa6ce070ee62c62",
+        "normalized_git_blob_sha1": "45682a940886907a9cbd9528e81bf823b0f78b00",
         "path": "autocomplete_index.py",
         "top_level": {
-          "class_count": 6,
-          "function_count": 15,
-          "global_count": 4
+          "class_count": 0,
+          "function_count": 0,
+          "global_count": 1
         }
       },
       {
@@ -54759,6 +55281,30 @@
           "class_count": 0,
           "function_count": 2,
           "global_count": 1
+        }
+      },
+      {
+        "is_package": true,
+        "loc": 3,
+        "module": "easyuse_anima.autocomplete",
+        "normalized_git_blob_sha1": "15d95fb05e78822555fc7dd9de1b5707ab9f994b",
+        "path": "easyuse_anima/autocomplete/__init__.py",
+        "top_level": {
+          "class_count": 0,
+          "function_count": 0,
+          "global_count": 1
+        }
+      },
+      {
+        "is_package": false,
+        "loc": 599,
+        "module": "easyuse_anima.autocomplete.index",
+        "normalized_git_blob_sha1": "5296ad1fcaa7aaa689b3b80a79ab1b23decf9fdb",
+        "path": "easyuse_anima/autocomplete/index.py",
+        "top_level": {
+          "class_count": 7,
+          "function_count": 15,
+          "global_count": 5
         }
       },
       {
@@ -55896,13 +56442,13 @@
         ],
         "classification": "compatibility_fallback",
         "conditional": true,
-        "imported": "autocomplete_index:AutocompleteIndexDiagnostics",
+        "imported": "easyuse_anima.autocomplete.index:AutocompleteIndexDiagnostics",
         "kind": "static_from",
         "line": 36,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "autocomplete_dataset.py",
-        "target": "autocomplete_index.py"
+        "target": "easyuse_anima/autocomplete/index.py"
       },
       {
         "branch_context": [
@@ -55919,13 +56465,13 @@
         ],
         "classification": "compatibility_fallback",
         "conditional": true,
-        "imported": "autocomplete_index:AutocompleteIndexSource",
+        "imported": "easyuse_anima.autocomplete.index:AutocompleteIndexSource",
         "kind": "static_from",
         "line": 36,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "autocomplete_dataset.py",
-        "target": "autocomplete_index.py"
+        "target": "easyuse_anima/autocomplete/index.py"
       },
       {
         "branch_context": [
@@ -55942,13 +56488,13 @@
         ],
         "classification": "compatibility_fallback",
         "conditional": true,
-        "imported": "autocomplete_index:AutocompleteIndexUnavailable",
+        "imported": "easyuse_anima.autocomplete.index:AutocompleteIndexUnavailable",
         "kind": "static_from",
         "line": 36,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "autocomplete_dataset.py",
-        "target": "autocomplete_index.py"
+        "target": "easyuse_anima/autocomplete/index.py"
       },
       {
         "branch_context": [
@@ -55965,13 +56511,13 @@
         ],
         "classification": "compatibility_fallback",
         "conditional": true,
-        "imported": "autocomplete_index:search_autocomplete_index",
+        "imported": "easyuse_anima.autocomplete.index:search_autocomplete_index",
         "kind": "static_from",
         "line": 36,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "autocomplete_dataset.py",
-        "target": "autocomplete_index.py"
+        "target": "easyuse_anima/autocomplete/index.py"
       },
       {
         "branch_context": [
@@ -56133,6 +56679,167 @@
         "role": "compatibility_fallback",
         "source": "autocomplete_dataset.py",
         "target": "easyuse_anima/infrastructure/filesystem/paths.py"
+      },
+      {
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 15,
+            "kind": "try",
+            "line": 5
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "conditional": true,
+        "imported": "easyuse_anima.autocomplete.index:AUTOCOMPLETE_INDEX_SCHEMA_VERSION",
+        "kind": "static_from",
+        "line": 16,
+        "optional": false,
+        "role": "compatibility_fallback",
+        "source": "autocomplete_index.py",
+        "target": "easyuse_anima/autocomplete/index.py"
+      },
+      {
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 15,
+            "kind": "try",
+            "line": 5
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "conditional": true,
+        "imported": "easyuse_anima.autocomplete.index:AutocompleteIndexDiagnostics",
+        "kind": "static_from",
+        "line": 16,
+        "optional": false,
+        "role": "compatibility_fallback",
+        "source": "autocomplete_index.py",
+        "target": "easyuse_anima/autocomplete/index.py"
+      },
+      {
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 15,
+            "kind": "try",
+            "line": 5
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "conditional": true,
+        "imported": "easyuse_anima.autocomplete.index:AutocompleteIndexResult",
+        "kind": "static_from",
+        "line": 16,
+        "optional": false,
+        "role": "compatibility_fallback",
+        "source": "autocomplete_index.py",
+        "target": "easyuse_anima/autocomplete/index.py"
+      },
+      {
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 15,
+            "kind": "try",
+            "line": 5
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "conditional": true,
+        "imported": "easyuse_anima.autocomplete.index:AutocompleteIndexSource",
+        "kind": "static_from",
+        "line": 16,
+        "optional": false,
+        "role": "compatibility_fallback",
+        "source": "autocomplete_index.py",
+        "target": "easyuse_anima/autocomplete/index.py"
+      },
+      {
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 15,
+            "kind": "try",
+            "line": 5
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "conditional": true,
+        "imported": "easyuse_anima.autocomplete.index:AutocompleteIndexUnavailable",
+        "kind": "static_from",
+        "line": 16,
+        "optional": false,
+        "role": "compatibility_fallback",
+        "source": "autocomplete_index.py",
+        "target": "easyuse_anima/autocomplete/index.py"
+      },
+      {
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 15,
+            "kind": "try",
+            "line": 5
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "conditional": true,
+        "imported": "easyuse_anima.autocomplete.index:IndexedAutocompleteEntry",
+        "kind": "static_from",
+        "line": 16,
+        "optional": false,
+        "role": "compatibility_fallback",
+        "source": "autocomplete_index.py",
+        "target": "easyuse_anima/autocomplete/index.py"
+      },
+      {
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 15,
+            "kind": "try",
+            "line": 5
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "conditional": true,
+        "imported": "easyuse_anima.autocomplete.index:search_autocomplete_index",
+        "kind": "static_from",
+        "line": 16,
+        "optional": false,
+        "role": "compatibility_fallback",
+        "source": "autocomplete_index.py",
+        "target": "easyuse_anima/autocomplete/index.py"
       },
       {
         "branch_context": [
@@ -65711,6 +66418,7 @@
     ],
     "entry_modules": [
       "__init__.py",
+      "autocomplete_index.py",
       "nodes.py",
       "prompt_translation.py",
       "settings.py",
@@ -66305,106 +67013,7 @@
         "conditional": false,
         "imported": "__future__:annotations",
         "kind": "static_from",
-        "line": 1,
-        "optional": false,
-        "role": "ordinary",
-        "source": "autocomplete_index.py"
-      },
-      {
-        "branch_context": [],
-        "classification": "external",
-        "conditional": false,
-        "imported": "hashlib",
-        "kind": "static_import",
         "line": 3,
-        "optional": false,
-        "role": "ordinary",
-        "source": "autocomplete_index.py"
-      },
-      {
-        "branch_context": [],
-        "classification": "external",
-        "conditional": false,
-        "imported": "os",
-        "kind": "static_import",
-        "line": 4,
-        "optional": false,
-        "role": "ordinary",
-        "source": "autocomplete_index.py"
-      },
-      {
-        "branch_context": [],
-        "classification": "external",
-        "conditional": false,
-        "imported": "sqlite3",
-        "kind": "static_import",
-        "line": 5,
-        "optional": false,
-        "role": "ordinary",
-        "source": "autocomplete_index.py"
-      },
-      {
-        "branch_context": [],
-        "classification": "external",
-        "conditional": false,
-        "imported": "tempfile",
-        "kind": "static_import",
-        "line": 6,
-        "optional": false,
-        "role": "ordinary",
-        "source": "autocomplete_index.py"
-      },
-      {
-        "branch_context": [],
-        "classification": "external",
-        "conditional": false,
-        "imported": "threading",
-        "kind": "static_import",
-        "line": 7,
-        "optional": false,
-        "role": "ordinary",
-        "source": "autocomplete_index.py"
-      },
-      {
-        "branch_context": [],
-        "classification": "external",
-        "conditional": false,
-        "imported": "dataclasses:dataclass",
-        "kind": "static_from",
-        "line": 8,
-        "optional": false,
-        "role": "ordinary",
-        "source": "autocomplete_index.py"
-      },
-      {
-        "branch_context": [],
-        "classification": "external",
-        "conditional": false,
-        "imported": "pathlib:Path",
-        "kind": "static_from",
-        "line": 9,
-        "optional": false,
-        "role": "ordinary",
-        "source": "autocomplete_index.py"
-      },
-      {
-        "branch_context": [],
-        "classification": "external",
-        "conditional": false,
-        "imported": "typing:Callable",
-        "kind": "static_from",
-        "line": 10,
-        "optional": false,
-        "role": "ordinary",
-        "source": "autocomplete_index.py"
-      },
-      {
-        "branch_context": [],
-        "classification": "external",
-        "conditional": false,
-        "imported": "typing:Iterable",
-        "kind": "static_from",
-        "line": 10,
         "optional": false,
         "role": "ordinary",
         "source": "autocomplete_index.py"
@@ -68029,6 +68638,138 @@
         "optional": false,
         "role": "ordinary",
         "source": "easyuse_anima/aio/usdu.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "__future__:annotations",
+        "kind": "static_from",
+        "line": 1,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/autocomplete/index.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "hashlib",
+        "kind": "static_import",
+        "line": 3,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/autocomplete/index.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "os",
+        "kind": "static_import",
+        "line": 4,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/autocomplete/index.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "sqlite3",
+        "kind": "static_import",
+        "line": 5,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/autocomplete/index.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "tempfile",
+        "kind": "static_import",
+        "line": 6,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/autocomplete/index.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "threading",
+        "kind": "static_import",
+        "line": 7,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/autocomplete/index.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "collections.abc:Callable",
+        "kind": "static_from",
+        "line": 8,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/autocomplete/index.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "collections.abc:Iterable",
+        "kind": "static_from",
+        "line": 8,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/autocomplete/index.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "collections.abc:Sequence",
+        "kind": "static_from",
+        "line": 8,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/autocomplete/index.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "dataclasses:dataclass",
+        "kind": "static_from",
+        "line": 9,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/autocomplete/index.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "pathlib:Path",
+        "kind": "static_from",
+        "line": 10,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/autocomplete/index.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "typing:Protocol",
+        "kind": "static_from",
+        "line": 11,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/autocomplete/index.py"
       },
       {
         "branch_context": [],
@@ -72290,6 +73031,8 @@
       "easyuse_anima/aio/resources.py",
       "easyuse_anima/aio/sampling.py",
       "easyuse_anima/aio/usdu.py",
+      "easyuse_anima/autocomplete/__init__.py",
+      "easyuse_anima/autocomplete/index.py",
       "easyuse_anima/bootstrap.py",
       "easyuse_anima/common/__init__.py",
       "easyuse_anima/common/serialization.py",
@@ -72413,6 +73156,8 @@
       "easyuse_anima/aio/resources.py",
       "easyuse_anima/aio/sampling.py",
       "easyuse_anima/aio/usdu.py",
+      "easyuse_anima/autocomplete/__init__.py",
+      "easyuse_anima/autocomplete/index.py",
       "easyuse_anima/bootstrap.py",
       "easyuse_anima/common/__init__.py",
       "easyuse_anima/common/serialization.py",
@@ -72881,51 +73626,6 @@
         "kind": "import_time_call",
         "line": 178,
         "module": "autocomplete_dataset.py",
-        "scope": "<module>"
-      },
-      {
-        "callee": "dataclass",
-        "column": 1,
-        "context": "decorator:AutocompleteIndexSource",
-        "kind": "import_time_call",
-        "line": 17,
-        "module": "autocomplete_index.py",
-        "scope": "<module>"
-      },
-      {
-        "callee": "dataclass",
-        "column": 1,
-        "context": "decorator:IndexedAutocompleteEntry",
-        "kind": "import_time_call",
-        "line": 28,
-        "module": "autocomplete_index.py",
-        "scope": "<module>"
-      },
-      {
-        "callee": "dataclass",
-        "column": 1,
-        "context": "decorator:AutocompleteIndexDiagnostics",
-        "kind": "import_time_call",
-        "line": 36,
-        "module": "autocomplete_index.py",
-        "scope": "<module>"
-      },
-      {
-        "callee": "dataclass",
-        "column": 1,
-        "context": "decorator:AutocompleteIndexResult",
-        "kind": "import_time_call",
-        "line": 46,
-        "module": "autocomplete_index.py",
-        "scope": "<module>"
-      },
-      {
-        "callee": "threading.Lock",
-        "column": 21,
-        "context": "assign:_INDEX_LOCKS_GUARD",
-        "kind": "import_time_call",
-        "line": 65,
-        "module": "autocomplete_index.py",
         "scope": "<module>"
       },
       {
@@ -73574,6 +74274,51 @@
         "kind": "import_time_call",
         "line": 28,
         "module": "easyuse_anima/aio/preview.py",
+        "scope": "<module>"
+      },
+      {
+        "callee": "dataclass",
+        "column": 1,
+        "context": "decorator:AutocompleteIndexSource",
+        "kind": "import_time_call",
+        "line": 36,
+        "module": "easyuse_anima/autocomplete/index.py",
+        "scope": "<module>"
+      },
+      {
+        "callee": "dataclass",
+        "column": 1,
+        "context": "decorator:IndexedAutocompleteEntry",
+        "kind": "import_time_call",
+        "line": 47,
+        "module": "easyuse_anima/autocomplete/index.py",
+        "scope": "<module>"
+      },
+      {
+        "callee": "dataclass",
+        "column": 1,
+        "context": "decorator:AutocompleteIndexDiagnostics",
+        "kind": "import_time_call",
+        "line": 55,
+        "module": "easyuse_anima/autocomplete/index.py",
+        "scope": "<module>"
+      },
+      {
+        "callee": "dataclass",
+        "column": 1,
+        "context": "decorator:AutocompleteIndexResult",
+        "kind": "import_time_call",
+        "line": 65,
+        "module": "easyuse_anima/autocomplete/index.py",
+        "scope": "<module>"
+      },
+      {
+        "callee": "threading.Lock",
+        "column": 21,
+        "context": "assign:_INDEX_LOCKS_GUARD",
+        "kind": "import_time_call",
+        "line": 84,
+        "module": "easyuse_anima/autocomplete/index.py",
         "scope": "<module>"
       },
       {
@@ -74272,12 +75017,6 @@
       },
       {
         "kind": "dict",
-        "line": 64,
-        "module": "autocomplete_index.py",
-        "name": "_INDEX_LOCKS"
-      },
-      {
-        "kind": "dict",
         "line": 66,
         "module": "easyuse_anima/aio/first_pass_cache.py",
         "name": "_AIO_FIRST_PASS_CACHE"
@@ -74323,6 +75062,12 @@
         "line": 15,
         "module": "easyuse_anima/aio/preview.py",
         "name": "AIO_PREVIEW_STAGE_LABELS"
+      },
+      {
+        "kind": "dict",
+        "line": 83,
+        "module": "easyuse_anima/autocomplete/index.py",
+        "name": "_INDEX_LOCKS"
       },
       {
         "kind": "list",
@@ -74652,25 +75397,6 @@
       },
       {
         "categories": [
-          "lock",
-          "mutable_container"
-        ],
-        "initializer": "Dict",
-        "line": 64,
-        "module": "autocomplete_index.py",
-        "name": "_INDEX_LOCKS"
-      },
-      {
-        "categories": [
-          "lock"
-        ],
-        "initializer": "threading.Lock",
-        "line": 65,
-        "module": "autocomplete_index.py",
-        "name": "_INDEX_LOCKS_GUARD"
-      },
-      {
-        "categories": [
           "cache",
           "mutable_container"
         ],
@@ -74707,6 +75433,25 @@
         "line": 70,
         "module": "easyuse_anima/aio/first_pass_cache.py",
         "name": "_AIO_FIRST_PASS_CACHE_ORDER"
+      },
+      {
+        "categories": [
+          "lock",
+          "mutable_container"
+        ],
+        "initializer": "Dict",
+        "line": 83,
+        "module": "easyuse_anima/autocomplete/index.py",
+        "name": "_INDEX_LOCKS"
+      },
+      {
+        "categories": [
+          "lock"
+        ],
+        "initializer": "threading.Lock",
+        "line": 84,
+        "module": "easyuse_anima/autocomplete/index.py",
+        "name": "_INDEX_LOCKS_GUARD"
       },
       {
         "categories": [

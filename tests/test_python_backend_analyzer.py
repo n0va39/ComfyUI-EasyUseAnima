@@ -691,13 +691,14 @@ ignored/
 
         self.assertEqual(analyzer.render_json(report), expected_text)
         self.assertEqual(report["schema_version"], 2)
-        self.assertEqual(report["inventory"]["module_count"], 121)
-        self.assertEqual(len(report["registry"]["shipped_python_modules"]), 121)
-        self.assertEqual(len(report["registry"]["runtime_import_closure"]), 121)
+        self.assertEqual(report["inventory"]["module_count"], 123)
+        self.assertEqual(len(report["registry"]["shipped_python_modules"]), 123)
+        self.assertEqual(len(report["registry"]["runtime_import_closure"]), 123)
         self.assertEqual(
             report["registry"]["entry_modules"],
             [
                 "__init__.py",
+                "autocomplete_index.py",
                 "nodes.py",
                 "prompt_translation.py",
                 "settings.py",
@@ -895,6 +896,28 @@ ignored/
         self.assertIn(
             "autocomplete_index.py",
             report["registry"]["runtime_import_closure"],
+        )
+        self.assertIn(
+            "easyuse_anima/autocomplete/index.py",
+            report["registry"]["shipped_python_modules"],
+        )
+        self.assertIn(
+            "easyuse_anima/autocomplete/index.py",
+            report["registry"]["runtime_import_closure"],
+        )
+        self.assertIn(
+            {
+                "from": "autocomplete_dataset.py",
+                "to": "easyuse_anima/autocomplete/index.py",
+            },
+            report["imports"]["module_graph"],
+        )
+        self.assertIn(
+            {
+                "from": "autocomplete_index.py",
+                "to": "easyuse_anima/autocomplete/index.py",
+            },
+            report["imports"]["module_graph"],
         )
         self.assertIn(
             {"from": "api.py", "to": "api_contract.py"},

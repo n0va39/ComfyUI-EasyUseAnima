@@ -5,7 +5,7 @@
 - Status: operational execution runbook
 - Snapshot date: 2026-07-24
 - Snapshot branch: `dev`
-- Integrated `dev` snapshot commit: `a45e69b18ac21574f959a9a55a534d3f4d39cda9`
+- Integrated `dev` snapshot commit: `8183aaf472d5cf88978c1dfe20f7bc5ca7d1895c`
 - Scope: Python backend only
 - Target architecture: [`python-backend.md`](python-backend.md)
 - Architecture decisions: [ADR-001](adr-001-modular-monolith.md) and
@@ -33,7 +33,7 @@ merged PR, the owning issue's evidence record, and every stated exit gate.
 | A - baseline | Complete; #191 is closed | Keep fixtures and analyzers current during later moves |
 | B - `nodes.py` extraction | Complete in B-11d / PR #356 | Preserve the audited compatibility shim until ADR-002 retirement gates are met |
 | C - feature contracts/behavior | Partially complete through S167-01a / PR #344 | Continue #167 and #169 in separate Contract/Move/Behavior PRs |
-| D - root consolidation | D-01 and D-08 complete; D-09 validated in PR #383; D-10 validated in PR #384 | Continue #186 feature by feature after the corresponding behavior contracts are stable |
+| D - root consolidation | D-01, D-08, D-09, and D-10 complete on `dev`; D-11a validated in PR #385 | Finish D-11b, then continue #186 feature by feature after the corresponding behavior contracts are stable |
 | E - runtime ownership | Partial: E-02a and E-07a/E-07b integrated | Continue #187 only where canonical feature owners and explicit contracts exist |
 | F - typed boundaries | Partial patterns exist | Extend typed request/result/config and pure migration patterns feature by feature |
 | G - quality ratchet | G-01, G-02a/G-02b, and G-03a complete | Extend G-03 enrollment, then continue with G-04 through G-06 |
@@ -408,7 +408,7 @@ mechanical retirement series.
 | 15 | S167 backend seed reservation series | S167-01 through S167-03d COMPLETE on `dev`; S167-03e AiO cutover VALIDATED with isolated API/module/browser-load parity | Contract then Move then Behavior | #167 | Canonical AiO/node seams |
 | 16 | A169 stage pipeline series | A169-01 through A169-08 MERGED; A169-09 final adapter/integration VALIDATED in PR #372 | Contract then Behavior | #169 | Typed config and mechanical AiO move |
 | 17 | A169 first-pass cache policy | COMPLETE through CACHE-06; 4K/batch evidence VALIDATED in PR #380 | Contract then Behavior | #169 | Mechanical cache move and stable stage seam |
-| 18 | D-series canonical root consolidation | D-01 translation and D-08 filesystem COMPLETE on `dev`; D-09 settings VALIDATED in PR #383; D-10 profiles VALIDATED in PR #384; behavior prerequisite #163 complete | Move | #186 | Phase B exit; per-feature behavior stable |
+| 18 | D-series canonical root consolidation | D-01 translation, D-08 filesystem, D-09 settings, and D-10 profiles COMPLETE on `dev`; D-11a autocomplete index VALIDATED in PR #385; D-11b remains | Move | #186 | Phase B exit; per-feature behavior stable |
 | 19 | E-series RuntimeServices/lifecycle | BLOCKED by canonical owners | Move/Contract, split PRs | #187 | Relevant D moves |
 | 20 | G-04 through G-06 and H | INCREMENTAL/LATER | Gate/Contract | #188 | Appropriate package and release evidence |
 
@@ -1324,6 +1324,13 @@ Every D PR moves one root implementation surface, updates internal consumers to
 the canonical path, leaves an explicit root shim, and proves root/canonical
 identity plus packed-archive closure. Behavior, error semantics, migration,
 ranking, async, and cache changes remain in their owner issues.
+
+D-11 is split by dependency ownership. D-11a moves the SQLite index leaf to
+`easyuse_anima.autocomplete.index`, retains `autocomplete_index.py` as an
+explicit identity shim, and enrolls the canonical package as the tenth G-03
+completed-package boundary. D-11b separately owns dataset source discovery,
+CSV snapshot/cache, classification, fallback ranking, and the root
+`autocomplete_dataset.py` shim.
 
 ## 12. Phase E — Runtime ownership and lifecycle
 

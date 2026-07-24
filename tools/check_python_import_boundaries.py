@@ -25,6 +25,7 @@ DEFAULT_CONTRACT_PATH = (
 )
 CONTRACT_SCHEMA_VERSION = 1
 EXPECTED_GROUPS = (
+    ("autocomplete", 162, "easyuse_anima/autocomplete/", "feature"),
     ("common", 184, "easyuse_anima/common/", "common"),
     ("image", 184, "easyuse_anima/image/", "feature"),
     (

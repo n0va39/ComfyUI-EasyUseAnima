@@ -32,6 +32,8 @@ EXPECTED_PYTHON_PACKAGE_FILES = {
     "easyuse_anima/aio/preview.py",
     "easyuse_anima/aio/resources.py",
     "easyuse_anima/aio/sampling.py",
+    "easyuse_anima/autocomplete/__init__.py",
+    "easyuse_anima/autocomplete/index.py",
     "easyuse_anima/bootstrap.py",
     "easyuse_anima/workflow.py",
     "easyuse_anima/common/__init__.py",

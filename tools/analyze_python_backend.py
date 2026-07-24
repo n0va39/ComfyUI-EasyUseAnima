@@ -32,6 +32,7 @@ ROOT_MODULE = "__root__"
 SCHEMA_VERSION = 2
 REGISTRY_ENTRY_MODULE_CANDIDATES = (
     "__init__.py",
+    "autocomplete_index.py",
     "nodes.py",
     "prompt_translation.py",
     "settings.py",

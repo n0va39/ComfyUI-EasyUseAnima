@@ -15,7 +15,7 @@ from types import MappingProxyType
 from typing import Mapping
 
 try:
-    from .autocomplete_index import (
+    from .easyuse_anima.autocomplete.index import (
         AutocompleteIndexDiagnostics,
         AutocompleteIndexSource,
         AutocompleteIndexUnavailable,
@@ -33,7 +33,7 @@ try:
     )
     from .easyuse_anima.infrastructure.filesystem.paths import USER_DATA_DIR
 except ImportError:
-    from autocomplete_index import (
+    from easyuse_anima.autocomplete.index import (
         AutocompleteIndexDiagnostics,
         AutocompleteIndexSource,
         AutocompleteIndexUnavailable,

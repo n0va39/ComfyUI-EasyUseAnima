@@ -62,6 +62,7 @@ import them.
 | `api_contract.py` request/error helpers | Phase C temporary implementation; D-02 move and D-14 shim decision pending | `easyuse_anima.api.requests`, `responses`, and `errors` | #165, #186 D-02/D-14 | Introduced by #165; convert in D-02 and freeze any required root shim in D-14 | `api.py`, API contract tests, Registry package-closure test | Unscheduled; internal consumers canonical and contract/package parity pass |
 | `settings.py` | Explicit direct re-export shim (D-09) | `easyuse_anima.settings.schema`, `.repository`, and `.service` | #163, #186 D-09 | Existing 0.5.2 module-owned public surface; exact `__all__` and identity fixture | External/legacy imports and settings compatibility tests; production callers use canonical modules | Unscheduled; first canonical+shim release N not yet recorded, then N+1 gate and settings migration/round-trip |
 | `storage.py` | Explicit direct re-export shim (D-08) | `easyuse_anima.infrastructure.filesystem.atomic_json` and `.paths` | #163, #186 D-08 | Existing 0.5.2 supported module-owned public surface; exact `__all__` and identity fixture | External/legacy imports and storage compatibility tests; production callers use canonical modules | Unscheduled; first canonical+shim release N not yet recorded, then N+1 gate and last-known-good/atomic-write parity |
+| `autocomplete_index.py` | Explicit direct re-export shim (D-11a) | `easyuse_anima.autocomplete.index` | #162, #186 D-11a | Existing indexed-search surface; exact seven-name `__all__` and identity fixture | External/legacy imports; `autocomplete_dataset.py` now uses the canonical owner | Unscheduled; first canonical+shim release N not yet recorded, then N+1 gate and index/ranking/rebuild parity |
 | `autocomplete_dataset.py` | Current implementation; planned autocomplete shim | `easyuse_anima.autocomplete.*` | #162, #186 D-11 | Existing 0.5.2 surface; convert in D-11/D-14 | `api.py`, autocomplete/frontend API tests | Unscheduled; N+1 gate and result/ranking/API parity |
 | `wildcard_engine.py` | Current implementation; planned wildcard shim | `easyuse_anima.wildcard.*` | #184, #186 D-12 | Existing 0.5.2 surface; convert in D-12/D-14 | root entrypoint, `nodes.py`, `api.py`, wildcard/workflow tests | Unscheduled; N+1 gate and seed/expansion/workflow parity |
 | `prompt_translation.py` | Explicit direct re-export shim (D-01) | `easyuse_anima.translation.*` | #164, #186 D-01 | Existing 0.5.2 supported module-owned public surface; exact `__all__` and identity fixture | External/legacy imports and translation compatibility tests; production callers use canonical modules | Unscheduled; first canonical+shim release N not yet recorded, then N+1 gate and provider-off/API parity |
@@ -1427,6 +1428,17 @@ EasyUseAnimaWildcard
 - Removal gate: settings/profile/wildcard consumers are canonical; lock and
   atomic last-known-good behavior remains compatible; Windows path fixtures and
   Registry archive closure pass.
+
+### `autocomplete_index.py`
+
+- D-11a moves the SQLite schema, metadata validation, ranked query, atomic
+  rebuild, recovery, and per-index-path locks to
+  `easyuse_anima.autocomplete.index`.
+- The root module directly re-exports the seven supported names with identical
+  object identity. It remains a Registry runtime entry for external and legacy
+  imports; production dataset search imports the canonical module.
+- Index/cache lifecycle ownership remains an E-05 follow-up. D-11a does not
+  alter schema version, ranking, timeout, rebuild, recovery, or lock behavior.
 
 ### `autocomplete_dataset.py`
 
