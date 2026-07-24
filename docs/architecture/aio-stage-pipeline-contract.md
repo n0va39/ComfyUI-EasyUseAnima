@@ -99,10 +99,11 @@ MODEL/CLIP/VAE/tensor objects or nested mappings are deeply immutable. Mutation
 and cleanup ownership remains with the current legacy function until the
 corresponding Behavior unit migrates it.
 
-No production module imports or instantiates these contracts in A169-01. The
-backend analyzer therefore allows exactly this one shipped module to remain
-outside the runtime import closure. A169-02 must remove that temporary
-zero-caller allowance when it connects the first stage.
+A169-01 introduced these contracts with no production caller and temporarily
+allowed exactly this one shipped module outside the runtime import closure.
+A169-02 connects the First pass stage through the contract and removes that
+allowance: all shipped Python modules are again reachable from the runtime
+entry surface. Later stages remain on the legacy owner.
 
 ## Allowed-file boundary
 

@@ -225,23 +225,35 @@ class AIOStagePipelineContractTests(unittest.TestCase):
             ),
         )
 
-    def test_contract_has_no_production_caller_or_root_alias(self):
-        sources = {
-            "legacy owner": ROOT / "easyuse_anima" / "aio" / "legacy_generation.py",
-            "canonical node": ROOT / "easyuse_anima" / "nodes" / "aio_nodes.py",
-            "root facade": ROOT / "nodes.py",
-        }
-        forbidden = (
-            "generation_pipeline",
-            "GenerationRequest",
-            "GenerationStage",
-            "GenerationState",
-        )
-        for label, path in sources.items():
-            source = path.read_text(encoding="utf-8")
-            with self.subTest(source=label):
-                for token in forbidden:
-                    self.assertNotIn(token, source)
+    def test_first_pass_is_the_only_connected_stage_and_has_no_root_alias(self):
+        legacy_source = (
+            ROOT / "easyuse_anima" / "aio" / "legacy_generation.py"
+        ).read_text(encoding="utf-8")
+        first_pass_source = (
+            ROOT / "easyuse_anima" / "aio" / "generation_first_pass.py"
+        ).read_text(encoding="utf-8")
+        canonical_node_source = (
+            ROOT / "easyuse_anima" / "nodes" / "aio_nodes.py"
+        ).read_text(encoding="utf-8")
+        root_source = (ROOT / "nodes.py").read_text(encoding="utf-8")
+
+        self.assertIn("AIOFirstPassStage", legacy_source)
+        self.assertIn("GenerationRequest", legacy_source)
+        self.assertIn("GenerationState", legacy_source)
+        self.assertIn("GenerationRequest", first_pass_source)
+        self.assertIn("GenerationState", first_pass_source)
+        self.assertNotIn("generation_first_pass", canonical_node_source)
+        self.assertNotIn("generation_first_pass", root_source)
+        self.assertNotIn("AIOFirstPassStage", root_source)
+        for later_stage in (
+            "AIOHighresStage",
+            "AIODetailerStage",
+            "AIOUpscaleStage",
+            "AIOPostprocessStage",
+            "AIOSaveOutputStage",
+        ):
+            self.assertNotIn(later_stage, legacy_source)
+            self.assertNotIn(later_stage, first_pass_source)
 
 
 if __name__ == "__main__":
