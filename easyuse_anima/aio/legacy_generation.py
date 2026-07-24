@@ -1,10 +1,9 @@
 from __future__ import annotations
 
-import json
 import logging
 import random
 from dataclasses import replace
-from typing import Any
+from typing import Any, cast
 
 from ..common.values import _as_bool, _as_float, _as_int, _single_value
 from ..image.geometry import _image_tensor_size
@@ -51,6 +50,10 @@ from .generation_pipeline import (
 from .generation_postprocess_stage import (
     AIOPostprocessStage,
     PostprocessRuntime,
+)
+from .generation_save_output_stage import (
+    AIOSaveOutputStage,
+    SaveOutputRuntime,
 )
 from .generation_settings import _aio_generation_config_from_dict
 from .generation_upscale_stage import AIOUpscaleStage, UpscaleRuntime
@@ -695,9 +698,6 @@ def _run_aio_normalized_legacy_generation(
         width,
         height,
     ) = _advanced_outputs_from_prompt_data(prompt_data)
-    image_saver_positive_prompt = metadata_prompt or positive_prompt
-    image_saver_negative_prompt = metadata_negative_prompt or negative_prompt
-
     artist_mix = settings["artist_mix"]
     positive = _encode_prompt_data_positive_conditioning(
         clip,
@@ -777,7 +777,6 @@ def _run_aio_normalized_legacy_generation(
         width=width,
         height=height,
     )
-    stage_metadata = generation_state.metadata
     preview_settings = settings["preview"]
     preview_images = generation_state.previews
     preview_node_id = _single_value(unique_id)
@@ -877,10 +876,6 @@ def _run_aio_normalized_legacy_generation(
             {"sampler_backend": sampler_backend},
         )
         first_pass_stage.run(generation_request, generation_state)
-        latent = generation_state.latent
-        image = generation_state.image
-        width = generation_state.width
-        height = generation_state.height
         highres_model, highres_use_mod_guidance = (
             model_and_mod_guidance_flag_for_backend(highres_backend)
             if will_run_highres
@@ -906,10 +901,6 @@ def _run_aio_normalized_legacy_generation(
             {"sampler_backend": highres_backend},
         )
         highres_stage.run(highres_request, generation_state)
-        latent = generation_state.latent
-        image = generation_state.image
-        width = generation_state.width
-        height = generation_state.height
         detailer_model = (
             ensure_standalone_mod_guidance_model()
             if will_run_detailer
@@ -931,9 +922,6 @@ def _run_aio_normalized_legacy_generation(
         )
         detailer_stage.validate(detailer_request, {})
         detailer_stage.run(detailer_request, generation_state)
-        image = generation_state.image
-        width = generation_state.width
-        height = generation_state.height
         upscale_model = (
             ensure_standalone_mod_guidance_model()
             if will_run_upscale
@@ -961,10 +949,6 @@ def _run_aio_normalized_legacy_generation(
         )
         upscale_stage.validate(upscale_request, {})
         upscale_stage.run(upscale_request, generation_state)
-        latent = generation_state.latent
-        image = generation_state.image
-        width = generation_state.width
-        height = generation_state.height
         postprocess_stage = AIOPostprocessStage(
             runtime=PostprocessRuntime(
                 run_postprocess=_run_aio_postprocess_stage,
@@ -977,10 +961,6 @@ def _run_aio_normalized_legacy_generation(
         )
         postprocess_stage.validate(generation_request, {})
         postprocess_stage.run(generation_request, generation_state)
-        latent = generation_state.latent
-        image = generation_state.image
-        width = generation_state.width
-        height = generation_state.height
     finally:
         seen_model_ids: set[int] = set()
         for ephemeral_model in (
@@ -997,80 +977,21 @@ def _run_aio_normalized_legacy_generation(
             seen_model_ids.add(key)
             _cleanup_aio_ephemeral_model(ephemeral_model, base_model)
 
-    save_settings = settings["save"]
-    save_ui = {}
-    if save_settings.get("enabled"):
-        if save_settings.get("backend") == "image_saver":
-            save_result = _save_image_with_image_saver(
-                image,
-                save_settings,
-                positive_prompt=image_saver_positive_prompt,
-                negative_prompt=image_saver_negative_prompt,
-                width=width,
-                height=height,
-                sampler_settings=sampler,
-                applied_loras=applied_loras,
-                resource_info=context.get("resource_info", {}),
-                workflow_prompt=workflow_prompt,
-                extra_pnginfo=extra_pnginfo,
-            )
-        else:
-            save_result = _save_image_with_comfy(
-                image,
-                _aio_save_filename_prefix(save_settings),
-                workflow_prompt=workflow_prompt,
-                extra_pnginfo=extra_pnginfo,
-            )
-        if isinstance(save_result, dict) and isinstance(save_result.get("ui"), dict):
-            save_ui = save_result["ui"]
-    final_preview = _tag_aio_preview_images(
-        save_ui.get("images", []), "final", width=width, height=height
+    save_output_stage = AIOSaveOutputStage(
+        runtime=SaveOutputRuntime(
+            save_comfy=_save_image_with_comfy,
+            save_image_saver=_save_image_with_image_saver,
+            filename_prefix=_aio_save_filename_prefix,
+            tag_images=_tag_aio_preview_images,
+            save_temp_preview=_save_aio_temp_preview_image,
+            json_safe=_prompt_data_json_safe,
+        ),
+        applied_loras=applied_loras,
+        preview_run_id=preview_run_id,
     )
-    if not final_preview:
-        final_preview = _save_aio_temp_preview_image(
-            image,
-            "final",
-            workflow_prompt=workflow_prompt,
-            extra_pnginfo=extra_pnginfo,
-        )
-    if (
-        final_preview
-        and preview_images
-        and str(preview_images[-1].get("stage") or "").startswith("detailer_")
-    ):
-        preview_images[-1] = final_preview[0]
-        final_preview = final_preview[1:]
-
-    metadata = {
-        "schema": "easyuse_anima_aio_generation_result",
-        "version": 1,
-        "width": int(width),
-        "height": int(height),
-        "resource_info": _prompt_data_json_safe(context.get("resource_info", {})),
-        "input_settings": _prompt_data_json_safe(context.get("input_settings", {})),
-        "lora_stack": _prompt_data_json_safe(applied_loras),
-        "generation_settings": _prompt_data_json_safe(settings),
-        "stages": _prompt_data_json_safe(stage_metadata),
-        "prompt_data": _prompt_data_json_safe(prompt_data),
-    }
-    metadata_json = json.dumps(metadata, ensure_ascii=False, sort_keys=True)
-    ui = {
-        "status": ["generated"],
-        "width": [int(width)],
-        "height": [int(height)],
-        "unet_name": [str(context.get("resource_info", {}).get("unet_name", ""))],
-        "sampler_backend": [str(sampler.get("backend") or "comfy_ksampler")],
-        "easyuse_anima_run_id": [preview_run_id],
-    }
-    preview_payload = preview_images + final_preview
-    if final_preview:
-        ui["images"] = final_preview
-    if preview_payload:
-        ui["easyuse_anima_preview"] = preview_payload
-    return {
-        "ui": ui,
-        "result": (image, latent, metadata_json),
-    }
+    save_output_stage.validate(generation_request, {})
+    save_output_stage.run(generation_request, generation_state)
+    return cast(dict[str, Any], save_output_stage.output)
 
 
 __all__ = ()
