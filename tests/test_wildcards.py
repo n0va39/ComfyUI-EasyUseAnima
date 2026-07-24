@@ -13,6 +13,7 @@ from easyuse_anima.nodes import wildcard_nodes
 from easyuse_anima.prompt import advanced as prompt_advanced
 from easyuse_anima.seed import compatibility as seed_compatibility
 from easyuse_anima.wildcard import models as wildcard_models
+from easyuse_anima.wildcard import sources as wildcard_sources
 from nodes import (
     EasyUseAnimaPromptStudioAdvanced,
     EasyUseAnimaPromptStudioAdvancedV2,
@@ -33,6 +34,25 @@ from wildcard_engine import (
 
 
 class WildcardEngineTests(unittest.TestCase):
+    def test_root_source_surface_has_canonical_identity(self):
+        expected = (
+            "WILDCARD_DIR_NAME",
+            "DEFAULT_TEST_WILDCARD_FILE",
+            "DEFAULT_TEST_WILDCARD_TEXT",
+            "WILDCARD_EXTENSIONS",
+            "default_wildcard_root",
+            "ensure_default_wildcard_root",
+            "parse_wildcard_extra_paths",
+            "resolve_wildcard_roots",
+        )
+        self.assertEqual(wildcard_sources.__all__, expected)
+        for name in expected:
+            with self.subTest(name=name):
+                self.assertIs(
+                    getattr(wildcard_engine, name),
+                    getattr(wildcard_sources, name),
+                )
+
     def test_root_model_surface_has_canonical_identity(self):
         expected = (
             "MAX_EXPANSION_DEPTH",
@@ -108,7 +128,7 @@ class WildcardEngineTests(unittest.TestCase):
 
     def test_default_root_is_created_with_test_wildcard(self):
         with tempfile.TemporaryDirectory() as temp:
-            with patch.object(wildcard_engine, "USER_DATA_DIR", Path(temp)):
+            with patch.object(wildcard_sources, "USER_DATA_DIR", Path(temp)):
                 root = ensure_default_wildcard_root()
 
                 self.assertTrue(root.is_dir())
@@ -548,15 +568,15 @@ class WildcardEngineTests(unittest.TestCase):
         )
 
     def test_unchanged_list_signature_and_expand_reuse_one_yaml_parse(self):
-        self.assertIsNotNone(wildcard_engine.yaml)
+        self.assertIsNotNone(wildcard_sources.yaml)
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
             (root / "colors.yaml").write_text("colors: [red]\n", encoding="utf-8")
 
             with patch.object(
-                wildcard_engine.yaml,
+                wildcard_sources.yaml,
                 "safe_load",
-                wraps=wildcard_engine.yaml.safe_load,
+                wraps=wildcard_sources.yaml.safe_load,
             ) as safe_load:
                 first_list = list_wildcards(roots=[root])
                 first_signature = wildcard_engine.wildcard_sources_signature(roots=[root])
@@ -654,7 +674,7 @@ class WildcardEngineTests(unittest.TestCase):
         self.assertEqual(missing.missing_keys, ("colors",))
 
     def test_transient_loader_oserror_is_not_cached(self):
-        original_loader = wildcard_engine._load_wildcard_file
+        original_loader = wildcard_sources._load_wildcard_file
         attempts = []
 
         def flaky_loader(root, path):
@@ -666,10 +686,10 @@ class WildcardEngineTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
             (root / "color.txt").write_text("red\n", encoding="utf-8")
-            cache_key = wildcard_engine._scan_wildcard_sources((root,)).cache_key
+            cache_key = wildcard_sources._scan_wildcard_sources((root,)).cache_key
 
             with patch.object(
-                wildcard_engine,
+                wildcard_sources,
                 "_load_wildcard_file",
                 side_effect=flaky_loader,
             ) as loader:
@@ -684,16 +704,16 @@ class WildcardEngineTests(unittest.TestCase):
         self.assertEqual(loader.call_count, 2)
 
     def test_invalid_yaml_parse_remains_cacheable_as_empty(self):
-        self.assertIsNotNone(wildcard_engine.yaml)
+        self.assertIsNotNone(wildcard_sources.yaml)
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
             (root / "invalid.yaml").write_text("color: [red\n", encoding="utf-8")
-            cache_key = wildcard_engine._scan_wildcard_sources((root,)).cache_key
+            cache_key = wildcard_sources._scan_wildcard_sources((root,)).cache_key
 
             with patch.object(
-                wildcard_engine.yaml,
+                wildcard_sources.yaml,
                 "safe_load",
-                wraps=wildcard_engine.yaml.safe_load,
+                wraps=wildcard_sources.yaml.safe_load,
             ) as safe_load:
                 first = expand_wildcards("__color__", seed=0, roots=[root])
                 second = expand_wildcards("__color__", seed=0, roots=[root])
@@ -727,10 +747,10 @@ class WildcardEngineTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
             (root / "library.yaml").write_text("color: [red]\n", encoding="utf-8")
-            cache_key = wildcard_engine._scan_wildcard_sources((root,)).cache_key
+            cache_key = wildcard_sources._scan_wildcard_sources((root,)).cache_key
 
             with patch.object(
-                wildcard_engine,
+                wildcard_sources,
                 "_read_text_file",
                 side_effect=unreadable_yaml,
             ), patch.object(

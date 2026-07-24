@@ -24,7 +24,7 @@ from .easyuse_anima.registration import (  # noqa: F401 - mapped class attribute
 )
 from . import api
 from .easyuse_anima.bootstrap import initialize as _initialize
-from .wildcard_engine import ensure_default_wildcard_root
+from .easyuse_anima.wildcard.sources import ensure_default_wildcard_root
 
 
 def _load_comfy_nodes():

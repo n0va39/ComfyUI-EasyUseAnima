@@ -8,7 +8,7 @@
 - Parent roadmap unit: D-12 Wildcard
 - PR type: Move
 - Baseline: `dev@105a3ae2c4d89bbf6ea2b7369a627e63fbd92847`
-- State: READY
+- State: VALIDATED
 - Production behavior changes: forbidden
 
 ## Responsibility boundary
@@ -178,3 +178,20 @@ Supporting:
 - canonical sources has zero root imports;
 - official full runner once at the PR checkpoint; and
 - root retains all snapshot/cache/selector/seed/expansion implementation.
+
+## Validation evidence
+
+- wildcard behavior and identity: 73 tests passed;
+- bootstrap contracts: 82 tests passed;
+- API canonical import alias: 1 focused test passed;
+- package skeleton: 1 test passed;
+- Registry scanner safety: 8 tests passed;
+- Python import boundaries: 16 tests passed;
+- backend analyzer: 18 tests passed;
+- canonical `sources.py` Pyright 1.1.411: 0 diagnostics;
+- official full: 1,136 Python tests and 112 frontend files passed, G-03a
+  remained 10 completed groups with 0 violations, and the existing 14-error
+  Pyright baseline passed; and
+- local Registry validation passed; the 258-entry archive contained root
+  `wildcard_engine.py` and canonical wildcard `__init__.py`, `models.py`, and
+  `sources.py`.

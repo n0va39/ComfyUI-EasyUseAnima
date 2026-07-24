@@ -36,8 +36,9 @@ from .easyuse_anima.autocomplete.dataset import (
 from .easyuse_anima.autocomplete.search import (
     search_autocomplete,
 )
+from .easyuse_anima.wildcard.sources import resolve_wildcard_roots
 from .autocomplete_dataset import classify_prompt_text
-from .wildcard_engine import list_wildcards, resolve_wildcard_roots
+from .wildcard_engine import list_wildcards
 from .easyuse_anima.translation.contracts import (
     PromptTranslationError,
     TranslationBusyError,

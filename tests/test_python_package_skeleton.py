@@ -88,6 +88,7 @@ PACKAGE_MODULES = (
     "easyuse_anima.translation.service",
     "easyuse_anima.wildcard",
     "easyuse_anima.wildcard.models",
+    "easyuse_anima.wildcard.sources",
     "easyuse_anima.seed.execution_identity",
     "easyuse_anima.seed.execution_session",
     "easyuse_anima.seed.service",
@@ -380,6 +381,18 @@ print(json.dumps({{
             "WildcardOption",
             "WildcardExpansionBudget",
             "WildcardExpansionResult",
+        ]
+        expected_all[
+            PACKAGE_MODULES.index("easyuse_anima.wildcard.sources")
+        ] = [
+            "WILDCARD_DIR_NAME",
+            "DEFAULT_TEST_WILDCARD_FILE",
+            "DEFAULT_TEST_WILDCARD_TEXT",
+            "WILDCARD_EXTENSIONS",
+            "default_wildcard_root",
+            "ensure_default_wildcard_root",
+            "parse_wildcard_extra_paths",
+            "resolve_wildcard_roots",
         ]
         self.assertEqual(payload["declared_all"], expected_all)
         self.assertEqual(payload["new_forbidden"], [])
