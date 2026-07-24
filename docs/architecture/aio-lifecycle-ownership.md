@@ -5,7 +5,7 @@
 - PR type: Behavior
 - Baseline: `dev` commit
   `e9544ddf44c76276bfa7b4578cf2376858ca1171`
-- State: INVENTORY
+- State: VALIDATED
 
 A169-08 replaces the legacy orchestrator's request-local model-selection,
 deduplicated cleanup, and intermediate-preview closures with explicit lifecycle
@@ -151,3 +151,26 @@ The full suite is not repeated after deterministic component failures; failed
 components are resumed directly. Server/model/browser smoke is required only if
 the connection exposes a host/runtime risk not covered by lifecycle tests, the
 exact trace, and the full suite.
+
+## Validation result
+
+- lifecycle owners: 7 focused tests passed;
+- legacy generation: 25 focused tests passed, including all six connected
+  stages, preview failure cleanup, final Save-after-cleanup, and both unchanged
+  exact trace/output cases;
+- stage pipeline contract: 6 focused tests passed;
+- direct package import: 1 focused test passed;
+- backend analyzer: 18 focused tests passed with 105 shipped and 105 reachable
+  modules and no unreachable module;
+- the analyzer's first focused run failed only because the new Python module
+  was not yet in the Git index used by the tracked Registry-surface assertion.
+  After staging the allowed files, the exact failed target passed without a
+  production change;
+- targeted Ruff: clean for both production files;
+- targeted Pyright: 2 files, 0 diagnostics;
+- Python import boundary: 6 package groups, 0 violations;
+- official full: 1091 Python tests passed, the Pyright baseline passed for 88
+  files with the reviewed 14-error baseline, all 112 JavaScript files passed
+  with TypeScript 6.0.3, and diff checks passed in 43.3 seconds; and
+- no ComfyUI server, model-backed generation, or browser smoke was run because
+  the request-local connection adds no uncovered host/runtime surface.

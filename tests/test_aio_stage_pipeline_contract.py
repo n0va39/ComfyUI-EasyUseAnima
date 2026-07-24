@@ -299,6 +299,48 @@ class AIOStagePipelineContractTests(unittest.TestCase):
         ):
             self.assertNotIn("AIOSaveOutputStage", earlier_stage_source)
 
+    def test_lifecycle_owners_are_connected_only_by_the_legacy_orchestrator(self):
+        legacy_source = (
+            ROOT / "easyuse_anima" / "aio" / "legacy_generation.py"
+        ).read_text(encoding="utf-8")
+        lifecycle_source = (
+            ROOT / "easyuse_anima" / "aio" / "generation_lifecycle.py"
+        ).read_text(encoding="utf-8")
+        stage_sources = [
+            path.read_text(encoding="utf-8")
+            for path in (
+                ROOT / "easyuse_anima" / "aio" / "generation_first_pass.py",
+                ROOT / "easyuse_anima" / "aio" / "generation_highres.py",
+                ROOT
+                / "easyuse_anima"
+                / "aio"
+                / "generation_detailer_stage.py",
+                ROOT
+                / "easyuse_anima"
+                / "aio"
+                / "generation_upscale_stage.py",
+                ROOT
+                / "easyuse_anima"
+                / "aio"
+                / "generation_postprocess_stage.py",
+                ROOT
+                / "easyuse_anima"
+                / "aio"
+                / "generation_save_output_stage.py",
+            )
+        ]
+
+        for owner in (
+            "EphemeralModelRegistry",
+            "ModelVariantResolver",
+            "PreviewCollector",
+        ):
+            self.assertIn(owner, lifecycle_source)
+            self.assertIn(owner, legacy_source)
+            for stage_source in stage_sources:
+                self.assertNotIn(owner, stage_source)
+        self.assertIn("model_registry.close()", legacy_source)
+
 
 if __name__ == "__main__":
     unittest.main()
