@@ -49,6 +49,7 @@ from .generation_pipeline import (
     WorkflowContext,
 )
 from .generation_settings import _aio_generation_config_from_dict
+from .generation_upscale_stage import AIOUpscaleStage, UpscaleRuntime
 from .input_context import _require_easy_use_anima_input
 from .model_preparation import (
     _apply_aio_lora_stack,
@@ -929,31 +930,37 @@ def _run_aio_normalized_legacy_generation(
         image = generation_state.image
         width = generation_state.width
         height = generation_state.height
-        image, upscale_metadata = _run_aio_upscale_stage(
+        upscale_model = (
             ensure_standalone_mod_guidance_model()
             if will_run_upscale
-            else mod_guidance_model,
-            clip,
-            vae,
-            positive,
-            negative,
-            image,
-            sampler,
-            settings["upscale"],
-            quality_tags,
-            quality_neg,
-            prompt_data,
-            exclude_positive_quality=can_apply_standalone_mod_guidance,
-            exclude_negative_quality=(
-                can_apply_standalone_mod_guidance and use_negative_anima_mod_guidance
+            else mod_guidance_model
+        )
+        upscale_request = replace(
+            generation_request,
+            resources=replace(
+                generation_request.resources,
+                model=upscale_model,
             ),
         )
-        stage_metadata["upscale"] = upscale_metadata
-        if upscale_metadata.get("enabled"):
-            width, height = _image_tensor_size(image, width, height)
-            latent = _encode_image_with_comfy_vae(vae, image)
-            if preview_settings["intermediate_images"]:
-                add_preview("upscale", image)
+        upscale_stage = AIOUpscaleStage(
+            runtime=UpscaleRuntime(
+                run_upscale=_run_aio_upscale_stage,
+                image_size=_image_tensor_size,
+                encode_image=_encode_image_with_comfy_vae,
+            ),
+            exclude_positive_quality=can_apply_standalone_mod_guidance,
+            exclude_negative_quality=(
+                can_apply_standalone_mod_guidance
+                and use_negative_anima_mod_guidance
+            ),
+            add_preview=add_preview,
+        )
+        upscale_stage.validate(upscale_request, {})
+        upscale_stage.run(upscale_request, generation_state)
+        latent = generation_state.latent
+        image = generation_state.image
+        width = generation_state.width
+        height = generation_state.height
         image, postprocess_metadata = _run_aio_postprocess_stage(
             image,
             settings["postprocess"],
