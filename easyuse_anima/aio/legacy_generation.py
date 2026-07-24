@@ -48,6 +48,10 @@ from .generation_pipeline import (
     ResourceBundle,
     WorkflowContext,
 )
+from .generation_postprocess_stage import (
+    AIOPostprocessStage,
+    PostprocessRuntime,
+)
 from .generation_settings import _aio_generation_config_from_dict
 from .generation_upscale_stage import AIOUpscaleStage, UpscaleRuntime
 from .input_context import _require_easy_use_anima_input
@@ -961,25 +965,22 @@ def _run_aio_normalized_legacy_generation(
         image = generation_state.image
         width = generation_state.width
         height = generation_state.height
-        image, postprocess_metadata = _run_aio_postprocess_stage(
-            image,
-            settings["postprocess"],
+        postprocess_stage = AIOPostprocessStage(
+            runtime=PostprocessRuntime(
+                run_postprocess=_run_aio_postprocess_stage,
+                as_bool=_as_bool,
+                image_size=_image_tensor_size,
+                encode_image=_encode_image_with_comfy_vae,
+            ),
+            will_run_postprocess=will_run_postprocess,
+            add_preview=add_preview,
         )
-        stage_metadata["postprocess"] = postprocess_metadata
-        if postprocess_metadata.get("enabled"):
-            width, height = _image_tensor_size(image, width, height)
-            postprocess_changed = _as_bool(
-                (postprocess_metadata.get("fit") or {}).get("applied"),
-                False,
-            )
-            if postprocess_changed:
-                latent = _encode_image_with_comfy_vae(vae, image)
-            if (
-                preview_settings["intermediate_images"]
-                and postprocess_changed
-                and will_run_postprocess
-            ):
-                add_preview("postprocess", image)
+        postprocess_stage.validate(generation_request, {})
+        postprocess_stage.run(generation_request, generation_state)
+        latent = generation_state.latent
+        image = generation_state.image
+        width = generation_state.width
+        height = generation_state.height
     finally:
         seen_model_ids: set[int] = set()
         for ephemeral_model in (

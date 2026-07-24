@@ -5,7 +5,7 @@
 - PR type: Behavior
 - Baseline: `dev` commit
   `8a2f0439cfa647516fd8bd061fbf109ce0e43537`
-- State: INVENTORY
+- State: VALIDATED
 
 A169-06 connects exactly the existing final Postprocess helper to the stage
 Protocol. It does not move or change the helper and does not connect a later
@@ -127,3 +127,22 @@ The full suite is not repeated after deterministic component failures; failed
 stages are resumed directly. Server/model/browser smoke is required only if the
 connection exposes an integration risk not covered by the exact trace and full
 suite.
+
+Validated on the A169-06 worktree:
+
+- Postprocess stage: 4 focused tests passed;
+- legacy generation: 23 focused tests passed, including direct helper identity,
+  final-fit behavior, exact trace and outer cleanup;
+- stage pipeline contract: 5 focused tests passed;
+- direct package import: 1 focused test passed;
+- backend analyzer: 18 focused tests passed with 103 shipped and 103 reachable
+  modules and no unreachable module;
+- targeted Pyright: 0 errors for both production files after resuming the exact
+  failed component with a runtime-neutral metadata cast;
+- targeted Ruff: clean for both production files;
+- Python import-boundary gate: 6 package groups, 0 violations;
+- official full: Python 1076 tests passed, Pyright baseline passed, all 112
+  JavaScript files passed with TypeScript 6.0.3, and `git diff --check` passed;
+  and
+- no ComfyUI server, model-backed generation or browser smoke was run because
+  the exact runtime trace and full suite exposed no integration risk.
