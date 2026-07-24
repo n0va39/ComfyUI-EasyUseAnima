@@ -87,6 +87,7 @@ PACKAGE_MODULES = (
     "easyuse_anima.translation.providers.google",
     "easyuse_anima.translation.service",
     "easyuse_anima.wildcard",
+    "easyuse_anima.wildcard.mode",
     "easyuse_anima.wildcard.models",
     "easyuse_anima.wildcard.seed",
     "easyuse_anima.wildcard.snapshot",
@@ -367,6 +368,20 @@ print(json.dumps({{
             "google_translate_text",
             "strip_prompt_translation_markers",
             "translate_prompt_markers",
+        ]
+        expected_all[
+            PACKAGE_MODULES.index("easyuse_anima.wildcard.mode")
+        ] = [
+            "WILDCARD_MODE_POPULATE",
+            "WILDCARD_MODE_FIXED",
+            "WILDCARD_MODE_SEQUENTIAL",
+            "WILDCARD_MODE_REPRODUCE",
+            "WILDCARD_MODES",
+            "WILDCARD_MODE_LABELS",
+            "PROMPT_STUDIO_WILDCARD_MODE_LABELS",
+            "WILDCARD_MODE_ALIASES",
+            "normalize_wildcard_mode",
+            "normalize_prompt_studio_wildcard_mode",
         ]
         expected_all[
             PACKAGE_MODULES.index("easyuse_anima.wildcard.models")
