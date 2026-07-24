@@ -88,6 +88,7 @@ PACKAGE_MODULES = (
     "easyuse_anima.translation.service",
     "easyuse_anima.wildcard",
     "easyuse_anima.wildcard.models",
+    "easyuse_anima.wildcard.seed",
     "easyuse_anima.wildcard.snapshot",
     "easyuse_anima.wildcard.sources",
     "easyuse_anima.seed.execution_identity",
@@ -382,6 +383,19 @@ print(json.dumps({{
             "WildcardOption",
             "WildcardExpansionBudget",
             "WildcardExpansionResult",
+        ]
+        expected_all[
+            PACKAGE_MODULES.index("easyuse_anima.wildcard.seed")
+        ] = [
+            "SEED_CONTROL_FIXED",
+            "SEED_CONTROL_RANDOMIZE",
+            "SEED_CONTROL_INCREMENT",
+            "SEED_CONTROL_DECREMENT",
+            "SEED_CONTROL_MODES",
+            "MAX_SEED",
+            "PUBLIC_MAX_SEED",
+            "normalize_seed",
+            "next_seed",
         ]
         expected_all[
             PACKAGE_MODULES.index("easyuse_anima.wildcard.sources")
