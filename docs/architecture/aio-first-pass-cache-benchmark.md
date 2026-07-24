@@ -5,7 +5,7 @@
 - PR type: Contract/docs/gate
 - Baseline: `dev` commit
   `f067d12ff9662f9463c6b6c5bd2754805db4042e`
-- State: INVENTORY
+- State: VALIDATED
 - Production changes: forbidden
 
 A169-CACHE-01 records the current first-pass cache cost and proves its mutation
@@ -122,3 +122,22 @@ Focused validation must prove:
 
 One official full validation follows focused success. No server, model,
 browser, or user-instance smoke is required.
+
+## Validation result
+
+Validated on the A169-CACHE-01 worktree:
+
+- benchmark/mutation-isolation harness: 3 focused tests passed in 0.082 seconds;
+- existing first-pass cache contract: 7 focused tests passed;
+- Python backend analyzer: 18 focused tests passed;
+- targeted Ruff 0.15.22 and Python compile: passed for the new tool/test;
+- Python import-boundary gate: 6 completed package groups, 0 violations;
+- default bounded run: 64 KiB per tensor, 25 operations, 50 clones and
+  3,276,800 logical copied bytes for both put-overwrite and get-hit, with both
+  isolation checks true; and
+- official full: 1,099 Python tests plus 112 frontend JavaScript files passed,
+  with the reviewed Pyright baseline unchanged at 88 files and 14 errors.
+
+Elapsed and peak traced-byte fields were observed but are intentionally not
+committed as pass/fail thresholds. No production/read-only file, ComfyUI
+server, Torch/model workload, browser, or user instance was changed or used.
