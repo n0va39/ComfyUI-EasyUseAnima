@@ -34,6 +34,10 @@ import {
   snapResolution32,
 } from "./utils.js";
 import {
+  advancedResolutionOrientationPlan,
+  advancedResolutionOrientationTitleKey,
+} from "./advanced_resolution_orientation.js";
+import {
   findInputEl,
   findWidget,
   isWidgetInputLinked,
@@ -60,16 +64,34 @@ function setAdvancedControlValue(node, name, value) {
 }
 
 function setAdvancedWidgetValue(node, name, value) {
-  const widget = findWidget(node, name);
-  if (!widget) {
+  return setAdvancedWidgetValues(node, [[name, value]]);
+}
+
+function setAdvancedWidgetValues(node, entries) {
+  const updates = entries
+    .map(([name, value]) => {
+      const widget = findWidget(node, name);
+      return widget
+        ? {
+          widget,
+          value: normalizeAdvancedWidgetQueueValue(name, value),
+        }
+        : null;
+    })
+    .filter(Boolean);
+  if (updates.length !== entries.length) {
     return false;
   }
-  widget.value = normalizeAdvancedWidgetQueueValue(name, value);
-  const input = findInputEl(widget);
-  if (input) {
-    input.value = String(widget.value ?? "");
+  for (const update of updates) {
+    update.widget.value = update.value;
+    const input = findInputEl(update.widget);
+    if (input) {
+      input.value = String(update.widget.value ?? "");
+    }
   }
-  widget.callback?.(widget.value);
+  for (const update of updates) {
+    update.widget.callback?.(update.widget.value);
+  }
   node.setDirtyCanvas?.(true, true);
   app.graph?.setDirtyCanvas?.(true, true);
   return true;
@@ -85,11 +107,14 @@ function advancedCustomResolution(node) {
 function setAdvancedCustomResolution(node, width, height, { normalize = false } = {}) {
   const nextWidth = normalize ? snapResolution32(width, 1024) : String(width || "");
   const nextHeight = normalize ? snapResolution32(height, 1024) : String(height || "");
-  setAdvancedWidgetValue(node, "resolution_custom_width", nextWidth);
-  setAdvancedWidgetValue(node, "resolution_custom_height", nextHeight);
+  const entries = [
+    ["resolution_custom_width", nextWidth],
+    ["resolution_custom_height", nextHeight],
+  ];
   if (normalize) {
-    setAdvancedWidgetValue(node, "resolution_size", advancedResolutionLabel(nextWidth, nextHeight));
+    entries.push(["resolution_size", advancedResolutionLabel(nextWidth, nextHeight)]);
   }
+  return setAdvancedWidgetValues(node, entries);
 }
 
 /**
@@ -801,10 +826,60 @@ function createAdvancedResolutionSettingsBody(node, hooks = {}) {
   bucketSelect.append(customOption);
 
   const valueBox = document.createElement("div");
+  valueBox.className = "easyuse-anima-advanced-resolution-valuebox";
+  const valueControl = document.createElement("div");
+  const orientationButton = document.createElement("button");
+  protectAdvancedNativeControl(orientationButton);
+  orientationButton.type = "button";
+  orientationButton.className = "easyuse-anima-advanced-resolution-orientation";
+  orientationButton.textContent = "⇄";
+  orientationButton.setAttribute(
+    "aria-label",
+    psText("advanced.swapOrientation"),
+  );
+  orientationButton.setAttribute(
+    "data-easyuse-anima-resolution-orientation",
+    "true",
+  );
+  valueBox.append(valueControl, orientationButton);
+
+  let sizeSelect = null;
+  let widthInput = null;
+  let heightInput = null;
   const refreshSummary = () => updateAdvancedSummary(node, "resolution", advancedResolutionSummary(node));
+  const orientationLinked = (bucket) => {
+    const names = ["resolution_bucket", "resolution_size"];
+    if (bucket === CUSTOM_ADVANCED_RESOLUTION_BUCKET) {
+      names.push("resolution_custom_width", "resolution_custom_height");
+    }
+    return names.some((name) => isWidgetInputLinked(node, name));
+  };
+  const currentOrientationPlan = () => {
+    const bucket = normalizeAdvancedResolutionBucket(bucketSelect.value);
+    const currentCustom = advancedCustomResolution(node);
+    return advancedResolutionOrientationPlan({
+      bucket,
+      size: sizeSelect?.value ?? sizeWidget.value,
+      width: currentCustom.width,
+      height: currentCustom.height,
+      linked: orientationLinked(bucket),
+    });
+  };
+  const refreshOrientationButton = () => {
+    const plan = currentOrientationPlan();
+    const title = psText(advancedResolutionOrientationTitleKey(plan.reason));
+    orientationButton.classList.toggle("is-disabled", !plan.enabled);
+    orientationButton.setAttribute("aria-disabled", plan.enabled ? "false" : "true");
+    orientationButton.setAttribute("aria-description", title);
+    orientationButton.title = title;
+    return plan;
+  };
   const renderPresetSelect = (bucket, selected) => {
-    valueBox.innerHTML = "";
-    const sizeSelect = document.createElement("select");
+    valueControl.replaceChildren();
+    valueControl.className = "";
+    widthInput = null;
+    heightInput = null;
+    sizeSelect = document.createElement("select");
     protectAdvancedNativeControl(sizeSelect);
     sizeSelect.setAttribute("aria-label", psText("advanced.resolutionSize"));
     sizeSelect.title = psText("advanced.resolutionSizeTitle");
@@ -818,14 +893,16 @@ function createAdvancedResolutionSettingsBody(node, hooks = {}) {
     sizeSelect.addEventListener("change", () => {
       setAdvancedWidgetValue(node, "resolution_size", normalizeAdvancedResolutionSize(bucketSelect.value, sizeSelect.value));
       refreshSummary();
+      refreshOrientationButton();
       hooks.scheduleAdvancedLayout?.(node, "settings");
     });
-    valueBox.append(sizeSelect);
+    valueControl.append(sizeSelect);
   };
   const renderCustomInputs = () => {
-    valueBox.innerHTML = "";
-    valueBox.className = "easyuse-anima-advanced-resolution-custom";
-    const widthInput = document.createElement("input");
+    valueControl.replaceChildren();
+    valueControl.className = "easyuse-anima-advanced-resolution-custom";
+    sizeSelect = null;
+    widthInput = document.createElement("input");
     protectAdvancedNativeControl(widthInput);
     widthInput.type = "number";
     widthInput.min = "32";
@@ -835,7 +912,7 @@ function createAdvancedResolutionSettingsBody(node, hooks = {}) {
     widthInput.title = psText("advanced.customWidthTitle");
     const separator = document.createElement("span");
     separator.textContent = "×";
-    const heightInput = document.createElement("input");
+    heightInput = document.createElement("input");
     protectAdvancedNativeControl(heightInput);
     heightInput.type = "number";
     heightInput.min = "32";
@@ -843,9 +920,13 @@ function createAdvancedResolutionSettingsBody(node, hooks = {}) {
     heightInput.value = String(advancedCustomResolution(node).height);
     heightInput.setAttribute("aria-label", psText("advanced.customHeight"));
     heightInput.title = psText("advanced.customHeightTitle");
+    const linked = orientationLinked(CUSTOM_ADVANCED_RESOLUTION_BUCKET);
+    widthInput.disabled = linked;
+    heightInput.disabled = linked;
     const syncRaw = () => {
       setAdvancedCustomResolution(node, widthInput.value, heightInput.value);
       refreshSummary();
+      refreshOrientationButton();
     };
     const normalize = () => {
       const width = snapResolution32(widthInput.value, 1024);
@@ -854,6 +935,7 @@ function createAdvancedResolutionSettingsBody(node, hooks = {}) {
       heightInput.value = String(height);
       setAdvancedCustomResolution(node, width, height, { normalize: true });
       refreshSummary();
+      refreshOrientationButton();
     };
     widthInput.addEventListener("input", syncRaw);
     heightInput.addEventListener("input", syncRaw);
@@ -861,32 +943,63 @@ function createAdvancedResolutionSettingsBody(node, hooks = {}) {
     heightInput.addEventListener("change", normalize);
     widthInput.addEventListener("blur", normalize);
     heightInput.addEventListener("blur", normalize);
-    valueBox.append(widthInput, separator, heightInput);
-    setAdvancedCustomResolution(node, widthInput.value, heightInput.value, { normalize: true });
+    valueControl.append(widthInput, separator, heightInput);
+    if (!linked) {
+      setAdvancedCustomResolution(node, widthInput.value, heightInput.value, { normalize: true });
+    }
   };
   const renderNaiaResolution = () => {
-    valueBox.innerHTML = "";
-    valueBox.className = "easyuse-anima-advanced-resolution-custom";
+    valueControl.replaceChildren();
+    valueControl.className = "easyuse-anima-advanced-resolution-custom";
+    sizeSelect = null;
+    widthInput = null;
+    heightInput = null;
     const current = advancedCustomResolution(node);
     const label = document.createElement("span");
     label.textContent = advancedResolutionLabel(current.width, current.height);
     label.title = psText("advanced.naiaResolutionTitle");
-    valueBox.append(label);
+    valueControl.append(label);
     setAdvancedWidgetValue(node, "resolution_size", advancedResolutionLabel(current.width, current.height));
   };
   const fillSizeOptions = (bucket, selected) => {
-    valueBox.className = "";
     if (bucket === NAIA_ADVANCED_RESOLUTION_BUCKET) {
       renderNaiaResolution();
+      refreshOrientationButton();
       return;
     }
     if (bucket === CUSTOM_ADVANCED_RESOLUTION_BUCKET) {
       renderCustomInputs();
+      refreshOrientationButton();
       return;
     }
     renderPresetSelect(bucket, selected);
+    refreshOrientationButton();
   };
   fillSizeOptions(bucketValue, sizeValue);
+
+  orientationButton.addEventListener("click", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    const plan = refreshOrientationButton();
+    if (!plan.enabled) {
+      return;
+    }
+    if (bucketSelect.value === CUSTOM_ADVANCED_RESOLUTION_BUCKET) {
+      setAdvancedCustomResolution(
+        node,
+        plan.nextWidth,
+        plan.nextHeight,
+        { normalize: true },
+      );
+      widthInput.value = String(plan.nextWidth);
+      heightInput.value = String(plan.nextHeight);
+    } else {
+      setAdvancedWidgetValue(node, "resolution_size", plan.nextSize);
+      sizeSelect.value = plan.nextSize;
+    }
+    refreshSummary();
+    refreshOrientationButton();
+  });
 
   bucketSelect.addEventListener("change", () => {
     const nextBucket = normalizeAdvancedResolutionBucket(bucketSelect.value);
@@ -942,7 +1055,9 @@ export {
   advancedWildcardSummary,
   createAdvancedControlBar,
   createAdvancedResolutionBar,
+  createAdvancedResolutionSettingsBody,
   createAdvancedWildcardBar,
   setAdvancedControlValue,
+  setAdvancedCustomResolution,
   setAdvancedWidgetValue,
 };

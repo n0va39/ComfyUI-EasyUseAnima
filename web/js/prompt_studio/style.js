@@ -221,6 +221,34 @@ function ensureAdvancedStyle() {
       color: rgba(203, 213, 225, 0.72);
       font: 12px sans-serif;
     }
+    .easyuse-anima-advanced-resolution-valuebox {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 7px;
+      align-items: center;
+      min-width: 0;
+    }
+    .easyuse-anima-advanced-resolution-valuebox > div {
+      min-width: 0;
+    }
+    .easyuse-anima-advanced-resolution-orientation {
+      width: 34px;
+      height: 27px;
+      border: 1px solid rgba(148, 163, 184, 0.34);
+      border-radius: 4px;
+      background: rgba(30, 41, 59, 0.88);
+      color: rgba(226, 232, 240, 0.92);
+      font: 16px/1 sans-serif;
+      cursor: pointer;
+    }
+    .easyuse-anima-advanced-resolution-orientation:hover,
+    .easyuse-anima-advanced-resolution-orientation:focus-visible {
+      border-color: rgba(96, 165, 250, 0.76);
+    }
+    .easyuse-anima-advanced-resolution-orientation.is-disabled {
+      cursor: not-allowed;
+      opacity: 0.5;
+    }
     .easyuse-anima-advanced-popup-backdrop {
       position: fixed;
       inset: 0;
