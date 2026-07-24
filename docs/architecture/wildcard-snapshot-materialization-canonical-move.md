@@ -8,7 +8,7 @@
 - Parent roadmap unit: D-12 Wildcard
 - PR type: Move
 - Baseline: `dev@6f32f88b3e484a7e14751f8c179daa8758c2fcd5`
-- State: READY
+- State: VALIDATED
 - Production behavior changes: forbidden
 
 ## Responsibility boundary
@@ -181,3 +181,19 @@ Supporting:
 - canonical snapshot has zero root imports and no mutable globals;
 - official full runner once at the PR checkpoint; and
 - root retains every lifecycle/global-state and public behavior caller.
+
+## Validation evidence
+
+- wildcard behavior, identity, retry, and single-flight: 74 tests passed;
+- package skeleton: 1 test passed;
+- Registry scanner safety: 8 tests passed;
+- Python import boundaries: 16 tests passed;
+- backend analyzer: 18 tests passed;
+- canonical `snapshot.py` Ruff: 0 findings;
+- canonical `snapshot.py` Pyright 1.1.411: 0 diagnostics;
+- official full: 1,137 Python tests and 112 frontend files passed, G-03a
+  remained 10 completed groups with 0 violations, and the existing 14-error
+  Pyright baseline passed; and
+- local Registry validation passed; the 259-entry archive contained root
+  `wildcard_engine.py` and canonical wildcard `__init__.py`, `models.py`,
+  `sources.py`, and `snapshot.py`.
