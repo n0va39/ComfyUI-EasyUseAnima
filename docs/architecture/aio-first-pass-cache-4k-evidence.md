@@ -5,7 +5,7 @@
 - PR type: Contract/docs/gate
 - Baseline: `dev` commit
   `3f83ca2af96a038b70eb80d4059dcace76372238`
-- State: INVENTORY
+- State: VALIDATED
 - Production changes: forbidden
 
 CACHE-06 completes the first-pass cache policy evidence with one explicit,
@@ -126,3 +126,60 @@ Focused validation must prove:
 After focused validation, run the actual 4K profile exactly once in a fresh
 bounded CLI process, record informational evidence here, then run one official
 full validation. Do not start a server, model, or browser.
+
+## Observed 4K evidence
+
+Observed on 2026-07-24 in a fresh Windows Python process using:
+
+```powershell
+python -B -X utf8 tools\benchmark_aio_first_pass_cache.py `
+  --profile 4k-batch1 --iterations 3
+```
+
+The final evidence process completed in 1.1 seconds inside the 45-second outer
+limit.
+
+Deterministic workload/admission:
+
+- batch-1 entry: 205,520,896 bytes (196 MiB), below the 268,435,456-byte
+  single-entry cap;
+- batch-2 projection: 411,041,792 bytes (392 MiB), not admitted;
+- batch-2 preflight: 0 detach/clone/cpu calls, 0 logical copied bytes, 1 skip;
+- put-overwrite and get-hit: 3 operations, 6 tensor clones, 616,562,688 logical
+  copied bytes each; and
+- source-after-put and returned-hit mutation isolation: both true.
+
+Informational host/interpreter measurements:
+
+- put-overwrite: 119,923,300 ns total, 39,974,433 ns average,
+  411,044,356 traced peak bytes, 411,074,560 process peak-RSS growth, and
+  640,028,672 process peak RSS;
+- get-hit: 120,983,900 ns total, 40,327,966 ns average,
+  205,522,254 traced peak bytes, and 640,045,056 process peak RSS; and
+- get-hit peak-RSS growth was only 16,384 bytes because the earlier put phase
+  had already established the process high-water mark.
+
+An initial workload run completed before the WinAPI function signatures were
+declared, so its RSS fields were null and it was not accepted as final RSS
+evidence. The helper was corrected with explicit `restype`/`argtypes`, verified
+on a 16-byte bounded profile, and the final evidence above was then collected.
+The workload, clone, admission, and isolation results agreed across both runs.
+
+## Validation
+
+- Focused benchmark contract:
+  `tests.test_aio_first_pass_cache_benchmark` — 8 tests passed.
+- Targeted static checks:
+  Ruff passed for the benchmark tool and fatal test rules; both changed Python
+  files passed `py_compile`.
+- Import boundary:
+  6 completed package groups, 0 violations.
+- Actual bounded evidence:
+  the 4K batch-1 profile above completed once after the WinAPI correction,
+  within its 45-second outer limit.
+- Official full runner:
+  1,128 Python tests and 112 frontend JavaScript checks passed; the Pyright
+  ratchet remained at 88 files, 14 errors, and 0 warnings.
+- Production boundary:
+  no production, analyzer baseline, server, model, browser, workflow, Registry,
+  release, or user-instance change was made.
