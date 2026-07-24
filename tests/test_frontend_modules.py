@@ -13,6 +13,9 @@ HOST_HOOK_REGISTRY_SMOKE = ROOT / "tests" / "frontend_host_hook_registry_smoke.m
 PROMPT_STUDIO_ADVANCED_VALUES_SMOKE = (
     ROOT / "tests" / "frontend_prompt_studio_advanced_values_smoke.mjs"
 )
+PROMPT_STUDIO_RESOLUTION_ORIENTATION_SMOKE = (
+    ROOT / "tests" / "frontend_prompt_studio_resolution_orientation_smoke.mjs"
+)
 WILDCARD_VALUES_SMOKE = ROOT / "tests" / "frontend_wildcard_values_smoke.mjs"
 WEB_JS = ROOT / "web" / "js"
 HOST_HOOK_REGISTRY_JS = WEB_JS / "lifecycle" / "host_hook_registry.js"
@@ -2293,6 +2296,11 @@ class FrontendModuleStructureTests(unittest.TestCase):
         self.assertTrue(PROMPT_STUDIO_ADVANCED_VALUES_SMOKE.is_file())
         self.assertIn(
             r'node "tests\frontend_prompt_studio_advanced_values_smoke.mjs"',
+            FRONTEND_CHECK_SCRIPT.read_text(encoding="utf-8"),
+        )
+        self.assertTrue(PROMPT_STUDIO_RESOLUTION_ORIENTATION_SMOKE.is_file())
+        self.assertIn(
+            r'node "tests\frontend_prompt_studio_resolution_orientation_smoke.mjs"',
             FRONTEND_CHECK_SCRIPT.read_text(encoding="utf-8"),
         )
         self.assertIn('./utils.js"', studio_node_ui_source)

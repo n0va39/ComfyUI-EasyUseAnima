@@ -164,6 +164,11 @@ try {
         throw "Frontend Prompt Studio Advanced executed values smoke failed with exit code $LASTEXITCODE."
     }
 
+    & node "tests\frontend_prompt_studio_resolution_orientation_smoke.mjs"
+    if ($LASTEXITCODE -ne 0) {
+        throw "Frontend Prompt Studio resolution orientation smoke failed with exit code $LASTEXITCODE."
+    }
+
     & node "tests\frontend_wildcard_values_smoke.mjs"
     if ($LASTEXITCODE -ne 0) {
         throw "Frontend standalone Wildcard populated-text smoke failed with exit code $LASTEXITCODE."
