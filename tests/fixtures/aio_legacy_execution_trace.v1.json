@@ -119,6 +119,12 @@
           "width": 64
         },
         "ui": {
+          "easyuse_anima_aio_seed": [
+            {
+              "execution_seed": "17",
+              "next_seed": "17"
+            }
+          ],
           "status": [
             "generated"
           ],
@@ -284,6 +290,12 @@
           "width": 128
         },
         "ui": {
+          "easyuse_anima_aio_seed": [
+            {
+              "execution_seed": "17",
+              "next_seed": "17"
+            }
+          ],
           "status": [
             "generated"
           ],

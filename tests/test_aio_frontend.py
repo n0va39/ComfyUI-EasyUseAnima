@@ -18,8 +18,8 @@ AIO_PROFILE_SETTINGS_RUNTIME_JS = (
 AIO_GENERATOR_PANEL_RUNTIME_JS = (
     ROOT / "web" / "js" / "aio" / "generator_panel_runtime.js"
 )
-AIO_GENERATOR_QUEUE_RUNTIME_JS = (
-    ROOT / "web" / "js" / "aio" / "generator_queue_runtime.js"
+AIO_EXECUTED_SEED_RUNTIME_JS = (
+    ROOT / "web" / "js" / "aio" / "executed_seed_runtime.js"
 )
 AIO_EXTENSION_RUNTIME_JS = (
     ROOT / "web" / "js" / "aio" / "extension_runtime.js"
@@ -595,11 +595,12 @@ class AIOFrontendSourceTests(unittest.TestCase):
         source = AIO_JS.read_text(encoding="utf-8")
         extension_source = AIO_EXTENSION_RUNTIME_JS.read_text(encoding="utf-8")
         panel_source = AIO_GENERATOR_PANEL_RUNTIME_JS.read_text(encoding="utf-8")
-        queue_source = AIO_GENERATOR_QUEUE_RUNTIME_JS.read_text(encoding="utf-8")
+        executed_seed_source = AIO_EXECUTED_SEED_RUNTIME_JS.read_text(
+            encoding="utf-8"
+        )
 
         for entry_owned_function in (
             "loadGeneratorSamplerOptions",
-            "installGeneratorQueuePromptHook",
             "installGeneratorWheelForwarder",
         ):
             with self.subTest(entry_owned_function=entry_owned_function):
@@ -612,17 +613,17 @@ class AIOFrontendSourceTests(unittest.TestCase):
                     rf"\bfunction\s+{entry_owned_function}\(",
                 )
 
-        for queue_owned_function in (
-            "resolveQueuedSeed",
-            "preparePrompt",
+        self.assertIn(
+            "export function aioApplyExecutedSeedDisplay(",
+            executed_seed_source,
+        )
+        for retired_queue_owner in (
+            "installGeneratorQueuePromptHook",
+            "generatorQueueRuntime",
+            "resolveGeneratorSeedForQueue",
+            "prepareGeneratorPromptForQueue",
         ):
-            with self.subTest(queue_owned_function=queue_owned_function):
-                self.assertRegex(
-                    queue_source,
-                    rf"\bfunction\s+{queue_owned_function}\(",
-                )
-        self.assertNotIn("resolveGeneratorSeedForQueue", source)
-        self.assertNotIn("prepareGeneratorPromptForQueue", source)
+            self.assertNotIn(retired_queue_owner, source)
 
         setup_start = extension_source.index("    async setup() {")
         setup_end = extension_source.index(
@@ -630,12 +631,9 @@ class AIOFrontendSourceTests(unittest.TestCase):
         )
         setup_body = extension_source[setup_start:setup_end]
         self.assertIn("installWheelForwarder();", setup_body)
-        self.assertIn("installGlobalHooks();", setup_body)
+        self.assertNotIn("installGlobalHooks();", setup_body)
         self.assertIn(
             "installWheelForwarder: installGeneratorWheelForwarder,", source
-        )
-        self.assertIn(
-            "installQueuePromptHook: installGeneratorQueuePromptHook,", source
         )
 
         for unchanged_adapter in (
@@ -783,29 +781,21 @@ class AIOFrontendSourceTests(unittest.TestCase):
         self.assertNotIn("app.ui.dialog.show", notify_body)
         self.assertNotIn("reportGeneratorOptionalDependencyStatus", source)
 
-    def test_optional_dependency_query_retries_errors_before_queueing(self):
+    def test_optional_dependency_query_retries_only_from_feature_adapters(self):
         source = AIO_JS.read_text(encoding="utf-8")
-        queue_source = AIO_GENERATOR_QUEUE_RUNTIME_JS.read_text(encoding="utf-8")
         load_start = source.index("function loadGeneratorOptionalDependencies")
         load_end = source.index("\nfunction optionalDependencyStatus", load_start)
         load_body = source[load_start:load_end]
-        composition_start = source.index(
-            "const generatorQueueRuntime = aioCreateGeneratorQueueRuntime({"
-        )
-        composition_end = source.index("\n});", composition_start)
-        composition_body = source[composition_start:composition_end]
 
         self.assertIn("retryErrors = false", load_body)
         self.assertIn('includes("error")', load_body)
         self.assertIn("generatorOptionalDependencyState.loading = null", load_body)
-        self.assertIn(
-            "loadOptionalDependencies: loadGeneratorOptionalDependencies,",
-            composition_body,
+        self.assertEqual(
+            source.count("load: loadGeneratorOptionalDependencies,"),
+            5,
         )
-        self.assertIn(
-            "loadOptionalDependencies({ retryErrors: true })",
-            queue_source,
-        )
+        self.assertNotIn("loadOptionalDependencies:", source)
+        self.assertNotIn("generatorQueueRuntime", source)
 
     def test_generator_panel_renders_upscale_after_detailer(self):
         body = AIO_GENERATOR_PANEL_RUNTIME_JS.read_text(encoding="utf-8")

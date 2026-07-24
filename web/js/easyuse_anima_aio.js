@@ -21,10 +21,7 @@ import { createAioProfileApiClient } from "./aio/profile_api_client.js";
 import { aioCreateProfileDialogs } from "./aio/profile_dialogs.js";
 import { aioCreateProfileSettingsRuntime } from "./aio/profile_settings_runtime.js";
 import { aioCreateGeneratorPanelRuntime } from "./aio/generator_panel_runtime.js";
-import {
-  aioCreateGeneratorQueueRuntime,
-  aioInstallGeneratorQueuePromptHook,
-} from "./aio/generator_queue_runtime.js";
+import { aioApplyExecutedSeedDisplay } from "./aio/executed_seed_runtime.js";
 import { aioCreateStageSettingsDialogs } from "./aio/stage_settings_dialogs.js";
 import { aioCreateDetailerSettingsDialog } from "./aio/detailer_settings_dialog.js";
 import { aioCreateSamplerSettingsDialog } from "./aio/sampler_settings_dialog.js";
@@ -384,8 +381,8 @@ const AIO_TEXT = {
     "field.strength": "Strength",
     "button.randomEach": "Randomize Each Time",
     "button.newFixed": "New Fixed Random",
-    "button.useLast": "Use Last Queued: {seed}",
-    "button.useLastNone": "Use Last Queued: -",
+    "button.useLast": "Use Last Executed: {seed}",
+    "button.useLastNone": "Use Last Executed: -",
     "button.samplerDetails": "Sampler Details...",
     "button.highresSettings": "Highres Settings",
     "button.detailerSettings": "Detailer Settings",
@@ -423,10 +420,10 @@ const AIO_TEXT = {
     "tip.civitaiModelName": "Civitai model name. This is also used as the Name in Name:Hash.",
     "tip.civitaiVersion": "Optional version keyword passed to Civitai Hash Fetcher.",
     "tip.mode": "Shows the selected sampler backend and active special sampling patches.",
-    "tip.seed": "The seed sent to queue. -1 resolves a new random seed at queue time.",
-    "tip.randomEach": "Set seed to -1 so each queue resolves a new random seed.",
+    "tip.seed": "The seed selection sent to the backend. -1 requests a new random seed for each execution.",
+    "tip.randomEach": "Set seed to -1 so each backend execution uses a new random seed.",
     "tip.newFixed": "Generate a concrete random seed now and keep it fixed.",
-    "tip.useLast": "Reuse the last seed resolved for this node at queue time.",
+    "tip.useLast": "Reuse the last seed accepted by a completed backend execution.",
     "tip.steps": "Main sampler steps. The compact slider range is 1 to 75.",
     "tip.cfg": "Main classifier-free guidance scale. Range is 1.0 to 10.0.",
     "tip.shift": "AuraFlow model sampling shift. Always applied; 3.0 is the Anima model-recommended default.",
@@ -717,8 +714,8 @@ const AIO_TEXT = {
     "field.strength": "강도",
     "button.randomEach": "매번 랜덤",
     "button.newFixed": "새 랜덤 고정",
-    "button.useLast": "Last Queued: {seed}",
-    "button.useLastNone": "Last Queued: -",
+    "button.useLast": "마지막 실행: {seed}",
+    "button.useLastNone": "마지막 실행: -",
     "button.samplerDetails": "샘플러 상세...",
     "button.highresSettings": "Highres 설정",
     "button.detailerSettings": "디테일러 설정",
@@ -756,10 +753,10 @@ const AIO_TEXT = {
     "tip.civitaiModelName": "Civitai 모델명입니다. Name:Hash의 Name으로도 사용됩니다.",
     "tip.civitaiVersion": "Civitai Hash Fetcher에 전달할 선택 버전 키워드입니다.",
     "tip.mode": "선택된 샘플러 백엔드와 적용 중인 특수 샘플링 패치를 표시합니다.",
-    "tip.seed": "큐에 전달되는 시드입니다. -1은 큐 실행 시 새 랜덤 시드로 해석됩니다.",
+    "tip.seed": "백엔드에 전달되는 시드 선택값입니다. -1은 실행할 때마다 새 랜덤 시드를 요청합니다.",
     "tip.randomEach": "시드를 -1로 설정해 실행할 때마다 새 랜덤 시드를 사용합니다.",
     "tip.newFixed": "지금 랜덤 시드를 하나 생성하고 고정값으로 사용합니다.",
-    "tip.useLast": "이 노드가 마지막 큐 실행에서 사용한 실제 시드를 다시 사용합니다.",
+    "tip.useLast": "이 노드에서 마지막으로 완료된 백엔드 실행의 실제 시드를 다시 사용합니다.",
     "tip.steps": "1차 샘플러 스텝입니다. 기본 슬라이더 범위는 1부터 75까지입니다.",
     "tip.cfg": "1차 CFG 값입니다. 범위는 1.0부터 10.0까지입니다.",
     "tip.shift": "AuraFlow 모델 샘플링 시프트입니다. 항상 적용되며 3.0이 Anima 모델 권장 기본값입니다.",
@@ -838,8 +835,8 @@ const AIO_TEXT = {
     "label.size": "サイズ",
     "button.randomEach": "毎回ランダム",
     "button.newFixed": "新規固定ランダム",
-    "button.useLast": "Last Queued: {seed}",
-    "button.useLastNone": "Last Queued: -",
+    "button.useLast": "最後の実行: {seed}",
+    "button.useLastNone": "最後の実行: -",
     "button.samplerDetails": "サンプラー詳細...",
     "button.highresSettings": "Highres 設定",
     "button.detailerSettings": "Detailer 設定",
@@ -866,10 +863,10 @@ const AIO_TEXT = {
     "tip.civitaiModelName": "Civitai モデル名です。Name:Hash の Name としても使われます。",
     "tip.civitaiVersion": "Civitai Hash Fetcher に渡す任意のバージョンキーワードです。",
     "tip.mode": "選択中のサンプラーバックエンドと有効な特殊パッチを表示します。",
-    "tip.seed": "キューへ送るシードです。-1 はキュー時に新しいランダムシードになります。",
-    "tip.randomEach": "シードを -1 にして、キューごとに新しいランダムシードを使います。",
+    "tip.seed": "バックエンドへ送るシード選択です。-1 は実行ごとに新しいランダムシードを要求します。",
+    "tip.randomEach": "シードを -1 にして、バックエンド実行ごとに新しいランダムシードを使います。",
     "tip.newFixed": "今ランダムシードを生成し、固定値として使います。",
-    "tip.useLast": "このノードで最後にキューされた実シードを再利用します。",
+    "tip.useLast": "このノードで最後に完了した実行の実シードを再利用します。",
     "tip.steps": "一回目サンプラーのステップです。範囲は 1 から 75 です。",
     "tip.cfg": "一回目の CFG 値です。範囲は 1.0 から 10.0 です。",
     "tip.shift": "AuraFlow のモデルサンプリングシフトです。常に適用され、3.0 が Anima model 推奨既定値です。",
@@ -930,8 +927,8 @@ const AIO_TEXT = {
     "label.size": "尺寸",
     "button.randomEach": "每次随机",
     "button.newFixed": "新固定随机",
-    "button.useLast": "Last Queued: {seed}",
-    "button.useLastNone": "Last Queued: -",
+    "button.useLast": "上次执行: {seed}",
+    "button.useLastNone": "上次执行: -",
     "button.samplerDetails": "采样器详情...",
     "button.highresSettings": "Highres 设置",
     "button.detailerSettings": "Detailer 设置",
@@ -958,10 +955,10 @@ const AIO_TEXT = {
     "tip.civitaiModelName": "Civitai 模型名，也会用作 Name:Hash 的 Name。",
     "tip.civitaiVersion": "传给 Civitai Hash Fetcher 的可选版本关键词。",
     "tip.mode": "显示当前采样后端和启用的特殊采样补丁。",
-    "tip.seed": "发送到队列的种子。-1 会在排队时解析为新的随机种子。",
-    "tip.randomEach": "将种子设为 -1，让每次排队使用新的随机种子。",
+    "tip.seed": "发送到后端的种子选择。-1 会在每次执行时请求新的随机种子。",
+    "tip.randomEach": "将种子设为 -1，让每次后端执行使用新的随机种子。",
     "tip.newFixed": "立即生成一个随机种子并固定使用。",
-    "tip.useLast": "复用此节点上次排队时解析出的真实种子。",
+    "tip.useLast": "复用此节点上次完成执行时后端接受的真实种子。",
     "tip.steps": "第一次采样步数。紧凑滑条范围为 1 到 75。",
     "tip.cfg": "第一次 CFG 值。范围为 1.0 到 10.0。",
     "tip.shift": "AuraFlow 模型采样 Shift。始终应用，3.0 是 Anima model 推荐默认值。",
@@ -1008,7 +1005,7 @@ const AIO_TOOLTIP_TEXT = {
     "button.apply": "Apply",
     "tip.inputUnetDtype": "Weight dtype used when Easy Use Anima Input loads the diffusion model. Keep default unless VRAM or speed tuning requires another dtype.",
     "tip.inputClipDevice": "Device preference for loading CLIP. CPU can reduce VRAM use at the cost of slower prompt encoding.",
-    "tip.seedMode": "After queue behavior for the seed value. This mirrors rgthree Seed controls.",
+    "tip.seedMode": "After-execution behavior for the seed value. This mirrors rgthree Seed controls.",
     "tip.kjFp16Accum": "Applies KJNodes FP16 accumulation patch to the model before sampling.",
     "tip.kjSageMode": "Selects the KJNodes SageAttention patch implementation. Disabled leaves attention unchanged.",
     "tip.kjSageCompile": "Allows SageAttention to participate in compile-related optimization when the selected KJNodes patch supports it.",
@@ -1116,7 +1113,7 @@ const AIO_TOOLTIP_TEXT = {
     "button.apply": "적용",
     "tip.inputUnetDtype": "Easy Use Anima Input이 디퓨전 모델을 로드할 때 사용할 weight dtype입니다. VRAM/속도 튜닝이 필요 없으면 default를 유지합니다.",
     "tip.inputClipDevice": "CLIP 로드 장치 설정입니다. CPU는 VRAM을 줄일 수 있지만 프롬프트 인코딩이 느려질 수 있습니다.",
-    "tip.seedMode": "큐 실행 후 시드 처리 방식입니다. rgthree Seed 컨트롤과 같은 의미로 동작합니다.",
+    "tip.seedMode": "백엔드 실행 완료 후 시드 처리 방식입니다. rgthree Seed 컨트롤과 같은 의미로 동작합니다.",
     "tip.kjFp16Accum": "샘플링 전에 KJNodes FP16 accumulation 모델 패치를 적용합니다.",
     "tip.kjSageMode": "KJNodes SageAttention 패치 구현을 선택합니다. disabled는 attention을 변경하지 않습니다.",
     "tip.kjSageCompile": "선택한 SageAttention 패치가 지원할 때 compile 최적화에 포함되도록 허용합니다.",
@@ -1224,7 +1221,7 @@ const AIO_TOOLTIP_TEXT = {
     "button.apply": "適用",
     "tip.inputUnetDtype": "Easy Use Anima Input が diffusion model を読み込むときの weight dtype です。VRAM や速度調整が不要なら default を使います。",
     "tip.inputClipDevice": "CLIP の読み込みデバイスです。CPU は VRAM を抑えますが、プロンプトエンコードが遅くなります。",
-    "tip.seedMode": "キュー後のシード制御です。rgthree Seed と同じ考え方で動作します。",
+    "tip.seedMode": "バックエンド実行完了後のシード制御です。rgthree Seed と同じ考え方で動作します。",
     "tip.kjFp16Accum": "サンプリング前に KJNodes FP16 accumulation パッチをモデルへ適用します。",
     "tip.kjSageMode": "KJNodes SageAttention の実装を選択します。disabled は attention を変更しません。",
     "tip.kjSageCompile": "選択した SageAttention パッチが対応する場合、compile 最適化への参加を許可します。",
@@ -1322,7 +1319,7 @@ const AIO_TOOLTIP_TEXT = {
     "button.apply": "应用",
     "tip.inputUnetDtype": "Easy Use Anima Input 加载 diffusion model 时使用的 weight dtype。除非需要显存或速度调优，否则保持 default。",
     "tip.inputClipDevice": "CLIP 加载设备。CPU 可减少显存占用，但会降低提示词编码速度。",
-    "tip.seedMode": "排队后的种子控制方式，行为与 rgthree Seed 控件一致。",
+    "tip.seedMode": "后端执行完成后的种子控制方式，行为与 rgthree Seed 控件一致。",
     "tip.kjFp16Accum": "采样前对模型应用 KJNodes FP16 accumulation patch。",
     "tip.kjSageMode": "选择 KJNodes SageAttention patch 实现。disabled 不改变 attention。",
     "tip.kjSageCompile": "所选 SageAttention patch 支持时，允许参与 compile 优化。",
@@ -3621,10 +3618,6 @@ function generatorGraphNodes() {
   return Object.values(app.graph?._nodes_by_id || {}).filter(isGeneratorGraphNode);
 }
 
-function installGeneratorQueuePromptHook() {
-  return aioInstallGeneratorQueuePromptHook(api, generatorQueueRuntime);
-}
-
 function ensureButton(node, key, label, callback) {
   if (node.widgets?.some((widget) => widget.__easyuseAnimaAioButtonKey === key)) {
     return;
@@ -4099,38 +4092,6 @@ const generatorPanelRuntime = aioCreateGeneratorPanelRuntime({
   },
 });
 
-const generatorQueueRuntime = aioCreateGeneratorQueueRuntime({
-  constants: {
-    settingsWidgetName: GENERATOR_SETTINGS_WIDGET,
-    minSeed: 0,
-    maxSeed: GENERATOR_MAX_SEED,
-    specialSeedRandom: GENERATOR_SPECIAL_SEED_RANDOM,
-    specialSeedIncrement: GENERATOR_SPECIAL_SEED_INCREMENT,
-    specialSeedDecrement: GENERATOR_SPECIAL_SEED_DECREMENT,
-  },
-  settingsCore: {
-    normalizeSeedValue,
-    normalizeSeedControl,
-    cloneJson: clone,
-    settingsToCompactJson,
-  },
-  nodeAdapter: {
-    listNodes: generatorGraphNodes,
-    isBypassed: (node) => node.mode === 4 || node.mode === globalThis.LiteGraph?.NEVER,
-    getSettings: generatorSettings,
-    sanitizeSettings: sanitizeGeneratorSettingsForOptionalDependencies,
-    getLastQueuedSeed: (node) => node.__easyuseAnimaLastQueuedSeed,
-    commitLastQueuedSeed: (node, seed) => {
-      node.__easyuseAnimaLastQueuedSeed = seed;
-    },
-    updateSeed: (node, seed, options) => generatorPanelRuntime.updateSeed(node, seed, options),
-  },
-  queueAdapter: {
-    loadOptionalDependencies: loadGeneratorOptionalDependencies,
-  },
-  randomSeed,
-});
-
 function hookInputNode(node) {
   node.serialize_widgets = true;
   hideWidget(findWidget(node, INPUT_SETTINGS_WIDGET));
@@ -4215,6 +4176,12 @@ function updateGeneratorExecutedStatus(node, message) {
   if (!node) {
     return;
   }
+  aioApplyExecutedSeedDisplay(node, message, {
+    maximum: GENERATOR_MAX_SEED,
+    updateSeed: (candidate, seed, options) => (
+      generatorPanelRuntime.updateSeed(candidate, seed, options)
+    ),
+  });
   const nextImages = aioPreviewImages(message);
   const runId = aioPreviewRunId(message);
   addGeneratorPreviewImagesToNode(node, nextImages, runId, { replaceCurrentRun: true });
@@ -4238,7 +4205,6 @@ const aioExtensionRuntime = aioCreateExtensionRuntime({
   setup: {
     ensureStyle,
     installWheelForwarder: installGeneratorWheelForwarder,
-    installQueuePromptHook: installGeneratorQueuePromptHook,
     watchLocale: easyuseAnimaWatchLocale,
     refreshPanels: refreshGeneratorPanels,
     handlePreviewEvent: handleGeneratorPreviewEvent,

@@ -23,7 +23,7 @@ from ..aio.input_defaults import (
     EASY_USE_ANIMA_INPUT_SCHEMA,
     EASY_USE_ANIMA_INPUT_SETTINGS_VERSION,
 )
-from ..aio.legacy_generation import _run_aio_legacy_generation
+from ..aio.legacy_generation import _run_aio_normalized_legacy_generation
 from ..aio.model_preparation import _aio_lora_stack_signature
 from ..aio.resources import (
     _comfy_clip_loader_types,
@@ -35,13 +35,15 @@ from ..aio.resources import (
     _preferred_name_default,
 )
 from ..aio.sampling import _resolve_aio_runtime_seed
-from ..common.serialization import _json_clone, _stable_change_key
+from ..common.serialization import _stable_change_key
 from ..prompt.data import (
     PROMPT_DATA_TYPE,
     _copy_prompt_data_for_update,
     _normalize_prompt_data,
     _prompt_data_json_safe,
 )
+from ..seed.reservation import SEED_CONTROL_FIXED
+from .seed_adapters import aio_seed_execution
 
 EASY_USE_ANIMA_INPUT_TYPE = "EASY_USE_ANIMA_INPUT"
 
@@ -259,18 +261,17 @@ class EasyUseAnimaAIOGenerator:
         settings = _normalize_aio_generation_settings(
             generation_settings
         )
-        if settings.get("sampler", {}).get("seed") in AIO_SPECIAL_SEEDS:
-            change_settings = _json_clone(settings)
-            change_settings["sampler"]["seed"] = _resolve_aio_runtime_seed(
-                change_settings["sampler"].get("seed")
-            )
-        else:
-            change_settings = settings
+        sampler = settings.get("sampler", {})
+        if (
+            sampler.get("seed") in AIO_SPECIAL_SEEDS
+            or sampler.get("seed_after_generate") != SEED_CONTROL_FIXED
+        ):
+            return float("nan")
         return _stable_change_key({
             "mode": "easy_use_anima_generator",
             "input": _easy_use_anima_input_signature(easy_use_anima_input),
             "lora_stack": _aio_lora_stack_signature(lora_stack),
-            "generation_settings": change_settings,
+            "generation_settings": settings,
         })
 
     def generate(
@@ -282,15 +283,35 @@ class EasyUseAnimaAIOGenerator:
         extra_pnginfo=None,
         unique_id=None,
     ):
-        return _run_aio_legacy_generation(
-            self,
-            easy_use_anima_input,
-            generation_settings,
-            lora_stack,
-            workflow_prompt,
-            extra_pnginfo,
-            unique_id,
-        )
+        context = _require_easy_use_anima_input(easy_use_anima_input)
+        settings = _normalize_aio_generation_settings(generation_settings)
+        sampler = settings["sampler"]
+        with aio_seed_execution(
+            unique_id=unique_id,
+            normalized_seed=sampler["seed"],
+            after_generate=sampler.get(
+                "seed_after_generate",
+                SEED_CONTROL_FIXED,
+            ),
+            fallback_execution_seed=lambda: _resolve_aio_runtime_seed(
+                sampler["seed"]
+            ),
+        ) as seed_execution:
+            sampler["seed"] = seed_execution.execution_seed
+            output = _run_aio_normalized_legacy_generation(
+                self,
+                context,
+                settings,
+                lora_stack,
+                workflow_prompt,
+                extra_pnginfo,
+                unique_id,
+            )
+            output["ui"]["easyuse_anima_aio_seed"] = [{
+                "execution_seed": str(seed_execution.execution_seed),
+                "next_seed": str(seed_execution.next_seed),
+            }]
+            return output
 
 
 __all__ = ("EasyUseAnimaInput", "EasyUseAnimaAIOGenerator")

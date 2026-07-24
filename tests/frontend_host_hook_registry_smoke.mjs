@@ -20,10 +20,6 @@ const loraSaveSync = await import(dataModule(
   "../web/js/lora_preset/save_sync.js",
   registryImportReplacement,
 ));
-const aioQueueRuntime = await import(dataModule(
-  "../web/js/aio/generator_queue_runtime.js",
-  registryImportReplacement,
-));
 
 assert.deepEqual(Object.keys(registry).sort(), [
   "createHostHookRuntimeLifecycle",
@@ -694,22 +690,29 @@ async function exerciseAioLoraLoadOrder(aioFirst) {
       events.push(`aio:after:${context.ok}:${context.callbackState}`);
     },
   };
+  const aioOwner = Symbol(`aio-${aioFirst}`);
+  const installAio = () => registry.registerHostHookCallbacks({
+    owner: aioOwner,
+    queueHost: app,
+    beforeQueue: aioRuntime.beforeQueue,
+    afterQueue: aioRuntime.afterQueue,
+  });
 
   const disposePrompt = installPromptStudio();
   assert.equal(installPromptStudio()(), false, "Prompt Studio setup twice must be a no-op");
   let disposeAio;
   if (aioFirst) {
-    disposeAio = aioQueueRuntime.aioInstallGeneratorQueuePromptHook(app, aioRuntime);
+    disposeAio = installAio();
     assert.equal(lora.install(), true);
   } else {
     assert.equal(lora.install(), true);
-    disposeAio = aioQueueRuntime.aioInstallGeneratorQueuePromptHook(app, aioRuntime);
+    disposeAio = installAio();
   }
   assert.equal(lora.install(), false, "LoRA setup twice must reuse its lease");
   assert.equal(
-    aioQueueRuntime.aioInstallGeneratorQueuePromptHook(app, aioRuntime)(),
+    installAio()(),
     false,
-    "AiO setup twice must not own the existing callback",
+    "duplicate queue setup must not own the existing callback",
   );
 
   Graph.prototype.serialize.call(app.graph, "serialize");
