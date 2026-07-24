@@ -691,9 +691,9 @@ ignored/
 
         self.assertEqual(analyzer.render_json(report), expected_text)
         self.assertEqual(report["schema_version"], 2)
-        self.assertEqual(report["inventory"]["module_count"], 131)
-        self.assertEqual(len(report["registry"]["shipped_python_modules"]), 131)
-        self.assertEqual(len(report["registry"]["runtime_import_closure"]), 131)
+        self.assertEqual(report["inventory"]["module_count"], 132)
+        self.assertEqual(len(report["registry"]["shipped_python_modules"]), 132)
+        self.assertEqual(len(report["registry"]["runtime_import_closure"]), 132)
         self.assertEqual(
             report["registry"]["entry_modules"],
             [
@@ -970,6 +970,13 @@ ignored/
         self.assertIn(
             {
                 "from": "wildcard_engine.py",
+                "to": "easyuse_anima/wildcard/selector.py",
+            },
+            report["imports"]["module_graph"],
+        )
+        self.assertIn(
+            {
+                "from": "wildcard_engine.py",
                 "to": "easyuse_anima/wildcard/snapshot.py",
             },
             report["imports"]["module_graph"],
@@ -1007,6 +1014,7 @@ ignored/
             "easyuse_anima/wildcard/mode.py",
             "easyuse_anima/wildcard/models.py",
             "easyuse_anima/wildcard/seed.py",
+            "easyuse_anima/wildcard/selector.py",
             "easyuse_anima/wildcard/snapshot.py",
             "easyuse_anima/wildcard/sources.py",
         ):
@@ -1088,6 +1096,7 @@ ignored/
                 module
                 in {
                     "easyuse_anima/wildcard/seed.py",
+                    "easyuse_anima/wildcard/selector.py",
                     "easyuse_anima/wildcard/snapshot.py",
                 }
                 for module, _name in mutable_by_name
