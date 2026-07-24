@@ -64,7 +64,7 @@ import them.
 | `storage.py` | Explicit direct re-export shim (D-08) | `easyuse_anima.infrastructure.filesystem.atomic_json` and `.paths` | #163, #186 D-08 | Existing 0.5.2 supported module-owned public surface; exact `__all__` and identity fixture | External/legacy imports and storage compatibility tests; production callers use canonical modules | Unscheduled; first canonical+shim release N not yet recorded, then N+1 gate and last-known-good/atomic-write parity |
 | `autocomplete_index.py` | Explicit direct re-export shim (D-11a) | `easyuse_anima.autocomplete.index` | #162, #186 D-11a | Existing indexed-search surface; exact seven-name `__all__` and identity fixture | External/legacy imports; `autocomplete_dataset.py` now uses the canonical owner | Unscheduled; first canonical+shim release N not yet recorded, then N+1 gate and index/ranking/rebuild parity |
 | `autocomplete_dataset.py` | Partial explicit compatibility module after D-11b; prompt classification remains root-owned | `easyuse_anima.autocomplete.dataset` and `.search`; classification target waits for D-13 | #162, #186 D-11 | Existing 0.5.2 dataset/search surface canonicalized in PR #386 with direct identity aliases; final shim waits for root `anima_prompt` removal | External/legacy imports and prompt tests; `api.py` uses canonical dataset/search and root classification | Unscheduled; D-13 dependency removal, final identity surface, N+1 gate, and classification/result/API parity |
-| `wildcard_engine.py` | Partial compatibility module after D-12d; mode/snapshot lifecycle/selector/expansion remain root-owned | `easyuse_anima.wildcard.models`, `.sources`, `.snapshot`, `.seed`, then mode/lifecycle/selection/expansion modules | #184, #186 D-12 | Existing 0.5.2 models in PR #387, sources in #388, snapshot materialization in #389, and seed control in #390 with direct aliases; later D-12 slices remain | root entrypoint, `nodes.py`, `api.py`, wildcard/workflow tests | Unscheduled; full D-12 move, final identity surface, N+1 gate, and seed/expansion/workflow parity |
+| `wildcard_engine.py` | Partial compatibility module after D-12d; D-12e mode contract READY while snapshot lifecycle/selector/expansion remain root-owned | `easyuse_anima.wildcard.models`, `.sources`, `.snapshot`, `.seed`, `.mode`, then lifecycle/selection/expansion modules | #184, #186 D-12 | Existing 0.5.2 models in PR #387, sources in #388, snapshot materialization in #389, and seed control in #390 with direct aliases; D-12e has an inventory-frozen Move boundary | root entrypoint, `nodes.py`, `api.py`, wildcard/workflow tests | Unscheduled; full D-12 move, final identity surface, N+1 gate, and seed/expansion/workflow parity |
 | `prompt_translation.py` | Explicit direct re-export shim (D-01) | `easyuse_anima.translation.*` | #164, #186 D-01 | Existing 0.5.2 supported module-owned public surface; exact `__all__` and identity fixture | External/legacy imports and translation compatibility tests; production callers use canonical modules | Unscheduled; first canonical+shim release N not yet recorded, then N+1 gate and provider-off/API parity |
 | `anima_prompt/` package | Current implementation; planned package shim | `easyuse_anima.prompt.anima.*` | #184, #186 D-13 | Existing 0.5.2 surface; convert in D-13/D-14 | `nodes.py`, `autocomplete_dataset.py`, prompt tests | Unscheduled; N+1 gate and prompt correction/parser parity |
 
@@ -1472,9 +1472,12 @@ EasyUseAnimaWildcard
   `easyuse_anima.wildcard.snapshot`.
 - D-12d moves the five seed-control names, two seed ranges,
   `normalize_seed`, and `next_seed` to `easyuse_anima.wildcard.seed`.
+- D-12e moves the four mode constants, three mode/label tuples, mutable alias
+  lookup, and two normalization functions to `easyuse_anima.wildcard.mode`.
 - Root binds the 12 model names, eight supported source names, two private
   snapshot seams, and nine seed-control names directly to canonical objects.
-  Wildcard mode, source verification, snapshot publication/cache/condition/
+  D-12e will add ten direct mode aliases, including the identical mutable alias
+  dictionary. Source verification, snapshot publication/cache/condition/
   single-flight/retry, NumPy/PCG64 selector, expansion, enforcement, and
   diagnostics remain root-owned for later D-12 slices and E-06.
 - Canonical target for the remaining implementation:
