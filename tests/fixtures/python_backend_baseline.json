@@ -1578,16 +1578,16 @@
         "classification": "internal",
         "column": 0,
         "conditional": false,
-        "imported": ".autocomplete_dataset:autocomplete_status",
+        "imported": ".easyuse_anima.autocomplete.dataset:autocomplete_status",
         "kind": "static_from",
         "line": 31,
         "name": "autocomplete_status",
         "optional": false,
-        "requested": ".autocomplete_dataset",
+        "requested": ".easyuse_anima.autocomplete.dataset",
         "role": "ordinary",
         "scope": "<module>",
         "source": "api.py",
-        "target": "autocomplete_dataset.py"
+        "target": "easyuse_anima/autocomplete/dataset.py"
       },
       {
         "alias": null,
@@ -1596,16 +1596,52 @@
         "classification": "internal",
         "column": 0,
         "conditional": false,
-        "imported": ".autocomplete_dataset:available_autocomplete_sources",
+        "imported": ".easyuse_anima.autocomplete.dataset:available_autocomplete_sources",
         "kind": "static_from",
         "line": 31,
         "name": "available_autocomplete_sources",
         "optional": false,
-        "requested": ".autocomplete_dataset",
+        "requested": ".easyuse_anima.autocomplete.dataset",
         "role": "ordinary",
         "scope": "<module>",
         "source": "api.py",
-        "target": "autocomplete_dataset.py"
+        "target": "easyuse_anima/autocomplete/dataset.py"
+      },
+      {
+        "alias": "resolve_autocomplete_source_path",
+        "bound_name": "resolve_autocomplete_source_path",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".easyuse_anima.autocomplete.dataset:resolve_autocomplete_source",
+        "kind": "static_from",
+        "line": 31,
+        "name": "resolve_autocomplete_source",
+        "optional": false,
+        "requested": ".easyuse_anima.autocomplete.dataset",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "api.py",
+        "target": "easyuse_anima/autocomplete/dataset.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "search_autocomplete",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".easyuse_anima.autocomplete.search:search_autocomplete",
+        "kind": "static_from",
+        "line": 36,
+        "name": "search_autocomplete",
+        "optional": false,
+        "requested": ".easyuse_anima.autocomplete.search",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "api.py",
+        "target": "easyuse_anima/autocomplete/search.py"
       },
       {
         "alias": null,
@@ -1616,44 +1652,8 @@
         "conditional": false,
         "imported": ".autocomplete_dataset:classify_prompt_text",
         "kind": "static_from",
-        "line": 31,
+        "line": 39,
         "name": "classify_prompt_text",
-        "optional": false,
-        "requested": ".autocomplete_dataset",
-        "role": "ordinary",
-        "scope": "<module>",
-        "source": "api.py",
-        "target": "autocomplete_dataset.py"
-      },
-      {
-        "alias": "resolve_autocomplete_source_path",
-        "bound_name": "resolve_autocomplete_source_path",
-        "branch_context": [],
-        "classification": "internal",
-        "column": 0,
-        "conditional": false,
-        "imported": ".autocomplete_dataset:resolve_autocomplete_source",
-        "kind": "static_from",
-        "line": 31,
-        "name": "resolve_autocomplete_source",
-        "optional": false,
-        "requested": ".autocomplete_dataset",
-        "role": "ordinary",
-        "scope": "<module>",
-        "source": "api.py",
-        "target": "autocomplete_dataset.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "search_autocomplete",
-        "branch_context": [],
-        "classification": "internal",
-        "column": 0,
-        "conditional": false,
-        "imported": ".autocomplete_dataset:search_autocomplete",
-        "kind": "static_from",
-        "line": 31,
-        "name": "search_autocomplete",
         "optional": false,
         "requested": ".autocomplete_dataset",
         "role": "ordinary",
@@ -1670,7 +1670,7 @@
         "conditional": false,
         "imported": ".wildcard_engine:list_wildcards",
         "kind": "static_from",
-        "line": 38,
+        "line": 40,
         "name": "list_wildcards",
         "optional": false,
         "requested": ".wildcard_engine",
@@ -1688,7 +1688,7 @@
         "conditional": false,
         "imported": ".wildcard_engine:resolve_wildcard_roots",
         "kind": "static_from",
-        "line": 38,
+        "line": 40,
         "name": "resolve_wildcard_roots",
         "optional": false,
         "requested": ".wildcard_engine",
@@ -1706,7 +1706,7 @@
         "conditional": false,
         "imported": ".easyuse_anima.translation.contracts:PromptTranslationError",
         "kind": "static_from",
-        "line": 39,
+        "line": 41,
         "name": "PromptTranslationError",
         "optional": false,
         "requested": ".easyuse_anima.translation.contracts",
@@ -1724,7 +1724,7 @@
         "conditional": false,
         "imported": ".easyuse_anima.translation.contracts:TranslationBusyError",
         "kind": "static_from",
-        "line": 39,
+        "line": 41,
         "name": "TranslationBusyError",
         "optional": false,
         "requested": ".easyuse_anima.translation.contracts",
@@ -1742,7 +1742,7 @@
         "conditional": false,
         "imported": ".easyuse_anima.translation.contracts:TranslationCancelledError",
         "kind": "static_from",
-        "line": 39,
+        "line": 41,
         "name": "TranslationCancelledError",
         "optional": false,
         "requested": ".easyuse_anima.translation.contracts",
@@ -1760,7 +1760,7 @@
         "conditional": false,
         "imported": ".easyuse_anima.translation.contracts:TranslationTimeoutError",
         "kind": "static_from",
-        "line": 39,
+        "line": 41,
         "name": "TranslationTimeoutError",
         "optional": false,
         "requested": ".easyuse_anima.translation.contracts",
@@ -1778,7 +1778,7 @@
         "conditional": false,
         "imported": ".easyuse_anima.translation.service:translate_prompt_markers",
         "kind": "static_from",
-        "line": 45,
+        "line": 47,
         "name": "translate_prompt_markers",
         "optional": false,
         "requested": ".easyuse_anima.translation.service",
@@ -1796,7 +1796,7 @@
         "conditional": false,
         "imported": ".api_contract:ApiContractError",
         "kind": "static_from",
-        "line": 48,
+        "line": 50,
         "name": "ApiContractError",
         "optional": false,
         "requested": ".api_contract",
@@ -1814,7 +1814,7 @@
         "conditional": false,
         "imported": ".api_contract:attach_request_id_header",
         "kind": "static_from",
-        "line": 48,
+        "line": 50,
         "name": "attach_request_id_header",
         "optional": false,
         "requested": ".api_contract",
@@ -1832,7 +1832,7 @@
         "conditional": false,
         "imported": ".api_contract:correlate_response",
         "kind": "static_from",
-        "line": 48,
+        "line": 50,
         "name": "correlate_response",
         "optional": false,
         "requested": ".api_contract",
@@ -1850,7 +1850,7 @@
         "conditional": false,
         "imported": ".api_contract:create_request_id",
         "kind": "static_from",
-        "line": 48,
+        "line": 50,
         "name": "create_request_id",
         "optional": false,
         "requested": ".api_contract",
@@ -1868,7 +1868,7 @@
         "conditional": false,
         "imported": ".api_contract:error_payload",
         "kind": "static_from",
-        "line": 48,
+        "line": 50,
         "name": "error_payload",
         "optional": false,
         "requested": ".api_contract",
@@ -1886,7 +1886,7 @@
         "conditional": false,
         "imported": ".api_contract:json_boolean",
         "kind": "static_from",
-        "line": 48,
+        "line": 50,
         "name": "json_boolean",
         "optional": false,
         "requested": ".api_contract",
@@ -1904,7 +1904,7 @@
         "conditional": false,
         "imported": ".api_contract:json_integer",
         "kind": "static_from",
-        "line": 48,
+        "line": 50,
         "name": "json_integer",
         "optional": false,
         "requested": ".api_contract",
@@ -1922,7 +1922,7 @@
         "conditional": false,
         "imported": ".api_contract:json_object",
         "kind": "static_from",
-        "line": 48,
+        "line": 50,
         "name": "json_object",
         "optional": false,
         "requested": ".api_contract",
@@ -1940,7 +1940,7 @@
         "conditional": false,
         "imported": ".api_contract:json_string",
         "kind": "static_from",
-        "line": 48,
+        "line": 50,
         "name": "json_string",
         "optional": false,
         "requested": ".api_contract",
@@ -1958,7 +1958,7 @@
         "conditional": false,
         "imported": ".api_contract:json_uuid_string",
         "kind": "static_from",
-        "line": 48,
+        "line": 50,
         "name": "json_uuid_string",
         "optional": false,
         "requested": ".api_contract",
@@ -1976,7 +1976,7 @@
         "conditional": false,
         "imported": ".api_contract:parse_json_object",
         "kind": "static_from",
-        "line": 48,
+        "line": 50,
         "name": "parse_json_object",
         "optional": false,
         "requested": ".api_contract",
@@ -1994,7 +1994,7 @@
         "conditional": false,
         "imported": ".easyuse_anima.profiles:aio",
         "kind": "static_from",
-        "line": 61,
+        "line": 63,
         "name": "aio",
         "optional": false,
         "requested": ".easyuse_anima.profiles",
@@ -2012,7 +2012,7 @@
         "conditional": false,
         "imported": ".easyuse_anima.profiles:contract",
         "kind": "static_from",
-        "line": 62,
+        "line": 64,
         "name": "contract",
         "optional": false,
         "requested": ".easyuse_anima.profiles",
@@ -2030,7 +2030,7 @@
         "conditional": false,
         "imported": ".easyuse_anima.profiles:lora",
         "kind": "static_from",
-        "line": 63,
+        "line": 65,
         "name": "lora",
         "optional": false,
         "requested": ".easyuse_anima.profiles",
@@ -2048,7 +2048,7 @@
         "conditional": false,
         "imported": ".easyuse_anima.profiles:mutation",
         "kind": "static_from",
-        "line": 64,
+        "line": 66,
         "name": "mutation",
         "optional": false,
         "requested": ".easyuse_anima.profiles",
@@ -2066,7 +2066,7 @@
         "conditional": false,
         "imported": ".easyuse_anima.profiles:repository",
         "kind": "static_from",
-        "line": 65,
+        "line": 67,
         "name": "repository",
         "optional": false,
         "requested": ".easyuse_anima.profiles",
@@ -2084,7 +2084,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 321
+            "line": 323
           }
         ],
         "classification": "external",
@@ -2092,7 +2092,7 @@
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 322,
+        "line": 324,
         "name": null,
         "optional": true,
         "requested": "folder_paths",
@@ -2204,57 +2204,6 @@
       },
       {
         "alias": null,
-        "bound_name": "csv",
-        "branch_context": [],
-        "classification": "external",
-        "column": 0,
-        "conditional": false,
-        "imported": "csv",
-        "kind": "static_import",
-        "line": 3,
-        "name": null,
-        "optional": false,
-        "requested": "csv",
-        "role": "ordinary",
-        "scope": "<module>",
-        "source": "autocomplete_dataset.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "heapq",
-        "branch_context": [],
-        "classification": "external",
-        "column": 0,
-        "conditional": false,
-        "imported": "heapq",
-        "kind": "static_import",
-        "line": 4,
-        "name": null,
-        "optional": false,
-        "requested": "heapq",
-        "role": "ordinary",
-        "scope": "<module>",
-        "source": "autocomplete_dataset.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "itertools",
-        "branch_context": [],
-        "classification": "external",
-        "column": 0,
-        "conditional": false,
-        "imported": "itertools",
-        "kind": "static_import",
-        "line": 5,
-        "name": null,
-        "optional": false,
-        "requested": "itertools",
-        "role": "ordinary",
-        "scope": "<module>",
-        "source": "autocomplete_dataset.py"
-      },
-      {
-        "alias": null,
         "bound_name": "re",
         "branch_context": [],
         "classification": "external",
@@ -2262,112 +2211,10 @@
         "conditional": false,
         "imported": "re",
         "kind": "static_import",
-        "line": 6,
+        "line": 3,
         "name": null,
         "optional": false,
         "requested": "re",
-        "role": "ordinary",
-        "scope": "<module>",
-        "source": "autocomplete_dataset.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "stat",
-        "branch_context": [],
-        "classification": "external",
-        "column": 0,
-        "conditional": false,
-        "imported": "stat",
-        "kind": "static_import",
-        "line": 7,
-        "name": null,
-        "optional": false,
-        "requested": "stat",
-        "role": "ordinary",
-        "scope": "<module>",
-        "source": "autocomplete_dataset.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "threading",
-        "branch_context": [],
-        "classification": "external",
-        "column": 0,
-        "conditional": false,
-        "imported": "threading",
-        "kind": "static_import",
-        "line": 8,
-        "name": null,
-        "optional": false,
-        "requested": "threading",
-        "role": "ordinary",
-        "scope": "<module>",
-        "source": "autocomplete_dataset.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "time",
-        "branch_context": [],
-        "classification": "external",
-        "column": 0,
-        "conditional": false,
-        "imported": "time",
-        "kind": "static_import",
-        "line": 9,
-        "name": null,
-        "optional": false,
-        "requested": "time",
-        "role": "ordinary",
-        "scope": "<module>",
-        "source": "autocomplete_dataset.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "unicodedata",
-        "branch_context": [],
-        "classification": "external",
-        "column": 0,
-        "conditional": false,
-        "imported": "unicodedata",
-        "kind": "static_import",
-        "line": 10,
-        "name": null,
-        "optional": false,
-        "requested": "unicodedata",
-        "role": "ordinary",
-        "scope": "<module>",
-        "source": "autocomplete_dataset.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "Future",
-        "branch_context": [],
-        "classification": "external",
-        "column": 0,
-        "conditional": false,
-        "imported": "concurrent.futures:Future",
-        "kind": "static_from",
-        "line": 11,
-        "name": "Future",
-        "optional": false,
-        "requested": "concurrent.futures",
-        "role": "ordinary",
-        "scope": "<module>",
-        "source": "autocomplete_dataset.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "dataclass",
-        "branch_context": [],
-        "classification": "external",
-        "column": 0,
-        "conditional": false,
-        "imported": "dataclasses:dataclass",
-        "kind": "static_from",
-        "line": 12,
-        "name": "dataclass",
-        "optional": false,
-        "requested": "dataclasses",
         "role": "ordinary",
         "scope": "<module>",
         "source": "autocomplete_dataset.py"
@@ -2381,202 +2228,13 @@
         "conditional": false,
         "imported": "pathlib:Path",
         "kind": "static_from",
-        "line": 13,
+        "line": 4,
         "name": "Path",
         "optional": false,
         "requested": "pathlib",
         "role": "ordinary",
         "scope": "<module>",
         "source": "autocomplete_dataset.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "MappingProxyType",
-        "branch_context": [],
-        "classification": "external",
-        "column": 0,
-        "conditional": false,
-        "imported": "types:MappingProxyType",
-        "kind": "static_from",
-        "line": 14,
-        "name": "MappingProxyType",
-        "optional": false,
-        "requested": "types",
-        "role": "ordinary",
-        "scope": "<module>",
-        "source": "autocomplete_dataset.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "Mapping",
-        "branch_context": [],
-        "classification": "external",
-        "column": 0,
-        "conditional": false,
-        "imported": "typing:Mapping",
-        "kind": "static_from",
-        "line": 15,
-        "name": "Mapping",
-        "optional": false,
-        "requested": "typing",
-        "role": "ordinary",
-        "scope": "<module>",
-        "source": "autocomplete_dataset.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "AutocompleteIndexDiagnostics",
-        "branch_context": [
-          {
-            "branch": "body",
-            "handles_import_failure": true,
-            "has_import_fallback_handler": true,
-            "kind": "try",
-            "line": 17
-          }
-        ],
-        "classification": "internal",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "AutocompleteIndexDiagnostics",
-          "target": "easyuse_anima/autocomplete/index.py",
-          "try_line": 17
-        },
-        "conditional": true,
-        "imported": ".easyuse_anima.autocomplete.index:AutocompleteIndexDiagnostics",
-        "kind": "static_from",
-        "line": 18,
-        "name": "AutocompleteIndexDiagnostics",
-        "optional": false,
-        "requested": ".easyuse_anima.autocomplete.index",
-        "role": "compatibility_primary",
-        "scope": "<module>",
-        "source": "autocomplete_dataset.py",
-        "target": "easyuse_anima/autocomplete/index.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "AutocompleteIndexSource",
-        "branch_context": [
-          {
-            "branch": "body",
-            "handles_import_failure": true,
-            "has_import_fallback_handler": true,
-            "kind": "try",
-            "line": 17
-          }
-        ],
-        "classification": "internal",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "AutocompleteIndexSource",
-          "target": "easyuse_anima/autocomplete/index.py",
-          "try_line": 17
-        },
-        "conditional": true,
-        "imported": ".easyuse_anima.autocomplete.index:AutocompleteIndexSource",
-        "kind": "static_from",
-        "line": 18,
-        "name": "AutocompleteIndexSource",
-        "optional": false,
-        "requested": ".easyuse_anima.autocomplete.index",
-        "role": "compatibility_primary",
-        "scope": "<module>",
-        "source": "autocomplete_dataset.py",
-        "target": "easyuse_anima/autocomplete/index.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "AutocompleteIndexUnavailable",
-        "branch_context": [
-          {
-            "branch": "body",
-            "handles_import_failure": true,
-            "has_import_fallback_handler": true,
-            "kind": "try",
-            "line": 17
-          }
-        ],
-        "classification": "internal",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "AutocompleteIndexUnavailable",
-          "target": "easyuse_anima/autocomplete/index.py",
-          "try_line": 17
-        },
-        "conditional": true,
-        "imported": ".easyuse_anima.autocomplete.index:AutocompleteIndexUnavailable",
-        "kind": "static_from",
-        "line": 18,
-        "name": "AutocompleteIndexUnavailable",
-        "optional": false,
-        "requested": ".easyuse_anima.autocomplete.index",
-        "role": "compatibility_primary",
-        "scope": "<module>",
-        "source": "autocomplete_dataset.py",
-        "target": "easyuse_anima/autocomplete/index.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "search_autocomplete_index",
-        "branch_context": [
-          {
-            "branch": "body",
-            "handles_import_failure": true,
-            "has_import_fallback_handler": true,
-            "kind": "try",
-            "line": 17
-          }
-        ],
-        "classification": "internal",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "search_autocomplete_index",
-          "target": "easyuse_anima/autocomplete/index.py",
-          "try_line": 17
-        },
-        "conditional": true,
-        "imported": ".easyuse_anima.autocomplete.index:search_autocomplete_index",
-        "kind": "static_from",
-        "line": 18,
-        "name": "search_autocomplete_index",
-        "optional": false,
-        "requested": ".easyuse_anima.autocomplete.index",
-        "role": "compatibility_primary",
-        "scope": "<module>",
-        "source": "autocomplete_dataset.py",
-        "target": "easyuse_anima/autocomplete/index.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "PACKAGE_DATA_DIR",
-        "branch_context": [
-          {
-            "branch": "body",
-            "handles_import_failure": true,
-            "has_import_fallback_handler": true,
-            "kind": "try",
-            "line": 17
-          }
-        ],
-        "classification": "internal",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "PACKAGE_DATA_DIR",
-          "target": "anima_prompt/knowledge.py",
-          "try_line": 17
-        },
-        "conditional": true,
-        "imported": ".anima_prompt.knowledge:PACKAGE_DATA_DIR",
-        "kind": "static_from",
-        "line": 24,
-        "name": "PACKAGE_DATA_DIR",
-        "optional": false,
-        "requested": ".anima_prompt.knowledge",
-        "role": "compatibility_primary",
-        "scope": "<module>",
-        "source": "autocomplete_dataset.py",
-        "target": "anima_prompt/knowledge.py"
       },
       {
         "alias": null,
@@ -2587,7 +2245,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": true,
             "kind": "try",
-            "line": 17
+            "line": 6
           }
         ],
         "classification": "internal",
@@ -2595,12 +2253,12 @@
         "compatibility_pair": {
           "bound_name": "TagSection",
           "target": "anima_prompt/models.py",
-          "try_line": 17
+          "try_line": 6
         },
         "conditional": true,
         "imported": ".anima_prompt.models:TagSection",
         "kind": "static_from",
-        "line": 25,
+        "line": 7,
         "name": "TagSection",
         "optional": false,
         "requested": ".anima_prompt.models",
@@ -2618,7 +2276,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": true,
             "kind": "try",
-            "line": 17
+            "line": 6
           }
         ],
         "classification": "internal",
@@ -2626,12 +2284,12 @@
         "compatibility_pair": {
           "bound_name": "builtin_tag_section",
           "target": "anima_prompt/ordering.py",
-          "try_line": 17
+          "try_line": 6
         },
         "conditional": true,
         "imported": ".anima_prompt.ordering:builtin_tag_section",
         "kind": "static_from",
-        "line": 26,
+        "line": 8,
         "name": "builtin_tag_section",
         "optional": false,
         "requested": ".anima_prompt.ordering",
@@ -2649,7 +2307,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": true,
             "kind": "try",
-            "line": 17
+            "line": 6
           }
         ],
         "classification": "internal",
@@ -2657,12 +2315,12 @@
         "compatibility_pair": {
           "bound_name": "parse_prompt",
           "target": "anima_prompt/parser.py",
-          "try_line": 17
+          "try_line": 6
         },
         "conditional": true,
         "imported": ".anima_prompt.parser:parse_prompt",
         "kind": "static_from",
-        "line": 27,
+        "line": 9,
         "name": "parse_prompt",
         "optional": false,
         "requested": ".anima_prompt.parser",
@@ -2673,6 +2331,564 @@
       },
       {
         "alias": null,
+        "bound_name": "AUTOCOMPLETE_CSV",
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": true,
+            "kind": "try",
+            "line": 6
+          }
+        ],
+        "classification": "internal",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "AUTOCOMPLETE_CSV",
+          "target": "easyuse_anima/autocomplete/dataset.py",
+          "try_line": 6
+        },
+        "conditional": true,
+        "imported": ".easyuse_anima.autocomplete.dataset:AUTOCOMPLETE_CSV",
+        "kind": "static_from",
+        "line": 10,
+        "name": "AUTOCOMPLETE_CSV",
+        "optional": false,
+        "requested": ".easyuse_anima.autocomplete.dataset",
+        "role": "compatibility_primary",
+        "scope": "<module>",
+        "source": "autocomplete_dataset.py",
+        "target": "easyuse_anima/autocomplete/dataset.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "AUTOCOMPLETE_SOURCES",
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": true,
+            "kind": "try",
+            "line": 6
+          }
+        ],
+        "classification": "internal",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "AUTOCOMPLETE_SOURCES",
+          "target": "easyuse_anima/autocomplete/dataset.py",
+          "try_line": 6
+        },
+        "conditional": true,
+        "imported": ".easyuse_anima.autocomplete.dataset:AUTOCOMPLETE_SOURCES",
+        "kind": "static_from",
+        "line": 10,
+        "name": "AUTOCOMPLETE_SOURCES",
+        "optional": false,
+        "requested": ".easyuse_anima.autocomplete.dataset",
+        "role": "compatibility_primary",
+        "scope": "<module>",
+        "source": "autocomplete_dataset.py",
+        "target": "easyuse_anima/autocomplete/dataset.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "AutocompleteEntry",
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": true,
+            "kind": "try",
+            "line": 6
+          }
+        ],
+        "classification": "internal",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "AutocompleteEntry",
+          "target": "easyuse_anima/autocomplete/dataset.py",
+          "try_line": 6
+        },
+        "conditional": true,
+        "imported": ".easyuse_anima.autocomplete.dataset:AutocompleteEntry",
+        "kind": "static_from",
+        "line": 10,
+        "name": "AutocompleteEntry",
+        "optional": false,
+        "requested": ".easyuse_anima.autocomplete.dataset",
+        "role": "compatibility_primary",
+        "scope": "<module>",
+        "source": "autocomplete_dataset.py",
+        "target": "easyuse_anima/autocomplete/dataset.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "DBR_DANBOORU_AUTOCOMPLETE_CSV",
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": true,
+            "kind": "try",
+            "line": 6
+          }
+        ],
+        "classification": "internal",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "DBR_DANBOORU_AUTOCOMPLETE_CSV",
+          "target": "easyuse_anima/autocomplete/dataset.py",
+          "try_line": 6
+        },
+        "conditional": true,
+        "imported": ".easyuse_anima.autocomplete.dataset:DBR_DANBOORU_AUTOCOMPLETE_CSV",
+        "kind": "static_from",
+        "line": 10,
+        "name": "DBR_DANBOORU_AUTOCOMPLETE_CSV",
+        "optional": false,
+        "requested": ".easyuse_anima.autocomplete.dataset",
+        "role": "compatibility_primary",
+        "scope": "<module>",
+        "source": "autocomplete_dataset.py",
+        "target": "easyuse_anima/autocomplete/dataset.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "DBR_E621_AUTOCOMPLETE_CSV",
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": true,
+            "kind": "try",
+            "line": 6
+          }
+        ],
+        "classification": "internal",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "DBR_E621_AUTOCOMPLETE_CSV",
+          "target": "easyuse_anima/autocomplete/dataset.py",
+          "try_line": 6
+        },
+        "conditional": true,
+        "imported": ".easyuse_anima.autocomplete.dataset:DBR_E621_AUTOCOMPLETE_CSV",
+        "kind": "static_from",
+        "line": 10,
+        "name": "DBR_E621_AUTOCOMPLETE_CSV",
+        "optional": false,
+        "requested": ".easyuse_anima.autocomplete.dataset",
+        "role": "compatibility_primary",
+        "scope": "<module>",
+        "source": "autocomplete_dataset.py",
+        "target": "easyuse_anima/autocomplete/dataset.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "DBR_MERGED_AUTOCOMPLETE_CSV",
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": true,
+            "kind": "try",
+            "line": 6
+          }
+        ],
+        "classification": "internal",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "DBR_MERGED_AUTOCOMPLETE_CSV",
+          "target": "easyuse_anima/autocomplete/dataset.py",
+          "try_line": 6
+        },
+        "conditional": true,
+        "imported": ".easyuse_anima.autocomplete.dataset:DBR_MERGED_AUTOCOMPLETE_CSV",
+        "kind": "static_from",
+        "line": 10,
+        "name": "DBR_MERGED_AUTOCOMPLETE_CSV",
+        "optional": false,
+        "requested": ".easyuse_anima.autocomplete.dataset",
+        "role": "compatibility_primary",
+        "scope": "<module>",
+        "source": "autocomplete_dataset.py",
+        "target": "easyuse_anima/autocomplete/dataset.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "DBR_TAG_ARCHIVE_LICENSE",
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": true,
+            "kind": "try",
+            "line": 6
+          }
+        ],
+        "classification": "internal",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "DBR_TAG_ARCHIVE_LICENSE",
+          "target": "easyuse_anima/autocomplete/dataset.py",
+          "try_line": 6
+        },
+        "conditional": true,
+        "imported": ".easyuse_anima.autocomplete.dataset:DBR_TAG_ARCHIVE_LICENSE",
+        "kind": "static_from",
+        "line": 10,
+        "name": "DBR_TAG_ARCHIVE_LICENSE",
+        "optional": false,
+        "requested": ".easyuse_anima.autocomplete.dataset",
+        "role": "compatibility_primary",
+        "scope": "<module>",
+        "source": "autocomplete_dataset.py",
+        "target": "easyuse_anima/autocomplete/dataset.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "DBR_TAG_ARCHIVE_SOURCE",
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": true,
+            "kind": "try",
+            "line": 6
+          }
+        ],
+        "classification": "internal",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "DBR_TAG_ARCHIVE_SOURCE",
+          "target": "easyuse_anima/autocomplete/dataset.py",
+          "try_line": 6
+        },
+        "conditional": true,
+        "imported": ".easyuse_anima.autocomplete.dataset:DBR_TAG_ARCHIVE_SOURCE",
+        "kind": "static_from",
+        "line": 10,
+        "name": "DBR_TAG_ARCHIVE_SOURCE",
+        "optional": false,
+        "requested": ".easyuse_anima.autocomplete.dataset",
+        "role": "compatibility_primary",
+        "scope": "<module>",
+        "source": "autocomplete_dataset.py",
+        "target": "easyuse_anima/autocomplete/dataset.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "DEFAULT_AUTOCOMPLETE_SOURCE",
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": true,
+            "kind": "try",
+            "line": 6
+          }
+        ],
+        "classification": "internal",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "DEFAULT_AUTOCOMPLETE_SOURCE",
+          "target": "easyuse_anima/autocomplete/dataset.py",
+          "try_line": 6
+        },
+        "conditional": true,
+        "imported": ".easyuse_anima.autocomplete.dataset:DEFAULT_AUTOCOMPLETE_SOURCE",
+        "kind": "static_from",
+        "line": 10,
+        "name": "DEFAULT_AUTOCOMPLETE_SOURCE",
+        "optional": false,
+        "requested": ".easyuse_anima.autocomplete.dataset",
+        "role": "compatibility_primary",
+        "scope": "<module>",
+        "source": "autocomplete_dataset.py",
+        "target": "easyuse_anima/autocomplete/dataset.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "LOCALSMILE_AUTOCOMPLETE_CSV",
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": true,
+            "kind": "try",
+            "line": 6
+          }
+        ],
+        "classification": "internal",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "LOCALSMILE_AUTOCOMPLETE_CSV",
+          "target": "easyuse_anima/autocomplete/dataset.py",
+          "try_line": 6
+        },
+        "conditional": true,
+        "imported": ".easyuse_anima.autocomplete.dataset:LOCALSMILE_AUTOCOMPLETE_CSV",
+        "kind": "static_from",
+        "line": 10,
+        "name": "LOCALSMILE_AUTOCOMPLETE_CSV",
+        "optional": false,
+        "requested": ".easyuse_anima.autocomplete.dataset",
+        "role": "compatibility_primary",
+        "scope": "<module>",
+        "source": "autocomplete_dataset.py",
+        "target": "easyuse_anima/autocomplete/dataset.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "_INLINE_SPACE_RE",
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": true,
+            "kind": "try",
+            "line": 6
+          }
+        ],
+        "classification": "internal",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "_INLINE_SPACE_RE",
+          "target": "easyuse_anima/autocomplete/dataset.py",
+          "try_line": 6
+        },
+        "conditional": true,
+        "imported": ".easyuse_anima.autocomplete.dataset:_INLINE_SPACE_RE",
+        "kind": "static_from",
+        "line": 10,
+        "name": "_INLINE_SPACE_RE",
+        "optional": false,
+        "requested": ".easyuse_anima.autocomplete.dataset",
+        "role": "compatibility_primary",
+        "scope": "<module>",
+        "source": "autocomplete_dataset.py",
+        "target": "easyuse_anima/autocomplete/dataset.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "_normalize",
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": true,
+            "kind": "try",
+            "line": 6
+          }
+        ],
+        "classification": "internal",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "_normalize",
+          "target": "easyuse_anima/autocomplete/dataset.py",
+          "try_line": 6
+        },
+        "conditional": true,
+        "imported": ".easyuse_anima.autocomplete.dataset:_normalize",
+        "kind": "static_from",
+        "line": 10,
+        "name": "_normalize",
+        "optional": false,
+        "requested": ".easyuse_anima.autocomplete.dataset",
+        "role": "compatibility_primary",
+        "scope": "<module>",
+        "source": "autocomplete_dataset.py",
+        "target": "easyuse_anima/autocomplete/dataset.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "_snapshot",
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": true,
+            "kind": "try",
+            "line": 6
+          }
+        ],
+        "classification": "internal",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "_snapshot",
+          "target": "easyuse_anima/autocomplete/dataset.py",
+          "try_line": 6
+        },
+        "conditional": true,
+        "imported": ".easyuse_anima.autocomplete.dataset:_snapshot",
+        "kind": "static_from",
+        "line": 10,
+        "name": "_snapshot",
+        "optional": false,
+        "requested": ".easyuse_anima.autocomplete.dataset",
+        "role": "compatibility_primary",
+        "scope": "<module>",
+        "source": "autocomplete_dataset.py",
+        "target": "easyuse_anima/autocomplete/dataset.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "_snapshot_status",
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": true,
+            "kind": "try",
+            "line": 6
+          }
+        ],
+        "classification": "internal",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "_snapshot_status",
+          "target": "easyuse_anima/autocomplete/dataset.py",
+          "try_line": 6
+        },
+        "conditional": true,
+        "imported": ".easyuse_anima.autocomplete.dataset:_snapshot_status",
+        "kind": "static_from",
+        "line": 10,
+        "name": "_snapshot_status",
+        "optional": false,
+        "requested": ".easyuse_anima.autocomplete.dataset",
+        "role": "compatibility_primary",
+        "scope": "<module>",
+        "source": "autocomplete_dataset.py",
+        "target": "easyuse_anima/autocomplete/dataset.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "autocomplete_status",
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": true,
+            "kind": "try",
+            "line": 6
+          }
+        ],
+        "classification": "internal",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "autocomplete_status",
+          "target": "easyuse_anima/autocomplete/dataset.py",
+          "try_line": 6
+        },
+        "conditional": true,
+        "imported": ".easyuse_anima.autocomplete.dataset:autocomplete_status",
+        "kind": "static_from",
+        "line": 10,
+        "name": "autocomplete_status",
+        "optional": false,
+        "requested": ".easyuse_anima.autocomplete.dataset",
+        "role": "compatibility_primary",
+        "scope": "<module>",
+        "source": "autocomplete_dataset.py",
+        "target": "easyuse_anima/autocomplete/dataset.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "available_autocomplete_sources",
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": true,
+            "kind": "try",
+            "line": 6
+          }
+        ],
+        "classification": "internal",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "available_autocomplete_sources",
+          "target": "easyuse_anima/autocomplete/dataset.py",
+          "try_line": 6
+        },
+        "conditional": true,
+        "imported": ".easyuse_anima.autocomplete.dataset:available_autocomplete_sources",
+        "kind": "static_from",
+        "line": 10,
+        "name": "available_autocomplete_sources",
+        "optional": false,
+        "requested": ".easyuse_anima.autocomplete.dataset",
+        "role": "compatibility_primary",
+        "scope": "<module>",
+        "source": "autocomplete_dataset.py",
+        "target": "easyuse_anima/autocomplete/dataset.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "resolve_autocomplete_source",
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": true,
+            "kind": "try",
+            "line": 6
+          }
+        ],
+        "classification": "internal",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "resolve_autocomplete_source",
+          "target": "easyuse_anima/autocomplete/dataset.py",
+          "try_line": 6
+        },
+        "conditional": true,
+        "imported": ".easyuse_anima.autocomplete.dataset:resolve_autocomplete_source",
+        "kind": "static_from",
+        "line": 10,
+        "name": "resolve_autocomplete_source",
+        "optional": false,
+        "requested": ".easyuse_anima.autocomplete.dataset",
+        "role": "compatibility_primary",
+        "scope": "<module>",
+        "source": "autocomplete_dataset.py",
+        "target": "easyuse_anima/autocomplete/dataset.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "search_autocomplete",
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": true,
+            "kind": "try",
+            "line": 6
+          }
+        ],
+        "classification": "internal",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "search_autocomplete",
+          "target": "easyuse_anima/autocomplete/search.py",
+          "try_line": 6
+        },
+        "conditional": true,
+        "imported": ".easyuse_anima.autocomplete.search:search_autocomplete",
+        "kind": "static_from",
+        "line": 29,
+        "name": "search_autocomplete",
+        "optional": false,
+        "requested": ".easyuse_anima.autocomplete.search",
+        "role": "compatibility_primary",
+        "scope": "<module>",
+        "source": "autocomplete_dataset.py",
+        "target": "easyuse_anima/autocomplete/search.py"
+      },
+      {
+        "alias": null,
         "bound_name": "iter_prompt_translation_markers",
         "branch_context": [
           {
@@ -2680,7 +2896,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": true,
             "kind": "try",
-            "line": 17
+            "line": 6
           }
         ],
         "classification": "internal",
@@ -2688,12 +2904,12 @@
         "compatibility_pair": {
           "bound_name": "iter_prompt_translation_markers",
           "target": "easyuse_anima/translation/markers.py",
-          "try_line": 17
+          "try_line": 6
         },
         "conditional": true,
         "imported": ".easyuse_anima.translation.markers:iter_prompt_translation_markers",
         "kind": "static_from",
-        "line": 28,
+        "line": 30,
         "name": "iter_prompt_translation_markers",
         "optional": false,
         "requested": ".easyuse_anima.translation.markers",
@@ -2701,238 +2917,6 @@
         "scope": "<module>",
         "source": "autocomplete_dataset.py",
         "target": "easyuse_anima/translation/markers.py"
-      },
-      {
-        "alias": "STORAGE_PACKAGE_DATA_DIR",
-        "bound_name": "STORAGE_PACKAGE_DATA_DIR",
-        "branch_context": [
-          {
-            "branch": "body",
-            "handles_import_failure": true,
-            "has_import_fallback_handler": true,
-            "kind": "try",
-            "line": 17
-          }
-        ],
-        "classification": "internal",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "STORAGE_PACKAGE_DATA_DIR",
-          "target": "easyuse_anima/infrastructure/filesystem/paths.py",
-          "try_line": 17
-        },
-        "conditional": true,
-        "imported": ".easyuse_anima.infrastructure.filesystem.paths:PACKAGE_DATA_DIR",
-        "kind": "static_from",
-        "line": 31,
-        "name": "PACKAGE_DATA_DIR",
-        "optional": false,
-        "requested": ".easyuse_anima.infrastructure.filesystem.paths",
-        "role": "compatibility_primary",
-        "scope": "<module>",
-        "source": "autocomplete_dataset.py",
-        "target": "easyuse_anima/infrastructure/filesystem/paths.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "USER_DATA_DIR",
-        "branch_context": [
-          {
-            "branch": "body",
-            "handles_import_failure": true,
-            "has_import_fallback_handler": true,
-            "kind": "try",
-            "line": 17
-          }
-        ],
-        "classification": "internal",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "USER_DATA_DIR",
-          "target": "easyuse_anima/infrastructure/filesystem/paths.py",
-          "try_line": 17
-        },
-        "conditional": true,
-        "imported": ".easyuse_anima.infrastructure.filesystem.paths:USER_DATA_DIR",
-        "kind": "static_from",
-        "line": 34,
-        "name": "USER_DATA_DIR",
-        "optional": false,
-        "requested": ".easyuse_anima.infrastructure.filesystem.paths",
-        "role": "compatibility_primary",
-        "scope": "<module>",
-        "source": "autocomplete_dataset.py",
-        "target": "easyuse_anima/infrastructure/filesystem/paths.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "AutocompleteIndexDiagnostics",
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 35,
-            "kind": "try",
-            "line": 17
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "AutocompleteIndexDiagnostics",
-          "target": "easyuse_anima/autocomplete/index.py",
-          "try_line": 17
-        },
-        "conditional": true,
-        "imported": "easyuse_anima.autocomplete.index:AutocompleteIndexDiagnostics",
-        "kind": "static_from",
-        "line": 36,
-        "name": "AutocompleteIndexDiagnostics",
-        "optional": false,
-        "requested": "easyuse_anima.autocomplete.index",
-        "role": "compatibility_fallback",
-        "scope": "<module>",
-        "source": "autocomplete_dataset.py",
-        "target": "easyuse_anima/autocomplete/index.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "AutocompleteIndexSource",
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 35,
-            "kind": "try",
-            "line": 17
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "AutocompleteIndexSource",
-          "target": "easyuse_anima/autocomplete/index.py",
-          "try_line": 17
-        },
-        "conditional": true,
-        "imported": "easyuse_anima.autocomplete.index:AutocompleteIndexSource",
-        "kind": "static_from",
-        "line": 36,
-        "name": "AutocompleteIndexSource",
-        "optional": false,
-        "requested": "easyuse_anima.autocomplete.index",
-        "role": "compatibility_fallback",
-        "scope": "<module>",
-        "source": "autocomplete_dataset.py",
-        "target": "easyuse_anima/autocomplete/index.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "AutocompleteIndexUnavailable",
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 35,
-            "kind": "try",
-            "line": 17
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "AutocompleteIndexUnavailable",
-          "target": "easyuse_anima/autocomplete/index.py",
-          "try_line": 17
-        },
-        "conditional": true,
-        "imported": "easyuse_anima.autocomplete.index:AutocompleteIndexUnavailable",
-        "kind": "static_from",
-        "line": 36,
-        "name": "AutocompleteIndexUnavailable",
-        "optional": false,
-        "requested": "easyuse_anima.autocomplete.index",
-        "role": "compatibility_fallback",
-        "scope": "<module>",
-        "source": "autocomplete_dataset.py",
-        "target": "easyuse_anima/autocomplete/index.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "search_autocomplete_index",
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 35,
-            "kind": "try",
-            "line": 17
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "search_autocomplete_index",
-          "target": "easyuse_anima/autocomplete/index.py",
-          "try_line": 17
-        },
-        "conditional": true,
-        "imported": "easyuse_anima.autocomplete.index:search_autocomplete_index",
-        "kind": "static_from",
-        "line": 36,
-        "name": "search_autocomplete_index",
-        "optional": false,
-        "requested": "easyuse_anima.autocomplete.index",
-        "role": "compatibility_fallback",
-        "scope": "<module>",
-        "source": "autocomplete_dataset.py",
-        "target": "easyuse_anima/autocomplete/index.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "PACKAGE_DATA_DIR",
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 35,
-            "kind": "try",
-            "line": 17
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "PACKAGE_DATA_DIR",
-          "target": "anima_prompt/knowledge.py",
-          "try_line": 17
-        },
-        "conditional": true,
-        "imported": "anima_prompt.knowledge:PACKAGE_DATA_DIR",
-        "kind": "static_from",
-        "line": 42,
-        "name": "PACKAGE_DATA_DIR",
-        "optional": false,
-        "requested": "anima_prompt.knowledge",
-        "role": "compatibility_fallback",
-        "scope": "<module>",
-        "source": "autocomplete_dataset.py",
-        "target": "anima_prompt/knowledge.py"
       },
       {
         "alias": null,
@@ -2944,9 +2928,9 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 35,
+            "handler_line": 33,
             "kind": "try",
-            "line": 17
+            "line": 6
           }
         ],
         "classification": "compatibility_fallback",
@@ -2954,12 +2938,12 @@
         "compatibility_pair": {
           "bound_name": "TagSection",
           "target": "anima_prompt/models.py",
-          "try_line": 17
+          "try_line": 6
         },
         "conditional": true,
         "imported": "anima_prompt.models:TagSection",
         "kind": "static_from",
-        "line": 43,
+        "line": 34,
         "name": "TagSection",
         "optional": false,
         "requested": "anima_prompt.models",
@@ -2978,9 +2962,9 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 35,
+            "handler_line": 33,
             "kind": "try",
-            "line": 17
+            "line": 6
           }
         ],
         "classification": "compatibility_fallback",
@@ -2988,12 +2972,12 @@
         "compatibility_pair": {
           "bound_name": "builtin_tag_section",
           "target": "anima_prompt/ordering.py",
-          "try_line": 17
+          "try_line": 6
         },
         "conditional": true,
         "imported": "anima_prompt.ordering:builtin_tag_section",
         "kind": "static_from",
-        "line": 44,
+        "line": 35,
         "name": "builtin_tag_section",
         "optional": false,
         "requested": "anima_prompt.ordering",
@@ -3012,9 +2996,9 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 35,
+            "handler_line": 33,
             "kind": "try",
-            "line": 17
+            "line": 6
           }
         ],
         "classification": "compatibility_fallback",
@@ -3022,12 +3006,12 @@
         "compatibility_pair": {
           "bound_name": "parse_prompt",
           "target": "anima_prompt/parser.py",
-          "try_line": 17
+          "try_line": 6
         },
         "conditional": true,
         "imported": "anima_prompt.parser:parse_prompt",
         "kind": "static_from",
-        "line": 45,
+        "line": 36,
         "name": "parse_prompt",
         "optional": false,
         "requested": "anima_prompt.parser",
@@ -3035,6 +3019,618 @@
         "scope": "<module>",
         "source": "autocomplete_dataset.py",
         "target": "anima_prompt/parser.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "AUTOCOMPLETE_CSV",
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 33,
+            "kind": "try",
+            "line": 6
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "AUTOCOMPLETE_CSV",
+          "target": "easyuse_anima/autocomplete/dataset.py",
+          "try_line": 6
+        },
+        "conditional": true,
+        "imported": "easyuse_anima.autocomplete.dataset:AUTOCOMPLETE_CSV",
+        "kind": "static_from",
+        "line": 37,
+        "name": "AUTOCOMPLETE_CSV",
+        "optional": false,
+        "requested": "easyuse_anima.autocomplete.dataset",
+        "role": "compatibility_fallback",
+        "scope": "<module>",
+        "source": "autocomplete_dataset.py",
+        "target": "easyuse_anima/autocomplete/dataset.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "AUTOCOMPLETE_SOURCES",
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 33,
+            "kind": "try",
+            "line": 6
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "AUTOCOMPLETE_SOURCES",
+          "target": "easyuse_anima/autocomplete/dataset.py",
+          "try_line": 6
+        },
+        "conditional": true,
+        "imported": "easyuse_anima.autocomplete.dataset:AUTOCOMPLETE_SOURCES",
+        "kind": "static_from",
+        "line": 37,
+        "name": "AUTOCOMPLETE_SOURCES",
+        "optional": false,
+        "requested": "easyuse_anima.autocomplete.dataset",
+        "role": "compatibility_fallback",
+        "scope": "<module>",
+        "source": "autocomplete_dataset.py",
+        "target": "easyuse_anima/autocomplete/dataset.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "AutocompleteEntry",
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 33,
+            "kind": "try",
+            "line": 6
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "AutocompleteEntry",
+          "target": "easyuse_anima/autocomplete/dataset.py",
+          "try_line": 6
+        },
+        "conditional": true,
+        "imported": "easyuse_anima.autocomplete.dataset:AutocompleteEntry",
+        "kind": "static_from",
+        "line": 37,
+        "name": "AutocompleteEntry",
+        "optional": false,
+        "requested": "easyuse_anima.autocomplete.dataset",
+        "role": "compatibility_fallback",
+        "scope": "<module>",
+        "source": "autocomplete_dataset.py",
+        "target": "easyuse_anima/autocomplete/dataset.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "DBR_DANBOORU_AUTOCOMPLETE_CSV",
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 33,
+            "kind": "try",
+            "line": 6
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "DBR_DANBOORU_AUTOCOMPLETE_CSV",
+          "target": "easyuse_anima/autocomplete/dataset.py",
+          "try_line": 6
+        },
+        "conditional": true,
+        "imported": "easyuse_anima.autocomplete.dataset:DBR_DANBOORU_AUTOCOMPLETE_CSV",
+        "kind": "static_from",
+        "line": 37,
+        "name": "DBR_DANBOORU_AUTOCOMPLETE_CSV",
+        "optional": false,
+        "requested": "easyuse_anima.autocomplete.dataset",
+        "role": "compatibility_fallback",
+        "scope": "<module>",
+        "source": "autocomplete_dataset.py",
+        "target": "easyuse_anima/autocomplete/dataset.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "DBR_E621_AUTOCOMPLETE_CSV",
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 33,
+            "kind": "try",
+            "line": 6
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "DBR_E621_AUTOCOMPLETE_CSV",
+          "target": "easyuse_anima/autocomplete/dataset.py",
+          "try_line": 6
+        },
+        "conditional": true,
+        "imported": "easyuse_anima.autocomplete.dataset:DBR_E621_AUTOCOMPLETE_CSV",
+        "kind": "static_from",
+        "line": 37,
+        "name": "DBR_E621_AUTOCOMPLETE_CSV",
+        "optional": false,
+        "requested": "easyuse_anima.autocomplete.dataset",
+        "role": "compatibility_fallback",
+        "scope": "<module>",
+        "source": "autocomplete_dataset.py",
+        "target": "easyuse_anima/autocomplete/dataset.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "DBR_MERGED_AUTOCOMPLETE_CSV",
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 33,
+            "kind": "try",
+            "line": 6
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "DBR_MERGED_AUTOCOMPLETE_CSV",
+          "target": "easyuse_anima/autocomplete/dataset.py",
+          "try_line": 6
+        },
+        "conditional": true,
+        "imported": "easyuse_anima.autocomplete.dataset:DBR_MERGED_AUTOCOMPLETE_CSV",
+        "kind": "static_from",
+        "line": 37,
+        "name": "DBR_MERGED_AUTOCOMPLETE_CSV",
+        "optional": false,
+        "requested": "easyuse_anima.autocomplete.dataset",
+        "role": "compatibility_fallback",
+        "scope": "<module>",
+        "source": "autocomplete_dataset.py",
+        "target": "easyuse_anima/autocomplete/dataset.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "DBR_TAG_ARCHIVE_LICENSE",
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 33,
+            "kind": "try",
+            "line": 6
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "DBR_TAG_ARCHIVE_LICENSE",
+          "target": "easyuse_anima/autocomplete/dataset.py",
+          "try_line": 6
+        },
+        "conditional": true,
+        "imported": "easyuse_anima.autocomplete.dataset:DBR_TAG_ARCHIVE_LICENSE",
+        "kind": "static_from",
+        "line": 37,
+        "name": "DBR_TAG_ARCHIVE_LICENSE",
+        "optional": false,
+        "requested": "easyuse_anima.autocomplete.dataset",
+        "role": "compatibility_fallback",
+        "scope": "<module>",
+        "source": "autocomplete_dataset.py",
+        "target": "easyuse_anima/autocomplete/dataset.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "DBR_TAG_ARCHIVE_SOURCE",
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 33,
+            "kind": "try",
+            "line": 6
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "DBR_TAG_ARCHIVE_SOURCE",
+          "target": "easyuse_anima/autocomplete/dataset.py",
+          "try_line": 6
+        },
+        "conditional": true,
+        "imported": "easyuse_anima.autocomplete.dataset:DBR_TAG_ARCHIVE_SOURCE",
+        "kind": "static_from",
+        "line": 37,
+        "name": "DBR_TAG_ARCHIVE_SOURCE",
+        "optional": false,
+        "requested": "easyuse_anima.autocomplete.dataset",
+        "role": "compatibility_fallback",
+        "scope": "<module>",
+        "source": "autocomplete_dataset.py",
+        "target": "easyuse_anima/autocomplete/dataset.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "DEFAULT_AUTOCOMPLETE_SOURCE",
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 33,
+            "kind": "try",
+            "line": 6
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "DEFAULT_AUTOCOMPLETE_SOURCE",
+          "target": "easyuse_anima/autocomplete/dataset.py",
+          "try_line": 6
+        },
+        "conditional": true,
+        "imported": "easyuse_anima.autocomplete.dataset:DEFAULT_AUTOCOMPLETE_SOURCE",
+        "kind": "static_from",
+        "line": 37,
+        "name": "DEFAULT_AUTOCOMPLETE_SOURCE",
+        "optional": false,
+        "requested": "easyuse_anima.autocomplete.dataset",
+        "role": "compatibility_fallback",
+        "scope": "<module>",
+        "source": "autocomplete_dataset.py",
+        "target": "easyuse_anima/autocomplete/dataset.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "LOCALSMILE_AUTOCOMPLETE_CSV",
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 33,
+            "kind": "try",
+            "line": 6
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "LOCALSMILE_AUTOCOMPLETE_CSV",
+          "target": "easyuse_anima/autocomplete/dataset.py",
+          "try_line": 6
+        },
+        "conditional": true,
+        "imported": "easyuse_anima.autocomplete.dataset:LOCALSMILE_AUTOCOMPLETE_CSV",
+        "kind": "static_from",
+        "line": 37,
+        "name": "LOCALSMILE_AUTOCOMPLETE_CSV",
+        "optional": false,
+        "requested": "easyuse_anima.autocomplete.dataset",
+        "role": "compatibility_fallback",
+        "scope": "<module>",
+        "source": "autocomplete_dataset.py",
+        "target": "easyuse_anima/autocomplete/dataset.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "_INLINE_SPACE_RE",
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 33,
+            "kind": "try",
+            "line": 6
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "_INLINE_SPACE_RE",
+          "target": "easyuse_anima/autocomplete/dataset.py",
+          "try_line": 6
+        },
+        "conditional": true,
+        "imported": "easyuse_anima.autocomplete.dataset:_INLINE_SPACE_RE",
+        "kind": "static_from",
+        "line": 37,
+        "name": "_INLINE_SPACE_RE",
+        "optional": false,
+        "requested": "easyuse_anima.autocomplete.dataset",
+        "role": "compatibility_fallback",
+        "scope": "<module>",
+        "source": "autocomplete_dataset.py",
+        "target": "easyuse_anima/autocomplete/dataset.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "_normalize",
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 33,
+            "kind": "try",
+            "line": 6
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "_normalize",
+          "target": "easyuse_anima/autocomplete/dataset.py",
+          "try_line": 6
+        },
+        "conditional": true,
+        "imported": "easyuse_anima.autocomplete.dataset:_normalize",
+        "kind": "static_from",
+        "line": 37,
+        "name": "_normalize",
+        "optional": false,
+        "requested": "easyuse_anima.autocomplete.dataset",
+        "role": "compatibility_fallback",
+        "scope": "<module>",
+        "source": "autocomplete_dataset.py",
+        "target": "easyuse_anima/autocomplete/dataset.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "_snapshot",
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 33,
+            "kind": "try",
+            "line": 6
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "_snapshot",
+          "target": "easyuse_anima/autocomplete/dataset.py",
+          "try_line": 6
+        },
+        "conditional": true,
+        "imported": "easyuse_anima.autocomplete.dataset:_snapshot",
+        "kind": "static_from",
+        "line": 37,
+        "name": "_snapshot",
+        "optional": false,
+        "requested": "easyuse_anima.autocomplete.dataset",
+        "role": "compatibility_fallback",
+        "scope": "<module>",
+        "source": "autocomplete_dataset.py",
+        "target": "easyuse_anima/autocomplete/dataset.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "_snapshot_status",
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 33,
+            "kind": "try",
+            "line": 6
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "_snapshot_status",
+          "target": "easyuse_anima/autocomplete/dataset.py",
+          "try_line": 6
+        },
+        "conditional": true,
+        "imported": "easyuse_anima.autocomplete.dataset:_snapshot_status",
+        "kind": "static_from",
+        "line": 37,
+        "name": "_snapshot_status",
+        "optional": false,
+        "requested": "easyuse_anima.autocomplete.dataset",
+        "role": "compatibility_fallback",
+        "scope": "<module>",
+        "source": "autocomplete_dataset.py",
+        "target": "easyuse_anima/autocomplete/dataset.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "autocomplete_status",
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 33,
+            "kind": "try",
+            "line": 6
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "autocomplete_status",
+          "target": "easyuse_anima/autocomplete/dataset.py",
+          "try_line": 6
+        },
+        "conditional": true,
+        "imported": "easyuse_anima.autocomplete.dataset:autocomplete_status",
+        "kind": "static_from",
+        "line": 37,
+        "name": "autocomplete_status",
+        "optional": false,
+        "requested": "easyuse_anima.autocomplete.dataset",
+        "role": "compatibility_fallback",
+        "scope": "<module>",
+        "source": "autocomplete_dataset.py",
+        "target": "easyuse_anima/autocomplete/dataset.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "available_autocomplete_sources",
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 33,
+            "kind": "try",
+            "line": 6
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "available_autocomplete_sources",
+          "target": "easyuse_anima/autocomplete/dataset.py",
+          "try_line": 6
+        },
+        "conditional": true,
+        "imported": "easyuse_anima.autocomplete.dataset:available_autocomplete_sources",
+        "kind": "static_from",
+        "line": 37,
+        "name": "available_autocomplete_sources",
+        "optional": false,
+        "requested": "easyuse_anima.autocomplete.dataset",
+        "role": "compatibility_fallback",
+        "scope": "<module>",
+        "source": "autocomplete_dataset.py",
+        "target": "easyuse_anima/autocomplete/dataset.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "resolve_autocomplete_source",
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 33,
+            "kind": "try",
+            "line": 6
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "resolve_autocomplete_source",
+          "target": "easyuse_anima/autocomplete/dataset.py",
+          "try_line": 6
+        },
+        "conditional": true,
+        "imported": "easyuse_anima.autocomplete.dataset:resolve_autocomplete_source",
+        "kind": "static_from",
+        "line": 37,
+        "name": "resolve_autocomplete_source",
+        "optional": false,
+        "requested": "easyuse_anima.autocomplete.dataset",
+        "role": "compatibility_fallback",
+        "scope": "<module>",
+        "source": "autocomplete_dataset.py",
+        "target": "easyuse_anima/autocomplete/dataset.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "search_autocomplete",
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 33,
+            "kind": "try",
+            "line": 6
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "search_autocomplete",
+          "target": "easyuse_anima/autocomplete/search.py",
+          "try_line": 6
+        },
+        "conditional": true,
+        "imported": "easyuse_anima.autocomplete.search:search_autocomplete",
+        "kind": "static_from",
+        "line": 56,
+        "name": "search_autocomplete",
+        "optional": false,
+        "requested": "easyuse_anima.autocomplete.search",
+        "role": "compatibility_fallback",
+        "scope": "<module>",
+        "source": "autocomplete_dataset.py",
+        "target": "easyuse_anima/autocomplete/search.py"
       },
       {
         "alias": null,
@@ -3046,9 +3642,9 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 35,
+            "handler_line": 33,
             "kind": "try",
-            "line": 17
+            "line": 6
           }
         ],
         "classification": "compatibility_fallback",
@@ -3056,12 +3652,12 @@
         "compatibility_pair": {
           "bound_name": "iter_prompt_translation_markers",
           "target": "easyuse_anima/translation/markers.py",
-          "try_line": 17
+          "try_line": 6
         },
         "conditional": true,
         "imported": "easyuse_anima.translation.markers:iter_prompt_translation_markers",
         "kind": "static_from",
-        "line": 46,
+        "line": 57,
         "name": "iter_prompt_translation_markers",
         "optional": false,
         "requested": "easyuse_anima.translation.markers",
@@ -3069,74 +3665,6 @@
         "scope": "<module>",
         "source": "autocomplete_dataset.py",
         "target": "easyuse_anima/translation/markers.py"
-      },
-      {
-        "alias": "STORAGE_PACKAGE_DATA_DIR",
-        "bound_name": "STORAGE_PACKAGE_DATA_DIR",
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 35,
-            "kind": "try",
-            "line": 17
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "STORAGE_PACKAGE_DATA_DIR",
-          "target": "easyuse_anima/infrastructure/filesystem/paths.py",
-          "try_line": 17
-        },
-        "conditional": true,
-        "imported": "easyuse_anima.infrastructure.filesystem.paths:PACKAGE_DATA_DIR",
-        "kind": "static_from",
-        "line": 49,
-        "name": "PACKAGE_DATA_DIR",
-        "optional": false,
-        "requested": "easyuse_anima.infrastructure.filesystem.paths",
-        "role": "compatibility_fallback",
-        "scope": "<module>",
-        "source": "autocomplete_dataset.py",
-        "target": "easyuse_anima/infrastructure/filesystem/paths.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "USER_DATA_DIR",
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 35,
-            "kind": "try",
-            "line": 17
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "USER_DATA_DIR",
-          "target": "easyuse_anima/infrastructure/filesystem/paths.py",
-          "try_line": 17
-        },
-        "conditional": true,
-        "imported": "easyuse_anima.infrastructure.filesystem.paths:USER_DATA_DIR",
-        "kind": "static_from",
-        "line": 52,
-        "name": "USER_DATA_DIR",
-        "optional": false,
-        "requested": "easyuse_anima.infrastructure.filesystem.paths",
-        "role": "compatibility_fallback",
-        "scope": "<module>",
-        "source": "autocomplete_dataset.py",
-        "target": "easyuse_anima/infrastructure/filesystem/paths.py"
       },
       {
         "alias": null,
@@ -11504,6 +12032,228 @@
         "conditional": false,
         "imported": "__future__:annotations",
         "kind": "static_from",
+        "line": 3,
+        "name": "annotations",
+        "optional": false,
+        "requested": "__future__",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/autocomplete/dataset.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "csv",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "csv",
+        "kind": "static_import",
+        "line": 5,
+        "name": null,
+        "optional": false,
+        "requested": "csv",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/autocomplete/dataset.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "itertools",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "itertools",
+        "kind": "static_import",
+        "line": 6,
+        "name": null,
+        "optional": false,
+        "requested": "itertools",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/autocomplete/dataset.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "re",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "re",
+        "kind": "static_import",
+        "line": 7,
+        "name": null,
+        "optional": false,
+        "requested": "re",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/autocomplete/dataset.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "stat",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "stat",
+        "kind": "static_import",
+        "line": 8,
+        "name": null,
+        "optional": false,
+        "requested": "stat",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/autocomplete/dataset.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "threading",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "threading",
+        "kind": "static_import",
+        "line": 9,
+        "name": null,
+        "optional": false,
+        "requested": "threading",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/autocomplete/dataset.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "unicodedata",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "unicodedata",
+        "kind": "static_import",
+        "line": 10,
+        "name": null,
+        "optional": false,
+        "requested": "unicodedata",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/autocomplete/dataset.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "Mapping",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "collections.abc:Mapping",
+        "kind": "static_from",
+        "line": 11,
+        "name": "Mapping",
+        "optional": false,
+        "requested": "collections.abc",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/autocomplete/dataset.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "Future",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "concurrent.futures:Future",
+        "kind": "static_from",
+        "line": 12,
+        "name": "Future",
+        "optional": false,
+        "requested": "concurrent.futures",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/autocomplete/dataset.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "dataclass",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "dataclasses:dataclass",
+        "kind": "static_from",
+        "line": 13,
+        "name": "dataclass",
+        "optional": false,
+        "requested": "dataclasses",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/autocomplete/dataset.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "Path",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "pathlib:Path",
+        "kind": "static_from",
+        "line": 14,
+        "name": "Path",
+        "optional": false,
+        "requested": "pathlib",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/autocomplete/dataset.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "MappingProxyType",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "types:MappingProxyType",
+        "kind": "static_from",
+        "line": 15,
+        "name": "MappingProxyType",
+        "optional": false,
+        "requested": "types",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/autocomplete/dataset.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "PACKAGE_DATA_DIR",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": "..infrastructure.filesystem.paths:PACKAGE_DATA_DIR",
+        "kind": "static_from",
+        "line": 17,
+        "name": "PACKAGE_DATA_DIR",
+        "optional": false,
+        "requested": "..infrastructure.filesystem.paths",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/autocomplete/dataset.py",
+        "target": "easyuse_anima/infrastructure/filesystem/paths.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "annotations",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "__future__:annotations",
+        "kind": "static_from",
         "line": 1,
         "name": "annotations",
         "optional": false,
@@ -11698,6 +12448,434 @@
         "role": "ordinary",
         "scope": "<module>",
         "source": "easyuse_anima/autocomplete/index.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "annotations",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "__future__:annotations",
+        "kind": "static_from",
+        "line": 3,
+        "name": "annotations",
+        "optional": false,
+        "requested": "__future__",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/autocomplete/search.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "heapq",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "heapq",
+        "kind": "static_import",
+        "line": 5,
+        "name": null,
+        "optional": false,
+        "requested": "heapq",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/autocomplete/search.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "time",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "time",
+        "kind": "static_import",
+        "line": 6,
+        "name": null,
+        "optional": false,
+        "requested": "time",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/autocomplete/search.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "Path",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "pathlib:Path",
+        "kind": "static_from",
+        "line": 7,
+        "name": "Path",
+        "optional": false,
+        "requested": "pathlib",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/autocomplete/search.py"
+      },
+      {
+        "alias": "STORAGE_PACKAGE_DATA_DIR",
+        "bound_name": "STORAGE_PACKAGE_DATA_DIR",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": "..infrastructure.filesystem.paths:PACKAGE_DATA_DIR",
+        "kind": "static_from",
+        "line": 9,
+        "name": "PACKAGE_DATA_DIR",
+        "optional": false,
+        "requested": "..infrastructure.filesystem.paths",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/autocomplete/search.py",
+        "target": "easyuse_anima/infrastructure/filesystem/paths.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "USER_DATA_DIR",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": "..infrastructure.filesystem.paths:USER_DATA_DIR",
+        "kind": "static_from",
+        "line": 12,
+        "name": "USER_DATA_DIR",
+        "optional": false,
+        "requested": "..infrastructure.filesystem.paths",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/autocomplete/search.py",
+        "target": "easyuse_anima/infrastructure/filesystem/paths.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "AUTOCOMPLETE_CSV",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".dataset:AUTOCOMPLETE_CSV",
+        "kind": "static_from",
+        "line": 13,
+        "name": "AUTOCOMPLETE_CSV",
+        "optional": false,
+        "requested": ".dataset",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/autocomplete/search.py",
+        "target": "easyuse_anima/autocomplete/dataset.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "AutocompleteEntry",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".dataset:AutocompleteEntry",
+        "kind": "static_from",
+        "line": 13,
+        "name": "AutocompleteEntry",
+        "optional": false,
+        "requested": ".dataset",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/autocomplete/search.py",
+        "target": "easyuse_anima/autocomplete/dataset.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "_AUTOCOMPLETE_CACHE_LOAD_ATTEMPTS",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".dataset:_AUTOCOMPLETE_CACHE_LOAD_ATTEMPTS",
+        "kind": "static_from",
+        "line": 13,
+        "name": "_AUTOCOMPLETE_CACHE_LOAD_ATTEMPTS",
+        "optional": false,
+        "requested": ".dataset",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/autocomplete/search.py",
+        "target": "easyuse_anima/autocomplete/dataset.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "_AutocompleteCacheKey",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".dataset:_AutocompleteCacheKey",
+        "kind": "static_from",
+        "line": 13,
+        "name": "_AutocompleteCacheKey",
+        "optional": false,
+        "requested": ".dataset",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/autocomplete/search.py",
+        "target": "easyuse_anima/autocomplete/dataset.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "_AutocompleteSnapshot",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".dataset:_AutocompleteSnapshot",
+        "kind": "static_from",
+        "line": 13,
+        "name": "_AutocompleteSnapshot",
+        "optional": false,
+        "requested": ".dataset",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/autocomplete/search.py",
+        "target": "easyuse_anima/autocomplete/dataset.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "_AutocompleteSourceChanged",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".dataset:_AutocompleteSourceChanged",
+        "kind": "static_from",
+        "line": 13,
+        "name": "_AutocompleteSourceChanged",
+        "optional": false,
+        "requested": ".dataset",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/autocomplete/search.py",
+        "target": "easyuse_anima/autocomplete/dataset.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "_MISSING_FILE_STAT",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".dataset:_MISSING_FILE_STAT",
+        "kind": "static_from",
+        "line": 13,
+        "name": "_MISSING_FILE_STAT",
+        "optional": false,
+        "requested": ".dataset",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/autocomplete/search.py",
+        "target": "easyuse_anima/autocomplete/dataset.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "_cache_key",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".dataset:_cache_key",
+        "kind": "static_from",
+        "line": 13,
+        "name": "_cache_key",
+        "optional": false,
+        "requested": ".dataset",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/autocomplete/search.py",
+        "target": "easyuse_anima/autocomplete/dataset.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "_cache_key_from_resolved_path",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".dataset:_cache_key_from_resolved_path",
+        "kind": "static_from",
+        "line": 13,
+        "name": "_cache_key_from_resolved_path",
+        "optional": false,
+        "requested": ".dataset",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/autocomplete/search.py",
+        "target": "easyuse_anima/autocomplete/dataset.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "_load_entries",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".dataset:_load_entries",
+        "kind": "static_from",
+        "line": 13,
+        "name": "_load_entries",
+        "optional": false,
+        "requested": ".dataset",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/autocomplete/search.py",
+        "target": "easyuse_anima/autocomplete/dataset.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "_normalize",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".dataset:_normalize",
+        "kind": "static_from",
+        "line": 13,
+        "name": "_normalize",
+        "optional": false,
+        "requested": ".dataset",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/autocomplete/search.py",
+        "target": "easyuse_anima/autocomplete/dataset.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "_snapshot",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".dataset:_snapshot",
+        "kind": "static_from",
+        "line": 13,
+        "name": "_snapshot",
+        "optional": false,
+        "requested": ".dataset",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/autocomplete/search.py",
+        "target": "easyuse_anima/autocomplete/dataset.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "_status_from_key",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".dataset:_status_from_key",
+        "kind": "static_from",
+        "line": 13,
+        "name": "_status_from_key",
+        "optional": false,
+        "requested": ".dataset",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/autocomplete/search.py",
+        "target": "easyuse_anima/autocomplete/dataset.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "autocomplete_status",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".dataset:autocomplete_status",
+        "kind": "static_from",
+        "line": 13,
+        "name": "autocomplete_status",
+        "optional": false,
+        "requested": ".dataset",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/autocomplete/search.py",
+        "target": "easyuse_anima/autocomplete/dataset.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "AutocompleteIndexDiagnostics",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".index:AutocompleteIndexDiagnostics",
+        "kind": "static_from",
+        "line": 29,
+        "name": "AutocompleteIndexDiagnostics",
+        "optional": false,
+        "requested": ".index",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/autocomplete/search.py",
+        "target": "easyuse_anima/autocomplete/index.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "AutocompleteIndexSource",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".index:AutocompleteIndexSource",
+        "kind": "static_from",
+        "line": 29,
+        "name": "AutocompleteIndexSource",
+        "optional": false,
+        "requested": ".index",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/autocomplete/search.py",
+        "target": "easyuse_anima/autocomplete/index.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "AutocompleteIndexUnavailable",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".index:AutocompleteIndexUnavailable",
+        "kind": "static_from",
+        "line": 29,
+        "name": "AutocompleteIndexUnavailable",
+        "optional": false,
+        "requested": ".index",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/autocomplete/search.py",
+        "target": "easyuse_anima/autocomplete/index.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "search_autocomplete_index",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".index:search_autocomplete_index",
+        "kind": "static_from",
+        "line": 29,
+        "name": "search_autocomplete_index",
+        "optional": false,
+        "requested": ".index",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/autocomplete/search.py",
+        "target": "easyuse_anima/autocomplete/index.py"
       },
       {
         "alias": null,
@@ -52509,6 +53687,14 @@
       },
       {
         "from": "api.py",
+        "to": "easyuse_anima/autocomplete/dataset.py"
+      },
+      {
+        "from": "api.py",
+        "to": "easyuse_anima/autocomplete/search.py"
+      },
+      {
+        "from": "api.py",
         "to": "easyuse_anima/profiles/aio.py"
       },
       {
@@ -52549,10 +53735,6 @@
       },
       {
         "from": "autocomplete_dataset.py",
-        "to": "anima_prompt/knowledge.py"
-      },
-      {
-        "from": "autocomplete_dataset.py",
         "to": "anima_prompt/models.py"
       },
       {
@@ -52565,11 +53747,11 @@
       },
       {
         "from": "autocomplete_dataset.py",
-        "to": "easyuse_anima/autocomplete/index.py"
+        "to": "easyuse_anima/autocomplete/dataset.py"
       },
       {
         "from": "autocomplete_dataset.py",
-        "to": "easyuse_anima/infrastructure/filesystem/paths.py"
+        "to": "easyuse_anima/autocomplete/search.py"
       },
       {
         "from": "autocomplete_dataset.py",
@@ -53034,6 +54216,22 @@
       {
         "from": "easyuse_anima/aio/usdu.py",
         "to": "easyuse_anima/image/geometry.py"
+      },
+      {
+        "from": "easyuse_anima/autocomplete/dataset.py",
+        "to": "easyuse_anima/infrastructure/filesystem/paths.py"
+      },
+      {
+        "from": "easyuse_anima/autocomplete/search.py",
+        "to": "easyuse_anima/autocomplete/dataset.py"
+      },
+      {
+        "from": "easyuse_anima/autocomplete/search.py",
+        "to": "easyuse_anima/autocomplete/index.py"
+      },
+      {
+        "from": "easyuse_anima/autocomplete/search.py",
+        "to": "easyuse_anima/infrastructure/filesystem/paths.py"
       },
       {
         "from": "easyuse_anima/bootstrap.py",
@@ -54290,7 +55488,19 @@
       {
         "cyclic": false,
         "modules": [
+          "easyuse_anima/autocomplete/dataset.py"
+        ]
+      },
+      {
+        "cyclic": false,
+        "modules": [
           "easyuse_anima/autocomplete/index.py"
+        ]
+      },
+      {
+        "cyclic": false,
+        "modules": [
+          "easyuse_anima/autocomplete/search.py"
         ]
       },
       {
@@ -54753,7 +55963,7 @@
     ]
   },
   "inventory": {
-    "module_count": 123,
+    "module_count": 125,
     "modules": [
       {
         "is_package": true,
@@ -54853,9 +56063,9 @@
       },
       {
         "is_package": false,
-        "loc": 872,
+        "loc": 874,
         "module": "api",
-        "normalized_git_blob_sha1": "7a463a25274570f0103ec3b9479b20968be3a0a0",
+        "normalized_git_blob_sha1": "fde9c8fa203ba217b59c793451f0e7ce0f097ee6",
         "path": "api.py",
         "top_level": {
           "class_count": 1,
@@ -54877,14 +56087,14 @@
       },
       {
         "is_package": false,
-        "loc": 987,
+        "loc": 419,
         "module": "autocomplete_dataset",
-        "normalized_git_blob_sha1": "51c08329c25ec0fc97d15c2b04bef8ae267aeac6",
+        "normalized_git_blob_sha1": "5a9bc0e3e923522de375d14e319c688fc82c8abb",
         "path": "autocomplete_dataset.py",
         "top_level": {
-          "class_count": 4,
-          "function_count": 48,
-          "global_count": 29
+          "class_count": 0,
+          "function_count": 16,
+          "global_count": 8
         }
       },
       {
@@ -55297,6 +56507,18 @@
       },
       {
         "is_package": false,
+        "loc": 488,
+        "module": "easyuse_anima.autocomplete.dataset",
+        "normalized_git_blob_sha1": "b0b29152a1cefb4e275431d5c418e51597e5235a",
+        "path": "easyuse_anima/autocomplete/dataset.py",
+        "top_level": {
+          "class_count": 4,
+          "function_count": 24,
+          "global_count": 21
+        }
+      },
+      {
+        "is_package": false,
         "loc": 599,
         "module": "easyuse_anima.autocomplete.index",
         "normalized_git_blob_sha1": "5296ad1fcaa7aaa689b3b80a79ab1b23decf9fdb",
@@ -55305,6 +56527,18 @@
           "class_count": 7,
           "function_count": 15,
           "global_count": 5
+        }
+      },
+      {
+        "is_package": false,
+        "loc": 226,
+        "module": "easyuse_anima.autocomplete.search",
+        "normalized_git_blob_sha1": "e36fa147f72dd3bdaf5fb546b921b3a28255f55d",
+        "path": "easyuse_anima/autocomplete/search.py",
+        "top_level": {
+          "class_count": 0,
+          "function_count": 8,
+          "global_count": 2
         }
       },
       {
@@ -56435,131 +57669,16 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 35,
+            "handler_line": 33,
             "kind": "try",
-            "line": 17
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "conditional": true,
-        "imported": "easyuse_anima.autocomplete.index:AutocompleteIndexDiagnostics",
-        "kind": "static_from",
-        "line": 36,
-        "optional": false,
-        "role": "compatibility_fallback",
-        "source": "autocomplete_dataset.py",
-        "target": "easyuse_anima/autocomplete/index.py"
-      },
-      {
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 35,
-            "kind": "try",
-            "line": 17
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "conditional": true,
-        "imported": "easyuse_anima.autocomplete.index:AutocompleteIndexSource",
-        "kind": "static_from",
-        "line": 36,
-        "optional": false,
-        "role": "compatibility_fallback",
-        "source": "autocomplete_dataset.py",
-        "target": "easyuse_anima/autocomplete/index.py"
-      },
-      {
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 35,
-            "kind": "try",
-            "line": 17
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "conditional": true,
-        "imported": "easyuse_anima.autocomplete.index:AutocompleteIndexUnavailable",
-        "kind": "static_from",
-        "line": 36,
-        "optional": false,
-        "role": "compatibility_fallback",
-        "source": "autocomplete_dataset.py",
-        "target": "easyuse_anima/autocomplete/index.py"
-      },
-      {
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 35,
-            "kind": "try",
-            "line": 17
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "conditional": true,
-        "imported": "easyuse_anima.autocomplete.index:search_autocomplete_index",
-        "kind": "static_from",
-        "line": 36,
-        "optional": false,
-        "role": "compatibility_fallback",
-        "source": "autocomplete_dataset.py",
-        "target": "easyuse_anima/autocomplete/index.py"
-      },
-      {
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 35,
-            "kind": "try",
-            "line": 17
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "conditional": true,
-        "imported": "anima_prompt.knowledge:PACKAGE_DATA_DIR",
-        "kind": "static_from",
-        "line": 42,
-        "optional": false,
-        "role": "compatibility_fallback",
-        "source": "autocomplete_dataset.py",
-        "target": "anima_prompt/knowledge.py"
-      },
-      {
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 35,
-            "kind": "try",
-            "line": 17
+            "line": 6
           }
         ],
         "classification": "compatibility_fallback",
         "conditional": true,
         "imported": "anima_prompt.models:TagSection",
         "kind": "static_from",
-        "line": 43,
+        "line": 34,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "autocomplete_dataset.py",
@@ -56573,16 +57692,16 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 35,
+            "handler_line": 33,
             "kind": "try",
-            "line": 17
+            "line": 6
           }
         ],
         "classification": "compatibility_fallback",
         "conditional": true,
         "imported": "anima_prompt.ordering:builtin_tag_section",
         "kind": "static_from",
-        "line": 44,
+        "line": 35,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "autocomplete_dataset.py",
@@ -56596,16 +57715,16 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 35,
+            "handler_line": 33,
             "kind": "try",
-            "line": 17
+            "line": 6
           }
         ],
         "classification": "compatibility_fallback",
         "conditional": true,
         "imported": "anima_prompt.parser:parse_prompt",
         "kind": "static_from",
-        "line": 45,
+        "line": 36,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "autocomplete_dataset.py",
@@ -56619,66 +57738,434 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 35,
+            "handler_line": 33,
             "kind": "try",
-            "line": 17
+            "line": 6
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "conditional": true,
+        "imported": "easyuse_anima.autocomplete.dataset:AUTOCOMPLETE_CSV",
+        "kind": "static_from",
+        "line": 37,
+        "optional": false,
+        "role": "compatibility_fallback",
+        "source": "autocomplete_dataset.py",
+        "target": "easyuse_anima/autocomplete/dataset.py"
+      },
+      {
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 33,
+            "kind": "try",
+            "line": 6
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "conditional": true,
+        "imported": "easyuse_anima.autocomplete.dataset:AUTOCOMPLETE_SOURCES",
+        "kind": "static_from",
+        "line": 37,
+        "optional": false,
+        "role": "compatibility_fallback",
+        "source": "autocomplete_dataset.py",
+        "target": "easyuse_anima/autocomplete/dataset.py"
+      },
+      {
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 33,
+            "kind": "try",
+            "line": 6
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "conditional": true,
+        "imported": "easyuse_anima.autocomplete.dataset:AutocompleteEntry",
+        "kind": "static_from",
+        "line": 37,
+        "optional": false,
+        "role": "compatibility_fallback",
+        "source": "autocomplete_dataset.py",
+        "target": "easyuse_anima/autocomplete/dataset.py"
+      },
+      {
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 33,
+            "kind": "try",
+            "line": 6
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "conditional": true,
+        "imported": "easyuse_anima.autocomplete.dataset:DBR_DANBOORU_AUTOCOMPLETE_CSV",
+        "kind": "static_from",
+        "line": 37,
+        "optional": false,
+        "role": "compatibility_fallback",
+        "source": "autocomplete_dataset.py",
+        "target": "easyuse_anima/autocomplete/dataset.py"
+      },
+      {
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 33,
+            "kind": "try",
+            "line": 6
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "conditional": true,
+        "imported": "easyuse_anima.autocomplete.dataset:DBR_E621_AUTOCOMPLETE_CSV",
+        "kind": "static_from",
+        "line": 37,
+        "optional": false,
+        "role": "compatibility_fallback",
+        "source": "autocomplete_dataset.py",
+        "target": "easyuse_anima/autocomplete/dataset.py"
+      },
+      {
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 33,
+            "kind": "try",
+            "line": 6
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "conditional": true,
+        "imported": "easyuse_anima.autocomplete.dataset:DBR_MERGED_AUTOCOMPLETE_CSV",
+        "kind": "static_from",
+        "line": 37,
+        "optional": false,
+        "role": "compatibility_fallback",
+        "source": "autocomplete_dataset.py",
+        "target": "easyuse_anima/autocomplete/dataset.py"
+      },
+      {
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 33,
+            "kind": "try",
+            "line": 6
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "conditional": true,
+        "imported": "easyuse_anima.autocomplete.dataset:DBR_TAG_ARCHIVE_LICENSE",
+        "kind": "static_from",
+        "line": 37,
+        "optional": false,
+        "role": "compatibility_fallback",
+        "source": "autocomplete_dataset.py",
+        "target": "easyuse_anima/autocomplete/dataset.py"
+      },
+      {
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 33,
+            "kind": "try",
+            "line": 6
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "conditional": true,
+        "imported": "easyuse_anima.autocomplete.dataset:DBR_TAG_ARCHIVE_SOURCE",
+        "kind": "static_from",
+        "line": 37,
+        "optional": false,
+        "role": "compatibility_fallback",
+        "source": "autocomplete_dataset.py",
+        "target": "easyuse_anima/autocomplete/dataset.py"
+      },
+      {
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 33,
+            "kind": "try",
+            "line": 6
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "conditional": true,
+        "imported": "easyuse_anima.autocomplete.dataset:DEFAULT_AUTOCOMPLETE_SOURCE",
+        "kind": "static_from",
+        "line": 37,
+        "optional": false,
+        "role": "compatibility_fallback",
+        "source": "autocomplete_dataset.py",
+        "target": "easyuse_anima/autocomplete/dataset.py"
+      },
+      {
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 33,
+            "kind": "try",
+            "line": 6
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "conditional": true,
+        "imported": "easyuse_anima.autocomplete.dataset:LOCALSMILE_AUTOCOMPLETE_CSV",
+        "kind": "static_from",
+        "line": 37,
+        "optional": false,
+        "role": "compatibility_fallback",
+        "source": "autocomplete_dataset.py",
+        "target": "easyuse_anima/autocomplete/dataset.py"
+      },
+      {
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 33,
+            "kind": "try",
+            "line": 6
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "conditional": true,
+        "imported": "easyuse_anima.autocomplete.dataset:_INLINE_SPACE_RE",
+        "kind": "static_from",
+        "line": 37,
+        "optional": false,
+        "role": "compatibility_fallback",
+        "source": "autocomplete_dataset.py",
+        "target": "easyuse_anima/autocomplete/dataset.py"
+      },
+      {
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 33,
+            "kind": "try",
+            "line": 6
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "conditional": true,
+        "imported": "easyuse_anima.autocomplete.dataset:_normalize",
+        "kind": "static_from",
+        "line": 37,
+        "optional": false,
+        "role": "compatibility_fallback",
+        "source": "autocomplete_dataset.py",
+        "target": "easyuse_anima/autocomplete/dataset.py"
+      },
+      {
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 33,
+            "kind": "try",
+            "line": 6
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "conditional": true,
+        "imported": "easyuse_anima.autocomplete.dataset:_snapshot",
+        "kind": "static_from",
+        "line": 37,
+        "optional": false,
+        "role": "compatibility_fallback",
+        "source": "autocomplete_dataset.py",
+        "target": "easyuse_anima/autocomplete/dataset.py"
+      },
+      {
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 33,
+            "kind": "try",
+            "line": 6
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "conditional": true,
+        "imported": "easyuse_anima.autocomplete.dataset:_snapshot_status",
+        "kind": "static_from",
+        "line": 37,
+        "optional": false,
+        "role": "compatibility_fallback",
+        "source": "autocomplete_dataset.py",
+        "target": "easyuse_anima/autocomplete/dataset.py"
+      },
+      {
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 33,
+            "kind": "try",
+            "line": 6
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "conditional": true,
+        "imported": "easyuse_anima.autocomplete.dataset:autocomplete_status",
+        "kind": "static_from",
+        "line": 37,
+        "optional": false,
+        "role": "compatibility_fallback",
+        "source": "autocomplete_dataset.py",
+        "target": "easyuse_anima/autocomplete/dataset.py"
+      },
+      {
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 33,
+            "kind": "try",
+            "line": 6
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "conditional": true,
+        "imported": "easyuse_anima.autocomplete.dataset:available_autocomplete_sources",
+        "kind": "static_from",
+        "line": 37,
+        "optional": false,
+        "role": "compatibility_fallback",
+        "source": "autocomplete_dataset.py",
+        "target": "easyuse_anima/autocomplete/dataset.py"
+      },
+      {
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 33,
+            "kind": "try",
+            "line": 6
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "conditional": true,
+        "imported": "easyuse_anima.autocomplete.dataset:resolve_autocomplete_source",
+        "kind": "static_from",
+        "line": 37,
+        "optional": false,
+        "role": "compatibility_fallback",
+        "source": "autocomplete_dataset.py",
+        "target": "easyuse_anima/autocomplete/dataset.py"
+      },
+      {
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 33,
+            "kind": "try",
+            "line": 6
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "conditional": true,
+        "imported": "easyuse_anima.autocomplete.search:search_autocomplete",
+        "kind": "static_from",
+        "line": 56,
+        "optional": false,
+        "role": "compatibility_fallback",
+        "source": "autocomplete_dataset.py",
+        "target": "easyuse_anima/autocomplete/search.py"
+      },
+      {
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 33,
+            "kind": "try",
+            "line": 6
           }
         ],
         "classification": "compatibility_fallback",
         "conditional": true,
         "imported": "easyuse_anima.translation.markers:iter_prompt_translation_markers",
         "kind": "static_from",
-        "line": 46,
+        "line": 57,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "autocomplete_dataset.py",
         "target": "easyuse_anima/translation/markers.py"
-      },
-      {
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 35,
-            "kind": "try",
-            "line": 17
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "conditional": true,
-        "imported": "easyuse_anima.infrastructure.filesystem.paths:PACKAGE_DATA_DIR",
-        "kind": "static_from",
-        "line": 49,
-        "optional": false,
-        "role": "compatibility_fallback",
-        "source": "autocomplete_dataset.py",
-        "target": "easyuse_anima/infrastructure/filesystem/paths.py"
-      },
-      {
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 35,
-            "kind": "try",
-            "line": 17
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "conditional": true,
-        "imported": "easyuse_anima.infrastructure.filesystem.paths:USER_DATA_DIR",
-        "kind": "static_from",
-        "line": 52,
-        "optional": false,
-        "role": "compatibility_fallback",
-        "source": "autocomplete_dataset.py",
-        "target": "easyuse_anima/infrastructure/filesystem/paths.py"
       },
       {
         "branch_context": [
@@ -66786,14 +68273,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 321
+            "line": 323
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 322,
+        "line": 324,
         "optional": true,
         "role": "optional_dependency",
         "source": "api.py"
@@ -66868,7 +68355,7 @@
         "branch_context": [],
         "classification": "external",
         "conditional": false,
-        "imported": "csv",
+        "imported": "re",
         "kind": "static_import",
         "line": 3,
         "optional": false,
@@ -66879,130 +68366,9 @@
         "branch_context": [],
         "classification": "external",
         "conditional": false,
-        "imported": "heapq",
-        "kind": "static_import",
-        "line": 4,
-        "optional": false,
-        "role": "ordinary",
-        "source": "autocomplete_dataset.py"
-      },
-      {
-        "branch_context": [],
-        "classification": "external",
-        "conditional": false,
-        "imported": "itertools",
-        "kind": "static_import",
-        "line": 5,
-        "optional": false,
-        "role": "ordinary",
-        "source": "autocomplete_dataset.py"
-      },
-      {
-        "branch_context": [],
-        "classification": "external",
-        "conditional": false,
-        "imported": "re",
-        "kind": "static_import",
-        "line": 6,
-        "optional": false,
-        "role": "ordinary",
-        "source": "autocomplete_dataset.py"
-      },
-      {
-        "branch_context": [],
-        "classification": "external",
-        "conditional": false,
-        "imported": "stat",
-        "kind": "static_import",
-        "line": 7,
-        "optional": false,
-        "role": "ordinary",
-        "source": "autocomplete_dataset.py"
-      },
-      {
-        "branch_context": [],
-        "classification": "external",
-        "conditional": false,
-        "imported": "threading",
-        "kind": "static_import",
-        "line": 8,
-        "optional": false,
-        "role": "ordinary",
-        "source": "autocomplete_dataset.py"
-      },
-      {
-        "branch_context": [],
-        "classification": "external",
-        "conditional": false,
-        "imported": "time",
-        "kind": "static_import",
-        "line": 9,
-        "optional": false,
-        "role": "ordinary",
-        "source": "autocomplete_dataset.py"
-      },
-      {
-        "branch_context": [],
-        "classification": "external",
-        "conditional": false,
-        "imported": "unicodedata",
-        "kind": "static_import",
-        "line": 10,
-        "optional": false,
-        "role": "ordinary",
-        "source": "autocomplete_dataset.py"
-      },
-      {
-        "branch_context": [],
-        "classification": "external",
-        "conditional": false,
-        "imported": "concurrent.futures:Future",
-        "kind": "static_from",
-        "line": 11,
-        "optional": false,
-        "role": "ordinary",
-        "source": "autocomplete_dataset.py"
-      },
-      {
-        "branch_context": [],
-        "classification": "external",
-        "conditional": false,
-        "imported": "dataclasses:dataclass",
-        "kind": "static_from",
-        "line": 12,
-        "optional": false,
-        "role": "ordinary",
-        "source": "autocomplete_dataset.py"
-      },
-      {
-        "branch_context": [],
-        "classification": "external",
-        "conditional": false,
         "imported": "pathlib:Path",
         "kind": "static_from",
-        "line": 13,
-        "optional": false,
-        "role": "ordinary",
-        "source": "autocomplete_dataset.py"
-      },
-      {
-        "branch_context": [],
-        "classification": "external",
-        "conditional": false,
-        "imported": "types:MappingProxyType",
-        "kind": "static_from",
-        "line": 14,
-        "optional": false,
-        "role": "ordinary",
-        "source": "autocomplete_dataset.py"
-      },
-      {
-        "branch_context": [],
-        "classification": "external",
-        "conditional": false,
-        "imported": "typing:Mapping",
-        "kind": "static_from",
-        "line": 15,
+        "line": 4,
         "optional": false,
         "role": "ordinary",
         "source": "autocomplete_dataset.py"
@@ -68645,6 +70011,138 @@
         "conditional": false,
         "imported": "__future__:annotations",
         "kind": "static_from",
+        "line": 3,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/autocomplete/dataset.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "csv",
+        "kind": "static_import",
+        "line": 5,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/autocomplete/dataset.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "itertools",
+        "kind": "static_import",
+        "line": 6,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/autocomplete/dataset.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "re",
+        "kind": "static_import",
+        "line": 7,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/autocomplete/dataset.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "stat",
+        "kind": "static_import",
+        "line": 8,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/autocomplete/dataset.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "threading",
+        "kind": "static_import",
+        "line": 9,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/autocomplete/dataset.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "unicodedata",
+        "kind": "static_import",
+        "line": 10,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/autocomplete/dataset.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "collections.abc:Mapping",
+        "kind": "static_from",
+        "line": 11,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/autocomplete/dataset.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "concurrent.futures:Future",
+        "kind": "static_from",
+        "line": 12,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/autocomplete/dataset.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "dataclasses:dataclass",
+        "kind": "static_from",
+        "line": 13,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/autocomplete/dataset.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "pathlib:Path",
+        "kind": "static_from",
+        "line": 14,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/autocomplete/dataset.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "types:MappingProxyType",
+        "kind": "static_from",
+        "line": 15,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/autocomplete/dataset.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "__future__:annotations",
+        "kind": "static_from",
         "line": 1,
         "optional": false,
         "role": "ordinary",
@@ -68770,6 +70268,50 @@
         "optional": false,
         "role": "ordinary",
         "source": "easyuse_anima/autocomplete/index.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "__future__:annotations",
+        "kind": "static_from",
+        "line": 3,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/autocomplete/search.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "heapq",
+        "kind": "static_import",
+        "line": 5,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/autocomplete/search.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "time",
+        "kind": "static_import",
+        "line": 6,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/autocomplete/search.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "pathlib:Path",
+        "kind": "static_from",
+        "line": 7,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/autocomplete/search.py"
       },
       {
         "branch_context": [],
@@ -72092,14 +73634,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 321
+            "line": 323
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 322,
+        "line": 324,
         "optional": true,
         "role": "optional_dependency",
         "source": "api.py"
@@ -73032,7 +74574,9 @@
       "easyuse_anima/aio/sampling.py",
       "easyuse_anima/aio/usdu.py",
       "easyuse_anima/autocomplete/__init__.py",
+      "easyuse_anima/autocomplete/dataset.py",
       "easyuse_anima/autocomplete/index.py",
+      "easyuse_anima/autocomplete/search.py",
       "easyuse_anima/bootstrap.py",
       "easyuse_anima/common/__init__.py",
       "easyuse_anima/common/serialization.py",
@@ -73157,7 +74701,9 @@
       "easyuse_anima/aio/sampling.py",
       "easyuse_anima/aio/usdu.py",
       "easyuse_anima/autocomplete/__init__.py",
+      "easyuse_anima/autocomplete/dataset.py",
       "easyuse_anima/autocomplete/index.py",
+      "easyuse_anima/autocomplete/search.py",
       "easyuse_anima/bootstrap.py",
       "easyuse_anima/common/__init__.py",
       "easyuse_anima/common/serialization.py",
@@ -73417,7 +74963,7 @@
         "column": 10,
         "context": "assign:_LOGGER",
         "kind": "import_time_call",
-        "line": 145,
+        "line": 147,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -73426,7 +74972,7 @@
         "column": 25,
         "context": "assign:_FILE_IO_LIMITERS_LOCK",
         "kind": "import_time_call",
-        "line": 148,
+        "line": 150,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -73435,7 +74981,7 @@
         "column": 47,
         "context": "assign:_FILE_IO_LIMITERS",
         "kind": "import_time_call",
-        "line": 149,
+        "line": 151,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -73444,7 +74990,7 @@
         "column": 29,
         "context": "assign:_PROMPT_TRANSLATION_WORKER",
         "kind": "import_time_call",
-        "line": 198,
+        "line": 200,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -73453,7 +74999,7 @@
         "column": 0,
         "context": "expression",
         "kind": "import_time_call",
-        "line": 199,
+        "line": 201,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -73462,7 +75008,7 @@
         "column": 36,
         "context": "assign:_SAFE_PROFILE_VALIDATION_MESSAGES",
         "kind": "import_time_call",
-        "line": 348,
+        "line": 350,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -73471,7 +75017,7 @@
         "column": 9,
         "context": "assign:routes",
         "kind": "route_registry_creation",
-        "line": 505,
+        "line": 507,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -73480,7 +75026,7 @@
         "column": 19,
         "context": "assign:_ROUTE_SIGNATURE",
         "kind": "route_registry_creation",
-        "line": 848,
+        "line": 850,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -73489,26 +75035,8 @@
         "column": 5,
         "context": "assign:_ROUTE_SIGNATURE",
         "kind": "route_registry_creation",
-        "line": 849,
+        "line": 851,
         "module": "api.py",
-        "scope": "<module>"
-      },
-      {
-        "callee": "re.compile",
-        "column": 19,
-        "context": "assign:_INLINE_SPACE_RE",
-        "kind": "import_time_call",
-        "line": 93,
-        "module": "autocomplete_dataset.py",
-        "scope": "<module>"
-      },
-      {
-        "callee": "_default_autocomplete_index_dir",
-        "column": 26,
-        "context": "assign:_AUTOCOMPLETE_INDEX_DIR",
-        "kind": "import_time_call",
-        "line": 134,
-        "module": "autocomplete_dataset.py",
         "scope": "<module>"
       },
       {
@@ -73516,7 +75044,7 @@
         "column": 12,
         "context": "assign:_COUNT_RE",
         "kind": "import_time_call",
-        "line": 135,
+        "line": 61,
         "module": "autocomplete_dataset.py",
         "scope": "<module>"
       },
@@ -73525,7 +75053,7 @@
         "column": 20,
         "context": "assign:_WEIGHT_NUMBER_RE",
         "kind": "import_time_call",
-        "line": 140,
+        "line": 68,
         "module": "autocomplete_dataset.py",
         "scope": "<module>"
       },
@@ -73534,7 +75062,7 @@
         "column": 21,
         "context": "assign:_WEIGHTED_TOKEN_RE",
         "kind": "import_time_call",
-        "line": 141,
+        "line": 71,
         "module": "autocomplete_dataset.py",
         "scope": "<module>"
       },
@@ -73543,7 +75071,7 @@
         "column": 21,
         "context": "assign:_WILDCARD_TOKEN_RE",
         "kind": "import_time_call",
-        "line": 142,
+        "line": 74,
         "module": "autocomplete_dataset.py",
         "scope": "<module>"
       },
@@ -73552,7 +75080,7 @@
         "column": 22,
         "context": "assign:_WILDCARD_SYNTAX_RE",
         "kind": "import_time_call",
-        "line": 143,
+        "line": 77,
         "module": "autocomplete_dataset.py",
         "scope": "<module>"
       },
@@ -73561,7 +75089,7 @@
         "column": 27,
         "context": "assign:_DYNAMIC_PROMPT_TOKEN_RE",
         "kind": "import_time_call",
-        "line": 144,
+        "line": 80,
         "module": "autocomplete_dataset.py",
         "scope": "<module>"
       },
@@ -73570,16 +75098,7 @@
         "column": 28,
         "context": "assign:_DYNAMIC_PROMPT_SYNTAX_RE",
         "kind": "import_time_call",
-        "line": 145,
-        "module": "autocomplete_dataset.py",
-        "scope": "<module>"
-      },
-      {
-        "callee": "re.compile",
-        "column": 25,
-        "context": "assign:_DESCRIPTION_PREFIX_RE",
-        "kind": "import_time_call",
-        "line": 146,
+        "line": 83,
         "module": "autocomplete_dataset.py",
         "scope": "<module>"
       },
@@ -73588,43 +75107,7 @@
         "column": 14,
         "context": "assign:_COMMENT_RE",
         "kind": "import_time_call",
-        "line": 147,
-        "module": "autocomplete_dataset.py",
-        "scope": "<module>"
-      },
-      {
-        "callee": "dataclass",
-        "column": 1,
-        "context": "decorator:AutocompleteEntry",
-        "kind": "import_time_call",
-        "line": 149,
-        "module": "autocomplete_dataset.py",
-        "scope": "<module>"
-      },
-      {
-        "callee": "dataclass",
-        "column": 1,
-        "context": "decorator:_AutocompleteCacheKey",
-        "kind": "import_time_call",
-        "line": 159,
-        "module": "autocomplete_dataset.py",
-        "scope": "<module>"
-      },
-      {
-        "callee": "dataclass",
-        "column": 1,
-        "context": "decorator:_AutocompleteSnapshot",
-        "kind": "import_time_call",
-        "line": 167,
-        "module": "autocomplete_dataset.py",
-        "scope": "<module>"
-      },
-      {
-        "callee": "threading.Lock",
-        "column": 14,
-        "context": "assign:_CACHE_LOCK",
-        "kind": "import_time_call",
-        "line": 178,
+        "line": 86,
         "module": "autocomplete_dataset.py",
         "scope": "<module>"
       },
@@ -74277,6 +75760,60 @@
         "scope": "<module>"
       },
       {
+        "callee": "re.compile",
+        "column": 19,
+        "context": "assign:_INLINE_SPACE_RE",
+        "kind": "import_time_call",
+        "line": 74,
+        "module": "easyuse_anima/autocomplete/dataset.py",
+        "scope": "<module>"
+      },
+      {
+        "callee": "re.compile",
+        "column": 25,
+        "context": "assign:_DESCRIPTION_PREFIX_RE",
+        "kind": "import_time_call",
+        "line": 106,
+        "module": "easyuse_anima/autocomplete/dataset.py",
+        "scope": "<module>"
+      },
+      {
+        "callee": "dataclass",
+        "column": 1,
+        "context": "decorator:AutocompleteEntry",
+        "kind": "import_time_call",
+        "line": 118,
+        "module": "easyuse_anima/autocomplete/dataset.py",
+        "scope": "<module>"
+      },
+      {
+        "callee": "dataclass",
+        "column": 1,
+        "context": "decorator:_AutocompleteCacheKey",
+        "kind": "import_time_call",
+        "line": 128,
+        "module": "easyuse_anima/autocomplete/dataset.py",
+        "scope": "<module>"
+      },
+      {
+        "callee": "dataclass",
+        "column": 1,
+        "context": "decorator:_AutocompleteSnapshot",
+        "kind": "import_time_call",
+        "line": 136,
+        "module": "easyuse_anima/autocomplete/dataset.py",
+        "scope": "<module>"
+      },
+      {
+        "callee": "threading.Lock",
+        "column": 14,
+        "context": "assign:_CACHE_LOCK",
+        "kind": "import_time_call",
+        "line": 147,
+        "module": "easyuse_anima/autocomplete/dataset.py",
+        "scope": "<module>"
+      },
+      {
         "callee": "dataclass",
         "column": 1,
         "context": "decorator:AutocompleteIndexSource",
@@ -74319,6 +75856,15 @@
         "kind": "import_time_call",
         "line": 84,
         "module": "easyuse_anima/autocomplete/index.py",
+        "scope": "<module>"
+      },
+      {
+        "callee": "_default_autocomplete_index_dir",
+        "column": 26,
+        "context": "assign:_AUTOCOMPLETE_INDEX_DIR",
+        "kind": "import_time_call",
+        "line": 47,
+        "module": "easyuse_anima/autocomplete/search.py",
         "scope": "<module>"
       },
       {
@@ -74981,42 +76527,6 @@
       },
       {
         "kind": "dict",
-        "line": 63,
-        "module": "autocomplete_dataset.py",
-        "name": "AUTOCOMPLETE_SOURCES"
-      },
-      {
-        "kind": "dict",
-        "line": 179,
-        "module": "autocomplete_dataset.py",
-        "name": "_CACHE"
-      },
-      {
-        "kind": "dict",
-        "line": 94,
-        "module": "autocomplete_dataset.py",
-        "name": "_DANBOORU_CATEGORY_NAMES"
-      },
-      {
-        "kind": "dict",
-        "line": 101,
-        "module": "autocomplete_dataset.py",
-        "name": "_E621_CATEGORY_NAMES"
-      },
-      {
-        "kind": "dict",
-        "line": 180,
-        "module": "autocomplete_dataset.py",
-        "name": "_INFLIGHT"
-      },
-      {
-        "kind": "dict",
-        "line": 110,
-        "module": "autocomplete_dataset.py",
-        "name": "_MERGED_E621_CATEGORY_NAMES"
-      },
-      {
-        "kind": "dict",
         "line": 66,
         "module": "easyuse_anima/aio/first_pass_cache.py",
         "name": "_AIO_FIRST_PASS_CACHE"
@@ -75062,6 +76572,42 @@
         "line": 15,
         "module": "easyuse_anima/aio/preview.py",
         "name": "AIO_PREVIEW_STAGE_LABELS"
+      },
+      {
+        "kind": "dict",
+        "line": 43,
+        "module": "easyuse_anima/autocomplete/dataset.py",
+        "name": "AUTOCOMPLETE_SOURCES"
+      },
+      {
+        "kind": "dict",
+        "line": 150,
+        "module": "easyuse_anima/autocomplete/dataset.py",
+        "name": "_CACHE"
+      },
+      {
+        "kind": "dict",
+        "line": 77,
+        "module": "easyuse_anima/autocomplete/dataset.py",
+        "name": "_DANBOORU_CATEGORY_NAMES"
+      },
+      {
+        "kind": "dict",
+        "line": 86,
+        "module": "easyuse_anima/autocomplete/dataset.py",
+        "name": "_E621_CATEGORY_NAMES"
+      },
+      {
+        "kind": "dict",
+        "line": 153,
+        "module": "easyuse_anima/autocomplete/dataset.py",
+        "name": "_INFLIGHT"
+      },
+      {
+        "kind": "dict",
+        "line": 97,
+        "module": "easyuse_anima/autocomplete/dataset.py",
+        "name": "_MERGED_E621_CATEGORY_NAMES"
       },
       {
         "kind": "dict",
@@ -75352,7 +76898,7 @@
           "lock"
         ],
         "initializer": "threading.Lock",
-        "line": 148,
+        "line": 150,
         "module": "api.py",
         "name": "_FILE_IO_LIMITERS_LOCK"
       },
@@ -75361,39 +76907,9 @@
           "executor"
         ],
         "initializer": "_PromptTranslationWorker",
-        "line": 198,
+        "line": 200,
         "module": "api.py",
         "name": "_PROMPT_TRANSLATION_WORKER"
-      },
-      {
-        "categories": [
-          "cache",
-          "mutable_container"
-        ],
-        "initializer": "Dict",
-        "line": 179,
-        "module": "autocomplete_dataset.py",
-        "name": "_CACHE"
-      },
-      {
-        "categories": [
-          "lock"
-        ],
-        "initializer": "threading.Lock",
-        "line": 178,
-        "module": "autocomplete_dataset.py",
-        "name": "_CACHE_LOCK"
-      },
-      {
-        "categories": [
-          "future",
-          "mutable_container",
-          "single_flight"
-        ],
-        "initializer": "Dict",
-        "line": 180,
-        "module": "autocomplete_dataset.py",
-        "name": "_INFLIGHT"
       },
       {
         "categories": [
@@ -75433,6 +76949,36 @@
         "line": 70,
         "module": "easyuse_anima/aio/first_pass_cache.py",
         "name": "_AIO_FIRST_PASS_CACHE_ORDER"
+      },
+      {
+        "categories": [
+          "cache",
+          "mutable_container"
+        ],
+        "initializer": "Dict",
+        "line": 150,
+        "module": "easyuse_anima/autocomplete/dataset.py",
+        "name": "_CACHE"
+      },
+      {
+        "categories": [
+          "lock"
+        ],
+        "initializer": "threading.Lock",
+        "line": 147,
+        "module": "easyuse_anima/autocomplete/dataset.py",
+        "name": "_CACHE_LOCK"
+      },
+      {
+        "categories": [
+          "future",
+          "mutable_container",
+          "single_flight"
+        ],
+        "initializer": "Dict",
+        "line": 153,
+        "module": "easyuse_anima/autocomplete/dataset.py",
+        "name": "_INFLIGHT"
       },
       {
         "categories": [

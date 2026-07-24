@@ -43,7 +43,9 @@ PACKAGE_MODULES = (
     "easyuse_anima.aio.resources",
     "easyuse_anima.aio.usdu",
     "easyuse_anima.autocomplete",
+    "easyuse_anima.autocomplete.dataset",
     "easyuse_anima.autocomplete.index",
+    "easyuse_anima.autocomplete.search",
     "easyuse_anima.common",
     "easyuse_anima.common.values",
     "easyuse_anima.common.serialization",
@@ -174,6 +176,23 @@ print(json.dumps({{
         expected_all = [[] for _ in PACKAGE_MODULES]
         expected_all[PACKAGE_MODULES.index("easyuse_anima.bootstrap")] = ["initialize"]
         expected_all[
+            PACKAGE_MODULES.index("easyuse_anima.autocomplete.dataset")
+        ] = [
+            "DBR_TAG_ARCHIVE_SOURCE",
+            "DBR_TAG_ARCHIVE_LICENSE",
+            "DBR_DANBOORU_AUTOCOMPLETE_CSV",
+            "DBR_E621_AUTOCOMPLETE_CSV",
+            "DBR_MERGED_AUTOCOMPLETE_CSV",
+            "LOCALSMILE_AUTOCOMPLETE_CSV",
+            "AUTOCOMPLETE_CSV",
+            "DEFAULT_AUTOCOMPLETE_SOURCE",
+            "AUTOCOMPLETE_SOURCES",
+            "AutocompleteEntry",
+            "resolve_autocomplete_source",
+            "available_autocomplete_sources",
+            "autocomplete_status",
+        ]
+        expected_all[
             PACKAGE_MODULES.index("easyuse_anima.autocomplete.index")
         ] = [
             "AUTOCOMPLETE_INDEX_SCHEMA_VERSION",
@@ -184,6 +203,9 @@ print(json.dumps({{
             "AutocompleteIndexUnavailable",
             "search_autocomplete_index",
         ]
+        expected_all[
+            PACKAGE_MODULES.index("easyuse_anima.autocomplete.search")
+        ] = ["search_autocomplete"]
         expected_all[
             PACKAGE_MODULES.index("easyuse_anima.aio.generation_pipeline")
         ] = [

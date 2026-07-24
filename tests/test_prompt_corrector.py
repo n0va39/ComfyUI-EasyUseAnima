@@ -11,9 +11,9 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from unittest.mock import patch
 
-import autocomplete_dataset
 import nodes
 import settings as root_settings
+from easyuse_anima.autocomplete import dataset as autocomplete_dataset
 from easyuse_anima.naia.client import _clean_prompt
 from easyuse_anima.naia.resolution import ADVANCED_RESOLUTION_BUCKETS
 from easyuse_anima.nodes import prompt_data_nodes, prompt_nodes

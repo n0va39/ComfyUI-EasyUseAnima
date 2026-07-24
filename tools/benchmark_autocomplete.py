@@ -28,7 +28,8 @@ REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 if str(REPOSITORY_ROOT) not in sys.path:
     sys.path.insert(0, str(REPOSITORY_ROOT))
 
-import autocomplete_dataset as dataset
+from easyuse_anima.autocomplete import dataset
+from easyuse_anima.autocomplete import search as autocomplete_search
 
 
 def _positive_int(value: str) -> int:
@@ -59,12 +60,12 @@ def _clear_cached_source(path: Path) -> None:
 
 @contextmanager
 def _using_index_root(root: Path | None):
-    previous = dataset._AUTOCOMPLETE_INDEX_DIR
-    dataset._AUTOCOMPLETE_INDEX_DIR = root
+    previous = autocomplete_search._AUTOCOMPLETE_INDEX_DIR
+    autocomplete_search._AUTOCOMPLETE_INDEX_DIR = root
     try:
         yield
     finally:
-        dataset._AUTOCOMPLETE_INDEX_DIR = previous
+        autocomplete_search._AUTOCOMPLETE_INDEX_DIR = previous
 
 
 def _process_rss_bytes() -> tuple[str, int | None]:
@@ -133,7 +134,7 @@ def _benchmark(
         try:
             baseline_heap, _ = tracemalloc.get_traced_memory()
             cold_started = time.perf_counter()
-            cold_result, cold_index = dataset._search_autocomplete_with_diagnostics(
+            cold_result, cold_index = autocomplete_search._search_autocomplete_with_diagnostics(
                 query,
                 path=resolved_path,
             )
@@ -146,7 +147,7 @@ def _benchmark(
             warm_indexes = []
             for _ in range(warm_runs):
                 warm_started = time.perf_counter()
-                warm_result, warm_index = dataset._search_autocomplete_with_diagnostics(
+                warm_result, warm_index = autocomplete_search._search_autocomplete_with_diagnostics(
                     query,
                     path=resolved_path,
                 )

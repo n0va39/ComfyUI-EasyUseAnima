@@ -7,7 +7,7 @@
 - Parent roadmap unit: D-11 Autocomplete
 - PR type: Move
 - Baseline: `dev@9c293ee744c137f4722408213f3514260e029dc4`
-- State: READY
+- State: VALIDATED in PR #386
 - Production behavior changes: forbidden
 
 ## Responsibility boundary
@@ -180,3 +180,21 @@ Supporting:
 - official full runner once at the PR checkpoint; and
 - root retains only prompt classification implementation plus explicit
   canonical aliases for the moved surface.
+
+Validation evidence:
+
+- autocomplete index/search behavior: 9 tests passed;
+- prompt correction, dataset/cache/status behavior: 140 tests passed;
+- API contract: 36 tests passed;
+- package skeleton: 1 test passed;
+- G-03 import boundary: 16 tests passed;
+- Registry scanner: 8 tests passed;
+- backend analyzer: 18 tests passed, 125 shipped/runtime modules and zero
+  unreachable modules;
+- D-11b canonical Pyright diagnostics: 0;
+- official full: 1,134 Python tests and 112 frontend files passed; G-03 kept
+  10 completed package groups with zero violations and the existing Pyright
+  baseline remained 14 errors; and
+- `comfy node validate` passed; `comfy node pack` produced 255 entries and
+  included both root autocomplete modules plus canonical `__init__.py`,
+  `dataset.py`, `index.py`, and `search.py`.
