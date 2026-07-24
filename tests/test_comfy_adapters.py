@@ -174,6 +174,141 @@ class ComfyCapabilityAdapterTests(unittest.TestCase):
 
 
 class ComfyResourceAdapterTests(unittest.TestCase):
+    def test_resource_file_revision_uses_resolved_path_size_and_mtime(self):
+        calls = []
+        folder_paths = SimpleNamespace(
+            get_full_path=lambda folder_name, filename: (
+                calls.append((folder_name, filename))
+                or "models/runtime.safetensors"
+            ),
+        )
+        resolved_path = Path("canonical/runtime.safetensors")
+        with (
+            patch.dict(sys.modules, {"folder_paths": folder_paths}),
+            patch.object(
+                resources.Path,
+                "resolve",
+                return_value=resolved_path,
+            ) as resolve,
+            patch.object(
+                resources.Path,
+                "stat",
+                return_value=SimpleNamespace(
+                    st_size=1234,
+                    st_mtime_ns=5678,
+                ),
+            ) as stat,
+        ):
+            revision = resources._comfy_resource_file_revision(
+                "diffusion_models",
+                "anima.safetensors",
+            )
+
+        self.assertEqual(
+            revision,
+            {
+                "path": str(resolved_path),
+                "size": 1234,
+                "mtime_ns": 5678,
+            },
+        )
+        self.assertEqual(
+            calls,
+            [("diffusion_models", "anima.safetensors")],
+        )
+        resolve.assert_called_once_with(strict=False)
+        stat.assert_called_once_with()
+
+    def test_resource_file_revision_supports_legacy_resolver_and_safe_fallbacks(self):
+        legacy_calls = []
+        legacy_folder_paths = SimpleNamespace(
+            get_full_path_or_raise=lambda folder_name, filename: (
+                legacy_calls.append((folder_name, filename))
+                or "models/legacy.safetensors"
+            ),
+        )
+        with (
+            patch.dict(sys.modules, {"folder_paths": legacy_folder_paths}),
+            patch.object(
+                resources.Path,
+                "resolve",
+                return_value=Path("canonical/legacy.safetensors"),
+            ),
+            patch.object(
+                resources.Path,
+                "stat",
+                return_value=SimpleNamespace(
+                    st_size=10,
+                    st_mtime_ns=20,
+                ),
+            ),
+        ):
+            self.assertEqual(
+                resources._comfy_resource_file_revision(
+                    "vae",
+                    "legacy.safetensors",
+                ),
+                {
+                    "path": str(Path("canonical/legacy.safetensors")),
+                    "size": 10,
+                    "mtime_ns": 20,
+                },
+            )
+        self.assertEqual(
+            legacy_calls,
+            [("vae", "legacy.safetensors")],
+        )
+
+        self.assertIsNone(
+            resources._comfy_resource_file_revision("", "model")
+        )
+        self.assertIsNone(
+            resources._comfy_resource_file_revision("vae", "")
+        )
+        for folder_paths in (
+            SimpleNamespace(),
+            SimpleNamespace(get_full_path=lambda *_args: None),
+            SimpleNamespace(get_full_path=lambda *_args: object()),
+            SimpleNamespace(
+                get_full_path=lambda *_args: (
+                    _ for _ in ()
+                ).throw(RuntimeError("unavailable"))
+            ),
+        ):
+            with self.subTest(folder_paths=folder_paths), patch.dict(
+                sys.modules,
+                {"folder_paths": folder_paths},
+            ):
+                self.assertIsNone(
+                    resources._comfy_resource_file_revision(
+                        "vae",
+                        "missing.safetensors",
+                    )
+                )
+
+        folder_paths = SimpleNamespace(
+            get_full_path=lambda *_args: "models/broken.safetensors",
+        )
+        with (
+            patch.dict(sys.modules, {"folder_paths": folder_paths}),
+            patch.object(
+                resources.Path,
+                "resolve",
+                return_value=Path("canonical/broken.safetensors"),
+            ),
+            patch.object(
+                resources.Path,
+                "stat",
+                side_effect=OSError("stat failed"),
+            ),
+        ):
+            self.assertIsNone(
+                resources._comfy_resource_file_revision(
+                    "vae",
+                    "broken.safetensors",
+                )
+            )
+
     def test_folder_resources_use_runtime_names_and_preserve_fallbacks(self):
         folder_paths = SimpleNamespace(
             get_filename_list=lambda folder_name: {

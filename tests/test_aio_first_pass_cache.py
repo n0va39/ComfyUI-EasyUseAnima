@@ -316,6 +316,7 @@ class AIOFirstPassCacheMoveTests(unittest.TestCase):
         captured = []
         json_safe = Mock(side_effect=lambda value: {"safe": value})
         lora_signature = Mock(return_value=[{"name": "lora"}])
+        resource_revision = Mock(return_value={"revision": "files"})
 
         def stable_change_key(payload):
             captured.append(payload)
@@ -346,10 +347,22 @@ class AIOFirstPassCacheMoveTests(unittest.TestCase):
                 "_aio_lora_stack_signature",
                 lora_signature,
             ),
+            patch.object(
+                first_pass_cache,
+                "_aio_first_pass_resource_revision",
+                resource_revision,
+            ),
         ):
             result = first_pass_cache._aio_first_pass_cache_key(
                 cache_scope=0,
-                context={"resource_info": {"model": "a"}, "input_settings": {"loader": "b"}},
+                context={
+                    "resource_info": {
+                        "unet_name": "unet.safetensors",
+                        "vae_name": "vae.safetensors",
+                        "clip_name": "clip.safetensors",
+                    },
+                    "input_settings": {"loader": "b"},
+                },
                 prompt_data={"positive": "p"},
                 lora_stack="loras",
                 settings=settings,
@@ -368,16 +381,18 @@ class AIOFirstPassCacheMoveTests(unittest.TestCase):
         self.assertEqual(
             list(payload),
             [
-                "schema", "version", "scope", "mode", "resource_info", "input_settings",
-                "prompt_data", "lora_stack", "sampler", "model_patches", "mod_guidance",
-                "artist_mix", "positive_prompt", "negative_prompt", "quality_tags",
-                "quality_neg", "use_anima_mod_guidance", "use_negative_anima_mod_guidance",
-                "width", "height",
+                "schema", "version", "scope", "mode", "resource_info",
+                "resource_revision", "input_settings", "prompt_data", "lora_stack", "sampler",
+                "model_patches", "mod_guidance", "artist_mix", "positive_prompt",
+                "negative_prompt", "quality_tags", "quality_neg",
+                "use_anima_mod_guidance", "use_negative_anima_mod_guidance", "width",
+                "height",
             ],
         )
         self.assertEqual(payload["schema"], "easyuse_anima_aio_first_pass_cache")
-        self.assertEqual(payload["version"], 1)
+        self.assertEqual(payload["version"], 2)
         self.assertEqual(payload["scope"], "")
+        self.assertEqual(payload["resource_revision"], {"revision": "files"})
         self.assertEqual(payload["lora_stack"], [{"name": "lora"}])
         self.assertEqual(payload["positive_prompt"], "")
         self.assertEqual(payload["negative_prompt"], "")
@@ -390,11 +405,162 @@ class AIOFirstPassCacheMoveTests(unittest.TestCase):
         self.assertEqual(
             [call.args[0] for call in json_safe.call_args_list],
             [
-                {"model": "a"}, {"loader": "b"}, {"positive": "p"}, {"seed": 42},
-                {"dave": True}, {"mode": "enabled"}, {"mode": "off"},
+                {
+                    "unet_name": "unet.safetensors",
+                    "vae_name": "vae.safetensors",
+                    "clip_name": "clip.safetensors",
+                },
+                {"loader": "b"}, {"positive": "p"}, {"seed": 42}, {"dave": True},
+                {"mode": "enabled"}, {"mode": "off"},
             ],
         )
         lora_signature.assert_called_once_with("loras")
+        resource_revision.assert_called_once_with(
+            {
+                "unet_name": "unet.safetensors",
+                "vae_name": "vae.safetensors",
+                "clip_name": "clip.safetensors",
+            },
+            [{"name": "lora"}],
+        )
+
+    def test_resource_revision_maps_base_resources_and_loras_in_signature_order(self):
+        revisions = Mock(
+            side_effect=lambda folder_name, filename: (
+                f"{folder_name}:{filename}"
+            )
+        )
+        with patch.object(
+            first_pass_cache,
+            "_comfy_resource_file_revision",
+            revisions,
+        ):
+            result = first_pass_cache._aio_first_pass_resource_revision(
+                {
+                    "unet_name": "unet.safetensors",
+                    "vae_name": "vae.safetensors",
+                    "clip_name": "clip.safetensors",
+                },
+                [
+                    {"name": "style/a.safetensors"},
+                    {"name": "style/b.safetensors"},
+                ],
+            )
+
+        self.assertEqual(
+            result,
+            {
+                "unet": "diffusion_models:unet.safetensors",
+                "vae": "vae:vae.safetensors",
+                "clip": "text_encoders:clip.safetensors",
+                "loras": [
+                    "loras:style/a.safetensors",
+                    "loras:style/b.safetensors",
+                ],
+            },
+        )
+        self.assertEqual(
+            [call.args for call in revisions.call_args_list],
+            [
+                ("loras", "style/a.safetensors"),
+                ("loras", "style/b.safetensors"),
+                ("diffusion_models", "unet.safetensors"),
+                ("vae", "vae.safetensors"),
+                ("text_encoders", "clip.safetensors"),
+            ],
+        )
+
+    def test_key_changes_for_base_and_lora_file_revision_but_not_same_descriptor(self):
+        settings = {
+            "mode": "txt2img",
+            "sampler": {"seed": 42},
+            "model_patches": {},
+            "mod_guidance": {},
+            "artist_mix": {},
+        }
+        key_args = {
+            "cache_scope": "node",
+            "context": {
+                "resource_info": {
+                    "unet_name": "unet.safetensors",
+                    "vae_name": "vae.safetensors",
+                    "clip_name": "clip.safetensors",
+                },
+                "input_settings": {},
+            },
+            "prompt_data": {"positive": "prompt"},
+            "lora_stack": [
+                {
+                    "name": "style.safetensors",
+                    "strength_model": 1.0,
+                    "strength_clip": 1.0,
+                }
+            ],
+            "settings": settings,
+            "positive_prompt": "prompt",
+            "negative_prompt": "",
+            "quality_tags": "",
+            "quality_neg": "",
+            "use_anima_mod_guidance": False,
+            "use_negative_anima_mod_guidance": False,
+            "width": 1024,
+            "height": 1024,
+        }
+        baseline = {
+            ("diffusion_models", "unet.safetensors"): {
+                "path": "models/unet.safetensors",
+                "size": 100,
+                "mtime_ns": 1000,
+            },
+            ("vae", "vae.safetensors"): {
+                "path": "models/vae.safetensors",
+                "size": 200,
+                "mtime_ns": 2000,
+            },
+            ("text_encoders", "clip.safetensors"): {
+                "path": "models/clip.safetensors",
+                "size": 300,
+                "mtime_ns": 3000,
+            },
+            ("loras", "style.safetensors"): {
+                "path": "models/style.safetensors",
+                "size": 400,
+                "mtime_ns": 4000,
+            },
+        }
+
+        def key_for(revisions):
+            with patch.object(
+                first_pass_cache,
+                "_comfy_resource_file_revision",
+                side_effect=lambda folder_name, filename: revisions[
+                    (folder_name, filename)
+                ],
+            ):
+                return first_pass_cache._aio_first_pass_cache_key(**key_args)
+
+        first = key_for(baseline)
+        self.assertEqual(key_for(dict(baseline)), first)
+
+        for field, value in (
+            ("path", "models/replaced-unet.safetensors"),
+            ("size", 101),
+            ("mtime_ns", 1001),
+        ):
+            with self.subTest(base_field=field):
+                changed = {
+                    key: dict(revision)
+                    for key, revision in baseline.items()
+                }
+                changed[("diffusion_models", "unet.safetensors")][field] = value
+                self.assertNotEqual(key_for(changed), first)
+
+        changed_lora = {
+            key: dict(revision)
+            for key, revision in baseline.items()
+        }
+        changed_lora[("loras", "style.safetensors")]["mtime_ns"] = 4001
+        self.assertNotEqual(key_for(changed_lora), first)
 
     def test_replacement_state_clear_and_falsey_miss_are_call_time(self):
         cache = {"empty": {}}
