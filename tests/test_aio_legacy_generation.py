@@ -1988,6 +1988,30 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
             ],
         )
 
+    def test_postprocess_stage_failure_keeps_outer_model_cleanup_boundary(self):
+        trace: list[str] = []
+        with patch.object(
+            legacy_generation.AIOPostprocessStage,
+            "run",
+            side_effect=RuntimeError("postprocess stage failed"),
+        ):
+            with self.assertRaisesRegex(RuntimeError, "postprocess stage failed"):
+                self._execute_case(
+                    upscale_enabled=False,
+                    intermediate_preview=False,
+                    unique_id=None,
+                    trace_sink=trace,
+                )
+
+        self.assertEqual(
+            trace[-3:],
+            [
+                "cleanup:sample",
+                "cleanup:model",
+                "cleanup:lora",
+            ],
+        )
+
     def _execute_case(
         self,
         *,
@@ -2091,6 +2115,11 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
                 upscale=SimpleNamespace(
                     to_dict=lambda: copy.deepcopy(
                         normalized_settings["upscale"]
+                    )
+                ),
+                postprocess=SimpleNamespace(
+                    to_dict=lambda: copy.deepcopy(
+                        normalized_settings["postprocess"]
                     )
                 ),
             )
