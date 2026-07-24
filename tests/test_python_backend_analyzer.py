@@ -691,9 +691,9 @@ ignored/
 
         self.assertEqual(analyzer.render_json(report), expected_text)
         self.assertEqual(report["schema_version"], 2)
-        self.assertEqual(report["inventory"]["module_count"], 127)
-        self.assertEqual(len(report["registry"]["shipped_python_modules"]), 127)
-        self.assertEqual(len(report["registry"]["runtime_import_closure"]), 127)
+        self.assertEqual(report["inventory"]["module_count"], 128)
+        self.assertEqual(len(report["registry"]["shipped_python_modules"]), 128)
+        self.assertEqual(len(report["registry"]["runtime_import_closure"]), 128)
         self.assertEqual(
             report["registry"]["entry_modules"],
             [
@@ -953,9 +953,24 @@ ignored/
             },
             report["imports"]["module_graph"],
         )
+        self.assertIn(
+            {
+                "from": "wildcard_engine.py",
+                "to": "easyuse_anima/wildcard/sources.py",
+            },
+            report["imports"]["module_graph"],
+        )
+        self.assertIn(
+            {
+                "from": "api.py",
+                "to": "easyuse_anima/wildcard/sources.py",
+            },
+            report["imports"]["module_graph"],
+        )
         for module in (
             "easyuse_anima/wildcard/__init__.py",
             "easyuse_anima/wildcard/models.py",
+            "easyuse_anima/wildcard/sources.py",
         ):
             with self.subTest(module=module):
                 self.assertIn(

@@ -327,10 +327,16 @@ def _loaded_package_entrypoint():
         sys.modules[nodes_spec.name] = package_nodes
         nodes_spec.loader.exec_module(package_nodes)
 
-        wildcard_module = sys.modules.get(f"{package_name}.wildcard_engine")
-        if wildcard_module is None:
-            raise AssertionError("Package nodes did not load wildcard_engine")
-        with patch.object(wildcard_module, "ensure_default_wildcard_root", return_value=None):
+        wildcard_sources_module = sys.modules.get(
+            f"{package_name}.easyuse_anima.wildcard.sources"
+        )
+        if wildcard_sources_module is None:
+            raise AssertionError("Package nodes did not load canonical wildcard sources")
+        with patch.object(
+            wildcard_sources_module,
+            "ensure_default_wildcard_root",
+            return_value=None,
+        ):
             package_spec.loader.exec_module(package_module)
             yield package_module, package_nodes
     finally:
