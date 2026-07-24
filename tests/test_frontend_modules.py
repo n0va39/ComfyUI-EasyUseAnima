@@ -3216,6 +3216,59 @@ class FrontendModuleStructureTests(unittest.TestCase):
             with self.subTest(module="extension_runtime", symbol=name):
                 self.assertIn(f"  {name},", extension_runtime_source)
 
+    def test_prompt_studio_paste_autosize_is_bounded_revision_owned_and_grow_only(self):
+        stabilizer_source = (
+            PROMPT_STUDIO_MODULES / "textarea_stabilization.js"
+        ).read_text(encoding="utf-8")
+        classic_source = (
+            PROMPT_STUDIO_MODULES / "studio_resizable_input.js"
+        ).read_text(encoding="utf-8")
+        advanced_source = (
+            PROMPT_STUDIO_MODULES / "advanced_fields_ui.js"
+        ).read_text(encoding="utf-8")
+        widgets_source = (
+            PROMPT_STUDIO_MODULES / "widgets.js"
+        ).read_text(encoding="utf-8")
+        runner_source = (
+            ROOT / "tools" / "check_frontend.ps1"
+        ).read_text(encoding="utf-8")
+
+        self.assertIn("const TEXTAREA_STABILIZATION_FRAMES = 2", stabilizer_source)
+        self.assertIn("let revision = 0", stabilizer_source)
+        self.assertIn("const ownedRevision = revision", stabilizer_source)
+        self.assertIn("textarea?.isConnected === false", stabilizer_source)
+        self.assertIn("remainingFrames > 0 && (grew || !fits)", stabilizer_source)
+        self.assertIn('textarea.style.overflowY = "hidden"', stabilizer_source)
+        self.assertNotIn("setInterval", stabilizer_source)
+        self.assertNotIn("setTimeout", stabilizer_source)
+
+        for source in (classic_source, advanced_source):
+            self.assertIn("createTextareaGrowStabilizer", source)
+            self.assertIn("heightStabilizer.schedule()", source)
+            self.assertIn("currentHeight", source)
+            self.assertIn("nextHeight", source)
+
+        self.assertIn("widget?.__easyuseAnimaStudioInput", widgets_source)
+        self.assertIn("widget?.inputEl", widgets_source)
+        self.assertIn("widget?.element", widgets_source)
+        self.assertIn('candidate?.querySelector?.("textarea, input")', widgets_source)
+        self.assertIn("input.isConnected !== false", widgets_source)
+
+        resolver_source = (
+            PROMPT_STUDIO_MODULES / "studio_input_resolver.js"
+        ).read_text(encoding="utf-8")
+        self.assertIn('".lg-node[data-node-id]"', resolver_source)
+        self.assertIn('"aria-label"', resolver_source)
+        self.assertIn("anonymousFieldNames.indexOf(widget.name)", resolver_source)
+        self.assertIn("widget.__easyuseAnimaStudioInput = input", resolver_source)
+        self.assertNotIn("addEventListener", resolver_source)
+        self.assertNotIn("MutationObserver", resolver_source)
+
+        self.assertIn(
+            'node "tests\\frontend_prompt_studio_paste_autosize_smoke.mjs"',
+            runner_source,
+        )
+
     def test_advanced_width_reflow_grows_content_without_owning_node_height(self):
         controller_source = (PROMPT_STUDIO_MODULES / "advanced_layout_controller.js").read_text(
             encoding="utf-8"

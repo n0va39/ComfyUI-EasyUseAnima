@@ -63,6 +63,9 @@ import {
   findWidget,
 } from "./widgets.js";
 import {
+  resolveStudioInput as resolveStudioInputWithCanvas,
+} from "./studio_input_resolver.js";
+import {
   updateAdvancedEditorWidth,
 } from "./layout.js";
 import {
@@ -257,6 +260,15 @@ function createPromptStudioExtensionRuntime(app) {
     return isExtendNode(node) ? EXTEND_FIELD_NAMES : FIELD_NAMES;
   }
 
+  function resolveStudioInput(node, widget) {
+    return resolveStudioInputWithCanvas(
+      node,
+      widget,
+      studioFieldNames(node),
+      app.canvas?.canvas,
+    );
+  }
+
   function promptHighlightHooks() {
     return {
       findWidget,
@@ -322,6 +334,7 @@ function createPromptStudioExtensionRuntime(app) {
       growStudioManualHeightToContent,
       setStudioInputHeight,
       setStudioManualHeight,
+      resolveStudioInput,
       updateHighlight,
     });
   }
@@ -335,6 +348,7 @@ function createPromptStudioExtensionRuntime(app) {
       isExtendNode,
       layoutExtendPromptWidgets,
       refreshNodeSize,
+      resolveStudioInput,
       restoreInputFromWidget,
       studioFieldNames,
       syncWidgetValue,

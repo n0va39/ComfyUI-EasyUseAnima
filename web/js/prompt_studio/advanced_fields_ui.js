@@ -34,6 +34,9 @@ import {
   rememberAdvancedTextareaResizeStart,
   syncAdvancedTextareaLinkedInputValue,
 } from "./textarea.js";
+import {
+  createTextareaGrowStabilizer,
+} from "./textarea_stabilization.js";
 import { psText } from "./text.js";
 import {
   findWidget,
@@ -234,6 +237,7 @@ function createAdvancedFieldElement(node, field, hooks = {}) {
     } else {
       requestOverlaySync(textarea);
     }
+    return nextHeight;
   };
   const syncHeight = () => {
     if (field.heightMode === "manual") {
@@ -249,6 +253,24 @@ function createAdvancedFieldElement(node, field, hooks = {}) {
     field.heightMode = "auto";
     persistTextareaHeight(height, "auto");
   };
+  const growHeightToCurrentContent = () => {
+    const currentHeight = advancedTextareaCurrentHeight(textarea);
+    const contentHeight = advancedTextareaContentHeight(textarea);
+    const nextHeight = Math.max(currentHeight, contentHeight);
+    if (nextHeight <= currentHeight + 1) {
+      requestOverlaySync(textarea);
+      return false;
+    }
+    const persistedHeight = persistTextareaHeight(
+      nextHeight,
+      field.heightMode === "manual" ? "manual" : "auto",
+    );
+    return persistedHeight > currentHeight + 1;
+  };
+  const heightStabilizer = createTextareaGrowStabilizer(
+    textarea,
+    growHeightToCurrentContent,
+  );
   const rememberTextareaResizeStart = () => rememberAdvancedTextareaResizeStart(textarea);
   const captureTextareaManualResize = () => {
     const { changed, currentHeight } = captureAdvancedTextareaManualResize(textarea);
@@ -267,6 +289,7 @@ function createAdvancedFieldElement(node, field, hooks = {}) {
     field.text = textarea.value;
     updateFieldHighlight();
     syncHeight();
+    heightStabilizer.schedule();
   });
   textarea.addEventListener("change", () => {
     updateFieldHighlight();
