@@ -440,12 +440,32 @@ function stripPromptSyntaxClosingParens(value) {
   return value.slice(0, cursor);
 }
 
-export function parseAutocompleteText(value) {
+export function normalizeAutocompleteArtistPrefix(value) {
+  const prefix = String(value ?? "").trim();
+  if (
+    !prefix
+    || prefix.length > 32
+    || prefix.includes(",")
+    || /[\u0000-\u001f\u007f-\u009f]/.test(prefix)
+  ) {
+    return "@";
+  }
+  return prefix;
+}
+
+export function artistCompletionText(value, artistPrefix = "@") {
+  const tag = String(value ?? "");
+  const prefix = normalizeAutocompleteArtistPrefix(artistPrefix);
+  return tag.startsWith(prefix) ? tag : `${prefix}${tag}`;
+}
+
+export function parseAutocompleteText(value, artistPrefix = "@") {
   let query = String(value || "").trim();
   query = query.slice(trimPromptSyntaxPrefix(query, 0, query.length));
-  const artistOnly = query.startsWith("@");
+  const prefix = normalizeAutocompleteArtistPrefix(artistPrefix);
+  const artistOnly = query.startsWith(prefix);
   if (artistOnly) {
-    query = query.slice(1).trimStart();
+    query = query.slice(prefix.length).trimStart();
   }
   query = stripPromptSyntaxClosingParens(query);
   query = query.replace(/:\s*[+-]?(?:\d+(?:\.\d*)?|\.\d+)\s*$/, "");
@@ -453,9 +473,9 @@ export function parseAutocompleteText(value) {
   return { query, artistOnly };
 }
 
-export function autocompleteQuery(token, forceArtistOnly = false) {
+export function autocompleteQuery(token, forceArtistOnly = false, artistPrefix = "@") {
   const raw = String(token?.query || "");
-  const parsed = parseAutocompleteText(raw);
+  const parsed = parseAutocompleteText(raw, artistPrefix);
   const artistOnly = forceArtistOnly || parsed.artistOnly;
   const query = parsed.query;
   const category = artistOnly ? "artist" : "";

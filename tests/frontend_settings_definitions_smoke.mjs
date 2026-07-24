@@ -98,6 +98,7 @@ const expectedIds = [
   "EasyUseAnima.Prompt.AutocompleteMode",
   "EasyUseAnima.Prompt.AutocompleteSource",
   "EasyUseAnima.Prompt.AutocompleteLimit",
+  "EasyUseAnima.Prompt.AutocompleteArtistPrefix",
   "EasyUseAnima.Prompt.AutocompleteCommitKey",
   "EasyUseAnima.Prompt.AutocompleteAppendSeparator",
   "EasyUseAnima.Prompt.AutocompleteNoCommaAfterPeriod",
@@ -135,7 +136,7 @@ const expectedIds = [
 ];
 
 assert.deepEqual(settings.map((item) => item.id), expectedIds);
-assert.equal(settings.length, 52);
+assert.equal(settings.length, 53);
 assert.equal(new Set(expectedIds).size, settings.length, "Setting IDs must be unique");
 assert.ok(
   settings.every((item) => item.category[0] === "EASY USE ANIMA"),
@@ -172,6 +173,11 @@ assert.deepEqual(updateCalls, [
 const autocompleteLimit = byId.get("EasyUseAnima.Prompt.AutocompleteLimit");
 assert.equal(Object.hasOwn(autocompleteLimit, "tooltip"), false);
 assert.deepEqual(autocompleteLimit.attrs, { min: 1, max: 100, step: 1 });
+const autocompleteArtistPrefix = byId.get(
+  "EasyUseAnima.Prompt.AutocompleteArtistPrefix",
+);
+assert.equal(autocompleteArtistPrefix.defaultValue, "@");
+assert.deepEqual(autocompleteArtistPrefix.attrs, { maxlength: 32 });
 
 assert.deepEqual(
   byId.get("EasyUseAnima.NAIA.ResolutionBucket").options,
@@ -214,6 +220,10 @@ const expectedRegularSchemas = new Map([
   [
     "EasyUseAnima.Prompt.AutocompleteLimit",
     schema("number", 20, null, { min: 1, max: 100, step: 1 }),
+  ],
+  [
+    "EasyUseAnima.Prompt.AutocompleteArtistPrefix",
+    schema("text", "@", null, { maxlength: 32 }),
   ],
   [
     "EasyUseAnima.Prompt.AutocompleteCommitKey",

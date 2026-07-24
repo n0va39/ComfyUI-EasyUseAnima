@@ -36,6 +36,9 @@ const TEXT = {
     autocompleteLimit: "Autocomplete suggestions",
     autocompleteMode: "Autocomplete mode",
     autocompleteModeTip: "Controls where EasyUse Anima autocomplete is active.",
+    autocompleteArtistPrefix: "Artist prefix",
+    autocompleteArtistPrefixTip:
+      "Literal prefix used to start artist-only autocomplete and insert artist results. Empty or invalid values use @.",
     autocompleteCommitKey: "Autocomplete commit key",
     autocompleteCommitKeyTip: "Choose whether Enter and Tab commit suggestions, or only Tab commits. Shift+Enter always inserts a line break.",
     autocompleteAppendSeparator: "Append comma after autocomplete",
@@ -158,6 +161,9 @@ const TEXT = {
     autocompleteLimit: "자동완성 추천 수",
     autocompleteMode: "자동완성 적용 범위",
     autocompleteModeTip: "EasyUse Anima 자동완성이 동작할 위치를 정합니다.",
+    autocompleteArtistPrefix: "작가 접두사",
+    autocompleteArtistPrefixTip:
+      "작가 전용 자동완성을 시작하고 작가 결과 앞에 붙이는 문자열입니다. 빈 값이나 잘못된 값은 @를 사용합니다.",
     autocompleteCommitKey: "자동완성 적용 키",
     autocompleteCommitKeyTip: "Enter와 Tab 모두 자동완성을 적용할지, Tab만 적용할지 선택합니다. Shift+Enter는 항상 줄바꿈입니다.",
     autocompleteAppendSeparator: "자동완성 뒤 쉼표 추가",
@@ -280,6 +286,9 @@ const TEXT = {
     autocompleteLimit: "自動補完候補数",
     autocompleteMode: "自動補完の適用範囲",
     autocompleteModeTip: "EasyUse Anima 自動補完が有効になる場所を指定します。",
+    autocompleteArtistPrefix: "アーティスト接頭辞",
+    autocompleteArtistPrefixTip:
+      "アーティスト専用候補の開始と挿入に使う文字列です。空または無効な値は @ を使います。",
     autocompleteCommitKey: "自動補完の確定キー",
     autocompleteCommitKeyTip: "Enter と Tab の両方で候補を確定するか、Tab のみで確定するかを選びます。Shift+Enter は常に改行です。",
     autocompleteAppendSeparator: "自動補完後にカンマを追加",
@@ -402,6 +411,9 @@ const TEXT = {
     autocompleteLimit: "自动补全建议数",
     autocompleteMode: "自动补全适用范围",
     autocompleteModeTip: "控制 EasyUse Anima 自动补全在哪些位置启用。",
+    autocompleteArtistPrefix: "画师前缀",
+    autocompleteArtistPrefixTip:
+      "用于启动画师专用补全并插入到画师结果前的文字。空值或无效值会使用 @。",
     autocompleteCommitKey: "自动补全确认键",
     autocompleteCommitKeyTip: "选择 Enter 和 Tab 都确认建议，或仅 Tab 确认。Shift+Enter 始终插入换行。",
     autocompleteAppendSeparator: "自动补全后追加逗号",

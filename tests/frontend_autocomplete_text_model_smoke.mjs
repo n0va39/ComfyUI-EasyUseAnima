@@ -9,12 +9,14 @@ function dataModule(relativePath) {
 const textModel = await import(dataModule("../web/js/autocomplete/text_model.js"));
 
 assert.deepEqual(Object.keys(textModel).sort(), [
+  "artistCompletionText",
   "autocompleteQuery",
   "completionEditRangeContract",
   "currentToken",
   "currentWildcardToken",
   "isCaretInComment",
   "isCaretInPromptTranslationMarker",
+  "normalizeAutocompleteArtistPrefix",
   "normalizeWildcardSearchText",
   "parseAutocompleteText",
   "planAutocompleteInsertion",
@@ -22,12 +24,14 @@ assert.deepEqual(Object.keys(textModel).sort(), [
 ].sort());
 
 const {
+  artistCompletionText,
   autocompleteQuery,
   completionEditRangeContract,
   currentToken,
   currentWildcardToken,
   isCaretInComment,
   isCaretInPromptTranslationMarker,
+  normalizeAutocompleteArtistPrefix,
   normalizeWildcardSearchText,
   parseAutocompleteText,
   planAutocompleteInsertion,
@@ -358,6 +362,14 @@ assert.deepEqual(parseAutocompleteText("((@artist_name))"), {
   query: "artist_name",
   artistOnly: true,
 });
+assert.deepEqual(parseAutocompleteText("((artist:artist_name))", "artist:"), {
+  query: "artist_name",
+  artistOnly: true,
+});
+assert.deepEqual(parseAutocompleteText("((@artist_name))", "artist:"), {
+  query: "@artist_name",
+  artistOnly: false,
+});
 assert.deepEqual(autocompleteQuery({ query: "(@artist_name):1.25" }), {
   query: "artist_name",
   artistOnly: true,
@@ -368,6 +380,23 @@ assert.deepEqual(autocompleteQuery({ query: "general_tag" }, true), {
   artistOnly: true,
   category: "artist",
 });
+assert.deepEqual(
+  autocompleteQuery({ query: "artist:custom_name" }, false, "artist:"),
+  {
+    query: "custom_name",
+    artistOnly: true,
+    category: "artist",
+  },
+);
+assert.equal(normalizeAutocompleteArtistPrefix(undefined), "@");
+assert.equal(normalizeAutocompleteArtistPrefix("  artist:  "), "artist:");
+for (const invalidPrefix of ["", " ", "bad,prefix", "bad\nprefix", "\u0000bad", "x".repeat(33)]) {
+  assert.equal(normalizeAutocompleteArtistPrefix(invalidPrefix), "@");
+}
+assert.equal(artistCompletionText("artist name"), "@artist name");
+assert.equal(artistCompletionText("@artist name"), "@artist name");
+assert.equal(artistCompletionText("artist name", "artist:"), "artist:artist name");
+assert.equal(artistCompletionText("artist:artist name", "artist:"), "artist:artist name");
 assert.deepEqual(wildcardAutocompleteQuery({ query: "Folder/표정" }), {
   query: "folder/표정",
   artistOnly: false,

@@ -579,18 +579,21 @@ class AutocompleteFrontendBoundaryTests(unittest.TestCase):
         module_source = AUTOCOMPLETE_TEXT_MODEL.read_text(encoding="utf-8")
         entry_source = AUTOCOMPLETE_ENTRY.read_text(encoding="utf-8")
         expected_exports = {
+            "artistCompletionText",
             "autocompleteQuery",
             "completionEditRangeContract",
             "currentToken",
             "currentWildcardToken",
             "isCaretInComment",
             "isCaretInPromptTranslationMarker",
+            "normalizeAutocompleteArtistPrefix",
             "normalizeWildcardSearchText",
             "parseAutocompleteText",
             "planAutocompleteInsertion",
             "wildcardAutocompleteQuery",
         }
         expected_imports = {
+            "artistCompletionText",
             "autocompleteQuery",
             "currentToken as currentAutocompleteToken",
             "currentWildcardToken as currentAutocompleteWildcardToken",
@@ -599,6 +602,7 @@ class AutocompleteFrontendBoundaryTests(unittest.TestCase):
                 "isCaretInPromptTranslationMarker "
                 "as caretInPromptTranslationMarker"
             ),
+            "normalizeAutocompleteArtistPrefix",
             "normalizeWildcardSearchText",
             "parseAutocompleteText",
             "planAutocompleteInsertion",
@@ -647,8 +651,10 @@ class AutocompleteFrontendBoundaryTests(unittest.TestCase):
     def test_entry_delegates_text_rules_without_duplicate_ownership(self):
         source = AUTOCOMPLETE_ENTRY.read_text(encoding="utf-8")
         moved_declarations = {
+            "artistCompletionText",
             "autocompleteQuery",
             "isCaretInComment",
+            "normalizeAutocompleteArtistPrefix",
             "normalizeWildcardSearchText",
             "parseAutocompleteText",
             "planAutocompleteInsertion",

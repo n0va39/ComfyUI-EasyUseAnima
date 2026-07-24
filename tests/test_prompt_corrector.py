@@ -3096,6 +3096,7 @@ class SettingsTests(unittest.TestCase):
                 "autocomplete.source",
                 "autocomplete.limit",
                 "autocomplete.mode",
+                "autocomplete.artist_prefix",
                 "autocomplete.commit_key",
                 "autocomplete.append_separator",
                 "autocomplete.no_comma_after_period",
@@ -3158,6 +3159,29 @@ class SettingsTests(unittest.TestCase):
             resolve_autocomplete_mode({"autocomplete.mode": "bad"}),
             "compatible_global",
         )
+
+    def test_autocomplete_artist_prefix_is_normalized(self):
+        for value, expected in (
+            (None, "@"),
+            ("", "@"),
+            ("  artist:  ", "artist:"),
+            ("bad,prefix", "@"),
+            ("bad\nprefix", "@"),
+            ("\x00bad", "@"),
+            ("x" * 33, "@"),
+        ):
+            with self.subTest(value=value):
+                with patch.object(
+                    settings_service,
+                    "get_settings",
+                    return_value={"autocomplete.artist_prefix": value},
+                ):
+                    self.assertEqual(
+                        settings_service.public_settings()[
+                            "autocomplete.artist_prefix"
+                        ],
+                        expected,
+                    )
 
     def test_autocomplete_commit_key_is_validated(self):
         self.assertEqual(
@@ -3333,6 +3357,7 @@ class SettingsTests(unittest.TestCase):
                 "_load_comfy_settings",
                 return_value={
                     "EasyUseAnima.Prompt.AutocompleteLimit": "7",
+                    "EasyUseAnima.Prompt.AutocompleteArtistPrefix": "artist:",
                     "EasyUseAnima.Prompt.AutocompleteCommitKey": "tab",
                     "EasyUseAnima.Prompt.AutocompleteAppendSeparator": "true",
                     "EasyUseAnima.Prompt.AutocompleteNoCommaAfterPeriod": "false",
@@ -3359,6 +3384,7 @@ class SettingsTests(unittest.TestCase):
             settings = settings_service.public_settings()
 
         self.assertEqual(settings["autocomplete.limit"], 7)
+        self.assertEqual(settings["autocomplete.artist_prefix"], "artist:")
         self.assertEqual(settings["autocomplete.commit_key"], "tab")
         self.assertEqual(settings["autocomplete.append_separator"], "true")
         self.assertEqual(settings["autocomplete.no_comma_after_period"], "false")
