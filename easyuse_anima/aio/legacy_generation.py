@@ -31,11 +31,21 @@ from .first_pass_cache import (
     _put_aio_first_pass_cache,
 )
 from .generation_defaults import AIO_USDU_PROMPT_FULL
+from .generation_first_pass import AIOFirstPassStage, FirstPassRuntime
 from .generation_normalization import (
     _aio_detailer_has_enabled_targets,
     _aio_detailer_target_order,
     _normalize_aio_generation_settings,
 )
+from .generation_pipeline import (
+    ConditioningBundle,
+    GenerationRequest,
+    GenerationState,
+    PromptExecutionData,
+    ResourceBundle,
+    WorkflowContext,
+)
+from .generation_settings import _aio_generation_config_from_dict
 from .input_context import _require_easy_use_anima_input
 from .model_preparation import (
     _apply_aio_lora_stack,
@@ -655,6 +665,7 @@ def _run_aio_normalized_legacy_generation(
 ):
     if settings["mode"] != "txt2img":
         raise RuntimeError("[EasyUseAnima] AiO Generator draft currently supports txt2img only.")
+    generation_config = _aio_generation_config_from_dict(settings)
 
     base_model, base_clip, vae = _load_aio_resources_from_input_context(context)
     model_with_lora, clip, applied_loras = _apply_aio_lora_stack(
@@ -752,16 +763,23 @@ def _run_aio_normalized_legacy_generation(
             sampler,
         )
 
-    stage_metadata: dict[str, Any] = {}
+    generation_state = GenerationState(
+        latent=None,
+        image=None,
+        width=width,
+        height=height,
+    )
+    stage_metadata = generation_state.metadata
     preview_settings = settings["preview"]
-    preview_images: list[dict[str, Any]] = []
+    preview_images = generation_state.previews
     preview_node_id = _single_value(unique_id)
     preview_run_id = (
         f"{preview_node_id or 'aio'}:"
         f"{random.getrandbits(64):016x}"
     )
+    cache_scope = str(unique_id or id(generator))
     first_pass_cache_key = _aio_first_pass_cache_key(
-        cache_scope=str(unique_id or id(generator)),
+        cache_scope=cache_scope,
         context=context,
         prompt_data=prompt_data,
         lora_stack=lora_stack,
@@ -775,7 +793,43 @@ def _run_aio_normalized_legacy_generation(
         width=width,
         height=height,
     )
-    first_pass_cache_hit = False
+    generation_request = GenerationRequest(
+        config=generation_config,
+        prompts=PromptExecutionData(
+            prompt_data=prompt_data,
+            positive_prompt=positive_prompt,
+            negative_prompt=negative_prompt,
+            quality_tags=quality_tags,
+            quality_negative=quality_neg,
+            metadata_positive_prompt=metadata_prompt,
+            metadata_negative_prompt=metadata_negative_prompt,
+            use_anima_mod_guidance=use_anima_mod_guidance,
+            use_negative_anima_mod_guidance=(
+                use_negative_anima_mod_guidance
+            ),
+        ),
+        resources=ResourceBundle(
+            base_model=base_model,
+            base_clip=base_clip,
+            model_with_lora=model_with_lora,
+            model=base_sample_model,
+            clip=clip,
+            vae=vae,
+            applied_loras=tuple(applied_loras),
+        ),
+        conditioning=ConditioningBundle(
+            positive=positive,
+            negative=negative,
+        ),
+        workflow=WorkflowContext(
+            input_context=context,
+            lora_stack=lora_stack,
+            workflow_prompt=workflow_prompt,
+            extra_pnginfo=extra_pnginfo,
+            unique_id=unique_id,
+            cache_scope=cache_scope,
+        ),
+    )
 
     def add_preview(stage: str, stage_image):
         images = _save_aio_temp_preview_image(
@@ -790,48 +844,35 @@ def _run_aio_normalized_legacy_generation(
                 preview_node_id, preview_run_id, stage, images
             )
 
+    first_pass_stage = AIOFirstPassStage(
+        runtime=FirstPassRuntime(
+            get_cache=_get_aio_first_pass_cache,
+            put_cache=_put_aio_first_pass_cache,
+            generate_empty_latent=_generate_empty_latent_with_comfy,
+            sample_latent=_sample_latent_with_aio_backend,
+            decode_latent=_decode_latent_with_comfy,
+            resize_image=_resize_image_to_size_if_needed,
+            encode_image=_encode_image_with_comfy_vae,
+        ),
+        cache_key=first_pass_cache_key,
+        use_mod_guidance=base_use_mod_guidance,
+        add_preview=(
+            add_preview
+            if preview_settings["intermediate_images"]
+            else None
+        ),
+    )
+
     try:
-        cached_first_pass = _get_aio_first_pass_cache(
-            first_pass_cache_key
+        first_pass_stage.validate(
+            generation_request,
+            {"sampler_backend": sampler_backend},
         )
-        if cached_first_pass is not None:
-            latent, image = cached_first_pass
-            first_pass_cache_hit = True
-        else:
-            latent_image = _generate_empty_latent_with_comfy(
-                width, height
-            )
-            latent = _sample_latent_with_aio_backend(
-                base_sample_model,
-                clip,
-                positive,
-                negative,
-                latent_image,
-                sampler,
-                mod_guidance,
-                base_use_mod_guidance,
-                quality_tags,
-                quality_neg if use_negative_anima_mod_guidance else "",
-            )
-            image = _decode_latent_with_comfy(vae, latent)
-        image, first_pass_resized = _resize_image_to_size_if_needed(
-            image,
-            width,
-            height,
-            "bicubic",
-        )
-        if first_pass_resized:
-            latent = _encode_image_with_comfy_vae(vae, image)
-        if not first_pass_cache_hit or first_pass_resized:
-            try:
-                _put_aio_first_pass_cache(first_pass_cache_key, latent, image)
-            except Exception as exc:
-                logger.debug(
-                    "[EasyUseAnima] failed to store AiO first-pass cache: %s", exc
-                )
-        stage_metadata["first_pass"] = {"cache_hit": first_pass_cache_hit}
-        if preview_settings["intermediate_images"]:
-            add_preview("first_pass", image)
+        first_pass_stage.run(generation_request, generation_state)
+        latent = generation_state.latent
+        image = generation_state.image
+        width = generation_state.width
+        height = generation_state.height
         highres_model, highres_use_mod_guidance = (
             model_and_mod_guidance_flag_for_backend(highres_backend)
             if will_run_highres

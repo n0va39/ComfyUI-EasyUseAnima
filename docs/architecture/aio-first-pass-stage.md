@@ -5,7 +5,7 @@
 - PR type: Behavior
 - Baseline: `dev` commit
   `7893a8f338731d34f3c04852ae4c6d70fc2abd1e`
-- State: INVENTORY / PRE-IMPLEMENTATION
+- State: VALIDATED
 
 A169-02 connects exactly the mandatory first-pass stage to the A169-01
 request/state Protocol. It does not move a later stage or change cache policy.
@@ -136,3 +136,24 @@ The full suite is not repeated after deterministic component failures; failed
 stages are resumed directly. Model-backed generation and browser smoke are
 required only if the move exposes a runtime integration risk not covered by the
 existing exact trace and full suite.
+
+Validated on the A169-02 worktree:
+
+- first-pass stage: 5 focused tests passed; the one initial assertion failure
+  was a test assumption about the normalized Mod Guidance default and its
+  corrected method passed;
+- legacy generation: 18 focused tests passed, including both unchanged exact
+  trace/output cases and the outer cleanup boundary;
+- current normalized settings entered the real typed request boundary before
+  resource loading;
+- stage pipeline contract: 5 focused tests passed;
+- direct package import: 1 focused test passed;
+- backend analyzer: 18 focused tests passed with 99 shipped and 99 reachable
+  modules and no unreachable module;
+- targeted Pyright: 0 errors for both production files;
+- Python import-boundary gate: 6 package groups, 0 violations;
+- official full: Python 1056 tests passed, Pyright baseline passed, all 112
+  JavaScript files passed with TypeScript 6.0.3, and `git diff --check` passed;
+  and
+- no ComfyUI server, model-backed generation or browser smoke was run because
+  the exact runtime trace and full suite exposed no integration risk.

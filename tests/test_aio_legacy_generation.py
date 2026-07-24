@@ -26,6 +26,21 @@ class _Token:
 
 
 class AIOGeneratorLegacyMoveTests(unittest.TestCase):
+    def test_current_normalized_settings_enter_typed_stage_boundary_before_resources(self):
+        settings = nodes._normalize_aio_generation_settings("{}")
+
+        with patch.object(
+            legacy_generation,
+            "_load_aio_resources_from_input_context",
+            side_effect=RuntimeError("resource boundary"),
+        ):
+            with self.assertRaisesRegex(RuntimeError, "resource boundary"):
+                legacy_generation._run_aio_normalized_legacy_generation(
+                    object(),
+                    {"prompt_data": {}},
+                    settings,
+                )
+
     def test_private_implementation_aliases_are_canonical_in_both_import_modes(self):
         self.assertEqual(legacy_generation.__all__, ())
         self.assertIs(
@@ -1877,14 +1892,39 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
         }
         self.assertEqual(actual, fixture["cases"])
 
+    def test_first_pass_failure_keeps_outer_model_cleanup_boundary(self):
+        trace: list[str] = []
+        with patch.object(
+            legacy_generation.AIOFirstPassStage,
+            "run",
+            side_effect=RuntimeError("first pass failed"),
+        ):
+            with self.assertRaisesRegex(RuntimeError, "first pass failed"):
+                self._execute_case(
+                    upscale_enabled=False,
+                    intermediate_preview=False,
+                    unique_id=None,
+                    trace_sink=trace,
+                )
+
+        self.assertEqual(
+            trace[-3:],
+            [
+                "cleanup:sample",
+                "cleanup:model",
+                "cleanup:lora",
+            ],
+        )
+
     def _execute_case(
         self,
         *,
         upscale_enabled: bool,
         intermediate_preview: bool,
         unique_id,
+        trace_sink: list[str] | None = None,
     ) -> dict:
-        trace: list[str] = []
+        trace = trace_sink if trace_sink is not None else []
         generator = nodes.EasyUseAnimaAIOGenerator()
         context = {
             "prompt_data": {"positive_prompt": "prompt"},
@@ -1947,6 +1987,26 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
             trace.append("normalize_settings")
             self.assertEqual(value, "settings-json")
             return copy.deepcopy(settings)
+
+        def typed_config(normalized_settings):
+            return SimpleNamespace(
+                mode=normalized_settings["mode"],
+                sampler=SimpleNamespace(
+                    to_dict=lambda: copy.deepcopy(
+                        normalized_settings["sampler"]
+                    )
+                ),
+                mod_guidance=SimpleNamespace(
+                    to_dict=lambda: copy.deepcopy(
+                        normalized_settings["mod_guidance"]
+                    )
+                ),
+                preview=SimpleNamespace(
+                    intermediate_images=normalized_settings[
+                        "preview"
+                    ]["intermediate_images"]
+                ),
+            )
 
         def resolve_seed(value):
             trace.append("resolve_seed")
@@ -2096,6 +2156,7 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
                 legacy_generation,
                 _normalize_aio_generation_settings=normalize_settings,
                 _resolve_aio_runtime_seed=resolve_seed,
+                _aio_generation_config_from_dict=typed_config,
                 _load_aio_resources_from_input_context=load_resources,
                 _apply_aio_lora_stack=apply_lora,
                 _apply_aio_model_patches=apply_model_patches,
