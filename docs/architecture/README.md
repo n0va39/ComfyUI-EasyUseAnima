@@ -8,11 +8,16 @@ already exists. Start with the current-state section in
 [`python-backend.md`](python-backend.md).
 
 While Issue [#395](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/395)
-is open, read
-[`release-first-stabilization-lane.md`](release-first-stabilization-lane.md)
-**before** selecting a task from the normal executable queue. The release lane
-pauses new D/E/G/H and AiO Hook implementation, orders #266, #267, #335, #394,
-and #64, and requires an integrated release before structural work resumes.
+is open, read these active release documents in order before selecting any task:
+
+1. [`release-first-stabilization-lane.md`](release-first-stabilization-lane.md)
+2. [`prompt-studio-autocomplete-release-addendum.md`](prompt-studio-autocomplete-release-addendum.md)
+
+The base release lane pauses new D/E/G/H and AiO Hook implementation. The active
+addendum adds the Prompt Studio long-paste bug #401 and expands #64 into ordered
+completion-range, artist-prefix, safe mid-text, and bracket-editing work units.
+It overrides the affected queue, release-candidate matrix, and resumption gate in
+the base lane.
 
 After the release lane exits, use the current executable queue in
 [`python-backend-execution-roadmap.md`](python-backend-execution-roadmap.md)
@@ -24,9 +29,13 @@ historical sequencing record and no longer overrides the active queue.
 ## Documents
 
 - [`release-first-stabilization-lane.md`](release-first-stabilization-lane.md):
-  active cross-surface execution override for release-blocking LoRA bugs, required
-  autocomplete and Prompt Studio features, integrated release validation, and
-  the refactor resumption gate.
+  base active cross-surface execution override for release-blocking LoRA bugs,
+  required autocomplete and Prompt Studio features, integrated release
+  validation, and the refactor resumption gate.
+- [`prompt-studio-autocomplete-release-addendum.md`](prompt-studio-autocomplete-release-addendum.md):
+  active revision adding #401 long-paste textarea stabilization and the detailed
+  #64 dual-range completion, configurable artist prefix, right-text preservation,
+  bracket-group editing, and optional selected-text weight workflow.
 - [`python-backend.md`](python-backend.md): living architecture, ownership,
   execution phases, validation gates, and overall Definition of Done.
 - [`python-backend-execution-roadmap.md`](python-backend-execution-roadmap.md):
@@ -57,14 +66,17 @@ historical sequencing record and no longer overrides the active queue.
 - The architecture ADRs and ordinary backend roadmap cover Python backend
   ownership. Frontend JavaScript, TypeScript, DOM, canvas, resize, and visual UX
   work normally stays in development documents.
-- The release-first stabilization lane is intentionally cross-surface because a
-  release gate must order backend settings, frontend UX, workflow compatibility,
-  packaging, and live ComfyUI evidence together. It does not redefine feature
-  ownership or authorize unrelated refactoring.
+- The release-first stabilization lane and its active addendum are intentionally
+  cross-surface because a release gate must order backend settings, frontend UX,
+  workflow compatibility, packaging, and live ComfyUI evidence together. They do
+  not redefine feature ownership or authorize unrelated refactoring.
 - Long-term implementation is tracked by
   [Issue #184](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/184),
   [Issue #185](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/185), and
   their child issues. The active release override is tracked by
-  [Issue #395](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/395).
+  [Issue #395](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/395), with
+  [Issue #401](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/401) and
+  [Issue #64](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/64) owning the
+  added Prompt Studio/autocomplete work.
 - An ADR, roadmap, or sequencing addendum does not authorize a package move,
   behavior change, merge, version bump, tag, or Registry publication by itself.
