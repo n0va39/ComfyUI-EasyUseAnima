@@ -12,6 +12,7 @@ from unittest.mock import patch
 
 import autocomplete_dataset as dataset
 import autocomplete_index
+from easyuse_anima.autocomplete import index as autocomplete_index_impl
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -132,7 +133,7 @@ class AutocompleteIndexTests(unittest.TestCase):
 
     def test_glob_candidate_pattern_is_literal_and_uses_the_trigram_plan(self):
         self.assertEqual(
-            autocomplete_index._glob_pattern('%_"OR"*?[literal'),
+            autocomplete_index_impl._glob_pattern('%_"OR"*?[literal'),
             '*%_"OR"[*][?][[]literal*',
         )
         path = self._write(
@@ -155,7 +156,7 @@ class AutocompleteIndexTests(unittest.TestCase):
                 "JOIN autocomplete_entries AS e ON e.id = f.rowid "
                 "WHERE f.tag_key GLOB ? AND instr(e.tag_key, ?) > 0",
                 (
-                    autocomplete_index._glob_pattern("candidate tag 050"),
+                    autocomplete_index_impl._glob_pattern("candidate tag 050"),
                     "candidate tag 050",
                 ),
             ).fetchall()
@@ -275,7 +276,7 @@ class AutocompleteIndexTests(unittest.TestCase):
         self.assertTrue(all(result["results"] for result, _ in searched))
 
         with patch.object(
-            autocomplete_index,
+            autocomplete_index_impl,
             "_query_index",
             side_effect=sqlite3.OperationalError("database is locked"),
         ):
@@ -312,7 +313,14 @@ class AutocompleteIndexTests(unittest.TestCase):
 
     def test_index_module_is_inside_registry_package_closure(self):
         source = (ROOT / "autocomplete_dataset.py").read_text(encoding="utf-8")
-        self.assertIn("from .autocomplete_index import (", source)
+        self.assertIn(
+            "from .easyuse_anima.autocomplete.index import (",
+            source,
+        )
+        self.assertIn(
+            "from easyuse_anima.autocomplete.index import (",
+            source,
+        )
         ignored = subprocess.run(
             [
                 "git",
@@ -322,6 +330,8 @@ class AutocompleteIndexTests(unittest.TestCase):
                 "--exclude-from=.comfyignore",
                 "--",
                 "autocomplete_index.py",
+                "easyuse_anima/autocomplete/__init__.py",
+                "easyuse_anima/autocomplete/index.py",
             ],
             cwd=ROOT,
             text=True,
@@ -330,6 +340,25 @@ class AutocompleteIndexTests(unittest.TestCase):
         )
         self.assertEqual(ignored.returncode, 0, ignored.stdout + ignored.stderr)
         self.assertEqual(ignored.stdout.strip(), "", ignored.stdout + ignored.stderr)
+
+    def test_root_index_module_is_an_explicit_canonical_identity_shim(self):
+        expected = (
+            "AUTOCOMPLETE_INDEX_SCHEMA_VERSION",
+            "AutocompleteIndexSource",
+            "IndexedAutocompleteEntry",
+            "AutocompleteIndexDiagnostics",
+            "AutocompleteIndexResult",
+            "AutocompleteIndexUnavailable",
+            "search_autocomplete_index",
+        )
+        self.assertEqual(autocomplete_index.__all__, expected)
+        self.assertEqual(autocomplete_index_impl.__all__, expected)
+        for name in expected:
+            with self.subTest(name=name):
+                self.assertIs(
+                    getattr(autocomplete_index, name),
+                    getattr(autocomplete_index_impl, name),
+                )
 
 
 if __name__ == "__main__":

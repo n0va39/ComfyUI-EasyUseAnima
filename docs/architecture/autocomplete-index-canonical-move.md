@@ -7,7 +7,7 @@
 - Parent roadmap unit: D-11 Autocomplete
 - PR type: Move
 - Baseline: `dev@8183aaf472d5cf88978c1dfe20f7bc5ca7d1895c`
-- State: READY
+- State: VALIDATED in PR #385
 - Behavior changes: forbidden
 
 ## Responsibility boundary
@@ -16,7 +16,7 @@ The root `autocomplete_index.py` is the dependency leaf of D-11. It owns the
 versioned SQLite index model, metadata validation, ranked query, atomic rebuild,
 corruption recovery, and per-index-path process-local locks.
 
-D-11a moves that file unchanged to:
+D-11a moves that implementation unchanged to:
 
 - `easyuse_anima.autocomplete.index`.
 
@@ -25,6 +25,10 @@ The root module becomes an explicit direct re-export shim. The still-root
 remains unchanged. Dataset source discovery, CSV snapshot/cache, prompt
 classification, fallback ranking, and public search/status behavior belong to
 D-11b.
+
+The canonical owner adds the explicit seven-name `__all__` declaration and
+private `Protocol`/`Sequence` annotations required by the existing package and
+Pyright gates. Runtime algorithm statements remain unchanged.
 
 ## Symbol inventory
 
@@ -133,9 +137,24 @@ Supporting:
 
 - focused index query/rebuild/fallback/concurrency tests;
 - exact root/canonical identity for seven supported symbols;
-- pre-move/canonical AST parity;
+- pre-move/canonical runtime implementation parity after normalizing the new
+  export declaration and type-only annotations;
 - package skeleton, import boundary, Registry scanner, backend analyzer, and
   actual packed-archive closure;
 - official full runner once at the PR checkpoint; and
 - root `autocomplete_index.py` contains only explicit direct re-exports while
   the production dataset consumer imports the canonical index.
+
+Validated evidence:
+
+- focused index behavior and identity: 8 tests passed;
+- focused package skeleton: 1 test passed;
+- focused import boundary: 16 tests passed with 10 enrolled groups and zero
+  violations;
+- focused Registry scanner: 8 tests passed;
+- focused backend analyzer: 18 tests passed;
+- official full: 1,133 Python tests and 112 frontend files passed; Pyright
+  ratchet passed for 106 files with the existing 14 errors and no new
+  diagnostics; and
+- `comfy node validate` passed; `comfy node pack` produced 253 entries
+  including the root dataset/index files and both canonical autocomplete files.

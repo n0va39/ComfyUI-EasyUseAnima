@@ -395,7 +395,7 @@ class CompletedPackageImportBoundaryTests(unittest.TestCase):
         mutations.append(changed_owner)
 
         changed_role = copy.deepcopy(self.contract_document)
-        changed_role["groups"][1]["role"] = "common"
+        changed_role["groups"][0]["role"] = "common"
         mutations.append(changed_role)
 
         renamed_group = copy.deepcopy(self.contract_document)

@@ -42,6 +42,8 @@ PACKAGE_MODULES = (
     "easyuse_anima.aio.generation_settings",
     "easyuse_anima.aio.resources",
     "easyuse_anima.aio.usdu",
+    "easyuse_anima.autocomplete",
+    "easyuse_anima.autocomplete.index",
     "easyuse_anima.common",
     "easyuse_anima.common.values",
     "easyuse_anima.common.serialization",
@@ -171,6 +173,17 @@ print(json.dumps({{
         self.assertEqual(payload["modules"], list(PACKAGE_MODULES))
         expected_all = [[] for _ in PACKAGE_MODULES]
         expected_all[PACKAGE_MODULES.index("easyuse_anima.bootstrap")] = ["initialize"]
+        expected_all[
+            PACKAGE_MODULES.index("easyuse_anima.autocomplete.index")
+        ] = [
+            "AUTOCOMPLETE_INDEX_SCHEMA_VERSION",
+            "AutocompleteIndexSource",
+            "IndexedAutocompleteEntry",
+            "AutocompleteIndexDiagnostics",
+            "AutocompleteIndexResult",
+            "AutocompleteIndexUnavailable",
+            "search_autocomplete_index",
+        ]
         expected_all[
             PACKAGE_MODULES.index("easyuse_anima.aio.generation_pipeline")
         ] = [
