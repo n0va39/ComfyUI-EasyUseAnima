@@ -681,6 +681,26 @@ def _run_aio_normalized_legacy_generation(
     extra_pnginfo=None,
     unique_id=None,
 ):
+    return _run_aio_generation_pipeline(
+        generator,
+        context,
+        settings,
+        lora_stack,
+        workflow_prompt,
+        extra_pnginfo,
+        unique_id,
+    )
+
+
+def _run_aio_generation_pipeline(
+    generator,
+    context: dict[str, Any],
+    settings: dict[str, Any],
+    lora_stack=None,
+    workflow_prompt=None,
+    extra_pnginfo=None,
+    unique_id=None,
+):
     if settings["mode"] != "txt2img":
         raise RuntimeError("[EasyUseAnima] AiO Generator draft currently supports txt2img only.")
     generation_config = _aio_generation_config_from_dict(settings)

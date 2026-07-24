@@ -26,6 +26,38 @@ class _Token:
 
 
 class AIOGeneratorLegacyMoveTests(unittest.TestCase):
+    def test_normalized_legacy_adapter_forwards_exactly_to_canonical_pipeline(self):
+        expected = object()
+        generator = object()
+        context = {"prompt_data": {}}
+        settings = {"mode": "txt2img"}
+
+        with patch.object(
+            legacy_generation,
+            "_run_aio_generation_pipeline",
+            return_value=expected,
+        ) as run:
+            actual = legacy_generation._run_aio_normalized_legacy_generation(
+                generator,
+                context,
+                settings,
+                "lora",
+                "workflow",
+                "pnginfo",
+                "node-id",
+            )
+
+        self.assertIs(actual, expected)
+        run.assert_called_once_with(
+            generator,
+            context,
+            settings,
+            "lora",
+            "workflow",
+            "pnginfo",
+            "node-id",
+        )
+
     def test_current_normalized_settings_enter_typed_stage_boundary_before_resources(self):
         settings = nodes._normalize_aio_generation_settings("{}")
 
@@ -1839,7 +1871,7 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
             ),
             patch.object(
                 aio_nodes,
-                "_run_aio_normalized_legacy_generation",
+                "_run_aio_generation_pipeline",
                 return_value=forwarded,
             ) as run,
         ):

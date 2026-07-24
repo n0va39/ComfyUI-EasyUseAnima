@@ -272,6 +272,11 @@ class AIOStagePipelineContractTests(unittest.TestCase):
         self.assertIn("AIOSaveOutputStage", legacy_source)
         self.assertIn("GenerationRequest", save_output_source)
         self.assertIn("GenerationState", save_output_source)
+        self.assertIn("_run_aio_generation_pipeline", canonical_node_source)
+        self.assertNotIn(
+            "_run_aio_normalized_legacy_generation",
+            canonical_node_source,
+        )
         self.assertNotIn("generation_first_pass", canonical_node_source)
         self.assertNotIn("generation_first_pass", root_source)
         self.assertNotIn("generation_highres", canonical_node_source)
