@@ -407,7 +407,7 @@ mechanical retirement series.
 | 14 | B-11 registration/bootstrap/root shim | COMPLETE in PR #356 | Move/Contract, split PRs | #184 | Zero runtime binders/residual implementation; explicit root `__all__`; frozen compatibility audit |
 | 15 | S167 backend seed reservation series | S167-01 through S167-03d COMPLETE on `dev`; S167-03e AiO cutover VALIDATED with isolated API/module/browser-load parity | Contract then Move then Behavior | #167 | Canonical AiO/node seams |
 | 16 | A169 stage pipeline series | A169-01 through A169-08 MERGED; A169-09 final adapter/integration VALIDATED in PR #372 | Contract then Behavior | #169 | Typed config and mechanical AiO move |
-| 17 | A169 first-pass cache policy | A169-CACHE-01 MERGED; A169-CACHE-02 immutable entry/copy-on-write contract INVENTORY | Contract then Behavior | #169 | Mechanical cache move and stable stage seam |
+| 17 | A169 first-pass cache policy | A169-CACHE-01 MERGED; A169-CACHE-02 immutable entry/copy-on-write contract VALIDATED in PR #374 | Contract then Behavior | #169 | Mechanical cache move and stable stage seam |
 | 18 | D-series canonical root consolidation | BLOCKED by relevant C contracts | Move | #186 | Phase B exit; per-feature behavior stable |
 | 19 | E-series RuntimeServices/lifecycle | BLOCKED by canonical owners | Move/Contract, split PRs | #187 | Relevant D moves |
 | 20 | G-04 through G-06 and H | INCREMENTAL/LATER | Gate/Contract | #188 | Appropriate package and release evidence |

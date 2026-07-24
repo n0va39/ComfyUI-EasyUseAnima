@@ -5,7 +5,7 @@
 - PR type: Behavior
 - Baseline: `dev` commit
   `366c4709edb5da8bcf450891221fbcdd474b29f8`
-- State: INVENTORY
+- State: VALIDATED
 
 A169-CACHE-02 turns each cache value into a structurally frozen, cache-owned
 snapshot and defines overwrite as whole-entry replacement. It keeps the
@@ -120,3 +120,23 @@ Focused validation must prove:
 
 One official full validation follows focused success. No server, model,
 browser, or user-instance smoke is required.
+
+## Validation result
+
+Validated on the A169-CACHE-02 worktree:
+
+- frozen entry, legacy mapping fallback, LRU/cap/clear/root aliases: 9 focused
+  cache tests passed;
+- A169-CACHE-01 benchmark/mutation-isolation contract: 3 focused tests passed;
+- First-pass stage caller: 5 focused tests passed;
+- default bounded benchmark retained 50 clones and 3,276,800 logical copied
+  bytes for both put-overwrite and get-hit, with both isolation checks true;
+- targeted Ruff 0.15.22 and Pyright 1.1.411: changed production file passed
+  with 0 errors;
+- Python backend analyzer: 18 focused tests passed;
+- Python import-boundary gate: 6 completed package groups, 0 violations; and
+- official full: 1,101 Python tests plus 112 frontend JavaScript files passed,
+  with the reviewed Pyright baseline unchanged at 88 files and 14 errors.
+
+No clone count, key, miss, LRU, cap, clear, alias, caller, stage, server, model,
+browser, workflow, frontend, or user-instance behavior was changed.
