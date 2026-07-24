@@ -5,7 +5,7 @@
 - PR type: Behavior
 - Baseline: `dev` commit
   `fcab2fa92dad164812c2c4961c4f580c77f54acc`
-- State: INVENTORY
+- State: VALIDATED
 
 CACHE-04a adds an explicit process-local enable lifecycle and absolute TTL. It
 does not change resource keys; CACHE-04b separately owns resolved resource
@@ -111,3 +111,23 @@ Focused validation must prove:
 
 One official full validation follows focused success. No server, model,
 browser, or user-instance smoke is required.
+
+## Validation result
+
+Validated on the CACHE-04a worktree:
+
+- exact defaults, clock reads, before/at/after TTL, absolute non-sliding
+  expiration, last-access replacement, disable/clear/re-enable, legacy
+  fallback, byte/count/LRU/root aliases: 19 focused cache tests passed;
+- benchmark clone/mutation and enabled-state isolation: 4 focused tests passed;
+- First-pass stage caller: 5 focused tests passed;
+- disabled get/put were proven to call neither estimator, clone, nor clock;
+- targeted Ruff 0.15.22 and Pyright 1.1.411: changed production/test files
+  passed, production file with 0 Pyright errors;
+- Python backend analyzer: 18 focused tests passed;
+- Python import-boundary gate: 6 completed package groups, 0 violations; and
+- official full: 1,112 Python tests plus 112 frontend JavaScript files passed,
+  with the reviewed Pyright baseline unchanged at 88 files and 14 errors.
+
+No resource revision/key, metrics, concurrency, runtime owner, server, model,
+browser, workflow, frontend, or user-instance behavior was changed.
