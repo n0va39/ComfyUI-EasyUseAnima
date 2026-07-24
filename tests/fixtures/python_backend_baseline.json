@@ -26158,7 +26158,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 77
+            "line": 81
           }
         ],
         "classification": "external",
@@ -26166,7 +26166,7 @@
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 78,
+        "line": 82,
         "name": null,
         "optional": true,
         "requested": "folder_paths",
@@ -59722,14 +59722,14 @@
       },
       {
         "is_package": false,
-        "loc": 488,
+        "loc": 493,
         "module": "easyuse_anima.autocomplete.dataset",
-        "normalized_git_blob_sha1": "b0b29152a1cefb4e275431d5c418e51597e5235a",
+        "normalized_git_blob_sha1": "4544b4e59e500f0290db4172744347ce13c5f079",
         "path": "easyuse_anima/autocomplete/dataset.py",
         "top_level": {
           "class_count": 4,
           "function_count": 24,
-          "global_count": 21
+          "global_count": 22
         }
       },
       {
@@ -60502,14 +60502,14 @@
       },
       {
         "is_package": false,
-        "loc": 187,
+        "loc": 248,
         "module": "easyuse_anima.settings.repository",
-        "normalized_git_blob_sha1": "224d9bbfd66a3240fde2ef9d4c48ab042eb576df",
+        "normalized_git_blob_sha1": "7abffa760e12c495b4958c093c54dec2ac4da3d2",
         "path": "easyuse_anima/settings/repository.py",
         "top_level": {
           "class_count": 0,
-          "function_count": 12,
-          "global_count": 3
+          "function_count": 15,
+          "global_count": 7
         }
       },
       {
@@ -77292,14 +77292,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 77
+            "line": 81
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 78,
+        "line": 82,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/settings/repository.py"
@@ -78876,14 +78876,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 77
+            "line": 81
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 78,
+        "line": 82,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/settings/repository.py"
@@ -80197,7 +80197,7 @@
         "column": 19,
         "context": "assign:_INLINE_SPACE_RE",
         "kind": "import_time_call",
-        "line": 74,
+        "line": 75,
         "module": "easyuse_anima/autocomplete/dataset.py",
         "scope": "<module>"
       },
@@ -80206,7 +80206,7 @@
         "column": 25,
         "context": "assign:_DESCRIPTION_PREFIX_RE",
         "kind": "import_time_call",
-        "line": 106,
+        "line": 107,
         "module": "easyuse_anima/autocomplete/dataset.py",
         "scope": "<module>"
       },
@@ -80215,7 +80215,7 @@
         "column": 1,
         "context": "decorator:AutocompleteEntry",
         "kind": "import_time_call",
-        "line": 118,
+        "line": 119,
         "module": "easyuse_anima/autocomplete/dataset.py",
         "scope": "<module>"
       },
@@ -80224,7 +80224,7 @@
         "column": 1,
         "context": "decorator:_AutocompleteCacheKey",
         "kind": "import_time_call",
-        "line": 128,
+        "line": 129,
         "module": "easyuse_anima/autocomplete/dataset.py",
         "scope": "<module>"
       },
@@ -80233,7 +80233,7 @@
         "column": 1,
         "context": "decorator:_AutocompleteSnapshot",
         "kind": "import_time_call",
-        "line": 136,
+        "line": 137,
         "module": "easyuse_anima/autocomplete/dataset.py",
         "scope": "<module>"
       },
@@ -80242,7 +80242,7 @@
         "column": 14,
         "context": "assign:_CACHE_LOCK",
         "kind": "import_time_call",
-        "line": 147,
+        "line": 148,
         "module": "easyuse_anima/autocomplete/dataset.py",
         "scope": "<module>"
       },
@@ -81008,37 +81008,37 @@
       },
       {
         "kind": "dict",
-        "line": 43,
+        "line": 44,
         "module": "easyuse_anima/autocomplete/dataset.py",
         "name": "AUTOCOMPLETE_SOURCES"
       },
       {
         "kind": "dict",
-        "line": 150,
+        "line": 151,
         "module": "easyuse_anima/autocomplete/dataset.py",
         "name": "_CACHE"
       },
       {
         "kind": "dict",
-        "line": 77,
+        "line": 78,
         "module": "easyuse_anima/autocomplete/dataset.py",
         "name": "_DANBOORU_CATEGORY_NAMES"
       },
       {
         "kind": "dict",
-        "line": 86,
+        "line": 87,
         "module": "easyuse_anima/autocomplete/dataset.py",
         "name": "_E621_CATEGORY_NAMES"
       },
       {
         "kind": "dict",
-        "line": 153,
+        "line": 154,
         "module": "easyuse_anima/autocomplete/dataset.py",
         "name": "_INFLIGHT"
       },
       {
         "kind": "dict",
-        "line": 97,
+        "line": 98,
         "module": "easyuse_anima/autocomplete/dataset.py",
         "name": "_MERGED_E621_CATEGORY_NAMES"
       },
@@ -81389,7 +81389,7 @@
           "mutable_container"
         ],
         "initializer": "Dict",
-        "line": 150,
+        "line": 151,
         "module": "easyuse_anima/autocomplete/dataset.py",
         "name": "_CACHE"
       },
@@ -81398,7 +81398,7 @@
           "lock"
         ],
         "initializer": "threading.Lock",
-        "line": 147,
+        "line": 148,
         "module": "easyuse_anima/autocomplete/dataset.py",
         "name": "_CACHE_LOCK"
       },
@@ -81409,7 +81409,7 @@
           "single_flight"
         ],
         "initializer": "Dict",
-        "line": 153,
+        "line": 154,
         "module": "easyuse_anima/autocomplete/dataset.py",
         "name": "_INFLIGHT"
       },

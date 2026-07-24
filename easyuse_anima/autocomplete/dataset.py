@@ -38,6 +38,7 @@ AUTOCOMPLETE_CSV = DBR_DANBOORU_AUTOCOMPLETE_CSV
 
 
 DEFAULT_AUTOCOMPLETE_SOURCE = "dbr_danbooru_2025_09_01"
+_KOREAN_AUTOCOMPLETE_SOURCE = "localsmile_kr_wiki"
 
 
 AUTOCOMPLETE_SOURCES = {
@@ -157,7 +158,11 @@ def resolve_autocomplete_source(source: str | None = None) -> tuple[str, Path]:
     key = str(source or "").strip() or DEFAULT_AUTOCOMPLETE_SOURCE
     if key not in AUTOCOMPLETE_SOURCES:
         key = DEFAULT_AUTOCOMPLETE_SOURCE
-    return key, Path(AUTOCOMPLETE_SOURCES[key]["path"])
+    path = Path(AUTOCOMPLETE_SOURCES[key]["path"])
+    if key == _KOREAN_AUTOCOMPLETE_SOURCE and not path.is_file():
+        key = DEFAULT_AUTOCOMPLETE_SOURCE
+        path = Path(AUTOCOMPLETE_SOURCES[key]["path"])
+    return key, path
 
 
 def available_autocomplete_sources(selected: str | None = None) -> list[dict]:

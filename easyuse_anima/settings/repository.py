@@ -19,6 +19,10 @@ from .schema import (
 
 SETTINGS_FILE = USER_DATA_DIR / "settings.json"
 LONG_TEXT_SETTINGS_FILE = USER_DATA_DIR / "long_text_settings.json"
+_AUTOCOMPLETE_SOURCE_KEY = "autocomplete.source"
+_COMFY_AUTOCOMPLETE_SOURCE_KEY = "EasyUseAnima.Prompt.AutocompleteSource"
+_COMFY_LOCALE_KEY = "Comfy.Locale"
+_KOREAN_AUTOCOMPLETE_SOURCE = "localsmile_kr_wiki"
 
 
 def _read_json_file(path: Path) -> dict:
@@ -101,6 +105,53 @@ def _load_comfy_settings() -> dict:
     return {}
 
 
+def _is_korean_locale(value) -> bool:
+    locale = str(value or "").strip().casefold()
+    return (
+        locale == "ko"
+        or locale.startswith("ko-")
+        or "korean" in locale
+        or "한국어" in locale
+    )
+
+
+def _initial_autocomplete_source(comfy_settings: dict) -> str:
+    if _is_korean_locale(comfy_settings.get(_COMFY_LOCALE_KEY)):
+        return _KOREAN_AUTOCOMPLETE_SOURCE
+    return DEFAULT_SETTINGS[_AUTOCOMPLETE_SOURCE_KEY]
+
+
+def _initialize_autocomplete_source(data: dict, comfy_settings: dict) -> dict:
+    if (
+        _AUTOCOMPLETE_SOURCE_KEY in data
+        or _COMFY_AUTOCOMPLETE_SOURCE_KEY in comfy_settings
+    ):
+        return data
+
+    source = _initial_autocomplete_source(comfy_settings)
+    initialized = dict(data)
+    initialized[_AUTOCOMPLETE_SOURCE_KEY] = source
+
+    def merge(current) -> dict:
+        if not isinstance(current, dict):
+            return initialized
+        if _AUTOCOMPLETE_SOURCE_KEY in current:
+            return current
+        current = dict(current)
+        current[_AUTOCOMPLETE_SOURCE_KEY] = source
+        return current
+
+    try:
+        persisted = AtomicJsonStore(SETTINGS_FILE).update(
+            merge,
+            default={},
+            trailing_newline=True,
+        )
+    except OSError:
+        return initialized
+    return persisted if isinstance(persisted, dict) else initialized
+
+
 def _stringify_setting_value(value) -> str:
     if value is None:
         return ""
@@ -139,8 +190,15 @@ def _apply_prompt_studio_color_settings(
         settings["prompt_studio.colors"] = json.dumps(colors, ensure_ascii=False)
 
 
-def _apply_comfy_settings(settings: dict) -> dict:
-    comfy_settings = _load_comfy_settings()
+def _apply_comfy_settings(
+    settings: dict,
+    comfy_settings: dict | None = None,
+) -> dict:
+    comfy_settings = (
+        _load_comfy_settings()
+        if comfy_settings is None
+        else comfy_settings
+    )
     for comfy_key, internal_key in COMFY_SETTING_KEYS.items():
         if comfy_key in comfy_settings and internal_key in DEFAULT_SETTINGS:
             settings[internal_key] = _stringify_setting_value(
@@ -156,14 +214,17 @@ def _apply_long_text_settings(settings: dict) -> dict:
 
 
 def get_settings() -> dict:
-    settings = dict(DEFAULT_SETTINGS)
     data = _read_json_file(SETTINGS_FILE)
-    if isinstance(data, dict):
-        for key in DEFAULT_SETTINGS:
-            if key in data:
-                value = data[key]
-                settings[key] = "" if value is None else str(value)
-    return _apply_long_text_settings(_apply_comfy_settings(settings))
+    comfy_settings = _load_comfy_settings()
+    data = _initialize_autocomplete_source(data, comfy_settings)
+    settings = dict(DEFAULT_SETTINGS)
+    for key in DEFAULT_SETTINGS:
+        if key in data:
+            value = data[key]
+            settings[key] = "" if value is None else str(value)
+    return _apply_long_text_settings(
+        _apply_comfy_settings(settings, comfy_settings)
+    )
 
 
 def save_setting(key: str, value) -> dict:

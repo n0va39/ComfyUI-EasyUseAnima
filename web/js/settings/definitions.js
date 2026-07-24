@@ -6,6 +6,7 @@ import {
   NAIA_RESOLUTION_BUCKET_OPTIONS,
   ROOT_CATEGORY,
 } from "./definition_data.js";
+import { easyuseAnimaInitialAutocompleteSource } from "../easyuse_anima_i18n.js";
 
 /**
  * @typedef {object} EasyUseAnimaSettingsDependencies
@@ -121,7 +122,7 @@ export function createEasyUseAnimaSettings(dependencies) {
       name: t("autocompleteCsv"),
       tooltip: t("autocompleteCsvTip"),
       type: "combo",
-      defaultValue: "dbr_danbooru_2025_09_01",
+      defaultValue: easyuseAnimaInitialAutocompleteSource,
       options: [
         "dbr_danbooru_2025_09_01",
         "dbr_e621_2025_09_01",
