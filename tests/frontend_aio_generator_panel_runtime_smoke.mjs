@@ -1277,21 +1277,21 @@ assert.equal(previewMeta.textContent, "-");
 assert.equal(previewMeta.title, "");
 
 fixture.trace.length = 0;
-node.__easyuseAnimaLastQueuedSeed = 777;
+node.__easyuseAnimaLastExecutedSeed = 777;
 assert.equal(
   fixture.runtime.updateSeed(node, 776, {
     markDirty: false,
   }),
   776,
 );
-assert.equal(node.__easyuseAnimaLastQueuedSeed, 777);
+assert.equal(node.__easyuseAnimaLastExecutedSeed, 777);
 assert.equal(node.widgetValues.seed, 776);
 assert.equal(node.settings.sampler.seed, 776);
 assert.equal(panel.querySelector("[data-aio-seed-input]").value, 776);
 assert.equal(
   fixture.trace.includes("dirty"),
   false,
-  "accepted queue seed updates must not mark the workflow dirty",
+  "accepted backend seed updates must not mark the workflow dirty",
 );
 assert.equal(
   panel.querySelector("[data-aio-seed-last]").textContent,
@@ -1306,12 +1306,12 @@ assert.throws(
   (error) => error === seedCommitFailure,
 );
 delete node.failSeedCommit;
-assert.equal(node.__easyuseAnimaLastQueuedSeed, 777);
+assert.equal(node.__easyuseAnimaLastExecutedSeed, 777);
 assert.equal(node.widgetValues.seed, 776);
 assert.equal(node.settings.sampler.seed, 776);
 assert.equal(panel.querySelector("[data-aio-seed-input]").value, 776);
 
-node.__easyuseAnimaLastQueuedSeed = 777;
+node.__easyuseAnimaLastExecutedSeed = 777;
 fixture.runtime.refreshSeedButtons(node);
 let seedLast = panel.querySelector("[data-aio-seed-last]");
 assert.equal(seedLast.disabled, false);

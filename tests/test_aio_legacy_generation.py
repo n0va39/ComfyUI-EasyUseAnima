@@ -5,7 +5,9 @@ import inspect
 import json
 import sys
 import unittest
+from contextlib import contextmanager
 from pathlib import Path
+from types import SimpleNamespace
 from unittest.mock import patch
 
 import nodes
@@ -1765,7 +1767,7 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
             ],
         )
 
-    def test_root_generate_keeps_signature_and_forwards_without_adaptation(self):
+    def test_root_generate_keeps_signature_and_forwards_normalized_execution(self):
         signature = inspect.signature(nodes.EasyUseAnimaAIOGenerator.generate)
         self.assertEqual(
             list(signature.parameters),
@@ -1789,12 +1791,43 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
             self.assertIsNone(signature.parameters[name].default)
 
         generator = nodes.EasyUseAnimaAIOGenerator()
-        forwarded = object()
-        with patch.object(
-            aio_nodes,
-            "_run_aio_legacy_generation",
-            return_value=forwarded,
-        ) as run:
+        normalized = {
+            "sampler": {
+                "seed": 7,
+                "seed_after_generate": "fixed",
+            },
+        }
+        forwarded = {
+            "ui": {"status": ["forwarded"]},
+            "result": ("image", "latent", "metadata"),
+        }
+
+        @contextmanager
+        def reserved_seed(**_kwargs):
+            yield SimpleNamespace(execution_seed=7, next_seed=7)
+
+        with (
+            patch.object(
+                aio_nodes,
+                "_normalize_aio_generation_settings",
+                return_value=normalized,
+            ),
+            patch.object(
+                aio_nodes,
+                "_require_easy_use_anima_input",
+                return_value="input",
+            ),
+            patch.object(
+                aio_nodes,
+                "aio_seed_execution",
+                reserved_seed,
+            ),
+            patch.object(
+                aio_nodes,
+                "_run_aio_normalized_legacy_generation",
+                return_value=forwarded,
+            ) as run,
+        ):
             result = generator.generate(
                 "input",
                 {"settings": True},
@@ -1805,10 +1838,14 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
             )
 
         self.assertIs(result, forwarded)
+        self.assertEqual(
+            result["ui"]["easyuse_anima_aio_seed"],
+            [{"execution_seed": "7", "next_seed": "7"}],
+        )
         run.assert_called_once_with(
             generator,
             "input",
-            {"settings": True},
+            normalized,
             "lora",
             "workflow",
             "pnginfo",
@@ -1856,7 +1893,7 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
         }
         settings = {
             "mode": "txt2img",
-            "sampler": {"seed": "random", "backend": "comfy_ksampler"},
+            "sampler": {"seed": -1, "backend": "comfy_ksampler"},
             "artist_mix": {
                 "mode": "sequential",
                 "start_percent": 0.0,
@@ -1913,7 +1950,7 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
 
         def resolve_seed(value):
             trace.append("resolve_seed")
-            self.assertEqual(value, "random")
+            self.assertEqual(value, -1)
             return 17
 
         def load_resources(value):
@@ -2045,6 +2082,16 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
             self.fail("standalone Mod Guidance must remain lazy for the fixture cases")
 
         with (
+            patch(
+                "easyuse_anima.nodes.seed_adapters.resolve_seed_execution_identity",
+                return_value=None,
+            ),
+            patch.multiple(
+                aio_nodes,
+                _require_easy_use_anima_input=require,
+                _normalize_aio_generation_settings=normalize_settings,
+                _resolve_aio_runtime_seed=resolve_seed,
+            ),
             patch.multiple(
                 legacy_generation,
                 _normalize_aio_generation_settings=normalize_settings,

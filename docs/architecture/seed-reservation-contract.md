@@ -827,7 +827,7 @@ Exit:
 
 ## S167-03d Prompt Studio cutover Behavior record
 
-- State: VALIDATED; `dev` merge pending
+- State: COMPLETE on `dev` in PR #362
 - PR type: Behavior
 - Baseline: `dev` commit
   `23cd9990f5b33ec33a02a66bad9e4f77f874bcdc`
@@ -906,3 +906,115 @@ It does not change AiO callers, AiO domains or frontend hooks, reservation
 capacity, execution identity, settlement classification, workflow schemas,
 root compatibility aliases, #169 stages, D-12, release, or Registry behavior.
 S167-03e remains a separate AiO Behavior PR and the next rollback unit.
+
+## S167-03e AiO cutover Behavior record
+
+- State: VALIDATED; isolated runtime parity passed and `dev` merge pending
+- PR type: Behavior
+- Baseline: `dev` commit
+  `b486d0efb758af9d17fedc2e0aa9dcdb2a4d5896`
+- Feature reservation caller: `EasyUseAnimaAIOGenerator`
+
+### Symbol, caller, alias, and global-state inventory
+
+- `EasyUseAnimaAIOGenerator.IS_CHANGED` and
+  `_run_aio_legacy_generation` were the two backend special-seed
+  interpreters. The generation adapter had no reservation/session caller.
+- `web/js/aio/generator_queue_runtime.js` owned a second per-node `WeakMap`
+  reservation service, queue-payload/workflow rewriting, FIFO settlement, and
+  accepted seed publication.
+- `web/js/aio/extension_runtime.js` retained a replacement-safe global queue
+  lease solely for that browser service.
+- The panel's `__easyuseAnimaLastQueuedSeed` state described browser queue
+  acceptance rather than completed backend execution.
+- Root `_resolve_aio_runtime_seed` compatibility remains a direct D-12 alias.
+  This rollback unit does not change the root compatibility registry.
+
+### Implemented boundary
+
+`easyuse_anima.nodes.seed_adapters.aio_seed_execution` translates normalized
+legacy AiO `-1/-2/-3` values through the version-2 parser and opens the shared
+identity/session/service lifetime.
+
+- AiO supplies its existing inclusive `2^50` editable maximum and clamp
+  overflow policy explicitly.
+- A normal node return settles accepted; failure and active Comfy interruption
+  use the shared rejected/cancelled settlement behavior.
+- Execution without a usable host identity or installed runtime remains an
+  isolated compatibility path. It preserves concrete values, resolves legacy
+  special selection through the former runtime resolver, and applies
+  fixed/randomize/clamped increment/decrement next-seed rules without mutating
+  process service state.
+- `IS_CHANGED` forces execution for every special selection and every
+  non-fixed after-generate control. A concrete fixed request remains cacheable.
+- The reserved concrete seed is written into the normalized generation
+  settings before legacy orchestration starts, so sampling, first-pass cache,
+  saving, and the existing metadata JSON all observe one execution seed.
+- A dedicated normalized legacy helper avoids repeating input/settings
+  normalization inside the reservation while the root
+  `_run_aio_legacy_generation` compatibility alias and signature remain
+  unchanged for D-12.
+
+The existing three result sockets and metadata JSON schema are unchanged. One
+Comfy executed UI payload, `easyuse_anima_aio_seed`, publishes decimal-string
+`execution_seed` and `next_seed` values. Decimal strings preserve uint64
+compatibility values across JSON; the browser writes only values inside its
+smaller editable domain.
+
+### Browser authority retirement
+
+- `generator_queue_runtime.js`, its `WeakMap`/FIFO state machine, prompt and
+  workflow rewriting, host-hook registration, and the 1,035-line queue smoke
+  are removed.
+- `extension_runtime.js` no longer imports the host-hook registry or owns a
+  global queue lease.
+- `executed_seed_runtime.js` is a DOM-free display adapter. It records the last
+  completed backend seed, applies the accepted next seed without dirtying the
+  workflow, and cannot affect backend settlement when a stale panel rejects
+  publication.
+- The panel's reusable seed state is renamed to
+  `__easyuseAnimaLastExecutedSeed`, and its user-facing text now describes a
+  completed execution.
+- Optional dependency checks remain attached to feature dialogs. Queueing no
+  longer performs the retired blanket dependency refresh.
+
+Old browser bundles may still rewrite a legacy special seed to a concrete
+value before submission. The backend accepts that concrete compatibility
+input through the same service/session boundary; new bundles leave selection
+and settlement entirely to the backend.
+
+### Validation
+
+- focused AiO node runtime tests: 77 passed;
+- focused reservation/identity/session/adapter/AiO cutover tests: 62 passed;
+- focused frontend module/AiO contracts: 85 passed;
+- executed-seed, extension, panel, and host-hook Node smokes: passed;
+- backend import/package/Registry gates passed with only the expected analyzer
+  fixture delta, which was regenerated from the implemented source; and
+- the official full reached Python after compile, Pyright, and all six import
+  boundary groups passed. It stopped in 38.6 seconds on two legacy fixture/mock
+  assertions, not runner timeout or cleanup;
+- after the exact contract correction, all 1,044 Python tests passed in 29.5
+  seconds; and
+- the not-yet-run frontend stage then passed every smoke and TypeScript 6.0.3
+  for 112 JavaScript files. The full entrypoint was not restarted solely to
+  repeat already-passed stages; and
+- an isolated ComfyUI 0.27.0 instance loaded the canonical node pack once,
+  exposed the unchanged AiO object-info socket contract, served the new entry
+  and executed-seed modules with HTTP 200, returned HTTP 404 for the retired
+  queue module, and completed a browser UI load without an EasyUseAnima module
+  error. A model-backed generation and separate Legacy/Node 2.0 node-render
+  interaction were not run.
+
+### Allowed-file boundary and rollback
+
+This unit may change only the AiO generation adapter/default-domain constant,
+the shared feature seed adapter, AiO entry/panel/extension/display modules,
+their focused tests and runner manifest, deterministic analyzer fixture, and
+these two architecture records.
+
+It does not change node sockets, widget order, saved workflow schema, metadata
+JSON schema, reservation capacity, identity/session contracts, Prompt Studio,
+root compatibility aliases, #169 stage/cache ownership, D-12, release, or
+Registry behavior. Reverting this unit restores only the AiO browser queue
+authority and pre-cutover backend interpretation.

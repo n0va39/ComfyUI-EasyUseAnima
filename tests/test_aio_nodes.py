@@ -24,13 +24,19 @@ from tests.comfy_host_fakes import (
 from tests.test_node_contracts import _loaded_package_entrypoint
 
 _DEFAULT_COMFY_HOST = use_fake_comfy_host(nodes, FakeComfyHostProvider())
+_ISOLATED_AIO_SEED_COMPATIBILITY = patch(
+    "easyuse_anima.nodes.seed_adapters.resolve_seed_execution_identity",
+    return_value=None,
+)
 
 
 def setUpModule():
     _DEFAULT_COMFY_HOST.__enter__()
+    _ISOLATED_AIO_SEED_COMPATIBILITY.start()
 
 
 def tearDownModule():
+    _ISOLATED_AIO_SEED_COMPATIBILITY.stop()
     _DEFAULT_COMFY_HOST.__exit__(None, None, None)
 
 
@@ -400,22 +406,20 @@ class AIONodeContractTests(unittest.TestCase):
         )
         self.assertEqual(list(input_types["optional"]), ["lora_stack"])
 
-    def test_generator_change_key_preserves_special_seed_order_and_mutable_set(self):
+    def test_generator_change_key_forces_only_nonfixed_seed_execution(self):
         calls = []
         special_seeds = set()
-        normalized = {"sampler": {"seed": "runtime"}, "future": {"kept": True}}
+        normalized = {
+            "sampler": {
+                "seed": "runtime",
+                "seed_after_generate": "fixed",
+            },
+            "future": {"kept": True},
+        }
 
         def normalize(value):
             calls.append(("normalize", value))
-            return normalized
-
-        def clone(value):
-            calls.append(("clone", value))
-            return json.loads(json.dumps(value))
-
-        def resolve_seed(value):
-            calls.append(("resolve_seed", value))
-            return 77
+            return json.loads(json.dumps(normalized))
 
         def input_signature(value):
             calls.append(("input_signature", value))
@@ -434,8 +438,6 @@ class AIONodeContractTests(unittest.TestCase):
                 aio_nodes,
                 AIO_SPECIAL_SEEDS=special_seeds,
                 _normalize_aio_generation_settings=normalize,
-                _json_clone=clone,
-                _resolve_aio_runtime_seed=resolve_seed,
                 _aio_lora_stack_signature=lora_signature,
                 _stable_change_key=stable_key,
             ),
@@ -459,12 +461,27 @@ class AIONodeContractTests(unittest.TestCase):
                 "lora",
                 "settings",
             )
+            calls.clear()
+            special_seeds.clear()
+            normalized["sampler"]["seed"] = 7
+            normalized["sampler"]["seed_after_generate"] = "increment"
+            advancing_result = nodes.EasyUseAnimaAIOGenerator.IS_CHANGED(
+                "context",
+                "lora",
+                "settings",
+            )
 
         fixed_payload = {
             "mode": "easy_use_anima_generator",
             "input": {"input": "context"},
             "lora_stack": [{"lora": "lora"}],
-            "generation_settings": normalized,
+            "generation_settings": {
+                "sampler": {
+                    "seed": "runtime",
+                    "seed_after_generate": "fixed",
+                },
+                "future": {"kept": True},
+            },
         }
         self.assertEqual(fixed_result, "change-key")
         self.assertEqual(
@@ -476,28 +493,9 @@ class AIONodeContractTests(unittest.TestCase):
                 ("stable_key", fixed_payload),
             ],
         )
-        self.assertEqual(special_result, "change-key")
-        self.assertEqual(
-            calls,
-            [
-                ("normalize", "settings"),
-                ("clone", normalized),
-                ("resolve_seed", "runtime"),
-                ("input_signature", "context"),
-                ("lora_signature", "lora"),
-                (
-                    "stable_key",
-                    {
-                        **fixed_payload,
-                        "generation_settings": {
-                            "sampler": {"seed": 77},
-                            "future": {"kept": True},
-                        },
-                    },
-                ),
-            ],
-        )
-        self.assertEqual(normalized["sampler"]["seed"], "runtime")
+        self.assertNotEqual(special_result, special_result)
+        self.assertNotEqual(advancing_result, advancing_result)
+        self.assertEqual(calls, [("normalize", "settings")])
 
     def test_input_signature_and_validator_preserve_exact_contract(self):
         calls = []
