@@ -225,7 +225,7 @@ class AIOStagePipelineContractTests(unittest.TestCase):
             ),
         )
 
-    def test_through_postprocess_are_the_only_connected_stages(self):
+    def test_all_six_stages_are_connected(self):
         legacy_source = (
             ROOT / "easyuse_anima" / "aio" / "legacy_generation.py"
         ).read_text(encoding="utf-8")
@@ -243,6 +243,9 @@ class AIOStagePipelineContractTests(unittest.TestCase):
         ).read_text(encoding="utf-8")
         postprocess_source = (
             ROOT / "easyuse_anima" / "aio" / "generation_postprocess_stage.py"
+        ).read_text(encoding="utf-8")
+        save_output_source = (
+            ROOT / "easyuse_anima" / "aio" / "generation_save_output_stage.py"
         ).read_text(encoding="utf-8")
         canonical_node_source = (
             ROOT / "easyuse_anima" / "nodes" / "aio_nodes.py"
@@ -266,6 +269,9 @@ class AIOStagePipelineContractTests(unittest.TestCase):
         self.assertIn("AIOPostprocessStage", legacy_source)
         self.assertIn("GenerationRequest", postprocess_source)
         self.assertIn("GenerationState", postprocess_source)
+        self.assertIn("AIOSaveOutputStage", legacy_source)
+        self.assertIn("GenerationRequest", save_output_source)
+        self.assertIn("GenerationState", save_output_source)
         self.assertNotIn("generation_first_pass", canonical_node_source)
         self.assertNotIn("generation_first_pass", root_source)
         self.assertNotIn("generation_highres", canonical_node_source)
@@ -276,20 +282,22 @@ class AIOStagePipelineContractTests(unittest.TestCase):
         self.assertNotIn("generation_upscale_stage", root_source)
         self.assertNotIn("generation_postprocess_stage", canonical_node_source)
         self.assertNotIn("generation_postprocess_stage", root_source)
+        self.assertNotIn("generation_save_output_stage", canonical_node_source)
+        self.assertNotIn("generation_save_output_stage", root_source)
         self.assertNotIn("AIOFirstPassStage", root_source)
         self.assertNotIn("AIOHighresStage", root_source)
         self.assertNotIn("AIODetailerStage", root_source)
         self.assertNotIn("AIOUpscaleStage", root_source)
         self.assertNotIn("AIOPostprocessStage", root_source)
-        for later_stage in (
-            "AIOSaveOutputStage",
+        self.assertNotIn("AIOSaveOutputStage", root_source)
+        for earlier_stage_source in (
+            first_pass_source,
+            highres_source,
+            detailer_source,
+            upscale_source,
+            postprocess_source,
         ):
-            self.assertNotIn(later_stage, legacy_source)
-            self.assertNotIn(later_stage, first_pass_source)
-            self.assertNotIn(later_stage, highres_source)
-            self.assertNotIn(later_stage, detailer_source)
-            self.assertNotIn(later_stage, upscale_source)
-            self.assertNotIn(later_stage, postprocess_source)
+            self.assertNotIn("AIOSaveOutputStage", earlier_stage_source)
 
 
 if __name__ == "__main__":

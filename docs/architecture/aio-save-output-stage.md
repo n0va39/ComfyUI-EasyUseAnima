@@ -5,7 +5,7 @@
 - PR type: Behavior
 - Baseline: `dev` commit
   `78ad02337313f95d5512d3014cabc428fcdce255`
-- State: INVENTORY
+- State: VALIDATED
 
 A169-07 connects the existing inline Save/output boundary to the stage Protocol.
 It does not move or change either save backend helper, preview helper, serializer
@@ -139,3 +139,28 @@ The full suite is not repeated after deterministic component failures; failed
 stages are resumed directly. Server/model/browser smoke is required only if the
 connection exposes an integration risk not covered by existing Save integration
 tests, the exact trace and full suite.
+
+## Validation result
+
+- `tests.test_aio_save_output_stage`: 5 passed;
+- `tests.test_aio_legacy_generation`: 24 passed, including the read-only exact
+  legacy trace/output fixture and Save failure after outer cleanup;
+- `tests.test_aio_stage_pipeline_contract`: 5 passed;
+- `tests.test_python_package_skeleton`: 1 passed;
+- `tests.test_python_backend_analyzer`: 18 passed with 104 shipped/runtime
+  modules;
+- targeted Ruff: passed for the new stage and legacy connector;
+- targeted Pyright: 2 files, 0 diagnostics;
+- Python import boundary: 6 package groups, 0 violations;
+- official full validation was started once with the repository/workspace
+  runner. It stopped deterministically at the Pyright baseline because the new
+  request-local stage output was still typed as optional at the existing node
+  caller. A runtime-neutral return cast restored the existing dictionary
+  contract; the failed Pyright component then passed for 87 files with the
+  reviewed 14-error baseline;
+- the remaining official components were resumed without repeating the full
+  runner: Python `unittest discover` passed 1082 tests and frontend validation
+  passed 112 JavaScript files with TypeScript 6.0.3; and
+- diff checks passed. No server, model or browser smoke was run because the
+  connection does not add a host/runtime integration surface beyond the
+  covered Save helpers and exact legacy trace.
