@@ -6,7 +6,7 @@
 - Roadmap unit: D-10
 - PR type: Move
 - Baseline: `dev@01510e6d9c8a1e8b2b9d76e2306a85ea538fc84a`
-- State: READY
+- State: VALIDATED in PR #384
 - Behavior changes: forbidden
 
 ## Responsibility boundary
@@ -131,6 +131,11 @@ repair patches to the canonical owner. Route tests keep patching the
   behavior remain owned by `api.py`.
 - No new cache, executor, initialize, shutdown, migration, or cleanup owner is
   introduced. Those belong to the E-series lifecycle work.
+- Focused API loaders now replace only the requested `server`/`aiohttp`
+  entries instead of restoring the entire `sys.modules` snapshot. This
+  test-only change prevents newly loaded NumPy extension modules from being
+  removed and then unsafely reloaded between cases; production behavior is
+  unaffected.
 
 ## Behavior constraints
 
@@ -190,3 +195,24 @@ Supporting:
 - official full runner once at the PR checkpoint; and
 - `api.py` contains only explicit profile aliases plus HTTP adapter behavior,
   while profile implementation resides under `easyuse_anima/profiles/`.
+
+Focused validation evidence:
+
+- AiO storage/identity: 34 tests passed;
+- AiO API adapter: 7 tests passed;
+- LoRA storage/repair/API: 25 tests passed;
+- API request/error contract: 36 tests passed;
+- package skeleton, G03 import boundary, Registry scanner, and backend
+  analyzer: 33 tests passed;
+- focused Pyright 1.1.411 for repository/LoRA/AiO modules: 0 diagnostics;
+- pre-move versus canonical AST parity: 37 functions, eight constants, and one
+  error class identical before the behavior-neutral `cast(dict, ...)` required
+  by the moved module's Pyright-visible `AtomicJsonStore.replace_from` result;
+- Ruff and Python compile checks passed; and
+- official full passed with 1,132 Python tests and 112 frontend files;
+- the Pyright baseline ratchet covered 104 files with the same 14 existing
+  errors and no increase;
+- G03 passed with nine completed package groups and zero violations;
+- `comfy node validate` passed; and
+- `comfy node pack` produced a 251-entry archive containing `api.py` and all
+  six `easyuse_anima/profiles/` modules.

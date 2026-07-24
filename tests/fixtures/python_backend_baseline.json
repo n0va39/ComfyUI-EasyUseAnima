@@ -1312,23 +1312,6 @@
       },
       {
         "alias": null,
-        "bound_name": "re",
-        "branch_context": [],
-        "classification": "external",
-        "column": 0,
-        "conditional": false,
-        "imported": "re",
-        "kind": "static_import",
-        "line": 8,
-        "name": null,
-        "optional": false,
-        "requested": "re",
-        "role": "ordinary",
-        "scope": "<module>",
-        "source": "api.py"
-      },
-      {
-        "alias": null,
         "bound_name": "threading",
         "branch_context": [],
         "classification": "external",
@@ -1336,7 +1319,7 @@
         "conditional": false,
         "imported": "threading",
         "kind": "static_import",
-        "line": 9,
+        "line": 8,
         "name": null,
         "optional": false,
         "requested": "threading",
@@ -1353,7 +1336,7 @@
         "conditional": false,
         "imported": "weakref",
         "kind": "static_import",
-        "line": 10,
+        "line": 9,
         "name": null,
         "optional": false,
         "requested": "weakref",
@@ -1370,7 +1353,7 @@
         "conditional": false,
         "imported": "concurrent.futures:Future",
         "kind": "static_from",
-        "line": 11,
+        "line": 10,
         "name": "Future",
         "optional": false,
         "requested": "concurrent.futures",
@@ -1387,7 +1370,7 @@
         "conditional": false,
         "imported": "concurrent.futures:ThreadPoolExecutor",
         "kind": "static_from",
-        "line": 11,
+        "line": 10,
         "name": "ThreadPoolExecutor",
         "optional": false,
         "requested": "concurrent.futures",
@@ -1404,27 +1387,10 @@
         "conditional": false,
         "imported": "functools:wraps",
         "kind": "static_from",
-        "line": 12,
+        "line": 11,
         "name": "wraps",
         "optional": false,
         "requested": "functools",
-        "role": "ordinary",
-        "scope": "<module>",
-        "source": "api.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "Path",
-        "branch_context": [],
-        "classification": "external",
-        "column": 0,
-        "conditional": false,
-        "imported": "pathlib:Path",
-        "kind": "static_from",
-        "line": 13,
-        "name": "Path",
-        "optional": false,
-        "requested": "pathlib",
         "role": "ordinary",
         "scope": "<module>",
         "source": "api.py"
@@ -1438,7 +1404,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": true,
             "kind": "try",
-            "line": 15
+            "line": 13
           }
         ],
         "classification": "external",
@@ -1446,7 +1412,7 @@
         "conditional": true,
         "imported": "server",
         "kind": "static_import",
-        "line": 16,
+        "line": 14,
         "name": null,
         "optional": true,
         "requested": "server",
@@ -1463,7 +1429,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": true,
             "kind": "try",
-            "line": 15
+            "line": 13
           }
         ],
         "classification": "external",
@@ -1471,7 +1437,7 @@
         "conditional": true,
         "imported": "aiohttp:web",
         "kind": "static_from",
-        "line": 17,
+        "line": 15,
         "name": "web",
         "optional": true,
         "requested": "aiohttp",
@@ -1488,7 +1454,7 @@
         "conditional": false,
         "imported": ".easyuse_anima.settings.repository:load_long_text_settings",
         "kind": "static_from",
-        "line": 22,
+        "line": 20,
         "name": "load_long_text_settings",
         "optional": false,
         "requested": ".easyuse_anima.settings.repository",
@@ -1506,7 +1472,7 @@
         "conditional": false,
         "imported": ".easyuse_anima.settings.repository:save_long_text_settings",
         "kind": "static_from",
-        "line": 22,
+        "line": 20,
         "name": "save_long_text_settings",
         "optional": false,
         "requested": ".easyuse_anima.settings.repository",
@@ -1524,7 +1490,7 @@
         "conditional": false,
         "imported": ".easyuse_anima.settings.repository:save_setting",
         "kind": "static_from",
-        "line": 22,
+        "line": 20,
         "name": "save_setting",
         "optional": false,
         "requested": ".easyuse_anima.settings.repository",
@@ -1542,7 +1508,7 @@
         "conditional": false,
         "imported": ".easyuse_anima.settings.service:public_settings",
         "kind": "static_from",
-        "line": 27,
+        "line": 25,
         "name": "public_settings",
         "optional": false,
         "requested": ".easyuse_anima.settings.service",
@@ -1560,7 +1526,7 @@
         "conditional": false,
         "imported": ".easyuse_anima.settings.service:resolve_autocomplete_limit",
         "kind": "static_from",
-        "line": 27,
+        "line": 25,
         "name": "resolve_autocomplete_limit",
         "optional": false,
         "requested": ".easyuse_anima.settings.service",
@@ -1578,7 +1544,7 @@
         "conditional": false,
         "imported": ".easyuse_anima.settings.service:resolve_autocomplete_source",
         "kind": "static_from",
-        "line": 27,
+        "line": 25,
         "name": "resolve_autocomplete_source",
         "optional": false,
         "requested": ".easyuse_anima.settings.service",
@@ -1596,7 +1562,7 @@
         "conditional": false,
         "imported": ".easyuse_anima.settings.service:resolve_prompt_translation_settings",
         "kind": "static_from",
-        "line": 27,
+        "line": 25,
         "name": "resolve_prompt_translation_settings",
         "optional": false,
         "requested": ".easyuse_anima.settings.service",
@@ -1614,7 +1580,7 @@
         "conditional": false,
         "imported": ".autocomplete_dataset:autocomplete_status",
         "kind": "static_from",
-        "line": 33,
+        "line": 31,
         "name": "autocomplete_status",
         "optional": false,
         "requested": ".autocomplete_dataset",
@@ -1632,7 +1598,7 @@
         "conditional": false,
         "imported": ".autocomplete_dataset:available_autocomplete_sources",
         "kind": "static_from",
-        "line": 33,
+        "line": 31,
         "name": "available_autocomplete_sources",
         "optional": false,
         "requested": ".autocomplete_dataset",
@@ -1650,7 +1616,7 @@
         "conditional": false,
         "imported": ".autocomplete_dataset:classify_prompt_text",
         "kind": "static_from",
-        "line": 33,
+        "line": 31,
         "name": "classify_prompt_text",
         "optional": false,
         "requested": ".autocomplete_dataset",
@@ -1668,7 +1634,7 @@
         "conditional": false,
         "imported": ".autocomplete_dataset:resolve_autocomplete_source",
         "kind": "static_from",
-        "line": 33,
+        "line": 31,
         "name": "resolve_autocomplete_source",
         "optional": false,
         "requested": ".autocomplete_dataset",
@@ -1686,7 +1652,7 @@
         "conditional": false,
         "imported": ".autocomplete_dataset:search_autocomplete",
         "kind": "static_from",
-        "line": 33,
+        "line": 31,
         "name": "search_autocomplete",
         "optional": false,
         "requested": ".autocomplete_dataset",
@@ -1704,7 +1670,7 @@
         "conditional": false,
         "imported": ".wildcard_engine:list_wildcards",
         "kind": "static_from",
-        "line": 40,
+        "line": 38,
         "name": "list_wildcards",
         "optional": false,
         "requested": ".wildcard_engine",
@@ -1722,7 +1688,7 @@
         "conditional": false,
         "imported": ".wildcard_engine:resolve_wildcard_roots",
         "kind": "static_from",
-        "line": 40,
+        "line": 38,
         "name": "resolve_wildcard_roots",
         "optional": false,
         "requested": ".wildcard_engine",
@@ -1740,7 +1706,7 @@
         "conditional": false,
         "imported": ".easyuse_anima.translation.contracts:PromptTranslationError",
         "kind": "static_from",
-        "line": 41,
+        "line": 39,
         "name": "PromptTranslationError",
         "optional": false,
         "requested": ".easyuse_anima.translation.contracts",
@@ -1758,7 +1724,7 @@
         "conditional": false,
         "imported": ".easyuse_anima.translation.contracts:TranslationBusyError",
         "kind": "static_from",
-        "line": 41,
+        "line": 39,
         "name": "TranslationBusyError",
         "optional": false,
         "requested": ".easyuse_anima.translation.contracts",
@@ -1776,7 +1742,7 @@
         "conditional": false,
         "imported": ".easyuse_anima.translation.contracts:TranslationCancelledError",
         "kind": "static_from",
-        "line": 41,
+        "line": 39,
         "name": "TranslationCancelledError",
         "optional": false,
         "requested": ".easyuse_anima.translation.contracts",
@@ -1794,7 +1760,7 @@
         "conditional": false,
         "imported": ".easyuse_anima.translation.contracts:TranslationTimeoutError",
         "kind": "static_from",
-        "line": 41,
+        "line": 39,
         "name": "TranslationTimeoutError",
         "optional": false,
         "requested": ".easyuse_anima.translation.contracts",
@@ -1812,7 +1778,7 @@
         "conditional": false,
         "imported": ".easyuse_anima.translation.service:translate_prompt_markers",
         "kind": "static_from",
-        "line": 47,
+        "line": 45,
         "name": "translate_prompt_markers",
         "optional": false,
         "requested": ".easyuse_anima.translation.service",
@@ -1830,7 +1796,7 @@
         "conditional": false,
         "imported": ".api_contract:ApiContractError",
         "kind": "static_from",
-        "line": 50,
+        "line": 48,
         "name": "ApiContractError",
         "optional": false,
         "requested": ".api_contract",
@@ -1848,7 +1814,7 @@
         "conditional": false,
         "imported": ".api_contract:attach_request_id_header",
         "kind": "static_from",
-        "line": 50,
+        "line": 48,
         "name": "attach_request_id_header",
         "optional": false,
         "requested": ".api_contract",
@@ -1866,7 +1832,7 @@
         "conditional": false,
         "imported": ".api_contract:correlate_response",
         "kind": "static_from",
-        "line": 50,
+        "line": 48,
         "name": "correlate_response",
         "optional": false,
         "requested": ".api_contract",
@@ -1884,7 +1850,7 @@
         "conditional": false,
         "imported": ".api_contract:create_request_id",
         "kind": "static_from",
-        "line": 50,
+        "line": 48,
         "name": "create_request_id",
         "optional": false,
         "requested": ".api_contract",
@@ -1902,7 +1868,7 @@
         "conditional": false,
         "imported": ".api_contract:error_payload",
         "kind": "static_from",
-        "line": 50,
+        "line": 48,
         "name": "error_payload",
         "optional": false,
         "requested": ".api_contract",
@@ -1920,7 +1886,7 @@
         "conditional": false,
         "imported": ".api_contract:json_boolean",
         "kind": "static_from",
-        "line": 50,
+        "line": 48,
         "name": "json_boolean",
         "optional": false,
         "requested": ".api_contract",
@@ -1938,7 +1904,7 @@
         "conditional": false,
         "imported": ".api_contract:json_integer",
         "kind": "static_from",
-        "line": 50,
+        "line": 48,
         "name": "json_integer",
         "optional": false,
         "requested": ".api_contract",
@@ -1956,7 +1922,7 @@
         "conditional": false,
         "imported": ".api_contract:json_object",
         "kind": "static_from",
-        "line": 50,
+        "line": 48,
         "name": "json_object",
         "optional": false,
         "requested": ".api_contract",
@@ -1974,7 +1940,7 @@
         "conditional": false,
         "imported": ".api_contract:json_string",
         "kind": "static_from",
-        "line": 50,
+        "line": 48,
         "name": "json_string",
         "optional": false,
         "requested": ".api_contract",
@@ -1992,7 +1958,7 @@
         "conditional": false,
         "imported": ".api_contract:json_uuid_string",
         "kind": "static_from",
-        "line": 50,
+        "line": 48,
         "name": "json_uuid_string",
         "optional": false,
         "requested": ".api_contract",
@@ -2010,7 +1976,7 @@
         "conditional": false,
         "imported": ".api_contract:parse_json_object",
         "kind": "static_from",
-        "line": 50,
+        "line": 48,
         "name": "parse_json_object",
         "optional": false,
         "requested": ".api_contract",
@@ -2020,1109 +1986,94 @@
         "target": "api_contract.py"
       },
       {
-        "alias": null,
-        "bound_name": "PROFILE_KIND_AIO",
-        "branch_context": [
-          {
-            "branch": "body",
-            "handles_import_failure": true,
-            "has_import_fallback_handler": true,
-            "kind": "try",
-            "line": 63
-          }
-        ],
+        "alias": "_aio_profiles",
+        "bound_name": "_aio_profiles",
+        "branch_context": [],
         "classification": "internal",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "PROFILE_KIND_AIO",
-          "target": "easyuse_anima/profiles/contract.py",
-          "try_line": 63
-        },
-        "conditional": true,
-        "imported": ".easyuse_anima.profiles.contract:PROFILE_KIND_AIO",
+        "column": 0,
+        "conditional": false,
+        "imported": ".easyuse_anima.profiles:aio",
         "kind": "static_from",
-        "line": 64,
-        "name": "PROFILE_KIND_AIO",
+        "line": 61,
+        "name": "aio",
         "optional": false,
-        "requested": ".easyuse_anima.profiles.contract",
-        "role": "compatibility_primary",
+        "requested": ".easyuse_anima.profiles",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "api.py",
+        "target": "easyuse_anima/profiles/aio.py"
+      },
+      {
+        "alias": "_profile_contract",
+        "bound_name": "_profile_contract",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".easyuse_anima.profiles:contract",
+        "kind": "static_from",
+        "line": 62,
+        "name": "contract",
+        "optional": false,
+        "requested": ".easyuse_anima.profiles",
+        "role": "ordinary",
         "scope": "<module>",
         "source": "api.py",
         "target": "easyuse_anima/profiles/contract.py"
       },
       {
-        "alias": null,
-        "bound_name": "PROFILE_KIND_LORA",
-        "branch_context": [
-          {
-            "branch": "body",
-            "handles_import_failure": true,
-            "has_import_fallback_handler": true,
-            "kind": "try",
-            "line": 63
-          }
-        ],
+        "alias": "_lora_profiles",
+        "bound_name": "_lora_profiles",
+        "branch_context": [],
         "classification": "internal",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "PROFILE_KIND_LORA",
-          "target": "easyuse_anima/profiles/contract.py",
-          "try_line": 63
-        },
-        "conditional": true,
-        "imported": ".easyuse_anima.profiles.contract:PROFILE_KIND_LORA",
+        "column": 0,
+        "conditional": false,
+        "imported": ".easyuse_anima.profiles:lora",
         "kind": "static_from",
-        "line": 64,
-        "name": "PROFILE_KIND_LORA",
+        "line": 63,
+        "name": "lora",
         "optional": false,
-        "requested": ".easyuse_anima.profiles.contract",
-        "role": "compatibility_primary",
+        "requested": ".easyuse_anima.profiles",
+        "role": "ordinary",
         "scope": "<module>",
         "source": "api.py",
-        "target": "easyuse_anima/profiles/contract.py"
+        "target": "easyuse_anima/profiles/lora.py"
       },
       {
-        "alias": null,
-        "bound_name": "ProfileContractError",
-        "branch_context": [
-          {
-            "branch": "body",
-            "handles_import_failure": true,
-            "has_import_fallback_handler": true,
-            "kind": "try",
-            "line": 63
-          }
-        ],
+        "alias": "_profile_mutation",
+        "bound_name": "_profile_mutation",
+        "branch_context": [],
         "classification": "internal",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "ProfileContractError",
-          "target": "easyuse_anima/profiles/contract.py",
-          "try_line": 63
-        },
-        "conditional": true,
-        "imported": ".easyuse_anima.profiles.contract:ProfileContractError",
+        "column": 0,
+        "conditional": false,
+        "imported": ".easyuse_anima.profiles:mutation",
         "kind": "static_from",
         "line": 64,
-        "name": "ProfileContractError",
+        "name": "mutation",
         "optional": false,
-        "requested": ".easyuse_anima.profiles.contract",
-        "role": "compatibility_primary",
-        "scope": "<module>",
-        "source": "api.py",
-        "target": "easyuse_anima/profiles/contract.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "build_profile_document",
-        "branch_context": [
-          {
-            "branch": "body",
-            "handles_import_failure": true,
-            "has_import_fallback_handler": true,
-            "kind": "try",
-            "line": 63
-          }
-        ],
-        "classification": "internal",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "build_profile_document",
-          "target": "easyuse_anima/profiles/contract.py",
-          "try_line": 63
-        },
-        "conditional": true,
-        "imported": ".easyuse_anima.profiles.contract:build_profile_document",
-        "kind": "static_from",
-        "line": 64,
-        "name": "build_profile_document",
-        "optional": false,
-        "requested": ".easyuse_anima.profiles.contract",
-        "role": "compatibility_primary",
-        "scope": "<module>",
-        "source": "api.py",
-        "target": "easyuse_anima/profiles/contract.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "create_profile_document",
-        "branch_context": [
-          {
-            "branch": "body",
-            "handles_import_failure": true,
-            "has_import_fallback_handler": true,
-            "kind": "try",
-            "line": 63
-          }
-        ],
-        "classification": "internal",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "create_profile_document",
-          "target": "easyuse_anima/profiles/contract.py",
-          "try_line": 63
-        },
-        "conditional": true,
-        "imported": ".easyuse_anima.profiles.contract:create_profile_document",
-        "kind": "static_from",
-        "line": 64,
-        "name": "create_profile_document",
-        "optional": false,
-        "requested": ".easyuse_anima.profiles.contract",
-        "role": "compatibility_primary",
-        "scope": "<module>",
-        "source": "api.py",
-        "target": "easyuse_anima/profiles/contract.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "interpret_profile_document",
-        "branch_context": [
-          {
-            "branch": "body",
-            "handles_import_failure": true,
-            "has_import_fallback_handler": true,
-            "kind": "try",
-            "line": 63
-          }
-        ],
-        "classification": "internal",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "interpret_profile_document",
-          "target": "easyuse_anima/profiles/contract.py",
-          "try_line": 63
-        },
-        "conditional": true,
-        "imported": ".easyuse_anima.profiles.contract:interpret_profile_document",
-        "kind": "static_from",
-        "line": 64,
-        "name": "interpret_profile_document",
-        "optional": false,
-        "requested": ".easyuse_anima.profiles.contract",
-        "role": "compatibility_primary",
-        "scope": "<module>",
-        "source": "api.py",
-        "target": "easyuse_anima/profiles/contract.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "legacy_profile_id",
-        "branch_context": [
-          {
-            "branch": "body",
-            "handles_import_failure": true,
-            "has_import_fallback_handler": true,
-            "kind": "try",
-            "line": 63
-          }
-        ],
-        "classification": "internal",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "legacy_profile_id",
-          "target": "easyuse_anima/profiles/contract.py",
-          "try_line": 63
-        },
-        "conditional": true,
-        "imported": ".easyuse_anima.profiles.contract:legacy_profile_id",
-        "kind": "static_from",
-        "line": 64,
-        "name": "legacy_profile_id",
-        "optional": false,
-        "requested": ".easyuse_anima.profiles.contract",
-        "role": "compatibility_primary",
-        "scope": "<module>",
-        "source": "api.py",
-        "target": "easyuse_anima/profiles/contract.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "normalize_profile_filename_identity",
-        "branch_context": [
-          {
-            "branch": "body",
-            "handles_import_failure": true,
-            "has_import_fallback_handler": true,
-            "kind": "try",
-            "line": 63
-          }
-        ],
-        "classification": "internal",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "normalize_profile_filename_identity",
-          "target": "easyuse_anima/profiles/contract.py",
-          "try_line": 63
-        },
-        "conditional": true,
-        "imported": ".easyuse_anima.profiles.contract:normalize_profile_filename_identity",
-        "kind": "static_from",
-        "line": 64,
-        "name": "normalize_profile_filename_identity",
-        "optional": false,
-        "requested": ".easyuse_anima.profiles.contract",
-        "role": "compatibility_primary",
-        "scope": "<module>",
-        "source": "api.py",
-        "target": "easyuse_anima/profiles/contract.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "rename_profile_document",
-        "branch_context": [
-          {
-            "branch": "body",
-            "handles_import_failure": true,
-            "has_import_fallback_handler": true,
-            "kind": "try",
-            "line": 63
-          }
-        ],
-        "classification": "internal",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "rename_profile_document",
-          "target": "easyuse_anima/profiles/contract.py",
-          "try_line": 63
-        },
-        "conditional": true,
-        "imported": ".easyuse_anima.profiles.contract:rename_profile_document",
-        "kind": "static_from",
-        "line": 64,
-        "name": "rename_profile_document",
-        "optional": false,
-        "requested": ".easyuse_anima.profiles.contract",
-        "role": "compatibility_primary",
-        "scope": "<module>",
-        "source": "api.py",
-        "target": "easyuse_anima/profiles/contract.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "update_profile_document",
-        "branch_context": [
-          {
-            "branch": "body",
-            "handles_import_failure": true,
-            "has_import_fallback_handler": true,
-            "kind": "try",
-            "line": 63
-          }
-        ],
-        "classification": "internal",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "update_profile_document",
-          "target": "easyuse_anima/profiles/contract.py",
-          "try_line": 63
-        },
-        "conditional": true,
-        "imported": ".easyuse_anima.profiles.contract:update_profile_document",
-        "kind": "static_from",
-        "line": 64,
-        "name": "update_profile_document",
-        "optional": false,
-        "requested": ".easyuse_anima.profiles.contract",
-        "role": "compatibility_primary",
-        "scope": "<module>",
-        "source": "api.py",
-        "target": "easyuse_anima/profiles/contract.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "PROFILE_MUTATION_COORDINATOR",
-        "branch_context": [
-          {
-            "branch": "body",
-            "handles_import_failure": true,
-            "has_import_fallback_handler": true,
-            "kind": "try",
-            "line": 63
-          }
-        ],
-        "classification": "internal",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "PROFILE_MUTATION_COORDINATOR",
-          "target": "easyuse_anima/profiles/mutation.py",
-          "try_line": 63
-        },
-        "conditional": true,
-        "imported": ".easyuse_anima.profiles.mutation:PROFILE_MUTATION_COORDINATOR",
-        "kind": "static_from",
-        "line": 76,
-        "name": "PROFILE_MUTATION_COORDINATOR",
-        "optional": false,
-        "requested": ".easyuse_anima.profiles.mutation",
-        "role": "compatibility_primary",
+        "requested": ".easyuse_anima.profiles",
+        "role": "ordinary",
         "scope": "<module>",
         "source": "api.py",
         "target": "easyuse_anima/profiles/mutation.py"
       },
       {
-        "alias": null,
-        "bound_name": "ProfileMutationError",
-        "branch_context": [
-          {
-            "branch": "body",
-            "handles_import_failure": true,
-            "has_import_fallback_handler": true,
-            "kind": "try",
-            "line": 63
-          }
-        ],
+        "alias": "_profile_repository",
+        "bound_name": "_profile_repository",
+        "branch_context": [],
         "classification": "internal",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "ProfileMutationError",
-          "target": "easyuse_anima/profiles/mutation.py",
-          "try_line": 63
-        },
-        "conditional": true,
-        "imported": ".easyuse_anima.profiles.mutation:ProfileMutationError",
+        "column": 0,
+        "conditional": false,
+        "imported": ".easyuse_anima.profiles:repository",
         "kind": "static_from",
-        "line": 76,
-        "name": "ProfileMutationError",
+        "line": 65,
+        "name": "repository",
         "optional": false,
-        "requested": ".easyuse_anima.profiles.mutation",
-        "role": "compatibility_primary",
+        "requested": ".easyuse_anima.profiles",
+        "role": "ordinary",
         "scope": "<module>",
         "source": "api.py",
-        "target": "easyuse_anima/profiles/mutation.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "ProfileRevisionConflictError",
-        "branch_context": [
-          {
-            "branch": "body",
-            "handles_import_failure": true,
-            "has_import_fallback_handler": true,
-            "kind": "try",
-            "line": 63
-          }
-        ],
-        "classification": "internal",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "ProfileRevisionConflictError",
-          "target": "easyuse_anima/profiles/mutation.py",
-          "try_line": 63
-        },
-        "conditional": true,
-        "imported": ".easyuse_anima.profiles.mutation:ProfileRevisionConflictError",
-        "kind": "static_from",
-        "line": 76,
-        "name": "ProfileRevisionConflictError",
-        "optional": false,
-        "requested": ".easyuse_anima.profiles.mutation",
-        "role": "compatibility_primary",
-        "scope": "<module>",
-        "source": "api.py",
-        "target": "easyuse_anima/profiles/mutation.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "require_profile_precondition",
-        "branch_context": [
-          {
-            "branch": "body",
-            "handles_import_failure": true,
-            "has_import_fallback_handler": true,
-            "kind": "try",
-            "line": 63
-          }
-        ],
-        "classification": "internal",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "require_profile_precondition",
-          "target": "easyuse_anima/profiles/mutation.py",
-          "try_line": 63
-        },
-        "conditional": true,
-        "imported": ".easyuse_anima.profiles.mutation:require_profile_precondition",
-        "kind": "static_from",
-        "line": 76,
-        "name": "require_profile_precondition",
-        "optional": false,
-        "requested": ".easyuse_anima.profiles.mutation",
-        "role": "compatibility_primary",
-        "scope": "<module>",
-        "source": "api.py",
-        "target": "easyuse_anima/profiles/mutation.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "verify_profile_precondition",
-        "branch_context": [
-          {
-            "branch": "body",
-            "handles_import_failure": true,
-            "has_import_fallback_handler": true,
-            "kind": "try",
-            "line": 63
-          }
-        ],
-        "classification": "internal",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "verify_profile_precondition",
-          "target": "easyuse_anima/profiles/mutation.py",
-          "try_line": 63
-        },
-        "conditional": true,
-        "imported": ".easyuse_anima.profiles.mutation:verify_profile_precondition",
-        "kind": "static_from",
-        "line": 76,
-        "name": "verify_profile_precondition",
-        "optional": false,
-        "requested": ".easyuse_anima.profiles.mutation",
-        "role": "compatibility_primary",
-        "scope": "<module>",
-        "source": "api.py",
-        "target": "easyuse_anima/profiles/mutation.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "PROFILE_KIND_AIO",
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 83,
-            "kind": "try",
-            "line": 63
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "PROFILE_KIND_AIO",
-          "target": "easyuse_anima/profiles/contract.py",
-          "try_line": 63
-        },
-        "conditional": true,
-        "imported": "easyuse_anima.profiles.contract:PROFILE_KIND_AIO",
-        "kind": "static_from",
-        "line": 84,
-        "name": "PROFILE_KIND_AIO",
-        "optional": false,
-        "requested": "easyuse_anima.profiles.contract",
-        "role": "compatibility_fallback",
-        "scope": "<module>",
-        "source": "api.py",
-        "target": "easyuse_anima/profiles/contract.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "PROFILE_KIND_LORA",
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 83,
-            "kind": "try",
-            "line": 63
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "PROFILE_KIND_LORA",
-          "target": "easyuse_anima/profiles/contract.py",
-          "try_line": 63
-        },
-        "conditional": true,
-        "imported": "easyuse_anima.profiles.contract:PROFILE_KIND_LORA",
-        "kind": "static_from",
-        "line": 84,
-        "name": "PROFILE_KIND_LORA",
-        "optional": false,
-        "requested": "easyuse_anima.profiles.contract",
-        "role": "compatibility_fallback",
-        "scope": "<module>",
-        "source": "api.py",
-        "target": "easyuse_anima/profiles/contract.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "ProfileContractError",
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 83,
-            "kind": "try",
-            "line": 63
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "ProfileContractError",
-          "target": "easyuse_anima/profiles/contract.py",
-          "try_line": 63
-        },
-        "conditional": true,
-        "imported": "easyuse_anima.profiles.contract:ProfileContractError",
-        "kind": "static_from",
-        "line": 84,
-        "name": "ProfileContractError",
-        "optional": false,
-        "requested": "easyuse_anima.profiles.contract",
-        "role": "compatibility_fallback",
-        "scope": "<module>",
-        "source": "api.py",
-        "target": "easyuse_anima/profiles/contract.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "build_profile_document",
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 83,
-            "kind": "try",
-            "line": 63
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "build_profile_document",
-          "target": "easyuse_anima/profiles/contract.py",
-          "try_line": 63
-        },
-        "conditional": true,
-        "imported": "easyuse_anima.profiles.contract:build_profile_document",
-        "kind": "static_from",
-        "line": 84,
-        "name": "build_profile_document",
-        "optional": false,
-        "requested": "easyuse_anima.profiles.contract",
-        "role": "compatibility_fallback",
-        "scope": "<module>",
-        "source": "api.py",
-        "target": "easyuse_anima/profiles/contract.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "create_profile_document",
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 83,
-            "kind": "try",
-            "line": 63
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "create_profile_document",
-          "target": "easyuse_anima/profiles/contract.py",
-          "try_line": 63
-        },
-        "conditional": true,
-        "imported": "easyuse_anima.profiles.contract:create_profile_document",
-        "kind": "static_from",
-        "line": 84,
-        "name": "create_profile_document",
-        "optional": false,
-        "requested": "easyuse_anima.profiles.contract",
-        "role": "compatibility_fallback",
-        "scope": "<module>",
-        "source": "api.py",
-        "target": "easyuse_anima/profiles/contract.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "interpret_profile_document",
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 83,
-            "kind": "try",
-            "line": 63
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "interpret_profile_document",
-          "target": "easyuse_anima/profiles/contract.py",
-          "try_line": 63
-        },
-        "conditional": true,
-        "imported": "easyuse_anima.profiles.contract:interpret_profile_document",
-        "kind": "static_from",
-        "line": 84,
-        "name": "interpret_profile_document",
-        "optional": false,
-        "requested": "easyuse_anima.profiles.contract",
-        "role": "compatibility_fallback",
-        "scope": "<module>",
-        "source": "api.py",
-        "target": "easyuse_anima/profiles/contract.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "legacy_profile_id",
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 83,
-            "kind": "try",
-            "line": 63
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "legacy_profile_id",
-          "target": "easyuse_anima/profiles/contract.py",
-          "try_line": 63
-        },
-        "conditional": true,
-        "imported": "easyuse_anima.profiles.contract:legacy_profile_id",
-        "kind": "static_from",
-        "line": 84,
-        "name": "legacy_profile_id",
-        "optional": false,
-        "requested": "easyuse_anima.profiles.contract",
-        "role": "compatibility_fallback",
-        "scope": "<module>",
-        "source": "api.py",
-        "target": "easyuse_anima/profiles/contract.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "normalize_profile_filename_identity",
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 83,
-            "kind": "try",
-            "line": 63
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "normalize_profile_filename_identity",
-          "target": "easyuse_anima/profiles/contract.py",
-          "try_line": 63
-        },
-        "conditional": true,
-        "imported": "easyuse_anima.profiles.contract:normalize_profile_filename_identity",
-        "kind": "static_from",
-        "line": 84,
-        "name": "normalize_profile_filename_identity",
-        "optional": false,
-        "requested": "easyuse_anima.profiles.contract",
-        "role": "compatibility_fallback",
-        "scope": "<module>",
-        "source": "api.py",
-        "target": "easyuse_anima/profiles/contract.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "rename_profile_document",
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 83,
-            "kind": "try",
-            "line": 63
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "rename_profile_document",
-          "target": "easyuse_anima/profiles/contract.py",
-          "try_line": 63
-        },
-        "conditional": true,
-        "imported": "easyuse_anima.profiles.contract:rename_profile_document",
-        "kind": "static_from",
-        "line": 84,
-        "name": "rename_profile_document",
-        "optional": false,
-        "requested": "easyuse_anima.profiles.contract",
-        "role": "compatibility_fallback",
-        "scope": "<module>",
-        "source": "api.py",
-        "target": "easyuse_anima/profiles/contract.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "update_profile_document",
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 83,
-            "kind": "try",
-            "line": 63
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "update_profile_document",
-          "target": "easyuse_anima/profiles/contract.py",
-          "try_line": 63
-        },
-        "conditional": true,
-        "imported": "easyuse_anima.profiles.contract:update_profile_document",
-        "kind": "static_from",
-        "line": 84,
-        "name": "update_profile_document",
-        "optional": false,
-        "requested": "easyuse_anima.profiles.contract",
-        "role": "compatibility_fallback",
-        "scope": "<module>",
-        "source": "api.py",
-        "target": "easyuse_anima/profiles/contract.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "PROFILE_MUTATION_COORDINATOR",
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 83,
-            "kind": "try",
-            "line": 63
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "PROFILE_MUTATION_COORDINATOR",
-          "target": "easyuse_anima/profiles/mutation.py",
-          "try_line": 63
-        },
-        "conditional": true,
-        "imported": "easyuse_anima.profiles.mutation:PROFILE_MUTATION_COORDINATOR",
-        "kind": "static_from",
-        "line": 96,
-        "name": "PROFILE_MUTATION_COORDINATOR",
-        "optional": false,
-        "requested": "easyuse_anima.profiles.mutation",
-        "role": "compatibility_fallback",
-        "scope": "<module>",
-        "source": "api.py",
-        "target": "easyuse_anima/profiles/mutation.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "ProfileMutationError",
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 83,
-            "kind": "try",
-            "line": 63
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "ProfileMutationError",
-          "target": "easyuse_anima/profiles/mutation.py",
-          "try_line": 63
-        },
-        "conditional": true,
-        "imported": "easyuse_anima.profiles.mutation:ProfileMutationError",
-        "kind": "static_from",
-        "line": 96,
-        "name": "ProfileMutationError",
-        "optional": false,
-        "requested": "easyuse_anima.profiles.mutation",
-        "role": "compatibility_fallback",
-        "scope": "<module>",
-        "source": "api.py",
-        "target": "easyuse_anima/profiles/mutation.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "ProfileRevisionConflictError",
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 83,
-            "kind": "try",
-            "line": 63
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "ProfileRevisionConflictError",
-          "target": "easyuse_anima/profiles/mutation.py",
-          "try_line": 63
-        },
-        "conditional": true,
-        "imported": "easyuse_anima.profiles.mutation:ProfileRevisionConflictError",
-        "kind": "static_from",
-        "line": 96,
-        "name": "ProfileRevisionConflictError",
-        "optional": false,
-        "requested": "easyuse_anima.profiles.mutation",
-        "role": "compatibility_fallback",
-        "scope": "<module>",
-        "source": "api.py",
-        "target": "easyuse_anima/profiles/mutation.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "require_profile_precondition",
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 83,
-            "kind": "try",
-            "line": 63
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "require_profile_precondition",
-          "target": "easyuse_anima/profiles/mutation.py",
-          "try_line": 63
-        },
-        "conditional": true,
-        "imported": "easyuse_anima.profiles.mutation:require_profile_precondition",
-        "kind": "static_from",
-        "line": 96,
-        "name": "require_profile_precondition",
-        "optional": false,
-        "requested": "easyuse_anima.profiles.mutation",
-        "role": "compatibility_fallback",
-        "scope": "<module>",
-        "source": "api.py",
-        "target": "easyuse_anima/profiles/mutation.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "verify_profile_precondition",
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 83,
-            "kind": "try",
-            "line": 63
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "verify_profile_precondition",
-          "target": "easyuse_anima/profiles/mutation.py",
-          "try_line": 63
-        },
-        "conditional": true,
-        "imported": "easyuse_anima.profiles.mutation:verify_profile_precondition",
-        "kind": "static_from",
-        "line": 96,
-        "name": "verify_profile_precondition",
-        "optional": false,
-        "requested": "easyuse_anima.profiles.mutation",
-        "role": "compatibility_fallback",
-        "scope": "<module>",
-        "source": "api.py",
-        "target": "easyuse_anima/profiles/mutation.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "AtomicJsonStore",
-        "branch_context": [
-          {
-            "branch": "body",
-            "handles_import_failure": true,
-            "has_import_fallback_handler": true,
-            "kind": "try",
-            "line": 103
-          }
-        ],
-        "classification": "internal",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "AtomicJsonStore",
-          "target": "easyuse_anima/infrastructure/filesystem/atomic_json.py",
-          "try_line": 103
-        },
-        "conditional": true,
-        "imported": ".easyuse_anima.infrastructure.filesystem.atomic_json:AtomicJsonStore",
-        "kind": "static_from",
-        "line": 104,
-        "name": "AtomicJsonStore",
-        "optional": false,
-        "requested": ".easyuse_anima.infrastructure.filesystem.atomic_json",
-        "role": "compatibility_primary",
-        "scope": "<module>",
-        "source": "api.py",
-        "target": "easyuse_anima/infrastructure/filesystem/atomic_json.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "USER_DATA_DIR",
-        "branch_context": [
-          {
-            "branch": "body",
-            "handles_import_failure": true,
-            "has_import_fallback_handler": true,
-            "kind": "try",
-            "line": 103
-          }
-        ],
-        "classification": "internal",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "USER_DATA_DIR",
-          "target": "easyuse_anima/infrastructure/filesystem/paths.py",
-          "try_line": 103
-        },
-        "conditional": true,
-        "imported": ".easyuse_anima.infrastructure.filesystem.paths:USER_DATA_DIR",
-        "kind": "static_from",
-        "line": 105,
-        "name": "USER_DATA_DIR",
-        "optional": false,
-        "requested": ".easyuse_anima.infrastructure.filesystem.paths",
-        "role": "compatibility_primary",
-        "scope": "<module>",
-        "source": "api.py",
-        "target": "easyuse_anima/infrastructure/filesystem/paths.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "AtomicJsonStore",
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 106,
-            "kind": "try",
-            "line": 103
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "AtomicJsonStore",
-          "target": "easyuse_anima/infrastructure/filesystem/atomic_json.py",
-          "try_line": 103
-        },
-        "conditional": true,
-        "imported": "easyuse_anima.infrastructure.filesystem.atomic_json:AtomicJsonStore",
-        "kind": "static_from",
-        "line": 107,
-        "name": "AtomicJsonStore",
-        "optional": false,
-        "requested": "easyuse_anima.infrastructure.filesystem.atomic_json",
-        "role": "compatibility_fallback",
-        "scope": "<module>",
-        "source": "api.py",
-        "target": "easyuse_anima/infrastructure/filesystem/atomic_json.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "USER_DATA_DIR",
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 106,
-            "kind": "try",
-            "line": 103
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "USER_DATA_DIR",
-          "target": "easyuse_anima/infrastructure/filesystem/paths.py",
-          "try_line": 103
-        },
-        "conditional": true,
-        "imported": "easyuse_anima.infrastructure.filesystem.paths:USER_DATA_DIR",
-        "kind": "static_from",
-        "line": 108,
-        "name": "USER_DATA_DIR",
-        "optional": false,
-        "requested": "easyuse_anima.infrastructure.filesystem.paths",
-        "role": "compatibility_fallback",
-        "scope": "<module>",
-        "source": "api.py",
-        "target": "easyuse_anima/infrastructure/filesystem/paths.py"
+        "target": "easyuse_anima/profiles/repository.py"
       },
       {
         "alias": null,
@@ -3133,7 +2084,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 444
+            "line": 321
           }
         ],
         "classification": "external",
@@ -3141,57 +2092,7 @@
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 445,
-        "name": null,
-        "optional": true,
-        "requested": "folder_paths",
-        "role": "optional_dependency",
-        "scope": "_list_loras",
-        "source": "api.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "folder_paths",
-        "branch_context": [
-          {
-            "branch": "body",
-            "handles_import_failure": true,
-            "has_import_fallback_handler": false,
-            "kind": "try",
-            "line": 470
-          }
-        ],
-        "classification": "external",
-        "column": 8,
-        "conditional": true,
-        "imported": "folder_paths",
-        "kind": "static_import",
-        "line": 471,
-        "name": null,
-        "optional": true,
-        "requested": "folder_paths",
-        "role": "optional_dependency",
-        "scope": "_lora_full_path",
-        "source": "api.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "folder_paths",
-        "branch_context": [
-          {
-            "branch": "body",
-            "handles_import_failure": true,
-            "has_import_fallback_handler": false,
-            "kind": "try",
-            "line": 1011
-          }
-        ],
-        "classification": "external",
-        "column": 8,
-        "conditional": true,
-        "imported": "folder_paths",
-        "kind": "static_import",
-        "line": 1012,
+        "line": 322,
         "name": null,
         "optional": true,
         "requested": "folder_paths",
@@ -20665,6 +19566,415 @@
         "conditional": false,
         "imported": "__future__:annotations",
         "kind": "static_from",
+        "line": 3,
+        "name": "annotations",
+        "optional": false,
+        "requested": "__future__",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/profiles/aio.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "json",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "json",
+        "kind": "static_import",
+        "line": 5,
+        "name": null,
+        "optional": false,
+        "requested": "json",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/profiles/aio.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "os",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "os",
+        "kind": "static_import",
+        "line": 6,
+        "name": null,
+        "optional": false,
+        "requested": "os",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/profiles/aio.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "Path",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "pathlib:Path",
+        "kind": "static_from",
+        "line": 7,
+        "name": "Path",
+        "optional": false,
+        "requested": "pathlib",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/profiles/aio.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "cast",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "typing:cast",
+        "kind": "static_from",
+        "line": 8,
+        "name": "cast",
+        "optional": false,
+        "requested": "typing",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/profiles/aio.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "AtomicJsonStore",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": "..infrastructure.filesystem.atomic_json:AtomicJsonStore",
+        "kind": "static_from",
+        "line": 10,
+        "name": "AtomicJsonStore",
+        "optional": false,
+        "requested": "..infrastructure.filesystem.atomic_json",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/profiles/aio.py",
+        "target": "easyuse_anima/infrastructure/filesystem/atomic_json.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "USER_DATA_DIR",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": "..infrastructure.filesystem.paths:USER_DATA_DIR",
+        "kind": "static_from",
+        "line": 11,
+        "name": "USER_DATA_DIR",
+        "optional": false,
+        "requested": "..infrastructure.filesystem.paths",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/profiles/aio.py",
+        "target": "easyuse_anima/infrastructure/filesystem/paths.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "PROFILE_KIND_AIO",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".contract:PROFILE_KIND_AIO",
+        "kind": "static_from",
+        "line": 12,
+        "name": "PROFILE_KIND_AIO",
+        "optional": false,
+        "requested": ".contract",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/profiles/aio.py",
+        "target": "easyuse_anima/profiles/contract.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "ProfileContractError",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".contract:ProfileContractError",
+        "kind": "static_from",
+        "line": 12,
+        "name": "ProfileContractError",
+        "optional": false,
+        "requested": ".contract",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/profiles/aio.py",
+        "target": "easyuse_anima/profiles/contract.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "build_profile_document",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".contract:build_profile_document",
+        "kind": "static_from",
+        "line": 12,
+        "name": "build_profile_document",
+        "optional": false,
+        "requested": ".contract",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/profiles/aio.py",
+        "target": "easyuse_anima/profiles/contract.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "create_profile_document",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".contract:create_profile_document",
+        "kind": "static_from",
+        "line": 12,
+        "name": "create_profile_document",
+        "optional": false,
+        "requested": ".contract",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/profiles/aio.py",
+        "target": "easyuse_anima/profiles/contract.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "interpret_profile_document",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".contract:interpret_profile_document",
+        "kind": "static_from",
+        "line": 12,
+        "name": "interpret_profile_document",
+        "optional": false,
+        "requested": ".contract",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/profiles/aio.py",
+        "target": "easyuse_anima/profiles/contract.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "rename_profile_document",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".contract:rename_profile_document",
+        "kind": "static_from",
+        "line": 12,
+        "name": "rename_profile_document",
+        "optional": false,
+        "requested": ".contract",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/profiles/aio.py",
+        "target": "easyuse_anima/profiles/contract.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "update_profile_document",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".contract:update_profile_document",
+        "kind": "static_from",
+        "line": 12,
+        "name": "update_profile_document",
+        "optional": false,
+        "requested": ".contract",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/profiles/aio.py",
+        "target": "easyuse_anima/profiles/contract.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "PROFILE_MUTATION_COORDINATOR",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".mutation:PROFILE_MUTATION_COORDINATOR",
+        "kind": "static_from",
+        "line": 21,
+        "name": "PROFILE_MUTATION_COORDINATOR",
+        "optional": false,
+        "requested": ".mutation",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/profiles/aio.py",
+        "target": "easyuse_anima/profiles/mutation.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "ProfileRevisionConflictError",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".mutation:ProfileRevisionConflictError",
+        "kind": "static_from",
+        "line": 21,
+        "name": "ProfileRevisionConflictError",
+        "optional": false,
+        "requested": ".mutation",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/profiles/aio.py",
+        "target": "easyuse_anima/profiles/mutation.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "require_profile_precondition",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".mutation:require_profile_precondition",
+        "kind": "static_from",
+        "line": 21,
+        "name": "require_profile_precondition",
+        "optional": false,
+        "requested": ".mutation",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/profiles/aio.py",
+        "target": "easyuse_anima/profiles/mutation.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "verify_profile_precondition",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".mutation:verify_profile_precondition",
+        "kind": "static_from",
+        "line": 21,
+        "name": "verify_profile_precondition",
+        "optional": false,
+        "requested": ".mutation",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/profiles/aio.py",
+        "target": "easyuse_anima/profiles/mutation.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "InvalidProfileDataError",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".repository:InvalidProfileDataError",
+        "kind": "static_from",
+        "line": 27,
+        "name": "InvalidProfileDataError",
+        "optional": false,
+        "requested": ".repository",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/profiles/aio.py",
+        "target": "easyuse_anima/profiles/repository.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "_profile_list_item",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".repository:_profile_list_item",
+        "kind": "static_from",
+        "line": 27,
+        "name": "_profile_list_item",
+        "optional": false,
+        "requested": ".repository",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/profiles/aio.py",
+        "target": "easyuse_anima/profiles/repository.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "_read_profile_json",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".repository:_read_profile_json",
+        "kind": "static_from",
+        "line": 27,
+        "name": "_read_profile_json",
+        "optional": false,
+        "requested": ".repository",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/profiles/aio.py",
+        "target": "easyuse_anima/profiles/repository.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "_sanitize_profile_name",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".repository:_sanitize_profile_name",
+        "kind": "static_from",
+        "line": 27,
+        "name": "_sanitize_profile_name",
+        "optional": false,
+        "requested": ".repository",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/profiles/aio.py",
+        "target": "easyuse_anima/profiles/repository.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "_windows_profile_filename_identity",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".repository:_windows_profile_filename_identity",
+        "kind": "static_from",
+        "line": 27,
+        "name": "_windows_profile_filename_identity",
+        "optional": false,
+        "requested": ".repository",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/profiles/aio.py",
+        "target": "easyuse_anima/profiles/repository.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "annotations",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "__future__:annotations",
+        "kind": "static_from",
         "line": 1,
         "name": "annotations",
         "optional": false,
@@ -20740,6 +20050,412 @@
         "role": "ordinary",
         "scope": "<module>",
         "source": "easyuse_anima/profiles/contract.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "annotations",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "__future__:annotations",
+        "kind": "static_from",
+        "line": 3,
+        "name": "annotations",
+        "optional": false,
+        "requested": "__future__",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/profiles/lora.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "json",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "json",
+        "kind": "static_import",
+        "line": 5,
+        "name": null,
+        "optional": false,
+        "requested": "json",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/profiles/lora.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "os",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "os",
+        "kind": "static_import",
+        "line": 6,
+        "name": null,
+        "optional": false,
+        "requested": "os",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/profiles/lora.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "Path",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "pathlib:Path",
+        "kind": "static_from",
+        "line": 7,
+        "name": "Path",
+        "optional": false,
+        "requested": "pathlib",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/profiles/lora.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "AtomicJsonStore",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": "..infrastructure.filesystem.atomic_json:AtomicJsonStore",
+        "kind": "static_from",
+        "line": 9,
+        "name": "AtomicJsonStore",
+        "optional": false,
+        "requested": "..infrastructure.filesystem.atomic_json",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/profiles/lora.py",
+        "target": "easyuse_anima/infrastructure/filesystem/atomic_json.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "USER_DATA_DIR",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": "..infrastructure.filesystem.paths:USER_DATA_DIR",
+        "kind": "static_from",
+        "line": 10,
+        "name": "USER_DATA_DIR",
+        "optional": false,
+        "requested": "..infrastructure.filesystem.paths",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/profiles/lora.py",
+        "target": "easyuse_anima/infrastructure/filesystem/paths.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "PROFILE_KIND_LORA",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".contract:PROFILE_KIND_LORA",
+        "kind": "static_from",
+        "line": 11,
+        "name": "PROFILE_KIND_LORA",
+        "optional": false,
+        "requested": ".contract",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/profiles/lora.py",
+        "target": "easyuse_anima/profiles/contract.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "ProfileContractError",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".contract:ProfileContractError",
+        "kind": "static_from",
+        "line": 11,
+        "name": "ProfileContractError",
+        "optional": false,
+        "requested": ".contract",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/profiles/lora.py",
+        "target": "easyuse_anima/profiles/contract.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "build_profile_document",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".contract:build_profile_document",
+        "kind": "static_from",
+        "line": 11,
+        "name": "build_profile_document",
+        "optional": false,
+        "requested": ".contract",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/profiles/lora.py",
+        "target": "easyuse_anima/profiles/contract.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "create_profile_document",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".contract:create_profile_document",
+        "kind": "static_from",
+        "line": 11,
+        "name": "create_profile_document",
+        "optional": false,
+        "requested": ".contract",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/profiles/lora.py",
+        "target": "easyuse_anima/profiles/contract.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "interpret_profile_document",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".contract:interpret_profile_document",
+        "kind": "static_from",
+        "line": 11,
+        "name": "interpret_profile_document",
+        "optional": false,
+        "requested": ".contract",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/profiles/lora.py",
+        "target": "easyuse_anima/profiles/contract.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "update_profile_document",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".contract:update_profile_document",
+        "kind": "static_from",
+        "line": 11,
+        "name": "update_profile_document",
+        "optional": false,
+        "requested": ".contract",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/profiles/lora.py",
+        "target": "easyuse_anima/profiles/contract.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "PROFILE_MUTATION_COORDINATOR",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".mutation:PROFILE_MUTATION_COORDINATOR",
+        "kind": "static_from",
+        "line": 19,
+        "name": "PROFILE_MUTATION_COORDINATOR",
+        "optional": false,
+        "requested": ".mutation",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/profiles/lora.py",
+        "target": "easyuse_anima/profiles/mutation.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "require_profile_precondition",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".mutation:require_profile_precondition",
+        "kind": "static_from",
+        "line": 19,
+        "name": "require_profile_precondition",
+        "optional": false,
+        "requested": ".mutation",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/profiles/lora.py",
+        "target": "easyuse_anima/profiles/mutation.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "verify_profile_precondition",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".mutation:verify_profile_precondition",
+        "kind": "static_from",
+        "line": 19,
+        "name": "verify_profile_precondition",
+        "optional": false,
+        "requested": ".mutation",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/profiles/lora.py",
+        "target": "easyuse_anima/profiles/mutation.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "InvalidProfileDataError",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".repository:InvalidProfileDataError",
+        "kind": "static_from",
+        "line": 24,
+        "name": "InvalidProfileDataError",
+        "optional": false,
+        "requested": ".repository",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/profiles/lora.py",
+        "target": "easyuse_anima/profiles/repository.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "_profile_list_item",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".repository:_profile_list_item",
+        "kind": "static_from",
+        "line": 24,
+        "name": "_profile_list_item",
+        "optional": false,
+        "requested": ".repository",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/profiles/lora.py",
+        "target": "easyuse_anima/profiles/repository.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "_read_profile_json",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".repository:_read_profile_json",
+        "kind": "static_from",
+        "line": 24,
+        "name": "_read_profile_json",
+        "optional": false,
+        "requested": ".repository",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/profiles/lora.py",
+        "target": "easyuse_anima/profiles/repository.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "_sanitize_profile_name",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".repository:_sanitize_profile_name",
+        "kind": "static_from",
+        "line": 24,
+        "name": "_sanitize_profile_name",
+        "optional": false,
+        "requested": ".repository",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/profiles/lora.py",
+        "target": "easyuse_anima/profiles/repository.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "_windows_profile_filename_identity",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".repository:_windows_profile_filename_identity",
+        "kind": "static_from",
+        "line": 24,
+        "name": "_windows_profile_filename_identity",
+        "optional": false,
+        "requested": ".repository",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/profiles/lora.py",
+        "target": "easyuse_anima/profiles/repository.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "folder_paths",
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": false,
+            "kind": "try",
+            "line": 152
+          }
+        ],
+        "classification": "external",
+        "column": 8,
+        "conditional": true,
+        "imported": "folder_paths",
+        "kind": "static_import",
+        "line": 153,
+        "name": null,
+        "optional": true,
+        "requested": "folder_paths",
+        "role": "optional_dependency",
+        "scope": "_list_loras",
+        "source": "easyuse_anima/profiles/lora.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "folder_paths",
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": false,
+            "kind": "try",
+            "line": 178
+          }
+        ],
+        "classification": "external",
+        "column": 8,
+        "conditional": true,
+        "imported": "folder_paths",
+        "kind": "static_import",
+        "line": 179,
+        "name": null,
+        "optional": true,
+        "requested": "folder_paths",
+        "role": "optional_dependency",
+        "scope": "_lora_full_path",
+        "source": "easyuse_anima/profiles/lora.py"
       },
       {
         "alias": null,
@@ -20910,6 +20626,164 @@
         "role": "ordinary",
         "scope": "<module>",
         "source": "easyuse_anima/profiles/mutation.py",
+        "target": "easyuse_anima/profiles/contract.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "annotations",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "__future__:annotations",
+        "kind": "static_from",
+        "line": 3,
+        "name": "annotations",
+        "optional": false,
+        "requested": "__future__",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/profiles/repository.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "json",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "json",
+        "kind": "static_import",
+        "line": 5,
+        "name": null,
+        "optional": false,
+        "requested": "json",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/profiles/repository.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "re",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "re",
+        "kind": "static_import",
+        "line": 6,
+        "name": null,
+        "optional": false,
+        "requested": "re",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/profiles/repository.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "Path",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "pathlib:Path",
+        "kind": "static_from",
+        "line": 7,
+        "name": "Path",
+        "optional": false,
+        "requested": "pathlib",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/profiles/repository.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "AtomicJsonStore",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": "..infrastructure.filesystem.atomic_json:AtomicJsonStore",
+        "kind": "static_from",
+        "line": 9,
+        "name": "AtomicJsonStore",
+        "optional": false,
+        "requested": "..infrastructure.filesystem.atomic_json",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/profiles/repository.py",
+        "target": "easyuse_anima/infrastructure/filesystem/atomic_json.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "ProfileContractError",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".contract:ProfileContractError",
+        "kind": "static_from",
+        "line": 10,
+        "name": "ProfileContractError",
+        "optional": false,
+        "requested": ".contract",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/profiles/repository.py",
+        "target": "easyuse_anima/profiles/contract.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "interpret_profile_document",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".contract:interpret_profile_document",
+        "kind": "static_from",
+        "line": 10,
+        "name": "interpret_profile_document",
+        "optional": false,
+        "requested": ".contract",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/profiles/repository.py",
+        "target": "easyuse_anima/profiles/contract.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "legacy_profile_id",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".contract:legacy_profile_id",
+        "kind": "static_from",
+        "line": 10,
+        "name": "legacy_profile_id",
+        "optional": false,
+        "requested": ".contract",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/profiles/repository.py",
+        "target": "easyuse_anima/profiles/contract.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "normalize_profile_filename_identity",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".contract:normalize_profile_filename_identity",
+        "kind": "static_from",
+        "line": 10,
+        "name": "normalize_profile_filename_identity",
+        "optional": false,
+        "requested": ".contract",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/profiles/repository.py",
         "target": "easyuse_anima/profiles/contract.py"
       },
       {
@@ -52129,11 +52003,7 @@
       },
       {
         "from": "api.py",
-        "to": "easyuse_anima/infrastructure/filesystem/atomic_json.py"
-      },
-      {
-        "from": "api.py",
-        "to": "easyuse_anima/infrastructure/filesystem/paths.py"
+        "to": "easyuse_anima/profiles/aio.py"
       },
       {
         "from": "api.py",
@@ -52141,7 +52011,15 @@
       },
       {
         "from": "api.py",
+        "to": "easyuse_anima/profiles/lora.py"
+      },
+      {
+        "from": "api.py",
         "to": "easyuse_anima/profiles/mutation.py"
+      },
+      {
+        "from": "api.py",
+        "to": "easyuse_anima/profiles/repository.py"
       },
       {
         "from": "api.py",
@@ -53072,7 +52950,55 @@
         "to": "wildcard_engine.py"
       },
       {
+        "from": "easyuse_anima/profiles/aio.py",
+        "to": "easyuse_anima/infrastructure/filesystem/atomic_json.py"
+      },
+      {
+        "from": "easyuse_anima/profiles/aio.py",
+        "to": "easyuse_anima/infrastructure/filesystem/paths.py"
+      },
+      {
+        "from": "easyuse_anima/profiles/aio.py",
+        "to": "easyuse_anima/profiles/contract.py"
+      },
+      {
+        "from": "easyuse_anima/profiles/aio.py",
+        "to": "easyuse_anima/profiles/mutation.py"
+      },
+      {
+        "from": "easyuse_anima/profiles/aio.py",
+        "to": "easyuse_anima/profiles/repository.py"
+      },
+      {
+        "from": "easyuse_anima/profiles/lora.py",
+        "to": "easyuse_anima/infrastructure/filesystem/atomic_json.py"
+      },
+      {
+        "from": "easyuse_anima/profiles/lora.py",
+        "to": "easyuse_anima/infrastructure/filesystem/paths.py"
+      },
+      {
+        "from": "easyuse_anima/profiles/lora.py",
+        "to": "easyuse_anima/profiles/contract.py"
+      },
+      {
+        "from": "easyuse_anima/profiles/lora.py",
+        "to": "easyuse_anima/profiles/mutation.py"
+      },
+      {
+        "from": "easyuse_anima/profiles/lora.py",
+        "to": "easyuse_anima/profiles/repository.py"
+      },
+      {
         "from": "easyuse_anima/profiles/mutation.py",
+        "to": "easyuse_anima/profiles/contract.py"
+      },
+      {
+        "from": "easyuse_anima/profiles/repository.py",
+        "to": "easyuse_anima/infrastructure/filesystem/atomic_json.py"
+      },
+      {
+        "from": "easyuse_anima/profiles/repository.py",
         "to": "easyuse_anima/profiles/contract.py"
       },
       {
@@ -54088,13 +54014,31 @@
       {
         "cyclic": false,
         "modules": [
+          "easyuse_anima/profiles/aio.py"
+        ]
+      },
+      {
+        "cyclic": false,
+        "modules": [
           "easyuse_anima/profiles/contract.py"
         ]
       },
       {
         "cyclic": false,
         "modules": [
+          "easyuse_anima/profiles/lora.py"
+        ]
+      },
+      {
+        "cyclic": false,
+        "modules": [
           "easyuse_anima/profiles/mutation.py"
+        ]
+      },
+      {
+        "cyclic": false,
+        "modules": [
+          "easyuse_anima/profiles/repository.py"
         ]
       },
       {
@@ -54287,7 +54231,7 @@
     ]
   },
   "inventory": {
-    "module_count": 118,
+    "module_count": 121,
     "modules": [
       {
         "is_package": true,
@@ -54387,14 +54331,14 @@
       },
       {
         "is_package": false,
-        "loc": 1562,
+        "loc": 872,
         "module": "api",
-        "normalized_git_blob_sha1": "bf3af2a6a0839ebff9f22619657738ae73c71d9c",
+        "normalized_git_blob_sha1": "7a463a25274570f0103ec3b9479b20968be3a0a0",
         "path": "api.py",
         "top_level": {
-          "class_count": 2,
-          "function_count": 60,
-          "global_count": 22
+          "class_count": 1,
+          "function_count": 23,
+          "global_count": 75
         }
       },
       {
@@ -55289,12 +55233,24 @@
         "is_package": true,
         "loc": 3,
         "module": "easyuse_anima.profiles",
-        "normalized_git_blob_sha1": "46d0dbee1d4ec4441a90bf6a674200e22ac90ffd",
+        "normalized_git_blob_sha1": "43256553d0e56241f2a7bcc3a56f37c5c558ddbc",
         "path": "easyuse_anima/profiles/__init__.py",
         "top_level": {
           "class_count": 0,
           "function_count": 0,
           "global_count": 1
+        }
+      },
+      {
+        "is_package": false,
+        "loc": 362,
+        "module": "easyuse_anima.profiles.aio",
+        "normalized_git_blob_sha1": "6fcd2950fd6f9676f56866d9e4daea224b2ceb53",
+        "path": "easyuse_anima/profiles/aio.py",
+        "top_level": {
+          "class_count": 0,
+          "function_count": 12,
+          "global_count": 5
         }
       },
       {
@@ -55311,6 +55267,18 @@
       },
       {
         "is_package": false,
+        "loc": 426,
+        "module": "easyuse_anima.profiles.lora",
+        "normalized_git_blob_sha1": "deebe831ca820edc962ade957501079980d13aa2",
+        "path": "easyuse_anima/profiles/lora.py",
+        "top_level": {
+          "class_count": 0,
+          "function_count": 21,
+          "global_count": 3
+        }
+      },
+      {
+        "is_package": false,
         "loc": 150,
         "module": "easyuse_anima.profiles.mutation",
         "normalized_git_blob_sha1": "71cb4340b6eec8c1a25e8f4ee311e97bc7ae89b2",
@@ -55319,6 +55287,18 @@
           "class_count": 5,
           "function_count": 2,
           "global_count": 2
+        }
+      },
+      {
+        "is_package": false,
+        "loc": 87,
+        "module": "easyuse_anima.profiles.repository",
+        "normalized_git_blob_sha1": "4728f86c594fd9e20cf91eedd2791731d8e2f85d",
+        "path": "easyuse_anima/profiles/repository.py",
+        "top_level": {
+          "class_count": 1,
+          "function_count": 4,
+          "global_count": 3
         }
       },
       {
@@ -55901,397 +55881,6 @@
   },
   "registry": {
     "compatibility_fallback_imports": [
-      {
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 83,
-            "kind": "try",
-            "line": 63
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "conditional": true,
-        "imported": "easyuse_anima.profiles.contract:PROFILE_KIND_AIO",
-        "kind": "static_from",
-        "line": 84,
-        "optional": false,
-        "role": "compatibility_fallback",
-        "source": "api.py",
-        "target": "easyuse_anima/profiles/contract.py"
-      },
-      {
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 83,
-            "kind": "try",
-            "line": 63
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "conditional": true,
-        "imported": "easyuse_anima.profiles.contract:PROFILE_KIND_LORA",
-        "kind": "static_from",
-        "line": 84,
-        "optional": false,
-        "role": "compatibility_fallback",
-        "source": "api.py",
-        "target": "easyuse_anima/profiles/contract.py"
-      },
-      {
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 83,
-            "kind": "try",
-            "line": 63
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "conditional": true,
-        "imported": "easyuse_anima.profiles.contract:ProfileContractError",
-        "kind": "static_from",
-        "line": 84,
-        "optional": false,
-        "role": "compatibility_fallback",
-        "source": "api.py",
-        "target": "easyuse_anima/profiles/contract.py"
-      },
-      {
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 83,
-            "kind": "try",
-            "line": 63
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "conditional": true,
-        "imported": "easyuse_anima.profiles.contract:build_profile_document",
-        "kind": "static_from",
-        "line": 84,
-        "optional": false,
-        "role": "compatibility_fallback",
-        "source": "api.py",
-        "target": "easyuse_anima/profiles/contract.py"
-      },
-      {
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 83,
-            "kind": "try",
-            "line": 63
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "conditional": true,
-        "imported": "easyuse_anima.profiles.contract:create_profile_document",
-        "kind": "static_from",
-        "line": 84,
-        "optional": false,
-        "role": "compatibility_fallback",
-        "source": "api.py",
-        "target": "easyuse_anima/profiles/contract.py"
-      },
-      {
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 83,
-            "kind": "try",
-            "line": 63
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "conditional": true,
-        "imported": "easyuse_anima.profiles.contract:interpret_profile_document",
-        "kind": "static_from",
-        "line": 84,
-        "optional": false,
-        "role": "compatibility_fallback",
-        "source": "api.py",
-        "target": "easyuse_anima/profiles/contract.py"
-      },
-      {
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 83,
-            "kind": "try",
-            "line": 63
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "conditional": true,
-        "imported": "easyuse_anima.profiles.contract:legacy_profile_id",
-        "kind": "static_from",
-        "line": 84,
-        "optional": false,
-        "role": "compatibility_fallback",
-        "source": "api.py",
-        "target": "easyuse_anima/profiles/contract.py"
-      },
-      {
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 83,
-            "kind": "try",
-            "line": 63
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "conditional": true,
-        "imported": "easyuse_anima.profiles.contract:normalize_profile_filename_identity",
-        "kind": "static_from",
-        "line": 84,
-        "optional": false,
-        "role": "compatibility_fallback",
-        "source": "api.py",
-        "target": "easyuse_anima/profiles/contract.py"
-      },
-      {
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 83,
-            "kind": "try",
-            "line": 63
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "conditional": true,
-        "imported": "easyuse_anima.profiles.contract:rename_profile_document",
-        "kind": "static_from",
-        "line": 84,
-        "optional": false,
-        "role": "compatibility_fallback",
-        "source": "api.py",
-        "target": "easyuse_anima/profiles/contract.py"
-      },
-      {
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 83,
-            "kind": "try",
-            "line": 63
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "conditional": true,
-        "imported": "easyuse_anima.profiles.contract:update_profile_document",
-        "kind": "static_from",
-        "line": 84,
-        "optional": false,
-        "role": "compatibility_fallback",
-        "source": "api.py",
-        "target": "easyuse_anima/profiles/contract.py"
-      },
-      {
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 83,
-            "kind": "try",
-            "line": 63
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "conditional": true,
-        "imported": "easyuse_anima.profiles.mutation:PROFILE_MUTATION_COORDINATOR",
-        "kind": "static_from",
-        "line": 96,
-        "optional": false,
-        "role": "compatibility_fallback",
-        "source": "api.py",
-        "target": "easyuse_anima/profiles/mutation.py"
-      },
-      {
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 83,
-            "kind": "try",
-            "line": 63
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "conditional": true,
-        "imported": "easyuse_anima.profiles.mutation:ProfileMutationError",
-        "kind": "static_from",
-        "line": 96,
-        "optional": false,
-        "role": "compatibility_fallback",
-        "source": "api.py",
-        "target": "easyuse_anima/profiles/mutation.py"
-      },
-      {
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 83,
-            "kind": "try",
-            "line": 63
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "conditional": true,
-        "imported": "easyuse_anima.profiles.mutation:ProfileRevisionConflictError",
-        "kind": "static_from",
-        "line": 96,
-        "optional": false,
-        "role": "compatibility_fallback",
-        "source": "api.py",
-        "target": "easyuse_anima/profiles/mutation.py"
-      },
-      {
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 83,
-            "kind": "try",
-            "line": 63
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "conditional": true,
-        "imported": "easyuse_anima.profiles.mutation:require_profile_precondition",
-        "kind": "static_from",
-        "line": 96,
-        "optional": false,
-        "role": "compatibility_fallback",
-        "source": "api.py",
-        "target": "easyuse_anima/profiles/mutation.py"
-      },
-      {
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 83,
-            "kind": "try",
-            "line": 63
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "conditional": true,
-        "imported": "easyuse_anima.profiles.mutation:verify_profile_precondition",
-        "kind": "static_from",
-        "line": 96,
-        "optional": false,
-        "role": "compatibility_fallback",
-        "source": "api.py",
-        "target": "easyuse_anima/profiles/mutation.py"
-      },
-      {
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 106,
-            "kind": "try",
-            "line": 103
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "conditional": true,
-        "imported": "easyuse_anima.infrastructure.filesystem.atomic_json:AtomicJsonStore",
-        "kind": "static_from",
-        "line": 107,
-        "optional": false,
-        "role": "compatibility_fallback",
-        "source": "api.py",
-        "target": "easyuse_anima/infrastructure/filesystem/atomic_json.py"
-      },
-      {
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 106,
-            "kind": "try",
-            "line": 103
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "conditional": true,
-        "imported": "easyuse_anima.infrastructure.filesystem.paths:USER_DATA_DIR",
-        "kind": "static_from",
-        "line": 108,
-        "optional": false,
-        "role": "compatibility_fallback",
-        "source": "api.py",
-        "target": "easyuse_anima/infrastructure/filesystem/paths.py"
-      },
       {
         "branch_context": [
           {
@@ -66393,7 +65982,7 @@
         "branch_context": [],
         "classification": "external",
         "conditional": false,
-        "imported": "re",
+        "imported": "threading",
         "kind": "static_import",
         "line": 8,
         "optional": false,
@@ -66404,7 +65993,7 @@
         "branch_context": [],
         "classification": "external",
         "conditional": false,
-        "imported": "threading",
+        "imported": "weakref",
         "kind": "static_import",
         "line": 9,
         "optional": false,
@@ -66415,20 +66004,9 @@
         "branch_context": [],
         "classification": "external",
         "conditional": false,
-        "imported": "weakref",
-        "kind": "static_import",
-        "line": 10,
-        "optional": false,
-        "role": "ordinary",
-        "source": "api.py"
-      },
-      {
-        "branch_context": [],
-        "classification": "external",
-        "conditional": false,
         "imported": "concurrent.futures:Future",
         "kind": "static_from",
-        "line": 11,
+        "line": 10,
         "optional": false,
         "role": "ordinary",
         "source": "api.py"
@@ -66439,7 +66017,7 @@
         "conditional": false,
         "imported": "concurrent.futures:ThreadPoolExecutor",
         "kind": "static_from",
-        "line": 11,
+        "line": 10,
         "optional": false,
         "role": "ordinary",
         "source": "api.py"
@@ -66450,18 +66028,7 @@
         "conditional": false,
         "imported": "functools:wraps",
         "kind": "static_from",
-        "line": 12,
-        "optional": false,
-        "role": "ordinary",
-        "source": "api.py"
-      },
-      {
-        "branch_context": [],
-        "classification": "external",
-        "conditional": false,
-        "imported": "pathlib:Path",
-        "kind": "static_from",
-        "line": 13,
+        "line": 11,
         "optional": false,
         "role": "ordinary",
         "source": "api.py"
@@ -66473,14 +66040,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": true,
             "kind": "try",
-            "line": 15
+            "line": 13
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "server",
         "kind": "static_import",
-        "line": 16,
+        "line": 14,
         "optional": true,
         "role": "optional_dependency",
         "source": "api.py"
@@ -66492,14 +66059,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": true,
             "kind": "try",
-            "line": 15
+            "line": 13
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "aiohttp:web",
         "kind": "static_from",
-        "line": 17,
+        "line": 15,
         "optional": true,
         "role": "optional_dependency",
         "source": "api.py"
@@ -66511,52 +66078,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 444
+            "line": 321
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 445,
-        "optional": true,
-        "role": "optional_dependency",
-        "source": "api.py"
-      },
-      {
-        "branch_context": [
-          {
-            "branch": "body",
-            "handles_import_failure": true,
-            "has_import_fallback_handler": false,
-            "kind": "try",
-            "line": 470
-          }
-        ],
-        "classification": "external",
-        "conditional": true,
-        "imported": "folder_paths",
-        "kind": "static_import",
-        "line": 471,
-        "optional": true,
-        "role": "optional_dependency",
-        "source": "api.py"
-      },
-      {
-        "branch_context": [
-          {
-            "branch": "body",
-            "handles_import_failure": true,
-            "has_import_fallback_handler": false,
-            "kind": "try",
-            "line": 1011
-          }
-        ],
-        "classification": "external",
-        "conditional": true,
-        "imported": "folder_paths",
-        "kind": "static_import",
-        "line": 1012,
+        "line": 322,
         "optional": true,
         "role": "optional_dependency",
         "source": "api.py"
@@ -70104,6 +69633,61 @@
         "conditional": false,
         "imported": "__future__:annotations",
         "kind": "static_from",
+        "line": 3,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/profiles/aio.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "json",
+        "kind": "static_import",
+        "line": 5,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/profiles/aio.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "os",
+        "kind": "static_import",
+        "line": 6,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/profiles/aio.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "pathlib:Path",
+        "kind": "static_from",
+        "line": 7,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/profiles/aio.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "typing:cast",
+        "kind": "static_from",
+        "line": 8,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/profiles/aio.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "__future__:annotations",
+        "kind": "static_from",
         "line": 1,
         "optional": false,
         "role": "ordinary",
@@ -70152,6 +69736,88 @@
         "optional": false,
         "role": "ordinary",
         "source": "easyuse_anima/profiles/contract.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "__future__:annotations",
+        "kind": "static_from",
+        "line": 3,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/profiles/lora.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "json",
+        "kind": "static_import",
+        "line": 5,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/profiles/lora.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "os",
+        "kind": "static_import",
+        "line": 6,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/profiles/lora.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "pathlib:Path",
+        "kind": "static_from",
+        "line": 7,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/profiles/lora.py"
+      },
+      {
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": false,
+            "kind": "try",
+            "line": 152
+          }
+        ],
+        "classification": "external",
+        "conditional": true,
+        "imported": "folder_paths",
+        "kind": "static_import",
+        "line": 153,
+        "optional": true,
+        "role": "optional_dependency",
+        "source": "easyuse_anima/profiles/lora.py"
+      },
+      {
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": false,
+            "kind": "try",
+            "line": 178
+          }
+        ],
+        "classification": "external",
+        "conditional": true,
+        "imported": "folder_paths",
+        "kind": "static_import",
+        "line": 179,
+        "optional": true,
+        "role": "optional_dependency",
+        "source": "easyuse_anima/profiles/lora.py"
       },
       {
         "branch_context": [],
@@ -70251,6 +69917,50 @@
         "optional": false,
         "role": "ordinary",
         "source": "easyuse_anima/profiles/mutation.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "__future__:annotations",
+        "kind": "static_from",
+        "line": 3,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/profiles/repository.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "json",
+        "kind": "static_import",
+        "line": 5,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/profiles/repository.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "re",
+        "kind": "static_import",
+        "line": 6,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/profiles/repository.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "pathlib:Path",
+        "kind": "static_from",
+        "line": 7,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/profiles/repository.py"
       },
       {
         "branch_context": [],
@@ -71603,14 +71313,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": true,
             "kind": "try",
-            "line": 15
+            "line": 13
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "server",
         "kind": "static_import",
-        "line": 16,
+        "line": 14,
         "optional": true,
         "role": "optional_dependency",
         "source": "api.py"
@@ -71622,14 +71332,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": true,
             "kind": "try",
-            "line": 15
+            "line": 13
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "aiohttp:web",
         "kind": "static_from",
-        "line": 17,
+        "line": 15,
         "optional": true,
         "role": "optional_dependency",
         "source": "api.py"
@@ -71641,52 +71351,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 444
+            "line": 321
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 445,
-        "optional": true,
-        "role": "optional_dependency",
-        "source": "api.py"
-      },
-      {
-        "branch_context": [
-          {
-            "branch": "body",
-            "handles_import_failure": true,
-            "has_import_fallback_handler": false,
-            "kind": "try",
-            "line": 470
-          }
-        ],
-        "classification": "external",
-        "conditional": true,
-        "imported": "folder_paths",
-        "kind": "static_import",
-        "line": 471,
-        "optional": true,
-        "role": "optional_dependency",
-        "source": "api.py"
-      },
-      {
-        "branch_context": [
-          {
-            "branch": "body",
-            "handles_import_failure": true,
-            "has_import_fallback_handler": false,
-            "kind": "try",
-            "line": 1011
-          }
-        ],
-        "classification": "external",
-        "conditional": true,
-        "imported": "folder_paths",
-        "kind": "static_import",
-        "line": 1012,
+        "line": 322,
         "optional": true,
         "role": "optional_dependency",
         "source": "api.py"
@@ -72331,6 +72003,44 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
+            "line": 152
+          }
+        ],
+        "classification": "external",
+        "conditional": true,
+        "imported": "folder_paths",
+        "kind": "static_import",
+        "line": 153,
+        "optional": true,
+        "role": "optional_dependency",
+        "source": "easyuse_anima/profiles/lora.py"
+      },
+      {
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": false,
+            "kind": "try",
+            "line": 178
+          }
+        ],
+        "classification": "external",
+        "conditional": true,
+        "imported": "folder_paths",
+        "kind": "static_import",
+        "line": 179,
+        "optional": true,
+        "role": "optional_dependency",
+        "source": "easyuse_anima/profiles/lora.py"
+      },
+      {
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": false,
+            "kind": "try",
             "line": 409
           }
         ],
@@ -72620,8 +72330,11 @@
       "easyuse_anima/nodes/seed_adapters.py",
       "easyuse_anima/nodes/wildcard_nodes.py",
       "easyuse_anima/profiles/__init__.py",
+      "easyuse_anima/profiles/aio.py",
       "easyuse_anima/profiles/contract.py",
+      "easyuse_anima/profiles/lora.py",
       "easyuse_anima/profiles/mutation.py",
+      "easyuse_anima/profiles/repository.py",
       "easyuse_anima/prompt/__init__.py",
       "easyuse_anima/prompt/advanced.py",
       "easyuse_anima/prompt/artist_mix.py",
@@ -72740,8 +72453,11 @@
       "easyuse_anima/nodes/seed_adapters.py",
       "easyuse_anima/nodes/wildcard_nodes.py",
       "easyuse_anima/profiles/__init__.py",
+      "easyuse_anima/profiles/aio.py",
       "easyuse_anima/profiles/contract.py",
+      "easyuse_anima/profiles/lora.py",
       "easyuse_anima/profiles/mutation.py",
+      "easyuse_anima/profiles/repository.py",
       "easyuse_anima/prompt/__init__.py",
       "easyuse_anima/prompt/advanced.py",
       "easyuse_anima/prompt/artist_mix.py",
@@ -72952,38 +72668,11 @@
         "scope": "<module>"
       },
       {
-        "callee": "re.compile",
-        "column": 29,
-        "context": "assign:INVALID_PROFILE_NAME_CHARS",
-        "kind": "import_time_call",
-        "line": 114,
-        "module": "api.py",
-        "scope": "<module>"
-      },
-      {
-        "callee": "range",
-        "column": 33,
-        "context": "assign:WINDOWS_RESERVED_FILE_BASENAMES",
-        "kind": "import_time_call",
-        "line": 139,
-        "module": "api.py",
-        "scope": "<module>"
-      },
-      {
-        "callee": "range",
-        "column": 33,
-        "context": "assign:WINDOWS_RESERVED_FILE_BASENAMES",
-        "kind": "import_time_call",
-        "line": 140,
-        "module": "api.py",
-        "scope": "<module>"
-      },
-      {
         "callee": "logging.getLogger",
         "column": 10,
         "context": "assign:_LOGGER",
         "kind": "import_time_call",
-        "line": 146,
+        "line": 145,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -72992,7 +72681,7 @@
         "column": 25,
         "context": "assign:_FILE_IO_LIMITERS_LOCK",
         "kind": "import_time_call",
-        "line": 153,
+        "line": 148,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -73001,7 +72690,7 @@
         "column": 47,
         "context": "assign:_FILE_IO_LIMITERS",
         "kind": "import_time_call",
-        "line": 154,
+        "line": 149,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -73010,7 +72699,7 @@
         "column": 29,
         "context": "assign:_PROMPT_TRANSLATION_WORKER",
         "kind": "import_time_call",
-        "line": 203,
+        "line": 198,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -73019,7 +72708,7 @@
         "column": 0,
         "context": "expression",
         "kind": "import_time_call",
-        "line": 204,
+        "line": 199,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -73028,7 +72717,7 @@
         "column": 36,
         "context": "assign:_SAFE_PROFILE_VALIDATION_MESSAGES",
         "kind": "import_time_call",
-        "line": 1038,
+        "line": 348,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -73037,7 +72726,7 @@
         "column": 9,
         "context": "assign:routes",
         "kind": "route_registry_creation",
-        "line": 1195,
+        "line": 505,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -73046,7 +72735,7 @@
         "column": 19,
         "context": "assign:_ROUTE_SIGNATURE",
         "kind": "route_registry_creation",
-        "line": 1538,
+        "line": 848,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -73055,7 +72744,7 @@
         "column": 5,
         "context": "assign:_ROUTE_SIGNATURE",
         "kind": "route_registry_creation",
-        "line": 1539,
+        "line": 849,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -74096,6 +73785,33 @@
       },
       {
         "callee": "re.compile",
+        "column": 29,
+        "context": "assign:INVALID_PROFILE_NAME_CHARS",
+        "kind": "import_time_call",
+        "line": 17,
+        "module": "easyuse_anima/profiles/repository.py",
+        "scope": "<module>"
+      },
+      {
+        "callee": "range",
+        "column": 33,
+        "context": "assign:WINDOWS_RESERVED_FILE_BASENAMES",
+        "kind": "import_time_call",
+        "line": 23,
+        "module": "easyuse_anima/profiles/repository.py",
+        "scope": "<module>"
+      },
+      {
+        "callee": "range",
+        "column": 33,
+        "context": "assign:WINDOWS_RESERVED_FILE_BASENAMES",
+        "kind": "import_time_call",
+        "line": 24,
+        "module": "easyuse_anima/profiles/repository.py",
+        "scope": "<module>"
+      },
+      {
+        "callee": "re.compile",
         "column": 28,
         "context": "assign:_ADVANCED_FIELD_SOCKET_RE",
         "kind": "import_time_call",
@@ -74519,18 +74235,6 @@
         "name": "SECTION_ORDER"
       },
       {
-        "kind": "set",
-        "line": 118,
-        "module": "api.py",
-        "name": "AIO_RESERVED_PROFILE_NAMES"
-      },
-      {
-        "kind": "set",
-        "line": 134,
-        "module": "api.py",
-        "name": "WINDOWS_RESERVED_FILE_BASENAMES"
-      },
-      {
         "kind": "dict",
         "line": 63,
         "module": "autocomplete_dataset.py",
@@ -74679,6 +74383,18 @@
         "line": 47,
         "module": "easyuse_anima/nodes/wildcard_nodes.py",
         "name": "WILDCARD_MODE_DISPLAY_LABELS"
+      },
+      {
+        "kind": "set",
+        "line": 38,
+        "module": "easyuse_anima/profiles/aio.py",
+        "name": "AIO_RESERVED_PROFILE_NAMES"
+      },
+      {
+        "kind": "set",
+        "line": 18,
+        "module": "easyuse_anima/profiles/repository.py",
+        "name": "WINDOWS_RESERVED_FILE_BASENAMES"
       },
       {
         "kind": "dict",
@@ -74891,7 +74607,7 @@
           "lock"
         ],
         "initializer": "threading.Lock",
-        "line": 153,
+        "line": 148,
         "module": "api.py",
         "name": "_FILE_IO_LIMITERS_LOCK"
       },
@@ -74900,7 +74616,7 @@
           "executor"
         ],
         "initializer": "_PromptTranslationWorker",
-        "line": 203,
+        "line": 198,
         "module": "api.py",
         "name": "_PROMPT_TRANSLATION_WORKER"
       },

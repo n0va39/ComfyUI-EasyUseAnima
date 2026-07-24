@@ -17,6 +17,7 @@ from itertools import count
 from pathlib import Path
 from unittest.mock import patch
 
+from tests.api_test_support import replace_sys_modules
 
 ROOT = Path(__file__).resolve().parents[1]
 _LOAD_COUNTER = count()
@@ -123,7 +124,7 @@ def load_api_routes(*, register=True, routes=None):
     )
     module = importlib.util.module_from_spec(spec)
     sys.modules[spec.name] = module
-    with patch.dict(sys.modules, {"server": fake_server, "aiohttp": fake_aiohttp}):
+    with replace_sys_modules({"server": fake_server, "aiohttp": fake_aiohttp}):
         spec.loader.exec_module(module)
         if register:
             module.register_routes()
@@ -140,6 +141,14 @@ def response_strings(value):
             yield from response_strings(item)
     elif isinstance(value, str):
         yield value
+
+
+def profile_directory_owner(api, directory_name):
+    if directory_name == "AIO_PROFILE_DIR":
+        return api._aio_profiles
+    if directory_name == "LORA_PROFILE_DIR":
+        return api._lora_profiles
+    raise AssertionError(f"Unknown profile directory: {directory_name}")
 
 
 class ApiRequestCorrelationTests(unittest.TestCase):
@@ -591,7 +600,11 @@ class ApiRequestContractTests(unittest.TestCase):
             for route, directory_name in cases:
                 with self.subTest(route=route):
                     (root / "Broken.json").write_text("{", encoding="utf-8")
-                    with patch.object(api, directory_name, root):
+                    with patch.object(
+                        profile_directory_owner(api, directory_name),
+                        directory_name,
+                        root,
+                    ):
                         response = asyncio.run(
                             routes.handlers[route](JsonRequest(query={"name": "Broken"}))
                         )
@@ -628,7 +641,11 @@ class ApiRequestContractTests(unittest.TestCase):
             for route, directory_name, content in cases:
                 with self.subTest(route=route, content=content):
                     (root / "Invalid.json").write_text(content, encoding="utf-8")
-                    with patch.object(api, directory_name, root):
+                    with patch.object(
+                        profile_directory_owner(api, directory_name),
+                        directory_name,
+                        root,
+                    ):
                         response = asyncio.run(
                             routes.handlers[route](JsonRequest(query={"name": "Invalid"}))
                         )
@@ -688,7 +705,11 @@ class ApiRequestContractTests(unittest.TestCase):
                         encoding="utf-8",
                     )
                     with (
-                        patch.object(api, directory_name, root),
+                        patch.object(
+                            profile_directory_owner(api, directory_name),
+                            directory_name,
+                            root,
+                        ),
                         patch.object(api, "create_request_id", return_value=request_id),
                     ):
                         response = asyncio.run(
@@ -714,7 +735,11 @@ class ApiRequestContractTests(unittest.TestCase):
             for route, directory_name in cases:
                 with self.subTest(route=route):
                     (root / "BrokenUtf8.json").write_bytes(secret_bytes)
-                    with patch.object(api, directory_name, root):
+                    with patch.object(
+                        profile_directory_owner(api, directory_name),
+                        directory_name,
+                        root,
+                    ):
                         response = asyncio.run(
                             routes.handlers[route](
                                 JsonRequest(query={"name": "BrokenUtf8"})
@@ -756,7 +781,7 @@ class ApiRequestContractTests(unittest.TestCase):
                 target = root / "Target.json"
                 source.write_bytes(source_bytes)
 
-                with patch.object(api, "AIO_PROFILE_DIR", root):
+                with patch.object(api._aio_profiles, "AIO_PROFILE_DIR", root):
                     response = asyncio.run(
                         handler(
                             JsonRequest(
@@ -797,7 +822,7 @@ class ApiRequestContractTests(unittest.TestCase):
             root = Path(tmp)
             (root / "Empty.json").write_text("", encoding="utf-8")
 
-            with patch.object(api, "LORA_PROFILE_DIR", root):
+            with patch.object(api._lora_profiles, "LORA_PROFILE_DIR", root):
                 lora_response = asyncio.run(
                     routes.handlers["/easyuse_anima/lora_profiles/load"](
                         JsonRequest(query={"name": "Empty"})
@@ -807,7 +832,7 @@ class ApiRequestContractTests(unittest.TestCase):
             self.assertEqual(lora_response["payload"]["profile"]["profile_data"], {})
             self.assertEqual(lora_response["payload"]["profile"]["profile_count"], 1)
 
-            with patch.object(api, "AIO_PROFILE_DIR", root):
+            with patch.object(api._aio_profiles, "AIO_PROFILE_DIR", root):
                 aio_response = asyncio.run(
                     routes.handlers["/easyuse_anima/aio_profiles/load"](
                         JsonRequest(query={"name": "Empty"})
@@ -829,7 +854,7 @@ class ApiRequestContractTests(unittest.TestCase):
                 json.dumps(stored),
                 encoding="utf-8",
             )
-            with patch.object(api, "LORA_PROFILE_DIR", root):
+            with patch.object(api._lora_profiles, "LORA_PROFILE_DIR", root):
                 response = asyncio.run(
                     routes.handlers["/easyuse_anima/lora_profiles/load"](
                         JsonRequest(query={"name": "Legacy"})
