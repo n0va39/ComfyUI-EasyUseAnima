@@ -13,6 +13,7 @@ from easyuse_anima.nodes import wildcard_nodes
 from easyuse_anima.prompt import advanced as prompt_advanced
 from easyuse_anima.seed import compatibility as seed_compatibility
 from easyuse_anima.wildcard import models as wildcard_models
+from easyuse_anima.wildcard import seed as wildcard_seed
 from easyuse_anima.wildcard import snapshot as wildcard_snapshot
 from easyuse_anima.wildcard import sources as wildcard_sources
 from nodes import (
@@ -35,6 +36,26 @@ from wildcard_engine import (
 
 
 class WildcardEngineTests(unittest.TestCase):
+    def test_root_seed_surface_has_canonical_identity(self):
+        expected = (
+            "SEED_CONTROL_FIXED",
+            "SEED_CONTROL_RANDOMIZE",
+            "SEED_CONTROL_INCREMENT",
+            "SEED_CONTROL_DECREMENT",
+            "SEED_CONTROL_MODES",
+            "MAX_SEED",
+            "PUBLIC_MAX_SEED",
+            "normalize_seed",
+            "next_seed",
+        )
+        self.assertEqual(wildcard_seed.__all__, expected)
+        for name in expected:
+            with self.subTest(name=name):
+                self.assertIs(
+                    getattr(wildcard_engine, name),
+                    getattr(wildcard_seed, name),
+                )
+
     def test_root_snapshot_surface_has_canonical_identity(self):
         self.assertEqual(wildcard_snapshot.__all__, ())
         self.assertIs(
@@ -932,7 +953,7 @@ class WildcardSeedContractTests(unittest.TestCase):
             wildcard_engine.next_seed(public_max, "decrement"),
             public_max - 1,
         )
-        with patch("wildcard_engine.random.SystemRandom") as system_random:
+        with patch.object(wildcard_seed.random, "SystemRandom") as system_random:
             system_random.return_value.randrange.return_value = public_max
 
             self.assertEqual(
@@ -1184,7 +1205,7 @@ class WildcardNodeTests(unittest.TestCase):
 
     def test_prompt_studio_mode_and_seed_control_matrix_saves_current_seed_as_fixed(self):
         with (
-            patch("wildcard_engine.random.SystemRandom") as system_random,
+            patch.object(wildcard_seed.random, "SystemRandom") as system_random,
             patch(
                 "easyuse_anima.nodes.seed_adapters.get_runtime",
                 side_effect=RuntimeError,
@@ -1280,7 +1301,7 @@ class WildcardNodeTests(unittest.TestCase):
         }
 
         with (
-            patch("wildcard_engine.random.SystemRandom") as system_random,
+            patch.object(wildcard_seed.random, "SystemRandom") as system_random,
             patch(
                 "easyuse_anima.nodes.seed_adapters.get_runtime",
                 side_effect=RuntimeError,

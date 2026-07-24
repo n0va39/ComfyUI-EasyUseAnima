@@ -5,7 +5,6 @@ from collections import OrderedDict
 import fnmatch
 import hashlib
 import math
-import random
 import re
 import threading
 from dataclasses import dataclass
@@ -83,6 +82,31 @@ except ImportError:
         _WildcardSnapshot,
     )
 
+try:
+    from .easyuse_anima.wildcard.seed import (
+        MAX_SEED,
+        PUBLIC_MAX_SEED,
+        SEED_CONTROL_DECREMENT,
+        SEED_CONTROL_FIXED,
+        SEED_CONTROL_INCREMENT,
+        SEED_CONTROL_MODES,
+        SEED_CONTROL_RANDOMIZE,
+        next_seed,
+        normalize_seed,
+    )
+except ImportError:
+    from easyuse_anima.wildcard.seed import (
+        MAX_SEED,
+        PUBLIC_MAX_SEED,
+        SEED_CONTROL_DECREMENT,
+        SEED_CONTROL_FIXED,
+        SEED_CONTROL_INCREMENT,
+        SEED_CONTROL_MODES,
+        SEED_CONTROL_RANDOMIZE,
+        next_seed,
+        normalize_seed,
+    )
+
 
 WILDCARD_MODE_POPULATE = "populate"
 WILDCARD_MODE_FIXED = "fixed"
@@ -115,19 +139,6 @@ WILDCARD_MODE_ALIASES = {
     "재현": WILDCARD_MODE_REPRODUCE,
 }
 
-SEED_CONTROL_FIXED = "fixed"
-SEED_CONTROL_RANDOMIZE = "randomize"
-SEED_CONTROL_INCREMENT = "increment"
-SEED_CONTROL_DECREMENT = "decrement"
-SEED_CONTROL_MODES = (
-    SEED_CONTROL_FIXED,
-    SEED_CONTROL_RANDOMIZE,
-    SEED_CONTROL_INCREMENT,
-    SEED_CONTROL_DECREMENT,
-)
-
-MAX_SEED = 0xFFFFFFFFFFFFFFFF
-PUBLIC_MAX_SEED = (1 << 53) - 1
 COMMENT_RE = re.compile(r"^\s*#.*(?:\n|$)", re.MULTILINE)
 DYNAMIC_RE = re.compile(r"(?<![\\%])\{((?:[^{}]|(?<=\\)[{}])*?)(?<!\\)\}")
 WILDCARD_RE = re.compile(r"__(?P<keyword>[\w.\-+/*\\]+?)__", re.IGNORECASE)
@@ -383,37 +394,6 @@ def normalize_prompt_studio_wildcard_mode(mode: str) -> str:
         if normalize_wildcard_mode(mode) == WILDCARD_MODE_SEQUENTIAL
         else WILDCARD_MODE_POPULATE
     )
-
-
-def normalize_seed(value) -> int:
-    try:
-        seed = int(value)
-    except (TypeError, ValueError):
-        seed = 0
-    return max(0, min(MAX_SEED, seed))
-
-
-def next_seed(seed, control: str) -> int:
-    """Return the next public wildcard seed without breaking legacy inputs.
-
-    Existing workflows may contain uint64 values that JavaScript cannot
-    represent exactly.  The current generation still consumes that legacy
-    value, and ``fixed`` preserves it.  Controls that advance the state first
-    project the value onto the public JavaScript-safe range so every returned
-    non-fixed seed uses the same inclusive range in Python and JavaScript.
-    """
-    seed = normalize_seed(seed)
-    control = str(control or SEED_CONTROL_FIXED).strip()
-    if control == SEED_CONTROL_FIXED:
-        return seed
-    if control == SEED_CONTROL_RANDOMIZE:
-        return random.SystemRandom().randrange(0, PUBLIC_MAX_SEED + 1)
-    public_seed = min(seed, PUBLIC_MAX_SEED)
-    if control == SEED_CONTROL_INCREMENT:
-        return 0 if public_seed >= PUBLIC_MAX_SEED else public_seed + 1
-    if control == SEED_CONTROL_DECREMENT:
-        return PUBLIC_MAX_SEED if public_seed <= 0 else public_seed - 1
-    return seed
 
 
 def has_wildcard_syntax(text: str) -> bool:
