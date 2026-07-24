@@ -55,6 +55,14 @@ class _AIOFirstPassCacheEntry:
         )
 
 
+@dataclass(frozen=True, slots=True)
+class _AIOFirstPassCacheMetrics:
+    hits: int
+    misses: int
+    skips: int
+    evictions: int
+
+
 _AIO_FIRST_PASS_CACHE: dict[
     str,
     _AIOFirstPassCacheEntry | dict[str, Any],
@@ -62,6 +70,12 @@ _AIO_FIRST_PASS_CACHE: dict[
 _AIO_FIRST_PASS_CACHE_ORDER: list[str] = []
 _AIO_FIRST_PASS_CACHE_LOCK = RLock()
 _AIO_FIRST_PASS_CACHE_GENERATION = 0
+_AIO_FIRST_PASS_CACHE_METRICS = {
+    "hits": 0,
+    "misses": 0,
+    "skips": 0,
+    "evictions": 0,
+}
 
 
 def _clone_aio_cache_value(value):
@@ -178,6 +192,27 @@ def _aio_first_pass_cache_total_bytes() -> int:
         )
 
 
+def _aio_first_pass_cache_metrics_snapshot() -> _AIOFirstPassCacheMetrics:
+    with _AIO_FIRST_PASS_CACHE_LOCK:
+        return _AIOFirstPassCacheMetrics(
+            hits=_AIO_FIRST_PASS_CACHE_METRICS["hits"],
+            misses=_AIO_FIRST_PASS_CACHE_METRICS["misses"],
+            skips=_AIO_FIRST_PASS_CACHE_METRICS["skips"],
+            evictions=_AIO_FIRST_PASS_CACHE_METRICS["evictions"],
+        )
+
+
+def _reset_aio_first_pass_cache_metrics() -> None:
+    with _AIO_FIRST_PASS_CACHE_LOCK:
+        for name in _AIO_FIRST_PASS_CACHE_METRICS:
+            _AIO_FIRST_PASS_CACHE_METRICS[name] = 0
+
+
+def _record_aio_first_pass_cache_metric(name: str) -> None:
+    with _AIO_FIRST_PASS_CACHE_LOCK:
+        _AIO_FIRST_PASS_CACHE_METRICS[name] += 1
+
+
 def _clear_aio_first_pass_cache() -> None:
     global _AIO_FIRST_PASS_CACHE_GENERATION
 
@@ -289,9 +324,11 @@ def _aio_first_pass_cache_key(
 def _get_aio_first_pass_cache(cache_key: str):
     with _AIO_FIRST_PASS_CACHE_LOCK:
         if not _AIO_FIRST_PASS_CACHE_ENABLED:
+            _AIO_FIRST_PASS_CACHE_METRICS["skips"] += 1
             return None
         entry = _AIO_FIRST_PASS_CACHE.get(cache_key)
         if not entry:
+            _AIO_FIRST_PASS_CACHE_METRICS["misses"] += 1
             return None
         if isinstance(entry, _AIOFirstPassCacheEntry):
             now = _aio_first_pass_cache_now()
@@ -299,12 +336,15 @@ def _get_aio_first_pass_cache(cache_key: str):
                 _AIO_FIRST_PASS_CACHE.pop(cache_key, None)
                 if cache_key in _AIO_FIRST_PASS_CACHE_ORDER:
                     _AIO_FIRST_PASS_CACHE_ORDER.remove(cache_key)
+                _AIO_FIRST_PASS_CACHE_METRICS["misses"] += 1
+                _AIO_FIRST_PASS_CACHE_METRICS["evictions"] += 1
                 return None
             entry = replace(entry, last_access_at=now)
             _AIO_FIRST_PASS_CACHE[cache_key] = entry
         if cache_key in _AIO_FIRST_PASS_CACHE_ORDER:
             _AIO_FIRST_PASS_CACHE_ORDER.remove(cache_key)
         _AIO_FIRST_PASS_CACHE_ORDER.append(cache_key)
+        _AIO_FIRST_PASS_CACHE_METRICS["hits"] += 1
     if isinstance(entry, _AIOFirstPassCacheEntry):
         return entry.checkout()
     return (
@@ -316,12 +356,14 @@ def _get_aio_first_pass_cache(cache_key: str):
 def _put_aio_first_pass_cache(cache_key: str, latent, image) -> None:
     with _AIO_FIRST_PASS_CACHE_LOCK:
         if not _AIO_FIRST_PASS_CACHE_ENABLED:
+            _AIO_FIRST_PASS_CACHE_METRICS["skips"] += 1
             return
         generation = _AIO_FIRST_PASS_CACHE_GENERATION
     if (
         _aio_cache_pair_size_bytes(latent, image)
         > AIO_FIRST_PASS_CACHE_MAX_ENTRY_BYTES
     ):
+        _record_aio_first_pass_cache_metric("skips")
         return
     entry = _AIOFirstPassCacheEntry.capture(
         latent,
@@ -329,12 +371,14 @@ def _put_aio_first_pass_cache(cache_key: str, latent, image) -> None:
         now=_aio_first_pass_cache_now(),
     )
     if entry.size_bytes > AIO_FIRST_PASS_CACHE_MAX_ENTRY_BYTES:
+        _record_aio_first_pass_cache_metric("skips")
         return
     with _AIO_FIRST_PASS_CACHE_LOCK:
         if (
             not _AIO_FIRST_PASS_CACHE_ENABLED
             or generation != _AIO_FIRST_PASS_CACHE_GENERATION
         ):
+            _AIO_FIRST_PASS_CACHE_METRICS["skips"] += 1
             return
         _AIO_FIRST_PASS_CACHE[cache_key] = entry
         if cache_key in _AIO_FIRST_PASS_CACHE_ORDER:
@@ -348,6 +392,7 @@ def _put_aio_first_pass_cache(cache_key: str, latent, image) -> None:
         ):
             old_key = _AIO_FIRST_PASS_CACHE_ORDER.pop(0)
             _AIO_FIRST_PASS_CACHE.pop(old_key, None)
+            _AIO_FIRST_PASS_CACHE_METRICS["evictions"] += 1
 
 
 __all__ = ()
