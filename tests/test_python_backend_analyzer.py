@@ -691,12 +691,12 @@ ignored/
 
         self.assertEqual(analyzer.render_json(report), expected_text)
         self.assertEqual(report["schema_version"], 2)
-        self.assertEqual(report["inventory"]["module_count"], 111)
-        self.assertEqual(len(report["registry"]["shipped_python_modules"]), 111)
-        self.assertEqual(len(report["registry"]["runtime_import_closure"]), 111)
+        self.assertEqual(report["inventory"]["module_count"], 114)
+        self.assertEqual(len(report["registry"]["shipped_python_modules"]), 114)
+        self.assertEqual(len(report["registry"]["runtime_import_closure"]), 114)
         self.assertEqual(
             report["registry"]["entry_modules"],
-            ["__init__.py", "nodes.py", "prompt_translation.py"],
+            ["__init__.py", "nodes.py", "prompt_translation.py", "storage.py"],
         )
         self.assertEqual(report["registry"]["missing_internal_imports"], [])
         self.assertEqual(report["registry"]["unreachable_shipped_python_modules"], [])
@@ -748,6 +748,9 @@ ignored/
                 "easyuse_anima/infrastructure/comfy/invocation.py",
                 "easyuse_anima/infrastructure/comfy/provider.py",
                 "easyuse_anima/infrastructure/comfy/resources.py",
+                "easyuse_anima/infrastructure/filesystem/__init__.py",
+                "easyuse_anima/infrastructure/filesystem/atomic_json.py",
+                "easyuse_anima/infrastructure/filesystem/paths.py",
                 "easyuse_anima/lora/__init__.py",
                 "easyuse_anima/lora/metadata.py",
                 "easyuse_anima/lora/preset.py",
@@ -815,6 +818,9 @@ ignored/
                 "easyuse_anima/infrastructure/comfy/invocation.py",
                 "easyuse_anima/infrastructure/comfy/provider.py",
                 "easyuse_anima/infrastructure/comfy/resources.py",
+                "easyuse_anima/infrastructure/filesystem/__init__.py",
+                "easyuse_anima/infrastructure/filesystem/atomic_json.py",
+                "easyuse_anima/infrastructure/filesystem/paths.py",
                 "easyuse_anima/lora/__init__.py",
                 "easyuse_anima/lora/metadata.py",
                 "easyuse_anima/lora/preset.py",
@@ -896,7 +902,6 @@ ignored/
         }
         self.assertTrue(
             {
-                ("api.py", "storage.py"),
                 ("api.py", "easyuse_anima/profiles/contract.py"),
                 ("api.py", "easyuse_anima/profiles/mutation.py"),
                 ("nodes.py", "settings.py"),

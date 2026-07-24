@@ -6,7 +6,7 @@
 - Roadmap unit: D-08
 - PR type: Move
 - Baseline: `dev@98e2ddd5681873e9899c5ce47b2943036350f725`
-- State: INVENTORY
+- State: VALIDATED in PR #382
 - Behavior changes: forbidden
 
 ## Responsibility boundary
@@ -128,3 +128,17 @@ Supporting:
 - official full runner at the PR checkpoint; and
 - root `storage.py` contains only explicit direct re-exports while all
   production storage imports use canonical modules.
+
+Validation evidence:
+
+- `tests.test_storage`: 20 tests passed, including root/canonical identity,
+  path probing, recovery, rollback, and shared path-lock behavior;
+- package skeleton, import-boundary, backend-analyzer, and Registry-scanner
+  focused suites: 43 tests passed;
+- focused Pyright for both canonical filesystem modules: 0 diagnostics;
+- official `full`: 1,130 Python tests and 112 frontend files passed;
+- `comfy node validate`: passed;
+- `comfy node pack`: produced a 244-entry archive containing `storage.py` and
+  all three `easyuse_anima/infrastructure/filesystem/` modules; and
+- no server, browser, model, provider, workflow, or live-instance smoke was
+  run because D-08 changes only Python import ownership and packaging.

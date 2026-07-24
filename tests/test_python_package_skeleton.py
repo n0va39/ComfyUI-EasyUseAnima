@@ -49,6 +49,9 @@ PACKAGE_MODULES = (
     "easyuse_anima.image.geometry",
     "easyuse_anima.image.sam3",
     "easyuse_anima.infrastructure",
+    "easyuse_anima.infrastructure.filesystem",
+    "easyuse_anima.infrastructure.filesystem.atomic_json",
+    "easyuse_anima.infrastructure.filesystem.paths",
     "easyuse_anima.infrastructure.comfy",
     "easyuse_anima.infrastructure.comfy.capabilities",
     "easyuse_anima.infrastructure.comfy.invocation",
@@ -199,6 +202,21 @@ print(json.dumps({{
         ] = [
             "is_comfy_processing_interruption",
             "seed_execution_session",
+        ]
+        expected_all[
+            PACKAGE_MODULES.index(
+                "easyuse_anima.infrastructure.filesystem.atomic_json"
+            )
+        ] = ["AtomicJsonStore"]
+        expected_all[
+            PACKAGE_MODULES.index(
+                "easyuse_anima.infrastructure.filesystem.paths"
+            )
+        ] = [
+            "PACKAGE_DATA_DIR",
+            "PACKAGE_ROOT",
+            "SYSTEM_USER_NAME",
+            "USER_DATA_DIR",
         ]
         expected_all[
             PACKAGE_MODULES.index("easyuse_anima.translation.contracts")

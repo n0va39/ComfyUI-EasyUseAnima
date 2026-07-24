@@ -11,39 +11,54 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-import storage
-from storage import AtomicJsonStore
+import storage as root_storage
+from easyuse_anima.infrastructure.filesystem import atomic_json as storage
+from easyuse_anima.infrastructure.filesystem import paths as storage_paths
+from easyuse_anima.infrastructure.filesystem.atomic_json import AtomicJsonStore
 
 
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def load_storage_module(folder_paths_module=None):
-    package_name = "easyuse_anima_storage_test_package"
-    package = types.ModuleType(package_name)
-    package.__path__ = [str(ROOT)]
-    sys.modules[package_name] = package
-
-    previous_folder_paths = sys.modules.get("folder_paths")
+def load_paths_module(folder_paths_module=None):
+    missing = object()
+    previous_folder_paths = sys.modules.get("folder_paths", missing)
     if folder_paths_module is not None:
         sys.modules["folder_paths"] = folder_paths_module
     elif "folder_paths" in sys.modules:
         del sys.modules["folder_paths"]
 
+    spec = importlib.util.spec_from_file_location(
+        "easyuse_anima_filesystem_paths_under_test",
+        ROOT / "easyuse_anima" / "infrastructure" / "filesystem" / "paths.py",
+    )
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module
     try:
-        spec = importlib.util.spec_from_file_location(
-            f"{package_name}.storage",
-            ROOT / "storage.py",
-        )
-        module = importlib.util.module_from_spec(spec)
-        sys.modules[spec.name] = module
         spec.loader.exec_module(module)
         return module
     finally:
-        if previous_folder_paths is not None:
+        sys.modules.pop(spec.name, None)
+        if previous_folder_paths is not missing:
             sys.modules["folder_paths"] = previous_folder_paths
-        elif "folder_paths" in sys.modules:
-            del sys.modules["folder_paths"]
+        else:
+            sys.modules.pop("folder_paths", None)
+
+
+class StorageCompatibilityTests(unittest.TestCase):
+    def test_root_exports_are_identical_canonical_objects(self):
+        canonical = {
+            "AtomicJsonStore": AtomicJsonStore,
+            "PACKAGE_DATA_DIR": storage_paths.PACKAGE_DATA_DIR,
+            "PACKAGE_ROOT": storage_paths.PACKAGE_ROOT,
+            "SYSTEM_USER_NAME": storage_paths.SYSTEM_USER_NAME,
+            "USER_DATA_DIR": storage_paths.USER_DATA_DIR,
+        }
+
+        self.assertEqual(tuple(root_storage.__all__), tuple(canonical))
+        for name, value in canonical.items():
+            with self.subTest(name=name):
+                self.assertIs(getattr(root_storage, name), value)
 
 
 class StoragePathTests(unittest.TestCase):
@@ -53,13 +68,14 @@ class StoragePathTests(unittest.TestCase):
             fake_folder_paths = types.SimpleNamespace(
                 get_system_user_directory=lambda name: str(root / f"__{name}")
             )
-            loaded_storage = load_storage_module(fake_folder_paths)
+            loaded_storage = load_paths_module(fake_folder_paths)
 
             self.assertEqual(loaded_storage.USER_DATA_DIR, root / "__easyuse_anima")
 
     def test_falls_back_to_package_data_dir_without_comfyui_folder_paths(self):
-        loaded_storage = load_storage_module()
+        loaded_storage = load_paths_module()
 
+        self.assertEqual(loaded_storage.PACKAGE_ROOT, ROOT)
         self.assertEqual(loaded_storage.USER_DATA_DIR, loaded_storage.PACKAGE_DATA_DIR)
 
 

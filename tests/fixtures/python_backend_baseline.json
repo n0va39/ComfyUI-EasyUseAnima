@@ -3010,20 +3010,20 @@
         "column": 4,
         "compatibility_pair": {
           "bound_name": "AtomicJsonStore",
-          "target": "storage.py",
+          "target": "easyuse_anima/infrastructure/filesystem/atomic_json.py",
           "try_line": 101
         },
         "conditional": true,
-        "imported": ".storage:AtomicJsonStore",
+        "imported": ".easyuse_anima.infrastructure.filesystem.atomic_json:AtomicJsonStore",
         "kind": "static_from",
         "line": 102,
         "name": "AtomicJsonStore",
         "optional": false,
-        "requested": ".storage",
+        "requested": ".easyuse_anima.infrastructure.filesystem.atomic_json",
         "role": "compatibility_primary",
         "scope": "<module>",
         "source": "api.py",
-        "target": "storage.py"
+        "target": "easyuse_anima/infrastructure/filesystem/atomic_json.py"
       },
       {
         "alias": null,
@@ -3041,20 +3041,20 @@
         "column": 4,
         "compatibility_pair": {
           "bound_name": "USER_DATA_DIR",
-          "target": "storage.py",
+          "target": "easyuse_anima/infrastructure/filesystem/paths.py",
           "try_line": 101
         },
         "conditional": true,
-        "imported": ".storage:USER_DATA_DIR",
+        "imported": ".easyuse_anima.infrastructure.filesystem.paths:USER_DATA_DIR",
         "kind": "static_from",
-        "line": 102,
+        "line": 103,
         "name": "USER_DATA_DIR",
         "optional": false,
-        "requested": ".storage",
+        "requested": ".easyuse_anima.infrastructure.filesystem.paths",
         "role": "compatibility_primary",
         "scope": "<module>",
         "source": "api.py",
-        "target": "storage.py"
+        "target": "easyuse_anima/infrastructure/filesystem/paths.py"
       },
       {
         "alias": null,
@@ -3066,7 +3066,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 103,
+            "handler_line": 104,
             "kind": "try",
             "line": 101
           }
@@ -3075,20 +3075,20 @@
         "column": 4,
         "compatibility_pair": {
           "bound_name": "AtomicJsonStore",
-          "target": "storage.py",
+          "target": "easyuse_anima/infrastructure/filesystem/atomic_json.py",
           "try_line": 101
         },
         "conditional": true,
-        "imported": "storage:AtomicJsonStore",
+        "imported": "easyuse_anima.infrastructure.filesystem.atomic_json:AtomicJsonStore",
         "kind": "static_from",
-        "line": 104,
+        "line": 105,
         "name": "AtomicJsonStore",
         "optional": false,
-        "requested": "storage",
+        "requested": "easyuse_anima.infrastructure.filesystem.atomic_json",
         "role": "compatibility_fallback",
         "scope": "<module>",
         "source": "api.py",
-        "target": "storage.py"
+        "target": "easyuse_anima/infrastructure/filesystem/atomic_json.py"
       },
       {
         "alias": null,
@@ -3100,7 +3100,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 103,
+            "handler_line": 104,
             "kind": "try",
             "line": 101
           }
@@ -3109,20 +3109,20 @@
         "column": 4,
         "compatibility_pair": {
           "bound_name": "USER_DATA_DIR",
-          "target": "storage.py",
+          "target": "easyuse_anima/infrastructure/filesystem/paths.py",
           "try_line": 101
         },
         "conditional": true,
-        "imported": "storage:USER_DATA_DIR",
+        "imported": "easyuse_anima.infrastructure.filesystem.paths:USER_DATA_DIR",
         "kind": "static_from",
-        "line": 104,
+        "line": 106,
         "name": "USER_DATA_DIR",
         "optional": false,
-        "requested": "storage",
+        "requested": "easyuse_anima.infrastructure.filesystem.paths",
         "role": "compatibility_fallback",
         "scope": "<module>",
         "source": "api.py",
-        "target": "storage.py"
+        "target": "easyuse_anima/infrastructure/filesystem/paths.py"
       },
       {
         "alias": null,
@@ -3133,7 +3133,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 440
+            "line": 442
           }
         ],
         "classification": "external",
@@ -3141,7 +3141,7 @@
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 441,
+        "line": 443,
         "name": null,
         "optional": true,
         "requested": "folder_paths",
@@ -3158,7 +3158,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 466
+            "line": 468
           }
         ],
         "classification": "external",
@@ -3166,7 +3166,7 @@
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 467,
+        "line": 469,
         "name": null,
         "optional": true,
         "requested": "folder_paths",
@@ -3183,7 +3183,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 1007
+            "line": 1009
           }
         ],
         "classification": "external",
@@ -3191,7 +3191,7 @@
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 1008,
+        "line": 1010,
         "name": null,
         "optional": true,
         "requested": "folder_paths",
@@ -3817,20 +3817,20 @@
         "column": 4,
         "compatibility_pair": {
           "bound_name": "STORAGE_PACKAGE_DATA_DIR",
-          "target": "storage.py",
+          "target": "easyuse_anima/infrastructure/filesystem/paths.py",
           "try_line": 17
         },
         "conditional": true,
-        "imported": ".storage:PACKAGE_DATA_DIR",
+        "imported": ".easyuse_anima.infrastructure.filesystem.paths:PACKAGE_DATA_DIR",
         "kind": "static_from",
         "line": 31,
         "name": "PACKAGE_DATA_DIR",
         "optional": false,
-        "requested": ".storage",
+        "requested": ".easyuse_anima.infrastructure.filesystem.paths",
         "role": "compatibility_primary",
         "scope": "<module>",
         "source": "autocomplete_dataset.py",
-        "target": "storage.py"
+        "target": "easyuse_anima/infrastructure/filesystem/paths.py"
       },
       {
         "alias": null,
@@ -3848,20 +3848,20 @@
         "column": 4,
         "compatibility_pair": {
           "bound_name": "USER_DATA_DIR",
-          "target": "storage.py",
+          "target": "easyuse_anima/infrastructure/filesystem/paths.py",
           "try_line": 17
         },
         "conditional": true,
-        "imported": ".storage:USER_DATA_DIR",
+        "imported": ".easyuse_anima.infrastructure.filesystem.paths:USER_DATA_DIR",
         "kind": "static_from",
-        "line": 32,
+        "line": 34,
         "name": "USER_DATA_DIR",
         "optional": false,
-        "requested": ".storage",
+        "requested": ".easyuse_anima.infrastructure.filesystem.paths",
         "role": "compatibility_primary",
         "scope": "<module>",
         "source": "autocomplete_dataset.py",
-        "target": "storage.py"
+        "target": "easyuse_anima/infrastructure/filesystem/paths.py"
       },
       {
         "alias": null,
@@ -3873,7 +3873,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 33,
+            "handler_line": 35,
             "kind": "try",
             "line": 17
           }
@@ -3888,7 +3888,7 @@
         "conditional": true,
         "imported": "autocomplete_index:AutocompleteIndexDiagnostics",
         "kind": "static_from",
-        "line": 34,
+        "line": 36,
         "name": "AutocompleteIndexDiagnostics",
         "optional": false,
         "requested": "autocomplete_index",
@@ -3907,7 +3907,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 33,
+            "handler_line": 35,
             "kind": "try",
             "line": 17
           }
@@ -3922,7 +3922,7 @@
         "conditional": true,
         "imported": "autocomplete_index:AutocompleteIndexSource",
         "kind": "static_from",
-        "line": 34,
+        "line": 36,
         "name": "AutocompleteIndexSource",
         "optional": false,
         "requested": "autocomplete_index",
@@ -3941,7 +3941,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 33,
+            "handler_line": 35,
             "kind": "try",
             "line": 17
           }
@@ -3956,7 +3956,7 @@
         "conditional": true,
         "imported": "autocomplete_index:AutocompleteIndexUnavailable",
         "kind": "static_from",
-        "line": 34,
+        "line": 36,
         "name": "AutocompleteIndexUnavailable",
         "optional": false,
         "requested": "autocomplete_index",
@@ -3975,7 +3975,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 33,
+            "handler_line": 35,
             "kind": "try",
             "line": 17
           }
@@ -3990,7 +3990,7 @@
         "conditional": true,
         "imported": "autocomplete_index:search_autocomplete_index",
         "kind": "static_from",
-        "line": 34,
+        "line": 36,
         "name": "search_autocomplete_index",
         "optional": false,
         "requested": "autocomplete_index",
@@ -4009,7 +4009,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 33,
+            "handler_line": 35,
             "kind": "try",
             "line": 17
           }
@@ -4024,7 +4024,7 @@
         "conditional": true,
         "imported": "anima_prompt.knowledge:PACKAGE_DATA_DIR",
         "kind": "static_from",
-        "line": 40,
+        "line": 42,
         "name": "PACKAGE_DATA_DIR",
         "optional": false,
         "requested": "anima_prompt.knowledge",
@@ -4043,7 +4043,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 33,
+            "handler_line": 35,
             "kind": "try",
             "line": 17
           }
@@ -4058,7 +4058,7 @@
         "conditional": true,
         "imported": "anima_prompt.models:TagSection",
         "kind": "static_from",
-        "line": 41,
+        "line": 43,
         "name": "TagSection",
         "optional": false,
         "requested": "anima_prompt.models",
@@ -4077,7 +4077,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 33,
+            "handler_line": 35,
             "kind": "try",
             "line": 17
           }
@@ -4092,7 +4092,7 @@
         "conditional": true,
         "imported": "anima_prompt.ordering:builtin_tag_section",
         "kind": "static_from",
-        "line": 42,
+        "line": 44,
         "name": "builtin_tag_section",
         "optional": false,
         "requested": "anima_prompt.ordering",
@@ -4111,7 +4111,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 33,
+            "handler_line": 35,
             "kind": "try",
             "line": 17
           }
@@ -4126,7 +4126,7 @@
         "conditional": true,
         "imported": "anima_prompt.parser:parse_prompt",
         "kind": "static_from",
-        "line": 43,
+        "line": 45,
         "name": "parse_prompt",
         "optional": false,
         "requested": "anima_prompt.parser",
@@ -4145,7 +4145,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 33,
+            "handler_line": 35,
             "kind": "try",
             "line": 17
           }
@@ -4160,7 +4160,7 @@
         "conditional": true,
         "imported": "easyuse_anima.translation.markers:iter_prompt_translation_markers",
         "kind": "static_from",
-        "line": 44,
+        "line": 46,
         "name": "iter_prompt_translation_markers",
         "optional": false,
         "requested": "easyuse_anima.translation.markers",
@@ -4179,7 +4179,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 33,
+            "handler_line": 35,
             "kind": "try",
             "line": 17
           }
@@ -4188,20 +4188,20 @@
         "column": 4,
         "compatibility_pair": {
           "bound_name": "STORAGE_PACKAGE_DATA_DIR",
-          "target": "storage.py",
+          "target": "easyuse_anima/infrastructure/filesystem/paths.py",
           "try_line": 17
         },
         "conditional": true,
-        "imported": "storage:PACKAGE_DATA_DIR",
+        "imported": "easyuse_anima.infrastructure.filesystem.paths:PACKAGE_DATA_DIR",
         "kind": "static_from",
-        "line": 47,
+        "line": 49,
         "name": "PACKAGE_DATA_DIR",
         "optional": false,
-        "requested": "storage",
+        "requested": "easyuse_anima.infrastructure.filesystem.paths",
         "role": "compatibility_fallback",
         "scope": "<module>",
         "source": "autocomplete_dataset.py",
-        "target": "storage.py"
+        "target": "easyuse_anima/infrastructure/filesystem/paths.py"
       },
       {
         "alias": null,
@@ -4213,7 +4213,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 33,
+            "handler_line": 35,
             "kind": "try",
             "line": 17
           }
@@ -4222,20 +4222,20 @@
         "column": 4,
         "compatibility_pair": {
           "bound_name": "USER_DATA_DIR",
-          "target": "storage.py",
+          "target": "easyuse_anima/infrastructure/filesystem/paths.py",
           "try_line": 17
         },
         "conditional": true,
-        "imported": "storage:USER_DATA_DIR",
+        "imported": "easyuse_anima.infrastructure.filesystem.paths:USER_DATA_DIR",
         "kind": "static_from",
-        "line": 48,
+        "line": 52,
         "name": "USER_DATA_DIR",
         "optional": false,
-        "requested": "storage",
+        "requested": "easyuse_anima.infrastructure.filesystem.paths",
         "role": "compatibility_fallback",
         "scope": "<module>",
         "source": "autocomplete_dataset.py",
-        "target": "storage.py"
+        "target": "easyuse_anima/infrastructure/filesystem/paths.py"
       },
       {
         "alias": null,
@@ -13802,6 +13802,286 @@
         "scope": "<module>",
         "source": "easyuse_anima/infrastructure/comfy/wiring.py",
         "target": "easyuse_anima/infrastructure/comfy/provider.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "annotations",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "__future__:annotations",
+        "kind": "static_from",
+        "line": 3,
+        "name": "annotations",
+        "optional": false,
+        "requested": "__future__",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/infrastructure/filesystem/atomic_json.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "errno",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "errno",
+        "kind": "static_import",
+        "line": 5,
+        "name": null,
+        "optional": false,
+        "requested": "errno",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/infrastructure/filesystem/atomic_json.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "json",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "json",
+        "kind": "static_import",
+        "line": 6,
+        "name": null,
+        "optional": false,
+        "requested": "json",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/infrastructure/filesystem/atomic_json.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "os",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "os",
+        "kind": "static_import",
+        "line": 7,
+        "name": null,
+        "optional": false,
+        "requested": "os",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/infrastructure/filesystem/atomic_json.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "tempfile",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "tempfile",
+        "kind": "static_import",
+        "line": 8,
+        "name": null,
+        "optional": false,
+        "requested": "tempfile",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/infrastructure/filesystem/atomic_json.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "threading",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "threading",
+        "kind": "static_import",
+        "line": 9,
+        "name": null,
+        "optional": false,
+        "requested": "threading",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/infrastructure/filesystem/atomic_json.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "Callable",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "collections.abc:Callable",
+        "kind": "static_from",
+        "line": 10,
+        "name": "Callable",
+        "optional": false,
+        "requested": "collections.abc",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/infrastructure/filesystem/atomic_json.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "Iterator",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "collections.abc:Iterator",
+        "kind": "static_from",
+        "line": 10,
+        "name": "Iterator",
+        "optional": false,
+        "requested": "collections.abc",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/infrastructure/filesystem/atomic_json.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "contextmanager",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "contextlib:contextmanager",
+        "kind": "static_from",
+        "line": 11,
+        "name": "contextmanager",
+        "optional": false,
+        "requested": "contextlib",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/infrastructure/filesystem/atomic_json.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "Path",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "pathlib:Path",
+        "kind": "static_from",
+        "line": 12,
+        "name": "Path",
+        "optional": false,
+        "requested": "pathlib",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/infrastructure/filesystem/atomic_json.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "TypeVar",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "typing:TypeVar",
+        "kind": "static_from",
+        "line": 13,
+        "name": "TypeVar",
+        "optional": false,
+        "requested": "typing",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/infrastructure/filesystem/atomic_json.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "annotations",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "__future__:annotations",
+        "kind": "static_from",
+        "line": 3,
+        "name": "annotations",
+        "optional": false,
+        "requested": "__future__",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/infrastructure/filesystem/paths.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "os",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "os",
+        "kind": "static_import",
+        "line": 5,
+        "name": null,
+        "optional": false,
+        "requested": "os",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/infrastructure/filesystem/paths.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "Path",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "pathlib:Path",
+        "kind": "static_from",
+        "line": 6,
+        "name": "Path",
+        "optional": false,
+        "requested": "pathlib",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/infrastructure/filesystem/paths.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "cast",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "typing:cast",
+        "kind": "static_from",
+        "line": 7,
+        "name": "cast",
+        "optional": false,
+        "requested": "typing",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/infrastructure/filesystem/paths.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "folder_paths",
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": false,
+            "kind": "try",
+            "line": 15
+          }
+        ],
+        "classification": "external",
+        "column": 8,
+        "conditional": true,
+        "imported": "folder_paths",
+        "kind": "static_import",
+        "line": 16,
+        "name": null,
+        "optional": true,
+        "requested": "folder_paths",
+        "role": "optional_dependency",
+        "scope": "_resolve_user_data_dir",
+        "source": "easyuse_anima/infrastructure/filesystem/paths.py"
       },
       {
         "alias": null,
@@ -48293,20 +48573,20 @@
         "column": 4,
         "compatibility_pair": {
           "bound_name": "AtomicJsonStore",
-          "target": "storage.py",
+          "target": "easyuse_anima/infrastructure/filesystem/atomic_json.py",
           "try_line": 6
         },
         "conditional": true,
-        "imported": ".storage:AtomicJsonStore",
+        "imported": ".easyuse_anima.infrastructure.filesystem.atomic_json:AtomicJsonStore",
         "kind": "static_from",
         "line": 7,
         "name": "AtomicJsonStore",
         "optional": false,
-        "requested": ".storage",
+        "requested": ".easyuse_anima.infrastructure.filesystem.atomic_json",
         "role": "compatibility_primary",
         "scope": "<module>",
         "source": "settings.py",
-        "target": "storage.py"
+        "target": "easyuse_anima/infrastructure/filesystem/atomic_json.py"
       },
       {
         "alias": null,
@@ -48324,20 +48604,20 @@
         "column": 4,
         "compatibility_pair": {
           "bound_name": "USER_DATA_DIR",
-          "target": "storage.py",
+          "target": "easyuse_anima/infrastructure/filesystem/paths.py",
           "try_line": 6
         },
         "conditional": true,
-        "imported": ".storage:USER_DATA_DIR",
+        "imported": ".easyuse_anima.infrastructure.filesystem.paths:USER_DATA_DIR",
         "kind": "static_from",
-        "line": 7,
+        "line": 8,
         "name": "USER_DATA_DIR",
         "optional": false,
-        "requested": ".storage",
+        "requested": ".easyuse_anima.infrastructure.filesystem.paths",
         "role": "compatibility_primary",
         "scope": "<module>",
         "source": "settings.py",
-        "target": "storage.py"
+        "target": "easyuse_anima/infrastructure/filesystem/paths.py"
       },
       {
         "alias": null,
@@ -48361,7 +48641,7 @@
         "conditional": true,
         "imported": ".easyuse_anima.translation.contracts:DEFAULT_PROMPT_TRANSLATION_SOURCE",
         "kind": "static_from",
-        "line": 8,
+        "line": 9,
         "name": "DEFAULT_PROMPT_TRANSLATION_SOURCE",
         "optional": false,
         "requested": ".easyuse_anima.translation.contracts",
@@ -48392,7 +48672,7 @@
         "conditional": true,
         "imported": ".easyuse_anima.translation.contracts:DEFAULT_PROMPT_TRANSLATION_TARGET",
         "kind": "static_from",
-        "line": 8,
+        "line": 9,
         "name": "DEFAULT_PROMPT_TRANSLATION_TARGET",
         "optional": false,
         "requested": ".easyuse_anima.translation.contracts",
@@ -48423,7 +48703,7 @@
         "conditional": true,
         "imported": ".easyuse_anima.translation.contracts:PROMPT_TRANSLATION_PROVIDER_OFF",
         "kind": "static_from",
-        "line": 8,
+        "line": 9,
         "name": "PROMPT_TRANSLATION_PROVIDER_OFF",
         "optional": false,
         "requested": ".easyuse_anima.translation.contracts",
@@ -48454,7 +48734,7 @@
         "conditional": true,
         "imported": ".easyuse_anima.translation.contracts:PromptTranslationSettings",
         "kind": "static_from",
-        "line": 8,
+        "line": 9,
         "name": "PromptTranslationSettings",
         "optional": false,
         "requested": ".easyuse_anima.translation.contracts",
@@ -48485,7 +48765,7 @@
         "conditional": true,
         "imported": ".easyuse_anima.translation.contracts:normalize_prompt_translation_language",
         "kind": "static_from",
-        "line": 8,
+        "line": 9,
         "name": "normalize_prompt_translation_language",
         "optional": false,
         "requested": ".easyuse_anima.translation.contracts",
@@ -48516,7 +48796,7 @@
         "conditional": true,
         "imported": ".easyuse_anima.translation.contracts:normalize_prompt_translation_provider",
         "kind": "static_from",
-        "line": 8,
+        "line": 9,
         "name": "normalize_prompt_translation_provider",
         "optional": false,
         "requested": ".easyuse_anima.translation.contracts",
@@ -48535,7 +48815,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 16,
+            "handler_line": 17,
             "kind": "try",
             "line": 6
           }
@@ -48544,20 +48824,20 @@
         "column": 4,
         "compatibility_pair": {
           "bound_name": "AtomicJsonStore",
-          "target": "storage.py",
+          "target": "easyuse_anima/infrastructure/filesystem/atomic_json.py",
           "try_line": 6
         },
         "conditional": true,
-        "imported": "storage:AtomicJsonStore",
+        "imported": "easyuse_anima.infrastructure.filesystem.atomic_json:AtomicJsonStore",
         "kind": "static_from",
-        "line": 17,
+        "line": 18,
         "name": "AtomicJsonStore",
         "optional": false,
-        "requested": "storage",
+        "requested": "easyuse_anima.infrastructure.filesystem.atomic_json",
         "role": "compatibility_fallback",
         "scope": "<module>",
         "source": "settings.py",
-        "target": "storage.py"
+        "target": "easyuse_anima/infrastructure/filesystem/atomic_json.py"
       },
       {
         "alias": null,
@@ -48569,7 +48849,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 16,
+            "handler_line": 17,
             "kind": "try",
             "line": 6
           }
@@ -48578,20 +48858,20 @@
         "column": 4,
         "compatibility_pair": {
           "bound_name": "USER_DATA_DIR",
-          "target": "storage.py",
+          "target": "easyuse_anima/infrastructure/filesystem/paths.py",
           "try_line": 6
         },
         "conditional": true,
-        "imported": "storage:USER_DATA_DIR",
+        "imported": "easyuse_anima.infrastructure.filesystem.paths:USER_DATA_DIR",
         "kind": "static_from",
-        "line": 17,
+        "line": 19,
         "name": "USER_DATA_DIR",
         "optional": false,
-        "requested": "storage",
+        "requested": "easyuse_anima.infrastructure.filesystem.paths",
         "role": "compatibility_fallback",
         "scope": "<module>",
         "source": "settings.py",
-        "target": "storage.py"
+        "target": "easyuse_anima/infrastructure/filesystem/paths.py"
       },
       {
         "alias": null,
@@ -48603,7 +48883,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 16,
+            "handler_line": 17,
             "kind": "try",
             "line": 6
           }
@@ -48618,7 +48898,7 @@
         "conditional": true,
         "imported": "easyuse_anima.translation.contracts:DEFAULT_PROMPT_TRANSLATION_SOURCE",
         "kind": "static_from",
-        "line": 18,
+        "line": 20,
         "name": "DEFAULT_PROMPT_TRANSLATION_SOURCE",
         "optional": false,
         "requested": "easyuse_anima.translation.contracts",
@@ -48637,7 +48917,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 16,
+            "handler_line": 17,
             "kind": "try",
             "line": 6
           }
@@ -48652,7 +48932,7 @@
         "conditional": true,
         "imported": "easyuse_anima.translation.contracts:DEFAULT_PROMPT_TRANSLATION_TARGET",
         "kind": "static_from",
-        "line": 18,
+        "line": 20,
         "name": "DEFAULT_PROMPT_TRANSLATION_TARGET",
         "optional": false,
         "requested": "easyuse_anima.translation.contracts",
@@ -48671,7 +48951,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 16,
+            "handler_line": 17,
             "kind": "try",
             "line": 6
           }
@@ -48686,7 +48966,7 @@
         "conditional": true,
         "imported": "easyuse_anima.translation.contracts:PROMPT_TRANSLATION_PROVIDER_OFF",
         "kind": "static_from",
-        "line": 18,
+        "line": 20,
         "name": "PROMPT_TRANSLATION_PROVIDER_OFF",
         "optional": false,
         "requested": "easyuse_anima.translation.contracts",
@@ -48705,7 +48985,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 16,
+            "handler_line": 17,
             "kind": "try",
             "line": 6
           }
@@ -48720,7 +49000,7 @@
         "conditional": true,
         "imported": "easyuse_anima.translation.contracts:PromptTranslationSettings",
         "kind": "static_from",
-        "line": 18,
+        "line": 20,
         "name": "PromptTranslationSettings",
         "optional": false,
         "requested": "easyuse_anima.translation.contracts",
@@ -48739,7 +49019,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 16,
+            "handler_line": 17,
             "kind": "try",
             "line": 6
           }
@@ -48754,7 +49034,7 @@
         "conditional": true,
         "imported": "easyuse_anima.translation.contracts:normalize_prompt_translation_language",
         "kind": "static_from",
-        "line": 18,
+        "line": 20,
         "name": "normalize_prompt_translation_language",
         "optional": false,
         "requested": "easyuse_anima.translation.contracts",
@@ -48773,7 +49053,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 16,
+            "handler_line": 17,
             "kind": "try",
             "line": 6
           }
@@ -48788,7 +49068,7 @@
         "conditional": true,
         "imported": "easyuse_anima.translation.contracts:normalize_prompt_translation_provider",
         "kind": "static_from",
-        "line": 18,
+        "line": 20,
         "name": "normalize_prompt_translation_provider",
         "optional": false,
         "requested": "easyuse_anima.translation.contracts",
@@ -48806,7 +49086,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 271
+            "line": 273
           }
         ],
         "classification": "external",
@@ -48814,7 +49094,7 @@
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 272,
+        "line": 274,
         "name": null,
         "optional": true,
         "requested": "folder_paths",
@@ -48831,7 +49111,7 @@
         "conditional": false,
         "imported": "__future__:annotations",
         "kind": "static_from",
-        "line": 1,
+        "line": 3,
         "name": "annotations",
         "optional": false,
         "requested": "__future__",
@@ -48841,198 +49121,328 @@
       },
       {
         "alias": null,
-        "bound_name": "errno",
-        "branch_context": [],
-        "classification": "external",
-        "column": 0,
-        "conditional": false,
-        "imported": "errno",
-        "kind": "static_import",
-        "line": 3,
-        "name": null,
-        "optional": false,
-        "requested": "errno",
-        "role": "ordinary",
-        "scope": "<module>",
-        "source": "storage.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "json",
-        "branch_context": [],
-        "classification": "external",
-        "column": 0,
-        "conditional": false,
-        "imported": "json",
-        "kind": "static_import",
-        "line": 4,
-        "name": null,
-        "optional": false,
-        "requested": "json",
-        "role": "ordinary",
-        "scope": "<module>",
-        "source": "storage.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "os",
-        "branch_context": [],
-        "classification": "external",
-        "column": 0,
-        "conditional": false,
-        "imported": "os",
-        "kind": "static_import",
-        "line": 5,
-        "name": null,
-        "optional": false,
-        "requested": "os",
-        "role": "ordinary",
-        "scope": "<module>",
-        "source": "storage.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "tempfile",
-        "branch_context": [],
-        "classification": "external",
-        "column": 0,
-        "conditional": false,
-        "imported": "tempfile",
-        "kind": "static_import",
-        "line": 6,
-        "name": null,
-        "optional": false,
-        "requested": "tempfile",
-        "role": "ordinary",
-        "scope": "<module>",
-        "source": "storage.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "threading",
-        "branch_context": [],
-        "classification": "external",
-        "column": 0,
-        "conditional": false,
-        "imported": "threading",
-        "kind": "static_import",
-        "line": 7,
-        "name": null,
-        "optional": false,
-        "requested": "threading",
-        "role": "ordinary",
-        "scope": "<module>",
-        "source": "storage.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "contextmanager",
-        "branch_context": [],
-        "classification": "external",
-        "column": 0,
-        "conditional": false,
-        "imported": "contextlib:contextmanager",
-        "kind": "static_from",
-        "line": 8,
-        "name": "contextmanager",
-        "optional": false,
-        "requested": "contextlib",
-        "role": "ordinary",
-        "scope": "<module>",
-        "source": "storage.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "Path",
-        "branch_context": [],
-        "classification": "external",
-        "column": 0,
-        "conditional": false,
-        "imported": "pathlib:Path",
-        "kind": "static_from",
-        "line": 9,
-        "name": "Path",
-        "optional": false,
-        "requested": "pathlib",
-        "role": "ordinary",
-        "scope": "<module>",
-        "source": "storage.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "Callable",
-        "branch_context": [],
-        "classification": "external",
-        "column": 0,
-        "conditional": false,
-        "imported": "typing:Callable",
-        "kind": "static_from",
-        "line": 10,
-        "name": "Callable",
-        "optional": false,
-        "requested": "typing",
-        "role": "ordinary",
-        "scope": "<module>",
-        "source": "storage.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "Iterator",
-        "branch_context": [],
-        "classification": "external",
-        "column": 0,
-        "conditional": false,
-        "imported": "typing:Iterator",
-        "kind": "static_from",
-        "line": 10,
-        "name": "Iterator",
-        "optional": false,
-        "requested": "typing",
-        "role": "ordinary",
-        "scope": "<module>",
-        "source": "storage.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "TypeVar",
-        "branch_context": [],
-        "classification": "external",
-        "column": 0,
-        "conditional": false,
-        "imported": "typing:TypeVar",
-        "kind": "static_from",
-        "line": 10,
-        "name": "TypeVar",
-        "optional": false,
-        "requested": "typing",
-        "role": "ordinary",
-        "scope": "<module>",
-        "source": "storage.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "folder_paths",
+        "bound_name": "AtomicJsonStore",
         "branch_context": [
           {
             "branch": "body",
             "handles_import_failure": true,
-            "has_import_fallback_handler": false,
+            "has_import_fallback_handler": true,
             "kind": "try",
-            "line": 19
+            "line": 5
           }
         ],
-        "classification": "external",
-        "column": 8,
+        "classification": "internal",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "AtomicJsonStore",
+          "target": "easyuse_anima/infrastructure/filesystem/atomic_json.py",
+          "try_line": 5
+        },
         "conditional": true,
-        "imported": "folder_paths",
-        "kind": "static_import",
-        "line": 20,
-        "name": null,
-        "optional": true,
-        "requested": "folder_paths",
-        "role": "optional_dependency",
-        "scope": "_resolve_user_data_dir",
-        "source": "storage.py"
+        "imported": ".easyuse_anima.infrastructure.filesystem.atomic_json:AtomicJsonStore",
+        "kind": "static_from",
+        "line": 6,
+        "name": "AtomicJsonStore",
+        "optional": false,
+        "requested": ".easyuse_anima.infrastructure.filesystem.atomic_json",
+        "role": "compatibility_primary",
+        "scope": "<module>",
+        "source": "storage.py",
+        "target": "easyuse_anima/infrastructure/filesystem/atomic_json.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "PACKAGE_DATA_DIR",
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": true,
+            "kind": "try",
+            "line": 5
+          }
+        ],
+        "classification": "internal",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "PACKAGE_DATA_DIR",
+          "target": "easyuse_anima/infrastructure/filesystem/paths.py",
+          "try_line": 5
+        },
+        "conditional": true,
+        "imported": ".easyuse_anima.infrastructure.filesystem.paths:PACKAGE_DATA_DIR",
+        "kind": "static_from",
+        "line": 7,
+        "name": "PACKAGE_DATA_DIR",
+        "optional": false,
+        "requested": ".easyuse_anima.infrastructure.filesystem.paths",
+        "role": "compatibility_primary",
+        "scope": "<module>",
+        "source": "storage.py",
+        "target": "easyuse_anima/infrastructure/filesystem/paths.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "PACKAGE_ROOT",
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": true,
+            "kind": "try",
+            "line": 5
+          }
+        ],
+        "classification": "internal",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "PACKAGE_ROOT",
+          "target": "easyuse_anima/infrastructure/filesystem/paths.py",
+          "try_line": 5
+        },
+        "conditional": true,
+        "imported": ".easyuse_anima.infrastructure.filesystem.paths:PACKAGE_ROOT",
+        "kind": "static_from",
+        "line": 7,
+        "name": "PACKAGE_ROOT",
+        "optional": false,
+        "requested": ".easyuse_anima.infrastructure.filesystem.paths",
+        "role": "compatibility_primary",
+        "scope": "<module>",
+        "source": "storage.py",
+        "target": "easyuse_anima/infrastructure/filesystem/paths.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "SYSTEM_USER_NAME",
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": true,
+            "kind": "try",
+            "line": 5
+          }
+        ],
+        "classification": "internal",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "SYSTEM_USER_NAME",
+          "target": "easyuse_anima/infrastructure/filesystem/paths.py",
+          "try_line": 5
+        },
+        "conditional": true,
+        "imported": ".easyuse_anima.infrastructure.filesystem.paths:SYSTEM_USER_NAME",
+        "kind": "static_from",
+        "line": 7,
+        "name": "SYSTEM_USER_NAME",
+        "optional": false,
+        "requested": ".easyuse_anima.infrastructure.filesystem.paths",
+        "role": "compatibility_primary",
+        "scope": "<module>",
+        "source": "storage.py",
+        "target": "easyuse_anima/infrastructure/filesystem/paths.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "USER_DATA_DIR",
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": true,
+            "kind": "try",
+            "line": 5
+          }
+        ],
+        "classification": "internal",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "USER_DATA_DIR",
+          "target": "easyuse_anima/infrastructure/filesystem/paths.py",
+          "try_line": 5
+        },
+        "conditional": true,
+        "imported": ".easyuse_anima.infrastructure.filesystem.paths:USER_DATA_DIR",
+        "kind": "static_from",
+        "line": 7,
+        "name": "USER_DATA_DIR",
+        "optional": false,
+        "requested": ".easyuse_anima.infrastructure.filesystem.paths",
+        "role": "compatibility_primary",
+        "scope": "<module>",
+        "source": "storage.py",
+        "target": "easyuse_anima/infrastructure/filesystem/paths.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "AtomicJsonStore",
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 13,
+            "kind": "try",
+            "line": 5
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "AtomicJsonStore",
+          "target": "easyuse_anima/infrastructure/filesystem/atomic_json.py",
+          "try_line": 5
+        },
+        "conditional": true,
+        "imported": "easyuse_anima.infrastructure.filesystem.atomic_json:AtomicJsonStore",
+        "kind": "static_from",
+        "line": 14,
+        "name": "AtomicJsonStore",
+        "optional": false,
+        "requested": "easyuse_anima.infrastructure.filesystem.atomic_json",
+        "role": "compatibility_fallback",
+        "scope": "<module>",
+        "source": "storage.py",
+        "target": "easyuse_anima/infrastructure/filesystem/atomic_json.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "PACKAGE_DATA_DIR",
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 13,
+            "kind": "try",
+            "line": 5
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "PACKAGE_DATA_DIR",
+          "target": "easyuse_anima/infrastructure/filesystem/paths.py",
+          "try_line": 5
+        },
+        "conditional": true,
+        "imported": "easyuse_anima.infrastructure.filesystem.paths:PACKAGE_DATA_DIR",
+        "kind": "static_from",
+        "line": 15,
+        "name": "PACKAGE_DATA_DIR",
+        "optional": false,
+        "requested": "easyuse_anima.infrastructure.filesystem.paths",
+        "role": "compatibility_fallback",
+        "scope": "<module>",
+        "source": "storage.py",
+        "target": "easyuse_anima/infrastructure/filesystem/paths.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "PACKAGE_ROOT",
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 13,
+            "kind": "try",
+            "line": 5
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "PACKAGE_ROOT",
+          "target": "easyuse_anima/infrastructure/filesystem/paths.py",
+          "try_line": 5
+        },
+        "conditional": true,
+        "imported": "easyuse_anima.infrastructure.filesystem.paths:PACKAGE_ROOT",
+        "kind": "static_from",
+        "line": 15,
+        "name": "PACKAGE_ROOT",
+        "optional": false,
+        "requested": "easyuse_anima.infrastructure.filesystem.paths",
+        "role": "compatibility_fallback",
+        "scope": "<module>",
+        "source": "storage.py",
+        "target": "easyuse_anima/infrastructure/filesystem/paths.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "SYSTEM_USER_NAME",
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 13,
+            "kind": "try",
+            "line": 5
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "SYSTEM_USER_NAME",
+          "target": "easyuse_anima/infrastructure/filesystem/paths.py",
+          "try_line": 5
+        },
+        "conditional": true,
+        "imported": "easyuse_anima.infrastructure.filesystem.paths:SYSTEM_USER_NAME",
+        "kind": "static_from",
+        "line": 15,
+        "name": "SYSTEM_USER_NAME",
+        "optional": false,
+        "requested": "easyuse_anima.infrastructure.filesystem.paths",
+        "role": "compatibility_fallback",
+        "scope": "<module>",
+        "source": "storage.py",
+        "target": "easyuse_anima/infrastructure/filesystem/paths.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "USER_DATA_DIR",
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 13,
+            "kind": "try",
+            "line": 5
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "USER_DATA_DIR",
+          "target": "easyuse_anima/infrastructure/filesystem/paths.py",
+          "try_line": 5
+        },
+        "conditional": true,
+        "imported": "easyuse_anima.infrastructure.filesystem.paths:USER_DATA_DIR",
+        "kind": "static_from",
+        "line": 15,
+        "name": "USER_DATA_DIR",
+        "optional": false,
+        "requested": "easyuse_anima.infrastructure.filesystem.paths",
+        "role": "compatibility_fallback",
+        "scope": "<module>",
+        "source": "storage.py",
+        "target": "easyuse_anima/infrastructure/filesystem/paths.py"
       },
       {
         "alias": null,
@@ -49364,20 +49774,20 @@
         "column": 4,
         "compatibility_pair": {
           "bound_name": "USER_DATA_DIR",
-          "target": "storage.py",
+          "target": "easyuse_anima/infrastructure/filesystem/paths.py",
           "try_line": 26
         },
         "conditional": true,
-        "imported": ".storage:USER_DATA_DIR",
+        "imported": ".easyuse_anima.infrastructure.filesystem.paths:USER_DATA_DIR",
         "kind": "static_from",
         "line": 27,
         "name": "USER_DATA_DIR",
         "optional": false,
-        "requested": ".storage",
+        "requested": ".easyuse_anima.infrastructure.filesystem.paths",
         "role": "compatibility_primary",
         "scope": "<module>",
         "source": "wildcard_engine.py",
-        "target": "storage.py"
+        "target": "easyuse_anima/infrastructure/filesystem/paths.py"
       },
       {
         "alias": null,
@@ -49398,20 +49808,20 @@
         "column": 4,
         "compatibility_pair": {
           "bound_name": "USER_DATA_DIR",
-          "target": "storage.py",
+          "target": "easyuse_anima/infrastructure/filesystem/paths.py",
           "try_line": 26
         },
         "conditional": true,
-        "imported": "storage:USER_DATA_DIR",
+        "imported": "easyuse_anima.infrastructure.filesystem.paths:USER_DATA_DIR",
         "kind": "static_from",
         "line": 29,
         "name": "USER_DATA_DIR",
         "optional": false,
-        "requested": "storage",
+        "requested": "easyuse_anima.infrastructure.filesystem.paths",
         "role": "compatibility_fallback",
         "scope": "<module>",
         "source": "wildcard_engine.py",
-        "target": "storage.py"
+        "target": "easyuse_anima/infrastructure/filesystem/paths.py"
       },
       {
         "alias": null,
@@ -49599,6 +50009,14 @@
       },
       {
         "from": "api.py",
+        "to": "easyuse_anima/infrastructure/filesystem/atomic_json.py"
+      },
+      {
+        "from": "api.py",
+        "to": "easyuse_anima/infrastructure/filesystem/paths.py"
+      },
+      {
+        "from": "api.py",
         "to": "easyuse_anima/profiles/contract.py"
       },
       {
@@ -49616,10 +50034,6 @@
       {
         "from": "api.py",
         "to": "settings.py"
-      },
-      {
-        "from": "api.py",
-        "to": "storage.py"
       },
       {
         "from": "api.py",
@@ -49647,11 +50061,11 @@
       },
       {
         "from": "autocomplete_dataset.py",
-        "to": "easyuse_anima/translation/markers.py"
+        "to": "easyuse_anima/infrastructure/filesystem/paths.py"
       },
       {
         "from": "autocomplete_dataset.py",
-        "to": "storage.py"
+        "to": "easyuse_anima/translation/markers.py"
       },
       {
         "from": "easyuse_anima/__init__.py",
@@ -50971,19 +51385,31 @@
       },
       {
         "from": "settings.py",
-        "to": "easyuse_anima/translation/contracts.py"
+        "to": "easyuse_anima/infrastructure/filesystem/atomic_json.py"
       },
       {
         "from": "settings.py",
-        "to": "storage.py"
+        "to": "easyuse_anima/infrastructure/filesystem/paths.py"
+      },
+      {
+        "from": "settings.py",
+        "to": "easyuse_anima/translation/contracts.py"
+      },
+      {
+        "from": "storage.py",
+        "to": "easyuse_anima/infrastructure/filesystem/atomic_json.py"
+      },
+      {
+        "from": "storage.py",
+        "to": "easyuse_anima/infrastructure/filesystem/paths.py"
+      },
+      {
+        "from": "wildcard_engine.py",
+        "to": "easyuse_anima/infrastructure/filesystem/paths.py"
       },
       {
         "from": "wildcard_engine.py",
         "to": "settings.py"
-      },
-      {
-        "from": "wildcard_engine.py",
-        "to": "storage.py"
       }
     ],
     "module_graph_policy": {
@@ -51366,6 +51792,24 @@
       {
         "cyclic": false,
         "modules": [
+          "easyuse_anima/infrastructure/filesystem/__init__.py"
+        ]
+      },
+      {
+        "cyclic": false,
+        "modules": [
+          "easyuse_anima/infrastructure/filesystem/atomic_json.py"
+        ]
+      },
+      {
+        "cyclic": false,
+        "modules": [
+          "easyuse_anima/infrastructure/filesystem/paths.py"
+        ]
+      },
+      {
+        "cyclic": false,
+        "modules": [
           "easyuse_anima/lora/__init__.py"
         ]
       },
@@ -51667,7 +52111,7 @@
     ]
   },
   "inventory": {
-    "module_count": 111,
+    "module_count": 114,
     "modules": [
       {
         "is_package": true,
@@ -51767,9 +52211,9 @@
       },
       {
         "is_package": false,
-        "loc": 1558,
+        "loc": 1560,
         "module": "api",
-        "normalized_git_blob_sha1": "c04abd601d62bd61ba15e8849a550ba37ed7cb05",
+        "normalized_git_blob_sha1": "5cc36946012ae648bfea72936092a637d3dfbf3c",
         "path": "api.py",
         "top_level": {
           "class_count": 2,
@@ -51791,9 +52235,9 @@
       },
       {
         "is_package": false,
-        "loc": 983,
+        "loc": 987,
         "module": "autocomplete_dataset",
-        "normalized_git_blob_sha1": "d7ceb9e0b6b527b5ff4cd81080fd4c5c88286cf1",
+        "normalized_git_blob_sha1": "2981da53cd185129e00a47c0dee4d82f7b0add39",
         "path": "autocomplete_dataset.py",
         "top_level": {
           "class_count": 4,
@@ -52392,6 +52836,42 @@
       {
         "is_package": true,
         "loc": 3,
+        "module": "easyuse_anima.infrastructure.filesystem",
+        "normalized_git_blob_sha1": "b764afcaaa172df1a1208bccc3f3b7672965fe0e",
+        "path": "easyuse_anima/infrastructure/filesystem/__init__.py",
+        "top_level": {
+          "class_count": 0,
+          "function_count": 0,
+          "global_count": 1
+        }
+      },
+      {
+        "is_package": false,
+        "loc": 405,
+        "module": "easyuse_anima.infrastructure.filesystem.atomic_json",
+        "normalized_git_blob_sha1": "f087db424ea5802640f24d3ddb2481a23ff8c580",
+        "path": "easyuse_anima/infrastructure/filesystem/atomic_json.py",
+        "top_level": {
+          "class_count": 1,
+          "function_count": 6,
+          "global_count": 7
+        }
+      },
+      {
+        "is_package": false,
+        "loc": 49,
+        "module": "easyuse_anima.infrastructure.filesystem.paths",
+        "normalized_git_blob_sha1": "710ea1adfe965f7f2860c9e3976bafd60c9fb59e",
+        "path": "easyuse_anima/infrastructure/filesystem/paths.py",
+        "top_level": {
+          "class_count": 0,
+          "function_count": 1,
+          "global_count": 5
+        }
+      },
+      {
+        "is_package": true,
+        "loc": 3,
         "module": "easyuse_anima.lora",
         "normalized_git_blob_sha1": "d8d2de7b0f60d09239aaa154ba2e0d397217cff2",
         "path": "easyuse_anima/lora/__init__.py",
@@ -52967,9 +53447,9 @@
       },
       {
         "is_package": false,
-        "loc": 700,
+        "loc": 702,
         "module": "settings",
-        "normalized_git_blob_sha1": "89e045fe3df4e9ab8a2b2b49039d8ca933648570",
+        "normalized_git_blob_sha1": "0e3297441c85d63b115f8c43e5da0f7397abb259",
         "path": "settings.py",
         "top_level": {
           "class_count": 0,
@@ -52979,21 +53459,21 @@
       },
       {
         "is_package": false,
-        "loc": 412,
+        "loc": 29,
         "module": "storage",
-        "normalized_git_blob_sha1": "4119e4b41259196dd8440cbdd072b0f44f98a463",
+        "normalized_git_blob_sha1": "208b63e399c918dfd65539324a0cf6a1ee1326e2",
         "path": "storage.py",
         "top_level": {
-          "class_count": 1,
-          "function_count": 7,
-          "global_count": 10
+          "class_count": 0,
+          "function_count": 0,
+          "global_count": 1
         }
       },
       {
         "is_package": false,
         "loc": 1272,
         "module": "wildcard_engine",
-        "normalized_git_blob_sha1": "6e9c2d7441161476ab693a678ce1ce72a700e2a2",
+        "normalized_git_blob_sha1": "205f32f7e0afd9d6826cdb6d2d00254c3e5977d7",
         "path": "wildcard_engine.py",
         "top_level": {
           "class_count": 13,
@@ -53550,20 +54030,20 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 103,
+            "handler_line": 104,
             "kind": "try",
             "line": 101
           }
         ],
         "classification": "compatibility_fallback",
         "conditional": true,
-        "imported": "storage:AtomicJsonStore",
+        "imported": "easyuse_anima.infrastructure.filesystem.atomic_json:AtomicJsonStore",
         "kind": "static_from",
-        "line": 104,
+        "line": 105,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "api.py",
-        "target": "storage.py"
+        "target": "easyuse_anima/infrastructure/filesystem/atomic_json.py"
       },
       {
         "branch_context": [
@@ -53573,20 +54053,20 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 103,
+            "handler_line": 104,
             "kind": "try",
             "line": 101
           }
         ],
         "classification": "compatibility_fallback",
         "conditional": true,
-        "imported": "storage:USER_DATA_DIR",
+        "imported": "easyuse_anima.infrastructure.filesystem.paths:USER_DATA_DIR",
         "kind": "static_from",
-        "line": 104,
+        "line": 106,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "api.py",
-        "target": "storage.py"
+        "target": "easyuse_anima/infrastructure/filesystem/paths.py"
       },
       {
         "branch_context": [
@@ -53596,7 +54076,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 33,
+            "handler_line": 35,
             "kind": "try",
             "line": 17
           }
@@ -53605,7 +54085,7 @@
         "conditional": true,
         "imported": "autocomplete_index:AutocompleteIndexDiagnostics",
         "kind": "static_from",
-        "line": 34,
+        "line": 36,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "autocomplete_dataset.py",
@@ -53619,7 +54099,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 33,
+            "handler_line": 35,
             "kind": "try",
             "line": 17
           }
@@ -53628,7 +54108,7 @@
         "conditional": true,
         "imported": "autocomplete_index:AutocompleteIndexSource",
         "kind": "static_from",
-        "line": 34,
+        "line": 36,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "autocomplete_dataset.py",
@@ -53642,7 +54122,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 33,
+            "handler_line": 35,
             "kind": "try",
             "line": 17
           }
@@ -53651,7 +54131,7 @@
         "conditional": true,
         "imported": "autocomplete_index:AutocompleteIndexUnavailable",
         "kind": "static_from",
-        "line": 34,
+        "line": 36,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "autocomplete_dataset.py",
@@ -53665,7 +54145,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 33,
+            "handler_line": 35,
             "kind": "try",
             "line": 17
           }
@@ -53674,7 +54154,7 @@
         "conditional": true,
         "imported": "autocomplete_index:search_autocomplete_index",
         "kind": "static_from",
-        "line": 34,
+        "line": 36,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "autocomplete_dataset.py",
@@ -53688,7 +54168,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 33,
+            "handler_line": 35,
             "kind": "try",
             "line": 17
           }
@@ -53697,7 +54177,7 @@
         "conditional": true,
         "imported": "anima_prompt.knowledge:PACKAGE_DATA_DIR",
         "kind": "static_from",
-        "line": 40,
+        "line": 42,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "autocomplete_dataset.py",
@@ -53711,7 +54191,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 33,
+            "handler_line": 35,
             "kind": "try",
             "line": 17
           }
@@ -53720,7 +54200,7 @@
         "conditional": true,
         "imported": "anima_prompt.models:TagSection",
         "kind": "static_from",
-        "line": 41,
+        "line": 43,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "autocomplete_dataset.py",
@@ -53734,7 +54214,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 33,
+            "handler_line": 35,
             "kind": "try",
             "line": 17
           }
@@ -53743,7 +54223,7 @@
         "conditional": true,
         "imported": "anima_prompt.ordering:builtin_tag_section",
         "kind": "static_from",
-        "line": 42,
+        "line": 44,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "autocomplete_dataset.py",
@@ -53757,7 +54237,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 33,
+            "handler_line": 35,
             "kind": "try",
             "line": 17
           }
@@ -53766,7 +54246,7 @@
         "conditional": true,
         "imported": "anima_prompt.parser:parse_prompt",
         "kind": "static_from",
-        "line": 43,
+        "line": 45,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "autocomplete_dataset.py",
@@ -53780,7 +54260,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 33,
+            "handler_line": 35,
             "kind": "try",
             "line": 17
           }
@@ -53789,7 +54269,7 @@
         "conditional": true,
         "imported": "easyuse_anima.translation.markers:iter_prompt_translation_markers",
         "kind": "static_from",
-        "line": 44,
+        "line": 46,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "autocomplete_dataset.py",
@@ -53803,20 +54283,20 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 33,
+            "handler_line": 35,
             "kind": "try",
             "line": 17
           }
         ],
         "classification": "compatibility_fallback",
         "conditional": true,
-        "imported": "storage:PACKAGE_DATA_DIR",
+        "imported": "easyuse_anima.infrastructure.filesystem.paths:PACKAGE_DATA_DIR",
         "kind": "static_from",
-        "line": 47,
+        "line": 49,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "autocomplete_dataset.py",
-        "target": "storage.py"
+        "target": "easyuse_anima/infrastructure/filesystem/paths.py"
       },
       {
         "branch_context": [
@@ -53826,20 +54306,20 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 33,
+            "handler_line": 35,
             "kind": "try",
             "line": 17
           }
         ],
         "classification": "compatibility_fallback",
         "conditional": true,
-        "imported": "storage:USER_DATA_DIR",
+        "imported": "easyuse_anima.infrastructure.filesystem.paths:USER_DATA_DIR",
         "kind": "static_from",
-        "line": 48,
+        "line": 52,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "autocomplete_dataset.py",
-        "target": "storage.py"
+        "target": "easyuse_anima/infrastructure/filesystem/paths.py"
       },
       {
         "branch_context": [
@@ -62543,20 +63023,20 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 16,
+            "handler_line": 17,
             "kind": "try",
             "line": 6
           }
         ],
         "classification": "compatibility_fallback",
         "conditional": true,
-        "imported": "storage:AtomicJsonStore",
+        "imported": "easyuse_anima.infrastructure.filesystem.atomic_json:AtomicJsonStore",
         "kind": "static_from",
-        "line": 17,
+        "line": 18,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "settings.py",
-        "target": "storage.py"
+        "target": "easyuse_anima/infrastructure/filesystem/atomic_json.py"
       },
       {
         "branch_context": [
@@ -62566,20 +63046,20 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 16,
+            "handler_line": 17,
             "kind": "try",
             "line": 6
           }
         ],
         "classification": "compatibility_fallback",
         "conditional": true,
-        "imported": "storage:USER_DATA_DIR",
+        "imported": "easyuse_anima.infrastructure.filesystem.paths:USER_DATA_DIR",
         "kind": "static_from",
-        "line": 17,
+        "line": 19,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "settings.py",
-        "target": "storage.py"
+        "target": "easyuse_anima/infrastructure/filesystem/paths.py"
       },
       {
         "branch_context": [
@@ -62589,7 +63069,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 16,
+            "handler_line": 17,
             "kind": "try",
             "line": 6
           }
@@ -62598,7 +63078,7 @@
         "conditional": true,
         "imported": "easyuse_anima.translation.contracts:DEFAULT_PROMPT_TRANSLATION_SOURCE",
         "kind": "static_from",
-        "line": 18,
+        "line": 20,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "settings.py",
@@ -62612,7 +63092,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 16,
+            "handler_line": 17,
             "kind": "try",
             "line": 6
           }
@@ -62621,7 +63101,7 @@
         "conditional": true,
         "imported": "easyuse_anima.translation.contracts:DEFAULT_PROMPT_TRANSLATION_TARGET",
         "kind": "static_from",
-        "line": 18,
+        "line": 20,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "settings.py",
@@ -62635,7 +63115,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 16,
+            "handler_line": 17,
             "kind": "try",
             "line": 6
           }
@@ -62644,7 +63124,7 @@
         "conditional": true,
         "imported": "easyuse_anima.translation.contracts:PROMPT_TRANSLATION_PROVIDER_OFF",
         "kind": "static_from",
-        "line": 18,
+        "line": 20,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "settings.py",
@@ -62658,7 +63138,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 16,
+            "handler_line": 17,
             "kind": "try",
             "line": 6
           }
@@ -62667,7 +63147,7 @@
         "conditional": true,
         "imported": "easyuse_anima.translation.contracts:PromptTranslationSettings",
         "kind": "static_from",
-        "line": 18,
+        "line": 20,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "settings.py",
@@ -62681,7 +63161,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 16,
+            "handler_line": 17,
             "kind": "try",
             "line": 6
           }
@@ -62690,7 +63170,7 @@
         "conditional": true,
         "imported": "easyuse_anima.translation.contracts:normalize_prompt_translation_language",
         "kind": "static_from",
-        "line": 18,
+        "line": 20,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "settings.py",
@@ -62704,7 +63184,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 16,
+            "handler_line": 17,
             "kind": "try",
             "line": 6
           }
@@ -62713,11 +63193,126 @@
         "conditional": true,
         "imported": "easyuse_anima.translation.contracts:normalize_prompt_translation_provider",
         "kind": "static_from",
-        "line": 18,
+        "line": 20,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "settings.py",
         "target": "easyuse_anima/translation/contracts.py"
+      },
+      {
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 13,
+            "kind": "try",
+            "line": 5
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "conditional": true,
+        "imported": "easyuse_anima.infrastructure.filesystem.atomic_json:AtomicJsonStore",
+        "kind": "static_from",
+        "line": 14,
+        "optional": false,
+        "role": "compatibility_fallback",
+        "source": "storage.py",
+        "target": "easyuse_anima/infrastructure/filesystem/atomic_json.py"
+      },
+      {
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 13,
+            "kind": "try",
+            "line": 5
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "conditional": true,
+        "imported": "easyuse_anima.infrastructure.filesystem.paths:PACKAGE_DATA_DIR",
+        "kind": "static_from",
+        "line": 15,
+        "optional": false,
+        "role": "compatibility_fallback",
+        "source": "storage.py",
+        "target": "easyuse_anima/infrastructure/filesystem/paths.py"
+      },
+      {
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 13,
+            "kind": "try",
+            "line": 5
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "conditional": true,
+        "imported": "easyuse_anima.infrastructure.filesystem.paths:PACKAGE_ROOT",
+        "kind": "static_from",
+        "line": 15,
+        "optional": false,
+        "role": "compatibility_fallback",
+        "source": "storage.py",
+        "target": "easyuse_anima/infrastructure/filesystem/paths.py"
+      },
+      {
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 13,
+            "kind": "try",
+            "line": 5
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "conditional": true,
+        "imported": "easyuse_anima.infrastructure.filesystem.paths:SYSTEM_USER_NAME",
+        "kind": "static_from",
+        "line": 15,
+        "optional": false,
+        "role": "compatibility_fallback",
+        "source": "storage.py",
+        "target": "easyuse_anima/infrastructure/filesystem/paths.py"
+      },
+      {
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 13,
+            "kind": "try",
+            "line": 5
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "conditional": true,
+        "imported": "easyuse_anima.infrastructure.filesystem.paths:USER_DATA_DIR",
+        "kind": "static_from",
+        "line": 15,
+        "optional": false,
+        "role": "compatibility_fallback",
+        "source": "storage.py",
+        "target": "easyuse_anima/infrastructure/filesystem/paths.py"
       },
       {
         "branch_context": [
@@ -62734,13 +63329,13 @@
         ],
         "classification": "compatibility_fallback",
         "conditional": true,
-        "imported": "storage:USER_DATA_DIR",
+        "imported": "easyuse_anima.infrastructure.filesystem.paths:USER_DATA_DIR",
         "kind": "static_from",
         "line": 29,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "wildcard_engine.py",
-        "target": "storage.py"
+        "target": "easyuse_anima/infrastructure/filesystem/paths.py"
       },
       {
         "branch_context": [
@@ -62775,7 +63370,8 @@
     "entry_modules": [
       "__init__.py",
       "nodes.py",
-      "prompt_translation.py"
+      "prompt_translation.py",
+      "storage.py"
     ],
     "external_imports": [
       {
@@ -63161,14 +63757,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 440
+            "line": 442
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 441,
+        "line": 443,
         "optional": true,
         "role": "optional_dependency",
         "source": "api.py"
@@ -63180,14 +63776,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 466
+            "line": 468
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 467,
+        "line": 469,
         "optional": true,
         "role": "optional_dependency",
         "source": "api.py"
@@ -63199,14 +63795,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 1007
+            "line": 1009
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 1008,
+        "line": 1010,
         "optional": true,
         "role": "optional_dependency",
         "source": "api.py"
@@ -65945,6 +66541,190 @@
         "line": 3,
         "optional": false,
         "role": "ordinary",
+        "source": "easyuse_anima/infrastructure/filesystem/atomic_json.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "errno",
+        "kind": "static_import",
+        "line": 5,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/infrastructure/filesystem/atomic_json.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "json",
+        "kind": "static_import",
+        "line": 6,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/infrastructure/filesystem/atomic_json.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "os",
+        "kind": "static_import",
+        "line": 7,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/infrastructure/filesystem/atomic_json.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "tempfile",
+        "kind": "static_import",
+        "line": 8,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/infrastructure/filesystem/atomic_json.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "threading",
+        "kind": "static_import",
+        "line": 9,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/infrastructure/filesystem/atomic_json.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "collections.abc:Callable",
+        "kind": "static_from",
+        "line": 10,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/infrastructure/filesystem/atomic_json.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "collections.abc:Iterator",
+        "kind": "static_from",
+        "line": 10,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/infrastructure/filesystem/atomic_json.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "contextlib:contextmanager",
+        "kind": "static_from",
+        "line": 11,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/infrastructure/filesystem/atomic_json.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "pathlib:Path",
+        "kind": "static_from",
+        "line": 12,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/infrastructure/filesystem/atomic_json.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "typing:TypeVar",
+        "kind": "static_from",
+        "line": 13,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/infrastructure/filesystem/atomic_json.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "__future__:annotations",
+        "kind": "static_from",
+        "line": 3,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/infrastructure/filesystem/paths.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "os",
+        "kind": "static_import",
+        "line": 5,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/infrastructure/filesystem/paths.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "pathlib:Path",
+        "kind": "static_from",
+        "line": 6,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/infrastructure/filesystem/paths.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "typing:cast",
+        "kind": "static_from",
+        "line": 7,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/infrastructure/filesystem/paths.py"
+      },
+      {
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": false,
+            "kind": "try",
+            "line": 15
+          }
+        ],
+        "classification": "external",
+        "conditional": true,
+        "imported": "folder_paths",
+        "kind": "static_import",
+        "line": 16,
+        "optional": true,
+        "role": "optional_dependency",
+        "source": "easyuse_anima/infrastructure/filesystem/paths.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "__future__:annotations",
+        "kind": "static_from",
+        "line": 3,
+        "optional": false,
+        "role": "ordinary",
         "source": "easyuse_anima/lora/metadata.py"
       },
       {
@@ -67735,14 +68515,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 271
+            "line": 273
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 272,
+        "line": 274,
         "optional": true,
         "role": "optional_dependency",
         "source": "settings.py"
@@ -67753,138 +68533,9 @@
         "conditional": false,
         "imported": "__future__:annotations",
         "kind": "static_from",
-        "line": 1,
-        "optional": false,
-        "role": "ordinary",
-        "source": "storage.py"
-      },
-      {
-        "branch_context": [],
-        "classification": "external",
-        "conditional": false,
-        "imported": "errno",
-        "kind": "static_import",
         "line": 3,
         "optional": false,
         "role": "ordinary",
-        "source": "storage.py"
-      },
-      {
-        "branch_context": [],
-        "classification": "external",
-        "conditional": false,
-        "imported": "json",
-        "kind": "static_import",
-        "line": 4,
-        "optional": false,
-        "role": "ordinary",
-        "source": "storage.py"
-      },
-      {
-        "branch_context": [],
-        "classification": "external",
-        "conditional": false,
-        "imported": "os",
-        "kind": "static_import",
-        "line": 5,
-        "optional": false,
-        "role": "ordinary",
-        "source": "storage.py"
-      },
-      {
-        "branch_context": [],
-        "classification": "external",
-        "conditional": false,
-        "imported": "tempfile",
-        "kind": "static_import",
-        "line": 6,
-        "optional": false,
-        "role": "ordinary",
-        "source": "storage.py"
-      },
-      {
-        "branch_context": [],
-        "classification": "external",
-        "conditional": false,
-        "imported": "threading",
-        "kind": "static_import",
-        "line": 7,
-        "optional": false,
-        "role": "ordinary",
-        "source": "storage.py"
-      },
-      {
-        "branch_context": [],
-        "classification": "external",
-        "conditional": false,
-        "imported": "contextlib:contextmanager",
-        "kind": "static_from",
-        "line": 8,
-        "optional": false,
-        "role": "ordinary",
-        "source": "storage.py"
-      },
-      {
-        "branch_context": [],
-        "classification": "external",
-        "conditional": false,
-        "imported": "pathlib:Path",
-        "kind": "static_from",
-        "line": 9,
-        "optional": false,
-        "role": "ordinary",
-        "source": "storage.py"
-      },
-      {
-        "branch_context": [],
-        "classification": "external",
-        "conditional": false,
-        "imported": "typing:Callable",
-        "kind": "static_from",
-        "line": 10,
-        "optional": false,
-        "role": "ordinary",
-        "source": "storage.py"
-      },
-      {
-        "branch_context": [],
-        "classification": "external",
-        "conditional": false,
-        "imported": "typing:Iterator",
-        "kind": "static_from",
-        "line": 10,
-        "optional": false,
-        "role": "ordinary",
-        "source": "storage.py"
-      },
-      {
-        "branch_context": [],
-        "classification": "external",
-        "conditional": false,
-        "imported": "typing:TypeVar",
-        "kind": "static_from",
-        "line": 10,
-        "optional": false,
-        "role": "ordinary",
-        "source": "storage.py"
-      },
-      {
-        "branch_context": [
-          {
-            "branch": "body",
-            "handles_import_failure": true,
-            "has_import_fallback_handler": false,
-            "kind": "try",
-            "line": 19
-          }
-        ],
-        "classification": "external",
-        "conditional": true,
-        "imported": "folder_paths",
-        "kind": "static_import",
-        "line": 20,
-        "optional": true,
-        "role": "optional_dependency",
         "source": "storage.py"
       },
       {
@@ -68181,14 +68832,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 440
+            "line": 442
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 441,
+        "line": 443,
         "optional": true,
         "role": "optional_dependency",
         "source": "api.py"
@@ -68200,14 +68851,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 466
+            "line": 468
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 467,
+        "line": 469,
         "optional": true,
         "role": "optional_dependency",
         "source": "api.py"
@@ -68219,14 +68870,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 1007
+            "line": 1009
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 1008,
+        "line": 1010,
         "optional": true,
         "role": "optional_dependency",
         "source": "api.py"
@@ -68719,6 +69370,25 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
+            "line": 15
+          }
+        ],
+        "classification": "external",
+        "conditional": true,
+        "imported": "folder_paths",
+        "kind": "static_import",
+        "line": 16,
+        "optional": true,
+        "role": "optional_dependency",
+        "source": "easyuse_anima/infrastructure/filesystem/paths.py"
+      },
+      {
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": false,
+            "kind": "try",
             "line": 34
           }
         ],
@@ -69004,36 +69674,17 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 271
+            "line": 273
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 272,
+        "line": 274,
         "optional": true,
         "role": "optional_dependency",
         "source": "settings.py"
-      },
-      {
-        "branch_context": [
-          {
-            "branch": "body",
-            "handles_import_failure": true,
-            "has_import_fallback_handler": false,
-            "kind": "try",
-            "line": 19
-          }
-        ],
-        "classification": "external",
-        "conditional": true,
-        "imported": "folder_paths",
-        "kind": "static_import",
-        "line": 20,
-        "optional": true,
-        "role": "optional_dependency",
-        "source": "storage.py"
       },
       {
         "branch_context": [
@@ -69136,6 +69787,9 @@
       "easyuse_anima/infrastructure/comfy/provider.py",
       "easyuse_anima/infrastructure/comfy/resources.py",
       "easyuse_anima/infrastructure/comfy/wiring.py",
+      "easyuse_anima/infrastructure/filesystem/__init__.py",
+      "easyuse_anima/infrastructure/filesystem/atomic_json.py",
+      "easyuse_anima/infrastructure/filesystem/paths.py",
       "easyuse_anima/lora/__init__.py",
       "easyuse_anima/lora/metadata.py",
       "easyuse_anima/lora/preset.py",
@@ -69249,6 +69903,9 @@
       "easyuse_anima/infrastructure/comfy/provider.py",
       "easyuse_anima/infrastructure/comfy/resources.py",
       "easyuse_anima/infrastructure/comfy/wiring.py",
+      "easyuse_anima/infrastructure/filesystem/__init__.py",
+      "easyuse_anima/infrastructure/filesystem/atomic_json.py",
+      "easyuse_anima/infrastructure/filesystem/paths.py",
       "easyuse_anima/lora/__init__.py",
       "easyuse_anima/lora/metadata.py",
       "easyuse_anima/lora/preset.py",
@@ -69482,7 +70139,7 @@
         "column": 29,
         "context": "assign:INVALID_PROFILE_NAME_CHARS",
         "kind": "import_time_call",
-        "line": 110,
+        "line": 112,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -69491,7 +70148,7 @@
         "column": 33,
         "context": "assign:WINDOWS_RESERVED_FILE_BASENAMES",
         "kind": "import_time_call",
-        "line": 135,
+        "line": 137,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -69500,7 +70157,7 @@
         "column": 33,
         "context": "assign:WINDOWS_RESERVED_FILE_BASENAMES",
         "kind": "import_time_call",
-        "line": 136,
+        "line": 138,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -69509,7 +70166,7 @@
         "column": 10,
         "context": "assign:_LOGGER",
         "kind": "import_time_call",
-        "line": 142,
+        "line": 144,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -69518,7 +70175,7 @@
         "column": 25,
         "context": "assign:_FILE_IO_LIMITERS_LOCK",
         "kind": "import_time_call",
-        "line": 149,
+        "line": 151,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -69527,7 +70184,7 @@
         "column": 47,
         "context": "assign:_FILE_IO_LIMITERS",
         "kind": "import_time_call",
-        "line": 150,
+        "line": 152,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -69536,7 +70193,7 @@
         "column": 29,
         "context": "assign:_PROMPT_TRANSLATION_WORKER",
         "kind": "import_time_call",
-        "line": 199,
+        "line": 201,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -69545,7 +70202,7 @@
         "column": 0,
         "context": "expression",
         "kind": "import_time_call",
-        "line": 200,
+        "line": 202,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -69554,7 +70211,7 @@
         "column": 36,
         "context": "assign:_SAFE_PROFILE_VALIDATION_MESSAGES",
         "kind": "import_time_call",
-        "line": 1034,
+        "line": 1036,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -69563,7 +70220,7 @@
         "column": 9,
         "context": "assign:routes",
         "kind": "route_registry_creation",
-        "line": 1191,
+        "line": 1193,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -69572,7 +70229,7 @@
         "column": 19,
         "context": "assign:_ROUTE_SIGNATURE",
         "kind": "route_registry_creation",
-        "line": 1534,
+        "line": 1536,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -69581,7 +70238,7 @@
         "column": 5,
         "context": "assign:_ROUTE_SIGNATURE",
         "kind": "route_registry_creation",
-        "line": 1535,
+        "line": 1537,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -69590,7 +70247,7 @@
         "column": 19,
         "context": "assign:_INLINE_SPACE_RE",
         "kind": "import_time_call",
-        "line": 89,
+        "line": 93,
         "module": "autocomplete_dataset.py",
         "scope": "<module>"
       },
@@ -69599,7 +70256,7 @@
         "column": 26,
         "context": "assign:_AUTOCOMPLETE_INDEX_DIR",
         "kind": "import_time_call",
-        "line": 130,
+        "line": 134,
         "module": "autocomplete_dataset.py",
         "scope": "<module>"
       },
@@ -69608,7 +70265,7 @@
         "column": 12,
         "context": "assign:_COUNT_RE",
         "kind": "import_time_call",
-        "line": 131,
+        "line": 135,
         "module": "autocomplete_dataset.py",
         "scope": "<module>"
       },
@@ -69617,7 +70274,7 @@
         "column": 20,
         "context": "assign:_WEIGHT_NUMBER_RE",
         "kind": "import_time_call",
-        "line": 136,
+        "line": 140,
         "module": "autocomplete_dataset.py",
         "scope": "<module>"
       },
@@ -69626,7 +70283,7 @@
         "column": 21,
         "context": "assign:_WEIGHTED_TOKEN_RE",
         "kind": "import_time_call",
-        "line": 137,
+        "line": 141,
         "module": "autocomplete_dataset.py",
         "scope": "<module>"
       },
@@ -69635,7 +70292,7 @@
         "column": 21,
         "context": "assign:_WILDCARD_TOKEN_RE",
         "kind": "import_time_call",
-        "line": 138,
+        "line": 142,
         "module": "autocomplete_dataset.py",
         "scope": "<module>"
       },
@@ -69644,7 +70301,7 @@
         "column": 22,
         "context": "assign:_WILDCARD_SYNTAX_RE",
         "kind": "import_time_call",
-        "line": 139,
+        "line": 143,
         "module": "autocomplete_dataset.py",
         "scope": "<module>"
       },
@@ -69653,7 +70310,7 @@
         "column": 27,
         "context": "assign:_DYNAMIC_PROMPT_TOKEN_RE",
         "kind": "import_time_call",
-        "line": 140,
+        "line": 144,
         "module": "autocomplete_dataset.py",
         "scope": "<module>"
       },
@@ -69662,7 +70319,7 @@
         "column": 28,
         "context": "assign:_DYNAMIC_PROMPT_SYNTAX_RE",
         "kind": "import_time_call",
-        "line": 141,
+        "line": 145,
         "module": "autocomplete_dataset.py",
         "scope": "<module>"
       },
@@ -69671,7 +70328,7 @@
         "column": 25,
         "context": "assign:_DESCRIPTION_PREFIX_RE",
         "kind": "import_time_call",
-        "line": 142,
+        "line": 146,
         "module": "autocomplete_dataset.py",
         "scope": "<module>"
       },
@@ -69680,7 +70337,7 @@
         "column": 14,
         "context": "assign:_COMMENT_RE",
         "kind": "import_time_call",
-        "line": 143,
+        "line": 147,
         "module": "autocomplete_dataset.py",
         "scope": "<module>"
       },
@@ -69689,7 +70346,7 @@
         "column": 1,
         "context": "decorator:AutocompleteEntry",
         "kind": "import_time_call",
-        "line": 145,
+        "line": 149,
         "module": "autocomplete_dataset.py",
         "scope": "<module>"
       },
@@ -69698,7 +70355,7 @@
         "column": 1,
         "context": "decorator:_AutocompleteCacheKey",
         "kind": "import_time_call",
-        "line": 155,
+        "line": 159,
         "module": "autocomplete_dataset.py",
         "scope": "<module>"
       },
@@ -69707,7 +70364,7 @@
         "column": 1,
         "context": "decorator:_AutocompleteSnapshot",
         "kind": "import_time_call",
-        "line": 163,
+        "line": 167,
         "module": "autocomplete_dataset.py",
         "scope": "<module>"
       },
@@ -69716,7 +70373,7 @@
         "column": 14,
         "context": "assign:_CACHE_LOCK",
         "kind": "import_time_call",
-        "line": 174,
+        "line": 178,
         "module": "autocomplete_dataset.py",
         "scope": "<module>"
       },
@@ -70441,6 +71098,60 @@
         "scope": "<module>"
       },
       {
+        "callee": "TypeVar",
+        "column": 5,
+        "context": "assign:_T",
+        "kind": "import_time_call",
+        "line": 15,
+        "module": "easyuse_anima/infrastructure/filesystem/atomic_json.py",
+        "scope": "<module>"
+      },
+      {
+        "callee": "object",
+        "column": 11,
+        "context": "assign:_MISSING",
+        "kind": "import_time_call",
+        "line": 16,
+        "module": "easyuse_anima/infrastructure/filesystem/atomic_json.py",
+        "scope": "<module>"
+      },
+      {
+        "callee": "threading.Lock",
+        "column": 20,
+        "context": "assign:_PATH_LOCKS_GUARD",
+        "kind": "import_time_call",
+        "line": 18,
+        "module": "easyuse_anima/infrastructure/filesystem/atomic_json.py",
+        "scope": "<module>"
+      },
+      {
+        "callee": "Path",
+        "column": 15,
+        "context": "assign:PACKAGE_ROOT",
+        "kind": "import_time_call",
+        "line": 9,
+        "module": "easyuse_anima/infrastructure/filesystem/paths.py",
+        "scope": "<module>"
+      },
+      {
+        "callee": "resolve",
+        "column": 15,
+        "context": "assign:PACKAGE_ROOT",
+        "kind": "import_time_call",
+        "line": 9,
+        "module": "easyuse_anima/infrastructure/filesystem/paths.py",
+        "scope": "<module>"
+      },
+      {
+        "callee": "_resolve_user_data_dir",
+        "column": 16,
+        "context": "assign:USER_DATA_DIR",
+        "kind": "import_time_call",
+        "line": 41,
+        "module": "easyuse_anima/infrastructure/filesystem/paths.py",
+        "scope": "<module>"
+      },
+      {
         "callee": "_RuntimeLoggerProxy",
         "column": 9,
         "context": "assign:logger",
@@ -70801,60 +71512,6 @@
         "scope": "<module>"
       },
       {
-        "callee": "Path",
-        "column": 15,
-        "context": "assign:PACKAGE_ROOT",
-        "kind": "import_time_call",
-        "line": 13,
-        "module": "storage.py",
-        "scope": "<module>"
-      },
-      {
-        "callee": "resolve",
-        "column": 15,
-        "context": "assign:PACKAGE_ROOT",
-        "kind": "import_time_call",
-        "line": 13,
-        "module": "storage.py",
-        "scope": "<module>"
-      },
-      {
-        "callee": "_resolve_user_data_dir",
-        "column": 16,
-        "context": "assign:USER_DATA_DIR",
-        "kind": "import_time_call",
-        "line": 34,
-        "module": "storage.py",
-        "scope": "<module>"
-      },
-      {
-        "callee": "TypeVar",
-        "column": 5,
-        "context": "assign:_T",
-        "kind": "import_time_call",
-        "line": 37,
-        "module": "storage.py",
-        "scope": "<module>"
-      },
-      {
-        "callee": "object",
-        "column": 11,
-        "context": "assign:_MISSING",
-        "kind": "import_time_call",
-        "line": 38,
-        "module": "storage.py",
-        "scope": "<module>"
-      },
-      {
-        "callee": "threading.Lock",
-        "column": 20,
-        "context": "assign:_PATH_LOCKS_GUARD",
-        "kind": "import_time_call",
-        "line": 40,
-        "module": "storage.py",
-        "scope": "<module>"
-      },
-      {
         "callee": "re.compile",
         "column": 13,
         "context": "assign:COMMENT_RE",
@@ -71046,49 +71703,49 @@
       },
       {
         "kind": "set",
-        "line": 114,
+        "line": 116,
         "module": "api.py",
         "name": "AIO_RESERVED_PROFILE_NAMES"
       },
       {
         "kind": "set",
-        "line": 130,
+        "line": 132,
         "module": "api.py",
         "name": "WINDOWS_RESERVED_FILE_BASENAMES"
       },
       {
         "kind": "dict",
-        "line": 59,
+        "line": 63,
         "module": "autocomplete_dataset.py",
         "name": "AUTOCOMPLETE_SOURCES"
       },
       {
         "kind": "dict",
-        "line": 175,
+        "line": 179,
         "module": "autocomplete_dataset.py",
         "name": "_CACHE"
       },
       {
         "kind": "dict",
-        "line": 90,
+        "line": 94,
         "module": "autocomplete_dataset.py",
         "name": "_DANBOORU_CATEGORY_NAMES"
       },
       {
         "kind": "dict",
-        "line": 97,
+        "line": 101,
         "module": "autocomplete_dataset.py",
         "name": "_E621_CATEGORY_NAMES"
       },
       {
         "kind": "dict",
-        "line": 176,
+        "line": 180,
         "module": "autocomplete_dataset.py",
         "name": "_INFLIGHT"
       },
       {
         "kind": "dict",
-        "line": 106,
+        "line": 110,
         "module": "autocomplete_dataset.py",
         "name": "_MERGED_E621_CATEGORY_NAMES"
       },
@@ -71163,6 +71820,18 @@
         "line": 11,
         "module": "easyuse_anima/image/scaling.py",
         "name": "IMAGE_UPSCALE_METHODS"
+      },
+      {
+        "kind": "dict",
+        "line": 17,
+        "module": "easyuse_anima/infrastructure/filesystem/atomic_json.py",
+        "name": "_PATH_LOCKS"
+      },
+      {
+        "kind": "set",
+        "line": 20,
+        "module": "easyuse_anima/infrastructure/filesystem/atomic_json.py",
+        "name": "_UNSUPPORTED_DIRECTORY_FSYNC_ERRORS"
       },
       {
         "kind": "set",
@@ -71316,75 +71985,63 @@
       },
       {
         "kind": "set",
-        "line": 93,
+        "line": 95,
         "module": "settings.py",
         "name": "AUTOCOMPLETE_COMMIT_KEYS"
       },
       {
         "kind": "set",
-        "line": 87,
+        "line": 89,
         "module": "settings.py",
         "name": "AUTOCOMPLETE_MODES"
       },
       {
         "kind": "dict",
-        "line": 148,
+        "line": 150,
         "module": "settings.py",
         "name": "COMFY_SETTING_KEYS"
       },
       {
         "kind": "dict",
-        "line": 30,
+        "line": 32,
         "module": "settings.py",
         "name": "DEFAULT_SETTINGS"
       },
       {
         "kind": "dict",
-        "line": 206,
+        "line": 208,
         "module": "settings.py",
         "name": "LONG_TEXT_SETTING_ALIASES"
       },
       {
         "kind": "set",
-        "line": 199,
+        "line": 201,
         "module": "settings.py",
         "name": "LONG_TEXT_SETTING_KEYS"
       },
       {
         "kind": "list",
-        "line": 112,
+        "line": 114,
         "module": "settings.py",
         "name": "NAIA_PREPROCESSING_KEYS"
       },
       {
         "kind": "set",
-        "line": 103,
+        "line": 105,
         "module": "settings.py",
         "name": "NAIA_RESOLUTION_BUCKETS"
       },
       {
         "kind": "set",
-        "line": 98,
+        "line": 100,
         "module": "settings.py",
         "name": "NAIA_RESOLUTION_MODES"
       },
       {
         "kind": "list",
-        "line": 130,
+        "line": 132,
         "module": "settings.py",
         "name": "PROMPT_STUDIO_COLOR_KEYS"
-      },
-      {
-        "kind": "dict",
-        "line": 39,
-        "module": "storage.py",
-        "name": "_PATH_LOCKS"
-      },
-      {
-        "kind": "set",
-        "line": 42,
-        "module": "storage.py",
-        "name": "_UNSUPPORTED_DIRECTORY_FSYNC_ERRORS"
       },
       {
         "kind": "set",
@@ -71417,7 +72074,7 @@
           "lock"
         ],
         "initializer": "threading.Lock",
-        "line": 149,
+        "line": 151,
         "module": "api.py",
         "name": "_FILE_IO_LIMITERS_LOCK"
       },
@@ -71426,7 +72083,7 @@
           "executor"
         ],
         "initializer": "_PromptTranslationWorker",
-        "line": 199,
+        "line": 201,
         "module": "api.py",
         "name": "_PROMPT_TRANSLATION_WORKER"
       },
@@ -71436,7 +72093,7 @@
           "mutable_container"
         ],
         "initializer": "Dict",
-        "line": 175,
+        "line": 179,
         "module": "autocomplete_dataset.py",
         "name": "_CACHE"
       },
@@ -71445,7 +72102,7 @@
           "lock"
         ],
         "initializer": "threading.Lock",
-        "line": 174,
+        "line": 178,
         "module": "autocomplete_dataset.py",
         "name": "_CACHE_LOCK"
       },
@@ -71456,7 +72113,7 @@
           "single_flight"
         ],
         "initializer": "Dict",
-        "line": 176,
+        "line": 180,
         "module": "autocomplete_dataset.py",
         "name": "_INFLIGHT"
       },
@@ -71529,6 +72186,25 @@
       },
       {
         "categories": [
+          "lock",
+          "mutable_container"
+        ],
+        "initializer": "Dict",
+        "line": 17,
+        "module": "easyuse_anima/infrastructure/filesystem/atomic_json.py",
+        "name": "_PATH_LOCKS"
+      },
+      {
+        "categories": [
+          "lock"
+        ],
+        "initializer": "threading.Lock",
+        "line": 18,
+        "module": "easyuse_anima/infrastructure/filesystem/atomic_json.py",
+        "name": "_PATH_LOCKS_GUARD"
+      },
+      {
+        "categories": [
           "client",
           "mutable_container"
         ],
@@ -71545,25 +72221,6 @@
         "line": 43,
         "module": "easyuse_anima/translation/service.py",
         "name": "_TRANSLATION_PROVIDER_LOCK"
-      },
-      {
-        "categories": [
-          "lock",
-          "mutable_container"
-        ],
-        "initializer": "Dict",
-        "line": 39,
-        "module": "storage.py",
-        "name": "_PATH_LOCKS"
-      },
-      {
-        "categories": [
-          "lock"
-        ],
-        "initializer": "threading.Lock",
-        "line": 40,
-        "module": "storage.py",
-        "name": "_PATH_LOCKS_GUARD"
       },
       {
         "categories": [

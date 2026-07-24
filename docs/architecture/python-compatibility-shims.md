@@ -61,7 +61,7 @@ import them.
 | `api.py` route-registration surface | Current implementation; planned API shim | `easyuse_anima.api.router` and `easyuse_anima.api.routes.*` | #165, #186 D-02-D-07 | Existing 0.5.2 surface; convert during D-02-D-07/D-14 | Root entrypoint side-effect import, frontend endpoints, API tests | Unscheduled; N+1 gate and route parity |
 | `api_contract.py` request/error helpers | Phase C temporary implementation; D-02 move and D-14 shim decision pending | `easyuse_anima.api.requests`, `responses`, and `errors` | #165, #186 D-02/D-14 | Introduced by #165; convert in D-02 and freeze any required root shim in D-14 | `api.py`, API contract tests, Registry package-closure test | Unscheduled; internal consumers canonical and contract/package parity pass |
 | `settings.py` | Current implementation; planned settings shim | `easyuse_anima.settings.*` | #163, #186 D-09 | Existing 0.5.2 surface; convert in D-09/D-14 | `api.py`, `nodes.py`, `wildcard_engine.py`, settings tests | Unscheduled; N+1 gate and settings migration/round-trip |
-| `storage.py` | Current implementation; planned filesystem shim | `easyuse_anima.infrastructure.filesystem.*` | #163, #186 D-08 | Existing 0.5.2 surface; convert in D-08/D-14 | `api.py`, `settings.py`, `wildcard_engine.py`, storage/profile tests | Unscheduled; N+1 gate and last-known-good/atomic-write parity |
+| `storage.py` | Explicit direct re-export shim (D-08) | `easyuse_anima.infrastructure.filesystem.atomic_json` and `.paths` | #163, #186 D-08 | Existing 0.5.2 supported module-owned public surface; exact `__all__` and identity fixture | External/legacy imports and storage compatibility tests; production callers use canonical modules | Unscheduled; first canonical+shim release N not yet recorded, then N+1 gate and last-known-good/atomic-write parity |
 | `autocomplete_dataset.py` | Current implementation; planned autocomplete shim | `easyuse_anima.autocomplete.*` | #162, #186 D-11 | Existing 0.5.2 surface; convert in D-11/D-14 | `api.py`, autocomplete/frontend API tests | Unscheduled; N+1 gate and result/ranking/API parity |
 | `wildcard_engine.py` | Current implementation; planned wildcard shim | `easyuse_anima.wildcard.*` | #184, #186 D-12 | Existing 0.5.2 surface; convert in D-12/D-14 | root entrypoint, `nodes.py`, `api.py`, wildcard/workflow tests | Unscheduled; N+1 gate and seed/expansion/workflow parity |
 | `prompt_translation.py` | Explicit direct re-export shim (D-01) | `easyuse_anima.translation.*` | #164, #186 D-01 | Existing 0.5.2 supported module-owned public surface; exact `__all__` and identity fixture | External/legacy imports and translation compatibility tests; production callers use canonical modules | Unscheduled; first canonical+shim release N not yet recorded, then N+1 gate and provider-off/API parity |
@@ -1387,10 +1387,21 @@ EasyUseAnimaWildcard
 
 ### `storage.py`
 
-- Confirmed candidate symbols: `AtomicJsonStore` and `USER_DATA_DIR`. Private
-  path-lock and fsync helpers are not automatically public.
-- Canonical target: `easyuse_anima.infrastructure.filesystem.atomic_json`,
-  `locks`, and `paths`, with user-path resolution supplied by runtime config.
+- Supported root symbols are `PACKAGE_ROOT`, `PACKAGE_DATA_DIR`,
+  `SYSTEM_USER_NAME`, `USER_DATA_DIR`, and `AtomicJsonStore`.
+- D-08 moves path discovery to
+  `easyuse_anima.infrastructure.filesystem.paths` and durable JSON operations,
+  shared path locks, recovery, and rollback to
+  `easyuse_anima.infrastructure.filesystem.atomic_json`.
+- The root module lists only those supported symbols in `__all__` and binds
+  each as the identical canonical object. Imported `os`/`tempfile`, lock
+  registries, sentinels, and private path/fsync helpers remain unsupported
+  test-only seams and are not re-exported.
+- Internal production imports use canonical modules directly. The root shim
+  remains shipped for external/legacy imports through the ADR-002 support
+  window; release N has not yet been recorded.
+- Runtime-config path injection, repository factories, and lock lifecycle are
+  E-03 follow-ups and are not part of D-08.
 - Removal gate: settings/profile/wildcard consumers are canonical; lock and
   atomic last-known-good behavior remains compatible; Windows path fixtures and
   Registry archive closure pass.
