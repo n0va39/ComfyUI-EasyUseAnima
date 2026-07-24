@@ -10,6 +10,7 @@ const textModel = await import(dataModule("../web/js/autocomplete/text_model.js"
 
 assert.deepEqual(Object.keys(textModel).sort(), [
   "autocompleteQuery",
+  "completionEditRangeContract",
   "currentToken",
   "currentWildcardToken",
   "isCaretInComment",
@@ -22,6 +23,7 @@ assert.deepEqual(Object.keys(textModel).sort(), [
 
 const {
   autocompleteQuery,
+  completionEditRangeContract,
   currentToken,
   currentWildcardToken,
   isCaretInComment,
@@ -31,6 +33,16 @@ const {
   planAutocompleteInsertion,
   wildcardAutocompleteQuery,
 } = textModel;
+
+function contractRanges(value, marker, options = {}) {
+  const caret = value.indexOf(marker);
+  assert.notEqual(caret, -1);
+  const text = value.replace(marker, "");
+  return completionEditRangeContract(text, caret, {
+    detectNaturalSentences: false,
+    ...options,
+  });
+}
 
 function appliedPlan(token, insert, options = {}) {
   const plan = planAutocompleteInsertion(token, insert, options);
@@ -43,6 +55,153 @@ function appliedPlan(token, insert, options = {}) {
     caret: plan.start + plan.caretOffset,
   };
 }
+
+const whitespaceSuffix = contractRanges("blue ha|ir solo", "|");
+assert.deepEqual(
+  {
+    query: [
+      whitespaceSuffix.queryStart,
+      whitespaceSuffix.queryEnd,
+    ],
+    insert: [
+      whitespaceSuffix.insertStart,
+      whitespaceSuffix.insertEnd,
+    ],
+    replace: [
+      whitespaceSuffix.replaceStart,
+      whitespaceSuffix.replaceEnd,
+    ],
+    protectedSuffix: whitespaceSuffix.value.slice(
+      whitespaceSuffix.protectedSuffixStart,
+    ),
+    item: [whitespaceSuffix.itemStart, whitespaceSuffix.itemEnd],
+    group: [
+      whitespaceSuffix.groupKind,
+      whitespaceSuffix.groupStart,
+      whitespaceSuffix.groupEnd,
+    ],
+  },
+  {
+    query: [0, "blue ha".length],
+    insert: [0, "blue ha".length],
+    replace: [0, "blue hair".length],
+    protectedSuffix: " solo",
+    item: [0, "blue hair solo".length],
+    group: ["root", 0, "blue hair solo".length],
+  },
+);
+
+for (const [value, expectedSuffix] of [
+  ["foo|, bar", ", bar"],
+  ["foo|\nbar", "\nbar"],
+]) {
+  const ranges = contractRanges(value, "|");
+  assert.equal(ranges.replaceEnd, "foo".length);
+  assert.equal(ranges.value.slice(ranges.protectedSuffixStart), expectedSuffix);
+}
+
+const parenthesisGroup = contractRanges("(foo|, bar:1.2)", "|");
+assert.deepEqual(
+  {
+    range: [
+      parenthesisGroup.replaceStart,
+      parenthesisGroup.replaceEnd,
+    ],
+    suffix: parenthesisGroup.value.slice(
+      parenthesisGroup.protectedSuffixStart,
+    ),
+    item: [parenthesisGroup.itemStart, parenthesisGroup.itemEnd],
+    group: [
+      parenthesisGroup.groupKind,
+      parenthesisGroup.groupStart,
+      parenthesisGroup.groupEnd,
+    ],
+  },
+  {
+    range: [1, 4],
+    suffix: ", bar:1.2)",
+    item: [1, 4],
+    group: ["parenthesis", 1, "(foo, bar:1.2".length],
+  },
+);
+
+const artistGroup = contractRanges(
+  "[[artist_a, art|ist_b:0.7]]",
+  "|",
+);
+assert.deepEqual(
+  {
+    query: [artistGroup.queryStart, artistGroup.queryEnd],
+    replace: [artistGroup.replaceStart, artistGroup.replaceEnd],
+    suffix: artistGroup.value.slice(artistGroup.protectedSuffixStart),
+    item: [artistGroup.itemStart, artistGroup.itemEnd],
+    group: [
+      artistGroup.groupKind,
+      artistGroup.groupStart,
+      artistGroup.groupEnd,
+    ],
+  },
+  {
+    query: [12, 15],
+    replace: [12, 20],
+    suffix: ":0.7]]",
+    item: [11, 24],
+    group: ["double-bracket", 2, 24],
+  },
+);
+
+const escapedGroup = contractRanges("\\(foo| bar\\)", "|");
+assert.equal(escapedGroup.groupKind, "root");
+assert.equal(escapedGroup.replaceEnd, "\\(foo".length);
+assert.equal(
+  escapedGroup.value.slice(escapedGroup.protectedSuffixStart),
+  " bar\\)",
+);
+
+const braceChoice = contractRanges("{choice_a|cho^ice_b}", "^");
+assert.deepEqual(
+  {
+    query: [braceChoice.queryStart, braceChoice.queryEnd],
+    replace: [braceChoice.replaceStart, braceChoice.replaceEnd],
+    suffix: braceChoice.value.slice(braceChoice.protectedSuffixStart),
+    item: [braceChoice.itemStart, braceChoice.itemEnd],
+    groupKind: braceChoice.groupKind,
+  },
+  {
+    query: ["{choice_a|".length, "{choice_a|cho".length],
+    replace: ["{choice_a|".length, "{choice_a|choice_b".length],
+    suffix: "}",
+    item: ["{choice_a|".length, "{choice_a|choice_b".length],
+    groupKind: "brace",
+  },
+);
+
+const selectedRange = completionEditRangeContract(
+  "(first, second)",
+  "(first, second".length,
+  {
+    selectionStart: "(first, ".length,
+    selectionEnd: "(first, second".length,
+  },
+);
+assert.deepEqual(
+  {
+    query: [selectedRange.queryStart, selectedRange.queryEnd],
+    insert: [selectedRange.insertStart, selectedRange.insertEnd],
+    replace: [selectedRange.replaceStart, selectedRange.replaceEnd],
+    group: [
+      selectedRange.groupKind,
+      selectedRange.groupStart,
+      selectedRange.groupEnd,
+    ],
+  },
+  {
+    query: [8, 14],
+    insert: [8, 14],
+    replace: [8, 14],
+    group: ["parenthesis", 1, 14],
+  },
+);
 
 const segmented = currentToken(
   "first tag, second tag\nthird tag",

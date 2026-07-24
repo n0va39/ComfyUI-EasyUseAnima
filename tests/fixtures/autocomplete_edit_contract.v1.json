@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "settings": {
+    "artist_prefix": {
+      "internal_key": "autocomplete.artist_prefix",
+      "comfy_key": "EasyUseAnima.Prompt.AutocompleteArtistPrefix",
+      "default": "@",
+      "max_length": 32
+    },
+    "commit_mode": {
+      "internal_key": "autocomplete.commit_mode",
+      "comfy_key": "EasyUseAnima.Prompt.AutocompleteCommitMode",
+      "default": "smart",
+      "accepted_values": [
+        "smart",
+        "insert",
+        "replace"
+      ]
+    },
+    "selection_parenthesis_weight": {
+      "internal_key": "prompt_studio.selection_parenthesis_weight",
+      "comfy_key": "EasyUseAnima.Prompt.SelectionParenthesisWeight",
+      "default": "false",
+      "accepted_values": [
+        "false",
+        "true"
+      ]
+    }
+  }
+}

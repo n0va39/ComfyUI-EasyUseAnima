@@ -92,6 +92,221 @@ function trimPromptSyntaxSuffix(value, start, end) {
   return Math.max(start, cursor);
 }
 
+function syntaxOpeningAt(value, index) {
+  if (isEscaped(value, index)) {
+    return null;
+  }
+  if (value.slice(index, index + 2) === "[[") {
+    return { kind: "double-bracket", length: 2, closing: "]]" };
+  }
+  if (value[index] === "(") {
+    return { kind: "parenthesis", length: 1, closing: ")" };
+  }
+  if (value[index] === "{") {
+    return { kind: "brace", length: 1, closing: "}" };
+  }
+  return null;
+}
+
+function syntaxClosingAt(value, index) {
+  if (isEscaped(value, index)) {
+    return null;
+  }
+  if (value.slice(index, index + 2) === "]]") {
+    return { value: "]]", length: 2 };
+  }
+  if (value[index] === ")" || value[index] === "}") {
+    return { value: value[index], length: 1 };
+  }
+  return null;
+}
+
+function syntaxGroups(value) {
+  const groups = [];
+  const stack = [];
+  for (let index = 0; index < value.length; index += 1) {
+    const opening = syntaxOpeningAt(value, index);
+    if (opening) {
+      const group = {
+        kind: opening.kind,
+        openStart: index,
+        contentStart: index + opening.length,
+        closeStart: value.length,
+        contentEnd: value.length,
+      };
+      groups.push(group);
+      stack.push({ group, closing: opening.closing });
+      index += opening.length - 1;
+      continue;
+    }
+    const closing = syntaxClosingAt(value, index);
+    const active = stack[stack.length - 1];
+    if (!closing || !active || closing.value !== active.closing) {
+      continue;
+    }
+    active.group.closeStart = index;
+    active.group.contentEnd = index;
+    stack.pop();
+    index += closing.length - 1;
+  }
+  return groups;
+}
+
+function activeSyntaxGroup(value, caret) {
+  let selected = null;
+  for (const group of syntaxGroups(value)) {
+    if (caret < group.contentStart || caret > group.contentEnd) {
+      continue;
+    }
+    if (!selected || group.contentStart >= selected.contentStart) {
+      selected = group;
+    }
+  }
+  return selected || {
+    kind: "root",
+    openStart: -1,
+    contentStart: 0,
+    closeStart: value.length,
+    contentEnd: value.length,
+  };
+}
+
+function itemBoundsAtCaret(value, caret, groupKind, groupStart, groupEnd) {
+  let itemStart = groupStart;
+  let itemEnd = groupEnd;
+  const stack = [];
+  for (let index = groupStart; index < groupEnd; index += 1) {
+    const opening = syntaxOpeningAt(value, index);
+    if (opening) {
+      stack.push(opening.closing);
+      index += opening.length - 1;
+      continue;
+    }
+    const closing = syntaxClosingAt(value, index);
+    if (closing && stack[stack.length - 1] === closing.value) {
+      stack.pop();
+      index += closing.length - 1;
+      continue;
+    }
+    const itemDelimiter = value[index] === ","
+      || value[index] === "\n"
+      || (groupKind === "brace" && value[index] === "|");
+    if (stack.length > 0 || !itemDelimiter) {
+      continue;
+    }
+    if (index < caret) {
+      itemStart = index + 1;
+      continue;
+    }
+    itemEnd = index;
+    break;
+  }
+  return { itemStart, itemEnd };
+}
+
+function contiguousTailEnd(value, caret, itemEnd) {
+  let end = caret;
+  while (end < itemEnd) {
+    const closing = syntaxClosingAt(value, end);
+    if (closing || /[\s,\n]/.test(value[end])) {
+      break;
+    }
+    end += 1;
+  }
+  const tail = value.slice(caret, end);
+  const weight = /:\s*[+-]?(?:\d+(?:\.\d*)?|\.\d+)\s*$/.exec(tail);
+  return weight ? caret + weight.index : end;
+}
+
+export function completionEditRangeContract(value, caret, options = {}) {
+  const text = String(value || "");
+  const safeCaret = clamp(
+    caret == null ? text.length : Number(caret),
+    0,
+    text.length,
+  );
+  const rawSelectionStart = options.selectionStart == null
+    ? safeCaret
+    : Number(options.selectionStart);
+  const rawSelectionEnd = options.selectionEnd == null
+    ? safeCaret
+    : Number(options.selectionEnd);
+  const selectionStart = clamp(
+    Math.min(rawSelectionStart, rawSelectionEnd),
+    0,
+    text.length,
+  );
+  const selectionEnd = clamp(
+    Math.max(rawSelectionStart, rawSelectionEnd),
+    0,
+    text.length,
+  );
+  const selectionActive = selectionEnd > selectionStart;
+  const contextCaret = selectionActive ? selectionStart : safeCaret;
+  const group = activeSyntaxGroup(text, contextCaret);
+  const { itemStart, itemEnd } = itemBoundsAtCaret(
+    text,
+    contextCaret,
+    group.kind,
+    group.contentStart,
+    group.contentEnd,
+  );
+
+  if (selectionActive) {
+    return {
+      value: text,
+      caret: safeCaret,
+      selectionStart,
+      selectionEnd,
+      queryStart: selectionStart,
+      queryEnd: selectionEnd,
+      insertStart: selectionStart,
+      insertEnd: selectionEnd,
+      replaceStart: selectionStart,
+      replaceEnd: selectionEnd,
+      protectedSuffixStart: selectionEnd,
+      groupKind: group.kind,
+      groupStart: group.contentStart,
+      groupEnd: group.contentEnd,
+      itemStart,
+      itemEnd,
+    };
+  }
+
+  const naturalStart = naturalSentenceStart(
+    text,
+    itemStart,
+    safeCaret,
+    options.detectNaturalSentences !== false,
+  );
+  const sentenceDelimited = naturalStart > itemStart;
+  const activeItemEnd = sentenceDelimited
+    ? naturalSentenceEnd(text, safeCaret, itemEnd)
+    : itemEnd;
+  const rangeStart = trimPromptSyntaxPrefix(text, naturalStart, activeItemEnd);
+  const queryEnd = clamp(safeCaret, rangeStart, activeItemEnd);
+  const replaceEnd = contiguousTailEnd(text, queryEnd, activeItemEnd);
+
+  return {
+    value: text,
+    caret: safeCaret,
+    selectionStart,
+    selectionEnd,
+    queryStart: rangeStart,
+    queryEnd,
+    insertStart: rangeStart,
+    insertEnd: queryEnd,
+    replaceStart: rangeStart,
+    replaceEnd,
+    protectedSuffixStart: replaceEnd,
+    groupKind: group.kind,
+    groupStart: group.contentStart,
+    groupEnd: group.contentEnd,
+    itemStart,
+    itemEnd,
+  };
+}
+
 export function currentToken(value, caret, options = {}) {
   const text = String(value || "");
   const safeCaret = caret == null ? text.length : Number(caret);
