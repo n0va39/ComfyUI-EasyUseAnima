@@ -8,12 +8,65 @@ import nodes
 from easyuse_anima.aio import first_pass_cache
 
 
+class _SizedTensor:
+    def __init__(
+        self,
+        *,
+        count: int,
+        item_bytes: int,
+        fail_numel: bool = False,
+        fallback_nbytes: int | None = None,
+        clone_calls: list[int] | None = None,
+    ):
+        self.count = count
+        self.item_bytes = item_bytes
+        self.fail_numel = fail_numel
+        self.nbytes = fallback_nbytes
+        self.clone_calls = clone_calls
+
+    def detach(self):
+        return self
+
+    def clone(self):
+        if self.clone_calls is not None:
+            self.clone_calls.append(self.count * self.item_bytes)
+        return _SizedTensor(
+            count=self.count,
+            item_bytes=self.item_bytes,
+            fail_numel=self.fail_numel,
+            fallback_nbytes=self.nbytes,
+            clone_calls=self.clone_calls,
+        )
+
+    def cpu(self):
+        return self
+
+    def numel(self):
+        if self.fail_numel:
+            raise RuntimeError("numel unavailable")
+        return self.count
+
+    def element_size(self):
+        return self.item_bytes
+
+
 class AIOFirstPassCacheMoveTests(unittest.TestCase):
     def setUp(self):
         first_pass_cache._clear_aio_first_pass_cache()
 
     def tearDown(self):
         first_pass_cache._clear_aio_first_pass_cache()
+
+    def test_default_count_and_byte_policy_are_explicit(self):
+        self.assertEqual(first_pass_cache.AIO_FIRST_PASS_CACHE_MAX_ENTRIES, 2)
+        self.assertEqual(
+            first_pass_cache.AIO_FIRST_PASS_CACHE_MAX_BYTES,
+            512 * 1024 * 1024,
+        )
+        self.assertEqual(
+            first_pass_cache.AIO_FIRST_PASS_CACHE_MAX_ENTRY_BYTES,
+            256 * 1024 * 1024,
+        )
 
     def test_root_state_and_functions_are_direct_canonical_aliases(self):
         self.assertFalse(
@@ -248,6 +301,151 @@ class AIOFirstPassCacheMoveTests(unittest.TestCase):
             replacement_entry.checkout(),
             ({"samples": [3]}, [4]),
         )
+
+    def test_payload_byte_estimator_is_recursive_deduplicated_and_best_effort(self):
+        tensor = _SizedTensor(count=3, item_bytes=4)
+        fallback = _SizedTensor(
+            count=0,
+            item_bytes=0,
+            fail_numel=True,
+            fallback_nbytes=9,
+        )
+        value = {
+            "tensor": tensor,
+            "shared": [tensor],
+            "bytes": b"abc",
+            "bytearray": bytearray(4),
+            "memoryview": memoryview(b"12345"),
+            "fallback": fallback,
+            "unknown": object(),
+        }
+
+        self.assertEqual(
+            first_pass_cache._aio_cache_value_size_bytes(value),
+            33,
+        )
+        self.assertEqual(
+            first_pass_cache._aio_cache_pair_size_bytes(tensor, tensor),
+            12,
+        )
+        self.assertEqual(
+            first_pass_cache._aio_cache_value_size_bytes(
+                _SizedTensor(
+                    count=0,
+                    item_bytes=0,
+                    fail_numel=True,
+                    fallback_nbytes=-1,
+                )
+            ),
+            0,
+        )
+
+    def test_single_entry_cap_skips_without_mutating_existing_state(self):
+        cache = {}
+        order = []
+        with (
+            patch.object(first_pass_cache, "_AIO_FIRST_PASS_CACHE", cache),
+            patch.object(first_pass_cache, "_AIO_FIRST_PASS_CACHE_ORDER", order),
+            patch.object(
+                first_pass_cache,
+                "AIO_FIRST_PASS_CACHE_MAX_ENTRY_BYTES",
+                8,
+            ),
+        ):
+            first_pass_cache._put_aio_first_pass_cache(
+                "entry",
+                _SizedTensor(count=1, item_bytes=4),
+                _SizedTensor(count=1, item_bytes=4),
+            )
+            existing = cache["entry"]
+            oversize_clone_calls = []
+            first_pass_cache._put_aio_first_pass_cache(
+                "entry",
+                _SizedTensor(
+                    count=2,
+                    item_bytes=4,
+                    clone_calls=oversize_clone_calls,
+                ),
+                _SizedTensor(
+                    count=1,
+                    item_bytes=4,
+                    clone_calls=oversize_clone_calls,
+                ),
+            )
+
+        self.assertIs(cache["entry"], existing)
+        self.assertEqual(order, ["entry"])
+        self.assertEqual(existing.size_bytes, 8)
+        self.assertEqual(oversize_clone_calls, [])
+
+    def test_total_byte_budget_evicts_oldest_independently_of_count_cap(self):
+        cache = {}
+        order = []
+        with (
+            patch.object(first_pass_cache, "_AIO_FIRST_PASS_CACHE", cache),
+            patch.object(first_pass_cache, "_AIO_FIRST_PASS_CACHE_ORDER", order),
+            patch.object(first_pass_cache, "AIO_FIRST_PASS_CACHE_MAX_ENTRIES", 3),
+            patch.object(
+                first_pass_cache,
+                "AIO_FIRST_PASS_CACHE_MAX_ENTRY_BYTES",
+                8,
+            ),
+            patch.object(
+                first_pass_cache,
+                "AIO_FIRST_PASS_CACHE_MAX_BYTES",
+                12,
+            ),
+        ):
+            first_pass_cache._put_aio_first_pass_cache(
+                "a",
+                _SizedTensor(count=1, item_bytes=4),
+                _SizedTensor(count=1, item_bytes=4),
+            )
+            first_pass_cache._put_aio_first_pass_cache(
+                "b",
+                _SizedTensor(count=1, item_bytes=4),
+                _SizedTensor(count=1, item_bytes=4),
+            )
+            total_bytes = first_pass_cache._aio_first_pass_cache_total_bytes()
+
+        self.assertEqual(set(cache), {"b"})
+        self.assertEqual(order, ["b"])
+        self.assertEqual(total_bytes, 8)
+
+    def test_legacy_mapping_bytes_participate_in_oldest_eviction(self):
+        legacy = {
+            "latent": _SizedTensor(count=1, item_bytes=4),
+            "image": _SizedTensor(count=1, item_bytes=4),
+        }
+        cache = {"legacy": legacy}
+        order = ["legacy"]
+        with (
+            patch.object(first_pass_cache, "_AIO_FIRST_PASS_CACHE", cache),
+            patch.object(first_pass_cache, "_AIO_FIRST_PASS_CACHE_ORDER", order),
+            patch.object(first_pass_cache, "AIO_FIRST_PASS_CACHE_MAX_ENTRIES", 3),
+            patch.object(
+                first_pass_cache,
+                "AIO_FIRST_PASS_CACHE_MAX_ENTRY_BYTES",
+                8,
+            ),
+            patch.object(
+                first_pass_cache,
+                "AIO_FIRST_PASS_CACHE_MAX_BYTES",
+                12,
+            ),
+        ):
+            self.assertEqual(
+                first_pass_cache._aio_first_pass_cache_total_bytes(),
+                8,
+            )
+            first_pass_cache._put_aio_first_pass_cache(
+                "new",
+                _SizedTensor(count=1, item_bytes=4),
+                _SizedTensor(count=1, item_bytes=4),
+            )
+
+        self.assertEqual(set(cache), {"new"})
+        self.assertEqual(order, ["new"])
 
     def test_put_get_clone_isolation_lru_refresh_overwrite_and_eviction(self):
         latent = {"samples": [1]}

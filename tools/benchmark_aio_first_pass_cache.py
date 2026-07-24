@@ -74,6 +74,10 @@ class BenchmarkTensor:
         self.counters.cpu_calls += 1
         return self
 
+    @property
+    def nbytes(self) -> int:
+        return len(self.payload)
+
     def mutate_first_byte(self) -> None:
         self.payload[0] ^= 0xFF
 
