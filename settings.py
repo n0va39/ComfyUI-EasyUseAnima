@@ -13,6 +13,7 @@ try:
     )
     from .easyuse_anima.settings.schema import (
         AUTOCOMPLETE_COMMIT_KEYS,
+        AUTOCOMPLETE_COMMIT_MODES,
         AUTOCOMPLETE_MODES,
         COMFY_COLOR_SETTING_KEYS,
         COMFY_SETTING_KEYS,
@@ -27,6 +28,7 @@ try:
     from .easyuse_anima.settings.service import (
         public_settings,
         resolve_autocomplete_commit_key,
+        resolve_autocomplete_commit_mode,
         resolve_autocomplete_limit,
         resolve_autocomplete_mode,
         resolve_autocomplete_source,
@@ -59,6 +61,7 @@ except ImportError:
     )
     from easyuse_anima.settings.schema import (
         AUTOCOMPLETE_COMMIT_KEYS,
+        AUTOCOMPLETE_COMMIT_MODES,
         AUTOCOMPLETE_MODES,
         COMFY_COLOR_SETTING_KEYS,
         COMFY_SETTING_KEYS,
@@ -73,6 +76,7 @@ except ImportError:
     from easyuse_anima.settings.service import (
         public_settings,
         resolve_autocomplete_commit_key,
+        resolve_autocomplete_commit_mode,
         resolve_autocomplete_limit,
         resolve_autocomplete_mode,
         resolve_autocomplete_source,
@@ -98,6 +102,7 @@ except ImportError:
 
 __all__ = (
     "AUTOCOMPLETE_COMMIT_KEYS",
+    "AUTOCOMPLETE_COMMIT_MODES",
     "AUTOCOMPLETE_MODES",
     "COMFY_COLOR_SETTING_KEYS",
     "COMFY_SETTING_KEYS",
@@ -114,6 +119,7 @@ __all__ = (
     "load_long_text_settings",
     "public_settings",
     "resolve_autocomplete_commit_key",
+    "resolve_autocomplete_commit_mode",
     "resolve_autocomplete_limit",
     "resolve_autocomplete_mode",
     "resolve_autocomplete_source",

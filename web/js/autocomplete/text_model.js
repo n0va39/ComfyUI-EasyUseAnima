@@ -1,6 +1,7 @@
 // @ts-check
 
 const SENTENCE_PERIODS = new Set([".", "。", "．", "｡"]);
+const AUTOCOMPLETE_COMMIT_MODES = new Set(["smart", "insert", "replace"]);
 
 function clamp(value, min, max) {
   return Math.min(max, Math.max(min, value));
@@ -310,6 +311,11 @@ export function completionEditRangeContract(value, caret, options = {}) {
 export function currentToken(value, caret, options = {}) {
   const text = String(value || "");
   const safeCaret = caret == null ? text.length : Number(caret);
+  const editRanges = completionEditRangeContract(text, safeCaret, {
+    selectionStart: options.selectionStart,
+    selectionEnd: options.selectionEnd,
+    detectNaturalSentences: options.detectNaturalSentences,
+  });
   let segmentStart = safeCaret;
   while (segmentStart > 0 && text[segmentStart - 1] !== "," && text[segmentStart - 1] !== "\n") {
     segmentStart -= 1;
@@ -350,6 +356,20 @@ export function currentToken(value, caret, options = {}) {
     sentenceDelimited,
     query: (useStrictToken ? strictRaw : legacyRaw).trim(),
     active: useStrictToken ? strictActive : legacyActive,
+    selectionStart: editRanges.selectionStart,
+    selectionEnd: editRanges.selectionEnd,
+    queryStart: editRanges.queryStart,
+    queryEnd: editRanges.queryEnd,
+    insertStart: editRanges.insertStart,
+    insertEnd: editRanges.insertEnd,
+    replaceStart: editRanges.replaceStart,
+    replaceEnd: editRanges.replaceEnd,
+    protectedSuffixStart: editRanges.protectedSuffixStart,
+    groupKind: editRanges.groupKind,
+    groupStart: editRanges.groupStart,
+    groupEnd: editRanges.groupEnd,
+    itemStart: editRanges.itemStart,
+    itemEnd: editRanges.itemEnd,
   };
 }
 
@@ -534,6 +554,9 @@ function insertSuffixForAfter(after, appendSeparator, noCommaAfterPeriod) {
   if (!after) {
     return appendSeparator ? ", " : "";
   }
+  if (/^[ \t]/.test(after)) {
+    return "";
+  }
   if (/^[ \t]*:\s*[+-]?(?:\d+(?:\.\d*)?|\.\d+)/.test(after) || /^[ \t]*(?:\)|\]\])/.test(after)) {
     return "";
   }
@@ -559,18 +582,65 @@ function insertSuffixPlanForAfter(after, appendSeparator, noCommaAfterPeriod) {
   return { suffix, consumeAfter: 0, caretExtra: 0 };
 }
 
+export function normalizeAutocompleteCommitMode(value) {
+  const mode = String(value || "").trim().toLocaleLowerCase();
+  return AUTOCOMPLETE_COMMIT_MODES.has(mode) ? mode : "smart";
+}
+
+function tokenRange(value, fallback, sourceLength) {
+  const range = Number(value);
+  return Number.isFinite(range)
+    ? clamp(range, 0, sourceLength)
+    : fallback;
+}
+
+function normalizedSmartMatchText(value) {
+  return String(value || "")
+    .trim()
+    .toLocaleLowerCase()
+    .replace(/[_\s]+/g, " ");
+}
+
+function smartUsesReplaceRange(
+  token,
+  sourceValue,
+  insertedText,
+  insertStart,
+  insertEnd,
+  replaceStart,
+  replaceEnd,
+) {
+  if (replaceEnd <= insertEnd) {
+    return true;
+  }
+  if (Number(token.selectionEnd) > Number(token.selectionStart)) {
+    return true;
+  }
+  const currentItem = normalizedSmartMatchText(
+    sourceValue.slice(replaceStart, replaceEnd),
+  );
+  const typedPrefix = normalizedSmartMatchText(
+    sourceValue.slice(insertStart, insertEnd),
+  );
+  const completion = normalizedSmartMatchText(insertedText);
+  return !!currentItem
+    && !!typedPrefix
+    && completion.startsWith(typedPrefix)
+    && completion.startsWith(currentItem);
+}
+
 export function planAutocompleteInsertion(token, insert, options = {}) {
   if (!token) {
     return null;
   }
   const sourceValue = String(token.value || "");
-  const start = Number(token.start) || 0;
-  const tokenEnd = Number(token.end) || start;
+  const fallbackStart = clamp(Number(token.start) || 0, 0, sourceValue.length);
+  const fallbackEnd = tokenRange(token.end, fallbackStart, sourceValue.length);
   const insertedText = String(insert || "");
   if (token.wildcard) {
     return {
-      start,
-      end: tokenEnd,
+      start: fallbackStart,
+      end: fallbackEnd,
       replacement: insertedText,
       caretOffset: insertedText.length,
       prefix: "",
@@ -580,6 +650,26 @@ export function planAutocompleteInsertion(token, insert, options = {}) {
     };
   }
 
+  const insertStart = tokenRange(token.insertStart, fallbackStart, sourceValue.length);
+  const insertEnd = tokenRange(token.insertEnd, fallbackEnd, sourceValue.length);
+  const replaceStart = tokenRange(token.replaceStart, fallbackStart, sourceValue.length);
+  const replaceEnd = tokenRange(token.replaceEnd, fallbackEnd, sourceValue.length);
+  const modeUsed = normalizeAutocompleteCommitMode(options.commitMode);
+  const useReplaceRange = modeUsed === "replace"
+    || (
+      modeUsed === "smart"
+      && smartUsesReplaceRange(
+        token,
+        sourceValue,
+        insertedText,
+        insertStart,
+        insertEnd,
+        replaceStart,
+        replaceEnd,
+      )
+    );
+  const start = useReplaceRange ? replaceStart : insertStart;
+  const tokenEnd = useReplaceRange ? replaceEnd : insertEnd;
   const before = sourceValue.slice(0, start);
   const after = sourceValue.slice(tokenEnd);
   const appendSeparator = options.appendSeparator === true;
@@ -597,5 +687,8 @@ export function planAutocompleteInsertion(token, insert, options = {}) {
     suffix,
     consumeAfter: suffixPlan.consumeAfter,
     caretExtra: suffixPlan.caretExtra,
+    preservedSuffix: sourceValue.slice(tokenEnd + suffixPlan.consumeAfter),
+    modeUsed,
+    editRange: useReplaceRange ? "replace" : "insert",
   };
 }

@@ -100,6 +100,7 @@ const expectedIds = [
   "EasyUseAnima.Prompt.AutocompleteLimit",
   "EasyUseAnima.Prompt.AutocompleteArtistPrefix",
   "EasyUseAnima.Prompt.AutocompleteCommitKey",
+  "EasyUseAnima.Prompt.AutocompleteCommitMode",
   "EasyUseAnima.Prompt.AutocompleteAppendSeparator",
   "EasyUseAnima.Prompt.AutocompleteNoCommaAfterPeriod",
   "EasyUseAnima.Prompt.AutocompleteDetectNaturalSentences",
@@ -136,7 +137,7 @@ const expectedIds = [
 ];
 
 assert.deepEqual(settings.map((item) => item.id), expectedIds);
-assert.equal(settings.length, 53);
+assert.equal(settings.length, 54);
 assert.equal(new Set(expectedIds).size, settings.length, "Setting IDs must be unique");
 assert.ok(
   settings.every((item) => item.category[0] === "EASY USE ANIMA"),
@@ -228,6 +229,10 @@ const expectedRegularSchemas = new Map([
   [
     "EasyUseAnima.Prompt.AutocompleteCommitKey",
     schema("combo", "enter", ["enter", "tab"]),
+  ],
+  [
+    "EasyUseAnima.Prompt.AutocompleteCommitMode",
+    schema("combo", "smart", ["smart", "insert", "replace"]),
   ],
   ["EasyUseAnima.Prompt.AutocompleteAppendSeparator", schema("boolean", false)],
   ["EasyUseAnima.Prompt.AutocompleteNoCommaAfterPeriod", schema("boolean", true)],

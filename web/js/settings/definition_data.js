@@ -31,6 +31,7 @@ export const INTERNAL_KEYS = {
   "EasyUseAnima.Prompt.AutocompleteLimit": "autocomplete.limit",
   "EasyUseAnima.Prompt.AutocompleteArtistPrefix": "autocomplete.artist_prefix",
   "EasyUseAnima.Prompt.AutocompleteCommitKey": "autocomplete.commit_key",
+  "EasyUseAnima.Prompt.AutocompleteCommitMode": "autocomplete.commit_mode",
   "EasyUseAnima.Prompt.AutocompleteAppendSeparator": "autocomplete.append_separator",
   "EasyUseAnima.Prompt.AutocompleteNoCommaAfterPeriod": "autocomplete.no_comma_after_period",
   "EasyUseAnima.Prompt.AutocompleteDetectNaturalSentences": "autocomplete.detect_natural_sentences",

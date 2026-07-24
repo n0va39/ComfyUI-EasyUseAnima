@@ -26,6 +26,7 @@ import {
   isCaretInComment,
   isCaretInPromptTranslationMarker as caretInPromptTranslationMarker,
   normalizeAutocompleteArtistPrefix,
+  normalizeAutocompleteCommitMode,
   normalizeWildcardSearchText,
   parseAutocompleteText,
   planAutocompleteInsertion,
@@ -98,6 +99,7 @@ const DEFAULT_MAX_RESULTS = 20;
 const MAX_RESULT_LIMIT = 100;
 const DEFAULT_AUTOCOMPLETE_MODE = "compatible_global";
 const DEFAULT_AUTOCOMPLETE_COMMIT_KEY = "enter";
+const DEFAULT_AUTOCOMPLETE_COMMIT_MODE = "smart";
 const DEFAULT_AUTOCOMPLETE_ARTIST_PREFIX = "@";
 const AUTOCOMPLETE_MODES = new Set([
   "off",
@@ -182,6 +184,7 @@ const MIN_QUERY_LENGTH = 1;
 let maxResults = DEFAULT_MAX_RESULTS;
 let autocompleteMode = DEFAULT_AUTOCOMPLETE_MODE;
 let autocompleteCommitKey = DEFAULT_AUTOCOMPLETE_COMMIT_KEY;
+let autocompleteCommitMode = DEFAULT_AUTOCOMPLETE_COMMIT_MODE;
 let autocompleteArtistPrefix = DEFAULT_AUTOCOMPLETE_ARTIST_PREFIX;
 let autocompleteAppendSeparator = false;
 let autocompleteNoCommaAfterPeriod = true;
@@ -443,6 +446,9 @@ async function refreshAutocompleteSettings() {
       dataRequestsInvalidated = true;
     }
     setAutocompleteCommitKey(settings["autocomplete.commit_key"]);
+    autocompleteCommitMode = normalizeAutocompleteCommitMode(
+      settings["autocomplete.commit_mode"],
+    );
     setAutocompleteAppendSeparator(settings["autocomplete.append_separator"]);
     setAutocompleteNoCommaAfterPeriod(settings["autocomplete.no_comma_after_period"]);
     const previousDetectNaturalSentences = autocompleteDetectNaturalSentences;
@@ -739,6 +745,8 @@ function currentToken(input) {
     {
       detectNaturalSentences: autocompleteDetectNaturalSentences,
       previewCompletion: autocompletePreviewCompletion,
+      selectionStart: input?.selectionStart,
+      selectionEnd: input?.selectionEnd,
     },
   );
 }
@@ -774,6 +782,7 @@ function autocompleteStateSignature(token, context, state) {
     detectNaturalSentences: autocompleteDetectNaturalSentences,
     previewClosingBrackets: autocompletePreviewClosingBrackets,
     previewCompletion: autocompletePreviewCompletion,
+    commitMode: autocompleteCommitMode,
   });
 }
 
@@ -1132,6 +1141,7 @@ function commitSuggestion(state, entry, options = {}) {
   const insert = completionText(token, entry, state.forceArtistOnly);
   const plan = planAutocompleteInsertion(token, insert, {
     appendSeparator: autocompleteAppendSeparator,
+    commitMode: autocompleteCommitMode,
     noCommaAfterPeriod: autocompleteNoCommaAfterPeriod,
   });
   if (!plan) {
@@ -1240,6 +1250,7 @@ function completionPreviewPlan(state, entry) {
   const insert = completionText(token, entry, state.forceArtistOnly);
   const plan = planAutocompleteInsertion(token, insert, {
     appendSeparator: autocompleteAppendSeparator,
+    commitMode: autocompleteCommitMode,
     noCommaAfterPeriod: autocompleteNoCommaAfterPeriod,
   });
   if (!plan) {
@@ -1761,6 +1772,11 @@ function handleAutocompleteSettingsUpdated(event) {
   }
   if ("autocomplete.commit_key" in detail) {
     setAutocompleteCommitKey(detail["autocomplete.commit_key"]);
+  }
+  if ("autocomplete.commit_mode" in detail) {
+    autocompleteCommitMode = normalizeAutocompleteCommitMode(
+      detail["autocomplete.commit_mode"],
+    );
   }
   if ("autocomplete.artist_prefix" in detail) {
     const nextArtistPrefix = normalizeAutocompleteArtistPrefix(

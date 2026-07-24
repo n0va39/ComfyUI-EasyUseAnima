@@ -15,6 +15,7 @@ DEFAULT_SETTINGS = {
     "autocomplete.mode": "compatible_global",
     "autocomplete.artist_prefix": "@",
     "autocomplete.commit_key": "enter",
+    "autocomplete.commit_mode": "smart",
     "autocomplete.append_separator": "false",
     "autocomplete.no_comma_after_period": "true",
     "autocomplete.detect_natural_sentences": "true",
@@ -77,6 +78,12 @@ AUTOCOMPLETE_COMMIT_KEYS = {
     "tab",
 }
 
+AUTOCOMPLETE_COMMIT_MODES = {
+    "smart",
+    "insert",
+    "replace",
+}
+
 NAIA_RESOLUTION_MODES = {
     "scale",
     "bucket",
@@ -134,6 +141,7 @@ COMFY_SETTING_KEYS = {
     "EasyUseAnima.Prompt.AutocompleteMode": "autocomplete.mode",
     "EasyUseAnima.Prompt.AutocompleteArtistPrefix": "autocomplete.artist_prefix",
     "EasyUseAnima.Prompt.AutocompleteCommitKey": "autocomplete.commit_key",
+    "EasyUseAnima.Prompt.AutocompleteCommitMode": "autocomplete.commit_mode",
     "EasyUseAnima.Prompt.AutocompleteAppendSeparator": "autocomplete.append_separator",
     "EasyUseAnima.Prompt.AutocompleteNoCommaAfterPeriod": "autocomplete.no_comma_after_period",
     "EasyUseAnima.Prompt.AutocompleteDetectNaturalSentences": "autocomplete.detect_natural_sentences",
@@ -204,6 +212,7 @@ LONG_TEXT_SETTING_ALIASES = {
 
 __all__ = (
     "AUTOCOMPLETE_COMMIT_KEYS",
+    "AUTOCOMPLETE_COMMIT_MODES",
     "AUTOCOMPLETE_MODES",
     "COMFY_COLOR_SETTING_KEYS",
     "COMFY_SETTING_KEYS",
