@@ -16,6 +16,7 @@ PACKAGE_MODULES = (
     "easyuse_anima.aio.conditioning",
     "easyuse_anima.aio.first_pass_cache",
     "easyuse_anima.aio.legacy_generation",
+    "easyuse_anima.aio.generation_pipeline",
     "easyuse_anima.aio.generation_normalization",
     "easyuse_anima.aio.generation_values",
     "easyuse_anima.aio.model_preparation",
@@ -147,6 +148,19 @@ print(json.dumps({{
         self.assertEqual(payload["modules"], list(PACKAGE_MODULES))
         expected_all = [[] for _ in PACKAGE_MODULES]
         expected_all[PACKAGE_MODULES.index("easyuse_anima.bootstrap")] = ["initialize"]
+        expected_all[
+            PACKAGE_MODULES.index("easyuse_anima.aio.generation_pipeline")
+        ] = [
+            "AIO_GENERATION_STAGE_ORDER",
+            "ConditioningBundle",
+            "GenerationCapabilities",
+            "GenerationRequest",
+            "GenerationStage",
+            "GenerationState",
+            "PromptExecutionData",
+            "ResourceBundle",
+            "WorkflowContext",
+        ]
         expected_all[PACKAGE_MODULES.index("easyuse_anima.nodes.aio_nodes")] = [
             "EasyUseAnimaInput",
             "EasyUseAnimaAIOGenerator",

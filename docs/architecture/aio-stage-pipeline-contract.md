@@ -3,6 +3,7 @@
 - Owner issue: [#169](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/169)
 - Roadmap unit: A169-01
 - PR type: Contract/gate
+- State: VALIDATED
 - Baseline: `dev` commit
   `89aa20fbde744ce4877f3123eec2061d3193df4d`
 - Production stage callers after this unit: zero
@@ -98,7 +99,10 @@ MODEL/CLIP/VAE/tensor objects or nested mappings are deeply immutable. Mutation
 and cleanup ownership remains with the current legacy function until the
 corresponding Behavior unit migrates it.
 
-No production module imports or instantiates these contracts in A169-01.
+No production module imports or instantiates these contracts in A169-01. The
+backend analyzer therefore allows exactly this one shipped module to remain
+outside the runtime import closure. A169-02 must remove that temporary
+zero-caller allowance when it connects the first stage.
 
 ## Allowed-file boundary
 
@@ -142,3 +146,13 @@ This zero-caller Contract does not require a model-backed generation or browser
 smoke. Reverting the unit removes only unused types, their tests and this
 record; runtime behavior and serialized contracts remain byte-for-byte owned by
 the existing implementation.
+
+Validated on the A169-01 worktree:
+
+- stage contract: 5 focused tests passed;
+- direct package import: 1 focused test passed;
+- analyzer fixture and tracked Registry surface: focused assertions passed;
+- Pyright 1.1.411: 0 errors for `generation_pipeline.py`;
+- Ruff 0.15.22 import ordering: passed for `generation_pipeline.py`;
+- Python import-boundary gate: 6 package groups, 0 violations; and
+- no ComfyUI server, model generation or browser smoke was run or required.
