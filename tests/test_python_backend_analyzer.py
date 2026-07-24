@@ -691,9 +691,9 @@ ignored/
 
         self.assertEqual(analyzer.render_json(report), expected_text)
         self.assertEqual(report["schema_version"], 2)
-        self.assertEqual(report["inventory"]["module_count"], 130)
-        self.assertEqual(len(report["registry"]["shipped_python_modules"]), 130)
-        self.assertEqual(len(report["registry"]["runtime_import_closure"]), 130)
+        self.assertEqual(report["inventory"]["module_count"], 131)
+        self.assertEqual(len(report["registry"]["shipped_python_modules"]), 131)
+        self.assertEqual(len(report["registry"]["runtime_import_closure"]), 131)
         self.assertEqual(
             report["registry"]["entry_modules"],
             [
@@ -949,6 +949,13 @@ ignored/
         self.assertIn(
             {
                 "from": "wildcard_engine.py",
+                "to": "easyuse_anima/wildcard/mode.py",
+            },
+            report["imports"]["module_graph"],
+        )
+        self.assertIn(
+            {
+                "from": "wildcard_engine.py",
                 "to": "easyuse_anima/wildcard/models.py",
             },
             report["imports"]["module_graph"],
@@ -997,6 +1004,7 @@ ignored/
         )
         for module in (
             "easyuse_anima/wildcard/__init__.py",
+            "easyuse_anima/wildcard/mode.py",
             "easyuse_anima/wildcard/models.py",
             "easyuse_anima/wildcard/seed.py",
             "easyuse_anima/wildcard/snapshot.py",
@@ -1065,6 +1073,12 @@ ignored/
             (item["module"], item["name"]): item["kind"]
             for item in report["state"]["mutable_globals"]
         }
+        self.assertEqual(
+            mutable_by_name[
+                ("easyuse_anima/wildcard/mode.py", "WILDCARD_MODE_ALIASES")
+            ],
+            "dict",
+        )
         self.assertEqual(
             mutable_by_name[("wildcard_engine.py", "_SNAPSHOT_CACHE")],
             "dict",

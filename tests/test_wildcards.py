@@ -12,6 +12,7 @@ import nodes as nodes_module
 from easyuse_anima.nodes import wildcard_nodes
 from easyuse_anima.prompt import advanced as prompt_advanced
 from easyuse_anima.seed import compatibility as seed_compatibility
+from easyuse_anima.wildcard import mode as wildcard_mode
 from easyuse_anima.wildcard import models as wildcard_models
 from easyuse_anima.wildcard import seed as wildcard_seed
 from easyuse_anima.wildcard import snapshot as wildcard_snapshot
@@ -36,6 +37,36 @@ from wildcard_engine import (
 
 
 class WildcardEngineTests(unittest.TestCase):
+    def test_root_mode_surface_has_canonical_identity(self):
+        expected = (
+            "WILDCARD_MODE_POPULATE",
+            "WILDCARD_MODE_FIXED",
+            "WILDCARD_MODE_SEQUENTIAL",
+            "WILDCARD_MODE_REPRODUCE",
+            "WILDCARD_MODES",
+            "WILDCARD_MODE_LABELS",
+            "PROMPT_STUDIO_WILDCARD_MODE_LABELS",
+            "WILDCARD_MODE_ALIASES",
+            "normalize_wildcard_mode",
+            "normalize_prompt_studio_wildcard_mode",
+        )
+        self.assertEqual(wildcard_mode.__all__, expected)
+        for name in expected:
+            with self.subTest(name=name):
+                self.assertIs(
+                    getattr(wildcard_engine, name),
+                    getattr(wildcard_mode, name),
+                )
+
+        with patch.dict(
+            wildcard_mode.WILDCARD_MODE_ALIASES,
+            {"legacy-test": wildcard_mode.WILDCARD_MODE_FIXED},
+        ):
+            self.assertEqual(
+                wildcard_engine.normalize_wildcard_mode("legacy-test"),
+                wildcard_mode.WILDCARD_MODE_FIXED,
+            )
+
     def test_root_seed_surface_has_canonical_identity(self):
         expected = (
             "SEED_CONTROL_FIXED",
