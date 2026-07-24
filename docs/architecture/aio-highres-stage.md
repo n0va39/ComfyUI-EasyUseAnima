@@ -5,7 +5,7 @@
 - PR type: Behavior
 - Baseline: `dev` commit
   `44e86fb7e318661686e6361ba396bb7f2d9be1e1`
-- State: INVENTORY / PRE-IMPLEMENTATION
+- State: VALIDATED
 
 A169-03 connects exactly the existing Highres helper to the stage Protocol. It
 does not move the helper implementation or connect a later stage.
@@ -126,3 +126,21 @@ This Behavior PR receives one official full validation after focused tests pass.
 The full suite is not repeated after deterministic component failures; failed
 stages are resumed directly. Server/model/browser smoke is required only if the
 move exposes an integration risk not covered by the exact trace and full suite.
+
+Validated on the A169-03 worktree:
+
+- Highres stage: 4 focused tests passed;
+- legacy generation: 20 focused tests passed, including helper identity,
+  enabled/disabled behavior, internal temporary-model cleanup, exact trace and
+  outer cleanup;
+- stage pipeline contract: 5 focused tests passed;
+- direct package import: 1 focused test passed;
+- backend analyzer: 18 focused tests passed with 100 shipped and 100 reachable
+  modules and no unreachable module;
+- targeted Pyright: 0 errors for both production files;
+- Python import-boundary gate: 6 package groups, 0 violations;
+- official full: Python 1061 tests passed, Pyright baseline passed, all 112
+  JavaScript files passed with TypeScript 6.0.3, and `git diff --check` passed;
+  and
+- no ComfyUI server, model-backed generation or browser smoke was run because
+  the exact runtime trace and full suite exposed no integration risk.

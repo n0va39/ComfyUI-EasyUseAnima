@@ -17,6 +17,7 @@ PACKAGE_MODULES = (
     "easyuse_anima.aio.first_pass_cache",
     "easyuse_anima.aio.legacy_generation",
     "easyuse_anima.aio.generation_first_pass",
+    "easyuse_anima.aio.generation_highres",
     "easyuse_anima.aio.generation_pipeline",
     "easyuse_anima.aio.generation_normalization",
     "easyuse_anima.aio.generation_values",
