@@ -141,6 +141,16 @@ export function createEasyUseAnimaSettings(dependencies) {
       attrs: { min: 1, max: 100, step: 1 },
     }),
     setting({
+      id: "EasyUseAnima.Prompt.AutocompleteArtistPrefix",
+      section: "Autocomplete",
+      group: t("autocomplete"),
+      name: t("autocompleteArtistPrefix"),
+      tooltip: t("autocompleteArtistPrefixTip"),
+      type: "text",
+      defaultValue: "@",
+      attrs: { maxlength: 32 },
+    }),
+    setting({
       id: "EasyUseAnima.Prompt.AutocompleteCommitKey",
       section: "Autocomplete",
       group: t("autocomplete"),

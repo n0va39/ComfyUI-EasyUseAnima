@@ -32,6 +32,7 @@ def public_settings() -> dict:
         ),
         "autocomplete.limit": resolve_autocomplete_limit(settings),
         "autocomplete.mode": resolve_autocomplete_mode(settings),
+        "autocomplete.artist_prefix": _resolve_autocomplete_artist_prefix(settings),
         "autocomplete.commit_key": resolve_autocomplete_commit_key(settings),
         "autocomplete.append_separator": settings.get(
             "autocomplete.append_separator",
@@ -171,6 +172,20 @@ def resolve_autocomplete_mode(settings: dict | None = None) -> str:
     if value in AUTOCOMPLETE_MODES:
         return value
     return DEFAULT_SETTINGS["autocomplete.mode"]
+
+
+def _resolve_autocomplete_artist_prefix(settings: dict | None = None) -> str:
+    settings = settings or get_settings()
+    default = DEFAULT_SETTINGS["autocomplete.artist_prefix"]
+    value = str(settings.get("autocomplete.artist_prefix", default) or "").strip()
+    if (
+        not value
+        or len(value) > 32
+        or "," in value
+        or any(ord(character) < 32 or 127 <= ord(character) <= 159 for character in value)
+    ):
+        return default
+    return value
 
 
 def resolve_autocomplete_commit_key(settings: dict | None = None) -> str:
