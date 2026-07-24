@@ -26390,6 +26390,24 @@
       },
       {
         "alias": null,
+        "bound_name": "AUTOCOMPLETE_COMMIT_MODES",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".schema:AUTOCOMPLETE_COMMIT_MODES",
+        "kind": "static_from",
+        "line": 13,
+        "name": "AUTOCOMPLETE_COMMIT_MODES",
+        "optional": false,
+        "requested": ".schema",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/settings/service.py",
+        "target": "easyuse_anima/settings/schema.py"
+      },
+      {
+        "alias": null,
         "bound_name": "AUTOCOMPLETE_MODES",
         "branch_context": [],
         "classification": "internal",
@@ -51054,6 +51072,37 @@
       },
       {
         "alias": null,
+        "bound_name": "AUTOCOMPLETE_COMMIT_MODES",
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": true,
+            "kind": "try",
+            "line": 5
+          }
+        ],
+        "classification": "internal",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "AUTOCOMPLETE_COMMIT_MODES",
+          "target": "easyuse_anima/settings/schema.py",
+          "try_line": 5
+        },
+        "conditional": true,
+        "imported": ".easyuse_anima.settings.schema:AUTOCOMPLETE_COMMIT_MODES",
+        "kind": "static_from",
+        "line": 14,
+        "name": "AUTOCOMPLETE_COMMIT_MODES",
+        "optional": false,
+        "requested": ".easyuse_anima.settings.schema",
+        "role": "compatibility_primary",
+        "scope": "<module>",
+        "source": "settings.py",
+        "target": "easyuse_anima/settings/schema.py"
+      },
+      {
+        "alias": null,
         "bound_name": "AUTOCOMPLETE_MODES",
         "branch_context": [
           {
@@ -51384,7 +51433,7 @@
         "conditional": true,
         "imported": ".easyuse_anima.settings.service:public_settings",
         "kind": "static_from",
-        "line": 27,
+        "line": 28,
         "name": "public_settings",
         "optional": false,
         "requested": ".easyuse_anima.settings.service",
@@ -51415,8 +51464,39 @@
         "conditional": true,
         "imported": ".easyuse_anima.settings.service:resolve_autocomplete_commit_key",
         "kind": "static_from",
-        "line": 27,
+        "line": 28,
         "name": "resolve_autocomplete_commit_key",
+        "optional": false,
+        "requested": ".easyuse_anima.settings.service",
+        "role": "compatibility_primary",
+        "scope": "<module>",
+        "source": "settings.py",
+        "target": "easyuse_anima/settings/service.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "resolve_autocomplete_commit_mode",
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": true,
+            "kind": "try",
+            "line": 5
+          }
+        ],
+        "classification": "internal",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "resolve_autocomplete_commit_mode",
+          "target": "easyuse_anima/settings/service.py",
+          "try_line": 5
+        },
+        "conditional": true,
+        "imported": ".easyuse_anima.settings.service:resolve_autocomplete_commit_mode",
+        "kind": "static_from",
+        "line": 28,
+        "name": "resolve_autocomplete_commit_mode",
         "optional": false,
         "requested": ".easyuse_anima.settings.service",
         "role": "compatibility_primary",
@@ -51446,7 +51526,7 @@
         "conditional": true,
         "imported": ".easyuse_anima.settings.service:resolve_autocomplete_limit",
         "kind": "static_from",
-        "line": 27,
+        "line": 28,
         "name": "resolve_autocomplete_limit",
         "optional": false,
         "requested": ".easyuse_anima.settings.service",
@@ -51477,7 +51557,7 @@
         "conditional": true,
         "imported": ".easyuse_anima.settings.service:resolve_autocomplete_mode",
         "kind": "static_from",
-        "line": 27,
+        "line": 28,
         "name": "resolve_autocomplete_mode",
         "optional": false,
         "requested": ".easyuse_anima.settings.service",
@@ -51508,7 +51588,7 @@
         "conditional": true,
         "imported": ".easyuse_anima.settings.service:resolve_autocomplete_source",
         "kind": "static_from",
-        "line": 27,
+        "line": 28,
         "name": "resolve_autocomplete_source",
         "optional": false,
         "requested": ".easyuse_anima.settings.service",
@@ -51539,7 +51619,7 @@
         "conditional": true,
         "imported": ".easyuse_anima.settings.service:resolve_lora_preset_menu_mode",
         "kind": "static_from",
-        "line": 27,
+        "line": 28,
         "name": "resolve_lora_preset_menu_mode",
         "optional": false,
         "requested": ".easyuse_anima.settings.service",
@@ -51570,7 +51650,7 @@
         "conditional": true,
         "imported": ".easyuse_anima.settings.service:resolve_lora_preset_strength_button_step",
         "kind": "static_from",
-        "line": 27,
+        "line": 28,
         "name": "resolve_lora_preset_strength_button_step",
         "optional": false,
         "requested": ".easyuse_anima.settings.service",
@@ -51601,7 +51681,7 @@
         "conditional": true,
         "imported": ".easyuse_anima.settings.service:resolve_lora_preset_strength_drag_pixels",
         "kind": "static_from",
-        "line": 27,
+        "line": 28,
         "name": "resolve_lora_preset_strength_drag_pixels",
         "optional": false,
         "requested": ".easyuse_anima.settings.service",
@@ -51632,7 +51712,7 @@
         "conditional": true,
         "imported": ".easyuse_anima.settings.service:resolve_lora_preset_strength_drag_step",
         "kind": "static_from",
-        "line": 27,
+        "line": 28,
         "name": "resolve_lora_preset_strength_drag_step",
         "optional": false,
         "requested": ".easyuse_anima.settings.service",
@@ -51663,7 +51743,7 @@
         "conditional": true,
         "imported": ".easyuse_anima.settings.service:resolve_metadata_filter_words",
         "kind": "static_from",
-        "line": 27,
+        "line": 28,
         "name": "resolve_metadata_filter_words",
         "optional": false,
         "requested": ".easyuse_anima.settings.service",
@@ -51694,7 +51774,7 @@
         "conditional": true,
         "imported": ".easyuse_anima.settings.service:resolve_naia_port",
         "kind": "static_from",
-        "line": 27,
+        "line": 28,
         "name": "resolve_naia_port",
         "optional": false,
         "requested": ".easyuse_anima.settings.service",
@@ -51725,7 +51805,7 @@
         "conditional": true,
         "imported": ".easyuse_anima.settings.service:resolve_naia_resolution_bucket",
         "kind": "static_from",
-        "line": 27,
+        "line": 28,
         "name": "resolve_naia_resolution_bucket",
         "optional": false,
         "requested": ".easyuse_anima.settings.service",
@@ -51756,7 +51836,7 @@
         "conditional": true,
         "imported": ".easyuse_anima.settings.service:resolve_naia_resolution_max_long_edge",
         "kind": "static_from",
-        "line": 27,
+        "line": 28,
         "name": "resolve_naia_resolution_max_long_edge",
         "optional": false,
         "requested": ".easyuse_anima.settings.service",
@@ -51787,7 +51867,7 @@
         "conditional": true,
         "imported": ".easyuse_anima.settings.service:resolve_naia_resolution_mode",
         "kind": "static_from",
-        "line": 27,
+        "line": 28,
         "name": "resolve_naia_resolution_mode",
         "optional": false,
         "requested": ".easyuse_anima.settings.service",
@@ -51818,7 +51898,7 @@
         "conditional": true,
         "imported": ".easyuse_anima.settings.service:resolve_naia_resolution_scale",
         "kind": "static_from",
-        "line": 27,
+        "line": 28,
         "name": "resolve_naia_resolution_scale",
         "optional": false,
         "requested": ".easyuse_anima.settings.service",
@@ -51849,7 +51929,7 @@
         "conditional": true,
         "imported": ".easyuse_anima.settings.service:resolve_naia_settings",
         "kind": "static_from",
-        "line": 27,
+        "line": 28,
         "name": "resolve_naia_settings",
         "optional": false,
         "requested": ".easyuse_anima.settings.service",
@@ -51880,7 +51960,7 @@
         "conditional": true,
         "imported": ".easyuse_anima.settings.service:resolve_prompt_studio_font_family",
         "kind": "static_from",
-        "line": 27,
+        "line": 28,
         "name": "resolve_prompt_studio_font_family",
         "optional": false,
         "requested": ".easyuse_anima.settings.service",
@@ -51911,7 +51991,7 @@
         "conditional": true,
         "imported": ".easyuse_anima.settings.service:resolve_prompt_studio_font_size",
         "kind": "static_from",
-        "line": 27,
+        "line": 28,
         "name": "resolve_prompt_studio_font_size",
         "optional": false,
         "requested": ".easyuse_anima.settings.service",
@@ -51942,7 +52022,7 @@
         "conditional": true,
         "imported": ".easyuse_anima.settings.service:resolve_prompt_translation_provider",
         "kind": "static_from",
-        "line": 27,
+        "line": 28,
         "name": "resolve_prompt_translation_provider",
         "optional": false,
         "requested": ".easyuse_anima.settings.service",
@@ -51973,7 +52053,7 @@
         "conditional": true,
         "imported": ".easyuse_anima.settings.service:resolve_prompt_translation_settings",
         "kind": "static_from",
-        "line": 27,
+        "line": 28,
         "name": "resolve_prompt_translation_settings",
         "optional": false,
         "requested": ".easyuse_anima.settings.service",
@@ -52004,7 +52084,7 @@
         "conditional": true,
         "imported": ".easyuse_anima.settings.service:resolve_prompt_translation_source",
         "kind": "static_from",
-        "line": 27,
+        "line": 28,
         "name": "resolve_prompt_translation_source",
         "optional": false,
         "requested": ".easyuse_anima.settings.service",
@@ -52035,7 +52115,7 @@
         "conditional": true,
         "imported": ".easyuse_anima.settings.service:resolve_prompt_translation_target",
         "kind": "static_from",
-        "line": 27,
+        "line": 28,
         "name": "resolve_prompt_translation_target",
         "optional": false,
         "requested": ".easyuse_anima.settings.service",
@@ -52054,7 +52134,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 51,
+            "handler_line": 53,
             "kind": "try",
             "line": 5
           }
@@ -52069,7 +52149,7 @@
         "conditional": true,
         "imported": "easyuse_anima.settings.repository:LONG_TEXT_SETTINGS_FILE",
         "kind": "static_from",
-        "line": 52,
+        "line": 54,
         "name": "LONG_TEXT_SETTINGS_FILE",
         "optional": false,
         "requested": "easyuse_anima.settings.repository",
@@ -52088,7 +52168,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 51,
+            "handler_line": 53,
             "kind": "try",
             "line": 5
           }
@@ -52103,7 +52183,7 @@
         "conditional": true,
         "imported": "easyuse_anima.settings.repository:SETTINGS_FILE",
         "kind": "static_from",
-        "line": 52,
+        "line": 54,
         "name": "SETTINGS_FILE",
         "optional": false,
         "requested": "easyuse_anima.settings.repository",
@@ -52122,7 +52202,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 51,
+            "handler_line": 53,
             "kind": "try",
             "line": 5
           }
@@ -52137,7 +52217,7 @@
         "conditional": true,
         "imported": "easyuse_anima.settings.repository:get_settings",
         "kind": "static_from",
-        "line": 52,
+        "line": 54,
         "name": "get_settings",
         "optional": false,
         "requested": "easyuse_anima.settings.repository",
@@ -52156,7 +52236,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 51,
+            "handler_line": 53,
             "kind": "try",
             "line": 5
           }
@@ -52171,7 +52251,7 @@
         "conditional": true,
         "imported": "easyuse_anima.settings.repository:load_long_text_settings",
         "kind": "static_from",
-        "line": 52,
+        "line": 54,
         "name": "load_long_text_settings",
         "optional": false,
         "requested": "easyuse_anima.settings.repository",
@@ -52190,7 +52270,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 51,
+            "handler_line": 53,
             "kind": "try",
             "line": 5
           }
@@ -52205,7 +52285,7 @@
         "conditional": true,
         "imported": "easyuse_anima.settings.repository:save_long_text_settings",
         "kind": "static_from",
-        "line": 52,
+        "line": 54,
         "name": "save_long_text_settings",
         "optional": false,
         "requested": "easyuse_anima.settings.repository",
@@ -52224,7 +52304,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 51,
+            "handler_line": 53,
             "kind": "try",
             "line": 5
           }
@@ -52239,7 +52319,7 @@
         "conditional": true,
         "imported": "easyuse_anima.settings.repository:save_setting",
         "kind": "static_from",
-        "line": 52,
+        "line": 54,
         "name": "save_setting",
         "optional": false,
         "requested": "easyuse_anima.settings.repository",
@@ -52258,7 +52338,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 51,
+            "handler_line": 53,
             "kind": "try",
             "line": 5
           }
@@ -52273,8 +52353,42 @@
         "conditional": true,
         "imported": "easyuse_anima.settings.schema:AUTOCOMPLETE_COMMIT_KEYS",
         "kind": "static_from",
-        "line": 60,
+        "line": 62,
         "name": "AUTOCOMPLETE_COMMIT_KEYS",
+        "optional": false,
+        "requested": "easyuse_anima.settings.schema",
+        "role": "compatibility_fallback",
+        "scope": "<module>",
+        "source": "settings.py",
+        "target": "easyuse_anima/settings/schema.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "AUTOCOMPLETE_COMMIT_MODES",
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 53,
+            "kind": "try",
+            "line": 5
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "AUTOCOMPLETE_COMMIT_MODES",
+          "target": "easyuse_anima/settings/schema.py",
+          "try_line": 5
+        },
+        "conditional": true,
+        "imported": "easyuse_anima.settings.schema:AUTOCOMPLETE_COMMIT_MODES",
+        "kind": "static_from",
+        "line": 62,
+        "name": "AUTOCOMPLETE_COMMIT_MODES",
         "optional": false,
         "requested": "easyuse_anima.settings.schema",
         "role": "compatibility_fallback",
@@ -52292,7 +52406,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 51,
+            "handler_line": 53,
             "kind": "try",
             "line": 5
           }
@@ -52307,7 +52421,7 @@
         "conditional": true,
         "imported": "easyuse_anima.settings.schema:AUTOCOMPLETE_MODES",
         "kind": "static_from",
-        "line": 60,
+        "line": 62,
         "name": "AUTOCOMPLETE_MODES",
         "optional": false,
         "requested": "easyuse_anima.settings.schema",
@@ -52326,7 +52440,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 51,
+            "handler_line": 53,
             "kind": "try",
             "line": 5
           }
@@ -52341,7 +52455,7 @@
         "conditional": true,
         "imported": "easyuse_anima.settings.schema:COMFY_COLOR_SETTING_KEYS",
         "kind": "static_from",
-        "line": 60,
+        "line": 62,
         "name": "COMFY_COLOR_SETTING_KEYS",
         "optional": false,
         "requested": "easyuse_anima.settings.schema",
@@ -52360,7 +52474,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 51,
+            "handler_line": 53,
             "kind": "try",
             "line": 5
           }
@@ -52375,7 +52489,7 @@
         "conditional": true,
         "imported": "easyuse_anima.settings.schema:COMFY_SETTING_KEYS",
         "kind": "static_from",
-        "line": 60,
+        "line": 62,
         "name": "COMFY_SETTING_KEYS",
         "optional": false,
         "requested": "easyuse_anima.settings.schema",
@@ -52394,7 +52508,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 51,
+            "handler_line": 53,
             "kind": "try",
             "line": 5
           }
@@ -52409,7 +52523,7 @@
         "conditional": true,
         "imported": "easyuse_anima.settings.schema:DEFAULT_SETTINGS",
         "kind": "static_from",
-        "line": 60,
+        "line": 62,
         "name": "DEFAULT_SETTINGS",
         "optional": false,
         "requested": "easyuse_anima.settings.schema",
@@ -52428,7 +52542,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 51,
+            "handler_line": 53,
             "kind": "try",
             "line": 5
           }
@@ -52443,7 +52557,7 @@
         "conditional": true,
         "imported": "easyuse_anima.settings.schema:LONG_TEXT_SETTING_ALIASES",
         "kind": "static_from",
-        "line": 60,
+        "line": 62,
         "name": "LONG_TEXT_SETTING_ALIASES",
         "optional": false,
         "requested": "easyuse_anima.settings.schema",
@@ -52462,7 +52576,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 51,
+            "handler_line": 53,
             "kind": "try",
             "line": 5
           }
@@ -52477,7 +52591,7 @@
         "conditional": true,
         "imported": "easyuse_anima.settings.schema:LONG_TEXT_SETTING_KEYS",
         "kind": "static_from",
-        "line": 60,
+        "line": 62,
         "name": "LONG_TEXT_SETTING_KEYS",
         "optional": false,
         "requested": "easyuse_anima.settings.schema",
@@ -52496,7 +52610,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 51,
+            "handler_line": 53,
             "kind": "try",
             "line": 5
           }
@@ -52511,7 +52625,7 @@
         "conditional": true,
         "imported": "easyuse_anima.settings.schema:NAIA_PREPROCESSING_KEYS",
         "kind": "static_from",
-        "line": 60,
+        "line": 62,
         "name": "NAIA_PREPROCESSING_KEYS",
         "optional": false,
         "requested": "easyuse_anima.settings.schema",
@@ -52530,7 +52644,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 51,
+            "handler_line": 53,
             "kind": "try",
             "line": 5
           }
@@ -52545,7 +52659,7 @@
         "conditional": true,
         "imported": "easyuse_anima.settings.schema:NAIA_RESOLUTION_BUCKETS",
         "kind": "static_from",
-        "line": 60,
+        "line": 62,
         "name": "NAIA_RESOLUTION_BUCKETS",
         "optional": false,
         "requested": "easyuse_anima.settings.schema",
@@ -52564,7 +52678,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 51,
+            "handler_line": 53,
             "kind": "try",
             "line": 5
           }
@@ -52579,7 +52693,7 @@
         "conditional": true,
         "imported": "easyuse_anima.settings.schema:NAIA_RESOLUTION_MODES",
         "kind": "static_from",
-        "line": 60,
+        "line": 62,
         "name": "NAIA_RESOLUTION_MODES",
         "optional": false,
         "requested": "easyuse_anima.settings.schema",
@@ -52598,7 +52712,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 51,
+            "handler_line": 53,
             "kind": "try",
             "line": 5
           }
@@ -52613,7 +52727,7 @@
         "conditional": true,
         "imported": "easyuse_anima.settings.schema:PROMPT_STUDIO_COLOR_KEYS",
         "kind": "static_from",
-        "line": 60,
+        "line": 62,
         "name": "PROMPT_STUDIO_COLOR_KEYS",
         "optional": false,
         "requested": "easyuse_anima.settings.schema",
@@ -52632,7 +52746,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 51,
+            "handler_line": 53,
             "kind": "try",
             "line": 5
           }
@@ -52647,7 +52761,7 @@
         "conditional": true,
         "imported": "easyuse_anima.settings.service:public_settings",
         "kind": "static_from",
-        "line": 73,
+        "line": 76,
         "name": "public_settings",
         "optional": false,
         "requested": "easyuse_anima.settings.service",
@@ -52666,7 +52780,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 51,
+            "handler_line": 53,
             "kind": "try",
             "line": 5
           }
@@ -52681,8 +52795,42 @@
         "conditional": true,
         "imported": "easyuse_anima.settings.service:resolve_autocomplete_commit_key",
         "kind": "static_from",
-        "line": 73,
+        "line": 76,
         "name": "resolve_autocomplete_commit_key",
+        "optional": false,
+        "requested": "easyuse_anima.settings.service",
+        "role": "compatibility_fallback",
+        "scope": "<module>",
+        "source": "settings.py",
+        "target": "easyuse_anima/settings/service.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "resolve_autocomplete_commit_mode",
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 53,
+            "kind": "try",
+            "line": 5
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "resolve_autocomplete_commit_mode",
+          "target": "easyuse_anima/settings/service.py",
+          "try_line": 5
+        },
+        "conditional": true,
+        "imported": "easyuse_anima.settings.service:resolve_autocomplete_commit_mode",
+        "kind": "static_from",
+        "line": 76,
+        "name": "resolve_autocomplete_commit_mode",
         "optional": false,
         "requested": "easyuse_anima.settings.service",
         "role": "compatibility_fallback",
@@ -52700,7 +52848,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 51,
+            "handler_line": 53,
             "kind": "try",
             "line": 5
           }
@@ -52715,7 +52863,7 @@
         "conditional": true,
         "imported": "easyuse_anima.settings.service:resolve_autocomplete_limit",
         "kind": "static_from",
-        "line": 73,
+        "line": 76,
         "name": "resolve_autocomplete_limit",
         "optional": false,
         "requested": "easyuse_anima.settings.service",
@@ -52734,7 +52882,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 51,
+            "handler_line": 53,
             "kind": "try",
             "line": 5
           }
@@ -52749,7 +52897,7 @@
         "conditional": true,
         "imported": "easyuse_anima.settings.service:resolve_autocomplete_mode",
         "kind": "static_from",
-        "line": 73,
+        "line": 76,
         "name": "resolve_autocomplete_mode",
         "optional": false,
         "requested": "easyuse_anima.settings.service",
@@ -52768,7 +52916,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 51,
+            "handler_line": 53,
             "kind": "try",
             "line": 5
           }
@@ -52783,7 +52931,7 @@
         "conditional": true,
         "imported": "easyuse_anima.settings.service:resolve_autocomplete_source",
         "kind": "static_from",
-        "line": 73,
+        "line": 76,
         "name": "resolve_autocomplete_source",
         "optional": false,
         "requested": "easyuse_anima.settings.service",
@@ -52802,7 +52950,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 51,
+            "handler_line": 53,
             "kind": "try",
             "line": 5
           }
@@ -52817,7 +52965,7 @@
         "conditional": true,
         "imported": "easyuse_anima.settings.service:resolve_lora_preset_menu_mode",
         "kind": "static_from",
-        "line": 73,
+        "line": 76,
         "name": "resolve_lora_preset_menu_mode",
         "optional": false,
         "requested": "easyuse_anima.settings.service",
@@ -52836,7 +52984,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 51,
+            "handler_line": 53,
             "kind": "try",
             "line": 5
           }
@@ -52851,7 +52999,7 @@
         "conditional": true,
         "imported": "easyuse_anima.settings.service:resolve_lora_preset_strength_button_step",
         "kind": "static_from",
-        "line": 73,
+        "line": 76,
         "name": "resolve_lora_preset_strength_button_step",
         "optional": false,
         "requested": "easyuse_anima.settings.service",
@@ -52870,7 +53018,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 51,
+            "handler_line": 53,
             "kind": "try",
             "line": 5
           }
@@ -52885,7 +53033,7 @@
         "conditional": true,
         "imported": "easyuse_anima.settings.service:resolve_lora_preset_strength_drag_pixels",
         "kind": "static_from",
-        "line": 73,
+        "line": 76,
         "name": "resolve_lora_preset_strength_drag_pixels",
         "optional": false,
         "requested": "easyuse_anima.settings.service",
@@ -52904,7 +53052,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 51,
+            "handler_line": 53,
             "kind": "try",
             "line": 5
           }
@@ -52919,7 +53067,7 @@
         "conditional": true,
         "imported": "easyuse_anima.settings.service:resolve_lora_preset_strength_drag_step",
         "kind": "static_from",
-        "line": 73,
+        "line": 76,
         "name": "resolve_lora_preset_strength_drag_step",
         "optional": false,
         "requested": "easyuse_anima.settings.service",
@@ -52938,7 +53086,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 51,
+            "handler_line": 53,
             "kind": "try",
             "line": 5
           }
@@ -52953,7 +53101,7 @@
         "conditional": true,
         "imported": "easyuse_anima.settings.service:resolve_metadata_filter_words",
         "kind": "static_from",
-        "line": 73,
+        "line": 76,
         "name": "resolve_metadata_filter_words",
         "optional": false,
         "requested": "easyuse_anima.settings.service",
@@ -52972,7 +53120,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 51,
+            "handler_line": 53,
             "kind": "try",
             "line": 5
           }
@@ -52987,7 +53135,7 @@
         "conditional": true,
         "imported": "easyuse_anima.settings.service:resolve_naia_port",
         "kind": "static_from",
-        "line": 73,
+        "line": 76,
         "name": "resolve_naia_port",
         "optional": false,
         "requested": "easyuse_anima.settings.service",
@@ -53006,7 +53154,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 51,
+            "handler_line": 53,
             "kind": "try",
             "line": 5
           }
@@ -53021,7 +53169,7 @@
         "conditional": true,
         "imported": "easyuse_anima.settings.service:resolve_naia_resolution_bucket",
         "kind": "static_from",
-        "line": 73,
+        "line": 76,
         "name": "resolve_naia_resolution_bucket",
         "optional": false,
         "requested": "easyuse_anima.settings.service",
@@ -53040,7 +53188,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 51,
+            "handler_line": 53,
             "kind": "try",
             "line": 5
           }
@@ -53055,7 +53203,7 @@
         "conditional": true,
         "imported": "easyuse_anima.settings.service:resolve_naia_resolution_max_long_edge",
         "kind": "static_from",
-        "line": 73,
+        "line": 76,
         "name": "resolve_naia_resolution_max_long_edge",
         "optional": false,
         "requested": "easyuse_anima.settings.service",
@@ -53074,7 +53222,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 51,
+            "handler_line": 53,
             "kind": "try",
             "line": 5
           }
@@ -53089,7 +53237,7 @@
         "conditional": true,
         "imported": "easyuse_anima.settings.service:resolve_naia_resolution_mode",
         "kind": "static_from",
-        "line": 73,
+        "line": 76,
         "name": "resolve_naia_resolution_mode",
         "optional": false,
         "requested": "easyuse_anima.settings.service",
@@ -53108,7 +53256,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 51,
+            "handler_line": 53,
             "kind": "try",
             "line": 5
           }
@@ -53123,7 +53271,7 @@
         "conditional": true,
         "imported": "easyuse_anima.settings.service:resolve_naia_resolution_scale",
         "kind": "static_from",
-        "line": 73,
+        "line": 76,
         "name": "resolve_naia_resolution_scale",
         "optional": false,
         "requested": "easyuse_anima.settings.service",
@@ -53142,7 +53290,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 51,
+            "handler_line": 53,
             "kind": "try",
             "line": 5
           }
@@ -53157,7 +53305,7 @@
         "conditional": true,
         "imported": "easyuse_anima.settings.service:resolve_naia_settings",
         "kind": "static_from",
-        "line": 73,
+        "line": 76,
         "name": "resolve_naia_settings",
         "optional": false,
         "requested": "easyuse_anima.settings.service",
@@ -53176,7 +53324,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 51,
+            "handler_line": 53,
             "kind": "try",
             "line": 5
           }
@@ -53191,7 +53339,7 @@
         "conditional": true,
         "imported": "easyuse_anima.settings.service:resolve_prompt_studio_font_family",
         "kind": "static_from",
-        "line": 73,
+        "line": 76,
         "name": "resolve_prompt_studio_font_family",
         "optional": false,
         "requested": "easyuse_anima.settings.service",
@@ -53210,7 +53358,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 51,
+            "handler_line": 53,
             "kind": "try",
             "line": 5
           }
@@ -53225,7 +53373,7 @@
         "conditional": true,
         "imported": "easyuse_anima.settings.service:resolve_prompt_studio_font_size",
         "kind": "static_from",
-        "line": 73,
+        "line": 76,
         "name": "resolve_prompt_studio_font_size",
         "optional": false,
         "requested": "easyuse_anima.settings.service",
@@ -53244,7 +53392,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 51,
+            "handler_line": 53,
             "kind": "try",
             "line": 5
           }
@@ -53259,7 +53407,7 @@
         "conditional": true,
         "imported": "easyuse_anima.settings.service:resolve_prompt_translation_provider",
         "kind": "static_from",
-        "line": 73,
+        "line": 76,
         "name": "resolve_prompt_translation_provider",
         "optional": false,
         "requested": "easyuse_anima.settings.service",
@@ -53278,7 +53426,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 51,
+            "handler_line": 53,
             "kind": "try",
             "line": 5
           }
@@ -53293,7 +53441,7 @@
         "conditional": true,
         "imported": "easyuse_anima.settings.service:resolve_prompt_translation_settings",
         "kind": "static_from",
-        "line": 73,
+        "line": 76,
         "name": "resolve_prompt_translation_settings",
         "optional": false,
         "requested": "easyuse_anima.settings.service",
@@ -53312,7 +53460,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 51,
+            "handler_line": 53,
             "kind": "try",
             "line": 5
           }
@@ -53327,7 +53475,7 @@
         "conditional": true,
         "imported": "easyuse_anima.settings.service:resolve_prompt_translation_source",
         "kind": "static_from",
-        "line": 73,
+        "line": 76,
         "name": "resolve_prompt_translation_source",
         "optional": false,
         "requested": "easyuse_anima.settings.service",
@@ -53346,7 +53494,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 51,
+            "handler_line": 53,
             "kind": "try",
             "line": 5
           }
@@ -53361,7 +53509,7 @@
         "conditional": true,
         "imported": "easyuse_anima.settings.service:resolve_prompt_translation_target",
         "kind": "static_from",
-        "line": 73,
+        "line": 76,
         "name": "resolve_prompt_translation_target",
         "optional": false,
         "requested": "easyuse_anima.settings.service",
@@ -60514,25 +60662,25 @@
       },
       {
         "is_package": false,
-        "loc": 217,
+        "loc": 226,
         "module": "easyuse_anima.settings.schema",
-        "normalized_git_blob_sha1": "68ecb1cbfb728a3b2dab22b0dfc9a3816fd61924",
+        "normalized_git_blob_sha1": "fc547a31d088ec472e2b437db3293efca90e7e5f",
         "path": "easyuse_anima/settings/schema.py",
         "top_level": {
           "class_count": 0,
           "function_count": 0,
-          "global_count": 12
+          "global_count": 13
         }
       },
       {
         "is_package": false,
-        "loc": 473,
+        "loc": 490,
         "module": "easyuse_anima.settings.service",
-        "normalized_git_blob_sha1": "a92a5768ea6dfd3c34574e1ceeb7430dfbfbb1cb",
+        "normalized_git_blob_sha1": "7b3cdd24bfce1c8c7ad83622414cfa128b0878a7",
         "path": "easyuse_anima/settings/service.py",
         "top_level": {
           "class_count": 0,
-          "function_count": 25,
+          "function_count": 26,
           "global_count": 1
         }
       },
@@ -60730,9 +60878,9 @@
       },
       {
         "is_package": false,
-        "loc": 139,
+        "loc": 145,
         "module": "settings",
-        "normalized_git_blob_sha1": "1e5f5fe39e39ba930f7586bbe88ea84216f8e400",
+        "normalized_git_blob_sha1": "be72e4cd9020795d8fd7f5f0b0b9726f0034b25d",
         "path": "settings.py",
         "top_level": {
           "class_count": 0,
@@ -70145,7 +70293,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 51,
+            "handler_line": 53,
             "kind": "try",
             "line": 5
           }
@@ -70154,7 +70302,7 @@
         "conditional": true,
         "imported": "easyuse_anima.settings.repository:LONG_TEXT_SETTINGS_FILE",
         "kind": "static_from",
-        "line": 52,
+        "line": 54,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "settings.py",
@@ -70168,7 +70316,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 51,
+            "handler_line": 53,
             "kind": "try",
             "line": 5
           }
@@ -70177,7 +70325,7 @@
         "conditional": true,
         "imported": "easyuse_anima.settings.repository:SETTINGS_FILE",
         "kind": "static_from",
-        "line": 52,
+        "line": 54,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "settings.py",
@@ -70191,7 +70339,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 51,
+            "handler_line": 53,
             "kind": "try",
             "line": 5
           }
@@ -70200,7 +70348,7 @@
         "conditional": true,
         "imported": "easyuse_anima.settings.repository:get_settings",
         "kind": "static_from",
-        "line": 52,
+        "line": 54,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "settings.py",
@@ -70214,7 +70362,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 51,
+            "handler_line": 53,
             "kind": "try",
             "line": 5
           }
@@ -70223,7 +70371,7 @@
         "conditional": true,
         "imported": "easyuse_anima.settings.repository:load_long_text_settings",
         "kind": "static_from",
-        "line": 52,
+        "line": 54,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "settings.py",
@@ -70237,7 +70385,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 51,
+            "handler_line": 53,
             "kind": "try",
             "line": 5
           }
@@ -70246,7 +70394,7 @@
         "conditional": true,
         "imported": "easyuse_anima.settings.repository:save_long_text_settings",
         "kind": "static_from",
-        "line": 52,
+        "line": 54,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "settings.py",
@@ -70260,7 +70408,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 51,
+            "handler_line": 53,
             "kind": "try",
             "line": 5
           }
@@ -70269,7 +70417,7 @@
         "conditional": true,
         "imported": "easyuse_anima.settings.repository:save_setting",
         "kind": "static_from",
-        "line": 52,
+        "line": 54,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "settings.py",
@@ -70283,7 +70431,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 51,
+            "handler_line": 53,
             "kind": "try",
             "line": 5
           }
@@ -70292,7 +70440,7 @@
         "conditional": true,
         "imported": "easyuse_anima.settings.schema:AUTOCOMPLETE_COMMIT_KEYS",
         "kind": "static_from",
-        "line": 60,
+        "line": 62,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "settings.py",
@@ -70306,7 +70454,30 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 51,
+            "handler_line": 53,
+            "kind": "try",
+            "line": 5
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "conditional": true,
+        "imported": "easyuse_anima.settings.schema:AUTOCOMPLETE_COMMIT_MODES",
+        "kind": "static_from",
+        "line": 62,
+        "optional": false,
+        "role": "compatibility_fallback",
+        "source": "settings.py",
+        "target": "easyuse_anima/settings/schema.py"
+      },
+      {
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 53,
             "kind": "try",
             "line": 5
           }
@@ -70315,7 +70486,7 @@
         "conditional": true,
         "imported": "easyuse_anima.settings.schema:AUTOCOMPLETE_MODES",
         "kind": "static_from",
-        "line": 60,
+        "line": 62,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "settings.py",
@@ -70329,7 +70500,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 51,
+            "handler_line": 53,
             "kind": "try",
             "line": 5
           }
@@ -70338,7 +70509,7 @@
         "conditional": true,
         "imported": "easyuse_anima.settings.schema:COMFY_COLOR_SETTING_KEYS",
         "kind": "static_from",
-        "line": 60,
+        "line": 62,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "settings.py",
@@ -70352,7 +70523,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 51,
+            "handler_line": 53,
             "kind": "try",
             "line": 5
           }
@@ -70361,7 +70532,7 @@
         "conditional": true,
         "imported": "easyuse_anima.settings.schema:COMFY_SETTING_KEYS",
         "kind": "static_from",
-        "line": 60,
+        "line": 62,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "settings.py",
@@ -70375,7 +70546,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 51,
+            "handler_line": 53,
             "kind": "try",
             "line": 5
           }
@@ -70384,7 +70555,7 @@
         "conditional": true,
         "imported": "easyuse_anima.settings.schema:DEFAULT_SETTINGS",
         "kind": "static_from",
-        "line": 60,
+        "line": 62,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "settings.py",
@@ -70398,7 +70569,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 51,
+            "handler_line": 53,
             "kind": "try",
             "line": 5
           }
@@ -70407,7 +70578,7 @@
         "conditional": true,
         "imported": "easyuse_anima.settings.schema:LONG_TEXT_SETTING_ALIASES",
         "kind": "static_from",
-        "line": 60,
+        "line": 62,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "settings.py",
@@ -70421,7 +70592,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 51,
+            "handler_line": 53,
             "kind": "try",
             "line": 5
           }
@@ -70430,7 +70601,7 @@
         "conditional": true,
         "imported": "easyuse_anima.settings.schema:LONG_TEXT_SETTING_KEYS",
         "kind": "static_from",
-        "line": 60,
+        "line": 62,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "settings.py",
@@ -70444,7 +70615,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 51,
+            "handler_line": 53,
             "kind": "try",
             "line": 5
           }
@@ -70453,7 +70624,7 @@
         "conditional": true,
         "imported": "easyuse_anima.settings.schema:NAIA_PREPROCESSING_KEYS",
         "kind": "static_from",
-        "line": 60,
+        "line": 62,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "settings.py",
@@ -70467,7 +70638,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 51,
+            "handler_line": 53,
             "kind": "try",
             "line": 5
           }
@@ -70476,7 +70647,7 @@
         "conditional": true,
         "imported": "easyuse_anima.settings.schema:NAIA_RESOLUTION_BUCKETS",
         "kind": "static_from",
-        "line": 60,
+        "line": 62,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "settings.py",
@@ -70490,7 +70661,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 51,
+            "handler_line": 53,
             "kind": "try",
             "line": 5
           }
@@ -70499,7 +70670,7 @@
         "conditional": true,
         "imported": "easyuse_anima.settings.schema:NAIA_RESOLUTION_MODES",
         "kind": "static_from",
-        "line": 60,
+        "line": 62,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "settings.py",
@@ -70513,7 +70684,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 51,
+            "handler_line": 53,
             "kind": "try",
             "line": 5
           }
@@ -70522,7 +70693,7 @@
         "conditional": true,
         "imported": "easyuse_anima.settings.schema:PROMPT_STUDIO_COLOR_KEYS",
         "kind": "static_from",
-        "line": 60,
+        "line": 62,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "settings.py",
@@ -70536,7 +70707,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 51,
+            "handler_line": 53,
             "kind": "try",
             "line": 5
           }
@@ -70545,7 +70716,7 @@
         "conditional": true,
         "imported": "easyuse_anima.settings.service:public_settings",
         "kind": "static_from",
-        "line": 73,
+        "line": 76,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "settings.py",
@@ -70559,7 +70730,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 51,
+            "handler_line": 53,
             "kind": "try",
             "line": 5
           }
@@ -70568,7 +70739,7 @@
         "conditional": true,
         "imported": "easyuse_anima.settings.service:resolve_autocomplete_commit_key",
         "kind": "static_from",
-        "line": 73,
+        "line": 76,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "settings.py",
@@ -70582,7 +70753,30 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 51,
+            "handler_line": 53,
+            "kind": "try",
+            "line": 5
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "conditional": true,
+        "imported": "easyuse_anima.settings.service:resolve_autocomplete_commit_mode",
+        "kind": "static_from",
+        "line": 76,
+        "optional": false,
+        "role": "compatibility_fallback",
+        "source": "settings.py",
+        "target": "easyuse_anima/settings/service.py"
+      },
+      {
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 53,
             "kind": "try",
             "line": 5
           }
@@ -70591,7 +70785,7 @@
         "conditional": true,
         "imported": "easyuse_anima.settings.service:resolve_autocomplete_limit",
         "kind": "static_from",
-        "line": 73,
+        "line": 76,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "settings.py",
@@ -70605,7 +70799,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 51,
+            "handler_line": 53,
             "kind": "try",
             "line": 5
           }
@@ -70614,7 +70808,7 @@
         "conditional": true,
         "imported": "easyuse_anima.settings.service:resolve_autocomplete_mode",
         "kind": "static_from",
-        "line": 73,
+        "line": 76,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "settings.py",
@@ -70628,7 +70822,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 51,
+            "handler_line": 53,
             "kind": "try",
             "line": 5
           }
@@ -70637,7 +70831,7 @@
         "conditional": true,
         "imported": "easyuse_anima.settings.service:resolve_autocomplete_source",
         "kind": "static_from",
-        "line": 73,
+        "line": 76,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "settings.py",
@@ -70651,7 +70845,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 51,
+            "handler_line": 53,
             "kind": "try",
             "line": 5
           }
@@ -70660,7 +70854,7 @@
         "conditional": true,
         "imported": "easyuse_anima.settings.service:resolve_lora_preset_menu_mode",
         "kind": "static_from",
-        "line": 73,
+        "line": 76,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "settings.py",
@@ -70674,7 +70868,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 51,
+            "handler_line": 53,
             "kind": "try",
             "line": 5
           }
@@ -70683,7 +70877,7 @@
         "conditional": true,
         "imported": "easyuse_anima.settings.service:resolve_lora_preset_strength_button_step",
         "kind": "static_from",
-        "line": 73,
+        "line": 76,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "settings.py",
@@ -70697,7 +70891,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 51,
+            "handler_line": 53,
             "kind": "try",
             "line": 5
           }
@@ -70706,7 +70900,7 @@
         "conditional": true,
         "imported": "easyuse_anima.settings.service:resolve_lora_preset_strength_drag_pixels",
         "kind": "static_from",
-        "line": 73,
+        "line": 76,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "settings.py",
@@ -70720,7 +70914,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 51,
+            "handler_line": 53,
             "kind": "try",
             "line": 5
           }
@@ -70729,7 +70923,7 @@
         "conditional": true,
         "imported": "easyuse_anima.settings.service:resolve_lora_preset_strength_drag_step",
         "kind": "static_from",
-        "line": 73,
+        "line": 76,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "settings.py",
@@ -70743,7 +70937,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 51,
+            "handler_line": 53,
             "kind": "try",
             "line": 5
           }
@@ -70752,7 +70946,7 @@
         "conditional": true,
         "imported": "easyuse_anima.settings.service:resolve_metadata_filter_words",
         "kind": "static_from",
-        "line": 73,
+        "line": 76,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "settings.py",
@@ -70766,7 +70960,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 51,
+            "handler_line": 53,
             "kind": "try",
             "line": 5
           }
@@ -70775,7 +70969,7 @@
         "conditional": true,
         "imported": "easyuse_anima.settings.service:resolve_naia_port",
         "kind": "static_from",
-        "line": 73,
+        "line": 76,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "settings.py",
@@ -70789,7 +70983,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 51,
+            "handler_line": 53,
             "kind": "try",
             "line": 5
           }
@@ -70798,7 +70992,7 @@
         "conditional": true,
         "imported": "easyuse_anima.settings.service:resolve_naia_resolution_bucket",
         "kind": "static_from",
-        "line": 73,
+        "line": 76,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "settings.py",
@@ -70812,7 +71006,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 51,
+            "handler_line": 53,
             "kind": "try",
             "line": 5
           }
@@ -70821,7 +71015,7 @@
         "conditional": true,
         "imported": "easyuse_anima.settings.service:resolve_naia_resolution_max_long_edge",
         "kind": "static_from",
-        "line": 73,
+        "line": 76,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "settings.py",
@@ -70835,7 +71029,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 51,
+            "handler_line": 53,
             "kind": "try",
             "line": 5
           }
@@ -70844,7 +71038,7 @@
         "conditional": true,
         "imported": "easyuse_anima.settings.service:resolve_naia_resolution_mode",
         "kind": "static_from",
-        "line": 73,
+        "line": 76,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "settings.py",
@@ -70858,7 +71052,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 51,
+            "handler_line": 53,
             "kind": "try",
             "line": 5
           }
@@ -70867,7 +71061,7 @@
         "conditional": true,
         "imported": "easyuse_anima.settings.service:resolve_naia_resolution_scale",
         "kind": "static_from",
-        "line": 73,
+        "line": 76,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "settings.py",
@@ -70881,7 +71075,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 51,
+            "handler_line": 53,
             "kind": "try",
             "line": 5
           }
@@ -70890,7 +71084,7 @@
         "conditional": true,
         "imported": "easyuse_anima.settings.service:resolve_naia_settings",
         "kind": "static_from",
-        "line": 73,
+        "line": 76,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "settings.py",
@@ -70904,7 +71098,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 51,
+            "handler_line": 53,
             "kind": "try",
             "line": 5
           }
@@ -70913,7 +71107,7 @@
         "conditional": true,
         "imported": "easyuse_anima.settings.service:resolve_prompt_studio_font_family",
         "kind": "static_from",
-        "line": 73,
+        "line": 76,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "settings.py",
@@ -70927,7 +71121,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 51,
+            "handler_line": 53,
             "kind": "try",
             "line": 5
           }
@@ -70936,7 +71130,7 @@
         "conditional": true,
         "imported": "easyuse_anima.settings.service:resolve_prompt_studio_font_size",
         "kind": "static_from",
-        "line": 73,
+        "line": 76,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "settings.py",
@@ -70950,7 +71144,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 51,
+            "handler_line": 53,
             "kind": "try",
             "line": 5
           }
@@ -70959,7 +71153,7 @@
         "conditional": true,
         "imported": "easyuse_anima.settings.service:resolve_prompt_translation_provider",
         "kind": "static_from",
-        "line": 73,
+        "line": 76,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "settings.py",
@@ -70973,7 +71167,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 51,
+            "handler_line": 53,
             "kind": "try",
             "line": 5
           }
@@ -70982,7 +71176,7 @@
         "conditional": true,
         "imported": "easyuse_anima.settings.service:resolve_prompt_translation_settings",
         "kind": "static_from",
-        "line": 73,
+        "line": 76,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "settings.py",
@@ -70996,7 +71190,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 51,
+            "handler_line": 53,
             "kind": "try",
             "line": 5
           }
@@ -71005,7 +71199,7 @@
         "conditional": true,
         "imported": "easyuse_anima.settings.service:resolve_prompt_translation_source",
         "kind": "static_from",
-        "line": 73,
+        "line": 76,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "settings.py",
@@ -71019,7 +71213,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 51,
+            "handler_line": 53,
             "kind": "try",
             "line": 5
           }
@@ -71028,7 +71222,7 @@
         "conditional": true,
         "imported": "easyuse_anima.settings.service:resolve_prompt_translation_target",
         "kind": "static_from",
-        "line": 73,
+        "line": 76,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "settings.py",
@@ -81218,19 +81412,25 @@
       },
       {
         "kind": "set",
-        "line": 75,
+        "line": 76,
         "module": "easyuse_anima/settings/schema.py",
         "name": "AUTOCOMPLETE_COMMIT_KEYS"
       },
       {
         "kind": "set",
-        "line": 69,
+        "line": 81,
+        "module": "easyuse_anima/settings/schema.py",
+        "name": "AUTOCOMPLETE_COMMIT_MODES"
+      },
+      {
+        "kind": "set",
+        "line": 70,
         "module": "easyuse_anima/settings/schema.py",
         "name": "AUTOCOMPLETE_MODES"
       },
       {
         "kind": "dict",
-        "line": 130,
+        "line": 137,
         "module": "easyuse_anima/settings/schema.py",
         "name": "COMFY_SETTING_KEYS"
       },
@@ -81242,37 +81442,37 @@
       },
       {
         "kind": "dict",
-        "line": 189,
+        "line": 197,
         "module": "easyuse_anima/settings/schema.py",
         "name": "LONG_TEXT_SETTING_ALIASES"
       },
       {
         "kind": "set",
-        "line": 182,
+        "line": 190,
         "module": "easyuse_anima/settings/schema.py",
         "name": "LONG_TEXT_SETTING_KEYS"
       },
       {
         "kind": "list",
-        "line": 94,
+        "line": 101,
         "module": "easyuse_anima/settings/schema.py",
         "name": "NAIA_PREPROCESSING_KEYS"
       },
       {
         "kind": "set",
-        "line": 85,
+        "line": 92,
         "module": "easyuse_anima/settings/schema.py",
         "name": "NAIA_RESOLUTION_BUCKETS"
       },
       {
         "kind": "set",
-        "line": 80,
+        "line": 87,
         "module": "easyuse_anima/settings/schema.py",
         "name": "NAIA_RESOLUTION_MODES"
       },
       {
         "kind": "list",
-        "line": 112,
+        "line": 119,
         "module": "easyuse_anima/settings/schema.py",
         "name": "PROMPT_STUDIO_COLOR_KEYS"
       },

@@ -81,6 +81,7 @@ from easyuse_anima.settings.schema import NAIA_PREPROCESSING_KEYS
 from easyuse_anima.settings.service import (
     public_settings,
     resolve_autocomplete_commit_key,
+    resolve_autocomplete_commit_mode,
     resolve_autocomplete_limit,
     resolve_autocomplete_mode,
     resolve_lora_preset_menu_mode,
@@ -2882,7 +2883,7 @@ class SettingsTests(unittest.TestCase):
             for name in owner.__all__
         }
 
-        self.assertEqual(len(root_settings.__all__), 39)
+        self.assertEqual(len(root_settings.__all__), 41)
         self.assertEqual(set(root_settings.__all__), expected)
         for name in root_settings.__all__:
             canonical_owners = [
@@ -3098,6 +3099,7 @@ class SettingsTests(unittest.TestCase):
                 "autocomplete.mode",
                 "autocomplete.artist_prefix",
                 "autocomplete.commit_key",
+                "autocomplete.commit_mode",
                 "autocomplete.append_separator",
                 "autocomplete.no_comma_after_period",
                 "autocomplete.detect_natural_sentences",
@@ -3195,6 +3197,22 @@ class SettingsTests(unittest.TestCase):
         self.assertEqual(
             resolve_autocomplete_commit_key({"autocomplete.commit_key": "bad"}),
             "enter",
+        )
+
+    def test_autocomplete_commit_mode_is_validated(self):
+        for value in ("smart", "insert", "replace"):
+            with self.subTest(value=value):
+                self.assertEqual(
+                    resolve_autocomplete_commit_mode(
+                        {"autocomplete.commit_mode": value}
+                    ),
+                    value,
+                )
+        self.assertEqual(
+            resolve_autocomplete_commit_mode(
+                {"autocomplete.commit_mode": "bad"}
+            ),
+            "smart",
         )
 
     def test_lora_preset_strength_drag_step_is_clamped(self):
@@ -3359,6 +3377,7 @@ class SettingsTests(unittest.TestCase):
                     "EasyUseAnima.Prompt.AutocompleteLimit": "7",
                     "EasyUseAnima.Prompt.AutocompleteArtistPrefix": "artist:",
                     "EasyUseAnima.Prompt.AutocompleteCommitKey": "tab",
+                    "EasyUseAnima.Prompt.AutocompleteCommitMode": "replace",
                     "EasyUseAnima.Prompt.AutocompleteAppendSeparator": "true",
                     "EasyUseAnima.Prompt.AutocompleteNoCommaAfterPeriod": "false",
                     "EasyUseAnima.Prompt.AutocompleteDetectNaturalSentences": "false",
@@ -3386,6 +3405,7 @@ class SettingsTests(unittest.TestCase):
         self.assertEqual(settings["autocomplete.limit"], 7)
         self.assertEqual(settings["autocomplete.artist_prefix"], "artist:")
         self.assertEqual(settings["autocomplete.commit_key"], "tab")
+        self.assertEqual(settings["autocomplete.commit_mode"], "replace")
         self.assertEqual(settings["autocomplete.append_separator"], "true")
         self.assertEqual(settings["autocomplete.no_comma_after_period"], "false")
         self.assertEqual(settings["autocomplete.detect_natural_sentences"], "false")

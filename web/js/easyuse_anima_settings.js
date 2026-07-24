@@ -41,6 +41,9 @@ const TEXT = {
       "Literal prefix used to start artist-only autocomplete and insert artist results. Empty or invalid values use @.",
     autocompleteCommitKey: "Autocomplete commit key",
     autocompleteCommitKeyTip: "Choose whether Enter and Tab commit suggestions, or only Tab commits. Shift+Enter always inserts a line break.",
+    autocompleteCommitMode: "Completion edit mode",
+    autocompleteCommitModeTip:
+      "Smart replaces only a matching contiguous tail. Insert preserves all text to the right. Replace uses the syntax-aware active-item range.",
     autocompleteAppendSeparator: "Append comma after autocomplete",
     autocompleteAppendSeparatorTip: "After committing a suggestion, add ', ' and place the caret after it for the next tag.",
     autocompleteNoCommaAfterPeriod: "Do not comma-correct after period",
@@ -166,6 +169,9 @@ const TEXT = {
       "작가 전용 자동완성을 시작하고 작가 결과 앞에 붙이는 문자열입니다. 빈 값이나 잘못된 값은 @를 사용합니다.",
     autocompleteCommitKey: "자동완성 적용 키",
     autocompleteCommitKeyTip: "Enter와 Tab 모두 자동완성을 적용할지, Tab만 적용할지 선택합니다. Shift+Enter는 항상 줄바꿈입니다.",
+    autocompleteCommitMode: "자동완성 편집 모드",
+    autocompleteCommitModeTip:
+      "스마트는 일치가 확인된 연속 후행 텍스트만 교체합니다. 삽입은 오른쪽 텍스트를 모두 보존하고, 교체는 구문을 인식한 활성 항목 범위를 사용합니다.",
     autocompleteAppendSeparator: "자동완성 뒤 쉼표 추가",
     autocompleteAppendSeparatorTip: "자동완성 적용 후 ', '를 붙이고 다음 태그를 바로 입력할 수 있게 커서를 이동합니다.",
     autocompleteNoCommaAfterPeriod: "온점 뒤 쉼표 보정 안 함",
@@ -291,6 +297,9 @@ const TEXT = {
       "アーティスト専用候補の開始と挿入に使う文字列です。空または無効な値は @ を使います。",
     autocompleteCommitKey: "自動補完の確定キー",
     autocompleteCommitKeyTip: "Enter と Tab の両方で候補を確定するか、Tab のみで確定するかを選びます。Shift+Enter は常に改行です。",
+    autocompleteCommitMode: "補完編集モード",
+    autocompleteCommitModeTip:
+      "スマートは一致が確認された連続末尾だけを置換します。挿入は右側のテキストをすべて保持し、置換は構文対応のアクティブ項目範囲を使用します。",
     autocompleteAppendSeparator: "自動補完後にカンマを追加",
     autocompleteAppendSeparatorTip: "候補確定後に ', ' を追加し、次のタグを入力しやすい位置へキャレットを移動します。",
     autocompleteNoCommaAfterPeriod: "句点後はカンマ補正しない",
@@ -416,6 +425,9 @@ const TEXT = {
       "用于启动画师专用补全并插入到画师结果前的文字。空值或无效值会使用 @。",
     autocompleteCommitKey: "自动补全确认键",
     autocompleteCommitKeyTip: "选择 Enter 和 Tab 都确认建议，或仅 Tab 确认。Shift+Enter 始终插入换行。",
+    autocompleteCommitMode: "补全编辑模式",
+    autocompleteCommitModeTip:
+      "智能模式仅替换确认匹配的连续尾部。插入模式保留右侧全部文本，替换模式使用语法感知的当前项目范围。",
     autocompleteAppendSeparator: "自动补全后追加逗号",
     autocompleteAppendSeparatorTip: "确认建议后追加 ', '，并将光标移动到便于输入下一个标签的位置。",
     autocompleteNoCommaAfterPeriod: "句号后不做逗号修正",

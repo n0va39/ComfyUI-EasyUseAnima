@@ -281,6 +281,7 @@ print(json.dumps({{
             PACKAGE_MODULES.index("easyuse_anima.settings.schema")
         ] = [
             "AUTOCOMPLETE_COMMIT_KEYS",
+            "AUTOCOMPLETE_COMMIT_MODES",
             "AUTOCOMPLETE_MODES",
             "COMFY_COLOR_SETTING_KEYS",
             "COMFY_SETTING_KEYS",
@@ -297,6 +298,7 @@ print(json.dumps({{
         ] = [
             "public_settings",
             "resolve_autocomplete_commit_key",
+            "resolve_autocomplete_commit_mode",
             "resolve_autocomplete_limit",
             "resolve_autocomplete_mode",
             "resolve_autocomplete_source",

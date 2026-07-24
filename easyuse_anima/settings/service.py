@@ -12,6 +12,7 @@ from ..translation.contracts import (
 from .repository import get_settings
 from .schema import (
     AUTOCOMPLETE_COMMIT_KEYS,
+    AUTOCOMPLETE_COMMIT_MODES,
     AUTOCOMPLETE_MODES,
     DEFAULT_SETTINGS,
     NAIA_PREPROCESSING_KEYS,
@@ -34,6 +35,7 @@ def public_settings() -> dict:
         "autocomplete.mode": resolve_autocomplete_mode(settings),
         "autocomplete.artist_prefix": _resolve_autocomplete_artist_prefix(settings),
         "autocomplete.commit_key": resolve_autocomplete_commit_key(settings),
+        "autocomplete.commit_mode": resolve_autocomplete_commit_mode(settings),
         "autocomplete.append_separator": settings.get(
             "autocomplete.append_separator",
             DEFAULT_SETTINGS["autocomplete.append_separator"],
@@ -200,6 +202,20 @@ def resolve_autocomplete_commit_key(settings: dict | None = None) -> str:
     if value in AUTOCOMPLETE_COMMIT_KEYS:
         return value
     return DEFAULT_SETTINGS["autocomplete.commit_key"]
+
+
+def resolve_autocomplete_commit_mode(settings: dict | None = None) -> str:
+    settings = settings or get_settings()
+    value = str(
+        settings.get(
+            "autocomplete.commit_mode",
+            DEFAULT_SETTINGS["autocomplete.commit_mode"],
+        )
+        or DEFAULT_SETTINGS["autocomplete.commit_mode"]
+    ).strip()
+    if value in AUTOCOMPLETE_COMMIT_MODES:
+        return value
+    return DEFAULT_SETTINGS["autocomplete.commit_mode"]
 
 
 def _resolve_lora_preset_strength_step(
@@ -450,6 +466,7 @@ def resolve_naia_settings() -> dict:
 __all__ = (
     "public_settings",
     "resolve_autocomplete_commit_key",
+    "resolve_autocomplete_commit_mode",
     "resolve_autocomplete_limit",
     "resolve_autocomplete_mode",
     "resolve_autocomplete_source",

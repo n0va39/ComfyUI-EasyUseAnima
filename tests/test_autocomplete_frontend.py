@@ -587,6 +587,7 @@ class AutocompleteFrontendBoundaryTests(unittest.TestCase):
             "isCaretInComment",
             "isCaretInPromptTranslationMarker",
             "normalizeAutocompleteArtistPrefix",
+            "normalizeAutocompleteCommitMode",
             "normalizeWildcardSearchText",
             "parseAutocompleteText",
             "planAutocompleteInsertion",
@@ -603,6 +604,7 @@ class AutocompleteFrontendBoundaryTests(unittest.TestCase):
                 "as caretInPromptTranslationMarker"
             ),
             "normalizeAutocompleteArtistPrefix",
+            "normalizeAutocompleteCommitMode",
             "normalizeWildcardSearchText",
             "parseAutocompleteText",
             "planAutocompleteInsertion",
@@ -655,6 +657,7 @@ class AutocompleteFrontendBoundaryTests(unittest.TestCase):
             "autocompleteQuery",
             "isCaretInComment",
             "normalizeAutocompleteArtistPrefix",
+            "normalizeAutocompleteCommitMode",
             "normalizeWildcardSearchText",
             "parseAutocompleteText",
             "planAutocompleteInsertion",
@@ -728,6 +731,10 @@ class AutocompleteFrontendBoundaryTests(unittest.TestCase):
             self.assertIn("planAutocompleteInsertion(", plan_consumer)
             self.assertIn(
                 "appendSeparator: autocompleteAppendSeparator",
+                plan_consumer,
+            )
+            self.assertIn(
+                "commitMode: autocompleteCommitMode",
                 plan_consumer,
             )
             self.assertIn(

@@ -161,6 +161,16 @@ export function createEasyUseAnimaSettings(dependencies) {
       options: ["enter", "tab"],
     }),
     setting({
+      id: "EasyUseAnima.Prompt.AutocompleteCommitMode",
+      section: "Autocomplete",
+      group: t("autocomplete"),
+      name: t("autocompleteCommitMode"),
+      tooltip: t("autocompleteCommitModeTip"),
+      type: "combo",
+      defaultValue: "smart",
+      options: ["smart", "insert", "replace"],
+    }),
+    setting({
       id: "EasyUseAnima.Prompt.AutocompleteAppendSeparator",
       section: "Autocomplete",
       group: t("autocomplete"),

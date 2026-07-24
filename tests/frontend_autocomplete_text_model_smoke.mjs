@@ -17,6 +17,7 @@ assert.deepEqual(Object.keys(textModel).sort(), [
   "isCaretInComment",
   "isCaretInPromptTranslationMarker",
   "normalizeAutocompleteArtistPrefix",
+  "normalizeAutocompleteCommitMode",
   "normalizeWildcardSearchText",
   "parseAutocompleteText",
   "planAutocompleteInsertion",
@@ -32,6 +33,7 @@ const {
   isCaretInComment,
   isCaretInPromptTranslationMarker,
   normalizeAutocompleteArtistPrefix,
+  normalizeAutocompleteCommitMode,
   normalizeWildcardSearchText,
   parseAutocompleteText,
   planAutocompleteInsertion,
@@ -58,6 +60,17 @@ function appliedPlan(token, insert, options = {}) {
       + token.value.slice(plan.end),
     caret: plan.start + plan.caretOffset,
   };
+}
+
+function completionToken(value, marker, options = {}) {
+  const caret = value.indexOf(marker);
+  assert.notEqual(caret, -1);
+  const text = value.replace(marker, "");
+  return currentToken(text, caret, {
+    detectNaturalSentences: false,
+    previewCompletion: true,
+    ...options,
+  });
 }
 
 const whitespaceSuffix = contractRanges("blue ha|ir solo", "|");
@@ -207,6 +220,87 @@ assert.deepEqual(
   },
 );
 
+assert.equal(normalizeAutocompleteCommitMode("smart"), "smart");
+assert.equal(normalizeAutocompleteCommitMode("insert"), "insert");
+assert.equal(normalizeAutocompleteCommitMode("replace"), "replace");
+assert.equal(normalizeAutocompleteCommitMode("INVALID"), "smart");
+
+const smartWhitespace = appliedPlan(
+  completionToken("blue ha|ir solo", "|"),
+  "blue hair",
+  { commitMode: "smart" },
+);
+assert.equal(smartWhitespace.value, "blue hair solo");
+assert.equal(smartWhitespace.editRange, "replace");
+assert.equal(smartWhitespace.modeUsed, "smart");
+assert.equal(smartWhitespace.preservedSuffix, " solo");
+
+for (const [value, insert, expected] of [
+  ["foo|, bar", "foo tag", "foo tag, bar"],
+  ["foo|\nbar", "foo tag", "foo tag\nbar"],
+  ["(foo|, bar:1.2)", "foo tag", "(foo tag, bar:1.2)"],
+  [
+    "[[artist_a, art|ist_b:0.7]]",
+    "artist b",
+    "[[artist_a, artist b:0.7]]",
+  ],
+]) {
+  const plan = appliedPlan(
+    completionToken(value, "|"),
+    insert,
+    { commitMode: "smart" },
+  );
+  assert.equal(plan.value, expected);
+  assert.equal(plan.editRange, "replace");
+}
+
+const smartContiguousTail = appliedPlan(
+  completionToken("old_t|ag", "|"),
+  "old tag",
+  { commitMode: "smart" },
+);
+assert.equal(smartContiguousTail.value, "old tag");
+assert.equal(smartContiguousTail.editRange, "replace");
+
+const smartAmbiguousTail = appliedPlan(
+  completionToken("old_t|ail", "|"),
+  "old train",
+  { commitMode: "smart" },
+);
+assert.equal(smartAmbiguousTail.value, "old train, ail");
+assert.equal(smartAmbiguousTail.editRange, "insert");
+assert.equal(smartAmbiguousTail.preservedSuffix, "ail");
+
+const insertTail = appliedPlan(
+  completionToken("old_t|ag", "|"),
+  "old tag",
+  { commitMode: "insert" },
+);
+assert.equal(insertTail.value, "old tag, ag");
+assert.equal(insertTail.editRange, "insert");
+assert.equal(insertTail.preservedSuffix, "ag");
+
+const replaceTail = appliedPlan(
+  completionToken("old_t|ail", "|"),
+  "old train",
+  { commitMode: "replace" },
+);
+assert.equal(replaceTail.value, "old train");
+assert.equal(replaceTail.editRange, "replace");
+assert.equal(replaceTail.preservedSuffix, "");
+
+const previewPlan = planAutocompleteInsertion(
+  completionToken("(foo|, bar:1.2)", "|"),
+  "foo tag",
+  { commitMode: "smart" },
+);
+const commitPlan = planAutocompleteInsertion(
+  completionToken("(foo|, bar:1.2)", "|"),
+  "foo tag",
+  { commitMode: "smart" },
+);
+assert.deepEqual(previewPlan, commitPlan);
+
 const segmented = currentToken(
   "first tag, second tag\nthird tag",
   "first tag, second".length,
@@ -268,7 +362,7 @@ assert.equal(
     "beta tag",
     { appendSeparator: false, noCommaAfterPeriod: true },
   ).value,
-  "alpha. beta tag. delta",
+  "alpha. beta tag gamma. delta",
 );
 
 const weightedValue = "[[ @old_name:1.25]]";
@@ -322,7 +416,7 @@ for (const previewCompletion of [false, true]) {
   assert.equal(autocompleteQuery(token).query, "old");
   assert.equal(token.start, start);
   assert.equal(token.end, start + "old_tag".length);
-  assert.equal(appliedPlan(token, "new tag").value, "((new tag:1.2))");
+  assert.equal(appliedPlan(token, "new tag").value, "((new tag, _tag:1.2))");
 }
 
 const strictAtClosing = currentToken(
@@ -470,6 +564,9 @@ assert.deepEqual(
     suffix: ", ",
     consumeAfter: 0,
     caretExtra: 2,
+    preservedSuffix: "",
+    modeUsed: "smart",
+    editRange: "replace",
     value: "tag, ",
     caret: 5,
   },
