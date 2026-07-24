@@ -30,7 +30,11 @@ from typing import Iterable, Mapping, Sequence
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 ROOT_MODULE = "__root__"
 SCHEMA_VERSION = 2
-REGISTRY_ENTRY_MODULE_CANDIDATES = ("__init__.py", "nodes.py")
+REGISTRY_ENTRY_MODULE_CANDIDATES = (
+    "__init__.py",
+    "nodes.py",
+    "prompt_translation.py",
+)
 DYNAMIC_IMPORT_CALLEES = frozenset({"__import__", "importlib.import_module"})
 MUTABLE_CONSTRUCTORS = {
     "ChainMap": "dict",

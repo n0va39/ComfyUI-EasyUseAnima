@@ -5,7 +5,7 @@ from pathlib import Path
 
 try:
     from .storage import AtomicJsonStore, USER_DATA_DIR
-    from .prompt_translation import (
+    from .easyuse_anima.translation.contracts import (
         DEFAULT_PROMPT_TRANSLATION_SOURCE,
         DEFAULT_PROMPT_TRANSLATION_TARGET,
         PROMPT_TRANSLATION_PROVIDER_OFF,
@@ -15,7 +15,7 @@ try:
     )
 except ImportError:
     from storage import AtomicJsonStore, USER_DATA_DIR
-    from prompt_translation import (
+    from easyuse_anima.translation.contracts import (
         DEFAULT_PROMPT_TRANSLATION_SOURCE,
         DEFAULT_PROMPT_TRANSLATION_TARGET,
         PROMPT_TRANSLATION_PROVIDER_OFF,

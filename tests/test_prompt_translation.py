@@ -9,12 +9,11 @@ from concurrent.futures import ThreadPoolExecutor
 from types import SimpleNamespace
 from unittest.mock import patch
 
-from prompt_translation import (
+import prompt_translation as root_translation
+from easyuse_anima.translation import contracts, markers, service
+from easyuse_anima.translation.contracts import (
     PROMPT_TRANSLATION_PROVIDER_GOOGLE,
     PROMPT_TRANSLATION_PROVIDER_TIMEOUT_SECONDS,
-    BoundedTranslationCache,
-    GoogleTranslationProvider,
-    PromptTranslationService,
     PromptTranslationSettings,
     TranslationMarkerCountError,
     TranslationMarkerSizeError,
@@ -22,6 +21,14 @@ from prompt_translation import (
     TranslationTimeoutError,
     TranslationTotalSizeError,
     TranslationUpstreamError,
+)
+from easyuse_anima.translation.providers import google as google_provider
+from easyuse_anima.translation.providers.google import (
+    GoogleTranslationProvider,
+)
+from easyuse_anima.translation.service import (
+    BoundedTranslationCache,
+    PromptTranslationService,
     _TRANSLATION_PROVIDER_FACTORIES,
     _TRANSLATION_PROVIDER_INSTANCES,
     get_translation_provider,
@@ -35,6 +42,29 @@ GOOGLE_SETTINGS = PromptTranslationSettings(
 )
 
 
+class PromptTranslationCompatibilityTests(unittest.TestCase):
+    def test_root_shim_exports_identical_canonical_objects(self):
+        canonical = {
+            name: getattr(module, name)
+            for module in (
+                contracts,
+                markers,
+                google_provider,
+                service,
+            )
+            for name in module.__all__
+        }
+
+        self.assertEqual(set(root_translation.__all__), set(canonical))
+        self.assertEqual(
+            len(root_translation.__all__),
+            len(set(root_translation.__all__)),
+        )
+        for name, value in canonical.items():
+            with self.subTest(name=name):
+                self.assertIs(getattr(root_translation, name), value)
+
+
 class PromptTranslationServiceTests(unittest.TestCase):
     def test_repeated_identical_markers_call_provider_once_and_replace_every_position(self):
         service = PromptTranslationService(
@@ -42,7 +72,7 @@ class PromptTranslationServiceTests(unittest.TestCase):
         )
 
         with patch(
-            "prompt_translation.google_translate_text",
+            "easyuse_anima.translation.service.google_translate_text",
             return_value="girl with red hair",
         ) as provider:
             translated = service.translate_prompt(
@@ -67,7 +97,9 @@ class PromptTranslationServiceTests(unittest.TestCase):
 
         with (
             patch("builtins.__import__", side_effect=guarded_import),
-            patch("prompt_translation.get_translation_provider") as provider_factory,
+            patch(
+                "easyuse_anima.translation.service.get_translation_provider"
+            ) as provider_factory,
         ):
             translated = service.translate_prompt(
                 r"1girl, %{검은 드레스}, \%{literal}",
@@ -154,7 +186,7 @@ class PromptTranslationServiceTests(unittest.TestCase):
         lru_service = PromptTranslationService(cache=lru_cache)
 
         with patch(
-            "prompt_translation.google_translate_text",
+            "easyuse_anima.translation.service.google_translate_text",
             side_effect=lambda text, source, target: text.upper(),
         ) as provider:
             self.assertEqual(lru_service.translate_prompt("%{a}", GOOGLE_SETTINGS), "A")
@@ -173,7 +205,7 @@ class PromptTranslationServiceTests(unittest.TestCase):
         ttl_service = PromptTranslationService(cache=ttl_cache)
         now[0] = 0.0
         with patch(
-            "prompt_translation.google_translate_text",
+            "easyuse_anima.translation.service.google_translate_text",
             return_value="cached",
         ) as provider:
             ttl_service.translate_prompt("%{ttl}", GOOGLE_SETTINGS)
@@ -194,7 +226,7 @@ class PromptTranslationServiceTests(unittest.TestCase):
         )
 
         with patch(
-            "prompt_translation.google_translate_text",
+            "easyuse_anima.translation.service.google_translate_text",
             side_effect=lambda text, source, target: f"{source}:{target}:{text}",
         ) as provider:
             for item in settings:
@@ -214,7 +246,7 @@ class PromptTranslationServiceTests(unittest.TestCase):
             return "shared"
 
         with patch(
-            "prompt_translation.google_translate_text",
+            "easyuse_anima.translation.service.google_translate_text",
             side_effect=translate,
         ) as provider:
             with ThreadPoolExecutor(max_workers=8) as executor:
@@ -239,7 +271,7 @@ class PromptTranslationServiceTests(unittest.TestCase):
             return text.upper()
 
         with patch(
-            "prompt_translation.google_translate_text",
+            "easyuse_anima.translation.service.google_translate_text",
             side_effect=translate,
         ):
             with ThreadPoolExecutor(max_workers=2) as executor:
@@ -264,7 +296,9 @@ class PromptTranslationServiceTests(unittest.TestCase):
             ("%{abcd}%{abc}", TranslationTotalSizeError),
         )
 
-        with patch("prompt_translation.google_translate_text") as provider:
+        with patch(
+            "easyuse_anima.translation.service.google_translate_text"
+        ) as provider:
             for text, error_type in cases:
                 with self.subTest(error=error_type.__name__):
                     with self.assertRaises(error_type):

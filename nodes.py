@@ -536,7 +536,12 @@ try:
         resolve_naia_settings,
         resolve_prompt_translation_settings,
     )
-    from .prompt_translation import has_prompt_translation_markers, translate_prompt_markers
+    from .easyuse_anima.translation.markers import (
+        has_prompt_translation_markers,
+    )
+    from .easyuse_anima.translation.service import (
+        translate_prompt_markers,
+    )
     from .wildcard_engine import (
         MAX_SEED,
         PUBLIC_MAX_SEED,
@@ -1093,7 +1098,12 @@ except ImportError:  # allows simple local import tests outside ComfyUI's packag
         resolve_naia_settings,
         resolve_prompt_translation_settings,
     )
-    from prompt_translation import has_prompt_translation_markers, translate_prompt_markers
+    from easyuse_anima.translation.markers import (
+        has_prompt_translation_markers,
+    )
+    from easyuse_anima.translation.service import (
+        translate_prompt_markers,
+    )
     from wildcard_engine import (
         MAX_SEED,
         PUBLIC_MAX_SEED,

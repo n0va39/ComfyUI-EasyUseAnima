@@ -691,12 +691,12 @@ ignored/
 
         self.assertEqual(analyzer.render_json(report), expected_text)
         self.assertEqual(report["schema_version"], 2)
-        self.assertEqual(report["inventory"]["module_count"], 105)
-        self.assertEqual(len(report["registry"]["shipped_python_modules"]), 105)
-        self.assertEqual(len(report["registry"]["runtime_import_closure"]), 105)
+        self.assertEqual(report["inventory"]["module_count"], 111)
+        self.assertEqual(len(report["registry"]["shipped_python_modules"]), 111)
+        self.assertEqual(len(report["registry"]["runtime_import_closure"]), 111)
         self.assertEqual(
             report["registry"]["entry_modules"],
-            ["__init__.py", "nodes.py"],
+            ["__init__.py", "nodes.py", "prompt_translation.py"],
         )
         self.assertEqual(report["registry"]["missing_internal_imports"], [])
         self.assertEqual(report["registry"]["unreachable_shipped_python_modules"], [])
@@ -769,6 +769,12 @@ ignored/
                 "easyuse_anima/profiles/__init__.py",
                 "easyuse_anima/profiles/contract.py",
                 "easyuse_anima/profiles/mutation.py",
+                "easyuse_anima/translation/__init__.py",
+                "easyuse_anima/translation/contracts.py",
+                "easyuse_anima/translation/markers.py",
+                "easyuse_anima/translation/providers/__init__.py",
+                "easyuse_anima/translation/providers/google.py",
+                "easyuse_anima/translation/service.py",
                 "easyuse_anima/registration.py",
                 "easyuse_anima/runtime.py",
                 "easyuse_anima/seed/__init__.py",
@@ -837,6 +843,12 @@ ignored/
                 "easyuse_anima/profiles/__init__.py",
                 "easyuse_anima/profiles/contract.py",
                 "easyuse_anima/profiles/mutation.py",
+                "easyuse_anima/translation/__init__.py",
+                "easyuse_anima/translation/contracts.py",
+                "easyuse_anima/translation/markers.py",
+                "easyuse_anima/translation/providers/__init__.py",
+                "easyuse_anima/translation/providers/google.py",
+                "easyuse_anima/translation/service.py",
                 "easyuse_anima/runtime.py",
                 "easyuse_anima/seed/execution_identity.py",
                 "easyuse_anima/seed/execution_session.py",
@@ -887,7 +899,6 @@ ignored/
                 ("api.py", "storage.py"),
                 ("api.py", "easyuse_anima/profiles/contract.py"),
                 ("api.py", "easyuse_anima/profiles/mutation.py"),
-                ("nodes.py", "prompt_translation.py"),
                 ("nodes.py", "settings.py"),
                 ("nodes.py", "wildcard_engine.py"),
                 ("wildcard_engine.py", "settings.py"),

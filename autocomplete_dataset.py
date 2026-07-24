@@ -25,7 +25,9 @@ try:
     from .anima_prompt.models import TagSection
     from .anima_prompt.ordering import builtin_tag_section
     from .anima_prompt.parser import parse_prompt
-    from .prompt_translation import iter_prompt_translation_markers
+    from .easyuse_anima.translation.markers import (
+        iter_prompt_translation_markers,
+    )
     from .storage import PACKAGE_DATA_DIR as STORAGE_PACKAGE_DATA_DIR
     from .storage import USER_DATA_DIR
 except ImportError:
@@ -39,7 +41,9 @@ except ImportError:
     from anima_prompt.models import TagSection
     from anima_prompt.ordering import builtin_tag_section
     from anima_prompt.parser import parse_prompt
-    from prompt_translation import iter_prompt_translation_markers
+    from easyuse_anima.translation.markers import (
+        iter_prompt_translation_markers,
+    )
     from storage import PACKAGE_DATA_DIR as STORAGE_PACKAGE_DATA_DIR
     from storage import USER_DATA_DIR
 

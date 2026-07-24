@@ -6,7 +6,7 @@
 - Roadmap unit: D-01
 - PR type: Move
 - Baseline: `dev@d002a9bea1b268d7a79d7c5bbd7c73f2a62f2d77`
-- State: INVENTORY
+- State: VALIDATED in PR #381
 - Behavior changes: forbidden
 
 ## Responsibility boundary
@@ -156,3 +156,16 @@ Supporting:
 - root `prompt_translation.py` contains only explicit direct re-exports,
   internal production translation imports are canonical, and all behavior
   fixtures remain unchanged.
+
+## Validation result
+
+- Focused translation service, API, package skeleton, import-boundary,
+  corrector integration, nodes analyzer, and compatibility-surface checks
+  passed.
+- Focused Pyright passed with 0 errors for the new contracts and Google
+  provider modules.
+- The final official full runner passed: Pyright baseline ratchet, seven
+  completed import-boundary groups, 1,129 Python tests, 112 frontend
+  JavaScript files with TypeScript 6.0.3, and `git diff --check`.
+- No server, browser, model, optional provider client, or external translation
+  request was started.
