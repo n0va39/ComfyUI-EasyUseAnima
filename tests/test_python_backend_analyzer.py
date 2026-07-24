@@ -691,9 +691,9 @@ ignored/
 
         self.assertEqual(analyzer.render_json(report), expected_text)
         self.assertEqual(report["schema_version"], 2)
-        self.assertEqual(report["inventory"]["module_count"], 118)
-        self.assertEqual(len(report["registry"]["shipped_python_modules"]), 118)
-        self.assertEqual(len(report["registry"]["runtime_import_closure"]), 118)
+        self.assertEqual(report["inventory"]["module_count"], 121)
+        self.assertEqual(len(report["registry"]["shipped_python_modules"]), 121)
+        self.assertEqual(len(report["registry"]["runtime_import_closure"]), 121)
         self.assertEqual(
             report["registry"]["entry_modules"],
             [
@@ -776,8 +776,11 @@ ignored/
                 "easyuse_anima/nodes/sam3_nodes.py",
                 "easyuse_anima/nodes/wildcard_nodes.py",
                 "easyuse_anima/profiles/__init__.py",
+                "easyuse_anima/profiles/aio.py",
                 "easyuse_anima/profiles/contract.py",
+                "easyuse_anima/profiles/lora.py",
                 "easyuse_anima/profiles/mutation.py",
+                "easyuse_anima/profiles/repository.py",
                 "easyuse_anima/settings/__init__.py",
                 "easyuse_anima/settings/repository.py",
                 "easyuse_anima/settings/schema.py",
@@ -857,8 +860,11 @@ ignored/
                 "easyuse_anima/prompt/fields.py",
                 "easyuse_anima/prompt/regional.py",
                 "easyuse_anima/profiles/__init__.py",
+                "easyuse_anima/profiles/aio.py",
                 "easyuse_anima/profiles/contract.py",
+                "easyuse_anima/profiles/lora.py",
                 "easyuse_anima/profiles/mutation.py",
+                "easyuse_anima/profiles/repository.py",
                 "easyuse_anima/settings/__init__.py",
                 "easyuse_anima/settings/repository.py",
                 "easyuse_anima/settings/schema.py",
@@ -894,13 +900,19 @@ ignored/
             {"from": "api.py", "to": "api_contract.py"},
             report["imports"]["module_graph"],
         )
-        self.assertIn(
-            {"from": "api.py", "to": "easyuse_anima/profiles/contract.py"},
-            report["imports"]["module_graph"],
-        )
-        self.assertIn(
-            {"from": "api.py", "to": "easyuse_anima/profiles/mutation.py"},
-            report["imports"]["module_graph"],
+        profile_edges = {
+            (item["from"], item["to"])
+            for item in report["imports"]["module_graph"]
+            if item["from"] == "api.py"
+        }
+        self.assertTrue(
+            {
+                ("api.py", "easyuse_anima/profiles/aio.py"),
+                ("api.py", "easyuse_anima/profiles/contract.py"),
+                ("api.py", "easyuse_anima/profiles/lora.py"),
+                ("api.py", "easyuse_anima/profiles/mutation.py"),
+                ("api.py", "easyuse_anima/profiles/repository.py"),
+            }.issubset(profile_edges)
         )
         self.assertNotIn(
             "tests/test_python_backend_analyzer.py",
@@ -916,10 +928,16 @@ ignored/
         }
         self.assertTrue(
             {
-                ("api.py", "easyuse_anima/profiles/contract.py"),
-                ("api.py", "easyuse_anima/profiles/mutation.py"),
                 ("nodes.py", "wildcard_engine.py"),
             }.issubset(fallback_targets)
+        )
+        self.assertFalse(
+            [
+                item
+                for item in report["registry"]["compatibility_fallback_imports"]
+                if item["source"] == "api.py"
+                and item["target"].startswith("easyuse_anima/profiles/")
+            ]
         )
         self.assertFalse(
             [

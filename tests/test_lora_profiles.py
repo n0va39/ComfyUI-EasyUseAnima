@@ -10,6 +10,7 @@ import uuid
 from pathlib import Path
 from unittest.mock import patch
 
+from tests.api_test_support import replace_sys_modules
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -72,7 +73,7 @@ def load_api_routes():
     fake_aiohttp.web = types.SimpleNamespace(
         json_response=lambda payload, status=200: {"payload": payload, "status": status},
     )
-    with patch.dict(sys.modules, {"server": fake_server, "aiohttp": fake_aiohttp}):
+    with replace_sys_modules({"server": fake_server, "aiohttp": fake_aiohttp}):
         api = load_api_module()
         api.register_routes()
     return api, routes
@@ -85,7 +86,7 @@ class LoraProfileStorageTests(unittest.TestCase):
         fake_aiohttp = types.ModuleType("aiohttp")
         fake_aiohttp.web = types.SimpleNamespace()
 
-        with patch.dict(sys.modules, {"server": fake_server, "aiohttp": fake_aiohttp}):
+        with replace_sys_modules({"server": fake_server, "aiohttp": fake_aiohttp}):
             api = load_api_module()
             api.register_routes()
 
@@ -94,7 +95,7 @@ class LoraProfileStorageTests(unittest.TestCase):
     def test_save_and_load_lora_profile_set(self):
         api = load_api_module()
         with tempfile.TemporaryDirectory() as tmp:
-            with patch.object(api, "LORA_PROFILE_DIR", Path(tmp)):
+            with patch.object(api._lora_profiles, "LORA_PROFILE_DIR", Path(tmp)):
                 saved = api._save_lora_profile(
                     "style:preset",
                     {
@@ -134,7 +135,7 @@ class LoraProfileStorageTests(unittest.TestCase):
         api = load_api_module()
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            with patch.object(api, "LORA_PROFILE_DIR", root):
+            with patch.object(api._lora_profiles, "LORA_PROFILE_DIR", root):
                 first = api._save_lora_profile(
                     "Recoverable",
                     {"profile_data": {"1": {"style_prompt": "first"}}},
@@ -156,7 +157,7 @@ class LoraProfileStorageTests(unittest.TestCase):
         api = load_api_module()
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            with patch.object(api, "LORA_PROFILE_DIR", root):
+            with patch.object(api._lora_profiles, "LORA_PROFILE_DIR", root):
                 (root / "Broken.json").write_text("{", encoding="utf-8")
                 (root / "Broken.json.bak").write_text("[", encoding="utf-8")
                 primary_before = (root / "Broken.json").read_bytes()
@@ -175,7 +176,7 @@ class LoraProfileStorageTests(unittest.TestCase):
         api = load_api_module()
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            with patch.object(api, "LORA_PROFILE_DIR", root):
+            with patch.object(api._lora_profiles, "LORA_PROFILE_DIR", root):
                 (root / "Empty.json").write_text("", encoding="utf-8")
 
                 loaded = api._load_lora_profile("Empty")
@@ -209,7 +210,7 @@ class LoraProfileStorageTests(unittest.TestCase):
             primary_before = (primary.read_bytes(), primary.stat().st_mtime_ns)
             backup_before = (backup.read_bytes(), backup.stat().st_mtime_ns)
 
-            with patch.object(api, "LORA_PROFILE_DIR", root):
+            with patch.object(api._lora_profiles, "LORA_PROFILE_DIR", root):
                 listed = api._list_lora_profiles()[0]
                 loaded = api._load_lora_profile("legacy")
 
@@ -240,7 +241,7 @@ class LoraProfileStorageTests(unittest.TestCase):
     def test_v2_overwrite_preserves_id_and_advances_matching_revision(self):
         api = load_api_module()
         with tempfile.TemporaryDirectory() as tmp:
-            with patch.object(api, "LORA_PROFILE_DIR", Path(tmp)):
+            with patch.object(api._lora_profiles, "LORA_PROFILE_DIR", Path(tmp)):
                 created = api._save_lora_profile(
                     "Updated",
                     {"profile_data": {"1": {"style_prompt": "first"}}},
@@ -268,7 +269,7 @@ class LoraProfileStorageTests(unittest.TestCase):
         for original_name, colliding_name, filename in collision_cases:
             with self.subTest(original_name=original_name, colliding_name=colliding_name):
                 with tempfile.TemporaryDirectory() as tmp:
-                    with patch.object(api, "LORA_PROFILE_DIR", Path(tmp)):
+                    with patch.object(api._lora_profiles, "LORA_PROFILE_DIR", Path(tmp)):
                         created = api._save_lora_profile(
                             original_name,
                             {"profile_data": {"1": {"style_prompt": "first"}}},
@@ -306,7 +307,7 @@ class LoraProfileStorageTests(unittest.TestCase):
         api = load_api_module()
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            with patch.object(api, "LORA_PROFILE_DIR", root):
+            with patch.object(api._lora_profiles, "LORA_PROFILE_DIR", root):
                 created = api._save_lora_profile("Strict", {"profile_data": {}})
 
                 with self.assertRaises(api.ProfileMutationError) as missing_tokens:
@@ -334,7 +335,7 @@ class LoraProfileStorageTests(unittest.TestCase):
         api = load_api_module()
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            with patch.object(api, "LORA_PROFILE_DIR", root):
+            with patch.object(api._lora_profiles, "LORA_PROFILE_DIR", root):
                 first = api._save_lora_profile("Stable", {"profile_data": {}})
                 current = api._save_lora_profile(
                     "Stable",
@@ -379,7 +380,7 @@ class LoraProfileStorageTests(unittest.TestCase):
         api = load_api_module()
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            with patch.object(api, "LORA_PROFILE_DIR", root):
+            with patch.object(api._lora_profiles, "LORA_PROFILE_DIR", root):
                 created = api._save_lora_profile("Concurrent", {"profile_data": {}})
                 barrier = threading.Barrier(3)
                 successes = []
@@ -705,7 +706,7 @@ class LoraProfileApiRouteTests(unittest.TestCase):
         handler = routes.handlers[self.PATH]
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            with patch.object(api, "LORA_PROFILE_DIR", root):
+            with patch.object(api._lora_profiles, "LORA_PROFILE_DIR", root):
                 created_response = asyncio.run(handler(JsonRequest(self.BASE_PAYLOAD)))
                 created = created_response["payload"]["profile"]
 
@@ -802,7 +803,7 @@ class AutocompleteApiRouteTests(unittest.TestCase):
             json_response=lambda payload, status=200: {"payload": payload, "status": status},
         )
 
-        with patch.dict(sys.modules, {"server": fake_server, "aiohttp": fake_aiohttp}):
+        with replace_sys_modules({"server": fake_server, "aiohttp": fake_aiohttp}):
             api = load_api_module()
             api.register_routes()
 

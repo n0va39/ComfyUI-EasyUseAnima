@@ -58,7 +58,7 @@ import them.
 | --- | --- | --- | --- | --- | --- | --- |
 | Root `__init__.py` exports | Permanent ComfyUI entrypoint, not a shim | root entrypoint plus `easyuse_anima.registration`/`bootstrap` | #184/#185 | Existing 0.5.2 surface; B-11 rewires internals | ComfyUI loader; node contract fixture | Not removable as a package entrypoint |
 | `nodes.py` mapped public classes | 18 direct compatibility re-exports plus audited private/residual debt | `easyuse_anima.nodes.*_nodes` | #184 B-04 through B-11, #188 | Existing 0.5.2 surface; B-04 through B-09b2 canonicalized all mapped adapters; B-11 completes the shim | Root mappings and workflows; repository tests are not public-support evidence; no confirmed external direct importer | No scheduled removal; public breaking-change gate after N+1 at earliest |
-| `api.py` route-registration surface | Current implementation; planned API shim | `easyuse_anima.api.router` and `easyuse_anima.api.routes.*` | #165, #186 D-02-D-07 | Existing 0.5.2 surface; convert during D-02-D-07/D-14 | Root entrypoint side-effect import, frontend endpoints, API tests | Unscheduled; N+1 gate and route parity |
+| `api.py` route-registration surface | Current route implementation plus explicit D-10 profile aliases; planned API shim | `easyuse_anima.profiles.*`, then `easyuse_anima.api.router` and `easyuse_anima.api.routes.*` | #163, #165, #186 D-10/D-02-D-07 | Existing 0.5.2 route surface; profile implementation canonicalized in D-10; route conversion remains D-02-D-07/D-14 | Root entrypoint side-effect import, frontend endpoints, profile/API tests | Unscheduled; N+1 gate and route parity |
 | `api_contract.py` request/error helpers | Phase C temporary implementation; D-02 move and D-14 shim decision pending | `easyuse_anima.api.requests`, `responses`, and `errors` | #165, #186 D-02/D-14 | Introduced by #165; convert in D-02 and freeze any required root shim in D-14 | `api.py`, API contract tests, Registry package-closure test | Unscheduled; internal consumers canonical and contract/package parity pass |
 | `settings.py` | Explicit direct re-export shim (D-09) | `easyuse_anima.settings.schema`, `.repository`, and `.service` | #163, #186 D-09 | Existing 0.5.2 module-owned public surface; exact `__all__` and identity fixture | External/legacy imports and settings compatibility tests; production callers use canonical modules | Unscheduled; first canonical+shim release N not yet recorded, then N+1 gate and settings migration/round-trip |
 | `storage.py` | Explicit direct re-export shim (D-08) | `easyuse_anima.infrastructure.filesystem.atomic_json` and `.paths` | #163, #186 D-08 | Existing 0.5.2 supported module-owned public surface; exact `__all__` and identity fixture | External/legacy imports and storage compatibility tests; production callers use canonical modules | Unscheduled; first canonical+shim release N not yet recorded, then N+1 gate and last-known-good/atomic-write parity |
@@ -1355,6 +1355,17 @@ EasyUseAnimaWildcard
 - Candidate scope: the route registration compatibility surface. The current
   frontend endpoint URLs and payloads are compatibility contracts, even if
   Python route helpers are not declared as public.
+- D-10 moves shared profile repository helpers, AiO profile operations, and
+  LoRA profile operations/repair to `easyuse_anima.profiles.repository`,
+  `.aio`, and `.lora`. Existing envelope/CAS owners remain `.contract` and
+  `.mutation`.
+- `api.py` keeps explicit identical aliases for the synchronous profile
+  operations called by its handlers. Request parsing, the bounded file-I/O
+  adapter, error-to-response mapping, response construction, preview handling,
+  and route registration remain root API responsibilities until D-02-D-07.
+- Directory, size, mutation, and storage test seams move to their canonical
+  owner. The aliases are not promoted into a declared public `api.py`
+  `__all__`; D-14 decides the supported root surface after consumer evidence.
 - Canonical target: `easyuse_anima.api.router`, requests/responses/errors, and
   feature route modules.
 - Removal gate: root entrypoint no longer imports `api.py`; repeated initialize
