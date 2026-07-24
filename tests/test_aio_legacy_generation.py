@@ -2036,6 +2036,30 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
             ],
         )
 
+    def test_intermediate_preview_failure_keeps_outer_model_cleanup_boundary(self):
+        trace: list[str] = []
+        with patch.object(
+            legacy_generation.PreviewCollector,
+            "add",
+            side_effect=RuntimeError("preview failed"),
+        ):
+            with self.assertRaisesRegex(RuntimeError, "preview failed"):
+                self._execute_case(
+                    upscale_enabled=False,
+                    intermediate_preview=True,
+                    unique_id=None,
+                    trace_sink=trace,
+                )
+
+        self.assertEqual(
+            trace[-3:],
+            [
+                "cleanup:sample",
+                "cleanup:model",
+                "cleanup:lora",
+            ],
+        )
+
     def _execute_case(
         self,
         *,

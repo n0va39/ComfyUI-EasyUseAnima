@@ -34,6 +34,13 @@ from .generation_defaults import AIO_USDU_PROMPT_FULL
 from .generation_detailer_stage import AIODetailerStage, DetailerRuntime
 from .generation_first_pass import AIOFirstPassStage, FirstPassRuntime
 from .generation_highres import AIOHighresStage, HighresRuntime
+from .generation_lifecycle import (
+    EphemeralModelRegistry,
+    ModelVariantResolver,
+    ModelVariantRuntime,
+    PreviewCollector,
+    PreviewRuntime,
+)
 from .generation_normalization import (
     _aio_detailer_has_enabled_targets,
     _aio_detailer_target_order,
@@ -732,44 +739,41 @@ def _run_aio_normalized_legacy_generation(
     highres_backend = _aio_highres_effective_backend(
         sampler, settings["highres"]
     )
-    mod_guidance_model = model
     can_apply_standalone_mod_guidance = (
         use_mod_guidance
         and profile != ANIMA_MOD_GUIDANCE_PROFILE_OFF
     )
-
-    def ensure_standalone_mod_guidance_model():
-        nonlocal mod_guidance_model
-        if not can_apply_standalone_mod_guidance or mod_guidance_model is not model:
-            return mod_guidance_model
-        mod_guidance_model = _apply_spectrum_anima_mod_guidance(
-            model,
-            clip,
-            positive,
-            negative,
-            quality_tags,
-            quality_neg if use_negative_anima_mod_guidance else "",
-            profile,
-        )
-        return mod_guidance_model
-
-    def model_and_mod_guidance_flag_for_backend(backend: str):
-        if backend == "spectrum_mod_guidance_advanced":
-            if mod_guidance_model is not model:
-                return mod_guidance_model, False
-            return model, use_mod_guidance
-        return ensure_standalone_mod_guidance_model(), False
-
-    base_sample_model, base_use_mod_guidance = model_and_mod_guidance_flag_for_backend(
-        sampler_backend
+    model_registry = EphemeralModelRegistry(
+        base_model=base_model,
+        cleanup_model=_cleanup_aio_ephemeral_model,
+        model=model,
+        model_with_lora=model_with_lora,
     )
-    if sampler_backend == "comfy_ksampler":
-        base_sample_model = _apply_aio_spectrum_model_patches_for_comfy_sampler(
-            base_sample_model,
-            clip,
-            positive,
-            sampler,
-        )
+    model_variants = ModelVariantResolver(
+        runtime=ModelVariantRuntime(
+            apply_standalone_mod_guidance=_apply_spectrum_anima_mod_guidance,
+            apply_comfy_sampler_patches=(
+                _apply_aio_spectrum_model_patches_for_comfy_sampler
+            ),
+        ),
+        registry=model_registry,
+        model=model,
+        clip=clip,
+        positive=positive,
+        negative=negative,
+        quality_tags=quality_tags,
+        quality_negative=(
+            quality_neg if use_negative_anima_mod_guidance else ""
+        ),
+        profile=profile,
+        use_mod_guidance=use_mod_guidance,
+        can_apply_standalone_mod_guidance=(
+            can_apply_standalone_mod_guidance
+        ),
+    )
+    base_sample_model, base_use_mod_guidance = (
+        model_variants.prepare_first_pass(sampler_backend, sampler)
+    )
 
     generation_state = GenerationState(
         latent=None,
@@ -778,11 +782,21 @@ def _run_aio_normalized_legacy_generation(
         height=height,
     )
     preview_settings = settings["preview"]
-    preview_images = generation_state.previews
     preview_node_id = _single_value(unique_id)
     preview_run_id = (
         f"{preview_node_id or 'aio'}:"
         f"{random.getrandbits(64):016x}"
+    )
+    preview_collector = PreviewCollector(
+        runtime=PreviewRuntime(
+            save_temp_preview=_save_aio_temp_preview_image,
+            send_preview_event=_send_aio_preview_event,
+        ),
+        previews=generation_state.previews,
+        node_id=preview_node_id,
+        run_id=preview_run_id,
+        workflow_prompt=workflow_prompt,
+        extra_pnginfo=extra_pnginfo,
     )
     cache_scope = str(unique_id or id(generator))
     first_pass_cache_key = _aio_first_pass_cache_key(
@@ -838,19 +852,6 @@ def _run_aio_normalized_legacy_generation(
         ),
     )
 
-    def add_preview(stage: str, stage_image):
-        images = _save_aio_temp_preview_image(
-            stage_image,
-            stage,
-            workflow_prompt=workflow_prompt,
-            extra_pnginfo=extra_pnginfo,
-        )
-        if images:
-            preview_images.extend(images)
-            _send_aio_preview_event(
-                preview_node_id, preview_run_id, stage, images
-            )
-
     first_pass_stage = AIOFirstPassStage(
         runtime=FirstPassRuntime(
             get_cache=_get_aio_first_pass_cache,
@@ -864,7 +865,7 @@ def _run_aio_normalized_legacy_generation(
         cache_key=first_pass_cache_key,
         use_mod_guidance=base_use_mod_guidance,
         add_preview=(
-            add_preview
+            preview_collector.add
             if preview_settings["intermediate_images"]
             else None
         ),
@@ -877,7 +878,7 @@ def _run_aio_normalized_legacy_generation(
         )
         first_pass_stage.run(generation_request, generation_state)
         highres_model, highres_use_mod_guidance = (
-            model_and_mod_guidance_flag_for_backend(highres_backend)
+            model_variants.for_backend(highres_backend)
             if will_run_highres
             else (model, False)
         )
@@ -893,7 +894,7 @@ def _run_aio_normalized_legacy_generation(
                 run_highres=_run_aio_highres_stage,
             ),
             use_mod_guidance=highres_use_mod_guidance,
-            add_preview=add_preview,
+            add_preview=preview_collector.add,
             preview_before_detailer=will_run_detailer,
         )
         highres_stage.validate(
@@ -902,9 +903,9 @@ def _run_aio_normalized_legacy_generation(
         )
         highres_stage.run(highres_request, generation_state)
         detailer_model = (
-            ensure_standalone_mod_guidance_model()
+            model_variants.standalone_model()
             if will_run_detailer
-            else mod_guidance_model
+            else model_variants.mod_guidance_model
         )
         detailer_request = replace(
             generation_request,
@@ -918,14 +919,14 @@ def _run_aio_normalized_legacy_generation(
                 run_detailer=_run_aio_detailer_stage,
                 image_size=_image_tensor_size,
             ),
-            add_preview=add_preview,
+            add_preview=preview_collector.add,
         )
         detailer_stage.validate(detailer_request, {})
         detailer_stage.run(detailer_request, generation_state)
         upscale_model = (
-            ensure_standalone_mod_guidance_model()
+            model_variants.standalone_model()
             if will_run_upscale
-            else mod_guidance_model
+            else model_variants.mod_guidance_model
         )
         upscale_request = replace(
             generation_request,
@@ -945,7 +946,7 @@ def _run_aio_normalized_legacy_generation(
                 can_apply_standalone_mod_guidance
                 and use_negative_anima_mod_guidance
             ),
-            add_preview=add_preview,
+            add_preview=preview_collector.add,
         )
         upscale_stage.validate(upscale_request, {})
         upscale_stage.run(upscale_request, generation_state)
@@ -957,25 +958,12 @@ def _run_aio_normalized_legacy_generation(
                 encode_image=_encode_image_with_comfy_vae,
             ),
             will_run_postprocess=will_run_postprocess,
-            add_preview=add_preview,
+            add_preview=preview_collector.add,
         )
         postprocess_stage.validate(generation_request, {})
         postprocess_stage.run(generation_request, generation_state)
     finally:
-        seen_model_ids: set[int] = set()
-        for ephemeral_model in (
-            base_sample_model,
-            mod_guidance_model,
-            model,
-            model_with_lora,
-        ):
-            if ephemeral_model is None:
-                continue
-            key = id(ephemeral_model)
-            if key in seen_model_ids:
-                continue
-            seen_model_ids.add(key)
-            _cleanup_aio_ephemeral_model(ephemeral_model, base_model)
+        model_registry.close()
 
     save_output_stage = AIOSaveOutputStage(
         runtime=SaveOutputRuntime(

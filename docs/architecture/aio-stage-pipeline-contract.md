@@ -99,6 +99,12 @@ MODEL/CLIP/VAE/tensor objects or nested mappings are deeply immutable. Mutation
 and cleanup ownership remains with the current legacy function until the
 corresponding Behavior unit migrates it.
 
+A169-08 keeps those model objects and all existing helper implementations
+unchanged while connecting request-local `ModelVariantResolver`,
+`EphemeralModelRegistry`, and `PreviewCollector` owners. The legacy orchestrator
+remains the sole production caller, stage-internal temporary models remain with
+their existing helpers, and Save/output remains after request-level cleanup.
+
 A169-01 introduced these contracts with no production caller and temporarily
 allowed exactly this one shipped module outside the runtime import closure.
 A169-02 connects the First pass stage through the contract and removes that
