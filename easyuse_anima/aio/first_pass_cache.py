@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import time
 from dataclasses import dataclass, replace
+from threading import RLock
 from typing import Any
 
 from ..common.serialization import _stable_change_key
@@ -59,6 +60,8 @@ _AIO_FIRST_PASS_CACHE: dict[
     _AIOFirstPassCacheEntry | dict[str, Any],
 ] = {}
 _AIO_FIRST_PASS_CACHE_ORDER: list[str] = []
+_AIO_FIRST_PASS_CACHE_LOCK = RLock()
+_AIO_FIRST_PASS_CACHE_GENERATION = 0
 
 
 def _clone_aio_cache_value(value):
@@ -168,23 +171,33 @@ def _aio_first_pass_cache_entry_size_bytes(entry) -> int:
 
 
 def _aio_first_pass_cache_total_bytes() -> int:
-    return sum(
-        _aio_first_pass_cache_entry_size_bytes(entry)
-        for entry in _AIO_FIRST_PASS_CACHE.values()
-    )
+    with _AIO_FIRST_PASS_CACHE_LOCK:
+        return sum(
+            _aio_first_pass_cache_entry_size_bytes(entry)
+            for entry in _AIO_FIRST_PASS_CACHE.values()
+        )
 
 
 def _clear_aio_first_pass_cache() -> None:
-    _AIO_FIRST_PASS_CACHE.clear()
-    _AIO_FIRST_PASS_CACHE_ORDER.clear()
+    global _AIO_FIRST_PASS_CACHE_GENERATION
+
+    with _AIO_FIRST_PASS_CACHE_LOCK:
+        _AIO_FIRST_PASS_CACHE_GENERATION += 1
+        _AIO_FIRST_PASS_CACHE.clear()
+        _AIO_FIRST_PASS_CACHE_ORDER.clear()
 
 
 def _set_aio_first_pass_cache_enabled(enabled: bool) -> None:
-    global _AIO_FIRST_PASS_CACHE_ENABLED
+    global _AIO_FIRST_PASS_CACHE_ENABLED, _AIO_FIRST_PASS_CACHE_GENERATION
 
-    _AIO_FIRST_PASS_CACHE_ENABLED = bool(enabled)
-    if not _AIO_FIRST_PASS_CACHE_ENABLED:
-        _clear_aio_first_pass_cache()
+    next_enabled = bool(enabled)
+    with _AIO_FIRST_PASS_CACHE_LOCK:
+        if next_enabled != _AIO_FIRST_PASS_CACHE_ENABLED:
+            _AIO_FIRST_PASS_CACHE_GENERATION += 1
+        _AIO_FIRST_PASS_CACHE_ENABLED = next_enabled
+        if not _AIO_FIRST_PASS_CACHE_ENABLED:
+            _AIO_FIRST_PASS_CACHE.clear()
+            _AIO_FIRST_PASS_CACHE_ORDER.clear()
 
 
 def _aio_first_pass_cache_now() -> float:
@@ -274,23 +287,24 @@ def _aio_first_pass_cache_key(
 
 
 def _get_aio_first_pass_cache(cache_key: str):
-    if not _AIO_FIRST_PASS_CACHE_ENABLED:
-        return None
-    entry = _AIO_FIRST_PASS_CACHE.get(cache_key)
-    if not entry:
-        return None
-    if isinstance(entry, _AIOFirstPassCacheEntry):
-        now = _aio_first_pass_cache_now()
-        if now - entry.created_at >= AIO_FIRST_PASS_CACHE_TTL_SECONDS:
-            _AIO_FIRST_PASS_CACHE.pop(cache_key, None)
-            if cache_key in _AIO_FIRST_PASS_CACHE_ORDER:
-                _AIO_FIRST_PASS_CACHE_ORDER.remove(cache_key)
+    with _AIO_FIRST_PASS_CACHE_LOCK:
+        if not _AIO_FIRST_PASS_CACHE_ENABLED:
             return None
-        entry = replace(entry, last_access_at=now)
-        _AIO_FIRST_PASS_CACHE[cache_key] = entry
-    if cache_key in _AIO_FIRST_PASS_CACHE_ORDER:
-        _AIO_FIRST_PASS_CACHE_ORDER.remove(cache_key)
-    _AIO_FIRST_PASS_CACHE_ORDER.append(cache_key)
+        entry = _AIO_FIRST_PASS_CACHE.get(cache_key)
+        if not entry:
+            return None
+        if isinstance(entry, _AIOFirstPassCacheEntry):
+            now = _aio_first_pass_cache_now()
+            if now - entry.created_at >= AIO_FIRST_PASS_CACHE_TTL_SECONDS:
+                _AIO_FIRST_PASS_CACHE.pop(cache_key, None)
+                if cache_key in _AIO_FIRST_PASS_CACHE_ORDER:
+                    _AIO_FIRST_PASS_CACHE_ORDER.remove(cache_key)
+                return None
+            entry = replace(entry, last_access_at=now)
+            _AIO_FIRST_PASS_CACHE[cache_key] = entry
+        if cache_key in _AIO_FIRST_PASS_CACHE_ORDER:
+            _AIO_FIRST_PASS_CACHE_ORDER.remove(cache_key)
+        _AIO_FIRST_PASS_CACHE_ORDER.append(cache_key)
     if isinstance(entry, _AIOFirstPassCacheEntry):
         return entry.checkout()
     return (
@@ -300,8 +314,10 @@ def _get_aio_first_pass_cache(cache_key: str):
 
 
 def _put_aio_first_pass_cache(cache_key: str, latent, image) -> None:
-    if not _AIO_FIRST_PASS_CACHE_ENABLED:
-        return
+    with _AIO_FIRST_PASS_CACHE_LOCK:
+        if not _AIO_FIRST_PASS_CACHE_ENABLED:
+            return
+        generation = _AIO_FIRST_PASS_CACHE_GENERATION
     if (
         _aio_cache_pair_size_bytes(latent, image)
         > AIO_FIRST_PASS_CACHE_MAX_ENTRY_BYTES
@@ -314,16 +330,24 @@ def _put_aio_first_pass_cache(cache_key: str, latent, image) -> None:
     )
     if entry.size_bytes > AIO_FIRST_PASS_CACHE_MAX_ENTRY_BYTES:
         return
-    _AIO_FIRST_PASS_CACHE[cache_key] = entry
-    if cache_key in _AIO_FIRST_PASS_CACHE_ORDER:
-        _AIO_FIRST_PASS_CACHE_ORDER.remove(cache_key)
-    _AIO_FIRST_PASS_CACHE_ORDER.append(cache_key)
-    while _AIO_FIRST_PASS_CACHE_ORDER and (
-        len(_AIO_FIRST_PASS_CACHE_ORDER) > AIO_FIRST_PASS_CACHE_MAX_ENTRIES
-        or _aio_first_pass_cache_total_bytes() > AIO_FIRST_PASS_CACHE_MAX_BYTES
-    ):
-        old_key = _AIO_FIRST_PASS_CACHE_ORDER.pop(0)
-        _AIO_FIRST_PASS_CACHE.pop(old_key, None)
+    with _AIO_FIRST_PASS_CACHE_LOCK:
+        if (
+            not _AIO_FIRST_PASS_CACHE_ENABLED
+            or generation != _AIO_FIRST_PASS_CACHE_GENERATION
+        ):
+            return
+        _AIO_FIRST_PASS_CACHE[cache_key] = entry
+        if cache_key in _AIO_FIRST_PASS_CACHE_ORDER:
+            _AIO_FIRST_PASS_CACHE_ORDER.remove(cache_key)
+        _AIO_FIRST_PASS_CACHE_ORDER.append(cache_key)
+        while _AIO_FIRST_PASS_CACHE_ORDER and (
+            len(_AIO_FIRST_PASS_CACHE_ORDER)
+            > AIO_FIRST_PASS_CACHE_MAX_ENTRIES
+            or _aio_first_pass_cache_total_bytes()
+            > AIO_FIRST_PASS_CACHE_MAX_BYTES
+        ):
+            old_key = _AIO_FIRST_PASS_CACHE_ORDER.pop(0)
+            _AIO_FIRST_PASS_CACHE.pop(old_key, None)
 
 
 __all__ = ()

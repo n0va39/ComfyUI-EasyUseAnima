@@ -4691,6 +4691,23 @@
       },
       {
         "alias": null,
+        "bound_name": "RLock",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "threading:RLock",
+        "kind": "static_from",
+        "line": 7,
+        "name": "RLock",
+        "optional": false,
+        "requested": "threading",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/first_pass_cache.py"
+      },
+      {
+        "alias": null,
         "bound_name": "Any",
         "branch_context": [],
         "classification": "external",
@@ -4698,7 +4715,7 @@
         "conditional": false,
         "imported": "typing:Any",
         "kind": "static_from",
-        "line": 7,
+        "line": 8,
         "name": "Any",
         "optional": false,
         "requested": "typing",
@@ -4715,7 +4732,7 @@
         "conditional": false,
         "imported": "..common.serialization:_stable_change_key",
         "kind": "static_from",
-        "line": 9,
+        "line": 10,
         "name": "_stable_change_key",
         "optional": false,
         "requested": "..common.serialization",
@@ -4733,7 +4750,7 @@
         "conditional": false,
         "imported": "..infrastructure.comfy.resources:_comfy_resource_file_revision",
         "kind": "static_from",
-        "line": 10,
+        "line": 11,
         "name": "_comfy_resource_file_revision",
         "optional": false,
         "requested": "..infrastructure.comfy.resources",
@@ -4751,7 +4768,7 @@
         "conditional": false,
         "imported": "..prompt.data:_prompt_data_json_safe",
         "kind": "static_from",
-        "line": 11,
+        "line": 12,
         "name": "_prompt_data_json_safe",
         "optional": false,
         "requested": "..prompt.data",
@@ -4769,7 +4786,7 @@
         "conditional": false,
         "imported": ".model_preparation:_aio_lora_stack_signature",
         "kind": "static_from",
-        "line": 12,
+        "line": 13,
         "name": "_aio_lora_stack_signature",
         "optional": false,
         "requested": ".model_preparation",
@@ -48915,14 +48932,14 @@
       },
       {
         "is_package": false,
-        "loc": 329,
+        "loc": 353,
         "module": "easyuse_anima.aio.first_pass_cache",
-        "normalized_git_blob_sha1": "44912cfb910ce201a0f400881fb9251b523e4c1c",
+        "normalized_git_blob_sha1": "0f2fa5f9ae38c2443a10b7a8a49395de37cf8e08",
         "path": "easyuse_anima/aio/first_pass_cache.py",
         "top_level": {
           "class_count": 1,
           "function_count": 12,
-          "global_count": 8
+          "global_count": 10
         }
       },
       {
@@ -59832,9 +59849,20 @@
         "branch_context": [],
         "classification": "external",
         "conditional": false,
-        "imported": "typing:Any",
+        "imported": "threading:RLock",
         "kind": "static_from",
         "line": 7,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/first_pass_cache.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "typing:Any",
+        "kind": "static_from",
+        "line": 8,
         "optional": false,
         "role": "ordinary",
         "source": "easyuse_anima/aio/first_pass_cache.py"
@@ -65891,7 +65919,16 @@
         "column": 1,
         "context": "decorator:_AIOFirstPassCacheEntry",
         "kind": "import_time_call",
-        "line": 21,
+        "line": 22,
+        "module": "easyuse_anima/aio/first_pass_cache.py",
+        "scope": "<module>"
+      },
+      {
+        "callee": "RLock",
+        "column": 29,
+        "context": "assign:_AIO_FIRST_PASS_CACHE_LOCK",
+        "kind": "import_time_call",
+        "line": 63,
         "module": "easyuse_anima/aio/first_pass_cache.py",
         "scope": "<module>"
       },
@@ -67203,13 +67240,13 @@
       },
       {
         "kind": "dict",
-        "line": 57,
+        "line": 58,
         "module": "easyuse_anima/aio/first_pass_cache.py",
         "name": "_AIO_FIRST_PASS_CACHE"
       },
       {
         "kind": "list",
-        "line": 61,
+        "line": 62,
         "module": "easyuse_anima/aio/first_pass_cache.py",
         "name": "_AIO_FIRST_PASS_CACHE_ORDER"
       },
@@ -67582,9 +67619,18 @@
           "mutable_container"
         ],
         "initializer": "Dict",
-        "line": 57,
+        "line": 58,
         "module": "easyuse_anima/aio/first_pass_cache.py",
         "name": "_AIO_FIRST_PASS_CACHE"
+      },
+      {
+        "categories": [
+          "lock"
+        ],
+        "initializer": "RLock",
+        "line": 63,
+        "module": "easyuse_anima/aio/first_pass_cache.py",
+        "name": "_AIO_FIRST_PASS_CACHE_LOCK"
       },
       {
         "categories": [
@@ -67592,7 +67638,7 @@
           "mutable_container"
         ],
         "initializer": "List",
-        "line": 61,
+        "line": 62,
         "module": "easyuse_anima/aio/first_pass_cache.py",
         "name": "_AIO_FIRST_PASS_CACHE_ORDER"
       },

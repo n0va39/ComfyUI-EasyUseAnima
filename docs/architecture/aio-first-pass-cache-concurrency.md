@@ -5,7 +5,7 @@
 - PR type: Behavior
 - Baseline: `dev` commit
   `beade4ff73575c927efd50dc5b125f9de120c392`
-- State: INVENTORY
+- State: VALIDATED
 
 CACHE-05a makes process-local first-pass cache mutation thread-safe without
 changing key, entry, budget, TTL, clone, or hit/miss behavior. CACHE-05b
@@ -45,10 +45,11 @@ review and rollback boundaries.
 
 ## Target concurrency contract
 
-- Add one private module-owned reentrant lock. It is not exported or aliased
-  through root.
+- Add one private module-owned reentrant lock and one private monotonic mutation
+  generation. Neither is exported or aliased through root.
 - Clear and enable/disable transitions linearize under the lock. Disabling sets
-  disabled and clears mapping/order in the same critical section.
+  disabled and clears mapping/order in the same critical section. Explicit
+  clear and enabled-state transitions advance the mutation generation.
 - Total-byte reads observe one locked mapping snapshot.
 - Get linearizes while locked:
   - disabled/missing/expired decisions;
@@ -58,11 +59,12 @@ review and rollback boundaries.
 - Checkout cloning occurs after the lock is released. A hit linearized before a
   later clear/disable may finish its independent checkout; clear/disable does
   not wait for tensor cloning.
-- Put performs an initial locked enabled check, then size estimation and
-  immutable capture outside the lock. It rechecks enabled under the lock before
-  insertion.
-- Disable that completes during an in-flight capture wins: the captured value
-  is discarded and the cache remains empty/disabled.
+- Put performs an initial locked enabled/generation snapshot, then size
+  estimation and immutable capture outside the lock. It rechecks both under the
+  lock before insertion.
+- Clear or disable that completes during an in-flight capture wins: the
+  captured value is discarded. A disable/re-enable cycle cannot admit a stale
+  capture from the prior enabled generation.
 - Insert/overwrite, LRU update, and all count/byte evictions occur in one final
   critical section. Concurrent same-key puts leave at most one key/order entry.
 - Existing disabled zero-work behavior remains: a put that observes disabled at
@@ -111,12 +113,13 @@ Forbidden:
 
 Focused validation must prove:
 
-- lock ownership is private and root aliases stay unchanged;
+- lock/generation ownership is private and root aliases stay unchanged;
 - clear/disable/re-enable and total-byte reads preserve existing results;
 - get/put/eviction maintain mapping/order/count/byte invariants under bounded
   concurrent hit/put activity;
 - checkout and capture cloning do not hold the shared lock;
-- disable completed during in-flight capture prevents the final insert;
+- clear or disable/re-enable completed during in-flight capture prevents the
+  final stale insert;
 - existing TTL/LRU, resource revision, disabled zero-work, clone/mutation
   isolation, benchmark, stage caller, analyzer, and import boundary contracts
   remain valid.
@@ -124,3 +127,25 @@ Focused validation must prove:
 Use bounded events/barriers with explicit timeouts; do not start a server or
 long-running worker. Run one official full validation only after focused checks
 pass.
+
+## Validation result
+
+Validated on the CACHE-05a worktree:
+
+- private lock/generation ownership, clear and disable/re-enable capture
+  barriers, checkout/capture outside-lock behavior, bounded concurrent
+  hit/put/eviction invariants, and all existing cache contracts: 25 focused
+  cache tests passed in 0.009 seconds;
+- existing bounded clone/mutation benchmark: 4 focused tests passed;
+- unchanged First-pass stage caller: 5 focused tests passed;
+- targeted Ruff 0.15.22: changed production file passed all rules and changed
+  test file passed fatal rules;
+- targeted Pyright 1.1.411: changed production file passed with 0 errors;
+- Python backend analyzer: 18 focused tests passed;
+- Python import-boundary gate: 6 completed package groups, 0 violations; and
+- official full: 1,120 Python tests plus 112 frontend JavaScript files passed,
+  with the reviewed Pyright baseline unchanged at 88 files and 14 errors.
+
+No metrics, key/resource revision, entry/TTL/budget/clone/storage, caller/root
+alias, server, model, browser, frontend, workflow, or user-instance behavior
+was changed.
