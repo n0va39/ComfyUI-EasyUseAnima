@@ -28,13 +28,15 @@ from .easyuse_anima.settings.service import (
     resolve_autocomplete_source,
     resolve_prompt_translation_settings,
 )
-from .autocomplete_dataset import (
+from .easyuse_anima.autocomplete.dataset import (
     autocomplete_status,
     available_autocomplete_sources,
-    classify_prompt_text,
     resolve_autocomplete_source as resolve_autocomplete_source_path,
+)
+from .easyuse_anima.autocomplete.search import (
     search_autocomplete,
 )
+from .autocomplete_dataset import classify_prompt_text
 from .wildcard_engine import list_wildcards, resolve_wildcard_roots
 from .easyuse_anima.translation.contracts import (
     PromptTranslationError,

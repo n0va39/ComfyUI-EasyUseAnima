@@ -63,7 +63,7 @@ import them.
 | `settings.py` | Explicit direct re-export shim (D-09) | `easyuse_anima.settings.schema`, `.repository`, and `.service` | #163, #186 D-09 | Existing 0.5.2 module-owned public surface; exact `__all__` and identity fixture | External/legacy imports and settings compatibility tests; production callers use canonical modules | Unscheduled; first canonical+shim release N not yet recorded, then N+1 gate and settings migration/round-trip |
 | `storage.py` | Explicit direct re-export shim (D-08) | `easyuse_anima.infrastructure.filesystem.atomic_json` and `.paths` | #163, #186 D-08 | Existing 0.5.2 supported module-owned public surface; exact `__all__` and identity fixture | External/legacy imports and storage compatibility tests; production callers use canonical modules | Unscheduled; first canonical+shim release N not yet recorded, then N+1 gate and last-known-good/atomic-write parity |
 | `autocomplete_index.py` | Explicit direct re-export shim (D-11a) | `easyuse_anima.autocomplete.index` | #162, #186 D-11a | Existing indexed-search surface; exact seven-name `__all__` and identity fixture | External/legacy imports; `autocomplete_dataset.py` now uses the canonical owner | Unscheduled; first canonical+shim release N not yet recorded, then N+1 gate and index/ranking/rebuild parity |
-| `autocomplete_dataset.py` | Current implementation; planned autocomplete shim | `easyuse_anima.autocomplete.*` | #162, #186 D-11 | Existing 0.5.2 surface; convert in D-11/D-14 | `api.py`, autocomplete/frontend API tests | Unscheduled; N+1 gate and result/ranking/API parity |
+| `autocomplete_dataset.py` | Partial explicit compatibility module after D-11b; prompt classification remains root-owned | `easyuse_anima.autocomplete.dataset` and `.search`; classification target waits for D-13 | #162, #186 D-11 | Existing 0.5.2 dataset/search surface canonicalized in PR #386 with direct identity aliases; final shim waits for root `anima_prompt` removal | External/legacy imports and prompt tests; `api.py` uses canonical dataset/search and root classification | Unscheduled; D-13 dependency removal, final identity surface, N+1 gate, and classification/result/API parity |
 | `wildcard_engine.py` | Current implementation; planned wildcard shim | `easyuse_anima.wildcard.*` | #184, #186 D-12 | Existing 0.5.2 surface; convert in D-12/D-14 | root entrypoint, `nodes.py`, `api.py`, wildcard/workflow tests | Unscheduled; N+1 gate and seed/expansion/workflow parity |
 | `prompt_translation.py` | Explicit direct re-export shim (D-01) | `easyuse_anima.translation.*` | #164, #186 D-01 | Existing 0.5.2 supported module-owned public surface; exact `__all__` and identity fixture | External/legacy imports and translation compatibility tests; production callers use canonical modules | Unscheduled; first canonical+shim release N not yet recorded, then N+1 gate and provider-off/API parity |
 | `anima_prompt/` package | Current implementation; planned package shim | `easyuse_anima.prompt.anima.*` | #184, #186 D-13 | Existing 0.5.2 surface; convert in D-13/D-14 | `nodes.py`, `autocomplete_dataset.py`, prompt tests | Unscheduled; N+1 gate and prompt correction/parser parity |
@@ -1445,7 +1445,15 @@ EasyUseAnimaWildcard
 - Confirmed current API consumers use `autocomplete_status`,
   `available_autocomplete_sources`, `classify_prompt_text`,
   `resolve_autocomplete_source`, and `search_autocomplete`.
-- Canonical target: `easyuse_anima.autocomplete` feature modules after #162.
+- D-11b moves source metadata, CSV parsing, immutable snapshots,
+  single-flight cache, status, indexed-search orchestration, and exact fallback
+  ranking to `easyuse_anima.autocomplete.dataset` and `.search`.
+- The root module directly aliases the 13 supported dataset names and
+  `search_autocomplete` to the canonical owners. It retains prompt
+  classification only because that implementation still imports root
+  `anima_prompt`.
+- Canonical classification and the final explicit root shim wait for D-13;
+  D-11b does not add a canonical-to-root import or G-03 exception.
 - Removal gate: ranking/classification/source/result parity, API parity,
   canonical internal imports, public snapshot, and archive closure.
 
