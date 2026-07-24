@@ -32,6 +32,7 @@ from .first_pass_cache import (
     _put_aio_first_pass_cache,
 )
 from .generation_defaults import AIO_USDU_PROMPT_FULL
+from .generation_detailer_stage import AIODetailerStage, DetailerRuntime
 from .generation_first_pass import AIOFirstPassStage, FirstPassRuntime
 from .generation_highres import AIOHighresStage, HighresRuntime
 from .generation_normalization import (
@@ -904,22 +905,30 @@ def _run_aio_normalized_legacy_generation(
         image = generation_state.image
         width = generation_state.width
         height = generation_state.height
-        image, detailer_metadata = _run_aio_detailer_stage(
+        detailer_model = (
             ensure_standalone_mod_guidance_model()
             if will_run_detailer
-            else mod_guidance_model,
-            clip,
-            vae,
-            positive,
-            negative,
-            image,
-            sampler,
-            settings["detailer"],
-            add_preview if preview_settings["intermediate_images"] else None,
+            else mod_guidance_model
         )
-        stage_metadata["detailer"] = detailer_metadata
-        if detailer_metadata.get("enabled"):
-            width, height = _image_tensor_size(image, width, height)
+        detailer_request = replace(
+            generation_request,
+            resources=replace(
+                generation_request.resources,
+                model=detailer_model,
+            ),
+        )
+        detailer_stage = AIODetailerStage(
+            runtime=DetailerRuntime(
+                run_detailer=_run_aio_detailer_stage,
+                image_size=_image_tensor_size,
+            ),
+            add_preview=add_preview,
+        )
+        detailer_stage.validate(detailer_request, {})
+        detailer_stage.run(detailer_request, generation_state)
+        image = generation_state.image
+        width = generation_state.width
+        height = generation_state.height
         image, upscale_metadata = _run_aio_upscale_stage(
             ensure_standalone_mod_guidance_model()
             if will_run_upscale

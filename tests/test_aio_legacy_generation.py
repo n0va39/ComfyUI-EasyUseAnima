@@ -1940,6 +1940,30 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
             ],
         )
 
+    def test_detailer_stage_failure_keeps_outer_model_cleanup_boundary(self):
+        trace: list[str] = []
+        with patch.object(
+            legacy_generation.AIODetailerStage,
+            "run",
+            side_effect=RuntimeError("detailer stage failed"),
+        ):
+            with self.assertRaisesRegex(RuntimeError, "detailer stage failed"):
+                self._execute_case(
+                    upscale_enabled=False,
+                    intermediate_preview=False,
+                    unique_id=None,
+                    trace_sink=trace,
+                )
+
+        self.assertEqual(
+            trace[-3:],
+            [
+                "cleanup:sample",
+                "cleanup:model",
+                "cleanup:lora",
+            ],
+        )
+
     def _execute_case(
         self,
         *,
@@ -2033,6 +2057,11 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
                 highres=SimpleNamespace(
                     to_dict=lambda: copy.deepcopy(
                         normalized_settings["highres"]
+                    )
+                ),
+                detailer=SimpleNamespace(
+                    to_dict=lambda: copy.deepcopy(
+                        normalized_settings["detailer"]
                     )
                 ),
             )
