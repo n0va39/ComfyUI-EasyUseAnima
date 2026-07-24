@@ -88,6 +88,7 @@ PACKAGE_MODULES = (
     "easyuse_anima.translation.service",
     "easyuse_anima.wildcard",
     "easyuse_anima.wildcard.models",
+    "easyuse_anima.wildcard.snapshot",
     "easyuse_anima.wildcard.sources",
     "easyuse_anima.seed.execution_identity",
     "easyuse_anima.seed.execution_session",

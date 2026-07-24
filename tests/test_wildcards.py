@@ -13,6 +13,7 @@ from easyuse_anima.nodes import wildcard_nodes
 from easyuse_anima.prompt import advanced as prompt_advanced
 from easyuse_anima.seed import compatibility as seed_compatibility
 from easyuse_anima.wildcard import models as wildcard_models
+from easyuse_anima.wildcard import snapshot as wildcard_snapshot
 from easyuse_anima.wildcard import sources as wildcard_sources
 from nodes import (
     EasyUseAnimaPromptStudioAdvanced,
@@ -34,6 +35,17 @@ from wildcard_engine import (
 
 
 class WildcardEngineTests(unittest.TestCase):
+    def test_root_snapshot_surface_has_canonical_identity(self):
+        self.assertEqual(wildcard_snapshot.__all__, ())
+        self.assertIs(
+            wildcard_engine._WildcardSnapshot,
+            wildcard_snapshot._WildcardSnapshot,
+        )
+        self.assertIs(
+            wildcard_engine._build_wildcard_snapshot,
+            wildcard_snapshot._build_wildcard_snapshot,
+        )
+
     def test_root_source_surface_has_canonical_identity(self):
         expected = (
             "WILDCARD_DIR_NAME",

@@ -691,9 +691,9 @@ ignored/
 
         self.assertEqual(analyzer.render_json(report), expected_text)
         self.assertEqual(report["schema_version"], 2)
-        self.assertEqual(report["inventory"]["module_count"], 128)
-        self.assertEqual(len(report["registry"]["shipped_python_modules"]), 128)
-        self.assertEqual(len(report["registry"]["runtime_import_closure"]), 128)
+        self.assertEqual(report["inventory"]["module_count"], 129)
+        self.assertEqual(len(report["registry"]["shipped_python_modules"]), 129)
+        self.assertEqual(len(report["registry"]["runtime_import_closure"]), 129)
         self.assertEqual(
             report["registry"]["entry_modules"],
             [
@@ -962,6 +962,27 @@ ignored/
         )
         self.assertIn(
             {
+                "from": "wildcard_engine.py",
+                "to": "easyuse_anima/wildcard/snapshot.py",
+            },
+            report["imports"]["module_graph"],
+        )
+        self.assertIn(
+            {
+                "from": "easyuse_anima/wildcard/snapshot.py",
+                "to": "easyuse_anima/wildcard/models.py",
+            },
+            report["imports"]["module_graph"],
+        )
+        self.assertIn(
+            {
+                "from": "easyuse_anima/wildcard/snapshot.py",
+                "to": "easyuse_anima/wildcard/sources.py",
+            },
+            report["imports"]["module_graph"],
+        )
+        self.assertIn(
+            {
                 "from": "api.py",
                 "to": "easyuse_anima/wildcard/sources.py",
             },
@@ -970,6 +991,7 @@ ignored/
         for module in (
             "easyuse_anima/wildcard/__init__.py",
             "easyuse_anima/wildcard/models.py",
+            "easyuse_anima/wildcard/snapshot.py",
             "easyuse_anima/wildcard/sources.py",
         ):
             with self.subTest(module=module):
@@ -1038,6 +1060,12 @@ ignored/
         self.assertEqual(
             mutable_by_name[("wildcard_engine.py", "_SNAPSHOT_CACHE")],
             "dict",
+        )
+        self.assertFalse(
+            any(
+                module == "easyuse_anima/wildcard/snapshot.py"
+                for module, _name in mutable_by_name
+            )
         )
         owner_by_name = {
             (item["module"], item["name"]): set(item["categories"])
