@@ -5,7 +5,7 @@
 - PR type: Behavior
 - Baseline: `dev` commit
   `7de7d604a40627abcb3bfcb38bc6918424d7093f`
-- State: INVENTORY
+- State: VALIDATED
 
 CACHE-04b invalidates first-pass cache entries when a resolved UNET, VAE,
 text-encoder, or LoRA file changes without changing its logical ComfyUI name.
@@ -129,3 +129,26 @@ Focused validation must prove:
 Run one official full validation only after focused checks pass. Server startup,
 model loading/execution, browser smoke, and user-instance reflection are not
 required for this deterministic adapter/key Behavior.
+
+## Validation result
+
+Validated on the CACHE-04b worktree:
+
+- exact category/name forwarding, canonical path/size/`mtime_ns`, legacy
+  resolver support, and safe host/helper/path/stat fallbacks: 4 focused Comfy
+  resource adapter tests passed;
+- version-2 payload, base and ordered LoRA revisions, unchanged-key stability,
+  and path/size/`mtime_ns` invalidation: 21 focused cache tests passed;
+- unchanged First-pass stage hit/miss consumer: 5 focused tests passed;
+- hostless package import: 1 focused test passed;
+- targeted Ruff 0.15.22: changed production files passed all rules and changed
+  test files passed fatal rules;
+- targeted Pyright 1.1.411: changed production files passed with 0 errors;
+- Python backend analyzer: 18 focused tests passed;
+- Python import-boundary gate: 6 completed package groups, 0 violations; and
+- official full: 1,116 Python tests plus 112 frontend JavaScript files passed,
+  with the reviewed Pyright baseline unchanged at 88 files and 14 errors.
+
+No resource loader/context schema, caller/root alias, entry lifecycle, cache
+budget/clone/storage, concurrency, metrics, server, model, browser, frontend,
+workflow, or user-instance behavior was changed.

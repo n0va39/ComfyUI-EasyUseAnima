@@ -7,6 +7,7 @@ from dataclasses import dataclass, replace
 from typing import Any
 
 from ..common.serialization import _stable_change_key
+from ..infrastructure.comfy.resources import _comfy_resource_file_revision
 from ..prompt.data import _prompt_data_json_safe
 from .model_preparation import _aio_lora_stack_signature
 
@@ -190,6 +191,32 @@ def _aio_first_pass_cache_now() -> float:
     return time.monotonic()
 
 
+def _aio_first_pass_resource_revision(
+    resource_info,
+    lora_signature,
+) -> dict[str, Any]:
+    info = resource_info if isinstance(resource_info, dict) else {}
+
+    def revision(folder_name: str, value) -> dict[str, int | str] | None:
+        name = str(value or "").strip()
+        if not name:
+            return None
+        return _comfy_resource_file_revision(folder_name, name)
+
+    lora_revisions = []
+    if isinstance(lora_signature, list):
+        for entry in lora_signature:
+            name = entry.get("name") if isinstance(entry, dict) else ""
+            lora_revisions.append(revision("loras", name))
+
+    return {
+        "unet": revision("diffusion_models", info.get("unet_name")),
+        "vae": revision("vae", info.get("vae_name")),
+        "clip": revision("text_encoders", info.get("clip_name")),
+        "loras": lora_revisions,
+    }
+
+
 def _aio_first_pass_cache_key(
     *,
     cache_scope: str,
@@ -206,19 +233,23 @@ def _aio_first_pass_cache_key(
     width: int,
     height: int,
 ) -> str:
+    resource_info = context.get("resource_info", {})
+    lora_signature = _aio_lora_stack_signature(lora_stack)
     return _stable_change_key({
         "schema": "easyuse_anima_aio_first_pass_cache",
-        "version": 1,
+        "version": 2,
         "scope": str(cache_scope or ""),
         "mode": settings.get("mode"),
-        "resource_info": _prompt_data_json_safe(
-            context.get("resource_info", {})
+        "resource_info": _prompt_data_json_safe(resource_info),
+        "resource_revision": _aio_first_pass_resource_revision(
+            resource_info,
+            lora_signature,
         ),
         "input_settings": _prompt_data_json_safe(
             context.get("input_settings", {})
         ),
         "prompt_data": _prompt_data_json_safe(prompt_data),
-        "lora_stack": _aio_lora_stack_signature(lora_stack),
+        "lora_stack": lora_signature,
         "sampler": _prompt_data_json_safe(
             settings.get("sampler", {})
         ),

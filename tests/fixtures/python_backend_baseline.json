@@ -4726,6 +4726,24 @@
       },
       {
         "alias": null,
+        "bound_name": "_comfy_resource_file_revision",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": "..infrastructure.comfy.resources:_comfy_resource_file_revision",
+        "kind": "static_from",
+        "line": 10,
+        "name": "_comfy_resource_file_revision",
+        "optional": false,
+        "requested": "..infrastructure.comfy.resources",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/first_pass_cache.py",
+        "target": "easyuse_anima/infrastructure/comfy/resources.py"
+      },
+      {
+        "alias": null,
         "bound_name": "_prompt_data_json_safe",
         "branch_context": [],
         "classification": "internal",
@@ -4733,7 +4751,7 @@
         "conditional": false,
         "imported": "..prompt.data:_prompt_data_json_safe",
         "kind": "static_from",
-        "line": 10,
+        "line": 11,
         "name": "_prompt_data_json_safe",
         "optional": false,
         "requested": "..prompt.data",
@@ -4751,7 +4769,7 @@
         "conditional": false,
         "imported": ".model_preparation:_aio_lora_stack_signature",
         "kind": "static_from",
-        "line": 11,
+        "line": 12,
         "name": "_aio_lora_stack_signature",
         "optional": false,
         "requested": ".model_preparation",
@@ -13503,6 +13521,23 @@
       },
       {
         "alias": null,
+        "bound_name": "Path",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "pathlib:Path",
+        "kind": "static_from",
+        "line": 6,
+        "name": "Path",
+        "optional": false,
+        "requested": "pathlib",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/infrastructure/comfy/resources.py"
+      },
+      {
+        "alias": null,
         "bound_name": "Any",
         "branch_context": [],
         "classification": "external",
@@ -13510,7 +13545,7 @@
         "conditional": false,
         "imported": "typing:Any",
         "kind": "static_from",
-        "line": 6,
+        "line": 7,
         "name": "Any",
         "optional": false,
         "requested": "typing",
@@ -13527,7 +13562,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 10
+            "line": 11
           }
         ],
         "classification": "external",
@@ -13535,7 +13570,7 @@
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 11,
+        "line": 12,
         "name": null,
         "optional": true,
         "requested": "folder_paths",
@@ -13552,7 +13587,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 22
+            "line": 23
           }
         ],
         "classification": "external",
@@ -13560,12 +13595,37 @@
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 23,
+        "line": 24,
         "name": null,
         "optional": true,
         "requested": "folder_paths",
         "role": "optional_dependency",
         "scope": "_folder_path_names",
+        "source": "easyuse_anima/infrastructure/comfy/resources.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "folder_paths",
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": false,
+            "kind": "try",
+            "line": 43
+          }
+        ],
+        "classification": "external",
+        "column": 8,
+        "conditional": true,
+        "imported": "folder_paths",
+        "kind": "static_import",
+        "line": 44,
+        "name": null,
+        "optional": true,
+        "requested": "folder_paths",
+        "role": "optional_dependency",
+        "scope": "_comfy_resource_file_revision",
         "source": "easyuse_anima/infrastructure/comfy/resources.py"
       },
       {
@@ -46767,6 +46827,10 @@
       },
       {
         "from": "easyuse_anima/aio/first_pass_cache.py",
+        "to": "easyuse_anima/infrastructure/comfy/resources.py"
+      },
+      {
+        "from": "easyuse_anima/aio/first_pass_cache.py",
         "to": "easyuse_anima/prompt/data.py"
       },
       {
@@ -48851,13 +48915,13 @@
       },
       {
         "is_package": false,
-        "loc": 298,
+        "loc": 329,
         "module": "easyuse_anima.aio.first_pass_cache",
-        "normalized_git_blob_sha1": "2fe838a28380587be4870c8e7f8f3e9e6ea22377",
+        "normalized_git_blob_sha1": "44912cfb910ce201a0f400881fb9251b523e4c1c",
         "path": "easyuse_anima/aio/first_pass_cache.py",
         "top_level": {
           "class_count": 1,
-          "function_count": 11,
+          "function_count": 12,
           "global_count": 8
         }
       },
@@ -49367,13 +49431,13 @@
       },
       {
         "is_package": false,
-        "loc": 80,
+        "loc": 127,
         "module": "easyuse_anima.infrastructure.comfy.resources",
-        "normalized_git_blob_sha1": "ddfdbefea28e0b53e34c48c1301f17a5a32c3bdd",
+        "normalized_git_blob_sha1": "d2459fb9c4408d70eeafbaa26a9a877c8ffa3639",
         "path": "easyuse_anima/infrastructure/comfy/resources.py",
         "top_level": {
           "class_count": 0,
-          "function_count": 6,
+          "function_count": 7,
           "global_count": 1
         }
       },
@@ -61974,9 +62038,20 @@
         "branch_context": [],
         "classification": "external",
         "conditional": false,
-        "imported": "typing:Any",
+        "imported": "pathlib:Path",
         "kind": "static_from",
         "line": 6,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/infrastructure/comfy/resources.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "typing:Any",
+        "kind": "static_from",
+        "line": 7,
         "optional": false,
         "role": "ordinary",
         "source": "easyuse_anima/infrastructure/comfy/resources.py"
@@ -61988,14 +62063,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 10
+            "line": 11
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 11,
+        "line": 12,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/infrastructure/comfy/resources.py"
@@ -62007,14 +62082,33 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 22
+            "line": 23
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 23,
+        "line": 24,
+        "optional": true,
+        "role": "optional_dependency",
+        "source": "easyuse_anima/infrastructure/comfy/resources.py"
+      },
+      {
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": false,
+            "kind": "try",
+            "line": 43
+          }
+        ],
+        "classification": "external",
+        "conditional": true,
+        "imported": "folder_paths",
+        "kind": "static_import",
+        "line": 44,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/infrastructure/comfy/resources.py"
@@ -64701,14 +64795,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 10
+            "line": 11
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 11,
+        "line": 12,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/infrastructure/comfy/resources.py"
@@ -64720,14 +64814,33 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 22
+            "line": 23
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 23,
+        "line": 24,
+        "optional": true,
+        "role": "optional_dependency",
+        "source": "easyuse_anima/infrastructure/comfy/resources.py"
+      },
+      {
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": false,
+            "kind": "try",
+            "line": 43
+          }
+        ],
+        "classification": "external",
+        "conditional": true,
+        "imported": "folder_paths",
+        "kind": "static_import",
+        "line": 44,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/infrastructure/comfy/resources.py"
@@ -65778,7 +65891,7 @@
         "column": 1,
         "context": "decorator:_AIOFirstPassCacheEntry",
         "kind": "import_time_call",
-        "line": 20,
+        "line": 21,
         "module": "easyuse_anima/aio/first_pass_cache.py",
         "scope": "<module>"
       },
@@ -67090,13 +67203,13 @@
       },
       {
         "kind": "dict",
-        "line": 56,
+        "line": 57,
         "module": "easyuse_anima/aio/first_pass_cache.py",
         "name": "_AIO_FIRST_PASS_CACHE"
       },
       {
         "kind": "list",
-        "line": 60,
+        "line": 61,
         "module": "easyuse_anima/aio/first_pass_cache.py",
         "name": "_AIO_FIRST_PASS_CACHE_ORDER"
       },
@@ -67469,7 +67582,7 @@
           "mutable_container"
         ],
         "initializer": "Dict",
-        "line": 56,
+        "line": 57,
         "module": "easyuse_anima/aio/first_pass_cache.py",
         "name": "_AIO_FIRST_PASS_CACHE"
       },
@@ -67479,7 +67592,7 @@
           "mutable_container"
         ],
         "initializer": "List",
-        "line": 60,
+        "line": 61,
         "module": "easyuse_anima/aio/first_pass_cache.py",
         "name": "_AIO_FIRST_PASS_CACHE_ORDER"
       },
