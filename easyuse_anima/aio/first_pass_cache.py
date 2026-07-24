@@ -10,18 +10,27 @@ from ..prompt.data import _prompt_data_json_safe
 from .model_preparation import _aio_lora_stack_signature
 
 AIO_FIRST_PASS_CACHE_MAX_ENTRIES = 2
+AIO_FIRST_PASS_CACHE_MAX_BYTES = 512 * 1024 * 1024
+AIO_FIRST_PASS_CACHE_MAX_ENTRY_BYTES = 256 * 1024 * 1024
 
 
 @dataclass(frozen=True, slots=True)
 class _AIOFirstPassCacheEntry:
     latent: Any
     image: Any
+    size_bytes: int
 
     @classmethod
     def capture(cls, latent, image) -> _AIOFirstPassCacheEntry:
+        latent_snapshot = _clone_aio_cache_value(latent)
+        image_snapshot = _clone_aio_cache_value(image)
         return cls(
-            latent=_clone_aio_cache_value(latent),
-            image=_clone_aio_cache_value(image),
+            latent=latent_snapshot,
+            image=image_snapshot,
+            size_bytes=_aio_cache_pair_size_bytes(
+                latent_snapshot,
+                image_snapshot,
+            ),
         )
 
     def checkout(self):
@@ -61,6 +70,94 @@ def _clone_aio_cache_value(value):
                 pass
         return tensor
     return value
+
+
+def _aio_cache_value_size_bytes(
+    value,
+    *,
+    _seen: set[int] | None = None,
+) -> int:
+    seen = set() if _seen is None else _seen
+    identity = id(value)
+    if identity in seen:
+        return 0
+    seen.add(identity)
+
+    if isinstance(value, dict):
+        return sum(
+            _aio_cache_value_size_bytes(item, _seen=seen)
+            for item in value.values()
+        )
+    if isinstance(value, (list, tuple)):
+        return sum(
+            _aio_cache_value_size_bytes(item, _seen=seen)
+            for item in value
+        )
+    if isinstance(value, (bytes, bytearray)):
+        return len(value)
+    if isinstance(value, memoryview):
+        return value.nbytes
+
+    try:
+        numel = getattr(value, "numel", None)
+        element_size = getattr(value, "element_size", None)
+    except Exception:
+        numel = None
+        element_size = None
+    if callable(numel) and callable(element_size):
+        try:
+            count = numel()
+            item_bytes = element_size()
+            if (
+                isinstance(count, int)
+                and not isinstance(count, bool)
+                and isinstance(item_bytes, int)
+                and not isinstance(item_bytes, bool)
+                and count >= 0
+                and item_bytes >= 0
+            ):
+                return count * item_bytes
+        except Exception:
+            pass
+
+    try:
+        nbytes = getattr(value, "nbytes", None)
+    except Exception:
+        nbytes = None
+    if callable(nbytes):
+        try:
+            nbytes = nbytes()
+        except Exception:
+            nbytes = None
+    if isinstance(nbytes, int) and not isinstance(nbytes, bool):
+        return max(0, nbytes)
+    return 0
+
+
+def _aio_cache_pair_size_bytes(latent, image) -> int:
+    seen: set[int] = set()
+    return (
+        _aio_cache_value_size_bytes(latent, _seen=seen)
+        + _aio_cache_value_size_bytes(image, _seen=seen)
+    )
+
+
+def _aio_first_pass_cache_entry_size_bytes(entry) -> int:
+    if isinstance(entry, _AIOFirstPassCacheEntry):
+        return entry.size_bytes
+    if isinstance(entry, dict):
+        return _aio_cache_pair_size_bytes(
+            entry.get("latent"),
+            entry.get("image"),
+        )
+    return 0
+
+
+def _aio_first_pass_cache_total_bytes() -> int:
+    return sum(
+        _aio_first_pass_cache_entry_size_bytes(entry)
+        for entry in _AIO_FIRST_PASS_CACHE.values()
+    )
 
 
 def _clear_aio_first_pass_cache() -> None:
@@ -136,12 +233,22 @@ def _get_aio_first_pass_cache(cache_key: str):
 
 
 def _put_aio_first_pass_cache(cache_key: str, latent, image) -> None:
+    if (
+        _aio_cache_pair_size_bytes(latent, image)
+        > AIO_FIRST_PASS_CACHE_MAX_ENTRY_BYTES
+    ):
+        return
     entry = _AIOFirstPassCacheEntry.capture(latent, image)
+    if entry.size_bytes > AIO_FIRST_PASS_CACHE_MAX_ENTRY_BYTES:
+        return
     _AIO_FIRST_PASS_CACHE[cache_key] = entry
     if cache_key in _AIO_FIRST_PASS_CACHE_ORDER:
         _AIO_FIRST_PASS_CACHE_ORDER.remove(cache_key)
     _AIO_FIRST_PASS_CACHE_ORDER.append(cache_key)
-    while len(_AIO_FIRST_PASS_CACHE_ORDER) > AIO_FIRST_PASS_CACHE_MAX_ENTRIES:
+    while _AIO_FIRST_PASS_CACHE_ORDER and (
+        len(_AIO_FIRST_PASS_CACHE_ORDER) > AIO_FIRST_PASS_CACHE_MAX_ENTRIES
+        or _aio_first_pass_cache_total_bytes() > AIO_FIRST_PASS_CACHE_MAX_BYTES
+    ):
         old_key = _AIO_FIRST_PASS_CACHE_ORDER.pop(0)
         _AIO_FIRST_PASS_CACHE.pop(old_key, None)
 

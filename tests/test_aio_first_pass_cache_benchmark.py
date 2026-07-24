@@ -33,6 +33,15 @@ class AIOFirstPassCacheBenchmarkTests(unittest.TestCase):
     def tearDown(self):
         first_pass_cache._clear_aio_first_pass_cache()
 
+    def test_fake_tensor_exposes_deterministic_payload_bytes(self):
+        tensor = benchmark.BenchmarkTensor.filled(
+            32,
+            0x11,
+            benchmark.CloneCounters(),
+        )
+
+        self.assertEqual(tensor.nbytes, 32)
+
     def test_report_freezes_clone_cost_and_bidirectional_isolation(self):
         report = benchmark.run_benchmark(
             payload_bytes=32,

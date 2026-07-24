@@ -5,7 +5,7 @@
 - PR type: Behavior
 - Baseline: `dev` commit
   `2b54ee0a803dfdf90a5da0c36147258298659d2f`
-- State: INVENTORY
+- State: VALIDATED
 
 A169-CACHE-03 adds deterministic payload-byte accounting, a total cache
 budget, and a single-entry cap. It leaves time, invalidation, metrics,
@@ -67,12 +67,14 @@ CACHE-06 may revise them with model-backed 4K/RSS evidence in a separate PR.
 
 Put behavior:
 
-1. capture caller values with the unchanged clone contract;
-2. record deterministic entry bytes;
-3. if entry bytes exceed the single cap, skip insertion without mutating
-   mapping/order or an existing same-key entry;
-4. otherwise insert/replace and refresh LRU order; and
-5. evict oldest entries until both count and total-byte budgets are satisfied.
+1. preflight caller payload bytes;
+2. if preflight bytes exceed the single cap, skip before cloning without
+   mutating mapping/order or an existing same-key entry;
+3. capture admitted caller values with the unchanged clone contract and record
+   deterministic cache-owned entry bytes;
+4. defensively skip if the captured entry exceeds the cap;
+5. otherwise insert/replace and refresh LRU order; and
+6. evict oldest entries until both count and total-byte budgets are satisfied.
 
 Get, key, clone, clear, root aliases, return shape, and stage metadata remain
 unchanged.
@@ -120,7 +122,7 @@ Focused validation must prove:
 - byte estimation for nested tensor/bytes values, shared identities, failures,
   and unsupported values;
 - canonical entry size matches captured payloads;
-- entries over 256 MiB are skipped without mutating mapping/order;
+- entries over 256 MiB are skipped without cloning or mutating mapping/order;
 - total budget and count cap evict oldest entries independently and together;
 - overwrite and legacy mapping fallback participate in byte accounting;
 - clone count, logical copied bytes, mutation isolation, get, key, clear, LRU,
@@ -129,3 +131,28 @@ Focused validation must prove:
 
 One official full validation follows focused success. No server, model,
 browser, or user-instance smoke is required.
+
+## Validation result
+
+Validated on the A169-CACHE-03 worktree:
+
+- byte estimator, explicit defaults, oversize preflight, total/count eviction,
+  legacy accounting, frozen entry, LRU/cap/clear/root aliases: 14 focused cache
+  tests passed;
+- benchmark byte exposure and clone/mutation contract: 4 focused tests passed;
+- First-pass stage caller: 5 focused tests passed;
+- default bounded benchmark retained 50 clones and 3,276,800 logical copied
+  bytes for both admitted put-overwrite and get-hit, with both isolation checks
+  true;
+- oversized preflight was proven to perform zero clones and preserve an
+  existing same-key entry/order;
+- targeted Ruff 0.15.22 and Pyright 1.1.411: changed production/tool/test files
+  passed, production file with 0 Pyright errors;
+- Python backend analyzer: 18 focused tests passed;
+- Python import-boundary gate: 6 completed package groups, 0 violations; and
+- official full: 1,107 Python tests plus 112 frontend JavaScript files passed,
+  with the reviewed Pyright baseline unchanged at 88 files and 14 errors.
+
+No TTL, clock, disable, resource revision, metrics, concurrency, runtime owner,
+server, model, browser, workflow, frontend, or user-instance behavior was
+changed.

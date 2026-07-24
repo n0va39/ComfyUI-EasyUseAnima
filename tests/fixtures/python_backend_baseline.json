@@ -48817,14 +48817,14 @@
       },
       {
         "is_package": false,
-        "loc": 149,
+        "loc": 256,
         "module": "easyuse_anima.aio.first_pass_cache",
-        "normalized_git_blob_sha1": "c46472b68b24e116d882fbb96ba9c2e1a3ca246b",
+        "normalized_git_blob_sha1": "184b29009ac138dbc1eced33f848cd40097b6352",
         "path": "easyuse_anima/aio/first_pass_cache.py",
         "top_level": {
           "class_count": 1,
-          "function_count": 5,
-          "global_count": 4
+          "function_count": 9,
+          "global_count": 6
         }
       },
       {
@@ -65722,7 +65722,7 @@
         "column": 1,
         "context": "decorator:_AIOFirstPassCacheEntry",
         "kind": "import_time_call",
-        "line": 15,
+        "line": 17,
         "module": "easyuse_anima/aio/first_pass_cache.py",
         "scope": "<module>"
       },
@@ -67034,13 +67034,13 @@
       },
       {
         "kind": "dict",
-        "line": 34,
+        "line": 43,
         "module": "easyuse_anima/aio/first_pass_cache.py",
         "name": "_AIO_FIRST_PASS_CACHE"
       },
       {
         "kind": "list",
-        "line": 38,
+        "line": 47,
         "module": "easyuse_anima/aio/first_pass_cache.py",
         "name": "_AIO_FIRST_PASS_CACHE_ORDER"
       },
@@ -67413,7 +67413,7 @@
           "mutable_container"
         ],
         "initializer": "Dict",
-        "line": 34,
+        "line": 43,
         "module": "easyuse_anima/aio/first_pass_cache.py",
         "name": "_AIO_FIRST_PASS_CACHE"
       },
@@ -67423,7 +67423,7 @@
           "mutable_container"
         ],
         "initializer": "List",
-        "line": 38,
+        "line": 47,
         "module": "easyuse_anima/aio/first_pass_cache.py",
         "name": "_AIO_FIRST_PASS_CACHE_ORDER"
       },
