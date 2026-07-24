@@ -33,10 +33,12 @@ class AIOFirstPassCacheBenchmarkTests(unittest.TestCase):
     def setUp(self):
         first_pass_cache._set_aio_first_pass_cache_enabled(True)
         first_pass_cache._clear_aio_first_pass_cache()
+        first_pass_cache._reset_aio_first_pass_cache_metrics()
 
     def tearDown(self):
         first_pass_cache._set_aio_first_pass_cache_enabled(True)
         first_pass_cache._clear_aio_first_pass_cache()
+        first_pass_cache._reset_aio_first_pass_cache_metrics()
 
     def test_fake_tensor_exposes_deterministic_payload_bytes(self):
         tensor = benchmark.BenchmarkTensor.filled(

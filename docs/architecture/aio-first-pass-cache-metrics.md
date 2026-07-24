@@ -5,7 +5,7 @@
 - PR type: Behavior
 - Baseline: `dev` commit
   `a34b7c07a07829c9f7bb65c7d0e3a5c4dd0eb46a`
-- State: INVENTORY
+- State: VALIDATED
 
 CACHE-05b adds bounded process-local hit/miss/skip/eviction counters to the
 thread-safe first-pass cache. It does not expose metrics through API, settings,
@@ -118,3 +118,25 @@ Focused validation must prove:
 Use existing bounded test runners only. Run one official full validation after
 focused checks pass; no server, model, browser, or user-instance smoke is
 required.
+
+## Validation result
+
+Validated on the CACHE-05b worktree:
+
+- frozen snapshot/reset independence, exact hit/miss/skip/TTL/capacity deltas,
+  clear/disable preservation, and bounded concurrent exact totals: 29 focused
+  cache tests passed in 0.015 seconds;
+- benchmark metrics-reset isolation and existing clone/mutation contract: 4
+  focused tests passed;
+- unchanged First-pass stage caller: 5 focused tests passed;
+- targeted Ruff 0.15.22: changed production file passed all rules and changed
+  test files passed fatal rules;
+- targeted Pyright 1.1.411: changed production file passed with 0 errors;
+- Python backend analyzer: 18 focused tests passed;
+- Python import-boundary gate: 6 completed package groups, 0 violations; and
+- official full: 1,124 Python tests plus 112 frontend JavaScript files passed,
+  with the reviewed Pyright baseline unchanged at 88 files and 14 errors.
+
+No API/settings/frontend/log/telemetry exposure, latency/histogram label, cache
+decision, key/entry/TTL/lock/budget/clone/storage, caller/root alias, server,
+model, browser, workflow, or user-instance behavior was changed.

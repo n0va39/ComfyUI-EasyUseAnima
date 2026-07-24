@@ -48932,14 +48932,14 @@
       },
       {
         "is_package": false,
-        "loc": 353,
+        "loc": 398,
         "module": "easyuse_anima.aio.first_pass_cache",
-        "normalized_git_blob_sha1": "0f2fa5f9ae38c2443a10b7a8a49395de37cf8e08",
+        "normalized_git_blob_sha1": "98c242f27faf93f7f856b7afadfccc7f27472d6a",
         "path": "easyuse_anima/aio/first_pass_cache.py",
         "top_level": {
-          "class_count": 1,
-          "function_count": 12,
-          "global_count": 10
+          "class_count": 2,
+          "function_count": 15,
+          "global_count": 11
         }
       },
       {
@@ -65924,11 +65924,20 @@
         "scope": "<module>"
       },
       {
+        "callee": "dataclass",
+        "column": 1,
+        "context": "decorator:_AIOFirstPassCacheMetrics",
+        "kind": "import_time_call",
+        "line": 58,
+        "module": "easyuse_anima/aio/first_pass_cache.py",
+        "scope": "<module>"
+      },
+      {
         "callee": "RLock",
         "column": 29,
         "context": "assign:_AIO_FIRST_PASS_CACHE_LOCK",
         "kind": "import_time_call",
-        "line": 63,
+        "line": 71,
         "module": "easyuse_anima/aio/first_pass_cache.py",
         "scope": "<module>"
       },
@@ -67240,13 +67249,19 @@
       },
       {
         "kind": "dict",
-        "line": 58,
+        "line": 66,
         "module": "easyuse_anima/aio/first_pass_cache.py",
         "name": "_AIO_FIRST_PASS_CACHE"
       },
       {
+        "kind": "dict",
+        "line": 73,
+        "module": "easyuse_anima/aio/first_pass_cache.py",
+        "name": "_AIO_FIRST_PASS_CACHE_METRICS"
+      },
+      {
         "kind": "list",
-        "line": 62,
+        "line": 70,
         "module": "easyuse_anima/aio/first_pass_cache.py",
         "name": "_AIO_FIRST_PASS_CACHE_ORDER"
       },
@@ -67619,7 +67634,7 @@
           "mutable_container"
         ],
         "initializer": "Dict",
-        "line": 58,
+        "line": 66,
         "module": "easyuse_anima/aio/first_pass_cache.py",
         "name": "_AIO_FIRST_PASS_CACHE"
       },
@@ -67628,7 +67643,7 @@
           "lock"
         ],
         "initializer": "RLock",
-        "line": 63,
+        "line": 71,
         "module": "easyuse_anima/aio/first_pass_cache.py",
         "name": "_AIO_FIRST_PASS_CACHE_LOCK"
       },
@@ -67637,8 +67652,18 @@
           "cache",
           "mutable_container"
         ],
+        "initializer": "Dict",
+        "line": 73,
+        "module": "easyuse_anima/aio/first_pass_cache.py",
+        "name": "_AIO_FIRST_PASS_CACHE_METRICS"
+      },
+      {
+        "categories": [
+          "cache",
+          "mutable_container"
+        ],
         "initializer": "List",
-        "line": 62,
+        "line": 70,
         "module": "easyuse_anima/aio/first_pass_cache.py",
         "name": "_AIO_FIRST_PASS_CACHE_ORDER"
       },

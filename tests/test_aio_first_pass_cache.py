@@ -56,10 +56,12 @@ class AIOFirstPassCacheMoveTests(unittest.TestCase):
     def setUp(self):
         first_pass_cache._set_aio_first_pass_cache_enabled(True)
         first_pass_cache._clear_aio_first_pass_cache()
+        first_pass_cache._reset_aio_first_pass_cache_metrics()
 
     def tearDown(self):
         first_pass_cache._set_aio_first_pass_cache_enabled(True)
         first_pass_cache._clear_aio_first_pass_cache()
+        first_pass_cache._reset_aio_first_pass_cache_metrics()
 
     def test_default_count_and_byte_policy_are_explicit(self):
         self.assertEqual(first_pass_cache.AIO_FIRST_PASS_CACHE_MAX_ENTRIES, 2)
@@ -258,6 +260,15 @@ class AIOFirstPassCacheMoveTests(unittest.TestCase):
         self.assertFalse(
             hasattr(nodes, "_AIO_FIRST_PASS_CACHE_GENERATION")
         )
+        self.assertFalse(
+            hasattr(nodes, "_AIO_FIRST_PASS_CACHE_METRICS")
+        )
+        self.assertFalse(
+            hasattr(nodes, "_aio_first_pass_cache_metrics_snapshot")
+        )
+        self.assertFalse(
+            hasattr(nodes, "_reset_aio_first_pass_cache_metrics")
+        )
         for name in (
             "AIO_FIRST_PASS_CACHE_MAX_ENTRIES",
             "_AIO_FIRST_PASS_CACHE",
@@ -269,6 +280,201 @@ class AIOFirstPassCacheMoveTests(unittest.TestCase):
         ):
             with self.subTest(name=name):
                 self.assertIs(getattr(nodes, name), getattr(first_pass_cache, name))
+
+    def test_metrics_snapshot_is_frozen_and_reset_preserves_cache_state(self):
+        first_pass_cache._put_aio_first_pass_cache(
+            "entry",
+            b"latent",
+            b"image",
+        )
+        self.assertEqual(
+            first_pass_cache._get_aio_first_pass_cache("entry"),
+            (b"latent", b"image"),
+        )
+        snapshot = first_pass_cache._aio_first_pass_cache_metrics_snapshot()
+        self.assertEqual(
+            (
+                snapshot.hits,
+                snapshot.misses,
+                snapshot.skips,
+                snapshot.evictions,
+            ),
+            (1, 0, 0, 0),
+        )
+        with self.assertRaises(FrozenInstanceError):
+            snapshot.hits = 2
+
+        mapping = first_pass_cache._AIO_FIRST_PASS_CACHE
+        order = first_pass_cache._AIO_FIRST_PASS_CACHE_ORDER
+        entry = mapping["entry"]
+        first_pass_cache._reset_aio_first_pass_cache_metrics()
+
+        self.assertEqual(
+            first_pass_cache._aio_first_pass_cache_metrics_snapshot(),
+            first_pass_cache._AIOFirstPassCacheMetrics(0, 0, 0, 0),
+        )
+        self.assertIs(first_pass_cache._AIO_FIRST_PASS_CACHE, mapping)
+        self.assertIs(first_pass_cache._AIO_FIRST_PASS_CACHE_ORDER, order)
+        self.assertIs(mapping["entry"], entry)
+        self.assertEqual(order, ["entry"])
+        self.assertTrue(first_pass_cache._AIO_FIRST_PASS_CACHE_ENABLED)
+
+    def test_metrics_count_hit_miss_skip_expiration_and_capacity_eviction(self):
+        self.assertIsNone(
+            first_pass_cache._get_aio_first_pass_cache("missing")
+        )
+        first_pass_cache._put_aio_first_pass_cache(
+            "hit",
+            b"latent",
+            b"image",
+        )
+        self.assertEqual(
+            first_pass_cache._get_aio_first_pass_cache("hit"),
+            (b"latent", b"image"),
+        )
+
+        first_pass_cache._clear_aio_first_pass_cache()
+        with patch.object(
+            first_pass_cache,
+            "_aio_first_pass_cache_now",
+            side_effect=[0.0, 301.0],
+        ):
+            first_pass_cache._put_aio_first_pass_cache(
+                "expired",
+                b"latent",
+                b"image",
+            )
+            self.assertIsNone(
+                first_pass_cache._get_aio_first_pass_cache("expired")
+            )
+
+        first_pass_cache._set_aio_first_pass_cache_enabled(False)
+        self.assertIsNone(
+            first_pass_cache._get_aio_first_pass_cache("disabled")
+        )
+        first_pass_cache._put_aio_first_pass_cache(
+            "disabled",
+            b"latent",
+            b"image",
+        )
+        first_pass_cache._set_aio_first_pass_cache_enabled(True)
+
+        with patch.object(
+            first_pass_cache,
+            "AIO_FIRST_PASS_CACHE_MAX_ENTRY_BYTES",
+            1,
+        ):
+            first_pass_cache._put_aio_first_pass_cache(
+                "preflight-oversize",
+                b"xx",
+                b"",
+            )
+            with patch.object(
+                first_pass_cache,
+                "_aio_cache_pair_size_bytes",
+                side_effect=[1, 2],
+            ):
+                first_pass_cache._put_aio_first_pass_cache(
+                    "captured-oversize",
+                    b"a",
+                    b"",
+                )
+
+        def capture(latent, image, *, now):
+            first_pass_cache._clear_aio_first_pass_cache()
+            return first_pass_cache._AIOFirstPassCacheEntry(
+                latent=latent,
+                image=image,
+                size_bytes=1,
+                created_at=now,
+                last_access_at=now,
+            )
+
+        with patch.object(
+            first_pass_cache._AIOFirstPassCacheEntry,
+            "capture",
+            side_effect=capture,
+        ):
+            first_pass_cache._put_aio_first_pass_cache(
+                "stale-generation",
+                b"a",
+                b"",
+            )
+
+        with patch.object(
+            first_pass_cache,
+            "AIO_FIRST_PASS_CACHE_MAX_ENTRIES",
+            1,
+        ):
+            first_pass_cache._put_aio_first_pass_cache(
+                "first",
+                b"a",
+                b"",
+            )
+            first_pass_cache._put_aio_first_pass_cache(
+                "second",
+                b"b",
+                b"",
+            )
+
+        snapshot = first_pass_cache._aio_first_pass_cache_metrics_snapshot()
+        self.assertEqual(
+            (
+                snapshot.hits,
+                snapshot.misses,
+                snapshot.skips,
+                snapshot.evictions,
+            ),
+            (1, 2, 5, 2),
+        )
+
+    def test_clear_and_disable_preserve_accumulated_metrics_without_eviction(self):
+        first_pass_cache._put_aio_first_pass_cache(
+            "entry",
+            b"latent",
+            b"image",
+        )
+        first_pass_cache._get_aio_first_pass_cache("entry")
+        first_pass_cache._clear_aio_first_pass_cache()
+        first_pass_cache._put_aio_first_pass_cache(
+            "second",
+            b"latent",
+            b"image",
+        )
+        first_pass_cache._set_aio_first_pass_cache_enabled(False)
+
+        self.assertEqual(
+            first_pass_cache._aio_first_pass_cache_metrics_snapshot(),
+            first_pass_cache._AIOFirstPassCacheMetrics(1, 0, 0, 0),
+        )
+
+    def test_bounded_concurrent_metrics_have_exact_totals(self):
+        worker_count = 8
+        calls_per_worker = 50
+        first_pass_cache._set_aio_first_pass_cache_enabled(False)
+        first_pass_cache._reset_aio_first_pass_cache_metrics()
+
+        def exercise(_worker_id):
+            for _ in range(calls_per_worker):
+                first_pass_cache._get_aio_first_pass_cache("disabled")
+
+        with ThreadPoolExecutor(max_workers=worker_count) as executor:
+            futures = [
+                executor.submit(exercise, worker_id)
+                for worker_id in range(worker_count)
+            ]
+            for future in futures:
+                future.result(timeout=5.0)
+
+        self.assertEqual(
+            first_pass_cache._aio_first_pass_cache_metrics_snapshot(),
+            first_pass_cache._AIOFirstPassCacheMetrics(
+                0,
+                0,
+                worker_count * calls_per_worker,
+                0,
+            ),
+        )
 
     def test_disable_reenable_during_inflight_capture_prevents_stale_insert(self):
         clone_started = threading.Event()
