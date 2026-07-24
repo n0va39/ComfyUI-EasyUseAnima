@@ -5,7 +5,7 @@
 - PR type: Behavior
 - Baseline: `dev` commit
   `6fb03b677551c9b4112d5302020a09bd129a5b82`
-- State: INVENTORY
+- State: VALIDATED
 
 A169-05 connects exactly the existing final Upscale dispatcher to the stage
 Protocol. It does not move or change the dispatcher or either backend helper,
@@ -130,3 +130,21 @@ The full suite is not repeated after deterministic component failures; failed
 stages are resumed directly. Server/model/browser smoke is required only if the
 connection exposes an integration risk not covered by the exact trace and full
 suite.
+
+Validated on the A169-05 worktree:
+
+- Upscale stage: 4 focused tests passed;
+- legacy generation: 22 focused tests passed, including direct helper identity,
+  backend dispatch, USDU cleanup, exact trace and outer cleanup;
+- stage pipeline contract: 5 focused tests passed;
+- direct package import: 1 focused test passed;
+- backend analyzer: 18 focused tests passed with 102 shipped and 102 reachable
+  modules and no unreachable module;
+- targeted Pyright: 0 errors for both production files;
+- targeted Ruff: clean for both production files;
+- Python import-boundary gate: 6 package groups, 0 violations;
+- official full: Python 1071 tests passed, Pyright baseline passed, all 112
+  JavaScript files passed with TypeScript 6.0.3, and `git diff --check` passed;
+  and
+- no ComfyUI server, model-backed generation or browser smoke was run because
+  the exact runtime trace and full suite exposed no integration risk.

@@ -20,6 +20,7 @@ PACKAGE_MODULES = (
     "easyuse_anima.aio.generation_first_pass",
     "easyuse_anima.aio.generation_highres",
     "easyuse_anima.aio.generation_pipeline",
+    "easyuse_anima.aio.generation_upscale_stage",
     "easyuse_anima.aio.generation_normalization",
     "easyuse_anima.aio.generation_values",
     "easyuse_anima.aio.model_preparation",
