@@ -6,6 +6,7 @@ import {
   normalizeProfileDataValue,
   profileContent,
   profileKey,
+  profileSavedId,
   profileSavedName,
   profileSnapshot,
   withSavedMeta,
@@ -32,6 +33,8 @@ export function createLoraPresetProfileMutations({
   host = globalThis.window,
 }) {
   const profileTokens = new Map();
+  const verifiedProfileProvenance = new WeakMap();
+  const provenanceVerificationRevisions = new WeakMap();
 
   function rememberProfileTokens(profiles) {
     if (Array.isArray(profiles)) {
@@ -55,6 +58,98 @@ export function createLoraPresetProfileMutations({
 
   function profileToken(name) {
     return profileTokens.get(String(name || "").trim().toLowerCase()) || null;
+  }
+
+  function profileProvenanceSignature(profile) {
+    const savedName = profileSavedName(profile);
+    const savedProfileId = profileSavedId(profile);
+    const savedSnapshot = String(profile?.saved_snapshot || "");
+    if (!savedName || !savedProfileId || !savedSnapshot) {
+      return "";
+    }
+    return JSON.stringify([savedName.toLowerCase(), savedProfileId, savedSnapshot]);
+  }
+
+  function verifiedProvenanceFor(node) {
+    let verified = verifiedProfileProvenance.get(node);
+    if (!verified) {
+      verified = new Map();
+      verifiedProfileProvenance.set(node, verified);
+    }
+    return verified;
+  }
+
+  function markProfileProvenanceVerified(node, key, profile) {
+    const signature = profileProvenanceSignature(profile);
+    if (signature) {
+      verifiedProvenanceFor(node).set(key, signature);
+    }
+  }
+
+  function storedProfileMatches(profile, candidate) {
+    if (
+      String(profile?.name || "").trim().toLowerCase()
+        !== profileSavedName(candidate).toLowerCase()
+      || String(profile?.profile_id || "").trim().toLowerCase()
+        !== profileSavedId(candidate)
+    ) {
+      return false;
+    }
+    const savedSnapshot = String(candidate?.saved_snapshot || "");
+    const storedProfiles = normalizeProfileDataValue(profile?.profile_data);
+    return Object.values(storedProfiles).some(
+      (storedProfile) => profileSnapshot(storedProfile) === savedSnapshot,
+    );
+  }
+
+  async function verifyProfileProvenance(node) {
+    const revision = (provenanceVerificationRevisions.get(node) || 0) + 1;
+    provenanceVerificationRevisions.set(node, revision);
+    verifiedProfileProvenance.set(node, new Map());
+
+    const data = parseProfileData(findWidget(node, "profile_data"));
+    const candidates = Object.entries(data).filter(
+      ([, profile]) => profileProvenanceSignature(profile),
+    );
+    if (!candidates.length || typeof apiClient?.loadProfile !== "function") {
+      return 0;
+    }
+
+    const loadsByName = new Map();
+    function loadCurrentProfile(name) {
+      const key = String(name || "").trim().toLowerCase();
+      if (!loadsByName.has(key)) {
+        loadsByName.set(
+          key,
+          apiClient.loadProfile(name)
+            .then((response) => response?.profile || null)
+            .catch(() => null),
+        );
+      }
+      return loadsByName.get(key);
+    }
+
+    const verified = new Map();
+    await Promise.all(candidates.map(async ([key, candidate]) => {
+      const storedProfile = await loadCurrentProfile(profileSavedName(candidate));
+      if (storedProfileMatches(storedProfile, candidate)) {
+        verified.set(key, profileProvenanceSignature(candidate));
+      }
+    }));
+
+    if (provenanceVerificationRevisions.get(node) !== revision) {
+      return 0;
+    }
+    const currentData = parseProfileData(findWidget(node, "profile_data"));
+    for (const [key, signature] of [...verified]) {
+      if (profileProvenanceSignature(currentData[key]) !== signature) {
+        verified.delete(key);
+      }
+    }
+    verifiedProfileProvenance.set(node, verified);
+    renderProfileBar(node);
+    node.setDirtyCanvas?.(true, true);
+    return verified.size;
   }
 
   function renderProfileBar(node) {
@@ -235,18 +330,21 @@ export function createLoraPresetProfileMutations({
   }
 
   function profileSaveStatus(node, index) {
-    const profile = parseProfileData(findWidget(node, "profile_data"))[profileKey(index)] || {};
+    const key = profileKey(index);
+    const profile = parseProfileData(findWidget(node, "profile_data"))[key] || {};
     const savedName = profileSavedName(profile);
-    if (!savedName) {
+    const signature = profileProvenanceSignature(profile);
+    if (!signature || verifiedProfileProvenance.get(node)?.get(key) !== signature) {
       return { state: "unsaved", labelKey: "profile.unsaved", savedName: "" };
     }
     const dirty = String(profile.saved_snapshot || "") !== profileSnapshot(profile);
     return { state: dirty ? "changed" : "saved", labelKey: dirty ? "profile.changed" : "profile.saved", savedName };
   }
 
-  function markSelectedProfileSaved(node, name) {
-    const savedName = String(name || "").trim();
-    if (!savedName) {
+  function markSelectedProfileSaved(node, savedProfile) {
+    const savedName = String(savedProfile?.name || "").trim();
+    const savedProfileId = String(savedProfile?.profile_id || "").trim().toLowerCase();
+    if (!savedName || !savedProfileId) {
       return;
     }
     saveCurrentProfile(node);
@@ -254,16 +352,23 @@ export function createLoraPresetProfileMutations({
     const data = parseProfileData(dataWidget);
     const key = profileKey(activeProfileIndex(node));
     const content = profileContent(data[key]);
-    data[key] = { ...content, saved_name: savedName, saved_snapshot: profileSnapshot(content) };
+    data[key] = {
+      ...content,
+      saved_name: savedName,
+      saved_profile_id: savedProfileId,
+      saved_snapshot: profileSnapshot(content),
+    };
     writeProfileData(dataWidget, data);
+    markProfileProvenanceVerified(node, key, data[key]);
     loadProfile(node, activeProfileIndex(node));
   }
 
-  function appendProfilePayload(node, payload) {
+  function appendProfilePayload(node, payload, options = {}) {
     saveCurrentProfile(node);
     const profile = payload?.profile || payload || {};
     const incomingData = normalizeProfileDataValue(profile.profile_data);
     const savedName = String(profile.name || "").trim();
+    const savedProfileId = String(profile.profile_id || "").trim().toLowerCase();
     const incomingCount = Math.max(1, Math.min(MAX_PROFILES, Number.parseInt(profile.profile_count, 10) || Object.keys(incomingData).length || 1));
     const incomingProfiles = [];
     for (let sourceIndex = 1; sourceIndex <= incomingCount; sourceIndex += 1) {
@@ -288,9 +393,21 @@ export function createLoraPresetProfileMutations({
     for (let offset = 0; offset < appendCount; offset += 1) {
       const targetIndex = targetStart + offset;
       const content = incomingProfiles[offset].content;
-      data[profileKey(targetIndex)] = savedName
-        ? { ...content, saved_name: savedName, saved_snapshot: profileSnapshot(content) }
+      data[profileKey(targetIndex)] = savedName && savedProfileId
+        ? {
+          ...content,
+          saved_name: savedName,
+          saved_profile_id: savedProfileId,
+          saved_snapshot: profileSnapshot(content),
+        }
         : content;
+      if (options.verified) {
+        markProfileProvenanceVerified(
+          node,
+          profileKey(targetIndex),
+          data[profileKey(targetIndex)],
+        );
+      }
     }
     if (appendCount < incomingProfiles.length) {
       host.alert?.(formatText("profile.partialLoad", { count: appendCount, max: MAX_PROFILES }));
@@ -348,7 +465,7 @@ export function createLoraPresetProfileMutations({
         );
       }
       rememberProfileTokens(data?.profile);
-      markSelectedProfileSaved(node, data?.profile?.name || trimmedName);
+      markSelectedProfileSaved(node, data?.profile);
       renderProfileBar(node);
       node.setDirtyCanvas?.(true, true);
     } catch (error) {
@@ -362,7 +479,7 @@ export function createLoraPresetProfileMutations({
       const name = String(profileOrName?.name || profileOrName || "").trim();
       const data = await apiClient.loadProfile(name);
       rememberProfileTokens(data?.profile);
-      appendProfilePayload(node, data.profile);
+      appendProfilePayload(node, data.profile, { verified: true });
     } catch (error) {
       host.alert?.(formatText("profile.loadFailed", { message: errorMessage(error) }));
     }
@@ -448,6 +565,7 @@ export function createLoraPresetProfileMutations({
     deleteProfile,
     selectedProfilePayload,
     profileSaveStatus,
+    verifyProfileProvenance,
     rememberProfileTokens,
     appendProfilePayload,
     saveProfileSet,

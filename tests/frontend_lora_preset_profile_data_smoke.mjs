@@ -19,6 +19,7 @@ assert.deepEqual(Object.keys(profileData).sort(), [
   "normalizeSerializedWidgets",
   "profileContent",
   "profileKey",
+  "profileSavedId",
   "profileSavedName",
   "profileSnapshot",
   "withSavedMeta",
@@ -36,6 +37,7 @@ const {
   normalizeSerializedWidgets,
   profileContent,
   profileKey,
+  profileSavedId,
   profileSavedName,
   profileSnapshot,
   withSavedMeta,
@@ -167,6 +169,7 @@ const rawProfile = {
     { lora: " kept.safetensors ", active: false, strength: "1.25" },
   ],
   saved_name: "must be stripped",
+  saved_profile_id: "must be stripped",
   saved_snapshot: "must be stripped",
   unknown: true,
 };
@@ -189,17 +192,30 @@ assert.equal(isMeaningfulProfile({ style_prompt: "", loras: [{ name: "" }] }), f
 assert.equal(isMeaningfulProfile({ style_prompt: " tag ", loras: [] }), true);
 assert.equal(isMeaningfulProfile({ style_prompt: "", loras: [{ name: "kept.safetensors" }] }), true);
 assert.equal(profileSavedName({ saved_name: " Saved Set " }), "Saved Set");
+assert.equal(
+  profileSavedId({ saved_profile_id: " ABCDEF00-0000-4000-8000-000000000000 " }),
+  "abcdef00-0000-4000-8000-000000000000",
+);
 
 const contentInput = { style_prompt: "prompt", loras: [] };
-const previousInput = { saved_name: " Saved Set ", saved_snapshot: "snapshot" };
+const previousInput = {
+  saved_name: " Saved Set ",
+  saved_profile_id: "ABCDEF00-0000-4000-8000-000000000000",
+  saved_snapshot: "snapshot",
+};
 assert.deepEqual(withSavedMeta(contentInput, previousInput), {
   style_prompt: "prompt",
   loras: [],
   saved_name: "Saved Set",
+  saved_profile_id: "abcdef00-0000-4000-8000-000000000000",
   saved_snapshot: "snapshot",
 });
 assert.deepEqual(contentInput, { style_prompt: "prompt", loras: [] });
-assert.deepEqual(previousInput, { saved_name: " Saved Set ", saved_snapshot: "snapshot" });
+assert.deepEqual(previousInput, {
+  saved_name: " Saved Set ",
+  saved_profile_id: "ABCDEF00-0000-4000-8000-000000000000",
+  saved_snapshot: "snapshot",
+});
 assert.deepEqual(withSavedMeta(contentInput, { saved_name: "Saved Set" }), {
   style_prompt: "prompt",
   loras: [],

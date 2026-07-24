@@ -307,6 +307,143 @@ mutations.appendProfilePayload(partialNode, {
 });
 assert.equal(host.alerts.at(-1), "profile.maxReached");
 
+const provenanceProfileId = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
+const conflictingProfileId = "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb";
+const provenanceContent = {
+  style_prompt: "sender prompt",
+  loras: [{ name: "sender.safetensors", on: true, strength: 0.8, strengthTwo: null }],
+};
+const provenanceSnapshot = JSON.stringify(provenanceContent);
+const provenanceNode = {
+  widgets: new Map([
+    ["style_prompt", { value: provenanceContent.style_prompt }],
+    ["profile_index", { value: 1 }],
+    ["profile_count", { value: "1" }],
+    ["loras", { value: JSON.stringify(provenanceContent.loras) }],
+    ["profile_data", { value: JSON.stringify({
+      "1": {
+        ...provenanceContent,
+        saved_name: "Shared",
+        saved_profile_id: provenanceProfileId,
+        saved_snapshot: provenanceSnapshot,
+      },
+    }) }],
+  ]),
+  dirty: 0,
+  setDirtyCanvas() { this.dirty += 1; },
+};
+const provenanceLoadResponses = [];
+const provenanceLoads = [];
+const provenanceSaves = [];
+const currentStoreProfile = (profileId, content) => ({
+  profile: {
+    name: "Shared",
+    profile_id: profileId,
+    revision: 4,
+    profile_count: 1,
+    profile_index: 1,
+    profile_data: { "1": content },
+  },
+});
+const provenanceMutations = createLoraPresetProfileMutations({
+  findWidget,
+  widgetValue,
+  setWidgetValue,
+  lorasWidgetValue,
+  setLorasWidgetValue,
+  getCanvasWidgets: () => canvasWidgets,
+  text: (key) => key,
+  formatText: (key) => key,
+  apiClient: {
+    async loadProfile(name) {
+      provenanceLoads.push(name);
+      const response = provenanceLoadResponses.shift();
+      if (response instanceof Error) {
+        throw response;
+      }
+      return response;
+    },
+    async saveProfile(name, payload, overwrite, profile) {
+      provenanceSaves.push({ name, payload, overwrite, profile });
+      if (!overwrite) {
+        throw profileExistsError();
+      }
+      return {
+        profile: {
+          name,
+          profile_id: provenanceProfileId,
+          revision: 5,
+        },
+      };
+    },
+  },
+  host: {
+    prompt: () => "Shared",
+    confirm: () => true,
+    alert(message) {
+      throw new Error(`unexpected alert: ${message}`);
+    },
+  },
+});
+
+assert.equal(
+  provenanceMutations.profileSaveStatus(provenanceNode, 1).state,
+  "unsaved",
+  "workflow metadata must begin unverified",
+);
+assert.deepEqual(provenanceLoads, []);
+
+provenanceLoadResponses.push(new Error("profile not found"));
+assert.equal(await provenanceMutations.verifyProfileProvenance(provenanceNode), 0);
+assert.equal(provenanceMutations.profileSaveStatus(provenanceNode, 1).state, "unsaved");
+
+provenanceLoadResponses.push(currentStoreProfile(conflictingProfileId, provenanceContent));
+assert.equal(await provenanceMutations.verifyProfileProvenance(provenanceNode), 0);
+assert.equal(
+  provenanceMutations.profileSaveStatus(provenanceNode, 1).state,
+  "unsaved",
+  "same-name current profile with a different identity must not match",
+);
+
+provenanceLoadResponses.push(currentStoreProfile(provenanceProfileId, {
+  style_prompt: "receiver content",
+  loras: [],
+}));
+assert.equal(await provenanceMutations.verifyProfileProvenance(provenanceNode), 0);
+assert.equal(
+  provenanceMutations.profileSaveStatus(provenanceNode, 1).state,
+  "unsaved",
+  "matching identity with different current-store content must not match",
+);
+
+provenanceLoadResponses.push(currentStoreProfile(provenanceProfileId, provenanceContent));
+assert.equal(await provenanceMutations.verifyProfileProvenance(provenanceNode), 1);
+assert.deepEqual(provenanceMutations.profileSaveStatus(provenanceNode, 1), {
+  state: "saved",
+  labelKey: "profile.saved",
+  savedName: "Shared",
+});
+
+const loadsBeforeOverwrite = provenanceLoads.length;
+provenanceLoadResponses.push(currentStoreProfile(provenanceProfileId, provenanceContent));
+await provenanceMutations.saveProfileSet(provenanceNode);
+assert.equal(
+  provenanceLoads.length,
+  loadsBeforeOverwrite + 1,
+  "provenance verification must not populate the overwrite token cache",
+);
+assert.deepEqual(provenanceSaves.map((call) => call.overwrite), [false, true]);
+assert.deepEqual(provenanceSaves[1].profile, {
+  profile_id: provenanceProfileId,
+  revision: 4,
+});
+assert.deepEqual(provenanceSaves[0].payload.profile_data["1"], provenanceContent);
+const savedProvenanceData = provenanceMutations.parseProfileData(
+  findWidget(provenanceNode, "profile_data"),
+);
+assert.equal(savedProvenanceData["1"].saved_profile_id, provenanceProfileId);
+assert.equal("revision" in savedProvenanceData["1"], false);
+
 function createWorkflowNode() {
   return {
     id: "workflow-node",
@@ -384,6 +521,7 @@ const workflowRuntime = createLoraPresetNodeRuntime({
   saveProfile: workflowMutations.saveProfile,
   saveCurrentProfile: workflowMutations.saveCurrentProfile,
   loadProfile: workflowMutations.loadProfile,
+  verifyProfileProvenance: workflowMutations.verifyProfileProvenance,
   scrollProfileBarTo: workflowMutations.scrollProfileBarTo,
   refreshLoraAvailability() {},
   canvasWidgets: workflowCanvasWidgets,
