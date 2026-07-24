@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+import time
+from dataclasses import dataclass, replace
 from typing import Any
 
 from ..common.serialization import _stable_change_key
@@ -12,6 +13,8 @@ from .model_preparation import _aio_lora_stack_signature
 AIO_FIRST_PASS_CACHE_MAX_ENTRIES = 2
 AIO_FIRST_PASS_CACHE_MAX_BYTES = 512 * 1024 * 1024
 AIO_FIRST_PASS_CACHE_MAX_ENTRY_BYTES = 256 * 1024 * 1024
+AIO_FIRST_PASS_CACHE_TTL_SECONDS = 300.0
+_AIO_FIRST_PASS_CACHE_ENABLED = True
 
 
 @dataclass(frozen=True, slots=True)
@@ -19,9 +22,17 @@ class _AIOFirstPassCacheEntry:
     latent: Any
     image: Any
     size_bytes: int
+    created_at: float
+    last_access_at: float
 
     @classmethod
-    def capture(cls, latent, image) -> _AIOFirstPassCacheEntry:
+    def capture(
+        cls,
+        latent,
+        image,
+        *,
+        now: float,
+    ) -> _AIOFirstPassCacheEntry:
         latent_snapshot = _clone_aio_cache_value(latent)
         image_snapshot = _clone_aio_cache_value(image)
         return cls(
@@ -31,6 +42,8 @@ class _AIOFirstPassCacheEntry:
                 latent_snapshot,
                 image_snapshot,
             ),
+            created_at=now,
+            last_access_at=now,
         )
 
     def checkout(self):
@@ -165,6 +178,18 @@ def _clear_aio_first_pass_cache() -> None:
     _AIO_FIRST_PASS_CACHE_ORDER.clear()
 
 
+def _set_aio_first_pass_cache_enabled(enabled: bool) -> None:
+    global _AIO_FIRST_PASS_CACHE_ENABLED
+
+    _AIO_FIRST_PASS_CACHE_ENABLED = bool(enabled)
+    if not _AIO_FIRST_PASS_CACHE_ENABLED:
+        _clear_aio_first_pass_cache()
+
+
+def _aio_first_pass_cache_now() -> float:
+    return time.monotonic()
+
+
 def _aio_first_pass_cache_key(
     *,
     cache_scope: str,
@@ -218,9 +243,20 @@ def _aio_first_pass_cache_key(
 
 
 def _get_aio_first_pass_cache(cache_key: str):
+    if not _AIO_FIRST_PASS_CACHE_ENABLED:
+        return None
     entry = _AIO_FIRST_PASS_CACHE.get(cache_key)
     if not entry:
         return None
+    if isinstance(entry, _AIOFirstPassCacheEntry):
+        now = _aio_first_pass_cache_now()
+        if now - entry.created_at >= AIO_FIRST_PASS_CACHE_TTL_SECONDS:
+            _AIO_FIRST_PASS_CACHE.pop(cache_key, None)
+            if cache_key in _AIO_FIRST_PASS_CACHE_ORDER:
+                _AIO_FIRST_PASS_CACHE_ORDER.remove(cache_key)
+            return None
+        entry = replace(entry, last_access_at=now)
+        _AIO_FIRST_PASS_CACHE[cache_key] = entry
     if cache_key in _AIO_FIRST_PASS_CACHE_ORDER:
         _AIO_FIRST_PASS_CACHE_ORDER.remove(cache_key)
     _AIO_FIRST_PASS_CACHE_ORDER.append(cache_key)
@@ -233,12 +269,18 @@ def _get_aio_first_pass_cache(cache_key: str):
 
 
 def _put_aio_first_pass_cache(cache_key: str, latent, image) -> None:
+    if not _AIO_FIRST_PASS_CACHE_ENABLED:
+        return
     if (
         _aio_cache_pair_size_bytes(latent, image)
         > AIO_FIRST_PASS_CACHE_MAX_ENTRY_BYTES
     ):
         return
-    entry = _AIOFirstPassCacheEntry.capture(latent, image)
+    entry = _AIOFirstPassCacheEntry.capture(
+        latent,
+        image,
+        now=_aio_first_pass_cache_now(),
+    )
     if entry.size_bytes > AIO_FIRST_PASS_CACHE_MAX_ENTRY_BYTES:
         return
     _AIO_FIRST_PASS_CACHE[cache_key] = entry

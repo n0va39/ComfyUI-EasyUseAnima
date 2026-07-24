@@ -52,9 +52,11 @@ class _SizedTensor:
 
 class AIOFirstPassCacheMoveTests(unittest.TestCase):
     def setUp(self):
+        first_pass_cache._set_aio_first_pass_cache_enabled(True)
         first_pass_cache._clear_aio_first_pass_cache()
 
     def tearDown(self):
+        first_pass_cache._set_aio_first_pass_cache_enabled(True)
         first_pass_cache._clear_aio_first_pass_cache()
 
     def test_default_count_and_byte_policy_are_explicit(self):
@@ -67,6 +69,182 @@ class AIOFirstPassCacheMoveTests(unittest.TestCase):
             first_pass_cache.AIO_FIRST_PASS_CACHE_MAX_ENTRY_BYTES,
             256 * 1024 * 1024,
         )
+        self.assertEqual(
+            first_pass_cache.AIO_FIRST_PASS_CACHE_TTL_SECONDS,
+            300.0,
+        )
+        self.assertTrue(first_pass_cache._AIO_FIRST_PASS_CACHE_ENABLED)
+
+    def test_put_and_get_read_clock_once_and_replace_last_access(self):
+        clock = Mock(side_effect=[10.0, 20.0])
+        with patch.object(
+            first_pass_cache,
+            "_aio_first_pass_cache_now",
+            clock,
+        ):
+            first_pass_cache._put_aio_first_pass_cache(
+                "entry",
+                {"samples": [1]},
+                [2],
+            )
+            captured = first_pass_cache._AIO_FIRST_PASS_CACHE["entry"]
+            self.assertEqual(
+                (captured.created_at, captured.last_access_at),
+                (10.0, 10.0),
+            )
+
+            self.assertEqual(
+                first_pass_cache._get_aio_first_pass_cache("entry"),
+                ({"samples": [1]}, [2]),
+            )
+
+        accessed = first_pass_cache._AIO_FIRST_PASS_CACHE["entry"]
+        self.assertIsNot(accessed, captured)
+        self.assertEqual(
+            (accessed.created_at, accessed.last_access_at),
+            (10.0, 20.0),
+        )
+        self.assertEqual(clock.call_count, 2)
+
+    def test_absolute_ttl_hits_before_and_expires_at_or_after_boundary(self):
+        for elapsed, expected_hit in (
+            (299.999, True),
+            (300.0, False),
+            (301.0, False),
+        ):
+            with self.subTest(elapsed=elapsed):
+                first_pass_cache._clear_aio_first_pass_cache()
+                clock = Mock(side_effect=[100.0, 100.0 + elapsed])
+                with patch.object(
+                    first_pass_cache,
+                    "_aio_first_pass_cache_now",
+                    clock,
+                ):
+                    first_pass_cache._put_aio_first_pass_cache(
+                        "entry",
+                        "latent",
+                        "image",
+                    )
+                    result = first_pass_cache._get_aio_first_pass_cache(
+                        "entry"
+                    )
+
+                self.assertEqual(result is not None, expected_hit)
+                self.assertEqual(clock.call_count, 2)
+                if expected_hit:
+                    self.assertIn(
+                        "entry",
+                        first_pass_cache._AIO_FIRST_PASS_CACHE,
+                    )
+                    self.assertEqual(
+                        first_pass_cache._AIO_FIRST_PASS_CACHE_ORDER,
+                        ["entry"],
+                    )
+                else:
+                    self.assertNotIn(
+                        "entry",
+                        first_pass_cache._AIO_FIRST_PASS_CACHE,
+                    )
+                    self.assertEqual(
+                        first_pass_cache._AIO_FIRST_PASS_CACHE_ORDER,
+                        [],
+                    )
+
+    def test_last_access_does_not_extend_absolute_ttl(self):
+        clock = Mock(side_effect=[0.0, 200.0, 301.0])
+        with patch.object(
+            first_pass_cache,
+            "_aio_first_pass_cache_now",
+            clock,
+        ):
+            first_pass_cache._put_aio_first_pass_cache(
+                "entry",
+                "latent",
+                "image",
+            )
+            self.assertEqual(
+                first_pass_cache._get_aio_first_pass_cache("entry"),
+                ("latent", "image"),
+            )
+            self.assertIsNone(
+                first_pass_cache._get_aio_first_pass_cache("entry")
+            )
+
+        self.assertEqual(clock.call_count, 3)
+        self.assertEqual(first_pass_cache._AIO_FIRST_PASS_CACHE, {})
+        self.assertEqual(first_pass_cache._AIO_FIRST_PASS_CACHE_ORDER, [])
+
+    def test_disable_clears_and_skips_get_put_work_until_reenabled(self):
+        first_pass_cache._put_aio_first_pass_cache(
+            "entry",
+            "latent",
+            "image",
+        )
+        mapping = first_pass_cache._AIO_FIRST_PASS_CACHE
+        order = first_pass_cache._AIO_FIRST_PASS_CACHE_ORDER
+        first_pass_cache._set_aio_first_pass_cache_enabled(False)
+
+        self.assertIs(first_pass_cache._AIO_FIRST_PASS_CACHE, mapping)
+        self.assertIs(first_pass_cache._AIO_FIRST_PASS_CACHE_ORDER, order)
+        self.assertEqual(mapping, {})
+        self.assertEqual(order, [])
+        self.assertFalse(first_pass_cache._AIO_FIRST_PASS_CACHE_ENABLED)
+
+        estimator = Mock(side_effect=AssertionError("estimator called"))
+        clone = Mock(side_effect=AssertionError("clone called"))
+        clock = Mock(side_effect=AssertionError("clock called"))
+        with (
+            patch.object(
+                first_pass_cache,
+                "_aio_cache_pair_size_bytes",
+                estimator,
+            ),
+            patch.object(
+                first_pass_cache,
+                "_clone_aio_cache_value",
+                clone,
+            ),
+            patch.object(
+                first_pass_cache,
+                "_aio_first_pass_cache_now",
+                clock,
+            ),
+        ):
+            self.assertIsNone(
+                first_pass_cache._get_aio_first_pass_cache("entry")
+            )
+            first_pass_cache._put_aio_first_pass_cache(
+                "entry",
+                "latent",
+                "image",
+            )
+
+        estimator.assert_not_called()
+        clone.assert_not_called()
+        clock.assert_not_called()
+        self.assertEqual(mapping, {})
+        self.assertEqual(order, [])
+
+        first_pass_cache._set_aio_first_pass_cache_enabled(True)
+        first_pass_cache._put_aio_first_pass_cache(
+            "entry",
+            "latent",
+            "image",
+        )
+        self.assertEqual(
+            first_pass_cache._get_aio_first_pass_cache("entry"),
+            ("latent", "image"),
+        )
+
+    def test_explicit_clear_is_idempotent_and_preserves_enabled_state(self):
+        first_pass_cache._clear_aio_first_pass_cache()
+        first_pass_cache._clear_aio_first_pass_cache()
+        self.assertTrue(first_pass_cache._AIO_FIRST_PASS_CACHE_ENABLED)
+
+        first_pass_cache._set_aio_first_pass_cache_enabled(False)
+        first_pass_cache._clear_aio_first_pass_cache()
+        first_pass_cache._clear_aio_first_pass_cache()
+        self.assertFalse(first_pass_cache._AIO_FIRST_PASS_CACHE_ENABLED)
 
     def test_root_state_and_functions_are_direct_canonical_aliases(self):
         self.assertFalse(
@@ -243,6 +421,11 @@ class AIOFirstPassCacheMoveTests(unittest.TestCase):
         with (
             patch.object(first_pass_cache, "_AIO_FIRST_PASS_CACHE", cache),
             patch.object(first_pass_cache, "_AIO_FIRST_PASS_CACHE_ORDER", order),
+            patch.object(
+                first_pass_cache,
+                "_aio_first_pass_cache_now",
+                side_effect=AssertionError("legacy entry read clock"),
+            ),
         ):
             latent, image = first_pass_cache._get_aio_first_pass_cache("legacy")
             latent["samples"].append(99)
@@ -275,9 +458,15 @@ class AIOFirstPassCacheMoveTests(unittest.TestCase):
             setattr(original_entry, "latent", {"samples": [99]})
 
         latent, image = first_pass_cache._get_aio_first_pass_cache("entry")
-        self.assertIs(
-            first_pass_cache._AIO_FIRST_PASS_CACHE["entry"],
-            original_entry,
+        accessed_entry = first_pass_cache._AIO_FIRST_PASS_CACHE["entry"]
+        self.assertIsNot(accessed_entry, original_entry)
+        self.assertEqual(
+            (accessed_entry.created_at, accessed_entry.size_bytes),
+            (original_entry.created_at, original_entry.size_bytes),
+        )
+        self.assertGreaterEqual(
+            accessed_entry.last_access_at,
+            original_entry.last_access_at,
         )
         latent["samples"].append(88)
         image.append(88)
