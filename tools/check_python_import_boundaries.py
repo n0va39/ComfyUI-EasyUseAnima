@@ -33,6 +33,12 @@ EXPECTED_GROUPS = (
         "easyuse_anima/infrastructure/comfy/",
         "infrastructure",
     ),
+    (
+        "infrastructure-filesystem",
+        186,
+        "easyuse_anima/infrastructure/filesystem/",
+        "infrastructure",
+    ),
     ("lora", 184, "easyuse_anima/lora/", "feature"),
     ("naia", 184, "easyuse_anima/naia/", "feature"),
     ("profiles", 163, "easyuse_anima/profiles/", "feature"),

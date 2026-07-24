@@ -24,9 +24,9 @@ except Exception:  # pragma: no cover - YAML files are skipped without PyYAML.
     yaml = None
 
 try:
-    from .storage import USER_DATA_DIR
+    from .easyuse_anima.infrastructure.filesystem.paths import USER_DATA_DIR
 except ImportError:
-    from storage import USER_DATA_DIR
+    from easyuse_anima.infrastructure.filesystem.paths import USER_DATA_DIR
 
 
 WILDCARD_DIR_NAME = "wildcards"

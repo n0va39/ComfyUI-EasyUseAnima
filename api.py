@@ -99,9 +99,11 @@ except ImportError:
         verify_profile_precondition,
     )
 try:
-    from .storage import AtomicJsonStore, USER_DATA_DIR
+    from .easyuse_anima.infrastructure.filesystem.atomic_json import AtomicJsonStore
+    from .easyuse_anima.infrastructure.filesystem.paths import USER_DATA_DIR
 except ImportError:
-    from storage import AtomicJsonStore, USER_DATA_DIR
+    from easyuse_anima.infrastructure.filesystem.atomic_json import AtomicJsonStore
+    from easyuse_anima.infrastructure.filesystem.paths import USER_DATA_DIR
 
 
 LORA_PREVIEW_EXTENSIONS = (".webp", ".png", ".jpg", ".jpeg")

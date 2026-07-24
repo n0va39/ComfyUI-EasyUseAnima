@@ -20,6 +20,12 @@
       "role": "infrastructure"
     },
     {
+      "group": "infrastructure-filesystem",
+      "owner_issue": 186,
+      "prefix": "easyuse_anima/infrastructure/filesystem/",
+      "role": "infrastructure"
+    },
+    {
       "group": "lora",
       "owner_issue": 184,
       "prefix": "easyuse_anima/lora/",

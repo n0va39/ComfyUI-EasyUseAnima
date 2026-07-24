@@ -4,7 +4,8 @@ import json
 from pathlib import Path
 
 try:
-    from .storage import AtomicJsonStore, USER_DATA_DIR
+    from .easyuse_anima.infrastructure.filesystem.atomic_json import AtomicJsonStore
+    from .easyuse_anima.infrastructure.filesystem.paths import USER_DATA_DIR
     from .easyuse_anima.translation.contracts import (
         DEFAULT_PROMPT_TRANSLATION_SOURCE,
         DEFAULT_PROMPT_TRANSLATION_TARGET,
@@ -14,7 +15,8 @@ try:
         normalize_prompt_translation_provider,
     )
 except ImportError:
-    from storage import AtomicJsonStore, USER_DATA_DIR
+    from easyuse_anima.infrastructure.filesystem.atomic_json import AtomicJsonStore
+    from easyuse_anima.infrastructure.filesystem.paths import USER_DATA_DIR
     from easyuse_anima.translation.contracts import (
         DEFAULT_PROMPT_TRANSLATION_SOURCE,
         DEFAULT_PROMPT_TRANSLATION_TARGET,

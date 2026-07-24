@@ -28,8 +28,10 @@ try:
     from .easyuse_anima.translation.markers import (
         iter_prompt_translation_markers,
     )
-    from .storage import PACKAGE_DATA_DIR as STORAGE_PACKAGE_DATA_DIR
-    from .storage import USER_DATA_DIR
+    from .easyuse_anima.infrastructure.filesystem.paths import (
+        PACKAGE_DATA_DIR as STORAGE_PACKAGE_DATA_DIR,
+    )
+    from .easyuse_anima.infrastructure.filesystem.paths import USER_DATA_DIR
 except ImportError:
     from autocomplete_index import (
         AutocompleteIndexDiagnostics,
@@ -44,8 +46,10 @@ except ImportError:
     from easyuse_anima.translation.markers import (
         iter_prompt_translation_markers,
     )
-    from storage import PACKAGE_DATA_DIR as STORAGE_PACKAGE_DATA_DIR
-    from storage import USER_DATA_DIR
+    from easyuse_anima.infrastructure.filesystem.paths import (
+        PACKAGE_DATA_DIR as STORAGE_PACKAGE_DATA_DIR,
+    )
+    from easyuse_anima.infrastructure.filesystem.paths import USER_DATA_DIR
 
 DBR_TAG_ARCHIVE_SOURCE = "https://github.com/DraconicDragon/dbr-e621-lists-archive"
 DBR_TAG_ARCHIVE_LICENSE = "Unlicense"
