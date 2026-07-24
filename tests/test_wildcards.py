@@ -12,6 +12,7 @@ import nodes as nodes_module
 from easyuse_anima.nodes import wildcard_nodes
 from easyuse_anima.prompt import advanced as prompt_advanced
 from easyuse_anima.seed import compatibility as seed_compatibility
+from easyuse_anima.wildcard import models as wildcard_models
 from nodes import (
     EasyUseAnimaPromptStudioAdvanced,
     EasyUseAnimaPromptStudioAdvancedV2,
@@ -32,6 +33,29 @@ from wildcard_engine import (
 
 
 class WildcardEngineTests(unittest.TestCase):
+    def test_root_model_surface_has_canonical_identity(self):
+        expected = (
+            "MAX_EXPANSION_DEPTH",
+            "REPLACE_DEPTH",
+            "DEFAULT_MAX_EXPANSION_DEPTH",
+            "DEFAULT_MAX_EXPANSION_REPLACEMENTS",
+            "DEFAULT_MAX_EXPANSION_OUTPUT_CHARS",
+            "DEFAULT_MAX_EXPANSION_GROWTH_PER_PASS",
+            "MAX_EXPANSION_REPLACEMENTS",
+            "MAX_EXPANSION_OUTPUT_CHARS",
+            "MAX_EXPANSION_GROWTH_PER_PASS",
+            "WildcardOption",
+            "WildcardExpansionBudget",
+            "WildcardExpansionResult",
+        )
+        self.assertEqual(wildcard_models.__all__, expected)
+        for name in expected:
+            with self.subTest(name=name):
+                self.assertIs(
+                    getattr(wildcard_engine, name),
+                    getattr(wildcard_models, name),
+                )
+
     def test_reserved_seed_consumer_root_symbols_are_direct_aliases(self):
         self.assertIs(
             nodes_module._consume_reserved_wildcard_next_seed,

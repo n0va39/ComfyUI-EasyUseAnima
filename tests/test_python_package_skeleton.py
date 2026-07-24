@@ -86,6 +86,8 @@ PACKAGE_MODULES = (
     "easyuse_anima.translation.providers",
     "easyuse_anima.translation.providers.google",
     "easyuse_anima.translation.service",
+    "easyuse_anima.wildcard",
+    "easyuse_anima.wildcard.models",
     "easyuse_anima.seed.execution_identity",
     "easyuse_anima.seed.execution_session",
     "easyuse_anima.seed.service",
@@ -362,6 +364,22 @@ print(json.dumps({{
             "google_translate_text",
             "strip_prompt_translation_markers",
             "translate_prompt_markers",
+        ]
+        expected_all[
+            PACKAGE_MODULES.index("easyuse_anima.wildcard.models")
+        ] = [
+            "MAX_EXPANSION_DEPTH",
+            "REPLACE_DEPTH",
+            "DEFAULT_MAX_EXPANSION_DEPTH",
+            "DEFAULT_MAX_EXPANSION_REPLACEMENTS",
+            "DEFAULT_MAX_EXPANSION_OUTPUT_CHARS",
+            "DEFAULT_MAX_EXPANSION_GROWTH_PER_PASS",
+            "MAX_EXPANSION_REPLACEMENTS",
+            "MAX_EXPANSION_OUTPUT_CHARS",
+            "MAX_EXPANSION_GROWTH_PER_PASS",
+            "WildcardOption",
+            "WildcardExpansionBudget",
+            "WildcardExpansionResult",
         ]
         self.assertEqual(payload["declared_all"], expected_all)
         self.assertEqual(payload["new_forbidden"], [])

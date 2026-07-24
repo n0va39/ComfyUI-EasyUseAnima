@@ -27294,6 +27294,57 @@
         "requested": "__future__",
         "role": "ordinary",
         "scope": "<module>",
+        "source": "easyuse_anima/wildcard/models.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "math",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "math",
+        "kind": "static_import",
+        "line": 5,
+        "name": null,
+        "optional": false,
+        "requested": "math",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/wildcard/models.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "dataclass",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "dataclasses:dataclass",
+        "kind": "static_from",
+        "line": 6,
+        "name": "dataclass",
+        "optional": false,
+        "requested": "dataclasses",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/wildcard/models.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "annotations",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "__future__:annotations",
+        "kind": "static_from",
+        "line": 3,
+        "name": "annotations",
+        "optional": false,
+        "requested": "__future__",
+        "role": "ordinary",
+        "scope": "<module>",
         "source": "easyuse_anima/workflow.py"
       },
       {
@@ -53503,6 +53554,786 @@
       },
       {
         "alias": null,
+        "bound_name": "DEFAULT_MAX_EXPANSION_DEPTH",
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": true,
+            "kind": "try",
+            "line": 31
+          }
+        ],
+        "classification": "internal",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "DEFAULT_MAX_EXPANSION_DEPTH",
+          "target": "easyuse_anima/wildcard/models.py",
+          "try_line": 31
+        },
+        "conditional": true,
+        "imported": ".easyuse_anima.wildcard.models:DEFAULT_MAX_EXPANSION_DEPTH",
+        "kind": "static_from",
+        "line": 32,
+        "name": "DEFAULT_MAX_EXPANSION_DEPTH",
+        "optional": false,
+        "requested": ".easyuse_anima.wildcard.models",
+        "role": "compatibility_primary",
+        "scope": "<module>",
+        "source": "wildcard_engine.py",
+        "target": "easyuse_anima/wildcard/models.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "DEFAULT_MAX_EXPANSION_GROWTH_PER_PASS",
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": true,
+            "kind": "try",
+            "line": 31
+          }
+        ],
+        "classification": "internal",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "DEFAULT_MAX_EXPANSION_GROWTH_PER_PASS",
+          "target": "easyuse_anima/wildcard/models.py",
+          "try_line": 31
+        },
+        "conditional": true,
+        "imported": ".easyuse_anima.wildcard.models:DEFAULT_MAX_EXPANSION_GROWTH_PER_PASS",
+        "kind": "static_from",
+        "line": 32,
+        "name": "DEFAULT_MAX_EXPANSION_GROWTH_PER_PASS",
+        "optional": false,
+        "requested": ".easyuse_anima.wildcard.models",
+        "role": "compatibility_primary",
+        "scope": "<module>",
+        "source": "wildcard_engine.py",
+        "target": "easyuse_anima/wildcard/models.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "DEFAULT_MAX_EXPANSION_OUTPUT_CHARS",
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": true,
+            "kind": "try",
+            "line": 31
+          }
+        ],
+        "classification": "internal",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "DEFAULT_MAX_EXPANSION_OUTPUT_CHARS",
+          "target": "easyuse_anima/wildcard/models.py",
+          "try_line": 31
+        },
+        "conditional": true,
+        "imported": ".easyuse_anima.wildcard.models:DEFAULT_MAX_EXPANSION_OUTPUT_CHARS",
+        "kind": "static_from",
+        "line": 32,
+        "name": "DEFAULT_MAX_EXPANSION_OUTPUT_CHARS",
+        "optional": false,
+        "requested": ".easyuse_anima.wildcard.models",
+        "role": "compatibility_primary",
+        "scope": "<module>",
+        "source": "wildcard_engine.py",
+        "target": "easyuse_anima/wildcard/models.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "DEFAULT_MAX_EXPANSION_REPLACEMENTS",
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": true,
+            "kind": "try",
+            "line": 31
+          }
+        ],
+        "classification": "internal",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "DEFAULT_MAX_EXPANSION_REPLACEMENTS",
+          "target": "easyuse_anima/wildcard/models.py",
+          "try_line": 31
+        },
+        "conditional": true,
+        "imported": ".easyuse_anima.wildcard.models:DEFAULT_MAX_EXPANSION_REPLACEMENTS",
+        "kind": "static_from",
+        "line": 32,
+        "name": "DEFAULT_MAX_EXPANSION_REPLACEMENTS",
+        "optional": false,
+        "requested": ".easyuse_anima.wildcard.models",
+        "role": "compatibility_primary",
+        "scope": "<module>",
+        "source": "wildcard_engine.py",
+        "target": "easyuse_anima/wildcard/models.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "MAX_EXPANSION_DEPTH",
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": true,
+            "kind": "try",
+            "line": 31
+          }
+        ],
+        "classification": "internal",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "MAX_EXPANSION_DEPTH",
+          "target": "easyuse_anima/wildcard/models.py",
+          "try_line": 31
+        },
+        "conditional": true,
+        "imported": ".easyuse_anima.wildcard.models:MAX_EXPANSION_DEPTH",
+        "kind": "static_from",
+        "line": 32,
+        "name": "MAX_EXPANSION_DEPTH",
+        "optional": false,
+        "requested": ".easyuse_anima.wildcard.models",
+        "role": "compatibility_primary",
+        "scope": "<module>",
+        "source": "wildcard_engine.py",
+        "target": "easyuse_anima/wildcard/models.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "MAX_EXPANSION_GROWTH_PER_PASS",
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": true,
+            "kind": "try",
+            "line": 31
+          }
+        ],
+        "classification": "internal",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "MAX_EXPANSION_GROWTH_PER_PASS",
+          "target": "easyuse_anima/wildcard/models.py",
+          "try_line": 31
+        },
+        "conditional": true,
+        "imported": ".easyuse_anima.wildcard.models:MAX_EXPANSION_GROWTH_PER_PASS",
+        "kind": "static_from",
+        "line": 32,
+        "name": "MAX_EXPANSION_GROWTH_PER_PASS",
+        "optional": false,
+        "requested": ".easyuse_anima.wildcard.models",
+        "role": "compatibility_primary",
+        "scope": "<module>",
+        "source": "wildcard_engine.py",
+        "target": "easyuse_anima/wildcard/models.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "MAX_EXPANSION_OUTPUT_CHARS",
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": true,
+            "kind": "try",
+            "line": 31
+          }
+        ],
+        "classification": "internal",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "MAX_EXPANSION_OUTPUT_CHARS",
+          "target": "easyuse_anima/wildcard/models.py",
+          "try_line": 31
+        },
+        "conditional": true,
+        "imported": ".easyuse_anima.wildcard.models:MAX_EXPANSION_OUTPUT_CHARS",
+        "kind": "static_from",
+        "line": 32,
+        "name": "MAX_EXPANSION_OUTPUT_CHARS",
+        "optional": false,
+        "requested": ".easyuse_anima.wildcard.models",
+        "role": "compatibility_primary",
+        "scope": "<module>",
+        "source": "wildcard_engine.py",
+        "target": "easyuse_anima/wildcard/models.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "MAX_EXPANSION_REPLACEMENTS",
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": true,
+            "kind": "try",
+            "line": 31
+          }
+        ],
+        "classification": "internal",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "MAX_EXPANSION_REPLACEMENTS",
+          "target": "easyuse_anima/wildcard/models.py",
+          "try_line": 31
+        },
+        "conditional": true,
+        "imported": ".easyuse_anima.wildcard.models:MAX_EXPANSION_REPLACEMENTS",
+        "kind": "static_from",
+        "line": 32,
+        "name": "MAX_EXPANSION_REPLACEMENTS",
+        "optional": false,
+        "requested": ".easyuse_anima.wildcard.models",
+        "role": "compatibility_primary",
+        "scope": "<module>",
+        "source": "wildcard_engine.py",
+        "target": "easyuse_anima/wildcard/models.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "REPLACE_DEPTH",
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": true,
+            "kind": "try",
+            "line": 31
+          }
+        ],
+        "classification": "internal",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "REPLACE_DEPTH",
+          "target": "easyuse_anima/wildcard/models.py",
+          "try_line": 31
+        },
+        "conditional": true,
+        "imported": ".easyuse_anima.wildcard.models:REPLACE_DEPTH",
+        "kind": "static_from",
+        "line": 32,
+        "name": "REPLACE_DEPTH",
+        "optional": false,
+        "requested": ".easyuse_anima.wildcard.models",
+        "role": "compatibility_primary",
+        "scope": "<module>",
+        "source": "wildcard_engine.py",
+        "target": "easyuse_anima/wildcard/models.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "WildcardExpansionBudget",
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": true,
+            "kind": "try",
+            "line": 31
+          }
+        ],
+        "classification": "internal",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "WildcardExpansionBudget",
+          "target": "easyuse_anima/wildcard/models.py",
+          "try_line": 31
+        },
+        "conditional": true,
+        "imported": ".easyuse_anima.wildcard.models:WildcardExpansionBudget",
+        "kind": "static_from",
+        "line": 32,
+        "name": "WildcardExpansionBudget",
+        "optional": false,
+        "requested": ".easyuse_anima.wildcard.models",
+        "role": "compatibility_primary",
+        "scope": "<module>",
+        "source": "wildcard_engine.py",
+        "target": "easyuse_anima/wildcard/models.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "WildcardExpansionResult",
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": true,
+            "kind": "try",
+            "line": 31
+          }
+        ],
+        "classification": "internal",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "WildcardExpansionResult",
+          "target": "easyuse_anima/wildcard/models.py",
+          "try_line": 31
+        },
+        "conditional": true,
+        "imported": ".easyuse_anima.wildcard.models:WildcardExpansionResult",
+        "kind": "static_from",
+        "line": 32,
+        "name": "WildcardExpansionResult",
+        "optional": false,
+        "requested": ".easyuse_anima.wildcard.models",
+        "role": "compatibility_primary",
+        "scope": "<module>",
+        "source": "wildcard_engine.py",
+        "target": "easyuse_anima/wildcard/models.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "WildcardOption",
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": true,
+            "kind": "try",
+            "line": 31
+          }
+        ],
+        "classification": "internal",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "WildcardOption",
+          "target": "easyuse_anima/wildcard/models.py",
+          "try_line": 31
+        },
+        "conditional": true,
+        "imported": ".easyuse_anima.wildcard.models:WildcardOption",
+        "kind": "static_from",
+        "line": 32,
+        "name": "WildcardOption",
+        "optional": false,
+        "requested": ".easyuse_anima.wildcard.models",
+        "role": "compatibility_primary",
+        "scope": "<module>",
+        "source": "wildcard_engine.py",
+        "target": "easyuse_anima/wildcard/models.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "DEFAULT_MAX_EXPANSION_DEPTH",
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 46,
+            "kind": "try",
+            "line": 31
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "DEFAULT_MAX_EXPANSION_DEPTH",
+          "target": "easyuse_anima/wildcard/models.py",
+          "try_line": 31
+        },
+        "conditional": true,
+        "imported": "easyuse_anima.wildcard.models:DEFAULT_MAX_EXPANSION_DEPTH",
+        "kind": "static_from",
+        "line": 47,
+        "name": "DEFAULT_MAX_EXPANSION_DEPTH",
+        "optional": false,
+        "requested": "easyuse_anima.wildcard.models",
+        "role": "compatibility_fallback",
+        "scope": "<module>",
+        "source": "wildcard_engine.py",
+        "target": "easyuse_anima/wildcard/models.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "DEFAULT_MAX_EXPANSION_GROWTH_PER_PASS",
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 46,
+            "kind": "try",
+            "line": 31
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "DEFAULT_MAX_EXPANSION_GROWTH_PER_PASS",
+          "target": "easyuse_anima/wildcard/models.py",
+          "try_line": 31
+        },
+        "conditional": true,
+        "imported": "easyuse_anima.wildcard.models:DEFAULT_MAX_EXPANSION_GROWTH_PER_PASS",
+        "kind": "static_from",
+        "line": 47,
+        "name": "DEFAULT_MAX_EXPANSION_GROWTH_PER_PASS",
+        "optional": false,
+        "requested": "easyuse_anima.wildcard.models",
+        "role": "compatibility_fallback",
+        "scope": "<module>",
+        "source": "wildcard_engine.py",
+        "target": "easyuse_anima/wildcard/models.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "DEFAULT_MAX_EXPANSION_OUTPUT_CHARS",
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 46,
+            "kind": "try",
+            "line": 31
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "DEFAULT_MAX_EXPANSION_OUTPUT_CHARS",
+          "target": "easyuse_anima/wildcard/models.py",
+          "try_line": 31
+        },
+        "conditional": true,
+        "imported": "easyuse_anima.wildcard.models:DEFAULT_MAX_EXPANSION_OUTPUT_CHARS",
+        "kind": "static_from",
+        "line": 47,
+        "name": "DEFAULT_MAX_EXPANSION_OUTPUT_CHARS",
+        "optional": false,
+        "requested": "easyuse_anima.wildcard.models",
+        "role": "compatibility_fallback",
+        "scope": "<module>",
+        "source": "wildcard_engine.py",
+        "target": "easyuse_anima/wildcard/models.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "DEFAULT_MAX_EXPANSION_REPLACEMENTS",
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 46,
+            "kind": "try",
+            "line": 31
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "DEFAULT_MAX_EXPANSION_REPLACEMENTS",
+          "target": "easyuse_anima/wildcard/models.py",
+          "try_line": 31
+        },
+        "conditional": true,
+        "imported": "easyuse_anima.wildcard.models:DEFAULT_MAX_EXPANSION_REPLACEMENTS",
+        "kind": "static_from",
+        "line": 47,
+        "name": "DEFAULT_MAX_EXPANSION_REPLACEMENTS",
+        "optional": false,
+        "requested": "easyuse_anima.wildcard.models",
+        "role": "compatibility_fallback",
+        "scope": "<module>",
+        "source": "wildcard_engine.py",
+        "target": "easyuse_anima/wildcard/models.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "MAX_EXPANSION_DEPTH",
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 46,
+            "kind": "try",
+            "line": 31
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "MAX_EXPANSION_DEPTH",
+          "target": "easyuse_anima/wildcard/models.py",
+          "try_line": 31
+        },
+        "conditional": true,
+        "imported": "easyuse_anima.wildcard.models:MAX_EXPANSION_DEPTH",
+        "kind": "static_from",
+        "line": 47,
+        "name": "MAX_EXPANSION_DEPTH",
+        "optional": false,
+        "requested": "easyuse_anima.wildcard.models",
+        "role": "compatibility_fallback",
+        "scope": "<module>",
+        "source": "wildcard_engine.py",
+        "target": "easyuse_anima/wildcard/models.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "MAX_EXPANSION_GROWTH_PER_PASS",
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 46,
+            "kind": "try",
+            "line": 31
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "MAX_EXPANSION_GROWTH_PER_PASS",
+          "target": "easyuse_anima/wildcard/models.py",
+          "try_line": 31
+        },
+        "conditional": true,
+        "imported": "easyuse_anima.wildcard.models:MAX_EXPANSION_GROWTH_PER_PASS",
+        "kind": "static_from",
+        "line": 47,
+        "name": "MAX_EXPANSION_GROWTH_PER_PASS",
+        "optional": false,
+        "requested": "easyuse_anima.wildcard.models",
+        "role": "compatibility_fallback",
+        "scope": "<module>",
+        "source": "wildcard_engine.py",
+        "target": "easyuse_anima/wildcard/models.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "MAX_EXPANSION_OUTPUT_CHARS",
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 46,
+            "kind": "try",
+            "line": 31
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "MAX_EXPANSION_OUTPUT_CHARS",
+          "target": "easyuse_anima/wildcard/models.py",
+          "try_line": 31
+        },
+        "conditional": true,
+        "imported": "easyuse_anima.wildcard.models:MAX_EXPANSION_OUTPUT_CHARS",
+        "kind": "static_from",
+        "line": 47,
+        "name": "MAX_EXPANSION_OUTPUT_CHARS",
+        "optional": false,
+        "requested": "easyuse_anima.wildcard.models",
+        "role": "compatibility_fallback",
+        "scope": "<module>",
+        "source": "wildcard_engine.py",
+        "target": "easyuse_anima/wildcard/models.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "MAX_EXPANSION_REPLACEMENTS",
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 46,
+            "kind": "try",
+            "line": 31
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "MAX_EXPANSION_REPLACEMENTS",
+          "target": "easyuse_anima/wildcard/models.py",
+          "try_line": 31
+        },
+        "conditional": true,
+        "imported": "easyuse_anima.wildcard.models:MAX_EXPANSION_REPLACEMENTS",
+        "kind": "static_from",
+        "line": 47,
+        "name": "MAX_EXPANSION_REPLACEMENTS",
+        "optional": false,
+        "requested": "easyuse_anima.wildcard.models",
+        "role": "compatibility_fallback",
+        "scope": "<module>",
+        "source": "wildcard_engine.py",
+        "target": "easyuse_anima/wildcard/models.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "REPLACE_DEPTH",
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 46,
+            "kind": "try",
+            "line": 31
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "REPLACE_DEPTH",
+          "target": "easyuse_anima/wildcard/models.py",
+          "try_line": 31
+        },
+        "conditional": true,
+        "imported": "easyuse_anima.wildcard.models:REPLACE_DEPTH",
+        "kind": "static_from",
+        "line": 47,
+        "name": "REPLACE_DEPTH",
+        "optional": false,
+        "requested": "easyuse_anima.wildcard.models",
+        "role": "compatibility_fallback",
+        "scope": "<module>",
+        "source": "wildcard_engine.py",
+        "target": "easyuse_anima/wildcard/models.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "WildcardExpansionBudget",
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 46,
+            "kind": "try",
+            "line": 31
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "WildcardExpansionBudget",
+          "target": "easyuse_anima/wildcard/models.py",
+          "try_line": 31
+        },
+        "conditional": true,
+        "imported": "easyuse_anima.wildcard.models:WildcardExpansionBudget",
+        "kind": "static_from",
+        "line": 47,
+        "name": "WildcardExpansionBudget",
+        "optional": false,
+        "requested": "easyuse_anima.wildcard.models",
+        "role": "compatibility_fallback",
+        "scope": "<module>",
+        "source": "wildcard_engine.py",
+        "target": "easyuse_anima/wildcard/models.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "WildcardExpansionResult",
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 46,
+            "kind": "try",
+            "line": 31
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "WildcardExpansionResult",
+          "target": "easyuse_anima/wildcard/models.py",
+          "try_line": 31
+        },
+        "conditional": true,
+        "imported": "easyuse_anima.wildcard.models:WildcardExpansionResult",
+        "kind": "static_from",
+        "line": 47,
+        "name": "WildcardExpansionResult",
+        "optional": false,
+        "requested": "easyuse_anima.wildcard.models",
+        "role": "compatibility_fallback",
+        "scope": "<module>",
+        "source": "wildcard_engine.py",
+        "target": "easyuse_anima/wildcard/models.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "WildcardOption",
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 46,
+            "kind": "try",
+            "line": 31
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "WildcardOption",
+          "target": "easyuse_anima/wildcard/models.py",
+          "try_line": 31
+        },
+        "conditional": true,
+        "imported": "easyuse_anima.wildcard.models:WildcardOption",
+        "kind": "static_from",
+        "line": 47,
+        "name": "WildcardOption",
+        "optional": false,
+        "requested": "easyuse_anima.wildcard.models",
+        "role": "compatibility_fallback",
+        "scope": "<module>",
+        "source": "wildcard_engine.py",
+        "target": "easyuse_anima/wildcard/models.py"
+      },
+      {
+        "alias": null,
         "bound_name": "folder_paths",
         "branch_context": [
           {
@@ -53510,7 +54341,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 542
+            "line": 482
           }
         ],
         "classification": "external",
@@ -53518,7 +54349,7 @@
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 543,
+        "line": 483,
         "name": null,
         "optional": true,
         "requested": "folder_paths",
@@ -53533,7 +54364,7 @@
           {
             "branch": "body",
             "kind": "if",
-            "line": 562,
+            "line": 502,
             "type_checking": false
           },
           {
@@ -53541,7 +54372,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": true,
             "kind": "try",
-            "line": 563
+            "line": 503
           }
         ],
         "classification": "internal",
@@ -53549,12 +54380,12 @@
         "compatibility_pair": {
           "bound_name": "get_settings",
           "target": "easyuse_anima/settings/repository.py",
-          "try_line": 563
+          "try_line": 503
         },
         "conditional": true,
         "imported": ".easyuse_anima.settings.repository:get_settings",
         "kind": "static_from",
-        "line": 564,
+        "line": 504,
         "name": "get_settings",
         "optional": false,
         "requested": ".easyuse_anima.settings.repository",
@@ -53570,7 +54401,7 @@
           {
             "branch": "body",
             "kind": "if",
-            "line": 562,
+            "line": 502,
             "type_checking": false
           },
           {
@@ -53579,9 +54410,9 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 565,
+            "handler_line": 505,
             "kind": "try",
-            "line": 563
+            "line": 503
           }
         ],
         "classification": "compatibility_fallback",
@@ -53589,12 +54420,12 @@
         "compatibility_pair": {
           "bound_name": "get_settings",
           "target": "easyuse_anima/settings/repository.py",
-          "try_line": 563
+          "try_line": 503
         },
         "conditional": true,
         "imported": "easyuse_anima.settings.repository:get_settings",
         "kind": "static_from",
-        "line": 566,
+        "line": 506,
         "name": "get_settings",
         "optional": false,
         "requested": "easyuse_anima.settings.repository",
@@ -55196,6 +56027,10 @@
       {
         "from": "wildcard_engine.py",
         "to": "easyuse_anima/settings/repository.py"
+      },
+      {
+        "from": "wildcard_engine.py",
+        "to": "easyuse_anima/wildcard/models.py"
       }
     ],
     "module_graph_policy": {
@@ -55927,6 +56762,18 @@
       {
         "cyclic": false,
         "modules": [
+          "easyuse_anima/wildcard/__init__.py"
+        ]
+      },
+      {
+        "cyclic": false,
+        "modules": [
+          "easyuse_anima/wildcard/models.py"
+        ]
+      },
+      {
+        "cyclic": false,
+        "modules": [
           "easyuse_anima/workflow.py"
         ]
       },
@@ -55963,7 +56810,7 @@
     ]
   },
   "inventory": {
-    "module_count": 125,
+    "module_count": 127,
     "modules": [
       {
         "is_package": true,
@@ -57394,6 +58241,30 @@
         }
       },
       {
+        "is_package": true,
+        "loc": 3,
+        "module": "easyuse_anima.wildcard",
+        "normalized_git_blob_sha1": "7a2e79b7d7b4d9418622582f7816fb501c057d87",
+        "path": "easyuse_anima/wildcard/__init__.py",
+        "top_level": {
+          "class_count": 0,
+          "function_count": 0,
+          "global_count": 1
+        }
+      },
+      {
+        "is_package": false,
+        "loc": 115,
+        "module": "easyuse_anima.wildcard.models",
+        "normalized_git_blob_sha1": "8c59f32b85b4cc411de2bba6360edabcc20f0465",
+        "path": "easyuse_anima/wildcard/models.py",
+        "top_level": {
+          "class_count": 3,
+          "function_count": 2,
+          "global_count": 10
+        }
+      },
+      {
         "is_package": false,
         "loc": 50,
         "module": "easyuse_anima.workflow",
@@ -57455,14 +58326,14 @@
       },
       {
         "is_package": false,
-        "loc": 1272,
+        "loc": 1212,
         "module": "wildcard_engine",
-        "normalized_git_blob_sha1": "a1d42005ed4069c0a2f5b6a1d6282f4db535e7fa",
+        "normalized_git_blob_sha1": "083098efac3c6d049600876b48cc621fac2d15a8",
         "path": "wildcard_engine.py",
         "top_level": {
-          "class_count": 13,
-          "function_count": 41,
-          "global_count": 40
+          "class_count": 10,
+          "function_count": 39,
+          "global_count": 31
         }
       }
     ]
@@ -67876,9 +68747,285 @@
       {
         "branch_context": [
           {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 46,
+            "kind": "try",
+            "line": 31
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "conditional": true,
+        "imported": "easyuse_anima.wildcard.models:DEFAULT_MAX_EXPANSION_DEPTH",
+        "kind": "static_from",
+        "line": 47,
+        "optional": false,
+        "role": "compatibility_fallback",
+        "source": "wildcard_engine.py",
+        "target": "easyuse_anima/wildcard/models.py"
+      },
+      {
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 46,
+            "kind": "try",
+            "line": 31
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "conditional": true,
+        "imported": "easyuse_anima.wildcard.models:DEFAULT_MAX_EXPANSION_GROWTH_PER_PASS",
+        "kind": "static_from",
+        "line": 47,
+        "optional": false,
+        "role": "compatibility_fallback",
+        "source": "wildcard_engine.py",
+        "target": "easyuse_anima/wildcard/models.py"
+      },
+      {
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 46,
+            "kind": "try",
+            "line": 31
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "conditional": true,
+        "imported": "easyuse_anima.wildcard.models:DEFAULT_MAX_EXPANSION_OUTPUT_CHARS",
+        "kind": "static_from",
+        "line": 47,
+        "optional": false,
+        "role": "compatibility_fallback",
+        "source": "wildcard_engine.py",
+        "target": "easyuse_anima/wildcard/models.py"
+      },
+      {
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 46,
+            "kind": "try",
+            "line": 31
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "conditional": true,
+        "imported": "easyuse_anima.wildcard.models:DEFAULT_MAX_EXPANSION_REPLACEMENTS",
+        "kind": "static_from",
+        "line": 47,
+        "optional": false,
+        "role": "compatibility_fallback",
+        "source": "wildcard_engine.py",
+        "target": "easyuse_anima/wildcard/models.py"
+      },
+      {
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 46,
+            "kind": "try",
+            "line": 31
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "conditional": true,
+        "imported": "easyuse_anima.wildcard.models:MAX_EXPANSION_DEPTH",
+        "kind": "static_from",
+        "line": 47,
+        "optional": false,
+        "role": "compatibility_fallback",
+        "source": "wildcard_engine.py",
+        "target": "easyuse_anima/wildcard/models.py"
+      },
+      {
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 46,
+            "kind": "try",
+            "line": 31
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "conditional": true,
+        "imported": "easyuse_anima.wildcard.models:MAX_EXPANSION_GROWTH_PER_PASS",
+        "kind": "static_from",
+        "line": 47,
+        "optional": false,
+        "role": "compatibility_fallback",
+        "source": "wildcard_engine.py",
+        "target": "easyuse_anima/wildcard/models.py"
+      },
+      {
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 46,
+            "kind": "try",
+            "line": 31
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "conditional": true,
+        "imported": "easyuse_anima.wildcard.models:MAX_EXPANSION_OUTPUT_CHARS",
+        "kind": "static_from",
+        "line": 47,
+        "optional": false,
+        "role": "compatibility_fallback",
+        "source": "wildcard_engine.py",
+        "target": "easyuse_anima/wildcard/models.py"
+      },
+      {
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 46,
+            "kind": "try",
+            "line": 31
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "conditional": true,
+        "imported": "easyuse_anima.wildcard.models:MAX_EXPANSION_REPLACEMENTS",
+        "kind": "static_from",
+        "line": 47,
+        "optional": false,
+        "role": "compatibility_fallback",
+        "source": "wildcard_engine.py",
+        "target": "easyuse_anima/wildcard/models.py"
+      },
+      {
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 46,
+            "kind": "try",
+            "line": 31
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "conditional": true,
+        "imported": "easyuse_anima.wildcard.models:REPLACE_DEPTH",
+        "kind": "static_from",
+        "line": 47,
+        "optional": false,
+        "role": "compatibility_fallback",
+        "source": "wildcard_engine.py",
+        "target": "easyuse_anima/wildcard/models.py"
+      },
+      {
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 46,
+            "kind": "try",
+            "line": 31
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "conditional": true,
+        "imported": "easyuse_anima.wildcard.models:WildcardExpansionBudget",
+        "kind": "static_from",
+        "line": 47,
+        "optional": false,
+        "role": "compatibility_fallback",
+        "source": "wildcard_engine.py",
+        "target": "easyuse_anima/wildcard/models.py"
+      },
+      {
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 46,
+            "kind": "try",
+            "line": 31
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "conditional": true,
+        "imported": "easyuse_anima.wildcard.models:WildcardExpansionResult",
+        "kind": "static_from",
+        "line": 47,
+        "optional": false,
+        "role": "compatibility_fallback",
+        "source": "wildcard_engine.py",
+        "target": "easyuse_anima/wildcard/models.py"
+      },
+      {
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 46,
+            "kind": "try",
+            "line": 31
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "conditional": true,
+        "imported": "easyuse_anima.wildcard.models:WildcardOption",
+        "kind": "static_from",
+        "line": 47,
+        "optional": false,
+        "role": "compatibility_fallback",
+        "source": "wildcard_engine.py",
+        "target": "easyuse_anima/wildcard/models.py"
+      },
+      {
+        "branch_context": [
+          {
             "branch": "body",
             "kind": "if",
-            "line": 562,
+            "line": 502,
             "type_checking": false
           },
           {
@@ -67887,16 +69034,16 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 565,
+            "handler_line": 505,
             "kind": "try",
-            "line": 563
+            "line": 503
           }
         ],
         "classification": "compatibility_fallback",
         "conditional": true,
         "imported": "easyuse_anima.settings.repository:get_settings",
         "kind": "static_from",
-        "line": 566,
+        "line": 506,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "wildcard_engine.py",
@@ -73294,6 +74441,39 @@
         "line": 3,
         "optional": false,
         "role": "ordinary",
+        "source": "easyuse_anima/wildcard/models.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "math",
+        "kind": "static_import",
+        "line": 5,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/wildcard/models.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "dataclasses:dataclass",
+        "kind": "static_from",
+        "line": 6,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/wildcard/models.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "__future__:annotations",
+        "kind": "static_from",
+        "line": 3,
+        "optional": false,
+        "role": "ordinary",
         "source": "easyuse_anima/workflow.py"
       },
       {
@@ -73553,14 +74733,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 542
+            "line": 482
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 543,
+        "line": 483,
         "optional": true,
         "role": "optional_dependency",
         "source": "wildcard_engine.py"
@@ -74514,14 +75694,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 542
+            "line": 482
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 543,
+        "line": 483,
         "optional": true,
         "role": "optional_dependency",
         "source": "wildcard_engine.py"
@@ -74648,6 +75828,8 @@
       "easyuse_anima/translation/providers/__init__.py",
       "easyuse_anima/translation/providers/google.py",
       "easyuse_anima/translation/service.py",
+      "easyuse_anima/wildcard/__init__.py",
+      "easyuse_anima/wildcard/models.py",
       "easyuse_anima/workflow.py",
       "nodes.py",
       "prompt_translation.py",
@@ -74775,6 +75957,8 @@
       "easyuse_anima/translation/providers/__init__.py",
       "easyuse_anima/translation/providers/google.py",
       "easyuse_anima/translation/service.py",
+      "easyuse_anima/wildcard/__init__.py",
+      "easyuse_anima/wildcard/models.py",
       "easyuse_anima/workflow.py",
       "nodes.py",
       "prompt_translation.py",
@@ -76336,11 +77520,38 @@
         "scope": "<module>"
       },
       {
+        "callee": "dataclass",
+        "column": 1,
+        "context": "decorator:WildcardOption",
+        "kind": "import_time_call",
+        "line": 34,
+        "module": "easyuse_anima/wildcard/models.py",
+        "scope": "<module>"
+      },
+      {
+        "callee": "dataclass",
+        "column": 1,
+        "context": "decorator:WildcardExpansionBudget",
+        "kind": "import_time_call",
+        "line": 58,
+        "module": "easyuse_anima/wildcard/models.py",
+        "scope": "<module>"
+      },
+      {
+        "callee": "dataclass",
+        "column": 1,
+        "context": "decorator:WildcardExpansionResult",
+        "kind": "import_time_call",
+        "line": 108,
+        "module": "easyuse_anima/wildcard/models.py",
+        "scope": "<module>"
+      },
+      {
         "callee": "re.compile",
         "column": 13,
         "context": "assign:COMMENT_RE",
         "kind": "import_time_call",
-        "line": 93,
+        "line": 112,
         "module": "wildcard_engine.py",
         "scope": "<module>"
       },
@@ -76349,7 +77560,7 @@
         "column": 13,
         "context": "assign:DYNAMIC_RE",
         "kind": "import_time_call",
-        "line": 94,
+        "line": 113,
         "module": "wildcard_engine.py",
         "scope": "<module>"
       },
@@ -76358,7 +77569,7 @@
         "column": 14,
         "context": "assign:WILDCARD_RE",
         "kind": "import_time_call",
-        "line": 95,
+        "line": 114,
         "module": "wildcard_engine.py",
         "scope": "<module>"
       },
@@ -76367,7 +77578,7 @@
         "column": 19,
         "context": "assign:WILDCARD_FULL_RE",
         "kind": "import_time_call",
-        "line": 96,
+        "line": 115,
         "module": "wildcard_engine.py",
         "scope": "<module>"
       },
@@ -76376,7 +77587,7 @@
         "column": 25,
         "context": "assign:WILDCARD_QUANTIFIER_RE",
         "kind": "import_time_call",
-        "line": 97,
+        "line": 116,
         "module": "wildcard_engine.py",
         "scope": "<module>"
       },
@@ -76385,7 +77596,7 @@
         "column": 19,
         "context": "assign:WEIGHT_PREFIX_RE",
         "kind": "import_time_call",
-        "line": 101,
+        "line": 120,
         "module": "wildcard_engine.py",
         "scope": "<module>"
       },
@@ -76394,16 +77605,7 @@
         "column": 16,
         "context": "assign:COUNT_SPEC_RE",
         "kind": "import_time_call",
-        "line": 102,
-        "module": "wildcard_engine.py",
-        "scope": "<module>"
-      },
-      {
-        "callee": "dataclass",
-        "column": 1,
-        "context": "decorator:WildcardOption",
-        "kind": "import_time_call",
-        "line": 107,
+        "line": 121,
         "module": "wildcard_engine.py",
         "scope": "<module>"
       },
@@ -76412,7 +77614,7 @@
         "column": 1,
         "context": "decorator:_WildcardSourceFile",
         "kind": "import_time_call",
-        "line": 113,
+        "line": 126,
         "module": "wildcard_engine.py",
         "scope": "<module>"
       },
@@ -76421,7 +77623,7 @@
         "column": 1,
         "context": "decorator:_WildcardSourceState",
         "kind": "import_time_call",
-        "line": 127,
+        "line": 140,
         "module": "wildcard_engine.py",
         "scope": "<module>"
       },
@@ -76430,7 +77632,7 @@
         "column": 1,
         "context": "decorator:_WildcardSnapshot",
         "kind": "import_time_call",
-        "line": 142,
+        "line": 155,
         "module": "wildcard_engine.py",
         "scope": "<module>"
       },
@@ -76439,7 +77641,7 @@
         "column": 22,
         "context": "assign:_SNAPSHOT_CONDITION",
         "kind": "import_time_call",
-        "line": 167,
+        "line": 180,
         "module": "wildcard_engine.py",
         "scope": "<module>"
       },
@@ -76448,7 +77650,7 @@
         "column": 57,
         "context": "assign:_SNAPSHOT_CACHE",
         "kind": "import_time_call",
-        "line": 168,
+        "line": 181,
         "module": "wildcard_engine.py",
         "scope": "<module>"
       },
@@ -76457,25 +77659,7 @@
         "column": 33,
         "context": "assign:_SNAPSHOT_BUILDING",
         "kind": "import_time_call",
-        "line": 169,
-        "module": "wildcard_engine.py",
-        "scope": "<module>"
-      },
-      {
-        "callee": "dataclass",
-        "column": 1,
-        "context": "decorator:WildcardExpansionBudget",
-        "kind": "import_time_call",
-        "line": 190,
-        "module": "wildcard_engine.py",
-        "scope": "<module>"
-      },
-      {
-        "callee": "dataclass",
-        "column": 1,
-        "context": "decorator:WildcardExpansionResult",
-        "kind": "import_time_call",
-        "line": 235,
+        "line": 182,
         "module": "wildcard_engine.py",
         "scope": "<module>"
       },
@@ -76484,7 +77668,7 @@
         "column": 1,
         "context": "decorator:_ExpansionSegment",
         "kind": "import_time_call",
-        "line": 260,
+        "line": 200,
         "module": "wildcard_engine.py",
         "scope": "<module>"
       },
@@ -76493,7 +77677,7 @@
         "column": 1,
         "context": "decorator:_Replacement",
         "kind": "import_time_call",
-        "line": 333,
+        "line": 273,
         "module": "wildcard_engine.py",
         "scope": "<module>"
       }
@@ -76869,25 +78053,25 @@
       },
       {
         "kind": "set",
-        "line": 91,
+        "line": 110,
         "module": "wildcard_engine.py",
         "name": "WILDCARD_EXTENSIONS"
       },
       {
         "kind": "dict",
-        "line": 52,
+        "line": 83,
         "module": "wildcard_engine.py",
         "name": "WILDCARD_MODE_ALIASES"
       },
       {
         "kind": "set",
-        "line": 169,
+        "line": 182,
         "module": "wildcard_engine.py",
         "name": "_SNAPSHOT_BUILDING"
       },
       {
         "kind": "dict",
-        "line": 168,
+        "line": 181,
         "module": "wildcard_engine.py",
         "name": "_SNAPSHOT_CACHE"
       }
@@ -77052,7 +78236,7 @@
           "single_flight"
         ],
         "initializer": "set",
-        "line": 169,
+        "line": 182,
         "module": "wildcard_engine.py",
         "name": "_SNAPSHOT_BUILDING"
       },
@@ -77062,7 +78246,7 @@
           "mutable_container"
         ],
         "initializer": "OrderedDict",
-        "line": 168,
+        "line": 181,
         "module": "wildcard_engine.py",
         "name": "_SNAPSHOT_CACHE"
       }

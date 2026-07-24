@@ -8,7 +8,7 @@
 - Parent roadmap unit: D-12 Wildcard
 - PR type: Move
 - Baseline: `dev@7fdee04d4102a1273025624f57e955b3295e4a8a`
-- State: READY
+- State: VALIDATED in PR #387
 - Production behavior changes: forbidden
 
 ## Responsibility boundary
@@ -150,3 +150,19 @@ Supporting:
 - canonical model module has zero root imports;
 - official full runner once at the PR checkpoint; and
 - root retains all source/snapshot/selector/seed/expansion implementation.
+
+Validation evidence:
+
+- wildcard behavior and root/canonical identity: 72 tests passed;
+- package skeleton: 1 test passed;
+- Registry scanner: 8 tests passed;
+- backend analyzer: 18 tests passed, 127 shipped/runtime modules and zero
+  unreachable modules;
+- G-03 import boundary: 16 tests passed;
+- canonical model Pyright diagnostics: 0;
+- official full: 1,135 Python tests and 112 frontend files passed; G-03 kept
+  10 completed package groups with zero violations and the existing Pyright
+  baseline remained 14 errors; and
+- `comfy node validate` passed; `comfy node pack` produced 257 entries and
+  included root `wildcard_engine.py` plus canonical wildcard `__init__.py` and
+  `models.py`.
