@@ -6,7 +6,7 @@
 - Parent roadmap unit: D-12 Wildcard
 - PR type: Move
 - Baseline: `dev@ced62e5969487da0494661e24e2032a089bc4831`
-- State: READY
+- State: VALIDATED
 - Production behavior changes: forbidden
 
 ## Responsibility boundary
@@ -110,3 +110,21 @@ Supporting:
 - canonical selector Ruff/Pyright have zero diagnostics;
 - official full runs once at the PR checkpoint; and
 - root retains all expansion/lifecycle/integration callers.
+
+## Validation evidence
+
+- exact root/canonical selector identity: 1 focused test passed;
+- ordinary PCG64 golden outputs: 1 focused test passed;
+- weighted and multiselect PCG64 golden outputs: 1 focused test passed;
+- package skeleton/no-eager-NumPy: 1 test passed;
+- Registry scanner safety: 8 tests passed;
+- Python import boundaries: 16 tests passed;
+- backend analyzer: 18 tests passed;
+- canonical `selector.py` Ruff: 0 findings;
+- canonical `selector.py` Pyright 1.1.411: 0 diagnostics;
+- official full: 1,140 Python tests and 112 frontend files passed, G-03a
+  remained 10 completed groups with 0 violations, and the existing 14-error
+  Pyright baseline passed; and
+- local Registry validation passed; the 262-entry archive contained root
+  `wildcard_engine.py` and canonical wildcard `mode.py`, `models.py`, `seed.py`,
+  `selector.py`, `snapshot.py`, and `sources.py`.
