@@ -42,10 +42,7 @@ from .fields import (
     _join_prompt_tokens,
 )
 
-try:
-    from ...settings import resolve_metadata_filter_words
-except ImportError:
-    from settings import resolve_metadata_filter_words
+from ..settings.service import resolve_metadata_filter_words
 
 ADVANCED_FIELD_TYPES = {"quality", "artist", "trigger", "general", "naia"}
 ADVANCED_FIELD_PANES = {"positive", "negative"}

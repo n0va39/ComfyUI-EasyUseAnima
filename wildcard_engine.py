@@ -561,9 +561,9 @@ def _resolve_path(value: str, base_path: Path) -> Path:
 def resolve_wildcard_roots(extra_paths: str | None = None) -> list[Path]:
     if extra_paths is None:
         try:
-            from .settings import get_settings
+            from .easyuse_anima.settings.repository import get_settings
         except ImportError:
-            from settings import get_settings
+            from easyuse_anima.settings.repository import get_settings
 
         extra_paths = get_settings().get("wildcard.extra_paths", "")
 

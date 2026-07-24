@@ -18,7 +18,7 @@ from nodes import (
     EasyUseAnimaPromptStudioRegional,
     EasyUseAnimaWildcard,
 )
-from settings import public_settings
+from easyuse_anima.settings.service import public_settings
 import wildcard_engine
 from wildcard_engine import (
     DEFAULT_TEST_WILDCARD_FILE,

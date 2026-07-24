@@ -48,10 +48,7 @@ from .seed_adapters import (
     prompt_studio_seed_execution,
 )
 
-try:
-    from ...settings import resolve_metadata_filter_words
-except ImportError:
-    from settings import resolve_metadata_filter_words
+from ..settings.service import resolve_metadata_filter_words
 
 
 WILDCARD_MODE_SEQUENTIAL = "sequential"

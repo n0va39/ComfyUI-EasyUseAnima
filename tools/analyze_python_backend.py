@@ -34,6 +34,7 @@ REGISTRY_ENTRY_MODULE_CANDIDATES = (
     "__init__.py",
     "nodes.py",
     "prompt_translation.py",
+    "settings.py",
     "storage.py",
 )
 DYNAMIC_IMPORT_CALLEES = frozenset({"__import__", "importlib.import_module"})

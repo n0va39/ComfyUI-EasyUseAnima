@@ -6,7 +6,7 @@
 - Roadmap unit: D-09
 - PR type: Move
 - Baseline: `dev@47941ff61053a07a1aba8f0264f86b2b8127d3bf`
-- State: INVENTORY
+- State: VALIDATED in PR #383
 - Behavior changes: forbidden
 
 ## Responsibility boundary
@@ -135,6 +135,8 @@ Supporting:
 - settings focused/identity tests and wildcard settings import;
 - Python package skeleton, import-boundary, backend analyzer, Registry scanner,
   and their exact fixtures;
+- root compatibility-surface and `nodes.py` analyzer exact fixtures changed
+  only by canonical settings import ownership;
 - `docs/architecture/python-compatibility-shims.md`;
 - this document; and
 - `docs/architecture/python-backend-execution-roadmap.md`.
@@ -159,3 +161,22 @@ Supporting:
 - official full runner at the PR checkpoint; and
 - root `settings.py` contains only explicit direct re-exports while all
   production settings imports use canonical owners.
+
+Validation evidence:
+
+- `SettingsTests`: 23 tests passed, including root/canonical identity,
+  round-trip, long-text, Comfy overlay, concurrent updates, resolvers, clamps,
+  aliases, and failure handling;
+- package skeleton, import-boundary, backend-analyzer, and Registry-scanner
+  focused suites: 33 tests passed;
+- `nodes.py` analyzer and machine-readable compatibility surface: 30 tests
+  passed with three bindings moved from legacy to canonical ownership;
+- focused Pyright for all three canonical settings owners: 0 diagnostics;
+- old/new AST comparison found no missing or extra functions/constants and no
+  function-body delta except the behavior-neutral Comfy path return cast;
+- official `full`: 1,131 Python tests and 112 frontend files passed;
+- `comfy node validate`: passed;
+- `comfy node pack`: produced a 248-entry archive containing root `settings.py`
+  and all four `easyuse_anima/settings/` files; and
+- no server, browser, model, provider, workflow, or live-instance smoke was
+  run because D-09 changes only Python import ownership and packaging.

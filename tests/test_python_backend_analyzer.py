@@ -691,12 +691,18 @@ ignored/
 
         self.assertEqual(analyzer.render_json(report), expected_text)
         self.assertEqual(report["schema_version"], 2)
-        self.assertEqual(report["inventory"]["module_count"], 114)
-        self.assertEqual(len(report["registry"]["shipped_python_modules"]), 114)
-        self.assertEqual(len(report["registry"]["runtime_import_closure"]), 114)
+        self.assertEqual(report["inventory"]["module_count"], 118)
+        self.assertEqual(len(report["registry"]["shipped_python_modules"]), 118)
+        self.assertEqual(len(report["registry"]["runtime_import_closure"]), 118)
         self.assertEqual(
             report["registry"]["entry_modules"],
-            ["__init__.py", "nodes.py", "prompt_translation.py", "storage.py"],
+            [
+                "__init__.py",
+                "nodes.py",
+                "prompt_translation.py",
+                "settings.py",
+                "storage.py",
+            ],
         )
         self.assertEqual(report["registry"]["missing_internal_imports"], [])
         self.assertEqual(report["registry"]["unreachable_shipped_python_modules"], [])
@@ -772,6 +778,10 @@ ignored/
                 "easyuse_anima/profiles/__init__.py",
                 "easyuse_anima/profiles/contract.py",
                 "easyuse_anima/profiles/mutation.py",
+                "easyuse_anima/settings/__init__.py",
+                "easyuse_anima/settings/repository.py",
+                "easyuse_anima/settings/schema.py",
+                "easyuse_anima/settings/service.py",
                 "easyuse_anima/translation/__init__.py",
                 "easyuse_anima/translation/contracts.py",
                 "easyuse_anima/translation/markers.py",
@@ -849,6 +859,10 @@ ignored/
                 "easyuse_anima/profiles/__init__.py",
                 "easyuse_anima/profiles/contract.py",
                 "easyuse_anima/profiles/mutation.py",
+                "easyuse_anima/settings/__init__.py",
+                "easyuse_anima/settings/repository.py",
+                "easyuse_anima/settings/schema.py",
+                "easyuse_anima/settings/service.py",
                 "easyuse_anima/translation/__init__.py",
                 "easyuse_anima/translation/contracts.py",
                 "easyuse_anima/translation/markers.py",
@@ -904,9 +918,7 @@ ignored/
             {
                 ("api.py", "easyuse_anima/profiles/contract.py"),
                 ("api.py", "easyuse_anima/profiles/mutation.py"),
-                ("nodes.py", "settings.py"),
                 ("nodes.py", "wildcard_engine.py"),
-                ("wildcard_engine.py", "settings.py"),
             }.issubset(fallback_targets)
         )
         self.assertFalse(
