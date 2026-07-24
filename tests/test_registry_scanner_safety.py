@@ -81,6 +81,8 @@ EXPECTED_PYTHON_PACKAGE_FILES = {
     "easyuse_anima/settings/repository.py",
     "easyuse_anima/settings/schema.py",
     "easyuse_anima/settings/service.py",
+    "easyuse_anima/wildcard/__init__.py",
+    "easyuse_anima/wildcard/models.py",
     "easyuse_anima/registration.py",
     "easyuse_anima/prompt/__init__.py",
     "easyuse_anima/prompt/correction.py",
