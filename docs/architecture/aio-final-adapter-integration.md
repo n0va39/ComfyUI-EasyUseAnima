@@ -5,7 +5,7 @@
 - PR type: Contract/cleanup
 - Baseline: `dev` commit
   `3524b3789baae00d73512fc875a3ecfeb981f63d`
-- State: INVENTORY
+- State: VALIDATED
 
 A169-09 gives the completed stage pipeline one canonical internal entry name,
 keeps both legacy adapters intact, and records the integration matrix for the
@@ -19,20 +19,22 @@ change generation behavior.
 - `EasyUseAnimaAIOGenerator.generate` is the canonical production node caller.
   It validates input, normalizes settings, opens the backend seed execution
   session, writes the concrete execution seed, calls
-  `_run_aio_normalized_legacy_generation`, then publishes the accepted
+  `_run_aio_generation_pipeline`, then publishes the accepted
   execution/next-seed display.
 - `_run_aio_legacy_generation` is the root compatibility adapter. It validates
   input, normalizes settings, resolves the legacy runtime seed, and delegates
   to `_run_aio_normalized_legacy_generation`.
-- `_run_aio_normalized_legacy_generation` now owns the fully connected
-  request/state/six-stage pipeline and is also a direct test seam.
+- `_run_aio_normalized_legacy_generation` is the exact-signature compatibility
+  and direct-test adapter for `_run_aio_generation_pipeline`.
+- `_run_aio_generation_pipeline` owns the fully connected
+  request/state/six-stage pipeline.
 - Root `nodes.py` and package entry modes expose only
   `_run_aio_legacy_generation` plus the existing leaf helpers. The normalized
   entry is not a root compatibility export.
 
 ### Final adapter topology
 
-A169-09 introduces `_run_aio_generation_pipeline` in the existing
+A169-09 provides `_run_aio_generation_pipeline` in the existing
 `legacy_generation.py` module:
 
 1. the current normalized implementation body remains in place under the
@@ -137,3 +139,20 @@ This Contract/cleanup PR receives one official full validation after focused
 tests pass. The full suite is not repeated after deterministic component
 failures; failed components are resumed directly. No server/model/browser smoke
 is required because the production body and frontend do not change.
+
+## Validation result
+
+Validated on the A169-09 worktree:
+
+- normalized legacy adapter and exact execution trace: 26 focused tests passed;
+- backend seed cutover: 1 focused test passed;
+- six-stage pipeline contract: 6 focused tests passed;
+- integration matrix and read-only JSON evidence: 4 focused tests passed;
+- Python backend analyzer: 18 focused tests passed;
+- targeted Ruff 0.15.22 and Pyright 1.1.411: 2 production files, 0 errors;
+- Python import-boundary gate: 6 completed package groups, 0 violations; and
+- official full: 1,096 Python tests plus 112 frontend JavaScript files passed,
+  with the reviewed Pyright baseline unchanged at 88 files and 14 errors.
+
+No ComfyUI server, model-backed generation, browser smoke, fixture rewrite, or
+frontend runtime change was performed or required.

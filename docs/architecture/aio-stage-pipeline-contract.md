@@ -163,3 +163,23 @@ Validated on the A169-01 worktree:
 - Ruff 0.15.22 import ordering: passed for `generation_pipeline.py`;
 - Python import-boundary gate: 6 package groups, 0 violations; and
 - no ComfyUI server, model generation or browser smoke was run or required.
+
+## Final connected state after A169-09
+
+A169-02 through A169-08 connected the six stages and request-local lifecycle
+owners without changing their order or behavior. A169-09 names that existing
+owner `_run_aio_generation_pipeline`:
+
+- `EasyUseAnimaAIOGenerator.generate` calls the canonical pipeline directly
+  after input normalization and backend seed reservation;
+- `_run_aio_normalized_legacy_generation` remains an exact-signature adapter
+  and test seam;
+- `_run_aio_legacy_generation` remains the root compatibility adapter and
+  preserves its normalization and runtime-seed behavior;
+- root/package aliases and leaf helper identities remain unchanged; and
+- the canonical pipeline retains all six stages plus
+  `EphemeralModelRegistry`, `ModelVariantResolver`, and `PreviewCollector`.
+
+The final adapter is a Contract/cleanup boundary, not a module Move. Cache
+policy remains owned by the separate A169-CACHE Behavior series, and canonical
+module consolidation remains owned by the D-series.

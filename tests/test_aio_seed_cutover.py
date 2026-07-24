@@ -55,7 +55,7 @@ class AioSeedCutoverTests(unittest.TestCase):
             ),
             patch.object(
                 aio_nodes,
-                "_run_aio_normalized_legacy_generation",
+                "_run_aio_generation_pipeline",
                 return_value=legacy_output,
             ) as legacy_generation,
         ):

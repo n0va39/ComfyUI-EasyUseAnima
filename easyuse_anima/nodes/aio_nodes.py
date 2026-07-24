@@ -23,7 +23,7 @@ from ..aio.input_defaults import (
     EASY_USE_ANIMA_INPUT_SCHEMA,
     EASY_USE_ANIMA_INPUT_SETTINGS_VERSION,
 )
-from ..aio.legacy_generation import _run_aio_normalized_legacy_generation
+from ..aio.legacy_generation import _run_aio_generation_pipeline
 from ..aio.model_preparation import _aio_lora_stack_signature
 from ..aio.resources import (
     _comfy_clip_loader_types,
@@ -298,7 +298,7 @@ class EasyUseAnimaAIOGenerator:
             ),
         ) as seed_execution:
             sampler["seed"] = seed_execution.execution_seed
-            output = _run_aio_normalized_legacy_generation(
+            output = _run_aio_generation_pipeline(
                 self,
                 context,
                 settings,

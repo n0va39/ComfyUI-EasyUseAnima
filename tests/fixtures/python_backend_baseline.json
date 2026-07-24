@@ -14430,15 +14430,15 @@
       },
       {
         "alias": null,
-        "bound_name": "_run_aio_normalized_legacy_generation",
+        "bound_name": "_run_aio_generation_pipeline",
         "branch_context": [],
         "classification": "internal",
         "column": 0,
         "conditional": false,
-        "imported": "..aio.legacy_generation:_run_aio_normalized_legacy_generation",
+        "imported": "..aio.legacy_generation:_run_aio_generation_pipeline",
         "kind": "static_from",
         "line": 26,
-        "name": "_run_aio_normalized_legacy_generation",
+        "name": "_run_aio_generation_pipeline",
         "optional": false,
         "requested": "..aio.legacy_generation",
         "role": "ordinary",
@@ -49040,13 +49040,13 @@
       },
       {
         "is_package": false,
-        "loc": 985,
+        "loc": 1005,
         "module": "easyuse_anima.aio.legacy_generation",
-        "normalized_git_blob_sha1": "d4d9dcd3f002a06b387567d10128a921d71b3396",
+        "normalized_git_blob_sha1": "cc345da63a722bde41a48ff64c4779c0c6443660",
         "path": "easyuse_anima/aio/legacy_generation.py",
         "top_level": {
           "class_count": 0,
-          "function_count": 11,
+          "function_count": 12,
           "global_count": 2
         }
       },
@@ -49426,7 +49426,7 @@
         "is_package": false,
         "loc": 317,
         "module": "easyuse_anima.nodes.aio_nodes",
-        "normalized_git_blob_sha1": "064ed7be76f7380be3b8b008e8f2d4354aa5c407",
+        "normalized_git_blob_sha1": "9e7e9aab3af2ec1f757c21c407b370df394676e1",
         "path": "easyuse_anima/nodes/aio_nodes.py",
         "top_level": {
           "class_count": 2,
