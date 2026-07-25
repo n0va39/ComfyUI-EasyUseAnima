@@ -56,6 +56,9 @@ const TEXT = {
     autocompletePreviewClosingBrackets: "Preview closing brackets",
     autocompletePreviewClosingBracketsTip:
       "When typing an opening prompt bracket, insert the closing bracket at the caret like an editor pair. Autocomplete previews may show closing brackets, but suggestions do not force-close multi-item groups.",
+    selectionParenthesisWeight: "Add weight when wrapping a selection",
+    selectionParenthesisWeightTip:
+      "When closing-bracket preview is enabled, wrapping selected text with ( inserts :1 and selects the weight. Existing top-level numeric weights are preserved.",
     autocompleteCsvTip: "Select which bundled CSV powers autocomplete and tag highlighting. The merged Danbooru+e621 source may have category merge issues.",
     autocompleteLimitTip: "",
     highlightBehavior: "Highlight behavior",
@@ -184,6 +187,9 @@ const TEXT = {
     autocompletePreviewClosingBrackets: "닫는 괄호 미리입력",
     autocompletePreviewClosingBracketsTip:
       "여는 프롬프트 괄호를 입력하면 IDE처럼 닫는 괄호를 커서 오른쪽에 넣습니다. 자동완성 미리보기에는 닫는 괄호가 보일 수 있지만, 여러 항목을 넣는 그룹을 후보 적용만으로 강제 종료하지는 않습니다.",
+    selectionParenthesisWeight: "선택 영역 괄호에 가중치 추가",
+    selectionParenthesisWeightTip:
+      "닫는 괄호 미리입력이 켜져 있을 때 선택한 텍스트를 (로 감싸면 :1을 추가하고 숫자를 선택합니다. 기존 최상위 숫자 가중치는 유지합니다.",
     autocompleteCsvTip: "자동완성과 태그 하이라이트에 사용할 번들 CSV를 선택합니다. Danbooru+e621 병합 소스는 카테고리 병합 오류 가능성이 있습니다.",
     autocompleteLimitTip: "",
     highlightBehavior: "하이라이트 동작",
@@ -312,6 +318,9 @@ const TEXT = {
     autocompletePreviewClosingBrackets: "閉じ括弧を先に入力",
     autocompletePreviewClosingBracketsTip:
       "プロンプトの開き括弧を入力したとき、エディタのペア入力のように閉じ括弧をキャレット右側へ入れます。自動補完プレビューには閉じ括弧を表示できますが、候補確定だけでは複数項目グループを強制終了しません。",
+    selectionParenthesisWeight: "選択範囲を括弧で囲むとき重みを追加",
+    selectionParenthesisWeightTip:
+      "閉じ括弧の先行入力が有効なとき、選択したテキストを ( で囲むと :1 を追加して数値を選択します。既存のトップレベル数値重みは維持します。",
     autocompleteCsvTip: "自動補完とタグハイライトに使用する同梱 CSV を選択します。Danbooru+e621 の統合ソースにはカテゴリ統合エラーの可能性があります。",
     autocompleteLimitTip: "",
     highlightBehavior: "ハイライト動作",
@@ -440,6 +449,9 @@ const TEXT = {
     autocompletePreviewClosingBrackets: "预填闭合括号",
     autocompletePreviewClosingBracketsTip:
       "输入提示词开括号时，像 IDE 一样在光标右侧插入闭合括号。自动补全预览可以显示闭合括号，但确认候选不会强制结束可包含多项的分组。",
+    selectionParenthesisWeight: "括起选区时添加权重",
+    selectionParenthesisWeightTip:
+      "启用预填闭合括号后，用 ( 包裹所选文本会追加 :1 并选中数值。已有的顶层数值权重会保留。",
     autocompleteCsvTip: "选择用于自动补全和标签高亮的内置 CSV。Danbooru+e621 合并来源可能存在分类合并错误。",
     autocompleteLimitTip: "",
     highlightBehavior: "高亮行为",

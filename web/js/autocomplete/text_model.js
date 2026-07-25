@@ -122,6 +122,125 @@ function syntaxClosingAt(value, index) {
   return null;
 }
 
+function topLevelNumericWeightRange(value) {
+  const text = String(value ?? "");
+  const match = /:\s*([+-]?(?:\d+(?:\.\d*)?|\.\d+))\s*$/.exec(text);
+  if (!match || isEscaped(text, match.index)) {
+    return null;
+  }
+  const stack = [];
+  for (let index = 0; index < match.index; index += 1) {
+    const opening = syntaxOpeningAt(text, index);
+    if (opening) {
+      stack.push(opening.closing);
+      index += opening.length - 1;
+      continue;
+    }
+    const closing = syntaxClosingAt(text, index);
+    if (closing && stack[stack.length - 1] === closing.value) {
+      stack.pop();
+      index += closing.length - 1;
+    }
+  }
+  if (stack.length > 0) {
+    return null;
+  }
+  const numericStart = match.index + match[0].indexOf(match[1]);
+  return {
+    start: numericStart,
+    end: numericStart + match[1].length,
+  };
+}
+
+export function planBracketInsertion(
+  value,
+  selectionStart,
+  selectionEnd,
+  key,
+  options = {},
+) {
+  const text = String(value ?? "");
+  const rawStart = Number(selectionStart);
+  const rawEnd = Number(selectionEnd);
+  const safeStart = clamp(Number.isFinite(rawStart) ? rawStart : 0, 0, text.length);
+  const safeEnd = clamp(
+    Number.isFinite(rawEnd) ? rawEnd : safeStart,
+    0,
+    text.length,
+  );
+  const start = Math.min(safeStart, safeEnd);
+  const end = Math.max(safeStart, safeEnd);
+  const selected = text.slice(start, end);
+  const hasSelection = end > start;
+
+  if (key === "(") {
+    if (hasSelection && options.selectionParenthesisWeight === true) {
+      const existingWeight = topLevelNumericWeightRange(selected);
+      if (existingWeight) {
+        return {
+          start,
+          end,
+          replacement: `(${selected})`,
+          selectionStartOffset: 1 + existingWeight.start,
+          selectionEndOffset: 1 + existingWeight.end,
+          insertedWeight: false,
+        };
+      }
+      return {
+        start,
+        end,
+        replacement: `(${selected}:1)`,
+        selectionStartOffset: selected.length + 2,
+        selectionEndOffset: selected.length + 3,
+        insertedWeight: true,
+      };
+    }
+    const caretOffset = 1 + selected.length;
+    return {
+      start,
+      end,
+      replacement: `(${selected})`,
+      selectionStartOffset: caretOffset,
+      selectionEndOffset: caretOffset,
+      insertedWeight: false,
+    };
+  }
+
+  if (key === "{") {
+    const caretOffset = 1 + selected.length;
+    return {
+      start,
+      end,
+      replacement: `{${selected}}`,
+      selectionStartOffset: caretOffset,
+      selectionEndOffset: caretOffset,
+    };
+  }
+
+  if (key === "[" && hasSelection) {
+    const caretOffset = 2 + selected.length;
+    return {
+      start,
+      end,
+      replacement: `[[${selected}]]`,
+      selectionStartOffset: caretOffset,
+      selectionEndOffset: caretOffset,
+    };
+  }
+
+  if (key === "[" && text[start - 1] === "[") {
+    return {
+      start,
+      end,
+      replacement: "[]]",
+      selectionStartOffset: 1,
+      selectionEndOffset: 1,
+    };
+  }
+
+  return null;
+}
+
 function syntaxGroups(value) {
   const groups = [];
   const stack = [];

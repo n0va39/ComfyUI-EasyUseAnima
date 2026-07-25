@@ -6,6 +6,8 @@ function dataModule(relativePath) {
   return "data:text/javascript;base64," + Buffer.from(source).toString("base64");
 }
 
+const textModel = await import(dataModule("../web/js/autocomplete/text_model.js"));
+
 function captureOf(options) {
   return options === true || !!options?.capture;
 }
@@ -444,13 +446,20 @@ const { createAutocompleteInputBinding } = bindingModule;
   const handleBracketPreviewKeydown = new Function(
     "replaceInputRange",
     "syncWidgetValue",
-    `"use strict";\nconst autocompletePreviewClosingBrackets = true;\n${entrySource.slice(bracketStart, bracketEnd)}\nreturn handleBracketPreviewKeydown;`,
+    "planBracketInsertion",
+    "selectionParenthesisWeight",
+    `"use strict";\nconst autocompletePreviewClosingBrackets = true;\nconst promptStudioSelectionParenthesisWeight = selectionParenthesisWeight;\n${entrySource.slice(bracketStart, bracketEnd)}\nreturn handleBracketPreviewKeydown;`,
   )(
-    (input, start, end, replacement, caretOffset) => {
+    (input, start, end, replacement, selectionStartOffset, selectionEndOffset) => {
       input.value = `${input.value.slice(0, start)}${replacement}${input.value.slice(end)}`;
-      input.setSelectionRange(start + caretOffset, start + caretOffset);
+      input.setSelectionRange(
+        start + selectionStartOffset,
+        start + selectionEndOffset,
+      );
     },
     (state) => { state.syncCalls += 1; },
+    textModel.planBracketInsertion,
+    true,
   );
 
   const input = {
@@ -465,16 +474,17 @@ const { createAutocompleteInputBinding } = bindingModule;
   const state = { input, syncCalls: 0 };
   const openEvent = createEvent({ key: "(" });
   assert.equal(handleBracketPreviewKeydown(state, openEvent), true);
-  assert.equal(input.value, "(tag)");
-  assert.equal(input.selectionStart, 4);
+  assert.equal(input.value, "(tag:1)");
+  assert.equal(input.selectionStart, 5);
+  assert.equal(input.selectionEnd, 6);
   assert.equal(state.syncCalls, 1);
 
-  input.selectionStart = 4;
-  input.selectionEnd = 4;
+  input.selectionStart = 6;
+  input.selectionEnd = 6;
   const closeEvent = createEvent({ key: ")" });
   assert.equal(handleBracketPreviewKeydown(state, closeEvent), true);
-  assert.equal(input.value, "(tag)", "typing an existing closer must not duplicate it");
-  assert.equal(input.selectionStart, 5);
+  assert.equal(input.value, "(tag:1)", "typing an existing closer must not duplicate it");
+  assert.equal(input.selectionStart, 7);
   assert.equal(state.syncCalls, 1, "skipping an existing closer must not rewrite widget state");
 }
 

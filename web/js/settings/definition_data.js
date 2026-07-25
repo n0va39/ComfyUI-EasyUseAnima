@@ -39,6 +39,7 @@ export const INTERNAL_KEYS = {
   "EasyUseAnima.Prompt.AutocompletePreviewClosingBrackets": "autocomplete.preview_closing_brackets",
   "EasyUseAnima.Prompt.TypoIndicator": "prompt_studio.typo_indicator",
   "EasyUseAnima.Prompt.WeightSyntaxUnderline": "prompt_studio.weight_syntax_underline",
+  "EasyUseAnima.Prompt.SelectionParenthesisWeight": "prompt_studio.selection_parenthesis_weight",
   "EasyUseAnima.Prompt.CommentItalic": "prompt_studio.comment_italic",
   "EasyUseAnima.Prompt.FontOverride": "prompt_studio.font_override",
   "EasyUseAnima.Prompt.FontFamily": "prompt_studio.font_family",

@@ -216,6 +216,15 @@ export function createEasyUseAnimaSettings(dependencies) {
       defaultValue: false,
     }),
     setting({
+      id: "EasyUseAnima.Prompt.SelectionParenthesisWeight",
+      section: "Autocomplete",
+      group: t("autocomplete"),
+      name: t("selectionParenthesisWeight"),
+      tooltip: t("selectionParenthesisWeightTip"),
+      type: "boolean",
+      defaultValue: false,
+    }),
+    setting({
       id: "EasyUseAnima.Prompt.TranslationProvider",
       section: "PromptStudio",
       group: t("promptTranslation"),

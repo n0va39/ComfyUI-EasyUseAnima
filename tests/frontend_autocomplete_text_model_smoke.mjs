@@ -21,6 +21,7 @@ assert.deepEqual(Object.keys(textModel).sort(), [
   "normalizeWildcardSearchText",
   "parseAutocompleteText",
   "planAutocompleteInsertion",
+  "planBracketInsertion",
   "wildcardAutocompleteQuery",
 ].sort());
 
@@ -37,6 +38,7 @@ const {
   normalizeWildcardSearchText,
   parseAutocompleteText,
   planAutocompleteInsertion,
+  planBracketInsertion,
   wildcardAutocompleteQuery,
 } = textModel;
 
@@ -59,6 +61,25 @@ function appliedPlan(token, insert, options = {}) {
       + plan.replacement
       + token.value.slice(plan.end),
     caret: plan.start + plan.caretOffset,
+  };
+}
+
+function appliedBracketPlan(value, selectionStart, selectionEnd, key, options = {}) {
+  const plan = planBracketInsertion(
+    value,
+    selectionStart,
+    selectionEnd,
+    key,
+    options,
+  );
+  assert.ok(plan);
+  return {
+    ...plan,
+    value: value.slice(0, plan.start)
+      + plan.replacement
+      + value.slice(plan.end),
+    selectionStart: plan.start + plan.selectionStartOffset,
+    selectionEnd: plan.start + plan.selectionEndOffset,
   };
 }
 
@@ -219,6 +240,99 @@ assert.deepEqual(
     group: ["parenthesis", 1, 14],
   },
 );
+
+const unweightedSelection = appliedBracketPlan("tag", 0, 3, "(");
+assert.deepEqual(
+  {
+    value: unweightedSelection.value,
+    selection: [
+      unweightedSelection.selectionStart,
+      unweightedSelection.selectionEnd,
+    ],
+    insertedWeight: unweightedSelection.insertedWeight,
+  },
+  {
+    value: "(tag)",
+    selection: [4, 4],
+    insertedWeight: false,
+  },
+);
+
+const weightedSelection = appliedBracketPlan(
+  "tag",
+  0,
+  3,
+  "(",
+  { selectionParenthesisWeight: true },
+);
+assert.deepEqual(
+  {
+    value: weightedSelection.value,
+    selected: weightedSelection.value.slice(
+      weightedSelection.selectionStart,
+      weightedSelection.selectionEnd,
+    ),
+    insertedWeight: weightedSelection.insertedWeight,
+  },
+  {
+    value: "(tag:1)",
+    selected: "1",
+    insertedWeight: true,
+  },
+);
+
+for (const [selected, expected, selectedWeight] of [
+  ["tag:1.2", "(tag:1.2)", "1.2"],
+  ["(tag:1.2)", "((tag:1.2):1)", "1"],
+  ["tag\\:1.2", "(tag\\:1.2:1)", "1"],
+  ["first\nsecond", "(first\nsecond:1)", "1"],
+]) {
+  const plan = appliedBracketPlan(
+    selected,
+    0,
+    selected.length,
+    "(",
+    { selectionParenthesisWeight: true },
+  );
+  assert.equal(plan.value, expected);
+  assert.equal(
+    plan.value.slice(plan.selectionStart, plan.selectionEnd),
+    selectedWeight,
+  );
+}
+
+for (const [key, expected] of [
+  ["{", "{choice_a|choice_b}"],
+  ["[", "[[choice_a|choice_b]]"],
+]) {
+  const selected = "choice_a|choice_b";
+  const plan = appliedBracketPlan(selected, 0, selected.length, key);
+  assert.equal(plan.value, expected);
+  assert.equal(plan.selectionStart, expected.length - (key === "[" ? 2 : 1));
+  assert.equal(plan.selectionEnd, plan.selectionStart);
+}
+
+const emptyParenthesis = appliedBracketPlan("", 0, 0, "(", {
+  selectionParenthesisWeight: true,
+});
+assert.deepEqual(
+  {
+    value: emptyParenthesis.value,
+    selection: [emptyParenthesis.selectionStart, emptyParenthesis.selectionEnd],
+  },
+  { value: "()", selection: [1, 1] },
+);
+
+const doubleBracket = appliedBracketPlan("[", 1, 1, "[");
+assert.deepEqual(
+  {
+    value: doubleBracket.value,
+    selection: [doubleBracket.selectionStart, doubleBracket.selectionEnd],
+  },
+  { value: "[[]]", selection: [2, 2] },
+);
+assert.equal(planBracketInsertion("", 0, 0, "["), null);
+assert.equal(planBracketInsertion("", 0, 0, "x"), null);
 
 assert.equal(normalizeAutocompleteCommitMode("smart"), "smart");
 assert.equal(normalizeAutocompleteCommitMode("insert"), "insert");

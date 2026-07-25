@@ -3112,6 +3112,7 @@ class SettingsTests(unittest.TestCase):
                 "lora_preset.strength_drag_pixels",
                 "prompt_studio.typo_indicator",
                 "prompt_studio.weight_syntax_underline",
+                "prompt_studio.selection_parenthesis_weight",
                 "prompt_studio.comment_italic",
                 "prompt_studio.font_override",
                 "prompt_studio.font_family",
@@ -3382,6 +3383,7 @@ class SettingsTests(unittest.TestCase):
                     "EasyUseAnima.Prompt.AutocompleteNoCommaAfterPeriod": "false",
                     "EasyUseAnima.Prompt.AutocompleteDetectNaturalSentences": "false",
                     "EasyUseAnima.Prompt.TypoIndicator": "false",
+                    "EasyUseAnima.Prompt.SelectionParenthesisWeight": "true",
                     "EasyUseAnima.Prompt.CommentItalic": "false",
                     "EasyUseAnima.Prompt.FontOverride": "true",
                     "EasyUseAnima.Prompt.FontFamily": "Arial",
@@ -3410,6 +3412,10 @@ class SettingsTests(unittest.TestCase):
         self.assertEqual(settings["autocomplete.no_comma_after_period"], "false")
         self.assertEqual(settings["autocomplete.detect_natural_sentences"], "false")
         self.assertEqual(settings["prompt_studio.typo_indicator"], "false")
+        self.assertEqual(
+            settings["prompt_studio.selection_parenthesis_weight"],
+            "true",
+        )
         self.assertEqual(settings["prompt_studio.comment_italic"], "false")
         self.assertEqual(settings["prompt_studio.font_override"], "true")
         self.assertEqual(settings["prompt_studio.font_family"], "Arial")
