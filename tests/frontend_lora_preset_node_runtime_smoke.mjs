@@ -207,3 +207,23 @@ assert.ok(events.includes("loras:node-a"));
 events.length = 0;
 node.onExecuted({ lora_preset_profile: [{ profile_index: 2 }] });
 assert.deepEqual(events, ["executed:node-a", "profile:node-a"]);
+
+// QSTATE-01 characterization fixture: this intentionally passes while the
+// production bug exists. Profile 1 was queued before the user switched to
+// profile 2, and the real applyExecutedProfile() path currently restores
+// profile 1 over that edit. QSTATE-03 must flip this to a preservation assertion.
+events.length = 0;
+node.onExecuted({ lora_preset_profile: [{ profile_index: 1 }] });
+assert.deepEqual(events.slice(0, 6), [
+  "executed:node-a",
+  "save:node-a:2",
+  "set:1",
+  "load:node-a:1:false",
+  "scroll:node-a:1",
+  "profile:node-a",
+]);
+assert.equal(
+  node.__easyuseAnimaActiveProfileIndex,
+  1,
+  "QSTATE-01 fixture did not reproduce the stale LoRA profile overwrite",
+);

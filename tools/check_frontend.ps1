@@ -159,9 +159,19 @@ try {
         throw "Frontend host hook registry smoke failed with exit code $LASTEXITCODE."
     }
 
+    & node "tests\frontend_queue_ui_transaction_smoke.mjs"
+    if ($LASTEXITCODE -ne 0) {
+        throw "Frontend queue UI transaction contract smoke failed with exit code $LASTEXITCODE."
+    }
+
     & node "tests\frontend_prompt_studio_advanced_values_smoke.mjs"
     if ($LASTEXITCODE -ne 0) {
         throw "Frontend Prompt Studio Advanced executed values smoke failed with exit code $LASTEXITCODE."
+    }
+
+    & node "tests\frontend_prompt_studio_classic_values_smoke.mjs"
+    if ($LASTEXITCODE -ne 0) {
+        throw "Frontend Prompt Studio Classic/Extend characterization smoke failed with exit code $LASTEXITCODE."
     }
 
     & node "tests\frontend_prompt_studio_resolution_orientation_smoke.mjs"
