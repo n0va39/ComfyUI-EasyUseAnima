@@ -9,13 +9,22 @@ from pathlib import Path
 from unittest.mock import patch
 
 import nodes as nodes_module
+from easyuse_anima.nodes import wildcard_nodes
+from easyuse_anima.prompt import advanced as prompt_advanced
+from easyuse_anima.seed import compatibility as seed_compatibility
+from easyuse_anima.wildcard import mode as wildcard_mode
+from easyuse_anima.wildcard import models as wildcard_models
+from easyuse_anima.wildcard import seed as wildcard_seed
+from easyuse_anima.wildcard import selector as wildcard_selector
+from easyuse_anima.wildcard import snapshot as wildcard_snapshot
+from easyuse_anima.wildcard import sources as wildcard_sources
 from nodes import (
     EasyUseAnimaPromptStudioAdvanced,
     EasyUseAnimaPromptStudioAdvancedV2,
     EasyUseAnimaPromptStudioRegional,
     EasyUseAnimaWildcard,
 )
-from settings import public_settings
+from easyuse_anima.settings.service import public_settings
 import wildcard_engine
 from wildcard_engine import (
     DEFAULT_TEST_WILDCARD_FILE,
@@ -29,6 +38,127 @@ from wildcard_engine import (
 
 
 class WildcardEngineTests(unittest.TestCase):
+    def test_root_selector_has_canonical_identity(self):
+        self.assertEqual(wildcard_selector.__all__, ())
+        self.assertIs(wildcard_engine._Selector, wildcard_selector._Selector)
+
+    def test_root_mode_surface_has_canonical_identity(self):
+        expected = (
+            "WILDCARD_MODE_POPULATE",
+            "WILDCARD_MODE_FIXED",
+            "WILDCARD_MODE_SEQUENTIAL",
+            "WILDCARD_MODE_REPRODUCE",
+            "WILDCARD_MODES",
+            "WILDCARD_MODE_LABELS",
+            "PROMPT_STUDIO_WILDCARD_MODE_LABELS",
+            "WILDCARD_MODE_ALIASES",
+            "normalize_wildcard_mode",
+            "normalize_prompt_studio_wildcard_mode",
+        )
+        self.assertEqual(wildcard_mode.__all__, expected)
+        for name in expected:
+            with self.subTest(name=name):
+                self.assertIs(
+                    getattr(wildcard_engine, name),
+                    getattr(wildcard_mode, name),
+                )
+
+        with patch.dict(
+            wildcard_mode.WILDCARD_MODE_ALIASES,
+            {"legacy-test": wildcard_mode.WILDCARD_MODE_FIXED},
+        ):
+            self.assertEqual(
+                wildcard_engine.normalize_wildcard_mode("legacy-test"),
+                wildcard_mode.WILDCARD_MODE_FIXED,
+            )
+
+    def test_root_seed_surface_has_canonical_identity(self):
+        expected = (
+            "SEED_CONTROL_FIXED",
+            "SEED_CONTROL_RANDOMIZE",
+            "SEED_CONTROL_INCREMENT",
+            "SEED_CONTROL_DECREMENT",
+            "SEED_CONTROL_MODES",
+            "MAX_SEED",
+            "PUBLIC_MAX_SEED",
+            "normalize_seed",
+            "next_seed",
+        )
+        self.assertEqual(wildcard_seed.__all__, expected)
+        for name in expected:
+            with self.subTest(name=name):
+                self.assertIs(
+                    getattr(wildcard_engine, name),
+                    getattr(wildcard_seed, name),
+                )
+
+    def test_root_snapshot_surface_has_canonical_identity(self):
+        self.assertEqual(wildcard_snapshot.__all__, ())
+        self.assertIs(
+            wildcard_engine._WildcardSnapshot,
+            wildcard_snapshot._WildcardSnapshot,
+        )
+        self.assertIs(
+            wildcard_engine._build_wildcard_snapshot,
+            wildcard_snapshot._build_wildcard_snapshot,
+        )
+
+    def test_root_source_surface_has_canonical_identity(self):
+        expected = (
+            "WILDCARD_DIR_NAME",
+            "DEFAULT_TEST_WILDCARD_FILE",
+            "DEFAULT_TEST_WILDCARD_TEXT",
+            "WILDCARD_EXTENSIONS",
+            "default_wildcard_root",
+            "ensure_default_wildcard_root",
+            "parse_wildcard_extra_paths",
+            "resolve_wildcard_roots",
+        )
+        self.assertEqual(wildcard_sources.__all__, expected)
+        for name in expected:
+            with self.subTest(name=name):
+                self.assertIs(
+                    getattr(wildcard_engine, name),
+                    getattr(wildcard_sources, name),
+                )
+
+    def test_root_model_surface_has_canonical_identity(self):
+        expected = (
+            "MAX_EXPANSION_DEPTH",
+            "REPLACE_DEPTH",
+            "DEFAULT_MAX_EXPANSION_DEPTH",
+            "DEFAULT_MAX_EXPANSION_REPLACEMENTS",
+            "DEFAULT_MAX_EXPANSION_OUTPUT_CHARS",
+            "DEFAULT_MAX_EXPANSION_GROWTH_PER_PASS",
+            "MAX_EXPANSION_REPLACEMENTS",
+            "MAX_EXPANSION_OUTPUT_CHARS",
+            "MAX_EXPANSION_GROWTH_PER_PASS",
+            "WildcardOption",
+            "WildcardExpansionBudget",
+            "WildcardExpansionResult",
+        )
+        self.assertEqual(wildcard_models.__all__, expected)
+        for name in expected:
+            with self.subTest(name=name):
+                self.assertIs(
+                    getattr(wildcard_engine, name),
+                    getattr(wildcard_models, name),
+                )
+
+    def test_reserved_seed_consumer_root_symbols_are_direct_aliases(self):
+        self.assertIs(
+            nodes_module._consume_reserved_wildcard_next_seed,
+            seed_compatibility._consume_reserved_wildcard_next_seed,
+        )
+        self.assertEqual(
+            nodes_module.WILDCARD_RESERVED_NEXT_SEED_INPUT,
+            seed_compatibility.WILDCARD_RESERVED_NEXT_SEED_INPUT,
+        )
+        self.assertEqual(
+            nodes_module.WILDCARD_QUEUE_MAX_SAFE_SEED,
+            seed_compatibility.WILDCARD_QUEUE_MAX_SAFE_SEED,
+        )
+
     def test_standalone_modes_remain_distinct_from_prompt_studio_modes(self):
         self.assertEqual(
             wildcard_engine.WILDCARD_MODES,
@@ -67,7 +197,7 @@ class WildcardEngineTests(unittest.TestCase):
 
     def test_default_root_is_created_with_test_wildcard(self):
         with tempfile.TemporaryDirectory() as temp:
-            with patch.object(wildcard_engine, "USER_DATA_DIR", Path(temp)):
+            with patch.object(wildcard_sources, "USER_DATA_DIR", Path(temp)):
                 root = ensure_default_wildcard_root()
 
                 self.assertTrue(root.is_dir())
@@ -507,15 +637,15 @@ class WildcardEngineTests(unittest.TestCase):
         )
 
     def test_unchanged_list_signature_and_expand_reuse_one_yaml_parse(self):
-        self.assertIsNotNone(wildcard_engine.yaml)
+        self.assertIsNotNone(wildcard_sources.yaml)
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
             (root / "colors.yaml").write_text("colors: [red]\n", encoding="utf-8")
 
             with patch.object(
-                wildcard_engine.yaml,
+                wildcard_sources.yaml,
                 "safe_load",
-                wraps=wildcard_engine.yaml.safe_load,
+                wraps=wildcard_sources.yaml.safe_load,
             ) as safe_load:
                 first_list = list_wildcards(roots=[root])
                 first_signature = wildcard_engine.wildcard_sources_signature(roots=[root])
@@ -613,7 +743,7 @@ class WildcardEngineTests(unittest.TestCase):
         self.assertEqual(missing.missing_keys, ("colors",))
 
     def test_transient_loader_oserror_is_not_cached(self):
-        original_loader = wildcard_engine._load_wildcard_file
+        original_loader = wildcard_sources._load_wildcard_file
         attempts = []
 
         def flaky_loader(root, path):
@@ -625,10 +755,10 @@ class WildcardEngineTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
             (root / "color.txt").write_text("red\n", encoding="utf-8")
-            cache_key = wildcard_engine._scan_wildcard_sources((root,)).cache_key
+            cache_key = wildcard_sources._scan_wildcard_sources((root,)).cache_key
 
             with patch.object(
-                wildcard_engine,
+                wildcard_sources,
                 "_load_wildcard_file",
                 side_effect=flaky_loader,
             ) as loader:
@@ -643,16 +773,16 @@ class WildcardEngineTests(unittest.TestCase):
         self.assertEqual(loader.call_count, 2)
 
     def test_invalid_yaml_parse_remains_cacheable_as_empty(self):
-        self.assertIsNotNone(wildcard_engine.yaml)
+        self.assertIsNotNone(wildcard_sources.yaml)
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
             (root / "invalid.yaml").write_text("color: [red\n", encoding="utf-8")
-            cache_key = wildcard_engine._scan_wildcard_sources((root,)).cache_key
+            cache_key = wildcard_sources._scan_wildcard_sources((root,)).cache_key
 
             with patch.object(
-                wildcard_engine.yaml,
+                wildcard_sources.yaml,
                 "safe_load",
-                wraps=wildcard_engine.yaml.safe_load,
+                wraps=wildcard_sources.yaml.safe_load,
             ) as safe_load:
                 first = expand_wildcards("__color__", seed=0, roots=[root])
                 second = expand_wildcards("__color__", seed=0, roots=[root])
@@ -686,10 +816,10 @@ class WildcardEngineTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
             (root / "library.yaml").write_text("color: [red]\n", encoding="utf-8")
-            cache_key = wildcard_engine._scan_wildcard_sources((root,)).cache_key
+            cache_key = wildcard_sources._scan_wildcard_sources((root,)).cache_key
 
             with patch.object(
-                wildcard_engine,
+                wildcard_sources,
                 "_read_text_file",
                 side_effect=unreadable_yaml,
             ), patch.object(
@@ -859,7 +989,7 @@ class WildcardSeedContractTests(unittest.TestCase):
             wildcard_engine.next_seed(public_max, "decrement"),
             public_max - 1,
         )
-        with patch("wildcard_engine.random.SystemRandom") as system_random:
+        with patch.object(wildcard_seed.random, "SystemRandom") as system_random:
             system_random.return_value.randrange.return_value = public_max
 
             self.assertEqual(
@@ -963,7 +1093,11 @@ class WildcardSeedContractTests(unittest.TestCase):
             missing_keys=(),
         )
 
-        with patch("nodes.expand_wildcards", return_value=expansion) as expand:
+        with patch.object(
+            wildcard_nodes,
+            "expand_wildcards",
+            return_value=expansion,
+        ) as expand:
             result = EasyUseAnimaWildcard().generate(
                 "__style__",
                 "",
@@ -1026,8 +1160,9 @@ class WildcardNodeTests(unittest.TestCase):
             def expand_from_test_root(texts, *, seed, mode):
                 return expand_wildcard_texts(texts, seed=seed, mode=mode, roots=[root])
 
-            with patch(
-                "nodes.expand_wildcard_texts",
+            with patch.object(
+                prompt_advanced,
+                "expand_wildcard_texts",
                 side_effect=expand_from_test_root,
             ):
                 first, _ = nodes_module._expand_advanced_wildcard_fields(
@@ -1105,7 +1240,13 @@ class WildcardNodeTests(unittest.TestCase):
         )
 
     def test_prompt_studio_mode_and_seed_control_matrix_saves_current_seed_as_fixed(self):
-        with patch("wildcard_engine.random.SystemRandom") as system_random:
+        with (
+            patch.object(wildcard_seed.random, "SystemRandom") as system_random,
+            patch(
+                "easyuse_anima.nodes.seed_adapters.get_runtime",
+                side_effect=RuntimeError,
+            ),
+        ):
             system_random.return_value.randrange.return_value = 41
             for mode in ("일반", "순차"):
                 for control, expected_next in (
@@ -1195,7 +1336,13 @@ class WildcardNodeTests(unittest.TestCase):
             "workflow": {"nodes": [{"id": 9, "widgets_values": []}]}
         }
 
-        with patch("wildcard_engine.random.SystemRandom") as system_random:
+        with (
+            patch.object(wildcard_seed.random, "SystemRandom") as system_random,
+            patch(
+                "easyuse_anima.nodes.seed_adapters.get_runtime",
+                side_effect=RuntimeError,
+            ),
+        ):
             system_random.return_value.randrange.return_value = 41
             first = EasyUseAnimaPromptStudioAdvanced().build(
                 False,
@@ -1343,7 +1490,7 @@ class WildcardNodeTests(unittest.TestCase):
 
         with (
             patch(
-                "nodes.expand_wildcards",
+                "easyuse_anima.nodes.wildcard_nodes.expand_wildcards",
                 return_value=WildcardExpansionResult(
                     text="expanded style",
                     changed=True,
@@ -1391,7 +1538,7 @@ class WildcardNodeTests(unittest.TestCase):
         }
 
         with patch(
-            "nodes.expand_wildcards",
+            "easyuse_anima.nodes.wildcard_nodes.expand_wildcards",
             return_value=WildcardExpansionResult(
                 text="expanded style",
                 changed=True,
@@ -1448,7 +1595,11 @@ class WildcardNodeTests(unittest.TestCase):
                     used_keys=("style",),
                     missing_keys=(),
                 )
-                with patch("nodes.expand_wildcards", return_value=expansion) as expand:
+                with patch.object(
+                    wildcard_nodes,
+                    "expand_wildcards",
+                    return_value=expansion,
+                ) as expand:
                     result = EasyUseAnimaWildcard().generate(
                         "source text",
                         "cached text",
@@ -1508,7 +1659,7 @@ class WildcardNodeTests(unittest.TestCase):
 
     def test_native_fixed_uses_populated_text_and_current_seed(self):
         with patch(
-            "nodes.expand_wildcards",
+            "easyuse_anima.nodes.wildcard_nodes.expand_wildcards",
             return_value=WildcardExpansionResult(
                 text="expanded style",
                 changed=False,
@@ -1529,7 +1680,7 @@ class WildcardNodeTests(unittest.TestCase):
 
     def test_native_fixed_keeps_empty_populated_text_empty(self):
         with patch(
-            "nodes.expand_wildcards",
+            "easyuse_anima.nodes.wildcard_nodes.expand_wildcards",
             return_value=WildcardExpansionResult(
                 text="",
                 changed=False,
@@ -1560,7 +1711,11 @@ class WildcardNodeTests(unittest.TestCase):
             def expand_from_test_root(text, *, seed, mode):
                 return expand_wildcards(text, seed=seed, mode=mode, roots=[root])
 
-            with patch("nodes.expand_wildcards", side_effect=expand_from_test_root) as expand:
+            with patch.object(
+                wildcard_nodes,
+                "expand_wildcards",
+                side_effect=expand_from_test_root,
+            ) as expand:
                 first = EasyUseAnimaWildcard().generate(
                     "ignored source",
                     "__samples/flower__",
@@ -1915,8 +2070,9 @@ class WildcardNodeTests(unittest.TestCase):
             }
         }
 
-        with patch(
-            "nodes.expand_wildcard_texts",
+        with patch.object(
+            prompt_advanced,
+            "expand_wildcard_texts",
             return_value=(WildcardExpansionResult(
                 text="expanded style",
                 changed=True,

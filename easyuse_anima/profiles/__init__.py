@@ -1,3 +1,3 @@
-"""Side-effect-free profile contracts and migrations."""
+"""Profile contracts, repositories, and behavior-preserving services."""
 
 __all__ = ()

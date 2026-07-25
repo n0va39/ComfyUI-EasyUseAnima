@@ -9,10 +9,8 @@ function dataModule(relativePath, replacements = {}) {
   return "data:text/javascript;base64," + Buffer.from(source).toString("base64");
 }
 
-const registryModuleUrl = dataModule("../web/js/lifecycle/host_hook_registry.js");
 const extensionModule = await import(dataModule(
   "../web/js/aio/extension_runtime.js",
-  { "../lifecycle/host_hook_registry.js": registryModuleUrl },
 ));
 assert.deepEqual(
   Object.keys(extensionModule),
@@ -29,7 +27,6 @@ function createFixture(options = {}) {
   const eventRegistrations = [];
   let samplerSetupFailures = Number(options.samplerSetupFailures || 0);
   let userSetupFailures = Number(options.userSetupFailures || 0);
-  let queueHookActive = false;
   const callbacks = {
     refreshPanels() {
       trace.push("refreshPanels");
@@ -78,18 +75,6 @@ function createFixture(options = {}) {
       installWheelForwarder() {
         trace.push("installWheelForwarder");
         options.onInstallWheelForwarder?.();
-      },
-      installQueuePromptHook() {
-        trace.push("installQueuePromptHook");
-        queueHookActive = true;
-        return () => {
-          if (!queueHookActive) {
-            return false;
-          }
-          queueHookActive = false;
-          trace.push("disposeQueuePromptHook");
-          return true;
-        };
       },
       watchLocale(callback) {
         trace.push("watchLocale");
@@ -241,10 +226,9 @@ function createNodeType(trace, options = {}) {
   );
   await Promise.resolve();
 
-  assert.deepEqual(fixture.trace.slice(0, 14), [
+  assert.deepEqual(fixture.trace.slice(0, 13), [
     "ensureStyle",
     "installWheelForwarder",
-    "installQueuePromptHook",
     "watchLocale",
     `event:${GENERATOR_PREVIEW_EVENT}:false`,
     "event:progress:false",
@@ -455,19 +439,15 @@ function createNodeType(trace, options = {}) {
   await Promise.resolve();
   assert.deepEqual(
     reentryFixture.trace,
-    ["installQueuePromptHook"],
-    "a new runtime sharing the installed API host must claim only the global queue lease",
+    [],
+    "a new runtime sharing the completed API host must remain a no-op",
   );
   assert.deepEqual(
     ownerFixture.trace,
-    [...ownerTraceBeforeReentry, "disposeQueuePromptHook"],
-    "runtime takeover must release the previous global queue lease without repeating setup",
+    ownerTraceBeforeReentry,
+    "runtime reentry must not repeat or dispose completed setup",
   );
-  assert.equal(reentryFixture.runtime.dispose(), true);
-  assert.deepEqual(
-    reentryFixture.trace,
-    ["installQueuePromptHook", "disposeQueuePromptHook"],
-  );
+  assert.equal(reentryFixture.runtime.dispose(), false);
 }
 
 {
@@ -519,16 +499,6 @@ function createNodeType(trace, options = {}) {
     );
   }
   assert.equal(
-    combinedTrace.filter((item) => item === "installQueuePromptHook").length,
-    2,
-    "the retrying runtime must take over the global queue lease without repeating setup steps",
-  );
-  assert.equal(
-    factoryA.trace.filter((item) => item === "disposeQueuePromptHook").length,
-    1,
-    "global queue takeover must release the failed runtime's lease",
-  );
-  assert.equal(
     factoryA.eventRegistrations.length,
     8,
     "factory B must not duplicate factory A's completed API listener steps",
@@ -549,11 +519,10 @@ function createNodeType(trace, options = {}) {
   await Promise.resolve();
   assert.deepEqual(
     factoryC.trace,
-    ["installQueuePromptHook"],
-    "a later runtime must claim only the durable global queue lease",
+    [],
+    "a later runtime must not repeat completed setup",
   );
-  assert.equal(factoryB.trace.at(-1), "disposeQueuePromptHook");
-  assert.equal(factoryC.runtime.dispose(), true);
+  assert.equal(factoryC.runtime.dispose(), false);
 }
 
 {

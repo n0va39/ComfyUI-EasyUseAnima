@@ -62,20 +62,38 @@ def load_api_routes():
     )
     module = importlib.util.module_from_spec(spec)
     sys.modules[spec.name] = module
-    with patch.dict(sys.modules, {"server": fake_server, "aiohttp": fake_aiohttp}):
+    missing = object()
+    previous_modules = {
+        name: sys.modules.get(name, missing)
+        for name in ("server", "aiohttp")
+    }
+    sys.modules.update({"server": fake_server, "aiohttp": fake_aiohttp})
+    try:
         spec.loader.exec_module(module)
-        translation = sys.modules[module.translate_prompt_markers.__module__]
-    return module, routes, translation
+        module.register_routes()
+        translation_contracts = sys.modules[
+            module.PromptTranslationError.__module__
+        ]
+        translation_service = sys.modules[
+            module.translate_prompt_markers.__module__
+        ]
+    finally:
+        for name, previous in previous_modules.items():
+            if previous is missing:
+                sys.modules.pop(name, None)
+            else:
+                sys.modules[name] = previous
+    return module, routes, translation_contracts, translation_service
 
 
 class PromptTranslationApiTests(unittest.TestCase):
     def load_routes(self):
-        api, routes, translation = load_api_routes()
+        api, routes, translation, translation_service = load_api_routes()
         self.addCleanup(api._PROMPT_TRANSLATION_WORKER.shutdown)
-        return api, routes, translation
+        return api, routes, translation, translation_service
 
     def test_route_runs_sync_translation_off_event_loop(self):
-        api, routes, translation = self.load_routes()
+        api, routes, translation, _translation_service = self.load_routes()
         handler = routes.handlers[ROUTE]
         worker_started = threading.Event()
 
@@ -108,7 +126,7 @@ class PromptTranslationApiTests(unittest.TestCase):
         self.assertGreaterEqual(heartbeat, 3)
 
     def test_timeout_keeps_bounded_admission_without_using_shared_executor(self):
-        api, routes, translation = self.load_routes()
+        api, routes, translation, _translation_service = self.load_routes()
         handler = routes.handlers[ROUTE]
         worker_started = threading.Event()
         release_worker = threading.Event()
@@ -198,7 +216,7 @@ class PromptTranslationApiTests(unittest.TestCase):
         )
 
     def test_route_cancellation_stops_waiting_with_stable_499_json(self):
-        api, routes, translation = self.load_routes()
+        api, routes, translation, _translation_service = self.load_routes()
         handler = routes.handlers[ROUTE]
         worker_started = threading.Event()
         release_worker = threading.Event()
@@ -253,7 +271,7 @@ class PromptTranslationApiTests(unittest.TestCase):
         self.assertFalse(api._PROMPT_TRANSLATION_WORKER.has_in_flight)
 
     def test_route_maps_only_prompt_translation_errors(self):
-        api, routes, translation = self.load_routes()
+        api, routes, translation, _translation_service = self.load_routes()
         handler = routes.handlers[ROUTE]
         settings = translation.PromptTranslationSettings(provider="google")
         cases = (
@@ -299,7 +317,7 @@ class PromptTranslationApiTests(unittest.TestCase):
                 )
 
     def test_route_does_not_mask_settings_or_payload_programming_errors_as_upstream(self):
-        api, routes, _translation = self.load_routes()
+        api, routes, _translation, _translation_service = self.load_routes()
         handler = routes.handlers[ROUTE]
 
         for error in (
@@ -326,7 +344,7 @@ class PromptTranslationApiTests(unittest.TestCase):
         self.assertEqual(response["payload"]["code"], "json_object_required")
 
     def test_all_marker_budgets_return_413_before_provider_resolution(self):
-        api, routes, translation = self.load_routes()
+        api, routes, translation, translation_service = self.load_routes()
         handler = routes.handlers[ROUTE]
         settings = translation.PromptTranslationSettings(provider="google")
         cases = (
@@ -351,7 +369,10 @@ class PromptTranslationApiTests(unittest.TestCase):
 
         with (
             patch.object(api, "resolve_prompt_translation_settings", return_value=settings),
-            patch.object(translation, "get_translation_provider") as provider_factory,
+            patch.object(
+                translation_service,
+                "get_translation_provider",
+            ) as provider_factory,
         ):
             for text, code in cases:
                 with self.subTest(code=code):

@@ -6,16 +6,7 @@ import json
 import logging
 import os
 
-
-logger = logging.getLogger("ComfyUI-EasyUseAnima")
 _TRIGGER_WORD_KEYS = ("trainedWords", "trained_words", "trigger_words", "activation_text")
-
-
-def _unbound_prompt_tokens(*_args, **_kwargs):
-    raise RuntimeError("LoRA metadata prompt-token dependency is not bound.")
-
-
-_prompt_tokens = _unbound_prompt_tokens
 
 
 class _RuntimeLoggerProxy:
@@ -26,22 +17,17 @@ class _RuntimeLoggerProxy:
         return getattr(self._resolve_logger(), name)
 
 
-def _default_resolve_helper(name):
-    return globals()[name]
+def _resolve_logger():
+    return logging.getLogger("ComfyUI-EasyUseAnima")
 
 
-_resolve_helper = _default_resolve_helper
+logger = _RuntimeLoggerProxy(lambda: _resolve_logger())
 
 
-def _runtime_helper(name):
-    return _resolve_helper(name)
+def _prompt_tokens(*args, **kwargs):
+    from ..prompt.fields import _prompt_tokens as prompt_tokens
 
-
-def _bind_lora_metadata_runtime(*, prompt_tokens, resolve_helper, resolve_logger) -> None:
-    global _prompt_tokens, _resolve_helper, logger
-    _prompt_tokens = prompt_tokens
-    _resolve_helper = resolve_helper
-    logger = _RuntimeLoggerProxy(resolve_logger)
+    return prompt_tokens(*args, **kwargs)
 
 
 def _apply_lora_syntax_format(name: str) -> str:
@@ -118,17 +104,17 @@ def _dedupe_text_values(values) -> list[str]:
 
 def _trigger_words_from_value(value) -> list[str]:
     if isinstance(value, str):
-        return _runtime_helper("_dedupe_text_values")(_prompt_tokens(value))
+        return _dedupe_text_values(_prompt_tokens(value))
     if isinstance(value, dict):
         for key in ("word", "name", "tag", "text"):
             if key in value:
-                return _runtime_helper("_trigger_words_from_value")(value.get(key))
+                return _trigger_words_from_value(value.get(key))
         return []
     if isinstance(value, (list, tuple, set)):
         words: list[str] = []
         for item in value:
-            words.extend(_runtime_helper("_trigger_words_from_value")(item))
-        return _runtime_helper("_dedupe_text_values")(words)
+            words.extend(_trigger_words_from_value(item))
+        return _dedupe_text_values(words)
     return []
 
 
@@ -138,11 +124,11 @@ def _metadata_json_paths_for_lora(lora_path: str) -> list[str]:
         return []
     base, _ext = os.path.splitext(path)
     candidates = [f"{base}.metadata.json", f"{path}.metadata.json"]
-    return _runtime_helper("_dedupe_text_values")(candidates)
+    return _dedupe_text_values(candidates)
 
 
 def _load_lora_manager_metadata(lora_path: str) -> dict:
-    for metadata_path in _runtime_helper("_metadata_json_paths_for_lora")(lora_path):
+    for metadata_path in _metadata_json_paths_for_lora(lora_path):
         if not os.path.isfile(metadata_path):
             continue
         try:
@@ -161,25 +147,25 @@ def _lora_manager_trigger_words_from_metadata(metadata: dict) -> list[str]:
         return []
 
     words: list[str] = []
-    for key in _runtime_helper("_TRIGGER_WORD_KEYS"):
-        words.extend(_runtime_helper("_trigger_words_from_value")(metadata.get(key)))
+    for key in _TRIGGER_WORD_KEYS:
+        words.extend(_trigger_words_from_value(metadata.get(key)))
 
     civitai = metadata.get("civitai")
     if isinstance(civitai, dict):
-        for key in _runtime_helper("_TRIGGER_WORD_KEYS"):
-            words.extend(_runtime_helper("_trigger_words_from_value")(civitai.get(key)))
+        for key in _TRIGGER_WORD_KEYS:
+            words.extend(_trigger_words_from_value(civitai.get(key)))
 
-    return _runtime_helper("_dedupe_text_values")(words)
+    return _dedupe_text_values(words)
 
 
 def _get_lora_manager_trigger_words(lora_path: str) -> list[str]:
-    metadata = _runtime_helper("_load_lora_manager_metadata")(lora_path)
-    return _runtime_helper("_lora_manager_trigger_words_from_metadata")(metadata)
+    metadata = _load_lora_manager_metadata(lora_path)
+    return _lora_manager_trigger_words_from_metadata(metadata)
 
 
 def _get_lora_info(lora_name: str) -> tuple[str, list[str]]:
-    fallback_path = _runtime_helper("_fallback_lora_path")(lora_name)
-    trigger_words = _runtime_helper("_get_lora_manager_trigger_words")(fallback_path)
+    fallback_path = _fallback_lora_path(lora_name)
+    trigger_words = _get_lora_manager_trigger_words(fallback_path)
     if trigger_words:
         return fallback_path, trigger_words
 
@@ -189,10 +175,10 @@ def _get_lora_info(lora_name: str) -> tuple[str, list[str]]:
         path, trigger_words = get_lora_info(lora_name)
         if not isinstance(trigger_words, list):
             trigger_words = []
-        trigger_words = _runtime_helper("_dedupe_text_values")(trigger_words)
+        trigger_words = _dedupe_text_values(trigger_words)
         if trigger_words:
             return str(path), trigger_words
-        json_trigger_words = _runtime_helper("_get_lora_manager_trigger_words")(str(path))
+        json_trigger_words = _get_lora_manager_trigger_words(str(path))
         return str(path), json_trigger_words
     except Exception:
         return fallback_path, []
@@ -229,7 +215,7 @@ def _lora_model_exists(lora_name: str) -> bool | None:
     except Exception:
         return None
 
-    candidates = _runtime_helper("_dedupe_text_values")((
+    candidates = _dedupe_text_values((
         name,
         name.replace("\\", "/"),
         name.replace("/", os.sep),

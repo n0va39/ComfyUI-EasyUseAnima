@@ -3,7 +3,10 @@ param(
     [ValidateSet("quick", "full")]
     [string]$Profile = "quick",
     [string]$Python = "python",
-    [string]$TypeScriptVersion = "6.0.3"
+    [string]$TypeScriptVersion = "6.0.3",
+    [string]$RuffVersion = "0.15.22",
+    [string]$PyrightVersion = "1.1.411",
+    [switch]$OfflineMaintenanceTools
 )
 
 Set-StrictMode -Version Latest
@@ -29,6 +32,13 @@ try {
     if ($LASTEXITCODE -ne 0) {
         throw "Python compile failed with exit code $LASTEXITCODE."
     }
+
+    Write-Host "`n== Python quality report =="
+    & (Join-Path $PSScriptRoot "check_python_quality.ps1") `
+        -RuffVersion $RuffVersion `
+        -PyrightVersion $PyrightVersion `
+        -Python $pythonCommand `
+        -Offline:$OfflineMaintenanceTools
 
     if ($Profile -eq "full") {
         Write-Host "`n== Python unittest =="

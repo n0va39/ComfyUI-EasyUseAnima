@@ -10,8 +10,11 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from unittest.mock import patch
 
-import autocomplete_dataset as dataset
+import autocomplete_dataset
 import autocomplete_index
+from easyuse_anima.autocomplete import dataset
+from easyuse_anima.autocomplete import index as autocomplete_index_impl
+from easyuse_anima.autocomplete import search as autocomplete_search_impl
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -37,8 +40,12 @@ class AutocompleteIndexTests(unittest.TestCase):
         return path
 
     def _search(self, query: str, *, path: Path, limit: int = 20, category: str = ""):
-        with patch.object(dataset, "_AUTOCOMPLETE_INDEX_DIR", self.index_root):
-            return dataset._search_autocomplete_with_diagnostics(
+        with patch.object(
+            autocomplete_search_impl,
+            "_AUTOCOMPLETE_INDEX_DIR",
+            self.index_root,
+        ):
+            return autocomplete_search_impl._search_autocomplete_with_diagnostics(
                 query,
                 limit=limit,
                 path=path,
@@ -48,7 +55,7 @@ class AutocompleteIndexTests(unittest.TestCase):
     def _reference(self, query: str, *, path: Path, limit: int, category: str):
         entries = dataset._load_entries(path)
         categories = {item.strip() for item in category.split(",") if item.strip()}
-        matches = dataset._top_autocomplete_matches(
+        matches = autocomplete_search_impl._top_autocomplete_matches(
             entries,
             dataset._normalize(query),
             categories,
@@ -132,7 +139,7 @@ class AutocompleteIndexTests(unittest.TestCase):
 
     def test_glob_candidate_pattern_is_literal_and_uses_the_trigram_plan(self):
         self.assertEqual(
-            autocomplete_index._glob_pattern('%_"OR"*?[literal'),
+            autocomplete_index_impl._glob_pattern('%_"OR"*?[literal'),
             '*%_"OR"[*][?][[]literal*',
         )
         path = self._write(
@@ -155,7 +162,7 @@ class AutocompleteIndexTests(unittest.TestCase):
                 "JOIN autocomplete_entries AS e ON e.id = f.rowid "
                 "WHERE f.tag_key GLOB ? AND instr(e.tag_key, ?) > 0",
                 (
-                    autocomplete_index._glob_pattern("candidate tag 050"),
+                    autocomplete_index_impl._glob_pattern("candidate tag 050"),
                     "candidate tag 050",
                 ),
             ).fetchall()
@@ -176,7 +183,7 @@ class AutocompleteIndexTests(unittest.TestCase):
         first, first_diagnostics = self._search("alpha", path=path)
         second, second_diagnostics = self._search("alpha", path=path)
         with patch.object(
-            dataset,
+            autocomplete_search_impl,
             "_validate_index_source",
             side_effect=[dataset._AutocompleteSourceChanged(str(path)), None],
         ) as validate_source:
@@ -257,9 +264,16 @@ class AutocompleteIndexTests(unittest.TestCase):
 
         def search_once():
             start.wait(timeout=5)
-            return dataset._search_autocomplete_with_diagnostics("shared", path=path)
+            return autocomplete_search_impl._search_autocomplete_with_diagnostics(
+                "shared",
+                path=path,
+            )
 
-        with patch.object(dataset, "_AUTOCOMPLETE_INDEX_DIR", self.index_root):
+        with patch.object(
+            autocomplete_search_impl,
+            "_AUTOCOMPLETE_INDEX_DIR",
+            self.index_root,
+        ):
             with ThreadPoolExecutor(max_workers=6) as executor:
                 futures = [executor.submit(search_once) for _ in range(6)]
                 start.wait(timeout=5)
@@ -275,7 +289,7 @@ class AutocompleteIndexTests(unittest.TestCase):
         self.assertTrue(all(result["results"] for result, _ in searched))
 
         with patch.object(
-            autocomplete_index,
+            autocomplete_index_impl,
             "_query_index",
             side_effect=sqlite3.OperationalError("database is locked"),
         ):
@@ -297,8 +311,8 @@ class AutocompleteIndexTests(unittest.TestCase):
                 'custom general,0,100,"[일반] 사용자 정의 일반"',
             ],
         )
-        with patch.object(dataset, "_AUTOCOMPLETE_INDEX_DIR", None):
-            result, diagnostics = dataset._search_autocomplete_with_diagnostics(
+        with patch.object(autocomplete_search_impl, "_AUTOCOMPLETE_INDEX_DIR", None):
+            result, diagnostics = autocomplete_search_impl._search_autocomplete_with_diagnostics(
                 "사용자 정의",
                 path=path,
                 category="character",
@@ -311,8 +325,10 @@ class AutocompleteIndexTests(unittest.TestCase):
         self.assertEqual(result["status"]["count"], 2)
 
     def test_index_module_is_inside_registry_package_closure(self):
-        source = (ROOT / "autocomplete_dataset.py").read_text(encoding="utf-8")
-        self.assertIn("from .autocomplete_index import (", source)
+        source = (ROOT / "easyuse_anima" / "autocomplete" / "search.py").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("from .index import (", source)
         ignored = subprocess.run(
             [
                 "git",
@@ -322,6 +338,10 @@ class AutocompleteIndexTests(unittest.TestCase):
                 "--exclude-from=.comfyignore",
                 "--",
                 "autocomplete_index.py",
+                "easyuse_anima/autocomplete/__init__.py",
+                "easyuse_anima/autocomplete/dataset.py",
+                "easyuse_anima/autocomplete/index.py",
+                "easyuse_anima/autocomplete/search.py",
             ],
             cwd=ROOT,
             text=True,
@@ -330,6 +350,53 @@ class AutocompleteIndexTests(unittest.TestCase):
         )
         self.assertEqual(ignored.returncode, 0, ignored.stdout + ignored.stderr)
         self.assertEqual(ignored.stdout.strip(), "", ignored.stdout + ignored.stderr)
+
+    def test_root_index_module_is_an_explicit_canonical_identity_shim(self):
+        expected = (
+            "AUTOCOMPLETE_INDEX_SCHEMA_VERSION",
+            "AutocompleteIndexSource",
+            "IndexedAutocompleteEntry",
+            "AutocompleteIndexDiagnostics",
+            "AutocompleteIndexResult",
+            "AutocompleteIndexUnavailable",
+            "search_autocomplete_index",
+        )
+        self.assertEqual(autocomplete_index.__all__, expected)
+        self.assertEqual(autocomplete_index_impl.__all__, expected)
+        for name in expected:
+            with self.subTest(name=name):
+                self.assertIs(
+                    getattr(autocomplete_index, name),
+                    getattr(autocomplete_index_impl, name),
+                )
+
+    def test_root_dataset_moved_surface_has_canonical_identity(self):
+        dataset_names = (
+            "DBR_TAG_ARCHIVE_SOURCE",
+            "DBR_TAG_ARCHIVE_LICENSE",
+            "DBR_DANBOORU_AUTOCOMPLETE_CSV",
+            "DBR_E621_AUTOCOMPLETE_CSV",
+            "DBR_MERGED_AUTOCOMPLETE_CSV",
+            "LOCALSMILE_AUTOCOMPLETE_CSV",
+            "AUTOCOMPLETE_CSV",
+            "DEFAULT_AUTOCOMPLETE_SOURCE",
+            "AUTOCOMPLETE_SOURCES",
+            "AutocompleteEntry",
+            "resolve_autocomplete_source",
+            "available_autocomplete_sources",
+            "autocomplete_status",
+        )
+        self.assertEqual(dataset.__all__, dataset_names)
+        for name in dataset_names:
+            with self.subTest(name=name):
+                self.assertIs(
+                    getattr(autocomplete_dataset, name),
+                    getattr(dataset, name),
+                )
+        self.assertIs(
+            autocomplete_dataset.search_autocomplete,
+            autocomplete_search_impl.search_autocomplete,
+        )
 
 
 if __name__ == "__main__":

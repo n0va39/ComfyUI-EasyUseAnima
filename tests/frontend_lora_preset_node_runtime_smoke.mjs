@@ -93,6 +93,7 @@ const runtime = createLoraPresetNodeRuntime({
   saveProfile(node, index) { events.push(`save:${node.id}:${index}`); },
   saveCurrentProfile(node) { events.push(`save-current:${node.id}`); },
   loadProfile(node, index, options) { events.push(`load:${node.id}:${index}:${Boolean(options?.initializeFromCurrent)}`); },
+  verifyProfileProvenance(node) { events.push(`verify:${node.id}`); },
   scrollProfileBarTo(node, index) { events.push(`scroll:${node.id}:${index}`); },
   refreshLoraAvailability(node) { events.push(`availability:${node.id}`); },
   canvasWidgets,
@@ -153,6 +154,7 @@ assert.equal(node.serialize_widgets, true);
 assert.equal(node.widgets.filter((widget) => widget.__easyuseAnimaLoraWrapped).length, 4);
 
 animationFrames.shift()();
+assert.ok(events.includes("verify:node-a"));
 assert.deepEqual(node.widgets.map((widget) => widget.name), [
   "style_prompt", "profile_index", "profile_count", "lora_name", "loras", "profile_data",
 ]);

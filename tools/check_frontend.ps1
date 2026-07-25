@@ -64,7 +64,7 @@ try {
         throw "Frontend AiO generator panel runtime smoke failed with exit code $LASTEXITCODE."
     }
 
-    & node "tests\frontend_aio_generator_queue_runtime_smoke.mjs"
+    & node "tests\frontend_aio_executed_seed_runtime_smoke.mjs"
     if ($LASTEXITCODE -ne 0) {
         throw "Frontend AiO generator queue runtime smoke failed with exit code $LASTEXITCODE."
     }
@@ -159,9 +159,19 @@ try {
         throw "Frontend host hook registry smoke failed with exit code $LASTEXITCODE."
     }
 
-    & node "tests\frontend_prompt_studio_advanced_queue_seed_runtime_smoke.mjs"
+    & node "tests\frontend_prompt_studio_advanced_values_smoke.mjs"
     if ($LASTEXITCODE -ne 0) {
-        throw "Frontend Prompt Studio Advanced queue seed runtime smoke failed with exit code $LASTEXITCODE."
+        throw "Frontend Prompt Studio Advanced executed values smoke failed with exit code $LASTEXITCODE."
+    }
+
+    & node "tests\frontend_prompt_studio_resolution_orientation_smoke.mjs"
+    if ($LASTEXITCODE -ne 0) {
+        throw "Frontend Prompt Studio resolution orientation smoke failed with exit code $LASTEXITCODE."
+    }
+
+    & node "tests\frontend_prompt_studio_paste_autosize_smoke.mjs"
+    if ($LASTEXITCODE -ne 0) {
+        throw "Frontend Prompt Studio paste autosize smoke failed with exit code $LASTEXITCODE."
     }
 
     & node "tests\frontend_wildcard_values_smoke.mjs"

@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "groups": [
+    {
+      "group": "autocomplete",
+      "owner_issue": 162,
+      "prefix": "easyuse_anima/autocomplete/",
+      "role": "feature"
+    },
+    {
+      "group": "common",
+      "owner_issue": 184,
+      "prefix": "easyuse_anima/common/",
+      "role": "common"
+    },
+    {
+      "group": "image",
+      "owner_issue": 184,
+      "prefix": "easyuse_anima/image/",
+      "role": "feature"
+    },
+    {
+      "group": "infrastructure-comfy",
+      "owner_issue": 184,
+      "prefix": "easyuse_anima/infrastructure/comfy/",
+      "role": "infrastructure"
+    },
+    {
+      "group": "infrastructure-filesystem",
+      "owner_issue": 186,
+      "prefix": "easyuse_anima/infrastructure/filesystem/",
+      "role": "infrastructure"
+    },
+    {
+      "group": "lora",
+      "owner_issue": 184,
+      "prefix": "easyuse_anima/lora/",
+      "role": "feature"
+    },
+    {
+      "group": "naia",
+      "owner_issue": 184,
+      "prefix": "easyuse_anima/naia/",
+      "role": "feature"
+    },
+    {
+      "group": "profiles",
+      "owner_issue": 163,
+      "prefix": "easyuse_anima/profiles/",
+      "role": "feature"
+    },
+    {
+      "group": "settings",
+      "owner_issue": 186,
+      "prefix": "easyuse_anima/settings/",
+      "role": "feature"
+    },
+    {
+      "group": "translation",
+      "owner_issue": 186,
+      "prefix": "easyuse_anima/translation/",
+      "role": "feature"
+    }
+  ]
+}

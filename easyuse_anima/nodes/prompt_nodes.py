@@ -18,38 +18,12 @@ from ..prompt.fields import (
     _filter_metadata_prompt,
     _join_prompt_tokens,
 )
+from ..settings.service import resolve_metadata_filter_words
 
 try:
     from ...anima_prompt import correct_prompt, load_knowledge_base
-    from ...settings import resolve_metadata_filter_words
 except ImportError:
     from anima_prompt import correct_prompt, load_knowledge_base
-    from settings import resolve_metadata_filter_words
-
-
-def _bind_prompt_node_runtime(*, resolve_helper) -> None:
-    global _as_bool, _stable_change_key, _prompt_translation_change_key
-    global _split_tag_text, _translate_prompt_text, correct_prompt, load_knowledge_base
-    global _correct_builder_prompt, _filter_metadata_prompt, _join_prompt_tokens
-    global resolve_metadata_filter_words
-
-    def runtime_helper(name):
-        def call(*args, **kwargs):
-            return resolve_helper(name)(*args, **kwargs)
-
-        return call
-
-    _as_bool = runtime_helper("_as_bool")
-    _stable_change_key = runtime_helper("_stable_change_key")
-    _prompt_translation_change_key = runtime_helper("_prompt_translation_change_key")
-    _split_tag_text = runtime_helper("_split_tag_text")
-    _translate_prompt_text = runtime_helper("_translate_prompt_text")
-    _correct_builder_prompt = runtime_helper("_correct_builder_prompt")
-    _filter_metadata_prompt = runtime_helper("_filter_metadata_prompt")
-    _join_prompt_tokens = runtime_helper("_join_prompt_tokens")
-    correct_prompt = runtime_helper("correct_prompt")
-    load_knowledge_base = runtime_helper("load_knowledge_base")
-    resolve_metadata_filter_words = runtime_helper("resolve_metadata_filter_words")
 
 
 def _correct_prompt_with_report(

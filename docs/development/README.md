@@ -10,7 +10,7 @@ conversation.
    [`docs/architecture/README.md`](../architecture/README.md)
 3. Active frontend maintenance execution plan:
    `docs/development/frontend-maintenance-execution-plan.md`
-4. Current release candidate: `docs/development/0.5.4.md`
+4. Current release candidate: `docs/development/0.5.5.md`
 5. Relevant topic guide:
    - Registry publish or flagged-version prevention:
      `docs/development/registry-scanner-safety.md`
@@ -36,7 +36,7 @@ conversation.
   [`docs/architecture/README.md`](../architecture/README.md)
 - Active frontend maintenance execution ledger:
   `docs/development/frontend-maintenance-execution-plan.md`
-- Current release candidate: `docs/development/0.5.4.md`
+- Current release candidate: `docs/development/0.5.5.md`
 - Registry scanner safety: `docs/development/registry-scanner-safety.md`
 - Older implementation history: `docs/version-plans/`
 - Public workflow JSON templates and preview/source images: `docs/example_workflows/`

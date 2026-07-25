@@ -9,10 +9,27 @@ function dataModule(relativePath, replacements = {}) {
   return "data:text/javascript;base64," + Buffer.from(source).toString("base64");
 }
 
+const settingValues = { "Comfy.Locale": "" };
+globalThis.window = {};
+globalThis.__easyuseAnimaI18nTestApp = {
+  ui: {
+    settings: {
+      getSettingValue(id) {
+        return settingValues[id];
+      },
+    },
+  },
+};
+const i18nModuleUrl = dataModule("../web/js/easyuse_anima_i18n.js", {
+  'import { app } from "../../../scripts/app.js";':
+    "const app = globalThis.__easyuseAnimaI18nTestApp;",
+});
+const i18nModule = await import(i18nModuleUrl);
 const definitionDataUrl = dataModule("../web/js/settings/definition_data.js");
 const definitionsModule = await import(
   dataModule("../web/js/settings/definitions.js", {
     "./definition_data.js": definitionDataUrl,
+    "../easyuse_anima_i18n.js": i18nModuleUrl,
   })
 );
 
@@ -36,7 +53,7 @@ const createWildcardExtraPathsEditor = renderer("wildcard");
 const createNaiaResolutionModeEditor = renderer("resolution-mode");
 const createNaiaResolutionScaleEditor = renderer("resolution-scale");
 
-const settings = definitionsModule.createEasyUseAnimaSettings({
+const dependencies = {
   text(key) {
     textCalls.push(key);
     return key === "autocompleteLimitTip" ? "" : "t:" + key;
@@ -53,7 +70,8 @@ const settings = definitionsModule.createEasyUseAnimaSettings({
   createWildcardExtraPathsEditor,
   createNaiaResolutionModeEditor,
   createNaiaResolutionScaleEditor,
-});
+};
+const settings = definitionsModule.createEasyUseAnimaSettings(dependencies);
 
 assert.equal(updateCalls.length, 0, "Building descriptors must not update settings");
 assert.equal(renderCalls.length, 0, "Building descriptors must not render DOM");
@@ -80,12 +98,15 @@ const expectedIds = [
   "EasyUseAnima.Prompt.AutocompleteMode",
   "EasyUseAnima.Prompt.AutocompleteSource",
   "EasyUseAnima.Prompt.AutocompleteLimit",
+  "EasyUseAnima.Prompt.AutocompleteArtistPrefix",
   "EasyUseAnima.Prompt.AutocompleteCommitKey",
+  "EasyUseAnima.Prompt.AutocompleteCommitMode",
   "EasyUseAnima.Prompt.AutocompleteAppendSeparator",
   "EasyUseAnima.Prompt.AutocompleteNoCommaAfterPeriod",
   "EasyUseAnima.Prompt.AutocompleteDetectNaturalSentences",
   "EasyUseAnima.Prompt.AutocompletePreviewCompletion",
   "EasyUseAnima.Prompt.AutocompletePreviewClosingBrackets",
+  "EasyUseAnima.Prompt.SelectionParenthesisWeight",
   "EasyUseAnima.Prompt.TranslationProvider",
   "EasyUseAnima.Prompt.TranslationSource",
   "EasyUseAnima.Prompt.TranslationTarget",
@@ -117,7 +138,7 @@ const expectedIds = [
 ];
 
 assert.deepEqual(settings.map((item) => item.id), expectedIds);
-assert.equal(settings.length, 52);
+assert.equal(settings.length, 55);
 assert.equal(new Set(expectedIds).size, settings.length, "Setting IDs must be unique");
 assert.ok(
   settings.every((item) => item.category[0] === "EASY USE ANIMA"),
@@ -126,6 +147,12 @@ assert.ok(
 
 const byId = new Map(settings.map((item) => [item.id, item]));
 const autocompleteMode = byId.get("EasyUseAnima.Prompt.AutocompleteMode");
+const autocompleteSource = byId.get("EasyUseAnima.Prompt.AutocompleteSource");
+assert.equal(typeof autocompleteSource.defaultValue, "function");
+assert.equal(
+  autocompleteSource.defaultValue(),
+  "dbr_danbooru_2025_09_01",
+);
 assert.deepEqual(autocompleteMode, {
   id: "EasyUseAnima.Prompt.AutocompleteMode",
   name: "t:autocompleteMode",
@@ -148,6 +175,11 @@ assert.deepEqual(updateCalls, [
 const autocompleteLimit = byId.get("EasyUseAnima.Prompt.AutocompleteLimit");
 assert.equal(Object.hasOwn(autocompleteLimit, "tooltip"), false);
 assert.deepEqual(autocompleteLimit.attrs, { min: 1, max: 100, step: 1 });
+const autocompleteArtistPrefix = byId.get(
+  "EasyUseAnima.Prompt.AutocompleteArtistPrefix",
+);
+assert.equal(autocompleteArtistPrefix.defaultValue, "@");
+assert.deepEqual(autocompleteArtistPrefix.attrs, { maxlength: 32 });
 
 assert.deepEqual(
   byId.get("EasyUseAnima.NAIA.ResolutionBucket").options,
@@ -180,7 +212,7 @@ const expectedRegularSchemas = new Map([
   ],
   [
     "EasyUseAnima.Prompt.AutocompleteSource",
-    schema("combo", "dbr_danbooru_2025_09_01", [
+    schema("combo", autocompleteSource.defaultValue, [
       "dbr_danbooru_2025_09_01",
       "dbr_e621_2025_09_01",
       "dbr_danbooru_e621_merged_2025_09_01",
@@ -192,14 +224,23 @@ const expectedRegularSchemas = new Map([
     schema("number", 20, null, { min: 1, max: 100, step: 1 }),
   ],
   [
+    "EasyUseAnima.Prompt.AutocompleteArtistPrefix",
+    schema("text", "@", null, { maxlength: 32 }),
+  ],
+  [
     "EasyUseAnima.Prompt.AutocompleteCommitKey",
     schema("combo", "enter", ["enter", "tab"]),
+  ],
+  [
+    "EasyUseAnima.Prompt.AutocompleteCommitMode",
+    schema("combo", "smart", ["smart", "insert", "replace"]),
   ],
   ["EasyUseAnima.Prompt.AutocompleteAppendSeparator", schema("boolean", false)],
   ["EasyUseAnima.Prompt.AutocompleteNoCommaAfterPeriod", schema("boolean", true)],
   ["EasyUseAnima.Prompt.AutocompleteDetectNaturalSentences", schema("boolean", true)],
   ["EasyUseAnima.Prompt.AutocompletePreviewCompletion", schema("boolean", false)],
   ["EasyUseAnima.Prompt.AutocompletePreviewClosingBrackets", schema("boolean", false)],
+  ["EasyUseAnima.Prompt.SelectionParenthesisWeight", schema("boolean", false)],
   [
     "EasyUseAnima.Prompt.TranslationProvider",
     schema("combo", "off", ["off", "google"]),
@@ -311,5 +352,43 @@ assert.equal(
 );
 assert.ok(textCalls.includes("autocomplete"));
 assert.ok(textCalls.includes("preprocessingOptions"));
+
+for (const locale of ["ko", "ko-KR", "Korean", "한국어"]) {
+  settingValues["Comfy.Locale"] = locale;
+  assert.equal(
+    i18nModule.easyuseAnimaInitialAutocompleteSource(),
+    "localsmile_kr_wiki",
+  );
+}
+for (const locale of ["", "en", "ja-JP", "unknown"]) {
+  settingValues["Comfy.Locale"] = locale;
+  assert.equal(
+    i18nModule.easyuseAnimaInitialAutocompleteSource(),
+    "dbr_danbooru_2025_09_01",
+  );
+}
+
+settingValues["Comfy.Locale"] = "ko-KR";
+const koreanSettings =
+  definitionsModule.createEasyUseAnimaSettings(dependencies);
+const koreanAutocompleteSource = koreanSettings.find(
+  (item) => item.id === "EasyUseAnima.Prompt.AutocompleteSource",
+);
+assert.equal(koreanAutocompleteSource.defaultValue(), "localsmile_kr_wiki");
+
+globalThis.window.__easyuseAnimaSettings = {
+  "autocomplete.source": "dbr_danbooru_2025_09_01",
+};
+assert.equal(
+  koreanAutocompleteSource.defaultValue(),
+  "dbr_danbooru_2025_09_01",
+  "backend-loaded explicit internal source must replace the provisional locale default",
+);
+settingValues["Comfy.Locale"] = "en";
+assert.equal(
+  koreanAutocompleteSource.defaultValue(),
+  "dbr_danbooru_2025_09_01",
+  "locale changes must not replace the backend-loaded source",
+);
 
 console.log("Settings definitions smoke passed.");

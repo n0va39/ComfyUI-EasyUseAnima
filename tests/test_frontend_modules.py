@@ -10,8 +10,11 @@ ROOT = Path(__file__).resolve().parents[1]
 JSCONFIG = ROOT / "jsconfig.json"
 FRONTEND_CHECK_SCRIPT = ROOT / "tools" / "check_frontend.ps1"
 HOST_HOOK_REGISTRY_SMOKE = ROOT / "tests" / "frontend_host_hook_registry_smoke.mjs"
-PROMPT_STUDIO_ADVANCED_QUEUE_SEED_RUNTIME_SMOKE = (
-    ROOT / "tests" / "frontend_prompt_studio_advanced_queue_seed_runtime_smoke.mjs"
+PROMPT_STUDIO_ADVANCED_VALUES_SMOKE = (
+    ROOT / "tests" / "frontend_prompt_studio_advanced_values_smoke.mjs"
+)
+PROMPT_STUDIO_RESOLUTION_ORIENTATION_SMOKE = (
+    ROOT / "tests" / "frontend_prompt_studio_resolution_orientation_smoke.mjs"
 )
 WILDCARD_VALUES_SMOKE = ROOT / "tests" / "frontend_wildcard_values_smoke.mjs"
 WEB_JS = ROOT / "web" / "js"
@@ -55,9 +58,9 @@ AIO_GENERATOR_PANEL_RUNTIME_JS = AIO_MODULES / "generator_panel_runtime.js"
 AIO_GENERATOR_PANEL_RUNTIME_SMOKE = (
     ROOT / "tests" / "frontend_aio_generator_panel_runtime_smoke.mjs"
 )
-AIO_GENERATOR_QUEUE_RUNTIME_JS = AIO_MODULES / "generator_queue_runtime.js"
-AIO_GENERATOR_QUEUE_RUNTIME_SMOKE = (
-    ROOT / "tests" / "frontend_aio_generator_queue_runtime_smoke.mjs"
+AIO_EXECUTED_SEED_RUNTIME_JS = AIO_MODULES / "executed_seed_runtime.js"
+AIO_EXECUTED_SEED_RUNTIME_SMOKE = (
+    ROOT / "tests" / "frontend_aio_executed_seed_runtime_smoke.mjs"
 )
 AIO_EXTENSION_RUNTIME_JS = AIO_MODULES / "extension_runtime.js"
 AIO_EXTENSION_RUNTIME_SMOKE = (
@@ -129,9 +132,6 @@ class FrontendModuleStructureTests(unittest.TestCase):
         regional_extension_source = (
             PROMPT_STUDIO_REGIONAL_MODULES / "extension.js"
         ).read_text(encoding="utf-8")
-        queue_seed_source = (
-            PROMPT_STUDIO_MODULES / "advanced_queue_seed_runtime.js"
-        ).read_text(encoding="utf-8")
         frontend_check_source = FRONTEND_CHECK_SCRIPT.read_text(encoding="utf-8")
         config = json.loads(JSCONFIG.read_text(encoding="utf-8"))
 
@@ -146,8 +146,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
         self.assertIn("segments: new Set()", registry_source)
         self.assertIn("current === record.topState.wrapper", registry_source)
         self.assertIn("target[methodName] = state.wrapper", registry_source)
-        for source in (node_hooks_source, queue_seed_source):
-            self.assertIn('../lifecycle/host_hook_registry.js"', source)
+        self.assertIn('../lifecycle/host_hook_registry.js"', node_hooks_source)
         self.assertIn('../../lifecycle/host_hook_registry.js"', regional_extension_source)
         self.assertIn('../lifecycle/host_hook_registry.js"', extension_runtime_source)
 
@@ -168,22 +167,18 @@ class FrontendModuleStructureTests(unittest.TestCase):
             self.assertIn(lease, source)
             self.assertIn("dispose: disposeGlobalHooks", source)
 
-        for source in (node_hooks_source, regional_extension_source, queue_seed_source):
+        for source in (node_hooks_source, regional_extension_source):
             self.assertIn("registerHostHookCallbacks({", source)
         self.assertNotIn("__easyuseAnimaAdvancedWrapped", node_hooks_source)
         self.assertNotIn("serialize.__easyuseAnimaRegionalWrapped", regional_extension_source)
-        self.assertNotIn("AdvancedQueueSeedInstalled", queue_seed_source)
 
-        aio_queue_source = AIO_GENERATOR_QUEUE_RUNTIME_JS.read_text(encoding="utf-8")
         aio_extension_source = AIO_EXTENSION_RUNTIME_JS.read_text(encoding="utf-8")
         lora_save_sync_source = (
             WEB_JS / "lora_preset" / "save_sync.js"
         ).read_text(encoding="utf-8")
-        self.assertIn('../lifecycle/host_hook_registry.js"', aio_queue_source)
-        self.assertIn('../lifecycle/host_hook_registry.js"', aio_extension_source)
+        self.assertNotIn("host_hook_registry.js", aio_extension_source)
         self.assertIn('../lifecycle/host_hook_registry.js"', lora_save_sync_source)
-        self.assertIn("registerHostHookCallbacks({", aio_queue_source)
-        self.assertIn("createHostHookRuntimeLifecycle(", aio_extension_source)
+        self.assertNotIn("createHostHookRuntimeLifecycle(", aio_extension_source)
         self.assertIn("createHostHookRuntimeLifecycle(", lora_save_sync_source)
         self.assertIn("registerHostHookCallbacks({", lora_save_sync_source)
 
@@ -466,10 +461,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
         frontend_check_source = FRONTEND_CHECK_SCRIPT.read_text(encoding="utf-8")
 
         self.assertEqual(source.splitlines()[0], "// @ts-check")
-        self.assertEqual(
-            STATIC_IMPORT_RE.findall(source),
-            ["../lifecycle/host_hook_registry.js"],
-        )
+        self.assertEqual(STATIC_IMPORT_RE.findall(source), [])
         self.assertNotIn("app.registerExtension", source)
         self.assertEqual(
             re.findall(
@@ -510,7 +502,6 @@ class FrontendModuleStructureTests(unittest.TestCase):
             "generatorNodeType: GENERATOR_NODE_TYPE,",
             "generatorPreviewEvent: GENERATOR_PREVIEW_EVENT,",
             "installWheelForwarder: installGeneratorWheelForwarder,",
-            "installQueuePromptHook: installGeneratorQueuePromptHook,",
             "watchLocale: easyuseAnimaWatchLocale,",
             "refreshPanels: refreshGeneratorPanels,",
             "handlePreviewEvent: handleGeneratorPreviewEvent,",
@@ -748,7 +739,6 @@ class FrontendModuleStructureTests(unittest.TestCase):
             "commitGeneratorSeedValue",
             "syncGeneratorSerializedWidgets",
             "installGeneratorWheelForwarder",
-            "installGeneratorQueuePromptHook",
             "hookGeneratorNode",
         ):
             with self.subTest(entry_owned_function=entry_owned_function):
@@ -797,121 +787,49 @@ class FrontendModuleStructureTests(unittest.TestCase):
             frontend_check_source,
         )
 
-    def test_aio_generator_queue_runtime_has_transaction_boundary(self):
-        source = AIO_GENERATOR_QUEUE_RUNTIME_JS.read_text(encoding="utf-8")
-        panel_source = AIO_GENERATOR_PANEL_RUNTIME_JS.read_text(encoding="utf-8")
+    def test_aio_executed_seed_runtime_replaces_browser_queue_authority(self):
+        source = AIO_EXECUTED_SEED_RUNTIME_JS.read_text(encoding="utf-8")
         entry_source = AIO_JS.read_text(encoding="utf-8")
         frontend_check_source = FRONTEND_CHECK_SCRIPT.read_text(encoding="utf-8")
 
         self.assertEqual(source.splitlines()[0], "// @ts-check")
         self.assertEqual(
             re.findall(r"export function ([A-Za-z0-9_]+)\(", source),
-            [
-                "aioCreateGeneratorQueueRuntime",
-                "aioInstallGeneratorQueuePromptHook",
-            ],
+            ["aioApplyExecutedSeedDisplay"],
         )
-        self.assertEqual(
-            STATIC_IMPORT_RE.findall(source),
-            ["../lifecycle/host_hook_registry.js"],
-        )
+        self.assertEqual(STATIC_IMPORT_RE.findall(source), [])
         self.assertNotRegex(source, r"\b(?:document|window|app)\b")
         self.assertNotIn("fetch(", source)
         self.assertNotIn("app.registerExtension", source)
-
         self.assertIn(
-            "  aioCreateGeneratorQueueRuntime,\n"
-            "  aioInstallGeneratorQueuePromptHook,\n"
-            '} from "./aio/generator_queue_runtime.js";',
+            'import { aioApplyExecutedSeedDisplay } from '
+            '"./aio/executed_seed_runtime.js";',
             entry_source,
         )
-        factory_match = re.search(
-            r"const\s+generatorQueueRuntime\s*=\s*"
-            r"aioCreateGeneratorQueueRuntime\(\{(?P<dependencies>.*?)\n\}\);",
+        self.assertIn(
+            "aioApplyExecutedSeedDisplay(node, message, {",
             entry_source,
-            re.DOTALL,
         )
-        self.assertIsNotNone(factory_match)
-        runtime_dependencies = factory_match.group("dependencies")
-        for expected in (
-            "settingsWidgetName: GENERATOR_SETTINGS_WIDGET,",
-            "minSeed: 0,",
-            "maxSeed: GENERATOR_MAX_SEED,",
-            "specialSeedRandom: GENERATOR_SPECIAL_SEED_RANDOM,",
-            "specialSeedIncrement: GENERATOR_SPECIAL_SEED_INCREMENT,",
-            "specialSeedDecrement: GENERATOR_SPECIAL_SEED_DECREMENT,",
-            "normalizeSeedValue,",
-            "normalizeSeedControl,",
-            "cloneJson: clone,",
-            "settingsToCompactJson,",
-            "listNodes: generatorGraphNodes,",
-            "getSettings: generatorSettings,",
-            "sanitizeSettings: sanitizeGeneratorSettingsForOptionalDependencies,",
-            "getLastQueuedSeed: (node) => node.__easyuseAnimaLastQueuedSeed,",
-            "commitLastQueuedSeed: (node, seed) => {",
-            "node.__easyuseAnimaLastQueuedSeed = seed;",
-            "updateSeed: (node, seed, options) => generatorPanelRuntime.updateSeed(node, seed, options),",
-            "loadOptionalDependencies: loadGeneratorOptionalDependencies,",
-            "randomSeed,",
-        ):
-            with self.subTest(composition_dependency=expected):
-                self.assertIn(expected, runtime_dependencies)
-        self.assertNotIn("syncGeneratorStateFromDom", runtime_dependencies)
-
-        for moved_function in (
-            "findWorkflowNode",
-            "partialExecutionTargetIds",
-            "resolveQueuedSeed",
-            "preparePrompt",
-            "stageWorkflowSettingsValue",
-            "applyQueuedSettingsTransaction",
-            "invalidCommitTargetIds",
-        ):
-            with self.subTest(moved_function=moved_function):
-                self.assertRegex(source, rf"\bfunction\s+{moved_function}\(")
-        for removed_entry_function in (
-            "findWorkflowNode",
-            "resolveGeneratorSeedForQueue",
-            "prepareGeneratorPromptForQueue",
-            "setWorkflowWidgetValue",
-        ):
-            with self.subTest(removed_entry_function=removed_entry_function):
-                self.assertNotRegex(
-                    entry_source,
-                    rf"\bfunction\s+{removed_entry_function}\(",
-                )
-
-        self.assertRegex(
-            entry_source,
-            r"\bfunction\s+installGeneratorQueuePromptHook\(",
-        )
-        self.assertNotRegex(
+        self.assertIn(
+            "node.__easyuseAnimaLastExecutedSeed = executionSeed;",
             source,
-            r"\bfunction\s+installGeneratorQueuePromptHook\(",
         )
-        install_start = entry_source.index("function installGeneratorQueuePromptHook")
-        install_end = entry_source.index("\nfunction ensureButton", install_start)
-        install_body = entry_source[install_start:install_end]
         self.assertIn(
-            "return aioInstallGeneratorQueuePromptHook(api, generatorQueueRuntime);",
-            install_body,
+            "dependencies.updateSeed(node, nextSeed, { markDirty: false });",
+            source,
         )
-        self.assertIn("const AIO_GENERATOR_QUEUE_OWNER = Symbol.for(", source)
-        self.assertIn('"easyuse-anima.aio.generator-queue"', source)
-        self.assertIn("return registerHostHookCallbacks({", source)
-        self.assertIn("owner: AIO_GENERATOR_QUEUE_OWNER,", source)
-        self.assertIn("updateSeed: updateGeneratorSeed,", panel_source)
-        self.assertLess(
-            entry_source.index("const generatorPanelRuntime"),
-            entry_source.index("const generatorQueueRuntime"),
-        )
-        self.assertLess(
-            entry_source.index("const generatorQueueRuntime"),
-            entry_source.index("function hookInputNode"),
-        )
-        self.assertTrue(AIO_GENERATOR_QUEUE_RUNTIME_SMOKE.is_file())
+        for retired_symbol in (
+            "generatorQueueRuntime",
+            "aioCreateGeneratorQueueRuntime",
+            "aioInstallGeneratorQueuePromptHook",
+            "installGeneratorQueuePromptHook",
+            "__easyuseAnimaLastQueuedSeed",
+        ):
+            self.assertNotIn(retired_symbol, entry_source)
+        self.assertFalse((AIO_MODULES / "generator_queue_runtime.js").exists())
+        self.assertTrue(AIO_EXECUTED_SEED_RUNTIME_SMOKE.is_file())
         self.assertIn(
-            r'node "tests\frontend_aio_generator_queue_runtime_smoke.mjs"',
+            r'node "tests\frontend_aio_executed_seed_runtime_smoke.mjs"',
             frontend_check_source,
         )
 
@@ -2350,7 +2268,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
         ).read_text(encoding="utf-8")
 
         self.assertIn("app.registerExtension", source)
-        self.assertIn('../../../scripts/api.js"', source)
+        self.assertNotIn('../../../scripts/api.js"', source)
         self.assertIn('./prompt_studio/extension_runtime.js"', source)
         self.assertIn("./constants.js", extension_runtime_source)
         self.assertIn('./advanced_controls.js"', advanced_node_ui_source)
@@ -2358,35 +2276,33 @@ class FrontendModuleStructureTests(unittest.TestCase):
         self.assertIn('./advanced_fields_ui.js"', advanced_node_ui_source)
         self.assertIn("./advanced_fields_state.js", extension_runtime_source)
         self.assertIn("./advanced_values.js", extension_runtime_source)
-        self.assertIn("./advanced_queue_seed_runtime.js", extension_runtime_source)
-        self.assertIn("installAdvancedQueueSeedQueueHook", extension_runtime_source)
-        self.assertIn("advancedQueueSeedRuntime.shouldApplyExecutedSeed", extension_runtime_source)
-        self.assertIn("installAdvancedQueueSeedGraphCleanup", extension_runtime_source)
-        self.assertIn("getRootGraph: () => app.graph,", extension_runtime_source)
-        self.assertNotIn("rootGraph: app.graph,", extension_runtime_source)
-        self.assertIn(
-            "attachAdvancedQueueSeedNode: advancedQueueSeedRuntime.attachNode",
-            extension_runtime_source,
-        )
-        self.assertIn(
-            "detachAdvancedQueueSeedNode: advancedQueueSeedRuntime.detachNode",
-            extension_runtime_source,
-        )
-        self.assertIn("hooks.attachAdvancedQueueSeedNode?.(this);", node_hooks_source)
-        self.assertIn("hooks.detachAdvancedQueueSeedNode?.(this);", node_hooks_source)
-        self.assertTrue(PROMPT_STUDIO_ADVANCED_QUEUE_SEED_RUNTIME_SMOKE.is_file())
-        self.assertIn(
-            r'node "tests\frontend_prompt_studio_advanced_queue_seed_runtime_smoke.mjs"',
-            FRONTEND_CHECK_SCRIPT.read_text(encoding="utf-8"),
-        )
+        self.assertNotIn("./advanced_queue_seed_runtime.js", extension_runtime_source)
+        self.assertNotIn("./queue_seed_bridge.js", extension_runtime_source)
+        self.assertNotIn("installAdvancedQueueSeedQueueHook", extension_runtime_source)
+        self.assertNotIn("shouldApplyExecutedSeed", extension_runtime_source)
+        self.assertNotIn("attachAdvancedQueueSeedNode", node_hooks_source)
+        self.assertNotIn("detachAdvancedQueueSeedNode", node_hooks_source)
         self.assertTrue(WILDCARD_VALUES_SMOKE.is_file())
         self.assertIn(
             r'node "tests\frontend_wildcard_values_smoke.mjs"',
             FRONTEND_CHECK_SCRIPT.read_text(encoding="utf-8"),
         )
-        self.assertIn("hooks.shouldApplyExecutedSeed?.", (
+        advanced_values_source = (
             PROMPT_STUDIO_MODULES / "advanced_values.js"
-        ).read_text(encoding="utf-8"))
+        ).read_text(encoding="utf-8")
+        self.assertNotIn("shouldApplyExecutedSeed", advanced_values_source)
+        self.assertIn("wildcard_execution_seed", advanced_values_source)
+        self.assertIn("writePreviousWildcardExecution", advanced_values_source)
+        self.assertTrue(PROMPT_STUDIO_ADVANCED_VALUES_SMOKE.is_file())
+        self.assertIn(
+            r'node "tests\frontend_prompt_studio_advanced_values_smoke.mjs"',
+            FRONTEND_CHECK_SCRIPT.read_text(encoding="utf-8"),
+        )
+        self.assertTrue(PROMPT_STUDIO_RESOLUTION_ORIENTATION_SMOKE.is_file())
+        self.assertIn(
+            r'node "tests\frontend_prompt_studio_resolution_orientation_smoke.mjs"',
+            FRONTEND_CHECK_SCRIPT.read_text(encoding="utf-8"),
+        )
         self.assertIn('./utils.js"', studio_node_ui_source)
         self.assertIn("./canvas_forwarding.js", extension_runtime_source)
         self.assertIn("./extend_slot_controls.js", extension_runtime_source)
@@ -2682,17 +2598,11 @@ class FrontendModuleStructureTests(unittest.TestCase):
         contract_source = (
             PROMPT_STUDIO_MODULES / "wildcard_seed_contract.js"
         ).read_text(encoding="utf-8")
-        queue_source = (
-            PROMPT_STUDIO_MODULES / "advanced_queue_seed_runtime.js"
-        ).read_text(encoding="utf-8")
         advanced_source = (
             PROMPT_STUDIO_MODULES / "advanced_controls.js"
         ).read_text(encoding="utf-8")
         regional_source = (
             PROMPT_STUDIO_REGIONAL_MODULES / "field_editor.js"
-        ).read_text(encoding="utf-8")
-        extension_source = (
-            PROMPT_STUDIO_MODULES / "extension_runtime.js"
         ).read_text(encoding="utf-8")
         wildcard_values_source = (
             PROMPT_STUDIO_MODULES / "wildcard_values.js"
@@ -2710,10 +2620,9 @@ class FrontendModuleStructureTests(unittest.TestCase):
         self.assertIn("globalThis.requestAnimationFrame", contract_source)
         self.assertIn("input.isConnected !== true", contract_source)
         self.assertIn("!dirty", contract_source)
-        self.assertIn("./wildcard_seed_contract.js", queue_source)
-        self.assertIn("nextWildcardSeed", queue_source)
-        self.assertIn("./wildcard_seed_contract.js", extension_source)
-        self.assertIn("return randomWildcardSeed();", extension_source)
+        extension_source = (
+            PROMPT_STUDIO_MODULES / "extension_runtime.js"
+        ).read_text(encoding="utf-8")
         self.assertIn("hookWildcardSeedWidget,", extension_source)
         self.assertIn("hookWildcardSeedWidget", wildcard_values_source)
         self.assertIn(
@@ -3307,6 +3216,59 @@ class FrontendModuleStructureTests(unittest.TestCase):
             with self.subTest(module="extension_runtime", symbol=name):
                 self.assertIn(f"  {name},", extension_runtime_source)
 
+    def test_prompt_studio_paste_autosize_is_bounded_revision_owned_and_grow_only(self):
+        stabilizer_source = (
+            PROMPT_STUDIO_MODULES / "textarea_stabilization.js"
+        ).read_text(encoding="utf-8")
+        classic_source = (
+            PROMPT_STUDIO_MODULES / "studio_resizable_input.js"
+        ).read_text(encoding="utf-8")
+        advanced_source = (
+            PROMPT_STUDIO_MODULES / "advanced_fields_ui.js"
+        ).read_text(encoding="utf-8")
+        widgets_source = (
+            PROMPT_STUDIO_MODULES / "widgets.js"
+        ).read_text(encoding="utf-8")
+        runner_source = (
+            ROOT / "tools" / "check_frontend.ps1"
+        ).read_text(encoding="utf-8")
+
+        self.assertIn("const TEXTAREA_STABILIZATION_FRAMES = 2", stabilizer_source)
+        self.assertIn("let revision = 0", stabilizer_source)
+        self.assertIn("const ownedRevision = revision", stabilizer_source)
+        self.assertIn("textarea?.isConnected === false", stabilizer_source)
+        self.assertIn("remainingFrames > 0 && (grew || !fits)", stabilizer_source)
+        self.assertIn('textarea.style.overflowY = "hidden"', stabilizer_source)
+        self.assertNotIn("setInterval", stabilizer_source)
+        self.assertNotIn("setTimeout", stabilizer_source)
+
+        for source in (classic_source, advanced_source):
+            self.assertIn("createTextareaGrowStabilizer", source)
+            self.assertIn("heightStabilizer.schedule()", source)
+            self.assertIn("currentHeight", source)
+            self.assertIn("nextHeight", source)
+
+        self.assertIn("widget?.__easyuseAnimaStudioInput", widgets_source)
+        self.assertIn("widget?.inputEl", widgets_source)
+        self.assertIn("widget?.element", widgets_source)
+        self.assertIn('candidate?.querySelector?.("textarea, input")', widgets_source)
+        self.assertIn("input.isConnected !== false", widgets_source)
+
+        resolver_source = (
+            PROMPT_STUDIO_MODULES / "studio_input_resolver.js"
+        ).read_text(encoding="utf-8")
+        self.assertIn('".lg-node[data-node-id]"', resolver_source)
+        self.assertIn('"aria-label"', resolver_source)
+        self.assertIn("anonymousFieldNames.indexOf(widget.name)", resolver_source)
+        self.assertIn("widget.__easyuseAnimaStudioInput = input", resolver_source)
+        self.assertNotIn("addEventListener", resolver_source)
+        self.assertNotIn("MutationObserver", resolver_source)
+
+        self.assertIn(
+            'node "tests\\frontend_prompt_studio_paste_autosize_smoke.mjs"',
+            runner_source,
+        )
+
     def test_advanced_width_reflow_grows_content_without_owning_node_height(self):
         controller_source = (PROMPT_STUDIO_MODULES / "advanced_layout_controller.js").read_text(
             encoding="utf-8"
@@ -3626,7 +3588,6 @@ class FrontendModuleStructureTests(unittest.TestCase):
             "state.js",
             "advanced_fields_state.js",
             "advanced_values.js",
-            "advanced_queue_seed_runtime.js",
             "extend_layout.js",
             "extend_slots.js",
             "fields.js",

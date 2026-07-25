@@ -63,6 +63,9 @@ import {
   findWidget,
 } from "./widgets.js";
 import {
+  resolveStudioInput as resolveStudioInputWithCanvas,
+} from "./studio_input_resolver.js";
+import {
   updateAdvancedEditorWidth,
 } from "./layout.js";
 import {
@@ -104,28 +107,10 @@ import {
   syncAdvancedValues as syncAdvancedValuesWithHooks,
 } from "./advanced_values.js";
 import {
-  createAdvancedQueueSeedRuntime,
-  installAdvancedQueueSeedGraphCleanup,
-  installAdvancedQueueSeedQueueHook,
-} from "./advanced_queue_seed_runtime.js";
-import {
-  promptStudioQueueSeedBridge,
-} from "./queue_seed_bridge.js";
-import {
-  REGIONAL_NODE_TYPE,
-  REGIONAL_WIDGET_INDEX,
-} from "./regional/constants.js";
-import {
   applyWildcardExecutedInputs as applyWildcardExecutedInputsWithHooks,
   hookWildcardSeedWidget,
   syncWildcardSerialization,
 } from "./wildcard_values.js";
-import {
-  randomWildcardSeed,
-} from "./wildcard_seed_contract.js";
-import {
-  writePreviousWildcardExecution,
-} from "./wildcard_seed_history.js";
 import {
   captureAdvancedConfigure,
   pruneDisconnectedAdvancedFieldInputValues,
@@ -144,31 +129,7 @@ const PROMPT_STUDIO_GLOBAL_HOOK_RUNTIME_OWNER = Symbol.for(
   "easyuse-anima.prompt-studio.global-hook-runtime-owner",
 );
 
-const ADVANCED_QUEUE_SEED_CONTRACT = Object.freeze({
-  modeInputName: "wildcard_mode",
-  seedInputName: "wildcard_seed",
-  controlInputName: "wildcard_seed_after_generate",
-  modeWidgetIndex: ADVANCED_WIDGET_INDEX.wildcard_mode,
-  seedWidgetIndex: ADVANCED_WIDGET_INDEX.wildcard_seed,
-  controlWidgetIndex: ADVANCED_WIDGET_INDEX.wildcard_seed_after_generate,
-  supportsSubgraph: true,
-});
-const REGIONAL_QUEUE_SEED_CONTRACT = Object.freeze({
-  modeInputName: "wildcard_mode",
-  seedInputName: "wildcard_seed",
-  controlInputName: "wildcard_seed_after_generate",
-  modeWidgetIndex: REGIONAL_WIDGET_INDEX.wildcard_mode,
-  seedWidgetIndex: REGIONAL_WIDGET_INDEX.wildcard_seed,
-  controlWidgetIndex: REGIONAL_WIDGET_INDEX.wildcard_seed_after_generate,
-  supportsSubgraph: false,
-});
-
-function isRegionalQueueSeedNode(node) {
-  return node?.type === REGIONAL_NODE_TYPE || node?.comfyClass === REGIONAL_NODE_TYPE;
-}
-
-function createPromptStudioExtensionRuntime(app, api = null) {
-  const queueSeedBridge = promptStudioQueueSeedBridge(app);
+function createPromptStudioExtensionRuntime(app) {
   const globalHookLifecycle = createHostHookRuntimeLifecycle(
     app,
     PROMPT_STUDIO_GLOBAL_HOOK_RUNTIME_OWNER,
@@ -203,10 +164,10 @@ function createPromptStudioExtensionRuntime(app, api = null) {
   function advancedValuesHooks() {
     return {
       advancedWidget,
+      markNodeDirty,
       parseAdvancedFields,
       repairAdvancedInternalWidgetValues,
       renderAdvancedEditor,
-      shouldApplyExecutedSeed: advancedQueueSeedRuntime.shouldApplyExecutedSeed,
       writeAdvancedFields,
     };
   }
@@ -222,61 +183,8 @@ function createPromptStudioExtensionRuntime(app, api = null) {
   function applyWildcardExecutedInputs(node, message) {
     applyWildcardExecutedInputsWithHooks(node, message, {
       markNodeDirty,
-      shouldApplyExecutedSeed: advancedQueueSeedRuntime.shouldApplyExecutedSeed,
     });
   }
-
-  const advancedQueueSeedRuntime = createAdvancedQueueSeedRuntime({
-    listNodes: () => app.graph?._nodes || [],
-    getRootGraph: () => app.graph,
-    getNodeContract(node) {
-      if (isAdvancedNode(node)) {
-        return ADVANCED_QUEUE_SEED_CONTRACT;
-      }
-      if (isRegionalQueueSeedNode(node)) {
-        return REGIONAL_QUEUE_SEED_CONTRACT;
-      }
-      return null;
-    },
-    isOutputNode: (node) => node?.constructor?.nodeData?.output_node === true,
-    getSeed: (node, contract) => findWidget(node, contract.seedInputName)?.value,
-    updateSeed(node, seed, contract) {
-      if (contract === REGIONAL_QUEUE_SEED_CONTRACT) {
-        if (queueSeedBridge.publishRegionalSeed(node, seed)) {
-          return;
-        }
-        const widget = findWidget(node, contract.seedInputName);
-        if (!widget) {
-          throw new Error("Prompt Studio Regional wildcard_seed widget is unavailable.");
-        }
-        widget.value = seed;
-        widget.callback?.(widget.value);
-        markNodeDirty(node);
-        return;
-      }
-      const widget = findWidget(node, contract.seedInputName);
-      if (!widget) {
-        throw new Error("Prompt Studio wildcard_seed widget is unavailable.");
-      }
-      widget.value = seed;
-      renderAdvancedEditor(node);
-    },
-    updatePreviousExecution(node, execution) {
-      if (writePreviousWildcardExecution(node, execution)) {
-        markNodeDirty(node);
-      }
-    },
-    clonePrompt: (value) => JSON.parse(JSON.stringify(value)),
-    randomSeed() {
-      const values = new Uint32Array(2);
-      if (globalThis.crypto?.getRandomValues) {
-        globalThis.crypto.getRandomValues(values);
-        return (values[0] & 0x1fffff) * 0x100000000 + values[1];
-      }
-      return randomWildcardSeed();
-    },
-  });
-  queueSeedBridge.bindRuntime(advancedQueueSeedRuntime);
 
   function refreshNodeSize(node, options = {}) {
     refreshNodeSizeWithApp(app, node, options);
@@ -352,6 +260,15 @@ function createPromptStudioExtensionRuntime(app, api = null) {
     return isExtendNode(node) ? EXTEND_FIELD_NAMES : FIELD_NAMES;
   }
 
+  function resolveStudioInput(node, widget) {
+    return resolveStudioInputWithCanvas(
+      node,
+      widget,
+      studioFieldNames(node),
+      app.canvas?.canvas,
+    );
+  }
+
   function promptHighlightHooks() {
     return {
       findWidget,
@@ -417,6 +334,7 @@ function createPromptStudioExtensionRuntime(app, api = null) {
       growStudioManualHeightToContent,
       setStudioInputHeight,
       setStudioManualHeight,
+      resolveStudioInput,
       updateHighlight,
     });
   }
@@ -430,6 +348,7 @@ function createPromptStudioExtensionRuntime(app, api = null) {
       isExtendNode,
       layoutExtendPromptWidgets,
       refreshNodeSize,
+      resolveStudioInput,
       restoreInputFromWidget,
       studioFieldNames,
       syncWidgetValue,
@@ -455,14 +374,6 @@ function createPromptStudioExtensionRuntime(app, api = null) {
 
   function installGlobalHooks() {
     installAdvancedSaveSyncForApp();
-    globalHookLifecycle.install(
-      "advanced-queue-seed-graph-clear",
-      () => installAdvancedQueueSeedGraphCleanup(app.graph, advancedQueueSeedRuntime),
-    );
-    globalHookLifecycle.install(
-      "advanced-queue-seed-queue",
-      () => installAdvancedQueueSeedQueueHook(api, advancedQueueSeedRuntime),
-    );
   }
 
   function disposeGlobalHooks() {
@@ -538,7 +449,6 @@ function createPromptStudioExtensionRuntime(app, api = null) {
     },
     async beforeRegisterNodeDef(nodeType, nodeData) {
       registerPromptStudioNodeHooks(nodeType, nodeData, {
-        attachAdvancedQueueSeedNode: advancedQueueSeedRuntime.attachNode,
         applyAdvancedExecutedInputs,
         applyExecutedInputs,
         applyExtendSlotVisibility,
@@ -548,7 +458,6 @@ function createPromptStudioExtensionRuntime(app, api = null) {
         ),
         disconnectAdvancedEditorWidthObserver,
         disposeAdvancedAutocompleteInputs,
-        detachAdvancedQueueSeedNode: advancedQueueSeedRuntime.detachNode,
         hookWildcardSeedWidget,
         hookStudioNode,
         isExtendNode,

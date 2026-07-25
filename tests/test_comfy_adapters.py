@@ -14,7 +14,9 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 import nodes
+from easyuse_anima.aio import resources as aio_resources
 from easyuse_anima.infrastructure.comfy import capabilities, invocation, resources
+from easyuse_anima.nodes import sam3_nodes
 
 
 class ComfyCapabilityAdapterTests(unittest.TestCase):
@@ -68,6 +70,32 @@ class ComfyCapabilityAdapterTests(unittest.TestCase):
                     "OSS Wan",
                     "OSS Chroma",
                 ],
+            )
+
+    def test_impact_scheduler_lookup_preserves_loaded_module_and_comfy_fallbacks(self):
+        loaded_core = SimpleNamespace(get_schedulers=lambda: ("impact-a", "impact-b"))
+        with patch.dict(sys.modules, {"impact.core": loaded_core}):
+            self.assertIs(capabilities._impact_core_module(), loaded_core)
+            self.assertEqual(
+                capabilities._impact_scheduler_names(),
+                ["impact-a", "impact-b"],
+            )
+
+        real_import = builtins.__import__
+
+        def import_without_impact_or_comfy(name, globals=None, locals=None, fromlist=(), level=0):
+            if name in {"impact.core", "modules.impact", "comfy.samplers"}:
+                raise ImportError(f"{name} is unavailable")
+            return real_import(name, globals, locals, fromlist, level)
+
+        with (
+            patch.dict(sys.modules, {"impact.core": None}),
+            patch("builtins.__import__", side_effect=import_without_impact_or_comfy),
+        ):
+            self.assertIsNone(capabilities._impact_core_module())
+            self.assertEqual(
+                capabilities._impact_scheduler_names(),
+                ["normal", "karras", "exponential", "sgm_uniform", "simple", "ddim_uniform"],
             )
 
     def test_node_discovery_checks_injected_and_loaded_module_mappings(self):
@@ -146,6 +174,141 @@ class ComfyCapabilityAdapterTests(unittest.TestCase):
 
 
 class ComfyResourceAdapterTests(unittest.TestCase):
+    def test_resource_file_revision_uses_resolved_path_size_and_mtime(self):
+        calls = []
+        folder_paths = SimpleNamespace(
+            get_full_path=lambda folder_name, filename: (
+                calls.append((folder_name, filename))
+                or "models/runtime.safetensors"
+            ),
+        )
+        resolved_path = Path("canonical/runtime.safetensors")
+        with (
+            patch.dict(sys.modules, {"folder_paths": folder_paths}),
+            patch.object(
+                resources.Path,
+                "resolve",
+                return_value=resolved_path,
+            ) as resolve,
+            patch.object(
+                resources.Path,
+                "stat",
+                return_value=SimpleNamespace(
+                    st_size=1234,
+                    st_mtime_ns=5678,
+                ),
+            ) as stat,
+        ):
+            revision = resources._comfy_resource_file_revision(
+                "diffusion_models",
+                "anima.safetensors",
+            )
+
+        self.assertEqual(
+            revision,
+            {
+                "path": str(resolved_path),
+                "size": 1234,
+                "mtime_ns": 5678,
+            },
+        )
+        self.assertEqual(
+            calls,
+            [("diffusion_models", "anima.safetensors")],
+        )
+        resolve.assert_called_once_with(strict=False)
+        stat.assert_called_once_with()
+
+    def test_resource_file_revision_supports_legacy_resolver_and_safe_fallbacks(self):
+        legacy_calls = []
+        legacy_folder_paths = SimpleNamespace(
+            get_full_path_or_raise=lambda folder_name, filename: (
+                legacy_calls.append((folder_name, filename))
+                or "models/legacy.safetensors"
+            ),
+        )
+        with (
+            patch.dict(sys.modules, {"folder_paths": legacy_folder_paths}),
+            patch.object(
+                resources.Path,
+                "resolve",
+                return_value=Path("canonical/legacy.safetensors"),
+            ),
+            patch.object(
+                resources.Path,
+                "stat",
+                return_value=SimpleNamespace(
+                    st_size=10,
+                    st_mtime_ns=20,
+                ),
+            ),
+        ):
+            self.assertEqual(
+                resources._comfy_resource_file_revision(
+                    "vae",
+                    "legacy.safetensors",
+                ),
+                {
+                    "path": str(Path("canonical/legacy.safetensors")),
+                    "size": 10,
+                    "mtime_ns": 20,
+                },
+            )
+        self.assertEqual(
+            legacy_calls,
+            [("vae", "legacy.safetensors")],
+        )
+
+        self.assertIsNone(
+            resources._comfy_resource_file_revision("", "model")
+        )
+        self.assertIsNone(
+            resources._comfy_resource_file_revision("vae", "")
+        )
+        for folder_paths in (
+            SimpleNamespace(),
+            SimpleNamespace(get_full_path=lambda *_args: None),
+            SimpleNamespace(get_full_path=lambda *_args: object()),
+            SimpleNamespace(
+                get_full_path=lambda *_args: (
+                    _ for _ in ()
+                ).throw(RuntimeError("unavailable"))
+            ),
+        ):
+            with self.subTest(folder_paths=folder_paths), patch.dict(
+                sys.modules,
+                {"folder_paths": folder_paths},
+            ):
+                self.assertIsNone(
+                    resources._comfy_resource_file_revision(
+                        "vae",
+                        "missing.safetensors",
+                    )
+                )
+
+        folder_paths = SimpleNamespace(
+            get_full_path=lambda *_args: "models/broken.safetensors",
+        )
+        with (
+            patch.dict(sys.modules, {"folder_paths": folder_paths}),
+            patch.object(
+                resources.Path,
+                "resolve",
+                return_value=Path("canonical/broken.safetensors"),
+            ),
+            patch.object(
+                resources.Path,
+                "stat",
+                side_effect=OSError("stat failed"),
+            ),
+        ):
+            self.assertIsNone(
+                resources._comfy_resource_file_revision(
+                    "vae",
+                    "broken.safetensors",
+                )
+            )
+
     def test_folder_resources_use_runtime_names_and_preserve_fallbacks(self):
         folder_paths = SimpleNamespace(
             get_filename_list=lambda folder_name: {
@@ -218,6 +381,79 @@ class ComfyResourceAdapterTests(unittest.TestCase):
 
 
 class ComfyInvocationAdapterTests(unittest.TestCase):
+    def test_clip_encoding_uses_injected_call_time_node_lookup(self):
+        calls = []
+
+        class ClipTextEncode:
+            def encode(self, clip, text):
+                calls.append((clip, text))
+                return ("conditioning", "ignored")
+
+        self.assertEqual(
+            invocation._encode_with_comfy_clip(
+                "clip",
+                "prompt",
+                lambda node_id: ClipTextEncode if node_id == "CLIPTextEncode" else None,
+            ),
+            "conditioning",
+        )
+        self.assertEqual(calls, [("clip", "prompt")])
+
+        with self.assertRaises(RuntimeError) as missing_class:
+            invocation._encode_with_comfy_clip("clip", "prompt", lambda _node_id: None)
+        self.assertEqual(
+            str(missing_class.exception),
+            "[EasyUseAnima] Could not find ComfyUI CLIPTextEncode.",
+        )
+
+        class MissingEncode:
+            pass
+
+        with self.assertRaises(RuntimeError) as missing_method:
+            invocation._encode_with_comfy_clip(
+                "clip",
+                "prompt",
+                lambda _node_id: MissingEncode,
+            )
+        self.assertEqual(
+            str(missing_method.exception),
+            "[EasyUseAnima] CLIPTextEncode does not expose encode.",
+        )
+
+        for invalid_result in ((), ["conditioning"]):
+            class InvalidResult:
+                def encode(self, _clip, _text):
+                    return invalid_result
+
+            with self.subTest(invalid_result=invalid_result):
+                with self.assertRaises(RuntimeError) as invalid:
+                    invocation._encode_with_comfy_clip(
+                        "clip",
+                        "prompt",
+                        lambda _node_id: InvalidResult,
+                    )
+                self.assertEqual(
+                    str(invalid.exception),
+                    "[EasyUseAnima] CLIPTextEncode returned no conditioning.",
+                )
+
+        def failing_lookup(_node_id):
+            raise LookupError("lookup failed")
+
+        with self.assertRaisesRegex(LookupError, "lookup failed"):
+            invocation._encode_with_comfy_clip("clip", "prompt", failing_lookup)
+
+        class FailingEncode:
+            def encode(self, _clip, _text):
+                raise KeyError("encode failed")
+
+        with self.assertRaisesRegex(KeyError, "encode failed"):
+            invocation._encode_with_comfy_clip(
+                "clip",
+                "prompt",
+                lambda _node_id: FailingEncode,
+            )
+
     def test_signature_filtering_var_kwargs_and_missing_required_are_preserved(self):
         calls = []
 
@@ -277,25 +513,62 @@ class ComfyRootCompatibilityTests(unittest.TestCase):
     def test_domain_neutral_root_names_are_direct_aliases(self):
         self.assertIs(nodes._comfy_sampler_names, capabilities._comfy_sampler_names)
         self.assertIs(nodes._comfy_scheduler_names, capabilities._comfy_scheduler_names)
-        self.assertIs(nodes._comfy_checkpoint_names, resources._comfy_checkpoint_names)
         self.assertIs(nodes._folder_path_names, resources._folder_path_names)
         self.assertIs(nodes._node_output_tuple, invocation._node_output_tuple)
         self.assertIs(nodes._call_with_supported_kwargs, invocation._call_with_supported_kwargs)
+        self.assertFalse(hasattr(nodes, "_impact_core_module"))
+        self.assertIs(nodes._impact_scheduler_names, capabilities._impact_scheduler_names)
 
-    def test_feature_specific_root_wrappers_inject_existing_constants_and_aliases(self):
+    def test_checkpoint_names_are_owned_by_the_canonical_sam3_consumer(self):
+        self.assertFalse(hasattr(nodes, "_comfy_checkpoint_names"))
+        self.assertIs(
+            sam3_nodes._comfy_checkpoint_names,
+            resources._comfy_checkpoint_names,
+        )
+        checkpoint_names = ["sam3-b.safetensors", "sam3-a.safetensors"]
+        with (
+            patch.object(
+                sam3_nodes,
+                "_comfy_checkpoint_names",
+                return_value=checkpoint_names,
+            ) as names,
+            patch.object(
+                sam3_nodes,
+                "_preferred_checkpoint_default",
+                return_value="sam3-a.safetensors",
+            ) as preferred,
+        ):
+            input_types = sam3_nodes.EasyUseAnimaSAM3Context.INPUT_TYPES()
+
+        self.assertIs(input_types["required"]["ckpt_name"][0], checkpoint_names)
+        self.assertEqual(
+            input_types["required"]["ckpt_name"][1]["default"],
+            "sam3-a.safetensors",
+        )
+        names.assert_called_once_with()
+        preferred.assert_called_once_with(
+            checkpoint_names,
+            "sam3.1_multiplex_fp16.safetensors",
+        )
+
+    def test_aio_resource_wrappers_inject_canonical_constants_and_aliases(self):
         folder_calls = []
 
         def folder_names(folder_name, fallback):
             folder_calls.append((folder_name, fallback))
             return fallback
 
-        with patch.object(nodes, "_folder_path_names", side_effect=folder_names):
+        with patch.object(
+            aio_resources,
+            "_folder_path_names",
+            side_effect=folder_names,
+        ):
             self.assertEqual(
-                nodes._comfy_diffusion_model_names(),
+                aio_resources._comfy_diffusion_model_names(),
                 list(nodes.ANIMA_DEFAULT_DIFFUSION_MODEL_CANDIDATES),
             )
             self.assertEqual(
-                nodes._comfy_text_encoder_names(),
+                aio_resources._comfy_text_encoder_names(),
                 list(nodes.ANIMA_DEFAULT_CLIP_CANDIDATES),
             )
         self.assertEqual(

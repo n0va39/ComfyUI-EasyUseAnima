@@ -29,6 +29,7 @@ import {
 } from "./serialization.js";
 import {
   serializePreviousWildcardExecution,
+  writePreviousWildcardExecution,
 } from "../wildcard_seed_history.js";
 
 /**
@@ -36,7 +37,10 @@ import {
  * ComfyUI app instance.
  *
  * @param {any} app
- * @param {{ fieldLabel?: (field: any) => string }} [hooks]
+ * @param {{
+ *   fieldLabel?: (field: any) => string,
+ *   markNodeDirty?: (node: any) => void,
+ * }} [hooks]
  */
 function createRegionalRuntime(app, hooks = {}) {
   /** @param {any} node @param {string} name */
@@ -505,9 +509,8 @@ function createRegionalRuntime(app, hooks = {}) {
   /**
    * @param {any} node
    * @param {any} message
-   * @param {{ shouldApplyExecutedSeed?: (node: any, value: any) => boolean }} [options]
    */
-  function applyRegionalExecutedInputs(node, message, options = {}) {
+  function applyRegionalExecutedInputs(node, message) {
     const payload = firstRegionalValue(message?.prompt_studio_regional, null);
     if (!payload || typeof payload !== "object") {
       return false;
@@ -533,18 +536,13 @@ function createRegionalRuntime(app, hooks = {}) {
       if (!widget || payload[name] == null) {
         continue;
       }
-      if (name === "wildcard_seed" && typeof options.shouldApplyExecutedSeed === "function") {
-        let shouldApply = false;
-        try {
-          shouldApply = options.shouldApplyExecutedSeed(node, payload[name]) !== false;
-        } catch {
-          // A failed authority check must not let stale execution metadata win.
-        }
-        if (!shouldApply) {
-          continue;
-        }
-      }
       widget.value = payload[name];
+    }
+    if (writePreviousWildcardExecution(node, {
+      seed: payload.wildcard_execution_seed,
+      mode: payload.wildcard_mode,
+    })) {
+      hooks.markNodeDirty?.(node);
     }
     ensureRegionalWidgetValues(node);
     const fields = node.__easyuseAnimaRegionalFields || createDefaultRegionalFields();

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable, Iterable
+from pathlib import Path
 from typing import Any
 
 
@@ -28,6 +29,52 @@ def _folder_path_names(folder_name: str, fallback: list[str]) -> list[str]:
     except Exception:
         pass
     return list(fallback)
+
+
+def _comfy_resource_file_revision(
+    folder_name: str,
+    filename: str,
+) -> dict[str, int | str] | None:
+    category = str(folder_name or "").strip()
+    name = str(filename or "").strip()
+    if not category or not name:
+        return None
+
+    try:
+        import folder_paths  # type: ignore
+
+        resolve_path = getattr(folder_paths, "get_full_path", None)
+        if not callable(resolve_path):
+            resolve_path = getattr(
+                folder_paths,
+                "get_full_path_or_raise",
+                None,
+            )
+        if not callable(resolve_path):
+            return None
+        raw_path = resolve_path(category, name)
+        if not isinstance(raw_path, (str, Path)) or not raw_path:
+            return None
+        resolved_path = Path(raw_path).resolve(strict=False)
+        stat = resolved_path.stat()
+    except Exception:
+        return None
+
+    size = getattr(stat, "st_size", None)
+    mtime_ns = getattr(stat, "st_mtime_ns", None)
+    if (
+        not isinstance(size, int)
+        or isinstance(size, bool)
+        or size < 0
+        or not isinstance(mtime_ns, int)
+        or isinstance(mtime_ns, bool)
+    ):
+        return None
+    return {
+        "path": str(resolved_path),
+        "size": size,
+        "mtime_ns": mtime_ns,
+    }
 
 
 def _comfy_diffusion_model_names(

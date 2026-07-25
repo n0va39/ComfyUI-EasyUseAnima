@@ -1,0 +1,351 @@
+{
+  "schema": "easyuse_anima_aio_legacy_execution_trace",
+  "version": 1,
+  "cases": {
+    "base_txt2img": {
+      "trace": [
+        "require_input",
+        "normalize_settings",
+        "resolve_seed",
+        "load_resources",
+        "apply_lora",
+        "apply_model_patches",
+        "normalize_prompt",
+        "advanced_outputs",
+        "encode_positive",
+        "encode_negative",
+        "detailer_enabled",
+        "normalize_profile",
+        "resolve_guidance",
+        "resolve_highres_backend",
+        "apply_spectrum_model_patches",
+        "random_run_id",
+        "cache_key:generator-id",
+        "get_cache",
+        "empty_latent",
+        "sample",
+        "decode",
+        "resize_first_pass",
+        "put_cache",
+        "run_highres",
+        "run_detailer",
+        "run_upscale",
+        "run_postprocess",
+        "cleanup:sample",
+        "cleanup:model",
+        "cleanup:lora",
+        "save_prefix",
+        "save_comfy",
+        "tag:final"
+      ],
+      "result": {
+        "image": "decoded-image",
+        "latent": "sampled-latent",
+        "metadata": {
+          "generation_settings": {
+            "artist_mix": {
+              "cluster_count": 1,
+              "dominant_isolation": false,
+              "dominant_threshold": 0.0,
+              "exact_top_k": 0,
+              "mode": "sequential",
+              "rms_scale_cap": 1.0,
+              "start_percent": 0.0,
+              "strength_scale": 1.0,
+              "style_gain": 1.0
+            },
+            "detailer": {},
+            "highres": {
+              "enabled": false
+            },
+            "mod_guidance": {
+              "mode": "auto",
+              "profile": "off"
+            },
+            "mode": "txt2img",
+            "postprocess": {
+              "enabled": false
+            },
+            "preview": {
+              "intermediate_images": false
+            },
+            "sampler": {
+              "backend": "comfy_ksampler",
+              "seed": 17
+            },
+            "save": {
+              "backend": "comfy",
+              "enabled": true,
+              "filename_prefix": "Anima"
+            },
+            "upscale": {
+              "enabled": false
+            }
+          },
+          "height": 96,
+          "input_settings": {
+            "schema": "input-settings"
+          },
+          "lora_stack": [
+            {
+              "name": "style.safetensors"
+            }
+          ],
+          "prompt_data": {
+            "positive_prompt": "prompt"
+          },
+          "resource_info": {
+            "unet_name": "model.safetensors"
+          },
+          "schema": "easyuse_anima_aio_generation_result",
+          "stages": {
+            "first_pass": {
+              "cache_hit": false
+            },
+            "highres": {
+              "enabled": false
+            },
+            "detailer": {
+              "enabled": false
+            },
+            "upscale": {
+              "enabled": false
+            },
+            "postprocess": {
+              "enabled": false
+            }
+          },
+          "version": 1,
+          "width": 64
+        },
+        "ui": {
+          "easyuse_anima_aio_seed": [
+            {
+              "execution_seed": "17",
+              "next_seed": "17"
+            }
+          ],
+          "status": [
+            "generated"
+          ],
+          "width": [
+            64
+          ],
+          "height": [
+            96
+          ],
+          "unet_name": [
+            "model.safetensors"
+          ],
+          "sampler_backend": [
+            "comfy_ksampler"
+          ],
+          "easyuse_anima_run_id": [
+            "aio:0000000000001234"
+          ],
+          "images": [
+            {
+              "filename": "final.png",
+              "subfolder": "",
+              "type": "output",
+              "stage": "final",
+              "width": 64,
+              "height": 96
+            }
+          ],
+          "easyuse_anima_preview": [
+            {
+              "filename": "final.png",
+              "subfolder": "",
+              "type": "output",
+              "stage": "final",
+              "width": 64,
+              "height": 96
+            }
+          ]
+        }
+      }
+    },
+    "upscale_with_intermediate_preview": {
+      "trace": [
+        "require_input",
+        "normalize_settings",
+        "resolve_seed",
+        "load_resources",
+        "apply_lora",
+        "apply_model_patches",
+        "normalize_prompt",
+        "advanced_outputs",
+        "encode_positive",
+        "encode_negative",
+        "detailer_enabled",
+        "normalize_profile",
+        "resolve_guidance",
+        "resolve_highres_backend",
+        "apply_spectrum_model_patches",
+        "random_run_id",
+        "cache_key:node-7",
+        "get_cache",
+        "empty_latent",
+        "sample",
+        "decode",
+        "resize_first_pass",
+        "put_cache",
+        "temp_preview:first_pass",
+        "send_preview:first_pass",
+        "run_highres",
+        "run_detailer",
+        "run_upscale",
+        "image_size",
+        "encode_upscaled_image",
+        "temp_preview:upscale",
+        "send_preview:upscale",
+        "run_postprocess",
+        "cleanup:sample",
+        "cleanup:model",
+        "cleanup:lora",
+        "save_prefix",
+        "save_comfy",
+        "tag:final"
+      ],
+      "result": {
+        "image": "upscaled-image",
+        "latent": "upscaled-latent",
+        "metadata": {
+          "generation_settings": {
+            "artist_mix": {
+              "cluster_count": 1,
+              "dominant_isolation": false,
+              "dominant_threshold": 0.0,
+              "exact_top_k": 0,
+              "mode": "sequential",
+              "rms_scale_cap": 1.0,
+              "start_percent": 0.0,
+              "strength_scale": 1.0,
+              "style_gain": 1.0
+            },
+            "detailer": {},
+            "highres": {
+              "enabled": false
+            },
+            "mod_guidance": {
+              "mode": "auto",
+              "profile": "off"
+            },
+            "mode": "txt2img",
+            "postprocess": {
+              "enabled": false
+            },
+            "preview": {
+              "intermediate_images": true
+            },
+            "sampler": {
+              "backend": "comfy_ksampler",
+              "seed": 17
+            },
+            "save": {
+              "backend": "comfy",
+              "enabled": true,
+              "filename_prefix": "Anima"
+            },
+            "upscale": {
+              "enabled": true
+            }
+          },
+          "height": 192,
+          "input_settings": {
+            "schema": "input-settings"
+          },
+          "lora_stack": [
+            {
+              "name": "style.safetensors"
+            }
+          ],
+          "prompt_data": {
+            "positive_prompt": "prompt"
+          },
+          "resource_info": {
+            "unet_name": "model.safetensors"
+          },
+          "schema": "easyuse_anima_aio_generation_result",
+          "stages": {
+            "first_pass": {
+              "cache_hit": false
+            },
+            "highres": {
+              "enabled": false
+            },
+            "detailer": {
+              "enabled": false
+            },
+            "upscale": {
+              "enabled": true,
+              "backend": "stub"
+            },
+            "postprocess": {
+              "enabled": false
+            }
+          },
+          "version": 1,
+          "width": 128
+        },
+        "ui": {
+          "easyuse_anima_aio_seed": [
+            {
+              "execution_seed": "17",
+              "next_seed": "17"
+            }
+          ],
+          "status": [
+            "generated"
+          ],
+          "width": [
+            128
+          ],
+          "height": [
+            192
+          ],
+          "unet_name": [
+            "model.safetensors"
+          ],
+          "sampler_backend": [
+            "comfy_ksampler"
+          ],
+          "easyuse_anima_run_id": [
+            "node-7:0000000000001234"
+          ],
+          "images": [
+            {
+              "filename": "final.png",
+              "subfolder": "",
+              "type": "output",
+              "stage": "final",
+              "width": 128,
+              "height": 192
+            }
+          ],
+          "easyuse_anima_preview": [
+            {
+              "filename": "first_pass.png",
+              "stage": "first_pass",
+              "type": "temp"
+            },
+            {
+              "filename": "upscale.png",
+              "stage": "upscale",
+              "type": "temp"
+            },
+            {
+              "filename": "final.png",
+              "subfolder": "",
+              "type": "output",
+              "stage": "final",
+              "width": 128,
+              "height": 192
+            }
+          ]
+        }
+      }
+    }
+  }
+}

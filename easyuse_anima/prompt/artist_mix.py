@@ -6,7 +6,9 @@ from math import isfinite
 from typing import Any
 
 from ..common.values import _as_bool, _as_float, _as_int
+from ..infrastructure.comfy.wiring import resolve_comfy_host_helper
 from .data import _normalize_prompt_data, _prompt_data_nested, _prompt_data_output
+from .fields import _correct_builder_prompt, _join_prompt_tokens
 
 ARTIST_MIX_MODE_FROM_PROMPT_DATA = "prompt_data"
 ARTIST_MIX_MODE_OFF = "off"
@@ -108,33 +110,35 @@ _ARTIST_GROUP_RE = re.compile(
 )
 _SECTION_SEPARATOR_RE = re.compile(r"^\s*-{6,}\s*$", re.MULTILINE)
 
-_RUNTIME_RESOLVER = None
-_RUNTIME_HELPER_NAMES = (
-    "_advanced_enabled_pane_fields",
-    "_advanced_prompt_with_artist_override",
-    "_correct_builder_prompt",
-    "_encode_with_comfy_clip",
-    "_join_prompt_tokens",
-    "_normalize_advanced_fields",
-)
 
-def _runtime_proxy(name: str):
-    def invoke(*args, **kwargs):
-        if _RUNTIME_RESOLVER is None:
-            raise RuntimeError(f"[EasyUseAnima] Artist mix runtime helper is not bound: {name}")
-        return _RUNTIME_RESOLVER(name)(*args, **kwargs)
-    return invoke
+def _missing_host_helper(name: str):
+    raise RuntimeError(f"Artist Mix Comfy host helper is unavailable: {name}")
 
-def _bind_artist_mix_runtime(*, resolve_helper) -> None:
-    global _RUNTIME_RESOLVER
-    _RUNTIME_RESOLVER = resolve_helper
-    for name in _RUNTIME_HELPER_NAMES:
-        globals()[name] = _runtime_proxy(name)
 
-def _runtime_helper(name: str):
-    if _RUNTIME_RESOLVER is None:
-        return globals()[name]
-    return _RUNTIME_RESOLVER(name)
+def _encode_with_comfy_clip(*args, **kwargs):
+    helper = resolve_comfy_host_helper(
+        "_encode_with_comfy_clip",
+        _missing_host_helper,
+    )
+    return helper(*args, **kwargs)
+
+
+def _advanced_enabled_pane_fields(*args, **kwargs):
+    from .advanced import _advanced_enabled_pane_fields as helper
+
+    return helper(*args, **kwargs)
+
+
+def _advanced_prompt_with_artist_override(*args, **kwargs):
+    from .advanced import _advanced_prompt_with_artist_override as helper
+
+    return helper(*args, **kwargs)
+
+
+def _normalize_advanced_fields(*args, **kwargs):
+    from .advanced import _normalize_advanced_fields as helper
+
+    return helper(*args, **kwargs)
 
 def _split_artist_mix_items(text: str) -> list[str]:
     items: list[str] = []
@@ -906,7 +910,7 @@ def _encode_artist_average(
     composite = _encode_with_comfy_clip(clip, composite_prompt)
     if len(composite) != 1:
         composite = None
-    return _runtime_helper("_blend_conditionings")(encoded, mix_weights, composite)
+    return _blend_conditionings(encoded, mix_weights, composite)
 
 def _encode_artist_hybrid(
     clip,
@@ -952,7 +956,7 @@ def _encode_artist_hybrid(
             return _encode_artist_exact(clip, data, base_prompt, sorted_artists, strength_scale=strength_scale)
         try:
             output.extend(
-                _runtime_helper("_encode_artist_delta_rms")(
+                _encode_artist_delta_rms(
                     clip,
                     data,
                     base_prompt,
@@ -1308,7 +1312,7 @@ def _encode_prompt_data_positive_conditioning(
         return _encode_artist_average(clip, data, base_prompt, artists)
     if mode == ARTIST_MIX_MODE_DELTA_RMS:
         return _mark_artist_mix_conditioning(
-            _runtime_helper("_encode_artist_delta_rms")(
+            _encode_artist_delta_rms(
                 clip,
                 data,
                 base_prompt,
@@ -1364,7 +1368,7 @@ def _encode_prompt_data_positive_conditioning(
         )
     if mode == ARTIST_MIX_MODE_CLUSTERED:
         return _mark_artist_mix_conditioning(
-            _runtime_helper("_encode_artist_clustered")(
+            _encode_artist_clustered(
                 clip,
                 data,
                 base_prompt,

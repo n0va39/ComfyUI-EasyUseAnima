@@ -19,14 +19,18 @@ import {
   normalizeCaretClientRect,
 } from "./autocomplete/popup_geometry.js";
 import {
+  artistCompletionText,
   autocompleteQuery,
   currentToken as currentAutocompleteToken,
   currentWildcardToken as currentAutocompleteWildcardToken,
   isCaretInComment,
   isCaretInPromptTranslationMarker as caretInPromptTranslationMarker,
+  normalizeAutocompleteArtistPrefix,
+  normalizeAutocompleteCommitMode,
   normalizeWildcardSearchText,
   parseAutocompleteText,
   planAutocompleteInsertion,
+  planBracketInsertion,
   wildcardAutocompleteQuery,
 } from "./autocomplete/text_model.js";
 
@@ -96,6 +100,8 @@ const DEFAULT_MAX_RESULTS = 20;
 const MAX_RESULT_LIMIT = 100;
 const DEFAULT_AUTOCOMPLETE_MODE = "compatible_global";
 const DEFAULT_AUTOCOMPLETE_COMMIT_KEY = "enter";
+const DEFAULT_AUTOCOMPLETE_COMMIT_MODE = "smart";
+const DEFAULT_AUTOCOMPLETE_ARTIST_PREFIX = "@";
 const AUTOCOMPLETE_MODES = new Set([
   "off",
   "easyuse_nodes",
@@ -179,11 +185,14 @@ const MIN_QUERY_LENGTH = 1;
 let maxResults = DEFAULT_MAX_RESULTS;
 let autocompleteMode = DEFAULT_AUTOCOMPLETE_MODE;
 let autocompleteCommitKey = DEFAULT_AUTOCOMPLETE_COMMIT_KEY;
+let autocompleteCommitMode = DEFAULT_AUTOCOMPLETE_COMMIT_MODE;
+let autocompleteArtistPrefix = DEFAULT_AUTOCOMPLETE_ARTIST_PREFIX;
 let autocompleteAppendSeparator = false;
 let autocompleteNoCommaAfterPeriod = true;
 let autocompleteDetectNaturalSentences = true;
 let autocompletePreviewClosingBrackets = false;
 let autocompletePreviewCompletion = false;
+let promptStudioSelectionParenthesisWeight = false;
 let popup = null;
 let activeState = null;
 let activeRefreshFrame = null;
@@ -249,6 +258,10 @@ function setAutocompleteDetectNaturalSentences(value) {
 
 function setAutocompletePreviewClosingBrackets(value) {
   autocompletePreviewClosingBrackets = parseBooleanSetting(value, false);
+}
+
+function setPromptStudioSelectionParenthesisWeight(value) {
+  promptStudioSelectionParenthesisWeight = parseBooleanSetting(value, false);
 }
 
 function setAutocompletePreviewCompletion(value) {
@@ -431,7 +444,17 @@ async function refreshAutocompleteSettings() {
     if (autocompleteMode !== previousMode) {
       dataRequestsInvalidated = true;
     }
+    const nextArtistPrefix = normalizeAutocompleteArtistPrefix(
+      settings["autocomplete.artist_prefix"],
+    );
+    if (nextArtistPrefix !== autocompleteArtistPrefix) {
+      autocompleteArtistPrefix = nextArtistPrefix;
+      dataRequestsInvalidated = true;
+    }
     setAutocompleteCommitKey(settings["autocomplete.commit_key"]);
+    autocompleteCommitMode = normalizeAutocompleteCommitMode(
+      settings["autocomplete.commit_mode"],
+    );
     setAutocompleteAppendSeparator(settings["autocomplete.append_separator"]);
     setAutocompleteNoCommaAfterPeriod(settings["autocomplete.no_comma_after_period"]);
     const previousDetectNaturalSentences = autocompleteDetectNaturalSentences;
@@ -440,6 +463,9 @@ async function refreshAutocompleteSettings() {
       dataRequestsInvalidated = true;
     }
     setAutocompletePreviewClosingBrackets(settings["autocomplete.preview_closing_brackets"]);
+    setPromptStudioSelectionParenthesisWeight(
+      settings["prompt_studio.selection_parenthesis_weight"],
+    );
     const previousPreviewCompletion = autocompletePreviewCompletion;
     setAutocompletePreviewCompletion(settings["autocomplete.preview_completion"]);
     if (autocompletePreviewCompletion !== previousPreviewCompletion) {
@@ -728,6 +754,8 @@ function currentToken(input) {
     {
       detectNaturalSentences: autocompleteDetectNaturalSentences,
       previewCompletion: autocompletePreviewCompletion,
+      selectionStart: input?.selectionStart,
+      selectionEnd: input?.selectionEnd,
     },
   );
 }
@@ -763,6 +791,7 @@ function autocompleteStateSignature(token, context, state) {
     detectNaturalSentences: autocompleteDetectNaturalSentences,
     previewClosingBrackets: autocompletePreviewClosingBrackets,
     previewCompletion: autocompletePreviewCompletion,
+    commitMode: autocompleteCommitMode,
   });
 }
 
@@ -772,7 +801,7 @@ function strictAutocompleteResults(context, token, _state, results) {
   }
   const rawQuery = context.kind === "wildcard"
     ? String(token?.query || "")
-    : parseAutocompleteText(token?.query || "").query;
+    : parseAutocompleteText(token?.query || "", autocompleteArtistPrefix).query;
   const query = context.kind === "wildcard"
     ? normalizeWildcardSearchText(rawQuery)
     : normalizePromptTagText(rawQuery).trim().toLocaleLowerCase();
@@ -962,7 +991,14 @@ function resetVisibleAutocompleteMenuSoon(menu, input) {
   });
 }
 
-function replaceInputRange(input, start, end, replacement, caretOffset) {
+function replaceInputRange(
+  input,
+  start,
+  end,
+  replacement,
+  selectionStartOffset,
+  selectionEndOffset = selectionStartOffset,
+) {
   input.focus?.();
   input.setSelectionRange(start, end);
   const beforeValue = input.value;
@@ -974,8 +1010,10 @@ function replaceInputRange(input, start, end, replacement, caretOffset) {
     input.setRangeText(replacement, start, end, "end");
     input.dispatchEvent(new Event("input", { bubbles: true }));
   }
-  const caret = start + caretOffset;
-  input.setSelectionRange(caret, caret);
+  input.setSelectionRange(
+    start + selectionStartOffset,
+    start + selectionEndOffset,
+  );
 }
 
 function suppressAutocompleteUntilInputChanges(input) {
@@ -1121,6 +1159,7 @@ function commitSuggestion(state, entry, options = {}) {
   const insert = completionText(token, entry, state.forceArtistOnly);
   const plan = planAutocompleteInsertion(token, insert, {
     appendSeparator: autocompleteAppendSeparator,
+    commitMode: autocompleteCommitMode,
     noCommaAfterPeriod: autocompleteNoCommaAfterPeriod,
   });
   if (!plan) {
@@ -1154,10 +1193,10 @@ function completionText(token, entry, forceArtistOnly = false) {
     return `__${String(entry.tag || "").replace(/^__|__$/g, "")}__`;
   }
   const tag = promptTagText(entry?.tag);
-  const query = parseAutocompleteText(token.query);
+  const query = parseAutocompleteText(token.query, autocompleteArtistPrefix);
   const artistOnly = forceArtistOnly || query.artistOnly;
   if (artistOnly) {
-    return `@${tag}`;
+    return artistCompletionText(tag, autocompleteArtistPrefix);
   }
   return tag;
 }
@@ -1182,7 +1221,7 @@ function autocompletePreviewCategory(state, entry, token) {
   if (entry?.kind === "wildcard") {
     return "wildcard";
   }
-  const query = parseAutocompleteText(token?.query || "");
+  const query = parseAutocompleteText(token?.query || "", autocompleteArtistPrefix);
   return state?.forceArtistOnly || query.artistOnly
     ? "artist"
     : String(entry?.category || "general").toLocaleLowerCase();
@@ -1200,12 +1239,16 @@ function typedCompletionLength(token, insert) {
   if (insert.toLocaleLowerCase().startsWith(typedRaw.toLocaleLowerCase())) {
     return typedRaw.length;
   }
-  const typedNormalized = normalizedCompletionPreviewText(typedRaw.replace(/^@/, ""));
+  const prefix = autocompleteArtistPrefix;
+  const typedWithoutPrefix = typedRaw.startsWith(prefix)
+    ? typedRaw.slice(prefix.length)
+    : typedRaw;
+  const typedNormalized = normalizedCompletionPreviewText(typedWithoutPrefix);
   if (
-    typedRaw.startsWith("@")
-    && insert.startsWith("@")
+    typedRaw.startsWith(prefix)
+    && insert.startsWith(prefix)
     && typedNormalized
-    && normalizedCompletionPreviewText(insert.slice(1)).startsWith(typedNormalized)
+    && normalizedCompletionPreviewText(insert.slice(prefix.length)).startsWith(typedNormalized)
   ) {
     return typedRaw.length;
   }
@@ -1225,6 +1268,7 @@ function completionPreviewPlan(state, entry) {
   const insert = completionText(token, entry, state.forceArtistOnly);
   const plan = planAutocompleteInsertion(token, insert, {
     appendSeparator: autocompleteAppendSeparator,
+    commitMode: autocompleteCommitMode,
     noCommaAfterPeriod: autocompleteNoCommaAfterPeriod,
   });
   if (!plan) {
@@ -1300,21 +1344,23 @@ function updateAutocompletePreview() {
   refreshAutocompleteHighlightPreview(input);
 }
 
-function insertBracketPair(state, event, open, close, replacement = null, caretOffset = null) {
+function insertBracketPair(state, event, plan) {
   if (!autocompletePreviewClosingBrackets || event.defaultPrevented || event.ctrlKey || event.metaKey || event.altKey) {
     return false;
   }
   const input = state?.input;
-  if (!input || input.selectionStart == null || input.selectionEnd == null) {
+  if (!input || !plan) {
     return false;
   }
   event.preventDefault();
-  const start = input.selectionStart;
-  const end = input.selectionEnd;
-  const selected = input.value.slice(start, end);
-  const text = replacement ?? `${open}${selected}${close}`;
-  const offset = caretOffset ?? (open.length + selected.length);
-  replaceInputRange(input, start, end, text, offset);
+  replaceInputRange(
+    input,
+    plan.start,
+    plan.end,
+    plan.replacement,
+    plan.selectionStartOffset,
+    plan.selectionEndOffset,
+  );
   syncWidgetValue(state);
   return true;
 }
@@ -1326,14 +1372,17 @@ function handleBracketPreviewKeydown(state, event) {
   }
   const start = input.selectionStart ?? 0;
   const end = input.selectionEnd ?? start;
-  if (event.key === "(") {
-    return insertBracketPair(state, event, "(", ")");
-  }
-  if (event.key === "{") {
-    return insertBracketPair(state, event, "{", "}");
-  }
-  if (event.key === "[" && start === end && input.value[start - 1] === "[") {
-    return insertBracketPair(state, event, "[", "]]", "[]]", 1);
+  const plan = planBracketInsertion(
+    input.value,
+    start,
+    end,
+    event.key,
+    {
+      selectionParenthesisWeight: promptStudioSelectionParenthesisWeight,
+    },
+  );
+  if (plan) {
+    return insertBracketPair(state, event, plan);
   }
   if ((event.key === ")" || event.key === "]" || event.key === "}") && start === end && input.value[start] === event.key) {
     event.preventDefault();
@@ -1501,7 +1550,7 @@ function hookInput(input, options = {}) {
       }
       const context = wildcardToken
         ? wildcardAutocompleteQuery(wildcardToken)
-        : autocompleteQuery(token, state.forceArtistOnly);
+        : autocompleteQuery(token, state.forceArtistOnly, autocompleteArtistPrefix);
       if (context.kind !== "wildcard" && context.query.length < MIN_QUERY_LENGTH) {
         markAutocompleteInactive();
         hidePopup();
@@ -1747,6 +1796,20 @@ function handleAutocompleteSettingsUpdated(event) {
   if ("autocomplete.commit_key" in detail) {
     setAutocompleteCommitKey(detail["autocomplete.commit_key"]);
   }
+  if ("autocomplete.commit_mode" in detail) {
+    autocompleteCommitMode = normalizeAutocompleteCommitMode(
+      detail["autocomplete.commit_mode"],
+    );
+  }
+  if ("autocomplete.artist_prefix" in detail) {
+    const nextArtistPrefix = normalizeAutocompleteArtistPrefix(
+      detail["autocomplete.artist_prefix"],
+    );
+    if (nextArtistPrefix !== autocompleteArtistPrefix) {
+      autocompleteArtistPrefix = nextArtistPrefix;
+      dataRequestsInvalidated = true;
+    }
+  }
   if ("autocomplete.append_separator" in detail) {
     setAutocompleteAppendSeparator(detail["autocomplete.append_separator"]);
   }
@@ -1762,6 +1825,11 @@ function handleAutocompleteSettingsUpdated(event) {
   }
   if ("autocomplete.preview_closing_brackets" in detail) {
     setAutocompletePreviewClosingBrackets(detail["autocomplete.preview_closing_brackets"]);
+  }
+  if ("prompt_studio.selection_parenthesis_weight" in detail) {
+    setPromptStudioSelectionParenthesisWeight(
+      detail["prompt_studio.selection_parenthesis_weight"],
+    );
   }
   if ("autocomplete.preview_completion" in detail) {
     const previousPreviewCompletion = autocompletePreviewCompletion;

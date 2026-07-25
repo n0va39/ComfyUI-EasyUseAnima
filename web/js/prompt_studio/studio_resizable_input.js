@@ -15,6 +15,9 @@ import {
   studioDefaultHeight,
 } from "./studio_textareas.js";
 import {
+  createTextareaGrowStabilizer,
+} from "./textarea_stabilization.js";
+import {
   findInputEl,
 } from "./widgets.js";
 
@@ -32,11 +35,12 @@ function enhanceResizableInput(node, widget, hooks = {}) {
   const {
     expandStudioInputToContent = () => {},
     growStudioManualHeightToContent = () => {},
+    resolveStudioInput = (_node, target) => findStudioInput(target),
     setStudioInputHeight = () => {},
     setStudioManualHeight = () => {},
     updateHighlight = () => {},
   } = hooks;
-  const input = findStudioInput(widget);
+  const input = resolveStudioInput(node, widget);
   if (!input) {
     return;
   }
@@ -73,6 +77,23 @@ function enhanceResizableInput(node, widget, hooks = {}) {
     const height = desiredTextareaHeight(input, 0, minimumHeight, { includeCurrent: false });
     setStudioInputHeight(node, widget, height, "immediate");
   };
+  const growHeightToCurrentContent = () => {
+    if (widget.__easyuseAnimaManualHeight) {
+      return growStudioManualHeightToContent(node, widget, "immediate") === true;
+    }
+    const currentHeight = studioCurrentHeight(widget, input);
+    const nextHeight = desiredTextareaHeight(input, currentHeight, minimumHeight);
+    if (nextHeight <= currentHeight + 1) {
+      requestOverlaySync(input);
+      return false;
+    }
+    setStudioInputHeight(node, widget, nextHeight, "immediate");
+    return true;
+  };
+  const heightStabilizer = createTextareaGrowStabilizer(
+    input,
+    growHeightToCurrentContent,
+  );
   const rememberResizeStart = () => {
     widget.__easyuseAnimaResizeStartHeight = studioCurrentHeight(widget, input);
   };
@@ -96,7 +117,10 @@ function enhanceResizableInput(node, widget, hooks = {}) {
   input.addEventListener("pointerdown", rememberResizeStart);
   input.addEventListener("mouseup", captureManualResize);
   input.addEventListener("pointerup", captureManualResize);
-  input.addEventListener("input", syncHeight);
+  input.addEventListener("input", () => {
+    syncHeight();
+    heightStabilizer.schedule();
+  });
   input.__easyuseAnimaStudioResizable = true;
 }
 

@@ -351,6 +351,102 @@ G-series minimums are:
 - G-06: align unit, integration, contract, and packaging tests with canonical
   feature ownership while retaining the repository's `unittest` runner.
 
+### G-01 implementation contract
+
+G-01 pins Ruff `0.15.22` as maintenance tooling and runs it through
+`tools/check_python_quality.ps1` from both project-check profiles. The initial
+production report covers `F`, `E4`, `E7`, `E9`, `I`, and safe `UP` rules for
+Python 3.10 while excluding test and maintenance-tool sources.
+
+Lint findings remain visible but non-blocking through Ruff's `--exit-zero`
+mode. A missing `uvx`, an invalid Ruff configuration, or another execution
+failure still fails the project check. The runner never applies `--fix` or
+formatting and disables Ruff's repository cache. This report-only step does
+not establish a new-violation ratchet, complete G-02 or later phases, or close
+Issue #188.
+
+### G-02a implementation contract
+
+G-02a pins Pyright `1.1.411` as npm-based maintenance tooling and applies
+`basic` checking to the complete canonical `easyuse_anima` package for Python
+3.10. The reviewed settings live in `pyrightconfig.json`; the baseline checker
+rejects any setting or value change so an ignore path or weaker mode cannot
+silently lower the diagnostic count. `reportMissingModuleSource` is disabled
+because availability of source alongside installed stubs is an environment
+property, while missing imports and all ordinary basic diagnostics remain
+visible.
+
+`tests/fixtures/pyright_baseline.json` records the current diagnostic debt by
+repository-relative path, rule, severity, and count. The official quick/full
+runner permits a diagnostic group to shrink, but fails when an existing group
+grows or a new path/rule/severity group appears. Pyright exit code 1 is accepted
+only as a successfully generated diagnostic report; fatal, configuration, and
+CLI failures remain blocking. Production files, broad ignore paths, and inline
+suppression comments are not changed to establish the baseline.
+
+The project runner uses cache-preferred resolution by default. Passing
+`-OfflineMaintenanceTools` to `tools/check_project.ps1` (or `-Offline` to the
+quality runner) disables network access for both pinned Ruff and Pyright after
+their packages have been cached. This provides the Phase G offline
+reproducibility check without adding either tool as a runtime dependency.
+
+### G-02b implementation contract
+
+G-02b keeps the complete canonical package in `basic` mode and promotes only
+reviewed pure/service paths through Pyright's `strict` allowlist. The first
+owned group is `profiles-contract` under Issue #188 and contains
+`easyuse_anima/profiles/contract.py` and
+`easyuse_anima/profiles/mutation.py`. Both paths were made independently
+strict-clean before the gate was enabled.
+
+The baseline fixture records each strict group ID, owner, and sorted canonical
+paths. The checker requires the flattened owned paths to exactly match
+`pyrightconfig.json`, rejects duplicate ownership, and forbids baseline
+diagnostic debt for a strict path. Removing a reviewed path, adding an unowned
+path, weakening the global mode, or introducing a strict-path diagnostic fails
+the official quick/full runner.
+
+This slice changes no production module, runtime dependency, adapter `Any`
+boundary, or public compatibility surface. New strict groups require their own
+reviewed owner and focused evidence. Import direction, public API, size, and
+test-ownership gates remain G-03 through G-06.
+
+### G-03a implementation contract
+
+G-03a adds a blocking import-boundary checker for six completed canonical
+prefixes: `common`, `image`, `infrastructure/comfy`, `lora`, `naia`, and
+`profiles`. Its checked-in ledger records exact group ids, owner issues,
+prefixes, and roles. The checker also owns the reviewed exact group set, so a
+missing, duplicated, reordered, empty, renamed, or reassigned ledger entry
+fails rather than reducing coverage. Every new Python file below an enrolled
+prefix is included automatically.
+
+The checker consumes the deterministic AST report from
+`tools/analyze_python_backend.py`; it does not import production modules. For
+enrolled sources it rejects repository-local targets outside
+`easyuse_anima`, references to `easyuse_anima/nodes/`,
+`easyuse_anima/api/routes/`, exact canonical `bootstrap.py` or
+`registration.py`, runtime cyclic SCC membership, compatibility fallback
+imports, and narrowly classified import-time route/registration or explicit
+mapping-mutation calls. External and optional dependencies without a local
+target remain valid. Infrastructure use by feature packages is not newly
+restricted in this slice because that direction does not yet have a separate
+reviewed contract.
+
+Cycle enforcement uses the analyzer's shipped Python inventory as its node
+scope. The checker completes that graph only when an absolute import exactly
+matches an inventoried local module, then delegates runtime-edge filtering and
+SCC calculation to the analyzer's existing helpers. This keeps
+`TYPE_CHECKING` exclusion identical to the report policy while preventing an
+absolute canonical edge from bypassing the cycle gate.
+
+`tools/check_python_quality.ps1` runs the checker once in the shared quality
+path used by both quick and full project profiles. Existing unenrolled debt in
+root loaders, Prompt, and node adapters remains visible in the analyzer report
+but does not block this first package gate. Enrolling another prefix requires a
+separate reviewed zero-violation checkpoint and an intentional update to both
+the ledger and checker-owned expected set.
+
 ## Overall Definition of Done
 
 The Python backend refactor is complete only when all of the following hold.

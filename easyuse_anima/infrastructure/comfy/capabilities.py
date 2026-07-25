@@ -60,6 +60,40 @@ def _comfy_scheduler_names() -> list[str]:
         ]
 
 
+def _impact_core_module():
+    module = sys.modules.get("impact.core")
+    if module is not None:
+        return module
+    try:
+        import impact.core as core  # type: ignore
+
+        return core
+    except Exception:
+        pass
+    try:
+        from modules.impact import core  # type: ignore
+
+        return core
+    except Exception:
+        pass
+    return None
+
+
+def _impact_scheduler_names() -> list[str]:
+    core = _impact_core_module()
+    if core is not None:
+        try:
+            return list(core.get_schedulers())
+        except Exception:
+            pass
+    try:
+        import comfy.samplers  # type: ignore
+
+        return list(comfy.samplers.KSampler.SCHEDULERS)
+    except Exception:
+        return ["normal", "karras", "exponential", "sgm_uniform", "simple", "ddim_uniform"]
+
+
 def _find_comfy_node_class(node_id: str, comfy_nodes=None):
     if comfy_nodes is not None:
         try:

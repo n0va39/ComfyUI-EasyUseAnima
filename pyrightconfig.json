@@ -1,0 +1,13 @@
+{
+  "include": [
+    "easyuse_anima"
+  ],
+  "pythonPlatform": "All",
+  "pythonVersion": "3.10",
+  "reportMissingModuleSource": "none",
+  "strict": [
+    "easyuse_anima/profiles/contract.py",
+    "easyuse_anima/profiles/mutation.py"
+  ],
+  "typeCheckingMode": "basic"
+}

@@ -17,6 +17,7 @@ from itertools import count
 from pathlib import Path
 from unittest.mock import patch
 
+from tests.api_test_support import replace_sys_modules
 
 ROOT = Path(__file__).resolve().parents[1]
 _LOAD_COUNTER = count()
@@ -25,16 +26,24 @@ _LOAD_COUNTER = count()
 class RouteRegistry:
     def __init__(self):
         self.handlers = {}
+        self.registrations = []
 
-    def get(self, path):
+    def _route(self, method, path):
         def register(handler):
+            key = (method, path)
+            if key in self.registrations:
+                raise AssertionError(f"duplicate route registration: {method} {path}")
+            self.registrations.append(key)
             self.handlers[path] = handler
             return handler
 
         return register
 
+    def get(self, path):
+        return self._route("GET", path)
+
     def post(self, path):
-        return self.get(path)
+        return self._route("POST", path)
 
 
 class FakeJsonResponse(dict):
@@ -88,13 +97,13 @@ class JsonRequest:
         return self.payload
 
 
-def load_api_routes():
+def load_api_routes(*, register=True, routes=None):
     package_name = f"easyuse_anima_api_contract_test_package_{next(_LOAD_COUNTER)}"
     package = types.ModuleType(package_name)
     package.__path__ = [str(ROOT)]
     sys.modules[package_name] = package
 
-    routes = RouteRegistry()
+    routes = RouteRegistry() if routes is None else routes
     fake_server = types.ModuleType("server")
     fake_server.PromptServer = type(
         "PromptServer",
@@ -115,8 +124,10 @@ def load_api_routes():
     )
     module = importlib.util.module_from_spec(spec)
     sys.modules[spec.name] = module
-    with patch.dict(sys.modules, {"server": fake_server, "aiohttp": fake_aiohttp}):
+    with replace_sys_modules({"server": fake_server, "aiohttp": fake_aiohttp}):
         spec.loader.exec_module(module)
+        if register:
+            module.register_routes()
     return module, routes
 
 
@@ -132,7 +143,37 @@ def response_strings(value):
         yield value
 
 
+def profile_directory_owner(api, directory_name):
+    if directory_name == "AIO_PROFILE_DIR":
+        return api._aio_profiles
+    if directory_name == "LORA_PROFILE_DIR":
+        return api._lora_profiles
+    raise AssertionError(f"Unknown profile directory: {directory_name}")
+
+
 class ApiRequestCorrelationTests(unittest.TestCase):
+    ROUTE_SEQUENCE = (
+        ("GET", "/easyuse_anima/settings"),
+        ("POST", "/easyuse_anima/set_setting"),
+        ("GET", "/easyuse_anima/long_text_settings"),
+        ("GET", "/easyuse_anima/wildcards"),
+        ("POST", "/easyuse_anima/long_text_settings/save"),
+        ("GET", "/easyuse_anima/autocomplete_status"),
+        ("GET", "/easyuse_anima/autocomplete"),
+        ("POST", "/easyuse_anima/classify_prompt"),
+        ("POST", "/easyuse_anima/translate_prompt"),
+        ("GET", "/easyuse_anima/lora_preview"),
+        ("GET", "/easyuse_anima/loras"),
+        ("GET", "/easyuse_anima/lora_profiles"),
+        ("POST", "/easyuse_anima/lora_profiles/save"),
+        ("GET", "/easyuse_anima/lora_profiles/load"),
+        ("GET", "/easyuse_anima/aio_profiles"),
+        ("POST", "/easyuse_anima/aio_profiles/save"),
+        ("GET", "/easyuse_anima/aio_profiles/load"),
+        ("POST", "/easyuse_anima/aio_profiles/delete"),
+        ("POST", "/easyuse_anima/aio_profiles/rename"),
+        ("POST", "/easyuse_anima/lora_profiles/fix"),
+    )
     ROUTES = {
         "/easyuse_anima/settings",
         "/easyuse_anima/set_setting",
@@ -157,23 +198,54 @@ class ApiRequestCorrelationTests(unittest.TestCase):
     }
 
     def test_every_owned_route_has_source_and_registration_correlation(self):
-        source = (ROOT / "api.py").read_text(encoding="utf-8")
-        decorated_paths = set(
-            re.findall(
-                r'@routes\.(?:get|post)\("(/easyuse_anima/[^"\n]+)"\)\s+'
-                r"@_request_correlated",
-                source,
-            )
-        )
-        self.assertEqual(decorated_paths, self.ROUTES)
-
-        _api, routes = load_api_routes()
+        api, routes = load_api_routes()
+        self.assertEqual(api._ROUTE_SIGNATURE, self.ROUTE_SEQUENCE)
+        self.assertEqual(tuple(routes.registrations), self.ROUTE_SEQUENCE)
         self.assertEqual(set(routes.handlers), self.ROUTES)
         for path, handler in routes.handlers.items():
             with self.subTest(path=path):
                 self.assertTrue(
                     getattr(handler, "_easyuse_anima_request_correlation", False)
                 )
+
+    def test_import_is_registration_free_and_same_table_registration_is_idempotent(self):
+        api, routes = load_api_routes(register=False)
+
+        self.assertEqual(routes.registrations, [])
+        self.assertTrue(api.register_routes())
+        self.assertEqual(tuple(routes.registrations), self.ROUTE_SEQUENCE)
+        self.assertTrue(api.register_routes())
+        self.assertEqual(tuple(routes.registrations), self.ROUTE_SEQUENCE)
+
+    def test_each_new_route_table_receives_the_exact_route_set(self):
+        api, first_routes = load_api_routes()
+        second_routes = RouteRegistry()
+
+        self.assertTrue(api.register_routes(second_routes))
+        self.assertEqual(tuple(first_routes.registrations), self.ROUTE_SEQUENCE)
+        self.assertEqual(tuple(second_routes.registrations), self.ROUTE_SEQUENCE)
+
+    def test_new_package_namespace_reuses_the_route_table_signature_marker(self):
+        first_api, routes = load_api_routes()
+        first_handlers = dict(routes.handlers)
+
+        second_api, same_routes = load_api_routes(routes=routes)
+
+        self.assertIs(same_routes, routes)
+        self.assertIsNot(first_api, second_api)
+        self.assertEqual(tuple(routes.registrations), self.ROUTE_SEQUENCE)
+        self.assertEqual(routes.handlers, first_handlers)
+
+    def test_unavailable_route_table_can_be_registered_on_a_later_attempt(self):
+        api, routes = load_api_routes(register=False)
+        later_routes = RouteRegistry()
+
+        with patch.object(api, "_get_prompt_routes", return_value=None):
+            self.assertFalse(api.register_routes())
+            self.assertIsNone(api.routes)
+        self.assertTrue(api.register_routes(later_routes))
+        self.assertEqual(tuple(routes.registrations), ())
+        self.assertEqual(tuple(later_routes.registrations), self.ROUTE_SEQUENCE)
 
     def test_json_error_body_and_header_share_one_uuid(self):
         api, routes = load_api_routes()
@@ -528,7 +600,11 @@ class ApiRequestContractTests(unittest.TestCase):
             for route, directory_name in cases:
                 with self.subTest(route=route):
                     (root / "Broken.json").write_text("{", encoding="utf-8")
-                    with patch.object(api, directory_name, root):
+                    with patch.object(
+                        profile_directory_owner(api, directory_name),
+                        directory_name,
+                        root,
+                    ):
                         response = asyncio.run(
                             routes.handlers[route](JsonRequest(query={"name": "Broken"}))
                         )
@@ -565,7 +641,11 @@ class ApiRequestContractTests(unittest.TestCase):
             for route, directory_name, content in cases:
                 with self.subTest(route=route, content=content):
                     (root / "Invalid.json").write_text(content, encoding="utf-8")
-                    with patch.object(api, directory_name, root):
+                    with patch.object(
+                        profile_directory_owner(api, directory_name),
+                        directory_name,
+                        root,
+                    ):
                         response = asyncio.run(
                             routes.handlers[route](JsonRequest(query={"name": "Invalid"}))
                         )
@@ -625,7 +705,11 @@ class ApiRequestContractTests(unittest.TestCase):
                         encoding="utf-8",
                     )
                     with (
-                        patch.object(api, directory_name, root),
+                        patch.object(
+                            profile_directory_owner(api, directory_name),
+                            directory_name,
+                            root,
+                        ),
                         patch.object(api, "create_request_id", return_value=request_id),
                     ):
                         response = asyncio.run(
@@ -651,7 +735,11 @@ class ApiRequestContractTests(unittest.TestCase):
             for route, directory_name in cases:
                 with self.subTest(route=route):
                     (root / "BrokenUtf8.json").write_bytes(secret_bytes)
-                    with patch.object(api, directory_name, root):
+                    with patch.object(
+                        profile_directory_owner(api, directory_name),
+                        directory_name,
+                        root,
+                    ):
                         response = asyncio.run(
                             routes.handlers[route](
                                 JsonRequest(query={"name": "BrokenUtf8"})
@@ -693,7 +781,7 @@ class ApiRequestContractTests(unittest.TestCase):
                 target = root / "Target.json"
                 source.write_bytes(source_bytes)
 
-                with patch.object(api, "AIO_PROFILE_DIR", root):
+                with patch.object(api._aio_profiles, "AIO_PROFILE_DIR", root):
                     response = asyncio.run(
                         handler(
                             JsonRequest(
@@ -734,7 +822,7 @@ class ApiRequestContractTests(unittest.TestCase):
             root = Path(tmp)
             (root / "Empty.json").write_text("", encoding="utf-8")
 
-            with patch.object(api, "LORA_PROFILE_DIR", root):
+            with patch.object(api._lora_profiles, "LORA_PROFILE_DIR", root):
                 lora_response = asyncio.run(
                     routes.handlers["/easyuse_anima/lora_profiles/load"](
                         JsonRequest(query={"name": "Empty"})
@@ -744,7 +832,7 @@ class ApiRequestContractTests(unittest.TestCase):
             self.assertEqual(lora_response["payload"]["profile"]["profile_data"], {})
             self.assertEqual(lora_response["payload"]["profile"]["profile_count"], 1)
 
-            with patch.object(api, "AIO_PROFILE_DIR", root):
+            with patch.object(api._aio_profiles, "AIO_PROFILE_DIR", root):
                 aio_response = asyncio.run(
                     routes.handlers["/easyuse_anima/aio_profiles/load"](
                         JsonRequest(query={"name": "Empty"})
@@ -766,7 +854,7 @@ class ApiRequestContractTests(unittest.TestCase):
                 json.dumps(stored),
                 encoding="utf-8",
             )
-            with patch.object(api, "LORA_PROFILE_DIR", root):
+            with patch.object(api._lora_profiles, "LORA_PROFILE_DIR", root):
                 response = asyncio.run(
                     routes.handlers["/easyuse_anima/lora_profiles/load"](
                         JsonRequest(query={"name": "Legacy"})

@@ -579,17 +579,23 @@ class AutocompleteFrontendBoundaryTests(unittest.TestCase):
         module_source = AUTOCOMPLETE_TEXT_MODEL.read_text(encoding="utf-8")
         entry_source = AUTOCOMPLETE_ENTRY.read_text(encoding="utf-8")
         expected_exports = {
+            "artistCompletionText",
             "autocompleteQuery",
+            "completionEditRangeContract",
             "currentToken",
             "currentWildcardToken",
             "isCaretInComment",
             "isCaretInPromptTranslationMarker",
+            "normalizeAutocompleteArtistPrefix",
+            "normalizeAutocompleteCommitMode",
             "normalizeWildcardSearchText",
             "parseAutocompleteText",
             "planAutocompleteInsertion",
+            "planBracketInsertion",
             "wildcardAutocompleteQuery",
         }
         expected_imports = {
+            "artistCompletionText",
             "autocompleteQuery",
             "currentToken as currentAutocompleteToken",
             "currentWildcardToken as currentAutocompleteWildcardToken",
@@ -598,9 +604,12 @@ class AutocompleteFrontendBoundaryTests(unittest.TestCase):
                 "isCaretInPromptTranslationMarker "
                 "as caretInPromptTranslationMarker"
             ),
+            "normalizeAutocompleteArtistPrefix",
+            "normalizeAutocompleteCommitMode",
             "normalizeWildcardSearchText",
             "parseAutocompleteText",
             "planAutocompleteInsertion",
+            "planBracketInsertion",
             "wildcardAutocompleteQuery",
         }
 
@@ -646,8 +655,11 @@ class AutocompleteFrontendBoundaryTests(unittest.TestCase):
     def test_entry_delegates_text_rules_without_duplicate_ownership(self):
         source = AUTOCOMPLETE_ENTRY.read_text(encoding="utf-8")
         moved_declarations = {
+            "artistCompletionText",
             "autocompleteQuery",
             "isCaretInComment",
+            "normalizeAutocompleteArtistPrefix",
+            "normalizeAutocompleteCommitMode",
             "normalizeWildcardSearchText",
             "parseAutocompleteText",
             "planAutocompleteInsertion",
@@ -721,6 +733,10 @@ class AutocompleteFrontendBoundaryTests(unittest.TestCase):
             self.assertIn("planAutocompleteInsertion(", plan_consumer)
             self.assertIn(
                 "appendSeparator: autocompleteAppendSeparator",
+                plan_consumer,
+            )
+            self.assertIn(
+                "commitMode: autocompleteCommitMode",
                 plan_consumer,
             )
             self.assertIn(

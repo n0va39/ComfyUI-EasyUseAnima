@@ -5,12 +5,10 @@ import asyncio
 import json
 import logging
 import os
-import re
 import threading
 import weakref
 from concurrent.futures import Future, ThreadPoolExecutor
 from functools import wraps
-from pathlib import Path
 
 try:
     import server
@@ -19,28 +17,35 @@ except ImportError:
     server = None
     web = None
 
-from .settings import (
+from .easyuse_anima.settings.repository import (
     load_long_text_settings,
+    save_long_text_settings,
+    save_setting,
+)
+from .easyuse_anima.settings.service import (
     public_settings,
     resolve_autocomplete_limit,
     resolve_autocomplete_source,
     resolve_prompt_translation_settings,
-    save_setting,
-    save_long_text_settings,
 )
-from .autocomplete_dataset import (
+from .easyuse_anima.autocomplete.dataset import (
     autocomplete_status,
     available_autocomplete_sources,
-    classify_prompt_text,
     resolve_autocomplete_source as resolve_autocomplete_source_path,
+)
+from .easyuse_anima.autocomplete.search import (
     search_autocomplete,
 )
-from .wildcard_engine import list_wildcards, resolve_wildcard_roots
-from .prompt_translation import (
+from .easyuse_anima.wildcard.sources import resolve_wildcard_roots
+from .autocomplete_dataset import classify_prompt_text
+from .wildcard_engine import list_wildcards
+from .easyuse_anima.translation.contracts import (
     PromptTranslationError,
     TranslationBusyError,
     TranslationCancelledError,
     TranslationTimeoutError,
+)
+from .easyuse_anima.translation.service import (
     translate_prompt_markers,
 )
 from .api_contract import (
@@ -56,92 +61,91 @@ from .api_contract import (
     json_uuid_string,
     parse_json_object,
 )
-try:
-    from .easyuse_anima.profiles.contract import (
-        PROFILE_KIND_AIO,
-        PROFILE_KIND_LORA,
-        ProfileContractError,
-        build_profile_document,
-        create_profile_document,
-        interpret_profile_document,
-        legacy_profile_id,
-        normalize_profile_filename_identity,
-        rename_profile_document,
-        update_profile_document,
-    )
-    from .easyuse_anima.profiles.mutation import (
-        PROFILE_MUTATION_COORDINATOR,
-        ProfileMutationError,
-        ProfileRevisionConflictError,
-        require_profile_precondition,
-        verify_profile_precondition,
-    )
-except ImportError:
-    from easyuse_anima.profiles.contract import (
-        PROFILE_KIND_AIO,
-        PROFILE_KIND_LORA,
-        ProfileContractError,
-        build_profile_document,
-        create_profile_document,
-        interpret_profile_document,
-        legacy_profile_id,
-        normalize_profile_filename_identity,
-        rename_profile_document,
-        update_profile_document,
-    )
-    from easyuse_anima.profiles.mutation import (
-        PROFILE_MUTATION_COORDINATOR,
-        ProfileMutationError,
-        ProfileRevisionConflictError,
-        require_profile_precondition,
-        verify_profile_precondition,
-    )
-try:
-    from .storage import AtomicJsonStore, USER_DATA_DIR
-except ImportError:
-    from storage import AtomicJsonStore, USER_DATA_DIR
+from .easyuse_anima.profiles import aio as _aio_profiles
+from .easyuse_anima.profiles import contract as _profile_contract
+from .easyuse_anima.profiles import lora as _lora_profiles
+from .easyuse_anima.profiles import mutation as _profile_mutation
+from .easyuse_anima.profiles import repository as _profile_repository
+
+PROFILE_KIND_AIO = _profile_contract.PROFILE_KIND_AIO
+PROFILE_KIND_LORA = _profile_contract.PROFILE_KIND_LORA
+ProfileContractError = _profile_contract.ProfileContractError
+build_profile_document = _profile_contract.build_profile_document
+create_profile_document = _profile_contract.create_profile_document
+interpret_profile_document = _profile_contract.interpret_profile_document
+legacy_profile_id = _profile_contract.legacy_profile_id
+normalize_profile_filename_identity = (
+    _profile_contract.normalize_profile_filename_identity
+)
+rename_profile_document = _profile_contract.rename_profile_document
+update_profile_document = _profile_contract.update_profile_document
+
+PROFILE_MUTATION_COORDINATOR = _profile_mutation.PROFILE_MUTATION_COORDINATOR
+ProfileMutationError = _profile_mutation.ProfileMutationError
+ProfileRevisionConflictError = _profile_mutation.ProfileRevisionConflictError
+require_profile_precondition = _profile_mutation.require_profile_precondition
+verify_profile_precondition = _profile_mutation.verify_profile_precondition
+
+INVALID_PROFILE_NAME_CHARS = _profile_repository.INVALID_PROFILE_NAME_CHARS
+WINDOWS_RESERVED_FILE_BASENAMES = (
+    _profile_repository.WINDOWS_RESERVED_FILE_BASENAMES
+)
+InvalidProfileDataError = _profile_repository.InvalidProfileDataError
+_windows_profile_filename_identity = (
+    _profile_repository._windows_profile_filename_identity
+)
+_sanitize_profile_name = _profile_repository._sanitize_profile_name
+_read_profile_json = _profile_repository._read_profile_json
+_profile_list_item = _profile_repository._profile_list_item
+
+LORA_PROFILE_DIR = _lora_profiles.LORA_PROFILE_DIR
+MAX_LORA_PROFILES = _lora_profiles.MAX_LORA_PROFILES
+_sanitize_lora_profile_name = _lora_profiles._sanitize_lora_profile_name
+_lora_profile_path = _lora_profiles._lora_profile_path
+_find_lora_profile_path = _lora_profiles._find_lora_profile_path
+_as_lora_profile_count = _lora_profiles._as_lora_profile_count
+_as_lora_profile_index = _lora_profiles._as_lora_profile_index
+_normalize_lora_profile_data = _lora_profiles._normalize_lora_profile_data
+_normalize_lora_profile_payload = _lora_profiles._normalize_lora_profile_payload
+_list_lora_profiles = _lora_profiles._list_lora_profiles
+_clear_folder_paths_cache = _lora_profiles._clear_folder_paths_cache
+_list_loras = _lora_profiles._list_loras
+_lora_full_path = _lora_profiles._lora_full_path
+_dedupe_text_values = _lora_profiles._dedupe_text_values
+_lora_file_key = _lora_profiles._lora_file_key
+_put_unique = _lora_profiles._put_unique
+_lora_path_exists = _lora_profiles._lora_path_exists
+_build_lora_fix_index = _lora_profiles._build_lora_fix_index
+_resolve_lora_for_fix = _lora_profiles._resolve_lora_for_fix
+_apply_lora_fix = _lora_profiles._apply_lora_fix
+_fix_lora_profile_payload = _lora_profiles._fix_lora_profile_payload
+_save_lora_profile = _lora_profiles._save_lora_profile
+_load_lora_profile = _lora_profiles._load_lora_profile
+
+AIO_PROFILE_DIR = _aio_profiles.AIO_PROFILE_DIR
+MAX_AIO_PROFILES = _aio_profiles.MAX_AIO_PROFILES
+MAX_AIO_PROFILE_BYTES = _aio_profiles.MAX_AIO_PROFILE_BYTES
+AIO_RESERVED_PROFILE_NAMES = _aio_profiles.AIO_RESERVED_PROFILE_NAMES
+_sanitize_aio_profile_name = _aio_profiles._sanitize_aio_profile_name
+_aio_profile_path = _aio_profiles._aio_profile_path
+_find_aio_profile_path = _aio_profiles._find_aio_profile_path
+_normalize_aio_profile_payload = _aio_profiles._normalize_aio_profile_payload
+_list_aio_profiles = _aio_profiles._list_aio_profiles
+_validate_aio_profile_size = _aio_profiles._validate_aio_profile_size
+_save_aio_profile = _aio_profiles._save_aio_profile
+_normalize_stored_aio_profile_payload = (
+    _aio_profiles._normalize_stored_aio_profile_payload
+)
+_load_aio_profile = _aio_profiles._load_aio_profile
+_delete_aio_profile = _aio_profiles._delete_aio_profile
+_rename_aio_profile = _aio_profiles._rename_aio_profile
+_rename_aio_profile_payload = _aio_profiles._rename_aio_profile_payload
 
 
 LORA_PREVIEW_EXTENSIONS = (".webp", ".png", ".jpg", ".jpeg")
-LORA_PROFILE_DIR = USER_DATA_DIR / "profiles"
-MAX_LORA_PROFILES = 16
-INVALID_PROFILE_NAME_CHARS = re.compile(r'[<>:"/\\|?*\x00-\x1f]+')
-AIO_PROFILE_DIR = USER_DATA_DIR / "aio_profiles"
-MAX_AIO_PROFILES = 64
-MAX_AIO_PROFILE_BYTES = 1024 * 1024
-AIO_RESERVED_PROFILE_NAMES = {
-    "normal",
-    "turbo",
-    "optimized",
-    "custom",
-    "일반",
-    "터보",
-    "최적화",
-    "커스텀",
-    "通常",
-    "最適化",
-    "カスタム",
-    "普通",
-    "优化",
-    "自定义",
-}
-WINDOWS_RESERVED_FILE_BASENAMES = {
-    "con",
-    "prn",
-    "aux",
-    "nul",
-    *(f"com{index}" for index in range(1, 10)),
-    *(f"lpt{index}" for index in range(1, 10)),
-    *(f"com{index}" for index in ("¹", "²", "³")),
-    *(f"lpt{index}" for index in ("¹", "²", "³")),
-}
 PROMPT_TRANSLATION_ROUTE_TIMEOUT_SECONDS = 15.0
 FILE_IO_MAX_IN_FLIGHT = 4
 _LOGGER = logging.getLogger(__name__)
-
-
-class InvalidProfileDataError(ValueError):
-    pass
 
 
 _FILE_IO_LIMITERS_LOCK = threading.Lock()
@@ -314,691 +318,6 @@ async def _run_file_io(function, /, *args, **kwargs):
         )
     )
     return await asyncio.shield(worker)
-
-
-def _windows_profile_filename_identity(name: str) -> str:
-    return normalize_profile_filename_identity(name)
-
-
-def _sanitize_profile_name(name: str) -> str:
-    safe_name = INVALID_PROFILE_NAME_CHARS.sub("_", str(name or "")).strip(" ._")
-    if not safe_name:
-        raise ValueError("Profile name is required")
-    safe_name = safe_name[:80].rstrip(" .")
-    if not safe_name:
-        raise ValueError("Profile name is required")
-    windows_basename = safe_name.split(".", 1)[0].casefold()
-    if windows_basename in WINDOWS_RESERVED_FILE_BASENAMES:
-        raise ValueError("Profile name is reserved on Windows")
-    return safe_name
-
-
-def _sanitize_lora_profile_name(name: str) -> str:
-    return _sanitize_profile_name(name)
-
-
-def _lora_profile_path(name: str, profile_dir: Path | None = None) -> Path:
-    safe_name = _sanitize_lora_profile_name(name)
-    root = (profile_dir or LORA_PROFILE_DIR).resolve()
-    path = (root / f"{safe_name}.json").resolve()
-    if os.path.commonpath((str(root), str(path))) != str(root):
-        raise ValueError("Invalid profile path")
-    return path
-
-
-def _find_lora_profile_path(name: str, profile_dir: Path | None = None) -> Path | None:
-    safe_name = _sanitize_lora_profile_name(name)
-    root = profile_dir or LORA_PROFILE_DIR
-    if not root.is_dir():
-        return None
-    expected = _windows_profile_filename_identity(safe_name)
-    return next(
-        (
-            path
-            for path in sorted(root.glob("*.json"), key=lambda item: (item.name.casefold(), item.name))
-            if _windows_profile_filename_identity(path.stem) == expected
-        ),
-        None,
-    )
-
-
-def _as_lora_profile_count(value) -> int:
-    try:
-        count = int(value)
-    except (TypeError, ValueError):
-        count = 1
-    return max(1, min(MAX_LORA_PROFILES, count))
-
-
-def _as_lora_profile_index(value, count: int) -> int:
-    try:
-        index = int(value)
-    except (TypeError, ValueError):
-        index = 1
-    index = max(1, index)
-    return ((index - 1) % count) + 1
-
-
-def _normalize_lora_profile_data(value) -> dict:
-    if isinstance(value, str):
-        try:
-            value = json.loads(value or "{}")
-        except (TypeError, ValueError):
-            value = {}
-    if not isinstance(value, dict):
-        return {}
-    normalized: dict[str, dict] = {}
-    for key, profile in value.items():
-        if not isinstance(profile, dict):
-            continue
-        style_prompt = str(profile.get("style_prompt") or "")
-        loras = profile.get("loras")
-        if not isinstance(loras, list):
-            loras = []
-        normalized[str(key)] = {
-            "style_prompt": style_prompt,
-            "loras": [item for item in loras if isinstance(item, dict)],
-        }
-    return normalized
-
-
-def _normalize_lora_profile_payload(data: dict) -> dict:
-    count = _as_lora_profile_count(data.get("profile_count", 1))
-    return {
-        "version": 1,
-        "profile_count": count,
-        "profile_index": _as_lora_profile_index(data.get("profile_index", 1), count),
-        "profile_data": _normalize_lora_profile_data(data.get("profile_data", {})),
-    }
-
-
-def _list_lora_profiles() -> list[dict]:
-    if not LORA_PROFILE_DIR.is_dir():
-        return []
-    profiles = []
-    for path in sorted(LORA_PROFILE_DIR.glob("*.json"), key=lambda item: item.stem.lower()):
-        if path.name == ".gitignore":
-            continue
-        profiles.append(_profile_list_item(PROFILE_KIND_LORA, path))
-    return profiles
-
-
-def _clear_folder_paths_cache(folder_paths, folder_name: str):
-    cache = getattr(folder_paths, "filename_list_cache", None)
-    if isinstance(cache, dict):
-        cache.pop(folder_name, None)
-    cache_helper = getattr(folder_paths, "cache_helper", None)
-    if cache_helper is not None and not getattr(cache_helper, "active", False):
-        clear = getattr(cache_helper, "clear", None)
-        if callable(clear):
-            clear()
-
-
-def _list_loras() -> list[str]:
-    try:
-        import folder_paths  # type: ignore
-    except Exception:
-        return []
-
-    _clear_folder_paths_cache(folder_paths, "loras")
-    try:
-        names = folder_paths.get_filename_list("loras")
-    except Exception:
-        names = []
-
-    loras = []
-    seen = set()
-    for name in names:
-        text = str(name or "").strip()
-        if not text or text == "None":
-            continue
-        key = text.replace("\\", "/").casefold()
-        if key in seen:
-            continue
-        seen.add(key)
-        loras.append(text)
-    return loras
-
-
-def _lora_full_path(name: str) -> str | None:
-    try:
-        import folder_paths  # type: ignore
-    except Exception:
-        return None
-
-    text = str(name or "").strip()
-    if not text or text == "None":
-        return None
-    candidates = _dedupe_text_values((
-        text,
-        text.replace("\\", "/"),
-        text.replace("/", os.sep),
-    ))
-    for candidate in candidates:
-        try:
-            path = folder_paths.get_full_path("loras", candidate)
-        except Exception:
-            path = None
-        if path:
-            return str(path)
-    return None
-
-
-def _dedupe_text_values(values) -> list[str]:
-    seen = set()
-    result = []
-    for value in values:
-        text = str(value or "").strip()
-        if not text:
-            continue
-        key = text.casefold()
-        if key in seen:
-            continue
-        seen.add(key)
-        result.append(text)
-    return result
-
-
-def _lora_file_key(value: str) -> str:
-    name = os.path.basename(str(value or "").replace("\\", "/").strip())
-    return name.casefold()
-
-
-def _put_unique(mapping: dict[str, str | None], key: str, value: str):
-    if not key:
-        return
-    if key not in mapping:
-        mapping[key] = value
-        return
-    current = mapping[key]
-    if current is None:
-        return
-    if current and current != value:
-        mapping[key] = None
-        return
-    mapping[key] = value
-
-
-def _lora_path_exists(name: str) -> bool:
-    path = _lora_full_path(name)
-    return bool(path and os.path.isfile(path))
-
-
-def _build_lora_fix_index(lora_names: list[str] | None = None) -> dict:
-    by_file: dict[str, str | None] = {}
-    names = list(lora_names) if lora_names is not None else _list_loras()
-
-    for name in names:
-        _put_unique(by_file, _lora_file_key(name), name)
-
-    return {
-        "by_file": by_file,
-        "names": names,
-    }
-
-
-def _resolve_lora_for_fix(entry: dict, index: dict) -> tuple[str, str]:
-    raw_name = str(entry.get("name", entry.get("lora", "")) or "").strip()
-    match = index["by_file"].get(_lora_file_key(raw_name))
-    return (match, "file") if match else ("", "")
-
-
-def _apply_lora_fix(next_lora: dict, profile_key: str, raw_name: str, match: str, reason: str, fixed: list):
-    changed = raw_name != match
-    next_lora["name"] = match
-    next_lora.pop("lora", None)
-    if changed:
-        fixed.append({
-            "profile": profile_key,
-            "from": raw_name,
-            "to": match,
-            "reason": reason,
-        })
-
-
-def _fix_lora_profile_payload(data: dict) -> dict:
-    payload = _normalize_lora_profile_payload(data if isinstance(data, dict) else {})
-    fixed = []
-    unresolved = []
-    missing_entries = []
-
-    for profile_key, profile in payload["profile_data"].items():
-        if not isinstance(profile, dict):
-            continue
-        next_loras = []
-        for lora in profile.get("loras") or []:
-            if not isinstance(lora, dict):
-                continue
-            next_lora = dict(lora)
-            raw_name = str(next_lora.get("name", next_lora.get("lora", "")) or "").strip()
-            if not raw_name:
-                continue
-            next_loras.append(next_lora)
-            if _lora_path_exists(raw_name):
-                if "name" not in next_lora and "lora" in next_lora:
-                    next_lora["name"] = raw_name
-                    next_lora.pop("lora", None)
-                continue
-            missing_entries.append((profile_key, next_lora, raw_name))
-        profile["loras"] = next_loras
-
-    if missing_entries:
-        lora_names = _list_loras()
-        index = _build_lora_fix_index(lora_names=lora_names)
-        for profile_key, next_lora, raw_name in missing_entries:
-            match, reason = _resolve_lora_for_fix(next_lora, index)
-            if match:
-                _apply_lora_fix(next_lora, profile_key, raw_name, match, reason, fixed)
-            else:
-                unresolved.append({"profile": profile_key, "name": raw_name})
-
-    payload["fixed"] = fixed
-    payload["unresolved"] = unresolved
-    payload["checked"] = sum(len(profile.get("loras") or []) for profile in payload["profile_data"].values() if isinstance(profile, dict))
-    payload["missing"] = len(missing_entries)
-    return payload
-
-
-def _read_profile_json(path: Path):
-    store = AtomicJsonStore(path)
-    with store.locked():
-        try:
-            return store.read()
-        except json.JSONDecodeError:
-            if path.read_text(encoding="utf-8") == "":
-                return {}
-            raise
-
-
-def _profile_list_item(profile_kind: str, path: Path) -> dict:
-    try:
-        data = _read_profile_json(path)
-        if not isinstance(data, dict):
-            raise ProfileContractError("Profile data is invalid")
-        interpreted = interpret_profile_document(profile_kind, path.stem, data)
-        profile_id = interpreted["profile_id"]
-        revision = interpreted["revision"]
-    except ProfileContractError as exc:
-        raise InvalidProfileDataError(str(exc)) from exc
-    except (
-        OSError,
-        UnicodeError,
-        json.JSONDecodeError,
-    ):
-        profile_id = legacy_profile_id(profile_kind, path.stem)
-        revision = 0
-    return {
-        "name": path.stem,
-        "modified": int(path.stat().st_mtime),
-        "profile_id": profile_id,
-        "revision": revision,
-    }
-
-
-def _save_lora_profile(
-    name: str,
-    data: dict,
-    *,
-    overwrite: bool = False,
-    profile_id: str | None = None,
-    revision: int | None = None,
-) -> dict:
-    safe_name = _sanitize_lora_profile_name(name)
-    payload = _normalize_lora_profile_payload(data)
-    requested_path = _lora_profile_path(safe_name)
-    if overwrite:
-        require_profile_precondition(profile_id, revision)
-    with PROFILE_MUTATION_COORDINATOR.locked(LORA_PROFILE_DIR):
-        existing = _find_lora_profile_path(safe_name)
-        if existing is not None and not overwrite:
-            raise FileExistsError("Profile already exists")
-        if existing is None and overwrite:
-            raise FileNotFoundError("Profile not found")
-        path = existing or requested_path
-        try:
-            if existing is None:
-                document = create_profile_document(
-                    PROFILE_KIND_LORA,
-                    path.stem,
-                    payload,
-                )
-            else:
-                current = _read_profile_json(path)
-                if not isinstance(current, dict):
-                    raise ProfileContractError("Profile data is invalid")
-                verify_profile_precondition(
-                    PROFILE_KIND_LORA,
-                    path.stem,
-                    current,
-                    profile_id=profile_id,
-                    revision=revision,
-                )
-                document = update_profile_document(
-                    PROFILE_KIND_LORA,
-                    path.stem,
-                    current,
-                    payload,
-                )
-        except ProfileContractError as exc:
-            raise InvalidProfileDataError(str(exc)) from exc
-        AtomicJsonStore(path).write(document)
-    return document
-
-
-def _load_lora_profile(name: str) -> dict:
-    path = _find_lora_profile_path(name)
-    if path is None or not path.is_file():
-        raise FileNotFoundError("Profile not found")
-    data = _read_profile_json(path)
-    if not isinstance(data, dict):
-        raise InvalidProfileDataError("Profile data is invalid")
-    profile_data = data.get("profile_data", {})
-    if isinstance(profile_data, str):
-        try:
-            decoded_profile_data = json.loads(profile_data or "{}")
-        except (TypeError, ValueError) as exc:
-            raise InvalidProfileDataError("Profile data is invalid") from exc
-        if not isinstance(decoded_profile_data, dict):
-            raise InvalidProfileDataError("Profile data is invalid")
-    elif not isinstance(profile_data, dict):
-        raise InvalidProfileDataError("Profile data is invalid")
-    payload = _normalize_lora_profile_payload(data)
-    try:
-        interpreted = interpret_profile_document(PROFILE_KIND_LORA, path.stem, data)
-        return build_profile_document(
-            name=path.stem,
-            profile_id=interpreted["profile_id"],
-            revision=interpreted["revision"],
-            payload=payload,
-        )
-    except ProfileContractError as exc:
-        raise InvalidProfileDataError(str(exc)) from exc
-
-
-def _sanitize_aio_profile_name(name: str) -> str:
-    safe_name = _sanitize_profile_name(name)
-    if safe_name.casefold() in {item.casefold() for item in AIO_RESERVED_PROFILE_NAMES}:
-        raise ValueError("System profile names are reserved")
-    return safe_name
-
-
-def _aio_profile_path(name: str, profile_dir: Path | None = None) -> Path:
-    safe_name = _sanitize_aio_profile_name(name)
-    root = (profile_dir or AIO_PROFILE_DIR).resolve()
-    path = (root / f"{safe_name}.json").resolve()
-    if os.path.commonpath((str(root), str(path))) != str(root):
-        raise ValueError("Invalid profile path")
-    return path
-
-
-def _find_aio_profile_path(name: str, profile_dir: Path | None = None) -> Path | None:
-    safe_name = _sanitize_aio_profile_name(name)
-    root = profile_dir or AIO_PROFILE_DIR
-    if not root.is_dir():
-        return None
-    expected = _windows_profile_filename_identity(safe_name)
-    return next(
-        (
-            path
-            for path in sorted(root.glob("*.json"), key=lambda item: (item.name.casefold(), item.name))
-            if _windows_profile_filename_identity(path.stem) == expected
-        ),
-        None,
-    )
-
-
-def _normalize_aio_profile_payload(name: str, data: dict) -> dict:
-    safe_name = _sanitize_aio_profile_name(name)
-    settings = data.get("settings") if isinstance(data, dict) else None
-    if not isinstance(settings, dict):
-        raise ValueError("Profile settings must be an object")
-    payload = {
-        "version": 1,
-        "name": safe_name,
-        "settings": settings,
-    }
-    encoded = json.dumps(payload, ensure_ascii=False, indent=2)
-    if len(encoded.encode("utf-8")) > MAX_AIO_PROFILE_BYTES:
-        raise ValueError("Profile settings are too large")
-    return payload
-
-
-def _list_aio_profiles(profile_dir: Path | None = None) -> list[dict]:
-    root = profile_dir or AIO_PROFILE_DIR
-    if not root.is_dir():
-        return []
-    return [
-        _profile_list_item(PROFILE_KIND_AIO, path)
-        for path in sorted(root.glob("*.json"), key=lambda item: item.stem.casefold())
-    ]
-
-
-def _validate_aio_profile_size(document: dict) -> None:
-    encoded = json.dumps(document, ensure_ascii=False, indent=2)
-    if len(encoded.encode("utf-8")) > MAX_AIO_PROFILE_BYTES:
-        raise ValueError("Profile settings are too large")
-
-
-def _save_aio_profile(
-    name: str,
-    data: dict,
-    *,
-    overwrite: bool = False,
-    profile_id: str | None = None,
-    revision: int | None = None,
-) -> dict:
-    payload = _normalize_aio_profile_payload(name, data)
-    requested_path = _aio_profile_path(payload["name"])
-    if overwrite:
-        require_profile_precondition(profile_id, revision)
-    with PROFILE_MUTATION_COORDINATOR.locked(AIO_PROFILE_DIR):
-        existing = _find_aio_profile_path(payload["name"])
-        if existing is not None and not overwrite:
-            raise FileExistsError("Profile already exists")
-        if existing is None and overwrite:
-            raise FileNotFoundError("Profile not found")
-        if existing is None and len(_list_aio_profiles()) >= MAX_AIO_PROFILES:
-            raise ValueError(f"A maximum of {MAX_AIO_PROFILES} profiles can be saved")
-        path = existing or requested_path
-        try:
-            if existing is None:
-                document = create_profile_document(
-                    PROFILE_KIND_AIO,
-                    path.stem,
-                    payload,
-                )
-            else:
-                current = _read_profile_json(path)
-                if not isinstance(current, dict):
-                    raise ProfileContractError("Profile data is invalid")
-                verify_profile_precondition(
-                    PROFILE_KIND_AIO,
-                    path.stem,
-                    current,
-                    profile_id=profile_id,
-                    revision=revision,
-                )
-                document = update_profile_document(
-                    PROFILE_KIND_AIO,
-                    path.stem,
-                    current,
-                    payload,
-                )
-        except ProfileContractError as exc:
-            raise InvalidProfileDataError(str(exc)) from exc
-        _validate_aio_profile_size(document)
-        AtomicJsonStore(path).write(document)
-    return document
-
-
-def _normalize_stored_aio_profile_payload(name: str, data) -> dict:
-    if not isinstance(data, dict):
-        raise InvalidProfileDataError("Profile data is invalid")
-    try:
-        payload = _normalize_aio_profile_payload(name, data)
-        interpreted = interpret_profile_document(PROFILE_KIND_AIO, name, data)
-        document = build_profile_document(
-            name=name,
-            profile_id=interpreted["profile_id"],
-            revision=interpreted["revision"],
-            payload=payload,
-        )
-        return document
-    except (ProfileContractError, ValueError) as exc:
-        raise InvalidProfileDataError(str(exc)) from exc
-
-
-def _load_aio_profile(name: str) -> dict:
-    path = _find_aio_profile_path(name)
-    if path is None or not path.is_file():
-        raise FileNotFoundError("Profile not found")
-    try:
-        data = _read_profile_json(path)
-    except (json.JSONDecodeError, UnicodeDecodeError) as exc:
-        raise InvalidProfileDataError("Profile data is invalid") from exc
-    return _normalize_stored_aio_profile_payload(path.stem, data)
-
-
-def _delete_aio_profile(
-    name: str,
-    *,
-    profile_id: str | None = None,
-    revision: int | None = None,
-) -> dict:
-    require_profile_precondition(profile_id, revision)
-    with PROFILE_MUTATION_COORDINATOR.locked(AIO_PROFILE_DIR):
-        path = _find_aio_profile_path(name)
-        if path is None or not path.is_file():
-            raise FileNotFoundError("Profile not found")
-        store = AtomicJsonStore(path)
-        try:
-            data = _read_profile_json(path)
-            if not isinstance(data, dict):
-                raise ProfileContractError("Profile data is invalid")
-            deleted_profile_id, deleted_revision = verify_profile_precondition(
-                PROFILE_KIND_AIO,
-                path.stem,
-                data,
-                profile_id=profile_id,
-                revision=revision,
-            )
-        except ProfileContractError as exc:
-            raise InvalidProfileDataError(str(exc)) from exc
-        try:
-            store.delete()
-        except FileNotFoundError as exc:
-            raise FileNotFoundError("Profile not found") from exc
-    return {
-        "name": path.stem,
-        "profile_id": deleted_profile_id,
-        "revision": deleted_revision,
-    }
-
-
-def _rename_aio_profile(
-    old_name: str,
-    new_name: str,
-    *,
-    overwrite: bool = False,
-    profile_id: str | None = None,
-    revision: int | None = None,
-    target_profile_id: str | None = None,
-    target_revision: int | None = None,
-) -> dict:
-    require_profile_precondition(profile_id, revision, profile="source")
-    with PROFILE_MUTATION_COORDINATOR.locked(AIO_PROFILE_DIR):
-        source = _find_aio_profile_path(old_name)
-        if source is None or not source.is_file():
-            raise FileNotFoundError("Profile not found")
-        safe_new_name = _sanitize_aio_profile_name(new_name)
-        try:
-            data = _read_profile_json(source)
-            if not isinstance(data, dict):
-                raise ProfileContractError("Profile data is invalid")
-            verify_profile_precondition(
-                PROFILE_KIND_AIO,
-                source.stem,
-                data,
-                profile_id=profile_id,
-                revision=revision,
-                profile="source",
-            )
-        except ProfileContractError as exc:
-            raise InvalidProfileDataError(str(exc)) from exc
-
-        if (
-            _windows_profile_filename_identity(source.stem)
-            == _windows_profile_filename_identity(safe_new_name)
-        ):
-            renamed = _rename_aio_profile_payload(
-                source.stem,
-                source.stem,
-                data,
-            )
-            if data != renamed:
-                AtomicJsonStore(source, backup=False).write(renamed)
-            return renamed
-
-        target = _find_aio_profile_path(safe_new_name)
-        if target is not None and not overwrite:
-            raise FileExistsError("Profile already exists")
-        if target is None and (
-            target_profile_id is not None or target_revision is not None
-        ):
-            raise ProfileRevisionConflictError(profile="target")
-        if target is not None:
-            require_profile_precondition(
-                target_profile_id,
-                target_revision,
-                id_field="target_profile_id",
-                revision_field="target_revision",
-                profile="target",
-            )
-            try:
-                target_data = _read_profile_json(target)
-                if not isinstance(target_data, dict):
-                    raise ProfileContractError("Profile data is invalid")
-                verify_profile_precondition(
-                    PROFILE_KIND_AIO,
-                    target.stem,
-                    target_data,
-                    profile_id=target_profile_id,
-                    revision=target_revision,
-                    id_field="target_profile_id",
-                    revision_field="target_revision",
-                    profile="target",
-                )
-            except ProfileContractError as exc:
-                raise InvalidProfileDataError(str(exc)) from exc
-
-        target_path = target or _aio_profile_path(safe_new_name)
-        renamed = AtomicJsonStore(target_path).replace_from(
-            AtomicJsonStore(source),
-            overwrite=overwrite,
-            backup_target=True,
-            transform=lambda current: _rename_aio_profile_payload(
-                source.stem,
-                target_path.stem,
-                current,
-            ),
-        )
-        return renamed
-
-
-def _rename_aio_profile_payload(source_name: str, target_name: str, data) -> dict:
-    normalized = _normalize_stored_aio_profile_payload(source_name, data)
-    try:
-        document = rename_profile_document(
-            PROFILE_KIND_AIO,
-            source_name,
-            target_name,
-            data,
-            normalized,
-        )
-    except ProfileContractError as exc:
-        raise InvalidProfileDataError(str(exc)) from exc
-    _validate_aio_profile_size(document)
-    return document
 
 
 def _resolve_lora_preview_path(lora_name: str):
@@ -1189,14 +508,12 @@ def _get_prompt_routes():
 routes = _get_prompt_routes()
 
 
-if web is not None and routes is not None:
+if web is not None:
 
-    @routes.get("/easyuse_anima/settings")
     @_request_correlated
     async def get_settings_handler(request):
         return web.json_response(await _run_file_io(_get_settings_payload_sync))
 
-    @routes.post("/easyuse_anima/set_setting")
     @_request_correlated
     async def set_setting_handler(request):
         try:
@@ -1214,19 +531,16 @@ if web is not None and routes is not None:
             return _error_response(422, "unknown_setting", "Unknown setting")
         return web.json_response(payload)
 
-    @routes.get("/easyuse_anima/long_text_settings")
     @_request_correlated
     async def get_long_text_settings_handler(request):
         return web.json_response(
             await _run_file_io(_get_long_text_settings_payload_sync)
         )
 
-    @routes.get("/easyuse_anima/wildcards")
     @_request_correlated
     async def get_wildcards_handler(request):
         return web.json_response(await _run_file_io(_wildcards_payload_sync))
 
-    @routes.post("/easyuse_anima/long_text_settings/save")
     @_request_correlated
     async def save_long_text_settings_handler(request):
         try:
@@ -1238,12 +552,10 @@ if web is not None and routes is not None:
             await _run_file_io(_save_long_text_settings_payload_sync, values)
         )
 
-    @routes.get("/easyuse_anima/autocomplete_status")
     @_request_correlated
     async def autocomplete_status_handler(request):
         return web.json_response(await _run_file_io(_autocomplete_status_payload_sync))
 
-    @routes.get("/easyuse_anima/autocomplete")
     @_request_correlated
     async def autocomplete_handler(request):
         query = request.query.get("q", "")
@@ -1261,7 +573,6 @@ if web is not None and routes is not None:
             )
         )
 
-    @routes.post("/easyuse_anima/classify_prompt")
     @_request_correlated
     async def classify_prompt_handler(request):
         try:
@@ -1280,7 +591,6 @@ if web is not None and routes is not None:
             await _run_file_io(_classify_prompt_payload_sync, text, limit)
         )
 
-    @routes.post("/easyuse_anima/translate_prompt")
     @_request_correlated
     async def translate_prompt_handler(request):
         try:
@@ -1294,7 +604,6 @@ if web is not None and routes is not None:
             return _prompt_translation_error_response(exc)
         return web.json_response({"status": "ok", "text": translated})
 
-    @routes.get("/easyuse_anima/lora_preview")
     @_request_correlated
     async def lora_preview_handler(request):
         preview_path = await _run_file_io(
@@ -1308,12 +617,10 @@ if web is not None and routes is not None:
             headers={"Content-Disposition": f'filename="{os.path.basename(preview_path)}"'},
         )
 
-    @routes.get("/easyuse_anima/loras")
     @_request_correlated
     async def loras_handler(request):
         return web.json_response({"loras": await _run_file_io(_list_loras)})
 
-    @routes.get("/easyuse_anima/lora_profiles")
     @_request_correlated
     async def lora_profiles_handler(request):
         try:
@@ -1322,7 +629,6 @@ if web is not None and routes is not None:
             return _profile_error_response(exc)
         return web.json_response({"profiles": payload})
 
-    @routes.post("/easyuse_anima/lora_profiles/save")
     @_request_correlated
     async def save_lora_profile_handler(request):
         try:
@@ -1357,7 +663,6 @@ if web is not None and routes is not None:
             return _profile_error_response(exc)
         return web.json_response({"status": "ok", "profile": payload})
 
-    @routes.get("/easyuse_anima/lora_profiles/load")
     @_request_correlated
     async def load_lora_profile_handler(request):
         try:
@@ -1374,7 +679,6 @@ if web is not None and routes is not None:
             return _profile_error_response(exc)
         return web.json_response({"status": "ok", "profile": payload})
 
-    @routes.get("/easyuse_anima/aio_profiles")
     @_request_correlated
     async def aio_profiles_handler(request):
         try:
@@ -1383,7 +687,6 @@ if web is not None and routes is not None:
             return _profile_error_response(exc)
         return web.json_response({"status": "ok", "profiles": payload})
 
-    @routes.post("/easyuse_anima/aio_profiles/save")
     @_request_correlated
     async def save_aio_profile_handler(request):
         try:
@@ -1417,7 +720,6 @@ if web is not None and routes is not None:
             return _profile_error_response(exc)
         return web.json_response({"status": "ok", "profile": payload})
 
-    @routes.get("/easyuse_anima/aio_profiles/load")
     @_request_correlated
     async def load_aio_profile_handler(request):
         try:
@@ -1429,7 +731,6 @@ if web is not None and routes is not None:
             return _profile_error_response(exc)
         return web.json_response({"status": "ok", "profile": payload})
 
-    @routes.post("/easyuse_anima/aio_profiles/delete")
     @_request_correlated
     async def delete_aio_profile_handler(request):
         try:
@@ -1459,7 +760,6 @@ if web is not None and routes is not None:
             return _profile_error_response(exc)
         return web.json_response({"status": "ok", "profile": payload})
 
-    @routes.post("/easyuse_anima/aio_profiles/rename")
     @_request_correlated
     async def rename_aio_profile_handler(request):
         try:
@@ -1506,7 +806,6 @@ if web is not None and routes is not None:
             return _profile_error_response(exc)
         return web.json_response({"status": "ok", "profile": payload})
 
-    @routes.post("/easyuse_anima/lora_profiles/fix")
     @_request_correlated
     async def fix_lora_profile_handler(request):
         try:
@@ -1517,3 +816,60 @@ if web is not None and routes is not None:
             return _contract_error_response(exc)
         payload = await _run_file_io(_fix_lora_profile_payload, data)
         return web.json_response({"status": "ok", "profile": payload})
+
+    _ROUTE_DEFINITIONS = (
+        ("get", "/easyuse_anima/settings", get_settings_handler),
+        ("post", "/easyuse_anima/set_setting", set_setting_handler),
+        ("get", "/easyuse_anima/long_text_settings", get_long_text_settings_handler),
+        ("get", "/easyuse_anima/wildcards", get_wildcards_handler),
+        (
+            "post",
+            "/easyuse_anima/long_text_settings/save",
+            save_long_text_settings_handler,
+        ),
+        ("get", "/easyuse_anima/autocomplete_status", autocomplete_status_handler),
+        ("get", "/easyuse_anima/autocomplete", autocomplete_handler),
+        ("post", "/easyuse_anima/classify_prompt", classify_prompt_handler),
+        ("post", "/easyuse_anima/translate_prompt", translate_prompt_handler),
+        ("get", "/easyuse_anima/lora_preview", lora_preview_handler),
+        ("get", "/easyuse_anima/loras", loras_handler),
+        ("get", "/easyuse_anima/lora_profiles", lora_profiles_handler),
+        ("post", "/easyuse_anima/lora_profiles/save", save_lora_profile_handler),
+        ("get", "/easyuse_anima/lora_profiles/load", load_lora_profile_handler),
+        ("get", "/easyuse_anima/aio_profiles", aio_profiles_handler),
+        ("post", "/easyuse_anima/aio_profiles/save", save_aio_profile_handler),
+        ("get", "/easyuse_anima/aio_profiles/load", load_aio_profile_handler),
+        ("post", "/easyuse_anima/aio_profiles/delete", delete_aio_profile_handler),
+        ("post", "/easyuse_anima/aio_profiles/rename", rename_aio_profile_handler),
+        ("post", "/easyuse_anima/lora_profiles/fix", fix_lora_profile_handler),
+    )
+else:
+    _ROUTE_DEFINITIONS = ()
+
+
+_ROUTE_REGISTRATION_MARKER = "_easyuse_anima_registered_routes_v1"
+_ROUTE_SIGNATURE = tuple(
+    (method.upper(), path)
+    for method, path, _handler in _ROUTE_DEFINITIONS
+)
+
+
+def register_routes(route_table=None) -> bool:
+    """Register the current route set once for each ComfyUI route table."""
+
+    global routes
+    target = _get_prompt_routes() if route_table is None else route_table
+    routes = target
+    if web is None or target is None:
+        return False
+
+    existing_signature = getattr(target, _ROUTE_REGISTRATION_MARKER, None)
+    if existing_signature == _ROUTE_SIGNATURE:
+        return True
+    if existing_signature is not None:
+        raise RuntimeError("EasyUse Anima route registration signature mismatch")
+
+    for method, path, handler in _ROUTE_DEFINITIONS:
+        getattr(target, method)(path)(handler)
+    setattr(target, _ROUTE_REGISTRATION_MARKER, _ROUTE_SIGNATURE)
+    return True

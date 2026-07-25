@@ -73,15 +73,18 @@ def load_dynamic():
     def test_current_nodes_module_shape_matches_recorded_baseline(self):
         report = analyzer.analyze_path(ROOT / "nodes.py")
 
-        self.assertEqual(report["git_blob_sha1"], "c6a41def5246e8889bb6846c002c5a1fee755009")
-        # Issue #184 B-07d moved the Regional Prompt Studio vertical slice while
-        # preserving the current Prompt Studio wildcard seed-control contract.
-        self.assertEqual(report["top_level"]["function_count"], 132)
-        self.assertEqual(report["top_level"]["class_count"], 10)
-        self.assertEqual(report["line_count"], 7_419)
+        self.assertEqual(report["git_blob_sha1"], "4988a0b269433da98367bd2410088dc8441749f5")
+        # B-11d removes the final residual implementation globals and records
+        # the supported mapped class surface in an explicit __all__.
+        self.assertEqual(report["top_level"]["function_count"], 0)
+        self.assertEqual(report["top_level"]["class_count"], 0)
+        self.assertEqual(report["line_count"], 1_148)
         class_names = {item["name"] for item in report["top_level"]["classes"]}
-        self.assertIn("EasyUseAnimaAIOGenerator", class_names)
-        self.assertIn("EasyUseAnimaPromptStudioAdvancedV2", class_names)
+        self.assertNotIn("EasyUseAnimaAIOGenerator", class_names)
+        self.assertNotIn("EasyUseAnimaInput", class_names)
+        self.assertNotIn("EasyUseAnimaPromptStudioAdvanced", class_names)
+        self.assertNotIn("EasyUseAnimaPromptStudioAdvancedV2", class_names)
+        self.assertNotIn("EasyUseAnimaPromptStudioExtend", class_names)
         self.assertNotIn("EasyUseAnimaNAIARandomPrompt", class_names)
         self.assertNotIn("EasyUseAnimaWildcard", class_names)
         self.assertNotIn("EasyUseAnimaImageScaleByMultiple", class_names)
@@ -96,6 +99,9 @@ def load_dynamic():
         self.assertNotIn("EasyUseAnimaPromptDataUnpack", class_names)
         self.assertNotIn("EasyUseAnimaArtistMixConditioning", class_names)
         self.assertNotIn("EasyUseAnimaPromptDataConditioning", class_names)
+        self.assertNotIn("EasyUseAnimaSAM3Context", class_names)
+        self.assertNotIn("_EasyUseAnimaImpactDetailerDelegate", class_names)
+        self.assertNotIn("EasyUseAnimaSAM3Detailer", class_names)
 
     def test_external_source_label_does_not_expose_parent_directories(self):
         label = analyzer._source_label(Path("Z:/private/user/data/example.py"))

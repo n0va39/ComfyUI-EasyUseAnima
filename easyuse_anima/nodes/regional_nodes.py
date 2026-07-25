@@ -4,15 +4,51 @@ from __future__ import annotations
 
 from typing import Any
 
+from ..common.serialization import _stable_change_key
+from ..common.values import _as_bool, _as_float, _single_value
+from ..infrastructure.comfy.wiring import resolve_comfy_host_helper
 from ..naia.resolution import (
     DEFAULT_ADVANCED_RESOLUTION_BUCKET,
     DEFAULT_ADVANCED_RESOLUTION_SIZE,
+    _advanced_resolution_from_selection,
 )
+from ..prompt.advanced import (
+    _advanced_field_input_values,
+    _expand_advanced_wildcard_fields,
+    _normalize_prompt_studio_wildcard_seed_control,
+    _translate_prompt_fields,
+    _wildcard_engine_module,
+    normalize_prompt_studio_wildcard_mode,
+    normalize_seed,
+)
+from ..prompt.correction import _prompt_translation_change_key
 from ..prompt.regional import (
     REGIONAL_CONFIG_WORKFLOW_PROPERTY,
     REGIONAL_FIELDS_WORKFLOW_PROPERTY,
     REGIONAL_PROMPT_DATA_TYPE,
+    _apply_regional_field_inputs,
+    _build_regional_outputs,
+    _clone_regional_fields,
+    _conditioning_set_values,
+    _normalize_mask_ids,
+    _normalize_regional_config,
+    _normalize_regional_fields,
+    _parse_json_object,
+    _regional_config_json,
+    _regional_fields_json,
+    _regional_mask_bounds_area,
+    _regional_payload_canvas,
+    _regional_union_mask_for_ids,
 )
+from ..seed.compatibility import _scrub_reserved_wildcard_next_seed
+from ..workflow import _get_workflow_node
+from .input_types import _FlexibleOptionalInputType
+from .seed_adapters import (
+    PROMPT_STUDIO_REGIONAL_SEED_FEATURE,
+    prompt_studio_seed_execution,
+)
+
+from ..settings.service import resolve_metadata_filter_words
 
 
 WILDCARD_MODE_SEQUENTIAL = "sequential"
@@ -39,112 +75,24 @@ WILDCARD_SEED_RANGE_NOTE = (
 )
 
 
-class _FlexibleOptionalInputType(dict):
-    def __init__(self, input_type):
-        self.input_type = input_type
-
-    def __getitem__(self, key):
-        return (self.input_type,)
-
-    def __contains__(self, key):
-        return True
+def next_seed(*args, **kwargs):
+    return _wildcard_engine_module().next_seed(*args, **kwargs)
 
 
-def _unbound_runtime(*_args, **_kwargs):
-    raise RuntimeError("Regional node runtime dependencies are not bound.")
+def wildcard_sources_signature(*args, **kwargs):
+    return _wildcard_engine_module().wildcard_sources_signature(*args, **kwargs)
 
 
-_regional_fields_json = _unbound_runtime
-_regional_config_json = _unbound_runtime
-_advanced_resolution_from_selection = _unbound_runtime
-_normalize_regional_fields = _unbound_runtime
-_normalize_regional_config = _unbound_runtime
-_apply_regional_field_inputs = _unbound_runtime
-normalize_prompt_studio_wildcard_mode = _unbound_runtime
-_normalize_prompt_studio_wildcard_seed_control = _unbound_runtime
-_stable_change_key = _unbound_runtime
-resolve_metadata_filter_words = _unbound_runtime
-_prompt_translation_change_key = _unbound_runtime
-wildcard_sources_signature = _unbound_runtime
-normalize_seed = _unbound_runtime
-_single_value = _unbound_runtime
-_get_workflow_node = _unbound_runtime
-_advanced_field_input_values = _unbound_runtime
-_clone_regional_fields = _unbound_runtime
-_consume_reserved_wildcard_next_seed = _unbound_runtime
-_expand_advanced_wildcard_fields = _unbound_runtime
-_translate_prompt_fields = _unbound_runtime
-next_seed = _unbound_runtime
-_build_regional_outputs = _unbound_runtime
-_parse_json_object = _unbound_runtime
-_regional_payload_canvas = _unbound_runtime
-_encode_with_comfy_clip = _unbound_runtime
-_as_bool = _unbound_runtime
-_normalize_mask_ids = _unbound_runtime
-_regional_union_mask_for_ids = _unbound_runtime
-_as_float = _unbound_runtime
-_regional_mask_bounds_area = _unbound_runtime
-_conditioning_set_values = _unbound_runtime
+def _missing_host_helper(name: str):
+    raise RuntimeError(f"Regional Comfy host helper is unavailable: {name}")
 
 
-def _bind_regional_node_runtime(*, resolve_helper, flexible_optional_input_type) -> None:
-    global _FlexibleOptionalInputType
-    global _regional_fields_json, _regional_config_json, _advanced_resolution_from_selection
-    global _normalize_regional_fields, _normalize_regional_config
-    global _apply_regional_field_inputs, normalize_prompt_studio_wildcard_mode
-    global _normalize_prompt_studio_wildcard_seed_control
-    global _stable_change_key, resolve_metadata_filter_words
-    global _prompt_translation_change_key, wildcard_sources_signature, normalize_seed
-    global _single_value, _get_workflow_node, _advanced_field_input_values
-    global _clone_regional_fields
-    global _consume_reserved_wildcard_next_seed, _expand_advanced_wildcard_fields
-    global _translate_prompt_fields, next_seed
-    global _build_regional_outputs, _parse_json_object, _regional_payload_canvas
-    global _encode_with_comfy_clip, _as_bool, _normalize_mask_ids
-    global _regional_union_mask_for_ids, _as_float, _regional_mask_bounds_area
-    global _conditioning_set_values
-
-    def runtime_helper(name):
-        def call(*args, **kwargs):
-            return resolve_helper(name)(*args, **kwargs)
-
-        return call
-
-    _FlexibleOptionalInputType = flexible_optional_input_type
-    for name in (
-        "_regional_fields_json",
-        "_regional_config_json",
-        "_advanced_resolution_from_selection",
-        "_normalize_regional_fields",
-        "_normalize_regional_config",
-        "_apply_regional_field_inputs",
-        "normalize_prompt_studio_wildcard_mode",
-        "_normalize_prompt_studio_wildcard_seed_control",
-        "_stable_change_key",
-        "resolve_metadata_filter_words",
-        "_prompt_translation_change_key",
-        "wildcard_sources_signature",
-        "normalize_seed",
-        "_single_value",
-        "_get_workflow_node",
-        "_advanced_field_input_values",
-        "_clone_regional_fields",
-        "_consume_reserved_wildcard_next_seed",
-        "_expand_advanced_wildcard_fields",
-        "_translate_prompt_fields",
-        "next_seed",
-        "_build_regional_outputs",
-        "_parse_json_object",
-        "_regional_payload_canvas",
+def _encode_with_comfy_clip(*args, **kwargs):
+    helper = resolve_comfy_host_helper(
         "_encode_with_comfy_clip",
-        "_as_bool",
-        "_normalize_mask_ids",
-        "_regional_union_mask_for_ids",
-        "_as_float",
-        "_regional_mask_bounds_area",
-        "_conditioning_set_values",
-    ):
-        globals()[name] = runtime_helper(name)
+        _missing_host_helper,
+    )
+    return helper(*args, **kwargs)
 
 
 class EasyUseAnimaPromptStudioRegional:
@@ -275,6 +223,8 @@ class EasyUseAnimaPromptStudioRegional:
             wildcard_seed_after_generate,
             wildcard_mode,
         )
+        if wildcard_seed_control != SEED_CONTROL_FIXED:
+            return float("nan")
         return _stable_change_key({
             "mode": "prompt_studio_regional",
             "metadata_filter_words": resolve_metadata_filter_words(),
@@ -394,70 +344,70 @@ class EasyUseAnimaPromptStudioRegional:
             wildcard_seed_after_generate,
             wildcard_mode,
         )
-        reserved_next_wildcard_seed = _consume_reserved_wildcard_next_seed(
+        _scrub_reserved_wildcard_next_seed(
             field_inputs,
             workflow_prompt,
             unique_id,
-            wildcard_seed_value,
-            wildcard_mode_key,
-            wildcard_effective_seed_control,
         )
-        ui_updates: dict[str, Any] = {}
-        metadata_updates: dict[str, Any] = {}
+        with prompt_studio_seed_execution(
+            feature=PROMPT_STUDIO_REGIONAL_SEED_FEATURE,
+            unique_id=unique_id,
+            seed=wildcard_seed_value,
+            after_generate=wildcard_effective_seed_control,
+            fallback_next_seed=lambda: next_seed(
+                wildcard_seed_value,
+                wildcard_effective_seed_control,
+            ),
+        ) as seed_execution:
+            effective_fields, effective_wildcard = _expand_advanced_wildcard_fields(
+                effective_fields,
+                seed_execution.execution_seed,
+                wildcard_mode_key,
+            )
+            effective_fields = _translate_prompt_fields(effective_fields)
+            ui_updates: dict[str, Any] = {
+                "wildcard_mode": wildcard_mode_label,
+                "wildcard_execution_seed": seed_execution.execution_seed,
+                "wildcard_seed": seed_execution.next_seed,
+                "wildcard_seed_after_generate": wildcard_effective_seed_control,
+                "wildcard_used_keys": list(effective_wildcard["used_keys"]),
+                "wildcard_missing_keys": list(effective_wildcard["missing_keys"]),
+            }
+            metadata_updates: dict[str, Any] = {
+                "wildcard_mode": wildcard_mode_label,
+                "wildcard_seed": seed_execution.execution_seed,
+                "wildcard_seed_after_generate": SEED_CONTROL_FIXED,
+            }
 
-        effective_fields, effective_wildcard = _expand_advanced_wildcard_fields(
-            effective_fields,
-            wildcard_seed_value,
-            wildcard_mode_key,
-        )
-        effective_fields = _translate_prompt_fields(effective_fields)
-        next_wildcard_seed = (
-            reserved_next_wildcard_seed
-            if reserved_next_wildcard_seed is not None
-            else next_seed(wildcard_seed_value, wildcard_effective_seed_control)
-        )
-        ui_updates.update({
-            "wildcard_mode": wildcard_mode_label,
-            "wildcard_seed": next_wildcard_seed,
-            "wildcard_seed_after_generate": wildcard_effective_seed_control,
-            "wildcard_used_keys": list(effective_wildcard["used_keys"]),
-            "wildcard_missing_keys": list(effective_wildcard["missing_keys"]),
-        })
-        metadata_updates.update({
-            "wildcard_mode": wildcard_mode_label,
-            "wildcard_seed": wildcard_seed_value,
-            "wildcard_seed_after_generate": SEED_CONTROL_FIXED,
-        })
+            fields_json = _regional_fields_json(saved_fields)
+            config_json = _regional_config_json(config)
+            self._update_metadata_fields(
+                workflow_prompt,
+                extra_pnginfo,
+                unique_id,
+                fields_json,
+                config_json,
+                metadata_updates,
+            )
 
-        fields_json = _regional_fields_json(saved_fields)
-        config_json = _regional_config_json(config)
-        self._update_metadata_fields(
-            workflow_prompt,
-            extra_pnginfo,
-            unique_id,
-            fields_json,
-            config_json,
-            metadata_updates,
-        )
-
-        (
-            positive_prompt,
-            negative_prompt,
-            metadata_prompt,
-            metadata_negative_prompt,
-            regional_prompt_data,
-        ) = _build_regional_outputs(effective_fields, config, width, height)
-
-        return {
-            "ui": self._ui(fields_json, config_json, effective_field_inputs, ui_updates),
-            "result": (
+            (
+                _positive_prompt,
+                _negative_prompt,
                 metadata_prompt,
                 metadata_negative_prompt,
-                width,
-                height,
                 regional_prompt_data,
-            ),
-        }
+            ) = _build_regional_outputs(effective_fields, config, width, height)
+
+            return {
+                "ui": self._ui(fields_json, config_json, effective_field_inputs, ui_updates),
+                "result": (
+                    metadata_prompt,
+                    metadata_negative_prompt,
+                    width,
+                    height,
+                    regional_prompt_data,
+                ),
+            }
 
 
 class EasyUseAnimaRegionalConditioning:
@@ -538,7 +488,10 @@ class EasyUseAnimaRegionalConditioning:
 
         if _as_bool(payload.get("regional_enabled"), False):
             use_mask_bounds = str(set_cond_area or "mask bounds") != "default"
-            mask_prompts = payload.get("mask_prompts") if isinstance(payload.get("mask_prompts"), list) else []
+            mask_prompts_value = payload.get("mask_prompts")
+            mask_prompts = (
+                mask_prompts_value if isinstance(mask_prompts_value, list) else []
+            )
             for entry in mask_prompts:
                 if not isinstance(entry, dict):
                     continue

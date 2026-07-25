@@ -36,8 +36,14 @@ const TEXT = {
     autocompleteLimit: "Autocomplete suggestions",
     autocompleteMode: "Autocomplete mode",
     autocompleteModeTip: "Controls where EasyUse Anima autocomplete is active.",
+    autocompleteArtistPrefix: "Artist prefix",
+    autocompleteArtistPrefixTip:
+      "Literal prefix used to start artist-only autocomplete and insert artist results. Empty or invalid values use @.",
     autocompleteCommitKey: "Autocomplete commit key",
     autocompleteCommitKeyTip: "Choose whether Enter and Tab commit suggestions, or only Tab commits. Shift+Enter always inserts a line break.",
+    autocompleteCommitMode: "Completion edit mode",
+    autocompleteCommitModeTip:
+      "Smart replaces only a matching contiguous tail. Insert preserves all text to the right. Replace uses the syntax-aware active-item range.",
     autocompleteAppendSeparator: "Append comma after autocomplete",
     autocompleteAppendSeparatorTip: "After committing a suggestion, add ', ' and place the caret after it for the next tag.",
     autocompleteNoCommaAfterPeriod: "Do not comma-correct after period",
@@ -50,6 +56,9 @@ const TEXT = {
     autocompletePreviewClosingBrackets: "Preview closing brackets",
     autocompletePreviewClosingBracketsTip:
       "When typing an opening prompt bracket, insert the closing bracket at the caret like an editor pair. Autocomplete previews may show closing brackets, but suggestions do not force-close multi-item groups.",
+    selectionParenthesisWeight: "Add weight when wrapping a selection",
+    selectionParenthesisWeightTip:
+      "When closing-bracket preview is enabled, wrapping selected text with ( inserts :1 and selects the weight. Existing top-level numeric weights are preserved.",
     autocompleteCsvTip: "Select which bundled CSV powers autocomplete and tag highlighting. The merged Danbooru+e621 source may have category merge issues.",
     autocompleteLimitTip: "",
     highlightBehavior: "Highlight behavior",
@@ -158,8 +167,14 @@ const TEXT = {
     autocompleteLimit: "자동완성 추천 수",
     autocompleteMode: "자동완성 적용 범위",
     autocompleteModeTip: "EasyUse Anima 자동완성이 동작할 위치를 정합니다.",
+    autocompleteArtistPrefix: "작가 접두사",
+    autocompleteArtistPrefixTip:
+      "작가 전용 자동완성을 시작하고 작가 결과 앞에 붙이는 문자열입니다. 빈 값이나 잘못된 값은 @를 사용합니다.",
     autocompleteCommitKey: "자동완성 적용 키",
     autocompleteCommitKeyTip: "Enter와 Tab 모두 자동완성을 적용할지, Tab만 적용할지 선택합니다. Shift+Enter는 항상 줄바꿈입니다.",
+    autocompleteCommitMode: "자동완성 편집 모드",
+    autocompleteCommitModeTip:
+      "스마트는 일치가 확인된 연속 후행 텍스트만 교체합니다. 삽입은 오른쪽 텍스트를 모두 보존하고, 교체는 구문을 인식한 활성 항목 범위를 사용합니다.",
     autocompleteAppendSeparator: "자동완성 뒤 쉼표 추가",
     autocompleteAppendSeparatorTip: "자동완성 적용 후 ', '를 붙이고 다음 태그를 바로 입력할 수 있게 커서를 이동합니다.",
     autocompleteNoCommaAfterPeriod: "온점 뒤 쉼표 보정 안 함",
@@ -172,6 +187,9 @@ const TEXT = {
     autocompletePreviewClosingBrackets: "닫는 괄호 미리입력",
     autocompletePreviewClosingBracketsTip:
       "여는 프롬프트 괄호를 입력하면 IDE처럼 닫는 괄호를 커서 오른쪽에 넣습니다. 자동완성 미리보기에는 닫는 괄호가 보일 수 있지만, 여러 항목을 넣는 그룹을 후보 적용만으로 강제 종료하지는 않습니다.",
+    selectionParenthesisWeight: "선택 영역 괄호에 가중치 추가",
+    selectionParenthesisWeightTip:
+      "닫는 괄호 미리입력이 켜져 있을 때 선택한 텍스트를 (로 감싸면 :1을 추가하고 숫자를 선택합니다. 기존 최상위 숫자 가중치는 유지합니다.",
     autocompleteCsvTip: "자동완성과 태그 하이라이트에 사용할 번들 CSV를 선택합니다. Danbooru+e621 병합 소스는 카테고리 병합 오류 가능성이 있습니다.",
     autocompleteLimitTip: "",
     highlightBehavior: "하이라이트 동작",
@@ -280,8 +298,14 @@ const TEXT = {
     autocompleteLimit: "自動補完候補数",
     autocompleteMode: "自動補完の適用範囲",
     autocompleteModeTip: "EasyUse Anima 自動補完が有効になる場所を指定します。",
+    autocompleteArtistPrefix: "アーティスト接頭辞",
+    autocompleteArtistPrefixTip:
+      "アーティスト専用候補の開始と挿入に使う文字列です。空または無効な値は @ を使います。",
     autocompleteCommitKey: "自動補完の確定キー",
     autocompleteCommitKeyTip: "Enter と Tab の両方で候補を確定するか、Tab のみで確定するかを選びます。Shift+Enter は常に改行です。",
+    autocompleteCommitMode: "補完編集モード",
+    autocompleteCommitModeTip:
+      "スマートは一致が確認された連続末尾だけを置換します。挿入は右側のテキストをすべて保持し、置換は構文対応のアクティブ項目範囲を使用します。",
     autocompleteAppendSeparator: "自動補完後にカンマを追加",
     autocompleteAppendSeparatorTip: "候補確定後に ', ' を追加し、次のタグを入力しやすい位置へキャレットを移動します。",
     autocompleteNoCommaAfterPeriod: "句点後はカンマ補正しない",
@@ -294,6 +318,9 @@ const TEXT = {
     autocompletePreviewClosingBrackets: "閉じ括弧を先に入力",
     autocompletePreviewClosingBracketsTip:
       "プロンプトの開き括弧を入力したとき、エディタのペア入力のように閉じ括弧をキャレット右側へ入れます。自動補完プレビューには閉じ括弧を表示できますが、候補確定だけでは複数項目グループを強制終了しません。",
+    selectionParenthesisWeight: "選択範囲を括弧で囲むとき重みを追加",
+    selectionParenthesisWeightTip:
+      "閉じ括弧の先行入力が有効なとき、選択したテキストを ( で囲むと :1 を追加して数値を選択します。既存のトップレベル数値重みは維持します。",
     autocompleteCsvTip: "自動補完とタグハイライトに使用する同梱 CSV を選択します。Danbooru+e621 の統合ソースにはカテゴリ統合エラーの可能性があります。",
     autocompleteLimitTip: "",
     highlightBehavior: "ハイライト動作",
@@ -402,8 +429,14 @@ const TEXT = {
     autocompleteLimit: "自动补全建议数",
     autocompleteMode: "自动补全适用范围",
     autocompleteModeTip: "控制 EasyUse Anima 自动补全在哪些位置启用。",
+    autocompleteArtistPrefix: "画师前缀",
+    autocompleteArtistPrefixTip:
+      "用于启动画师专用补全并插入到画师结果前的文字。空值或无效值会使用 @。",
     autocompleteCommitKey: "自动补全确认键",
     autocompleteCommitKeyTip: "选择 Enter 和 Tab 都确认建议，或仅 Tab 确认。Shift+Enter 始终插入换行。",
+    autocompleteCommitMode: "补全编辑模式",
+    autocompleteCommitModeTip:
+      "智能模式仅替换确认匹配的连续尾部。插入模式保留右侧全部文本，替换模式使用语法感知的当前项目范围。",
     autocompleteAppendSeparator: "自动补全后追加逗号",
     autocompleteAppendSeparatorTip: "确认建议后追加 ', '，并将光标移动到便于输入下一个标签的位置。",
     autocompleteNoCommaAfterPeriod: "句号后不做逗号修正",
@@ -416,6 +449,9 @@ const TEXT = {
     autocompletePreviewClosingBrackets: "预填闭合括号",
     autocompletePreviewClosingBracketsTip:
       "输入提示词开括号时，像 IDE 一样在光标右侧插入闭合括号。自动补全预览可以显示闭合括号，但确认候选不会强制结束可包含多项的分组。",
+    selectionParenthesisWeight: "括起选区时添加权重",
+    selectionParenthesisWeightTip:
+      "启用预填闭合括号后，用 ( 包裹所选文本会追加 :1 并选中数值。已有的顶层数值权重会保留。",
     autocompleteCsvTip: "选择用于自动补全和标签高亮的内置 CSV。Danbooru+e621 合并来源可能存在分类合并错误。",
     autocompleteLimitTip: "",
     highlightBehavior: "高亮行为",

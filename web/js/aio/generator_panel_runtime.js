@@ -126,7 +126,7 @@ function closeGeneratorInfoTooltipOwner(document) {
 
 /**
  * Own the AiO generator panel DOM, render, summary, preview, seed controls, and
- * per-node layout lifecycle. Extension hooks, queue preparation, serialized
+ * per-node layout lifecycle. Extension hooks, executed-seed publication, serialized
  * widget ownership, dialogs, native-preview events, CSS, and the global wheel
  * router remain in the entry module and are supplied as adapters.
  *
@@ -1090,8 +1090,8 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
       updateGeneratorDomSummary(node);
       refreshGeneratorSeedButtons(node);
     } catch {
-      // The seed transaction is already committed. A stale/disposed panel must
-      // not make the queue wrapper treat that durable state change as failed.
+      // Backend acceptance is already committed. A stale/disposed panel must
+      // not turn display publication into an execution failure.
     }
     if (options.markDirty !== false) {
       markNodeDirty(node);
@@ -1111,7 +1111,7 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
     if (!panel) {
       return;
     }
-    const lastSeed = node.__easyuseAnimaLastQueuedSeed;
+    const lastSeed = node.__easyuseAnimaLastExecutedSeed;
     const currentSeed = normalizeSeedValue(widgetValue(node, "seed", GENERATOR_SPECIAL_SEED_RANDOM));
     const lastButton = panel.querySelector("[data-aio-seed-last]");
     if (lastButton) {
@@ -1513,10 +1513,10 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
     const seedLast = makeButton(
       aioText("button.useLastNone"),
       () => {
-        if (node.__easyuseAnimaLastQueuedSeed == null) {
+        if (node.__easyuseAnimaLastExecutedSeed == null) {
           return;
         }
-        setGeneratorSeedFromUi(node, node.__easyuseAnimaLastQueuedSeed);
+        setGeneratorSeedFromUi(node, node.__easyuseAnimaLastExecutedSeed);
       },
       "",
       "tip.useLast",

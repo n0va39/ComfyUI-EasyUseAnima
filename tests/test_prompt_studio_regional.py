@@ -7,12 +7,10 @@ from unittest.mock import patch
 import nodes as easy_nodes
 from easyuse_anima.nodes import regional_nodes
 from easyuse_anima.prompt import regional as regional_service
+from tests.comfy_host_fakes import patch_comfy_helper
 from nodes import (
     EasyUseAnimaRegionalConditioning,
     EasyUseAnimaPromptStudioRegional,
-    REGIONAL_CONFIG_WORKFLOW_PROPERTY,
-    REGIONAL_FIELDS_WORKFLOW_PROPERTY,
-    REGIONAL_PROMPT_DATA_TYPE,
 )
 
 
@@ -175,8 +173,14 @@ class PromptStudioRegionalTests(unittest.TestCase):
         self.assertEqual(workflow_prompt["42"]["inputs"]["regional_config"], payload["regional_config"])
         self.assertEqual(workflow_node["widgets_values"][0], payload["regional_fields"])
         self.assertEqual(workflow_node["widgets_values"][1], payload["regional_config"])
-        self.assertEqual(workflow_node["properties"][REGIONAL_FIELDS_WORKFLOW_PROPERTY], payload["regional_fields"])
-        self.assertEqual(workflow_node["properties"][REGIONAL_CONFIG_WORKFLOW_PROPERTY], payload["regional_config"])
+        self.assertEqual(
+            workflow_node["properties"][regional_service.REGIONAL_FIELDS_WORKFLOW_PROPERTY],
+            payload["regional_fields"],
+        )
+        self.assertEqual(
+            workflow_node["properties"][regional_service.REGIONAL_CONFIG_WORKFLOW_PROPERTY],
+            payload["regional_config"],
+        )
 
     def test_regional_conditioning_encodes_global_negative_and_masked_positive(self):
         try:
@@ -205,18 +209,17 @@ class PromptStudioRegionalTests(unittest.TestCase):
                 }
             ],
         }
-        original_encode = easy_nodes._encode_with_comfy_clip
-        try:
-            easy_nodes._encode_with_comfy_clip = lambda clip, text: [[f"cond:{text}", {"encoded_text": text}]]
-
+        with patch_comfy_helper(
+            easy_nodes,
+            "_encode_with_comfy_clip",
+            lambda clip, text: [[f"cond:{text}", {"encoded_text": text}]],
+        ):
             positive, negative = EasyUseAnimaRegionalConditioning().encode(
                 payload,
                 clip=object(),
                 mask_strength=0.75,
                 set_cond_area="mask bounds",
             )
-        finally:
-            easy_nodes._encode_with_comfy_clip = original_encode
 
         self.assertEqual(positive[0][1]["encoded_text"], "masterpiece")
         self.assertEqual(positive[1][1]["encoded_text"], "red dress")
@@ -229,8 +232,11 @@ class PromptStudioRegionalTests(unittest.TestCase):
     def test_regional_prompt_data_uses_dedicated_socket_type(self):
         regional_input = EasyUseAnimaRegionalConditioning.INPUT_TYPES()["required"]["regional_prompt_data"]
 
-        self.assertEqual(EasyUseAnimaPromptStudioRegional.RETURN_TYPES[4], REGIONAL_PROMPT_DATA_TYPE)
-        self.assertEqual(regional_input[0], REGIONAL_PROMPT_DATA_TYPE)
+        self.assertEqual(
+            EasyUseAnimaPromptStudioRegional.RETURN_TYPES[4],
+            regional_service.REGIONAL_PROMPT_DATA_TYPE,
+        )
+        self.assertEqual(regional_input[0], regional_service.REGIONAL_PROMPT_DATA_TYPE)
         self.assertTrue(regional_input[1]["forceInput"])
 
     def test_field_socket_overrides_masked_prompt_without_saving(self):
@@ -275,7 +281,7 @@ class PromptStudioRegionalTests(unittest.TestCase):
             {"field_masked_general": "blue hair girl"},
         )
 
-    def test_build_consumes_reserved_queue_seed_and_scrubs_token(self):
+    def test_build_ignores_retired_browser_seed_and_scrubs_token(self):
         reservation_key = easy_nodes.WILDCARD_RESERVED_NEXT_SEED_INPUT
         reservation = json.dumps({
             "version": 1,
@@ -315,7 +321,11 @@ class PromptStudioRegionalTests(unittest.TestCase):
             }
         }
 
-        with patch("nodes.next_seed") as fallback_next_seed:
+        with patch.object(
+            regional_nodes,
+            "next_seed",
+            return_value=3,
+        ) as fallback_next_seed:
             result = EasyUseAnimaPromptStudioRegional().build(
                 "",
                 "",
@@ -328,7 +338,7 @@ class PromptStudioRegionalTests(unittest.TestCase):
                 **{reservation_key: reservation},
             )
 
-        fallback_next_seed.assert_not_called()
+        fallback_next_seed.assert_called_once_with(2, "increment")
         payload = result["ui"]["prompt_studio_regional"][0]
         self.assertEqual(payload["wildcard_seed"], 3)
         self.assertNotIn(reservation_key, payload["field_inputs"])
@@ -348,7 +358,11 @@ class PromptStudioRegionalTests(unittest.TestCase):
             "42": {"inputs": {reservation_key: mismatched_reservation}}
         }
 
-        with patch("nodes.next_seed", return_value=3) as fallback_next_seed:
+        with patch.object(
+            regional_nodes,
+            "next_seed",
+            return_value=3,
+        ) as fallback_next_seed:
             result = EasyUseAnimaPromptStudioRegional().build(
                 "",
                 "",

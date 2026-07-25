@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import inspect
+from collections.abc import Callable
 from typing import Any
 
 
@@ -58,6 +59,24 @@ def _common_upscale_image(samples, width: int, height: int, upscale_method: str)
         if method in {"bilinear", "bicubic"}:
             return F.interpolate(samples, size=(height, width), mode=method, align_corners=False)
         return F.interpolate(samples, size=(height, width), mode=method)
+
+
+def _encode_with_comfy_clip(
+    clip,
+    text: str,
+    find_node_class: Callable[[str], Any],
+):
+    encoder_cls = find_node_class("CLIPTextEncode")
+    if encoder_cls is None:
+        raise RuntimeError("[EasyUseAnima] Could not find ComfyUI CLIPTextEncode.")
+    encoder = encoder_cls()
+    method = getattr(encoder, "encode", None)
+    if method is None:
+        raise RuntimeError("[EasyUseAnima] CLIPTextEncode does not expose encode.")
+    result = method(clip, text)
+    if not isinstance(result, tuple) or not result:
+        raise RuntimeError("[EasyUseAnima] CLIPTextEncode returned no conditioning.")
+    return result[0]
 
 
 __all__ = ()

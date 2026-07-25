@@ -103,14 +103,20 @@ export function profileSavedName(profile) {
   return String(profile?.saved_name || "").trim();
 }
 
+export function profileSavedId(profile) {
+  return String(profile?.saved_profile_id || "").trim().toLowerCase();
+}
+
 export function withSavedMeta(content, previous) {
   const profile = profileContent(content);
   const savedName = profileSavedName(previous);
+  const savedProfileId = profileSavedId(previous);
   const savedSnapshot = String(previous?.saved_snapshot || "");
   if (savedName && savedSnapshot) {
     return {
       ...profile,
       saved_name: savedName,
+      ...(savedProfileId ? { saved_profile_id: savedProfileId } : {}),
       saved_snapshot: savedSnapshot,
     };
   }

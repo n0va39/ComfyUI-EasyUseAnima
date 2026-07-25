@@ -56,7 +56,6 @@ const serializationUrl = dataModule("../web/js/prompt_studio/regional/serializat
   "./constants.js": constantsUrl,
   "./schema.js": schemaUrl,
 });
-const queueSeedBridgeUrl = dataModule("../web/js/prompt_studio/queue_seed_bridge.js");
 const autocompleteEntryLifecycleUrl = dataModule(
   "../web/js/autocomplete/entry_lifecycle.js",
 );
@@ -71,7 +70,6 @@ const extensionUrl = dataModule("../web/js/prompt_studio/regional/extension.js",
   "./constants.js": constantsUrl,
   "./lifecycle.js": lifecycleUrl,
   "./layout.js": layoutUrl,
-  "../queue_seed_bridge.js": queueSeedBridgeUrl,
   "../../autocomplete/entry_lifecycle.js": autocompleteEntryLifecycleUrl,
   "../../lifecycle/host_hook_registry.js": hostHookRegistryUrl,
 });
@@ -107,7 +105,6 @@ const lifecycle = await import(lifecycleUrl);
 const extension = await import(extensionUrl);
 const nodeHooks = await import(nodeHooksUrl);
 const fieldEditor = await import(fieldEditorUrl);
-const queueSeedBridgeModule = await import(queueSeedBridgeUrl);
 const regionalRuntimeModule = await import(regionalRuntimeUrl);
 
 const lifecycleNode = {};
@@ -189,7 +186,6 @@ for (const [name, value] of Object.entries({
 
 const hookCalls = [];
 const hooks = {
-  attachQueueSeedNode: (node) => hookCalls.push(["attach", node]),
   applyRegionalExecutedInputs: (node) => hookCalls.push(["executed", node]),
   captureRegionalConfigure: (node) => hookCalls.push(["configure", node]),
   disposeRegionalNode: (node) => {
@@ -218,7 +214,6 @@ assert(node.onRemoved() === returns.removed, "onRemoved return value changed");
 assert(originalThis.every(([, value]) => value === node), "A Regional wrapper changed original this");
 flushFrames();
 assert(!hookCalls.some(([name]) => name === "render"), "Connection callback ran after node removal");
-assert(hookCalls.filter(([name]) => name === "attach").length === 1, "Configure did not attach Regional queue state");
 assert(hookCalls.filter(([name]) => name === "dispose").length === 1, "Node removal cleanup count changed");
 
 const runtimeApp = {
@@ -227,7 +222,10 @@ const runtimeApp = {
     setDirtyCanvas() {},
   },
 };
-const regionalRuntime = regionalRuntimeModule.createRegionalRuntime(runtimeApp);
+let regionalDirtyCount = 0;
+const regionalRuntime = regionalRuntimeModule.createRegionalRuntime(runtimeApp, {
+  markNodeDirty: () => { regionalDirtyCount += 1; },
+});
 const guardedNode = {
   widgets: [
     { name: "regional_fields", value: "[]" },
@@ -263,19 +261,18 @@ const executedPayload = {
     regional_config: { masks: [], next_mask_id: 1 },
     field_inputs: { field_p1: "linked field" },
     wildcard_mode: "일반 채우기",
+    wildcard_execution_seed: 7,
     wildcard_seed: 8,
     wildcard_seed_after_generate: "randomize",
   }],
 };
 assert(
-  regionalRuntime.applyRegionalExecutedInputs(guardedNode, executedPayload, {
-    shouldApplyExecutedSeed: () => false,
-  }),
+  regionalRuntime.applyRegionalExecutedInputs(guardedNode, executedPayload),
   "Regional executed payload was not applied",
 );
 assert(
-  regionalRuntime.findWidget(guardedNode, "wildcard_seed").value === 30,
-  "A stale Regional executed seed replaced shared runtime authority",
+  regionalRuntime.findWidget(guardedNode, "wildcard_seed").value === 8,
+  "The backend next seed was not applied",
 );
 assert(
   regionalRuntime.findWidget(guardedNode, "wildcard_mode").value === "일반 채우기",
@@ -290,105 +287,12 @@ assert(
   "Regional executed field inputs were blocked with the stale seed",
 );
 assert(
-  regionalRuntime.applyRegionalExecutedInputs(
-    guardedNode,
-    { prompt_studio_regional: [{ wildcard_seed: 31 }] },
-    { shouldApplyExecutedSeed: () => true },
-  ),
-  "An authoritative Regional executed seed payload was not applied",
+  JSON.parse(guardedNode.properties.easyuse_anima_previous_wildcard_execution).seed === 7,
+  "Regional history did not store the backend execution seed",
 );
 assert(
-  regionalRuntime.findWidget(guardedNode, "wildcard_seed").value === 31,
-  "An authoritative Regional executed seed stayed blocked",
-);
-
-const bridgeApp = { graph: { _nodes: [] } };
-const bridge = queueSeedBridgeModule.promptStudioQueueSeedBridge(bridgeApp);
-const bridgeCalls = [];
-bridge.bindRuntime({
-  attachNode(node) {
-    bridgeCalls.push(["attach", node]);
-    return true;
-  },
-  detachNode(node) {
-    bridgeCalls.push(["detach", node]);
-    return true;
-  },
-  shouldApplyExecutedSeed(node, value) {
-    bridgeCalls.push(["guard", node, value]);
-    return false;
-  },
-});
-const bridgeRuntime = {
-  applyRegionalExecutedInputs(node, message, options) {
-    bridgeCalls.push([
-      "executed",
-      node,
-      message,
-      options.shouldApplyExecutedSeed(node, message.seed),
-    ]);
-    return true;
-  },
-  captureRegionalConfigure() {},
-  isRegionalNode: (node) => node?.type === "EasyUseAnimaPromptStudioRegional",
-  pruneDisconnectedRegionalFieldInputValues() {},
-  removeRegionalInternalInputSockets() {},
-  repairRegionalConditioningWidgets() {},
-  setRegionalWidgetValue(node, name, value) {
-    bridgeCalls.push(["publish", node, name, value]);
-    return true;
-  },
-  syncRegionalValues() {},
-};
-const bridgeFieldEditor = {
-  collectRegionalEditorFields: () => [],
-  renderRegionalEditor: (node) => bridgeCalls.push(["render", node]),
-};
-const bridgeExtension = extension.createRegionalExtensionRuntime(
-  bridgeApp,
-  bridgeRuntime,
-  {
-    regionalEditorMinimumHeight: () => 0,
-    regionalEditorWidgetHeight: () => 0,
-    scheduleRegionalLayout() {},
-  },
-  bridgeFieldEditor,
-  {
-    ensureRegionalStyle() {},
-    installRegionalAdapter() {},
-  },
-);
-function BridgeRegionalNodeType() {}
-await bridgeExtension.beforeRegisterNodeDef(BridgeRegionalNodeType, {
-  name: "EasyUseAnimaPromptStudioRegional",
-});
-const bridgeNode = Object.assign(new BridgeRegionalNodeType(), {
-  type: "EasyUseAnimaPromptStudioRegional",
-});
-bridgeNode.onConfigure({});
-bridgeNode.onExecuted({ seed: 8 });
-assert(bridge.publishRegionalSeed(bridgeNode, 9), "Regional live seed publisher was not bound");
-bridgeNode.onRemoved();
-assert(
-  bridgeCalls.some(([name, target]) => name === "attach" && target === bridgeNode),
-  "Regional configure did not reach the shared runtime owner",
-);
-assert(
-  bridgeCalls.some(([name, target, value]) => name === "guard" && target === bridgeNode && value === 8),
-  "Regional onExecuted did not use the shared authority guard",
-);
-assert(
-  bridgeCalls.some(([name, target]) => name === "detach" && target === bridgeNode),
-  "Regional removal did not detach shared queue state",
-);
-assert(
-  bridgeCalls.some(([name, target, widgetName, value]) => (
-    name === "publish"
-    && target === bridgeNode
-    && widgetName === "wildcard_seed"
-    && value === 9
-  )),
-  "Accepted Regional seed did not publish through the Regional runtime",
+  regionalDirtyCount === 1,
+  "Regional history publication did not dirty the workflow once",
 );
 
 function ConditioningNodeType() {}

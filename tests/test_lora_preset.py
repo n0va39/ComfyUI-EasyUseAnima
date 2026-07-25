@@ -6,6 +6,8 @@ import unittest
 from types import SimpleNamespace
 from unittest.mock import patch
 
+from easyuse_anima.lora import metadata as lora_metadata
+from easyuse_anima.nodes import lora_nodes
 from nodes import (
     EasyUseAnimaLoraPreset,
     _lora_combo_values,
@@ -53,8 +55,8 @@ class LoraPresetTests(unittest.TestCase):
         }
 
         with (
-            patch("nodes._get_lora_info", lambda name: (f"/loras/{name}", [f"{name}_trigger"])),
-            patch("nodes._apply_lora_syntax_format", lambda name: name.replace(".safetensors", "")),
+            patch.object(lora_nodes, "_get_lora_info", lambda name: (f"/loras/{name}", [f"{name}_trigger"])),
+            patch.object(lora_nodes, "_apply_lora_syntax_format", lambda name: name.replace(".safetensors", "")),
         ):
             response = EasyUseAnimaLoraPreset().build(
                 style_prompt="fallback",
@@ -79,8 +81,8 @@ class LoraPresetTests(unittest.TestCase):
         ]
 
         with (
-            patch("nodes._get_lora_info", lambda name: (name, [])),
-            patch("nodes._apply_lora_syntax_format", lambda name: "foo"),
+            patch.object(lora_nodes, "_get_lora_info", lambda name: (name, [])),
+            patch.object(lora_nodes, "_apply_lora_syntax_format", lambda name: "foo"),
         ):
             response = EasyUseAnimaLoraPreset().build(
                 style_prompt="style",
@@ -106,8 +108,8 @@ class LoraPresetTests(unittest.TestCase):
         }
 
         with (
-            patch("nodes._get_lora_info", return_value=("foo.safetensors", [])),
-            patch("nodes._lora_model_exists", return_value=True),
+            patch.object(lora_nodes, "_get_lora_info", return_value=("foo.safetensors", [])),
+            patch.object(lora_nodes, "_lora_model_exists", return_value=True),
         ):
             response = EasyUseAnimaLoraPreset().build(
                 style_prompt="fallback",
@@ -133,8 +135,8 @@ class LoraPresetTests(unittest.TestCase):
             return name, ["@new"]
 
         with (
-            patch("nodes._get_lora_info", side_effect=lora_info),
-            patch("nodes._lora_model_exists", return_value=True),
+            patch.object(lora_nodes, "_get_lora_info", side_effect=lora_info),
+            patch.object(lora_nodes, "_lora_model_exists", return_value=True),
         ):
             response = EasyUseAnimaLoraPreset().build(
                 style_prompt="style",
@@ -169,7 +171,7 @@ class LoraPresetTests(unittest.TestCase):
             "trainedWords": "@default",
         }
 
-        with patch("nodes._TRIGGER_WORD_KEYS", ("custom_words",)):
+        with patch.object(lora_metadata, "_TRIGGER_WORD_KEYS", ("custom_words",)):
             self.assertEqual(
                 _lora_manager_trigger_words_from_metadata(metadata),
                 ["@custom"],
@@ -194,8 +196,8 @@ class LoraPresetTests(unittest.TestCase):
         ]
 
         with (
-            patch("nodes._get_lora_info", lambda name: (name, [])),
-            patch("nodes._apply_lora_syntax_format", lambda name: "foo"),
+            patch.object(lora_nodes, "_get_lora_info", lambda name: (name, [])),
+            patch.object(lora_nodes, "_apply_lora_syntax_format", lambda name: "foo"),
         ):
             response = EasyUseAnimaLoraPreset().build(
                 style_prompt="style",
@@ -250,7 +252,7 @@ class LoraPresetTests(unittest.TestCase):
             },
         ]
 
-        with patch("nodes._lora_model_exists", lambda _name: False):
+        with patch.object(lora_nodes, "_lora_model_exists", lambda _name: False):
             with self.assertLogs("ComfyUI-EasyUseAnima", level="ERROR") as logs:
                 with self.assertRaises(RuntimeError) as raised:
                     EasyUseAnimaLoraPreset().build(
@@ -271,7 +273,7 @@ class LoraPresetTests(unittest.TestCase):
         self.assertIn("missing_abs.safetensors", "\n".join(logs.output))
 
     def test_build_corrects_style_prompt_output(self):
-        with patch("nodes._correct_style_prompt", lambda prompt: f"corrected: {prompt}"):
+        with patch.object(lora_nodes, "_correct_style_prompt", lambda prompt: f"corrected: {prompt}"):
             response = EasyUseAnimaLoraPreset().build(
                 style_prompt="@artist, style",
                 profile_index=1,
@@ -293,8 +295,8 @@ class LoraPresetTests(unittest.TestCase):
 
             loras = [{"name": "style/foo.safetensors", "on": True, "strength": 1.0}]
             with (
-                patch("nodes._fallback_lora_path", lambda _name: lora_path),
-                patch("nodes._apply_lora_syntax_format", lambda name: "foo"),
+                patch.object(lora_metadata, "_fallback_lora_path", lambda _name: lora_path),
+                patch.object(lora_nodes, "_apply_lora_syntax_format", lambda name: "foo"),
             ):
                 response = EasyUseAnimaLoraPreset().build(
                     style_prompt="style",

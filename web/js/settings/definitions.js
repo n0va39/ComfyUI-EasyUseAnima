@@ -6,6 +6,7 @@ import {
   NAIA_RESOLUTION_BUCKET_OPTIONS,
   ROOT_CATEGORY,
 } from "./definition_data.js";
+import { easyuseAnimaInitialAutocompleteSource } from "../easyuse_anima_i18n.js";
 
 /**
  * @typedef {object} EasyUseAnimaSettingsDependencies
@@ -121,7 +122,7 @@ export function createEasyUseAnimaSettings(dependencies) {
       name: t("autocompleteCsv"),
       tooltip: t("autocompleteCsvTip"),
       type: "combo",
-      defaultValue: "dbr_danbooru_2025_09_01",
+      defaultValue: easyuseAnimaInitialAutocompleteSource,
       options: [
         "dbr_danbooru_2025_09_01",
         "dbr_e621_2025_09_01",
@@ -140,6 +141,16 @@ export function createEasyUseAnimaSettings(dependencies) {
       attrs: { min: 1, max: 100, step: 1 },
     }),
     setting({
+      id: "EasyUseAnima.Prompt.AutocompleteArtistPrefix",
+      section: "Autocomplete",
+      group: t("autocomplete"),
+      name: t("autocompleteArtistPrefix"),
+      tooltip: t("autocompleteArtistPrefixTip"),
+      type: "text",
+      defaultValue: "@",
+      attrs: { maxlength: 32 },
+    }),
+    setting({
       id: "EasyUseAnima.Prompt.AutocompleteCommitKey",
       section: "Autocomplete",
       group: t("autocomplete"),
@@ -148,6 +159,16 @@ export function createEasyUseAnimaSettings(dependencies) {
       type: "combo",
       defaultValue: "enter",
       options: ["enter", "tab"],
+    }),
+    setting({
+      id: "EasyUseAnima.Prompt.AutocompleteCommitMode",
+      section: "Autocomplete",
+      group: t("autocomplete"),
+      name: t("autocompleteCommitMode"),
+      tooltip: t("autocompleteCommitModeTip"),
+      type: "combo",
+      defaultValue: "smart",
+      options: ["smart", "insert", "replace"],
     }),
     setting({
       id: "EasyUseAnima.Prompt.AutocompleteAppendSeparator",
@@ -191,6 +212,15 @@ export function createEasyUseAnimaSettings(dependencies) {
       group: t("autocomplete"),
       name: t("autocompletePreviewClosingBrackets"),
       tooltip: t("autocompletePreviewClosingBracketsTip"),
+      type: "boolean",
+      defaultValue: false,
+    }),
+    setting({
+      id: "EasyUseAnima.Prompt.SelectionParenthesisWeight",
+      section: "Autocomplete",
+      group: t("autocomplete"),
+      name: t("selectionParenthesisWeight"),
+      tooltip: t("selectionParenthesisWeightTip"),
       type: "boolean",
       defaultValue: false,
     }),

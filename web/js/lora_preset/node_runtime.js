@@ -25,6 +25,7 @@ export function createLoraPresetNodeRuntime({
   saveProfile,
   saveCurrentProfile,
   loadProfile,
+  verifyProfileProvenance,
   scrollProfileBarTo,
   refreshLoraAvailability,
   canvasWidgets,
@@ -142,6 +143,7 @@ export function createLoraPresetNodeRuntime({
     canvasWidgets.ensureProfileBar(node);
     node.__easyuseAnimaActiveProfileIndex = selectedProfileIndex(node);
     loadProfile(node, selectedProfileIndex(node), { initializeFromCurrent: true });
+    verifyProfileProvenance(node);
     scrollProfileBarTo(node, selectedProfileIndex(node));
     canvasWidgets.renderProfileBar(node);
     refreshLoraAvailability(node);

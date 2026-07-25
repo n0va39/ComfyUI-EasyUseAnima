@@ -292,6 +292,14 @@ def comfy_runtime():
             [{"from": "__init__.py", "to": "runtime.py"}],
         )
         self.assertEqual(
+            report["registry"]["entry_modules"],
+            ["__init__.py", "nodes.py"],
+        )
+        self.assertIn(
+            "nodes.py",
+            report["registry"]["runtime_import_closure"],
+        )
+        self.assertEqual(
             report["imports"]["module_graph_policy"]["duplicate_policy"],
             "collapse by source and target path",
         )
@@ -683,32 +691,73 @@ ignored/
 
         self.assertEqual(analyzer.render_json(report), expected_text)
         self.assertEqual(report["schema_version"], 2)
-        self.assertEqual(report["inventory"]["module_count"], 55)
-        self.assertEqual(len(report["registry"]["shipped_python_modules"]), 55)
-        self.assertEqual(len(report["registry"]["runtime_import_closure"]), 54)
-        self.assertEqual(report["registry"]["missing_internal_imports"], [])
+        self.assertEqual(report["inventory"]["module_count"], 132)
+        self.assertEqual(len(report["registry"]["shipped_python_modules"]), 132)
+        self.assertEqual(len(report["registry"]["runtime_import_closure"]), 132)
         self.assertEqual(
-            report["registry"]["unreachable_shipped_python_modules"],
+            report["registry"]["entry_modules"],
             [
-                "easyuse_anima/aio/__init__.py",
+                "__init__.py",
+                "autocomplete_index.py",
+                "nodes.py",
+                "prompt_translation.py",
+                "settings.py",
+                "storage.py",
             ],
         )
+        self.assertEqual(report["registry"]["missing_internal_imports"], [])
+        self.assertEqual(report["registry"]["unreachable_shipped_python_modules"], [])
         self.assertTrue(
             {
                 "easyuse_anima/__init__.py",
                 "easyuse_anima/aio/__init__.py",
+                "easyuse_anima/aio/conditioning.py",
+                "easyuse_anima/aio/first_pass_cache.py",
+                "easyuse_anima/aio/legacy_generation.py",
+                "easyuse_anima/aio/generation_detailer_stage.py",
+                "easyuse_anima/aio/generation_first_pass.py",
+                "easyuse_anima/aio/generation_highres.py",
+                "easyuse_anima/aio/generation_lifecycle.py",
+                "easyuse_anima/aio/generation_pipeline.py",
+                "easyuse_anima/aio/generation_postprocess_stage.py",
+                "easyuse_anima/aio/generation_save_output_stage.py",
+                "easyuse_anima/aio/generation_upscale_stage.py",
+                "easyuse_anima/aio/generation_values.py",
+                "easyuse_anima/aio/generation_sampling.py",
+                "easyuse_anima/aio/generation_features.py",
+                "easyuse_anima/aio/generation_detailer.py",
+                "easyuse_anima/aio/generation_defaults.py",
+                "easyuse_anima/aio/generation_output.py",
+                "easyuse_anima/aio/input_defaults.py",
+                "easyuse_anima/aio/generation_normalization.py",
+                "easyuse_anima/aio/generation_migrations.py",
+                "easyuse_anima/aio/generation_settings.py",
+                "easyuse_anima/aio/model_preparation.py",
+                "easyuse_anima/aio/output.py",
+                "easyuse_anima/aio/output_settings.py",
+                "easyuse_anima/aio/postprocess.py",
+                "easyuse_anima/aio/preview.py",
+                "easyuse_anima/aio/resources.py",
+                "easyuse_anima/aio/sampling.py",
+                "easyuse_anima/aio/usdu.py",
+                "easyuse_anima/bootstrap.py",
                 "easyuse_anima/common/__init__.py",
                 "easyuse_anima/common/serialization.py",
                 "easyuse_anima/common/values.py",
                 "easyuse_anima/image/__init__.py",
                 "easyuse_anima/image/detailer.py",
                 "easyuse_anima/image/geometry.py",
+                "easyuse_anima/image/sam3.py",
                 "easyuse_anima/image/scaling.py",
                 "easyuse_anima/infrastructure/__init__.py",
                 "easyuse_anima/infrastructure/comfy/__init__.py",
                 "easyuse_anima/infrastructure/comfy/capabilities.py",
                 "easyuse_anima/infrastructure/comfy/invocation.py",
+                "easyuse_anima/infrastructure/comfy/provider.py",
                 "easyuse_anima/infrastructure/comfy/resources.py",
+                "easyuse_anima/infrastructure/filesystem/__init__.py",
+                "easyuse_anima/infrastructure/filesystem/atomic_json.py",
+                "easyuse_anima/infrastructure/filesystem/paths.py",
                 "easyuse_anima/lora/__init__.py",
                 "easyuse_anima/lora/metadata.py",
                 "easyuse_anima/lora/preset.py",
@@ -716,17 +765,43 @@ ignored/
                 "easyuse_anima/naia/client.py",
                 "easyuse_anima/naia/resolution.py",
                 "easyuse_anima/nodes/__init__.py",
+                "easyuse_anima/nodes/aio_nodes.py",
                 "easyuse_anima/nodes/image_nodes.py",
+                "easyuse_anima/nodes/impact_detailer_nodes.py",
                 "easyuse_anima/nodes/lora_nodes.py",
                 "easyuse_anima/nodes/naia_nodes.py",
+                "easyuse_anima/nodes/prompt_advanced_nodes.py",
                 "easyuse_anima/nodes/prompt_data_nodes.py",
                 "easyuse_anima/nodes/prompt_nodes.py",
                 "easyuse_anima/nodes/regional_nodes.py",
+                "easyuse_anima/nodes/sam3_nodes.py",
                 "easyuse_anima/nodes/wildcard_nodes.py",
                 "easyuse_anima/profiles/__init__.py",
+                "easyuse_anima/profiles/aio.py",
                 "easyuse_anima/profiles/contract.py",
+                "easyuse_anima/profiles/lora.py",
                 "easyuse_anima/profiles/mutation.py",
+                "easyuse_anima/profiles/repository.py",
+                "easyuse_anima/settings/__init__.py",
+                "easyuse_anima/settings/repository.py",
+                "easyuse_anima/settings/schema.py",
+                "easyuse_anima/settings/service.py",
+                "easyuse_anima/translation/__init__.py",
+                "easyuse_anima/translation/contracts.py",
+                "easyuse_anima/translation/markers.py",
+                "easyuse_anima/translation/providers/__init__.py",
+                "easyuse_anima/translation/providers/google.py",
+                "easyuse_anima/translation/service.py",
+                "easyuse_anima/registration.py",
+                "easyuse_anima/runtime.py",
+                "easyuse_anima/seed/__init__.py",
+                "easyuse_anima/seed/compatibility.py",
+                "easyuse_anima/seed/execution_identity.py",
+                "easyuse_anima/seed/execution_session.py",
+                "easyuse_anima/seed/reservation.py",
+                "easyuse_anima/seed/service.py",
                 "easyuse_anima/prompt/__init__.py",
+                "easyuse_anima/prompt/advanced.py",
                 "easyuse_anima/prompt/correction.py",
                 "easyuse_anima/prompt/artist_mix.py",
                 "easyuse_anima/prompt/conditioning.py",
@@ -739,28 +814,46 @@ ignored/
         self.assertIn("api.py", report["registry"]["runtime_import_closure"])
         self.assertTrue(
             {
+                "easyuse_anima/aio/conditioning.py",
+                "easyuse_anima/aio/first_pass_cache.py",
+                "easyuse_anima/aio/legacy_generation.py",
+                "easyuse_anima/aio/model_preparation.py",
+                "easyuse_anima/aio/output.py",
+                "easyuse_anima/aio/preview.py",
+                "easyuse_anima/aio/resources.py",
+                "easyuse_anima/aio/sampling.py",
                 "easyuse_anima/common/serialization.py",
                 "easyuse_anima/common/values.py",
                 "easyuse_anima/image/detailer.py",
                 "easyuse_anima/image/geometry.py",
+                "easyuse_anima/image/sam3.py",
                 "easyuse_anima/image/scaling.py",
                 "easyuse_anima/infrastructure/comfy/capabilities.py",
                 "easyuse_anima/infrastructure/comfy/invocation.py",
+                "easyuse_anima/infrastructure/comfy/provider.py",
                 "easyuse_anima/infrastructure/comfy/resources.py",
+                "easyuse_anima/infrastructure/filesystem/__init__.py",
+                "easyuse_anima/infrastructure/filesystem/atomic_json.py",
+                "easyuse_anima/infrastructure/filesystem/paths.py",
                 "easyuse_anima/lora/__init__.py",
                 "easyuse_anima/lora/metadata.py",
                 "easyuse_anima/lora/preset.py",
                 "easyuse_anima/naia/__init__.py",
                 "easyuse_anima/naia/client.py",
                 "easyuse_anima/naia/resolution.py",
+                "easyuse_anima/nodes/aio_nodes.py",
                 "easyuse_anima/nodes/image_nodes.py",
+                "easyuse_anima/nodes/impact_detailer_nodes.py",
                 "easyuse_anima/nodes/lora_nodes.py",
                 "easyuse_anima/nodes/naia_nodes.py",
+                "easyuse_anima/nodes/prompt_advanced_nodes.py",
                 "easyuse_anima/nodes/prompt_data_nodes.py",
                 "easyuse_anima/nodes/prompt_nodes.py",
                 "easyuse_anima/nodes/regional_nodes.py",
+                "easyuse_anima/nodes/sam3_nodes.py",
                 "easyuse_anima/nodes/wildcard_nodes.py",
                 "easyuse_anima/prompt/__init__.py",
+                "easyuse_anima/prompt/advanced.py",
                 "easyuse_anima/prompt/correction.py",
                 "easyuse_anima/prompt/artist_mix.py",
                 "easyuse_anima/prompt/conditioning.py",
@@ -768,8 +861,24 @@ ignored/
                 "easyuse_anima/prompt/fields.py",
                 "easyuse_anima/prompt/regional.py",
                 "easyuse_anima/profiles/__init__.py",
+                "easyuse_anima/profiles/aio.py",
                 "easyuse_anima/profiles/contract.py",
+                "easyuse_anima/profiles/lora.py",
                 "easyuse_anima/profiles/mutation.py",
+                "easyuse_anima/profiles/repository.py",
+                "easyuse_anima/settings/__init__.py",
+                "easyuse_anima/settings/repository.py",
+                "easyuse_anima/settings/schema.py",
+                "easyuse_anima/settings/service.py",
+                "easyuse_anima/translation/__init__.py",
+                "easyuse_anima/translation/contracts.py",
+                "easyuse_anima/translation/markers.py",
+                "easyuse_anima/translation/providers/__init__.py",
+                "easyuse_anima/translation/providers/google.py",
+                "easyuse_anima/translation/service.py",
+                "easyuse_anima/runtime.py",
+                "easyuse_anima/seed/execution_identity.py",
+                "easyuse_anima/seed/execution_session.py",
             }.issubset(report["registry"]["runtime_import_closure"])
         )
         self.assertIn(
@@ -789,16 +898,152 @@ ignored/
             report["registry"]["runtime_import_closure"],
         )
         self.assertIn(
+            "easyuse_anima/autocomplete/index.py",
+            report["registry"]["shipped_python_modules"],
+        )
+        self.assertIn(
+            "easyuse_anima/autocomplete/index.py",
+            report["registry"]["runtime_import_closure"],
+        )
+        for module in (
+            "easyuse_anima/autocomplete/dataset.py",
+            "easyuse_anima/autocomplete/search.py",
+        ):
+            with self.subTest(module=module):
+                self.assertIn(
+                    module,
+                    report["registry"]["shipped_python_modules"],
+                )
+                self.assertIn(
+                    module,
+                    report["registry"]["runtime_import_closure"],
+                )
+        self.assertIn(
+            {
+                "from": "autocomplete_dataset.py",
+                "to": "easyuse_anima/autocomplete/dataset.py",
+            },
+            report["imports"]["module_graph"],
+        )
+        self.assertIn(
+            {
+                "from": "autocomplete_dataset.py",
+                "to": "easyuse_anima/autocomplete/search.py",
+            },
+            report["imports"]["module_graph"],
+        )
+        self.assertIn(
+            {
+                "from": "easyuse_anima/autocomplete/search.py",
+                "to": "easyuse_anima/autocomplete/index.py",
+            },
+            report["imports"]["module_graph"],
+        )
+        self.assertIn(
+            {
+                "from": "autocomplete_index.py",
+                "to": "easyuse_anima/autocomplete/index.py",
+            },
+            report["imports"]["module_graph"],
+        )
+        self.assertIn(
+            {
+                "from": "wildcard_engine.py",
+                "to": "easyuse_anima/wildcard/mode.py",
+            },
+            report["imports"]["module_graph"],
+        )
+        self.assertIn(
+            {
+                "from": "wildcard_engine.py",
+                "to": "easyuse_anima/wildcard/models.py",
+            },
+            report["imports"]["module_graph"],
+        )
+        self.assertIn(
+            {
+                "from": "wildcard_engine.py",
+                "to": "easyuse_anima/wildcard/sources.py",
+            },
+            report["imports"]["module_graph"],
+        )
+        self.assertIn(
+            {
+                "from": "wildcard_engine.py",
+                "to": "easyuse_anima/wildcard/selector.py",
+            },
+            report["imports"]["module_graph"],
+        )
+        self.assertIn(
+            {
+                "from": "wildcard_engine.py",
+                "to": "easyuse_anima/wildcard/snapshot.py",
+            },
+            report["imports"]["module_graph"],
+        )
+        self.assertIn(
+            {
+                "from": "wildcard_engine.py",
+                "to": "easyuse_anima/wildcard/seed.py",
+            },
+            report["imports"]["module_graph"],
+        )
+        self.assertIn(
+            {
+                "from": "easyuse_anima/wildcard/snapshot.py",
+                "to": "easyuse_anima/wildcard/models.py",
+            },
+            report["imports"]["module_graph"],
+        )
+        self.assertIn(
+            {
+                "from": "easyuse_anima/wildcard/snapshot.py",
+                "to": "easyuse_anima/wildcard/sources.py",
+            },
+            report["imports"]["module_graph"],
+        )
+        self.assertIn(
+            {
+                "from": "api.py",
+                "to": "easyuse_anima/wildcard/sources.py",
+            },
+            report["imports"]["module_graph"],
+        )
+        for module in (
+            "easyuse_anima/wildcard/__init__.py",
+            "easyuse_anima/wildcard/mode.py",
+            "easyuse_anima/wildcard/models.py",
+            "easyuse_anima/wildcard/seed.py",
+            "easyuse_anima/wildcard/selector.py",
+            "easyuse_anima/wildcard/snapshot.py",
+            "easyuse_anima/wildcard/sources.py",
+        ):
+            with self.subTest(module=module):
+                self.assertIn(
+                    module,
+                    report["registry"]["shipped_python_modules"],
+                )
+                self.assertIn(
+                    module,
+                    report["registry"]["runtime_import_closure"],
+                )
+        self.assertIn(
             {"from": "api.py", "to": "api_contract.py"},
             report["imports"]["module_graph"],
         )
-        self.assertIn(
-            {"from": "api.py", "to": "easyuse_anima/profiles/contract.py"},
-            report["imports"]["module_graph"],
-        )
-        self.assertIn(
-            {"from": "api.py", "to": "easyuse_anima/profiles/mutation.py"},
-            report["imports"]["module_graph"],
+        profile_edges = {
+            (item["from"], item["to"])
+            for item in report["imports"]["module_graph"]
+            if item["from"] == "api.py"
+        }
+        self.assertTrue(
+            {
+                ("api.py", "easyuse_anima/profiles/aio.py"),
+                ("api.py", "easyuse_anima/profiles/contract.py"),
+                ("api.py", "easyuse_anima/profiles/lora.py"),
+                ("api.py", "easyuse_anima/profiles/mutation.py"),
+                ("api.py", "easyuse_anima/profiles/repository.py"),
+            }.issubset(profile_edges)
         )
         self.assertNotIn(
             "tests/test_python_backend_analyzer.py",
@@ -814,14 +1059,16 @@ ignored/
         }
         self.assertTrue(
             {
-                ("api.py", "storage.py"),
-                ("api.py", "easyuse_anima/profiles/contract.py"),
-                ("api.py", "easyuse_anima/profiles/mutation.py"),
-                ("nodes.py", "prompt_translation.py"),
-                ("nodes.py", "settings.py"),
                 ("nodes.py", "wildcard_engine.py"),
-                ("wildcard_engine.py", "settings.py"),
             }.issubset(fallback_targets)
+        )
+        self.assertFalse(
+            [
+                item
+                for item in report["registry"]["compatibility_fallback_imports"]
+                if item["source"] == "api.py"
+                and item["target"].startswith("easyuse_anima/profiles/")
+            ]
         )
         self.assertFalse(
             [
@@ -835,8 +1082,25 @@ ignored/
             for item in report["state"]["mutable_globals"]
         }
         self.assertEqual(
+            mutable_by_name[
+                ("easyuse_anima/wildcard/mode.py", "WILDCARD_MODE_ALIASES")
+            ],
+            "dict",
+        )
+        self.assertEqual(
             mutable_by_name[("wildcard_engine.py", "_SNAPSHOT_CACHE")],
             "dict",
+        )
+        self.assertFalse(
+            any(
+                module
+                in {
+                    "easyuse_anima/wildcard/seed.py",
+                    "easyuse_anima/wildcard/selector.py",
+                    "easyuse_anima/wildcard/snapshot.py",
+                }
+                for module, _name in mutable_by_name
+            )
         )
         owner_by_name = {
             (item["module"], item["name"]): set(item["categories"])

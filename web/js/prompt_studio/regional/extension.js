@@ -14,9 +14,6 @@ import {
   REGIONAL_NODE_DEFAULT_WIDTH,
   REGIONAL_NODE_MIN_WIDTH,
 } from "./layout.js";
-import {
-  promptStudioQueueSeedBridge,
-} from "../queue_seed_bridge.js";
 import { disposeExternalAutocompleteInputs } from "../../autocomplete/entry_lifecycle.js";
 import {
   createHostHookRuntimeLifecycle,
@@ -83,7 +80,6 @@ function installRegionalSaveSync(app, syncAllRegionalNodes, graph = null) {
 /**
  * @param {any} nodeType
  * @param {{
- *   attachQueueSeedNode?: (node: any) => void,
  *   applyRegionalExecutedInputs: (node: any, message: any) => void,
  *   captureRegionalConfigure: (node: any, serialized: any) => void,
  *   disposeRegionalNode: (node: any) => void,
@@ -113,7 +109,6 @@ function registerRegionalNodeHooks(nodeType, hooks) {
     const result = onConfigure?.apply(this, arguments);
     hooks.captureRegionalConfigure(this, serialized);
     hooks.removeRegionalInternalInputSockets(this);
-    hooks.attachQueueSeedNode?.(this);
     hooks.scheduleHookRegionalNode(this);
     return result;
   };
@@ -182,23 +177,11 @@ function registerRegionalNodeHooks(nodeType, hooks) {
  * }} hooks
  */
 function createRegionalExtensionRuntime(app, runtime, layout, fieldEditor, hooks) {
-  const queueSeedBridge = promptStudioQueueSeedBridge(app);
   const globalHookLifecycle = createHostHookRuntimeLifecycle(
     app,
     REGIONAL_GLOBAL_HOOK_RUNTIME_OWNER,
   );
   let saveSyncSerializeHost;
-  queueSeedBridge.bindRegionalSeedPublisher((node, seed) => {
-    if (!runtime.isRegionalNode(node)) {
-      return false;
-    }
-    if (!runtime.setRegionalWidgetValue(node, "wildcard_seed", seed)) {
-      throw new Error("Prompt Studio Regional wildcard_seed widget is unavailable.");
-    }
-    fieldEditor.renderRegionalEditor(node);
-    return true;
-  });
-
   /** @param {any} node */
   function cleanupRegionalEditor(node) {
     const editor = node?.__easyuseAnimaRegionalEditorEl;
@@ -233,11 +216,6 @@ function createRegionalExtensionRuntime(app, runtime, layout, fieldEditor, hooks
 
   /** @param {any} node */
   function disposeRegionalNode(node) {
-    try {
-      queueSeedBridge.detachNode(node);
-    } catch {
-      // Queue state cleanup remains isolated from the Regional DOM lifecycle.
-    }
     disposeRegionalNodeLifecycle(node);
     node.__easyuseAnimaRegionalApplyingLayout = false;
     node.__easyuseAnimaRegionalHandlingConnectionsChange = false;
@@ -341,11 +319,7 @@ function createRegionalExtensionRuntime(app, runtime, layout, fieldEditor, hooks
   }
 
   function applyRegionalExecutedInputs(node, message) {
-    if (runtime.applyRegionalExecutedInputs(node, message, {
-      shouldApplyExecutedSeed: (target, value) => (
-        queueSeedBridge.shouldApplyExecutedSeed(target, value)
-      ),
-    })) {
+    if (runtime.applyRegionalExecutedInputs(node, message)) {
       fieldEditor.renderRegionalEditor(node);
     }
   }
@@ -368,7 +342,6 @@ function createRegionalExtensionRuntime(app, runtime, layout, fieldEditor, hooks
         return;
       }
       registerRegionalNodeHooks(nodeType, {
-        attachQueueSeedNode: queueSeedBridge.attachNode,
         applyRegionalExecutedInputs,
         captureRegionalConfigure: runtime.captureRegionalConfigure,
         disposeRegionalNode,

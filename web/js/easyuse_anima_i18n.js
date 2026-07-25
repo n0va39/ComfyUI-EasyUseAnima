@@ -4,6 +4,7 @@ import { app } from "../../../scripts/app.js";
 let localeWatchInstalled = false;
 let lastLanguage = null;
 const localeListeners = new Set();
+const AUTOCOMPLETE_SOURCE_KEY = "autocomplete.source";
 
 export function easyuseAnimaReadSettingValue(id) {
   try {
@@ -46,6 +47,34 @@ export function easyuseAnimaLanguage() {
 
 export function easyuseAnimaIsKorean() {
   return easyuseAnimaLanguage() === "ko";
+}
+
+function easyuseAnimaInternalAutocompleteSource() {
+  try {
+    const settingsWindow =
+      /** @type {Window & { __easyuseAnimaSettings?: Record<string, unknown> }} */ (
+        window
+      );
+    const settings = settingsWindow.__easyuseAnimaSettings;
+    if (
+      settings
+      && Object.prototype.hasOwnProperty.call(settings, AUTOCOMPLETE_SOURCE_KEY)
+    ) {
+      const value = settings[AUTOCOMPLETE_SOURCE_KEY];
+      return value == null ? "" : String(value);
+    }
+  } catch {}
+  return undefined;
+}
+
+export function easyuseAnimaInitialAutocompleteSource() {
+  const internalSource = easyuseAnimaInternalAutocompleteSource();
+  if (internalSource !== undefined) {
+    return internalSource;
+  }
+  return easyuseAnimaIsKorean()
+    ? "localsmile_kr_wiki"
+    : "dbr_danbooru_2025_09_01";
 }
 
 export function easyuseAnimaText(map, key) {

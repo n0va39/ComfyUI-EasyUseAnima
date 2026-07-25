@@ -2,8 +2,10 @@
 from __future__ import annotations
 
 import inspect
+import logging
 
 from ..infrastructure.comfy.invocation import _node_output_tuple
+from ..infrastructure.comfy.wiring import resolve_comfy_host_helper
 
 ANIMA_MOD_GUIDANCE_MODE_FROM_PROMPT_DATA = "prompt_data"
 ANIMA_MOD_GUIDANCE_MODE_ENABLED = "enabled"
@@ -23,26 +25,26 @@ ANIMA_MOD_GUIDANCE_PROFILES = (
 )
 
 _SPECTRUM_ANIMA_MOD_GUIDANCE_OLD_SIGNATURE_WARNED: set[str] = set()
-_RUNTIME_RESOLVER = None
-_RUNTIME_LOGGER_RESOLVER = None
 
-def _bind_conditioning_runtime(*, resolve_helper, resolve_logger) -> None:
-    global _RUNTIME_RESOLVER, _RUNTIME_LOGGER_RESOLVER
-    _RUNTIME_RESOLVER = resolve_helper
-    _RUNTIME_LOGGER_RESOLVER = resolve_logger
 
-def _runtime_helper(name: str):
-    if _RUNTIME_RESOLVER is None:
-        raise RuntimeError(f"[EasyUseAnima] Conditioning runtime helper is not bound: {name}")
-    return _RUNTIME_RESOLVER(name)
+def _missing_host_helper(name: str):
+    raise RuntimeError(f"Conditioning Comfy host helper is unavailable: {name}")
+
+
+def _find_loaded_node_class(node_id: str):
+    helper = resolve_comfy_host_helper(
+        "_find_loaded_node_class",
+        _missing_host_helper,
+    )
+    return helper(node_id)
+
 
 def _runtime_logger():
-    if _RUNTIME_LOGGER_RESOLVER is None:
-        raise RuntimeError("[EasyUseAnima] Conditioning logger is not bound.")
-    return _RUNTIME_LOGGER_RESOLVER()
+    return logging.getLogger("ComfyUI-EasyUseAnima")
+
 
 def _find_spectrum_anima_mod_guidance_class():
-    cls = _runtime_helper("_find_loaded_node_class")("AnimaModGuidance")
+    cls = _find_loaded_node_class("AnimaModGuidance")
     if cls is not None:
         return cls
     raise RuntimeError(
@@ -89,7 +91,7 @@ def _apply_spectrum_anima_mod_guidance(
     quality_neg: str,
     mod_w_profile: str,
 ):
-    patcher_cls = _runtime_helper("_find_spectrum_anima_mod_guidance_class")()
+    patcher_cls = _find_spectrum_anima_mod_guidance_class()
     patcher = patcher_cls()
     patch = getattr(patcher, "patch", None)
     if patch is None:

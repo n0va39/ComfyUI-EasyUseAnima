@@ -11,24 +11,41 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from unittest.mock import patch
 
-import autocomplete_dataset
-import settings as easyuse_settings
-from nodes import (
-    ADVANCED_FIELDS_WORKFLOW_PROPERTY,
-    ADVANCED_RESOLUTION_BUCKETS,
+import nodes
+import settings as root_settings
+from easyuse_anima.autocomplete import dataset as autocomplete_dataset
+from easyuse_anima.naia.client import _clean_prompt
+from easyuse_anima.naia.resolution import ADVANCED_RESOLUTION_BUCKETS
+from easyuse_anima.nodes import prompt_data_nodes, prompt_nodes
+from easyuse_anima.nodes.prompt_advanced_nodes import EasyUseAnimaPromptStudioExtend
+from easyuse_anima.prompt import artist_mix as prompt_artist_mix
+from easyuse_anima.prompt import conditioning as prompt_conditioning
+from easyuse_anima.prompt import correction as prompt_correction
+from easyuse_anima.prompt.advanced import ADVANCED_FIELDS_WORKFLOW_PROPERTY
+from easyuse_anima.prompt.artist_mix import (
     ARTIST_MIX_CONTROL_KEY,
     ARTIST_MIX_EXACT_KEY,
     ARTIST_MIX_MODE_CLUSTERED,
     ARTIST_MIX_MODE_DELTA_RMS,
-    ARTIST_MIX_MODE_FROM_PROMPT_DATA,
     ARTIST_MIX_MODE_HYBRID,
     ARTIST_MIX_MODE_PROMPT,
     ARTIST_TAG_POSITION_BACK,
     ARTIST_TAG_POSITION_CORRECT,
     ARTIST_TAG_POSITION_FRONT,
+)
+from easyuse_anima.prompt.conditioning import (
+    _SPECTRUM_ANIMA_MOD_GUIDANCE_OLD_SIGNATURE_WARNED,
+)
+from easyuse_anima.prompt.data import PROMPT_DATA_SCHEMA
+from easyuse_anima.settings import repository as settings_repository
+from easyuse_anima.settings import schema as settings_schema
+from easyuse_anima.settings import service as settings_service
+from easyuse_anima.prompt.fields import (
     DEFAULT_QUALITY_TAGS,
     DEFAULT_TRAILING_QUALITY_TAGS,
-    PROMPT_DATA_SCHEMA,
+)
+from nodes import (
+    ARTIST_MIX_MODE_FROM_PROMPT_DATA,
     PROMPT_DATA_TYPE,
     EasyUseAnimaArtistMixConditioning,
     EasyUseAnimaDetailerAlignHook,
@@ -40,9 +57,6 @@ from nodes import (
     EasyUseAnimaPromptStudio,
     EasyUseAnimaPromptStudioAdvanced,
     EasyUseAnimaPromptStudioAdvancedV2,
-    EasyUseAnimaPromptStudioExtend,
-    _SPECTRUM_ANIMA_MOD_GUIDANCE_OLD_SIGNATURE_WARNED,
-    _clean_prompt,
     _generate_empty_latent_with_comfy,
     _prompt_tokens,
 )
@@ -53,18 +67,21 @@ from autocomplete_dataset import (
     resolve_autocomplete_source,
     search_autocomplete,
 )
-from prompt_translation import (
+from easyuse_anima.translation.contracts import (
     PROMPT_TRANSLATION_PROVIDER_GOOGLE,
     PROMPT_TRANSLATION_PROVIDER_OFF,
     PromptTranslationSettings,
     normalize_prompt_translation_provider,
+)
+from easyuse_anima.translation.service import (
     strip_prompt_translation_markers,
     translate_prompt_markers,
 )
-from settings import (
-    NAIA_PREPROCESSING_KEYS,
+from easyuse_anima.settings.schema import NAIA_PREPROCESSING_KEYS
+from easyuse_anima.settings.service import (
     public_settings,
     resolve_autocomplete_commit_key,
+    resolve_autocomplete_commit_mode,
     resolve_autocomplete_limit,
     resolve_autocomplete_mode,
     resolve_lora_preset_menu_mode,
@@ -79,6 +96,7 @@ from settings import (
     resolve_prompt_studio_font_size,
 )
 from wildcard_engine import expand_wildcards
+from tests.comfy_host_fakes import patch_comfy_helper
 
 
 class PromptCorrectorTests(unittest.TestCase):
@@ -115,7 +133,10 @@ class PromptCorrectorTests(unittest.TestCase):
             self.assertEqual(target, "en")
             return {"빨간 머리의 소녀": "girl with red hair"}[text]
 
-        with patch("prompt_translation.google_translate_text", side_effect=fake_translate):
+        with patch(
+            "easyuse_anima.translation.service.google_translate_text",
+            side_effect=fake_translate,
+        ):
             translated = translate_prompt_markers(
                 "1girl, %{빨간 머리의 소녀}, blue eyes",
                 PromptTranslationSettings(
@@ -136,9 +157,13 @@ class PromptCorrectorTests(unittest.TestCase):
     def test_prompt_translation_defaults_off_and_does_not_auto_read_api_keys(self):
         self.assertEqual(PromptTranslationSettings().provider, PROMPT_TRANSLATION_PROVIDER_OFF)
         self.assertEqual(normalize_prompt_translation_provider("unknown"), PROMPT_TRANSLATION_PROVIDER_OFF)
-        source = (Path(__file__).resolve().parents[1] / "prompt_translation.py").read_text(
-            encoding="utf-8"
-        )
+        source = (
+            Path(__file__).resolve().parents[1]
+            / "easyuse_anima"
+            / "translation"
+            / "providers"
+            / "google.py"
+        ).read_text(encoding="utf-8")
         self.assertNotIn("GOOGLE_TRANSLATION_API_KEY", source)
         self.assertNotIn("requests.post", source)
 
@@ -154,7 +179,11 @@ class PromptCorrectorTests(unittest.TestCase):
             target="ja",
         )
 
-        with patch("nodes.resolve_prompt_translation_settings", return_value=off_settings):
+        with patch.object(
+            prompt_correction,
+            "resolve_prompt_translation_settings",
+            return_value=off_settings,
+        ):
             result = EasyUseAnimaPromptCorrectorSimple().correct("%{long_hair, 1girl}")
             off_key = EasyUseAnimaPromptCorrectorSimple.IS_CHANGED(
                 prompt="%{long_hair, 1girl}"
@@ -163,7 +192,11 @@ class PromptCorrectorTests(unittest.TestCase):
                 prompt="%{long_hair, 1girl}"
             )
 
-        with patch("nodes.resolve_prompt_translation_settings", return_value=google_settings):
+        with patch.object(
+            prompt_correction,
+            "resolve_prompt_translation_settings",
+            return_value=google_settings,
+        ):
             google_key = EasyUseAnimaPromptCorrectorSimple.IS_CHANGED(
                 prompt="%{long_hair, 1girl}"
             )
@@ -185,14 +218,17 @@ class PromptCorrectorTests(unittest.TestCase):
     def test_prompt_correctors_translate_marked_text_before_correction(self):
         with (
             patch(
-                "nodes.resolve_prompt_translation_settings",
+                "easyuse_anima.prompt.correction.resolve_prompt_translation_settings",
                 return_value=PromptTranslationSettings(
                     provider=PROMPT_TRANSLATION_PROVIDER_GOOGLE,
                     source="ko",
                     target="en",
                 ),
             ),
-            patch("prompt_translation.google_translate_text", return_value="long_hair, 1girl"),
+            patch(
+                "easyuse_anima.translation.service.google_translate_text",
+                return_value="long_hair, 1girl",
+            ),
         ):
             corrected, report = EasyUseAnimaPromptCorrector().correct("%{긴 머리 소녀}", "", "")
             simple = EasyUseAnimaPromptCorrectorSimple().correct("%{긴 머리 소녀}")[0]
@@ -204,14 +240,17 @@ class PromptCorrectorTests(unittest.TestCase):
     def test_prompt_builder_translates_marked_text_before_correction(self):
         with (
             patch(
-                "nodes.resolve_prompt_translation_settings",
+                "easyuse_anima.prompt.correction.resolve_prompt_translation_settings",
                 return_value=PromptTranslationSettings(
                     provider=PROMPT_TRANSLATION_PROVIDER_GOOGLE,
                     source="ko",
                     target="en",
                 ),
             ),
-            patch("prompt_translation.google_translate_text", return_value="girl with red hair"),
+            patch(
+                "easyuse_anima.translation.service.google_translate_text",
+                return_value="girl with red hair",
+            ),
         ):
             prompt, _quality, _use_amg, metadata_prompt = EasyUseAnimaPromptBuilder().build(
                 False,
@@ -434,7 +473,11 @@ class PromptBuilderTests(unittest.TestCase):
         self.assertEqual(metadata, prompt)
 
     def test_metadata_filter_only_changes_metadata_prompt(self):
-        with patch("nodes.resolve_metadata_filter_words", return_value="best quality\nhigh detail"):
+        with patch.object(
+            prompt_nodes,
+            "resolve_metadata_filter_words",
+            return_value="best quality\nhigh detail",
+        ):
             prompt, quality, use_amg, metadata = EasyUseAnimaPromptBuilder().build(
                 False,
                 False,
@@ -586,8 +629,12 @@ class PromptBuilderTests(unittest.TestCase):
             encoded_texts.append(text)
             return [[f"cond:{text}", {"encoded_text": text}]]
 
-        with patch("nodes._encode_with_comfy_clip", fake_encode):
-            with patch("nodes._correct_builder_prompt", return_value="corrected prompt") as correct_mock:
+        with patch_comfy_helper(nodes, "_encode_with_comfy_clip", fake_encode):
+            with patch.object(
+                prompt_artist_mix,
+                "_correct_builder_prompt",
+                return_value="corrected prompt",
+            ) as correct_mock:
                 positive = EasyUseAnimaArtistMixConditioning().encode(
                     object(),
                     prompt="1girl",
@@ -600,8 +647,8 @@ class PromptBuilderTests(unittest.TestCase):
         correct_mock.assert_called_once_with("1girl, artist_a", artist_overrides="artist_a")
 
         encoded_texts.clear()
-        with patch("nodes._encode_with_comfy_clip", fake_encode):
-            with patch("nodes._correct_builder_prompt") as correct_mock:
+        with patch_comfy_helper(nodes, "_encode_with_comfy_clip", fake_encode):
+            with patch.object(prompt_artist_mix, "_correct_builder_prompt") as correct_mock:
                 front_positive = EasyUseAnimaArtistMixConditioning().encode(
                     object(),
                     prompt="1girl",
@@ -628,7 +675,7 @@ class PromptBuilderTests(unittest.TestCase):
             encoded_texts.append(text)
             return [[f"cond:{text}", {"encoded_text": text}]]
 
-        with patch("nodes._encode_with_comfy_clip", fake_encode):
+        with patch_comfy_helper(nodes, "_encode_with_comfy_clip", fake_encode):
             positive = EasyUseAnimaArtistMixConditioning().encode(
                 object(),
                 prompt="1girl",
@@ -649,7 +696,7 @@ class PromptBuilderTests(unittest.TestCase):
             encoded_texts.append(text)
             return [[f"cond:{text}", {"encoded_text": text}]]
 
-        with patch("nodes._encode_with_comfy_clip", fake_encode):
+        with patch_comfy_helper(nodes, "_encode_with_comfy_clip", fake_encode):
             positive = EasyUseAnimaArtistMixConditioning().encode(
                 object(),
                 prompt="1girl",
@@ -671,7 +718,7 @@ class PromptBuilderTests(unittest.TestCase):
             encoded_texts.append(text)
             return [[f"cond:{text}", {"encoded_text": text}]]
 
-        with patch("nodes._encode_with_comfy_clip", fake_encode):
+        with patch_comfy_helper(nodes, "_encode_with_comfy_clip", fake_encode):
             EasyUseAnimaArtistMixConditioning().encode(
                 object(),
                 prompt="1girl",
@@ -690,7 +737,15 @@ class PromptBuilderTests(unittest.TestCase):
                 calls.append((width, height, batch_size))
                 return ({"samples": "latent"},)
 
-        with patch("nodes._find_comfy_node_class", lambda node_id: FakeEmptyLatentImage if node_id == "EmptyLatentImage" else None):
+        with patch_comfy_helper(
+            nodes,
+            "_find_comfy_node_class",
+            lambda node_id: (
+                FakeEmptyLatentImage
+                if node_id == "EmptyLatentImage"
+                else None
+            ),
+        ):
             latent = _generate_empty_latent_with_comfy(832, 1216)
 
         self.assertEqual(latent, {"samples": "latent"})
@@ -708,8 +763,16 @@ class PromptBuilderTests(unittest.TestCase):
             },
         }
 
-        with patch("nodes._encode_with_comfy_clip", lambda clip, text: [[f"cond:{text}", {"encoded_text": text}]]):
-            with patch("nodes._generate_empty_latent_with_comfy", lambda width, height: {"samples": (width, height, 1)}):
+        with patch_comfy_helper(
+            nodes,
+            "_encode_with_comfy_clip",
+            lambda clip, text: [[f"cond:{text}", {"encoded_text": text}]],
+        ):
+            with patch.object(
+                prompt_data_nodes,
+                "_generate_empty_latent_with_comfy",
+                lambda width, height: {"samples": (width, height, 1)},
+            ):
                 patched_model, positive, negative, latent_image = EasyUseAnimaPromptDataConditioning().apply(
                     model,
                     clip=object(),
@@ -758,10 +821,22 @@ class PromptBuilderTests(unittest.TestCase):
         }
 
         _SPECTRUM_ANIMA_MOD_GUIDANCE_OLD_SIGNATURE_WARNED.clear()
-        with patch("nodes._encode_with_comfy_clip", lambda clip, text: [[f"cond:{text}", {"encoded_text": text}]]):
-            with patch("nodes._generate_empty_latent_with_comfy", lambda width, height: {"samples": (width, height, 1)}):
-                with patch("nodes._find_spectrum_anima_mod_guidance_class", lambda: FakeAnimaModGuidance):
-                    with patch("nodes.logger.warning") as warning_mock:
+        with patch_comfy_helper(
+            nodes,
+            "_encode_with_comfy_clip",
+            lambda clip, text: [[f"cond:{text}", {"encoded_text": text}]],
+        ):
+            with patch.object(
+                prompt_data_nodes,
+                "_generate_empty_latent_with_comfy",
+                lambda width, height: {"samples": (width, height, 1)},
+            ):
+                with patch.object(
+                    prompt_conditioning,
+                    "_find_spectrum_anima_mod_guidance_class",
+                    lambda: FakeAnimaModGuidance,
+                ):
+                    with patch.object(prompt_conditioning, "_runtime_logger") as runtime_logger:
                         patched_model, positive, negative, latent_image = EasyUseAnimaPromptDataConditioning().apply(
                             model,
                             clip=clip,
@@ -778,6 +853,7 @@ class PromptBuilderTests(unittest.TestCase):
         self.assertEqual(calls[0]["mod_w_profile"], "step_i14")
         self.assertEqual(calls[0]["positive"], positive)
         self.assertEqual(calls[0]["negative"], negative)
+        warning_mock = runtime_logger.return_value.warning
         warning_mock.assert_called_once()
         self.assertIn("old patch() signature", warning_mock.call_args.args[0])
 
@@ -814,10 +890,22 @@ class PromptBuilderTests(unittest.TestCase):
         }
 
         _SPECTRUM_ANIMA_MOD_GUIDANCE_OLD_SIGNATURE_WARNED.clear()
-        with patch("nodes._encode_with_comfy_clip", lambda clip, text: [[f"cond:{text}", {"encoded_text": text}]]):
-            with patch("nodes._generate_empty_latent_with_comfy", lambda width, height: {"samples": (width, height, 1)}):
-                with patch("nodes._find_spectrum_anima_mod_guidance_class", lambda: FakeAnimaModGuidance):
-                    with patch("nodes.logger.warning") as warning_mock:
+        with patch_comfy_helper(
+            nodes,
+            "_encode_with_comfy_clip",
+            lambda clip, text: [[f"cond:{text}", {"encoded_text": text}]],
+        ):
+            with patch.object(
+                prompt_data_nodes,
+                "_generate_empty_latent_with_comfy",
+                lambda width, height: {"samples": (width, height, 1)},
+            ):
+                with patch.object(
+                    prompt_conditioning,
+                    "_find_spectrum_anima_mod_guidance_class",
+                    lambda: FakeAnimaModGuidance,
+                ):
+                    with patch.object(prompt_conditioning, "_runtime_logger") as runtime_logger:
                         patched_model, _positive, _negative, _latent_image = EasyUseAnimaPromptDataConditioning().apply(
                             object(),
                             clip=object(),
@@ -831,7 +919,7 @@ class PromptBuilderTests(unittest.TestCase):
             "quality_neg": "worst quality",
             "mod_w_profile": "step_i14",
         }])
-        warning_mock.assert_not_called()
+        runtime_logger.return_value.warning.assert_not_called()
 
     def test_prompt_data_conditioning_average_artist_mix_rebuilds_artist_position(self):
         fields = [
@@ -891,9 +979,13 @@ class PromptBuilderTests(unittest.TestCase):
                 },
             ]]
 
-        with patch("nodes._encode_with_comfy_clip", fake_encode):
-            with patch("nodes._blend_conditionings", fake_blend):
-                with patch("nodes._generate_empty_latent_with_comfy", lambda width, height: {"samples": (width, height, 1)}):
+        with patch_comfy_helper(nodes, "_encode_with_comfy_clip", fake_encode):
+            with patch.object(prompt_artist_mix, "_blend_conditionings", fake_blend):
+                with patch.object(
+                    prompt_data_nodes,
+                    "_generate_empty_latent_with_comfy",
+                    lambda width, height: {"samples": (width, height, 1)},
+                ):
                     _model, positive, _negative, _latent = EasyUseAnimaPromptDataConditioning().apply(
                         object(),
                         clip=object(),
@@ -929,8 +1021,12 @@ class PromptBuilderTests(unittest.TestCase):
             encoded_texts.append(text)
             return [[f"cond:{text}", {"encoded_text": text}]]
 
-        with patch("nodes._encode_with_comfy_clip", fake_encode):
-            with patch("nodes._generate_empty_latent_with_comfy", lambda width, height: {"samples": (width, height, 1)}):
+        with patch_comfy_helper(nodes, "_encode_with_comfy_clip", fake_encode):
+            with patch.object(
+                prompt_data_nodes,
+                "_generate_empty_latent_with_comfy",
+                lambda width, height: {"samples": (width, height, 1)},
+            ):
                 _model, positive, _negative, _latent = EasyUseAnimaPromptDataConditioning().apply(
                     object(),
                     clip=object(),
@@ -965,8 +1061,12 @@ class PromptBuilderTests(unittest.TestCase):
             encoded_texts.append(text)
             return [[f"cond:{text}", {"encoded_text": text}]]
 
-        with patch("nodes._encode_with_comfy_clip", fake_encode):
-            with patch("nodes._generate_empty_latent_with_comfy", lambda width, height: {"samples": (width, height, 1)}):
+        with patch_comfy_helper(nodes, "_encode_with_comfy_clip", fake_encode):
+            with patch.object(
+                prompt_data_nodes,
+                "_generate_empty_latent_with_comfy",
+                lambda width, height: {"samples": (width, height, 1)},
+            ):
                 _model, positive, _negative, _latent = EasyUseAnimaPromptDataConditioning().apply(
                     object(),
                     clip=object(),
@@ -999,9 +1099,13 @@ class PromptBuilderTests(unittest.TestCase):
             delta_calls.append((artists, list(weights or []), kwargs))
             return [["tail", {"strength": kwargs.get("branch_strength")}]]
 
-        with patch("nodes._encode_with_comfy_clip", fake_encode):
-            with patch("nodes._encode_artist_delta_rms", fake_delta):
-                with patch("nodes._generate_empty_latent_with_comfy", lambda width, height: {"samples": (width, height, 1)}):
+        with patch_comfy_helper(nodes, "_encode_with_comfy_clip", fake_encode):
+            with patch.object(prompt_artist_mix, "_encode_artist_delta_rms", fake_delta):
+                with patch.object(
+                    prompt_data_nodes,
+                    "_generate_empty_latent_with_comfy",
+                    lambda width, height: {"samples": (width, height, 1)},
+                ):
                     _model, positive, _negative, _latent = EasyUseAnimaPromptDataConditioning().apply(
                         object(),
                         clip=object(),
@@ -1045,10 +1149,14 @@ class PromptBuilderTests(unittest.TestCase):
             calls.append(("clustered", kwargs))
             return [["clustered", {}]]
 
-        with patch("nodes._encode_with_comfy_clip", fake_encode):
-            with patch("nodes._encode_artist_delta_rms", fake_delta):
-                with patch("nodes._encode_artist_clustered", fake_clustered):
-                    with patch("nodes._generate_empty_latent_with_comfy", lambda width, height: {"samples": (width, height, 1)}):
+        with patch_comfy_helper(nodes, "_encode_with_comfy_clip", fake_encode):
+            with patch.object(prompt_artist_mix, "_encode_artist_delta_rms", fake_delta):
+                with patch.object(prompt_artist_mix, "_encode_artist_clustered", fake_clustered):
+                    with patch.object(
+                        prompt_data_nodes,
+                        "_generate_empty_latent_with_comfy",
+                        lambda width, height: {"samples": (width, height, 1)},
+                    ):
                         _model, delta_positive, _negative, _latent = EasyUseAnimaPromptDataConditioning().apply(
                             object(),
                             clip=object(),
@@ -1161,14 +1269,17 @@ class PromptBuilderTests(unittest.TestCase):
         ]
         with (
             patch(
-                "nodes.resolve_prompt_translation_settings",
+                "easyuse_anima.prompt.correction.resolve_prompt_translation_settings",
                 return_value=PromptTranslationSettings(
                     provider=PROMPT_TRANSLATION_PROVIDER_GOOGLE,
                     source="ko",
                     target="en",
                 ),
             ),
-            patch("prompt_translation.google_translate_text", return_value="girl with red hair"),
+            patch(
+                "easyuse_anima.translation.service.google_translate_text",
+                return_value="girl with red hair",
+            ),
         ):
             result = EasyUseAnimaPromptStudioAdvancedV2().build(
                 False,
@@ -1971,9 +2082,12 @@ class PromptBuilderTests(unittest.TestCase):
         }
 
         with (
-            patch("nodes.resolve_naia_settings", return_value=settings),
             patch(
-                "nodes._post_random",
+                "easyuse_anima.nodes.prompt_advanced_nodes.resolve_naia_settings",
+                return_value=settings,
+            ),
+            patch(
+                "easyuse_anima.nodes.prompt_advanced_nodes._post_random",
                 return_value={
                     "ok": True,
                     "prompt": "1girl, silver hair",
@@ -2070,9 +2184,12 @@ class PromptBuilderTests(unittest.TestCase):
         }
 
         with (
-            patch("nodes.resolve_naia_settings", return_value=settings),
             patch(
-                "nodes._post_random",
+                "easyuse_anima.nodes.prompt_advanced_nodes.resolve_naia_settings",
+                return_value=settings,
+            ),
+            patch(
+                "easyuse_anima.nodes.prompt_advanced_nodes._post_random",
                 return_value={
                     "ok": True,
                     "prompt": "current image prompt",
@@ -2163,8 +2280,11 @@ class PromptBuilderTests(unittest.TestCase):
             }
 
         with (
-            patch("nodes.resolve_naia_settings", return_value=settings),
-            patch("nodes._post_random", fake_post),
+            patch(
+                "easyuse_anima.nodes.prompt_advanced_nodes.resolve_naia_settings",
+                return_value=settings,
+            ),
+            patch("easyuse_anima.nodes.prompt_advanced_nodes._post_random", fake_post),
         ):
             result = EasyUseAnimaPromptStudioAdvanced().build(
                 True,
@@ -2243,8 +2363,11 @@ class PromptBuilderTests(unittest.TestCase):
             return responses[len(calls) - 1]
 
         with (
-            patch("nodes.resolve_naia_settings", return_value=settings),
-            patch("nodes._post_random", fake_post),
+            patch(
+                "easyuse_anima.nodes.prompt_advanced_nodes.resolve_naia_settings",
+                return_value=settings,
+            ),
+            patch("easyuse_anima.nodes.prompt_advanced_nodes._post_random", fake_post),
         ):
             first = EasyUseAnimaPromptStudioAdvanced().build(
                 True,
@@ -2318,8 +2441,11 @@ class PromptBuilderTests(unittest.TestCase):
             }
 
         with (
-            patch("nodes.resolve_naia_settings", return_value=settings),
-            patch("nodes._post_random", fake_post),
+            patch(
+                "easyuse_anima.nodes.prompt_advanced_nodes.resolve_naia_settings",
+                return_value=settings,
+            ),
+            patch("easyuse_anima.nodes.prompt_advanced_nodes._post_random", fake_post),
         ):
             result = EasyUseAnimaPromptStudioAdvanced().build(
                 True,
@@ -2391,8 +2517,11 @@ class PromptBuilderTests(unittest.TestCase):
             }
 
         with (
-            patch("nodes.resolve_naia_settings", return_value=settings),
-            patch("nodes._post_random", fake_post),
+            patch(
+                "easyuse_anima.nodes.prompt_advanced_nodes.resolve_naia_settings",
+                return_value=settings,
+            ),
+            patch("easyuse_anima.nodes.prompt_advanced_nodes._post_random", fake_post),
         ):
             result = EasyUseAnimaPromptStudioAdvanced().build(
                 True,
@@ -2443,8 +2572,11 @@ class PromptBuilderTests(unittest.TestCase):
             }
 
         with (
-            patch("nodes.resolve_naia_settings", return_value=settings),
-            patch("nodes._post_random", fake_post),
+            patch(
+                "easyuse_anima.nodes.prompt_advanced_nodes.resolve_naia_settings",
+                return_value=settings,
+            ),
+            patch("easyuse_anima.nodes.prompt_advanced_nodes._post_random", fake_post),
         ):
             result = EasyUseAnimaPromptStudioAdvanced().build(
                 True,
@@ -2707,9 +2839,12 @@ class PromptBuilderTests(unittest.TestCase):
         }
 
         with (
-            patch("nodes.resolve_naia_settings", return_value=settings),
             patch(
-                "nodes._post_random",
+                "easyuse_anima.nodes.prompt_advanced_nodes.resolve_naia_settings",
+                return_value=settings,
+            ),
+            patch(
+                "easyuse_anima.nodes.prompt_advanced_nodes._post_random",
                 return_value={
                     "ok": True,
                     "prompt": "1girl, blue eyes",
@@ -2740,6 +2875,27 @@ class PromptBuilderTests(unittest.TestCase):
 
 
 class SettingsTests(unittest.TestCase):
+    def test_root_exports_are_identical_canonical_objects(self):
+        owners = (settings_schema, settings_repository, settings_service)
+        expected = {
+            name
+            for owner in owners
+            for name in owner.__all__
+        }
+
+        self.assertEqual(len(root_settings.__all__), 41)
+        self.assertEqual(set(root_settings.__all__), expected)
+        for name in root_settings.__all__:
+            canonical_owners = [
+                owner for owner in owners if name in owner.__all__
+            ]
+            with self.subTest(name=name):
+                self.assertEqual(len(canonical_owners), 1)
+                self.assertIs(
+                    getattr(root_settings, name),
+                    getattr(canonical_owners[0], name),
+                )
+
     def test_save_setting_round_trips_false_zero_empty_string_and_null(self):
         with tempfile.TemporaryDirectory() as tmp:
             settings_file = Path(tmp) / "settings.json"
@@ -2752,19 +2908,23 @@ class SettingsTests(unittest.TestCase):
             )
 
             with (
-                patch.object(easyuse_settings, "SETTINGS_FILE", settings_file),
+                patch.object(settings_repository, "SETTINGS_FILE", settings_file),
                 patch.object(
-                    easyuse_settings,
+                    settings_repository,
                     "LONG_TEXT_SETTINGS_FILE",
                     long_text_settings_file,
                 ),
-                patch.object(easyuse_settings, "_load_comfy_settings", return_value={}),
+                patch.object(
+                    settings_repository,
+                    "_load_comfy_settings",
+                    return_value={},
+                ),
             ):
                 for key, value, expected in cases:
                     with self.subTest(key=key, value=value):
-                        saved = easyuse_settings.save_setting(key, value)
+                        saved = settings_repository.save_setting(key, value)
                         persisted = json.loads(settings_file.read_text(encoding="utf-8"))
-                        reloaded = easyuse_settings.get_settings()
+                        reloaded = settings_repository.get_settings()
 
                         self.assertEqual(saved[key], expected)
                         self.assertEqual(persisted[key], expected)
@@ -2781,7 +2941,7 @@ class SettingsTests(unittest.TestCase):
         second_started = threading.Event()
         second_done = threading.Event()
         errors: list[BaseException] = []
-        original_read = easyuse_settings._read_json_file
+        original_read = settings_repository._read_json_file
 
         def coordinated_read(path: Path) -> dict:
             data = original_read(path)
@@ -2793,14 +2953,14 @@ class SettingsTests(unittest.TestCase):
 
         def save_first():
             try:
-                easyuse_settings.save_setting("autocomplete.limit", 33)
+                settings_repository.save_setting("autocomplete.limit", 33)
             except BaseException as exc:
                 errors.append(exc)
 
         def save_second():
             second_started.set()
             try:
-                easyuse_settings.save_setting("prompt_studio.font_family", "Inter")
+                settings_repository.save_setting("prompt_studio.font_family", "Inter")
             except BaseException as exc:
                 errors.append(exc)
             finally:
@@ -2808,10 +2968,22 @@ class SettingsTests(unittest.TestCase):
 
         try:
             with (
-                patch.object(easyuse_settings, "SETTINGS_FILE", settings_file),
-                patch.object(easyuse_settings, "LONG_TEXT_SETTINGS_FILE", long_text_settings_file),
-                patch.object(easyuse_settings, "_load_comfy_settings", return_value={}),
-                patch.object(easyuse_settings, "_read_json_file", side_effect=coordinated_read),
+                patch.object(settings_repository, "SETTINGS_FILE", settings_file),
+                patch.object(
+                    settings_repository,
+                    "LONG_TEXT_SETTINGS_FILE",
+                    long_text_settings_file,
+                ),
+                patch.object(
+                    settings_repository,
+                    "_load_comfy_settings",
+                    return_value={},
+                ),
+                patch.object(
+                    settings_repository,
+                    "_read_json_file",
+                    side_effect=coordinated_read,
+                ),
             ):
                 first = threading.Thread(target=save_first, name="first-setting")
                 second = threading.Thread(target=save_second, name="second-setting")
@@ -2844,7 +3016,7 @@ class SettingsTests(unittest.TestCase):
         second_started = threading.Event()
         second_done = threading.Event()
         errors: list[BaseException] = []
-        store_class = easyuse_settings.AtomicJsonStore
+        store_class = settings_repository.AtomicJsonStore
         original_read = store_class._read_unlocked
 
         def coordinated_read(store, *args, **kwargs):
@@ -2860,7 +3032,7 @@ class SettingsTests(unittest.TestCase):
 
         def save_first():
             try:
-                easyuse_settings.save_long_text_settings(
+                settings_repository.save_long_text_settings(
                     {"prompt.metadata_filter_words": "metadata"}
                 )
             except BaseException as exc:
@@ -2869,7 +3041,9 @@ class SettingsTests(unittest.TestCase):
         def save_second():
             second_started.set()
             try:
-                easyuse_settings.save_long_text_settings({"naia.pre_prompt": "prefix"})
+                settings_repository.save_long_text_settings(
+                    {"naia.pre_prompt": "prefix"}
+                )
             except BaseException as exc:
                 errors.append(exc)
             finally:
@@ -2878,7 +3052,7 @@ class SettingsTests(unittest.TestCase):
         try:
             with (
                 patch.object(
-                    easyuse_settings,
+                    settings_repository,
                     "LONG_TEXT_SETTINGS_FILE",
                     long_text_settings_file,
                 ),
@@ -2912,7 +3086,7 @@ class SettingsTests(unittest.TestCase):
 
     def test_save_setting_preserves_unknown_key_rejection_contract(self):
         with self.assertRaisesRegex(KeyError, "Unknown setting"):
-            easyuse_settings.save_setting("future.unknown", "value")
+            settings_repository.save_setting("future.unknown", "value")
 
     def test_public_settings_does_not_expose_token_file(self):
         settings = public_settings()
@@ -2923,7 +3097,9 @@ class SettingsTests(unittest.TestCase):
                 "autocomplete.source",
                 "autocomplete.limit",
                 "autocomplete.mode",
+                "autocomplete.artist_prefix",
                 "autocomplete.commit_key",
+                "autocomplete.commit_mode",
                 "autocomplete.append_separator",
                 "autocomplete.no_comma_after_period",
                 "autocomplete.detect_natural_sentences",
@@ -2936,6 +3112,7 @@ class SettingsTests(unittest.TestCase):
                 "lora_preset.strength_drag_pixels",
                 "prompt_studio.typo_indicator",
                 "prompt_studio.weight_syntax_underline",
+                "prompt_studio.selection_parenthesis_weight",
                 "prompt_studio.comment_italic",
                 "prompt_studio.font_override",
                 "prompt_studio.font_family",
@@ -2986,6 +3163,29 @@ class SettingsTests(unittest.TestCase):
             "compatible_global",
         )
 
+    def test_autocomplete_artist_prefix_is_normalized(self):
+        for value, expected in (
+            (None, "@"),
+            ("", "@"),
+            ("  artist:  ", "artist:"),
+            ("bad,prefix", "@"),
+            ("bad\nprefix", "@"),
+            ("\x00bad", "@"),
+            ("x" * 33, "@"),
+        ):
+            with self.subTest(value=value):
+                with patch.object(
+                    settings_service,
+                    "get_settings",
+                    return_value={"autocomplete.artist_prefix": value},
+                ):
+                    self.assertEqual(
+                        settings_service.public_settings()[
+                            "autocomplete.artist_prefix"
+                        ],
+                        expected,
+                    )
+
     def test_autocomplete_commit_key_is_validated(self):
         self.assertEqual(
             resolve_autocomplete_commit_key({"autocomplete.commit_key": "enter"}),
@@ -2998,6 +3198,22 @@ class SettingsTests(unittest.TestCase):
         self.assertEqual(
             resolve_autocomplete_commit_key({"autocomplete.commit_key": "bad"}),
             "enter",
+        )
+
+    def test_autocomplete_commit_mode_is_validated(self):
+        for value in ("smart", "insert", "replace"):
+            with self.subTest(value=value):
+                self.assertEqual(
+                    resolve_autocomplete_commit_mode(
+                        {"autocomplete.commit_mode": value}
+                    ),
+                    value,
+                )
+        self.assertEqual(
+            resolve_autocomplete_commit_mode(
+                {"autocomplete.commit_mode": "bad"}
+            ),
+            "smart",
         )
 
     def test_lora_preset_strength_drag_step_is_clamped(self):
@@ -3154,17 +3370,20 @@ class SettingsTests(unittest.TestCase):
 
     def test_comfy_settings_override_legacy_settings(self):
         with (
-            patch.object(easyuse_settings, "_read_json_file", return_value={}),
+            patch.object(settings_repository, "_read_json_file", return_value={}),
             patch.object(
-                easyuse_settings,
+                settings_repository,
                 "_load_comfy_settings",
                 return_value={
                     "EasyUseAnima.Prompt.AutocompleteLimit": "7",
+                    "EasyUseAnima.Prompt.AutocompleteArtistPrefix": "artist:",
                     "EasyUseAnima.Prompt.AutocompleteCommitKey": "tab",
+                    "EasyUseAnima.Prompt.AutocompleteCommitMode": "replace",
                     "EasyUseAnima.Prompt.AutocompleteAppendSeparator": "true",
                     "EasyUseAnima.Prompt.AutocompleteNoCommaAfterPeriod": "false",
                     "EasyUseAnima.Prompt.AutocompleteDetectNaturalSentences": "false",
                     "EasyUseAnima.Prompt.TypoIndicator": "false",
+                    "EasyUseAnima.Prompt.SelectionParenthesisWeight": "true",
                     "EasyUseAnima.Prompt.CommentItalic": "false",
                     "EasyUseAnima.Prompt.FontOverride": "true",
                     "EasyUseAnima.Prompt.FontFamily": "Arial",
@@ -3183,14 +3402,20 @@ class SettingsTests(unittest.TestCase):
                 },
             ),
         ):
-            settings = easyuse_settings.public_settings()
+            settings = settings_service.public_settings()
 
         self.assertEqual(settings["autocomplete.limit"], 7)
+        self.assertEqual(settings["autocomplete.artist_prefix"], "artist:")
         self.assertEqual(settings["autocomplete.commit_key"], "tab")
+        self.assertEqual(settings["autocomplete.commit_mode"], "replace")
         self.assertEqual(settings["autocomplete.append_separator"], "true")
         self.assertEqual(settings["autocomplete.no_comma_after_period"], "false")
         self.assertEqual(settings["autocomplete.detect_natural_sentences"], "false")
         self.assertEqual(settings["prompt_studio.typo_indicator"], "false")
+        self.assertEqual(
+            settings["prompt_studio.selection_parenthesis_weight"],
+            "true",
+        )
         self.assertEqual(settings["prompt_studio.comment_italic"], "false")
         self.assertEqual(settings["prompt_studio.font_override"], "true")
         self.assertEqual(settings["prompt_studio.font_family"], "Arial")
@@ -3212,12 +3437,12 @@ class SettingsTests(unittest.TestCase):
     def test_comfy_color_settings_merge_into_prompt_studio_colors(self):
         with (
             patch.object(
-                easyuse_settings,
+                settings_repository,
                 "_read_json_file",
                 return_value={"prompt_studio.colors": '{"quality":"#111111"}'},
             ),
             patch.object(
-                easyuse_settings,
+                settings_repository,
                 "_load_comfy_settings",
                 return_value={
                     "EasyUseAnima.Prompt.HighlightColor.quality": "#222222",
@@ -3226,7 +3451,7 @@ class SettingsTests(unittest.TestCase):
                 },
             ),
         ):
-            settings = easyuse_settings.public_settings()
+            settings = settings_service.public_settings()
 
         colors = json.loads(settings["prompt_studio.colors"])
         self.assertEqual(colors["quality"], "#222222")
@@ -3235,9 +3460,9 @@ class SettingsTests(unittest.TestCase):
 
     def test_prompt_studio_highlight_colors_prefer_aggregate_comfy_setting(self):
         with (
-            patch.object(easyuse_settings, "_read_json_file", return_value={}),
+            patch.object(settings_repository, "_read_json_file", return_value={}),
             patch.object(
-                easyuse_settings,
+                settings_repository,
                 "_load_comfy_settings",
                 return_value={
                     "EasyUseAnima.Prompt.HighlightColors": '{"quality":"#111111"}',
@@ -3245,7 +3470,7 @@ class SettingsTests(unittest.TestCase):
                 },
             ),
         ):
-            settings = easyuse_settings.public_settings()
+            settings = settings_service.public_settings()
 
         colors = json.loads(settings["prompt_studio.colors"])
         self.assertEqual(colors["quality"], "#111111")
@@ -3256,14 +3481,18 @@ class SettingsTests(unittest.TestCase):
         root.mkdir(parents=True, exist_ok=True)
         try:
             with (
-                patch.object(easyuse_settings, "SETTINGS_FILE", root / "settings.json"),
                 patch.object(
-                    easyuse_settings,
+                    settings_repository,
+                    "SETTINGS_FILE",
+                    root / "settings.json",
+                ),
+                patch.object(
+                    settings_repository,
                     "LONG_TEXT_SETTINGS_FILE",
                     root / "long_text_settings.json",
                 ),
                 patch.object(
-                    easyuse_settings,
+                    settings_repository,
                     "_load_comfy_settings",
                     return_value={
                         "EasyUseAnima.Prompt.MetadataFilter": "comfy filter",
@@ -3273,7 +3502,7 @@ class SettingsTests(unittest.TestCase):
                     },
                 ),
             ):
-                easyuse_settings.save_long_text_settings(
+                settings_repository.save_long_text_settings(
                     {
                         "prompt.metadata_filter_words": "file filter",
                         "naia.pre_prompt": "file pre",
@@ -3281,8 +3510,8 @@ class SettingsTests(unittest.TestCase):
                         "naia.auto_hide": "file hide",
                     }
                 )
-                settings = easyuse_settings.public_settings()
-                naia_settings = easyuse_settings.resolve_naia_settings()
+                settings = settings_service.public_settings()
+                naia_settings = settings_service.resolve_naia_settings()
         finally:
             shutil.rmtree(root, ignore_errors=True)
 
