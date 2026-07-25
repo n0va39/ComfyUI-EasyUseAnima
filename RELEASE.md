@@ -1,5 +1,45 @@
 # Release Notes
 
+## 0.5.5
+
+### Added
+
+- Prompt Studio Advanced and AdvancedV2 can swap width and height in one
+  action for inverse presets and custom resolutions. NAIA-backed dimensions
+  remain protected when a deterministic swap is not available.
+- Artist-only autocomplete supports a configurable prefix while keeping `@` as
+  the default. Prompt completion can preserve or safely replace text to the
+  right of the caret according to the selected commit mode.
+- Prompt Studio can wrap selected text with `()`, `{}`, or `[[ ]]`. An optional
+  setting adds `(selection:1)` and selects the numeric weight for immediate
+  editing.
+
+### Fixed
+
+- LoRA Preset no longer treats profile metadata embedded by another user's
+  workflow as proof that the profile is saved locally. Saved state now requires
+  the current local profile identity and content to match.
+- The LoRA Preset profile scrollbar now supports track clicks and thumb drags
+  through the actual Legacy Canvas and Node 2.0 host geometry.
+- Long pasted text grows Prompt Studio Classic, Extend, Advanced, and
+  AdvancedV2 text areas after layout without shrinking a newer revision.
+- A Korean autocomplete source is selected only for a fresh Korean locale with
+  no explicit source setting. Existing user choices remain unchanged.
+- Mid-text autocomplete preserves protected suffixes, prompt weights, closing
+  syntax, and separate tags instead of replacing an oversized segment.
+
+### Compatibility
+
+- Existing workflows, settings, profiles, public node identifiers, and
+  backend API contracts remain compatible.
+- New settings use compatibility-preserving defaults and do not rewrite
+  existing prompt text or stored workflow data.
+- Release validation covers ComfyUI 0.27.0 Legacy Canvas and Node 2.0.
+
+### Update
+
+- After updating, restart ComfyUI and hard-refresh the browser.
+
 ## 0.5.4
 
 ### Fixed

@@ -1,0 +1,14 @@
+EasyUse Anima 0.5.5 stabilizes shared LoRA workflows and expands Prompt Studio editing controls.
+
+Changes:
+1. LoRA Preset saved state now requires the current local profile identity and content to match, so a workflow from another user does not inherit that user's saved status.
+2. LoRA Preset profile scrollbars support track clicks and thumb drags in Legacy Canvas and Node 2.0.
+3. Long pasted text grows Prompt Studio Classic, Extend, Advanced, and AdvancedV2 inputs after layout without shrinking a newer edit.
+4. Fresh Korean-locale installs use the Korean autocomplete source only when no explicit source was already selected.
+5. Prompt Studio Advanced and AdvancedV2 can swap width and height for supported presets and custom resolutions.
+6. Artist autocomplete supports a custom prefix, and mid-text completion preserves separate tags, weights, and closing syntax.
+7. Selected prompt text can be wrapped with parentheses, braces, or double brackets. An optional setting adds an editable numeric weight.
+8. Existing workflows, settings, profiles, public node identifiers, and backend API contracts remain compatible.
+
+Action required:
+After updating, restart ComfyUI and hard-refresh the browser.
