@@ -72,6 +72,33 @@ This document records decisions that supersede earlier experimental notes.
 - Follow `docs/development/browser-smoke-matrix.md` for focused, full,
   dual-canvas, and final user-instance validation timing.
 
+## Codex Execution Efficiency
+
+- Follow [`codex-execution-efficiency.md`](codex-execution-efficiency.md) for
+  every roadmap and implementation task.
+- Start from one bounded task card. Read the active task section, owning Issue,
+  direct owner files, direct tests, and targeted callers; do not reread the full
+  repository or all historical plans by default.
+- During implementation, run changed-file syntax checks and focused tests only.
+- The `quick` project profile is a broad repository check, not a per-edit focused
+  command.
+- Run the official `full` project check once on the final candidate SHA. Rerun it
+  only after an invalidating code, test, runner, shared fixture, configuration,
+  or overlapping-rebase change.
+- Run package validation only when import/registration/archive/metadata closure
+  can change. Run live ComfyUI only for host-visible behavior. Run benchmarks
+  only for performance or output-quality policy work.
+- Reuse evidence for the same SHA and environment. Documentation, PR text,
+  labels, and comments do not invalidate code or live evidence.
+- Every test command must state the invariant it proves. Do not run broad suites
+  merely because they share a high-level feature name.
+- Stop at the first focused failure, identify the root cause, and do not rerun
+  the complete suite until the focused failure passes.
+- Use one implementation agent by default. Parallel workers require disjoint
+  file ownership, a frozen shared contract, and bounded handoff output.
+- PR and Issue completion records use the compact evidence template from the
+  efficiency protocol instead of duplicating full logs or roadmap bodies.
+
 ## Detailer and SAM3
 
 - Do not copy or reimplement Impact Pack `DetailerForEach` core logic in EasyUse Anima.
