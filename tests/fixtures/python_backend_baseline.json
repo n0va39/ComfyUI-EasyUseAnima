@@ -60662,9 +60662,9 @@
       },
       {
         "is_package": false,
-        "loc": 226,
+        "loc": 230,
         "module": "easyuse_anima.settings.schema",
-        "normalized_git_blob_sha1": "fc547a31d088ec472e2b437db3293efca90e7e5f",
+        "normalized_git_blob_sha1": "1a0a9046f9e6c1d7dd79b594854b6b899c7d1278",
         "path": "easyuse_anima/settings/schema.py",
         "top_level": {
           "class_count": 0,
@@ -60674,9 +60674,9 @@
       },
       {
         "is_package": false,
-        "loc": 490,
+        "loc": 494,
         "module": "easyuse_anima.settings.service",
-        "normalized_git_blob_sha1": "7b3cdd24bfce1c8c7ad83622414cfa128b0878a7",
+        "normalized_git_blob_sha1": "19963faaba9203febba90cad7c71d06b3341c8c7",
         "path": "easyuse_anima/settings/service.py",
         "top_level": {
           "class_count": 0,
@@ -81412,25 +81412,25 @@
       },
       {
         "kind": "set",
-        "line": 76,
+        "line": 77,
         "module": "easyuse_anima/settings/schema.py",
         "name": "AUTOCOMPLETE_COMMIT_KEYS"
       },
       {
         "kind": "set",
-        "line": 81,
+        "line": 82,
         "module": "easyuse_anima/settings/schema.py",
         "name": "AUTOCOMPLETE_COMMIT_MODES"
       },
       {
         "kind": "set",
-        "line": 70,
+        "line": 71,
         "module": "easyuse_anima/settings/schema.py",
         "name": "AUTOCOMPLETE_MODES"
       },
       {
         "kind": "dict",
-        "line": 137,
+        "line": 138,
         "module": "easyuse_anima/settings/schema.py",
         "name": "COMFY_SETTING_KEYS"
       },
@@ -81442,37 +81442,37 @@
       },
       {
         "kind": "dict",
-        "line": 197,
+        "line": 201,
         "module": "easyuse_anima/settings/schema.py",
         "name": "LONG_TEXT_SETTING_ALIASES"
       },
       {
         "kind": "set",
-        "line": 190,
+        "line": 194,
         "module": "easyuse_anima/settings/schema.py",
         "name": "LONG_TEXT_SETTING_KEYS"
       },
       {
         "kind": "list",
-        "line": 101,
+        "line": 102,
         "module": "easyuse_anima/settings/schema.py",
         "name": "NAIA_PREPROCESSING_KEYS"
       },
       {
         "kind": "set",
-        "line": 92,
+        "line": 93,
         "module": "easyuse_anima/settings/schema.py",
         "name": "NAIA_RESOLUTION_BUCKETS"
       },
       {
         "kind": "set",
-        "line": 87,
+        "line": 88,
         "module": "easyuse_anima/settings/schema.py",
         "name": "NAIA_RESOLUTION_MODES"
       },
       {
         "kind": "list",
-        "line": 119,
+        "line": 120,
         "module": "easyuse_anima/settings/schema.py",
         "name": "PROMPT_STUDIO_COLOR_KEYS"
       },

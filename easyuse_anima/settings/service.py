@@ -78,6 +78,10 @@ def public_settings() -> dict:
             "prompt_studio.weight_syntax_underline",
             DEFAULT_SETTINGS["prompt_studio.weight_syntax_underline"],
         ),
+        "prompt_studio.selection_parenthesis_weight": settings.get(
+            "prompt_studio.selection_parenthesis_weight",
+            DEFAULT_SETTINGS["prompt_studio.selection_parenthesis_weight"],
+        ),
         "prompt_studio.comment_italic": settings.get(
             "prompt_studio.comment_italic",
             DEFAULT_SETTINGS["prompt_studio.comment_italic"],

@@ -28,6 +28,7 @@ DEFAULT_SETTINGS = {
     "lora_preset.strength_drag_pixels": "8",
     "prompt_studio.typo_indicator": "true",
     "prompt_studio.weight_syntax_underline": "false",
+    "prompt_studio.selection_parenthesis_weight": "false",
     "prompt_studio.comment_italic": "true",
     "prompt_studio.font_override": "false",
     "prompt_studio.font_family": "",
@@ -149,6 +150,9 @@ COMFY_SETTING_KEYS = {
     "EasyUseAnima.Prompt.AutocompletePreviewClosingBrackets": "autocomplete.preview_closing_brackets",
     "EasyUseAnima.Prompt.TypoIndicator": "prompt_studio.typo_indicator",
     "EasyUseAnima.Prompt.WeightSyntaxUnderline": "prompt_studio.weight_syntax_underline",
+    "EasyUseAnima.Prompt.SelectionParenthesisWeight": (
+        "prompt_studio.selection_parenthesis_weight"
+    ),
     "EasyUseAnima.Prompt.CommentItalic": "prompt_studio.comment_italic",
     "EasyUseAnima.Prompt.FontOverride": "prompt_studio.font_override",
     "EasyUseAnima.Prompt.FontFamily": "prompt_studio.font_family",

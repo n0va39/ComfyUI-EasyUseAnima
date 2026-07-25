@@ -30,6 +30,7 @@ import {
   normalizeWildcardSearchText,
   parseAutocompleteText,
   planAutocompleteInsertion,
+  planBracketInsertion,
   wildcardAutocompleteQuery,
 } from "./autocomplete/text_model.js";
 
@@ -191,6 +192,7 @@ let autocompleteNoCommaAfterPeriod = true;
 let autocompleteDetectNaturalSentences = true;
 let autocompletePreviewClosingBrackets = false;
 let autocompletePreviewCompletion = false;
+let promptStudioSelectionParenthesisWeight = false;
 let popup = null;
 let activeState = null;
 let activeRefreshFrame = null;
@@ -256,6 +258,10 @@ function setAutocompleteDetectNaturalSentences(value) {
 
 function setAutocompletePreviewClosingBrackets(value) {
   autocompletePreviewClosingBrackets = parseBooleanSetting(value, false);
+}
+
+function setPromptStudioSelectionParenthesisWeight(value) {
+  promptStudioSelectionParenthesisWeight = parseBooleanSetting(value, false);
 }
 
 function setAutocompletePreviewCompletion(value) {
@@ -457,6 +463,9 @@ async function refreshAutocompleteSettings() {
       dataRequestsInvalidated = true;
     }
     setAutocompletePreviewClosingBrackets(settings["autocomplete.preview_closing_brackets"]);
+    setPromptStudioSelectionParenthesisWeight(
+      settings["prompt_studio.selection_parenthesis_weight"],
+    );
     const previousPreviewCompletion = autocompletePreviewCompletion;
     setAutocompletePreviewCompletion(settings["autocomplete.preview_completion"]);
     if (autocompletePreviewCompletion !== previousPreviewCompletion) {
@@ -982,7 +991,14 @@ function resetVisibleAutocompleteMenuSoon(menu, input) {
   });
 }
 
-function replaceInputRange(input, start, end, replacement, caretOffset) {
+function replaceInputRange(
+  input,
+  start,
+  end,
+  replacement,
+  selectionStartOffset,
+  selectionEndOffset = selectionStartOffset,
+) {
   input.focus?.();
   input.setSelectionRange(start, end);
   const beforeValue = input.value;
@@ -994,8 +1010,10 @@ function replaceInputRange(input, start, end, replacement, caretOffset) {
     input.setRangeText(replacement, start, end, "end");
     input.dispatchEvent(new Event("input", { bubbles: true }));
   }
-  const caret = start + caretOffset;
-  input.setSelectionRange(caret, caret);
+  input.setSelectionRange(
+    start + selectionStartOffset,
+    start + selectionEndOffset,
+  );
 }
 
 function suppressAutocompleteUntilInputChanges(input) {
@@ -1326,21 +1344,23 @@ function updateAutocompletePreview() {
   refreshAutocompleteHighlightPreview(input);
 }
 
-function insertBracketPair(state, event, open, close, replacement = null, caretOffset = null) {
+function insertBracketPair(state, event, plan) {
   if (!autocompletePreviewClosingBrackets || event.defaultPrevented || event.ctrlKey || event.metaKey || event.altKey) {
     return false;
   }
   const input = state?.input;
-  if (!input || input.selectionStart == null || input.selectionEnd == null) {
+  if (!input || !plan) {
     return false;
   }
   event.preventDefault();
-  const start = input.selectionStart;
-  const end = input.selectionEnd;
-  const selected = input.value.slice(start, end);
-  const text = replacement ?? `${open}${selected}${close}`;
-  const offset = caretOffset ?? (open.length + selected.length);
-  replaceInputRange(input, start, end, text, offset);
+  replaceInputRange(
+    input,
+    plan.start,
+    plan.end,
+    plan.replacement,
+    plan.selectionStartOffset,
+    plan.selectionEndOffset,
+  );
   syncWidgetValue(state);
   return true;
 }
@@ -1352,14 +1372,17 @@ function handleBracketPreviewKeydown(state, event) {
   }
   const start = input.selectionStart ?? 0;
   const end = input.selectionEnd ?? start;
-  if (event.key === "(") {
-    return insertBracketPair(state, event, "(", ")");
-  }
-  if (event.key === "{") {
-    return insertBracketPair(state, event, "{", "}");
-  }
-  if (event.key === "[" && start === end && input.value[start - 1] === "[") {
-    return insertBracketPair(state, event, "[", "]]", "[]]", 1);
+  const plan = planBracketInsertion(
+    input.value,
+    start,
+    end,
+    event.key,
+    {
+      selectionParenthesisWeight: promptStudioSelectionParenthesisWeight,
+    },
+  );
+  if (plan) {
+    return insertBracketPair(state, event, plan);
   }
   if ((event.key === ")" || event.key === "]" || event.key === "}") && start === end && input.value[start] === event.key) {
     event.preventDefault();
@@ -1802,6 +1825,11 @@ function handleAutocompleteSettingsUpdated(event) {
   }
   if ("autocomplete.preview_closing_brackets" in detail) {
     setAutocompletePreviewClosingBrackets(detail["autocomplete.preview_closing_brackets"]);
+  }
+  if ("prompt_studio.selection_parenthesis_weight" in detail) {
+    setPromptStudioSelectionParenthesisWeight(
+      detail["prompt_studio.selection_parenthesis_weight"],
+    );
   }
   if ("autocomplete.preview_completion" in detail) {
     const previousPreviewCompletion = autocompletePreviewCompletion;

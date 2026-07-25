@@ -591,6 +591,7 @@ class AutocompleteFrontendBoundaryTests(unittest.TestCase):
             "normalizeWildcardSearchText",
             "parseAutocompleteText",
             "planAutocompleteInsertion",
+            "planBracketInsertion",
             "wildcardAutocompleteQuery",
         }
         expected_imports = {
@@ -608,6 +609,7 @@ class AutocompleteFrontendBoundaryTests(unittest.TestCase):
             "normalizeWildcardSearchText",
             "parseAutocompleteText",
             "planAutocompleteInsertion",
+            "planBracketInsertion",
             "wildcardAutocompleteQuery",
         }
 
