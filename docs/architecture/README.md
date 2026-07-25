@@ -4,12 +4,19 @@ These documents define the target Python backend architecture, migration rules,
 and explicitly reviewed cross-surface execution plans for ComfyUI EasyUse Anima.
 
 They are contracts for future work, not a claim that every target package or
-feature already exists. Start with the current-state section in
-[`python-backend.md`](python-backend.md), then follow the active sequencing notes
-below before selecting work from the ordinary backend roadmap.
+feature already exists. Before selecting a task, read the bounded execution and
+test-escalation policy in
+[`../development/codex-execution-efficiency.md`](../development/codex-execution-efficiency.md).
+Then follow the active sequencing notes below and read only the current task
+section, owning Issue, direct owner files, and direct tests.
 
 ## Active sequencing notes
 
+- [`codex-execution-efficiency.md`](../development/codex-execution-efficiency.md)
+  applies to every active and ordinary roadmap. It defines the bounded task card,
+  focused edit loop, final-full-once rule, package/live/benchmark triggers,
+  evidence reuse, and current task-specific test maps. It reduces repeated work;
+  it does not weaken an Issue or release gate.
 - Issue [#415](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/415)
   is the current implementation and release owner for the queue/live-UI
   regressions in [#413](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/413)
@@ -34,6 +41,10 @@ below before selecting work from the ordinary backend roadmap.
 
 ## Documents
 
+- [`../development/codex-execution-efficiency.md`](../development/codex-execution-efficiency.md):
+  cross-roadmap Codex context budget, work-packet format, test ladder, invalidation
+  rules, compact evidence format, and scoped test maps for #413/#414, #409/#410/#411,
+  and ordinary backend work.
 - [`queue-ui-execution-state-hotfix.md`](queue-ui-execution-state-hotfix.md):
   active queue-first runbook for stale LoRA/Prompt Studio execution results
   (#413), rgthree-compatible AiO special-seed display semantics (#414), the
@@ -42,9 +53,10 @@ below before selecting work from the ordinary backend roadmap.
 - [`python-backend.md`](python-backend.md): living architecture, ownership,
   execution phases, validation gates, and overall Definition of Done.
 - [`python-backend-execution-roadmap.md`](python-backend-execution-roadmap.md):
-  verified backend progress, Codex execution protocol, ordered work units, stop
-  conditions, and task-level validation gates. Its next-work ordering is paused
-  while #415 is open.
+  verified backend progress, ordered work units, stop conditions, and task-level
+  validation gates. Its next-work ordering is paused while #415 is open. When it
+  resumes, apply the efficiency protocol instead of rerunning every historical
+  inventory and broad test after each edit.
 - [`aio-advanced-integrations-roadmap.md`](aio-advanced-integrations-roadmap.md):
   blocked follow-on plan for stage-scoped DAVE and other MODEL patches (#409),
   KJNodes Torch Compile environment recommendations (#410), and ComfyUI-ppm
@@ -70,6 +82,9 @@ below before selecting work from the ordinary backend roadmap.
   publication, and validation: [`MAINTAINING.md`](../../MAINTAINING.md).
 - The development-document entry point remains
   [`docs/development/README.md`](../development/README.md).
+- The efficiency protocol selects the smallest sufficient evidence and timing;
+  it does not permit skipping explicit correctness, compatibility, package, live,
+  or release gates owned by a task.
 - The architecture ADRs and ordinary backend roadmap own Python package and
   lifecycle boundaries.
 - Cross-surface bug and AiO plans may also cover frontend state, queue identity,
