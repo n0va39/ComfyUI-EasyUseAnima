@@ -403,8 +403,6 @@ const loraPresetNodeRuntime = createLoraPresetNodeRuntime({
   profileCount,
   selectedProfileIndex,
   activeProfileIndex,
-  wrapProfileIndex,
-  setProfileIndex,
   lorasWidgetValue,
   saveProfile,
   saveCurrentProfile,

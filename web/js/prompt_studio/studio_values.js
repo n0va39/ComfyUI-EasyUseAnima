@@ -7,12 +7,10 @@ import {
 import {
   extendVisibleSlots,
   parseExtendSlots,
-  writeExtendVisibleSlots,
 } from "./extend_slots.js";
 import {
   findInputEl,
   findWidget,
-  firstValue,
 } from "./widgets.js";
 
 function syncWidgetValue(widget) {
@@ -74,42 +72,7 @@ function syncStudioValues(node, serialized = null, hooks = {}) {
   }
 }
 
-function applyExecutedInputs(node, message, hooks = {}) {
-  const slotPayload = firstValue(message?.prompt_studio_slots, null);
-  const payload = slotPayload || firstValue(message?.prompt_studio_inputs, null);
-  if (!payload || typeof payload !== "object") {
-    return;
-  }
-  const fieldNames = hooks.studioFieldNames?.(node) || [];
-  for (const name of fieldNames) {
-    const widget = findWidget(node, name);
-    if (!widget) {
-      continue;
-    }
-    if (slotPayload && Object.prototype.hasOwnProperty.call(payload, name)) {
-      widget.value = String(payload[name] ?? "");
-      restoreInputFromWidget(widget);
-      widget.__easyuseAnimaExecutedText = null;
-      hooks.expandStudioInputToContent?.(node, widget, true);
-    } else {
-      widget.__easyuseAnimaExecutedText = String(payload[name] ?? "");
-      hooks.expandStudioInputToContent?.(node, widget, true);
-    }
-  }
-  if (slotPayload) {
-    if (payload.active_slots != null) {
-      writeExtendVisibleSlots(node, parseExtendSlots(payload.active_slots));
-    }
-    const fillNaia = findWidget(node, "fill_naia_prompt");
-    if (fillNaia && payload.fill_naia_prompt != null) {
-      fillNaia.value = !!payload.fill_naia_prompt;
-    }
-  }
-  hooks.hookStudioNode?.(node);
-}
-
 export {
-  applyExecutedInputs,
   restoreInputFromWidget,
   syncStudioValues,
   syncWidgetValue,

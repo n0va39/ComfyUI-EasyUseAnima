@@ -18,6 +18,7 @@ const LEGACY_FIXED_WILDCARD_MODES = new Set([
   "reproduce",
   "재현",
 ]);
+const WILDCARD_SEED_INPUT_STATES = new WeakMap();
 
 /**
  * Normalize Prompt Studio's independent next-seed policy. Legacy Fixed and
@@ -93,15 +94,19 @@ function bindWildcardSeedInput(input, getCurrentSeed, publishSeed, afterPublish)
   input.step = "1";
   // An untouched open control must yield to queue/executed widget updates,
   // while any real input event keeps ownership of the user's pending edit.
-  let baselineValue = String(input.value ?? "");
-  let dirty = false;
+  const state = {
+    baselineValue: String(input.value ?? ""),
+    dirty: false,
+    getCurrentSeed,
+  };
+  WILDCARD_SEED_INPUT_STATES.set(input, state);
   const restoreCurrentSeed = () => {
     input.value = String(getCurrentSeed() ?? "0");
-    baselineValue = input.value;
-    dirty = false;
+    state.baselineValue = input.value;
+    state.dirty = false;
   };
   const syncSeed = () => {
-    if (!dirty && input.value === baselineValue) {
+    if (!state.dirty && input.value === state.baselineValue) {
       restoreCurrentSeed();
       return false;
     }
@@ -113,12 +118,12 @@ function bindWildcardSeedInput(input, getCurrentSeed, publishSeed, afterPublish)
     input.value = String(seed);
     publishSeed(seed);
     afterPublish?.(seed);
-    baselineValue = input.value;
-    dirty = false;
+    state.baselineValue = input.value;
+    state.dirty = false;
     return true;
   };
   input.addEventListener("input", () => {
-    dirty = true;
+    state.dirty = true;
   });
   input.addEventListener("change", syncSeed);
   input.addEventListener("blur", syncSeed);
@@ -128,13 +133,35 @@ function bindWildcardSeedInput(input, getCurrentSeed, publishSeed, afterPublish)
       if (input.isConnected !== true) {
         return;
       }
-      if (!dirty && String(input.value ?? "") !== String(getCurrentSeed() ?? "0")) {
-        restoreCurrentSeed();
-      }
+      syncBoundWildcardSeedInput(input);
       requestFrame(syncVisibleSeed);
     });
   }
   return syncSeed;
+}
+
+/**
+ * Reflect a canonical seed into an already-open input only while that input
+ * still represents its untouched baseline. Pending user text keeps ownership.
+ *
+ * @param {any} input
+ */
+function syncBoundWildcardSeedInput(input) {
+  const state = WILDCARD_SEED_INPUT_STATES.get(input);
+  if (
+    !state
+    || state.dirty
+    || String(input.value ?? "") !== state.baselineValue
+  ) {
+    return false;
+  }
+  const currentValue = String(state.getCurrentSeed() ?? "0");
+  if (String(input.value ?? "") === currentValue) {
+    return false;
+  }
+  input.value = currentValue;
+  state.baselineValue = currentValue;
+  return true;
 }
 
 /**
@@ -173,4 +200,5 @@ export {
   normalizeWildcardSeedInput,
   optionalWildcardSeed,
   randomWildcardSeed,
+  syncBoundWildcardSeedInput,
 };

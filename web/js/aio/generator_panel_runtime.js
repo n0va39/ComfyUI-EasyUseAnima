@@ -69,7 +69,7 @@ function closeGeneratorInfoTooltipOwner(document) {
  * @property {(node: any, name: string, fallback: any) => any} widgetValue
  * @property {(node: any, name: string, fallback: any[]) => any[]} widgetOptions
  * @property {(node: any, name: string, value: any) => void} setWidgetValueIfChanged
- * @property {(node: any, seed: number) => void} commitSeedValue
+ * @property {(node: any, seed: number, afterGenerate?: string | null) => void} commitSeedValue
  * @property {(node: any) => void} markDirty
  * @property {() => void} ensureStyle
  * @property {(node: any, options?: Record<string, any>) => void} suppressDefaultPreview
@@ -1080,7 +1080,7 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
 
   function updateGeneratorSeed(node, value, options = {}) {
     const seed = normalizeSeedValue(value, GENERATOR_SPECIAL_SEED_RANDOM);
-    commitSeedValue(node, seed);
+    commitSeedValue(node, seed, options.afterGenerate ?? null);
     const panel = node?.__easyuseAnimaGeneratorPanelEl;
     const seedInput = panel?.querySelector?.("[data-aio-seed-input]");
     if (seedInput) {
@@ -1506,7 +1506,7 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
     );
     const seedNewFixed = makeButton(
       aioText("button.newFixed"),
-      () => setGeneratorSeedFromUi(node, randomSeed()),
+      () => updateGeneratorSeed(node, randomSeed(), { afterGenerate: "fixed" }),
       "",
       "tip.newFixed",
     );
@@ -1516,7 +1516,11 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
         if (node.__easyuseAnimaLastExecutedSeed == null) {
           return;
         }
-        setGeneratorSeedFromUi(node, node.__easyuseAnimaLastExecutedSeed);
+        updateGeneratorSeed(
+          node,
+          node.__easyuseAnimaLastExecutedSeed,
+          { afterGenerate: "fixed" },
+        );
       },
       "",
       "tip.useLast",

@@ -19,8 +19,6 @@ export function createLoraPresetNodeRuntime({
   profileCount,
   selectedProfileIndex,
   activeProfileIndex,
-  wrapProfileIndex,
-  setProfileIndex,
   lorasWidgetValue,
   saveProfile,
   saveCurrentProfile,
@@ -220,30 +218,6 @@ export function createLoraPresetNodeRuntime({
     requestAnimationFrame(() => rehydrateNode(node));
   }
 
-  function applyExecutedProfile(node, message) {
-    const payload = Array.isArray(message?.lora_preset_profile)
-      ? message.lora_preset_profile[0]
-      : message?.lora_preset_profile;
-    const index = Number.parseInt(payload?.profile_index, 10);
-    if (!Number.isFinite(index)) {
-      return;
-    }
-    const nextIndex = wrapProfileIndex(index, profileCount(node));
-    const currentIndex = activeProfileIndex(node);
-    if (nextIndex === currentIndex) {
-      canvasWidgets.renderProfileBar(node);
-      return;
-    }
-    saveProfile(node, currentIndex);
-    setProfileIndex(node, nextIndex);
-    node.__easyuseAnimaActiveProfileIndex = nextIndex;
-    loadProfile(node, nextIndex);
-    scrollProfileBarTo(node, nextIndex);
-    canvasWidgets.renderProfileBar(node);
-    canvasWidgets.renderLoraWidgets(node);
-    node.setDirtyCanvas?.(true, true);
-  }
-
   function beforeRegisterNodeDef(nodeType, nodeData) {
     if (nodeData.name !== nodeTypeName) {
       return;
@@ -259,11 +233,6 @@ export function createLoraPresetNodeRuntime({
       const result = originalOnNodeCreated?.apply(this, args);
       initializeNode(this);
       return result;
-    };
-    const originalOnExecuted = nodeType.prototype.onExecuted;
-    nodeType.prototype.onExecuted = function (message) {
-      originalOnExecuted?.apply(this, arguments);
-      applyExecutedProfile(this, message);
     };
   }
 

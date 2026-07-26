@@ -86,7 +86,6 @@ import {
   enhanceResizableInput as enhanceResizableInputWithHooks,
 } from "./studio_resizable_input.js";
 import {
-  applyExecutedInputs as applyExecutedInputsWithHooks,
   restoreInputFromWidget,
   syncStudioValues as syncStudioValuesWithHooks,
   syncWidgetValue,
@@ -103,7 +102,7 @@ import {
   scheduleHookAdvancedNode as scheduleHookAdvancedNodeWithHooks,
 } from "./advanced_node_ui.js";
 import {
-  applyAdvancedExecutedInputs as applyAdvancedExecutedInputsWithHooks,
+  publishAdvancedWildcardExecution as publishAdvancedWildcardExecutionWithHooks,
   syncAdvancedValues as syncAdvancedValuesWithHooks,
 } from "./advanced_values.js";
 import {
@@ -123,18 +122,45 @@ import {
 } from "./runtime_canvas.js";
 import {
   createHostHookRuntimeLifecycle,
+  registerHostHookCallbacks,
 } from "../lifecycle/host_hook_registry.js";
+import {
+  createQueueUiTransactionOwner,
+} from "../lifecycle/queue_ui_transaction.js";
+import {
+  createExecutedEventContext,
+} from "../lifecycle/executed_event_context.js";
+import {
+  createPromptStudioWildcardSeedTransaction,
+} from "./wildcard_seed_transaction.js";
+import {
+  commitAdvancedWildcardSeedView,
+} from "./advanced_controls.js";
 
 const PROMPT_STUDIO_GLOBAL_HOOK_RUNTIME_OWNER = Symbol.for(
   "easyuse-anima.prompt-studio.global-hook-runtime-owner",
 );
+const PROMPT_STUDIO_WILDCARD_SEED_TRANSACTION_OWNER = Symbol.for(
+  "easyuse-anima.prompt-studio.wildcard-seed-transaction",
+);
 
-function createPromptStudioExtensionRuntime(app) {
+function createPromptStudioExtensionRuntime(app, api) {
   const globalHookLifecycle = createHostHookRuntimeLifecycle(
     app,
     PROMPT_STUDIO_GLOBAL_HOOK_RUNTIME_OWNER,
   );
+  const queueUiTransactionOwner = createQueueUiTransactionOwner();
+  let wildcardSeedTransaction;
+  const executedEventContext = createExecutedEventContext(api, {
+    finishPrompt: (promptId) => wildcardSeedTransaction.finishPrompt(promptId),
+  });
+  wildcardSeedTransaction = createPromptStudioWildcardSeedTransaction({
+    owner: queueUiTransactionOwner,
+    executedContext: executedEventContext,
+    findWidget,
+  });
   let advancedSaveSyncSerializeHost;
+  let wildcardSeedTransactionGraphHost;
 
   function markNodeDirty(node) {
     markNodeDirtyWithApp(app, node);
@@ -164,6 +190,8 @@ function createPromptStudioExtensionRuntime(app) {
   function advancedValuesHooks() {
     return {
       advancedWidget,
+      commitAdvancedWildcardSeedView,
+      consumeWildcardSeedExecution: wildcardSeedTransaction.consumeExecution,
       markNodeDirty,
       parseAdvancedFields,
       repairAdvancedInternalWidgetValues,
@@ -176,8 +204,8 @@ function createPromptStudioExtensionRuntime(app) {
     syncAdvancedValuesWithHooks(node, serialized, advancedValuesHooks());
   }
 
-  function applyAdvancedExecutedInputs(node, message) {
-    applyAdvancedExecutedInputsWithHooks(node, message, advancedValuesHooks());
+  function publishAdvancedWildcardExecution(node, message) {
+    publishAdvancedWildcardExecutionWithHooks(node, message, advancedValuesHooks());
   }
 
   function applyWildcardExecutedInputs(node, message) {
@@ -230,10 +258,6 @@ function createPromptStudioExtensionRuntime(app) {
 
   function syncStudioValues(node, serialized = null) {
     syncStudioValuesWithHooks(node, serialized, studioValuesHooks());
-  }
-
-  function applyExecutedInputs(node, message) {
-    applyExecutedInputsWithHooks(node, message, studioValuesHooks());
   }
 
   function markCanvasDirty() {
@@ -372,13 +396,53 @@ function createPromptStudioExtensionRuntime(app) {
     return installed;
   }
 
+  function installAdvancedWildcardSeedTransactionForApp() {
+    const graphHost = app?.graph || null;
+    const replace = wildcardSeedTransactionGraphHost !== undefined
+      && graphHost != null
+      && graphHost !== wildcardSeedTransactionGraphHost;
+    const installed = globalHookLifecycle.install(
+      "advanced-wildcard-seed-transaction",
+      () => registerHostHookCallbacks({
+        owner: PROMPT_STUDIO_WILDCARD_SEED_TRANSACTION_OWNER,
+        // ComfyApp.queuePrompt resolves to a boolean after draining its local
+        // batch. ComfyApi.queuePrompt is the per-submission host call whose
+        // successful result owns the accepted prompt_id.
+        queueHost: api,
+        graphHost,
+        beforeQueue: () => wildcardSeedTransaction.captureQueue(
+          (app.graph?._nodes || []).filter(isAdvancedNode),
+        ),
+        afterQueue: (context) => wildcardSeedTransaction.acceptQueue(
+          context.callbackState,
+          context,
+        ),
+        onGraphClear: () => wildcardSeedTransaction.clear(),
+      }),
+      { replace },
+    );
+    if (installed) {
+      wildcardSeedTransactionGraphHost = graphHost;
+    }
+    return installed;
+  }
+
   function installGlobalHooks() {
     installAdvancedSaveSyncForApp();
+    installAdvancedWildcardSeedTransactionForApp();
   }
 
   function disposeGlobalHooks() {
     advancedSaveSyncSerializeHost = undefined;
+    wildcardSeedTransactionGraphHost = undefined;
     return globalHookLifecycle.dispose();
+  }
+
+  function disposeRuntime() {
+    let changed = disposeGlobalHooks();
+    changed = executedEventContext.dispose() || changed;
+    changed = wildcardSeedTransaction.dispose() || changed;
+    return changed;
   }
 
   function advancedNodeUiHooks() {
@@ -416,10 +480,11 @@ function createPromptStudioExtensionRuntime(app) {
   }
 
   return {
-    dispose: disposeGlobalHooks,
+    dispose: disposeRuntime,
     async setup() {
       installAdvancedWheelForwarder();
       installMiddlePanForwarder();
+      executedEventContext.install();
       installGlobalHooks();
       installPromptHighlightOverlayRefresh(app, applyPromptStudioTextStyle);
       await loadPromptStudioSettings({
@@ -449,8 +514,6 @@ function createPromptStudioExtensionRuntime(app) {
     },
     async beforeRegisterNodeDef(nodeType, nodeData) {
       registerPromptStudioNodeHooks(nodeType, nodeData, {
-        applyAdvancedExecutedInputs,
-        applyExecutedInputs,
         applyExtendSlotVisibility,
         applyWildcardExecutedInputs,
         captureAdvancedConfigure: (node, serialized) => (
@@ -458,11 +521,14 @@ function createPromptStudioExtensionRuntime(app) {
         ),
         disconnectAdvancedEditorWidthObserver,
         disposeAdvancedAutocompleteInputs,
+        disposeAdvancedWildcardSeedNode: wildcardSeedTransaction.disposeNode,
         hookWildcardSeedWidget,
+        hookAdvancedWildcardSeedNode: wildcardSeedTransaction.hookNode,
         hookStudioNode,
         isExtendNode,
         layoutExtendPromptWidgets,
         pruneDisconnectedAdvancedFieldInputValues,
+        publishAdvancedWildcardExecution,
         rebalanceStudioInputHeights,
         removeAdvancedInternalInputSockets,
         renderAdvancedEditor,

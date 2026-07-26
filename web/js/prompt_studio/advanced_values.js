@@ -9,11 +9,9 @@ import {
 } from "./schema.js";
 import {
   getAdvancedFields,
-  setAdvancedFields,
 } from "./state.js";
 import {
   collectAdvancedEditorFields,
-  mergeAdvancedFieldInputValues,
   syncAdvancedFieldsBackup,
 } from "./serialization.js";
 import {
@@ -64,70 +62,37 @@ function syncAdvancedValues(node, serialized = null, hooks = {}) {
   });
 }
 
-function applyAdvancedExecutedInputs(node, message, hooks = {}) {
-  const payload = firstValue(message?.prompt_studio_advanced, null);
+function publishAdvancedWildcardExecution(node, message, hooks = {}) {
+  const mappedPayload = message?.prompt_studio_advanced;
+  const payload = firstValue(mappedPayload, null);
   if (!payload || typeof payload !== "object") {
     return;
   }
-  node.__easyuseAnimaAdvancedFieldInputValues =
-    payload.field_inputs && typeof payload.field_inputs === "object" ? payload.field_inputs : {};
-  const widget = hooks.advancedWidget?.(node);
-  if (widget && payload.advanced_fields != null) {
-    widget.value = String(payload.advanced_fields);
-    syncAdvancedFieldsBackup(node, widget.value);
-  }
-  const fields = hooks.parseAdvancedFields?.(node) || [];
-  if (mergeAdvancedFieldInputValues(fields, node.__easyuseAnimaAdvancedFieldInputValues)) {
-    hooks.writeAdvancedFields?.(node, fields, { syncInputs: false });
-  } else {
-    setAdvancedFields(node, fields);
-  }
-  const useNaia = findWidget(node, "use_naia");
-  if (useNaia && payload.use_naia != null) {
-    useNaia.value = !!payload.use_naia;
-  }
-  for (const name of ["resolution_bucket", "resolution_size", "resolution_custom_width", "resolution_custom_height"]) {
-    const widget = findWidget(node, name);
-    if (widget && payload[name] != null) {
-      widget.value = payload[name];
-    }
-  }
-  for (const name of ["wildcard_mode", "wildcard_seed_after_generate"]) {
-    const widget = findWidget(node, name);
-    if (widget && payload[name] != null) {
-      widget.value = payload[name];
-    }
-  }
+  const mappedItemCount = Array.isArray(mappedPayload) ? mappedPayload.length : 1;
   const wildcardSeed = findWidget(node, "wildcard_seed");
-  if (wildcardSeed && payload.wildcard_seed != null) {
-    wildcardSeed.value = payload.wildcard_seed;
-  }
+  hooks.consumeWildcardSeedExecution?.(
+    node,
+    message,
+    mappedItemCount,
+    wildcardSeed && payload.wildcard_seed != null
+      ? () => {
+        if (typeof hooks.commitAdvancedWildcardSeedView === "function") {
+          hooks.commitAdvancedWildcardSeedView(node, payload.wildcard_seed);
+        } else {
+          wildcardSeed.value = payload.wildcard_seed;
+        }
+      }
+      : null,
+  );
   if (writePreviousWildcardExecution(node, {
     seed: payload.wildcard_execution_seed,
     mode: payload.wildcard_mode,
   })) {
     hooks.markNodeDirty?.(node);
   }
-  for (const name of [
-    "artist_mix_mode",
-    "artist_mix_start_percent",
-    "artist_mix_strength_scale",
-    "artist_mix_style_gain",
-    "artist_mix_rms_scale_cap",
-    "artist_mix_exact_top_k",
-    "artist_mix_cluster_count",
-    "artist_mix_dominant_isolation",
-    "artist_mix_dominant_threshold",
-  ]) {
-    const widget = findWidget(node, name);
-    if (widget && payload[name] != null) {
-      widget.value = payload[name];
-    }
-  }
-  hooks.renderAdvancedEditor?.(node);
 }
 
 export {
-  applyAdvancedExecutedInputs,
+  publishAdvancedWildcardExecution,
   syncAdvancedValues,
 };

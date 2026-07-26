@@ -614,7 +614,11 @@ class AIOFrontendSourceTests(unittest.TestCase):
                 )
 
         self.assertIn(
-            "export function aioApplyExecutedSeedDisplay(",
+            "export function createAioSeedTransaction(",
+            executed_seed_source,
+        )
+        self.assertIn(
+            'const AIO_SEED_SELECTION_SURFACE = "aio.seed_selection";',
             executed_seed_source,
         )
         for retired_queue_owner in (
@@ -631,10 +635,12 @@ class AIOFrontendSourceTests(unittest.TestCase):
         )
         setup_body = extension_source[setup_start:setup_end]
         self.assertIn("installWheelForwarder();", setup_body)
+        self.assertIn("installSeedRuntime();", setup_body)
         self.assertNotIn("installGlobalHooks();", setup_body)
         self.assertIn(
             "installWheelForwarder: installGeneratorWheelForwarder,", source
         )
+        self.assertIn("installSeedRuntime: installAioSeedRuntime,", source)
 
         for unchanged_adapter in (
             "specialSeedRandom: GENERATOR_SPECIAL_SEED_RANDOM,",

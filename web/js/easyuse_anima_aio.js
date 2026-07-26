@@ -21,7 +21,7 @@ import { createAioProfileApiClient } from "./aio/profile_api_client.js";
 import { aioCreateProfileDialogs } from "./aio/profile_dialogs.js";
 import { aioCreateProfileSettingsRuntime } from "./aio/profile_settings_runtime.js";
 import { aioCreateGeneratorPanelRuntime } from "./aio/generator_panel_runtime.js";
-import { aioApplyExecutedSeedDisplay } from "./aio/executed_seed_runtime.js";
+import { createAioSeedTransaction } from "./aio/executed_seed_runtime.js";
 import { aioCreateStageSettingsDialogs } from "./aio/stage_settings_dialogs.js";
 import { aioCreateDetailerSettingsDialog } from "./aio/detailer_settings_dialog.js";
 import { aioCreateSamplerSettingsDialog } from "./aio/sampler_settings_dialog.js";
@@ -33,6 +33,16 @@ import {
   aioCreateExtensionRuntime,
   aioListAttachedGeneratorNodes,
 } from "./aio/extension_runtime.js";
+import {
+  createExecutedEventContext,
+} from "./lifecycle/executed_event_context.js";
+import {
+  createHostHookRuntimeLifecycle,
+  registerHostHookCallbacks,
+} from "./lifecycle/host_hook_registry.js";
+import {
+  createQueueUiTransactionOwner,
+} from "./lifecycle/queue_ui_transaction.js";
 import {
   AIO_BACKEND_DEPENDENCIES,
   AIO_OPTIONAL_DEPENDENCY_SPECS,
@@ -105,6 +115,9 @@ const INPUT_SETTINGS_WIDGET = "input_settings";
 const GENERATOR_SETTINGS_WIDGET = "generation_settings";
 const GENERATOR_PROFILE_CUSTOM_VALUE = "custom";
 const GENERATOR_PREVIEW_EVENT = "easyuse-anima-aio-preview";
+const AIO_SEED_TRANSACTION_OWNER = Symbol.for(
+  "easyuse-anima.aio.seed-transaction",
+);
 const GENERATOR_PANEL_MIN_HEIGHT = 430;
 const GENERATOR_SPECIAL_SEEDS = [
   GENERATOR_SPECIAL_SEED_RANDOM,
@@ -3435,11 +3448,14 @@ function setWidgetValueIfChanged(node, name, value) {
   setWidgetValue(node, name, value);
 }
 
-function commitGeneratorSeedValue(node, seed) {
+function commitGeneratorSeedValue(node, seed, afterGenerate = null) {
   const seedWidget = findWidget(node, "seed");
   const settingsWidget = findWidget(node, GENERATOR_SETTINGS_WIDGET);
   const settings = generatorSettings(node);
   settings.sampler.seed = seed;
+  if (afterGenerate != null) {
+    settings.sampler.seed_after_generate = normalizeSeedControl(afterGenerate);
+  }
   const serializedSettings = JSON.stringify(settings);
 
   if (seedWidget) {
@@ -4176,12 +4192,7 @@ function updateGeneratorExecutedStatus(node, message) {
   if (!node) {
     return;
   }
-  aioApplyExecutedSeedDisplay(node, message, {
-    maximum: GENERATOR_MAX_SEED,
-    updateSeed: (candidate, seed, options) => (
-      generatorPanelRuntime.updateSeed(candidate, seed, options)
-    ),
-  });
+  void aioSeedTransaction.consumeExecution(node, message);
   const nextImages = aioPreviewImages(message);
   const runId = aioPreviewRunId(message);
   addGeneratorPreviewImagesToNode(node, nextImages, runId, { replaceCurrentRun: true });
@@ -4193,6 +4204,75 @@ function updateGeneratorExecutedStatus(node, message) {
     sampler_backend: String(firstValue(message?.sampler_backend, "")),
   };
   updateGeneratorDomSummary(node);
+}
+
+const aioSeedQueueOwner = createQueueUiTransactionOwner();
+let aioSeedTransaction;
+const aioExecutedEventContext = createExecutedEventContext(api, {
+  finishPrompt: (promptId) => aioSeedTransaction.finishPrompt(promptId),
+});
+aioSeedTransaction = createAioSeedTransaction({
+  owner: aioSeedQueueOwner,
+  executedContext: aioExecutedEventContext,
+  maximum: GENERATOR_MAX_SEED,
+  findWidget,
+  readSelection: (node) => {
+    const settings = generatorSettings(node);
+    return {
+      requestedSeed: settings.sampler.seed,
+      storedAfterGenerate: settings.sampler.seed_after_generate,
+    };
+  },
+  publishLastSeed: (node, seed) => {
+    node.__easyuseAnimaLastExecutedSeed = seed;
+    refreshGeneratorSeedButtons(node);
+    return true;
+  },
+  publishConcreteNextSeed: (node, seed) => (
+    generatorPanelRuntime.updateSeed(node, seed, { markDirty: false })
+  ),
+});
+const aioSeedHookLifecycle = createHostHookRuntimeLifecycle(
+  app,
+  AIO_SEED_TRANSACTION_OWNER,
+);
+let aioSeedTransactionGraphHost;
+
+function installAioSeedRuntime() {
+  aioExecutedEventContext.install();
+  const graphHost = app?.graph || null;
+  const replace = aioSeedTransactionGraphHost !== undefined
+    && graphHost != null
+    && graphHost !== aioSeedTransactionGraphHost;
+  const installed = aioSeedHookLifecycle.install(
+    "aio-seed-transaction",
+    () => registerHostHookCallbacks({
+      owner: AIO_SEED_TRANSACTION_OWNER,
+      queueHost: api,
+      graphHost,
+      beforeQueue: () => aioSeedTransaction.captureQueue(
+        aioListAttachedGeneratorNodes(app.graph, isGeneratorGraphNode),
+      ),
+      afterQueue: (context) => aioSeedTransaction.acceptQueue(
+        context.callbackState,
+        context,
+      ),
+      onGraphClear: () => aioSeedTransaction.clear(),
+    }),
+    { replace },
+  );
+  if (installed) {
+    aioSeedTransactionGraphHost = graphHost;
+  }
+  return installed;
+}
+
+function disposeAioSeedRuntime() {
+  aioSeedTransactionGraphHost = undefined;
+  let changed = aioSeedHookLifecycle.dispose();
+  changed = aioExecutedEventContext.dispose() || changed;
+  changed = aioSeedTransaction.dispose() || changed;
+  return changed;
 }
 
 const aioExtensionRuntime = aioCreateExtensionRuntime({
@@ -4215,6 +4295,8 @@ const aioExtensionRuntime = aioCreateExtensionRuntime({
     clearDenoisePreviews: clearGeneratorDenoisePreviews,
     loadSamplerOptions: loadGeneratorSamplerOptions,
     loadUserProfiles: loadGeneratorUserProfiles,
+    installSeedRuntime: installAioSeedRuntime,
+    disposeSeedRuntime: disposeAioSeedRuntime,
     warnUserProfiles(error) {
       console.warn("[EasyUseAnima] Failed to load AiO user profiles.", error);
     },
@@ -4229,6 +4311,8 @@ const aioExtensionRuntime = aioCreateExtensionRuntime({
     scheduleLayout: scheduleGeneratorLayout,
     disposePanel: disposeGeneratorPanel,
     disposeNativePreviewLifecycle: disposeGeneratorNativePreviewLifecycle,
+    hookSeedNode: aioSeedTransaction.hookNode,
+    disposeSeedNode: aioSeedTransaction.disposeNode,
   },
 });
 

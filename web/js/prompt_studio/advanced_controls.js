@@ -45,11 +45,14 @@ import {
 import {
   bindWildcardSeedInput,
   normalizeWildcardSeedControl,
+  syncBoundWildcardSeedInput,
 } from "./wildcard_seed_contract.js";
 import {
   readPreviousWildcardExecution,
   wildcardModeWidgetValue,
 } from "./wildcard_seed_history.js";
+
+const ADVANCED_WILDCARD_SEED_INPUTS = new WeakMap();
 
 function setAdvancedControlValue(node, name, value) {
   const widget = findWidget(node, name);
@@ -581,6 +584,22 @@ function advancedWildcardSummary(node) {
   return `${modeValue} · seed ${Math.max(0, Math.trunc(Number(seedWidget?.value) || 0))} · ${advancedWildcardSeedControlLabel(controlValue)}`;
 }
 
+function commitAdvancedWildcardSeedView(node, value) {
+  const seedWidget = findWidget(node, "wildcard_seed");
+  if (!seedWidget) {
+    return false;
+  }
+  seedWidget.value = normalizeAdvancedWidgetQueueValue("wildcard_seed", value);
+  updateAdvancedSummary(node, "wildcard", advancedWildcardSummary(node));
+  const seedInput = ADVANCED_WILDCARD_SEED_INPUTS.get(node);
+  if (seedInput?.isConnected === true) {
+    syncBoundWildcardSeedInput(seedInput);
+  } else if (seedInput) {
+    ADVANCED_WILDCARD_SEED_INPUTS.delete(node);
+  }
+  return true;
+}
+
 function createAdvancedSummaryButtonRow(className, buttonLabelKey, titleKey, summaryId, summaryText, onClick) {
   const row = document.createElement("div");
   row.className = className;
@@ -717,6 +736,7 @@ function createAdvancedWildcardSettingsBody(node) {
     (seed) => setAdvancedWidgetValue(node, "wildcard_seed", seed),
     refreshSummary,
   );
+  ADVANCED_WILDCARD_SEED_INPUTS.set(node, seedInput);
   body.append(
     modeRow,
     createAdvancedControlRow("advanced.wildcardSeed", seedInput),
@@ -753,7 +773,7 @@ function createAdvancedWildcardBar(node, hooks = {}) {
       "advanced.wildcardSeed",
       "advanced.wildcardTitle",
       () => createAdvancedWildcardSettingsBody(node),
-      null,
+      () => ADVANCED_WILDCARD_SEED_INPUTS.delete(node),
       hooks,
       {
         headerHelpKey: "advanced.wildcardHelp",
@@ -1053,10 +1073,12 @@ export {
   advancedModGuidanceSummary,
   advancedResolutionSummary,
   advancedWildcardSummary,
+  commitAdvancedWildcardSeedView,
   createAdvancedControlBar,
   createAdvancedResolutionBar,
   createAdvancedResolutionSettingsBody,
   createAdvancedWildcardBar,
+  createAdvancedWildcardSettingsBody,
   setAdvancedControlValue,
   setAdvancedCustomResolution,
   setAdvancedWidgetValue,
