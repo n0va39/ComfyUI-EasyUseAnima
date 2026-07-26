@@ -792,7 +792,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
             frontend_check_source,
         )
 
-    def test_aio_executed_seed_runtime_replaces_browser_queue_authority(self):
+    def test_aio_executed_seed_runtime_uses_shared_correlation_owners(self):
         source = AIO_EXECUTED_SEED_RUNTIME_JS.read_text(encoding="utf-8")
         entry_source = AIO_JS.read_text(encoding="utf-8")
         frontend_check_source = FRONTEND_CHECK_SCRIPT.read_text(encoding="utf-8")
@@ -800,29 +800,46 @@ class FrontendModuleStructureTests(unittest.TestCase):
         self.assertEqual(source.splitlines()[0], "// @ts-check")
         self.assertEqual(
             re.findall(r"export function ([A-Za-z0-9_]+)\(", source),
-            ["aioApplyExecutedSeedDisplay"],
+            ["createAioSeedTransaction"],
         )
         self.assertEqual(STATIC_IMPORT_RE.findall(source), [])
         self.assertNotRegex(source, r"\b(?:document|window|app)\b")
         self.assertNotIn("fetch(", source)
         self.assertNotIn("app.registerExtension", source)
         self.assertIn(
-            'import { aioApplyExecutedSeedDisplay } from '
+            'import { createAioSeedTransaction } from '
             '"./aio/executed_seed_runtime.js";',
             entry_source,
         )
         self.assertIn(
-            "aioApplyExecutedSeedDisplay(node, message, {",
+            "aioSeedTransaction = createAioSeedTransaction({",
             entry_source,
         )
         self.assertIn(
-            "node.__easyuseAnimaLastExecutedSeed = executionSeed;",
-            source,
+            "void aioSeedTransaction.consumeExecution(node, message);",
+            entry_source,
         )
         self.assertIn(
-            "dependencies.updateSeed(node, nextSeed, { markDirty: false });",
+            'const AIO_SEED_SELECTION_SURFACE = "aio.seed_selection";',
             source,
         )
+        for shared_contract_call in (
+            "owner.captureProvisional({",
+            "owner.acceptPrompt(entry.transaction, promptId)",
+            "owner.markEdited(node, [AIO_SEED_SELECTION_SURFACE])",
+            "owner.canCommit(transaction, {",
+            "owner.settle(transaction, pending.envelope)",
+            "executedContext.consumeWithinTurn(output)",
+        ):
+            with self.subTest(shared_contract_call=shared_contract_call):
+                self.assertIn(shared_contract_call, source)
+        for shared_import in (
+            '"./lifecycle/queue_ui_transaction.js";',
+            '"./lifecycle/executed_event_context.js";',
+            '"./lifecycle/host_hook_registry.js";',
+        ):
+            with self.subTest(shared_import=shared_import):
+                self.assertIn(shared_import, entry_source)
         for retired_symbol in (
             "generatorQueueRuntime",
             "aioCreateGeneratorQueueRuntime",

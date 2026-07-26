@@ -9,6 +9,12 @@ function dataModule(relativePath) {
 const seedModule = await import(dataModule(
   "../web/js/aio/executed_seed_runtime.js",
 ));
+const queueModule = await import(dataModule(
+  "../web/js/lifecycle/queue_ui_transaction.js",
+));
+const contextModule = await import(dataModule(
+  "../web/js/lifecycle/executed_event_context.js",
+));
 
 const SPECIAL_SELECTION_BY_TOKEN = new Map([
   [-1, "randomize"],
@@ -222,102 +228,354 @@ function recordLastExecutedSeed(state, {
 
 assert.deepEqual(
   Object.keys(seedModule),
-  ["aioApplyExecutedSeedDisplay"],
+  ["AIO_SEED_SELECTION_SURFACE", "createAioSeedTransaction"],
 );
 
-{
-  // Characterization: the current production path destructively replaces a
-  // persistent special selection token with the backend concrete next seed.
-  const node = { seed: -1 };
-  const updates = [];
-  assert.equal(seedModule.aioApplyExecutedSeedDisplay(
+class FakeApi {
+  constructor() {
+    this.listeners = new Map();
+  }
+
+  addEventListener(type, handler) {
+    const handlers = this.listeners.get(type) || [];
+    handlers.push(handler);
+    this.listeners.set(type, handlers);
+  }
+
+  removeEventListener(type, handler) {
+    this.listeners.set(
+      type,
+      (this.listeners.get(type) || []).filter((candidate) => candidate !== handler),
+    );
+  }
+
+  dispatch(type, detail) {
+    for (const handler of [...(this.listeners.get(type) || [])]) {
+      handler({ detail });
+    }
+  }
+}
+
+function runtimePayload({
+  requestedSeed,
+  storedAfterGenerate,
+  executionSeed,
+  nextSeed,
+  overrides = {},
+}) {
+  return {
+    easyuse_anima_aio_seed: [{
+      ...contractPayload({
+        requestedSeed,
+        storedAfterGenerate,
+        executionSeed,
+        nextSeed,
+      }),
+      ...overrides,
+    }],
+  };
+}
+
+function createRuntimeFixture({
+  requestedSeed = 7,
+  storedAfterGenerate = "increment",
+} = {}) {
+  const api = new FakeApi();
+  const owner = queueModule.createQueueUiTransactionOwner();
+  let runtime = null;
+  const context = contextModule.createExecutedEventContext(api, {
+    finishPrompt: (promptId) => runtime.finishPrompt(promptId),
+  });
+  const selection = { requestedSeed, storedAfterGenerate };
+  const node = {
+    widgets: [
+      { name: "seed", callback() {} },
+      { name: "generation_settings", callback() {} },
+    ],
+  };
+  const lastPublications = [];
+  const editablePublications = [];
+  runtime = seedModule.createAioSeedTransaction({
+    owner,
+    executedContext: context,
+    maximum: AIO_EDITABLE_MAXIMUM,
+    findWidget(candidate, name) {
+      return candidate.widgets.find((widget) => widget.name === name);
+    },
+    readSelection() {
+      return selection;
+    },
+    publishLastSeed(_candidate, seed) {
+      lastPublications.push(seed);
+      return true;
+    },
+    publishConcreteNextSeed(candidate, seed) {
+      editablePublications.push(seed);
+      selection.requestedSeed = seed;
+      candidate.widgets[0].callback(seed);
+      candidate.widgets[1].callback();
+      return true;
+    },
+  });
+  context.install();
+
+  function capture(promptId, { accept = true } = {}) {
+    const captured = runtime.captureQueue([node]);
+    assert.equal(captured.length, 1);
+    if (accept) {
+      assert.equal(runtime.acceptQueue(captured, {
+        ok: true,
+        result: { prompt_id: promptId },
+      }), 1);
+    }
+    return captured;
+  }
+
+  async function execute(promptId, output, { dispatch = true } = {}) {
+    if (dispatch) {
+      api.dispatch("executed", {
+        prompt_id: promptId,
+        node: "41",
+        output,
+      });
+    }
+    return runtime.consumeExecution(node, output);
+  }
+
+  function edit({ seed = selection.requestedSeed, control = selection.storedAfterGenerate }) {
+    selection.requestedSeed = seed;
+    selection.storedAfterGenerate = control;
+    node.widgets[1].callback();
+  }
+
+  return {
+    api,
+    capture,
+    context,
+    edit,
+    editablePublications,
+    execute,
+    lastPublications,
     node,
-    {
-      easyuse_anima_aio_seed: [{
-        execution_seed: "41",
-        next_seed: "42",
-      }],
-    },
-    {
-      maximum: 100,
-      updateSeed(candidate, seed, options) {
-        updates.push([candidate, seed, options]);
-        candidate.seed = seed;
-      },
-    },
-  ), true);
-  assert.equal(node.__easyuseAnimaLastExecutedSeed, 41);
-  assert.equal(node.seed, 42, "current production replaces the -1 selection intent");
-  assert.deepEqual(updates, [[node, 42, { markDirty: false }]]);
+    owner,
+    runtime,
+    selection,
+  };
 }
 
 {
-  const node = {};
-  const updates = [];
-  assert.equal(seedModule.aioApplyExecutedSeedDisplay(
-    node,
-    {
-      easyuse_anima_aio_seed: [{
-        execution_seed: "18446744073709551615",
-        next_seed: "100",
-      }],
-    },
-    {
-      maximum: 100,
-      updateSeed(_candidate, seed) {
-        updates.push(seed);
-      },
-    },
-  ), true);
-  assert.equal(node.__easyuseAnimaLastExecutedSeed, undefined);
-  assert.deepEqual(updates, [100]);
+  const fixture = createRuntimeFixture({
+    requestedSeed: -1,
+    storedAfterGenerate: "increment",
+  });
+  fixture.capture("special");
+  const output = runtimePayload({
+    requestedSeed: -1,
+    storedAfterGenerate: "increment",
+    executionSeed: 41,
+    nextSeed: 41,
+  });
+  assert.equal(await fixture.execute("special", output), true);
+  assert.deepEqual(fixture.lastPublications, [41]);
+  assert.deepEqual(fixture.editablePublications, []);
+  assert.deepEqual(fixture.selection, {
+    requestedSeed: -1,
+    storedAfterGenerate: "increment",
+  });
 }
 
 {
-  const node = {};
-  assert.equal(seedModule.aioApplyExecutedSeedDisplay(
-    node,
-    {
-      easyuse_anima_aio_seed: [{
-        execution_seed: "7",
-        next_seed: "8",
-      }],
-    },
-    {
-      maximum: 100,
-      updateSeed() {
-        throw new Error("disposed panel");
-      },
-    },
-  ), true);
-  assert.equal(
-    node.__easyuseAnimaLastExecutedSeed,
-    7,
-    "backend acceptance remains visible after next-seed publication fails",
+  const fixture = createRuntimeFixture();
+  fixture.capture("concrete");
+  const output = runtimePayload({
+    requestedSeed: 7,
+    storedAfterGenerate: "increment",
+    executionSeed: 7,
+    nextSeed: 8,
+  });
+  assert.equal(await fixture.execute("concrete", output), true);
+  assert.deepEqual(fixture.lastPublications, [7]);
+  assert.deepEqual(fixture.editablePublications, [8]);
+  assert.deepEqual(fixture.selection, {
+    requestedSeed: 8,
+    storedAfterGenerate: "increment",
+  });
+}
+
+{
+  const fixture = createRuntimeFixture();
+  fixture.capture("unrelated-settings-edit");
+  fixture.node.widgets[1].callback();
+  const output = runtimePayload({
+    requestedSeed: 7,
+    storedAfterGenerate: "increment",
+    executionSeed: 7,
+    nextSeed: 8,
+  });
+  assert.equal(await fixture.execute("unrelated-settings-edit", output), true);
+  assert.deepEqual(fixture.lastPublications, [7]);
+  assert.deepEqual(
+    fixture.editablePublications,
+    [8],
+    "only the atomic seed/control pair owns the editable revision",
   );
 }
 
-for (const message of [
-  null,
-  {},
-  { easyuse_anima_aio_seed: [] },
+{
+  const fixture = createRuntimeFixture();
+  fixture.capture("stale");
+  fixture.edit({ seed: 23, control: "fixed" });
+  const output = runtimePayload({
+    requestedSeed: 7,
+    storedAfterGenerate: "increment",
+    executionSeed: 7,
+    nextSeed: 8,
+  });
+  assert.equal(await fixture.execute("stale", output), true);
+  assert.deepEqual(fixture.lastPublications, [7]);
+  assert.deepEqual(fixture.editablePublications, []);
+  assert.deepEqual(fixture.selection, {
+    requestedSeed: 23,
+    storedAfterGenerate: "fixed",
+  });
+}
+
+{
+  const fixture = createRuntimeFixture();
+  fixture.capture("older");
+  fixture.capture("newer");
+  const newer = runtimePayload({
+    requestedSeed: 7,
+    storedAfterGenerate: "increment",
+    executionSeed: 20,
+    nextSeed: 21,
+  });
+  const older = runtimePayload({
+    requestedSeed: 7,
+    storedAfterGenerate: "increment",
+    executionSeed: 10,
+    nextSeed: 11,
+  });
+  assert.equal(await fixture.execute("newer", newer), true);
+  assert.equal(await fixture.execute("older", older), false);
+  assert.deepEqual(fixture.lastPublications, [20]);
+  assert.deepEqual(fixture.editablePublications, [21]);
+}
+
+{
+  const fixture = createRuntimeFixture();
+  const captured = fixture.capture("adapter-first", { accept: false });
+  const output = runtimePayload({
+    requestedSeed: 7,
+    storedAfterGenerate: "increment",
+    executionSeed: 7,
+    nextSeed: 8,
+  });
+  const pending = fixture.execute("adapter-first", output, { dispatch: false });
+  fixture.api.dispatch("executed", {
+    prompt_id: "adapter-first",
+    node: "41",
+    output,
+  });
+  assert.equal(await pending, false);
+  assert.deepEqual(fixture.lastPublications, []);
+  assert.equal(fixture.runtime.acceptQueue(captured, {
+    ok: true,
+    result: { prompt_id: "adapter-first" },
+  }), 1);
+  assert.deepEqual(fixture.lastPublications, [7]);
+  assert.deepEqual(fixture.editablePublications, [8]);
+}
+
+for (const output of [
+  runtimePayload({
+    requestedSeed: 7,
+    storedAfterGenerate: "increment",
+    executionSeed: 101,
+    nextSeed: 8,
+  }),
+  runtimePayload({
+    requestedSeed: 7,
+    storedAfterGenerate: "increment",
+    executionSeed: 7,
+    nextSeed: 8,
+    overrides: { next_display_seed: "8" },
+  }),
   {
-    easyuse_anima_aio_seed: [{
-      execution_seed: "-1",
-      next_seed: "not-a-seed",
-    }],
+    easyuse_anima_aio_seed: [
+      contractPayload({
+        requestedSeed: 7,
+        storedAfterGenerate: "increment",
+        executionSeed: 7,
+        nextSeed: 8,
+      }),
+      contractPayload({
+        requestedSeed: 7,
+        storedAfterGenerate: "increment",
+        executionSeed: 7,
+        nextSeed: 8,
+      }),
+    ],
   },
 ]) {
-  assert.equal(seedModule.aioApplyExecutedSeedDisplay(
-    {},
-    message,
-    {
-      maximum: 100,
-      updateSeed() {
-        throw new Error("must not update");
-      },
-    },
+  const fixture = createRuntimeFixture();
+  fixture.capture("invalid");
+  assert.equal(await fixture.execute("invalid", output), false);
+  assert.deepEqual(fixture.lastPublications, []);
+  assert.deepEqual(fixture.editablePublications, []);
+}
+
+{
+  const fixture = createRuntimeFixture();
+  fixture.capture("clone");
+  const output = runtimePayload({
+    requestedSeed: 7,
+    storedAfterGenerate: "increment",
+    executionSeed: 7,
+    nextSeed: 8,
+  });
+  fixture.api.dispatch("executed", {
+    prompt_id: "clone",
+    node: "41",
+    output,
+  });
+  assert.equal(await fixture.runtime.consumeExecution(
+    fixture.node,
+    structuredClone(output),
   ), false);
+  assert.deepEqual(fixture.lastPublications, []);
+  assert.deepEqual(fixture.editablePublications, []);
+  fixture.runtime.disposeNode(fixture.node, "dispose");
+}
+
+{
+  const fixture = createRuntimeFixture();
+  fixture.capture("duplicate");
+  const output = runtimePayload({
+    requestedSeed: 7,
+    storedAfterGenerate: "increment",
+    executionSeed: 7,
+    nextSeed: 8,
+  });
+  assert.equal(await fixture.execute("duplicate", output), true);
+  assert.equal(await fixture.execute("duplicate", output), false);
+  assert.deepEqual(fixture.lastPublications, [7]);
+  assert.deepEqual(fixture.editablePublications, [8]);
+}
+
+{
+  const fixture = createRuntimeFixture();
+  fixture.capture("disposed");
+  assert.equal(fixture.runtime.disposeNode(fixture.node, "remove"), true);
+  const output = runtimePayload({
+    requestedSeed: 7,
+    storedAfterGenerate: "increment",
+    executionSeed: 7,
+    nextSeed: 8,
+  });
+  assert.equal(await fixture.execute("disposed", output), false);
+  assert.deepEqual(fixture.lastPublications, []);
+  assert.deepEqual(fixture.editablePublications, []);
 }
 
 for (const [requestedSeed, selection] of SPECIAL_SELECTION_BY_TOKEN) {

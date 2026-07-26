@@ -121,11 +121,13 @@ assert.deepEqual(
     "findWidget",
     "GENERATOR_SETTINGS_WIDGET",
     "generatorSettings",
+    "normalizeSeedControl",
     `"use strict";\n${entrySource.slice(functionStart, functionEnd)}\nreturn commitGeneratorSeedValue;`,
   )(
     (node, name) => node.widgets.find((widget) => widget.name === name),
     "generation_settings",
     (node) => clone(node.settings),
+    (value) => String(value || "fixed"),
   );
   const seedCallbackError = new Error("seed callback failed");
   const settingsCallbackError = new Error("settings callback failed");
@@ -156,6 +158,19 @@ assert.deepEqual(
   assert.equal(seedWidget.value, 11);
   assert.equal(atomicNode.__easyuseAnimaGeneratorUiValues.seed, 11);
   assert.equal(JSON.parse(settingsWidget.value).sampler.seed, 11);
+  assert.equal(
+    atomicNode.settings.sampler.seed_after_generate,
+    "increment",
+    "ordinary seed updates must preserve the stored workflow control",
+  );
+  callbackTrace.length = 0;
+  assert.doesNotThrow(() => commitGeneratorSeedValue(atomicNode, 12, "fixed"));
+  assert.deepEqual(callbackTrace, ["seed", "settings"]);
+  assert.equal(seedWidget.value, 12);
+  assert.deepEqual(JSON.parse(settingsWidget.value).sampler, {
+    seed: 12,
+    seed_after_generate: "fixed",
+  });
 }
 
 function createFixture() {
@@ -391,7 +406,7 @@ function createFixture() {
       trace.push("set-widget:" + name + ":" + value);
       node.widgetValues[name] = value;
     },
-    commitSeedValue(node, seed) {
+    commitSeedValue(node, seed, afterGenerate = null) {
       dependencyCalls += 1;
       trace.push("commit-seed:" + seed);
       if (node.failSeedCommit) {
@@ -399,6 +414,9 @@ function createFixture() {
       }
       node.widgetValues.seed = seed;
       node.settings.sampler.seed = seed;
+      if (afterGenerate != null) {
+        node.settings.sampler.seed_after_generate = afterGenerate;
+      }
     },
     markDirty(node) {
       dependencyCalls += 1;
@@ -1287,6 +1305,7 @@ assert.equal(
 assert.equal(node.__easyuseAnimaLastExecutedSeed, 777);
 assert.equal(node.widgetValues.seed, 776);
 assert.equal(node.settings.sampler.seed, 776);
+assert.equal(node.settings.sampler.seed_after_generate, "fixed");
 assert.equal(panel.querySelector("[data-aio-seed-input]").value, 776);
 assert.equal(
   fixture.trace.includes("dirty"),
@@ -1320,14 +1339,21 @@ fixture.trace.length = 0;
 findByText(panel, "text:button.newFixed").emit("click");
 assert.equal(node.widgetValues.seed, 123456);
 assert.equal(node.settings.sampler.seed, 123456);
+assert.equal(node.settings.sampler.seed_after_generate, "fixed");
 assert.equal(fixture.trace.includes("random-seed"), true);
 assert.ok(fixture.trace.indexOf("random-seed") < fixture.trace.indexOf("commit-seed:123456"));
 assert.ok(fixture.trace.indexOf("commit-seed:123456") < fixture.trace.indexOf("get-settings"));
 assert.ok(fixture.trace.indexOf("get-settings") < fixture.trace.lastIndexOf("dirty"));
 fixture.trace.length = 0;
+node.settings.sampler.seed_after_generate = "decrement";
 findByText(panel, "text:button.randomEach").emit("click");
 assert.equal(node.widgetValues.seed, -1);
 assert.equal(node.settings.sampler.seed, -1);
+assert.equal(
+  node.settings.sampler.seed_after_generate,
+  "decrement",
+  "Random Each must preserve the serialized workflow control",
+);
 assert.ok(fixture.trace.indexOf("commit-seed:-1") < fixture.trace.indexOf("get-settings"));
 const seedInput = panel.querySelector("[data-aio-seed-input]");
 seedInput.value = "314";
@@ -1342,6 +1368,7 @@ seedLast = panel.querySelector("[data-aio-seed-last]");
 seedLast.emit("click");
 assert.equal(node.widgetValues.seed, 777);
 assert.equal(node.settings.sampler.seed, 777);
+assert.equal(node.settings.sampler.seed_after_generate, "fixed");
 assert.equal(seedLast.disabled, true);
 
 const highresBlock = settingsScroll.children[1];
