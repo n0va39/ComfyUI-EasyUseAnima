@@ -307,10 +307,12 @@ class EasyUseAnimaAIOGenerator:
                 extra_pnginfo,
                 unique_id,
             )
-            output["ui"]["easyuse_anima_aio_seed"] = [{
-                "execution_seed": str(seed_execution.execution_seed),
-                "next_seed": str(seed_execution.next_seed),
-            }]
+            payload_factory = getattr(seed_execution, "ui_payload", None)
+            seed_payload = (
+                payload_factory() if callable(payload_factory) else None
+            )
+            if seed_payload is not None:
+                output["ui"]["easyuse_anima_aio_seed"] = [seed_payload]
             return output
 
 
