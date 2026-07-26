@@ -11,12 +11,16 @@ conversation.
    - use focused edit-loop tests;
    - run the official full runner once per final candidate SHA;
    - escalate to package, live, and benchmark evidence only when triggered.
-3. Python backend architecture or migration work:
+3. While Issue #415 owns the active hotfix, read
+   [`docs/architecture/queue-ui-two-phase-correlation-addendum.md`](../architecture/queue-ui-two-phase-correlation-addendum.md)
+   and only the current task section. It supersedes the original exact-identity-
+   at-submission assumption after the QSTATE-02A blocker.
+4. Python backend architecture or migration work:
    [`docs/architecture/README.md`](../architecture/README.md)
-4. Active frontend maintenance execution plan:
+5. Active frontend maintenance execution plan:
    `docs/development/frontend-maintenance-execution-plan.md`
-5. Current release candidate: `docs/development/0.5.5.md`
-6. Relevant topic guide:
+6. Current released baseline: `docs/development/0.5.5.md`
+7. Relevant topic guide:
    - Registry publish or flagged-version prevention:
      `docs/development/registry-scanner-safety.md`
    - workflow docs or release templates: `docs/Anima AiO/Workflow_Management.md`
@@ -31,8 +35,8 @@ conversation.
    - deferred Node 2.0 DOM widget resize investigation:
      `docs/development/node2-dom-widget-resize-limitation.md`
    - language or locale work: `docs/development/language-management.md`
-7. `git status --short`
-8. Relevant source and tests for the target area.
+8. `git status --short`
+9. Relevant source and tests for the target area.
 
 Do not read every roadmap or historical document by default. The efficiency
 protocol defines the maximum initial context and the conditions that justify
@@ -43,11 +47,13 @@ expanding it.
 - Current policy baseline: `docs/development/current-policies.md`
 - Codex work-packet, test-escalation, evidence-reuse, and token policy:
   [`docs/development/codex-execution-efficiency.md`](codex-execution-efficiency.md)
+- Active queue/live-UI correlation correction:
+  [`docs/architecture/queue-ui-two-phase-correlation-addendum.md`](../architecture/queue-ui-two-phase-correlation-addendum.md)
 - Python backend architecture and compatibility-shim registry:
   [`docs/architecture/README.md`](../architecture/README.md)
 - Active frontend maintenance execution ledger:
   `docs/development/frontend-maintenance-execution-plan.md`
-- Current release candidate: `docs/development/0.5.5.md`
+- Current released baseline: `docs/development/0.5.5.md`
 - Registry scanner safety: `docs/development/registry-scanner-safety.md`
 - Older implementation history: `docs/version-plans/`
 - Public workflow JSON templates and preview/source images: `docs/example_workflows/`
@@ -116,7 +122,7 @@ targeted symbol search; do not automatically read every listed file.
 ### Edit loop
 
 Use only changed-file syntax checks and the task-specific focused tests listed in
-`codex-execution-efficiency.md` or the owning Issue.
+`codex-execution-efficiency.md`, the active two-phase addendum, or the owning Issue.
 
 ```text
 node --check web/js/<changed-file>.js

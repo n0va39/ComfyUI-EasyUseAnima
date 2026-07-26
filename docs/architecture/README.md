@@ -21,9 +21,12 @@ section, owning Issue, direct owner files, and direct tests.
   is the current implementation and release owner for the queue/live-UI
   regressions in [#413](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/413)
   and [#414](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/414).
-  While #415 is open, read
-  [`queue-ui-execution-state-hotfix.md`](queue-ui-execution-state-hotfix.md)
-  **before** the ordinary backend roadmap or any AiO advanced-integration plan.
+  QSTATE-01 is merged. QSTATE-02A proved that backend `list_index` does not exist
+  at frontend submission-capture time. While #415 remains open, read
+  [`queue-ui-two-phase-correlation-addendum.md`](queue-ui-two-phase-correlation-addendum.md)
+  **before** the original
+  [`queue-ui-execution-state-hotfix.md`](queue-ui-execution-state-hotfix.md),
+  the ordinary backend roadmap, or an AiO advanced-integration plan.
 - Issue [#395](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/395)
   separately tracks the external Comfy Registry activation checkpoint for the
   immutable 0.5.5 release. Waiting for that external approval does not block
@@ -45,11 +48,17 @@ section, owning Issue, direct owner files, and direct tests.
   cross-roadmap Codex context budget, work-packet format, test ladder, invalidation
   rules, compact evidence format, and scoped test maps for #413/#414, #409/#410/#411,
   and ordinary backend work.
+- [`queue-ui-two-phase-correlation-addendum.md`](queue-ui-two-phase-correlation-addendum.md):
+  active correction after QSTATE-02A. It separates provisional submission,
+  accepted `promptId`, and the executed-event envelope; removes mandatory
+  `listIndex` from the node-level stale-result critical path; defines cache,
+  subgraph, mapped-result, transaction-core, and envelope-bridge boundaries; and
+  provides the current Codex start instruction.
 - [`queue-ui-execution-state-hotfix.md`](queue-ui-execution-state-hotfix.md):
-  active queue-first runbook for stale LoRA/Prompt Studio execution results
-  (#413), rgthree-compatible AiO special-seed display semantics (#414), the
-  shared transaction/revision Contract, integrated validation, and the patch
-  release gate owned by #415.
+  base runbook for stale LoRA/Prompt Studio execution results (#413),
+  rgthree-compatible AiO special-seed display semantics (#414), integrated
+  validation, and the patch release gate owned by #415. Its exact-identity-at-
+  submission assumptions are superseded by the two-phase addendum.
 - [`python-backend.md`](python-backend.md): living architecture, ownership,
   execution phases, validation gates, and overall Definition of Done.
 - [`python-backend-execution-roadmap.md`](python-backend-execution-roadmap.md):
