@@ -174,6 +174,16 @@ try {
         throw "Frontend Prompt Studio Advanced executed values smoke failed with exit code $LASTEXITCODE."
     }
 
+    & node "tests\frontend_prompt_studio_wildcard_transaction_smoke.mjs"
+    if ($LASTEXITCODE -ne 0) {
+        throw "Frontend Prompt Studio wildcard transaction smoke failed with exit code $LASTEXITCODE."
+    }
+
+    & node "tests\frontend_prompt_studio_wildcard_view_sync_smoke.mjs"
+    if ($LASTEXITCODE -ne 0) {
+        throw "Frontend Prompt Studio narrow Wildcard view-sync smoke failed with exit code $LASTEXITCODE."
+    }
+
     & node "tests\frontend_prompt_studio_classic_values_smoke.mjs"
     if ($LASTEXITCODE -ne 0) {
         throw "Frontend Prompt Studio Classic/Extend executed values smoke failed with exit code $LASTEXITCODE."

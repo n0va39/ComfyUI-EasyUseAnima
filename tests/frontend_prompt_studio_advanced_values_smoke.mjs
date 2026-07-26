@@ -74,6 +74,8 @@ const node = {
 };
 let dirtyCount = 0;
 let renderCount = 0;
+let consumedMappedItemCount = null;
+let wildcardViewCommitCount = 0;
 publishAdvancedWildcardExecution(
   node,
   {
@@ -88,6 +90,15 @@ publishAdvancedWildcardExecution(
   },
   {
     advancedWidget: (target) => target.widgets[0],
+    commitAdvancedWildcardSeedView: (target, seed) => {
+      wildcardViewCommitCount += 1;
+      target.widgets.find((widget) => widget.name === "wildcard_seed").value = seed;
+    },
+    consumeWildcardSeedExecution: (_target, _message, mappedItemCount, commit) => {
+      consumedMappedItemCount = mappedItemCount;
+      commit();
+      return true;
+    },
     markNodeDirty: () => { dirtyCount += 1; },
     parseAdvancedFields: () => [],
     renderAdvancedEditor: () => { renderCount += 1; },
@@ -98,6 +109,8 @@ assert(
   node.widgets.find((widget) => widget.name === "wildcard_seed").value === 42,
   "Advanced did not apply the backend next seed",
 );
+assert(consumedMappedItemCount === 1, "Advanced did not report one mapped payload");
+assert(wildcardViewCommitCount === 1, "Advanced did not delegate the next seed to the narrow view owner");
 const previous = JSON.parse(
   node.properties.easyuse_anima_previous_wildcard_execution,
 );
@@ -147,6 +160,7 @@ publishAdvancedWildcardExecution(
       resolution_custom_width: 1024,
       resolution_custom_height: 1024,
       wildcard_mode: "순차",
+      wildcard_execution_seed: 40,
       wildcard_seed: 41,
       wildcard_seed_after_generate: "increment",
       artist_mix_mode: "average",
@@ -155,6 +169,7 @@ publishAdvancedWildcardExecution(
   },
   {
     advancedWidget: (target) => target.widgets[0],
+    consumeWildcardSeedExecution: () => false,
     parseAdvancedFields: (target) => JSON.parse(target.widgets[0].value),
     renderAdvancedEditor: () => {},
   },
@@ -189,13 +204,67 @@ assert(
   "stale Advanced wildcard settings replaced the current mode/control",
 );
 assert(
-  staleWidgetValue("wildcard_seed") === 41,
-  "QSTATE-04A must preserve the existing next-seed publication for QSTATE-04B",
+  staleWidgetValue("wildcard_seed") === 900,
+  "stale Advanced execution replaced the current editable next seed",
+);
+const stalePrevious = JSON.parse(
+  staleNode.properties.easyuse_anima_previous_wildcard_execution,
+);
+assert(
+  stalePrevious.seed === 40 && stalePrevious.mode === "sequential",
+  "stale execution must still update non-editable wildcard history",
 );
 assert(
   staleWidgetValue("artist_mix_mode") === "exact"
     && staleWidgetValue("artist_mix_start_percent") === 0.75,
   "stale Advanced Artist Mix state replaced the current atomic group",
+);
+
+const missingIdentityNode = {
+  properties: {},
+  widgets: [{ name: "wildcard_seed", value: 50 }],
+};
+publishAdvancedWildcardExecution(
+  missingIdentityNode,
+  {
+    prompt_studio_advanced: [{
+      wildcard_execution_seed: 50,
+      wildcard_seed: 51,
+      wildcard_mode: "일반",
+    }],
+  },
+  { markNodeDirty: () => {} },
+);
+assert(
+  missingIdentityNode.widgets[0].value === 50,
+  "missing transaction identity must fail closed for next-seed publication",
+);
+
+let mappedCount = null;
+const mappedNode = {
+  properties: {},
+  widgets: [{ name: "wildcard_seed", value: 60 }],
+};
+publishAdvancedWildcardExecution(
+  mappedNode,
+  {
+    prompt_studio_advanced: [
+      { wildcard_execution_seed: 60, wildcard_seed: 61, wildcard_mode: "일반" },
+      { wildcard_execution_seed: 70, wildcard_seed: 71, wildcard_mode: "일반" },
+    ],
+  },
+  {
+    consumeWildcardSeedExecution: (_target, _message, count) => {
+      mappedCount = count;
+      return false;
+    },
+    markNodeDirty: () => {},
+  },
+);
+assert(mappedCount === 2, "Advanced did not expose multiple mapped payloads");
+assert(
+  mappedNode.widgets[0].value === 60,
+  "multiple mapped payloads must not publish an editable next seed",
 );
 
 console.log("Prompt Studio Advanced executed values smoke passed.");

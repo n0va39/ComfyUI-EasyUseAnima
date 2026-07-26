@@ -63,14 +63,27 @@ function syncAdvancedValues(node, serialized = null, hooks = {}) {
 }
 
 function publishAdvancedWildcardExecution(node, message, hooks = {}) {
-  const payload = firstValue(message?.prompt_studio_advanced, null);
+  const mappedPayload = message?.prompt_studio_advanced;
+  const payload = firstValue(mappedPayload, null);
   if (!payload || typeof payload !== "object") {
     return;
   }
+  const mappedItemCount = Array.isArray(mappedPayload) ? mappedPayload.length : 1;
   const wildcardSeed = findWidget(node, "wildcard_seed");
-  if (wildcardSeed && payload.wildcard_seed != null) {
-    wildcardSeed.value = payload.wildcard_seed;
-  }
+  hooks.consumeWildcardSeedExecution?.(
+    node,
+    message,
+    mappedItemCount,
+    wildcardSeed && payload.wildcard_seed != null
+      ? () => {
+        if (typeof hooks.commitAdvancedWildcardSeedView === "function") {
+          hooks.commitAdvancedWildcardSeedView(node, payload.wildcard_seed);
+        } else {
+          wildcardSeed.value = payload.wildcard_seed;
+        }
+      }
+      : null,
+  );
   if (writePreviousWildcardExecution(node, {
     seed: payload.wildcard_execution_seed,
     mode: payload.wildcard_mode,
