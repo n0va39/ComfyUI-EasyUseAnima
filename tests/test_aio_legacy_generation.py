@@ -12,6 +12,7 @@ from unittest.mock import patch
 
 import nodes
 from easyuse_anima.aio import legacy_generation
+from easyuse_anima.aio.generation_lifecycle import StageModelPatchPlan
 from easyuse_anima.nodes import aio_nodes
 from tests.comfy_host_fakes import patch_comfy_helper
 from tests.test_node_contracts import _loaded_package_entrypoint
@@ -2089,6 +2090,76 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
             ],
         )
 
+    def test_first_stage_variant_resolution_failure_cleans_lora_boundary(self):
+        trace: list[str] = []
+        with patch.object(
+            legacy_generation.StageModelVariantResolver,
+            "resolve",
+            side_effect=RuntimeError("stage variant failed"),
+        ):
+            with self.assertRaisesRegex(RuntimeError, "stage variant failed"):
+                self._execute_case(
+                    upscale_enabled=False,
+                    intermediate_preview=False,
+                    unique_id=None,
+                    trace_sink=trace,
+                )
+
+        self.assertEqual(trace[-1:], ["cleanup:lora"])
+
+    def test_pipeline_routes_distinct_stage_models_and_reuses_matching_signature(self):
+        execution = self._execute_case(
+            upscale_enabled=True,
+            intermediate_preview=False,
+            unique_id="node-stage-models",
+            highres_enabled=True,
+            detailer_enabled=True,
+            stage_signatures={
+                "first_pass": "dave",
+                "highres": "clean",
+                "detailer": "detailer",
+                "upscale": "clean",
+            },
+        )
+
+        trace = execution["trace"]
+        self.assertIn("run_highres:model:clean", trace)
+        self.assertIn("run_detailer:model:detailer", trace)
+        self.assertIn("run_upscale:model:clean", trace)
+        self.assertEqual(trace.count("apply_model_patches"), 3)
+        self.assertEqual(
+            execution["result"]["metadata"]["stages"]["model_patches_by_stage"],
+            {
+                "first_pass": ["aura_flow", "variant:dave"],
+                "highres": ["aura_flow", "variant:clean"],
+                "detailer": ["aura_flow", "variant:detailer"],
+                "upscale": ["aura_flow", "variant:clean"],
+            },
+        )
+
+    def test_resshift_does_not_resolve_upscale_sampling_model(self):
+        execution = self._execute_case(
+            upscale_enabled=True,
+            intermediate_preview=False,
+            unique_id="node-resshift",
+            upscale_backend="resshift",
+            stage_signatures={
+                "first_pass": "first",
+                "highres": "unused-highres",
+                "detailer": "unused-detailer",
+                "upscale": "must-not-resolve",
+            },
+        )
+
+        self.assertNotIn("run_upscale:model:must-not-resolve", execution["trace"])
+        self.assertEqual(execution["trace"].count("apply_model_patches"), 1)
+        self.assertEqual(
+            execution["result"]["metadata"]["stages"]["model_patches_by_stage"][
+                "upscale"
+            ],
+            [],
+        )
+
     def _execute_case(
         self,
         *,
@@ -2096,8 +2167,19 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
         intermediate_preview: bool,
         unique_id,
         trace_sink: list[str] | None = None,
+        highres_enabled: bool = False,
+        detailer_enabled: bool = False,
+        upscale_backend: str = "usdu",
+        stage_signatures: dict[str, str] | None = None,
     ) -> dict:
         trace = trace_sink if trace_sink is not None else []
+        custom_stage_models = stage_signatures is not None
+        stage_signatures = stage_signatures or {
+            "first_pass": "shared-stage-model",
+            "highres": "shared-stage-model",
+            "detailer": "shared-stage-model",
+            "upscale": "shared-stage-model",
+        }
         generator = nodes.EasyUseAnimaAIOGenerator()
         context = {
             "prompt_data": {"positive_prompt": "prompt"},
@@ -2119,9 +2201,12 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
                 "dominant_threshold": 0.0,
             },
             "mod_guidance": {"profile": "off", "mode": "auto"},
-            "highres": {"enabled": False},
-            "detailer": {},
-            "upscale": {"enabled": upscale_enabled},
+            "highres": {"enabled": highres_enabled},
+            "detailer": {"face": {"enabled": detailer_enabled}},
+            "upscale": {
+                "enabled": upscale_enabled,
+                "backend": upscale_backend,
+            },
             "postprocess": {"enabled": False},
             "preview": {"intermediate_images": intermediate_preview},
             "save": {
@@ -2133,15 +2218,24 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
 
         base_model = _Token("base")
         lora_model = _Token("lora")
-        patched_model = _Token("model")
+        variant_models = {
+            signature: _Token(
+                f"model:{signature}" if custom_stage_models else "model"
+            )
+            for signature in set(stage_signatures.values())
+        }
+        patched_model = variant_models[stage_signatures["first_pass"]]
         sample_model = _Token("sample")
         base_clip = _Token("base_clip")
         clip = _Token("clip")
         vae = _Token("vae")
         model_names = {
             id(lora_model): "lora",
-            id(patched_model): "model",
             id(sample_model): "sample",
+            **{
+                id(model): model.name
+                for model in variant_models.values()
+            },
         }
 
         def phase(name, result):
@@ -2224,11 +2318,27 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
             self.assertEqual(stack, "lora-stack")
             return lora_model, clip, [{"name": "style.safetensors"}]
 
-        def apply_model_patches(model, normalized_settings):
+        def build_stage_plan(normalized_settings, stage_id):
+            self.assertIn(
+                stage_id,
+                ("first_pass", "highres", "detailer", "upscale"),
+            )
+            self.assertEqual(normalized_settings["sampler"]["seed"], 17)
+            signature = stage_signatures[stage_id]
+            return StageModelPatchPlan(
+                signature=signature,
+                patch_ids=(
+                    ("aura_flow", f"variant:{signature}")
+                    if custom_stage_models
+                    else ("aura_flow",)
+                ),
+                payload={"stage_id": stage_id},
+            )
+
+        def apply_model_patches(model, plan):
             trace.append("apply_model_patches")
             self.assertIs(model, lora_model)
-            self.assertEqual(normalized_settings["sampler"]["seed"], 17)
-            return patched_model
+            return variant_models[plan.signature]
 
         def advanced_outputs(prompt_data):
             trace.append("advanced_outputs")
@@ -2277,15 +2387,25 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
             height,
             *args,
         ):
-            trace.append("run_highres")
+            trace.append(
+                f"run_highres:{model.name}" if custom_stage_models else "run_highres"
+            )
             return latent, image, width, height, {"enabled": False}
 
         def run_detailer(*args):
-            trace.append("run_detailer")
+            trace.append(
+                f"run_detailer:{args[0].name}"
+                if custom_stage_models
+                else "run_detailer"
+            )
             return args[5], {"enabled": False}
 
         def run_upscale(*args, **kwargs):
-            trace.append("run_upscale")
+            trace.append(
+                f"run_upscale:{args[0].name}"
+                if custom_stage_models
+                else "run_upscale"
+            )
             if upscale_enabled:
                 return "upscaled-image", {"enabled": True, "backend": "stub"}
             return args[5], {"enabled": False}
@@ -2358,7 +2478,8 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
                 _aio_generation_config_from_dict=typed_config,
                 _load_aio_resources_from_input_context=load_resources,
                 _apply_aio_lora_stack=apply_lora,
-                _apply_aio_model_patches=apply_model_patches,
+                _aio_stage_model_patch_plan=build_stage_plan,
+                _apply_aio_stage_model_patch_plan=apply_model_patches,
                 _normalize_prompt_data=phase(
                     "normalize_prompt",
                     context["prompt_data"],
@@ -2369,7 +2490,10 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
                     "positive-conditioning",
                 ),
                 _as_bool=lambda value, default: bool(value),
-                _aio_detailer_has_enabled_targets=phase("detailer_enabled", False),
+                _aio_detailer_has_enabled_targets=phase(
+                    "detailer_enabled",
+                    detailer_enabled,
+                ),
                 _normalize_anima_mod_guidance_profile=phase("normalize_profile", "off"),
                 _resolve_anima_mod_guidance_enabled=phase("resolve_guidance", False),
                 _aio_highres_effective_backend=phase(

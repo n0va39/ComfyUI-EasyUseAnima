@@ -9,7 +9,6 @@
         "resolve_seed",
         "load_resources",
         "apply_lora",
-        "apply_model_patches",
         "normalize_prompt",
         "advanced_outputs",
         "encode_positive",
@@ -18,6 +17,7 @@
         "normalize_profile",
         "resolve_guidance",
         "resolve_highres_backend",
+        "apply_model_patches",
         "apply_spectrum_model_patches",
         "random_run_id",
         "cache_key:generator-id",
@@ -54,7 +54,11 @@
               "strength_scale": 1.0,
               "style_gain": 1.0
             },
-            "detailer": {},
+            "detailer": {
+              "face": {
+                "enabled": false
+              }
+            },
             "highres": {
               "enabled": false
             },
@@ -79,6 +83,7 @@
               "filename_prefix": "Anima"
             },
             "upscale": {
+              "backend": "usdu",
               "enabled": false
             }
           },
@@ -99,19 +104,27 @@
           },
           "schema": "easyuse_anima_aio_generation_result",
           "stages": {
+            "detailer": {
+              "enabled": false
+            },
             "first_pass": {
               "cache_hit": false
             },
             "highres": {
               "enabled": false
             },
-            "detailer": {
+            "model_patches_by_stage": {
+              "detailer": [],
+              "first_pass": [
+                "aura_flow"
+              ],
+              "highres": [],
+              "upscale": []
+            },
+            "postprocess": {
               "enabled": false
             },
             "upscale": {
-              "enabled": false
-            },
-            "postprocess": {
               "enabled": false
             }
           },
@@ -119,15 +132,6 @@
           "width": 64
         },
         "ui": {
-          "easyuse_anima_aio_seed": [
-            {
-              "requested_seed": "-1",
-              "selection": "randomize",
-              "effective_after_generate": "fixed",
-              "execution_seed": "17",
-              "next_seed": "17"
-            }
-          ],
           "status": [
             "generated"
           ],
@@ -165,6 +169,15 @@
               "width": 64,
               "height": 96
             }
+          ],
+          "easyuse_anima_aio_seed": [
+            {
+              "requested_seed": "-1",
+              "selection": "randomize",
+              "effective_after_generate": "fixed",
+              "execution_seed": "17",
+              "next_seed": "17"
+            }
           ]
         }
       }
@@ -176,7 +189,6 @@
         "resolve_seed",
         "load_resources",
         "apply_lora",
-        "apply_model_patches",
         "normalize_prompt",
         "advanced_outputs",
         "encode_positive",
@@ -185,6 +197,7 @@
         "normalize_profile",
         "resolve_guidance",
         "resolve_highres_backend",
+        "apply_model_patches",
         "apply_spectrum_model_patches",
         "random_run_id",
         "cache_key:node-7",
@@ -227,7 +240,11 @@
               "strength_scale": 1.0,
               "style_gain": 1.0
             },
-            "detailer": {},
+            "detailer": {
+              "face": {
+                "enabled": false
+              }
+            },
             "highres": {
               "enabled": false
             },
@@ -252,6 +269,7 @@
               "filename_prefix": "Anima"
             },
             "upscale": {
+              "backend": "usdu",
               "enabled": true
             }
           },
@@ -272,36 +290,37 @@
           },
           "schema": "easyuse_anima_aio_generation_result",
           "stages": {
+            "detailer": {
+              "enabled": false
+            },
             "first_pass": {
               "cache_hit": false
             },
             "highres": {
               "enabled": false
             },
-            "detailer": {
-              "enabled": false
-            },
-            "upscale": {
-              "enabled": true,
-              "backend": "stub"
+            "model_patches_by_stage": {
+              "detailer": [],
+              "first_pass": [
+                "aura_flow"
+              ],
+              "highres": [],
+              "upscale": [
+                "aura_flow"
+              ]
             },
             "postprocess": {
               "enabled": false
+            },
+            "upscale": {
+              "backend": "stub",
+              "enabled": true
             }
           },
           "version": 1,
           "width": 128
         },
         "ui": {
-          "easyuse_anima_aio_seed": [
-            {
-              "requested_seed": "-1",
-              "selection": "randomize",
-              "effective_after_generate": "fixed",
-              "execution_seed": "17",
-              "next_seed": "17"
-            }
-          ],
           "status": [
             "generated"
           ],
@@ -348,6 +367,15 @@
               "stage": "final",
               "width": 128,
               "height": 192
+            }
+          ],
+          "easyuse_anima_aio_seed": [
+            {
+              "requested_seed": "-1",
+              "selection": "randomize",
+              "effective_after_generate": "fixed",
+              "execution_seed": "17",
+              "next_seed": "17"
             }
           ]
         }

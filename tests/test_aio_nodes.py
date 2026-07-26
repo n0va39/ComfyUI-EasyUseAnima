@@ -2436,7 +2436,7 @@ class AIOGeneratorRuntimeTests(unittest.TestCase):
         with (
             patch.object(legacy_generation, "_load_aio_resources_from_input_context", return_value=("base_model", "base_clip", "vae")),
             patch.object(legacy_generation, "_apply_aio_lora_stack", return_value=("lora_model", "lora_clip", [{"name": "a"}])),
-            patch.object(legacy_generation, "_apply_aio_model_patches", return_value="patched_model"),
+            patch.object(legacy_generation, "_apply_aio_stage_model_patch_plan", return_value="patched_model"),
             patch.object(legacy_generation, "_advanced_outputs_from_prompt_data", return_value=("p", "n", "q", "qn", False, False, "", "", 512, 768)),
             patch.object(legacy_generation, "_encode_prompt_data_positive_conditioning", return_value="positive"),
             patch_comfy_helper(nodes, "_encode_with_comfy_clip", return_value="negative"),
@@ -2463,7 +2463,7 @@ class AIOGeneratorRuntimeTests(unittest.TestCase):
         with (
             patch.object(legacy_generation, "_load_aio_resources_from_input_context", return_value=("base_model", "base_clip", "vae")),
             patch.object(legacy_generation, "_apply_aio_lora_stack", return_value=("lora_model", "lora_clip", [])),
-            patch.object(legacy_generation, "_apply_aio_model_patches", return_value="patched_model"),
+            patch.object(legacy_generation, "_apply_aio_stage_model_patch_plan", return_value="patched_model"),
             patch.object(legacy_generation, "_advanced_outputs_from_prompt_data", return_value=("p", "n", "q", "qn", False, False, "", "", 512, 768)),
             patch.object(legacy_generation, "_encode_prompt_data_positive_conditioning", return_value="positive"),
             patch_comfy_helper(nodes, "_encode_with_comfy_clip", return_value="negative"),
@@ -2506,7 +2506,7 @@ class AIOGeneratorRuntimeTests(unittest.TestCase):
                 with (
                     patch.object(legacy_generation, "_load_aio_resources_from_input_context", return_value=("base_model", "base_clip", "vae")),
                     patch.object(legacy_generation, "_apply_aio_lora_stack", return_value=("lora_model", "lora_clip", [])),
-                    patch.object(legacy_generation, "_apply_aio_model_patches", return_value="patched_model"),
+            patch.object(legacy_generation, "_apply_aio_stage_model_patch_plan", return_value="patched_model"),
                     patch.object(legacy_generation, "_advanced_outputs_from_prompt_data", return_value=("p", "n", "q", "qn", True, False, "", "", 512, 768)),
                     patch.object(legacy_generation, "_encode_prompt_data_positive_conditioning", return_value="positive"),
                     patch_comfy_helper(nodes, "_encode_with_comfy_clip", return_value="negative"),
@@ -2553,7 +2553,7 @@ class AIOGeneratorRuntimeTests(unittest.TestCase):
         with (
             patch.object(legacy_generation, "_load_aio_resources_from_input_context", return_value=("base_model", "base_clip", "vae")),
             patch.object(legacy_generation, "_apply_aio_lora_stack", return_value=("lora_model", "lora_clip", [])),
-            patch.object(legacy_generation, "_apply_aio_model_patches", return_value="patched_model"),
+            patch.object(legacy_generation, "_apply_aio_stage_model_patch_plan", return_value="patched_model"),
             patch.object(legacy_generation, "_advanced_outputs_from_prompt_data", return_value=("p", "n", "q", "qn", True, False, "", "", 512, 768)),
             patch.object(legacy_generation, "_encode_prompt_data_positive_conditioning", return_value="positive"),
             patch_comfy_helper(nodes, "_encode_with_comfy_clip", return_value="negative"),
@@ -2594,7 +2594,7 @@ class AIOGeneratorRuntimeTests(unittest.TestCase):
         with (
             patch.object(legacy_generation, "_load_aio_resources_from_input_context", return_value=("base_model", "base_clip", "vae")),
             patch.object(legacy_generation, "_apply_aio_lora_stack", return_value=("lora_model", "lora_clip", [])),
-            patch.object(legacy_generation, "_apply_aio_model_patches", return_value="patched_model"),
+            patch.object(legacy_generation, "_apply_aio_stage_model_patch_plan", return_value="patched_model"),
             patch.object(legacy_generation, "_advanced_outputs_from_prompt_data", return_value=("p", "n", "q", "qn", True, False, "", "", 512, 768)),
             patch.object(legacy_generation, "_encode_prompt_data_positive_conditioning", return_value="positive"),
             patch_comfy_helper(nodes, "_encode_with_comfy_clip", return_value="negative"),
@@ -2663,7 +2663,7 @@ class AIOGeneratorRuntimeTests(unittest.TestCase):
         with (
             patch.object(legacy_generation, "_load_aio_resources_from_input_context", return_value=("base_model", "base_clip", "vae")),
             patch.object(legacy_generation, "_apply_aio_lora_stack", return_value=("lora_model", "lora_clip", [])),
-            patch.object(legacy_generation, "_apply_aio_model_patches", return_value="patched_model"),
+            patch.object(legacy_generation, "_apply_aio_stage_model_patch_plan", return_value="patched_model"),
             patch.object(legacy_generation, "_advanced_outputs_from_prompt_data", return_value=("p", "n", "q", "qn", False, False, "", "", 512, 768)),
             patch.object(legacy_generation, "_encode_prompt_data_positive_conditioning", return_value="positive"),
             patch_comfy_helper(nodes, "_encode_with_comfy_clip", return_value="negative"),
@@ -2731,7 +2731,7 @@ class AIOGeneratorRuntimeTests(unittest.TestCase):
         with (
             patch.object(legacy_generation, "_load_aio_resources_from_input_context", return_value=("base_model", "base_clip", "vae")),
             patch.object(legacy_generation, "_apply_aio_lora_stack", return_value=("lora_model", "lora_clip", [{"name": "style/foo.safetensors", "strength_model": 0.8}])),
-            patch.object(legacy_generation, "_apply_aio_model_patches", return_value="patched_model"),
+            patch.object(legacy_generation, "_apply_aio_stage_model_patch_plan", return_value="patched_model"),
             patch.object(legacy_generation, "_advanced_outputs_from_prompt_data", return_value=("p", "n", "q", "qn", False, False, "", "", 512, 768)),
             patch.object(legacy_generation, "_encode_prompt_data_positive_conditioning", return_value="positive"),
             patch_comfy_helper(nodes, "_encode_with_comfy_clip", return_value="negative"),
@@ -2784,7 +2784,7 @@ class AIOGeneratorRuntimeTests(unittest.TestCase):
         with (
             patch.object(legacy_generation, "_load_aio_resources_from_input_context", return_value=("base_model", "base_clip", "vae")),
             patch.object(legacy_generation, "_apply_aio_lora_stack", return_value=("lora_model", "lora_clip", [])),
-            patch.object(legacy_generation, "_apply_aio_model_patches", return_value="patched_model"),
+            patch.object(legacy_generation, "_apply_aio_stage_model_patch_plan", return_value="patched_model"),
             patch.object(
                 legacy_generation,
                 "_advanced_outputs_from_prompt_data",
@@ -2848,7 +2848,7 @@ class AIOGeneratorRuntimeTests(unittest.TestCase):
         with (
             patch.object(legacy_generation, "_load_aio_resources_from_input_context", return_value=("base_model", "base_clip", "vae")),
             patch.object(legacy_generation, "_apply_aio_lora_stack", return_value=("lora_model", "lora_clip", [])),
-            patch.object(legacy_generation, "_apply_aio_model_patches", return_value="patched_model"),
+            patch.object(legacy_generation, "_apply_aio_stage_model_patch_plan", return_value="patched_model"),
             patch.object(legacy_generation, "_advanced_outputs_from_prompt_data", return_value=("p", "n", "q", "qn", False, False, "", "", 512, 768)),
             patch.object(legacy_generation, "_encode_prompt_data_positive_conditioning", return_value="positive"),
             patch_comfy_helper(nodes, "_encode_with_comfy_clip", return_value="negative"),
@@ -2903,7 +2903,7 @@ class AIOGeneratorRuntimeTests(unittest.TestCase):
         with (
             patch.object(legacy_generation, "_load_aio_resources_from_input_context", return_value=("base_model", "base_clip", "vae")),
             patch.object(legacy_generation, "_apply_aio_lora_stack", return_value=("lora_model", "lora_clip", [])),
-            patch.object(legacy_generation, "_apply_aio_model_patches", return_value="patched_model"),
+            patch.object(legacy_generation, "_apply_aio_stage_model_patch_plan", return_value="patched_model"),
             patch.object(legacy_generation, "_advanced_outputs_from_prompt_data", return_value=("p", "n", "q", "qn", False, False, "", "", 512, 768)),
             patch.object(legacy_generation, "_encode_prompt_data_positive_conditioning", return_value="positive"),
             patch_comfy_helper(nodes, "_encode_with_comfy_clip", return_value="negative"),
@@ -2968,7 +2968,7 @@ class AIOGeneratorRuntimeTests(unittest.TestCase):
         with (
             patch.object(legacy_generation, "_load_aio_resources_from_input_context", return_value=("base_model", "base_clip", "vae")),
             patch.object(legacy_generation, "_apply_aio_lora_stack", return_value=("lora_model", "lora_clip", [])),
-            patch.object(legacy_generation, "_apply_aio_model_patches", return_value="patched_model"),
+            patch.object(legacy_generation, "_apply_aio_stage_model_patch_plan", return_value="patched_model"),
             patch.object(legacy_generation, "_advanced_outputs_from_prompt_data", return_value=("p", "n", "q", "qn", False, False, "", "", 512, 768)),
             patch.object(legacy_generation, "_encode_prompt_data_positive_conditioning", return_value="positive"),
             patch_comfy_helper(nodes, "_encode_with_comfy_clip", return_value="negative"),
