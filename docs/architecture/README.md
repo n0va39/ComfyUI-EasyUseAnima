@@ -27,6 +27,11 @@ section, owning Issue, direct owner files, and direct tests.
   **before** the original
   [`queue-ui-execution-state-hotfix.md`](queue-ui-execution-state-hotfix.md),
   the ordinary backend roadmap, or an AiO advanced-integration plan.
+- Before Prompt Studio wildcard next-seed publication or AiO seed cutover, read
+  [`seed-ui-semantics-gate.md`](seed-ui-semantics-gate.md). Prompt Studio uses a
+  concrete seed plus an after-generate transition; AiO special `-1/-2/-3` values
+  are persistent selection tokens. The shared transaction owner must not merge
+  those feature meanings.
 - Issue [#395](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/395)
   separately tracks the external Comfy Registry activation checkpoint for the
   immutable 0.5.5 release. Waiting for that external approval does not block
@@ -54,6 +59,10 @@ section, owning Issue, direct owner files, and direct tests.
   `listIndex` from the node-level stale-result critical path; defines cache,
   subgraph, mapped-result, transaction-core, and envelope-bridge boundaries; and
   provides the current Codex start instruction.
+- [`seed-ui-semantics-gate.md`](seed-ui-semantics-gate.md): feature boundary and
+  hard test gate separating Prompt Studio Wildcard concrete after-generate seed
+  publication from AiO rgthree-style persistent special-token selection, including
+  the special-token × stored-control no-double-advance matrix.
 - [`queue-ui-execution-state-hotfix.md`](queue-ui-execution-state-hotfix.md):
   base runbook for stale LoRA/Prompt Studio execution results (#413),
   rgthree-compatible AiO special-seed display semantics (#414), integrated
