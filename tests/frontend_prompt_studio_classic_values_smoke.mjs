@@ -14,37 +14,14 @@ function inlineModule(source) {
 }
 
 const constantsUrl = inlineModule(`
-  export const EXTEND_ACTIVE_SLOTS_WIDGET = "active_slots";
-  export const EXTEND_VISIBLE_SLOTS_PROPERTY = "easyuse_anima_extend_visible_slots";
+  export const ADVANCED_NODE_TYPE = "EasyUseAnimaPromptStudioAdvanced";
+  export const ADVANCED_V2_NODE_TYPE = "EasyUseAnimaPromptStudioAdvancedV2";
+  export const EXTEND_NODE_TYPE = "EasyUseAnimaPromptStudioExtend";
+  export const NODE_TYPE = "EasyUseAnimaPromptStudio";
+  export const WILDCARD_NODE_TYPE = "EasyUseAnimaWildcard";
 `);
-const extendSlotsUrl = inlineModule(`
-  export function extendVisibleSlots(node) {
-    return node.__visibleSlots || new Set();
-  }
-  export function parseExtendSlots(value) {
-    if (Array.isArray(value)) return value;
-    if (typeof value !== "string") return [];
-    try {
-      const parsed = JSON.parse(value);
-      return Array.isArray(parsed) ? parsed : [];
-    } catch {
-      return [];
-    }
-  }
-  export function writeExtendVisibleSlots(node, slots) {
-    node.__visibleSlots = new Set(slots);
-  }
-`);
-const widgetsUrl = inlineModule(`
-  export function findInputEl(widget) {
-    return widget?.inputEl || null;
-  }
-  export function findWidget(node, name) {
-    return node?.widgets?.find((widget) => widget.name === name) || null;
-  }
-  export function firstValue(value, fallback) {
-    return Array.isArray(value) ? (value[0] ?? fallback) : (value ?? fallback);
-  }
+const hostHookRegistryUrl = inlineModule(`
+  export function registerHostHookCallbacks() { return () => {}; }
 `);
 const highlightUrl = inlineModule(`
   export function copyInputTextMetrics() {}
@@ -63,15 +40,14 @@ const highlightWidgetsUrl = inlineModule(`
     return node?.inputs?.some((input) => input?.name === name && input?.link != null) || false;
   }
 `);
-const studioValuesUrl = dataModule(
-  "../web/js/prompt_studio/studio_values.js",
+const nodeHooksUrl = dataModule(
+  "../web/js/prompt_studio/node_hooks.js",
   {
     "./constants.js": constantsUrl,
-    "./extend_slots.js": extendSlotsUrl,
-    "./widgets.js": widgetsUrl,
+    "../lifecycle/host_hook_registry.js": hostHookRegistryUrl,
   },
 );
-const { applyExecutedInputs } = await import(studioValuesUrl);
+const { registerPromptStudioNodeHooks } = await import(nodeHooksUrl);
 const highlightUiUrl = dataModule(
   "../web/js/prompt_studio/highlight_ui.js",
   {
@@ -90,78 +66,86 @@ function textWidget(name, value) {
   };
 }
 
-// QSTATE-01 Classic characterization fixture: this intentionally passes while
-// the production bug exists. The real applyExecutedInputs() path keeps the
-// stored edit but replaces the executed presentation state; the real
-// displayText() path then selects the stale result for a linked input.
-// QSTATE-04 must flip this to a preservation assertion.
+function executionFixture(nodeTypeName, state) {
+  function NodeType() {
+    Object.assign(this, state);
+    this.__originalExecutedMessages = [];
+  }
+  const originalOnExecuted = function (message) {
+    this.__originalExecutedMessages.push(message);
+  };
+  NodeType.prototype.onExecuted = originalOnExecuted;
+  assert.equal(
+    registerPromptStudioNodeHooks(NodeType, { name: nodeTypeName }, {}),
+    true,
+  );
+  assert.equal(
+    NodeType.prototype.onExecuted,
+    originalOnExecuted,
+    `${nodeTypeName} must retain the host's original onExecuted owner`,
+  );
+  return new NodeType();
+}
+
+// QSTATE-04A Classic preservation fixture: the production node hook keeps the
+// host's original onExecuted callback but no longer publishes submitted text
+// into current editor or linked-input presentation state.
 const classicPrompt = textWidget("prompt", "current classic edit");
-const classicNode = {
+const classicNode = executionFixture("EasyUseAnimaPromptStudio", {
   widgets: [classicPrompt],
   inputs: [{ name: "prompt", link: 17 }],
+});
+const classicMessage = {
+  prompt_studio_inputs: [{
+    prompt: "queued classic text",
+  }],
 };
-applyExecutedInputs(
-  classicNode,
-  {
-    prompt_studio_inputs: [{
-      prompt: "queued classic text",
-    }],
-  },
-  {
-    studioFieldNames: () => ["prompt"],
-    expandStudioInputToContent: () => {},
-    hookStudioNode: () => {},
-  },
-);
+classicNode.onExecuted(classicMessage);
+assert.deepEqual(classicNode.__originalExecutedMessages, [classicMessage]);
 assert.equal(classicPrompt.value, "current classic edit");
 assert.equal(classicPrompt.inputEl.value, "current classic edit");
 assert.equal(
   classicPrompt.__easyuseAnimaExecutedText,
-  "queued classic text",
-  "QSTATE-01 fixture did not reproduce the stale Classic executed-state overwrite",
+  undefined,
+  "stale Classic result created executed presentation state",
 );
 assert.equal(
   displayText(classicNode, classicPrompt),
-  "queued classic text",
-  "QSTATE-01 fixture did not reproduce the stale Classic linked-input presentation",
+  "current classic edit",
+  "stale Classic result replaced linked-input presentation",
 );
 
-// QSTATE-01 Extend characterization fixture: this intentionally passes while
-// the production bug exists. The real applyExecutedInputs() path directly
-// restores submitted text, visibility, and NAIA state over the user's edit.
-// QSTATE-04 must flip this to a preservation assertion.
+// QSTATE-04A Extend preservation fixture: submitted slot text, visibility, and
+// NAIA state are execution history, not current editor authority.
 const extendQuality = textWidget("quality_tags_1", "current extend edit");
 const extendFillNaia = { name: "fill_naia_prompt", value: false };
-const extendNode = {
+const extendNode = executionFixture("EasyUseAnimaPromptStudioExtend", {
   widgets: [extendQuality, extendFillNaia],
   __visibleSlots: new Set(["quality_tags_1", "general_tags_4"]),
+});
+const extendMessage = {
+  prompt_studio_slots: [{
+    quality_tags_1: "queued extend text",
+    active_slots: ["quality_tags_1"],
+    fill_naia_prompt: true,
+  }],
 };
-applyExecutedInputs(
-  extendNode,
-  {
-    prompt_studio_slots: [{
-      quality_tags_1: "queued extend text",
-      active_slots: ["quality_tags_1"],
-      fill_naia_prompt: true,
-    }],
-  },
-  {
-    studioFieldNames: () => ["quality_tags_1"],
-    expandStudioInputToContent: () => {},
-    hookStudioNode: () => {},
-  },
-);
+extendNode.onExecuted(extendMessage);
+assert.deepEqual(extendNode.__originalExecutedMessages, [extendMessage]);
 assert.equal(
   extendQuality.value,
-  "queued extend text",
-  "QSTATE-01 fixture did not reproduce the stale Extend widget overwrite",
+  "current extend edit",
+  "stale Extend result replaced the current widget value",
 );
 assert.equal(
   extendQuality.inputEl.value,
-  "queued extend text",
-  "QSTATE-01 fixture did not reproduce the stale Extend DOM overwrite",
+  "current extend edit",
+  "stale Extend result replaced the current DOM value",
 );
-assert.deepEqual([...extendNode.__visibleSlots], ["quality_tags_1"]);
-assert.equal(extendFillNaia.value, true);
+assert.deepEqual(
+  [...extendNode.__visibleSlots],
+  ["quality_tags_1", "general_tags_4"],
+);
+assert.equal(extendFillNaia.value, false);
 
-console.log("Prompt Studio Classic/Extend characterization smoke passed.");
+console.log("Prompt Studio Classic/Extend executed values smoke passed.");

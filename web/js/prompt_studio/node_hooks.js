@@ -168,17 +168,17 @@ function registerPromptStudioNodeHooks(nodeType, nodeData, hooks) {
     return result;
   };
 
-  const onExecuted = nodeType.prototype.onExecuted;
-  nodeType.prototype.onExecuted = function (message) {
-    onExecuted?.apply(this, arguments);
-    if (isAdvanced) {
-      hooks.applyAdvancedExecutedInputs(this, message);
-    } else if (isWildcard) {
-      hooks.applyWildcardExecutedInputs(this, message);
-    } else {
-      hooks.applyExecutedInputs(this, message);
-    }
-  };
+  if (isAdvanced || isWildcard) {
+    const onExecuted = nodeType.prototype.onExecuted;
+    nodeType.prototype.onExecuted = function (message) {
+      onExecuted?.apply(this, arguments);
+      if (isAdvanced) {
+        hooks.publishAdvancedWildcardExecution(this, message);
+      } else {
+        hooks.applyWildcardExecutedInputs(this, message);
+      }
+    };
+  }
 
   return true;
 }

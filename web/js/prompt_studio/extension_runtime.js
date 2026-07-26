@@ -86,7 +86,6 @@ import {
   enhanceResizableInput as enhanceResizableInputWithHooks,
 } from "./studio_resizable_input.js";
 import {
-  applyExecutedInputs as applyExecutedInputsWithHooks,
   restoreInputFromWidget,
   syncStudioValues as syncStudioValuesWithHooks,
   syncWidgetValue,
@@ -103,7 +102,7 @@ import {
   scheduleHookAdvancedNode as scheduleHookAdvancedNodeWithHooks,
 } from "./advanced_node_ui.js";
 import {
-  applyAdvancedExecutedInputs as applyAdvancedExecutedInputsWithHooks,
+  publishAdvancedWildcardExecution as publishAdvancedWildcardExecutionWithHooks,
   syncAdvancedValues as syncAdvancedValuesWithHooks,
 } from "./advanced_values.js";
 import {
@@ -176,8 +175,8 @@ function createPromptStudioExtensionRuntime(app) {
     syncAdvancedValuesWithHooks(node, serialized, advancedValuesHooks());
   }
 
-  function applyAdvancedExecutedInputs(node, message) {
-    applyAdvancedExecutedInputsWithHooks(node, message, advancedValuesHooks());
+  function publishAdvancedWildcardExecution(node, message) {
+    publishAdvancedWildcardExecutionWithHooks(node, message, advancedValuesHooks());
   }
 
   function applyWildcardExecutedInputs(node, message) {
@@ -230,10 +229,6 @@ function createPromptStudioExtensionRuntime(app) {
 
   function syncStudioValues(node, serialized = null) {
     syncStudioValuesWithHooks(node, serialized, studioValuesHooks());
-  }
-
-  function applyExecutedInputs(node, message) {
-    applyExecutedInputsWithHooks(node, message, studioValuesHooks());
   }
 
   function markCanvasDirty() {
@@ -449,8 +444,6 @@ function createPromptStudioExtensionRuntime(app) {
     },
     async beforeRegisterNodeDef(nodeType, nodeData) {
       registerPromptStudioNodeHooks(nodeType, nodeData, {
-        applyAdvancedExecutedInputs,
-        applyExecutedInputs,
         applyExtendSlotVisibility,
         applyWildcardExecutedInputs,
         captureAdvancedConfigure: (node, serialized) => (
@@ -463,6 +456,7 @@ function createPromptStudioExtensionRuntime(app) {
         isExtendNode,
         layoutExtendPromptWidgets,
         pruneDisconnectedAdvancedFieldInputValues,
+        publishAdvancedWildcardExecution,
         rebalanceStudioInputHeights,
         removeAdvancedInternalInputSockets,
         renderAdvancedEditor,
