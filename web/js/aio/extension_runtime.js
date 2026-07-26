@@ -98,6 +98,8 @@ export function aioCreateExtensionRuntime(dependencies) {
       loadSamplerOptions,
       loadUserProfiles,
       warnUserProfiles,
+      installSeedRuntime,
+      disposeSeedRuntime,
     },
     nodes: {
       suppressDefaultPreview,
@@ -109,6 +111,8 @@ export function aioCreateExtensionRuntime(dependencies) {
       scheduleLayout,
       disposePanel,
       disposeNativePreviewLifecycle,
+      hookSeedNode,
+      disposeSeedNode,
     },
   } = dependencies;
 
@@ -117,11 +121,12 @@ export function aioCreateExtensionRuntime(dependencies) {
       hookInputNode(node);
     } else if (nodeData.name === GENERATOR_NODE_TYPE) {
       hookGeneratorNode(node);
+      hookSeedNode(node);
     }
   }
 
   return {
-    dispose: () => false,
+    dispose: () => disposeSeedRuntime(),
     async setup() {
       const setupState = extensionSetupState(api);
       if (!setupState || setupState.inProgress) {
@@ -162,6 +167,9 @@ export function aioCreateExtensionRuntime(dependencies) {
         });
         runExtensionSetupStep(setupState, "execution-success-listener", () => {
           api.addEventListener("execution_success", clearDenoisePreviews);
+        });
+        runExtensionSetupStep(setupState, "seed-runtime", () => {
+          installSeedRuntime();
         });
         runExtensionSetupStep(setupState, "sampler-options-load", () => {
           loadSamplerOptions().then(refreshPanels);
@@ -217,6 +225,7 @@ export function aioCreateExtensionRuntime(dependencies) {
         nodeType.prototype.onConfigure = function () {
           if (nodeData.name === GENERATOR_NODE_TYPE) {
             suppressDefaultPreview(this, { markDirty: false });
+            disposeSeedNode(this, "reconfigure");
           }
           const result = onConfigure?.apply(this, arguments);
           hookNode(this, nodeData);
@@ -247,9 +256,13 @@ export function aioCreateExtensionRuntime(dependencies) {
               return onRemoved?.apply(this, arguments);
             } finally {
               try {
-                disposePanel(this);
+                disposeSeedNode(this, "remove");
               } finally {
-                disposeNativePreviewLifecycle(this);
+                try {
+                  disposePanel(this);
+                } finally {
+                  disposeNativePreviewLifecycle(this);
+                }
               }
             }
           };

@@ -13,6 +13,9 @@ HOST_HOOK_REGISTRY_SMOKE = ROOT / "tests" / "frontend_host_hook_registry_smoke.m
 PROMPT_STUDIO_ADVANCED_VALUES_SMOKE = (
     ROOT / "tests" / "frontend_prompt_studio_advanced_values_smoke.mjs"
 )
+PROMPT_STUDIO_WILDCARD_TRANSACTION_SMOKE = (
+    ROOT / "tests" / "frontend_prompt_studio_wildcard_transaction_smoke.mjs"
+)
 PROMPT_STUDIO_RESOLUTION_ORIENTATION_SMOKE = (
     ROOT / "tests" / "frontend_prompt_studio_resolution_orientation_smoke.mjs"
 )
@@ -150,22 +153,24 @@ class FrontendModuleStructureTests(unittest.TestCase):
         self.assertIn('../../lifecycle/host_hook_registry.js"', regional_extension_source)
         self.assertIn('../lifecycle/host_hook_registry.js"', extension_runtime_source)
 
-        for source, owner, lease in (
+        for source, owner, lease, disposer in (
             (
                 extension_runtime_source,
                 "PROMPT_STUDIO_GLOBAL_HOOK_RUNTIME_OWNER",
                 '"advanced-save-sync"',
+                "dispose: disposeRuntime",
             ),
             (
                 regional_extension_source,
                 "REGIONAL_GLOBAL_HOOK_RUNTIME_OWNER",
                 '"regional-save-sync"',
+                "dispose: disposeGlobalHooks",
             ),
         ):
             self.assertIn("createHostHookRuntimeLifecycle(", source)
             self.assertIn(owner, source)
             self.assertIn(lease, source)
-            self.assertIn("dispose: disposeGlobalHooks", source)
+            self.assertIn(disposer, source)
 
         for source in (node_hooks_source, regional_extension_source):
             self.assertIn("registerHostHookCallbacks({", source)
@@ -787,7 +792,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
             frontend_check_source,
         )
 
-    def test_aio_executed_seed_runtime_replaces_browser_queue_authority(self):
+    def test_aio_executed_seed_runtime_uses_shared_correlation_owners(self):
         source = AIO_EXECUTED_SEED_RUNTIME_JS.read_text(encoding="utf-8")
         entry_source = AIO_JS.read_text(encoding="utf-8")
         frontend_check_source = FRONTEND_CHECK_SCRIPT.read_text(encoding="utf-8")
@@ -795,29 +800,46 @@ class FrontendModuleStructureTests(unittest.TestCase):
         self.assertEqual(source.splitlines()[0], "// @ts-check")
         self.assertEqual(
             re.findall(r"export function ([A-Za-z0-9_]+)\(", source),
-            ["aioApplyExecutedSeedDisplay"],
+            ["createAioSeedTransaction"],
         )
         self.assertEqual(STATIC_IMPORT_RE.findall(source), [])
         self.assertNotRegex(source, r"\b(?:document|window|app)\b")
         self.assertNotIn("fetch(", source)
         self.assertNotIn("app.registerExtension", source)
         self.assertIn(
-            'import { aioApplyExecutedSeedDisplay } from '
+            'import { createAioSeedTransaction } from '
             '"./aio/executed_seed_runtime.js";',
             entry_source,
         )
         self.assertIn(
-            "aioApplyExecutedSeedDisplay(node, message, {",
+            "aioSeedTransaction = createAioSeedTransaction({",
             entry_source,
         )
         self.assertIn(
-            "node.__easyuseAnimaLastExecutedSeed = executionSeed;",
-            source,
+            "void aioSeedTransaction.consumeExecution(node, message);",
+            entry_source,
         )
         self.assertIn(
-            "dependencies.updateSeed(node, nextSeed, { markDirty: false });",
+            'const AIO_SEED_SELECTION_SURFACE = "aio.seed_selection";',
             source,
         )
+        for shared_contract_call in (
+            "owner.captureProvisional({",
+            "owner.acceptPrompt(entry.transaction, promptId)",
+            "owner.markEdited(node, [AIO_SEED_SELECTION_SURFACE])",
+            "owner.canCommit(transaction, {",
+            "owner.settle(transaction, pending.envelope)",
+            "executedContext.consumeWithinTurn(output)",
+        ):
+            with self.subTest(shared_contract_call=shared_contract_call):
+                self.assertIn(shared_contract_call, source)
+        for shared_import in (
+            '"./lifecycle/queue_ui_transaction.js";',
+            '"./lifecycle/executed_event_context.js";',
+            '"./lifecycle/host_hook_registry.js";',
+        ):
+            with self.subTest(shared_import=shared_import):
+                self.assertIn(shared_import, entry_source)
         for retired_symbol in (
             "generatorQueueRuntime",
             "aioCreateGeneratorQueueRuntime",
@@ -2268,7 +2290,8 @@ class FrontendModuleStructureTests(unittest.TestCase):
         ).read_text(encoding="utf-8")
 
         self.assertIn("app.registerExtension", source)
-        self.assertNotIn('../../../scripts/api.js"', source)
+        self.assertIn('../../../scripts/api.js"', source)
+        self.assertIn("createPromptStudioExtensionRuntime(app, api)", source)
         self.assertIn('./prompt_studio/extension_runtime.js"', source)
         self.assertIn("./constants.js", extension_runtime_source)
         self.assertIn('./advanced_controls.js"', advanced_node_ui_source)
@@ -2276,6 +2299,11 @@ class FrontendModuleStructureTests(unittest.TestCase):
         self.assertIn('./advanced_fields_ui.js"', advanced_node_ui_source)
         self.assertIn("./advanced_fields_state.js", extension_runtime_source)
         self.assertIn("./advanced_values.js", extension_runtime_source)
+        self.assertIn("./wildcard_seed_transaction.js", extension_runtime_source)
+        self.assertIn("../lifecycle/queue_ui_transaction.js", extension_runtime_source)
+        self.assertIn("../lifecycle/executed_event_context.js", extension_runtime_source)
+        self.assertIn('"advanced-wildcard-seed-transaction"', extension_runtime_source)
+        self.assertIn("queueHost: api", extension_runtime_source)
         self.assertNotIn("./advanced_queue_seed_runtime.js", extension_runtime_source)
         self.assertNotIn("./queue_seed_bridge.js", extension_runtime_source)
         self.assertNotIn("installAdvancedQueueSeedQueueHook", extension_runtime_source)
@@ -2290,12 +2318,24 @@ class FrontendModuleStructureTests(unittest.TestCase):
         advanced_values_source = (
             PROMPT_STUDIO_MODULES / "advanced_values.js"
         ).read_text(encoding="utf-8")
+        studio_values_source = (
+            PROMPT_STUDIO_MODULES / "studio_values.js"
+        ).read_text(encoding="utf-8")
         self.assertNotIn("shouldApplyExecutedSeed", advanced_values_source)
+        self.assertNotIn("applyAdvancedExecutedInputs", advanced_values_source)
+        self.assertNotIn("applyExecutedInputs", studio_values_source)
+        self.assertNotIn("hooks.applyExecutedInputs", node_hooks_source)
+        self.assertIn("publishAdvancedWildcardExecution", advanced_values_source)
         self.assertIn("wildcard_execution_seed", advanced_values_source)
         self.assertIn("writePreviousWildcardExecution", advanced_values_source)
         self.assertTrue(PROMPT_STUDIO_ADVANCED_VALUES_SMOKE.is_file())
         self.assertIn(
             r'node "tests\frontend_prompt_studio_advanced_values_smoke.mjs"',
+            FRONTEND_CHECK_SCRIPT.read_text(encoding="utf-8"),
+        )
+        self.assertTrue(PROMPT_STUDIO_WILDCARD_TRANSACTION_SMOKE.is_file())
+        self.assertIn(
+            r'node "tests\frontend_prompt_studio_wildcard_transaction_smoke.mjs"',
             FRONTEND_CHECK_SCRIPT.read_text(encoding="utf-8"),
         )
         self.assertTrue(PROMPT_STUDIO_RESOLUTION_ORIENTATION_SMOKE.is_file())
@@ -2619,7 +2659,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
         self.assertIn("normalizeWildcardSeedControl", contract_source)
         self.assertIn("globalThis.requestAnimationFrame", contract_source)
         self.assertIn("input.isConnected !== true", contract_source)
-        self.assertIn("!dirty", contract_source)
+        self.assertIn("!state.dirty", contract_source)
         extension_source = (
             PROMPT_STUDIO_MODULES / "extension_runtime.js"
         ).read_text(encoding="utf-8")
@@ -2886,7 +2926,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
                 self.assertIn(f"  {name},", advanced_fields_state_source)
 
         for name in (
-            "applyAdvancedExecutedInputs",
+            "publishAdvancedWildcardExecution",
             "syncAdvancedValues",
         ):
             with self.subTest(module="advanced_values", symbol=name):
@@ -3145,7 +3185,6 @@ class FrontendModuleStructureTests(unittest.TestCase):
                 self.assertIn(f"  {name},", studio_node_ui_source)
 
         for name in (
-            "applyExecutedInputs",
             "restoreInputFromWidget",
             "syncStudioValues",
             "syncWidgetValue",

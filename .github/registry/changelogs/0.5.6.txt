@@ -1,0 +1,13 @@
+EasyUse Anima 0.5.6 keeps newer queue edits intact and stabilizes AiO seed modes.
+
+Changes:
+1. Older or out-of-order results no longer overwrite newer LoRA Preset and Prompt Studio edits.
+2. Prompt Studio Wildcard updates its next seed only when the queued result still matches the current edit.
+3. AiO Random Each, Increment Each, and Decrement Each keep -1, -2, and -3 in the editable seed field while recording the concrete execution seed separately.
+4. AiO concrete seeds update to their next value only when no newer edit exists.
+5. Use Last and New Fixed Random switch both the seed and its control to one concrete fixed value.
+6. Returning to a concrete AiO seed after a special seed stream now uses the explicitly entered value.
+7. Existing workflows, settings, profiles, node sockets, and saved special seed selections remain compatible.
+
+Action required:
+After updating, restart ComfyUI and hard-refresh the browser.

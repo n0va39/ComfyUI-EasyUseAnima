@@ -6,7 +6,7 @@ from __future__ import annotations
 import random
 from collections.abc import Callable, Generator
 from contextlib import contextmanager
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import cast
 
 from ..aio.generation_defaults import (
@@ -28,6 +28,7 @@ from ..seed.reservation import (
     SEED_SELECTION_RANDOMIZE,
     SeedControl,
     SeedReservationRequest,
+    SeedSelection,
     parse_legacy_seed_reservation_request,
 )
 
@@ -43,6 +44,26 @@ class AioSeedExecution:
 
     execution_seed: int
     next_seed: int
+    requested_seed: int | None = None
+    selection: SeedSelection | None = None
+    effective_after_generate: SeedControl | None = None
+
+    def ui_payload(self) -> dict[str, str] | None:
+        """Return the canonical UI payload when intent identity is complete."""
+
+        if (
+            self.requested_seed is None
+            or self.selection is None
+            or self.effective_after_generate is None
+        ):
+            return None
+        return {
+            "requested_seed": str(self.requested_seed),
+            "selection": self.selection,
+            "effective_after_generate": self.effective_after_generate,
+            "execution_seed": str(self.execution_seed),
+            "next_seed": str(self.next_seed),
+        }
 
 
 @dataclass(frozen=True, slots=True)
@@ -84,23 +105,43 @@ def _aio_fallback_next_seed(
 
 
 def _aio_compatibility_execution(
-    normalized_seed: int,
-    after_generate: str,
+    requested_seed: int,
+    request: SeedReservationRequest,
     fallback_execution_seed: Callable[[], int],
     random_next_seed: Callable[[], int],
 ) -> AioSeedExecution:
     execution_seed = _aio_fallback_execution_seed(
-        normalized_seed,
+        requested_seed,
         fallback_execution_seed,
     )
     return AioSeedExecution(
         execution_seed=execution_seed,
         next_seed=_aio_fallback_next_seed(
             execution_seed,
-            after_generate,
+            request.after_generate,
             random_next_seed,
         ),
+        requested_seed=requested_seed,
+        selection=request.selection,
+        effective_after_generate=request.after_generate,
     )
+
+
+def _normalize_aio_seed_request(
+    normalized_seed: int,
+    after_generate: str,
+) -> SeedReservationRequest:
+    request = parse_legacy_seed_reservation_request(
+        stream_id="aio:pending",
+        request_id="aio:pending",
+        normalized_seed=normalized_seed,
+        after_generate=cast(SeedControl, after_generate),
+        next_seed_max=AIO_GENERATOR_MAX_EDITABLE_SEED,
+        overflow=SEED_OVERFLOW_CLAMP,
+    )
+    if request.selection != SEED_SELECTION_CONCRETE:
+        return replace(request, after_generate=SEED_CONTROL_FIXED)
+    return request
 
 
 @contextmanager
@@ -114,6 +155,7 @@ def aio_seed_execution(
 ) -> Generator[AioSeedExecution, None, None]:
     """Reserve AiO execution state, with an isolated compatibility fallback."""
 
+    request = _normalize_aio_seed_request(normalized_seed, after_generate)
     identity = resolve_seed_execution_identity(
         AIO_GENERATOR_SEED_FEATURE,
         unique_id=unique_id,
@@ -121,7 +163,7 @@ def aio_seed_execution(
     if identity is None:
         yield _aio_compatibility_execution(
             normalized_seed,
-            after_generate,
+            request,
             fallback_execution_seed,
             random_next_seed,
         )
@@ -132,24 +174,24 @@ def aio_seed_execution(
     except RuntimeError:
         yield _aio_compatibility_execution(
             normalized_seed,
-            after_generate,
+            request,
             fallback_execution_seed,
             random_next_seed,
         )
         return
 
-    request = parse_legacy_seed_reservation_request(
+    request = replace(
+        request,
         stream_id=identity.stream_id,
         request_id=identity.request_id,
-        normalized_seed=normalized_seed,
-        after_generate=cast(SeedControl, after_generate),
-        next_seed_max=AIO_GENERATOR_MAX_EDITABLE_SEED,
-        overflow=SEED_OVERFLOW_CLAMP,
     )
     with seed_execution_session(service, request) as reservation:
         yield AioSeedExecution(
             execution_seed=reservation.execution_seed,
             next_seed=reservation.next_seed,
+            requested_seed=normalized_seed,
+            selection=request.selection,
+            effective_after_generate=request.after_generate,
         )
 
 

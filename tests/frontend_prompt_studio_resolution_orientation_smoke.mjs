@@ -94,6 +94,7 @@ const widgetsUrl = inlineModule(`
 const wildcardSeedContractUrl = inlineModule(`
   export function bindWildcardSeedInput() {}
   export function normalizeWildcardSeedControl(value) { return String(value || "fixed"); }
+  export function syncBoundWildcardSeedInput() { return false; }
 `);
 const wildcardSeedHistoryUrl = inlineModule(`
   export function readPreviousWildcardExecution() { return null; }

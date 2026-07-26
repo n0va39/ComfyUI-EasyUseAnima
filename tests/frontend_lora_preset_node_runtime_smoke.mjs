@@ -193,17 +193,32 @@ animationFrames.shift()();
 
 events.length = 0;
 node.onExecuted({ lora_preset_profile: [{ profile_index: 2 }] });
-assert.deepEqual(events.slice(0, 6), [
-  "executed:node-a",
-  "save:node-a:1",
-  "set:2",
-  "load:node-a:2:false",
-  "scroll:node-a:2",
-  "profile:node-a",
-]);
+assert.deepEqual(events, ["executed:node-a"]);
+assert.equal(node.__easyuseAnimaActiveProfileIndex, 1);
+
+// Simulate a real user profile switch after the queued snapshot was captured.
+findWidget(node, "profile_index").value = 2;
+findWidget(node, "profile_index").callback();
 assert.equal(node.__easyuseAnimaActiveProfileIndex, 2);
-assert.ok(events.includes("loras:node-a"));
+findWidget(node, "style_prompt").value = "new unsaved style";
+findWidget(node, "loras").value = JSON.stringify([{
+  name: "styles/new.safetensors",
+  on: false,
+  strength: 0.25,
+}]);
+const preservedWidgets = node.widgets.map((widget) => widget.value);
 
 events.length = 0;
 node.onExecuted({ lora_preset_profile: [{ profile_index: 2 }] });
-assert.deepEqual(events, ["executed:node-a", "profile:node-a"]);
+assert.deepEqual(events, ["executed:node-a"]);
+assert.equal(node.__easyuseAnimaActiveProfileIndex, 2);
+assert.deepEqual(node.widgets.map((widget) => widget.value), preservedWidgets);
+
+// Profile 1 was queued before the user switched to and edited profile 2. The
+// stale result remains execution metadata and cannot replay profile 1 into the
+// current editor.
+events.length = 0;
+node.onExecuted({ lora_preset_profile: [{ profile_index: 1 }] });
+assert.deepEqual(events, ["executed:node-a"]);
+assert.equal(node.__easyuseAnimaActiveProfileIndex, 2);
+assert.deepEqual(node.widgets.map((widget) => widget.value), preservedWidgets);
