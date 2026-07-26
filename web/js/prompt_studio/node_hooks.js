@@ -55,6 +55,7 @@ function registerPromptStudioNodeHooks(nodeType, nodeData, hooks) {
   nodeType.prototype.onNodeCreated = function () {
     onNodeCreated?.apply(this, arguments);
     if (isAdvanced) {
+      hooks.hookAdvancedWildcardSeedNode?.(this);
       hooks.scheduleHookAdvancedNode(this);
     } else if (isWildcard) {
       hooks.hookWildcardSeedWidget?.(this, { resetSeedControl: false });
@@ -65,9 +66,13 @@ function registerPromptStudioNodeHooks(nodeType, nodeData, hooks) {
 
   const onConfigure = nodeType.prototype.onConfigure;
   nodeType.prototype.onConfigure = function (serialized) {
+    if (isAdvanced) {
+      hooks.disposeAdvancedWildcardSeedNode?.(this, "reconfigure");
+    }
     const result = onConfigure?.apply(this, arguments);
     if (isAdvanced) {
       hooks.captureAdvancedConfigure(this, serialized);
+      hooks.hookAdvancedWildcardSeedNode?.(this);
       hooks.scheduleHookAdvancedNode(this);
     } else if (isWildcard) {
       hooks.hookWildcardSeedWidget?.(this, { resetSeedControl: true });
@@ -128,6 +133,11 @@ function registerPromptStudioNodeHooks(nodeType, nodeData, hooks) {
         hooks.disposeAdvancedAutocompleteInputs?.(this);
       } catch {
         // Autocomplete cleanup remains isolated from other node removal handlers.
+      }
+      try {
+        hooks.disposeAdvancedWildcardSeedNode?.(this, "remove");
+      } catch {
+        // Transaction cleanup remains isolated from other node removal handlers.
       }
     }
     if (didThrow) {

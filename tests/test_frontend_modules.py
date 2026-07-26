@@ -13,6 +13,9 @@ HOST_HOOK_REGISTRY_SMOKE = ROOT / "tests" / "frontend_host_hook_registry_smoke.m
 PROMPT_STUDIO_ADVANCED_VALUES_SMOKE = (
     ROOT / "tests" / "frontend_prompt_studio_advanced_values_smoke.mjs"
 )
+PROMPT_STUDIO_WILDCARD_TRANSACTION_SMOKE = (
+    ROOT / "tests" / "frontend_prompt_studio_wildcard_transaction_smoke.mjs"
+)
 PROMPT_STUDIO_RESOLUTION_ORIENTATION_SMOKE = (
     ROOT / "tests" / "frontend_prompt_studio_resolution_orientation_smoke.mjs"
 )
@@ -150,22 +153,24 @@ class FrontendModuleStructureTests(unittest.TestCase):
         self.assertIn('../../lifecycle/host_hook_registry.js"', regional_extension_source)
         self.assertIn('../lifecycle/host_hook_registry.js"', extension_runtime_source)
 
-        for source, owner, lease in (
+        for source, owner, lease, disposer in (
             (
                 extension_runtime_source,
                 "PROMPT_STUDIO_GLOBAL_HOOK_RUNTIME_OWNER",
                 '"advanced-save-sync"',
+                "dispose: disposeRuntime",
             ),
             (
                 regional_extension_source,
                 "REGIONAL_GLOBAL_HOOK_RUNTIME_OWNER",
                 '"regional-save-sync"',
+                "dispose: disposeGlobalHooks",
             ),
         ):
             self.assertIn("createHostHookRuntimeLifecycle(", source)
             self.assertIn(owner, source)
             self.assertIn(lease, source)
-            self.assertIn("dispose: disposeGlobalHooks", source)
+            self.assertIn(disposer, source)
 
         for source in (node_hooks_source, regional_extension_source):
             self.assertIn("registerHostHookCallbacks({", source)
@@ -2268,7 +2273,8 @@ class FrontendModuleStructureTests(unittest.TestCase):
         ).read_text(encoding="utf-8")
 
         self.assertIn("app.registerExtension", source)
-        self.assertNotIn('../../../scripts/api.js"', source)
+        self.assertIn('../../../scripts/api.js"', source)
+        self.assertIn("createPromptStudioExtensionRuntime(app, api)", source)
         self.assertIn('./prompt_studio/extension_runtime.js"', source)
         self.assertIn("./constants.js", extension_runtime_source)
         self.assertIn('./advanced_controls.js"', advanced_node_ui_source)
@@ -2276,6 +2282,11 @@ class FrontendModuleStructureTests(unittest.TestCase):
         self.assertIn('./advanced_fields_ui.js"', advanced_node_ui_source)
         self.assertIn("./advanced_fields_state.js", extension_runtime_source)
         self.assertIn("./advanced_values.js", extension_runtime_source)
+        self.assertIn("./wildcard_seed_transaction.js", extension_runtime_source)
+        self.assertIn("../lifecycle/queue_ui_transaction.js", extension_runtime_source)
+        self.assertIn("../lifecycle/executed_event_context.js", extension_runtime_source)
+        self.assertIn('"advanced-wildcard-seed-transaction"', extension_runtime_source)
+        self.assertIn("queueHost: api", extension_runtime_source)
         self.assertNotIn("./advanced_queue_seed_runtime.js", extension_runtime_source)
         self.assertNotIn("./queue_seed_bridge.js", extension_runtime_source)
         self.assertNotIn("installAdvancedQueueSeedQueueHook", extension_runtime_source)
@@ -2303,6 +2314,11 @@ class FrontendModuleStructureTests(unittest.TestCase):
         self.assertTrue(PROMPT_STUDIO_ADVANCED_VALUES_SMOKE.is_file())
         self.assertIn(
             r'node "tests\frontend_prompt_studio_advanced_values_smoke.mjs"',
+            FRONTEND_CHECK_SCRIPT.read_text(encoding="utf-8"),
+        )
+        self.assertTrue(PROMPT_STUDIO_WILDCARD_TRANSACTION_SMOKE.is_file())
+        self.assertIn(
+            r'node "tests\frontend_prompt_studio_wildcard_transaction_smoke.mjs"',
             FRONTEND_CHECK_SCRIPT.read_text(encoding="utf-8"),
         )
         self.assertTrue(PROMPT_STUDIO_RESOLUTION_ORIENTATION_SMOKE.is_file())
@@ -2626,7 +2642,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
         self.assertIn("normalizeWildcardSeedControl", contract_source)
         self.assertIn("globalThis.requestAnimationFrame", contract_source)
         self.assertIn("input.isConnected !== true", contract_source)
-        self.assertIn("!dirty", contract_source)
+        self.assertIn("!state.dirty", contract_source)
         extension_source = (
             PROMPT_STUDIO_MODULES / "extension_runtime.js"
         ).read_text(encoding="utf-8")
