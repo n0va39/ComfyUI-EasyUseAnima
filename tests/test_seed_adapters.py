@@ -1,49 +1,131 @@
 from __future__ import annotations
 
 import unittest
+from dataclasses import replace
 from types import SimpleNamespace
 from unittest.mock import Mock, patch
 
 from easyuse_anima.nodes.seed_adapters import (
+    AioSeedExecution,
     aio_seed_execution,
     prompt_studio_seed_execution,
 )
 from easyuse_anima.seed.execution_identity import SeedExecutionIdentity
 from easyuse_anima.seed.reservation import (
+    SEED_CONTROL_FIXED,
+    SEED_OVERFLOW_CLAMP,
+    SEED_SELECTION_CONCRETE,
     SEED_SETTLEMENT_ACCEPTED,
     SeedReservation,
+    parse_legacy_seed_reservation_request,
 )
 from easyuse_anima.seed.service import InMemorySeedReservationService
 
 
+AIO_CONTRACT_MAX_SEED = 1 << 50
+AIO_SPECIAL_SELECTIONS = {
+    -1: "randomize",
+    -2: "increment",
+    -3: "decrement",
+}
+AIO_STORED_AFTER_GENERATE_CONTROLS = (
+    "fixed",
+    "randomize",
+    "increment",
+    "decrement",
+)
+AIO_CONTRACT_NORMALIZATION_OWNER = "aio_seed_execution"
+AIO_MISSING_IDENTITY_SPECIAL_POLICY = (
+    "one-concrete-seed-per-invocation-no-persistent-stream-or-double-advance"
+)
+
+
+def _aio_contract_request(
+    *,
+    stream_id: str,
+    request_id: str,
+    normalized_seed: int,
+    stored_after_generate: str,
+):
+    request = parse_legacy_seed_reservation_request(
+        stream_id=stream_id,
+        request_id=request_id,
+        normalized_seed=normalized_seed,
+        after_generate=stored_after_generate,
+        next_seed_max=AIO_CONTRACT_MAX_SEED,
+        overflow=SEED_OVERFLOW_CLAMP,
+    )
+    if request.selection != SEED_SELECTION_CONCRETE:
+        return replace(request, after_generate=SEED_CONTROL_FIXED)
+    return request
+
+
+def _aio_contract_missing_identity_execution(
+    *,
+    invocation_id: str,
+    normalized_seed: int,
+    stored_after_generate: str,
+    select_concrete_seed,
+):
+    """Model aio_seed_execution normalization before its branch decision."""
+    request = _aio_contract_request(
+        stream_id="compatibility:isolated",
+        request_id=invocation_id,
+        normalized_seed=normalized_seed,
+        stored_after_generate=stored_after_generate,
+    )
+    if request.selection == SEED_SELECTION_CONCRETE:
+        raise AssertionError("missing-identity fixture only models special intent")
+    execution_seed = select_concrete_seed()
+    return request, AioSeedExecution(
+        execution_seed=execution_seed,
+        next_seed=execution_seed,
+    )
+
+
 class SeedAdapterTests(unittest.TestCase):
-    def test_aio_missing_identity_uses_isolated_legacy_selection(self):
-        fallback_execution_seed = Mock(return_value=7)
-        random_next_seed = Mock(return_value=11)
-        with (
-            patch(
-                "easyuse_anima.nodes.seed_adapters.resolve_seed_execution_identity",
-                return_value=None,
+    def test_aio_missing_identity_contract_normalizes_before_fallback(self):
+        self.assertEqual(
+            AIO_CONTRACT_NORMALIZATION_OWNER,
+            "aio_seed_execution",
+        )
+        self.assertEqual(
+            AIO_MISSING_IDENTITY_SPECIAL_POLICY,
+            (
+                "one-concrete-seed-per-invocation-"
+                "no-persistent-stream-or-double-advance"
             ),
-            patch("easyuse_anima.nodes.seed_adapters.get_runtime") as get_runtime,
-        ):
-            with aio_seed_execution(
-                unique_id=None,
-                normalized_seed=-1,
-                after_generate="randomize",
-                fallback_execution_seed=fallback_execution_seed,
-                random_next_seed=random_next_seed,
-            ) as execution:
-                self.assertEqual(
-                    (execution.execution_seed, execution.next_seed),
-                    (7, 11),
-                )
+        )
+        for normalized_seed, selection in AIO_SPECIAL_SELECTIONS.items():
+            for stored_after_generate in AIO_STORED_AFTER_GENERATE_CONTROLS:
+                with self.subTest(
+                    normalized_seed=normalized_seed,
+                    stored_after_generate=stored_after_generate,
+                ):
+                    select_concrete_seed = Mock(side_effect=(7, 7))
+                    observed = []
+                    for invocation_index in range(2):
+                        request, execution = (
+                            _aio_contract_missing_identity_execution(
+                                invocation_id=f"invocation:{invocation_index}",
+                                normalized_seed=normalized_seed,
+                                stored_after_generate=stored_after_generate,
+                                select_concrete_seed=select_concrete_seed,
+                            )
+                        )
+                        self.assertEqual(request.selection, selection)
+                        self.assertEqual(
+                            request.after_generate,
+                            SEED_CONTROL_FIXED,
+                        )
+                        observed.append(
+                            (execution.execution_seed, execution.next_seed)
+                        )
 
-        get_runtime.assert_not_called()
-        fallback_execution_seed.assert_called_once_with()
-        random_next_seed.assert_called_once_with()
+                    self.assertEqual(observed, [(7, 7), (7, 7)])
+                    self.assertEqual(select_concrete_seed.call_count, 2)
 
-    def test_aio_installed_runtime_translates_legacy_selection_and_domain(self):
+    def test_current_aio_runtime_characterizes_pre_cutover_control(self):
         service = Mock()
         service.reserve.return_value = SeedReservation(
             version=2,
@@ -80,6 +162,8 @@ class SeedAdapterTests(unittest.TestCase):
         request = service.reserve.call_args.args[0]
         self.assertEqual(request.selection, "increment")
         self.assertIsNone(request.seed)
+        # Current production characterization for AIO-SEED-UI-02: the adapter
+        # still forwards the stored control instead of the Contract's fixed.
         self.assertEqual(request.after_generate, "increment")
         self.assertEqual(request.next_seed_max, 1 << 50)
         self.assertEqual(request.overflow, "clamp")
@@ -120,6 +204,111 @@ class SeedAdapterTests(unittest.TestCase):
                     )
 
         self.assertEqual(observed, [(4, 4), (5, 5)])
+
+    def test_aio_special_selection_and_stored_control_golden_matrix(self):
+        expected_execution_seeds = {
+            -1: [10, 10, 30],
+            -2: [10, 11, 12],
+            -3: [10, 9, 8],
+        }
+        expected_random_draws = {-1: 3, -2: 1, -3: 1}
+
+        for normalized_seed, selection in AIO_SPECIAL_SELECTIONS.items():
+            for stored_after_generate in AIO_STORED_AFTER_GENERATE_CONTROLS:
+                with self.subTest(
+                    normalized_seed=normalized_seed,
+                    stored_after_generate=stored_after_generate,
+                ):
+                    draws = iter((10, 10, 30))
+                    random_calls = []
+                    reservation_ids = iter(
+                        f"reservation:{index}" for index in range(3)
+                    )
+
+                    def random_seed(upper_bound):
+                        random_calls.append(upper_bound)
+                        return next(draws)
+
+                    service = InMemorySeedReservationService(
+                        random_seed=random_seed,
+                        reservation_id_factory=lambda: next(reservation_ids),
+                    )
+                    observed = []
+                    stream_id = (
+                        f"stream:{normalized_seed}:{stored_after_generate}"
+                    )
+                    for index in range(3):
+                        request = _aio_contract_request(
+                            stream_id=stream_id,
+                            request_id=f"request:{index}",
+                            normalized_seed=normalized_seed,
+                            stored_after_generate=stored_after_generate,
+                        )
+                        self.assertEqual(request.selection, selection)
+                        self.assertEqual(
+                            request.after_generate,
+                            SEED_CONTROL_FIXED,
+                        )
+                        reservation = service.reserve(request)
+                        observed.append(
+                            (
+                                reservation.execution_seed,
+                                reservation.next_seed,
+                            )
+                        )
+                        service.settle(
+                            reservation.reservation_id,
+                            SEED_SETTLEMENT_ACCEPTED,
+                        )
+
+                    execution_seeds = expected_execution_seeds[normalized_seed]
+                    self.assertEqual(
+                        observed,
+                        [(seed, seed) for seed in execution_seeds],
+                    )
+                    self.assertEqual(
+                        len(random_calls),
+                        expected_random_draws[normalized_seed],
+                    )
+
+    def test_aio_concrete_seed_and_after_generate_golden_matrix(self):
+        expected_next_seed = {
+            "fixed": 7,
+            "randomize": 91,
+            "increment": 8,
+            "decrement": 6,
+        }
+        for stored_after_generate, next_seed in expected_next_seed.items():
+            with self.subTest(stored_after_generate=stored_after_generate):
+                random_calls = []
+
+                def random_seed(upper_bound):
+                    random_calls.append(upper_bound)
+                    return 91
+
+                service = InMemorySeedReservationService(
+                    random_seed=random_seed,
+                    reservation_id_factory=lambda: "reservation:concrete",
+                )
+                request = _aio_contract_request(
+                    stream_id=f"stream:concrete:{stored_after_generate}",
+                    request_id="request:concrete",
+                    normalized_seed=7,
+                    stored_after_generate=stored_after_generate,
+                )
+                self.assertEqual(request.selection, SEED_SELECTION_CONCRETE)
+                self.assertEqual(request.seed, 7)
+                self.assertEqual(
+                    request.after_generate,
+                    stored_after_generate,
+                )
+                reservation = service.reserve(request)
+                self.assertEqual(reservation.execution_seed, 7)
+                self.assertEqual(reservation.next_seed, next_seed)
+                self.assertEqual(
+                    len(random_calls),
+                    1 if stored_after_generate == "randomize" else 0,
+                )
 
     def test_missing_identity_uses_compatibility_values_without_runtime_lookup(self):
         with (
