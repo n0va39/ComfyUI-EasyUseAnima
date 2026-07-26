@@ -1,5 +1,36 @@
 # Release Notes
 
+## 0.5.6
+
+### Fixed
+
+- Older queue results no longer overwrite newer LoRA Preset or Prompt Studio
+  edits. Out-of-order and duplicate completions preserve the current editable
+  state.
+- Prompt Studio Wildcard advances its displayed next seed only when the result
+  still matches the queued edit revision. The narrow seed summary and an open,
+  unedited seed input stay synchronized without rebuilding the editor.
+- AiO Random Each, Increment Each, and Decrement Each keep their `-1`, `-2`,
+  and `-3` selections after execution while recording the concrete execution
+  seed separately as the last seed.
+- AiO concrete seeds publish their next value only when no newer edit exists.
+  Use Last and New Fixed Random switch the seed and its control to one concrete,
+  fixed value.
+- Returning to a concrete AiO seed after a special seed stream now starts from
+  the explicitly entered value instead of continuing the previous stream.
+
+### Compatibility
+
+- Existing workflows keep special seed selections and stored seed controls.
+- Public node sockets, workflow schemas, profiles, settings, and backend API
+  contracts remain compatible.
+- Release validation covers ComfyUI 0.27.0 with frontend 1.45.20 on Legacy
+  Canvas and Node 2.0.
+
+### Update
+
+- After updating, restart ComfyUI and hard-refresh the browser.
+
 ## 0.5.5
 
 ### Added
