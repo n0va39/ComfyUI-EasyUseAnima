@@ -164,6 +164,11 @@ try {
         throw "Frontend queue UI transaction contract smoke failed with exit code $LASTEXITCODE."
     }
 
+    & node "tests\frontend_executed_event_context_smoke.mjs"
+    if ($LASTEXITCODE -ne 0) {
+        throw "Frontend executed event context contract smoke failed with exit code $LASTEXITCODE."
+    }
+
     & node "tests\frontend_prompt_studio_advanced_values_smoke.mjs"
     if ($LASTEXITCODE -ne 0) {
         throw "Frontend Prompt Studio Advanced executed values smoke failed with exit code $LASTEXITCODE."
