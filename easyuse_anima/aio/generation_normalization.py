@@ -45,6 +45,7 @@ from .generation_defaults import (
     AIO_GENERATION_DEFAULT_SETTINGS,
     AIO_GENERATION_SETTINGS_SCHEMA,
     AIO_GENERATION_SETTINGS_VERSION,
+    AIO_GENERATION_STAGE_IDS,
     AIO_RESHIFT_DTYPES,
     AIO_RESHIFT_SCALES,
     AIO_SPECIAL_SEED_DECREMENT,
@@ -60,6 +61,7 @@ from .generation_defaults import (
 from .generation_defaults import (
     AIO_SPECIAL_SEEDS as AIO_SPECIAL_SEEDS,
 )
+from .generation_migrations import migrate_aio_generation_settings
 from .generation_settings import (
     round_trip_aio_generation_settings as _round_trip_aio_generation_settings,
 )
@@ -170,6 +172,23 @@ def _merge_versioned_settings(defaults: dict[str, Any], value) -> dict[str, Any]
         return base
 
     return merge_dict(merged, incoming)
+
+
+def _migrate_supported_aio_generation_settings(value):
+    """Migrate explicit supported versions without tightening the legacy facade."""
+
+    if not isinstance(value, dict):
+        return value
+    version = value.get("version")
+    if (
+        value.get("schema") != AIO_GENERATION_SETTINGS_SCHEMA
+        or isinstance(version, bool)
+        or not isinstance(version, int)
+        or version < 1
+        or version > AIO_GENERATION_SETTINGS_VERSION
+    ):
+        return value
+    return migrate_aio_generation_settings(value)
 
 
 def _normalize_aio_spectrum_settings(
@@ -411,7 +430,10 @@ def _normalize_aio_dit_corrections_settings(
 
 
 def _normalize_aio_generation_settings(value) -> dict[str, Any]:
-    settings = _merge_versioned_settings(AIO_GENERATION_DEFAULT_SETTINGS, value)
+    settings = _merge_versioned_settings(
+        AIO_GENERATION_DEFAULT_SETTINGS,
+        _migrate_supported_aio_generation_settings(value),
+    )
     settings["schema"] = AIO_GENERATION_SETTINGS_SCHEMA
     settings["version"] = _as_int(
         settings.get("version"),
@@ -551,6 +573,16 @@ def _normalize_aio_generation_settings(value) -> dict[str, Any]:
         0.0,
         min(1.0, _as_float(dave.get("tau"), default_dave["tau"])),
     )
+    stage_scope = dave.setdefault("stage_scope", {})
+    if not isinstance(stage_scope, dict):
+        stage_scope = {}
+        dave["stage_scope"] = stage_scope
+    default_stage_scope = default_dave["stage_scope"]
+    for stage_id in AIO_GENERATION_STAGE_IDS:
+        stage_scope[stage_id] = _as_bool(
+            stage_scope.get(stage_id),
+            default_stage_scope[stage_id],
+        )
     safe_pag = model_patches.setdefault("safe_pag", {})
     if not isinstance(safe_pag, dict):
         safe_pag = {}

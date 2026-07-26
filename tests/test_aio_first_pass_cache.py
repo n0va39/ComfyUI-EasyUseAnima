@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import copy
 import threading
 import unittest
 from concurrent.futures import ThreadPoolExecutor
@@ -754,7 +755,21 @@ class AIOFirstPassCacheMoveTests(unittest.TestCase):
         settings = {
             "mode": "txt2img",
             "sampler": {"seed": 42},
-            "model_patches": {"dave": True},
+            "model_patches": {
+                "aura_flow": {"shift": 3.0},
+                "dave": {
+                    "enabled": True,
+                    "mask": "dave_alpha.npz",
+                    "strength": 0.3,
+                    "tau": 0.1,
+                    "stage_scope": {
+                        "first_pass": True,
+                        "highres": False,
+                        "detailer": False,
+                        "upscale": False,
+                    },
+                },
+            },
             "mod_guidance": {"mode": "enabled"},
             "artist_mix": {"mode": "off"},
             "highres": {"excluded": True},
@@ -812,14 +827,14 @@ class AIOFirstPassCacheMoveTests(unittest.TestCase):
             [
                 "schema", "version", "scope", "mode", "resource_info",
                 "resource_revision", "input_settings", "prompt_data", "lora_stack", "sampler",
-                "model_patches", "mod_guidance", "artist_mix", "positive_prompt",
+                "model_patch_plan", "mod_guidance", "artist_mix", "positive_prompt",
                 "negative_prompt", "quality_tags", "quality_neg",
                 "use_anima_mod_guidance", "use_negative_anima_mod_guidance", "width",
                 "height",
             ],
         )
         self.assertEqual(payload["schema"], "easyuse_anima_aio_first_pass_cache")
-        self.assertEqual(payload["version"], 2)
+        self.assertEqual(payload["version"], 3)
         self.assertEqual(payload["scope"], "")
         self.assertEqual(payload["resource_revision"], {"revision": "files"})
         self.assertEqual(payload["lora_stack"], [{"name": "lora"}])
@@ -839,7 +854,20 @@ class AIOFirstPassCacheMoveTests(unittest.TestCase):
                     "vae_name": "vae.safetensors",
                     "clip_name": "clip.safetensors",
                 },
-                {"loader": "b"}, {"positive": "p"}, {"seed": 42}, {"dave": True},
+                {"loader": "b"}, {"positive": "p"}, {"seed": 42},
+                {
+                    "order_revision": 1,
+                    "precedence": [["kj.torch_compile", "dave"]],
+                    "patches": {
+                        "aura_flow": {"shift": 3.0},
+                        "dave": {
+                            "mask": "dave_alpha.npz",
+                            "strength": 0.3,
+                            "tau": 0.1,
+                            "stage_scope": {"first_pass": True},
+                        },
+                    },
+                },
                 {"mode": "enabled"}, {"mode": "off"},
             ],
         )
@@ -852,6 +880,99 @@ class AIOFirstPassCacheMoveTests(unittest.TestCase):
             },
             [{"name": "lora"}],
         )
+
+    def test_first_pass_patch_plan_ignores_later_scope_and_tracks_first_scope_and_order(self):
+        settings = {
+            "mode": "txt2img",
+            "sampler": {"seed": 42},
+            "model_patches": {
+                "aura_flow": {"shift": 3.0},
+                "dave": {
+                    "enabled": True,
+                    "mask": "dave_alpha.npz",
+                    "strength": 0.3,
+                    "tau": 0.1,
+                    "stage_scope": {
+                        "first_pass": True,
+                        "highres": False,
+                        "detailer": False,
+                        "upscale": False,
+                    },
+                },
+                "safe_pag": {"enabled": False},
+                "kj": {
+                    "fp16_accumulation": False,
+                    "sage_attention": "disabled",
+                    "torch_compile": {
+                        "enabled": True,
+                        "backend": "inductor",
+                        "fullgraph": False,
+                        "mode": "default",
+                        "dynamic": "false",
+                        "compile_transformer_blocks_only": True,
+                        "dynamo_cache_size_limit": 64,
+                        "debug_compile_keys": False,
+                        "disable_dynamic_vram": False,
+                    },
+                },
+            },
+            "mod_guidance": {},
+            "artist_mix": {},
+        }
+        key_args = {
+            "cache_scope": "node",
+            "context": {"resource_info": {}, "input_settings": {}},
+            "prompt_data": {},
+            "lora_stack": [],
+            "settings": settings,
+            "positive_prompt": "prompt",
+            "negative_prompt": "",
+            "quality_tags": "",
+            "quality_neg": "",
+            "use_anima_mod_guidance": False,
+            "use_negative_anima_mod_guidance": False,
+            "width": 1024,
+            "height": 1024,
+        }
+
+        baseline = first_pass_cache._aio_first_pass_cache_key(**key_args)
+        plan = first_pass_cache._aio_first_pass_model_patch_plan(
+            settings["model_patches"]
+        )
+        self.assertEqual(
+            plan["precedence"],
+            [["kj.torch_compile", "dave"]],
+        )
+        self.assertEqual(
+            list(plan["patches"]),
+            ["aura_flow", "kj.torch_compile", "dave"],
+        )
+
+        for stage_id in ("highres", "detailer", "upscale"):
+            with self.subTest(later_stage=stage_id):
+                changed = copy.deepcopy(settings)
+                changed["model_patches"]["dave"]["stage_scope"][stage_id] = True
+                self.assertEqual(
+                    first_pass_cache._aio_first_pass_cache_key(
+                        **{**key_args, "settings": changed}
+                    ),
+                    baseline,
+                )
+
+        first_disabled = copy.deepcopy(settings)
+        first_disabled["model_patches"]["dave"]["stage_scope"]["first_pass"] = False
+        self.assertNotEqual(
+            first_pass_cache._aio_first_pass_cache_key(
+                **{**key_args, "settings": first_disabled}
+            ),
+            baseline,
+        )
+
+        with patch.object(first_pass_cache, "AIO_MODEL_PATCH_ORDER_REVISION", 2):
+            self.assertNotEqual(
+                first_pass_cache._aio_first_pass_cache_key(**key_args),
+                baseline,
+            )
 
     def test_resource_revision_maps_base_resources_and_loras_in_signature_order(self):
         revisions = Mock(

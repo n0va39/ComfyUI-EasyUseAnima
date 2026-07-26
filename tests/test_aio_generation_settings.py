@@ -111,6 +111,37 @@ class AIOGenerationConfigTests(unittest.TestCase):
             json.dumps(source, ensure_ascii=False, separators=(",", ":")),
         )
 
+    def test_fresh_v2_and_legacy_v1_dave_scope_normalize_without_ambiguity(self):
+        legacy = copy.deepcopy(nodes.AIO_GENERATION_DEFAULT_SETTINGS)
+        legacy["version"] = 1
+        legacy_dave = legacy["model_patches"]["dave"]
+        del legacy_dave["stage_scope"]
+
+        with _deterministic_capabilities():
+            fresh = nodes._normalize_aio_generation_settings({})
+            migrated = nodes._normalize_aio_generation_settings(legacy)
+
+        self.assertEqual(fresh["version"], 2)
+        self.assertEqual(
+            fresh["model_patches"]["dave"]["stage_scope"],
+            {
+                "first_pass": True,
+                "highres": False,
+                "detailer": False,
+                "upscale": False,
+            },
+        )
+        self.assertEqual(migrated["version"], 2)
+        self.assertEqual(
+            migrated["model_patches"]["dave"]["stage_scope"],
+            {
+                "first_pass": True,
+                "highres": True,
+                "detailer": True,
+                "upscale": True,
+            },
+        )
+
     def test_0_5_2_expected_normalized_payload_round_trips(self):
         fixture = json.loads(FIXTURE_PATH.read_text(encoding="utf-8"))
         expected = fixture["expected_normalized_generation_settings"]

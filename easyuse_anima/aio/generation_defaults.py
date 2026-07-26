@@ -20,9 +20,8 @@ from ..prompt.conditioning import (
 from ..seed.reservation import SEED_CONTROL_FIXED
 from .generation_migrations import (
     AIO_GENERATION_SETTINGS_CURRENT_VERSION as AIO_GENERATION_SETTINGS_VERSION,
-)
-from .generation_migrations import (
     AIO_GENERATION_SETTINGS_SCHEMA,
+    AIO_GENERATION_STAGE_IDS,
 )
 
 AIO_SPECIAL_SEED_RANDOM = -1
@@ -99,6 +98,10 @@ AIO_GENERATION_DEFAULT_SETTINGS = {
             "mask": "dave_alpha.npz",
             "strength": 0.30,
             "tau": 0.10,
+            "stage_scope": {
+                stage_id: stage_id == "first_pass"
+                for stage_id in AIO_GENERATION_STAGE_IDS
+            },
         },
         "safe_pag": {
             "enabled": False,

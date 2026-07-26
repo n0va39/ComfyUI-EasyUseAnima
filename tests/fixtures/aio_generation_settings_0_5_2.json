@@ -224,7 +224,13 @@
         "enabled": false,
         "mask": "dave_alpha.npz",
         "strength": 0.3,
-        "tau": 0.1
+        "tau": 0.1,
+        "stage_scope": {
+          "first_pass": true,
+          "highres": true,
+          "detailer": true,
+          "upscale": true
+        }
       },
       "kj": {
         "fp16_accumulation": false,
@@ -425,7 +431,7 @@
         "upscale_model_name": "2x-AnimeSharpV4_Fast_RCAN_PU.safetensors"
       }
     },
-    "version": 1
+    "version": 2
   },
   "serialized_generation_settings": {
     "artist_mix": {

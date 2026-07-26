@@ -8,7 +8,15 @@ from typing import TypeAlias, cast
 from .generation_values import freeze_object, thaw_object
 
 AIO_GENERATION_SETTINGS_SCHEMA = "easyuse_anima_aio_generation_settings"
-AIO_GENERATION_SETTINGS_CURRENT_VERSION = 1
+AIO_GENERATION_SETTINGS_CURRENT_VERSION = 2
+AIO_GENERATION_STAGE_IDS = (
+    "first_pass",
+    "highres",
+    "detailer",
+    "upscale",
+)
+AIO_MODEL_PATCH_ORDER_REVISION = 1
+AIO_MODEL_PATCH_PRECEDENCE = (("kj.torch_compile", "dave"),)
 
 AIOGenerationMigrationFunction: TypeAlias = Callable[
     [Mapping[str, object]],
@@ -106,7 +114,34 @@ class AIOGenerationMigrationRegistry:
         )
 
 
-AIO_GENERATION_MIGRATION_REGISTRY = AIOGenerationMigrationRegistry()
+def _migrate_aio_generation_settings_v1_to_v2(
+    source: Mapping[str, object],
+) -> Mapping[str, object]:
+    """Add explicit DAVE stage scope while preserving legacy all-stage behavior."""
+
+    migrated = _copy_generation_settings(source)
+    model_patches = migrated.get("model_patches")
+    if isinstance(model_patches, dict):
+        model_patch_values = cast(dict[str, object], model_patches)
+        dave = model_patch_values.get("dave")
+        if isinstance(dave, dict) and "stage_scope" not in dave:
+            dave_values = cast(dict[str, object], dave)
+            dave_values["stage_scope"] = {
+                stage_id: True for stage_id in AIO_GENERATION_STAGE_IDS
+            }
+    migrated["version"] = 2
+    return migrated
+
+
+AIO_GENERATION_MIGRATION_REGISTRY = (
+    AIOGenerationMigrationRegistry().with_step(
+        AIOGenerationMigrationStep(
+            1,
+            2,
+            _migrate_aio_generation_settings_v1_to_v2,
+        )
+    )
+)
 
 
 def migrate_aio_generation_settings(

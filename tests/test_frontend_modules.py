@@ -1754,10 +1754,14 @@ class FrontendModuleStructureTests(unittest.TestCase):
             "AIO_GENERATOR_SPECIAL_SEED_INCREMENT",
             "AIO_GENERATOR_SPECIAL_SEED_RANDOM",
         }
+        expected_internal_constants = {"AIO_GENERATION_STAGE_IDS"}
         exported_constants = set(
             re.findall(r"export const ([A-Za-z0-9_]+)\s*=", source)
         )
-        self.assertEqual(exported_constants, expected_constants)
+        self.assertEqual(
+            exported_constants,
+            expected_constants | expected_internal_constants,
+        )
 
         expected_functions = {
             "aioAsBool",
@@ -1770,10 +1774,14 @@ class FrontendModuleStructureTests(unittest.TestCase):
             "aioParseSettingsValue",
             "aioSettingsToCompactJson",
         }
+        expected_internal_functions = {"aioMigrateGenerationSettingsVersion"}
         exported_functions = set(
             re.findall(r"export (?:async )?function ([A-Za-z0-9_]+)\(", source)
         )
-        self.assertEqual(exported_functions, expected_functions)
+        self.assertEqual(
+            exported_functions,
+            expected_functions | expected_internal_functions,
+        )
 
         import_match = re.search(
             r'import\s+\{(?P<names>[^}]*)\}\s+from\s+'
