@@ -176,7 +176,7 @@ try {
 
     & node "tests\frontend_prompt_studio_classic_values_smoke.mjs"
     if ($LASTEXITCODE -ne 0) {
-        throw "Frontend Prompt Studio Classic/Extend characterization smoke failed with exit code $LASTEXITCODE."
+        throw "Frontend Prompt Studio Classic/Extend executed values smoke failed with exit code $LASTEXITCODE."
     }
 
     & node "tests\frontend_prompt_studio_resolution_orientation_smoke.mjs"

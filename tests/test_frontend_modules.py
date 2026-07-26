@@ -2290,7 +2290,14 @@ class FrontendModuleStructureTests(unittest.TestCase):
         advanced_values_source = (
             PROMPT_STUDIO_MODULES / "advanced_values.js"
         ).read_text(encoding="utf-8")
+        studio_values_source = (
+            PROMPT_STUDIO_MODULES / "studio_values.js"
+        ).read_text(encoding="utf-8")
         self.assertNotIn("shouldApplyExecutedSeed", advanced_values_source)
+        self.assertNotIn("applyAdvancedExecutedInputs", advanced_values_source)
+        self.assertNotIn("applyExecutedInputs", studio_values_source)
+        self.assertNotIn("hooks.applyExecutedInputs", node_hooks_source)
+        self.assertIn("publishAdvancedWildcardExecution", advanced_values_source)
         self.assertIn("wildcard_execution_seed", advanced_values_source)
         self.assertIn("writePreviousWildcardExecution", advanced_values_source)
         self.assertTrue(PROMPT_STUDIO_ADVANCED_VALUES_SMOKE.is_file())
@@ -2886,7 +2893,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
                 self.assertIn(f"  {name},", advanced_fields_state_source)
 
         for name in (
-            "applyAdvancedExecutedInputs",
+            "publishAdvancedWildcardExecution",
             "syncAdvancedValues",
         ):
             with self.subTest(module="advanced_values", symbol=name):
@@ -3145,7 +3152,6 @@ class FrontendModuleStructureTests(unittest.TestCase):
                 self.assertIn(f"  {name},", studio_node_ui_source)
 
         for name in (
-            "applyExecutedInputs",
             "restoreInputFromWidget",
             "syncStudioValues",
             "syncWidgetValue",

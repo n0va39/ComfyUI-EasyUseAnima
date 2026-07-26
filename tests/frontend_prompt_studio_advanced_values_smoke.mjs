@@ -60,7 +60,7 @@ const advancedValuesUrl = dataModule(
     "./wildcard_seed_history.js": wildcardSeedHistoryUrl,
   },
 );
-const { applyAdvancedExecutedInputs } = await import(advancedValuesUrl);
+const { publishAdvancedWildcardExecution } = await import(advancedValuesUrl);
 
 const node = {
   properties: {},
@@ -74,7 +74,7 @@ const node = {
 };
 let dirtyCount = 0;
 let renderCount = 0;
-applyAdvancedExecutedInputs(
+publishAdvancedWildcardExecution(
   node,
   {
     prompt_studio_advanced: [{
@@ -104,13 +104,12 @@ const previous = JSON.parse(
 assert(previous.seed === 41, "Advanced history did not store the execution seed");
 assert(previous.mode === "sequential", "Advanced history did not normalize the mode");
 assert(dirtyCount === 1, "Advanced history publication did not dirty once");
-assert(renderCount === 1, "Advanced editor was not refreshed once");
+assert(renderCount === 0, "execution publication must not rerender the Advanced editor");
 
-// QSTATE-01 characterization fixture: this intentionally passes while the
-// production bug exists. An Advanced/AdvancedV2 queue captured the submitted
-// values below, then the user edited every mutable surface group. The real
-// applyAdvancedExecutedInputs() path currently restores the submitted snapshot.
-// QSTATE-04 must flip this to a preservation assertion.
+// QSTATE-04A preservation fixture: an Advanced/AdvancedV2 queue captured the
+// submitted values below, then the user edited every mutable surface group.
+// Execution publication may retain wildcard history/next-seed behavior for the
+// QSTATE-04B cutover, but it must not replay submitted editor state.
 const submittedFields = JSON.stringify([
   { id: "positive_general", text: "queued old tags" },
 ]);
@@ -119,6 +118,9 @@ const editedFields = JSON.stringify([
 ]);
 const staleNode = {
   properties: {},
+  __easyuseAnimaAdvancedFieldInputValues: {
+    field_positive_general: "current socket edit",
+  },
   widgets: [
     { name: "advanced_fields", value: editedFields },
     { name: "use_naia", value: false },
@@ -133,7 +135,7 @@ const staleNode = {
     { name: "artist_mix_start_percent", value: 0.75 },
   ],
 };
-applyAdvancedExecutedInputs(
+publishAdvancedWildcardExecution(
   staleNode,
   {
     prompt_studio_advanced: [{
@@ -162,31 +164,38 @@ const staleWidgetValue = (name) => staleNode.widgets.find(
   (widget) => widget.name === name,
 )?.value;
 assert(
-  staleWidgetValue("advanced_fields") === submittedFields,
-  "QSTATE-01 fixture did not reproduce the stale Advanced field overwrite",
+  staleWidgetValue("advanced_fields") === editedFields,
+  "stale Advanced fields replaced the current editor state",
 );
 assert(
   staleNode.__easyuseAnimaAdvancedFieldInputValues.field_positive_general
-    === "queued socket value",
-  "QSTATE-01 fixture did not reproduce the stale Advanced field-input overwrite",
+    === "current socket edit",
+  "stale Advanced field inputs replaced the current socket state",
 );
 assert(
-  staleWidgetValue("resolution_bucket") === "1024"
-    && staleWidgetValue("resolution_size") === "1024 * 1024 (1:1)"
-    && staleWidgetValue("resolution_custom_width") === 1024
-    && staleWidgetValue("resolution_custom_height") === 1024,
-  "QSTATE-01 fixture did not reproduce the stale Advanced resolution overwrite",
+  staleWidgetValue("use_naia") === false,
+  "stale Advanced NAIA state replaced the current selection",
 );
 assert(
-  staleWidgetValue("wildcard_mode") === "순차"
-    && staleWidgetValue("wildcard_seed") === 41
-    && staleWidgetValue("wildcard_seed_after_generate") === "increment",
-  "QSTATE-01 fixture did not reproduce the stale Advanced wildcard overwrite",
+  staleWidgetValue("resolution_bucket") === "Custom"
+    && staleWidgetValue("resolution_size") === "1344 * 768"
+    && staleWidgetValue("resolution_custom_width") === 1344
+    && staleWidgetValue("resolution_custom_height") === 768,
+  "stale Advanced resolution replaced the current atomic group",
 );
 assert(
-  staleWidgetValue("artist_mix_mode") === "average"
-    && staleWidgetValue("artist_mix_start_percent") === 0.25,
-  "QSTATE-01 fixture did not reproduce the stale Advanced Artist Mix overwrite",
+  staleWidgetValue("wildcard_mode") === "일반"
+    && staleWidgetValue("wildcard_seed_after_generate") === "fixed",
+  "stale Advanced wildcard settings replaced the current mode/control",
+);
+assert(
+  staleWidgetValue("wildcard_seed") === 41,
+  "QSTATE-04A must preserve the existing next-seed publication for QSTATE-04B",
+);
+assert(
+  staleWidgetValue("artist_mix_mode") === "exact"
+    && staleWidgetValue("artist_mix_start_percent") === 0.75,
+  "stale Advanced Artist Mix state replaced the current atomic group",
 );
 
 console.log("Prompt Studio Advanced executed values smoke passed.");
