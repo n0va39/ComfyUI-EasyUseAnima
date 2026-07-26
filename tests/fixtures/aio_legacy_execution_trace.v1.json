@@ -121,6 +121,9 @@
         "ui": {
           "easyuse_anima_aio_seed": [
             {
+              "requested_seed": "-1",
+              "selection": "randomize",
+              "effective_after_generate": "fixed",
               "execution_seed": "17",
               "next_seed": "17"
             }
@@ -292,6 +295,9 @@
         "ui": {
           "easyuse_anima_aio_seed": [
             {
+              "requested_seed": "-1",
+              "selection": "randomize",
+              "effective_after_generate": "fixed",
               "execution_seed": "17",
               "next_seed": "17"
             }

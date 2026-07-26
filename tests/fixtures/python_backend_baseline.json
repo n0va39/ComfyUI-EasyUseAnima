@@ -20116,6 +20116,23 @@
       },
       {
         "alias": null,
+        "bound_name": "replace",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "dataclasses:replace",
+        "kind": "static_from",
+        "line": 9,
+        "name": "replace",
+        "optional": false,
+        "requested": "dataclasses",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/nodes/seed_adapters.py"
+      },
+      {
+        "alias": null,
         "bound_name": "cast",
         "branch_context": [],
         "classification": "external",
@@ -20412,6 +20429,24 @@
         "kind": "static_from",
         "line": 19,
         "name": "SeedReservationRequest",
+        "optional": false,
+        "requested": "..seed.reservation",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/nodes/seed_adapters.py",
+        "target": "easyuse_anima/seed/reservation.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "SeedSelection",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": "..seed.reservation:SeedSelection",
+        "kind": "static_from",
+        "line": 19,
+        "name": "SeedSelection",
         "optional": false,
         "requested": "..seed.reservation",
         "role": "ordinary",
@@ -60218,9 +60253,9 @@
       },
       {
         "is_package": false,
-        "loc": 317,
+        "loc": 319,
         "module": "easyuse_anima.nodes.aio_nodes",
-        "normalized_git_blob_sha1": "9e7e9aab3af2ec1f757c21c407b370df394676e1",
+        "normalized_git_blob_sha1": "3892e3023c49b82bf79f162f0836a3a3bbebf98e",
         "path": "easyuse_anima/nodes/aio_nodes.py",
         "top_level": {
           "class_count": 2,
@@ -60350,13 +60385,13 @@
       },
       {
         "is_package": false,
-        "loc": 210,
+        "loc": 252,
         "module": "easyuse_anima.nodes.seed_adapters",
-        "normalized_git_blob_sha1": "b7eab3b8c1adfb7a83fd113136736debdfd4e94c",
+        "normalized_git_blob_sha1": "9866598edb0cce9a53b27e5d38a04592e07cea25",
         "path": "easyuse_anima/nodes/seed_adapters.py",
         "top_level": {
           "class_count": 2,
-          "function_count": 6,
+          "function_count": 7,
           "global_count": 5
         }
       },
@@ -76322,6 +76357,17 @@
         "branch_context": [],
         "classification": "external",
         "conditional": false,
+        "imported": "dataclasses:replace",
+        "kind": "static_from",
+        "line": 9,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/nodes/seed_adapters.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
         "imported": "typing:cast",
         "kind": "static_from",
         "line": 10,
@@ -80652,7 +80698,7 @@
         "column": 1,
         "context": "decorator:AioSeedExecution",
         "kind": "import_time_call",
-        "line": 40,
+        "line": 41,
         "module": "easyuse_anima/nodes/seed_adapters.py",
         "scope": "<module>"
       },
@@ -80661,7 +80707,7 @@
         "column": 1,
         "context": "decorator:PromptStudioSeedExecution",
         "kind": "import_time_call",
-        "line": 48,
+        "line": 69,
         "module": "easyuse_anima/nodes/seed_adapters.py",
         "scope": "<module>"
       },

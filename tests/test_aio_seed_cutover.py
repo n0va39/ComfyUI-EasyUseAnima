@@ -75,7 +75,13 @@ class AioSeedCutoverTests(unittest.TestCase):
                 },
             )
             self.assertTrue(callable(fallback_execution_seed))
-            yield AioSeedExecution(execution_seed=17, next_seed=18)
+            yield AioSeedExecution(
+                execution_seed=17,
+                next_seed=17,
+                requested_seed=-1,
+                selection="randomize",
+                effective_after_generate="fixed",
+            )
 
         with (
             patch.object(
@@ -126,8 +132,59 @@ class AioSeedCutoverTests(unittest.TestCase):
         self.assertEqual(output["ui"]["status"], ["generated"])
         self.assertEqual(
             output["ui"]["easyuse_anima_aio_seed"],
-            [{"execution_seed": "17", "next_seed": "18"}],
+            [{
+                "requested_seed": "-1",
+                "selection": "randomize",
+                "effective_after_generate": "fixed",
+                "execution_seed": "17",
+                "next_seed": "17",
+            }],
         )
+
+    def test_generate_does_not_guess_missing_compatibility_identity(self):
+        settings = {
+            "sampler": {
+                "seed": 7,
+                "seed_after_generate": "increment",
+            },
+        }
+        output = {
+            "ui": {"status": ["generated"]},
+            "result": ("image", "latent", "metadata"),
+        }
+
+        @contextmanager
+        def compatibility_seed(**_kwargs):
+            yield AioSeedExecution(7, 8)
+
+        with (
+            patch.object(
+                aio_nodes,
+                "_normalize_aio_generation_settings",
+                return_value=settings,
+            ),
+            patch.object(
+                aio_nodes,
+                "_require_easy_use_anima_input",
+                return_value="normalized input",
+            ),
+            patch.object(
+                aio_nodes,
+                "aio_seed_execution",
+                compatibility_seed,
+            ),
+            patch.object(
+                aio_nodes,
+                "_run_aio_generation_pipeline",
+                return_value=output,
+            ),
+        ):
+            result = aio_nodes.EasyUseAnimaAIOGenerator().generate(
+                "input",
+                "serialized settings",
+            )
+
+        self.assertNotIn("easyuse_anima_aio_seed", result["ui"])
 
     def test_result_contract_uses_five_canonical_backend_fields(self):
         for requested_seed, selection in SPECIAL_SELECTION_BY_SEED.items():

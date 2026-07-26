@@ -125,7 +125,7 @@ class SeedAdapterTests(unittest.TestCase):
                     self.assertEqual(observed, [(7, 7), (7, 7)])
                     self.assertEqual(select_concrete_seed.call_count, 2)
 
-    def test_current_aio_runtime_characterizes_pre_cutover_control(self):
+    def test_aio_runtime_normalizes_special_control_before_service_branch(self):
         service = Mock()
         service.reserve.return_value = SeedReservation(
             version=2,
@@ -162,15 +162,87 @@ class SeedAdapterTests(unittest.TestCase):
         request = service.reserve.call_args.args[0]
         self.assertEqual(request.selection, "increment")
         self.assertIsNone(request.seed)
-        # Current production characterization for AIO-SEED-UI-02: the adapter
-        # still forwards the stored control instead of the Contract's fixed.
-        self.assertEqual(request.after_generate, "increment")
+        self.assertEqual(request.after_generate, "fixed")
         self.assertEqual(request.next_seed_max, 1 << 50)
         self.assertEqual(request.overflow, "clamp")
         service.settle.assert_called_once_with(
             "reservation:aio",
             SEED_SETTLEMENT_ACCEPTED,
         )
+
+    def test_aio_runtime_result_carries_normalized_intent_identity(self):
+        service = Mock()
+        service.reserve.return_value = SeedReservation(
+            version=2,
+            reservation_id="reservation:aio",
+            stream_id="stream:aio",
+            request_id="request:aio",
+            execution_seed=12,
+            next_seed=12,
+        )
+        identity = SeedExecutionIdentity(
+            stream_id="stream:aio",
+            request_id="request:aio",
+        )
+        with (
+            patch(
+                "easyuse_anima.nodes.seed_adapters.resolve_seed_execution_identity",
+                return_value=identity,
+            ),
+            patch(
+                "easyuse_anima.nodes.seed_adapters.get_runtime",
+                return_value=SimpleNamespace(seed_reservations=service),
+            ),
+        ):
+            with aio_seed_execution(
+                unique_id="8",
+                normalized_seed=-3,
+                after_generate="randomize",
+            ) as execution:
+                self.assertEqual(
+                    execution.ui_payload(),
+                    {
+                        "requested_seed": "-3",
+                        "selection": "decrement",
+                        "effective_after_generate": "fixed",
+                        "execution_seed": "12",
+                        "next_seed": "12",
+                    },
+                )
+
+    def test_aio_missing_identity_selects_special_seed_once_per_invocation(self):
+        for normalized_seed in AIO_SPECIAL_SELECTIONS:
+            with self.subTest(normalized_seed=normalized_seed):
+                fallback_execution_seed = Mock(return_value=7)
+                random_next_seed = Mock(return_value=11)
+                with (
+                    patch(
+                        "easyuse_anima.nodes.seed_adapters.resolve_seed_execution_identity",
+                        return_value=None,
+                    ),
+                    patch(
+                        "easyuse_anima.nodes.seed_adapters.get_runtime"
+                    ) as get_runtime,
+                ):
+                    with aio_seed_execution(
+                        unique_id=None,
+                        normalized_seed=normalized_seed,
+                        after_generate="randomize",
+                        fallback_execution_seed=fallback_execution_seed,
+                        random_next_seed=random_next_seed,
+                    ) as execution:
+                        self.assertEqual(
+                            (execution.execution_seed, execution.next_seed),
+                            (7, 7),
+                        )
+                        self.assertEqual(
+                            execution.effective_after_generate,
+                            "fixed",
+                        )
+
+                fallback_execution_seed.assert_called_once_with()
+                random_next_seed.assert_not_called()
+                get_runtime.assert_not_called()
 
     def test_aio_increment_selection_advances_on_completed_backend_execution(self):
         ids = iter(("reservation:1", "reservation:2"))

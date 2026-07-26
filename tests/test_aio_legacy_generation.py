@@ -1885,10 +1885,7 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
             )
 
         self.assertIs(result, forwarded)
-        self.assertEqual(
-            result["ui"]["easyuse_anima_aio_seed"],
-            [{"execution_seed": "7", "next_seed": "7"}],
-        )
+        self.assertNotIn("easyuse_anima_aio_seed", result["ui"])
         run.assert_called_once_with(
             generator,
             "input",
