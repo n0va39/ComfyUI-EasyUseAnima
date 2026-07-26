@@ -21,7 +21,7 @@ assert.deepEqual(
     addEventListener() {},
     removeEventListener() {},
   })).sort(),
-  ["consume", "dispose", "install", "peek"],
+  ["consume", "consumeWithinTurn", "dispose", "install", "peek"],
 );
 assert.throws(() => createExecutedEventContext(null), /Comfy API/);
 assert.throws(
@@ -38,11 +38,17 @@ assert.throws(
   }, { finishPrompt: "invalid" }),
   /finishPrompt/,
 );
+assert.throws(
+  () => createExecutedEventContext({
+    addEventListener() {},
+    removeEventListener() {},
+  }, { scheduleMicrotask: "invalid" }),
+  /scheduleMicrotask/,
+);
 
-// Node's flat EventTarget does not model a browser capture phase. This fixture
-// preserves supported DOM target ordering: capture listeners run before normal
-// listeners even when the core normal listener was registered first.
-class BrowserPhaseEventTargetFixture {
+// ComfyApi is one EventTarget. Listeners on that same target run in registration
+// order even when a later listener requests capture.
+class OrderedEventTargetFixture {
   constructor() {
     this.listeners = new Map();
   }
@@ -75,15 +81,29 @@ class BrowserPhaseEventTargetFixture {
 
   dispatchEvent(event) {
     const listeners = [...(this.listeners.get(event.type) || [])];
-    for (const capture of [true, false]) {
-      for (const listener of listeners) {
-        if (listener.capture === capture) {
-          listener.callback.call(this, event);
-        }
-      }
+    for (const listener of listeners) {
+      listener.callback.call(this, event);
     }
     return true;
   }
+}
+
+function createMicrotaskFixture() {
+  const callbacks = [];
+  return {
+    schedule(callback) {
+      callbacks.push(callback);
+    },
+    get size() {
+      return callbacks.length;
+    },
+    flush() {
+      const queued = callbacks.splice(0);
+      for (const callback of queued) {
+        callback();
+      }
+    },
+  };
 }
 
 function event(type, detail) {
@@ -91,28 +111,25 @@ function event(type, detail) {
 }
 
 {
-  const api = new BrowserPhaseEventTargetFixture();
+  const api = new OrderedEventTargetFixture();
   const trace = [];
-  let bridge;
-  let consumedEnvelope = null;
+  let delivery;
+  const bridge = createExecutedEventContext(api);
+  assert.equal(bridge.install(), true);
+  assert.equal(bridge.install(), false);
   const node = {
     onExecuted(message) {
       trace.push("node-onExecuted");
-      consumedEnvelope = bridge.consume(message);
+      delivery = bridge.consumeWithinTurn(message);
     },
   };
 
-  // Mirrors current ComfyUI app.ts: core registers first and passes the exact
-  // detail.output object to node.onExecuted().
+  // Bridge-first ordering consumes synchronously through the existing API.
   api.addEventListener("executed", ({ detail }) => {
     trace.push(bridge.peek(detail.output) ? "captured-before-core" : "missing");
     trace.push("core-listener");
     node.onExecuted(detail.output);
   });
-
-  bridge = createExecutedEventContext(api);
-  assert.equal(bridge.install(), true);
-  assert.equal(bridge.install(), false);
 
   const output = { feature_payload: [{ value: "accepted" }] };
   api.dispatchEvent(event("executed", {
@@ -127,6 +144,7 @@ function event(type, detail) {
     "core-listener",
     "node-onExecuted",
   ]);
+  const consumedEnvelope = await delivery;
   assert(consumedEnvelope);
   assert.equal(Object.isFrozen(consumedEnvelope), true);
   assert.equal(consumedEnvelope.promptId, "prompt-a");
@@ -139,20 +157,67 @@ function event(type, detail) {
 }
 
 {
-  const api = new BrowserPhaseEventTargetFixture();
+  const api = new OrderedEventTargetFixture();
+  const microtasks = createMicrotaskFixture();
+  const trace = [];
   let bridge;
-  const clonedConsumes = [];
+  let delivery;
+  const node = {
+    onExecuted(message) {
+      trace.push("node-onExecuted");
+      delivery = bridge.consumeWithinTurn(message);
+    },
+  };
+
+  // Mirrors the supported live order: core registered first, then the bridge.
+  api.addEventListener("executed", ({ detail }) => {
+    trace.push("core-listener");
+    node.onExecuted(detail.output);
+  });
+  bridge = createExecutedEventContext(api, {
+    scheduleMicrotask: microtasks.schedule,
+  });
+  bridge.install();
+
+  const output = { feature_payload: [{ value: "accepted-late" }] };
+  api.dispatchEvent(event("executed", {
+    prompt_id: "prompt-node-first",
+    node: "backend-node",
+    display_node: "frontend-node",
+    output,
+  }));
+
+  assert.deepEqual(trace, ["core-listener", "node-onExecuted"]);
+  assert.equal(microtasks.size, 1);
+  const envelope = await delivery;
+  assert(envelope);
+  assert.equal(envelope.promptId, "prompt-node-first");
+  assert.equal(envelope.output, output);
+  assert.equal(bridge.peek(output), null);
+  assert.equal(bridge.consume(output), null);
+  microtasks.flush();
+  assert.equal(microtasks.size, 0);
+}
+
+{
+  const api = new OrderedEventTargetFixture();
+  const microtasks = createMicrotaskFixture();
+  let bridge;
+  const clonedDeliveries = [];
   const originalOutputs = [];
   const node = {
     onExecuted(message) {
-      clonedConsumes.push(bridge.consume(message));
+      clonedDeliveries.push(bridge.consumeWithinTurn(message));
     },
   };
 
   api.addEventListener("executed", ({ detail }) => {
     node.onExecuted({ ...detail.output });
   });
-  bridge = createExecutedEventContext(api, { maxPendingOutputs: 2 });
+  bridge = createExecutedEventContext(api, {
+    maxPendingOutputs: 2,
+    scheduleMicrotask: microtasks.schedule,
+  });
   bridge.install();
 
   for (let index = 0; index < 3; index += 1) {
@@ -165,7 +230,9 @@ function event(type, detail) {
     }));
   }
 
-  assert.deepEqual(clonedConsumes, [null, null, null]);
+  assert.equal(microtasks.size, 3);
+  microtasks.flush();
+  assert.deepEqual(await Promise.all(clonedDeliveries), [null, null, null]);
   assert.equal(bridge.peek(originalOutputs[0]), null);
   assert.equal(bridge.peek(originalOutputs[1])?.promptId, "prompt-clone-1");
   assert.equal(bridge.consume(originalOutputs[2])?.promptId, "prompt-clone-2");
@@ -173,7 +240,7 @@ function event(type, detail) {
 }
 
 {
-  const api = new BrowserPhaseEventTargetFixture();
+  const api = new OrderedEventTargetFixture();
   const owner = createQueueUiTransactionOwner();
   const bridge = createExecutedEventContext(api, {
     finishPrompt: owner.finishPrompt,
@@ -224,35 +291,129 @@ function event(type, detail) {
 }
 
 {
-  const api = new BrowserPhaseEventTargetFixture();
+  const api = new OrderedEventTargetFixture();
+  const microtasks = createMicrotaskFixture();
   let bridge;
-  const consumes = [];
+  const deliveries = [];
   const node = {
     onExecuted(message) {
-      consumes.push(bridge.consume(message));
+      deliveries.push(bridge.consumeWithinTurn(message));
     },
   };
   api.addEventListener("executed", ({ detail }) => {
     node.onExecuted(detail.output);
   });
-  bridge = createExecutedEventContext(api);
+  bridge = createExecutedEventContext(api, {
+    scheduleMicrotask: microtasks.schedule,
+  });
   bridge.install();
 
   api.dispatchEvent(event("executed", {
     node: "backend-node",
     output: { missing: "prompt-id" },
   }));
-  assert.deepEqual(consumes, [null]);
+  microtasks.flush();
+  assert.deepEqual(await Promise.all(deliveries), [null]);
+  assert.equal(bridge.dispose(), true);
+}
 
+{
+  const api = new OrderedEventTargetFixture();
+  const microtasks = createMicrotaskFixture();
+  const bridge = createExecutedEventContext(api, {
+    scheduleMicrotask: microtasks.schedule,
+  });
+  bridge.install();
+
+  const output = { expires: true };
+  const delivery = bridge.consumeWithinTurn(output);
+  assert.equal(microtasks.size, 1);
+  microtasks.flush();
+  assert.equal(await delivery, null);
+
+  api.dispatchEvent(event("executed", {
+    prompt_id: "prompt-after-expiry",
+    node: "backend-node",
+    output,
+  }));
+  assert.equal(bridge.consume(output)?.promptId, "prompt-after-expiry");
+  assert.equal(bridge.consume(output), null);
+  assert.equal(bridge.dispose(), true);
+}
+
+{
+  const api = new OrderedEventTargetFixture();
+  const microtasks = createMicrotaskFixture();
+  const bridge = createExecutedEventContext(api, {
+    scheduleMicrotask: microtasks.schedule,
+  });
+  bridge.install();
+
+  const output = { duplicate: true };
+  const first = bridge.consumeWithinTurn(output);
+  const duplicate = bridge.consumeWithinTurn(output);
+  assert.equal(await duplicate, null);
+  api.dispatchEvent(event("executed", {
+    prompt_id: "prompt-duplicate",
+    node: "backend-node",
+    output,
+  }));
+  assert.equal((await first)?.promptId, "prompt-duplicate");
+  assert.equal(bridge.consume(output), null);
+  microtasks.flush();
+  assert.equal(bridge.dispose(), true);
+}
+
+{
+  const api = new OrderedEventTargetFixture();
+  const microtasks = createMicrotaskFixture();
+  const bridge = createExecutedEventContext(api, {
+    scheduleMicrotask: microtasks.schedule,
+  });
+  bridge.install();
+
+  const output = { disposed: true };
+  const delivery = bridge.consumeWithinTurn(output);
   assert.equal(bridge.dispose(), true);
   assert.equal(bridge.dispose(), false);
+  assert.equal(await delivery, null);
+  microtasks.flush();
   api.dispatchEvent(event("executed", {
     prompt_id: "prompt-after-dispose",
     node: "backend-node",
-    output: {},
+    output,
   }));
-  assert.deepEqual(consumes, [null, null]);
+  assert.equal(bridge.peek(output), null);
   assert.equal(bridge.install(), true);
+  assert.equal(bridge.dispose(), true);
+}
+
+{
+  const api = new OrderedEventTargetFixture();
+  const microtasks = createMicrotaskFixture();
+  const bridge = createExecutedEventContext(api, {
+    maxPendingOutputs: 2,
+    scheduleMicrotask: microtasks.schedule,
+  });
+  bridge.install();
+
+  const outputs = [{ index: 0 }, { index: 1 }, { index: 2 }];
+  const deliveries = outputs.map(
+    (output) => bridge.consumeWithinTurn(output),
+  );
+  assert.equal(await deliveries[0], null);
+  for (let index = 1; index < outputs.length; index += 1) {
+    api.dispatchEvent(event("executed", {
+      prompt_id: `prompt-bounded-${index}`,
+      node: "backend-node",
+      output: outputs[index],
+    }));
+  }
+  assert.equal((await deliveries[1])?.promptId, "prompt-bounded-1");
+  assert.equal((await deliveries[2])?.promptId, "prompt-bounded-2");
+  assert.equal(bridge.peek(outputs[1]), null);
+  assert.equal(bridge.peek(outputs[2]), null);
+  microtasks.flush();
   assert.equal(bridge.dispose(), true);
 }
 

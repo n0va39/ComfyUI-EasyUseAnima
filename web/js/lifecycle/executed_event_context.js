@@ -60,8 +60,9 @@ function positiveInteger(value) {
 
 /**
  * Preserve the outer ComfyUI executed envelope until the exact output object is
- * synchronously consumed by a node adapter. This owner does not inspect feature
- * payloads or register feature callbacks.
+ * consumed by a node adapter. When the node adapter runs before this listener,
+ * one pending consumer may wait for the remainder of the current event turn.
+ * This owner does not inspect feature payloads or register feature callbacks.
  *
  * @param {{
  *   addEventListener: Function,
@@ -70,6 +71,7 @@ function positiveInteger(value) {
  * @param {{
  *   maxPendingOutputs?: number,
  *   finishPrompt?: ((promptId: string) => unknown) | null,
+ *   scheduleMicrotask?: ((callback: () => void) => unknown) | null,
  * }} [options]
  */
 export function createExecutedEventContext(api, options = {}) {
@@ -87,11 +89,18 @@ export function createExecutedEventContext(api, options = {}) {
   if (finishPrompt != null && typeof finishPrompt !== "function") {
     throw new TypeError("finishPrompt must be a function when provided.");
   }
+  const scheduleMicrotask = options.scheduleMicrotask ?? globalThis.queueMicrotask;
+  if (typeof scheduleMicrotask !== "function") {
+    throw new TypeError("scheduleMicrotask must be a function when provided.");
+  }
 
   let installed = false;
   let envelopesByOutput = new WeakMap();
+  let consumersByOutput = new WeakMap();
   /** @type {object[]} */
   const pendingOutputs = [];
+  /** @type {object[]} */
+  const pendingConsumerOutputs = [];
 
   /** @param {object} output */
   function removePending(output) {
@@ -99,6 +108,25 @@ export function createExecutedEventContext(api, options = {}) {
     if (index >= 0) {
       pendingOutputs.splice(index, 1);
     }
+  }
+
+  /** @param {object} output */
+  function removePendingConsumer(output) {
+    const index = pendingConsumerOutputs.indexOf(output);
+    if (index >= 0) {
+      pendingConsumerOutputs.splice(index, 1);
+    }
+  }
+
+  /** @param {object} output @param {any} expected */
+  function expireConsumer(output, expected) {
+    if (consumersByOutput.get(output) !== expected) {
+      return false;
+    }
+    consumersByOutput.delete(output);
+    removePendingConsumer(output);
+    expected.resolve(null);
+    return true;
   }
 
   /** @param {string} promptId */
@@ -117,6 +145,13 @@ export function createExecutedEventContext(api, options = {}) {
   function captureExecuted({ detail }) {
     const envelope = envelopeFromDetail(detail);
     if (!envelope) {
+      return;
+    }
+    const consumer = consumersByOutput.get(envelope.output);
+    if (consumer) {
+      consumersByOutput.delete(envelope.output);
+      removePendingConsumer(envelope.output);
+      consumer.resolve(envelope);
       return;
     }
     removePending(envelope.output);
@@ -174,6 +209,60 @@ export function createExecutedEventContext(api, options = {}) {
     return envelope;
   }
 
+  /**
+   * Consume an already-captured envelope or wait for a later listener in the
+   * current event turn to capture the exact same output object. An unmatched
+   * consumer expires after one injected microtask and duplicate consumers fail
+   * closed.
+   *
+   * @param {unknown} output
+   * @returns {Promise<any | null>}
+   */
+  function consumeWithinTurn(output) {
+    if (!isReference(output)) {
+      return Promise.resolve(null);
+    }
+    const envelope = consume(output);
+    if (envelope) {
+      return Promise.resolve(envelope);
+    }
+    if (consumersByOutput.has(output)) {
+      return Promise.resolve(null);
+    }
+
+    let resolveConsumer;
+    const promise = new Promise((resolve) => {
+      resolveConsumer = resolve;
+    });
+    const consumer = { resolve: resolveConsumer };
+    consumersByOutput.set(output, consumer);
+    pendingConsumerOutputs.push(output);
+
+    while (pendingConsumerOutputs.length > maxPendingOutputs) {
+      const expiredOutput = pendingConsumerOutputs[0];
+      const expiredConsumer = consumersByOutput.get(expiredOutput);
+      if (!expiredConsumer) {
+        pendingConsumerOutputs.shift();
+        continue;
+      }
+      expireConsumer(expiredOutput, expiredConsumer);
+    }
+
+    scheduleMicrotask(() => expireConsumer(output, consumer));
+    return promise;
+  }
+
+  function releaseConsumers() {
+    for (const output of [...pendingConsumerOutputs]) {
+      const consumer = consumersByOutput.get(output);
+      if (consumer) {
+        expireConsumer(output, consumer);
+      }
+    }
+    consumersByOutput = new WeakMap();
+    pendingConsumerOutputs.length = 0;
+  }
+
   function dispose() {
     if (!installed) {
       return false;
@@ -185,6 +274,7 @@ export function createExecutedEventContext(api, options = {}) {
     installed = false;
     envelopesByOutput = new WeakMap();
     pendingOutputs.length = 0;
+    releaseConsumers();
     return true;
   }
 
@@ -192,6 +282,7 @@ export function createExecutedEventContext(api, options = {}) {
     install,
     peek,
     consume,
+    consumeWithinTurn,
     dispose,
   });
 }
