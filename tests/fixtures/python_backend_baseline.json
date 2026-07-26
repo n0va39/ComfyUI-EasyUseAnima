@@ -60661,9 +60661,9 @@
       },
       {
         "is_package": false,
-        "loc": 497,
+        "loc": 501,
         "module": "easyuse_anima.seed.service",
-        "normalized_git_blob_sha1": "489d63544dc9acf1ee0a65306188f41a9f06f672",
+        "normalized_git_blob_sha1": "b8ef428d579f3f65984d505a7937f33153c94161",
         "path": "easyuse_anima/seed/service.py",
         "top_level": {
           "class_count": 7,

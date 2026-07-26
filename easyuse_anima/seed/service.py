@@ -467,7 +467,11 @@ class InMemorySeedReservationService:
             reservation = record.reservation
             state.committed_execution_seed = reservation.execution_seed
             state.committed_seed = reservation.next_seed
-            state.observed_seed = record.observed_seed_after
+            state.observed_seed = (
+                record.observed_seed_after
+                if record.request.selection == SEED_SELECTION_CONCRETE
+                else None
+            )
             identity = (reservation.stream_id, reservation.request_id)
             self._request_records.pop(identity, None)
             self._accepted_records[identity] = _AcceptedRecord(

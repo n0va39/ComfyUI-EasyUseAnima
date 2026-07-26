@@ -185,6 +185,44 @@ class SeedReservationServiceTests(unittest.TestCase):
             (20, 21),
         )
 
+    def test_accepted_special_selection_drops_stale_concrete_observation(self):
+        service = InMemorySeedReservationService(
+            reservation_id_factory=sequential_ids(),
+        )
+        concrete = service.reserve(
+            make_request(
+                "q1",
+                seed=7,
+                after_generate=SEED_SELECTION_INCREMENT,
+            )
+        )
+        service.settle(concrete.reservation_id, SEED_SETTLEMENT_ACCEPTED)
+        special = service.reserve(
+            make_request(
+                "q2",
+                selection=SEED_SELECTION_INCREMENT,
+            )
+        )
+        service.settle(special.reservation_id, SEED_SETTLEMENT_ACCEPTED)
+
+        reset = service.reserve(
+            make_request(
+                "q3",
+                seed=7,
+                after_generate=SEED_SELECTION_INCREMENT,
+            )
+        )
+
+        self.assertEqual(
+            (concrete.execution_seed, concrete.next_seed),
+            (7, 8),
+        )
+        self.assertEqual(
+            (special.execution_seed, special.next_seed),
+            (8, 8),
+        )
+        self.assertEqual((reset.execution_seed, reset.next_seed), (7, 8))
+
     def test_random_selection_and_after_generate_use_explicit_domain(self):
         draws = DrawSequence(3, 7)
         service = InMemorySeedReservationService(

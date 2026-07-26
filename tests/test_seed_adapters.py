@@ -277,6 +277,49 @@ class SeedAdapterTests(unittest.TestCase):
 
         self.assertEqual(observed, [(4, 4), (5, 5)])
 
+    def test_aio_concrete_selection_resets_after_completed_special_selection(self):
+        ids = iter(
+            (
+                "reservation:concrete",
+                "reservation:special",
+                "reservation:reset",
+            )
+        )
+        service = InMemorySeedReservationService(
+            reservation_id_factory=lambda: next(ids),
+        )
+        identities = [
+            SeedExecutionIdentity("stream:aio", "request:concrete"),
+            SeedExecutionIdentity("stream:aio", "request:special"),
+            SeedExecutionIdentity("stream:aio", "request:reset"),
+        ]
+        with (
+            patch(
+                "easyuse_anima.nodes.seed_adapters.resolve_seed_execution_identity",
+                side_effect=identities,
+            ),
+            patch(
+                "easyuse_anima.nodes.seed_adapters.get_runtime",
+                return_value=SimpleNamespace(seed_reservations=service),
+            ),
+        ):
+            observed = []
+            for normalized_seed, after_generate in (
+                (7, "increment"),
+                (-2, "fixed"),
+                (7, "increment"),
+            ):
+                with aio_seed_execution(
+                    unique_id="8",
+                    normalized_seed=normalized_seed,
+                    after_generate=after_generate,
+                ) as execution:
+                    observed.append(
+                        (execution.execution_seed, execution.next_seed)
+                    )
+
+        self.assertEqual(observed, [(7, 8), (8, 8), (7, 8)])
+
     def test_aio_special_selection_and_stored_control_golden_matrix(self):
         expected_execution_seeds = {
             -1: [10, 10, 30],
