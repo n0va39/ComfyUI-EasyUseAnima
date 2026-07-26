@@ -11,16 +11,20 @@ conversation.
    - use focused edit-loop tests;
    - run the official full runner once per final candidate SHA;
    - escalate to package, live, and benchmark evidence only when triggered.
-3. While Issue #415 owns the active hotfix, read
+3. Only after a documented stop condition or final live-gate failure, read
+   [`docs/development/codex-blocker-escalation.md`](codex-blocker-escalation.md)
+   before requesting PRO review. A stop condition starts bounded local triage; it
+   is not an automatic whole-roadmap stop.
+4. While Issue #415 owns the active hotfix, read
    [`docs/architecture/queue-ui-two-phase-correlation-addendum.md`](../architecture/queue-ui-two-phase-correlation-addendum.md)
    and only the current task section. It supersedes the original exact-identity-
    at-submission assumption after the QSTATE-02A blocker.
-4. Python backend architecture or migration work:
+5. Python backend architecture or migration work:
    [`docs/architecture/README.md`](../architecture/README.md)
-5. Active frontend maintenance execution plan:
+6. Active frontend maintenance execution plan:
    `docs/development/frontend-maintenance-execution-plan.md`
-6. Current released baseline: `docs/development/0.5.5.md`
-7. Relevant topic guide:
+7. Current released baseline: `docs/development/0.5.5.md`
+8. Relevant topic guide:
    - Registry publish or flagged-version prevention:
      `docs/development/registry-scanner-safety.md`
    - workflow docs or release templates: `docs/Anima AiO/Workflow_Management.md`
@@ -35,18 +39,21 @@ conversation.
    - deferred Node 2.0 DOM widget resize investigation:
      `docs/development/node2-dom-widget-resize-limitation.md`
    - language or locale work: `docs/development/language-management.md`
-8. `git status --short`
-9. Relevant source and tests for the target area.
+9. `git status --short`
+10. Relevant source and tests for the target area.
 
 Do not read every roadmap or historical document by default. The efficiency
 protocol defines the maximum initial context and the conditions that justify
-expanding it.
+expanding it. The blocker-escalation document is conditional context and should
+not be loaded during ordinary successful tasks.
 
 ## Source Map
 
 - Current policy baseline: `docs/development/current-policies.md`
 - Codex work-packet, test-escalation, evidence-reuse, and token policy:
   [`docs/development/codex-execution-efficiency.md`](codex-execution-efficiency.md)
+- Conditional stop-triage, self-resolution budget, and hard-PRO criteria:
+  [`docs/development/codex-blocker-escalation.md`](codex-blocker-escalation.md)
 - Active queue/live-UI correlation correction:
   [`docs/architecture/queue-ui-two-phase-correlation-addendum.md`](../architecture/queue-ui-two-phase-correlation-addendum.md)
 - Python backend architecture and compatibility-shim registry:
@@ -134,6 +141,10 @@ git diff --check
 The repository `quick` profile is still broad: it runs repository-wide Python
 quality, all frontend syntax/smoke checks, TypeScript, and diff checks. Do not run
 it after every edit.
+
+A failed stop condition or live path should follow the bounded self-resolution
+budget in `codex-blocker-escalation.md`. Do not request PRO review until a hard
+criterion is evidenced.
 
 ### Final PR candidate
 
