@@ -40,6 +40,8 @@ from .generation_lifecycle import (
     ModelVariantRuntime,
     PreviewCollector,
     PreviewRuntime,
+    StageModelVariantResolver,
+    StageModelVariantRuntime,
 )
 from .generation_normalization import (
     _aio_detailer_has_enabled_targets,
@@ -66,8 +68,9 @@ from .generation_settings import _aio_generation_config_from_dict
 from .generation_upscale_stage import AIOUpscaleStage, UpscaleRuntime
 from .input_context import _require_easy_use_anima_input
 from .model_preparation import (
+    _aio_stage_model_patch_plan,
     _apply_aio_lora_stack,
-    _apply_aio_model_patches,
+    _apply_aio_stage_model_patch_plan,
     _apply_aio_spectrum_model_patches_for_comfy_sampler,
     _cleanup_aio_ephemeral_model,
 )
@@ -711,7 +714,6 @@ def _run_aio_generation_pipeline(
         base_clip,
         lora_stack,
     )
-    model = _apply_aio_model_patches(model_with_lora, settings)
     prompt_data = _normalize_prompt_data(context["prompt_data"])
     (
         positive_prompt,
@@ -747,6 +749,10 @@ def _run_aio_generation_pipeline(
     will_run_highres = _as_bool(settings["highres"].get("enabled"), False)
     will_run_detailer = _aio_detailer_has_enabled_targets(settings["detailer"])
     will_run_upscale = _as_bool(settings["upscale"].get("enabled"), False)
+    will_run_usdu = (
+        will_run_upscale
+        and str(settings["upscale"].get("backend") or "usdu") == "usdu"
+    )
     will_run_postprocess = _as_bool(settings["postprocess"].get("enabled"), False)
     profile = _normalize_anima_mod_guidance_profile(
         mod_guidance["profile"]
@@ -766,34 +772,59 @@ def _run_aio_generation_pipeline(
     model_registry = EphemeralModelRegistry(
         base_model=base_model,
         cleanup_model=_cleanup_aio_ephemeral_model,
-        model=model,
         model_with_lora=model_with_lora,
     )
-    model_variants = ModelVariantResolver(
-        runtime=ModelVariantRuntime(
-            apply_standalone_mod_guidance=_apply_spectrum_anima_mod_guidance,
-            apply_comfy_sampler_patches=(
-                _apply_aio_spectrum_model_patches_for_comfy_sampler
-            ),
+    stage_models = StageModelVariantResolver(
+        runtime=StageModelVariantRuntime(
+            build_plan=_aio_stage_model_patch_plan,
+            apply_plan=_apply_aio_stage_model_patch_plan,
         ),
         registry=model_registry,
-        model=model,
-        clip=clip,
-        positive=positive,
-        negative=negative,
-        quality_tags=quality_tags,
-        quality_negative=(
-            quality_neg if use_negative_anima_mod_guidance else ""
-        ),
-        profile=profile,
-        use_mod_guidance=use_mod_guidance,
-        can_apply_standalone_mod_guidance=(
-            can_apply_standalone_mod_guidance
+        model_with_lora=model_with_lora,
+        settings=settings,
+    )
+    model_variant_runtime = ModelVariantRuntime(
+        apply_standalone_mod_guidance=_apply_spectrum_anima_mod_guidance,
+        apply_comfy_sampler_patches=(
+            _apply_aio_spectrum_model_patches_for_comfy_sampler
         ),
     )
-    base_sample_model, base_use_mod_guidance = (
-        model_variants.prepare_first_pass(sampler_backend, sampler)
-    )
+    model_variant_resolvers: dict[int, ModelVariantResolver] = {}
+
+    def variants_for(stage_model: object) -> ModelVariantResolver:
+        model_id = id(stage_model)
+        existing = model_variant_resolvers.get(model_id)
+        if existing is not None and existing.model is stage_model:
+            return existing
+        resolver = ModelVariantResolver(
+            runtime=model_variant_runtime,
+            registry=model_registry,
+            model=stage_model,
+            clip=clip,
+            positive=positive,
+            negative=negative,
+            quality_tags=quality_tags,
+            quality_negative=(
+                quality_neg if use_negative_anima_mod_guidance else ""
+            ),
+            profile=profile,
+            use_mod_guidance=use_mod_guidance,
+            can_apply_standalone_mod_guidance=(
+                can_apply_standalone_mod_guidance
+            ),
+        )
+        model_variant_resolvers[model_id] = resolver
+        return resolver
+
+    try:
+        first_pass_model = stage_models.resolve("first_pass")
+        first_pass_variants = variants_for(first_pass_model)
+        base_sample_model, base_use_mod_guidance = (
+            first_pass_variants.prepare_first_pass(sampler_backend, sampler)
+        )
+    except BaseException:
+        model_registry.close()
+        raise
 
     generation_state = GenerationState(
         latent=None,
@@ -801,6 +832,13 @@ def _run_aio_generation_pipeline(
         width=width,
         height=height,
     )
+    model_patches_by_stage = {
+        "first_pass": list(stage_models.patch_ids("first_pass")),
+        "highres": [],
+        "detailer": [],
+        "upscale": [],
+    }
+    generation_state.metadata["model_patches_by_stage"] = model_patches_by_stage
     preview_settings = settings["preview"]
     preview_node_id = _single_value(unique_id)
     preview_run_id = (
@@ -897,11 +935,16 @@ def _run_aio_generation_pipeline(
             {"sampler_backend": sampler_backend},
         )
         first_pass_stage.run(generation_request, generation_state)
-        highres_model, highres_use_mod_guidance = (
-            model_variants.for_backend(highres_backend)
-            if will_run_highres
-            else (model, False)
-        )
+        if will_run_highres:
+            highres_stage_model = stage_models.resolve("highres")
+            model_patches_by_stage["highres"] = list(
+                stage_models.patch_ids("highres")
+            )
+            highres_model, highres_use_mod_guidance = (
+                variants_for(highres_stage_model).for_backend(highres_backend)
+            )
+        else:
+            highres_model, highres_use_mod_guidance = first_pass_model, False
         highres_request = replace(
             generation_request,
             resources=replace(
@@ -922,11 +965,14 @@ def _run_aio_generation_pipeline(
             {"sampler_backend": highres_backend},
         )
         highres_stage.run(highres_request, generation_state)
-        detailer_model = (
-            model_variants.standalone_model()
-            if will_run_detailer
-            else model_variants.mod_guidance_model
-        )
+        if will_run_detailer:
+            detailer_stage_model = stage_models.resolve("detailer")
+            model_patches_by_stage["detailer"] = list(
+                stage_models.patch_ids("detailer")
+            )
+            detailer_model = variants_for(detailer_stage_model).standalone_model()
+        else:
+            detailer_model = first_pass_model
         detailer_request = replace(
             generation_request,
             resources=replace(
@@ -943,11 +989,14 @@ def _run_aio_generation_pipeline(
         )
         detailer_stage.validate(detailer_request, {})
         detailer_stage.run(detailer_request, generation_state)
-        upscale_model = (
-            model_variants.standalone_model()
-            if will_run_upscale
-            else model_variants.mod_guidance_model
-        )
+        if will_run_usdu:
+            upscale_stage_model = stage_models.resolve("upscale")
+            model_patches_by_stage["upscale"] = list(
+                stage_models.patch_ids("upscale")
+            )
+            upscale_model = variants_for(upscale_stage_model).standalone_model()
+        else:
+            upscale_model = first_pass_model
         upscale_request = replace(
             generation_request,
             resources=replace(

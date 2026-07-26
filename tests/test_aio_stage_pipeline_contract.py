@@ -173,9 +173,9 @@ class AIOStagePipelineContractTests(unittest.TestCase):
         checkpoints = (
             "load_resources",
             "apply_lora",
-            "apply_model_patches",
             "encode_positive",
             "encode_negative",
+            "apply_model_patches",
             "get_cache",
             "sample",
             "decode",
@@ -189,13 +189,20 @@ class AIOStagePipelineContractTests(unittest.TestCase):
             "save_comfy",
             "tag:final",
         )
-        expected_metadata_stages = [
+        expected_metadata_stages = {
             "first_pass",
             "highres",
             "detailer",
             "upscale",
             "postprocess",
-        ]
+            "model_patches_by_stage",
+        }
+        expected_sampling_stages = {
+            "first_pass",
+            "highres",
+            "detailer",
+            "upscale",
+        }
 
         self.assertEqual(
             sorted(cases),
@@ -205,8 +212,16 @@ class AIOStagePipelineContractTests(unittest.TestCase):
             with self.subTest(case=name):
                 _assert_ordered_subsequence(self, case["trace"], checkpoints)
                 self.assertEqual(
-                    list(case["result"]["metadata"]["stages"]),
+                    set(case["result"]["metadata"]["stages"]),
                     expected_metadata_stages,
+                )
+                self.assertEqual(
+                    set(
+                        case["result"]["metadata"]["stages"][
+                            "model_patches_by_stage"
+                        ]
+                    ),
+                    expected_sampling_stages,
                 )
 
         _assert_ordered_subsequence(
