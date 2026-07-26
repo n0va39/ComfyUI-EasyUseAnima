@@ -124,8 +124,6 @@ class LoraPresetFrontendTests(unittest.TestCase):
                 "profileCount",
                 "selectedProfileIndex",
                 "activeProfileIndex",
-                "wrapProfileIndex",
-                "setProfileIndex",
                 "lorasWidgetValue",
                 "saveProfile",
                 "saveCurrentProfile",
@@ -144,7 +142,6 @@ class LoraPresetFrontendTests(unittest.TestCase):
             "finalizeInternalWidgets",
             "ensureLoraStackInput",
             "wrapWidgetCallback",
-            "applyExecutedProfile",
             "initializeNode",
         ):
             with self.subTest(moved_declaration=moved_declaration):
@@ -156,6 +153,8 @@ class LoraPresetFrontendTests(unittest.TestCase):
                     module_source,
                     rf"\bfunction\s+{re.escape(moved_declaration)}\b",
                 )
+        self.assertNotIn("applyExecutedProfile", module_source)
+        self.assertNotIn("prototype.onExecuted", module_source)
         self.assertIn("nodeRuntime: loraPresetNodeRuntime,", entry_source)
         self.assertTrue(LORA_PRESET_NODE_RUNTIME_SMOKE.is_file())
         self.assertIn("web/js/lora_preset/**/*.js", config["include"])
