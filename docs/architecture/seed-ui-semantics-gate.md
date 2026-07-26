@@ -29,10 +29,22 @@ The Prompt Studio adapter always submits a concrete non-negative seed.
 ```text
 selection = concrete
 seed = current wildcard seed
-after_generate = fixed | randomize | increment | decrement
+after_generate = fixed | randomize | increment
 overflow = wrap
 editable domain = 0 .. Number.MAX_SAFE_INTEGER
 ```
+
+The current custom UI, labels, and help expose exactly these three controls:
+
+```text
+Fixed
+Randomize every time
+Increment
+```
+
+Lower-level seed contracts currently recognize `decrement`, but Prompt Studio does
+not expose it as a public control. This hotfix must preserve the existing public
+surface rather than add a fourth mode incidentally.
 
 The executed payload distinguishes:
 
@@ -63,16 +75,22 @@ The rgthree Seed reference removes ComfyUI's separate
 `control_after_generate` widget and lets the special token own repeated queue-time
 selection. It changes only the submitted prompt copy and keeps the live token.
 
+Easy Use Anima may retain its existing stored `seed_after_generate` setting for
+concrete-seed compatibility, but that control cannot become a second transition
+while a special token is active.
+
 ## 2. Non-interchangeable behavior
 
 | Concern | Prompt Studio Wildcard | AiO special token | AiO concrete seed |
 | --- | --- | --- | --- |
 | Editable value | concrete integer | `-1`, `-2`, or `-3` | concrete integer |
 | Queue-time selection | current concrete value | token-defined stream selection | current concrete value |
-| `after_generate` role | computes the next concrete editable value | must not replace or advance the visible token | computes the next concrete editable value |
+| Public control set | fixed, randomize, increment | token itself owns repeated selection | fixed, randomize, increment, decrement |
+| `after_generate` role | computes the next concrete editable value | must not replace the token or create a second stream transition | computes the next concrete editable value |
 | Live value after accepted result | next concrete seed, if revision is current | same special token | next concrete seed, if revision is current |
 | Overflow domain | wrap | stream contract; no token mutation | current AiO concrete domain policy |
 | Execution seed | previous-execution history | last-seed/history only | last-seed/history and possible next-state basis |
+| Workflow reproducibility | previous accepted concrete execution may serialize as fixed | special token remains serialized | current concrete next-state contract |
 
 The following abstraction is forbidden:
 
@@ -97,10 +115,12 @@ shared transaction gate
 - `fixed` keeps the current concrete seed.
 - `randomize` chooses one new concrete next-run seed after an accepted execution.
   It is not a persistent random-mode token.
-- `increment` and `decrement` compute one concrete next-run seed using the existing
-  wrap domain.
+- `increment` computes one concrete next-run seed using the existing wrap domain.
+- The hotfix does not add a public decrement control or migration.
 - The next concrete seed is written to the live widget only when the accepted
   prompt transaction and `prompt.wildcard_seed` revision are still current.
+- The control and seed form one atomic editable next-state surface. Editing either
+  after queue prevents the old result from publishing its next seed.
 - A stale result may update non-editable previous-execution history but cannot
   overwrite a newer seed or control edit.
 - `wildcard_mode` (`populate/general` versus `sequential`) remains independent from
@@ -111,18 +131,20 @@ shared transaction gate
 ### 3.2 Required tests
 
 ```text
-seed 7 + fixed      -> execution 7, live next 7
-seed 7 + increment  -> execution 7, live next 8
+seed 7 + fixed       -> execution 7, live next 7
+seed 7 + increment   -> execution 7, live next 8
 seed MAX + increment -> live next 0
-seed 0 + decrement  -> live next MAX
-seed 7 + randomize  -> one concrete next value; following queue uses it
-queue seed 7 -> user edits 99 -> old result does not replace 99
+seed 7 + randomize   -> one concrete next value; following queue uses it
+queue seed 7 -> user edits seed 99 -> old result does not replace 99
+queue increment -> user changes control to fixed -> old result does not publish 8
 old result may record execution seed 7 in non-editable history
-workflow save/reload preserves the accepted reproducibility contract
+workflow save/reload preserves the accepted previous-execution reproducibility contract
+public control list remains fixed/randomize/increment
 ```
 
 Use deterministic random sources in tests. Do not copy AiO special-token logic
-into Prompt Studio.
+into Prompt Studio, and do not turn dormant lower-level decrement support into a
+new user-facing feature in this hotfix.
 
 ## 4. AiO special-token contract
 
@@ -199,6 +221,7 @@ QSTATE-02C/D 이후:
   -> QSTATE-04A Prompt Studio submitted-snapshot replay retirement
   -> QSTATE-04B Prompt Studio Wildcard concrete next-seed compare-and-commit
   -> AIO-SEED-UI-01 special/concrete intent-display Contract and full matrix
+  -> focused PRO review of the final seed matrix
   -> AIO-SEED-UI-02 backend payload/effective-control implementation
   -> AIO-SEED-UI-03 frontend publication and last-seed UX
 ```
@@ -207,14 +230,16 @@ QSTATE-04A and QSTATE-04B may share one PR only when their file ownership and
 rollback boundary remain small. They may not import AiO seed semantics.
 
 AIO-SEED-UI-01 may start after the shared transaction API is frozen, but
-AIO-SEED-UI-02/03 remain blocked until its full special-token matrix is reviewed.
+AIO-SEED-UI-02/03 remain blocked until its full special-token matrix passes and the
+focused review approves the separation.
 
 ## 6. Stop conditions
 
 Stop and record a blocker before implementation expands if:
 
 - the shared transaction core parses seed values or control names;
-- Prompt Studio requires negative sentinel values to implement next-seed control;
+- Prompt Studio introduces negative sentinel values or a new public seed control in
+  order to implement stale protection;
 - AiO special mode reuses Prompt Studio's concrete next-seed publication helper;
 - a special token plus non-fixed `seed_after_generate` advances the concrete stream
   more than once per accepted queue;
@@ -240,14 +265,22 @@ focused Python seed adapter tests when backend payload meaning changes
 git diff --check
 ```
 
+The Wildcard test matrix is limited to the current public controls. Lower-level
+`decrement` support may retain compatibility tests, but it is not a new UI acceptance
+criterion for this hotfix.
+
 ### AIO-SEED-UI-01
 
 ```text
 frontend AiO executed-seed Contract smoke
 Python seed adapter and reservation tests
-special-token x after_generate golden matrix
+special-token x stored-after_generate golden matrix
+concrete-seed x after_generate golden matrix
 git diff --check
 ```
+
+The final AIO-SEED-UI-01 Contract receives one focused PRO review before production
+implementation begins.
 
 ### AIO-SEED-UI-02/03
 
@@ -258,12 +291,12 @@ Contract edit loop.
 
 ## 8. Codex continuation rule
 
-QSTATE-02B, QSTATE-02C/D, and QSTATE-03 may continue without another seed review.
-Before QSTATE-04B or AIO-SEED-UI implementation, read this document and use separate
-feature task cards and separate surface tokens:
+QSTATE-02B, QSTATE-02C/D, QSTATE-03, and QSTATE-04A may continue without another
+seed review. Before QSTATE-04B or AIO-SEED-UI implementation, read this document and
+use separate feature task cards and separate surface tokens:
 
 ```text
-prompt.wildcard_seed
+prompt.wildcard_seed_control
 prompt.wildcard_history
 aio.seed_selection
 aio.last_seed
