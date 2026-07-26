@@ -1,9 +1,47 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 
-// QSTATE-02B contract-only fixture. Node's flat EventTarget does not model a
-// browser capture phase, so this test-local host preserves the DOM ordering the
-// ComfyUI adapter relies on: capture listeners run before normal listeners at
-// the target, even when the capture listener was registered later.
+function dataModule(relativePath) {
+  const source = readFileSync(new URL(relativePath, import.meta.url), "utf8");
+  return `data:text/javascript;base64,${Buffer.from(source).toString("base64")}`;
+}
+
+const contextModule = await import(dataModule(
+  "../web/js/lifecycle/executed_event_context.js",
+));
+const transactionModule = await import(dataModule(
+  "../web/js/lifecycle/queue_ui_transaction.js",
+));
+const { createExecutedEventContext } = contextModule;
+const { createQueueUiTransactionOwner } = transactionModule;
+
+assert.deepEqual(Object.keys(contextModule), ["createExecutedEventContext"]);
+assert.deepEqual(
+  Object.keys(createExecutedEventContext({
+    addEventListener() {},
+    removeEventListener() {},
+  })).sort(),
+  ["consume", "dispose", "install", "peek"],
+);
+assert.throws(() => createExecutedEventContext(null), /Comfy API/);
+assert.throws(
+  () => createExecutedEventContext({
+    addEventListener() {},
+    removeEventListener() {},
+  }, { maxPendingOutputs: 0 }),
+  /positive integer/,
+);
+assert.throws(
+  () => createExecutedEventContext({
+    addEventListener() {},
+    removeEventListener() {},
+  }, { finishPrompt: "invalid" }),
+  /finishPrompt/,
+);
+
+// Node's flat EventTarget does not model a browser capture phase. This fixture
+// preserves supported DOM target ordering: capture listeners run before normal
+// listeners even when the core normal listener was registered first.
 class BrowserPhaseEventTargetFixture {
   constructor() {
     this.listeners = new Map();
@@ -48,112 +86,8 @@ class BrowserPhaseEventTargetFixture {
   }
 }
 
-function createExecutedEventContext(
-  api,
-  { maxPendingOutputs = 2, onCapture = null } = {},
-) {
-  assert(Number.isInteger(maxPendingOutputs) && maxPendingOutputs > 0);
-
-  let installed = false;
-  let envelopesByOutput = new WeakMap();
-  const pendingOutputs = [];
-
-  function normalizedId(value) {
-    if (typeof value === "string" && value.trim() !== "") {
-      return value.trim();
-    }
-    if (typeof value === "number" && Number.isInteger(value)) {
-      return String(value);
-    }
-    return null;
-  }
-
-  function envelopeFromDetail(detail) {
-    const promptId = normalizedId(detail?.prompt_id);
-    const executionNodeId = normalizedId(detail?.node);
-    const displayNodeId = detail?.display_node == null
-      ? null
-      : normalizedId(detail.display_node);
-    const output = detail?.output;
-    if (
-      promptId == null
-      || executionNodeId == null
-      || (detail?.display_node != null && displayNodeId == null)
-      || output === null
-      || (typeof output !== "object" && typeof output !== "function")
-    ) {
-      return null;
-    }
-    return { promptId, executionNodeId, displayNodeId, output };
-  }
-
-  function removePending(output) {
-    const index = pendingOutputs.indexOf(output);
-    if (index >= 0) {
-      pendingOutputs.splice(index, 1);
-    }
-  }
-
-  function captureExecuted({ detail }) {
-    const envelope = envelopeFromDetail(detail);
-    if (!envelope) {
-      return;
-    }
-    removePending(envelope.output);
-    envelopesByOutput.set(envelope.output, envelope);
-    pendingOutputs.push(envelope.output);
-    onCapture?.(envelope);
-
-    while (pendingOutputs.length > maxPendingOutputs) {
-      const expiredOutput = pendingOutputs.shift();
-      envelopesByOutput.delete(expiredOutput);
-    }
-  }
-
-  function install() {
-    if (installed) {
-      return false;
-    }
-    api.addEventListener("executed", captureExecuted, { capture: true });
-    installed = true;
-    return true;
-  }
-
-  function consume(output) {
-    if (
-      output === null
-      || (typeof output !== "object" && typeof output !== "function")
-    ) {
-      return null;
-    }
-    const envelope = envelopesByOutput.get(output) || null;
-    if (!envelope) {
-      return null;
-    }
-    envelopesByOutput.delete(output);
-    removePending(output);
-    return envelope;
-  }
-
-  function dispose() {
-    if (installed) {
-      api.removeEventListener("executed", captureExecuted, { capture: true });
-    }
-    installed = false;
-    envelopesByOutput = new WeakMap();
-    pendingOutputs.length = 0;
-  }
-
-  return {
-    install,
-    consume,
-    dispose,
-    inspect: () => ({ installed, pendingCount: pendingOutputs.length }),
-  };
-}
-
-function executedEvent(detail) {
-  return { type: "executed", detail };
+function event(type, detail) {
+  return { type, detail };
 }
 
 {
@@ -168,21 +102,20 @@ function executedEvent(detail) {
     },
   };
 
-  // Mirrors current ComfyUI app.ts: the normal core listener is registered
-  // first and passes the same detail.output object to node.onExecuted().
+  // Mirrors current ComfyUI app.ts: core registers first and passes the exact
+  // detail.output object to node.onExecuted().
   api.addEventListener("executed", ({ detail }) => {
+    trace.push(bridge.peek(detail.output) ? "captured-before-core" : "missing");
     trace.push("core-listener");
     node.onExecuted(detail.output);
   });
 
-  bridge = createExecutedEventContext(api, {
-    onCapture: () => trace.push("capture-listener"),
-  });
+  bridge = createExecutedEventContext(api);
   assert.equal(bridge.install(), true);
   assert.equal(bridge.install(), false);
 
-  const output = { prompt_studio_inputs: [{ text: "accepted" }] };
-  api.dispatchEvent(executedEvent({
+  const output = { feature_payload: [{ value: "accepted" }] };
+  api.dispatchEvent(event("executed", {
     prompt_id: "prompt-a",
     node: "backend-node",
     display_node: "frontend-node",
@@ -190,16 +123,17 @@ function executedEvent(detail) {
   }));
 
   assert.deepEqual(trace, [
-    "capture-listener",
+    "captured-before-core",
     "core-listener",
     "node-onExecuted",
   ]);
   assert(consumedEnvelope);
+  assert.equal(Object.isFrozen(consumedEnvelope), true);
   assert.equal(consumedEnvelope.promptId, "prompt-a");
   assert.equal(consumedEnvelope.executionNodeId, "backend-node");
   assert.equal(consumedEnvelope.displayNodeId, "frontend-node");
   assert.equal(consumedEnvelope.output, output);
-  assert.deepEqual(bridge.inspect(), { installed: true, pendingCount: 0 });
+  assert.equal(bridge.peek(output), null);
   assert.equal(bridge.consume(output), null);
   assert.equal(bridge.consume({ ...output }), null);
 }
@@ -224,7 +158,7 @@ function executedEvent(detail) {
   for (let index = 0; index < 3; index += 1) {
     const output = { index };
     originalOutputs.push(output);
-    api.dispatchEvent(executedEvent({
+    api.dispatchEvent(event("executed", {
       prompt_id: `prompt-clone-${index}`,
       node: "backend-node",
       output,
@@ -232,12 +166,61 @@ function executedEvent(detail) {
   }
 
   assert.deepEqual(clonedConsumes, [null, null, null]);
-  assert.deepEqual(bridge.inspect(), { installed: true, pendingCount: 2 });
-  assert.equal(bridge.consume(originalOutputs[0]), null);
+  assert.equal(bridge.peek(originalOutputs[0]), null);
+  assert.equal(bridge.peek(originalOutputs[1])?.promptId, "prompt-clone-1");
   assert.equal(bridge.consume(originalOutputs[2])?.promptId, "prompt-clone-2");
-  assert.deepEqual(bridge.inspect(), { installed: true, pendingCount: 1 });
-  bridge.dispose();
-  assert.deepEqual(bridge.inspect(), { installed: false, pendingCount: 0 });
+  assert.equal(bridge.peek(originalOutputs[2]), null);
+}
+
+{
+  const api = new BrowserPhaseEventTargetFixture();
+  const owner = createQueueUiTransactionOwner();
+  const bridge = createExecutedEventContext(api, {
+    finishPrompt: owner.finishPrompt,
+  });
+  bridge.install();
+
+  for (const terminalType of [
+    "execution_success",
+    "execution_error",
+    "execution_interrupted",
+  ]) {
+    const node = {};
+    const promptId = `prompt-${terminalType}`;
+    const transaction = owner.captureProvisional({
+      node,
+      surfaces: ["opaque-surface"],
+    });
+    assert(transaction);
+    assert.equal(owner.acceptPrompt(transaction, promptId), true);
+
+    const output = { terminalType };
+    api.dispatchEvent(event("executed", {
+      prompt_id: promptId,
+      node: "backend-node",
+      output,
+    }));
+    assert.equal(bridge.peek(output)?.promptId, promptId);
+
+    api.dispatchEvent(event(terminalType, {
+      prompt_id: promptId,
+      timestamp: Date.now(),
+    }));
+    assert.equal(transaction.state, "finished");
+    assert.equal(transaction.reason, "prompt-terminal");
+    assert.equal(bridge.peek(output), null);
+    assert.equal(owner.finishPrompt(promptId), 0);
+  }
+
+  const stillAccepted = owner.captureProvisional({
+    node: {},
+    surfaces: ["opaque-surface"],
+  });
+  assert(stillAccepted);
+  assert.equal(owner.acceptPrompt(stillAccepted, "prompt-missing-terminal"), true);
+  api.dispatchEvent(event("execution_success", { timestamp: Date.now() }));
+  assert.equal(stillAccepted.state, "accepted");
+  assert.equal(owner.cancel(stillAccepted), true);
 }
 
 {
@@ -249,28 +232,28 @@ function executedEvent(detail) {
       consumes.push(bridge.consume(message));
     },
   };
-
   api.addEventListener("executed", ({ detail }) => {
     node.onExecuted(detail.output);
   });
   bridge = createExecutedEventContext(api);
   bridge.install();
 
-  api.dispatchEvent(executedEvent({
+  api.dispatchEvent(event("executed", {
     node: "backend-node",
     output: { missing: "prompt-id" },
   }));
   assert.deepEqual(consumes, [null]);
-  assert.deepEqual(bridge.inspect(), { installed: true, pendingCount: 0 });
 
-  bridge.dispose();
-  api.dispatchEvent(executedEvent({
+  assert.equal(bridge.dispose(), true);
+  assert.equal(bridge.dispose(), false);
+  api.dispatchEvent(event("executed", {
     prompt_id: "prompt-after-dispose",
     node: "backend-node",
     output: {},
   }));
   assert.deepEqual(consumes, [null, null]);
-  assert.deepEqual(bridge.inspect(), { installed: false, pendingCount: 0 });
+  assert.equal(bridge.install(), true);
+  assert.equal(bridge.dispose(), true);
 }
 
-console.log("Executed event context contract smoke passed.");
+console.log("Executed event context production smoke passed.");
