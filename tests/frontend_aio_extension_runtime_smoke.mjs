@@ -87,6 +87,14 @@ function createFixture(options = {}) {
       handleDenoisePreviewEvent: callbacks.handleDenoisePreviewEvent,
       handleExecutingEvent: callbacks.handleExecutingEvent,
       clearDenoisePreviews: callbacks.clearDenoisePreviews,
+      installSeedRuntime() {
+        trace.push("installSeedRuntime");
+        return true;
+      },
+      disposeSeedRuntime() {
+        trace.push("disposeSeedRuntime");
+        return false;
+      },
       loadSamplerOptions() {
         trace.push("loadSamplerOptions");
         if (samplerSetupFailures > 0) {
@@ -125,6 +133,9 @@ function createFixture(options = {}) {
       hookGeneratorNode() {
         trace.push("hookGeneratorNode");
       },
+      hookSeedNode() {
+        trace.push("hookSeedNode");
+      },
       syncSerializedWidgets(_node, serialized) {
         trace.push(`syncSerializedWidgets:${serialized.marker}`);
       },
@@ -146,6 +157,9 @@ function createFixture(options = {}) {
         if (options.panelError) {
           throw options.panelError;
         }
+      },
+      disposeSeedNode(_node, reason) {
+        trace.push(`disposeSeedNode:${reason}`);
       },
       disposeNativePreviewLifecycle() {
         trace.push("disposeNativePreviewLifecycle");
@@ -226,7 +240,7 @@ function createNodeType(trace, options = {}) {
   );
   await Promise.resolve();
 
-  assert.deepEqual(fixture.trace.slice(0, 13), [
+  assert.deepEqual(fixture.trace.slice(0, 14), [
     "ensureStyle",
     "installWheelForwarder",
     "watchLocale",
@@ -238,6 +252,7 @@ function createNodeType(trace, options = {}) {
     "event:execution_error:false",
     "event:execution_interrupted:false",
     "event:execution_success:false",
+    "installSeedRuntime",
     "loadSamplerOptions",
     "loadUserProfiles",
   ]);
@@ -642,6 +657,7 @@ function createNodeType(trace, options = {}) {
     "suppressDefaultPreview:markDirty=false",
     "original:onNodeCreated:retry",
     "hookGeneratorNode",
+    "hookSeedNode",
   ]);
 }
 
@@ -712,14 +728,17 @@ function createNodeType(trace, options = {}) {
     "suppressDefaultPreview:markDirty=false",
     "original:onNodeCreated:new",
     "hookGeneratorNode",
+    "hookSeedNode",
   ]);
 
   fixture.trace.length = 0;
   assert.equal(node.onConfigure("saved"), returns.configured);
   assert.deepEqual(fixture.trace, [
     "suppressDefaultPreview:markDirty=false",
+    "disposeSeedNode:reconfigure",
     "original:onConfigure:saved",
     "hookGeneratorNode",
+    "hookSeedNode",
   ]);
 
   fixture.trace.length = 0;
@@ -748,6 +767,7 @@ function createNodeType(trace, options = {}) {
   assert.equal(node.onRemoved("delete"), returns.removed);
   assert.deepEqual(fixture.trace, [
     "original:onRemoved:delete",
+    "disposeSeedNode:remove",
     "disposePanel",
     "disposeNativePreviewLifecycle",
   ]);
@@ -769,6 +789,7 @@ for (const hookCase of [
     args: ["saved"],
     expectedTrace: [
       "suppressDefaultPreview:markDirty=false",
+      "disposeSeedNode:reconfigure",
       "original:onConfigure:saved",
     ],
   },
@@ -825,6 +846,7 @@ for (const hookCase of [
   assert.equal(caught, removedError, "the original removal error identity must be preserved");
   assert.deepEqual(fixture.trace, [
     "original:onRemoved:delete",
+    "disposeSeedNode:remove",
     "disposePanel",
     "disposeNativePreviewLifecycle",
   ]);
@@ -845,6 +867,7 @@ for (const hookCase of [
   assert.equal(caught, panelError, "the panel disposal error identity must be preserved");
   assert.deepEqual(fixture.trace, [
     "original:onRemoved:delete",
+    "disposeSeedNode:remove",
     "disposePanel",
     "disposeNativePreviewLifecycle",
   ]);
@@ -871,6 +894,7 @@ for (const hookCase of [
   );
   assert.deepEqual(fixture.trace, [
     "original:onRemoved:delete",
+    "disposeSeedNode:remove",
     "disposePanel",
     "disposeNativePreviewLifecycle",
   ]);
