@@ -5,10 +5,11 @@ export const AIO_GENERATOR_SPECIAL_SEED_RANDOM = -1;
 export const AIO_GENERATOR_SPECIAL_SEED_INCREMENT = -2;
 export const AIO_GENERATOR_SPECIAL_SEED_DECREMENT = -3;
 export const AIO_GENERATOR_MAX_SEED = 1125899906842624;
+export const AIO_GENERATION_STAGE_IDS = ["first_pass", "highres", "detailer", "upscale"];
 
 export const AIO_DEFAULT_GENERATION_SETTINGS = {
   schema: "easyuse_anima_aio_generation_settings",
-  version: 1,
+  version: 2,
   mode: "txt2img",
   sampler: {
     backend: "comfy_ksampler",
@@ -70,6 +71,12 @@ export const AIO_DEFAULT_GENERATION_SETTINGS = {
       mask: "dave_alpha.npz",
       strength: 0.30,
       tau: 0.10,
+      stage_scope: {
+        first_pass: true,
+        highres: false,
+        detailer: false,
+        upscale: false,
+      },
     },
     safe_pag: {
       enabled: false,
@@ -441,6 +448,31 @@ export function aioCloneJson(value) {
   return JSON.parse(JSON.stringify(value));
 }
 
+export function aioMigrateGenerationSettingsVersion(value) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return value;
+  }
+  const migrated = aioCloneJson(value);
+  if (
+    migrated.schema === AIO_DEFAULT_GENERATION_SETTINGS.schema
+    && migrated.version === 1
+  ) {
+    const dave = migrated.model_patches?.dave;
+    if (
+      dave
+      && typeof dave === "object"
+      && !Array.isArray(dave)
+      && !Object.prototype.hasOwnProperty.call(dave, "stage_scope")
+    ) {
+      dave.stage_scope = Object.fromEntries(
+        AIO_GENERATION_STAGE_IDS.map((stageId) => [stageId, true]),
+      );
+    }
+    migrated.version = 2;
+  }
+  return migrated;
+}
+
 export function aioMergeDefaults(defaults, value) {
   const output = aioCloneJson(defaults);
   if (!value || typeof value !== "object" || Array.isArray(value)) {
@@ -520,7 +552,11 @@ export function aioMigrateGeneratorPostprocessSettings(settings) {
 
 export function aioParseSettingsValue(rawValue, defaults) {
   try {
-    const parsed = aioMergeDefaults(defaults, JSON.parse(rawValue || "{}"));
+    const rawParsed = JSON.parse(rawValue || "{}");
+    const incoming = defaults === AIO_DEFAULT_GENERATION_SETTINGS
+      ? aioMigrateGenerationSettingsVersion(rawParsed)
+      : rawParsed;
+    const parsed = aioMergeDefaults(defaults, incoming);
     return defaults === AIO_DEFAULT_GENERATION_SETTINGS
       ? aioMigrateGeneratorPostprocessSettings(parsed)
       : parsed;
@@ -575,7 +611,10 @@ export function aioNormalizeGeneratorPreviewSettings(settings) {
 }
 
 export function aioSettingsToCompactJson(settings) {
-  const next = aioMergeDefaults(AIO_DEFAULT_GENERATION_SETTINGS, settings);
+  const next = aioMergeDefaults(
+    AIO_DEFAULT_GENERATION_SETTINGS,
+    aioMigrateGenerationSettingsVersion(settings),
+  );
   delete next.save?.filename_prefix;
   aioNormalizeGeneratorPreviewSettings(next);
   return JSON.stringify(next);
