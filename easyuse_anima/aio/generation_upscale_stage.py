@@ -33,6 +33,7 @@ class UpscaleRunner(Protocol):
         *,
         exclude_positive_quality: bool = False,
         exclude_negative_quality: bool = False,
+        negpip_mode: str = "off",
     ) -> tuple[object, dict[str, Any]]: ...
 
 
@@ -70,6 +71,9 @@ class AIOUpscaleStage:
     ) -> None:
         sampler = cast(dict[str, Any], request.config.sampler.to_dict())
         upscale = cast(dict[str, Any], request.config.upscale.to_dict())
+        if request.config.negpip.is_turbo and upscale.get("backend") == "usdu":
+            sampler["cfg"] = 1.0
+            upscale["cfg"] = 1.0
         prompt_data = cast(dict[str, Any], request.prompts.prompt_data)
 
         image, metadata = self.runtime.run_upscale(
@@ -86,6 +90,7 @@ class AIOUpscaleStage:
             prompt_data,
             exclude_positive_quality=self.exclude_positive_quality,
             exclude_negative_quality=self.exclude_negative_quality,
+            negpip_mode=request.config.negpip.mode,
         )
         latent = state.latent
         width = state.width

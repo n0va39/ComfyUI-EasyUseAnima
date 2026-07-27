@@ -475,6 +475,13 @@
           "dit_corrections": {"$ref": "#/definitions/dit_corrections"}
         }
       },
+      "negpip": {
+        "type": "object",
+        "unknown_fields": "preserve",
+        "fields": {
+          "mode": {"type": "string", "coercion": "choice", "enum": ["off", "on", "turbo"]}
+        }
+      },
       "model_patches": {
         "type": "object",
         "unknown_fields": "preserve",
@@ -674,6 +681,7 @@
       "spd_extra": {},
       "dit_corrections": {"enabled": false, "dcw_mode": "off", "dcw_lambda": 0.01, "dcw_band_mask": "LL", "dcw_calibrator": "(auto-download default)", "smc_cfg": false, "adaptive_smc_alpha": 0.0, "smc_cfg_lambda": 6.0, "cfgpp": false, "cfgpp_lambda": 0.0, "fsg": false, "fsg_band_lo": 0.59, "fsg_band_hi": 0.75, "fsg_k": 3, "fsg_d_sigma": 0.1, "fsg_gamma": 0.0, "replace_existing_cfg": false}
     },
+    "negpip": {"mode": "off"},
     "model_patches": {
       "aura_flow": {"shift": 3.0},
       "dave": {"enabled": false, "mask": "dave_alpha.npz", "strength": 0.3, "tau": 0.1, "stage_scope": {"first_pass": true, "highres": false, "detailer": false, "upscale": false}},

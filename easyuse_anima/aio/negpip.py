@@ -2,26 +2,75 @@
 
 from __future__ import annotations
 
+import hashlib
 import inspect
+import re
 from collections.abc import Callable, Mapping
+from dataclasses import dataclass
 from typing import Any
 
 from ..infrastructure.comfy.invocation import _node_output_tuple
 from ..infrastructure.comfy.wiring import resolve_comfy_host_helper
+from .generation_values import ObjectState, expect_object, expect_str, required
 
 NEGPIP_NODE_ID = "CLIPNegPip"
 NEGPIP_NODE_PACK = "ComfyUI-ppm"
 NEGPIP_REPOSITORY = "https://github.com/pamparamm/ComfyUI-ppm"
 NEGPIP_CONTRACT_REVISION = 1
+NEGPIP_TURBO_POLICY_REVISION = 1
+NEGPIP_TURBO_NEGATIVE_SCALE = -1.0
 
 NEGPIP_MODE_OFF = "off"
 NEGPIP_MODE_ON = "on"
+NEGPIP_MODE_TURBO = "turbo"
+NEGPIP_MODES = (
+    NEGPIP_MODE_OFF,
+    NEGPIP_MODE_ON,
+    NEGPIP_MODE_TURBO,
+)
+NEGPIP_TURBO_MALFORMED_REASON = "negpip_turbo_prompt_malformed"
 
 _EXPECTED_INPUTS = {
     "model": "MODEL",
     "clip": "CLIP",
 }
 _EXPECTED_OUTPUTS = ("MODEL", "CLIP")
+_OPEN_TO_CLOSE = {"(": ")", "{": "}", "[": "]"}
+_CLOSE_TO_OPEN = {value: key for key, value in _OPEN_TO_CLOSE.items()}
+_NUMERIC_WEIGHT_RE = re.compile(
+    r"(?P<prefix>:\s*)"
+    r"(?P<sign>[+-]?)"
+    r"(?P<number>(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?)"
+    r"(?P<suffix>\s*)(?=\))"
+)
+
+
+@dataclass(frozen=True, slots=True)
+class AIOGenerationNegPipConfig:
+    state: ObjectState
+    mode: str
+
+    @classmethod
+    def from_value(
+        cls,
+        value: object,
+        key: str = "negpip",
+    ) -> AIOGenerationNegPipConfig:
+        source = expect_object(value, key)
+        return cls(
+            state=ObjectState.from_source(source, ("mode",)),
+            mode=expect_str(required(source, "mode"), f"{key}.mode"),
+        )
+
+    @property
+    def is_turbo(self) -> bool:
+        return self.mode == NEGPIP_MODE_TURBO
+
+    def effective_cfg(self, stored: object) -> object:
+        return 1.0 if self.is_turbo else stored
+
+    def to_dict(self) -> dict[str, object]:
+        return self.state.compose({"mode": self.mode})
 
 
 def _missing_host_helper(name: str):
@@ -174,6 +223,124 @@ def invoke_negpip_node(node_class: Any, model: Any, clip: Any) -> tuple[Any, Any
     return values[0], values[1]
 
 
+def _is_escaped(text: str, index: int) -> bool:
+    slash_count = 0
+    cursor = index - 1
+    while cursor >= 0 and text[cursor] == "\\":
+        slash_count += 1
+        cursor -= 1
+    return slash_count % 2 == 1
+
+
+def _line_ending(line: str) -> str:
+    if line.endswith("\r\n"):
+        return "\r\n"
+    if line.endswith("\n"):
+        return "\n"
+    if line.endswith("\r"):
+        return "\r"
+    return ""
+
+
+def _turbo_prompt_error() -> RuntimeError:
+    return RuntimeError(
+        "[EasyUseAnima] AiO NegPip Turbo prompt is malformed: "
+        f"{NEGPIP_TURBO_MALFORMED_REASON}. Fix mismatched prompt delimiters "
+        "or select Off/On."
+    )
+
+
+def _strip_top_level_comments_and_validate(text: str) -> str:
+    stack: list[str] = []
+    output: list[str] = []
+    for line in text.splitlines(keepends=True):
+        if not stack and line.lstrip(" \t").startswith("#"):
+            output.append(_line_ending(line))
+            continue
+
+        for index, char in enumerate(line):
+            if _is_escaped(line, index):
+                continue
+            if char in _OPEN_TO_CLOSE:
+                stack.append(char)
+            elif char in _CLOSE_TO_OPEN:
+                if not stack or stack[-1] != _CLOSE_TO_OPEN[char]:
+                    raise _turbo_prompt_error()
+                stack.pop()
+        output.append(line)
+
+    if stack:
+        raise _turbo_prompt_error()
+    return "".join(output)
+
+
+def _split_top_level_prompt_items(text: str) -> list[str]:
+    stack: list[str] = []
+    items: list[str] = []
+    start = 0
+    for index, char in enumerate(text):
+        if _is_escaped(text, index):
+            continue
+        if char in _OPEN_TO_CLOSE:
+            stack.append(char)
+        elif char in _CLOSE_TO_OPEN:
+            stack.pop()
+        elif not stack and char in ",\r\n":
+            item = text[start:index].strip()
+            if item:
+                items.append(item)
+            start = index + 1
+    final_item = text[start:].strip()
+    if final_item:
+        items.append(final_item)
+    return items
+
+
+def _toggle_numeric_weight(match: re.Match[str]) -> str:
+    sign = "" if match.group("sign") == "-" else "-"
+    return (
+        f"{match.group('prefix')}{sign}{match.group('number')}"
+        f"{match.group('suffix')}"
+    )
+
+
+def _derive_aio_negpip_turbo_negative_contribution(
+    negative_prompt: str,
+) -> str:
+    cleaned = _strip_top_level_comments_and_validate(str(negative_prompt or ""))
+    items = _split_top_level_prompt_items(cleaned)
+    if not items:
+        return ""
+    prompt = ", ".join(items)
+    prompt = _NUMERIC_WEIGHT_RE.sub(_toggle_numeric_weight, prompt)
+    return f"({prompt}:-1)"
+
+
+def _aio_negpip_execution_prompts(
+    positive_prompt: str,
+    negative_prompt: str,
+    mode: str,
+) -> tuple[str, str, str]:
+    positive_source = str(positive_prompt or "")
+    negative_source = str(negative_prompt or "")
+    if mode in (NEGPIP_MODE_OFF, NEGPIP_MODE_ON):
+        return positive_source, negative_source, ""
+    if mode != NEGPIP_MODE_TURBO:
+        raise RuntimeError(
+            f"[EasyUseAnima] Unsupported normalized AiO NegPip mode: {mode!r}."
+        )
+    derived = _derive_aio_negpip_turbo_negative_contribution(negative_source)
+    positive_execution = ", ".join(
+        part for part in (positive_source, derived) if part
+    )
+    return positive_execution, "", derived
+
+
+def _aio_negpip_turbo_fingerprint(negative_prompt: str) -> str:
+    derived = _derive_aio_negpip_turbo_negative_contribution(negative_prompt)
+    return hashlib.sha256(derived.encode("utf-8")).hexdigest()
+
+
 def _aio_negpip_mode(value: object) -> str:
     if value is None:
         return NEGPIP_MODE_OFF
@@ -183,50 +350,97 @@ def _aio_negpip_mode(value: object) -> str:
             "disable NegPip or select a supported mode."
         )
     mode = value.get("mode")
-    if mode not in (NEGPIP_MODE_OFF, NEGPIP_MODE_ON):
+    if mode not in NEGPIP_MODES:
         raise RuntimeError(
             f"[EasyUseAnima] Unsupported AiO NegPip mode: {mode!r}. "
-            "AIO-NEGPIP-02 supports only 'off' and 'on'."
+            "Select 'off', 'on', or 'turbo'."
         )
     return str(mode)
 
 
-def _aio_negpip_cache_signature(value: object) -> dict[str, object] | None:
+def _aio_negpip_cache_signature(
+    value: object,
+    *,
+    negative_prompt: str | None = None,
+) -> dict[str, object] | None:
     mode = _aio_negpip_mode(value)
     if mode == NEGPIP_MODE_OFF:
         return None
-    return {
+    signature: dict[str, object] = {
         "mode": mode,
         "contract_revision": NEGPIP_CONTRACT_REVISION,
     }
+    if mode == NEGPIP_MODE_TURBO:
+        if negative_prompt is None:
+            raise RuntimeError(
+                "[EasyUseAnima] AiO NegPip Turbo cache identity requires "
+                "the execution negative prompt."
+            )
+        signature.update(
+            {
+                "policy_revision": NEGPIP_TURBO_POLICY_REVISION,
+                "negative_scale": NEGPIP_TURBO_NEGATIVE_SCALE,
+                "derived_prompt_fingerprint": (
+                    _aio_negpip_turbo_fingerprint(negative_prompt)
+                ),
+                "effective_first_pass_cfg": 1.0,
+            }
+        )
+    return signature
 
 
-def _aio_negpip_metadata(mode: str) -> dict[str, object] | None:
+def _aio_negpip_metadata(
+    mode: str,
+    *,
+    negative_prompt: str | None = None,
+) -> dict[str, object] | None:
     if mode == NEGPIP_MODE_OFF:
         return None
-    if mode != NEGPIP_MODE_ON:
+    if mode not in (NEGPIP_MODE_ON, NEGPIP_MODE_TURBO):
         raise RuntimeError(
             f"[EasyUseAnima] Unsupported normalized AiO NegPip mode: {mode!r}."
         )
-    return {
+    metadata: dict[str, object] = {
         "mode": mode,
         "contract_revision": NEGPIP_CONTRACT_REVISION,
     }
+    if mode == NEGPIP_MODE_TURBO:
+        if negative_prompt is None:
+            raise RuntimeError(
+                "[EasyUseAnima] AiO NegPip Turbo metadata requires the "
+                "execution negative prompt."
+            )
+        metadata.update(
+            {
+                "policy_revision": NEGPIP_TURBO_POLICY_REVISION,
+                "negative_scale": NEGPIP_TURBO_NEGATIVE_SCALE,
+                "derived_prompt_fingerprint": (
+                    _aio_negpip_turbo_fingerprint(negative_prompt)
+                ),
+                "effective_cfg": {
+                    "first_pass": 1.0,
+                    "highres": 1.0,
+                    "detailer": 1.0,
+                    "upscale_usdu": 1.0,
+                },
+            }
+        )
+    return metadata
 
 
 def apply_aio_negpip(model: Any, clip: Any, mode: str) -> tuple[Any, Any]:
-    """Apply the public NegPip adapter once when the normalized mode is On."""
+    """Apply the public NegPip adapter once for normalized On or Turbo mode."""
 
     if mode == NEGPIP_MODE_OFF:
         return model, clip
-    if mode != NEGPIP_MODE_ON:
+    if mode not in (NEGPIP_MODE_ON, NEGPIP_MODE_TURBO):
         raise RuntimeError(
             f"[EasyUseAnima] Unsupported normalized AiO NegPip mode: {mode!r}."
         )
     node_class = _require_custom_node_class(
         NEGPIP_NODE_ID,
         NEGPIP_NODE_PACK,
-        f"Required for AiO NegPip On mode. Repository: {NEGPIP_REPOSITORY}",
+        f"Required for AiO NegPip {mode} mode. Repository: {NEGPIP_REPOSITORY}",
     )
     return invoke_negpip_node(node_class, model, clip)
 

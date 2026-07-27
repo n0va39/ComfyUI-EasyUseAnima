@@ -62,6 +62,9 @@ export const AIO_DEFAULT_GENERATION_SETTINGS = {
       replace_existing_cfg: false,
     },
   },
+  negpip: {
+    mode: "off",
+  },
   model_patches: {
     aura_flow: {
       shift: 3.0,

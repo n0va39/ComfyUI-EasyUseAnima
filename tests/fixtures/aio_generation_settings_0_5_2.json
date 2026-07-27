@@ -216,6 +216,9 @@
       "profile": "step_i8_skip27"
     },
     "mode": "txt2img",
+    "negpip": {
+      "mode": "off"
+    },
     "model_patches": {
       "aura_flow": {
         "shift": 3.0

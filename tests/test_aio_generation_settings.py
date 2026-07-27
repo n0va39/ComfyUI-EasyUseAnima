@@ -111,6 +111,33 @@ class AIOGenerationConfigTests(unittest.TestCase):
             json.dumps(source, ensure_ascii=False, separators=(",", ":")),
         )
 
+    def test_negpip_turbo_round_trips_unknown_fields_and_owns_effective_cfg_only(self):
+        with _deterministic_capabilities():
+            normalized = nodes._normalize_aio_generation_settings({
+                "negpip": {
+                    "mode": "turbo",
+                    "future_negpip": {"revision": 3},
+                },
+            })
+        config = _aio_generation_config_from_dict(normalized)
+
+        self.assertEqual(config.negpip.mode, "turbo")
+        self.assertTrue(config.negpip.is_turbo)
+        self.assertEqual(config.negpip.effective_cfg(7.5), 1.0)
+        self.assertEqual(
+            _aio_generation_config_to_dict(config)["negpip"],
+            {
+                "mode": "turbo",
+                "future_negpip": {"revision": 3},
+            },
+        )
+
+        with _deterministic_capabilities():
+            invalid = nodes._normalize_aio_generation_settings({
+                "negpip": {"mode": "unsupported"},
+            })
+        self.assertEqual(invalid["negpip"], {"mode": "off"})
+
     def test_fresh_v2_and_legacy_v1_dave_scope_normalize_without_ambiguity(self):
         legacy = copy.deepcopy(nodes.AIO_GENERATION_DEFAULT_SETTINGS)
         legacy["version"] = 1

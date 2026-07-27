@@ -1123,6 +1123,7 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
                     {"fields": []},
                     True,
                     False,
+                    "off",
                 ),
             )
             return usdu_positive, usdu_negative
@@ -1717,6 +1718,7 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
                     prompt_data,
                     True,
                     False,
+                    "off",
                 ),
             )
             return usdu_output, usdu_metadata
@@ -2168,6 +2170,50 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
             {"mode": "on"},
         )
 
+    def test_negpip_turbo_uses_derived_positive_neutral_negative_and_saved_cfg(self):
+        execution = self._execute_case(
+            upscale_enabled=False,
+            intermediate_preview=False,
+            unique_id="node-negpip-turbo",
+            negpip_mode="turbo",
+        )
+
+        trace = execution["trace"]
+        self.assertEqual(trace.count("apply_negpip"), 1)
+        self.assertLess(
+            trace.index("apply_negpip"),
+            trace.index("apply_model_patches"),
+        )
+        self.assertLess(
+            trace.index("apply_negpip"),
+            trace.index("encode_positive"),
+        )
+        self.assertEqual(
+            execution["execution_prompts"],
+            [
+                ("positive", "positive, (negative:-1)"),
+                ("negative", ""),
+            ],
+        )
+        self.assertEqual(trace.count("cleanup:negpip"), 1)
+        self.assertEqual(trace.count("cleanup:lora"), 1)
+        metadata = execution["result"]["metadata"]
+        self.assertEqual(metadata["generation_settings"]["sampler"]["cfg"], 6.5)
+        self.assertEqual(
+            metadata["generation_settings"]["negpip"],
+            {"mode": "turbo"},
+        )
+        self.assertEqual(metadata["stages"]["negpip"]["mode"], "turbo")
+        self.assertEqual(
+            metadata["stages"]["negpip"]["effective_cfg"],
+            {
+                "first_pass": 1.0,
+                "highres": 1.0,
+                "detailer": 1.0,
+                "upscale_usdu": 1.0,
+            },
+        )
+
     def test_resshift_does_not_resolve_upscale_sampling_model(self):
         execution = self._execute_case(
             upscale_enabled=True,
@@ -2205,6 +2251,7 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
         negpip_mode: str | None = None,
     ) -> dict:
         trace = trace_sink if trace_sink is not None else []
+        execution_prompts: list[tuple[str, str]] = []
         custom_stage_models = stage_signatures is not None
         stage_signatures = stage_signatures or {
             "first_pass": "shared-stage-model",
@@ -2265,8 +2312,12 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
         base_clip = _Token("base_clip")
         clip = _Token("clip")
         negpip_clip = _Token("negpip_clip")
-        lineage_model = negpip_model if negpip_mode == "on" else lora_model
-        lineage_clip = negpip_clip if negpip_mode == "on" else clip
+        lineage_model = (
+            negpip_model if negpip_mode in ("on", "turbo") else lora_model
+        )
+        lineage_clip = (
+            negpip_clip if negpip_mode in ("on", "turbo") else clip
+        )
         vae = _Token("vae")
         model_names = {
             id(lora_model): "lora",
@@ -2296,9 +2347,19 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
             return copy.deepcopy(settings)
 
         def typed_config(normalized_settings):
+            typed_negpip_mode = normalized_settings.get("negpip", {}).get(
+                "mode", "off"
+            )
             return SimpleNamespace(
                 to_dict=lambda: copy.deepcopy(normalized_settings),
                 mode=normalized_settings["mode"],
+                negpip=SimpleNamespace(
+                    mode=typed_negpip_mode,
+                    is_turbo=typed_negpip_mode == "turbo",
+                    effective_cfg=lambda stored: (
+                        1.0 if typed_negpip_mode == "turbo" else stored
+                    ),
+                ),
                 sampler=SimpleNamespace(
                     to_dict=lambda: copy.deepcopy(
                         normalized_settings["sampler"]
@@ -2404,15 +2465,20 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
                 96,
             )
 
-        def encode_positive(source_clip, *_args, **_kwargs):
+        def encode_positive(source_clip, _prompt_data, text, **_kwargs):
             trace.append("encode_positive")
             self.assertIs(source_clip, lineage_clip)
+            suffix = _kwargs.get("positive_execution_suffix", "")
+            effective_text = ", ".join(
+                part for part in (text, suffix) if part
+            )
+            execution_prompts.append(("positive", effective_text))
             return "positive-conditioning"
 
         def encode_negative(source_clip, text):
             trace.append("encode_negative")
             self.assertIs(source_clip, lineage_clip)
-            self.assertEqual(text, "negative")
+            execution_prompts.append(("negative", text))
             return "negative-conditioning"
 
         def apply_spectrum_model(model, source_clip, positive, sampler):
@@ -2608,7 +2674,7 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
 
         image, latent, metadata_json = output["result"]
         metadata = json.loads(metadata_json)
-        return {
+        execution = {
             "trace": trace,
             "result": {
                 "image": image,
@@ -2617,6 +2683,9 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
                 "ui": output["ui"],
             },
         }
+        if negpip_mode == "turbo":
+            execution["execution_prompts"] = execution_prompts
+        return execution
 
 
 if __name__ == "__main__":

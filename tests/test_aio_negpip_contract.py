@@ -267,16 +267,66 @@ class NegPipOnModeTests(unittest.TestCase):
             {"mode": "on", "contract_revision": 1},
         )
 
+    def test_turbo_uses_same_public_node_and_records_derived_contract(self):
+        model = FakeValue()
+        clip = FakeValue()
+        provider = FakeComfyHostProvider(
+            node_classes={"CLIPNegPip": CompatibleCLIPNegPip}
+        )
+        with use_fake_comfy_host(_ROOT_MODULE, provider):
+            patched_model, patched_clip = negpip_contract.apply_aio_negpip(
+                model,
+                clip,
+                negpip_contract._aio_negpip_mode({"mode": "turbo"}),
+            )
+
+        self.assertEqual(CompatibleCLIPNegPip.calls, [{"model": model, "clip": clip}])
+        self.assertIsNot(patched_model, model)
+        self.assertIsNot(patched_clip, clip)
+        cache_signature = negpip_contract._aio_negpip_cache_signature(
+            {"mode": "turbo"},
+            negative_prompt="bad anatomy",
+        )
+        metadata = negpip_contract._aio_negpip_metadata(
+            "turbo",
+            negative_prompt="bad anatomy",
+        )
+        self.assertEqual(cache_signature["mode"], "turbo")
+        self.assertEqual(cache_signature["contract_revision"], 1)
+        self.assertEqual(cache_signature["policy_revision"], 1)
+        self.assertEqual(cache_signature["negative_scale"], -1.0)
+        self.assertEqual(cache_signature["effective_first_pass_cfg"], 1.0)
+        self.assertEqual(
+            metadata,
+            {
+                "mode": "turbo",
+                "contract_revision": 1,
+                "policy_revision": 1,
+                "negative_scale": -1.0,
+                "derived_prompt_fingerprint": cache_signature[
+                    "derived_prompt_fingerprint"
+                ],
+                "effective_cfg": {
+                    "first_pass": 1.0,
+                    "highres": 1.0,
+                    "detailer": 1.0,
+                    "upscale_usdu": 1.0,
+                },
+            },
+        )
+
     def test_missing_dependency_and_unsupported_modes_fail_closed(self):
         with use_fake_comfy_host(_ROOT_MODULE, FakeComfyHostProvider()):
-            with self.assertRaisesRegex(RuntimeError, "ComfyUI-ppm"):
-                negpip_contract.apply_aio_negpip(
-                    FakeValue(),
-                    FakeValue(),
-                    "on",
-                )
+            for mode in ("on", "turbo"):
+                with self.subTest(mode=mode):
+                    with self.assertRaisesRegex(RuntimeError, "ComfyUI-ppm"):
+                        negpip_contract.apply_aio_negpip(
+                            FakeValue(),
+                            FakeValue(),
+                            mode,
+                        )
 
-        for value in ({}, {"mode": "turbo"}, "on", {"mode": None}):
+        for value in ({}, {"mode": "unknown"}, "on", {"mode": None}):
             with self.subTest(value=value):
                 with self.assertRaisesRegex(RuntimeError, "NegPip"):
                     negpip_contract._aio_negpip_mode(value)

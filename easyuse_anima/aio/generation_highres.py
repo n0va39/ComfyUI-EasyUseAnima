@@ -66,6 +66,8 @@ class AIOHighresStage:
     ) -> None:
         sampler = cast(dict[str, Any], request.config.sampler.to_dict())
         highres = cast(dict[str, Any], request.config.highres.to_dict())
+        sampler["cfg"] = request.config.negpip.effective_cfg(sampler.get("cfg"))
+        highres["cfg"] = request.config.negpip.effective_cfg(highres.get("cfg"))
         mod_guidance = cast(
             dict[str, Any],
             request.config.mod_guidance.to_dict(),

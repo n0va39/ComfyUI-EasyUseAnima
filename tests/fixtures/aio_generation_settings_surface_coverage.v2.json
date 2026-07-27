@@ -23,6 +23,9 @@
       "generation-settings": {
         "module": "easyuse_anima/aio/generation_settings.py"
       },
+      "generation-negpip": {
+        "module": "easyuse_anima/aio/negpip.py"
+      },
       "generation-sampling": {
         "module": "easyuse_anima/aio/generation_sampling.py"
       },
@@ -455,6 +458,19 @@
         "/shape/model_patches/dave/stage_scope/first_pass",
         "/shape/model_patches/dave/stage_scope/highres",
         "/shape/model_patches/dave/stage_scope/upscale"
+      ]
+    },
+    {
+      "coverage": {
+        "python_default": "root-default",
+        "python_typed": "generation-negpip",
+        "frontend_default": "settings-core",
+        "frontend_sanitization": "default-merge",
+        "ui": "advanced-dialog",
+        "documentation": "architecture-static-fields"
+      },
+      "paths": [
+        "/shape/negpip/mode"
       ]
     },
     {

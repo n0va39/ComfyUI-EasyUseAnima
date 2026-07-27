@@ -92,6 +92,10 @@ function configuredSettings() {
       dave: { legacy: true },
       future_sampler_key: "keep-sampler",
     },
+    negpip: {
+      mode: "turbo",
+      future_negpip_key: "keep-negpip",
+    },
     model_patches: {
       future_model_patch_key: "keep-model-patches",
       aura_flow: {
@@ -451,6 +455,7 @@ function createFixture({
     cancelDialog.subtitle,
     "Advanced generation options stay in a popup and are serialized as versioned settings.",
   );
+  const conditioning = sectionByHeading(cancelDialog.body, "Conditioning");
   const modelPatches = sectionByHeading(cancelDialog.body, "Model Patch / Optimization");
   const artistMix = sectionByHeading(cancelDialog.body, "Artist Mix");
   const dave = subsectionByHeading(modelPatches, "Anima DAVE");
@@ -469,6 +474,15 @@ function createFixture({
   assert.equal(warning.hidden, true);
   assert.equal(warning.textContent, "");
   assert.equal(fixture.loadCalls.length, 1);
+  const negpipMode = controlIn(conditioning, "NegPip");
+  const negpipStatus = find(
+    conditioning,
+    (element) => element.getAttribute?.("aria-live") === "polite",
+  );
+  assert.equal(negpipMode.value, "turbo");
+  assert.ok(negpipStatus);
+  assert.equal(negpipStatus.hidden, false);
+  assert.equal(negpipStatus.textContent, "text:info.negpipTurboCfg");
 
   assertValues([
     [modelPatches, "AuraFlow shift", 6.5],
@@ -530,6 +544,9 @@ function createFixture({
   torchEnabled.checked = true;
   torchEnabled.emit("change");
   assert.equal(torchDetails.style.display, "");
+  negpipMode.value = "off";
+  negpipMode.emit("change");
+  assert.equal(negpipStatus.hidden, true);
 
   controlIn(modelPatches, "AuraFlow shift").value = "9";
   controlIn(dave, "Use DAVE").checked = false;
@@ -555,6 +572,7 @@ function createFixture({
   fixture.openAdvancedSettings(fixture.node);
   await flushPromises();
   const applyDialog = fixture.dialogs[1];
+  const applyConditioning = sectionByHeading(applyDialog.body, "Conditioning");
   const applyModelPatches = sectionByHeading(applyDialog.body, "Model Patch / Optimization");
   const applyArtistMix = sectionByHeading(applyDialog.body, "Artist Mix");
   const applyDave = subsectionByHeading(applyModelPatches, "Anima DAVE");
@@ -565,6 +583,7 @@ function createFixture({
   const applyTorch = subsectionByHeading(applyKj, "Torch Compile (KJNodes)");
   const applyTorchDetails = subsectionByHeading(applyTorch, "Torch Compile Parameters");
 
+  controlIn(applyConditioning, "NegPip").value = "on";
   controlIn(applyModelPatches, "AuraFlow shift").value = "99";
   controlIn(applyDave, "Use DAVE").checked = true;
   const applyDaveStagePreset = controlIn(applyDave, "DAVE stages");
@@ -625,6 +644,8 @@ function createFixture({
   );
 
   const written = fixture.node.settings;
+  assert.equal(written.negpip.mode, "on");
+  assert.equal(written.negpip.future_negpip_key, "keep-negpip");
   assert.equal(written.model_patches.aura_flow.shift, 10);
   assert.equal(Object.hasOwn(written.model_patches.aura_flow, "enabled"), false);
   assert.deepEqual(
@@ -717,6 +738,43 @@ function createFixture({
   assert.deepEqual(fixture.writes[0].settings, written);
   assert.deepEqual(JSON.parse(fixture.node.widgets[0].value), written);
   assert.deepEqual(fixture.defaultSettings, originalDefaults, "Apply must not mutate injected defaults");
+}
+
+{
+  const fixture = createFixture({
+    settings: { negpip: { mode: "turbo" } },
+    available: { ppmNegPip: false },
+  });
+  fixture.openAdvancedSettings(fixture.node);
+  await flushPromises();
+  const dialog = fixture.dialogs[0];
+  const conditioning = sectionByHeading(dialog.body, "Conditioning");
+  const control = controlIn(conditioning, "NegPip");
+  const status = find(
+    conditioning,
+    (element) => element.getAttribute?.("aria-live") === "polite",
+  );
+  const message = (
+    'format:warning.optionalDependencyMissing:{"backend":"NegPip turbo","pack":"pack:ppmNegPip"}'
+  );
+
+  assert.equal(control.value, "turbo", "Missing PPM must preserve workflow intent");
+  assert.equal(control.disabled, false, "Missing PPM must remain an editable choice");
+  assert.equal(control.title, message);
+  assert.equal(status.hidden, false);
+  assert.equal(status.textContent, message);
+
+  control.value = "off";
+  control.emit("change");
+  control.value = "turbo";
+  control.emit("change");
+  assert.equal(control.value, "turbo", "Dependency warning must not silently reset Turbo");
+  assert.deepEqual(fixture.notifications, [{
+    backend: "NegPip turbo",
+    keys: ["ppmNegPip"],
+  }]);
+  action(dialog, "button.apply").emit("click");
+  assert.equal(fixture.node.settings.negpip.mode, "turbo");
 }
 
 {

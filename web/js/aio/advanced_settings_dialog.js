@@ -161,6 +161,29 @@ export function aioCreateAdvancedSettingsDialog(dependencies) {
       return section;
     };
 
+    const conditioning = document.createElement("section");
+    conditioning.className = "easyuse-anima-aio-section full";
+    conditioning.append(Object.assign(document.createElement("h3"), {
+      textContent: aioStaticText("Conditioning"),
+    }));
+    const negpipSettings = settings.negpip || DEFAULT_GENERATION_SETTINGS.negpip;
+    const negpipMode = field(
+      conditioning,
+      "NegPip",
+      selectInput([
+        { value: "off", label: aioText("option.negpipOff") },
+        { value: "on", label: aioText("option.negpipOn") },
+        { value: "turbo", label: aioText("option.negpipTurbo") },
+      ], negpipSettings.mode || "off"),
+      "tip.negpipMode",
+    );
+    const negpipWarning = document.createElement("div");
+    negpipWarning.className = "easyuse-anima-aio-warning";
+    negpipWarning.setAttribute("aria-live", "polite");
+    negpipWarning.hidden = true;
+    conditioning.append(negpipWarning);
+    body.append(conditioning);
+
     const modelPatches = document.createElement("section");
     modelPatches.className = "easyuse-anima-aio-section full";
     modelPatches.append(Object.assign(document.createElement("h3"), { textContent: aioStaticText("Model Patch / Optimization") }));
@@ -513,6 +536,23 @@ export function aioCreateAdvancedSettingsDialog(dependencies) {
         }
       }
     };
+    const refreshNegPipDependency = () => {
+      const mode = ["off", "on", "turbo"].includes(negpipMode.value)
+        ? negpipMode.value
+        : "off";
+      const active = mode !== "off";
+      const missing = active && !optionalDependencyAvailable("ppmNegPip");
+      const missingMessage = aioFormat("warning.optionalDependencyMissing", {
+        backend: `NegPip ${mode}`,
+        pack: optionalDependencyPack("ppmNegPip"),
+      });
+      aioMarkMissingDependencyControl(negpipMode, missing, missingMessage);
+      negpipWarning.hidden = !missing && mode !== "turbo";
+      negpipWarning.textContent = missing
+        ? missingMessage
+        : (mode === "turbo" ? aioText("info.negpipTurboCfg") : "");
+    };
+
     const refreshAdvancedDependencyLocks = () => {
       const messages = [];
 
@@ -658,11 +698,21 @@ export function aioCreateAdvancedSettingsDialog(dependencies) {
       "kjTorchCompile",
       "Torch Compile",
     ));
+    negpipMode.addEventListener("change", () => {
+      if (negpipMode.value !== "off" && !optionalDependencyAvailable("ppmNegPip")) {
+        notifyMissingDependency(`NegPip ${negpipMode.value}`, ["ppmNegPip"]);
+      }
+      refreshNegPipDependency();
+    });
     refreshDaveStageScope();
     refreshSageDetails();
     refreshTorchDetails();
+    refreshNegPipDependency();
     refreshAdvancedDependencyLocks();
-    loadGeneratorOptionalDependencies().then(refreshAdvancedDependencyLocks);
+    loadGeneratorOptionalDependencies().then(() => {
+      refreshNegPipDependency();
+      refreshAdvancedDependencyLocks();
+    });
 
     const cancel = document.createElement("button");
     cancel.textContent = aioText("button.cancel");
@@ -678,6 +728,10 @@ export function aioCreateAdvancedSettingsDialog(dependencies) {
       recommendationClosed = true;
       const next = mergeDefaults(DEFAULT_GENERATION_SETTINGS, settings);
       delete next.sampler.dave;
+      next.negpip ||= {};
+      next.negpip.mode = ["off", "on", "turbo"].includes(negpipMode.value)
+        ? negpipMode.value
+        : "off";
       delete next.model_patches.aura_flow.enabled;
       next.model_patches.aura_flow.shift = clampGeneratorNumber(
         auraShift.value,
