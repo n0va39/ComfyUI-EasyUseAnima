@@ -104,6 +104,25 @@ class PromptTranslationApiTests(unittest.TestCase):
         )
         self.assertTrue(handler._easyuse_anima_request_correlation)
 
+    def test_route_executor_is_owned_by_the_canonical_module(self):
+        api, _routes, _translation, _translation_service = self.load_routes()
+        executor = api._PROMPT_TRANSLATION_WORKER
+        executor_module = sys.modules[type(executor).__module__]
+
+        self.assertEqual(
+            type(executor).__module__,
+            f"{PACKAGE_NAME}.easyuse_anima.api.routes.translation_execution",
+        )
+        self.assertIs(
+            type(executor),
+            executor_module.PromptTranslationRouteExecutor,
+        )
+        self.assertEqual(
+            executor_module.__all__,
+            ("PromptTranslationRouteExecutor",),
+        )
+        self.assertFalse(hasattr(executor_module, "_PROMPT_TRANSLATION_WORKER"))
+
     def test_route_runs_sync_translation_off_event_loop(self):
         api, routes, translation, _translation_service = self.load_routes()
         handler = routes.handlers[ROUTE]

@@ -48,6 +48,7 @@ PACKAGE_MODULES = (
     "easyuse_anima.api.responses",
     "easyuse_anima.api.routes",
     "easyuse_anima.api.routes.translation",
+    "easyuse_anima.api.routes.translation_execution",
     "easyuse_anima.autocomplete",
     "easyuse_anima.autocomplete.classification",
     "easyuse_anima.autocomplete.dataset",
@@ -213,6 +214,11 @@ print(json.dumps({{
         expected_all[
             PACKAGE_MODULES.index("easyuse_anima.api.routes.translation")
         ] = ["build_translate_prompt_handler"]
+        expected_all[
+            PACKAGE_MODULES.index(
+                "easyuse_anima.api.routes.translation_execution"
+            )
+        ] = ["PromptTranslationRouteExecutor"]
         expected_all[
             PACKAGE_MODULES.index("easyuse_anima.autocomplete.classification")
         ] = ["classify_prompt_text"]

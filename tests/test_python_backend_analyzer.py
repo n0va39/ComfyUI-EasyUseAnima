@@ -690,9 +690,9 @@ ignored/
 
         self.assertEqual(analyzer.render_json(report), expected_text)
         self.assertEqual(report["schema_version"], 2)
-        self.assertEqual(report["inventory"]["module_count"], 151)
-        self.assertEqual(len(report["registry"]["shipped_python_modules"]), 151)
-        self.assertEqual(len(report["registry"]["runtime_import_closure"]), 151)
+        self.assertEqual(report["inventory"]["module_count"], 152)
+        self.assertEqual(len(report["registry"]["shipped_python_modules"]), 152)
+        self.assertEqual(len(report["registry"]["runtime_import_closure"]), 152)
         self.assertEqual(
             report["registry"]["entry_modules"],
             [
@@ -724,6 +724,7 @@ ignored/
                 "easyuse_anima/api/responses.py",
                 "easyuse_anima/api/routes/__init__.py",
                 "easyuse_anima/api/routes/translation.py",
+                "easyuse_anima/api/routes/translation_execution.py",
                 "easyuse_anima/aio/__init__.py",
                 "easyuse_anima/aio/conditioning.py",
                 "easyuse_anima/aio/first_pass_cache.py",
@@ -1097,6 +1098,7 @@ ignored/
             ("api.py", "easyuse_anima/api/requests.py"),
             ("api.py", "easyuse_anima/api/responses.py"),
             ("api.py", "easyuse_anima/api/routes/translation.py"),
+            ("api.py", "easyuse_anima/api/routes/translation_execution.py"),
             ("api_contract.py", "easyuse_anima/api/errors.py"),
             ("api_contract.py", "easyuse_anima/api/requests.py"),
             ("api_contract.py", "easyuse_anima/api/responses.py"),
