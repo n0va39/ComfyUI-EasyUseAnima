@@ -2295,6 +2295,23 @@ class ApiPathRedactionTests(unittest.TestCase):
 
 
 class ApiFileIoOffloadTests(unittest.TestCase):
+    def test_root_compatibility_symbols_share_the_canonical_owner_state(self):
+        api, _routes = load_api_routes()
+        owner = sys.modules[api._run_file_io.__module__]
+
+        self.assertTrue(
+            api._run_file_io.__module__.endswith(
+                ".easyuse_anima.api.file_io"
+            )
+        )
+        self.assertIs(api._file_io_limiter, owner.file_io_limiter)
+        self.assertIs(api._release_file_io_slot, owner.release_file_io_slot)
+        self.assertIs(api._run_file_io, owner.run_file_io)
+        self.assertIs(api._FILE_IO_LIMITERS_LOCK, owner._FILE_IO_LIMITERS_LOCK)
+        self.assertIs(api._FILE_IO_LIMITERS, owner._FILE_IO_LIMITERS)
+        self.assertIs(api.asyncio, owner.asyncio)
+        self.assertEqual(api.FILE_IO_MAX_IN_FLIGHT, owner.FILE_IO_MAX_IN_FLIGHT)
+
     def test_closed_loop_limiter_registry_converges_after_gc(self):
         api, _routes = load_api_routes()
         loop_refs = []
