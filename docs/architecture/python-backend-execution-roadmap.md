@@ -1361,6 +1361,13 @@ path-redacted responses, raw limit forwarding, and exact category mapping while
 classification POST, dataset/index/cache/ranking, and lifecycle ownership stay
 outside this rollback boundary.
 
+D-05b completes the autocomplete route group by moving the classify-prompt
+POST adapter into the same pure route module. Root composition retains dynamic
+request-contract, sync payload, bounded file-I/O, redaction, correlation, and
+registration seams. The canonical factory preserves text/limit validation and
+the #162 offload contract while classification tokenization, dataset snapshot,
+index/cache, response policy, and frontend consumers remain unchanged.
+
 D-11 is split by dependency ownership. D-11a moves the SQLite index leaf to
 `easyuse_anima.autocomplete.index`, retains `autocomplete_index.py` as an
 explicit identity shim, and enrolls the canonical package as the tenth G-03

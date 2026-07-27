@@ -220,7 +220,10 @@ print(json.dumps({{
         ] = ["build_aio_torch_compile_recommend_handler"]
         expected_all[
             PACKAGE_MODULES.index("easyuse_anima.api.routes.autocomplete")
-        ] = ["build_autocomplete_handlers"]
+        ] = [
+            "build_autocomplete_handlers",
+            "build_classify_prompt_handler",
+        ]
         expected_all[
             PACKAGE_MODULES.index("easyuse_anima.api.routes.translation")
         ] = ["build_translate_prompt_handler"]

@@ -64,6 +64,7 @@ from .easyuse_anima.api.responses import (
 )
 from .easyuse_anima.api.routes.autocomplete import (
     build_autocomplete_handlers as _build_autocomplete_handlers,
+    build_classify_prompt_handler as _build_classify_prompt_handler,
 )
 from .easyuse_anima.api.routes.translation import (
     build_translate_prompt_handler as _build_translate_prompt_handler,
@@ -533,23 +534,24 @@ if web is not None:
         )
     )
 
-    @_request_correlated
-    async def classify_prompt_handler(request):
-        try:
-            data = await parse_json_object(request)
-            text = json_string(data, "text")
-            limit = json_integer(
+    classify_prompt_handler = _request_correlated(
+        _build_classify_prompt_handler(
+            parse_json_object=lambda request: parse_json_object(request),
+            json_string=lambda data, field: json_string(data, field),
+            json_integer=lambda data, field, **kwargs: json_integer(
                 data,
-                "limit",
-                default=240,
-                minimum=1,
-                maximum=500,
-            )
-        except ApiContractError as exc:
-            return _contract_error_response(exc)
-        return web.json_response(
-            await _run_file_io(_classify_prompt_payload_sync, text, limit)
+                field,
+                **kwargs,
+            ),
+            contract_error_type=ApiContractError,
+            contract_error_response=lambda exc: _contract_error_response(exc),
+            run_file_io=lambda function, *args: _run_file_io(function, *args),
+            classify_prompt_payload=lambda *args: _classify_prompt_payload_sync(
+                *args
+            ),
+            json_response=lambda payload: web.json_response(payload),
         )
+    )
 
     translate_prompt_handler = _request_correlated(
         _build_translate_prompt_handler(
