@@ -34,6 +34,8 @@ conversation.
      `docs/development/frontend-maintenance-roadmap.md`
    - repeatable legacy-canvas and Node 2.0 browser validation:
      `docs/development/browser-smoke-matrix.md`
+   - Safe PAG stage-scope risk-based live evidence:
+     `docs/development/aio-safe-pag-live-matrix.md`
    - historical Issue #14 PR #18 execution plan:
      `docs/development/issue-14-frontend-js-maintenance.md`
    - deferred Node 2.0 DOM widget resize investigation:
@@ -72,6 +74,8 @@ not be loaded during ordinary successful tasks.
   `docs/development/frontend-maintenance-roadmap.md`
 - Dual-canvas browser smoke matrix:
   `docs/development/browser-smoke-matrix.md`
+- Safe PAG stage-scope live matrix:
+  `docs/development/aio-safe-pag-live-matrix.md`
 - Historical Issue #14 PR #18 execution plan:
   `docs/development/issue-14-frontend-js-maintenance.md`
 - Deferred Node 2.0 DOM widget resize investigation:
