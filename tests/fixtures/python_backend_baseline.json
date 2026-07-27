@@ -28437,6 +28437,24 @@
       },
       {
         "alias": null,
+        "bound_name": "_WildcardLibrary",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".library:_WildcardLibrary",
+        "kind": "static_from",
+        "line": 14,
+        "name": "_WildcardLibrary",
+        "optional": false,
+        "requested": ".library",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/wildcard/expansion.py",
+        "target": "easyuse_anima/wildcard/library.py"
+      },
+      {
+        "alias": null,
         "bound_name": "WildcardExpansionBudget",
         "branch_context": [],
         "classification": "internal",
@@ -28444,8 +28462,26 @@
         "conditional": false,
         "imported": ".models:WildcardExpansionBudget",
         "kind": "static_from",
-        "line": 14,
+        "line": 15,
         "name": "WildcardExpansionBudget",
+        "optional": false,
+        "requested": ".models",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/wildcard/expansion.py",
+        "target": "easyuse_anima/wildcard/models.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "WildcardExpansionResult",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".models:WildcardExpansionResult",
+        "kind": "static_from",
+        "line": 15,
+        "name": "WildcardExpansionResult",
         "optional": false,
         "requested": ".models",
         "role": "ordinary",
@@ -28462,7 +28498,7 @@
         "conditional": false,
         "imported": ".models:WildcardOption",
         "kind": "static_from",
-        "line": 14,
+        "line": 15,
         "name": "WildcardOption",
         "optional": false,
         "requested": ".models",
@@ -28480,7 +28516,7 @@
         "conditional": false,
         "imported": ".selector:_Selector",
         "kind": "static_from",
-        "line": 15,
+        "line": 16,
         "name": "_Selector",
         "optional": false,
         "requested": ".selector",
@@ -28488,6 +28524,24 @@
         "scope": "<module>",
         "source": "easyuse_anima/wildcard/expansion.py",
         "target": "easyuse_anima/wildcard/selector.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "_WildcardSnapshot",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".snapshot:_WildcardSnapshot",
+        "kind": "static_from",
+        "line": 17,
+        "name": "_WildcardSnapshot",
+        "optional": false,
+        "requested": ".snapshot",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/wildcard/expansion.py",
+        "target": "easyuse_anima/wildcard/snapshot.py"
       },
       {
         "alias": null,
@@ -55210,23 +55264,6 @@
       },
       {
         "alias": null,
-        "bound_name": "dataclass",
-        "branch_context": [],
-        "classification": "external",
-        "column": 0,
-        "conditional": false,
-        "imported": "dataclasses:dataclass",
-        "kind": "static_from",
-        "line": 5,
-        "name": "dataclass",
-        "optional": false,
-        "requested": "dataclasses",
-        "role": "ordinary",
-        "scope": "<module>",
-        "source": "wildcard_engine.py"
-      },
-      {
-        "alias": null,
         "bound_name": "Path",
         "branch_context": [],
         "classification": "external",
@@ -55234,7 +55271,7 @@
         "conditional": false,
         "imported": "pathlib:Path",
         "kind": "static_from",
-        "line": 6,
+        "line": 5,
         "name": "Path",
         "optional": false,
         "requested": "pathlib",
@@ -55251,7 +55288,7 @@
         "conditional": false,
         "imported": "typing:Iterable",
         "kind": "static_from",
-        "line": 7,
+        "line": 6,
         "name": "Iterable",
         "optional": false,
         "requested": "typing",
@@ -55268,7 +55305,7 @@
         "conditional": false,
         "imported": "typing:Sequence",
         "kind": "static_from",
-        "line": 7,
+        "line": 6,
         "name": "Sequence",
         "optional": false,
         "requested": "typing",
@@ -55285,7 +55322,7 @@
         "conditional": false,
         "imported": "numpy",
         "kind": "static_import",
-        "line": 11,
+        "line": 10,
         "name": null,
         "optional": false,
         "requested": "numpy",
@@ -55302,7 +55339,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": true,
             "kind": "try",
-            "line": 13
+            "line": 12
           }
         ],
         "classification": "internal",
@@ -55310,12 +55347,12 @@
         "compatibility_pair": {
           "bound_name": "DEFAULT_MAX_EXPANSION_DEPTH",
           "target": "easyuse_anima/wildcard/models.py",
-          "try_line": 13
+          "try_line": 12
         },
         "conditional": true,
         "imported": ".easyuse_anima.wildcard.models:DEFAULT_MAX_EXPANSION_DEPTH",
         "kind": "static_from",
-        "line": 14,
+        "line": 13,
         "name": "DEFAULT_MAX_EXPANSION_DEPTH",
         "optional": false,
         "requested": ".easyuse_anima.wildcard.models",
@@ -55333,7 +55370,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": true,
             "kind": "try",
-            "line": 13
+            "line": 12
           }
         ],
         "classification": "internal",
@@ -55341,12 +55378,12 @@
         "compatibility_pair": {
           "bound_name": "DEFAULT_MAX_EXPANSION_GROWTH_PER_PASS",
           "target": "easyuse_anima/wildcard/models.py",
-          "try_line": 13
+          "try_line": 12
         },
         "conditional": true,
         "imported": ".easyuse_anima.wildcard.models:DEFAULT_MAX_EXPANSION_GROWTH_PER_PASS",
         "kind": "static_from",
-        "line": 14,
+        "line": 13,
         "name": "DEFAULT_MAX_EXPANSION_GROWTH_PER_PASS",
         "optional": false,
         "requested": ".easyuse_anima.wildcard.models",
@@ -55364,7 +55401,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": true,
             "kind": "try",
-            "line": 13
+            "line": 12
           }
         ],
         "classification": "internal",
@@ -55372,12 +55409,12 @@
         "compatibility_pair": {
           "bound_name": "DEFAULT_MAX_EXPANSION_OUTPUT_CHARS",
           "target": "easyuse_anima/wildcard/models.py",
-          "try_line": 13
+          "try_line": 12
         },
         "conditional": true,
         "imported": ".easyuse_anima.wildcard.models:DEFAULT_MAX_EXPANSION_OUTPUT_CHARS",
         "kind": "static_from",
-        "line": 14,
+        "line": 13,
         "name": "DEFAULT_MAX_EXPANSION_OUTPUT_CHARS",
         "optional": false,
         "requested": ".easyuse_anima.wildcard.models",
@@ -55395,7 +55432,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": true,
             "kind": "try",
-            "line": 13
+            "line": 12
           }
         ],
         "classification": "internal",
@@ -55403,12 +55440,12 @@
         "compatibility_pair": {
           "bound_name": "DEFAULT_MAX_EXPANSION_REPLACEMENTS",
           "target": "easyuse_anima/wildcard/models.py",
-          "try_line": 13
+          "try_line": 12
         },
         "conditional": true,
         "imported": ".easyuse_anima.wildcard.models:DEFAULT_MAX_EXPANSION_REPLACEMENTS",
         "kind": "static_from",
-        "line": 14,
+        "line": 13,
         "name": "DEFAULT_MAX_EXPANSION_REPLACEMENTS",
         "optional": false,
         "requested": ".easyuse_anima.wildcard.models",
@@ -55426,7 +55463,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": true,
             "kind": "try",
-            "line": 13
+            "line": 12
           }
         ],
         "classification": "internal",
@@ -55434,12 +55471,12 @@
         "compatibility_pair": {
           "bound_name": "MAX_EXPANSION_DEPTH",
           "target": "easyuse_anima/wildcard/models.py",
-          "try_line": 13
+          "try_line": 12
         },
         "conditional": true,
         "imported": ".easyuse_anima.wildcard.models:MAX_EXPANSION_DEPTH",
         "kind": "static_from",
-        "line": 14,
+        "line": 13,
         "name": "MAX_EXPANSION_DEPTH",
         "optional": false,
         "requested": ".easyuse_anima.wildcard.models",
@@ -55457,7 +55494,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": true,
             "kind": "try",
-            "line": 13
+            "line": 12
           }
         ],
         "classification": "internal",
@@ -55465,12 +55502,12 @@
         "compatibility_pair": {
           "bound_name": "MAX_EXPANSION_GROWTH_PER_PASS",
           "target": "easyuse_anima/wildcard/models.py",
-          "try_line": 13
+          "try_line": 12
         },
         "conditional": true,
         "imported": ".easyuse_anima.wildcard.models:MAX_EXPANSION_GROWTH_PER_PASS",
         "kind": "static_from",
-        "line": 14,
+        "line": 13,
         "name": "MAX_EXPANSION_GROWTH_PER_PASS",
         "optional": false,
         "requested": ".easyuse_anima.wildcard.models",
@@ -55488,7 +55525,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": true,
             "kind": "try",
-            "line": 13
+            "line": 12
           }
         ],
         "classification": "internal",
@@ -55496,12 +55533,12 @@
         "compatibility_pair": {
           "bound_name": "MAX_EXPANSION_OUTPUT_CHARS",
           "target": "easyuse_anima/wildcard/models.py",
-          "try_line": 13
+          "try_line": 12
         },
         "conditional": true,
         "imported": ".easyuse_anima.wildcard.models:MAX_EXPANSION_OUTPUT_CHARS",
         "kind": "static_from",
-        "line": 14,
+        "line": 13,
         "name": "MAX_EXPANSION_OUTPUT_CHARS",
         "optional": false,
         "requested": ".easyuse_anima.wildcard.models",
@@ -55519,7 +55556,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": true,
             "kind": "try",
-            "line": 13
+            "line": 12
           }
         ],
         "classification": "internal",
@@ -55527,12 +55564,12 @@
         "compatibility_pair": {
           "bound_name": "MAX_EXPANSION_REPLACEMENTS",
           "target": "easyuse_anima/wildcard/models.py",
-          "try_line": 13
+          "try_line": 12
         },
         "conditional": true,
         "imported": ".easyuse_anima.wildcard.models:MAX_EXPANSION_REPLACEMENTS",
         "kind": "static_from",
-        "line": 14,
+        "line": 13,
         "name": "MAX_EXPANSION_REPLACEMENTS",
         "optional": false,
         "requested": ".easyuse_anima.wildcard.models",
@@ -55550,7 +55587,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": true,
             "kind": "try",
-            "line": 13
+            "line": 12
           }
         ],
         "classification": "internal",
@@ -55558,12 +55595,12 @@
         "compatibility_pair": {
           "bound_name": "REPLACE_DEPTH",
           "target": "easyuse_anima/wildcard/models.py",
-          "try_line": 13
+          "try_line": 12
         },
         "conditional": true,
         "imported": ".easyuse_anima.wildcard.models:REPLACE_DEPTH",
         "kind": "static_from",
-        "line": 14,
+        "line": 13,
         "name": "REPLACE_DEPTH",
         "optional": false,
         "requested": ".easyuse_anima.wildcard.models",
@@ -55581,7 +55618,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": true,
             "kind": "try",
-            "line": 13
+            "line": 12
           }
         ],
         "classification": "internal",
@@ -55589,12 +55626,12 @@
         "compatibility_pair": {
           "bound_name": "WildcardExpansionBudget",
           "target": "easyuse_anima/wildcard/models.py",
-          "try_line": 13
+          "try_line": 12
         },
         "conditional": true,
         "imported": ".easyuse_anima.wildcard.models:WildcardExpansionBudget",
         "kind": "static_from",
-        "line": 14,
+        "line": 13,
         "name": "WildcardExpansionBudget",
         "optional": false,
         "requested": ".easyuse_anima.wildcard.models",
@@ -55612,7 +55649,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": true,
             "kind": "try",
-            "line": 13
+            "line": 12
           }
         ],
         "classification": "internal",
@@ -55620,12 +55657,12 @@
         "compatibility_pair": {
           "bound_name": "WildcardExpansionResult",
           "target": "easyuse_anima/wildcard/models.py",
-          "try_line": 13
+          "try_line": 12
         },
         "conditional": true,
         "imported": ".easyuse_anima.wildcard.models:WildcardExpansionResult",
         "kind": "static_from",
-        "line": 14,
+        "line": 13,
         "name": "WildcardExpansionResult",
         "optional": false,
         "requested": ".easyuse_anima.wildcard.models",
@@ -55643,7 +55680,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": true,
             "kind": "try",
-            "line": 13
+            "line": 12
           }
         ],
         "classification": "internal",
@@ -55651,12 +55688,12 @@
         "compatibility_pair": {
           "bound_name": "WildcardOption",
           "target": "easyuse_anima/wildcard/models.py",
-          "try_line": 13
+          "try_line": 12
         },
         "conditional": true,
         "imported": ".easyuse_anima.wildcard.models:WildcardOption",
         "kind": "static_from",
-        "line": 14,
+        "line": 13,
         "name": "WildcardOption",
         "optional": false,
         "requested": ".easyuse_anima.wildcard.models",
@@ -55675,9 +55712,9 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 28,
+            "handler_line": 27,
             "kind": "try",
-            "line": 13
+            "line": 12
           }
         ],
         "classification": "compatibility_fallback",
@@ -55685,12 +55722,12 @@
         "compatibility_pair": {
           "bound_name": "DEFAULT_MAX_EXPANSION_DEPTH",
           "target": "easyuse_anima/wildcard/models.py",
-          "try_line": 13
+          "try_line": 12
         },
         "conditional": true,
         "imported": "easyuse_anima.wildcard.models:DEFAULT_MAX_EXPANSION_DEPTH",
         "kind": "static_from",
-        "line": 29,
+        "line": 28,
         "name": "DEFAULT_MAX_EXPANSION_DEPTH",
         "optional": false,
         "requested": "easyuse_anima.wildcard.models",
@@ -55709,9 +55746,9 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 28,
+            "handler_line": 27,
             "kind": "try",
-            "line": 13
+            "line": 12
           }
         ],
         "classification": "compatibility_fallback",
@@ -55719,12 +55756,12 @@
         "compatibility_pair": {
           "bound_name": "DEFAULT_MAX_EXPANSION_GROWTH_PER_PASS",
           "target": "easyuse_anima/wildcard/models.py",
-          "try_line": 13
+          "try_line": 12
         },
         "conditional": true,
         "imported": "easyuse_anima.wildcard.models:DEFAULT_MAX_EXPANSION_GROWTH_PER_PASS",
         "kind": "static_from",
-        "line": 29,
+        "line": 28,
         "name": "DEFAULT_MAX_EXPANSION_GROWTH_PER_PASS",
         "optional": false,
         "requested": "easyuse_anima.wildcard.models",
@@ -55743,9 +55780,9 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 28,
+            "handler_line": 27,
             "kind": "try",
-            "line": 13
+            "line": 12
           }
         ],
         "classification": "compatibility_fallback",
@@ -55753,12 +55790,12 @@
         "compatibility_pair": {
           "bound_name": "DEFAULT_MAX_EXPANSION_OUTPUT_CHARS",
           "target": "easyuse_anima/wildcard/models.py",
-          "try_line": 13
+          "try_line": 12
         },
         "conditional": true,
         "imported": "easyuse_anima.wildcard.models:DEFAULT_MAX_EXPANSION_OUTPUT_CHARS",
         "kind": "static_from",
-        "line": 29,
+        "line": 28,
         "name": "DEFAULT_MAX_EXPANSION_OUTPUT_CHARS",
         "optional": false,
         "requested": "easyuse_anima.wildcard.models",
@@ -55777,9 +55814,9 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 28,
+            "handler_line": 27,
             "kind": "try",
-            "line": 13
+            "line": 12
           }
         ],
         "classification": "compatibility_fallback",
@@ -55787,12 +55824,12 @@
         "compatibility_pair": {
           "bound_name": "DEFAULT_MAX_EXPANSION_REPLACEMENTS",
           "target": "easyuse_anima/wildcard/models.py",
-          "try_line": 13
+          "try_line": 12
         },
         "conditional": true,
         "imported": "easyuse_anima.wildcard.models:DEFAULT_MAX_EXPANSION_REPLACEMENTS",
         "kind": "static_from",
-        "line": 29,
+        "line": 28,
         "name": "DEFAULT_MAX_EXPANSION_REPLACEMENTS",
         "optional": false,
         "requested": "easyuse_anima.wildcard.models",
@@ -55811,9 +55848,9 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 28,
+            "handler_line": 27,
             "kind": "try",
-            "line": 13
+            "line": 12
           }
         ],
         "classification": "compatibility_fallback",
@@ -55821,12 +55858,12 @@
         "compatibility_pair": {
           "bound_name": "MAX_EXPANSION_DEPTH",
           "target": "easyuse_anima/wildcard/models.py",
-          "try_line": 13
+          "try_line": 12
         },
         "conditional": true,
         "imported": "easyuse_anima.wildcard.models:MAX_EXPANSION_DEPTH",
         "kind": "static_from",
-        "line": 29,
+        "line": 28,
         "name": "MAX_EXPANSION_DEPTH",
         "optional": false,
         "requested": "easyuse_anima.wildcard.models",
@@ -55845,9 +55882,9 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 28,
+            "handler_line": 27,
             "kind": "try",
-            "line": 13
+            "line": 12
           }
         ],
         "classification": "compatibility_fallback",
@@ -55855,12 +55892,12 @@
         "compatibility_pair": {
           "bound_name": "MAX_EXPANSION_GROWTH_PER_PASS",
           "target": "easyuse_anima/wildcard/models.py",
-          "try_line": 13
+          "try_line": 12
         },
         "conditional": true,
         "imported": "easyuse_anima.wildcard.models:MAX_EXPANSION_GROWTH_PER_PASS",
         "kind": "static_from",
-        "line": 29,
+        "line": 28,
         "name": "MAX_EXPANSION_GROWTH_PER_PASS",
         "optional": false,
         "requested": "easyuse_anima.wildcard.models",
@@ -55879,9 +55916,9 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 28,
+            "handler_line": 27,
             "kind": "try",
-            "line": 13
+            "line": 12
           }
         ],
         "classification": "compatibility_fallback",
@@ -55889,12 +55926,12 @@
         "compatibility_pair": {
           "bound_name": "MAX_EXPANSION_OUTPUT_CHARS",
           "target": "easyuse_anima/wildcard/models.py",
-          "try_line": 13
+          "try_line": 12
         },
         "conditional": true,
         "imported": "easyuse_anima.wildcard.models:MAX_EXPANSION_OUTPUT_CHARS",
         "kind": "static_from",
-        "line": 29,
+        "line": 28,
         "name": "MAX_EXPANSION_OUTPUT_CHARS",
         "optional": false,
         "requested": "easyuse_anima.wildcard.models",
@@ -55913,9 +55950,9 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 28,
+            "handler_line": 27,
             "kind": "try",
-            "line": 13
+            "line": 12
           }
         ],
         "classification": "compatibility_fallback",
@@ -55923,12 +55960,12 @@
         "compatibility_pair": {
           "bound_name": "MAX_EXPANSION_REPLACEMENTS",
           "target": "easyuse_anima/wildcard/models.py",
-          "try_line": 13
+          "try_line": 12
         },
         "conditional": true,
         "imported": "easyuse_anima.wildcard.models:MAX_EXPANSION_REPLACEMENTS",
         "kind": "static_from",
-        "line": 29,
+        "line": 28,
         "name": "MAX_EXPANSION_REPLACEMENTS",
         "optional": false,
         "requested": "easyuse_anima.wildcard.models",
@@ -55947,9 +55984,9 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 28,
+            "handler_line": 27,
             "kind": "try",
-            "line": 13
+            "line": 12
           }
         ],
         "classification": "compatibility_fallback",
@@ -55957,12 +55994,12 @@
         "compatibility_pair": {
           "bound_name": "REPLACE_DEPTH",
           "target": "easyuse_anima/wildcard/models.py",
-          "try_line": 13
+          "try_line": 12
         },
         "conditional": true,
         "imported": "easyuse_anima.wildcard.models:REPLACE_DEPTH",
         "kind": "static_from",
-        "line": 29,
+        "line": 28,
         "name": "REPLACE_DEPTH",
         "optional": false,
         "requested": "easyuse_anima.wildcard.models",
@@ -55981,9 +56018,9 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 28,
+            "handler_line": 27,
             "kind": "try",
-            "line": 13
+            "line": 12
           }
         ],
         "classification": "compatibility_fallback",
@@ -55991,12 +56028,12 @@
         "compatibility_pair": {
           "bound_name": "WildcardExpansionBudget",
           "target": "easyuse_anima/wildcard/models.py",
-          "try_line": 13
+          "try_line": 12
         },
         "conditional": true,
         "imported": "easyuse_anima.wildcard.models:WildcardExpansionBudget",
         "kind": "static_from",
-        "line": 29,
+        "line": 28,
         "name": "WildcardExpansionBudget",
         "optional": false,
         "requested": "easyuse_anima.wildcard.models",
@@ -56015,9 +56052,9 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 28,
+            "handler_line": 27,
             "kind": "try",
-            "line": 13
+            "line": 12
           }
         ],
         "classification": "compatibility_fallback",
@@ -56025,12 +56062,12 @@
         "compatibility_pair": {
           "bound_name": "WildcardExpansionResult",
           "target": "easyuse_anima/wildcard/models.py",
-          "try_line": 13
+          "try_line": 12
         },
         "conditional": true,
         "imported": "easyuse_anima.wildcard.models:WildcardExpansionResult",
         "kind": "static_from",
-        "line": 29,
+        "line": 28,
         "name": "WildcardExpansionResult",
         "optional": false,
         "requested": "easyuse_anima.wildcard.models",
@@ -56049,9 +56086,9 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 28,
+            "handler_line": 27,
             "kind": "try",
-            "line": 13
+            "line": 12
           }
         ],
         "classification": "compatibility_fallback",
@@ -56059,12 +56096,12 @@
         "compatibility_pair": {
           "bound_name": "WildcardOption",
           "target": "easyuse_anima/wildcard/models.py",
-          "try_line": 13
+          "try_line": 12
         },
         "conditional": true,
         "imported": "easyuse_anima.wildcard.models:WildcardOption",
         "kind": "static_from",
-        "line": 29,
+        "line": 28,
         "name": "WildcardOption",
         "optional": false,
         "requested": "easyuse_anima.wildcard.models",
@@ -56082,7 +56119,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": true,
             "kind": "try",
-            "line": 44
+            "line": 43
           }
         ],
         "classification": "internal",
@@ -56090,12 +56127,12 @@
         "compatibility_pair": {
           "bound_name": "_wildcard_sources",
           "target": "easyuse_anima/wildcard/sources.py",
-          "try_line": 44
+          "try_line": 43
         },
         "conditional": true,
         "imported": ".easyuse_anima.wildcard:sources",
         "kind": "static_from",
-        "line": 45,
+        "line": 44,
         "name": "sources",
         "optional": false,
         "requested": ".easyuse_anima.wildcard",
@@ -56113,7 +56150,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": true,
             "kind": "try",
-            "line": 44
+            "line": 43
           }
         ],
         "classification": "internal",
@@ -56121,12 +56158,12 @@
         "compatibility_pair": {
           "bound_name": "DEFAULT_TEST_WILDCARD_FILE",
           "target": "easyuse_anima/wildcard/sources.py",
-          "try_line": 44
+          "try_line": 43
         },
         "conditional": true,
         "imported": ".easyuse_anima.wildcard.sources:DEFAULT_TEST_WILDCARD_FILE",
         "kind": "static_from",
-        "line": 46,
+        "line": 45,
         "name": "DEFAULT_TEST_WILDCARD_FILE",
         "optional": false,
         "requested": ".easyuse_anima.wildcard.sources",
@@ -56144,7 +56181,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": true,
             "kind": "try",
-            "line": 44
+            "line": 43
           }
         ],
         "classification": "internal",
@@ -56152,12 +56189,12 @@
         "compatibility_pair": {
           "bound_name": "DEFAULT_TEST_WILDCARD_TEXT",
           "target": "easyuse_anima/wildcard/sources.py",
-          "try_line": 44
+          "try_line": 43
         },
         "conditional": true,
         "imported": ".easyuse_anima.wildcard.sources:DEFAULT_TEST_WILDCARD_TEXT",
         "kind": "static_from",
-        "line": 46,
+        "line": 45,
         "name": "DEFAULT_TEST_WILDCARD_TEXT",
         "optional": false,
         "requested": ".easyuse_anima.wildcard.sources",
@@ -56175,7 +56212,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": true,
             "kind": "try",
-            "line": 44
+            "line": 43
           }
         ],
         "classification": "internal",
@@ -56183,12 +56220,12 @@
         "compatibility_pair": {
           "bound_name": "WILDCARD_DIR_NAME",
           "target": "easyuse_anima/wildcard/sources.py",
-          "try_line": 44
+          "try_line": 43
         },
         "conditional": true,
         "imported": ".easyuse_anima.wildcard.sources:WILDCARD_DIR_NAME",
         "kind": "static_from",
-        "line": 46,
+        "line": 45,
         "name": "WILDCARD_DIR_NAME",
         "optional": false,
         "requested": ".easyuse_anima.wildcard.sources",
@@ -56206,7 +56243,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": true,
             "kind": "try",
-            "line": 44
+            "line": 43
           }
         ],
         "classification": "internal",
@@ -56214,12 +56251,12 @@
         "compatibility_pair": {
           "bound_name": "WILDCARD_EXTENSIONS",
           "target": "easyuse_anima/wildcard/sources.py",
-          "try_line": 44
+          "try_line": 43
         },
         "conditional": true,
         "imported": ".easyuse_anima.wildcard.sources:WILDCARD_EXTENSIONS",
         "kind": "static_from",
-        "line": 46,
+        "line": 45,
         "name": "WILDCARD_EXTENSIONS",
         "optional": false,
         "requested": ".easyuse_anima.wildcard.sources",
@@ -56237,7 +56274,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": true,
             "kind": "try",
-            "line": 44
+            "line": 43
           }
         ],
         "classification": "internal",
@@ -56245,12 +56282,12 @@
         "compatibility_pair": {
           "bound_name": "default_wildcard_root",
           "target": "easyuse_anima/wildcard/sources.py",
-          "try_line": 44
+          "try_line": 43
         },
         "conditional": true,
         "imported": ".easyuse_anima.wildcard.sources:default_wildcard_root",
         "kind": "static_from",
-        "line": 46,
+        "line": 45,
         "name": "default_wildcard_root",
         "optional": false,
         "requested": ".easyuse_anima.wildcard.sources",
@@ -56268,7 +56305,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": true,
             "kind": "try",
-            "line": 44
+            "line": 43
           }
         ],
         "classification": "internal",
@@ -56276,12 +56313,12 @@
         "compatibility_pair": {
           "bound_name": "ensure_default_wildcard_root",
           "target": "easyuse_anima/wildcard/sources.py",
-          "try_line": 44
+          "try_line": 43
         },
         "conditional": true,
         "imported": ".easyuse_anima.wildcard.sources:ensure_default_wildcard_root",
         "kind": "static_from",
-        "line": 46,
+        "line": 45,
         "name": "ensure_default_wildcard_root",
         "optional": false,
         "requested": ".easyuse_anima.wildcard.sources",
@@ -56299,7 +56336,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": true,
             "kind": "try",
-            "line": 44
+            "line": 43
           }
         ],
         "classification": "internal",
@@ -56307,12 +56344,12 @@
         "compatibility_pair": {
           "bound_name": "parse_wildcard_extra_paths",
           "target": "easyuse_anima/wildcard/sources.py",
-          "try_line": 44
+          "try_line": 43
         },
         "conditional": true,
         "imported": ".easyuse_anima.wildcard.sources:parse_wildcard_extra_paths",
         "kind": "static_from",
-        "line": 46,
+        "line": 45,
         "name": "parse_wildcard_extra_paths",
         "optional": false,
         "requested": ".easyuse_anima.wildcard.sources",
@@ -56330,7 +56367,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": true,
             "kind": "try",
-            "line": 44
+            "line": 43
           }
         ],
         "classification": "internal",
@@ -56338,12 +56375,12 @@
         "compatibility_pair": {
           "bound_name": "resolve_wildcard_roots",
           "target": "easyuse_anima/wildcard/sources.py",
-          "try_line": 44
+          "try_line": 43
         },
         "conditional": true,
         "imported": ".easyuse_anima.wildcard.sources:resolve_wildcard_roots",
         "kind": "static_from",
-        "line": 46,
+        "line": 45,
         "name": "resolve_wildcard_roots",
         "optional": false,
         "requested": ".easyuse_anima.wildcard.sources",
@@ -56362,9 +56399,9 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 56,
+            "handler_line": 55,
             "kind": "try",
-            "line": 44
+            "line": 43
           }
         ],
         "classification": "compatibility_fallback",
@@ -56372,12 +56409,12 @@
         "compatibility_pair": {
           "bound_name": "_wildcard_sources",
           "target": "easyuse_anima/wildcard/sources.py",
-          "try_line": 44
+          "try_line": 43
         },
         "conditional": true,
         "imported": "easyuse_anima.wildcard:sources",
         "kind": "static_from",
-        "line": 57,
+        "line": 56,
         "name": "sources",
         "optional": false,
         "requested": "easyuse_anima.wildcard",
@@ -56396,9 +56433,9 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 56,
+            "handler_line": 55,
             "kind": "try",
-            "line": 44
+            "line": 43
           }
         ],
         "classification": "compatibility_fallback",
@@ -56406,12 +56443,12 @@
         "compatibility_pair": {
           "bound_name": "DEFAULT_TEST_WILDCARD_FILE",
           "target": "easyuse_anima/wildcard/sources.py",
-          "try_line": 44
+          "try_line": 43
         },
         "conditional": true,
         "imported": "easyuse_anima.wildcard.sources:DEFAULT_TEST_WILDCARD_FILE",
         "kind": "static_from",
-        "line": 58,
+        "line": 57,
         "name": "DEFAULT_TEST_WILDCARD_FILE",
         "optional": false,
         "requested": "easyuse_anima.wildcard.sources",
@@ -56430,9 +56467,9 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 56,
+            "handler_line": 55,
             "kind": "try",
-            "line": 44
+            "line": 43
           }
         ],
         "classification": "compatibility_fallback",
@@ -56440,12 +56477,12 @@
         "compatibility_pair": {
           "bound_name": "DEFAULT_TEST_WILDCARD_TEXT",
           "target": "easyuse_anima/wildcard/sources.py",
-          "try_line": 44
+          "try_line": 43
         },
         "conditional": true,
         "imported": "easyuse_anima.wildcard.sources:DEFAULT_TEST_WILDCARD_TEXT",
         "kind": "static_from",
-        "line": 58,
+        "line": 57,
         "name": "DEFAULT_TEST_WILDCARD_TEXT",
         "optional": false,
         "requested": "easyuse_anima.wildcard.sources",
@@ -56464,9 +56501,9 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 56,
+            "handler_line": 55,
             "kind": "try",
-            "line": 44
+            "line": 43
           }
         ],
         "classification": "compatibility_fallback",
@@ -56474,12 +56511,12 @@
         "compatibility_pair": {
           "bound_name": "WILDCARD_DIR_NAME",
           "target": "easyuse_anima/wildcard/sources.py",
-          "try_line": 44
+          "try_line": 43
         },
         "conditional": true,
         "imported": "easyuse_anima.wildcard.sources:WILDCARD_DIR_NAME",
         "kind": "static_from",
-        "line": 58,
+        "line": 57,
         "name": "WILDCARD_DIR_NAME",
         "optional": false,
         "requested": "easyuse_anima.wildcard.sources",
@@ -56498,9 +56535,9 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 56,
+            "handler_line": 55,
             "kind": "try",
-            "line": 44
+            "line": 43
           }
         ],
         "classification": "compatibility_fallback",
@@ -56508,12 +56545,12 @@
         "compatibility_pair": {
           "bound_name": "WILDCARD_EXTENSIONS",
           "target": "easyuse_anima/wildcard/sources.py",
-          "try_line": 44
+          "try_line": 43
         },
         "conditional": true,
         "imported": "easyuse_anima.wildcard.sources:WILDCARD_EXTENSIONS",
         "kind": "static_from",
-        "line": 58,
+        "line": 57,
         "name": "WILDCARD_EXTENSIONS",
         "optional": false,
         "requested": "easyuse_anima.wildcard.sources",
@@ -56532,9 +56569,9 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 56,
+            "handler_line": 55,
             "kind": "try",
-            "line": 44
+            "line": 43
           }
         ],
         "classification": "compatibility_fallback",
@@ -56542,12 +56579,12 @@
         "compatibility_pair": {
           "bound_name": "default_wildcard_root",
           "target": "easyuse_anima/wildcard/sources.py",
-          "try_line": 44
+          "try_line": 43
         },
         "conditional": true,
         "imported": "easyuse_anima.wildcard.sources:default_wildcard_root",
         "kind": "static_from",
-        "line": 58,
+        "line": 57,
         "name": "default_wildcard_root",
         "optional": false,
         "requested": "easyuse_anima.wildcard.sources",
@@ -56566,9 +56603,9 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 56,
+            "handler_line": 55,
             "kind": "try",
-            "line": 44
+            "line": 43
           }
         ],
         "classification": "compatibility_fallback",
@@ -56576,12 +56613,12 @@
         "compatibility_pair": {
           "bound_name": "ensure_default_wildcard_root",
           "target": "easyuse_anima/wildcard/sources.py",
-          "try_line": 44
+          "try_line": 43
         },
         "conditional": true,
         "imported": "easyuse_anima.wildcard.sources:ensure_default_wildcard_root",
         "kind": "static_from",
-        "line": 58,
+        "line": 57,
         "name": "ensure_default_wildcard_root",
         "optional": false,
         "requested": "easyuse_anima.wildcard.sources",
@@ -56600,9 +56637,9 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 56,
+            "handler_line": 55,
             "kind": "try",
-            "line": 44
+            "line": 43
           }
         ],
         "classification": "compatibility_fallback",
@@ -56610,12 +56647,12 @@
         "compatibility_pair": {
           "bound_name": "parse_wildcard_extra_paths",
           "target": "easyuse_anima/wildcard/sources.py",
-          "try_line": 44
+          "try_line": 43
         },
         "conditional": true,
         "imported": "easyuse_anima.wildcard.sources:parse_wildcard_extra_paths",
         "kind": "static_from",
-        "line": 58,
+        "line": 57,
         "name": "parse_wildcard_extra_paths",
         "optional": false,
         "requested": "easyuse_anima.wildcard.sources",
@@ -56634,9 +56671,9 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 56,
+            "handler_line": 55,
             "kind": "try",
-            "line": 44
+            "line": 43
           }
         ],
         "classification": "compatibility_fallback",
@@ -56644,12 +56681,12 @@
         "compatibility_pair": {
           "bound_name": "resolve_wildcard_roots",
           "target": "easyuse_anima/wildcard/sources.py",
-          "try_line": 44
+          "try_line": 43
         },
         "conditional": true,
         "imported": "easyuse_anima.wildcard.sources:resolve_wildcard_roots",
         "kind": "static_from",
-        "line": 58,
+        "line": 57,
         "name": "resolve_wildcard_roots",
         "optional": false,
         "requested": "easyuse_anima.wildcard.sources",
@@ -56667,7 +56704,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": true,
             "kind": "try",
-            "line": 69
+            "line": 68
           }
         ],
         "classification": "internal",
@@ -56675,12 +56712,12 @@
         "compatibility_pair": {
           "bound_name": "_WildcardSnapshot",
           "target": "easyuse_anima/wildcard/snapshot.py",
-          "try_line": 69
+          "try_line": 68
         },
         "conditional": true,
         "imported": ".easyuse_anima.wildcard.snapshot:_WildcardSnapshot",
         "kind": "static_from",
-        "line": 70,
+        "line": 69,
         "name": "_WildcardSnapshot",
         "optional": false,
         "requested": ".easyuse_anima.wildcard.snapshot",
@@ -56698,7 +56735,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": true,
             "kind": "try",
-            "line": 69
+            "line": 68
           }
         ],
         "classification": "internal",
@@ -56706,12 +56743,12 @@
         "compatibility_pair": {
           "bound_name": "_build_wildcard_snapshot",
           "target": "easyuse_anima/wildcard/snapshot.py",
-          "try_line": 69
+          "try_line": 68
         },
         "conditional": true,
         "imported": ".easyuse_anima.wildcard.snapshot:_build_wildcard_snapshot",
         "kind": "static_from",
-        "line": 70,
+        "line": 69,
         "name": "_build_wildcard_snapshot",
         "optional": false,
         "requested": ".easyuse_anima.wildcard.snapshot",
@@ -56730,9 +56767,9 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 74,
+            "handler_line": 73,
             "kind": "try",
-            "line": 69
+            "line": 68
           }
         ],
         "classification": "compatibility_fallback",
@@ -56740,12 +56777,12 @@
         "compatibility_pair": {
           "bound_name": "_WildcardSnapshot",
           "target": "easyuse_anima/wildcard/snapshot.py",
-          "try_line": 69
+          "try_line": 68
         },
         "conditional": true,
         "imported": "easyuse_anima.wildcard.snapshot:_WildcardSnapshot",
         "kind": "static_from",
-        "line": 75,
+        "line": 74,
         "name": "_WildcardSnapshot",
         "optional": false,
         "requested": "easyuse_anima.wildcard.snapshot",
@@ -56764,9 +56801,9 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 74,
+            "handler_line": 73,
             "kind": "try",
-            "line": 69
+            "line": 68
           }
         ],
         "classification": "compatibility_fallback",
@@ -56774,12 +56811,12 @@
         "compatibility_pair": {
           "bound_name": "_build_wildcard_snapshot",
           "target": "easyuse_anima/wildcard/snapshot.py",
-          "try_line": 69
+          "try_line": 68
         },
         "conditional": true,
         "imported": "easyuse_anima.wildcard.snapshot:_build_wildcard_snapshot",
         "kind": "static_from",
-        "line": 75,
+        "line": 74,
         "name": "_build_wildcard_snapshot",
         "optional": false,
         "requested": "easyuse_anima.wildcard.snapshot",
@@ -56797,7 +56834,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": true,
             "kind": "try",
-            "line": 80
+            "line": 79
           }
         ],
         "classification": "internal",
@@ -56805,12 +56842,12 @@
         "compatibility_pair": {
           "bound_name": "MAX_SEED",
           "target": "easyuse_anima/wildcard/seed.py",
-          "try_line": 80
+          "try_line": 79
         },
         "conditional": true,
         "imported": ".easyuse_anima.wildcard.seed:MAX_SEED",
         "kind": "static_from",
-        "line": 81,
+        "line": 80,
         "name": "MAX_SEED",
         "optional": false,
         "requested": ".easyuse_anima.wildcard.seed",
@@ -56828,7 +56865,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": true,
             "kind": "try",
-            "line": 80
+            "line": 79
           }
         ],
         "classification": "internal",
@@ -56836,12 +56873,12 @@
         "compatibility_pair": {
           "bound_name": "PUBLIC_MAX_SEED",
           "target": "easyuse_anima/wildcard/seed.py",
-          "try_line": 80
+          "try_line": 79
         },
         "conditional": true,
         "imported": ".easyuse_anima.wildcard.seed:PUBLIC_MAX_SEED",
         "kind": "static_from",
-        "line": 81,
+        "line": 80,
         "name": "PUBLIC_MAX_SEED",
         "optional": false,
         "requested": ".easyuse_anima.wildcard.seed",
@@ -56859,7 +56896,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": true,
             "kind": "try",
-            "line": 80
+            "line": 79
           }
         ],
         "classification": "internal",
@@ -56867,12 +56904,12 @@
         "compatibility_pair": {
           "bound_name": "SEED_CONTROL_DECREMENT",
           "target": "easyuse_anima/wildcard/seed.py",
-          "try_line": 80
+          "try_line": 79
         },
         "conditional": true,
         "imported": ".easyuse_anima.wildcard.seed:SEED_CONTROL_DECREMENT",
         "kind": "static_from",
-        "line": 81,
+        "line": 80,
         "name": "SEED_CONTROL_DECREMENT",
         "optional": false,
         "requested": ".easyuse_anima.wildcard.seed",
@@ -56890,7 +56927,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": true,
             "kind": "try",
-            "line": 80
+            "line": 79
           }
         ],
         "classification": "internal",
@@ -56898,12 +56935,12 @@
         "compatibility_pair": {
           "bound_name": "SEED_CONTROL_FIXED",
           "target": "easyuse_anima/wildcard/seed.py",
-          "try_line": 80
+          "try_line": 79
         },
         "conditional": true,
         "imported": ".easyuse_anima.wildcard.seed:SEED_CONTROL_FIXED",
         "kind": "static_from",
-        "line": 81,
+        "line": 80,
         "name": "SEED_CONTROL_FIXED",
         "optional": false,
         "requested": ".easyuse_anima.wildcard.seed",
@@ -56921,7 +56958,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": true,
             "kind": "try",
-            "line": 80
+            "line": 79
           }
         ],
         "classification": "internal",
@@ -56929,12 +56966,12 @@
         "compatibility_pair": {
           "bound_name": "SEED_CONTROL_INCREMENT",
           "target": "easyuse_anima/wildcard/seed.py",
-          "try_line": 80
+          "try_line": 79
         },
         "conditional": true,
         "imported": ".easyuse_anima.wildcard.seed:SEED_CONTROL_INCREMENT",
         "kind": "static_from",
-        "line": 81,
+        "line": 80,
         "name": "SEED_CONTROL_INCREMENT",
         "optional": false,
         "requested": ".easyuse_anima.wildcard.seed",
@@ -56952,7 +56989,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": true,
             "kind": "try",
-            "line": 80
+            "line": 79
           }
         ],
         "classification": "internal",
@@ -56960,12 +56997,12 @@
         "compatibility_pair": {
           "bound_name": "SEED_CONTROL_MODES",
           "target": "easyuse_anima/wildcard/seed.py",
-          "try_line": 80
+          "try_line": 79
         },
         "conditional": true,
         "imported": ".easyuse_anima.wildcard.seed:SEED_CONTROL_MODES",
         "kind": "static_from",
-        "line": 81,
+        "line": 80,
         "name": "SEED_CONTROL_MODES",
         "optional": false,
         "requested": ".easyuse_anima.wildcard.seed",
@@ -56983,7 +57020,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": true,
             "kind": "try",
-            "line": 80
+            "line": 79
           }
         ],
         "classification": "internal",
@@ -56991,12 +57028,12 @@
         "compatibility_pair": {
           "bound_name": "SEED_CONTROL_RANDOMIZE",
           "target": "easyuse_anima/wildcard/seed.py",
-          "try_line": 80
+          "try_line": 79
         },
         "conditional": true,
         "imported": ".easyuse_anima.wildcard.seed:SEED_CONTROL_RANDOMIZE",
         "kind": "static_from",
-        "line": 81,
+        "line": 80,
         "name": "SEED_CONTROL_RANDOMIZE",
         "optional": false,
         "requested": ".easyuse_anima.wildcard.seed",
@@ -57014,7 +57051,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": true,
             "kind": "try",
-            "line": 80
+            "line": 79
           }
         ],
         "classification": "internal",
@@ -57022,12 +57059,12 @@
         "compatibility_pair": {
           "bound_name": "next_seed",
           "target": "easyuse_anima/wildcard/seed.py",
-          "try_line": 80
+          "try_line": 79
         },
         "conditional": true,
         "imported": ".easyuse_anima.wildcard.seed:next_seed",
         "kind": "static_from",
-        "line": 81,
+        "line": 80,
         "name": "next_seed",
         "optional": false,
         "requested": ".easyuse_anima.wildcard.seed",
@@ -57045,7 +57082,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": true,
             "kind": "try",
-            "line": 80
+            "line": 79
           }
         ],
         "classification": "internal",
@@ -57053,12 +57090,12 @@
         "compatibility_pair": {
           "bound_name": "normalize_seed",
           "target": "easyuse_anima/wildcard/seed.py",
-          "try_line": 80
+          "try_line": 79
         },
         "conditional": true,
         "imported": ".easyuse_anima.wildcard.seed:normalize_seed",
         "kind": "static_from",
-        "line": 81,
+        "line": 80,
         "name": "normalize_seed",
         "optional": false,
         "requested": ".easyuse_anima.wildcard.seed",
@@ -57077,9 +57114,9 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 92,
+            "handler_line": 91,
             "kind": "try",
-            "line": 80
+            "line": 79
           }
         ],
         "classification": "compatibility_fallback",
@@ -57087,12 +57124,12 @@
         "compatibility_pair": {
           "bound_name": "MAX_SEED",
           "target": "easyuse_anima/wildcard/seed.py",
-          "try_line": 80
+          "try_line": 79
         },
         "conditional": true,
         "imported": "easyuse_anima.wildcard.seed:MAX_SEED",
         "kind": "static_from",
-        "line": 93,
+        "line": 92,
         "name": "MAX_SEED",
         "optional": false,
         "requested": "easyuse_anima.wildcard.seed",
@@ -57111,9 +57148,9 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 92,
+            "handler_line": 91,
             "kind": "try",
-            "line": 80
+            "line": 79
           }
         ],
         "classification": "compatibility_fallback",
@@ -57121,12 +57158,12 @@
         "compatibility_pair": {
           "bound_name": "PUBLIC_MAX_SEED",
           "target": "easyuse_anima/wildcard/seed.py",
-          "try_line": 80
+          "try_line": 79
         },
         "conditional": true,
         "imported": "easyuse_anima.wildcard.seed:PUBLIC_MAX_SEED",
         "kind": "static_from",
-        "line": 93,
+        "line": 92,
         "name": "PUBLIC_MAX_SEED",
         "optional": false,
         "requested": "easyuse_anima.wildcard.seed",
@@ -57145,9 +57182,9 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 92,
+            "handler_line": 91,
             "kind": "try",
-            "line": 80
+            "line": 79
           }
         ],
         "classification": "compatibility_fallback",
@@ -57155,12 +57192,12 @@
         "compatibility_pair": {
           "bound_name": "SEED_CONTROL_DECREMENT",
           "target": "easyuse_anima/wildcard/seed.py",
-          "try_line": 80
+          "try_line": 79
         },
         "conditional": true,
         "imported": "easyuse_anima.wildcard.seed:SEED_CONTROL_DECREMENT",
         "kind": "static_from",
-        "line": 93,
+        "line": 92,
         "name": "SEED_CONTROL_DECREMENT",
         "optional": false,
         "requested": "easyuse_anima.wildcard.seed",
@@ -57179,9 +57216,9 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 92,
+            "handler_line": 91,
             "kind": "try",
-            "line": 80
+            "line": 79
           }
         ],
         "classification": "compatibility_fallback",
@@ -57189,12 +57226,12 @@
         "compatibility_pair": {
           "bound_name": "SEED_CONTROL_FIXED",
           "target": "easyuse_anima/wildcard/seed.py",
-          "try_line": 80
+          "try_line": 79
         },
         "conditional": true,
         "imported": "easyuse_anima.wildcard.seed:SEED_CONTROL_FIXED",
         "kind": "static_from",
-        "line": 93,
+        "line": 92,
         "name": "SEED_CONTROL_FIXED",
         "optional": false,
         "requested": "easyuse_anima.wildcard.seed",
@@ -57213,9 +57250,9 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 92,
+            "handler_line": 91,
             "kind": "try",
-            "line": 80
+            "line": 79
           }
         ],
         "classification": "compatibility_fallback",
@@ -57223,12 +57260,12 @@
         "compatibility_pair": {
           "bound_name": "SEED_CONTROL_INCREMENT",
           "target": "easyuse_anima/wildcard/seed.py",
-          "try_line": 80
+          "try_line": 79
         },
         "conditional": true,
         "imported": "easyuse_anima.wildcard.seed:SEED_CONTROL_INCREMENT",
         "kind": "static_from",
-        "line": 93,
+        "line": 92,
         "name": "SEED_CONTROL_INCREMENT",
         "optional": false,
         "requested": "easyuse_anima.wildcard.seed",
@@ -57247,9 +57284,9 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 92,
+            "handler_line": 91,
             "kind": "try",
-            "line": 80
+            "line": 79
           }
         ],
         "classification": "compatibility_fallback",
@@ -57257,12 +57294,12 @@
         "compatibility_pair": {
           "bound_name": "SEED_CONTROL_MODES",
           "target": "easyuse_anima/wildcard/seed.py",
-          "try_line": 80
+          "try_line": 79
         },
         "conditional": true,
         "imported": "easyuse_anima.wildcard.seed:SEED_CONTROL_MODES",
         "kind": "static_from",
-        "line": 93,
+        "line": 92,
         "name": "SEED_CONTROL_MODES",
         "optional": false,
         "requested": "easyuse_anima.wildcard.seed",
@@ -57281,9 +57318,9 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 92,
+            "handler_line": 91,
             "kind": "try",
-            "line": 80
+            "line": 79
           }
         ],
         "classification": "compatibility_fallback",
@@ -57291,12 +57328,12 @@
         "compatibility_pair": {
           "bound_name": "SEED_CONTROL_RANDOMIZE",
           "target": "easyuse_anima/wildcard/seed.py",
-          "try_line": 80
+          "try_line": 79
         },
         "conditional": true,
         "imported": "easyuse_anima.wildcard.seed:SEED_CONTROL_RANDOMIZE",
         "kind": "static_from",
-        "line": 93,
+        "line": 92,
         "name": "SEED_CONTROL_RANDOMIZE",
         "optional": false,
         "requested": "easyuse_anima.wildcard.seed",
@@ -57315,9 +57352,9 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 92,
+            "handler_line": 91,
             "kind": "try",
-            "line": 80
+            "line": 79
           }
         ],
         "classification": "compatibility_fallback",
@@ -57325,12 +57362,12 @@
         "compatibility_pair": {
           "bound_name": "next_seed",
           "target": "easyuse_anima/wildcard/seed.py",
-          "try_line": 80
+          "try_line": 79
         },
         "conditional": true,
         "imported": "easyuse_anima.wildcard.seed:next_seed",
         "kind": "static_from",
-        "line": 93,
+        "line": 92,
         "name": "next_seed",
         "optional": false,
         "requested": "easyuse_anima.wildcard.seed",
@@ -57349,9 +57386,9 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 92,
+            "handler_line": 91,
             "kind": "try",
-            "line": 80
+            "line": 79
           }
         ],
         "classification": "compatibility_fallback",
@@ -57359,12 +57396,12 @@
         "compatibility_pair": {
           "bound_name": "normalize_seed",
           "target": "easyuse_anima/wildcard/seed.py",
-          "try_line": 80
+          "try_line": 79
         },
         "conditional": true,
         "imported": "easyuse_anima.wildcard.seed:normalize_seed",
         "kind": "static_from",
-        "line": 93,
+        "line": 92,
         "name": "normalize_seed",
         "optional": false,
         "requested": "easyuse_anima.wildcard.seed",
@@ -57382,7 +57419,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": true,
             "kind": "try",
-            "line": 105
+            "line": 104
           }
         ],
         "classification": "internal",
@@ -57390,12 +57427,12 @@
         "compatibility_pair": {
           "bound_name": "PROMPT_STUDIO_WILDCARD_MODE_LABELS",
           "target": "easyuse_anima/wildcard/mode.py",
-          "try_line": 105
+          "try_line": 104
         },
         "conditional": true,
         "imported": ".easyuse_anima.wildcard.mode:PROMPT_STUDIO_WILDCARD_MODE_LABELS",
         "kind": "static_from",
-        "line": 106,
+        "line": 105,
         "name": "PROMPT_STUDIO_WILDCARD_MODE_LABELS",
         "optional": false,
         "requested": ".easyuse_anima.wildcard.mode",
@@ -57413,7 +57450,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": true,
             "kind": "try",
-            "line": 105
+            "line": 104
           }
         ],
         "classification": "internal",
@@ -57421,12 +57458,12 @@
         "compatibility_pair": {
           "bound_name": "WILDCARD_MODES",
           "target": "easyuse_anima/wildcard/mode.py",
-          "try_line": 105
+          "try_line": 104
         },
         "conditional": true,
         "imported": ".easyuse_anima.wildcard.mode:WILDCARD_MODES",
         "kind": "static_from",
-        "line": 106,
+        "line": 105,
         "name": "WILDCARD_MODES",
         "optional": false,
         "requested": ".easyuse_anima.wildcard.mode",
@@ -57444,7 +57481,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": true,
             "kind": "try",
-            "line": 105
+            "line": 104
           }
         ],
         "classification": "internal",
@@ -57452,12 +57489,12 @@
         "compatibility_pair": {
           "bound_name": "WILDCARD_MODE_ALIASES",
           "target": "easyuse_anima/wildcard/mode.py",
-          "try_line": 105
+          "try_line": 104
         },
         "conditional": true,
         "imported": ".easyuse_anima.wildcard.mode:WILDCARD_MODE_ALIASES",
         "kind": "static_from",
-        "line": 106,
+        "line": 105,
         "name": "WILDCARD_MODE_ALIASES",
         "optional": false,
         "requested": ".easyuse_anima.wildcard.mode",
@@ -57475,7 +57512,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": true,
             "kind": "try",
-            "line": 105
+            "line": 104
           }
         ],
         "classification": "internal",
@@ -57483,12 +57520,12 @@
         "compatibility_pair": {
           "bound_name": "WILDCARD_MODE_FIXED",
           "target": "easyuse_anima/wildcard/mode.py",
-          "try_line": 105
+          "try_line": 104
         },
         "conditional": true,
         "imported": ".easyuse_anima.wildcard.mode:WILDCARD_MODE_FIXED",
         "kind": "static_from",
-        "line": 106,
+        "line": 105,
         "name": "WILDCARD_MODE_FIXED",
         "optional": false,
         "requested": ".easyuse_anima.wildcard.mode",
@@ -57506,7 +57543,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": true,
             "kind": "try",
-            "line": 105
+            "line": 104
           }
         ],
         "classification": "internal",
@@ -57514,12 +57551,12 @@
         "compatibility_pair": {
           "bound_name": "WILDCARD_MODE_LABELS",
           "target": "easyuse_anima/wildcard/mode.py",
-          "try_line": 105
+          "try_line": 104
         },
         "conditional": true,
         "imported": ".easyuse_anima.wildcard.mode:WILDCARD_MODE_LABELS",
         "kind": "static_from",
-        "line": 106,
+        "line": 105,
         "name": "WILDCARD_MODE_LABELS",
         "optional": false,
         "requested": ".easyuse_anima.wildcard.mode",
@@ -57537,7 +57574,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": true,
             "kind": "try",
-            "line": 105
+            "line": 104
           }
         ],
         "classification": "internal",
@@ -57545,12 +57582,12 @@
         "compatibility_pair": {
           "bound_name": "WILDCARD_MODE_POPULATE",
           "target": "easyuse_anima/wildcard/mode.py",
-          "try_line": 105
+          "try_line": 104
         },
         "conditional": true,
         "imported": ".easyuse_anima.wildcard.mode:WILDCARD_MODE_POPULATE",
         "kind": "static_from",
-        "line": 106,
+        "line": 105,
         "name": "WILDCARD_MODE_POPULATE",
         "optional": false,
         "requested": ".easyuse_anima.wildcard.mode",
@@ -57568,7 +57605,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": true,
             "kind": "try",
-            "line": 105
+            "line": 104
           }
         ],
         "classification": "internal",
@@ -57576,12 +57613,12 @@
         "compatibility_pair": {
           "bound_name": "WILDCARD_MODE_REPRODUCE",
           "target": "easyuse_anima/wildcard/mode.py",
-          "try_line": 105
+          "try_line": 104
         },
         "conditional": true,
         "imported": ".easyuse_anima.wildcard.mode:WILDCARD_MODE_REPRODUCE",
         "kind": "static_from",
-        "line": 106,
+        "line": 105,
         "name": "WILDCARD_MODE_REPRODUCE",
         "optional": false,
         "requested": ".easyuse_anima.wildcard.mode",
@@ -57599,7 +57636,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": true,
             "kind": "try",
-            "line": 105
+            "line": 104
           }
         ],
         "classification": "internal",
@@ -57607,12 +57644,12 @@
         "compatibility_pair": {
           "bound_name": "WILDCARD_MODE_SEQUENTIAL",
           "target": "easyuse_anima/wildcard/mode.py",
-          "try_line": 105
+          "try_line": 104
         },
         "conditional": true,
         "imported": ".easyuse_anima.wildcard.mode:WILDCARD_MODE_SEQUENTIAL",
         "kind": "static_from",
-        "line": 106,
+        "line": 105,
         "name": "WILDCARD_MODE_SEQUENTIAL",
         "optional": false,
         "requested": ".easyuse_anima.wildcard.mode",
@@ -57630,7 +57667,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": true,
             "kind": "try",
-            "line": 105
+            "line": 104
           }
         ],
         "classification": "internal",
@@ -57638,12 +57675,12 @@
         "compatibility_pair": {
           "bound_name": "normalize_prompt_studio_wildcard_mode",
           "target": "easyuse_anima/wildcard/mode.py",
-          "try_line": 105
+          "try_line": 104
         },
         "conditional": true,
         "imported": ".easyuse_anima.wildcard.mode:normalize_prompt_studio_wildcard_mode",
         "kind": "static_from",
-        "line": 106,
+        "line": 105,
         "name": "normalize_prompt_studio_wildcard_mode",
         "optional": false,
         "requested": ".easyuse_anima.wildcard.mode",
@@ -57661,7 +57698,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": true,
             "kind": "try",
-            "line": 105
+            "line": 104
           }
         ],
         "classification": "internal",
@@ -57669,12 +57706,12 @@
         "compatibility_pair": {
           "bound_name": "normalize_wildcard_mode",
           "target": "easyuse_anima/wildcard/mode.py",
-          "try_line": 105
+          "try_line": 104
         },
         "conditional": true,
         "imported": ".easyuse_anima.wildcard.mode:normalize_wildcard_mode",
         "kind": "static_from",
-        "line": 106,
+        "line": 105,
         "name": "normalize_wildcard_mode",
         "optional": false,
         "requested": ".easyuse_anima.wildcard.mode",
@@ -57693,9 +57730,9 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 118,
+            "handler_line": 117,
             "kind": "try",
-            "line": 105
+            "line": 104
           }
         ],
         "classification": "compatibility_fallback",
@@ -57703,12 +57740,12 @@
         "compatibility_pair": {
           "bound_name": "PROMPT_STUDIO_WILDCARD_MODE_LABELS",
           "target": "easyuse_anima/wildcard/mode.py",
-          "try_line": 105
+          "try_line": 104
         },
         "conditional": true,
         "imported": "easyuse_anima.wildcard.mode:PROMPT_STUDIO_WILDCARD_MODE_LABELS",
         "kind": "static_from",
-        "line": 119,
+        "line": 118,
         "name": "PROMPT_STUDIO_WILDCARD_MODE_LABELS",
         "optional": false,
         "requested": "easyuse_anima.wildcard.mode",
@@ -57727,9 +57764,9 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 118,
+            "handler_line": 117,
             "kind": "try",
-            "line": 105
+            "line": 104
           }
         ],
         "classification": "compatibility_fallback",
@@ -57737,12 +57774,12 @@
         "compatibility_pair": {
           "bound_name": "WILDCARD_MODES",
           "target": "easyuse_anima/wildcard/mode.py",
-          "try_line": 105
+          "try_line": 104
         },
         "conditional": true,
         "imported": "easyuse_anima.wildcard.mode:WILDCARD_MODES",
         "kind": "static_from",
-        "line": 119,
+        "line": 118,
         "name": "WILDCARD_MODES",
         "optional": false,
         "requested": "easyuse_anima.wildcard.mode",
@@ -57761,9 +57798,9 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 118,
+            "handler_line": 117,
             "kind": "try",
-            "line": 105
+            "line": 104
           }
         ],
         "classification": "compatibility_fallback",
@@ -57771,12 +57808,12 @@
         "compatibility_pair": {
           "bound_name": "WILDCARD_MODE_ALIASES",
           "target": "easyuse_anima/wildcard/mode.py",
-          "try_line": 105
+          "try_line": 104
         },
         "conditional": true,
         "imported": "easyuse_anima.wildcard.mode:WILDCARD_MODE_ALIASES",
         "kind": "static_from",
-        "line": 119,
+        "line": 118,
         "name": "WILDCARD_MODE_ALIASES",
         "optional": false,
         "requested": "easyuse_anima.wildcard.mode",
@@ -57795,9 +57832,9 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 118,
+            "handler_line": 117,
             "kind": "try",
-            "line": 105
+            "line": 104
           }
         ],
         "classification": "compatibility_fallback",
@@ -57805,12 +57842,12 @@
         "compatibility_pair": {
           "bound_name": "WILDCARD_MODE_FIXED",
           "target": "easyuse_anima/wildcard/mode.py",
-          "try_line": 105
+          "try_line": 104
         },
         "conditional": true,
         "imported": "easyuse_anima.wildcard.mode:WILDCARD_MODE_FIXED",
         "kind": "static_from",
-        "line": 119,
+        "line": 118,
         "name": "WILDCARD_MODE_FIXED",
         "optional": false,
         "requested": "easyuse_anima.wildcard.mode",
@@ -57829,9 +57866,9 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 118,
+            "handler_line": 117,
             "kind": "try",
-            "line": 105
+            "line": 104
           }
         ],
         "classification": "compatibility_fallback",
@@ -57839,12 +57876,12 @@
         "compatibility_pair": {
           "bound_name": "WILDCARD_MODE_LABELS",
           "target": "easyuse_anima/wildcard/mode.py",
-          "try_line": 105
+          "try_line": 104
         },
         "conditional": true,
         "imported": "easyuse_anima.wildcard.mode:WILDCARD_MODE_LABELS",
         "kind": "static_from",
-        "line": 119,
+        "line": 118,
         "name": "WILDCARD_MODE_LABELS",
         "optional": false,
         "requested": "easyuse_anima.wildcard.mode",
@@ -57863,9 +57900,9 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 118,
+            "handler_line": 117,
             "kind": "try",
-            "line": 105
+            "line": 104
           }
         ],
         "classification": "compatibility_fallback",
@@ -57873,12 +57910,12 @@
         "compatibility_pair": {
           "bound_name": "WILDCARD_MODE_POPULATE",
           "target": "easyuse_anima/wildcard/mode.py",
-          "try_line": 105
+          "try_line": 104
         },
         "conditional": true,
         "imported": "easyuse_anima.wildcard.mode:WILDCARD_MODE_POPULATE",
         "kind": "static_from",
-        "line": 119,
+        "line": 118,
         "name": "WILDCARD_MODE_POPULATE",
         "optional": false,
         "requested": "easyuse_anima.wildcard.mode",
@@ -57897,9 +57934,9 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 118,
+            "handler_line": 117,
             "kind": "try",
-            "line": 105
+            "line": 104
           }
         ],
         "classification": "compatibility_fallback",
@@ -57907,12 +57944,12 @@
         "compatibility_pair": {
           "bound_name": "WILDCARD_MODE_REPRODUCE",
           "target": "easyuse_anima/wildcard/mode.py",
-          "try_line": 105
+          "try_line": 104
         },
         "conditional": true,
         "imported": "easyuse_anima.wildcard.mode:WILDCARD_MODE_REPRODUCE",
         "kind": "static_from",
-        "line": 119,
+        "line": 118,
         "name": "WILDCARD_MODE_REPRODUCE",
         "optional": false,
         "requested": "easyuse_anima.wildcard.mode",
@@ -57931,9 +57968,9 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 118,
+            "handler_line": 117,
             "kind": "try",
-            "line": 105
+            "line": 104
           }
         ],
         "classification": "compatibility_fallback",
@@ -57941,12 +57978,12 @@
         "compatibility_pair": {
           "bound_name": "WILDCARD_MODE_SEQUENTIAL",
           "target": "easyuse_anima/wildcard/mode.py",
-          "try_line": 105
+          "try_line": 104
         },
         "conditional": true,
         "imported": "easyuse_anima.wildcard.mode:WILDCARD_MODE_SEQUENTIAL",
         "kind": "static_from",
-        "line": 119,
+        "line": 118,
         "name": "WILDCARD_MODE_SEQUENTIAL",
         "optional": false,
         "requested": "easyuse_anima.wildcard.mode",
@@ -57965,9 +58002,9 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 118,
+            "handler_line": 117,
             "kind": "try",
-            "line": 105
+            "line": 104
           }
         ],
         "classification": "compatibility_fallback",
@@ -57975,12 +58012,12 @@
         "compatibility_pair": {
           "bound_name": "normalize_prompt_studio_wildcard_mode",
           "target": "easyuse_anima/wildcard/mode.py",
-          "try_line": 105
+          "try_line": 104
         },
         "conditional": true,
         "imported": "easyuse_anima.wildcard.mode:normalize_prompt_studio_wildcard_mode",
         "kind": "static_from",
-        "line": 119,
+        "line": 118,
         "name": "normalize_prompt_studio_wildcard_mode",
         "optional": false,
         "requested": "easyuse_anima.wildcard.mode",
@@ -57999,9 +58036,9 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 118,
+            "handler_line": 117,
             "kind": "try",
-            "line": 105
+            "line": 104
           }
         ],
         "classification": "compatibility_fallback",
@@ -58009,12 +58046,12 @@
         "compatibility_pair": {
           "bound_name": "normalize_wildcard_mode",
           "target": "easyuse_anima/wildcard/mode.py",
-          "try_line": 105
+          "try_line": 104
         },
         "conditional": true,
         "imported": "easyuse_anima.wildcard.mode:normalize_wildcard_mode",
         "kind": "static_from",
-        "line": 119,
+        "line": 118,
         "name": "normalize_wildcard_mode",
         "optional": false,
         "requested": "easyuse_anima.wildcard.mode",
@@ -58032,7 +58069,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": true,
             "kind": "try",
-            "line": 132
+            "line": 131
           }
         ],
         "classification": "internal",
@@ -58040,12 +58077,12 @@
         "compatibility_pair": {
           "bound_name": "_Selector",
           "target": "easyuse_anima/wildcard/selector.py",
-          "try_line": 132
+          "try_line": 131
         },
         "conditional": true,
         "imported": ".easyuse_anima.wildcard.selector:_Selector",
         "kind": "static_from",
-        "line": 133,
+        "line": 132,
         "name": "_Selector",
         "optional": false,
         "requested": ".easyuse_anima.wildcard.selector",
@@ -58064,9 +58101,9 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 134,
+            "handler_line": 133,
             "kind": "try",
-            "line": 132
+            "line": 131
           }
         ],
         "classification": "compatibility_fallback",
@@ -58074,12 +58111,12 @@
         "compatibility_pair": {
           "bound_name": "_Selector",
           "target": "easyuse_anima/wildcard/selector.py",
-          "try_line": 132
+          "try_line": 131
         },
         "conditional": true,
         "imported": "easyuse_anima.wildcard.selector:_Selector",
         "kind": "static_from",
-        "line": 135,
+        "line": 134,
         "name": "_Selector",
         "optional": false,
         "requested": "easyuse_anima.wildcard.selector",
@@ -58089,7 +58126,7 @@
         "target": "easyuse_anima/wildcard/selector.py"
       },
       {
-        "alias": null,
+        "alias": "COMMENT_RE",
         "bound_name": "COMMENT_RE",
         "branch_context": [
           {
@@ -58097,7 +58134,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": true,
             "kind": "try",
-            "line": 137
+            "line": 136
           }
         ],
         "classification": "internal",
@@ -58105,12 +58142,12 @@
         "compatibility_pair": {
           "bound_name": "COMMENT_RE",
           "target": "easyuse_anima/wildcard/expansion.py",
-          "try_line": 137
+          "try_line": 136
         },
         "conditional": true,
         "imported": ".easyuse_anima.wildcard.expansion:COMMENT_RE",
         "kind": "static_from",
-        "line": 138,
+        "line": 137,
         "name": "COMMENT_RE",
         "optional": false,
         "requested": ".easyuse_anima.wildcard.expansion",
@@ -58128,7 +58165,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": true,
             "kind": "try",
-            "line": 137
+            "line": 136
           }
         ],
         "classification": "internal",
@@ -58136,12 +58173,12 @@
         "compatibility_pair": {
           "bound_name": "COUNT_SPEC_RE",
           "target": "easyuse_anima/wildcard/expansion.py",
-          "try_line": 137
+          "try_line": 136
         },
         "conditional": true,
         "imported": ".easyuse_anima.wildcard.expansion:COUNT_SPEC_RE",
         "kind": "static_from",
-        "line": 138,
+        "line": 137,
         "name": "COUNT_SPEC_RE",
         "optional": false,
         "requested": ".easyuse_anima.wildcard.expansion",
@@ -58159,7 +58196,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": true,
             "kind": "try",
-            "line": 137
+            "line": 136
           }
         ],
         "classification": "internal",
@@ -58167,12 +58204,12 @@
         "compatibility_pair": {
           "bound_name": "DYNAMIC_RE",
           "target": "easyuse_anima/wildcard/expansion.py",
-          "try_line": 137
+          "try_line": 136
         },
         "conditional": true,
         "imported": ".easyuse_anima.wildcard.expansion:DYNAMIC_RE",
         "kind": "static_from",
-        "line": 138,
+        "line": 137,
         "name": "DYNAMIC_RE",
         "optional": false,
         "requested": ".easyuse_anima.wildcard.expansion",
@@ -58190,7 +58227,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": true,
             "kind": "try",
-            "line": 137
+            "line": 136
           }
         ],
         "classification": "internal",
@@ -58198,12 +58235,12 @@
         "compatibility_pair": {
           "bound_name": "WILDCARD_FULL_RE",
           "target": "easyuse_anima/wildcard/expansion.py",
-          "try_line": 137
+          "try_line": 136
         },
         "conditional": true,
         "imported": ".easyuse_anima.wildcard.expansion:WILDCARD_FULL_RE",
         "kind": "static_from",
-        "line": 138,
+        "line": 137,
         "name": "WILDCARD_FULL_RE",
         "optional": false,
         "requested": ".easyuse_anima.wildcard.expansion",
@@ -58221,7 +58258,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": true,
             "kind": "try",
-            "line": 137
+            "line": 136
           }
         ],
         "classification": "internal",
@@ -58229,12 +58266,12 @@
         "compatibility_pair": {
           "bound_name": "WILDCARD_QUANTIFIER_RE",
           "target": "easyuse_anima/wildcard/expansion.py",
-          "try_line": 137
+          "try_line": 136
         },
         "conditional": true,
         "imported": ".easyuse_anima.wildcard.expansion:WILDCARD_QUANTIFIER_RE",
         "kind": "static_from",
-        "line": 138,
+        "line": 137,
         "name": "WILDCARD_QUANTIFIER_RE",
         "optional": false,
         "requested": ".easyuse_anima.wildcard.expansion",
@@ -58252,7 +58289,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": true,
             "kind": "try",
-            "line": 137
+            "line": 136
           }
         ],
         "classification": "internal",
@@ -58260,13 +58297,44 @@
         "compatibility_pair": {
           "bound_name": "WILDCARD_RE",
           "target": "easyuse_anima/wildcard/expansion.py",
-          "try_line": 137
+          "try_line": 136
         },
         "conditional": true,
         "imported": ".easyuse_anima.wildcard.expansion:WILDCARD_RE",
         "kind": "static_from",
-        "line": 138,
+        "line": 137,
         "name": "WILDCARD_RE",
+        "optional": false,
+        "requested": ".easyuse_anima.wildcard.expansion",
+        "role": "compatibility_primary",
+        "scope": "<module>",
+        "source": "wildcard_engine.py",
+        "target": "easyuse_anima/wildcard/expansion.py"
+      },
+      {
+        "alias": "_ExpansionLane",
+        "bound_name": "_ExpansionLane",
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": true,
+            "kind": "try",
+            "line": 136
+          }
+        ],
+        "classification": "internal",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "_ExpansionLane",
+          "target": "easyuse_anima/wildcard/expansion.py",
+          "try_line": 136
+        },
+        "conditional": true,
+        "imported": ".easyuse_anima.wildcard.expansion:_ExpansionLane",
+        "kind": "static_from",
+        "line": 137,
+        "name": "_ExpansionLane",
         "optional": false,
         "requested": ".easyuse_anima.wildcard.expansion",
         "role": "compatibility_primary",
@@ -58283,7 +58351,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": true,
             "kind": "try",
-            "line": 137
+            "line": 136
           }
         ],
         "classification": "internal",
@@ -58291,12 +58359,12 @@
         "compatibility_pair": {
           "bound_name": "_ExpansionSegment",
           "target": "easyuse_anima/wildcard/expansion.py",
-          "try_line": 137
+          "try_line": 136
         },
         "conditional": true,
         "imported": ".easyuse_anima.wildcard.expansion:_ExpansionSegment",
         "kind": "static_from",
-        "line": 138,
+        "line": 137,
         "name": "_ExpansionSegment",
         "optional": false,
         "requested": ".easyuse_anima.wildcard.expansion",
@@ -58306,7 +58374,7 @@
         "target": "easyuse_anima/wildcard/expansion.py"
       },
       {
-        "alias": null,
+        "alias": "_ExpansionState",
         "bound_name": "_ExpansionState",
         "branch_context": [
           {
@@ -58314,7 +58382,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": true,
             "kind": "try",
-            "line": 137
+            "line": 136
           }
         ],
         "classification": "internal",
@@ -58322,12 +58390,12 @@
         "compatibility_pair": {
           "bound_name": "_ExpansionState",
           "target": "easyuse_anima/wildcard/expansion.py",
-          "try_line": 137
+          "try_line": 136
         },
         "conditional": true,
         "imported": ".easyuse_anima.wildcard.expansion:_ExpansionState",
         "kind": "static_from",
-        "line": 138,
+        "line": 137,
         "name": "_ExpansionState",
         "optional": false,
         "requested": ".easyuse_anima.wildcard.expansion",
@@ -58337,7 +58405,7 @@
         "target": "easyuse_anima/wildcard/expansion.py"
       },
       {
-        "alias": null,
+        "alias": "_ExpansionText",
         "bound_name": "_ExpansionText",
         "branch_context": [
           {
@@ -58345,7 +58413,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": true,
             "kind": "try",
-            "line": 137
+            "line": 136
           }
         ],
         "classification": "internal",
@@ -58353,12 +58421,12 @@
         "compatibility_pair": {
           "bound_name": "_ExpansionText",
           "target": "easyuse_anima/wildcard/expansion.py",
-          "try_line": 137
+          "try_line": 136
         },
         "conditional": true,
         "imported": ".easyuse_anima.wildcard.expansion:_ExpansionText",
         "kind": "static_from",
-        "line": 138,
+        "line": 137,
         "name": "_ExpansionText",
         "optional": false,
         "requested": ".easyuse_anima.wildcard.expansion",
@@ -58376,7 +58444,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": true,
             "kind": "try",
-            "line": 137
+            "line": 136
           }
         ],
         "classification": "internal",
@@ -58384,12 +58452,12 @@
         "compatibility_pair": {
           "bound_name": "_Replacement",
           "target": "easyuse_anima/wildcard/expansion.py",
-          "try_line": 137
+          "try_line": 136
         },
         "conditional": true,
         "imported": ".easyuse_anima.wildcard.expansion:_Replacement",
         "kind": "static_from",
-        "line": 138,
+        "line": 137,
         "name": "_Replacement",
         "optional": false,
         "requested": ".easyuse_anima.wildcard.expansion",
@@ -58399,7 +58467,7 @@
         "target": "easyuse_anima/wildcard/expansion.py"
       },
       {
-        "alias": null,
+        "alias": "_bounded_output_prefix",
         "bound_name": "_bounded_output_prefix",
         "branch_context": [
           {
@@ -58407,7 +58475,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": true,
             "kind": "try",
-            "line": 137
+            "line": 136
           }
         ],
         "classification": "internal",
@@ -58415,12 +58483,12 @@
         "compatibility_pair": {
           "bound_name": "_bounded_output_prefix",
           "target": "easyuse_anima/wildcard/expansion.py",
-          "try_line": 137
+          "try_line": 136
         },
         "conditional": true,
         "imported": ".easyuse_anima.wildcard.expansion:_bounded_output_prefix",
         "kind": "static_from",
-        "line": 138,
+        "line": 137,
         "name": "_bounded_output_prefix",
         "optional": false,
         "requested": ".easyuse_anima.wildcard.expansion",
@@ -58438,7 +58506,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": true,
             "kind": "try",
-            "line": 137
+            "line": 136
           }
         ],
         "classification": "internal",
@@ -58446,12 +58514,12 @@
         "compatibility_pair": {
           "bound_name": "_expand_multiselect_options",
           "target": "easyuse_anima/wildcard/expansion.py",
-          "try_line": 137
+          "try_line": 136
         },
         "conditional": true,
         "imported": ".easyuse_anima.wildcard.expansion:_expand_multiselect_options",
         "kind": "static_from",
-        "line": 138,
+        "line": 137,
         "name": "_expand_multiselect_options",
         "optional": false,
         "requested": ".easyuse_anima.wildcard.expansion",
@@ -58462,6 +58530,37 @@
       },
       {
         "alias": null,
+        "bound_name": "_expand_snapshot_texts",
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": true,
+            "kind": "try",
+            "line": 136
+          }
+        ],
+        "classification": "internal",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "_expand_snapshot_texts",
+          "target": "easyuse_anima/wildcard/expansion.py",
+          "try_line": 136
+        },
+        "conditional": true,
+        "imported": ".easyuse_anima.wildcard.expansion:_expand_snapshot_texts",
+        "kind": "static_from",
+        "line": 137,
+        "name": "_expand_snapshot_texts",
+        "optional": false,
+        "requested": ".easyuse_anima.wildcard.expansion",
+        "role": "compatibility_primary",
+        "scope": "<module>",
+        "source": "wildcard_engine.py",
+        "target": "easyuse_anima/wildcard/expansion.py"
+      },
+      {
+        "alias": "_expansion_state_signature",
         "bound_name": "_expansion_state_signature",
         "branch_context": [
           {
@@ -58469,7 +58568,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": true,
             "kind": "try",
-            "line": 137
+            "line": 136
           }
         ],
         "classification": "internal",
@@ -58477,12 +58576,12 @@
         "compatibility_pair": {
           "bound_name": "_expansion_state_signature",
           "target": "easyuse_anima/wildcard/expansion.py",
-          "try_line": 137
+          "try_line": 136
         },
         "conditional": true,
         "imported": ".easyuse_anima.wildcard.expansion:_expansion_state_signature",
         "kind": "static_from",
-        "line": 138,
+        "line": 137,
         "name": "_expansion_state_signature",
         "optional": false,
         "requested": ".easyuse_anima.wildcard.expansion",
@@ -58500,7 +58599,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": true,
             "kind": "try",
-            "line": 137
+            "line": 136
           }
         ],
         "classification": "internal",
@@ -58508,12 +58607,12 @@
         "compatibility_pair": {
           "bound_name": "_parse_count_spec",
           "target": "easyuse_anima/wildcard/expansion.py",
-          "try_line": 137
+          "try_line": 136
         },
         "conditional": true,
         "imported": ".easyuse_anima.wildcard.expansion:_parse_count_spec",
         "kind": "static_from",
-        "line": 138,
+        "line": 137,
         "name": "_parse_count_spec",
         "optional": false,
         "requested": ".easyuse_anima.wildcard.expansion",
@@ -58531,7 +58630,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": true,
             "kind": "try",
-            "line": 137
+            "line": 136
           }
         ],
         "classification": "internal",
@@ -58539,12 +58638,12 @@
         "compatibility_pair": {
           "bound_name": "_parse_dynamic_options",
           "target": "easyuse_anima/wildcard/expansion.py",
-          "try_line": 137
+          "try_line": 136
         },
         "conditional": true,
         "imported": ".easyuse_anima.wildcard.expansion:_parse_dynamic_options",
         "kind": "static_from",
-        "line": 138,
+        "line": 137,
         "name": "_parse_dynamic_options",
         "optional": false,
         "requested": ".easyuse_anima.wildcard.expansion",
@@ -58554,7 +58653,7 @@
         "target": "easyuse_anima/wildcard/expansion.py"
       },
       {
-        "alias": null,
+        "alias": "_replace_dynamic",
         "bound_name": "_replace_dynamic",
         "branch_context": [
           {
@@ -58562,7 +58661,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": true,
             "kind": "try",
-            "line": 137
+            "line": 136
           }
         ],
         "classification": "internal",
@@ -58570,12 +58669,12 @@
         "compatibility_pair": {
           "bound_name": "_replace_dynamic",
           "target": "easyuse_anima/wildcard/expansion.py",
-          "try_line": 137
+          "try_line": 136
         },
         "conditional": true,
         "imported": ".easyuse_anima.wildcard.expansion:_replace_dynamic",
         "kind": "static_from",
-        "line": 138,
+        "line": 137,
         "name": "_replace_dynamic",
         "optional": false,
         "requested": ".easyuse_anima.wildcard.expansion",
@@ -58585,7 +58684,7 @@
         "target": "easyuse_anima/wildcard/expansion.py"
       },
       {
-        "alias": null,
+        "alias": "_replace_file_wildcards",
         "bound_name": "_replace_file_wildcards",
         "branch_context": [
           {
@@ -58593,7 +58692,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": true,
             "kind": "try",
-            "line": 137
+            "line": 136
           }
         ],
         "classification": "internal",
@@ -58601,12 +58700,12 @@
         "compatibility_pair": {
           "bound_name": "_replace_file_wildcards",
           "target": "easyuse_anima/wildcard/expansion.py",
-          "try_line": 137
+          "try_line": 136
         },
         "conditional": true,
         "imported": ".easyuse_anima.wildcard.expansion:_replace_file_wildcards",
         "kind": "static_from",
-        "line": 138,
+        "line": 137,
         "name": "_replace_file_wildcards",
         "optional": false,
         "requested": ".easyuse_anima.wildcard.expansion",
@@ -58616,7 +58715,7 @@
         "target": "easyuse_anima/wildcard/expansion.py"
       },
       {
-        "alias": null,
+        "alias": "_replace_quantified_wildcards",
         "bound_name": "_replace_quantified_wildcards",
         "branch_context": [
           {
@@ -58624,7 +58723,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": true,
             "kind": "try",
-            "line": 137
+            "line": 136
           }
         ],
         "classification": "internal",
@@ -58632,12 +58731,12 @@
         "compatibility_pair": {
           "bound_name": "_replace_quantified_wildcards",
           "target": "easyuse_anima/wildcard/expansion.py",
-          "try_line": 137
+          "try_line": 136
         },
         "conditional": true,
         "imported": ".easyuse_anima.wildcard.expansion:_replace_quantified_wildcards",
         "kind": "static_from",
-        "line": 138,
+        "line": 137,
         "name": "_replace_quantified_wildcards",
         "optional": false,
         "requested": ".easyuse_anima.wildcard.expansion",
@@ -58655,7 +58754,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": true,
             "kind": "try",
-            "line": 137
+            "line": 136
           }
         ],
         "classification": "internal",
@@ -58663,12 +58762,12 @@
         "compatibility_pair": {
           "bound_name": "_split_unescaped",
           "target": "easyuse_anima/wildcard/expansion.py",
-          "try_line": 137
+          "try_line": 136
         },
         "conditional": true,
         "imported": ".easyuse_anima.wildcard.expansion:_split_unescaped",
         "kind": "static_from",
-        "line": 138,
+        "line": 137,
         "name": "_split_unescaped",
         "optional": false,
         "requested": ".easyuse_anima.wildcard.expansion",
@@ -58678,7 +58777,7 @@
         "target": "easyuse_anima/wildcard/expansion.py"
       },
       {
-        "alias": null,
+        "alias": "_utf8_length",
         "bound_name": "_utf8_length",
         "branch_context": [
           {
@@ -58686,7 +58785,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": true,
             "kind": "try",
-            "line": 137
+            "line": 136
           }
         ],
         "classification": "internal",
@@ -58694,12 +58793,12 @@
         "compatibility_pair": {
           "bound_name": "_utf8_length",
           "target": "easyuse_anima/wildcard/expansion.py",
-          "try_line": 137
+          "try_line": 136
         },
         "conditional": true,
         "imported": ".easyuse_anima.wildcard.expansion:_utf8_length",
         "kind": "static_from",
-        "line": 138,
+        "line": 137,
         "name": "_utf8_length",
         "optional": false,
         "requested": ".easyuse_anima.wildcard.expansion",
@@ -58717,7 +58816,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": true,
             "kind": "try",
-            "line": 137
+            "line": 136
           }
         ],
         "classification": "internal",
@@ -58725,12 +58824,12 @@
         "compatibility_pair": {
           "bound_name": "_utf8_width",
           "target": "easyuse_anima/wildcard/expansion.py",
-          "try_line": 137
+          "try_line": 136
         },
         "conditional": true,
         "imported": ".easyuse_anima.wildcard.expansion:_utf8_width",
         "kind": "static_from",
-        "line": 138,
+        "line": 137,
         "name": "_utf8_width",
         "optional": false,
         "requested": ".easyuse_anima.wildcard.expansion",
@@ -58740,7 +58839,7 @@
         "target": "easyuse_anima/wildcard/expansion.py"
       },
       {
-        "alias": null,
+        "alias": "has_wildcard_syntax",
         "bound_name": "has_wildcard_syntax",
         "branch_context": [
           {
@@ -58748,7 +58847,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": true,
             "kind": "try",
-            "line": 137
+            "line": 136
           }
         ],
         "classification": "internal",
@@ -58756,12 +58855,12 @@
         "compatibility_pair": {
           "bound_name": "has_wildcard_syntax",
           "target": "easyuse_anima/wildcard/expansion.py",
-          "try_line": 137
+          "try_line": 136
         },
         "conditional": true,
         "imported": ".easyuse_anima.wildcard.expansion:has_wildcard_syntax",
         "kind": "static_from",
-        "line": 138,
+        "line": 137,
         "name": "has_wildcard_syntax",
         "optional": false,
         "requested": ".easyuse_anima.wildcard.expansion",
@@ -58771,7 +58870,7 @@
         "target": "easyuse_anima/wildcard/expansion.py"
       },
       {
-        "alias": null,
+        "alias": "COMMENT_RE",
         "bound_name": "COMMENT_RE",
         "branch_context": [
           {
@@ -58780,9 +58879,9 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 162,
+            "handler_line": 163,
             "kind": "try",
-            "line": 137
+            "line": 136
           }
         ],
         "classification": "compatibility_fallback",
@@ -58790,12 +58889,12 @@
         "compatibility_pair": {
           "bound_name": "COMMENT_RE",
           "target": "easyuse_anima/wildcard/expansion.py",
-          "try_line": 137
+          "try_line": 136
         },
         "conditional": true,
         "imported": "easyuse_anima.wildcard.expansion:COMMENT_RE",
         "kind": "static_from",
-        "line": 163,
+        "line": 164,
         "name": "COMMENT_RE",
         "optional": false,
         "requested": "easyuse_anima.wildcard.expansion",
@@ -58814,9 +58913,9 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 162,
+            "handler_line": 163,
             "kind": "try",
-            "line": 137
+            "line": 136
           }
         ],
         "classification": "compatibility_fallback",
@@ -58824,12 +58923,12 @@
         "compatibility_pair": {
           "bound_name": "COUNT_SPEC_RE",
           "target": "easyuse_anima/wildcard/expansion.py",
-          "try_line": 137
+          "try_line": 136
         },
         "conditional": true,
         "imported": "easyuse_anima.wildcard.expansion:COUNT_SPEC_RE",
         "kind": "static_from",
-        "line": 163,
+        "line": 164,
         "name": "COUNT_SPEC_RE",
         "optional": false,
         "requested": "easyuse_anima.wildcard.expansion",
@@ -58848,9 +58947,9 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 162,
+            "handler_line": 163,
             "kind": "try",
-            "line": 137
+            "line": 136
           }
         ],
         "classification": "compatibility_fallback",
@@ -58858,12 +58957,12 @@
         "compatibility_pair": {
           "bound_name": "DYNAMIC_RE",
           "target": "easyuse_anima/wildcard/expansion.py",
-          "try_line": 137
+          "try_line": 136
         },
         "conditional": true,
         "imported": "easyuse_anima.wildcard.expansion:DYNAMIC_RE",
         "kind": "static_from",
-        "line": 163,
+        "line": 164,
         "name": "DYNAMIC_RE",
         "optional": false,
         "requested": "easyuse_anima.wildcard.expansion",
@@ -58882,9 +58981,9 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 162,
+            "handler_line": 163,
             "kind": "try",
-            "line": 137
+            "line": 136
           }
         ],
         "classification": "compatibility_fallback",
@@ -58892,12 +58991,12 @@
         "compatibility_pair": {
           "bound_name": "WILDCARD_FULL_RE",
           "target": "easyuse_anima/wildcard/expansion.py",
-          "try_line": 137
+          "try_line": 136
         },
         "conditional": true,
         "imported": "easyuse_anima.wildcard.expansion:WILDCARD_FULL_RE",
         "kind": "static_from",
-        "line": 163,
+        "line": 164,
         "name": "WILDCARD_FULL_RE",
         "optional": false,
         "requested": "easyuse_anima.wildcard.expansion",
@@ -58916,9 +59015,9 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 162,
+            "handler_line": 163,
             "kind": "try",
-            "line": 137
+            "line": 136
           }
         ],
         "classification": "compatibility_fallback",
@@ -58926,12 +59025,12 @@
         "compatibility_pair": {
           "bound_name": "WILDCARD_QUANTIFIER_RE",
           "target": "easyuse_anima/wildcard/expansion.py",
-          "try_line": 137
+          "try_line": 136
         },
         "conditional": true,
         "imported": "easyuse_anima.wildcard.expansion:WILDCARD_QUANTIFIER_RE",
         "kind": "static_from",
-        "line": 163,
+        "line": 164,
         "name": "WILDCARD_QUANTIFIER_RE",
         "optional": false,
         "requested": "easyuse_anima.wildcard.expansion",
@@ -58950,9 +59049,9 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 162,
+            "handler_line": 163,
             "kind": "try",
-            "line": 137
+            "line": 136
           }
         ],
         "classification": "compatibility_fallback",
@@ -58960,13 +59059,47 @@
         "compatibility_pair": {
           "bound_name": "WILDCARD_RE",
           "target": "easyuse_anima/wildcard/expansion.py",
-          "try_line": 137
+          "try_line": 136
         },
         "conditional": true,
         "imported": "easyuse_anima.wildcard.expansion:WILDCARD_RE",
         "kind": "static_from",
-        "line": 163,
+        "line": 164,
         "name": "WILDCARD_RE",
+        "optional": false,
+        "requested": "easyuse_anima.wildcard.expansion",
+        "role": "compatibility_fallback",
+        "scope": "<module>",
+        "source": "wildcard_engine.py",
+        "target": "easyuse_anima/wildcard/expansion.py"
+      },
+      {
+        "alias": "_ExpansionLane",
+        "bound_name": "_ExpansionLane",
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 163,
+            "kind": "try",
+            "line": 136
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "_ExpansionLane",
+          "target": "easyuse_anima/wildcard/expansion.py",
+          "try_line": 136
+        },
+        "conditional": true,
+        "imported": "easyuse_anima.wildcard.expansion:_ExpansionLane",
+        "kind": "static_from",
+        "line": 164,
+        "name": "_ExpansionLane",
         "optional": false,
         "requested": "easyuse_anima.wildcard.expansion",
         "role": "compatibility_fallback",
@@ -58984,9 +59117,9 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 162,
+            "handler_line": 163,
             "kind": "try",
-            "line": 137
+            "line": 136
           }
         ],
         "classification": "compatibility_fallback",
@@ -58994,12 +59127,12 @@
         "compatibility_pair": {
           "bound_name": "_ExpansionSegment",
           "target": "easyuse_anima/wildcard/expansion.py",
-          "try_line": 137
+          "try_line": 136
         },
         "conditional": true,
         "imported": "easyuse_anima.wildcard.expansion:_ExpansionSegment",
         "kind": "static_from",
-        "line": 163,
+        "line": 164,
         "name": "_ExpansionSegment",
         "optional": false,
         "requested": "easyuse_anima.wildcard.expansion",
@@ -59009,7 +59142,7 @@
         "target": "easyuse_anima/wildcard/expansion.py"
       },
       {
-        "alias": null,
+        "alias": "_ExpansionState",
         "bound_name": "_ExpansionState",
         "branch_context": [
           {
@@ -59018,9 +59151,9 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 162,
+            "handler_line": 163,
             "kind": "try",
-            "line": 137
+            "line": 136
           }
         ],
         "classification": "compatibility_fallback",
@@ -59028,12 +59161,12 @@
         "compatibility_pair": {
           "bound_name": "_ExpansionState",
           "target": "easyuse_anima/wildcard/expansion.py",
-          "try_line": 137
+          "try_line": 136
         },
         "conditional": true,
         "imported": "easyuse_anima.wildcard.expansion:_ExpansionState",
         "kind": "static_from",
-        "line": 163,
+        "line": 164,
         "name": "_ExpansionState",
         "optional": false,
         "requested": "easyuse_anima.wildcard.expansion",
@@ -59043,7 +59176,7 @@
         "target": "easyuse_anima/wildcard/expansion.py"
       },
       {
-        "alias": null,
+        "alias": "_ExpansionText",
         "bound_name": "_ExpansionText",
         "branch_context": [
           {
@@ -59052,9 +59185,9 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 162,
+            "handler_line": 163,
             "kind": "try",
-            "line": 137
+            "line": 136
           }
         ],
         "classification": "compatibility_fallback",
@@ -59062,12 +59195,12 @@
         "compatibility_pair": {
           "bound_name": "_ExpansionText",
           "target": "easyuse_anima/wildcard/expansion.py",
-          "try_line": 137
+          "try_line": 136
         },
         "conditional": true,
         "imported": "easyuse_anima.wildcard.expansion:_ExpansionText",
         "kind": "static_from",
-        "line": 163,
+        "line": 164,
         "name": "_ExpansionText",
         "optional": false,
         "requested": "easyuse_anima.wildcard.expansion",
@@ -59086,9 +59219,9 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 162,
+            "handler_line": 163,
             "kind": "try",
-            "line": 137
+            "line": 136
           }
         ],
         "classification": "compatibility_fallback",
@@ -59096,12 +59229,12 @@
         "compatibility_pair": {
           "bound_name": "_Replacement",
           "target": "easyuse_anima/wildcard/expansion.py",
-          "try_line": 137
+          "try_line": 136
         },
         "conditional": true,
         "imported": "easyuse_anima.wildcard.expansion:_Replacement",
         "kind": "static_from",
-        "line": 163,
+        "line": 164,
         "name": "_Replacement",
         "optional": false,
         "requested": "easyuse_anima.wildcard.expansion",
@@ -59111,7 +59244,7 @@
         "target": "easyuse_anima/wildcard/expansion.py"
       },
       {
-        "alias": null,
+        "alias": "_bounded_output_prefix",
         "bound_name": "_bounded_output_prefix",
         "branch_context": [
           {
@@ -59120,9 +59253,9 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 162,
+            "handler_line": 163,
             "kind": "try",
-            "line": 137
+            "line": 136
           }
         ],
         "classification": "compatibility_fallback",
@@ -59130,12 +59263,12 @@
         "compatibility_pair": {
           "bound_name": "_bounded_output_prefix",
           "target": "easyuse_anima/wildcard/expansion.py",
-          "try_line": 137
+          "try_line": 136
         },
         "conditional": true,
         "imported": "easyuse_anima.wildcard.expansion:_bounded_output_prefix",
         "kind": "static_from",
-        "line": 163,
+        "line": 164,
         "name": "_bounded_output_prefix",
         "optional": false,
         "requested": "easyuse_anima.wildcard.expansion",
@@ -59154,9 +59287,9 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 162,
+            "handler_line": 163,
             "kind": "try",
-            "line": 137
+            "line": 136
           }
         ],
         "classification": "compatibility_fallback",
@@ -59164,12 +59297,12 @@
         "compatibility_pair": {
           "bound_name": "_expand_multiselect_options",
           "target": "easyuse_anima/wildcard/expansion.py",
-          "try_line": 137
+          "try_line": 136
         },
         "conditional": true,
         "imported": "easyuse_anima.wildcard.expansion:_expand_multiselect_options",
         "kind": "static_from",
-        "line": 163,
+        "line": 164,
         "name": "_expand_multiselect_options",
         "optional": false,
         "requested": "easyuse_anima.wildcard.expansion",
@@ -59180,6 +59313,40 @@
       },
       {
         "alias": null,
+        "bound_name": "_expand_snapshot_texts",
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 163,
+            "kind": "try",
+            "line": 136
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "_expand_snapshot_texts",
+          "target": "easyuse_anima/wildcard/expansion.py",
+          "try_line": 136
+        },
+        "conditional": true,
+        "imported": "easyuse_anima.wildcard.expansion:_expand_snapshot_texts",
+        "kind": "static_from",
+        "line": 164,
+        "name": "_expand_snapshot_texts",
+        "optional": false,
+        "requested": "easyuse_anima.wildcard.expansion",
+        "role": "compatibility_fallback",
+        "scope": "<module>",
+        "source": "wildcard_engine.py",
+        "target": "easyuse_anima/wildcard/expansion.py"
+      },
+      {
+        "alias": "_expansion_state_signature",
         "bound_name": "_expansion_state_signature",
         "branch_context": [
           {
@@ -59188,9 +59355,9 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 162,
+            "handler_line": 163,
             "kind": "try",
-            "line": 137
+            "line": 136
           }
         ],
         "classification": "compatibility_fallback",
@@ -59198,12 +59365,12 @@
         "compatibility_pair": {
           "bound_name": "_expansion_state_signature",
           "target": "easyuse_anima/wildcard/expansion.py",
-          "try_line": 137
+          "try_line": 136
         },
         "conditional": true,
         "imported": "easyuse_anima.wildcard.expansion:_expansion_state_signature",
         "kind": "static_from",
-        "line": 163,
+        "line": 164,
         "name": "_expansion_state_signature",
         "optional": false,
         "requested": "easyuse_anima.wildcard.expansion",
@@ -59222,9 +59389,9 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 162,
+            "handler_line": 163,
             "kind": "try",
-            "line": 137
+            "line": 136
           }
         ],
         "classification": "compatibility_fallback",
@@ -59232,12 +59399,12 @@
         "compatibility_pair": {
           "bound_name": "_parse_count_spec",
           "target": "easyuse_anima/wildcard/expansion.py",
-          "try_line": 137
+          "try_line": 136
         },
         "conditional": true,
         "imported": "easyuse_anima.wildcard.expansion:_parse_count_spec",
         "kind": "static_from",
-        "line": 163,
+        "line": 164,
         "name": "_parse_count_spec",
         "optional": false,
         "requested": "easyuse_anima.wildcard.expansion",
@@ -59256,9 +59423,9 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 162,
+            "handler_line": 163,
             "kind": "try",
-            "line": 137
+            "line": 136
           }
         ],
         "classification": "compatibility_fallback",
@@ -59266,12 +59433,12 @@
         "compatibility_pair": {
           "bound_name": "_parse_dynamic_options",
           "target": "easyuse_anima/wildcard/expansion.py",
-          "try_line": 137
+          "try_line": 136
         },
         "conditional": true,
         "imported": "easyuse_anima.wildcard.expansion:_parse_dynamic_options",
         "kind": "static_from",
-        "line": 163,
+        "line": 164,
         "name": "_parse_dynamic_options",
         "optional": false,
         "requested": "easyuse_anima.wildcard.expansion",
@@ -59281,7 +59448,7 @@
         "target": "easyuse_anima/wildcard/expansion.py"
       },
       {
-        "alias": null,
+        "alias": "_replace_dynamic",
         "bound_name": "_replace_dynamic",
         "branch_context": [
           {
@@ -59290,9 +59457,9 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 162,
+            "handler_line": 163,
             "kind": "try",
-            "line": 137
+            "line": 136
           }
         ],
         "classification": "compatibility_fallback",
@@ -59300,12 +59467,12 @@
         "compatibility_pair": {
           "bound_name": "_replace_dynamic",
           "target": "easyuse_anima/wildcard/expansion.py",
-          "try_line": 137
+          "try_line": 136
         },
         "conditional": true,
         "imported": "easyuse_anima.wildcard.expansion:_replace_dynamic",
         "kind": "static_from",
-        "line": 163,
+        "line": 164,
         "name": "_replace_dynamic",
         "optional": false,
         "requested": "easyuse_anima.wildcard.expansion",
@@ -59315,7 +59482,7 @@
         "target": "easyuse_anima/wildcard/expansion.py"
       },
       {
-        "alias": null,
+        "alias": "_replace_file_wildcards",
         "bound_name": "_replace_file_wildcards",
         "branch_context": [
           {
@@ -59324,9 +59491,9 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 162,
+            "handler_line": 163,
             "kind": "try",
-            "line": 137
+            "line": 136
           }
         ],
         "classification": "compatibility_fallback",
@@ -59334,12 +59501,12 @@
         "compatibility_pair": {
           "bound_name": "_replace_file_wildcards",
           "target": "easyuse_anima/wildcard/expansion.py",
-          "try_line": 137
+          "try_line": 136
         },
         "conditional": true,
         "imported": "easyuse_anima.wildcard.expansion:_replace_file_wildcards",
         "kind": "static_from",
-        "line": 163,
+        "line": 164,
         "name": "_replace_file_wildcards",
         "optional": false,
         "requested": "easyuse_anima.wildcard.expansion",
@@ -59349,7 +59516,7 @@
         "target": "easyuse_anima/wildcard/expansion.py"
       },
       {
-        "alias": null,
+        "alias": "_replace_quantified_wildcards",
         "bound_name": "_replace_quantified_wildcards",
         "branch_context": [
           {
@@ -59358,9 +59525,9 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 162,
+            "handler_line": 163,
             "kind": "try",
-            "line": 137
+            "line": 136
           }
         ],
         "classification": "compatibility_fallback",
@@ -59368,12 +59535,12 @@
         "compatibility_pair": {
           "bound_name": "_replace_quantified_wildcards",
           "target": "easyuse_anima/wildcard/expansion.py",
-          "try_line": 137
+          "try_line": 136
         },
         "conditional": true,
         "imported": "easyuse_anima.wildcard.expansion:_replace_quantified_wildcards",
         "kind": "static_from",
-        "line": 163,
+        "line": 164,
         "name": "_replace_quantified_wildcards",
         "optional": false,
         "requested": "easyuse_anima.wildcard.expansion",
@@ -59392,9 +59559,9 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 162,
+            "handler_line": 163,
             "kind": "try",
-            "line": 137
+            "line": 136
           }
         ],
         "classification": "compatibility_fallback",
@@ -59402,12 +59569,12 @@
         "compatibility_pair": {
           "bound_name": "_split_unescaped",
           "target": "easyuse_anima/wildcard/expansion.py",
-          "try_line": 137
+          "try_line": 136
         },
         "conditional": true,
         "imported": "easyuse_anima.wildcard.expansion:_split_unescaped",
         "kind": "static_from",
-        "line": 163,
+        "line": 164,
         "name": "_split_unescaped",
         "optional": false,
         "requested": "easyuse_anima.wildcard.expansion",
@@ -59417,7 +59584,7 @@
         "target": "easyuse_anima/wildcard/expansion.py"
       },
       {
-        "alias": null,
+        "alias": "_utf8_length",
         "bound_name": "_utf8_length",
         "branch_context": [
           {
@@ -59426,9 +59593,9 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 162,
+            "handler_line": 163,
             "kind": "try",
-            "line": 137
+            "line": 136
           }
         ],
         "classification": "compatibility_fallback",
@@ -59436,12 +59603,12 @@
         "compatibility_pair": {
           "bound_name": "_utf8_length",
           "target": "easyuse_anima/wildcard/expansion.py",
-          "try_line": 137
+          "try_line": 136
         },
         "conditional": true,
         "imported": "easyuse_anima.wildcard.expansion:_utf8_length",
         "kind": "static_from",
-        "line": 163,
+        "line": 164,
         "name": "_utf8_length",
         "optional": false,
         "requested": "easyuse_anima.wildcard.expansion",
@@ -59460,9 +59627,9 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 162,
+            "handler_line": 163,
             "kind": "try",
-            "line": 137
+            "line": 136
           }
         ],
         "classification": "compatibility_fallback",
@@ -59470,12 +59637,12 @@
         "compatibility_pair": {
           "bound_name": "_utf8_width",
           "target": "easyuse_anima/wildcard/expansion.py",
-          "try_line": 137
+          "try_line": 136
         },
         "conditional": true,
         "imported": "easyuse_anima.wildcard.expansion:_utf8_width",
         "kind": "static_from",
-        "line": 163,
+        "line": 164,
         "name": "_utf8_width",
         "optional": false,
         "requested": "easyuse_anima.wildcard.expansion",
@@ -59485,7 +59652,7 @@
         "target": "easyuse_anima/wildcard/expansion.py"
       },
       {
-        "alias": null,
+        "alias": "has_wildcard_syntax",
         "bound_name": "has_wildcard_syntax",
         "branch_context": [
           {
@@ -59494,9 +59661,9 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 162,
+            "handler_line": 163,
             "kind": "try",
-            "line": 137
+            "line": 136
           }
         ],
         "classification": "compatibility_fallback",
@@ -59504,12 +59671,12 @@
         "compatibility_pair": {
           "bound_name": "has_wildcard_syntax",
           "target": "easyuse_anima/wildcard/expansion.py",
-          "try_line": 137
+          "try_line": 136
         },
         "conditional": true,
         "imported": "easyuse_anima.wildcard.expansion:has_wildcard_syntax",
         "kind": "static_from",
-        "line": 163,
+        "line": 164,
         "name": "has_wildcard_syntax",
         "optional": false,
         "requested": "easyuse_anima.wildcard.expansion",
@@ -59527,7 +59694,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": true,
             "kind": "try",
-            "line": 188
+            "line": 191
           }
         ],
         "classification": "internal",
@@ -59535,12 +59702,12 @@
         "compatibility_pair": {
           "bound_name": "_WildcardLibraryCore",
           "target": "easyuse_anima/wildcard/library.py",
-          "try_line": 188
+          "try_line": 191
         },
         "conditional": true,
         "imported": ".easyuse_anima.wildcard.library:_WildcardLibrary",
         "kind": "static_from",
-        "line": 189,
+        "line": 192,
         "name": "_WildcardLibrary",
         "optional": false,
         "requested": ".easyuse_anima.wildcard.library",
@@ -59559,9 +59726,9 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 192,
+            "handler_line": 195,
             "kind": "try",
-            "line": 188
+            "line": 191
           }
         ],
         "classification": "compatibility_fallback",
@@ -59569,12 +59736,12 @@
         "compatibility_pair": {
           "bound_name": "_WildcardLibraryCore",
           "target": "easyuse_anima/wildcard/library.py",
-          "try_line": 188
+          "try_line": 191
         },
         "conditional": true,
         "imported": "easyuse_anima.wildcard.library:_WildcardLibrary",
         "kind": "static_from",
-        "line": 193,
+        "line": 196,
         "name": "_WildcardLibrary",
         "optional": false,
         "requested": "easyuse_anima.wildcard.library",
@@ -60979,11 +61146,19 @@
       },
       {
         "from": "easyuse_anima/wildcard/expansion.py",
+        "to": "easyuse_anima/wildcard/library.py"
+      },
+      {
+        "from": "easyuse_anima/wildcard/expansion.py",
         "to": "easyuse_anima/wildcard/models.py"
       },
       {
         "from": "easyuse_anima/wildcard/expansion.py",
         "to": "easyuse_anima/wildcard/selector.py"
+      },
+      {
+        "from": "easyuse_anima/wildcard/expansion.py",
+        "to": "easyuse_anima/wildcard/snapshot.py"
       },
       {
         "from": "easyuse_anima/wildcard/expansion.py",
@@ -63635,13 +63810,13 @@
       },
       {
         "is_package": false,
-        "loc": 478,
+        "loc": 595,
         "module": "easyuse_anima.wildcard.expansion",
-        "normalized_git_blob_sha1": "bedb560021ce137238c7a8f7c02db1f29d32e52a",
+        "normalized_git_blob_sha1": "943f80770883575c05b1d09b2c0db66c218678b9",
         "path": "easyuse_anima/wildcard/expansion.py",
         "top_level": {
-          "class_count": 5,
-          "function_count": 12,
+          "class_count": 6,
+          "function_count": 13,
           "global_count": 7
         }
       },
@@ -63791,12 +63966,12 @@
       },
       {
         "is_package": false,
-        "loc": 433,
+        "loc": 336,
         "module": "wildcard_engine",
-        "normalized_git_blob_sha1": "fe532abd3ff7d10bace9f990925a1d5f1ec95a19",
+        "normalized_git_blob_sha1": "a952ef0bfbd0842d87893be8a3b41362d0d572c1",
         "path": "wildcard_engine.py",
         "top_level": {
-          "class_count": 2,
+          "class_count": 1,
           "function_count": 6,
           "global_count": 4
         }
@@ -74240,16 +74415,16 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 28,
+            "handler_line": 27,
             "kind": "try",
-            "line": 13
+            "line": 12
           }
         ],
         "classification": "compatibility_fallback",
         "conditional": true,
         "imported": "easyuse_anima.wildcard.models:DEFAULT_MAX_EXPANSION_DEPTH",
         "kind": "static_from",
-        "line": 29,
+        "line": 28,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "wildcard_engine.py",
@@ -74263,16 +74438,16 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 28,
+            "handler_line": 27,
             "kind": "try",
-            "line": 13
+            "line": 12
           }
         ],
         "classification": "compatibility_fallback",
         "conditional": true,
         "imported": "easyuse_anima.wildcard.models:DEFAULT_MAX_EXPANSION_GROWTH_PER_PASS",
         "kind": "static_from",
-        "line": 29,
+        "line": 28,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "wildcard_engine.py",
@@ -74286,16 +74461,16 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 28,
+            "handler_line": 27,
             "kind": "try",
-            "line": 13
+            "line": 12
           }
         ],
         "classification": "compatibility_fallback",
         "conditional": true,
         "imported": "easyuse_anima.wildcard.models:DEFAULT_MAX_EXPANSION_OUTPUT_CHARS",
         "kind": "static_from",
-        "line": 29,
+        "line": 28,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "wildcard_engine.py",
@@ -74309,16 +74484,16 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 28,
+            "handler_line": 27,
             "kind": "try",
-            "line": 13
+            "line": 12
           }
         ],
         "classification": "compatibility_fallback",
         "conditional": true,
         "imported": "easyuse_anima.wildcard.models:DEFAULT_MAX_EXPANSION_REPLACEMENTS",
         "kind": "static_from",
-        "line": 29,
+        "line": 28,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "wildcard_engine.py",
@@ -74332,16 +74507,16 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 28,
+            "handler_line": 27,
             "kind": "try",
-            "line": 13
+            "line": 12
           }
         ],
         "classification": "compatibility_fallback",
         "conditional": true,
         "imported": "easyuse_anima.wildcard.models:MAX_EXPANSION_DEPTH",
         "kind": "static_from",
-        "line": 29,
+        "line": 28,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "wildcard_engine.py",
@@ -74355,16 +74530,16 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 28,
+            "handler_line": 27,
             "kind": "try",
-            "line": 13
+            "line": 12
           }
         ],
         "classification": "compatibility_fallback",
         "conditional": true,
         "imported": "easyuse_anima.wildcard.models:MAX_EXPANSION_GROWTH_PER_PASS",
         "kind": "static_from",
-        "line": 29,
+        "line": 28,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "wildcard_engine.py",
@@ -74378,16 +74553,16 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 28,
+            "handler_line": 27,
             "kind": "try",
-            "line": 13
+            "line": 12
           }
         ],
         "classification": "compatibility_fallback",
         "conditional": true,
         "imported": "easyuse_anima.wildcard.models:MAX_EXPANSION_OUTPUT_CHARS",
         "kind": "static_from",
-        "line": 29,
+        "line": 28,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "wildcard_engine.py",
@@ -74401,16 +74576,16 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 28,
+            "handler_line": 27,
             "kind": "try",
-            "line": 13
+            "line": 12
           }
         ],
         "classification": "compatibility_fallback",
         "conditional": true,
         "imported": "easyuse_anima.wildcard.models:MAX_EXPANSION_REPLACEMENTS",
         "kind": "static_from",
-        "line": 29,
+        "line": 28,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "wildcard_engine.py",
@@ -74424,16 +74599,16 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 28,
+            "handler_line": 27,
             "kind": "try",
-            "line": 13
+            "line": 12
           }
         ],
         "classification": "compatibility_fallback",
         "conditional": true,
         "imported": "easyuse_anima.wildcard.models:REPLACE_DEPTH",
         "kind": "static_from",
-        "line": 29,
+        "line": 28,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "wildcard_engine.py",
@@ -74447,16 +74622,16 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 28,
+            "handler_line": 27,
             "kind": "try",
-            "line": 13
+            "line": 12
           }
         ],
         "classification": "compatibility_fallback",
         "conditional": true,
         "imported": "easyuse_anima.wildcard.models:WildcardExpansionBudget",
         "kind": "static_from",
-        "line": 29,
+        "line": 28,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "wildcard_engine.py",
@@ -74470,16 +74645,16 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 28,
+            "handler_line": 27,
             "kind": "try",
-            "line": 13
+            "line": 12
           }
         ],
         "classification": "compatibility_fallback",
         "conditional": true,
         "imported": "easyuse_anima.wildcard.models:WildcardExpansionResult",
         "kind": "static_from",
-        "line": 29,
+        "line": 28,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "wildcard_engine.py",
@@ -74493,16 +74668,16 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 28,
+            "handler_line": 27,
             "kind": "try",
-            "line": 13
+            "line": 12
           }
         ],
         "classification": "compatibility_fallback",
         "conditional": true,
         "imported": "easyuse_anima.wildcard.models:WildcardOption",
         "kind": "static_from",
-        "line": 29,
+        "line": 28,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "wildcard_engine.py",
@@ -74516,14 +74691,37 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 56,
+            "handler_line": 55,
             "kind": "try",
-            "line": 44
+            "line": 43
           }
         ],
         "classification": "compatibility_fallback",
         "conditional": true,
         "imported": "easyuse_anima.wildcard:sources",
+        "kind": "static_from",
+        "line": 56,
+        "optional": false,
+        "role": "compatibility_fallback",
+        "source": "wildcard_engine.py",
+        "target": "easyuse_anima/wildcard/sources.py"
+      },
+      {
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 55,
+            "kind": "try",
+            "line": 43
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "conditional": true,
+        "imported": "easyuse_anima.wildcard.sources:DEFAULT_TEST_WILDCARD_FILE",
         "kind": "static_from",
         "line": 57,
         "optional": false,
@@ -74539,39 +74737,16 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 56,
+            "handler_line": 55,
             "kind": "try",
-            "line": 44
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "conditional": true,
-        "imported": "easyuse_anima.wildcard.sources:DEFAULT_TEST_WILDCARD_FILE",
-        "kind": "static_from",
-        "line": 58,
-        "optional": false,
-        "role": "compatibility_fallback",
-        "source": "wildcard_engine.py",
-        "target": "easyuse_anima/wildcard/sources.py"
-      },
-      {
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 56,
-            "kind": "try",
-            "line": 44
+            "line": 43
           }
         ],
         "classification": "compatibility_fallback",
         "conditional": true,
         "imported": "easyuse_anima.wildcard.sources:DEFAULT_TEST_WILDCARD_TEXT",
         "kind": "static_from",
-        "line": 58,
+        "line": 57,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "wildcard_engine.py",
@@ -74585,16 +74760,16 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 56,
+            "handler_line": 55,
             "kind": "try",
-            "line": 44
+            "line": 43
           }
         ],
         "classification": "compatibility_fallback",
         "conditional": true,
         "imported": "easyuse_anima.wildcard.sources:WILDCARD_DIR_NAME",
         "kind": "static_from",
-        "line": 58,
+        "line": 57,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "wildcard_engine.py",
@@ -74608,16 +74783,16 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 56,
+            "handler_line": 55,
             "kind": "try",
-            "line": 44
+            "line": 43
           }
         ],
         "classification": "compatibility_fallback",
         "conditional": true,
         "imported": "easyuse_anima.wildcard.sources:WILDCARD_EXTENSIONS",
         "kind": "static_from",
-        "line": 58,
+        "line": 57,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "wildcard_engine.py",
@@ -74631,16 +74806,16 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 56,
+            "handler_line": 55,
             "kind": "try",
-            "line": 44
+            "line": 43
           }
         ],
         "classification": "compatibility_fallback",
         "conditional": true,
         "imported": "easyuse_anima.wildcard.sources:default_wildcard_root",
         "kind": "static_from",
-        "line": 58,
+        "line": 57,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "wildcard_engine.py",
@@ -74654,16 +74829,16 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 56,
+            "handler_line": 55,
             "kind": "try",
-            "line": 44
+            "line": 43
           }
         ],
         "classification": "compatibility_fallback",
         "conditional": true,
         "imported": "easyuse_anima.wildcard.sources:ensure_default_wildcard_root",
         "kind": "static_from",
-        "line": 58,
+        "line": 57,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "wildcard_engine.py",
@@ -74677,16 +74852,16 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 56,
+            "handler_line": 55,
             "kind": "try",
-            "line": 44
+            "line": 43
           }
         ],
         "classification": "compatibility_fallback",
         "conditional": true,
         "imported": "easyuse_anima.wildcard.sources:parse_wildcard_extra_paths",
         "kind": "static_from",
-        "line": 58,
+        "line": 57,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "wildcard_engine.py",
@@ -74700,16 +74875,16 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 56,
+            "handler_line": 55,
             "kind": "try",
-            "line": 44
+            "line": 43
           }
         ],
         "classification": "compatibility_fallback",
         "conditional": true,
         "imported": "easyuse_anima.wildcard.sources:resolve_wildcard_roots",
         "kind": "static_from",
-        "line": 58,
+        "line": 57,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "wildcard_engine.py",
@@ -74723,16 +74898,16 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 74,
+            "handler_line": 73,
             "kind": "try",
-            "line": 69
+            "line": 68
           }
         ],
         "classification": "compatibility_fallback",
         "conditional": true,
         "imported": "easyuse_anima.wildcard.snapshot:_WildcardSnapshot",
         "kind": "static_from",
-        "line": 75,
+        "line": 74,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "wildcard_engine.py",
@@ -74746,16 +74921,16 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 74,
+            "handler_line": 73,
             "kind": "try",
-            "line": 69
+            "line": 68
           }
         ],
         "classification": "compatibility_fallback",
         "conditional": true,
         "imported": "easyuse_anima.wildcard.snapshot:_build_wildcard_snapshot",
         "kind": "static_from",
-        "line": 75,
+        "line": 74,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "wildcard_engine.py",
@@ -74769,16 +74944,16 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 92,
+            "handler_line": 91,
             "kind": "try",
-            "line": 80
+            "line": 79
           }
         ],
         "classification": "compatibility_fallback",
         "conditional": true,
         "imported": "easyuse_anima.wildcard.seed:MAX_SEED",
         "kind": "static_from",
-        "line": 93,
+        "line": 92,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "wildcard_engine.py",
@@ -74792,16 +74967,16 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 92,
+            "handler_line": 91,
             "kind": "try",
-            "line": 80
+            "line": 79
           }
         ],
         "classification": "compatibility_fallback",
         "conditional": true,
         "imported": "easyuse_anima.wildcard.seed:PUBLIC_MAX_SEED",
         "kind": "static_from",
-        "line": 93,
+        "line": 92,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "wildcard_engine.py",
@@ -74815,16 +74990,16 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 92,
+            "handler_line": 91,
             "kind": "try",
-            "line": 80
+            "line": 79
           }
         ],
         "classification": "compatibility_fallback",
         "conditional": true,
         "imported": "easyuse_anima.wildcard.seed:SEED_CONTROL_DECREMENT",
         "kind": "static_from",
-        "line": 93,
+        "line": 92,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "wildcard_engine.py",
@@ -74838,16 +75013,16 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 92,
+            "handler_line": 91,
             "kind": "try",
-            "line": 80
+            "line": 79
           }
         ],
         "classification": "compatibility_fallback",
         "conditional": true,
         "imported": "easyuse_anima.wildcard.seed:SEED_CONTROL_FIXED",
         "kind": "static_from",
-        "line": 93,
+        "line": 92,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "wildcard_engine.py",
@@ -74861,16 +75036,16 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 92,
+            "handler_line": 91,
             "kind": "try",
-            "line": 80
+            "line": 79
           }
         ],
         "classification": "compatibility_fallback",
         "conditional": true,
         "imported": "easyuse_anima.wildcard.seed:SEED_CONTROL_INCREMENT",
         "kind": "static_from",
-        "line": 93,
+        "line": 92,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "wildcard_engine.py",
@@ -74884,16 +75059,16 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 92,
+            "handler_line": 91,
             "kind": "try",
-            "line": 80
+            "line": 79
           }
         ],
         "classification": "compatibility_fallback",
         "conditional": true,
         "imported": "easyuse_anima.wildcard.seed:SEED_CONTROL_MODES",
         "kind": "static_from",
-        "line": 93,
+        "line": 92,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "wildcard_engine.py",
@@ -74907,16 +75082,16 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 92,
+            "handler_line": 91,
             "kind": "try",
-            "line": 80
+            "line": 79
           }
         ],
         "classification": "compatibility_fallback",
         "conditional": true,
         "imported": "easyuse_anima.wildcard.seed:SEED_CONTROL_RANDOMIZE",
         "kind": "static_from",
-        "line": 93,
+        "line": 92,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "wildcard_engine.py",
@@ -74930,16 +75105,16 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 92,
+            "handler_line": 91,
             "kind": "try",
-            "line": 80
+            "line": 79
           }
         ],
         "classification": "compatibility_fallback",
         "conditional": true,
         "imported": "easyuse_anima.wildcard.seed:next_seed",
         "kind": "static_from",
-        "line": 93,
+        "line": 92,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "wildcard_engine.py",
@@ -74953,16 +75128,16 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 92,
+            "handler_line": 91,
             "kind": "try",
-            "line": 80
+            "line": 79
           }
         ],
         "classification": "compatibility_fallback",
         "conditional": true,
         "imported": "easyuse_anima.wildcard.seed:normalize_seed",
         "kind": "static_from",
-        "line": 93,
+        "line": 92,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "wildcard_engine.py",
@@ -74976,16 +75151,16 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 118,
+            "handler_line": 117,
             "kind": "try",
-            "line": 105
+            "line": 104
           }
         ],
         "classification": "compatibility_fallback",
         "conditional": true,
         "imported": "easyuse_anima.wildcard.mode:PROMPT_STUDIO_WILDCARD_MODE_LABELS",
         "kind": "static_from",
-        "line": 119,
+        "line": 118,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "wildcard_engine.py",
@@ -74999,16 +75174,16 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 118,
+            "handler_line": 117,
             "kind": "try",
-            "line": 105
+            "line": 104
           }
         ],
         "classification": "compatibility_fallback",
         "conditional": true,
         "imported": "easyuse_anima.wildcard.mode:WILDCARD_MODES",
         "kind": "static_from",
-        "line": 119,
+        "line": 118,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "wildcard_engine.py",
@@ -75022,16 +75197,16 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 118,
+            "handler_line": 117,
             "kind": "try",
-            "line": 105
+            "line": 104
           }
         ],
         "classification": "compatibility_fallback",
         "conditional": true,
         "imported": "easyuse_anima.wildcard.mode:WILDCARD_MODE_ALIASES",
         "kind": "static_from",
-        "line": 119,
+        "line": 118,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "wildcard_engine.py",
@@ -75045,16 +75220,16 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 118,
+            "handler_line": 117,
             "kind": "try",
-            "line": 105
+            "line": 104
           }
         ],
         "classification": "compatibility_fallback",
         "conditional": true,
         "imported": "easyuse_anima.wildcard.mode:WILDCARD_MODE_FIXED",
         "kind": "static_from",
-        "line": 119,
+        "line": 118,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "wildcard_engine.py",
@@ -75068,16 +75243,16 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 118,
+            "handler_line": 117,
             "kind": "try",
-            "line": 105
+            "line": 104
           }
         ],
         "classification": "compatibility_fallback",
         "conditional": true,
         "imported": "easyuse_anima.wildcard.mode:WILDCARD_MODE_LABELS",
         "kind": "static_from",
-        "line": 119,
+        "line": 118,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "wildcard_engine.py",
@@ -75091,16 +75266,16 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 118,
+            "handler_line": 117,
             "kind": "try",
-            "line": 105
+            "line": 104
           }
         ],
         "classification": "compatibility_fallback",
         "conditional": true,
         "imported": "easyuse_anima.wildcard.mode:WILDCARD_MODE_POPULATE",
         "kind": "static_from",
-        "line": 119,
+        "line": 118,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "wildcard_engine.py",
@@ -75114,16 +75289,16 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 118,
+            "handler_line": 117,
             "kind": "try",
-            "line": 105
+            "line": 104
           }
         ],
         "classification": "compatibility_fallback",
         "conditional": true,
         "imported": "easyuse_anima.wildcard.mode:WILDCARD_MODE_REPRODUCE",
         "kind": "static_from",
-        "line": 119,
+        "line": 118,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "wildcard_engine.py",
@@ -75137,16 +75312,16 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 118,
+            "handler_line": 117,
             "kind": "try",
-            "line": 105
+            "line": 104
           }
         ],
         "classification": "compatibility_fallback",
         "conditional": true,
         "imported": "easyuse_anima.wildcard.mode:WILDCARD_MODE_SEQUENTIAL",
         "kind": "static_from",
-        "line": 119,
+        "line": 118,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "wildcard_engine.py",
@@ -75160,16 +75335,16 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 118,
+            "handler_line": 117,
             "kind": "try",
-            "line": 105
+            "line": 104
           }
         ],
         "classification": "compatibility_fallback",
         "conditional": true,
         "imported": "easyuse_anima.wildcard.mode:normalize_prompt_studio_wildcard_mode",
         "kind": "static_from",
-        "line": 119,
+        "line": 118,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "wildcard_engine.py",
@@ -75183,16 +75358,16 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 118,
+            "handler_line": 117,
             "kind": "try",
-            "line": 105
+            "line": 104
           }
         ],
         "classification": "compatibility_fallback",
         "conditional": true,
         "imported": "easyuse_anima.wildcard.mode:normalize_wildcard_mode",
         "kind": "static_from",
-        "line": 119,
+        "line": 118,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "wildcard_engine.py",
@@ -75206,16 +75381,16 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 134,
+            "handler_line": 133,
             "kind": "try",
-            "line": 132
+            "line": 131
           }
         ],
         "classification": "compatibility_fallback",
         "conditional": true,
         "imported": "easyuse_anima.wildcard.selector:_Selector",
         "kind": "static_from",
-        "line": 135,
+        "line": 134,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "wildcard_engine.py",
@@ -75229,16 +75404,16 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 162,
+            "handler_line": 163,
             "kind": "try",
-            "line": 137
+            "line": 136
           }
         ],
         "classification": "compatibility_fallback",
         "conditional": true,
         "imported": "easyuse_anima.wildcard.expansion:COMMENT_RE",
         "kind": "static_from",
-        "line": 163,
+        "line": 164,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "wildcard_engine.py",
@@ -75252,16 +75427,16 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 162,
+            "handler_line": 163,
             "kind": "try",
-            "line": 137
+            "line": 136
           }
         ],
         "classification": "compatibility_fallback",
         "conditional": true,
         "imported": "easyuse_anima.wildcard.expansion:COUNT_SPEC_RE",
         "kind": "static_from",
-        "line": 163,
+        "line": 164,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "wildcard_engine.py",
@@ -75275,16 +75450,16 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 162,
+            "handler_line": 163,
             "kind": "try",
-            "line": 137
+            "line": 136
           }
         ],
         "classification": "compatibility_fallback",
         "conditional": true,
         "imported": "easyuse_anima.wildcard.expansion:DYNAMIC_RE",
         "kind": "static_from",
-        "line": 163,
+        "line": 164,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "wildcard_engine.py",
@@ -75298,16 +75473,16 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 162,
+            "handler_line": 163,
             "kind": "try",
-            "line": 137
+            "line": 136
           }
         ],
         "classification": "compatibility_fallback",
         "conditional": true,
         "imported": "easyuse_anima.wildcard.expansion:WILDCARD_FULL_RE",
         "kind": "static_from",
-        "line": 163,
+        "line": 164,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "wildcard_engine.py",
@@ -75321,16 +75496,16 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 162,
+            "handler_line": 163,
             "kind": "try",
-            "line": 137
+            "line": 136
           }
         ],
         "classification": "compatibility_fallback",
         "conditional": true,
         "imported": "easyuse_anima.wildcard.expansion:WILDCARD_QUANTIFIER_RE",
         "kind": "static_from",
-        "line": 163,
+        "line": 164,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "wildcard_engine.py",
@@ -75344,16 +75519,16 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 162,
+            "handler_line": 163,
             "kind": "try",
-            "line": 137
+            "line": 136
           }
         ],
         "classification": "compatibility_fallback",
         "conditional": true,
         "imported": "easyuse_anima.wildcard.expansion:WILDCARD_RE",
         "kind": "static_from",
-        "line": 163,
+        "line": 164,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "wildcard_engine.py",
@@ -75367,16 +75542,39 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 162,
+            "handler_line": 163,
             "kind": "try",
-            "line": 137
+            "line": 136
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "conditional": true,
+        "imported": "easyuse_anima.wildcard.expansion:_ExpansionLane",
+        "kind": "static_from",
+        "line": 164,
+        "optional": false,
+        "role": "compatibility_fallback",
+        "source": "wildcard_engine.py",
+        "target": "easyuse_anima/wildcard/expansion.py"
+      },
+      {
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 163,
+            "kind": "try",
+            "line": 136
           }
         ],
         "classification": "compatibility_fallback",
         "conditional": true,
         "imported": "easyuse_anima.wildcard.expansion:_ExpansionSegment",
         "kind": "static_from",
-        "line": 163,
+        "line": 164,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "wildcard_engine.py",
@@ -75390,16 +75588,16 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 162,
+            "handler_line": 163,
             "kind": "try",
-            "line": 137
+            "line": 136
           }
         ],
         "classification": "compatibility_fallback",
         "conditional": true,
         "imported": "easyuse_anima.wildcard.expansion:_ExpansionState",
         "kind": "static_from",
-        "line": 163,
+        "line": 164,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "wildcard_engine.py",
@@ -75413,16 +75611,16 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 162,
+            "handler_line": 163,
             "kind": "try",
-            "line": 137
+            "line": 136
           }
         ],
         "classification": "compatibility_fallback",
         "conditional": true,
         "imported": "easyuse_anima.wildcard.expansion:_ExpansionText",
         "kind": "static_from",
-        "line": 163,
+        "line": 164,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "wildcard_engine.py",
@@ -75436,16 +75634,16 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 162,
+            "handler_line": 163,
             "kind": "try",
-            "line": 137
+            "line": 136
           }
         ],
         "classification": "compatibility_fallback",
         "conditional": true,
         "imported": "easyuse_anima.wildcard.expansion:_Replacement",
         "kind": "static_from",
-        "line": 163,
+        "line": 164,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "wildcard_engine.py",
@@ -75459,16 +75657,16 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 162,
+            "handler_line": 163,
             "kind": "try",
-            "line": 137
+            "line": 136
           }
         ],
         "classification": "compatibility_fallback",
         "conditional": true,
         "imported": "easyuse_anima.wildcard.expansion:_bounded_output_prefix",
         "kind": "static_from",
-        "line": 163,
+        "line": 164,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "wildcard_engine.py",
@@ -75482,16 +75680,16 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 162,
+            "handler_line": 163,
             "kind": "try",
-            "line": 137
+            "line": 136
           }
         ],
         "classification": "compatibility_fallback",
         "conditional": true,
         "imported": "easyuse_anima.wildcard.expansion:_expand_multiselect_options",
         "kind": "static_from",
-        "line": 163,
+        "line": 164,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "wildcard_engine.py",
@@ -75505,16 +75703,39 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 162,
+            "handler_line": 163,
             "kind": "try",
-            "line": 137
+            "line": 136
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "conditional": true,
+        "imported": "easyuse_anima.wildcard.expansion:_expand_snapshot_texts",
+        "kind": "static_from",
+        "line": 164,
+        "optional": false,
+        "role": "compatibility_fallback",
+        "source": "wildcard_engine.py",
+        "target": "easyuse_anima/wildcard/expansion.py"
+      },
+      {
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 163,
+            "kind": "try",
+            "line": 136
           }
         ],
         "classification": "compatibility_fallback",
         "conditional": true,
         "imported": "easyuse_anima.wildcard.expansion:_expansion_state_signature",
         "kind": "static_from",
-        "line": 163,
+        "line": 164,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "wildcard_engine.py",
@@ -75528,16 +75749,16 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 162,
+            "handler_line": 163,
             "kind": "try",
-            "line": 137
+            "line": 136
           }
         ],
         "classification": "compatibility_fallback",
         "conditional": true,
         "imported": "easyuse_anima.wildcard.expansion:_parse_count_spec",
         "kind": "static_from",
-        "line": 163,
+        "line": 164,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "wildcard_engine.py",
@@ -75551,16 +75772,16 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 162,
+            "handler_line": 163,
             "kind": "try",
-            "line": 137
+            "line": 136
           }
         ],
         "classification": "compatibility_fallback",
         "conditional": true,
         "imported": "easyuse_anima.wildcard.expansion:_parse_dynamic_options",
         "kind": "static_from",
-        "line": 163,
+        "line": 164,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "wildcard_engine.py",
@@ -75574,16 +75795,16 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 162,
+            "handler_line": 163,
             "kind": "try",
-            "line": 137
+            "line": 136
           }
         ],
         "classification": "compatibility_fallback",
         "conditional": true,
         "imported": "easyuse_anima.wildcard.expansion:_replace_dynamic",
         "kind": "static_from",
-        "line": 163,
+        "line": 164,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "wildcard_engine.py",
@@ -75597,16 +75818,16 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 162,
+            "handler_line": 163,
             "kind": "try",
-            "line": 137
+            "line": 136
           }
         ],
         "classification": "compatibility_fallback",
         "conditional": true,
         "imported": "easyuse_anima.wildcard.expansion:_replace_file_wildcards",
         "kind": "static_from",
-        "line": 163,
+        "line": 164,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "wildcard_engine.py",
@@ -75620,16 +75841,16 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 162,
+            "handler_line": 163,
             "kind": "try",
-            "line": 137
+            "line": 136
           }
         ],
         "classification": "compatibility_fallback",
         "conditional": true,
         "imported": "easyuse_anima.wildcard.expansion:_replace_quantified_wildcards",
         "kind": "static_from",
-        "line": 163,
+        "line": 164,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "wildcard_engine.py",
@@ -75643,16 +75864,16 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 162,
+            "handler_line": 163,
             "kind": "try",
-            "line": 137
+            "line": 136
           }
         ],
         "classification": "compatibility_fallback",
         "conditional": true,
         "imported": "easyuse_anima.wildcard.expansion:_split_unescaped",
         "kind": "static_from",
-        "line": 163,
+        "line": 164,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "wildcard_engine.py",
@@ -75666,16 +75887,16 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 162,
+            "handler_line": 163,
             "kind": "try",
-            "line": 137
+            "line": 136
           }
         ],
         "classification": "compatibility_fallback",
         "conditional": true,
         "imported": "easyuse_anima.wildcard.expansion:_utf8_length",
         "kind": "static_from",
-        "line": 163,
+        "line": 164,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "wildcard_engine.py",
@@ -75689,16 +75910,16 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 162,
+            "handler_line": 163,
             "kind": "try",
-            "line": 137
+            "line": 136
           }
         ],
         "classification": "compatibility_fallback",
         "conditional": true,
         "imported": "easyuse_anima.wildcard.expansion:_utf8_width",
         "kind": "static_from",
-        "line": 163,
+        "line": 164,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "wildcard_engine.py",
@@ -75712,16 +75933,16 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 162,
+            "handler_line": 163,
             "kind": "try",
-            "line": 137
+            "line": 136
           }
         ],
         "classification": "compatibility_fallback",
         "conditional": true,
         "imported": "easyuse_anima.wildcard.expansion:has_wildcard_syntax",
         "kind": "static_from",
-        "line": 163,
+        "line": 164,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "wildcard_engine.py",
@@ -75735,16 +75956,16 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 192,
+            "handler_line": 195,
             "kind": "try",
-            "line": 188
+            "line": 191
           }
         ],
         "classification": "compatibility_fallback",
         "conditional": true,
         "imported": "easyuse_anima.wildcard.library:_WildcardLibrary",
         "kind": "static_from",
-        "line": 193,
+        "line": 196,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "wildcard_engine.py",
@@ -81875,7 +82096,7 @@
         "branch_context": [],
         "classification": "external",
         "conditional": false,
-        "imported": "dataclasses:dataclass",
+        "imported": "pathlib:Path",
         "kind": "static_from",
         "line": 5,
         "optional": false,
@@ -81886,7 +82107,7 @@
         "branch_context": [],
         "classification": "external",
         "conditional": false,
-        "imported": "pathlib:Path",
+        "imported": "typing:Iterable",
         "kind": "static_from",
         "line": 6,
         "optional": false,
@@ -81897,20 +82118,9 @@
         "branch_context": [],
         "classification": "external",
         "conditional": false,
-        "imported": "typing:Iterable",
-        "kind": "static_from",
-        "line": 7,
-        "optional": false,
-        "role": "ordinary",
-        "source": "wildcard_engine.py"
-      },
-      {
-        "branch_context": [],
-        "classification": "external",
-        "conditional": false,
         "imported": "typing:Sequence",
         "kind": "static_from",
-        "line": 7,
+        "line": 6,
         "optional": false,
         "role": "ordinary",
         "source": "wildcard_engine.py"
@@ -81921,7 +82131,7 @@
         "conditional": false,
         "imported": "numpy",
         "kind": "static_import",
-        "line": 11,
+        "line": 10,
         "optional": false,
         "role": "ordinary",
         "source": "wildcard_engine.py"
@@ -84869,7 +85079,7 @@
         "column": 13,
         "context": "assign:COMMENT_RE",
         "kind": "import_time_call",
-        "line": 28,
+        "line": 30,
         "module": "easyuse_anima/wildcard/expansion.py",
         "scope": "<module>"
       },
@@ -84878,7 +85088,7 @@
         "column": 13,
         "context": "assign:DYNAMIC_RE",
         "kind": "import_time_call",
-        "line": 29,
+        "line": 31,
         "module": "easyuse_anima/wildcard/expansion.py",
         "scope": "<module>"
       },
@@ -84887,7 +85097,7 @@
         "column": 14,
         "context": "assign:WILDCARD_RE",
         "kind": "import_time_call",
-        "line": 30,
+        "line": 32,
         "module": "easyuse_anima/wildcard/expansion.py",
         "scope": "<module>"
       },
@@ -84896,7 +85106,7 @@
         "column": 19,
         "context": "assign:WILDCARD_FULL_RE",
         "kind": "import_time_call",
-        "line": 31,
+        "line": 33,
         "module": "easyuse_anima/wildcard/expansion.py",
         "scope": "<module>"
       },
@@ -84905,7 +85115,7 @@
         "column": 25,
         "context": "assign:WILDCARD_QUANTIFIER_RE",
         "kind": "import_time_call",
-        "line": 32,
+        "line": 34,
         "module": "easyuse_anima/wildcard/expansion.py",
         "scope": "<module>"
       },
@@ -84914,7 +85124,7 @@
         "column": 16,
         "context": "assign:COUNT_SPEC_RE",
         "kind": "import_time_call",
-        "line": 36,
+        "line": 38,
         "module": "easyuse_anima/wildcard/expansion.py",
         "scope": "<module>"
       },
@@ -84923,7 +85133,7 @@
         "column": 1,
         "context": "decorator:_ExpansionSegment",
         "kind": "import_time_call",
-        "line": 110,
+        "line": 112,
         "module": "easyuse_anima/wildcard/expansion.py",
         "scope": "<module>"
       },
@@ -84932,7 +85142,7 @@
         "column": 1,
         "context": "decorator:_Replacement",
         "kind": "import_time_call",
-        "line": 192,
+        "line": 194,
         "module": "easyuse_anima/wildcard/expansion.py",
         "scope": "<module>"
       },
@@ -85004,7 +85214,7 @@
         "column": 22,
         "context": "assign:_SNAPSHOT_CONDITION",
         "kind": "import_time_call",
-        "line": 198,
+        "line": 201,
         "module": "wildcard_engine.py",
         "scope": "<module>"
       },
@@ -85013,7 +85223,7 @@
         "column": 57,
         "context": "assign:_SNAPSHOT_CACHE",
         "kind": "import_time_call",
-        "line": 199,
+        "line": 202,
         "module": "wildcard_engine.py",
         "scope": "<module>"
       },
@@ -85022,7 +85232,7 @@
         "column": 33,
         "context": "assign:_SNAPSHOT_BUILDING",
         "kind": "import_time_call",
-        "line": 200,
+        "line": 203,
         "module": "wildcard_engine.py",
         "scope": "<module>"
       }
@@ -85446,13 +85656,13 @@
       },
       {
         "kind": "set",
-        "line": 200,
+        "line": 203,
         "module": "wildcard_engine.py",
         "name": "_SNAPSHOT_BUILDING"
       },
       {
         "kind": "dict",
-        "line": 199,
+        "line": 202,
         "module": "wildcard_engine.py",
         "name": "_SNAPSHOT_CACHE"
       }
@@ -85617,7 +85827,7 @@
           "single_flight"
         ],
         "initializer": "set",
-        "line": 200,
+        "line": 203,
         "module": "wildcard_engine.py",
         "name": "_SNAPSHOT_BUILDING"
       },
@@ -85627,7 +85837,7 @@
           "mutable_container"
         ],
         "initializer": "OrderedDict",
-        "line": 199,
+        "line": 202,
         "module": "wildcard_engine.py",
         "name": "_SNAPSHOT_CACHE"
       }

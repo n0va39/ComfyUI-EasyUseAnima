@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from collections import OrderedDict
 import threading
-from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterable, Sequence
 
@@ -136,53 +135,57 @@ except ImportError:
 
 try:
     from .easyuse_anima.wildcard.expansion import (
-        COMMENT_RE,
+        COMMENT_RE as COMMENT_RE,
         COUNT_SPEC_RE as COUNT_SPEC_RE,
         DYNAMIC_RE as DYNAMIC_RE,
         WILDCARD_FULL_RE as WILDCARD_FULL_RE,
         WILDCARD_QUANTIFIER_RE as WILDCARD_QUANTIFIER_RE,
         WILDCARD_RE as WILDCARD_RE,
-        _bounded_output_prefix,
+        _bounded_output_prefix as _bounded_output_prefix,
         _expand_multiselect_options as _expand_multiselect_options,
-        _expansion_state_signature,
+        _expand_snapshot_texts,
+        _expansion_state_signature as _expansion_state_signature,
+        _ExpansionLane as _ExpansionLane,
         _ExpansionSegment as _ExpansionSegment,
-        _ExpansionState,
-        _ExpansionText,
+        _ExpansionState as _ExpansionState,
+        _ExpansionText as _ExpansionText,
         _parse_count_spec as _parse_count_spec,
         _parse_dynamic_options as _parse_dynamic_options,
-        _replace_dynamic,
-        _replace_file_wildcards,
+        _replace_dynamic as _replace_dynamic,
+        _replace_file_wildcards as _replace_file_wildcards,
         _Replacement as _Replacement,
-        _replace_quantified_wildcards,
+        _replace_quantified_wildcards as _replace_quantified_wildcards,
         _split_unescaped as _split_unescaped,
-        _utf8_length,
+        _utf8_length as _utf8_length,
         _utf8_width as _utf8_width,
-        has_wildcard_syntax,
+        has_wildcard_syntax as has_wildcard_syntax,
     )
 except ImportError:
     from easyuse_anima.wildcard.expansion import (
-        COMMENT_RE,
+        COMMENT_RE as COMMENT_RE,
         COUNT_SPEC_RE as COUNT_SPEC_RE,
         DYNAMIC_RE as DYNAMIC_RE,
         WILDCARD_FULL_RE as WILDCARD_FULL_RE,
         WILDCARD_QUANTIFIER_RE as WILDCARD_QUANTIFIER_RE,
         WILDCARD_RE as WILDCARD_RE,
-        _bounded_output_prefix,
+        _bounded_output_prefix as _bounded_output_prefix,
         _expand_multiselect_options as _expand_multiselect_options,
-        _expansion_state_signature,
+        _expand_snapshot_texts,
+        _expansion_state_signature as _expansion_state_signature,
+        _ExpansionLane as _ExpansionLane,
         _ExpansionSegment as _ExpansionSegment,
-        _ExpansionState,
-        _ExpansionText,
+        _ExpansionState as _ExpansionState,
+        _ExpansionText as _ExpansionText,
         _parse_count_spec as _parse_count_spec,
         _parse_dynamic_options as _parse_dynamic_options,
-        _replace_dynamic,
-        _replace_file_wildcards,
+        _replace_dynamic as _replace_dynamic,
+        _replace_file_wildcards as _replace_file_wildcards,
         _Replacement as _Replacement,
-        _replace_quantified_wildcards,
+        _replace_quantified_wildcards as _replace_quantified_wildcards,
         _split_unescaped as _split_unescaped,
-        _utf8_length,
+        _utf8_length as _utf8_length,
         _utf8_width as _utf8_width,
-        has_wildcard_syntax,
+        has_wildcard_syntax as has_wildcard_syntax,
     )
 
 try:
@@ -271,14 +274,6 @@ class _WildcardLibrary(_WildcardLibraryCore):
         super().__init__(snapshot)
 
 
-@dataclass
-class _ExpansionLane:
-    source: str
-    current: _ExpansionText
-    state: _ExpansionState
-    library: _WildcardLibrary
-
-
 def expand_wildcard_texts(
     texts: Sequence[str],
     seed=0,
@@ -314,103 +309,11 @@ def expand_wildcard_texts(
         if isinstance(budget, WildcardExpansionBudget)
         else WildcardExpansionBudget()
     )
-    lanes: list[_ExpansionLane] = []
-    for source in sources:
-        state = _ExpansionState(expansion_budget)
-        cleaned = COMMENT_RE.sub("", source)
-        if (
-            len(cleaned) > expansion_budget.max_output_chars
-            or _utf8_length(cleaned) > expansion_budget.max_output_chars
-        ):
-            cleaned = _bounded_output_prefix(
-                cleaned,
-                expansion_budget.max_output_chars,
-            )
-            state.stop("max_output_chars")
-        current = _ExpansionText.from_text(cleaned)
-        lanes.append(
-            _ExpansionLane(
-                source=source,
-                current=current,
-                state=state,
-                library=_WildcardLibrary(snapshot=snapshot),
-            )
-        )
-
-    seen_batch_states = {
-        tuple(_expansion_state_signature(lane.current.text) for lane in lanes)
-    }
-    if expansion_budget.max_depth == 0:
-        for lane in lanes:
-            if lane.state.limit_reason is None and has_wildcard_syntax(lane.current.text):
-                lane.state.stop("max_depth")
-    else:
-        for depth in range(expansion_budget.max_depth):
-            active_lanes = [
-                lane for lane in lanes if lane.state.limit_reason is None
-            ]
-            if not active_lanes:
-                break
-            replacements_before_pass = sum(
-                lane.state.replacement_count for lane in lanes
-            )
-            for lane in active_lanes:
-                lane.state.begin_pass(lane.current)
-
-            for replace_stage in (
-                _replace_dynamic,
-                _replace_quantified_wildcards,
-                _replace_file_wildcards,
-            ):
-                for lane in active_lanes:
-                    if lane.state.limit_reason is None:
-                        lane.current = replace_stage(
-                            lane.current,
-                            lane.state,
-                            selector,
-                            lane.library,
-                        )
-
-            replacements_after_pass = sum(
-                lane.state.replacement_count for lane in lanes
-            )
-            if replacements_after_pass == replacements_before_pass:
-                break
-            unresolved_lanes = [
-                lane
-                for lane in lanes
-                if lane.state.limit_reason is None
-                and has_wildcard_syntax(lane.current.text)
-            ]
-            if not unresolved_lanes:
-                break
-            batch_signature = tuple(
-                _expansion_state_signature(lane.current.text)
-                for lane in lanes
-            )
-            if batch_signature in seen_batch_states:
-                for lane in unresolved_lanes:
-                    lane.state.stop("repeated_state")
-                break
-            seen_batch_states.add(batch_signature)
-            if depth + 1 >= expansion_budget.max_depth:
-                for lane in unresolved_lanes:
-                    lane.state.stop("max_depth")
-                break
-
-    return tuple(
-        WildcardExpansionResult(
-            text=lane.current.text,
-            changed=lane.current.text != lane.source,
-            used_keys=tuple(lane.library.used),
-            missing_keys=tuple(lane.library.missing),
-            replacement_count=lane.state.replacement_count,
-            limit_reason=(
-                lane.state.limit_reason
-                or ("cycle" if lane.state.cycle_detected else None)
-            ),
-        )
-        for lane in lanes
+    return _expand_snapshot_texts(
+        sources,
+        selector,
+        snapshot,
+        expansion_budget,
     )
 
 
