@@ -46,6 +46,7 @@ PACKAGE_MODULES = (
     "easyuse_anima.api.errors",
     "easyuse_anima.api.requests",
     "easyuse_anima.api.responses",
+    "easyuse_anima.api.router",
     "easyuse_anima.api.routes",
     "easyuse_anima.api.routes.aio_profile_mutations",
     "easyuse_anima.api.routes.aio_torch_compile",
@@ -222,6 +223,11 @@ print(json.dumps({{
             "create_request_id",
             "attach_request_id_header",
             "correlate_response",
+        ]
+        expected_all[PACKAGE_MODULES.index("easyuse_anima.api.router")] = [
+            "ROUTE_REGISTRATION_MARKER",
+            "build_route_signature",
+            "register_route_definitions",
         ]
         expected_all[
             PACKAGE_MODULES.index(
