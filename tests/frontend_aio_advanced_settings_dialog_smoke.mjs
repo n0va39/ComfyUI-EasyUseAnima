@@ -138,6 +138,12 @@ function configuredSettings() {
         fp16_accumulation: true,
         sage_attention: "auto",
         sage_allow_compile: true,
+        sage_stage_scope: {
+          first_pass: true,
+          highres: false,
+          detailer: true,
+          upscale: false,
+        },
         future_kj_key: "keep-kj",
         torch_compile: {
           enabled: true,
@@ -470,6 +476,7 @@ function createFixture({
   const safePagCustomStages = subsectionByHeading(safePag, "Custom Safe PAG stages");
   const kj = subsectionByHeading(modelPatches, "KJNodes Optimization");
   const sage = subsectionByHeading(kj, "SageAttention (KJNodes)");
+  const sageCustomStages = subsectionByHeading(sage, "Custom SageAttention stages");
   const torch = subsectionByHeading(kj, "Torch Compile (KJNodes)");
   const torchDetails = subsectionByHeading(torch, "Torch Compile Parameters");
   const warning = find(
@@ -507,6 +514,7 @@ function createFixture({
     [safePag, "PAG rescale", 0.4],
     [safePag, "PAG rescale mode", "partial"],
     [sage, "Mode", "auto"],
+    [sage, "SageAttention stages", "custom"],
     [torchDetails, "Backend", "configured-backend"],
     [torchDetails, "Mode", "reduce-overhead"],
     [torchDetails, "Dynamic", "default"],
@@ -527,6 +535,10 @@ function createFixture({
     [safePagCustomStages, "Detailer", true],
     [safePagCustomStages, "Upscale (USDU)", false],
     [kj, "KJNodes FP16 accum", true],
+    [sageCustomStages, "First pass", true],
+    [sageCustomStages, "Highres", false],
+    [sageCustomStages, "Detailer", true],
+    [sageCustomStages, "Upscale (USDU)", false],
     [sage, "Allow compile", true],
     [torch, "Use Torch compile", true],
     [torchDetails, "Fullgraph", true],
@@ -539,6 +551,8 @@ function createFixture({
   assert.equal(controlIn(safePag, "Safe PAG scale").min, "0");
   assert.equal(controlIn(safePag, "Safe PAG scale").max, "100");
   assert.equal(rowByLabel(sage, "Allow compile").style.display, "");
+  assert.equal(rowByLabel(sage, "SageAttention stages").style.display, "");
+  assert.equal(sageCustomStages.style.display, "");
   assert.equal(torchDetails.style.display, "");
   assert.equal(daveCustomStages.style.display, "");
   assert.equal(safePagCustomStages.style.display, "");
@@ -547,9 +561,13 @@ function createFixture({
   sageMode.value = "disabled";
   sageMode.emit("change");
   assert.equal(rowByLabel(sage, "Allow compile").style.display, "none");
+  assert.equal(rowByLabel(sage, "SageAttention stages").style.display, "none");
+  assert.equal(sageCustomStages.style.display, "none");
   sageMode.value = "auto";
   sageMode.emit("change");
   assert.equal(rowByLabel(sage, "Allow compile").style.display, "");
+  assert.equal(rowByLabel(sage, "SageAttention stages").style.display, "");
+  assert.equal(sageCustomStages.style.display, "");
   const torchEnabled = controlIn(torch, "Use Torch compile");
   torchEnabled.checked = false;
   torchEnabled.emit("change");
@@ -597,6 +615,10 @@ function createFixture({
   const applySafePagCustomStages = subsectionByHeading(applySafePag, "Custom Safe PAG stages");
   const applyKj = subsectionByHeading(applyModelPatches, "KJNodes Optimization");
   const applySage = subsectionByHeading(applyKj, "SageAttention (KJNodes)");
+  const applySageCustomStages = subsectionByHeading(
+    applySage,
+    "Custom SageAttention stages",
+  );
   const applyTorch = subsectionByHeading(applyKj, "Torch Compile (KJNodes)");
   const applyTorchDetails = subsectionByHeading(applyTorch, "Torch Compile Parameters");
 
@@ -625,8 +647,16 @@ function createFixture({
   controlIn(applySafePag, "PAG rescale mode").value = "";
   controlIn(applyKj, "KJNodes FP16 accum").checked = true;
   const applySageMode = controlIn(applySage, "Mode");
-  applySageMode.value = "sageattn";
+  applySageMode.value = "sageattn3";
   applySageMode.emit("change");
+  const applySageStagePreset = controlIn(applySage, "SageAttention stages");
+  applySageStagePreset.value = "custom";
+  applySageStagePreset.emit("change");
+  assert.equal(applySageCustomStages.style.display, "");
+  controlIn(applySageCustomStages, "First pass").checked = false;
+  controlIn(applySageCustomStages, "Highres").checked = true;
+  controlIn(applySageCustomStages, "Detailer").checked = false;
+  controlIn(applySageCustomStages, "Upscale (USDU)").checked = true;
   controlIn(applySage, "Allow compile").checked = true;
   const applyTorchEnabled = controlIn(applyTorch, "Use Torch compile");
   applyTorchEnabled.checked = true;
@@ -722,8 +752,14 @@ function createFixture({
     },
   );
   assert.equal(written.model_patches.kj.fp16_accumulation, true);
-  assert.equal(written.model_patches.kj.sage_attention, "sageattn");
+  assert.equal(written.model_patches.kj.sage_attention, "sageattn3");
   assert.equal(written.model_patches.kj.sage_allow_compile, true);
+  assert.deepEqual(written.model_patches.kj.sage_stage_scope, {
+    first_pass: false,
+    highres: true,
+    detailer: false,
+    upscale: true,
+  });
   assert.deepEqual(
     {
       enabled: written.model_patches.kj.torch_compile.enabled,
@@ -815,10 +851,15 @@ function createFixture({
   const customStages = subsectionByHeading(dave, "Custom DAVE stages");
   const safePag = subsectionByHeading(modelPatches, "Anima Safe PAG");
   const safePagCustomStages = subsectionByHeading(safePag, "Custom Safe PAG stages");
+  const kj = subsectionByHeading(modelPatches, "KJNodes Optimization");
+  const sage = subsectionByHeading(kj, "SageAttention (KJNodes)");
+  const sageCustomStages = subsectionByHeading(sage, "Custom SageAttention stages");
   assert.equal(controlIn(dave, "DAVE stages").value, "first_pass_only");
   assert.equal(customStages.style.display, "none");
   assert.equal(controlIn(safePag, "Safe PAG stages").value, "first_pass_only");
   assert.equal(safePagCustomStages.style.display, "none");
+  assert.equal(controlIn(sage, "SageAttention stages").value, "first_pass_only");
+  assert.equal(sageCustomStages.style.display, "none");
 }
 
 {
@@ -826,6 +867,7 @@ function createFixture({
     settings: {
       model_patches: {
         safe_pag: { stage_scope: "all" },
+        kj: { sage_stage_scope: "all" },
       },
     },
   });
@@ -835,13 +877,21 @@ function createFixture({
   const modelPatches = sectionByHeading(dialog.body, "Model Patch / Optimization");
   const safePag = subsectionByHeading(modelPatches, "Anima Safe PAG");
   const customStages = subsectionByHeading(safePag, "Custom Safe PAG stages");
+  const kj = subsectionByHeading(modelPatches, "KJNodes Optimization");
+  const sage = subsectionByHeading(kj, "SageAttention (KJNodes)");
+  const sageCustomStages = subsectionByHeading(sage, "Custom SageAttention stages");
   assert.equal(controlIn(safePag, "Safe PAG stages").value, "custom");
   assertChecked([
     [customStages, "First pass", false],
     [customStages, "Highres", false],
     [customStages, "Detailer", false],
     [customStages, "Upscale (USDU)", false],
+    [sageCustomStages, "First pass", false],
+    [sageCustomStages, "Highres", false],
+    [sageCustomStages, "Detailer", false],
+    [sageCustomStages, "Upscale (USDU)", false],
   ]);
+  assert.equal(controlIn(sage, "SageAttention stages").value, "custom");
 }
 
 {
@@ -888,6 +938,29 @@ function createFixture({
   });
 }
 
+{
+  const custom = createFixture({ settings: configuredSettings() });
+  custom.openAdvancedSettings(custom.node);
+  await flushPromises();
+  const dialog = custom.dialogs[0];
+  const modelPatches = sectionByHeading(dialog.body, "Model Patch / Optimization");
+  const kj = subsectionByHeading(modelPatches, "KJNodes Optimization");
+  const sage = subsectionByHeading(kj, "SageAttention (KJNodes)");
+  const customStages = subsectionByHeading(sage, "Custom SageAttention stages");
+  assert.equal(controlIn(sage, "SageAttention stages").value, "custom");
+  controlIn(customStages, "First pass").checked = false;
+  controlIn(customStages, "Highres").checked = true;
+  controlIn(customStages, "Detailer").checked = false;
+  controlIn(customStages, "Upscale (USDU)").checked = true;
+  action(dialog, "button.apply").emit("click");
+  assert.deepEqual(custom.node.settings.model_patches.kj.sage_stage_scope, {
+    first_pass: false,
+    highres: true,
+    detailer: false,
+    upscale: true,
+  });
+}
+
 for (const dependencyCase of [
   { key: "dave", backend: "Anima DAVE" },
   { key: "safePag", backend: "Anima Safe PAG" },
@@ -915,6 +988,7 @@ for (const dependencyCase of [
   const safePagCustomStages = subsectionByHeading(safePag, "Custom Safe PAG stages");
   const kj = subsectionByHeading(modelPatches, "KJNodes Optimization");
   const sage = subsectionByHeading(kj, "SageAttention (KJNodes)");
+  const sageCustomStages = subsectionByHeading(sage, "Custom SageAttention stages");
   const torch = subsectionByHeading(kj, "Torch Compile (KJNodes)");
   const torchDetails = subsectionByHeading(torch, "Torch Compile Parameters");
   const warning = find(
@@ -957,6 +1031,11 @@ for (const dependencyCase of [
     kjSage: [
       [sage, "Mode"],
       [sage, "Allow compile"],
+      [sage, "SageAttention stages"],
+      [sageCustomStages, "First pass"],
+      [sageCustomStages, "Highres"],
+      [sageCustomStages, "Detailer"],
+      [sageCustomStages, "Upscale (USDU)"],
     ],
     kjTorchCompile: [
       [torch, "Use Torch compile"],

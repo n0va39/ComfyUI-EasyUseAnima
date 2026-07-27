@@ -126,6 +126,16 @@ class AIOProfileStorageTests(unittest.TestCase):
                     {
                         "settings": {
                             "schema": "easyuse_anima_aio_generation_settings",
+                            "model_patches": {
+                                "kj": {
+                                    "sage_stage_scope": {
+                                        "first_pass": False,
+                                        "highres": True,
+                                        "detailer": True,
+                                        "upscale": False,
+                                    }
+                                }
+                            },
                             "future_section": {"kept": True},
                         }
                     },
@@ -141,6 +151,17 @@ class AIOProfileStorageTests(unittest.TestCase):
                 self.assertEqual(profiles[0]["revision"], 1)
                 self.assertTrue(
                     api._load_aio_profile("my_ profile")["settings"]["future_section"]["kept"]
+                )
+                self.assertEqual(
+                    api._load_aio_profile("my_ profile")["settings"]["model_patches"]["kj"][
+                        "sage_stage_scope"
+                    ],
+                    {
+                        "first_pass": False,
+                        "highres": True,
+                        "detailer": True,
+                        "upscale": False,
+                    },
                 )
 
                 renamed = api._rename_aio_profile(
@@ -1867,6 +1888,12 @@ class AIOBuiltinProfileTests(unittest.TestCase):
                   fp16_accumulation: false,
                   sage_attention: "disabled",
                   sage_allow_compile: false,
+                  sage_stage_scope: {
+                    first_pass: true,
+                    highres: false,
+                    detailer: true,
+                    upscale: false,
+                  },
                   torch_compile: {
                     enabled: false,
                     mode: "max-autotune-no-cudagraphs",
@@ -1906,6 +1933,10 @@ class AIOBuiltinProfileTests(unittest.TestCase):
             assert.strictEqual(normal.model_patches.safe_pag.enabled, false);
             assert.strictEqual(normal.model_patches.kj.fp16_accumulation, false);
             assert.strictEqual(normal.model_patches.kj.sage_attention, "disabled");
+            assert.deepStrictEqual(
+              normal.model_patches.kj.sage_stage_scope,
+              defaults.model_patches.kj.sage_stage_scope,
+            );
             assert.strictEqual(normal.model_patches.kj.torch_compile.enabled, false);
 
             const turbo = build("turbo", defaults);
@@ -1923,6 +1954,10 @@ class AIOBuiltinProfileTests(unittest.TestCase):
             assert.strictEqual(optimized.model_patches.kj.fp16_accumulation, true);
             assert.strictEqual(optimized.model_patches.kj.sage_attention, "auto");
             assert.strictEqual(optimized.model_patches.kj.sage_allow_compile, true);
+            assert.deepStrictEqual(
+              optimized.model_patches.kj.sage_stage_scope,
+              defaults.model_patches.kj.sage_stage_scope,
+            );
             assert.strictEqual(optimized.model_patches.kj.torch_compile.enabled, true);
             assert.strictEqual(
               optimized.model_patches.kj.torch_compile.mode,
