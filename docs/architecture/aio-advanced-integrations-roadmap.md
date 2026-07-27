@@ -5,7 +5,7 @@
 - 상태: **IN PROGRESS — #410 AIO-COMPILE**
 - 기준일: 2026-07-27
 - 기준 브랜치: `dev`
-- 기준 커밋: `966d08fd148533fa52ed35c9ade9fd201b56741c`
+- 기준 커밋: `8c8555b6cdad54c8db10b1e5b41067b5ea106729`
 - 완료된 선행: [#395](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/395),
   [#409](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/409)
 - 기능 이슈:
@@ -22,7 +22,8 @@ rollback 단위와 검증 순서를 고정한다. 기능 이슈의 behavior 요�
 최상위 정책이다.
 
 `#395`의 Registry checkpoint와 `#409`의 stage-scope/precedence 구현은 완료됐다.
-현재 production queue는 `#410`의 네 단계를 직렬로 수행한 뒤 `#411`로 이동한다.
+`AIO-COMPILE-01` diagnostics도 완료됐다. 현재 production queue는 `#410`의
+나머지 세 단계를 직렬로 수행한 뒤 `#411`로 이동한다.
 `#440/#441`의 patch-specific 후속은 이 queue를 선행하지 않는다.
 
 ## 1. 현재 확인된 실행 구조
@@ -310,6 +311,43 @@ debug_compile_keys = false
 ```
 
 `mode`, `dynamic`, cache, dynamic-VRAM 정책은 evidence로 결정한다.
+
+`recommendation-v1`의 결정은 다음과 같다.
+
+```text
+common:
+  enabled = true
+  backend = inductor
+  fullgraph = false
+  mode = default
+  compile_transformer_blocks_only = true
+  dynamo_cache_size_limit = 64
+  debug_compile_keys = false
+  disable_dynamic_vram = false
+
+fixed_shapes:
+  dynamic = false
+
+variable_shapes / unknown:
+  dynamic = auto
+```
+
+Highres, Detailer와 USDU는 `variable_shapes`다. ResShift-only upscale는 sampling
+MODEL을 사용하지 않으므로 그 자체로 shape variation을 만들지 않는다. 해상도,
+batch, stage enable contract 또는 upscale backend가 불확실하면 `unknown`으로
+닫는다.
+
+VRAM tier는 `<8192 MiB=low`, `8192..15359 MiB=medium`, `>=15360 MiB=high`,
+그 외는 `unknown`이다. low/unknown은 공격적인 mode나 dynamic-VRAM override를
+선택하지 않고 보수적 profile과 경고를 사용한다. 고정 shape에서 `false` choice만
+사라진 경우
+지원되는 `auto`로만 보수적으로 fallback한다. variable/unknown의 `auto` 또는
+공통 안전 choice/input이 사라지면 recommendation을 fail-closed한다.
+
+대표 CUDA 환경에서 수행한 policy revision 1의 bounded synthetic benchmark는
+[recommendation evidence](../development/aio-torch-compile-recommendation-evidence.md)에
+기록한다. 이는 선택 profile의 graph/recompile 경향을 확인하는 증거이며, 전체 AiO
+모델이나 측정하지 않은 VRAM/stage/mode 조합의 최적성을 주장하지 않는다.
 
 ### AIO-COMPILE-03 — UI draft apply
 

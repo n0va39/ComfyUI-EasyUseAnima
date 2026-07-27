@@ -2004,6 +2004,24 @@
         "target": "easyuse_anima/aio/torch_compile_diagnostics.py"
       },
       {
+        "alias": "_recommend_torch_compile",
+        "bound_name": "_recommend_torch_compile",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".easyuse_anima.aio.torch_compile_recommendation:recommend_torch_compile",
+        "kind": "static_from",
+        "line": 67,
+        "name": "recommend_torch_compile",
+        "optional": false,
+        "requested": ".easyuse_anima.aio.torch_compile_recommendation",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "api.py",
+        "target": "easyuse_anima/aio/torch_compile_recommendation.py"
+      },
+      {
         "alias": "_aio_profiles",
         "bound_name": "_aio_profiles",
         "branch_context": [],
@@ -2012,7 +2030,7 @@
         "conditional": false,
         "imported": ".easyuse_anima.profiles:aio",
         "kind": "static_from",
-        "line": 67,
+        "line": 70,
         "name": "aio",
         "optional": false,
         "requested": ".easyuse_anima.profiles",
@@ -2030,7 +2048,7 @@
         "conditional": false,
         "imported": ".easyuse_anima.profiles:contract",
         "kind": "static_from",
-        "line": 68,
+        "line": 71,
         "name": "contract",
         "optional": false,
         "requested": ".easyuse_anima.profiles",
@@ -2048,7 +2066,7 @@
         "conditional": false,
         "imported": ".easyuse_anima.profiles:lora",
         "kind": "static_from",
-        "line": 69,
+        "line": 72,
         "name": "lora",
         "optional": false,
         "requested": ".easyuse_anima.profiles",
@@ -2066,7 +2084,7 @@
         "conditional": false,
         "imported": ".easyuse_anima.profiles:mutation",
         "kind": "static_from",
-        "line": 70,
+        "line": 73,
         "name": "mutation",
         "optional": false,
         "requested": ".easyuse_anima.profiles",
@@ -2084,7 +2102,7 @@
         "conditional": false,
         "imported": ".easyuse_anima.profiles:repository",
         "kind": "static_from",
-        "line": 71,
+        "line": 74,
         "name": "repository",
         "optional": false,
         "requested": ".easyuse_anima.profiles",
@@ -2102,7 +2120,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 327
+            "line": 330
           }
         ],
         "classification": "external",
@@ -2110,7 +2128,7 @@
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 328,
+        "line": 331,
         "name": null,
         "optional": true,
         "requested": "folder_paths",
@@ -12304,6 +12322,57 @@
         "role": "ordinary",
         "scope": "_torch_module",
         "source": "easyuse_anima/aio/torch_compile_diagnostics.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "annotations",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "__future__:annotations",
+        "kind": "static_from",
+        "line": 3,
+        "name": "annotations",
+        "optional": false,
+        "requested": "__future__",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/torch_compile_recommendation.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "Mapping",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "collections.abc:Mapping",
+        "kind": "static_from",
+        "line": 5,
+        "name": "Mapping",
+        "optional": false,
+        "requested": "collections.abc",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/torch_compile_recommendation.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "Sequence",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "collections.abc:Sequence",
+        "kind": "static_from",
+        "line": 5,
+        "name": "Sequence",
+        "optional": false,
+        "requested": "collections.abc",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/torch_compile_recommendation.py"
       },
       {
         "alias": null,
@@ -57404,6 +57473,10 @@
       },
       {
         "from": "api.py",
+        "to": "easyuse_anima/aio/torch_compile_recommendation.py"
+      },
+      {
+        "from": "api.py",
         "to": "easyuse_anima/autocomplete/dataset.py"
       },
       {
@@ -59271,6 +59344,12 @@
       {
         "cyclic": false,
         "modules": [
+          "easyuse_anima/aio/torch_compile_recommendation.py"
+        ]
+      },
+      {
+        "cyclic": false,
+        "modules": [
           "easyuse_anima/aio/usdu.py"
         ]
       },
@@ -59800,7 +59879,7 @@
     ]
   },
   "inventory": {
-    "module_count": 133,
+    "module_count": 134,
     "modules": [
       {
         "is_package": true,
@@ -59900,9 +59979,9 @@
       },
       {
         "is_package": false,
-        "loc": 891,
+        "loc": 930,
         "module": "api",
-        "normalized_git_blob_sha1": "c45c4a21c02bfe2e55638287dd25a962cbd48e33",
+        "normalized_git_blob_sha1": "f479f7ce39163ef46d87dcbc6c2993138a06a7d8",
         "path": "api.py",
         "top_level": {
           "class_count": 1,
@@ -60328,6 +60407,18 @@
           "class_count": 0,
           "function_count": 8,
           "global_count": 11
+        }
+      },
+      {
+        "is_package": false,
+        "loc": 283,
+        "module": "easyuse_anima.aio.torch_compile_recommendation",
+        "normalized_git_blob_sha1": "c6270c6c1e78fb0c043d0c689f3b6bba4da89a92",
+        "path": "easyuse_anima/aio/torch_compile_recommendation.py",
+        "top_level": {
+          "class_count": 0,
+          "function_count": 9,
+          "global_count": 5
         }
       },
       {
@@ -73189,14 +73280,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 327
+            "line": 330
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 328,
+        "line": 331,
         "optional": true,
         "role": "optional_dependency",
         "source": "api.py"
@@ -74986,6 +75077,39 @@
         "optional": false,
         "role": "ordinary",
         "source": "easyuse_anima/aio/torch_compile_diagnostics.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "__future__:annotations",
+        "kind": "static_from",
+        "line": 3,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/torch_compile_recommendation.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "collections.abc:Mapping",
+        "kind": "static_from",
+        "line": 5,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/torch_compile_recommendation.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "collections.abc:Sequence",
+        "kind": "static_from",
+        "line": 5,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/torch_compile_recommendation.py"
       },
       {
         "branch_context": [],
@@ -78843,14 +78967,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 327
+            "line": 330
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 328,
+        "line": 331,
         "optional": true,
         "role": "optional_dependency",
         "source": "api.py"
@@ -79782,6 +79906,7 @@
       "easyuse_anima/aio/resources.py",
       "easyuse_anima/aio/sampling.py",
       "easyuse_anima/aio/torch_compile_diagnostics.py",
+      "easyuse_anima/aio/torch_compile_recommendation.py",
       "easyuse_anima/aio/usdu.py",
       "easyuse_anima/autocomplete/__init__.py",
       "easyuse_anima/autocomplete/dataset.py",
@@ -79917,6 +80042,7 @@
       "easyuse_anima/aio/resources.py",
       "easyuse_anima/aio/sampling.py",
       "easyuse_anima/aio/torch_compile_diagnostics.py",
+      "easyuse_anima/aio/torch_compile_recommendation.py",
       "easyuse_anima/aio/usdu.py",
       "easyuse_anima/autocomplete/__init__.py",
       "easyuse_anima/autocomplete/dataset.py",
@@ -80188,7 +80314,7 @@
         "column": 10,
         "context": "assign:_LOGGER",
         "kind": "import_time_call",
-        "line": 151,
+        "line": 154,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -80197,7 +80323,7 @@
         "column": 25,
         "context": "assign:_FILE_IO_LIMITERS_LOCK",
         "kind": "import_time_call",
-        "line": 154,
+        "line": 157,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -80206,7 +80332,7 @@
         "column": 47,
         "context": "assign:_FILE_IO_LIMITERS",
         "kind": "import_time_call",
-        "line": 155,
+        "line": 158,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -80215,7 +80341,7 @@
         "column": 29,
         "context": "assign:_PROMPT_TRANSLATION_WORKER",
         "kind": "import_time_call",
-        "line": 204,
+        "line": 207,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -80224,7 +80350,7 @@
         "column": 0,
         "context": "expression",
         "kind": "import_time_call",
-        "line": 205,
+        "line": 208,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -80233,7 +80359,7 @@
         "column": 36,
         "context": "assign:_SAFE_PROFILE_VALIDATION_MESSAGES",
         "kind": "import_time_call",
-        "line": 354,
+        "line": 357,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -80242,7 +80368,7 @@
         "column": 9,
         "context": "assign:routes",
         "kind": "route_registry_creation",
-        "line": 511,
+        "line": 514,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -80251,7 +80377,7 @@
         "column": 19,
         "context": "assign:_ROUTE_SIGNATURE",
         "kind": "route_registry_creation",
-        "line": 867,
+        "line": 906,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -80260,7 +80386,7 @@
         "column": 5,
         "context": "assign:_ROUTE_SIGNATURE",
         "kind": "route_registry_creation",
-        "line": 868,
+        "line": 907,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -81887,6 +82013,18 @@
       },
       {
         "kind": "dict",
+        "line": 11,
+        "module": "easyuse_anima/aio/torch_compile_recommendation.py",
+        "name": "_COMMON_VALUES"
+      },
+      {
+        "kind": "list",
+        "line": 278,
+        "module": "easyuse_anima/aio/torch_compile_recommendation.py",
+        "name": "__all__"
+      },
+      {
+        "kind": "dict",
         "line": 44,
         "module": "easyuse_anima/autocomplete/dataset.py",
         "name": "AUTOCOMPLETE_SOURCES"
@@ -82216,7 +82354,7 @@
           "lock"
         ],
         "initializer": "threading.Lock",
-        "line": 154,
+        "line": 157,
         "module": "api.py",
         "name": "_FILE_IO_LIMITERS_LOCK"
       },
@@ -82225,7 +82363,7 @@
           "executor"
         ],
         "initializer": "_PromptTranslationWorker",
-        "line": 204,
+        "line": 207,
         "module": "api.py",
         "name": "_PROMPT_TRANSLATION_WORKER"
       },
