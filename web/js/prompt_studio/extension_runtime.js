@@ -131,8 +131,8 @@ import {
   createExecutedEventContext,
 } from "../lifecycle/executed_event_context.js";
 import {
-  createPromptStudioWildcardSeedTransaction,
-} from "./wildcard_seed_transaction.js";
+  createPromptStudioExecutionTransaction,
+} from "./execution_transaction.js";
 import {
   commitAdvancedWildcardSeedView,
 } from "./advanced_controls.js";
@@ -143,6 +143,16 @@ const PROMPT_STUDIO_GLOBAL_HOOK_RUNTIME_OWNER = Symbol.for(
 const PROMPT_STUDIO_WILDCARD_SEED_TRANSACTION_OWNER = Symbol.for(
   "easyuse-anima.prompt-studio.wildcard-seed-transaction",
 );
+const WILDCARD_SEED_CONTROL_SURFACE = "prompt.wildcard_seed_control";
+const WILDCARD_SEED_EDIT_BINDINGS = [
+  {
+    widgetNames: [
+      "wildcard_seed",
+      "wildcard_seed_after_generate",
+    ],
+    surfaces: [WILDCARD_SEED_CONTROL_SURFACE],
+  },
+];
 
 function createPromptStudioExtensionRuntime(app, api) {
   const globalHookLifecycle = createHostHookRuntimeLifecycle(
@@ -150,17 +160,18 @@ function createPromptStudioExtensionRuntime(app, api) {
     PROMPT_STUDIO_GLOBAL_HOOK_RUNTIME_OWNER,
   );
   const queueUiTransactionOwner = createQueueUiTransactionOwner();
-  let wildcardSeedTransaction;
+  let executionTransaction;
   const executedEventContext = createExecutedEventContext(api, {
-    finishPrompt: (promptId) => wildcardSeedTransaction.finishPrompt(promptId),
+    finishPrompt: (promptId) => executionTransaction.finishPrompt(promptId),
   });
-  wildcardSeedTransaction = createPromptStudioWildcardSeedTransaction({
+  executionTransaction = createPromptStudioExecutionTransaction({
     owner: queueUiTransactionOwner,
     executedContext: executedEventContext,
     findWidget,
+    editBindings: WILDCARD_SEED_EDIT_BINDINGS,
   });
   let advancedSaveSyncSerializeHost;
-  let wildcardSeedTransactionGraphHost;
+  let executionTransactionGraphHost;
 
   function markNodeDirty(node) {
     markNodeDirtyWithApp(app, node);
@@ -191,7 +202,16 @@ function createPromptStudioExtensionRuntime(app, api) {
     return {
       advancedWidget,
       commitAdvancedWildcardSeedView,
-      consumeWildcardSeedExecution: wildcardSeedTransaction.consumeExecution,
+      consumeWildcardSeedExecution: (node, output, mappedItemCount, commit) => (
+        executionTransaction.consumeExecution(
+          node,
+          output,
+          mappedItemCount,
+          typeof commit === "function"
+            ? [{ surface: WILDCARD_SEED_CONTROL_SURFACE, commit }]
+            : [],
+        )
+      ),
       markNodeDirty,
       parseAdvancedFields,
       repairAdvancedInternalWidgetValues,
@@ -398,9 +418,9 @@ function createPromptStudioExtensionRuntime(app, api) {
 
   function installAdvancedWildcardSeedTransactionForApp() {
     const graphHost = app?.graph || null;
-    const replace = wildcardSeedTransactionGraphHost !== undefined
+    const replace = executionTransactionGraphHost !== undefined
       && graphHost != null
-      && graphHost !== wildcardSeedTransactionGraphHost;
+      && graphHost !== executionTransactionGraphHost;
     const installed = globalHookLifecycle.install(
       "advanced-wildcard-seed-transaction",
       () => registerHostHookCallbacks({
@@ -410,19 +430,22 @@ function createPromptStudioExtensionRuntime(app, api) {
         // successful result owns the accepted prompt_id.
         queueHost: api,
         graphHost,
-        beforeQueue: () => wildcardSeedTransaction.captureQueue(
-          (app.graph?._nodes || []).filter(isAdvancedNode),
+        beforeQueue: () => executionTransaction.captureQueue(
+          (app.graph?._nodes || []).filter(isAdvancedNode).map((node) => ({
+            node,
+            surfaces: [WILDCARD_SEED_CONTROL_SURFACE],
+          })),
         ),
-        afterQueue: (context) => wildcardSeedTransaction.acceptQueue(
+        afterQueue: (context) => executionTransaction.acceptQueue(
           context.callbackState,
           context,
         ),
-        onGraphClear: () => wildcardSeedTransaction.clear(),
+        onGraphClear: () => executionTransaction.clear(),
       }),
       { replace },
     );
     if (installed) {
-      wildcardSeedTransactionGraphHost = graphHost;
+      executionTransactionGraphHost = graphHost;
     }
     return installed;
   }
@@ -434,14 +457,14 @@ function createPromptStudioExtensionRuntime(app, api) {
 
   function disposeGlobalHooks() {
     advancedSaveSyncSerializeHost = undefined;
-    wildcardSeedTransactionGraphHost = undefined;
+    executionTransactionGraphHost = undefined;
     return globalHookLifecycle.dispose();
   }
 
   function disposeRuntime() {
     let changed = disposeGlobalHooks();
     changed = executedEventContext.dispose() || changed;
-    changed = wildcardSeedTransaction.dispose() || changed;
+    changed = executionTransaction.dispose() || changed;
     return changed;
   }
 
@@ -521,9 +544,9 @@ function createPromptStudioExtensionRuntime(app, api) {
         ),
         disconnectAdvancedEditorWidthObserver,
         disposeAdvancedAutocompleteInputs,
-        disposeAdvancedWildcardSeedNode: wildcardSeedTransaction.disposeNode,
+        disposeAdvancedWildcardSeedNode: executionTransaction.disposeNode,
         hookWildcardSeedWidget,
-        hookAdvancedWildcardSeedNode: wildcardSeedTransaction.hookNode,
+        hookAdvancedWildcardSeedNode: executionTransaction.hookNode,
         hookStudioNode,
         isExtendNode,
         layoutExtendPromptWidgets,
