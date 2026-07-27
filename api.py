@@ -66,6 +66,9 @@ from .easyuse_anima.api.routes.autocomplete import (
     build_autocomplete_handlers as _build_autocomplete_handlers,
     build_classify_prompt_handler as _build_classify_prompt_handler,
 )
+from .easyuse_anima.api.routes.long_text_settings import (
+    build_long_text_settings_handlers as _build_long_text_settings_handlers,
+)
 from .easyuse_anima.api.routes.wildcards import (
     build_wildcards_handler as _build_wildcards_handler,
 )
@@ -501,11 +504,24 @@ if web is not None:
             return _error_response(422, "unknown_setting", "Unknown setting")
         return web.json_response(payload)
 
-    @_request_correlated
-    async def get_long_text_settings_handler(request):
-        return web.json_response(
-            await _run_file_io(_get_long_text_settings_payload_sync)
+    (
+        get_long_text_settings_handler,
+        save_long_text_settings_handler,
+    ) = (
+        _request_correlated(handler)
+        for handler in _build_long_text_settings_handlers(
+            parse_json_object=lambda request: parse_json_object(request),
+            json_object=lambda data, field: json_object(data, field),
+            contract_error_type=ApiContractError,
+            contract_error_response=lambda exc: _contract_error_response(exc),
+            run_file_io=lambda function, *args: _run_file_io(function, *args),
+            get_long_text_settings_payload=lambda: _get_long_text_settings_payload_sync(),
+            save_long_text_settings_payload=lambda values: _save_long_text_settings_payload_sync(
+                values
+            ),
+            json_response=lambda payload: web.json_response(payload),
         )
+    )
 
     get_wildcards_handler = _request_correlated(
         _build_wildcards_handler(
@@ -514,17 +530,6 @@ if web is not None:
             json_response=lambda payload: web.json_response(payload),
         )
     )
-
-    @_request_correlated
-    async def save_long_text_settings_handler(request):
-        try:
-            data = await parse_json_object(request)
-            values = json_object(data, "values") if "values" in data else data
-        except ApiContractError as exc:
-            return _contract_error_response(exc)
-        return web.json_response(
-            await _run_file_io(_save_long_text_settings_payload_sync, values)
-        )
 
     (
         autocomplete_status_handler,
