@@ -38,6 +38,7 @@ EXPECTED_PYTHON_PACKAGE_FILES = {
     "easyuse_anima/api/responses.py",
     "easyuse_anima/api/routes/__init__.py",
     "easyuse_anima/api/routes/aio_torch_compile.py",
+    "easyuse_anima/api/routes/autocomplete.py",
     "easyuse_anima/api/routes/translation.py",
     "easyuse_anima/api/routes/translation_execution.py",
     "easyuse_anima/autocomplete/__init__.py",
