@@ -285,6 +285,32 @@ class ApiRequestCorrelationTests(unittest.TestCase):
         "/easyuse_anima/lora_profiles/fix",
     }
 
+    def test_root_boundaries_are_owned_by_canonical_responses_builders(self):
+        api, _routes = load_api_routes(register=False)
+        owner_suffix = ".easyuse_anima.api.responses"
+
+        self.assertTrue(api._error_response.__module__.endswith(owner_suffix))
+        self.assertTrue(
+            api._contract_error_response.__module__.endswith(owner_suffix)
+        )
+        self.assertTrue(api._request_correlated.__module__.endswith(owner_suffix))
+        self.assertEqual(api._error_response.__name__, "_error_response")
+        self.assertEqual(
+            api._contract_error_response.__name__,
+            "_contract_error_response",
+        )
+        self.assertEqual(api._request_correlated.__name__, "_request_correlated")
+        self.assertEqual(
+            sys.modules[api._request_correlated.__module__].__all__,
+            (
+                "REQUEST_ID_HEADER",
+                "error_payload",
+                "create_request_id",
+                "attach_request_id_header",
+                "correlate_response",
+            ),
+        )
+
     def test_every_owned_route_has_source_and_registration_correlation(self):
         api, routes = load_api_routes()
         self.assertEqual(api._ROUTE_SIGNATURE, self.ROUTE_SEQUENCE)

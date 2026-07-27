@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import asyncio
 import json
 import uuid
+from functools import wraps
 from typing import Any, Mapping
 
 
@@ -61,6 +63,78 @@ def correlate_response(response, request_id: str):
     payload["request_id"] = request_id
     response.text = json.dumps(payload, ensure_ascii=False)
     return response
+
+
+def build_error_response(*, json_response, build_error_payload):
+    """Build the root-compatible JSON error response boundary."""
+
+    def _error_response(
+        status: int,
+        code: str,
+        message: str,
+        *,
+        details: dict | None = None,
+    ):
+        return json_response(
+            build_error_payload(code, message, details=details),
+            status=status,
+        )
+
+    return _error_response
+
+
+def build_contract_error_response(*, error_response):
+    """Build the root-compatible request contract error mapper."""
+
+    def _contract_error_response(exc):
+        return error_response(
+            exc.status,
+            exc.code,
+            exc.message,
+            details=exc.details,
+        )
+
+    return _contract_error_response
+
+
+def build_request_correlator(
+    *,
+    create_id,
+    get_http_exception_type,
+    attach_id_header,
+    correlate,
+    get_logger,
+    error_response,
+):
+    """Build the root-compatible cancellation and correlation boundary."""
+
+    def _request_correlated(handler):
+        @wraps(handler)
+        async def correlated_handler(request):
+            request_id = create_id()
+            try:
+                response = await handler(request)
+            except asyncio.CancelledError:
+                raise
+            except Exception as exc:
+                if isinstance(exc, get_http_exception_type()):
+                    attach_id_header(exc, request_id)
+                    raise
+                get_logger().exception(
+                    "Unhandled EasyUseAnima API error (request_id=%s)",
+                    request_id,
+                )
+                response = error_response(
+                    500,
+                    "internal_error",
+                    "An unexpected server error occurred.",
+                )
+            return correlate(response, request_id)
+
+        setattr(correlated_handler, "_easyuse_anima_request_correlation", True)
+        return correlated_handler
+
+    return _request_correlated
 
 
 __all__ = (
