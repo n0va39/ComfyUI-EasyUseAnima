@@ -38,7 +38,6 @@ const stateUrl = inlineModule(`
 `);
 const serializationUrl = inlineModule(`
   export function collectAdvancedEditorFields(_node, fields) { return fields; }
-  export function mergeAdvancedFieldInputValues() { return false; }
   export function syncAdvancedFieldsBackup(node, value) { node.__backup = value; }
 `);
 const widgetsUrl = inlineModule(`
@@ -60,7 +59,7 @@ const advancedValuesUrl = dataModule(
     "./wildcard_seed_history.js": wildcardSeedHistoryUrl,
   },
 );
-const { publishAdvancedWildcardExecution } = await import(advancedValuesUrl);
+const { publishAdvancedExecution } = await import(advancedValuesUrl);
 
 const node = {
   properties: {},
@@ -76,12 +75,13 @@ let dirtyCount = 0;
 let renderCount = 0;
 let consumedMappedItemCount = null;
 let wildcardViewCommitCount = 0;
-publishAdvancedWildcardExecution(
+let linkedViewCommitCount = 0;
+publishAdvancedExecution(
   node,
   {
     prompt_studio_advanced: [{
       advanced_fields: "[]",
-      field_inputs: {},
+      field_inputs: { field_positive_general: "resolved linked text" },
       wildcard_mode: "순차",
       wildcard_execution_seed: 41,
       wildcard_seed: 42,
@@ -94,11 +94,21 @@ publishAdvancedWildcardExecution(
       wildcardViewCommitCount += 1;
       target.widgets.find((widget) => widget.name === "wildcard_seed").value = seed;
     },
-    consumeWildcardSeedExecution: (_target, _message, mappedItemCount, commit) => {
+    consumePromptStudioExecution: (_target, _message, mappedItemCount, committers) => {
       consumedMappedItemCount = mappedItemCount;
-      commit();
+      for (const committer of committers) {
+        committer.commit({ transaction: {} });
+      }
       return true;
     },
+    createLinkedExecutionCommitter: (target, inputName, value) => ({
+      surface: "prompt.execution.linked:positive_general",
+      commit: () => {
+        linkedViewCommitCount += 1;
+        target.__easyuseAnimaAdvancedFieldInputValues ||= {};
+        target.__easyuseAnimaAdvancedFieldInputValues[inputName] = value;
+      },
+    }),
     markNodeDirty: () => { dirtyCount += 1; },
     parseAdvancedFields: () => [],
     renderAdvancedEditor: () => { renderCount += 1; },
@@ -111,6 +121,12 @@ assert(
 );
 assert(consumedMappedItemCount === 1, "Advanced did not report one mapped payload");
 assert(wildcardViewCommitCount === 1, "Advanced did not delegate the next seed to the narrow view owner");
+assert(linkedViewCommitCount === 1, "Advanced did not delegate linked input to a feature committer");
+assert(
+  node.__easyuseAnimaAdvancedFieldInputValues.field_positive_general
+    === "resolved linked text",
+  "Advanced did not publish the linked execution overlay",
+);
 const previous = JSON.parse(
   node.properties.easyuse_anima_previous_wildcard_execution,
 );
@@ -148,7 +164,7 @@ const staleNode = {
     { name: "artist_mix_start_percent", value: 0.75 },
   ],
 };
-publishAdvancedWildcardExecution(
+publishAdvancedExecution(
   staleNode,
   {
     prompt_studio_advanced: [{
@@ -169,7 +185,11 @@ publishAdvancedWildcardExecution(
   },
   {
     advancedWidget: (target) => target.widgets[0],
-    consumeWildcardSeedExecution: () => false,
+    consumePromptStudioExecution: () => false,
+    createLinkedExecutionCommitter: () => ({
+      surface: "prompt.execution.linked:positive_general",
+      commit: () => { throw new Error("stale linked committer must not run"); },
+    }),
     parseAdvancedFields: (target) => JSON.parse(target.widgets[0].value),
     renderAdvancedEditor: () => {},
   },
@@ -224,7 +244,7 @@ const missingIdentityNode = {
   properties: {},
   widgets: [{ name: "wildcard_seed", value: 50 }],
 };
-publishAdvancedWildcardExecution(
+publishAdvancedExecution(
   missingIdentityNode,
   {
     prompt_studio_advanced: [{
@@ -245,7 +265,7 @@ const mappedNode = {
   properties: {},
   widgets: [{ name: "wildcard_seed", value: 60 }],
 };
-publishAdvancedWildcardExecution(
+publishAdvancedExecution(
   mappedNode,
   {
     prompt_studio_advanced: [
@@ -254,7 +274,7 @@ publishAdvancedWildcardExecution(
     ],
   },
   {
-    consumeWildcardSeedExecution: (_target, _message, count) => {
+    consumePromptStudioExecution: (_target, _message, count) => {
       mappedCount = count;
       return false;
     },

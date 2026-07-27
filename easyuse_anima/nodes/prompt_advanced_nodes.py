@@ -27,6 +27,7 @@ from ..prompt.advanced import (
     _advanced_field_input_values,
     _advanced_fields_json,
     _advanced_has_enabled_naia,
+    _advanced_naia_field_updates,
     _advanced_uses_naia_resolution,
     _apply_advanced_field_inputs,
     _build_advanced_prompt_data,
@@ -434,6 +435,15 @@ class EasyUseAnimaPromptStudioAdvanced:
                     allow_remote_api=bool(naia_settings.get("allow_remote_api", False)),
                 )
                 naia_prompt, naia_negative, naia_width, naia_height = _parse_random_response(resp)
+                naia_field_updates = _advanced_naia_field_updates(
+                    fields,
+                    {
+                        "positive": naia_prompt,
+                        "negative": naia_negative,
+                    },
+                )
+                if naia_field_updates:
+                    ui_updates["naia_field_updates"] = naia_field_updates
                 if "positive" in enabled_naia_panes:
                     saved_fields = _set_naia_field_text(saved_fields, "positive", naia_prompt)
                     effective_fields = _set_naia_field_text(effective_fields, "positive", naia_prompt)
@@ -442,6 +452,10 @@ class EasyUseAnimaPromptStudioAdvanced:
                     effective_fields = _set_naia_field_text(effective_fields, "negative", naia_negative)
                 if use_naia_resolution:
                     width, height = _resolve_naia_resolution(naia_width, naia_height, naia_settings)
+                    ui_updates["naia_resolution_update"] = {
+                        "width": width,
+                        "height": height,
+                    }
                     resolution_label = _resolution_label(width, height)
                     metadata_updates.update({
                         "resolution_bucket": CUSTOM_ADVANCED_RESOLUTION_BUCKET,

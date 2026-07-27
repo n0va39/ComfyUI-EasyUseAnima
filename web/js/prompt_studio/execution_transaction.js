@@ -22,7 +22,10 @@ function normalizeSurface(value) {
 
 /**
  * @param {unknown} value
- * @returns {Array<{ surface: string, commit: () => unknown }> | null}
+ * @returns {Array<{
+ *   surface: string,
+ *   commit: (context: { transaction: any, envelope: any }) => unknown,
+ * }> | null}
  */
 function normalizeCommitters(value) {
   if (value == null) {
@@ -229,7 +232,10 @@ function createPromptStudioExecutionTransaction(options) {
    * @param {{
    *   envelope: any,
    *   mappedItemCount: number,
-   *   committers: Array<{ surface: string, commit: () => unknown }> | null,
+   *   committers: Array<{
+   *     surface: string,
+   *     commit: (context: { transaction: any, envelope: any }) => unknown,
+   *   }> | null,
    * }} pending
    */
   function finishExecution(node, transaction, pending) {
@@ -250,8 +256,8 @@ function createPromptStudioExecutionTransaction(options) {
         continue;
       }
       try {
-        committer.commit();
-        committed = true;
+        const result = committer.commit({ transaction, envelope: pending.envelope });
+        committed = result !== false || committed;
       } catch {
         // One feature commit failure must not block independent surfaces.
       }
@@ -268,7 +274,10 @@ function createPromptStudioExecutionTransaction(options) {
    * @param {any} node
    * @param {unknown} output
    * @param {number} mappedItemCount
-   * @param {Array<{ surface: string, commit: () => unknown }> | null} [committers]
+   * @param {Array<{
+   *   surface: string,
+   *   commit: (context: { transaction: any, envelope: any }) => unknown,
+   * }> | null} [committers]
    */
   async function consumeExecution(
     node,

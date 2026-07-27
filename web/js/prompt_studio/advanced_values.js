@@ -23,6 +23,8 @@ import {
   writePreviousWildcardExecution,
 } from "./wildcard_seed_history.js";
 
+const WILDCARD_SEED_CONTROL_SURFACE = "prompt.wildcard_seed_control";
+
 function syncAdvancedValues(node, serialized = null, hooks = {}) {
   hooks.repairAdvancedInternalWidgetValues?.(node);
   const fields = collectAdvancedEditorFields(
@@ -62,7 +64,7 @@ function syncAdvancedValues(node, serialized = null, hooks = {}) {
   });
 }
 
-function publishAdvancedWildcardExecution(node, message, hooks = {}) {
+function publishAdvancedExecution(node, message, hooks = {}) {
   const mappedPayload = message?.prompt_studio_advanced;
   const payload = firstValue(mappedPayload, null);
   if (!payload || typeof payload !== "object") {
@@ -70,19 +72,34 @@ function publishAdvancedWildcardExecution(node, message, hooks = {}) {
   }
   const mappedItemCount = Array.isArray(mappedPayload) ? mappedPayload.length : 1;
   const wildcardSeed = findWidget(node, "wildcard_seed");
-  hooks.consumeWildcardSeedExecution?.(
-    node,
-    message,
-    mappedItemCount,
-    wildcardSeed && payload.wildcard_seed != null
-      ? () => {
+  const committers = [];
+  if (wildcardSeed && payload.wildcard_seed != null) {
+    committers.push({
+      surface: WILDCARD_SEED_CONTROL_SURFACE,
+      commit: () => {
         if (typeof hooks.commitAdvancedWildcardSeedView === "function") {
           hooks.commitAdvancedWildcardSeedView(node, payload.wildcard_seed);
         } else {
           wildcardSeed.value = payload.wildcard_seed;
         }
-      }
-      : null,
+      },
+    });
+  }
+  for (const [inputName, value] of Object.entries(payload.field_inputs || {})) {
+    const committer = hooks.createLinkedExecutionCommitter?.(
+      node,
+      inputName,
+      value,
+    );
+    if (committer) {
+      committers.push(committer);
+    }
+  }
+  hooks.consumePromptStudioExecution?.(
+    node,
+    message,
+    mappedItemCount,
+    committers,
   );
   if (writePreviousWildcardExecution(node, {
     seed: payload.wildcard_execution_seed,
@@ -93,6 +110,7 @@ function publishAdvancedWildcardExecution(node, message, hooks = {}) {
 }
 
 export {
-  publishAdvancedWildcardExecution,
+  WILDCARD_SEED_CONTROL_SURFACE,
+  publishAdvancedExecution,
   syncAdvancedValues,
 };

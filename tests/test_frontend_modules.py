@@ -16,6 +16,9 @@ PROMPT_STUDIO_ADVANCED_VALUES_SMOKE = (
 PROMPT_STUDIO_EXECUTION_PROJECTION_SMOKE = (
     ROOT / "tests" / "frontend_prompt_studio_execution_projection_smoke.mjs"
 )
+PROMPT_STUDIO_LINKED_PROJECTION_SMOKE = (
+    ROOT / "tests" / "frontend_prompt_studio_linked_projection_smoke.mjs"
+)
 PROMPT_STUDIO_WILDCARD_TRANSACTION_SMOKE = (
     ROOT / "tests" / "frontend_prompt_studio_wildcard_transaction_smoke.mjs"
 )
@@ -2384,8 +2387,9 @@ class FrontendModuleStructureTests(unittest.TestCase):
             execution_transaction_source,
         )
         self.assertIn("editBindings: WILDCARD_SEED_EDIT_BINDINGS", extension_runtime_source)
+        self.assertIn("WILDCARD_SEED_CONTROL_SURFACE,", extension_runtime_source)
         self.assertIn(
-            "surface: WILDCARD_SEED_CONTROL_SURFACE",
+            "...snapshots.map((snapshot) => snapshot.surface)",
             extension_runtime_source,
         )
         self.assertIn("../lifecycle/queue_ui_transaction.js", extension_runtime_source)
@@ -2413,7 +2417,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
         self.assertNotIn("applyAdvancedExecutedInputs", advanced_values_source)
         self.assertNotIn("applyExecutedInputs", studio_values_source)
         self.assertNotIn("hooks.applyExecutedInputs", node_hooks_source)
-        self.assertIn("publishAdvancedWildcardExecution", advanced_values_source)
+        self.assertIn("publishAdvancedExecution", advanced_values_source)
         self.assertIn("wildcard_execution_seed", advanced_values_source)
         self.assertIn("writePreviousWildcardExecution", advanced_values_source)
         self.assertTrue(PROMPT_STUDIO_ADVANCED_VALUES_SMOKE.is_file())
@@ -2424,6 +2428,11 @@ class FrontendModuleStructureTests(unittest.TestCase):
         self.assertTrue(PROMPT_STUDIO_EXECUTION_PROJECTION_SMOKE.is_file())
         self.assertIn(
             r'node "tests\frontend_prompt_studio_execution_projection_smoke.mjs"',
+            FRONTEND_CHECK_SCRIPT.read_text(encoding="utf-8"),
+        )
+        self.assertTrue(PROMPT_STUDIO_LINKED_PROJECTION_SMOKE.is_file())
+        self.assertIn(
+            r'node "tests\frontend_prompt_studio_linked_projection_smoke.mjs"',
             FRONTEND_CHECK_SCRIPT.read_text(encoding="utf-8"),
         )
         self.assertTrue(PROMPT_STUDIO_WILDCARD_TRANSACTION_SMOKE.is_file())
@@ -3000,6 +3009,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
             "createAdvancedPane",
             "remeasureAdvancedTextareaHeightsForWidth",
             "setAdvancedTextareaHeight",
+            "syncAdvancedLinkedFieldTextarea",
         ):
             with self.subTest(module="advanced_fields_ui", symbol=name):
                 self.assertIn(f"  {name},", advanced_fields_ui_source)
@@ -3019,7 +3029,8 @@ class FrontendModuleStructureTests(unittest.TestCase):
                 self.assertIn(f"  {name},", advanced_fields_state_source)
 
         for name in (
-            "publishAdvancedWildcardExecution",
+            "WILDCARD_SEED_CONTROL_SURFACE",
+            "publishAdvancedExecution",
             "syncAdvancedValues",
         ):
             with self.subTest(module="advanced_values", symbol=name):
@@ -3316,14 +3327,18 @@ class FrontendModuleStructureTests(unittest.TestCase):
 
         for name in (
             "advancedFieldDisplayText",
+            "advancedFieldConnectionFingerprint",
             "advancedFieldIndexLabel",
             "advancedFieldInputLinked",
+            "advancedLinkedFieldSurface",
             "advancedFieldsBackup",
+            "captureAdvancedLinkedFieldSnapshots",
             "captureAdvancedConfigure",
             "collectAdvancedEditorFields",
+            "commitAdvancedLinkedFieldOverlay",
+            "currentAdvancedLinkedField",
             "ensureAdvancedWidgetValue",
             "isAdvancedFieldInput",
-            "mergeAdvancedFieldInputValues",
             "pruneDisconnectedAdvancedFieldInputValues",
             "serializedAdvancedFieldsValue",
             "syncAdvancedFieldInputs",
