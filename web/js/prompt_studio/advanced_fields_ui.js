@@ -74,6 +74,31 @@ function setAdvancedTextareaHeight(node, textarea, height, options = {}, hooks =
   return nextHeight;
 }
 
+function syncAdvancedLinkedFieldTextarea(node, field, textarea, value, hooks = {}) {
+  if (!textarea) {
+    return false;
+  }
+  const previousHeight = advancedTextareaCurrentHeight(textarea);
+  textarea.value = String(value ?? "");
+  textarea.classList.toggle("is-linked", true);
+  textarea.title = advancedFieldTextareaTitle(field, true, psText);
+  textarea.style.height = "auto";
+  const nextHeight = setAdvancedTextareaHeight(
+    node,
+    textarea,
+    Math.max(previousHeight, advancedTextareaContentHeight(textarea)),
+    { syncField: false, refreshHighlight: false },
+    hooks,
+  );
+  hooks.updateAdvancedFieldHighlight?.(node, field, textarea);
+  hooks.scheduleAdvancedFieldHighlight?.(node, field, textarea);
+  requestOverlaySync(textarea, true);
+  if (Math.abs(nextHeight - previousHeight) > 1) {
+    hooks.scheduleAdvancedLayout?.(node, "linked-execution");
+  }
+  return true;
+}
+
 /**
  * Width reflow may increase wrapped textarea content, but it must never take
  * ownership of the node or DOM-widget viewport height. Grow a field only when
@@ -161,6 +186,7 @@ function createAdvancedFieldElement(node, field, hooks = {}) {
     field.enabled === false ? psText("advanced.off") : psText("advanced.on"),
     psText("advanced.enableFieldTitle"),
     () => {
+      hooks.markAdvancedFieldStructureChanged?.(node, field);
       field.enabled = field.enabled === false;
       hooks.writeAdvancedFields?.(node, fields, { render: true });
     },
@@ -205,6 +231,7 @@ function createAdvancedFieldElement(node, field, hooks = {}) {
   addTool("↓", psText("advanced.moveDown"), () => move(1), paneIndex >= samePane.length - 1);
   addTool("X", psText("advanced.deleteField"), () => {
     const currentFields = getAdvancedFields(node) || hooks.parseAdvancedFields?.(node) || [];
+    hooks.markAdvancedFieldStructureChanged?.(node, field);
     currentFields.splice(globalIndex, 1);
     hooks.writeAdvancedFields?.(node, currentFields, { render: true });
   });
@@ -285,6 +312,7 @@ function createAdvancedFieldElement(node, field, hooks = {}) {
   textarea.addEventListener("mouseup", captureTextareaManualResize);
   textarea.addEventListener("pointerup", captureTextareaManualResize);
   textarea.addEventListener("input", () => {
+    hooks.markAdvancedFieldEdited?.(node, field);
     syncAdvancedTextareaLinkedInputValue(node, inputName, textarea.value, linked);
     field.text = textarea.value;
     updateFieldHighlight();
@@ -394,4 +422,5 @@ export {
   createAdvancedPane,
   remeasureAdvancedTextareaHeightsForWidth,
   setAdvancedTextareaHeight,
+  syncAdvancedLinkedFieldTextarea,
 };

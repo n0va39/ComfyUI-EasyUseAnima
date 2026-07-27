@@ -374,6 +374,24 @@ def _set_naia_field_text(fields: list[dict], pane: str, prompt: str) -> list[dic
     return normalized
 
 
+def _advanced_naia_field_updates(
+    fields: list[dict],
+    prompts_by_pane: dict[str, str],
+) -> dict[str, str]:
+    updates: dict[str, str] = {}
+    for field in fields:
+        pane = str(field.get("pane") or "positive")
+        field_id = str(field.get("id") or "")
+        if (
+            field_id
+            and field.get("type") == "naia"
+            and field.get("enabled") is not False
+            and pane in prompts_by_pane
+        ):
+            updates[field_id] = str(prompts_by_pane[pane])
+    return updates
+
+
 def _advanced_pane_parts(fields: list[dict], pane: str) -> dict[str, list[str]]:
     parts = {
         "quality": [],

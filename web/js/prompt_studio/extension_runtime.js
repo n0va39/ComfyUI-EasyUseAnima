@@ -54,7 +54,9 @@ import {
   refreshAllPromptHighlights,
 } from "./highlight.js";
 import {
+  scheduleAdvancedFieldHighlight,
   scheduleAdvancedHighlights,
+  updateAdvancedFieldHighlight,
 } from "./advanced_highlights.js";
 import {
   updateHighlight,
@@ -95,6 +97,7 @@ import {
 } from "./studio_node_ui.js";
 import {
   remeasureAdvancedTextareaHeightsForWidth as remeasureAdvancedTextareaHeightsForWidthWithHooks,
+  syncAdvancedLinkedFieldTextarea as syncAdvancedLinkedFieldTextareaWithHooks,
 } from "./advanced_fields_ui.js";
 import {
   disposeAdvancedAutocompleteInputs,
@@ -102,7 +105,8 @@ import {
   scheduleHookAdvancedNode as scheduleHookAdvancedNodeWithHooks,
 } from "./advanced_node_ui.js";
 import {
-  publishAdvancedWildcardExecution as publishAdvancedWildcardExecutionWithHooks,
+  WILDCARD_SEED_CONTROL_SURFACE,
+  publishAdvancedExecution as publishAdvancedExecutionWithHooks,
   syncAdvancedValues as syncAdvancedValuesWithHooks,
 } from "./advanced_values.js";
 import {
@@ -111,9 +115,16 @@ import {
   syncWildcardSerialization,
 } from "./wildcard_values.js";
 import {
+  advancedLinkedFieldSurface,
+  captureAdvancedLinkedFieldSnapshots,
   captureAdvancedConfigure,
+  commitAdvancedLinkedFieldOverlay,
+  isAdvancedFieldInput,
   pruneDisconnectedAdvancedFieldInputValues,
 } from "./serialization.js";
+import {
+  getAdvancedFields,
+} from "./state.js";
 import {
   markCanvasDirty as markCanvasDirtyWithApp,
   markGraphDirty as markGraphDirtyWithApp,
@@ -143,7 +154,6 @@ const PROMPT_STUDIO_GLOBAL_HOOK_RUNTIME_OWNER = Symbol.for(
 const PROMPT_STUDIO_WILDCARD_SEED_TRANSACTION_OWNER = Symbol.for(
   "easyuse-anima.prompt-studio.wildcard-seed-transaction",
 );
-const WILDCARD_SEED_CONTROL_SURFACE = "prompt.wildcard_seed_control";
 const WILDCARD_SEED_EDIT_BINDINGS = [
   {
     widgetNames: [
@@ -170,6 +180,7 @@ function createPromptStudioExtensionRuntime(app, api) {
     findWidget,
     editBindings: WILDCARD_SEED_EDIT_BINDINGS,
   });
+  const linkedSnapshotsByTransaction = new WeakMap();
   let advancedSaveSyncSerializeHost;
   let executionTransactionGraphHost;
 
@@ -198,20 +209,51 @@ function createPromptStudioExtensionRuntime(app, api) {
     writeAdvancedFieldsWithHooks(node, fields, options, advancedFieldsStateHooks());
   }
 
+  function syncAdvancedLinkedFieldTextarea(node, field, textarea, value) {
+    return syncAdvancedLinkedFieldTextareaWithHooks(
+      node,
+      field,
+      textarea,
+      value,
+      {
+        scheduleAdvancedFieldHighlight,
+        scheduleAdvancedLayout,
+        updateAdvancedFieldHighlight,
+      },
+    );
+  }
+
+  function createLinkedExecutionCommitter(node, inputName, value) {
+    const currentSnapshot = captureAdvancedLinkedFieldSnapshots(
+      node,
+      getAdvancedFields(node) || parseAdvancedFields(node),
+      app.graph,
+    ).find((snapshot) => snapshot.inputName === inputName);
+    if (!currentSnapshot) {
+      return null;
+    }
+    return {
+      surface: currentSnapshot.surface,
+      commit: ({ transaction }) => {
+        const queuedSnapshot = (linkedSnapshotsByTransaction.get(transaction) || [])
+          .find((snapshot) => snapshot.inputName === inputName);
+        if (!queuedSnapshot) {
+          return false;
+        }
+        return commitAdvancedLinkedFieldOverlay(node, queuedSnapshot, value, {
+          graph: app.graph,
+          commitView: syncAdvancedLinkedFieldTextarea,
+        });
+      },
+    };
+  }
+
   function advancedValuesHooks() {
     return {
       advancedWidget,
       commitAdvancedWildcardSeedView,
-      consumeWildcardSeedExecution: (node, output, mappedItemCount, commit) => (
-        executionTransaction.consumeExecution(
-          node,
-          output,
-          mappedItemCount,
-          typeof commit === "function"
-            ? [{ surface: WILDCARD_SEED_CONTROL_SURFACE, commit }]
-            : [],
-        )
-      ),
+      consumePromptStudioExecution: executionTransaction.consumeExecution,
+      createLinkedExecutionCommitter,
       markNodeDirty,
       parseAdvancedFields,
       repairAdvancedInternalWidgetValues,
@@ -224,8 +266,8 @@ function createPromptStudioExtensionRuntime(app, api) {
     syncAdvancedValuesWithHooks(node, serialized, advancedValuesHooks());
   }
 
-  function publishAdvancedWildcardExecution(node, message) {
-    publishAdvancedWildcardExecutionWithHooks(node, message, advancedValuesHooks());
+  function publishAdvancedExecution(node, message) {
+    publishAdvancedExecutionWithHooks(node, message, advancedValuesHooks());
   }
 
   function applyWildcardExecutedInputs(node, message) {
@@ -416,7 +458,34 @@ function createPromptStudioExtensionRuntime(app, api) {
     return installed;
   }
 
-  function installAdvancedWildcardSeedTransactionForApp() {
+  function capturePromptStudioExecutionQueue() {
+    const snapshotsByNode = new Map();
+    const entries = (app.graph?._nodes || []).filter(isAdvancedNode).map((node) => {
+      const snapshots = captureAdvancedLinkedFieldSnapshots(
+        node,
+        getAdvancedFields(node) || parseAdvancedFields(node),
+        app.graph,
+      );
+      snapshotsByNode.set(node, snapshots);
+      return {
+        node,
+        surfaces: [
+          WILDCARD_SEED_CONTROL_SURFACE,
+          ...snapshots.map((snapshot) => snapshot.surface),
+        ],
+      };
+    });
+    const captured = executionTransaction.captureQueue(entries);
+    for (const entry of captured) {
+      linkedSnapshotsByTransaction.set(
+        entry.transaction,
+        snapshotsByNode.get(entry.node) || [],
+      );
+    }
+    return captured;
+  }
+
+  function installPromptStudioExecutionTransactionForApp() {
     const graphHost = app?.graph || null;
     const replace = executionTransactionGraphHost !== undefined
       && graphHost != null
@@ -430,12 +499,7 @@ function createPromptStudioExtensionRuntime(app, api) {
         // successful result owns the accepted prompt_id.
         queueHost: api,
         graphHost,
-        beforeQueue: () => executionTransaction.captureQueue(
-          (app.graph?._nodes || []).filter(isAdvancedNode).map((node) => ({
-            node,
-            surfaces: [WILDCARD_SEED_CONTROL_SURFACE],
-          })),
-        ),
+        beforeQueue: capturePromptStudioExecutionQueue,
         afterQueue: (context) => executionTransaction.acceptQueue(
           context.callbackState,
           context,
@@ -452,7 +516,7 @@ function createPromptStudioExtensionRuntime(app, api) {
 
   function installGlobalHooks() {
     installAdvancedSaveSyncForApp();
-    installAdvancedWildcardSeedTransactionForApp();
+    installPromptStudioExecutionTransactionForApp();
   }
 
   function disposeGlobalHooks() {
@@ -468,10 +532,33 @@ function createPromptStudioExtensionRuntime(app, api) {
     return changed;
   }
 
+  function markAdvancedFieldEdited(node, field) {
+    if (field?.type === "naia") {
+      return false;
+    }
+    const surface = advancedLinkedFieldSurface(field?.id);
+    return surface != null && executionTransaction.markEdited(node, [surface]);
+  }
+
+  function markAdvancedConnectionChanged(node, args) {
+    if (Number(args?.[0]) !== 1) {
+      return false;
+    }
+    const slot = Number(args?.[1]);
+    const input = Number.isInteger(slot) ? node?.inputs?.[slot] : null;
+    if (!isAdvancedFieldInput(input)) {
+      return false;
+    }
+    const surface = advancedLinkedFieldSurface(input.__easyuseAnimaAdvancedFieldId);
+    return surface != null && executionTransaction.markEdited(node, [surface]);
+  }
+
   function advancedNodeUiHooks() {
     return {
       hideAdvancedControlWidgets,
       installAdvancedSaveSync: installAdvancedSaveSyncForApp,
+      markAdvancedFieldEdited,
+      markAdvancedFieldStructureChanged: markAdvancedFieldEdited,
       observeAdvancedEditorWidth,
       scheduleAdvancedHighlights,
       scheduleAdvancedLayout,
@@ -550,8 +637,9 @@ function createPromptStudioExtensionRuntime(app, api) {
         hookStudioNode,
         isExtendNode,
         layoutExtendPromptWidgets,
+        markAdvancedConnectionChanged,
         pruneDisconnectedAdvancedFieldInputValues,
-        publishAdvancedWildcardExecution,
+        publishAdvancedExecution,
         rebalanceStudioInputHeights,
         removeAdvancedInternalInputSockets,
         renderAdvancedEditor,
