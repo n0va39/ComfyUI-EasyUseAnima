@@ -10,7 +10,8 @@ from collections.abc import Callable, Iterable
 from dataclasses import dataclass
 
 from . import sources as _wildcard_sources
-from .models import WildcardExpansionBudget
+from .models import WildcardExpansionBudget, WildcardOption
+from .selector import _Selector
 
 __all__ = (
     "COMMENT_RE",
@@ -34,6 +35,56 @@ WILDCARD_QUANTIFIER_RE = re.compile(
 COUNT_SPEC_RE = re.compile(
     r"(?:(?P<fixed>\d+)|(?P<minimum>\d*)\s*-\s*(?P<maximum>\d*))"
 )
+
+
+def _split_unescaped(value: str, separator: str) -> list[str]:
+    parts: list[str] = []
+    current: list[str] = []
+    escaped = False
+    for char in value:
+        if escaped:
+            current.append(char)
+            escaped = False
+            continue
+        if char == "\\":
+            current.append(char)
+            escaped = True
+            continue
+        if char == separator:
+            parts.append("".join(current))
+            current = []
+            continue
+        current.append(char)
+    parts.append("".join(current))
+    return parts
+
+
+def _parse_dynamic_options(value: str) -> list[WildcardOption]:
+    options: list[WildcardOption] = []
+    for option in _split_unescaped(value, "|"):
+        parsed = _wildcard_sources._parse_option(option)
+        if parsed is not None:
+            options.append(parsed)
+    return options
+
+
+def _parse_count_spec(spec: str, selector: _Selector) -> int | None:
+    text = str(spec or "").strip()
+    if not text:
+        return 1
+    match = COUNT_SPEC_RE.fullmatch(text)
+    if match is None:
+        return None
+    fixed = match.group("fixed")
+    if fixed is not None:
+        return int(fixed)
+    left = match.group("minimum")
+    right = match.group("maximum")
+    if not left and not right:
+        return None
+    minimum = int(left) if left else 0
+    maximum = int(right) if right else minimum
+    return selector.count_from_range(minimum, maximum)
 
 
 def _utf8_width(char: str) -> int:

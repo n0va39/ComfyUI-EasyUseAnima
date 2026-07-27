@@ -1363,7 +1363,10 @@ syntax patterns, UTF-8 text accounting, segment/replacement values,
 budget/cycle state, bounded-prefix helper, and state signature to
 `easyuse_anima.wildcard.expansion`. Root retains direct aliases plus snapshot
 lifecycle, library ownership, replacement resolution, and expansion
-orchestration for later slices.
+orchestration for later slices. D-12g2 moves escaped dynamic-option splitting,
+weighted option parsing, and count/range parsing into the same canonical
+expansion owner. Root retains direct aliases plus selector construction,
+library lookup, replacement stages, and expansion orchestration.
 
 ## 12. Phase E — Runtime ownership and lifecycle
 

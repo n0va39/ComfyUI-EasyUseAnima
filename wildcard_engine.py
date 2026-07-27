@@ -139,7 +139,7 @@ except ImportError:
 try:
     from .easyuse_anima.wildcard.expansion import (
         COMMENT_RE,
-        COUNT_SPEC_RE,
+        COUNT_SPEC_RE as COUNT_SPEC_RE,
         DYNAMIC_RE,
         WILDCARD_FULL_RE,
         WILDCARD_QUANTIFIER_RE,
@@ -149,7 +149,10 @@ try:
         _ExpansionSegment as _ExpansionSegment,
         _ExpansionState,
         _ExpansionText,
+        _parse_count_spec,
+        _parse_dynamic_options,
         _Replacement,
+        _split_unescaped,
         _utf8_length,
         _utf8_width as _utf8_width,
         has_wildcard_syntax,
@@ -157,7 +160,7 @@ try:
 except ImportError:
     from easyuse_anima.wildcard.expansion import (
         COMMENT_RE,
-        COUNT_SPEC_RE,
+        COUNT_SPEC_RE as COUNT_SPEC_RE,
         DYNAMIC_RE,
         WILDCARD_FULL_RE,
         WILDCARD_QUANTIFIER_RE,
@@ -167,7 +170,10 @@ except ImportError:
         _ExpansionSegment as _ExpansionSegment,
         _ExpansionState,
         _ExpansionText,
+        _parse_count_spec,
+        _parse_dynamic_options,
         _Replacement,
+        _split_unescaped,
         _utf8_length,
         _utf8_width as _utf8_width,
         has_wildcard_syntax,
@@ -289,56 +295,6 @@ class _WildcardLibrary:
             ):
                 options.extend(self.mapping[key])
         return options
-
-
-def _split_unescaped(value: str, separator: str) -> list[str]:
-    parts = []
-    current = []
-    escaped = False
-    for char in value:
-        if escaped:
-            current.append(char)
-            escaped = False
-            continue
-        if char == "\\":
-            current.append(char)
-            escaped = True
-            continue
-        if char == separator:
-            parts.append("".join(current))
-            current = []
-            continue
-        current.append(char)
-    parts.append("".join(current))
-    return parts
-
-
-def _parse_dynamic_options(value: str) -> list[WildcardOption]:
-    options = []
-    for option in _split_unescaped(value, "|"):
-        parsed = _wildcard_sources._parse_option(option)
-        if parsed is not None:
-            options.append(parsed)
-    return options
-
-
-def _parse_count_spec(spec: str, selector: _Selector) -> int | None:
-    text = str(spec or "").strip()
-    if not text:
-        return 1
-    match = COUNT_SPEC_RE.fullmatch(text)
-    if match is None:
-        return None
-    fixed = match.group("fixed")
-    if fixed is not None:
-        return int(fixed)
-    left = match.group("minimum")
-    right = match.group("maximum")
-    if not left and not right:
-        return None
-    minimum = int(left) if left else 0
-    maximum = int(right) if right else minimum
-    return selector.count_from_range(minimum, maximum)
 
 
 def _expand_multiselect_options(
