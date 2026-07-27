@@ -15,16 +15,21 @@ conversation.
    [`docs/development/codex-blocker-escalation.md`](codex-blocker-escalation.md)
    before requesting PRO review. A stop condition starts bounded local triage; it
    is not an automatic whole-roadmap stop.
-4. While Issue #415 owns the active hotfix, read
-   [`docs/architecture/queue-ui-two-phase-correlation-addendum.md`](../architecture/queue-ui-two-phase-correlation-addendum.md)
-   and only the current task section. It supersedes the original exact-identity-
-   at-submission assumption after the QSTATE-02A blocker.
-5. Python backend architecture or migration work:
+4. While Issue #470 is open, read
+   [`docs/architecture/prompt-studio-execution-derived-projection.md`](../architecture/prompt-studio-execution-derived-projection.md)
+   and only the current QSTATE-04C task section. It owns the 0.6.0 regression
+   correction that distinguishes submitted editor snapshots from linked-input and
+   NAIA execution deltas.
+5. Queue identity or stale-result lifecycle work may also require
+   [`docs/architecture/queue-ui-two-phase-correlation-addendum.md`](../architecture/queue-ui-two-phase-correlation-addendum.md).
+   It remains the identity/revision foundation, but its older QSTATE-04 field-input
+   classification is superseded by the Issue #470 projection roadmap.
+6. Python backend architecture or migration work:
    [`docs/architecture/README.md`](../architecture/README.md)
-6. Active frontend maintenance execution plan:
+7. Active frontend maintenance execution plan:
    `docs/development/frontend-maintenance-execution-plan.md`
-7. Current release candidate: `docs/development/0.6.0.md`
-8. Relevant topic guide:
+8. Current released baseline: `docs/development/0.6.0.md`
+9. Relevant topic guide:
    - Registry publish or flagged-version prevention:
      `docs/development/registry-scanner-safety.md`
    - workflow docs or release templates: `docs/Anima AiO/Workflow_Management.md`
@@ -43,8 +48,8 @@ conversation.
    - deferred Node 2.0 DOM widget resize investigation:
      `docs/development/node2-dom-widget-resize-limitation.md`
    - language or locale work: `docs/development/language-management.md`
-9. `git status --short`
-10. Relevant source and tests for the target area.
+10. `git status --short`
+11. Relevant source and tests for the target area.
 
 Do not read every roadmap or historical document by default. The efficiency
 protocol defines the maximum initial context and the conditions that justify
@@ -58,13 +63,15 @@ not be loaded during ordinary successful tasks.
   [`docs/development/codex-execution-efficiency.md`](codex-execution-efficiency.md)
 - Conditional stop-triage, self-resolution budget, and hard-PRO criteria:
   [`docs/development/codex-blocker-escalation.md`](codex-blocker-escalation.md)
-- Active queue/live-UI correlation correction:
+- Active Prompt Studio linked-input/NAIA projection correction:
+  [`docs/architecture/prompt-studio-execution-derived-projection.md`](../architecture/prompt-studio-execution-derived-projection.md)
+- Queue/live-UI identity and revision foundation:
   [`docs/architecture/queue-ui-two-phase-correlation-addendum.md`](../architecture/queue-ui-two-phase-correlation-addendum.md)
 - Python backend architecture and compatibility-shim registry:
   [`docs/architecture/README.md`](../architecture/README.md)
 - Active frontend maintenance execution ledger:
   `docs/development/frontend-maintenance-execution-plan.md`
-- Current release candidate: `docs/development/0.6.0.md`
+- Current released baseline: `docs/development/0.6.0.md`
 - Registry scanner safety: `docs/development/registry-scanner-safety.md`
 - Older implementation history: `docs/version-plans/`
 - Public workflow JSON templates and preview/source images: `docs/example_workflows/`
@@ -92,9 +99,20 @@ not be loaded during ordinary successful tasks.
   - `web/js/easyuse_anima_lora_preset.js`
   - `tests/test_lora_profiles.py`
   - `tests/test_frontend_lora_preset.py`
-- Prompt Studio or wildcard work:
-  - `nodes.py`
-  - `wildcard_engine.py`
+- Prompt Studio execution-derived projection / Issue #470:
+  - `easyuse_anima/nodes/prompt_advanced_nodes.py`
+  - `easyuse_anima/prompt/advanced.py`
+  - `web/js/prompt_studio/extension_runtime.js`
+  - `web/js/prompt_studio/advanced_values.js`
+  - `web/js/prompt_studio/advanced_fields_ui.js`
+  - `web/js/prompt_studio/serialization.js`
+  - `web/js/prompt_studio/wildcard_seed_transaction.js`
+  - `web/js/lifecycle/queue_ui_transaction.js`
+  - `web/js/lifecycle/executed_event_context.js`
+  - direct Prompt Studio projection, Wildcard, transaction, and backend payload tests
+- Other Prompt Studio or wildcard work:
+  - confirm the current canonical Python owner under `easyuse_anima/prompt/` and
+    `easyuse_anima/nodes/` before using a root compatibility shim;
   - `web/js/easyuse_anima_autocomplete.js`
   - `web/js/easyuse_anima_prompt_studio.js`
   - `web/js/easyuse_anima_prompt_studio_common.js`
@@ -122,6 +140,8 @@ targeted symbol search; do not automatically read every listed file.
 
 ## Current Policy Notes
 
+- Issue #470 is the first READY production lane. Start QSTATE-04C1 Contract work
+  before #440/#441, ordinary backend refactoring, or opportunistic feature work.
 - Do not keep duplicated workflow JSON outside `docs/example_workflows/`.
 - `docs/workflows/` has been removed; use `docs/example_workflows/` as the
   workflow JSON and preview/source image source.
@@ -137,7 +157,8 @@ targeted symbol search; do not automatically read every listed file.
 ### Edit loop
 
 Use only changed-file syntax checks and the task-specific focused tests listed in
-`codex-execution-efficiency.md`, the active two-phase addendum, or the owning Issue.
+`codex-execution-efficiency.md`, the active Issue #470 projection roadmap, the
+two-phase addendum, or the owning Issue.
 
 ```text
 node --check web/js/<changed-file>.js
@@ -152,7 +173,7 @@ it after every edit.
 
 A failed stop condition or live path should follow the bounded self-resolution
 budget in `codex-blocker-escalation.md`. Do not request PRO review until a hard
-criterion is evidenced.
+technical-depth criterion is evidenced.
 
 ### Final PR candidate
 
