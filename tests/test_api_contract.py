@@ -424,6 +424,34 @@ class ApiRequestCorrelationTests(unittest.TestCase):
         self.assertIn("X-Request-ID", found.headers)
 
 
+class ApiLoraCatalogRouteTests(unittest.TestCase):
+    def test_route_handler_is_owned_by_the_canonical_factory(self):
+        api, routes = load_api_routes()
+        handler = routes.handlers["/easyuse_anima/loras"]
+
+        self.assertIs(api.loras_handler, handler)
+        self.assertEqual(handler.__name__, "loras_handler")
+        self.assertTrue(
+            handler.__module__.endswith(
+                ".easyuse_anima.api.routes.lora_catalog"
+            )
+        )
+        self.assertTrue(handler._easyuse_anima_request_correlation)
+
+    def test_route_keeps_dynamic_list_seam_and_payload_shape(self):
+        api, routes = load_api_routes()
+        loras = ["style/foo.safetensors", "artist/bar.safetensors"]
+
+        with patch.object(api, "_list_loras", return_value=loras) as list_loras:
+            response = asyncio.run(
+                routes.handlers["/easyuse_anima/loras"](JsonRequest())
+            )
+
+        self.assertEqual(response["status"], 200)
+        self.assertEqual(response["payload"], {"loras": loras})
+        list_loras.assert_called_once_with()
+
+
 class ApiWildcardRouteTests(unittest.TestCase):
     def test_route_handler_is_owned_by_the_canonical_factory(self):
         api, routes = load_api_routes()

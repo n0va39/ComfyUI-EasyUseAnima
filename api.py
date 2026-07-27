@@ -69,6 +69,9 @@ from .easyuse_anima.api.routes.autocomplete import (
 from .easyuse_anima.api.routes.long_text_settings import (
     build_long_text_settings_handlers as _build_long_text_settings_handlers,
 )
+from .easyuse_anima.api.routes.lora_catalog import (
+    build_loras_handler as _build_loras_handler,
+)
 from .easyuse_anima.api.routes.wildcards import (
     build_wildcards_handler as _build_wildcards_handler,
 )
@@ -608,9 +611,13 @@ if web is not None:
             headers={"Content-Disposition": f'filename="{os.path.basename(preview_path)}"'},
         )
 
-    @_request_correlated
-    async def loras_handler(request):
-        return web.json_response({"loras": await _run_file_io(_list_loras)})
+    loras_handler = _request_correlated(
+        _build_loras_handler(
+            run_file_io=lambda function, *args: _run_file_io(function, *args),
+            list_loras=lambda: _list_loras(),
+            json_response=lambda payload: web.json_response(payload),
+        )
+    )
 
     @_request_correlated
     async def lora_profiles_handler(request):
