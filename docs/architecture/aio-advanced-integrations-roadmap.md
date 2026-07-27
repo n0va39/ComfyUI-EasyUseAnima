@@ -2,10 +2,10 @@
 
 ## 문서 상태
 
-- 상태: **IN PROGRESS — #440 AIO-SAFEPAG**
+- 상태: **IN PROGRESS — #441 AIO-SAGE**
 - 기준일: 2026-07-27
 - 기준 브랜치: `dev`
-- 기준 커밋: `866f3e7d6e9f29c7ddf5cfaf15784261c00c4ba0`
+- 기준 커밋: `9a2ae70841b52d42bc47eb90d4698ddbe411e0d1`
 - 완료된 선행: [#395](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/395),
   [#409](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/409),
   [#410](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/410),
@@ -27,9 +27,9 @@ rollback 단위와 검증 순서를 고정한다. 기능 이슈의 behavior 요�
 최상위 정책이다.
 
 `#409`부터 `#411`까지의 advanced integration queue는 0.6.0으로 공개됐다.
-현재 queue는 `#440` Safe PAG follow-up이며, production cutover 전에
-`AIO-SAFEPAG-01` Contract와 migration 결정을 먼저 고정한다. `#441`의
-SageAttention scope는 #440이 완료된 뒤 별도 experimental contract로 진행한다.
+`#440` Safe PAG follow-up은 완료됐다. 현재 queue는 `#441` SageAttention
+follow-up이며, production cutover 전에 `AIO-SAGE-01` experimental Contract와
+migration 결정을 먼저 고정한다.
 
 ## 1. 현재 확인된 실행 구조
 
@@ -573,16 +573,17 @@ Queue: repeated / concurrent / cancelled / exception
 
 ## 13. Codex 시작 지시
 
-현재 `#440` 실행:
+현재 `#441` 실행:
 
 ```text
-1. 최신 origin/dev와 #440의 pinned upstream contract를 확인한다.
-2. AIO-SAFEPAG-01은 test-local Contract와 migration 결정만 추가한다.
-3. legacy missing scope는 all-stage, fresh default는 first-pass-only로 분리한다.
-4. malformed scope, unselected stage lookup, callback success/exception cleanup을 fail-closed fixture로 고정한다.
-5. production planner/schema/UI는 Contract review와 dev merge 뒤 각각 분리한다.
-6. Legacy/Node 2.0 live는 최종 UI cutover에서만 실행한다.
-7. #440 완료 후에만 #441 SageAttention experimental contract를 시작한다.
+1. 최신 origin/dev와 #441의 pinned/current upstream contract를 확인한다.
+2. AIO-SAGE-01은 test-local Contract와 migration 결정만 추가한다.
+3. clean-base clone의 model_options와 attention override isolation을 증명한다.
+4. allow_compile=false/true를 분리하되 patch 시점의 eager compile을 허용하지 않는다.
+5. legacy missing scope는 all-stage, fresh default는 first-pass-only로 분리한다.
+6. malformed scope, unselected lookup, dependency/input/signature drift를 fail-closed fixture로 고정한다.
+7. production planner/schema/UI는 Contract review와 dev merge 뒤 각각 분리한다.
+8. Legacy/Node 2.0 live는 최종 UI cutover에서만 실행한다.
 ```
 
 ## 14. 릴리스 정책
@@ -635,4 +636,41 @@ release candidate를 만들 때 다음을 별도로 결정한다.
 - first-pass-only, legacy all-stage, one custom scope
 - Highres, Detailer, USDU와 ResShift no-op
 - DAVE/Torch Compile pairwise, temporary mutation cleanup
+- 전체 optional integration Cartesian matrix 미실행
+
+## 16. #441 실행 manifest
+
+### AIO-SAGE-01 — Experimental Contract와 migration 결정
+
+- 유형: Contract
+- production JavaScript/Python 변경 없음
+- pinned/current `PathchSageAttentionKJ` clone-local override 계약
+- fresh first-pass-only와 legacy missing-scope all-stage 분리
+- malformed scope와 dependency/input/signature drift fail-closed
+- allow_compile=false는 compiler-disable wrapper, true는 downstream trace만 허용
+- patch 시점 eager compile과 shared compile registry 소유 금지
+- package/live 미실행
+
+### AIO-SAGE-02 — Backend stage plan과 cache
+
+- 유형: Feature/Lifecycle
+- SageAttention 전용 scope만 planner와 first-pass cache signature에 연결
+- unselected stage는 KJ node lookup/call 없음
+- selected variant는 clean `model_with_lora`에서 clone
+- FP16 accumulation과 Torch Compile은 기존 run-global/run-wide 계약 유지
+- schema/UI/profile 변경 없음
+
+### AIO-SAGE-03 — Settings/schema/UI cutover
+
+- 유형: Schema/UI
+- SageAttention owner에만 four-stage scope UI 추가
+- migration과 fresh default, profile round-trip, Cancel/Apply 보존
+- allow_compile은 Sage feature field로 유지하고 generic compile owner를 만들지 않음
+
+### AIO-SAGE-04 — Selected live matrix와 close
+
+- Legacy Canvas와 Node 2.0 save/reload/queue
+- first-pass-only, legacy all-stage, one custom scope
+- allow_compile=false/true를 대표 queue로 분리
+- DAVE/Safe PAG/Torch Compile pairwise만 실행
 - 전체 optional integration Cartesian matrix 미실행
