@@ -1092,6 +1092,155 @@ class ApiWildcardRouteTests(unittest.TestCase):
         wildcards_payload.assert_called_once_with()
 
 
+class ApiSettingsRouteTests(unittest.TestCase):
+    def test_route_handlers_are_owned_by_the_canonical_factory(self):
+        api, routes = load_api_routes()
+        cases = (
+            ("get_settings_handler", "/easyuse_anima/settings"),
+            ("set_setting_handler", "/easyuse_anima/set_setting"),
+        )
+
+        for name, path in cases:
+            with self.subTest(path=path):
+                handler = routes.handlers[path]
+                self.assertIs(getattr(api, name), handler)
+                self.assertEqual(handler.__name__, name)
+                self.assertTrue(
+                    handler.__module__.endswith(
+                        ".easyuse_anima.api.routes.settings"
+                    )
+                )
+                self.assertTrue(handler._easyuse_anima_request_correlation)
+
+    def test_get_keeps_dynamic_payload_seam_and_legacy_success_shape(self):
+        api, routes = load_api_routes()
+        payload = {
+            "autocomplete.limit": 20,
+            "wildcard.extra_paths": ["D:\\private\\wildcards"],
+        }
+        with patch.object(
+            api,
+            "_get_settings_payload_sync",
+            return_value=payload,
+        ) as get_payload:
+            response = asyncio.run(
+                routes.handlers["/easyuse_anima/settings"](JsonRequest())
+            )
+
+        self.assertEqual(response["status"], 200)
+        self.assertIs(response["payload"], payload)
+        get_payload.assert_called_once_with()
+
+    def test_set_keeps_dynamic_seam_raw_value_default_and_success_shape(self):
+        api, routes = load_api_routes()
+        cases = (
+            ({"key": "autocomplete.limit"}, ""),
+            ({"key": "autocomplete.limit", "value": None}, None),
+            (
+                {
+                    "key": "wildcard.extra_paths",
+                    "value": {"future": {"kept": True}},
+                },
+                {"future": {"kept": True}},
+            ),
+        )
+
+        for data, expected_value in cases:
+            payload = {"status": "ok", "saved": expected_value}
+            with self.subTest(data=data), patch.object(
+                api,
+                "_save_setting_payload_sync",
+                return_value=payload,
+            ) as save_payload:
+                response = asyncio.run(
+                    routes.handlers["/easyuse_anima/set_setting"](
+                        JsonRequest(data)
+                    )
+                )
+
+            self.assertEqual(response["status"], 200)
+            self.assertIs(response["payload"], payload)
+            save_payload.assert_called_once_with(
+                data["key"],
+                expected_value,
+            )
+
+    def test_invalid_key_is_rejected_before_file_io(self):
+        api, routes = load_api_routes()
+        with (
+            patch.object(api, "_save_setting_payload_sync") as save_payload,
+            patch.object(api, "_run_file_io") as file_io,
+        ):
+            response = asyncio.run(
+                routes.handlers["/easyuse_anima/set_setting"](
+                    JsonRequest({"key": []})
+                )
+            )
+
+        self.assertEqual(response["status"], 422)
+        self.assertEqual(response["payload"]["code"], "invalid_request")
+        self.assertEqual(response["payload"]["details"], {"field": "key"})
+        save_payload.assert_not_called()
+        file_io.assert_not_called()
+
+    def test_unknown_setting_keeps_fixed_422_taxonomy_and_redaction(self):
+        api, routes = load_api_routes()
+        secret = "C:\\Users\\alice\\settings.json API_TOKEN=top-secret"
+        with patch.object(
+            api,
+            "_save_setting_payload_sync",
+            side_effect=KeyError(secret),
+        ):
+            response = asyncio.run(
+                routes.handlers["/easyuse_anima/set_setting"](
+                    JsonRequest({"key": "future.setting", "value": secret})
+                )
+            )
+
+        self.assertEqual(response["status"], 422)
+        self.assertEqual(
+            response["payload"],
+            {
+                "status": "error",
+                "code": "unknown_setting",
+                "message": "Unknown setting",
+                "request_id": response.headers["X-Request-ID"],
+            },
+        )
+        serialized = json.dumps(response["payload"])
+        for forbidden in ("alice", "settings.json", "API_TOKEN", "top-secret"):
+            self.assertNotIn(forbidden, serialized)
+
+    def test_unexpected_save_failure_stays_on_correlated_safe_500_boundary(self):
+        api, routes = load_api_routes()
+        secret = "C:\\Users\\alice\\settings.json API_TOKEN=top-secret"
+        with (
+            patch.object(
+                api,
+                "_save_setting_payload_sync",
+                side_effect=ValueError(secret),
+            ),
+            patch.object(api._LOGGER, "exception") as log_exception,
+        ):
+            response = asyncio.run(
+                routes.handlers["/easyuse_anima/set_setting"](
+                    JsonRequest({"key": "future.setting", "value": secret})
+                )
+            )
+
+        self.assertEqual(response["status"], 500)
+        self.assertEqual(response["payload"]["code"], "internal_error")
+        self.assertEqual(
+            response["payload"]["request_id"],
+            response.headers["X-Request-ID"],
+        )
+        uuid.UUID(response["payload"]["request_id"])
+        serialized = json.dumps(response["payload"])
+        for forbidden in ("alice", "settings.json", "API_TOKEN", "top-secret"):
+            self.assertNotIn(forbidden, serialized)
+        log_exception.assert_called_once()
+
+
 class ApiLongTextSettingsRouteTests(unittest.TestCase):
     def test_route_handlers_are_owned_by_the_canonical_factory(self):
         api, routes = load_api_routes()

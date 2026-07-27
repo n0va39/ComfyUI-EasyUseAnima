@@ -90,6 +90,9 @@ from .easyuse_anima.api.routes.profile_loads import (
 from .easyuse_anima.api.routes.profile_saves import (
     build_profile_save_handlers as _build_profile_save_handlers,
 )
+from .easyuse_anima.api.routes.settings import (
+    build_settings_handlers as _build_settings_handlers,
+)
 from .easyuse_anima.api.routes.wildcards import (
     build_wildcards_handler as _build_wildcards_handler,
 )
@@ -503,27 +506,35 @@ routes = _get_prompt_routes()
 
 
 if web is not None:
-
-    @_request_correlated
-    async def get_settings_handler(request):
-        return web.json_response(await _run_file_io(_get_settings_payload_sync))
-
-    @_request_correlated
-    async def set_setting_handler(request):
-        try:
-            data = await parse_json_object(request)
-            key = json_string(data, "key", allow_empty=False)
-        except ApiContractError as exc:
-            return _contract_error_response(exc)
-        try:
-            payload = await _run_file_io(
-                _save_setting_payload_sync,
+    (
+        get_settings_handler,
+        set_setting_handler,
+    ) = (
+        _request_correlated(handler)
+        for handler in _build_settings_handlers(
+            parse_json_object=parse_json_object,
+            json_string=json_string,
+            contract_error_type=ApiContractError,
+            contract_error_response=lambda exc: _contract_error_response(exc),
+            run_file_io=lambda function, *args, **kwargs: _run_file_io(
+                function,
+                *args,
+                **kwargs,
+            ),
+            get_settings_payload=lambda: _get_settings_payload_sync(),
+            save_setting_payload=lambda key, value: _save_setting_payload_sync(
                 key,
-                data.get("value", ""),
-            )
-        except KeyError:
-            return _error_response(422, "unknown_setting", "Unknown setting")
-        return web.json_response(payload)
+                value,
+            ),
+            unknown_setting_error_type=KeyError,
+            unknown_setting_response=lambda: _error_response(
+                422,
+                "unknown_setting",
+                "Unknown setting",
+            ),
+            json_response=lambda payload: web.json_response(payload),
+        )
+    )
 
     (
         get_long_text_settings_handler,
