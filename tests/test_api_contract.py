@@ -401,6 +401,15 @@ class ApiRequestCorrelationTests(unittest.TestCase):
         api, routes = load_api_routes()
         handler = routes.handlers["/easyuse_anima/lora_preview"]
 
+        self.assertIs(api.lora_preview_handler, handler)
+        self.assertEqual(handler.__name__, "lora_preview_handler")
+        self.assertTrue(
+            handler.__module__.endswith(
+                ".easyuse_anima.api.routes.lora_preview"
+            )
+        )
+        self.assertTrue(handler._easyuse_anima_request_correlation)
+
         with patch.object(api, "_resolve_lora_preview_path", return_value=None):
             missing = asyncio.run(handler(JsonRequest(query={"name": "missing"})))
         self.assertIsInstance(missing, FakeResponse)
