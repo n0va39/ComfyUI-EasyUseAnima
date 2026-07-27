@@ -57,6 +57,9 @@ class WildcardEngineTests(unittest.TestCase):
             "_ExpansionText",
             "_Replacement",
             "_ExpansionState",
+            "_split_unescaped",
+            "_parse_dynamic_options",
+            "_parse_count_spec",
             "_bounded_output_prefix",
             "_expansion_state_signature",
         )
