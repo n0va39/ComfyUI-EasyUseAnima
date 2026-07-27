@@ -66,6 +66,21 @@ FRONTEND_CHECK_SCRIPT = ROOT / "tools" / "check_frontend.ps1"
 
 
 class LoraPresetFrontendTests(unittest.TestCase):
+    def test_entry_checkjs_contract(self):
+        source = LORA_PRESET_ENTRY.read_text(encoding="utf-8")
+
+        self.assertEqual(source.splitlines()[0], "// @ts-check")
+        for host_name, host_module in (("app", "app.js"), ("api", "api.js")):
+            with self.subTest(host_module=host_module):
+                self.assertIn(
+                    "// @ts-expect-error ComfyUI provides this host module at runtime.\n"
+                    f'import {{ {host_name} }} from '
+                    f'"../../../scripts/{host_module}";',
+                    source,
+                )
+        self.assertIn("function loraLiteGraphRuntime()", source)
+        self.assertIn("}} */ (globalThis).LiteGraph;", source)
+
     def test_node_runtime_module_boundary(self):
         module_source = LORA_PRESET_NODE_RUNTIME.read_text(encoding="utf-8")
         entry_source = LORA_PRESET_ENTRY.read_text(encoding="utf-8")
@@ -332,7 +347,7 @@ class LoraPresetFrontendTests(unittest.TestCase):
             dependency_entries,
             {
                 "getCanvas: () => app.canvas",
-                "getLiteGraph: () => LiteGraph",
+                "getLiteGraph: loraLiteGraphRuntime",
                 "getSettings: () => LORA_PRESET_SETTINGS",
                 "text: lpText",
                 "formatText: lpFormat",

@@ -3584,9 +3584,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
             and "/" not in entry.removeprefix("web/js/")
             and "*" not in entry
         }
-        debt_root_entries = {
-            "web/js/easyuse_anima_lora_preset.js",
-        }
+        debt_root_entries = set()
         actual_root_entries = {
             path.relative_to(ROOT).as_posix()
             for path in WEB_JS.glob("*.js")
