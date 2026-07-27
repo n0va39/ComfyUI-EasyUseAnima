@@ -66,6 +66,9 @@ from .easyuse_anima.api.routes.autocomplete import (
     build_autocomplete_handlers as _build_autocomplete_handlers,
     build_classify_prompt_handler as _build_classify_prompt_handler,
 )
+from .easyuse_anima.api.routes.wildcards import (
+    build_wildcards_handler as _build_wildcards_handler,
+)
 from .easyuse_anima.api.routes.translation import (
     build_translate_prompt_handler as _build_translate_prompt_handler,
 )
@@ -504,9 +507,13 @@ if web is not None:
             await _run_file_io(_get_long_text_settings_payload_sync)
         )
 
-    @_request_correlated
-    async def get_wildcards_handler(request):
-        return web.json_response(await _run_file_io(_wildcards_payload_sync))
+    get_wildcards_handler = _request_correlated(
+        _build_wildcards_handler(
+            run_file_io=lambda function, *args: _run_file_io(function, *args),
+            wildcards_payload=lambda: _wildcards_payload_sync(),
+            json_response=lambda payload: web.json_response(payload),
+        )
+    )
 
     @_request_correlated
     async def save_long_text_settings_handler(request):
