@@ -1,0 +1,879 @@
+{
+  "contract": "QSTATE-04C1",
+  "version": 1,
+  "state_classes": {
+    "submitted_snapshot": [
+      "ordinary_field_text",
+      "resolution",
+      "artist_mix",
+      "editable_controls",
+      "editor_structure"
+    ],
+    "execution_derived_delta": [
+      "linked_field_input",
+      "naia_field_prompt",
+      "naia_resolution",
+      "wildcard_execution_state"
+    ],
+    "non_editable_history": [
+      "prompt_id",
+      "execution_seed",
+      "output_metadata"
+    ]
+  },
+  "surfaces": [
+    "prompt.execution.linked:<fieldId>",
+    "prompt.execution.naia:<fieldId>",
+    "prompt.execution.naia_resolution",
+    "prompt.wildcard_seed_control"
+  ],
+  "persistence": {
+    "linked": "overlay_only",
+    "naia": "canonical"
+  },
+  "scenarios": [
+    {
+      "id": "submitted-snapshot-is-not-editable-authority",
+      "initial": {
+        "editable": {
+          "resolution": "1344x768",
+          "artist_mix": "exact",
+          "editor_structure": "current-layout"
+        },
+        "fields": {
+          "positive_general": {
+            "kind": "linked",
+            "text_revision": 0,
+            "structure_revision": 0,
+            "connection_fingerprint": "source-a:0",
+            "local_fallback": "current local fallback"
+          },
+          "positive_naia": {
+            "kind": "naia",
+            "text_revision": 0,
+            "structure_revision": 0,
+            "canonical": "current NAIA text"
+          }
+        },
+        "wildcard_seed": 900
+      },
+      "events": [
+        {
+          "type": "accept",
+          "prompt_id": "Q1"
+        },
+        {
+          "type": "envelope",
+          "identity": "env-Q1",
+          "prompt_id": "Q1",
+          "mapped_count": 1,
+          "submitted_snapshot": {
+            "editable": {
+              "resolution": "1024x1024",
+              "artist_mix": "average",
+              "editor_structure": "queued-layout"
+            },
+            "field_text": "queued old tags"
+          },
+          "execution_delta": {
+            "linked": [
+              {
+                "field_id": "positive_general",
+                "connection_fingerprint": "source-a:0",
+                "value": "resolved connected text"
+              }
+            ],
+            "naia": [
+              {
+                "field_id": "positive_naia",
+                "value": "generated NAIA prompt"
+              }
+            ]
+          }
+        }
+      ],
+      "expected": {
+        "latest_accepted": "Q1",
+        "editable": {
+          "resolution": "1344x768",
+          "artist_mix": "exact",
+          "editor_structure": "current-layout"
+        },
+        "linked_overlay": {
+          "positive_general": "resolved connected text"
+        },
+        "canonical_text": {
+          "positive_naia": "generated NAIA prompt"
+        },
+        "serialized_text": {
+          "positive_general": "current local fallback",
+          "positive_naia": "generated NAIA prompt"
+        },
+        "wildcard_seed": 900,
+        "commits": [
+          "linked:positive_general",
+          "naia:positive_naia"
+        ],
+        "settled_envelopes": [
+          "env-Q1"
+        ],
+        "ignored": []
+      }
+    },
+    {
+      "id": "single-linked-projection-is-overlay-only",
+      "initial": {
+        "fields": {
+          "positive_general": {
+            "kind": "linked",
+            "text_revision": 0,
+            "structure_revision": 0,
+            "connection_fingerprint": "source-a:0",
+            "local_fallback": "manual fallback"
+          }
+        }
+      },
+      "events": [
+        {
+          "type": "accept",
+          "prompt_id": "Q1"
+        },
+        {
+          "type": "envelope",
+          "identity": "env-Q1",
+          "prompt_id": "Q1",
+          "mapped_count": 1,
+          "execution_delta": {
+            "linked": [
+              {
+                "field_id": "positive_general",
+                "connection_fingerprint": "source-a:0",
+                "value": "linked execution value"
+              }
+            ]
+          }
+        }
+      ],
+      "expected": {
+        "latest_accepted": "Q1",
+        "editable": {},
+        "linked_overlay": {
+          "positive_general": "linked execution value"
+        },
+        "canonical_text": {},
+        "serialized_text": {
+          "positive_general": "manual fallback"
+        },
+        "commits": [
+          "linked:positive_general"
+        ],
+        "settled_envelopes": [
+          "env-Q1"
+        ],
+        "ignored": []
+      }
+    },
+    {
+      "id": "single-naia-projection-is-canonical",
+      "initial": {
+        "fields": {
+          "positive_naia": {
+            "kind": "naia",
+            "text_revision": 0,
+            "structure_revision": 0,
+            "canonical": "old NAIA text"
+          }
+        }
+      },
+      "events": [
+        {
+          "type": "accept",
+          "prompt_id": "Q1"
+        },
+        {
+          "type": "envelope",
+          "identity": "env-Q1",
+          "prompt_id": "Q1",
+          "mapped_count": 1,
+          "execution_delta": {
+            "naia": [
+              {
+                "field_id": "positive_naia",
+                "value": "generated NAIA prompt"
+              }
+            ]
+          }
+        }
+      ],
+      "expected": {
+        "latest_accepted": "Q1",
+        "editable": {},
+        "linked_overlay": {},
+        "canonical_text": {
+          "positive_naia": "generated NAIA prompt"
+        },
+        "serialized_text": {
+          "positive_naia": "generated NAIA prompt"
+        },
+        "commits": [
+          "naia:positive_naia"
+        ],
+        "settled_envelopes": [
+          "env-Q1"
+        ],
+        "ignored": []
+      }
+    },
+    {
+      "id": "q1-q2-q3-latest-accepted-owns-projection",
+      "initial": {
+        "fields": {
+          "positive_general": {
+            "kind": "linked",
+            "text_revision": 0,
+            "structure_revision": 0,
+            "connection_fingerprint": "source-a:0",
+            "local_fallback": "fallback"
+          },
+          "positive_naia": {
+            "kind": "naia",
+            "text_revision": 0,
+            "structure_revision": 0,
+            "canonical": "old NAIA text"
+          }
+        }
+      },
+      "events": [
+        {
+          "type": "accept",
+          "prompt_id": "Q1"
+        },
+        {
+          "type": "accept",
+          "prompt_id": "Q2"
+        },
+        {
+          "type": "accept",
+          "prompt_id": "Q3"
+        },
+        {
+          "type": "envelope",
+          "identity": "env-Q1",
+          "prompt_id": "Q1",
+          "mapped_count": 1,
+          "execution_delta": {
+            "linked": [
+              {
+                "field_id": "positive_general",
+                "connection_fingerprint": "source-a:0",
+                "value": "A"
+              }
+            ],
+            "naia": [
+              {
+                "field_id": "positive_naia",
+                "value": "A-NAIA"
+              }
+            ]
+          }
+        },
+        {
+          "type": "envelope",
+          "identity": "env-Q3",
+          "prompt_id": "Q3",
+          "mapped_count": 1,
+          "execution_delta": {
+            "linked": [
+              {
+                "field_id": "positive_general",
+                "connection_fingerprint": "source-a:0",
+                "value": "C"
+              }
+            ],
+            "naia": [
+              {
+                "field_id": "positive_naia",
+                "value": "C-NAIA"
+              }
+            ]
+          }
+        },
+        {
+          "type": "envelope",
+          "identity": "env-Q2",
+          "prompt_id": "Q2",
+          "mapped_count": 1,
+          "execution_delta": {
+            "linked": [
+              {
+                "field_id": "positive_general",
+                "connection_fingerprint": "source-a:0",
+                "value": "B"
+              }
+            ],
+            "naia": [
+              {
+                "field_id": "positive_naia",
+                "value": "B-NAIA"
+              }
+            ]
+          }
+        }
+      ],
+      "expected": {
+        "latest_accepted": "Q3",
+        "editable": {},
+        "linked_overlay": {
+          "positive_general": "C"
+        },
+        "canonical_text": {
+          "positive_naia": "C-NAIA"
+        },
+        "serialized_text": {
+          "positive_general": "fallback",
+          "positive_naia": "C-NAIA"
+        },
+        "commits": [
+          "linked:positive_general",
+          "naia:positive_naia"
+        ],
+        "settled_envelopes": [
+          "env-Q1",
+          "env-Q3",
+          "env-Q2"
+        ],
+        "ignored": [
+          "not_latest:Q1",
+          "not_latest:Q2"
+        ]
+      }
+    },
+    {
+      "id": "newer-accepted-failure-never-falls-back",
+      "initial": {
+        "fields": {
+          "positive_general": {
+            "kind": "linked",
+            "text_revision": 0,
+            "structure_revision": 0,
+            "connection_fingerprint": "source-a:0",
+            "local_fallback": "fallback"
+          },
+          "positive_naia": {
+            "kind": "naia",
+            "text_revision": 0,
+            "structure_revision": 0,
+            "canonical": "old NAIA text"
+          }
+        }
+      },
+      "events": [
+        {
+          "type": "accept",
+          "prompt_id": "Q1"
+        },
+        {
+          "type": "accept",
+          "prompt_id": "Q2"
+        },
+        {
+          "type": "accept",
+          "prompt_id": "Q3"
+        },
+        {
+          "type": "failure",
+          "prompt_id": "Q3"
+        },
+        {
+          "type": "envelope",
+          "identity": "env-Q2",
+          "prompt_id": "Q2",
+          "mapped_count": 1,
+          "execution_delta": {
+            "linked": [
+              {
+                "field_id": "positive_general",
+                "connection_fingerprint": "source-a:0",
+                "value": "B"
+              }
+            ],
+            "naia": [
+              {
+                "field_id": "positive_naia",
+                "value": "B-NAIA"
+              }
+            ]
+          }
+        },
+        {
+          "type": "envelope",
+          "identity": "env-Q1",
+          "prompt_id": "Q1",
+          "mapped_count": 1,
+          "execution_delta": {
+            "linked": [
+              {
+                "field_id": "positive_general",
+                "connection_fingerprint": "source-a:0",
+                "value": "A"
+              }
+            ],
+            "naia": [
+              {
+                "field_id": "positive_naia",
+                "value": "A-NAIA"
+              }
+            ]
+          }
+        }
+      ],
+      "expected": {
+        "latest_accepted": "Q3",
+        "editable": {},
+        "linked_overlay": {},
+        "canonical_text": {
+          "positive_naia": "old NAIA text"
+        },
+        "serialized_text": {
+          "positive_general": "fallback",
+          "positive_naia": "old NAIA text"
+        },
+        "commits": [],
+        "settled_envelopes": [
+          "env-Q2",
+          "env-Q1"
+        ],
+        "terminal_failures": [
+          "Q3"
+        ],
+        "ignored": [
+          "not_latest:Q2",
+          "not_latest:Q1"
+        ]
+      }
+    },
+    {
+      "id": "field-edit-revision-blocks-only-that-field",
+      "initial": {
+        "fields": {
+          "positive_general": {
+            "kind": "linked",
+            "text_revision": 2,
+            "structure_revision": 1,
+            "connection_fingerprint": "source-a:0",
+            "local_fallback": "before edit"
+          },
+          "positive_naia": {
+            "kind": "naia",
+            "text_revision": 5,
+            "structure_revision": 2,
+            "canonical": "old NAIA text"
+          }
+        }
+      },
+      "events": [
+        {
+          "type": "accept",
+          "prompt_id": "Q1"
+        },
+        {
+          "type": "edit",
+          "field_id": "positive_general",
+          "value": "user edit after queue"
+        },
+        {
+          "type": "envelope",
+          "identity": "env-Q1",
+          "prompt_id": "Q1",
+          "mapped_count": 1,
+          "execution_delta": {
+            "linked": [
+              {
+                "field_id": "positive_general",
+                "connection_fingerprint": "source-a:0",
+                "value": "stale linked result"
+              }
+            ],
+            "naia": [
+              {
+                "field_id": "positive_naia",
+                "value": "fresh NAIA result"
+              }
+            ]
+          }
+        }
+      ],
+      "expected": {
+        "latest_accepted": "Q1",
+        "editable": {},
+        "linked_overlay": {},
+        "canonical_text": {
+          "positive_naia": "fresh NAIA result"
+        },
+        "serialized_text": {
+          "positive_general": "user edit after queue",
+          "positive_naia": "fresh NAIA result"
+        },
+        "commits": [
+          "naia:positive_naia"
+        ],
+        "settled_envelopes": [
+          "env-Q1"
+        ],
+        "ignored": [
+          "text_revision:positive_general"
+        ]
+      }
+    },
+    {
+      "id": "field-structure-revision-and-fingerprint-fail-closed",
+      "initial": {
+        "fields": {
+          "positive_general": {
+            "kind": "linked",
+            "text_revision": 0,
+            "structure_revision": 4,
+            "connection_fingerprint": "source-a:0",
+            "local_fallback": "fallback"
+          }
+        }
+      },
+      "events": [
+        {
+          "type": "accept",
+          "prompt_id": "Q1"
+        },
+        {
+          "type": "structure",
+          "field_id": "positive_general",
+          "connection_fingerprint": "source-b:0"
+        },
+        {
+          "type": "envelope",
+          "identity": "env-Q1",
+          "prompt_id": "Q1",
+          "mapped_count": 1,
+          "execution_delta": {
+            "linked": [
+              {
+                "field_id": "positive_general",
+                "connection_fingerprint": "source-a:0",
+                "value": "stale source result"
+              }
+            ]
+          }
+        }
+      ],
+      "expected": {
+        "latest_accepted": "Q1",
+        "editable": {},
+        "linked_overlay": {},
+        "canonical_text": {},
+        "serialized_text": {
+          "positive_general": "fallback"
+        },
+        "commits": [],
+        "settled_envelopes": [
+          "env-Q1"
+        ],
+        "ignored": [
+          "structure_revision:positive_general"
+        ]
+      }
+    },
+    {
+      "id": "connection-fingerprint-mismatch-fails-closed",
+      "initial": {
+        "fields": {
+          "positive_general": {
+            "kind": "linked",
+            "text_revision": 0,
+            "structure_revision": 4,
+            "connection_fingerprint": "source-a:0",
+            "local_fallback": "fallback"
+          }
+        }
+      },
+      "events": [
+        {
+          "type": "accept",
+          "prompt_id": "Q1"
+        },
+        {
+          "type": "envelope",
+          "identity": "env-Q1",
+          "prompt_id": "Q1",
+          "mapped_count": 1,
+          "execution_delta": {
+            "linked": [
+              {
+                "field_id": "positive_general",
+                "connection_fingerprint": "source-b:0",
+                "value": "wrong source result"
+              }
+            ]
+          }
+        }
+      ],
+      "expected": {
+        "latest_accepted": "Q1",
+        "editable": {},
+        "linked_overlay": {},
+        "canonical_text": {},
+        "serialized_text": {
+          "positive_general": "fallback"
+        },
+        "commits": [],
+        "settled_envelopes": [
+          "env-Q1"
+        ],
+        "ignored": [
+          "connection_fingerprint:positive_general"
+        ]
+      }
+    },
+    {
+      "id": "one-envelope-fans-out-and-settles-once",
+      "initial": {
+        "fields": {
+          "positive_general": {
+            "kind": "linked",
+            "text_revision": 0,
+            "structure_revision": 0,
+            "connection_fingerprint": "source-a:0",
+            "local_fallback": "fallback"
+          },
+          "positive_naia": {
+            "kind": "naia",
+            "text_revision": 0,
+            "structure_revision": 0,
+            "canonical": "old NAIA text"
+          }
+        },
+        "wildcard_seed": 10
+      },
+      "events": [
+        {
+          "type": "accept",
+          "prompt_id": "Q1"
+        },
+        {
+          "type": "envelope",
+          "identity": "env-Q1",
+          "prompt_id": "Q1",
+          "mapped_count": 1,
+          "execution_delta": {
+            "linked": [
+              {
+                "field_id": "positive_general",
+                "connection_fingerprint": "source-a:0",
+                "value": "resolved"
+              }
+            ],
+            "naia": [
+              {
+                "field_id": "positive_naia",
+                "value": "generated"
+              }
+            ],
+            "wildcard_seed": 11
+          }
+        }
+      ],
+      "expected": {
+        "latest_accepted": "Q1",
+        "editable": {},
+        "linked_overlay": {
+          "positive_general": "resolved"
+        },
+        "canonical_text": {
+          "positive_naia": "generated"
+        },
+        "serialized_text": {
+          "positive_general": "fallback",
+          "positive_naia": "generated"
+        },
+        "wildcard_seed": 11,
+        "commits": [
+          "linked:positive_general",
+          "naia:positive_naia",
+          "wildcard_seed_control"
+        ],
+        "settled_envelopes": [
+          "env-Q1"
+        ],
+        "ignored": []
+      }
+    },
+    {
+      "id": "mapped-payload-fails-closed-after-one-settlement",
+      "initial": {
+        "fields": {
+          "positive_general": {
+            "kind": "linked",
+            "text_revision": 0,
+            "structure_revision": 0,
+            "connection_fingerprint": "source-a:0",
+            "local_fallback": "fallback"
+          }
+        }
+      },
+      "events": [
+        {
+          "type": "accept",
+          "prompt_id": "Q1"
+        },
+        {
+          "type": "envelope",
+          "identity": "env-Q1",
+          "prompt_id": "Q1",
+          "mapped_count": 2,
+          "execution_delta": {
+            "linked": [
+              {
+                "field_id": "positive_general",
+                "connection_fingerprint": "source-a:0",
+                "value": "ambiguous"
+              }
+            ]
+          }
+        }
+      ],
+      "expected": {
+        "latest_accepted": "Q1",
+        "editable": {},
+        "linked_overlay": {},
+        "canonical_text": {},
+        "serialized_text": {
+          "positive_general": "fallback"
+        },
+        "commits": [],
+        "settled_envelopes": [
+          "env-Q1"
+        ],
+        "ignored": [
+          "mapped_count:2"
+        ]
+      }
+    },
+    {
+      "id": "duplicate-envelope-fails-closed",
+      "initial": {
+        "fields": {
+          "positive_general": {
+            "kind": "linked",
+            "text_revision": 0,
+            "structure_revision": 0,
+            "connection_fingerprint": "source-a:0",
+            "local_fallback": "fallback"
+          }
+        }
+      },
+      "events": [
+        {
+          "type": "accept",
+          "prompt_id": "Q1"
+        },
+        {
+          "type": "envelope",
+          "identity": "env-Q1",
+          "prompt_id": "Q1",
+          "mapped_count": 1,
+          "execution_delta": {
+            "linked": [
+              {
+                "field_id": "positive_general",
+                "connection_fingerprint": "source-a:0",
+                "value": "first"
+              }
+            ]
+          }
+        },
+        {
+          "type": "envelope",
+          "identity": "env-Q1",
+          "prompt_id": "Q1",
+          "mapped_count": 1,
+          "execution_delta": {
+            "linked": [
+              {
+                "field_id": "positive_general",
+                "connection_fingerprint": "source-a:0",
+                "value": "duplicate"
+              }
+            ]
+          }
+        }
+      ],
+      "expected": {
+        "latest_accepted": "Q1",
+        "editable": {},
+        "linked_overlay": {
+          "positive_general": "first"
+        },
+        "canonical_text": {},
+        "serialized_text": {
+          "positive_general": "fallback"
+        },
+        "commits": [
+          "linked:positive_general"
+        ],
+        "settled_envelopes": [
+          "env-Q1"
+        ],
+        "ignored": [
+          "duplicate:env-Q1"
+        ]
+      }
+    },
+    {
+      "id": "missing-envelope-identity-fails-closed",
+      "initial": {
+        "fields": {
+          "positive_general": {
+            "kind": "linked",
+            "text_revision": 0,
+            "structure_revision": 0,
+            "connection_fingerprint": "source-a:0",
+            "local_fallback": "fallback"
+          }
+        }
+      },
+      "events": [
+        {
+          "type": "accept",
+          "prompt_id": "Q1"
+        },
+        {
+          "type": "envelope",
+          "identity": null,
+          "prompt_id": "Q1",
+          "mapped_count": 1,
+          "execution_delta": {
+            "linked": [
+              {
+                "field_id": "positive_general",
+                "connection_fingerprint": "source-a:0",
+                "value": "unowned"
+              }
+            ]
+          }
+        }
+      ],
+      "expected": {
+        "latest_accepted": "Q1",
+        "editable": {},
+        "linked_overlay": {},
+        "canonical_text": {},
+        "serialized_text": {
+          "positive_general": "fallback"
+        },
+        "commits": [],
+        "settled_envelopes": [],
+        "ignored": [
+          "missing_identity"
+        ]
+      }
+    }
+  ]
+}

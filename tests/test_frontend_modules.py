@@ -13,6 +13,9 @@ HOST_HOOK_REGISTRY_SMOKE = ROOT / "tests" / "frontend_host_hook_registry_smoke.m
 PROMPT_STUDIO_ADVANCED_VALUES_SMOKE = (
     ROOT / "tests" / "frontend_prompt_studio_advanced_values_smoke.mjs"
 )
+PROMPT_STUDIO_EXECUTION_PROJECTION_SMOKE = (
+    ROOT / "tests" / "frontend_prompt_studio_execution_projection_smoke.mjs"
+)
 PROMPT_STUDIO_WILDCARD_TRANSACTION_SMOKE = (
     ROOT / "tests" / "frontend_prompt_studio_wildcard_transaction_smoke.mjs"
 )
@@ -2395,6 +2398,11 @@ class FrontendModuleStructureTests(unittest.TestCase):
         self.assertTrue(PROMPT_STUDIO_ADVANCED_VALUES_SMOKE.is_file())
         self.assertIn(
             r'node "tests\frontend_prompt_studio_advanced_values_smoke.mjs"',
+            FRONTEND_CHECK_SCRIPT.read_text(encoding="utf-8"),
+        )
+        self.assertTrue(PROMPT_STUDIO_EXECUTION_PROJECTION_SMOKE.is_file())
+        self.assertIn(
+            r'node "tests\frontend_prompt_studio_execution_projection_smoke.mjs"',
             FRONTEND_CHECK_SCRIPT.read_text(encoding="utf-8"),
         )
         self.assertTrue(PROMPT_STUDIO_WILDCARD_TRANSACTION_SMOKE.is_file())
