@@ -4618,6 +4618,24 @@
       },
       {
         "alias": null,
+        "bound_name": "_aio_safe_pag_in_stage",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".model_preparation:_aio_safe_pag_in_stage",
+        "kind": "static_from",
+        "line": 17,
+        "name": "_aio_safe_pag_in_stage",
+        "optional": false,
+        "requested": ".model_preparation",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/first_pass_cache.py",
+        "target": "easyuse_anima/aio/model_preparation.py"
+      },
+      {
+        "alias": null,
         "bound_name": "_aio_negpip_cache_signature",
         "branch_context": [],
         "classification": "internal",
@@ -10716,7 +10734,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 412
+            "line": 428
           }
         ],
         "classification": "external",
@@ -10724,7 +10742,7 @@
         "conditional": true,
         "imported": "comfy.model_management",
         "kind": "static_import",
-        "line": 413,
+        "line": 429,
         "name": null,
         "optional": true,
         "requested": "comfy.model_management",
@@ -60467,9 +60485,9 @@
       },
       {
         "is_package": false,
-        "loc": 485,
+        "loc": 489,
         "module": "easyuse_anima.aio.first_pass_cache",
-        "normalized_git_blob_sha1": "9feb50eab574b1c7ff2f833b35a00271da8b3b32",
+        "normalized_git_blob_sha1": "f0ac3ed37b7ea03ecfbc853629211605ad569494",
         "path": "easyuse_anima/aio/first_pass_cache.py",
         "top_level": {
           "class_count": 2,
@@ -60719,13 +60737,13 @@
       },
       {
         "is_package": false,
-        "loc": 551,
+        "loc": 567,
         "module": "easyuse_anima.aio.model_preparation",
-        "normalized_git_blob_sha1": "87898b28862487c31131757a9ae19b4ce4f5b1fe",
+        "normalized_git_blob_sha1": "91bc80df06162725a0d9f76afb97492b6a50f910",
         "path": "easyuse_anima/aio/model_preparation.py",
         "top_level": {
           "class_count": 0,
-          "function_count": 20,
+          "function_count": 21,
           "global_count": 2
         }
       },
@@ -75013,14 +75031,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 412
+            "line": 428
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "comfy.model_management",
         "kind": "static_import",
-        "line": 413,
+        "line": 429,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/aio/model_preparation.py"
@@ -79490,14 +79508,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 412
+            "line": 428
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "comfy.model_management",
         "kind": "static_import",
-        "line": 413,
+        "line": 429,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/aio/model_preparation.py"

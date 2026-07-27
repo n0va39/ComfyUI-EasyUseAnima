@@ -899,7 +899,23 @@ class AIOFirstPassCacheMoveTests(unittest.TestCase):
                         "upscale": False,
                     },
                 },
-                "safe_pag": {"enabled": False},
+                "safe_pag": {
+                    "enabled": True,
+                    "scale": 4.0,
+                    "block_indices": "18",
+                    "perturbation_strength": 0.75,
+                    "head_indices": "",
+                    "start_percent": 0.0,
+                    "end_percent": 0.7,
+                    "rescale": 0.2,
+                    "rescale_mode": "full",
+                    "stage_scope": {
+                        "first_pass": True,
+                        "highres": False,
+                        "detailer": False,
+                        "upscale": False,
+                    },
+                },
                 "kj": {
                     "fp16_accumulation": False,
                     "sage_attention": "disabled",
@@ -945,13 +961,18 @@ class AIOFirstPassCacheMoveTests(unittest.TestCase):
         )
         self.assertEqual(
             list(plan["patches"]),
-            ["aura_flow", "kj.torch_compile", "dave"],
+            ["aura_flow", "kj.torch_compile", "dave", "safe_pag"],
+        )
+        self.assertEqual(
+            plan["patches"]["safe_pag"]["stage_scope"],
+            {"first_pass": True},
         )
 
         for stage_id in ("highres", "detailer", "upscale"):
             with self.subTest(later_stage=stage_id):
                 changed = copy.deepcopy(settings)
                 changed["model_patches"]["dave"]["stage_scope"][stage_id] = True
+                changed["model_patches"]["safe_pag"]["stage_scope"][stage_id] = True
                 self.assertEqual(
                     first_pass_cache._aio_first_pass_cache_key(
                         **{**key_args, "settings": changed}
@@ -966,6 +987,41 @@ class AIOFirstPassCacheMoveTests(unittest.TestCase):
                 **{**key_args, "settings": first_disabled}
             ),
             baseline,
+        )
+
+        safe_pag_first_disabled = copy.deepcopy(settings)
+        safe_pag_first_disabled["model_patches"]["safe_pag"]["stage_scope"][
+            "first_pass"
+        ] = False
+        self.assertNotEqual(
+            first_pass_cache._aio_first_pass_cache_key(
+                **{**key_args, "settings": safe_pag_first_disabled}
+            ),
+            baseline,
+        )
+
+        legacy_safe_pag = copy.deepcopy(settings)
+        del legacy_safe_pag["model_patches"]["safe_pag"]["stage_scope"]
+        self.assertEqual(
+            first_pass_cache._aio_first_pass_cache_key(
+                **{**key_args, "settings": legacy_safe_pag}
+            ),
+            baseline,
+        )
+
+        malformed_safe_pag = copy.deepcopy(settings)
+        malformed_safe_pag["model_patches"]["safe_pag"]["stage_scope"] = "all"
+        self.assertNotEqual(
+            first_pass_cache._aio_first_pass_cache_key(
+                **{**key_args, "settings": malformed_safe_pag}
+            ),
+            baseline,
+        )
+        self.assertNotIn(
+            "safe_pag",
+            first_pass_cache._aio_first_pass_model_patch_plan(
+                malformed_safe_pag["model_patches"]
+            )["patches"],
         )
 
         with patch.object(first_pass_cache, "AIO_MODEL_PATCH_ORDER_REVISION", 2):
