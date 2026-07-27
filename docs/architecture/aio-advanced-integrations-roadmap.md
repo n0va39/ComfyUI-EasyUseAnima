@@ -2,15 +2,17 @@
 
 ## 문서 상태
 
-- 상태: **IN PROGRESS — #441 AIO-SAGE**
-- 기준일: 2026-07-27
+- 상태: **COMPLETE — #409/#410/#411/#440/#441**
+- 기준일: 2026-07-28
 - 기준 브랜치: `dev`
-- 기준 커밋: `9a2ae70841b52d42bc47eb90d4698ddbe411e0d1`
+- 기준 커밋: `7033eefb1e6beb17c23b0fb3a7c2624e594caec7`
 - 완료된 선행: [#395](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/395),
   [#409](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/409),
   [#410](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/410),
   [#411](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/411),
-  0.6.0 release
+  [#440](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/440),
+  [#441](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/441),
+  0.6.0 및 0.6.1 release
 - 기능 이슈:
   - [#409](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/409): stage별 고급 MODEL patch 범위
   - [#410](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/410): KJNodes Torch Compile 자동 추천
@@ -27,9 +29,10 @@ rollback 단위와 검증 순서를 고정한다. 기능 이슈의 behavior 요�
 최상위 정책이다.
 
 `#409`부터 `#411`까지의 advanced integration queue는 0.6.0으로 공개됐다.
-`#440` Safe PAG follow-up은 완료됐다. 현재 queue는 `#441` SageAttention
-follow-up이며, production cutover 전에 `AIO-SAGE-01` experimental Contract와
-migration 결정을 먼저 고정한다.
+`#440` Safe PAG와 `#441` SageAttention follow-up은 각각 독립 rollback 단위로
+완료됐고 0.6.1에 함께 공개됐다. 이 문서의 실행 queue는 닫혔으며, 이후 backend
+작업은 [`python-backend-execution-roadmap.md`](python-backend-execution-roadmap.md)의
+현재 READY task를 따른다.
 
 ## 1. 현재 확인된 실행 구조
 
@@ -571,37 +574,29 @@ Queue: repeated / concurrent / cancelled / exception
 - 한 PR에서 Contract와 Behavior를 분리할 수 없음
 - full/package/live gate가 behavior regression과 구조 변경을 구분하지 못함
 
-## 13. Codex 시작 지시
+## 13. 완료 및 handoff
 
-현재 `#441` 실행:
+- #440: AIO-SAFEPAG-01~04, PR #455~#458, Issue closed
+- #441: AIO-SAGE-01~04, PR #459~#462, Issue closed
+- 0.6.1 production release: main `0395db5932f032591870d3254b90402fa2e58234`
+- 2026-07-28 `origin/dev@7033eef` 재감사:
+  - Safe PAG Contract 5, Sage Contract 5, model preparation 17,
+    first-pass cache 32 tests PASS
+  - AiO settings core와 Advanced settings dialog smoke PASS
+  - 이후 root-entry 정리는 stage-scope owner와 serialization contract를 변경하지 않음
 
-```text
-1. 최신 origin/dev와 #441의 pinned/current upstream contract를 확인한다.
-2. AIO-SAGE-01은 test-local Contract와 migration 결정만 추가한다.
-3. clean-base clone의 model_options와 attention override isolation을 증명한다.
-4. allow_compile=false/true를 분리하되 patch 시점의 eager compile을 허용하지 않는다.
-5. legacy missing scope는 all-stage, fresh default는 first-pass-only로 분리한다.
-6. malformed scope, unselected lookup, dependency/input/signature drift를 fail-closed fixture로 고정한다.
-7. production planner/schema/UI는 Contract review와 dev merge 뒤 각각 분리한다.
-8. Legacy/Node 2.0 live는 최종 UI cutover에서만 실행한다.
-```
+새 advanced-integration behavior는 새 owning Issue와 Contract로 다시 열어야 한다.
+현재 handoff는 backend roadmap의 D-13 `anima_prompt` consolidation이다.
 
 ## 14. 릴리스 정책
 
-`#409`부터 `#411`까지는 0.6.0으로 공개됐다. 이 문서는 #440/#441의 다음 버전
-번호를 미리 예약하지 않으며, 두 follow-up은 각각 독립 rollback과 release 결정을
-유지한다.
-
-release candidate를 만들 때 다음을 별도로 결정한다.
-
-- #440과 #441을 같은 minor release에 묶을지
-- Safe PAG stage scope만 먼저 공개할지
-- optional dependency minimum version
-- workflow/profile migration note
-- Registry scanner/package evidence
-- 사용자에게 필요한 restart/hard-refresh 안내
+`#409`부터 `#411`까지는 0.6.0으로 공개됐다. #440/#441은 독립 구현·검증 기록을
+유지한 채 0.6.1에 함께 공개됐다. release와 Registry read-back 증거는 #470과
+0.6.1 release record가 소유한다.
 
 ## 15. #440 실행 manifest
+
+- 상태: **완료** — PR #455~#458, Issue closed
 
 ### AIO-SAFEPAG-01 — Contract와 migration 결정
 
@@ -639,6 +634,8 @@ release candidate를 만들 때 다음을 별도로 결정한다.
 - 전체 optional integration Cartesian matrix 미실행
 
 ## 16. #441 실행 manifest
+
+- 상태: **완료** — PR #459~#462, Issue closed
 
 ### AIO-SAGE-01 — Experimental Contract와 migration 결정
 
