@@ -12,6 +12,7 @@ import nodes as nodes_module
 from easyuse_anima.nodes import wildcard_nodes
 from easyuse_anima.prompt import advanced as prompt_advanced
 from easyuse_anima.seed import compatibility as seed_compatibility
+from easyuse_anima.wildcard import expansion as wildcard_expansion
 from easyuse_anima.wildcard import mode as wildcard_mode
 from easyuse_anima.wildcard import models as wildcard_models
 from easyuse_anima.wildcard import seed as wildcard_seed
@@ -38,6 +39,34 @@ from wildcard_engine import (
 
 
 class WildcardEngineTests(unittest.TestCase):
+    def test_root_expansion_state_surface_has_canonical_identity(self):
+        public_names = (
+            "COMMENT_RE",
+            "DYNAMIC_RE",
+            "WILDCARD_RE",
+            "WILDCARD_FULL_RE",
+            "WILDCARD_QUANTIFIER_RE",
+            "COUNT_SPEC_RE",
+            "has_wildcard_syntax",
+        )
+        self.assertEqual(wildcard_expansion.__all__, public_names)
+        state_names = (
+            "_utf8_width",
+            "_utf8_length",
+            "_ExpansionSegment",
+            "_ExpansionText",
+            "_Replacement",
+            "_ExpansionState",
+            "_bounded_output_prefix",
+            "_expansion_state_signature",
+        )
+        for name in (*public_names, *state_names):
+            with self.subTest(name=name):
+                self.assertIs(
+                    getattr(wildcard_engine, name),
+                    getattr(wildcard_expansion, name),
+                )
+
     def test_root_selector_has_canonical_identity(self):
         self.assertEqual(wildcard_selector.__all__, ())
         self.assertIs(wildcard_engine._Selector, wildcard_selector._Selector)

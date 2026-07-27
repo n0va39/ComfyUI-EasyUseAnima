@@ -1358,7 +1358,12 @@ next selector Move's split import contract: root keeps its eager `numpy as np`
 binding, while canonical `easyuse_anima.wildcard.selector` must remain safe to
 import without loading NumPy and may acquire NumPy only when constructing a
 non-sequential selector. D-12f2 moves `_Selector` under that contract without
-changing expansion callers or PCG64 behavior.
+changing expansion callers or PCG64 behavior. D-12g1 moves the pure wildcard
+syntax patterns, UTF-8 text accounting, segment/replacement values,
+budget/cycle state, bounded-prefix helper, and state signature to
+`easyuse_anima.wildcard.expansion`. Root retains direct aliases plus snapshot
+lifecycle, library ownership, replacement resolution, and expansion
+orchestration for later slices.
 
 ## 12. Phase E — Runtime ownership and lifecycle
 

@@ -87,6 +87,7 @@ PACKAGE_MODULES = (
     "easyuse_anima.translation.providers.google",
     "easyuse_anima.translation.service",
     "easyuse_anima.wildcard",
+    "easyuse_anima.wildcard.expansion",
     "easyuse_anima.wildcard.mode",
     "easyuse_anima.wildcard.models",
     "easyuse_anima.wildcard.seed",
@@ -371,6 +372,15 @@ print(json.dumps({{
             "google_translate_text",
             "strip_prompt_translation_markers",
             "translate_prompt_markers",
+        ]
+        expected_all[PACKAGE_MODULES.index("easyuse_anima.wildcard.expansion")] = [
+            "COMMENT_RE",
+            "DYNAMIC_RE",
+            "WILDCARD_RE",
+            "WILDCARD_FULL_RE",
+            "WILDCARD_QUANTIFIER_RE",
+            "COUNT_SPEC_RE",
+            "has_wildcard_syntax",
         ]
         expected_all[
             PACKAGE_MODULES.index("easyuse_anima.wildcard.mode")
