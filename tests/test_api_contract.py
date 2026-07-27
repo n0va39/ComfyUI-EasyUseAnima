@@ -424,6 +424,43 @@ class ApiRequestCorrelationTests(unittest.TestCase):
         self.assertIn("X-Request-ID", found.headers)
 
 
+class ApiWildcardRouteTests(unittest.TestCase):
+    def test_route_handler_is_owned_by_the_canonical_factory(self):
+        api, routes = load_api_routes()
+        handler = routes.handlers["/easyuse_anima/wildcards"]
+
+        self.assertIs(api.get_wildcards_handler, handler)
+        self.assertEqual(handler.__name__, "get_wildcards_handler")
+        self.assertTrue(
+            handler.__module__.endswith(
+                ".easyuse_anima.api.routes.wildcards"
+            )
+        )
+        self.assertTrue(handler._easyuse_anima_request_correlation)
+
+    def test_route_keeps_dynamic_payload_seam(self):
+        api, routes = load_api_routes()
+        payload = {
+            "status": "ok",
+            "items": ["artist/name"],
+            "roots": ["wildcard:1"],
+            "sources": [],
+        }
+
+        with patch.object(
+            api,
+            "_wildcards_payload_sync",
+            return_value=payload,
+        ) as wildcards_payload:
+            response = asyncio.run(
+                routes.handlers["/easyuse_anima/wildcards"](JsonRequest())
+            )
+
+        self.assertEqual(response["status"], 200)
+        self.assertEqual(response["payload"], payload)
+        wildcards_payload.assert_called_once_with()
+
+
 class ApiAutocompleteRouteTests(unittest.TestCase):
     def test_read_only_route_handlers_are_owned_by_the_canonical_factory(self):
         api, routes = load_api_routes()

@@ -51,6 +51,7 @@ PACKAGE_MODULES = (
     "easyuse_anima.api.routes.autocomplete",
     "easyuse_anima.api.routes.translation",
     "easyuse_anima.api.routes.translation_execution",
+    "easyuse_anima.api.routes.wildcards",
     "easyuse_anima.autocomplete",
     "easyuse_anima.autocomplete.classification",
     "easyuse_anima.autocomplete.dataset",
@@ -232,6 +233,9 @@ print(json.dumps({{
                 "easyuse_anima.api.routes.translation_execution"
             )
         ] = ["PromptTranslationRouteExecutor"]
+        expected_all[
+            PACKAGE_MODULES.index("easyuse_anima.api.routes.wildcards")
+        ] = ["build_wildcards_handler"]
         expected_all[
             PACKAGE_MODULES.index("easyuse_anima.autocomplete.classification")
         ] = ["classify_prompt_text"]

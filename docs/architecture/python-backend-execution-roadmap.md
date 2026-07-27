@@ -1368,6 +1368,12 @@ registration seams. The canonical factory preserves text/limit validation and
 the #162 offload contract while classification tokenization, dataset snapshot,
 index/cache, response policy, and frontend consumers remain unchanged.
 
+D-06a moves the always-redacted wildcard-list GET adapter to a pure
+`easyuse_anima.api.routes.wildcards` factory. Root composition retains dynamic
+payload, bounded file-I/O, correlation, route-table, and registration seams.
+The factory does not import settings or wildcard owners, so #199 access policy
+and D-12 snapshot/cache lifecycle remain outside this rollback boundary.
+
 D-11 is split by dependency ownership. D-11a moves the SQLite index leaf to
 `easyuse_anima.autocomplete.index`, retains `autocomplete_index.py` as an
 explicit identity shim, and enrolls the canonical package as the tenth G-03
