@@ -194,7 +194,7 @@ class AIOModelPreparationMoveTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "Unknown AiO sampling stage"):
             model_preparation._aio_stage_model_patch_plan(first_only, "save")
 
-    def test_unapproved_scope_fields_do_not_partially_select_safe_pag_or_kj(self):
+    def test_safe_pag_scope_is_stage_local_while_kj_scopes_remain_run_wide(self):
         settings = {
             "model_patches": {
                 "dave": {"enabled": False},
@@ -228,9 +228,15 @@ class AIOModelPreparationMoveTests(unittest.TestCase):
                 },
             }
         }
-        expected_patch_ids = (
+        first_pass_patch_ids = (
             "aura_flow",
             "safe_pag",
+            "kj.fp16_accumulation",
+            "kj.sage_attention",
+            "kj.torch_compile",
+        )
+        later_stage_patch_ids = (
+            "aura_flow",
             "kj.fp16_accumulation",
             "kj.sage_attention",
             "kj.torch_compile",
@@ -243,12 +249,60 @@ class AIOModelPreparationMoveTests(unittest.TestCase):
 
         self.assertEqual(
             {stage_id: plan.patch_ids for stage_id, plan in plans.items()},
-            {stage_id: expected_patch_ids for stage_id in plans},
+            {
+                "first_pass": first_pass_patch_ids,
+                "highres": later_stage_patch_ids,
+                "detailer": later_stage_patch_ids,
+                "upscale": later_stage_patch_ids,
+            },
         )
         self.assertEqual(
             len({plan.signature for plan in plans.values()}),
+            2,
+            "Safe PAG scope must split selected and unselected stage variants",
+        )
+        self.assertEqual(
+            len(
+                {
+                    plans[stage_id].signature
+                    for stage_id in ("highres", "detailer", "upscale")
+                }
+            ),
             1,
-            "Unsupported scope fields must not create partial stage variants",
+            "Unsupported KJ scope fields must remain run-wide",
+        )
+
+    def test_safe_pag_missing_scope_is_legacy_all_stage_and_malformed_fails_closed(self):
+        legacy = {
+            "model_patches": {
+                "safe_pag": {"enabled": True},
+            }
+        }
+        self.assertTrue(
+            all(
+                "safe_pag"
+                in model_preparation._aio_stage_model_patch_plan(
+                    legacy,
+                    stage_id,
+                ).patch_ids
+                for stage_id in ("first_pass", "highres", "detailer", "upscale")
+            )
+        )
+
+        malformed = {
+            "model_patches": {
+                "safe_pag": {"enabled": True, "stage_scope": "all"},
+            }
+        }
+        self.assertTrue(
+            all(
+                "safe_pag"
+                not in model_preparation._aio_stage_model_patch_plan(
+                    malformed,
+                    stage_id,
+                ).patch_ids
+                for stage_id in ("first_pass", "highres", "detailer", "upscale")
+            )
         )
 
     def test_stage_plan_moves_only_compile_before_dave_in_the_patch_chain(self):
@@ -379,6 +433,38 @@ class AIOModelPreparationMoveTests(unittest.TestCase):
                 "aura",
             )
         apply_dave.assert_not_called()
+
+    def test_safe_pag_disabled_stage_does_not_call_safe_pag_adapter(self):
+        settings = {
+            "model_patches": {
+                "safe_pag": {
+                    "enabled": True,
+                    "stage_scope": {"highres": False},
+                },
+            }
+        }
+        plan = model_preparation._aio_stage_model_patch_plan(settings, "highres")
+        with (
+            patch.object(
+                model_preparation,
+                "_patch_model_sampling_aura_flow",
+                return_value="aura",
+            ),
+            patch.object(
+                model_preparation,
+                "_apply_aio_safe_pag_patch",
+            ) as apply_safe_pag,
+            patch.object(
+                model_preparation,
+                "_apply_aio_kj_model_patches",
+                side_effect=lambda model, _settings: model,
+            ),
+        ):
+            self.assertEqual(
+                model_preparation._apply_aio_stage_model_patch_plan("base", plan),
+                "aura",
+            )
+        apply_safe_pag.assert_not_called()
 
     def test_kj_patch_chain_preserves_fp16_sage_compile_order_and_arguments(self):
         calls: list[tuple[object, ...]] = []

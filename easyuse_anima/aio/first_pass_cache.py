@@ -14,7 +14,7 @@ from .generation_migrations import (
     AIO_MODEL_PATCH_ORDER_REVISION,
     AIO_MODEL_PATCH_PRECEDENCE,
 )
-from .model_preparation import _aio_lora_stack_signature
+from .model_preparation import _aio_lora_stack_signature, _aio_safe_pag_in_stage
 from .negpip import _aio_negpip_cache_signature
 
 AIO_FIRST_PASS_CACHE_MAX_ENTRIES = 2
@@ -323,7 +323,10 @@ def _aio_first_pass_model_patch_plan(model_patches) -> dict[str, Any]:
             }
 
     safe_pag = source.get("safe_pag")
-    if isinstance(safe_pag, dict) and bool(safe_pag.get("enabled")):
+    if isinstance(safe_pag, dict) and _aio_safe_pag_in_stage(
+        safe_pag,
+        "first_pass",
+    ):
         patches["safe_pag"] = {
             key: safe_pag.get(key)
             for key in (
@@ -337,6 +340,7 @@ def _aio_first_pass_model_patch_plan(model_patches) -> dict[str, Any]:
                 "rescale_mode",
             )
         }
+        patches["safe_pag"]["stage_scope"] = {"first_pass": True}
 
     return {
         "order_revision": AIO_MODEL_PATCH_ORDER_REVISION,

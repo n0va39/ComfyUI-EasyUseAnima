@@ -23,6 +23,22 @@ from .generation_migrations import (
 logger = logging.getLogger("ComfyUI-EasyUseAnima")
 
 
+def _aio_safe_pag_in_stage(
+    safe_pag_settings: object,
+    stage_id: str,
+) -> bool:
+    if stage_id not in AIO_GENERATION_STAGE_IDS:
+        raise ValueError(f"Unknown AiO sampling stage: {stage_id}")
+    if not isinstance(safe_pag_settings, dict) or not _as_bool(
+        safe_pag_settings.get("enabled"), False
+    ):
+        return False
+    if "stage_scope" not in safe_pag_settings:
+        return True
+    stage_scope = safe_pag_settings.get("stage_scope")
+    return isinstance(stage_scope, dict) and stage_scope.get(stage_id) is True
+
+
 def _missing_host_helper(name: str):
     raise RuntimeError(
         f"[EasyUseAnima] AiO model preparation Comfy host helper is unavailable: {name}"
@@ -184,7 +200,7 @@ def _aio_stage_model_patch_plan(
         isinstance(compile_settings, dict)
         and _as_bool(compile_settings.get("enabled"), False)
     )
-    safe_pag_enabled = _as_bool(safe_pag_settings.get("enabled"), False)
+    safe_pag_in_stage = _aio_safe_pag_in_stage(safe_pag_settings, stage_id)
     fp16_enabled = _as_bool(kj_settings.get("fp16_accumulation"), False)
     sage_enabled = str(kj_settings.get("sage_attention") or "disabled") != "disabled"
     compile_before_dave = dave_in_stage and compile_enabled
@@ -194,7 +210,7 @@ def _aio_stage_model_patch_plan(
         patch_ids.append("kj.torch_compile")
     if dave_in_stage:
         patch_ids.append("dave")
-    if safe_pag_enabled:
+    if safe_pag_in_stage:
         patch_ids.append("safe_pag")
     if fp16_enabled:
         patch_ids.append("kj.fp16_accumulation")
@@ -207,7 +223,7 @@ def _aio_stage_model_patch_plan(
         "order_revision": AIO_MODEL_PATCH_ORDER_REVISION,
         "aura_flow": dict(aura_settings),
         "dave": dict(dave_settings) if dave_in_stage else None,
-        "safe_pag": dict(safe_pag_settings),
+        "safe_pag": dict(safe_pag_settings) if safe_pag_in_stage else None,
         "kj": dict(kj_settings),
         "compile_before_dave": compile_before_dave,
     }
