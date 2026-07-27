@@ -68,6 +68,9 @@ from .easyuse_anima.api.routes.translation import (
 from .easyuse_anima.api.routes.translation_execution import (
     PromptTranslationRouteExecutor as _PromptTranslationRouteExecutor,
 )
+from .easyuse_anima.api.routes.aio_torch_compile import (
+    build_aio_torch_compile_recommend_handler as _build_aio_torch_compile_recommend_handler,
+)
 from .easyuse_anima.aio.torch_compile_diagnostics import (
     collect_torch_compile_diagnostics as _collect_torch_compile_diagnostics,
 )
@@ -564,49 +567,22 @@ if web is not None:
         )
     )
 
-    @_request_correlated
-    async def aio_torch_compile_recommend_handler(request):
-        try:
-            data = await parse_json_object(request)
-            generation_settings = (
-                json_object(data, "generation_settings")
-                if "generation_settings" in data
-                else {}
-            )
-            resolution = (
-                json_object(data, "resolution") if "resolution" in data else {}
-            )
-            width = json_integer(
-                resolution,
-                "width",
-                default=None,
-                minimum=1,
-                maximum=16384,
-            )
-            height = json_integer(
-                resolution,
-                "height",
-                default=None,
-                minimum=1,
-                maximum=16384,
-            )
-            batch_size = json_integer(
+    aio_torch_compile_recommend_handler = _request_correlated(
+        _build_aio_torch_compile_recommend_handler(
+            parse_json_object=lambda request: parse_json_object(request),
+            json_object=lambda data, field: json_object(data, field),
+            json_integer=lambda data, field, **kwargs: json_integer(
                 data,
-                "batch_size",
-                default=1,
-                minimum=1,
-                maximum=4096,
-            )
-        except ApiContractError as exc:
-            return _contract_error_response(exc)
-        return web.json_response(
-            _recommend_torch_compile(
-                _collect_torch_compile_diagnostics(),
-                generation_settings,
-                {"width": width, "height": height},
-                batch_size if batch_size is not None else 1,
-            )
+                field,
+                **kwargs,
+            ),
+            contract_error_type=ApiContractError,
+            contract_error_response=lambda exc: _contract_error_response(exc),
+            collect_diagnostics=lambda: _collect_torch_compile_diagnostics(),
+            recommend_torch_compile=lambda *args: _recommend_torch_compile(*args),
+            json_response=lambda payload: web.json_response(payload),
         )
+    )
 
     @_request_correlated
     async def lora_preview_handler(request):
