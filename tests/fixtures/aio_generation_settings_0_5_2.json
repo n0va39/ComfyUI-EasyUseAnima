@@ -260,6 +260,12 @@
         "rescale": 0.2,
         "rescale_mode": "full",
         "scale": 4.0,
+        "stage_scope": {
+          "detailer": false,
+          "first_pass": true,
+          "highres": false,
+          "upscale": false
+        },
         "start_percent": 0.0
       }
     },
@@ -434,7 +440,7 @@
         "upscale_model_name": "2x-AnimeSharpV4_Fast_RCAN_PU.safetensors"
       }
     },
-    "version": 2
+    "version": 3
   },
   "serialized_generation_settings": {
     "artist_mix": {

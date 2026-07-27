@@ -116,6 +116,10 @@ AIO_GENERATION_DEFAULT_SETTINGS = {
             "end_percent": 0.7,
             "rescale": 0.2,
             "rescale_mode": "full",
+            "stage_scope": {
+                stage_id: stage_id == "first_pass"
+                for stage_id in AIO_GENERATION_STAGE_IDS
+            },
         },
         "kj": {
             "fp16_accumulation": False,

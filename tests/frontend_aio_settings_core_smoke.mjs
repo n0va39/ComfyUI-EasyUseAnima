@@ -99,11 +99,11 @@ function collectCoercionReferences(value, output = new Set()) {
 
 const settingsModule = await import(dataModule("../web/js/aio/settings.js"));
 const generationManifest = JSON.parse(readFileSync(
-  new URL("../easyuse_anima/aio/schemas/generation_settings.v2.json", import.meta.url),
+  new URL("../easyuse_anima/aio/schemas/generation_settings.v3.json", import.meta.url),
   "utf8",
 ));
 const generationSurfaceCoverage = JSON.parse(readFileSync(
-  new URL("./fixtures/aio_generation_settings_surface_coverage.v2.json", import.meta.url),
+  new URL("./fixtures/aio_generation_settings_surface_coverage.v3.json", import.meta.url),
   "utf8",
 ));
 const aioRuntimeSource = readFileSync(
@@ -148,7 +148,7 @@ assertJsonEqual(
 );
 assert(
   AIO_DEFAULT_GENERATION_SETTINGS.schema === "easyuse_anima_aio_generation_settings"
-    && AIO_DEFAULT_GENERATION_SETTINGS.version === 2
+    && AIO_DEFAULT_GENERATION_SETTINGS.version === 3
     && AIO_DEFAULT_GENERATION_SETTINGS.mode === "txt2img",
   "AiO generation settings must keep their versioned schema",
 );
@@ -171,6 +171,16 @@ assertJsonEqual(
     upscale: false,
   },
   "Fresh DAVE settings must default to first-pass-only",
+);
+assertJsonEqual(
+  AIO_DEFAULT_GENERATION_SETTINGS.model_patches.safe_pag.stage_scope,
+  {
+    first_pass: true,
+    highres: false,
+    detailer: false,
+    upscale: false,
+  },
+  "Fresh Safe PAG settings must default to first-pass-only",
 );
 assertJsonEqual(
   AIO_DEFAULT_GENERATION_SETTINGS,
@@ -420,7 +430,7 @@ const migratedLegacyGeneration = aioMigrateGenerationSettingsVersion(legacyV1Gen
 assert(
   migratedLegacyGeneration !== legacyV1Generation
     && legacyV1Generation.version === 1
-    && migratedLegacyGeneration.version === 2,
+    && migratedLegacyGeneration.version === 3,
   "Generation version migration must clone and leave the saved v1 object unchanged",
 );
 assertJsonEqual(
@@ -433,9 +443,9 @@ const parsedLegacyV1Generation = aioParseSettingsValue(
   AIO_DEFAULT_GENERATION_SETTINGS,
 );
 assert(
-  parsedLegacyV1Generation.version === 2
+  parsedLegacyV1Generation.version === 3
     && parsedLegacyV1Generation.profile_extension.preserve === true,
-  "Frontend parsing must apply the v1-to-v2 migration and preserve extensions",
+  "Frontend parsing must apply the v1-to-v3 migration chain and preserve extensions",
 );
 assertJsonEqual(
   parsedLegacyV1Generation.model_patches.dave.stage_scope,
@@ -456,7 +466,52 @@ const parsedCustomV2 = aioParseSettingsValue(JSON.stringify({
 assertJsonEqual(
   parsedCustomV2.model_patches.dave.stage_scope,
   customV2Scope,
-  "Explicit v2 DAVE stage scope must round-trip without migration",
+  "Explicit v2 DAVE stage scope must survive the v2-to-v3 migration",
+);
+const legacyV2SafePag = {
+  schema: "easyuse_anima_aio_generation_settings",
+  version: 2,
+  model_patches: {
+    safe_pag: {
+      enabled: true,
+      scale: 4,
+      block_indices: "18",
+      perturbation_strength: 0.75,
+      head_indices: "",
+      start_percent: 0,
+      end_percent: 0.7,
+      rescale: 0.2,
+      rescale_mode: "full",
+    },
+  },
+};
+const migratedLegacyV2SafePag = aioMigrateGenerationSettingsVersion(legacyV2SafePag);
+assert(
+  migratedLegacyV2SafePag !== legacyV2SafePag
+    && legacyV2SafePag.version === 2
+    && migratedLegacyV2SafePag.version === 3,
+  "Safe PAG version migration must clone and leave the saved v2 object unchanged",
+);
+assertJsonEqual(
+  migratedLegacyV2SafePag.model_patches.safe_pag.stage_scope,
+  Object.fromEntries(AIO_GENERATION_STAGE_IDS.map((stageId) => [stageId, true])),
+  "Legacy v2 Safe PAG settings without scope must migrate to all sampling stages",
+);
+const customV3SafePagScope = {
+  first_pass: false,
+  highres: true,
+  detailer: false,
+  upscale: true,
+};
+const parsedCustomV3SafePag = aioParseSettingsValue(JSON.stringify({
+  schema: "easyuse_anima_aio_generation_settings",
+  version: 3,
+  model_patches: { safe_pag: { stage_scope: customV3SafePagScope } },
+}), AIO_DEFAULT_GENERATION_SETTINGS);
+assertJsonEqual(
+  parsedCustomV3SafePag.model_patches.safe_pag.stage_scope,
+  customV3SafePagScope,
+  "Explicit v3 Safe PAG stage scope must round-trip without migration",
 );
 const parsedLegacyGeneration = aioParseSettingsValue(JSON.stringify({
   upscale: {
@@ -707,20 +762,24 @@ assert(
 );
 assert(
   generationManifest.policies.persistence.write_on_read === false
-    && generationManifest.policies.version_migrations.length === 1
+    && generationManifest.policies.version_migrations.length === 2
     && generationManifest.policies.version_migrations[0].from === 1
     && generationManifest.policies.version_migrations[0].to === 2
-    && generationManifest.policies.version_migrations[0].mode === "pure-in-memory",
-  "The v2 contract must keep no-write-on-read and one pure v1 migration",
+    && generationManifest.policies.version_migrations[1].from === 2
+    && generationManifest.policies.version_migrations[1].to === 3
+    && generationManifest.policies.version_migrations[0].mode === "pure-in-memory"
+    && generationManifest.policies.version_migrations[1].mode === "pure-in-memory",
+  "The v3 contract must keep no-write-on-read and consecutive pure migrations",
 );
 assertJsonEqual(
   generationManifest.policies.model_patch_contract,
   {
     sampling_stage_ids: ["first_pass", "highres", "detailer", "upscale"],
-    patch_order_revision: 1,
-    precedence_edges: [["kj.torch_compile", "dave"]],
+    patch_order_revision: 2,
+    precedence_edges: [["kj.torch_compile", "dave"], ["dave", "safe_pag"]],
     dave_fresh_default: "first-pass-only",
-    execution_cutover: "complete-through-AIO-SCOPE-03",
+    safe_pag_fresh_default: "first-pass-only",
+    execution_cutover: "complete-through-AIO-SAFEPAG-03",
     stage_scope_policy: {
       generic_scope_ui: false,
       owners: {
@@ -729,8 +788,8 @@ assertJsonEqual(
           stages: ["first_pass", "highres", "detailer", "upscale"],
         },
         safe_pag: {
-          decision: "follow-up-required",
-          reason: "clone-local-wrapper-with-temporary-shared-module-mutation",
+          decision: "supported",
+          stages: ["first_pass", "highres", "detailer", "upscale"],
         },
         "kj.fp16_accumulation": {
           decision: "run-global-not-stage-scoped",
@@ -747,7 +806,7 @@ assertJsonEqual(
       },
     },
   },
-  "The v2 manifest must freeze stage ids, precedence revision, cutover, and scope owners",
+  "The v3 manifest must freeze stage ids, precedence revision, cutover, and scope owners",
 );
 
 console.log("AiO settings core smoke passed.");

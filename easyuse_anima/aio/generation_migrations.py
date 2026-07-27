@@ -8,15 +8,18 @@ from typing import TypeAlias, cast
 from .generation_values import freeze_object, thaw_object
 
 AIO_GENERATION_SETTINGS_SCHEMA = "easyuse_anima_aio_generation_settings"
-AIO_GENERATION_SETTINGS_CURRENT_VERSION = 2
+AIO_GENERATION_SETTINGS_CURRENT_VERSION = 3
 AIO_GENERATION_STAGE_IDS = (
     "first_pass",
     "highres",
     "detailer",
     "upscale",
 )
-AIO_MODEL_PATCH_ORDER_REVISION = 1
-AIO_MODEL_PATCH_PRECEDENCE = (("kj.torch_compile", "dave"),)
+AIO_MODEL_PATCH_ORDER_REVISION = 2
+AIO_MODEL_PATCH_PRECEDENCE = (
+    ("kj.torch_compile", "dave"),
+    ("dave", "safe_pag"),
+)
 
 AIOGenerationMigrationFunction: TypeAlias = Callable[
     [Mapping[str, object]],
@@ -133,12 +136,35 @@ def _migrate_aio_generation_settings_v1_to_v2(
     return migrated
 
 
+def _migrate_aio_generation_settings_v2_to_v3(
+    source: Mapping[str, object],
+) -> Mapping[str, object]:
+    """Add Safe PAG stage scope while preserving legacy all-stage behavior."""
+
+    migrated = _copy_generation_settings(source)
+    model_patches = migrated.get("model_patches")
+    if isinstance(model_patches, dict):
+        model_patch_values = cast(dict[str, object], model_patches)
+        safe_pag = model_patch_values.get("safe_pag")
+        if isinstance(safe_pag, dict) and "stage_scope" not in safe_pag:
+            safe_pag_values = cast(dict[str, object], safe_pag)
+            safe_pag_values["stage_scope"] = {
+                stage_id: True for stage_id in AIO_GENERATION_STAGE_IDS
+            }
+    migrated["version"] = 3
+    return migrated
+
+
 AIO_GENERATION_MIGRATION_REGISTRY = (
-    AIOGenerationMigrationRegistry().with_step(
+    AIOGenerationMigrationRegistry()
+    .with_step(
         AIOGenerationMigrationStep(
-            1,
-            2,
-            _migrate_aio_generation_settings_v1_to_v2,
+            1, 2, _migrate_aio_generation_settings_v1_to_v2,
+        )
+    )
+    .with_step(
+        AIOGenerationMigrationStep(
+            2, 3, _migrate_aio_generation_settings_v2_to_v3,
         )
     )
 )

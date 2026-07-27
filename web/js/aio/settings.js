@@ -9,7 +9,7 @@ export const AIO_GENERATION_STAGE_IDS = ["first_pass", "highres", "detailer", "u
 
 export const AIO_DEFAULT_GENERATION_SETTINGS = {
   schema: "easyuse_anima_aio_generation_settings",
-  version: 2,
+  version: 3,
   mode: "txt2img",
   sampler: {
     backend: "comfy_ksampler",
@@ -91,6 +91,12 @@ export const AIO_DEFAULT_GENERATION_SETTINGS = {
       end_percent: 0.7,
       rescale: 0.2,
       rescale_mode: "full",
+      stage_scope: {
+        first_pass: true,
+        highres: false,
+        detailer: false,
+        upscale: false,
+      },
     },
     kj: {
       fp16_accumulation: false,
@@ -472,6 +478,23 @@ export function aioMigrateGenerationSettingsVersion(value) {
       );
     }
     migrated.version = 2;
+  }
+  if (
+    migrated.schema === AIO_DEFAULT_GENERATION_SETTINGS.schema
+    && migrated.version === 2
+  ) {
+    const safePag = migrated.model_patches?.safe_pag;
+    if (
+      safePag
+      && typeof safePag === "object"
+      && !Array.isArray(safePag)
+      && !Object.prototype.hasOwnProperty.call(safePag, "stage_scope")
+    ) {
+      safePag.stage_scope = Object.fromEntries(
+        AIO_GENERATION_STAGE_IDS.map((stageId) => [stageId, true]),
+      );
+    }
+    migrated.version = 3;
   }
   return migrated;
 }
