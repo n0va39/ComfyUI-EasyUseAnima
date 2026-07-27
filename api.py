@@ -78,6 +78,9 @@ from .easyuse_anima.api.routes.lora_preview import (
 from .easyuse_anima.api.routes.profile_lists import (
     build_profile_list_handlers as _build_profile_list_handlers,
 )
+from .easyuse_anima.api.routes.profile_loads import (
+    build_profile_load_handlers as _build_profile_load_handlers,
+)
 from .easyuse_anima.api.routes.wildcards import (
     build_wildcards_handler as _build_wildcards_handler,
 )
@@ -637,6 +640,27 @@ if web is not None:
         )
     )
 
+    (
+        load_lora_profile_handler,
+        load_aio_profile_handler,
+    ) = (
+        _request_correlated(handler)
+        for handler in _build_profile_load_handlers(
+            run_file_io=lambda function, *args: _run_file_io(function, *args),
+            load_lora_profile=lambda name: _load_lora_profile(name),
+            load_aio_profile=lambda name: _load_aio_profile(name),
+            lora_load_error_types=(
+                json.JSONDecodeError,
+                UnicodeDecodeError,
+                FileNotFoundError,
+                ValueError,
+            ),
+            aio_load_error_types=(FileNotFoundError, ValueError),
+            profile_error_response=lambda exc: _profile_error_response(exc),
+            json_response=lambda payload: web.json_response(payload),
+        )
+    )
+
     @_request_correlated
     async def save_lora_profile_handler(request):
         try:
@@ -672,22 +696,6 @@ if web is not None:
         return web.json_response({"status": "ok", "profile": payload})
 
     @_request_correlated
-    async def load_lora_profile_handler(request):
-        try:
-            payload = await _run_file_io(
-                _load_lora_profile,
-                request.query.get("name", ""),
-            )
-        except (
-            json.JSONDecodeError,
-            UnicodeDecodeError,
-            FileNotFoundError,
-            ValueError,
-        ) as exc:
-            return _profile_error_response(exc)
-        return web.json_response({"status": "ok", "profile": payload})
-
-    @_request_correlated
     async def save_aio_profile_handler(request):
         try:
             data = await parse_json_object(request)
@@ -717,17 +725,6 @@ if web is not None:
                 revision=revision,
             )
         except (FileExistsError, FileNotFoundError, ValueError) as exc:
-            return _profile_error_response(exc)
-        return web.json_response({"status": "ok", "profile": payload})
-
-    @_request_correlated
-    async def load_aio_profile_handler(request):
-        try:
-            payload = await _run_file_io(
-                _load_aio_profile,
-                request.query.get("name", ""),
-            )
-        except (FileNotFoundError, ValueError) as exc:
             return _profile_error_response(exc)
         return web.json_response({"status": "ok", "profile": payload})
 

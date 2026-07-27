@@ -535,6 +535,119 @@ class ApiProfileListRouteTests(unittest.TestCase):
             self.assertNotIn("private path", json.dumps(response["payload"]))
 
 
+class ApiProfileLoadRouteTests(unittest.TestCase):
+    def test_route_handlers_are_owned_by_the_canonical_factory(self):
+        api, routes = load_api_routes()
+        cases = (
+            (
+                "load_lora_profile_handler",
+                "/easyuse_anima/lora_profiles/load",
+            ),
+            (
+                "load_aio_profile_handler",
+                "/easyuse_anima/aio_profiles/load",
+            ),
+        )
+
+        for name, path in cases:
+            with self.subTest(path=path):
+                handler = routes.handlers[path]
+                self.assertIs(getattr(api, name), handler)
+                self.assertEqual(handler.__name__, name)
+                self.assertTrue(
+                    handler.__module__.endswith(
+                        ".easyuse_anima.api.routes.profile_loads"
+                    )
+                )
+                self.assertTrue(handler._easyuse_anima_request_correlation)
+
+    def test_routes_keep_dynamic_load_seams_query_contract_and_success_shape(self):
+        api, routes = load_api_routes()
+        profile = {
+            "name": "Portrait",
+            "profile_id": "32345678-1234-4567-89ab-1234567890ab",
+            "revision": 4,
+        }
+        cases = (
+            (
+                "/easyuse_anima/lora_profiles/load",
+                "_load_lora_profile",
+                JsonRequest(query={"name": "Portrait"}),
+                "Portrait",
+            ),
+            (
+                "/easyuse_anima/aio_profiles/load",
+                "_load_aio_profile",
+                JsonRequest(),
+                "",
+            ),
+        )
+
+        for path, operation_name, request, expected_name in cases:
+            with self.subTest(path=path), patch.object(
+                api,
+                operation_name,
+                return_value=profile,
+            ) as load_profile:
+                response = asyncio.run(routes.handlers[path](request))
+
+            self.assertEqual(response["status"], 200)
+            self.assertEqual(
+                response["payload"],
+                {"status": "ok", "profile": profile},
+            )
+            load_profile.assert_called_once_with(expected_name)
+
+    def test_routes_preserve_mapped_load_error_boundaries(self):
+        api, routes = load_api_routes()
+        cases = (
+            (
+                "/easyuse_anima/lora_profiles/load",
+                "_load_lora_profile",
+                FileNotFoundError("C:\\private\\missing.json"),
+                404,
+                "profile_not_found",
+            ),
+            (
+                "/easyuse_anima/aio_profiles/load",
+                "_load_aio_profile",
+                FileNotFoundError("/home/alice/missing.json"),
+                404,
+                "profile_not_found",
+            ),
+            (
+                "/easyuse_anima/lora_profiles/load",
+                "_load_lora_profile",
+                json.JSONDecodeError("private json", "{", 0),
+                422,
+                "invalid_profile_data",
+            ),
+            (
+                "/easyuse_anima/aio_profiles/load",
+                "_load_aio_profile",
+                api.InvalidProfileDataError("private profile"),
+                422,
+                "invalid_profile_data",
+            ),
+        )
+
+        for path, operation_name, error, status, code in cases:
+            with self.subTest(path=path, code=code), patch.object(
+                api,
+                operation_name,
+                side_effect=error,
+            ):
+                response = asyncio.run(
+                    routes.handlers[path](JsonRequest(query={"name": "Broken"}))
+                )
+
+            self.assertEqual(response["status"], status)
+            self.assertEqual(response["payload"]["code"], code)
+            serialized = json.dumps(response["payload"])
+            for forbidden in ("private", "/home/", "alice"):
+                self.assertNotIn(forbidden, serialized)
+
+
 class ApiWildcardRouteTests(unittest.TestCase):
     def test_route_handler_is_owned_by_the_canonical_factory(self):
         api, routes = load_api_routes()
