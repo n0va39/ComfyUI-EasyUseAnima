@@ -162,6 +162,7 @@ class ApiRequestCorrelationTests(unittest.TestCase):
         ("GET", "/easyuse_anima/autocomplete"),
         ("POST", "/easyuse_anima/classify_prompt"),
         ("POST", "/easyuse_anima/translate_prompt"),
+        ("POST", "/easyuse_anima/aio/torch-compile/recommend"),
         ("GET", "/easyuse_anima/lora_preview"),
         ("GET", "/easyuse_anima/loras"),
         ("GET", "/easyuse_anima/lora_profiles"),
@@ -184,6 +185,7 @@ class ApiRequestCorrelationTests(unittest.TestCase):
         "/easyuse_anima/autocomplete",
         "/easyuse_anima/classify_prompt",
         "/easyuse_anima/translate_prompt",
+        "/easyuse_anima/aio/torch-compile/recommend",
         "/easyuse_anima/lora_preview",
         "/easyuse_anima/loras",
         "/easyuse_anima/lora_profiles",
@@ -422,12 +424,53 @@ class ApiRequestCorrelationTests(unittest.TestCase):
         self.assertIn("X-Request-ID", found.headers)
 
 
+class ApiTorchCompileDiagnosticsTests(unittest.TestCase):
+    def test_route_returns_exact_read_only_diagnostics_with_request_correlation(self):
+        api, routes = load_api_routes()
+        payload = {
+            "schema_version": 1,
+            "policy_version": "diagnostics-v1",
+            "supported": False,
+            "profile": "unsupported",
+            "values": {},
+            "environment": {"accelerator": "cpu"},
+            "reason_codes": ["cuda_unavailable"],
+            "warnings": ["recommendation_policy_pending"],
+        }
+        handler = routes.handlers["/easyuse_anima/aio/torch-compile/recommend"]
+        request = JsonRequest(
+            {
+                "generation_settings": {"prompt": "must not be reflected"},
+                "resolution": {"width": 1024, "height": 1024},
+                "batch_size": 1,
+            }
+        )
+
+        with (
+            patch.object(
+                api,
+                "_collect_torch_compile_diagnostics",
+                return_value=payload,
+            ) as collect,
+            patch.object(api, "_run_file_io") as file_io,
+        ):
+            response = asyncio.run(handler(request))
+
+        self.assertEqual(response["status"], 200)
+        self.assertEqual(response["payload"], payload)
+        self.assertIn("X-Request-ID", response.headers)
+        collect.assert_called_once_with()
+        file_io.assert_not_called()
+        self.assertNotIn("must not be reflected", json.dumps(response["payload"]))
+
+
 class ApiRequestContractTests(unittest.TestCase):
     POST_ROUTES = (
         "/easyuse_anima/set_setting",
         "/easyuse_anima/long_text_settings/save",
         "/easyuse_anima/classify_prompt",
         "/easyuse_anima/translate_prompt",
+        "/easyuse_anima/aio/torch-compile/recommend",
         "/easyuse_anima/lora_profiles/save",
         "/easyuse_anima/aio_profiles/save",
         "/easyuse_anima/aio_profiles/delete",

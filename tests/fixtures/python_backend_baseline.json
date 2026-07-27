@@ -1986,6 +1986,24 @@
         "target": "api_contract.py"
       },
       {
+        "alias": "_collect_torch_compile_diagnostics",
+        "bound_name": "_collect_torch_compile_diagnostics",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".easyuse_anima.aio.torch_compile_diagnostics:collect_torch_compile_diagnostics",
+        "kind": "static_from",
+        "line": 64,
+        "name": "collect_torch_compile_diagnostics",
+        "optional": false,
+        "requested": ".easyuse_anima.aio.torch_compile_diagnostics",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "api.py",
+        "target": "easyuse_anima/aio/torch_compile_diagnostics.py"
+      },
+      {
         "alias": "_aio_profiles",
         "bound_name": "_aio_profiles",
         "branch_context": [],
@@ -1994,7 +2012,7 @@
         "conditional": false,
         "imported": ".easyuse_anima.profiles:aio",
         "kind": "static_from",
-        "line": 64,
+        "line": 67,
         "name": "aio",
         "optional": false,
         "requested": ".easyuse_anima.profiles",
@@ -2012,7 +2030,7 @@
         "conditional": false,
         "imported": ".easyuse_anima.profiles:contract",
         "kind": "static_from",
-        "line": 65,
+        "line": 68,
         "name": "contract",
         "optional": false,
         "requested": ".easyuse_anima.profiles",
@@ -2030,7 +2048,7 @@
         "conditional": false,
         "imported": ".easyuse_anima.profiles:lora",
         "kind": "static_from",
-        "line": 66,
+        "line": 69,
         "name": "lora",
         "optional": false,
         "requested": ".easyuse_anima.profiles",
@@ -2048,7 +2066,7 @@
         "conditional": false,
         "imported": ".easyuse_anima.profiles:mutation",
         "kind": "static_from",
-        "line": 67,
+        "line": 70,
         "name": "mutation",
         "optional": false,
         "requested": ".easyuse_anima.profiles",
@@ -2066,7 +2084,7 @@
         "conditional": false,
         "imported": ".easyuse_anima.profiles:repository",
         "kind": "static_from",
-        "line": 68,
+        "line": 71,
         "name": "repository",
         "optional": false,
         "requested": ".easyuse_anima.profiles",
@@ -2084,7 +2102,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 324
+            "line": 327
           }
         ],
         "classification": "external",
@@ -2092,7 +2110,7 @@
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 325,
+        "line": 328,
         "name": null,
         "optional": true,
         "requested": "folder_paths",
@@ -12115,6 +12133,177 @@
         "scope": "<module>",
         "source": "easyuse_anima/aio/sampling.py",
         "target": "easyuse_anima/aio/generation_normalization.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "annotations",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "__future__:annotations",
+        "kind": "static_from",
+        "line": 3,
+        "name": "annotations",
+        "optional": false,
+        "requested": "__future__",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/torch_compile_diagnostics.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "importlib",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "importlib",
+        "kind": "static_import",
+        "line": 5,
+        "name": null,
+        "optional": false,
+        "requested": "importlib",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/torch_compile_diagnostics.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "inspect",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "inspect",
+        "kind": "static_import",
+        "line": 6,
+        "name": null,
+        "optional": false,
+        "requested": "inspect",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/torch_compile_diagnostics.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "platform",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "platform",
+        "kind": "static_import",
+        "line": 7,
+        "name": null,
+        "optional": false,
+        "requested": "platform",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/torch_compile_diagnostics.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "Callable",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "collections.abc:Callable",
+        "kind": "static_from",
+        "line": 8,
+        "name": "Callable",
+        "optional": false,
+        "requested": "collections.abc",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/torch_compile_diagnostics.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "Mapping",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "collections.abc:Mapping",
+        "kind": "static_from",
+        "line": 8,
+        "name": "Mapping",
+        "optional": false,
+        "requested": "collections.abc",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/torch_compile_diagnostics.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "Sequence",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "collections.abc:Sequence",
+        "kind": "static_from",
+        "line": 8,
+        "name": "Sequence",
+        "optional": false,
+        "requested": "collections.abc",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/torch_compile_diagnostics.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "Any",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "typing:Any",
+        "kind": "static_from",
+        "line": 9,
+        "name": "Any",
+        "optional": false,
+        "requested": "typing",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/torch_compile_diagnostics.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "_find_loaded_node_class",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": "..infrastructure.comfy.capabilities:_find_loaded_node_class",
+        "kind": "static_from",
+        "line": 11,
+        "name": "_find_loaded_node_class",
+        "optional": false,
+        "requested": "..infrastructure.comfy.capabilities",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/torch_compile_diagnostics.py",
+        "target": "easyuse_anima/infrastructure/comfy/capabilities.py"
+      },
+      {
+        "alias": null,
+        "bound_name": null,
+        "branch_context": [],
+        "classification": "external",
+        "column": 11,
+        "conditional": false,
+        "imported": "torch",
+        "kind": "literal_dynamic",
+        "line": 45,
+        "name": null,
+        "optional": false,
+        "requested": "torch",
+        "role": "ordinary",
+        "scope": "_torch_module",
+        "source": "easyuse_anima/aio/torch_compile_diagnostics.py"
       },
       {
         "alias": null,
@@ -57211,6 +57400,10 @@
       },
       {
         "from": "api.py",
+        "to": "easyuse_anima/aio/torch_compile_diagnostics.py"
+      },
+      {
+        "from": "api.py",
         "to": "easyuse_anima/autocomplete/dataset.py"
       },
       {
@@ -57756,6 +57949,10 @@
       {
         "from": "easyuse_anima/aio/sampling.py",
         "to": "easyuse_anima/seed/reservation.py"
+      },
+      {
+        "from": "easyuse_anima/aio/torch_compile_diagnostics.py",
+        "to": "easyuse_anima/infrastructure/comfy/capabilities.py"
       },
       {
         "from": "easyuse_anima/aio/usdu.py",
@@ -59068,6 +59265,12 @@
       {
         "cyclic": false,
         "modules": [
+          "easyuse_anima/aio/torch_compile_diagnostics.py"
+        ]
+      },
+      {
+        "cyclic": false,
+        "modules": [
           "easyuse_anima/aio/usdu.py"
         ]
       },
@@ -59597,7 +59800,7 @@
     ]
   },
   "inventory": {
-    "module_count": 132,
+    "module_count": 133,
     "modules": [
       {
         "is_package": true,
@@ -59697,9 +59900,9 @@
       },
       {
         "is_package": false,
-        "loc": 875,
+        "loc": 891,
         "module": "api",
-        "normalized_git_blob_sha1": "b10837e70d997f09d4f3ad17c78f5d331e71f997",
+        "normalized_git_blob_sha1": "c45c4a21c02bfe2e55638287dd25a962cbd48e33",
         "path": "api.py",
         "top_level": {
           "class_count": 1,
@@ -60113,6 +60316,18 @@
           "class_count": 0,
           "function_count": 14,
           "global_count": 1
+        }
+      },
+      {
+        "is_package": false,
+        "loc": 320,
+        "module": "easyuse_anima.aio.torch_compile_diagnostics",
+        "normalized_git_blob_sha1": "b8f8389432392a80f18f1022740c6d93a7b5e95d",
+        "path": "easyuse_anima/aio/torch_compile_diagnostics.py",
+        "top_level": {
+          "class_count": 0,
+          "function_count": 8,
+          "global_count": 11
         }
       },
       {
@@ -72974,14 +73189,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 324
+            "line": 327
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 325,
+        "line": 328,
         "optional": true,
         "role": "optional_dependency",
         "source": "api.py"
@@ -74672,6 +74887,105 @@
         "optional": false,
         "role": "ordinary",
         "source": "easyuse_anima/aio/sampling.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "__future__:annotations",
+        "kind": "static_from",
+        "line": 3,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/torch_compile_diagnostics.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "importlib",
+        "kind": "static_import",
+        "line": 5,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/torch_compile_diagnostics.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "inspect",
+        "kind": "static_import",
+        "line": 6,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/torch_compile_diagnostics.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "platform",
+        "kind": "static_import",
+        "line": 7,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/torch_compile_diagnostics.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "collections.abc:Callable",
+        "kind": "static_from",
+        "line": 8,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/torch_compile_diagnostics.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "collections.abc:Mapping",
+        "kind": "static_from",
+        "line": 8,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/torch_compile_diagnostics.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "collections.abc:Sequence",
+        "kind": "static_from",
+        "line": 8,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/torch_compile_diagnostics.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "typing:Any",
+        "kind": "static_from",
+        "line": 9,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/torch_compile_diagnostics.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "torch",
+        "kind": "literal_dynamic",
+        "line": 45,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/torch_compile_diagnostics.py"
       },
       {
         "branch_context": [],
@@ -78529,14 +78843,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 324
+            "line": 327
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 325,
+        "line": 328,
         "optional": true,
         "role": "optional_dependency",
         "source": "api.py"
@@ -79467,6 +79781,7 @@
       "easyuse_anima/aio/preview.py",
       "easyuse_anima/aio/resources.py",
       "easyuse_anima/aio/sampling.py",
+      "easyuse_anima/aio/torch_compile_diagnostics.py",
       "easyuse_anima/aio/usdu.py",
       "easyuse_anima/autocomplete/__init__.py",
       "easyuse_anima/autocomplete/dataset.py",
@@ -79601,6 +79916,7 @@
       "easyuse_anima/aio/preview.py",
       "easyuse_anima/aio/resources.py",
       "easyuse_anima/aio/sampling.py",
+      "easyuse_anima/aio/torch_compile_diagnostics.py",
       "easyuse_anima/aio/usdu.py",
       "easyuse_anima/autocomplete/__init__.py",
       "easyuse_anima/autocomplete/dataset.py",
@@ -79872,7 +80188,7 @@
         "column": 10,
         "context": "assign:_LOGGER",
         "kind": "import_time_call",
-        "line": 148,
+        "line": 151,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -79881,7 +80197,7 @@
         "column": 25,
         "context": "assign:_FILE_IO_LIMITERS_LOCK",
         "kind": "import_time_call",
-        "line": 151,
+        "line": 154,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -79890,7 +80206,7 @@
         "column": 47,
         "context": "assign:_FILE_IO_LIMITERS",
         "kind": "import_time_call",
-        "line": 152,
+        "line": 155,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -79899,7 +80215,7 @@
         "column": 29,
         "context": "assign:_PROMPT_TRANSLATION_WORKER",
         "kind": "import_time_call",
-        "line": 201,
+        "line": 204,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -79908,7 +80224,7 @@
         "column": 0,
         "context": "expression",
         "kind": "import_time_call",
-        "line": 202,
+        "line": 205,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -79917,7 +80233,7 @@
         "column": 36,
         "context": "assign:_SAFE_PROFILE_VALIDATION_MESSAGES",
         "kind": "import_time_call",
-        "line": 351,
+        "line": 354,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -79926,7 +80242,7 @@
         "column": 9,
         "context": "assign:routes",
         "kind": "route_registry_creation",
-        "line": 508,
+        "line": 511,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -79935,7 +80251,7 @@
         "column": 19,
         "context": "assign:_ROUTE_SIGNATURE",
         "kind": "route_registry_creation",
-        "line": 851,
+        "line": 867,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -79944,7 +80260,7 @@
         "column": 5,
         "context": "assign:_ROUTE_SIGNATURE",
         "kind": "route_registry_creation",
-        "line": 852,
+        "line": 868,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -81564,6 +81880,12 @@
         "name": "AIO_PREVIEW_STAGE_LABELS"
       },
       {
+        "kind": "list",
+        "line": 315,
+        "module": "easyuse_anima/aio/torch_compile_diagnostics.py",
+        "name": "__all__"
+      },
+      {
         "kind": "dict",
         "line": 44,
         "module": "easyuse_anima/autocomplete/dataset.py",
@@ -81894,7 +82216,7 @@
           "lock"
         ],
         "initializer": "threading.Lock",
-        "line": 151,
+        "line": 154,
         "module": "api.py",
         "name": "_FILE_IO_LIMITERS_LOCK"
       },
@@ -81903,7 +82225,7 @@
           "executor"
         ],
         "initializer": "_PromptTranslationWorker",
-        "line": 201,
+        "line": 204,
         "module": "api.py",
         "name": "_PROMPT_TRANSLATION_WORKER"
       },
