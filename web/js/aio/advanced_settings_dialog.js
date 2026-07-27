@@ -52,6 +52,38 @@
  * @property {AioAdvancedDialogDependencyAdapter} dependencyAdapter
  */
 
+const DAVE_STAGE_IDS = Object.freeze([
+  "first_pass",
+  "highres",
+  "detailer",
+  "upscale",
+]);
+
+/** @type {Readonly<Record<string, Readonly<Record<string, boolean>>>>} */
+const DAVE_STAGE_SCOPE_PRESETS = Object.freeze({
+  first_pass_only: Object.freeze({
+    first_pass: true,
+    highres: false,
+    detailer: false,
+    upscale: false,
+  }),
+  all_sampling_stages: Object.freeze({
+    first_pass: true,
+    highres: true,
+    detailer: true,
+    upscale: true,
+  }),
+});
+
+function daveStageScopePreset(scope) {
+  for (const [preset, expected] of Object.entries(DAVE_STAGE_SCOPE_PRESETS)) {
+    if (DAVE_STAGE_IDS.every((stageId) => !!scope?.[stageId] === expected[stageId])) {
+      return preset;
+    }
+  }
+  return "custom";
+}
+
 /**
  * Own the Advanced settings dialog, model-patch dependency locks, visibility,
  * and Apply/Cancel lifecycle. Extension registration, dependency discovery,
@@ -135,6 +167,53 @@ export function aioCreateAdvancedSettingsDialog(dependencies) {
     const daveMask = field(dave, "Mask", textInput(settings.model_patches.dave.mask || "dave_alpha.npz"), "tip.daveMask");
     const daveStrength = field(dave, "DAVE strength", numberInput(settings.model_patches.dave.strength ?? 0.30, "0.01"), "tip.daveStrength");
     const daveTau = field(dave, "DAVE tau", numberInput(settings.model_patches.dave.tau ?? 0.10, "0.01"), "tip.daveTau");
+    const daveStageScope = settings.model_patches.dave.stage_scope
+      || DEFAULT_GENERATION_SETTINGS.model_patches.dave.stage_scope;
+    const daveStagePreset = field(
+      dave,
+      "DAVE stages",
+      selectInput([
+        {
+          value: "first_pass_only",
+          label: aioText("option.daveScopeFirstPassOnly"),
+        },
+        {
+          value: "all_sampling_stages",
+          label: aioText("option.daveScopeAllSamplingStages"),
+        },
+        {
+          value: "custom",
+          label: aioText("option.daveScopeCustom"),
+        },
+      ], daveStageScopePreset(daveStageScope)),
+      "tip.daveStagePreset",
+    );
+    const daveCustomStages = makeSubsection("Custom DAVE stages");
+    const daveFirstPass = field(
+      daveCustomStages,
+      "First pass",
+      checkbox(daveStageScope.first_pass),
+      "tip.daveStageFirstPass",
+    );
+    const daveHighres = field(
+      daveCustomStages,
+      "Highres",
+      checkbox(daveStageScope.highres),
+      "tip.daveStageHighres",
+    );
+    const daveDetailer = field(
+      daveCustomStages,
+      "Detailer",
+      checkbox(daveStageScope.detailer),
+      "tip.daveStageDetailer",
+    );
+    const daveUpscale = field(
+      daveCustomStages,
+      "Upscale (USDU)",
+      checkbox(daveStageScope.upscale),
+      "tip.daveStageUpscale",
+    );
+    dave.append(daveCustomStages);
     daveStrength.min = "0";
     daveTau.min = "0";
     daveTau.max = "1";
@@ -294,6 +373,16 @@ export function aioCreateAdvancedSettingsDialog(dependencies) {
     const refreshTorchDetails = () => {
       torchDetails.style.display = torchCompileEnabled.checked ? "" : "none";
     };
+    const refreshDaveStageScope = () => {
+      const preset = DAVE_STAGE_SCOPE_PRESETS[daveStagePreset.value];
+      if (preset) {
+        daveFirstPass.checked = preset.first_pass;
+        daveHighres.checked = preset.highres;
+        daveDetailer.checked = preset.detailer;
+        daveUpscale.checked = preset.upscale;
+      }
+      daveCustomStages.style.display = daveStagePreset.value === "custom" ? "" : "none";
+    };
     const setControlsDisabled = (controls, disabled) => {
       for (const control of controls) {
         if (control) {
@@ -305,7 +394,16 @@ export function aioCreateAdvancedSettingsDialog(dependencies) {
       const messages = [];
 
       const daveMissing = !optionalDependencyAvailable("dave");
-      setControlsDisabled([daveMask, daveStrength, daveTau], daveMissing);
+      setControlsDisabled([
+        daveMask,
+        daveStrength,
+        daveTau,
+        daveStagePreset,
+        daveFirstPass,
+        daveHighres,
+        daveDetailer,
+        daveUpscale,
+      ], daveMissing);
       const daveMessage = aioFormat("warning.optionalDependencyMissing", {
         backend: "Anima DAVE",
         pack: optionalDependencyPack("dave"),
@@ -409,6 +507,7 @@ export function aioCreateAdvancedSettingsDialog(dependencies) {
 
       modelWarning.hidden = messages.length === 0;
       modelWarning.textContent = messages.join(" ");
+      refreshDaveStageScope();
       refreshSageDetails();
       refreshTorchDetails();
     };
@@ -420,6 +519,7 @@ export function aioCreateAdvancedSettingsDialog(dependencies) {
       refreshAdvancedDependencyLocks();
     };
     daveEnabled.addEventListener("change", () => guardToggle(daveEnabled, "dave", "Anima DAVE"));
+    daveStagePreset.addEventListener("change", refreshDaveStageScope);
     safePagEnabled.addEventListener("change", () => guardToggle(safePagEnabled, "safePag", "Anima Safe PAG"));
     fp16Accum.addEventListener("change", () => guardToggle(fp16Accum, "kjFp16", "KJNodes FP16 accum"));
     sageAttention.addEventListener("change", () => {
@@ -435,6 +535,7 @@ export function aioCreateAdvancedSettingsDialog(dependencies) {
       "kjTorchCompile",
       "Torch Compile",
     ));
+    refreshDaveStageScope();
     refreshSageDetails();
     refreshTorchDetails();
     refreshAdvancedDependencyLocks();
@@ -461,6 +562,15 @@ export function aioCreateAdvancedSettingsDialog(dependencies) {
       next.model_patches.dave.mask = daveMask.value || "dave_alpha.npz";
       next.model_patches.dave.strength = Number(daveStrength.value || 0.30);
       next.model_patches.dave.tau = Number(daveTau.value || 0.10);
+      const davePresetScope = DAVE_STAGE_SCOPE_PRESETS[daveStagePreset.value];
+      next.model_patches.dave.stage_scope = davePresetScope
+        ? { ...davePresetScope }
+        : {
+            first_pass: daveFirstPass.checked,
+            highres: daveHighres.checked,
+            detailer: daveDetailer.checked,
+            upscale: daveUpscale.checked,
+          };
       next.model_patches.safe_pag ||= {};
       next.model_patches.safe_pag.enabled = safePagEnabled.checked && optionalDependencyAvailable("safePag");
       next.model_patches.safe_pag.scale = clampGeneratorNumber(safePagScale.value, 4.0, 0, 100);

@@ -91,7 +91,15 @@ const defaultSettings = {
       sage_allow_compile: false,
       torch_compile: { enabled: false },
     },
-    dave: { enabled: false },
+    dave: {
+      enabled: false,
+      stage_scope: {
+        first_pass: true,
+        highres: false,
+        detailer: false,
+        upscale: false,
+      },
+    },
     safe_pag: { enabled: false },
   },
 };
@@ -100,6 +108,24 @@ const normalSettings = aioBuiltinProfileSettings("normal", defaultSettings);
 assert(
   JSON.stringify(defaultSettings) === defaultSnapshot,
   "Building a built-in profile must not mutate default settings",
+);
+assert(
+  JSON.stringify(normalSettings.model_patches.dave.stage_scope)
+    === JSON.stringify(defaultSettings.model_patches.dave.stage_scope),
+  "Built-in profiles must preserve the fresh first-pass-only DAVE scope",
+);
+
+const allStageProfile = JSON.parse(JSON.stringify(normalSettings));
+allStageProfile.model_patches.dave.stage_scope = {
+  first_pass: true,
+  highres: true,
+  detailer: true,
+  upscale: true,
+};
+assert(
+  aioProfileSettingsFingerprint(allStageProfile)
+    !== aioProfileSettingsFingerprint(normalSettings),
+  "User-profile identity must include the complete DAVE stage scope",
 );
 
 const normalSnapshot = JSON.stringify(normalSettings);

@@ -102,6 +102,12 @@ function configuredSettings() {
         mask: "configured-dave.npz",
         strength: 0.42,
         tau: 0.21,
+        stage_scope: {
+          first_pass: true,
+          highres: true,
+          detailer: false,
+          upscale: true,
+        },
         future_dave_key: "keep-dave",
       },
       safe_pag: {
@@ -402,6 +408,7 @@ function createFixture({ settings = {}, available = {}, deferLoads = false } = {
   const modelPatches = sectionByHeading(cancelDialog.body, "Model Patch / Optimization");
   const artistMix = sectionByHeading(cancelDialog.body, "Artist Mix");
   const dave = subsectionByHeading(modelPatches, "Anima DAVE");
+  const daveCustomStages = subsectionByHeading(dave, "Custom DAVE stages");
   const safePag = subsectionByHeading(modelPatches, "Anima Safe PAG");
   const kj = subsectionByHeading(modelPatches, "KJNodes Optimization");
   const sage = subsectionByHeading(kj, "SageAttention (KJNodes)");
@@ -421,6 +428,7 @@ function createFixture({ settings = {}, available = {}, deferLoads = false } = {
     [dave, "Mask", "configured-dave.npz"],
     [dave, "DAVE strength", 0.42],
     [dave, "DAVE tau", 0.21],
+    [dave, "DAVE stages", "custom"],
     [safePag, "Safe PAG scale", 5.5],
     [safePag, "Safe PAG blocks", "3, 7"],
     [safePag, "PAG perturbation", 0.35],
@@ -440,6 +448,10 @@ function createFixture({ settings = {}, available = {}, deferLoads = false } = {
   ]);
   assertChecked([
     [dave, "Use DAVE", true],
+    [daveCustomStages, "First pass", true],
+    [daveCustomStages, "Highres", true],
+    [daveCustomStages, "Detailer", false],
+    [daveCustomStages, "Upscale (USDU)", true],
     [safePag, "Use Safe PAG", true],
     [kj, "KJNodes FP16 accum", true],
     [sage, "Allow compile", true],
@@ -455,6 +467,7 @@ function createFixture({ settings = {}, available = {}, deferLoads = false } = {
   assert.equal(controlIn(safePag, "Safe PAG scale").max, "100");
   assert.equal(rowByLabel(sage, "Allow compile").style.display, "");
   assert.equal(torchDetails.style.display, "");
+  assert.equal(daveCustomStages.style.display, "");
 
   const sageMode = controlIn(sage, "Mode");
   sageMode.value = "disabled";
@@ -473,6 +486,9 @@ function createFixture({ settings = {}, available = {}, deferLoads = false } = {
 
   controlIn(modelPatches, "AuraFlow shift").value = "9";
   controlIn(dave, "Use DAVE").checked = false;
+  controlIn(dave, "DAVE stages").value = "all_sampling_stages";
+  controlIn(dave, "DAVE stages").emit("change");
+  assert.equal(daveCustomStages.style.display, "none");
   controlIn(safePag, "PAG rescale mode").value = "full";
   controlIn(kj, "KJNodes FP16 accum").checked = false;
   sageMode.value = "disabled";
@@ -495,6 +511,7 @@ function createFixture({ settings = {}, available = {}, deferLoads = false } = {
   const applyModelPatches = sectionByHeading(applyDialog.body, "Model Patch / Optimization");
   const applyArtistMix = sectionByHeading(applyDialog.body, "Artist Mix");
   const applyDave = subsectionByHeading(applyModelPatches, "Anima DAVE");
+  const applyDaveCustomStages = subsectionByHeading(applyDave, "Custom DAVE stages");
   const applySafePag = subsectionByHeading(applyModelPatches, "Anima Safe PAG");
   const applyKj = subsectionByHeading(applyModelPatches, "KJNodes Optimization");
   const applySage = subsectionByHeading(applyKj, "SageAttention (KJNodes)");
@@ -503,6 +520,10 @@ function createFixture({ settings = {}, available = {}, deferLoads = false } = {
 
   controlIn(applyModelPatches, "AuraFlow shift").value = "99";
   controlIn(applyDave, "Use DAVE").checked = true;
+  const applyDaveStagePreset = controlIn(applyDave, "DAVE stages");
+  applyDaveStagePreset.value = "all_sampling_stages";
+  applyDaveStagePreset.emit("change");
+  assert.equal(applyDaveCustomStages.style.display, "none");
   controlIn(applyDave, "Mask").value = "";
   controlIn(applyDave, "DAVE strength").value = "0";
   controlIn(applyDave, "DAVE tau").value = "";
@@ -565,8 +586,20 @@ function createFixture({ settings = {}, available = {}, deferLoads = false } = {
       mask: written.model_patches.dave.mask,
       strength: written.model_patches.dave.strength,
       tau: written.model_patches.dave.tau,
+      stage_scope: written.model_patches.dave.stage_scope,
     },
-    { enabled: true, mask: "dave_alpha.npz", strength: 0, tau: 0.1 },
+    {
+      enabled: true,
+      mask: "dave_alpha.npz",
+      strength: 0,
+      tau: 0.1,
+      stage_scope: {
+        first_pass: true,
+        highres: true,
+        detailer: true,
+        upscale: true,
+      },
+    },
   );
   assert.deepEqual(
     {
@@ -639,6 +672,40 @@ function createFixture({ settings = {}, available = {}, deferLoads = false } = {
   assert.deepEqual(fixture.defaultSettings, originalDefaults, "Apply must not mutate injected defaults");
 }
 
+{
+  const fresh = createFixture();
+  fresh.openAdvancedSettings(fresh.node);
+  await flushPromises();
+  const dialog = fresh.dialogs[0];
+  const modelPatches = sectionByHeading(dialog.body, "Model Patch / Optimization");
+  const dave = subsectionByHeading(modelPatches, "Anima DAVE");
+  const customStages = subsectionByHeading(dave, "Custom DAVE stages");
+  assert.equal(controlIn(dave, "DAVE stages").value, "first_pass_only");
+  assert.equal(customStages.style.display, "none");
+}
+
+{
+  const custom = createFixture({ settings: configuredSettings() });
+  custom.openAdvancedSettings(custom.node);
+  await flushPromises();
+  const dialog = custom.dialogs[0];
+  const modelPatches = sectionByHeading(dialog.body, "Model Patch / Optimization");
+  const dave = subsectionByHeading(modelPatches, "Anima DAVE");
+  const customStages = subsectionByHeading(dave, "Custom DAVE stages");
+  assert.equal(controlIn(dave, "DAVE stages").value, "custom");
+  controlIn(customStages, "First pass").checked = false;
+  controlIn(customStages, "Highres").checked = true;
+  controlIn(customStages, "Detailer").checked = true;
+  controlIn(customStages, "Upscale (USDU)").checked = false;
+  action(dialog, "button.apply").emit("click");
+  assert.deepEqual(custom.node.settings.model_patches.dave.stage_scope, {
+    first_pass: false,
+    highres: true,
+    detailer: true,
+    upscale: false,
+  });
+}
+
 for (const dependencyCase of [
   { key: "dave", backend: "Anima DAVE" },
   { key: "safePag", backend: "Anima Safe PAG" },
@@ -661,6 +728,7 @@ for (const dependencyCase of [
   const dialog = fixture.dialogs[0];
   const modelPatches = sectionByHeading(dialog.body, "Model Patch / Optimization");
   const dave = subsectionByHeading(modelPatches, "Anima DAVE");
+  const daveCustomStages = subsectionByHeading(dave, "Custom DAVE stages");
   const safePag = subsectionByHeading(modelPatches, "Anima Safe PAG");
   const kj = subsectionByHeading(modelPatches, "KJNodes Optimization");
   const sage = subsectionByHeading(kj, "SageAttention (KJNodes)");
@@ -677,6 +745,11 @@ for (const dependencyCase of [
       [dave, "Mask"],
       [dave, "DAVE strength"],
       [dave, "DAVE tau"],
+      [dave, "DAVE stages"],
+      [daveCustomStages, "First pass"],
+      [daveCustomStages, "Highres"],
+      [daveCustomStages, "Detailer"],
+      [daveCustomStages, "Upscale (USDU)"],
     ],
     safePag: [
       [safePag, "Use Safe PAG"],
@@ -767,6 +840,7 @@ for (const dependencyCase of [
   const dialog = fixture.dialogs[0];
   const modelPatches = sectionByHeading(dialog.body, "Model Patch / Optimization");
   const dave = subsectionByHeading(modelPatches, "Anima DAVE");
+  const daveCustomStages = subsectionByHeading(dave, "Custom DAVE stages");
   const safePag = subsectionByHeading(modelPatches, "Anima Safe PAG");
   const kj = subsectionByHeading(modelPatches, "KJNodes Optimization");
   const sage = subsectionByHeading(kj, "SageAttention (KJNodes)");
@@ -804,6 +878,11 @@ for (const dependencyCase of [
     [dave, "Mask"],
     [dave, "DAVE strength"],
     [dave, "DAVE tau"],
+    [dave, "DAVE stages"],
+    [daveCustomStages, "First pass"],
+    [daveCustomStages, "Highres"],
+    [daveCustomStages, "Detailer"],
+    [daveCustomStages, "Upscale (USDU)"],
     [safePag, "Safe PAG scale"],
     [safePag, "Safe PAG blocks"],
     [safePag, "PAG perturbation"],
