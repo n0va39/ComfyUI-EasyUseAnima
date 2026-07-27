@@ -62,6 +62,9 @@ from .easyuse_anima.api.responses import (
     create_request_id,
     error_payload,
 )
+from .easyuse_anima.api.routes.aio_profile_mutations import (
+    build_aio_profile_mutation_handlers as _build_aio_profile_mutation_handlers,
+)
 from .easyuse_anima.api.routes.autocomplete import (
     build_autocomplete_handlers as _build_autocomplete_handlers,
     build_classify_prompt_handler as _build_classify_prompt_handler,
@@ -699,80 +702,41 @@ if web is not None:
         )
     )
 
-    @_request_correlated
-    async def delete_aio_profile_handler(request):
-        try:
-            data = await parse_json_object(request)
-            name = json_string(data, "name", allow_empty=False)
-            profile_id = json_uuid_string(
-                data,
-                "profile_id",
-                required=False,
-            )
-            revision = json_integer(
-                data,
-                "revision",
-                default=None,
-                minimum=0,
-            )
-        except ApiContractError as exc:
-            return _contract_error_response(exc)
-        try:
-            payload = await _run_file_io(
-                _delete_aio_profile,
+    (
+        delete_aio_profile_handler,
+        rename_aio_profile_handler,
+    ) = (
+        _request_correlated(handler)
+        for handler in _build_aio_profile_mutation_handlers(
+            parse_json_object=parse_json_object,
+            json_string=json_string,
+            json_boolean=json_boolean,
+            json_uuid_string=json_uuid_string,
+            json_integer=json_integer,
+            contract_error_type=ApiContractError,
+            contract_error_response=lambda exc: _contract_error_response(exc),
+            run_file_io=lambda function, *args, **kwargs: _run_file_io(
+                function,
+                *args,
+                **kwargs,
+            ),
+            delete_aio_profile=lambda name, **kwargs: _delete_aio_profile(
                 name,
-                profile_id=profile_id,
-                revision=revision,
-            )
-        except (FileNotFoundError, ValueError) as exc:
-            return _profile_error_response(exc)
-        return web.json_response({"status": "ok", "profile": payload})
-
-    @_request_correlated
-    async def rename_aio_profile_handler(request):
-        try:
-            data = await parse_json_object(request)
-            old_name = json_string(data, "old_name", allow_empty=False)
-            new_name = json_string(data, "new_name", allow_empty=False)
-            overwrite = json_boolean(data, "overwrite")
-            profile_id = json_uuid_string(
-                data,
-                "profile_id",
-                required=False,
-            )
-            revision = json_integer(
-                data,
-                "revision",
-                default=None,
-                minimum=0,
-            )
-            target_profile_id = json_uuid_string(
-                data,
-                "target_profile_id",
-                required=False,
-            )
-            target_revision = json_integer(
-                data,
-                "target_revision",
-                default=None,
-                minimum=0,
-            )
-        except ApiContractError as exc:
-            return _contract_error_response(exc)
-        try:
-            payload = await _run_file_io(
-                _rename_aio_profile,
-                old_name,
-                new_name,
-                overwrite=overwrite,
-                profile_id=profile_id,
-                revision=revision,
-                target_profile_id=target_profile_id,
-                target_revision=target_revision,
-            )
-        except (FileExistsError, FileNotFoundError, ValueError) as exc:
-            return _profile_error_response(exc)
-        return web.json_response({"status": "ok", "profile": payload})
+                **kwargs,
+            ),
+            rename_aio_profile=lambda old_name, new_name, **kwargs: (
+                _rename_aio_profile(
+                    old_name,
+                    new_name,
+                    **kwargs,
+                )
+            ),
+            delete_error_types=(FileNotFoundError, ValueError),
+            rename_error_types=(FileExistsError, FileNotFoundError, ValueError),
+            profile_error_response=lambda exc: _profile_error_response(exc),
+            json_response=lambda payload: web.json_response(payload),
+        )
+    )
 
     @_request_correlated
     async def fix_lora_profile_handler(request):
