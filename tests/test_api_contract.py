@@ -425,6 +425,22 @@ class ApiRequestCorrelationTests(unittest.TestCase):
 
 
 class ApiTorchCompileDiagnosticsTests(unittest.TestCase):
+    def test_route_handler_is_owned_by_the_canonical_factory(self):
+        api, routes = load_api_routes()
+        handler = routes.handlers["/easyuse_anima/aio/torch-compile/recommend"]
+
+        self.assertIs(api.aio_torch_compile_recommend_handler, handler)
+        self.assertEqual(
+            handler.__name__,
+            "aio_torch_compile_recommend_handler",
+        )
+        self.assertTrue(
+            handler.__module__.endswith(
+                ".easyuse_anima.api.routes.aio_torch_compile"
+            )
+        )
+        self.assertTrue(handler._easyuse_anima_request_correlation)
+
     def test_route_composes_diagnostics_and_policy_with_request_correlation(self):
         api, routes = load_api_routes()
         diagnostics = {

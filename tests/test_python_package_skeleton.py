@@ -47,6 +47,7 @@ PACKAGE_MODULES = (
     "easyuse_anima.api.requests",
     "easyuse_anima.api.responses",
     "easyuse_anima.api.routes",
+    "easyuse_anima.api.routes.aio_torch_compile",
     "easyuse_anima.api.routes.translation",
     "easyuse_anima.api.routes.translation_execution",
     "easyuse_anima.autocomplete",
@@ -211,6 +212,11 @@ print(json.dumps({{
             "attach_request_id_header",
             "correlate_response",
         ]
+        expected_all[
+            PACKAGE_MODULES.index(
+                "easyuse_anima.api.routes.aio_torch_compile"
+            )
+        ] = ["build_aio_torch_compile_recommend_handler"]
         expected_all[
             PACKAGE_MODULES.index("easyuse_anima.api.routes.translation")
         ] = ["build_translate_prompt_handler"]
