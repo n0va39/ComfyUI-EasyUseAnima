@@ -62,6 +62,9 @@ from .easyuse_anima.api.responses import (
     create_request_id,
     error_payload,
 )
+from .easyuse_anima.api.routes.autocomplete import (
+    build_autocomplete_handlers as _build_autocomplete_handlers,
+)
 from .easyuse_anima.api.routes.translation import (
     build_translate_prompt_handler as _build_translate_prompt_handler,
 )
@@ -515,26 +518,20 @@ if web is not None:
             await _run_file_io(_save_long_text_settings_payload_sync, values)
         )
 
-    @_request_correlated
-    async def autocomplete_status_handler(request):
-        return web.json_response(await _run_file_io(_autocomplete_status_payload_sync))
-
-    @_request_correlated
-    async def autocomplete_handler(request):
-        query = request.query.get("q", "")
-        category = request.query.get("category", "")
-        category_filter = {
-            "artist": "artist",
-            "artist_or_general": "artist,general",
-        }.get(category)
-        return web.json_response(
-            await _run_file_io(
-                _search_autocomplete_payload_sync,
-                query,
-                request.query.get("limit"),
-                category_filter,
-            )
+    (
+        autocomplete_status_handler,
+        autocomplete_handler,
+    ) = (
+        _request_correlated(handler)
+        for handler in _build_autocomplete_handlers(
+            run_file_io=lambda function, *args: _run_file_io(function, *args),
+            autocomplete_status_payload=lambda: _autocomplete_status_payload_sync(),
+            search_autocomplete_payload=lambda *args: _search_autocomplete_payload_sync(
+                *args
+            ),
+            json_response=lambda payload: web.json_response(payload),
         )
+    )
 
     @_request_correlated
     async def classify_prompt_handler(request):

@@ -424,6 +424,62 @@ class ApiRequestCorrelationTests(unittest.TestCase):
         self.assertIn("X-Request-ID", found.headers)
 
 
+class ApiAutocompleteRouteTests(unittest.TestCase):
+    def test_read_only_route_handlers_are_owned_by_the_canonical_factory(self):
+        api, routes = load_api_routes()
+        cases = (
+            ("autocomplete_status_handler", "/easyuse_anima/autocomplete_status"),
+            ("autocomplete_handler", "/easyuse_anima/autocomplete"),
+        )
+
+        for name, path in cases:
+            with self.subTest(path=path):
+                handler = routes.handlers[path]
+                self.assertIs(getattr(api, name), handler)
+                self.assertEqual(handler.__name__, name)
+                self.assertTrue(
+                    handler.__module__.endswith(
+                        ".easyuse_anima.api.routes.autocomplete"
+                    )
+                )
+                self.assertTrue(handler._easyuse_anima_request_correlation)
+
+    def test_search_route_keeps_dynamic_payload_seam_and_category_mapping(self):
+        api, routes = load_api_routes()
+        handler = routes.handlers["/easyuse_anima/autocomplete"]
+        cases = (
+            ("artist", "artist"),
+            ("artist_or_general", "artist,general"),
+            ("general", None),
+        )
+
+        for category, expected_filter in cases:
+            with self.subTest(category=category):
+                with patch.object(
+                    api,
+                    "_search_autocomplete_payload_sync",
+                    return_value={"query": "cat", "results": []},
+                ) as search_payload:
+                    response = asyncio.run(
+                        handler(
+                            JsonRequest(
+                                query={
+                                    "q": "cat",
+                                    "limit": "17",
+                                    "category": category,
+                                }
+                            )
+                        )
+                    )
+
+                self.assertEqual(response["status"], 200)
+                search_payload.assert_called_once_with(
+                    "cat",
+                    "17",
+                    expected_filter,
+                )
+
+
 class ApiTorchCompileDiagnosticsTests(unittest.TestCase):
     def test_route_handler_is_owned_by_the_canonical_factory(self):
         api, routes = load_api_routes()

@@ -1353,6 +1353,14 @@ dynamic request, diagnostics, recommendation, correlation, and JSON seams. The
 factory retains #410's validation and response contract without file I/O,
 compile, model, persistence, or import-time registration work.
 
+D-05a moves the read-only autocomplete dataset-status and search GET adapters
+to a pure `easyuse_anima.api.routes.autocomplete` factory. Root composition
+retains dynamic payload-helper, bounded file-I/O, correlation, route-table, and
+registration seams. The factory preserves #162's metadata-only status,
+path-redacted responses, raw limit forwarding, and exact category mapping while
+classification POST, dataset/index/cache/ranking, and lifecycle ownership stay
+outside this rollback boundary.
+
 D-11 is split by dependency ownership. D-11a moves the SQLite index leaf to
 `easyuse_anima.autocomplete.index`, retains `autocomplete_index.py` as an
 explicit identity shim, and enrolls the canonical package as the tenth G-03
