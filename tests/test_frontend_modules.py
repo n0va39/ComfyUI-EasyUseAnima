@@ -13,6 +13,15 @@ HOST_HOOK_REGISTRY_SMOKE = ROOT / "tests" / "frontend_host_hook_registry_smoke.m
 PROMPT_STUDIO_ADVANCED_VALUES_SMOKE = (
     ROOT / "tests" / "frontend_prompt_studio_advanced_values_smoke.mjs"
 )
+PROMPT_STUDIO_EXECUTION_PROJECTION_SMOKE = (
+    ROOT / "tests" / "frontend_prompt_studio_execution_projection_smoke.mjs"
+)
+PROMPT_STUDIO_LINKED_PROJECTION_SMOKE = (
+    ROOT / "tests" / "frontend_prompt_studio_linked_projection_smoke.mjs"
+)
+PROMPT_STUDIO_NAIA_PROJECTION_SMOKE = (
+    ROOT / "tests" / "frontend_prompt_studio_naia_projection_smoke.mjs"
+)
 PROMPT_STUDIO_WILDCARD_TRANSACTION_SMOKE = (
     ROOT / "tests" / "frontend_prompt_studio_wildcard_transaction_smoke.mjs"
 )
@@ -1043,8 +1052,10 @@ class FrontendModuleStructureTests(unittest.TestCase):
             "entry-relative direct store imports": (
                 r"loadDirectStoreModules\s*:\s*\(\s*\)\s*=>\s*"
                 r"Promise\.all\(\s*\[\s*"
+                r"// @ts-expect-error ComfyUI provides this host module at runtime\.\s*"
                 r'import\(\s*"\.\./\.\./\.\./stores/nodeOutputStore\.js"\s*\)\s*'
                 r"\.catch\(\s*\(\s*\)\s*=>\s*null\s*\)\s*,\s*"
+                r"// @ts-expect-error ComfyUI provides this host module at runtime\.\s*"
                 r'import\(\s*"\.\./\.\./\.\./platform/workflow/management/'
                 r'stores/workflowStore\.js"\s*\)\s*'
                 r"\.catch\(\s*\(\s*\)\s*=>\s*null\s*\)\s*,?\s*"
@@ -1931,7 +1942,10 @@ class FrontendModuleStructureTests(unittest.TestCase):
             for name in import_match.group("names").split(",")
             if name.strip()
         }
-        self.assertEqual(imported_exports, expected_functions)
+        self.assertEqual(
+            imported_exports,
+            expected_functions - {"aioNodeInputDefault"},
+        )
 
         self.assertNotRegex(source, re.compile(r"^\s*import\s", re.MULTILINE))
         self.assertNotRegex(source, r"\b(?:app|api)\b")
@@ -2358,7 +2372,36 @@ class FrontendModuleStructureTests(unittest.TestCase):
         self.assertIn('./advanced_fields_ui.js"', advanced_node_ui_source)
         self.assertIn("./advanced_fields_state.js", extension_runtime_source)
         self.assertIn("./advanced_values.js", extension_runtime_source)
-        self.assertIn("./wildcard_seed_transaction.js", extension_runtime_source)
+        self.assertIn("./execution_transaction.js", extension_runtime_source)
+        self.assertNotIn("./wildcard_seed_transaction.js", extension_runtime_source)
+        execution_transaction_source = (
+            PROMPT_STUDIO_MODULES / "execution_transaction.js"
+        ).read_text(encoding="utf-8")
+        self.assertFalse(
+            (PROMPT_STUDIO_MODULES / "wildcard_seed_transaction.js").exists()
+        )
+        self.assertIn(
+            "createPromptStudioExecutionTransaction",
+            execution_transaction_source,
+        )
+        self.assertIn("for (const committer", execution_transaction_source)
+        self.assertIn(
+            "owner.settle(transaction, pending.envelope)",
+            execution_transaction_source,
+        )
+        self.assertIn("editBindings: PROMPT_STUDIO_EDIT_BINDINGS", extension_runtime_source)
+        self.assertIn("WILDCARD_SEED_CONTROL_SURFACE,", extension_runtime_source)
+        self.assertIn(
+            "...linked.map((snapshot) => snapshot.surface)",
+            extension_runtime_source,
+        )
+        self.assertIn(
+            "...naia.map((snapshot) => snapshot.surface)",
+            extension_runtime_source,
+        )
+        self.assertIn("captureAdvancedNaiaResolutionSnapshot", extension_runtime_source)
+        self.assertIn("createNaiaExecutionCommitter", extension_runtime_source)
+        self.assertIn("createNaiaResolutionExecutionCommitter", extension_runtime_source)
         self.assertIn("../lifecycle/queue_ui_transaction.js", extension_runtime_source)
         self.assertIn("../lifecycle/executed_event_context.js", extension_runtime_source)
         self.assertIn('"advanced-wildcard-seed-transaction"', extension_runtime_source)
@@ -2384,7 +2427,9 @@ class FrontendModuleStructureTests(unittest.TestCase):
         self.assertNotIn("applyAdvancedExecutedInputs", advanced_values_source)
         self.assertNotIn("applyExecutedInputs", studio_values_source)
         self.assertNotIn("hooks.applyExecutedInputs", node_hooks_source)
-        self.assertIn("publishAdvancedWildcardExecution", advanced_values_source)
+        self.assertIn("publishAdvancedExecution", advanced_values_source)
+        self.assertIn("naia_field_updates", advanced_values_source)
+        self.assertIn("naia_resolution_update", advanced_values_source)
         self.assertIn("wildcard_execution_seed", advanced_values_source)
         self.assertIn("writePreviousWildcardExecution", advanced_values_source)
         self.assertTrue(PROMPT_STUDIO_ADVANCED_VALUES_SMOKE.is_file())
@@ -2392,6 +2437,27 @@ class FrontendModuleStructureTests(unittest.TestCase):
             r'node "tests\frontend_prompt_studio_advanced_values_smoke.mjs"',
             FRONTEND_CHECK_SCRIPT.read_text(encoding="utf-8"),
         )
+        self.assertTrue(PROMPT_STUDIO_EXECUTION_PROJECTION_SMOKE.is_file())
+        self.assertIn(
+            r'node "tests\frontend_prompt_studio_execution_projection_smoke.mjs"',
+            FRONTEND_CHECK_SCRIPT.read_text(encoding="utf-8"),
+        )
+        self.assertTrue(PROMPT_STUDIO_LINKED_PROJECTION_SMOKE.is_file())
+        self.assertIn(
+            r'node "tests\frontend_prompt_studio_linked_projection_smoke.mjs"',
+            FRONTEND_CHECK_SCRIPT.read_text(encoding="utf-8"),
+        )
+        self.assertTrue(PROMPT_STUDIO_NAIA_PROJECTION_SMOKE.is_file())
+        self.assertIn(
+            r'node "tests\frontend_prompt_studio_naia_projection_smoke.mjs"',
+            FRONTEND_CHECK_SCRIPT.read_text(encoding="utf-8"),
+        )
+        naia_projection_source = (
+            PROMPT_STUDIO_MODULES / "naia_projection.js"
+        ).read_text(encoding="utf-8")
+        self.assertIn("commitAdvancedNaiaFieldCanonical", naia_projection_source)
+        self.assertIn("commitAdvancedNaiaResolution", naia_projection_source)
+        self.assertNotIn("renderAdvancedEditor", naia_projection_source)
         self.assertTrue(PROMPT_STUDIO_WILDCARD_TRANSACTION_SMOKE.is_file())
         self.assertIn(
             r'node "tests\frontend_prompt_studio_wildcard_transaction_smoke.mjs"',
@@ -2966,6 +3032,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
             "createAdvancedPane",
             "remeasureAdvancedTextareaHeightsForWidth",
             "setAdvancedTextareaHeight",
+            "syncAdvancedLinkedFieldTextarea",
         ):
             with self.subTest(module="advanced_fields_ui", symbol=name):
                 self.assertIn(f"  {name},", advanced_fields_ui_source)
@@ -2985,7 +3052,8 @@ class FrontendModuleStructureTests(unittest.TestCase):
                 self.assertIn(f"  {name},", advanced_fields_state_source)
 
         for name in (
-            "publishAdvancedWildcardExecution",
+            "WILDCARD_SEED_CONTROL_SURFACE",
+            "publishAdvancedExecution",
             "syncAdvancedValues",
         ):
             with self.subTest(module="advanced_values", symbol=name):
@@ -3282,14 +3350,18 @@ class FrontendModuleStructureTests(unittest.TestCase):
 
         for name in (
             "advancedFieldDisplayText",
+            "advancedFieldConnectionFingerprint",
             "advancedFieldIndexLabel",
             "advancedFieldInputLinked",
+            "advancedLinkedFieldSurface",
             "advancedFieldsBackup",
+            "captureAdvancedLinkedFieldSnapshots",
             "captureAdvancedConfigure",
             "collectAdvancedEditorFields",
+            "commitAdvancedLinkedFieldOverlay",
+            "currentAdvancedLinkedField",
             "ensureAdvancedWidgetValue",
             "isAdvancedFieldInput",
-            "mergeAdvancedFieldInputValues",
             "pruneDisconnectedAdvancedFieldInputValues",
             "serializedAdvancedFieldsValue",
             "syncAdvancedFieldInputs",
@@ -3579,10 +3651,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
             and "/" not in entry.removeprefix("web/js/")
             and "*" not in entry
         }
-        debt_root_entries = {
-            "web/js/easyuse_anima_aio.js",
-            "web/js/easyuse_anima_lora_preset.js",
-        }
+        debt_root_entries = set()
         actual_root_entries = {
             path.relative_to(ROOT).as_posix()
             for path in WEB_JS.glob("*.js")
@@ -3693,6 +3762,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
             "highlight_overlay_core.js",
             "highlight_ui.js",
             "legend.js",
+            "naia_projection.js",
             "node_hooks.js",
             "text.js",
             "widgets.js",

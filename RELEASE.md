@@ -1,5 +1,39 @@
 # Release Notes
 
+## 0.6.1
+
+### Added
+
+- Safe PAG and SageAttention settings can target the first pass, Highres,
+  Detailer, and Upscale stages independently. Existing workflows keep their
+  previous all-stage behavior unless a stage scope is selected.
+
+### Fixed
+
+- Prompt Studio now projects connected STRING inputs into the exact linked
+  fields for the accepted queue without saving execution-only values as local
+  fallback text.
+- Successful NAIA queue results now update the matching positive and negative
+  NAIA fields and the accepted resolution together, and those canonical values
+  persist through workflow save and reload.
+- Newer accepted queues keep ownership of editable Prompt Studio fields.
+  Out-of-order, duplicate, missing, or mismatched execution identities fail
+  closed instead of restoring an older result.
+- Wildcard, linked-input, and NAIA projections now share one queue transaction,
+  so one accepted execution is settled once across all affected fields.
+
+### Compatibility
+
+- Existing workflows, public node identifiers, socket ordering, settings, and
+  profile schemas remain compatible.
+- Linked execution overlays remain non-serialized. Successful NAIA results are
+  intentionally stored as the current canonical NAIA field and resolution
+  values.
+
+### Update
+
+- After updating, restart ComfyUI and hard-refresh the browser.
+
 ## 0.6.0
 
 ### Added

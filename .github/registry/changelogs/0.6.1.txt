@@ -1,0 +1,11 @@
+EasyUse Anima 0.6.1 adds more stage-scoped AiO patches and makes Prompt Studio queue results transactional.
+
+Changes:
+1. Safe PAG and SageAttention can target the first pass, Highres, Detailer, and Upscale stages independently while existing workflows keep their previous all-stage behavior.
+2. Connected Prompt Studio inputs update the exact linked fields for the accepted queue without saving execution-only overlays as local fallback text.
+3. Successful NAIA queues update the matching positive and negative NAIA fields and the accepted resolution as canonical workflow values.
+4. Newer accepted queues keep field ownership; out-of-order, duplicate, missing, and mismatched execution identities fail closed instead of restoring older results.
+5. Wildcard, linked-input, and NAIA projections share one queue transaction and settle once across all affected fields.
+
+Action required:
+After updating, restart ComfyUI and hard-refresh the browser.

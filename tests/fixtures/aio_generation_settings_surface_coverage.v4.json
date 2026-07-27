@@ -1,0 +1,664 @@
+{
+  "schema": "easyuse_anima_aio_generation_settings_surface_coverage",
+  "version": 4,
+  "manifest": "easyuse_anima/aio/schemas/generation_settings.v4.json",
+  "required_surfaces": [
+    "python_default",
+    "python_typed",
+    "frontend_default",
+    "frontend_sanitization",
+    "ui",
+    "documentation"
+  ],
+  "owners": {
+    "python_default": {
+      "root-default": {
+        "module": "nodes.py"
+      },
+      "schema-definition": {
+        "module": "easyuse_anima/aio/schemas/generation_settings.v4.json"
+      }
+    },
+    "python_typed": {
+      "generation-settings": {
+        "module": "easyuse_anima/aio/generation_settings.py"
+      },
+      "generation-negpip": {
+        "module": "easyuse_anima/aio/negpip.py"
+      },
+      "generation-sampling": {
+        "module": "easyuse_anima/aio/generation_sampling.py"
+      },
+      "generation-features": {
+        "module": "easyuse_anima/aio/generation_features.py"
+      },
+      "generation-detailer": {
+        "module": "easyuse_anima/aio/generation_detailer.py"
+      },
+      "generation-output": {
+        "module": "easyuse_anima/aio/generation_output.py"
+      },
+      "generation-values": {
+        "module": "easyuse_anima/aio/generation_values.py"
+      }
+    },
+    "frontend_default": {
+      "settings-core": {
+        "module": "web/js/aio/settings.js"
+      }
+    },
+    "frontend_sanitization": {
+      "default-merge": {
+        "module": "web/js/aio/settings.js"
+      },
+      "preview-normalizer": {
+        "module": "web/js/aio/settings.js"
+      },
+      "extension-preserve": {
+        "module": "web/js/aio/settings.js"
+      },
+      "optional-dependency-sanitizer": {
+        "module": "web/js/easyuse_anima_aio.js"
+      },
+      "optional-dependency-aware-merge": {
+        "module": "web/js/easyuse_anima_aio.js"
+      }
+    },
+    "ui": {
+      "hidden-contract": {
+        "module": "web/js/aio/settings.js",
+        "exposure": "hidden"
+      },
+      "hidden-extension": {
+        "module": "web/js/aio/settings.js",
+        "exposure": "hidden"
+      },
+      "generator-panel": {
+        "module": "web/js/aio/generator_panel_runtime.js",
+        "exposure": "editable"
+      },
+      "sampler-dialog": {
+        "module": "web/js/aio/sampler_settings_dialog.js",
+        "exposure": "editable"
+      },
+      "advanced-dialog": {
+        "module": "web/js/aio/advanced_settings_dialog.js",
+        "exposure": "editable"
+      },
+      "stage-dialogs": {
+        "module": "web/js/aio/stage_settings_dialogs.js",
+        "exposure": "editable"
+      },
+      "postprocess-dialog": {
+        "module": "web/js/aio/postprocess_settings_dialog.js",
+        "exposure": "editable"
+      },
+      "detailer-dialog": {
+        "module": "web/js/aio/detailer_settings_dialog.js",
+        "exposure": "editable"
+      },
+      "save-dialog": {
+        "module": "web/js/aio/save_settings_dialog.js",
+        "exposure": "editable"
+      },
+      "preview-dialog": {
+        "module": "web/js/aio/preview_settings_dialog.js",
+        "exposure": "editable"
+      },
+      "reusable-optimization-editor": {
+        "modules": [
+          "web/js/aio/sampler_settings_dialog.js",
+          "web/js/aio/stage_settings_dialogs.js",
+          "web/js/aio/detailer_settings_dialog.js"
+        ],
+        "exposure": "editable"
+      }
+    },
+    "documentation": {
+      "architecture-ownership": {
+        "path": "docs/architecture/aio-settings-contract.md",
+        "heading": "## 소유권"
+      },
+      "architecture-static-fields": {
+        "path": "docs/architecture/aio-settings-contract.md",
+        "heading": "## 정적 field 정책"
+      },
+      "architecture-unknown-fields": {
+        "path": "docs/architecture/aio-settings-contract.md",
+        "heading": "## Unknown-field 정책과 현재 drift"
+      }
+    }
+  },
+  "groups": [
+    {
+      "coverage": {
+        "python_default": "schema-definition",
+        "python_typed": "generation-output",
+        "frontend_default": "settings-core",
+        "frontend_sanitization": "default-merge",
+        "ui": "save-dialog",
+        "documentation": "architecture-static-fields"
+      },
+      "paths": [
+        "/definitions/civitai_hash_fetcher/enabled",
+        "/definitions/civitai_hash_fetcher/model_name",
+        "/definitions/civitai_hash_fetcher/username",
+        "/definitions/civitai_hash_fetcher/version"
+      ]
+    },
+    {
+      "coverage": {
+        "python_default": "root-default",
+        "python_typed": "generation-detailer",
+        "frontend_default": "settings-core",
+        "frontend_sanitization": "default-merge",
+        "ui": "detailer-dialog",
+        "documentation": "architecture-static-fields"
+      },
+      "paths": [
+        "/definitions/detailer_target/alignment",
+        "/definitions/detailer_target/bbox_fill",
+        "/definitions/detailer_target/cfg",
+        "/definitions/detailer_target/combined",
+        "/definitions/detailer_target/contour_fill",
+        "/definitions/detailer_target/crop_factor",
+        "/definitions/detailer_target/cycle",
+        "/definitions/detailer_target/denoise",
+        "/definitions/detailer_target/detect_count",
+        "/definitions/detailer_target/detect_prompt",
+        "/definitions/detailer_target/dit_corrections",
+        "/definitions/detailer_target/drop_size",
+        "/definitions/detailer_target/enabled",
+        "/definitions/detailer_target/feather",
+        "/definitions/detailer_target/force_inpaint",
+        "/definitions/detailer_target/guide_size",
+        "/definitions/detailer_target/guide_size_for",
+        "/definitions/detailer_target/individual_masks",
+        "/definitions/detailer_target/inherit_sampler_settings",
+        "/definitions/detailer_target/inpaint_model",
+        "/definitions/detailer_target/label",
+        "/definitions/detailer_target/max_size",
+        "/definitions/detailer_target/noise_mask",
+        "/definitions/detailer_target/noise_mask_feather",
+        "/definitions/detailer_target/refine_iterations",
+        "/definitions/detailer_target/sampler_name",
+        "/definitions/detailer_target/scheduler",
+        "/definitions/detailer_target/spectrum",
+        "/definitions/detailer_target/steps",
+        "/definitions/detailer_target/threshold",
+        "/definitions/detailer_target/tiled_decode",
+        "/definitions/detailer_target/tiled_encode",
+        "/definitions/detailer_target/wildcard",
+        "/shape/detailer/order",
+        "/shape/detailer/sam3/checkpoint",
+        "/shape/detailer/sam3/context"
+      ]
+    },
+    {
+      "coverage": {
+        "python_default": "schema-definition",
+        "python_typed": "generation-detailer",
+        "frontend_default": "settings-core",
+        "frontend_sanitization": "default-merge",
+        "ui": "detailer-dialog",
+        "documentation": "architecture-static-fields"
+      },
+      "paths": [
+        "/definitions/detailer_target_name"
+      ]
+    },
+    {
+      "coverage": {
+        "python_default": "root-default",
+        "python_typed": "generation-sampling",
+        "frontend_default": "settings-core",
+        "frontend_sanitization": "optional-dependency-aware-merge",
+        "ui": "reusable-optimization-editor",
+        "documentation": "architecture-static-fields"
+      },
+      "paths": [
+        "/definitions/dit_corrections/adaptive_smc_alpha",
+        "/definitions/dit_corrections/cfgpp",
+        "/definitions/dit_corrections/cfgpp_lambda",
+        "/definitions/dit_corrections/dcw_band_mask",
+        "/definitions/dit_corrections/dcw_calibrator",
+        "/definitions/dit_corrections/dcw_lambda",
+        "/definitions/dit_corrections/dcw_mode",
+        "/definitions/dit_corrections/enabled",
+        "/definitions/dit_corrections/fsg",
+        "/definitions/dit_corrections/fsg_band_hi",
+        "/definitions/dit_corrections/fsg_band_lo",
+        "/definitions/dit_corrections/fsg_d_sigma",
+        "/definitions/dit_corrections/fsg_gamma",
+        "/definitions/dit_corrections/fsg_k",
+        "/definitions/dit_corrections/replace_existing_cfg",
+        "/definitions/dit_corrections/smc_cfg",
+        "/definitions/dit_corrections/smc_cfg_lambda",
+        "/definitions/spectrum/blend_w",
+        "/definitions/spectrum/cheby_degree",
+        "/definitions/spectrum/compat_policy",
+        "/definitions/spectrum/enabled",
+        "/definitions/spectrum/flex_window",
+        "/definitions/spectrum/history_size",
+        "/definitions/spectrum/one_sampler_only",
+        "/definitions/spectrum/ridge_lambda",
+        "/definitions/spectrum/tail_actual_steps",
+        "/definitions/spectrum/verbose",
+        "/definitions/spectrum/warmup_steps",
+        "/definitions/spectrum/window_size"
+      ]
+    },
+    {
+      "coverage": {
+        "python_default": "schema-definition",
+        "python_typed": "generation-values",
+        "frontend_default": "settings-core",
+        "frontend_sanitization": "extension-preserve",
+        "ui": "hidden-extension",
+        "documentation": "architecture-unknown-fields"
+      },
+      "paths": [
+        "/definitions/json_value"
+      ]
+    },
+    {
+      "coverage": {
+        "python_default": "root-default",
+        "python_typed": "generation-features",
+        "frontend_default": "settings-core",
+        "frontend_sanitization": "default-merge",
+        "ui": "advanced-dialog",
+        "documentation": "architecture-static-fields"
+      },
+      "paths": [
+        "/shape/artist_mix/cluster_count",
+        "/shape/artist_mix/dominant_isolation",
+        "/shape/artist_mix/dominant_threshold",
+        "/shape/artist_mix/exact_top_k",
+        "/shape/artist_mix/mode",
+        "/shape/artist_mix/rms_scale_cap",
+        "/shape/artist_mix/start_percent",
+        "/shape/artist_mix/strength_scale",
+        "/shape/artist_mix/style_gain",
+        "/shape/model_patches/aura_flow/shift",
+        "/shape/model_patches/dave/mask",
+        "/shape/model_patches/dave/strength",
+        "/shape/model_patches/dave/tau",
+        "/shape/model_patches/kj/sage_allow_compile",
+        "/shape/model_patches/kj/torch_compile/backend",
+        "/shape/model_patches/kj/torch_compile/compile_transformer_blocks_only",
+        "/shape/model_patches/kj/torch_compile/debug_compile_keys",
+        "/shape/model_patches/kj/torch_compile/disable_dynamic_vram",
+        "/shape/model_patches/kj/torch_compile/dynamic",
+        "/shape/model_patches/kj/torch_compile/dynamo_cache_size_limit",
+        "/shape/model_patches/kj/torch_compile/fullgraph",
+        "/shape/model_patches/kj/torch_compile/mode",
+        "/shape/model_patches/safe_pag/block_indices",
+        "/shape/model_patches/safe_pag/end_percent",
+        "/shape/model_patches/safe_pag/head_indices",
+        "/shape/model_patches/safe_pag/perturbation_strength",
+        "/shape/model_patches/safe_pag/rescale",
+        "/shape/model_patches/safe_pag/rescale_mode",
+        "/shape/model_patches/safe_pag/scale",
+        "/shape/model_patches/safe_pag/start_percent"
+      ]
+    },
+    {
+      "coverage": {
+        "python_default": "root-default",
+        "python_typed": "generation-detailer",
+        "frontend_default": "settings-core",
+        "frontend_sanitization": "optional-dependency-sanitizer",
+        "ui": "detailer-dialog",
+        "documentation": "architecture-static-fields"
+      },
+      "paths": [
+        "/shape/detailer/enabled",
+        "/shape/detailer/eye",
+        "/shape/detailer/face"
+      ]
+    },
+    {
+      "coverage": {
+        "python_default": "root-default",
+        "python_typed": "generation-features",
+        "frontend_default": "settings-core",
+        "frontend_sanitization": "default-merge",
+        "ui": "stage-dialogs",
+        "documentation": "architecture-static-fields"
+      },
+      "paths": [
+        "/shape/highres/cfg",
+        "/shape/highres/denoise",
+        "/shape/highres/enabled",
+        "/shape/highres/inherit_sampler_settings",
+        "/shape/highres/max_long_edge",
+        "/shape/highres/multiple",
+        "/shape/highres/sampler_name",
+        "/shape/highres/scale_by",
+        "/shape/highres/scheduler",
+        "/shape/highres/steps",
+        "/shape/highres/upscale_method",
+        "/shape/upscale/backend",
+        "/shape/upscale/cfg",
+        "/shape/upscale/denoise",
+        "/shape/upscale/inherit_sampler_settings",
+        "/shape/upscale/resshift/chop",
+        "/shape/upscale/resshift/dtype",
+        "/shape/upscale/resshift/overlap",
+        "/shape/upscale/resshift/scale",
+        "/shape/upscale/resshift/student_name",
+        "/shape/upscale/resshift/tile_batch",
+        "/shape/upscale/sampler_name",
+        "/shape/upscale/scale_by",
+        "/shape/upscale/scheduler",
+        "/shape/upscale/steps",
+        "/shape/upscale/usdu/auto_tile_max",
+        "/shape/upscale/usdu/auto_tile_min",
+        "/shape/upscale/usdu/auto_tile_size",
+        "/shape/upscale/usdu/auto_tile_target",
+        "/shape/upscale/usdu/batch_size",
+        "/shape/upscale/usdu/force_uniform_tiles",
+        "/shape/upscale/usdu/mask_blur",
+        "/shape/upscale/usdu/mode_type",
+        "/shape/upscale/usdu/prompt_mode",
+        "/shape/upscale/usdu/seam_fix_denoise",
+        "/shape/upscale/usdu/seam_fix_mask_blur",
+        "/shape/upscale/usdu/seam_fix_mode",
+        "/shape/upscale/usdu/seam_fix_padding",
+        "/shape/upscale/usdu/seam_fix_width",
+        "/shape/upscale/usdu/tile_height",
+        "/shape/upscale/usdu/tile_padding",
+        "/shape/upscale/usdu/tile_width",
+        "/shape/upscale/usdu/tiled_decode",
+        "/shape/upscale/usdu/upscale_model_name"
+      ]
+    },
+    {
+      "coverage": {
+        "python_default": "root-default",
+        "python_typed": "generation-features",
+        "frontend_default": "settings-core",
+        "frontend_sanitization": "optional-dependency-sanitizer",
+        "ui": "stage-dialogs",
+        "documentation": "architecture-static-fields"
+      },
+      "paths": [
+        "/shape/highres/dit_corrections",
+        "/shape/highres/spectrum",
+        "/shape/upscale/dit_corrections",
+        "/shape/upscale/enabled",
+        "/shape/upscale/spectrum"
+      ]
+    },
+    {
+      "coverage": {
+        "python_default": "root-default",
+        "python_typed": "generation-features",
+        "frontend_default": "settings-core",
+        "frontend_sanitization": "default-merge",
+        "ui": "sampler-dialog",
+        "documentation": "architecture-static-fields"
+      },
+      "paths": [
+        "/shape/mod_guidance/advanced/adapter",
+        "/shape/mod_guidance/advanced/mod_end_layer",
+        "/shape/mod_guidance/advanced/mod_final_w",
+        "/shape/mod_guidance/advanced/mod_start_layer",
+        "/shape/mod_guidance/advanced/mod_taper",
+        "/shape/mod_guidance/advanced/mod_taper_scale",
+        "/shape/mod_guidance/advanced/mod_w",
+        "/shape/mod_guidance/advanced/quality_neg",
+        "/shape/mod_guidance/advanced/quality_tags",
+        "/shape/mod_guidance/mode",
+        "/shape/mod_guidance/profile"
+      ]
+    },
+    {
+      "coverage": {
+        "python_default": "root-default",
+        "python_typed": "generation-settings",
+        "frontend_default": "settings-core",
+        "frontend_sanitization": "default-merge",
+        "ui": "generator-panel",
+        "documentation": "architecture-static-fields"
+      },
+      "paths": [
+        "/shape/mode"
+      ]
+    },
+    {
+      "coverage": {
+        "python_default": "root-default",
+        "python_typed": "generation-features",
+        "frontend_default": "settings-core",
+        "frontend_sanitization": "optional-dependency-sanitizer",
+        "ui": "advanced-dialog",
+        "documentation": "architecture-static-fields"
+      },
+      "paths": [
+        "/shape/model_patches/dave/enabled",
+        "/shape/model_patches/kj/fp16_accumulation",
+        "/shape/model_patches/kj/sage_attention",
+        "/shape/model_patches/kj/torch_compile/enabled",
+        "/shape/model_patches/safe_pag/enabled"
+      ]
+    },
+    {
+      "coverage": {
+        "python_default": "root-default",
+        "python_typed": "generation-features",
+        "frontend_default": "settings-core",
+        "frontend_sanitization": "default-merge",
+        "ui": "hidden-contract",
+        "documentation": "architecture-static-fields"
+      },
+      "paths": [
+        "/shape/model_patches/dave/stage_scope/detailer",
+        "/shape/model_patches/dave/stage_scope/first_pass",
+        "/shape/model_patches/dave/stage_scope/highres",
+        "/shape/model_patches/dave/stage_scope/upscale"
+      ]
+    },
+    {
+      "coverage": {
+        "python_default": "root-default",
+        "python_typed": "generation-features",
+        "frontend_default": "settings-core",
+        "frontend_sanitization": "default-merge",
+        "ui": "advanced-dialog",
+        "documentation": "architecture-static-fields"
+      },
+      "paths": [
+        "/shape/model_patches/kj/sage_stage_scope/detailer",
+        "/shape/model_patches/kj/sage_stage_scope/first_pass",
+        "/shape/model_patches/kj/sage_stage_scope/highres",
+        "/shape/model_patches/kj/sage_stage_scope/upscale"
+      ]
+    },
+    {
+      "coverage": {
+        "python_default": "root-default",
+        "python_typed": "generation-features",
+        "frontend_default": "settings-core",
+        "frontend_sanitization": "default-merge",
+        "ui": "advanced-dialog",
+        "documentation": "architecture-static-fields"
+      },
+      "paths": [
+        "/shape/model_patches/safe_pag/stage_scope/detailer",
+        "/shape/model_patches/safe_pag/stage_scope/first_pass",
+        "/shape/model_patches/safe_pag/stage_scope/highres",
+        "/shape/model_patches/safe_pag/stage_scope/upscale"
+      ]
+    },
+    {
+      "coverage": {
+        "python_default": "root-default",
+        "python_typed": "generation-negpip",
+        "frontend_default": "settings-core",
+        "frontend_sanitization": "default-merge",
+        "ui": "advanced-dialog",
+        "documentation": "architecture-static-fields"
+      },
+      "paths": [
+        "/shape/negpip/mode"
+      ]
+    },
+    {
+      "coverage": {
+        "python_default": "root-default",
+        "python_typed": "generation-features",
+        "frontend_default": "settings-core",
+        "frontend_sanitization": "default-merge",
+        "ui": "postprocess-dialog",
+        "documentation": "architecture-static-fields"
+      },
+      "paths": [
+        "/shape/postprocess/enabled",
+        "/shape/postprocess/fit/max_long_edge",
+        "/shape/postprocess/fit/max_megapixels",
+        "/shape/postprocess/fit/method",
+        "/shape/postprocess/fit/mode"
+      ]
+    },
+    {
+      "coverage": {
+        "python_default": "root-default",
+        "python_typed": "generation-output",
+        "frontend_default": "settings-core",
+        "frontend_sanitization": "preview-normalizer",
+        "ui": "preview-dialog",
+        "documentation": "architecture-static-fields"
+      },
+      "paths": [
+        "/shape/preview/compare_previous",
+        "/shape/preview/feed_count",
+        "/shape/preview/image_feed",
+        "/shape/preview/intermediate_images"
+      ]
+    },
+    {
+      "coverage": {
+        "python_default": "root-default",
+        "python_typed": "generation-sampling",
+        "frontend_default": "settings-core",
+        "frontend_sanitization": "optional-dependency-sanitizer",
+        "ui": "sampler-dialog",
+        "documentation": "architecture-static-fields"
+      },
+      "paths": [
+        "/shape/sampler/backend",
+        "/shape/sampler/dit_corrections",
+        "/shape/sampler/spectrum"
+      ]
+    },
+    {
+      "coverage": {
+        "python_default": "root-default",
+        "python_typed": "generation-sampling",
+        "frontend_default": "settings-core",
+        "frontend_sanitization": "default-merge",
+        "ui": "generator-panel",
+        "documentation": "architecture-static-fields"
+      },
+      "paths": [
+        "/shape/sampler/cfg",
+        "/shape/sampler/denoise",
+        "/shape/sampler/sampler_name",
+        "/shape/sampler/scheduler",
+        "/shape/sampler/seed",
+        "/shape/sampler/seed_after_generate",
+        "/shape/sampler/steps"
+      ]
+    },
+    {
+      "coverage": {
+        "python_default": "root-default",
+        "python_typed": "generation-sampling",
+        "frontend_default": "settings-core",
+        "frontend_sanitization": "default-merge",
+        "ui": "sampler-dialog",
+        "documentation": "architecture-static-fields"
+      },
+      "paths": [
+        "/shape/sampler/spd/adaptive_smc_alpha",
+        "/shape/sampler/spd/scale",
+        "/shape/sampler/spd/sigma",
+        "/shape/sampler/spd/split_mode"
+      ]
+    },
+    {
+      "coverage": {
+        "python_default": "root-default",
+        "python_typed": "generation-sampling",
+        "frontend_default": "settings-core",
+        "frontend_sanitization": "extension-preserve",
+        "ui": "hidden-extension",
+        "documentation": "architecture-unknown-fields"
+      },
+      "paths": [
+        "/shape/sampler/spd_extra",
+        "/shape/sampler/spectrum_extra"
+      ]
+    },
+    {
+      "coverage": {
+        "python_default": "root-default",
+        "python_typed": "generation-output",
+        "frontend_default": "settings-core",
+        "frontend_sanitization": "optional-dependency-sanitizer",
+        "ui": "save-dialog",
+        "documentation": "architecture-static-fields"
+      },
+      "paths": [
+        "/shape/save/backend"
+      ]
+    },
+    {
+      "coverage": {
+        "python_default": "root-default",
+        "python_typed": "generation-output",
+        "frontend_default": "settings-core",
+        "frontend_sanitization": "default-merge",
+        "ui": "save-dialog",
+        "documentation": "architecture-static-fields"
+      },
+      "paths": [
+        "/shape/save/enabled",
+        "/shape/save/image_saver/additional_hash_bundles",
+        "/shape/save/image_saver/additional_hashes",
+        "/shape/save/image_saver/civitai_hash_fetchers",
+        "/shape/save/image_saver/clip_skip",
+        "/shape/save/image_saver/counter",
+        "/shape/save/image_saver/custom",
+        "/shape/save/image_saver/download_civitai_data",
+        "/shape/save/image_saver/easy_remix",
+        "/shape/save/image_saver/embed_workflow",
+        "/shape/save/image_saver/extension",
+        "/shape/save/image_saver/filename",
+        "/shape/save/image_saver/lossless_webp",
+        "/shape/save/image_saver/optimize_png",
+        "/shape/save/image_saver/path",
+        "/shape/save/image_saver/quality_jpeg_or_webp",
+        "/shape/save/image_saver/save_prompt_metadata",
+        "/shape/save/image_saver/save_workflow_as_json",
+        "/shape/save/image_saver/time_format"
+      ]
+    },
+    {
+      "coverage": {
+        "python_default": "root-default",
+        "python_typed": "generation-settings",
+        "frontend_default": "settings-core",
+        "frontend_sanitization": "default-merge",
+        "ui": "hidden-contract",
+        "documentation": "architecture-ownership"
+      },
+      "paths": [
+        "/shape/schema",
+        "/shape/version"
+      ]
+    }
+  ]
+}

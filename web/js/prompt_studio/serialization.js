@@ -15,6 +15,7 @@ import {
 import {
   clearPendingAdvancedFieldsValue,
   getAdvancedEditorElement,
+  getAdvancedFields,
   getPendingAdvancedFieldsValue,
   setPendingAdvancedFieldsValue,
 } from "./state.js";
@@ -95,7 +96,14 @@ function collectAdvancedEditorFields(node, sourceFields) {
     if (!field) {
       return;
     }
-    field.text = textarea.value;
+    const inputName = advancedFieldInputName(field);
+    const overlayValues = node.__easyuseAnimaAdvancedFieldInputValues || {};
+    const hasLinkedOverlay = advancedFieldInputLinked(node, field)
+      && Object.prototype.hasOwnProperty.call(overlayValues, inputName)
+      && String(overlayValues[inputName] ?? "") === String(textarea.value ?? "");
+    if (!hasLinkedOverlay || field.text === textarea.value) {
+      field.text = textarea.value;
+    }
     const height = Number.parseInt(textarea.style.height || "", 10);
     if (Number.isFinite(height) && height > 0) {
       field.height = Math.max(42, height);
@@ -208,6 +216,99 @@ function advancedFieldInputLinked(node, field) {
   return !!node.inputs?.some((input) => input.name === name && input.link != null);
 }
 
+function advancedLinkedFieldSurface(fieldId) {
+  const normalized = String(fieldId || "").trim();
+  return normalized ? `prompt.execution.linked:${normalized}` : null;
+}
+
+function advancedFieldConnectionFingerprint(node, field, graph = null) {
+  const inputName = advancedFieldInputName(field);
+  const input = node?.inputs?.find((candidate) => (
+    candidate?.name === inputName && candidate.link != null
+  ));
+  if (!input) {
+    return null;
+  }
+  const linkId = String(input.link);
+  const link = graph?.links?.[input.link] || graph?._links?.[input.link] || null;
+  const originId = link?.origin_id ?? link?.originId;
+  const originSlot = link?.origin_slot ?? link?.originSlot;
+  if (originId == null || originSlot == null) {
+    return null;
+  }
+  return `${linkId}:${originId}:${originSlot}`;
+}
+
+function captureAdvancedLinkedFieldSnapshots(node, fields, graph = null) {
+  const snapshots = [];
+  for (const field of fields || []) {
+    if (field?.type === "naia" || field?.enabled === false) {
+      continue;
+    }
+    const connectionFingerprint = advancedFieldConnectionFingerprint(node, field, graph);
+    const surface = advancedLinkedFieldSurface(field?.id);
+    if (connectionFingerprint == null || surface == null) {
+      continue;
+    }
+    snapshots.push(Object.freeze({
+      fieldId: String(field.id),
+      inputName: advancedFieldInputName(field),
+      pane: String(field.pane || "positive"),
+      type: String(field.type || "general"),
+      enabled: field.enabled !== false,
+      text: String(field.text || ""),
+      connectionFingerprint,
+      surface,
+    }));
+  }
+  return snapshots;
+}
+
+function currentAdvancedLinkedField(node, snapshot, graph = null) {
+  if (!snapshot || typeof snapshot !== "object") {
+    return null;
+  }
+  const field = (getAdvancedFields(node) || []).find(
+    (candidate) => candidate?.id === snapshot.fieldId,
+  );
+  if (
+    !field
+    || advancedFieldInputName(field) !== snapshot.inputName
+    || String(field.pane || "positive") !== snapshot.pane
+    || String(field.type || "general") !== snapshot.type
+    || (field.enabled !== false) !== snapshot.enabled
+    || String(field.text || "") !== snapshot.text
+    || advancedFieldConnectionFingerprint(node, field, graph)
+      !== snapshot.connectionFingerprint
+  ) {
+    return null;
+  }
+  return field;
+}
+
+function commitAdvancedLinkedFieldOverlay(
+  node,
+  snapshot,
+  value,
+  { graph = null, commitView = null } = {},
+) {
+  const field = currentAdvancedLinkedField(node, snapshot, graph);
+  if (!field) {
+    return false;
+  }
+  const text = String(value ?? "");
+  node.__easyuseAnimaAdvancedFieldInputValues ||= {};
+  node.__easyuseAnimaAdvancedFieldInputValues[snapshot.inputName] = text;
+  const editor = getAdvancedEditorElement(node);
+  const textarea = [...(editor?.querySelectorAll?.(
+    "textarea[data-easyuse-anima-advanced-field-id]",
+  ) || [])].find((candidate) => (
+    String(candidate?.dataset?.easyuseAnimaAdvancedFieldId || "") === snapshot.fieldId
+  ));
+  commitView?.(node, field, textarea || null, text);
+  return true;
+}
+
 function advancedFieldDisplayText(node, field) {
   const name = advancedFieldInputName(field);
   const values = node.__easyuseAnimaAdvancedFieldInputValues || {};
@@ -215,25 +316,6 @@ function advancedFieldDisplayText(node, field) {
     return String(values[name] ?? "");
   }
   return String(field?.text || "");
-}
-
-function mergeAdvancedFieldInputValues(fields, values) {
-  if (!values || typeof values !== "object" || !Array.isArray(fields)) {
-    return false;
-  }
-  let changed = false;
-  for (const field of fields) {
-    const name = advancedFieldInputName(field);
-    if (!Object.prototype.hasOwnProperty.call(values, name)) {
-      continue;
-    }
-    const text = String(values[name] ?? "");
-    if (field.text !== text) {
-      field.text = text;
-      changed = true;
-    }
-  }
-  return changed;
 }
 
 function pruneDisconnectedAdvancedFieldInputValues(node) {
@@ -255,14 +337,18 @@ function pruneDisconnectedAdvancedFieldInputValues(node) {
 
 export {
   advancedFieldDisplayText,
+  advancedFieldConnectionFingerprint,
   advancedFieldIndexLabel,
   advancedFieldInputLinked,
+  advancedLinkedFieldSurface,
   advancedFieldsBackup,
+  captureAdvancedLinkedFieldSnapshots,
   captureAdvancedConfigure,
   collectAdvancedEditorFields,
+  commitAdvancedLinkedFieldOverlay,
+  currentAdvancedLinkedField,
   ensureAdvancedWidgetValue,
   isAdvancedFieldInput,
-  mergeAdvancedFieldInputValues,
   pruneDisconnectedAdvancedFieldInputValues,
   serializedAdvancedFieldsValue,
   syncAdvancedFieldInputs,

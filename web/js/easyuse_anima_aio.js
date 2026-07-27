@@ -1,4 +1,8 @@
+// @ts-check
+
+// @ts-expect-error ComfyUI provides this host module at runtime.
 import { app } from "../../../scripts/app.js";
+// @ts-expect-error ComfyUI provides this host module at runtime.
 import { api } from "../../../scripts/api.js";
 import { easyuseAnimaFetchComfyJson, easyuseAnimaFetchText } from "./easyuse_anima_api.js";
 import { easyuseAnimaText, easyuseAnimaWatchLocale } from "./easyuse_anima_i18n.js";
@@ -10,7 +14,6 @@ import {
   aioCreateTextareaInput as textareaInput,
   aioCreateTextInput as textInput,
   aioNodeInputControlForSpec as nodeInputControlForSpec,
-  aioNodeInputDefault as nodeInputDefault,
   aioValueFromNodeInputControl as valueFromNodeInputControl,
 } from "./aio/dom_controls.js";
 import { aioCreateDialogPrimitives } from "./aio/dialog_primitives.js";
@@ -331,7 +334,6 @@ const AIO_TEXT = {
     "field.guideSizeBasis": "Guide size basis",
     "field.inpaintModel": "Inpaint model",
     "field.tiledEncode": "Tiled encode",
-    "field.tiledDecode": "Tiled decode",
     "field.refine": "Refine",
     "field.individual": "Individual",
     "field.combined": "Combined",
@@ -383,11 +385,19 @@ const AIO_TEXT = {
     "option.daveScopeFirstPassOnly": "First pass only",
     "option.daveScopeAllSamplingStages": "All sampling stages",
     "option.daveScopeCustom": "Custom",
+    "field.safePagStages": "Safe PAG stages",
+    "option.safePagScopeFirstPassOnly": "First pass only",
+    "option.safePagScopeAllSamplingStages": "All sampling stages",
+    "option.safePagScopeCustom": "Custom",
+    "option.sageScopeFirstPassOnly": "First pass only",
+    "option.sageScopeAllSamplingStages": "All sampling stages",
+    "option.sageScopeCustom": "Custom",
     "option.negpipOff": "Off",
     "option.negpipOn": "On (standard)",
     "option.negpipTurbo": "Turbo (CFG 1 + negative prompt × -1)",
     "info.negpipTurboCfg": "Turbo keeps the saved CFG values but uses effective CFG 1 for first pass, Highres, Detailer, and USDU.",
     "section.customDaveStages": "Custom DAVE stages",
+    "section.customSafePagStages": "Custom Safe PAG stages",
     "field.mask": "Mask",
     "field.daveStrength": "DAVE strength",
     "field.daveTau": "DAVE tau",
@@ -679,7 +689,6 @@ const AIO_TEXT = {
     "field.guideSizeBasis": "가이드 크기 기준",
     "field.inpaintModel": "인페인트 모델",
     "field.tiledEncode": "타일 인코드",
-    "field.tiledDecode": "타일 디코드",
     "field.refine": "정제",
     "field.individual": "개별 마스크",
     "field.combined": "통합 마스크",
@@ -731,11 +740,19 @@ const AIO_TEXT = {
     "option.daveScopeFirstPassOnly": "1차 생성만",
     "option.daveScopeAllSamplingStages": "모든 샘플링 단계",
     "option.daveScopeCustom": "사용자 지정",
+    "field.safePagStages": "Safe PAG 적용 단계",
+    "option.safePagScopeFirstPassOnly": "1차 생성만",
+    "option.safePagScopeAllSamplingStages": "모든 샘플링 단계",
+    "option.safePagScopeCustom": "사용자 지정",
+    "option.sageScopeFirstPassOnly": "1차 생성만",
+    "option.sageScopeAllSamplingStages": "모든 샘플링 단계",
+    "option.sageScopeCustom": "사용자 지정",
     "option.negpipOff": "끄기",
     "option.negpipOn": "켜기 (표준)",
     "option.negpipTurbo": "Turbo (CFG 1 + negative prompt × -1)",
     "info.negpipTurboCfg": "Turbo는 저장된 CFG 값을 유지하지만 1차 생성, Highres, Detailer, USDU 실행에는 effective CFG 1을 사용합니다.",
     "section.customDaveStages": "DAVE 단계 사용자 지정",
+    "section.customSafePagStages": "Safe PAG 단계 사용자 지정",
     "field.mask": "마스크",
     "field.daveStrength": "DAVE 강도",
     "field.daveTau": "DAVE tau",
@@ -884,11 +901,19 @@ const AIO_TEXT = {
     "option.daveScopeFirstPassOnly": "First pass のみ",
     "option.daveScopeAllSamplingStages": "すべての sampling stage",
     "option.daveScopeCustom": "カスタム",
+    "field.safePagStages": "Safe PAG 適用 stage",
+    "option.safePagScopeFirstPassOnly": "First pass のみ",
+    "option.safePagScopeAllSamplingStages": "すべての sampling stage",
+    "option.safePagScopeCustom": "カスタム",
+    "option.sageScopeFirstPassOnly": "First pass のみ",
+    "option.sageScopeAllSamplingStages": "すべての sampling stage",
+    "option.sageScopeCustom": "カスタム",
     "option.negpipOff": "オフ",
     "option.negpipOn": "オン (標準)",
     "option.negpipTurbo": "Turbo (CFG 1 + negative prompt × -1)",
     "info.negpipTurboCfg": "Turbo は保存済み CFG を維持し、First pass、Highres、Detailer、USDU の実行時 CFG を 1 にします。",
     "section.customDaveStages": "DAVE stage のカスタム設定",
+    "section.customSafePagStages": "Safe PAG stage のカスタム設定",
     "label.followMainSampler": "メインサンプラーに追従",
     "label.scaleBy": "拡大",
     "label.maxLongEdge": "最大長辺",
@@ -991,11 +1016,19 @@ const AIO_TEXT = {
     "option.daveScopeFirstPassOnly": "仅第一次生成",
     "option.daveScopeAllSamplingStages": "所有采样阶段",
     "option.daveScopeCustom": "自定义",
+    "field.safePagStages": "Safe PAG 应用阶段",
+    "option.safePagScopeFirstPassOnly": "仅第一次生成",
+    "option.safePagScopeAllSamplingStages": "所有采样阶段",
+    "option.safePagScopeCustom": "自定义",
+    "option.sageScopeFirstPassOnly": "仅第一次生成",
+    "option.sageScopeAllSamplingStages": "所有采样阶段",
+    "option.sageScopeCustom": "自定义",
     "option.negpipOff": "关闭",
     "option.negpipOn": "开启（标准）",
     "option.negpipTurbo": "Turbo（CFG 1 + negative prompt × -1）",
     "info.negpipTurboCfg": "Turbo 保留已保存的 CFG，并在第一次生成、Highres、Detailer 和 USDU 执行时使用 effective CFG 1。",
     "section.customDaveStages": "自定义 DAVE 阶段",
+    "section.customSafePagStages": "自定义 Safe PAG 阶段",
     "label.followMainSampler": "跟随主采样器",
     "label.scaleBy": "放大",
     "label.maxLongEdge": "最长边",
@@ -1149,6 +1182,16 @@ const AIO_TOOLTIP_TEXT = {
     "tip.daveStageHighres": "Apply DAVE to the Highres sampling pass when Highres is enabled.",
     "tip.daveStageDetailer": "Apply DAVE to enabled Detailer sampling blocks.",
     "tip.daveStageUpscale": "Apply DAVE to the final USDU sampling pass. ResShift does not use a sampling MODEL variant.",
+    "tip.safePagStagePreset": "Choose whether Safe PAG runs only on the first pass, on every sampling stage, or on a custom set of stages.",
+    "tip.safePagStageFirstPass": "Apply Safe PAG to the first sampling pass.",
+    "tip.safePagStageHighres": "Apply Safe PAG to the Highres sampling pass when Highres is enabled.",
+    "tip.safePagStageDetailer": "Apply Safe PAG to enabled Detailer sampling blocks.",
+    "tip.safePagStageUpscale": "Apply Safe PAG to the final USDU sampling pass. ResShift does not use a sampling MODEL variant.",
+    "tip.sageStagePreset": "Choose whether SageAttention runs only on the first pass, on every sampling stage, or on a custom set of stages.",
+    "tip.sageStageFirstPass": "Apply SageAttention to the first sampling pass.",
+    "tip.sageStageHighres": "Apply SageAttention to the Highres sampling pass when Highres is enabled.",
+    "tip.sageStageDetailer": "Apply SageAttention to enabled Detailer sampling blocks.",
+    "tip.sageStageUpscale": "Apply SageAttention to the final USDU sampling pass. ResShift does not use a sampling MODEL variant.",
     "tip.safePagEnabled": "Applies Anima Safe PAG before KJNodes optimization and Torch Compile.",
     "tip.safePagScale": "Safe PAG guidance scale. 0 disables the guidance contribution.",
     "tip.safePagBlocks": "Comma-separated transformer block indices passed to AnimaSafePAG.",
@@ -1274,6 +1317,16 @@ const AIO_TOOLTIP_TEXT = {
     "tip.daveStageHighres": "Highres가 활성화된 경우 DAVE를 Highres 샘플링에 적용합니다.",
     "tip.daveStageDetailer": "DAVE를 활성화된 Detailer 샘플링 블럭에 적용합니다.",
     "tip.daveStageUpscale": "DAVE를 최종 USDU 샘플링에 적용합니다. ResShift는 샘플링 MODEL variant를 사용하지 않습니다.",
+    "tip.safePagStagePreset": "Safe PAG를 1차 생성만, 모든 샘플링 단계, 또는 사용자 지정 단계에 적용할지 선택합니다.",
+    "tip.safePagStageFirstPass": "Safe PAG를 1차 샘플링에 적용합니다.",
+    "tip.safePagStageHighres": "Highres가 활성화된 경우 Safe PAG를 Highres 샘플링에 적용합니다.",
+    "tip.safePagStageDetailer": "Safe PAG를 활성화된 Detailer 샘플링 블럭에 적용합니다.",
+    "tip.safePagStageUpscale": "Safe PAG를 최종 USDU 샘플링에 적용합니다. ResShift는 샘플링 MODEL variant를 사용하지 않습니다.",
+    "tip.sageStagePreset": "SageAttention을 1차 생성만, 모든 샘플링 단계, 또는 사용자 지정 단계에 적용할지 선택합니다.",
+    "tip.sageStageFirstPass": "SageAttention을 1차 샘플링에 적용합니다.",
+    "tip.sageStageHighres": "Highres가 활성화된 경우 SageAttention을 Highres 샘플링에 적용합니다.",
+    "tip.sageStageDetailer": "SageAttention을 활성화된 Detailer 샘플링 블럭에 적용합니다.",
+    "tip.sageStageUpscale": "SageAttention을 최종 USDU 샘플링에 적용합니다. ResShift는 샘플링 MODEL variant를 사용하지 않습니다.",
     "tip.safePagEnabled": "KJNodes 최적화와 Torch Compile 전에 Anima Safe PAG를 적용합니다.",
     "tip.safePagScale": "Safe PAG guidance scale입니다. 0이면 guidance 기여를 비활성화합니다.",
     "tip.safePagBlocks": "AnimaSafePAG에 전달할 transformer block 인덱스입니다. 쉼표로 여러 개를 지정합니다.",
@@ -1399,6 +1452,16 @@ const AIO_TOOLTIP_TEXT = {
     "tip.daveStageHighres": "Highres が有効な場合、DAVE を Highres sampling に適用します。",
     "tip.daveStageDetailer": "DAVE を有効な Detailer sampling block に適用します。",
     "tip.daveStageUpscale": "DAVE を最終 USDU sampling に適用します。ResShift は sampling MODEL variant を使いません。",
+    "tip.safePagStagePreset": "Safe PAG を first pass のみ、すべての sampling stage、またはカスタム stage に適用します。",
+    "tip.safePagStageFirstPass": "Safe PAG を最初の sampling pass に適用します。",
+    "tip.safePagStageHighres": "Highres が有効な場合、Safe PAG を Highres sampling に適用します。",
+    "tip.safePagStageDetailer": "Safe PAG を有効な Detailer sampling block に適用します。",
+    "tip.safePagStageUpscale": "Safe PAG を最終 USDU sampling に適用します。ResShift は sampling MODEL variant を使いません。",
+    "tip.sageStagePreset": "SageAttention を first pass のみ、すべての sampling stage、またはカスタム stage に適用します。",
+    "tip.sageStageFirstPass": "SageAttention を最初の sampling pass に適用します。",
+    "tip.sageStageHighres": "Highres が有効な場合、SageAttention を Highres sampling に適用します。",
+    "tip.sageStageDetailer": "SageAttention を有効な Detailer sampling block に適用します。",
+    "tip.sageStageUpscale": "SageAttention を最終 USDU sampling に適用します。ResShift は sampling MODEL variant を使いません。",
     "tip.highresMethod": "Highres 二回目パス前に使う upscaler 方式です。",
     "tip.highresMultiple": "Highres の寸法をこの倍数に揃えます。",
     "tip.detailerPrompt": "この block の対象領域を検出するため SAM3 に渡す text prompt です。",
@@ -1514,6 +1577,16 @@ const AIO_TOOLTIP_TEXT = {
     "tip.daveStageHighres": "启用 Highres 时，将 DAVE 应用于 Highres 采样。",
     "tip.daveStageDetailer": "将 DAVE 应用于已启用的 Detailer 采样块。",
     "tip.daveStageUpscale": "将 DAVE 应用于最终 USDU 采样。ResShift 不使用采样 MODEL variant。",
+    "tip.safePagStagePreset": "选择 Safe PAG 仅用于第一次生成、所有采样阶段或自定义阶段。",
+    "tip.safePagStageFirstPass": "将 Safe PAG 应用于第一次采样。",
+    "tip.safePagStageHighres": "启用 Highres 时，将 Safe PAG 应用于 Highres 采样。",
+    "tip.safePagStageDetailer": "将 Safe PAG 应用于已启用的 Detailer 采样块。",
+    "tip.safePagStageUpscale": "将 Safe PAG 应用于最终 USDU 采样。ResShift 不使用采样 MODEL variant。",
+    "tip.sageStagePreset": "选择 SageAttention 仅用于第一次生成、所有采样阶段或自定义阶段。",
+    "tip.sageStageFirstPass": "将 SageAttention 应用于第一次采样。",
+    "tip.sageStageHighres": "启用 Highres 时，将 SageAttention 应用于 Highres 采样。",
+    "tip.sageStageDetailer": "将 SageAttention 应用于已启用的 Detailer 采样块。",
+    "tip.sageStageUpscale": "将 SageAttention 应用于最终 USDU 采样。ResShift 不使用采样 MODEL variant。",
     "tip.highresMethod": "Highres 第二次采样前使用的放大方法。",
     "tip.highresMultiple": "将 Highres 尺寸对齐到该倍数。",
     "tip.detailerPrompt": "传给 SAM3 的文本提示词，用于检测此 block 的目标区域。",
@@ -1649,7 +1722,6 @@ const AIO_FIELD_TOOLTIP_KEYS = {
   "USDU prompt": "tip.usduPrompt",
   "Fit final size": "tip.finalFit",
   "Fit by": "tip.finalFit",
-  "Max long edge": "tip.finalFit",
   "Max megapixels": "tip.finalFit",
   "Fit method": "tip.finalFit",
   "Tile width": "tip.usduTile",
@@ -1762,6 +1834,7 @@ const AIO_STATIC_TEXT_KEYS = {
   "Anima DAVE": "section.animaDave",
   "Custom DAVE stages": "section.customDaveStages",
   "Anima Safe PAG": "section.safePag",
+  "Custom Safe PAG stages": "section.customSafePagStages",
   "KJNodes Optimization": "section.kjNodesOptimization",
   "SageAttention (KJNodes)": "section.sageAttention",
   "Torch Compile (KJNodes)": "section.torchCompile",
@@ -1856,7 +1929,6 @@ const AIO_FIELD_LABEL_KEYS = {
   "Guide size basis": "field.guideSizeBasis",
   "Inpaint model": "field.inpaintModel",
   "Tiled encode": "field.tiledEncode",
-  "Tiled decode": "field.tiledDecode",
   "Refine": "field.refine",
   "Individual": "field.individual",
   "Combined": "field.combined",
@@ -1901,6 +1973,7 @@ const AIO_FIELD_LABEL_KEYS = {
   "Use DAVE": "field.useDave",
   "NegPip": "field.negpip",
   "DAVE stages": "field.daveStages",
+  "Safe PAG stages": "field.safePagStages",
   "First pass": "field.daveFirstPass",
   "Highres": "field.daveHighres",
   "Detailer": "field.daveDetailer",
@@ -2127,69 +2200,6 @@ function nodeInputSupported(dependencyKey, inputName) {
   return aioNodeInputSupported(generatorOptionalDependencyState, dependencyKey, inputName);
 }
 
-
-function disableGeneratorSpectrumOptions(target) {
-  if (!target || typeof target !== "object") {
-    return;
-  }
-  if (target.spectrum && typeof target.spectrum === "object") {
-    target.spectrum.enabled = false;
-  }
-  if (target.dit_corrections && typeof target.dit_corrections === "object") {
-    target.dit_corrections.enabled = false;
-  }
-}
-
-function sanitizeGeneratorSettingsForOptionalDependencies(settings) {
-  const next = migrateGeneratorPostprocessSettings(mergeDefaults(DEFAULT_GENERATION_SETTINGS, settings));
-  delete next.sampler.dave;
-  const backendDependency = AIO_BACKEND_DEPENDENCIES[next.sampler.backend];
-  if (backendDependency && !optionalDependencyAvailable(backendDependency)) {
-    next.sampler.backend = "comfy_ksampler";
-  }
-  delete next.highres?.backend;
-  if (!optionalDependencyAvailable("spectrumPatch")) {
-    disableGeneratorSpectrumOptions(next.sampler);
-    disableGeneratorSpectrumOptions(next.highres);
-    disableGeneratorSpectrumOptions(next.upscale);
-    for (const targetName of normalizeDetailerOrder(next.detailer?.order, next.detailer)) {
-      disableGeneratorSpectrumOptions(next.detailer?.[targetName]);
-    }
-  }
-  if (!optionalDependencyAvailable("kjFp16")) {
-    next.model_patches.kj.fp16_accumulation = false;
-  }
-  if (!optionalDependencyAvailable("kjSage")) {
-    next.model_patches.kj.sage_attention = "disabled";
-    next.model_patches.kj.sage_allow_compile = false;
-  }
-  if (!optionalDependencyAvailable("kjTorchCompile")) {
-    next.model_patches.kj.torch_compile.enabled = false;
-  }
-  if (!optionalDependencyAvailable("dave")) {
-    next.model_patches.dave.enabled = false;
-  }
-  if (!optionalDependencyAvailable("safePag")) {
-    next.model_patches.safe_pag.enabled = false;
-  }
-  if (!optionalDependencyAvailable("imageSaver") && next.save.backend === "image_saver") {
-    next.save.backend = "comfy_save_image";
-  }
-  const impactMissing = !optionalDependencyAvailable("impactDetailer")
-    || !optionalDependencyAvailable("impactMaskToSegs");
-  if (impactMissing) {
-    next.detailer.enabled = false;
-    for (const targetName of normalizeDetailerOrder(next.detailer?.order, next.detailer)) {
-      if (next.detailer[targetName]) {
-        next.detailer[targetName].enabled = false;
-      }
-    }
-  }
-  if (next.upscale?.enabled && upscaleBackendMissingPacks(next.upscale.backend).length) {
-    next.upscale.enabled = false;
-  }
-  return next;
-}
 
 function samplerNameOptions(current) {
   return aioChoiceOptionsWithCurrent(generatorSamplerOptionState.samplerNames, current);
@@ -3316,6 +3326,11 @@ function setWidgetValue(node, name, value) {
   node.__easyuseAnimaGeneratorUiValues[name] = value;
 }
 
+/**
+ * @param {unknown} value
+ * @param {unknown} [fallback]
+ * @returns {unknown}
+ */
 function firstValue(value, fallback = "") {
   if (Array.isArray(value)) {
     return value.length > 0 ? value[0] : fallback;
@@ -3686,10 +3701,13 @@ function forwardGeneratorPanelWheel(event) {
 }
 
 function installGeneratorWheelForwarder() {
-  if (window.__easyuseAnimaAioWheelForwarderInstalled) {
+  const runtimeWindow = /** @type {Window & typeof globalThis & {
+   *   __easyuseAnimaAioWheelForwarderInstalled?: boolean
+   * }} */ (window);
+  if (runtimeWindow.__easyuseAnimaAioWheelForwarderInstalled) {
     return;
   }
-  window.__easyuseAnimaAioWheelForwarderInstalled = true;
+  runtimeWindow.__easyuseAnimaAioWheelForwarderInstalled = true;
   // Node 2.0 handles wheel on an ancestor of the DOM widget, so ownership must
   // be decided during window capture before that ancestor can zoom the canvas.
   window.addEventListener("wheel", forwardGeneratorPanelWheel, {
@@ -3759,10 +3777,6 @@ function randomSeed() {
 }
 
 
-
-function openGeneratorSettings(node) {
-  openAdvancedSettings(node);
-}
 
 function isGeneratorGraphNode(node) {
   return node?.type === GENERATOR_NODE_TYPE || node?.comfyClass === GENERATOR_NODE_TYPE;
@@ -4156,7 +4170,9 @@ const {
   storeAdapter: {
     getLegacyPreviewImages: () => app.nodePreviewImages,
     loadDirectStoreModules: () => Promise.all([
+      // @ts-expect-error ComfyUI provides this host module at runtime.
       import("../../../stores/nodeOutputStore.js").catch(() => null),
+      // @ts-expect-error ComfyUI provides this host module at runtime.
       import("../../../platform/workflow/management/stores/workflowStore.js").catch(() => null),
     ]),
     fetchFrontendHtml: () => easyuseAnimaFetchText("/"),

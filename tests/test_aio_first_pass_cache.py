@@ -856,8 +856,11 @@ class AIOFirstPassCacheMoveTests(unittest.TestCase):
                 },
                 {"loader": "b"}, {"positive": "p"}, {"seed": 42},
                 {
-                    "order_revision": 1,
-                    "precedence": [["kj.torch_compile", "dave"]],
+                    "order_revision": 2,
+                    "precedence": [
+                        ["kj.torch_compile", "dave"],
+                        ["dave", "safe_pag"],
+                    ],
                     "patches": {
                         "aura_flow": {"shift": 3.0},
                         "dave": {
@@ -899,7 +902,23 @@ class AIOFirstPassCacheMoveTests(unittest.TestCase):
                         "upscale": False,
                     },
                 },
-                "safe_pag": {"enabled": False},
+                "safe_pag": {
+                    "enabled": True,
+                    "scale": 4.0,
+                    "block_indices": "18",
+                    "perturbation_strength": 0.75,
+                    "head_indices": "",
+                    "start_percent": 0.0,
+                    "end_percent": 0.7,
+                    "rescale": 0.2,
+                    "rescale_mode": "full",
+                    "stage_scope": {
+                        "first_pass": True,
+                        "highres": False,
+                        "detailer": False,
+                        "upscale": False,
+                    },
+                },
                 "kj": {
                     "fp16_accumulation": False,
                     "sage_attention": "disabled",
@@ -941,17 +960,25 @@ class AIOFirstPassCacheMoveTests(unittest.TestCase):
         )
         self.assertEqual(
             plan["precedence"],
-            [["kj.torch_compile", "dave"]],
+            [
+                ["kj.torch_compile", "dave"],
+                ["dave", "safe_pag"],
+            ],
         )
         self.assertEqual(
             list(plan["patches"]),
-            ["aura_flow", "kj.torch_compile", "dave"],
+            ["aura_flow", "kj.torch_compile", "dave", "safe_pag"],
+        )
+        self.assertEqual(
+            plan["patches"]["safe_pag"]["stage_scope"],
+            {"first_pass": True},
         )
 
         for stage_id in ("highres", "detailer", "upscale"):
             with self.subTest(later_stage=stage_id):
                 changed = copy.deepcopy(settings)
                 changed["model_patches"]["dave"]["stage_scope"][stage_id] = True
+                changed["model_patches"]["safe_pag"]["stage_scope"][stage_id] = True
                 self.assertEqual(
                     first_pass_cache._aio_first_pass_cache_key(
                         **{**key_args, "settings": changed}
@@ -968,11 +995,111 @@ class AIOFirstPassCacheMoveTests(unittest.TestCase):
             baseline,
         )
 
-        with patch.object(first_pass_cache, "AIO_MODEL_PATCH_ORDER_REVISION", 2):
+        safe_pag_first_disabled = copy.deepcopy(settings)
+        safe_pag_first_disabled["model_patches"]["safe_pag"]["stage_scope"][
+            "first_pass"
+        ] = False
+        self.assertNotEqual(
+            first_pass_cache._aio_first_pass_cache_key(
+                **{**key_args, "settings": safe_pag_first_disabled}
+            ),
+            baseline,
+        )
+
+        legacy_safe_pag = copy.deepcopy(settings)
+        del legacy_safe_pag["model_patches"]["safe_pag"]["stage_scope"]
+        self.assertEqual(
+            first_pass_cache._aio_first_pass_cache_key(
+                **{**key_args, "settings": legacy_safe_pag}
+            ),
+            baseline,
+        )
+
+        malformed_safe_pag = copy.deepcopy(settings)
+        malformed_safe_pag["model_patches"]["safe_pag"]["stage_scope"] = "all"
+        self.assertNotEqual(
+            first_pass_cache._aio_first_pass_cache_key(
+                **{**key_args, "settings": malformed_safe_pag}
+            ),
+            baseline,
+        )
+        self.assertNotIn(
+            "safe_pag",
+            first_pass_cache._aio_first_pass_model_patch_plan(
+                malformed_safe_pag["model_patches"]
+            )["patches"],
+        )
+
+        with patch.object(first_pass_cache, "AIO_MODEL_PATCH_ORDER_REVISION", 3):
             self.assertNotEqual(
                 first_pass_cache._aio_first_pass_cache_key(**key_args),
                 baseline,
             )
+
+    def test_first_pass_sage_scope_is_normalized_into_cache_identity(self):
+        def signature(model_patches):
+            return first_pass_cache._stable_change_key(
+                first_pass_cache._aio_first_pass_model_patch_plan(model_patches)
+            )
+
+        legacy = {
+            "kj": {
+                "sage_attention": "auto",
+                "sage_allow_compile": True,
+            }
+        }
+        explicit = copy.deepcopy(legacy)
+        explicit["kj"]["sage_stage_scope"] = {
+            "first_pass": True,
+            "highres": False,
+            "detailer": False,
+            "upscale": False,
+        }
+
+        legacy_plan = first_pass_cache._aio_first_pass_model_patch_plan(legacy)
+        explicit_plan = first_pass_cache._aio_first_pass_model_patch_plan(explicit)
+        self.assertEqual(signature(legacy), signature(explicit))
+        self.assertEqual(
+            legacy_plan["patches"]["kj.sage_attention"],
+            {
+                "mode": "auto",
+                "allow_compile": True,
+                "stage_scope": {"first_pass": True},
+            },
+        )
+        self.assertEqual(legacy_plan, explicit_plan)
+
+        later_selected = copy.deepcopy(explicit)
+        later_selected["kj"]["sage_stage_scope"]["highres"] = True
+        later_selected["kj"]["sage_stage_scope"]["detailer"] = True
+        later_selected["kj"]["sage_stage_scope"]["upscale"] = True
+        self.assertEqual(signature(explicit), signature(later_selected))
+
+        first_disabled = copy.deepcopy(explicit)
+        first_disabled["kj"]["sage_stage_scope"]["first_pass"] = False
+        self.assertNotEqual(signature(explicit), signature(first_disabled))
+        self.assertNotIn(
+            "kj.sage_attention",
+            first_pass_cache._aio_first_pass_model_patch_plan(first_disabled)[
+                "patches"
+            ],
+        )
+
+        allow_compile_changed = copy.deepcopy(first_disabled)
+        allow_compile_changed["kj"]["sage_allow_compile"] = False
+        self.assertEqual(
+            signature(first_disabled),
+            signature(allow_compile_changed),
+        )
+
+        malformed = copy.deepcopy(explicit)
+        malformed["kj"]["sage_stage_scope"] = "all"
+        self.assertEqual(signature(first_disabled), signature(malformed))
+
+        unknown = copy.deepcopy(explicit)
+        unknown["kj"]["sage_attention"] = "future-mode"
+        with self.assertRaisesRegex(RuntimeError, "Unsupported KJ SageAttention"):
+            signature(unknown)
 
     def test_negpip_modes_preserve_off_and_separate_on_and_turbo_contracts(self):
         settings = {

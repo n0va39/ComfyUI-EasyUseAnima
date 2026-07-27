@@ -13,25 +13,15 @@ const contextModule = await import(dataModule(
   "../web/js/lifecycle/executed_event_context.js",
 ));
 const transactionModule = await import(dataModule(
-  "../web/js/prompt_studio/wildcard_seed_transaction.js",
+  "../web/js/prompt_studio/execution_transaction.js",
 ));
 
 assert.deepEqual(
   Object.keys(transactionModule).sort(),
-  [
-    "WILDCARD_HISTORY_SURFACE",
-    "WILDCARD_SEED_CONTROL_SURFACE",
-    "createPromptStudioWildcardSeedTransaction",
-  ],
+  ["createPromptStudioExecutionTransaction"],
 );
-assert.equal(
-  transactionModule.WILDCARD_SEED_CONTROL_SURFACE,
-  "prompt.wildcard_seed_control",
-);
-assert.equal(
-  transactionModule.WILDCARD_HISTORY_SURFACE,
-  "prompt.wildcard_history",
-);
+
+const WILDCARD_SEED_CONTROL_SURFACE = "prompt.wildcard_seed_control";
 
 class FakeApi {
   constructor() {
@@ -77,22 +67,44 @@ function createNode(id) {
 
 function createHarness() {
   const api = new FakeApi();
-  const owner = ownerModule.createQueueUiTransactionOwner();
+  const transactionOwner = ownerModule.createQueueUiTransactionOwner();
+  let settleCount = 0;
+  const owner = Object.freeze({
+    ...transactionOwner,
+    settle(...args) {
+      settleCount += 1;
+      return transactionOwner.settle(...args);
+    },
+  });
   let runtime;
   const executedContext = contextModule.createExecutedEventContext(api, {
     finishPrompt: (promptId) => runtime.finishPrompt(promptId),
   });
-  runtime = transactionModule.createPromptStudioWildcardSeedTransaction({
+  runtime = transactionModule.createPromptStudioExecutionTransaction({
     owner,
     executedContext,
     findWidget: (node, name) => node.widgets.find((widget) => widget.name === name),
+    editBindings: [{
+      widgetNames: ["wildcard_seed", "wildcard_seed_after_generate"],
+      surfaces: [WILDCARD_SEED_CONTROL_SURFACE],
+    }],
   });
   executedContext.install();
-  return { api, executedContext, runtime };
+  return {
+    api,
+    executedContext,
+    runtime,
+    settleCount: () => settleCount,
+  };
 }
 
-function accepted(runtime, node, promptId) {
-  const captured = runtime.captureQueue([node]);
+function accepted(
+  runtime,
+  node,
+  promptId,
+  surfaces = [WILDCARD_SEED_CONTROL_SURFACE],
+) {
+  const captured = runtime.captureQueue([{ node, surfaces }]);
   assert.equal(captured.length, 1);
   assert.equal(
     runtime.acceptQueue(captured, { ok: true, result: { prompt_id: promptId } }),
@@ -117,7 +129,10 @@ function captureEnvelope(api, promptId, node, output) {
   let commitCount = 0;
   captureEnvelope(api, "prompt-current", node, output);
   assert.equal(
-    await runtime.consumeExecution(node, output, 1, () => { commitCount += 1; }),
+    await runtime.consumeExecution(node, output, 1, [{
+      surface: WILDCARD_SEED_CONTROL_SURFACE,
+      commit: () => { commitCount += 1; },
+    }]),
     true,
   );
   assert.equal(commitCount, 1);
@@ -140,7 +155,10 @@ function captureEnvelope(api, promptId, node, output) {
     node,
     output,
     1,
-    () => { commitCount += 1; },
+    [{
+      surface: WILDCARD_SEED_CONTROL_SURFACE,
+      commit: () => { commitCount += 1; },
+    }],
   );
   captureEnvelope(api, "prompt-node-first", node, output);
   assert.equal(await delivery, true, "node-first delivery must wait within the event turn");
@@ -159,7 +177,10 @@ for (const widgetName of ["wildcard_seed", "wildcard_seed_after_generate"]) {
   let commitCount = 0;
   captureEnvelope(api, transaction.promptId, node, output);
   assert.equal(
-    await runtime.consumeExecution(node, output, 1, () => { commitCount += 1; }),
+    await runtime.consumeExecution(node, output, 1, [{
+      surface: WILDCARD_SEED_CONTROL_SURFACE,
+      commit: () => { commitCount += 1; },
+    }]),
     false,
     `${widgetName} edit must invalidate the atomic seed/control surface`,
   );
@@ -178,7 +199,10 @@ for (const widgetName of ["wildcard_seed", "wildcard_seed_after_generate"]) {
     false,
     "cloned output must fail closed",
   );
-  assert.equal(await runtime.consumeExecution(node, output, 1, () => {}), true);
+  assert.equal(await runtime.consumeExecution(node, output, 1, [{
+    surface: WILDCARD_SEED_CONTROL_SURFACE,
+    commit: () => {},
+  }]), true);
 }
 
 {
@@ -193,7 +217,10 @@ for (const widgetName of ["wildcard_seed", "wildcard_seed_after_generate"]) {
   };
   captureEnvelope(api, "prompt-mapped", node, output);
   assert.equal(
-    await runtime.consumeExecution(node, output, 2, () => {}),
+    await runtime.consumeExecution(node, output, 2, [{
+      surface: WILDCARD_SEED_CONTROL_SURFACE,
+      commit: () => {},
+    }]),
     false,
     "multiple mapped payloads must not publish editable state",
   );
@@ -203,13 +230,19 @@ for (const widgetName of ["wildcard_seed", "wildcard_seed_after_generate"]) {
 {
   const { api, runtime } = createHarness();
   const node = createNode(10);
-  const captured = runtime.captureQueue([node]);
+  const captured = runtime.captureQueue([{
+    node,
+    surfaces: [WILDCARD_SEED_CONTROL_SURFACE],
+  }]);
   const transaction = captured[0].transaction;
   const output = { prompt_studio_advanced: [{ wildcard_seed: 14 }] };
   let commitCount = 0;
   captureEnvelope(api, "prompt-out-of-order", node, output);
   assert.equal(
-    await runtime.consumeExecution(node, output, 1, () => { commitCount += 1; }),
+    await runtime.consumeExecution(node, output, 1, [{
+      surface: WILDCARD_SEED_CONTROL_SURFACE,
+      commit: () => { commitCount += 1; },
+    }]),
     false,
     "executed-before-accept must defer editable publication",
   );
@@ -229,7 +262,10 @@ for (const widgetName of ["wildcard_seed", "wildcard_seed_after_generate"]) {
 {
   const { runtime } = createHarness();
   const node = createNode(11);
-  const captured = runtime.captureQueue([node]);
+  const captured = runtime.captureQueue([{
+    node,
+    surfaces: [WILDCARD_SEED_CONTROL_SURFACE],
+  }]);
   assert.equal(runtime.acceptQueue(captured, { ok: true, result: {} }), 0);
   assert.equal(captured[0].transaction.state, "cancelled");
   assert.equal(captured[0].transaction.reason, "reject");
@@ -256,4 +292,45 @@ for (const widgetName of ["wildcard_seed", "wildcard_seed_after_generate"]) {
   assert.equal(transaction.reason, "prompt-terminal");
 }
 
-console.log("Prompt Studio wildcard transaction smoke passed.");
+{
+  const { api, runtime, settleCount } = createHarness();
+  const node = createNode("fan-out");
+  const surfaces = [
+    WILDCARD_SEED_CONTROL_SURFACE,
+    "prompt.execution.linked:positive_general",
+    "prompt.execution.naia:positive_naia",
+  ];
+  const transaction = accepted(runtime, node, "prompt-fan-out", surfaces);
+  const output = { prompt_studio_advanced: [{ wildcard_seed: 15 }] };
+  const commits = [];
+  captureEnvelope(api, "prompt-fan-out", node, output);
+  assert.equal(await runtime.consumeExecution(node, output, 1, [
+    {
+      surface: WILDCARD_SEED_CONTROL_SURFACE,
+      commit: () => { commits.push("wildcard"); },
+    },
+    {
+      surface: "prompt.execution.linked:positive_general",
+      commit: () => { commits.push("linked"); },
+    },
+    {
+      surface: "prompt.execution.naia:positive_naia",
+      commit: () => { commits.push("naia"); },
+    },
+  ]), true);
+  assert.deepEqual(commits, ["wildcard", "linked", "naia"]);
+  assert.equal(transaction.state, "settled", "one fan-out must settle once");
+  assert.equal(settleCount(), 1);
+  assert.equal(
+    await runtime.consumeExecution(node, output, 1, [{
+      surface: WILDCARD_SEED_CONTROL_SURFACE,
+      commit: () => { commits.push("duplicate"); },
+    }]),
+    false,
+    "the consumed envelope must not fan out twice",
+  );
+  assert.deepEqual(commits, ["wildcard", "linked", "naia"]);
+  assert.equal(settleCount(), 1, "duplicate delivery must not settle twice");
+}
+
+console.log("Prompt Studio execution transaction and Wildcard parity smoke passed.");

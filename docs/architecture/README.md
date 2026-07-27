@@ -17,12 +17,18 @@ section, owning Issue, direct owner files, and direct tests.
   focused edit loop, final-full-once rule, package/live/benchmark triggers,
   evidence reuse, and current task-specific test maps. It reduces repeated work;
   it does not weaken an Issue or release gate.
+- Issue [#470](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/470) is the
+  active P1 post-0.6.0 regression lane. Read
+  [`prompt-studio-execution-derived-projection.md`](prompt-studio-execution-derived-projection.md)
+  before modifying Prompt Studio queue/result behavior. QSTATE-04C1 is the first
+  READY task and targets a 0.6.1 patch.
 - Issues [#413](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/413),
   [#414](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/414), and
   [#415](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/415) completed the
-  queue/live-UI hotfix and release lane. Their two-phase correlation and seed
-  ownership contracts remain authoritative for later feature adapters, but no
-  longer block the AiO advanced-integration queue.
+  original queue/live-UI hotfix and release lane. Their two-phase correlation and
+  seed ownership contracts remain authoritative. Issue #470 supersedes only the
+  old classification that treated linked `field_inputs` and NAIA responses as
+  non-projectable submitted snapshots.
 - Before Prompt Studio wildcard next-seed publication or AiO seed cutover, read
   [`seed-ui-semantics-gate.md`](seed-ui-semantics-gate.md). Prompt Studio uses a
   concrete seed plus an after-generate transition; AiO special `-1/-2/-3` values
@@ -36,11 +42,10 @@ section, owning Issue, direct owner files, and direct tests.
 - The DAVE stage-scope, Torch Compile recommendation, and NegPip plans are
   recorded in
   [`aio-advanced-integrations-roadmap.md`](aio-advanced-integrations-roadmap.md).
-  Issue #409 is complete. The active queue is #410 AIO-COMPILE-01 through 04,
-  followed by #411; patch-specific #440/#441 follow-ups do not jump this queue.
-- New D/E/G/H, AiO Hook, opportunistic cleanup, and unrelated feature work remain
-  outside the active #410/#411 queue unless a separately recorded priority
-  decision changes it.
+  Issues #409, #410, and #411 and the 0.6.0 release lane #452 are complete.
+- Deferred patch-specific follow-ups #440/#441, ordinary backend work,
+  opportunistic cleanup, and unrelated features do not jump the active #470
+  patch lane.
 - The former B-11 Comfy host-provider bridge is complete. Its document remains a
   historical sequencing record and no longer overrides the active queue.
 
@@ -48,38 +53,41 @@ section, owning Issue, direct owner files, and direct tests.
 
 - [`../development/codex-execution-efficiency.md`](../development/codex-execution-efficiency.md):
   cross-roadmap Codex context budget, work-packet format, test ladder, invalidation
-  rules, compact evidence format, and scoped test maps for #413/#414, #409/#410/#411,
+  rules, compact evidence format, and scoped test maps for queue/UI, AiO integration,
   and ordinary backend work.
+- [`prompt-studio-execution-derived-projection.md`](prompt-studio-execution-derived-projection.md):
+  active Issue #470 plan separating submitted Prompt Studio snapshots from
+  execution-derived linked-input and NAIA deltas; defines latest-accepted queue
+  ownership, per-field revisions, persistence rules, one-envelope fan-out,
+  implementation units, focused tests, dual-canvas evidence, and the 0.6.1 gate.
 - [`queue-ui-two-phase-correlation-addendum.md`](queue-ui-two-phase-correlation-addendum.md):
-  active correction after QSTATE-02A. It separates provisional submission,
-  accepted `promptId`, and the executed-event envelope; removes mandatory
-  `listIndex` from the node-level stale-result critical path; defines cache,
-  subgraph, mapped-result, transaction-core, and envelope-bridge boundaries; and
-  provides the current Codex start instruction.
+  identity/revision correction after QSTATE-02A. It separates provisional
+  submission, accepted `promptId`, and the executed-event envelope; removes
+  mandatory `listIndex` from node-level stale-result correlation; and defines
+  cache, subgraph, mapped-result, transaction-core, and envelope-bridge boundaries.
 - [`seed-ui-semantics-gate.md`](seed-ui-semantics-gate.md): feature boundary and
   hard test gate separating Prompt Studio Wildcard concrete after-generate seed
   publication from AiO rgthree-style persistent special-token selection, including
-  the special-token × stored-control no-double-advance matrix.
+  the special-token x stored-control no-double-advance matrix.
 - [`queue-ui-execution-state-hotfix.md`](queue-ui-execution-state-hotfix.md):
-  base runbook for stale LoRA/Prompt Studio execution results (#413),
+  historical base runbook for stale LoRA/Prompt Studio execution results (#413),
   rgthree-compatible AiO special-seed display semantics (#414), integrated
-  validation, and the patch release gate owned by #415. Its exact-identity-at-
+  validation, and the completed release gate owned by #415. Its exact-identity-at-
   submission assumptions are superseded by the two-phase addendum.
 - [`python-backend.md`](python-backend.md): living architecture, ownership,
   execution phases, validation gates, and overall Definition of Done.
 - [`python-backend-execution-roadmap.md`](python-backend-execution-roadmap.md):
   verified backend progress, ordered work units, stop conditions, and task-level
-  validation gates. Its next-work ordering is paused while #415 is open. When it
+  validation gates. Its next-work ordering is paused while #470 is open. When it
   resumes, apply the efficiency protocol instead of rerunning every historical
   inventory and broad test after each edit.
 - [`aio-advanced-integrations-roadmap.md`](aio-advanced-integrations-roadmap.md):
-  blocked follow-on plan for stage-scoped DAVE and other MODEL patches (#409),
-  KJNodes Torch Compile environment recommendations (#410), and ComfyUI-ppm
-  NegPip Off/On/Turbo conditioning (#411).
+  completed sequencing plan for stage-scoped DAVE (#409), KJNodes Torch Compile
+  recommendations (#410), and ComfyUI-ppm NegPip (#411). Patch-specific follow-ups
+  remain independently tracked.
 - [`aio-hook-extensibility-plan.md`](aio-hook-extensibility-plan.md): follow-on AiO
   extension contract and stage/cache/lifecycle sequencing. It does not authorize
-  implementation while a higher-priority bug, release, or integration gate is
-  active.
+  implementation while a higher-priority bug or release gate is active.
 - [`comfy-host-provider-bridge.md`](comfy-host-provider-bridge.md): completed
   historical sequencing addendum for the seven former root Comfy capability and
   invocation wrappers and the minimum runtime-bound provider Contract required
@@ -106,16 +114,14 @@ section, owning Issue, direct owner files, and direct tests.
   workflow/profile compatibility, optional custom-node contracts, packaging,
   and live ComfyUI evidence when those surfaces are inseparable from the backend
   execution contract.
-- The active hotfix is tracked by
-  [#413](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/413),
-  [#414](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/414), and
-  [#415](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/415).
+- The active post-0.6.0 patch is tracked by
+  [#470](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/470). Completed
+  #413/#414/#415 remain historical contract sources and are not reopened.
 - Long-term implementation is tracked by
   [#184](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/184),
   [#185](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/185), and their
-  child issues. The blocked advanced integrations are tracked independently by
-  [#409](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/409),
-  [#410](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/410), and
-  [#411](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/411).
+  child issues. Deferred patch-specific integrations are tracked independently by
+  [#440](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/440) and
+  [#441](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/441).
 - An ADR, roadmap, or sequencing note does not authorize a behavior change,
   package move, merge, version bump, tag, or Registry publication by itself.

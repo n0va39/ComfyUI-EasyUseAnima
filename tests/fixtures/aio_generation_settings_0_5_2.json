@@ -239,6 +239,12 @@
         "fp16_accumulation": false,
         "sage_allow_compile": false,
         "sage_attention": "disabled",
+        "sage_stage_scope": {
+          "detailer": true,
+          "first_pass": true,
+          "highres": true,
+          "upscale": true
+        },
         "torch_compile": {
           "backend": "inductor",
           "compile_transformer_blocks_only": true,
@@ -260,6 +266,12 @@
         "rescale": 0.2,
         "rescale_mode": "full",
         "scale": 4.0,
+        "stage_scope": {
+          "detailer": false,
+          "first_pass": true,
+          "highres": false,
+          "upscale": false
+        },
         "start_percent": 0.0
       }
     },
@@ -434,7 +446,7 @@
         "upscale_model_name": "2x-AnimeSharpV4_Fast_RCAN_PU.safetensors"
       }
     },
-    "version": 2
+    "version": 4
   },
   "serialized_generation_settings": {
     "artist_mix": {
