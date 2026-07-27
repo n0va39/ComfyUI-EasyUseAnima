@@ -656,6 +656,17 @@ def _normalize_aio_generation_settings(value) -> dict[str, Any]:
         "disabled",
     )
     kj["sage_allow_compile"] = _as_bool(kj.get("sage_allow_compile"), False)
+    sage_stage_scope = kj.setdefault("sage_stage_scope", {})
+    if not isinstance(sage_stage_scope, dict):
+        sage_stage_scope = {
+            stage_id: False for stage_id in AIO_GENERATION_STAGE_IDS
+        }
+        kj["sage_stage_scope"] = sage_stage_scope
+    for stage_id in AIO_GENERATION_STAGE_IDS:
+        sage_stage_scope[stage_id] = _as_bool(
+            sage_stage_scope.get(stage_id),
+            False,
+        )
     torch_compile = kj.setdefault("torch_compile", {})
     if not isinstance(torch_compile, dict):
         torch_compile = {}

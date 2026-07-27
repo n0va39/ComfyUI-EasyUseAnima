@@ -89,6 +89,12 @@ const defaultSettings = {
       fp16_accumulation: false,
       sage_attention: "disabled",
       sage_allow_compile: false,
+      sage_stage_scope: {
+        first_pass: true,
+        highres: false,
+        detailer: true,
+        upscale: false,
+      },
       torch_compile: { enabled: false },
     },
     dave: {
@@ -114,6 +120,11 @@ assert(
     === JSON.stringify(defaultSettings.model_patches.dave.stage_scope),
   "Built-in profiles must preserve the fresh first-pass-only DAVE scope",
 );
+assert(
+  JSON.stringify(normalSettings.model_patches.kj.sage_stage_scope)
+    === JSON.stringify(defaultSettings.model_patches.kj.sage_stage_scope),
+  "Built-in profiles must preserve the feature-owned SageAttention scope",
+);
 
 const allStageProfile = JSON.parse(JSON.stringify(normalSettings));
 allStageProfile.model_patches.dave.stage_scope = {
@@ -126,6 +137,18 @@ assert(
   aioProfileSettingsFingerprint(allStageProfile)
     !== aioProfileSettingsFingerprint(normalSettings),
   "User-profile identity must include the complete DAVE stage scope",
+);
+const alternateSageScopeProfile = JSON.parse(JSON.stringify(normalSettings));
+alternateSageScopeProfile.model_patches.kj.sage_stage_scope = {
+  first_pass: false,
+  highres: true,
+  detailer: false,
+  upscale: true,
+};
+assert(
+  aioProfileSettingsFingerprint(alternateSageScopeProfile)
+    !== aioProfileSettingsFingerprint(normalSettings),
+  "User-profile identity must include the complete SageAttention stage scope",
 );
 
 const normalSnapshot = JSON.stringify(normalSettings);

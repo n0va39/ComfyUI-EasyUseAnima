@@ -8,7 +8,7 @@ from typing import TypeAlias, cast
 from .generation_values import freeze_object, thaw_object
 
 AIO_GENERATION_SETTINGS_SCHEMA = "easyuse_anima_aio_generation_settings"
-AIO_GENERATION_SETTINGS_CURRENT_VERSION = 3
+AIO_GENERATION_SETTINGS_CURRENT_VERSION = 4
 AIO_GENERATION_STAGE_IDS = (
     "first_pass",
     "highres",
@@ -155,6 +155,25 @@ def _migrate_aio_generation_settings_v2_to_v3(
     return migrated
 
 
+def _migrate_aio_generation_settings_v3_to_v4(
+    source: Mapping[str, object],
+) -> Mapping[str, object]:
+    """Add Sage stage scope while preserving legacy all-stage behavior."""
+
+    migrated = _copy_generation_settings(source)
+    model_patches = migrated.get("model_patches")
+    if isinstance(model_patches, dict):
+        model_patch_values = cast(dict[str, object], model_patches)
+        kj = model_patch_values.get("kj")
+        if isinstance(kj, dict) and "sage_stage_scope" not in kj:
+            kj_values = cast(dict[str, object], kj)
+            kj_values["sage_stage_scope"] = {
+                stage_id: True for stage_id in AIO_GENERATION_STAGE_IDS
+            }
+    migrated["version"] = 4
+    return migrated
+
+
 AIO_GENERATION_MIGRATION_REGISTRY = (
     AIOGenerationMigrationRegistry()
     .with_step(
@@ -165,6 +184,11 @@ AIO_GENERATION_MIGRATION_REGISTRY = (
     .with_step(
         AIOGenerationMigrationStep(
             2, 3, _migrate_aio_generation_settings_v2_to_v3,
+        )
+    )
+    .with_step(
+        AIOGenerationMigrationStep(
+            3, 4, _migrate_aio_generation_settings_v3_to_v4,
         )
     )
 )

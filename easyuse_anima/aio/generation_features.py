@@ -210,12 +210,19 @@ class AIOGenerationKJConfig:
     fp16_accumulation: bool
     sage_attention: str
     sage_allow_compile: bool
+    sage_stage_scope: AIOGenerationStageScopeConfig
     torch_compile: AIOGenerationTorchCompileConfig
 
     @classmethod
     def from_value(cls, value: object, key: str) -> AIOGenerationKJConfig:
         source = expect_object(value, key)
-        known = ("fp16_accumulation", "sage_attention", "sage_allow_compile", "torch_compile")
+        known = (
+            "fp16_accumulation",
+            "sage_attention",
+            "sage_allow_compile",
+            "sage_stage_scope",
+            "torch_compile",
+        )
         return cls(
             state=ObjectState.from_source(source, known),
             fp16_accumulation=expect_bool(
@@ -224,6 +231,10 @@ class AIOGenerationKJConfig:
             sage_attention=expect_str(required(source, "sage_attention"), f"{key}.sage_attention"),
             sage_allow_compile=expect_bool(
                 required(source, "sage_allow_compile"), f"{key}.sage_allow_compile"
+            ),
+            sage_stage_scope=AIOGenerationStageScopeConfig.from_value(
+                required(source, "sage_stage_scope"),
+                f"{key}.sage_stage_scope",
             ),
             torch_compile=AIOGenerationTorchCompileConfig.from_value(
                 required(source, "torch_compile"), f"{key}.torch_compile"
@@ -235,6 +246,7 @@ class AIOGenerationKJConfig:
             "fp16_accumulation": self.fp16_accumulation,
             "sage_attention": self.sage_attention,
             "sage_allow_compile": self.sage_allow_compile,
+            "sage_stage_scope": self.sage_stage_scope.to_dict(),
             "torch_compile": self.torch_compile.to_dict(),
         })
 

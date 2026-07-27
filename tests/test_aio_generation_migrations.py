@@ -44,7 +44,7 @@ def _payload(
 
 
 class AIOGenerationMigrationTests(unittest.TestCase):
-    def test_shipped_registry_has_two_immutable_consecutive_steps(self):
+    def test_shipped_registry_has_three_immutable_consecutive_steps(self):
         self.assertEqual(AIO_GENERATION_SETTINGS_SCHEMA, nodes.AIO_GENERATION_SETTINGS_SCHEMA)
         self.assertEqual(
             AIO_GENERATION_SETTINGS_CURRENT_VERSION,
@@ -55,7 +55,7 @@ class AIOGenerationMigrationTests(unittest.TestCase):
                 (step.from_version, step.to_version)
                 for step in AIO_GENERATION_MIGRATION_REGISTRY.steps
             ],
-            [(1, 2), (2, 3)],
+            [(1, 2), (2, 3), (3, 4)],
         )
         with self.assertRaises(FrozenInstanceError):
             AIO_GENERATION_MIGRATION_REGISTRY.steps = ()
@@ -73,7 +73,7 @@ class AIOGenerationMigrationTests(unittest.TestCase):
         self.assertEqual(source, source_before)
 
     def test_detection_and_dispatch_errors_are_explicit(self):
-        self.assertEqual(detect_aio_generation_settings_version(_payload()), 3)
+        self.assertEqual(detect_aio_generation_settings_version(_payload()), 4)
 
         for source in (
             {"version": 1},
@@ -88,9 +88,9 @@ class AIOGenerationMigrationTests(unittest.TestCase):
                     migrate_aio_generation_settings(source)
 
         with self.assertRaisesRegex(AIOGenerationMigrationError, "newer than target"):
-            migrate_aio_generation_settings(_payload(4))
+            migrate_aio_generation_settings(_payload(5))
         with self.assertRaisesRegex(AIOGenerationMigrationError, "No AiO generation migration"):
-            migrate_aio_generation_settings(_payload(1), target_version=4)
+            migrate_aio_generation_settings(_payload(1), target_version=5)
 
     def test_test_only_registry_dispatches_consecutive_steps_in_order(self):
         calls: list[int] = []
@@ -119,7 +119,7 @@ class AIOGenerationMigrationTests(unittest.TestCase):
         self.assertEqual(migrated["version"], 3)
         self.assertEqual(migrated["trace"], [2, 3])
         self.assertEqual(source, _payload(1))
-        self.assertEqual(len(AIO_GENERATION_MIGRATION_REGISTRY.steps), 2)
+        self.assertEqual(len(AIO_GENERATION_MIGRATION_REGISTRY.steps), 3)
 
     def test_registry_rejects_non_stepwise_duplicate_and_wrong_output(self):
         with self.assertRaisesRegex(AIOGenerationMigrationError, "exactly one version"):
@@ -214,7 +214,7 @@ class AIOGenerationMigrationTests(unittest.TestCase):
             )
         self.assertEqual(current_runtime["version"], 4)
         with self.assertRaisesRegex(AIOGenerationMigrationError, "newer than target"):
-            migrate_aio_generation_settings(_payload(4))
+            migrate_aio_generation_settings(_payload(5))
 
     def test_legacy_feature_scopes_migrate_all_stage_and_custom_scopes_are_preserved(self):
         fixture = json.loads(STAGE_SCOPE_FIXTURE_PATH.read_text(encoding="utf-8"))
@@ -223,7 +223,7 @@ class AIOGenerationMigrationTests(unittest.TestCase):
 
         migrated = migrate_aio_generation_settings(legacy)
 
-        self.assertEqual(migrated["version"], 3)
+        self.assertEqual(migrated["version"], 4)
         self.assertEqual(
             migrated["model_patches"]["dave"]["stage_scope"],
             fixture["legacy_profile"]["expected_dave_stage_scope"],
@@ -251,7 +251,7 @@ class AIOGenerationMigrationTests(unittest.TestCase):
         }
         legacy_safe_pag_before = copy.deepcopy(legacy_safe_pag)
         migrated_safe_pag = migrate_aio_generation_settings(legacy_safe_pag)
-        self.assertEqual(migrated_safe_pag["version"], 3)
+        self.assertEqual(migrated_safe_pag["version"], 4)
         self.assertEqual(
             migrated_safe_pag["model_patches"]["safe_pag"]["stage_scope"],
             {stage_id: True for stage_id in AIO_GENERATION_STAGE_IDS},
@@ -261,6 +261,30 @@ class AIOGenerationMigrationTests(unittest.TestCase):
             {"preserve_safe_pag": True},
         )
         self.assertEqual(legacy_safe_pag, legacy_safe_pag_before)
+
+        legacy_sage = {
+            "schema": AIO_GENERATION_SETTINGS_SCHEMA,
+            "version": 3,
+            "model_patches": {
+                "kj": {
+                    "sage_attention": "auto",
+                    "sage_allow_compile": False,
+                }
+            },
+            "profile_extension": {"preserve_sage": True},
+        }
+        legacy_sage_before = copy.deepcopy(legacy_sage)
+        migrated_sage = migrate_aio_generation_settings(legacy_sage)
+        self.assertEqual(migrated_sage["version"], 4)
+        self.assertEqual(
+            migrated_sage["model_patches"]["kj"]["sage_stage_scope"],
+            {stage_id: True for stage_id in AIO_GENERATION_STAGE_IDS},
+        )
+        self.assertEqual(
+            migrated_sage["profile_extension"],
+            {"preserve_sage": True},
+        )
+        self.assertEqual(legacy_sage, legacy_sage_before)
 
         current = copy.deepcopy(migrated)
         current["model_patches"]["dave"]["stage_scope"] = fixture[
@@ -287,6 +311,20 @@ class AIOGenerationMigrationTests(unittest.TestCase):
                 "safe_pag"
             ]["stage_scope"],
             custom_safe_pag_scope,
+        )
+        custom_sage_scope = {
+            "first_pass": False,
+            "highres": True,
+            "detailer": True,
+            "upscale": False,
+        }
+        current_sage = copy.deepcopy(migrated_sage)
+        current_sage["model_patches"]["kj"]["sage_stage_scope"] = custom_sage_scope
+        self.assertEqual(
+            migrate_aio_generation_settings(current_sage)["model_patches"]["kj"][
+                "sage_stage_scope"
+            ],
+            custom_sage_scope,
         )
 
         self.assertEqual(tuple(fixture["stage_ids"]), AIO_GENERATION_STAGE_IDS)

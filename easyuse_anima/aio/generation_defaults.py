@@ -125,6 +125,10 @@ AIO_GENERATION_DEFAULT_SETTINGS = {
             "fp16_accumulation": False,
             "sage_attention": "disabled",
             "sage_allow_compile": False,
+            "sage_stage_scope": {
+                stage_id: stage_id == "first_pass"
+                for stage_id in AIO_GENERATION_STAGE_IDS
+            },
             "torch_compile": {
                 "enabled": False,
                 "backend": "inductor",

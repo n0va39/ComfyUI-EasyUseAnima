@@ -30,12 +30,12 @@ from tests.comfy_host_fakes import (
 )
 
 ROOT = Path(__file__).resolve().parents[1]
-MANIFEST_PATH = ROOT / "easyuse_anima" / "aio" / "schemas" / "generation_settings.v3.json"
+MANIFEST_PATH = ROOT / "easyuse_anima" / "aio" / "schemas" / "generation_settings.v4.json"
 MANIFEST_REPOSITORY_PATH = MANIFEST_PATH.relative_to(ROOT).as_posix()
 FRONTEND_SETTINGS_PATH = ROOT / "web" / "js" / "aio" / "settings.js"
 AIO_WORKFLOW_0_5_2_FIXTURE_PATH = ROOT / "tests" / "fixtures" / "aio_generation_settings_0_5_2.json"
 SURFACE_COVERAGE_PATH = (
-    ROOT / "tests" / "fixtures" / "aio_generation_settings_surface_coverage.v3.json"
+    ROOT / "tests" / "fixtures" / "aio_generation_settings_surface_coverage.v4.json"
 )
 REQUIRED_SETTING_SURFACES = (
     "python_default",
@@ -546,7 +546,7 @@ class AIOGenerationSettingsManifestTests(unittest.TestCase):
             coverage["schema"],
             "easyuse_anima_aio_generation_settings_surface_coverage",
         )
-        self.assertEqual(coverage["version"], 3)
+        self.assertEqual(coverage["version"], 4)
         self.assertEqual(coverage["manifest"], MANIFEST_REPOSITORY_PATH)
         self.assertEqual(
             [group["paths"][0] for group in coverage["groups"]],
@@ -1011,6 +1011,13 @@ class AIOGenerationSettingsManifestTests(unittest.TestCase):
                     "mode": "pure-in-memory",
                     "missing_safe_pag_stage_scope": "legacy-all-sampling-stages",
                 },
+                {
+                    "from": 3,
+                    "to": 4,
+                    "owner": "easyuse_anima.aio.generation_migrations",
+                    "mode": "pure-in-memory",
+                    "missing_sage_stage_scope": "legacy-all-sampling-stages",
+                },
             ],
         )
 
@@ -1042,9 +1049,10 @@ class AIOGenerationSettingsManifestTests(unittest.TestCase):
         )
         self.assertEqual(patch_contract["dave_fresh_default"], "first-pass-only")
         self.assertEqual(patch_contract["safe_pag_fresh_default"], "first-pass-only")
+        self.assertEqual(patch_contract["sage_fresh_default"], "first-pass-only")
         self.assertEqual(
             patch_contract["execution_cutover"],
-            "complete-through-AIO-SAFEPAG-03",
+            "complete-through-AIO-SAGE-03",
         )
         self.assertEqual(
             patch_contract["stage_scope_policy"],
@@ -1074,8 +1082,14 @@ class AIOGenerationSettingsManifestTests(unittest.TestCase):
                         "reason": "process-global-torch-setting-callback",
                     },
                     "kj.sage_attention": {
-                        "decision": "follow-up-required",
-                        "reason": "experimental-clone-local-override",
+                        "decision": "supported",
+                        "stages": [
+                            "first_pass",
+                            "highres",
+                            "detailer",
+                            "upscale",
+                        ],
+                        "owner_field": "sage_stage_scope",
                     },
                     "kj.torch_compile": {
                         "decision": "run-global-not-stage-scoped",
