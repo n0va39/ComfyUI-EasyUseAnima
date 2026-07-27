@@ -44,6 +44,7 @@ PACKAGE_MODULES = (
     "easyuse_anima.aio.usdu",
     "easyuse_anima.api",
     "easyuse_anima.api.errors",
+    "easyuse_anima.api.file_io",
     "easyuse_anima.api.requests",
     "easyuse_anima.api.responses",
     "easyuse_anima.api.router",
@@ -208,6 +209,12 @@ print(json.dumps({{
         expected_all[PACKAGE_MODULES.index("easyuse_anima.bootstrap")] = ["initialize"]
         expected_all[PACKAGE_MODULES.index("easyuse_anima.api.errors")] = [
             "ApiContractError"
+        ]
+        expected_all[PACKAGE_MODULES.index("easyuse_anima.api.file_io")] = [
+            "FILE_IO_MAX_IN_FLIGHT",
+            "file_io_limiter",
+            "release_file_io_slot",
+            "run_file_io",
         ]
         expected_all[PACKAGE_MODULES.index("easyuse_anima.api.requests")] = [
             "parse_json_object",
