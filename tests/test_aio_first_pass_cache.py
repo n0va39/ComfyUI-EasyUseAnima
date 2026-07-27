@@ -974,7 +974,7 @@ class AIOFirstPassCacheMoveTests(unittest.TestCase):
                 baseline,
             )
 
-    def test_negpip_off_preserves_cache_key_and_on_separates_contract_revision(self):
+    def test_negpip_modes_preserve_off_and_separate_on_and_turbo_contracts(self):
         settings = {
             "mode": "txt2img",
             "sampler": {"seed": 42},
@@ -1003,6 +1003,8 @@ class AIOFirstPassCacheMoveTests(unittest.TestCase):
         explicit_off["negpip"] = {"mode": "off"}
         on = copy.deepcopy(settings)
         on["negpip"] = {"mode": "on"}
+        turbo = copy.deepcopy(settings)
+        turbo["negpip"] = {"mode": "turbo"}
 
         self.assertEqual(
             first_pass_cache._aio_first_pass_cache_key(
@@ -1016,13 +1018,16 @@ class AIOFirstPassCacheMoveTests(unittest.TestCase):
             ),
             baseline,
         )
-        with self.assertRaisesRegex(RuntimeError, "NegPip"):
+        turbo_key = first_pass_cache._aio_first_pass_cache_key(
+            **{**key_args, "settings": turbo}
+        )
+        self.assertNotEqual(turbo_key, baseline)
+        self.assertNotEqual(
+            turbo_key,
             first_pass_cache._aio_first_pass_cache_key(
-                **{
-                    **key_args,
-                    "settings": {**settings, "negpip": {"mode": "turbo"}},
-                }
-            )
+                **{**key_args, "settings": on}
+            ),
+        )
 
     def test_resource_revision_maps_base_resources_and_loras_in_signature_order(self):
         revisions = Mock(

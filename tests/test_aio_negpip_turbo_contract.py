@@ -1,138 +1,21 @@
 from __future__ import annotations
 
 import json
-import re
 import unittest
 from copy import deepcopy
 from pathlib import Path
-from typing import Any
+from types import SimpleNamespace
+
+from easyuse_anima.aio import negpip as negpip_contract
+from easyuse_anima.prompt import artist_mix
+from tests.comfy_host_fakes import FakeComfyHostProvider, use_fake_comfy_host
+
 
 _FIXTURE_PATH = (
     Path(__file__).parent
     / "fixtures"
     / "aio_negpip_turbo_contract.v1.json"
 )
-_OPEN_TO_CLOSE = {"(": ")", "{": "}", "[": "]"}
-_CLOSE_TO_OPEN = {value: key for key, value in _OPEN_TO_CLOSE.items()}
-_NUMERIC_WEIGHT_RE = re.compile(
-    r"(?P<prefix>:\s*)"
-    r"(?P<sign>[+-]?)"
-    r"(?P<number>(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?)"
-    r"(?P<suffix>\s*)(?=\))"
-)
-
-
-class TurboContractError(RuntimeError):
-    pass
-
-
-def _is_escaped(text: str, index: int) -> bool:
-    slash_count = 0
-    cursor = index - 1
-    while cursor >= 0 and text[cursor] == "\\":
-        slash_count += 1
-        cursor -= 1
-    return slash_count % 2 == 1
-
-
-def _line_ending(line: str) -> str:
-    if line.endswith("\r\n"):
-        return "\r\n"
-    if line.endswith("\n"):
-        return "\n"
-    if line.endswith("\r"):
-        return "\r"
-    return ""
-
-
-def _strip_comments_and_validate(text: str, reason_code: str) -> str:
-    stack: list[str] = []
-    output: list[str] = []
-    for line in text.splitlines(keepends=True):
-        if not stack and line.lstrip(" \t").startswith("#"):
-            output.append(_line_ending(line))
-            continue
-
-        for index, char in enumerate(line):
-            if _is_escaped(line, index):
-                continue
-            if char in _OPEN_TO_CLOSE:
-                stack.append(char)
-            elif char in _CLOSE_TO_OPEN:
-                if not stack or stack[-1] != _CLOSE_TO_OPEN[char]:
-                    raise TurboContractError(reason_code)
-                stack.pop()
-        output.append(line)
-
-    if stack:
-        raise TurboContractError(reason_code)
-    return "".join(output)
-
-
-def _split_top_level_items(text: str) -> list[str]:
-    stack: list[str] = []
-    items: list[str] = []
-    start = 0
-    for index, char in enumerate(text):
-        if _is_escaped(text, index):
-            continue
-        if char in _OPEN_TO_CLOSE:
-            stack.append(char)
-        elif char in _CLOSE_TO_OPEN:
-            stack.pop()
-        elif not stack and char in ",\r\n":
-            item = text[start:index].strip()
-            if item:
-                items.append(item)
-            start = index + 1
-    final_item = text[start:].strip()
-    if final_item:
-        items.append(final_item)
-    return items
-
-
-def _toggle_numeric_weight(match: re.Match[str]) -> str:
-    sign = "" if match.group("sign") == "-" else "-"
-    return (
-        f"{match.group('prefix')}{sign}{match.group('number')}"
-        f"{match.group('suffix')}"
-    )
-
-
-def _reference_transform(negative_prompt: str, policy: dict[str, Any]) -> str:
-    reason_code = str(policy["malformed_reason_code"])
-    cleaned = _strip_comments_and_validate(negative_prompt, reason_code)
-    items = _split_top_level_items(cleaned)
-    if not items:
-        return ""
-    prompt = ", ".join(items)
-    prompt = _NUMERIC_WEIGHT_RE.sub(_toggle_numeric_weight, prompt)
-    return f"({prompt}:-1)"
-
-
-def _reference_conditioning(
-    *,
-    clip: object,
-    positive_prompt: str,
-    negative_prompt: str,
-    policy: dict[str, Any],
-    encode,
-) -> tuple[object, object, str]:
-    derived = _reference_transform(negative_prompt, policy)
-    positive_execution_prompt = ", ".join(
-        part for part in (positive_prompt, derived) if part
-    )
-    positive = encode(clip, positive_execution_prompt)
-    negative = encode(clip, str(policy["neutral_negative_prompt"]))
-    return positive, negative, positive_execution_prompt
-
-
-def _reference_effective_cfg(
-    case: dict[str, Any], policy: dict[str, Any]
-) -> float | None:
-    if case["stage"] in policy["sampling_stages"]:
-        return 1.0
-    return case["stored_cfg"]
 
 
 class AIONegPipTurboContractTests(unittest.TestCase):
@@ -148,8 +31,14 @@ class AIONegPipTurboContractTests(unittest.TestCase):
         )
         self.assertEqual(self.fixture["version"], 1)
         self.assertEqual(self.policy["mode"], "turbo")
-        self.assertEqual(self.policy["policy_revision"], 1)
-        self.assertEqual(self.policy["negative_scale"], -1.0)
+        self.assertEqual(
+            self.policy["policy_revision"],
+            negpip_contract.NEGPIP_TURBO_POLICY_REVISION,
+        )
+        self.assertEqual(
+            self.policy["negative_scale"],
+            negpip_contract.NEGPIP_TURBO_NEGATIVE_SCALE,
+        )
         self.assertEqual(self.policy["composition"], "whole_prompt_group")
         self.assertEqual(
             self.policy["input_phase"],
@@ -157,6 +46,10 @@ class AIONegPipTurboContractTests(unittest.TestCase):
         )
         self.assertEqual(self.policy["neutral_negative_prompt"], "")
         self.assertEqual(self.policy["malformed_policy"], "fail_closed")
+        self.assertEqual(
+            self.policy["malformed_reason_code"],
+            negpip_contract.NEGPIP_TURBO_MALFORMED_REASON,
+        )
         self.assertEqual(
             self.policy["rejected_composition"],
             "per_top_level_item",
@@ -168,9 +61,8 @@ class AIONegPipTurboContractTests(unittest.TestCase):
             with self.subTest(case=case["id"]):
                 observed_ids.add(case["id"])
                 self.assertEqual(
-                    _reference_transform(
-                        case["negative_prompt"],
-                        self.policy,
+                    negpip_contract._derive_aio_negpip_turbo_negative_contribution(
+                        case["negative_prompt"]
                     ),
                     case["derived_negative_contribution"],
                 )
@@ -194,10 +86,12 @@ class AIONegPipTurboContractTests(unittest.TestCase):
             with self.subTest(case=case["id"]):
                 source = case["negative_prompt"]
                 with self.assertRaisesRegex(
-                    TurboContractError,
+                    RuntimeError,
                     self.policy["malformed_reason_code"],
                 ):
-                    _reference_transform(source, self.policy)
+                    negpip_contract._derive_aio_negpip_turbo_negative_contribution(
+                        source
+                    )
                 self.assertEqual(case["negative_prompt"], source)
 
     def test_conditioning_uses_same_patched_clip_and_neutral_empty_prompt(self):
@@ -219,16 +113,18 @@ class AIONegPipTurboContractTests(unittest.TestCase):
             with self.subTest(case=case["id"]):
                 positive_source = case["positive_prompt"]
                 negative_source = case["negative_prompt"]
-                positive, negative, execution_prompt = _reference_conditioning(
-                    clip=patched_clip,
-                    positive_prompt=positive_source,
-                    negative_prompt=negative_source,
-                    policy=self.policy,
-                    encode=encode,
+                positive_prompt, negative_prompt, _derived = (
+                    negpip_contract._aio_negpip_execution_prompts(
+                        positive_source,
+                        negative_source,
+                        "turbo",
+                    )
                 )
+                positive = encode(patched_clip, positive_prompt)
+                negative = encode(patched_clip, negative_prompt)
 
                 self.assertEqual(
-                    execution_prompt,
+                    positive_prompt,
                     case["positive_execution_prompt"],
                 )
                 self.assertEqual(
@@ -248,11 +144,69 @@ class AIONegPipTurboContractTests(unittest.TestCase):
                 self.assertEqual(case["positive_prompt"], positive_source)
                 self.assertEqual(case["negative_prompt"], negative_source)
 
+    def test_artist_mix_variants_keep_runtime_only_turbo_contribution(self):
+        source = {
+            "fields": [
+                {
+                    "id": "positive-general",
+                    "type": "general",
+                    "pane": "positive",
+                    "enabled": True,
+                    "text": "base subject",
+                },
+            ],
+            "positive_without_artist_section": "base subject",
+            "artist_mix": {
+                "enabled": True,
+                "mode": "exact",
+                "artist_prompt": "artist alpha",
+                "artist_position": "correct",
+            },
+        }
+        saved = deepcopy(source)
+        clip = object()
+        calls: list[tuple[object, str]] = []
+
+        class ClipTextEncode:
+            def encode(self, source_clip, prompt):
+                calls.append((source_clip, prompt))
+                return ([[object(), {"prompt": prompt}]],)
+
+        provider = FakeComfyHostProvider(
+            node_classes={"CLIPTextEncode": ClipTextEncode}
+        )
+        with use_fake_comfy_host(
+            SimpleNamespace(__package__=""),
+            provider,
+        ):
+            conditioning = artist_mix._encode_prompt_data_positive_conditioning(
+                clip,
+                source,
+                "full positive",
+                artist_mix_mode="exact",
+                positive_execution_suffix="(bad anatomy:-1)",
+            )
+
+        self.assertTrue(conditioning)
+        self.assertTrue(calls)
+        self.assertTrue(all(source_clip is clip for source_clip, _ in calls))
+        self.assertTrue(
+            all("(bad anatomy:-1)" in prompt for _, prompt in calls)
+        )
+        self.assertEqual(source, saved)
+
     def test_sampling_cfg_is_runtime_only_and_saved_values_are_preserved(self):
         cases = self.fixture["stage_cfg_cases"]
         saved = deepcopy(cases)
+        config = negpip_contract.AIOGenerationNegPipConfig.from_value(
+            {"mode": "turbo"}
+        )
         observed = {
-            case["stage"]: _reference_effective_cfg(case, self.policy)
+            case["stage"]: (
+                config.effective_cfg(case["stored_cfg"])
+                if case["stage"] in self.policy["sampling_stages"]
+                else case["stored_cfg"]
+            )
             for case in cases
         }
 

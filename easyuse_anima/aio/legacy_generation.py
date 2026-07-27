@@ -75,6 +75,7 @@ from .model_preparation import (
     _cleanup_aio_ephemeral_model,
 )
 from .negpip import (
+    _aio_negpip_execution_prompts,
     _aio_negpip_metadata,
     _aio_negpip_mode,
     apply_aio_negpip,
@@ -400,6 +401,7 @@ def _run_aio_usdu_upscale_stage(
     prompt_data: str | dict | None = None,
     exclude_positive_quality: bool = False,
     exclude_negative_quality: bool = False,
+    negpip_mode: str = "off",
 ) -> tuple[Any, dict[str, Any]]:
     usdu_settings = upscale_settings.get("usdu", {})
     if not isinstance(usdu_settings, dict):
@@ -464,6 +466,7 @@ def _run_aio_usdu_upscale_stage(
         prompt_data,
         exclude_positive_quality,
         exclude_negative_quality,
+        negpip_mode,
     )
     stage_model = _apply_aio_spectrum_model_patches_for_comfy_sampler(
         model,
@@ -617,6 +620,7 @@ def _run_aio_upscale_stage(
     prompt_data: str | dict | None = None,
     exclude_positive_quality: bool = False,
     exclude_negative_quality: bool = False,
+    negpip_mode: str = "off",
 ) -> tuple[Any, dict[str, Any]]:
     if not _as_bool(upscale_settings.get("enabled"), False):
         return image, {"enabled": False}
@@ -636,6 +640,7 @@ def _run_aio_upscale_stage(
             prompt_data,
             exclude_positive_quality,
             exclude_negative_quality,
+            negpip_mode,
         )
     elif backend == "resshift":
         output, metadata = _run_aio_resshift_upscale_stage(
@@ -740,11 +745,21 @@ def _run_aio_generation_pipeline(
             width,
             height,
         ) = _advanced_outputs_from_prompt_data(prompt_data)
+        (
+            _positive_execution_prompt,
+            negative_execution_prompt,
+            _derived_negative_contribution,
+        ) = _aio_negpip_execution_prompts(
+            positive_prompt,
+            negative_prompt,
+            negpip_mode,
+        )
         artist_mix = settings["artist_mix"]
         positive = _encode_prompt_data_positive_conditioning(
             clip,
             prompt_data,
             positive_prompt,
+            positive_execution_suffix=_derived_negative_contribution,
             artist_mix_mode=artist_mix["mode"],
             artist_mix_start_percent=artist_mix["start_percent"],
             artist_mix_strength_scale=artist_mix["strength_scale"],
@@ -755,7 +770,7 @@ def _run_aio_generation_pipeline(
             artist_mix_dominant_isolation=artist_mix["dominant_isolation"],
             artist_mix_dominant_threshold=artist_mix["dominant_threshold"],
         )
-        negative = _encode_with_comfy_clip(clip, negative_prompt)
+        negative = _encode_with_comfy_clip(clip, negative_execution_prompt)
     except BaseException:
         if model_lineage_base is not model_with_lora:
             _cleanup_aio_ephemeral_model(model_lineage_base, base_model)
@@ -859,7 +874,10 @@ def _run_aio_generation_pipeline(
         "upscale": [],
     }
     generation_state.metadata["model_patches_by_stage"] = model_patches_by_stage
-    negpip_metadata = _aio_negpip_metadata(negpip_mode)
+    negpip_metadata = _aio_negpip_metadata(
+        negpip_mode,
+        negative_prompt=negative_prompt,
+    )
     if negpip_metadata is not None:
         generation_state.metadata["negpip"] = negpip_metadata
     preview_settings = settings["preview"]

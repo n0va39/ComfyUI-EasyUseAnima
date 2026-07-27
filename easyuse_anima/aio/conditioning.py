@@ -14,6 +14,7 @@ from ..prompt.advanced import (
 )
 from ..prompt.data import _normalize_prompt_data
 from .generation_defaults import AIO_USDU_PROMPT_FULL, AIO_USDU_PROMPT_NO_GENERAL
+from .negpip import _aio_negpip_execution_prompts
 
 
 def _missing_host_helper(name: str):
@@ -82,6 +83,7 @@ def _aio_usdu_conditioning(
     prompt_data: str | dict | None = None,
     exclude_positive_quality: bool = False,
     exclude_negative_quality: bool = False,
+    negpip_mode: str = "off",
 ):
     prompt_full = AIO_USDU_PROMPT_FULL
     prompt_no_general = AIO_USDU_PROMPT_NO_GENERAL
@@ -112,6 +114,11 @@ def _aio_usdu_conditioning(
             if _as_bool(exclude_negative_quality, False)
             else str(quality_neg or "")
         )
+    prompt, negative_prompt, _derived = _aio_negpip_execution_prompts(
+        prompt,
+        negative_prompt,
+        negpip_mode,
+    )
     positive_conditioning = _encode_with_comfy_clip(clip, prompt)
     negative_conditioning = _encode_with_comfy_clip(clip, negative_prompt)
     return positive_conditioning, negative_conditioning

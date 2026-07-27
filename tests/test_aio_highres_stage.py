@@ -29,8 +29,10 @@ def _request(
     *,
     highres_enabled: bool,
     intermediate_preview: bool = False,
+    negpip_mode: str = "off",
 ) -> GenerationRequest:
     normalized = _normalize_aio_generation_settings(json.dumps({
+        "negpip": {"mode": negpip_mode},
         "highres": {"enabled": highres_enabled},
         "preview": {"intermediate_images": intermediate_preview},
     }))
@@ -72,6 +74,33 @@ def _request(
 
 
 class AIOHighresStageTests(unittest.TestCase):
+    def test_turbo_uses_effective_cfg_one_for_sampler_and_highres_copies(self):
+        observed: list[tuple[float, float]] = []
+        request = _request(highres_enabled=True, negpip_mode="turbo")
+        saved_sampler_cfg = request.config.sampler.to_dict()["cfg"]
+        saved_highres_cfg = request.config.highres.to_dict()["cfg"]
+
+        def run_highres(*args):
+            observed.append((args[9]["cfg"], args[10]["cfg"]))
+            return args[6], args[5], args[7], args[8], {"enabled": True}
+
+        AIOHighresStage(
+            runtime=HighresRuntime(run_highres=run_highres),
+            use_mod_guidance=False,
+        ).run(
+            request,
+            GenerationState(
+                latent="first-latent",
+                image="first-image",
+                width=64,
+                height=96,
+            ),
+        )
+
+        self.assertEqual(observed, [(1.0, 1.0)])
+        self.assertEqual(request.config.sampler.to_dict()["cfg"], saved_sampler_cfg)
+        self.assertEqual(request.config.highres.to_dict()["cfg"], saved_highres_cfg)
+
     def test_disabled_stage_preserves_identity_dimensions_and_metadata(self):
         calls: list[tuple[object, ...]] = []
         image = object()

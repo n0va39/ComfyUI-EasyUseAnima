@@ -21,6 +21,7 @@ from easyuse_anima.aio.generation_migrations import (
 from easyuse_anima.aio.generation_settings import (
     _aio_generation_config_from_dict,
 )
+from easyuse_anima.aio.negpip import NEGPIP_MODES
 from easyuse_anima.prompt.conditioning import ANIMA_MOD_GUIDANCE_PROFILES
 from tests.comfy_host_fakes import (
     FakeComfyHostProvider,
@@ -399,6 +400,7 @@ def _authoritative_static_enum_choices() -> dict[tuple[str, ...], tuple[str, ...
         ),
         ("sampler", "seed_after_generate"): tuple(nodes.SEED_CONTROL_MODES),
         ("sampler", "spd", "split_mode"): ("single",),
+        ("negpip", "mode"): tuple(NEGPIP_MODES),
         ("model_patches", "safe_pag", "rescale_mode"): ("full", "partial"),
         ("model_patches", "kj", "sage_attention"): (
             "disabled",

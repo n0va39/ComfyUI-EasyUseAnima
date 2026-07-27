@@ -89,6 +89,9 @@ AIO_GENERATION_DEFAULT_SETTINGS = {
             "replace_existing_cfg": False,
         },
     },
+    "negpip": {
+        "mode": "off",
+    },
     "model_patches": {
         "aura_flow": {
             "shift": 3.0,

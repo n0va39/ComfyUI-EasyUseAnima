@@ -710,7 +710,10 @@ def _artist_variant_prompt_from_prompt_data(
             force_pin_triggers=_as_bool(data.get("pin_trigger_tags_to_front"), False),
         )
         if prompt:
-            return prompt
+            return _join_prompt_tokens(
+                prompt,
+                str(data.get("_artist_mix_execution_positive_suffix") or ""),
+            )
     return _artist_prompt_with_position(base_text, artist_text, artist_position)
 
 def _prompt_data_artist_mix_config(
@@ -1286,7 +1289,18 @@ def _encode_prompt_data_positive_conditioning(
     artist_mix_cluster_count: int = ARTIST_MIX_DEFAULT_CLUSTER_COUNT,
     artist_mix_dominant_isolation: bool = ARTIST_MIX_DEFAULT_DOMINANT_ISOLATION,
     artist_mix_dominant_threshold: float = ARTIST_MIX_DEFAULT_DOMINANT_THRESHOLD,
+    positive_execution_suffix: str = "",
 ) -> list:
+    execution_suffix = _join_prompt_tokens(positive_execution_suffix)
+    execution_positive_prompt = _join_prompt_tokens(
+        positive_prompt,
+        execution_suffix,
+    )
+    if execution_suffix:
+        data = {
+            **data,
+            "_artist_mix_execution_positive_suffix": execution_suffix,
+        }
     artist_mix = _prompt_data_artist_mix_config(
         data,
         artist_mix_mode,
@@ -1301,9 +1315,12 @@ def _encode_prompt_data_positive_conditioning(
     )
     artists = _coalesce_artist_mix_items(_parse_artist_mix_items(str(artist_mix.get("artist_prompt") or "")))
     if not artist_mix.get("enabled") or artist_mix.get("mode") == ARTIST_MIX_MODE_PROMPT:
-        return _encode_with_comfy_clip(clip, positive_prompt)
+        return _encode_with_comfy_clip(clip, execution_positive_prompt)
 
-    base_prompt = _prompt_data_artist_base_prompt(data, positive_prompt)
+    base_prompt = _join_prompt_tokens(
+        _prompt_data_artist_base_prompt(data, positive_prompt),
+        execution_suffix,
+    )
     if not artists:
         return _encode_with_comfy_clip(clip, base_prompt)
 
@@ -1475,6 +1492,6 @@ def _encode_prompt_data_positive_conditioning(
             _encode_artist_scheduled_average(clip, data, base_prompt, artists, artist_mix),
             ARTIST_MIX_CONTROL_KEY,
         )
-    return _encode_with_comfy_clip(clip, positive_prompt)
+    return _encode_with_comfy_clip(clip, execution_positive_prompt)
 
 __all__ = ()

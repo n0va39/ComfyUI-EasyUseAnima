@@ -270,8 +270,14 @@ assert(
   AIO_DEFAULT_GENERATION_SETTINGS.sampler.seed === AIO_GENERATOR_SPECIAL_SEED_RANDOM
     && AIO_DEFAULT_GENERATION_SETTINGS.sampler.steps === 32
     && AIO_DEFAULT_GENERATION_SETTINGS.sampler.cfg === 5
+    && AIO_DEFAULT_GENERATION_SETTINGS.negpip.mode === "off"
     && AIO_DEFAULT_GENERATION_SETTINGS.preview.feed_count === 12,
   "AiO generation defaults must retain their serialized baseline",
+);
+assertJsonEqual(
+  generationManifest.shape.fields.negpip.fields.mode.enum,
+  ["off", "on", "turbo"],
+  "NegPip mode must remain an explicit Off/On/Turbo schema contract",
 );
 
 const cloneSource = {
@@ -641,6 +647,10 @@ const compactSource = {
   sampler: {
     steps: 24,
   },
+  negpip: {
+    mode: "turbo",
+    future_negpip: { revision: 3 },
+  },
   save: {
     filename_prefix: "legacy/prefix",
     image_saver: {
@@ -661,6 +671,8 @@ const compactSettings = JSON.parse(compactJson);
 assert(
   compactSettings.schema === "easyuse_anima_aio_generation_settings"
     && compactSettings.sampler.steps === 24
+    && compactSettings.negpip.mode === "turbo"
+    && compactSettings.negpip.future_negpip.revision === 3
     && compactSettings.preview.feed_count === 1,
   "Compact generation settings must merge defaults and normalize preview values",
 );

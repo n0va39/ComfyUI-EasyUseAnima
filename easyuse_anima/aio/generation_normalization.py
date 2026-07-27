@@ -548,6 +548,16 @@ def _normalize_aio_generation_settings(value) -> dict[str, Any]:
         default_corrections["replace_existing_cfg"],
     )
 
+    negpip = settings.setdefault("negpip", {})
+    if not isinstance(negpip, dict):
+        negpip = {}
+        settings["negpip"] = negpip
+    negpip["mode"] = _choice(
+        negpip.get("mode"),
+        ("off", "on", "turbo"),
+        "off",
+    )
+
     model_patches = settings.setdefault("model_patches", {})
     if not isinstance(model_patches, dict):
         model_patches = {}

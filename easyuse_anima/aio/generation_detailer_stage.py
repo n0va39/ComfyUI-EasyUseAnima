@@ -60,6 +60,11 @@ class AIODetailerStage:
     ) -> None:
         sampler = cast(dict[str, Any], request.config.sampler.to_dict())
         detailer = cast(dict[str, Any], request.config.detailer.to_dict())
+        sampler["cfg"] = request.config.negpip.effective_cfg(sampler.get("cfg"))
+        if request.config.negpip.is_turbo:
+            for target in detailer.values():
+                if isinstance(target, dict) and "cfg" in target:
+                    target["cfg"] = 1.0
         preview_callback = (
             self.add_preview
             if request.config.preview.intermediate_images

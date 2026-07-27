@@ -399,7 +399,10 @@ def _aio_first_pass_cache_key(
         "width": int(width),
         "height": int(height),
     }
-    negpip_signature = _aio_negpip_cache_signature(settings.get("negpip"))
+    negpip_signature = _aio_negpip_cache_signature(
+        settings.get("negpip"),
+        negative_prompt=str(negative_prompt or ""),
+    )
     if negpip_signature is not None:
         payload["negpip"] = negpip_signature
     return _stable_change_key(payload)
