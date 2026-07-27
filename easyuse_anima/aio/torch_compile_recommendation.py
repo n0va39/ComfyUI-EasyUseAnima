@@ -86,10 +86,10 @@ def classify_torch_compile_workload(
     if not stage_contract_known:
         reasons.append("stage_shape_contract_unknown")
 
-    if not resolution_known or not batch_known or not stage_contract_known:
-        shape_class = "unknown"
-    elif active_shape_stages:
+    if active_shape_stages:
         shape_class = "variable_shapes"
+    elif not resolution_known or not batch_known or not stage_contract_known:
+        shape_class = "unknown"
     else:
         shape_class = "fixed_shapes"
 

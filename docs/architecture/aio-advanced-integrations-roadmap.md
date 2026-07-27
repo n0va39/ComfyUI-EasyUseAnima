@@ -335,7 +335,8 @@ variable_shapes / unknown:
 Highres, Detailer와 USDU는 `variable_shapes`다. ResShift-only upscale는 sampling
 MODEL을 사용하지 않으므로 그 자체로 shape variation을 만들지 않는다. 해상도,
 batch, stage enable contract 또는 upscale backend가 불확실하면 `unknown`으로
-닫는다.
+닫는다. 단, Highres/Detailer/USDU 중 하나가 명시적으로 활성화되어 shape variation이
+이미 확정된 경우에는 누락된 base resolution이나 batch보다 그 신호가 우선한다.
 
 VRAM tier는 `<8192 MiB=low`, `8192..15359 MiB=medium`, `>=15360 MiB=high`,
 그 외는 `unknown`이다. low/unknown은 공격적인 mode나 dynamic-VRAM override를
