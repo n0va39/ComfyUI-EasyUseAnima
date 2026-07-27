@@ -61,6 +61,9 @@ from .api_contract import (
     json_uuid_string,
     parse_json_object,
 )
+from .easyuse_anima.aio.torch_compile_diagnostics import (
+    collect_torch_compile_diagnostics as _collect_torch_compile_diagnostics,
+)
 from .easyuse_anima.profiles import aio as _aio_profiles
 from .easyuse_anima.profiles import contract as _profile_contract
 from .easyuse_anima.profiles import lora as _lora_profiles
@@ -605,6 +608,14 @@ if web is not None:
         return web.json_response({"status": "ok", "text": translated})
 
     @_request_correlated
+    async def aio_torch_compile_recommend_handler(request):
+        try:
+            await parse_json_object(request)
+        except ApiContractError as exc:
+            return _contract_error_response(exc)
+        return web.json_response(_collect_torch_compile_diagnostics())
+
+    @_request_correlated
     async def lora_preview_handler(request):
         preview_path = await _run_file_io(
             _resolve_lora_preview_path,
@@ -831,6 +842,11 @@ if web is not None:
         ("get", "/easyuse_anima/autocomplete", autocomplete_handler),
         ("post", "/easyuse_anima/classify_prompt", classify_prompt_handler),
         ("post", "/easyuse_anima/translate_prompt", translate_prompt_handler),
+        (
+            "post",
+            "/easyuse_anima/aio/torch-compile/recommend",
+            aio_torch_compile_recommend_handler,
+        ),
         ("get", "/easyuse_anima/lora_preview", lora_preview_handler),
         ("get", "/easyuse_anima/loras", loras_handler),
         ("get", "/easyuse_anima/lora_profiles", lora_profiles_handler),
