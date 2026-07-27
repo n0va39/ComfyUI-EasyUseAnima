@@ -242,6 +242,13 @@ DAVE first-pass-only
 - Safe PAG, FP16 accumulation, SageAttention, Torch Compile 각각의 stage 적용 가능성을 결정한다.
 - run-global torch setting과 stage-local MODEL wrapper를 구분한다.
 - 지원 근거가 없는 patch에 generic scope UI를 자동 추가하지 않는다.
+- 결정:
+  - DAVE만 현재 네 sampling stage scope를 지원한다.
+  - Safe PAG는 stage-local 후보지만 temporary shared-module mutation 검증을 #440으로 분리한다.
+  - SageAttention은 clone-local 후보지만 experimental/`allow_compile` 검증을 #441로 분리한다.
+  - FP16 accumulation과 Torch Compile은 현재 upstream의 process-global/shared-registry 계약 때문에
+    독립 stage scope를 지원하지 않는다.
+  - #440/#441은 현재 `#409 -> #410 -> #411` queue를 선행하지 않는다.
 
 ## 6. #410 실행 manifest
 

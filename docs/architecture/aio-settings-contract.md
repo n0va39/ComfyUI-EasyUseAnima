@@ -50,8 +50,22 @@ execution은 기존 코드다.
 DAVE의 `stage_scope` stage id는 `first_pass`, `highres`, `detailer`, `upscale`로 고정한다. fresh v2 default는
 first pass만 true다. `upscale`은 sampling MODEL을 사용하는 USDU 계약이며 ResShift, postprocess, save는 이
 scope에 포함하지 않는다. patch-order revision 1은 KJ Torch Compile과 DAVE가 함께 선택된 stage에서
-`kj.torch_compile → dave` precedence edge만 승인한다. Safe PAG와 다른 KJ patch의 stage 지원/전체 순서는
-AIO-SCOPE-04 전까지 확장하지 않는다.
+`kj.torch_compile → dave` precedence edge만 승인한다.
+
+AIO-SCOPE-04 audit는 Anima Safe PAG `905b0107`과 KJNodes `e27a505b`의 public source,
+그리고 current ComfyUI `ModelPatcher.clone()`의 `model_options` deep-copy 계약을 기준으로 했다.
+generic scope UI는 승인하지 않고 patch별 owner를 다음처럼 고정했다.
+
+| patch | stage-scope 결정 | 근거와 후속 |
+| --- | --- | --- |
+| DAVE | 지원 | 네 sampling stage를 현재 schema/runtime/UI가 소유한다. |
+| Safe PAG | 후속 검증 필요 | MODEL clone과 sampler callback을 사용하지만 shared attention module을 일시적으로 바꾸므로 precedence/cleanup/live 증명을 [#440](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/440)에서 분리한다. |
+| KJ FP16 accumulation | stage scope 미지원 | pre-run/cleanup callback이 process-global torch flag를 바꾸므로 run-global 설정으로 유지한다. |
+| KJ SageAttention | 후속 검증 필요 | clone-local `model_options` override이지만 upstream experimental 계약과 `allow_compile`을 [#441](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/441)에서 검증한다. |
+| KJ Torch Compile | stage scope 미지원 | compiled module registry가 shared BaseModel을 key로 쓰고 Dynamo config도 process-global이므로 현재는 run-global 설정으로 유지한다. #410은 진단/추천만 소유하며 generic scope를 추가하지 않는다. |
+
+Safe PAG와 KJ 설정에 저장된 unknown `stage_scope`는 보존할 수 있지만 현재 patch selection을 부분 변경하지
+않는다. 지원되지 않은 field 때문에 기존 all-stage 실행 의미가 조용히 달라지지 않는 것이 rollback 계약이다.
 
 ## Python typed config 경계
 

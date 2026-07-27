@@ -708,9 +708,34 @@ assertJsonEqual(
     patch_order_revision: 1,
     precedence_edges: [["kj.torch_compile", "dave"]],
     dave_fresh_default: "first-pass-only",
-    execution_cutover: "deferred-to-AIO-SCOPE-02/03",
+    execution_cutover: "complete-through-AIO-SCOPE-03",
+    stage_scope_policy: {
+      generic_scope_ui: false,
+      owners: {
+        dave: {
+          decision: "supported",
+          stages: ["first_pass", "highres", "detailer", "upscale"],
+        },
+        safe_pag: {
+          decision: "follow-up-required",
+          reason: "clone-local-wrapper-with-temporary-shared-module-mutation",
+        },
+        "kj.fp16_accumulation": {
+          decision: "run-global-not-stage-scoped",
+          reason: "process-global-torch-setting-callback",
+        },
+        "kj.sage_attention": {
+          decision: "follow-up-required",
+          reason: "experimental-clone-local-override",
+        },
+        "kj.torch_compile": {
+          decision: "run-global-not-stage-scoped",
+          reason: "shared-base-model-compile-registry-and-dynamo-config",
+        },
+      },
+    },
   },
-  "The v2 manifest must freeze stage ids, precedence revision, and deferred cutover",
+  "The v2 manifest must freeze stage ids, precedence revision, cutover, and scope owners",
 );
 
 console.log("AiO settings core smoke passed.");
