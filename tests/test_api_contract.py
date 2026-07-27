@@ -461,6 +461,85 @@ class ApiWildcardRouteTests(unittest.TestCase):
         wildcards_payload.assert_called_once_with()
 
 
+class ApiLongTextSettingsRouteTests(unittest.TestCase):
+    def test_route_handlers_are_owned_by_the_canonical_factory(self):
+        api, routes = load_api_routes()
+        cases = (
+            (
+                "get_long_text_settings_handler",
+                "/easyuse_anima/long_text_settings",
+            ),
+            (
+                "save_long_text_settings_handler",
+                "/easyuse_anima/long_text_settings/save",
+            ),
+        )
+
+        for name, path in cases:
+            with self.subTest(path=path):
+                handler = routes.handlers[path]
+                self.assertIs(getattr(api, name), handler)
+                self.assertEqual(handler.__name__, name)
+                self.assertTrue(
+                    handler.__module__.endswith(
+                        ".easyuse_anima.api.routes.long_text_settings"
+                    )
+                )
+                self.assertTrue(handler._easyuse_anima_request_correlation)
+
+    def test_get_route_keeps_dynamic_payload_seam(self):
+        api, routes = load_api_routes()
+        payload = {
+            "status": "ok",
+            "values": {"naia.pre_prompt": "quality"},
+            "settings": {"naia.pre_prompt": "quality"},
+        }
+
+        with patch.object(
+            api,
+            "_get_long_text_settings_payload_sync",
+            return_value=payload,
+        ) as get_payload:
+            response = asyncio.run(
+                routes.handlers["/easyuse_anima/long_text_settings"](
+                    JsonRequest()
+                )
+            )
+
+        self.assertEqual(response["status"], 200)
+        self.assertEqual(response["payload"], payload)
+        get_payload.assert_called_once_with()
+
+    def test_save_route_preserves_wrapped_and_legacy_payloads(self):
+        api, routes = load_api_routes()
+        handler = routes.handlers["/easyuse_anima/long_text_settings/save"]
+        values = {"naia.pre_prompt": "quality"}
+        cases = (
+            ({"values": values}, values),
+            (values, values),
+        )
+
+        for request_payload, expected_values in cases:
+            with self.subTest(request_payload=request_payload):
+                payload = {
+                    "status": "ok",
+                    "values": expected_values,
+                    "settings": expected_values,
+                }
+                with patch.object(
+                    api,
+                    "_save_long_text_settings_payload_sync",
+                    return_value=payload,
+                ) as save_payload:
+                    response = asyncio.run(
+                        handler(JsonRequest(request_payload))
+                    )
+
+                self.assertEqual(response["status"], 200)
+                self.assertEqual(response["payload"], payload)
+                save_payload.assert_called_once_with(expected_values)
+
+
 class ApiAutocompleteRouteTests(unittest.TestCase):
     def test_read_only_route_handlers_are_owned_by_the_canonical_factory(self):
         api, routes = load_api_routes()
