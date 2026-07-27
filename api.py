@@ -75,6 +75,9 @@ from .easyuse_anima.api.routes.long_text_settings import (
 from .easyuse_anima.api.routes.lora_catalog import (
     build_loras_handler as _build_loras_handler,
 )
+from .easyuse_anima.api.routes.lora_profile_fix import (
+    build_lora_profile_fix_handler as _build_lora_profile_fix_handler,
+)
 from .easyuse_anima.api.routes.lora_preview import (
     build_lora_preview_handler as _build_lora_preview_handler,
 )
@@ -738,16 +741,21 @@ if web is not None:
         )
     )
 
-    @_request_correlated
-    async def fix_lora_profile_handler(request):
-        try:
-            data = await parse_json_object(request)
-            if "profile_data" in data:
-                json_object(data, "profile_data")
-        except ApiContractError as exc:
-            return _contract_error_response(exc)
-        payload = await _run_file_io(_fix_lora_profile_payload, data)
-        return web.json_response({"status": "ok", "profile": payload})
+    fix_lora_profile_handler = _request_correlated(
+        _build_lora_profile_fix_handler(
+            parse_json_object=parse_json_object,
+            json_object=json_object,
+            contract_error_type=ApiContractError,
+            contract_error_response=lambda exc: _contract_error_response(exc),
+            run_file_io=lambda function, *args, **kwargs: _run_file_io(
+                function,
+                *args,
+                **kwargs,
+            ),
+            fix_lora_profile=lambda data: _fix_lora_profile_payload(data),
+            json_response=lambda payload: web.json_response(payload),
+        )
+    )
 
     _ROUTE_DEFINITIONS = (
         ("get", "/easyuse_anima/settings", get_settings_handler),

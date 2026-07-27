@@ -958,6 +958,103 @@ class ApiAioProfileMutationRouteTests(unittest.TestCase):
                 self.assertNotIn(forbidden, serialized)
 
 
+class ApiLoraProfileFixRouteTests(unittest.TestCase):
+    def test_route_handler_is_owned_by_the_canonical_factory(self):
+        api, routes = load_api_routes()
+        handler = routes.handlers["/easyuse_anima/lora_profiles/fix"]
+
+        self.assertIs(api.fix_lora_profile_handler, handler)
+        self.assertEqual(handler.__name__, "fix_lora_profile_handler")
+        self.assertTrue(
+            handler.__module__.endswith(
+                ".easyuse_anima.api.routes.lora_profile_fix"
+            )
+        )
+        self.assertTrue(handler._easyuse_anima_request_correlation)
+
+    def test_route_keeps_dynamic_operation_seam_original_data_and_success_shape(self):
+        api, routes = load_api_routes()
+        cases = (
+            {"profile_count": 1, "profile_index": 1},
+            {
+                "profile_count": 1,
+                "profile_index": 1,
+                "profile_data": {"1": {"loras": []}},
+                "future": {"kept": True},
+            },
+        )
+
+        for data in cases:
+            changed = {**data, "fixed": [], "unresolved": []}
+            before = json.dumps(data, sort_keys=True)
+            with self.subTest(profile_data="profile_data" in data), patch.object(
+                api,
+                "_fix_lora_profile_payload",
+                return_value=changed,
+            ) as operation:
+                response = asyncio.run(
+                    routes.handlers["/easyuse_anima/lora_profiles/fix"](
+                        JsonRequest(data)
+                    )
+                )
+
+            self.assertEqual(response["status"], 200)
+            self.assertEqual(
+                response["payload"],
+                {"status": "ok", "profile": changed},
+            )
+            operation.assert_called_once_with(data)
+            self.assertIs(operation.call_args.args[0], data)
+            self.assertEqual(json.dumps(data, sort_keys=True), before)
+
+    def test_invalid_profile_data_is_rejected_before_file_io(self):
+        api, routes = load_api_routes()
+        with (
+            patch.object(api, "_fix_lora_profile_payload") as operation,
+            patch.object(api, "_run_file_io") as file_io,
+        ):
+            response = asyncio.run(
+                routes.handlers["/easyuse_anima/lora_profiles/fix"](
+                    JsonRequest({"profile_data": []})
+                )
+            )
+
+        self.assertEqual(response["status"], 422)
+        self.assertEqual(response["payload"]["code"], "invalid_request")
+        self.assertEqual(response["payload"]["details"], {"field": "profile_data"})
+        operation.assert_not_called()
+        file_io.assert_not_called()
+
+    def test_domain_failure_stays_on_correlated_safe_500_boundary(self):
+        api, routes = load_api_routes()
+        secret = "C:\\Users\\alice\\profile.json API_TOKEN=top-secret"
+        with (
+            patch.object(
+                api,
+                "_fix_lora_profile_payload",
+                side_effect=ValueError(secret),
+            ),
+            patch.object(api._LOGGER, "exception") as log_exception,
+        ):
+            response = asyncio.run(
+                routes.handlers["/easyuse_anima/lora_profiles/fix"](
+                    JsonRequest({"profile_data": {}})
+                )
+            )
+
+        self.assertEqual(response["status"], 500)
+        self.assertEqual(response["payload"]["code"], "internal_error")
+        self.assertEqual(
+            response["payload"]["request_id"],
+            response.headers["X-Request-ID"],
+        )
+        uuid.UUID(response["payload"]["request_id"])
+        serialized = json.dumps(response["payload"])
+        for forbidden in ("alice", "profile.json", "API_TOKEN", "top-secret"):
+            self.assertNotIn(forbidden, serialized)
+        log_exception.assert_called_once()
+
+
 class ApiWildcardRouteTests(unittest.TestCase):
     def test_route_handler_is_owned_by_the_canonical_factory(self):
         api, routes = load_api_routes()
