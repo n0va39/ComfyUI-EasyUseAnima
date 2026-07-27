@@ -13,6 +13,7 @@ from easyuse_anima.nodes import wildcard_nodes
 from easyuse_anima.prompt import advanced as prompt_advanced
 from easyuse_anima.seed import compatibility as seed_compatibility
 from easyuse_anima.wildcard import expansion as wildcard_expansion
+from easyuse_anima.wildcard import library as wildcard_library
 from easyuse_anima.wildcard import mode as wildcard_mode
 from easyuse_anima.wildcard import models as wildcard_models
 from easyuse_anima.wildcard import seed as wildcard_seed
@@ -39,6 +40,19 @@ from wildcard_engine import (
 
 
 class WildcardEngineTests(unittest.TestCase):
+    def test_root_library_adapter_uses_canonical_lookup_core(self):
+        self.assertEqual(wildcard_library.__all__, ())
+        self.assertTrue(
+            issubclass(
+                wildcard_engine._WildcardLibrary,
+                wildcard_library._WildcardLibrary,
+            )
+        )
+        self.assertIs(
+            wildcard_engine._WildcardLibrary.options_for,
+            wildcard_library._WildcardLibrary.options_for,
+        )
+
     def test_root_expansion_state_surface_has_canonical_identity(self):
         public_names = (
             "COMMENT_RE",
@@ -294,6 +308,24 @@ class WildcardEngineTests(unittest.TestCase):
             result = expand_wildcards("__hair__", seed=0, roots=[root])
 
         self.assertEqual(result.text, "black hair")
+
+    def test_glob_wildcard_uses_sorted_library_lookup_and_records_pattern(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            animals = root / "animals"
+            animals.mkdir()
+            (animals / "dog.txt").write_text("dog\n", encoding="utf-8")
+            (animals / "cat.txt").write_text("cat\n", encoding="utf-8")
+
+            result = expand_wildcards(
+                "__animals/*__",
+                seed=0,
+                mode="순차",
+                roots=[root],
+            )
+
+        self.assertEqual(result.text, "cat")
+        self.assertEqual(result.used_keys, ("animals/*",))
 
     def test_multiselect_can_expand_wildcard_options(self):
         with tempfile.TemporaryDirectory() as temp:
