@@ -63,6 +63,9 @@ from .easyuse_anima.api.responses import (
     create_request_id,
     error_payload,
 )
+from .easyuse_anima.api.routes.translation import (
+    build_translate_prompt_handler as _build_translate_prompt_handler,
+)
 from .easyuse_anima.aio.torch_compile_diagnostics import (
     collect_torch_compile_diagnostics as _collect_torch_compile_diagnostics,
 )
@@ -599,18 +602,18 @@ if web is not None:
             await _run_file_io(_classify_prompt_payload_sync, text, limit)
         )
 
-    @_request_correlated
-    async def translate_prompt_handler(request):
-        try:
-            data = await parse_json_object(request)
-            text = json_string(data, "text")
-        except ApiContractError as exc:
-            return _contract_error_response(exc)
-        try:
-            translated = await _translate_prompt_for_route(text)
-        except PromptTranslationError as exc:
-            return _prompt_translation_error_response(exc)
-        return web.json_response({"status": "ok", "text": translated})
+    translate_prompt_handler = _request_correlated(
+        _build_translate_prompt_handler(
+            parse_json_object=lambda request: parse_json_object(request),
+            json_string=lambda data, field: json_string(data, field),
+            contract_error_type=ApiContractError,
+            contract_error_response=lambda exc: _contract_error_response(exc),
+            translate_prompt=lambda text: _translate_prompt_for_route(text),
+            translation_error_type=PromptTranslationError,
+            translation_error_response=lambda exc: _prompt_translation_error_response(exc),
+            json_response=lambda payload: web.json_response(payload),
+        )
+    )
 
     @_request_correlated
     async def aio_torch_compile_recommend_handler(request):
