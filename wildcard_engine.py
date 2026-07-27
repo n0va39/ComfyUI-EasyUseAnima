@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from collections import OrderedDict
 import fnmatch
-import re
 import threading
 from dataclasses import dataclass
 from pathlib import Path
@@ -140,19 +139,23 @@ try:
     from .easyuse_anima.wildcard.expansion import (
         COMMENT_RE,
         COUNT_SPEC_RE as COUNT_SPEC_RE,
-        DYNAMIC_RE,
-        WILDCARD_FULL_RE,
-        WILDCARD_QUANTIFIER_RE,
-        WILDCARD_RE,
+        DYNAMIC_RE as DYNAMIC_RE,
+        WILDCARD_FULL_RE as WILDCARD_FULL_RE,
+        WILDCARD_QUANTIFIER_RE as WILDCARD_QUANTIFIER_RE,
+        WILDCARD_RE as WILDCARD_RE,
         _bounded_output_prefix,
+        _expand_multiselect_options as _expand_multiselect_options,
         _expansion_state_signature,
         _ExpansionSegment as _ExpansionSegment,
         _ExpansionState,
         _ExpansionText,
-        _parse_count_spec,
-        _parse_dynamic_options,
-        _Replacement,
-        _split_unescaped,
+        _parse_count_spec as _parse_count_spec,
+        _parse_dynamic_options as _parse_dynamic_options,
+        _replace_dynamic,
+        _replace_file_wildcards,
+        _Replacement as _Replacement,
+        _replace_quantified_wildcards,
+        _split_unescaped as _split_unescaped,
         _utf8_length,
         _utf8_width as _utf8_width,
         has_wildcard_syntax,
@@ -161,19 +164,23 @@ except ImportError:
     from easyuse_anima.wildcard.expansion import (
         COMMENT_RE,
         COUNT_SPEC_RE as COUNT_SPEC_RE,
-        DYNAMIC_RE,
-        WILDCARD_FULL_RE,
-        WILDCARD_QUANTIFIER_RE,
-        WILDCARD_RE,
+        DYNAMIC_RE as DYNAMIC_RE,
+        WILDCARD_FULL_RE as WILDCARD_FULL_RE,
+        WILDCARD_QUANTIFIER_RE as WILDCARD_QUANTIFIER_RE,
+        WILDCARD_RE as WILDCARD_RE,
         _bounded_output_prefix,
+        _expand_multiselect_options as _expand_multiselect_options,
         _expansion_state_signature,
         _ExpansionSegment as _ExpansionSegment,
         _ExpansionState,
         _ExpansionText,
-        _parse_count_spec,
-        _parse_dynamic_options,
-        _Replacement,
-        _split_unescaped,
+        _parse_count_spec as _parse_count_spec,
+        _parse_dynamic_options as _parse_dynamic_options,
+        _replace_dynamic,
+        _replace_file_wildcards,
+        _Replacement as _Replacement,
+        _replace_quantified_wildcards,
+        _split_unescaped as _split_unescaped,
         _utf8_length,
         _utf8_width as _utf8_width,
         has_wildcard_syntax,
@@ -295,109 +302,6 @@ class _WildcardLibrary:
             ):
                 options.extend(self.mapping[key])
         return options
-
-
-def _expand_multiselect_options(
-    options: list[WildcardOption],
-    library: _WildcardLibrary,
-) -> tuple[Sequence[WildcardOption], str | None]:
-    if len(options) != 1:
-        return options, None
-    match = WILDCARD_FULL_RE.match(options[0].text.strip())
-    if not match:
-        return options, None
-    raw_key = match.group("keyword")
-    return (
-        library.options_for(raw_key),
-        _wildcard_sources._normalize_wildcard_key(raw_key),
-    )
-
-
-def _replace_dynamic(
-    current: _ExpansionText,
-    state: _ExpansionState,
-    selector: _Selector,
-    library: _WildcardLibrary,
-) -> _ExpansionText:
-    def replace(match: re.Match, key_stack: tuple[str, ...]) -> _Replacement | None:
-        body = match.group(1)
-        raw_options = _split_unescaped(body, "|")
-        if not raw_options:
-            return None
-        first_parts = raw_options[0].split("$$")
-        if len(first_parts) > 1:
-            count = _parse_count_spec(first_parts[0], selector)
-            if count is None:
-                return None
-            separator = ", "
-            if len(first_parts) == 2:
-                first_candidate = first_parts[1]
-            else:
-                separator = first_parts[1]
-                first_candidate = "$$".join(first_parts[2:])
-            candidate_text = "|".join([first_candidate, *raw_options[1:]])
-            options, expanded_key = _expand_multiselect_options(
-                _parse_dynamic_options(candidate_text),
-                library,
-            )
-            selected = selector.choose_many(options, count)
-            if not selected:
-                return None
-            candidate_stack = key_stack + ((expanded_key,) if expanded_key is not None else ())
-            return state.candidate(
-                (option.text for option in selected),
-                separator,
-                candidate_stack,
-            )
-
-        options = _parse_dynamic_options(body)
-        selected = selector.choose_one(options)
-        if selected is None:
-            return None
-        return state.candidate((selected.text,), "", key_stack)
-
-    return state.replace_matches(current, DYNAMIC_RE, replace)
-
-
-def _replace_quantified_wildcards(
-    current: _ExpansionText,
-    state: _ExpansionState,
-    selector: _Selector,
-    library: _WildcardLibrary,
-) -> _ExpansionText:
-    def replace(match: re.Match, key_stack: tuple[str, ...]) -> _Replacement | None:
-        count = max(0, int(match.group("quantifier")))
-        raw_key = match.group("keyword")
-        options = library.options_for(raw_key)
-        selected = selector.choose_many(options, count)
-        key = _wildcard_sources._normalize_wildcard_key(raw_key)
-        if not selected or key is None:
-            return None
-        return state.candidate(
-            (option.text for option in selected),
-            ", ",
-            key_stack + (key,),
-        )
-
-    return state.replace_matches(current, WILDCARD_QUANTIFIER_RE, replace)
-
-
-def _replace_file_wildcards(
-    current: _ExpansionText,
-    state: _ExpansionState,
-    selector: _Selector,
-    library: _WildcardLibrary,
-) -> _ExpansionText:
-    def replace(match: re.Match, key_stack: tuple[str, ...]) -> _Replacement | None:
-        raw_key = match.group("keyword")
-        options = library.options_for(raw_key)
-        selected = selector.choose_one(options)
-        key = _wildcard_sources._normalize_wildcard_key(raw_key)
-        if selected is None or key is None:
-            return None
-        return state.candidate((selected.text,), "", key_stack + (key,))
-
-    return state.replace_matches(current, WILDCARD_RE, replace)
 
 
 @dataclass
