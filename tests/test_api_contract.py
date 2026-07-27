@@ -1205,6 +1205,74 @@ class ApiWildcardRouteTests(unittest.TestCase):
 
 
 class ApiSettingsRouteTests(unittest.TestCase):
+    def test_payload_helpers_are_owned_by_the_canonical_factory(self):
+        api, _routes = load_api_routes()
+        cases = (
+            ("_get_settings_payload_sync", 0),
+            ("_save_setting_payload_sync", 2),
+        )
+
+        for name, argument_count in cases:
+            with self.subTest(name=name):
+                helper = getattr(api, name)
+                self.assertEqual(helper.__name__, name)
+                self.assertTrue(
+                    helper.__module__.endswith(
+                        ".easyuse_anima.api.routes.settings"
+                    )
+                )
+                self.assertEqual(helper.__code__.co_argcount, argument_count)
+
+        owner = sys.modules[api._get_settings_payload_sync.__module__]
+        self.assertEqual(owner.__all__, ("build_settings_handlers",))
+
+    def test_payload_helpers_keep_dynamic_dependencies_and_merge_order(self):
+        api, _routes = load_api_routes()
+        get_payload = {"future": {"kept": True}}
+        with patch.object(api, "public_settings", return_value=get_payload) as read:
+            result = api._get_settings_payload_sync()
+
+        self.assertIs(result, get_payload)
+        read.assert_called_once_with()
+
+        calls = []
+        saved_settings = {
+            "status": "future-status",
+            "autocomplete.limit": 37,
+        }
+
+        def save_setting(key, value):
+            calls.append(("save", key, value))
+
+        def public_settings():
+            calls.append(("public",))
+            return saved_settings
+
+        with (
+            patch.object(api, "save_setting", side_effect=save_setting),
+            patch.object(api, "public_settings", side_effect=public_settings),
+        ):
+            result = api._save_setting_payload_sync(
+                "future.setting",
+                {"raw": [None, True]},
+            )
+
+        self.assertEqual(
+            calls,
+            [
+                ("save", "future.setting", {"raw": [None, True]}),
+                ("public",),
+            ],
+        )
+        self.assertEqual(
+            result,
+            {
+                "status": "future-status",
+                "autocomplete.limit": 37,
+            },
+        )
+        self.assertIsNot(result, saved_settings)
+
     def test_route_handlers_are_owned_by_the_canonical_factory(self):
         api, routes = load_api_routes()
         cases = (

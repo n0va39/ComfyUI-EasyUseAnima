@@ -1,6 +1,19 @@
 from __future__ import annotations
 
 
+def build_settings_payloads(*, public_settings, save_setting):
+    """Build settings payload helpers with runtime-resolved dependencies."""
+
+    def _get_settings_payload_sync() -> dict:
+        return public_settings()
+
+    def _save_setting_payload_sync(key: str, value) -> dict:
+        save_setting(key, value)
+        return {"status": "ok", **public_settings()}
+
+    return _get_settings_payload_sync, _save_setting_payload_sync
+
+
 def build_settings_handlers(
     *,
     parse_json_object,
