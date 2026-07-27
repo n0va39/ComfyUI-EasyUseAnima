@@ -25,10 +25,11 @@ Comfy node mapping and invoke its public classmethod. It must not:
 - silently accept a changed required input, output order, execute signature, or
   malformed result.
 
-The test-local contract fixture only models inspection and adaptation of the
-public boundary. AIO-NEGPIP-01 adds no shipped helper and does not connect to AiO
-generation, settings, cache, metadata, conditioning, CFG, workflow
-serialization, UI, or public sockets.
+AIO-NEGPIP-02 promotes the validated fixture to a shipped adapter and connects
+only the explicit backend extension `negpip.mode=on`. An absent extension or
+`mode=off` performs no dependency lookup and preserves the previous model,
+clip, cache payload and stage metadata. The formal settings schema, defaults,
+profile surface and UI remain unchanged in this phase.
 
 ## Ownership and fail-closed decisions
 
@@ -45,10 +46,15 @@ serialization, UI, or public sockets.
   upstream once and passes the previously returned objects through unchanged;
   upstream remains responsible for avoiding duplicate wrapper installation.
 
-## Phase boundary
+## On-mode runtime boundary
 
-AIO-NEGPIP-02 will implement the validated adapter together with its actual
-LoRA-derived MODEL/CLIP lineage ownership, add On-mode settings/cache/metadata
-behavior, and run one real Anima + ComfyUI-ppm live smoke. Turbo prompt
-transformation, neutral conditioning, effective CFG 1 and UI remain later
-phases.
+- The public adapter is invoked exactly once after LoRA application.
+- Its MODEL becomes the clean base for the existing stage model resolver; its
+  CLIP encodes both positive and negative conditioning.
+- First-pass cache entries include the mode and contract revision only while On.
+- On stage metadata records the mode and contract revision. CFG and sampler
+  settings are not rewritten.
+- The returned MODEL is registered with the existing ephemeral model lifecycle.
+
+Turbo prompt transformation, neutral conditioning, effective CFG 1, formal
+settings/UI ownership and public workflow editing remain later phases.

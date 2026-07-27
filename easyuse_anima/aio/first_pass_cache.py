@@ -15,6 +15,7 @@ from .generation_migrations import (
     AIO_MODEL_PATCH_PRECEDENCE,
 )
 from .model_preparation import _aio_lora_stack_signature
+from .negpip import _aio_negpip_cache_signature
 
 AIO_FIRST_PASS_CACHE_MAX_ENTRIES = 2
 AIO_FIRST_PASS_CACHE_MAX_BYTES = 512 * 1024 * 1024
@@ -362,7 +363,7 @@ def _aio_first_pass_cache_key(
 ) -> str:
     resource_info = context.get("resource_info", {})
     lora_signature = _aio_lora_stack_signature(lora_stack)
-    return _stable_change_key({
+    payload = {
         "schema": "easyuse_anima_aio_first_pass_cache",
         "version": 3,
         "scope": str(cache_scope or ""),
@@ -397,7 +398,11 @@ def _aio_first_pass_cache_key(
         "use_negative_anima_mod_guidance": bool(use_negative_anima_mod_guidance),
         "width": int(width),
         "height": int(height),
-    })
+    }
+    negpip_signature = _aio_negpip_cache_signature(settings.get("negpip"))
+    if negpip_signature is not None:
+        payload["negpip"] = negpip_signature
+    return _stable_change_key(payload)
 
 
 def _get_aio_first_pass_cache(cache_key: str):

@@ -4600,6 +4600,24 @@
       },
       {
         "alias": null,
+        "bound_name": "_aio_negpip_cache_signature",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".negpip:_aio_negpip_cache_signature",
+        "kind": "static_from",
+        "line": 18,
+        "name": "_aio_negpip_cache_signature",
+        "optional": false,
+        "requested": ".negpip",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/first_pass_cache.py",
+        "target": "easyuse_anima/aio/negpip.py"
+      },
+      {
+        "alias": null,
         "bound_name": "annotations",
         "branch_context": [],
         "classification": "external",
@@ -9975,6 +9993,60 @@
       },
       {
         "alias": null,
+        "bound_name": "_aio_negpip_metadata",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".negpip:_aio_negpip_metadata",
+        "kind": "static_from",
+        "line": 77,
+        "name": "_aio_negpip_metadata",
+        "optional": false,
+        "requested": ".negpip",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/legacy_generation.py",
+        "target": "easyuse_anima/aio/negpip.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "_aio_negpip_mode",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".negpip:_aio_negpip_mode",
+        "kind": "static_from",
+        "line": 77,
+        "name": "_aio_negpip_mode",
+        "optional": false,
+        "requested": ".negpip",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/legacy_generation.py",
+        "target": "easyuse_anima/aio/negpip.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "apply_aio_negpip",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".negpip:apply_aio_negpip",
+        "kind": "static_from",
+        "line": 77,
+        "name": "apply_aio_negpip",
+        "optional": false,
+        "requested": ".negpip",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/legacy_generation.py",
+        "target": "easyuse_anima/aio/negpip.py"
+      },
+      {
+        "alias": null,
         "bound_name": "_aio_save_filename_prefix",
         "branch_context": [],
         "classification": "internal",
@@ -9982,7 +10054,7 @@
         "conditional": false,
         "imported": ".output:_aio_save_filename_prefix",
         "kind": "static_from",
-        "line": 77,
+        "line": 82,
         "name": "_aio_save_filename_prefix",
         "optional": false,
         "requested": ".output",
@@ -10000,7 +10072,7 @@
         "conditional": false,
         "imported": ".output:_save_image_with_comfy",
         "kind": "static_from",
-        "line": 77,
+        "line": 82,
         "name": "_save_image_with_comfy",
         "optional": false,
         "requested": ".output",
@@ -10018,7 +10090,7 @@
         "conditional": false,
         "imported": ".output:_save_image_with_image_saver",
         "kind": "static_from",
-        "line": 77,
+        "line": 82,
         "name": "_save_image_with_image_saver",
         "optional": false,
         "requested": ".output",
@@ -10036,7 +10108,7 @@
         "conditional": false,
         "imported": ".postprocess:_resize_image_to_size_if_needed",
         "kind": "static_from",
-        "line": 82,
+        "line": 87,
         "name": "_resize_image_to_size_if_needed",
         "optional": false,
         "requested": ".postprocess",
@@ -10054,7 +10126,7 @@
         "conditional": false,
         "imported": ".postprocess:_run_aio_postprocess_stage",
         "kind": "static_from",
-        "line": 82,
+        "line": 87,
         "name": "_run_aio_postprocess_stage",
         "optional": false,
         "requested": ".postprocess",
@@ -10072,7 +10144,7 @@
         "conditional": false,
         "imported": ".preview:_save_aio_temp_preview_image",
         "kind": "static_from",
-        "line": 86,
+        "line": 91,
         "name": "_save_aio_temp_preview_image",
         "optional": false,
         "requested": ".preview",
@@ -10090,7 +10162,7 @@
         "conditional": false,
         "imported": ".preview:_send_aio_preview_event",
         "kind": "static_from",
-        "line": 86,
+        "line": 91,
         "name": "_send_aio_preview_event",
         "optional": false,
         "requested": ".preview",
@@ -10108,7 +10180,7 @@
         "conditional": false,
         "imported": ".preview:_tag_aio_preview_images",
         "kind": "static_from",
-        "line": 86,
+        "line": 91,
         "name": "_tag_aio_preview_images",
         "optional": false,
         "requested": ".preview",
@@ -10126,7 +10198,7 @@
         "conditional": false,
         "imported": ".resources:_load_aio_resources_from_input_context",
         "kind": "static_from",
-        "line": 91,
+        "line": 96,
         "name": "_load_aio_resources_from_input_context",
         "optional": false,
         "requested": ".resources",
@@ -10144,7 +10216,7 @@
         "conditional": false,
         "imported": ".resources:_load_aio_sam3_context",
         "kind": "static_from",
-        "line": 91,
+        "line": 96,
         "name": "_load_aio_sam3_context",
         "optional": false,
         "requested": ".resources",
@@ -10162,7 +10234,7 @@
         "conditional": false,
         "imported": ".resources:_load_upscale_model_with_comfy",
         "kind": "static_from",
-        "line": 91,
+        "line": 96,
         "name": "_load_upscale_model_with_comfy",
         "optional": false,
         "requested": ".resources",
@@ -10180,7 +10252,7 @@
         "conditional": false,
         "imported": ".sampling:_aio_highres_effective_backend",
         "kind": "static_from",
-        "line": 96,
+        "line": 101,
         "name": "_aio_highres_effective_backend",
         "optional": false,
         "requested": ".sampling",
@@ -10198,7 +10270,7 @@
         "conditional": false,
         "imported": ".sampling:_aio_stage_sampler_settings",
         "kind": "static_from",
-        "line": 96,
+        "line": 101,
         "name": "_aio_stage_sampler_settings",
         "optional": false,
         "requested": ".sampling",
@@ -10216,7 +10288,7 @@
         "conditional": false,
         "imported": ".sampling:_decode_latent_with_comfy",
         "kind": "static_from",
-        "line": 96,
+        "line": 101,
         "name": "_decode_latent_with_comfy",
         "optional": false,
         "requested": ".sampling",
@@ -10234,7 +10306,7 @@
         "conditional": false,
         "imported": ".sampling:_encode_image_with_comfy_vae",
         "kind": "static_from",
-        "line": 96,
+        "line": 101,
         "name": "_encode_image_with_comfy_vae",
         "optional": false,
         "requested": ".sampling",
@@ -10252,7 +10324,7 @@
         "conditional": false,
         "imported": ".sampling:_generate_empty_latent_with_comfy",
         "kind": "static_from",
-        "line": 96,
+        "line": 101,
         "name": "_generate_empty_latent_with_comfy",
         "optional": false,
         "requested": ".sampling",
@@ -10270,7 +10342,7 @@
         "conditional": false,
         "imported": ".sampling:_resolve_aio_runtime_seed",
         "kind": "static_from",
-        "line": 96,
+        "line": 101,
         "name": "_resolve_aio_runtime_seed",
         "optional": false,
         "requested": ".sampling",
@@ -10288,7 +10360,7 @@
         "conditional": false,
         "imported": ".sampling:_sample_latent_with_aio_backend",
         "kind": "static_from",
-        "line": 96,
+        "line": 101,
         "name": "_sample_latent_with_aio_backend",
         "optional": false,
         "requested": ".sampling",
@@ -10306,7 +10378,7 @@
         "conditional": false,
         "imported": ".usdu:_aio_usdu_tile_plan",
         "kind": "static_from",
-        "line": 105,
+        "line": 110,
         "name": "_aio_usdu_tile_plan",
         "optional": false,
         "requested": ".usdu",
@@ -10605,6 +10677,127 @@
         "role": "optional_dependency",
         "scope": "_cleanup_aio_ephemeral_model",
         "source": "easyuse_anima/aio/model_preparation.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "annotations",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "__future__:annotations",
+        "kind": "static_from",
+        "line": 3,
+        "name": "annotations",
+        "optional": false,
+        "requested": "__future__",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/negpip.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "inspect",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "inspect",
+        "kind": "static_import",
+        "line": 5,
+        "name": null,
+        "optional": false,
+        "requested": "inspect",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/negpip.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "Callable",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "collections.abc:Callable",
+        "kind": "static_from",
+        "line": 6,
+        "name": "Callable",
+        "optional": false,
+        "requested": "collections.abc",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/negpip.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "Mapping",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "collections.abc:Mapping",
+        "kind": "static_from",
+        "line": 6,
+        "name": "Mapping",
+        "optional": false,
+        "requested": "collections.abc",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/negpip.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "Any",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "typing:Any",
+        "kind": "static_from",
+        "line": 7,
+        "name": "Any",
+        "optional": false,
+        "requested": "typing",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/negpip.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "_node_output_tuple",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": "..infrastructure.comfy.invocation:_node_output_tuple",
+        "kind": "static_from",
+        "line": 9,
+        "name": "_node_output_tuple",
+        "optional": false,
+        "requested": "..infrastructure.comfy.invocation",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/negpip.py",
+        "target": "easyuse_anima/infrastructure/comfy/invocation.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "resolve_comfy_host_helper",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": "..infrastructure.comfy.wiring:resolve_comfy_host_helper",
+        "kind": "static_from",
+        "line": 10,
+        "name": "resolve_comfy_host_helper",
+        "optional": false,
+        "requested": "..infrastructure.comfy.wiring",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/negpip.py",
+        "target": "easyuse_anima/infrastructure/comfy/wiring.py"
       },
       {
         "alias": null,
@@ -57589,6 +57782,10 @@
       },
       {
         "from": "easyuse_anima/aio/first_pass_cache.py",
+        "to": "easyuse_anima/aio/negpip.py"
+      },
+      {
+        "from": "easyuse_anima/aio/first_pass_cache.py",
         "to": "easyuse_anima/common/serialization.py"
       },
       {
@@ -57813,6 +58010,10 @@
       },
       {
         "from": "easyuse_anima/aio/legacy_generation.py",
+        "to": "easyuse_anima/aio/negpip.py"
+      },
+      {
+        "from": "easyuse_anima/aio/legacy_generation.py",
         "to": "easyuse_anima/aio/output.py"
       },
       {
@@ -57902,6 +58103,14 @@
       {
         "from": "easyuse_anima/aio/model_preparation.py",
         "to": "easyuse_anima/lora/metadata.py"
+      },
+      {
+        "from": "easyuse_anima/aio/negpip.py",
+        "to": "easyuse_anima/infrastructure/comfy/invocation.py"
+      },
+      {
+        "from": "easyuse_anima/aio/negpip.py",
+        "to": "easyuse_anima/infrastructure/comfy/wiring.py"
       },
       {
         "from": "easyuse_anima/aio/output.py",
@@ -59302,6 +59511,12 @@
       {
         "cyclic": false,
         "modules": [
+          "easyuse_anima/aio/negpip.py"
+        ]
+      },
+      {
+        "cyclic": false,
+        "modules": [
           "easyuse_anima/aio/output.py"
         ]
       },
@@ -59879,7 +60094,7 @@
     ]
   },
   "inventory": {
-    "module_count": 134,
+    "module_count": 135,
     "modules": [
       {
         "is_package": true,
@@ -60063,9 +60278,9 @@
       },
       {
         "is_package": false,
-        "loc": 477,
+        "loc": 482,
         "module": "easyuse_anima.aio.first_pass_cache",
-        "normalized_git_blob_sha1": "f59f28b337382e217639fe9144b40c51fcbb909c",
+        "normalized_git_blob_sha1": "0e48e070c228f298f298beaf03f1c854510e06c3",
         "path": "easyuse_anima/aio/first_pass_cache.py",
         "top_level": {
           "class_count": 2,
@@ -60303,9 +60518,9 @@
       },
       {
         "is_package": false,
-        "loc": 1054,
+        "loc": 1077,
         "module": "easyuse_anima.aio.legacy_generation",
-        "normalized_git_blob_sha1": "3ee84d4eed4333932f84a0f52dfa5a891e9f2003",
+        "normalized_git_blob_sha1": "685c0c81c7ff0bf170f7b8f7a94b5332d92d61d5",
         "path": "easyuse_anima/aio/legacy_generation.py",
         "top_level": {
           "class_count": 0,
@@ -60323,6 +60538,18 @@
           "class_count": 0,
           "function_count": 20,
           "global_count": 2
+        }
+      },
+      {
+        "is_package": false,
+        "loc": 234,
+        "module": "easyuse_anima.aio.negpip",
+        "normalized_git_blob_sha1": "a71bd949f56c541529daeab302bef1e5c62acedc",
+        "path": "easyuse_anima/aio/negpip.py",
+        "top_level": {
+          "class_count": 0,
+          "function_count": 12,
+          "global_count": 9
         }
       },
       {
@@ -74618,6 +74845,61 @@
         "line": 3,
         "optional": false,
         "role": "ordinary",
+        "source": "easyuse_anima/aio/negpip.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "inspect",
+        "kind": "static_import",
+        "line": 5,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/negpip.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "collections.abc:Callable",
+        "kind": "static_from",
+        "line": 6,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/negpip.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "collections.abc:Mapping",
+        "kind": "static_from",
+        "line": 6,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/negpip.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "typing:Any",
+        "kind": "static_from",
+        "line": 7,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/negpip.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "__future__:annotations",
+        "kind": "static_from",
+        "line": 3,
+        "optional": false,
+        "role": "ordinary",
         "source": "easyuse_anima/aio/output.py"
       },
       {
@@ -79899,6 +80181,7 @@
       "easyuse_anima/aio/input_defaults.py",
       "easyuse_anima/aio/legacy_generation.py",
       "easyuse_anima/aio/model_preparation.py",
+      "easyuse_anima/aio/negpip.py",
       "easyuse_anima/aio/output.py",
       "easyuse_anima/aio/output_settings.py",
       "easyuse_anima/aio/postprocess.py",
@@ -80035,6 +80318,7 @@
       "easyuse_anima/aio/input_defaults.py",
       "easyuse_anima/aio/legacy_generation.py",
       "easyuse_anima/aio/model_preparation.py",
+      "easyuse_anima/aio/negpip.py",
       "easyuse_anima/aio/output.py",
       "easyuse_anima/aio/output_settings.py",
       "easyuse_anima/aio/postprocess.py",
@@ -80467,7 +80751,7 @@
         "column": 1,
         "context": "decorator:_AIOFirstPassCacheEntry",
         "kind": "import_time_call",
-        "line": 26,
+        "line": 27,
         "module": "easyuse_anima/aio/first_pass_cache.py",
         "scope": "<module>"
       },
@@ -80476,7 +80760,7 @@
         "column": 1,
         "context": "decorator:_AIOFirstPassCacheMetrics",
         "kind": "import_time_call",
-        "line": 62,
+        "line": 63,
         "module": "easyuse_anima/aio/first_pass_cache.py",
         "scope": "<module>"
       },
@@ -80485,7 +80769,7 @@
         "column": 29,
         "context": "assign:_AIO_FIRST_PASS_CACHE_LOCK",
         "kind": "import_time_call",
-        "line": 75,
+        "line": 76,
         "module": "easyuse_anima/aio/first_pass_cache.py",
         "scope": "<module>"
       },
@@ -81151,7 +81435,7 @@
         "column": 9,
         "context": "assign:logger",
         "kind": "import_time_call",
-        "line": 107,
+        "line": 112,
         "module": "easyuse_anima/aio/legacy_generation.py",
         "scope": "<module>"
       },
@@ -81959,19 +82243,19 @@
       },
       {
         "kind": "dict",
-        "line": 70,
+        "line": 71,
         "module": "easyuse_anima/aio/first_pass_cache.py",
         "name": "_AIO_FIRST_PASS_CACHE"
       },
       {
         "kind": "dict",
-        "line": 77,
+        "line": 78,
         "module": "easyuse_anima/aio/first_pass_cache.py",
         "name": "_AIO_FIRST_PASS_CACHE_METRICS"
       },
       {
         "kind": "list",
-        "line": 74,
+        "line": 75,
         "module": "easyuse_anima/aio/first_pass_cache.py",
         "name": "_AIO_FIRST_PASS_CACHE_ORDER"
       },
@@ -81998,6 +82282,12 @@
         "line": 49,
         "module": "easyuse_anima/aio/input_defaults.py",
         "name": "AIO_INPUT_DEFAULT_SETTINGS"
+      },
+      {
+        "kind": "dict",
+        "line": 20,
+        "module": "easyuse_anima/aio/negpip.py",
+        "name": "_EXPECTED_INPUTS"
       },
       {
         "kind": "dict",
@@ -82373,7 +82663,7 @@
           "mutable_container"
         ],
         "initializer": "Dict",
-        "line": 70,
+        "line": 71,
         "module": "easyuse_anima/aio/first_pass_cache.py",
         "name": "_AIO_FIRST_PASS_CACHE"
       },
@@ -82382,7 +82672,7 @@
           "lock"
         ],
         "initializer": "RLock",
-        "line": 75,
+        "line": 76,
         "module": "easyuse_anima/aio/first_pass_cache.py",
         "name": "_AIO_FIRST_PASS_CACHE_LOCK"
       },
@@ -82392,7 +82682,7 @@
           "mutable_container"
         ],
         "initializer": "Dict",
-        "line": 77,
+        "line": 78,
         "module": "easyuse_anima/aio/first_pass_cache.py",
         "name": "_AIO_FIRST_PASS_CACHE_METRICS"
       },
@@ -82402,7 +82692,7 @@
           "mutable_container"
         ],
         "initializer": "List",
-        "line": 74,
+        "line": 75,
         "module": "easyuse_anima/aio/first_pass_cache.py",
         "name": "_AIO_FIRST_PASS_CACHE_ORDER"
       },
