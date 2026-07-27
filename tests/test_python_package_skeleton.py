@@ -43,6 +43,7 @@ PACKAGE_MODULES = (
     "easyuse_anima.aio.resources",
     "easyuse_anima.aio.usdu",
     "easyuse_anima.autocomplete",
+    "easyuse_anima.autocomplete.classification",
     "easyuse_anima.autocomplete.dataset",
     "easyuse_anima.autocomplete.index",
     "easyuse_anima.autocomplete.search",
@@ -185,6 +186,9 @@ print(json.dumps({{
         self.assertEqual(payload["modules"], list(PACKAGE_MODULES))
         expected_all = [[] for _ in PACKAGE_MODULES]
         expected_all[PACKAGE_MODULES.index("easyuse_anima.bootstrap")] = ["initialize"]
+        expected_all[
+            PACKAGE_MODULES.index("easyuse_anima.autocomplete.classification")
+        ] = ["classify_prompt_text"]
         expected_all[
             PACKAGE_MODULES.index("easyuse_anima.autocomplete.dataset")
         ] = [

@@ -690,9 +690,9 @@ ignored/
 
         self.assertEqual(analyzer.render_json(report), expected_text)
         self.assertEqual(report["schema_version"], 2)
-        self.assertEqual(report["inventory"]["module_count"], 144)
-        self.assertEqual(len(report["registry"]["shipped_python_modules"]), 144)
-        self.assertEqual(len(report["registry"]["runtime_import_closure"]), 144)
+        self.assertEqual(report["inventory"]["module_count"], 145)
+        self.assertEqual(len(report["registry"]["shipped_python_modules"]), 145)
+        self.assertEqual(len(report["registry"]["runtime_import_closure"]), 145)
         self.assertEqual(
             report["registry"]["entry_modules"],
             [
@@ -704,6 +704,7 @@ ignored/
                 "anima_prompt/normalize.py",
                 "anima_prompt/ordering.py",
                 "anima_prompt/parser.py",
+                "autocomplete_dataset.py",
                 "autocomplete_index.py",
                 "nodes.py",
                 "prompt_translation.py",
@@ -932,6 +933,7 @@ ignored/
             report["registry"]["runtime_import_closure"],
         )
         for module in (
+            "easyuse_anima/autocomplete/classification.py",
             "easyuse_anima/autocomplete/dataset.py",
             "easyuse_anima/autocomplete/search.py",
         ):
@@ -947,7 +949,21 @@ ignored/
         self.assertIn(
             {
                 "from": "autocomplete_dataset.py",
+                "to": "easyuse_anima/autocomplete/classification.py",
+            },
+            report["imports"]["module_graph"],
+        )
+        self.assertIn(
+            {
+                "from": "autocomplete_dataset.py",
                 "to": "easyuse_anima/autocomplete/dataset.py",
+            },
+            report["imports"]["module_graph"],
+        )
+        self.assertIn(
+            {
+                "from": "api.py",
+                "to": "easyuse_anima/autocomplete/classification.py",
             },
             report["imports"]["module_graph"],
         )
