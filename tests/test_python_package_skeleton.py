@@ -51,6 +51,7 @@ PACKAGE_MODULES = (
     "easyuse_anima.api.routes.aio_torch_compile",
     "easyuse_anima.api.routes.autocomplete",
     "easyuse_anima.api.routes.lora_catalog",
+    "easyuse_anima.api.routes.lora_profile_fix",
     "easyuse_anima.api.routes.lora_preview",
     "easyuse_anima.api.routes.long_text_settings",
     "easyuse_anima.api.routes.profile_lists",
@@ -240,6 +241,9 @@ print(json.dumps({{
         expected_all[
             PACKAGE_MODULES.index("easyuse_anima.api.routes.lora_catalog")
         ] = ["build_loras_handler"]
+        expected_all[
+            PACKAGE_MODULES.index("easyuse_anima.api.routes.lora_profile_fix")
+        ] = ["build_lora_profile_fix_handler"]
         expected_all[
             PACKAGE_MODULES.index("easyuse_anima.api.routes.lora_preview")
         ] = ["build_lora_preview_handler"]
