@@ -1,0 +1,173 @@
+{
+  "schema": "easyuse_anima_aio_negpip_turbo_contract",
+  "version": 1,
+  "policy": {
+    "mode": "turbo",
+    "policy_revision": 1,
+    "negative_scale": -1.0,
+    "composition": "whole_prompt_group",
+    "input_phase": "after_translation_and_wildcard_expansion",
+    "neutral_negative_prompt": "",
+    "malformed_policy": "fail_closed",
+    "malformed_reason_code": "negpip_turbo_prompt_malformed",
+    "sampling_stages": [
+      "first_pass",
+      "highres",
+      "detailer",
+      "upscale_usdu"
+    ],
+    "non_sampling_stages": [
+      "upscale_resshift",
+      "postprocess",
+      "save_output"
+    ],
+    "preserved_inputs": [
+      "positive_prompt",
+      "negative_prompt",
+      "sampler.cfg",
+      "highres.cfg",
+      "detailer.*.cfg",
+      "upscale.cfg"
+    ],
+    "rejected_composition": "per_top_level_item",
+    "rejection_reason": "top_level_separators_would_remain_outside_the_negative_weight_group"
+  },
+  "prompt_cases": [
+    {
+      "id": "top_level_comma",
+      "negative_prompt": "bad hands, lowres",
+      "derived_negative_contribution": "(bad hands, lowres:-1)"
+    },
+    {
+      "id": "top_level_newline_empty_and_comment",
+      "negative_prompt": "bad hands,\n\n# execution comment, not prompt text\nlowres",
+      "derived_negative_contribution": "(bad hands, lowres:-1)"
+    },
+    {
+      "id": "nested_delimiters",
+      "negative_prompt": "(bad hands, fused fingers), {red, blue}, [[artist_a, artist_b:0.7]]",
+      "derived_negative_contribution": "((bad hands, fused fingers), {red, blue}, [[artist_a, artist_b:0.7]]:-1)"
+    },
+    {
+      "id": "existing_numeric_weights",
+      "negative_prompt": "(lowres:0.5), (artifact:-1.25), ((blurred):+1.1)",
+      "derived_negative_contribution": "((lowres:-0.5), (artifact:1.25), ((blurred):-1.1):-1)"
+    },
+    {
+      "id": "escaped_delimiters",
+      "negative_prompt": "literal \\(group\\, one\\), bad \\(hands\\), path\\\\name",
+      "derived_negative_contribution": "(literal \\(group\\, one\\), bad \\(hands\\), path\\\\name:-1)"
+    },
+    {
+      "id": "inline_hash_is_prompt_text",
+      "negative_prompt": "bad hands, # inline text",
+      "derived_negative_contribution": "(bad hands, # inline text:-1)"
+    },
+    {
+      "id": "empty",
+      "negative_prompt": "",
+      "derived_negative_contribution": ""
+    },
+    {
+      "id": "comment_only",
+      "negative_prompt": "  # first\n# second, with comma",
+      "derived_negative_contribution": ""
+    }
+  ],
+  "malformed_cases": [
+    {
+      "id": "unclosed_parenthesis",
+      "negative_prompt": "bad (hands"
+    },
+    {
+      "id": "unexpected_parenthesis_close",
+      "negative_prompt": "bad hands)"
+    },
+    {
+      "id": "unclosed_brace",
+      "negative_prompt": "{bad, hands"
+    },
+    {
+      "id": "unclosed_double_bracket",
+      "negative_prompt": "[[bad, hands]"
+    },
+    {
+      "id": "mismatched_delimiter",
+      "negative_prompt": "(bad hands]"
+    }
+  ],
+  "conditioning_cases": [
+    {
+      "id": "positive_and_negative",
+      "positive_prompt": "1girl, portrait",
+      "negative_prompt": "bad hands, (lowres:0.5)",
+      "positive_execution_prompt": "1girl, portrait, (bad hands, (lowres:-0.5):-1)",
+      "negative_execution_prompt": ""
+    },
+    {
+      "id": "empty_positive",
+      "positive_prompt": "",
+      "negative_prompt": "bad hands",
+      "positive_execution_prompt": "(bad hands:-1)",
+      "negative_execution_prompt": ""
+    },
+    {
+      "id": "positive_numeric_weight_preserved",
+      "positive_prompt": "(1girl:1.2)",
+      "negative_prompt": "(bad hands:0.5)",
+      "positive_execution_prompt": "(1girl:1.2), ((bad hands:-0.5):-1)",
+      "negative_execution_prompt": ""
+    },
+    {
+      "id": "empty_negative",
+      "positive_prompt": "1girl",
+      "negative_prompt": "",
+      "positive_execution_prompt": "1girl",
+      "negative_execution_prompt": ""
+    }
+  ],
+  "stage_cfg_cases": [
+    {
+      "stage": "first_pass",
+      "backend": "comfy_ksampler",
+      "stored_cfg": 5.0,
+      "effective_cfg": 1.0
+    },
+    {
+      "stage": "highres",
+      "backend": "comfy_ksampler",
+      "stored_cfg": 6.0,
+      "effective_cfg": 1.0
+    },
+    {
+      "stage": "detailer",
+      "backend": "impact",
+      "stored_cfg": 7.0,
+      "effective_cfg": 1.0
+    },
+    {
+      "stage": "upscale_usdu",
+      "backend": "usdu",
+      "stored_cfg": 8.0,
+      "effective_cfg": 1.0
+    },
+    {
+      "stage": "upscale_resshift",
+      "backend": "resshift",
+      "stored_cfg": null,
+      "effective_cfg": null
+    },
+    {
+      "stage": "postprocess",
+      "backend": "none",
+      "stored_cfg": null,
+      "effective_cfg": null
+    },
+    {
+      "stage": "save_output",
+      "backend": "none",
+      "stored_cfg": null,
+      "effective_cfg": null
+    }
+  ]
+}

@@ -56,5 +56,7 @@ profile surface and UI remain unchanged in this phase.
   settings are not rewritten.
 - The returned MODEL is registered with the existing ephemeral model lifecycle.
 
-Turbo prompt transformation, neutral conditioning, effective CFG 1, formal
-settings/UI ownership and public workflow editing remain later phases.
+The AIO-NEGPIP-03 Turbo prompt, neutral-conditioning, and runtime CFG decisions
+are frozen in `aio-negpip-turbo-contract.md` and its test-local golden fixture.
+Production cutover, formal settings/UI ownership, and public workflow editing
+remain AIO-NEGPIP-04.
