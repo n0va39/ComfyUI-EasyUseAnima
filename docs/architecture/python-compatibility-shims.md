@@ -59,7 +59,7 @@ import them.
 | Root `__init__.py` exports | Permanent ComfyUI entrypoint, not a shim | root entrypoint plus `easyuse_anima.registration`/`bootstrap` | #184/#185 | Existing 0.5.2 surface; B-11 rewires internals | ComfyUI loader; node contract fixture | Not removable as a package entrypoint |
 | `nodes.py` mapped public classes | 18 direct compatibility re-exports plus audited private/residual debt | `easyuse_anima.nodes.*_nodes` | #184 B-04 through B-11, #188 | Existing 0.5.2 surface; B-04 through B-09b2 canonicalized all mapped adapters; B-11 completes the shim | Root mappings and workflows; repository tests are not public-support evidence; no confirmed external direct importer | No scheduled removal; public breaking-change gate after N+1 at earliest |
 | `api.py` route-registration surface | Current route implementation plus explicit D-10 profile aliases; planned API shim | `easyuse_anima.profiles.*`, then `easyuse_anima.api.router` and `easyuse_anima.api.routes.*` | #163, #165, #186 D-10/D-02-D-07 | Existing 0.5.2 route surface; profile implementation canonicalized in D-10; route conversion remains D-02-D-07/D-14 | Root entrypoint side-effect import, frontend endpoints, profile/API tests | Unscheduled; N+1 gate and route parity |
-| `api_contract.py` request/error helpers | Phase C temporary implementation; D-02 move and D-14 shim decision pending | `easyuse_anima.api.requests`, `responses`, and `errors` | #165, #186 D-02/D-14 | Introduced by #165; convert in D-02 and freeze any required root shim in D-14 | `api.py`, API contract tests, Registry package-closure test | Unscheduled; internal consumers canonical and contract/package parity pass |
+| `api_contract.py` request/error helpers | Explicit 12-symbol request/error/response identity shim (D-02); D-14 freeze decision pending | `easyuse_anima.api.requests`, `.responses`, and `.errors` | #165, #186 D-02/D-14 | #165 contract canonicalized in D-02; exact root surface and flat/package identity fixture | External/legacy imports and compatibility tests; production `api.py` uses canonical owners | Unscheduled; first canonical+shim release N not yet recorded, then D-14/N+1 gate and request/error/frontend parity |
 | `settings.py` | Explicit direct re-export shim (D-09) | `easyuse_anima.settings.schema`, `.repository`, and `.service` | #163, #186 D-09 | Existing 0.5.2 module-owned public surface; exact `__all__` and identity fixture | External/legacy imports and settings compatibility tests; production callers use canonical modules | Unscheduled; first canonical+shim release N not yet recorded, then N+1 gate and settings migration/round-trip |
 | `storage.py` | Explicit direct re-export shim (D-08) | `easyuse_anima.infrastructure.filesystem.atomic_json` and `.paths` | #163, #186 D-08 | Existing 0.5.2 supported module-owned public surface; exact `__all__` and identity fixture | External/legacy imports and storage compatibility tests; production callers use canonical modules | Unscheduled; first canonical+shim release N not yet recorded, then N+1 gate and last-known-good/atomic-write parity |
 | `autocomplete_index.py` | Explicit direct re-export shim (D-11a) | `easyuse_anima.autocomplete.index` | #162, #186 D-11a | Existing indexed-search surface; exact seven-name `__all__` and identity fixture | External/legacy imports; `autocomplete_dataset.py` now uses the canonical owner | Unscheduled; first canonical+shim release N not yet recorded, then N+1 gate and index/ranking/rebuild parity |
@@ -1377,10 +1377,11 @@ EasyUseAnimaWildcard
 
 - Candidate scope: the internal JSON-object parser, typed field validators,
   stable error type, and additive error-payload helper introduced by #165.
-- State: temporary Phase C root implementation, not a declared public Python
-  API. D-02 moves the implementation and `api.py` consumer to
-  `easyuse_anima.api.requests`, `responses`, and `errors`; D-14 decides whether
-  consumer evidence requires a supported root re-export shim.
+- State: D-02 moves the implementation and `api.py` consumer to
+  `easyuse_anima.api.requests`, `.responses`, and `.errors`. Root
+  `api_contract.py` retains an explicit 12-symbol identity shim; D-14 decides
+  whether consumer evidence requires retaining that supported surface after the
+  first canonical+shim release.
 - Removal gate: the #165 request/error and frontend compatibility matrices pass,
   internal imports are canonical, and the actual Registry package retains
   import closure. If a root shim is retained, ADR-002 identity and N+1 gates

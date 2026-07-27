@@ -690,9 +690,9 @@ ignored/
 
         self.assertEqual(analyzer.render_json(report), expected_text)
         self.assertEqual(report["schema_version"], 2)
-        self.assertEqual(report["inventory"]["module_count"], 145)
-        self.assertEqual(len(report["registry"]["shipped_python_modules"]), 145)
-        self.assertEqual(len(report["registry"]["runtime_import_closure"]), 145)
+        self.assertEqual(report["inventory"]["module_count"], 149)
+        self.assertEqual(len(report["registry"]["shipped_python_modules"]), 149)
+        self.assertEqual(len(report["registry"]["runtime_import_closure"]), 149)
         self.assertEqual(
             report["registry"]["entry_modules"],
             [
@@ -704,6 +704,7 @@ ignored/
                 "anima_prompt/normalize.py",
                 "anima_prompt/ordering.py",
                 "anima_prompt/parser.py",
+                "api_contract.py",
                 "autocomplete_dataset.py",
                 "autocomplete_index.py",
                 "nodes.py",
@@ -717,6 +718,10 @@ ignored/
         self.assertTrue(
             {
                 "easyuse_anima/__init__.py",
+                "easyuse_anima/api/__init__.py",
+                "easyuse_anima/api/errors.py",
+                "easyuse_anima/api/requests.py",
+                "easyuse_anima/api/responses.py",
                 "easyuse_anima/aio/__init__.py",
                 "easyuse_anima/aio/conditioning.py",
                 "easyuse_anima/aio/first_pass_cache.py",
@@ -1085,10 +1090,19 @@ ignored/
                     module,
                     report["registry"]["runtime_import_closure"],
                 )
-        self.assertIn(
-            {"from": "api.py", "to": "api_contract.py"},
-            report["imports"]["module_graph"],
-        )
+        for source, target in (
+            ("api.py", "easyuse_anima/api/errors.py"),
+            ("api.py", "easyuse_anima/api/requests.py"),
+            ("api.py", "easyuse_anima/api/responses.py"),
+            ("api_contract.py", "easyuse_anima/api/errors.py"),
+            ("api_contract.py", "easyuse_anima/api/requests.py"),
+            ("api_contract.py", "easyuse_anima/api/responses.py"),
+        ):
+            with self.subTest(source=source, target=target):
+                self.assertIn(
+                    {"from": source, "to": target},
+                    report["imports"]["module_graph"],
+                )
         profile_edges = {
             (item["from"], item["to"])
             for item in report["imports"]["module_graph"]

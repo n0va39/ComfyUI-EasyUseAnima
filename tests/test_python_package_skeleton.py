@@ -42,6 +42,10 @@ PACKAGE_MODULES = (
     "easyuse_anima.aio.generation_settings",
     "easyuse_anima.aio.resources",
     "easyuse_anima.aio.usdu",
+    "easyuse_anima.api",
+    "easyuse_anima.api.errors",
+    "easyuse_anima.api.requests",
+    "easyuse_anima.api.responses",
     "easyuse_anima.autocomplete",
     "easyuse_anima.autocomplete.classification",
     "easyuse_anima.autocomplete.dataset",
@@ -186,6 +190,24 @@ print(json.dumps({{
         self.assertEqual(payload["modules"], list(PACKAGE_MODULES))
         expected_all = [[] for _ in PACKAGE_MODULES]
         expected_all[PACKAGE_MODULES.index("easyuse_anima.bootstrap")] = ["initialize"]
+        expected_all[PACKAGE_MODULES.index("easyuse_anima.api.errors")] = [
+            "ApiContractError"
+        ]
+        expected_all[PACKAGE_MODULES.index("easyuse_anima.api.requests")] = [
+            "parse_json_object",
+            "json_object",
+            "json_string",
+            "json_boolean",
+            "json_integer",
+            "json_uuid_string",
+        ]
+        expected_all[PACKAGE_MODULES.index("easyuse_anima.api.responses")] = [
+            "REQUEST_ID_HEADER",
+            "error_payload",
+            "create_request_id",
+            "attach_request_id_header",
+            "correlate_response",
+        ]
         expected_all[
             PACKAGE_MODULES.index("easyuse_anima.autocomplete.classification")
         ] = ["classify_prompt_text"]
