@@ -796,6 +796,168 @@ class ApiProfileSaveRouteTests(unittest.TestCase):
                 self.assertNotIn(forbidden, serialized)
 
 
+class ApiAioProfileMutationRouteTests(unittest.TestCase):
+    def test_route_handlers_are_owned_by_the_canonical_factory(self):
+        api, routes = load_api_routes()
+        cases = (
+            (
+                "delete_aio_profile_handler",
+                "/easyuse_anima/aio_profiles/delete",
+            ),
+            (
+                "rename_aio_profile_handler",
+                "/easyuse_anima/aio_profiles/rename",
+            ),
+        )
+
+        for name, path in cases:
+            with self.subTest(path=path):
+                handler = routes.handlers[path]
+                self.assertIs(getattr(api, name), handler)
+                self.assertEqual(handler.__name__, name)
+                self.assertTrue(
+                    handler.__module__.endswith(
+                        ".easyuse_anima.api.routes.aio_profile_mutations"
+                    )
+                )
+                self.assertTrue(handler._easyuse_anima_request_correlation)
+
+    def test_routes_keep_dynamic_operation_seams_kwargs_and_success_shape(self):
+        api, routes = load_api_routes()
+        source_id = "52345678-1234-4567-89ab-1234567890ab"
+        target_id = "62345678-1234-4567-89ab-1234567890ab"
+        cases = (
+            (
+                "/easyuse_anima/aio_profiles/delete",
+                "_delete_aio_profile",
+                {
+                    "name": "Portrait",
+                    "profile_id": source_id,
+                    "revision": 7,
+                },
+                ("Portrait",),
+                {"profile_id": source_id, "revision": 7},
+            ),
+            (
+                "/easyuse_anima/aio_profiles/rename",
+                "_rename_aio_profile",
+                {
+                    "old_name": "Portrait",
+                    "new_name": "Portrait 2",
+                    "overwrite": True,
+                    "profile_id": source_id,
+                    "revision": 7,
+                    "target_profile_id": target_id,
+                    "target_revision": 3,
+                },
+                ("Portrait", "Portrait 2"),
+                {
+                    "overwrite": True,
+                    "profile_id": source_id,
+                    "revision": 7,
+                    "target_profile_id": target_id,
+                    "target_revision": 3,
+                },
+            ),
+        )
+
+        for path, operation_name, data, expected_args, expected_kwargs in cases:
+            changed = {
+                "name": data.get("new_name", data.get("name")),
+                "profile_id": source_id,
+                "revision": 8,
+            }
+            with self.subTest(path=path), patch.object(
+                api,
+                operation_name,
+                return_value=changed,
+            ) as operation:
+                response = asyncio.run(routes.handlers[path](JsonRequest(data)))
+
+            self.assertEqual(response["status"], 200)
+            self.assertEqual(
+                response["payload"],
+                {"status": "ok", "profile": changed},
+            )
+            operation.assert_called_once_with(*expected_args, **expected_kwargs)
+
+    def test_rename_rejects_invalid_target_revision_before_file_io(self):
+        api, routes = load_api_routes()
+        with patch.object(api, "_rename_aio_profile") as rename_profile:
+            response = asyncio.run(
+                routes.handlers["/easyuse_anima/aio_profiles/rename"](
+                    JsonRequest(
+                        {
+                            "old_name": "Portrait",
+                            "new_name": "Portrait 2",
+                            "target_revision": -1,
+                        }
+                    )
+                )
+            )
+
+        self.assertEqual(response["status"], 422)
+        self.assertEqual(response["payload"]["code"], "invalid_request")
+        self.assertEqual(
+            response["payload"]["details"],
+            {"field": "target_revision"},
+        )
+        rename_profile.assert_not_called()
+
+    def test_routes_preserve_error_mapping_target_details_and_redaction(self):
+        api, routes = load_api_routes()
+        cases = (
+            (
+                "/easyuse_anima/aio_profiles/delete",
+                "_delete_aio_profile",
+                {"name": "Portrait"},
+                FileNotFoundError("C:\\private\\missing.json"),
+                404,
+                "profile_not_found",
+                None,
+            ),
+            (
+                "/easyuse_anima/aio_profiles/rename",
+                "_rename_aio_profile",
+                {"old_name": "Portrait", "new_name": "Portrait 2"},
+                FileExistsError("/home/alice/existing.json"),
+                409,
+                "profile_exists",
+                None,
+            ),
+            (
+                "/easyuse_anima/aio_profiles/rename",
+                "_rename_aio_profile",
+                {"old_name": "Portrait", "new_name": "Portrait 2"},
+                api.ProfileMutationError(
+                    status=409,
+                    code="profile_revision_conflict",
+                    message="Profile revision does not match",
+                    details={"profile": "target"},
+                ),
+                409,
+                "profile_revision_conflict",
+                {"profile": "target"},
+            ),
+        )
+
+        for path, operation_name, data, error, status, code, details in cases:
+            with self.subTest(path=path, code=code), patch.object(
+                api,
+                operation_name,
+                side_effect=error,
+            ):
+                response = asyncio.run(routes.handlers[path](JsonRequest(data)))
+
+            self.assertEqual(response["status"], status)
+            self.assertEqual(response["payload"]["code"], code)
+            if details is not None:
+                self.assertEqual(response["payload"]["details"], details)
+            serialized = json.dumps(response["payload"])
+            for forbidden in ("private", "/home/", "alice"):
+                self.assertNotIn(forbidden, serialized)
+
+
 class ApiWildcardRouteTests(unittest.TestCase):
     def test_route_handler_is_owned_by_the_canonical_factory(self):
         api, routes = load_api_routes()

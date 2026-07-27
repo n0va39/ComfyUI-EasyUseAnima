@@ -47,6 +47,7 @@ PACKAGE_MODULES = (
     "easyuse_anima.api.requests",
     "easyuse_anima.api.responses",
     "easyuse_anima.api.routes",
+    "easyuse_anima.api.routes.aio_profile_mutations",
     "easyuse_anima.api.routes.aio_torch_compile",
     "easyuse_anima.api.routes.autocomplete",
     "easyuse_anima.api.routes.lora_catalog",
@@ -220,6 +221,11 @@ print(json.dumps({{
             "attach_request_id_header",
             "correlate_response",
         ]
+        expected_all[
+            PACKAGE_MODULES.index(
+                "easyuse_anima.api.routes.aio_profile_mutations"
+            )
+        ] = ["build_aio_profile_mutation_handlers"]
         expected_all[
             PACKAGE_MODULES.index(
                 "easyuse_anima.api.routes.aio_torch_compile"
