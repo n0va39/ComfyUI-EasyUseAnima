@@ -479,6 +479,42 @@ class ApiAutocompleteRouteTests(unittest.TestCase):
                     expected_filter,
                 )
 
+    def test_classify_route_handler_is_owned_by_the_canonical_factory(self):
+        api, routes = load_api_routes()
+        handler = routes.handlers["/easyuse_anima/classify_prompt"]
+
+        self.assertIs(api.classify_prompt_handler, handler)
+        self.assertEqual(handler.__name__, "classify_prompt_handler")
+        self.assertTrue(
+            handler.__module__.endswith(
+                ".easyuse_anima.api.routes.autocomplete"
+            )
+        )
+        self.assertTrue(handler._easyuse_anima_request_correlation)
+
+    def test_classify_route_keeps_dynamic_payload_seam_and_limit_contract(self):
+        api, routes = load_api_routes()
+        handler = routes.handlers["/easyuse_anima/classify_prompt"]
+        cases = (
+            ({"text": "cat"}, 240),
+            ({"text": "cat", "limit": 17}, 17),
+        )
+
+        for payload, expected_limit in cases:
+            with self.subTest(payload=payload):
+                with patch.object(
+                    api,
+                    "_classify_prompt_payload_sync",
+                    return_value={"tokens": [], "status": {}},
+                ) as classify_payload:
+                    response = asyncio.run(handler(JsonRequest(payload)))
+
+                self.assertEqual(response["status"], 200)
+                classify_payload.assert_called_once_with(
+                    "cat",
+                    expected_limit,
+                )
+
 
 class ApiTorchCompileDiagnosticsTests(unittest.TestCase):
     def test_route_handler_is_owned_by_the_canonical_factory(self):
