@@ -74,14 +74,21 @@ function setAdvancedTextareaHeight(node, textarea, height, options = {}, hooks =
   return nextHeight;
 }
 
-function syncAdvancedLinkedFieldTextarea(node, field, textarea, value, hooks = {}) {
+function syncAdvancedExecutionFieldTextarea(
+  node,
+  field,
+  textarea,
+  value,
+  { linked = false, layoutReason = "execution" } = {},
+  hooks = {},
+) {
   if (!textarea) {
     return false;
   }
   const previousHeight = advancedTextareaCurrentHeight(textarea);
   textarea.value = String(value ?? "");
-  textarea.classList.toggle("is-linked", true);
-  textarea.title = advancedFieldTextareaTitle(field, true, psText);
+  textarea.classList.toggle("is-linked", linked);
+  textarea.title = advancedFieldTextareaTitle(field, linked, psText);
   textarea.style.height = "auto";
   const nextHeight = setAdvancedTextareaHeight(
     node,
@@ -94,9 +101,31 @@ function syncAdvancedLinkedFieldTextarea(node, field, textarea, value, hooks = {
   hooks.scheduleAdvancedFieldHighlight?.(node, field, textarea);
   requestOverlaySync(textarea, true);
   if (Math.abs(nextHeight - previousHeight) > 1) {
-    hooks.scheduleAdvancedLayout?.(node, "linked-execution");
+    hooks.scheduleAdvancedLayout?.(node, layoutReason);
   }
   return true;
+}
+
+function syncAdvancedLinkedFieldTextarea(node, field, textarea, value, hooks = {}) {
+  return syncAdvancedExecutionFieldTextarea(
+    node,
+    field,
+    textarea,
+    value,
+    { linked: true, layoutReason: "linked-execution" },
+    hooks,
+  );
+}
+
+function syncAdvancedNaiaFieldTextarea(node, field, textarea, value, hooks = {}) {
+  return syncAdvancedExecutionFieldTextarea(
+    node,
+    field,
+    textarea,
+    value,
+    { linked: false, layoutReason: "naia-execution" },
+    hooks,
+  );
 }
 
 /**
@@ -423,4 +452,5 @@ export {
   remeasureAdvancedTextareaHeightsForWidth,
   setAdvancedTextareaHeight,
   syncAdvancedLinkedFieldTextarea,
+  syncAdvancedNaiaFieldTextarea,
 };
