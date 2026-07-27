@@ -85,6 +85,13 @@ class TorchCompileWorkloadClassificationTests(unittest.TestCase):
                 ["highres"],
             ),
             (
+                "highres with missing base resolution",
+                _settings(highres=True),
+                {},
+                "variable_shapes",
+                ["highres"],
+            ),
+            (
                 "detailer",
                 _settings(detailer=True),
                 {"width": 1024, "height": 1024},
@@ -147,6 +154,15 @@ class TorchCompileWorkloadClassificationTests(unittest.TestCase):
         self.assertEqual(workload["shape_class"], "unknown")
         self.assertIsNone(workload["batch_size"])
         self.assertIn("batch_size_unknown", workload["reason_codes"])
+
+        variable = classify_torch_compile_workload(
+            _settings(detailer=True),
+            {"width": 1024, "height": 1024},
+            0,
+        )
+        self.assertEqual(variable["shape_class"], "variable_shapes")
+        self.assertEqual(variable["active_shape_stages"], ["detailer"])
+        self.assertIn("batch_size_unknown", variable["reason_codes"])
 
     def test_vram_tiers_have_explicit_practical_boundaries(self):
         cases = (

@@ -60413,7 +60413,7 @@
         "is_package": false,
         "loc": 283,
         "module": "easyuse_anima.aio.torch_compile_recommendation",
-        "normalized_git_blob_sha1": "c6270c6c1e78fb0c043d0c689f3b6bba4da89a92",
+        "normalized_git_blob_sha1": "8b0d9652cea43f7d1d44f49db01c5e9b7af0e7bd",
         "path": "easyuse_anima/aio/torch_compile_recommendation.py",
         "top_level": {
           "class_count": 0,
