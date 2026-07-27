@@ -11,8 +11,10 @@ from dataclasses import dataclass
 from typing import Protocol
 
 from . import sources as _wildcard_sources
-from .models import WildcardExpansionBudget, WildcardOption
+from .library import _WildcardLibrary
+from .models import WildcardExpansionBudget, WildcardExpansionResult, WildcardOption
 from .selector import _Selector
+from .snapshot import _WildcardSnapshot
 
 __all__ = (
     "COMMENT_RE",
@@ -476,3 +478,118 @@ def _expansion_state_signature(text: str) -> tuple[int, bytes]:
         digest_size=16,
     )
     return len(text), digest.digest()
+
+
+@dataclass
+class _ExpansionLane:
+    source: str
+    current: _ExpansionText
+    state: _ExpansionState
+    library: _WildcardLibrary
+
+
+def _expand_snapshot_texts(
+    sources: tuple[str, ...],
+    selector: _Selector,
+    snapshot: _WildcardSnapshot,
+    expansion_budget: WildcardExpansionBudget,
+) -> tuple[WildcardExpansionResult, ...]:
+    lanes: list[_ExpansionLane] = []
+    for source in sources:
+        state = _ExpansionState(expansion_budget)
+        cleaned = COMMENT_RE.sub("", source)
+        if (
+            len(cleaned) > expansion_budget.max_output_chars
+            or _utf8_length(cleaned) > expansion_budget.max_output_chars
+        ):
+            cleaned = _bounded_output_prefix(
+                cleaned,
+                expansion_budget.max_output_chars,
+            )
+            state.stop("max_output_chars")
+        current = _ExpansionText.from_text(cleaned)
+        lanes.append(
+            _ExpansionLane(
+                source=source,
+                current=current,
+                state=state,
+                library=_WildcardLibrary(snapshot),
+            )
+        )
+
+    seen_batch_states = {
+        tuple(_expansion_state_signature(lane.current.text) for lane in lanes)
+    }
+    if expansion_budget.max_depth == 0:
+        for lane in lanes:
+            if lane.state.limit_reason is None and has_wildcard_syntax(
+                lane.current.text
+            ):
+                lane.state.stop("max_depth")
+    else:
+        for depth in range(expansion_budget.max_depth):
+            active_lanes = [
+                lane for lane in lanes if lane.state.limit_reason is None
+            ]
+            if not active_lanes:
+                break
+            replacements_before_pass = sum(
+                lane.state.replacement_count for lane in lanes
+            )
+            for lane in active_lanes:
+                lane.state.begin_pass(lane.current)
+
+            for replace_stage in (
+                _replace_dynamic,
+                _replace_quantified_wildcards,
+                _replace_file_wildcards,
+            ):
+                for lane in active_lanes:
+                    if lane.state.limit_reason is None:
+                        lane.current = replace_stage(
+                            lane.current,
+                            lane.state,
+                            selector,
+                            lane.library,
+                        )
+
+            replacements_after_pass = sum(
+                lane.state.replacement_count for lane in lanes
+            )
+            if replacements_after_pass == replacements_before_pass:
+                break
+            unresolved_lanes = [
+                lane
+                for lane in lanes
+                if lane.state.limit_reason is None
+                and has_wildcard_syntax(lane.current.text)
+            ]
+            if not unresolved_lanes:
+                break
+            batch_signature = tuple(
+                _expansion_state_signature(lane.current.text) for lane in lanes
+            )
+            if batch_signature in seen_batch_states:
+                for lane in unresolved_lanes:
+                    lane.state.stop("repeated_state")
+                break
+            seen_batch_states.add(batch_signature)
+            if depth + 1 >= expansion_budget.max_depth:
+                for lane in unresolved_lanes:
+                    lane.state.stop("max_depth")
+                break
+
+    return tuple(
+        WildcardExpansionResult(
+            text=lane.current.text,
+            changed=lane.current.text != lane.source,
+            used_keys=tuple(lane.library.used),
+            missing_keys=tuple(lane.library.missing),
+            replacement_count=lane.state.replacement_count,
+            limit_reason=(
+                lane.state.limit_reason
+                or ("cycle" if lane.state.cycle_detected else None)
+            ),
+        )
+        for lane in lanes
+    )

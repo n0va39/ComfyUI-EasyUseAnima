@@ -78,6 +78,8 @@ class WildcardEngineTests(unittest.TestCase):
             "_replace_dynamic",
             "_replace_quantified_wildcards",
             "_replace_file_wildcards",
+            "_ExpansionLane",
+            "_expand_snapshot_texts",
             "_bounded_output_prefix",
             "_expansion_state_signature",
         )
@@ -253,6 +255,16 @@ class WildcardEngineTests(unittest.TestCase):
                 self.assertTrue(root.is_dir())
                 self.assertEqual(root, Path(temp) / "wildcards")
                 self.assertTrue((root / DEFAULT_TEST_WILDCARD_FILE).is_file())
+
+    def test_empty_text_batch_returns_before_snapshot_lifecycle(self):
+        with patch.object(
+            wildcard_engine,
+            "_wildcard_snapshot",
+            side_effect=AssertionError("empty batch resolved a snapshot"),
+        ):
+            result = expand_wildcard_texts([], seed=7)
+
+        self.assertEqual(result, ())
 
     def test_extra_paths_are_parsed_one_path_per_line(self):
         self.assertEqual(
