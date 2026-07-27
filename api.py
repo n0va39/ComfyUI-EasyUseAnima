@@ -75,6 +75,9 @@ from .easyuse_anima.api.routes.lora_catalog import (
 from .easyuse_anima.api.routes.lora_preview import (
     build_lora_preview_handler as _build_lora_preview_handler,
 )
+from .easyuse_anima.api.routes.profile_lists import (
+    build_profile_list_handlers as _build_profile_list_handlers,
+)
 from .easyuse_anima.api.routes.wildcards import (
     build_wildcards_handler as _build_wildcards_handler,
 )
@@ -619,13 +622,20 @@ if web is not None:
         )
     )
 
-    @_request_correlated
-    async def lora_profiles_handler(request):
-        try:
-            payload = await _run_file_io(_list_lora_profiles)
-        except InvalidProfileDataError as exc:
-            return _profile_error_response(exc)
-        return web.json_response({"profiles": payload})
+    (
+        lora_profiles_handler,
+        aio_profiles_handler,
+    ) = (
+        _request_correlated(handler)
+        for handler in _build_profile_list_handlers(
+            run_file_io=lambda function, *args: _run_file_io(function, *args),
+            list_lora_profiles=lambda: _list_lora_profiles(),
+            list_aio_profiles=lambda: _list_aio_profiles(),
+            profile_data_error_type=InvalidProfileDataError,
+            profile_error_response=lambda exc: _profile_error_response(exc),
+            json_response=lambda payload: web.json_response(payload),
+        )
+    )
 
     @_request_correlated
     async def save_lora_profile_handler(request):
@@ -676,14 +686,6 @@ if web is not None:
         ) as exc:
             return _profile_error_response(exc)
         return web.json_response({"status": "ok", "profile": payload})
-
-    @_request_correlated
-    async def aio_profiles_handler(request):
-        try:
-            payload = await _run_file_io(_list_aio_profiles)
-        except InvalidProfileDataError as exc:
-            return _profile_error_response(exc)
-        return web.json_response({"status": "ok", "profiles": payload})
 
     @_request_correlated
     async def save_aio_profile_handler(request):
