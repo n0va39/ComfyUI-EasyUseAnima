@@ -1,4 +1,8 @@
+// @ts-check
+
+// @ts-expect-error ComfyUI provides this host module at runtime.
 import { app } from "../../../scripts/app.js";
+// @ts-expect-error ComfyUI provides this host module at runtime.
 import { api } from "../../../scripts/api.js";
 import { easyuseAnimaEncodeRFC3986URIComponent as encodeRFC3986URIComponent, easyuseAnimaFetchJson, easyuseAnimaGetSettings } from "./easyuse_anima_api.js";
 import { easyuseAnimaText, easyuseAnimaWatchLocale } from "./easyuse_anima_i18n.js";
@@ -31,6 +35,12 @@ import {
   normalizeLoraNameList,
   validComboEntryText,
 } from "./lora_preset/lora_state.js";
+
+function loraLiteGraphRuntime() {
+  return /** @type {typeof globalThis & {
+   *   LiteGraph: { ContextMenu: new (...args: any[]) => unknown }
+   * }} */ (globalThis).LiteGraph;
+}
 
 const NODE_TYPE = "EasyUseAnimaLoraPreset";
 const DEFAULT_STRENGTH_BUTTON_STEP = 0.05;
@@ -335,18 +345,15 @@ const {
   setProfileIndex,
   setProfileCount,
   scrollProfileBarTo,
-  currentProfileContent,
   saveProfile,
   saveCurrentProfile,
   loadProfile,
   switchProfile,
   addProfile,
   deleteProfile,
-  selectedProfilePayload,
   profileSaveStatus,
   verifyProfileProvenance,
   rememberProfileTokens,
-  appendProfilePayload,
   saveProfileSet,
   loadProfileSet,
   fullProfilePayload,
@@ -358,7 +365,7 @@ const {
 } = loraProfileMutations;
 loraCanvasWidgets = createLoraPresetCanvasWidgets({
   getCanvas: () => app.canvas,
-  getLiteGraph: () => LiteGraph,
+  getLiteGraph: loraLiteGraphRuntime,
   getSettings: () => LORA_PRESET_SETTINGS,
   text: lpText,
   formatText: lpFormat,
@@ -546,7 +553,7 @@ async function openProfileLoadMenu(node, event, pos) {
   }
   const values = profiles.map((profile) => String(profile.name || "")).filter(Boolean);
   const clientPoint = menuClientPoint(node, pos, event);
-  new LiteGraph.ContextMenu(values, {
+  new loraLiteGraphRuntime().ContextMenu(values, {
     event: makeMenuEvent(clientPoint),
     title: lpText("profile.loadTitle"),
     scale: Math.max(1, Number(app.canvas?.ds?.scale) || 1),
@@ -762,6 +769,11 @@ function openLoraEntryMenu(node, event, index) {
   }
   const loras = lorasWidgetValue(node);
   const state = loraResolveState(node, lora);
+  /** @type {Array<null | {
+   *   content: string,
+   *   disabled?: boolean,
+   *   callback: () => void,
+   * }>} */
   const items = [
     {
       content: lpText("lora.moveUp"),
@@ -788,7 +800,7 @@ function openLoraEntryMenu(node, event, index) {
       callback: () => removeLoraEntry(node, index),
     },
   );
-  new LiteGraph.ContextMenu(items, {
+  new loraLiteGraphRuntime().ContextMenu(items, {
     event,
     title: loraDisplayName(lora.name),
     scale: Math.max(1, Number(app.canvas?.ds?.scale) || 1),
@@ -914,7 +926,7 @@ async function openLoraMenu(node, event, pos, onChoose) {
     return;
   }
   loraMenuLifecycle.activateMenu(node, clientPoint, menuItems);
-  new LiteGraph.ContextMenu(menuItems, {
+  new loraLiteGraphRuntime().ContextMenu(menuItems, {
     event: makeMenuEvent(clientPoint),
     title: lpText("lora.chooseTitle"),
     scale: Math.max(1, Number(app.canvas?.ds?.scale) || 1),
