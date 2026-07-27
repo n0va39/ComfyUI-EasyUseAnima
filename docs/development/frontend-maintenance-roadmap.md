@@ -120,19 +120,29 @@ TS6133 1개)를 ComfyUI host import 두 줄의 line-specific suppression,
 unused callback formal 제거로 해소하고 명시적 include로 승격했다. 현재 root
 entry 11개 중 8개가 typecheck 대상이고, debt는 3개 entry·31개 오류다.
 
-현재 debt ledger:
+Phase 4c에서는 `easyuse_anima_autocomplete.js`의 5개 오류를 host import 한 줄의
+line-specific suppression, 좁은 DOM 경계와 unused callback/dead local 정리로
+해소하고 명시적 include로 승격했다.
 
-| TODO 파일 | 총 오류 | TypeScript 오류 코드별 개수 |
-| --- | ---: | --- |
-| `easyuse_anima_aio.js` | 16 | TS1117 4, TS2307 4, TS2339 2, TS2345 2, TS6133 4 |
-| `easyuse_anima_autocomplete.js` | 5 | TS2307 1, TS2339 2, TS6133 2 |
-| `easyuse_anima_lora_preset.js` | 10 | TS2304 4, TS2307 2, TS2345 1, TS6133 3 |
+Phase 4d에서는 최신 `dev`에서 `easyuse_anima_aio.js`를 재계측한 15개 오류
+(TS2307 4개, TS1117 4개, TS6133 3개, TS2339 2개, TS2345 2개)를 host import
+line suppression, 현재 effective 값이 동일한 duplicate key 정리, caller가 없는
+dead entry helper 제거, 좁은 window/payload 타입 경계로 해소하고 명시적 include로
+승격했다. Runtime, DOM, hook, queue와 serialization 의미는 변경하지 않았다.
+
+Phase 4e에서는 `easyuse_anima_lora_preset.js`의 10개 오류(TS2304 4개,
+TS2307 2개, TS2345 1개, TS6133 3개)를 host import 두 줄의 line-specific
+suppression, 기존 `globalThis.LiteGraph`의 좁은 local alias, optional menu item
+shape와 unused entry destructuring 정리로 해소하고 명시적 include로 승격했다.
+LoRA canvas, menu, preview, node lifecycle, hook, queue와 serialization 의미는
+변경하지 않았다.
+
+현재 root-entry debt는 없으며 11개 root entry가 모두 typecheck 대상이다.
 
 코드는 TS1117 duplicate property, TS2304 undeclared host global, TS2307 외부
 Comfy import resolution, TS2339 DOM/window property shape, TS2345 argument/shape
-mismatch, TS6133 unused declaration/parameter를 뜻한다. TODO는 각 파일의 오류를
-동작 변경이나 광범위한 suppression 없이 해소한 뒤, 같은 PR에서 해당 entry를
-`jsconfig.json` include로 옮기고 테스트와 이 ledger의 debt에서 제거하는 것이다.
+mismatch, TS6133 unused declaration/parameter를 뜻한다. 새 root entry는 오류 없이
+`jsconfig.json` include에 추가해야 하며 root wildcard로 이 계약을 우회하지 않는다.
 
 재현 명령은 `jsconfig.json`과 같은 compiler option을 파일별로 적용한다.
 

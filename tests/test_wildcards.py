@@ -12,6 +12,8 @@ import nodes as nodes_module
 from easyuse_anima.nodes import wildcard_nodes
 from easyuse_anima.prompt import advanced as prompt_advanced
 from easyuse_anima.seed import compatibility as seed_compatibility
+from easyuse_anima.wildcard import expansion as wildcard_expansion
+from easyuse_anima.wildcard import library as wildcard_library
 from easyuse_anima.wildcard import mode as wildcard_mode
 from easyuse_anima.wildcard import models as wildcard_models
 from easyuse_anima.wildcard import seed as wildcard_seed
@@ -38,6 +40,56 @@ from wildcard_engine import (
 
 
 class WildcardEngineTests(unittest.TestCase):
+    def test_root_library_adapter_uses_canonical_lookup_core(self):
+        self.assertEqual(wildcard_library.__all__, ())
+        self.assertTrue(
+            issubclass(
+                wildcard_engine._WildcardLibrary,
+                wildcard_library._WildcardLibrary,
+            )
+        )
+        self.assertIs(
+            wildcard_engine._WildcardLibrary.options_for,
+            wildcard_library._WildcardLibrary.options_for,
+        )
+
+    def test_root_expansion_state_surface_has_canonical_identity(self):
+        public_names = (
+            "COMMENT_RE",
+            "DYNAMIC_RE",
+            "WILDCARD_RE",
+            "WILDCARD_FULL_RE",
+            "WILDCARD_QUANTIFIER_RE",
+            "COUNT_SPEC_RE",
+            "has_wildcard_syntax",
+        )
+        self.assertEqual(wildcard_expansion.__all__, public_names)
+        state_names = (
+            "_utf8_width",
+            "_utf8_length",
+            "_ExpansionSegment",
+            "_ExpansionText",
+            "_Replacement",
+            "_ExpansionState",
+            "_split_unescaped",
+            "_parse_dynamic_options",
+            "_parse_count_spec",
+            "_expand_multiselect_options",
+            "_replace_dynamic",
+            "_replace_quantified_wildcards",
+            "_replace_file_wildcards",
+            "_ExpansionLane",
+            "_expand_snapshot_texts",
+            "_bounded_output_prefix",
+            "_expansion_state_signature",
+        )
+        for name in (*public_names, *state_names):
+            with self.subTest(name=name):
+                self.assertIs(
+                    getattr(wildcard_engine, name),
+                    getattr(wildcard_expansion, name),
+                )
+
     def test_root_selector_has_canonical_identity(self):
         self.assertEqual(wildcard_selector.__all__, ())
         self.assertIs(wildcard_engine._Selector, wildcard_selector._Selector)
@@ -204,6 +256,16 @@ class WildcardEngineTests(unittest.TestCase):
                 self.assertEqual(root, Path(temp) / "wildcards")
                 self.assertTrue((root / DEFAULT_TEST_WILDCARD_FILE).is_file())
 
+    def test_empty_text_batch_returns_before_snapshot_lifecycle(self):
+        with patch.object(
+            wildcard_engine,
+            "_wildcard_snapshot",
+            side_effect=AssertionError("empty batch resolved a snapshot"),
+        ):
+            result = expand_wildcard_texts([], seed=7)
+
+        self.assertEqual(result, ())
+
     def test_extra_paths_are_parsed_one_path_per_line(self):
         self.assertEqual(
             wildcard_engine.parse_wildcard_extra_paths('D:/wildcards;E:/ignored\n"custom/wildcards"'),
@@ -259,6 +321,24 @@ class WildcardEngineTests(unittest.TestCase):
 
         self.assertEqual(result.text, "black hair")
 
+    def test_glob_wildcard_uses_sorted_library_lookup_and_records_pattern(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            animals = root / "animals"
+            animals.mkdir()
+            (animals / "dog.txt").write_text("dog\n", encoding="utf-8")
+            (animals / "cat.txt").write_text("cat\n", encoding="utf-8")
+
+            result = expand_wildcards(
+                "__animals/*__",
+                seed=0,
+                mode="순차",
+                roots=[root],
+            )
+
+        self.assertEqual(result.text, "cat")
+        self.assertEqual(result.used_keys, ("animals/*",))
+
     def test_multiselect_can_expand_wildcard_options(self):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
@@ -269,6 +349,22 @@ class WildcardEngineTests(unittest.TestCase):
         values = [part.strip() for part in result.text.split(",")]
         self.assertEqual(len(values), 2)
         self.assertEqual(len(set(values)), 2)
+
+    def test_quantified_wildcard_uses_selector_stream_and_records_key(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            (root / "color.txt").write_text("red\nblue\ngreen\n", encoding="utf-8")
+
+            result = expand_wildcards(
+                "2#__color__",
+                seed=1,
+                mode="순차",
+                roots=[root],
+            )
+
+        self.assertEqual(result.text, "blue, green")
+        self.assertEqual(result.used_keys, ("color",))
+        self.assertEqual(result.replacement_count, 1)
 
     def test_direct_self_reference_stops_with_unresolved_token(self):
         with tempfile.TemporaryDirectory() as temp:

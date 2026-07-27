@@ -802,6 +802,26 @@ function advancedResolutionSummary(node) {
   return `${bucketValue} · ${sizeValue}`;
 }
 
+function commitAdvancedNaiaResolutionView(node, width, height) {
+  const bucket = normalizeAdvancedResolutionBucket(
+    findWidget(node, "resolution_bucket")?.value,
+  );
+  if (bucket !== NAIA_ADVANCED_RESOLUTION_BUCKET) {
+    return false;
+  }
+  const nextWidth = snapResolution32(width, 1024);
+  const nextHeight = snapResolution32(height, 1024);
+  if (!setAdvancedWidgetValues(node, [
+    ["resolution_custom_width", nextWidth],
+    ["resolution_custom_height", nextHeight],
+    ["resolution_size", advancedResolutionLabel(nextWidth, nextHeight)],
+  ])) {
+    return false;
+  }
+  updateAdvancedSummary(node, "resolution", advancedResolutionSummary(node));
+  return true;
+}
+
 function createAdvancedResolutionSettingsBody(node, hooks = {}) {
   const bucketWidget = findWidget(node, "resolution_bucket");
   const sizeWidget = findWidget(node, "resolution_size");
@@ -1073,6 +1093,7 @@ export {
   advancedModGuidanceSummary,
   advancedResolutionSummary,
   advancedWildcardSummary,
+  commitAdvancedNaiaResolutionView,
   commitAdvancedWildcardSeedView,
   createAdvancedControlBar,
   createAdvancedResolutionBar,

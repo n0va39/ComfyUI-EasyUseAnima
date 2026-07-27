@@ -1,0 +1,109 @@
+{
+  "schema": "easyuse_anima_aio_safe_pag_stage_scope_contract",
+  "version": 1,
+  "upstream": {
+    "repository": "iljung1106/comfyui-anima-safe-pag",
+    "commit": "905b0107d1f924fc6acbcac3b6a879b566ff671c",
+    "node_id": "AnimaSafePAG"
+  },
+  "stage_ids": ["first_pass", "highres", "detailer", "upscale"],
+  "fresh_stage_scope": {
+    "first_pass": true,
+    "highres": false,
+    "detailer": false,
+    "upscale": false
+  },
+  "legacy_missing_scope": {
+    "first_pass": true,
+    "highres": true,
+    "detailer": true,
+    "upscale": true
+  },
+  "malformed_scope": {
+    "policy": "fail-closed-all-disabled",
+    "expected": {
+      "first_pass": false,
+      "highres": false,
+      "detailer": false,
+      "upscale": false
+    }
+  },
+  "scope_cases": [
+    {
+      "id": "disabled",
+      "enabled": false,
+      "scope": {
+        "first_pass": true,
+        "highres": true,
+        "detailer": true,
+        "upscale": true
+      },
+      "selected_stages": []
+    },
+    {
+      "id": "fresh-first-pass-only",
+      "enabled": true,
+      "scope": {
+        "first_pass": true,
+        "highres": false,
+        "detailer": false,
+        "upscale": false
+      },
+      "selected_stages": ["first_pass"]
+    },
+    {
+      "id": "legacy-missing-scope",
+      "enabled": true,
+      "scope_missing": true,
+      "selected_stages": ["first_pass", "highres", "detailer", "upscale"]
+    },
+    {
+      "id": "custom-highres-upscale",
+      "enabled": true,
+      "scope": {
+        "first_pass": false,
+        "highres": true,
+        "detailer": false,
+        "upscale": true,
+        "future_stage": true
+      },
+      "selected_stages": ["highres", "upscale"]
+    },
+    {
+      "id": "malformed-explicit-scope",
+      "enabled": true,
+      "scope": "all",
+      "selected_stages": []
+    }
+  ],
+  "non_sampling_ids": ["res_shift", "postprocess", "save"],
+  "precedence": {
+    "current_chain": [
+      "aura_flow",
+      "kj.torch_compile",
+      "dave",
+      "safe_pag",
+      "kj.fp16_accumulation",
+      "kj.sage_attention"
+    ],
+    "fixed_edges": [
+      ["kj.torch_compile", "dave"],
+      ["dave", "safe_pag"]
+    ],
+    "sage_stage_scope_owner": "#441"
+  },
+  "lifecycle": {
+    "selected_stage_requires_clone": true,
+    "external_lookup": "selected-stage-only",
+    "mutation_window": "sampling-callback-only",
+    "restore_on": ["success", "exception"],
+    "restore_identity": "exact-original-reference",
+    "persistent_shared_mutation": false
+  },
+  "ownership": {
+    "generic_patch_registry": false,
+    "generic_scope_ui": false,
+    "feature_payload_owner": "safe-pag-adapter",
+    "public_socket_or_workflow_schema_change": false
+  }
+}

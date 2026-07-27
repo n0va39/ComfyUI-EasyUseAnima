@@ -82,9 +82,73 @@ const DAVE_STAGE_SCOPE_PRESETS = Object.freeze({
   }),
 });
 
+const SAFE_PAG_STAGE_IDS = Object.freeze([
+  "first_pass",
+  "highres",
+  "detailer",
+  "upscale",
+]);
+
+/** @type {Readonly<Record<string, Readonly<Record<string, boolean>>>>} */
+const SAFE_PAG_STAGE_SCOPE_PRESETS = Object.freeze({
+  first_pass_only: Object.freeze({
+    first_pass: true,
+    highres: false,
+    detailer: false,
+    upscale: false,
+  }),
+  all_sampling_stages: Object.freeze({
+    first_pass: true,
+    highres: true,
+    detailer: true,
+    upscale: true,
+  }),
+});
+
+const SAGE_STAGE_IDS = Object.freeze([
+  "first_pass",
+  "highres",
+  "detailer",
+  "upscale",
+]);
+
+/** @type {Readonly<Record<string, Readonly<Record<string, boolean>>>>} */
+const SAGE_STAGE_SCOPE_PRESETS = Object.freeze({
+  first_pass_only: Object.freeze({
+    first_pass: true,
+    highres: false,
+    detailer: false,
+    upscale: false,
+  }),
+  all_sampling_stages: Object.freeze({
+    first_pass: true,
+    highres: true,
+    detailer: true,
+    upscale: true,
+  }),
+});
+
 function daveStageScopePreset(scope) {
   for (const [preset, expected] of Object.entries(DAVE_STAGE_SCOPE_PRESETS)) {
     if (DAVE_STAGE_IDS.every((stageId) => !!scope?.[stageId] === expected[stageId])) {
+      return preset;
+    }
+  }
+  return "custom";
+}
+
+function safePagStageScopePreset(scope) {
+  for (const [preset, expected] of Object.entries(SAFE_PAG_STAGE_SCOPE_PRESETS)) {
+    if (SAFE_PAG_STAGE_IDS.every((stageId) => !!scope?.[stageId] === expected[stageId])) {
+      return preset;
+    }
+  }
+  return "custom";
+}
+
+function sageStageScopePreset(scope) {
+  for (const [preset, expected] of Object.entries(SAGE_STAGE_SCOPE_PRESETS)) {
+    if (SAGE_STAGE_IDS.every((stageId) => !!scope?.[stageId] === expected[stageId])) {
       return preset;
     }
   }
@@ -256,6 +320,58 @@ export function aioCreateAdvancedSettingsDialog(dependencies) {
     const safePag = makeSubsection("Anima Safe PAG");
     const safePagSettings = settings.model_patches.safe_pag || DEFAULT_GENERATION_SETTINGS.model_patches.safe_pag;
     const safePagEnabled = field(safePag, "Use Safe PAG", checkbox(safePagSettings.enabled), "tip.safePagEnabled");
+    const safePagStageScope = (
+      safePagSettings.stage_scope
+      && typeof safePagSettings.stage_scope === "object"
+      && !Array.isArray(safePagSettings.stage_scope)
+    )
+      ? safePagSettings.stage_scope
+      : Object.fromEntries(SAFE_PAG_STAGE_IDS.map((stageId) => [stageId, false]));
+    const safePagStagePreset = field(
+      safePag,
+      "Safe PAG stages",
+      selectInput([
+        {
+          value: "first_pass_only",
+          label: aioText("option.safePagScopeFirstPassOnly"),
+        },
+        {
+          value: "all_sampling_stages",
+          label: aioText("option.safePagScopeAllSamplingStages"),
+        },
+        {
+          value: "custom",
+          label: aioText("option.safePagScopeCustom"),
+        },
+      ], safePagStageScopePreset(safePagStageScope)),
+      "tip.safePagStagePreset",
+    );
+    const safePagCustomStages = makeSubsection("Custom Safe PAG stages");
+    const safePagFirstPass = field(
+      safePagCustomStages,
+      "First pass",
+      checkbox(safePagStageScope.first_pass),
+      "tip.safePagStageFirstPass",
+    );
+    const safePagHighres = field(
+      safePagCustomStages,
+      "Highres",
+      checkbox(safePagStageScope.highres),
+      "tip.safePagStageHighres",
+    );
+    const safePagDetailer = field(
+      safePagCustomStages,
+      "Detailer",
+      checkbox(safePagStageScope.detailer),
+      "tip.safePagStageDetailer",
+    );
+    const safePagUpscale = field(
+      safePagCustomStages,
+      "Upscale (USDU)",
+      checkbox(safePagStageScope.upscale),
+      "tip.safePagStageUpscale",
+    );
+    safePag.append(safePagCustomStages);
     const safePagScale = field(safePag, "Safe PAG scale", numberInput(safePagSettings.scale ?? 4.0, "0.1"), "tip.safePagScale");
     const safePagBlocks = field(safePag, "Safe PAG blocks", textInput(safePagSettings.block_indices || "18"), "tip.safePagBlocks");
     const safePagPerturbation = field(
@@ -305,12 +421,67 @@ export function aioCreateAdvancedSettingsDialog(dependencies) {
       selectInput([
         "disabled",
         "auto",
-        "sageattn",
         "sageattn_qk_int8_pv_fp16_cuda",
+        "sageattn_qk_int8_pv_fp16_triton",
         "sageattn_qk_int8_pv_fp8_cuda",
+        "sageattn_qk_int8_pv_fp8_cuda++",
+        "sageattn3",
+        "sageattn3_per_block_mean",
       ], settings.model_patches.kj.sage_attention),
       "tip.kjSageMode",
     );
+    const sageStageScope = (
+      settings.model_patches.kj.sage_stage_scope
+      && typeof settings.model_patches.kj.sage_stage_scope === "object"
+      && !Array.isArray(settings.model_patches.kj.sage_stage_scope)
+    )
+      ? settings.model_patches.kj.sage_stage_scope
+      : Object.fromEntries(SAGE_STAGE_IDS.map((stageId) => [stageId, false]));
+    const sageStagePreset = field(
+      sage,
+      "SageAttention stages",
+      selectInput([
+        {
+          value: "first_pass_only",
+          label: aioText("option.sageScopeFirstPassOnly"),
+        },
+        {
+          value: "all_sampling_stages",
+          label: aioText("option.sageScopeAllSamplingStages"),
+        },
+        {
+          value: "custom",
+          label: aioText("option.sageScopeCustom"),
+        },
+      ], sageStageScopePreset(sageStageScope)),
+      "tip.sageStagePreset",
+    );
+    const sageCustomStages = makeSubsection("Custom SageAttention stages");
+    const sageFirstPass = field(
+      sageCustomStages,
+      "First pass",
+      checkbox(sageStageScope.first_pass),
+      "tip.sageStageFirstPass",
+    );
+    const sageHighres = field(
+      sageCustomStages,
+      "Highres",
+      checkbox(sageStageScope.highres),
+      "tip.sageStageHighres",
+    );
+    const sageDetailer = field(
+      sageCustomStages,
+      "Detailer",
+      checkbox(sageStageScope.detailer),
+      "tip.sageStageDetailer",
+    );
+    const sageUpscale = field(
+      sageCustomStages,
+      "Upscale (USDU)",
+      checkbox(sageStageScope.upscale),
+      "tip.sageStageUpscale",
+    );
+    sage.append(sageCustomStages);
     const sageAllowCompile = field(sage, "Allow compile", checkbox(settings.model_patches.kj.sage_allow_compile), "tip.kjSageCompile");
     kj.append(sage);
 
@@ -414,7 +585,12 @@ export function aioCreateAdvancedSettingsDialog(dependencies) {
     body.append(artistMix);
 
     const refreshSageDetails = () => {
-      sageAllowCompile.parentElement.style.display = sageAttention.value === "disabled" ? "none" : "";
+      const enabled = sageAttention.value !== "disabled";
+      sageAllowCompile.parentElement.style.display = enabled ? "" : "none";
+      sageStagePreset.parentElement.style.display = enabled ? "" : "none";
+      sageCustomStages.style.display = enabled && sageStagePreset.value === "custom"
+        ? ""
+        : "none";
     };
     const refreshTorchDetails = () => {
       torchDetails.style.display = torchCompileEnabled.checked ? "" : "none";
@@ -529,6 +705,26 @@ export function aioCreateAdvancedSettingsDialog(dependencies) {
       }
       daveCustomStages.style.display = daveStagePreset.value === "custom" ? "" : "none";
     };
+    const refreshSafePagStageScope = () => {
+      const preset = SAFE_PAG_STAGE_SCOPE_PRESETS[safePagStagePreset.value];
+      if (preset) {
+        safePagFirstPass.checked = preset.first_pass;
+        safePagHighres.checked = preset.highres;
+        safePagDetailer.checked = preset.detailer;
+        safePagUpscale.checked = preset.upscale;
+      }
+      safePagCustomStages.style.display = safePagStagePreset.value === "custom" ? "" : "none";
+    };
+    const refreshSageStageScope = () => {
+      const preset = SAGE_STAGE_SCOPE_PRESETS[sageStagePreset.value];
+      if (preset) {
+        sageFirstPass.checked = preset.first_pass;
+        sageHighres.checked = preset.highres;
+        sageDetailer.checked = preset.detailer;
+        sageUpscale.checked = preset.upscale;
+      }
+      refreshSageDetails();
+    };
     const setControlsDisabled = (controls, disabled) => {
       for (const control of controls) {
         if (control) {
@@ -584,6 +780,11 @@ export function aioCreateAdvancedSettingsDialog(dependencies) {
 
       const safePagMissing = !optionalDependencyAvailable("safePag");
       setControlsDisabled([
+        safePagStagePreset,
+        safePagFirstPass,
+        safePagHighres,
+        safePagDetailer,
+        safePagUpscale,
         safePagScale,
         safePagBlocks,
         safePagPerturbation,
@@ -625,7 +826,14 @@ export function aioCreateAdvancedSettingsDialog(dependencies) {
       }
 
       const kjSageMissing = !optionalDependencyAvailable("kjSage");
-      setControlsDisabled([sageAllowCompile], kjSageMissing);
+      setControlsDisabled([
+        sageAllowCompile,
+        sageStagePreset,
+        sageFirstPass,
+        sageHighres,
+        sageDetailer,
+        sageUpscale,
+      ], kjSageMissing);
       const kjSageMessage = aioFormat("warning.optionalDependencyMissing", {
         backend: "SageAttention",
         pack: optionalDependencyPack("kjSage"),
@@ -671,6 +879,8 @@ export function aioCreateAdvancedSettingsDialog(dependencies) {
       modelWarning.hidden = messages.length === 0;
       modelWarning.textContent = messages.join(" ");
       refreshDaveStageScope();
+      refreshSafePagStageScope();
+      refreshSageStageScope();
       refreshSageDetails();
       refreshTorchDetails();
     };
@@ -684,6 +894,7 @@ export function aioCreateAdvancedSettingsDialog(dependencies) {
     daveEnabled.addEventListener("change", () => guardToggle(daveEnabled, "dave", "Anima DAVE"));
     daveStagePreset.addEventListener("change", refreshDaveStageScope);
     safePagEnabled.addEventListener("change", () => guardToggle(safePagEnabled, "safePag", "Anima Safe PAG"));
+    safePagStagePreset.addEventListener("change", refreshSafePagStageScope);
     fp16Accum.addEventListener("change", () => guardToggle(fp16Accum, "kjFp16", "KJNodes FP16 accum"));
     sageAttention.addEventListener("change", () => {
       if (sageAttention.value !== "disabled" && !optionalDependencyAvailable("kjSage")) {
@@ -693,6 +904,7 @@ export function aioCreateAdvancedSettingsDialog(dependencies) {
       }
       refreshAdvancedDependencyLocks();
     });
+    sageStagePreset.addEventListener("change", refreshSageStageScope);
     torchCompileEnabled.addEventListener("change", () => guardToggle(
       torchCompileEnabled,
       "kjTorchCompile",
@@ -705,6 +917,8 @@ export function aioCreateAdvancedSettingsDialog(dependencies) {
       refreshNegPipDependency();
     });
     refreshDaveStageScope();
+    refreshSafePagStageScope();
+    refreshSageStageScope();
     refreshSageDetails();
     refreshTorchDetails();
     refreshNegPipDependency();
@@ -754,6 +968,15 @@ export function aioCreateAdvancedSettingsDialog(dependencies) {
           };
       next.model_patches.safe_pag ||= {};
       next.model_patches.safe_pag.enabled = safePagEnabled.checked && optionalDependencyAvailable("safePag");
+      const safePagPresetScope = SAFE_PAG_STAGE_SCOPE_PRESETS[safePagStagePreset.value];
+      next.model_patches.safe_pag.stage_scope = safePagPresetScope
+        ? { ...safePagPresetScope }
+        : {
+            first_pass: safePagFirstPass.checked,
+            highres: safePagHighres.checked,
+            detailer: safePagDetailer.checked,
+            upscale: safePagUpscale.checked,
+          };
       next.model_patches.safe_pag.scale = clampGeneratorNumber(safePagScale.value, 4.0, 0, 100);
       next.model_patches.safe_pag.block_indices = safePagBlocks.value || "18";
       next.model_patches.safe_pag.perturbation_strength = clampGeneratorNumber(
@@ -773,6 +996,15 @@ export function aioCreateAdvancedSettingsDialog(dependencies) {
         : "disabled";
       next.model_patches.kj.sage_allow_compile = sageAllowCompile.checked
         && optionalDependencyAvailable("kjSage");
+      const sagePresetScope = SAGE_STAGE_SCOPE_PRESETS[sageStagePreset.value];
+      next.model_patches.kj.sage_stage_scope = sagePresetScope
+        ? { ...sagePresetScope }
+        : {
+            first_pass: sageFirstPass.checked,
+            highres: sageHighres.checked,
+            detailer: sageDetailer.checked,
+            upscale: sageUpscale.checked,
+          };
       next.model_patches.kj.torch_compile.enabled = torchCompileEnabled.checked
         && optionalDependencyAvailable("kjTorchCompile");
       next.model_patches.kj.torch_compile.backend = torchCompileBackend.value || "inductor";

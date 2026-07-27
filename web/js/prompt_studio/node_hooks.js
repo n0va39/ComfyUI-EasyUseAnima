@@ -150,6 +150,7 @@ function registerPromptStudioNodeHooks(nodeType, nodeData, hooks) {
   nodeType.prototype.onConnectionsChange = function () {
     const result = onConnectionsChange?.apply(this, arguments);
     if (isAdvanced && !this.__easyuseAnimaHandlingConnectionsChange) {
+      hooks.markAdvancedConnectionChanged?.(this, arguments);
       this.__easyuseAnimaHandlingConnectionsChange = true;
       requestAnimationFrame(() => {
         try {
@@ -183,7 +184,7 @@ function registerPromptStudioNodeHooks(nodeType, nodeData, hooks) {
     nodeType.prototype.onExecuted = function (message) {
       onExecuted?.apply(this, arguments);
       if (isAdvanced) {
-        hooks.publishAdvancedWildcardExecution(this, message);
+        hooks.publishAdvancedExecution(this, message);
       } else {
         hooks.applyWildcardExecutedInputs(this, message);
       }

@@ -14,7 +14,12 @@ from .generation_migrations import (
     AIO_MODEL_PATCH_ORDER_REVISION,
     AIO_MODEL_PATCH_PRECEDENCE,
 )
-from .model_preparation import _aio_lora_stack_signature
+from .model_preparation import (
+    _aio_lora_stack_signature,
+    _aio_safe_pag_in_stage,
+    _aio_sage_attention_in_stage,
+    _aio_sage_attention_mode,
+)
 from .negpip import _aio_negpip_cache_signature
 
 AIO_FIRST_PASS_CACHE_MAX_ENTRIES = 2
@@ -284,11 +289,11 @@ def _aio_first_pass_model_patch_plan(model_patches) -> dict[str, Any]:
     if isinstance(kj, dict):
         if bool(kj.get("fp16_accumulation")):
             patches["kj.fp16_accumulation"] = {"enabled": True}
-        sage_attention = str(kj.get("sage_attention") or "disabled")
-        if sage_attention != "disabled":
+        if _aio_sage_attention_in_stage(kj, "first_pass"):
             patches["kj.sage_attention"] = {
-                "mode": sage_attention,
+                "mode": _aio_sage_attention_mode(kj),
                 "allow_compile": bool(kj.get("sage_allow_compile")),
+                "stage_scope": {"first_pass": True},
             }
         torch_compile = kj.get("torch_compile")
         if isinstance(torch_compile, dict) and bool(torch_compile.get("enabled")):
@@ -323,7 +328,10 @@ def _aio_first_pass_model_patch_plan(model_patches) -> dict[str, Any]:
             }
 
     safe_pag = source.get("safe_pag")
-    if isinstance(safe_pag, dict) and bool(safe_pag.get("enabled")):
+    if isinstance(safe_pag, dict) and _aio_safe_pag_in_stage(
+        safe_pag,
+        "first_pass",
+    ):
         patches["safe_pag"] = {
             key: safe_pag.get(key)
             for key in (
@@ -337,6 +345,7 @@ def _aio_first_pass_model_patch_plan(model_patches) -> dict[str, Any]:
                 "rescale_mode",
             )
         }
+        patches["safe_pag"]["stage_scope"] = {"first_pass": True}
 
     return {
         "order_revision": AIO_MODEL_PATCH_ORDER_REVISION,

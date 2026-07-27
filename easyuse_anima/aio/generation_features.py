@@ -110,13 +110,14 @@ class AIOGenerationSafePAGConfig:
     end_percent: JsonNumber
     rescale: JsonNumber
     rescale_mode: str
+    stage_scope: AIOGenerationStageScopeConfig
 
     @classmethod
     def from_value(cls, value: object, key: str) -> AIOGenerationSafePAGConfig:
         source = expect_object(value, key)
         known = (
             "enabled", "scale", "block_indices", "perturbation_strength", "head_indices",
-            "start_percent", "end_percent", "rescale", "rescale_mode",
+            "start_percent", "end_percent", "rescale", "rescale_mode", "stage_scope",
         )
         return cls(
             state=ObjectState.from_source(source, known),
@@ -131,6 +132,10 @@ class AIOGenerationSafePAGConfig:
             end_percent=expect_number(required(source, "end_percent"), f"{key}.end_percent"),
             rescale=expect_number(required(source, "rescale"), f"{key}.rescale"),
             rescale_mode=expect_str(required(source, "rescale_mode"), f"{key}.rescale_mode"),
+            stage_scope=AIOGenerationStageScopeConfig.from_value(
+                required(source, "stage_scope"),
+                f"{key}.stage_scope",
+            ),
         )
 
     def to_dict(self) -> dict[str, object]:
@@ -141,6 +146,7 @@ class AIOGenerationSafePAGConfig:
             "head_indices": self.head_indices, "start_percent": self.start_percent,
             "end_percent": self.end_percent, "rescale": self.rescale,
             "rescale_mode": self.rescale_mode,
+            "stage_scope": self.stage_scope.to_dict(),
         })
 
 
@@ -204,12 +210,19 @@ class AIOGenerationKJConfig:
     fp16_accumulation: bool
     sage_attention: str
     sage_allow_compile: bool
+    sage_stage_scope: AIOGenerationStageScopeConfig
     torch_compile: AIOGenerationTorchCompileConfig
 
     @classmethod
     def from_value(cls, value: object, key: str) -> AIOGenerationKJConfig:
         source = expect_object(value, key)
-        known = ("fp16_accumulation", "sage_attention", "sage_allow_compile", "torch_compile")
+        known = (
+            "fp16_accumulation",
+            "sage_attention",
+            "sage_allow_compile",
+            "sage_stage_scope",
+            "torch_compile",
+        )
         return cls(
             state=ObjectState.from_source(source, known),
             fp16_accumulation=expect_bool(
@@ -218,6 +231,10 @@ class AIOGenerationKJConfig:
             sage_attention=expect_str(required(source, "sage_attention"), f"{key}.sage_attention"),
             sage_allow_compile=expect_bool(
                 required(source, "sage_allow_compile"), f"{key}.sage_allow_compile"
+            ),
+            sage_stage_scope=AIOGenerationStageScopeConfig.from_value(
+                required(source, "sage_stage_scope"),
+                f"{key}.sage_stage_scope",
             ),
             torch_compile=AIOGenerationTorchCompileConfig.from_value(
                 required(source, "torch_compile"), f"{key}.torch_compile"
@@ -229,6 +246,7 @@ class AIOGenerationKJConfig:
             "fp16_accumulation": self.fp16_accumulation,
             "sage_attention": self.sage_attention,
             "sage_allow_compile": self.sage_allow_compile,
+            "sage_stage_scope": self.sage_stage_scope.to_dict(),
             "torch_compile": self.torch_compile.to_dict(),
         })
 

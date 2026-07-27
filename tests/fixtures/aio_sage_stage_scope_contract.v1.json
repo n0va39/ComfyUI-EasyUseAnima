@@ -1,0 +1,170 @@
+{
+  "schema": "easyuse_anima_aio_sage_stage_scope_contract",
+  "version": 1,
+  "decision": "FEASIBLE",
+  "upstream": {
+    "repository": "kijai/ComfyUI-KJNodes",
+    "pinned_commit": "e27a505b3ba6ce42687fe00500deda103d9d6071",
+    "verified_current_commit": "bb131be9e83d2f773c90f1d6f1e4b248a498c8c5",
+    "node_id": "PathchSageAttentionKJ",
+    "function": "patch",
+    "experimental": true,
+    "model_options_path": ["transformer_options", "optimized_attention_override"]
+  },
+  "node_contract": {
+    "required_inputs": ["model", "sage_attention"],
+    "optional_inputs": ["allow_compile"],
+    "patch_parameters": ["model", "sage_attention", "allow_compile"],
+    "allow_compile_default": false,
+    "sage_modes": [
+      "disabled",
+      "auto",
+      "sageattn_qk_int8_pv_fp16_cuda",
+      "sageattn_qk_int8_pv_fp16_triton",
+      "sageattn_qk_int8_pv_fp8_cuda",
+      "sageattn_qk_int8_pv_fp8_cuda++",
+      "sageattn3",
+      "sageattn3_per_block_mean"
+    ],
+    "drift_policy": "fail-closed-before-patch"
+  },
+  "stage_ids": ["first_pass", "highres", "detailer", "upscale"],
+  "fresh_stage_scope": {
+    "first_pass": true,
+    "highres": false,
+    "detailer": false,
+    "upscale": false
+  },
+  "legacy_missing_scope": {
+    "first_pass": true,
+    "highres": true,
+    "detailer": true,
+    "upscale": true
+  },
+  "malformed_scope": {
+    "policy": "fail-closed-all-disabled",
+    "expected": {
+      "first_pass": false,
+      "highres": false,
+      "detailer": false,
+      "upscale": false
+    }
+  },
+  "scope_cases": [
+    {
+      "id": "disabled",
+      "mode": "disabled",
+      "scope": {
+        "first_pass": true,
+        "highres": true,
+        "detailer": true,
+        "upscale": true
+      },
+      "selected_stages": []
+    },
+    {
+      "id": "fresh-first-pass-only",
+      "mode": "auto",
+      "scope": {
+        "first_pass": true,
+        "highres": false,
+        "detailer": false,
+        "upscale": false
+      },
+      "selected_stages": ["first_pass"]
+    },
+    {
+      "id": "legacy-missing-scope",
+      "mode": "auto",
+      "scope_missing": true,
+      "selected_stages": ["first_pass", "highres", "detailer", "upscale"]
+    },
+    {
+      "id": "custom-highres-detailer",
+      "mode": "sageattn3",
+      "scope": {
+        "first_pass": false,
+        "highres": true,
+        "detailer": true,
+        "upscale": false,
+        "future_stage": true
+      },
+      "selected_stages": ["highres", "detailer"]
+    },
+    {
+      "id": "malformed-explicit-scope",
+      "mode": "auto",
+      "scope": "all",
+      "selected_stages": []
+    }
+  ],
+  "non_sampling_ids": ["res_shift", "postprocess", "save"],
+  "clone_contract": {
+    "selected_stage_requires_clone": true,
+    "model_options_copy": "deep-list-dict-with-leaf-identity",
+    "external_lookup": "selected-stage-only",
+    "base_model_mutation": false,
+    "sibling_variant_leak": false,
+    "override_identity": "clone-local",
+    "exception_cleanup": "discard-stage-clone",
+    "repeated_queue_cleanup_owner": "existing-run-lifecycle"
+  },
+  "allow_compile": {
+    "false": {
+      "compiler_disable_wrapper": true,
+      "eager_torch_compile_calls": 0
+    },
+    "true": {
+      "compiler_disable_wrapper": false,
+      "eager_torch_compile_calls": 0,
+      "downstream_trace_permitted": true
+    },
+    "shared_compile_registry_owner": false
+  },
+  "precedence": {
+    "dave_selected_chain": [
+      "aura_flow",
+      "kj.torch_compile",
+      "dave",
+      "safe_pag",
+      "kj.fp16_accumulation",
+      "kj.sage_attention"
+    ],
+    "dave_unselected_chain": [
+      "aura_flow",
+      "safe_pag",
+      "kj.fp16_accumulation",
+      "kj.sage_attention",
+      "kj.torch_compile"
+    ],
+    "fixed_edges": [
+      ["dave", "safe_pag"],
+      ["safe_pag", "kj.sage_attention"],
+      ["kj.fp16_accumulation", "kj.sage_attention"]
+    ],
+    "torch_compile_pairwise": "preserve-current-dave-dependent-order"
+  },
+  "ownership": {
+    "generic_patch_registry": false,
+    "generic_scope_ui": false,
+    "feature_payload_owner": "sage-attention-adapter",
+    "fp16_accumulation_scope": "run-global",
+    "torch_compile_scope": "run-wide",
+    "public_socket_or_workflow_schema_change": false
+  },
+  "handoff": {
+    "next": "AIO-SAGE-02",
+    "goal": "backend-stage-plan-and-first-pass-cache",
+    "allowed_production_files": [
+      "easyuse_anima/aio/model_preparation.py",
+      "easyuse_anima/aio/first_pass_cache.py"
+    ],
+    "forbidden": [
+      "schema-settings-ui-cutover",
+      "fp16-stage-scope",
+      "torch-compile-stage-scope",
+      "generic-patch-registry",
+      "public-socket-or-workflow-change"
+    ]
+  }
+}

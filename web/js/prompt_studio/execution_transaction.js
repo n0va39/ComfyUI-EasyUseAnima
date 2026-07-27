@@ -1,11 +1,5 @@
 // @ts-check
 
-const WILDCARD_SEED_CONTROL_SURFACE = "prompt.wildcard_seed_control";
-const WILDCARD_HISTORY_SURFACE = "prompt.wildcard_history";
-const EDITABLE_WIDGET_NAMES = Object.freeze([
-  "wildcard_seed",
-  "wildcard_seed_after_generate",
-]);
 const WIDGET_CALLBACK_OWNER = Symbol.for(
   "easyuse-anima.prompt-studio.wildcard-seed-callback-owner",
 );
@@ -19,25 +13,70 @@ function isReference(value) {
   );
 }
 
+/** @param {unknown} value */
+function normalizeSurface(value) {
+  return typeof value === "string" && value.trim() !== ""
+    ? value.trim()
+    : null;
+}
+
 /**
- * Bind Prompt Studio's concrete next-seed publication to the shared queue UI
- * transaction contract. Seed values and controls remain feature-owned; the
- * shared owner sees only an opaque surface token and its revision.
+ * @param {unknown} value
+ * @returns {Array<{
+ *   surface: string,
+ *   commit: (context: { transaction: any, envelope: any }) => unknown,
+ * }> | null}
+ */
+function normalizeCommitters(value) {
+  if (value == null) {
+    return [];
+  }
+  if (!Array.isArray(value)) {
+    return null;
+  }
+  const surfaces = new Set();
+  const committers = [];
+  for (const candidate of value) {
+    const surface = normalizeSurface(candidate?.surface);
+    if (
+      surface == null
+      || surfaces.has(surface)
+      || typeof candidate?.commit !== "function"
+    ) {
+      return null;
+    }
+    surfaces.add(surface);
+    committers.push({ surface, commit: candidate.commit });
+  }
+  return committers;
+}
+
+/**
+ * Bind Prompt Studio feature-owned surfaces to the shared queue UI transaction
+ * and executed-envelope contracts. Surface strings, edit bindings, and commit
+ * callbacks remain opaque; this lifecycle does not parse feature payloads.
  *
  * @param {{
  *   owner: ReturnType<import("../lifecycle/queue_ui_transaction.js").createQueueUiTransactionOwner>,
  *   executedContext: ReturnType<import("../lifecycle/executed_event_context.js").createExecutedEventContext>,
- *   findWidget: (node: any, name: string) => any,
+ *   findWidget?: ((node: any, name: string) => any) | null,
+ *   editBindings?: Array<{ widgetNames: string[], surfaces: string[] }>,
  * }} options
  */
-function createPromptStudioWildcardSeedTransaction(options) {
-  const { owner, executedContext, findWidget } = options || {};
+function createPromptStudioExecutionTransaction(options) {
+  const {
+    owner,
+    executedContext,
+    findWidget = null,
+    editBindings = [],
+  } = options || {};
   if (
     !owner
     || !executedContext
-    || typeof findWidget !== "function"
+    || !Array.isArray(editBindings)
+    || (editBindings.length > 0 && typeof findWidget !== "function")
   ) {
-    throw new TypeError("Prompt Studio wildcard transaction dependencies are required.");
+    throw new TypeError("Prompt Studio execution transaction dependencies are required.");
   }
 
   let disposed = false;
@@ -85,57 +124,69 @@ function createPromptStudioWildcardSeedTransaction(options) {
     }
   }
 
+  /** @param {any} node @param {unknown} surfaces */
+  function markEdited(node, surfaces) {
+    return !disposed && owner.markEdited(node, surfaces);
+  }
+
   /** @param {any} node */
   function hookNode(node) {
     if (disposed || !isReference(node)) {
       return false;
     }
     let changed = false;
-    for (const name of EDITABLE_WIDGET_NAMES) {
-      const widget = findWidget(node, name);
-      if (!widget || typeof widget !== "object") {
+    for (const binding of editBindings) {
+      if (
+        !Array.isArray(binding?.widgetNames)
+        || !Array.isArray(binding?.surfaces)
+      ) {
         continue;
       }
-      const current = widget.callback;
-      const callbackState = current?.[WIDGET_CALLBACK_OWNER];
-      if (callbackState?.runtime === runtime) {
-        continue;
-      }
-      const original = callbackState?.original ?? current;
-      const wrapped = function (...args) {
-        try {
-          return typeof original === "function"
-            ? original.apply(this, args)
-            : undefined;
-        } finally {
-          if (!disposed) {
-            owner.markEdited(node, [WILDCARD_SEED_CONTROL_SURFACE]);
-          }
+      for (const name of binding.widgetNames) {
+        const widget = findWidget?.(node, name);
+        if (!widget || typeof widget !== "object") {
+          continue;
         }
-      };
-      Object.defineProperty(wrapped, WIDGET_CALLBACK_OWNER, {
-        value: { runtime, original },
-      });
-      widget.callback = wrapped;
-      changed = true;
+        const current = widget.callback;
+        const callbackState = current?.[WIDGET_CALLBACK_OWNER];
+        if (callbackState?.runtime === runtime) {
+          continue;
+        }
+        const original = callbackState?.original ?? current;
+        const wrapped = function (...args) {
+          try {
+            return typeof original === "function"
+              ? original.apply(this, args)
+              : undefined;
+          } finally {
+            markEdited(node, binding.surfaces);
+          }
+        };
+        Object.defineProperty(wrapped, WIDGET_CALLBACK_OWNER, {
+          value: { runtime, original },
+        });
+        widget.callback = wrapped;
+        changed = true;
+      }
     }
     return changed;
   }
 
-  /** @param {any[]} nodes */
-  function captureQueue(nodes) {
-    if (disposed || !Array.isArray(nodes)) {
+  /** @param {Array<{ node: any, surfaces: string[] }>} entries */
+  function captureQueue(entries) {
+    if (disposed || !Array.isArray(entries)) {
       return [];
     }
     const captured = [];
-    for (const node of nodes) {
+    for (const entry of entries) {
+      const node = entry?.node;
       if (!isReference(node)) {
         continue;
       }
       hookNode(node);
       const transaction = owner.captureProvisional({
         node,
-        surfaces: [WILDCARD_SEED_CONTROL_SURFACE],
+        surfaces: entry.surfaces,
       });
       if (transaction) {
         remember(node, transaction);
@@ -178,7 +229,14 @@ function createPromptStudioWildcardSeedTransaction(options) {
   /**
    * @param {any} node
    * @param {any} transaction
-   * @param {{ envelope: any, mappedItemCount: number, commit?: (() => unknown) | null }} pending
+   * @param {{
+   *   envelope: any,
+   *   mappedItemCount: number,
+   *   committers: Array<{
+   *     surface: string,
+   *     commit: (context: { transaction: any, envelope: any }) => unknown,
+   *   }> | null,
+   * }} pending
    */
   function finishExecution(node, transaction, pending) {
     if (transaction.promptId !== pending.envelope.promptId) {
@@ -186,18 +244,22 @@ function createPromptStudioWildcardSeedTransaction(options) {
       forget(node, transaction);
       return false;
     }
-    const canCommit = owner.canCommit(transaction, {
-      envelope: pending.envelope,
-      node,
-      surface: WILDCARD_SEED_CONTROL_SURFACE,
-      mappedItemCount: pending.mappedItemCount,
-    });
-    let committed = canCommit;
-    if (canCommit && typeof pending.commit === "function") {
+    let committed = false;
+    for (const committer of pending.committers || []) {
+      const canCommit = owner.canCommit(transaction, {
+        envelope: pending.envelope,
+        node,
+        surface: committer.surface,
+        mappedItemCount: pending.mappedItemCount,
+      });
+      if (!canCommit) {
+        continue;
+      }
       try {
-        pending.commit();
+        const result = committer.commit({ transaction, envelope: pending.envelope });
+        committed = result !== false || committed;
       } catch {
-        committed = false;
+        // One feature commit failure must not block independent surfaces.
       }
     }
     owner.settle(transaction, pending.envelope);
@@ -207,15 +269,22 @@ function createPromptStudioWildcardSeedTransaction(options) {
 
   /**
    * Consume only the exact output object captured from ComfyUI's outer
-   * `executed` event. Multiple mapped payloads settle the transaction but are
-   * never allowed to publish an editable next seed.
+   * `executed` event, fan out feature-owned callbacks, then settle once.
    *
    * @param {any} node
    * @param {unknown} output
    * @param {number} mappedItemCount
-   * @param {(() => unknown) | null} [commit]
+   * @param {Array<{
+   *   surface: string,
+   *   commit: (context: { transaction: any, envelope: any }) => unknown,
+   * }> | null} [committers]
    */
-  async function consumeExecution(node, output, mappedItemCount, commit = null) {
+  async function consumeExecution(
+    node,
+    output,
+    mappedItemCount,
+    committers = [],
+  ) {
     if (disposed || !isReference(node)) {
       return false;
     }
@@ -223,6 +292,7 @@ function createPromptStudioWildcardSeedTransaction(options) {
     if (!envelope || disposed || !isReference(node)) {
       return false;
     }
+    const normalizedCommitters = normalizeCommitters(committers);
     const active = activeTransactions(node);
     const matches = active.filter(
       (transaction) => transaction.state === "accepted"
@@ -232,7 +302,7 @@ function createPromptStudioWildcardSeedTransaction(options) {
       return finishExecution(node, matches[0], {
         envelope,
         mappedItemCount,
-        commit,
+        committers: normalizedCommitters,
       });
     }
     const provisional = active.filter(
@@ -244,7 +314,7 @@ function createPromptStudioWildcardSeedTransaction(options) {
     pendingExecutions.set(provisional[0], {
       envelope,
       mappedItemCount,
-      commit,
+      committers: normalizedCommitters,
     });
     return false;
   }
@@ -302,12 +372,11 @@ function createPromptStudioWildcardSeedTransaction(options) {
     disposeNode,
     finishPrompt,
     hookNode,
+    markEdited,
   });
   return runtime;
 }
 
 export {
-  WILDCARD_HISTORY_SURFACE,
-  WILDCARD_SEED_CONTROL_SURFACE,
-  createPromptStudioWildcardSeedTransaction,
+  createPromptStudioExecutionTransaction,
 };

@@ -1,0 +1,753 @@
+{
+  "manifest_version": 1,
+  "settings": {
+    "schema": "easyuse_anima_aio_generation_settings",
+    "version": 4
+  },
+  "owner": "easyuse_anima.aio.generation_settings",
+  "contract_kind": "normalized-settings-manifest",
+  "description": "Golden v4 contract for normalized AiO generation settings, feature-owned DAVE, Safe PAG, and SageAttention stage scopes, and compatibility migrations. Runtime code does not import this file.",
+  "coercions": {
+    "backend_boolean": {
+      "true_strings": ["true", "1", "yes", "on", "enable", "enabled"],
+      "other_strings": false,
+      "null": "default",
+      "non_strings": "python-bool",
+      "list_or_tuple": "first-value",
+      "empty_list_or_tuple": "default"
+    },
+    "frontend_boolean": {
+      "true_strings": ["true", "1", "yes", "on"],
+      "false_strings": ["false", "0", "no", "off"],
+      "other_strings": "javascript-truthiness",
+      "null": "default",
+      "non_strings": "javascript-truthiness"
+    },
+    "backend_integer": {
+      "operation": "python-int",
+      "invalid": "default",
+      "list_or_tuple": "first-value"
+    },
+    "backend_number": {
+      "operation": "python-float",
+      "invalid": "default",
+      "list_or_tuple": "first-value"
+    },
+    "frontend_number": {
+      "operation": "javascript-number-then-trunc-when-integer",
+      "invalid": "default"
+    },
+    "choice": {
+      "operation": "trimmed-string-exact-membership",
+      "invalid": {
+        "static_enum": "default",
+        "dynamic_enum": {
+          "policy": "default-if-present-else-first",
+          "preferred_default_present": "default",
+          "preferred_default_absent": "first-capability",
+          "empty_capabilities": "default"
+        }
+      },
+      "list_or_tuple": "first-value"
+    },
+    "string-then-choice": {
+      "backend": {
+        "operation": [
+          "python-str-of-value-or-field-default",
+          "trimmed-string-exact-membership"
+        ],
+        "null_or_falsy": "field-default",
+        "list_or_tuple": "python-str-whole-value",
+        "whitespace": "trim-before-membership",
+        "invalid": "default"
+      },
+      "frontend": {
+        "operation": "not-normalized-by-default-merge"
+      }
+    },
+    "mod-guidance-profile": {
+      "backend": {
+        "operation": "python-str-of-value-or-field-default-then-exact-membership",
+        "null_or_falsy": "field-default",
+        "list_or_tuple": "python-str-whole-value",
+        "whitespace": "preserve",
+        "case": "preserve",
+        "invalid": "default"
+      },
+      "frontend": {
+        "operation": "not-normalized-by-default-merge"
+      }
+    },
+    "constant": {
+      "backend": {
+        "operation": "replace-with-contract-const"
+      },
+      "frontend": {
+        "operation": "not-coerced-by-default-merge",
+        "incoming_value": "preserve"
+      }
+    },
+    "string-or-default": {
+      "backend": {
+        "operation": "python-str-of-value-or-field-default",
+        "null_or_falsy": "field-default",
+        "list_or_tuple": "python-str-whole-value"
+      },
+      "frontend": {
+        "operation": "not-normalized-by-default-merge"
+      }
+    },
+    "string": {
+      "backend": {
+        "operation": "python-str-of-value-or-empty",
+        "null_or_falsy": "empty-string",
+        "list_or_tuple": "python-str-whole-value"
+      },
+      "frontend": {
+        "operation": "not-normalized-by-default-merge"
+      }
+    },
+    "trimmed-string": {
+      "backend": {
+        "operation": "python-str-of-value-or-empty-then-strip",
+        "null_or_falsy": "empty-string"
+      },
+      "frontend": {
+        "operation": "not-normalized-by-default-merge"
+      }
+    },
+    "hash-bundle-string": {
+      "backend": {
+        "operation": "python-str-of-value-or-empty-then-strip-character-set",
+        "strip_characters": [" ", ",", "\n", "\r", "\t"],
+        "empty_after_strip": "omit-item"
+      },
+      "frontend": {
+        "operation": "not-normalized-by-default-merge"
+      }
+    },
+    "string-list": {
+      "backend": {
+        "string_input": {
+          "operation": "json-decode",
+          "decode_error": "single-original-string-item"
+        },
+        "non_list": "empty-list",
+        "item_coercion": "hash-bundle-string",
+        "empty_items": "omit"
+      },
+      "frontend": {
+        "operation": "not-normalized-by-default-merge"
+      }
+    },
+    "civitai-fetcher-list": {
+      "backend": {
+        "string_input": {
+          "operation": "json-decode",
+          "decode_error": "empty-list"
+        },
+        "non_list": "empty-list",
+        "non_object_items": "omit",
+        "unknown_item_fields": "discard",
+        "empty_identity_items": "omit"
+      },
+      "frontend": {
+        "operation": "not-normalized-by-default-merge"
+      }
+    },
+    "detailer-order": {
+      "backend": {
+        "input_container": "list-only",
+        "items": "trim-deduplicate-and-keep-valid-target-names",
+        "object_target_fields": "append-valid-dict-valued-target-names",
+        "required_tail": ["face", "eye"]
+      },
+      "frontend": {
+        "operation": "not-normalized-by-default-merge"
+      }
+    },
+    "json-object-or-empty": {
+      "backend": {
+        "object": "json-clone",
+        "non_object": "empty-object"
+      },
+      "frontend": {
+        "operation": "not-normalized-by-default-merge"
+      }
+    },
+    "surface-specific-seed": {
+      "backend": {
+        "operation": "backend_integer-then-clamp",
+        "minimum": -3,
+        "maximum": "18446744073709551615"
+      },
+      "frontend": {
+        "operation": "javascript-number-then-trunc-and-clamp",
+        "invalid": "supplied-fallback",
+        "minimum": -3,
+        "maximum": 1125899906842624
+      }
+    }
+  },
+  "policies": {
+    "unknown_fields": {
+      "backend": {
+        "mode": "preserve-recursively",
+        "removed_known_legacy_paths": [
+          "/sampler/dave",
+          "/model_patches/aura_flow/enabled",
+          "/upscale/fit",
+          "/save/filename_prefix",
+          "/save/image_saver/show_preview"
+        ]
+      },
+      "frontend_default_merge": {
+        "mode": "preserve-recursively"
+      },
+      "frontend_visible_merge": {
+        "mode": "preserve-recursively-with-known-removals",
+        "removed_paths": [
+          "/sampler/dave",
+          "/model_patches/aura_flow/enabled",
+          "/highres/backend",
+          "/save/filename_prefix",
+          "/save/image_saver/show_preview"
+        ]
+      }
+    },
+    "deprecated_aliases": [
+      {
+        "path": "/upscale/fit",
+        "replacement": "/postprocess/fit",
+        "mode": "in-memory-copy-then-remove",
+        "precedence": "explicit-non-default-postprocess-wins",
+        "enabled_replacement": "/postprocess/enabled"
+      },
+      {
+        "path": "/upscale/usdu/prompt_mode",
+        "value": "quality_tags_only",
+        "replacement_value": "no_general",
+        "mode": "in-memory-value-alias"
+      },
+      {
+        "path": "/sampler/dave",
+        "replacement": "/model_patches/dave",
+        "mode": "remove-obsolete-path"
+      },
+      {
+        "path": "/model_patches/aura_flow/enabled",
+        "replacement": null,
+        "mode": "remove-obsolete-path"
+      },
+      {
+        "path": "/save/filename_prefix",
+        "replacement": "/save/image_saver/path + /save/image_saver/filename",
+        "mode": "remove-obsolete-path"
+      },
+      {
+        "path": "/save/image_saver/show_preview",
+        "replacement": "/preview",
+        "mode": "remove-obsolete-path"
+      }
+    ],
+    "version_migrations": [
+      {
+        "from": 1,
+        "to": 2,
+        "owner": "easyuse_anima.aio.generation_migrations",
+        "mode": "pure-in-memory",
+        "missing_dave_stage_scope": "legacy-all-sampling-stages"
+      },
+      {
+        "from": 2,
+        "to": 3,
+        "owner": "easyuse_anima.aio.generation_migrations",
+        "mode": "pure-in-memory",
+        "missing_safe_pag_stage_scope": "legacy-all-sampling-stages"
+      },
+      {
+        "from": 3,
+        "to": 4,
+        "owner": "easyuse_anima.aio.generation_migrations",
+        "mode": "pure-in-memory",
+        "missing_sage_stage_scope": "legacy-all-sampling-stages"
+      }
+    ],
+    "model_patch_contract": {
+      "sampling_stage_ids": ["first_pass", "highres", "detailer", "upscale"],
+      "patch_order_revision": 2,
+      "precedence_edges": [["kj.torch_compile", "dave"], ["dave", "safe_pag"]],
+      "dave_fresh_default": "first-pass-only",
+      "safe_pag_fresh_default": "first-pass-only",
+      "sage_fresh_default": "first-pass-only",
+      "execution_cutover": "complete-through-AIO-SAGE-03",
+      "stage_scope_policy": {
+        "generic_scope_ui": false,
+        "owners": {
+          "dave": {
+            "decision": "supported",
+            "stages": ["first_pass", "highres", "detailer", "upscale"]
+          },
+          "safe_pag": {
+            "decision": "supported",
+            "stages": ["first_pass", "highres", "detailer", "upscale"]
+          },
+          "kj.fp16_accumulation": {
+            "decision": "run-global-not-stage-scoped",
+            "reason": "process-global-torch-setting-callback"
+          },
+          "kj.sage_attention": {
+            "decision": "supported",
+            "stages": ["first_pass", "highres", "detailer", "upscale"],
+            "owner_field": "sage_stage_scope"
+          },
+          "kj.torch_compile": {
+            "decision": "run-global-not-stage-scoped",
+            "reason": "shared-base-model-compile-registry-and-dynamo-config"
+          }
+        }
+      }
+    },
+    "persistence": {
+      "write_on_read": false,
+      "runtime_normalization": "in-memory-only",
+      "future_version_migrations": "explicit-pure-functions"
+    },
+    "dynamic_capabilities": {
+      "owned_by_manifest": false,
+      "sources": {
+        "comfy.samplers": "_comfy_sampler_names",
+        "comfy.schedulers": "_comfy_scheduler_names",
+        "impact.schedulers": "_impact_scheduler_names",
+        "comfy.max_resolution": "_comfy_max_resolution"
+      }
+    },
+    "known_surface_drift": [
+      {
+        "path": "/highres/backend",
+        "backend": "preserved-as-unknown",
+        "frontend_visible_merge": "removed"
+      },
+      {
+        "path": "/sampler/seed",
+        "backend_maximum": "18446744073709551615",
+        "frontend_maximum": 1125899906842624
+      },
+      {
+        "path": "boolean-coercion",
+        "backend": "backend_boolean",
+        "frontend": "frontend_boolean"
+      },
+      {
+        "path": "integer-coercion",
+        "backend": "backend_integer",
+        "frontend": "frontend_number"
+      }
+    ]
+  },
+  "definitions": {
+    "json_value": {
+      "one_of": [
+        {"type": "null"},
+        {"type": "boolean"},
+        {"type": "number"},
+        {"type": "string"},
+        {"type": "array", "items": {"$ref": "#/definitions/json_value"}},
+        {"type": "object", "additional_properties": {"$ref": "#/definitions/json_value"}}
+      ]
+    },
+    "detailer_target_name": {
+      "type": "string",
+      "coercion": "trimmed-string",
+      "any_of": [
+        {"enum": ["face", "eye"]},
+        {"pattern": "^custom_[0-9]+$"}
+      ]
+    },
+    "civitai_hash_fetcher": {
+      "type": "object",
+      "unknown_fields": "discard",
+      "required": ["enabled", "username", "model_name", "version"],
+      "omit_if": "username-model_name-version-all-empty",
+      "fields": {
+        "enabled": {"type": "boolean", "coercion": "backend_boolean", "default": true},
+        "username": {"type": "string", "coercion": "trimmed-string", "default": ""},
+        "model_name": {"type": "string", "coercion": "trimmed-string", "default": ""},
+        "version": {"type": "string", "coercion": "trimmed-string", "default": ""}
+      }
+    },
+    "spectrum": {
+      "type": "object",
+      "unknown_fields": "preserve",
+      "fields": {
+        "enabled": {"type": "boolean", "coercion": "backend_boolean"},
+        "window_size": {"type": "number", "coercion": "backend_number", "minimum": 1.0, "maximum": 10.0},
+        "flex_window": {"type": "number", "coercion": "backend_number", "minimum": 0.0, "maximum": 2.0},
+        "warmup_steps": {"type": "integer", "coercion": "backend_integer", "minimum": 0, "maximum": 10000},
+        "tail_actual_steps": {"type": "integer", "coercion": "backend_integer", "minimum": 0, "maximum": 10000},
+        "blend_w": {"type": "number", "coercion": "backend_number", "minimum": 0.0, "maximum": 1.0},
+        "cheby_degree": {"type": "integer", "coercion": "backend_integer", "minimum": 1, "maximum": 10},
+        "ridge_lambda": {"type": "number", "coercion": "backend_number", "minimum": 0.001, "maximum": 10.0},
+        "history_size": {"type": "integer", "coercion": "backend_integer", "minimum": 5, "maximum": 10000},
+        "one_sampler_only": {"type": "boolean", "coercion": "backend_boolean"},
+        "verbose": {"type": "boolean", "coercion": "backend_boolean"},
+        "compat_policy": {"type": "string", "coercion": "choice", "enum": ["legacy", "conservative", "strict"]}
+      }
+    },
+    "dit_corrections": {
+      "type": "object",
+      "unknown_fields": "preserve",
+      "fields": {
+        "enabled": {"type": "boolean", "coercion": "backend_boolean"},
+        "dcw_mode": {"type": "string", "coercion": "choice", "enum": ["off", "manual", "auto"]},
+        "dcw_lambda": {"type": "number", "coercion": "backend_number", "minimum": -1.0, "maximum": 1.0},
+        "dcw_band_mask": {"type": "string", "coercion": "choice", "enum": ["LL", "all", "HH", "LH+HL+HH"]},
+        "dcw_calibrator": {"type": "string", "coercion": "string-or-default"},
+        "smc_cfg": {"type": "boolean", "coercion": "backend_boolean"},
+        "adaptive_smc_alpha": {"type": "number", "coercion": "backend_number", "minimum": 0.0, "maximum": 1.0},
+        "smc_cfg_lambda": {"type": "number", "coercion": "backend_number", "minimum": 0.0, "maximum": 20.0},
+        "cfgpp": {"type": "boolean", "coercion": "backend_boolean"},
+        "cfgpp_lambda": {"type": "number", "coercion": "backend_number", "minimum": 0.0, "maximum": 8.0},
+        "fsg": {"type": "boolean", "coercion": "backend_boolean"},
+        "fsg_band_lo": {"type": "number", "coercion": "backend_number", "minimum": 0.0, "maximum": 1.0},
+        "fsg_band_hi": {"type": "number", "coercion": "backend_number", "minimum": 0.0, "maximum": 1.0},
+        "fsg_k": {"type": "integer", "coercion": "backend_integer", "minimum": 0, "maximum": 32},
+        "fsg_d_sigma": {"type": "number", "coercion": "backend_number", "minimum": 0.0, "maximum": 1.0},
+        "fsg_gamma": {"type": "number", "coercion": "backend_number", "minimum": 0.0, "maximum": 10.0},
+        "replace_existing_cfg": {"type": "boolean", "coercion": "backend_boolean"}
+      }
+    },
+    "detailer_target": {
+      "type": "object",
+      "unknown_fields": "preserve",
+      "fields": {
+        "label": {"type": "string", "coercion": "string-or-default"},
+        "enabled": {"type": "boolean", "coercion": "backend_boolean"},
+        "detect_prompt": {"type": "string", "coercion": "string-or-default"},
+        "detect_count": {"type": "integer", "coercion": "backend_integer", "minimum": 1, "maximum": 20},
+        "threshold": {"type": "number", "coercion": "backend_number", "minimum": 0.0, "maximum": 1.0},
+        "refine_iterations": {"type": "integer", "coercion": "backend_integer", "minimum": 0, "maximum": 16},
+        "individual_masks": {"type": "boolean", "coercion": "backend_boolean"},
+        "combined": {"type": "boolean", "coercion": "backend_boolean"},
+        "crop_factor": {"type": "number", "coercion": "backend_number", "minimum": 1.0, "maximum": 16.0},
+        "bbox_fill": {"type": "boolean", "coercion": "backend_boolean"},
+        "drop_size": {"type": "integer", "coercion": "backend_integer", "minimum": 1, "maximum": 4096},
+        "contour_fill": {"type": "boolean", "coercion": "backend_boolean"},
+        "guide_size": {"type": "integer", "coercion": "backend_integer", "minimum": 64, "maximum": 4096},
+        "guide_size_for": {"type": "boolean", "coercion": "backend_boolean"},
+        "max_size": {"type": "integer", "coercion": "backend_integer", "minimum": 64, "maximum": 8192},
+        "steps": {"type": "integer", "coercion": "backend_integer", "minimum": 1, "maximum": 75},
+        "inherit_sampler_settings": {"type": "boolean", "coercion": "backend_boolean"},
+        "cfg": {"type": "number", "coercion": "backend_number", "minimum": 1.0, "maximum": 10.0},
+        "sampler_name": {"type": "string", "coercion": "choice", "dynamic_enum": "comfy.samplers"},
+        "scheduler": {"type": "string", "coercion": "choice", "dynamic_enum": "impact.schedulers"},
+        "denoise": {"type": "number", "coercion": "backend_number", "minimum": 0.0, "maximum": 1.0},
+        "feather": {"type": "integer", "coercion": "backend_integer", "minimum": 0, "maximum": 256},
+        "noise_mask": {"type": "boolean", "coercion": "backend_boolean"},
+        "force_inpaint": {"type": "boolean", "coercion": "backend_boolean"},
+        "wildcard": {"type": "string", "coercion": "string"},
+        "cycle": {"type": "integer", "coercion": "backend_integer", "minimum": 1, "maximum": 16},
+        "alignment": {"type": "string", "coercion": "string-then-choice", "enum": ["impact", "none", "32", "64"]},
+        "inpaint_model": {"type": "boolean", "coercion": "backend_boolean"},
+        "noise_mask_feather": {"type": "integer", "coercion": "backend_integer", "minimum": 0, "maximum": 256},
+        "tiled_encode": {"type": "boolean", "coercion": "backend_boolean"},
+        "tiled_decode": {"type": "boolean", "coercion": "backend_boolean"},
+        "spectrum": {"$ref": "#/definitions/spectrum"},
+        "dit_corrections": {"$ref": "#/definitions/dit_corrections"}
+      }
+    }
+  },
+  "shape": {
+    "type": "object",
+    "unknown_fields": "preserve",
+    "fields": {
+      "schema": {"type": "string", "coercion": "constant", "const": "easyuse_anima_aio_generation_settings"},
+      "version": {"type": "integer", "coercion": "backend_integer", "current": 4},
+      "mode": {"type": "string", "coercion": "choice", "enum": ["txt2img", "img2img", "inpaint"]},
+      "sampler": {
+        "type": "object",
+        "unknown_fields": "preserve",
+        "fields": {
+          "backend": {"type": "string", "coercion": "choice", "enum": ["comfy_ksampler", "spectrum_mod_guidance_advanced", "spectrum_spd_speed"]},
+          "seed": {"type": "integer", "coercion": "surface-specific-seed", "minimum": -3, "maximum_by_surface": {"backend": "18446744073709551615", "frontend": 1125899906842624}},
+          "seed_after_generate": {"type": "string", "coercion": "choice", "enum": ["fixed", "randomize", "increment", "decrement"]},
+          "steps": {"type": "integer", "coercion": "backend_integer", "minimum": 1, "maximum": 75},
+          "cfg": {"type": "number", "coercion": "backend_number", "minimum": 1.0, "maximum": 10.0},
+          "sampler_name": {"type": "string", "coercion": "choice", "dynamic_enum": "comfy.samplers"},
+          "scheduler": {"type": "string", "coercion": "choice", "dynamic_enum": "comfy.schedulers"},
+          "denoise": {"type": "number", "coercion": "backend_number", "minimum": 0.0, "maximum": 1.0},
+          "spectrum": {"$ref": "#/definitions/spectrum"},
+          "spd": {
+            "type": "object",
+            "unknown_fields": "preserve",
+            "fields": {
+              "split_mode": {"type": "string", "coercion": "choice", "enum": ["single"]},
+              "scale": {"type": "number", "coercion": "backend_number", "minimum": 0.25, "maximum": 1.0},
+              "sigma": {"type": "number", "coercion": "backend_number", "minimum": 0.0, "maximum": 1.0},
+              "adaptive_smc_alpha": {"type": "number", "coercion": "backend_number", "minimum": 0.0, "maximum": 1.0}
+            }
+          },
+          "spectrum_extra": {"type": "object", "coercion": "json-object-or-empty", "open_content": true, "additional_properties": {"$ref": "#/definitions/json_value"}},
+          "spd_extra": {"type": "object", "coercion": "json-object-or-empty", "open_content": true, "additional_properties": {"$ref": "#/definitions/json_value"}},
+          "dit_corrections": {"$ref": "#/definitions/dit_corrections"}
+        }
+      },
+      "negpip": {
+        "type": "object",
+        "unknown_fields": "preserve",
+        "fields": {
+          "mode": {"type": "string", "coercion": "choice", "enum": ["off", "on", "turbo"]}
+        }
+      },
+      "model_patches": {
+        "type": "object",
+        "unknown_fields": "preserve",
+        "fields": {
+          "aura_flow": {"type": "object", "unknown_fields": "preserve", "fields": {"shift": {"type": "number", "coercion": "backend_number", "minimum": 1.0, "maximum": 10.0}}},
+          "dave": {"type": "object", "unknown_fields": "preserve", "fields": {
+            "enabled": {"type": "boolean", "coercion": "backend_boolean"},
+            "mask": {"type": "string", "coercion": "string-or-default"},
+            "strength": {"type": "number", "coercion": "backend_number", "minimum": 0.0, "maximum": 1.0},
+            "tau": {"type": "number", "coercion": "backend_number", "minimum": 0.0, "maximum": 1.0},
+            "stage_scope": {"type": "object", "unknown_fields": "preserve", "fields": {
+              "first_pass": {"type": "boolean", "coercion": "backend_boolean"},
+              "highres": {"type": "boolean", "coercion": "backend_boolean"},
+              "detailer": {"type": "boolean", "coercion": "backend_boolean"},
+              "upscale": {"type": "boolean", "coercion": "backend_boolean"}
+            }}
+          }},
+          "safe_pag": {"type": "object", "unknown_fields": "preserve", "fields": {
+            "enabled": {"type": "boolean", "coercion": "backend_boolean"},
+            "scale": {"type": "number", "coercion": "backend_number", "minimum": 0.0, "maximum": 100.0},
+            "block_indices": {"type": "string", "coercion": "string-or-default"},
+            "perturbation_strength": {"type": "number", "coercion": "backend_number", "minimum": 0.0, "maximum": 1.0},
+            "head_indices": {"type": "string", "coercion": "string-or-default"},
+            "start_percent": {"type": "number", "coercion": "backend_number", "minimum": 0.0, "maximum": 1.0},
+            "end_percent": {"type": "number", "coercion": "backend_number", "minimum": 0.0, "maximum": 1.0},
+            "rescale": {"type": "number", "coercion": "backend_number", "minimum": 0.0, "maximum": 1.0},
+            "rescale_mode": {"type": "string", "coercion": "choice", "enum": ["full", "partial"]},
+            "stage_scope": {"type": "object", "unknown_fields": "preserve", "fields": {
+              "first_pass": {"type": "boolean", "coercion": "backend_boolean"},
+              "highres": {"type": "boolean", "coercion": "backend_boolean"},
+              "detailer": {"type": "boolean", "coercion": "backend_boolean"},
+              "upscale": {"type": "boolean", "coercion": "backend_boolean"}
+            }}
+          }},
+          "kj": {"type": "object", "unknown_fields": "preserve", "fields": {
+            "fp16_accumulation": {"type": "boolean", "coercion": "backend_boolean"},
+            "sage_attention": {"type": "string", "coercion": "choice", "enum": ["disabled", "auto", "sageattn_qk_int8_pv_fp16_cuda", "sageattn_qk_int8_pv_fp16_triton", "sageattn_qk_int8_pv_fp8_cuda", "sageattn_qk_int8_pv_fp8_cuda++", "sageattn3", "sageattn3_per_block_mean"]},
+            "sage_allow_compile": {"type": "boolean", "coercion": "backend_boolean"},
+            "sage_stage_scope": {"type": "object", "unknown_fields": "preserve", "fields": {
+              "first_pass": {"type": "boolean", "coercion": "backend_boolean"},
+              "highres": {"type": "boolean", "coercion": "backend_boolean"},
+              "detailer": {"type": "boolean", "coercion": "backend_boolean"},
+              "upscale": {"type": "boolean", "coercion": "backend_boolean"}
+            }},
+            "torch_compile": {"type": "object", "unknown_fields": "preserve", "fields": {
+              "enabled": {"type": "boolean", "coercion": "backend_boolean"},
+              "backend": {"type": "string", "coercion": "choice", "enum": ["inductor", "cudagraphs"]},
+              "fullgraph": {"type": "boolean", "coercion": "backend_boolean"},
+              "mode": {"type": "string", "coercion": "choice", "enum": ["default", "max-autotune", "max-autotune-no-cudagraphs", "reduce-overhead"]},
+              "dynamic": {"type": "string", "coercion": "choice", "enum": ["auto", "true", "false"]},
+              "compile_transformer_blocks_only": {"type": "boolean", "coercion": "backend_boolean"},
+              "dynamo_cache_size_limit": {"type": "integer", "coercion": "backend_integer", "minimum": 0, "maximum": 1024},
+              "debug_compile_keys": {"type": "boolean", "coercion": "backend_boolean"},
+              "disable_dynamic_vram": {"type": "boolean", "coercion": "backend_boolean"}
+            }}
+          }}
+        }
+      },
+      "mod_guidance": {"type": "object", "unknown_fields": "preserve", "fields": {
+        "mode": {"type": "string", "coercion": "choice", "enum": ["prompt_data", "enabled", "disabled"]},
+        "profile": {"type": "string", "coercion": "mod-guidance-profile", "enum": ["off", "step_i8_skip27", "step_i14", "uniform_w3"]},
+        "advanced": {"type": "object", "unknown_fields": "preserve", "fields": {
+          "adapter": {"type": "string", "coercion": "string-or-default"},
+          "quality_tags": {"type": "string", "coercion": "string-or-default"},
+          "quality_neg": {"type": "string", "coercion": "string-or-default"},
+          "mod_w": {"type": "number", "coercion": "backend_number", "minimum": -20.0, "maximum": 20.0},
+          "mod_start_layer": {"type": "integer", "coercion": "backend_integer", "minimum": 0, "maximum": 999},
+          "mod_end_layer": {"type": "integer", "coercion": "backend_integer", "minimum": -1, "maximum": 999},
+          "mod_taper": {"type": "integer", "coercion": "backend_integer", "minimum": 0, "maximum": 999},
+          "mod_taper_scale": {"type": "number", "coercion": "backend_number", "minimum": 0.0, "maximum": 1.0},
+          "mod_final_w": {"type": "number", "coercion": "backend_number", "minimum": -20.0, "maximum": 20.0}
+        }}
+      }},
+      "artist_mix": {"type": "object", "unknown_fields": "preserve", "fields": {
+        "mode": {"type": "string", "coercion": "choice", "enum": ["prompt_data", "off", "prompt", "average", "delta_rms", "hybrid", "clustered", "exact", "composite_exact", "late_exact", "average_late_exact", "scheduled_average"]},
+        "start_percent": {"type": "number", "coercion": "backend_number", "minimum": 0.0, "maximum": 1.0},
+        "strength_scale": {"type": "number", "coercion": "backend_number", "minimum": 0.0, "maximum": 5.0},
+        "style_gain": {"type": "number", "coercion": "backend_number", "minimum": 0.0, "maximum": 3.0},
+        "rms_scale_cap": {"type": "number", "coercion": "backend_number", "minimum": 1.0, "maximum": 5.0},
+        "exact_top_k": {"type": "integer", "coercion": "backend_integer", "minimum": 0, "maximum": 64},
+        "cluster_count": {"type": "integer", "coercion": "backend_integer", "minimum": 1, "maximum": 32},
+        "dominant_isolation": {"type": "boolean", "coercion": "backend_boolean"},
+        "dominant_threshold": {"type": "number", "coercion": "backend_number", "minimum": 0.0, "maximum": 1.0}
+      }},
+      "highres": {"type": "object", "unknown_fields": "preserve", "fields": {
+        "enabled": {"type": "boolean", "coercion": "backend_boolean"},
+        "scale_by": {"type": "number", "coercion": "backend_number", "minimum": 0.01, "maximum": 8.0},
+        "upscale_method": {"type": "string", "coercion": "choice", "enum": ["nearest-exact", "bilinear", "area", "bicubic", "lanczos"]},
+        "multiple": {"type": "string", "coercion": "choice", "enum": ["8", "16", "32", "64"]},
+        "max_long_edge": {"type": "integer", "coercion": "backend_integer", "minimum": 0, "maximum": 16384},
+        "steps": {"type": "integer", "coercion": "backend_integer", "minimum": 1, "maximum": 75},
+        "inherit_sampler_settings": {"type": "boolean", "coercion": "backend_boolean"},
+        "cfg": {"type": "number", "coercion": "backend_number", "minimum": 1.0, "maximum": 10.0},
+        "sampler_name": {"type": "string", "coercion": "choice", "dynamic_enum": "comfy.samplers"},
+        "scheduler": {"type": "string", "coercion": "choice", "dynamic_enum": "comfy.schedulers"},
+        "denoise": {"type": "number", "coercion": "backend_number", "minimum": 0.0, "maximum": 1.0},
+        "spectrum": {"$ref": "#/definitions/spectrum"},
+        "dit_corrections": {"$ref": "#/definitions/dit_corrections"}
+      }},
+      "upscale": {"type": "object", "unknown_fields": "preserve", "fields": {
+        "enabled": {"type": "boolean", "coercion": "backend_boolean"},
+        "backend": {"type": "string", "coercion": "choice", "enum": ["usdu", "resshift"]},
+        "scale_by": {"type": "number", "coercion": "backend_number", "minimum": 0.05, "maximum": 4.0},
+        "steps": {"type": "integer", "coercion": "backend_integer", "minimum": 1, "maximum": 1000},
+        "inherit_sampler_settings": {"type": "boolean", "coercion": "backend_boolean"},
+        "cfg": {"type": "number", "coercion": "backend_number", "minimum": 0.0, "maximum": 100.0},
+        "sampler_name": {"type": "string", "coercion": "choice", "dynamic_enum": "comfy.samplers"},
+        "scheduler": {"type": "string", "coercion": "choice", "dynamic_enum": "comfy.schedulers"},
+        "denoise": {"type": "number", "coercion": "backend_number", "minimum": 0.0, "maximum": 1.0},
+        "spectrum": {"$ref": "#/definitions/spectrum"},
+        "dit_corrections": {"$ref": "#/definitions/dit_corrections"},
+        "usdu": {"type": "object", "unknown_fields": "preserve", "fields": {
+          "upscale_model_name": {"type": "string", "coercion": "string-or-default"},
+          "auto_tile_size": {"type": "boolean", "coercion": "backend_boolean"},
+          "prompt_mode": {"type": "string", "coercion": "string-then-choice", "enum": ["full", "no_general"], "pre_choice_aliases": {"quality_tags_only": "no_general"}},
+          "mode_type": {"type": "string", "coercion": "choice", "enum": ["Linear", "Chess", "None"]},
+          "auto_tile_target": {"type": "integer", "coercion": "backend_integer", "minimum": 64, "maximum_source": "comfy.max_resolution"},
+          "auto_tile_min": {"type": "integer", "coercion": "backend_integer", "minimum": 64, "maximum_source": "comfy.max_resolution"},
+          "auto_tile_max": {"type": "integer", "coercion": "backend_integer", "minimum_source": "../auto_tile_min", "maximum_source": "comfy.max_resolution"},
+          "tile_width": {"type": "integer", "coercion": "backend_integer", "minimum": 64, "maximum_source": "comfy.max_resolution"},
+          "tile_height": {"type": "integer", "coercion": "backend_integer", "minimum": 64, "maximum_source": "comfy.max_resolution"},
+          "mask_blur": {"type": "integer", "coercion": "backend_integer", "minimum": 0, "maximum": 64},
+          "tile_padding": {"type": "integer", "coercion": "backend_integer", "minimum": 0, "maximum_source": "comfy.max_resolution"},
+          "seam_fix_mode": {"type": "string", "coercion": "choice", "enum": ["None", "Band Pass", "Half Tile", "Half Tile + Intersections"]},
+          "seam_fix_denoise": {"type": "number", "coercion": "backend_number", "minimum": 0.0, "maximum": 1.0},
+          "seam_fix_width": {"type": "integer", "coercion": "backend_integer", "minimum": 0, "maximum_source": "comfy.max_resolution"},
+          "seam_fix_mask_blur": {"type": "integer", "coercion": "backend_integer", "minimum": 0, "maximum": 64},
+          "seam_fix_padding": {"type": "integer", "coercion": "backend_integer", "minimum": 0, "maximum_source": "comfy.max_resolution"},
+          "force_uniform_tiles": {"type": "boolean", "coercion": "backend_boolean"},
+          "tiled_decode": {"type": "boolean", "coercion": "backend_boolean"},
+          "batch_size": {"type": "integer", "coercion": "backend_integer", "minimum": 1, "maximum": 4096}
+        }},
+        "resshift": {"type": "object", "unknown_fields": "preserve", "fields": {
+          "scale": {"type": "string", "coercion": "choice", "enum": ["x2", "x4"]},
+          "student_name": {"type": "string", "coercion": "string-or-default"},
+          "dtype": {"type": "string", "coercion": "choice", "enum": ["bf16", "fp32"]},
+          "chop": {"type": "integer", "coercion": "backend_integer", "minimum": 256, "maximum": 4096},
+          "overlap": {"type": "integer", "coercion": "backend_integer", "minimum": 0, "maximum": 512},
+          "tile_batch": {"type": "integer", "coercion": "backend_integer", "minimum": 1, "maximum": 32}
+        }}
+      }},
+      "postprocess": {"type": "object", "unknown_fields": "preserve", "fields": {
+        "enabled": {"type": "boolean", "coercion": "backend_boolean"},
+        "fit": {"type": "object", "unknown_fields": "preserve", "fields": {
+          "mode": {"type": "string", "coercion": "choice", "enum": ["max_long_edge", "megapixels"]},
+          "max_long_edge": {"type": "integer", "coercion": "backend_integer", "minimum": 64, "maximum_source": "comfy.max_resolution"},
+          "max_megapixels": {"type": "number", "coercion": "backend_number", "minimum": 0.1, "maximum": 256.0},
+          "method": {"type": "string", "coercion": "choice", "enum": ["nearest-exact", "bilinear", "area", "bicubic", "lanczos"]}
+        }}
+      }},
+      "detailer": {"type": "object", "unknown_fields": "preserve", "pattern_fields": {"^custom_[0-9]+$": {"$ref": "#/definitions/detailer_target"}}, "fields": {
+        "enabled": {"type": "boolean", "coercion": "backend_boolean"},
+        "order": {"type": "array", "coercion": "detailer-order", "items": {"$ref": "#/definitions/detailer_target_name"}},
+        "sam3": {"type": "object", "unknown_fields": "preserve", "fields": {
+          "context": {"type": "string", "coercion": "choice", "enum": ["load_checkpoint"]},
+          "checkpoint": {"type": "string", "coercion": "string-or-default"}
+        }},
+        "face": {"$ref": "#/definitions/detailer_target"},
+        "eye": {"$ref": "#/definitions/detailer_target"}
+      }},
+      "save": {"type": "object", "unknown_fields": "preserve", "fields": {
+        "enabled": {"type": "boolean", "coercion": "backend_boolean"},
+        "backend": {"type": "string", "coercion": "choice", "enum": ["image_saver", "comfy_save_image"]},
+        "image_saver": {"type": "object", "unknown_fields": "preserve", "fields": {
+          "filename": {"type": "string", "coercion": "string-or-default"},
+          "path": {"type": "string", "coercion": "string-or-default"},
+          "extension": {"type": "string", "coercion": "choice", "enum": ["png", "jpeg", "jpg", "webp"]},
+          "lossless_webp": {"type": "boolean", "coercion": "backend_boolean"},
+          "quality_jpeg_or_webp": {"type": "integer", "coercion": "backend_integer", "minimum": 1, "maximum": 100},
+          "optimize_png": {"type": "boolean", "coercion": "backend_boolean"},
+          "counter": {"type": "integer", "coercion": "backend_integer", "minimum": 0},
+          "clip_skip": {"type": "integer", "coercion": "backend_integer", "minimum": -24, "maximum": 24},
+          "time_format": {"type": "string", "coercion": "string-or-default"},
+          "save_workflow_as_json": {"type": "boolean", "coercion": "backend_boolean"},
+          "embed_workflow": {"type": "boolean", "coercion": "backend_boolean"},
+          "save_prompt_metadata": {"type": "boolean", "coercion": "backend_boolean"},
+          "additional_hashes": {"type": "string", "coercion": "string"},
+          "additional_hash_bundles": {"type": "array", "coercion": "string-list", "items": {"type": "string", "coercion": "hash-bundle-string"}},
+          "civitai_hash_fetchers": {"type": "array", "coercion": "civitai-fetcher-list", "items": {"$ref": "#/definitions/civitai_hash_fetcher"}},
+          "download_civitai_data": {"type": "boolean", "coercion": "backend_boolean"},
+          "easy_remix": {"type": "boolean", "coercion": "backend_boolean"},
+          "custom": {"type": "string", "coercion": "string"}
+        }}
+      }},
+      "preview": {"type": "object", "unknown_fields": "preserve", "fields": {
+        "intermediate_images": {"type": "boolean", "coercion": "backend_boolean"},
+        "compare_previous": {"type": "boolean", "coercion": "backend_boolean"},
+        "image_feed": {"type": "boolean", "coercion": "backend_boolean"},
+        "feed_count": {"type": "integer", "coercion": "backend_integer", "minimum": 1, "maximum": 100}
+      }}
+    }
+  },
+  "default": {
+    "schema": "easyuse_anima_aio_generation_settings",
+    "version": 4,
+    "mode": "txt2img",
+    "sampler": {
+      "backend": "comfy_ksampler",
+      "seed": -1,
+      "seed_after_generate": "fixed",
+      "steps": 32,
+      "cfg": 5.0,
+      "sampler_name": "er_sde",
+      "scheduler": "simple",
+      "denoise": 1.0,
+      "spectrum": {"enabled": false, "window_size": 2.0, "flex_window": 0.25, "warmup_steps": 6, "tail_actual_steps": 3, "blend_w": 0.3, "cheby_degree": 3, "ridge_lambda": 0.1, "history_size": 100, "one_sampler_only": false, "verbose": false, "compat_policy": "conservative"},
+      "spd": {"split_mode": "single", "scale": 0.5, "sigma": 0.7, "adaptive_smc_alpha": 0.0},
+      "spectrum_extra": {},
+      "spd_extra": {},
+      "dit_corrections": {"enabled": false, "dcw_mode": "off", "dcw_lambda": 0.01, "dcw_band_mask": "LL", "dcw_calibrator": "(auto-download default)", "smc_cfg": false, "adaptive_smc_alpha": 0.0, "smc_cfg_lambda": 6.0, "cfgpp": false, "cfgpp_lambda": 0.0, "fsg": false, "fsg_band_lo": 0.59, "fsg_band_hi": 0.75, "fsg_k": 3, "fsg_d_sigma": 0.1, "fsg_gamma": 0.0, "replace_existing_cfg": false}
+    },
+    "negpip": {"mode": "off"},
+    "model_patches": {
+      "aura_flow": {"shift": 3.0},
+      "dave": {"enabled": false, "mask": "dave_alpha.npz", "strength": 0.3, "tau": 0.1, "stage_scope": {"first_pass": true, "highres": false, "detailer": false, "upscale": false}},
+      "safe_pag": {"enabled": false, "scale": 4.0, "block_indices": "18", "perturbation_strength": 0.75, "head_indices": "", "start_percent": 0.0, "end_percent": 0.7, "rescale": 0.2, "rescale_mode": "full", "stage_scope": {"first_pass": true, "highres": false, "detailer": false, "upscale": false}},
+      "kj": {"fp16_accumulation": false, "sage_attention": "disabled", "sage_allow_compile": false, "sage_stage_scope": {"first_pass": true, "highres": false, "detailer": false, "upscale": false}, "torch_compile": {"enabled": false, "backend": "inductor", "fullgraph": false, "mode": "max-autotune-no-cudagraphs", "dynamic": "false", "compile_transformer_blocks_only": true, "dynamo_cache_size_limit": 64, "debug_compile_keys": false, "disable_dynamic_vram": true}}
+    },
+    "mod_guidance": {"mode": "prompt_data", "profile": "step_i8_skip27", "advanced": {"adapter": "(auto-download default)", "quality_tags": "highres, best quality, score_7", "quality_neg": "score_1, score_2, score_3, worst quality, lowres, old, bad hands, bad anatomy", "mod_w": 3.0, "mod_start_layer": 8, "mod_end_layer": 27, "mod_taper": 0, "mod_taper_scale": 0.25, "mod_final_w": 0.0}},
+    "artist_mix": {"mode": "prompt_data", "start_percent": 0.5, "strength_scale": 1.0, "style_gain": 1.35, "rms_scale_cap": 2.0, "exact_top_k": 4, "cluster_count": 4, "dominant_isolation": true, "dominant_threshold": 0.25},
+    "highres": {
+      "enabled": false, "scale_by": 1.5, "upscale_method": "bicubic", "multiple": "32", "max_long_edge": 2560, "steps": 20, "inherit_sampler_settings": true, "cfg": 8.0, "sampler_name": "euler", "scheduler": "simple", "denoise": 0.25,
+      "spectrum": {"enabled": false, "window_size": 2.0, "flex_window": 0.2, "warmup_steps": 7, "tail_actual_steps": 4, "blend_w": 0.3, "cheby_degree": 3, "ridge_lambda": 0.1, "history_size": 100, "one_sampler_only": false, "verbose": false, "compat_policy": "conservative"},
+      "dit_corrections": {"enabled": false, "dcw_mode": "off", "dcw_lambda": 0.02, "dcw_band_mask": "LL", "dcw_calibrator": "(auto-download default)", "smc_cfg": false, "adaptive_smc_alpha": 0.0, "smc_cfg_lambda": 6.0, "cfgpp": false, "cfgpp_lambda": 0.0, "fsg": false, "fsg_band_lo": 0.59, "fsg_band_hi": 0.75, "fsg_k": 3, "fsg_d_sigma": 0.1, "fsg_gamma": 0.0, "replace_existing_cfg": false}
+    },
+    "upscale": {
+      "enabled": false, "backend": "usdu", "scale_by": 2.0, "steps": 20, "inherit_sampler_settings": true, "cfg": 8.0, "sampler_name": "euler", "scheduler": "simple", "denoise": 0.2,
+      "spectrum": {"enabled": false, "window_size": 2.0, "flex_window": 0.2, "warmup_steps": 7, "tail_actual_steps": 4, "blend_w": 0.3, "cheby_degree": 3, "ridge_lambda": 0.1, "history_size": 100, "one_sampler_only": false, "verbose": false, "compat_policy": "conservative"},
+      "dit_corrections": {"enabled": false, "dcw_mode": "off", "dcw_lambda": 0.02, "dcw_band_mask": "LL", "dcw_calibrator": "(auto-download default)", "smc_cfg": false, "adaptive_smc_alpha": 0.0, "smc_cfg_lambda": 6.0, "cfgpp": false, "cfgpp_lambda": 0.0, "fsg": false, "fsg_band_lo": 0.59, "fsg_band_hi": 0.75, "fsg_k": 3, "fsg_d_sigma": 0.1, "fsg_gamma": 0.0, "replace_existing_cfg": false},
+      "usdu": {"upscale_model_name": "2x-AnimeSharpV4_Fast_RCAN_PU.safetensors", "auto_tile_size": true, "prompt_mode": "full", "mode_type": "Linear", "auto_tile_target": 1024, "auto_tile_min": 512, "auto_tile_max": 2048, "tile_width": 512, "tile_height": 512, "mask_blur": 8, "tile_padding": 32, "seam_fix_mode": "None", "seam_fix_denoise": 1.0, "seam_fix_width": 64, "seam_fix_mask_blur": 8, "seam_fix_padding": 16, "force_uniform_tiles": true, "tiled_decode": false, "batch_size": 1},
+      "resshift": {"scale": "x2", "student_name": "(auto-download)", "dtype": "bf16", "chop": 512, "overlap": 64, "tile_batch": 4}
+    },
+    "postprocess": {"enabled": false, "fit": {"mode": "max_long_edge", "max_long_edge": 2048, "max_megapixels": 4.0, "method": "bicubic"}},
+    "detailer": {
+      "enabled": false,
+      "order": ["face", "eye"],
+      "sam3": {"context": "load_checkpoint", "checkpoint": "sam3.1_multiplex_fp16.safetensors"},
+      "face": {
+        "label": "Face Detailer", "enabled": false, "detect_prompt": "face", "detect_count": 1, "threshold": 0.52, "refine_iterations": 2, "individual_masks": true, "combined": false, "crop_factor": 4.0, "bbox_fill": false, "drop_size": 100, "contour_fill": true, "guide_size": 1024, "guide_size_for": false, "max_size": 2048, "steps": 20, "inherit_sampler_settings": true, "cfg": 8.0, "sampler_name": "euler", "scheduler": "sgm_uniform", "denoise": 0.33, "feather": 5, "noise_mask": true, "force_inpaint": true, "wildcard": "", "cycle": 1, "alignment": "32", "inpaint_model": false, "noise_mask_feather": 10, "tiled_encode": false, "tiled_decode": false,
+        "spectrum": {"enabled": true, "window_size": 2.0, "flex_window": 0.15, "warmup_steps": 6, "tail_actual_steps": 3, "blend_w": 0.3, "cheby_degree": 3, "ridge_lambda": 0.1, "history_size": 100, "one_sampler_only": false, "verbose": false, "compat_policy": "conservative"},
+        "dit_corrections": {"enabled": false, "dcw_mode": "off", "dcw_lambda": 0.02, "dcw_band_mask": "LL", "dcw_calibrator": "(auto-download default)", "smc_cfg": false, "adaptive_smc_alpha": 0.0, "smc_cfg_lambda": 6.0, "cfgpp": false, "cfgpp_lambda": 0.0, "fsg": false, "fsg_band_lo": 0.59, "fsg_band_hi": 0.75, "fsg_k": 3, "fsg_d_sigma": 0.1, "fsg_gamma": 0.0, "replace_existing_cfg": false}
+      },
+      "eye": {
+        "label": "Eye Detailer", "enabled": false, "detect_prompt": "eyes", "detect_count": 1, "threshold": 0.5, "refine_iterations": 2, "individual_masks": true, "combined": false, "crop_factor": 6.0, "bbox_fill": false, "drop_size": 40, "contour_fill": true, "guide_size": 1024, "guide_size_for": false, "max_size": 2048, "steps": 20, "inherit_sampler_settings": true, "cfg": 8.0, "sampler_name": "euler", "scheduler": "sgm_uniform", "denoise": 0.29, "feather": 6, "noise_mask": true, "force_inpaint": true, "wildcard": "", "cycle": 1, "alignment": "32", "inpaint_model": false, "noise_mask_feather": 20, "tiled_encode": false, "tiled_decode": false,
+        "spectrum": {"enabled": true, "window_size": 2.0, "flex_window": 0.15, "warmup_steps": 6, "tail_actual_steps": 3, "blend_w": 0.3, "cheby_degree": 3, "ridge_lambda": 0.1, "history_size": 100, "one_sampler_only": false, "verbose": false, "compat_policy": "conservative"},
+        "dit_corrections": {"enabled": false, "dcw_mode": "off", "dcw_lambda": 0.02, "dcw_band_mask": "LL", "dcw_calibrator": "(auto-download default)", "smc_cfg": false, "adaptive_smc_alpha": 0.0, "smc_cfg_lambda": 6.0, "cfgpp": false, "cfgpp_lambda": 0.0, "fsg": false, "fsg_band_lo": 0.59, "fsg_band_hi": 0.75, "fsg_k": 3, "fsg_d_sigma": 0.1, "fsg_gamma": 0.0, "replace_existing_cfg": false}
+      }
+    },
+    "save": {"enabled": true, "backend": "image_saver", "image_saver": {"filename": "%time_%basemodelname", "path": "EasyUseAnima/AiO", "extension": "webp", "lossless_webp": false, "quality_jpeg_or_webp": 97, "optimize_png": true, "counter": 0, "clip_skip": 0, "time_format": "%Y-%m-%d-%H%M%S", "save_workflow_as_json": false, "embed_workflow": true, "save_prompt_metadata": true, "additional_hashes": "", "additional_hash_bundles": [], "civitai_hash_fetchers": [], "download_civitai_data": true, "easy_remix": true, "custom": ""}},
+    "preview": {"intermediate_images": false, "compare_previous": false, "image_feed": true, "feed_count": 12}
+  }
+}

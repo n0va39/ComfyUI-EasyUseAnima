@@ -56,6 +56,8 @@ function advancedFieldsUiHooks(hooks = {}) {
   return {
     advancedFieldLabel,
     applyAdvancedNaiaGeneralAutoToggle,
+    markAdvancedFieldEdited: hooks.markAdvancedFieldEdited,
+    markAdvancedFieldStructureChanged: hooks.markAdvancedFieldStructureChanged,
     parseAdvancedFields,
     registerAdvancedAutocompleteInput,
     scheduleAdvancedFieldHighlight,

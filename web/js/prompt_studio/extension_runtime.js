@@ -54,7 +54,9 @@ import {
   refreshAllPromptHighlights,
 } from "./highlight.js";
 import {
+  scheduleAdvancedFieldHighlight,
   scheduleAdvancedHighlights,
+  updateAdvancedFieldHighlight,
 } from "./advanced_highlights.js";
 import {
   updateHighlight,
@@ -95,6 +97,8 @@ import {
 } from "./studio_node_ui.js";
 import {
   remeasureAdvancedTextareaHeightsForWidth as remeasureAdvancedTextareaHeightsForWidthWithHooks,
+  syncAdvancedLinkedFieldTextarea as syncAdvancedLinkedFieldTextareaWithHooks,
+  syncAdvancedNaiaFieldTextarea as syncAdvancedNaiaFieldTextareaWithHooks,
 } from "./advanced_fields_ui.js";
 import {
   disposeAdvancedAutocompleteInputs,
@@ -102,7 +106,8 @@ import {
   scheduleHookAdvancedNode as scheduleHookAdvancedNodeWithHooks,
 } from "./advanced_node_ui.js";
 import {
-  publishAdvancedWildcardExecution as publishAdvancedWildcardExecutionWithHooks,
+  WILDCARD_SEED_CONTROL_SURFACE,
+  publishAdvancedExecution as publishAdvancedExecutionWithHooks,
   syncAdvancedValues as syncAdvancedValuesWithHooks,
 } from "./advanced_values.js";
 import {
@@ -111,9 +116,24 @@ import {
   syncWildcardSerialization,
 } from "./wildcard_values.js";
 import {
+  advancedLinkedFieldSurface,
+  captureAdvancedLinkedFieldSnapshots,
   captureAdvancedConfigure,
+  commitAdvancedLinkedFieldOverlay,
+  isAdvancedFieldInput,
   pruneDisconnectedAdvancedFieldInputValues,
 } from "./serialization.js";
+import {
+  ADVANCED_NAIA_RESOLUTION_SURFACE,
+  advancedNaiaFieldSurface,
+  captureAdvancedNaiaFieldSnapshots,
+  captureAdvancedNaiaResolutionSnapshot,
+  commitAdvancedNaiaFieldCanonical,
+  commitAdvancedNaiaResolution,
+} from "./naia_projection.js";
+import {
+  getAdvancedFields,
+} from "./state.js";
 import {
   markCanvasDirty as markCanvasDirtyWithApp,
   markGraphDirty as markGraphDirtyWithApp,
@@ -131,9 +151,10 @@ import {
   createExecutedEventContext,
 } from "../lifecycle/executed_event_context.js";
 import {
-  createPromptStudioWildcardSeedTransaction,
-} from "./wildcard_seed_transaction.js";
+  createPromptStudioExecutionTransaction,
+} from "./execution_transaction.js";
 import {
+  commitAdvancedNaiaResolutionView,
   commitAdvancedWildcardSeedView,
 } from "./advanced_controls.js";
 
@@ -143,6 +164,24 @@ const PROMPT_STUDIO_GLOBAL_HOOK_RUNTIME_OWNER = Symbol.for(
 const PROMPT_STUDIO_WILDCARD_SEED_TRANSACTION_OWNER = Symbol.for(
   "easyuse-anima.prompt-studio.wildcard-seed-transaction",
 );
+const PROMPT_STUDIO_EDIT_BINDINGS = [
+  {
+    widgetNames: [
+      "wildcard_seed",
+      "wildcard_seed_after_generate",
+    ],
+    surfaces: [WILDCARD_SEED_CONTROL_SURFACE],
+  },
+  {
+    widgetNames: [
+      "resolution_bucket",
+      "resolution_size",
+      "resolution_custom_width",
+      "resolution_custom_height",
+    ],
+    surfaces: [ADVANCED_NAIA_RESOLUTION_SURFACE],
+  },
+];
 
 function createPromptStudioExtensionRuntime(app, api) {
   const globalHookLifecycle = createHostHookRuntimeLifecycle(
@@ -150,17 +189,19 @@ function createPromptStudioExtensionRuntime(app, api) {
     PROMPT_STUDIO_GLOBAL_HOOK_RUNTIME_OWNER,
   );
   const queueUiTransactionOwner = createQueueUiTransactionOwner();
-  let wildcardSeedTransaction;
+  let executionTransaction;
   const executedEventContext = createExecutedEventContext(api, {
-    finishPrompt: (promptId) => wildcardSeedTransaction.finishPrompt(promptId),
+    finishPrompt: (promptId) => executionTransaction.finishPrompt(promptId),
   });
-  wildcardSeedTransaction = createPromptStudioWildcardSeedTransaction({
+  executionTransaction = createPromptStudioExecutionTransaction({
     owner: queueUiTransactionOwner,
     executedContext: executedEventContext,
     findWidget,
+    editBindings: PROMPT_STUDIO_EDIT_BINDINGS,
   });
+  const snapshotsByTransaction = new WeakMap();
   let advancedSaveSyncSerializeHost;
-  let wildcardSeedTransactionGraphHost;
+  let executionTransactionGraphHost;
 
   function markNodeDirty(node) {
     markNodeDirtyWithApp(app, node);
@@ -187,11 +228,113 @@ function createPromptStudioExtensionRuntime(app, api) {
     writeAdvancedFieldsWithHooks(node, fields, options, advancedFieldsStateHooks());
   }
 
+  function syncAdvancedLinkedFieldTextarea(node, field, textarea, value) {
+    return syncAdvancedLinkedFieldTextareaWithHooks(
+      node,
+      field,
+      textarea,
+      value,
+      {
+        scheduleAdvancedFieldHighlight,
+        scheduleAdvancedLayout,
+        updateAdvancedFieldHighlight,
+      },
+    );
+  }
+
+  function syncAdvancedNaiaFieldTextarea(node, field, textarea, value) {
+    return syncAdvancedNaiaFieldTextareaWithHooks(
+      node,
+      field,
+      textarea,
+      value,
+      {
+        scheduleAdvancedFieldHighlight,
+        scheduleAdvancedLayout,
+        updateAdvancedFieldHighlight,
+      },
+    );
+  }
+
+  function createLinkedExecutionCommitter(node, inputName, value) {
+    const currentSnapshot = captureAdvancedLinkedFieldSnapshots(
+      node,
+      getAdvancedFields(node) || parseAdvancedFields(node),
+      app.graph,
+    ).find((snapshot) => snapshot.inputName === inputName);
+    if (!currentSnapshot) {
+      return null;
+    }
+    return {
+      surface: currentSnapshot.surface,
+      commit: ({ transaction }) => {
+        const queuedSnapshot = (snapshotsByTransaction.get(transaction)?.linked || [])
+          .find((snapshot) => snapshot.inputName === inputName);
+        if (!queuedSnapshot) {
+          return false;
+        }
+        return commitAdvancedLinkedFieldOverlay(node, queuedSnapshot, value, {
+          graph: app.graph,
+          commitView: syncAdvancedLinkedFieldTextarea,
+        });
+      },
+    };
+  }
+
+  function createNaiaExecutionCommitter(node, fieldId, value) {
+    const currentSnapshot = captureAdvancedNaiaFieldSnapshots(
+      getAdvancedFields(node) || parseAdvancedFields(node),
+    ).find((snapshot) => snapshot.fieldId === fieldId);
+    if (!currentSnapshot) {
+      return null;
+    }
+    return {
+      surface: currentSnapshot.surface,
+      commit: ({ transaction }) => {
+        const queuedSnapshot = (snapshotsByTransaction.get(transaction)?.naia || [])
+          .find((snapshot) => snapshot.fieldId === fieldId);
+        if (!queuedSnapshot) {
+          return false;
+        }
+        return commitAdvancedNaiaFieldCanonical(node, queuedSnapshot, value, {
+          persistFields: (target, fields) => writeAdvancedFields(
+            target,
+            fields,
+            { syncInputs: false },
+          ),
+          commitView: syncAdvancedNaiaFieldTextarea,
+        });
+      },
+    };
+  }
+
+  function createNaiaResolutionExecutionCommitter(node, value) {
+    const currentSnapshot = captureAdvancedNaiaResolutionSnapshot(node);
+    if (!currentSnapshot) {
+      return null;
+    }
+    return {
+      surface: currentSnapshot.surface,
+      commit: ({ transaction }) => {
+        const queuedSnapshot = snapshotsByTransaction.get(transaction)?.resolution;
+        if (!queuedSnapshot) {
+          return false;
+        }
+        return commitAdvancedNaiaResolution(node, queuedSnapshot, value, {
+          commitView: commitAdvancedNaiaResolutionView,
+        });
+      },
+    };
+  }
+
   function advancedValuesHooks() {
     return {
       advancedWidget,
       commitAdvancedWildcardSeedView,
-      consumeWildcardSeedExecution: wildcardSeedTransaction.consumeExecution,
+      consumePromptStudioExecution: executionTransaction.consumeExecution,
+      createLinkedExecutionCommitter,
+      createNaiaExecutionCommitter,
+      createNaiaResolutionExecutionCommitter,
       markNodeDirty,
       parseAdvancedFields,
       repairAdvancedInternalWidgetValues,
@@ -204,8 +347,8 @@ function createPromptStudioExtensionRuntime(app, api) {
     syncAdvancedValuesWithHooks(node, serialized, advancedValuesHooks());
   }
 
-  function publishAdvancedWildcardExecution(node, message) {
-    publishAdvancedWildcardExecutionWithHooks(node, message, advancedValuesHooks());
+  function publishAdvancedExecution(node, message) {
+    publishAdvancedExecutionWithHooks(node, message, advancedValuesHooks());
   }
 
   function applyWildcardExecutedInputs(node, message) {
@@ -396,11 +539,43 @@ function createPromptStudioExtensionRuntime(app, api) {
     return installed;
   }
 
-  function installAdvancedWildcardSeedTransactionForApp() {
+  function capturePromptStudioExecutionQueue() {
+    const snapshotsByNode = new Map();
+    const entries = (app.graph?._nodes || []).filter(isAdvancedNode).map((node) => {
+      const fields = getAdvancedFields(node) || parseAdvancedFields(node);
+      const linked = captureAdvancedLinkedFieldSnapshots(
+        node,
+        fields,
+        app.graph,
+      );
+      const naia = captureAdvancedNaiaFieldSnapshots(fields);
+      const resolution = captureAdvancedNaiaResolutionSnapshot(node);
+      snapshotsByNode.set(node, { linked, naia, resolution });
+      return {
+        node,
+        surfaces: [
+          WILDCARD_SEED_CONTROL_SURFACE,
+          ...linked.map((snapshot) => snapshot.surface),
+          ...naia.map((snapshot) => snapshot.surface),
+          ...(resolution ? [resolution.surface] : []),
+        ],
+      };
+    });
+    const captured = executionTransaction.captureQueue(entries);
+    for (const entry of captured) {
+      snapshotsByTransaction.set(
+        entry.transaction,
+        snapshotsByNode.get(entry.node) || { linked: [], naia: [], resolution: null },
+      );
+    }
+    return captured;
+  }
+
+  function installPromptStudioExecutionTransactionForApp() {
     const graphHost = app?.graph || null;
-    const replace = wildcardSeedTransactionGraphHost !== undefined
+    const replace = executionTransactionGraphHost !== undefined
       && graphHost != null
-      && graphHost !== wildcardSeedTransactionGraphHost;
+      && graphHost !== executionTransactionGraphHost;
     const installed = globalHookLifecycle.install(
       "advanced-wildcard-seed-transaction",
       () => registerHostHookCallbacks({
@@ -410,45 +585,65 @@ function createPromptStudioExtensionRuntime(app, api) {
         // successful result owns the accepted prompt_id.
         queueHost: api,
         graphHost,
-        beforeQueue: () => wildcardSeedTransaction.captureQueue(
-          (app.graph?._nodes || []).filter(isAdvancedNode),
-        ),
-        afterQueue: (context) => wildcardSeedTransaction.acceptQueue(
+        beforeQueue: capturePromptStudioExecutionQueue,
+        afterQueue: (context) => executionTransaction.acceptQueue(
           context.callbackState,
           context,
         ),
-        onGraphClear: () => wildcardSeedTransaction.clear(),
+        onGraphClear: () => executionTransaction.clear(),
       }),
       { replace },
     );
     if (installed) {
-      wildcardSeedTransactionGraphHost = graphHost;
+      executionTransactionGraphHost = graphHost;
     }
     return installed;
   }
 
   function installGlobalHooks() {
     installAdvancedSaveSyncForApp();
-    installAdvancedWildcardSeedTransactionForApp();
+    installPromptStudioExecutionTransactionForApp();
   }
 
   function disposeGlobalHooks() {
     advancedSaveSyncSerializeHost = undefined;
-    wildcardSeedTransactionGraphHost = undefined;
+    executionTransactionGraphHost = undefined;
     return globalHookLifecycle.dispose();
   }
 
   function disposeRuntime() {
     let changed = disposeGlobalHooks();
     changed = executedEventContext.dispose() || changed;
-    changed = wildcardSeedTransaction.dispose() || changed;
+    changed = executionTransaction.dispose() || changed;
     return changed;
+  }
+
+  function markAdvancedFieldEdited(node, field) {
+    const surface = field?.type === "naia"
+      ? advancedNaiaFieldSurface(field?.id)
+      : advancedLinkedFieldSurface(field?.id);
+    return surface != null && executionTransaction.markEdited(node, [surface]);
+  }
+
+  function markAdvancedConnectionChanged(node, args) {
+    if (Number(args?.[0]) !== 1) {
+      return false;
+    }
+    const slot = Number(args?.[1]);
+    const input = Number.isInteger(slot) ? node?.inputs?.[slot] : null;
+    if (!isAdvancedFieldInput(input)) {
+      return false;
+    }
+    const surface = advancedLinkedFieldSurface(input.__easyuseAnimaAdvancedFieldId);
+    return surface != null && executionTransaction.markEdited(node, [surface]);
   }
 
   function advancedNodeUiHooks() {
     return {
       hideAdvancedControlWidgets,
       installAdvancedSaveSync: installAdvancedSaveSyncForApp,
+      markAdvancedFieldEdited,
+      markAdvancedFieldStructureChanged: markAdvancedFieldEdited,
       observeAdvancedEditorWidth,
       scheduleAdvancedHighlights,
       scheduleAdvancedLayout,
@@ -521,14 +716,15 @@ function createPromptStudioExtensionRuntime(app, api) {
         ),
         disconnectAdvancedEditorWidthObserver,
         disposeAdvancedAutocompleteInputs,
-        disposeAdvancedWildcardSeedNode: wildcardSeedTransaction.disposeNode,
+        disposeAdvancedWildcardSeedNode: executionTransaction.disposeNode,
         hookWildcardSeedWidget,
-        hookAdvancedWildcardSeedNode: wildcardSeedTransaction.hookNode,
+        hookAdvancedWildcardSeedNode: executionTransaction.hookNode,
         hookStudioNode,
         isExtendNode,
         layoutExtendPromptWidgets,
+        markAdvancedConnectionChanged,
         pruneDisconnectedAdvancedFieldInputValues,
-        publishAdvancedWildcardExecution,
+        publishAdvancedExecution,
         rebalanceStudioInputHeights,
         removeAdvancedInternalInputSockets,
         renderAdvancedEditor,

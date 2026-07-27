@@ -2,16 +2,21 @@
 
 ## 문서 상태
 
-- 상태: **IN PROGRESS — #411 AIO-NEGPIP**
+- 상태: **IN PROGRESS — #441 AIO-SAGE**
 - 기준일: 2026-07-27
 - 기준 브랜치: `dev`
-- 기준 커밋: `3cd9edc3048b4a98d7186288319311f4e703eea8`
+- 기준 커밋: `9a2ae70841b52d42bc47eb90d4698ddbe411e0d1`
 - 완료된 선행: [#395](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/395),
-  [#409](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/409)
+  [#409](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/409),
+  [#410](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/410),
+  [#411](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/411),
+  0.6.0 release
 - 기능 이슈:
   - [#409](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/409): stage별 고급 MODEL patch 범위
   - [#410](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/410): KJNodes Torch Compile 자동 추천
   - [#411](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/411): ComfyUI-ppm NegPip Off/On/Turbo
+  - [#440](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/440): Safe PAG stage-scope opt-in
+  - [#441](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/441): SageAttention stage-scope isolation
 - 관련 기반:
   - [#169](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/169): AiO stage pipeline/cache
   - [#187](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/187): runtime/provider lifecycle
@@ -21,10 +26,10 @@ rollback 단위와 검증 순서를 고정한다. 기능 이슈의 behavior 요�
 구체적이면 해당 이슈가 우선하며, 아키텍처 ADR과 `MAINTAINING.md`는 계속
 최상위 정책이다.
 
-`#395`의 Registry checkpoint와 `#409`의 stage-scope/precedence 구현은 완료됐다.
-`AIO-COMPILE-01`부터 `04`까지 완료됐다. 현재 production queue는 `#411`로
-이동한다.
-`#440/#441`의 patch-specific 후속은 이 queue를 선행하지 않는다.
+`#409`부터 `#411`까지의 advanced integration queue는 0.6.0으로 공개됐다.
+`#440` Safe PAG follow-up은 완료됐다. 현재 queue는 `#441` SageAttention
+follow-up이며, production cutover 전에 `AIO-SAGE-01` experimental Contract와
+migration 결정을 먼저 고정한다.
 
 ## 1. 현재 확인된 실행 구조
 
@@ -568,29 +573,104 @@ Queue: repeated / concurrent / cancelled / exception
 
 ## 13. Codex 시작 지시
 
-현재 `#410` 실행:
+현재 `#441` 실행:
 
 ```text
-1. 최신 origin/dev와 open PR/branch를 확인한다.
-2. installed KJ input/signature와 직접 owner를 현재 단계에서만 재확인한다.
-3. AIO-COMPILE-01 diagnostics부터 04 live matrix까지 PR/rollback 단위를 분리한다.
-4. COMPILE-01은 fake environment만 사용하고 compile/benchmark/live를 실행하지 않는다.
-5. COMPILE-02 전에는 추천값을 추측하지 않는다.
-6. 각 최종 후보에서 focused/full/package/live trigger를 단계 계약대로 기록한다.
-7. #410 완료 후에만 #411을 시작한다.
+1. 최신 origin/dev와 #441의 pinned/current upstream contract를 확인한다.
+2. AIO-SAGE-01은 test-local Contract와 migration 결정만 추가한다.
+3. clean-base clone의 model_options와 attention override isolation을 증명한다.
+4. allow_compile=false/true를 분리하되 patch 시점의 eager compile을 허용하지 않는다.
+5. legacy missing scope는 all-stage, fresh default는 first-pass-only로 분리한다.
+6. malformed scope, unselected lookup, dependency/input/signature drift를 fail-closed fixture로 고정한다.
+7. production planner/schema/UI는 Contract review와 dev merge 뒤 각각 분리한다.
+8. Legacy/Node 2.0 live는 최종 UI cutover에서만 실행한다.
 ```
 
 ## 14. 릴리스 정책
 
-이 문서는 다음 버전 번호를 미리 예약하지 않는다. 세 기능은 독립적으로 릴리스될
-수 있지만, #409의 stage/precedence contract가 안정되지 않은 상태에서 #410 또는
-#411만 부분 공개하지 않는다.
+`#409`부터 `#411`까지는 0.6.0으로 공개됐다. 이 문서는 #440/#441의 다음 버전
+번호를 미리 예약하지 않으며, 두 follow-up은 각각 독립 rollback과 release 결정을
+유지한다.
 
 release candidate를 만들 때 다음을 별도로 결정한다.
 
-- 세 기능을 한 minor release에 묶을지
-- #409/DAVE만 먼저 공개할지
+- #440과 #441을 같은 minor release에 묶을지
+- Safe PAG stage scope만 먼저 공개할지
 - optional dependency minimum version
 - workflow/profile migration note
 - Registry scanner/package evidence
 - 사용자에게 필요한 restart/hard-refresh 안내
+
+## 15. #440 실행 manifest
+
+### AIO-SAFEPAG-01 — Contract와 migration 결정
+
+- 유형: Contract
+- production JavaScript/Python 변경 없음
+- pinned `AnimaSafePAG` clone/callback/finally 계약
+- fresh first-pass-only와 legacy missing-scope all-stage 분리
+- malformed scope all-disabled fail-closed
+- selected stage만 dependency lookup과 clean-base clone 허용
+- Compile -> DAVE -> Safe PAG precedence; Sage scope는 #441 소유
+- package/live 미실행
+
+### AIO-SAFEPAG-02 — Backend stage plan과 lifecycle
+
+- 유형: Feature/Lifecycle
+- Safe PAG 전용 stage scope만 planner와 cache signature에 연결
+- unselected stage는 lookup/call 없음
+- selected variant는 clean `model_with_lora`에서 생성
+- sampling callback success/exception exact restore와 repeated queue cleanup
+- schema/UI/profile 변경 없음
+
+### AIO-SAFEPAG-03 — Settings/schema/UI cutover
+
+- 유형: Schema/UI
+- Safe PAG owner에만 four-stage scope UI 추가
+- migration과 fresh default, profile round-trip, Cancel/Apply 보존
+- generic patch catalog/scope UI 금지
+
+### AIO-SAFEPAG-04 — Selected live matrix와 close
+
+- Legacy Canvas와 Node 2.0 save/reload/queue
+- first-pass-only, legacy all-stage, one custom scope
+- Highres, Detailer, USDU와 ResShift no-op
+- DAVE/Torch Compile pairwise, temporary mutation cleanup
+- 전체 optional integration Cartesian matrix 미실행
+
+## 16. #441 실행 manifest
+
+### AIO-SAGE-01 — Experimental Contract와 migration 결정
+
+- 유형: Contract
+- production JavaScript/Python 변경 없음
+- pinned/current `PathchSageAttentionKJ` clone-local override 계약
+- fresh first-pass-only와 legacy missing-scope all-stage 분리
+- malformed scope와 dependency/input/signature drift fail-closed
+- allow_compile=false는 compiler-disable wrapper, true는 downstream trace만 허용
+- patch 시점 eager compile과 shared compile registry 소유 금지
+- package/live 미실행
+
+### AIO-SAGE-02 — Backend stage plan과 cache
+
+- 유형: Feature/Lifecycle
+- SageAttention 전용 scope만 planner와 first-pass cache signature에 연결
+- unselected stage는 KJ node lookup/call 없음
+- selected variant는 clean `model_with_lora`에서 clone
+- FP16 accumulation과 Torch Compile은 기존 run-global/run-wide 계약 유지
+- schema/UI/profile 변경 없음
+
+### AIO-SAGE-03 — Settings/schema/UI cutover
+
+- 유형: Schema/UI
+- SageAttention owner에만 four-stage scope UI 추가
+- migration과 fresh default, profile round-trip, Cancel/Apply 보존
+- allow_compile은 Sage feature field로 유지하고 generic compile owner를 만들지 않음
+
+### AIO-SAGE-04 — Selected live matrix와 close
+
+- Legacy Canvas와 Node 2.0 save/reload/queue
+- first-pass-only, legacy all-stage, one custom scope
+- allow_compile=false/true를 대표 queue로 분리
+- DAVE/Safe PAG/Torch Compile pairwise만 실행
+- 전체 optional integration Cartesian matrix 미실행

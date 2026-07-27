@@ -194,7 +194,7 @@ class AIOModelPreparationMoveTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "Unknown AiO sampling stage"):
             model_preparation._aio_stage_model_patch_plan(first_only, "save")
 
-    def test_unapproved_scope_fields_do_not_partially_select_safe_pag_or_kj(self):
+    def test_safe_pag_and_sage_scopes_are_stage_local_while_other_kj_patches_remain_run_wide(self):
         settings = {
             "model_patches": {
                 "dave": {"enabled": False},
@@ -210,7 +210,7 @@ class AIOModelPreparationMoveTests(unittest.TestCase):
                 "kj": {
                     "fp16_accumulation": True,
                     "sage_attention": "auto",
-                    "stage_scope": {
+                    "sage_stage_scope": {
                         "first_pass": True,
                         "highres": False,
                         "detailer": False,
@@ -228,11 +228,16 @@ class AIOModelPreparationMoveTests(unittest.TestCase):
                 },
             }
         }
-        expected_patch_ids = (
+        first_pass_patch_ids = (
             "aura_flow",
             "safe_pag",
             "kj.fp16_accumulation",
             "kj.sage_attention",
+            "kj.torch_compile",
+        )
+        later_stage_patch_ids = (
+            "aura_flow",
+            "kj.fp16_accumulation",
             "kj.torch_compile",
         )
 
@@ -243,13 +248,139 @@ class AIOModelPreparationMoveTests(unittest.TestCase):
 
         self.assertEqual(
             {stage_id: plan.patch_ids for stage_id, plan in plans.items()},
-            {stage_id: expected_patch_ids for stage_id in plans},
+            {
+                "first_pass": first_pass_patch_ids,
+                "highres": later_stage_patch_ids,
+                "detailer": later_stage_patch_ids,
+                "upscale": later_stage_patch_ids,
+            },
         )
         self.assertEqual(
             len({plan.signature for plan in plans.values()}),
-            1,
-            "Unsupported scope fields must not create partial stage variants",
+            2,
+            "Safe PAG and Sage scope must split selected and unselected variants",
         )
+        self.assertEqual(
+            len(
+                {
+                    plans[stage_id].signature
+                    for stage_id in ("highres", "detailer", "upscale")
+                }
+            ),
+            1,
+            "FP16 and Torch Compile must remain run-wide",
+        )
+        self.assertEqual(plans["first_pass"].payload["kj"]["sage_attention"], "auto")
+        self.assertEqual(plans["highres"].payload["kj"]["sage_attention"], "disabled")
+        self.assertTrue(plans["highres"].payload["kj"]["fp16_accumulation"])
+        self.assertTrue(plans["highres"].payload["kj"]["torch_compile"]["enabled"])
+        self.assertNotIn("sage_stage_scope", plans["first_pass"].payload["kj"])
+
+    def test_safe_pag_missing_scope_is_legacy_all_stage_and_malformed_fails_closed(self):
+        legacy = {
+            "model_patches": {
+                "safe_pag": {"enabled": True},
+            }
+        }
+        self.assertTrue(
+            all(
+                "safe_pag"
+                in model_preparation._aio_stage_model_patch_plan(
+                    legacy,
+                    stage_id,
+                ).patch_ids
+                for stage_id in ("first_pass", "highres", "detailer", "upscale")
+            )
+        )
+
+        malformed = {
+            "model_patches": {
+                "safe_pag": {"enabled": True, "stage_scope": "all"},
+            }
+        }
+        self.assertTrue(
+            all(
+                "safe_pag"
+                not in model_preparation._aio_stage_model_patch_plan(
+                    malformed,
+                    stage_id,
+                ).patch_ids
+                for stage_id in ("first_pass", "highres", "detailer", "upscale")
+            )
+        )
+
+    def test_sage_missing_scope_is_legacy_all_stage_and_malformed_fails_closed(self):
+        legacy = {
+            "model_patches": {
+                "kj": {"sage_attention": "auto"},
+            }
+        }
+        self.assertTrue(
+            all(
+                "kj.sage_attention"
+                in model_preparation._aio_stage_model_patch_plan(
+                    legacy,
+                    stage_id,
+                ).patch_ids
+                for stage_id in ("first_pass", "highres", "detailer", "upscale")
+            )
+        )
+
+        malformed = {
+            "model_patches": {
+                "kj": {
+                    "sage_attention": "auto",
+                    "sage_stage_scope": "all",
+                },
+            }
+        }
+        self.assertTrue(
+            all(
+                "kj.sage_attention"
+                not in model_preparation._aio_stage_model_patch_plan(
+                    malformed,
+                    stage_id,
+                ).patch_ids
+                for stage_id in ("first_pass", "highres", "detailer", "upscale")
+            )
+        )
+
+    def test_sage_unknown_mode_and_node_contract_drift_fail_before_patch(self):
+        with patch_comfy_helper(
+            nodes,
+            "_require_custom_node_class",
+        ) as require_node:
+            with self.assertRaisesRegex(RuntimeError, "Unsupported KJ SageAttention"):
+                model_preparation._apply_aio_kj_non_compile_patches(
+                    "base",
+                    {"sage_attention": "future-mode"},
+                )
+        require_node.assert_not_called()
+
+        class DriftedSageAttention:
+            @classmethod
+            def INPUT_TYPES(cls):
+                return {
+                    "required": {
+                        "model": ("MODEL",),
+                        "sage_attention": (list(model_preparation._AIO_SAGE_ATTENTION_MODES),),
+                    },
+                    "optional": {},
+                }
+
+            def patch(self, model, sage_attention, allow_compile):
+                raise AssertionError("drifted Sage patch must not run")
+
+        with patch_comfy_helper(
+            nodes,
+            "_require_custom_node_class",
+            return_value=DriftedSageAttention,
+        ):
+            with self.assertRaisesRegex(RuntimeError, "contract drifted"):
+                model_preparation._apply_aio_kj_non_compile_patches(
+                    "base",
+                    {"sage_attention": "auto"},
+                )
 
     def test_stage_plan_moves_only_compile_before_dave_in_the_patch_chain(self):
         trace: list[tuple[str, object]] = []
@@ -284,7 +415,7 @@ class AIOModelPreparationMoveTests(unittest.TestCase):
                 "safe_pag": {"enabled": True},
                 "kj": {
                     "fp16_accumulation": True,
-                    "sage_attention": "sageattn",
+                    "sage_attention": "auto",
                     "torch_compile": {"enabled": True},
                 },
             }
@@ -380,6 +511,103 @@ class AIOModelPreparationMoveTests(unittest.TestCase):
             )
         apply_dave.assert_not_called()
 
+    def test_safe_pag_disabled_stage_does_not_call_safe_pag_adapter(self):
+        settings = {
+            "model_patches": {
+                "safe_pag": {
+                    "enabled": True,
+                    "stage_scope": {"highres": False},
+                },
+            }
+        }
+        plan = model_preparation._aio_stage_model_patch_plan(settings, "highres")
+        with (
+            patch.object(
+                model_preparation,
+                "_patch_model_sampling_aura_flow",
+                return_value="aura",
+            ),
+            patch.object(
+                model_preparation,
+                "_apply_aio_safe_pag_patch",
+            ) as apply_safe_pag,
+            patch.object(
+                model_preparation,
+                "_apply_aio_kj_model_patches",
+                side_effect=lambda model, _settings: model,
+            ),
+        ):
+            self.assertEqual(
+                model_preparation._apply_aio_stage_model_patch_plan("base", plan),
+                "aura",
+            )
+        apply_safe_pag.assert_not_called()
+
+    def test_sage_disabled_stage_skips_lookup_but_preserves_fp16_and_compile(self):
+        calls: list[str] = []
+
+        class TorchSettings:
+            def patch(self, model, enabled):
+                calls.append("ModelPatchTorchSettings")
+                return (f"{model}>fp16",)
+
+        class TorchCompile:
+            def patch(self, model, *args):
+                calls.append("TorchCompileModelAdvanced")
+                return (f"{model}>compile",)
+
+        def require_node(node_id, *_args):
+            if node_id == "PathchSageAttentionKJ":
+                raise AssertionError("unselected Sage stage must not perform lookup")
+            return {
+                "ModelPatchTorchSettings": TorchSettings,
+                "TorchCompileModelAdvanced": TorchCompile,
+            }[node_id]
+
+        settings = {
+            "model_patches": {
+                "kj": {
+                    "fp16_accumulation": True,
+                    "sage_attention": "auto",
+                    "sage_allow_compile": True,
+                    "sage_stage_scope": {
+                        "first_pass": True,
+                        "highres": False,
+                        "detailer": False,
+                        "upscale": False,
+                    },
+                    "torch_compile": {"enabled": True},
+                },
+            }
+        }
+        plan = model_preparation._aio_stage_model_patch_plan(settings, "highres")
+        with (
+            patch.object(
+                model_preparation,
+                "_patch_model_sampling_aura_flow",
+                side_effect=lambda model, _settings: model,
+            ),
+            patch_comfy_helper(
+                nodes,
+                "_require_custom_node_class",
+                side_effect=require_node,
+            ),
+        ):
+            result = model_preparation._apply_aio_stage_model_patch_plan(
+                "base",
+                plan,
+            )
+
+        self.assertEqual(result, "base>fp16>compile")
+        self.assertEqual(
+            calls,
+            ["ModelPatchTorchSettings", "TorchCompileModelAdvanced"],
+        )
+        self.assertEqual(
+            plan.patch_ids,
+            ("aura_flow", "kj.fp16_accumulation", "kj.torch_compile"),
+        )
+
     def test_kj_patch_chain_preserves_fp16_sage_compile_order_and_arguments(self):
         calls: list[tuple[object, ...]] = []
 
@@ -389,8 +617,18 @@ class AIOModelPreparationMoveTests(unittest.TestCase):
                 return ("fp16",)
 
         class SageAttention:
-            def patch(self, *args):
-                calls.append(("sage", *args))
+            @classmethod
+            def INPUT_TYPES(cls):
+                return {
+                    "required": {
+                        "model": ("MODEL",),
+                        "sage_attention": (list(model_preparation._AIO_SAGE_ATTENTION_MODES),),
+                    },
+                    "optional": {"allow_compile": ("BOOLEAN",)},
+                }
+
+            def patch(self, model, sage_attention, allow_compile):
+                calls.append(("sage", model, sage_attention, allow_compile))
                 return ("sage",)
 
         class TorchCompile:
@@ -412,7 +650,7 @@ class AIOModelPreparationMoveTests(unittest.TestCase):
                 "base",
                 {
                     "fp16_accumulation": True,
-                    "sage_attention": "sageattn",
+                    "sage_attention": "auto",
                     "sage_allow_compile": True,
                     "torch_compile": {
                         "enabled": True,
@@ -430,7 +668,7 @@ class AIOModelPreparationMoveTests(unittest.TestCase):
 
         self.assertEqual(result, "compile")
         self.assertEqual(calls[0], ("fp16", "base", True))
-        self.assertEqual(calls[1], ("sage", "fp16", "sageattn", True))
+        self.assertEqual(calls[1], ("sage", "fp16", "auto", True))
         self.assertEqual(
             calls[2],
             (
