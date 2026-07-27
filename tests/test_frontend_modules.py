@@ -93,6 +93,12 @@ AIO_ADVANCED_SETTINGS_DIALOG_JS = AIO_MODULES / "advanced_settings_dialog.js"
 AIO_ADVANCED_SETTINGS_DIALOG_SMOKE = (
     ROOT / "tests" / "frontend_aio_advanced_settings_dialog_smoke.mjs"
 )
+AIO_TORCH_COMPILE_RECOMMENDATION_JS = (
+    AIO_MODULES / "torch_compile_recommendation.js"
+)
+AIO_TORCH_COMPILE_RECOMMENDATION_SMOKE = (
+    ROOT / "tests" / "frontend_aio_torch_compile_recommendation_smoke.mjs"
+)
 AIO_PREVIEW_JS = AIO_MODULES / "preview.js"
 AIO_PREVIEW_CORE_SMOKE = ROOT / "tests" / "frontend_aio_preview_core_smoke.mjs"
 AIO_PRESETS_JS = AIO_MODULES / "presets.js"
@@ -1492,6 +1498,48 @@ class FrontendModuleStructureTests(unittest.TestCase):
             frontend_check_source,
         )
 
+    def test_aio_torch_compile_recommendation_has_bounded_data_contract(self):
+        source = AIO_TORCH_COMPILE_RECOMMENDATION_JS.read_text(encoding="utf-8")
+        entry_source = AIO_JS.read_text(encoding="utf-8")
+        frontend_check_source = FRONTEND_CHECK_SCRIPT.read_text(encoding="utf-8")
+
+        self.assertTrue(source.startswith("// @ts-check\n"))
+        self.assertEqual(STATIC_IMPORT_RE.findall(source), [])
+        self.assertNotRegex(source, r"(?m)^\s*import\s")
+        self.assertNotIn("fetch(", source)
+        self.assertNotIn("app.registerExtension", source)
+        self.assertNotRegex(
+            source,
+            re.compile(r"^(?:window|globalThis)\.[A-Za-z_$]", re.MULTILINE),
+        )
+        self.assertEqual(
+            re.findall(r"^export function ([A-Za-z0-9_]+)\(", source, re.MULTILINE),
+            [
+                "aioTorchCompileRecommendationRequest",
+                "aioNormalizeTorchCompileRecommendation",
+                "aioTorchCompileRecommendationDiff",
+                "createAioTorchCompileRecommendationClient",
+            ],
+        )
+        self.assertIn(
+            'from "./aio/torch_compile_recommendation.js";',
+            entry_source,
+        )
+        self.assertIn(
+            "const torchCompileRecommendationClient = "
+            "createAioTorchCompileRecommendationClient({",
+            entry_source,
+        )
+        self.assertIn(
+            "fetchJson: (url, options) => easyuseAnimaFetchComfyJson(api, url, options),",
+            entry_source,
+        )
+        self.assertTrue(AIO_TORCH_COMPILE_RECOMMENDATION_SMOKE.is_file())
+        self.assertIn(
+            r'node "tests\frontend_aio_torch_compile_recommendation_smoke.mjs"',
+            frontend_check_source,
+        )
+
     def test_aio_advanced_settings_dialog_has_closed_lifecycle_boundary(self):
         source = AIO_ADVANCED_SETTINGS_DIALOG_JS.read_text(encoding="utf-8")
         entry_source = AIO_JS.read_text(encoding="utf-8")
@@ -1545,6 +1593,9 @@ class FrontendModuleStructureTests(unittest.TestCase):
             "available: optionalDependencyAvailable,",
             "pack: optionalDependencyPack,",
             "load: loadGeneratorOptionalDependencies,",
+            "recommend: (settings, context) =>",
+            "torchCompileRecommendationClient.recommend(settings, context)",
+            "diff: aioTorchCompileRecommendationDiff,",
         ):
             with self.subTest(composition_dependency=expected):
                 self.assertIn(expected, composition)

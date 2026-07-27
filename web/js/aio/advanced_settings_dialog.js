@@ -43,6 +43,12 @@
  */
 
 /**
+ * @typedef {object} AioAdvancedDialogRecommendationAdapter
+ * @property {(settings: any, context?: Record<string, any>) => Promise<any>} recommend
+ * @property {(current: any, values: any) => Array<{name: string, current: any, recommended: any}>} diff
+ */
+
+/**
  * @typedef {object} AioAdvancedSettingsDialogDependencies
  * @property {any} document
  * @property {AioAdvancedDialogControls} controls
@@ -50,6 +56,7 @@
  * @property {AioAdvancedDialogSettingsCore} settingsCore
  * @property {AioAdvancedDialogNodeAdapter} nodeAdapter
  * @property {AioAdvancedDialogDependencyAdapter} dependencyAdapter
+ * @property {AioAdvancedDialogRecommendationAdapter} recommendationAdapter
  */
 
 const DAVE_STAGE_IDS = Object.freeze([
@@ -100,6 +107,7 @@ export function aioCreateAdvancedSettingsDialog(dependencies) {
     settingsCore,
     nodeAdapter,
     dependencyAdapter,
+    recommendationAdapter,
   } = dependencies;
   const {
     createDialog,
@@ -133,6 +141,10 @@ export function aioCreateAdvancedSettingsDialog(dependencies) {
     notifyMissing: notifyMissingDependency,
     load: loadGeneratorOptionalDependencies,
   } = dependencyAdapter;
+  const {
+    recommend: recommendTorchCompile,
+    diff: torchCompileRecommendationDiff,
+  } = recommendationAdapter;
 
   function openAdvancedSettings(node) {
     const widget = findWidget(node, GENERATOR_SETTINGS_WIDGET);
@@ -305,7 +317,7 @@ export function aioCreateAdvancedSettingsDialog(dependencies) {
     const torchCompileDynamic = field(
       torchDetails,
       "Dynamic",
-      selectInput(["false", "true", "default"], settings.model_patches.kj.torch_compile.dynamic),
+      selectInput(["auto", "false", "true", "default"], settings.model_patches.kj.torch_compile.dynamic),
       "tip.torchCompileDynamic",
     );
     const torchCompileBlocksOnly = field(
@@ -332,7 +344,18 @@ export function aioCreateAdvancedSettingsDialog(dependencies) {
       checkbox(settings.model_patches.kj.torch_compile.disable_dynamic_vram),
       "tip.torchCompileVram",
     );
-    torch.append(torchDetails);
+    const torchRecommendationActions = document.createElement("div");
+    torchRecommendationActions.className = "easyuse-anima-aio-dialog-actions";
+    const torchRecommendButton = document.createElement("button");
+    torchRecommendButton.type = "button";
+    torchRecommendButton.textContent = aioText("button.torchCompileRecommend");
+    torchRecommendationActions.append(torchRecommendButton);
+    const torchRecommendationStatus = document.createElement("div");
+    torchRecommendationStatus.className = "easyuse-anima-aio-warning";
+    torchRecommendationStatus.hidden = true;
+    torchRecommendationStatus.style.whiteSpace = "pre-line";
+    torchRecommendationStatus.setAttribute("aria-live", "polite");
+    torch.append(torchRecommendationActions, torchRecommendationStatus, torchDetails);
     kj.append(torch);
 
     const modelWarning = document.createElement("div");
@@ -373,6 +396,106 @@ export function aioCreateAdvancedSettingsDialog(dependencies) {
     const refreshTorchDetails = () => {
       torchDetails.style.display = torchCompileEnabled.checked ? "" : "none";
     };
+    const torchControlValues = () => ({
+      enabled: torchCompileEnabled.checked,
+      backend: torchCompileBackend.value,
+      fullgraph: torchCompileFullgraph.checked,
+      mode: torchCompileMode.value,
+      dynamic: torchCompileDynamic.value,
+      compile_transformer_blocks_only: torchCompileBlocksOnly.checked,
+      dynamo_cache_size_limit: Number(torchCompileCache.value),
+      debug_compile_keys: torchCompileDebug.checked,
+      disable_dynamic_vram: torchCompileDisableVram.checked,
+    });
+    const applyTorchRecommendationDraft = (values) => {
+      torchCompileEnabled.checked = values.enabled;
+      torchCompileBackend.value = values.backend;
+      torchCompileFullgraph.checked = values.fullgraph;
+      torchCompileMode.value = values.mode;
+      torchCompileDynamic.value = values.dynamic;
+      torchCompileBlocksOnly.checked = values.compile_transformer_blocks_only;
+      torchCompileCache.value = String(values.dynamo_cache_size_limit);
+      torchCompileDebug.checked = values.debug_compile_keys;
+      torchCompileDisableVram.checked = values.disable_dynamic_vram;
+      refreshTorchDetails();
+    };
+    const displayRecommendationValue = (value) => (
+      value === undefined || value === null || value === "" ? "—" : String(value)
+    );
+    const recommendationLines = (result, changes = null) => {
+      const vram = result.environment.totalVramMb == null
+        ? "unknown"
+        : `${result.environment.totalVramMb} MiB`;
+      return [
+        aioFormat("status.torchCompileProfile", { profile: result.profile }),
+        aioFormat("status.torchCompileEnvironment", {
+          accelerator: result.environment.accelerator,
+          vram,
+        }),
+        ...(Array.isArray(changes) && changes.length
+          ? changes.map((change) => aioFormat("status.torchCompileChange", {
+              field: change.name,
+              current: displayRecommendationValue(change.current),
+              recommended: displayRecommendationValue(change.recommended),
+            }))
+          : (changes === null ? [] : [aioText("status.torchCompileNoChanges")])),
+        ...result.reasonCodes.map((code) => aioFormat("status.torchCompileReason", { code })),
+        ...result.warnings.map((code) => aioFormat("status.torchCompileWarning", { code })),
+      ];
+    };
+    const showTorchRecommendationStatus = (state, lines) => {
+      torchRecommendationStatus.hidden = false;
+      torchRecommendationStatus.setAttribute("data-state", state);
+      torchRecommendationStatus.textContent = lines.join("\n");
+    };
+    let recommendationClosed = false;
+    let recommendationPending = false;
+    torchRecommendButton.addEventListener("click", () => {
+      if (recommendationClosed || recommendationPending) {
+        return;
+      }
+      recommendationPending = true;
+      torchRecommendButton.disabled = true;
+      showTorchRecommendationStatus("loading", [aioText("status.torchCompileLoading")]);
+      Promise.resolve()
+        .then(() => recommendTorchCompile(settings, {}))
+        .then((result) => {
+          if (recommendationClosed) {
+            return;
+          }
+          if (!result.supported || !result.values) {
+            showTorchRecommendationStatus("unsupported", [
+              aioText("status.torchCompileUnsupported"),
+              ...recommendationLines(result),
+            ]);
+            return;
+          }
+          const changes = torchCompileRecommendationDiff(
+            torchControlValues(),
+            result.values,
+          );
+          applyTorchRecommendationDraft(result.values);
+          showTorchRecommendationStatus("supported", [
+            aioText("status.torchCompileDraftApplied"),
+            ...recommendationLines(result, changes),
+          ]);
+        })
+        .catch((error) => {
+          if (!recommendationClosed) {
+            showTorchRecommendationStatus("error", [
+              aioFormat("status.torchCompileRequestFailed", {
+                message: error?.message || "unknown error",
+              }),
+            ]);
+          }
+        })
+        .finally(() => {
+          recommendationPending = false;
+          if (!recommendationClosed) {
+            torchRecommendButton.disabled = false;
+          }
+        });
+    });
     const refreshDaveStageScope = () => {
       const preset = DAVE_STAGE_SCOPE_PRESETS[daveStagePreset.value];
       if (preset) {
@@ -547,8 +670,12 @@ export function aioCreateAdvancedSettingsDialog(dependencies) {
     apply.className = "primary";
     apply.textContent = aioText("button.apply");
     actions.append(cancel, apply);
-    cancel.addEventListener("click", () => backdrop.remove());
+    cancel.addEventListener("click", () => {
+      recommendationClosed = true;
+      backdrop.remove();
+    });
     apply.addEventListener("click", () => {
+      recommendationClosed = true;
       const next = mergeDefaults(DEFAULT_GENERATION_SETTINGS, settings);
       delete next.sampler.dave;
       delete next.model_patches.aura_flow.enabled;

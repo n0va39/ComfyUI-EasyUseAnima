@@ -27,6 +27,10 @@ import { aioCreateDetailerSettingsDialog } from "./aio/detailer_settings_dialog.
 import { aioCreateSamplerSettingsDialog } from "./aio/sampler_settings_dialog.js";
 import { aioCreateSaveSettingsDialog } from "./aio/save_settings_dialog.js";
 import { aioCreateAdvancedSettingsDialog } from "./aio/advanced_settings_dialog.js";
+import {
+  aioTorchCompileRecommendationDiff,
+  createAioTorchCompileRecommendationClient,
+} from "./aio/torch_compile_recommendation.js";
 import { aioMarkMissingDependencyControl } from "./aio/dependency_controls.js";
 import { aioCreateNativePreviewRuntime } from "./aio/native_preview_runtime.js";
 import {
@@ -1052,6 +1056,17 @@ const AIO_TOOLTIP_TEXT = {
     "button.close": "Close",
     "button.cancel": "Cancel",
     "button.apply": "Apply",
+    "button.torchCompileRecommend": "Auto-configure for current environment",
+    "status.torchCompileLoading": "Checking the current environment…",
+    "status.torchCompileUnsupported": "Automatic Torch Compile settings are unavailable.",
+    "status.torchCompileDraftApplied": "Recommendation applied to this dialog draft. Use Apply to save it.",
+    "status.torchCompileProfile": "Profile: {profile}",
+    "status.torchCompileEnvironment": "Environment: {accelerator}, VRAM {vram}",
+    "status.torchCompileChange": "{field}: {current} → {recommended}",
+    "status.torchCompileNoChanges": "Recommended values already match this dialog.",
+    "status.torchCompileReason": "Reason: {code}",
+    "status.torchCompileWarning": "Warning: {code}",
+    "status.torchCompileRequestFailed": "Recommendation request failed: {message}",
     "tip.inputUnetDtype": "Weight dtype used when Easy Use Anima Input loads the diffusion model. Keep default unless VRAM or speed tuning requires another dtype.",
     "tip.inputClipDevice": "Device preference for loading CLIP. CPU can reduce VRAM use at the cost of slower prompt encoding.",
     "tip.seedMode": "After-execution behavior for the seed value. This mirrors rgthree Seed controls.",
@@ -1165,6 +1180,17 @@ const AIO_TOOLTIP_TEXT = {
     "button.close": "닫기",
     "button.cancel": "취소",
     "button.apply": "적용",
+    "button.torchCompileRecommend": "현재 환경에 맞게 자동 설정",
+    "status.torchCompileLoading": "현재 환경을 확인하는 중…",
+    "status.torchCompileUnsupported": "Torch Compile 자동 설정을 사용할 수 없습니다.",
+    "status.torchCompileDraftApplied": "추천값을 이 대화상자 초안에 적용했습니다. 저장하려면 적용을 누르세요.",
+    "status.torchCompileProfile": "프로필: {profile}",
+    "status.torchCompileEnvironment": "환경: {accelerator}, VRAM {vram}",
+    "status.torchCompileChange": "{field}: {current} → {recommended}",
+    "status.torchCompileNoChanges": "추천값이 현재 대화상자와 같습니다.",
+    "status.torchCompileReason": "이유: {code}",
+    "status.torchCompileWarning": "주의: {code}",
+    "status.torchCompileRequestFailed": "추천 요청 실패: {message}",
     "tip.inputUnetDtype": "Easy Use Anima Input이 디퓨전 모델을 로드할 때 사용할 weight dtype입니다. VRAM/속도 튜닝이 필요 없으면 default를 유지합니다.",
     "tip.inputClipDevice": "CLIP 로드 장치 설정입니다. CPU는 VRAM을 줄일 수 있지만 프롬프트 인코딩이 느려질 수 있습니다.",
     "tip.seedMode": "백엔드 실행 완료 후 시드 처리 방식입니다. rgthree Seed 컨트롤과 같은 의미로 동작합니다.",
@@ -1278,6 +1304,17 @@ const AIO_TOOLTIP_TEXT = {
     "button.close": "閉じる",
     "button.cancel": "キャンセル",
     "button.apply": "適用",
+    "button.torchCompileRecommend": "現在の環境に合わせて自動設定",
+    "status.torchCompileLoading": "現在の環境を確認しています…",
+    "status.torchCompileUnsupported": "Torch Compile の自動設定は利用できません。",
+    "status.torchCompileDraftApplied": "推奨値をこのダイアログの下書きに適用しました。保存するには適用を押してください。",
+    "status.torchCompileProfile": "プロファイル: {profile}",
+    "status.torchCompileEnvironment": "環境: {accelerator}, VRAM {vram}",
+    "status.torchCompileChange": "{field}: {current} → {recommended}",
+    "status.torchCompileNoChanges": "推奨値は現在のダイアログと一致しています。",
+    "status.torchCompileReason": "理由: {code}",
+    "status.torchCompileWarning": "注意: {code}",
+    "status.torchCompileRequestFailed": "推奨設定の取得に失敗しました: {message}",
     "tip.inputUnetDtype": "Easy Use Anima Input が diffusion model を読み込むときの weight dtype です。VRAM や速度調整が不要なら default を使います。",
     "tip.inputClipDevice": "CLIP の読み込みデバイスです。CPU は VRAM を抑えますが、プロンプトエンコードが遅くなります。",
     "tip.seedMode": "バックエンド実行完了後のシード制御です。rgthree Seed と同じ考え方で動作します。",
@@ -1381,6 +1418,17 @@ const AIO_TOOLTIP_TEXT = {
     "button.close": "关闭",
     "button.cancel": "取消",
     "button.apply": "应用",
+    "button.torchCompileRecommend": "根据当前环境自动设置",
+    "status.torchCompileLoading": "正在检查当前环境…",
+    "status.torchCompileUnsupported": "无法使用 Torch Compile 自动设置。",
+    "status.torchCompileDraftApplied": "推荐值已应用到此对话框草稿。请点击应用以保存。",
+    "status.torchCompileProfile": "配置: {profile}",
+    "status.torchCompileEnvironment": "环境: {accelerator}, VRAM {vram}",
+    "status.torchCompileChange": "{field}: {current} → {recommended}",
+    "status.torchCompileNoChanges": "推荐值已与当前对话框一致。",
+    "status.torchCompileReason": "原因: {code}",
+    "status.torchCompileWarning": "注意: {code}",
+    "status.torchCompileRequestFailed": "推荐请求失败: {message}",
     "tip.inputUnetDtype": "Easy Use Anima Input 加载 diffusion model 时使用的 weight dtype。除非需要显存或速度调优，否则保持 default。",
     "tip.inputClipDevice": "CLIP 加载设备。CPU 可减少显存占用，但会降低提示词编码速度。",
     "tip.seedMode": "后端执行完成后的种子控制方式，行为与 rgthree Seed 控件一致。",
@@ -3712,6 +3760,10 @@ const generatorProfileApi = createAioProfileApiClient({
   encodeURIComponent,
 });
 
+const torchCompileRecommendationClient = createAioTorchCompileRecommendationClient({
+  fetchJson: (url, options) => easyuseAnimaFetchComfyJson(api, url, options),
+});
+
 const generatorProfileDialogs = aioCreateProfileDialogs({
   document,
   createDialog,
@@ -4035,6 +4087,12 @@ const openAdvancedSettings = aioCreateAdvancedSettingsDialog({
     markMissingControl: aioMarkMissingDependencyControl,
     notifyMissing: notifyGeneratorMissingDependencies,
     load: loadGeneratorOptionalDependencies,
+  },
+  recommendationAdapter: {
+    recommend: (settings, context) => (
+      torchCompileRecommendationClient.recommend(settings, context)
+    ),
+    diff: aioTorchCompileRecommendationDiff,
   },
 });
 

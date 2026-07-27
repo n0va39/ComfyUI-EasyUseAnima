@@ -72,11 +72,13 @@ function assertDisabled(entries, expected = true) {
 }
 
 async function flushPromises() {
-  await Promise.resolve();
-  await Promise.resolve();
+  for (let index = 0; index < 6; index += 1) {
+    await Promise.resolve();
+  }
 }
 
 const advancedDialogModule = await import(dataModule("../web/js/aio/advanced_settings_dialog.js"));
+const recommendationModule = await import(dataModule("../web/js/aio/torch_compile_recommendation.js"));
 const settingsModule = await import(dataModule("../web/js/aio/settings.js"));
 assert.deepEqual(
   Object.keys(advancedDialogModule),
@@ -151,7 +153,13 @@ function configuredSettings() {
   };
 }
 
-function createFixture({ settings = {}, available = {}, deferLoads = false } = {}) {
+function createFixture({
+  settings = {},
+  available = {},
+  deferLoads = false,
+  recommendationResults = [],
+  deferRecommendations = false,
+} = {}) {
   let dependencyCalls = 0;
   let currentDialog = null;
   const dialogs = [];
@@ -162,6 +170,8 @@ function createFixture({ settings = {}, available = {}, deferLoads = false } = {
   const clampCalls = [];
   const writes = [];
   const renders = [];
+  const recommendationCalls = [];
+  const recommendationResolvers = [];
   const document = createFakeDocument();
   const availabilityState = { ...available };
   const defaultSettings = clone(settingsModule.AIO_DEFAULT_GENERATION_SETTINGS);
@@ -305,6 +315,27 @@ function createFixture({ settings = {}, available = {}, deferLoads = false } = {
     currentDialog.trace.push("render");
   }
 
+  function recommend(settingsSnapshot, context) {
+    dependencyCalls += 1;
+    recommendationCalls.push({
+      settings: clone(settingsSnapshot),
+      context: clone(context),
+    });
+    if (deferRecommendations) {
+      return new Promise((resolve, reject) => {
+        recommendationResolvers.push({ resolve, reject });
+      });
+    }
+    const next = recommendationResults.shift();
+    if (next instanceof Error) {
+      throw next;
+    }
+    if (next === undefined) {
+      throw new Error("Missing fixture recommendation result");
+    }
+    return clone(next);
+  }
+
   const openAdvancedSettings = advancedDialogModule.aioCreateAdvancedSettingsDialog({
     document,
     controls: {
@@ -359,6 +390,10 @@ function createFixture({ settings = {}, available = {}, deferLoads = false } = {
         return new Promise((resolve) => loadResolvers.push(resolve));
       },
     },
+    recommendationAdapter: {
+      recommend,
+      diff: recommendationModule.aioTorchCompileRecommendationDiff,
+    },
   });
 
   return {
@@ -374,11 +409,22 @@ function createFixture({ settings = {}, available = {}, deferLoads = false } = {
     clampCalls,
     writes,
     renders,
+    recommendationCalls,
     dependencyCallCount: () => dependencyCalls,
     resolveLoads() {
       for (const resolve of loadResolvers.splice(0)) {
         resolve();
       }
+    },
+    resolveNextRecommendation(result) {
+      const pending = recommendationResolvers.shift();
+      assert.ok(pending, "missing deferred recommendation request");
+      pending.resolve(clone(result));
+    },
+    rejectNextRecommendation(error) {
+      const pending = recommendationResolvers.shift();
+      assert.ok(pending, "missing deferred recommendation request");
+      pending.reject(error);
     },
   };
 }
@@ -416,7 +462,8 @@ function createFixture({ settings = {}, available = {}, deferLoads = false } = {
   const torchDetails = subsectionByHeading(torch, "Torch Compile Parameters");
   const warning = find(
     modelPatches,
-    (element) => element.classList.contains("easyuse-anima-aio-warning"),
+    (element) => element.classList.contains("easyuse-anima-aio-warning")
+      && element.getAttribute?.("aria-live") !== "polite",
   );
   assert.ok(warning);
   assert.equal(warning.hidden, true);
@@ -736,7 +783,8 @@ for (const dependencyCase of [
   const torchDetails = subsectionByHeading(torch, "Torch Compile Parameters");
   const warning = find(
     modelPatches,
-    (element) => element.classList.contains("easyuse-anima-aio-warning"),
+    (element) => element.classList.contains("easyuse-anima-aio-warning")
+      && element.getAttribute?.("aria-live") !== "polite",
   );
   assert.ok(warning);
   const controlGroups = {
@@ -848,7 +896,8 @@ for (const dependencyCase of [
   const torchDetails = subsectionByHeading(torch, "Torch Compile Parameters");
   const warning = find(
     modelPatches,
-    (element) => element.classList.contains("easyuse-anima-aio-warning"),
+    (element) => element.classList.contains("easyuse-anima-aio-warning")
+      && element.getAttribute?.("aria-live") !== "polite",
   );
   assert.ok(warning);
   assert.equal(fixture.loadCalls.length, 1);
@@ -942,6 +991,223 @@ for (const dependencyCase of [
   assert.equal(fixture.node.settings.model_patches.kj.sage_allow_compile, false);
   assert.equal(fixture.node.settings.model_patches.kj.torch_compile.enabled, false);
   assert.deepEqual(JSON.parse(fixture.node.widgets[0].value), fixture.node.settings);
+}
+
+function supportedRecommendation() {
+  return {
+    supported: true,
+    profile: "stable_variable_shapes",
+    policyVersion: "recommendation-v1",
+    values: {
+      enabled: true,
+      backend: "inductor",
+      fullgraph: false,
+      mode: "default",
+      dynamic: "auto",
+      compile_transformer_blocks_only: true,
+      dynamo_cache_size_limit: 64,
+      debug_compile_keys: false,
+      disable_dynamic_vram: false,
+    },
+    reasonCodes: ["highres_changes_shape"],
+    warnings: ["first_compile_may_be_slow"],
+    environment: { accelerator: "cuda", totalVramMb: 16302 },
+  };
+}
+
+function torchRecommendationControls(dialog) {
+  const modelPatches = sectionByHeading(dialog.body, "Model Patch / Optimization");
+  const kj = subsectionByHeading(modelPatches, "KJNodes Optimization");
+  const torch = subsectionByHeading(kj, "Torch Compile (KJNodes)");
+  const details = subsectionByHeading(torch, "Torch Compile Parameters");
+  const button = findByText(torch, "text:button.torchCompileRecommend");
+  const status = find(torch, (element) => element.getAttribute?.("aria-live") === "polite");
+  assert.ok(button, "missing Torch Compile recommendation button");
+  assert.ok(status, "missing Torch Compile recommendation status");
+  return { torch, details, button, status };
+}
+
+{
+  const fixture = createFixture({
+    settings: configuredSettings(),
+    deferRecommendations: true,
+  });
+  const originalSettings = clone(fixture.node.settings);
+  const originalWidget = fixture.node.widgets[0].value;
+  fixture.openAdvancedSettings(fixture.node);
+  await flushPromises();
+  const dialog = fixture.dialogs[0];
+  const controls = torchRecommendationControls(dialog);
+
+  controls.button.emit("click");
+  assert.equal(controls.button.disabled, true);
+  assert.equal(controls.status.getAttribute("data-state"), "loading");
+  assert.equal(controls.status.textContent, "text:status.torchCompileLoading");
+  controls.button.emit("click");
+  await flushPromises();
+  assert.equal(fixture.recommendationCalls.length, 1, "A pending click must not duplicate requests");
+  assert.deepEqual(fixture.recommendationCalls[0], {
+    settings: originalSettings,
+    context: {},
+  });
+  assert.equal(fixture.writes.length, 0, "Recommendation loading must not write node settings");
+
+  fixture.resolveNextRecommendation(supportedRecommendation());
+  await flushPromises();
+  assert.equal(controls.button.disabled, false);
+  assert.equal(controls.status.getAttribute("data-state"), "supported");
+  assert.ok(controls.status.textContent.includes("text:status.torchCompileDraftApplied"));
+  assert.ok(controls.status.textContent.includes(
+    'format:status.torchCompileProfile:{"profile":"stable_variable_shapes"}',
+  ));
+  assert.ok(controls.status.textContent.includes(
+    'format:status.torchCompileEnvironment:{"accelerator":"cuda","vram":"16302 MiB"}',
+  ));
+  assert.ok(controls.status.textContent.includes(
+    'format:status.torchCompileReason:{"code":"highres_changes_shape"}',
+  ));
+  assert.ok(controls.status.textContent.includes(
+    'format:status.torchCompileWarning:{"code":"first_compile_may_be_slow"}',
+  ));
+  assertValues([
+    [controls.details, "Backend", "inductor"],
+    [controls.details, "Mode", "default"],
+    [controls.details, "Dynamic", "auto"],
+    [controls.details, "Dynamo cache limit", 64],
+  ]);
+  assertChecked([
+    [controls.torch, "Use Torch compile", true],
+    [controls.details, "Fullgraph", false],
+    [controls.details, "Transformer blocks only", true],
+    [controls.details, "Debug keys", false],
+    [controls.details, "Disable dynamic VRAM", false],
+  ]);
+  assert.deepEqual(fixture.node.settings, originalSettings, "Recommendation is draft-only");
+  assert.equal(fixture.node.widgets[0].value, originalWidget);
+  assert.equal(fixture.writes.length, 0);
+  assert.equal(fixture.renders.length, 0);
+
+  action(dialog, "button.cancel").emit("click");
+  assert.deepEqual(dialog.trace, ["remove"]);
+  assert.deepEqual(fixture.node.settings, originalSettings, "Cancel must discard recommendation draft");
+  assert.equal(fixture.node.widgets[0].value, originalWidget);
+}
+
+{
+  const fixture = createFixture({
+    settings: configuredSettings(),
+    recommendationResults: [supportedRecommendation()],
+  });
+  fixture.openAdvancedSettings(fixture.node);
+  await flushPromises();
+  const dialog = fixture.dialogs[0];
+  const controls = torchRecommendationControls(dialog);
+  controls.button.emit("click");
+  await flushPromises();
+  assert.equal(fixture.writes.length, 0);
+  action(dialog, "button.apply").emit("click");
+  assert.deepEqual(dialog.trace, ["merge", "write", "render", "remove"]);
+  assert.deepEqual(
+    {
+      enabled: fixture.node.settings.model_patches.kj.torch_compile.enabled,
+      backend: fixture.node.settings.model_patches.kj.torch_compile.backend,
+      fullgraph: fixture.node.settings.model_patches.kj.torch_compile.fullgraph,
+      mode: fixture.node.settings.model_patches.kj.torch_compile.mode,
+      dynamic: fixture.node.settings.model_patches.kj.torch_compile.dynamic,
+      compile_transformer_blocks_only: (
+        fixture.node.settings.model_patches.kj.torch_compile.compile_transformer_blocks_only
+      ),
+      dynamo_cache_size_limit: (
+        fixture.node.settings.model_patches.kj.torch_compile.dynamo_cache_size_limit
+      ),
+      debug_compile_keys: fixture.node.settings.model_patches.kj.torch_compile.debug_compile_keys,
+      disable_dynamic_vram: fixture.node.settings.model_patches.kj.torch_compile.disable_dynamic_vram,
+    },
+    supportedRecommendation().values,
+    "Only final Apply may persist a recommendation",
+  );
+  assert.equal(
+    fixture.node.settings.model_patches.kj.torch_compile.future_torch_key,
+    "keep-torch",
+    "Unknown Torch Compile settings must survive final Apply",
+  );
+}
+
+{
+  const unsupported = {
+    supported: false,
+    profile: "unsupported_environment",
+    policyVersion: "recommendation-v1",
+    values: null,
+    reasonCodes: ["unsupported_accelerator"],
+    warnings: [],
+    environment: { accelerator: "cpu", totalVramMb: null },
+  };
+  const fixture = createFixture({
+    settings: configuredSettings(),
+    recommendationResults: [unsupported],
+  });
+  fixture.openAdvancedSettings(fixture.node);
+  await flushPromises();
+  const dialog = fixture.dialogs[0];
+  const controls = torchRecommendationControls(dialog);
+  const before = {
+    backend: controlIn(controls.details, "Backend").value,
+    dynamic: controlIn(controls.details, "Dynamic").value,
+    enabled: controlIn(controls.torch, "Use Torch compile").checked,
+  };
+  controls.button.emit("click");
+  await flushPromises();
+  assert.equal(controls.status.getAttribute("data-state"), "unsupported");
+  assert.ok(controls.status.textContent.includes("text:status.torchCompileUnsupported"));
+  assert.deepEqual({
+    backend: controlIn(controls.details, "Backend").value,
+    dynamic: controlIn(controls.details, "Dynamic").value,
+    enabled: controlIn(controls.torch, "Use Torch compile").checked,
+  }, before, "Unsupported responses must not mutate controls");
+  assert.equal(fixture.writes.length, 0);
+}
+
+{
+  const fixture = createFixture({
+    settings: configuredSettings(),
+    recommendationResults: [new Error("policy unavailable")],
+  });
+  fixture.openAdvancedSettings(fixture.node);
+  await flushPromises();
+  const dialog = fixture.dialogs[0];
+  const controls = torchRecommendationControls(dialog);
+  const before = controlIn(controls.details, "Backend").value;
+  controls.button.emit("click");
+  await flushPromises();
+  assert.equal(controls.status.getAttribute("data-state"), "error");
+  assert.equal(
+    controls.status.textContent,
+    'format:status.torchCompileRequestFailed:{"message":"policy unavailable"}',
+  );
+  assert.equal(controlIn(controls.details, "Backend").value, before);
+  assert.equal(fixture.writes.length, 0);
+}
+
+{
+  const fixture = createFixture({
+    settings: configuredSettings(),
+    deferRecommendations: true,
+  });
+  const originalSettings = clone(fixture.node.settings);
+  fixture.openAdvancedSettings(fixture.node);
+  await flushPromises();
+  const dialog = fixture.dialogs[0];
+  const controls = torchRecommendationControls(dialog);
+  const before = controlIn(controls.details, "Backend").value;
+  controls.button.emit("click");
+  await flushPromises();
+  action(dialog, "button.cancel").emit("click");
+  fixture.resolveNextRecommendation(supportedRecommendation());
+  await flushPromises();
+  assert.equal(controlIn(controls.details, "Backend").value, before);
+  assert.deepEqual(fixture.node.settings, originalSettings);
+  assert.equal(fixture.writes.length, 0, "A late result after Cancel must be ignored");
 }
 
 console.log("AiO Advanced settings dialog smoke passed.");
