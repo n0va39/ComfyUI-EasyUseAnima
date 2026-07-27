@@ -2366,7 +2366,28 @@ class FrontendModuleStructureTests(unittest.TestCase):
         self.assertIn('./advanced_fields_ui.js"', advanced_node_ui_source)
         self.assertIn("./advanced_fields_state.js", extension_runtime_source)
         self.assertIn("./advanced_values.js", extension_runtime_source)
-        self.assertIn("./wildcard_seed_transaction.js", extension_runtime_source)
+        self.assertIn("./execution_transaction.js", extension_runtime_source)
+        self.assertNotIn("./wildcard_seed_transaction.js", extension_runtime_source)
+        execution_transaction_source = (
+            PROMPT_STUDIO_MODULES / "execution_transaction.js"
+        ).read_text(encoding="utf-8")
+        self.assertFalse(
+            (PROMPT_STUDIO_MODULES / "wildcard_seed_transaction.js").exists()
+        )
+        self.assertIn(
+            "createPromptStudioExecutionTransaction",
+            execution_transaction_source,
+        )
+        self.assertIn("for (const committer", execution_transaction_source)
+        self.assertIn(
+            "owner.settle(transaction, pending.envelope)",
+            execution_transaction_source,
+        )
+        self.assertIn("editBindings: WILDCARD_SEED_EDIT_BINDINGS", extension_runtime_source)
+        self.assertIn(
+            "surface: WILDCARD_SEED_CONTROL_SURFACE",
+            extension_runtime_source,
+        )
         self.assertIn("../lifecycle/queue_ui_transaction.js", extension_runtime_source)
         self.assertIn("../lifecycle/executed_event_context.js", extension_runtime_source)
         self.assertIn('"advanced-wildcard-seed-transaction"', extension_runtime_source)
