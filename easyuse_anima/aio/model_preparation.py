@@ -6,6 +6,7 @@ import json
 import logging
 from typing import Any
 
+from ..common.serialization import _stable_change_key
 from ..common.values import _as_bool, _as_float, _as_int
 from ..infrastructure.comfy.invocation import (
     _call_with_supported_kwargs,
@@ -13,6 +14,11 @@ from ..infrastructure.comfy.invocation import (
 )
 from ..infrastructure.comfy.wiring import resolve_comfy_host_helper
 from ..lora.metadata import _lora_stack_name
+from .generation_lifecycle import StageModelPatchPlan
+from .generation_migrations import (
+    AIO_GENERATION_STAGE_IDS,
+    AIO_MODEL_PATCH_ORDER_REVISION,
+)
 
 logger = logging.getLogger("ComfyUI-EasyUseAnima")
 
@@ -76,7 +82,7 @@ def _patch_model_sampling_aura_flow(model, aura_settings: dict[str, Any]):
     return values[0]
 
 
-def _apply_aio_kj_model_patches(model, kj_settings: dict[str, Any]):
+def _apply_aio_kj_non_compile_patches(model, kj_settings: dict[str, Any]):
     patched = model
     if kj_settings.get("fp16_accumulation"):
         torch_settings_cls = _require_custom_node_class(
@@ -107,6 +113,10 @@ def _apply_aio_kj_model_patches(model, kj_settings: dict[str, Any]):
             raise RuntimeError("[EasyUseAnima] PathchSageAttentionKJ returned no MODEL.")
         patched = values[0]
 
+    return patched
+
+
+def _apply_aio_kj_torch_compile_patch(model, kj_settings: dict[str, Any]):
     compile_settings = kj_settings.get("torch_compile", {})
     if isinstance(compile_settings, dict) and compile_settings.get("enabled"):
         compile_cls = _require_custom_node_class(
@@ -116,7 +126,7 @@ def _apply_aio_kj_model_patches(model, kj_settings: dict[str, Any]):
         )
         values = _node_output_tuple(
             compile_cls().patch(
-                patched,
+                model,
                 str(compile_settings.get("backend") or "inductor"),
                 _as_bool(compile_settings.get("fullgraph"), False),
                 str(compile_settings.get("mode") or "default"),
@@ -131,34 +141,121 @@ def _apply_aio_kj_model_patches(model, kj_settings: dict[str, Any]):
         )
         if not values:
             raise RuntimeError("[EasyUseAnima] TorchCompileModelAdvanced returned no MODEL.")
-        patched = values[0]
+        return values[0]
+    return model
+
+
+def _apply_aio_kj_model_patches(model, kj_settings: dict[str, Any]):
+    patched = _apply_aio_kj_non_compile_patches(model, kj_settings)
+    return _apply_aio_kj_torch_compile_patch(patched, kj_settings)
+
+
+def _aio_stage_model_patch_plan(
+    settings: dict[str, Any],
+    stage_id: str,
+) -> StageModelPatchPlan:
+    if stage_id not in AIO_GENERATION_STAGE_IDS:
+        raise ValueError(f"Unknown AiO sampling stage: {stage_id}")
+    model_patches = settings.get("model_patches", {})
+    if not isinstance(model_patches, dict):
+        model_patches = {}
+    aura_settings = model_patches.get("aura_flow", {})
+    if not isinstance(aura_settings, dict):
+        aura_settings = {}
+    dave_settings = model_patches.get("dave", {})
+    if not isinstance(dave_settings, dict):
+        dave_settings = {}
+    safe_pag_settings = model_patches.get("safe_pag", {})
+    if not isinstance(safe_pag_settings, dict):
+        safe_pag_settings = {}
+    kj_settings = model_patches.get("kj", {})
+    if not isinstance(kj_settings, dict):
+        kj_settings = {}
+
+    dave_enabled = _as_bool(dave_settings.get("enabled"), False)
+    stage_scope = dave_settings.get("stage_scope")
+    dave_in_stage = dave_enabled and (
+        _as_bool(stage_scope.get(stage_id), True)
+        if isinstance(stage_scope, dict)
+        else True
+    )
+    compile_settings = kj_settings.get("torch_compile", {})
+    compile_enabled = (
+        isinstance(compile_settings, dict)
+        and _as_bool(compile_settings.get("enabled"), False)
+    )
+    safe_pag_enabled = _as_bool(safe_pag_settings.get("enabled"), False)
+    fp16_enabled = _as_bool(kj_settings.get("fp16_accumulation"), False)
+    sage_enabled = str(kj_settings.get("sage_attention") or "disabled") != "disabled"
+    compile_before_dave = dave_in_stage and compile_enabled
+
+    patch_ids = ["aura_flow"]
+    if compile_before_dave:
+        patch_ids.append("kj.torch_compile")
+    if dave_in_stage:
+        patch_ids.append("dave")
+    if safe_pag_enabled:
+        patch_ids.append("safe_pag")
+    if fp16_enabled:
+        patch_ids.append("kj.fp16_accumulation")
+    if sage_enabled:
+        patch_ids.append("kj.sage_attention")
+    if compile_enabled and not compile_before_dave:
+        patch_ids.append("kj.torch_compile")
+
+    payload = {
+        "order_revision": AIO_MODEL_PATCH_ORDER_REVISION,
+        "aura_flow": dict(aura_settings),
+        "dave": dict(dave_settings) if dave_in_stage else None,
+        "safe_pag": dict(safe_pag_settings),
+        "kj": dict(kj_settings),
+        "compile_before_dave": compile_before_dave,
+    }
+    return StageModelPatchPlan(
+        signature=_stable_change_key(payload),
+        patch_ids=tuple(patch_ids),
+        payload=payload,
+    )
+
+
+def _apply_aio_stage_model_patch_plan(model, plan: StageModelPatchPlan):
+    payload = plan.payload
+    if not isinstance(payload, dict):
+        raise TypeError("AiO stage MODEL patch plan payload must be an object")
+    aura_settings = payload.get("aura_flow", {})
+    dave_settings = payload.get("dave")
+    safe_pag_settings = payload.get("safe_pag", {})
+    kj_settings = payload.get("kj", {})
+    if not isinstance(aura_settings, dict):
+        aura_settings = {}
+    if not isinstance(safe_pag_settings, dict):
+        safe_pag_settings = {}
+    if not isinstance(kj_settings, dict):
+        kj_settings = {}
+
+    patched = _patch_model_sampling_aura_flow(
+        model,
+        aura_settings,
+    )
+    compile_before_dave = bool(payload.get("compile_before_dave"))
+    if compile_before_dave:
+        patched = _apply_aio_kj_torch_compile_patch(patched, kj_settings)
+    if isinstance(dave_settings, dict):
+        patched = _apply_aio_anima_dave_patch(patched, dave_settings)
+    if _as_bool(
+        safe_pag_settings.get("enabled"), False
+    ):
+        patched = _apply_aio_safe_pag_patch(patched, safe_pag_settings)
+    if compile_before_dave:
+        patched = _apply_aio_kj_non_compile_patches(patched, kj_settings)
+    else:
+        patched = _apply_aio_kj_model_patches(patched, kj_settings)
     return patched
 
 
 def _apply_aio_model_patches(model, settings: dict[str, Any]):
-    model_patches = settings.get("model_patches", {})
-    if not isinstance(model_patches, dict):
-        return model
-    patched = _patch_model_sampling_aura_flow(
-        model,
-        model_patches.get("aura_flow", {})
-        if isinstance(model_patches.get("aura_flow"), dict)
-        else {},
-    )
-    dave_settings = model_patches.get("dave", {})
-    if isinstance(dave_settings, dict) and _as_bool(
-        dave_settings.get("enabled"), False
-    ):
-        patched = _apply_aio_anima_dave_patch(patched, dave_settings)
-    safe_pag_settings = model_patches.get("safe_pag", {})
-    if isinstance(safe_pag_settings, dict) and _as_bool(
-        safe_pag_settings.get("enabled"), False
-    ):
-        patched = _apply_aio_safe_pag_patch(patched, safe_pag_settings)
-    kj_settings = model_patches.get("kj", {})
-    if isinstance(kj_settings, dict):
-        patched = _apply_aio_kj_model_patches(patched, kj_settings)
-    return patched
+    plan = _aio_stage_model_patch_plan(settings, "first_pass")
+    return _apply_aio_stage_model_patch_plan(model, plan)
 
 
 def _normalize_aio_lora_stack(lora_stack) -> list[tuple[str, float, float]]:

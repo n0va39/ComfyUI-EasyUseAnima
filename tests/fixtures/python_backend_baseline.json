@@ -1986,6 +1986,42 @@
         "target": "api_contract.py"
       },
       {
+        "alias": "_collect_torch_compile_diagnostics",
+        "bound_name": "_collect_torch_compile_diagnostics",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".easyuse_anima.aio.torch_compile_diagnostics:collect_torch_compile_diagnostics",
+        "kind": "static_from",
+        "line": 64,
+        "name": "collect_torch_compile_diagnostics",
+        "optional": false,
+        "requested": ".easyuse_anima.aio.torch_compile_diagnostics",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "api.py",
+        "target": "easyuse_anima/aio/torch_compile_diagnostics.py"
+      },
+      {
+        "alias": "_recommend_torch_compile",
+        "bound_name": "_recommend_torch_compile",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".easyuse_anima.aio.torch_compile_recommendation:recommend_torch_compile",
+        "kind": "static_from",
+        "line": 67,
+        "name": "recommend_torch_compile",
+        "optional": false,
+        "requested": ".easyuse_anima.aio.torch_compile_recommendation",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "api.py",
+        "target": "easyuse_anima/aio/torch_compile_recommendation.py"
+      },
+      {
         "alias": "_aio_profiles",
         "bound_name": "_aio_profiles",
         "branch_context": [],
@@ -1994,7 +2030,7 @@
         "conditional": false,
         "imported": ".easyuse_anima.profiles:aio",
         "kind": "static_from",
-        "line": 64,
+        "line": 70,
         "name": "aio",
         "optional": false,
         "requested": ".easyuse_anima.profiles",
@@ -2012,7 +2048,7 @@
         "conditional": false,
         "imported": ".easyuse_anima.profiles:contract",
         "kind": "static_from",
-        "line": 65,
+        "line": 71,
         "name": "contract",
         "optional": false,
         "requested": ".easyuse_anima.profiles",
@@ -2030,7 +2066,7 @@
         "conditional": false,
         "imported": ".easyuse_anima.profiles:lora",
         "kind": "static_from",
-        "line": 66,
+        "line": 72,
         "name": "lora",
         "optional": false,
         "requested": ".easyuse_anima.profiles",
@@ -2048,7 +2084,7 @@
         "conditional": false,
         "imported": ".easyuse_anima.profiles:mutation",
         "kind": "static_from",
-        "line": 67,
+        "line": 73,
         "name": "mutation",
         "optional": false,
         "requested": ".easyuse_anima.profiles",
@@ -2066,7 +2102,7 @@
         "conditional": false,
         "imported": ".easyuse_anima.profiles:repository",
         "kind": "static_from",
-        "line": 68,
+        "line": 74,
         "name": "repository",
         "optional": false,
         "requested": ".easyuse_anima.profiles",
@@ -2084,7 +2120,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 324
+            "line": 330
           }
         ],
         "classification": "external",
@@ -2092,7 +2128,7 @@
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 325,
+        "line": 331,
         "name": null,
         "optional": true,
         "requested": "folder_paths",
@@ -4354,6 +4390,24 @@
       },
       {
         "alias": null,
+        "bound_name": "_aio_negpip_execution_prompts",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".negpip:_aio_negpip_execution_prompts",
+        "kind": "static_from",
+        "line": 17,
+        "name": "_aio_negpip_execution_prompts",
+        "optional": false,
+        "requested": ".negpip",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/conditioning.py",
+        "target": "easyuse_anima/aio/negpip.py"
+      },
+      {
+        "alias": null,
         "bound_name": "annotations",
         "branch_context": [],
         "classification": "external",
@@ -4510,6 +4564,42 @@
       },
       {
         "alias": null,
+        "bound_name": "AIO_MODEL_PATCH_ORDER_REVISION",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".generation_migrations:AIO_MODEL_PATCH_ORDER_REVISION",
+        "kind": "static_from",
+        "line": 13,
+        "name": "AIO_MODEL_PATCH_ORDER_REVISION",
+        "optional": false,
+        "requested": ".generation_migrations",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/first_pass_cache.py",
+        "target": "easyuse_anima/aio/generation_migrations.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "AIO_MODEL_PATCH_PRECEDENCE",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".generation_migrations:AIO_MODEL_PATCH_PRECEDENCE",
+        "kind": "static_from",
+        "line": 13,
+        "name": "AIO_MODEL_PATCH_PRECEDENCE",
+        "optional": false,
+        "requested": ".generation_migrations",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/first_pass_cache.py",
+        "target": "easyuse_anima/aio/generation_migrations.py"
+      },
+      {
+        "alias": null,
         "bound_name": "_aio_lora_stack_signature",
         "branch_context": [],
         "classification": "internal",
@@ -4517,7 +4607,7 @@
         "conditional": false,
         "imported": ".model_preparation:_aio_lora_stack_signature",
         "kind": "static_from",
-        "line": 13,
+        "line": 17,
         "name": "_aio_lora_stack_signature",
         "optional": false,
         "requested": ".model_preparation",
@@ -4525,6 +4615,24 @@
         "scope": "<module>",
         "source": "easyuse_anima/aio/first_pass_cache.py",
         "target": "easyuse_anima/aio/model_preparation.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "_aio_negpip_cache_signature",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".negpip:_aio_negpip_cache_signature",
+        "kind": "static_from",
+        "line": 18,
+        "name": "_aio_negpip_cache_signature",
+        "optional": false,
+        "requested": ".negpip",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/first_pass_cache.py",
+        "target": "easyuse_anima/aio/negpip.py"
       },
       {
         "alias": null,
@@ -4786,8 +4894,26 @@
         "conditional": false,
         "imported": ".generation_migrations:AIO_GENERATION_SETTINGS_SCHEMA",
         "kind": "static_from",
-        "line": 24,
+        "line": 21,
         "name": "AIO_GENERATION_SETTINGS_SCHEMA",
+        "optional": false,
+        "requested": ".generation_migrations",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/generation_defaults.py",
+        "target": "easyuse_anima/aio/generation_migrations.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "AIO_GENERATION_STAGE_IDS",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".generation_migrations:AIO_GENERATION_STAGE_IDS",
+        "kind": "static_from",
+        "line": 21,
+        "name": "AIO_GENERATION_STAGE_IDS",
         "optional": false,
         "requested": ".generation_migrations",
         "role": "ordinary",
@@ -6805,6 +6931,24 @@
       },
       {
         "alias": null,
+        "bound_name": "AIO_GENERATION_STAGE_IDS",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".generation_defaults:AIO_GENERATION_STAGE_IDS",
+        "kind": "static_from",
+        "line": 42,
+        "name": "AIO_GENERATION_STAGE_IDS",
+        "optional": false,
+        "requested": ".generation_defaults",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/generation_normalization.py",
+        "target": "easyuse_anima/aio/generation_defaults.py"
+      },
+      {
+        "alias": null,
         "bound_name": "AIO_RESHIFT_DTYPES",
         "branch_context": [],
         "classification": "internal",
@@ -6956,7 +7100,7 @@
         "conditional": false,
         "imported": ".generation_defaults:AIO_SPECIAL_SEED_INCREMENT",
         "kind": "static_from",
-        "line": 57,
+        "line": 58,
         "name": "AIO_SPECIAL_SEED_INCREMENT",
         "optional": false,
         "requested": ".generation_defaults",
@@ -6974,7 +7118,7 @@
         "conditional": false,
         "imported": ".generation_defaults:AIO_SPECIAL_SEEDS",
         "kind": "static_from",
-        "line": 60,
+        "line": 61,
         "name": "AIO_SPECIAL_SEEDS",
         "optional": false,
         "requested": ".generation_defaults",
@@ -6982,6 +7126,24 @@
         "scope": "<module>",
         "source": "easyuse_anima/aio/generation_normalization.py",
         "target": "easyuse_anima/aio/generation_defaults.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "migrate_aio_generation_settings",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".generation_migrations:migrate_aio_generation_settings",
+        "kind": "static_from",
+        "line": 64,
+        "name": "migrate_aio_generation_settings",
+        "optional": false,
+        "requested": ".generation_migrations",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/generation_normalization.py",
+        "target": "easyuse_anima/aio/generation_migrations.py"
       },
       {
         "alias": "_round_trip_aio_generation_settings",
@@ -6992,7 +7154,7 @@
         "conditional": false,
         "imported": ".generation_settings:round_trip_aio_generation_settings",
         "kind": "static_from",
-        "line": 63,
+        "line": 65,
         "name": "round_trip_aio_generation_settings",
         "optional": false,
         "requested": ".generation_settings",
@@ -7010,7 +7172,7 @@
         "conditional": false,
         "imported": ".output_settings:_normalize_aio_civitai_hash_fetchers",
         "kind": "static_from",
-        "line": 66,
+        "line": 68,
         "name": "_normalize_aio_civitai_hash_fetchers",
         "optional": false,
         "requested": ".output_settings",
@@ -7028,7 +7190,7 @@
         "conditional": false,
         "imported": ".output_settings:_normalize_aio_hash_bundles",
         "kind": "static_from",
-        "line": 66,
+        "line": 68,
         "name": "_normalize_aio_hash_bundles",
         "optional": false,
         "requested": ".output_settings",
@@ -8358,6 +8520,24 @@
       },
       {
         "alias": null,
+        "bound_name": "AIOGenerationNegPipConfig",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".negpip:AIOGenerationNegPipConfig",
+        "kind": "static_from",
+        "line": 26,
+        "name": "AIOGenerationNegPipConfig",
+        "optional": false,
+        "requested": ".negpip",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/generation_settings.py",
+        "target": "easyuse_anima/aio/negpip.py"
+      },
+      {
+        "alias": null,
         "bound_name": "annotations",
         "branch_context": [],
         "classification": "external",
@@ -9417,6 +9597,42 @@
       },
       {
         "alias": null,
+        "bound_name": "StageModelVariantResolver",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".generation_lifecycle:StageModelVariantResolver",
+        "kind": "static_from",
+        "line": 37,
+        "name": "StageModelVariantResolver",
+        "optional": false,
+        "requested": ".generation_lifecycle",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/legacy_generation.py",
+        "target": "easyuse_anima/aio/generation_lifecycle.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "StageModelVariantRuntime",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".generation_lifecycle:StageModelVariantRuntime",
+        "kind": "static_from",
+        "line": 37,
+        "name": "StageModelVariantRuntime",
+        "optional": false,
+        "requested": ".generation_lifecycle",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/legacy_generation.py",
+        "target": "easyuse_anima/aio/generation_lifecycle.py"
+      },
+      {
+        "alias": null,
         "bound_name": "_aio_detailer_has_enabled_targets",
         "branch_context": [],
         "classification": "internal",
@@ -9424,7 +9640,7 @@
         "conditional": false,
         "imported": ".generation_normalization:_aio_detailer_has_enabled_targets",
         "kind": "static_from",
-        "line": 44,
+        "line": 46,
         "name": "_aio_detailer_has_enabled_targets",
         "optional": false,
         "requested": ".generation_normalization",
@@ -9442,7 +9658,7 @@
         "conditional": false,
         "imported": ".generation_normalization:_aio_detailer_target_order",
         "kind": "static_from",
-        "line": 44,
+        "line": 46,
         "name": "_aio_detailer_target_order",
         "optional": false,
         "requested": ".generation_normalization",
@@ -9460,7 +9676,7 @@
         "conditional": false,
         "imported": ".generation_normalization:_normalize_aio_generation_settings",
         "kind": "static_from",
-        "line": 44,
+        "line": 46,
         "name": "_normalize_aio_generation_settings",
         "optional": false,
         "requested": ".generation_normalization",
@@ -9478,7 +9694,7 @@
         "conditional": false,
         "imported": ".generation_pipeline:ConditioningBundle",
         "kind": "static_from",
-        "line": 49,
+        "line": 51,
         "name": "ConditioningBundle",
         "optional": false,
         "requested": ".generation_pipeline",
@@ -9496,7 +9712,7 @@
         "conditional": false,
         "imported": ".generation_pipeline:GenerationRequest",
         "kind": "static_from",
-        "line": 49,
+        "line": 51,
         "name": "GenerationRequest",
         "optional": false,
         "requested": ".generation_pipeline",
@@ -9514,7 +9730,7 @@
         "conditional": false,
         "imported": ".generation_pipeline:GenerationState",
         "kind": "static_from",
-        "line": 49,
+        "line": 51,
         "name": "GenerationState",
         "optional": false,
         "requested": ".generation_pipeline",
@@ -9532,7 +9748,7 @@
         "conditional": false,
         "imported": ".generation_pipeline:PromptExecutionData",
         "kind": "static_from",
-        "line": 49,
+        "line": 51,
         "name": "PromptExecutionData",
         "optional": false,
         "requested": ".generation_pipeline",
@@ -9550,7 +9766,7 @@
         "conditional": false,
         "imported": ".generation_pipeline:ResourceBundle",
         "kind": "static_from",
-        "line": 49,
+        "line": 51,
         "name": "ResourceBundle",
         "optional": false,
         "requested": ".generation_pipeline",
@@ -9568,7 +9784,7 @@
         "conditional": false,
         "imported": ".generation_pipeline:WorkflowContext",
         "kind": "static_from",
-        "line": 49,
+        "line": 51,
         "name": "WorkflowContext",
         "optional": false,
         "requested": ".generation_pipeline",
@@ -9586,7 +9802,7 @@
         "conditional": false,
         "imported": ".generation_postprocess_stage:AIOPostprocessStage",
         "kind": "static_from",
-        "line": 57,
+        "line": 59,
         "name": "AIOPostprocessStage",
         "optional": false,
         "requested": ".generation_postprocess_stage",
@@ -9604,7 +9820,7 @@
         "conditional": false,
         "imported": ".generation_postprocess_stage:PostprocessRuntime",
         "kind": "static_from",
-        "line": 57,
+        "line": 59,
         "name": "PostprocessRuntime",
         "optional": false,
         "requested": ".generation_postprocess_stage",
@@ -9622,7 +9838,7 @@
         "conditional": false,
         "imported": ".generation_save_output_stage:AIOSaveOutputStage",
         "kind": "static_from",
-        "line": 61,
+        "line": 63,
         "name": "AIOSaveOutputStage",
         "optional": false,
         "requested": ".generation_save_output_stage",
@@ -9640,7 +9856,7 @@
         "conditional": false,
         "imported": ".generation_save_output_stage:SaveOutputRuntime",
         "kind": "static_from",
-        "line": 61,
+        "line": 63,
         "name": "SaveOutputRuntime",
         "optional": false,
         "requested": ".generation_save_output_stage",
@@ -9658,7 +9874,7 @@
         "conditional": false,
         "imported": ".generation_settings:_aio_generation_config_from_dict",
         "kind": "static_from",
-        "line": 65,
+        "line": 67,
         "name": "_aio_generation_config_from_dict",
         "optional": false,
         "requested": ".generation_settings",
@@ -9676,7 +9892,7 @@
         "conditional": false,
         "imported": ".generation_upscale_stage:AIOUpscaleStage",
         "kind": "static_from",
-        "line": 66,
+        "line": 68,
         "name": "AIOUpscaleStage",
         "optional": false,
         "requested": ".generation_upscale_stage",
@@ -9694,7 +9910,7 @@
         "conditional": false,
         "imported": ".generation_upscale_stage:UpscaleRuntime",
         "kind": "static_from",
-        "line": 66,
+        "line": 68,
         "name": "UpscaleRuntime",
         "optional": false,
         "requested": ".generation_upscale_stage",
@@ -9712,7 +9928,7 @@
         "conditional": false,
         "imported": ".input_context:_require_easy_use_anima_input",
         "kind": "static_from",
-        "line": 67,
+        "line": 69,
         "name": "_require_easy_use_anima_input",
         "optional": false,
         "requested": ".input_context",
@@ -9723,15 +9939,15 @@
       },
       {
         "alias": null,
-        "bound_name": "_apply_aio_lora_stack",
+        "bound_name": "_aio_stage_model_patch_plan",
         "branch_context": [],
         "classification": "internal",
         "column": 0,
         "conditional": false,
-        "imported": ".model_preparation:_apply_aio_lora_stack",
+        "imported": ".model_preparation:_aio_stage_model_patch_plan",
         "kind": "static_from",
-        "line": 68,
-        "name": "_apply_aio_lora_stack",
+        "line": 70,
+        "name": "_aio_stage_model_patch_plan",
         "optional": false,
         "requested": ".model_preparation",
         "role": "ordinary",
@@ -9741,15 +9957,15 @@
       },
       {
         "alias": null,
-        "bound_name": "_apply_aio_model_patches",
+        "bound_name": "_apply_aio_lora_stack",
         "branch_context": [],
         "classification": "internal",
         "column": 0,
         "conditional": false,
-        "imported": ".model_preparation:_apply_aio_model_patches",
+        "imported": ".model_preparation:_apply_aio_lora_stack",
         "kind": "static_from",
-        "line": 68,
-        "name": "_apply_aio_model_patches",
+        "line": 70,
+        "name": "_apply_aio_lora_stack",
         "optional": false,
         "requested": ".model_preparation",
         "role": "ordinary",
@@ -9766,8 +9982,26 @@
         "conditional": false,
         "imported": ".model_preparation:_apply_aio_spectrum_model_patches_for_comfy_sampler",
         "kind": "static_from",
-        "line": 68,
+        "line": 70,
         "name": "_apply_aio_spectrum_model_patches_for_comfy_sampler",
+        "optional": false,
+        "requested": ".model_preparation",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/legacy_generation.py",
+        "target": "easyuse_anima/aio/model_preparation.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "_apply_aio_stage_model_patch_plan",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".model_preparation:_apply_aio_stage_model_patch_plan",
+        "kind": "static_from",
+        "line": 70,
+        "name": "_apply_aio_stage_model_patch_plan",
         "optional": false,
         "requested": ".model_preparation",
         "role": "ordinary",
@@ -9784,7 +10018,7 @@
         "conditional": false,
         "imported": ".model_preparation:_cleanup_aio_ephemeral_model",
         "kind": "static_from",
-        "line": 68,
+        "line": 70,
         "name": "_cleanup_aio_ephemeral_model",
         "optional": false,
         "requested": ".model_preparation",
@@ -9795,6 +10029,78 @@
       },
       {
         "alias": null,
+        "bound_name": "_aio_negpip_execution_prompts",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".negpip:_aio_negpip_execution_prompts",
+        "kind": "static_from",
+        "line": 77,
+        "name": "_aio_negpip_execution_prompts",
+        "optional": false,
+        "requested": ".negpip",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/legacy_generation.py",
+        "target": "easyuse_anima/aio/negpip.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "_aio_negpip_metadata",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".negpip:_aio_negpip_metadata",
+        "kind": "static_from",
+        "line": 77,
+        "name": "_aio_negpip_metadata",
+        "optional": false,
+        "requested": ".negpip",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/legacy_generation.py",
+        "target": "easyuse_anima/aio/negpip.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "_aio_negpip_mode",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".negpip:_aio_negpip_mode",
+        "kind": "static_from",
+        "line": 77,
+        "name": "_aio_negpip_mode",
+        "optional": false,
+        "requested": ".negpip",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/legacy_generation.py",
+        "target": "easyuse_anima/aio/negpip.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "apply_aio_negpip",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".negpip:apply_aio_negpip",
+        "kind": "static_from",
+        "line": 77,
+        "name": "apply_aio_negpip",
+        "optional": false,
+        "requested": ".negpip",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/legacy_generation.py",
+        "target": "easyuse_anima/aio/negpip.py"
+      },
+      {
+        "alias": null,
         "bound_name": "_aio_save_filename_prefix",
         "branch_context": [],
         "classification": "internal",
@@ -9802,7 +10108,7 @@
         "conditional": false,
         "imported": ".output:_aio_save_filename_prefix",
         "kind": "static_from",
-        "line": 74,
+        "line": 83,
         "name": "_aio_save_filename_prefix",
         "optional": false,
         "requested": ".output",
@@ -9820,7 +10126,7 @@
         "conditional": false,
         "imported": ".output:_save_image_with_comfy",
         "kind": "static_from",
-        "line": 74,
+        "line": 83,
         "name": "_save_image_with_comfy",
         "optional": false,
         "requested": ".output",
@@ -9838,7 +10144,7 @@
         "conditional": false,
         "imported": ".output:_save_image_with_image_saver",
         "kind": "static_from",
-        "line": 74,
+        "line": 83,
         "name": "_save_image_with_image_saver",
         "optional": false,
         "requested": ".output",
@@ -9856,7 +10162,7 @@
         "conditional": false,
         "imported": ".postprocess:_resize_image_to_size_if_needed",
         "kind": "static_from",
-        "line": 79,
+        "line": 88,
         "name": "_resize_image_to_size_if_needed",
         "optional": false,
         "requested": ".postprocess",
@@ -9874,7 +10180,7 @@
         "conditional": false,
         "imported": ".postprocess:_run_aio_postprocess_stage",
         "kind": "static_from",
-        "line": 79,
+        "line": 88,
         "name": "_run_aio_postprocess_stage",
         "optional": false,
         "requested": ".postprocess",
@@ -9892,7 +10198,7 @@
         "conditional": false,
         "imported": ".preview:_save_aio_temp_preview_image",
         "kind": "static_from",
-        "line": 83,
+        "line": 92,
         "name": "_save_aio_temp_preview_image",
         "optional": false,
         "requested": ".preview",
@@ -9910,7 +10216,7 @@
         "conditional": false,
         "imported": ".preview:_send_aio_preview_event",
         "kind": "static_from",
-        "line": 83,
+        "line": 92,
         "name": "_send_aio_preview_event",
         "optional": false,
         "requested": ".preview",
@@ -9928,7 +10234,7 @@
         "conditional": false,
         "imported": ".preview:_tag_aio_preview_images",
         "kind": "static_from",
-        "line": 83,
+        "line": 92,
         "name": "_tag_aio_preview_images",
         "optional": false,
         "requested": ".preview",
@@ -9946,7 +10252,7 @@
         "conditional": false,
         "imported": ".resources:_load_aio_resources_from_input_context",
         "kind": "static_from",
-        "line": 88,
+        "line": 97,
         "name": "_load_aio_resources_from_input_context",
         "optional": false,
         "requested": ".resources",
@@ -9964,7 +10270,7 @@
         "conditional": false,
         "imported": ".resources:_load_aio_sam3_context",
         "kind": "static_from",
-        "line": 88,
+        "line": 97,
         "name": "_load_aio_sam3_context",
         "optional": false,
         "requested": ".resources",
@@ -9982,7 +10288,7 @@
         "conditional": false,
         "imported": ".resources:_load_upscale_model_with_comfy",
         "kind": "static_from",
-        "line": 88,
+        "line": 97,
         "name": "_load_upscale_model_with_comfy",
         "optional": false,
         "requested": ".resources",
@@ -10000,7 +10306,7 @@
         "conditional": false,
         "imported": ".sampling:_aio_highres_effective_backend",
         "kind": "static_from",
-        "line": 93,
+        "line": 102,
         "name": "_aio_highres_effective_backend",
         "optional": false,
         "requested": ".sampling",
@@ -10018,7 +10324,7 @@
         "conditional": false,
         "imported": ".sampling:_aio_stage_sampler_settings",
         "kind": "static_from",
-        "line": 93,
+        "line": 102,
         "name": "_aio_stage_sampler_settings",
         "optional": false,
         "requested": ".sampling",
@@ -10036,7 +10342,7 @@
         "conditional": false,
         "imported": ".sampling:_decode_latent_with_comfy",
         "kind": "static_from",
-        "line": 93,
+        "line": 102,
         "name": "_decode_latent_with_comfy",
         "optional": false,
         "requested": ".sampling",
@@ -10054,7 +10360,7 @@
         "conditional": false,
         "imported": ".sampling:_encode_image_with_comfy_vae",
         "kind": "static_from",
-        "line": 93,
+        "line": 102,
         "name": "_encode_image_with_comfy_vae",
         "optional": false,
         "requested": ".sampling",
@@ -10072,7 +10378,7 @@
         "conditional": false,
         "imported": ".sampling:_generate_empty_latent_with_comfy",
         "kind": "static_from",
-        "line": 93,
+        "line": 102,
         "name": "_generate_empty_latent_with_comfy",
         "optional": false,
         "requested": ".sampling",
@@ -10090,7 +10396,7 @@
         "conditional": false,
         "imported": ".sampling:_resolve_aio_runtime_seed",
         "kind": "static_from",
-        "line": 93,
+        "line": 102,
         "name": "_resolve_aio_runtime_seed",
         "optional": false,
         "requested": ".sampling",
@@ -10108,7 +10414,7 @@
         "conditional": false,
         "imported": ".sampling:_sample_latent_with_aio_backend",
         "kind": "static_from",
-        "line": 93,
+        "line": 102,
         "name": "_sample_latent_with_aio_backend",
         "optional": false,
         "requested": ".sampling",
@@ -10126,7 +10432,7 @@
         "conditional": false,
         "imported": ".usdu:_aio_usdu_tile_plan",
         "kind": "static_from",
-        "line": 102,
+        "line": 111,
         "name": "_aio_usdu_tile_plan",
         "optional": false,
         "requested": ".usdu",
@@ -10205,6 +10511,24 @@
       },
       {
         "alias": null,
+        "bound_name": "_stable_change_key",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": "..common.serialization:_stable_change_key",
+        "kind": "static_from",
+        "line": 9,
+        "name": "_stable_change_key",
+        "optional": false,
+        "requested": "..common.serialization",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/model_preparation.py",
+        "target": "easyuse_anima/common/serialization.py"
+      },
+      {
+        "alias": null,
         "bound_name": "_as_bool",
         "branch_context": [],
         "classification": "internal",
@@ -10212,7 +10536,7 @@
         "conditional": false,
         "imported": "..common.values:_as_bool",
         "kind": "static_from",
-        "line": 9,
+        "line": 10,
         "name": "_as_bool",
         "optional": false,
         "requested": "..common.values",
@@ -10230,7 +10554,7 @@
         "conditional": false,
         "imported": "..common.values:_as_float",
         "kind": "static_from",
-        "line": 9,
+        "line": 10,
         "name": "_as_float",
         "optional": false,
         "requested": "..common.values",
@@ -10248,7 +10572,7 @@
         "conditional": false,
         "imported": "..common.values:_as_int",
         "kind": "static_from",
-        "line": 9,
+        "line": 10,
         "name": "_as_int",
         "optional": false,
         "requested": "..common.values",
@@ -10266,7 +10590,7 @@
         "conditional": false,
         "imported": "..infrastructure.comfy.invocation:_call_with_supported_kwargs",
         "kind": "static_from",
-        "line": 10,
+        "line": 11,
         "name": "_call_with_supported_kwargs",
         "optional": false,
         "requested": "..infrastructure.comfy.invocation",
@@ -10284,7 +10608,7 @@
         "conditional": false,
         "imported": "..infrastructure.comfy.invocation:_node_output_tuple",
         "kind": "static_from",
-        "line": 10,
+        "line": 11,
         "name": "_node_output_tuple",
         "optional": false,
         "requested": "..infrastructure.comfy.invocation",
@@ -10302,7 +10626,7 @@
         "conditional": false,
         "imported": "..infrastructure.comfy.wiring:resolve_comfy_host_helper",
         "kind": "static_from",
-        "line": 14,
+        "line": 15,
         "name": "resolve_comfy_host_helper",
         "optional": false,
         "requested": "..infrastructure.comfy.wiring",
@@ -10320,7 +10644,7 @@
         "conditional": false,
         "imported": "..lora.metadata:_lora_stack_name",
         "kind": "static_from",
-        "line": 15,
+        "line": 16,
         "name": "_lora_stack_name",
         "optional": false,
         "requested": "..lora.metadata",
@@ -10328,6 +10652,60 @@
         "scope": "<module>",
         "source": "easyuse_anima/aio/model_preparation.py",
         "target": "easyuse_anima/lora/metadata.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "StageModelPatchPlan",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".generation_lifecycle:StageModelPatchPlan",
+        "kind": "static_from",
+        "line": 17,
+        "name": "StageModelPatchPlan",
+        "optional": false,
+        "requested": ".generation_lifecycle",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/model_preparation.py",
+        "target": "easyuse_anima/aio/generation_lifecycle.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "AIO_GENERATION_STAGE_IDS",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".generation_migrations:AIO_GENERATION_STAGE_IDS",
+        "kind": "static_from",
+        "line": 18,
+        "name": "AIO_GENERATION_STAGE_IDS",
+        "optional": false,
+        "requested": ".generation_migrations",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/model_preparation.py",
+        "target": "easyuse_anima/aio/generation_migrations.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "AIO_MODEL_PATCH_ORDER_REVISION",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".generation_migrations:AIO_MODEL_PATCH_ORDER_REVISION",
+        "kind": "static_from",
+        "line": 18,
+        "name": "AIO_MODEL_PATCH_ORDER_REVISION",
+        "optional": false,
+        "requested": ".generation_migrations",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/model_preparation.py",
+        "target": "easyuse_anima/aio/generation_migrations.py"
       },
       {
         "alias": "model_management",
@@ -10338,7 +10716,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 315
+            "line": 412
           }
         ],
         "classification": "external",
@@ -10346,13 +10724,257 @@
         "conditional": true,
         "imported": "comfy.model_management",
         "kind": "static_import",
-        "line": 316,
+        "line": 413,
         "name": null,
         "optional": true,
         "requested": "comfy.model_management",
         "role": "optional_dependency",
         "scope": "_cleanup_aio_ephemeral_model",
         "source": "easyuse_anima/aio/model_preparation.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "annotations",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "__future__:annotations",
+        "kind": "static_from",
+        "line": 3,
+        "name": "annotations",
+        "optional": false,
+        "requested": "__future__",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/negpip.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "hashlib",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "hashlib",
+        "kind": "static_import",
+        "line": 5,
+        "name": null,
+        "optional": false,
+        "requested": "hashlib",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/negpip.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "inspect",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "inspect",
+        "kind": "static_import",
+        "line": 6,
+        "name": null,
+        "optional": false,
+        "requested": "inspect",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/negpip.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "re",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "re",
+        "kind": "static_import",
+        "line": 7,
+        "name": null,
+        "optional": false,
+        "requested": "re",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/negpip.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "Callable",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "collections.abc:Callable",
+        "kind": "static_from",
+        "line": 8,
+        "name": "Callable",
+        "optional": false,
+        "requested": "collections.abc",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/negpip.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "Mapping",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "collections.abc:Mapping",
+        "kind": "static_from",
+        "line": 8,
+        "name": "Mapping",
+        "optional": false,
+        "requested": "collections.abc",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/negpip.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "dataclass",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "dataclasses:dataclass",
+        "kind": "static_from",
+        "line": 9,
+        "name": "dataclass",
+        "optional": false,
+        "requested": "dataclasses",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/negpip.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "Any",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "typing:Any",
+        "kind": "static_from",
+        "line": 10,
+        "name": "Any",
+        "optional": false,
+        "requested": "typing",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/negpip.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "_node_output_tuple",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": "..infrastructure.comfy.invocation:_node_output_tuple",
+        "kind": "static_from",
+        "line": 12,
+        "name": "_node_output_tuple",
+        "optional": false,
+        "requested": "..infrastructure.comfy.invocation",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/negpip.py",
+        "target": "easyuse_anima/infrastructure/comfy/invocation.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "resolve_comfy_host_helper",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": "..infrastructure.comfy.wiring:resolve_comfy_host_helper",
+        "kind": "static_from",
+        "line": 13,
+        "name": "resolve_comfy_host_helper",
+        "optional": false,
+        "requested": "..infrastructure.comfy.wiring",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/negpip.py",
+        "target": "easyuse_anima/infrastructure/comfy/wiring.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "ObjectState",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".generation_values:ObjectState",
+        "kind": "static_from",
+        "line": 14,
+        "name": "ObjectState",
+        "optional": false,
+        "requested": ".generation_values",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/negpip.py",
+        "target": "easyuse_anima/aio/generation_values.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "expect_object",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".generation_values:expect_object",
+        "kind": "static_from",
+        "line": 14,
+        "name": "expect_object",
+        "optional": false,
+        "requested": ".generation_values",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/negpip.py",
+        "target": "easyuse_anima/aio/generation_values.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "expect_str",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".generation_values:expect_str",
+        "kind": "static_from",
+        "line": 14,
+        "name": "expect_str",
+        "optional": false,
+        "requested": ".generation_values",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/negpip.py",
+        "target": "easyuse_anima/aio/generation_values.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "required",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".generation_values:required",
+        "kind": "static_from",
+        "line": 14,
+        "name": "required",
+        "optional": false,
+        "requested": ".generation_values",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/negpip.py",
+        "target": "easyuse_anima/aio/generation_values.py"
       },
       {
         "alias": null,
@@ -11899,6 +12521,228 @@
         "scope": "<module>",
         "source": "easyuse_anima/aio/sampling.py",
         "target": "easyuse_anima/aio/generation_normalization.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "annotations",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "__future__:annotations",
+        "kind": "static_from",
+        "line": 3,
+        "name": "annotations",
+        "optional": false,
+        "requested": "__future__",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/torch_compile_diagnostics.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "importlib",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "importlib",
+        "kind": "static_import",
+        "line": 5,
+        "name": null,
+        "optional": false,
+        "requested": "importlib",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/torch_compile_diagnostics.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "inspect",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "inspect",
+        "kind": "static_import",
+        "line": 6,
+        "name": null,
+        "optional": false,
+        "requested": "inspect",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/torch_compile_diagnostics.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "platform",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "platform",
+        "kind": "static_import",
+        "line": 7,
+        "name": null,
+        "optional": false,
+        "requested": "platform",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/torch_compile_diagnostics.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "Callable",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "collections.abc:Callable",
+        "kind": "static_from",
+        "line": 8,
+        "name": "Callable",
+        "optional": false,
+        "requested": "collections.abc",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/torch_compile_diagnostics.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "Mapping",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "collections.abc:Mapping",
+        "kind": "static_from",
+        "line": 8,
+        "name": "Mapping",
+        "optional": false,
+        "requested": "collections.abc",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/torch_compile_diagnostics.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "Sequence",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "collections.abc:Sequence",
+        "kind": "static_from",
+        "line": 8,
+        "name": "Sequence",
+        "optional": false,
+        "requested": "collections.abc",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/torch_compile_diagnostics.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "Any",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "typing:Any",
+        "kind": "static_from",
+        "line": 9,
+        "name": "Any",
+        "optional": false,
+        "requested": "typing",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/torch_compile_diagnostics.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "_find_loaded_node_class",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": "..infrastructure.comfy.capabilities:_find_loaded_node_class",
+        "kind": "static_from",
+        "line": 11,
+        "name": "_find_loaded_node_class",
+        "optional": false,
+        "requested": "..infrastructure.comfy.capabilities",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/torch_compile_diagnostics.py",
+        "target": "easyuse_anima/infrastructure/comfy/capabilities.py"
+      },
+      {
+        "alias": null,
+        "bound_name": null,
+        "branch_context": [],
+        "classification": "external",
+        "column": 11,
+        "conditional": false,
+        "imported": "torch",
+        "kind": "literal_dynamic",
+        "line": 45,
+        "name": null,
+        "optional": false,
+        "requested": "torch",
+        "role": "ordinary",
+        "scope": "_torch_module",
+        "source": "easyuse_anima/aio/torch_compile_diagnostics.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "annotations",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "__future__:annotations",
+        "kind": "static_from",
+        "line": 3,
+        "name": "annotations",
+        "optional": false,
+        "requested": "__future__",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/torch_compile_recommendation.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "Mapping",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "collections.abc:Mapping",
+        "kind": "static_from",
+        "line": 5,
+        "name": "Mapping",
+        "optional": false,
+        "requested": "collections.abc",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/torch_compile_recommendation.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "Sequence",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "collections.abc:Sequence",
+        "kind": "static_from",
+        "line": 5,
+        "name": "Sequence",
+        "optional": false,
+        "requested": "collections.abc",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/torch_compile_recommendation.py"
       },
       {
         "alias": null,
@@ -23643,7 +24487,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 1106
+            "line": 1109
           }
         ],
         "classification": "external",
@@ -23651,7 +24495,7 @@
         "conditional": true,
         "imported": "torch",
         "kind": "static_import",
-        "line": 1107,
+        "line": 1110,
         "name": null,
         "optional": true,
         "requested": "torch",
@@ -56995,6 +57839,14 @@
       },
       {
         "from": "api.py",
+        "to": "easyuse_anima/aio/torch_compile_diagnostics.py"
+      },
+      {
+        "from": "api.py",
+        "to": "easyuse_anima/aio/torch_compile_recommendation.py"
+      },
+      {
+        "from": "api.py",
         "to": "easyuse_anima/autocomplete/dataset.py"
       },
       {
@@ -57083,6 +57935,10 @@
       },
       {
         "from": "easyuse_anima/aio/conditioning.py",
+        "to": "easyuse_anima/aio/negpip.py"
+      },
+      {
+        "from": "easyuse_anima/aio/conditioning.py",
         "to": "easyuse_anima/common/values.py"
       },
       {
@@ -57099,7 +57955,15 @@
       },
       {
         "from": "easyuse_anima/aio/first_pass_cache.py",
+        "to": "easyuse_anima/aio/generation_migrations.py"
+      },
+      {
+        "from": "easyuse_anima/aio/first_pass_cache.py",
         "to": "easyuse_anima/aio/model_preparation.py"
+      },
+      {
+        "from": "easyuse_anima/aio/first_pass_cache.py",
+        "to": "easyuse_anima/aio/negpip.py"
       },
       {
         "from": "easyuse_anima/aio/first_pass_cache.py",
@@ -57164,6 +58028,10 @@
       {
         "from": "easyuse_anima/aio/generation_normalization.py",
         "to": "easyuse_anima/aio/generation_defaults.py"
+      },
+      {
+        "from": "easyuse_anima/aio/generation_normalization.py",
+        "to": "easyuse_anima/aio/generation_migrations.py"
       },
       {
         "from": "easyuse_anima/aio/generation_normalization.py",
@@ -57254,6 +58122,10 @@
         "to": "easyuse_anima/aio/generation_values.py"
       },
       {
+        "from": "easyuse_anima/aio/generation_settings.py",
+        "to": "easyuse_anima/aio/negpip.py"
+      },
+      {
         "from": "easyuse_anima/aio/generation_upscale_stage.py",
         "to": "easyuse_anima/aio/generation_pipeline.py"
       },
@@ -57323,6 +58195,10 @@
       },
       {
         "from": "easyuse_anima/aio/legacy_generation.py",
+        "to": "easyuse_anima/aio/negpip.py"
+      },
+      {
+        "from": "easyuse_anima/aio/legacy_generation.py",
         "to": "easyuse_anima/aio/output.py"
       },
       {
@@ -57387,6 +58263,18 @@
       },
       {
         "from": "easyuse_anima/aio/model_preparation.py",
+        "to": "easyuse_anima/aio/generation_lifecycle.py"
+      },
+      {
+        "from": "easyuse_anima/aio/model_preparation.py",
+        "to": "easyuse_anima/aio/generation_migrations.py"
+      },
+      {
+        "from": "easyuse_anima/aio/model_preparation.py",
+        "to": "easyuse_anima/common/serialization.py"
+      },
+      {
+        "from": "easyuse_anima/aio/model_preparation.py",
         "to": "easyuse_anima/common/values.py"
       },
       {
@@ -57400,6 +58288,18 @@
       {
         "from": "easyuse_anima/aio/model_preparation.py",
         "to": "easyuse_anima/lora/metadata.py"
+      },
+      {
+        "from": "easyuse_anima/aio/negpip.py",
+        "to": "easyuse_anima/aio/generation_values.py"
+      },
+      {
+        "from": "easyuse_anima/aio/negpip.py",
+        "to": "easyuse_anima/infrastructure/comfy/invocation.py"
+      },
+      {
+        "from": "easyuse_anima/aio/negpip.py",
+        "to": "easyuse_anima/infrastructure/comfy/wiring.py"
       },
       {
         "from": "easyuse_anima/aio/output.py",
@@ -57520,6 +58420,10 @@
       {
         "from": "easyuse_anima/aio/sampling.py",
         "to": "easyuse_anima/seed/reservation.py"
+      },
+      {
+        "from": "easyuse_anima/aio/torch_compile_diagnostics.py",
+        "to": "easyuse_anima/infrastructure/comfy/capabilities.py"
       },
       {
         "from": "easyuse_anima/aio/usdu.py",
@@ -58796,6 +59700,12 @@
       {
         "cyclic": false,
         "modules": [
+          "easyuse_anima/aio/negpip.py"
+        ]
+      },
+      {
+        "cyclic": false,
+        "modules": [
           "easyuse_anima/aio/output.py"
         ]
       },
@@ -58827,6 +59737,18 @@
         "cyclic": false,
         "modules": [
           "easyuse_anima/aio/sampling.py"
+        ]
+      },
+      {
+        "cyclic": false,
+        "modules": [
+          "easyuse_anima/aio/torch_compile_diagnostics.py"
+        ]
+      },
+      {
+        "cyclic": false,
+        "modules": [
+          "easyuse_anima/aio/torch_compile_recommendation.py"
         ]
       },
       {
@@ -59361,7 +60283,7 @@
     ]
   },
   "inventory": {
-    "module_count": 132,
+    "module_count": 135,
     "modules": [
       {
         "is_package": true,
@@ -59461,9 +60383,9 @@
       },
       {
         "is_package": false,
-        "loc": 875,
+        "loc": 930,
         "module": "api",
-        "normalized_git_blob_sha1": "b10837e70d997f09d4f3ad17c78f5d331e71f997",
+        "normalized_git_blob_sha1": "f479f7ce39163ef46d87dcbc6c2993138a06a7d8",
         "path": "api.py",
         "top_level": {
           "class_count": 1,
@@ -59533,9 +60455,9 @@
       },
       {
         "is_package": false,
-        "loc": 120,
+        "loc": 127,
         "module": "easyuse_anima.aio.conditioning",
-        "normalized_git_blob_sha1": "b3cf519f9abad98538514c65310fc220e5a742e9",
+        "normalized_git_blob_sha1": "37ab4f25419f9a1cb0b0c56a6d377518e3c87772",
         "path": "easyuse_anima/aio/conditioning.py",
         "top_level": {
           "class_count": 0,
@@ -59545,21 +60467,21 @@
       },
       {
         "is_package": false,
-        "loc": 398,
+        "loc": 485,
         "module": "easyuse_anima.aio.first_pass_cache",
-        "normalized_git_blob_sha1": "98c242f27faf93f7f856b7afadfccc7f27472d6a",
+        "normalized_git_blob_sha1": "9feb50eab574b1c7ff2f833b35a00271da8b3b32",
         "path": "easyuse_anima/aio/first_pass_cache.py",
         "top_level": {
           "class_count": 2,
-          "function_count": 15,
+          "function_count": 16,
           "global_count": 11
         }
       },
       {
         "is_package": false,
-        "loc": 473,
+        "loc": 479,
         "module": "easyuse_anima.aio.generation_defaults",
-        "normalized_git_blob_sha1": "72e927c1b204e5377934ed4f9971ba53974db003",
+        "normalized_git_blob_sha1": "6bed11a3513a1c0e2bd5d2b489cb2a4e6b039395",
         "path": "easyuse_anima/aio/generation_defaults.py",
         "top_level": {
           "class_count": 0,
@@ -59581,9 +60503,9 @@
       },
       {
         "is_package": false,
-        "loc": 91,
+        "loc": 96,
         "module": "easyuse_anima.aio.generation_detailer_stage",
-        "normalized_git_blob_sha1": "613956896c6058a67501afe2ef346b1776e45a24",
+        "normalized_git_blob_sha1": "c5512e5d29937b9315c66b0069607a98efb475fc",
         "path": "easyuse_anima/aio/generation_detailer_stage.py",
         "top_level": {
           "class_count": 2,
@@ -59593,21 +60515,21 @@
       },
       {
         "is_package": false,
-        "loc": 619,
+        "loc": 654,
         "module": "easyuse_anima.aio.generation_features",
-        "normalized_git_blob_sha1": "d8d2286eda82c408499c73b0b88a5ed7f0b3c027",
+        "normalized_git_blob_sha1": "93ceb0a1e0bef47d1d6a9a5802290468fd28f484",
         "path": "easyuse_anima/aio/generation_features.py",
         "top_level": {
-          "class_count": 15,
+          "class_count": 16,
           "function_count": 0,
           "global_count": 1
         }
       },
       {
         "is_package": false,
-        "loc": 150,
+        "loc": 151,
         "module": "easyuse_anima.aio.generation_first_pass",
-        "normalized_git_blob_sha1": "8209f039cb8f0df7e93d72fc738d52088d1dd38a",
+        "normalized_git_blob_sha1": "11ec6d78c68d3ec0c0ab46dd1397434a5679d459",
         "path": "easyuse_anima/aio/generation_first_pass.py",
         "top_level": {
           "class_count": 2,
@@ -59617,9 +60539,9 @@
       },
       {
         "is_package": false,
-        "loc": 111,
+        "loc": 113,
         "module": "easyuse_anima.aio.generation_highres",
-        "normalized_git_blob_sha1": "b05522ed952b15794347a7abaffd7435e526e612",
+        "normalized_git_blob_sha1": "dc7fc6d3d4816d8eddd4a599c64948857c9f7998",
         "path": "easyuse_anima/aio/generation_highres.py",
         "top_level": {
           "class_count": 2,
@@ -59629,37 +60551,37 @@
       },
       {
         "is_package": false,
-        "loc": 168,
+        "loc": 258,
         "module": "easyuse_anima.aio.generation_lifecycle",
-        "normalized_git_blob_sha1": "4ad26f67fe9fc82d7aa84a8cad2a5423628d306c",
+        "normalized_git_blob_sha1": "79d76109936546baa97aab323cb7f4c3df0e9999",
         "path": "easyuse_anima/aio/generation_lifecycle.py",
         "top_level": {
-          "class_count": 6,
-          "function_count": 0,
-          "global_count": 5
+          "class_count": 9,
+          "function_count": 3,
+          "global_count": 7
         }
       },
       {
         "is_package": false,
-        "loc": 159,
+        "loc": 194,
         "module": "easyuse_anima.aio.generation_migrations",
-        "normalized_git_blob_sha1": "37cc942ca768f5dc5b6616c6a90716efaba9333b",
+        "normalized_git_blob_sha1": "311d05437214022852b40dfb5387cfe1a9edde60",
         "path": "easyuse_anima/aio/generation_migrations.py",
         "top_level": {
           "class_count": 3,
-          "function_count": 4,
-          "global_count": 5
+          "function_count": 5,
+          "global_count": 8
         }
       },
       {
         "is_package": false,
-        "loc": 1051,
+        "loc": 1093,
         "module": "easyuse_anima.aio.generation_normalization",
-        "normalized_git_blob_sha1": "3d7cf4638b6ccccc8f00fb3c6bf9b7bc0fa41a0f",
+        "normalized_git_blob_sha1": "d350b7185751cff462f17dbf42ef9293351b1061",
         "path": "easyuse_anima/aio/generation_normalization.py",
         "top_level": {
           "class_count": 0,
-          "function_count": 11,
+          "function_count": 12,
           "global_count": 5
         }
       },
@@ -59725,9 +60647,9 @@
       },
       {
         "is_package": false,
-        "loc": 124,
+        "loc": 128,
         "module": "easyuse_anima.aio.generation_settings",
-        "normalized_git_blob_sha1": "67ea3e0c74799ee661c7b6cd18a9f26719bf3cc6",
+        "normalized_git_blob_sha1": "b96c2fe5b9ef293ed890641f741be2ba4d55360e",
         "path": "easyuse_anima/aio/generation_settings.py",
         "top_level": {
           "class_count": 1,
@@ -59737,9 +60659,9 @@
       },
       {
         "is_package": false,
-        "loc": 109,
+        "loc": 114,
         "module": "easyuse_anima.aio.generation_upscale_stage",
-        "normalized_git_blob_sha1": "77d6f6f8bdbeecb060d33a89a6b5b7ffbaf96622",
+        "normalized_git_blob_sha1": "66a7a82fa3d84f66362c5c0634476a78726d203e",
         "path": "easyuse_anima/aio/generation_upscale_stage.py",
         "top_level": {
           "class_count": 3,
@@ -59785,9 +60707,9 @@
       },
       {
         "is_package": false,
-        "loc": 1005,
+        "loc": 1095,
         "module": "easyuse_anima.aio.legacy_generation",
-        "normalized_git_blob_sha1": "cc345da63a722bde41a48ff64c4779c0c6443660",
+        "normalized_git_blob_sha1": "c9414010fdd6ebd11567dc827d3c2f01143bfb03",
         "path": "easyuse_anima/aio/legacy_generation.py",
         "top_level": {
           "class_count": 0,
@@ -59797,14 +60719,26 @@
       },
       {
         "is_package": false,
-        "loc": 454,
+        "loc": 551,
         "module": "easyuse_anima.aio.model_preparation",
-        "normalized_git_blob_sha1": "5614a46e49e8b459ec59d89fe0b42ade8e875064",
+        "normalized_git_blob_sha1": "87898b28862487c31131757a9ae19b4ce4f5b1fe",
         "path": "easyuse_anima/aio/model_preparation.py",
         "top_level": {
           "class_count": 0,
-          "function_count": 16,
+          "function_count": 20,
           "global_count": 2
+        }
+      },
+      {
+        "is_package": false,
+        "loc": 448,
+        "module": "easyuse_anima.aio.negpip",
+        "normalized_git_blob_sha1": "91228ac2f26297dcab77b4893cdba3663f6ef5e8",
+        "path": "easyuse_anima/aio/negpip.py",
+        "top_level": {
+          "class_count": 1,
+          "function_count": 21,
+          "global_count": 17
         }
       },
       {
@@ -59877,6 +60811,30 @@
           "class_count": 0,
           "function_count": 14,
           "global_count": 1
+        }
+      },
+      {
+        "is_package": false,
+        "loc": 320,
+        "module": "easyuse_anima.aio.torch_compile_diagnostics",
+        "normalized_git_blob_sha1": "b8f8389432392a80f18f1022740c6d93a7b5e95d",
+        "path": "easyuse_anima/aio/torch_compile_diagnostics.py",
+        "top_level": {
+          "class_count": 0,
+          "function_count": 8,
+          "global_count": 11
+        }
+      },
+      {
+        "is_package": false,
+        "loc": 283,
+        "module": "easyuse_anima.aio.torch_compile_recommendation",
+        "normalized_git_blob_sha1": "8b0d9652cea43f7d1d44f49db01c5e9b7af0e7bd",
+        "path": "easyuse_anima/aio/torch_compile_recommendation.py",
+        "top_level": {
+          "class_count": 0,
+          "function_count": 9,
+          "global_count": 5
         }
       },
       {
@@ -60505,9 +61463,9 @@
       },
       {
         "is_package": false,
-        "loc": 1480,
+        "loc": 1497,
         "module": "easyuse_anima.prompt.artist_mix",
-        "normalized_git_blob_sha1": "506f17d262f5caaf7977affe6ea444516d7a30da",
+        "normalized_git_blob_sha1": "d6b4ba5d57c831f6ead9e94b5f595e82f502c275",
         "path": "easyuse_anima/prompt/artist_mix.py",
         "top_level": {
           "class_count": 0,
@@ -72738,14 +73696,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 324
+            "line": 330
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 325,
+        "line": 331,
         "optional": true,
         "role": "optional_dependency",
         "source": "api.py"
@@ -74055,17 +75013,105 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 315
+            "line": 412
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "comfy.model_management",
         "kind": "static_import",
-        "line": 316,
+        "line": 413,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/aio/model_preparation.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "__future__:annotations",
+        "kind": "static_from",
+        "line": 3,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/negpip.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "hashlib",
+        "kind": "static_import",
+        "line": 5,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/negpip.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "inspect",
+        "kind": "static_import",
+        "line": 6,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/negpip.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "re",
+        "kind": "static_import",
+        "line": 7,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/negpip.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "collections.abc:Callable",
+        "kind": "static_from",
+        "line": 8,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/negpip.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "collections.abc:Mapping",
+        "kind": "static_from",
+        "line": 8,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/negpip.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "dataclasses:dataclass",
+        "kind": "static_from",
+        "line": 9,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/negpip.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "typing:Any",
+        "kind": "static_from",
+        "line": 10,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/negpip.py"
       },
       {
         "branch_context": [],
@@ -74436,6 +75482,138 @@
         "optional": false,
         "role": "ordinary",
         "source": "easyuse_anima/aio/sampling.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "__future__:annotations",
+        "kind": "static_from",
+        "line": 3,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/torch_compile_diagnostics.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "importlib",
+        "kind": "static_import",
+        "line": 5,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/torch_compile_diagnostics.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "inspect",
+        "kind": "static_import",
+        "line": 6,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/torch_compile_diagnostics.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "platform",
+        "kind": "static_import",
+        "line": 7,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/torch_compile_diagnostics.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "collections.abc:Callable",
+        "kind": "static_from",
+        "line": 8,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/torch_compile_diagnostics.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "collections.abc:Mapping",
+        "kind": "static_from",
+        "line": 8,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/torch_compile_diagnostics.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "collections.abc:Sequence",
+        "kind": "static_from",
+        "line": 8,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/torch_compile_diagnostics.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "typing:Any",
+        "kind": "static_from",
+        "line": 9,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/torch_compile_diagnostics.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "torch",
+        "kind": "literal_dynamic",
+        "line": 45,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/torch_compile_diagnostics.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "__future__:annotations",
+        "kind": "static_from",
+        "line": 3,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/torch_compile_recommendation.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "collections.abc:Mapping",
+        "kind": "static_from",
+        "line": 5,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/torch_compile_recommendation.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "collections.abc:Sequence",
+        "kind": "static_from",
+        "line": 5,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/torch_compile_recommendation.py"
       },
       {
         "branch_context": [],
@@ -76892,14 +78070,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 1106
+            "line": 1109
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "torch",
         "kind": "static_import",
-        "line": 1107,
+        "line": 1110,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/prompt/artist_mix.py"
@@ -78293,14 +79471,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 324
+            "line": 330
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 325,
+        "line": 331,
         "optional": true,
         "role": "optional_dependency",
         "source": "api.py"
@@ -78312,14 +79490,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 315
+            "line": 412
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "comfy.model_management",
         "kind": "static_import",
-        "line": 316,
+        "line": 413,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/aio/model_preparation.py"
@@ -79059,14 +80237,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 1106
+            "line": 1109
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "torch",
         "kind": "static_import",
-        "line": 1107,
+        "line": 1110,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/prompt/artist_mix.py"
@@ -79225,12 +80403,15 @@
       "easyuse_anima/aio/input_defaults.py",
       "easyuse_anima/aio/legacy_generation.py",
       "easyuse_anima/aio/model_preparation.py",
+      "easyuse_anima/aio/negpip.py",
       "easyuse_anima/aio/output.py",
       "easyuse_anima/aio/output_settings.py",
       "easyuse_anima/aio/postprocess.py",
       "easyuse_anima/aio/preview.py",
       "easyuse_anima/aio/resources.py",
       "easyuse_anima/aio/sampling.py",
+      "easyuse_anima/aio/torch_compile_diagnostics.py",
+      "easyuse_anima/aio/torch_compile_recommendation.py",
       "easyuse_anima/aio/usdu.py",
       "easyuse_anima/autocomplete/__init__.py",
       "easyuse_anima/autocomplete/dataset.py",
@@ -79359,12 +80540,15 @@
       "easyuse_anima/aio/input_defaults.py",
       "easyuse_anima/aio/legacy_generation.py",
       "easyuse_anima/aio/model_preparation.py",
+      "easyuse_anima/aio/negpip.py",
       "easyuse_anima/aio/output.py",
       "easyuse_anima/aio/output_settings.py",
       "easyuse_anima/aio/postprocess.py",
       "easyuse_anima/aio/preview.py",
       "easyuse_anima/aio/resources.py",
       "easyuse_anima/aio/sampling.py",
+      "easyuse_anima/aio/torch_compile_diagnostics.py",
+      "easyuse_anima/aio/torch_compile_recommendation.py",
       "easyuse_anima/aio/usdu.py",
       "easyuse_anima/autocomplete/__init__.py",
       "easyuse_anima/autocomplete/dataset.py",
@@ -79636,7 +80820,7 @@
         "column": 10,
         "context": "assign:_LOGGER",
         "kind": "import_time_call",
-        "line": 148,
+        "line": 154,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -79645,7 +80829,7 @@
         "column": 25,
         "context": "assign:_FILE_IO_LIMITERS_LOCK",
         "kind": "import_time_call",
-        "line": 151,
+        "line": 157,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -79654,7 +80838,7 @@
         "column": 47,
         "context": "assign:_FILE_IO_LIMITERS",
         "kind": "import_time_call",
-        "line": 152,
+        "line": 158,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -79663,7 +80847,7 @@
         "column": 29,
         "context": "assign:_PROMPT_TRANSLATION_WORKER",
         "kind": "import_time_call",
-        "line": 201,
+        "line": 207,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -79672,7 +80856,7 @@
         "column": 0,
         "context": "expression",
         "kind": "import_time_call",
-        "line": 202,
+        "line": 208,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -79681,7 +80865,7 @@
         "column": 36,
         "context": "assign:_SAFE_PROFILE_VALIDATION_MESSAGES",
         "kind": "import_time_call",
-        "line": 351,
+        "line": 357,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -79690,7 +80874,7 @@
         "column": 9,
         "context": "assign:routes",
         "kind": "route_registry_creation",
-        "line": 508,
+        "line": 514,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -79699,7 +80883,7 @@
         "column": 19,
         "context": "assign:_ROUTE_SIGNATURE",
         "kind": "route_registry_creation",
-        "line": 851,
+        "line": 906,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -79708,7 +80892,7 @@
         "column": 5,
         "context": "assign:_ROUTE_SIGNATURE",
         "kind": "route_registry_creation",
-        "line": 852,
+        "line": 907,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -79789,7 +80973,7 @@
         "column": 1,
         "context": "decorator:_AIOFirstPassCacheEntry",
         "kind": "import_time_call",
-        "line": 22,
+        "line": 27,
         "module": "easyuse_anima/aio/first_pass_cache.py",
         "scope": "<module>"
       },
@@ -79798,7 +80982,7 @@
         "column": 1,
         "context": "decorator:_AIOFirstPassCacheMetrics",
         "kind": "import_time_call",
-        "line": 58,
+        "line": 63,
         "module": "easyuse_anima/aio/first_pass_cache.py",
         "scope": "<module>"
       },
@@ -79807,7 +80991,7 @@
         "column": 29,
         "context": "assign:_AIO_FIRST_PASS_CACHE_LOCK",
         "kind": "import_time_call",
-        "line": 71,
+        "line": 76,
         "module": "easyuse_anima/aio/first_pass_cache.py",
         "scope": "<module>"
       },
@@ -79877,7 +81061,7 @@
       {
         "callee": "dataclass",
         "column": 1,
-        "context": "decorator:AIOGenerationDAVEConfig",
+        "context": "decorator:AIOGenerationStageScopeConfig",
         "kind": "import_time_call",
         "line": 39,
         "module": "easyuse_anima/aio/generation_features.py",
@@ -79886,9 +81070,18 @@
       {
         "callee": "dataclass",
         "column": 1,
+        "context": "decorator:AIOGenerationDAVEConfig",
+        "kind": "import_time_call",
+        "line": 68,
+        "module": "easyuse_anima/aio/generation_features.py",
+        "scope": "<module>"
+      },
+      {
+        "callee": "dataclass",
+        "column": 1,
         "context": "decorator:AIOGenerationSafePAGConfig",
         "kind": "import_time_call",
-        "line": 66,
+        "line": 101,
         "module": "easyuse_anima/aio/generation_features.py",
         "scope": "<module>"
       },
@@ -79897,7 +81090,7 @@
         "column": 1,
         "context": "decorator:AIOGenerationTorchCompileConfig",
         "kind": "import_time_call",
-        "line": 112,
+        "line": 147,
         "module": "easyuse_anima/aio/generation_features.py",
         "scope": "<module>"
       },
@@ -79906,7 +81099,7 @@
         "column": 1,
         "context": "decorator:AIOGenerationKJConfig",
         "kind": "import_time_call",
-        "line": 166,
+        "line": 201,
         "module": "easyuse_anima/aio/generation_features.py",
         "scope": "<module>"
       },
@@ -79915,7 +81108,7 @@
         "column": 1,
         "context": "decorator:AIOGenerationModelPatchesConfig",
         "kind": "import_time_call",
-        "line": 201,
+        "line": 236,
         "module": "easyuse_anima/aio/generation_features.py",
         "scope": "<module>"
       },
@@ -79924,7 +81117,7 @@
         "column": 1,
         "context": "decorator:AIOGenerationModGuidanceAdvancedConfig",
         "kind": "import_time_call",
-        "line": 230,
+        "line": 265,
         "module": "easyuse_anima/aio/generation_features.py",
         "scope": "<module>"
       },
@@ -79933,7 +81126,7 @@
         "column": 1,
         "context": "decorator:AIOGenerationModGuidanceConfig",
         "kind": "import_time_call",
-        "line": 273,
+        "line": 308,
         "module": "easyuse_anima/aio/generation_features.py",
         "scope": "<module>"
       },
@@ -79942,7 +81135,7 @@
         "column": 1,
         "context": "decorator:AIOGenerationArtistMixConfig",
         "kind": "import_time_call",
-        "line": 300,
+        "line": 335,
         "module": "easyuse_anima/aio/generation_features.py",
         "scope": "<module>"
       },
@@ -79951,7 +81144,7 @@
         "column": 1,
         "context": "decorator:AIOGenerationHighresConfig",
         "kind": "import_time_call",
-        "line": 349,
+        "line": 384,
         "module": "easyuse_anima/aio/generation_features.py",
         "scope": "<module>"
       },
@@ -79960,7 +81153,7 @@
         "column": 1,
         "context": "decorator:AIOGenerationUSDUConfig",
         "kind": "import_time_call",
-        "line": 408,
+        "line": 443,
         "module": "easyuse_anima/aio/generation_features.py",
         "scope": "<module>"
       },
@@ -79969,7 +81162,7 @@
         "column": 1,
         "context": "decorator:AIOGenerationResShiftConfig",
         "kind": "import_time_call",
-        "line": 483,
+        "line": 518,
         "module": "easyuse_anima/aio/generation_features.py",
         "scope": "<module>"
       },
@@ -79978,7 +81171,7 @@
         "column": 1,
         "context": "decorator:AIOGenerationUpscaleConfig",
         "kind": "import_time_call",
-        "line": 514,
+        "line": 549,
         "module": "easyuse_anima/aio/generation_features.py",
         "scope": "<module>"
       },
@@ -79987,7 +81180,7 @@
         "column": 1,
         "context": "decorator:AIOGenerationFitConfig",
         "kind": "import_time_call",
-        "line": 573,
+        "line": 608,
         "module": "easyuse_anima/aio/generation_features.py",
         "scope": "<module>"
       },
@@ -79996,7 +81189,7 @@
         "column": 1,
         "context": "decorator:AIOGenerationPostprocessConfig",
         "kind": "import_time_call",
-        "line": 600,
+        "line": 635,
         "module": "easyuse_anima/aio/generation_features.py",
         "scope": "<module>"
       },
@@ -80048,18 +81241,36 @@
       {
         "callee": "dataclass",
         "column": 1,
-        "context": "decorator:EphemeralModelRegistry",
+        "context": "decorator:StageModelPatchPlan",
         "kind": "import_time_call",
-        "line": 34,
+        "line": 23,
         "module": "easyuse_anima/aio/generation_lifecycle.py",
         "scope": "<module>"
+      },
+      {
+        "callee": "dataclass",
+        "column": 1,
+        "context": "decorator:EphemeralModelRegistry",
+        "kind": "import_time_call",
+        "line": 63,
+        "module": "easyuse_anima/aio/generation_lifecycle.py",
+        "scope": "<module>"
+      },
+      {
+        "callee": "field",
+        "column": 39,
+        "context": "assign:_registered_models",
+        "kind": "import_time_call",
+        "line": 71,
+        "module": "easyuse_anima/aio/generation_lifecycle.py",
+        "scope": "EphemeralModelRegistry"
       },
       {
         "callee": "field",
         "column": 20,
         "context": "assign:_closed",
         "kind": "import_time_call",
-        "line": 42,
+        "line": 75,
         "module": "easyuse_anima/aio/generation_lifecycle.py",
         "scope": "EphemeralModelRegistry"
       },
@@ -80068,7 +81279,7 @@
         "column": 1,
         "context": "decorator:ModelVariantRuntime",
         "kind": "import_time_call",
-        "line": 64,
+        "line": 108,
         "module": "easyuse_anima/aio/generation_lifecycle.py",
         "scope": "<module>"
       },
@@ -80077,7 +81288,7 @@
         "column": 1,
         "context": "decorator:ModelVariantResolver",
         "kind": "import_time_call",
-        "line": 70,
+        "line": 114,
         "module": "easyuse_anima/aio/generation_lifecycle.py",
         "scope": "<module>"
       },
@@ -80086,16 +81297,52 @@
         "column": 34,
         "context": "assign:_mod_guidance_model",
         "kind": "import_time_call",
-        "line": 83,
+        "line": 127,
         "module": "easyuse_anima/aio/generation_lifecycle.py",
         "scope": "ModelVariantResolver"
       },
       {
         "callee": "dataclass",
         "column": 1,
+        "context": "decorator:StageModelVariantRuntime",
+        "kind": "import_time_call",
+        "line": 183,
+        "module": "easyuse_anima/aio/generation_lifecycle.py",
+        "scope": "<module>"
+      },
+      {
+        "callee": "dataclass",
+        "column": 1,
+        "context": "decorator:StageModelVariantResolver",
+        "kind": "import_time_call",
+        "line": 189,
+        "module": "easyuse_anima/aio/generation_lifecycle.py",
+        "scope": "<module>"
+      },
+      {
+        "callee": "field",
+        "column": 35,
+        "context": "assign:_variants",
+        "kind": "import_time_call",
+        "line": 196,
+        "module": "easyuse_anima/aio/generation_lifecycle.py",
+        "scope": "StageModelVariantResolver"
+      },
+      {
+        "callee": "field",
+        "column": 52,
+        "context": "assign:_patches_by_stage",
+        "kind": "import_time_call",
+        "line": 200,
+        "module": "easyuse_anima/aio/generation_lifecycle.py",
+        "scope": "StageModelVariantResolver"
+      },
+      {
+        "callee": "dataclass",
+        "column": 1,
         "context": "decorator:PreviewRuntime",
         "kind": "import_time_call",
-        "line": 136,
+        "line": 226,
         "module": "easyuse_anima/aio/generation_lifecycle.py",
         "scope": "<module>"
       },
@@ -80104,7 +81351,7 @@
         "column": 1,
         "context": "decorator:PreviewCollector",
         "kind": "import_time_call",
-        "line": 142,
+        "line": 232,
         "module": "easyuse_anima/aio/generation_lifecycle.py",
         "scope": "<module>"
       },
@@ -80113,7 +81360,7 @@
         "column": 1,
         "context": "decorator:AIOGenerationMigrationStep",
         "kind": "import_time_call",
-        "line": 52,
+        "line": 60,
         "module": "easyuse_anima/aio/generation_migrations.py",
         "scope": "<module>"
       },
@@ -80122,16 +81369,34 @@
         "column": 1,
         "context": "decorator:AIOGenerationMigrationRegistry",
         "kind": "import_time_call",
-        "line": 75,
+        "line": 83,
         "module": "easyuse_anima/aio/generation_migrations.py",
         "scope": "<module>"
       },
       {
         "callee": "AIOGenerationMigrationRegistry",
-        "column": 36,
+        "column": 4,
         "context": "assign:AIO_GENERATION_MIGRATION_REGISTRY",
         "kind": "import_time_call",
-        "line": 109,
+        "line": 137,
+        "module": "easyuse_anima/aio/generation_migrations.py",
+        "scope": "<module>"
+      },
+      {
+        "callee": "with_step",
+        "column": 4,
+        "context": "assign:AIO_GENERATION_MIGRATION_REGISTRY",
+        "kind": "import_time_call",
+        "line": 137,
+        "module": "easyuse_anima/aio/generation_migrations.py",
+        "scope": "<module>"
+      },
+      {
+        "callee": "AIOGenerationMigrationStep",
+        "column": 8,
+        "context": "assign:AIO_GENERATION_MIGRATION_REGISTRY",
+        "kind": "import_time_call",
+        "line": 138,
         "module": "easyuse_anima/aio/generation_migrations.py",
         "scope": "<module>"
       },
@@ -80140,7 +81405,7 @@
         "column": 26,
         "context": "assign:_AIO_DETAILER_CUSTOM_RE",
         "kind": "import_time_call",
-        "line": 97,
+        "line": 99,
         "module": "easyuse_anima/aio/generation_normalization.py",
         "scope": "<module>"
       },
@@ -80338,7 +81603,7 @@
         "column": 1,
         "context": "decorator:AIOGenerationConfig",
         "kind": "import_time_call",
-        "line": 33,
+        "line": 34,
         "module": "easyuse_anima/aio/generation_settings.py",
         "scope": "<module>"
       },
@@ -80347,7 +81612,7 @@
         "column": 1,
         "context": "decorator:UpscaleRuntime",
         "kind": "import_time_call",
-        "line": 39,
+        "line": 40,
         "module": "easyuse_anima/aio/generation_upscale_stage.py",
         "scope": "<module>"
       },
@@ -80356,7 +81621,7 @@
         "column": 1,
         "context": "decorator:AIOUpscaleStage",
         "kind": "import_time_call",
-        "line": 46,
+        "line": 47,
         "module": "easyuse_anima/aio/generation_upscale_stage.py",
         "scope": "<module>"
       },
@@ -80392,7 +81657,7 @@
         "column": 9,
         "context": "assign:logger",
         "kind": "import_time_call",
-        "line": 104,
+        "line": 113,
         "module": "easyuse_anima/aio/legacy_generation.py",
         "scope": "<module>"
       },
@@ -80401,8 +81666,35 @@
         "column": 9,
         "context": "assign:logger",
         "kind": "import_time_call",
-        "line": 17,
+        "line": 23,
         "module": "easyuse_anima/aio/model_preparation.py",
+        "scope": "<module>"
+      },
+      {
+        "callee": "_OPEN_TO_CLOSE.items",
+        "column": 47,
+        "context": "assign:_CLOSE_TO_OPEN",
+        "kind": "import_time_call",
+        "line": 39,
+        "module": "easyuse_anima/aio/negpip.py",
+        "scope": "<module>"
+      },
+      {
+        "callee": "re.compile",
+        "column": 21,
+        "context": "assign:_NUMERIC_WEIGHT_RE",
+        "kind": "import_time_call",
+        "line": 40,
+        "module": "easyuse_anima/aio/negpip.py",
+        "scope": "<module>"
+      },
+      {
+        "callee": "dataclass",
+        "column": 1,
+        "context": "decorator:AIOGenerationNegPipConfig",
+        "kind": "import_time_call",
+        "line": 48,
+        "module": "easyuse_anima/aio/negpip.py",
         "scope": "<module>"
       },
       {
@@ -81200,37 +82492,37 @@
       },
       {
         "kind": "dict",
-        "line": 66,
+        "line": 71,
         "module": "easyuse_anima/aio/first_pass_cache.py",
         "name": "_AIO_FIRST_PASS_CACHE"
       },
       {
         "kind": "dict",
-        "line": 73,
+        "line": 78,
         "module": "easyuse_anima/aio/first_pass_cache.py",
         "name": "_AIO_FIRST_PASS_CACHE_METRICS"
       },
       {
         "kind": "list",
-        "line": 70,
+        "line": 75,
         "module": "easyuse_anima/aio/first_pass_cache.py",
         "name": "_AIO_FIRST_PASS_CACHE_ORDER"
       },
       {
         "kind": "dict",
-        "line": 38,
+        "line": 37,
         "module": "easyuse_anima/aio/generation_defaults.py",
         "name": "AIO_GENERATION_DEFAULT_SETTINGS"
       },
       {
         "kind": "set",
-        "line": 31,
+        "line": 30,
         "module": "easyuse_anima/aio/generation_defaults.py",
         "name": "AIO_SPECIAL_SEEDS"
       },
       {
         "kind": "set",
-        "line": 96,
+        "line": 98,
         "module": "easyuse_anima/aio/generation_normalization.py",
         "name": "_AIO_DETAILER_RESERVED_KEYS"
       },
@@ -81242,9 +82534,39 @@
       },
       {
         "kind": "dict",
+        "line": 33,
+        "module": "easyuse_anima/aio/negpip.py",
+        "name": "_EXPECTED_INPUTS"
+      },
+      {
+        "kind": "dict",
+        "line": 38,
+        "module": "easyuse_anima/aio/negpip.py",
+        "name": "_OPEN_TO_CLOSE"
+      },
+      {
+        "kind": "dict",
         "line": 15,
         "module": "easyuse_anima/aio/preview.py",
         "name": "AIO_PREVIEW_STAGE_LABELS"
+      },
+      {
+        "kind": "list",
+        "line": 315,
+        "module": "easyuse_anima/aio/torch_compile_diagnostics.py",
+        "name": "__all__"
+      },
+      {
+        "kind": "dict",
+        "line": 11,
+        "module": "easyuse_anima/aio/torch_compile_recommendation.py",
+        "name": "_COMMON_VALUES"
+      },
+      {
+        "kind": "list",
+        "line": 278,
+        "module": "easyuse_anima/aio/torch_compile_recommendation.py",
+        "name": "__all__"
       },
       {
         "kind": "dict",
@@ -81577,7 +82899,7 @@
           "lock"
         ],
         "initializer": "threading.Lock",
-        "line": 151,
+        "line": 157,
         "module": "api.py",
         "name": "_FILE_IO_LIMITERS_LOCK"
       },
@@ -81586,7 +82908,7 @@
           "executor"
         ],
         "initializer": "_PromptTranslationWorker",
-        "line": 201,
+        "line": 207,
         "module": "api.py",
         "name": "_PROMPT_TRANSLATION_WORKER"
       },
@@ -81596,7 +82918,7 @@
           "mutable_container"
         ],
         "initializer": "Dict",
-        "line": 66,
+        "line": 71,
         "module": "easyuse_anima/aio/first_pass_cache.py",
         "name": "_AIO_FIRST_PASS_CACHE"
       },
@@ -81605,7 +82927,7 @@
           "lock"
         ],
         "initializer": "RLock",
-        "line": 71,
+        "line": 76,
         "module": "easyuse_anima/aio/first_pass_cache.py",
         "name": "_AIO_FIRST_PASS_CACHE_LOCK"
       },
@@ -81615,7 +82937,7 @@
           "mutable_container"
         ],
         "initializer": "Dict",
-        "line": 73,
+        "line": 78,
         "module": "easyuse_anima/aio/first_pass_cache.py",
         "name": "_AIO_FIRST_PASS_CACHE_METRICS"
       },
@@ -81625,7 +82947,7 @@
           "mutable_container"
         ],
         "initializer": "List",
-        "line": 70,
+        "line": 75,
         "module": "easyuse_anima/aio/first_pass_cache.py",
         "name": "_AIO_FIRST_PASS_CACHE_ORDER"
       },

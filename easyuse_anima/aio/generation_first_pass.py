@@ -81,6 +81,7 @@ class AIOFirstPassStage:
         state: GenerationState,
     ) -> None:
         sampler = cast(dict[str, Any], request.config.sampler.to_dict())
+        sampler["cfg"] = request.config.negpip.effective_cfg(sampler.get("cfg"))
         mod_guidance = cast(
             dict[str, Any],
             request.config.mod_guidance.to_dict(),

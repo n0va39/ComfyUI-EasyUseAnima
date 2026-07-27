@@ -2,11 +2,12 @@
 
 ## 문서 상태
 
-- 상태: **PLANNED / BLOCKED**
-- 기준일: 2026-07-25
+- 상태: **IN PROGRESS — #411 AIO-NEGPIP**
+- 기준일: 2026-07-27
 - 기준 브랜치: `dev`
-- 기준 커밋: `df74cf9f65d481936122245e90db269113340c78`
-- 외부 차단점: [#395](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/395) Registry 0.5.5 activation
+- 기준 커밋: `3cd9edc3048b4a98d7186288319311f4e703eea8`
+- 완료된 선행: [#395](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/395),
+  [#409](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/409)
 - 기능 이슈:
   - [#409](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/409): stage별 고급 MODEL patch 범위
   - [#410](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/410): KJNodes Torch Compile 자동 추천
@@ -20,9 +21,10 @@ rollback 단위와 검증 순서를 고정한다. 기능 이슈의 behavior 요�
 구체적이면 해당 이슈가 우선하며, 아키텍처 ADR과 `MAINTAINING.md`는 계속
 최상위 정책이다.
 
-`#395`가 닫히기 전에는 이 문서의 production implementation을 시작하지 않는다.
-문서, 조사, fixture 설계는 가능하지만 D/E/G/H 및 새 AiO behavior 구현을 병행하지
-않는다.
+`#395`의 Registry checkpoint와 `#409`의 stage-scope/precedence 구현은 완료됐다.
+`AIO-COMPILE-01`부터 `04`까지 완료됐다. 현재 production queue는 `#411`로
+이동한다.
+`#440/#441`의 patch-specific 후속은 이 queue를 선행하지 않는다.
 
 ## 1. 현재 확인된 실행 구조
 
@@ -112,7 +114,7 @@ sampling stage effective CFG = 1
 ## 3. 확정 실행 순서
 
 ```text
-BLOCKED: #395 Registry activation 및 release lane 종료
+#395 Registry activation 및 release lane 종료 — COMPLETE
   ↓
 ADV-00 current-dev re-audit
   ↓
@@ -242,6 +244,13 @@ DAVE first-pass-only
 - Safe PAG, FP16 accumulation, SageAttention, Torch Compile 각각의 stage 적용 가능성을 결정한다.
 - run-global torch setting과 stage-local MODEL wrapper를 구분한다.
 - 지원 근거가 없는 patch에 generic scope UI를 자동 추가하지 않는다.
+- 결정:
+  - DAVE만 현재 네 sampling stage scope를 지원한다.
+  - Safe PAG는 stage-local 후보지만 temporary shared-module mutation 검증을 #440으로 분리한다.
+  - SageAttention은 clone-local 후보지만 experimental/`allow_compile` 검증을 #441로 분리한다.
+  - FP16 accumulation과 Torch Compile은 현재 upstream의 process-global/shared-registry 계약 때문에
+    독립 stage scope를 지원하지 않는다.
+  - #440/#441은 현재 `#409 -> #410 -> #411` queue를 선행하지 않는다.
 
 ## 6. #410 실행 manifest
 
@@ -252,6 +261,21 @@ DAVE first-pass-only
 - PyTorch/CUDA/accelerator/GPU VRAM/KJ input contract 수집
 - 외부 network/telemetry/지속 저장 금지
 - 버튼이 compile 또는 benchmark를 실행하지 않는다는 gate
+
+직접 owner와 phase boundary는 다음과 같이 고정한다.
+
+```text
+POST /easyuse_anima/aio/torch-compile/recommend
+  -> bounded Python/PyTorch/accelerator device facts
+  -> loaded TorchCompileModelAdvanced INPUT_TYPES + patch signature
+  -> no compile, tensor allocation, network, telemetry, persistence
+```
+
+COMPILE-01에서 `supported`는 CUDA, `torch.compile`, KJ node schema와 현재 AiO
+positional call signature가 모두 호환되는지를 뜻한다. `profile`은
+`diagnostics_only` 또는 `unsupported`, `values`는 빈 object로 반환한다. 실제 추천
+profile/value와 workload 정책은 COMPILE-02가 소유하며 COMPILE-01에서 추측하지
+않는다. CUDA 이외 accelerator와 malformed/missing contract는 fail-closed다.
 
 응답은 값뿐 아니라 다음을 포함한다.
 
@@ -288,6 +312,44 @@ debug_compile_keys = false
 
 `mode`, `dynamic`, cache, dynamic-VRAM 정책은 evidence로 결정한다.
 
+`recommendation-v1`의 결정은 다음과 같다.
+
+```text
+common:
+  enabled = true
+  backend = inductor
+  fullgraph = false
+  mode = default
+  compile_transformer_blocks_only = true
+  dynamo_cache_size_limit = 64
+  debug_compile_keys = false
+  disable_dynamic_vram = false
+
+fixed_shapes:
+  dynamic = false
+
+variable_shapes / unknown:
+  dynamic = auto
+```
+
+Highres, Detailer와 USDU는 `variable_shapes`다. ResShift-only upscale는 sampling
+MODEL을 사용하지 않으므로 그 자체로 shape variation을 만들지 않는다. 해상도,
+batch, stage enable contract 또는 upscale backend가 불확실하면 `unknown`으로
+닫는다. 단, Highres/Detailer/USDU 중 하나가 명시적으로 활성화되어 shape variation이
+이미 확정된 경우에는 누락된 base resolution이나 batch보다 그 신호가 우선한다.
+
+VRAM tier는 `<8192 MiB=low`, `8192..15359 MiB=medium`, `>=15360 MiB=high`,
+그 외는 `unknown`이다. low/unknown은 공격적인 mode나 dynamic-VRAM override를
+선택하지 않고 보수적 profile과 경고를 사용한다. 고정 shape에서 `false` choice만
+사라진 경우
+지원되는 `auto`로만 보수적으로 fallback한다. variable/unknown의 `auto` 또는
+공통 안전 choice/input이 사라지면 recommendation을 fail-closed한다.
+
+대표 CUDA 환경에서 수행한 policy revision 1의 bounded synthetic benchmark는
+[recommendation evidence](../development/aio-torch-compile-recommendation-evidence.md)에
+기록한다. 이는 선택 profile의 graph/recompile 경향을 확인하는 증거이며, 전체 AiO
+모델이나 측정하지 않은 VRAM/stage/mode 조합의 최적성을 주장하지 않는다.
+
 ### AIO-COMPILE-03 — UI draft apply
 
 - 유형: Feature
@@ -299,6 +361,8 @@ debug_compile_keys = false
 - Apply 후에만 profile/settings 저장
 
 ### AIO-COMPILE-04 — Live matrix
+
+- 상태: **완료** — [risk-based live matrix](../development/aio-torch-compile-live-matrix.md)
 
 - fixed resolution
 - Highres
@@ -504,24 +568,16 @@ Queue: repeated / concurrent / cancelled / exception
 
 ## 13. Codex 시작 지시
 
-`#395`가 열려 있는 동안:
-
-```text
-이 문서와 #409/#410/#411을 읽되 production implementation을 시작하지 않는다.
-새 D/E/G/H 또는 AiO advanced feature branch를 만들지 않는다.
-외부 node contract 변화가 발견되면 issue와 문서만 갱신한다.
-```
-
-`#395`가 닫힌 뒤:
+현재 `#410` 실행:
 
 ```text
 1. 최신 origin/dev와 open PR/branch를 확인한다.
-2. ADV-00 재감사를 수행한다.
-3. #409 AIO-SCOPE-01 하나만 선택한다.
-4. stage id, migration, precedence, cache-key Contract와 golden fixtures만 만든다.
-5. StageModelVariantResolver, UI, Torch recommendation, NegPip behavior는 같은 PR에 넣지 않는다.
-6. quick/full/package gate와 exact base/head SHA를 기록한다.
-7. 다음 unit을 READY로 바꾸되 자동 merge/release는 수행하지 않는다.
+2. installed KJ input/signature와 직접 owner를 현재 단계에서만 재확인한다.
+3. AIO-COMPILE-01 diagnostics부터 04 live matrix까지 PR/rollback 단위를 분리한다.
+4. COMPILE-01은 fake environment만 사용하고 compile/benchmark/live를 실행하지 않는다.
+5. COMPILE-02 전에는 추천값을 추측하지 않는다.
+6. 각 최종 후보에서 focused/full/package/live trigger를 단계 계약대로 기록한다.
+7. #410 완료 후에만 #411을 시작한다.
 ```
 
 ## 14. 릴리스 정책

@@ -99,11 +99,11 @@ function collectCoercionReferences(value, output = new Set()) {
 
 const settingsModule = await import(dataModule("../web/js/aio/settings.js"));
 const generationManifest = JSON.parse(readFileSync(
-  new URL("../easyuse_anima/aio/schemas/generation_settings.v1.json", import.meta.url),
+  new URL("../easyuse_anima/aio/schemas/generation_settings.v2.json", import.meta.url),
   "utf8",
 ));
 const generationSurfaceCoverage = JSON.parse(readFileSync(
-  new URL("./fixtures/aio_generation_settings_surface_coverage.v1.json", import.meta.url),
+  new URL("./fixtures/aio_generation_settings_surface_coverage.v2.json", import.meta.url),
   "utf8",
 ));
 const aioRuntimeSource = readFileSync(
@@ -118,9 +118,11 @@ const {
   AIO_GENERATOR_SPECIAL_SEED_DECREMENT,
   AIO_GENERATOR_SPECIAL_SEED_INCREMENT,
   AIO_GENERATOR_SPECIAL_SEED_RANDOM,
+  AIO_GENERATION_STAGE_IDS,
   aioAsBool,
   aioCloneJson,
   aioMergeDefaults,
+  aioMigrateGenerationSettingsVersion,
   aioMigrateGeneratorPostprocessSettings,
   aioNormalizeGeneratorPreviewSettings,
   aioNormalizeSeedControl,
@@ -146,14 +148,29 @@ assertJsonEqual(
 );
 assert(
   AIO_DEFAULT_GENERATION_SETTINGS.schema === "easyuse_anima_aio_generation_settings"
-    && AIO_DEFAULT_GENERATION_SETTINGS.version === 1
+    && AIO_DEFAULT_GENERATION_SETTINGS.version === 2
     && AIO_DEFAULT_GENERATION_SETTINGS.mode === "txt2img",
   "AiO generation settings must keep their versioned schema",
 );
 assert(
   generationManifest.settings.schema === AIO_DEFAULT_GENERATION_SETTINGS.schema
     && generationManifest.settings.version === AIO_DEFAULT_GENERATION_SETTINGS.version,
-  "AiO manifest identity must match the frontend v1 settings identity",
+  "AiO manifest identity must match the frontend v2 settings identity",
+);
+assertJsonEqual(
+  AIO_GENERATION_STAGE_IDS,
+  ["first_pass", "highres", "detailer", "upscale"],
+  "AiO sampling stage ids must remain ordered and explicit",
+);
+assertJsonEqual(
+  AIO_DEFAULT_GENERATION_SETTINGS.model_patches.dave.stage_scope,
+  {
+    first_pass: true,
+    highres: false,
+    detailer: false,
+    upscale: false,
+  },
+  "Fresh DAVE settings must default to first-pass-only",
 );
 assertJsonEqual(
   AIO_DEFAULT_GENERATION_SETTINGS,
@@ -253,8 +270,14 @@ assert(
   AIO_DEFAULT_GENERATION_SETTINGS.sampler.seed === AIO_GENERATOR_SPECIAL_SEED_RANDOM
     && AIO_DEFAULT_GENERATION_SETTINGS.sampler.steps === 32
     && AIO_DEFAULT_GENERATION_SETTINGS.sampler.cfg === 5
+    && AIO_DEFAULT_GENERATION_SETTINGS.negpip.mode === "off"
     && AIO_DEFAULT_GENERATION_SETTINGS.preview.feed_count === 12,
   "AiO generation defaults must retain their serialized baseline",
+);
+assertJsonEqual(
+  generationManifest.shape.fields.negpip.fields.mode.enum,
+  ["off", "on", "turbo"],
+  "NegPip mode must remain an explicit Off/On/Turbo schema contract",
 );
 
 const cloneSource = {
@@ -379,6 +402,61 @@ assertJsonEqual(
   aioParseSettingsValue("[]", AIO_DEFAULT_GENERATION_SETTINGS),
   AIO_DEFAULT_GENERATION_SETTINGS,
   "A root JSON array must fall back to generation defaults",
+);
+const legacyV1Generation = {
+  schema: "easyuse_anima_aio_generation_settings",
+  version: 1,
+  model_patches: {
+    dave: {
+      enabled: true,
+      mask: "dave_alpha.npz",
+      strength: 0.3,
+      tau: 0.1,
+    },
+  },
+  profile_extension: { preserve: true },
+};
+const migratedLegacyGeneration = aioMigrateGenerationSettingsVersion(legacyV1Generation);
+assert(
+  migratedLegacyGeneration !== legacyV1Generation
+    && legacyV1Generation.version === 1
+    && migratedLegacyGeneration.version === 2,
+  "Generation version migration must clone and leave the saved v1 object unchanged",
+);
+assertJsonEqual(
+  migratedLegacyGeneration.model_patches.dave.stage_scope,
+  Object.fromEntries(AIO_GENERATION_STAGE_IDS.map((stageId) => [stageId, true])),
+  "Legacy v1 DAVE settings without scope must migrate to all sampling stages",
+);
+const parsedLegacyV1Generation = aioParseSettingsValue(
+  JSON.stringify(legacyV1Generation),
+  AIO_DEFAULT_GENERATION_SETTINGS,
+);
+assert(
+  parsedLegacyV1Generation.version === 2
+    && parsedLegacyV1Generation.profile_extension.preserve === true,
+  "Frontend parsing must apply the v1-to-v2 migration and preserve extensions",
+);
+assertJsonEqual(
+  parsedLegacyV1Generation.model_patches.dave.stage_scope,
+  Object.fromEntries(AIO_GENERATION_STAGE_IDS.map((stageId) => [stageId, true])),
+  "Frontend default merge must not replace migrated all-stage scope",
+);
+const customV2Scope = {
+  first_pass: false,
+  highres: true,
+  detailer: false,
+  upscale: true,
+};
+const parsedCustomV2 = aioParseSettingsValue(JSON.stringify({
+  schema: "easyuse_anima_aio_generation_settings",
+  version: 2,
+  model_patches: { dave: { stage_scope: customV2Scope } },
+}), AIO_DEFAULT_GENERATION_SETTINGS);
+assertJsonEqual(
+  parsedCustomV2.model_patches.dave.stage_scope,
+  customV2Scope,
+  "Explicit v2 DAVE stage scope must round-trip without migration",
 );
 const parsedLegacyGeneration = aioParseSettingsValue(JSON.stringify({
   upscale: {
@@ -569,6 +647,10 @@ const compactSource = {
   sampler: {
     steps: 24,
   },
+  negpip: {
+    mode: "turbo",
+    future_negpip: { revision: 3 },
+  },
   save: {
     filename_prefix: "legacy/prefix",
     image_saver: {
@@ -589,6 +671,8 @@ const compactSettings = JSON.parse(compactJson);
 assert(
   compactSettings.schema === "easyuse_anima_aio_generation_settings"
     && compactSettings.sampler.steps === 24
+    && compactSettings.negpip.mode === "turbo"
+    && compactSettings.negpip.future_negpip.revision === 3
     && compactSettings.preview.feed_count === 1,
   "Compact generation settings must merge defaults and normalize preview values",
 );
@@ -623,8 +707,47 @@ assert(
 );
 assert(
   generationManifest.policies.persistence.write_on_read === false
-    && generationManifest.policies.version_migrations.length === 0,
-  "The v1 contract must not introduce write-on-read or a version migration",
+    && generationManifest.policies.version_migrations.length === 1
+    && generationManifest.policies.version_migrations[0].from === 1
+    && generationManifest.policies.version_migrations[0].to === 2
+    && generationManifest.policies.version_migrations[0].mode === "pure-in-memory",
+  "The v2 contract must keep no-write-on-read and one pure v1 migration",
+);
+assertJsonEqual(
+  generationManifest.policies.model_patch_contract,
+  {
+    sampling_stage_ids: ["first_pass", "highres", "detailer", "upscale"],
+    patch_order_revision: 1,
+    precedence_edges: [["kj.torch_compile", "dave"]],
+    dave_fresh_default: "first-pass-only",
+    execution_cutover: "complete-through-AIO-SCOPE-03",
+    stage_scope_policy: {
+      generic_scope_ui: false,
+      owners: {
+        dave: {
+          decision: "supported",
+          stages: ["first_pass", "highres", "detailer", "upscale"],
+        },
+        safe_pag: {
+          decision: "follow-up-required",
+          reason: "clone-local-wrapper-with-temporary-shared-module-mutation",
+        },
+        "kj.fp16_accumulation": {
+          decision: "run-global-not-stage-scoped",
+          reason: "process-global-torch-setting-callback",
+        },
+        "kj.sage_attention": {
+          decision: "follow-up-required",
+          reason: "experimental-clone-local-override",
+        },
+        "kj.torch_compile": {
+          decision: "run-global-not-stage-scoped",
+          reason: "shared-base-model-compile-registry-and-dynamo-config",
+        },
+      },
+    },
+  },
+  "The v2 manifest must freeze stage ids, precedence revision, cutover, and scope owners",
 );
 
 console.log("AiO settings core smoke passed.");

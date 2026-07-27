@@ -10,7 +10,12 @@ from typing import Any
 from ..common.serialization import _stable_change_key
 from ..infrastructure.comfy.resources import _comfy_resource_file_revision
 from ..prompt.data import _prompt_data_json_safe
+from .generation_migrations import (
+    AIO_MODEL_PATCH_ORDER_REVISION,
+    AIO_MODEL_PATCH_PRECEDENCE,
+)
 from .model_preparation import _aio_lora_stack_signature
+from .negpip import _aio_negpip_cache_signature
 
 AIO_FIRST_PASS_CACHE_MAX_ENTRIES = 2
 AIO_FIRST_PASS_CACHE_MAX_BYTES = 512 * 1024 * 1024
@@ -265,6 +270,81 @@ def _aio_first_pass_resource_revision(
     }
 
 
+def _aio_first_pass_model_patch_plan(model_patches) -> dict[str, Any]:
+    """Return only normalized patch inputs that can affect the first pass."""
+
+    source = model_patches if isinstance(model_patches, dict) else {}
+    patches: dict[str, Any] = {}
+
+    aura_flow = source.get("aura_flow")
+    if isinstance(aura_flow, dict):
+        patches["aura_flow"] = {"shift": aura_flow.get("shift")}
+
+    kj = source.get("kj")
+    if isinstance(kj, dict):
+        if bool(kj.get("fp16_accumulation")):
+            patches["kj.fp16_accumulation"] = {"enabled": True}
+        sage_attention = str(kj.get("sage_attention") or "disabled")
+        if sage_attention != "disabled":
+            patches["kj.sage_attention"] = {
+                "mode": sage_attention,
+                "allow_compile": bool(kj.get("sage_allow_compile")),
+            }
+        torch_compile = kj.get("torch_compile")
+        if isinstance(torch_compile, dict) and bool(torch_compile.get("enabled")):
+            patches["kj.torch_compile"] = {
+                key: torch_compile.get(key)
+                for key in (
+                    "backend",
+                    "fullgraph",
+                    "mode",
+                    "dynamic",
+                    "compile_transformer_blocks_only",
+                    "dynamo_cache_size_limit",
+                    "debug_compile_keys",
+                    "disable_dynamic_vram",
+                )
+            }
+
+    dave = source.get("dave")
+    if isinstance(dave, dict) and bool(dave.get("enabled")):
+        stage_scope = dave.get("stage_scope")
+        applies_to_first_pass = (
+            bool(stage_scope.get("first_pass", True))
+            if isinstance(stage_scope, dict)
+            else True
+        )
+        if applies_to_first_pass:
+            patches["dave"] = {
+                "mask": dave.get("mask"),
+                "strength": dave.get("strength"),
+                "tau": dave.get("tau"),
+                "stage_scope": {"first_pass": True},
+            }
+
+    safe_pag = source.get("safe_pag")
+    if isinstance(safe_pag, dict) and bool(safe_pag.get("enabled")):
+        patches["safe_pag"] = {
+            key: safe_pag.get(key)
+            for key in (
+                "scale",
+                "block_indices",
+                "perturbation_strength",
+                "head_indices",
+                "start_percent",
+                "end_percent",
+                "rescale",
+                "rescale_mode",
+            )
+        }
+
+    return {
+        "order_revision": AIO_MODEL_PATCH_ORDER_REVISION,
+        "precedence": [list(edge) for edge in AIO_MODEL_PATCH_PRECEDENCE],
+        "patches": patches,
+    }
+
+
 def _aio_first_pass_cache_key(
     *,
     cache_scope: str,
@@ -283,9 +363,9 @@ def _aio_first_pass_cache_key(
 ) -> str:
     resource_info = context.get("resource_info", {})
     lora_signature = _aio_lora_stack_signature(lora_stack)
-    return _stable_change_key({
+    payload = {
         "schema": "easyuse_anima_aio_first_pass_cache",
-        "version": 2,
+        "version": 3,
         "scope": str(cache_scope or ""),
         "mode": settings.get("mode"),
         "resource_info": _prompt_data_json_safe(resource_info),
@@ -301,8 +381,8 @@ def _aio_first_pass_cache_key(
         "sampler": _prompt_data_json_safe(
             settings.get("sampler", {})
         ),
-        "model_patches": _prompt_data_json_safe(
-            settings.get("model_patches", {})
+        "model_patch_plan": _prompt_data_json_safe(
+            _aio_first_pass_model_patch_plan(settings.get("model_patches", {}))
         ),
         "mod_guidance": _prompt_data_json_safe(
             settings.get("mod_guidance", {})
@@ -318,7 +398,14 @@ def _aio_first_pass_cache_key(
         "use_negative_anima_mod_guidance": bool(use_negative_anima_mod_guidance),
         "width": int(width),
         "height": int(height),
-    })
+    }
+    negpip_signature = _aio_negpip_cache_signature(
+        settings.get("negpip"),
+        negative_prompt=str(negative_prompt or ""),
+    )
+    if negpip_signature is not None:
+        payload["negpip"] = negpip_signature
+    return _stable_change_key(payload)
 
 
 def _get_aio_first_pass_cache(cache_key: str):

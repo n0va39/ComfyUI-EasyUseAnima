@@ -1,29 +1,29 @@
-# AiO generation settings v1 계약
+# AiO generation settings v2 계약
 
-이 문서는 `easyuse_anima_aio_generation_settings` v1의 정적 계약과 소유 경계를 설명한다. 기준 manifest는
-`easyuse_anima/aio/schemas/generation_settings.v1.json`이다.
+이 문서는 `easyuse_anima_aio_generation_settings` v2의 정적 계약과 소유 경계를 설명한다. 현재 기준 manifest는
+`easyuse_anima/aio/schemas/generation_settings.v2.json`이며 v1 manifest는 migration 입력 계약으로 보존한다.
 
 기준 manifest는 [#168](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/168)의 C168-01 Contract PR에서
 도입했다. C168-02는 v0.5.2 release workflow에 저장된 AiO generation settings 입력과 normalized
 결과를 현재 runtime에 다시 적용해 deep equality로 고정한다. C168-03은 기존 Python normalizer가 만든 완전한
 v1 object를 checked-in typed config로 변환하고 다시 독립된 가변 dictionary로 복원하는 경계를 추가한다.
-Python/JavaScript runtime은 여전히 manifest를 import하지 않으며 codegen, version migration, normalizer 교체는
-이 단계에 포함하지 않는다.
+Python/JavaScript runtime은 manifest를 import하지 않는다. AIO-SCOPE-01은 pure v1→v2 migration을 runtime의
+기존 compatibility facade 앞에 연결하지만 stage MODEL cutover나 DAVE UI는 수행하지 않는다.
 
 ## 소유권
 
 | 계약 | owner | 비고 |
 | --- | --- | --- |
-| v1 정적 field shape와 default | `easyuse_anima.aio.generation_settings` manifest | Python/JavaScript default와 golden equality |
+| v2 정적 field shape와 default | `easyuse_anima.aio.generation_settings` manifest | Python/JavaScript default와 golden equality |
 | 정적 enum, min/max, coercion 분류 | manifest | 현재 backend normalizer 동작으로 검증 |
 | legacy alias와 unknown-field 정책 | manifest | surface별 현재 차이도 명시 |
 | Python 실행 시 정규화 | 현재 `nodes.py` | 이번 PR에서 이동하거나 변경하지 않음 |
-| normalized Python v1 typed boundary | `easyuse_anima/aio/generation_*.py` DAG | 정규화 이후 순수 양방향 변환, dictionary compatibility facade 유지 |
-| frontend default merge/visible merge | 현재 `web/js/aio/settings.js`, `web/js/easyuse_anima_aio.js` | 이번 PR에서 변경하지 않음 |
+| normalized Python v2 typed boundary | `easyuse_anima/aio/generation_*.py` DAG | 정규화 이후 순수 양방향 변환, dictionary compatibility facade 유지 |
+| frontend v1→v2 in-memory migration/default merge | `web/js/aio/settings.js` | 저장 object 불변, explicit save 전 write 없음 |
 | Comfy/Impact sampler, scheduler, max resolution 목록 | Comfy capability adapter/runtime | manifest가 값 목록을 소유하지 않음 |
 | profile envelope, ID, revision, CAS | [#163](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/163) | nested `settings` payload 내부만 #168 소유 |
 
-manifest의 `default`는 완전한 normalized v1 기본 object다. `shape`는 field type, coercion, static enum 및
+manifest의 `default`는 완전한 normalized v2 기본 object다. `shape`는 field type, coercion, static enum 및
 bound를 제공하고 반복되는 Spectrum/DiT correction/Detailer target은 `definitions`와 `$ref`로 표현한다.
 모든 coercion 참조, array item, open JSON object value, `custom_<n>` pattern field가 manifest 내부 정의로
 해결되므로 후속 consumer가 별도의 암묵 token 표 없이 계약을 해석할 수 있다. 다만 이번 PR은 실제
@@ -36,16 +36,36 @@ execution은 기존 코드다.
 
 | section | 핵심 정적 계약 |
 | --- | --- |
-| `schema`, `version`, `mode` | schema name 고정, current version 1, mode enum |
+| `schema`, `version`, `mode` | schema name 고정, current version 2, mode enum |
 | `sampler` | backend/seed control enum, steps/cfg/denoise bound, Spectrum/SPD/DiT correction |
-| `model_patches` | AuraFlow, DAVE, Safe PAG, KJ/torch compile |
+| `model_patches` | AuraFlow, DAVE와 4-stage scope, Safe PAG, KJ/torch compile |
 | `mod_guidance`, `artist_mix` | mode/profile enum과 weight/layer/count bound |
 | `highres`, `upscale`, `postprocess` | stage switch, method/backend enum, size/sampling bound |
 | `detailer` | ordered `face`/`eye`와 `custom_<n>` target contract |
 | `save`, `preview` | save backend/format/metadata와 preview feed contract |
 
 각 normalized object는 known field를 채우면서 unknown field를 기본적으로 보존한다. 빈 extension object인
-`sampler.spectrum_extra`와 `sampler.spd_extra`도 v1의 공개 확장 지점으로 유지한다.
+`sampler.spectrum_extra`와 `sampler.spd_extra`도 기존 공개 확장 지점으로 유지한다.
+
+DAVE의 `stage_scope` stage id는 `first_pass`, `highres`, `detailer`, `upscale`로 고정한다. fresh v2 default는
+first pass만 true다. `upscale`은 sampling MODEL을 사용하는 USDU 계약이며 ResShift, postprocess, save는 이
+scope에 포함하지 않는다. patch-order revision 1은 KJ Torch Compile과 DAVE가 함께 선택된 stage에서
+`kj.torch_compile → dave` precedence edge만 승인한다.
+
+AIO-SCOPE-04 audit는 Anima Safe PAG `905b0107`과 KJNodes `e27a505b`의 public source,
+그리고 current ComfyUI `ModelPatcher.clone()`의 `model_options` deep-copy 계약을 기준으로 했다.
+generic scope UI는 승인하지 않고 patch별 owner를 다음처럼 고정했다.
+
+| patch | stage-scope 결정 | 근거와 후속 |
+| --- | --- | --- |
+| DAVE | 지원 | 네 sampling stage를 현재 schema/runtime/UI가 소유한다. |
+| Safe PAG | 후속 검증 필요 | MODEL clone과 sampler callback을 사용하지만 shared attention module을 일시적으로 바꾸므로 precedence/cleanup/live 증명을 [#440](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/440)에서 분리한다. |
+| KJ FP16 accumulation | stage scope 미지원 | pre-run/cleanup callback이 process-global torch flag를 바꾸므로 run-global 설정으로 유지한다. |
+| KJ SageAttention | 후속 검증 필요 | clone-local `model_options` override이지만 upstream experimental 계약과 `allow_compile`을 [#441](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/441)에서 검증한다. |
+| KJ Torch Compile | stage scope 미지원 | compiled module registry가 shared BaseModel을 key로 쓰고 Dynamo config도 process-global이므로 현재는 run-global 설정으로 유지한다. #410은 진단/추천만 소유하며 generic scope를 추가하지 않는다. |
+
+Safe PAG와 KJ 설정에 저장된 unknown `stage_scope`는 보존할 수 있지만 현재 patch selection을 부분 변경하지
+않는다. 지원되지 않은 field 때문에 기존 all-stage 실행 의미가 조용히 달라지지 않는 것이 rollback 계약이다.
 
 ## Python typed config 경계
 
@@ -127,21 +147,16 @@ capability에 존재하는 경우와 존재하지 않아 첫 capability로 fallb
 | `save.filename_prefix` | 제거 | `save.image_saver.path` + `filename` |
 | `save.image_saver.show_preview` | 제거 | `preview` section |
 
-v1에는 version migration이 없다. 위 처리는 기존 legacy alias 정규화이며 저장 파일을 자동으로 다시 쓰는
-migration이 아니다. Read/list/load는 원본 profile/workflow bytes, mtime, revision을 바꾸지 않아야 한다.
-write-on-read는 금지한다. 실제 persist는 사용자가 요청한 save/update 같은 mutation에서만 수행한다.
+v2는 pure v1→v2 migration을 가진다. v1의 `model_patches.dave` object에 `stage_scope`가 없으면 네 sampling
+stage를 모두 true로 채워 기존 all-stage 실행 의미를 보존한다. explicit scope는 덮어쓰지 않고 unknown JSON도
+보존한다. Read/list/load는 원본 profile/workflow bytes, mtime, revision을 바꾸지 않으며 실제 persist는 사용자가
+요청한 save/update 같은 mutation에서만 수행한다.
 
-C168-04는 `easyuse_anima/aio/generation_migrations.py`에 strict schema/version detector와 immutable ordered
-step registry를 추가한다. shipped registry는 실제 v2가 없으므로 비어 있으며 current v1 입력은 독립된 JSON
-object로 deep-copy된다. 각 migration step은 정확히 한 version만 증가시키고 반환 object가 선언한 target
-version과 canonical schema를 유지해야 한다. missing/wrong schema, non-integer version, 등록되지 않은 older
-version, future version은 새 순수 API에서 명시적으로 실패한다. test-only registry가 연속 dispatch와 실패 시
-caller input 비변경을 검증하지만 production v2 계약을 만들지는 않는다.
-
-기존 `_normalize_aio_generation_settings()`는 future/invalid version을 엄격하게 거부하지 않는 호환 facade이므로
-이번 Contract에서는 dispatcher를 runtime caller에 연결하지 않는다. canonical pipeline helper는 normalizer를
-명시적으로 주입받아 migration, 기존 normalization, typed round-trip을 순서대로 조합하지만 현재 production
-caller는 사용하지 않는다. strict dispatcher adoption과 저장 데이터 갱신은 별도 Behavior 결정이 필요하다.
+`easyuse_anima/aio/generation_migrations.py`의 strict detector와 immutable registry는 shipped 1→2 step을
+소유한다. `_normalize_aio_generation_settings()`는 canonical schema와 지원 범위의 integer version에만 dispatcher를
+적용한다. schema가 없거나 invalid/future version인 기존 compatibility 입력은 이전처럼 normalization facade에서
+처리하므로 이번 Contract가 별도 strict rejection behavior를 추가하지 않는다. frontend parse/compact 경계도 raw
+v1 object를 defaults merge 전에 migrate한다. 양쪽 모두 migration은 in-memory clone이며 write-on-read가 아니다.
 
 ## Unknown-field 정책과 현재 drift
 
@@ -185,7 +200,7 @@ frontend coercion/unknown-field 정책과 manifest 내부 coercion/item 정의 �
 root/nested unknown field, custom Detailer order/target, Spectrum/SPD extension object, legacy 비복원 및 mutable
 reference 격리를 검증한다.
 
-`tests/fixtures/aio_generation_settings_surface_coverage.v1.json`은 manifest의 canonical field와 `$ref` site를
+`tests/fixtures/aio_generation_settings_surface_coverage.v2.json`은 manifest의 canonical field와 `$ref` site를
 기준으로 Python default/typed owner, JavaScript default owner, sanitization owner, UI owner/exposure, 유지 문서 heading을
 명시하는 golden coverage ledger다. entry 전체 또는 surface 하나가 빠지거나 owner module/document heading이
 사라지면 gate는 `/<contract-path>: missing surface <surface>`로 실패한다. Python 쪽은 각 normalized default
