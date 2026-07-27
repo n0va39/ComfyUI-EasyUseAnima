@@ -151,6 +151,92 @@ def profile_directory_owner(api, directory_name):
     raise AssertionError(f"Unknown profile directory: {directory_name}")
 
 
+class ApiRouteRegistrationOwnerTests(unittest.TestCase):
+    def test_public_facade_delegates_to_the_canonical_router_owner(self):
+        api, _routes = load_api_routes(register=False)
+        target = RouteRegistry()
+
+        self.assertTrue(
+            api._build_route_signature.__module__.endswith(
+                ".easyuse_anima.api.router"
+            )
+        )
+        self.assertTrue(
+            api._register_route_definitions.__module__.endswith(
+                ".easyuse_anima.api.router"
+            )
+        )
+        self.assertEqual(
+            api._ROUTE_REGISTRATION_MARKER,
+            "_easyuse_anima_registered_routes_v1",
+        )
+        self.assertEqual(
+            api._ROUTE_SIGNATURE,
+            api._build_route_signature(api._ROUTE_DEFINITIONS),
+        )
+
+        with patch.object(
+            api,
+            "_register_route_definitions",
+            return_value=True,
+        ) as register:
+            self.assertTrue(api.register_routes(target))
+
+        self.assertIs(api.routes, target)
+        register.assert_called_once_with(
+            target,
+            api._ROUTE_DEFINITIONS,
+            signature=api._ROUTE_SIGNATURE,
+            marker=api._ROUTE_REGISTRATION_MARKER,
+        )
+
+    def test_signature_mismatch_fails_before_any_registration(self):
+        api, _routes = load_api_routes(register=False)
+        target = RouteRegistry()
+        other_signature = (("GET", "/easyuse_anima/other"),)
+        setattr(target, api._ROUTE_REGISTRATION_MARKER, other_signature)
+
+        with self.assertRaisesRegex(
+            RuntimeError,
+            "route registration signature mismatch",
+        ):
+            api.register_routes(target)
+
+        self.assertEqual(target.registrations, [])
+        self.assertEqual(
+            getattr(target, api._ROUTE_REGISTRATION_MARKER),
+            other_signature,
+        )
+
+    def test_partial_registration_failure_does_not_publish_the_marker(self):
+        api, _routes = load_api_routes(register=False)
+
+        class FailingRouteRegistry(RouteRegistry):
+            def post(self, path):
+                def fail(_handler):
+                    raise RuntimeError("registration failed")
+
+                return fail
+
+        target = FailingRouteRegistry()
+        definitions = (
+            ("get", "/first", object()),
+            ("post", "/second", object()),
+        )
+        signature = api._build_route_signature(definitions)
+
+        with self.assertRaisesRegex(RuntimeError, "registration failed"):
+            api._register_route_definitions(
+                target,
+                definitions,
+                signature=signature,
+                marker=api._ROUTE_REGISTRATION_MARKER,
+            )
+
+        self.assertEqual(target.registrations, [("GET", "/first")])
+        self.assertFalse(hasattr(target, api._ROUTE_REGISTRATION_MARKER))
+
+
 class ApiRequestCorrelationTests(unittest.TestCase):
     ROUTE_SEQUENCE = (
         ("GET", "/easyuse_anima/settings"),

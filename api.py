@@ -62,6 +62,11 @@ from .easyuse_anima.api.responses import (
     create_request_id,
     error_payload,
 )
+from .easyuse_anima.api.router import (
+    ROUTE_REGISTRATION_MARKER as _ROUTE_REGISTRATION_MARKER,
+    build_route_signature as _build_route_signature,
+    register_route_definitions as _register_route_definitions,
+)
 from .easyuse_anima.api.routes.aio_profile_mutations import (
     build_aio_profile_mutation_handlers as _build_aio_profile_mutation_handlers,
 )
@@ -803,11 +808,7 @@ else:
     _ROUTE_DEFINITIONS = ()
 
 
-_ROUTE_REGISTRATION_MARKER = "_easyuse_anima_registered_routes_v1"
-_ROUTE_SIGNATURE = tuple(
-    (method.upper(), path)
-    for method, path, _handler in _ROUTE_DEFINITIONS
-)
+_ROUTE_SIGNATURE = _build_route_signature(_ROUTE_DEFINITIONS)
 
 
 def register_routes(route_table=None) -> bool:
@@ -818,14 +819,9 @@ def register_routes(route_table=None) -> bool:
     routes = target
     if web is None or target is None:
         return False
-
-    existing_signature = getattr(target, _ROUTE_REGISTRATION_MARKER, None)
-    if existing_signature == _ROUTE_SIGNATURE:
-        return True
-    if existing_signature is not None:
-        raise RuntimeError("EasyUse Anima route registration signature mismatch")
-
-    for method, path, handler in _ROUTE_DEFINITIONS:
-        getattr(target, method)(path)(handler)
-    setattr(target, _ROUTE_REGISTRATION_MARKER, _ROUTE_SIGNATURE)
-    return True
+    return _register_route_definitions(
+        target,
+        _ROUTE_DEFINITIONS,
+        signature=_ROUTE_SIGNATURE,
+        marker=_ROUTE_REGISTRATION_MARKER,
+    )
