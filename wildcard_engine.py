@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from collections import OrderedDict
-import fnmatch
 import threading
 from dataclasses import dataclass
 from pathlib import Path
@@ -186,6 +185,15 @@ except ImportError:
         has_wildcard_syntax,
     )
 
+try:
+    from .easyuse_anima.wildcard.library import (
+        _WildcardLibrary as _WildcardLibraryCore,
+    )
+except ImportError:
+    from easyuse_anima.wildcard.library import (
+        _WildcardLibrary as _WildcardLibraryCore,
+    )
+
 _SNAPSHOT_CACHE_LIMIT = 16
 _SNAPSHOT_CONDITION = threading.Condition()
 _SNAPSHOT_CACHE: OrderedDict[tuple, _WildcardSnapshot] = OrderedDict()
@@ -251,7 +259,7 @@ def wildcard_sources_signature(extra_paths: str | None = None, roots: Iterable[P
     return snapshot.public_signature()
 
 
-class _WildcardLibrary:
+class _WildcardLibrary(_WildcardLibraryCore):
     def __init__(
         self,
         roots: Iterable[Path] | None = None,
@@ -260,48 +268,7 @@ class _WildcardLibrary:
     ):
         if snapshot is None:
             snapshot = _wildcard_snapshot(roots or ())
-        self.mapping = snapshot.mapping
-        self.used: list[str] = []
-        self.missing: list[str] = []
-
-    def _record_used(self, key: str) -> None:
-        if key not in self.used:
-            self.used.append(key)
-
-    def _record_missing(self, key: str) -> None:
-        if key not in self.missing:
-            self.missing.append(key)
-
-    def options_for(self, raw_key: str) -> Sequence[WildcardOption]:
-        key = _wildcard_sources._normalize_wildcard_key(raw_key)
-        if key is None:
-            return []
-        options = self._options_for_normalized_key(key)
-        if options:
-            self._record_used(key)
-        else:
-            self._record_missing(key)
-        return options
-
-    def _options_for_normalized_key(self, key: str) -> Sequence[WildcardOption]:
-        if key in self.mapping:
-            return self.mapping[key]
-        if "/" not in key and "*" not in key:
-            nested = self._options_for_pattern(f"*/{key}", include_basename=True)
-            if nested:
-                return nested
-        if "*" in key:
-            return self._options_for_pattern(key, include_basename=False)
-        return []
-
-    def _options_for_pattern(self, pattern: str, include_basename: bool) -> list[WildcardOption]:
-        options = []
-        for key in sorted(self.mapping):
-            if fnmatch.fnmatchcase(key, pattern) or (
-                include_basename and (key == pattern[2:] or key.endswith(f"/{pattern[2:]}"))
-            ):
-                options.extend(self.mapping[key])
-        return options
+        super().__init__(snapshot)
 
 
 @dataclass

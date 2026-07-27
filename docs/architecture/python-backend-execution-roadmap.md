@@ -1370,7 +1370,10 @@ library lookup, replacement stages, and expansion orchestration. D-12g3 moves
 multiselect option expansion and the dynamic, quantified, and file replacement
 stages behind a narrow option-lookup protocol. Root retains direct aliases,
 stage ordering, snapshot/library ownership, lane construction, and the
-expansion loop.
+expansion loop. D-12h1 moves immutable-snapshot lookup, nested/glob resolution,
+and used/missing diagnostics to `easyuse_anima.wildcard.library`. Root retains
+the compatible roots/snapshot constructor as a thin adapter and keeps all
+snapshot scan/cache/single-flight ownership for E-06.
 
 ## 12. Phase E — Runtime ownership and lifecycle
 
