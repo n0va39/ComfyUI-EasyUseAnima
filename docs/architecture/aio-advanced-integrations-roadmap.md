@@ -2,10 +2,10 @@
 
 ## 문서 상태
 
-- 상태: **IN PROGRESS — #410 AIO-COMPILE**
+- 상태: **IN PROGRESS — #411 AIO-NEGPIP**
 - 기준일: 2026-07-27
 - 기준 브랜치: `dev`
-- 기준 커밋: `8c8555b6cdad54c8db10b1e5b41067b5ea106729`
+- 기준 커밋: `3cd9edc3048b4a98d7186288319311f4e703eea8`
 - 완료된 선행: [#395](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/395),
   [#409](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/409)
 - 기능 이슈:
@@ -22,8 +22,8 @@ rollback 단위와 검증 순서를 고정한다. 기능 이슈의 behavior 요�
 최상위 정책이다.
 
 `#395`의 Registry checkpoint와 `#409`의 stage-scope/precedence 구현은 완료됐다.
-`AIO-COMPILE-01` diagnostics도 완료됐다. 현재 production queue는 `#410`의
-나머지 세 단계를 직렬로 수행한 뒤 `#411`로 이동한다.
+`AIO-COMPILE-01`부터 `04`까지 완료됐다. 현재 production queue는 `#411`로
+이동한다.
 `#440/#441`의 patch-specific 후속은 이 queue를 선행하지 않는다.
 
 ## 1. 현재 확인된 실행 구조
@@ -361,6 +361,8 @@ VRAM tier는 `<8192 MiB=low`, `8192..15359 MiB=medium`, `>=15360 MiB=high`,
 - Apply 후에만 profile/settings 저장
 
 ### AIO-COMPILE-04 — Live matrix
+
+- 상태: **완료** — [risk-based live matrix](../development/aio-torch-compile-live-matrix.md)
 
 - fixed resolution
 - Highres
