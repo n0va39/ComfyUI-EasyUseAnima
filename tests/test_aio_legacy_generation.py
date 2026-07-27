@@ -12,6 +12,7 @@ from unittest.mock import patch
 
 import nodes
 from easyuse_anima.aio import legacy_generation
+from easyuse_anima.aio.generation_lifecycle import StageModelPatchPlan
 from easyuse_anima.nodes import aio_nodes
 from tests.comfy_host_fakes import patch_comfy_helper
 from tests.test_node_contracts import _loaded_package_entrypoint
@@ -1122,6 +1123,7 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
                     {"fields": []},
                     True,
                     False,
+                    "off",
                 ),
             )
             return usdu_positive, usdu_negative
@@ -1716,6 +1718,7 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
                     prompt_data,
                     True,
                     False,
+                    "off",
                 ),
             )
             return usdu_output, usdu_metadata
@@ -2089,6 +2092,151 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
             ],
         )
 
+    def test_first_stage_variant_resolution_failure_cleans_lora_boundary(self):
+        trace: list[str] = []
+        with patch.object(
+            legacy_generation.StageModelVariantResolver,
+            "resolve",
+            side_effect=RuntimeError("stage variant failed"),
+        ):
+            with self.assertRaisesRegex(RuntimeError, "stage variant failed"):
+                self._execute_case(
+                    upscale_enabled=False,
+                    intermediate_preview=False,
+                    unique_id=None,
+                    trace_sink=trace,
+                )
+
+        self.assertEqual(trace[-1:], ["cleanup:lora"])
+
+    def test_pipeline_routes_distinct_stage_models_and_reuses_matching_signature(self):
+        execution = self._execute_case(
+            upscale_enabled=True,
+            intermediate_preview=False,
+            unique_id="node-stage-models",
+            highres_enabled=True,
+            detailer_enabled=True,
+            stage_signatures={
+                "first_pass": "dave",
+                "highres": "clean",
+                "detailer": "detailer",
+                "upscale": "clean",
+            },
+        )
+
+        trace = execution["trace"]
+        self.assertIn("run_highres:model:clean", trace)
+        self.assertIn("run_detailer:model:detailer", trace)
+        self.assertIn("run_upscale:model:clean", trace)
+        self.assertEqual(trace.count("apply_model_patches"), 3)
+        self.assertEqual(
+            execution["result"]["metadata"]["stages"]["model_patches_by_stage"],
+            {
+                "first_pass": ["aura_flow", "variant:dave"],
+                "highres": ["aura_flow", "variant:clean"],
+                "detailer": ["aura_flow", "variant:detailer"],
+                "upscale": ["aura_flow", "variant:clean"],
+            },
+        )
+
+    def test_negpip_on_routes_one_model_clip_pair_and_preserves_cfg_metadata_cleanup(self):
+        execution = self._execute_case(
+            upscale_enabled=False,
+            intermediate_preview=False,
+            unique_id="node-negpip-on",
+            negpip_mode="on",
+        )
+
+        trace = execution["trace"]
+        self.assertEqual(trace.count("apply_negpip"), 1)
+        self.assertLess(
+            trace.index("apply_negpip"),
+            trace.index("encode_positive"),
+        )
+        self.assertLess(
+            trace.index("apply_negpip"),
+            trace.index("encode_negative"),
+        )
+        self.assertEqual(trace.count("cleanup:negpip"), 1)
+        self.assertEqual(trace.count("cleanup:lora"), 1)
+        metadata = execution["result"]["metadata"]
+        self.assertEqual(
+            metadata["stages"]["negpip"],
+            {"mode": "on", "contract_revision": 1},
+        )
+        self.assertEqual(metadata["generation_settings"]["sampler"]["cfg"], 6.5)
+        self.assertEqual(
+            metadata["generation_settings"]["negpip"],
+            {"mode": "on"},
+        )
+
+    def test_negpip_turbo_uses_derived_positive_neutral_negative_and_saved_cfg(self):
+        execution = self._execute_case(
+            upscale_enabled=False,
+            intermediate_preview=False,
+            unique_id="node-negpip-turbo",
+            negpip_mode="turbo",
+        )
+
+        trace = execution["trace"]
+        self.assertEqual(trace.count("apply_negpip"), 1)
+        self.assertLess(
+            trace.index("apply_negpip"),
+            trace.index("apply_model_patches"),
+        )
+        self.assertLess(
+            trace.index("apply_negpip"),
+            trace.index("encode_positive"),
+        )
+        self.assertEqual(
+            execution["execution_prompts"],
+            [
+                ("positive", "positive, (negative:-1)"),
+                ("negative", ""),
+            ],
+        )
+        self.assertEqual(trace.count("cleanup:negpip"), 1)
+        self.assertEqual(trace.count("cleanup:lora"), 1)
+        metadata = execution["result"]["metadata"]
+        self.assertEqual(metadata["generation_settings"]["sampler"]["cfg"], 6.5)
+        self.assertEqual(
+            metadata["generation_settings"]["negpip"],
+            {"mode": "turbo"},
+        )
+        self.assertEqual(metadata["stages"]["negpip"]["mode"], "turbo")
+        self.assertEqual(
+            metadata["stages"]["negpip"]["effective_cfg"],
+            {
+                "first_pass": 1.0,
+                "highres": 1.0,
+                "detailer": 1.0,
+                "upscale_usdu": 1.0,
+            },
+        )
+
+    def test_resshift_does_not_resolve_upscale_sampling_model(self):
+        execution = self._execute_case(
+            upscale_enabled=True,
+            intermediate_preview=False,
+            unique_id="node-resshift",
+            upscale_backend="resshift",
+            stage_signatures={
+                "first_pass": "first",
+                "highres": "unused-highres",
+                "detailer": "unused-detailer",
+                "upscale": "must-not-resolve",
+            },
+        )
+
+        self.assertNotIn("run_upscale:model:must-not-resolve", execution["trace"])
+        self.assertEqual(execution["trace"].count("apply_model_patches"), 1)
+        self.assertEqual(
+            execution["result"]["metadata"]["stages"]["model_patches_by_stage"][
+                "upscale"
+            ],
+            [],
+        )
+
     def _execute_case(
         self,
         *,
@@ -2096,8 +2244,21 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
         intermediate_preview: bool,
         unique_id,
         trace_sink: list[str] | None = None,
+        highres_enabled: bool = False,
+        detailer_enabled: bool = False,
+        upscale_backend: str = "usdu",
+        stage_signatures: dict[str, str] | None = None,
+        negpip_mode: str | None = None,
     ) -> dict:
         trace = trace_sink if trace_sink is not None else []
+        execution_prompts: list[tuple[str, str]] = []
+        custom_stage_models = stage_signatures is not None
+        stage_signatures = stage_signatures or {
+            "first_pass": "shared-stage-model",
+            "highres": "shared-stage-model",
+            "detailer": "shared-stage-model",
+            "upscale": "shared-stage-model",
+        }
         generator = nodes.EasyUseAnimaAIOGenerator()
         context = {
             "prompt_data": {"positive_prompt": "prompt"},
@@ -2119,9 +2280,12 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
                 "dominant_threshold": 0.0,
             },
             "mod_guidance": {"profile": "off", "mode": "auto"},
-            "highres": {"enabled": False},
-            "detailer": {},
-            "upscale": {"enabled": upscale_enabled},
+            "highres": {"enabled": highres_enabled},
+            "detailer": {"face": {"enabled": detailer_enabled}},
+            "upscale": {
+                "enabled": upscale_enabled,
+                "backend": upscale_backend,
+            },
             "postprocess": {"enabled": False},
             "preview": {"intermediate_images": intermediate_preview},
             "save": {
@@ -2130,18 +2294,39 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
                 "filename_prefix": "Anima",
             },
         }
+        if negpip_mode is not None:
+            settings["negpip"] = {"mode": negpip_mode}
+            settings["sampler"]["cfg"] = 6.5
 
         base_model = _Token("base")
         lora_model = _Token("lora")
-        patched_model = _Token("model")
+        negpip_model = _Token("negpip")
+        variant_models = {
+            signature: _Token(
+                f"model:{signature}" if custom_stage_models else "model"
+            )
+            for signature in set(stage_signatures.values())
+        }
+        patched_model = variant_models[stage_signatures["first_pass"]]
         sample_model = _Token("sample")
         base_clip = _Token("base_clip")
         clip = _Token("clip")
+        negpip_clip = _Token("negpip_clip")
+        lineage_model = (
+            negpip_model if negpip_mode in ("on", "turbo") else lora_model
+        )
+        lineage_clip = (
+            negpip_clip if negpip_mode in ("on", "turbo") else clip
+        )
         vae = _Token("vae")
         model_names = {
             id(lora_model): "lora",
-            id(patched_model): "model",
+            id(negpip_model): "negpip",
             id(sample_model): "sample",
+            **{
+                id(model): model.name
+                for model in variant_models.values()
+            },
         }
 
         def phase(name, result):
@@ -2162,9 +2347,19 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
             return copy.deepcopy(settings)
 
         def typed_config(normalized_settings):
+            typed_negpip_mode = normalized_settings.get("negpip", {}).get(
+                "mode", "off"
+            )
             return SimpleNamespace(
                 to_dict=lambda: copy.deepcopy(normalized_settings),
                 mode=normalized_settings["mode"],
+                negpip=SimpleNamespace(
+                    mode=typed_negpip_mode,
+                    is_turbo=typed_negpip_mode == "turbo",
+                    effective_cfg=lambda stored: (
+                        1.0 if typed_negpip_mode == "turbo" else stored
+                    ),
+                ),
                 sampler=SimpleNamespace(
                     to_dict=lambda: copy.deepcopy(
                         normalized_settings["sampler"]
@@ -2224,11 +2419,36 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
             self.assertEqual(stack, "lora-stack")
             return lora_model, clip, [{"name": "style.safetensors"}]
 
-        def apply_model_patches(model, normalized_settings):
-            trace.append("apply_model_patches")
+        def apply_negpip(model, source_clip, mode):
             self.assertIs(model, lora_model)
+            self.assertIs(source_clip, clip)
+            self.assertEqual(mode, negpip_mode or "off")
+            if mode == "off":
+                return model, source_clip
+            trace.append("apply_negpip")
+            return negpip_model, negpip_clip
+
+        def build_stage_plan(normalized_settings, stage_id):
+            self.assertIn(
+                stage_id,
+                ("first_pass", "highres", "detailer", "upscale"),
+            )
             self.assertEqual(normalized_settings["sampler"]["seed"], 17)
-            return patched_model
+            signature = stage_signatures[stage_id]
+            return StageModelPatchPlan(
+                signature=signature,
+                patch_ids=(
+                    ("aura_flow", f"variant:{signature}")
+                    if custom_stage_models
+                    else ("aura_flow",)
+                ),
+                payload={"stage_id": stage_id},
+            )
+
+        def apply_model_patches(model, plan):
+            trace.append("apply_model_patches")
+            self.assertIs(model, lineage_model)
+            return variant_models[plan.signature]
 
         def advanced_outputs(prompt_data):
             trace.append("advanced_outputs")
@@ -2244,6 +2464,22 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
                 64,
                 96,
             )
+
+        def encode_positive(source_clip, _prompt_data, text, **_kwargs):
+            trace.append("encode_positive")
+            self.assertIs(source_clip, lineage_clip)
+            suffix = _kwargs.get("positive_execution_suffix", "")
+            effective_text = ", ".join(
+                part for part in (text, suffix) if part
+            )
+            execution_prompts.append(("positive", effective_text))
+            return "positive-conditioning"
+
+        def encode_negative(source_clip, text):
+            trace.append("encode_negative")
+            self.assertIs(source_clip, lineage_clip)
+            execution_prompts.append(("negative", text))
+            return "negative-conditioning"
 
         def apply_spectrum_model(model, source_clip, positive, sampler):
             trace.append("apply_spectrum_model_patches")
@@ -2277,15 +2513,25 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
             height,
             *args,
         ):
-            trace.append("run_highres")
+            trace.append(
+                f"run_highres:{model.name}" if custom_stage_models else "run_highres"
+            )
             return latent, image, width, height, {"enabled": False}
 
         def run_detailer(*args):
-            trace.append("run_detailer")
+            trace.append(
+                f"run_detailer:{args[0].name}"
+                if custom_stage_models
+                else "run_detailer"
+            )
             return args[5], {"enabled": False}
 
         def run_upscale(*args, **kwargs):
-            trace.append("run_upscale")
+            trace.append(
+                f"run_upscale:{args[0].name}"
+                if custom_stage_models
+                else "run_upscale"
+            )
             if upscale_enabled:
                 return "upscaled-image", {"enabled": True, "backend": "stub"}
             return args[5], {"enabled": False}
@@ -2358,18 +2604,20 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
                 _aio_generation_config_from_dict=typed_config,
                 _load_aio_resources_from_input_context=load_resources,
                 _apply_aio_lora_stack=apply_lora,
-                _apply_aio_model_patches=apply_model_patches,
+                apply_aio_negpip=apply_negpip,
+                _aio_stage_model_patch_plan=build_stage_plan,
+                _apply_aio_stage_model_patch_plan=apply_model_patches,
                 _normalize_prompt_data=phase(
                     "normalize_prompt",
                     context["prompt_data"],
                 ),
                 _advanced_outputs_from_prompt_data=advanced_outputs,
-                _encode_prompt_data_positive_conditioning=phase(
-                    "encode_positive",
-                    "positive-conditioning",
-                ),
+                _encode_prompt_data_positive_conditioning=encode_positive,
                 _as_bool=lambda value, default: bool(value),
-                _aio_detailer_has_enabled_targets=phase("detailer_enabled", False),
+                _aio_detailer_has_enabled_targets=phase(
+                    "detailer_enabled",
+                    detailer_enabled,
+                ),
                 _normalize_anima_mod_guidance_profile=phase("normalize_profile", "off"),
                 _resolve_anima_mod_guidance_enabled=phase("resolve_guidance", False),
                 _aio_highres_effective_backend=phase(
@@ -2412,7 +2660,7 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
             patch_comfy_helper(
                 nodes,
                 "_encode_with_comfy_clip",
-                phase("encode_negative", "negative-conditioning"),
+                encode_negative,
             ),
         ):
             output = generator.generate(
@@ -2426,7 +2674,7 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
 
         image, latent, metadata_json = output["result"]
         metadata = json.loads(metadata_json)
-        return {
+        execution = {
             "trace": trace,
             "result": {
                 "image": image,
@@ -2435,6 +2683,9 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
                 "ui": output["ui"],
             },
         }
+        if negpip_mode == "turbo":
+            execution["execution_prompts"] = execution_prompts
+        return execution
 
 
 if __name__ == "__main__":

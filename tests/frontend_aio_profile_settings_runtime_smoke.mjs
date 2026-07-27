@@ -562,6 +562,17 @@ fixture.apiQueues.loadProfile.push({
         steps: 44,
         spd: { scale: 0.7, sigma_max: 1.2 },
       },
+      model_patches: {
+        dave: {
+          enabled: true,
+          stage_scope: {
+            first_pass: false,
+            highres: true,
+            detailer: true,
+            upscale: false,
+          },
+        },
+      },
       user: true,
     },
   },
@@ -574,6 +585,12 @@ assert.deepEqual(node.settings.sampler, {
   backend: "spectrum_spd_speed",
   steps: 44,
   spd: { scale: 0.7, sigma_max: 1.2 },
+});
+assert.deepEqual(node.settings.model_patches.dave.stage_scope, {
+  first_pass: false,
+  highres: true,
+  detailer: true,
+  upscale: false,
 });
 assert.equal(dialog.backdrop.isConnected, false);
 
@@ -600,6 +617,17 @@ const saveNode = {
       backend: "spectrum_spd_speed",
       steps: 55,
       spd: { scale: 0.8, sigma_max: 1.4 },
+    },
+    model_patches: {
+      dave: {
+        enabled: true,
+        stage_scope: {
+          first_pass: true,
+          highres: false,
+          detailer: true,
+          upscale: false,
+        },
+      },
     },
     save_snapshot: true,
   },
@@ -630,6 +658,17 @@ assert.deepEqual(fixture.apiCalls.saveProfile.at(-1), [
       backend: "spectrum_spd_speed",
       steps: 55,
       spd: { scale: 0.8, sigma_max: 1.4 },
+    },
+    model_patches: {
+      dave: {
+        enabled: true,
+        stage_scope: {
+          first_pass: true,
+          highres: false,
+          detailer: true,
+          upscale: false,
+        },
+      },
     },
     save_snapshot: true,
   },
@@ -828,6 +867,17 @@ assert.deepEqual(fixture.apiCalls.saveProfile.at(-1), [
       backend: "spectrum_spd_speed",
       steps: 55,
       spd: { scale: 0.8, sigma_max: 1.4 },
+    },
+    model_patches: {
+      dave: {
+        enabled: true,
+        stage_scope: {
+          first_pass: true,
+          highres: false,
+          detailer: true,
+          upscale: false,
+        },
+      },
     },
     save_snapshot: true,
   },

@@ -29,8 +29,10 @@ def _request(
     *,
     detailer_enabled: bool,
     intermediate_preview: bool = False,
+    negpip_mode: str = "off",
 ) -> GenerationRequest:
     normalized = _normalize_aio_generation_settings(json.dumps({
+        "negpip": {"mode": negpip_mode},
         "detailer": {"enabled": detailer_enabled},
         "preview": {"intermediate_images": intermediate_preview},
     }))
@@ -72,6 +74,38 @@ def _request(
 
 
 class AIODetailerStageTests(unittest.TestCase):
+    def test_turbo_uses_effective_cfg_one_for_sampler_and_detailer_targets(self):
+        observed: list[tuple[float, set[float]]] = []
+        request = _request(detailer_enabled=True, negpip_mode="turbo")
+        saved_detailer = request.config.detailer.to_dict()
+
+        def run_detailer(*args):
+            target_cfgs = {
+                target["cfg"]
+                for target in args[7].values()
+                if isinstance(target, dict) and "cfg" in target
+            }
+            observed.append((args[6]["cfg"], target_cfgs))
+            return args[5], {"enabled": True}
+
+        AIODetailerStage(
+            runtime=DetailerRuntime(
+                run_detailer=run_detailer,
+                image_size=lambda *_args: (64, 96),
+            ),
+        ).run(
+            request,
+            GenerationState(
+                latent="highres-latent",
+                image="highres-image",
+                width=64,
+                height=96,
+            ),
+        )
+
+        self.assertEqual(observed, [(1.0, {1.0})])
+        self.assertEqual(request.config.detailer.to_dict(), saved_detailer)
+
     def test_disabled_stage_preserves_identity_dimensions_and_metadata(self):
         calls: list[tuple[object, ...]] = []
         image = object()

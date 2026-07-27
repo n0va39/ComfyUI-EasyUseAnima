@@ -8,6 +8,9 @@ from easyuse_anima.aio.generation_lifecycle import (
     ModelVariantRuntime,
     PreviewCollector,
     PreviewRuntime,
+    StageModelPatchPlan,
+    StageModelVariantResolver,
+    StageModelVariantRuntime,
 )
 
 
@@ -193,6 +196,118 @@ class AIOGenerationLifecycleTests(unittest.TestCase):
         )
         self.assertEqual(calls, [(model, "clip", "positive", sampler)])
         self.assertIs(registry.base_sample_model, sample_model)
+
+    def test_stage_resolver_reuses_signature_isolates_variants_and_cleans_once(self):
+        base_model = object()
+        lora_model = object()
+        dave_model = object()
+        clean_model = object()
+        cleanup_calls: list[object] = []
+        apply_calls: list[tuple[object, str]] = []
+        signatures = {
+            "first_pass": ("dave", ("aura_flow", "dave")),
+            "highres": ("dave", ("aura_flow", "dave")),
+            "detailer": ("clean", ("aura_flow",)),
+            "upscale": ("clean", ("aura_flow",)),
+        }
+
+        def build_plan(_settings, stage_id):
+            signature, patch_ids = signatures[stage_id]
+            return StageModelPatchPlan(signature, patch_ids, signature)
+
+        def apply_plan(model, plan):
+            apply_calls.append((model, plan.signature))
+            return dave_model if plan.signature == "dave" else clean_model
+
+        registry = EphemeralModelRegistry(
+            base_model=base_model,
+            cleanup_model=lambda model, _base: cleanup_calls.append(model),
+            model_with_lora=lora_model,
+        )
+        resolver = StageModelVariantResolver(
+            runtime=StageModelVariantRuntime(build_plan, apply_plan),
+            registry=registry,
+            model_with_lora=lora_model,
+            settings={},
+        )
+
+        self.assertIs(resolver.resolve("first_pass"), dave_model)
+        self.assertIs(resolver.resolve("highres"), dave_model)
+        self.assertIs(resolver.resolve("detailer"), clean_model)
+        self.assertIs(resolver.resolve("upscale"), clean_model)
+        self.assertEqual(
+            apply_calls,
+            [(lora_model, "dave"), (lora_model, "clean")],
+        )
+        self.assertEqual(resolver.patch_ids("highres"), ("aura_flow", "dave"))
+        self.assertEqual(resolver.patch_ids("save"), ())
+
+        registry.close()
+        registry.close()
+        self.assertEqual(cleanup_calls, [dave_model, clean_model, lora_model])
+
+    def test_stage_resolver_fails_closed_after_limit_or_registry_disposal(self):
+        lora_model = object()
+        applied: list[str] = []
+
+        def build_plan(_settings, stage_id):
+            return StageModelPatchPlan(stage_id, (stage_id,), stage_id)
+
+        def apply_plan(_model, plan):
+            applied.append(plan.signature)
+            return object()
+
+        registry = EphemeralModelRegistry(
+            base_model=object(),
+            cleanup_model=lambda *_args: None,
+            model_with_lora=lora_model,
+        )
+        resolver = StageModelVariantResolver(
+            runtime=StageModelVariantRuntime(build_plan, apply_plan),
+            registry=registry,
+            model_with_lora=lora_model,
+            settings={},
+            max_variants=1,
+        )
+        resolver.resolve("first_pass")
+        with self.assertRaisesRegex(RuntimeError, "variant limit exceeded"):
+            resolver.resolve("highres")
+        self.assertEqual(applied, ["first_pass"])
+
+        registry.close()
+        with self.assertRaisesRegex(RuntimeError, "registry is already closed"):
+            resolver.resolve("first_pass")
+        self.assertEqual(applied, ["first_pass"])
+
+    def test_stage_resolver_apply_failure_leaves_registry_cleanup_bounded(self):
+        base_model = object()
+        lora_model = object()
+        cleanup_calls: list[object] = []
+        registry = EphemeralModelRegistry(
+            base_model=base_model,
+            cleanup_model=lambda model, _base: cleanup_calls.append(model),
+            model_with_lora=lora_model,
+        )
+        resolver = StageModelVariantResolver(
+            runtime=StageModelVariantRuntime(
+                lambda _settings, _stage: StageModelPatchPlan(
+                    "broken",
+                    ("dave",),
+                    None,
+                ),
+                lambda _model, _plan: (_ for _ in ()).throw(
+                    RuntimeError("patch failed")
+                ),
+            ),
+            registry=registry,
+            model_with_lora=lora_model,
+            settings={},
+        )
+
+        with self.assertRaisesRegex(RuntimeError, "patch failed"):
+            resolver.resolve("first_pass")
+        registry.close()
+        self.assertEqual(cleanup_calls, [lora_model])
 
     def test_preview_collector_preserves_save_append_send_and_empty_noop(self):
         previews: list[dict[str, object]] = []

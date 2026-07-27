@@ -13,9 +13,15 @@ from unittest.mock import patch
 
 import nodes
 from easyuse_anima.aio import generation_normalization
+from easyuse_anima.aio.generation_migrations import (
+    AIO_GENERATION_STAGE_IDS,
+    AIO_MODEL_PATCH_ORDER_REVISION,
+    AIO_MODEL_PATCH_PRECEDENCE,
+)
 from easyuse_anima.aio.generation_settings import (
     _aio_generation_config_from_dict,
 )
+from easyuse_anima.aio.negpip import NEGPIP_MODES
 from easyuse_anima.prompt.conditioning import ANIMA_MOD_GUIDANCE_PROFILES
 from tests.comfy_host_fakes import (
     FakeComfyHostProvider,
@@ -24,12 +30,12 @@ from tests.comfy_host_fakes import (
 )
 
 ROOT = Path(__file__).resolve().parents[1]
-MANIFEST_PATH = ROOT / "easyuse_anima" / "aio" / "schemas" / "generation_settings.v1.json"
+MANIFEST_PATH = ROOT / "easyuse_anima" / "aio" / "schemas" / "generation_settings.v2.json"
 MANIFEST_REPOSITORY_PATH = MANIFEST_PATH.relative_to(ROOT).as_posix()
 FRONTEND_SETTINGS_PATH = ROOT / "web" / "js" / "aio" / "settings.js"
 AIO_WORKFLOW_0_5_2_FIXTURE_PATH = ROOT / "tests" / "fixtures" / "aio_generation_settings_0_5_2.json"
 SURFACE_COVERAGE_PATH = (
-    ROOT / "tests" / "fixtures" / "aio_generation_settings_surface_coverage.v1.json"
+    ROOT / "tests" / "fixtures" / "aio_generation_settings_surface_coverage.v2.json"
 )
 REQUIRED_SETTING_SURFACES = (
     "python_default",
@@ -394,6 +400,7 @@ def _authoritative_static_enum_choices() -> dict[tuple[str, ...], tuple[str, ...
         ),
         ("sampler", "seed_after_generate"): tuple(nodes.SEED_CONTROL_MODES),
         ("sampler", "spd", "split_mode"): ("single",),
+        ("negpip", "mode"): tuple(NEGPIP_MODES),
         ("model_patches", "safe_pag", "rescale_mode"): ("full", "partial"),
         ("model_patches", "kj", "sage_attention"): (
             "disabled",
@@ -539,7 +546,7 @@ class AIOGenerationSettingsManifestTests(unittest.TestCase):
             coverage["schema"],
             "easyuse_anima_aio_generation_settings_surface_coverage",
         )
-        self.assertEqual(coverage["version"], 1)
+        self.assertEqual(coverage["version"], 2)
         self.assertEqual(coverage["manifest"], MANIFEST_REPOSITORY_PATH)
         self.assertEqual(
             [group["paths"][0] for group in coverage["groups"]],
@@ -987,12 +994,22 @@ class AIOGenerationSettingsManifestTests(unittest.TestCase):
         self.assertNotIn("/highres/backend", backend_policy["removed_known_legacy_paths"])
         self.assertIn("/highres/backend", visible_policy["removed_paths"])
         self.assertFalse(policies["persistence"]["write_on_read"])
-        self.assertEqual(policies["version_migrations"], [])
+        self.assertEqual(
+            policies["version_migrations"],
+            [{
+                "from": 1,
+                "to": 2,
+                "owner": "easyuse_anima.aio.generation_migrations",
+                "mode": "pure-in-memory",
+                "missing_dave_stage_scope": "legacy-all-sampling-stages",
+            }],
+        )
 
     def test_schema_version_dynamic_owners_and_seed_surface_bounds_do_not_drift(self):
         manifest = _manifest()
         shape_fields = manifest["shape"]["fields"]
         capabilities = manifest["policies"]["dynamic_capabilities"]
+        patch_contract = manifest["policies"]["model_patch_contract"]
         seed_contract = shape_fields["sampler"]["fields"]["seed"]
         frontend_source = FRONTEND_SETTINGS_PATH.read_text(encoding="utf-8")
         frontend_seed_match = re.search(
@@ -1002,6 +1019,60 @@ class AIOGenerationSettingsManifestTests(unittest.TestCase):
 
         self.assertEqual(shape_fields["schema"]["const"], nodes.AIO_GENERATION_SETTINGS_SCHEMA)
         self.assertEqual(shape_fields["version"]["current"], nodes.AIO_GENERATION_SETTINGS_VERSION)
+        self.assertEqual(
+            tuple(patch_contract["sampling_stage_ids"]),
+            AIO_GENERATION_STAGE_IDS,
+        )
+        self.assertEqual(
+            patch_contract["patch_order_revision"],
+            AIO_MODEL_PATCH_ORDER_REVISION,
+        )
+        self.assertEqual(
+            tuple(tuple(edge) for edge in patch_contract["precedence_edges"]),
+            AIO_MODEL_PATCH_PRECEDENCE,
+        )
+        self.assertEqual(patch_contract["dave_fresh_default"], "first-pass-only")
+        self.assertEqual(
+            patch_contract["execution_cutover"],
+            "complete-through-AIO-SCOPE-03",
+        )
+        self.assertEqual(
+            patch_contract["stage_scope_policy"],
+            {
+                "generic_scope_ui": False,
+                "owners": {
+                    "dave": {
+                        "decision": "supported",
+                        "stages": [
+                            "first_pass",
+                            "highres",
+                            "detailer",
+                            "upscale",
+                        ],
+                    },
+                    "safe_pag": {
+                        "decision": "follow-up-required",
+                        "reason": (
+                            "clone-local-wrapper-with-temporary-shared-module-mutation"
+                        ),
+                    },
+                    "kj.fp16_accumulation": {
+                        "decision": "run-global-not-stage-scoped",
+                        "reason": "process-global-torch-setting-callback",
+                    },
+                    "kj.sage_attention": {
+                        "decision": "follow-up-required",
+                        "reason": "experimental-clone-local-override",
+                    },
+                    "kj.torch_compile": {
+                        "decision": "run-global-not-stage-scoped",
+                        "reason": (
+                            "shared-base-model-compile-registry-and-dynamo-config"
+                        ),
+                    },
+                },
+            },
+        )
         self.assertFalse(capabilities["owned_by_manifest"])
         self.assertEqual(
             set(capabilities["sources"]),

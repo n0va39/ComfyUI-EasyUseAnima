@@ -100,6 +100,60 @@ class AIOConditioningMoveTests(unittest.TestCase):
         self.assertIn("best quality", encoded[0])
         self.assertIn("bad anatomy", encoded[1])
 
+    def test_no_general_turbo_reencodes_derived_positive_and_neutral_negative(self):
+        prompt_data = {
+            "fields": [
+                {
+                    "id": "positive-trigger",
+                    "type": "trigger",
+                    "pane": "positive",
+                    "enabled": True,
+                    "text": "detail subject",
+                },
+                {
+                    "id": "negative-quality",
+                    "type": "quality",
+                    "pane": "negative",
+                    "enabled": True,
+                    "text": "bad anatomy",
+                },
+            ],
+        }
+        clip = object()
+        calls: list[tuple[object, str]] = []
+
+        def encode(source_clip, text):
+            calls.append((source_clip, text))
+            return {"prompt": text}
+
+        with patch_comfy_helper(
+            nodes,
+            "_encode_with_comfy_clip",
+            side_effect=encode,
+        ):
+            result = conditioning._aio_usdu_conditioning(
+                clip,
+                "original-positive",
+                "original-negative",
+                {"prompt_mode": nodes.AIO_USDU_PROMPT_NO_GENERAL},
+                "",
+                "",
+                prompt_data=prompt_data,
+                negpip_mode="turbo",
+            )
+
+        self.assertEqual(
+            calls,
+            [
+                (clip, "detail subject, (bad anatomy:-1)"),
+                (clip, ""),
+            ],
+        )
+        self.assertEqual(
+            result,
+            ({"prompt": calls[0][1]}, {"prompt": calls[1][1]}),
+        )
+
     def test_no_general_fallback_respects_quality_exclusion_and_call_time_lookup(self):
         calls: list[tuple[str, str]] = []
         replacement_encode = Mock(

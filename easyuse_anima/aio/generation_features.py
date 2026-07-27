@@ -37,29 +37,64 @@ class AIOGenerationAuraFlowConfig:
 
 
 @dataclass(frozen=True, slots=True)
+class AIOGenerationStageScopeConfig:
+    state: ObjectState
+    first_pass: bool
+    highres: bool
+    detailer: bool
+    upscale: bool
+
+    @classmethod
+    def from_value(cls, value: object, key: str) -> AIOGenerationStageScopeConfig:
+        source = expect_object(value, key)
+        known = ("first_pass", "highres", "detailer", "upscale")
+        return cls(
+            state=ObjectState.from_source(source, known),
+            first_pass=expect_bool(required(source, "first_pass"), f"{key}.first_pass"),
+            highres=expect_bool(required(source, "highres"), f"{key}.highres"),
+            detailer=expect_bool(required(source, "detailer"), f"{key}.detailer"),
+            upscale=expect_bool(required(source, "upscale"), f"{key}.upscale"),
+        )
+
+    def to_dict(self) -> dict[str, object]:
+        return self.state.compose({
+            "first_pass": self.first_pass,
+            "highres": self.highres,
+            "detailer": self.detailer,
+            "upscale": self.upscale,
+        })
+
+
+@dataclass(frozen=True, slots=True)
 class AIOGenerationDAVEConfig:
     state: ObjectState
     enabled: bool
     mask: str
     strength: JsonNumber
     tau: JsonNumber
+    stage_scope: AIOGenerationStageScopeConfig
 
     @classmethod
     def from_value(cls, value: object, key: str) -> AIOGenerationDAVEConfig:
         source = expect_object(value, key)
-        known = ("enabled", "mask", "strength", "tau")
+        known = ("enabled", "mask", "strength", "tau", "stage_scope")
         return cls(
             state=ObjectState.from_source(source, known),
             enabled=expect_bool(required(source, "enabled"), f"{key}.enabled"),
             mask=expect_str(required(source, "mask"), f"{key}.mask"),
             strength=expect_number(required(source, "strength"), f"{key}.strength"),
             tau=expect_number(required(source, "tau"), f"{key}.tau"),
+            stage_scope=AIOGenerationStageScopeConfig.from_value(
+                required(source, "stage_scope"),
+                f"{key}.stage_scope",
+            ),
         )
 
     def to_dict(self) -> dict[str, object]:
         return self.state.compose({
             "enabled": self.enabled, "mask": self.mask,
             "strength": self.strength, "tau": self.tau,
+            "stage_scope": self.stage_scope.to_dict(),
         })
 
 

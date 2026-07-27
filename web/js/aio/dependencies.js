@@ -25,6 +25,10 @@ export const AIO_OPTIONAL_DEPENDENCY_SPECS = {
     nodeId: "AnimaSafePAG",
     pack: "Anima Safe PAG",
   },
+  ppmNegPip: {
+    nodeId: "CLIPNegPip",
+    pack: "ComfyUI-ppm",
+  },
   imageSaver: {
     nodeId: "Image Saver",
     pack: "ComfyUI-Image-Saver",

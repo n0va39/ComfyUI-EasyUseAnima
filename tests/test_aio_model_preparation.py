@@ -143,6 +143,243 @@ class AIOModelPreparationMoveTests(unittest.TestCase):
         )
         stale_dave.assert_not_called()
 
+    def test_stage_plan_scopes_dave_and_preserves_legacy_all_stage_signature(self):
+        first_only = {
+            "model_patches": {
+                "aura_flow": {"shift": 3.0},
+                "dave": {
+                    "enabled": True,
+                    "mask": "mask.npz",
+                    "strength": 0.3,
+                    "tau": 0.1,
+                    "stage_scope": {
+                        "first_pass": True,
+                        "highres": False,
+                        "detailer": False,
+                        "upscale": False,
+                    },
+                },
+                "safe_pag": {"enabled": False},
+                "kj": {"torch_compile": {"enabled": False}},
+            }
+        }
+        first_plan = model_preparation._aio_stage_model_patch_plan(
+            first_only,
+            "first_pass",
+        )
+        highres_plan = model_preparation._aio_stage_model_patch_plan(
+            first_only,
+            "highres",
+        )
+
+        self.assertEqual(first_plan.patch_ids, ("aura_flow", "dave"))
+        self.assertEqual(highres_plan.patch_ids, ("aura_flow",))
+        self.assertNotEqual(first_plan.signature, highres_plan.signature)
+
+        legacy = {
+            "model_patches": {
+                **first_only["model_patches"],
+                "dave": {
+                    key: value
+                    for key, value in first_only["model_patches"]["dave"].items()
+                    if key != "stage_scope"
+                },
+            }
+        }
+        legacy_signatures = {
+            model_preparation._aio_stage_model_patch_plan(legacy, stage_id).signature
+            for stage_id in ("first_pass", "highres", "detailer", "upscale")
+        }
+        self.assertEqual(len(legacy_signatures), 1)
+        with self.assertRaisesRegex(ValueError, "Unknown AiO sampling stage"):
+            model_preparation._aio_stage_model_patch_plan(first_only, "save")
+
+    def test_unapproved_scope_fields_do_not_partially_select_safe_pag_or_kj(self):
+        settings = {
+            "model_patches": {
+                "dave": {"enabled": False},
+                "safe_pag": {
+                    "enabled": True,
+                    "stage_scope": {
+                        "first_pass": True,
+                        "highres": False,
+                        "detailer": False,
+                        "upscale": False,
+                    },
+                },
+                "kj": {
+                    "fp16_accumulation": True,
+                    "sage_attention": "auto",
+                    "stage_scope": {
+                        "first_pass": True,
+                        "highres": False,
+                        "detailer": False,
+                        "upscale": False,
+                    },
+                    "torch_compile": {
+                        "enabled": True,
+                        "stage_scope": {
+                            "first_pass": True,
+                            "highres": False,
+                            "detailer": False,
+                            "upscale": False,
+                        },
+                    },
+                },
+            }
+        }
+        expected_patch_ids = (
+            "aura_flow",
+            "safe_pag",
+            "kj.fp16_accumulation",
+            "kj.sage_attention",
+            "kj.torch_compile",
+        )
+
+        plans = {
+            stage_id: model_preparation._aio_stage_model_patch_plan(settings, stage_id)
+            for stage_id in ("first_pass", "highres", "detailer", "upscale")
+        }
+
+        self.assertEqual(
+            {stage_id: plan.patch_ids for stage_id, plan in plans.items()},
+            {stage_id: expected_patch_ids for stage_id in plans},
+        )
+        self.assertEqual(
+            len({plan.signature for plan in plans.values()}),
+            1,
+            "Unsupported scope fields must not create partial stage variants",
+        )
+
+    def test_stage_plan_moves_only_compile_before_dave_in_the_patch_chain(self):
+        trace: list[tuple[str, object]] = []
+
+        def apply_aura(model, _settings):
+            trace.append(("aura", model))
+            return "aura"
+
+        def apply_kj_compile(model, _settings):
+            trace.append(("compile", model))
+            return "compile"
+
+        def apply_kj_non_compile(model, _settings):
+            trace.append(("kj", model))
+            return "kj"
+
+        def apply_dave(model, _settings):
+            trace.append(("dave", model))
+            return "dave"
+
+        def apply_safe(model, _settings):
+            trace.append(("safe", model))
+            return "safe"
+
+        settings = {
+            "model_patches": {
+                "aura_flow": {"shift": 3.0},
+                "dave": {
+                    "enabled": True,
+                    "stage_scope": {"first_pass": True},
+                },
+                "safe_pag": {"enabled": True},
+                "kj": {
+                    "fp16_accumulation": True,
+                    "sage_attention": "sageattn",
+                    "torch_compile": {"enabled": True},
+                },
+            }
+        }
+        plan = model_preparation._aio_stage_model_patch_plan(
+            settings,
+            "first_pass",
+        )
+        with (
+            patch.object(
+                model_preparation,
+                "_patch_model_sampling_aura_flow",
+                side_effect=apply_aura,
+            ),
+            patch.object(
+                model_preparation,
+                "_apply_aio_kj_torch_compile_patch",
+                side_effect=apply_kj_compile,
+            ),
+            patch.object(
+                model_preparation,
+                "_apply_aio_kj_non_compile_patches",
+                side_effect=apply_kj_non_compile,
+            ),
+            patch.object(
+                model_preparation,
+                "_apply_aio_anima_dave_patch",
+                side_effect=apply_dave,
+            ),
+            patch.object(
+                model_preparation,
+                "_apply_aio_safe_pag_patch",
+                side_effect=apply_safe,
+            ),
+        ):
+            result = model_preparation._apply_aio_stage_model_patch_plan(
+                "base",
+                plan,
+            )
+
+        self.assertEqual(
+            plan.patch_ids,
+            (
+                "aura_flow",
+                "kj.torch_compile",
+                "dave",
+                "safe_pag",
+                "kj.fp16_accumulation",
+                "kj.sage_attention",
+            ),
+        )
+        self.assertEqual(result, "kj")
+        self.assertEqual(
+            trace,
+            [
+                ("aura", "base"),
+                ("compile", "aura"),
+                ("dave", "compile"),
+                ("safe", "dave"),
+                ("kj", "safe"),
+            ],
+        )
+
+    def test_dave_disabled_stage_does_not_call_dave_adapter(self):
+        settings = {
+            "model_patches": {
+                "dave": {
+                    "enabled": True,
+                    "stage_scope": {"highres": False},
+                },
+            }
+        }
+        plan = model_preparation._aio_stage_model_patch_plan(settings, "highres")
+        with (
+            patch.object(
+                model_preparation,
+                "_patch_model_sampling_aura_flow",
+                return_value="aura",
+            ),
+            patch.object(
+                model_preparation,
+                "_apply_aio_anima_dave_patch",
+            ) as apply_dave,
+            patch.object(
+                model_preparation,
+                "_apply_aio_kj_model_patches",
+                side_effect=lambda model, _settings: model,
+            ),
+        ):
+            self.assertEqual(
+                model_preparation._apply_aio_stage_model_patch_plan("base", plan),
+                "aura",
+            )
+        apply_dave.assert_not_called()
+
     def test_kj_patch_chain_preserves_fp16_sage_compile_order_and_arguments(self):
         calls: list[tuple[object, ...]] = []
 

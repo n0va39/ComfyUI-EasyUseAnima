@@ -7,7 +7,6 @@ import subprocess
 import unittest
 from pathlib import Path
 
-
 ROOT = Path(__file__).resolve().parents[1]
 ANALYZER_PATH = ROOT / "tools" / "analyze_python_backend.py"
 BASELINE_PATH = ROOT / "tests" / "fixtures" / "python_backend_baseline.json"
@@ -691,9 +690,9 @@ ignored/
 
         self.assertEqual(analyzer.render_json(report), expected_text)
         self.assertEqual(report["schema_version"], 2)
-        self.assertEqual(report["inventory"]["module_count"], 132)
-        self.assertEqual(len(report["registry"]["shipped_python_modules"]), 132)
-        self.assertEqual(len(report["registry"]["runtime_import_closure"]), 132)
+        self.assertEqual(report["inventory"]["module_count"], 135)
+        self.assertEqual(len(report["registry"]["shipped_python_modules"]), 135)
+        self.assertEqual(len(report["registry"]["runtime_import_closure"]), 135)
         self.assertEqual(
             report["registry"]["entry_modules"],
             [
@@ -733,12 +732,15 @@ ignored/
                 "easyuse_anima/aio/generation_migrations.py",
                 "easyuse_anima/aio/generation_settings.py",
                 "easyuse_anima/aio/model_preparation.py",
+                "easyuse_anima/aio/negpip.py",
                 "easyuse_anima/aio/output.py",
                 "easyuse_anima/aio/output_settings.py",
                 "easyuse_anima/aio/postprocess.py",
                 "easyuse_anima/aio/preview.py",
                 "easyuse_anima/aio/resources.py",
                 "easyuse_anima/aio/sampling.py",
+                "easyuse_anima/aio/torch_compile_diagnostics.py",
+                "easyuse_anima/aio/torch_compile_recommendation.py",
                 "easyuse_anima/aio/usdu.py",
                 "easyuse_anima/bootstrap.py",
                 "easyuse_anima/common/__init__.py",
@@ -818,10 +820,13 @@ ignored/
                 "easyuse_anima/aio/first_pass_cache.py",
                 "easyuse_anima/aio/legacy_generation.py",
                 "easyuse_anima/aio/model_preparation.py",
+                "easyuse_anima/aio/negpip.py",
                 "easyuse_anima/aio/output.py",
                 "easyuse_anima/aio/preview.py",
                 "easyuse_anima/aio/resources.py",
                 "easyuse_anima/aio/sampling.py",
+                "easyuse_anima/aio/torch_compile_diagnostics.py",
+                "easyuse_anima/aio/torch_compile_recommendation.py",
                 "easyuse_anima/common/serialization.py",
                 "easyuse_anima/common/values.py",
                 "easyuse_anima/image/detailer.py",

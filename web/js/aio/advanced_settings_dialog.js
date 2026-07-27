@@ -43,6 +43,12 @@
  */
 
 /**
+ * @typedef {object} AioAdvancedDialogRecommendationAdapter
+ * @property {(settings: any, context?: Record<string, any>) => Promise<any>} recommend
+ * @property {(current: any, values: any) => Array<{name: string, current: any, recommended: any}>} diff
+ */
+
+/**
  * @typedef {object} AioAdvancedSettingsDialogDependencies
  * @property {any} document
  * @property {AioAdvancedDialogControls} controls
@@ -50,7 +56,40 @@
  * @property {AioAdvancedDialogSettingsCore} settingsCore
  * @property {AioAdvancedDialogNodeAdapter} nodeAdapter
  * @property {AioAdvancedDialogDependencyAdapter} dependencyAdapter
+ * @property {AioAdvancedDialogRecommendationAdapter} recommendationAdapter
  */
+
+const DAVE_STAGE_IDS = Object.freeze([
+  "first_pass",
+  "highres",
+  "detailer",
+  "upscale",
+]);
+
+/** @type {Readonly<Record<string, Readonly<Record<string, boolean>>>>} */
+const DAVE_STAGE_SCOPE_PRESETS = Object.freeze({
+  first_pass_only: Object.freeze({
+    first_pass: true,
+    highres: false,
+    detailer: false,
+    upscale: false,
+  }),
+  all_sampling_stages: Object.freeze({
+    first_pass: true,
+    highres: true,
+    detailer: true,
+    upscale: true,
+  }),
+});
+
+function daveStageScopePreset(scope) {
+  for (const [preset, expected] of Object.entries(DAVE_STAGE_SCOPE_PRESETS)) {
+    if (DAVE_STAGE_IDS.every((stageId) => !!scope?.[stageId] === expected[stageId])) {
+      return preset;
+    }
+  }
+  return "custom";
+}
 
 /**
  * Own the Advanced settings dialog, model-patch dependency locks, visibility,
@@ -68,6 +107,7 @@ export function aioCreateAdvancedSettingsDialog(dependencies) {
     settingsCore,
     nodeAdapter,
     dependencyAdapter,
+    recommendationAdapter,
   } = dependencies;
   const {
     createDialog,
@@ -101,6 +141,10 @@ export function aioCreateAdvancedSettingsDialog(dependencies) {
     notifyMissing: notifyMissingDependency,
     load: loadGeneratorOptionalDependencies,
   } = dependencyAdapter;
+  const {
+    recommend: recommendTorchCompile,
+    diff: torchCompileRecommendationDiff,
+  } = recommendationAdapter;
 
   function openAdvancedSettings(node) {
     const widget = findWidget(node, GENERATOR_SETTINGS_WIDGET);
@@ -116,6 +160,29 @@ export function aioCreateAdvancedSettingsDialog(dependencies) {
       section.append(Object.assign(document.createElement("h4"), { textContent: aioStaticText(title) }));
       return section;
     };
+
+    const conditioning = document.createElement("section");
+    conditioning.className = "easyuse-anima-aio-section full";
+    conditioning.append(Object.assign(document.createElement("h3"), {
+      textContent: aioStaticText("Conditioning"),
+    }));
+    const negpipSettings = settings.negpip || DEFAULT_GENERATION_SETTINGS.negpip;
+    const negpipMode = field(
+      conditioning,
+      "NegPip",
+      selectInput([
+        { value: "off", label: aioText("option.negpipOff") },
+        { value: "on", label: aioText("option.negpipOn") },
+        { value: "turbo", label: aioText("option.negpipTurbo") },
+      ], negpipSettings.mode || "off"),
+      "tip.negpipMode",
+    );
+    const negpipWarning = document.createElement("div");
+    negpipWarning.className = "easyuse-anima-aio-warning";
+    negpipWarning.setAttribute("aria-live", "polite");
+    negpipWarning.hidden = true;
+    conditioning.append(negpipWarning);
+    body.append(conditioning);
 
     const modelPatches = document.createElement("section");
     modelPatches.className = "easyuse-anima-aio-section full";
@@ -135,6 +202,53 @@ export function aioCreateAdvancedSettingsDialog(dependencies) {
     const daveMask = field(dave, "Mask", textInput(settings.model_patches.dave.mask || "dave_alpha.npz"), "tip.daveMask");
     const daveStrength = field(dave, "DAVE strength", numberInput(settings.model_patches.dave.strength ?? 0.30, "0.01"), "tip.daveStrength");
     const daveTau = field(dave, "DAVE tau", numberInput(settings.model_patches.dave.tau ?? 0.10, "0.01"), "tip.daveTau");
+    const daveStageScope = settings.model_patches.dave.stage_scope
+      || DEFAULT_GENERATION_SETTINGS.model_patches.dave.stage_scope;
+    const daveStagePreset = field(
+      dave,
+      "DAVE stages",
+      selectInput([
+        {
+          value: "first_pass_only",
+          label: aioText("option.daveScopeFirstPassOnly"),
+        },
+        {
+          value: "all_sampling_stages",
+          label: aioText("option.daveScopeAllSamplingStages"),
+        },
+        {
+          value: "custom",
+          label: aioText("option.daveScopeCustom"),
+        },
+      ], daveStageScopePreset(daveStageScope)),
+      "tip.daveStagePreset",
+    );
+    const daveCustomStages = makeSubsection("Custom DAVE stages");
+    const daveFirstPass = field(
+      daveCustomStages,
+      "First pass",
+      checkbox(daveStageScope.first_pass),
+      "tip.daveStageFirstPass",
+    );
+    const daveHighres = field(
+      daveCustomStages,
+      "Highres",
+      checkbox(daveStageScope.highres),
+      "tip.daveStageHighres",
+    );
+    const daveDetailer = field(
+      daveCustomStages,
+      "Detailer",
+      checkbox(daveStageScope.detailer),
+      "tip.daveStageDetailer",
+    );
+    const daveUpscale = field(
+      daveCustomStages,
+      "Upscale (USDU)",
+      checkbox(daveStageScope.upscale),
+      "tip.daveStageUpscale",
+    );
+    dave.append(daveCustomStages);
     daveStrength.min = "0";
     daveTau.min = "0";
     daveTau.max = "1";
@@ -226,7 +340,7 @@ export function aioCreateAdvancedSettingsDialog(dependencies) {
     const torchCompileDynamic = field(
       torchDetails,
       "Dynamic",
-      selectInput(["false", "true", "default"], settings.model_patches.kj.torch_compile.dynamic),
+      selectInput(["auto", "false", "true", "default"], settings.model_patches.kj.torch_compile.dynamic),
       "tip.torchCompileDynamic",
     );
     const torchCompileBlocksOnly = field(
@@ -253,7 +367,18 @@ export function aioCreateAdvancedSettingsDialog(dependencies) {
       checkbox(settings.model_patches.kj.torch_compile.disable_dynamic_vram),
       "tip.torchCompileVram",
     );
-    torch.append(torchDetails);
+    const torchRecommendationActions = document.createElement("div");
+    torchRecommendationActions.className = "easyuse-anima-aio-dialog-actions";
+    const torchRecommendButton = document.createElement("button");
+    torchRecommendButton.type = "button";
+    torchRecommendButton.textContent = aioText("button.torchCompileRecommend");
+    torchRecommendationActions.append(torchRecommendButton);
+    const torchRecommendationStatus = document.createElement("div");
+    torchRecommendationStatus.className = "easyuse-anima-aio-warning";
+    torchRecommendationStatus.hidden = true;
+    torchRecommendationStatus.style.whiteSpace = "pre-line";
+    torchRecommendationStatus.setAttribute("aria-live", "polite");
+    torch.append(torchRecommendationActions, torchRecommendationStatus, torchDetails);
     kj.append(torch);
 
     const modelWarning = document.createElement("div");
@@ -294,6 +419,116 @@ export function aioCreateAdvancedSettingsDialog(dependencies) {
     const refreshTorchDetails = () => {
       torchDetails.style.display = torchCompileEnabled.checked ? "" : "none";
     };
+    const torchControlValues = () => ({
+      enabled: torchCompileEnabled.checked,
+      backend: torchCompileBackend.value,
+      fullgraph: torchCompileFullgraph.checked,
+      mode: torchCompileMode.value,
+      dynamic: torchCompileDynamic.value,
+      compile_transformer_blocks_only: torchCompileBlocksOnly.checked,
+      dynamo_cache_size_limit: Number(torchCompileCache.value),
+      debug_compile_keys: torchCompileDebug.checked,
+      disable_dynamic_vram: torchCompileDisableVram.checked,
+    });
+    const applyTorchRecommendationDraft = (values) => {
+      torchCompileEnabled.checked = values.enabled;
+      torchCompileBackend.value = values.backend;
+      torchCompileFullgraph.checked = values.fullgraph;
+      torchCompileMode.value = values.mode;
+      torchCompileDynamic.value = values.dynamic;
+      torchCompileBlocksOnly.checked = values.compile_transformer_blocks_only;
+      torchCompileCache.value = String(values.dynamo_cache_size_limit);
+      torchCompileDebug.checked = values.debug_compile_keys;
+      torchCompileDisableVram.checked = values.disable_dynamic_vram;
+      refreshTorchDetails();
+    };
+    const displayRecommendationValue = (value) => (
+      value === undefined || value === null || value === "" ? "—" : String(value)
+    );
+    const recommendationLines = (result, changes = null) => {
+      const vram = result.environment.totalVramMb == null
+        ? "unknown"
+        : `${result.environment.totalVramMb} MiB`;
+      return [
+        aioFormat("status.torchCompileProfile", { profile: result.profile }),
+        aioFormat("status.torchCompileEnvironment", {
+          accelerator: result.environment.accelerator,
+          vram,
+        }),
+        ...(Array.isArray(changes) && changes.length
+          ? changes.map((change) => aioFormat("status.torchCompileChange", {
+              field: change.name,
+              current: displayRecommendationValue(change.current),
+              recommended: displayRecommendationValue(change.recommended),
+            }))
+          : (changes === null ? [] : [aioText("status.torchCompileNoChanges")])),
+        ...result.reasonCodes.map((code) => aioFormat("status.torchCompileReason", { code })),
+        ...result.warnings.map((code) => aioFormat("status.torchCompileWarning", { code })),
+      ];
+    };
+    const showTorchRecommendationStatus = (state, lines) => {
+      torchRecommendationStatus.hidden = false;
+      torchRecommendationStatus.setAttribute("data-state", state);
+      torchRecommendationStatus.textContent = lines.join("\n");
+    };
+    let recommendationClosed = false;
+    let recommendationPending = false;
+    torchRecommendButton.addEventListener("click", () => {
+      if (recommendationClosed || recommendationPending) {
+        return;
+      }
+      recommendationPending = true;
+      torchRecommendButton.disabled = true;
+      showTorchRecommendationStatus("loading", [aioText("status.torchCompileLoading")]);
+      Promise.resolve()
+        .then(() => recommendTorchCompile(settings, {}))
+        .then((result) => {
+          if (recommendationClosed) {
+            return;
+          }
+          if (!result.supported || !result.values) {
+            showTorchRecommendationStatus("unsupported", [
+              aioText("status.torchCompileUnsupported"),
+              ...recommendationLines(result),
+            ]);
+            return;
+          }
+          const changes = torchCompileRecommendationDiff(
+            torchControlValues(),
+            result.values,
+          );
+          applyTorchRecommendationDraft(result.values);
+          showTorchRecommendationStatus("supported", [
+            aioText("status.torchCompileDraftApplied"),
+            ...recommendationLines(result, changes),
+          ]);
+        })
+        .catch((error) => {
+          if (!recommendationClosed) {
+            showTorchRecommendationStatus("error", [
+              aioFormat("status.torchCompileRequestFailed", {
+                message: error?.message || "unknown error",
+              }),
+            ]);
+          }
+        })
+        .finally(() => {
+          recommendationPending = false;
+          if (!recommendationClosed) {
+            torchRecommendButton.disabled = false;
+          }
+        });
+    });
+    const refreshDaveStageScope = () => {
+      const preset = DAVE_STAGE_SCOPE_PRESETS[daveStagePreset.value];
+      if (preset) {
+        daveFirstPass.checked = preset.first_pass;
+        daveHighres.checked = preset.highres;
+        daveDetailer.checked = preset.detailer;
+        daveUpscale.checked = preset.upscale;
+      }
+      daveCustomStages.style.display = daveStagePreset.value === "custom" ? "" : "none";
+    };
     const setControlsDisabled = (controls, disabled) => {
       for (const control of controls) {
         if (control) {
@@ -301,11 +536,37 @@ export function aioCreateAdvancedSettingsDialog(dependencies) {
         }
       }
     };
+    const refreshNegPipDependency = () => {
+      const mode = ["off", "on", "turbo"].includes(negpipMode.value)
+        ? negpipMode.value
+        : "off";
+      const active = mode !== "off";
+      const missing = active && !optionalDependencyAvailable("ppmNegPip");
+      const missingMessage = aioFormat("warning.optionalDependencyMissing", {
+        backend: `NegPip ${mode}`,
+        pack: optionalDependencyPack("ppmNegPip"),
+      });
+      aioMarkMissingDependencyControl(negpipMode, missing, missingMessage);
+      negpipWarning.hidden = !missing && mode !== "turbo";
+      negpipWarning.textContent = missing
+        ? missingMessage
+        : (mode === "turbo" ? aioText("info.negpipTurboCfg") : "");
+    };
+
     const refreshAdvancedDependencyLocks = () => {
       const messages = [];
 
       const daveMissing = !optionalDependencyAvailable("dave");
-      setControlsDisabled([daveMask, daveStrength, daveTau], daveMissing);
+      setControlsDisabled([
+        daveMask,
+        daveStrength,
+        daveTau,
+        daveStagePreset,
+        daveFirstPass,
+        daveHighres,
+        daveDetailer,
+        daveUpscale,
+      ], daveMissing);
       const daveMessage = aioFormat("warning.optionalDependencyMissing", {
         backend: "Anima DAVE",
         pack: optionalDependencyPack("dave"),
@@ -409,6 +670,7 @@ export function aioCreateAdvancedSettingsDialog(dependencies) {
 
       modelWarning.hidden = messages.length === 0;
       modelWarning.textContent = messages.join(" ");
+      refreshDaveStageScope();
       refreshSageDetails();
       refreshTorchDetails();
     };
@@ -420,6 +682,7 @@ export function aioCreateAdvancedSettingsDialog(dependencies) {
       refreshAdvancedDependencyLocks();
     };
     daveEnabled.addEventListener("change", () => guardToggle(daveEnabled, "dave", "Anima DAVE"));
+    daveStagePreset.addEventListener("change", refreshDaveStageScope);
     safePagEnabled.addEventListener("change", () => guardToggle(safePagEnabled, "safePag", "Anima Safe PAG"));
     fp16Accum.addEventListener("change", () => guardToggle(fp16Accum, "kjFp16", "KJNodes FP16 accum"));
     sageAttention.addEventListener("change", () => {
@@ -435,10 +698,21 @@ export function aioCreateAdvancedSettingsDialog(dependencies) {
       "kjTorchCompile",
       "Torch Compile",
     ));
+    negpipMode.addEventListener("change", () => {
+      if (negpipMode.value !== "off" && !optionalDependencyAvailable("ppmNegPip")) {
+        notifyMissingDependency(`NegPip ${negpipMode.value}`, ["ppmNegPip"]);
+      }
+      refreshNegPipDependency();
+    });
+    refreshDaveStageScope();
     refreshSageDetails();
     refreshTorchDetails();
+    refreshNegPipDependency();
     refreshAdvancedDependencyLocks();
-    loadGeneratorOptionalDependencies().then(refreshAdvancedDependencyLocks);
+    loadGeneratorOptionalDependencies().then(() => {
+      refreshNegPipDependency();
+      refreshAdvancedDependencyLocks();
+    });
 
     const cancel = document.createElement("button");
     cancel.textContent = aioText("button.cancel");
@@ -446,10 +720,18 @@ export function aioCreateAdvancedSettingsDialog(dependencies) {
     apply.className = "primary";
     apply.textContent = aioText("button.apply");
     actions.append(cancel, apply);
-    cancel.addEventListener("click", () => backdrop.remove());
+    cancel.addEventListener("click", () => {
+      recommendationClosed = true;
+      backdrop.remove();
+    });
     apply.addEventListener("click", () => {
+      recommendationClosed = true;
       const next = mergeDefaults(DEFAULT_GENERATION_SETTINGS, settings);
       delete next.sampler.dave;
+      next.negpip ||= {};
+      next.negpip.mode = ["off", "on", "turbo"].includes(negpipMode.value)
+        ? negpipMode.value
+        : "off";
       delete next.model_patches.aura_flow.enabled;
       next.model_patches.aura_flow.shift = clampGeneratorNumber(
         auraShift.value,
@@ -461,6 +743,15 @@ export function aioCreateAdvancedSettingsDialog(dependencies) {
       next.model_patches.dave.mask = daveMask.value || "dave_alpha.npz";
       next.model_patches.dave.strength = Number(daveStrength.value || 0.30);
       next.model_patches.dave.tau = Number(daveTau.value || 0.10);
+      const davePresetScope = DAVE_STAGE_SCOPE_PRESETS[daveStagePreset.value];
+      next.model_patches.dave.stage_scope = davePresetScope
+        ? { ...davePresetScope }
+        : {
+            first_pass: daveFirstPass.checked,
+            highres: daveHighres.checked,
+            detailer: daveDetailer.checked,
+            upscale: daveUpscale.checked,
+          };
       next.model_patches.safe_pag ||= {};
       next.model_patches.safe_pag.enabled = safePagEnabled.checked && optionalDependencyAvailable("safePag");
       next.model_patches.safe_pag.scale = clampGeneratorNumber(safePagScale.value, 4.0, 0, 100);

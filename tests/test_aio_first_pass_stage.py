@@ -25,8 +25,13 @@ from easyuse_anima.aio.generation_settings import (
 )
 
 
-def _request(*, intermediate_preview: bool = False) -> GenerationRequest:
+def _request(
+    *,
+    intermediate_preview: bool = False,
+    negpip_mode: str = "off",
+) -> GenerationRequest:
     normalized = _normalize_aio_generation_settings(json.dumps({
+        "negpip": {"mode": negpip_mode},
         "preview": {"intermediate_images": intermediate_preview},
     }))
     return GenerationRequest(
@@ -71,6 +76,42 @@ def _unexpected(*_args, **_kwargs):
 
 
 class AIOFirstPassStageTests(unittest.TestCase):
+    def test_turbo_uses_effective_cfg_one_without_mutating_saved_sampler(self):
+        observed: list[tuple[float, str, bool]] = []
+        request = _request(negpip_mode="turbo")
+        saved_cfg = request.config.sampler.to_dict()["cfg"]
+        saved_mod_guidance = request.config.mod_guidance.to_dict()
+        runtime = FirstPassRuntime(
+            get_cache=lambda _key: None,
+            put_cache=lambda *_args: None,
+            generate_empty_latent=lambda *_args: "empty-latent",
+            sample_latent=lambda *_args: (
+                observed.append(
+                    (_args[5]["cfg"], _args[6]["mode"], _args[7])
+                )
+                or "sampled-latent"
+            ),
+            decode_latent=lambda *_args: "decoded-image",
+            resize_image=lambda image, *_args: (image, False),
+            encode_image=_unexpected,
+        )
+
+        AIOFirstPassStage(
+            runtime=runtime,
+            cache_key="turbo-cache",
+            use_mod_guidance=True,
+        ).run(
+            request,
+            GenerationState(latent=None, image=None, width=64, height=96),
+        )
+
+        self.assertEqual(observed, [(1.0, "prompt_data", True)])
+        self.assertEqual(request.config.sampler.to_dict()["cfg"], saved_cfg)
+        self.assertEqual(
+            request.config.mod_guidance.to_dict(),
+            saved_mod_guidance,
+        )
+
     def test_cache_miss_samples_decodes_stores_metadata_and_preview_in_order(self):
         trace: list[str] = []
         preview: list[tuple[str, object]] = []

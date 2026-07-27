@@ -17,16 +17,12 @@ section, owning Issue, direct owner files, and direct tests.
   focused edit loop, final-full-once rule, package/live/benchmark triggers,
   evidence reuse, and current task-specific test maps. It reduces repeated work;
   it does not weaken an Issue or release gate.
-- Issue [#415](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/415)
-  is the current implementation and release owner for the queue/live-UI
-  regressions in [#413](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/413)
-  and [#414](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/414).
-  QSTATE-01 is merged. QSTATE-02A proved that backend `list_index` does not exist
-  at frontend submission-capture time. While #415 remains open, read
-  [`queue-ui-two-phase-correlation-addendum.md`](queue-ui-two-phase-correlation-addendum.md)
-  **before** the original
-  [`queue-ui-execution-state-hotfix.md`](queue-ui-execution-state-hotfix.md),
-  the ordinary backend roadmap, or an AiO advanced-integration plan.
+- Issues [#413](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/413),
+  [#414](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/414), and
+  [#415](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/415) completed the
+  queue/live-UI hotfix and release lane. Their two-phase correlation and seed
+  ownership contracts remain authoritative for later feature adapters, but no
+  longer block the AiO advanced-integration queue.
 - Before Prompt Studio wildcard next-seed publication or AiO seed cutover, read
   [`seed-ui-semantics-gate.md`](seed-ui-semantics-gate.md). Prompt Studio uses a
   concrete seed plus an after-generate transition; AiO special `-1/-2/-3` values
@@ -40,10 +36,11 @@ section, owning Issue, direct owner files, and direct tests.
 - The DAVE stage-scope, Torch Compile recommendation, and NegPip plans are
   recorded in
   [`aio-advanced-integrations-roadmap.md`](aio-advanced-integrations-roadmap.md).
-  Issues #409, #410, and #411 remain blocked until the #415 hotfix release exits
-  and the dependency order is re-audited against the then-current `dev` head.
-- New D/E/G/H, AiO Hook, opportunistic cleanup, and unrelated feature work also
-  remain paused while the hotfix lane is active.
+  Issue #409 is complete. The active queue is #410 AIO-COMPILE-01 through 04,
+  followed by #411; patch-specific #440/#441 follow-ups do not jump this queue.
+- New D/E/G/H, AiO Hook, opportunistic cleanup, and unrelated feature work remain
+  outside the active #410/#411 queue unless a separately recorded priority
+  decision changes it.
 - The former B-11 Comfy host-provider bridge is complete. Its document remains a
   historical sequencing record and no longer overrides the active queue.
 

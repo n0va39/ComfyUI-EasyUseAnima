@@ -29,9 +29,15 @@ def _request(
     *,
     upscale_enabled: bool,
     intermediate_preview: bool = False,
+    upscale_backend: str = "usdu",
+    negpip_mode: str = "off",
 ) -> GenerationRequest:
     normalized = _normalize_aio_generation_settings(json.dumps({
-        "upscale": {"enabled": upscale_enabled},
+        "negpip": {"mode": negpip_mode},
+        "upscale": {
+            "enabled": upscale_enabled,
+            "backend": upscale_backend,
+        },
         "preview": {"intermediate_images": intermediate_preview},
     }))
     return GenerationRequest(
@@ -81,6 +87,57 @@ def _state() -> GenerationState:
 
 
 class AIOUpscaleStageTests(unittest.TestCase):
+    def test_turbo_overrides_only_usdu_runtime_cfg_and_preserves_saved_values(self):
+        observations: list[tuple[str, float, float, str]] = []
+
+        for backend in ("usdu", "resshift"):
+            with self.subTest(backend=backend):
+                request = _request(
+                    upscale_enabled=True,
+                    upscale_backend=backend,
+                    negpip_mode="turbo",
+                )
+                saved_sampler_cfg = request.config.sampler.to_dict()["cfg"]
+                saved_upscale_cfg = request.config.upscale.to_dict()["cfg"]
+
+                def run_upscale(*args, **kwargs):
+                    observations.append(
+                        (
+                            backend,
+                            args[6]["cfg"],
+                            args[7]["cfg"],
+                            kwargs["negpip_mode"],
+                        )
+                    )
+                    return args[5], {"enabled": False, "backend": backend}
+
+                AIOUpscaleStage(
+                    runtime=UpscaleRuntime(
+                        run_upscale=run_upscale,
+                        image_size=lambda *_args: (64, 96),
+                        encode_image=lambda *_args: "unused",
+                    ),
+                    exclude_positive_quality=False,
+                    exclude_negative_quality=False,
+                ).run(request, _state())
+
+                self.assertEqual(
+                    request.config.sampler.to_dict()["cfg"],
+                    saved_sampler_cfg,
+                )
+                self.assertEqual(
+                    request.config.upscale.to_dict()["cfg"],
+                    saved_upscale_cfg,
+                )
+
+        self.assertEqual(
+            observations,
+            [
+                ("usdu", 1.0, 1.0, "turbo"),
+                ("resshift", 5.0, 8.0, "turbo"),
+            ],
+        )
+
     def test_disabled_stage_preserves_identity_dimensions_and_metadata(self):
         calls: list[tuple[tuple[object, ...], dict[str, object]]] = []
 
@@ -131,6 +188,7 @@ class AIOUpscaleStageTests(unittest.TestCase):
             {
                 "exclude_positive_quality": False,
                 "exclude_negative_quality": False,
+                "negpip_mode": "off",
             },
         )
         self.assertEqual(state.latent, "detailer-latent")
@@ -167,6 +225,7 @@ class AIOUpscaleStageTests(unittest.TestCase):
                 {
                     "exclude_positive_quality": True,
                     "exclude_negative_quality": True,
+                    "negpip_mode": "off",
                 },
             )
             return "upscaled-image", {

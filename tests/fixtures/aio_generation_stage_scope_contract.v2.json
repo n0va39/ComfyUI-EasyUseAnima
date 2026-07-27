@@ -1,0 +1,42 @@
+{
+  "schema": "easyuse_anima_aio_generation_stage_scope_contract",
+  "version": 2,
+  "stage_ids": ["first_pass", "highres", "detailer", "upscale"],
+  "patch_order": {
+    "revision": 1,
+    "precedence": [["kj.torch_compile", "dave"]]
+  },
+  "fresh_dave_stage_scope": {
+    "first_pass": true,
+    "highres": false,
+    "detailer": false,
+    "upscale": false
+  },
+  "legacy_profile": {
+    "input": {
+      "schema": "easyuse_anima_aio_generation_settings",
+      "version": 1,
+      "model_patches": {
+        "dave": {
+          "enabled": true,
+          "mask": "dave_alpha.npz",
+          "strength": 0.3,
+          "tau": 0.1
+        }
+      },
+      "profile_extension": {"preserve": true}
+    },
+    "expected_dave_stage_scope": {
+      "first_pass": true,
+      "highres": true,
+      "detailer": true,
+      "upscale": true
+    }
+  },
+  "custom_dave_stage_scope": {
+    "first_pass": false,
+    "highres": true,
+    "detailer": false,
+    "upscale": true
+  }
+}

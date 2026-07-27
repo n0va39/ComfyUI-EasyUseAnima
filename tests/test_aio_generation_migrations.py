@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 import copy
+import json
 import unittest
 from dataclasses import FrozenInstanceError
+from pathlib import Path
 from unittest.mock import patch
 
 import nodes
@@ -11,6 +13,9 @@ from easyuse_anima.aio.generation_migrations import (
     AIO_GENERATION_MIGRATION_REGISTRY,
     AIO_GENERATION_SETTINGS_CURRENT_VERSION,
     AIO_GENERATION_SETTINGS_SCHEMA,
+    AIO_GENERATION_STAGE_IDS,
+    AIO_MODEL_PATCH_ORDER_REVISION,
+    AIO_MODEL_PATCH_PRECEDENCE,
     AIOGenerationMigrationError,
     AIOGenerationMigrationRegistry,
     AIOGenerationMigrationStep,
@@ -22,8 +27,15 @@ from easyuse_anima.aio.generation_settings import (
 )
 from tests.comfy_host_fakes import patch_comfy_helper
 
+ROOT = Path(__file__).resolve().parents[1]
+STAGE_SCOPE_FIXTURE_PATH = (
+    ROOT / "tests" / "fixtures" / "aio_generation_stage_scope_contract.v2.json"
+)
 
-def _payload(version: int = 1) -> dict[str, object]:
+
+def _payload(
+    version: int = AIO_GENERATION_SETTINGS_CURRENT_VERSION,
+) -> dict[str, object]:
     return {
         "schema": AIO_GENERATION_SETTINGS_SCHEMA,
         "version": version,
@@ -32,13 +44,15 @@ def _payload(version: int = 1) -> dict[str, object]:
 
 
 class AIOGenerationMigrationTests(unittest.TestCase):
-    def test_shipped_registry_is_empty_immutable_and_matches_root_contract(self):
+    def test_shipped_registry_has_one_immutable_v1_to_v2_step(self):
         self.assertEqual(AIO_GENERATION_SETTINGS_SCHEMA, nodes.AIO_GENERATION_SETTINGS_SCHEMA)
         self.assertEqual(
             AIO_GENERATION_SETTINGS_CURRENT_VERSION,
             nodes.AIO_GENERATION_SETTINGS_VERSION,
         )
-        self.assertEqual(AIO_GENERATION_MIGRATION_REGISTRY.steps, ())
+        self.assertEqual(len(AIO_GENERATION_MIGRATION_REGISTRY.steps), 1)
+        step = AIO_GENERATION_MIGRATION_REGISTRY.steps[0]
+        self.assertEqual((step.from_version, step.to_version), (1, 2))
         with self.assertRaises(FrozenInstanceError):
             AIO_GENERATION_MIGRATION_REGISTRY.steps = ()
 
@@ -55,7 +69,7 @@ class AIOGenerationMigrationTests(unittest.TestCase):
         self.assertEqual(source, source_before)
 
     def test_detection_and_dispatch_errors_are_explicit(self):
-        self.assertEqual(detect_aio_generation_settings_version(_payload()), 1)
+        self.assertEqual(detect_aio_generation_settings_version(_payload()), 2)
 
         for source in (
             {"version": 1},
@@ -70,9 +84,9 @@ class AIOGenerationMigrationTests(unittest.TestCase):
                     migrate_aio_generation_settings(source)
 
         with self.assertRaisesRegex(AIOGenerationMigrationError, "newer than target"):
-            migrate_aio_generation_settings(_payload(2))
+            migrate_aio_generation_settings(_payload(3))
         with self.assertRaisesRegex(AIOGenerationMigrationError, "No AiO generation migration"):
-            migrate_aio_generation_settings(_payload(), target_version=2)
+            migrate_aio_generation_settings(_payload(1), target_version=3)
 
     def test_test_only_registry_dispatches_consecutive_steps_in_order(self):
         calls: list[int] = []
@@ -89,7 +103,7 @@ class AIOGenerationMigrationTests(unittest.TestCase):
             .with_step(AIOGenerationMigrationStep(1, 2, lambda value: advance(value, 2)))
             .with_step(AIOGenerationMigrationStep(2, 3, lambda value: advance(value, 3)))
         )
-        source = _payload()
+        source = _payload(1)
 
         migrated = migrate_aio_generation_settings(
             source,
@@ -100,8 +114,8 @@ class AIOGenerationMigrationTests(unittest.TestCase):
         self.assertEqual(calls, [2, 3])
         self.assertEqual(migrated["version"], 3)
         self.assertEqual(migrated["trace"], [2, 3])
-        self.assertEqual(source, _payload())
-        self.assertEqual(AIO_GENERATION_MIGRATION_REGISTRY.steps, ())
+        self.assertEqual(source, _payload(1))
+        self.assertEqual(len(AIO_GENERATION_MIGRATION_REGISTRY.steps), 1)
 
     def test_registry_rejects_non_stepwise_duplicate_and_wrong_output(self):
         with self.assertRaisesRegex(AIOGenerationMigrationError, "exactly one version"):
@@ -125,13 +139,13 @@ class AIOGenerationMigrationTests(unittest.TestCase):
         )
         with self.assertRaisesRegex(AIOGenerationMigrationError, "returned version 3"):
             migrate_aio_generation_settings(
-                _payload(),
+                _payload(1),
                 target_version=2,
                 registry=wrong,
             )
 
     def test_failed_step_never_mutates_the_caller_payload(self):
-        source = _payload()
+        source = _payload(1)
         source_before = copy.deepcopy(source)
 
         def fail(working):
@@ -150,7 +164,7 @@ class AIOGenerationMigrationTests(unittest.TestCase):
             )
         self.assertEqual(source, source_before)
 
-    def test_pure_pipeline_preserves_legacy_normalizer_parity_without_runtime_wiring(self):
+    def test_pure_pipeline_composes_shipped_migration_normalization_and_round_trip(self):
         legacy = {
             "schema": AIO_GENERATION_SETTINGS_SCHEMA,
             "version": 1,
@@ -172,7 +186,9 @@ class AIOGenerationMigrationTests(unittest.TestCase):
                 return_value=16384,
             ),
         ):
-            expected = nodes._normalize_aio_generation_settings(legacy)
+            expected = nodes._normalize_aio_generation_settings(
+                migrate_aio_generation_settings(legacy)
+            )
             actual = migrate_normalize_and_round_trip_aio_generation_settings(
                 legacy,
                 normalize=nodes._normalize_aio_generation_settings,
@@ -190,11 +206,47 @@ class AIOGenerationMigrationTests(unittest.TestCase):
             ),
         ):
             current_runtime = nodes._normalize_aio_generation_settings(
-                {"schema": AIO_GENERATION_SETTINGS_SCHEMA, "version": 2}
+                {"schema": AIO_GENERATION_SETTINGS_SCHEMA, "version": 3}
             )
-        self.assertEqual(current_runtime["version"], 2)
+        self.assertEqual(current_runtime["version"], 3)
         with self.assertRaisesRegex(AIOGenerationMigrationError, "newer than target"):
-            migrate_aio_generation_settings(_payload(2))
+            migrate_aio_generation_settings(_payload(3))
+
+    def test_v1_profile_migrates_to_legacy_all_stage_and_v2_custom_scope_is_preserved(self):
+        fixture = json.loads(STAGE_SCOPE_FIXTURE_PATH.read_text(encoding="utf-8"))
+        legacy = fixture["legacy_profile"]["input"]
+        legacy_before = copy.deepcopy(legacy)
+
+        migrated = migrate_aio_generation_settings(legacy)
+
+        self.assertEqual(migrated["version"], 2)
+        self.assertEqual(
+            migrated["model_patches"]["dave"]["stage_scope"],
+            fixture["legacy_profile"]["expected_dave_stage_scope"],
+        )
+        self.assertEqual(migrated["profile_extension"], {"preserve": True})
+        self.assertEqual(legacy, legacy_before)
+
+        current = copy.deepcopy(migrated)
+        current["model_patches"]["dave"]["stage_scope"] = fixture[
+            "custom_dave_stage_scope"
+        ]
+        self.assertEqual(
+            migrate_aio_generation_settings(current)["model_patches"]["dave"][
+                "stage_scope"
+            ],
+            fixture["custom_dave_stage_scope"],
+        )
+
+        self.assertEqual(tuple(fixture["stage_ids"]), AIO_GENERATION_STAGE_IDS)
+        self.assertEqual(
+            fixture["patch_order"]["revision"],
+            AIO_MODEL_PATCH_ORDER_REVISION,
+        )
+        self.assertEqual(
+            tuple(tuple(edge) for edge in fixture["patch_order"]["precedence"]),
+            AIO_MODEL_PATCH_PRECEDENCE,
+        )
 
 
 if __name__ == "__main__":

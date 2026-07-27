@@ -23,6 +23,7 @@ from .generation_migrations import (
 from .generation_output import AIOGenerationPreviewConfig, AIOGenerationSaveConfig
 from .generation_sampling import AIOGenerationSamplerConfig
 from .generation_values import ObjectState, expect_int, expect_str, required
+from .negpip import AIOGenerationNegPipConfig
 
 AIOGenerationSettingsNormalizer: TypeAlias = Callable[
     [Mapping[str, object]],
@@ -37,6 +38,7 @@ class AIOGenerationConfig:
     version: int
     mode: str
     sampler: AIOGenerationSamplerConfig
+    negpip: AIOGenerationNegPipConfig
     model_patches: AIOGenerationModelPatchesConfig
     mod_guidance: AIOGenerationModGuidanceConfig
     artist_mix: AIOGenerationArtistMixConfig
@@ -50,7 +52,7 @@ class AIOGenerationConfig:
     @classmethod
     def from_dict(cls, source: Mapping[str, object]) -> AIOGenerationConfig:
         known = (
-            "schema", "version", "mode", "sampler", "model_patches", "mod_guidance",
+            "schema", "version", "mode", "sampler", "negpip", "model_patches", "mod_guidance",
             "artist_mix", "highres", "upscale", "postprocess", "detailer", "save", "preview",
         )
         return cls(
@@ -59,6 +61,7 @@ class AIOGenerationConfig:
             version=expect_int(required(source, "version"), "version"),
             mode=expect_str(required(source, "mode"), "mode"),
             sampler=AIOGenerationSamplerConfig.from_value(required(source, "sampler")),
+            negpip=AIOGenerationNegPipConfig.from_value(required(source, "negpip")),
             model_patches=AIOGenerationModelPatchesConfig.from_value(required(source, "model_patches")),
             mod_guidance=AIOGenerationModGuidanceConfig.from_value(required(source, "mod_guidance")),
             artist_mix=AIOGenerationArtistMixConfig.from_value(required(source, "artist_mix")),
@@ -74,6 +77,7 @@ class AIOGenerationConfig:
         return self.state.compose({
             "schema": self.schema, "version": self.version, "mode": self.mode,
             "sampler": self.sampler.to_dict(),
+            "negpip": self.negpip.to_dict(),
             "model_patches": self.model_patches.to_dict(),
             "mod_guidance": self.mod_guidance.to_dict(),
             "artist_mix": self.artist_mix.to_dict(), "highres": self.highres.to_dict(),

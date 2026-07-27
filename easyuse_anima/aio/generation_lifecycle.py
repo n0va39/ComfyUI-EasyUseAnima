@@ -20,6 +20,35 @@ PreviewSender: TypeAlias = Callable[
 ]
 
 
+@dataclass(frozen=True, slots=True)
+class StageModelPatchPlan:
+    signature: str
+    patch_ids: tuple[str, ...]
+    payload: object
+
+
+StageModelPlanFactory: TypeAlias = Callable[
+    [dict[str, Any], str],
+    StageModelPatchPlan,
+]
+StageModelPatcher: TypeAlias = Callable[
+    [object, StageModelPatchPlan],
+    object,
+]
+
+
+def _new_model_list() -> list[object]:
+    return []
+
+
+def _new_variant_cache() -> dict[str, object]:
+    return {}
+
+
+def _new_stage_patch_map() -> dict[str, tuple[str, ...]]:
+    return {}
+
+
 class PreviewSaver(Protocol):
     def __call__(
         self,
@@ -39,7 +68,21 @@ class EphemeralModelRegistry:
     mod_guidance_model: object | None = None
     model: object | None = None
     model_with_lora: object | None = None
+    _registered_models: list[object] = field(
+        init=False,
+        default_factory=_new_model_list,
+    )
     _closed: bool = field(init=False, default=False)
+
+    def register_model(self, model: object) -> object:
+        if self._closed:
+            raise RuntimeError("AiO model registry is already closed")
+        self._registered_models.append(model)
+        return model
+
+    @property
+    def closed(self) -> bool:
+        return self._closed
 
     def close(self) -> None:
         if self._closed:
@@ -50,6 +93,7 @@ class EphemeralModelRegistry:
             self.base_sample_model,
             self.mod_guidance_model,
             self.model,
+            *self._registered_models,
             self.model_with_lora,
         ):
             if ephemeral_model is None:
@@ -85,6 +129,7 @@ class ModelVariantResolver:
     def __post_init__(self) -> None:
         self._mod_guidance_model = self.model
         self.registry.mod_guidance_model = self.model
+        self.registry.register_model(self.model)
 
     @property
     def mod_guidance_model(self) -> object:
@@ -107,6 +152,7 @@ class ModelVariantResolver:
         )
         self._mod_guidance_model = resolved
         self.registry.mod_guidance_model = resolved
+        self.registry.register_model(resolved)
         return resolved
 
     def for_backend(self, backend: str) -> tuple[object, bool]:
@@ -130,7 +176,51 @@ class ModelVariantResolver:
                 sampler_settings,
             )
         self.registry.base_sample_model = sample_model
+        self.registry.register_model(sample_model)
         return sample_model, use_mod_guidance
+
+
+@dataclass(frozen=True, slots=True)
+class StageModelVariantRuntime:
+    build_plan: StageModelPlanFactory
+    apply_plan: StageModelPatcher
+
+
+@dataclass(slots=True)
+class StageModelVariantResolver:
+    runtime: StageModelVariantRuntime
+    registry: EphemeralModelRegistry
+    model_with_lora: object
+    settings: dict[str, Any]
+    max_variants: int = 4
+    _variants: dict[str, object] = field(
+        init=False,
+        default_factory=_new_variant_cache,
+    )
+    _patches_by_stage: dict[str, tuple[str, ...]] = field(
+        init=False,
+        default_factory=_new_stage_patch_map,
+    )
+
+    def resolve(self, stage_id: str) -> object:
+        if self.registry.closed:
+            raise RuntimeError("AiO model registry is already closed")
+        plan = self.runtime.build_plan(self.settings, stage_id)
+        self._patches_by_stage[stage_id] = plan.patch_ids
+        existing = self._variants.get(plan.signature)
+        if existing is not None:
+            return existing
+        if len(self._variants) >= self.max_variants:
+            raise RuntimeError("AiO stage MODEL variant limit exceeded")
+        resolved = self.runtime.apply_plan(self.model_with_lora, plan)
+        self._variants[plan.signature] = resolved
+        if self.registry.model is None:
+            self.registry.model = resolved
+        self.registry.register_model(resolved)
+        return resolved
+
+    def patch_ids(self, stage_id: str) -> tuple[str, ...]:
+        return self._patches_by_stage.get(stage_id, ())
 
 
 @dataclass(frozen=True, slots=True)

@@ -72,11 +72,13 @@ function assertDisabled(entries, expected = true) {
 }
 
 async function flushPromises() {
-  await Promise.resolve();
-  await Promise.resolve();
+  for (let index = 0; index < 6; index += 1) {
+    await Promise.resolve();
+  }
 }
 
 const advancedDialogModule = await import(dataModule("../web/js/aio/advanced_settings_dialog.js"));
+const recommendationModule = await import(dataModule("../web/js/aio/torch_compile_recommendation.js"));
 const settingsModule = await import(dataModule("../web/js/aio/settings.js"));
 assert.deepEqual(
   Object.keys(advancedDialogModule),
@@ -90,6 +92,10 @@ function configuredSettings() {
       dave: { legacy: true },
       future_sampler_key: "keep-sampler",
     },
+    negpip: {
+      mode: "turbo",
+      future_negpip_key: "keep-negpip",
+    },
     model_patches: {
       future_model_patch_key: "keep-model-patches",
       aura_flow: {
@@ -102,6 +108,12 @@ function configuredSettings() {
         mask: "configured-dave.npz",
         strength: 0.42,
         tau: 0.21,
+        stage_scope: {
+          first_pass: true,
+          highres: true,
+          detailer: false,
+          upscale: true,
+        },
         future_dave_key: "keep-dave",
       },
       safe_pag: {
@@ -145,7 +157,13 @@ function configuredSettings() {
   };
 }
 
-function createFixture({ settings = {}, available = {}, deferLoads = false } = {}) {
+function createFixture({
+  settings = {},
+  available = {},
+  deferLoads = false,
+  recommendationResults = [],
+  deferRecommendations = false,
+} = {}) {
   let dependencyCalls = 0;
   let currentDialog = null;
   const dialogs = [];
@@ -156,6 +174,8 @@ function createFixture({ settings = {}, available = {}, deferLoads = false } = {
   const clampCalls = [];
   const writes = [];
   const renders = [];
+  const recommendationCalls = [];
+  const recommendationResolvers = [];
   const document = createFakeDocument();
   const availabilityState = { ...available };
   const defaultSettings = clone(settingsModule.AIO_DEFAULT_GENERATION_SETTINGS);
@@ -299,6 +319,27 @@ function createFixture({ settings = {}, available = {}, deferLoads = false } = {
     currentDialog.trace.push("render");
   }
 
+  function recommend(settingsSnapshot, context) {
+    dependencyCalls += 1;
+    recommendationCalls.push({
+      settings: clone(settingsSnapshot),
+      context: clone(context),
+    });
+    if (deferRecommendations) {
+      return new Promise((resolve, reject) => {
+        recommendationResolvers.push({ resolve, reject });
+      });
+    }
+    const next = recommendationResults.shift();
+    if (next instanceof Error) {
+      throw next;
+    }
+    if (next === undefined) {
+      throw new Error("Missing fixture recommendation result");
+    }
+    return clone(next);
+  }
+
   const openAdvancedSettings = advancedDialogModule.aioCreateAdvancedSettingsDialog({
     document,
     controls: {
@@ -353,6 +394,10 @@ function createFixture({ settings = {}, available = {}, deferLoads = false } = {
         return new Promise((resolve) => loadResolvers.push(resolve));
       },
     },
+    recommendationAdapter: {
+      recommend,
+      diff: recommendationModule.aioTorchCompileRecommendationDiff,
+    },
   });
 
   return {
@@ -368,11 +413,22 @@ function createFixture({ settings = {}, available = {}, deferLoads = false } = {
     clampCalls,
     writes,
     renders,
+    recommendationCalls,
     dependencyCallCount: () => dependencyCalls,
     resolveLoads() {
       for (const resolve of loadResolvers.splice(0)) {
         resolve();
       }
+    },
+    resolveNextRecommendation(result) {
+      const pending = recommendationResolvers.shift();
+      assert.ok(pending, "missing deferred recommendation request");
+      pending.resolve(clone(result));
+    },
+    rejectNextRecommendation(error) {
+      const pending = recommendationResolvers.shift();
+      assert.ok(pending, "missing deferred recommendation request");
+      pending.reject(error);
     },
   };
 }
@@ -399,9 +455,11 @@ function createFixture({ settings = {}, available = {}, deferLoads = false } = {
     cancelDialog.subtitle,
     "Advanced generation options stay in a popup and are serialized as versioned settings.",
   );
+  const conditioning = sectionByHeading(cancelDialog.body, "Conditioning");
   const modelPatches = sectionByHeading(cancelDialog.body, "Model Patch / Optimization");
   const artistMix = sectionByHeading(cancelDialog.body, "Artist Mix");
   const dave = subsectionByHeading(modelPatches, "Anima DAVE");
+  const daveCustomStages = subsectionByHeading(dave, "Custom DAVE stages");
   const safePag = subsectionByHeading(modelPatches, "Anima Safe PAG");
   const kj = subsectionByHeading(modelPatches, "KJNodes Optimization");
   const sage = subsectionByHeading(kj, "SageAttention (KJNodes)");
@@ -409,18 +467,29 @@ function createFixture({ settings = {}, available = {}, deferLoads = false } = {
   const torchDetails = subsectionByHeading(torch, "Torch Compile Parameters");
   const warning = find(
     modelPatches,
-    (element) => element.classList.contains("easyuse-anima-aio-warning"),
+    (element) => element.classList.contains("easyuse-anima-aio-warning")
+      && element.getAttribute?.("aria-live") !== "polite",
   );
   assert.ok(warning);
   assert.equal(warning.hidden, true);
   assert.equal(warning.textContent, "");
   assert.equal(fixture.loadCalls.length, 1);
+  const negpipMode = controlIn(conditioning, "NegPip");
+  const negpipStatus = find(
+    conditioning,
+    (element) => element.getAttribute?.("aria-live") === "polite",
+  );
+  assert.equal(negpipMode.value, "turbo");
+  assert.ok(negpipStatus);
+  assert.equal(negpipStatus.hidden, false);
+  assert.equal(negpipStatus.textContent, "text:info.negpipTurboCfg");
 
   assertValues([
     [modelPatches, "AuraFlow shift", 6.5],
     [dave, "Mask", "configured-dave.npz"],
     [dave, "DAVE strength", 0.42],
     [dave, "DAVE tau", 0.21],
+    [dave, "DAVE stages", "custom"],
     [safePag, "Safe PAG scale", 5.5],
     [safePag, "Safe PAG blocks", "3, 7"],
     [safePag, "PAG perturbation", 0.35],
@@ -440,6 +509,10 @@ function createFixture({ settings = {}, available = {}, deferLoads = false } = {
   ]);
   assertChecked([
     [dave, "Use DAVE", true],
+    [daveCustomStages, "First pass", true],
+    [daveCustomStages, "Highres", true],
+    [daveCustomStages, "Detailer", false],
+    [daveCustomStages, "Upscale (USDU)", true],
     [safePag, "Use Safe PAG", true],
     [kj, "KJNodes FP16 accum", true],
     [sage, "Allow compile", true],
@@ -455,6 +528,7 @@ function createFixture({ settings = {}, available = {}, deferLoads = false } = {
   assert.equal(controlIn(safePag, "Safe PAG scale").max, "100");
   assert.equal(rowByLabel(sage, "Allow compile").style.display, "");
   assert.equal(torchDetails.style.display, "");
+  assert.equal(daveCustomStages.style.display, "");
 
   const sageMode = controlIn(sage, "Mode");
   sageMode.value = "disabled";
@@ -470,9 +544,15 @@ function createFixture({ settings = {}, available = {}, deferLoads = false } = {
   torchEnabled.checked = true;
   torchEnabled.emit("change");
   assert.equal(torchDetails.style.display, "");
+  negpipMode.value = "off";
+  negpipMode.emit("change");
+  assert.equal(negpipStatus.hidden, true);
 
   controlIn(modelPatches, "AuraFlow shift").value = "9";
   controlIn(dave, "Use DAVE").checked = false;
+  controlIn(dave, "DAVE stages").value = "all_sampling_stages";
+  controlIn(dave, "DAVE stages").emit("change");
+  assert.equal(daveCustomStages.style.display, "none");
   controlIn(safePag, "PAG rescale mode").value = "full";
   controlIn(kj, "KJNodes FP16 accum").checked = false;
   sageMode.value = "disabled";
@@ -492,17 +572,24 @@ function createFixture({ settings = {}, available = {}, deferLoads = false } = {
   fixture.openAdvancedSettings(fixture.node);
   await flushPromises();
   const applyDialog = fixture.dialogs[1];
+  const applyConditioning = sectionByHeading(applyDialog.body, "Conditioning");
   const applyModelPatches = sectionByHeading(applyDialog.body, "Model Patch / Optimization");
   const applyArtistMix = sectionByHeading(applyDialog.body, "Artist Mix");
   const applyDave = subsectionByHeading(applyModelPatches, "Anima DAVE");
+  const applyDaveCustomStages = subsectionByHeading(applyDave, "Custom DAVE stages");
   const applySafePag = subsectionByHeading(applyModelPatches, "Anima Safe PAG");
   const applyKj = subsectionByHeading(applyModelPatches, "KJNodes Optimization");
   const applySage = subsectionByHeading(applyKj, "SageAttention (KJNodes)");
   const applyTorch = subsectionByHeading(applyKj, "Torch Compile (KJNodes)");
   const applyTorchDetails = subsectionByHeading(applyTorch, "Torch Compile Parameters");
 
+  controlIn(applyConditioning, "NegPip").value = "on";
   controlIn(applyModelPatches, "AuraFlow shift").value = "99";
   controlIn(applyDave, "Use DAVE").checked = true;
+  const applyDaveStagePreset = controlIn(applyDave, "DAVE stages");
+  applyDaveStagePreset.value = "all_sampling_stages";
+  applyDaveStagePreset.emit("change");
+  assert.equal(applyDaveCustomStages.style.display, "none");
   controlIn(applyDave, "Mask").value = "";
   controlIn(applyDave, "DAVE strength").value = "0";
   controlIn(applyDave, "DAVE tau").value = "";
@@ -557,6 +644,8 @@ function createFixture({ settings = {}, available = {}, deferLoads = false } = {
   );
 
   const written = fixture.node.settings;
+  assert.equal(written.negpip.mode, "on");
+  assert.equal(written.negpip.future_negpip_key, "keep-negpip");
   assert.equal(written.model_patches.aura_flow.shift, 10);
   assert.equal(Object.hasOwn(written.model_patches.aura_flow, "enabled"), false);
   assert.deepEqual(
@@ -565,8 +654,20 @@ function createFixture({ settings = {}, available = {}, deferLoads = false } = {
       mask: written.model_patches.dave.mask,
       strength: written.model_patches.dave.strength,
       tau: written.model_patches.dave.tau,
+      stage_scope: written.model_patches.dave.stage_scope,
     },
-    { enabled: true, mask: "dave_alpha.npz", strength: 0, tau: 0.1 },
+    {
+      enabled: true,
+      mask: "dave_alpha.npz",
+      strength: 0,
+      tau: 0.1,
+      stage_scope: {
+        first_pass: true,
+        highres: true,
+        detailer: true,
+        upscale: true,
+      },
+    },
   );
   assert.deepEqual(
     {
@@ -639,6 +740,77 @@ function createFixture({ settings = {}, available = {}, deferLoads = false } = {
   assert.deepEqual(fixture.defaultSettings, originalDefaults, "Apply must not mutate injected defaults");
 }
 
+{
+  const fixture = createFixture({
+    settings: { negpip: { mode: "turbo" } },
+    available: { ppmNegPip: false },
+  });
+  fixture.openAdvancedSettings(fixture.node);
+  await flushPromises();
+  const dialog = fixture.dialogs[0];
+  const conditioning = sectionByHeading(dialog.body, "Conditioning");
+  const control = controlIn(conditioning, "NegPip");
+  const status = find(
+    conditioning,
+    (element) => element.getAttribute?.("aria-live") === "polite",
+  );
+  const message = (
+    'format:warning.optionalDependencyMissing:{"backend":"NegPip turbo","pack":"pack:ppmNegPip"}'
+  );
+
+  assert.equal(control.value, "turbo", "Missing PPM must preserve workflow intent");
+  assert.equal(control.disabled, false, "Missing PPM must remain an editable choice");
+  assert.equal(control.title, message);
+  assert.equal(status.hidden, false);
+  assert.equal(status.textContent, message);
+
+  control.value = "off";
+  control.emit("change");
+  control.value = "turbo";
+  control.emit("change");
+  assert.equal(control.value, "turbo", "Dependency warning must not silently reset Turbo");
+  assert.deepEqual(fixture.notifications, [{
+    backend: "NegPip turbo",
+    keys: ["ppmNegPip"],
+  }]);
+  action(dialog, "button.apply").emit("click");
+  assert.equal(fixture.node.settings.negpip.mode, "turbo");
+}
+
+{
+  const fresh = createFixture();
+  fresh.openAdvancedSettings(fresh.node);
+  await flushPromises();
+  const dialog = fresh.dialogs[0];
+  const modelPatches = sectionByHeading(dialog.body, "Model Patch / Optimization");
+  const dave = subsectionByHeading(modelPatches, "Anima DAVE");
+  const customStages = subsectionByHeading(dave, "Custom DAVE stages");
+  assert.equal(controlIn(dave, "DAVE stages").value, "first_pass_only");
+  assert.equal(customStages.style.display, "none");
+}
+
+{
+  const custom = createFixture({ settings: configuredSettings() });
+  custom.openAdvancedSettings(custom.node);
+  await flushPromises();
+  const dialog = custom.dialogs[0];
+  const modelPatches = sectionByHeading(dialog.body, "Model Patch / Optimization");
+  const dave = subsectionByHeading(modelPatches, "Anima DAVE");
+  const customStages = subsectionByHeading(dave, "Custom DAVE stages");
+  assert.equal(controlIn(dave, "DAVE stages").value, "custom");
+  controlIn(customStages, "First pass").checked = false;
+  controlIn(customStages, "Highres").checked = true;
+  controlIn(customStages, "Detailer").checked = true;
+  controlIn(customStages, "Upscale (USDU)").checked = false;
+  action(dialog, "button.apply").emit("click");
+  assert.deepEqual(custom.node.settings.model_patches.dave.stage_scope, {
+    first_pass: false,
+    highres: true,
+    detailer: true,
+    upscale: false,
+  });
+}
+
 for (const dependencyCase of [
   { key: "dave", backend: "Anima DAVE" },
   { key: "safePag", backend: "Anima Safe PAG" },
@@ -661,6 +833,7 @@ for (const dependencyCase of [
   const dialog = fixture.dialogs[0];
   const modelPatches = sectionByHeading(dialog.body, "Model Patch / Optimization");
   const dave = subsectionByHeading(modelPatches, "Anima DAVE");
+  const daveCustomStages = subsectionByHeading(dave, "Custom DAVE stages");
   const safePag = subsectionByHeading(modelPatches, "Anima Safe PAG");
   const kj = subsectionByHeading(modelPatches, "KJNodes Optimization");
   const sage = subsectionByHeading(kj, "SageAttention (KJNodes)");
@@ -668,7 +841,8 @@ for (const dependencyCase of [
   const torchDetails = subsectionByHeading(torch, "Torch Compile Parameters");
   const warning = find(
     modelPatches,
-    (element) => element.classList.contains("easyuse-anima-aio-warning"),
+    (element) => element.classList.contains("easyuse-anima-aio-warning")
+      && element.getAttribute?.("aria-live") !== "polite",
   );
   assert.ok(warning);
   const controlGroups = {
@@ -677,6 +851,11 @@ for (const dependencyCase of [
       [dave, "Mask"],
       [dave, "DAVE strength"],
       [dave, "DAVE tau"],
+      [dave, "DAVE stages"],
+      [daveCustomStages, "First pass"],
+      [daveCustomStages, "Highres"],
+      [daveCustomStages, "Detailer"],
+      [daveCustomStages, "Upscale (USDU)"],
     ],
     safePag: [
       [safePag, "Use Safe PAG"],
@@ -767,6 +946,7 @@ for (const dependencyCase of [
   const dialog = fixture.dialogs[0];
   const modelPatches = sectionByHeading(dialog.body, "Model Patch / Optimization");
   const dave = subsectionByHeading(modelPatches, "Anima DAVE");
+  const daveCustomStages = subsectionByHeading(dave, "Custom DAVE stages");
   const safePag = subsectionByHeading(modelPatches, "Anima Safe PAG");
   const kj = subsectionByHeading(modelPatches, "KJNodes Optimization");
   const sage = subsectionByHeading(kj, "SageAttention (KJNodes)");
@@ -774,7 +954,8 @@ for (const dependencyCase of [
   const torchDetails = subsectionByHeading(torch, "Torch Compile Parameters");
   const warning = find(
     modelPatches,
-    (element) => element.classList.contains("easyuse-anima-aio-warning"),
+    (element) => element.classList.contains("easyuse-anima-aio-warning")
+      && element.getAttribute?.("aria-live") !== "polite",
   );
   assert.ok(warning);
   assert.equal(fixture.loadCalls.length, 1);
@@ -804,6 +985,11 @@ for (const dependencyCase of [
     [dave, "Mask"],
     [dave, "DAVE strength"],
     [dave, "DAVE tau"],
+    [dave, "DAVE stages"],
+    [daveCustomStages, "First pass"],
+    [daveCustomStages, "Highres"],
+    [daveCustomStages, "Detailer"],
+    [daveCustomStages, "Upscale (USDU)"],
     [safePag, "Safe PAG scale"],
     [safePag, "Safe PAG blocks"],
     [safePag, "PAG perturbation"],
@@ -863,6 +1049,223 @@ for (const dependencyCase of [
   assert.equal(fixture.node.settings.model_patches.kj.sage_allow_compile, false);
   assert.equal(fixture.node.settings.model_patches.kj.torch_compile.enabled, false);
   assert.deepEqual(JSON.parse(fixture.node.widgets[0].value), fixture.node.settings);
+}
+
+function supportedRecommendation() {
+  return {
+    supported: true,
+    profile: "stable_variable_shapes",
+    policyVersion: "recommendation-v1",
+    values: {
+      enabled: true,
+      backend: "inductor",
+      fullgraph: false,
+      mode: "default",
+      dynamic: "auto",
+      compile_transformer_blocks_only: true,
+      dynamo_cache_size_limit: 64,
+      debug_compile_keys: false,
+      disable_dynamic_vram: false,
+    },
+    reasonCodes: ["highres_changes_shape"],
+    warnings: ["first_compile_may_be_slow"],
+    environment: { accelerator: "cuda", totalVramMb: 16302 },
+  };
+}
+
+function torchRecommendationControls(dialog) {
+  const modelPatches = sectionByHeading(dialog.body, "Model Patch / Optimization");
+  const kj = subsectionByHeading(modelPatches, "KJNodes Optimization");
+  const torch = subsectionByHeading(kj, "Torch Compile (KJNodes)");
+  const details = subsectionByHeading(torch, "Torch Compile Parameters");
+  const button = findByText(torch, "text:button.torchCompileRecommend");
+  const status = find(torch, (element) => element.getAttribute?.("aria-live") === "polite");
+  assert.ok(button, "missing Torch Compile recommendation button");
+  assert.ok(status, "missing Torch Compile recommendation status");
+  return { torch, details, button, status };
+}
+
+{
+  const fixture = createFixture({
+    settings: configuredSettings(),
+    deferRecommendations: true,
+  });
+  const originalSettings = clone(fixture.node.settings);
+  const originalWidget = fixture.node.widgets[0].value;
+  fixture.openAdvancedSettings(fixture.node);
+  await flushPromises();
+  const dialog = fixture.dialogs[0];
+  const controls = torchRecommendationControls(dialog);
+
+  controls.button.emit("click");
+  assert.equal(controls.button.disabled, true);
+  assert.equal(controls.status.getAttribute("data-state"), "loading");
+  assert.equal(controls.status.textContent, "text:status.torchCompileLoading");
+  controls.button.emit("click");
+  await flushPromises();
+  assert.equal(fixture.recommendationCalls.length, 1, "A pending click must not duplicate requests");
+  assert.deepEqual(fixture.recommendationCalls[0], {
+    settings: originalSettings,
+    context: {},
+  });
+  assert.equal(fixture.writes.length, 0, "Recommendation loading must not write node settings");
+
+  fixture.resolveNextRecommendation(supportedRecommendation());
+  await flushPromises();
+  assert.equal(controls.button.disabled, false);
+  assert.equal(controls.status.getAttribute("data-state"), "supported");
+  assert.ok(controls.status.textContent.includes("text:status.torchCompileDraftApplied"));
+  assert.ok(controls.status.textContent.includes(
+    'format:status.torchCompileProfile:{"profile":"stable_variable_shapes"}',
+  ));
+  assert.ok(controls.status.textContent.includes(
+    'format:status.torchCompileEnvironment:{"accelerator":"cuda","vram":"16302 MiB"}',
+  ));
+  assert.ok(controls.status.textContent.includes(
+    'format:status.torchCompileReason:{"code":"highres_changes_shape"}',
+  ));
+  assert.ok(controls.status.textContent.includes(
+    'format:status.torchCompileWarning:{"code":"first_compile_may_be_slow"}',
+  ));
+  assertValues([
+    [controls.details, "Backend", "inductor"],
+    [controls.details, "Mode", "default"],
+    [controls.details, "Dynamic", "auto"],
+    [controls.details, "Dynamo cache limit", 64],
+  ]);
+  assertChecked([
+    [controls.torch, "Use Torch compile", true],
+    [controls.details, "Fullgraph", false],
+    [controls.details, "Transformer blocks only", true],
+    [controls.details, "Debug keys", false],
+    [controls.details, "Disable dynamic VRAM", false],
+  ]);
+  assert.deepEqual(fixture.node.settings, originalSettings, "Recommendation is draft-only");
+  assert.equal(fixture.node.widgets[0].value, originalWidget);
+  assert.equal(fixture.writes.length, 0);
+  assert.equal(fixture.renders.length, 0);
+
+  action(dialog, "button.cancel").emit("click");
+  assert.deepEqual(dialog.trace, ["remove"]);
+  assert.deepEqual(fixture.node.settings, originalSettings, "Cancel must discard recommendation draft");
+  assert.equal(fixture.node.widgets[0].value, originalWidget);
+}
+
+{
+  const fixture = createFixture({
+    settings: configuredSettings(),
+    recommendationResults: [supportedRecommendation()],
+  });
+  fixture.openAdvancedSettings(fixture.node);
+  await flushPromises();
+  const dialog = fixture.dialogs[0];
+  const controls = torchRecommendationControls(dialog);
+  controls.button.emit("click");
+  await flushPromises();
+  assert.equal(fixture.writes.length, 0);
+  action(dialog, "button.apply").emit("click");
+  assert.deepEqual(dialog.trace, ["merge", "write", "render", "remove"]);
+  assert.deepEqual(
+    {
+      enabled: fixture.node.settings.model_patches.kj.torch_compile.enabled,
+      backend: fixture.node.settings.model_patches.kj.torch_compile.backend,
+      fullgraph: fixture.node.settings.model_patches.kj.torch_compile.fullgraph,
+      mode: fixture.node.settings.model_patches.kj.torch_compile.mode,
+      dynamic: fixture.node.settings.model_patches.kj.torch_compile.dynamic,
+      compile_transformer_blocks_only: (
+        fixture.node.settings.model_patches.kj.torch_compile.compile_transformer_blocks_only
+      ),
+      dynamo_cache_size_limit: (
+        fixture.node.settings.model_patches.kj.torch_compile.dynamo_cache_size_limit
+      ),
+      debug_compile_keys: fixture.node.settings.model_patches.kj.torch_compile.debug_compile_keys,
+      disable_dynamic_vram: fixture.node.settings.model_patches.kj.torch_compile.disable_dynamic_vram,
+    },
+    supportedRecommendation().values,
+    "Only final Apply may persist a recommendation",
+  );
+  assert.equal(
+    fixture.node.settings.model_patches.kj.torch_compile.future_torch_key,
+    "keep-torch",
+    "Unknown Torch Compile settings must survive final Apply",
+  );
+}
+
+{
+  const unsupported = {
+    supported: false,
+    profile: "unsupported_environment",
+    policyVersion: "recommendation-v1",
+    values: null,
+    reasonCodes: ["unsupported_accelerator"],
+    warnings: [],
+    environment: { accelerator: "cpu", totalVramMb: null },
+  };
+  const fixture = createFixture({
+    settings: configuredSettings(),
+    recommendationResults: [unsupported],
+  });
+  fixture.openAdvancedSettings(fixture.node);
+  await flushPromises();
+  const dialog = fixture.dialogs[0];
+  const controls = torchRecommendationControls(dialog);
+  const before = {
+    backend: controlIn(controls.details, "Backend").value,
+    dynamic: controlIn(controls.details, "Dynamic").value,
+    enabled: controlIn(controls.torch, "Use Torch compile").checked,
+  };
+  controls.button.emit("click");
+  await flushPromises();
+  assert.equal(controls.status.getAttribute("data-state"), "unsupported");
+  assert.ok(controls.status.textContent.includes("text:status.torchCompileUnsupported"));
+  assert.deepEqual({
+    backend: controlIn(controls.details, "Backend").value,
+    dynamic: controlIn(controls.details, "Dynamic").value,
+    enabled: controlIn(controls.torch, "Use Torch compile").checked,
+  }, before, "Unsupported responses must not mutate controls");
+  assert.equal(fixture.writes.length, 0);
+}
+
+{
+  const fixture = createFixture({
+    settings: configuredSettings(),
+    recommendationResults: [new Error("policy unavailable")],
+  });
+  fixture.openAdvancedSettings(fixture.node);
+  await flushPromises();
+  const dialog = fixture.dialogs[0];
+  const controls = torchRecommendationControls(dialog);
+  const before = controlIn(controls.details, "Backend").value;
+  controls.button.emit("click");
+  await flushPromises();
+  assert.equal(controls.status.getAttribute("data-state"), "error");
+  assert.equal(
+    controls.status.textContent,
+    'format:status.torchCompileRequestFailed:{"message":"policy unavailable"}',
+  );
+  assert.equal(controlIn(controls.details, "Backend").value, before);
+  assert.equal(fixture.writes.length, 0);
+}
+
+{
+  const fixture = createFixture({
+    settings: configuredSettings(),
+    deferRecommendations: true,
+  });
+  const originalSettings = clone(fixture.node.settings);
+  fixture.openAdvancedSettings(fixture.node);
+  await flushPromises();
+  const dialog = fixture.dialogs[0];
+  const controls = torchRecommendationControls(dialog);
+  const before = controlIn(controls.details, "Backend").value;
+  controls.button.emit("click");
+  await flushPromises();
+  action(dialog, "button.cancel").emit("click");
+  fixture.resolveNextRecommendation(supportedRecommendation());
+  await flushPromises();
+  assert.equal(controlIn(controls.details, "Backend").value, before);
+  assert.deepEqual(fixture.node.settings, originalSettings);
+  assert.equal(fixture.writes.length, 0, "A late result after Cancel must be ignored");
 }
 
 console.log("AiO Advanced settings dialog smoke passed.");
