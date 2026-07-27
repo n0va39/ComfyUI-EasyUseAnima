@@ -33,7 +33,7 @@ merged PR, the owning issue's evidence record, and every stated exit gate.
 | A - baseline | Complete; #191 is closed | Keep fixtures and analyzers current during later moves |
 | B - `nodes.py` extraction | Complete in B-11d / PR #356 | Preserve the audited compatibility shim until ADR-002 retirement gates are met |
 | C - feature contracts/behavior | Partially complete through S167-01a / PR #344 | Continue #167 and #169 in separate Contract/Move/Behavior PRs |
-| D - root consolidation | D-01, D-02, D-03a, and D-08 through D-13 complete or in promotion | Continue bounded D-03 route ownership; keep D-14 gated |
+| D - root consolidation | D-01, D-02, D-03a/D-03b, and D-08 through D-13 complete or in promotion | Continue bounded D-03 route ownership; keep D-14 gated |
 | E - runtime ownership | Partial: E-02a and E-07a/E-07b integrated | Continue #187 only where canonical feature owners and explicit contracts exist |
 | F - typed boundaries | Partial patterns exist | Extend typed request/result/config and pure migration patterns feature by feature |
 | G - quality ratchet | G-01, G-02a/G-02b, and G-03a complete | Extend G-03 enrollment, then continue with G-04 through G-06 |
@@ -408,7 +408,7 @@ mechanical retirement series.
 | 15 | S167 backend seed reservation series | S167-01 through S167-03d COMPLETE on `dev`; S167-03e AiO cutover VALIDATED with isolated API/module/browser-load parity | Contract then Move then Behavior | #167 | Canonical AiO/node seams |
 | 16 | A169 stage pipeline series | A169-01 through A169-08 MERGED; A169-09 final adapter/integration VALIDATED in PR #372 | Contract then Behavior | #169 | Typed config and mechanical AiO move |
 | 17 | A169 first-pass cache policy | COMPLETE through CACHE-06; 4K/batch evidence VALIDATED in PR #380 | Contract then Behavior | #169 | Mechanical cache move and stable stage seam |
-| 18 | D-series canonical root consolidation | D-01 translation, D-02 API contracts, D-03a translation route handler, D-08 filesystem, D-09 settings, D-10 profiles, D-11 autocomplete, D-12 wildcard, and D-13 ANIMA prompt COMPLETE or in promotion | Continue bounded D-03 route ownership; keep D-14 gated | #186 | Phase B exit; per-feature behavior stable |
+| 18 | D-series canonical root consolidation | D-01 translation, D-02 API contracts, D-03a translation route handler, D-03b translation route executor, D-08 filesystem, D-09 settings, D-10 profiles, D-11 autocomplete, D-12 wildcard, and D-13 ANIMA prompt COMPLETE or in promotion | Continue bounded D-03 route ownership; keep D-14 gated | #186 | Phase B exit; per-feature behavior stable |
 | 19 | E-series RuntimeServices/lifecycle | BLOCKED by canonical owners | Move/Contract, split PRs | #187 | Relevant D moves |
 | 20 | G-04 through G-06 and H | INCREMENTAL/LATER | Gate/Contract | #188 | Appropriate package and release evidence |
 
@@ -1339,6 +1339,13 @@ success mapping, while root `api.py` supplies dynamic callables and retains the
 existing correlation wrapper, timeout worker, route signature, and registration
 composition. This preserves the observed root monkeypatch seams and separates
 handler ownership from a later concurrency/lifecycle decision.
+
+D-03b moves the route-specific bounded executor and its wait/cancel/timeout
+policy to side-effect-free `easyuse_anima.api.routes.translation_execution`.
+Root `api.py` still constructs the singleton, registers its idempotent shutdown,
+and supplies the dynamic translation and timeout seams. The canonical module
+therefore owns the frozen #164 admission policy without creating an executor or
+registering lifecycle work at import time.
 
 D-11 is split by dependency ownership. D-11a moves the SQLite index leaf to
 `easyuse_anima.autocomplete.index`, retains `autocomplete_index.py` as an

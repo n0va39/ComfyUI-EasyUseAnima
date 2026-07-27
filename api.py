@@ -7,7 +7,6 @@ import logging
 import os
 import threading
 import weakref
-from concurrent.futures import Future, ThreadPoolExecutor
 from functools import wraps
 
 try:
@@ -65,6 +64,9 @@ from .easyuse_anima.api.responses import (
 )
 from .easyuse_anima.api.routes.translation import (
     build_translate_prompt_handler as _build_translate_prompt_handler,
+)
+from .easyuse_anima.api.routes.translation_execution import (
+    PromptTranslationRouteExecutor as _PromptTranslationRouteExecutor,
 )
 from .easyuse_anima.aio.torch_compile_diagnostics import (
     collect_torch_compile_diagnostics as _collect_torch_compile_diagnostics,
@@ -163,53 +165,11 @@ _FILE_IO_LIMITERS_LOCK = threading.Lock()
 _FILE_IO_LIMITERS: weakref.WeakKeyDictionary = weakref.WeakKeyDictionary()
 
 
-class _PromptTranslationWorker:
-    """Own one lazy worker and never queue behind a timed-out sync call."""
-
-    def __init__(self):
-        self._lock = threading.RLock()
-        self._executor: ThreadPoolExecutor | None = None
-        self._in_flight: Future | None = None
-        self._closed = False
-
-    @property
-    def has_in_flight(self) -> bool:
-        with self._lock:
-            return self._in_flight is not None and not self._in_flight.done()
-
-    def submit(self, function, *args) -> Future:
-        with self._lock:
-            if self._closed:
-                raise RuntimeError("Prompt translation worker is shut down.")
-            if self._in_flight is not None and not self._in_flight.done():
-                raise TranslationBusyError()
-            if self._executor is None:
-                self._executor = ThreadPoolExecutor(
-                    max_workers=1,
-                    thread_name_prefix="easyuse-anima-translation",
-                )
-            future = self._executor.submit(function, *args)
-            self._in_flight = future
-        future.add_done_callback(self._release)
-        return future
-
-    def _release(self, future: Future) -> None:
-        with self._lock:
-            if self._in_flight is future:
-                self._in_flight = None
-
-    def shutdown(self) -> None:
-        with self._lock:
-            if self._closed:
-                return
-            self._closed = True
-            executor = self._executor
-            self._executor = None
-        if executor is not None:
-            executor.shutdown(wait=False, cancel_futures=True)
-
-
-_PROMPT_TRANSLATION_WORKER = _PromptTranslationWorker()
+_PROMPT_TRANSLATION_WORKER = _PromptTranslationRouteExecutor(
+    busy_error_type=TranslationBusyError,
+    cancelled_error_type=TranslationCancelledError,
+    timeout_error_type=TranslationTimeoutError,
+)
 atexit.register(_PROMPT_TRANSLATION_WORKER.shutdown)
 
 
@@ -218,22 +178,11 @@ def _translate_prompt_sync(text: str) -> str:
 
 
 async def _translate_prompt_for_route(text: str) -> str:
-    future = _PROMPT_TRANSLATION_WORKER.submit(_translate_prompt_sync, text)
-    wrapped_future = asyncio.wrap_future(future)
-    try:
-        done, _pending = await asyncio.wait(
-            (wrapped_future,),
-            timeout=PROMPT_TRANSLATION_ROUTE_TIMEOUT_SECONDS,
-        )
-    except asyncio.CancelledError as exc:
-        # Waiting stops immediately, while admission remains occupied until the
-        # bounded sync worker really exits.
-        wrapped_future.cancel()
-        raise TranslationCancelledError() from exc
-    if not done:
-        wrapped_future.cancel()
-        raise TranslationTimeoutError()
-    return wrapped_future.result()
+    return await _PROMPT_TRANSLATION_WORKER.execute(
+        _translate_prompt_sync,
+        text,
+        timeout_seconds=PROMPT_TRANSLATION_ROUTE_TIMEOUT_SECONDS,
+    )
 
 
 def _prompt_translation_error_response(exc: PromptTranslationError):
