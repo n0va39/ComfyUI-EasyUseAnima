@@ -60,6 +60,10 @@ class WildcardEngineTests(unittest.TestCase):
             "_split_unescaped",
             "_parse_dynamic_options",
             "_parse_count_spec",
+            "_expand_multiselect_options",
+            "_replace_dynamic",
+            "_replace_quantified_wildcards",
+            "_replace_file_wildcards",
             "_bounded_output_prefix",
             "_expansion_state_signature",
         )
@@ -301,6 +305,22 @@ class WildcardEngineTests(unittest.TestCase):
         values = [part.strip() for part in result.text.split(",")]
         self.assertEqual(len(values), 2)
         self.assertEqual(len(set(values)), 2)
+
+    def test_quantified_wildcard_uses_selector_stream_and_records_key(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            (root / "color.txt").write_text("red\nblue\ngreen\n", encoding="utf-8")
+
+            result = expand_wildcards(
+                "2#__color__",
+                seed=1,
+                mode="순차",
+                roots=[root],
+            )
+
+        self.assertEqual(result.text, "blue, green")
+        self.assertEqual(result.used_keys, ("color",))
+        self.assertEqual(result.replacement_count, 1)
 
     def test_direct_self_reference_stops_with_unresolved_token(self):
         with tempfile.TemporaryDirectory() as temp:

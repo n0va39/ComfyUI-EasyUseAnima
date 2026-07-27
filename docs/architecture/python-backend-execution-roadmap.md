@@ -1366,7 +1366,11 @@ lifecycle, library ownership, replacement resolution, and expansion
 orchestration for later slices. D-12g2 moves escaped dynamic-option splitting,
 weighted option parsing, and count/range parsing into the same canonical
 expansion owner. Root retains direct aliases plus selector construction,
-library lookup, replacement stages, and expansion orchestration.
+library lookup, replacement stages, and expansion orchestration. D-12g3 moves
+multiselect option expansion and the dynamic, quantified, and file replacement
+stages behind a narrow option-lookup protocol. Root retains direct aliases,
+stage ordering, snapshot/library ownership, lane construction, and the
+expansion loop.
 
 ## 12. Phase E — Runtime ownership and lifecycle
 
