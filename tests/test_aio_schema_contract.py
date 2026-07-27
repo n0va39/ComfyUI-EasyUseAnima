@@ -1032,7 +1032,44 @@ class AIOGenerationSettingsManifestTests(unittest.TestCase):
         self.assertEqual(patch_contract["dave_fresh_default"], "first-pass-only")
         self.assertEqual(
             patch_contract["execution_cutover"],
-            "deferred-to-AIO-SCOPE-02/03",
+            "complete-through-AIO-SCOPE-03",
+        )
+        self.assertEqual(
+            patch_contract["stage_scope_policy"],
+            {
+                "generic_scope_ui": False,
+                "owners": {
+                    "dave": {
+                        "decision": "supported",
+                        "stages": [
+                            "first_pass",
+                            "highres",
+                            "detailer",
+                            "upscale",
+                        ],
+                    },
+                    "safe_pag": {
+                        "decision": "follow-up-required",
+                        "reason": (
+                            "clone-local-wrapper-with-temporary-shared-module-mutation"
+                        ),
+                    },
+                    "kj.fp16_accumulation": {
+                        "decision": "run-global-not-stage-scoped",
+                        "reason": "process-global-torch-setting-callback",
+                    },
+                    "kj.sage_attention": {
+                        "decision": "follow-up-required",
+                        "reason": "experimental-clone-local-override",
+                    },
+                    "kj.torch_compile": {
+                        "decision": "run-global-not-stage-scoped",
+                        "reason": (
+                            "shared-base-model-compile-registry-and-dynamo-config"
+                        ),
+                    },
+                },
+            },
         )
         self.assertFalse(capabilities["owned_by_manifest"])
         self.assertEqual(

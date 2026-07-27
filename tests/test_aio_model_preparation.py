@@ -194,6 +194,63 @@ class AIOModelPreparationMoveTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "Unknown AiO sampling stage"):
             model_preparation._aio_stage_model_patch_plan(first_only, "save")
 
+    def test_unapproved_scope_fields_do_not_partially_select_safe_pag_or_kj(self):
+        settings = {
+            "model_patches": {
+                "dave": {"enabled": False},
+                "safe_pag": {
+                    "enabled": True,
+                    "stage_scope": {
+                        "first_pass": True,
+                        "highres": False,
+                        "detailer": False,
+                        "upscale": False,
+                    },
+                },
+                "kj": {
+                    "fp16_accumulation": True,
+                    "sage_attention": "auto",
+                    "stage_scope": {
+                        "first_pass": True,
+                        "highres": False,
+                        "detailer": False,
+                        "upscale": False,
+                    },
+                    "torch_compile": {
+                        "enabled": True,
+                        "stage_scope": {
+                            "first_pass": True,
+                            "highres": False,
+                            "detailer": False,
+                            "upscale": False,
+                        },
+                    },
+                },
+            }
+        }
+        expected_patch_ids = (
+            "aura_flow",
+            "safe_pag",
+            "kj.fp16_accumulation",
+            "kj.sage_attention",
+            "kj.torch_compile",
+        )
+
+        plans = {
+            stage_id: model_preparation._aio_stage_model_patch_plan(settings, stage_id)
+            for stage_id in ("first_pass", "highres", "detailer", "upscale")
+        }
+
+        self.assertEqual(
+            {stage_id: plan.patch_ids for stage_id, plan in plans.items()},
+            {stage_id: expected_patch_ids for stage_id in plans},
+        )
+        self.assertEqual(
+            len({plan.signature for plan in plans.values()}),
+            1,
+            "Unsupported scope fields must not create partial stage variants",
+        )
+
     def test_stage_plan_moves_only_compile_before_dave_in_the_patch_chain(self):
         trace: list[tuple[str, object]] = []
 
