@@ -1,21 +1,21 @@
-"""Test-local public ComfyUI-ppm CLIPNegPip contract fixture.
-
-This module intentionally does not import ComfyUI-ppm. Production invocation
-and AiO runtime wiring are owned by the later On-mode phase.
-"""
+"""Public ComfyUI-ppm NegPip adapter for AiO generation."""
 
 from __future__ import annotations
 
 import inspect
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from typing import Any
 
-from easyuse_anima.infrastructure.comfy.invocation import _node_output_tuple
+from ..infrastructure.comfy.invocation import _node_output_tuple
+from ..infrastructure.comfy.wiring import resolve_comfy_host_helper
 
 NEGPIP_NODE_ID = "CLIPNegPip"
 NEGPIP_NODE_PACK = "ComfyUI-ppm"
 NEGPIP_REPOSITORY = "https://github.com/pamparamm/ComfyUI-ppm"
 NEGPIP_CONTRACT_REVISION = 1
+
+NEGPIP_MODE_OFF = "off"
+NEGPIP_MODE_ON = "on"
 
 _EXPECTED_INPUTS = {
     "model": "MODEL",
@@ -24,10 +24,30 @@ _EXPECTED_INPUTS = {
 _EXPECTED_OUTPUTS = ("MODEL", "CLIP")
 
 
+def _missing_host_helper(name: str):
+    raise RuntimeError(
+        f"[EasyUseAnima] AiO NegPip Comfy host helper is unavailable: {name}"
+    )
+
+
+def _require_custom_node_class(
+    node_id: str,
+    node_pack: str,
+    install_hint: str,
+):
+    helper = resolve_comfy_host_helper(
+        "_require_custom_node_class",
+        _missing_host_helper,
+    )
+    return helper(node_id, node_pack, install_hint)
+
+
 def _payload(*, available: bool, reason_codes: list[str]) -> dict[str, Any]:
     return {
         "available": available,
-        "compatible": available and reason_codes == ["ppm_negpip_contract_ready"],
+        "compatible": (
+            available and reason_codes == ["ppm_negpip_contract_ready"]
+        ),
         "node_id": NEGPIP_NODE_ID,
         "node_pack": NEGPIP_NODE_PACK,
         "repository": NEGPIP_REPOSITORY,
@@ -92,7 +112,9 @@ def _inspect_negpip_node_class(node_class: Any) -> list[str]:
         if return_types != _EXPECTED_OUTPUTS:
             reasons.append("ppm_negpip_output_contract_drift")
 
-        if not _execute_contract_is_compatible(getattr(node_class, "execute", None)):
+        if not _execute_contract_is_compatible(
+            getattr(node_class, "execute", None)
+        ):
             reasons.append("ppm_negpip_execute_contract_drift")
     except Exception:
         return ["ppm_negpip_contract_unreadable"]
@@ -102,7 +124,7 @@ def _inspect_negpip_node_class(node_class: Any) -> list[str]:
 def collect_negpip_contract(
     find_node_class: Callable[[str], Any],
 ) -> dict[str, Any]:
-    """Inspect a fake loaded public node class without importing its package."""
+    """Inspect the loaded public node class without importing its package."""
 
     try:
         node_class = find_node_class(NEGPIP_NODE_ID)
@@ -123,13 +145,13 @@ def collect_negpip_contract(
 
 
 def invoke_negpip_node(node_class: Any, model: Any, clip: Any) -> tuple[Any, Any]:
-    """Model one compatible V3 node call and adapt its MODEL/CLIP output."""
+    """Invoke one compatible public CLIPNegPip node call."""
 
     if node_class is None:
         raise RuntimeError(
             "[EasyUseAnima] Missing required custom node 'CLIPNegPip'. "
             "Install/enable ComfyUI-ppm, then restart ComfyUI. "
-            "Repository: https://github.com/pamparamm/ComfyUI-ppm"
+            f"Repository: {NEGPIP_REPOSITORY}"
         )
 
     reason_codes = _inspect_negpip_node_class(node_class)
@@ -150,3 +172,63 @@ def invoke_negpip_node(node_class: Any, model: Any, clip: Any) -> tuple[Any, Any
             "[EasyUseAnima] CLIPNegPip did not return cloned MODEL/CLIP outputs."
         )
     return values[0], values[1]
+
+
+def _aio_negpip_mode(value: object) -> str:
+    if value is None:
+        return NEGPIP_MODE_OFF
+    if not isinstance(value, Mapping):
+        raise RuntimeError(
+            "[EasyUseAnima] AiO NegPip settings are malformed; "
+            "disable NegPip or select a supported mode."
+        )
+    mode = value.get("mode")
+    if mode not in (NEGPIP_MODE_OFF, NEGPIP_MODE_ON):
+        raise RuntimeError(
+            f"[EasyUseAnima] Unsupported AiO NegPip mode: {mode!r}. "
+            "AIO-NEGPIP-02 supports only 'off' and 'on'."
+        )
+    return str(mode)
+
+
+def _aio_negpip_cache_signature(value: object) -> dict[str, object] | None:
+    mode = _aio_negpip_mode(value)
+    if mode == NEGPIP_MODE_OFF:
+        return None
+    return {
+        "mode": mode,
+        "contract_revision": NEGPIP_CONTRACT_REVISION,
+    }
+
+
+def _aio_negpip_metadata(mode: str) -> dict[str, object] | None:
+    if mode == NEGPIP_MODE_OFF:
+        return None
+    if mode != NEGPIP_MODE_ON:
+        raise RuntimeError(
+            f"[EasyUseAnima] Unsupported normalized AiO NegPip mode: {mode!r}."
+        )
+    return {
+        "mode": mode,
+        "contract_revision": NEGPIP_CONTRACT_REVISION,
+    }
+
+
+def apply_aio_negpip(model: Any, clip: Any, mode: str) -> tuple[Any, Any]:
+    """Apply the public NegPip adapter once when the normalized mode is On."""
+
+    if mode == NEGPIP_MODE_OFF:
+        return model, clip
+    if mode != NEGPIP_MODE_ON:
+        raise RuntimeError(
+            f"[EasyUseAnima] Unsupported normalized AiO NegPip mode: {mode!r}."
+        )
+    node_class = _require_custom_node_class(
+        NEGPIP_NODE_ID,
+        NEGPIP_NODE_PACK,
+        f"Required for AiO NegPip On mode. Repository: {NEGPIP_REPOSITORY}",
+    )
+    return invoke_negpip_node(node_class, model, clip)
+
+
+__all__ = ()

@@ -2137,6 +2137,37 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
             },
         )
 
+    def test_negpip_on_routes_one_model_clip_pair_and_preserves_cfg_metadata_cleanup(self):
+        execution = self._execute_case(
+            upscale_enabled=False,
+            intermediate_preview=False,
+            unique_id="node-negpip-on",
+            negpip_mode="on",
+        )
+
+        trace = execution["trace"]
+        self.assertEqual(trace.count("apply_negpip"), 1)
+        self.assertLess(
+            trace.index("apply_negpip"),
+            trace.index("encode_positive"),
+        )
+        self.assertLess(
+            trace.index("apply_negpip"),
+            trace.index("encode_negative"),
+        )
+        self.assertEqual(trace.count("cleanup:negpip"), 1)
+        self.assertEqual(trace.count("cleanup:lora"), 1)
+        metadata = execution["result"]["metadata"]
+        self.assertEqual(
+            metadata["stages"]["negpip"],
+            {"mode": "on", "contract_revision": 1},
+        )
+        self.assertEqual(metadata["generation_settings"]["sampler"]["cfg"], 6.5)
+        self.assertEqual(
+            metadata["generation_settings"]["negpip"],
+            {"mode": "on"},
+        )
+
     def test_resshift_does_not_resolve_upscale_sampling_model(self):
         execution = self._execute_case(
             upscale_enabled=True,
@@ -2171,6 +2202,7 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
         detailer_enabled: bool = False,
         upscale_backend: str = "usdu",
         stage_signatures: dict[str, str] | None = None,
+        negpip_mode: str | None = None,
     ) -> dict:
         trace = trace_sink if trace_sink is not None else []
         custom_stage_models = stage_signatures is not None
@@ -2215,9 +2247,13 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
                 "filename_prefix": "Anima",
             },
         }
+        if negpip_mode is not None:
+            settings["negpip"] = {"mode": negpip_mode}
+            settings["sampler"]["cfg"] = 6.5
 
         base_model = _Token("base")
         lora_model = _Token("lora")
+        negpip_model = _Token("negpip")
         variant_models = {
             signature: _Token(
                 f"model:{signature}" if custom_stage_models else "model"
@@ -2228,9 +2264,13 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
         sample_model = _Token("sample")
         base_clip = _Token("base_clip")
         clip = _Token("clip")
+        negpip_clip = _Token("negpip_clip")
+        lineage_model = negpip_model if negpip_mode == "on" else lora_model
+        lineage_clip = negpip_clip if negpip_mode == "on" else clip
         vae = _Token("vae")
         model_names = {
             id(lora_model): "lora",
+            id(negpip_model): "negpip",
             id(sample_model): "sample",
             **{
                 id(model): model.name
@@ -2318,6 +2358,15 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
             self.assertEqual(stack, "lora-stack")
             return lora_model, clip, [{"name": "style.safetensors"}]
 
+        def apply_negpip(model, source_clip, mode):
+            self.assertIs(model, lora_model)
+            self.assertIs(source_clip, clip)
+            self.assertEqual(mode, negpip_mode or "off")
+            if mode == "off":
+                return model, source_clip
+            trace.append("apply_negpip")
+            return negpip_model, negpip_clip
+
         def build_stage_plan(normalized_settings, stage_id):
             self.assertIn(
                 stage_id,
@@ -2337,7 +2386,7 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
 
         def apply_model_patches(model, plan):
             trace.append("apply_model_patches")
-            self.assertIs(model, lora_model)
+            self.assertIs(model, lineage_model)
             return variant_models[plan.signature]
 
         def advanced_outputs(prompt_data):
@@ -2354,6 +2403,17 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
                 64,
                 96,
             )
+
+        def encode_positive(source_clip, *_args, **_kwargs):
+            trace.append("encode_positive")
+            self.assertIs(source_clip, lineage_clip)
+            return "positive-conditioning"
+
+        def encode_negative(source_clip, text):
+            trace.append("encode_negative")
+            self.assertIs(source_clip, lineage_clip)
+            self.assertEqual(text, "negative")
+            return "negative-conditioning"
 
         def apply_spectrum_model(model, source_clip, positive, sampler):
             trace.append("apply_spectrum_model_patches")
@@ -2478,6 +2538,7 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
                 _aio_generation_config_from_dict=typed_config,
                 _load_aio_resources_from_input_context=load_resources,
                 _apply_aio_lora_stack=apply_lora,
+                apply_aio_negpip=apply_negpip,
                 _aio_stage_model_patch_plan=build_stage_plan,
                 _apply_aio_stage_model_patch_plan=apply_model_patches,
                 _normalize_prompt_data=phase(
@@ -2485,10 +2546,7 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
                     context["prompt_data"],
                 ),
                 _advanced_outputs_from_prompt_data=advanced_outputs,
-                _encode_prompt_data_positive_conditioning=phase(
-                    "encode_positive",
-                    "positive-conditioning",
-                ),
+                _encode_prompt_data_positive_conditioning=encode_positive,
                 _as_bool=lambda value, default: bool(value),
                 _aio_detailer_has_enabled_targets=phase(
                     "detailer_enabled",
@@ -2536,7 +2594,7 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
             patch_comfy_helper(
                 nodes,
                 "_encode_with_comfy_clip",
-                phase("encode_negative", "negative-conditioning"),
+                encode_negative,
             ),
         ):
             output = generator.generate(

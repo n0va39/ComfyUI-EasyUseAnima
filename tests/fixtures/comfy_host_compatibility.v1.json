@@ -14,8 +14,8 @@
     ]
   },
   "expected_counts": {
-    "production_consumer_slots": 22,
-    "unique_production_modules": 15,
+    "production_consumer_slots": 23,
+    "unique_production_modules": 16,
     "root_monkeypatch_test_files": 0,
     "canonical_monkeypatch_test_files": 3
   },
@@ -373,6 +373,11 @@
         },
         {
           "module": "easyuse_anima.aio.model_preparation",
+          "binder": null,
+          "root_observation": "call_time"
+        },
+        {
+          "module": "easyuse_anima.aio.negpip",
           "binder": null,
           "root_observation": "call_time"
         },

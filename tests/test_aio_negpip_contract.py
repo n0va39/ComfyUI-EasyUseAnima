@@ -5,7 +5,10 @@ import unittest
 from pathlib import Path
 from types import SimpleNamespace
 
-from tests import aio_negpip_contract_fixture as negpip_contract
+from easyuse_anima.aio import negpip as negpip_contract
+from tests.comfy_host_fakes import FakeComfyHostProvider, use_fake_comfy_host
+
+_ROOT_MODULE = SimpleNamespace(__package__="")
 
 
 class FakeValue:
@@ -206,6 +209,77 @@ class NegPipExternalContractTests(unittest.TestCase):
             "cosmos_diffusion_negpip_wrapper",
         ):
             self.assertNotIn(upstream_symbol, source)
+
+
+class NegPipOnModeTests(unittest.TestCase):
+    def setUp(self):
+        CompatibleCLIPNegPip.calls = []
+
+    def test_absent_and_explicit_off_preserve_identity_without_dependency_lookup(self):
+        class TrackingProvider(FakeComfyHostProvider):
+            def __init__(self):
+                super().__init__()
+                self.requests = []
+
+            def find_node_class(self, node_id: str):
+                self.requests.append(node_id)
+                return super().find_node_class(node_id)
+
+        provider = TrackingProvider()
+        model = FakeValue()
+        clip = FakeValue()
+        with use_fake_comfy_host(_ROOT_MODULE, provider):
+            for value in (None, {"mode": "off"}):
+                with self.subTest(value=value):
+                    mode = negpip_contract._aio_negpip_mode(value)
+                    result = negpip_contract.apply_aio_negpip(model, clip, mode)
+                    self.assertEqual(result, (model, clip))
+                    self.assertIs(result[0], model)
+                    self.assertIs(result[1], clip)
+                    self.assertIsNone(
+                        negpip_contract._aio_negpip_cache_signature(value)
+                    )
+                    self.assertIsNone(negpip_contract._aio_negpip_metadata(mode))
+        self.assertEqual(provider.requests, [])
+
+    def test_on_requires_public_node_and_invokes_exactly_once(self):
+        model = FakeValue()
+        clip = FakeValue()
+        provider = FakeComfyHostProvider(
+            node_classes={"CLIPNegPip": CompatibleCLIPNegPip}
+        )
+        with use_fake_comfy_host(_ROOT_MODULE, provider):
+            patched_model, patched_clip = negpip_contract.apply_aio_negpip(
+                model,
+                clip,
+                negpip_contract._aio_negpip_mode({"mode": "on"}),
+            )
+
+        self.assertEqual(CompatibleCLIPNegPip.calls, [{"model": model, "clip": clip}])
+        self.assertIsNot(patched_model, model)
+        self.assertIsNot(patched_clip, clip)
+        self.assertEqual(
+            negpip_contract._aio_negpip_cache_signature({"mode": "on"}),
+            {"mode": "on", "contract_revision": 1},
+        )
+        self.assertEqual(
+            negpip_contract._aio_negpip_metadata("on"),
+            {"mode": "on", "contract_revision": 1},
+        )
+
+    def test_missing_dependency_and_unsupported_modes_fail_closed(self):
+        with use_fake_comfy_host(_ROOT_MODULE, FakeComfyHostProvider()):
+            with self.assertRaisesRegex(RuntimeError, "ComfyUI-ppm"):
+                negpip_contract.apply_aio_negpip(
+                    FakeValue(),
+                    FakeValue(),
+                    "on",
+                )
+
+        for value in ({}, {"mode": "turbo"}, "on", {"mode": None}):
+            with self.subTest(value=value):
+                with self.assertRaisesRegex(RuntimeError, "NegPip"):
+                    negpip_contract._aio_negpip_mode(value)
 
 
 if __name__ == "__main__":

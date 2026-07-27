@@ -70,9 +70,14 @@ from .input_context import _require_easy_use_anima_input
 from .model_preparation import (
     _aio_stage_model_patch_plan,
     _apply_aio_lora_stack,
-    _apply_aio_stage_model_patch_plan,
     _apply_aio_spectrum_model_patches_for_comfy_sampler,
+    _apply_aio_stage_model_patch_plan,
     _cleanup_aio_ephemeral_model,
+)
+from .negpip import (
+    _aio_negpip_metadata,
+    _aio_negpip_mode,
+    apply_aio_negpip,
 )
 from .output import (
     _aio_save_filename_prefix,
@@ -714,35 +719,48 @@ def _run_aio_generation_pipeline(
         base_clip,
         lora_stack,
     )
-    prompt_data = _normalize_prompt_data(context["prompt_data"])
-    (
-        positive_prompt,
-        negative_prompt,
-        quality_tags,
-        quality_neg,
-        use_anima_mod_guidance,
-        use_negative_anima_mod_guidance,
-        metadata_prompt,
-        metadata_negative_prompt,
-        width,
-        height,
-    ) = _advanced_outputs_from_prompt_data(prompt_data)
-    artist_mix = settings["artist_mix"]
-    positive = _encode_prompt_data_positive_conditioning(
-        clip,
-        prompt_data,
-        positive_prompt,
-        artist_mix_mode=artist_mix["mode"],
-        artist_mix_start_percent=artist_mix["start_percent"],
-        artist_mix_strength_scale=artist_mix["strength_scale"],
-        artist_mix_style_gain=artist_mix["style_gain"],
-        artist_mix_rms_scale_cap=artist_mix["rms_scale_cap"],
-        artist_mix_exact_top_k=artist_mix["exact_top_k"],
-        artist_mix_cluster_count=artist_mix["cluster_count"],
-        artist_mix_dominant_isolation=artist_mix["dominant_isolation"],
-        artist_mix_dominant_threshold=artist_mix["dominant_threshold"],
-    )
-    negative = _encode_with_comfy_clip(clip, negative_prompt)
+    negpip_mode = _aio_negpip_mode(settings.get("negpip"))
+    model_lineage_base = model_with_lora
+    try:
+        model_lineage_base, clip = apply_aio_negpip(
+            model_with_lora,
+            clip,
+            negpip_mode,
+        )
+        prompt_data = _normalize_prompt_data(context["prompt_data"])
+        (
+            positive_prompt,
+            negative_prompt,
+            quality_tags,
+            quality_neg,
+            use_anima_mod_guidance,
+            use_negative_anima_mod_guidance,
+            metadata_prompt,
+            metadata_negative_prompt,
+            width,
+            height,
+        ) = _advanced_outputs_from_prompt_data(prompt_data)
+        artist_mix = settings["artist_mix"]
+        positive = _encode_prompt_data_positive_conditioning(
+            clip,
+            prompt_data,
+            positive_prompt,
+            artist_mix_mode=artist_mix["mode"],
+            artist_mix_start_percent=artist_mix["start_percent"],
+            artist_mix_strength_scale=artist_mix["strength_scale"],
+            artist_mix_style_gain=artist_mix["style_gain"],
+            artist_mix_rms_scale_cap=artist_mix["rms_scale_cap"],
+            artist_mix_exact_top_k=artist_mix["exact_top_k"],
+            artist_mix_cluster_count=artist_mix["cluster_count"],
+            artist_mix_dominant_isolation=artist_mix["dominant_isolation"],
+            artist_mix_dominant_threshold=artist_mix["dominant_threshold"],
+        )
+        negative = _encode_with_comfy_clip(clip, negative_prompt)
+    except BaseException:
+        if model_lineage_base is not model_with_lora:
+            _cleanup_aio_ephemeral_model(model_lineage_base, base_model)
+        _cleanup_aio_ephemeral_model(model_with_lora, base_model)
+        raise
 
     sampler = settings["sampler"]
     mod_guidance = settings["mod_guidance"]
@@ -774,13 +792,15 @@ def _run_aio_generation_pipeline(
         cleanup_model=_cleanup_aio_ephemeral_model,
         model_with_lora=model_with_lora,
     )
+    if model_lineage_base is not model_with_lora:
+        model_registry.register_model(model_lineage_base)
     stage_models = StageModelVariantResolver(
         runtime=StageModelVariantRuntime(
             build_plan=_aio_stage_model_patch_plan,
             apply_plan=_apply_aio_stage_model_patch_plan,
         ),
         registry=model_registry,
-        model_with_lora=model_with_lora,
+        model_with_lora=model_lineage_base,
         settings=settings,
     )
     model_variant_runtime = ModelVariantRuntime(
@@ -839,6 +859,9 @@ def _run_aio_generation_pipeline(
         "upscale": [],
     }
     generation_state.metadata["model_patches_by_stage"] = model_patches_by_stage
+    negpip_metadata = _aio_negpip_metadata(negpip_mode)
+    if negpip_metadata is not None:
+        generation_state.metadata["negpip"] = negpip_metadata
     preview_settings = settings["preview"]
     preview_node_id = _single_value(unique_id)
     preview_run_id = (
@@ -890,7 +913,7 @@ def _run_aio_generation_pipeline(
         resources=ResourceBundle(
             base_model=base_model,
             base_clip=base_clip,
-            model_with_lora=model_with_lora,
+            model_with_lora=model_lineage_base,
             model=base_sample_model,
             clip=clip,
             vae=vae,

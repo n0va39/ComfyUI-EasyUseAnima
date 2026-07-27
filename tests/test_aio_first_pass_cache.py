@@ -974,6 +974,56 @@ class AIOFirstPassCacheMoveTests(unittest.TestCase):
                 baseline,
             )
 
+    def test_negpip_off_preserves_cache_key_and_on_separates_contract_revision(self):
+        settings = {
+            "mode": "txt2img",
+            "sampler": {"seed": 42},
+            "model_patches": {},
+            "mod_guidance": {},
+            "artist_mix": {},
+        }
+        key_args = {
+            "cache_scope": "node",
+            "context": {"resource_info": {}, "input_settings": {}},
+            "prompt_data": {},
+            "lora_stack": [],
+            "settings": settings,
+            "positive_prompt": "prompt",
+            "negative_prompt": "",
+            "quality_tags": "",
+            "quality_neg": "",
+            "use_anima_mod_guidance": False,
+            "use_negative_anima_mod_guidance": False,
+            "width": 1024,
+            "height": 1024,
+        }
+
+        baseline = first_pass_cache._aio_first_pass_cache_key(**key_args)
+        explicit_off = copy.deepcopy(settings)
+        explicit_off["negpip"] = {"mode": "off"}
+        on = copy.deepcopy(settings)
+        on["negpip"] = {"mode": "on"}
+
+        self.assertEqual(
+            first_pass_cache._aio_first_pass_cache_key(
+                **{**key_args, "settings": explicit_off}
+            ),
+            baseline,
+        )
+        self.assertNotEqual(
+            first_pass_cache._aio_first_pass_cache_key(
+                **{**key_args, "settings": on}
+            ),
+            baseline,
+        )
+        with self.assertRaisesRegex(RuntimeError, "NegPip"):
+            first_pass_cache._aio_first_pass_cache_key(
+                **{
+                    **key_args,
+                    "settings": {**settings, "negpip": {"mode": "turbo"}},
+                }
+            )
+
     def test_resource_revision_maps_base_resources_and_loras_in_signature_order(self):
         revisions = Mock(
             side_effect=lambda folder_name, filename: (
