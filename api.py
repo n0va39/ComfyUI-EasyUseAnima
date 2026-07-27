@@ -5,7 +5,6 @@ import asyncio
 import json
 import logging
 import os
-from functools import wraps
 
 try:
     import server
@@ -62,6 +61,7 @@ from .easyuse_anima.api.requests import (
     json_uuid_string,
     parse_json_object,
 )
+from .easyuse_anima.api import responses as _api_responses
 from .easyuse_anima.api.responses import (
     attach_request_id_header,
     correlate_response,
@@ -236,54 +236,28 @@ def _prompt_translation_error_response(exc: PromptTranslationError):
     )
 
 
-def _error_response(
-    status: int,
-    code: str,
-    message: str,
-    *,
-    details: dict | None = None,
-):
-    return web.json_response(
-        error_payload(code, message, details=details),
-        status=status,
-    )
-
-
-def _contract_error_response(exc: ApiContractError):
-    return _error_response(
-        exc.status,
-        exc.code,
-        exc.message,
-        details=exc.details,
-    )
-
-
-def _request_correlated(handler):
-    @wraps(handler)
-    async def correlated_handler(request):
-        request_id = create_request_id()
-        try:
-            response = await handler(request)
-        except asyncio.CancelledError:
-            raise
-        except Exception as exc:
-            http_exception_type = getattr(web, "HTTPException", ())
-            if isinstance(exc, http_exception_type):
-                attach_request_id_header(exc, request_id)
-                raise
-            _LOGGER.exception(
-                "Unhandled EasyUseAnima API error (request_id=%s)",
-                request_id,
-            )
-            response = _error_response(
-                500,
-                "internal_error",
-                "An unexpected server error occurred.",
-            )
-        return correlate_response(response, request_id)
-
-    correlated_handler._easyuse_anima_request_correlation = True
-    return correlated_handler
+_error_response = _api_responses.build_error_response(
+    json_response=lambda payload, **kwargs: web.json_response(payload, **kwargs),
+    build_error_payload=lambda code, message, **kwargs: error_payload(
+        code,
+        message,
+        **kwargs,
+    ),
+)
+_contract_error_response = _api_responses.build_contract_error_response(
+    error_response=lambda *args, **kwargs: _error_response(*args, **kwargs),
+)
+_request_correlated = _api_responses.build_request_correlator(
+    create_id=lambda: create_request_id(),
+    get_http_exception_type=lambda: getattr(web, "HTTPException", ()),
+    attach_id_header=lambda response, request_id: attach_request_id_header(
+        response,
+        request_id,
+    ),
+    correlate=lambda response, request_id: correlate_response(response, request_id),
+    get_logger=lambda: _LOGGER,
+    error_response=lambda *args, **kwargs: _error_response(*args, **kwargs),
+)
 
 
 def _resolve_lora_preview_path(lora_name: str):
