@@ -1,17 +1,29 @@
-"""ANIMA prompt correction helpers.
+"""Compatibility exports for the canonical ANIMA prompt core."""
 
-This package is intentionally dependency-light. It does not import torch,
-ComfyUI, model code, or taggers, so the same core can be reused by CLI tools
-and future UI nodes.
-"""
-
-from .correction import correct_prompt, inspect_prompt
-from .knowledge import (
-    KnowledgeBaseNotFound,
-    PromptKnowledgeBase,
-    load_knowledge_base,
-)
-from .models import CorrectionResult, ParsedPrompt, TagInfo, TagToken
+try:
+    from ..easyuse_anima.prompt.anima import (
+        CorrectionResult,
+        KnowledgeBaseNotFound,
+        ParsedPrompt,
+        PromptKnowledgeBase,
+        TagInfo,
+        TagToken,
+        correct_prompt,
+        inspect_prompt,
+        load_knowledge_base,
+    )
+except ImportError:
+    from easyuse_anima.prompt.anima import (
+        CorrectionResult,
+        KnowledgeBaseNotFound,
+        ParsedPrompt,
+        PromptKnowledgeBase,
+        TagInfo,
+        TagToken,
+        correct_prompt,
+        inspect_prompt,
+        load_knowledge_base,
+    )
 
 __all__ = [
     "CorrectionResult",

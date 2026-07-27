@@ -4,9 +4,9 @@ import re
 from pathlib import Path
 
 try:
-    from .anima_prompt.models import TagSection
-    from .anima_prompt.ordering import builtin_tag_section
-    from .anima_prompt.parser import parse_prompt
+    from .easyuse_anima.prompt.anima.models import TagSection
+    from .easyuse_anima.prompt.anima.ordering import builtin_tag_section
+    from .easyuse_anima.prompt.anima.parser import parse_prompt
     from .easyuse_anima.autocomplete.dataset import (
         AUTOCOMPLETE_CSV,
         AUTOCOMPLETE_SOURCES,
@@ -31,9 +31,9 @@ try:
         iter_prompt_translation_markers,
     )
 except ImportError:
-    from anima_prompt.models import TagSection
-    from anima_prompt.ordering import builtin_tag_section
-    from anima_prompt.parser import parse_prompt
+    from easyuse_anima.prompt.anima.models import TagSection
+    from easyuse_anima.prompt.anima.ordering import builtin_tag_section
+    from easyuse_anima.prompt.anima.parser import parse_prompt
     from easyuse_anima.autocomplete.dataset import (
         AUTOCOMPLETE_CSV,
         AUTOCOMPLETE_SOURCES,

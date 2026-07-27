@@ -19,11 +19,7 @@ from ..prompt.fields import (
     _join_prompt_tokens,
 )
 from ..settings.service import resolve_metadata_filter_words
-
-try:
-    from ...anima_prompt import correct_prompt, load_knowledge_base
-except ImportError:
-    from anima_prompt import correct_prompt, load_knowledge_base
+from ..prompt.anima import correct_prompt, load_knowledge_base
 
 
 def _correct_prompt_with_report(

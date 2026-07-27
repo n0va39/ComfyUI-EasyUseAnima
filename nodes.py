@@ -529,8 +529,8 @@ try:
     from .easyuse_anima.nodes.lora_nodes import (
         EasyUseAnimaLoraPreset as EasyUseAnimaLoraPreset,
     )
-    from .anima_prompt import correct_prompt, load_knowledge_base
-    from .anima_prompt.parser import parse_prompt
+    from .easyuse_anima.prompt.anima import correct_prompt, load_knowledge_base
+    from .easyuse_anima.prompt.anima.parser import parse_prompt
     from .easyuse_anima.settings.service import (
         resolve_metadata_filter_words,
         resolve_naia_settings,
@@ -1091,8 +1091,8 @@ except ImportError:  # allows simple local import tests outside ComfyUI's packag
     from easyuse_anima.nodes.lora_nodes import (
         EasyUseAnimaLoraPreset as EasyUseAnimaLoraPreset,
     )
-    from anima_prompt import correct_prompt, load_knowledge_base
-    from anima_prompt.parser import parse_prompt
+    from easyuse_anima.prompt.anima import correct_prompt, load_knowledge_base
+    from easyuse_anima.prompt.anima.parser import parse_prompt
     from easyuse_anima.settings.service import (
         resolve_metadata_filter_words,
         resolve_naia_settings,

@@ -99,6 +99,7 @@ PACKAGE_MODULES = (
     "easyuse_anima.seed.execution_session",
     "easyuse_anima.seed.service",
     "easyuse_anima.prompt",
+    "easyuse_anima.prompt.anima",
     "easyuse_anima.prompt.advanced",
     "easyuse_anima.prompt.artist_mix",
     "easyuse_anima.prompt.conditioning",
@@ -253,6 +254,17 @@ print(json.dumps({{
         ] = [
             "is_comfy_processing_interruption",
             "seed_execution_session",
+        ]
+        expected_all[PACKAGE_MODULES.index("easyuse_anima.prompt.anima")] = [
+            "CorrectionResult",
+            "KnowledgeBaseNotFound",
+            "ParsedPrompt",
+            "PromptKnowledgeBase",
+            "TagInfo",
+            "TagToken",
+            "correct_prompt",
+            "inspect_prompt",
+            "load_knowledge_base",
         ]
         expected_all[
             PACKAGE_MODULES.index(
