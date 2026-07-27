@@ -461,6 +461,80 @@ class ApiLoraCatalogRouteTests(unittest.TestCase):
         list_loras.assert_called_once_with()
 
 
+class ApiProfileListRouteTests(unittest.TestCase):
+    def test_route_handlers_are_owned_by_the_canonical_factory(self):
+        api, routes = load_api_routes()
+        cases = (
+            ("lora_profiles_handler", "/easyuse_anima/lora_profiles"),
+            ("aio_profiles_handler", "/easyuse_anima/aio_profiles"),
+        )
+
+        for name, path in cases:
+            with self.subTest(path=path):
+                handler = routes.handlers[path]
+                self.assertIs(getattr(api, name), handler)
+                self.assertEqual(handler.__name__, name)
+                self.assertTrue(
+                    handler.__module__.endswith(
+                        ".easyuse_anima.api.routes.profile_lists"
+                    )
+                )
+                self.assertTrue(handler._easyuse_anima_request_correlation)
+
+    def test_routes_keep_dynamic_list_seams_and_legacy_success_shapes(self):
+        api, routes = load_api_routes()
+        profiles = [
+            {
+                "name": "Portrait",
+                "profile_id": "22345678-1234-4567-89ab-1234567890ab",
+                "revision": 3,
+            }
+        ]
+        cases = (
+            (
+                "/easyuse_anima/lora_profiles",
+                "_list_lora_profiles",
+                {"profiles": profiles},
+            ),
+            (
+                "/easyuse_anima/aio_profiles",
+                "_list_aio_profiles",
+                {"status": "ok", "profiles": profiles},
+            ),
+        )
+
+        for path, operation_name, expected_payload in cases:
+            with self.subTest(path=path), patch.object(
+                api,
+                operation_name,
+                return_value=profiles,
+            ) as list_profiles:
+                response = asyncio.run(routes.handlers[path](JsonRequest()))
+
+            self.assertEqual(response["status"], 200)
+            self.assertEqual(response["payload"], expected_payload)
+            list_profiles.assert_called_once_with()
+
+    def test_routes_map_only_stored_profile_errors(self):
+        api, routes = load_api_routes()
+        cases = (
+            ("/easyuse_anima/lora_profiles", "_list_lora_profiles"),
+            ("/easyuse_anima/aio_profiles", "_list_aio_profiles"),
+        )
+
+        for path, operation_name in cases:
+            with self.subTest(path=path), patch.object(
+                api,
+                operation_name,
+                side_effect=api.InvalidProfileDataError("private path"),
+            ):
+                response = asyncio.run(routes.handlers[path](JsonRequest()))
+
+            self.assertEqual(response["status"], 422)
+            self.assertEqual(response["payload"]["code"], "invalid_profile_data")
+            self.assertNotIn("private path", json.dumps(response["payload"]))
+
+
 class ApiWildcardRouteTests(unittest.TestCase):
     def test_route_handler_is_owned_by_the_canonical_factory(self):
         api, routes = load_api_routes()
