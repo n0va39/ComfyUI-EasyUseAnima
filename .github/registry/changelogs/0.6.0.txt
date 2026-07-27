@@ -1,0 +1,12 @@
+EasyUse Anima 0.6.0 adds stage-aware AiO model patches, guided Torch Compile setup, and NegPip modes.
+
+Changes:
+1. DAVE can be applied independently to the first pass, Highres, Detailer, and Upscale stages while existing workflows keep their previous all-stage behavior.
+2. AiO Advanced settings can inspect the current KJNodes and Torch environment and apply a compatible recommendation without changing unrelated settings.
+3. Known variable-size stages keep compatible Torch Compile choices, and unsupported or unknown scope values do not silently change existing behavior.
+4. NegPip Off, On, and Turbo modes use the public ComfyUI-ppm integration. Off preserves existing conditioning, while On enables standard NegPip processing.
+5. Turbo treats the negative prompt as an inverted contribution and uses effective CFG 1 for the first pass, Highres, Detailer, and USDU while preserving saved prompts and CFG values.
+6. Missing optional dependencies are explained in AiO Advanced settings before their features are applied.
+
+Action required:
+After updating, restart ComfyUI and hard-refresh the browser. Install or update ComfyUI-ppm to use NegPip On or Turbo, and use a compatible KJNodes version for Torch Compile recommendations.

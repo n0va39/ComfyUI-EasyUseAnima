@@ -1,5 +1,43 @@
 # Release Notes
 
+## 0.6.0
+
+### Added
+
+- DAVE model patch settings can target the first pass, Highres, Detailer, and
+  Upscale stages independently. Existing workflows keep their previous
+  all-stage behavior unless a stage scope is selected.
+- AiO Advanced settings can inspect the current KJNodes and Torch environment,
+  explain relevant compatibility constraints, and apply a compatible Torch
+  Compile recommendation without changing unrelated settings.
+- NegPip now provides Off, On, and Turbo modes through the public ComfyUI-ppm
+  integration. Off preserves the existing conditioning path, and On applies
+  standard NegPip processing.
+- NegPip Turbo turns the negative prompt into an inverted contribution and uses
+  effective CFG 1 for the first pass, Highres, Detailer, and USDU while keeping
+  the saved prompts and CFG values unchanged.
+
+### Fixed
+
+- Torch Compile recommendations avoid incompatible choices for known
+  variable-size stages instead of applying one unsafe configuration broadly.
+- Missing or incompatible optional dependencies now fail before partial model
+  patch state can leak into generation.
+
+### Compatibility
+
+- Existing workflows default to NegPip Off and retain their saved model-patch
+  behavior. Unknown stage-scope values remain fail-closed instead of being
+  reinterpreted.
+- Public node identifiers, socket ordering, workflow schemas, and saved prompt
+  and CFG values remain compatible.
+
+### Update
+
+- After updating, restart ComfyUI and hard-refresh the browser.
+- Install or update ComfyUI-ppm to use NegPip On or Turbo. A compatible KJNodes
+  version is required for Torch Compile recommendations.
+
 ## 0.5.6
 
 ### Fixed
