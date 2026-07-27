@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import inspect
 import json
 import logging
 from typing import Any
@@ -22,6 +23,17 @@ from .generation_migrations import (
 
 logger = logging.getLogger("ComfyUI-EasyUseAnima")
 
+_AIO_SAGE_ATTENTION_MODES = (
+    "disabled",
+    "auto",
+    "sageattn_qk_int8_pv_fp16_cuda",
+    "sageattn_qk_int8_pv_fp16_triton",
+    "sageattn_qk_int8_pv_fp8_cuda",
+    "sageattn_qk_int8_pv_fp8_cuda++",
+    "sageattn3",
+    "sageattn3_per_block_mean",
+)
+
 
 def _aio_safe_pag_in_stage(
     safe_pag_settings: object,
@@ -37,6 +49,46 @@ def _aio_safe_pag_in_stage(
         return True
     stage_scope = safe_pag_settings.get("stage_scope")
     return isinstance(stage_scope, dict) and stage_scope.get(stage_id) is True
+
+
+def _aio_sage_attention_mode(kj_settings: object) -> str:
+    source = kj_settings if isinstance(kj_settings, dict) else {}
+    mode = str(source.get("sage_attention") or "disabled")
+    if mode not in _AIO_SAGE_ATTENTION_MODES:
+        raise RuntimeError(
+            f"[EasyUseAnima] Unsupported KJ SageAttention mode: {mode}"
+        )
+    return mode
+
+
+def _aio_sage_attention_in_stage(
+    kj_settings: object,
+    stage_id: str,
+) -> bool:
+    if stage_id not in AIO_GENERATION_STAGE_IDS:
+        raise ValueError(f"Unknown AiO sampling stage: {stage_id}")
+    source = kj_settings if isinstance(kj_settings, dict) else {}
+    if _aio_sage_attention_mode(source) == "disabled":
+        return False
+    if "sage_stage_scope" not in source:
+        return True
+    stage_scope = source.get("sage_stage_scope")
+    return isinstance(stage_scope, dict) and stage_scope.get(stage_id) is True
+
+
+def _aio_stage_kj_settings(
+    kj_settings: dict[str, Any],
+    stage_id: str,
+) -> dict[str, Any]:
+    sage_in_stage = _aio_sage_attention_in_stage(kj_settings, stage_id)
+    stage_settings = dict(kj_settings)
+    stage_settings.pop("sage_stage_scope", None)
+    if sage_in_stage:
+        stage_settings["sage_attention"] = _aio_sage_attention_mode(kj_settings)
+    else:
+        stage_settings["sage_attention"] = "disabled"
+        stage_settings["sage_allow_compile"] = False
+    return stage_settings
 
 
 def _missing_host_helper(name: str):
@@ -77,6 +129,42 @@ def _require_any_custom_node_class(
     return helper(node_ids, node_pack, install_hint)
 
 
+def _require_aio_sage_attention_class():
+    sage_cls = _require_custom_node_class(
+        "PathchSageAttentionKJ",
+        "ComfyUI-KJNodes",
+        "Repository: https://github.com/kijai/ComfyUI-KJNodes",
+    )
+    input_types = getattr(sage_cls, "INPUT_TYPES", None)
+    patch = getattr(sage_cls, "patch", None)
+    if not callable(input_types) or not callable(patch):
+        raise RuntimeError(
+            "[EasyUseAnima] PathchSageAttentionKJ input or patch contract drifted."
+        )
+    try:
+        inputs = input_types()
+        if not isinstance(inputs, dict):
+            raise TypeError("INPUT_TYPES must return an object")
+        required = inputs.get("required", {})
+        optional = inputs.get("optional", {})
+        modes = tuple(required["sage_attention"][0])
+        parameters = tuple(inspect.signature(patch).parameters)
+    except (AttributeError, KeyError, TypeError, ValueError):
+        raise RuntimeError(
+            "[EasyUseAnima] PathchSageAttentionKJ input or patch contract drifted."
+        ) from None
+    if (
+        "model" not in required
+        or "allow_compile" not in optional
+        or modes != _AIO_SAGE_ATTENTION_MODES
+        or parameters != ("self", "model", "sage_attention", "allow_compile")
+    ):
+        raise RuntimeError(
+            "[EasyUseAnima] PathchSageAttentionKJ input or patch contract drifted."
+        )
+    return sage_cls
+
+
 def _patch_model_sampling_aura_flow(model, aura_settings: dict[str, Any]):
     aura_cls = _find_comfy_node_class("ModelSamplingAuraFlow")
     if aura_cls is None:
@@ -99,6 +187,12 @@ def _patch_model_sampling_aura_flow(model, aura_settings: dict[str, Any]):
 
 
 def _apply_aio_kj_non_compile_patches(model, kj_settings: dict[str, Any]):
+    sage_attention = _aio_sage_attention_mode(kj_settings)
+    sage_cls = (
+        _require_aio_sage_attention_class()
+        if sage_attention != "disabled"
+        else None
+    )
     patched = model
     if kj_settings.get("fp16_accumulation"):
         torch_settings_cls = _require_custom_node_class(
@@ -111,13 +205,7 @@ def _apply_aio_kj_non_compile_patches(model, kj_settings: dict[str, Any]):
             raise RuntimeError("[EasyUseAnima] ModelPatchTorchSettings returned no MODEL.")
         patched = values[0]
 
-    sage_attention = str(kj_settings.get("sage_attention") or "disabled")
-    if sage_attention != "disabled":
-        sage_cls = _require_custom_node_class(
-            "PathchSageAttentionKJ",
-            "ComfyUI-KJNodes",
-            "Repository: https://github.com/kijai/ComfyUI-KJNodes",
-        )
+    if sage_cls is not None:
         values = _node_output_tuple(
             sage_cls().patch(
                 patched,
@@ -202,7 +290,8 @@ def _aio_stage_model_patch_plan(
     )
     safe_pag_in_stage = _aio_safe_pag_in_stage(safe_pag_settings, stage_id)
     fp16_enabled = _as_bool(kj_settings.get("fp16_accumulation"), False)
-    sage_enabled = str(kj_settings.get("sage_attention") or "disabled") != "disabled"
+    stage_kj_settings = _aio_stage_kj_settings(kj_settings, stage_id)
+    sage_enabled = stage_kj_settings["sage_attention"] != "disabled"
     compile_before_dave = dave_in_stage and compile_enabled
 
     patch_ids = ["aura_flow"]
@@ -224,7 +313,7 @@ def _aio_stage_model_patch_plan(
         "aura_flow": dict(aura_settings),
         "dave": dict(dave_settings) if dave_in_stage else None,
         "safe_pag": dict(safe_pag_settings) if safe_pag_in_stage else None,
-        "kj": dict(kj_settings),
+        "kj": stage_kj_settings,
         "compile_before_dave": compile_before_dave,
     }
     return StageModelPatchPlan(
