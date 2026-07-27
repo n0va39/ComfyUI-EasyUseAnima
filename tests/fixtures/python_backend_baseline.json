@@ -3633,6 +3633,24 @@
         "target": "easyuse_anima/api/responses.py"
       },
       {
+        "alias": "_build_translate_prompt_handler",
+        "bound_name": "_build_translate_prompt_handler",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".easyuse_anima.api.routes.translation:build_translate_prompt_handler",
+        "kind": "static_from",
+        "line": 66,
+        "name": "build_translate_prompt_handler",
+        "optional": false,
+        "requested": ".easyuse_anima.api.routes.translation",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "api.py",
+        "target": "easyuse_anima/api/routes/translation.py"
+      },
+      {
         "alias": "_collect_torch_compile_diagnostics",
         "bound_name": "_collect_torch_compile_diagnostics",
         "branch_context": [],
@@ -3641,7 +3659,7 @@
         "conditional": false,
         "imported": ".easyuse_anima.aio.torch_compile_diagnostics:collect_torch_compile_diagnostics",
         "kind": "static_from",
-        "line": 66,
+        "line": 69,
         "name": "collect_torch_compile_diagnostics",
         "optional": false,
         "requested": ".easyuse_anima.aio.torch_compile_diagnostics",
@@ -3659,7 +3677,7 @@
         "conditional": false,
         "imported": ".easyuse_anima.aio.torch_compile_recommendation:recommend_torch_compile",
         "kind": "static_from",
-        "line": 69,
+        "line": 72,
         "name": "recommend_torch_compile",
         "optional": false,
         "requested": ".easyuse_anima.aio.torch_compile_recommendation",
@@ -3677,7 +3695,7 @@
         "conditional": false,
         "imported": ".easyuse_anima.profiles:aio",
         "kind": "static_from",
-        "line": 72,
+        "line": 75,
         "name": "aio",
         "optional": false,
         "requested": ".easyuse_anima.profiles",
@@ -3695,7 +3713,7 @@
         "conditional": false,
         "imported": ".easyuse_anima.profiles:contract",
         "kind": "static_from",
-        "line": 73,
+        "line": 76,
         "name": "contract",
         "optional": false,
         "requested": ".easyuse_anima.profiles",
@@ -3713,7 +3731,7 @@
         "conditional": false,
         "imported": ".easyuse_anima.profiles:lora",
         "kind": "static_from",
-        "line": 74,
+        "line": 77,
         "name": "lora",
         "optional": false,
         "requested": ".easyuse_anima.profiles",
@@ -3731,7 +3749,7 @@
         "conditional": false,
         "imported": ".easyuse_anima.profiles:mutation",
         "kind": "static_from",
-        "line": 75,
+        "line": 78,
         "name": "mutation",
         "optional": false,
         "requested": ".easyuse_anima.profiles",
@@ -3749,7 +3767,7 @@
         "conditional": false,
         "imported": ".easyuse_anima.profiles:repository",
         "kind": "static_from",
-        "line": 76,
+        "line": 79,
         "name": "repository",
         "optional": false,
         "requested": ".easyuse_anima.profiles",
@@ -3767,7 +3785,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 332
+            "line": 335
           }
         ],
         "classification": "external",
@@ -3775,7 +3793,7 @@
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 333,
+        "line": 336,
         "name": null,
         "optional": true,
         "requested": "folder_paths",
@@ -15064,6 +15082,23 @@
         "role": "ordinary",
         "scope": "<module>",
         "source": "easyuse_anima/api/responses.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "annotations",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "__future__:annotations",
+        "kind": "static_from",
+        "line": 1,
+        "name": "annotations",
+        "optional": false,
+        "requested": "__future__",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/api/routes/translation.py"
       },
       {
         "alias": null,
@@ -62717,6 +62752,10 @@
       },
       {
         "from": "api.py",
+        "to": "easyuse_anima/api/routes/translation.py"
+      },
+      {
+        "from": "api.py",
         "to": "easyuse_anima/autocomplete/classification.py"
       },
       {
@@ -64778,6 +64817,18 @@
       {
         "cyclic": false,
         "modules": [
+          "easyuse_anima/api/routes/__init__.py"
+        ]
+      },
+      {
+        "cyclic": false,
+        "modules": [
+          "easyuse_anima/api/routes/translation.py"
+        ]
+      },
+      {
+        "cyclic": false,
+        "modules": [
           "easyuse_anima/autocomplete/__init__.py"
         ]
       },
@@ -65361,7 +65412,7 @@
     ]
   },
   "inventory": {
-    "module_count": 149,
+    "module_count": 151,
     "modules": [
       {
         "is_package": true,
@@ -65461,14 +65512,14 @@
       },
       {
         "is_package": false,
-        "loc": 932,
+        "loc": 935,
         "module": "api",
-        "normalized_git_blob_sha1": "52d8adb828255158051856bbeb774669e9a5233a",
+        "normalized_git_blob_sha1": "771d38f416014abd1e354bfe41d2361a5a4d59f5",
         "path": "api.py",
         "top_level": {
           "class_count": 1,
           "function_count": 23,
-          "global_count": 75
+          "global_count": 76
         }
       },
       {
@@ -65973,6 +66024,30 @@
           "class_count": 0,
           "function_count": 4,
           "global_count": 2
+        }
+      },
+      {
+        "is_package": true,
+        "loc": 3,
+        "module": "easyuse_anima.api.routes",
+        "normalized_git_blob_sha1": "7d2695987f682363b0813070dc73bc33934d8ab5",
+        "path": "easyuse_anima/api/routes/__init__.py",
+        "top_level": {
+          "class_count": 0,
+          "function_count": 0,
+          "global_count": 1
+        }
+      },
+      {
+        "is_package": false,
+        "loc": 32,
+        "module": "easyuse_anima.api.routes.translation",
+        "normalized_git_blob_sha1": "b1254bef5e5cc9f2231a52fbc1ea8cb13a8ea296",
+        "path": "easyuse_anima/api/routes/translation.py",
+        "top_level": {
+          "class_count": 0,
+          "function_count": 1,
+          "global_count": 1
         }
       },
       {
@@ -80201,14 +80276,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 332
+            "line": 335
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 333,
+        "line": 336,
         "optional": true,
         "role": "optional_dependency",
         "source": "api.py"
@@ -82240,6 +82315,17 @@
         "optional": false,
         "role": "ordinary",
         "source": "easyuse_anima/api/responses.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "__future__:annotations",
+        "kind": "static_from",
+        "line": 1,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/api/routes/translation.py"
       },
       {
         "branch_context": [],
@@ -86350,14 +86436,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 332
+            "line": 335
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 333,
+        "line": 336,
         "optional": true,
         "role": "optional_dependency",
         "source": "api.py"
@@ -87296,6 +87382,8 @@
       "easyuse_anima/api/errors.py",
       "easyuse_anima/api/requests.py",
       "easyuse_anima/api/responses.py",
+      "easyuse_anima/api/routes/__init__.py",
+      "easyuse_anima/api/routes/translation.py",
       "easyuse_anima/autocomplete/__init__.py",
       "easyuse_anima/autocomplete/classification.py",
       "easyuse_anima/autocomplete/dataset.py",
@@ -87447,6 +87535,8 @@
       "easyuse_anima/api/errors.py",
       "easyuse_anima/api/requests.py",
       "easyuse_anima/api/responses.py",
+      "easyuse_anima/api/routes/__init__.py",
+      "easyuse_anima/api/routes/translation.py",
       "easyuse_anima/autocomplete/__init__.py",
       "easyuse_anima/autocomplete/classification.py",
       "easyuse_anima/autocomplete/dataset.py",
@@ -87565,7 +87655,7 @@
         "column": 10,
         "context": "assign:_LOGGER",
         "kind": "import_time_call",
-        "line": 156,
+        "line": 159,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -87574,7 +87664,7 @@
         "column": 25,
         "context": "assign:_FILE_IO_LIMITERS_LOCK",
         "kind": "import_time_call",
-        "line": 159,
+        "line": 162,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -87583,7 +87673,7 @@
         "column": 47,
         "context": "assign:_FILE_IO_LIMITERS",
         "kind": "import_time_call",
-        "line": 160,
+        "line": 163,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -87592,7 +87682,7 @@
         "column": 29,
         "context": "assign:_PROMPT_TRANSLATION_WORKER",
         "kind": "import_time_call",
-        "line": 209,
+        "line": 212,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -87601,7 +87691,7 @@
         "column": 0,
         "context": "expression",
         "kind": "import_time_call",
-        "line": 210,
+        "line": 213,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -87610,7 +87700,7 @@
         "column": 36,
         "context": "assign:_SAFE_PROFILE_VALIDATION_MESSAGES",
         "kind": "import_time_call",
-        "line": 359,
+        "line": 362,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -87619,7 +87709,25 @@
         "column": 9,
         "context": "assign:routes",
         "kind": "route_registry_creation",
-        "line": 516,
+        "line": 519,
+        "module": "api.py",
+        "scope": "<module>"
+      },
+      {
+        "callee": "_request_correlated",
+        "column": 31,
+        "context": "assign:translate_prompt_handler",
+        "kind": "import_time_call",
+        "line": 605,
+        "module": "api.py",
+        "scope": "<module>"
+      },
+      {
+        "callee": "_build_translate_prompt_handler",
+        "column": 8,
+        "context": "assign:translate_prompt_handler",
+        "kind": "import_time_call",
+        "line": 606,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -87628,7 +87736,7 @@
         "column": 19,
         "context": "assign:_ROUTE_SIGNATURE",
         "kind": "route_registry_creation",
-        "line": 908,
+        "line": 911,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -87637,7 +87745,7 @@
         "column": 5,
         "context": "assign:_ROUTE_SIGNATURE",
         "kind": "route_registry_creation",
-        "line": 909,
+        "line": 912,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -89554,6 +89662,12 @@
         "name": "__all__"
       },
       {
+        "kind": "list",
+        "line": 3,
+        "module": "easyuse_anima/api/routes/__init__.py",
+        "name": "__all__"
+      },
+      {
         "kind": "dict",
         "line": 44,
         "module": "easyuse_anima/autocomplete/dataset.py",
@@ -89902,7 +90016,7 @@
           "lock"
         ],
         "initializer": "threading.Lock",
-        "line": 159,
+        "line": 162,
         "module": "api.py",
         "name": "_FILE_IO_LIMITERS_LOCK"
       },
@@ -89911,7 +90025,7 @@
           "executor"
         ],
         "initializer": "_PromptTranslationWorker",
-        "line": 209,
+        "line": 212,
         "module": "api.py",
         "name": "_PROMPT_TRANSLATION_WORKER"
       },

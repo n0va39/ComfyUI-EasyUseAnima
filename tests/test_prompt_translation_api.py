@@ -92,6 +92,18 @@ class PromptTranslationApiTests(unittest.TestCase):
         self.addCleanup(api._PROMPT_TRANSLATION_WORKER.shutdown)
         return api, routes, translation, translation_service
 
+    def test_route_handler_is_owned_by_the_canonical_factory(self):
+        api, routes, _translation, _translation_service = self.load_routes()
+        handler = routes.handlers[ROUTE]
+
+        self.assertIs(api.translate_prompt_handler, handler)
+        self.assertEqual(handler.__name__, "translate_prompt_handler")
+        self.assertEqual(
+            handler.__module__,
+            f"{PACKAGE_NAME}.easyuse_anima.api.routes.translation",
+        )
+        self.assertTrue(handler._easyuse_anima_request_correlation)
+
     def test_route_runs_sync_translation_off_event_loop(self):
         api, routes, translation, _translation_service = self.load_routes()
         handler = routes.handlers[ROUTE]
