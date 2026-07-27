@@ -64,6 +64,9 @@ from .api_contract import (
 from .easyuse_anima.aio.torch_compile_diagnostics import (
     collect_torch_compile_diagnostics as _collect_torch_compile_diagnostics,
 )
+from .easyuse_anima.aio.torch_compile_recommendation import (
+    recommend_torch_compile as _recommend_torch_compile,
+)
 from .easyuse_anima.profiles import aio as _aio_profiles
 from .easyuse_anima.profiles import contract as _profile_contract
 from .easyuse_anima.profiles import lora as _lora_profiles
@@ -610,10 +613,46 @@ if web is not None:
     @_request_correlated
     async def aio_torch_compile_recommend_handler(request):
         try:
-            await parse_json_object(request)
+            data = await parse_json_object(request)
+            generation_settings = (
+                json_object(data, "generation_settings")
+                if "generation_settings" in data
+                else {}
+            )
+            resolution = (
+                json_object(data, "resolution") if "resolution" in data else {}
+            )
+            width = json_integer(
+                resolution,
+                "width",
+                default=None,
+                minimum=1,
+                maximum=16384,
+            )
+            height = json_integer(
+                resolution,
+                "height",
+                default=None,
+                minimum=1,
+                maximum=16384,
+            )
+            batch_size = json_integer(
+                data,
+                "batch_size",
+                default=1,
+                minimum=1,
+                maximum=4096,
+            )
         except ApiContractError as exc:
             return _contract_error_response(exc)
-        return web.json_response(_collect_torch_compile_diagnostics())
+        return web.json_response(
+            _recommend_torch_compile(
+                _collect_torch_compile_diagnostics(),
+                generation_settings,
+                {"width": width, "height": height},
+                batch_size if batch_size is not None else 1,
+            )
+        )
 
     @_request_correlated
     async def lora_preview_handler(request):
