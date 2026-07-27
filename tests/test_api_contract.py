@@ -648,6 +648,154 @@ class ApiProfileLoadRouteTests(unittest.TestCase):
                 self.assertNotIn(forbidden, serialized)
 
 
+class ApiProfileSaveRouteTests(unittest.TestCase):
+    def test_route_handlers_are_owned_by_the_canonical_factory(self):
+        api, routes = load_api_routes()
+        cases = (
+            (
+                "save_lora_profile_handler",
+                "/easyuse_anima/lora_profiles/save",
+            ),
+            (
+                "save_aio_profile_handler",
+                "/easyuse_anima/aio_profiles/save",
+            ),
+        )
+
+        for name, path in cases:
+            with self.subTest(path=path):
+                handler = routes.handlers[path]
+                self.assertIs(getattr(api, name), handler)
+                self.assertEqual(handler.__name__, name)
+                self.assertTrue(
+                    handler.__module__.endswith(
+                        ".easyuse_anima.api.routes.profile_saves"
+                    )
+                )
+                self.assertTrue(handler._easyuse_anima_request_correlation)
+
+    def test_routes_keep_dynamic_save_seams_payloads_kwargs_and_success_shape(self):
+        api, routes = load_api_routes()
+        profile_id = "42345678-1234-4567-89ab-1234567890ab"
+        cases = (
+            (
+                "/easyuse_anima/lora_profiles/save",
+                "_save_lora_profile",
+                {
+                    "name": "Portrait",
+                    "overwrite": True,
+                    "profile_data": {"1": {"style_prompt": "soft"}},
+                    "profile_id": profile_id,
+                    "revision": 5,
+                },
+            ),
+            (
+                "/easyuse_anima/aio_profiles/save",
+                "_save_aio_profile",
+                {
+                    "name": "Portrait",
+                    "overwrite": True,
+                    "settings": {"future": {"kept": True}},
+                    "profile_id": profile_id,
+                    "revision": 5,
+                },
+            ),
+        )
+
+        for path, operation_name, data in cases:
+            saved = {
+                "name": data["name"],
+                "profile_id": profile_id,
+                "revision": 6,
+            }
+            with self.subTest(path=path), patch.object(
+                api,
+                operation_name,
+                return_value=saved,
+            ) as save_profile:
+                response = asyncio.run(routes.handlers[path](JsonRequest(data)))
+
+            self.assertEqual(response["status"], 200)
+            self.assertEqual(
+                response["payload"],
+                {"status": "ok", "profile": saved},
+            )
+            save_profile.assert_called_once_with(
+                "Portrait",
+                data,
+                overwrite=True,
+                profile_id=profile_id,
+                revision=5,
+            )
+
+    def test_aio_route_requires_settings_before_file_io(self):
+        api, routes = load_api_routes()
+        with patch.object(api, "_save_aio_profile") as save_profile:
+            response = asyncio.run(
+                routes.handlers["/easyuse_anima/aio_profiles/save"](
+                    JsonRequest({"name": "Portrait"})
+                )
+            )
+
+        self.assertEqual(response["status"], 422)
+        self.assertEqual(response["payload"]["code"], "invalid_request")
+        self.assertEqual(response["payload"]["details"], {"field": "settings"})
+        save_profile.assert_not_called()
+
+    def test_routes_preserve_profile_error_mapping_and_redaction(self):
+        api, routes = load_api_routes()
+        cases = (
+            (
+                "/easyuse_anima/lora_profiles/save",
+                "_save_lora_profile",
+                {"name": "Portrait", "profile_data": {}},
+                FileNotFoundError("C:\\private\\missing.json"),
+                404,
+                "profile_not_found",
+                None,
+            ),
+            (
+                "/easyuse_anima/aio_profiles/save",
+                "_save_aio_profile",
+                {"name": "Portrait", "settings": {}},
+                FileExistsError("/home/alice/existing.json"),
+                409,
+                "profile_exists",
+                None,
+            ),
+            (
+                "/easyuse_anima/aio_profiles/save",
+                "_save_aio_profile",
+                {"name": "Portrait", "settings": {}},
+                api.ProfileMutationError(
+                    status=409,
+                    code="profile_revision_conflict",
+                    message="Profile revision does not match",
+                    details={"profile": "source"},
+                ),
+                409,
+                "profile_revision_conflict",
+                {"profile": "source"},
+            ),
+        )
+
+        for path, operation_name, data, error, status, code, details in cases:
+            with self.subTest(path=path, code=code), patch.object(
+                api,
+                operation_name,
+                side_effect=error,
+            ):
+                response = asyncio.run(routes.handlers[path](JsonRequest(data)))
+
+            self.assertEqual(response["status"], status)
+            self.assertEqual(response["payload"]["code"], code)
+            if details is not None:
+                self.assertEqual(response["payload"]["details"], details)
+            serialized = json.dumps(response["payload"])
+            for forbidden in ("private", "/home/", "alice"):
+                self.assertNotIn(forbidden, serialized)
+
+
 class ApiWildcardRouteTests(unittest.TestCase):
     def test_route_handler_is_owned_by_the_canonical_factory(self):
         api, routes = load_api_routes()

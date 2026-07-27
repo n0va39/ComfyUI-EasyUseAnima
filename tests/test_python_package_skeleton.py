@@ -54,6 +54,7 @@ PACKAGE_MODULES = (
     "easyuse_anima.api.routes.long_text_settings",
     "easyuse_anima.api.routes.profile_lists",
     "easyuse_anima.api.routes.profile_loads",
+    "easyuse_anima.api.routes.profile_saves",
     "easyuse_anima.api.routes.translation",
     "easyuse_anima.api.routes.translation_execution",
     "easyuse_anima.api.routes.wildcards",
@@ -245,6 +246,9 @@ print(json.dumps({{
         expected_all[
             PACKAGE_MODULES.index("easyuse_anima.api.routes.profile_loads")
         ] = ["build_profile_load_handlers"]
+        expected_all[
+            PACKAGE_MODULES.index("easyuse_anima.api.routes.profile_saves")
+        ] = ["build_profile_save_handlers"]
         expected_all[
             PACKAGE_MODULES.index("easyuse_anima.api.routes.translation")
         ] = ["build_translate_prompt_handler"]

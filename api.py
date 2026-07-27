@@ -81,6 +81,9 @@ from .easyuse_anima.api.routes.profile_lists import (
 from .easyuse_anima.api.routes.profile_loads import (
     build_profile_load_handlers as _build_profile_load_handlers,
 )
+from .easyuse_anima.api.routes.profile_saves import (
+    build_profile_save_handlers as _build_profile_save_handlers,
+)
 from .easyuse_anima.api.routes.wildcards import (
     build_wildcards_handler as _build_wildcards_handler,
 )
@@ -661,72 +664,40 @@ if web is not None:
         )
     )
 
-    @_request_correlated
-    async def save_lora_profile_handler(request):
-        try:
-            data = await parse_json_object(request)
-            name = json_string(data, "name", allow_empty=False)
-            overwrite = json_boolean(data, "overwrite")
-            if "profile_data" in data:
-                json_object(data, "profile_data")
-            profile_id = json_uuid_string(
-                data,
-                "profile_id",
-                required=False,
-            )
-            revision = json_integer(
-                data,
-                "revision",
-                default=None,
-                minimum=0,
-            )
-        except ApiContractError as exc:
-            return _contract_error_response(exc)
-        try:
-            payload = await _run_file_io(
-                _save_lora_profile,
+    (
+        save_lora_profile_handler,
+        save_aio_profile_handler,
+    ) = (
+        _request_correlated(handler)
+        for handler in _build_profile_save_handlers(
+            parse_json_object=parse_json_object,
+            json_string=json_string,
+            json_boolean=json_boolean,
+            json_object=json_object,
+            json_uuid_string=json_uuid_string,
+            json_integer=json_integer,
+            contract_error_type=ApiContractError,
+            contract_error_response=lambda exc: _contract_error_response(exc),
+            run_file_io=lambda function, *args, **kwargs: _run_file_io(
+                function,
+                *args,
+                **kwargs,
+            ),
+            save_lora_profile=lambda name, data, **kwargs: _save_lora_profile(
                 name,
                 data,
-                overwrite=overwrite,
-                profile_id=profile_id,
-                revision=revision,
-            )
-        except (FileExistsError, FileNotFoundError, ValueError) as exc:
-            return _profile_error_response(exc)
-        return web.json_response({"status": "ok", "profile": payload})
-
-    @_request_correlated
-    async def save_aio_profile_handler(request):
-        try:
-            data = await parse_json_object(request)
-            name = json_string(data, "name", allow_empty=False)
-            json_object(data, "settings")
-            overwrite = json_boolean(data, "overwrite")
-            profile_id = json_uuid_string(
-                data,
-                "profile_id",
-                required=False,
-            )
-            revision = json_integer(
-                data,
-                "revision",
-                default=None,
-                minimum=0,
-            )
-        except ApiContractError as exc:
-            return _contract_error_response(exc)
-        try:
-            payload = await _run_file_io(
-                _save_aio_profile,
+                **kwargs,
+            ),
+            save_aio_profile=lambda name, data, **kwargs: _save_aio_profile(
                 name,
                 data,
-                overwrite=overwrite,
-                profile_id=profile_id,
-                revision=revision,
-            )
-        except (FileExistsError, FileNotFoundError, ValueError) as exc:
-            return _profile_error_response(exc)
-        return web.json_response({"status": "ok", "profile": payload})
+                **kwargs,
+            ),
+            save_error_types=(FileExistsError, FileNotFoundError, ValueError),
+            profile_error_response=lambda exc: _profile_error_response(exc),
+            json_response=lambda payload: web.json_response(payload),
+        )
+    )
 
     @_request_correlated
     async def delete_aio_profile_handler(request):
