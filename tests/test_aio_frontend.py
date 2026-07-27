@@ -742,15 +742,10 @@ class AIOFrontendSourceTests(unittest.TestCase):
         self.assertIn("...fit", body)
         self.assertIn("delete next.upscale?.fit", body)
 
-    def test_upscale_optional_dependency_sanitizer_disables_missing_backend(self):
+    def test_entry_has_no_dead_optional_dependency_sanitizer_duplicate(self):
         source = AIO_JS.read_text(encoding="utf-8")
-        start = source.index("function sanitizeGeneratorSettingsForOptionalDependencies")
-        end = source.index("\nfunction applyVisibleGeneratorSettings", start)
-        body = source[start:end]
-
-        self.assertIn("disableGeneratorSpectrumOptions(next.upscale)", body)
-        self.assertIn("upscaleBackendMissingPacks(next.upscale.backend).length", body)
-        self.assertIn("next.upscale.enabled = false", body)
+        self.assertNotIn("sanitizeGeneratorSettingsForOptionalDependencies", source)
+        self.assertNotIn("disableGeneratorSpectrumOptions", source)
 
     def test_optional_dependency_query_is_silent_until_explicit_missing_selection(self):
         source = AIO_JS.read_text(encoding="utf-8")

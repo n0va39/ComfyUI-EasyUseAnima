@@ -120,12 +120,20 @@ TS6133 1개)를 ComfyUI host import 두 줄의 line-specific suppression,
 unused callback formal 제거로 해소하고 명시적 include로 승격했다. 현재 root
 entry 11개 중 8개가 typecheck 대상이고, debt는 3개 entry·31개 오류다.
 
+Phase 4c에서는 `easyuse_anima_autocomplete.js`의 5개 오류를 host import 한 줄의
+line-specific suppression, 좁은 DOM 경계와 unused callback/dead local 정리로
+해소하고 명시적 include로 승격했다.
+
+Phase 4d에서는 최신 `dev`에서 `easyuse_anima_aio.js`를 재계측한 15개 오류
+(TS2307 4개, TS1117 4개, TS6133 3개, TS2339 2개, TS2345 2개)를 host import
+line suppression, 현재 effective 값이 동일한 duplicate key 정리, caller가 없는
+dead entry helper 제거, 좁은 window/payload 타입 경계로 해소하고 명시적 include로
+승격했다. Runtime, DOM, hook, queue와 serialization 의미는 변경하지 않았다.
+
 현재 debt ledger:
 
 | TODO 파일 | 총 오류 | TypeScript 오류 코드별 개수 |
 | --- | ---: | --- |
-| `easyuse_anima_aio.js` | 16 | TS1117 4, TS2307 4, TS2339 2, TS2345 2, TS6133 4 |
-| `easyuse_anima_autocomplete.js` | 5 | TS2307 1, TS2339 2, TS6133 2 |
 | `easyuse_anima_lora_preset.js` | 10 | TS2304 4, TS2307 2, TS2345 1, TS6133 3 |
 
 코드는 TS1117 duplicate property, TS2304 undeclared host global, TS2307 외부

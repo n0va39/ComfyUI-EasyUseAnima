@@ -1043,8 +1043,10 @@ class FrontendModuleStructureTests(unittest.TestCase):
             "entry-relative direct store imports": (
                 r"loadDirectStoreModules\s*:\s*\(\s*\)\s*=>\s*"
                 r"Promise\.all\(\s*\[\s*"
+                r"// @ts-expect-error ComfyUI provides this host module at runtime\.\s*"
                 r'import\(\s*"\.\./\.\./\.\./stores/nodeOutputStore\.js"\s*\)\s*'
                 r"\.catch\(\s*\(\s*\)\s*=>\s*null\s*\)\s*,\s*"
+                r"// @ts-expect-error ComfyUI provides this host module at runtime\.\s*"
                 r'import\(\s*"\.\./\.\./\.\./platform/workflow/management/'
                 r'stores/workflowStore\.js"\s*\)\s*'
                 r"\.catch\(\s*\(\s*\)\s*=>\s*null\s*\)\s*,?\s*"
@@ -1931,7 +1933,10 @@ class FrontendModuleStructureTests(unittest.TestCase):
             for name in import_match.group("names").split(",")
             if name.strip()
         }
-        self.assertEqual(imported_exports, expected_functions)
+        self.assertEqual(
+            imported_exports,
+            expected_functions - {"aioNodeInputDefault"},
+        )
 
         self.assertNotRegex(source, re.compile(r"^\s*import\s", re.MULTILINE))
         self.assertNotRegex(source, r"\b(?:app|api)\b")
@@ -3580,7 +3585,6 @@ class FrontendModuleStructureTests(unittest.TestCase):
             and "*" not in entry
         }
         debt_root_entries = {
-            "web/js/easyuse_anima_aio.js",
             "web/js/easyuse_anima_lora_preset.js",
         }
         actual_root_entries = {

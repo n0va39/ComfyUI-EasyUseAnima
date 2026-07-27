@@ -1,4 +1,8 @@
+// @ts-check
+
+// @ts-expect-error ComfyUI provides this host module at runtime.
 import { app } from "../../../scripts/app.js";
+// @ts-expect-error ComfyUI provides this host module at runtime.
 import { api } from "../../../scripts/api.js";
 import { easyuseAnimaFetchComfyJson, easyuseAnimaFetchText } from "./easyuse_anima_api.js";
 import { easyuseAnimaText, easyuseAnimaWatchLocale } from "./easyuse_anima_i18n.js";
@@ -10,7 +14,6 @@ import {
   aioCreateTextareaInput as textareaInput,
   aioCreateTextInput as textInput,
   aioNodeInputControlForSpec as nodeInputControlForSpec,
-  aioNodeInputDefault as nodeInputDefault,
   aioValueFromNodeInputControl as valueFromNodeInputControl,
 } from "./aio/dom_controls.js";
 import { aioCreateDialogPrimitives } from "./aio/dialog_primitives.js";
@@ -331,7 +334,6 @@ const AIO_TEXT = {
     "field.guideSizeBasis": "Guide size basis",
     "field.inpaintModel": "Inpaint model",
     "field.tiledEncode": "Tiled encode",
-    "field.tiledDecode": "Tiled decode",
     "field.refine": "Refine",
     "field.individual": "Individual",
     "field.combined": "Combined",
@@ -687,7 +689,6 @@ const AIO_TEXT = {
     "field.guideSizeBasis": "가이드 크기 기준",
     "field.inpaintModel": "인페인트 모델",
     "field.tiledEncode": "타일 인코드",
-    "field.tiledDecode": "타일 디코드",
     "field.refine": "정제",
     "field.individual": "개별 마스크",
     "field.combined": "통합 마스크",
@@ -1721,7 +1722,6 @@ const AIO_FIELD_TOOLTIP_KEYS = {
   "USDU prompt": "tip.usduPrompt",
   "Fit final size": "tip.finalFit",
   "Fit by": "tip.finalFit",
-  "Max long edge": "tip.finalFit",
   "Max megapixels": "tip.finalFit",
   "Fit method": "tip.finalFit",
   "Tile width": "tip.usduTile",
@@ -1929,7 +1929,6 @@ const AIO_FIELD_LABEL_KEYS = {
   "Guide size basis": "field.guideSizeBasis",
   "Inpaint model": "field.inpaintModel",
   "Tiled encode": "field.tiledEncode",
-  "Tiled decode": "field.tiledDecode",
   "Refine": "field.refine",
   "Individual": "field.individual",
   "Combined": "field.combined",
@@ -2201,69 +2200,6 @@ function nodeInputSupported(dependencyKey, inputName) {
   return aioNodeInputSupported(generatorOptionalDependencyState, dependencyKey, inputName);
 }
 
-
-function disableGeneratorSpectrumOptions(target) {
-  if (!target || typeof target !== "object") {
-    return;
-  }
-  if (target.spectrum && typeof target.spectrum === "object") {
-    target.spectrum.enabled = false;
-  }
-  if (target.dit_corrections && typeof target.dit_corrections === "object") {
-    target.dit_corrections.enabled = false;
-  }
-}
-
-function sanitizeGeneratorSettingsForOptionalDependencies(settings) {
-  const next = migrateGeneratorPostprocessSettings(mergeDefaults(DEFAULT_GENERATION_SETTINGS, settings));
-  delete next.sampler.dave;
-  const backendDependency = AIO_BACKEND_DEPENDENCIES[next.sampler.backend];
-  if (backendDependency && !optionalDependencyAvailable(backendDependency)) {
-    next.sampler.backend = "comfy_ksampler";
-  }
-  delete next.highres?.backend;
-  if (!optionalDependencyAvailable("spectrumPatch")) {
-    disableGeneratorSpectrumOptions(next.sampler);
-    disableGeneratorSpectrumOptions(next.highres);
-    disableGeneratorSpectrumOptions(next.upscale);
-    for (const targetName of normalizeDetailerOrder(next.detailer?.order, next.detailer)) {
-      disableGeneratorSpectrumOptions(next.detailer?.[targetName]);
-    }
-  }
-  if (!optionalDependencyAvailable("kjFp16")) {
-    next.model_patches.kj.fp16_accumulation = false;
-  }
-  if (!optionalDependencyAvailable("kjSage")) {
-    next.model_patches.kj.sage_attention = "disabled";
-    next.model_patches.kj.sage_allow_compile = false;
-  }
-  if (!optionalDependencyAvailable("kjTorchCompile")) {
-    next.model_patches.kj.torch_compile.enabled = false;
-  }
-  if (!optionalDependencyAvailable("dave")) {
-    next.model_patches.dave.enabled = false;
-  }
-  if (!optionalDependencyAvailable("safePag")) {
-    next.model_patches.safe_pag.enabled = false;
-  }
-  if (!optionalDependencyAvailable("imageSaver") && next.save.backend === "image_saver") {
-    next.save.backend = "comfy_save_image";
-  }
-  const impactMissing = !optionalDependencyAvailable("impactDetailer")
-    || !optionalDependencyAvailable("impactMaskToSegs");
-  if (impactMissing) {
-    next.detailer.enabled = false;
-    for (const targetName of normalizeDetailerOrder(next.detailer?.order, next.detailer)) {
-      if (next.detailer[targetName]) {
-        next.detailer[targetName].enabled = false;
-      }
-    }
-  }
-  if (next.upscale?.enabled && upscaleBackendMissingPacks(next.upscale.backend).length) {
-    next.upscale.enabled = false;
-  }
-  return next;
-}
 
 function samplerNameOptions(current) {
   return aioChoiceOptionsWithCurrent(generatorSamplerOptionState.samplerNames, current);
@@ -3390,6 +3326,11 @@ function setWidgetValue(node, name, value) {
   node.__easyuseAnimaGeneratorUiValues[name] = value;
 }
 
+/**
+ * @param {unknown} value
+ * @param {unknown} [fallback]
+ * @returns {unknown}
+ */
 function firstValue(value, fallback = "") {
   if (Array.isArray(value)) {
     return value.length > 0 ? value[0] : fallback;
@@ -3760,10 +3701,13 @@ function forwardGeneratorPanelWheel(event) {
 }
 
 function installGeneratorWheelForwarder() {
-  if (window.__easyuseAnimaAioWheelForwarderInstalled) {
+  const runtimeWindow = /** @type {Window & typeof globalThis & {
+   *   __easyuseAnimaAioWheelForwarderInstalled?: boolean
+   * }} */ (window);
+  if (runtimeWindow.__easyuseAnimaAioWheelForwarderInstalled) {
     return;
   }
-  window.__easyuseAnimaAioWheelForwarderInstalled = true;
+  runtimeWindow.__easyuseAnimaAioWheelForwarderInstalled = true;
   // Node 2.0 handles wheel on an ancestor of the DOM widget, so ownership must
   // be decided during window capture before that ancestor can zoom the canvas.
   window.addEventListener("wheel", forwardGeneratorPanelWheel, {
@@ -3833,10 +3777,6 @@ function randomSeed() {
 }
 
 
-
-function openGeneratorSettings(node) {
-  openAdvancedSettings(node);
-}
 
 function isGeneratorGraphNode(node) {
   return node?.type === GENERATOR_NODE_TYPE || node?.comfyClass === GENERATOR_NODE_TYPE;
@@ -4230,7 +4170,9 @@ const {
   storeAdapter: {
     getLegacyPreviewImages: () => app.nodePreviewImages,
     loadDirectStoreModules: () => Promise.all([
+      // @ts-expect-error ComfyUI provides this host module at runtime.
       import("../../../stores/nodeOutputStore.js").catch(() => null),
+      // @ts-expect-error ComfyUI provides this host module at runtime.
       import("../../../platform/workflow/management/stores/workflowStore.js").catch(() => null),
     ]),
     fetchFrontendHtml: () => easyuseAnimaFetchText("/"),
