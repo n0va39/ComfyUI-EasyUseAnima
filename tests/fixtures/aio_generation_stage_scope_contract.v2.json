@@ -3,8 +3,8 @@
   "version": 2,
   "stage_ids": ["first_pass", "highres", "detailer", "upscale"],
   "patch_order": {
-    "revision": 1,
-    "precedence": [["kj.torch_compile", "dave"]]
+    "revision": 2,
+    "precedence": [["kj.torch_compile", "dave"], ["dave", "safe_pag"]]
   },
   "fresh_dave_stage_scope": {
     "first_pass": true,

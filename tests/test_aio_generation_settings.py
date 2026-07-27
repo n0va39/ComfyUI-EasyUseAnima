@@ -138,17 +138,22 @@ class AIOGenerationConfigTests(unittest.TestCase):
             })
         self.assertEqual(invalid["negpip"], {"mode": "off"})
 
-    def test_fresh_v2_and_legacy_v1_dave_scope_normalize_without_ambiguity(self):
+    def test_fresh_v3_legacy_scopes_and_malformed_safe_pag_normalize_without_ambiguity(self):
         legacy = copy.deepcopy(nodes.AIO_GENERATION_DEFAULT_SETTINGS)
         legacy["version"] = 1
         legacy_dave = legacy["model_patches"]["dave"]
         del legacy_dave["stage_scope"]
+        legacy_safe_pag = legacy["model_patches"]["safe_pag"]
+        del legacy_safe_pag["stage_scope"]
+        malformed = copy.deepcopy(nodes.AIO_GENERATION_DEFAULT_SETTINGS)
+        malformed["model_patches"]["safe_pag"]["stage_scope"] = "all"
 
         with _deterministic_capabilities():
             fresh = nodes._normalize_aio_generation_settings({})
             migrated = nodes._normalize_aio_generation_settings(legacy)
+            malformed_normalized = nodes._normalize_aio_generation_settings(malformed)
 
-        self.assertEqual(fresh["version"], 2)
+        self.assertEqual(fresh["version"], 3)
         self.assertEqual(
             fresh["model_patches"]["dave"]["stage_scope"],
             {
@@ -158,7 +163,16 @@ class AIOGenerationConfigTests(unittest.TestCase):
                 "upscale": False,
             },
         )
-        self.assertEqual(migrated["version"], 2)
+        self.assertEqual(
+            fresh["model_patches"]["safe_pag"]["stage_scope"],
+            {
+                "first_pass": True,
+                "highres": False,
+                "detailer": False,
+                "upscale": False,
+            },
+        )
+        self.assertEqual(migrated["version"], 3)
         self.assertEqual(
             migrated["model_patches"]["dave"]["stage_scope"],
             {
@@ -166,6 +180,24 @@ class AIOGenerationConfigTests(unittest.TestCase):
                 "highres": True,
                 "detailer": True,
                 "upscale": True,
+            },
+        )
+        self.assertEqual(
+            migrated["model_patches"]["safe_pag"]["stage_scope"],
+            {
+                "first_pass": True,
+                "highres": True,
+                "detailer": True,
+                "upscale": True,
+            },
+        )
+        self.assertEqual(
+            malformed_normalized["model_patches"]["safe_pag"]["stage_scope"],
+            {
+                "first_pass": False,
+                "highres": False,
+                "detailer": False,
+                "upscale": False,
             },
         )
 

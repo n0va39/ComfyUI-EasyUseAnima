@@ -856,8 +856,11 @@ class AIOFirstPassCacheMoveTests(unittest.TestCase):
                 },
                 {"loader": "b"}, {"positive": "p"}, {"seed": 42},
                 {
-                    "order_revision": 1,
-                    "precedence": [["kj.torch_compile", "dave"]],
+                    "order_revision": 2,
+                    "precedence": [
+                        ["kj.torch_compile", "dave"],
+                        ["dave", "safe_pag"],
+                    ],
                     "patches": {
                         "aura_flow": {"shift": 3.0},
                         "dave": {
@@ -957,7 +960,10 @@ class AIOFirstPassCacheMoveTests(unittest.TestCase):
         )
         self.assertEqual(
             plan["precedence"],
-            [["kj.torch_compile", "dave"]],
+            [
+                ["kj.torch_compile", "dave"],
+                ["dave", "safe_pag"],
+            ],
         )
         self.assertEqual(
             list(plan["patches"]),
@@ -1024,7 +1030,7 @@ class AIOFirstPassCacheMoveTests(unittest.TestCase):
             )["patches"],
         )
 
-        with patch.object(first_pass_cache, "AIO_MODEL_PATCH_ORDER_REVISION", 2):
+        with patch.object(first_pass_cache, "AIO_MODEL_PATCH_ORDER_REVISION", 3):
             self.assertNotEqual(
                 first_pass_cache._aio_first_pass_cache_key(**key_args),
                 baseline,

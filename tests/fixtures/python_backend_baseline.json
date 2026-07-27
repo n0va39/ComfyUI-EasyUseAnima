@@ -60497,9 +60497,9 @@
       },
       {
         "is_package": false,
-        "loc": 479,
+        "loc": 483,
         "module": "easyuse_anima.aio.generation_defaults",
-        "normalized_git_blob_sha1": "6bed11a3513a1c0e2bd5d2b489cb2a4e6b039395",
+        "normalized_git_blob_sha1": "eee555bd8a0b6e63bbdbb662388a50d42bc6c0c0",
         "path": "easyuse_anima/aio/generation_defaults.py",
         "top_level": {
           "class_count": 0,
@@ -60533,9 +60533,9 @@
       },
       {
         "is_package": false,
-        "loc": 654,
+        "loc": 660,
         "module": "easyuse_anima.aio.generation_features",
-        "normalized_git_blob_sha1": "93ceb0a1e0bef47d1d6a9a5802290468fd28f484",
+        "normalized_git_blob_sha1": "2c46d0cc01b33a3146ccfad6b1a101b260c15719",
         "path": "easyuse_anima/aio/generation_features.py",
         "top_level": {
           "class_count": 16,
@@ -60581,21 +60581,21 @@
       },
       {
         "is_package": false,
-        "loc": 194,
+        "loc": 220,
         "module": "easyuse_anima.aio.generation_migrations",
-        "normalized_git_blob_sha1": "311d05437214022852b40dfb5387cfe1a9edde60",
+        "normalized_git_blob_sha1": "b3f52f71dc4fb1497d3e8ff5ea7b72206116959c",
         "path": "easyuse_anima/aio/generation_migrations.py",
         "top_level": {
           "class_count": 3,
-          "function_count": 5,
+          "function_count": 6,
           "global_count": 8
         }
       },
       {
         "is_package": false,
-        "loc": 1093,
+        "loc": 1104,
         "module": "easyuse_anima.aio.generation_normalization",
-        "normalized_git_blob_sha1": "d350b7185751cff462f17dbf42ef9293351b1061",
+        "normalized_git_blob_sha1": "feb341561d84f9131b583f2d1188f0977c94708c",
         "path": "easyuse_anima/aio/generation_normalization.py",
         "top_level": {
           "class_count": 0,
@@ -81108,7 +81108,7 @@
         "column": 1,
         "context": "decorator:AIOGenerationTorchCompileConfig",
         "kind": "import_time_call",
-        "line": 147,
+        "line": 153,
         "module": "easyuse_anima/aio/generation_features.py",
         "scope": "<module>"
       },
@@ -81117,7 +81117,7 @@
         "column": 1,
         "context": "decorator:AIOGenerationKJConfig",
         "kind": "import_time_call",
-        "line": 201,
+        "line": 207,
         "module": "easyuse_anima/aio/generation_features.py",
         "scope": "<module>"
       },
@@ -81126,7 +81126,7 @@
         "column": 1,
         "context": "decorator:AIOGenerationModelPatchesConfig",
         "kind": "import_time_call",
-        "line": 236,
+        "line": 242,
         "module": "easyuse_anima/aio/generation_features.py",
         "scope": "<module>"
       },
@@ -81135,7 +81135,7 @@
         "column": 1,
         "context": "decorator:AIOGenerationModGuidanceAdvancedConfig",
         "kind": "import_time_call",
-        "line": 265,
+        "line": 271,
         "module": "easyuse_anima/aio/generation_features.py",
         "scope": "<module>"
       },
@@ -81144,7 +81144,7 @@
         "column": 1,
         "context": "decorator:AIOGenerationModGuidanceConfig",
         "kind": "import_time_call",
-        "line": 308,
+        "line": 314,
         "module": "easyuse_anima/aio/generation_features.py",
         "scope": "<module>"
       },
@@ -81153,7 +81153,7 @@
         "column": 1,
         "context": "decorator:AIOGenerationArtistMixConfig",
         "kind": "import_time_call",
-        "line": 335,
+        "line": 341,
         "module": "easyuse_anima/aio/generation_features.py",
         "scope": "<module>"
       },
@@ -81162,7 +81162,7 @@
         "column": 1,
         "context": "decorator:AIOGenerationHighresConfig",
         "kind": "import_time_call",
-        "line": 384,
+        "line": 390,
         "module": "easyuse_anima/aio/generation_features.py",
         "scope": "<module>"
       },
@@ -81171,7 +81171,7 @@
         "column": 1,
         "context": "decorator:AIOGenerationUSDUConfig",
         "kind": "import_time_call",
-        "line": 443,
+        "line": 449,
         "module": "easyuse_anima/aio/generation_features.py",
         "scope": "<module>"
       },
@@ -81180,7 +81180,7 @@
         "column": 1,
         "context": "decorator:AIOGenerationResShiftConfig",
         "kind": "import_time_call",
-        "line": 518,
+        "line": 524,
         "module": "easyuse_anima/aio/generation_features.py",
         "scope": "<module>"
       },
@@ -81189,7 +81189,7 @@
         "column": 1,
         "context": "decorator:AIOGenerationUpscaleConfig",
         "kind": "import_time_call",
-        "line": 549,
+        "line": 555,
         "module": "easyuse_anima/aio/generation_features.py",
         "scope": "<module>"
       },
@@ -81198,7 +81198,7 @@
         "column": 1,
         "context": "decorator:AIOGenerationFitConfig",
         "kind": "import_time_call",
-        "line": 608,
+        "line": 614,
         "module": "easyuse_anima/aio/generation_features.py",
         "scope": "<module>"
       },
@@ -81207,7 +81207,7 @@
         "column": 1,
         "context": "decorator:AIOGenerationPostprocessConfig",
         "kind": "import_time_call",
-        "line": 635,
+        "line": 641,
         "module": "easyuse_anima/aio/generation_features.py",
         "scope": "<module>"
       },
@@ -81378,7 +81378,7 @@
         "column": 1,
         "context": "decorator:AIOGenerationMigrationStep",
         "kind": "import_time_call",
-        "line": 60,
+        "line": 63,
         "module": "easyuse_anima/aio/generation_migrations.py",
         "scope": "<module>"
       },
@@ -81387,7 +81387,7 @@
         "column": 1,
         "context": "decorator:AIOGenerationMigrationRegistry",
         "kind": "import_time_call",
-        "line": 83,
+        "line": 86,
         "module": "easyuse_anima/aio/generation_migrations.py",
         "scope": "<module>"
       },
@@ -81396,7 +81396,7 @@
         "column": 4,
         "context": "assign:AIO_GENERATION_MIGRATION_REGISTRY",
         "kind": "import_time_call",
-        "line": 137,
+        "line": 159,
         "module": "easyuse_anima/aio/generation_migrations.py",
         "scope": "<module>"
       },
@@ -81405,7 +81405,16 @@
         "column": 4,
         "context": "assign:AIO_GENERATION_MIGRATION_REGISTRY",
         "kind": "import_time_call",
-        "line": 137,
+        "line": 159,
+        "module": "easyuse_anima/aio/generation_migrations.py",
+        "scope": "<module>"
+      },
+      {
+        "callee": "with_step",
+        "column": 4,
+        "context": "assign:AIO_GENERATION_MIGRATION_REGISTRY",
+        "kind": "import_time_call",
+        "line": 159,
         "module": "easyuse_anima/aio/generation_migrations.py",
         "scope": "<module>"
       },
@@ -81414,7 +81423,16 @@
         "column": 8,
         "context": "assign:AIO_GENERATION_MIGRATION_REGISTRY",
         "kind": "import_time_call",
-        "line": 138,
+        "line": 161,
+        "module": "easyuse_anima/aio/generation_migrations.py",
+        "scope": "<module>"
+      },
+      {
+        "callee": "AIOGenerationMigrationStep",
+        "column": 8,
+        "context": "assign:AIO_GENERATION_MIGRATION_REGISTRY",
+        "kind": "import_time_call",
+        "line": 166,
         "module": "easyuse_anima/aio/generation_migrations.py",
         "scope": "<module>"
       },
