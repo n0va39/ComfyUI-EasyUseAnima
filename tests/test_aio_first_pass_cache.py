@@ -1036,6 +1036,71 @@ class AIOFirstPassCacheMoveTests(unittest.TestCase):
                 baseline,
             )
 
+    def test_first_pass_sage_scope_is_normalized_into_cache_identity(self):
+        def signature(model_patches):
+            return first_pass_cache._stable_change_key(
+                first_pass_cache._aio_first_pass_model_patch_plan(model_patches)
+            )
+
+        legacy = {
+            "kj": {
+                "sage_attention": "auto",
+                "sage_allow_compile": True,
+            }
+        }
+        explicit = copy.deepcopy(legacy)
+        explicit["kj"]["sage_stage_scope"] = {
+            "first_pass": True,
+            "highres": False,
+            "detailer": False,
+            "upscale": False,
+        }
+
+        legacy_plan = first_pass_cache._aio_first_pass_model_patch_plan(legacy)
+        explicit_plan = first_pass_cache._aio_first_pass_model_patch_plan(explicit)
+        self.assertEqual(signature(legacy), signature(explicit))
+        self.assertEqual(
+            legacy_plan["patches"]["kj.sage_attention"],
+            {
+                "mode": "auto",
+                "allow_compile": True,
+                "stage_scope": {"first_pass": True},
+            },
+        )
+        self.assertEqual(legacy_plan, explicit_plan)
+
+        later_selected = copy.deepcopy(explicit)
+        later_selected["kj"]["sage_stage_scope"]["highres"] = True
+        later_selected["kj"]["sage_stage_scope"]["detailer"] = True
+        later_selected["kj"]["sage_stage_scope"]["upscale"] = True
+        self.assertEqual(signature(explicit), signature(later_selected))
+
+        first_disabled = copy.deepcopy(explicit)
+        first_disabled["kj"]["sage_stage_scope"]["first_pass"] = False
+        self.assertNotEqual(signature(explicit), signature(first_disabled))
+        self.assertNotIn(
+            "kj.sage_attention",
+            first_pass_cache._aio_first_pass_model_patch_plan(first_disabled)[
+                "patches"
+            ],
+        )
+
+        allow_compile_changed = copy.deepcopy(first_disabled)
+        allow_compile_changed["kj"]["sage_allow_compile"] = False
+        self.assertEqual(
+            signature(first_disabled),
+            signature(allow_compile_changed),
+        )
+
+        malformed = copy.deepcopy(explicit)
+        malformed["kj"]["sage_stage_scope"] = "all"
+        self.assertEqual(signature(first_disabled), signature(malformed))
+
+        unknown = copy.deepcopy(explicit)
+        unknown["kj"]["sage_attention"] = "future-mode"
+        with self.assertRaisesRegex(RuntimeError, "Unsupported KJ SageAttention"):
+            signature(unknown)
+
     def test_negpip_modes_preserve_off_and_separate_on_and_turbo_contracts(self):
         settings = {
             "mode": "txt2img",
