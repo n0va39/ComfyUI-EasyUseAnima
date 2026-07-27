@@ -124,6 +124,7 @@ globalThis.HTMLInputElement = Object;
 globalThis.HTMLTextAreaElement = Object;
 
 const {
+  commitAdvancedNaiaResolutionView,
   createAdvancedResolutionSettingsBody,
 } = await import(advancedControlsUrl);
 const {
@@ -414,5 +415,28 @@ const afterNaia = widgetSnapshot(naia.node);
 assertEqual(afterNaia.resolution_bucket, "NAIA", "NAIA was silently changed to Custom");
 assertEqual(afterNaia.resolution_custom_width, beforeNaia.resolution_custom_width, "NAIA width changed");
 assertEqual(afterNaia.resolution_custom_height, beforeNaia.resolution_custom_height, "NAIA height changed");
+
+naia.node.callbackSnapshots.length = 0;
+assertEqual(
+  commitAdvancedNaiaResolutionView(naia.node, 832, 1216),
+  true,
+  "Accepted NAIA resolution did not commit",
+);
+const committedNaia = widgetSnapshot(naia.node);
+assertEqual(committedNaia.resolution_bucket, "NAIA", "NAIA commit changed the bucket owner");
+assertEqual(committedNaia.resolution_custom_width, 832, "NAIA commit width");
+assertEqual(committedNaia.resolution_custom_height, 1216, "NAIA commit height");
+assertEqual(committedNaia.resolution_size, "832 * 1216 (13:19)", "NAIA commit size label");
+assertEqual(
+  naia.node.__summaries.resolution,
+  "NAIA · 832 * 1216 (13:19)",
+  "NAIA commit summary",
+);
+assertEqual(naia.node.callbackSnapshots.length, 3, "NAIA commit callback count");
+for (const callback of naia.node.callbackSnapshots) {
+  assertEqual(callback.snapshot.resolution_custom_width, 832, `${callback.name} saw stale NAIA width`);
+  assertEqual(callback.snapshot.resolution_custom_height, 1216, `${callback.name} saw stale NAIA height`);
+  assertEqual(callback.snapshot.resolution_size, "832 * 1216 (13:19)", `${callback.name} saw stale NAIA size`);
+}
 
 console.log("Prompt Studio resolution orientation smoke passed.");

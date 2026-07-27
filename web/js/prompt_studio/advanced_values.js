@@ -95,6 +95,25 @@ function publishAdvancedExecution(node, message, hooks = {}) {
       committers.push(committer);
     }
   }
+  for (const [fieldId, value] of Object.entries(payload.naia_field_updates || {})) {
+    const committer = hooks.createNaiaExecutionCommitter?.(
+      node,
+      fieldId,
+      value,
+    );
+    if (committer) {
+      committers.push(committer);
+    }
+  }
+  if (payload.naia_resolution_update && typeof payload.naia_resolution_update === "object") {
+    const committer = hooks.createNaiaResolutionExecutionCommitter?.(
+      node,
+      payload.naia_resolution_update,
+    );
+    if (committer) {
+      committers.push(committer);
+    }
+  }
   hooks.consumePromptStudioExecution?.(
     node,
     message,

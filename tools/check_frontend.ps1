@@ -189,6 +189,11 @@ try {
         throw "Frontend Prompt Studio linked execution projection smoke failed with exit code $LASTEXITCODE."
     }
 
+    & node "tests\frontend_prompt_studio_naia_projection_smoke.mjs"
+    if ($LASTEXITCODE -ne 0) {
+        throw "Frontend Prompt Studio NAIA canonical projection smoke failed with exit code $LASTEXITCODE."
+    }
+
     & node "tests\frontend_prompt_studio_wildcard_transaction_smoke.mjs"
     if ($LASTEXITCODE -ne 0) {
         throw "Frontend Prompt Studio wildcard transaction smoke failed with exit code $LASTEXITCODE."

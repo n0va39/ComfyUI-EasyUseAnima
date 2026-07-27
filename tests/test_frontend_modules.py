@@ -19,6 +19,9 @@ PROMPT_STUDIO_EXECUTION_PROJECTION_SMOKE = (
 PROMPT_STUDIO_LINKED_PROJECTION_SMOKE = (
     ROOT / "tests" / "frontend_prompt_studio_linked_projection_smoke.mjs"
 )
+PROMPT_STUDIO_NAIA_PROJECTION_SMOKE = (
+    ROOT / "tests" / "frontend_prompt_studio_naia_projection_smoke.mjs"
+)
 PROMPT_STUDIO_WILDCARD_TRANSACTION_SMOKE = (
     ROOT / "tests" / "frontend_prompt_studio_wildcard_transaction_smoke.mjs"
 )
@@ -2386,12 +2389,19 @@ class FrontendModuleStructureTests(unittest.TestCase):
             "owner.settle(transaction, pending.envelope)",
             execution_transaction_source,
         )
-        self.assertIn("editBindings: WILDCARD_SEED_EDIT_BINDINGS", extension_runtime_source)
+        self.assertIn("editBindings: PROMPT_STUDIO_EDIT_BINDINGS", extension_runtime_source)
         self.assertIn("WILDCARD_SEED_CONTROL_SURFACE,", extension_runtime_source)
         self.assertIn(
-            "...snapshots.map((snapshot) => snapshot.surface)",
+            "...linked.map((snapshot) => snapshot.surface)",
             extension_runtime_source,
         )
+        self.assertIn(
+            "...naia.map((snapshot) => snapshot.surface)",
+            extension_runtime_source,
+        )
+        self.assertIn("captureAdvancedNaiaResolutionSnapshot", extension_runtime_source)
+        self.assertIn("createNaiaExecutionCommitter", extension_runtime_source)
+        self.assertIn("createNaiaResolutionExecutionCommitter", extension_runtime_source)
         self.assertIn("../lifecycle/queue_ui_transaction.js", extension_runtime_source)
         self.assertIn("../lifecycle/executed_event_context.js", extension_runtime_source)
         self.assertIn('"advanced-wildcard-seed-transaction"', extension_runtime_source)
@@ -2418,6 +2428,8 @@ class FrontendModuleStructureTests(unittest.TestCase):
         self.assertNotIn("applyExecutedInputs", studio_values_source)
         self.assertNotIn("hooks.applyExecutedInputs", node_hooks_source)
         self.assertIn("publishAdvancedExecution", advanced_values_source)
+        self.assertIn("naia_field_updates", advanced_values_source)
+        self.assertIn("naia_resolution_update", advanced_values_source)
         self.assertIn("wildcard_execution_seed", advanced_values_source)
         self.assertIn("writePreviousWildcardExecution", advanced_values_source)
         self.assertTrue(PROMPT_STUDIO_ADVANCED_VALUES_SMOKE.is_file())
@@ -2435,6 +2447,17 @@ class FrontendModuleStructureTests(unittest.TestCase):
             r'node "tests\frontend_prompt_studio_linked_projection_smoke.mjs"',
             FRONTEND_CHECK_SCRIPT.read_text(encoding="utf-8"),
         )
+        self.assertTrue(PROMPT_STUDIO_NAIA_PROJECTION_SMOKE.is_file())
+        self.assertIn(
+            r'node "tests\frontend_prompt_studio_naia_projection_smoke.mjs"',
+            FRONTEND_CHECK_SCRIPT.read_text(encoding="utf-8"),
+        )
+        naia_projection_source = (
+            PROMPT_STUDIO_MODULES / "naia_projection.js"
+        ).read_text(encoding="utf-8")
+        self.assertIn("commitAdvancedNaiaFieldCanonical", naia_projection_source)
+        self.assertIn("commitAdvancedNaiaResolution", naia_projection_source)
+        self.assertNotIn("renderAdvancedEditor", naia_projection_source)
         self.assertTrue(PROMPT_STUDIO_WILDCARD_TRANSACTION_SMOKE.is_file())
         self.assertIn(
             r'node "tests\frontend_prompt_studio_wildcard_transaction_smoke.mjs"',
@@ -3739,6 +3762,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
             "highlight_overlay_core.js",
             "highlight_ui.js",
             "legend.js",
+            "naia_projection.js",
             "node_hooks.js",
             "text.js",
             "widgets.js",

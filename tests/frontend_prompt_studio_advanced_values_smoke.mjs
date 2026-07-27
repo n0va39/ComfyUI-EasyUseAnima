@@ -76,12 +76,19 @@ let renderCount = 0;
 let consumedMappedItemCount = null;
 let wildcardViewCommitCount = 0;
 let linkedViewCommitCount = 0;
+let naiaFieldCommitCount = 0;
+let naiaResolutionCommitCount = 0;
 publishAdvancedExecution(
   node,
   {
     prompt_studio_advanced: [{
       advanced_fields: "[]",
       field_inputs: { field_positive_general: "resolved linked text" },
+      naia_field_updates: {
+        positive_naia: "resolved positive NAIA",
+        negative_naia: "resolved negative NAIA",
+      },
+      naia_resolution_update: { width: 832, height: 1216 },
       wildcard_mode: "순차",
       wildcard_execution_seed: 41,
       wildcard_seed: 42,
@@ -109,6 +116,20 @@ publishAdvancedExecution(
         target.__easyuseAnimaAdvancedFieldInputValues[inputName] = value;
       },
     }),
+    createNaiaExecutionCommitter: (_target, fieldId, value) => ({
+      surface: `prompt.execution.naia:${fieldId}`,
+      commit: () => {
+        naiaFieldCommitCount += 1;
+        assert(value.includes("NAIA"), "Advanced lost an explicit NAIA field delta");
+      },
+    }),
+    createNaiaResolutionExecutionCommitter: (_target, value) => ({
+      surface: "prompt.execution.naia_resolution",
+      commit: () => {
+        naiaResolutionCommitCount += 1;
+        assert(value.width === 832 && value.height === 1216, "Advanced lost the NAIA resolution delta");
+      },
+    }),
     markNodeDirty: () => { dirtyCount += 1; },
     parseAdvancedFields: () => [],
     renderAdvancedEditor: () => { renderCount += 1; },
@@ -122,6 +143,8 @@ assert(
 assert(consumedMappedItemCount === 1, "Advanced did not report one mapped payload");
 assert(wildcardViewCommitCount === 1, "Advanced did not delegate the next seed to the narrow view owner");
 assert(linkedViewCommitCount === 1, "Advanced did not delegate linked input to a feature committer");
+assert(naiaFieldCommitCount === 2, "Advanced did not fan out exact NAIA field committers");
+assert(naiaResolutionCommitCount === 1, "Advanced did not fan out the NAIA resolution committer");
 assert(
   node.__easyuseAnimaAdvancedFieldInputValues.field_positive_general
     === "resolved linked text",
