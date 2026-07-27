@@ -56,7 +56,6 @@ IDENTITY_REQUIREMENTS = ("stable_entrypoint", "required", "not_applicable")
 BINDING_SHAPES = ("entrypoint", "direct_import", "root_definition")
 LIFECYCLE_STATES = ("permanent", "supported", "transitional", "unsupported")
 LEGACY_MODULE_OWNERS = {
-    "anima_prompt": "#184/#186",
     "prompt_translation": "#164/#186",
     "settings": "#163/#186",
     "wildcard_engine": "#184/#186",
@@ -2362,8 +2361,8 @@ def _build_document() -> dict[str, Any]:
         "expected_counts": {
             "root_entrypoints": 3,
             "excluded_preamble_implementation_bindings": 0,
-            "nodes_canonical_bindings": 294,
-            "nodes_legacy_bindings": 22,
+            "nodes_canonical_bindings": 297,
+            "nodes_legacy_bindings": 19,
             "nodes_public_exports": 18,
             "mapped_public_classes": 18,
             "unmapped_classes": 2,

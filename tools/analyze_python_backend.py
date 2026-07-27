@@ -32,6 +32,13 @@ ROOT_MODULE = "__root__"
 SCHEMA_VERSION = 2
 REGISTRY_ENTRY_MODULE_CANDIDATES = (
     "__init__.py",
+    "anima_prompt/__init__.py",
+    "anima_prompt/correction.py",
+    "anima_prompt/knowledge.py",
+    "anima_prompt/models.py",
+    "anima_prompt/normalize.py",
+    "anima_prompt/ordering.py",
+    "anima_prompt/parser.py",
     "autocomplete_index.py",
     "nodes.py",
     "prompt_translation.py",

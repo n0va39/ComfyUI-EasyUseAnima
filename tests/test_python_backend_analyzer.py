@@ -690,13 +690,20 @@ ignored/
 
         self.assertEqual(analyzer.render_json(report), expected_text)
         self.assertEqual(report["schema_version"], 2)
-        self.assertEqual(report["inventory"]["module_count"], 137)
-        self.assertEqual(len(report["registry"]["shipped_python_modules"]), 137)
-        self.assertEqual(len(report["registry"]["runtime_import_closure"]), 137)
+        self.assertEqual(report["inventory"]["module_count"], 144)
+        self.assertEqual(len(report["registry"]["shipped_python_modules"]), 144)
+        self.assertEqual(len(report["registry"]["runtime_import_closure"]), 144)
         self.assertEqual(
             report["registry"]["entry_modules"],
             [
                 "__init__.py",
+                "anima_prompt/__init__.py",
+                "anima_prompt/correction.py",
+                "anima_prompt/knowledge.py",
+                "anima_prompt/models.py",
+                "anima_prompt/normalize.py",
+                "anima_prompt/ordering.py",
+                "anima_prompt/parser.py",
                 "autocomplete_index.py",
                 "nodes.py",
                 "prompt_translation.py",
@@ -803,6 +810,13 @@ ignored/
                 "easyuse_anima/seed/reservation.py",
                 "easyuse_anima/seed/service.py",
                 "easyuse_anima/prompt/__init__.py",
+                "easyuse_anima/prompt/anima/__init__.py",
+                "easyuse_anima/prompt/anima/correction.py",
+                "easyuse_anima/prompt/anima/knowledge.py",
+                "easyuse_anima/prompt/anima/models.py",
+                "easyuse_anima/prompt/anima/normalize.py",
+                "easyuse_anima/prompt/anima/ordering.py",
+                "easyuse_anima/prompt/anima/parser.py",
                 "easyuse_anima/prompt/advanced.py",
                 "easyuse_anima/prompt/correction.py",
                 "easyuse_anima/prompt/artist_mix.py",
@@ -858,6 +872,13 @@ ignored/
                 "easyuse_anima/nodes/sam3_nodes.py",
                 "easyuse_anima/nodes/wildcard_nodes.py",
                 "easyuse_anima/prompt/__init__.py",
+                "easyuse_anima/prompt/anima/__init__.py",
+                "easyuse_anima/prompt/anima/correction.py",
+                "easyuse_anima/prompt/anima/knowledge.py",
+                "easyuse_anima/prompt/anima/models.py",
+                "easyuse_anima/prompt/anima/normalize.py",
+                "easyuse_anima/prompt/anima/ordering.py",
+                "easyuse_anima/prompt/anima/parser.py",
                 "easyuse_anima/prompt/advanced.py",
                 "easyuse_anima/prompt/correction.py",
                 "easyuse_anima/prompt/artist_mix.py",
