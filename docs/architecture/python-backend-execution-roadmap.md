@@ -33,7 +33,7 @@ merged PR, the owning issue's evidence record, and every stated exit gate.
 | A - baseline | Complete; #191 is closed | Keep fixtures and analyzers current during later moves |
 | B - `nodes.py` extraction | Complete in B-11d / PR #356 | Preserve the audited compatibility shim until ADR-002 retirement gates are met |
 | C - feature contracts/behavior | Partially complete through S167-01a / PR #344 | Continue #167 and #169 in separate Contract/Move/Behavior PRs |
-| D - root consolidation | D-01, D-08, D-09, D-10, D-12, and D-13 complete or in promotion; D-11a/#385 and D-11b/#386 validated | Finish the D-11 classification shim slice |
+| D - root consolidation | D-01, D-08, D-09, D-10, D-11, D-12, and D-13 complete or in promotion | Re-evaluate the D-02 through D-07 API route sequence and D-14 gates |
 | E - runtime ownership | Partial: E-02a and E-07a/E-07b integrated | Continue #187 only where canonical feature owners and explicit contracts exist |
 | F - typed boundaries | Partial patterns exist | Extend typed request/result/config and pure migration patterns feature by feature |
 | G - quality ratchet | G-01, G-02a/G-02b, and G-03a complete | Extend G-03 enrollment, then continue with G-04 through G-06 |
@@ -408,7 +408,7 @@ mechanical retirement series.
 | 15 | S167 backend seed reservation series | S167-01 through S167-03d COMPLETE on `dev`; S167-03e AiO cutover VALIDATED with isolated API/module/browser-load parity | Contract then Move then Behavior | #167 | Canonical AiO/node seams |
 | 16 | A169 stage pipeline series | A169-01 through A169-08 MERGED; A169-09 final adapter/integration VALIDATED in PR #372 | Contract then Behavior | #169 | Typed config and mechanical AiO move |
 | 17 | A169 first-pass cache policy | COMPLETE through CACHE-06; 4K/batch evidence VALIDATED in PR #380 | Contract then Behavior | #169 | Mechanical cache move and stable stage seam |
-| 18 | D-series canonical root consolidation | D-01 translation, D-08 filesystem, D-09 settings, D-10 profiles, D-12 wildcard, and D-13 ANIMA prompt COMPLETE or in promotion; D-11a/#385 and D-11b/#386 autocomplete VALIDATED | Finish the D-11 classification shim slice | #186 | Phase B exit; per-feature behavior stable |
+| 18 | D-series canonical root consolidation | D-01 translation, D-08 filesystem, D-09 settings, D-10 profiles, D-11 autocomplete, D-12 wildcard, and D-13 ANIMA prompt COMPLETE or in promotion | Re-evaluate D-02 through D-07 and D-14 | #186 | Phase B exit; per-feature behavior stable |
 | 19 | E-series RuntimeServices/lifecycle | BLOCKED by canonical owners | Move/Contract, split PRs | #187 | Relevant D moves |
 | 20 | G-04 through G-06 and H | INCREMENTAL/LATER | Gate/Contract | #188 | Appropriate package and release evidence |
 
@@ -1331,9 +1331,12 @@ explicit identity shim, and enrolls the canonical package as the tenth G-03
 completed-package boundary. D-11b moves dataset source discovery, CSV
 snapshot/cache/status, and fallback/index search to
 `easyuse_anima.autocomplete.dataset` and `.search`. Root
-`autocomplete_dataset.py` retains prompt classification plus direct canonical
-aliases because classification still imports root `anima_prompt`; D-13 must
-canonicalize that package before the final D-11 shim slice.
+`autocomplete_dataset.py` retained prompt classification plus direct canonical
+aliases until D-13 canonicalized the ANIMA prompt dependency. The final D-11
+slice moves classification to `easyuse_anima.autocomplete.classification`,
+switches the API consumer to that owner, and leaves root
+`autocomplete_dataset.py` as an explicit 15-symbol identity shim. This
+completes D-11 without changing dataset/cache, search/ranking, or route behavior.
 
 D-12 is split to keep Move work separate from E-06 lifecycle ownership.
 D-12a moves immutable option/budget/result models and their fixed limit
