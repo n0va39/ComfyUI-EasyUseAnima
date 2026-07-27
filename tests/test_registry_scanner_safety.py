@@ -32,6 +32,10 @@ EXPECTED_PYTHON_PACKAGE_FILES = {
     "easyuse_anima/aio/preview.py",
     "easyuse_anima/aio/resources.py",
     "easyuse_anima/aio/sampling.py",
+    "easyuse_anima/api/__init__.py",
+    "easyuse_anima/api/errors.py",
+    "easyuse_anima/api/requests.py",
+    "easyuse_anima/api/responses.py",
     "easyuse_anima/autocomplete/__init__.py",
     "easyuse_anima/autocomplete/dataset.py",
     "easyuse_anima/autocomplete/index.py",
@@ -366,13 +370,24 @@ class RegistryScannerSafetyTests(unittest.TestCase):
             f"{sorted(closure & ignored)}",
         )
 
-    def test_api_contract_runtime_module_is_in_registry_package_surface(self):
-        runtime_path = "api_contract.py"
-        self.assertTrue((ROOT / runtime_path).is_file())
-        self.assertIn("from .api_contract import (", (ROOT / "api.py").read_text(encoding="utf-8"))
+    def test_api_contract_runtime_modules_are_in_registry_package_surface(self):
+        runtime_paths = {
+            "api_contract.py",
+            "easyuse_anima/api/__init__.py",
+            "easyuse_anima/api/errors.py",
+            "easyuse_anima/api/requests.py",
+            "easyuse_anima/api/responses.py",
+        }
+        for runtime_path in runtime_paths:
+            with self.subTest(runtime_path=runtime_path):
+                self.assertTrue((ROOT / runtime_path).is_file())
+
+        api_source = (ROOT / "api.py").read_text(encoding="utf-8")
+        for module in ("errors", "requests", "responses"):
+            self.assertIn(f"from .easyuse_anima.api.{module} import", api_source)
 
         tracked = _git_paths("ls-files", "--cached")
-        self.assertIn(runtime_path, tracked)
+        self.assertFalse(runtime_paths - tracked)
 
         ignored = _git_paths(
             "ls-files",
@@ -380,7 +395,7 @@ class RegistryScannerSafetyTests(unittest.TestCase):
             "--ignored",
             "--exclude-from=.comfyignore",
         )
-        self.assertNotIn(runtime_path, ignored)
+        self.assertFalse(runtime_paths & ignored)
 
     def test_python_package_skeleton_is_in_registry_package_surface(self):
         for runtime_path in EXPECTED_PYTHON_PACKAGE_FILES:

@@ -39,6 +39,7 @@ REGISTRY_ENTRY_MODULE_CANDIDATES = (
     "anima_prompt/normalize.py",
     "anima_prompt/ordering.py",
     "anima_prompt/parser.py",
+    "api_contract.py",
     "autocomplete_dataset.py",
     "autocomplete_index.py",
     "nodes.py",

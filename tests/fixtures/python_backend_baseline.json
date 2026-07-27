@@ -3441,88 +3441,16 @@
         "classification": "internal",
         "column": 0,
         "conditional": false,
-        "imported": ".api_contract:ApiContractError",
+        "imported": ".easyuse_anima.api.errors:ApiContractError",
         "kind": "static_from",
         "line": 51,
         "name": "ApiContractError",
         "optional": false,
-        "requested": ".api_contract",
+        "requested": ".easyuse_anima.api.errors",
         "role": "ordinary",
         "scope": "<module>",
         "source": "api.py",
-        "target": "api_contract.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "attach_request_id_header",
-        "branch_context": [],
-        "classification": "internal",
-        "column": 0,
-        "conditional": false,
-        "imported": ".api_contract:attach_request_id_header",
-        "kind": "static_from",
-        "line": 51,
-        "name": "attach_request_id_header",
-        "optional": false,
-        "requested": ".api_contract",
-        "role": "ordinary",
-        "scope": "<module>",
-        "source": "api.py",
-        "target": "api_contract.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "correlate_response",
-        "branch_context": [],
-        "classification": "internal",
-        "column": 0,
-        "conditional": false,
-        "imported": ".api_contract:correlate_response",
-        "kind": "static_from",
-        "line": 51,
-        "name": "correlate_response",
-        "optional": false,
-        "requested": ".api_contract",
-        "role": "ordinary",
-        "scope": "<module>",
-        "source": "api.py",
-        "target": "api_contract.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "create_request_id",
-        "branch_context": [],
-        "classification": "internal",
-        "column": 0,
-        "conditional": false,
-        "imported": ".api_contract:create_request_id",
-        "kind": "static_from",
-        "line": 51,
-        "name": "create_request_id",
-        "optional": false,
-        "requested": ".api_contract",
-        "role": "ordinary",
-        "scope": "<module>",
-        "source": "api.py",
-        "target": "api_contract.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "error_payload",
-        "branch_context": [],
-        "classification": "internal",
-        "column": 0,
-        "conditional": false,
-        "imported": ".api_contract:error_payload",
-        "kind": "static_from",
-        "line": 51,
-        "name": "error_payload",
-        "optional": false,
-        "requested": ".api_contract",
-        "role": "ordinary",
-        "scope": "<module>",
-        "source": "api.py",
-        "target": "api_contract.py"
+        "target": "easyuse_anima/api/errors.py"
       },
       {
         "alias": null,
@@ -3531,16 +3459,16 @@
         "classification": "internal",
         "column": 0,
         "conditional": false,
-        "imported": ".api_contract:json_boolean",
+        "imported": ".easyuse_anima.api.requests:json_boolean",
         "kind": "static_from",
-        "line": 51,
+        "line": 52,
         "name": "json_boolean",
         "optional": false,
-        "requested": ".api_contract",
+        "requested": ".easyuse_anima.api.requests",
         "role": "ordinary",
         "scope": "<module>",
         "source": "api.py",
-        "target": "api_contract.py"
+        "target": "easyuse_anima/api/requests.py"
       },
       {
         "alias": null,
@@ -3549,16 +3477,16 @@
         "classification": "internal",
         "column": 0,
         "conditional": false,
-        "imported": ".api_contract:json_integer",
+        "imported": ".easyuse_anima.api.requests:json_integer",
         "kind": "static_from",
-        "line": 51,
+        "line": 52,
         "name": "json_integer",
         "optional": false,
-        "requested": ".api_contract",
+        "requested": ".easyuse_anima.api.requests",
         "role": "ordinary",
         "scope": "<module>",
         "source": "api.py",
-        "target": "api_contract.py"
+        "target": "easyuse_anima/api/requests.py"
       },
       {
         "alias": null,
@@ -3567,16 +3495,16 @@
         "classification": "internal",
         "column": 0,
         "conditional": false,
-        "imported": ".api_contract:json_object",
+        "imported": ".easyuse_anima.api.requests:json_object",
         "kind": "static_from",
-        "line": 51,
+        "line": 52,
         "name": "json_object",
         "optional": false,
-        "requested": ".api_contract",
+        "requested": ".easyuse_anima.api.requests",
         "role": "ordinary",
         "scope": "<module>",
         "source": "api.py",
-        "target": "api_contract.py"
+        "target": "easyuse_anima/api/requests.py"
       },
       {
         "alias": null,
@@ -3585,16 +3513,16 @@
         "classification": "internal",
         "column": 0,
         "conditional": false,
-        "imported": ".api_contract:json_string",
+        "imported": ".easyuse_anima.api.requests:json_string",
         "kind": "static_from",
-        "line": 51,
+        "line": 52,
         "name": "json_string",
         "optional": false,
-        "requested": ".api_contract",
+        "requested": ".easyuse_anima.api.requests",
         "role": "ordinary",
         "scope": "<module>",
         "source": "api.py",
-        "target": "api_contract.py"
+        "target": "easyuse_anima/api/requests.py"
       },
       {
         "alias": null,
@@ -3603,16 +3531,16 @@
         "classification": "internal",
         "column": 0,
         "conditional": false,
-        "imported": ".api_contract:json_uuid_string",
+        "imported": ".easyuse_anima.api.requests:json_uuid_string",
         "kind": "static_from",
-        "line": 51,
+        "line": 52,
         "name": "json_uuid_string",
         "optional": false,
-        "requested": ".api_contract",
+        "requested": ".easyuse_anima.api.requests",
         "role": "ordinary",
         "scope": "<module>",
         "source": "api.py",
-        "target": "api_contract.py"
+        "target": "easyuse_anima/api/requests.py"
       },
       {
         "alias": null,
@@ -3621,16 +3549,88 @@
         "classification": "internal",
         "column": 0,
         "conditional": false,
-        "imported": ".api_contract:parse_json_object",
+        "imported": ".easyuse_anima.api.requests:parse_json_object",
         "kind": "static_from",
-        "line": 51,
+        "line": 52,
         "name": "parse_json_object",
         "optional": false,
-        "requested": ".api_contract",
+        "requested": ".easyuse_anima.api.requests",
         "role": "ordinary",
         "scope": "<module>",
         "source": "api.py",
-        "target": "api_contract.py"
+        "target": "easyuse_anima/api/requests.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "attach_request_id_header",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".easyuse_anima.api.responses:attach_request_id_header",
+        "kind": "static_from",
+        "line": 60,
+        "name": "attach_request_id_header",
+        "optional": false,
+        "requested": ".easyuse_anima.api.responses",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "api.py",
+        "target": "easyuse_anima/api/responses.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "correlate_response",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".easyuse_anima.api.responses:correlate_response",
+        "kind": "static_from",
+        "line": 60,
+        "name": "correlate_response",
+        "optional": false,
+        "requested": ".easyuse_anima.api.responses",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "api.py",
+        "target": "easyuse_anima/api/responses.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "create_request_id",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".easyuse_anima.api.responses:create_request_id",
+        "kind": "static_from",
+        "line": 60,
+        "name": "create_request_id",
+        "optional": false,
+        "requested": ".easyuse_anima.api.responses",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "api.py",
+        "target": "easyuse_anima/api/responses.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "error_payload",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".easyuse_anima.api.responses:error_payload",
+        "kind": "static_from",
+        "line": 60,
+        "name": "error_payload",
+        "optional": false,
+        "requested": ".easyuse_anima.api.responses",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "api.py",
+        "target": "easyuse_anima/api/responses.py"
       },
       {
         "alias": "_collect_torch_compile_diagnostics",
@@ -3641,7 +3641,7 @@
         "conditional": false,
         "imported": ".easyuse_anima.aio.torch_compile_diagnostics:collect_torch_compile_diagnostics",
         "kind": "static_from",
-        "line": 64,
+        "line": 66,
         "name": "collect_torch_compile_diagnostics",
         "optional": false,
         "requested": ".easyuse_anima.aio.torch_compile_diagnostics",
@@ -3659,7 +3659,7 @@
         "conditional": false,
         "imported": ".easyuse_anima.aio.torch_compile_recommendation:recommend_torch_compile",
         "kind": "static_from",
-        "line": 67,
+        "line": 69,
         "name": "recommend_torch_compile",
         "optional": false,
         "requested": ".easyuse_anima.aio.torch_compile_recommendation",
@@ -3677,7 +3677,7 @@
         "conditional": false,
         "imported": ".easyuse_anima.profiles:aio",
         "kind": "static_from",
-        "line": 70,
+        "line": 72,
         "name": "aio",
         "optional": false,
         "requested": ".easyuse_anima.profiles",
@@ -3695,7 +3695,7 @@
         "conditional": false,
         "imported": ".easyuse_anima.profiles:contract",
         "kind": "static_from",
-        "line": 71,
+        "line": 73,
         "name": "contract",
         "optional": false,
         "requested": ".easyuse_anima.profiles",
@@ -3713,7 +3713,7 @@
         "conditional": false,
         "imported": ".easyuse_anima.profiles:lora",
         "kind": "static_from",
-        "line": 72,
+        "line": 74,
         "name": "lora",
         "optional": false,
         "requested": ".easyuse_anima.profiles",
@@ -3731,7 +3731,7 @@
         "conditional": false,
         "imported": ".easyuse_anima.profiles:mutation",
         "kind": "static_from",
-        "line": 73,
+        "line": 75,
         "name": "mutation",
         "optional": false,
         "requested": ".easyuse_anima.profiles",
@@ -3749,7 +3749,7 @@
         "conditional": false,
         "imported": ".easyuse_anima.profiles:repository",
         "kind": "static_from",
-        "line": 74,
+        "line": 76,
         "name": "repository",
         "optional": false,
         "requested": ".easyuse_anima.profiles",
@@ -3767,7 +3767,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 330
+            "line": 332
           }
         ],
         "classification": "external",
@@ -3775,7 +3775,7 @@
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 331,
+        "line": 333,
         "name": null,
         "optional": true,
         "requested": "folder_paths",
@@ -3792,7 +3792,7 @@
         "conditional": false,
         "imported": "__future__:annotations",
         "kind": "static_from",
-        "line": 1,
+        "line": 3,
         "name": "annotations",
         "optional": false,
         "requested": "__future__",
@@ -3802,71 +3802,783 @@
       },
       {
         "alias": null,
-        "bound_name": "json",
-        "branch_context": [],
-        "classification": "external",
-        "column": 0,
-        "conditional": false,
-        "imported": "json",
-        "kind": "static_import",
-        "line": 3,
-        "name": null,
-        "optional": false,
-        "requested": "json",
-        "role": "ordinary",
-        "scope": "<module>",
-        "source": "api_contract.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "uuid",
-        "branch_context": [],
-        "classification": "external",
-        "column": 0,
-        "conditional": false,
-        "imported": "uuid",
-        "kind": "static_import",
-        "line": 4,
-        "name": null,
-        "optional": false,
-        "requested": "uuid",
-        "role": "ordinary",
-        "scope": "<module>",
-        "source": "api_contract.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "Any",
-        "branch_context": [],
-        "classification": "external",
-        "column": 0,
-        "conditional": false,
-        "imported": "typing:Any",
+        "bound_name": "ApiContractError",
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": true,
+            "kind": "try",
+            "line": 5
+          }
+        ],
+        "classification": "internal",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "ApiContractError",
+          "target": "easyuse_anima/api/errors.py",
+          "try_line": 5
+        },
+        "conditional": true,
+        "imported": ".easyuse_anima.api.errors:ApiContractError",
         "kind": "static_from",
-        "line": 5,
-        "name": "Any",
+        "line": 6,
+        "name": "ApiContractError",
         "optional": false,
-        "requested": "typing",
-        "role": "ordinary",
+        "requested": ".easyuse_anima.api.errors",
+        "role": "compatibility_primary",
         "scope": "<module>",
-        "source": "api_contract.py"
+        "source": "api_contract.py",
+        "target": "easyuse_anima/api/errors.py"
       },
       {
         "alias": null,
-        "bound_name": "Mapping",
-        "branch_context": [],
-        "classification": "external",
-        "column": 0,
-        "conditional": false,
-        "imported": "typing:Mapping",
+        "bound_name": "json_boolean",
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": true,
+            "kind": "try",
+            "line": 5
+          }
+        ],
+        "classification": "internal",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "json_boolean",
+          "target": "easyuse_anima/api/requests.py",
+          "try_line": 5
+        },
+        "conditional": true,
+        "imported": ".easyuse_anima.api.requests:json_boolean",
         "kind": "static_from",
-        "line": 5,
-        "name": "Mapping",
+        "line": 7,
+        "name": "json_boolean",
         "optional": false,
-        "requested": "typing",
-        "role": "ordinary",
+        "requested": ".easyuse_anima.api.requests",
+        "role": "compatibility_primary",
         "scope": "<module>",
-        "source": "api_contract.py"
+        "source": "api_contract.py",
+        "target": "easyuse_anima/api/requests.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "json_integer",
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": true,
+            "kind": "try",
+            "line": 5
+          }
+        ],
+        "classification": "internal",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "json_integer",
+          "target": "easyuse_anima/api/requests.py",
+          "try_line": 5
+        },
+        "conditional": true,
+        "imported": ".easyuse_anima.api.requests:json_integer",
+        "kind": "static_from",
+        "line": 7,
+        "name": "json_integer",
+        "optional": false,
+        "requested": ".easyuse_anima.api.requests",
+        "role": "compatibility_primary",
+        "scope": "<module>",
+        "source": "api_contract.py",
+        "target": "easyuse_anima/api/requests.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "json_object",
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": true,
+            "kind": "try",
+            "line": 5
+          }
+        ],
+        "classification": "internal",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "json_object",
+          "target": "easyuse_anima/api/requests.py",
+          "try_line": 5
+        },
+        "conditional": true,
+        "imported": ".easyuse_anima.api.requests:json_object",
+        "kind": "static_from",
+        "line": 7,
+        "name": "json_object",
+        "optional": false,
+        "requested": ".easyuse_anima.api.requests",
+        "role": "compatibility_primary",
+        "scope": "<module>",
+        "source": "api_contract.py",
+        "target": "easyuse_anima/api/requests.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "json_string",
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": true,
+            "kind": "try",
+            "line": 5
+          }
+        ],
+        "classification": "internal",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "json_string",
+          "target": "easyuse_anima/api/requests.py",
+          "try_line": 5
+        },
+        "conditional": true,
+        "imported": ".easyuse_anima.api.requests:json_string",
+        "kind": "static_from",
+        "line": 7,
+        "name": "json_string",
+        "optional": false,
+        "requested": ".easyuse_anima.api.requests",
+        "role": "compatibility_primary",
+        "scope": "<module>",
+        "source": "api_contract.py",
+        "target": "easyuse_anima/api/requests.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "json_uuid_string",
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": true,
+            "kind": "try",
+            "line": 5
+          }
+        ],
+        "classification": "internal",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "json_uuid_string",
+          "target": "easyuse_anima/api/requests.py",
+          "try_line": 5
+        },
+        "conditional": true,
+        "imported": ".easyuse_anima.api.requests:json_uuid_string",
+        "kind": "static_from",
+        "line": 7,
+        "name": "json_uuid_string",
+        "optional": false,
+        "requested": ".easyuse_anima.api.requests",
+        "role": "compatibility_primary",
+        "scope": "<module>",
+        "source": "api_contract.py",
+        "target": "easyuse_anima/api/requests.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "parse_json_object",
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": true,
+            "kind": "try",
+            "line": 5
+          }
+        ],
+        "classification": "internal",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "parse_json_object",
+          "target": "easyuse_anima/api/requests.py",
+          "try_line": 5
+        },
+        "conditional": true,
+        "imported": ".easyuse_anima.api.requests:parse_json_object",
+        "kind": "static_from",
+        "line": 7,
+        "name": "parse_json_object",
+        "optional": false,
+        "requested": ".easyuse_anima.api.requests",
+        "role": "compatibility_primary",
+        "scope": "<module>",
+        "source": "api_contract.py",
+        "target": "easyuse_anima/api/requests.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "REQUEST_ID_HEADER",
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": true,
+            "kind": "try",
+            "line": 5
+          }
+        ],
+        "classification": "internal",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "REQUEST_ID_HEADER",
+          "target": "easyuse_anima/api/responses.py",
+          "try_line": 5
+        },
+        "conditional": true,
+        "imported": ".easyuse_anima.api.responses:REQUEST_ID_HEADER",
+        "kind": "static_from",
+        "line": 15,
+        "name": "REQUEST_ID_HEADER",
+        "optional": false,
+        "requested": ".easyuse_anima.api.responses",
+        "role": "compatibility_primary",
+        "scope": "<module>",
+        "source": "api_contract.py",
+        "target": "easyuse_anima/api/responses.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "attach_request_id_header",
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": true,
+            "kind": "try",
+            "line": 5
+          }
+        ],
+        "classification": "internal",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "attach_request_id_header",
+          "target": "easyuse_anima/api/responses.py",
+          "try_line": 5
+        },
+        "conditional": true,
+        "imported": ".easyuse_anima.api.responses:attach_request_id_header",
+        "kind": "static_from",
+        "line": 15,
+        "name": "attach_request_id_header",
+        "optional": false,
+        "requested": ".easyuse_anima.api.responses",
+        "role": "compatibility_primary",
+        "scope": "<module>",
+        "source": "api_contract.py",
+        "target": "easyuse_anima/api/responses.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "correlate_response",
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": true,
+            "kind": "try",
+            "line": 5
+          }
+        ],
+        "classification": "internal",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "correlate_response",
+          "target": "easyuse_anima/api/responses.py",
+          "try_line": 5
+        },
+        "conditional": true,
+        "imported": ".easyuse_anima.api.responses:correlate_response",
+        "kind": "static_from",
+        "line": 15,
+        "name": "correlate_response",
+        "optional": false,
+        "requested": ".easyuse_anima.api.responses",
+        "role": "compatibility_primary",
+        "scope": "<module>",
+        "source": "api_contract.py",
+        "target": "easyuse_anima/api/responses.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "create_request_id",
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": true,
+            "kind": "try",
+            "line": 5
+          }
+        ],
+        "classification": "internal",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "create_request_id",
+          "target": "easyuse_anima/api/responses.py",
+          "try_line": 5
+        },
+        "conditional": true,
+        "imported": ".easyuse_anima.api.responses:create_request_id",
+        "kind": "static_from",
+        "line": 15,
+        "name": "create_request_id",
+        "optional": false,
+        "requested": ".easyuse_anima.api.responses",
+        "role": "compatibility_primary",
+        "scope": "<module>",
+        "source": "api_contract.py",
+        "target": "easyuse_anima/api/responses.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "error_payload",
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": true,
+            "kind": "try",
+            "line": 5
+          }
+        ],
+        "classification": "internal",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "error_payload",
+          "target": "easyuse_anima/api/responses.py",
+          "try_line": 5
+        },
+        "conditional": true,
+        "imported": ".easyuse_anima.api.responses:error_payload",
+        "kind": "static_from",
+        "line": 15,
+        "name": "error_payload",
+        "optional": false,
+        "requested": ".easyuse_anima.api.responses",
+        "role": "compatibility_primary",
+        "scope": "<module>",
+        "source": "api_contract.py",
+        "target": "easyuse_anima/api/responses.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "ApiContractError",
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 22,
+            "kind": "try",
+            "line": 5
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "ApiContractError",
+          "target": "easyuse_anima/api/errors.py",
+          "try_line": 5
+        },
+        "conditional": true,
+        "imported": "easyuse_anima.api.errors:ApiContractError",
+        "kind": "static_from",
+        "line": 23,
+        "name": "ApiContractError",
+        "optional": false,
+        "requested": "easyuse_anima.api.errors",
+        "role": "compatibility_fallback",
+        "scope": "<module>",
+        "source": "api_contract.py",
+        "target": "easyuse_anima/api/errors.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "json_boolean",
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 22,
+            "kind": "try",
+            "line": 5
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "json_boolean",
+          "target": "easyuse_anima/api/requests.py",
+          "try_line": 5
+        },
+        "conditional": true,
+        "imported": "easyuse_anima.api.requests:json_boolean",
+        "kind": "static_from",
+        "line": 24,
+        "name": "json_boolean",
+        "optional": false,
+        "requested": "easyuse_anima.api.requests",
+        "role": "compatibility_fallback",
+        "scope": "<module>",
+        "source": "api_contract.py",
+        "target": "easyuse_anima/api/requests.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "json_integer",
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 22,
+            "kind": "try",
+            "line": 5
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "json_integer",
+          "target": "easyuse_anima/api/requests.py",
+          "try_line": 5
+        },
+        "conditional": true,
+        "imported": "easyuse_anima.api.requests:json_integer",
+        "kind": "static_from",
+        "line": 24,
+        "name": "json_integer",
+        "optional": false,
+        "requested": "easyuse_anima.api.requests",
+        "role": "compatibility_fallback",
+        "scope": "<module>",
+        "source": "api_contract.py",
+        "target": "easyuse_anima/api/requests.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "json_object",
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 22,
+            "kind": "try",
+            "line": 5
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "json_object",
+          "target": "easyuse_anima/api/requests.py",
+          "try_line": 5
+        },
+        "conditional": true,
+        "imported": "easyuse_anima.api.requests:json_object",
+        "kind": "static_from",
+        "line": 24,
+        "name": "json_object",
+        "optional": false,
+        "requested": "easyuse_anima.api.requests",
+        "role": "compatibility_fallback",
+        "scope": "<module>",
+        "source": "api_contract.py",
+        "target": "easyuse_anima/api/requests.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "json_string",
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 22,
+            "kind": "try",
+            "line": 5
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "json_string",
+          "target": "easyuse_anima/api/requests.py",
+          "try_line": 5
+        },
+        "conditional": true,
+        "imported": "easyuse_anima.api.requests:json_string",
+        "kind": "static_from",
+        "line": 24,
+        "name": "json_string",
+        "optional": false,
+        "requested": "easyuse_anima.api.requests",
+        "role": "compatibility_fallback",
+        "scope": "<module>",
+        "source": "api_contract.py",
+        "target": "easyuse_anima/api/requests.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "json_uuid_string",
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 22,
+            "kind": "try",
+            "line": 5
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "json_uuid_string",
+          "target": "easyuse_anima/api/requests.py",
+          "try_line": 5
+        },
+        "conditional": true,
+        "imported": "easyuse_anima.api.requests:json_uuid_string",
+        "kind": "static_from",
+        "line": 24,
+        "name": "json_uuid_string",
+        "optional": false,
+        "requested": "easyuse_anima.api.requests",
+        "role": "compatibility_fallback",
+        "scope": "<module>",
+        "source": "api_contract.py",
+        "target": "easyuse_anima/api/requests.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "parse_json_object",
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 22,
+            "kind": "try",
+            "line": 5
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "parse_json_object",
+          "target": "easyuse_anima/api/requests.py",
+          "try_line": 5
+        },
+        "conditional": true,
+        "imported": "easyuse_anima.api.requests:parse_json_object",
+        "kind": "static_from",
+        "line": 24,
+        "name": "parse_json_object",
+        "optional": false,
+        "requested": "easyuse_anima.api.requests",
+        "role": "compatibility_fallback",
+        "scope": "<module>",
+        "source": "api_contract.py",
+        "target": "easyuse_anima/api/requests.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "REQUEST_ID_HEADER",
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 22,
+            "kind": "try",
+            "line": 5
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "REQUEST_ID_HEADER",
+          "target": "easyuse_anima/api/responses.py",
+          "try_line": 5
+        },
+        "conditional": true,
+        "imported": "easyuse_anima.api.responses:REQUEST_ID_HEADER",
+        "kind": "static_from",
+        "line": 32,
+        "name": "REQUEST_ID_HEADER",
+        "optional": false,
+        "requested": "easyuse_anima.api.responses",
+        "role": "compatibility_fallback",
+        "scope": "<module>",
+        "source": "api_contract.py",
+        "target": "easyuse_anima/api/responses.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "attach_request_id_header",
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 22,
+            "kind": "try",
+            "line": 5
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "attach_request_id_header",
+          "target": "easyuse_anima/api/responses.py",
+          "try_line": 5
+        },
+        "conditional": true,
+        "imported": "easyuse_anima.api.responses:attach_request_id_header",
+        "kind": "static_from",
+        "line": 32,
+        "name": "attach_request_id_header",
+        "optional": false,
+        "requested": "easyuse_anima.api.responses",
+        "role": "compatibility_fallback",
+        "scope": "<module>",
+        "source": "api_contract.py",
+        "target": "easyuse_anima/api/responses.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "correlate_response",
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 22,
+            "kind": "try",
+            "line": 5
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "correlate_response",
+          "target": "easyuse_anima/api/responses.py",
+          "try_line": 5
+        },
+        "conditional": true,
+        "imported": "easyuse_anima.api.responses:correlate_response",
+        "kind": "static_from",
+        "line": 32,
+        "name": "correlate_response",
+        "optional": false,
+        "requested": "easyuse_anima.api.responses",
+        "role": "compatibility_fallback",
+        "scope": "<module>",
+        "source": "api_contract.py",
+        "target": "easyuse_anima/api/responses.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "create_request_id",
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 22,
+            "kind": "try",
+            "line": 5
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "create_request_id",
+          "target": "easyuse_anima/api/responses.py",
+          "try_line": 5
+        },
+        "conditional": true,
+        "imported": "easyuse_anima.api.responses:create_request_id",
+        "kind": "static_from",
+        "line": 32,
+        "name": "create_request_id",
+        "optional": false,
+        "requested": "easyuse_anima.api.responses",
+        "role": "compatibility_fallback",
+        "scope": "<module>",
+        "source": "api_contract.py",
+        "target": "easyuse_anima/api/responses.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "error_payload",
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 22,
+            "kind": "try",
+            "line": 5
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "error_payload",
+          "target": "easyuse_anima/api/responses.py",
+          "try_line": 5
+        },
+        "conditional": true,
+        "imported": "easyuse_anima.api.responses:error_payload",
+        "kind": "static_from",
+        "line": 32,
+        "name": "error_payload",
+        "optional": false,
+        "requested": "easyuse_anima.api.responses",
+        "role": "compatibility_fallback",
+        "scope": "<module>",
+        "source": "api_contract.py",
+        "target": "easyuse_anima/api/responses.py"
       },
       {
         "alias": null,
@@ -14095,6 +14807,263 @@
         "scope": "<module>",
         "source": "easyuse_anima/aio/usdu.py",
         "target": "easyuse_anima/image/geometry.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "annotations",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "__future__:annotations",
+        "kind": "static_from",
+        "line": 1,
+        "name": "annotations",
+        "optional": false,
+        "requested": "__future__",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/api/errors.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "Any",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "typing:Any",
+        "kind": "static_from",
+        "line": 3,
+        "name": "Any",
+        "optional": false,
+        "requested": "typing",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/api/errors.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "Mapping",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "typing:Mapping",
+        "kind": "static_from",
+        "line": 3,
+        "name": "Mapping",
+        "optional": false,
+        "requested": "typing",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/api/errors.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "annotations",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "__future__:annotations",
+        "kind": "static_from",
+        "line": 1,
+        "name": "annotations",
+        "optional": false,
+        "requested": "__future__",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/api/requests.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "json",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "json",
+        "kind": "static_import",
+        "line": 3,
+        "name": null,
+        "optional": false,
+        "requested": "json",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/api/requests.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "uuid",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "uuid",
+        "kind": "static_import",
+        "line": 4,
+        "name": null,
+        "optional": false,
+        "requested": "uuid",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/api/requests.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "Any",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "typing:Any",
+        "kind": "static_from",
+        "line": 5,
+        "name": "Any",
+        "optional": false,
+        "requested": "typing",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/api/requests.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "Mapping",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "typing:Mapping",
+        "kind": "static_from",
+        "line": 5,
+        "name": "Mapping",
+        "optional": false,
+        "requested": "typing",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/api/requests.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "ApiContractError",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".errors:ApiContractError",
+        "kind": "static_from",
+        "line": 7,
+        "name": "ApiContractError",
+        "optional": false,
+        "requested": ".errors",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/api/requests.py",
+        "target": "easyuse_anima/api/errors.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "_field_error",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".errors:_field_error",
+        "kind": "static_from",
+        "line": 7,
+        "name": "_field_error",
+        "optional": false,
+        "requested": ".errors",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/api/requests.py",
+        "target": "easyuse_anima/api/errors.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "annotations",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "__future__:annotations",
+        "kind": "static_from",
+        "line": 1,
+        "name": "annotations",
+        "optional": false,
+        "requested": "__future__",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/api/responses.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "json",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "json",
+        "kind": "static_import",
+        "line": 3,
+        "name": null,
+        "optional": false,
+        "requested": "json",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/api/responses.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "uuid",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "uuid",
+        "kind": "static_import",
+        "line": 4,
+        "name": null,
+        "optional": false,
+        "requested": "uuid",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/api/responses.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "Any",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "typing:Any",
+        "kind": "static_from",
+        "line": 5,
+        "name": "Any",
+        "optional": false,
+        "requested": "typing",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/api/responses.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "Mapping",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "typing:Mapping",
+        "kind": "static_from",
+        "line": 5,
+        "name": "Mapping",
+        "optional": false,
+        "requested": "typing",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/api/responses.py"
       },
       {
         "alias": null,
@@ -61728,15 +62697,23 @@
       },
       {
         "from": "api.py",
-        "to": "api_contract.py"
-      },
-      {
-        "from": "api.py",
         "to": "easyuse_anima/aio/torch_compile_diagnostics.py"
       },
       {
         "from": "api.py",
         "to": "easyuse_anima/aio/torch_compile_recommendation.py"
+      },
+      {
+        "from": "api.py",
+        "to": "easyuse_anima/api/errors.py"
+      },
+      {
+        "from": "api.py",
+        "to": "easyuse_anima/api/requests.py"
+      },
+      {
+        "from": "api.py",
+        "to": "easyuse_anima/api/responses.py"
       },
       {
         "from": "api.py",
@@ -61793,6 +62770,18 @@
       {
         "from": "api.py",
         "to": "wildcard_engine.py"
+      },
+      {
+        "from": "api_contract.py",
+        "to": "easyuse_anima/api/errors.py"
+      },
+      {
+        "from": "api_contract.py",
+        "to": "easyuse_anima/api/requests.py"
+      },
+      {
+        "from": "api_contract.py",
+        "to": "easyuse_anima/api/responses.py"
       },
       {
         "from": "autocomplete_dataset.py",
@@ -62317,6 +63306,10 @@
       {
         "from": "easyuse_anima/aio/usdu.py",
         "to": "easyuse_anima/image/geometry.py"
+      },
+      {
+        "from": "easyuse_anima/api/requests.py",
+        "to": "easyuse_anima/api/errors.py"
       },
       {
         "from": "easyuse_anima/autocomplete/classification.py",
@@ -63761,6 +64754,30 @@
       {
         "cyclic": false,
         "modules": [
+          "easyuse_anima/api/__init__.py"
+        ]
+      },
+      {
+        "cyclic": false,
+        "modules": [
+          "easyuse_anima/api/errors.py"
+        ]
+      },
+      {
+        "cyclic": false,
+        "modules": [
+          "easyuse_anima/api/requests.py"
+        ]
+      },
+      {
+        "cyclic": false,
+        "modules": [
+          "easyuse_anima/api/responses.py"
+        ]
+      },
+      {
+        "cyclic": false,
+        "modules": [
           "easyuse_anima/autocomplete/__init__.py"
         ]
       },
@@ -64344,7 +65361,7 @@
     ]
   },
   "inventory": {
-    "module_count": 145,
+    "module_count": 149,
     "modules": [
       {
         "is_package": true,
@@ -64444,9 +65461,9 @@
       },
       {
         "is_package": false,
-        "loc": 930,
+        "loc": 932,
         "module": "api",
-        "normalized_git_blob_sha1": "90a144841255a4ac816627a0760b5ffed82c438a",
+        "normalized_git_blob_sha1": "52d8adb828255158051856bbeb774669e9a5233a",
         "path": "api.py",
         "top_level": {
           "class_count": 1,
@@ -64456,13 +65473,13 @@
       },
       {
         "is_package": false,
-        "loc": 199,
+        "loc": 54,
         "module": "api_contract",
-        "normalized_git_blob_sha1": "99fdcf3a54bb475e112df0ee663261aa13bb5e91",
+        "normalized_git_blob_sha1": "14bbd742ca5ebf49389c7a39a8518ca4a6f4ad60",
         "path": "api_contract.py",
         "top_level": {
-          "class_count": 1,
-          "function_count": 11,
+          "class_count": 0,
+          "function_count": 0,
           "global_count": 1
         }
       },
@@ -64908,6 +65925,54 @@
           "class_count": 0,
           "function_count": 2,
           "global_count": 1
+        }
+      },
+      {
+        "is_package": true,
+        "loc": 3,
+        "module": "easyuse_anima.api",
+        "normalized_git_blob_sha1": "0f8799555e2370f2fdb94be29d39b462b80324cd",
+        "path": "easyuse_anima/api/__init__.py",
+        "top_level": {
+          "class_count": 0,
+          "function_count": 0,
+          "global_count": 1
+        }
+      },
+      {
+        "is_package": false,
+        "loc": 33,
+        "module": "easyuse_anima.api.errors",
+        "normalized_git_blob_sha1": "cb31805669ac7db452a4ab40ed4681a14cf6bdae",
+        "path": "easyuse_anima/api/errors.py",
+        "top_level": {
+          "class_count": 1,
+          "function_count": 1,
+          "global_count": 1
+        }
+      },
+      {
+        "is_package": false,
+        "loc": 126,
+        "module": "easyuse_anima.api.requests",
+        "normalized_git_blob_sha1": "771ec7c194950e5d07d594059a55cee514f163d4",
+        "path": "easyuse_anima/api/requests.py",
+        "top_level": {
+          "class_count": 0,
+          "function_count": 6,
+          "global_count": 1
+        }
+      },
+      {
+        "is_package": false,
+        "loc": 72,
+        "module": "easyuse_anima.api.responses",
+        "normalized_git_blob_sha1": "2ef95bf5a6b9c0c5a1eea455e6d16f7449e1c8c0",
+        "path": "easyuse_anima/api/responses.py",
+        "top_level": {
+          "class_count": 0,
+          "function_count": 4,
+          "global_count": 2
         }
       },
       {
@@ -67132,6 +68197,282 @@
         "role": "compatibility_fallback",
         "source": "anima_prompt/parser.py",
         "target": "easyuse_anima/prompt/anima/parser.py"
+      },
+      {
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 22,
+            "kind": "try",
+            "line": 5
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "conditional": true,
+        "imported": "easyuse_anima.api.errors:ApiContractError",
+        "kind": "static_from",
+        "line": 23,
+        "optional": false,
+        "role": "compatibility_fallback",
+        "source": "api_contract.py",
+        "target": "easyuse_anima/api/errors.py"
+      },
+      {
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 22,
+            "kind": "try",
+            "line": 5
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "conditional": true,
+        "imported": "easyuse_anima.api.requests:json_boolean",
+        "kind": "static_from",
+        "line": 24,
+        "optional": false,
+        "role": "compatibility_fallback",
+        "source": "api_contract.py",
+        "target": "easyuse_anima/api/requests.py"
+      },
+      {
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 22,
+            "kind": "try",
+            "line": 5
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "conditional": true,
+        "imported": "easyuse_anima.api.requests:json_integer",
+        "kind": "static_from",
+        "line": 24,
+        "optional": false,
+        "role": "compatibility_fallback",
+        "source": "api_contract.py",
+        "target": "easyuse_anima/api/requests.py"
+      },
+      {
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 22,
+            "kind": "try",
+            "line": 5
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "conditional": true,
+        "imported": "easyuse_anima.api.requests:json_object",
+        "kind": "static_from",
+        "line": 24,
+        "optional": false,
+        "role": "compatibility_fallback",
+        "source": "api_contract.py",
+        "target": "easyuse_anima/api/requests.py"
+      },
+      {
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 22,
+            "kind": "try",
+            "line": 5
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "conditional": true,
+        "imported": "easyuse_anima.api.requests:json_string",
+        "kind": "static_from",
+        "line": 24,
+        "optional": false,
+        "role": "compatibility_fallback",
+        "source": "api_contract.py",
+        "target": "easyuse_anima/api/requests.py"
+      },
+      {
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 22,
+            "kind": "try",
+            "line": 5
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "conditional": true,
+        "imported": "easyuse_anima.api.requests:json_uuid_string",
+        "kind": "static_from",
+        "line": 24,
+        "optional": false,
+        "role": "compatibility_fallback",
+        "source": "api_contract.py",
+        "target": "easyuse_anima/api/requests.py"
+      },
+      {
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 22,
+            "kind": "try",
+            "line": 5
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "conditional": true,
+        "imported": "easyuse_anima.api.requests:parse_json_object",
+        "kind": "static_from",
+        "line": 24,
+        "optional": false,
+        "role": "compatibility_fallback",
+        "source": "api_contract.py",
+        "target": "easyuse_anima/api/requests.py"
+      },
+      {
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 22,
+            "kind": "try",
+            "line": 5
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "conditional": true,
+        "imported": "easyuse_anima.api.responses:REQUEST_ID_HEADER",
+        "kind": "static_from",
+        "line": 32,
+        "optional": false,
+        "role": "compatibility_fallback",
+        "source": "api_contract.py",
+        "target": "easyuse_anima/api/responses.py"
+      },
+      {
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 22,
+            "kind": "try",
+            "line": 5
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "conditional": true,
+        "imported": "easyuse_anima.api.responses:attach_request_id_header",
+        "kind": "static_from",
+        "line": 32,
+        "optional": false,
+        "role": "compatibility_fallback",
+        "source": "api_contract.py",
+        "target": "easyuse_anima/api/responses.py"
+      },
+      {
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 22,
+            "kind": "try",
+            "line": 5
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "conditional": true,
+        "imported": "easyuse_anima.api.responses:correlate_response",
+        "kind": "static_from",
+        "line": 32,
+        "optional": false,
+        "role": "compatibility_fallback",
+        "source": "api_contract.py",
+        "target": "easyuse_anima/api/responses.py"
+      },
+      {
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 22,
+            "kind": "try",
+            "line": 5
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "conditional": true,
+        "imported": "easyuse_anima.api.responses:create_request_id",
+        "kind": "static_from",
+        "line": 32,
+        "optional": false,
+        "role": "compatibility_fallback",
+        "source": "api_contract.py",
+        "target": "easyuse_anima/api/responses.py"
+      },
+      {
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 22,
+            "kind": "try",
+            "line": 5
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "conditional": true,
+        "imported": "easyuse_anima.api.responses:error_payload",
+        "kind": "static_from",
+        "line": 32,
+        "optional": false,
+        "role": "compatibility_fallback",
+        "source": "api_contract.py",
+        "target": "easyuse_anima/api/responses.py"
       },
       {
         "branch_context": [
@@ -78666,6 +80007,7 @@
       "anima_prompt/normalize.py",
       "anima_prompt/ordering.py",
       "anima_prompt/parser.py",
+      "api_contract.py",
       "autocomplete_dataset.py",
       "autocomplete_index.py",
       "nodes.py",
@@ -78859,14 +80201,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 330
+            "line": 332
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 331,
+        "line": 333,
         "optional": true,
         "role": "optional_dependency",
         "source": "api.py"
@@ -78877,51 +80219,7 @@
         "conditional": false,
         "imported": "__future__:annotations",
         "kind": "static_from",
-        "line": 1,
-        "optional": false,
-        "role": "ordinary",
-        "source": "api_contract.py"
-      },
-      {
-        "branch_context": [],
-        "classification": "external",
-        "conditional": false,
-        "imported": "json",
-        "kind": "static_import",
         "line": 3,
-        "optional": false,
-        "role": "ordinary",
-        "source": "api_contract.py"
-      },
-      {
-        "branch_context": [],
-        "classification": "external",
-        "conditional": false,
-        "imported": "uuid",
-        "kind": "static_import",
-        "line": 4,
-        "optional": false,
-        "role": "ordinary",
-        "source": "api_contract.py"
-      },
-      {
-        "branch_context": [],
-        "classification": "external",
-        "conditional": false,
-        "imported": "typing:Any",
-        "kind": "static_from",
-        "line": 5,
-        "optional": false,
-        "role": "ordinary",
-        "source": "api_contract.py"
-      },
-      {
-        "branch_context": [],
-        "classification": "external",
-        "conditional": false,
-        "imported": "typing:Mapping",
-        "kind": "static_from",
-        "line": 5,
         "optional": false,
         "role": "ordinary",
         "source": "api_contract.py"
@@ -80799,6 +82097,149 @@
         "optional": false,
         "role": "ordinary",
         "source": "easyuse_anima/aio/usdu.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "__future__:annotations",
+        "kind": "static_from",
+        "line": 1,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/api/errors.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "typing:Any",
+        "kind": "static_from",
+        "line": 3,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/api/errors.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "typing:Mapping",
+        "kind": "static_from",
+        "line": 3,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/api/errors.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "__future__:annotations",
+        "kind": "static_from",
+        "line": 1,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/api/requests.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "json",
+        "kind": "static_import",
+        "line": 3,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/api/requests.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "uuid",
+        "kind": "static_import",
+        "line": 4,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/api/requests.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "typing:Any",
+        "kind": "static_from",
+        "line": 5,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/api/requests.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "typing:Mapping",
+        "kind": "static_from",
+        "line": 5,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/api/requests.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "__future__:annotations",
+        "kind": "static_from",
+        "line": 1,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/api/responses.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "json",
+        "kind": "static_import",
+        "line": 3,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/api/responses.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "uuid",
+        "kind": "static_import",
+        "line": 4,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/api/responses.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "typing:Any",
+        "kind": "static_from",
+        "line": 5,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/api/responses.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "typing:Mapping",
+        "kind": "static_from",
+        "line": 5,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/api/responses.py"
       },
       {
         "branch_context": [],
@@ -84909,14 +86350,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 330
+            "line": 332
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 331,
+        "line": 333,
         "optional": true,
         "role": "optional_dependency",
         "source": "api.py"
@@ -85851,6 +87292,10 @@
       "easyuse_anima/aio/torch_compile_diagnostics.py",
       "easyuse_anima/aio/torch_compile_recommendation.py",
       "easyuse_anima/aio/usdu.py",
+      "easyuse_anima/api/__init__.py",
+      "easyuse_anima/api/errors.py",
+      "easyuse_anima/api/requests.py",
+      "easyuse_anima/api/responses.py",
       "easyuse_anima/autocomplete/__init__.py",
       "easyuse_anima/autocomplete/classification.py",
       "easyuse_anima/autocomplete/dataset.py",
@@ -85998,6 +87443,10 @@
       "easyuse_anima/aio/torch_compile_diagnostics.py",
       "easyuse_anima/aio/torch_compile_recommendation.py",
       "easyuse_anima/aio/usdu.py",
+      "easyuse_anima/api/__init__.py",
+      "easyuse_anima/api/errors.py",
+      "easyuse_anima/api/requests.py",
+      "easyuse_anima/api/responses.py",
       "easyuse_anima/autocomplete/__init__.py",
       "easyuse_anima/autocomplete/classification.py",
       "easyuse_anima/autocomplete/dataset.py",
@@ -86116,7 +87565,7 @@
         "column": 10,
         "context": "assign:_LOGGER",
         "kind": "import_time_call",
-        "line": 154,
+        "line": 156,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -86125,7 +87574,7 @@
         "column": 25,
         "context": "assign:_FILE_IO_LIMITERS_LOCK",
         "kind": "import_time_call",
-        "line": 157,
+        "line": 159,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -86134,7 +87583,7 @@
         "column": 47,
         "context": "assign:_FILE_IO_LIMITERS",
         "kind": "import_time_call",
-        "line": 158,
+        "line": 160,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -86143,7 +87592,7 @@
         "column": 29,
         "context": "assign:_PROMPT_TRANSLATION_WORKER",
         "kind": "import_time_call",
-        "line": 207,
+        "line": 209,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -86152,7 +87601,7 @@
         "column": 0,
         "context": "expression",
         "kind": "import_time_call",
-        "line": 208,
+        "line": 210,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -86161,7 +87610,7 @@
         "column": 36,
         "context": "assign:_SAFE_PROFILE_VALIDATION_MESSAGES",
         "kind": "import_time_call",
-        "line": 357,
+        "line": 359,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -86170,7 +87619,7 @@
         "column": 9,
         "context": "assign:routes",
         "kind": "route_registry_creation",
-        "line": 514,
+        "line": 516,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -86179,7 +87628,7 @@
         "column": 19,
         "context": "assign:_ROUTE_SIGNATURE",
         "kind": "route_registry_creation",
-        "line": 906,
+        "line": 908,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -86188,7 +87637,7 @@
         "column": 5,
         "context": "assign:_ROUTE_SIGNATURE",
         "kind": "route_registry_creation",
-        "line": 907,
+        "line": 909,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -88010,6 +89459,12 @@
       },
       {
         "kind": "list",
+        "line": 41,
+        "module": "api_contract.py",
+        "name": "__all__"
+      },
+      {
+        "kind": "list",
         "line": 42,
         "module": "autocomplete_dataset.py",
         "name": "__all__"
@@ -88090,6 +89545,12 @@
         "kind": "list",
         "line": 278,
         "module": "easyuse_anima/aio/torch_compile_recommendation.py",
+        "name": "__all__"
+      },
+      {
+        "kind": "list",
+        "line": 3,
+        "module": "easyuse_anima/api/__init__.py",
         "name": "__all__"
       },
       {
@@ -88441,7 +89902,7 @@
           "lock"
         ],
         "initializer": "threading.Lock",
-        "line": 157,
+        "line": 159,
         "module": "api.py",
         "name": "_FILE_IO_LIMITERS_LOCK"
       },
@@ -88450,7 +89911,7 @@
           "executor"
         ],
         "initializer": "_PromptTranslationWorker",
-        "line": 207,
+        "line": 209,
         "module": "api.py",
         "name": "_PROMPT_TRANSLATION_WORKER"
       },

@@ -2,6 +2,12 @@
   "schema_version": 1,
   "groups": [
     {
+      "group": "api",
+      "owner_issue": 165,
+      "prefix": "easyuse_anima/api/",
+      "role": "feature"
+    },
+    {
       "group": "autocomplete",
       "owner_issue": 162,
       "prefix": "easyuse_anima/autocomplete/",
