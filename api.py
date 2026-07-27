@@ -72,6 +72,9 @@ from .easyuse_anima.api.routes.long_text_settings import (
 from .easyuse_anima.api.routes.lora_catalog import (
     build_loras_handler as _build_loras_handler,
 )
+from .easyuse_anima.api.routes.lora_preview import (
+    build_lora_preview_handler as _build_lora_preview_handler,
+)
 from .easyuse_anima.api.routes.wildcards import (
     build_wildcards_handler as _build_wildcards_handler,
 )
@@ -598,18 +601,15 @@ if web is not None:
         )
     )
 
-    @_request_correlated
-    async def lora_preview_handler(request):
-        preview_path = await _run_file_io(
-            _resolve_lora_preview_path,
-            request.query.get("name", ""),
+    lora_preview_handler = _request_correlated(
+        _build_lora_preview_handler(
+            run_file_io=lambda function, *args: _run_file_io(function, *args),
+            resolve_lora_preview_path=lambda name: _resolve_lora_preview_path(name),
+            empty_response=lambda **kwargs: web.Response(**kwargs),
+            file_response=lambda path, **kwargs: web.FileResponse(path, **kwargs),
+            basename=lambda path: os.path.basename(path),
         )
-        if not preview_path:
-            return web.Response(status=404)
-        return web.FileResponse(
-            preview_path,
-            headers={"Content-Disposition": f'filename="{os.path.basename(preview_path)}"'},
-        )
+    )
 
     loras_handler = _request_correlated(
         _build_loras_handler(
