@@ -13,6 +13,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from easyuse_anima import bootstrap, runtime as runtime_module
+from easyuse_anima.aio import first_pass_cache as aio_first_pass_cache
 from easyuse_anima.autocomplete import dataset as autocomplete_dataset
 from easyuse_anima.autocomplete import index as autocomplete_index
 from easyuse_anima.autocomplete import service as autocomplete_service
@@ -71,6 +72,14 @@ class FakeAutocompleteService:
 class FakeWildcardSnapshots:
     def snapshot_for_roots(self, roots, *, scan_sources, build_snapshot):
         raise AssertionError((roots, scan_sources, build_snapshot))
+
+
+class FakeAIOFirstPassCache:
+    def get(self, cache_key):
+        raise AssertionError(cache_key)
+
+    def put(self, cache_key, latent, image):
+        raise AssertionError((cache_key, latent, image))
 
 
 class RuntimeBaseContractTests(unittest.TestCase):
@@ -171,6 +180,7 @@ class RuntimeServicesTests(unittest.TestCase):
             translation=PromptTranslationService(),
             autocomplete=FakeAutocompleteService(),
             wildcard_snapshots=FakeWildcardSnapshots(),
+            aio_first_pass_cache=FakeAIOFirstPassCache(),
         )
 
     def test_runtime_value_is_frozen(self):
@@ -275,6 +285,10 @@ class RuntimeServicesTests(unittest.TestCase):
         self.assertIs(
             first.wildcard_snapshots,
             wildcard_snapshot._DEFAULT_WILDCARD_SNAPSHOTS,
+        )
+        self.assertIs(
+            first.aio_first_pass_cache,
+            aio_first_pass_cache._DEFAULT_AIO_FIRST_PASS_CACHE,
         )
         with patch.object(bootstrap.time, "monotonic", return_value=12.5):
             self.assertEqual(first.clock.monotonic(), 12.5)

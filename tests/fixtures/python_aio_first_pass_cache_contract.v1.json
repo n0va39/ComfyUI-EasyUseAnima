@@ -79,10 +79,11 @@
     "policy_boundary": "Count, total-byte, single-entry, and absolute-TTL constants plus immutable entry/key/clone/size helpers are policy or behavior, not separate mutable runtime owners.",
     "resource_partition": "Entries, LRU order, enabled state, mutation generation, metrics, and their RLock form one AiO-specific owner because get, put, clear, disable, stale-capture rejection, and metric publication share one mutation invariant.",
     "root_compatibility": "The seven root private identities remain direct canonical aliases. Replacement mapping/order and policy/clock/helper tests require an equivalent call-time or isolated-owner injection seam before raw globals move.",
-    "runtime_composition": "After the owner Move, bootstrap installs the exact default owner behind one feature-specific narrow RuntimeServices capability without adding a feature-to-runtime back-reference."
+    "runtime_composition": "Bootstrap installs the exact default owner behind one feature-specific narrow RuntimeServices capability without adding a feature-to-runtime back-reference or changing the FirstPassRuntime caller path."
   },
   "import_direction": {
     "feature_modules": [
+      "easyuse_anima/aio/ports.py",
       "easyuse_anima/aio/first_pass_cache.py",
       "easyuse_anima/aio/generation_first_pass.py",
       "easyuse_anima/aio/legacy_generation.py"
@@ -115,7 +116,7 @@
       "goal": "Compose the exact default owner behind one feature-specific narrow RuntimeServices capability without changing the canonical FirstPassRuntime caller path.",
       "id": "E-08c",
       "name": "AiO first-pass cache bootstrap composition",
-      "status": "queued"
+      "status": "complete"
     },
     {
       "classification": "Contract",
@@ -201,7 +202,30 @@
       ]
     }
   ],
-  "production_changes": 1,
+  "production_changes": 4,
+  "runtime_port": {
+    "bootstrap": {
+      "function": "initialize",
+      "module": "easyuse_anima/bootstrap.py",
+      "uses": [
+        "_DEFAULT_AIO_FIRST_PASS_CACHE",
+        "RuntimeServices"
+      ]
+    },
+    "interface": {
+      "class": "AIOFirstPassCachePort",
+      "methods": [
+        "get",
+        "put"
+      ],
+      "module": "easyuse_anima/aio/ports.py"
+    },
+    "owner": "easyuse_anima.aio.first_pass_cache._DEFAULT_AIO_FIRST_PASS_CACHE",
+    "runtime": {
+      "field": "aio_first_pass_cache",
+      "module": "easyuse_anima/runtime.py"
+    }
+  },
   "schema_version": 1,
   "scope": "E-08 AiO first-pass cache process-state ownership, cleanup, callers, compatibility seams, and bounded Move order"
 }

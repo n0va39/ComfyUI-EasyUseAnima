@@ -690,9 +690,9 @@ ignored/
 
         self.assertEqual(analyzer.render_json(report), expected_text)
         self.assertEqual(report["schema_version"], 2)
-        self.assertEqual(report["inventory"]["module_count"], 172)
-        self.assertEqual(len(report["registry"]["shipped_python_modules"]), 172)
-        self.assertEqual(len(report["registry"]["runtime_import_closure"]), 172)
+        self.assertEqual(report["inventory"]["module_count"], 173)
+        self.assertEqual(len(report["registry"]["shipped_python_modules"]), 173)
+        self.assertEqual(len(report["registry"]["runtime_import_closure"]), 173)
         self.assertEqual(
             report["registry"]["entry_modules"],
             [
@@ -756,6 +756,7 @@ ignored/
                 "easyuse_anima/aio/negpip.py",
                 "easyuse_anima/aio/output.py",
                 "easyuse_anima/aio/output_settings.py",
+                "easyuse_anima/aio/ports.py",
                 "easyuse_anima/aio/postprocess.py",
                 "easyuse_anima/aio/preview.py",
                 "easyuse_anima/aio/resources.py",
@@ -850,6 +851,7 @@ ignored/
                 "easyuse_anima/aio/model_preparation.py",
                 "easyuse_anima/aio/negpip.py",
                 "easyuse_anima/aio/output.py",
+                "easyuse_anima/aio/ports.py",
                 "easyuse_anima/aio/preview.py",
                 "easyuse_anima/aio/resources.py",
                 "easyuse_anima/aio/sampling.py",

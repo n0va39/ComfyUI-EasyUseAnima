@@ -36,7 +36,7 @@ E-01 drift gate until classified.
 
 | Entry | Current owner and lifetime | Synchronization / cleanup today | Target |
 | --- | --- | --- | --- |
-| `aio-first-pass-cache` | one private default AiO cache store owns entries/order/enabled/generation/metrics/`RLock`; module mapping/order names are exact compatibility aliases | owner clear/disable invalidate entries and generation while preserving metrics; metric reset is separate | E-08b complete; E-08c next |
+| `aio-first-pass-cache` | one private default AiO cache store owns entries/order/enabled/generation/metrics/`RLock`; bootstrap installs that exact owner behind a narrow private runtime port | owner clear/disable invalidate entries and generation while preserving metrics; metric reset is separate | E-08c complete; E-08d audit next |
 | `api-file-io-limiters` | canonical API file-I/O module, weak per-event-loop limiter | registry `Lock`; weak expiry, no explicit close | E-09 |
 | `autocomplete-dataset-cache` | canonical dataset snapshot and Future single-flight owner, injected into the bootstrap-composed narrow service | one owner `Lock`; completed-snapshot clear only | E-05 complete; E-05e audited |
 | `autocomplete-index-locks` | canonical index-store per-path lock owner, injected into the bootstrap-composed narrow service | guard plus retained per-path locks; idempotent no-op close | E-05 complete; E-05e audited |
@@ -180,4 +180,12 @@ E-08b installs the selected private default owner. The former raw enabled,
 generation, metrics, and lock globals are removed; mapping/order remain only as exact
 aliases to the owner's objects so root identities and call-time replacement evidence
 remain intact. Isolated stores share no collection, metric dictionary, generation,
-enabled state, or lock. The next bounded unit is E-08c only.
+enabled state, or lock.
+
+E-08c adds the private `AIOFirstPassCachePort` with only `get` and `put`, installs
+the exact `_DEFAULT_AIO_FIRST_PASS_CACHE` identity as
+`RuntimeServices.aio_first_pass_cache`, and leaves the existing canonical key/get/put
+to `FirstPassRuntime` to stage caller path unchanged. Feature code does not import
+the runtime or bootstrap, repeated initialize reuses the same installed runtime, and
+no root alias or public export changes. The next bounded unit is the production-free
+E-08d completion audit only.

@@ -61,6 +61,17 @@ class FakeWildcardSnapshots:
         )
 
 
+class FakeAIOFirstPassCache:
+    def get(self, cache_key):
+        raise AssertionError(f"unexpected AiO first-pass cache get: {cache_key!r}")
+
+    def put(self, cache_key, latent, image):
+        raise AssertionError(
+            "unexpected AiO first-pass cache put: "
+            f"{(cache_key, latent, image)!r}"
+        )
+
+
 class FakeComfyHostProvider:
     def __init__(
         self,
@@ -152,6 +163,7 @@ def _runtime_support(runtime_module):
             installed.translation,
             installed.autocomplete,
             installed.wildcard_snapshots,
+            installed.aio_first_pass_cache,
         )
     return (
         runtime_module.RuntimeConfig(
@@ -163,13 +175,14 @@ def _runtime_support(runtime_module):
         FakeTranslationService(),
         FakeAutocompleteService(),
         FakeWildcardSnapshots(),
+        FakeAIOFirstPassCache(),
     )
 
 
 @contextmanager
 def use_fake_comfy_host(root_module, provider):
     runtime_module = _runtime_module_for(root_module)
-    config, clock, translation, autocomplete, wildcard_snapshots = (
+    config, clock, translation, autocomplete, wildcard_snapshots, aio_cache = (
         _runtime_support(runtime_module)
     )
     runtime = runtime_module.RuntimeServices(
@@ -180,6 +193,7 @@ def use_fake_comfy_host(root_module, provider):
         translation=translation,
         autocomplete=autocomplete,
         wildcard_snapshots=wildcard_snapshots,
+        aio_first_pass_cache=aio_cache,
     )
     with patch.object(runtime_module, "_RUNTIME_SERVICES", runtime):
         yield provider
@@ -209,7 +223,7 @@ def patch_comfy_helper(
         else FakeComfyHostProvider()
     )
     provider = _LayeredFakeComfyHostProvider(base, symbol, replacement)
-    config, clock, translation, autocomplete, wildcard_snapshots = (
+    config, clock, translation, autocomplete, wildcard_snapshots, aio_cache = (
         _runtime_support(runtime_module)
     )
     runtime = runtime_module.RuntimeServices(
@@ -220,6 +234,7 @@ def patch_comfy_helper(
         translation=translation,
         autocomplete=autocomplete,
         wildcard_snapshots=wildcard_snapshots,
+        aio_first_pass_cache=aio_cache,
     )
     with patch.object(runtime_module, "_RUNTIME_SERVICES", runtime):
         yield replacement

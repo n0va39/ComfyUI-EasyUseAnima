@@ -50,6 +50,7 @@ from .api.routes.translation_execution import (
 from .api.routes.wildcards import (
     build_wildcards_handler as _build_wildcards_handler,
 )
+from .aio.first_pass_cache import _DEFAULT_AIO_FIRST_PASS_CACHE
 from .autocomplete.dataset import _DEFAULT_AUTOCOMPLETE_SNAPSHOTS
 from .autocomplete.index import _DEFAULT_AUTOCOMPLETE_INDEX_STORE
 from .autocomplete.service import _AutocompleteService
@@ -262,6 +263,7 @@ def initialize(
                     index_store=_DEFAULT_AUTOCOMPLETE_INDEX_STORE,
                 ),
                 wildcard_snapshots=_DEFAULT_WILDCARD_SNAPSHOTS,
+                aio_first_pass_cache=_DEFAULT_AIO_FIRST_PASS_CACHE,
             )
             install_runtime(runtime)
             _install_default_translation_service(runtime.translation)
