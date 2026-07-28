@@ -1,0 +1,141 @@
+{
+  "base_sha": "5e99b702731b896ce6a424b7315e98eaff21133f",
+  "classification": "Contract",
+  "current_inventory": {
+    "module_reload_sites": [],
+    "private_mutation_sites": [
+      {
+        "module": "tests/comfy_host_fakes.py",
+        "symbols": ["_RUNTIME_SERVICES"]
+      },
+      {
+        "module": "tests/test_comfy_host_wiring.py",
+        "symbols": ["_RUNTIME_SERVICES"]
+      },
+      {
+        "module": "tests/test_prompt_translation.py",
+        "symbols": ["_DEFAULT_TRANSLATION_SERVICE"]
+      },
+      {
+        "module": "tests/test_python_bootstrap.py",
+        "symbols": [
+          "_ATEXIT_REGISTERED",
+          "_DEFAULT_RUNTIME",
+          "_DEFAULT_TRANSLATION_SERVICE",
+          "_RUNTIME_SERVICES",
+          "_SHUTDOWN",
+          "_TRANSLATION_ROUTE_EXECUTOR",
+          "_WILDCARDS_INITIALIZED"
+        ]
+      },
+      {
+        "module": "tests/test_runtime_services.py",
+        "symbols": [
+          "_ATEXIT_REGISTERED",
+          "_DEFAULT_RUNTIME",
+          "_DEFAULT_TRANSLATION_SERVICE",
+          "_RUNTIME_SERVICES",
+          "_SHUTDOWN",
+          "_WILDCARDS_INITIALIZED"
+        ]
+      }
+    ],
+    "read_only_private_assertions": "Direct lifecycle tests may inspect private state to prove identity, terminal state, and rollback; E-10 moves reset/mutation ownership only."
+  },
+  "evidence": [
+    "easyuse_anima/runtime.py",
+    "easyuse_anima/bootstrap.py",
+    "tests/comfy_host_fakes.py",
+    "tests/test_comfy_host_wiring.py",
+    "tests/test_prompt_translation.py",
+    "tests/test_python_bootstrap.py",
+    "tests/test_runtime_services.py",
+    "tests/fixtures/python_runtime_lifecycle_contract.v1.json",
+    "tests/fixtures/python_runtime_state_ownership.v1.json",
+    "tests/test_python_runtime_lifecycle_contract.py",
+    "tests/test_python_runtime_state_ownership.py"
+  ],
+  "implementation_boundary": {
+    "allowed_test_files": [
+      "tests/runtime_test_support.py",
+      "tests/comfy_host_fakes.py",
+      "tests/test_comfy_host_wiring.py",
+      "tests/test_prompt_translation.py",
+      "tests/test_python_bootstrap.py",
+      "tests/test_runtime_services.py",
+      "tests/fixtures/python_runtime_test_isolation_contract.v1.json",
+      "tests/test_python_runtime_test_isolation_contract.py"
+    ],
+    "forbidden": [
+      "contextvar-runtime-behavior",
+      "hot-shutdown-reinitialize",
+      "parallel-global-runtime-install",
+      "production-reset-api",
+      "provider-client-close",
+      "public-export-change",
+      "route-deregistration-or-rollback"
+    ],
+    "production_changes": 0
+  },
+  "production_changes": 0,
+  "queue": [
+    {
+      "classification": "Contract",
+      "goal": "Freeze the current reset inventory, one test-only owner, isolation modes, migration boundary, and promotion gates.",
+      "id": "E-10a",
+      "status": "complete"
+    },
+    {
+      "classification": "Move",
+      "goal": "Add the one test-only runtime fixture owner and migrate all five direct private-mutation sites without production changes.",
+      "id": "E-10b",
+      "status": "ready"
+    },
+    {
+      "classification": "Contract",
+      "goal": "Record zero reload sites and zero direct private runtime mutations outside the helper, then close Phase E.",
+      "id": "E-10c",
+      "status": "blocked-on-E-10b"
+    }
+  ],
+  "schema_version": 1,
+  "scope": "E-10 isolated runtime test fixtures and private-reset ownership Contract",
+  "target_fixture": {
+    "invariants": [
+      "restore exact prior identities and scalar lifecycle state after success or failure",
+      "register no real atexit hook and leave no route, host, file-I/O, thread, or executor side effect",
+      "keep production initialize, shutdown, install, get, detach, and public surfaces unchanged",
+      "serialize every process-global installed/bootstrap fixture for its full lifetime"
+    ],
+    "modes": [
+      {
+        "id": "constructed-runtime",
+        "parallelism": "parallel-safe",
+        "state": "Build independent RuntimeServices values with injected temp paths and fake services without global installation."
+      },
+      {
+        "id": "installed-runtime",
+        "parallelism": "serialized-process-global",
+        "state": "Temporarily install one runtime for adapter tests and restore the exact prior runtime identity in finally."
+      },
+      {
+        "id": "bootstrap-lifecycle",
+        "parallelism": "serialized-process-global",
+        "state": "Snapshot bootstrap/runtime/facade state, suppress real atexit registration, and restore all exact prior values in finally."
+      }
+    ],
+    "module": "tests/runtime_test_support.py",
+    "private_mutation_symbols": [
+      "_ATEXIT_REGISTERED",
+      "_DEFAULT_RUNTIME",
+      "_DEFAULT_TRANSLATION_SERVICE",
+      "_RUNTIME_SERVICES",
+      "_SHUTDOWN",
+      "_TRANSLATION_ROUTE_EXECUTOR",
+      "_WILDCARDS_INITIALIZED"
+    ],
+    "production_reset_api": "forbidden",
+    "single_owner": true,
+    "synchronization": "One test-support RLock serializes installed-runtime and bootstrap-lifecycle fixtures for their full nested lifetime."
+  }
+}

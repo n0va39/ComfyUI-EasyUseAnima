@@ -2,12 +2,13 @@
 
 ## Status and authority
 
-- Status: D-08 and E-01 through E-09 are completed; E-10 is the next READY task;
+- Status: D-08 and E-01 through E-09 are completed; E-10a Contract is fixed and
+  E-10b is the next READY task;
   the D-14
   readiness audit retains every root surface and blocks retirement/final-freeze work.
-- E-09c completion-audit base:
-  `dev@05fc20eb366be8376a6d3a47a79d2b5d00654a08` after E-09b / PR #557.
-- Document baseline: completed E-09 runtime shutdown and cleanup lifecycle.
+- E-10a Contract base:
+  `dev@5e99b702731b896ce6a424b7315e98eaff21133f` after E-09c / PR #558.
+- Document baseline: E-10 isolated runtime test fixture Contract.
 - Released baseline: 0.6.2.
 - Scope: completed D-08 evidence, the D-14 readiness decision, completed #187
   E-01/E-02/E-03/E-04 work, the E-05a Contract, the E-05b snapshot owner Move,
@@ -18,8 +19,8 @@
   audit Contract, the completed E-07 bridge, the E-08a AiO first-pass cache
   ownership Contract, the E-08b owner Move, the E-08c narrow composition Move, and
   the E-08d completion audit Contract, the E-09a lifecycle Contract, the E-09b
-  cohesive LIFECYCLE implementation, and the E-09c completion audit Contract. The
-  next bounded task is E-10 only.
+  cohesive LIFECYCLE implementation, the E-09c completion audit Contract, and the
+  E-10a isolated-runtime-fixture Contract. The next bounded task is E-10b only.
 - This document owns the current immediate queue and supersedes the stale queue and
   broad preflight command in `python-backend-execution-roadmap.md`.
 - `python-backend.md`, ADR-001, ADR-002, and the compatibility-shim registry still own
@@ -466,8 +467,9 @@ RuntimeServices close, executor admission, feature cleanup order, global detach,
 unexpected-startup rollback share one lifecycle/concurrency invariant. E-09c changes
 no production and reconciles `ambiguous_state_owners=[]`, the seven completed E-01
 lifecycle dispositions, package/import safety, and the E-09b promotion evidence.
-E-09 is complete. E-10 is the next READY task; D-14, release, and Registry work
-remain governed by their existing blockers.
+E-09 is complete. E-10a fixes the test-isolation migration boundary and E-10b is the
+next READY task; D-14, release, and Registry work remain governed by their existing
+blockers.
 
 ### E-09a validation
 
@@ -484,4 +486,33 @@ the E-04/E-05/E-06/E-08 direct Contracts, package/no-host import, current import
 boundaries, analyzer, maintained-document links, and `git diff --check`. Run official
 full once on the exact final candidate. Because E-09c changes no production, import
 closure, archive, metadata, or host-visible behavior, reuse E-09b validate/pack/live
+evidence.
+
+## 8. E-10 isolated runtime test fixture queue
+
+```text
+E-10a  Contract   current reset inventory and one test-only owner gate complete
+E-10b  Move       cohesive helper and five-owner migration              next
+E-10c  Contract   zero-direct-reset and Phase E completion audit        blocked on E-10b
+```
+
+The current executable inventory records zero module-reload sites and five direct
+private runtime mutation owners. E-10b moves those mutations behind one serialized
+`tests/runtime_test_support.py` owner while independently constructed RuntimeServices
+values remain parallel-safe. Direct lifecycle assertions may keep reading private
+state; only reset/mutation ownership moves.
+
+[`python-runtime-e10-test-isolation-contract.md`](python-runtime-e10-test-isolation-contract.md)
+forbids a production reset API, hot shutdown-to-reinitialize, ContextVar runtime
+behavior, overlapping global installs, route rollback, provider close, and public
+export changes. E-10c must record zero direct private reset outside the helper before
+Phase E closes. D-14, release, and Registry work remain blocked.
+
+### E-10a validation
+
+Run changed-file JSON/Python syntax, the E-10 Contract, E-01/E-09 direct Contracts,
+bootstrap/runtime/Comfy direct owners, package/no-host import, current import
+boundaries, analyzer, maintained-document links, and `git diff --check`. Run official
+full once on the exact final candidate. Because E-10a changes no production, import
+closure, archive, metadata, or host-visible behavior, reuse E-09b package/live
 evidence.
