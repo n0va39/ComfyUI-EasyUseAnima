@@ -1422,6 +1422,80 @@ class ApiSettingsRouteTests(unittest.TestCase):
 
 
 class ApiLongTextSettingsRouteTests(unittest.TestCase):
+    def test_payload_helpers_are_owned_by_the_canonical_factory(self):
+        api, _routes = load_api_routes()
+        cases = (
+            ("_get_long_text_settings_payload_sync", 0),
+            ("_save_long_text_settings_payload_sync", 1),
+        )
+
+        for name, argument_count in cases:
+            with self.subTest(name=name):
+                helper = getattr(api, name)
+                self.assertEqual(helper.__name__, name)
+                self.assertTrue(
+                    helper.__module__.endswith(
+                        ".easyuse_anima.api.routes.long_text_settings"
+                    )
+                )
+                self.assertEqual(helper.__code__.co_argcount, argument_count)
+
+        owner = sys.modules[api._get_long_text_settings_payload_sync.__module__]
+        self.assertEqual(owner.__all__, ("build_long_text_settings_handlers",))
+
+    def test_payload_helpers_keep_dynamic_dependencies_call_order_and_identity(self):
+        api, _routes = load_api_routes()
+        calls = []
+        loaded_values = {"naia.pre_prompt": "loaded"}
+        public_payload = {"naia.pre_prompt": "loaded", "future": True}
+
+        def load_long_text_settings():
+            calls.append(("load",))
+            return loaded_values
+
+        def public_settings():
+            calls.append(("public",))
+            return public_payload
+
+        with (
+            patch.object(
+                api,
+                "load_long_text_settings",
+                side_effect=load_long_text_settings,
+            ),
+            patch.object(api, "public_settings", side_effect=public_settings),
+        ):
+            result = api._get_long_text_settings_payload_sync()
+
+        self.assertEqual(calls, [("load",), ("public",)])
+        self.assertEqual(result["status"], "ok")
+        self.assertIs(result["values"], loaded_values)
+        self.assertIs(result["settings"], public_payload)
+
+        calls.clear()
+        values = {"naia.pre_prompt": {"raw": [None, True]}}
+        saved_values = {"naia.pre_prompt": "saved"}
+
+        def save_long_text_settings(received):
+            calls.append(("save", received))
+            return saved_values
+
+        with (
+            patch.object(
+                api,
+                "save_long_text_settings",
+                side_effect=save_long_text_settings,
+            ),
+            patch.object(api, "public_settings", side_effect=public_settings),
+        ):
+            result = api._save_long_text_settings_payload_sync(values)
+
+        self.assertEqual(calls, [("save", values), ("public",)])
+        self.assertIs(calls[0][1], values)
+        self.assertEqual(result["status"], "ok")
+        self.assertIs(result["values"], saved_values)
+        self.assertIs(result["settings"], public_payload)
+
     def test_route_handlers_are_owned_by_the_canonical_factory(self):
         api, routes = load_api_routes()
         cases = (

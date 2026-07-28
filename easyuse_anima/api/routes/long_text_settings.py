@@ -1,6 +1,34 @@
 from __future__ import annotations
 
 
+def build_long_text_settings_payloads(
+    *,
+    load_long_text_settings,
+    save_long_text_settings,
+    public_settings,
+):
+    """Build long-text payload helpers with runtime-resolved dependencies."""
+
+    def _get_long_text_settings_payload_sync() -> dict:
+        return {
+            "status": "ok",
+            "values": load_long_text_settings(),
+            "settings": public_settings(),
+        }
+
+    def _save_long_text_settings_payload_sync(values: dict) -> dict:
+        return {
+            "status": "ok",
+            "values": save_long_text_settings(values),
+            "settings": public_settings(),
+        }
+
+    return (
+        _get_long_text_settings_payload_sync,
+        _save_long_text_settings_payload_sync,
+    )
+
+
 def build_long_text_settings_handlers(
     *,
     parse_json_object,

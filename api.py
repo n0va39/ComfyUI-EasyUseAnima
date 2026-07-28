@@ -80,6 +80,7 @@ from .easyuse_anima.api.routes.autocomplete import (
     build_autocomplete_handlers as _build_autocomplete_handlers,
     build_classify_prompt_handler as _build_classify_prompt_handler,
 )
+from .easyuse_anima.api.routes import long_text_settings as _api_long_text_routes
 from .easyuse_anima.api.routes.long_text_settings import (
     build_long_text_settings_handlers as _build_long_text_settings_handlers,
 )
@@ -336,20 +337,14 @@ def _profile_error_response(exc: Exception):
 )
 
 
-def _get_long_text_settings_payload_sync() -> dict:
-    return {
-        "status": "ok",
-        "values": load_long_text_settings(),
-        "settings": public_settings(),
-    }
-
-
-def _save_long_text_settings_payload_sync(values: dict) -> dict:
-    return {
-        "status": "ok",
-        "values": save_long_text_settings(values),
-        "settings": public_settings(),
-    }
+(
+    _get_long_text_settings_payload_sync,
+    _save_long_text_settings_payload_sync,
+) = _api_long_text_routes.build_long_text_settings_payloads(
+    load_long_text_settings=lambda: load_long_text_settings(),
+    save_long_text_settings=lambda values: save_long_text_settings(values),
+    public_settings=lambda: public_settings(),
+)
 
 
 def _wildcards_payload_sync() -> dict:
