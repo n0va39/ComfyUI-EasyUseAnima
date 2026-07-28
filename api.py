@@ -24,14 +24,17 @@ from .easyuse_anima.settings.service import (
     resolve_prompt_translation_settings,
 )
 from .easyuse_anima.autocomplete.dataset import (
-    autocomplete_status,
-    available_autocomplete_sources,
-    resolve_autocomplete_source as resolve_autocomplete_source_path,
+    AUTOCOMPLETE_CSV,
+    autocomplete_status as _canonical_autocomplete_status,
+    available_autocomplete_sources as _canonical_available_autocomplete_sources,
+    resolve_autocomplete_source as _canonical_resolve_autocomplete_source_path,
 )
 from .easyuse_anima.autocomplete.search import (
-    search_autocomplete,
+    search_autocomplete as _canonical_search_autocomplete,
 )
-from .easyuse_anima.autocomplete.classification import classify_prompt_text
+from .easyuse_anima.autocomplete.classification import (
+    classify_prompt_text as _canonical_classify_prompt_text,
+)
 from .easyuse_anima.wildcard.sources import resolve_wildcard_roots
 from .wildcard_engine import list_wildcards
 from .easyuse_anima.translation.contracts import (
@@ -90,6 +93,7 @@ from .easyuse_anima.api.routes import lora_preview as _api_lora_preview_routes
 from .easyuse_anima.api.routes import settings as _api_settings_routes
 from .easyuse_anima.api.routes import wildcards as _api_wildcard_routes
 from .easyuse_anima.api.routes import translation as _api_translation_routes
+from .easyuse_anima.runtime import get_runtime as _get_runtime
 from .easyuse_anima.aio.torch_compile_diagnostics import (
     collect_torch_compile_diagnostics as _collect_torch_compile_diagnostics,
 )
@@ -182,6 +186,77 @@ PROMPT_TRANSLATION_ROUTE_TIMEOUT_SECONDS = (
     _api_translation_routes.PROMPT_TRANSLATION_ROUTE_TIMEOUT_SECONDS
 )
 _LOGGER = logging.getLogger(__name__)
+
+
+def _runtime_autocomplete():
+    try:
+        return _get_runtime().autocomplete
+    except RuntimeError as exc:
+        if str(exc) != "[EasyUseAnima] RuntimeServices has not been installed.":
+            raise
+        return None
+
+
+def resolve_autocomplete_source_path(source=None):
+    autocomplete = _runtime_autocomplete()
+    if autocomplete is None:
+        return _canonical_resolve_autocomplete_source_path(source)
+    return autocomplete.resolve_source(source)
+
+
+def available_autocomplete_sources(selected=None):
+    autocomplete = _runtime_autocomplete()
+    if autocomplete is None:
+        return _canonical_available_autocomplete_sources(selected)
+    return autocomplete.available_sources(selected)
+
+
+def autocomplete_status(path=AUTOCOMPLETE_CSV):
+    autocomplete = _runtime_autocomplete()
+    if autocomplete is None:
+        return _canonical_autocomplete_status(path)
+    return autocomplete.status(path)
+
+
+def search_autocomplete(
+    query,
+    limit=20,
+    path=AUTOCOMPLETE_CSV,
+    category=None,
+):
+    autocomplete = _runtime_autocomplete()
+    if autocomplete is None:
+        return _canonical_search_autocomplete(
+            query,
+            limit=limit,
+            path=path,
+            category=category,
+        )
+    return autocomplete.search(
+        query,
+        limit=limit,
+        path=path,
+        category=category,
+    )
+
+
+def classify_prompt_text(
+    text,
+    limit=240,
+    path=AUTOCOMPLETE_CSV,
+):
+    autocomplete = _runtime_autocomplete()
+    if autocomplete is None:
+        return _canonical_classify_prompt_text(
+            text,
+            limit=limit,
+            path=path,
+        )
+    return autocomplete.classify(
+        text,
+        limit=limit,
+        path=path,
+    )
 
 
 (

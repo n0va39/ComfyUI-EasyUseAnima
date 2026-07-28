@@ -39,11 +39,11 @@
   ],
   "decisions": {
     "adapter_access": "API adapters receive or resolve one narrow autocomplete port; autocomplete feature modules do not import RuntimeServices, bootstrap, API adapters, or root compatibility shims.",
-    "bootstrap_composition": "Bootstrap is the only target production composition root for the default snapshot and index-store owners and the eventual narrow RuntimeServices autocomplete port.",
+    "bootstrap_composition": "Bootstrap is the only production composition root for the default snapshot and index-store owners and the narrow RuntimeServices autocomplete port.",
     "declarative_source_policy": "AUTOCOMPLETE_SOURCES and category maps remain declarative dataset metadata; source selection and missing Korean-source fallback do not become runtime mutable state.",
     "generic_cache_lock_port": "rejected",
     "resource_partition": "Dataset snapshots and Future single-flight form one owner. The index root and normalized-path publication locks form a second owner. They retain independent locks, cleanup, and failure semantics.",
-    "runtime_fields": "E-05d may add only a narrow autocomplete-owned port to RuntimeServices; feature code never receives the complete runtime."
+    "runtime_fields": "E-05d adds only one narrow autocomplete-owned port to RuntimeServices; feature code never receives the complete runtime."
   },
   "declarative_policy": [
     {
@@ -85,14 +85,14 @@
       "goal": "Compose the two autocomplete owners in bootstrap, expose one narrow RuntimeServices port, and wire existing adapter facades without changing public identities.",
       "id": "E-05d",
       "name": "bootstrap composition and adapter wiring",
-      "status": "queued"
+      "status": "complete"
     },
     {
       "classification": "Contract",
       "goal": "Reconcile E-01 targets, cleanup dispositions, root identities, and zero ambiguous autocomplete state before E-06.",
       "id": "E-05e",
       "name": "autocomplete ownership completion audit",
-      "status": "blocked-by-E-05d"
+      "status": "queued"
     }
   ],
   "owners": [
@@ -118,6 +118,7 @@
         "autocomplete-dataset-cache"
       ],
       "evidence": [
+        "tests/test_autocomplete_service.py",
         "tests/test_autocomplete_index.py",
         "tests/test_autocomplete_dataset_compatibility.py",
         "tests/test_autocomplete_locale_settings.py",
@@ -163,6 +164,7 @@
         "autocomplete-index-root"
       ],
       "evidence": [
+        "tests/test_autocomplete_service.py",
         "tests/test_autocomplete_index.py",
         "tests/test_python_package_skeleton.py"
       ],
@@ -196,8 +198,8 @@
       "module": "easyuse_anima/autocomplete/classification.py",
       "owner": "dataset-snapshots",
       "uses": [
-        "_snapshot",
-        "_snapshot_status"
+        "_classify_prompt_text_from_snapshot",
+        "_snapshot"
       ]
     },
     {
@@ -211,7 +213,7 @@
       "uses": [
         "_DEFAULT_AUTOCOMPLETE_INDEX_STORE",
         "_snapshot",
-        "_validate_index_source"
+        "_search_autocomplete_diagnostics_with_owners"
       ]
     },
     {
@@ -220,12 +222,80 @@
       "module": "easyuse_anima/autocomplete/dataset.py",
       "owner": "dataset-snapshots",
       "uses": [
+        "_autocomplete_status_with_owner",
         "_cached_snapshot_for_key",
         "_snapshot"
       ]
     }
   ],
-  "production_changes": 2,
+  "production_changes": 8,
+  "runtime_port": {
+    "adapters": [
+      {
+        "canonical_fallback": "_canonical_resolve_autocomplete_source_path",
+        "function": "resolve_autocomplete_source_path",
+        "port_method": "resolve_source"
+      },
+      {
+        "canonical_fallback": "_canonical_available_autocomplete_sources",
+        "function": "available_autocomplete_sources",
+        "port_method": "available_sources"
+      },
+      {
+        "canonical_fallback": "_canonical_autocomplete_status",
+        "function": "autocomplete_status",
+        "port_method": "status"
+      },
+      {
+        "canonical_fallback": "_canonical_search_autocomplete",
+        "function": "search_autocomplete",
+        "port_method": "search"
+      },
+      {
+        "canonical_fallback": "_canonical_classify_prompt_text",
+        "function": "classify_prompt_text",
+        "port_method": "classify"
+      }
+    ],
+    "bootstrap": {
+      "function": "initialize",
+      "module": "easyuse_anima/bootstrap.py",
+      "uses": [
+        "_AutocompleteService",
+        "_DEFAULT_AUTOCOMPLETE_INDEX_STORE",
+        "_DEFAULT_AUTOCOMPLETE_SNAPSHOTS",
+        "RuntimeServices"
+      ]
+    },
+    "interface": {
+      "class": "AutocompletePort",
+      "methods": [
+        "available_sources",
+        "classify",
+        "resolve_source",
+        "search",
+        "status"
+      ],
+      "module": "easyuse_anima/autocomplete/ports.py"
+    },
+    "root_adapter": {
+      "module": "api.py",
+      "resolver": "_runtime_autocomplete",
+      "runtime_getter": "_get_runtime"
+    },
+    "runtime": {
+      "field": "autocomplete",
+      "module": "easyuse_anima/runtime.py"
+    },
+    "service": {
+      "class": "_AutocompleteService",
+      "module": "easyuse_anima/autocomplete/service.py",
+      "owner_fields": [
+        "_index_store",
+        "_snapshots"
+      ]
+    }
+  },
   "schema_version": 1,
   "scope": "E-05 autocomplete source metadata, dataset snapshot/cache/Future single-flight, SQLite index root and publication path-lock ownership"
 }

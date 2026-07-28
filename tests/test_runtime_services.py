@@ -13,6 +13,9 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from easyuse_anima import bootstrap, runtime as runtime_module
+from easyuse_anima.autocomplete import dataset as autocomplete_dataset
+from easyuse_anima.autocomplete import index as autocomplete_index
+from easyuse_anima.autocomplete import service as autocomplete_service
 from easyuse_anima.infrastructure.comfy.provider import DefaultComfyHostProvider
 from easyuse_anima.infrastructure.filesystem import paths as storage_paths
 from easyuse_anima.runtime import (
@@ -45,6 +48,23 @@ class FakeComfyHostProvider:
 class FakeClock:
     def monotonic(self) -> float:
         return 0.0
+
+
+class FakeAutocompleteService:
+    def resolve_source(self, source=None):
+        raise AssertionError(source)
+
+    def available_sources(self, selected=None):
+        raise AssertionError(selected)
+
+    def status(self, path):
+        raise AssertionError(path)
+
+    def search(self, query, limit=20, path=None, category=None):
+        raise AssertionError((query, limit, path, category))
+
+    def classify(self, text, limit=240, path=None):
+        raise AssertionError((text, limit, path))
 
 
 class RuntimeBaseContractTests(unittest.TestCase):
@@ -143,6 +163,7 @@ class RuntimeServicesTests(unittest.TestCase):
             ),
             clock=FakeClock(),
             translation=PromptTranslationService(),
+            autocomplete=FakeAutocompleteService(),
         )
 
     def test_runtime_value_is_frozen(self):
@@ -231,6 +252,18 @@ class RuntimeServicesTests(unittest.TestCase):
         self.assertIs(
             first.translation.cache._time_func.__self__,
             first.clock,
+        )
+        self.assertIsInstance(
+            first.autocomplete,
+            autocomplete_service._AutocompleteService,
+        )
+        self.assertIs(
+            first.autocomplete.snapshots,
+            autocomplete_dataset._DEFAULT_AUTOCOMPLETE_SNAPSHOTS,
+        )
+        self.assertIs(
+            first.autocomplete.index_store,
+            autocomplete_index._DEFAULT_AUTOCOMPLETE_INDEX_STORE,
         )
         with patch.object(bootstrap.time, "monotonic", return_value=12.5):
             self.assertEqual(first.clock.monotonic(), 12.5)

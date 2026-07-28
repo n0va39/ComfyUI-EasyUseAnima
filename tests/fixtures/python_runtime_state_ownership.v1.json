@@ -334,15 +334,15 @@
       "thread_safety": "One RLock protects executor creation, admission, Future identity, and close state."
     },
     {
-      "categories": ["capability", "clock", "runtime_config", "runtime_reference", "seed_reservation_service", "translation_port"],
+      "categories": ["autocomplete_port", "capability", "clock", "runtime_config", "runtime_reference", "seed_reservation_service", "translation_port"],
       "cleanup": "No production uninstall/close; tests patch _RUNTIME_SERVICES.",
       "id": "runtime-services",
-      "lifetime": "One identity-installed RuntimeServices object for the process, including immutable config, a monotonic clock, and the narrow translation service port.",
+      "lifetime": "One identity-installed RuntimeServices object for the process, including immutable config, a monotonic clock, and narrow translation and autocomplete service ports.",
       "module": "easyuse_anima/runtime.py",
       "owner": "easyuse_anima.runtime.RuntimeServices",
       "symbols": ["RuntimeServices", "_RUNTIME_SERVICES"],
       "target_phase": "E-09",
-      "test_evidence": ["tests/test_comfy_host_wiring.py", "tests/test_runtime_services.py", "tests/test_seed_reservation_service.py"],
+      "test_evidence": ["tests/test_autocomplete_service.py", "tests/test_comfy_host_wiring.py", "tests/test_runtime_services.py", "tests/test_seed_reservation_service.py"],
       "thread_safety": "Bootstrap serializes production install; install_runtime enforces identity without a Lock."
     },
     {

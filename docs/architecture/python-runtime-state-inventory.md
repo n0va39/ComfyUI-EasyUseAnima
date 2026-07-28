@@ -38,9 +38,9 @@ E-01 drift gate until classified.
 | --- | --- | --- | --- |
 | `aio-first-pass-cache` | canonical AiO cache module, process lifetime with count/byte/TTL bounds | one `RLock`; explicit clear plus test-only metric/config reset | E-08 |
 | `api-file-io-limiters` | canonical API file-I/O module, weak per-event-loop limiter | registry `Lock`; weak expiry, no explicit close | E-09 |
-| `autocomplete-dataset-cache` | canonical dataset snapshot and Future single-flight maps | one `Lock`; test-only clear | E-05 |
-| `autocomplete-index-locks` | canonical index per-path lock registry | guard plus per-path locks; no clear | E-05 |
-| `autocomplete-index-root` | import-resolved user-data index path | immutable after import; test patch coupled to index fallback/publication | E-05 |
+| `autocomplete-dataset-cache` | canonical dataset snapshot and Future single-flight owner, injected into the bootstrap-composed narrow service | one owner `Lock`; completed-snapshot clear only | E-05b/E-05d complete |
+| `autocomplete-index-locks` | canonical index-store per-path lock owner, injected into the bootstrap-composed narrow service | guard plus retained per-path locks; idempotent no-op close | E-05c/E-05d complete |
+| `autocomplete-index-root` | immutable user-data index root retained by the canonical index-store owner | isolated-store injection; no mutable raw root | E-05c/E-05d complete |
 | `atomic-json-path-locks` | filesystem atomic JSON per-path lock registry shared by direct/factory stores | guard plus per-path `RLock`; no clear | E-03b complete |
 | `bootstrap-initialize-state` | bootstrap default runtime and wildcard completion state | initialize `Lock`; private-global test reset, no shutdown | E-09 |
 | `filesystem-runtime-paths` | import-resolved package/user-data paths projected into the default RuntimeConfig | immutable after import; bootstrap composition does not re-resolve | E-02c complete |
@@ -50,7 +50,7 @@ E-01 drift gate until classified.
 | `prompt-knowledge-path` | canonical filesystem package path re-exported for ANIMA root compatibility | immutable after import | E-02d complete |
 | `root-route-registration` | injected router registrar called by bootstrap | serialized refresh; idempotent marker, no deregistration | E-09 |
 | `root-translation-route-worker` | bootstrap composes the lazy single-thread executor; root retains its compatibility reference | internal `RLock`; idempotent `atexit` shutdown only | E-04d complete |
-| `runtime-services` | identity-installed process runtime with Comfy, seed, config/clock, and narrow translation capabilities | bootstrap-serialized install; private-global test reset, no whole-runtime close | E-09 |
+| `runtime-services` | identity-installed process runtime with Comfy, seed, config/clock, and narrow translation/autocomplete capabilities | bootstrap-serialized install; private-global test reset, no whole-runtime close | E-09 |
 | `translation-default-service` | RuntimeServices-owned translation port, mirrored by the canonical call-time facade | cache and flight `RLock`s; idempotent service close clears cache | E-04c complete |
 | `translation-provider-registry` | private process-owned lazy provider-client registry | one owned `RLock`; no provider close/reset | E-04b complete |
 | `wildcard-snapshot-cache` | root verified-snapshot LRU and build single-flight | one `Condition`; no owner reset/close | E-06 |
@@ -141,5 +141,11 @@ The production-free E-04e audit reconciles the three translation entries with th
 E-04 owners and records zero ambiguous state. Route-executor and service cleanup
 shapes are idempotent while whole-runtime ordering remains E-09; provider/client
 close remains intentionally absent because no supported cleanup interface is proven.
-E-04 is complete. The next bounded unit is a separate E-05 autocomplete
-source/index/single-flight ownership Contract.
+E-04 is complete. E-05a fixes the autocomplete source/index/single-flight
+ownership Contract, and E-05b and E-05c place snapshot/single-flight state and
+index root/path-lock state
+behind two distinct feature-private default owners. E-05d injects those exact
+identities into one private bootstrap-composed autocomplete service and adds only
+its narrow port to RuntimeServices. No duplicate cache, Future map, root, or lock
+registry is introduced. Whole-runtime cleanup ordering remains assigned to E-09;
+the next bounded unit is the separate E-05e completion audit Contract.

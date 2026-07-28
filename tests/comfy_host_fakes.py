@@ -31,6 +31,28 @@ class FakeTranslationService:
         return None
 
 
+class FakeAutocompleteService:
+    def resolve_source(self, source=None):
+        raise AssertionError(f"unexpected autocomplete source resolution: {source!r}")
+
+    def available_sources(self, selected=None):
+        raise AssertionError(f"unexpected autocomplete source list: {selected!r}")
+
+    def status(self, path):
+        raise AssertionError(f"unexpected autocomplete status: {path!r}")
+
+    def search(self, query, limit=20, path=None, category=None):
+        raise AssertionError(
+            "unexpected autocomplete search: "
+            f"{query!r} {limit!r} {path!r} {category!r}"
+        )
+
+    def classify(self, text, limit=240, path=None):
+        raise AssertionError(
+            f"unexpected autocomplete classification: {text!r} {limit!r} {path!r}"
+        )
+
+
 class FakeComfyHostProvider:
     def __init__(
         self,
@@ -116,7 +138,12 @@ def _runtime_module_for(root_module):
 def _runtime_support(runtime_module):
     installed = runtime_module._RUNTIME_SERVICES
     if installed is not None:
-        return installed.config, installed.clock, installed.translation
+        return (
+            installed.config,
+            installed.clock,
+            installed.translation,
+            installed.autocomplete,
+        )
     return (
         runtime_module.RuntimeConfig(
             package_root=Path("package-root"),
@@ -125,19 +152,21 @@ def _runtime_support(runtime_module):
         ),
         FakeClock(),
         FakeTranslationService(),
+        FakeAutocompleteService(),
     )
 
 
 @contextmanager
 def use_fake_comfy_host(root_module, provider):
     runtime_module = _runtime_module_for(root_module)
-    config, clock, translation = _runtime_support(runtime_module)
+    config, clock, translation, autocomplete = _runtime_support(runtime_module)
     runtime = runtime_module.RuntimeServices(
         comfy=provider,
         seed_reservations=FakeSeedReservationService(),
         config=config,
         clock=clock,
         translation=translation,
+        autocomplete=autocomplete,
     )
     with patch.object(runtime_module, "_RUNTIME_SERVICES", runtime):
         yield provider
@@ -167,13 +196,14 @@ def patch_comfy_helper(
         else FakeComfyHostProvider()
     )
     provider = _LayeredFakeComfyHostProvider(base, symbol, replacement)
-    config, clock, translation = _runtime_support(runtime_module)
+    config, clock, translation, autocomplete = _runtime_support(runtime_module)
     runtime = runtime_module.RuntimeServices(
         comfy=provider,
         seed_reservations=FakeSeedReservationService(),
         config=config,
         clock=clock,
         translation=translation,
+        autocomplete=autocomplete,
     )
     with patch.object(runtime_module, "_RUNTIME_SERVICES", runtime):
         yield replacement
