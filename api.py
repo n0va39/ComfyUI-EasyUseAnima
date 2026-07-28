@@ -75,6 +75,9 @@ from .easyuse_anima.api.router import (
     build_route_signature as _build_route_signature,
     register_route_definitions as _register_route_definitions,
 )
+from .easyuse_anima.bootstrap import (
+    build_settings_route_group as _build_settings_route_group,
+)
 from .easyuse_anima.api.routes.aio_profile_mutations import (
     build_aio_profile_mutation_handlers as _build_aio_profile_mutation_handlers,
 )
@@ -84,9 +87,6 @@ from .easyuse_anima.api.routes.autocomplete import (
     build_classify_prompt_handler as _build_classify_prompt_handler,
 )
 from .easyuse_anima.api.routes import long_text_settings as _api_long_text_routes
-from .easyuse_anima.api.routes.long_text_settings import (
-    build_long_text_settings_handlers as _build_long_text_settings_handlers,
-)
 from .easyuse_anima.api.routes.lora_catalog import (
     build_loras_handler as _build_loras_handler,
 )
@@ -107,9 +107,6 @@ from .easyuse_anima.api.routes.profile_saves import (
     build_profile_save_handlers as _build_profile_save_handlers,
 )
 from .easyuse_anima.api.routes import settings as _api_settings_routes
-from .easyuse_anima.api.routes.settings import (
-    build_settings_handlers as _build_settings_handlers,
-)
 from .easyuse_anima.api.routes import wildcards as _api_wildcard_routes
 from .easyuse_anima.api.routes.wildcards import (
     build_wildcards_handler as _build_wildcards_handler,
@@ -354,50 +351,45 @@ if web is not None:
     (
         get_settings_handler,
         set_setting_handler,
-    ) = (
-        _request_correlated(handler)
-        for handler in _build_settings_handlers(
-            parse_json_object=parse_json_object,
-            json_string=json_string,
-            contract_error_type=ApiContractError,
-            contract_error_response=lambda exc: _contract_error_response(exc),
-            run_file_io=lambda function, *args, **kwargs: _run_file_io(
+        get_long_text_settings_handler,
+        save_long_text_settings_handler,
+    ) = _build_settings_route_group(
+        request_correlated=_request_correlated,
+        settings_dependencies={
+            "parse_json_object": parse_json_object,
+            "json_string": json_string,
+            "contract_error_type": ApiContractError,
+            "contract_error_response": lambda exc: _contract_error_response(exc),
+            "run_file_io": lambda function, *args, **kwargs: _run_file_io(
                 function,
                 *args,
                 **kwargs,
             ),
-            get_settings_payload=lambda: _get_settings_payload_sync(),
-            save_setting_payload=lambda key, value: _save_setting_payload_sync(
+            "get_settings_payload": lambda: _get_settings_payload_sync(),
+            "save_setting_payload": lambda key, value: _save_setting_payload_sync(
                 key,
                 value,
             ),
-            unknown_setting_error_type=KeyError,
-            unknown_setting_response=lambda: _error_response(
+            "unknown_setting_error_type": KeyError,
+            "unknown_setting_response": lambda: _error_response(
                 422,
                 "unknown_setting",
                 "Unknown setting",
             ),
-            json_response=lambda payload: web.json_response(payload),
-        )
-    )
-
-    (
-        get_long_text_settings_handler,
-        save_long_text_settings_handler,
-    ) = (
-        _request_correlated(handler)
-        for handler in _build_long_text_settings_handlers(
-            parse_json_object=lambda request: parse_json_object(request),
-            json_object=lambda data, field: json_object(data, field),
-            contract_error_type=ApiContractError,
-            contract_error_response=lambda exc: _contract_error_response(exc),
-            run_file_io=lambda function, *args: _run_file_io(function, *args),
-            get_long_text_settings_payload=lambda: _get_long_text_settings_payload_sync(),
-            save_long_text_settings_payload=lambda values: _save_long_text_settings_payload_sync(
+            "json_response": lambda payload: web.json_response(payload),
+        },
+        long_text_settings_dependencies={
+            "parse_json_object": lambda request: parse_json_object(request),
+            "json_object": lambda data, field: json_object(data, field),
+            "contract_error_type": ApiContractError,
+            "contract_error_response": lambda exc: _contract_error_response(exc),
+            "run_file_io": lambda function, *args: _run_file_io(function, *args),
+            "get_long_text_settings_payload": lambda: _get_long_text_settings_payload_sync(),
+            "save_long_text_settings_payload": lambda values: _save_long_text_settings_payload_sync(
                 values
             ),
-            json_response=lambda payload: web.json_response(payload),
-        )
+            "json_response": lambda payload: web.json_response(payload),
+        },
     )
 
     get_wildcards_handler = _request_correlated(
