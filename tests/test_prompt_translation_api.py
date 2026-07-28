@@ -104,6 +104,166 @@ class PromptTranslationApiTests(unittest.TestCase):
         )
         self.assertTrue(handler._easyuse_anima_request_correlation)
 
+    def test_route_runtime_helpers_are_owned_by_the_canonical_factory(self):
+        api, _routes, _translation, _translation_service = self.load_routes()
+        cases = (
+            ("_translate_prompt_sync", 1),
+            ("_translate_prompt_for_route", 1),
+            ("_prompt_translation_error_response", 1),
+        )
+
+        for name, argcount in cases:
+            with self.subTest(name=name):
+                helper = getattr(api, name)
+                self.assertEqual(helper.__name__, name)
+                self.assertEqual(
+                    helper.__module__,
+                    f"{PACKAGE_NAME}.easyuse_anima.api.routes.translation",
+                )
+                self.assertEqual(helper.__code__.co_argcount, argcount)
+
+        owner = sys.modules[api._translate_prompt_sync.__module__]
+        self.assertIs(
+            api.PROMPT_TRANSLATION_ROUTE_TIMEOUT_SECONDS,
+            owner.PROMPT_TRANSLATION_ROUTE_TIMEOUT_SECONDS,
+        )
+        self.assertEqual(api.PROMPT_TRANSLATION_ROUTE_TIMEOUT_SECONDS, 15.0)
+        self.assertEqual(owner.__all__, ("build_translate_prompt_handler",))
+        self.assertFalse(hasattr(owner, "_PROMPT_TRANSLATION_WORKER"))
+
+    def test_runtime_builder_constructs_and_registers_one_worker(self):
+        api, _routes, _translation, _translation_service = self.load_routes()
+        owner = sys.modules[api._translate_prompt_sync.__module__]
+        created = []
+        registered = []
+
+        class FakeExecutor:
+            def __init__(
+                self,
+                *,
+                busy_error_type,
+                cancelled_error_type,
+                timeout_error_type,
+            ):
+                created.append(
+                    (
+                        busy_error_type,
+                        cancelled_error_type,
+                        timeout_error_type,
+                    )
+                )
+
+            def shutdown(self):
+                return None
+
+        runtime = owner.build_translation_runtime(
+            executor_type=FakeExecutor,
+            busy_error_type=api.TranslationBusyError,
+            cancelled_error_type=api.TranslationCancelledError,
+            timeout_error_type=api.TranslationTimeoutError,
+            register_shutdown=registered.append,
+            translate_prompt_markers=lambda text, settings: text,
+            resolve_prompt_translation_settings=lambda: object(),
+            get_worker=lambda: runtime[0],
+            get_translate_prompt_sync=lambda: runtime[1],
+            get_timeout_seconds=lambda: 15.0,
+            error_response=lambda *args: args,
+        )
+
+        worker = runtime[0]
+        self.assertEqual(
+            created,
+            [
+                (
+                    api.TranslationBusyError,
+                    api.TranslationCancelledError,
+                    api.TranslationTimeoutError,
+                )
+            ],
+        )
+        self.assertEqual(len(registered), 1)
+        self.assertIs(registered[0].__self__, worker)
+        self.assertIs(registered[0].__func__, FakeExecutor.shutdown)
+        self.assertFalse(hasattr(owner, "_PROMPT_TRANSLATION_WORKER"))
+
+    def test_runtime_helpers_keep_dynamic_root_dependencies(self):
+        api, _routes, _translation, _translation_service = self.load_routes()
+        calls = []
+        settings = object()
+
+        def resolve_settings():
+            calls.append(("settings",))
+            return settings
+
+        def translate(text, resolved_settings):
+            calls.append(("translate", text, resolved_settings))
+            return "translated"
+
+        with (
+            patch.object(
+                api,
+                "resolve_prompt_translation_settings",
+                side_effect=resolve_settings,
+            ),
+            patch.object(
+                api,
+                "translate_prompt_markers",
+                side_effect=translate,
+            ),
+        ):
+            translated = api._translate_prompt_sync("%{text}")
+
+        self.assertEqual(translated, "translated")
+        self.assertEqual(
+            calls,
+            [
+                ("settings",),
+                ("translate", "%{text}", settings),
+            ],
+        )
+
+        calls.clear()
+        replacement_sync = lambda text: text
+
+        class FakeWorker:
+            async def execute(self, function, text, *, timeout_seconds):
+                calls.append(("execute", function, text, timeout_seconds))
+                return "async-translated"
+
+        worker = FakeWorker()
+        with (
+            patch.object(api, "_PROMPT_TRANSLATION_WORKER", worker),
+            patch.object(api, "_translate_prompt_sync", replacement_sync),
+            patch.object(api, "PROMPT_TRANSLATION_ROUTE_TIMEOUT_SECONDS", 0.25),
+        ):
+            translated = asyncio.run(api._translate_prompt_for_route("%{async}"))
+
+        self.assertEqual(translated, "async-translated")
+        self.assertEqual(
+            calls,
+            [("execute", replacement_sync, "%{async}", 0.25)],
+        )
+
+        error = types.SimpleNamespace(
+            status=502,
+            code="translation_upstream_error",
+            message="The translation provider request failed.",
+        )
+        expected_response = {"status": 502}
+        with patch.object(
+            api,
+            "_error_response",
+            return_value=expected_response,
+        ) as error_response:
+            response = api._prompt_translation_error_response(error)
+
+        self.assertIs(response, expected_response)
+        error_response.assert_called_once_with(
+            error.status,
+            error.code,
+            error.message,
+        )
+
     def test_route_executor_is_owned_by_the_canonical_module(self):
         api, _routes, _translation, _translation_service = self.load_routes()
         executor = api._PROMPT_TRANSLATION_WORKER

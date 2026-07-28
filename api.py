@@ -112,6 +112,7 @@ from .easyuse_anima.api.routes import wildcards as _api_wildcard_routes
 from .easyuse_anima.api.routes.wildcards import (
     build_wildcards_handler as _build_wildcards_handler,
 )
+from .easyuse_anima.api.routes import translation as _api_translation_routes
 from .easyuse_anima.api.routes.translation import (
     build_translate_prompt_handler as _build_translate_prompt_handler,
 )
@@ -209,36 +210,33 @@ _rename_aio_profile_payload = _aio_profiles._rename_aio_profile_payload
 
 
 LORA_PREVIEW_EXTENSIONS = _api_lora_preview_routes.LORA_PREVIEW_EXTENSIONS
-PROMPT_TRANSLATION_ROUTE_TIMEOUT_SECONDS = 15.0
+PROMPT_TRANSLATION_ROUTE_TIMEOUT_SECONDS = (
+    _api_translation_routes.PROMPT_TRANSLATION_ROUTE_TIMEOUT_SECONDS
+)
 _LOGGER = logging.getLogger(__name__)
 
 
-_PROMPT_TRANSLATION_WORKER = _PromptTranslationRouteExecutor(
+(
+    _PROMPT_TRANSLATION_WORKER,
+    _translate_prompt_sync,
+    _translate_prompt_for_route,
+    _prompt_translation_error_response,
+) = _api_translation_routes.build_translation_runtime(
+    executor_type=_PromptTranslationRouteExecutor,
     busy_error_type=TranslationBusyError,
     cancelled_error_type=TranslationCancelledError,
     timeout_error_type=TranslationTimeoutError,
-)
-atexit.register(_PROMPT_TRANSLATION_WORKER.shutdown)
-
-
-def _translate_prompt_sync(text: str) -> str:
-    return translate_prompt_markers(text, resolve_prompt_translation_settings())
-
-
-async def _translate_prompt_for_route(text: str) -> str:
-    return await _PROMPT_TRANSLATION_WORKER.execute(
-        _translate_prompt_sync,
+    register_shutdown=lambda callback: atexit.register(callback),
+    translate_prompt_markers=lambda text, settings: translate_prompt_markers(
         text,
-        timeout_seconds=PROMPT_TRANSLATION_ROUTE_TIMEOUT_SECONDS,
-    )
-
-
-def _prompt_translation_error_response(exc: PromptTranslationError):
-    return _error_response(
-        exc.status,
-        exc.code,
-        exc.message,
-    )
+        settings,
+    ),
+    resolve_prompt_translation_settings=lambda: resolve_prompt_translation_settings(),
+    get_worker=lambda: _PROMPT_TRANSLATION_WORKER,
+    get_translate_prompt_sync=lambda: _translate_prompt_sync,
+    get_timeout_seconds=lambda: PROMPT_TRANSLATION_ROUTE_TIMEOUT_SECONDS,
+    error_response=lambda *args, **kwargs: _error_response(*args, **kwargs),
+)
 
 
 _error_response = _api_responses.build_error_response(

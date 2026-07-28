@@ -1,5 +1,58 @@
 from __future__ import annotations
 
+PROMPT_TRANSLATION_ROUTE_TIMEOUT_SECONDS = 15.0
+
+
+def build_translation_runtime(
+    *,
+    executor_type,
+    busy_error_type,
+    cancelled_error_type,
+    timeout_error_type,
+    register_shutdown,
+    translate_prompt_markers,
+    resolve_prompt_translation_settings,
+    get_worker,
+    get_translate_prompt_sync,
+    get_timeout_seconds,
+    error_response,
+):
+    """Build the translation runtime without module-import side effects."""
+
+    worker = executor_type(
+        busy_error_type=busy_error_type,
+        cancelled_error_type=cancelled_error_type,
+        timeout_error_type=timeout_error_type,
+    )
+    register_shutdown(worker.shutdown)
+
+    def _translate_prompt_sync(text: str) -> str:
+        return translate_prompt_markers(
+            text,
+            resolve_prompt_translation_settings(),
+        )
+
+    async def _translate_prompt_for_route(text: str) -> str:
+        return await get_worker().execute(
+            get_translate_prompt_sync(),
+            text,
+            timeout_seconds=get_timeout_seconds(),
+        )
+
+    def _prompt_translation_error_response(exc):
+        return error_response(
+            exc.status,
+            exc.code,
+            exc.message,
+        )
+
+    return (
+        worker,
+        _translate_prompt_sync,
+        _translate_prompt_for_route,
+        _prompt_translation_error_response,
+    )
+
 
 def build_translate_prompt_handler(
     *,
