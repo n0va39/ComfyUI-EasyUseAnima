@@ -2,16 +2,16 @@
 
 ## Status and authority
 
-- Status: D-08, E-01, E-02, E-03, and the E-04a translation ownership Contract are
+- Status: D-08, E-01, E-02, E-03, E-04a, and E-04b are
   completed; the D-14 readiness audit retains every root surface and blocks
   retirement/final-freeze work.
-- Code-review base: `dev@d952f15f637732ce45a1ab7d9a0006bd1a3362bc`
-  after E-03e / PR #536.
-- Document baseline: E-04a translation runtime ownership Contract.
+- Code-review base before E-04b:
+  `dev@77c7db822b2be2649f89eef249add95a9b110ef3` after E-04a / PR #537.
+- Document baseline: completed E-04b provider registry/client ownership Move.
 - Released baseline: 0.6.2.
 - Scope: completed D-08 evidence, the D-14 readiness decision, completed #187
-  E-01/E-02/E-03/E-04a work, and the next bounded E-04b provider registry/client
-  ownership Move.
+  E-01/E-02/E-03/E-04 work, and the next bounded E-04c default service/cache
+  composition Move.
 - This document owns the current immediate queue and supersedes the stale queue and
   broad preflight command in `python-backend-execution-roadmap.md`.
 - `python-backend.md`, ADR-001, ADR-002, and the compatibility-shim registry still own
@@ -281,9 +281,12 @@ The D-08u audit found no required D-08v. After D-08:
 15. E-04a keeps provider registry/client, service cache/per-key single-flight, and
     API route executor as three distinct translation-owned resources, rejects a
     generic executor/client port, and records the unproven client-close gap; and
-16. never remove root files merely to make the directory tree appear complete.
+16. E-04b moves provider factories, lazy instances, and registry locking behind one
+    private registry while retaining a call-time default seam and unchanged lazy
+    optional client behavior; and
+17. never remove root files merely to make the directory tree appear complete.
 
-## 6. E-01/E-02/E-03/E-04a result and Codex resume instruction
+## 6. E-01/E-02/E-03/E-04b result and Codex resume instruction
 
 ```text
 D-08 is complete. Do not restart D-08t or create D-08v without new contrary
@@ -335,9 +338,13 @@ service cache/per-key single-flight, and API route executor remain three distinc
 translation-owned resources. Bootstrap is the target concrete composition root;
 generic executor/client ports and unproven provider-client close calls are rejected.
 
-Start only #187 E-04b from latest origin/dev. Move provider factories, lazy instances,
-registry locking, and client ownership behind one explicit translation provider
-registry while preserving optional import, reuse, timeout, errors, and public/root
-identities. Do not start E-04c through E-10, D-14 retirement, release, or Registry
-work inside E-04b.
+E-04b moves provider factories, lazy instances, and registry locking behind one
+private translation provider registry. The canonical public facade resolves the
+current default registry on every call. Optional import, provider/client reuse,
+timeouts, errors, and public/root identities are unchanged.
+
+Start only #187 E-04c from latest origin/dev. Compose the process default translation
+service with its bounded cache and per-key single-flight owner through the narrow
+contract fixed by E-04a. Do not start E-04d through E-10, D-14 retirement, release,
+or Registry work inside E-04c.
 ```

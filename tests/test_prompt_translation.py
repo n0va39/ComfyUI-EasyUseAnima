@@ -26,11 +26,12 @@ from easyuse_anima.translation.providers import google as google_provider
 from easyuse_anima.translation.providers.google import (
     GoogleTranslationProvider,
 )
+from easyuse_anima.translation.provider_registry import (
+    _TranslationProviderRegistry,
+)
 from easyuse_anima.translation.service import (
     BoundedTranslationCache,
     PromptTranslationService,
-    _TRANSLATION_PROVIDER_FACTORIES,
-    _TRANSLATION_PROVIDER_INSTANCES,
     get_translation_provider,
 )
 
@@ -161,20 +162,82 @@ class PromptTranslationServiceTests(unittest.TestCase):
             factory_calls.append(True)
             return provider
 
-        with (
-            patch.dict(_TRANSLATION_PROVIDER_INSTANCES, {}, clear=True),
-            patch.dict(
-                _TRANSLATION_PROVIDER_FACTORIES,
-                {PROMPT_TRANSLATION_PROVIDER_GOOGLE: factory},
-                clear=True,
-            ),
-        ):
-            first = get_translation_provider(PROMPT_TRANSLATION_PROVIDER_GOOGLE)
-            second = get_translation_provider(PROMPT_TRANSLATION_PROVIDER_GOOGLE)
+        registry = _TranslationProviderRegistry(
+            {PROMPT_TRANSLATION_PROVIDER_GOOGLE: factory}
+        )
+        first = registry.get(PROMPT_TRANSLATION_PROVIDER_GOOGLE)
+        second = registry.get(PROMPT_TRANSLATION_PROVIDER_GOOGLE)
 
         self.assertIs(first, provider)
         self.assertIs(second, provider)
         self.assertEqual(len(factory_calls), 1)
+
+    def test_provider_registry_constructs_once_under_concurrency(self):
+        provider = GoogleTranslationProvider(translator_factory=lambda: object())
+        factory_calls = []
+
+        def factory():
+            factory_calls.append(True)
+            return provider
+
+        registry = _TranslationProviderRegistry(
+            {PROMPT_TRANSLATION_PROVIDER_GOOGLE: factory}
+        )
+        with ThreadPoolExecutor(max_workers=8) as executor:
+            instances = list(
+                executor.map(
+                    registry.get,
+                    [PROMPT_TRANSLATION_PROVIDER_GOOGLE] * 16,
+                )
+            )
+
+        self.assertTrue(all(instance is provider for instance in instances))
+        self.assertEqual(len(factory_calls), 1)
+
+    def test_provider_registry_preserves_factory_error_policy(self):
+        timeout = TranslationTimeoutError()
+
+        def timeout_factory():
+            raise timeout
+
+        def broken_factory():
+            raise ValueError("broken provider")
+
+        with self.assertRaises(TranslationProviderUnavailableError):
+            _TranslationProviderRegistry({}).get("missing")
+        with self.assertRaises(TranslationTimeoutError) as raised:
+            _TranslationProviderRegistry(
+                {PROMPT_TRANSLATION_PROVIDER_GOOGLE: timeout_factory}
+            ).get(PROMPT_TRANSLATION_PROVIDER_GOOGLE)
+        self.assertIs(raised.exception, timeout)
+
+        with self.assertRaises(TranslationProviderUnavailableError) as raised:
+            _TranslationProviderRegistry(
+                {PROMPT_TRANSLATION_PROVIDER_GOOGLE: broken_factory}
+            ).get(PROMPT_TRANSLATION_PROVIDER_GOOGLE)
+        self.assertIsInstance(raised.exception.__cause__, ValueError)
+
+    def test_provider_facade_resolves_current_default_registry(self):
+        provider = GoogleTranslationProvider(translator_factory=lambda: object())
+
+        class Registry:
+            def __init__(self):
+                self.calls = []
+
+            def get(self, name):
+                self.calls.append(name)
+                return provider
+
+        registry = Registry()
+        with patch.object(
+            service,
+            "_DEFAULT_TRANSLATION_PROVIDER_REGISTRY",
+            registry,
+        ):
+            resolved = get_translation_provider(" GOOGLE ")
+
+        self.assertIs(resolved, provider)
+        self.assertEqual(registry.calls, [" GOOGLE "])
 
     def test_cache_hit_ttl_expiry_and_lru_bound_are_deterministic(self):
         now = [0.0]

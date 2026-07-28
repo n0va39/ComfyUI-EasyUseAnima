@@ -178,14 +178,14 @@ class PythonTranslationRuntimeContractTests(unittest.TestCase):
         )
         self.assertEqual(self.fixture["schema_version"], 1)
         self.assertEqual(self.fixture["classification"], "Contract")
-        self.assertEqual(self.fixture["production_changes"], 0)
+        self.assertEqual(self.fixture["production_changes"], 2)
         self.assertEqual(
             [move["id"] for move in self.fixture["move_queue"]],
             ["E-04a", "E-04b", "E-04c", "E-04d", "E-04e"],
         )
         self.assertEqual(
             [move["status"] for move in self.fixture["move_queue"]],
-            ["complete", "ready", "pending", "pending", "pending"],
+            ["complete", "complete", "ready", "pending", "pending"],
         )
         self.assertEqual(
             [move["classification"] for move in self.fixture["move_queue"]],
@@ -229,7 +229,7 @@ class PythonTranslationRuntimeContractTests(unittest.TestCase):
             for entry in self.e01_fixture["declarative_mutable_globals"]
             for symbol in entry["symbols"]
         }
-        self.assertIn(
+        self.assertNotIn(
             (
                 "easyuse_anima/translation/service.py",
                 "_TRANSLATION_PROVIDER_FACTORIES",
@@ -293,6 +293,13 @@ class PythonTranslationRuntimeContractTests(unittest.TestCase):
                 "easyuse_anima/translation/providers/google.py",
                 "GoogleTranslationProvider",
             ),
+        )
+        self.assertEqual(
+            _class_methods(
+                "easyuse_anima/translation/provider_registry.py",
+                "_TranslationProviderRegistry",
+            ),
+            {"__init__", "get"},
         )
 
     def test_production_callers_and_dynamic_compatibility_seams_are_current(self):

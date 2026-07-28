@@ -52,7 +52,7 @@ E-01 drift gate until classified.
 | `root-translation-route-worker` | root compatibility runtime owns lazy single-thread executor | internal `RLock`; idempotent `atexit` shutdown only | E-04d |
 | `runtime-services` | identity-installed process runtime with Comfy and seed capabilities | bootstrap-serialized install; private-global test reset, no close | E-09 |
 | `translation-default-service` | canonical default cache/single-flight service | cache and flight `RLock`s; cache clear exists, no process reset | E-04c |
-| `translation-provider-registry` | canonical lazy provider-client registry | one `RLock`; test patch only, no provider close | E-04b |
+| `translation-provider-registry` | private process-owned lazy provider-client registry | one owned `RLock`; no provider close/reset | E-04b complete |
 | `wildcard-snapshot-cache` | root verified-snapshot LRU and build single-flight | one `Condition`; no owner reset/close | E-06 |
 
 The fixture contains exact symbols, tests, owner, lifetime, thread-safety, and
@@ -104,7 +104,7 @@ owners. The E-03e cross-fixture audit reconciles both E-01 owner entries with th
 E-03 owners and records zero ambiguous repository/filesystem state owners. The next
 bounded unit is the separate E-04 translation provider/client/cache Contract.
 
-## E-04a translation ownership Contract
+## E-04a Contract and E-04b result
 
 The production-free
 [`python-runtime-e04-translation-contract.md`](python-runtime-e04-translation-contract.md)
@@ -117,5 +117,10 @@ keeps three translation-owned resource boundaries distinct:
 No generic executor/client port is introduced. Bootstrap remains the target concrete
 composition root, feature/domain code does not import the complete runtime, and the
 current optional client protocol does not prove a close operation. E-04a therefore
-records that cleanup gap instead of inventing a provider-client lifecycle call. The
-next bounded unit is E-04b only.
+records that cleanup gap instead of inventing a provider-client lifecycle call.
+
+E-04b replaces the service module's separate factory map, instance map, and lock with
+one private `_TranslationProviderRegistry`. The process default remains in the
+canonical service module, and `get_translation_provider()` resolves that default at
+call time. Provider/client laziness, reuse, optional imports, timeout and error
+normalization remain unchanged. The next bounded unit is E-04c only.

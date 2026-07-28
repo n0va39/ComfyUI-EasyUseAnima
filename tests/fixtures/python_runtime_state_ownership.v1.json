@@ -135,11 +135,6 @@
       "symbols": ["PROMPT_TRANSLATION_PROVIDERS"]
     },
     {
-      "module": "easyuse_anima/translation/service.py",
-      "reason": "Static provider factory registry; provider instances are runtime state.",
-      "symbols": ["_TRANSLATION_PROVIDER_FACTORIES"]
-    },
-    {
       "module": "easyuse_anima/wildcard/mode.py",
       "reason": "Published immutable wildcard-mode alias lookup.",
       "symbols": ["WILDCARD_MODE_ALIASES"]
@@ -364,15 +359,15 @@
     },
     {
       "categories": ["client", "lock", "provider_registry"],
-      "cleanup": "Tests patch instances; production exposes no provider close/reset.",
+      "cleanup": "The registry owns provider references; production exposes no provider/client close or registry reset.",
       "id": "translation-provider-registry",
-      "lifetime": "Provider clients are lazy and cached for the process.",
+      "lifetime": "The default registry is process-owned; provider clients remain lazy and cached for the process.",
       "module": "easyuse_anima/translation/service.py",
-      "owner": "easyuse_anima.translation.service",
-      "symbols": ["_TRANSLATION_PROVIDER_INSTANCES", "_TRANSLATION_PROVIDER_LOCK"],
-      "target_phase": "E-04b",
+      "owner": "easyuse_anima.translation.service._DEFAULT_TRANSLATION_PROVIDER_REGISTRY",
+      "symbols": ["_DEFAULT_TRANSLATION_PROVIDER_REGISTRY"],
+      "target_phase": "E-04b-complete",
       "test_evidence": ["tests/test_prompt_translation.py"],
-      "thread_safety": "One RLock protects provider lookup, construction, and publication."
+      "thread_safety": "The private registry instance owns one RLock protecting provider lookup, construction, and publication."
     },
     {
       "categories": ["cache", "condition", "single_flight"],
