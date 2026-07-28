@@ -152,14 +152,14 @@
       "goal": "Introduce explicit settings paths and store-factory construction behind the current module functions and patch seams.",
       "id": "E-03c",
       "name": "settings repository",
-      "status": "ready"
+      "status": "complete"
     },
     {
       "classification": "Move",
       "goal": "Introduce explicit LoRA/AiO profile directories, store factory, and shared profile coordinator behind current canonical functions and root aliases.",
       "id": "E-03d",
       "name": "profile repositories",
-      "status": "pending"
+      "status": "ready"
     },
     {
       "classification": "Contract",
@@ -239,31 +239,41 @@
       ],
       "function_contracts": [
         {
+          "function": "_current_settings_repository",
+          "required_calls": [
+            "_SettingsRepository"
+          ]
+        },
+        {
           "function": "_read_json_file",
           "required_calls": [
-            "AtomicJsonStore",
-            "AtomicJsonStore().read"
+            "_current_settings_repository",
+            "repository.store",
+            "repository.store().read"
           ]
         },
         {
           "function": "save_long_text_settings",
           "required_calls": [
-            "AtomicJsonStore",
-            "AtomicJsonStore().update"
+            "_current_settings_repository",
+            "repository.store",
+            "repository.store().update"
           ]
         },
         {
           "function": "_initialize_autocomplete_source",
           "required_calls": [
-            "AtomicJsonStore",
-            "AtomicJsonStore().update"
+            "_current_settings_repository",
+            "repository.store",
+            "repository.store().update"
           ]
         },
         {
           "function": "save_setting",
           "required_calls": [
-            "AtomicJsonStore",
+            "_current_settings_repository",
             "get_settings",
+            "repository.store",
             "store.locked",
             "store.write"
           ]
@@ -282,6 +292,19 @@
         }
       ],
       "preserved_contract": "Defaults, Comfy overlay precedence, long-text merge, unknown-key rejection, trailing newline, and current OSError/JSON fallbacks remain feature behavior.",
+      "repository_dependency": {
+        "builder": "_current_settings_repository",
+        "class": "_SettingsRepository",
+        "factory": "create_atomic_json_store",
+        "factory_call": "self.store_factory",
+        "factory_import": "..infrastructure.filesystem.atomic_json",
+        "factory_method": "store",
+        "fields": [
+          "settings_file",
+          "long_text_settings_file",
+          "store_factory"
+        ]
+      },
       "test_evidence": [
         "tests/test_prompt_corrector.py",
         "tests/test_storage.py"

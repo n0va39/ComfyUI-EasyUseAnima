@@ -102,6 +102,25 @@ def _class_methods(module: str, name: str) -> dict[str, ast.FunctionDef]:
     }
 
 
+def _class_fields(module: str, name: str) -> set[str]:
+    return {
+        statement.target.id
+        for statement in _top_level_class(module, name).body
+        if isinstance(statement, ast.AnnAssign)
+        if isinstance(statement.target, ast.Name)
+    }
+
+
+def _class_method_calls(module: str, class_name: str, method_name: str) -> set[str]:
+    method = _class_methods(module, class_name)[method_name]
+    return {
+        call_name
+        for node in ast.walk(method)
+        if isinstance(node, ast.Call)
+        if (call_name := _expression_name(node.func))
+    }
+
+
 def _import_source(module: str, symbol: str) -> str | None:
     for statement in _tree(module).body:
         if not isinstance(statement, ast.ImportFrom):
@@ -155,7 +174,7 @@ class PythonRepositoryFilesystemContractTests(unittest.TestCase):
         )
         self.assertEqual(
             [move["status"] for move in self.fixture["move_queue"]],
-            ["complete", "ready", "pending", "pending"],
+            ["complete", "complete", "ready", "pending"],
         )
 
         evidence = {
@@ -259,6 +278,30 @@ class PythonRepositoryFilesystemContractTests(unittest.TestCase):
                     self.assertIn(
                         _normalized_source_token(dependency["token"]),
                         module_source,
+                    )
+
+            repository = lane.get("repository_dependency")
+            if repository is not None:
+                with self.subTest(lane=lane["id"], repository=repository["class"]):
+                    self.assertEqual(
+                        _class_fields(module, repository["class"]),
+                        set(repository["fields"]),
+                    )
+                    self.assertIn(
+                        repository["factory_call"],
+                        _class_method_calls(
+                            module,
+                            repository["class"],
+                            repository["factory_method"],
+                        ),
+                    )
+                    self.assertIn(
+                        repository["class"],
+                        _function_calls(module, repository["builder"]),
+                    )
+                    self.assertEqual(
+                        _import_source(module, repository["factory"]),
+                        repository["factory_import"],
                     )
 
     def test_root_compatibility_bindings_and_patch_seams_are_preserved(self):

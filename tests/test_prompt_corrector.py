@@ -2896,6 +2896,34 @@ class SettingsTests(unittest.TestCase):
                     getattr(canonical_owners[0], name),
                 )
 
+    def test_repository_dependency_uses_current_paths_and_store_factory(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            settings_file = Path(tmp) / "settings.json"
+            long_text_settings_file = Path(tmp) / "long_text_settings.json"
+            with (
+                patch.object(settings_repository, "SETTINGS_FILE", settings_file),
+                patch.object(
+                    settings_repository,
+                    "LONG_TEXT_SETTINGS_FILE",
+                    long_text_settings_file,
+                ),
+                patch.object(
+                    settings_repository,
+                    "create_atomic_json_store",
+                ) as store_factory,
+            ):
+                repository = settings_repository._current_settings_repository()
+                store = repository.store(settings_file, backup=False)
+
+            self.assertEqual(repository.settings_file, settings_file)
+            self.assertEqual(
+                repository.long_text_settings_file,
+                long_text_settings_file,
+            )
+            self.assertIs(repository.store_factory, store_factory)
+            self.assertIs(store, store_factory.return_value)
+            store_factory.assert_called_once_with(settings_file, backup=False)
+
     def test_save_setting_round_trips_false_zero_empty_string_and_null(self):
         with tempfile.TemporaryDirectory() as tmp:
             settings_file = Path(tmp) / "settings.json"

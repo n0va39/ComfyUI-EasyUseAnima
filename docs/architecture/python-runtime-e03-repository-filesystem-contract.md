@@ -115,9 +115,10 @@ constructor compatibility or introducing a dependency-injection framework.
 1. **E-03b Move — filesystem factory — complete:** the stateless constructor seam
    delegates to `AtomicJsonStore`; direct and factory-created stores share the
    canonical path lock and backup policy.
-2. **E-03c Move — settings repository — READY:** add explicit settings paths and the store
-   factory behind current functions and monkeypatch seams.
-3. **E-03d Move — profile repositories:** add explicit LoRA/AiO directories, the
+2. **E-03c Move — settings repository — complete:** a private per-call repository
+   value now binds the current settings paths to the canonical store factory behind
+   the existing functions and monkeypatch seams.
+3. **E-03d Move — profile repositories — READY:** add explicit LoRA/AiO directories, the
    store factory, and shared profile coordinator behind current canonical functions
    and root aliases.
 4. **E-03e Contract — completion audit:** reconcile E-01 ownership targets and prove
@@ -134,9 +135,9 @@ bootstrap, RuntimeServices, persistence, schema, error, lock, response, or lifec
 behavior. Package/no-host and live evidence from the preceding runtime work remains
 valid.
 
-E-03b changes only the canonical factory seam and its direct contract evidence. It
-does not authorize E-03c production changes, E-04 or later work, root alias retirement,
-D-14 retirement, release, or Registry actions.
+E-03c changes only private settings repository construction and its direct contract
+evidence. It does not authorize profile repository changes, E-04 or later work, root
+alias retirement, D-14 retirement, release, or Registry actions.
 
 The direct evidence leaves one owner for each boundary, so no material PRO review is
 required.
