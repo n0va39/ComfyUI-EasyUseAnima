@@ -31,6 +31,12 @@ from easyuse_anima.seed.service import InMemorySeedReservationService
 from easyuse_anima.translation import service as translation_service
 from easyuse_anima.translation.service import PromptTranslationService
 from easyuse_anima.wildcard import snapshot as wildcard_snapshot
+from tests.runtime_test_support import (
+    build_runtime_services,
+    enter_test_context,
+    isolated_bootstrap_runtime,
+    isolated_translation_facade,
+)
 
 
 class FakeComfyHostProvider:
@@ -157,33 +163,21 @@ class RuntimeBaseContractTests(unittest.TestCase):
 
 class RuntimeServicesTests(unittest.TestCase):
     def setUp(self):
-        self.runtime_state = patch.object(runtime_module, "_RUNTIME_SERVICES", None)
-        self.runtime_state.start()
-        self.default_runtime_state = patch.object(bootstrap, "_DEFAULT_RUNTIME", None)
-        self.default_runtime_state.start()
-        self.shutdown_state = patch.object(bootstrap, "_SHUTDOWN", False)
-        self.shutdown_state.start()
-        self.atexit_state = patch.object(bootstrap, "_ATEXIT_REGISTERED", False)
-        self.atexit_state.start()
-        self.wildcard_state = patch.object(
-            bootstrap,
-            "_WILDCARDS_INITIALIZED",
-            False,
+        enter_test_context(
+            self,
+            isolated_bootstrap_runtime(
+                bootstrap,
+                runtime_module,
+                translation_service,
+            ),
         )
-        self.wildcard_state.start()
-
-    def tearDown(self):
-        self.wildcard_state.stop()
-        self.atexit_state.stop()
-        self.shutdown_state.stop()
-        self.default_runtime_state.stop()
-        self.runtime_state.stop()
 
     @staticmethod
     def make_runtime(
         cleanup_plan=None,
     ) -> RuntimeServices:
-        return RuntimeServices(
+        return build_runtime_services(
+            runtime_module,
             comfy=FakeComfyHostProvider(),
             seed_reservations=InMemorySeedReservationService(),
             config=RuntimeConfig(
@@ -196,7 +190,7 @@ class RuntimeServicesTests(unittest.TestCase):
             autocomplete=FakeAutocompleteService(),
             wildcard_snapshots=FakeWildcardSnapshots(),
             aio_first_pass_cache=FakeAIOFirstPassCache(),
-            _cleanup_plan=(
+            cleanup_plan=(
                 cleanup_plan
                 if cleanup_plan is not None
                 else runtime_module._RuntimeCleanupPlan()
@@ -259,9 +253,8 @@ class RuntimeServicesTests(unittest.TestCase):
         replacement = PromptTranslationService()
         foreign = PromptTranslationService()
 
-        with patch.object(
+        with isolated_translation_facade(
             translation_service,
-            "_DEFAULT_TRANSLATION_SERVICE",
             original,
         ):
             previous = translation_service._install_default_translation_service(
@@ -324,14 +317,11 @@ class RuntimeServicesTests(unittest.TestCase):
         host = type("Host", (), {"MAX_RESOLUTION": "8192"})()
         load_comfy_nodes = Mock(return_value=host)
 
-        with (
-            patch.object(bootstrap, "_WILDCARDS_INITIALIZED", False),
-            patch.object(
-                bootstrap,
-                "_load_runtime_config",
-                wraps=bootstrap._load_runtime_config,
-            ) as load_runtime_config,
-        ):
+        with patch.object(
+            bootstrap,
+            "_load_runtime_config",
+            wraps=bootstrap._load_runtime_config,
+        ) as load_runtime_config:
             bootstrap.initialize(
                 register_routes=register_routes,
                 initialize_wildcards=initialize_wildcards,
@@ -396,14 +386,11 @@ class RuntimeServicesTests(unittest.TestCase):
         initialize_wildcards = Mock(return_value=object())
         install_runtime(runtime)
 
-        with (
-            patch.object(bootstrap, "_WILDCARDS_INITIALIZED", False),
-            self.assertRaisesRegex(
-                RuntimeError,
-                (
-                    r"^\[EasyUseAnima\] A different RuntimeServices instance "
-                    r"is already installed\.$"
-                ),
+        with self.assertRaisesRegex(
+            RuntimeError,
+            (
+                r"^\[EasyUseAnima\] A different RuntimeServices instance "
+                r"is already installed\.$"
             ),
         ):
             bootstrap.initialize(
