@@ -76,6 +76,7 @@ from .easyuse_anima.api.router import (
 from .easyuse_anima.api.routes.aio_profile_mutations import (
     build_aio_profile_mutation_handlers as _build_aio_profile_mutation_handlers,
 )
+from .easyuse_anima.api.routes import autocomplete as _api_autocomplete_routes
 from .easyuse_anima.api.routes.autocomplete import (
     build_autocomplete_handlers as _build_autocomplete_handlers,
     build_classify_prompt_handler as _build_classify_prompt_handler,
@@ -355,70 +356,27 @@ _wildcards_payload_sync = _api_wildcard_routes.build_wildcards_payload(
 )
 
 
-def _autocomplete_status_payload_sync() -> dict:
-    selected_source = resolve_autocomplete_source()
-    source_key, path = resolve_autocomplete_source_path(selected_source)
-    status = _public_autocomplete_status(autocomplete_status(path))
-    sources = []
-    source_label = source_key
-    for source in available_autocomplete_sources(source_key):
-        public_source = {
-            key: value
-            for key, value in source.items()
-            if key != "path"
-        }
-        sources.append(public_source)
-        if public_source.get("selected"):
-            source_label = str(public_source.get("label") or source_key)
-    return {
-        **status,
-        "source": source_key,
-        "source_label": source_label,
-        "sources": sources,
-    }
-
-
-def _public_autocomplete_status(status) -> dict:
-    public_status = dict(status) if isinstance(status, dict) else {}
-    public_status.pop("path", None)
-    return public_status
-
-
-def _public_autocomplete_payload(payload) -> dict:
-    public_payload = dict(payload) if isinstance(payload, dict) else {}
-    if "status" in public_payload:
-        public_payload["status"] = _public_autocomplete_status(
-            public_payload["status"]
-        )
-    return public_payload
-
-
-def _search_autocomplete_payload_sync(
-    query: str,
-    requested_limit: str | None,
-    category_filter: str | None,
-):
-    default_limit = resolve_autocomplete_limit()
-    try:
-        limit = int(requested_limit) if requested_limit is not None else default_limit
-    except ValueError:
-        limit = default_limit
-    _, path = resolve_autocomplete_source_path(resolve_autocomplete_source())
-    return _public_autocomplete_payload(
-        search_autocomplete(
-            query,
-            limit=limit,
-            path=path,
-            category=category_filter,
-        )
-    )
-
-
-def _classify_prompt_payload_sync(text: str, limit: int):
-    _, path = resolve_autocomplete_source_path(resolve_autocomplete_source())
-    return _public_autocomplete_payload(
-        classify_prompt_text(text, limit=limit, path=path)
-    )
+(
+    _autocomplete_status_payload_sync,
+    _public_autocomplete_status,
+    _public_autocomplete_payload,
+    _search_autocomplete_payload_sync,
+    _classify_prompt_payload_sync,
+) = _api_autocomplete_routes.build_autocomplete_payloads(
+    resolve_autocomplete_source=lambda: resolve_autocomplete_source(),
+    resolve_autocomplete_source_path=lambda source: resolve_autocomplete_source_path(
+        source
+    ),
+    autocomplete_status=lambda path: autocomplete_status(path),
+    available_autocomplete_sources=lambda source: available_autocomplete_sources(
+        source
+    ),
+    resolve_autocomplete_limit=lambda: resolve_autocomplete_limit(),
+    search_autocomplete=lambda query, **kwargs: search_autocomplete(query, **kwargs),
+    classify_prompt_text=lambda text, **kwargs: classify_prompt_text(text, **kwargs),
+    public_autocomplete_status=lambda status: _public_autocomplete_status(status),
+    public_autocomplete_payload=lambda payload: _public_autocomplete_payload(payload),
+)
 
 
 def _get_prompt_routes():

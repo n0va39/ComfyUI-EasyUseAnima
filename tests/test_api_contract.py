@@ -1664,6 +1664,312 @@ class ApiLongTextSettingsRouteTests(unittest.TestCase):
 
 
 class ApiAutocompleteRouteTests(unittest.TestCase):
+    def test_payload_helpers_are_owned_by_the_canonical_factory(self):
+        api, _routes = load_api_routes()
+        cases = (
+            ("_autocomplete_status_payload_sync", 0),
+            ("_public_autocomplete_status", 1),
+            ("_public_autocomplete_payload", 1),
+            ("_search_autocomplete_payload_sync", 3),
+            ("_classify_prompt_payload_sync", 2),
+        )
+
+        for name, argcount in cases:
+            with self.subTest(name=name):
+                helper = getattr(api, name)
+                self.assertEqual(helper.__name__, name)
+                self.assertTrue(
+                    helper.__module__.endswith(
+                        ".easyuse_anima.api.routes.autocomplete"
+                    )
+                )
+                self.assertEqual(helper.__code__.co_argcount, argcount)
+
+        owner = sys.modules[api._autocomplete_status_payload_sync.__module__]
+        self.assertEqual(
+            owner.__all__,
+            (
+                "build_autocomplete_handlers",
+                "build_classify_prompt_handler",
+            ),
+        )
+
+    def test_public_payload_helpers_copy_and_keep_dynamic_redaction_seam(self):
+        api, _routes = load_api_routes()
+        future = {"kept": True}
+        status = {
+            "path": r"C:\Users\alice\secret.csv",
+            "exists": True,
+            "future": future,
+        }
+
+        public_status = api._public_autocomplete_status(status)
+
+        self.assertEqual(
+            public_status,
+            {"exists": True, "future": future},
+        )
+        self.assertIs(public_status["future"], future)
+        self.assertIn("path", status)
+        self.assertEqual(api._public_autocomplete_status(None), {})
+        self.assertEqual(api._public_autocomplete_payload(None), {})
+
+        private_status = object()
+        produced = {"status": private_status, "future": future}
+        redacted = {"redacted": True}
+        with patch.object(
+            api,
+            "_public_autocomplete_status",
+            return_value=redacted,
+        ) as public_status_helper:
+            public_payload = api._public_autocomplete_payload(produced)
+
+        self.assertIsNot(public_payload, produced)
+        self.assertIs(public_payload["status"], redacted)
+        self.assertIs(public_payload["future"], future)
+        self.assertIs(produced["status"], private_status)
+        public_status_helper.assert_called_once_with(private_status)
+
+    def test_status_payload_keeps_dependency_order_identity_and_merge_shape(self):
+        api, _routes = load_api_routes()
+        calls = []
+        selected_source = "configured"
+        source_key = "resolved"
+        path = object()
+        future = {"kept": True}
+        status = {
+            "path": r"C:\Users\alice\secret.csv",
+            "count": 5,
+            "source": "private-source",
+            "source_label": "Private source",
+            "sources": ["private-source"],
+            "future": future,
+        }
+        source = {
+            "key": source_key,
+            "label": "Resolved source",
+            "path": "/home/alice/secret.csv",
+            "exists": True,
+            "selected": True,
+            "future": future,
+        }
+
+        def resolve_source():
+            calls.append(("source",))
+            return selected_source
+
+        def resolve_path(source_name):
+            calls.append(("path", source_name))
+            return source_key, path
+
+        def read_status(status_path):
+            calls.append(("status", status_path))
+            return status
+
+        def list_sources(selected):
+            calls.append(("sources", selected))
+            return [source]
+
+        with (
+            patch.object(
+                api,
+                "resolve_autocomplete_source",
+                side_effect=resolve_source,
+            ),
+            patch.object(
+                api,
+                "resolve_autocomplete_source_path",
+                side_effect=resolve_path,
+            ),
+            patch.object(api, "autocomplete_status", side_effect=read_status),
+            patch.object(
+                api,
+                "available_autocomplete_sources",
+                side_effect=list_sources,
+            ),
+        ):
+            payload = api._autocomplete_status_payload_sync()
+
+        self.assertEqual(
+            calls,
+            [
+                ("source",),
+                ("path", selected_source),
+                ("status", path),
+                ("sources", source_key),
+            ],
+        )
+        self.assertEqual(payload["source"], source_key)
+        self.assertEqual(payload["source_label"], "Resolved source")
+        self.assertEqual(payload["count"], 5)
+        self.assertIs(payload["future"], future)
+        self.assertEqual(len(payload["sources"]), 1)
+        self.assertIsNot(payload["sources"][0], source)
+        self.assertNotIn("path", payload["sources"][0])
+        self.assertIn("path", status)
+        self.assertIn("path", source)
+
+        redacted = {"count": 9}
+        with (
+            patch.object(
+                api,
+                "resolve_autocomplete_source",
+                return_value=selected_source,
+            ),
+            patch.object(
+                api,
+                "resolve_autocomplete_source_path",
+                return_value=(source_key, path),
+            ),
+            patch.object(api, "autocomplete_status", return_value=status),
+            patch.object(api, "available_autocomplete_sources", return_value=[]),
+            patch.object(
+                api,
+                "_public_autocomplete_status",
+                return_value=redacted,
+            ) as public_status_helper,
+        ):
+            dynamically_redacted = api._autocomplete_status_payload_sync()
+
+        self.assertEqual(dynamically_redacted["count"], 9)
+        public_status_helper.assert_called_once_with(status)
+
+    def test_search_payload_keeps_limit_fallback_and_dynamic_public_seam(self):
+        api, _routes = load_api_routes()
+        selected_source = "configured"
+        path = object()
+        produced = {"status": {"path": "private"}}
+        public = {"status": {}}
+
+        for requested_limit, expected_limit in (
+            (None, 37),
+            ("bad", 37),
+            ("19", 19),
+        ):
+            calls = []
+
+            def default_limit():
+                calls.append(("limit",))
+                return 37
+
+            def resolve_source():
+                calls.append(("source",))
+                return selected_source
+
+            def resolve_path(source_name):
+                calls.append(("path", source_name))
+                return "resolved", path
+
+            def search(query, *, limit, path: object, category):
+                calls.append(("search", query, limit, path, category))
+                return produced
+
+            def redact(payload):
+                calls.append(("public", payload))
+                return public
+
+            with self.subTest(requested_limit=requested_limit):
+                with (
+                    patch.object(
+                        api,
+                        "resolve_autocomplete_limit",
+                        side_effect=default_limit,
+                    ),
+                    patch.object(
+                        api,
+                        "resolve_autocomplete_source",
+                        side_effect=resolve_source,
+                    ),
+                    patch.object(
+                        api,
+                        "resolve_autocomplete_source_path",
+                        side_effect=resolve_path,
+                    ),
+                    patch.object(api, "search_autocomplete", side_effect=search),
+                    patch.object(
+                        api,
+                        "_public_autocomplete_payload",
+                        side_effect=redact,
+                    ),
+                ):
+                    payload = api._search_autocomplete_payload_sync(
+                        "cat",
+                        requested_limit,
+                        "artist,general",
+                    )
+
+                self.assertIs(payload, public)
+                self.assertEqual(
+                    calls,
+                    [
+                        ("limit",),
+                        ("source",),
+                        ("path", selected_source),
+                        (
+                            "search",
+                            "cat",
+                            expected_limit,
+                            path,
+                            "artist,general",
+                        ),
+                        ("public", produced),
+                    ],
+                )
+
+    def test_classify_payload_keeps_dependency_identity_and_public_seam(self):
+        api, _routes = load_api_routes()
+        calls = []
+        path = object()
+        produced = {"status": {"path": "private"}}
+        public = {"status": {}}
+
+        def resolve_source():
+            calls.append(("source",))
+            return "configured"
+
+        def resolve_path(source_name):
+            calls.append(("path", source_name))
+            return "resolved", path
+
+        def classify(text, *, limit, path: object):
+            calls.append(("classify", text, limit, path))
+            return produced
+
+        def redact(payload):
+            calls.append(("public", payload))
+            return public
+
+        with (
+            patch.object(
+                api,
+                "resolve_autocomplete_source",
+                side_effect=resolve_source,
+            ),
+            patch.object(
+                api,
+                "resolve_autocomplete_source_path",
+                side_effect=resolve_path,
+            ),
+            patch.object(api, "classify_prompt_text", side_effect=classify),
+            patch.object(
+                api,
+                "_public_autocomplete_payload",
+                side_effect=redact,
+            ),
+        ):
+            payload = api._classify_prompt_payload_sync("cat", 17)
+
+        self.assertIs(payload, public)
+        self.assertEqual(
+            calls,
+            [
+                ("source",),
+                ("path", "configured"),
+                ("classify", "cat", 17, path),
+                ("public", produced),
+            ],
+        )
+
     def test_read_only_route_handlers_are_owned_by_the_canonical_factory(self):
         api, routes = load_api_routes()
         cases = (
