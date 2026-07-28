@@ -2,10 +2,10 @@
 
 ## Scope and authority
 
-E-04a is a production-free Contract at
-`dev@d952f15f637732ce45a1ab7d9a0006bd1a3362bc`. It inventories the current
-translation provider registry/client, default service cache/per-key single-flight,
-and API route executor before any E-04 Move.
+E-04a is a production-free Contract created at
+`dev@d952f15f637732ce45a1ab7d9a0006bd1a3362bc`. E-04b completes the first
+bounded Move from the E-04a queue: provider registry ownership is explicit while
+the default service/cache and API route executor remain unchanged.
 
 The executable source is
 `tests/fixtures/python_translation_runtime_contract.v1.json`, checked by
@@ -16,14 +16,18 @@ and API tests remain the behavior authorities.
 
 ### Provider registry and optional client
 
-`easyuse_anima.translation.service` owns the provider factory mapping, lazy instance
-mapping, and registry `RLock`. The first Google request constructs one
-`GoogleTranslationProvider`; that provider has a separate `RLock` and lazily imports
-and constructs the optional `googletrans` client on first use.
+`easyuse_anima.translation.service._DEFAULT_TRANSLATION_PROVIDER_REGISTRY` is the
+process owner. Its private `_TranslationProviderRegistry` owns a copied provider
+factory mapping, lazy instance mapping, and registry `RLock`. The public service
+facade resolves the current default registry on every call. The first Google request
+constructs one `GoogleTranslationProvider`; that provider has a separate `RLock` and
+lazily imports and constructs the optional `googletrans` client on first use.
 
-The provider registry owns lookup, construction, publication, and reuse. It does not
-own cache policy or API admission. The current client protocol exposes only
-`translate`, so a client `close` contract is not proven. E-04 must not invent one.
+The provider registry owns lookup, construction, publication, and reuse. Tests create
+isolated registries instead of mutating module-level factory and instance maps. The
+registry does not own cache policy or API admission. The current client protocol
+exposes only `translate`, so a client `close` contract is not proven. E-04 must not
+invent one.
 
 ### Default service, cache, and per-key single-flight
 
@@ -97,10 +101,10 @@ semantics are Behavior and remain out of scope.
 
 1. **E-04a Contract — complete:** current owners, callers, locks, cleanup gaps,
    compatibility seams, optional import, and Move order are versioned.
-2. **E-04b Move — provider registry/client ownership — READY:** move factories,
-   instances, and registry locking behind one explicit translation provider registry
-   while preserving lazy client behavior and errors.
-3. **E-04c Move — default service/cache composition — pending:** compose one
+2. **E-04b Move — provider registry/client ownership — complete:** factories,
+   instances, and registry locking are owned by one private provider registry; the
+   call-time default facade, lazy client behavior, and errors are preserved.
+3. **E-04c Move — default service/cache composition — READY:** compose one
    process translation service with its cache and flights, then wire current node/API
    callers through narrow seams.
 4. **E-04d Move — route executor/bootstrap lifecycle wiring — pending:** move worker

@@ -50,14 +50,14 @@
       "goal": "Move provider factories, lazy instances, registry lock, and client ownership behind one explicit translation provider registry while preserving optional import and errors.",
       "id": "E-04b",
       "name": "provider registry and client ownership",
-      "status": "ready"
+      "status": "complete"
     },
     {
       "classification": "Move",
       "goal": "Compose one process translation service with its bounded cache and per-key single-flight owner, then wire existing node/API callers through narrow seams.",
       "id": "E-04c",
       "name": "default service and cache composition",
-      "status": "pending"
+      "status": "ready"
     },
     {
       "classification": "Move",
@@ -171,18 +171,19 @@
     },
     {
       "cleanup": {
-        "current": "production exposes no registry reset or provider/client close; tests patch instance and factory mappings",
+        "current": "the registry owns provider references; production exposes no registry reset or provider/client close; tests construct isolated registries or patch the default registry facade",
         "implemented_methods": [],
-        "remaining_gap": "registry ownership may clear references, but client close cannot be claimed until a supported client cleanup interface is proven"
+        "remaining_gap": "client close cannot be claimed until a supported client cleanup interface is proven"
       },
       "components": [
         {
-          "module": "easyuse_anima/translation/service.py",
-          "state_kind": "top_level",
+          "class": "_TranslationProviderRegistry",
+          "module": "easyuse_anima/translation/provider_registry.py",
+          "state_kind": "instance",
           "state_symbols": [
-            "_TRANSLATION_PROVIDER_FACTORIES",
-            "_TRANSLATION_PROVIDER_INSTANCES",
-            "_TRANSLATION_PROVIDER_LOCK"
+            "_factories",
+            "_instances",
+            "_lock"
           ]
         },
         {
@@ -199,11 +200,11 @@
       ],
       "construction": {
         "at": "provider first use",
-        "factory_map": "_TRANSLATION_PROVIDER_FACTORIES",
+        "factory_map": "_TranslationProviderRegistry._factories",
         "invocation_module": "easyuse_anima/translation/service.py",
         "optional_client_at": "GoogleTranslationProvider._create_translator"
       },
-      "current_owner": "easyuse_anima.translation.service",
+      "current_owner": "easyuse_anima.translation.service._DEFAULT_TRANSLATION_PROVIDER_REGISTRY",
       "e01_entry": "translation-provider-registry",
       "evidence": [
         "tests/test_prompt_translation.py"
@@ -212,10 +213,9 @@
       "locking": "one registry RLock protects provider lookup, construction, and publication; each provider has a separate RLock protecting lazy client creation and calls",
       "module": "easyuse_anima/translation/service.py",
       "state_symbols": [
-        "_TRANSLATION_PROVIDER_INSTANCES",
-        "_TRANSLATION_PROVIDER_LOCK"
+        "_DEFAULT_TRANSLATION_PROVIDER_REGISTRY"
       ],
-      "target_phase": "E-04b"
+      "target_phase": "E-04b-complete"
     }
   ],
   "production_callers": [
@@ -265,7 +265,7 @@
       ]
     }
   ],
-  "production_changes": 0,
+  "production_changes": 2,
   "schema_version": 1,
-  "scope": "E-04a current translation provider, client, cache, single-flight, and route-executor ownership"
+  "scope": "E-04a translation ownership contract plus completed E-04b provider registry/client ownership Move"
 }
