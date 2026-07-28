@@ -371,15 +371,15 @@
     },
     {
       "categories": ["cache", "condition", "single_flight"],
-      "cleanup": "No owner-level reset/close; tests isolate keys and inspect settlement.",
+      "cleanup": "The owner exposes idempotent completed-cache clear; active building keys and waiter settlement remain intact. Whole-runtime ordering remains E-09.",
       "id": "wildcard-snapshot-cache",
       "lifetime": "Process lifetime with an LRU bound of 16 verified snapshots.",
-      "module": "wildcard_engine.py",
-      "owner": "wildcard_engine snapshot lifecycle",
-      "symbols": ["_SNAPSHOT_BUILDING", "_SNAPSHOT_CACHE", "_SNAPSHOT_CONDITION"],
-      "target_phase": "E-06",
-      "test_evidence": ["tests/test_wildcards.py"],
-      "thread_safety": "One Condition protects publication, LRU mutation, admission, wait, and notification."
+      "module": "easyuse_anima/wildcard/snapshot.py",
+      "owner": "easyuse_anima.wildcard.snapshot._DEFAULT_WILDCARD_SNAPSHOTS",
+      "symbols": ["_DEFAULT_WILDCARD_SNAPSHOTS"],
+      "target_phase": "E-06b-complete",
+      "test_evidence": ["tests/test_python_wildcard_runtime_contract.py", "tests/test_wildcards.py"],
+      "thread_safety": "The private owner instance owns one Condition protecting publication, LRU mutation, admission, wait, notification, and completed-cache clear."
     }
   ],
   "ignored_mutable_global_names": ["__all__"],

@@ -2,18 +2,18 @@
 
 ## Status and authority
 
-- Status: D-08, E-01 through E-05, and the E-06a Contract are completed; the D-14
+- Status: D-08, E-01 through E-05, E-06a, and E-06b are completed; the D-14
   readiness audit retains every root surface and blocks retirement/final-freeze work.
-- Code-review base before E-06a:
-  `dev@1df6cab58df7abaec9cc86522e89b982b813bd79` after E-05e / PR #546.
-- Document baseline: completed production-free E-06a wildcard snapshot ownership
-  Contract.
+- Code-review base before E-06b:
+  `dev@4b365ea33123c219e1807b6f37f545fcb92e349c` after E-06a / PR #547.
+- Document baseline: completed E-06b wildcard snapshot owner Move.
 - Released baseline: 0.6.2.
 - Scope: completed D-08 evidence, the D-14 readiness decision, completed #187
   E-01/E-02/E-03/E-04 work, the E-05a Contract, the E-05b snapshot owner Move,
   the E-05c index-store owner Move, the E-05d composition Move, the E-05e
-  completion audit Contract, the E-06a wildcard snapshot ownership Contract, and
-  the next bounded E-06b snapshot owner Move.
+  completion audit Contract, the E-06a wildcard snapshot ownership Contract, the
+  E-06b snapshot owner Move, and the next bounded E-06c canonical service/internal
+  caller Move.
 - This document owns the current immediate queue and supersedes the stale queue and
   broad preflight command in `python-backend-execution-roadmap.md`.
 - `python-backend.md`, ADR-001, ADR-002, and the compatibility-shim registry still own
@@ -400,7 +400,12 @@ whole-runtime ordering remains E-09. The bounded E-06 queue is E-06a Contract,
 E-06b snapshot owner Move, E-06c canonical service/internal caller Move, E-06d
 narrow bootstrap composition Move, and E-06e completion audit Contract.
 
-Start only a separate #187 E-06b wildcard snapshot owner Move from latest
-origin/dev. Do not start E-06c or later Phase E work, E-09 cleanup, D-14 retirement,
-release, or Registry work inside E-06b.
+E-06b moves those three raw states behind one canonical private
+`_DEFAULT_WILDCARD_SNAPSHOTS` identity. Root lifecycle delegates with call-time
+source/build dependencies, completed-cache `clear()` leaves active build settlement
+intact, and no duplicate root state remains.
+
+Start only a separate #187 E-06c canonical wildcard service/root identity shim and
+internal caller Move from latest origin/dev. Do not start E-06d or later Phase E
+work, E-09 cleanup, D-14 retirement, release, or Registry work inside E-06c.
 ```

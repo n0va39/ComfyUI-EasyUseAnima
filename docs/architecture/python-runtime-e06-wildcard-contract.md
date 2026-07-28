@@ -14,8 +14,10 @@ The executable source is
 package/no-host, import-boundary, analyzer, API, node, workflow, and compatibility
 tests remain the behavior authorities.
 
-E-06a changes no production Python, analyzer baseline, public export, import
-closure, snapshot/cache policy, source parsing, expansion behavior, or lifecycle.
+E-06a changed no production. E-06b moves only lifecycle ownership between
+`wildcard_engine.py` and `easyuse_anima/wildcard/snapshot.py`, with direct tests and
+actual-code analyzer/inventory evidence. It changes no public export, cache policy,
+source parsing, expansion behavior, bootstrap composition, or directory lifecycle.
 
 ## D-12 boundary retained
 
@@ -59,17 +61,17 @@ different keys remain free to build outside the shared Condition.
 
 ## Target owner and cleanup
 
-E-06b targets one private
+E-06b installs one private
 `easyuse_anima.wildcard.snapshot._WildcardSnapshotStore` referenced by
-`_DEFAULT_WILDCARD_SNAPSHOTS`. The owner will hold the completed LRU, building-key
-set, and Condition. Root lifecycle functions retain call-time source/build
-dependencies or an equivalent isolated-owner injection seam until their later
-canonical Move.
+`_DEFAULT_WILDCARD_SNAPSHOTS`. The owner holds the completed LRU, building-key set,
+Condition, and immutable capacity value. Root `_wildcard_snapshot()` delegates to
+that exact identity and supplies the current root-bound source scanner and build
+function at call time until their later canonical Move.
 
-The target idempotent `clear()` removes completed snapshots only. It must not cancel,
-remove, replace, or publish an active building key and must not wake a waiter into a
-different settlement contract. Whole-runtime reverse close ordering and partial
-initialization cleanup remain E-09.
+The idempotent `clear()` removes completed snapshots only. It does not cancel,
+remove, replace, or notify an active building key/waiter. An admitted build therefore
+settles and may publish normally after a concurrent clear. Whole-runtime reverse
+close ordering and partial initialization cleanup remain E-09.
 
 Bootstrap wildcard-directory initialization, its retry state, default root creation,
 and package import effects are separate E-09 resources. E-06 does not absorb them
@@ -77,12 +79,13 @@ into the snapshot owner.
 
 ## Compatibility and caller inventory
 
-Root `wildcard_engine.py` remains a transitional facade through E-06b. Its public
+Root `wildcard_engine.py` remains a transitional facade after E-06b. Its public
 listing/signature/expansion functions preserve signatures and results. The private
 `_WildcardSnapshot` and `_build_wildcard_snapshot` names remain exact canonical
-identities. The root-bound `_wildcard_sources` and build names remain call-time test
-seams or receive an equivalent owner-injection seam before raw lifecycle globals are
-removed.
+identities, and its private default-owner dependency is the exact canonical identity.
+The root-bound `_wildcard_sources` and build names remain call-time test seams. The
+raw root `_SNAPSHOT_CACHE`, `_SNAPSHOT_BUILDING`, and `_SNAPSHOT_CONDITION` globals
+are removed rather than retained as duplicate aliases.
 
 The current direct snapshot callers are:
 
@@ -107,9 +110,9 @@ the complete `RuntimeServices` object.
 1. **E-06a Contract — complete:** current state, behavior authorities, one target
    owner, direct callers, compatibility seams, cleanup gap, and Move order are
    versioned.
-2. **E-06b Move — snapshot owner:** move the completed LRU, building-key set, and
-   Condition behind one feature-private default owner while preserving source
-   verification, publication, failure, and call-time seam behavior.
+2. **E-06b Move — snapshot owner — complete:** the completed LRU, building-key set,
+   and Condition are behind one feature-private default owner; source verification,
+   publication, failure, clear, and call-time seam behavior are executable evidence.
 3. **E-06c Move — canonical service and internal callers:** canonicalize the
    lifecycle/service facade, convert internal consumers to that owner, and retain the
    exact root compatibility surface.
@@ -147,14 +150,17 @@ public signatures is Behavior and remains outside E-06 Moves.
 
 ## Validation and evidence reuse
 
-E-06a focused validation covers the executable Contract, E-01 reconciliation,
+E-06a focused validation covered the executable Contract, E-01 reconciliation,
 direct wildcard snapshot/cache/concurrency behavior, package/no-host import, current
 import boundaries/analyzer, JSON/Python syntax, document links, and `git diff
---check`.
+--check`. E-06b additionally covers the isolated owner, active-build clear
+settlement, exact root/default identity, raw-state removal, and actual-code analyzer
+inventory.
 
-Run the official full profile once on the final E-06a candidate SHA. Because E-06a
-adds only excluded test/docs support files and changes no shipped import, archive,
-metadata, or host-visible surface, package/live/validate/pack evidence remains the
+Run the official full profile once on each final candidate SHA. E-06b changes two
+existing shipped Python files but adds no shipped file, dependency, public/route/
+bootstrap/RuntimeServices/metadata surface, or host-visible behavior. With package/
+no-host and import gates passing, package/live/validate/pack evidence remains the
 unchanged E-05d production evidence unless a material trigger is discovered.
 
 ## Stop conditions

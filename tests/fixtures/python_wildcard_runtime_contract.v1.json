@@ -14,6 +14,8 @@
     },
     {
       "canonical_bindings": {
+        "_DEFAULT_WILDCARD_SNAPSHOTS": "easyuse_anima.wildcard.snapshot",
+        "_SNAPSHOT_CACHE_LIMIT": "easyuse_anima.wildcard.snapshot",
         "_WildcardSnapshot": "easyuse_anima.wildcard.snapshot",
         "_build_wildcard_snapshot": "easyuse_anima.wildcard.snapshot"
       },
@@ -21,6 +23,8 @@
       "kind": "identity_reexport",
       "module": "wildcard_engine.py",
       "symbols": [
+        "_DEFAULT_WILDCARD_SNAPSHOTS",
+        "_SNAPSHOT_CACHE_LIMIT",
         "_WildcardSnapshot",
         "_build_wildcard_snapshot"
       ]
@@ -39,7 +43,7 @@
     "default_root_initialization": "Bootstrap wildcard-directory initialization and its retry state remain E-09 and are not part of the snapshot owner.",
     "generic_cache_condition_port": "rejected",
     "resource_partition": "Verified wildcard snapshots, building-key admission, and their Condition form one feature-private owner because they share one cache-key publication invariant.",
-    "root_facade": "Root wildcard_engine remains the current lifecycle/public facade through E-06b; E-06c separately canonicalizes the service surface and internal callers while retaining the root compatibility surface.",
+    "root_facade": "After E-06b root wildcard_engine remains the transitional lifecycle/public facade over the exact canonical default owner; E-06c separately canonicalizes the service surface and internal callers while retaining the root compatibility surface.",
     "runtime_composition": "E-06d installs only one feature-specific narrow wildcard snapshot capability backed by the exact default owner; feature modules never receive the complete RuntimeServices object.",
     "snapshot_materialization": "D-12c canonical immutable snapshot values and stateless materialization remain separate behavior authorities and are not reimplemented by E-06.",
     "test_seams": "Root build and source-module patch seams remain call-time dependencies or gain an equivalent isolated-owner injection seam before raw globals are removed."
@@ -57,7 +61,7 @@
       "goal": "Move the completed-snapshot LRU, building-key set, and Condition behind one feature-private owner while preserving source verification, publication, and call-time test seams.",
       "id": "E-06b",
       "name": "wildcard snapshot owner",
-      "status": "queued"
+      "status": "complete"
     },
     {
       "classification": "Move",
@@ -84,21 +88,22 @@
   "owners": [
     {
       "cleanup": {
-        "current": "No owner-level reset or close; building keys self-remove and waiters are notified when each build settles.",
+        "current": "_WildcardSnapshotStore.clear idempotently clears only completed snapshots without cancelling, removing, replacing, or notifying active building keys and waiters.",
         "target": "_WildcardSnapshotStore.clear idempotently clears only completed snapshots without cancelling, removing, or replacing active building keys; whole-runtime ordering remains E-09."
       },
       "components": [
         {
-          "module": "wildcard_engine.py",
-          "state_kind": "module",
+          "module": "easyuse_anima/wildcard/snapshot.py",
+          "owner_symbol": "_DEFAULT_WILDCARD_SNAPSHOTS",
+          "state_kind": "instance",
           "state_symbols": [
-            "_SNAPSHOT_BUILDING",
-            "_SNAPSHOT_CACHE",
-            "_SNAPSHOT_CONDITION"
+            "_building",
+            "_cache",
+            "_condition"
           ]
         }
       ],
-      "current_owner": "wildcard_engine snapshot lifecycle",
+      "current_owner": "easyuse_anima.wildcard.snapshot._DEFAULT_WILDCARD_SNAPSHOTS",
       "e01_entries": [
         "wildcard-snapshot-cache"
       ],
@@ -109,7 +114,10 @@
       "id": "wildcard-snapshots",
       "lifetime": "Process lifetime with an LRU bound of 16 verified snapshots; building keys live only until success, non-cacheable settlement, or failure.",
       "locking": "One Condition protects cache lookup/recency/eviction, one-builder admission per source cache key, waiter sleep/wakeup, building-key removal, and publication.",
-      "module": "wildcard_engine.py",
+      "module": "easyuse_anima/wildcard/snapshot.py",
+      "policy_attributes": [
+        "_cache_limit"
+      ],
       "policy_symbols": [
         "_SNAPSHOT_CACHE_LIMIT"
       ],
@@ -124,12 +132,10 @@
         "list, signature, library, and expansion callers reuse the same immutable snapshot mapping"
       ],
       "state_symbols": [
-        "_SNAPSHOT_BUILDING",
-        "_SNAPSHOT_CACHE",
-        "_SNAPSHOT_CONDITION"
+        "_DEFAULT_WILDCARD_SNAPSHOTS"
       ],
       "target_owner": "easyuse_anima.wildcard.snapshot._DEFAULT_WILDCARD_SNAPSHOTS",
-      "target_phase": "E-06b"
+      "target_phase": "E-06b-complete"
     }
   ],
   "production_callers": [
@@ -180,7 +186,7 @@
       ]
     }
   ],
-  "production_changes": 0,
+  "production_changes": 2,
   "schema_version": 1,
   "scope": "E-06 wildcard verified-snapshot LRU, source-rescan publication, and Condition single-flight ownership"
 }

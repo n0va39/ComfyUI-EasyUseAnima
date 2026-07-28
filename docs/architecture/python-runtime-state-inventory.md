@@ -53,7 +53,7 @@ E-01 drift gate until classified.
 | `runtime-services` | identity-installed process runtime with Comfy, seed, config/clock, and narrow translation/autocomplete capabilities | bootstrap-serialized install; private-global test reset, no whole-runtime close | E-09 |
 | `translation-default-service` | RuntimeServices-owned translation port, mirrored by the canonical call-time facade | cache and flight `RLock`s; idempotent service close clears cache | E-04c complete |
 | `translation-provider-registry` | private process-owned lazy provider-client registry | one owned `RLock`; no provider close/reset | E-04b complete |
-| `wildcard-snapshot-cache` | root verified-snapshot LRU and build single-flight | one `Condition`; no owner reset/close | E-06a Contract complete; E-06b target |
+| `wildcard-snapshot-cache` | canonical private default snapshot-store owner | one owned `Condition`; completed-cache-only `clear()` preserves active builds | E-06b complete |
 
 The fixture contains exact symbols, tests, owner, lifetime, thread-safety, and
 reset/close status. This table is a review index, not a second machine-readable
@@ -156,5 +156,7 @@ complete. The production-free
 reconciles the wildcard entry with one verified-snapshot LRU/building-key/Condition
 resource, preserves root dynamic seams and immutable D-12 materialization, selects a
 private `_WildcardSnapshotStore` default owner, and records completed-cache-only
-cleanup. E-06a is complete; the next bounded unit is the separate E-06b snapshot
-owner Move.
+cleanup. E-06b moves the LRU, building-key set, Condition, and capacity behind that
+exact default owner; root delegates with call-time source/build seams and retains no
+raw duplicate lifecycle globals. E-06a and E-06b are complete; the next bounded unit
+is the separate E-06c canonical service/root identity shim and internal caller Move.

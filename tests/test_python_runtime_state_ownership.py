@@ -274,7 +274,10 @@ class PythonRuntimeStateOwnershipContractTests(unittest.TestCase):
                 "easyuse_anima/translation/service.py",
                 "_DEFAULT_TRANSLATION_SERVICE",
             ),
-            ("wildcard_engine.py", "_SNAPSHOT_CONDITION"),
+            (
+                "easyuse_anima/wildcard/snapshot.py",
+                "_DEFAULT_WILDCARD_SNAPSHOTS",
+            ),
         }
         self.assertEqual(required - runtime_owned, set())
 
