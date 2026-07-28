@@ -79,25 +79,14 @@ from .easyuse_anima.bootstrap import (
     build_aio_torch_compile_route_handler as _build_aio_torch_compile_route_handler,
     build_lora_read_route_group as _build_lora_read_route_group,
     build_profile_list_route_group as _build_profile_list_route_group,
+    build_profile_route_group as _build_profile_route_group,
     build_settings_route_group as _build_settings_route_group,
     build_translation_route_handler as _build_translation_route_handler,
     build_wildcard_autocomplete_route_group as _build_wildcard_autocomplete_route_group,
 )
-from .easyuse_anima.api.routes.aio_profile_mutations import (
-    build_aio_profile_mutation_handlers as _build_aio_profile_mutation_handlers,
-)
 from .easyuse_anima.api.routes import autocomplete as _api_autocomplete_routes
 from .easyuse_anima.api.routes import long_text_settings as _api_long_text_routes
 from .easyuse_anima.api.routes import lora_preview as _api_lora_preview_routes
-from .easyuse_anima.api.routes.lora_profile_fix import (
-    build_lora_profile_fix_handler as _build_lora_profile_fix_handler,
-)
-from .easyuse_anima.api.routes.profile_loads import (
-    build_profile_load_handlers as _build_profile_load_handlers,
-)
-from .easyuse_anima.api.routes.profile_saves import (
-    build_profile_save_handlers as _build_profile_save_handlers,
-)
 from .easyuse_anima.api.routes import settings as _api_settings_routes
 from .easyuse_anima.api.routes import wildcards as _api_wildcard_routes
 from .easyuse_anima.api.routes import translation as _api_translation_routes
@@ -489,109 +478,108 @@ if web is not None:
     (
         load_lora_profile_handler,
         load_aio_profile_handler,
-    ) = (
-        _request_correlated(handler)
-        for handler in _build_profile_load_handlers(
-            run_file_io=lambda function, *args: _run_file_io(function, *args),
-            load_lora_profile=lambda name: _load_lora_profile(name),
-            load_aio_profile=lambda name: _load_aio_profile(name),
-            lora_load_error_types=(
+        save_lora_profile_handler,
+        save_aio_profile_handler,
+        delete_aio_profile_handler,
+        rename_aio_profile_handler,
+        fix_lora_profile_handler,
+    ) = _build_profile_route_group(
+        request_correlated=_request_correlated,
+        profile_load_dependencies={
+            "run_file_io": lambda function, *args: _run_file_io(
+                function,
+                *args,
+            ),
+            "load_lora_profile": lambda name: _load_lora_profile(name),
+            "load_aio_profile": lambda name: _load_aio_profile(name),
+            "lora_load_error_types": (
                 json.JSONDecodeError,
                 UnicodeDecodeError,
                 FileNotFoundError,
                 ValueError,
             ),
-            aio_load_error_types=(FileNotFoundError, ValueError),
-            profile_error_response=lambda exc: _profile_error_response(exc),
-            json_response=lambda payload: web.json_response(payload),
-        )
-    )
-
-    (
-        save_lora_profile_handler,
-        save_aio_profile_handler,
-    ) = (
-        _request_correlated(handler)
-        for handler in _build_profile_save_handlers(
-            parse_json_object=parse_json_object,
-            json_string=json_string,
-            json_boolean=json_boolean,
-            json_object=json_object,
-            json_uuid_string=json_uuid_string,
-            json_integer=json_integer,
-            contract_error_type=ApiContractError,
-            contract_error_response=lambda exc: _contract_error_response(exc),
-            run_file_io=lambda function, *args, **kwargs: _run_file_io(
+            "aio_load_error_types": (FileNotFoundError, ValueError),
+            "profile_error_response": lambda exc: _profile_error_response(exc),
+            "json_response": lambda payload: web.json_response(payload),
+        },
+        profile_save_dependencies={
+            "parse_json_object": parse_json_object,
+            "json_string": json_string,
+            "json_boolean": json_boolean,
+            "json_object": json_object,
+            "json_uuid_string": json_uuid_string,
+            "json_integer": json_integer,
+            "contract_error_type": ApiContractError,
+            "contract_error_response": lambda exc: _contract_error_response(exc),
+            "run_file_io": lambda function, *args, **kwargs: _run_file_io(
                 function,
                 *args,
                 **kwargs,
             ),
-            save_lora_profile=lambda name, data, **kwargs: _save_lora_profile(
+            "save_lora_profile": lambda name, data, **kwargs: _save_lora_profile(
                 name,
                 data,
                 **kwargs,
             ),
-            save_aio_profile=lambda name, data, **kwargs: _save_aio_profile(
+            "save_aio_profile": lambda name, data, **kwargs: _save_aio_profile(
                 name,
                 data,
                 **kwargs,
             ),
-            save_error_types=(FileExistsError, FileNotFoundError, ValueError),
-            profile_error_response=lambda exc: _profile_error_response(exc),
-            json_response=lambda payload: web.json_response(payload),
-        )
-    )
-
-    (
-        delete_aio_profile_handler,
-        rename_aio_profile_handler,
-    ) = (
-        _request_correlated(handler)
-        for handler in _build_aio_profile_mutation_handlers(
-            parse_json_object=parse_json_object,
-            json_string=json_string,
-            json_boolean=json_boolean,
-            json_uuid_string=json_uuid_string,
-            json_integer=json_integer,
-            contract_error_type=ApiContractError,
-            contract_error_response=lambda exc: _contract_error_response(exc),
-            run_file_io=lambda function, *args, **kwargs: _run_file_io(
+            "save_error_types": (
+                FileExistsError,
+                FileNotFoundError,
+                ValueError,
+            ),
+            "profile_error_response": lambda exc: _profile_error_response(exc),
+            "json_response": lambda payload: web.json_response(payload),
+        },
+        aio_profile_mutation_dependencies={
+            "parse_json_object": parse_json_object,
+            "json_string": json_string,
+            "json_boolean": json_boolean,
+            "json_uuid_string": json_uuid_string,
+            "json_integer": json_integer,
+            "contract_error_type": ApiContractError,
+            "contract_error_response": lambda exc: _contract_error_response(exc),
+            "run_file_io": lambda function, *args, **kwargs: _run_file_io(
                 function,
                 *args,
                 **kwargs,
             ),
-            delete_aio_profile=lambda name, **kwargs: _delete_aio_profile(
+            "delete_aio_profile": lambda name, **kwargs: _delete_aio_profile(
                 name,
                 **kwargs,
             ),
-            rename_aio_profile=lambda old_name, new_name, **kwargs: (
+            "rename_aio_profile": lambda old_name, new_name, **kwargs: (
                 _rename_aio_profile(
                     old_name,
                     new_name,
                     **kwargs,
                 )
             ),
-            delete_error_types=(FileNotFoundError, ValueError),
-            rename_error_types=(FileExistsError, FileNotFoundError, ValueError),
-            profile_error_response=lambda exc: _profile_error_response(exc),
-            json_response=lambda payload: web.json_response(payload),
-        )
-    )
-
-    fix_lora_profile_handler = _request_correlated(
-        _build_lora_profile_fix_handler(
-            parse_json_object=parse_json_object,
-            json_object=json_object,
-            contract_error_type=ApiContractError,
-            contract_error_response=lambda exc: _contract_error_response(exc),
-            run_file_io=lambda function, *args, **kwargs: _run_file_io(
+            "delete_error_types": (FileNotFoundError, ValueError),
+            "rename_error_types": (
+                FileExistsError,
+                FileNotFoundError,
+                ValueError,
+            ),
+            "profile_error_response": lambda exc: _profile_error_response(exc),
+            "json_response": lambda payload: web.json_response(payload),
+        },
+        lora_profile_fix_dependencies={
+            "parse_json_object": parse_json_object,
+            "json_object": json_object,
+            "contract_error_type": ApiContractError,
+            "contract_error_response": lambda exc: _contract_error_response(exc),
+            "run_file_io": lambda function, *args, **kwargs: _run_file_io(
                 function,
                 *args,
                 **kwargs,
             ),
-            fix_lora_profile=lambda data: _fix_lora_profile_payload(data),
-            json_response=lambda payload: web.json_response(payload),
-        )
+            "fix_lora_profile": lambda data: _fix_lora_profile_payload(data),
+            "json_response": lambda payload: web.json_response(payload),
+        },
     )
 
     _ROUTE_DEFINITIONS = _build_route_definitions(
