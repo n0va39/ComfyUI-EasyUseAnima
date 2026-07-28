@@ -36,10 +36,17 @@ import {
   validComboEntryText,
 } from "./lora_preset/lora_state.js";
 
+/**
+ * @returns {{
+ *   ContextMenu: new (...args: any[]) => unknown,
+ *   WIDGET_TEXT_COLOR: string,
+ *   WIDGET_BGCOLOR: string,
+ *   WIDGET_OUTLINE_COLOR: string,
+ * }}
+ */
 function loraLiteGraphRuntime() {
-  return /** @type {typeof globalThis & {
-   *   LiteGraph: { ContextMenu: new (...args: any[]) => unknown }
-   * }} */ (globalThis).LiteGraph;
+  // @ts-expect-error ComfyUI provides LiteGraph as a host lexical global.
+  return LiteGraph;
 }
 
 const NODE_TYPE = "EasyUseAnimaLoraPreset";
@@ -553,7 +560,7 @@ async function openProfileLoadMenu(node, event, pos) {
   }
   const values = profiles.map((profile) => String(profile.name || "")).filter(Boolean);
   const clientPoint = menuClientPoint(node, pos, event);
-  new loraLiteGraphRuntime().ContextMenu(values, {
+  new (loraLiteGraphRuntime().ContextMenu)(values, {
     event: makeMenuEvent(clientPoint),
     title: lpText("profile.loadTitle"),
     scale: Math.max(1, Number(app.canvas?.ds?.scale) || 1),
@@ -800,7 +807,7 @@ function openLoraEntryMenu(node, event, index) {
       callback: () => removeLoraEntry(node, index),
     },
   );
-  new loraLiteGraphRuntime().ContextMenu(items, {
+  new (loraLiteGraphRuntime().ContextMenu)(items, {
     event,
     title: loraDisplayName(lora.name),
     scale: Math.max(1, Number(app.canvas?.ds?.scale) || 1),
@@ -926,7 +933,7 @@ async function openLoraMenu(node, event, pos, onChoose) {
     return;
   }
   loraMenuLifecycle.activateMenu(node, clientPoint, menuItems);
-  new loraLiteGraphRuntime().ContextMenu(menuItems, {
+  new (loraLiteGraphRuntime().ContextMenu)(menuItems, {
     event: makeMenuEvent(clientPoint),
     title: lpText("lora.chooseTitle"),
     scale: Math.max(1, Number(app.canvas?.ds?.scale) || 1),
