@@ -95,7 +95,7 @@ so no PRO review is required.
 
 The
 [`python-runtime-e02-completion-audit.md`](python-runtime-e02-completion-audit.md)
-records one remaining bounded **E-02d** Move: replace the prompt knowledge module's
-duplicate package-data resolution with the canonical filesystem Path object. The
-autocomplete index root moves with E-05. E-03 remains unauthorized until E-02d
-lands; feature owner and shutdown migrations remain separate.
+records the autocomplete index root for E-05. E-02d replaces the prompt knowledge
+module's duplicate package-data resolution with the canonical filesystem Path object,
+completing E-02. The next bounded unit is an E-03 repository/filesystem Contract;
+feature owner and shutdown migrations remain separate.

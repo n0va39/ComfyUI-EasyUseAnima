@@ -8,6 +8,7 @@ import unittest
 from pathlib import Path
 
 import anima_prompt
+from easyuse_anima.infrastructure.filesystem import paths as storage_paths
 from easyuse_anima.prompt import anima
 
 
@@ -74,6 +75,7 @@ class AnimaPromptCompatibilityTests(unittest.TestCase):
         root_normalize = importlib.import_module("anima_prompt.normalize")
         root_ordering = importlib.import_module("anima_prompt.ordering")
 
+        self.assertIs(root_knowledge.PACKAGE_DATA_DIR, storage_paths.PACKAGE_DATA_DIR)
         self.assertEqual(root_knowledge.PACKAGE_DATA_DIR, ROOT / "__easyuse_anima__")
         parsed = root_parser.parse_prompt("1girl, best quality, 1girl")
         self.assertEqual(

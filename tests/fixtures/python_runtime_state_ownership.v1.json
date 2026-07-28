@@ -304,13 +304,13 @@
     },
     {
       "categories": ["path_resolution"],
-      "cleanup": "No reset is needed for the package-owned data path.",
+      "cleanup": "No reset is needed; the compatibility alias retains the canonical package-owned Path object.",
       "id": "prompt-knowledge-path",
-      "lifetime": "Resolved once from installed package location at import.",
+      "lifetime": "Canonical package-data Path imported once as a compatibility alias.",
       "module": "easyuse_anima/prompt/anima/knowledge.py",
-      "owner": "easyuse_anima.prompt.anima.knowledge",
+      "owner": "easyuse_anima.infrastructure.filesystem.paths via easyuse_anima.prompt.anima.knowledge",
       "symbols": ["PACKAGE_DATA_DIR"],
-      "target_phase": "E-02d",
+      "target_phase": "E-02d-complete",
       "test_evidence": ["tests/test_anima_prompt_compatibility.py", "tests/test_python_package_skeleton.py"],
       "thread_safety": "Immutable Path after import."
     },

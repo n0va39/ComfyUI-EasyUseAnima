@@ -28042,20 +28042,21 @@
       },
       {
         "alias": null,
-        "bound_name": "Path",
+        "bound_name": "PACKAGE_DATA_DIR",
         "branch_context": [],
-        "classification": "external",
+        "classification": "internal",
         "column": 0,
         "conditional": false,
-        "imported": "pathlib:Path",
+        "imported": "...infrastructure.filesystem.paths:PACKAGE_DATA_DIR",
         "kind": "static_from",
-        "line": 6,
-        "name": "Path",
+        "line": 7,
+        "name": "PACKAGE_DATA_DIR",
         "optional": false,
-        "requested": "pathlib",
+        "requested": "...infrastructure.filesystem.paths",
         "role": "ordinary",
         "scope": "<module>",
-        "source": "easyuse_anima/prompt/anima/knowledge.py"
+        "source": "easyuse_anima/prompt/anima/knowledge.py",
+        "target": "easyuse_anima/infrastructure/filesystem/paths.py"
       },
       {
         "alias": null,
@@ -65189,6 +65190,10 @@
       },
       {
         "from": "easyuse_anima/prompt/anima/knowledge.py",
+        "to": "easyuse_anima/infrastructure/filesystem/paths.py"
+      },
+      {
+        "from": "easyuse_anima/prompt/anima/knowledge.py",
         "to": "easyuse_anima/prompt/anima/models.py"
       },
       {
@@ -68227,14 +68232,14 @@
       },
       {
         "is_package": false,
-        "loc": 48,
+        "loc": 46,
         "module": "easyuse_anima.prompt.anima.knowledge",
-        "normalized_git_blob_sha1": "12b81db40b42a3581e37296640b214bcd3c1d00a",
+        "normalized_git_blob_sha1": "98cb99d4f8920f4e11aea2a397852c9022265ceb",
         "path": "easyuse_anima/prompt/anima/knowledge.py",
         "top_level": {
           "class_count": 2,
           "function_count": 1,
-          "global_count": 1
+          "global_count": 0
         }
       },
       {
@@ -86472,17 +86477,6 @@
         "branch_context": [],
         "classification": "external",
         "conditional": false,
-        "imported": "pathlib:Path",
-        "kind": "static_from",
-        "line": 6,
-        "optional": false,
-        "role": "ordinary",
-        "source": "easyuse_anima/prompt/anima/knowledge.py"
-      },
-      {
-        "branch_context": [],
-        "classification": "external",
-        "conditional": false,
         "imported": "__future__:annotations",
         "kind": "static_from",
         "line": 3,
@@ -90916,24 +90910,6 @@
         "kind": "import_time_call",
         "line": 17,
         "module": "easyuse_anima/prompt/anima/correction.py",
-        "scope": "<module>"
-      },
-      {
-        "callee": "Path",
-        "column": 19,
-        "context": "assign:PACKAGE_DATA_DIR",
-        "kind": "import_time_call",
-        "line": 12,
-        "module": "easyuse_anima/prompt/anima/knowledge.py",
-        "scope": "<module>"
-      },
-      {
-        "callee": "resolve",
-        "column": 19,
-        "context": "assign:PACKAGE_DATA_DIR",
-        "kind": "import_time_call",
-        "line": 12,
-        "module": "easyuse_anima/prompt/anima/knowledge.py",
         "scope": "<module>"
       },
       {
