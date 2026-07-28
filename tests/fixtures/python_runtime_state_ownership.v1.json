@@ -191,27 +191,27 @@
     },
     {
       "categories": ["lock", "path_registry"],
-      "cleanup": "No explicit cleanup; path locks remain after first index access.",
+      "cleanup": "_AutocompleteIndexStore.close is an idempotent no-op; retained path locks remain after first index access.",
       "id": "autocomplete-index-locks",
-      "lifetime": "Process lifetime, one Lock per normalized index path.",
+      "lifetime": "Process lifetime through one default store, one Lock per normalized index path.",
       "module": "easyuse_anima/autocomplete/index.py",
-      "owner": "easyuse_anima.autocomplete.index",
-      "symbols": ["_INDEX_LOCKS", "_INDEX_LOCKS_GUARD"],
-      "target_phase": "E-05c",
+      "owner": "easyuse_anima.autocomplete.index._DEFAULT_AUTOCOMPLETE_INDEX_STORE",
+      "symbols": ["_DEFAULT_AUTOCOMPLETE_INDEX_STORE"],
+      "target_phase": "E-05c-complete",
       "test_evidence": ["tests/test_autocomplete_index.py"],
-      "thread_safety": "The guard serializes creation; each per-path Lock serializes index publication."
+      "thread_safety": "The owner guard serializes creation; each retained per-path Lock serializes index publication."
     },
     {
       "categories": ["path_resolution", "runtime_config"],
-      "cleanup": "No reset; tests patch the module value when an isolated index root is required.",
+      "cleanup": "The immutable root owns no disposable resource; tests inject an isolated private store when a separate root is required.",
       "id": "autocomplete-index-root",
-      "lifetime": "Resolved once at import from process USER_DATA_DIR.",
-      "module": "easyuse_anima/autocomplete/search.py",
-      "owner": "easyuse_anima.autocomplete.search",
-      "symbols": ["_AUTOCOMPLETE_INDEX_DIR"],
-      "target_phase": "E-05c",
+      "lifetime": "Resolved once at import from process USER_DATA_DIR and retained by the default store.",
+      "module": "easyuse_anima/autocomplete/index.py",
+      "owner": "easyuse_anima.autocomplete.index._DEFAULT_AUTOCOMPLETE_INDEX_STORE",
+      "symbols": ["_DEFAULT_AUTOCOMPLETE_INDEX_STORE"],
+      "target_phase": "E-05c-complete",
       "test_evidence": ["tests/test_autocomplete_index.py", "tests/test_python_package_skeleton.py"],
-      "thread_safety": "Immutable Path-or-None after import."
+      "thread_safety": "The store exposes one immutable Path-or-None root after construction."
     },
     {
       "categories": ["lock", "path_registry"],

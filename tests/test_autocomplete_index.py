@@ -27,6 +27,9 @@ class AutocompleteIndexTests(unittest.TestCase):
         )
         self.root = Path(self.temporary_directory.name)
         self.index_root = self.root / "index"
+        self.index_store = autocomplete_index_impl._AutocompleteIndexStore(
+            self.index_root
+        )
 
     def tearDown(self) -> None:
         dataset._DEFAULT_AUTOCOMPLETE_SNAPSHOTS.clear()
@@ -40,8 +43,8 @@ class AutocompleteIndexTests(unittest.TestCase):
     def _search(self, query: str, *, path: Path, limit: int = 20, category: str = ""):
         with patch.object(
             autocomplete_search_impl,
-            "_AUTOCOMPLETE_INDEX_DIR",
-            self.index_root,
+            "_DEFAULT_AUTOCOMPLETE_INDEX_STORE",
+            self.index_store,
         ):
             return autocomplete_search_impl._search_autocomplete_with_diagnostics(
                 query,
@@ -269,8 +272,8 @@ class AutocompleteIndexTests(unittest.TestCase):
 
         with patch.object(
             autocomplete_search_impl,
-            "_AUTOCOMPLETE_INDEX_DIR",
-            self.index_root,
+            "_DEFAULT_AUTOCOMPLETE_INDEX_STORE",
+            self.index_store,
         ):
             with ThreadPoolExecutor(max_workers=6) as executor:
                 futures = [executor.submit(search_once) for _ in range(6)]
@@ -309,7 +312,11 @@ class AutocompleteIndexTests(unittest.TestCase):
                 'custom general,0,100,"[일반] 사용자 정의 일반"',
             ],
         )
-        with patch.object(autocomplete_search_impl, "_AUTOCOMPLETE_INDEX_DIR", None):
+        with patch.object(
+            autocomplete_search_impl,
+            "_DEFAULT_AUTOCOMPLETE_INDEX_STORE",
+            autocomplete_index_impl._AutocompleteIndexStore(None),
+        ):
             result, diagnostics = autocomplete_search_impl._search_autocomplete_with_diagnostics(
                 "사용자 정의",
                 path=path,
@@ -321,6 +328,58 @@ class AutocompleteIndexTests(unittest.TestCase):
         self.assertEqual(result["results"][0]["tag"], "custom character")
         self.assertEqual(result["results"][0]["category"], "character")
         self.assertEqual(result["status"]["count"], 2)
+
+    def test_index_store_owns_immutable_root_and_retained_path_locks(self):
+        store = autocomplete_index_impl._AutocompleteIndexStore(self.index_root)
+        index_path = self.index_root / "nested" / ".." / "index.sqlite3"
+        normalized_path = self.index_root / "index.sqlite3"
+
+        first = store._index_lock(index_path)
+        store.close()
+        store.close()
+        retained = store._index_lock(normalized_path)
+
+        self.assertEqual(store.root, self.index_root)
+        self.assertIs(first, retained)
+        self.assertEqual(len(store._locks), 1)
+        with self.assertRaises(AttributeError):
+            setattr(store, "root", self.root)
+
+        isolated = autocomplete_index_impl._AutocompleteIndexStore(self.index_root)
+        self.assertIsNot(isolated._index_lock(normalized_path), first)
+
+    def test_public_explicit_root_uses_default_owner_and_shared_path_locks(self):
+        path = self._write(
+            "public-index.csv",
+            ['public indexed tag,0,100,"[일반] public"'],
+        )
+        source = autocomplete_index_impl.AutocompleteIndexSource(
+            resolved_path=str(path.resolve(strict=False)),
+            revision="public-test-revision",
+        )
+        search_args = {
+            "root": self.index_root,
+            "source": source,
+            "normalized_query": "public",
+            "categories": set(),
+            "limit": 20,
+            "load_entries": lambda: dataset._load_entries(path),
+            "validate_source": lambda: None,
+        }
+
+        first = autocomplete_index_impl.search_autocomplete_index(**search_args)
+        second = autocomplete_index_impl.search_autocomplete_index(**search_args)
+
+        self.assertEqual(first.diagnostics.outcome, "rebuild")
+        self.assertEqual(second.diagnostics.outcome, "hit")
+        self.assertEqual(second.entries[0].tag, "public indexed tag")
+        index_path = autocomplete_index_impl._index_path(self.index_root, source)
+        lock_key = os.path.normcase(os.path.abspath(index_path))
+        default_owner = autocomplete_index_impl._DEFAULT_AUTOCOMPLETE_INDEX_STORE
+        self.assertIs(
+            default_owner._locks[lock_key],
+            default_owner._index_lock(index_path),
+        )
 
     def test_index_module_is_inside_registry_package_closure(self):
         source = (ROOT / "easyuse_anima" / "autocomplete" / "search.py").read_text(
