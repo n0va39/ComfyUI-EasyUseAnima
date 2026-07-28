@@ -52,10 +52,9 @@ ordinary `dev` roadmap work.
 - D-14 readiness is audited: every root surface is retained and retirement/final
   freeze is blocked by production/lifecycle consumers, missing release windows, or
   insufficient consumer evidence.
-- E-01 inventory, E-02b base Contract, E-02c composition, and the E-02 completion
-  audit are complete. The next work is only #187 E-02d prompt knowledge path Move.
-  The #323 E-02a/E-07 bridge remains completed evidence, not authorization for
-  feature migration.
+- E-01 and E-02 are complete through the audit and E-02d canonical path Move. The
+  next work is only #187 E-03 repository/filesystem Contract. The #323 E-02a/E-07
+  bridge remains completed evidence, not authorization for feature migration.
 - Completed #470 and the 0.6.1 Prompt Studio lane are behavior-contract references,
   not the active queue.
 - Do not remove root aliases or start E-03 through E-10 Moves, release, or Registry work
@@ -150,6 +149,6 @@ representative profile list/load/save/delete/rename/fix live smoke
 - A version marker is not a publish action.
 - Technical PRO review is for unresolved cross-boundary architecture choices,
   unavoidable cycles, or insufficient compatibility evidence—not routine failures.
-- D-14 readiness is recorded and authorizes no removal. Use the E-02 audit for the
-  bounded E-02d Move; do not expand it into E-03 feature migrations, release
-  publication, or Registry actions.
+- D-14 readiness is recorded and authorizes no removal. Use the completed E-02
+  evidence for the E-03 Contract; do not expand that Contract into production
+  migration, release publication, or Registry actions.

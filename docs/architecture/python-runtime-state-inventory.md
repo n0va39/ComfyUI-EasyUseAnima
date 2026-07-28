@@ -47,7 +47,7 @@ E-01 drift gate until classified.
 | `package-bootstrap-effect` | root import invokes bootstrap route/directory initialization | bootstrap `Lock`; retry behavior, no package shutdown | E-09 |
 | `profile-directory-mutation-coordinator` | canonical process coordinator with weak per-directory locks | guard plus per-directory `RLock`; weak expiry | E-03 |
 | prompt warning-dedupe entries | two canonical Prompt feature modules, process lifetime | unprotected sets; direct-test clear only | E-09 |
-| `prompt-knowledge-path` | duplicate ANIMA prompt package path with root compatibility evidence | immutable after import | E-02d |
+| `prompt-knowledge-path` | canonical filesystem package path re-exported for ANIMA root compatibility | immutable after import | E-02d complete |
 | `root-route-registration` | injected router registrar called by bootstrap | serialized refresh; idempotent marker, no deregistration | E-09 |
 | `root-translation-route-worker` | root compatibility runtime owns lazy single-thread executor | internal `RLock`; idempotent `atexit` shutdown only | E-04 |
 | `runtime-services` | identity-installed process runtime with Comfy and seed capabilities | bootstrap-serialized install; private-global test reset, no close | E-09 |
@@ -88,8 +88,9 @@ consumer, root surface, or shutdown behavior.
 
 The
 [`python-runtime-e02-completion-audit.md`](python-runtime-e02-completion-audit.md)
-assigns the autocomplete index root to E-05, records the filesystem paths as E-02c
-complete, and selects one bounded **E-02d** Move for the duplicate prompt knowledge
-package path. E-03 remains unauthorized until E-02d lands. E-03 through E-09
+assigns the autocomplete index root to E-05 and records the filesystem paths as E-02c
+complete. E-02d then replaces the duplicate prompt knowledge path resolution with the
+canonical filesystem Path object while preserving the root compatibility alias.
+E-02 is complete; the next bounded unit is an E-03 Contract. E-03 through E-09
 feature/lifecycle Moves remain separate and use this fixture's target phases and
 cleanup gaps.

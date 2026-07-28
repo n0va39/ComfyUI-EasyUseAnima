@@ -32,20 +32,21 @@ semantics include:
 Moving this value before E-05 would split one feature lifecycle across phases.
 The ledger therefore assigns the index root to E-05 without changing production.
 
-### Prompt knowledge path — E-02d
+### Prompt knowledge path — E-02d complete
 
-`easyuse_anima.prompt.anima.knowledge.PACKAGE_DATA_DIR` is locally resolved from the
-installed package location. The current built-in knowledge implementation performs
-no file I/O with it, but the root ANIMA compatibility surface and its direct test
-still preserve the value.
+Before E-02d, `easyuse_anima.prompt.anima.knowledge.PACKAGE_DATA_DIR` was locally
+resolved from the installed package location. The current built-in knowledge
+implementation performs no file I/O with it, but the root ANIMA compatibility surface
+and its direct test still preserve the value.
 
-E-02d will replace the duplicate local resolution with the canonical filesystem
-`PACKAGE_DATA_DIR` object. It must preserve value/identity compatibility, direct
-imports, root aliases, no-host import, and current knowledge behavior. Removing the
-symbol or adding RuntimeServices access is forbidden.
+E-02d replaces the duplicate local resolution with the canonical filesystem
+`PACKAGE_DATA_DIR` object. It preserves value/identity compatibility, direct imports,
+root aliases, no-host import, and current knowledge behavior. It removes no symbol
+and adds no RuntimeServices access.
 
 ## Decision
 
-E-02 is not complete until the bounded E-02d Move lands. E-03 remains unauthorized
-until then. No PRO review is required: current owners, callers, and direct tests
-select one disposition for each entry.
+E-02 is complete through E-02d. The next bounded unit is an E-03 repository/filesystem
+Contract; no E-03 production Move is authorized by this audit alone. No PRO review is
+required: current owners, callers, and direct tests select one disposition for each
+entry.

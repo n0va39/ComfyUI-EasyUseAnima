@@ -3,13 +3,11 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from pathlib import Path
 
+from ...infrastructure.filesystem.paths import PACKAGE_DATA_DIR
 from .models import TagInfo
 from .normalize import lookup_key
 from .ordering import TagSection, builtin_tag_section
-
-PACKAGE_DATA_DIR = Path(__file__).resolve().parents[3] / "__easyuse_anima__"
 
 
 class KnowledgeBaseNotFound(FileNotFoundError):

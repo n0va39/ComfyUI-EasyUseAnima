@@ -1480,9 +1480,9 @@ objects without changing `paths.py`, and a private system clock delegates to
 `time.monotonic()`. No feature consumer receives the complete runtime.
 
 The E-02 completion audit records filesystem paths as E-02c complete, assigns the
-autocomplete index root to its E-05 cache/index lifecycle, and selects E-02d to
-canonicalize the duplicate prompt knowledge package path. E-03 remains unauthorized
-until E-02d lands; feature owner Moves remain separate.
+autocomplete index root to its E-05 cache/index lifecycle, and E-02d canonicalizes
+the duplicate prompt knowledge package path. E-02 is complete. The next bounded unit
+is an E-03 repository/filesystem Contract; feature owner Moves remain separate.
 
 Feature services receive only narrow Protocols. They do not import or receive
 the entire `RuntimeServices` object. Node adapters may use `get_runtime()` only
