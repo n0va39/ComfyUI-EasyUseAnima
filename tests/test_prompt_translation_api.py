@@ -131,6 +131,28 @@ class PromptTranslationApiTests(unittest.TestCase):
         self.assertEqual(owner.__all__, ("build_translate_prompt_handler",))
         self.assertFalse(hasattr(owner, "_PROMPT_TRANSLATION_WORKER"))
 
+    def test_repeated_registration_keeps_one_bootstrap_composed_runtime(self):
+        api, routes, _translation, _translation_service = self.load_routes()
+        runtime = (
+            api._PROMPT_TRANSLATION_WORKER,
+            api._translate_prompt_sync,
+            api._translate_prompt_for_route,
+            api._prompt_translation_error_response,
+        )
+
+        api.register_routes()
+
+        self.assertEqual(
+            (
+                api._PROMPT_TRANSLATION_WORKER,
+                api._translate_prompt_sync,
+                api._translate_prompt_for_route,
+                api._prompt_translation_error_response,
+            ),
+            runtime,
+        )
+        self.assertIs(routes.handlers[ROUTE], api.translate_prompt_handler)
+
     def test_runtime_builder_constructs_and_registers_one_worker(self):
         api, _routes, _translation, _translation_service = self.load_routes()
         owner = sys.modules[api._translate_prompt_sync.__module__]

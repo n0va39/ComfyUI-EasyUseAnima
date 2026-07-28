@@ -49,7 +49,7 @@ E-01 drift gate until classified.
 | prompt warning-dedupe entries | two canonical Prompt feature modules, process lifetime | unprotected sets; direct-test clear only | E-09 |
 | `prompt-knowledge-path` | canonical filesystem package path re-exported for ANIMA root compatibility | immutable after import | E-02d complete |
 | `root-route-registration` | injected router registrar called by bootstrap | serialized refresh; idempotent marker, no deregistration | E-09 |
-| `root-translation-route-worker` | root compatibility runtime owns lazy single-thread executor | internal `RLock`; idempotent `atexit` shutdown only | E-04d |
+| `root-translation-route-worker` | bootstrap composes the lazy single-thread executor; root retains its compatibility reference | internal `RLock`; idempotent `atexit` shutdown only | E-04d complete |
 | `runtime-services` | identity-installed process runtime with Comfy, seed, config/clock, and narrow translation capabilities | bootstrap-serialized install; private-global test reset, no whole-runtime close | E-09 |
 | `translation-default-service` | RuntimeServices-owned translation port, mirrored by the canonical call-time facade | cache and flight `RLock`s; idempotent service close clears cache | E-04c complete |
 | `translation-provider-registry` | private process-owned lazy provider-client registry | one owned `RLock`; no provider close/reset | E-04b complete |
@@ -129,5 +129,11 @@ E-04c adds a translation-owned narrow port to RuntimeServices. Bootstrap constru
 the process clock, bounded cache, and service together, then installs that exact
 service identity behind the existing node/API facade. `PromptTranslationService`
 implements the E-02 idempotent resource shape by clearing only its owned cache;
-per-key flights still self-remove and provider/client cleanup remains separate. The
-next bounded unit is E-04d only.
+per-key flights still self-remove and provider/client cleanup remains separate.
+
+E-04d moves the canonical route-runtime factory invocation, concrete executor/error
+types, and `atexit` registration into one private bootstrap composition helper. Root
+`api.py` retains the worker and three helper closures only as the existing dynamic
+compatibility seams. Lazy executor creation, one-admission settlement, route
+identity, and repeated bootstrap registration remain unchanged. The next bounded
+unit is the production-free E-04e completion audit only.

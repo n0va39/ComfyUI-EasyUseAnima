@@ -64,24 +64,24 @@
       "goal": "Move route executor construction and lifecycle registration from the root API facade to bootstrap-owned runtime composition while preserving root dynamic seams.",
       "id": "E-04d",
       "name": "route executor bootstrap lifecycle wiring",
-      "status": "ready"
+      "status": "complete"
     },
     {
       "classification": "Contract",
       "goal": "Reconcile E-01 targets and prove one owner, optional-import safety, idempotent cleanup coverage, and no ambiguous translation state before E-05.",
       "id": "E-04e",
       "name": "translation ownership completion audit",
-      "status": "pending"
+      "status": "ready"
     }
   ],
   "owners": [
     {
       "cleanup": {
-        "current": "idempotent shutdown registered once with atexit during root api import; package shutdown does not own it",
+        "current": "private bootstrap composition registers idempotent shutdown once with atexit while root retains the compatibility reference; package shutdown does not own it",
         "implemented_methods": [
           "shutdown"
         ],
-        "remaining_gap": "bootstrap/runtime shutdown and partial-failure cleanup remain unowned until E-04d and E-09"
+        "remaining_gap": "whole-runtime shutdown ordering and partial-failure cleanup remain deferred to E-09"
       },
       "components": [
         {
@@ -97,12 +97,13 @@
         }
       ],
       "construction": {
-        "at": "root api module import",
+        "at": "root api composition through one private bootstrap helper",
         "factory": "build_translation_runtime",
         "factory_module": "easyuse_anima/api/routes/translation.py",
-        "invocation_module": "api.py"
+        "invocation_module": "easyuse_anima/bootstrap.py",
+        "root_composition_helper": "build_translation_route_runtime"
       },
-      "current_owner": "api._PROMPT_TRANSLATION_WORKER",
+      "current_owner": "easyuse_anima.bootstrap composition exposed by api._PROMPT_TRANSLATION_WORKER",
       "e01_entry": "root-translation-route-worker",
       "evidence": [
         "tests/test_api_contract.py",
@@ -114,7 +115,7 @@
       "state_symbols": [
         "_PROMPT_TRANSLATION_WORKER"
       ],
-      "target_phase": "E-04d"
+      "target_phase": "E-04d-complete"
     },
     {
       "cleanup": {
@@ -269,7 +270,7 @@
       ]
     }
   ],
-  "production_changes": 6,
+  "production_changes": 8,
   "schema_version": 1,
-  "scope": "E-04a translation ownership contract plus completed E-04b provider registry and E-04c default service/cache Moves"
+  "scope": "E-04a translation ownership contract plus completed E-04b provider registry, E-04c default service/cache, and E-04d route executor/bootstrap Moves"
 }

@@ -2,16 +2,15 @@
 
 ## Status and authority
 
-- Status: D-08, E-01, E-02, E-03, and E-04a through E-04c are
+- Status: D-08, E-01, E-02, E-03, and E-04a through E-04d are
   completed; the D-14 readiness audit retains every root surface and blocks
   retirement/final-freeze work.
-- Code-review base before E-04c:
-  `dev@738747105a75801597054088b68860ee43e5eef1` after E-04b / PR #538.
-- Document baseline: completed E-04c default translation service/cache composition.
+- Code-review base before E-04d:
+  `dev@c156b7e0aa63ff662b455692374d46c1b5a22bdb` after E-04c / PR #539.
+- Document baseline: completed E-04d route executor/bootstrap lifecycle composition.
 - Released baseline: 0.6.2.
 - Scope: completed D-08 evidence, the D-14 readiness decision, completed #187
-  E-01/E-02/E-03/E-04 work, and the next bounded E-04d route executor/bootstrap
-  lifecycle Move.
+  E-01/E-02/E-03/E-04 work, and the next production-free E-04e completion audit.
 - This document owns the current immediate queue and supersedes the stale queue and
   broad preflight command in `python-backend-execution-roadmap.md`.
 - `python-backend.md`, ADR-001, ADR-002, and the compatibility-shim registry still own
@@ -351,8 +350,12 @@ process clock, bounded cache, and service, and installs the same service identit
 behind the canonical call-time facade. Service close clears only its cache;
 provider/client cleanup and whole-runtime close ordering remain separate.
 
-Start only #187 E-04d from latest origin/dev. Move route executor construction and
-lifecycle registration from the root API facade into bootstrap-owned composition
-while preserving every dynamic root seam. Do not start E-04e through E-10, D-14
-retirement, release, or Registry work inside E-04d.
+E-04d moves route executor construction and `atexit` lifecycle registration from
+the root API facade into private bootstrap composition while preserving every
+dynamic root seam and route contract.
+
+Start only the production-free #187 E-04e completion audit from latest origin/dev.
+Reconcile E-01 targets and prove one owner, optional-import safety, cleanup
+disposition, and zero ambiguous translation state. Do not start E-05 through E-10,
+D-14 retirement, release, or Registry work inside E-04e.
 ```

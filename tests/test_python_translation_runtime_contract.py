@@ -178,14 +178,14 @@ class PythonTranslationRuntimeContractTests(unittest.TestCase):
         )
         self.assertEqual(self.fixture["schema_version"], 1)
         self.assertEqual(self.fixture["classification"], "Contract")
-        self.assertEqual(self.fixture["production_changes"], 6)
+        self.assertEqual(self.fixture["production_changes"], 8)
         self.assertEqual(
             [move["id"] for move in self.fixture["move_queue"]],
             ["E-04a", "E-04b", "E-04c", "E-04d", "E-04e"],
         )
         self.assertEqual(
             [move["status"] for move in self.fixture["move_queue"]],
-            ["complete", "complete", "complete", "ready", "pending"],
+            ["complete", "complete", "complete", "complete", "ready"],
         )
         self.assertEqual(
             [move["classification"] for move in self.fixture["move_queue"]],
@@ -264,7 +264,22 @@ class PythonTranslationRuntimeContractTests(unittest.TestCase):
 
         self.assertEqual(
             _tuple_assignment_call("api.py", "_PROMPT_TRANSLATION_WORKER"),
-            "build_translation_runtime",
+            "_build_translation_route_runtime",
+        )
+        bootstrap_runtime_references = _function_references(
+            "easyuse_anima/bootstrap.py",
+            "build_translation_route_runtime",
+        )
+        self.assertTrue(
+            {
+                "_PromptTranslationRouteExecutor",
+                "_build_translation_runtime",
+                "TranslationBusyError",
+                "TranslationCancelledError",
+                "TranslationTimeoutError",
+                "atexit",
+            }
+            <= bootstrap_runtime_references
         )
         self.assertIn(
             "shutdown",

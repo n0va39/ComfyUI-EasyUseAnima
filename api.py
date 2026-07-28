@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import atexit
 import asyncio
 import json
 import logging
@@ -82,6 +81,7 @@ from .easyuse_anima.bootstrap import (
     build_profile_route_group as _build_profile_route_group,
     build_settings_route_group as _build_settings_route_group,
     build_translation_route_handler as _build_translation_route_handler,
+    build_translation_route_runtime as _build_translation_route_runtime,
     build_wildcard_autocomplete_route_group as _build_wildcard_autocomplete_route_group,
 )
 from .easyuse_anima.api.routes import autocomplete as _api_autocomplete_routes
@@ -90,9 +90,6 @@ from .easyuse_anima.api.routes import lora_preview as _api_lora_preview_routes
 from .easyuse_anima.api.routes import settings as _api_settings_routes
 from .easyuse_anima.api.routes import wildcards as _api_wildcard_routes
 from .easyuse_anima.api.routes import translation as _api_translation_routes
-from .easyuse_anima.api.routes.translation_execution import (
-    PromptTranslationRouteExecutor as _PromptTranslationRouteExecutor,
-)
 from .easyuse_anima.aio.torch_compile_diagnostics import (
     collect_torch_compile_diagnostics as _collect_torch_compile_diagnostics,
 )
@@ -192,12 +189,7 @@ _LOGGER = logging.getLogger(__name__)
     _translate_prompt_sync,
     _translate_prompt_for_route,
     _prompt_translation_error_response,
-) = _api_translation_routes.build_translation_runtime(
-    executor_type=_PromptTranslationRouteExecutor,
-    busy_error_type=TranslationBusyError,
-    cancelled_error_type=TranslationCancelledError,
-    timeout_error_type=TranslationTimeoutError,
-    register_shutdown=lambda callback: atexit.register(callback),
+) = _build_translation_route_runtime(
     translate_prompt_markers=lambda text, settings: translate_prompt_markers(
         text,
         settings,
