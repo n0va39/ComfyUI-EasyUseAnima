@@ -166,6 +166,7 @@ class PythonTranslationRuntimeContractTests(unittest.TestCase):
             set(self.fixture),
             {
                 "classification",
+                "completion_audit",
                 "compatibility_surfaces",
                 "decisions",
                 "move_queue",
@@ -185,7 +186,7 @@ class PythonTranslationRuntimeContractTests(unittest.TestCase):
         )
         self.assertEqual(
             [move["status"] for move in self.fixture["move_queue"]],
-            ["complete", "complete", "complete", "complete", "ready"],
+            ["complete", "complete", "complete", "complete", "complete"],
         )
         self.assertEqual(
             [move["classification"] for move in self.fixture["move_queue"]],
@@ -196,6 +197,71 @@ class PythonTranslationRuntimeContractTests(unittest.TestCase):
                 self.assertTrue(owner["evidence"])
                 for evidence in owner["evidence"]:
                     self.assertTrue((ROOT / evidence).is_file(), evidence)
+
+    def test_completion_audit_has_one_owner_and_explicit_cleanup_disposition(self):
+        audit = self.fixture["completion_audit"]
+        owners = {owner["id"]: owner for owner in self.fixture["owners"]}
+        e01_entries = {
+            entry["id"]: entry for entry in self.e01_fixture["entries"]
+        }
+
+        self.assertEqual(audit["classification"], "Contract")
+        self.assertEqual(audit["production_changes"], 0)
+        self.assertEqual(audit["ambiguous_state_owners"], [])
+        self.assertEqual(
+            len({owner["current_owner"] for owner in owners.values()}),
+            len(owners),
+        )
+        self.assertEqual(
+            audit["next_phase"],
+            "E-05 autocomplete source/index/single-flight ownership Contract",
+        )
+        self.assertEqual(
+            {item["owner"] for item in audit["e01_reconciliation"]},
+            set(owners),
+        )
+        self.assertEqual(
+            {item["e01_entry"] for item in audit["e01_reconciliation"]},
+            {owner["e01_entry"] for owner in owners.values()},
+        )
+        for reconciliation in audit["e01_reconciliation"]:
+            with self.subTest(reconciliation=reconciliation["owner"]):
+                owner = owners[reconciliation["owner"]]
+                e01 = e01_entries[reconciliation["e01_entry"]]
+                self.assertEqual(e01["owner"], owner["current_owner"])
+                self.assertEqual(e01["target_phase"], owner["target_phase"])
+                self.assertEqual(
+                    reconciliation["completed_phase"],
+                    owner["target_phase"],
+                )
+
+        cleanup = {
+            disposition["owner"]: disposition
+            for disposition in audit["cleanup_dispositions"]
+        }
+        self.assertEqual(set(cleanup), set(owners))
+        self.assertEqual(
+            cleanup["route-executor"]["status"],
+            "feature-cleanup-complete",
+        )
+        self.assertEqual(
+            cleanup["default-service"]["status"],
+            "feature-cleanup-complete",
+        )
+        self.assertEqual(
+            cleanup["provider-registry-client"]["status"],
+            "intentional-no-close",
+        )
+        self.assertEqual(
+            {
+                cleanup["route-executor"]["remaining_phase"],
+                cleanup["default-service"]["remaining_phase"],
+            },
+            {"E-09"},
+        )
+        self.assertIsNone(
+            cleanup["provider-registry-client"]["remaining_phase"]
+        )
 
     def test_e01_translation_entries_reconcile_to_exact_future_moves(self):
         e01_entries = {
@@ -351,6 +417,18 @@ class PythonTranslationRuntimeContractTests(unittest.TestCase):
         )
 
     def test_optional_client_stays_lazy_and_no_generic_runtime_port_exists(self):
+        optional_import = self.fixture["completion_audit"]["optional_import"]
+        self.assertEqual(optional_import["dependency"], "googletrans")
+        self.assertEqual(
+            optional_import["module"],
+            "easyuse_anima/translation/providers/google.py",
+        )
+        self.assertEqual(
+            optional_import["import_at"],
+            "GoogleTranslationProvider._create_translator",
+        )
+        self.assertFalse(optional_import["top_level_required"])
+
         provider_tree = _tree(
             "easyuse_anima/translation/providers/google.py"
         )
