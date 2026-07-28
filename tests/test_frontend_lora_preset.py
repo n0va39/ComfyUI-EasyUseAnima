@@ -79,7 +79,18 @@ class LoraPresetFrontendTests(unittest.TestCase):
                     source,
                 )
         self.assertIn("function loraLiteGraphRuntime()", source)
-        self.assertIn("}} */ (globalThis).LiteGraph;", source)
+        self.assertIn(
+            "// @ts-expect-error ComfyUI provides LiteGraph as a host lexical global.\n"
+            "  return LiteGraph;",
+            source,
+        )
+        self.assertIn(" * @returns {{", source)
+        self.assertNotIn("(globalThis).LiteGraph", source)
+        self.assertEqual(
+            source.count("new (loraLiteGraphRuntime().ContextMenu)("),
+            3,
+        )
+        self.assertNotIn("new loraLiteGraphRuntime().ContextMenu", source)
 
     def test_node_runtime_module_boundary(self):
         module_source = LORA_PRESET_NODE_RUNTIME.read_text(encoding="utf-8")
@@ -1073,7 +1084,7 @@ class LoraPresetFrontendTests(unittest.TestCase):
             let source = fs.readFileSync(sourcePath, "utf8");
             source = source.replace(/^import[\s\S]*?;\r?\n/gm, "");
             source = `${profileDataSource}\n${loraStateSource}\n${apiClientSource}\n${previewLifecycleSource}\n${menuLifecycleSource}\n${canvasWidgetsSource}\n${nodeRuntimeSource}\n${profileMutationsSource}\n${hostHookRegistrySource}\n${saveSyncSource}\n${entryLifecycleSource}\n${source}`;
-            source += "\nglobalThis.__loraPresetTest = { loraCanvasWidgets, LORA_PRESET_SETTINGS, applyLoraPresetSettings, loraPresetApi, loraPreviewLifecycle, loraMenuLifecycle, saveProfileSet };\n";
+            source += "\nglobalThis.__loraPresetTest = { loraLiteGraphRuntime, loraCanvasWidgets, LORA_PRESET_SETTINGS, applyLoraPresetSettings, loraPresetApi, loraPreviewLifecycle, loraMenuLifecycle, saveProfileSet };\n";
 
             const mutationObservers = [];
             class StubMutationObserver {
@@ -1120,14 +1131,6 @@ class LoraPresetFrontendTests(unittest.TestCase):
               HTMLInputElement: class {},
               HTMLTextAreaElement: class {},
               MutationObserver: StubMutationObserver,
-              LiteGraph: {
-                WIDGET_TEXT_COLOR: "#ddd",
-                WIDGET_BGCOLOR: "#222",
-                WIDGET_OUTLINE_COLOR: "#555",
-                ContextMenu: function ContextMenu(items, options) {
-                  globalThis.__lastContextMenu = { items, options };
-                },
-              },
               api: {
                 fetchApi: async () => ({ ok: true, json: async () => ({ loras: [] }) }),
               },
@@ -1168,9 +1171,25 @@ class LoraPresetFrontendTests(unittest.TestCase):
             };
 
             vm.createContext(context);
+            vm.runInContext(`
+              const LiteGraph = {
+                WIDGET_TEXT_COLOR: "#ddd",
+                WIDGET_BGCOLOR: "#222",
+                WIDGET_OUTLINE_COLOR: "#555",
+                ContextMenu: function ContextMenu(items, options) {
+                  globalThis.__lastContextMenu = { items, options };
+                },
+              };
+            `, context, { filename: "comfyui-host-litegraph.js" });
+            assert.strictEqual(
+              Object.prototype.hasOwnProperty.call(context, "LiteGraph"),
+              false,
+              "the fixture must expose LiteGraph only as a host lexical global",
+            );
             vm.runInContext(source, context, { filename: sourcePath });
 
             const {
+              loraLiteGraphRuntime,
               loraCanvasWidgets,
               LORA_PRESET_SETTINGS,
               applyLoraPresetSettings,
@@ -1179,6 +1198,7 @@ class LoraPresetFrontendTests(unittest.TestCase):
               loraMenuLifecycle,
               saveProfileSet,
             } = context.__loraPresetTest;
+            assert.strictEqual(loraLiteGraphRuntime().WIDGET_TEXT_COLOR, "#ddd");
             const { LoraRowWidget } = loraCanvasWidgets;
 
             function widget(name, value) {
