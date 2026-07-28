@@ -2,15 +2,16 @@
 
 ## Status and authority
 
-- Status: D-08, E-01 through E-04, and E-05a through E-05c are completed; the D-14
+- Status: D-08, E-01 through E-04, and E-05a through E-05d are completed; the D-14
   readiness audit retains every root surface and blocks retirement/final-freeze work.
-- Code-review base before E-05c:
-  `dev@707aee54244946058fb7f37cfb6e06b1c2dd9735` after E-05b / PR #543.
-- Document baseline: completed E-05c index-store root/path-lock owner Move.
+- Code-review base before E-05d:
+  `dev@8dfbc1162ee83097f90472663557d0cc38f691e4` after E-05c / PR #544.
+- Document baseline: completed E-05d autocomplete bootstrap composition Move.
 - Released baseline: 0.6.2.
 - Scope: completed D-08 evidence, the D-14 readiness decision, completed #187
   E-01/E-02/E-03/E-04 work, the E-05a Contract, the E-05b snapshot owner Move,
-  the E-05c index-store owner Move, and the next bounded E-05d composition Move.
+  the E-05c index-store owner Move, the E-05d composition Move, and the next
+  bounded E-05e completion audit Contract.
 - This document owns the current immediate queue and supersedes the stale queue and
   broad preflight command in `python-backend-execution-roadmap.md`.
 - `python-backend.md`, ADR-001, ADR-002, and the compatibility-shim registry still own
@@ -377,7 +378,14 @@ standalone disablement, Windows pre-directory lock identity, rebuild/atomic
 publication/fallback diagnostics, and public explicit-root compatibility function
 are unchanged. `close()` is an idempotent no-op for the non-disposable process locks.
 
-Start only a separate #187 E-05d bootstrap composition and narrow adapter wiring
-Move from latest origin/dev. Do not start E-05e, E-06 through E-10, D-14 retirement,
-release, or Registry work inside E-05d.
+E-05d composes the existing default snapshot and index-store owners behind one
+private `_AutocompleteService`, installs only its narrow `AutocompletePort` on
+`RuntimeServices`, and makes root API callbacks resolve that port with their
+canonical pre-initialize fallback. Canonical feature identities, call-time root
+patch seams, owner identities, bootstrap retry/refresh behavior, and no-host import
+safety remain unchanged.
+
+Start only a separate #187 E-05e completion audit Contract from latest origin/dev.
+Do not start E-06 through E-10, D-14 retirement, release, or Registry work inside
+E-05e.
 ```

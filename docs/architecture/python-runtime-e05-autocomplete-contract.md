@@ -9,7 +9,9 @@ snapshot and single-flight state, SQLite index publication state, production
 callers, compatibility seams, and the only authorized bounded Move order.
 E-05b moves the dataset snapshot/cache/Future state behind its selected
 feature-private owner. E-05c moves the immutable index root and retained path-lock
-registry behind the second selected owner.
+registry behind the second selected owner. E-05d composes those exact owners behind
+one private autocomplete service and exposes only its narrow port through the
+process runtime.
 
 The executable source is
 `tests/fixtures/python_autocomplete_runtime_contract.v1.json`, checked by
@@ -81,12 +83,20 @@ The dataset owner and index-store owner are not merged. Their locks protect
 different invariants, their failures have different meanings, and index
 unavailability intentionally falls back to a valid dataset snapshot.
 
-## Composition and compatibility target
+## Composition and compatibility result
 
-E-05d composes the two feature-private owners in bootstrap and exposes one narrow
-autocomplete-owned port through `RuntimeServices`. API adapters may receive or
-resolve that port at the adapter boundary. Autocomplete feature modules do not
-import the complete runtime, bootstrap, API adapters, or root shims.
+E-05d composes `_DEFAULT_AUTOCOMPLETE_SNAPSHOTS` and
+`_DEFAULT_AUTOCOMPLETE_INDEX_STORE` in bootstrap behind one private
+`_AutocompleteService`. `RuntimeServices.autocomplete` is typed by the narrow
+`AutocompletePort`; bootstrap installs the service once with the other runtime
+capabilities. Root API callbacks resolve that port at call time and retain the
+canonical functions as the exact pre-initialize fallback. Autocomplete feature
+modules do not import the complete runtime, bootstrap, API adapters, or root shims.
+
+The service does not create replacement owners. It retains the two injected default
+owner identities and routes status, search, and classification through owner-bound
+private helpers. Direct canonical calls still resolve the module defaults at call
+time, so existing monkeypatch and isolated-store seams remain intact.
 
 The following surfaces remain compatible throughout E-05:
 
@@ -114,9 +124,9 @@ port.
 3. **E-05c Move — index-store root and path-lock ownership — complete:**
    `_AutocompleteIndexStore` owns the immutable root, guard, and retained
    normalized-path Locks behind one default reference.
-4. **E-05d Move — bootstrap composition and adapter wiring:** compose both owners,
-   add only a narrow autocomplete port to RuntimeServices, and preserve every
-   canonical/root identity and call-time adapter seam.
+4. **E-05d Move — bootstrap composition and adapter wiring — complete:** compose
+   both owners, add only a narrow autocomplete port to RuntimeServices, and
+   preserve every canonical/root identity and call-time adapter seam.
 5. **E-05e Contract — completion audit:** reconcile E-01 targets, cleanup
    dispositions, import safety, root identities, and zero ambiguous autocomplete
    state before E-06.
@@ -125,9 +135,10 @@ Each Move is a separate PR and rollback boundary. E-09 retains whole-runtime rev
 close ordering and partial-initialization cleanup. E-05 supplies only the
 feature-owned resources and their proven cleanup shapes.
 
-E-05b leaves no duplicate module cache/lock/Future map, and E-05c leaves no raw
-module root or index-lock registry. The next READY unit is the separate E-05d
-bootstrap composition and narrow adapter wiring Move.
+E-05b leaves no duplicate module cache/lock/Future map, E-05c leaves no raw module
+root or index-lock registry, and E-05d creates no duplicate owner while adding the
+single bootstrap-composed narrow runtime port. The next READY unit is the separate
+E-05e completion audit Contract.
 
 ## Preserved behavior
 
@@ -160,3 +171,5 @@ Direct source and tests select one snapshot owner, one index-store owner, and on
 declarative policy. E-05a therefore does not trigger additional PRO review.
 E-05b preserves that partition and does not trigger a new PRO review.
 E-05c preserves that partition and does not trigger a new PRO review.
+E-05d composes the same two owners without changing their lifecycle partition and
+does not trigger a new PRO review.

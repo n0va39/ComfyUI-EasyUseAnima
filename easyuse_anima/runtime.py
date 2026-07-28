@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Protocol
 
+from .autocomplete.ports import AutocompletePort
 from .infrastructure.comfy.provider import ComfyHostProvider
 from .seed.reservation import SeedReservationService
 from .translation.ports import PromptTranslationPort
@@ -41,6 +42,7 @@ class RuntimeServices:
     config: RuntimeConfig
     clock: Clock
     translation: PromptTranslationPort
+    autocomplete: AutocompletePort
 
 
 _RUNTIME_SERVICES: RuntimeServices | None = None

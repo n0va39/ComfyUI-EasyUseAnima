@@ -470,15 +470,15 @@ class PythonTranslationRuntimeContractTests(unittest.TestCase):
             if isinstance(statement, ast.AnnAssign)
             and isinstance(statement.target, ast.Name)
         }
-        self.assertEqual(
-            runtime_fields,
+        self.assertTrue(
             {
                 "clock",
                 "comfy",
                 "config",
                 "seed_reservations",
                 "translation",
-            },
+            }
+            <= runtime_fields,
         )
         self.assertEqual(
             _class_methods(

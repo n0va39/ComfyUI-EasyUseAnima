@@ -50,6 +50,9 @@ from .api.routes.translation_execution import (
 from .api.routes.wildcards import (
     build_wildcards_handler as _build_wildcards_handler,
 )
+from .autocomplete.dataset import _DEFAULT_AUTOCOMPLETE_SNAPSHOTS
+from .autocomplete.index import _DEFAULT_AUTOCOMPLETE_INDEX_STORE
+from .autocomplete.service import _AutocompleteService
 from .infrastructure.comfy.provider import DefaultComfyHostProvider
 from .runtime import RuntimeConfig, RuntimeServices, install_runtime
 from .seed.service import InMemorySeedReservationService
@@ -252,6 +255,10 @@ def initialize(
                     cache=BoundedTranslationCache(
                         time_func=clock.monotonic,
                     )
+                ),
+                autocomplete=_AutocompleteService(
+                    snapshots=_DEFAULT_AUTOCOMPLETE_SNAPSHOTS,
+                    index_store=_DEFAULT_AUTOCOMPLETE_INDEX_STORE,
                 ),
             )
             install_runtime(runtime)

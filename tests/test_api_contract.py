@@ -16,7 +16,7 @@ import uuid
 import weakref
 from itertools import count
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 from tests.api_test_support import replace_sys_modules
 
@@ -2383,6 +2383,120 @@ class ApiLongTextSettingsRouteTests(unittest.TestCase):
 
 
 class ApiAutocompleteRouteTests(unittest.TestCase):
+    def test_root_autocomplete_facades_resolve_the_installed_narrow_port(self):
+        api, _routes = load_api_routes()
+        port = Mock()
+        port.resolve_source.return_value = ("source", object())
+        port.available_sources.return_value = [{"key": "source"}]
+        port.status.return_value = {"count": 1}
+        port.search.return_value = {"results": []}
+        port.classify.return_value = {"tokens": []}
+        runtime = type("Runtime", (), {"autocomplete": port})()
+        path = object()
+
+        with patch.object(api, "_get_runtime", return_value=runtime):
+            self.assertEqual(
+                api.resolve_autocomplete_source_path("selected")[0],
+                "source",
+            )
+            self.assertEqual(
+                api.available_autocomplete_sources("selected"),
+                [{"key": "source"}],
+            )
+            self.assertEqual(api.autocomplete_status(path), {"count": 1})
+            self.assertEqual(
+                api.search_autocomplete(
+                    "cat",
+                    limit=17,
+                    path=path,
+                    category="artist",
+                ),
+                {"results": []},
+            )
+            self.assertEqual(
+                api.classify_prompt_text("cat", limit=19, path=path),
+                {"tokens": []},
+            )
+
+        port.resolve_source.assert_called_once_with("selected")
+        port.available_sources.assert_called_once_with("selected")
+        port.status.assert_called_once_with(path)
+        port.search.assert_called_once_with(
+            "cat",
+            limit=17,
+            path=path,
+            category="artist",
+        )
+        port.classify.assert_called_once_with(
+            "cat",
+            limit=19,
+            path=path,
+        )
+
+    def test_root_autocomplete_facades_keep_preinitialize_canonical_fallback(self):
+        api, _routes = load_api_routes()
+        unavailable = RuntimeError(
+            "[EasyUseAnima] RuntimeServices has not been installed."
+        )
+        path = object()
+
+        with (
+            patch.object(api, "_get_runtime", side_effect=unavailable),
+            patch.object(
+                api,
+                "_canonical_resolve_autocomplete_source_path",
+                return_value=("source", path),
+            ) as resolve_source,
+            patch.object(
+                api,
+                "_canonical_available_autocomplete_sources",
+                return_value=[{"key": "source"}],
+            ) as available_sources,
+            patch.object(
+                api,
+                "_canonical_autocomplete_status",
+                return_value={"count": 1},
+            ) as status,
+            patch.object(
+                api,
+                "_canonical_search_autocomplete",
+                return_value={"results": []},
+            ) as search,
+            patch.object(
+                api,
+                "_canonical_classify_prompt_text",
+                return_value={"tokens": []},
+            ) as classify,
+        ):
+            self.assertEqual(
+                api.resolve_autocomplete_source_path("selected"),
+                ("source", path),
+            )
+            self.assertEqual(
+                api.available_autocomplete_sources("selected"),
+                [{"key": "source"}],
+            )
+            self.assertEqual(api.autocomplete_status(path), {"count": 1})
+            self.assertEqual(
+                api.search_autocomplete("cat", path=path),
+                {"results": []},
+            )
+            self.assertEqual(
+                api.classify_prompt_text("cat", path=path),
+                {"tokens": []},
+            )
+
+        resolve_source.assert_called_once_with("selected")
+        available_sources.assert_called_once_with("selected")
+        status.assert_called_once_with(path)
+        search.assert_called_once_with(
+            "cat",
+            limit=20,
+            path=path,
+            category=None,
+        )
+        classify.assert_called_once_with("cat", limit=240, path=path)
+
     def test_payload_helpers_are_owned_by_the_canonical_factory(self):
         api, _routes = load_api_routes()
         cases = (

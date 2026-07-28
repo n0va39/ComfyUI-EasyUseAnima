@@ -10,6 +10,7 @@ from ..translation.markers import iter_prompt_translation_markers
 from .dataset import (
     AUTOCOMPLETE_CSV,
     AutocompleteEntry,
+    _AutocompleteSnapshot,
     _INLINE_SPACE_RE,
     _normalize,
     _snapshot,
@@ -288,10 +289,13 @@ def _token_section(token: str, entry: AutocompleteEntry | None) -> tuple[str, st
     return ("unknown", "미확인")
 
 
-def classify_prompt_text(
-    text: str, limit: int = 240, path: Path = AUTOCOMPLETE_CSV
+def _classify_prompt_text_from_snapshot(
+    text: str,
+    *,
+    limit: int,
+    path: Path,
+    snapshot: _AutocompleteSnapshot,
 ) -> dict:
-    snapshot = _snapshot(path)
     entries = snapshot.entry_map
     tokens: list[tuple[str, bool, bool, bool]] = []
 
@@ -375,6 +379,17 @@ def classify_prompt_text(
         "tokens": classified,
         "status": _snapshot_status(snapshot, path),
     }
+
+
+def classify_prompt_text(
+    text: str, limit: int = 240, path: Path = AUTOCOMPLETE_CSV
+) -> dict:
+    return _classify_prompt_text_from_snapshot(
+        text,
+        limit=limit,
+        path=path,
+        snapshot=_snapshot(path),
+    )
 
 
 __all__ = ("classify_prompt_text",)

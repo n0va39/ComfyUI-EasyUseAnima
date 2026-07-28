@@ -184,13 +184,14 @@ class PythonAutocompleteRuntimeContractTests(unittest.TestCase):
                 "owners",
                 "production_callers",
                 "production_changes",
+                "runtime_port",
                 "schema_version",
                 "scope",
             },
         )
         self.assertEqual(self.fixture["schema_version"], 1)
         self.assertEqual(self.fixture["classification"], "Contract")
-        self.assertEqual(self.fixture["production_changes"], 2)
+        self.assertEqual(self.fixture["production_changes"], 8)
         self.assertEqual(
             [move["id"] for move in self.fixture["move_queue"]],
             ["E-05a", "E-05b", "E-05c", "E-05d", "E-05e"],
@@ -369,11 +370,15 @@ class PythonAutocompleteRuntimeContractTests(unittest.TestCase):
             "_AUTOCOMPLETE_CACHE_LOAD_ATTEMPTS",
             _function_references(
                 module,
-                "_snapshot",
+                "_snapshot_with_owner",
             ),
         )
         self.assertTrue(
-            {"_cached_snapshot_for_key", "_snapshot"}
+            {
+                "_autocomplete_status_with_owner",
+                "_cached_snapshot_for_key",
+                "_snapshot",
+            }
             <= _function_references(
                 module,
                 "autocomplete_status",
@@ -474,7 +479,7 @@ class PythonAutocompleteRuntimeContractTests(unittest.TestCase):
             {
                 "_DEFAULT_AUTOCOMPLETE_INDEX_STORE",
                 "_snapshot",
-                "_validate_index_source",
+                "_search_autocomplete_diagnostics_with_owners",
             }
             <= _function_references(
                 "easyuse_anima/autocomplete/search.py",
@@ -508,6 +513,79 @@ class PythonAutocompleteRuntimeContractTests(unittest.TestCase):
                     set(),
                 )
 
+    def test_runtime_port_composition_and_root_adapter_are_current(self):
+        runtime_port = self.fixture["runtime_port"]
+        interface = runtime_port["interface"]
+        interface_methods = {
+            statement.name
+            for statement in _top_level_class(
+                interface["module"],
+                interface["class"],
+            ).body
+            if isinstance(statement, (ast.FunctionDef, ast.AsyncFunctionDef))
+        }
+        self.assertEqual(interface_methods, set(interface["methods"]))
+
+        service = runtime_port["service"]
+        self.assertEqual(
+            _instance_assignments(service["module"], service["class"]),
+            set(service["owner_fields"]),
+        )
+
+        runtime = runtime_port["runtime"]
+        runtime_class = _top_level_class(
+            runtime["module"],
+            "RuntimeServices",
+        )
+        runtime_field = next(
+            statement
+            for statement in runtime_class.body
+            if isinstance(statement, ast.AnnAssign)
+            and isinstance(statement.target, ast.Name)
+            and statement.target.id == runtime["field"]
+        )
+        self.assertIsInstance(runtime_field.annotation, ast.Name)
+        self.assertEqual(runtime_field.annotation.id, interface["class"])
+
+        bootstrap = runtime_port["bootstrap"]
+        self.assertEqual(
+            set(bootstrap["uses"])
+            - _function_references(
+                bootstrap["module"],
+                bootstrap["function"],
+            ),
+            set(),
+        )
+
+        root_adapter = runtime_port["root_adapter"]
+        self.assertIn(
+            root_adapter["runtime_getter"],
+            _function_references(
+                root_adapter["module"],
+                root_adapter["resolver"],
+            ),
+        )
+        for adapter in runtime_port["adapters"]:
+            with self.subTest(adapter=adapter["function"]):
+                references = _function_references(
+                    root_adapter["module"],
+                    adapter["function"],
+                )
+                self.assertTrue(
+                    {
+                        adapter["canonical_fallback"],
+                        root_adapter["resolver"],
+                    }
+                    <= references
+                )
+                self.assertIn(
+                    adapter["port_method"],
+                    _called_attributes(
+                        root_adapter["module"],
+                        adapter["function"],
+                    ),
+                )
+
     def test_feature_modules_do_not_depend_on_runtime_or_outer_adapters(self):
         forbidden = {
             "api",
@@ -521,7 +599,9 @@ class PythonAutocompleteRuntimeContractTests(unittest.TestCase):
             "easyuse_anima/autocomplete/classification.py",
             "easyuse_anima/autocomplete/dataset.py",
             "easyuse_anima/autocomplete/index.py",
+            "easyuse_anima/autocomplete/ports.py",
             "easyuse_anima/autocomplete/search.py",
+            "easyuse_anima/autocomplete/service.py",
         ):
             imports = {
                 node.module
@@ -543,7 +623,7 @@ class PythonAutocompleteRuntimeContractTests(unittest.TestCase):
             if isinstance(statement, ast.AnnAssign)
             and isinstance(statement.target, ast.Name)
         }
-        self.assertNotIn("autocomplete", fields)
+        self.assertIn("autocomplete", fields)
 
     def test_contract_document_is_linked_from_maintained_entries(self):
         self.assertTrue(CONTRACT_DOC.is_file())

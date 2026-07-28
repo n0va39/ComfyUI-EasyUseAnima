@@ -8,7 +8,7 @@ import re
 import stat
 import threading
 import unicodedata
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 from concurrent.futures import Future
 from dataclasses import dataclass
 from pathlib import Path
@@ -428,17 +428,28 @@ def _snapshot_for_key(key: _AutocompleteCacheKey) -> _AutocompleteSnapshot:
     return _DEFAULT_AUTOCOMPLETE_SNAPSHOTS.snapshot_for_key(key)
 
 
-def _snapshot(path: Path = AUTOCOMPLETE_CSV) -> _AutocompleteSnapshot:
+def _snapshot_with_owner(
+    path: Path,
+    *,
+    snapshot_for_key: Callable[[_AutocompleteCacheKey], _AutocompleteSnapshot],
+) -> _AutocompleteSnapshot:
     for _attempt in range(_AUTOCOMPLETE_CACHE_LOAD_ATTEMPTS):
         key = _cache_key(path)
         try:
-            return _snapshot_for_key(key)
+            return snapshot_for_key(key)
         except _AutocompleteSourceChanged:
             continue
     resolved_path = Path(path).resolve(strict=False)
     raise RuntimeError(
         f"Autocomplete dataset changed repeatedly while loading: {resolved_path}"
     ) from None
+
+
+def _snapshot(path: Path = AUTOCOMPLETE_CSV) -> _AutocompleteSnapshot:
+    return _snapshot_with_owner(
+        path,
+        snapshot_for_key=_snapshot_for_key,
+    )
 
 
 def _entries(path: Path = AUTOCOMPLETE_CSV) -> tuple[AutocompleteEntry, ...]:
@@ -484,12 +495,20 @@ def _builtin_manifest_entry_count(key: _AutocompleteCacheKey) -> int | None:
     return None
 
 
-def autocomplete_status(path: Path = AUTOCOMPLETE_CSV) -> dict:
+def _autocomplete_status_with_owner(
+    path: Path,
+    *,
+    cached_snapshot_for_key: Callable[
+        [_AutocompleteCacheKey],
+        _AutocompleteSnapshot | None,
+    ],
+    snapshot: Callable[[Path], _AutocompleteSnapshot],
+) -> dict:
     key = _cache_key(path)
     if key.mtime_ns == _MISSING_FILE_STAT:
         return _status_from_key(key, path, 0)
 
-    cached = _cached_snapshot_for_key(key)
+    cached = cached_snapshot_for_key(key)
     if cached is not None:
         return _snapshot_status(cached, path)
 
@@ -499,7 +518,15 @@ def autocomplete_status(path: Path = AUTOCOMPLETE_CSV) -> dict:
 
     # Public helper callers may provide arbitrary paths. Preserve their exact
     # count semantics when no verified built-in manifest applies.
-    return _snapshot_status(_snapshot(path), path)
+    return _snapshot_status(snapshot(path), path)
+
+
+def autocomplete_status(path: Path = AUTOCOMPLETE_CSV) -> dict:
+    return _autocomplete_status_with_owner(
+        path,
+        cached_snapshot_for_key=_cached_snapshot_for_key,
+        snapshot=_snapshot,
+    )
 
 
 __all__ = (
