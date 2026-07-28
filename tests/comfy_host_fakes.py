@@ -5,7 +5,12 @@ from __future__ import annotations
 import sys
 from contextlib import contextmanager
 from pathlib import Path
-from unittest.mock import DEFAULT, Mock, patch
+from unittest.mock import DEFAULT, Mock
+
+from tests.runtime_test_support import (
+    build_runtime_services,
+    isolated_installed_runtime,
+)
 
 
 class FakeSeedReservationService:
@@ -185,7 +190,8 @@ def use_fake_comfy_host(root_module, provider):
     config, clock, translation, autocomplete, wildcard_snapshots, aio_cache = (
         _runtime_support(runtime_module)
     )
-    runtime = runtime_module.RuntimeServices(
+    runtime = build_runtime_services(
+        runtime_module,
         comfy=provider,
         seed_reservations=FakeSeedReservationService(),
         config=config,
@@ -195,7 +201,7 @@ def use_fake_comfy_host(root_module, provider):
         wildcard_snapshots=wildcard_snapshots,
         aio_first_pass_cache=aio_cache,
     )
-    with patch.object(runtime_module, "_RUNTIME_SERVICES", runtime):
+    with isolated_installed_runtime(runtime_module, runtime):
         yield provider
 
 
@@ -226,7 +232,8 @@ def patch_comfy_helper(
     config, clock, translation, autocomplete, wildcard_snapshots, aio_cache = (
         _runtime_support(runtime_module)
     )
-    runtime = runtime_module.RuntimeServices(
+    runtime = build_runtime_services(
+        runtime_module,
         comfy=provider,
         seed_reservations=FakeSeedReservationService(),
         config=config,
@@ -236,5 +243,5 @@ def patch_comfy_helper(
         wildcard_snapshots=wildcard_snapshots,
         aio_first_pass_cache=aio_cache,
     )
-    with patch.object(runtime_module, "_RUNTIME_SERVICES", runtime):
+    with isolated_installed_runtime(runtime_module, runtime):
         yield replacement

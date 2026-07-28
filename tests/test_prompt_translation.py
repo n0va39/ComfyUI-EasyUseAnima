@@ -34,6 +34,7 @@ from easyuse_anima.translation.service import (
     PromptTranslationService,
     get_translation_provider,
 )
+from tests.runtime_test_support import isolated_translation_facade
 
 
 GOOGLE_SETTINGS = PromptTranslationSettings(
@@ -324,9 +325,8 @@ class PromptTranslationServiceTests(unittest.TestCase):
                 settings,
             )
         )
-        with patch.object(
+        with isolated_translation_facade(
             service,
-            "_DEFAULT_TRANSLATION_SERVICE",
             current,
         ):
             resolved = service.translate_prompt_markers(

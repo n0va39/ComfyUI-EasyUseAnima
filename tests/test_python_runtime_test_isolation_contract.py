@@ -2,9 +2,19 @@ from __future__ import annotations
 
 import ast
 import json
+import threading
 import unittest
 from functools import lru_cache
 from pathlib import Path
+
+from easyuse_anima import bootstrap, runtime as runtime_module
+from easyuse_anima.translation import service as translation_service
+from tests.runtime_test_support import (
+    build_runtime_services,
+    isolated_bootstrap_runtime,
+    isolated_installed_runtime,
+    isolated_translation_facade,
+)
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -161,7 +171,7 @@ class PythonRuntimeTestIsolationContractTests(unittest.TestCase):
         )
         self.assertEqual(
             [item["status"] for item in self.fixture["queue"]],
-            ["complete", "ready", "blocked-on-E-10b"],
+            ["complete", "complete", "ready"],
         )
         for evidence in self.fixture["evidence"]:
             self.assertTrue((ROOT / evidence).is_file(), evidence)
@@ -180,6 +190,7 @@ class PythonRuntimeTestIsolationContractTests(unittest.TestCase):
         target = self.fixture["target_fixture"]
         self.assertTrue(target["single_owner"])
         self.assertEqual(target["module"], "tests/runtime_test_support.py")
+        self.assertTrue((ROOT / target["module"]).is_file())
         self.assertEqual(target["production_reset_api"], "forbidden")
         self.assertIn("RLock", target["synchronization"])
         self.assertEqual(
@@ -258,6 +269,139 @@ class PythonRuntimeTestIsolationContractTests(unittest.TestCase):
         for task_id in ("E-10a", "E-10b", "E-10c"):
             self.assertIn(task_id, roadmap)
         self.assertIn("E-10b is the next READY task", roadmap)
+
+
+class PythonRuntimeTestSupportTests(unittest.TestCase):
+    def test_constructed_runtimes_are_independent_and_not_installed(self):
+        prior = runtime_module._RUNTIME_SERVICES
+        values = {
+            "comfy": object(),
+            "seed_reservations": object(),
+            "config": object(),
+            "clock": object(),
+            "translation": object(),
+            "autocomplete": object(),
+            "wildcard_snapshots": object(),
+            "aio_first_pass_cache": object(),
+        }
+
+        first = build_runtime_services(runtime_module, **values)
+        second = build_runtime_services(runtime_module, **values)
+
+        self.assertIsNot(first, second)
+        self.assertIs(runtime_module._RUNTIME_SERVICES, prior)
+
+    def test_installed_runtime_context_is_nested_and_identity_restoring(self):
+        prior = runtime_module._RUNTIME_SERVICES
+        first = object()
+        second = object()
+
+        with self.assertRaisesRegex(RuntimeError, "stop"):
+            with isolated_installed_runtime(runtime_module, first):
+                self.assertIs(runtime_module._RUNTIME_SERVICES, first)
+                with isolated_installed_runtime(runtime_module, second):
+                    self.assertIs(runtime_module._RUNTIME_SERVICES, second)
+                self.assertIs(runtime_module._RUNTIME_SERVICES, first)
+                raise RuntimeError("stop")
+
+        self.assertIs(runtime_module._RUNTIME_SERVICES, prior)
+
+    def test_bootstrap_context_suppresses_atexit_and_restores_exact_state(self):
+        prior = {
+            "runtime": runtime_module._RUNTIME_SERVICES,
+            "default_runtime": bootstrap._DEFAULT_RUNTIME,
+            "executor": bootstrap._TRANSLATION_ROUTE_EXECUTOR,
+            "atexit_registered": bootstrap._ATEXIT_REGISTERED,
+            "shutdown": bootstrap._SHUTDOWN,
+            "wildcards": bootstrap._WILDCARDS_INITIALIZED,
+            "facade": translation_service._DEFAULT_TRANSLATION_SERVICE,
+            "register": bootstrap.atexit.register,
+        }
+
+        with self.assertRaisesRegex(RuntimeError, "stop"):
+            with isolated_bootstrap_runtime(
+                bootstrap,
+                runtime_module,
+                translation_service,
+            ):
+                self.assertIsNone(runtime_module._RUNTIME_SERVICES)
+                self.assertIsNone(bootstrap._DEFAULT_RUNTIME)
+                self.assertIsNone(bootstrap._TRANSLATION_ROUTE_EXECUTOR)
+                self.assertFalse(bootstrap._ATEXIT_REGISTERED)
+                self.assertFalse(bootstrap._SHUTDOWN)
+                self.assertFalse(bootstrap._WILDCARDS_INITIALIZED)
+                self.assertIsNot(
+                    translation_service._DEFAULT_TRANSLATION_SERVICE,
+                    prior["facade"],
+                )
+                self.assertIsNot(bootstrap.atexit.register, prior["register"])
+                raise RuntimeError("stop")
+
+        self.assertIs(runtime_module._RUNTIME_SERVICES, prior["runtime"])
+        self.assertIs(bootstrap._DEFAULT_RUNTIME, prior["default_runtime"])
+        self.assertIs(
+            bootstrap._TRANSLATION_ROUTE_EXECUTOR,
+            prior["executor"],
+        )
+        self.assertIs(bootstrap._ATEXIT_REGISTERED, prior["atexit_registered"])
+        self.assertIs(bootstrap._SHUTDOWN, prior["shutdown"])
+        self.assertIs(bootstrap._WILDCARDS_INITIALIZED, prior["wildcards"])
+        self.assertIs(
+            translation_service._DEFAULT_TRANSLATION_SERVICE,
+            prior["facade"],
+        )
+        self.assertIs(bootstrap.atexit.register, prior["register"])
+
+    def test_translation_facade_context_restores_after_failure(self):
+        prior = translation_service._DEFAULT_TRANSLATION_SERVICE
+        replacement = object()
+
+        with self.assertRaisesRegex(RuntimeError, "stop"):
+            with isolated_translation_facade(
+                translation_service,
+                replacement,
+            ):
+                self.assertIs(
+                    translation_service._DEFAULT_TRANSLATION_SERVICE,
+                    replacement,
+                )
+                raise RuntimeError("stop")
+
+        self.assertIs(
+            translation_service._DEFAULT_TRANSLATION_SERVICE,
+            prior,
+        )
+
+    def test_process_global_contexts_are_serialized_for_full_lifetime(self):
+        first_entered = threading.Event()
+        release_first = threading.Event()
+        second_entered = threading.Event()
+
+        def hold_first():
+            with isolated_installed_runtime(runtime_module, object()):
+                first_entered.set()
+                release_first.wait(timeout=1)
+
+        def enter_second():
+            first_entered.wait(timeout=1)
+            with isolated_installed_runtime(runtime_module, object()):
+                second_entered.set()
+
+        first = threading.Thread(target=hold_first)
+        second = threading.Thread(target=enter_second)
+        first.start()
+        second.start()
+        try:
+            self.assertTrue(first_entered.wait(timeout=1))
+            self.assertFalse(second_entered.wait(timeout=0.05))
+        finally:
+            release_first.set()
+            first.join(timeout=1)
+            second.join(timeout=1)
+
+        self.assertFalse(first.is_alive())
+        self.assertFalse(second.is_alive())
+        self.assertTrue(second_entered.is_set())
 
 
 if __name__ == "__main__":

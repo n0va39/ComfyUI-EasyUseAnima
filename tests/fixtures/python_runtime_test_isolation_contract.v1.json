@@ -5,19 +5,7 @@
     "module_reload_sites": [],
     "private_mutation_sites": [
       {
-        "module": "tests/comfy_host_fakes.py",
-        "symbols": ["_RUNTIME_SERVICES"]
-      },
-      {
-        "module": "tests/test_comfy_host_wiring.py",
-        "symbols": ["_RUNTIME_SERVICES"]
-      },
-      {
-        "module": "tests/test_prompt_translation.py",
-        "symbols": ["_DEFAULT_TRANSLATION_SERVICE"]
-      },
-      {
-        "module": "tests/test_python_bootstrap.py",
+        "module": "tests/runtime_test_support.py",
         "symbols": [
           "_ATEXIT_REGISTERED",
           "_DEFAULT_RUNTIME",
@@ -27,17 +15,6 @@
           "_TRANSLATION_ROUTE_EXECUTOR",
           "_WILDCARDS_INITIALIZED"
         ]
-      },
-      {
-        "module": "tests/test_runtime_services.py",
-        "symbols": [
-          "_ATEXIT_REGISTERED",
-          "_DEFAULT_RUNTIME",
-          "_DEFAULT_TRANSLATION_SERVICE",
-          "_RUNTIME_SERVICES",
-          "_SHUTDOWN",
-          "_WILDCARDS_INITIALIZED"
-        ]
       }
     ],
     "read_only_private_assertions": "Direct lifecycle tests may inspect private state to prove identity, terminal state, and rollback; E-10 moves reset/mutation ownership only."
@@ -45,6 +22,7 @@
   "evidence": [
     "easyuse_anima/runtime.py",
     "easyuse_anima/bootstrap.py",
+    "tests/runtime_test_support.py",
     "tests/comfy_host_fakes.py",
     "tests/test_comfy_host_wiring.py",
     "tests/test_prompt_translation.py",
@@ -89,17 +67,17 @@
       "classification": "Move",
       "goal": "Add the one test-only runtime fixture owner and migrate all five direct private-mutation sites without production changes.",
       "id": "E-10b",
-      "status": "ready"
+      "status": "complete"
     },
     {
       "classification": "Contract",
       "goal": "Record zero reload sites and zero direct private runtime mutations outside the helper, then close Phase E.",
       "id": "E-10c",
-      "status": "blocked-on-E-10b"
+      "status": "ready"
     }
   ],
   "schema_version": 1,
-  "scope": "E-10 isolated runtime test fixtures and private-reset ownership Contract",
+  "scope": "E-10 isolated runtime test fixtures and private-reset ownership through the E-10b Move",
   "target_fixture": {
     "invariants": [
       "restore exact prior identities and scalar lifecycle state after success or failure",

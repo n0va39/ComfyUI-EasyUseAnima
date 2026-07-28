@@ -7,27 +7,24 @@ from unittest.mock import Mock, patch
 
 from easyuse_anima import bootstrap, runtime as runtime_module
 from easyuse_anima.translation import service as translation_service
+from tests.runtime_test_support import (
+    enter_test_context,
+    isolated_bootstrap_runtime,
+    isolated_translation_facade,
+    isolated_translation_route_executor,
+)
 
 
 class PythonBootstrapTests(unittest.TestCase):
     def setUp(self):
-        patchers = (
-            patch.object(bootstrap, "_WILDCARDS_INITIALIZED", False),
-            patch.object(bootstrap, "_DEFAULT_RUNTIME", None),
-            patch.object(bootstrap, "_TRANSLATION_ROUTE_EXECUTOR", None),
-            patch.object(bootstrap, "_ATEXIT_REGISTERED", False),
-            patch.object(bootstrap, "_SHUTDOWN", False),
-            patch.object(runtime_module, "_RUNTIME_SERVICES", None),
-            patch.object(bootstrap.atexit, "register"),
-            patch.object(
+        enter_test_context(
+            self,
+            isolated_bootstrap_runtime(
+                bootstrap,
+                runtime_module,
                 translation_service,
-                "_DEFAULT_TRANSLATION_SERVICE",
-                translation_service.PromptTranslationService(),
             ),
         )
-        for state in patchers:
-            state.start()
-            self.addCleanup(state.stop)
 
     def test_repeated_initialize_keeps_routes_refreshable_and_wildcards_once(self):
         register_routes = Mock(return_value=True)
@@ -226,7 +223,7 @@ class PythonBootstrapTests(unittest.TestCase):
             return restore(expected, replacement)
 
         with (
-            patch.object(bootstrap, "_TRANSLATION_ROUTE_EXECUTOR", worker),
+            isolated_translation_route_executor(bootstrap, worker),
             patch.object(bootstrap, "_DEFAULT_AIO_FIRST_PASS_CACHE", aio_cache),
             patch.object(
                 bootstrap,
@@ -308,24 +305,26 @@ class PythonBootstrapTests(unittest.TestCase):
         )
         runtime = runtime_module.get_runtime()
         foreign_translation = translation_service.PromptTranslationService()
-        translation_service._DEFAULT_TRANSLATION_SERVICE = foreign_translation
-
-        with (
-            patch.object(runtime.translation, "close") as close,
-            self.assertRaisesRegex(RuntimeError, "routes"),
-        ):
-            bootstrap.initialize(
-                register_routes=Mock(side_effect=RuntimeError("routes")),
-                initialize_wildcards=Mock(return_value=object()),
-            )
-
-        self.assertIs(runtime_module.get_runtime(), runtime)
-        self.assertIs(bootstrap._DEFAULT_RUNTIME, runtime)
-        self.assertIs(
-            translation_service._DEFAULT_TRANSLATION_SERVICE,
+        with isolated_translation_facade(
+            translation_service,
             foreign_translation,
-        )
-        close.assert_not_called()
+        ):
+            with (
+                patch.object(runtime.translation, "close") as close,
+                self.assertRaisesRegex(RuntimeError, "routes"),
+            ):
+                bootstrap.initialize(
+                    register_routes=Mock(side_effect=RuntimeError("routes")),
+                    initialize_wildcards=Mock(return_value=object()),
+                )
+
+            self.assertIs(runtime_module.get_runtime(), runtime)
+            self.assertIs(bootstrap._DEFAULT_RUNTIME, runtime)
+            self.assertIs(
+                translation_service._DEFAULT_TRANSLATION_SERVICE,
+                foreign_translation,
+            )
+            close.assert_not_called()
 
     def test_startup_exception_survives_rollback_cleanup_failure(self):
         startup_error = ValueError("wildcards")
