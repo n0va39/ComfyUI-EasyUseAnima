@@ -2,12 +2,12 @@
 
 ## Status and authority
 
-- Status: D-08 and E-01 through E-08 are completed;
+- Status: D-08 and E-01 through E-08 are completed; E-09a Contract is fixed;
   the D-14
   readiness audit retains every root surface and blocks retirement/final-freeze work.
-- Code-review base before E-08d:
-  `dev@5ede3b0e34f8b83c5aaae70bd843e3c58fa9ed1b` after E-08c / PR #554.
-- Document baseline: completed E-08d AiO first-pass cache ownership audit.
+- E-09a Contract base:
+  `dev@4ad6bc947ba59db2df3cf5212ab07789757d7b96` after E-08d / PR #555.
+- Document baseline: E-09 runtime shutdown and cleanup Contract.
 - Released baseline: 0.6.2.
 - Scope: completed D-08 evidence, the D-14 readiness decision, completed #187
   E-01/E-02/E-03/E-04 work, the E-05a Contract, the E-05b snapshot owner Move,
@@ -17,7 +17,8 @@
   E-06d narrow RuntimeServices/bootstrap composition Move, the E-06e completion
   audit Contract, the completed E-07 bridge, the E-08a AiO first-pass cache
   ownership Contract, the E-08b owner Move, the E-08c narrow composition Move, and
-  the E-08d completion audit Contract. The next bounded phase is E-09 only.
+  the E-08d completion audit Contract, and the E-09a lifecycle Contract. The next
+  bounded implementation is E-09b only.
 - This document owns the current immediate queue and supersedes the stale queue and
   broad preflight command in `python-backend-execution-roadmap.md`.
 - `python-backend.md`, ADR-001, ADR-002, and the compatibility-shim registry still own
@@ -437,7 +438,38 @@ behavior. The queue remains E-08a Contract, E-08b owner Move, E-08c narrow
 RuntimeServices/bootstrap composition, and E-08d completion audit. E-08d reconciles
 the single E-01 entry, feature cleanup, import direction, seven root identities, and
 the exact narrow runtime binding, and records zero ambiguous AiO cache state without
-production changes. E-08 is complete. The next READY unit after E-08d merges is a
-separate E-09 runtime shutdown and cleanup Contract. Do not start E-09 implementation,
-D-14 retirement, release, or Registry work inside E-08d.
+production changes. E-08 is complete. E-09a fixes one bootstrap-owned terminal
+lifecycle, reverse cleanup order, partial-initialization rollback, and explicit
+file-I/O/route/provider/warning no-op dispositions. The next READY unit after E-09a
+merges is the single cohesive E-09b LIFECYCLE implementation, followed by the
+production-free E-09c audit. Do not start E-10, D-14 retirement, release, or Registry
+work before E-09 completes.
 ```
+
+## 7. E-09 runtime shutdown and cleanup queue
+
+```text
+E-09a  Contract   owner/disposition/order/rollback gate        complete
+E-09b  LIFECYCLE  one cohesive terminal shutdown implementation next
+E-09c  Contract   zero-ambiguity completion audit              blocked on E-09b
+```
+
+E-09a is production-free. It selects bootstrap as the one serialized lifecycle owner,
+retains weak per-loop file-I/O limiter self-expiry and installed routes as explicit
+no-ops, removes only the callerless Artist Mix warning set in E-09b, and retains the
+Conditioning warning set for process lifetime. Cleanup order and rollback are owned by
+[`python-runtime-e09-lifecycle-contract.md`](python-runtime-e09-lifecycle-contract.md).
+
+E-09b is one rollback boundary rather than several Move PRs because terminal state,
+RuntimeServices close, executor admission, feature cleanup order, global detach, and
+unexpected-startup rollback share one lifecycle/concurrency invariant. E-09c changes
+no production and must reconcile `ambiguous_state_owners=[]` before the next phase.
+E-10 remains blocked, as do D-14, release, and Registry work.
+
+### E-09a validation
+
+Run changed-file JSON/Python syntax, the new lifecycle Contract, E-01/E-04/E-05/E-06/
+E-08 direct contracts, package/no-host import, current import boundary, analyzer, and
+`git diff --check`. Run official full once on the exact final candidate. Production,
+import closure, archive, metadata, and host-visible behavior do not change, so reuse
+E-08c package/live evidence unless a focused gate proves material drift.

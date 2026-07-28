@@ -37,20 +37,20 @@ E-01 drift gate until classified.
 | Entry | Current owner and lifetime | Synchronization / cleanup today | Target |
 | --- | --- | --- | --- |
 | `aio-first-pass-cache` | one private default AiO cache store owns entries/order/enabled/generation/metrics/`RLock`; bootstrap installs that exact owner behind a narrow private runtime port | owner clear/disable invalidate entries and generation while preserving metrics; metric reset is separate | E-08 complete; E-08d audited |
-| `api-file-io-limiters` | canonical API file-I/O module, weak per-event-loop limiter | registry `Lock`; weak expiry, no explicit close | E-09 |
+| `api-file-io-limiters` | canonical API file-I/O module, weak per-event-loop limiter | registry `Lock`; weak expiry and no explicit close; E-09a fixes that as a no-op | retain in E-09b |
 | `autocomplete-dataset-cache` | canonical dataset snapshot and Future single-flight owner, injected into the bootstrap-composed narrow service | one owner `Lock`; completed-snapshot clear only | E-05 complete; E-05e audited |
 | `autocomplete-index-locks` | canonical index-store per-path lock owner, injected into the bootstrap-composed narrow service | guard plus retained per-path locks; idempotent no-op close | E-05 complete; E-05e audited |
 | `autocomplete-index-root` | immutable user-data index root retained by the canonical index-store owner | isolated-store injection; no mutable raw root | E-05 complete; E-05e audited |
 | `atomic-json-path-locks` | filesystem atomic JSON per-path lock registry shared by direct/factory stores | guard plus per-path `RLock`; no clear | E-03b complete |
-| `bootstrap-initialize-state` | bootstrap default runtime and wildcard completion state | initialize `Lock`; private-global test reset, no shutdown | E-09 |
+| `bootstrap-initialize-state` | bootstrap default runtime and wildcard completion state | initialize `Lock`; no production shutdown yet | E-09b shared serialized terminal shutdown |
 | `filesystem-runtime-paths` | import-resolved package/user-data paths projected into the default RuntimeConfig | immutable after import; bootstrap composition does not re-resolve | E-02c complete |
-| `package-bootstrap-effect` | root import invokes bootstrap route/directory initialization | bootstrap `Lock`; retry behavior, no package shutdown | E-09 |
+| `package-bootstrap-effect` | root import invokes bootstrap route/directory initialization | bootstrap `Lock`; retry behavior and no package shutdown yet | E-09b once-registered `atexit` shutdown |
 | `profile-directory-mutation-coordinator` | canonical process coordinator with weak per-directory locks | guard plus per-directory `RLock`; weak expiry | E-03d complete |
-| prompt warning-dedupe entries | two canonical Prompt feature modules, process lifetime | unprotected sets; direct-test clear only | E-09 |
+| prompt warning-dedupe entries | Conditioning canonical process warning set plus callerless Artist Mix duplicate | two unprotected sets today; E-09a selects retain/remove dispositions | E-09b |
 | `prompt-knowledge-path` | canonical filesystem package path re-exported for ANIMA root compatibility | immutable after import | E-02d complete |
-| `root-route-registration` | injected router registrar called by bootstrap | serialized refresh; idempotent marker, no deregistration | E-09 |
+| `root-route-registration` | injected router registrar called by bootstrap | serialized refresh, idempotent marker, and no deregistration; E-09a fixes that as a no-op | retain in E-09b |
 | `root-translation-route-worker` | bootstrap composes the lazy single-thread executor; root retains its compatibility reference | internal `RLock`; idempotent `atexit` shutdown only | E-04d complete |
-| `runtime-services` | identity-installed process runtime with Comfy, seed, config/clock, and narrow translation/autocomplete/wildcard capabilities | bootstrap-serialized install; private-global test reset, no whole-runtime close | E-09 |
+| `runtime-services` | identity-installed process runtime with Comfy, seed, config/clock, and narrow translation/autocomplete/wildcard capabilities | bootstrap-serialized install; private-global test reset and no close yet | E-09b private once-only close plan |
 | `translation-default-service` | RuntimeServices-owned translation port, mirrored by the canonical call-time facade | cache and flight `RLock`s; idempotent service close clears cache | E-04c complete |
 | `translation-provider-registry` | private process-owned lazy provider-client registry | one owned `RLock`; no provider close/reset | E-04b complete |
 | `wildcard-snapshot-cache` | canonical private default snapshot-store owner, directly injected through the narrow runtime port | one owned `Condition`; completed-cache-only `clear()` preserves active builds | E-06 complete; E-06e audited |
@@ -195,3 +195,20 @@ preserves package/no-host safety, feature import direction, all seven root ident
 and the narrow runtime binding, and records zero ambiguous AiO cache state. E-08 is
 complete. The next bounded unit is a separate E-09 runtime shutdown and cleanup
 Contract.
+
+## E-09 Contract result
+
+The production-free
+[`python-runtime-e09-lifecycle-contract.md`](python-runtime-e09-lifecycle-contract.md)
+selects bootstrap as the one serialized lifecycle owner and fixes a terminal,
+idempotent shutdown plus bounded unexpected-initialization rollback. The reverse
+cleanup plan closes translation route admission, then AiO, wildcard, autocomplete,
+translation-facade, and translation-service resources using their existing feature
+semantics. It does not clear weak API file-I/O limiters, deregister routes, close an
+unproven provider/client, drain running work, or create a hot reinitialize contract.
+
+The callerless Artist Mix warning set is the only state selected for removal; the
+Conditioning warning set remains process-lifetime. The bounded queue is E-09a
+Contract, one cohesive E-09b LIFECYCLE implementation, and E-09c production-free
+completion audit. E-10 remains blocked until that audit records zero ambiguous
+owners.

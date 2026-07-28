@@ -10,14 +10,14 @@ then only the active task section, owning Issue, direct source, and direct tests
 ## Active sequencing
 
 - Issue [#187](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/187)
-  owns Phase E. E-01 through E-08 are complete; the next bounded unit is a separate
-  E-09 runtime shutdown and cleanup Contract.
+  owns Phase E. E-01 through E-08 are complete; E-09a fixes the runtime shutdown
+  Contract and the next bounded implementation is E-09b only.
   Issue #186 retains D-14/shim decisions.
 - [`backend-roadmap-resume-0.6.2.md`](backend-roadmap-resume-0.6.2.md)
   is the current execution source of truth. Read it before the older accumulated
   roadmap.
-- Reviewed code baseline before E-08d: E-08c / PR #554 at
-  `5ede3b0e34f8b83c5aaae70bd843e3c58fa9ed1b`.
+- E-09a Contract base: E-08d / PR #555 at
+  `4ad6bc947ba59db2df3cf5212ab07789757d7b96`.
 - D-08 is complete and D-08v is not required.
 - D-14 readiness retains every root surface; retirement/final-freeze work is blocked.
 - E-01 inventory Contract:
@@ -40,15 +40,17 @@ then only the active task section, owning Issue, direct source, and direct tests
   [`python-runtime-e06-wildcard-contract.md`](python-runtime-e06-wildcard-contract.md).
 - E-08 AiO first-pass cache ownership Contract and bounded Move queue:
   [`python-runtime-e08-aio-cache-contract.md`](python-runtime-e08-aio-cache-contract.md).
-- First READY task after E-08d: a separate #187 E-09 runtime shutdown and cleanup
-  Contract only.
+- E-09 runtime shutdown and cleanup Contract and bounded queue:
+  [`python-runtime-e09-lifecycle-contract.md`](python-runtime-e09-lifecycle-contract.md).
+- First READY task after E-09a merges: one cohesive #187 E-09b LIFECYCLE
+  implementation only.
 - Completed #470 and the #413/#414/#415 queue/live-UI lanes remain contract references,
   not active blockers.
 - Released code baseline: 0.6.2. Registry activation is external administration and
   does not block `dev`; do not republish or mutate the release.
 - Completed #409/#410/#411 and deferred #440/#441 do not alter the E-01 boundary.
-- E-08d authorizes only the separate E-09 Contract. It does not authorize E-09
-  implementation, later Phase E work, root removal, release, or Registry.
+- E-09a authorizes only E-09b after merge. E-10, root removal, release, and Registry
+  remain blocked until the E-09c completion audit.
 
 ## Current code boundary
 
@@ -101,6 +103,9 @@ aliases or absorbing feature behavior.
 - [`python-runtime-e08-aio-cache-contract.md`](python-runtime-e08-aio-cache-contract.md):
   AiO first-pass cache state ownership, direct compatibility surfaces, cleanup
   disposition, caller boundary, and bounded Move queue.
+- [`python-runtime-e09-lifecycle-contract.md`](python-runtime-e09-lifecycle-contract.md):
+  bootstrap terminal lifecycle, reverse cleanup order, partial-initialization
+  rollback, retained no-op resources, and the bounded E-09a/b/c queue.
 - [`adr-001-modular-monolith.md`](adr-001-modular-monolith.md): feature-oriented modular
   monolith decision.
 - [`adr-002-compatibility-shims.md`](adr-002-compatibility-shims.md): shim lifecycle and
