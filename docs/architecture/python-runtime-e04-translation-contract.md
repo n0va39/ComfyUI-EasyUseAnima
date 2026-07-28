@@ -4,9 +4,10 @@
 
 E-04a is a production-free Contract created at
 `dev@d952f15f637732ce45a1ab7d9a0006bd1a3362bc`. E-04b makes provider registry
-ownership explicit. E-04c completes the second bounded Move by composing the process
-translation service/cache into RuntimeServices while the API route executor remains
-unchanged.
+ownership explicit. E-04c composes the process translation service/cache into
+RuntimeServices. E-04d completes the third bounded Move by moving concrete route
+executor construction and lifecycle registration behind private bootstrap
+composition.
 
 The executable source is
 `tests/fixtures/python_translation_runtime_contract.v1.json`, checked by
@@ -48,11 +49,13 @@ to converge through `translate_prompt_markers()`.
 
 ### API route executor
 
-Root `api.py` invokes the canonical `build_translation_runtime()` factory at module
-import and assigns `_PROMPT_TRANSLATION_WORKER` plus three helper closures. The
-canonical `PromptTranslationRouteExecutor` lazily creates a one-thread executor,
-permits one in-flight request, and keeps admission occupied after timeout or
-cancellation until the synchronous worker actually settles.
+Private `easyuse_anima.bootstrap.build_translation_route_runtime()` invokes the
+canonical `build_translation_runtime()` factory and owns the concrete executor/error
+types plus `atexit` registration. Root `api.py` invokes only that private composition
+helper and assigns `_PROMPT_TRANSLATION_WORKER` plus three helper closures as dynamic
+compatibility seams. The canonical `PromptTranslationRouteExecutor` lazily creates a
+one-thread executor, permits one in-flight request, and keeps admission occupied
+after timeout or cancellation until the synchronous worker actually settles.
 
 The worker has idempotent `shutdown()`, registered once with `atexit`, but package
 shutdown and partial-initialization cleanup do not own it. The root worker, sync
@@ -112,10 +115,10 @@ semantics are Behavior and remain out of scope.
 3. **E-04c Move — default service/cache composition — complete:** bootstrap composes
    the clock/cache/service, RuntimeServices owns the narrow port, and current node/API
    callers retain the call-time service facade.
-4. **E-04d Move — route executor/bootstrap lifecycle wiring — READY:** move worker
-   construction and lifecycle registration from root `api.py` into bootstrap-owned
-   composition while preserving every dynamic root seam.
-5. **E-04e Contract — completion audit — pending:** reconcile E-01 targets, prove
+4. **E-04d Move — route executor/bootstrap lifecycle wiring — complete:** concrete
+   worker construction and `atexit` lifecycle registration are bootstrap-owned while
+   root retains every dynamic compatibility seam.
+5. **E-04e Contract — completion audit — READY:** reconcile E-01 targets, prove
    one owner per resource, optional-import safety, cleanup disposition, and zero
    ambiguous translation state before E-05.
 

@@ -1104,7 +1104,10 @@ ignored/
             ("api.py", "easyuse_anima/api/responses.py"),
             ("api.py", "easyuse_anima/api/routes/autocomplete.py"),
             ("api.py", "easyuse_anima/api/routes/translation.py"),
-            ("api.py", "easyuse_anima/api/routes/translation_execution.py"),
+            (
+                "easyuse_anima/bootstrap.py",
+                "easyuse_anima/api/routes/translation_execution.py",
+            ),
             ("api.py", "easyuse_anima/api/routes/wildcards.py"),
             ("api_contract.py", "easyuse_anima/api/errors.py"),
             ("api_contract.py", "easyuse_anima/api/requests.py"),

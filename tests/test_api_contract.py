@@ -213,6 +213,17 @@ class ApiRouteRegistrationOwnerTests(unittest.TestCase):
             ].__all__,
         )
         self.assertTrue(
+            api._build_translation_route_runtime.__module__.endswith(
+                ".easyuse_anima.bootstrap"
+            )
+        )
+        self.assertNotIn(
+            "build_translation_route_runtime",
+            sys.modules[
+                api._build_translation_route_runtime.__module__
+            ].__all__,
+        )
+        self.assertTrue(
             api._build_aio_torch_compile_route_handler.__module__.endswith(
                 ".easyuse_anima.bootstrap"
             )
@@ -632,6 +643,11 @@ class ApiIntegratedRouteCompositionContractTests(unittest.TestCase):
             "easyuse_anima.bootstrap",
             "build_translation_route_handler",
             "_build_translation_route_handler",
+        ),
+        (
+            "easyuse_anima.bootstrap",
+            "build_translation_route_runtime",
+            "_build_translation_route_runtime",
         ),
         (
             "easyuse_anima.bootstrap",

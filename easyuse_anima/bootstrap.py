@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import atexit
 import logging
 import threading
 import time
@@ -40,7 +41,11 @@ from .api.routes.profile_saves import (
 )
 from .api.routes.settings import build_settings_handlers as _build_settings_handlers
 from .api.routes.translation import (
+    build_translation_runtime as _build_translation_runtime,
     build_translate_prompt_handler as _build_translate_prompt_handler,
+)
+from .api.routes.translation_execution import (
+    PromptTranslationRouteExecutor as _PromptTranslationRouteExecutor,
 )
 from .api.routes.wildcards import (
     build_wildcards_handler as _build_wildcards_handler,
@@ -48,6 +53,11 @@ from .api.routes.wildcards import (
 from .infrastructure.comfy.provider import DefaultComfyHostProvider
 from .runtime import RuntimeConfig, RuntimeServices, install_runtime
 from .seed.service import InMemorySeedReservationService
+from .translation.contracts import (
+    TranslationBusyError,
+    TranslationCancelledError,
+    TranslationTimeoutError,
+)
 from .translation.service import (
     BoundedTranslationCache,
     PromptTranslationService,
@@ -126,6 +136,32 @@ def build_translation_route_handler(
 
     return request_correlated(
         _build_translate_prompt_handler(**translation_dependencies)
+    )
+
+
+def build_translation_route_runtime(
+    *,
+    translate_prompt_markers,
+    resolve_prompt_translation_settings,
+    get_worker,
+    get_translate_prompt_sync,
+    get_timeout_seconds,
+    error_response,
+):
+    """Compose one translation route executor and its process cleanup."""
+
+    return _build_translation_runtime(
+        executor_type=_PromptTranslationRouteExecutor,
+        busy_error_type=TranslationBusyError,
+        cancelled_error_type=TranslationCancelledError,
+        timeout_error_type=TranslationTimeoutError,
+        register_shutdown=atexit.register,
+        translate_prompt_markers=translate_prompt_markers,
+        resolve_prompt_translation_settings=resolve_prompt_translation_settings,
+        get_worker=get_worker,
+        get_translate_prompt_sync=get_translate_prompt_sync,
+        get_timeout_seconds=get_timeout_seconds,
+        error_response=error_response,
     )
 
 
