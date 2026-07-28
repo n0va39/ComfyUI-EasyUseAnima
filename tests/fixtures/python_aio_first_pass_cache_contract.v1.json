@@ -1,0 +1,211 @@
+{
+  "adapter_boundary": {
+    "composition": {
+      "function": "_run_aio_generation_pipeline",
+      "module": "easyuse_anima/aio/legacy_generation.py",
+      "uses": [
+        "AIOFirstPassStage",
+        "FirstPassRuntime",
+        "_aio_first_pass_cache_key",
+        "_get_aio_first_pass_cache",
+        "_put_aio_first_pass_cache"
+      ]
+    },
+    "runtime_record": {
+      "class": "FirstPassRuntime",
+      "fields": [
+        "get_cache",
+        "put_cache"
+      ],
+      "module": "easyuse_anima/aio/generation_first_pass.py"
+    },
+    "stage": {
+      "calls": [
+        "get_cache",
+        "put_cache"
+      ],
+      "class": "AIOFirstPassStage",
+      "method": "run",
+      "module": "easyuse_anima/aio/generation_first_pass.py"
+    }
+  },
+  "classification": "Contract",
+  "compatibility_surfaces": [
+    {
+      "canonical_bindings": {
+        "AIO_FIRST_PASS_CACHE_MAX_ENTRIES": "easyuse_anima.aio.first_pass_cache",
+        "_AIO_FIRST_PASS_CACHE": "easyuse_anima.aio.first_pass_cache",
+        "_AIO_FIRST_PASS_CACHE_ORDER": "easyuse_anima.aio.first_pass_cache",
+        "_aio_first_pass_cache_key": "easyuse_anima.aio.first_pass_cache",
+        "_clone_aio_cache_value": "easyuse_anima.aio.first_pass_cache",
+        "_get_aio_first_pass_cache": "easyuse_anima.aio.first_pass_cache",
+        "_put_aio_first_pass_cache": "easyuse_anima.aio.first_pass_cache"
+      },
+      "id": "root-private-cache-identities",
+      "kind": "identity_reexport",
+      "module": "nodes.py",
+      "symbols": [
+        "AIO_FIRST_PASS_CACHE_MAX_ENTRIES",
+        "_AIO_FIRST_PASS_CACHE",
+        "_AIO_FIRST_PASS_CACHE_ORDER",
+        "_aio_first_pass_cache_key",
+        "_clone_aio_cache_value",
+        "_get_aio_first_pass_cache",
+        "_put_aio_first_pass_cache"
+      ]
+    },
+    {
+      "id": "canonical-call-time-patch-seams",
+      "kind": "dynamic_reference",
+      "module": "easyuse_anima/aio/first_pass_cache.py",
+      "symbols": [
+        "AIO_FIRST_PASS_CACHE_MAX_BYTES",
+        "AIO_FIRST_PASS_CACHE_MAX_ENTRIES",
+        "AIO_FIRST_PASS_CACHE_MAX_ENTRY_BYTES",
+        "AIO_FIRST_PASS_CACHE_TTL_SECONDS",
+        "_AIOFirstPassCacheEntry",
+        "_AIO_FIRST_PASS_CACHE",
+        "_AIO_FIRST_PASS_CACHE_ORDER",
+        "_aio_cache_pair_size_bytes",
+        "_aio_first_pass_cache_now",
+        "_clone_aio_cache_value"
+      ]
+    }
+  ],
+  "decisions": {
+    "behavior_authority": "Issue #169 and its direct cache, benchmark, first-pass stage, legacy generation, and live integration evidence remain authoritative; E-08 changes ownership only.",
+    "caller_boundary": "The canonical first-pass stage already receives get/put callables through FirstPassRuntime, so E-08 does not redesign stage execution or make feature code import RuntimeServices.",
+    "generic_cache_lock_port": "rejected",
+    "policy_boundary": "Count, total-byte, single-entry, and absolute-TTL constants plus immutable entry/key/clone/size helpers are policy or behavior, not separate mutable runtime owners.",
+    "resource_partition": "Entries, LRU order, enabled state, mutation generation, metrics, and their RLock form one AiO-specific owner because get, put, clear, disable, stale-capture rejection, and metric publication share one mutation invariant.",
+    "root_compatibility": "The seven root private identities remain direct canonical aliases. Replacement mapping/order and policy/clock/helper tests require an equivalent call-time or isolated-owner injection seam before raw globals move.",
+    "runtime_composition": "After the owner Move, bootstrap installs the exact default owner behind one feature-specific narrow RuntimeServices capability without adding a feature-to-runtime back-reference."
+  },
+  "import_direction": {
+    "feature_modules": [
+      "easyuse_anima/aio/first_pass_cache.py",
+      "easyuse_anima/aio/generation_first_pass.py",
+      "easyuse_anima/aio/legacy_generation.py"
+    ],
+    "forbidden_imports": [
+      "bootstrap",
+      "easyuse_anima.bootstrap",
+      "easyuse_anima.runtime",
+      "nodes",
+      "runtime"
+    ]
+  },
+  "move_queue": [
+    {
+      "classification": "Contract",
+      "goal": "Freeze current mutable state, behavior authorities, caller and compatibility seams, one target owner, cleanup, and bounded Move order.",
+      "id": "E-08a",
+      "name": "AiO first-pass cache ownership contract",
+      "status": "complete"
+    },
+    {
+      "classification": "Move",
+      "goal": "Move entries, LRU order, enabled state, generation, metrics, and RLock behind one feature-private default owner while preserving all cache policy and concurrency behavior.",
+      "id": "E-08b",
+      "name": "AiO first-pass cache mutable owner",
+      "status": "queued"
+    },
+    {
+      "classification": "Move",
+      "goal": "Compose the exact default owner behind one feature-specific narrow RuntimeServices capability without changing the canonical FirstPassRuntime caller path.",
+      "id": "E-08c",
+      "name": "AiO first-pass cache bootstrap composition",
+      "status": "queued"
+    },
+    {
+      "classification": "Contract",
+      "goal": "Reconcile E-01, cleanup, import direction, root identities, runtime composition, and zero ambiguous AiO cache state before E-09.",
+      "id": "E-08d",
+      "name": "AiO first-pass cache ownership completion audit",
+      "status": "queued"
+    }
+  ],
+  "owners": [
+    {
+      "cleanup": {
+        "current": "_clear_aio_first_pass_cache advances generation and clears entries/order while preserving enabled state and metrics; disable clears entries/order and invalidates stale capture; metrics reset changes metrics only.",
+        "target": "The default owner preserves the same independent clear, enable transition, and metrics-reset dispositions; whole-runtime reverse close and partial-failure ordering remain E-09."
+      },
+      "components": [
+        {
+          "module": "easyuse_anima/aio/first_pass_cache.py",
+          "state_kind": "module",
+          "state_symbols": [
+            "_AIO_FIRST_PASS_CACHE",
+            "_AIO_FIRST_PASS_CACHE_ENABLED",
+            "_AIO_FIRST_PASS_CACHE_GENERATION",
+            "_AIO_FIRST_PASS_CACHE_LOCK",
+            "_AIO_FIRST_PASS_CACHE_METRICS",
+            "_AIO_FIRST_PASS_CACHE_ORDER"
+          ]
+        }
+      ],
+      "current_owner": "easyuse_anima.aio.first_pass_cache",
+      "e01_entries": [
+        "aio-first-pass-cache"
+      ],
+      "evidence": [
+        "tests/test_aio_first_pass_cache.py",
+        "tests/test_aio_first_pass_cache_benchmark.py",
+        "tests/test_aio_first_pass_stage.py",
+        "tests/test_aio_legacy_generation.py",
+        "tests/test_python_package_skeleton.py"
+      ],
+      "id": "aio-first-pass-cache",
+      "lifetime": "Process lifetime from canonical module import; entries are bounded by count, total bytes, single-entry bytes, and absolute TTL.",
+      "locking": "One RLock serializes enabled/generation/cache/order/metrics state. Expensive size estimation, capture, and checkout clone remain outside the lock, with generation rejecting stale publication.",
+      "module": "easyuse_anima/aio/first_pass_cache.py",
+      "policy_symbols": [
+        "AIO_FIRST_PASS_CACHE_MAX_BYTES",
+        "AIO_FIRST_PASS_CACHE_MAX_ENTRIES",
+        "AIO_FIRST_PASS_CACHE_MAX_ENTRY_BYTES",
+        "AIO_FIRST_PASS_CACHE_TTL_SECONDS"
+      ],
+      "preserved_behavior": [
+        "immutable cache-owned entry capture and mutable checkout clone preserve bidirectional mutation isolation",
+        "count, total-byte, single-entry, and 300-second absolute-TTL policy remain unchanged",
+        "resource path, size, and mtime_ns revisions remain opaque cache-key inputs",
+        "disabled and oversize work skips before clone where currently specified",
+        "get hit, miss, expiry, LRU refresh, overwrite, and oldest eviction remain atomic",
+        "clear or disable-reenable during capture invalidates stale publication without waiting for capture clone",
+        "clear does not wait for checkout clone and metrics retain their exact hit, miss, skip, and eviction meanings",
+        "legacy non-empty mapping entries remain readable and falsey entries remain misses",
+        "FirstPassRuntime cache hit avoids sampling while miss samples, decodes, optionally resizes, and best-effort stores",
+        "bounded benchmark clone counts, logical copy bytes, mutation isolation, latency, RSS, and 4K batch projections remain evidence"
+      ],
+      "state_symbols": [
+        "_AIO_FIRST_PASS_CACHE",
+        "_AIO_FIRST_PASS_CACHE_ENABLED",
+        "_AIO_FIRST_PASS_CACHE_GENERATION",
+        "_AIO_FIRST_PASS_CACHE_LOCK",
+        "_AIO_FIRST_PASS_CACHE_METRICS",
+        "_AIO_FIRST_PASS_CACHE_ORDER"
+      ],
+      "target_owner": "easyuse_anima.aio.first_pass_cache._DEFAULT_AIO_FIRST_PASS_CACHE",
+      "target_phase": "E-08b"
+    }
+  ],
+  "production_callers": [
+    {
+      "function": "_run_aio_generation_pipeline",
+      "kind": "function",
+      "module": "easyuse_anima/aio/legacy_generation.py",
+      "owner": "aio-first-pass-cache",
+      "uses": [
+        "AIOFirstPassStage",
+        "FirstPassRuntime",
+        "_aio_first_pass_cache_key",
+        "_get_aio_first_pass_cache",
+        "_put_aio_first_pass_cache"
+      ]
+    }
+  ],
+  "production_changes": 0,
+  "schema_version": 1,
+  "scope": "E-08 AiO first-pass cache process-state ownership, cleanup, callers, compatibility seams, and bounded Move order"
+}

@@ -32,6 +32,8 @@ Read only the sections needed by the active task.
      [`../architecture/python-runtime-e05-autocomplete-contract.md`](../architecture/python-runtime-e05-autocomplete-contract.md)
    - E-06 wildcard snapshot runtime ownership Contract:
      [`../architecture/python-runtime-e06-wildcard-contract.md`](../architecture/python-runtime-e06-wildcard-contract.md)
+   - E-08 AiO first-pass cache ownership Contract:
+     [`../architecture/python-runtime-e08-aio-cache-contract.md`](../architecture/python-runtime-e08-aio-cache-contract.md)
 5. Read [`codex-blocker-escalation.md`](codex-blocker-escalation.md) only after a
    documented hard stop or unresolved cross-owner failure. Ordinary implementation
    and test failures remain local task work.
@@ -54,21 +56,21 @@ ordinary `dev` roadmap work.
 
 - Released baseline: 0.6.2.
 - Active owner: Issue #187 for Phase E; Issue #186 retains D-14/shim decisions.
-- Reviewed code baseline before E-06c: E-06b / PR #548 at
-  `12e2d1d07cd1f9747cdf87d3e620943684f1e489`.
+- Reviewed code baseline before E-08a: E-06e / PR #551 at
+  `b84fba7ed976e0775f241c5ff4350b47e77ceac9`.
 - D-08u integrated exit audit is complete.
 - D-08v is not required; the audit found no remaining D-08 production Move.
 - D-14 readiness is audited: every root surface is retained and retirement/final
   freeze is blocked by production/lifecycle consumers, missing release windows, or
   insufficient consumer evidence.
-- E-01 through E-05 and E-06a through E-06c are complete. The next work is only a
-  separate #187 E-06d narrow wildcard RuntimeServices/bootstrap composition Move. The
-  #323 E-02a/E-07 bridge remains completed evidence, not authorization for unrelated
+- E-01 through E-07 and the production-free E-08a Contract are complete. The next
+  work is only a separate #187 E-08b AiO first-pass cache owner Move. The #323
+  E-02a/E-07 bridge remains completed evidence, not authorization for unrelated
   feature migration.
 - Completed #470 and the 0.6.1 Prompt Studio lane are behavior-contract references,
   not the active queue.
-- Do not remove root compatibility aliases or start E-06e, E-07 through E-10,
-  release, or Registry work from this entrypoint.
+- Do not remove root compatibility aliases or start E-08c through E-10, release, or
+  Registry work from this entrypoint.
 
 ## Completed D-08 composition audit surface
 
@@ -159,7 +161,7 @@ representative profile list/load/save/delete/rename/fix live smoke
 - A version marker is not a publish action.
 - Technical PRO review is for unresolved cross-boundary architecture choices,
   unavoidable cycles, or insufficient compatibility evidence—not routine failures.
-- D-14 readiness is recorded and authorizes no removal. E-06c installs the canonical
-  wildcard service/internal import direction and preserves root call-time seams; use
-  that evidence only to start the separate E-06d Move. Do not infer E-06e, E-09
-  cleanup, release publication, or Registry actions.
+- D-14 readiness is recorded and authorizes no removal. E-08a freezes the current
+  AiO first-pass cache state and compatibility boundary; use that evidence only to
+  start the separate E-08b owner Move. Do not infer E-08c, E-09 cleanup, release
+  publication, or Registry actions.

@@ -10,14 +10,14 @@ then only the active task section, owning Issue, direct source, and direct tests
 ## Active sequencing
 
 - Issue [#187](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/187)
-  owns Phase E. E-01 through E-05 and E-06a through E-06c are complete; the next
-  bounded unit is the separate E-06d narrow RuntimeServices/bootstrap composition Move.
+  owns Phase E. E-01 through E-07 and the E-08a Contract are complete; the next
+  bounded unit is the separate E-08b AiO first-pass cache owner Move.
   Issue #186 retains D-14/shim decisions.
 - [`backend-roadmap-resume-0.6.2.md`](backend-roadmap-resume-0.6.2.md)
   is the current execution source of truth. Read it before the older accumulated
   roadmap.
-- Reviewed code baseline before E-06c: E-06b / PR #548 at
-  `12e2d1d07cd1f9747cdf87d3e620943684f1e489`.
+- Reviewed code baseline before E-08a: E-06e / PR #551 at
+  `b84fba7ed976e0775f241c5ff4350b47e77ceac9`.
 - D-08 is complete and D-08v is not required.
 - D-14 readiness retains every root surface; retirement/final-freeze work is blocked.
 - E-01 inventory Contract:
@@ -36,16 +36,17 @@ then only the active task section, owning Issue, direct source, and direct tests
   [`python-runtime-e04-translation-contract.md`](python-runtime-e04-translation-contract.md).
 - Completed E-05 autocomplete runtime ownership Contract and audit:
   [`python-runtime-e05-autocomplete-contract.md`](python-runtime-e05-autocomplete-contract.md).
-- E-06 wildcard snapshot runtime ownership Contract and bounded Move queue:
+- Completed E-06 wildcard snapshot runtime ownership Contract and audit:
   [`python-runtime-e06-wildcard-contract.md`](python-runtime-e06-wildcard-contract.md).
-- First READY task after E-06c: a separate #187 E-06d narrow wildcard
-  RuntimeServices/bootstrap composition Move only.
+- E-08 AiO first-pass cache ownership Contract and bounded Move queue:
+  [`python-runtime-e08-aio-cache-contract.md`](python-runtime-e08-aio-cache-contract.md).
+- First READY task after E-08a: a separate #187 E-08b cache owner Move only.
 - Completed #470 and the #413/#414/#415 queue/live-UI lanes remain contract references,
   not active blockers.
 - Released code baseline: 0.6.2. Registry activation is external administration and
   does not block `dev`; do not republish or mutate the release.
 - Completed #409/#410/#411 and deferred #440/#441 do not alter the E-01 boundary.
-- E-06c authorizes only the separate E-06d Move. It does not authorize E-06e or later
+- E-08a authorizes only the separate E-08b Move. It does not authorize E-08c or later
   Phase E work, root removal, release, or Registry.
 
 ## Current code boundary
@@ -72,7 +73,7 @@ aliases or absorbing feature behavior.
 
 - [`backend-roadmap-resume-0.6.2.md`](backend-roadmap-resume-0.6.2.md):
   completed D-08 evidence, D-14 readiness verdict, completed Phase E units, and the
-  bounded E-06 handoff.
+  bounded E-08 handoff.
 - [`python-backend.md`](python-backend.md): target ownership and dependency direction.
   Its early implementation snapshot is historical where the active checkpoint differs.
 - [`python-backend-execution-roadmap.md`](python-backend-execution-roadmap.md):
@@ -96,6 +97,9 @@ aliases or absorbing feature behavior.
 - [`python-runtime-e06-wildcard-contract.md`](python-runtime-e06-wildcard-contract.md):
   wildcard snapshot LRU/single-flight ownership, compatibility seams, cleanup
   disposition, and bounded Move queue.
+- [`python-runtime-e08-aio-cache-contract.md`](python-runtime-e08-aio-cache-contract.md):
+  AiO first-pass cache state ownership, direct compatibility surfaces, cleanup
+  disposition, caller boundary, and bounded Move queue.
 - [`adr-001-modular-monolith.md`](adr-001-modular-monolith.md): feature-oriented modular
   monolith decision.
 - [`adr-002-compatibility-shims.md`](adr-002-compatibility-shims.md): shim lifecycle and
