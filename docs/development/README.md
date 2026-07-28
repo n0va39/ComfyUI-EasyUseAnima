@@ -39,15 +39,20 @@ ordinary `dev` roadmap work.
 ## Active state
 
 - Released baseline: 0.6.2.
-- Active owner: Issue #186.
-- Reviewed code baseline: D-08t / PR #524.
+- Active owner: Issue #187 for the next inventory Contract; Issue #186 retains
+  D-14/shim decisions.
+- Reviewed code baseline: D-08u / PR #525.
 - D-08u integrated exit audit is complete.
 - D-08v is not required; the audit found no remaining D-08 production Move.
-- Next work must be a separate D-14 readiness Contract after Issue #186 and the
-  compatibility-shim registry are reconciled.
+- D-14 readiness is audited: every root surface is retained and retirement/final
+  freeze is blocked by production/lifecycle consumers, missing release windows, or
+  insufficient consumer evidence.
+- Next work is only #187 E-01 global-state inventory. The #323 E-02a/E-07 bridge
+  remains completed evidence, not authorization for later feature migration.
 - Completed #470 and the 0.6.1 Prompt Studio lane are behavior-contract references,
   not the active queue.
-- Phase E does not start from the completed D-08 runbook.
+- Do not remove root aliases or start E-03 through E-10, release, or Registry work
+  from this entrypoint.
 
 ## Completed D-08 composition audit surface
 
@@ -138,6 +143,6 @@ representative profile list/load/save/delete/rename/fix live smoke
 - A version marker is not a publish action.
 - Technical PRO review is for unresolved cross-boundary architecture choices,
   unavoidable cycles, or insufficient compatibility evidence—not routine failures.
-- Start D-14 only as a separate readiness Contract after the Issue and shim-registry
-  reconciliation. Do not start Phase E, unrelated feature work, release publication,
-  or Registry actions from this entrypoint.
+- D-14 readiness is recorded and authorizes no removal. Start only #187 E-01
+  global-state inventory; do not expand it into feature lifecycle Moves, release
+  publication, or Registry actions.
