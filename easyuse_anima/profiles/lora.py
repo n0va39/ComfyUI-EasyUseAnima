@@ -6,7 +6,10 @@ import json
 import os
 from pathlib import Path
 
-from ..infrastructure.filesystem.atomic_json import AtomicJsonStore
+from ..infrastructure.filesystem.atomic_json import (
+    AtomicJsonStore,
+    create_atomic_json_store,
+)
 from ..infrastructure.filesystem.paths import USER_DATA_DIR
 from .contract import (
     PROFILE_KIND_LORA,
@@ -23,6 +26,7 @@ from .mutation import (
 )
 from .repository import (
     InvalidProfileDataError,
+    _ProfileRepository,
     _profile_list_item,
     _read_profile_json,
     _sanitize_profile_name,
@@ -31,6 +35,14 @@ from .repository import (
 
 LORA_PROFILE_DIR = USER_DATA_DIR / "profiles"
 MAX_LORA_PROFILES = 16
+
+
+def _current_lora_profile_repository() -> _ProfileRepository:
+    return _ProfileRepository(
+        profile_dir=LORA_PROFILE_DIR,
+        store_factory=create_atomic_json_store,
+        mutation_coordinator=PROFILE_MUTATION_COORDINATOR,
+    )
 
 
 def _sanitize_lora_profile_name(name: str) -> str:
@@ -124,11 +136,12 @@ def _normalize_lora_profile_payload(data: dict) -> dict:
 
 
 def _list_lora_profiles() -> list[dict]:
-    if not LORA_PROFILE_DIR.is_dir():
+    repository = _current_lora_profile_repository()
+    if not repository.profile_dir.is_dir():
         return []
     profiles = []
     for path in sorted(
-        LORA_PROFILE_DIR.glob("*.json"),
+        repository.profile_dir.glob("*.json"),
         key=lambda item: item.stem.lower(),
     ):
         if path.name == ".gitignore":
@@ -347,13 +360,14 @@ def _save_lora_profile(
     profile_id: str | None = None,
     revision: int | None = None,
 ) -> dict:
+    repository = _current_lora_profile_repository()
     safe_name = _sanitize_lora_profile_name(name)
     payload = _normalize_lora_profile_payload(data)
-    requested_path = _lora_profile_path(safe_name)
+    requested_path = _lora_profile_path(safe_name, repository.profile_dir)
     if overwrite:
         require_profile_precondition(profile_id, revision)
-    with PROFILE_MUTATION_COORDINATOR.locked(LORA_PROFILE_DIR):
-        existing = _find_lora_profile_path(safe_name)
+    with repository.locked():
+        existing = _find_lora_profile_path(safe_name, repository.profile_dir)
         if existing is not None and not overwrite:
             raise FileExistsError("Profile already exists")
         if existing is None and overwrite:
@@ -385,12 +399,13 @@ def _save_lora_profile(
                 )
         except ProfileContractError as exc:
             raise InvalidProfileDataError(str(exc)) from exc
-        AtomicJsonStore(path).write(document)
+        repository.store(path).write(document)
     return document
 
 
 def _load_lora_profile(name: str) -> dict:
-    path = _find_lora_profile_path(name)
+    repository = _current_lora_profile_repository()
+    path = _find_lora_profile_path(name, repository.profile_dir)
     if path is None or not path.is_file():
         raise FileNotFoundError("Profile not found")
     data = _read_profile_json(path)

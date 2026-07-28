@@ -50,9 +50,11 @@ filesystem factory.
 | LoRA profile | `LORA_PROFILE_DIR`, optional `profile_dir` helper arguments | per-call Comfy LoRA list/full-path lookup for repair |
 | AiO profile | `AIO_PROFILE_DIR`, optional `profile_dir` helper arguments | none |
 
-Future repositories receive explicit paths and a narrow store factory. Profile
-repositories additionally receive the shared directory coordinator. No feature
-repository receives the complete `RuntimeServices` object.
+Settings and profile repositories receive explicit paths and a narrow store factory.
+The private profile repository value additionally receives the shared directory
+coordinator. The LoRA and AiO builders resolve their current module directory, factory,
+and coordinator symbols on every call. No feature repository receives the complete
+`RuntimeServices` object.
 
 Dynamic Comfy `folder_paths` lookup stays late-bound in the owning feature. Moving it
 into a filesystem factory would mix host discovery with persistence mechanics and
@@ -118,10 +120,10 @@ constructor compatibility or introducing a dependency-injection framework.
 2. **E-03c Move — settings repository — complete:** a private per-call repository
    value now binds the current settings paths to the canonical store factory behind
    the existing functions and monkeypatch seams.
-3. **E-03d Move — profile repositories — READY:** add explicit LoRA/AiO directories, the
-   store factory, and shared profile coordinator behind current canonical functions
-   and root aliases.
-4. **E-03e Contract — completion audit:** reconcile E-01 ownership targets and prove
+3. **E-03d Move — profile repositories — complete:** a shared private per-call value
+   binds each current LoRA/AiO directory to the canonical store factory and shared
+   coordinator behind the existing canonical functions and root aliases.
+4. **E-03e Contract — completion audit — READY:** reconcile E-01 ownership targets and prove
    no repository/filesystem state remains ambiguously owned before E-04.
 
 Each Move is a separate rollback boundary. A Move may be split further when direct
@@ -135,9 +137,9 @@ bootstrap, RuntimeServices, persistence, schema, error, lock, response, or lifec
 behavior. Package/no-host and live evidence from the preceding runtime work remains
 valid.
 
-E-03c changes only private settings repository construction and its direct contract
-evidence. It does not authorize profile repository changes, E-04 or later work, root
-alias retirement, D-14 retirement, release, or Registry actions.
+E-03d changes only private profile repository construction and its direct contract
+evidence. It does not authorize the E-03e audit, E-04 or later work, root alias
+retirement, D-14 retirement, release, or Registry actions.
 
 The direct evidence leaves one owner for each boundary, so no material PRO review is
 required.
