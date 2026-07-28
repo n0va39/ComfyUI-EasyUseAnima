@@ -334,10 +334,10 @@
       "thread_safety": "One RLock protects executor creation, admission, Future identity, and close state."
     },
     {
-      "categories": ["capability", "clock", "runtime_config", "runtime_reference", "seed_reservation_service"],
+      "categories": ["capability", "clock", "runtime_config", "runtime_reference", "seed_reservation_service", "translation_port"],
       "cleanup": "No production uninstall/close; tests patch _RUNTIME_SERVICES.",
       "id": "runtime-services",
-      "lifetime": "One identity-installed RuntimeServices object for the process, including immutable config and a monotonic clock.",
+      "lifetime": "One identity-installed RuntimeServices object for the process, including immutable config, a monotonic clock, and the narrow translation service port.",
       "module": "easyuse_anima/runtime.py",
       "owner": "easyuse_anima.runtime.RuntimeServices",
       "symbols": ["RuntimeServices", "_RUNTIME_SERVICES"],
@@ -347,14 +347,14 @@
     },
     {
       "categories": ["cache", "lock", "service", "single_flight"],
-      "cleanup": "Cache.clear exists, but the module default service has no process reset/close.",
+      "cleanup": "PromptTranslationService.close idempotently clears its owned cache; flights self-remove after the last user settles; E-09 owns whole-runtime close ordering.",
       "id": "translation-default-service",
-      "lifetime": "Created at translation service import and reused by node and API callbacks.",
+      "lifetime": "Bootstrap composes one process service from the runtime clock; RuntimeServices owns it and the service facade retains the same identity for node/API callbacks.",
       "module": "easyuse_anima/translation/service.py",
-      "owner": "easyuse_anima.translation.service._DEFAULT_TRANSLATION_SERVICE",
+      "owner": "easyuse_anima.runtime.RuntimeServices.translation",
       "symbols": ["_DEFAULT_TRANSLATION_SERVICE"],
-      "target_phase": "E-04c",
-      "test_evidence": ["tests/test_prompt_translation.py"],
+      "target_phase": "E-04c-complete",
+      "test_evidence": ["tests/test_prompt_translation.py", "tests/test_runtime_services.py"],
       "thread_safety": "Separate RLocks protect bounded cache and per-key single-flight registry."
     },
     {

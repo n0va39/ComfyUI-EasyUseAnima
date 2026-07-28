@@ -23,6 +23,14 @@ class FakeClock:
         return 0.0
 
 
+class FakeTranslationService:
+    def translate_prompt(self, text, settings=None):
+        return str(text or "")
+
+    def close(self) -> None:
+        return None
+
+
 class FakeComfyHostProvider:
     def __init__(
         self,
@@ -108,7 +116,7 @@ def _runtime_module_for(root_module):
 def _runtime_support(runtime_module):
     installed = runtime_module._RUNTIME_SERVICES
     if installed is not None:
-        return installed.config, installed.clock
+        return installed.config, installed.clock, installed.translation
     return (
         runtime_module.RuntimeConfig(
             package_root=Path("package-root"),
@@ -116,18 +124,20 @@ def _runtime_support(runtime_module):
             user_data_dir=Path("user-data"),
         ),
         FakeClock(),
+        FakeTranslationService(),
     )
 
 
 @contextmanager
 def use_fake_comfy_host(root_module, provider):
     runtime_module = _runtime_module_for(root_module)
-    config, clock = _runtime_support(runtime_module)
+    config, clock, translation = _runtime_support(runtime_module)
     runtime = runtime_module.RuntimeServices(
         comfy=provider,
         seed_reservations=FakeSeedReservationService(),
         config=config,
         clock=clock,
+        translation=translation,
     )
     with patch.object(runtime_module, "_RUNTIME_SERVICES", runtime):
         yield provider
@@ -157,12 +167,13 @@ def patch_comfy_helper(
         else FakeComfyHostProvider()
     )
     provider = _LayeredFakeComfyHostProvider(base, symbol, replacement)
-    config, clock = _runtime_support(runtime_module)
+    config, clock, translation = _runtime_support(runtime_module)
     runtime = runtime_module.RuntimeServices(
         comfy=provider,
         seed_reservations=FakeSeedReservationService(),
         config=config,
         clock=clock,
+        translation=translation,
     )
     with patch.object(runtime_module, "_RUNTIME_SERVICES", runtime):
         yield replacement

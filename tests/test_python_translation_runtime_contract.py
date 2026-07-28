@@ -178,14 +178,14 @@ class PythonTranslationRuntimeContractTests(unittest.TestCase):
         )
         self.assertEqual(self.fixture["schema_version"], 1)
         self.assertEqual(self.fixture["classification"], "Contract")
-        self.assertEqual(self.fixture["production_changes"], 2)
+        self.assertEqual(self.fixture["production_changes"], 6)
         self.assertEqual(
             [move["id"] for move in self.fixture["move_queue"]],
             ["E-04a", "E-04b", "E-04c", "E-04d", "E-04e"],
         )
         self.assertEqual(
             [move["status"] for move in self.fixture["move_queue"]],
-            ["complete", "complete", "ready", "pending", "pending"],
+            ["complete", "complete", "complete", "ready", "pending"],
         )
         self.assertEqual(
             [move["classification"] for move in self.fixture["move_queue"]],
@@ -280,7 +280,7 @@ class PythonTranslationRuntimeContractTests(unittest.TestCase):
                 "BoundedTranslationCache",
             ),
         )
-        self.assertNotIn(
+        self.assertIn(
             "close",
             _class_methods(
                 "easyuse_anima/translation/service.py",
@@ -379,7 +379,33 @@ class PythonTranslationRuntimeContractTests(unittest.TestCase):
         }
         self.assertEqual(
             runtime_fields,
-            {"clock", "comfy", "config", "seed_reservations"},
+            {
+                "clock",
+                "comfy",
+                "config",
+                "seed_reservations",
+                "translation",
+            },
+        )
+        self.assertEqual(
+            _class_methods(
+                "easyuse_anima/translation/ports.py",
+                "PromptTranslationPort",
+            ),
+            {"close", "translate_prompt"},
+        )
+        bootstrap_references = _function_references(
+            "easyuse_anima/bootstrap.py",
+            "initialize",
+        )
+        self.assertTrue(
+            {
+                "BoundedTranslationCache",
+                "PromptTranslationService",
+                "RuntimeServices",
+                "_install_default_translation_service",
+            }
+            <= bootstrap_references
         )
         self.assertEqual(
             self.fixture["decisions"]["generic_executor_client_port"],

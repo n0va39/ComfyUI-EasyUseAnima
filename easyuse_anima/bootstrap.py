@@ -48,6 +48,11 @@ from .api.routes.wildcards import (
 from .infrastructure.comfy.provider import DefaultComfyHostProvider
 from .runtime import RuntimeConfig, RuntimeServices, install_runtime
 from .seed.service import InMemorySeedReservationService
+from .translation.service import (
+    BoundedTranslationCache,
+    PromptTranslationService,
+    _install_default_translation_service,
+)
 
 _LOGGER = logging.getLogger("ComfyUI-EasyUseAnima")
 _INITIALIZE_LOCK = threading.Lock()
@@ -201,16 +206,24 @@ def initialize(
     with _INITIALIZE_LOCK:
         runtime = _DEFAULT_RUNTIME
         if runtime is None:
+            clock = _SystemClock()
             runtime = RuntimeServices(
                 comfy=DefaultComfyHostProvider(load_comfy_nodes),
                 seed_reservations=InMemorySeedReservationService(),
                 config=_load_runtime_config(),
-                clock=_SystemClock(),
+                clock=clock,
+                translation=PromptTranslationService(
+                    cache=BoundedTranslationCache(
+                        time_func=clock.monotonic,
+                    )
+                ),
             )
             install_runtime(runtime)
+            _install_default_translation_service(runtime.translation)
             _DEFAULT_RUNTIME = runtime
         else:
             install_runtime(runtime)
+            _install_default_translation_service(runtime.translation)
         register_routes()
         if _WILDCARDS_INITIALIZED:
             return

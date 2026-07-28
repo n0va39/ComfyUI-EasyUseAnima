@@ -17404,6 +17404,60 @@
       },
       {
         "alias": null,
+        "bound_name": "BoundedTranslationCache",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".translation.service:BoundedTranslationCache",
+        "kind": "static_from",
+        "line": 51,
+        "name": "BoundedTranslationCache",
+        "optional": false,
+        "requested": ".translation.service",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/bootstrap.py",
+        "target": "easyuse_anima/translation/service.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "PromptTranslationService",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".translation.service:PromptTranslationService",
+        "kind": "static_from",
+        "line": 51,
+        "name": "PromptTranslationService",
+        "optional": false,
+        "requested": ".translation.service",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/bootstrap.py",
+        "target": "easyuse_anima/translation/service.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "_install_default_translation_service",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".translation.service:_install_default_translation_service",
+        "kind": "static_from",
+        "line": 51,
+        "name": "_install_default_translation_service",
+        "optional": false,
+        "requested": ".translation.service",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/bootstrap.py",
+        "target": "easyuse_anima/translation/service.py"
+      },
+      {
+        "alias": null,
         "bound_name": "PACKAGE_DATA_DIR",
         "branch_context": [],
         "classification": "internal",
@@ -17411,7 +17465,7 @@
         "conditional": false,
         "imported": ".infrastructure.filesystem.paths:PACKAGE_DATA_DIR",
         "kind": "static_from",
-        "line": 66,
+        "line": 71,
         "name": "PACKAGE_DATA_DIR",
         "optional": false,
         "requested": ".infrastructure.filesystem.paths",
@@ -17429,7 +17483,7 @@
         "conditional": false,
         "imported": ".infrastructure.filesystem.paths:PACKAGE_ROOT",
         "kind": "static_from",
-        "line": 66,
+        "line": 71,
         "name": "PACKAGE_ROOT",
         "optional": false,
         "requested": ".infrastructure.filesystem.paths",
@@ -17447,7 +17501,7 @@
         "conditional": false,
         "imported": ".infrastructure.filesystem.paths:USER_DATA_DIR",
         "kind": "static_from",
-        "line": 66,
+        "line": 71,
         "name": "USER_DATA_DIR",
         "optional": false,
         "requested": ".infrastructure.filesystem.paths",
@@ -30037,6 +30091,24 @@
         "target": "easyuse_anima/seed/reservation.py"
       },
       {
+        "alias": null,
+        "bound_name": "PromptTranslationPort",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".translation.ports:PromptTranslationPort",
+        "kind": "static_from",
+        "line": 11,
+        "name": "PromptTranslationPort",
+        "optional": false,
+        "requested": ".translation.ports",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/runtime.py",
+        "target": "easyuse_anima/translation/ports.py"
+      },
+      {
         "alias": "_execution_identity",
         "bound_name": "_execution_identity",
         "branch_context": [],
@@ -31823,6 +31895,58 @@
         "requested": "__future__",
         "role": "ordinary",
         "scope": "<module>",
+        "source": "easyuse_anima/translation/ports.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "Protocol",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "typing:Protocol",
+        "kind": "static_from",
+        "line": 5,
+        "name": "Protocol",
+        "optional": false,
+        "requested": "typing",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/translation/ports.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "PromptTranslationSettings",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".contracts:PromptTranslationSettings",
+        "kind": "static_from",
+        "line": 7,
+        "name": "PromptTranslationSettings",
+        "optional": false,
+        "requested": ".contracts",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/translation/ports.py",
+        "target": "easyuse_anima/translation/contracts.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "annotations",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "__future__:annotations",
+        "kind": "static_from",
+        "line": 3,
+        "name": "annotations",
+        "optional": false,
+        "requested": "__future__",
+        "role": "ordinary",
+        "scope": "<module>",
         "source": "easyuse_anima/translation/provider_registry.py"
       },
       {
@@ -32611,6 +32735,24 @@
       },
       {
         "alias": null,
+        "bound_name": "PromptTranslationPort",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".ports:PromptTranslationPort",
+        "kind": "static_from",
+        "line": 32,
+        "name": "PromptTranslationPort",
+        "optional": false,
+        "requested": ".ports",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/translation/service.py",
+        "target": "easyuse_anima/translation/ports.py"
+      },
+      {
+        "alias": null,
         "bound_name": "_TranslationProviderRegistry",
         "branch_context": [],
         "classification": "internal",
@@ -32618,7 +32760,7 @@
         "conditional": false,
         "imported": ".provider_registry:_TranslationProviderRegistry",
         "kind": "static_from",
-        "line": 32,
+        "line": 33,
         "name": "_TranslationProviderRegistry",
         "optional": false,
         "requested": ".provider_registry",
@@ -32636,7 +32778,7 @@
         "conditional": false,
         "imported": ".providers.google:GoogleTranslationProvider",
         "kind": "static_from",
-        "line": 33,
+        "line": 34,
         "name": "GoogleTranslationProvider",
         "optional": false,
         "requested": ".providers.google",
@@ -64955,6 +65097,10 @@
         "to": "easyuse_anima/seed/service.py"
       },
       {
+        "from": "easyuse_anima/bootstrap.py",
+        "to": "easyuse_anima/translation/service.py"
+      },
+      {
         "from": "easyuse_anima/image/detailer.py",
         "to": "easyuse_anima/image/geometry.py"
       },
@@ -65635,6 +65781,10 @@
         "to": "easyuse_anima/seed/reservation.py"
       },
       {
+        "from": "easyuse_anima/runtime.py",
+        "to": "easyuse_anima/translation/ports.py"
+      },
+      {
         "from": "easyuse_anima/seed/__init__.py",
         "to": "easyuse_anima/seed/execution_identity.py"
       },
@@ -65691,6 +65841,10 @@
         "to": "easyuse_anima/translation/contracts.py"
       },
       {
+        "from": "easyuse_anima/translation/ports.py",
+        "to": "easyuse_anima/translation/contracts.py"
+      },
+      {
         "from": "easyuse_anima/translation/provider_registry.py",
         "to": "easyuse_anima/translation/contracts.py"
       },
@@ -65705,6 +65859,10 @@
       {
         "from": "easyuse_anima/translation/service.py",
         "to": "easyuse_anima/translation/markers.py"
+      },
+      {
+        "from": "easyuse_anima/translation/service.py",
+        "to": "easyuse_anima/translation/ports.py"
       },
       {
         "from": "easyuse_anima/translation/service.py",
@@ -66966,6 +67124,12 @@
       {
         "cyclic": false,
         "modules": [
+          "easyuse_anima/translation/ports.py"
+        ]
+      },
+      {
+        "cyclic": false,
+        "modules": [
           "easyuse_anima/translation/provider_registry.py"
         ]
       },
@@ -67080,7 +67244,7 @@
     ]
   },
   "inventory": {
-    "module_count": 167,
+    "module_count": 168,
     "modules": [
       {
         "is_package": true,
@@ -67960,9 +68124,9 @@
       },
       {
         "is_package": false,
-        "loc": 228,
+        "loc": 241,
         "module": "easyuse_anima.bootstrap",
-        "normalized_git_blob_sha1": "7d15b126b7dfc806532cd4d070e475e716dc576a",
+        "normalized_git_blob_sha1": "6d041b84fc0c79afbc946d06f5e71d51d0c38244",
         "path": "easyuse_anima/bootstrap.py",
         "top_level": {
           "class_count": 1,
@@ -68692,9 +68856,9 @@
       },
       {
         "is_package": false,
-        "loc": 79,
+        "loc": 81,
         "module": "easyuse_anima.runtime",
-        "normalized_git_blob_sha1": "33fac86f2b5b7fe09d52174a8e4ff2cdc097c973",
+        "normalized_git_blob_sha1": "b9339ce39a4456304dbad7236eeca07bb4ed2a8a",
         "path": "easyuse_anima/runtime.py",
         "top_level": {
           "class_count": 4,
@@ -68860,6 +69024,18 @@
       },
       {
         "is_package": false,
+        "loc": 20,
+        "module": "easyuse_anima.translation.ports",
+        "normalized_git_blob_sha1": "b78b04177af52a2cccd7dcce0710356996b57454",
+        "path": "easyuse_anima/translation/ports.py",
+        "top_level": {
+          "class_count": 1,
+          "function_count": 0,
+          "global_count": 1
+        }
+      },
+      {
+        "is_package": false,
         "loc": 43,
         "module": "easyuse_anima.translation.provider_registry",
         "normalized_git_blob_sha1": "5e5f379283fb2ccb75c7bd3699169ee65667459c",
@@ -68896,13 +69072,13 @@
       },
       {
         "is_package": false,
-        "loc": 330,
+        "loc": 344,
         "module": "easyuse_anima.translation.service",
-        "normalized_git_blob_sha1": "b3d93820b03ec4210ef69815bfc008d91417d6d7",
+        "normalized_git_blob_sha1": "3407db664c5d78d5d707c89b69432524ffb8ac43",
         "path": "easyuse_anima/translation/service.py",
         "top_level": {
           "class_count": 3,
-          "function_count": 5,
+          "function_count": 6,
           "global_count": 4
         }
       },
@@ -87831,6 +88007,28 @@
         "line": 3,
         "optional": false,
         "role": "ordinary",
+        "source": "easyuse_anima/translation/ports.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "typing:Protocol",
+        "kind": "static_from",
+        "line": 5,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/translation/ports.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "__future__:annotations",
+        "kind": "static_from",
+        "line": 3,
+        "optional": false,
+        "role": "ordinary",
         "source": "easyuse_anima/translation/provider_registry.py"
       },
       {
@@ -89669,6 +89867,7 @@
       "easyuse_anima/translation/__init__.py",
       "easyuse_anima/translation/contracts.py",
       "easyuse_anima/translation/markers.py",
+      "easyuse_anima/translation/ports.py",
       "easyuse_anima/translation/provider_registry.py",
       "easyuse_anima/translation/providers/__init__.py",
       "easyuse_anima/translation/providers/google.py",
@@ -89838,6 +90037,7 @@
       "easyuse_anima/translation/__init__.py",
       "easyuse_anima/translation/contracts.py",
       "easyuse_anima/translation/markers.py",
+      "easyuse_anima/translation/ports.py",
       "easyuse_anima/translation/provider_registry.py",
       "easyuse_anima/translation/providers/__init__.py",
       "easyuse_anima/translation/providers/google.py",
@@ -91074,7 +91274,7 @@
         "column": 10,
         "context": "assign:_LOGGER",
         "kind": "import_time_call",
-        "line": 52,
+        "line": 57,
         "module": "easyuse_anima/bootstrap.py",
         "scope": "<module>"
       },
@@ -91083,7 +91283,7 @@
         "column": 19,
         "context": "assign:_INITIALIZE_LOCK",
         "kind": "import_time_call",
-        "line": 53,
+        "line": 58,
         "module": "easyuse_anima/bootstrap.py",
         "scope": "<module>"
       },
@@ -91542,7 +91742,7 @@
         "column": 1,
         "context": "decorator:RuntimeConfig",
         "kind": "import_time_call",
-        "line": 13,
+        "line": 14,
         "module": "easyuse_anima/runtime.py",
         "scope": "<module>"
       },
@@ -91551,7 +91751,7 @@
         "column": 1,
         "context": "decorator:RuntimeServices",
         "kind": "import_time_call",
-        "line": 34,
+        "line": 35,
         "module": "easyuse_anima/runtime.py",
         "scope": "<module>"
       },
@@ -91686,7 +91886,7 @@
         "column": 41,
         "context": "assign:_DEFAULT_TRANSLATION_PROVIDER_REGISTRY",
         "kind": "import_time_call",
-        "line": 35,
+        "line": 36,
         "module": "easyuse_anima/translation/service.py",
         "scope": "<module>"
       },
@@ -91695,16 +91895,16 @@
         "column": 14,
         "context": "assign:_CACHE_MISS",
         "kind": "import_time_call",
-        "line": 88,
+        "line": 89,
         "module": "easyuse_anima/translation/service.py",
         "scope": "<module>"
       },
       {
         "callee": "PromptTranslationService",
-        "column": 31,
+        "column": 4,
         "context": "assign:_DEFAULT_TRANSLATION_SERVICE",
         "kind": "import_time_call",
-        "line": 302,
+        "line": 307,
         "module": "easyuse_anima/translation/service.py",
         "scope": "<module>"
       },
@@ -92068,7 +92268,7 @@
       },
       {
         "kind": "list",
-        "line": 228,
+        "line": 241,
         "module": "easyuse_anima/bootstrap.py",
         "name": "__all__"
       },
@@ -92458,7 +92658,7 @@
           "lock"
         ],
         "initializer": "threading.Lock",
-        "line": 53,
+        "line": 58,
         "module": "easyuse_anima/bootstrap.py",
         "name": "_INITIALIZE_LOCK"
       },

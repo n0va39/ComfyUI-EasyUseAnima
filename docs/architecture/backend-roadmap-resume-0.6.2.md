@@ -2,16 +2,16 @@
 
 ## Status and authority
 
-- Status: D-08, E-01, E-02, E-03, E-04a, and E-04b are
+- Status: D-08, E-01, E-02, E-03, and E-04a through E-04c are
   completed; the D-14 readiness audit retains every root surface and blocks
   retirement/final-freeze work.
-- Code-review base before E-04b:
-  `dev@77c7db822b2be2649f89eef249add95a9b110ef3` after E-04a / PR #537.
-- Document baseline: completed E-04b provider registry/client ownership Move.
+- Code-review base before E-04c:
+  `dev@738747105a75801597054088b68860ee43e5eef1` after E-04b / PR #538.
+- Document baseline: completed E-04c default translation service/cache composition.
 - Released baseline: 0.6.2.
 - Scope: completed D-08 evidence, the D-14 readiness decision, completed #187
-  E-01/E-02/E-03/E-04 work, and the next bounded E-04c default service/cache
-  composition Move.
+  E-01/E-02/E-03/E-04 work, and the next bounded E-04d route executor/bootstrap
+  lifecycle Move.
 - This document owns the current immediate queue and supersedes the stale queue and
   broad preflight command in `python-backend-execution-roadmap.md`.
 - `python-backend.md`, ADR-001, ADR-002, and the compatibility-shim registry still own
@@ -284,9 +284,12 @@ The D-08u audit found no required D-08v. After D-08:
 16. E-04b moves provider factories, lazy instances, and registry locking behind one
     private registry while retaining a call-time default seam and unchanged lazy
     optional client behavior; and
-17. never remove root files merely to make the directory tree appear complete.
+17. E-04c composes one runtime-owned translation port from the process clock, bounded
+    cache, and per-key single-flight service while preserving the canonical facade;
+    and
+18. never remove root files merely to make the directory tree appear complete.
 
-## 6. E-01/E-02/E-03/E-04b result and Codex resume instruction
+## 6. E-01/E-02/E-03/E-04c result and Codex resume instruction
 
 ```text
 D-08 is complete. Do not restart D-08t or create D-08v without new contrary
@@ -343,8 +346,13 @@ private translation provider registry. The canonical public facade resolves the
 current default registry on every call. Optional import, provider/client reuse,
 timeouts, errors, and public/root identities are unchanged.
 
-Start only #187 E-04c from latest origin/dev. Compose the process default translation
-service with its bounded cache and per-key single-flight owner through the narrow
-contract fixed by E-04a. Do not start E-04d through E-10, D-14 retirement, release,
-or Registry work inside E-04c.
+E-04c adds a translation-owned narrow port to RuntimeServices. Bootstrap composes the
+process clock, bounded cache, and service, and installs the same service identity
+behind the canonical call-time facade. Service close clears only its cache;
+provider/client cleanup and whole-runtime close ordering remain separate.
+
+Start only #187 E-04d from latest origin/dev. Move route executor construction and
+lifecycle registration from the root API facade into bootstrap-owned composition
+while preserving every dynamic root seam. Do not start E-04e through E-10, D-14
+retirement, release, or Registry work inside E-04d.
 ```
