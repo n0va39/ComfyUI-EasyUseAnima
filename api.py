@@ -77,15 +77,12 @@ from .easyuse_anima.api.router import (
 )
 from .easyuse_anima.bootstrap import (
     build_settings_route_group as _build_settings_route_group,
+    build_wildcard_autocomplete_route_group as _build_wildcard_autocomplete_route_group,
 )
 from .easyuse_anima.api.routes.aio_profile_mutations import (
     build_aio_profile_mutation_handlers as _build_aio_profile_mutation_handlers,
 )
 from .easyuse_anima.api.routes import autocomplete as _api_autocomplete_routes
-from .easyuse_anima.api.routes.autocomplete import (
-    build_autocomplete_handlers as _build_autocomplete_handlers,
-    build_classify_prompt_handler as _build_classify_prompt_handler,
-)
 from .easyuse_anima.api.routes import long_text_settings as _api_long_text_routes
 from .easyuse_anima.api.routes.lora_catalog import (
     build_loras_handler as _build_loras_handler,
@@ -108,9 +105,6 @@ from .easyuse_anima.api.routes.profile_saves import (
 )
 from .easyuse_anima.api.routes import settings as _api_settings_routes
 from .easyuse_anima.api.routes import wildcards as _api_wildcard_routes
-from .easyuse_anima.api.routes.wildcards import (
-    build_wildcards_handler as _build_wildcards_handler,
-)
 from .easyuse_anima.api.routes import translation as _api_translation_routes
 from .easyuse_anima.api.routes.translation import (
     build_translate_prompt_handler as _build_translate_prompt_handler,
@@ -392,46 +386,42 @@ if web is not None:
         },
     )
 
-    get_wildcards_handler = _request_correlated(
-        _build_wildcards_handler(
-            run_file_io=lambda function, *args: _run_file_io(function, *args),
-            wildcards_payload=lambda: _wildcards_payload_sync(),
-            json_response=lambda payload: web.json_response(payload),
-        )
-    )
-
     (
+        get_wildcards_handler,
         autocomplete_status_handler,
         autocomplete_handler,
-    ) = (
-        _request_correlated(handler)
-        for handler in _build_autocomplete_handlers(
-            run_file_io=lambda function, *args: _run_file_io(function, *args),
-            autocomplete_status_payload=lambda: _autocomplete_status_payload_sync(),
-            search_autocomplete_payload=lambda *args: _search_autocomplete_payload_sync(
+        classify_prompt_handler,
+    ) = _build_wildcard_autocomplete_route_group(
+        request_correlated=_request_correlated,
+        wildcards_dependencies={
+            "run_file_io": lambda function, *args: _run_file_io(function, *args),
+            "wildcards_payload": lambda: _wildcards_payload_sync(),
+            "json_response": lambda payload: web.json_response(payload),
+        },
+        autocomplete_dependencies={
+            "run_file_io": lambda function, *args: _run_file_io(function, *args),
+            "autocomplete_status_payload": lambda: _autocomplete_status_payload_sync(),
+            "search_autocomplete_payload": lambda *args: _search_autocomplete_payload_sync(
                 *args
             ),
-            json_response=lambda payload: web.json_response(payload),
-        )
-    )
-
-    classify_prompt_handler = _request_correlated(
-        _build_classify_prompt_handler(
-            parse_json_object=lambda request: parse_json_object(request),
-            json_string=lambda data, field: json_string(data, field),
-            json_integer=lambda data, field, **kwargs: json_integer(
+            "json_response": lambda payload: web.json_response(payload),
+        },
+        classify_prompt_dependencies={
+            "parse_json_object": lambda request: parse_json_object(request),
+            "json_string": lambda data, field: json_string(data, field),
+            "json_integer": lambda data, field, **kwargs: json_integer(
                 data,
                 field,
                 **kwargs,
             ),
-            contract_error_type=ApiContractError,
-            contract_error_response=lambda exc: _contract_error_response(exc),
-            run_file_io=lambda function, *args: _run_file_io(function, *args),
-            classify_prompt_payload=lambda *args: _classify_prompt_payload_sync(
+            "contract_error_type": ApiContractError,
+            "contract_error_response": lambda exc: _contract_error_response(exc),
+            "run_file_io": lambda function, *args: _run_file_io(function, *args),
+            "classify_prompt_payload": lambda *args: _classify_prompt_payload_sync(
                 *args
             ),
-            json_response=lambda payload: web.json_response(payload),
-        )
+            "json_response": lambda payload: web.json_response(payload),
+        },
     )
 
     translate_prompt_handler = _request_correlated(
