@@ -2,15 +2,16 @@
 
 ## Status and authority
 
-- Status: D-08, E-01, E-02, E-03a, and the E-03b filesystem factory Move are
+- Status: D-08, E-01, E-02, E-03a, E-03b, and the E-03c settings repository Move are
   completed; the D-14 readiness audit retains every root surface and blocks
   retirement/final-freeze work.
-- Code-review baseline: `dev@92704b22fddd3b1b98e3fa037007f7e4916297a4`
-  after E-03a / PR #532.
-- Document baseline: E-03b filesystem factory Move.
+- Code-review base: `dev@eb3773b95e52029e2d9891eee7f2cfce827b5f6a`
+  after E-03b / PR #533.
+- Document baseline: E-03c settings repository Move.
 - Released baseline: 0.6.2.
 - Scope: completed D-08 evidence, the D-14 readiness decision, completed #187
-  E-01/E-02/E-03a/E-03b work, and the next bounded E-03c settings Move.
+  E-01/E-02/E-03a/E-03b/E-03c work, and the next bounded E-03d profile repository
+  Move.
 - This document owns the current immediate queue and supersedes the stale queue and
   broad preflight command in `python-backend-execution-roadmap.md`.
 - `python-backend.md`, ADR-001, ADR-002, and the compatibility-shim registry still own
@@ -313,8 +314,8 @@ E-03b adds `create_atomic_json_store(path, *, backup=True)`. It delegates direct
 the canonical `AtomicJsonStore`, creates no state, preserves root `storage.py`, and
 proves direct/factory stores share one normalized-path lock.
 
-Start only #187 E-03c from latest origin/dev. Add explicit settings paths and the
-store factory behind the existing module functions and path monkeypatch seams. Do not
-start profile repository Moves, E-04 through E-10, release, or Registry work inside
-E-03c.
+Start only #187 E-03d from latest origin/dev. Add explicit LoRA/AiO profile
+directories, the canonical store factory, and the shared profile coordinator behind
+the existing canonical functions and root aliases. Do not start E-03e, E-04 through
+E-10, release, or Registry work inside E-03d.
 ```

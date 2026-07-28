@@ -4,10 +4,15 @@ from __future__ import annotations
 
 import json
 import os
+from collections.abc import Callable
+from dataclasses import dataclass
 from pathlib import Path
 from typing import cast
 
-from ..infrastructure.filesystem.atomic_json import AtomicJsonStore
+from ..infrastructure.filesystem.atomic_json import (
+    AtomicJsonStore,
+    create_atomic_json_store,
+)
 from ..infrastructure.filesystem.paths import USER_DATA_DIR
 from .schema import (
     COMFY_COLOR_SETTING_KEYS,
@@ -25,9 +30,33 @@ _COMFY_LOCALE_KEY = "Comfy.Locale"
 _KOREAN_AUTOCOMPLETE_SOURCE = "localsmile_kr_wiki"
 
 
+@dataclass(frozen=True, slots=True)
+class _SettingsRepository:
+    settings_file: Path
+    long_text_settings_file: Path
+    store_factory: Callable[..., AtomicJsonStore]
+
+    def store(
+        self,
+        path: Path,
+        *,
+        backup: bool | str | os.PathLike[str] = True,
+    ) -> AtomicJsonStore:
+        return self.store_factory(path, backup=backup)
+
+
+def _current_settings_repository() -> _SettingsRepository:
+    return _SettingsRepository(
+        settings_file=SETTINGS_FILE,
+        long_text_settings_file=LONG_TEXT_SETTINGS_FILE,
+        store_factory=create_atomic_json_store,
+    )
+
+
 def _read_json_file(path: Path) -> dict:
+    repository = _current_settings_repository()
     try:
-        data = AtomicJsonStore(path).read(default={})
+        data = repository.store(path).read(default={})
     except (OSError, json.JSONDecodeError):
         return {}
     return data if isinstance(data, dict) else {}
@@ -46,10 +75,14 @@ def _normalize_long_text_settings(data: dict) -> dict:
 
 
 def load_long_text_settings() -> dict:
-    return _normalize_long_text_settings(_read_json_file(LONG_TEXT_SETTINGS_FILE))
+    repository = _current_settings_repository()
+    return _normalize_long_text_settings(
+        _read_json_file(repository.long_text_settings_file)
+    )
 
 
 def save_long_text_settings(values: dict) -> dict:
+    repository = _current_settings_repository()
     if not isinstance(values, dict):
         values = {}
     updates = _normalize_long_text_settings(values)
@@ -68,7 +101,7 @@ def save_long_text_settings(values: dict) -> dict:
             },
         }
 
-    AtomicJsonStore(LONG_TEXT_SETTINGS_FILE).update(
+    repository.store(repository.long_text_settings_file).update(
         merge,
         default={},
         trailing_newline=True,
@@ -141,8 +174,9 @@ def _initialize_autocomplete_source(data: dict, comfy_settings: dict) -> dict:
         current[_AUTOCOMPLETE_SOURCE_KEY] = source
         return current
 
+    repository = _current_settings_repository()
     try:
-        persisted = AtomicJsonStore(SETTINGS_FILE).update(
+        persisted = repository.store(repository.settings_file).update(
             merge,
             default={},
             trailing_newline=True,
@@ -214,7 +248,8 @@ def _apply_long_text_settings(settings: dict) -> dict:
 
 
 def get_settings() -> dict:
-    data = _read_json_file(SETTINGS_FILE)
+    repository = _current_settings_repository()
+    data = _read_json_file(repository.settings_file)
     comfy_settings = _load_comfy_settings()
     data = _initialize_autocomplete_source(data, comfy_settings)
     settings = dict(DEFAULT_SETTINGS)
@@ -230,7 +265,8 @@ def get_settings() -> dict:
 def save_setting(key: str, value) -> dict:
     if key not in DEFAULT_SETTINGS:
         raise KeyError(f"Unknown setting: {key}")
-    store = AtomicJsonStore(SETTINGS_FILE)
+    repository = _current_settings_repository()
+    store = repository.store(repository.settings_file)
     with store.locked():
         settings = get_settings()
         settings[key] = _stringify_setting_value(value)
