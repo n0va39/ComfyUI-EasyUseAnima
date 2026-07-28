@@ -128,6 +128,18 @@ def _called(function: ast.FunctionDef | ast.AsyncFunctionDef) -> set[str]:
     return called
 
 
+def _self_attributes(
+    function: ast.FunctionDef | ast.AsyncFunctionDef,
+) -> set[str]:
+    return {
+        node.attr
+        for node in ast.walk(function)
+        if isinstance(node, ast.Attribute)
+        and isinstance(node.value, ast.Name)
+        and node.value.id == "self"
+    }
+
+
 def _assignment_value(module: str, assigned_name: str) -> ast.expr:
     for statement in _tree(module).body:
         if not isinstance(statement, (ast.Assign, ast.AnnAssign)):
@@ -202,7 +214,7 @@ class PythonAIOFirstPassCacheContractTests(unittest.TestCase):
         )
         self.assertEqual(self.fixture["schema_version"], 1)
         self.assertEqual(self.fixture["classification"], "Contract")
-        self.assertEqual(self.fixture["production_changes"], 0)
+        self.assertEqual(self.fixture["production_changes"], 1)
         self.assertEqual(
             [move["id"] for move in self.fixture["move_queue"]],
             ["E-08a", "E-08b", "E-08c", "E-08d"],
@@ -213,7 +225,7 @@ class PythonAIOFirstPassCacheContractTests(unittest.TestCase):
         )
         self.assertEqual(
             [move["status"] for move in self.fixture["move_queue"]],
-            ["complete", "queued", "queued", "queued"],
+            ["complete", "complete", "queued", "queued"],
         )
         self.assertEqual(
             [owner["id"] for owner in self.fixture["owners"]],
@@ -231,9 +243,9 @@ class PythonAIOFirstPassCacheContractTests(unittest.TestCase):
         entry = entries["aio-first-pass-cache"]
         self.assertEqual(entry["module"], owner["module"])
         self.assertEqual(entry["owner"], owner["current_owner"])
-        self.assertEqual(entry["target_phase"], "E-08")
+        self.assertEqual(entry["target_phase"], "E-08b-complete")
         self.assertEqual(set(entry["symbols"]), set(owner["state_symbols"]))
-        self.assertEqual(owner["target_phase"], "E-08b")
+        self.assertEqual(owner["target_phase"], "E-08b-complete")
         self.assertEqual(
             owner["target_owner"],
             "easyuse_anima.aio.first_pass_cache._DEFAULT_AIO_FIRST_PASS_CACHE",
@@ -243,48 +255,117 @@ class PythonAIOFirstPassCacheContractTests(unittest.TestCase):
             "rejected",
         )
 
-    def test_current_raw_state_shares_one_cache_specific_lock(self):
+    def test_default_owner_holds_all_cache_specific_mutable_state(self):
         module = "easyuse_anima/aio/first_pass_cache.py"
         owner = self.fixture["owners"][0]
         bindings = _top_level_bindings(module)
         self.assertEqual(set(owner["state_symbols"]) - bindings, set())
         self.assertEqual(set(owner["policy_symbols"]) - bindings, set())
         self.assertEqual(
-            _assignment_call(module, "_AIO_FIRST_PASS_CACHE_LOCK"),
-            "RLock",
+            _assignment_call(module, "_DEFAULT_AIO_FIRST_PASS_CACHE"),
+            "_AIOFirstPassCacheStore",
         )
-        self.assertIsInstance(
-            _assignment_value(module, "_AIO_FIRST_PASS_CACHE"),
-            ast.Dict,
-        )
-        self.assertIsInstance(
-            _assignment_value(module, "_AIO_FIRST_PASS_CACHE_ORDER"),
-            ast.List,
+        self.assertEqual(
+            ast.unparse(_assignment_value(module, "_AIO_FIRST_PASS_CACHE")),
+            "_DEFAULT_AIO_FIRST_PASS_CACHE._cache",
         )
         self.assertEqual(
             ast.unparse(
-                _assignment_value(module, "_AIO_FIRST_PASS_CACHE_ENABLED")
+                _assignment_value(module, "_AIO_FIRST_PASS_CACHE_ORDER")
             ),
-            "True",
-        )
-        self.assertEqual(
-            ast.unparse(
-                _assignment_value(module, "_AIO_FIRST_PASS_CACHE_GENERATION")
-            ),
-            "0",
-        )
-        metrics = _assignment_value(module, "_AIO_FIRST_PASS_CACHE_METRICS")
-        self.assertIsInstance(metrics, ast.Dict)
-        self.assertEqual(
-            {
-                key.value
-                for key in metrics.keys
-                if isinstance(key, ast.Constant)
-            },
-            {"hits", "misses", "skips", "evictions"},
+            "_DEFAULT_AIO_FIRST_PASS_CACHE._order",
         )
 
-        lifecycle_functions = (
+        component = owner["components"][0]
+        initializer = _class_method(
+            module,
+            component["class"],
+            "__init__",
+        )
+        self.assertEqual(
+            _self_attributes(initializer),
+            set(component["state_symbols"]),
+        )
+        self.assertIn("RLock", _called(initializer))
+        self.assertEqual(
+            {
+                "_AIO_FIRST_PASS_CACHE_ENABLED",
+                "_AIO_FIRST_PASS_CACHE_GENERATION",
+                "_AIO_FIRST_PASS_CACHE_LOCK",
+                "_AIO_FIRST_PASS_CACHE_METRICS",
+            }
+            & bindings,
+            set(),
+        )
+
+        method_attributes: set[str] = set()
+        for method_name in (
+            "_collections",
+            "total_bytes",
+            "metrics_snapshot",
+            "reset_metrics",
+            "record_metric",
+            "clear",
+            "set_enabled",
+            "get",
+            "put",
+        ):
+            method_attributes.update(
+                _self_attributes(
+                    _class_method(
+                        module,
+                        component["class"],
+                        method_name,
+                    )
+                )
+            )
+        self.assertEqual(
+            set(component["state_symbols"]) - method_attributes,
+            set(),
+        )
+
+    def test_cleanup_and_metrics_dispositions_are_current(self):
+        module = "easyuse_anima/aio/first_pass_cache.py"
+        owner_class = self.fixture["owners"][0]["components"][0]["class"]
+        clear = _class_method(module, owner_class, "clear")
+        self.assertTrue(
+            {"_generation", "_lock"} <= _self_attributes(clear)
+        )
+        self.assertEqual(
+            {"_enabled", "_metrics"} & _self_attributes(clear),
+            set(),
+        )
+        self.assertIn("clear", _called(clear))
+
+        enable = _class_method(
+            module,
+            owner_class,
+            "set_enabled",
+        )
+        self.assertTrue(
+            {"_enabled", "_generation", "_lock"}
+            <= _self_attributes(enable)
+        )
+        self.assertNotIn(
+            "_metrics",
+            _self_attributes(enable),
+        )
+
+        reset = _class_method(
+            module,
+            owner_class,
+            "reset_metrics",
+        )
+        self.assertTrue(
+            {"_lock", "_metrics"} <= _self_attributes(reset)
+        )
+        self.assertEqual(
+            {"_cache", "_enabled", "_generation", "_order"}
+            & _self_attributes(reset),
+            set(),
+        )
+
+        for facade in (
             "_aio_first_pass_cache_total_bytes",
             "_aio_first_pass_cache_metrics_snapshot",
             "_reset_aio_first_pass_cache_metrics",
@@ -293,85 +374,12 @@ class PythonAIOFirstPassCacheContractTests(unittest.TestCase):
             "_set_aio_first_pass_cache_enabled",
             "_get_aio_first_pass_cache",
             "_put_aio_first_pass_cache",
-        )
-        references: set[str] = set()
-        for function_name in lifecycle_functions:
-            function_references = _references(
-                _top_level_function(module, function_name)
-            )
-            with self.subTest(function=function_name):
+        ):
+            with self.subTest(facade=facade):
                 self.assertIn(
-                    "_AIO_FIRST_PASS_CACHE_LOCK",
-                    function_references,
+                    "_DEFAULT_AIO_FIRST_PASS_CACHE",
+                    _references(_top_level_function(module, facade)),
                 )
-            references.update(function_references)
-        self.assertEqual(
-            set(owner["state_symbols"]) - references,
-            set(),
-        )
-
-    def test_cleanup_and_metrics_dispositions_are_current(self):
-        module = "easyuse_anima/aio/first_pass_cache.py"
-        clear = _top_level_function(module, "_clear_aio_first_pass_cache")
-        self.assertTrue(
-            {
-                "_AIO_FIRST_PASS_CACHE",
-                "_AIO_FIRST_PASS_CACHE_GENERATION",
-                "_AIO_FIRST_PASS_CACHE_LOCK",
-                "_AIO_FIRST_PASS_CACHE_ORDER",
-            }
-            <= _references(clear)
-        )
-        self.assertEqual(
-            {
-                "_AIO_FIRST_PASS_CACHE_ENABLED",
-                "_AIO_FIRST_PASS_CACHE_METRICS",
-            }
-            & _references(clear),
-            set(),
-        )
-        self.assertIn("clear", _called(clear))
-
-        enable = _top_level_function(
-            module,
-            "_set_aio_first_pass_cache_enabled",
-        )
-        self.assertTrue(
-            {
-                "_AIO_FIRST_PASS_CACHE",
-                "_AIO_FIRST_PASS_CACHE_ENABLED",
-                "_AIO_FIRST_PASS_CACHE_GENERATION",
-                "_AIO_FIRST_PASS_CACHE_LOCK",
-                "_AIO_FIRST_PASS_CACHE_ORDER",
-            }
-            <= _references(enable)
-        )
-        self.assertNotIn(
-            "_AIO_FIRST_PASS_CACHE_METRICS",
-            _references(enable),
-        )
-
-        reset = _top_level_function(
-            module,
-            "_reset_aio_first_pass_cache_metrics",
-        )
-        self.assertTrue(
-            {
-                "_AIO_FIRST_PASS_CACHE_LOCK",
-                "_AIO_FIRST_PASS_CACHE_METRICS",
-            }
-            <= _references(reset)
-        )
-        self.assertEqual(
-            {
-                "_AIO_FIRST_PASS_CACHE",
-                "_AIO_FIRST_PASS_CACHE_ENABLED",
-                "_AIO_FIRST_PASS_CACHE_GENERATION",
-                "_AIO_FIRST_PASS_CACHE_ORDER",
-            }
-            & _references(reset),
-            set(),
-        )
 
     def test_entry_policy_and_module_import_boundary_are_current(self):
         module = "easyuse_anima/aio/first_pass_cache.py"
@@ -485,6 +493,7 @@ class PythonAIOFirstPassCacheContractTests(unittest.TestCase):
                 "_AIO_FIRST_PASS_CACHE_GENERATION",
                 "_AIO_FIRST_PASS_CACHE_LOCK",
                 "_AIO_FIRST_PASS_CACHE_METRICS",
+                "_DEFAULT_AIO_FIRST_PASS_CACHE",
                 "_aio_first_pass_cache_metrics_snapshot",
                 "_clear_aio_first_pass_cache",
                 "_reset_aio_first_pass_cache_metrics",

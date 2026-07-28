@@ -148,20 +148,15 @@
   "entries": [
     {
       "categories": ["cache", "lock", "metrics"],
-      "cleanup": "_clear_aio_first_pass_cache clears entries/order and advances generation; tests also reset metrics and the enabled flag.",
+      "cleanup": "The default owner clear advances generation and clears entries/order; disable invalidates stale capture and clears entries/order; metrics reset remains independent.",
       "id": "aio-first-pass-cache",
       "lifetime": "Process lifetime from module import; entries are bounded by count, bytes, and TTL.",
       "module": "easyuse_anima/aio/first_pass_cache.py",
-      "owner": "easyuse_anima.aio.first_pass_cache",
+      "owner": "easyuse_anima.aio.first_pass_cache._DEFAULT_AIO_FIRST_PASS_CACHE",
       "symbols": [
-        "_AIO_FIRST_PASS_CACHE",
-        "_AIO_FIRST_PASS_CACHE_ENABLED",
-        "_AIO_FIRST_PASS_CACHE_GENERATION",
-        "_AIO_FIRST_PASS_CACHE_LOCK",
-        "_AIO_FIRST_PASS_CACHE_METRICS",
-        "_AIO_FIRST_PASS_CACHE_ORDER"
+        "_DEFAULT_AIO_FIRST_PASS_CACHE"
       ],
-      "target_phase": "E-08",
+      "target_phase": "E-08b-complete",
       "test_evidence": ["tests/test_aio_first_pass_cache.py", "tests/test_aio_first_pass_cache_benchmark.py"],
       "thread_safety": "One RLock protects enabled/generation/cache/order/metrics publication and mutation."
     },

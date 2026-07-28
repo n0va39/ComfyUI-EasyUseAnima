@@ -7,7 +7,9 @@ E-08a is a production-free Contract created from
 wildcard ownership audit and the already-completed E-07 Comfy provider bridge. It
 freezes the AiO first-pass cache process state, policy and behavior authorities,
 typed caller boundary, root compatibility identities, cleanup semantics, and the only
-authorized bounded Move order.
+authorized bounded Move order. E-08b implements the selected owner from
+`dev@2c5aefeae16dd0f1411516f659bfef6659712243` without changing cache
+behavior or runtime composition.
 
 The executable source is
 `tests/fixtures/python_aio_first_pass_cache_contract.v1.json`, checked by
@@ -15,8 +17,8 @@ The executable source is
 cache, benchmark, First-pass stage, legacy-generation, package, analyzer, and import-
 boundary tests remain the behavior authorities.
 
-E-08 changes ownership only. It does not reopen #169 cache policy, stage execution,
-workflow results, or queue/live evidence.
+E-08 changes ownership only. E-08b changes one production module and does not reopen
+#169 cache policy, stage execution, workflow results, or queue/live evidence.
 
 ## Completed #169 behavior boundary
 
@@ -60,7 +62,7 @@ resource revision, stage fallback, stale-capture, and metric semantics.
 
 ## Target owner and compatibility injection
 
-E-08b targets one private
+E-08b installs one private
 `easyuse_anima.aio.first_pass_cache._AIOFirstPassCacheStore` referenced by
 `_DEFAULT_AIO_FIRST_PASS_CACHE`. It owns entries, order, enabled state, generation,
 metrics, and the `RLock`.
@@ -77,10 +79,12 @@ The canonical module functions remain the compatibility and feature facades. Roo
 - `_put_aio_first_pass_cache`.
 
 The root does not gain lock, generation, metrics, clear, reset, or runtime-owner
-aliases. Existing replacement mapping/order and policy/clock/helper tests require
-either the same call-time behavior or an explicit isolated-owner injection seam
-before raw globals move. E-08b must not silently capture import-time patched values
-or retain a second production mapping, order list, lock, generation, or metrics dict.
+aliases. The module-level mapping and order names are compatibility aliases to the
+exact default owner's objects. Canonical facades pass those names into the owner at
+call time, preserving replacement mapping/order tests without a second production
+owner. Policy, clock, entry capture, size, and clone helpers remain dynamically
+resolved. Isolated stores own distinct collections, metrics, generation, enabled
+state, and locks.
 
 ## Cleanup and concurrency
 
@@ -120,8 +124,9 @@ import the complete runtime.
 
 1. **E-08a Contract — complete:** current state, #169 behavior authorities, one
    target owner, caller and root seams, cleanup, and Move order are versioned.
-2. **E-08b Move — mutable cache owner:** entries, order, enabled state, generation,
-   metrics, and `RLock` move behind one feature-private default owner.
+2. **E-08b Move — mutable cache owner — complete:** entries, order, enabled state,
+   generation, metrics, and `RLock` are behind one feature-private default owner;
+   direct aliases and call-time replacement seams remain executable evidence.
 3. **E-08c Move — bootstrap composition:** install the exact default owner behind one
    feature-specific narrow RuntimeServices capability without changing the existing
    `FirstPassRuntime` caller path.
@@ -158,11 +163,14 @@ E-08a focused validation covers the executable Contract, E-01 reconciliation, di
 cache/concurrency/metrics behavior, benchmark and mutation-isolation evidence,
 First-pass stage and legacy adapter behavior, package/no-host import, import
 boundaries/analyzer, JSON/Python syntax, document links, and `git diff --check`.
+E-08b additionally covers isolated-owner separation, exact default mapping/order
+identity, raw module-state removal, facade delegation, preserved replacement seams,
+and actual-code inventory/analyzer evidence.
 
-Run the official full profile once on the final candidate SHA. E-08a changes no
-production Python, analyzer baseline, import closure, archive contents, metadata, or
-host-visible behavior, so the E-06d validate/pack/isolated-live evidence remains
-valid.
+Run the official full profile once on the final candidate SHA. E-08b changes only
+private in-module ownership and does not change import closure, archive contents,
+metadata, or host-visible behavior, so the E-06d validate/pack/isolated-live evidence
+remains valid unless a promotion gate proves otherwise.
 
 ## Stop conditions
 
@@ -174,4 +182,4 @@ behavior changes; canonical feature code must import root/runtime/bootstrap; pac
 import starts host I/O; or E-09 shutdown must be implemented to finish E-08.
 
 Direct source, #169, E-01, and concurrency tests select one owner and one bounded
-Move sequence. E-08a therefore does not trigger additional PRO review.
+Move sequence. E-08a and E-08b therefore do not trigger additional PRO review.

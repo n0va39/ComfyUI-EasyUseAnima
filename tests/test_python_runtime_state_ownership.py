@@ -232,11 +232,7 @@ class PythonRuntimeStateOwnershipContractTests(unittest.TestCase):
             ("api.py", "register_routes"),
             (
                 "easyuse_anima/aio/first_pass_cache.py",
-                "_AIO_FIRST_PASS_CACHE_ENABLED",
-            ),
-            (
-                "easyuse_anima/aio/first_pass_cache.py",
-                "_AIO_FIRST_PASS_CACHE_GENERATION",
+                "_DEFAULT_AIO_FIRST_PASS_CACHE",
             ),
             ("easyuse_anima/api/file_io.py", "_FILE_IO_LIMITERS"),
             (
