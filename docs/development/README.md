@@ -59,14 +59,15 @@ ordinary `dev` roadmap work.
 ## Active state
 
 - Released baseline: 0.6.2.
-- Active owner: Issue #187 for Phase E; Issue #186 retains D-14/shim decisions.
-- E-10c audit base: E-10b / PR #560 at
-  `87a1689f7c5d6452888e7bb8a8f92856d3f2f76f`.
+- Issue #187 and Phase E are complete. Issue #186 remains open as the retained
+  D-14/shim decision ledger.
+- E-10c completion and D-14 post-Phase-E audit base: PR #561 at
+  `121ee8a1cae826fc1b5227208f964d143b5b6324`.
 - D-08u integrated exit audit is complete.
 - D-08v is not required; the audit found no remaining D-08 production Move.
-- D-14 readiness is audited: every root surface is retained and retirement/final
-  freeze is blocked by production/lifecycle consumers, missing release windows, or
-  insufficient consumer evidence.
+- D-14 post-Phase-E readiness retains every root surface. Lifecycle ownership is
+  complete, but direct production imports, missing release windows, and insufficient
+  consumer evidence still block retirement/final freeze.
 - E-01 through E-10 and Phase E are complete with `ambiguous_state_owners=[]`, zero
   module reload sites, and zero direct private runtime mutation outside the test-only
   helper. The #323
@@ -166,8 +167,7 @@ representative profile list/load/save/delete/rename/fix live smoke
 - A version marker is not a publish action.
 - Technical PRO review is for unresolved cross-boundary architecture choices,
   unavoidable cycles, or insufficient compatibility evidence—not routine failures.
-- D-14 readiness is recorded and authorizes no removal. The production-free E-08d
-  audit reconciles the exact AiO cache owner, cleanup, import/root/runtime binding,
-  and zero ambiguous state; use that evidence only to start the separate E-09
-  Contract. Do not infer E-09 implementation, release
-  publication, or Registry actions.
+- D-14 post-Phase-E readiness is recorded and authorizes no removal. E-09/E-10 and
+  Phase E are complete, but `api.py` and `wildcard_engine.py` still have direct
+  production consumers and final post-v0.6.2 forms without release N. Do not infer
+  root deletion, release publication, or Registry actions.
