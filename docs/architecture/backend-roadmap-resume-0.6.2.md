@@ -2,17 +2,18 @@
 
 ## Status and authority
 
-- Status: D-08 and E-01 through E-05 are completed; the D-14
+- Status: D-08, E-01 through E-05, and the E-06a Contract are completed; the D-14
   readiness audit retains every root surface and blocks retirement/final-freeze work.
-- Code-review base before E-05e:
-  `dev@386d4632f5a903a5d03de52d6bd9a997ad1ffe2d` after E-05d / PR #545.
-- Document baseline: completed production-free E-05e autocomplete ownership audit.
+- Code-review base before E-06a:
+  `dev@1df6cab58df7abaec9cc86522e89b982b813bd79` after E-05e / PR #546.
+- Document baseline: completed production-free E-06a wildcard snapshot ownership
+  Contract.
 - Released baseline: 0.6.2.
 - Scope: completed D-08 evidence, the D-14 readiness decision, completed #187
   E-01/E-02/E-03/E-04 work, the E-05a Contract, the E-05b snapshot owner Move,
   the E-05c index-store owner Move, the E-05d composition Move, the E-05e
-  completion audit Contract, and the next bounded E-06a wildcard snapshot
-  ownership Contract.
+  completion audit Contract, the E-06a wildcard snapshot ownership Contract, and
+  the next bounded E-06b snapshot owner Move.
 - This document owns the current immediate queue and supersedes the stale queue and
   broad preflight command in `python-backend-execution-roadmap.md`.
 - `python-backend.md`, ADR-001, ADR-002, and the compatibility-shim registry still own
@@ -391,7 +392,15 @@ records completed-cache `clear()` and retained-lock no-op `close()` dispositions
 proves direct root identities and package/no-host import safety, and records zero
 ambiguous autocomplete state without changing production. E-05 is complete.
 
-Start only a separate #187 E-06a wildcard snapshot ownership Contract from latest
-origin/dev. Do not start an E-06 production Move, E-07 through E-10, D-14 retirement,
-release, or Registry work inside E-06a.
+E-06a fixes the verified-snapshot LRU, building-key set, and Condition as one
+wildcard-specific runtime resource. It selects one private
+`_WildcardSnapshotStore` referenced by `_DEFAULT_WILDCARD_SNAPSHOTS`, preserves the
+root call-time source/build seams, and records completed-cache-only `clear()` while
+whole-runtime ordering remains E-09. The bounded E-06 queue is E-06a Contract,
+E-06b snapshot owner Move, E-06c canonical service/internal caller Move, E-06d
+narrow bootstrap composition Move, and E-06e completion audit Contract.
+
+Start only a separate #187 E-06b wildcard snapshot owner Move from latest
+origin/dev. Do not start E-06c or later Phase E work, E-09 cleanup, D-14 retirement,
+release, or Registry work inside E-06b.
 ```
