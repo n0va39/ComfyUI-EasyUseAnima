@@ -2,9 +2,11 @@
 
 ## Status and authority
 
-- Status: active execution correction for Issue #186.
-- Code-review baseline: `dev@a509e87c7021257d514e66710f4ca4afb74c4a05` after D-08s / PR #520.
-- Document baseline: PR #521 / `faa78eaf3d06be0af934eb9e7592aa9ee9686455`.
+- Status: D-08 completed by the D-08u integrated Contract/gate.
+- Code-review baseline: `dev@d07a7116fd2f93ad60ce3438739f99e51640aa43`
+  after D-08t / PR #524.
+- Document baseline: PR #522 / `fc88de042e60e2b39ecc7e4594696bdfeacab000`,
+  with the development-entry link repair from PR #523.
 - Released baseline: 0.6.2.
 - Scope: remaining root `api.py` route composition and the D-08 exit gate.
 - This document owns the current immediate queue and supersedes the stale queue and
@@ -55,9 +57,9 @@ would conflict with the policy against one PR per tiny mechanical extraction.
 DONE  D-08q  Torch Compile recommendation composition   PR #518
 DONE  D-08r  LoRA preview/catalog composition            PR #519
 DONE  D-08s  LoRA/AiO profile-list composition           PR #520
-READY D-08t  remaining profile route composition
-NEXT  D-08u  integrated D-08 exit audit
-OPTIONAL D-08v  final facade Move only if D-08u proves it necessary
+DONE  D-08t  remaining profile route composition          PR #524
+DONE  D-08u  integrated D-08 exit Contract/gate
+NOT REQUIRED D-08v  no remaining D-08 production Move
 ```
 
 Do not start D-14, Phase E, quality cleanup, or unrelated feature work before D-08u.
@@ -143,6 +145,27 @@ The audit must prove:
 D-08u does not authorize D-14 shim retirement. It only determines whether a D-14
 readiness Contract has enough release and consumer evidence to begin.
 
+### D-08u audit verdict
+
+The integrated executable Contract records the following completed boundary:
+
+- all 21 route definitions retain their exact method, path, handler name, canonical
+  factory module, request-correlation marker, and order;
+- all 14 concrete handler factories are imported and called once by seven private
+  bootstrap composition helpers;
+- root `api.py` imports and calls only those seven bootstrap helpers for handler
+  composition, while `api/router.py` has no concrete `api/routes/*` dependency;
+- bootstrap has no root `api.py` back-reference and still exports only `initialize`;
+- marker, signature mismatch, partial failure, same-table idempotence, new-table
+  refresh, and repeated `initialize()` contracts remain covered by their direct
+  owners;
+- supported root callback and identity seams remain in place and are not deletion
+  candidates inside D-08.
+
+The remaining root `api.py` payload/runtime helper construction and injected registrar
+facade are accepted transitional shim responsibilities until a separate D-14 readiness
+Contract classifies consumer and release evidence. D-08v is not required.
+
 ## 3. Validation policy
 
 ### D-08t edit loop
@@ -224,7 +247,7 @@ small implementation choices do not require PRO review.
 
 ## 5. After D-08
 
-After D-08u and any required D-08v:
+The D-08u audit found no required D-08v. After D-08:
 
 1. reconcile Issue #186 and the compatibility-shim registry;
 2. create a D-14 readiness Contract only when canonical-plus-shim release evidence and
@@ -236,32 +259,14 @@ After D-08u and any required D-08v:
 ## 6. Codex resume instruction
 
 ```text
-Start D-08t only from latest origin/dev.
+D-08 is complete. Do not restart D-08t or create D-08v without new contrary
+production evidence.
 
-Read:
-- current-policies.md
-- codex-execution-efficiency.md universal rules
-- this document's D-08t and validation sections
-- Issue #186 latest checkpoint
-- api.py, bootstrap.py
-- profile_loads.py, profile_saves.py, aio_profile_mutations.py,
-  lora_profile_fix.py
-- direct owner tests
+Before a separate D-14 readiness Contract:
+- reconcile Issue #186 and the compatibility-shim registry;
+- read the latest #186 checkpoint and the current shim policy;
+- classify consumer and release evidence for each root alias before removal;
+- keep root api.py payload/runtime helpers and the injected registrar facade intact.
 
-Do not reread the full historical roadmap or all prior D-08 PRs.
-Confirm no open branch/PR owns D-08t and create one bounded task card.
-
-Move the seven remaining profile handler factory invocations and request-correlation
-wrapping into private bootstrap composition ownership. Keep one cohesive Move PR.
-Preserve every dynamic dependency, error tuple, CAS field, handler identity, route
-order/signature, and root compatibility seam.
-
-Edit loop: changed-file syntax, direct profile route/API owner tests,
-bootstrap/runtime/import-boundary/analyzer tests, git diff --check.
-Run official full once on the final candidate SHA.
-Reuse package/live evidence unless an escalation trigger in this document occurs.
-Push and open a dev-targeted Draft PR, review, and squash-merge.
-Then run D-08u as a separate Contract/gate.
-
-Do not poll Registry, republish 0.6.2, start D-14, or begin Phase E.
+Do not begin Phase E, release, or Registry work from this completed D-08 runbook.
 ```

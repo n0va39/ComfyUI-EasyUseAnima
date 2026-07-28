@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import ast
 import asyncio
 import gc
 import importlib.util
@@ -380,6 +381,403 @@ class ApiRouteRegistrationOwnerTests(unittest.TestCase):
 
         self.assertEqual(target.registrations, [("GET", "/first")])
         self.assertFalse(hasattr(target, api._ROUTE_REGISTRATION_MARKER))
+
+
+class ApiIntegratedRouteCompositionContractTests(unittest.TestCase):
+    ROUTE_CONTRACT = (
+        (
+            "get",
+            "/easyuse_anima/settings",
+            "get_settings_handler",
+            ".easyuse_anima.api.routes.settings",
+        ),
+        (
+            "post",
+            "/easyuse_anima/set_setting",
+            "set_setting_handler",
+            ".easyuse_anima.api.routes.settings",
+        ),
+        (
+            "get",
+            "/easyuse_anima/long_text_settings",
+            "get_long_text_settings_handler",
+            ".easyuse_anima.api.routes.long_text_settings",
+        ),
+        (
+            "get",
+            "/easyuse_anima/wildcards",
+            "get_wildcards_handler",
+            ".easyuse_anima.api.routes.wildcards",
+        ),
+        (
+            "post",
+            "/easyuse_anima/long_text_settings/save",
+            "save_long_text_settings_handler",
+            ".easyuse_anima.api.routes.long_text_settings",
+        ),
+        (
+            "get",
+            "/easyuse_anima/autocomplete_status",
+            "autocomplete_status_handler",
+            ".easyuse_anima.api.routes.autocomplete",
+        ),
+        (
+            "get",
+            "/easyuse_anima/autocomplete",
+            "autocomplete_handler",
+            ".easyuse_anima.api.routes.autocomplete",
+        ),
+        (
+            "post",
+            "/easyuse_anima/classify_prompt",
+            "classify_prompt_handler",
+            ".easyuse_anima.api.routes.autocomplete",
+        ),
+        (
+            "post",
+            "/easyuse_anima/translate_prompt",
+            "translate_prompt_handler",
+            ".easyuse_anima.api.routes.translation",
+        ),
+        (
+            "post",
+            "/easyuse_anima/aio/torch-compile/recommend",
+            "aio_torch_compile_recommend_handler",
+            ".easyuse_anima.api.routes.aio_torch_compile",
+        ),
+        (
+            "get",
+            "/easyuse_anima/lora_preview",
+            "lora_preview_handler",
+            ".easyuse_anima.api.routes.lora_preview",
+        ),
+        (
+            "get",
+            "/easyuse_anima/loras",
+            "loras_handler",
+            ".easyuse_anima.api.routes.lora_catalog",
+        ),
+        (
+            "get",
+            "/easyuse_anima/lora_profiles",
+            "lora_profiles_handler",
+            ".easyuse_anima.api.routes.profile_lists",
+        ),
+        (
+            "post",
+            "/easyuse_anima/lora_profiles/save",
+            "save_lora_profile_handler",
+            ".easyuse_anima.api.routes.profile_saves",
+        ),
+        (
+            "get",
+            "/easyuse_anima/lora_profiles/load",
+            "load_lora_profile_handler",
+            ".easyuse_anima.api.routes.profile_loads",
+        ),
+        (
+            "get",
+            "/easyuse_anima/aio_profiles",
+            "aio_profiles_handler",
+            ".easyuse_anima.api.routes.profile_lists",
+        ),
+        (
+            "post",
+            "/easyuse_anima/aio_profiles/save",
+            "save_aio_profile_handler",
+            ".easyuse_anima.api.routes.profile_saves",
+        ),
+        (
+            "get",
+            "/easyuse_anima/aio_profiles/load",
+            "load_aio_profile_handler",
+            ".easyuse_anima.api.routes.profile_loads",
+        ),
+        (
+            "post",
+            "/easyuse_anima/aio_profiles/delete",
+            "delete_aio_profile_handler",
+            ".easyuse_anima.api.routes.aio_profile_mutations",
+        ),
+        (
+            "post",
+            "/easyuse_anima/aio_profiles/rename",
+            "rename_aio_profile_handler",
+            ".easyuse_anima.api.routes.aio_profile_mutations",
+        ),
+        (
+            "post",
+            "/easyuse_anima/lora_profiles/fix",
+            "fix_lora_profile_handler",
+            ".easyuse_anima.api.routes.lora_profile_fix",
+        ),
+    )
+    FACTORY_OWNER_BY_ALIAS = {
+        "_build_settings_handlers": "build_settings_route_group",
+        "_build_long_text_settings_handlers": "build_settings_route_group",
+        "_build_wildcards_handler": "build_wildcard_autocomplete_route_group",
+        "_build_autocomplete_handlers": "build_wildcard_autocomplete_route_group",
+        "_build_classify_prompt_handler": "build_wildcard_autocomplete_route_group",
+        "_build_translate_prompt_handler": "build_translation_route_handler",
+        "_build_aio_torch_compile_recommend_handler": (
+            "build_aio_torch_compile_route_handler"
+        ),
+        "_build_lora_preview_handler": "build_lora_read_route_group",
+        "_build_loras_handler": "build_lora_read_route_group",
+        "_build_profile_list_handlers": "build_profile_list_route_group",
+        "_build_profile_load_handlers": "build_profile_route_group",
+        "_build_profile_save_handlers": "build_profile_route_group",
+        "_build_aio_profile_mutation_handlers": "build_profile_route_group",
+        "_build_lora_profile_fix_handler": "build_profile_route_group",
+    }
+    FACTORY_IMPORTS = {
+        (
+            "api.routes.aio_profile_mutations",
+            "build_aio_profile_mutation_handlers",
+            "_build_aio_profile_mutation_handlers",
+        ),
+        (
+            "api.routes.aio_torch_compile",
+            "build_aio_torch_compile_recommend_handler",
+            "_build_aio_torch_compile_recommend_handler",
+        ),
+        (
+            "api.routes.autocomplete",
+            "build_autocomplete_handlers",
+            "_build_autocomplete_handlers",
+        ),
+        (
+            "api.routes.autocomplete",
+            "build_classify_prompt_handler",
+            "_build_classify_prompt_handler",
+        ),
+        (
+            "api.routes.long_text_settings",
+            "build_long_text_settings_handlers",
+            "_build_long_text_settings_handlers",
+        ),
+        (
+            "api.routes.lora_catalog",
+            "build_loras_handler",
+            "_build_loras_handler",
+        ),
+        (
+            "api.routes.lora_preview",
+            "build_lora_preview_handler",
+            "_build_lora_preview_handler",
+        ),
+        (
+            "api.routes.lora_profile_fix",
+            "build_lora_profile_fix_handler",
+            "_build_lora_profile_fix_handler",
+        ),
+        (
+            "api.routes.profile_lists",
+            "build_profile_list_handlers",
+            "_build_profile_list_handlers",
+        ),
+        (
+            "api.routes.profile_loads",
+            "build_profile_load_handlers",
+            "_build_profile_load_handlers",
+        ),
+        (
+            "api.routes.profile_saves",
+            "build_profile_save_handlers",
+            "_build_profile_save_handlers",
+        ),
+        (
+            "api.routes.settings",
+            "build_settings_handlers",
+            "_build_settings_handlers",
+        ),
+        (
+            "api.routes.translation",
+            "build_translate_prompt_handler",
+            "_build_translate_prompt_handler",
+        ),
+        (
+            "api.routes.wildcards",
+            "build_wildcards_handler",
+            "_build_wildcards_handler",
+        ),
+    }
+    ROOT_HELPER_IMPORTS = {
+        (
+            "easyuse_anima.bootstrap",
+            "build_aio_torch_compile_route_handler",
+            "_build_aio_torch_compile_route_handler",
+        ),
+        (
+            "easyuse_anima.bootstrap",
+            "build_lora_read_route_group",
+            "_build_lora_read_route_group",
+        ),
+        (
+            "easyuse_anima.bootstrap",
+            "build_profile_list_route_group",
+            "_build_profile_list_route_group",
+        ),
+        (
+            "easyuse_anima.bootstrap",
+            "build_profile_route_group",
+            "_build_profile_route_group",
+        ),
+        (
+            "easyuse_anima.bootstrap",
+            "build_settings_route_group",
+            "_build_settings_route_group",
+        ),
+        (
+            "easyuse_anima.bootstrap",
+            "build_translation_route_handler",
+            "_build_translation_route_handler",
+        ),
+        (
+            "easyuse_anima.bootstrap",
+            "build_wildcard_autocomplete_route_group",
+            "_build_wildcard_autocomplete_route_group",
+        ),
+    }
+
+    @staticmethod
+    def _tree(relative_path):
+        path = ROOT / relative_path
+        return ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+
+    @staticmethod
+    def _from_imports(tree):
+        return {
+            (node.module or "", alias.name, alias.asname)
+            for node in ast.walk(tree)
+            if isinstance(node, ast.ImportFrom)
+            for alias in node.names
+        }
+
+    @staticmethod
+    def _named_calls(tree):
+        return [
+            node.func.id
+            for node in ast.walk(tree)
+            if isinstance(node, ast.Call)
+            and isinstance(node.func, ast.Name)
+        ]
+
+    def test_all_21_routes_keep_exact_canonical_factory_identity_and_order(self):
+        api, routes = load_api_routes()
+
+        self.assertEqual(len(api._ROUTE_DEFINITIONS), 21)
+        for definition, expected in zip(
+            api._ROUTE_DEFINITIONS,
+            self.ROUTE_CONTRACT,
+            strict=True,
+        ):
+            method, path, handler = definition
+            expected_method, expected_path, expected_name, expected_owner = expected
+            with self.subTest(path=path):
+                self.assertEqual((method, path), (expected_method, expected_path))
+                self.assertEqual(handler.__name__, expected_name)
+                self.assertTrue(handler.__module__.endswith(expected_owner))
+                self.assertTrue(handler._easyuse_anima_request_correlation)
+                self.assertIs(routes.handlers[path], handler)
+
+    def test_concrete_factories_are_private_bootstrap_owned_without_backrefs(self):
+        root_tree = self._tree("api.py")
+        bootstrap_tree = self._tree("easyuse_anima/bootstrap.py")
+        router_tree = self._tree("easyuse_anima/api/router.py")
+        factory_names = {
+            imported_name
+            for _module, imported_name, _alias in self.FACTORY_IMPORTS
+        }
+
+        bootstrap_factory_imports = {
+            imported
+            for imported in self._from_imports(bootstrap_tree)
+            if imported[1] in factory_names
+        }
+        self.assertEqual(bootstrap_factory_imports, self.FACTORY_IMPORTS)
+
+        root_factory_imports = {
+            imported
+            for imported in self._from_imports(root_tree)
+            if imported[1] in factory_names
+        }
+        self.assertEqual(root_factory_imports, set())
+
+        router_route_imports = {
+            (node.level, node.module)
+            for node in ast.walk(router_tree)
+            if isinstance(node, ast.ImportFrom)
+            and node.module is not None
+            and (
+                node.module == "routes"
+                or node.module.startswith("routes.")
+                or node.module.startswith("api.routes")
+            )
+        }
+        self.assertEqual(router_route_imports, set())
+
+        bootstrap_root_api_imports = {
+            (node.level, node.module, alias.name)
+            for node in ast.walk(bootstrap_tree)
+            if isinstance(node, ast.ImportFrom)
+            for alias in node.names
+            if node.level >= 2
+            and (
+                node.module in (None, "api")
+                or (node.module is not None and node.module.startswith("api."))
+            )
+        }
+        self.assertEqual(bootstrap_root_api_imports, set())
+
+    def test_each_factory_and_root_composition_helper_has_one_owner_call_site(self):
+        root_tree = self._tree("api.py")
+        bootstrap_tree = self._tree("easyuse_anima/bootstrap.py")
+        root_helper_imports = {
+            imported
+            for imported in self._from_imports(root_tree)
+            if imported[0] == "easyuse_anima.bootstrap"
+        }
+        self.assertEqual(root_helper_imports, self.ROOT_HELPER_IMPORTS)
+
+        root_calls = self._named_calls(root_tree)
+        for _module, _name, alias in self.ROOT_HELPER_IMPORTS:
+            with self.subTest(root_helper=alias):
+                self.assertEqual(root_calls.count(alias), 1)
+
+        factory_call_owners = {}
+        helper_definitions = {
+            node.name: node
+            for node in bootstrap_tree.body
+            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+        }
+        for helper_name, helper in helper_definitions.items():
+            helper_calls = self._named_calls(helper)
+            for factory_alias in self.FACTORY_OWNER_BY_ALIAS:
+                if factory_alias in helper_calls:
+                    factory_call_owners[factory_alias] = helper_name
+
+        self.assertEqual(
+            factory_call_owners,
+            self.FACTORY_OWNER_BY_ALIAS,
+        )
+        for helper_name in {
+            owner for owner in self.FACTORY_OWNER_BY_ALIAS.values()
+        }:
+            with self.subTest(bootstrap_helper=helper_name):
+                helper = helper_definitions[helper_name]
+                self.assertIn(
+                    "request_correlated",
+                    [argument.arg for argument in helper.args.kwonlyargs],
+                )
+                self.assertEqual(
+                    self._named_calls(helper).count("request_correlated"),
+                    1,
+                )
+
+        api, _routes = load_api_routes(register=False)
+        bootstrap = sys.modules[api._build_profile_route_group.__module__]
+        self.assertEqual(bootstrap.__all__, ["initialize"])
 
 
 class ApiRequestCorrelationTests(unittest.TestCase):
