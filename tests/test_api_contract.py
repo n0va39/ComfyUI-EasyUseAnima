@@ -176,6 +176,11 @@ class ApiRouteRegistrationOwnerTests(unittest.TestCase):
             )
         )
         self.assertTrue(
+            api._build_route_definitions.__module__.endswith(
+                ".easyuse_anima.api.router"
+            )
+        )
+        self.assertTrue(
             api._register_route_definitions.__module__.endswith(
                 ".easyuse_anima.api.router"
             )
@@ -195,6 +200,14 @@ class ApiRouteRegistrationOwnerTests(unittest.TestCase):
                 "build_route_signature",
                 "register_route_definitions",
             ),
+        )
+        handlers = {
+            handler.__name__: handler
+            for _method, _path, handler in api._ROUTE_DEFINITIONS
+        }
+        self.assertEqual(
+            api._build_route_definitions(**handlers),
+            api._ROUTE_DEFINITIONS,
         )
 
         with patch.object(
