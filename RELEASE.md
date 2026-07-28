@@ -1,5 +1,21 @@
 # Release Notes
 
+## 0.6.2
+
+### Fixed
+
+- LoRA Preset now opens and draws its profile bar and menus when supported
+  ComfyUI frontends provide LiteGraph through their host runtime binding.
+
+### Compatibility
+
+- Existing LoRA presets, saved profiles, workflows, public node identifiers,
+  socket ordering, and the other 0.6.1 features remain unchanged.
+
+### Update
+
+- After updating, restart ComfyUI and hard-refresh the browser.
+
 ## 0.6.1
 
 ### Added

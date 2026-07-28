@@ -1,0 +1,8 @@
+EasyUse Anima 0.6.2 restores LoRA Preset loading on supported ComfyUI frontends.
+
+Changes:
+1. Fixed the LoRA Preset profile bar and menus failing to draw when ComfyUI exposes LiteGraph through its host runtime binding.
+2. Existing presets, saved profiles, workflows, and other 0.6.1 features remain unchanged.
+
+Action required:
+After updating, restart ComfyUI and hard-refresh the browser.
