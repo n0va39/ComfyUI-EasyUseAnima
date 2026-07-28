@@ -10,15 +10,14 @@ then only the active task section, owning Issue, direct source, and direct tests
 ## Active sequencing
 
 - Issue [#187](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/187)
-  owns Phase E. E-01 through E-04 and the production-free E-05a Contract are
-  complete; the next bounded unit is the separate E-05b dataset snapshot and
-  single-flight ownership Move.
+  owns Phase E. E-01 through E-04, E-05a, and E-05b are complete; the next bounded
+  unit is the separate E-05c index-store root and path-lock ownership Move.
   Issue #186 retains D-14/shim decisions.
 - [`backend-roadmap-resume-0.6.2.md`](backend-roadmap-resume-0.6.2.md)
   is the current execution source of truth. Read it before the older accumulated
   roadmap.
-- Reviewed code baseline before E-05a: E-04e / PR #541 at
-  `e8f3b5b3abb7633aa122dc28956c65f664b017c6`.
+- Reviewed code baseline before E-05b: E-05a / PR #542 at
+  `ce53be1c5eccc16967372952a3af8a64f862c4f6`.
 - D-08 is complete and D-08v is not required.
 - D-14 readiness retains every root surface; retirement/final-freeze work is blocked.
 - E-01 inventory Contract:
@@ -37,14 +36,14 @@ then only the active task section, owning Issue, direct source, and direct tests
   [`python-runtime-e04-translation-contract.md`](python-runtime-e04-translation-contract.md).
 - E-05 autocomplete runtime ownership Contract:
   [`python-runtime-e05-autocomplete-contract.md`](python-runtime-e05-autocomplete-contract.md).
-- First READY task after E-05a: a separate #187 E-05b dataset snapshot and
-  single-flight ownership Move only.
+- First READY task after E-05b: a separate #187 E-05c index-store root and
+  normalized-path publication-lock ownership Move only.
 - Completed #470 and the #413/#414/#415 queue/live-UI lanes remain contract references,
   not active blockers.
 - Released code baseline: 0.6.2. Registry activation is external administration and
   does not block `dev`; do not republish or mutate the release.
 - Completed #409/#410/#411 and deferred #440/#441 do not alter the E-01 boundary.
-- E-05a authorizes only the separate E-05b Move. It does not authorize E-05c+
+- E-05b authorizes only the separate E-05c Move. It does not authorize E-05d+
   implementation, later Phase E work, root removal, release, or Registry.
 
 ## Current code boundary
@@ -90,8 +89,8 @@ aliases or absorbing feature behavior.
   completed translation provider/client, service cache/single-flight, route executor
   owners, lifecycle gaps, and the E-04 completion audit.
 - [`python-runtime-e05-autocomplete-contract.md`](python-runtime-e05-autocomplete-contract.md):
-  autocomplete declarative source policy, snapshot/Future owner, index-store root
-  and path-lock owner, compatibility seams, and bounded Move queue.
+  autocomplete declarative source policy, completed snapshot/Future owner Move,
+  queued index-store root/path-lock owner, compatibility seams, and bounded queue.
 - [`adr-001-modular-monolith.md`](adr-001-modular-monolith.md): feature-oriented modular
   monolith decision.
 - [`adr-002-compatibility-shims.md`](adr-002-compatibility-shims.md): shim lifecycle and

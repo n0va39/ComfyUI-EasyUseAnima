@@ -71,14 +71,14 @@
       "goal": "Encapsulate dataset snapshots, cache publication, and Future single-flight behind one feature-private owner while preserving call-time parser and test seams.",
       "id": "E-05b",
       "name": "dataset snapshot and single-flight ownership",
-      "status": "queued"
+      "status": "complete"
     },
     {
       "classification": "Move",
       "goal": "Encapsulate the immutable index root and normalized-path publication lock registry behind one autocomplete index-store owner.",
       "id": "E-05c",
       "name": "index-store root and path-lock ownership",
-      "status": "blocked-by-E-05b"
+      "status": "queued"
     },
     {
       "classification": "Move",
@@ -98,17 +98,30 @@
   "owners": [
     {
       "cleanup": {
-        "current": "Tests clear _CACHE and _INFLIGHT under _CACHE_LOCK; production has no owner-level close or reset.",
-        "target": "The feature-private owner exposes an idempotent completed-snapshot clear for isolated tests; in-flight Future settlement and whole-runtime shutdown disposition remain explicit later gates."
+        "current": "_AutocompleteSnapshotStore.clear idempotently clears completed snapshots without cancelling, removing, or replacing in-flight Futures.",
+        "target": "Whole-runtime shutdown disposition remains an explicit E-09 gate; E-05b does not invent a terminal close state."
       },
-      "current_owner": "easyuse_anima.autocomplete.dataset",
+      "components": [
+        {
+          "class": "_AutocompleteSnapshotStore",
+          "module": "easyuse_anima/autocomplete/dataset.py",
+          "state_kind": "instance",
+          "state_symbols": [
+            "_cache",
+            "_inflight",
+            "_lock"
+          ]
+        }
+      ],
+      "current_owner": "easyuse_anima.autocomplete.dataset._DEFAULT_AUTOCOMPLETE_SNAPSHOTS",
       "e01_entries": [
         "autocomplete-dataset-cache"
       ],
       "evidence": [
         "tests/test_autocomplete_index.py",
         "tests/test_autocomplete_dataset_compatibility.py",
-        "tests/test_autocomplete_locale_settings.py"
+        "tests/test_autocomplete_locale_settings.py",
+        "tests/test_prompt_corrector.py"
       ],
       "id": "dataset-snapshots",
       "lifetime": "Process lifetime, keyed by resolved source path and source stat/schema revision.",
@@ -122,12 +135,10 @@
         "status fast path and arbitrary-path exact count semantics"
       ],
       "state_symbols": [
-        "_CACHE",
-        "_CACHE_LOCK",
-        "_INFLIGHT"
+        "_DEFAULT_AUTOCOMPLETE_SNAPSHOTS"
       ],
-      "target_owner": "feature-private autocomplete dataset snapshot owner",
-      "target_phase": "E-05b"
+      "target_owner": "easyuse_anima.autocomplete.dataset._DEFAULT_AUTOCOMPLETE_SNAPSHOTS",
+      "target_phase": "E-05b-complete"
     },
     {
       "cleanup": {
@@ -215,7 +226,7 @@
       ]
     }
   ],
-  "production_changes": 0,
+  "production_changes": 1,
   "schema_version": 1,
   "scope": "E-05 autocomplete source metadata, dataset snapshot/cache/Future single-flight, SQLite index root and publication path-lock ownership"
 }

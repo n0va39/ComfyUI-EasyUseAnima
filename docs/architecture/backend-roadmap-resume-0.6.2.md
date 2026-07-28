@@ -2,17 +2,16 @@
 
 ## Status and authority
 
-- Status: D-08, E-01 through E-04, and the production-free E-05a Contract are
-  completed; the D-14 readiness audit retains every root surface and blocks
-  retirement/final-freeze work.
-- Code-review base before E-05a:
-  `dev@e8f3b5b3abb7633aa122dc28956c65f664b017c6` after E-04e / PR #541.
-- Document baseline: completed production-free E-05 autocomplete ownership
-  Contract.
+- Status: D-08, E-01 through E-04, E-05a, and E-05b are completed; the D-14
+  readiness audit retains every root surface and blocks retirement/final-freeze
+  work.
+- Code-review base before E-05b:
+  `dev@ce53be1c5eccc16967372952a3af8a64f862c4f6` after E-05a / PR #542.
+- Document baseline: completed E-05b dataset snapshot/single-flight owner Move.
 - Released baseline: 0.6.2.
 - Scope: completed D-08 evidence, the D-14 readiness decision, completed #187
-  E-01/E-02/E-03/E-04 work, the E-05a ownership Contract, and the next bounded
-  E-05b dataset snapshot/single-flight Move.
+  E-01/E-02/E-03/E-04 work, the E-05a Contract, the E-05b snapshot owner Move,
+  and the next bounded E-05c index-store Move.
 - This document owns the current immediate queue and supersedes the stale queue and
   broad preflight command in `python-backend-execution-roadmap.md`.
 - `python-backend.md`, ADR-001, ADR-002, and the compatibility-shim registry still own
@@ -365,9 +364,16 @@ Dataset snapshots plus the cache-key Future map form one owner. The immutable in
 root plus normalized-path SQLite publication locks form a second owner. Their locks,
 failure semantics, and cleanup remain separate; no generic cache/lock port is added.
 
-Start only a separate #187 E-05b dataset snapshot/cache/Future single-flight owner
-Move from latest origin/dev. Preserve parser/source-change/status behavior, public
-identities, call-time test seams, and follower Future settlement. Do not start E-05c
-through E-05e, E-06 through E-10, D-14 retirement, release, or Registry work inside
-E-05b.
+E-05b moves completed snapshots, cache-key Futures, and their Lock behind one
+private `_AutocompleteSnapshotStore` referenced by
+`_DEFAULT_AUTOCOMPLETE_SNAPSHOTS`. Call-time parser/stat/build/await facades,
+source-change retries, follower settlement, status behavior, and public identities
+are unchanged. `clear()` affects only completed snapshots and no duplicate module
+dict/lock/Future state remains.
+
+Start only a separate #187 E-05c index-store root/normalized-path publication-lock
+owner Move from latest origin/dev. Preserve standalone index disablement, Windows
+pre-directory lock identity, rebuild/atomic publication/fallback diagnostics, and
+the isolated root seam. Do not start E-05d through E-05e, E-06 through E-10, D-14
+retirement, release, or Registry work inside E-05c.
 ```

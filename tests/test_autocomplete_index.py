@@ -29,9 +29,7 @@ class AutocompleteIndexTests(unittest.TestCase):
         self.index_root = self.root / "index"
 
     def tearDown(self) -> None:
-        with dataset._CACHE_LOCK:
-            dataset._CACHE.clear()
-            dataset._INFLIGHT.clear()
+        dataset._DEFAULT_AUTOCOMPLETE_SNAPSHOTS.clear()
         self.temporary_directory.cleanup()
 
     def _write(self, name: str, rows: list[str]) -> Path:
@@ -397,6 +395,106 @@ class AutocompleteIndexTests(unittest.TestCase):
             autocomplete_dataset.search_autocomplete,
             autocomplete_search_impl.search_autocomplete,
         )
+
+
+class AutocompleteSnapshotStoreTests(unittest.TestCase):
+    def test_store_instances_isolate_snapshots_and_clear_completed_cache(self):
+        with tempfile.TemporaryDirectory(
+            prefix="easyuse-anima-snapshot-store-test-"
+        ) as temporary_directory:
+            path = Path(temporary_directory) / "tags.csv"
+            path.write_text(
+                'isolated tag,0,100,"[일반] isolated"\n',
+                encoding="utf-8",
+            )
+            key = dataset._cache_key(path)
+            first_store = dataset._AutocompleteSnapshotStore()
+            second_store = dataset._AutocompleteSnapshotStore()
+            original_build = dataset._build_snapshot
+
+            with patch.object(
+                dataset,
+                "_build_snapshot",
+                wraps=original_build,
+            ) as build_snapshot:
+                first = first_store.snapshot_for_key(key)
+                first_hit = first_store.snapshot_for_key(key)
+                second = second_store.snapshot_for_key(key)
+                first_store.clear()
+                first_after_clear = first_store.snapshot_for_key(key)
+
+        self.assertIs(first_hit, first)
+        self.assertIsNot(second, first)
+        self.assertIsNot(first_after_clear, first)
+        self.assertEqual(build_snapshot.call_count, 3)
+
+    def test_clear_retains_inflight_future_until_shared_settlement(self):
+        with tempfile.TemporaryDirectory(
+            prefix="easyuse-anima-snapshot-flight-test-"
+        ) as temporary_directory:
+            path = Path(temporary_directory) / "tags.csv"
+            path.write_text(
+                'shared tag,0,100,"[일반] shared"\n',
+                encoding="utf-8",
+            )
+            key = dataset._cache_key(path)
+            store = dataset._AutocompleteSnapshotStore()
+            old_snapshot = store.snapshot_for_key(key)
+            previous_stat = path.stat()
+            path.write_text(
+                'shared replacement tag,0,90,"[일반] replacement"\n',
+                encoding="utf-8",
+            )
+            next_mtime = previous_stat.st_mtime_ns + 1_000_000_000
+            os.utime(path, ns=(next_mtime, next_mtime))
+            key = dataset._cache_key(path)
+            self.assertNotEqual(key, old_snapshot.key)
+            load_started = threading.Event()
+            waiter_joined = threading.Event()
+            release_load = threading.Event()
+            original_build = dataset._build_snapshot
+            original_await = dataset._await_snapshot
+
+            def blocking_build(build_key):
+                load_started.set()
+                if not release_load.wait(timeout=5):
+                    raise AssertionError("timed out waiting to release snapshot build")
+                return original_build(build_key)
+
+            def observed_await(future):
+                waiter_joined.set()
+                return original_await(future)
+
+            with (
+                patch.object(
+                    dataset,
+                    "_build_snapshot",
+                    side_effect=blocking_build,
+                ) as build_snapshot,
+                patch.object(
+                    dataset,
+                    "_await_snapshot",
+                    side_effect=observed_await,
+                ),
+                ThreadPoolExecutor(max_workers=2) as executor,
+            ):
+                loader = executor.submit(store.snapshot_for_key, key)
+                self.assertTrue(load_started.wait(timeout=5))
+                store.clear()
+                with store._lock:
+                    self.assertIn(key, store._inflight)
+                follower = executor.submit(store.snapshot_for_key, key)
+                self.assertTrue(waiter_joined.wait(timeout=5))
+                release_load.set()
+                loaded = loader.result(timeout=5)
+                followed = follower.result(timeout=5)
+
+            with store._lock:
+                self.assertNotIn(key, store._inflight)
+
+        self.assertIs(followed, loaded)
+        self.assertIsNot(loaded, old_snapshot)
+        self.assertEqual(build_snapshot.call_count, 1)
 
 
 if __name__ == "__main__":

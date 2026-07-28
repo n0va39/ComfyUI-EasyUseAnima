@@ -239,7 +239,10 @@ class PythonRuntimeStateOwnershipContractTests(unittest.TestCase):
                 "_AIO_FIRST_PASS_CACHE_GENERATION",
             ),
             ("easyuse_anima/api/file_io.py", "_FILE_IO_LIMITERS"),
-            ("easyuse_anima/autocomplete/dataset.py", "_CACHE_LOCK"),
+            (
+                "easyuse_anima/autocomplete/dataset.py",
+                "_DEFAULT_AUTOCOMPLETE_SNAPSHOTS",
+            ),
             (
                 "easyuse_anima/autocomplete/index.py",
                 "_INDEX_LOCKS_GUARD",

@@ -7,6 +7,8 @@ E-05a is a production-free Contract created from
 translation audit. It classifies current autocomplete source metadata, dataset
 snapshot and single-flight state, SQLite index publication state, production
 callers, compatibility seams, and the only authorized bounded Move order.
+E-05b moves only the dataset snapshot/cache/Future state behind its selected
+feature-private owner.
 
 The executable source is
 `tests/fixtures/python_autocomplete_runtime_contract.v1.json`, checked by
@@ -33,20 +35,22 @@ entry ordering also remain feature behavior owned by the canonical dataset modul
 
 ### Dataset snapshots and Future single-flight
 
-The current dataset module owns `_CACHE`, `_INFLIGHT`, and `_CACHE_LOCK`.
-Snapshots are keyed by the resolved source path plus `mtime_ns`, size, and cache
-schema version. One loader publishes a snapshot for a cache key while followers
-await the same `Future`. Loader exceptions propagate through that Future, stale
-snapshots are not published, and a source that changes during load is retried up to
-the existing four-attempt bound.
+`_DEFAULT_AUTOCOMPLETE_SNAPSHOTS` is the process owner. Its private
+`_AutocompleteSnapshotStore` instance owns one Lock, the resolved-path completed
+snapshot cache, and the cache-key Future map. Snapshots remain keyed by the resolved
+source path plus `mtime_ns`, size, and cache schema version. One loader publishes a
+snapshot for a cache key while followers await the same `Future`. Loader exceptions
+propagate through that Future, stale snapshots are not published, and a source that
+changes during load is retried up to the existing four-attempt bound.
 
-E-05b moves this state behind one feature-private snapshot owner. The owner provides
-an idempotent completed-snapshot clear for isolated tests, but it does not invent a
-terminal close policy or cancel, remove, or replace an in-flight Future. Future
-settlement and whole-runtime shutdown disposition remain explicit later gates.
-Parser calls and current dynamic test seams remain call-time dependencies.
-Classification, search fallback, and public status continue to observe the same
-snapshot identity and status semantics.
+The module `_snapshot_for_key()` and `_cached_snapshot_for_key()` facades resolve
+the current default owner at call time. The owner method likewise resolves
+`_build_snapshot`, `_cache_key_from_resolved_path`, and `_await_snapshot` at call
+time, preserving the direct monkeypatch seams. `clear()` idempotently clears only
+completed snapshots; it does not invent a terminal close policy or cancel, remove,
+or replace an in-flight Future. Future settlement and whole-runtime shutdown
+disposition remain explicit later gates. Classification, search fallback, and
+public status continue to observe the same snapshot identity and status semantics.
 
 ### Index store root and publication locks
 
@@ -100,9 +104,10 @@ port.
 
 1. **E-05a Contract — complete:** current state, two target owners, callers,
    compatibility seams, lifecycle gaps, and Move order are versioned.
-2. **E-05b Move — dataset snapshot and single-flight ownership:** encapsulate
-   `_CACHE`, `_INFLIGHT`, and `_CACHE_LOCK` behind one feature-private owner while
-   preserving parser, source-change, Future settlement, and status behavior.
+2. **E-05b Move — dataset snapshot and single-flight ownership — complete:**
+   `_AutocompleteSnapshotStore` owns the cache, Future map, and Lock behind one
+   default reference while preserving parser, source-change, Future settlement,
+   status, and call-time patch behavior.
 3. **E-05c Move — index-store root and path-lock ownership:** encapsulate the
    immutable Path-or-None root and normalized-path lock registry behind one
    feature-private index store.
@@ -116,6 +121,9 @@ port.
 Each Move is a separate PR and rollback boundary. E-09 retains whole-runtime reverse
 close ordering and partial-initialization cleanup. E-05 supplies only the
 feature-owned resources and their proven cleanup shapes.
+
+E-05b leaves no duplicate module cache/lock/Future map. The next READY unit is the
+separate E-05c index-store root and normalized-path publication-lock Move.
 
 ## Preserved behavior
 
@@ -146,3 +154,4 @@ the two lock lifecycles, or cancellation/replacement of a shared Future.
 
 Direct source and tests select one snapshot owner, one index-store owner, and one
 declarative policy. E-05a therefore does not trigger additional PRO review.
+E-05b preserves that partition and does not trigger a new PRO review.
