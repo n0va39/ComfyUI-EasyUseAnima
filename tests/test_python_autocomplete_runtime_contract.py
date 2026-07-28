@@ -86,6 +86,43 @@ def _top_level_function(
     raise AssertionError(f"{module} has no top-level function {function_name}")
 
 
+def _top_level_class(module: str, class_name: str) -> ast.ClassDef:
+    for statement in _tree(module).body:
+        if isinstance(statement, ast.ClassDef) and statement.name == class_name:
+            return statement
+    raise AssertionError(f"{module} has no top-level class {class_name}")
+
+
+def _class_method(
+    module: str,
+    class_name: str,
+    method_name: str,
+) -> ast.FunctionDef | ast.AsyncFunctionDef:
+    for statement in _top_level_class(module, class_name).body:
+        if isinstance(statement, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            if statement.name == method_name:
+                return statement
+    raise AssertionError(f"{class_name} has no method {method_name}")
+
+
+def _instance_assignments(module: str, class_name: str) -> set[str]:
+    assigned: set[str] = set()
+    for node in ast.walk(_top_level_class(module, class_name)):
+        targets: list[ast.expr] = []
+        if isinstance(node, ast.Assign):
+            targets = node.targets
+        elif isinstance(node, ast.AnnAssign):
+            targets = [node.target]
+        for target in targets:
+            if (
+                isinstance(target, ast.Attribute)
+                and isinstance(target.value, ast.Name)
+                and target.value.id == "self"
+            ):
+                assigned.add(target.attr)
+    return assigned
+
+
 def _function_references(module: str, function_name: str) -> set[str]:
     return {
         node.id
@@ -153,7 +190,7 @@ class PythonAutocompleteRuntimeContractTests(unittest.TestCase):
         )
         self.assertEqual(self.fixture["schema_version"], 1)
         self.assertEqual(self.fixture["classification"], "Contract")
-        self.assertEqual(self.fixture["production_changes"], 0)
+        self.assertEqual(self.fixture["production_changes"], 1)
         self.assertEqual(
             [move["id"] for move in self.fixture["move_queue"]],
             ["E-05a", "E-05b", "E-05c", "E-05d", "E-05e"],
@@ -193,7 +230,7 @@ class PythonAutocompleteRuntimeContractTests(unittest.TestCase):
         dataset_owner = owners["dataset-snapshots"]
         dataset_entry = e01_entries["autocomplete-dataset-cache"]
         self.assertEqual(dataset_entry["owner"], dataset_owner["current_owner"])
-        self.assertEqual(dataset_entry["target_phase"], "E-05b")
+        self.assertEqual(dataset_entry["target_phase"], "E-05b-complete")
         self.assertEqual(
             set(dataset_entry["symbols"]),
             set(dataset_owner["state_symbols"]),
@@ -239,42 +276,102 @@ class PythonAutocompleteRuntimeContractTests(unittest.TestCase):
         self.assertIn("second owner", partition)
 
     def test_dataset_snapshot_state_and_single_flight_contract_are_current(self):
+        module = "easyuse_anima/autocomplete/dataset.py"
         bindings = _top_level_bindings(
-            "easyuse_anima/autocomplete/dataset.py"
-        )
-        self.assertTrue({"_CACHE", "_CACHE_LOCK", "_INFLIGHT"} <= bindings)
-        snapshot_references = _function_references(
-            "easyuse_anima/autocomplete/dataset.py",
-            "_snapshot_for_key",
+            module
         )
         self.assertTrue(
-            {"_CACHE", "_CACHE_LOCK", "_INFLIGHT", "Future"}
+            {
+                "_AutocompleteSnapshotStore",
+                "_DEFAULT_AUTOCOMPLETE_SNAPSHOTS",
+            }
+            <= bindings
+        )
+        self.assertEqual(
+            {"_CACHE", "_CACHE_LOCK", "_INFLIGHT"} & bindings,
+            set(),
+        )
+        self.assertEqual(
+            _instance_assignments(module, "_AutocompleteSnapshotStore"),
+            {"_cache", "_inflight", "_lock"},
+        )
+        owner_methods = {
+            statement.name
+            for statement in _top_level_class(
+                module,
+                "_AutocompleteSnapshotStore",
+            ).body
+            if isinstance(statement, (ast.FunctionDef, ast.AsyncFunctionDef))
+        }
+        self.assertEqual(
+            owner_methods,
+            {
+                "__init__",
+                "cached_snapshot_for_key",
+                "clear",
+                "snapshot_for_key",
+            },
+        )
+        snapshot_method = _class_method(
+            module,
+            "_AutocompleteSnapshotStore",
+            "snapshot_for_key",
+        )
+        snapshot_references = {
+            node.id
+            for node in ast.walk(snapshot_method)
+            if isinstance(node, ast.Name)
+        }
+        self.assertTrue(
+            {
+                "Future",
+                "_await_snapshot",
+                "_build_snapshot",
+                "_cache_key_from_resolved_path",
+            }
             <= snapshot_references
         )
+        snapshot_attributes = {
+            node.attr
+            for node in ast.walk(snapshot_method)
+            if isinstance(node, ast.Attribute)
+        }
         self.assertTrue(
-            {"set_exception", "set_result", "result"}
-            <= (
-                _called_attributes(
-                    "easyuse_anima/autocomplete/dataset.py",
-                    "_snapshot_for_key",
-                )
-                | _called_attributes(
-                    "easyuse_anima/autocomplete/dataset.py",
-                    "_await_snapshot",
+            {"_cache", "_inflight", "_lock", "set_exception", "set_result"}
+            <= snapshot_attributes
+        )
+        clear_attributes = {
+            node.attr
+            for node in ast.walk(
+                _class_method(
+                    module,
+                    "_AutocompleteSnapshotStore",
+                    "clear",
                 )
             )
+            if isinstance(node, ast.Attribute)
+        }
+        self.assertIn("_cache", clear_attributes)
+        self.assertNotIn("_inflight", clear_attributes)
+        self.assertTrue(
+            {"_DEFAULT_AUTOCOMPLETE_SNAPSHOTS", "key"}
+            <= _function_references(module, "_snapshot_for_key")
+        )
+        self.assertTrue(
+            {"_DEFAULT_AUTOCOMPLETE_SNAPSHOTS", "key"}
+            <= _function_references(module, "_cached_snapshot_for_key")
         )
         self.assertIn(
             "_AUTOCOMPLETE_CACHE_LOAD_ATTEMPTS",
             _function_references(
-                "easyuse_anima/autocomplete/dataset.py",
+                module,
                 "_snapshot",
             ),
         )
         self.assertTrue(
             {"_cached_snapshot_for_key", "_snapshot"}
             <= _function_references(
-                "easyuse_anima/autocomplete/dataset.py",
+                module,
                 "autocomplete_status",
             )
         )

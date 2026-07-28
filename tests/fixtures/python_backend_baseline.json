@@ -68182,14 +68182,14 @@
       },
       {
         "is_package": false,
-        "loc": 493,
+        "loc": 519,
         "module": "easyuse_anima.autocomplete.dataset",
-        "normalized_git_blob_sha1": "4544b4e59e500f0290db4172744347ce13c5f079",
+        "normalized_git_blob_sha1": "c4cd01c977d8210e30e34d82124f1a6b0ea3619f",
         "path": "easyuse_anima/autocomplete/dataset.py",
         "top_level": {
-          "class_count": 4,
+          "class_count": 5,
           "function_count": 24,
-          "global_count": 22
+          "global_count": 20
         }
       },
       {
@@ -91301,11 +91301,11 @@
         "scope": "<module>"
       },
       {
-        "callee": "threading.Lock",
-        "column": 14,
-        "context": "assign:_CACHE_LOCK",
+        "callee": "_AutocompleteSnapshotStore",
+        "column": 34,
+        "context": "assign:_DEFAULT_AUTOCOMPLETE_SNAPSHOTS",
         "kind": "import_time_call",
-        "line": 148,
+        "line": 224,
         "module": "easyuse_anima/autocomplete/dataset.py",
         "scope": "<module>"
       },
@@ -92326,12 +92326,6 @@
       },
       {
         "kind": "dict",
-        "line": 151,
-        "module": "easyuse_anima/autocomplete/dataset.py",
-        "name": "_CACHE"
-      },
-      {
-        "kind": "dict",
         "line": 78,
         "module": "easyuse_anima/autocomplete/dataset.py",
         "name": "_DANBOORU_CATEGORY_NAMES"
@@ -92341,12 +92335,6 @@
         "line": 87,
         "module": "easyuse_anima/autocomplete/dataset.py",
         "name": "_E621_CATEGORY_NAMES"
-      },
-      {
-        "kind": "dict",
-        "line": 154,
-        "module": "easyuse_anima/autocomplete/dataset.py",
-        "name": "_INFLIGHT"
       },
       {
         "kind": "dict",
@@ -92697,36 +92685,6 @@
         "line": 9,
         "module": "easyuse_anima/api/file_io.py",
         "name": "_FILE_IO_LIMITERS_LOCK"
-      },
-      {
-        "categories": [
-          "cache",
-          "mutable_container"
-        ],
-        "initializer": "Dict",
-        "line": 151,
-        "module": "easyuse_anima/autocomplete/dataset.py",
-        "name": "_CACHE"
-      },
-      {
-        "categories": [
-          "lock"
-        ],
-        "initializer": "threading.Lock",
-        "line": 148,
-        "module": "easyuse_anima/autocomplete/dataset.py",
-        "name": "_CACHE_LOCK"
-      },
-      {
-        "categories": [
-          "future",
-          "mutable_container",
-          "single_flight"
-        ],
-        "initializer": "Dict",
-        "line": 154,
-        "module": "easyuse_anima/autocomplete/dataset.py",
-        "name": "_INFLIGHT"
       },
       {
         "categories": [

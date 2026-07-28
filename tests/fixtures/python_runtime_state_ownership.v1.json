@@ -179,15 +179,15 @@
     },
     {
       "categories": ["cache", "future", "lock", "single_flight"],
-      "cleanup": "Tests clear _CACHE and _INFLIGHT under _CACHE_LOCK; production has no owner-level close/reset.",
+      "cleanup": "_AutocompleteSnapshotStore.clear idempotently clears completed snapshots without cancelling, removing, or replacing in-flight Futures.",
       "id": "autocomplete-dataset-cache",
-      "lifetime": "Process lifetime with entries keyed by source identity and work retained until completion.",
+      "lifetime": "Process lifetime through one default store; completed entries are keyed by source identity and in-flight work is retained until settlement.",
       "module": "easyuse_anima/autocomplete/dataset.py",
-      "owner": "easyuse_anima.autocomplete.dataset",
-      "symbols": ["_CACHE", "_CACHE_LOCK", "_INFLIGHT"],
-      "target_phase": "E-05b",
-      "test_evidence": ["tests/test_autocomplete_index.py"],
-      "thread_safety": "One Lock protects cache snapshots and the Future single-flight map."
+      "owner": "easyuse_anima.autocomplete.dataset._DEFAULT_AUTOCOMPLETE_SNAPSHOTS",
+      "symbols": ["_DEFAULT_AUTOCOMPLETE_SNAPSHOTS"],
+      "target_phase": "E-05b-complete",
+      "test_evidence": ["tests/test_autocomplete_index.py", "tests/test_prompt_corrector.py"],
+      "thread_safety": "One owner Lock protects its completed snapshot cache and cache-key Future single-flight map."
     },
     {
       "categories": ["lock", "path_registry"],

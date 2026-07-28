@@ -52,19 +52,19 @@ ordinary `dev` roadmap work.
 
 - Released baseline: 0.6.2.
 - Active owner: Issue #187 for Phase E; Issue #186 retains D-14/shim decisions.
-- Reviewed code baseline before E-05a: E-04e / PR #541.
+- Reviewed code baseline before E-05b: E-05a / PR #542.
 - D-08u integrated exit audit is complete.
 - D-08v is not required; the audit found no remaining D-08 production Move.
 - D-14 readiness is audited: every root surface is retained and retirement/final
   freeze is blocked by production/lifecycle consumers, missing release windows, or
   insufficient consumer evidence.
-- E-01 through E-04 and the E-05a production-free Contract are complete. The next
-  work is only a separate #187 E-05b dataset snapshot and single-flight ownership
-  Move. The #323 E-02a/E-07 bridge remains completed evidence, not authorization
-  for unrelated feature migration.
+- E-01 through E-04, E-05a, and E-05b are complete. The next work is only a
+  separate #187 E-05c index-store root and normalized-path publication-lock Move.
+  The #323 E-02a/E-07 bridge remains completed evidence, not authorization for
+  unrelated feature migration.
 - Completed #470 and the 0.6.1 Prompt Studio lane are behavior-contract references,
   not the active queue.
-- Do not remove root aliases or start E-05c+, E-06 through E-10, release, or
+- Do not remove root aliases or start E-05d+, E-06 through E-10, release, or
   Registry work from this entrypoint.
 
 ## Completed D-08 composition audit surface
@@ -156,6 +156,6 @@ representative profile list/load/save/delete/rename/fix live smoke
 - A version marker is not a publish action.
 - Technical PRO review is for unresolved cross-boundary architecture choices,
   unavoidable cycles, or insufficient compatibility evidence—not routine failures.
-- D-14 readiness is recorded and authorizes no removal. E-05a ownership is fixed;
-  use it only to start the separate E-05b Move. Do not infer E-05c+, E-09 cleanup,
-  release publication, or Registry actions.
+- D-14 readiness is recorded and authorizes no removal. E-05b snapshot ownership is
+  complete; use it only to start the separate E-05c Move. Do not infer E-05d+,
+  E-09 cleanup, release publication, or Registry actions.
