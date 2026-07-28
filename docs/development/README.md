@@ -24,6 +24,8 @@ Read only the sections needed by the active task.
      [`../architecture/python-runtime-base-contract.md`](../architecture/python-runtime-base-contract.md)
    - E-02 completion audit:
      [`../architecture/python-runtime-e02-completion-audit.md`](../architecture/python-runtime-e02-completion-audit.md)
+   - E-03 repository/filesystem Contract:
+     [`../architecture/python-runtime-e03-repository-filesystem-contract.md`](../architecture/python-runtime-e03-repository-filesystem-contract.md)
 5. Read [`codex-blocker-escalation.md`](codex-blocker-escalation.md) only after a
    documented hard stop or unresolved cross-owner failure. Ordinary implementation
    and test failures remain local task work.
@@ -46,18 +48,18 @@ ordinary `dev` roadmap work.
 
 - Released baseline: 0.6.2.
 - Active owner: Issue #187 for Phase E; Issue #186 retains D-14/shim decisions.
-- Reviewed code baseline: D-14 readiness / PR #526.
+- Reviewed code baseline: E-02d / PR #531.
 - D-08u integrated exit audit is complete.
 - D-08v is not required; the audit found no remaining D-08 production Move.
 - D-14 readiness is audited: every root surface is retained and retirement/final
   freeze is blocked by production/lifecycle consumers, missing release windows, or
   insufficient consumer evidence.
-- E-01 and E-02 are complete through the audit and E-02d canonical path Move. The
-  next work is only #187 E-03 repository/filesystem Contract. The #323 E-02a/E-07
-  bridge remains completed evidence, not authorization for feature migration.
+- E-01, E-02, and the E-03a repository/filesystem Contract are complete. The next
+  work is only #187 E-03b filesystem factory Move. The #323 E-02a/E-07 bridge
+  remains completed evidence, not authorization for unrelated feature migration.
 - Completed #470 and the 0.6.1 Prompt Studio lane are behavior-contract references,
   not the active queue.
-- Do not remove root aliases or start E-03 through E-10 Moves, release, or Registry work
+- Do not remove root aliases or start E-03c through E-10, release, or Registry work
   from this entrypoint.
 
 ## Completed D-08 composition audit surface
@@ -149,6 +151,6 @@ representative profile list/load/save/delete/rename/fix live smoke
 - A version marker is not a publish action.
 - Technical PRO review is for unresolved cross-boundary architecture choices,
   unavoidable cycles, or insufficient compatibility evidence—not routine failures.
-- D-14 readiness is recorded and authorizes no removal. Use the completed E-02
-  evidence for the E-03 Contract; do not expand that Contract into production
-  migration, release publication, or Registry actions.
+- D-14 readiness is recorded and authorizes no removal. Use the E-03a Contract for
+  the bounded E-03b factory Move; do not expand it into settings/profile repository
+  Moves, release publication, or Registry actions.

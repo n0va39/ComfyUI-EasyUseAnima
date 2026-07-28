@@ -1,0 +1,436 @@
+{
+  "compatibility_bindings": [
+    {
+      "expression": "_profile_mutation.PROFILE_MUTATION_COORDINATOR",
+      "kind": "assignment",
+      "module": "api.py",
+      "symbol": "PROFILE_MUTATION_COORDINATOR"
+    },
+    {
+      "expression": "_lora_profiles.LORA_PROFILE_DIR",
+      "kind": "assignment",
+      "module": "api.py",
+      "symbol": "LORA_PROFILE_DIR"
+    },
+    {
+      "expression": "_lora_profiles._load_lora_profile",
+      "kind": "assignment",
+      "module": "api.py",
+      "symbol": "_load_lora_profile"
+    },
+    {
+      "expression": "_lora_profiles._save_lora_profile",
+      "kind": "assignment",
+      "module": "api.py",
+      "symbol": "_save_lora_profile"
+    },
+    {
+      "expression": "_aio_profiles.AIO_PROFILE_DIR",
+      "kind": "assignment",
+      "module": "api.py",
+      "symbol": "AIO_PROFILE_DIR"
+    },
+    {
+      "expression": "_aio_profiles._delete_aio_profile",
+      "kind": "assignment",
+      "module": "api.py",
+      "symbol": "_delete_aio_profile"
+    },
+    {
+      "expression": "_aio_profiles._load_aio_profile",
+      "kind": "assignment",
+      "module": "api.py",
+      "symbol": "_load_aio_profile"
+    },
+    {
+      "expression": "_aio_profiles._rename_aio_profile",
+      "kind": "assignment",
+      "module": "api.py",
+      "symbol": "_rename_aio_profile"
+    },
+    {
+      "expression": "_aio_profiles._save_aio_profile",
+      "kind": "assignment",
+      "module": "api.py",
+      "symbol": "_save_aio_profile"
+    },
+    {
+      "kind": "import",
+      "module": "api.py",
+      "source": ".easyuse_anima.settings.repository",
+      "symbol": "load_long_text_settings"
+    },
+    {
+      "kind": "import",
+      "module": "api.py",
+      "source": ".easyuse_anima.settings.repository",
+      "symbol": "save_long_text_settings"
+    },
+    {
+      "kind": "import",
+      "module": "api.py",
+      "source": ".easyuse_anima.settings.repository",
+      "symbol": "save_setting"
+    }
+  ],
+  "decisions": {
+    "dynamic_host_dependencies": "folder_paths lookup remains late-bound in the owning settings or LoRA feature and is not part of the filesystem factory.",
+    "filesystem_factory": "A future factory is a stateless narrow AtomicJsonStore constructor seam. It neither owns nor duplicates the process path-lock registry.",
+    "path_lock_owner": "easyuse_anima.infrastructure.filesystem.atomic_json remains the single process owner for normalized-path locks used by direct and factory-created stores.",
+    "profile_directory_owner": "PROFILE_MUTATION_COORDINATOR remains a shared profile transaction dependency and is not absorbed into generic filesystem mechanics.",
+    "runtime_access": "Repositories receive explicit paths and narrow dependencies; feature code does not receive RuntimeServices."
+  },
+  "lock_order": [
+    {
+      "evidence": [
+        "tests/test_storage.py"
+      ],
+      "id": "atomic-multi-path",
+      "order": "normalized path keys ascending, release in reverse order",
+      "owner": "easyuse_anima.infrastructure.filesystem.atomic_json._locked_paths"
+    },
+    {
+      "evidence": [
+        "tests/test_lora_profiles.py",
+        "tests/test_aio_profiles.py"
+      ],
+      "id": "profile-mutation",
+      "order": "profile directory RLock before one or more AtomicJsonStore path RLocks",
+      "owner": "easyuse_anima.profiles.mutation.PROFILE_MUTATION_COORDINATOR"
+    },
+    {
+      "evidence": [
+        "tests/test_prompt_corrector.py"
+      ],
+      "id": "settings-reentrant-path",
+      "order": "save_setting holds the settings path RLock while get_settings re-enters the same normalized path lock",
+      "owner": "easyuse_anima.infrastructure.filesystem.atomic_json"
+    }
+  ],
+  "monkeypatch_seams": [
+    {
+      "evidence": "tests/test_prompt_corrector.py",
+      "target": "easyuse_anima.settings.repository.SETTINGS_FILE",
+      "token": "patch.object(settings_repository, \"SETTINGS_FILE\""
+    },
+    {
+      "evidence": "tests/test_prompt_corrector.py",
+      "target": "easyuse_anima.settings.repository.LONG_TEXT_SETTINGS_FILE",
+      "token": "patch.object(settings_repository, \"LONG_TEXT_SETTINGS_FILE\""
+    },
+    {
+      "evidence": "tests/test_lora_profiles.py",
+      "target": "easyuse_anima.profiles.lora.LORA_PROFILE_DIR",
+      "token": "patch.object(api._lora_profiles, \"LORA_PROFILE_DIR\""
+    },
+    {
+      "evidence": "tests/test_lora_profiles.py",
+      "target": "api._save_lora_profile",
+      "token": "patch.object(api, \"_save_lora_profile\""
+    },
+    {
+      "evidence": "tests/test_aio_profiles.py",
+      "target": "easyuse_anima.profiles.aio.AIO_PROFILE_DIR",
+      "token": "patch.object(api._aio_profiles, \"AIO_PROFILE_DIR\""
+    },
+    {
+      "evidence": "tests/test_aio_profiles.py",
+      "target": "api.PROFILE_MUTATION_COORDINATOR",
+      "token": "api.PROFILE_MUTATION_COORDINATOR"
+    }
+  ],
+  "move_queue": [
+    {
+      "classification": "Move",
+      "goal": "Add the stateless store-constructor seam while every AtomicJsonStore instance continues to share the canonical path-lock owner.",
+      "id": "E-03b",
+      "name": "filesystem factory"
+    },
+    {
+      "classification": "Move",
+      "goal": "Introduce explicit settings paths and store-factory construction behind the current module functions and patch seams.",
+      "id": "E-03c",
+      "name": "settings repository"
+    },
+    {
+      "classification": "Move",
+      "goal": "Introduce explicit LoRA/AiO profile directories, store factory, and shared profile coordinator behind current canonical functions and root aliases.",
+      "id": "E-03d",
+      "name": "profile repositories"
+    },
+    {
+      "classification": "Contract",
+      "goal": "Reconcile ownership targets and prove no repository or filesystem state remains ambiguously owned before E-04.",
+      "id": "E-03e",
+      "name": "completion audit"
+    }
+  ],
+  "owners": [
+    {
+      "cleanup": "No explicit cleanup; normalized-path RLocks remain for the process lifetime.",
+      "constructor": {
+        "backup_default": "True",
+        "parameters": [
+          "path",
+          "backup"
+        ]
+      },
+      "id": "atomic-json-store",
+      "lifetime": "Direct and future factory-created stores share one process path-lock registry.",
+      "methods": [
+        "delete",
+        "locked",
+        "read",
+        "replace_from",
+        "update",
+        "write"
+      ],
+      "module": "easyuse_anima/infrastructure/filesystem/atomic_json.py",
+      "path_normalization": "Path(path).expanduser().resolve(strict=False)",
+      "symbols": [
+        "AtomicJsonStore",
+        "_PATH_LOCKS",
+        "_PATH_LOCKS_GUARD"
+      ],
+      "test_evidence": [
+        "tests/test_storage.py"
+      ],
+      "thread_safety": "The registry guard protects lookup; one RLock serializes each normalized primary path and sorted acquisition prevents multi-path inversion."
+    },
+    {
+      "cleanup": "Weak per-directory locks expire when unreferenced; the process coordinator has no close.",
+      "constructor": {
+        "parameters": []
+      },
+      "id": "profile-directory-coordinator",
+      "lifetime": "One canonical process coordinator shared by LoRA and AiO profile mutations.",
+      "methods": [
+        "_key",
+        "_lock",
+        "locked"
+      ],
+      "module": "easyuse_anima/profiles/mutation.py",
+      "path_normalization": "os.path.normcase(str(Path(directory).resolve(strict=False)))",
+      "symbols": [
+        "DirectoryMutationCoordinator",
+        "PROFILE_MUTATION_COORDINATOR"
+      ],
+      "test_evidence": [
+        "tests/test_aio_profiles.py",
+        "tests/test_lora_profiles.py"
+      ],
+      "thread_safety": "A guard protects the weak registry and one directory RLock spans discovery, identity-before-revision verification, and publication."
+    }
+  ],
+  "repository_lanes": [
+    {
+      "dynamic_dependencies": [
+        {
+          "dependency": "folder_paths.get_user_directory",
+          "function": "_comfy_settings_candidates",
+          "token": "import folder_paths"
+        }
+      ],
+      "function_contracts": [
+        {
+          "function": "_read_json_file",
+          "required_calls": [
+            "AtomicJsonStore",
+            "AtomicJsonStore().read"
+          ]
+        },
+        {
+          "function": "save_long_text_settings",
+          "required_calls": [
+            "AtomicJsonStore",
+            "AtomicJsonStore().update"
+          ]
+        },
+        {
+          "function": "_initialize_autocomplete_source",
+          "required_calls": [
+            "AtomicJsonStore",
+            "AtomicJsonStore().update"
+          ]
+        },
+        {
+          "function": "save_setting",
+          "required_calls": [
+            "AtomicJsonStore",
+            "get_settings",
+            "store.locked",
+            "store.write"
+          ]
+        }
+      ],
+      "id": "settings",
+      "module": "easyuse_anima/settings/repository.py",
+      "path_inputs": [
+        {
+          "expression": "USER_DATA_DIR / 'settings.json'",
+          "symbol": "SETTINGS_FILE"
+        },
+        {
+          "expression": "USER_DATA_DIR / 'long_text_settings.json'",
+          "symbol": "LONG_TEXT_SETTINGS_FILE"
+        }
+      ],
+      "preserved_contract": "Defaults, Comfy overlay precedence, long-text merge, unknown-key rejection, trailing newline, and current OSError/JSON fallbacks remain feature behavior.",
+      "test_evidence": [
+        "tests/test_prompt_corrector.py",
+        "tests/test_storage.py"
+      ]
+    },
+    {
+      "dynamic_dependencies": [],
+      "function_contracts": [
+        {
+          "function": "_read_profile_json",
+          "required_calls": [
+            "AtomicJsonStore",
+            "store.locked",
+            "store.read"
+          ]
+        },
+        {
+          "function": "_profile_list_item",
+          "required_calls": [
+            "_read_profile_json",
+            "interpret_profile_document",
+            "legacy_profile_id"
+          ]
+        }
+      ],
+      "id": "profile-shared",
+      "module": "easyuse_anima/profiles/repository.py",
+      "path_inputs": [],
+      "preserved_contract": "Filename validation, legacy identity/revision projection, invalid-data mapping, and list metadata remain profile behavior.",
+      "test_evidence": [
+        "tests/test_lora_profiles.py",
+        "tests/test_aio_profiles.py",
+        "tests/test_profile_contract.py"
+      ]
+    },
+    {
+      "dynamic_dependencies": [
+        {
+          "dependency": "folder_paths LoRA list/full-path lookup",
+          "function": "_list_loras",
+          "token": "import folder_paths"
+        }
+      ],
+      "function_contracts": [
+        {
+          "function": "_save_lora_profile",
+          "required_calls": [
+            "AtomicJsonStore",
+            "AtomicJsonStore().write",
+            "PROFILE_MUTATION_COORDINATOR.locked",
+            "_find_lora_profile_path",
+            "verify_profile_precondition"
+          ]
+        },
+        {
+          "function": "_load_lora_profile",
+          "required_calls": [
+            "_find_lora_profile_path",
+            "_read_profile_json",
+            "interpret_profile_document"
+          ]
+        }
+      ],
+      "id": "lora-profile",
+      "module": "easyuse_anima/profiles/lora.py",
+      "optional_path_parameters": [
+        {
+          "function": "_find_lora_profile_path",
+          "parameter": "profile_dir"
+        },
+        {
+          "function": "_lora_profile_path",
+          "parameter": "profile_dir"
+        }
+      ],
+      "path_inputs": [
+        {
+          "expression": "USER_DATA_DIR / 'profiles'",
+          "symbol": "LORA_PROFILE_DIR"
+        }
+      ],
+      "preserved_contract": "Create/overwrite identity and revision, filename collision, backup recovery, profile payload normalization, and LoRA repair behavior remain unchanged.",
+      "test_evidence": [
+        "tests/test_lora_profiles.py",
+        "tests/test_profile_contract.py",
+        "tests/test_storage.py"
+      ]
+    },
+    {
+      "dynamic_dependencies": [],
+      "function_contracts": [
+        {
+          "function": "_save_aio_profile",
+          "required_calls": [
+            "AtomicJsonStore",
+            "AtomicJsonStore().write",
+            "PROFILE_MUTATION_COORDINATOR.locked",
+            "_find_aio_profile_path",
+            "verify_profile_precondition"
+          ]
+        },
+        {
+          "function": "_load_aio_profile",
+          "required_calls": [
+            "_find_aio_profile_path",
+            "_read_profile_json"
+          ]
+        },
+        {
+          "function": "_delete_aio_profile",
+          "required_calls": [
+            "AtomicJsonStore",
+            "PROFILE_MUTATION_COORDINATOR.locked",
+            "_find_aio_profile_path",
+            "store.delete",
+            "verify_profile_precondition"
+          ]
+        },
+        {
+          "function": "_rename_aio_profile",
+          "required_calls": [
+            "AtomicJsonStore",
+            "AtomicJsonStore().replace_from",
+            "PROFILE_MUTATION_COORDINATOR.locked",
+            "_find_aio_profile_path",
+            "verify_profile_precondition"
+          ]
+        }
+      ],
+      "id": "aio-profile",
+      "module": "easyuse_anima/profiles/aio.py",
+      "optional_path_parameters": [
+        {
+          "function": "_aio_profile_path",
+          "parameter": "profile_dir"
+        },
+        {
+          "function": "_find_aio_profile_path",
+          "parameter": "profile_dir"
+        }
+      ],
+      "path_inputs": [
+        {
+          "expression": "USER_DATA_DIR / 'aio_profiles'",
+          "symbol": "AIO_PROFILE_DIR"
+        }
+      ],
+      "preserved_contract": "Create/overwrite/delete/rename identity-before-revision CAS, source/target preconditions, same-name rename, backup rollback, size validation, and response payloads remain unchanged.",
+      "test_evidence": [
+        "tests/test_aio_profiles.py",
+        "tests/test_profile_contract.py",
+        "tests/test_storage.py"
+      ]
+    }
+  ],
+  "schema_version": 1,
+  "scope": "E-03a current settings/profile repository and filesystem boundary"
+}
