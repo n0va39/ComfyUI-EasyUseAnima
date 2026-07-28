@@ -155,7 +155,21 @@ class ApiRouteRegistrationOwnerTests(unittest.TestCase):
     def test_public_facade_delegates_to_the_canonical_router_owner(self):
         api, _routes = load_api_routes(register=False)
         target = RouteRegistry()
+        owner = sys.modules[api.register_routes.__module__]
 
+        self.assertTrue(
+            api._get_prompt_routes.__module__.endswith(
+                ".easyuse_anima.api.router"
+            )
+        )
+        self.assertTrue(
+            api.register_routes.__module__.endswith(
+                ".easyuse_anima.api.router"
+            )
+        )
+        self.assertEqual(api._get_prompt_routes.__name__, "_get_prompt_routes")
+        self.assertEqual(api.register_routes.__name__, "register_routes")
+        self.assertEqual(api.register_routes.__code__.co_argcount, 1)
         self.assertTrue(
             api._build_route_signature.__module__.endswith(
                 ".easyuse_anima.api.router"
@@ -174,6 +188,14 @@ class ApiRouteRegistrationOwnerTests(unittest.TestCase):
             api._ROUTE_SIGNATURE,
             api._build_route_signature(api._ROUTE_DEFINITIONS),
         )
+        self.assertEqual(
+            owner.__all__,
+            (
+                "ROUTE_REGISTRATION_MARKER",
+                "build_route_signature",
+                "register_route_definitions",
+            ),
+        )
 
         with patch.object(
             api,
@@ -187,6 +209,45 @@ class ApiRouteRegistrationOwnerTests(unittest.TestCase):
             target,
             api._ROUTE_DEFINITIONS,
             signature=api._ROUTE_SIGNATURE,
+            marker=api._ROUTE_REGISTRATION_MARKER,
+        )
+
+    def test_resolver_and_registrar_keep_root_dependencies_late_bound(self):
+        api, routes = load_api_routes(register=False)
+        replacement_routes = RouteRegistry()
+        replacement_server = types.SimpleNamespace(
+            PromptServer=types.SimpleNamespace(
+                instance=types.SimpleNamespace(routes=replacement_routes)
+            )
+        )
+
+        with patch.object(api, "server", None):
+            self.assertIsNone(api._get_prompt_routes())
+        with patch.object(api, "server", replacement_server):
+            self.assertIs(api._get_prompt_routes(), replacement_routes)
+
+        with patch.object(api, "web", None):
+            self.assertFalse(api.register_routes(routes))
+            self.assertIs(api.routes, routes)
+        self.assertEqual(routes.registrations, [])
+
+        replacement_definitions = (("get", "/replacement", object()),)
+        replacement_signature = (("GET", "/replacement"),)
+        with (
+            patch.object(api, "_ROUTE_DEFINITIONS", replacement_definitions),
+            patch.object(api, "_ROUTE_SIGNATURE", replacement_signature),
+            patch.object(
+                api,
+                "_register_route_definitions",
+                return_value=True,
+            ) as register,
+        ):
+            self.assertTrue(api.register_routes(routes))
+
+        register.assert_called_once_with(
+            routes,
+            replacement_definitions,
+            signature=replacement_signature,
             marker=api._ROUTE_REGISTRATION_MARKER,
         )
 
