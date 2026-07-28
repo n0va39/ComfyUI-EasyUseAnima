@@ -212,6 +212,17 @@ class ApiRouteRegistrationOwnerTests(unittest.TestCase):
             ].__all__,
         )
         self.assertTrue(
+            api._build_aio_torch_compile_route_handler.__module__.endswith(
+                ".easyuse_anima.bootstrap"
+            )
+        )
+        self.assertNotIn(
+            "build_aio_torch_compile_route_handler",
+            sys.modules[
+                api._build_aio_torch_compile_route_handler.__module__
+            ].__all__,
+        )
+        self.assertTrue(
             api._register_route_definitions.__module__.endswith(
                 ".easyuse_anima.api.router"
             )

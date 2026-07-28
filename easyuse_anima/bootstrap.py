@@ -6,6 +6,9 @@ import logging
 import threading
 from collections.abc import Callable
 
+from .api.routes.aio_torch_compile import (
+    build_aio_torch_compile_recommend_handler as _build_aio_torch_compile_recommend_handler,
+)
 from .api.routes.autocomplete import (
     build_autocomplete_handlers as _build_autocomplete_handlers,
 )
@@ -77,6 +80,20 @@ def build_translation_route_handler(
 
     return request_correlated(
         _build_translate_prompt_handler(**translation_dependencies)
+    )
+
+
+def build_aio_torch_compile_route_handler(
+    *,
+    request_correlated,
+    aio_torch_compile_dependencies,
+):
+    """Compose the correlated AiO Torch Compile recommendation route."""
+
+    return request_correlated(
+        _build_aio_torch_compile_recommend_handler(
+            **aio_torch_compile_dependencies
+        )
     )
 
 

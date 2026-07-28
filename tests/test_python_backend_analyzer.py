@@ -1102,7 +1102,6 @@ ignored/
             ("api.py", "easyuse_anima/api/errors.py"),
             ("api.py", "easyuse_anima/api/requests.py"),
             ("api.py", "easyuse_anima/api/responses.py"),
-            ("api.py", "easyuse_anima/api/routes/aio_torch_compile.py"),
             ("api.py", "easyuse_anima/api/routes/autocomplete.py"),
             ("api.py", "easyuse_anima/api/routes/translation.py"),
             ("api.py", "easyuse_anima/api/routes/translation_execution.py"),
@@ -1110,6 +1109,10 @@ ignored/
             ("api_contract.py", "easyuse_anima/api/errors.py"),
             ("api_contract.py", "easyuse_anima/api/requests.py"),
             ("api_contract.py", "easyuse_anima/api/responses.py"),
+            (
+                "easyuse_anima/bootstrap.py",
+                "easyuse_anima/api/routes/aio_torch_compile.py",
+            ),
         ):
             with self.subTest(source=source, target=target):
                 self.assertIn(
