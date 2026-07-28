@@ -50,20 +50,20 @@ ordinary `dev` roadmap work.
 
 - Released baseline: 0.6.2.
 - Active owner: Issue #187 for Phase E; Issue #186 retains D-14/shim decisions.
-- Reviewed code baseline: E-03e / PR #536.
+- Reviewed code baseline before E-04e: E-04d / PR #540.
 - D-08u integrated exit audit is complete.
 - D-08v is not required; the audit found no remaining D-08 production Move.
 - D-14 readiness is audited: every root surface is retained and retirement/final
   freeze is blocked by production/lifecycle consumers, missing release windows, or
   insufficient consumer evidence.
-- E-01 through E-03 and the E-04a translation ownership Contract are complete. The
-  next work is only #187 E-04b provider registry/client ownership Move. The #323
-  E-02a/E-07 bridge remains completed evidence, not authorization for unrelated
-  feature migration.
+- E-01 through E-04 are complete. The next work is only a separate #187 E-05
+  autocomplete source/index/single-flight ownership Contract. The #323 E-02a/E-07
+  bridge remains completed evidence, not authorization for unrelated feature
+  migration.
 - Completed #470 and the 0.6.1 Prompt Studio lane are behavior-contract references,
   not the active queue.
-- Do not remove root aliases or start E-04c through E-10, release, or Registry work
-  from this entrypoint.
+- Do not remove root aliases or start an E-05 production Move, E-06 through E-10,
+  release, or Registry work from this entrypoint.
 
 ## Completed D-08 composition audit surface
 
@@ -154,7 +154,6 @@ representative profile list/load/save/delete/rename/fix live smoke
 - A version marker is not a publish action.
 - Technical PRO review is for unresolved cross-boundary architecture choices,
   unavoidable cycles, or insufficient compatibility evidence—not routine failures.
-- D-14 readiness is recorded and authorizes no removal. Use the E-04a Contract
-  evidence for the bounded E-04b provider registry/client ownership Move; do not
-  expand it into service/cache or route-executor Moves, release publication, or
-  Registry actions.
+- D-14 readiness is recorded and authorizes no removal. E-04 ownership is complete;
+  use its evidence only as the finished translation boundary before the separate
+  E-05 Contract. Do not infer E-09 cleanup, release publication, or Registry actions.

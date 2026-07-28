@@ -118,13 +118,34 @@ semantics are Behavior and remain out of scope.
 4. **E-04d Move — route executor/bootstrap lifecycle wiring — complete:** concrete
    worker construction and `atexit` lifecycle registration are bootstrap-owned while
    root retains every dynamic compatibility seam.
-5. **E-04e Contract — completion audit — READY:** reconcile E-01 targets, prove
+5. **E-04e Contract — completion audit — complete:** reconciles E-01 targets, proves
    one owner per resource, optional-import safety, cleanup disposition, and zero
    ambiguous translation state before E-05.
 
 Each Move is a separate rollback boundary. E-09 still owns whole-runtime
 initialize/shutdown ordering and partial-failure cleanup; E-04 supplies the
 translation-owned resources and idempotent cleanup shapes that E-09 will compose.
+
+## Completion audit result
+
+The E-01 and E-04 fixtures agree on all three translation resources:
+
+| E-01 entry | E-04 owner | Completed phase | Cleanup disposition |
+| --- | --- | --- | --- |
+| `root-translation-route-worker` | `route-executor` | E-04d | idempotent `shutdown()` and one `atexit` registration; whole-runtime ordering remains E-09 |
+| `translation-default-service` | `default-service` | E-04c | idempotent cache-only `close()`; whole-runtime ordering remains E-09 |
+| `translation-provider-registry` | `provider-registry-client` | E-04b | intentional no-close because the proven optional-client protocol exposes no cleanup method |
+
+There are zero ambiguous translation state owners. `googletrans` remains a local
+import inside `GoogleTranslationProvider._create_translator`, so package/no-host
+imports do not require the optional client. The route executor, default service, and
+provider registry retain separate locks, lifetimes, and cleanup semantics; no generic
+executor/client port or duplicate module state is introduced.
+
+E-04 is complete. The next bounded unit is a separate E-05 autocomplete
+source/index/single-flight ownership Contract. E-04e changes no production,
+analyzer baseline, public surface, or runtime behavior and does not authorize E-09
+cleanup implementation, D-14 retirement, release, or Registry work.
 
 ## Stop conditions
 

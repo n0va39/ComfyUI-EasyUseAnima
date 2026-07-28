@@ -104,7 +104,7 @@ owners. The E-03e cross-fixture audit reconciles both E-01 owner entries with th
 E-03 owners and records zero ambiguous repository/filesystem state owners. The next
 bounded unit is the separate E-04 translation provider/client/cache Contract.
 
-## E-04a Contract and E-04b/E-04c result
+## E-04 completion result
 
 The production-free
 [`python-runtime-e04-translation-contract.md`](python-runtime-e04-translation-contract.md)
@@ -135,5 +135,11 @@ E-04d moves the canonical route-runtime factory invocation, concrete executor/er
 types, and `atexit` registration into one private bootstrap composition helper. Root
 `api.py` retains the worker and three helper closures only as the existing dynamic
 compatibility seams. Lazy executor creation, one-admission settlement, route
-identity, and repeated bootstrap registration remain unchanged. The next bounded
-unit is the production-free E-04e completion audit only.
+identity, and repeated bootstrap registration remain unchanged.
+
+The production-free E-04e audit reconciles the three translation entries with the
+E-04 owners and records zero ambiguous state. Route-executor and service cleanup
+shapes are idempotent while whole-runtime ordering remains E-09; provider/client
+close remains intentionally absent because no supported cleanup interface is proven.
+E-04 is complete. The next bounded unit is a separate E-05 autocomplete
+source/index/single-flight ownership Contract.
