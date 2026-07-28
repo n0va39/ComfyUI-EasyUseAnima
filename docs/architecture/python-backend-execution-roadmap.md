@@ -1467,9 +1467,13 @@ E-01 is complete through the versioned
 [`python-runtime-state-inventory.md`](python-runtime-state-inventory.md) Contract and
 `tests/fixtures/python_runtime_state_ownership.v1.json`. The direct gate partitions
 every analyzer mutable global, maps owner candidates, and covers manual
-singleton/path/import-effect gaps without changing production behavior. The next
-bounded unit is E-02b RuntimeConfig/base lifecycle Contract; feature owner Moves
-remain separate.
+singleton/path/import-effect gaps without changing production behavior.
+
+E-02b then adds frozen/slotted `RuntimeConfig`, narrow `Clock`, and idempotent
+`RuntimeResource.close()` canonical contracts. It does not add a generic
+executor/client port: translation admission, API file-I/O, Google provider, and NAIA
+transport semantics are feature-specific. The next bounded unit is E-02c
+config/clock composition; feature owner Moves remain separate.
 
 Feature services receive only narrow Protocols. They do not import or receive
 the entire `RuntimeServices` object. Node adapters may use `get_runtime()` only

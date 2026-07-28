@@ -72,14 +72,15 @@ source.
 - No production Python, analyzer heuristic, public surface, cache policy, or
   lifecycle behavior changes in E-01.
 
-## Next bounded unit
+## E-02b result and next bounded unit
 
-The first follow-up is an **E-02b Contract** for `RuntimeConfig` and the common
-clock/executor/client lifecycle ports. It must decide how import-resolved paths,
-process close ordering, and isolated construction are represented before any feature
-owner is moved. E-03 through E-09 Moves remain separate and use this fixture's target
-phase and cleanup gaps as their input.
+E-02b is owned by
+[`python-runtime-base-contract.md`](python-runtime-base-contract.md). It fixes
+`RuntimeConfig`, `Clock`, and the idempotent `RuntimeResource.close()` shape. Direct
+source evidence rejects a shared executor/client abstraction: those ports remain
+feature-owned because their admission, cancellation, timeout, reuse, and transport
+contracts differ.
 
-No PRO review is required for E-01: the analyzer and direct source converge on one
-current owner for every item. Escalate only if E-02b finds multiple viable production
-composition owners or an unavoidable compatibility cycle.
+The next bounded unit is an **E-02c Move** for the bootstrap-owned config loader,
+concrete system clock, and default runtime wiring. E-03 through E-09 feature/lifecycle
+Moves remain separate and use this fixture's target phases and cleanup gaps.

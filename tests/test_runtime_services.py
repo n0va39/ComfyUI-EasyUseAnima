@@ -14,7 +14,14 @@ if str(ROOT) not in sys.path:
 
 from easyuse_anima import bootstrap, runtime as runtime_module
 from easyuse_anima.infrastructure.comfy.provider import DefaultComfyHostProvider
-from easyuse_anima.runtime import RuntimeServices, get_runtime, install_runtime
+from easyuse_anima.runtime import (
+    Clock,
+    RuntimeConfig,
+    RuntimeResource,
+    RuntimeServices,
+    get_runtime,
+    install_runtime,
+)
 from easyuse_anima.seed.service import InMemorySeedReservationService
 
 
@@ -30,6 +37,79 @@ class FakeComfyHostProvider:
 
     def find_loaded_node_class(self, node_id: str) -> type[object] | None:
         return None
+
+
+class RuntimeBaseContractTests(unittest.TestCase):
+    def test_runtime_config_is_frozen_slotted_and_does_not_resolve_paths(self):
+        package_root = Path("package-root")
+        package_data_dir = Path("package-data")
+        user_data_dir = Path("user-data")
+
+        config = RuntimeConfig(
+            package_root=package_root,
+            package_data_dir=package_data_dir,
+            user_data_dir=user_data_dir,
+        )
+
+        self.assertIs(config.package_root, package_root)
+        self.assertIs(config.package_data_dir, package_data_dir)
+        self.assertIs(config.user_data_dir, user_data_dir)
+        self.assertFalse(hasattr(config, "__dict__"))
+        with self.assertRaises(FrozenInstanceError):
+            config.user_data_dir = Path("other")
+
+    def test_clock_is_a_narrow_monotonic_structural_contract(self):
+        class FakeClock:
+            def monotonic(self) -> float:
+                return 12.5
+
+        clock: Clock = FakeClock()
+
+        self.assertEqual(clock.monotonic(), 12.5)
+
+    def test_runtime_resource_is_an_idempotent_close_structural_contract(self):
+        class FakeResource:
+            def __init__(self) -> None:
+                self.closed = False
+                self.release_calls = 0
+
+            def close(self) -> None:
+                if self.closed:
+                    return
+                self.release_calls += 1
+                self.closed = True
+
+        resource: RuntimeResource = FakeResource()
+
+        resource.close()
+        resource.close()
+
+        self.assertTrue(resource.closed)
+        self.assertEqual(resource.release_calls, 1)
+
+    def test_runtime_public_surface_adds_only_base_contracts(self):
+        self.assertEqual(
+            runtime_module.__all__,
+            (
+                "Clock",
+                "RuntimeConfig",
+                "RuntimeResource",
+                "RuntimeServices",
+                "get_runtime",
+                "install_runtime",
+            ),
+        )
+
+    def test_runtime_contract_document_is_linked_from_architecture_entry(self):
+        contract_name = "python-runtime-base-contract.md"
+        contract = ROOT / "docs" / "architecture" / contract_name
+        architecture_entry = ROOT / "docs" / "architecture" / "README.md"
+
+        self.assertTrue(contract.is_file())
+        self.assertIn(
+            contract_name,
+            architecture_entry.read_text(encoding="utf-8"),
+        )
 
 
 class RuntimeServicesTests(unittest.TestCase):
@@ -166,7 +246,14 @@ builtins.__import__ = guarded_import
 
 from easyuse_anima.infrastructure.comfy.provider import ComfyHostProvider
 from easyuse_anima.infrastructure.comfy.provider import DefaultComfyHostProvider
-from easyuse_anima.runtime import RuntimeServices, get_runtime, install_runtime
+from easyuse_anima.runtime import (
+    Clock,
+    RuntimeConfig,
+    RuntimeResource,
+    RuntimeServices,
+    get_runtime,
+    install_runtime,
+)
 from easyuse_anima.bootstrap import initialize
 from easyuse_anima.seed.service import InMemorySeedReservationService
 """

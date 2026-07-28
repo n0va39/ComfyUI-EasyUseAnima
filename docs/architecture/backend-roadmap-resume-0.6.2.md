@@ -2,14 +2,14 @@
 
 ## Status and authority
 
-- Status: D-08 and the E-01 inventory Contract are completed; the D-14 readiness
-  audit retains every root surface and blocks retirement/final-freeze work.
-- Code-review baseline: `dev@3c15a34c8e10f3f1999b16496b72343ce30759ae`
-  after the D-14 readiness audit / PR #526.
-- Document baseline: E-01 inventory Contract after the D-14 readiness audit.
+- Status: D-08, E-01, and the E-02b base Contract are completed; the D-14
+  readiness audit retains every root surface and blocks retirement/final-freeze work.
+- Code-review baseline: `dev@57b51a492886f1ceb4b3084c37315e87256f3ff6`
+  after E-01 / PR #527.
+- Document baseline: E-02b RuntimeConfig/base lifecycle Contract.
 - Released baseline: 0.6.2.
-- Scope: completed D-08 evidence, the D-14 readiness decision, the completed #187
-  E-01 inventory, and the next bounded E-02b Contract handoff.
+- Scope: completed D-08 evidence, the D-14 readiness decision, completed #187
+  E-01/E-02b contracts, and the next bounded E-02c Move handoff.
 - This document owns the current immediate queue and supersedes the stale queue and
   broad preflight command in `python-backend-execution-roadmap.md`.
 - `python-backend.md`, ADR-001, ADR-002, and the compatibility-shim registry still own
@@ -259,10 +259,12 @@ The D-08u audit found no required D-08v. After D-08:
    removed;
 4. #187 E-01 global-state inventory is complete and versioned; the narrow
    E-02a/E-07a/E-07b bridge is already complete through #323;
-5. the first READY follow-up is E-02b RuntimeConfig/base lifecycle Contract; and
-6. never remove root files merely to make the directory tree appear complete.
+5. E-02b fixes RuntimeConfig, Clock, and idempotent RuntimeResource contracts without
+   changing current RuntimeServices composition;
+6. the first READY follow-up is E-02c config/clock composition Move; and
+7. never remove root files merely to make the directory tree appear complete.
 
-## 6. E-01 result and Codex resume instruction
+## 6. E-01/E-02b result and Codex resume instruction
 
 ```text
 D-08 is complete. Do not restart D-08t or create D-08v without new contrary
@@ -276,7 +278,13 @@ tests/fixtures/python_runtime_state_ownership.v1.json. Its direct gate requires
 every analyzer mutable global to be runtime-owned or declarative-only, maps every
 owner candidate, and adds manual singleton/path/import-effect coverage.
 
-Start only #187 E-02b RuntimeConfig/base lifecycle Contract from latest origin/dev.
-Use the E-01 target phases and cleanup gaps as input. Do not start E-03 through E-10
-behavior/lifecycle Moves, release, or Registry work inside E-02b.
+E-02b is owned by python-runtime-base-contract.md. It adds only frozen/slotted
+RuntimeConfig, Clock.monotonic(), and idempotent RuntimeResource.close() canonical
+types. Generic executor/client ports are rejected because current feature semantics
+do not share one useful contract.
+
+Start only #187 E-02c config/clock composition Move from latest origin/dev. Preserve
+current folder_paths fallback, standalone package behavior, RuntimeServices identity,
+and initialize order. Do not start E-03 through E-10 feature/lifecycle Moves, release,
+or Registry work inside E-02c.
 ```
