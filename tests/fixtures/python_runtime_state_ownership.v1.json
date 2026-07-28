@@ -214,7 +214,7 @@
       "module": "easyuse_anima/autocomplete/search.py",
       "owner": "easyuse_anima.autocomplete.search",
       "symbols": ["_AUTOCOMPLETE_INDEX_DIR"],
-      "target_phase": "E-02",
+      "target_phase": "E-05",
       "test_evidence": ["tests/test_autocomplete_index.py", "tests/test_python_package_skeleton.py"],
       "thread_safety": "Immutable Path-or-None after import."
     },
@@ -250,7 +250,7 @@
       "module": "easyuse_anima/infrastructure/filesystem/paths.py",
       "owner": "easyuse_anima.infrastructure.filesystem.paths",
       "symbols": ["PACKAGE_DATA_DIR", "PACKAGE_ROOT", "USER_DATA_DIR"],
-      "target_phase": "E-02",
+      "target_phase": "E-02c-complete",
       "test_evidence": ["tests/test_python_package_skeleton.py", "tests/test_runtime_services.py", "tests/test_storage.py"],
       "thread_safety": "Immutable Path values after import."
     },
@@ -310,8 +310,8 @@
       "module": "easyuse_anima/prompt/anima/knowledge.py",
       "owner": "easyuse_anima.prompt.anima.knowledge",
       "symbols": ["PACKAGE_DATA_DIR"],
-      "target_phase": "E-02",
-      "test_evidence": ["tests/test_python_package_skeleton.py"],
+      "target_phase": "E-02d",
+      "test_evidence": ["tests/test_anima_prompt_compatibility.py", "tests/test_python_package_skeleton.py"],
       "thread_safety": "Immutable Path after import."
     },
     {

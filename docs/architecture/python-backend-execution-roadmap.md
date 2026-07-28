@@ -1477,8 +1477,12 @@ transport semantics are feature-specific.
 E-02c composes required `RuntimeConfig` and `Clock` fields into the identity-installed
 `RuntimeServices`. The private bootstrap loader projects the existing canonical path
 objects without changing `paths.py`, and a private system clock delegates to
-`time.monotonic()`. No feature consumer receives the complete runtime. The next
-bounded unit is an E-02 completion audit; feature owner Moves remain separate.
+`time.monotonic()`. No feature consumer receives the complete runtime.
+
+The E-02 completion audit records filesystem paths as E-02c complete, assigns the
+autocomplete index root to its E-05 cache/index lifecycle, and selects E-02d to
+canonicalize the duplicate prompt knowledge package path. E-03 remains unauthorized
+until E-02d lands; feature owner Moves remain separate.
 
 Feature services receive only narrow Protocols. They do not import or receive
 the entire `RuntimeServices` object. Node adapters may use `get_runtime()` only

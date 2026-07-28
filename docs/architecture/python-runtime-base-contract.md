@@ -93,7 +93,9 @@ so no PRO review is required.
 
 ## Next bounded unit
 
-An E-02 completion audit reconciles the E-01 entries targeted at E-02 before the
-roadmap authorizes E-03. It may record a new bounded Contract/Move if evidence shows
-that a remaining path owner cannot safely wait for its feature phase. Feature owner
-and shutdown migrations remain separate.
+The
+[`python-runtime-e02-completion-audit.md`](python-runtime-e02-completion-audit.md)
+records one remaining bounded **E-02d** Move: replace the prompt knowledge module's
+duplicate package-data resolution with the canonical filesystem Path object. The
+autocomplete index root moves with E-05. E-03 remains unauthorized until E-02d
+lands; feature owner and shutdown migrations remain separate.

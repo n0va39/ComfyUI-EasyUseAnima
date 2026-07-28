@@ -22,6 +22,8 @@ Read only the sections needed by the active task.
      [`../architecture/python-runtime-state-inventory.md`](../architecture/python-runtime-state-inventory.md)
    - E-02b/E-02c runtime base and composition Contract:
      [`../architecture/python-runtime-base-contract.md`](../architecture/python-runtime-base-contract.md)
+   - E-02 completion audit:
+     [`../architecture/python-runtime-e02-completion-audit.md`](../architecture/python-runtime-e02-completion-audit.md)
 5. Read [`codex-blocker-escalation.md`](codex-blocker-escalation.md) only after a
    documented hard stop or unresolved cross-owner failure. Ordinary implementation
    and test failures remain local task work.
@@ -50,9 +52,10 @@ ordinary `dev` roadmap work.
 - D-14 readiness is audited: every root surface is retained and retirement/final
   freeze is blocked by production/lifecycle consumers, missing release windows, or
   insufficient consumer evidence.
-- E-01 inventory, E-02b base Contract, and E-02c config/clock composition are
-  complete. The next work is only #187 E-02 completion audit. The #323 E-02a/E-07
-  bridge remains completed evidence, not authorization for feature migration.
+- E-01 inventory, E-02b base Contract, E-02c composition, and the E-02 completion
+  audit are complete. The next work is only #187 E-02d prompt knowledge path Move.
+  The #323 E-02a/E-07 bridge remains completed evidence, not authorization for
+  feature migration.
 - Completed #470 and the 0.6.1 Prompt Studio lane are behavior-contract references,
   not the active queue.
 - Do not remove root aliases or start E-03 through E-10 Moves, release, or Registry work
@@ -147,6 +150,6 @@ representative profile list/load/save/delete/rename/fix live smoke
 - A version marker is not a publish action.
 - Technical PRO review is for unresolved cross-boundary architecture choices,
   unavoidable cycles, or insufficient compatibility evidence—not routine failures.
-- D-14 readiness is recorded and authorizes no removal. Use the completed E-01/E-02
-  evidence for the completion audit; do not expand that audit into feature migrations,
-  release publication, or Registry actions.
+- D-14 readiness is recorded and authorizes no removal. Use the E-02 audit for the
+  bounded E-02d Move; do not expand it into E-03 feature migrations, release
+  publication, or Registry actions.

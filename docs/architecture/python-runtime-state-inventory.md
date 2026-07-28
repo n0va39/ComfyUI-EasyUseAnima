@@ -40,14 +40,14 @@ E-01 drift gate until classified.
 | `api-file-io-limiters` | canonical API file-I/O module, weak per-event-loop limiter | registry `Lock`; weak expiry, no explicit close | E-09 |
 | `autocomplete-dataset-cache` | canonical dataset snapshot and Future single-flight maps | one `Lock`; test-only clear | E-05 |
 | `autocomplete-index-locks` | canonical index per-path lock registry | guard plus per-path locks; no clear | E-05 |
-| `autocomplete-index-root` | import-resolved user-data index path | immutable after import; test patch only | E-02 |
+| `autocomplete-index-root` | import-resolved user-data index path | immutable after import; test patch coupled to index fallback/publication | E-05 |
 | `atomic-json-path-locks` | filesystem atomic JSON per-path lock registry | guard plus per-path `RLock`; no clear | E-03 |
 | `bootstrap-initialize-state` | bootstrap default runtime and wildcard completion state | initialize `Lock`; private-global test reset, no shutdown | E-09 |
-| `filesystem-runtime-paths` | import-resolved package/user-data paths projected into the default RuntimeConfig | immutable after import; bootstrap composition does not re-resolve | E-02 audit |
+| `filesystem-runtime-paths` | import-resolved package/user-data paths projected into the default RuntimeConfig | immutable after import; bootstrap composition does not re-resolve | E-02c complete |
 | `package-bootstrap-effect` | root import invokes bootstrap route/directory initialization | bootstrap `Lock`; retry behavior, no package shutdown | E-09 |
 | `profile-directory-mutation-coordinator` | canonical process coordinator with weak per-directory locks | guard plus per-directory `RLock`; weak expiry | E-03 |
 | prompt warning-dedupe entries | two canonical Prompt feature modules, process lifetime | unprotected sets; direct-test clear only | E-09 |
-| `prompt-knowledge-path` | canonical ANIMA prompt package path | immutable after import | E-02 |
+| `prompt-knowledge-path` | duplicate ANIMA prompt package path with root compatibility evidence | immutable after import | E-02d |
 | `root-route-registration` | injected router registrar called by bootstrap | serialized refresh; idempotent marker, no deregistration | E-09 |
 | `root-translation-route-worker` | root compatibility runtime owns lazy single-thread executor | internal `RLock`; idempotent `atexit` shutdown only | E-04 |
 | `runtime-services` | identity-installed process runtime with Comfy and seed capabilities | bootstrap-serialized install; private-global test reset, no close | E-09 |
@@ -72,7 +72,7 @@ source.
 - No production Python, analyzer heuristic, public surface, cache policy, or
   lifecycle behavior changes in E-01.
 
-## E-02b/E-02c result and next bounded unit
+## E-02 audit result and next bounded unit
 
 E-02b is owned by
 [`python-runtime-base-contract.md`](python-runtime-base-contract.md). It fixes
@@ -86,6 +86,10 @@ bootstrap loader projects the current canonical path objects, and its private sy
 clock delegates to `time.monotonic()`. It changes no path constant, fallback, feature
 consumer, root surface, or shutdown behavior.
 
-The next bounded unit is an **E-02 completion audit**. It reconciles the remaining
-E-02 target entries before E-03 is authorized. E-03 through E-09 feature/lifecycle
-Moves remain separate and use this fixture's target phases and cleanup gaps.
+The
+[`python-runtime-e02-completion-audit.md`](python-runtime-e02-completion-audit.md)
+assigns the autocomplete index root to E-05, records the filesystem paths as E-02c
+complete, and selects one bounded **E-02d** Move for the duplicate prompt knowledge
+package path. E-03 remains unauthorized until E-02d lands. E-03 through E-09
+feature/lifecycle Moves remain separate and use this fixture's target phases and
+cleanup gaps.
