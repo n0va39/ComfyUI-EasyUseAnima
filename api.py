@@ -68,6 +68,7 @@ from .easyuse_anima.api.responses import (
     create_request_id,
     error_payload,
 )
+from .easyuse_anima.api import router as _api_router
 from .easyuse_anima.api.router import (
     ROUTE_REGISTRATION_MARKER as _ROUTE_REGISTRATION_MARKER,
     build_route_signature as _build_route_signature,
@@ -340,11 +341,9 @@ _wildcards_payload_sync = _api_wildcard_routes.build_wildcards_payload(
 )
 
 
-def _get_prompt_routes():
-    if server is None:
-        return None
-    prompt_server = getattr(getattr(server, "PromptServer", None), "instance", None)
-    return getattr(prompt_server, "routes", None)
+_get_prompt_routes = _api_router.build_prompt_routes_resolver(
+    resolve_server=lambda: server,
+)
 
 
 routes = _get_prompt_routes()
@@ -651,17 +650,15 @@ else:
 _ROUTE_SIGNATURE = _build_route_signature(_ROUTE_DEFINITIONS)
 
 
-def register_routes(route_table=None) -> bool:
-    """Register the current route set once for each ComfyUI route table."""
-
-    global routes
-    target = _get_prompt_routes() if route_table is None else route_table
-    routes = target
-    if web is None or target is None:
-        return False
-    return _register_route_definitions(
-        target,
-        _ROUTE_DEFINITIONS,
-        signature=_ROUTE_SIGNATURE,
-        marker=_ROUTE_REGISTRATION_MARKER,
-    )
+register_routes = _api_router.build_route_registrar(
+    resolve_prompt_routes=lambda: _get_prompt_routes(),
+    publish_routes=lambda target: globals().__setitem__("routes", target),
+    resolve_web=lambda: web,
+    resolve_route_definitions=lambda: _ROUTE_DEFINITIONS,
+    resolve_route_signature=lambda: _ROUTE_SIGNATURE,
+    register_route_definitions=lambda *args, **kwargs: _register_route_definitions(
+        *args,
+        **kwargs,
+    ),
+    marker=_ROUTE_REGISTRATION_MARKER,
+)
