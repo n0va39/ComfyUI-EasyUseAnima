@@ -36,7 +36,7 @@ E-01 drift gate until classified.
 
 | Entry | Current owner and lifetime | Synchronization / cleanup today | Target |
 | --- | --- | --- | --- |
-| `aio-first-pass-cache` | canonical AiO cache module, process lifetime with count/byte/TTL bounds | one `RLock`; explicit clear plus test-only metric/config reset | E-08 |
+| `aio-first-pass-cache` | canonical AiO first-pass cache module with one six-state process-lifetime boundary and count/byte/TTL bounds | one `RLock`; clear/disable invalidate entries and generation while preserving metrics; metric reset is separate | E-08a contracted; E-08b next |
 | `api-file-io-limiters` | canonical API file-I/O module, weak per-event-loop limiter | registry `Lock`; weak expiry, no explicit close | E-09 |
 | `autocomplete-dataset-cache` | canonical dataset snapshot and Future single-flight owner, injected into the bootstrap-composed narrow service | one owner `Lock`; completed-snapshot clear only | E-05 complete; E-05e audited |
 | `autocomplete-index-locks` | canonical index-store per-path lock owner, injected into the bootstrap-composed narrow service | guard plus retained per-path locks; idempotent no-op close | E-05 complete; E-05e audited |
@@ -165,5 +165,13 @@ wrapper or replacement identity. The production-free E-06e audit reconciles the
 single E-01 entry with that owner, records completed-cache-only cleanup, preserves
 feature import direction, package/no-host safety, and direct root identities, and
 records zero ambiguous wildcard state. E-06 is complete. Because the E-02a/E-07a/
-E-07b Comfy provider bridge was already completed through #323, the next remaining
-bounded owner is the separate E-08a AiO first-pass cache ownership Contract.
+E-07b Comfy provider bridge was already completed through #323, it is not repeated.
+
+The production-free E-08a Contract reconciles the one E-01 AiO first-pass cache
+entry with its six mutable module globals, records the immutable entry, key/clone
+helpers, and size/count/TTL limits as behavior or policy rather than state owners,
+and selects one private `_AIOFirstPassCacheStore` instance named
+`_DEFAULT_AIO_FIRST_PASS_CACHE` as the E-08b target. It preserves the seven direct
+root aliases and the legacy runtime/stage injection path, and fixes the queue as
+E-08a Contract, E-08b owner Move, E-08c narrow RuntimeServices/bootstrap
+composition, and E-08d completion audit. The next bounded unit is E-08b only.

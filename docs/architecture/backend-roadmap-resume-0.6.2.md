@@ -2,11 +2,13 @@
 
 ## Status and authority
 
-- Status: D-08 and E-01 through E-07 are completed; the D-14
+- Status: D-08, E-01 through E-07, and the production-free E-08a Contract are
+  completed; the D-14
   readiness audit retains every root surface and blocks retirement/final-freeze work.
-- Code-review base before E-06e:
-  `dev@1919f1670a7074a33d1f51612bf70b830f76f57e` after E-06d / PR #550.
-- Document baseline: completed production-free E-06e wildcard ownership audit Contract.
+- Code-review base before E-08a:
+  `dev@b84fba7ed976e0775f241c5ff4350b47e77ceac9` after E-06e / PR #551.
+- Document baseline: completed production-free E-08a AiO first-pass cache ownership
+  Contract.
 - Released baseline: 0.6.2.
 - Scope: completed D-08 evidence, the D-14 readiness decision, completed #187
   E-01/E-02/E-03/E-04 work, the E-05a Contract, the E-05b snapshot owner Move,
@@ -14,8 +16,8 @@
   completion audit Contract, the E-06a wildcard snapshot ownership Contract, the
   E-06b snapshot owner Move, the E-06c canonical service/internal caller Move, the
   E-06d narrow RuntimeServices/bootstrap composition Move, the E-06e completion
-  audit Contract, the completed E-07 bridge, and the next bounded E-08a AiO
-  first-pass cache ownership Contract.
+  audit Contract, the completed E-07 bridge, the E-08a AiO first-pass cache
+  ownership Contract, and the next bounded E-08b owner Move.
 - This document owns the current immediate queue and supersedes the stale queue and
   broad preflight command in `python-backend-execution-roadmap.md`.
 - `python-backend.md`, ADR-001, ADR-002, and the compatibility-shim registry still own
@@ -422,7 +424,11 @@ package/no-host safety, direct root identities, and the narrow runtime binding, 
 records zero ambiguous wildcard state without production changes. E-06 is complete.
 
 E-07a/E-07b were already completed through #323 as the E-02 bridge. Do not repeat
-them. The next READY unit is a separate production-free #187 E-08a AiO first-pass
-cache ownership Contract from latest origin/dev. Do not start E-08 production Moves,
-E-09 cleanup, D-14 retirement, release, or Registry work inside E-08a.
+them. E-08a reconciles the one E-01 AiO cache entry with the six mutable module
+states, freezes the seven direct root aliases and legacy runtime/stage injection
+path, and selects one private `_AIOFirstPassCacheStore` default instance as the
+owner target without production changes. The queue is E-08a Contract, E-08b owner
+Move, E-08c narrow RuntimeServices/bootstrap composition, and E-08d completion
+audit. The next READY unit is E-08b only from latest origin/dev. Do not start E-08c
+or later work, E-09 cleanup, D-14 retirement, release, or Registry work inside E-08b.
 ```
