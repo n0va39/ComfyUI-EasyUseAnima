@@ -78,7 +78,35 @@ class AIOFirstPassCacheMoveTests(unittest.TestCase):
             first_pass_cache.AIO_FIRST_PASS_CACHE_TTL_SECONDS,
             300.0,
         )
-        self.assertTrue(first_pass_cache._AIO_FIRST_PASS_CACHE_ENABLED)
+        self.assertTrue(
+            first_pass_cache._DEFAULT_AIO_FIRST_PASS_CACHE.enabled
+        )
+
+    def test_default_owner_holds_state_and_isolated_store_does_not_share_it(self):
+        owner = first_pass_cache._DEFAULT_AIO_FIRST_PASS_CACHE
+        self.assertIs(first_pass_cache._AIO_FIRST_PASS_CACHE, owner._cache)
+        self.assertIs(first_pass_cache._AIO_FIRST_PASS_CACHE_ORDER, owner._order)
+        for raw_name in (
+            "_AIO_FIRST_PASS_CACHE_ENABLED",
+            "_AIO_FIRST_PASS_CACHE_GENERATION",
+            "_AIO_FIRST_PASS_CACHE_LOCK",
+            "_AIO_FIRST_PASS_CACHE_METRICS",
+        ):
+            with self.subTest(raw_name=raw_name):
+                self.assertFalse(hasattr(first_pass_cache, raw_name))
+
+        isolated = first_pass_cache._AIOFirstPassCacheStore()
+        self.assertIsNot(isolated._cache, owner._cache)
+        self.assertIsNot(isolated._order, owner._order)
+        self.assertIsNot(isolated._metrics, owner._metrics)
+        self.assertIsNot(isolated._lock, owner._lock)
+
+        isolated.put("isolated", {"samples": [1]}, [2])
+        self.assertIn("isolated", isolated._cache)
+        self.assertNotIn("isolated", owner._cache)
+        isolated.clear()
+        self.assertEqual(isolated._cache, {})
+        self.assertEqual(isolated._order, [])
 
     def test_put_and_get_read_clock_once_and_replace_last_access(self):
         clock = Mock(side_effect=[10.0, 20.0])
@@ -193,7 +221,9 @@ class AIOFirstPassCacheMoveTests(unittest.TestCase):
         self.assertIs(first_pass_cache._AIO_FIRST_PASS_CACHE_ORDER, order)
         self.assertEqual(mapping, {})
         self.assertEqual(order, [])
-        self.assertFalse(first_pass_cache._AIO_FIRST_PASS_CACHE_ENABLED)
+        self.assertFalse(
+            first_pass_cache._DEFAULT_AIO_FIRST_PASS_CACHE.enabled
+        )
 
         estimator = Mock(side_effect=AssertionError("estimator called"))
         clone = Mock(side_effect=AssertionError("clone called"))
@@ -244,12 +274,16 @@ class AIOFirstPassCacheMoveTests(unittest.TestCase):
     def test_explicit_clear_is_idempotent_and_preserves_enabled_state(self):
         first_pass_cache._clear_aio_first_pass_cache()
         first_pass_cache._clear_aio_first_pass_cache()
-        self.assertTrue(first_pass_cache._AIO_FIRST_PASS_CACHE_ENABLED)
+        self.assertTrue(
+            first_pass_cache._DEFAULT_AIO_FIRST_PASS_CACHE.enabled
+        )
 
         first_pass_cache._set_aio_first_pass_cache_enabled(False)
         first_pass_cache._clear_aio_first_pass_cache()
         first_pass_cache._clear_aio_first_pass_cache()
-        self.assertFalse(first_pass_cache._AIO_FIRST_PASS_CACHE_ENABLED)
+        self.assertFalse(
+            first_pass_cache._DEFAULT_AIO_FIRST_PASS_CACHE.enabled
+        )
 
     def test_root_state_and_functions_are_direct_canonical_aliases(self):
         self.assertFalse(
@@ -318,7 +352,9 @@ class AIOFirstPassCacheMoveTests(unittest.TestCase):
         self.assertIs(first_pass_cache._AIO_FIRST_PASS_CACHE_ORDER, order)
         self.assertIs(mapping["entry"], entry)
         self.assertEqual(order, ["entry"])
-        self.assertTrue(first_pass_cache._AIO_FIRST_PASS_CACHE_ENABLED)
+        self.assertTrue(
+            first_pass_cache._DEFAULT_AIO_FIRST_PASS_CACHE.enabled
+        )
 
     def test_metrics_count_hit_miss_skip_expiration_and_capacity_eviction(self):
         self.assertIsNone(
@@ -545,7 +581,9 @@ class AIOFirstPassCacheMoveTests(unittest.TestCase):
         self.assertFalse(put_thread.is_alive())
         self.assertFalse(disable_thread.is_alive())
         self.assertEqual(errors, [])
-        self.assertTrue(first_pass_cache._AIO_FIRST_PASS_CACHE_ENABLED)
+        self.assertTrue(
+            first_pass_cache._DEFAULT_AIO_FIRST_PASS_CACHE.enabled
+        )
         self.assertEqual(first_pass_cache._AIO_FIRST_PASS_CACHE, {})
         self.assertEqual(first_pass_cache._AIO_FIRST_PASS_CACHE_ORDER, [])
 
@@ -572,7 +610,9 @@ class AIOFirstPassCacheMoveTests(unittest.TestCase):
             )
 
         capture_entry.assert_called_once()
-        self.assertTrue(first_pass_cache._AIO_FIRST_PASS_CACHE_ENABLED)
+        self.assertTrue(
+            first_pass_cache._DEFAULT_AIO_FIRST_PASS_CACHE.enabled
+        )
         self.assertEqual(first_pass_cache._AIO_FIRST_PASS_CACHE, {})
         self.assertEqual(first_pass_cache._AIO_FIRST_PASS_CACHE_ORDER, [])
 

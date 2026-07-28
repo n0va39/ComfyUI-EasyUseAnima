@@ -108,7 +108,7 @@
       "goal": "Move entries, LRU order, enabled state, generation, metrics, and RLock behind one feature-private default owner while preserving all cache policy and concurrency behavior.",
       "id": "E-08b",
       "name": "AiO first-pass cache mutable owner",
-      "status": "queued"
+      "status": "complete"
     },
     {
       "classification": "Move",
@@ -128,24 +128,25 @@
   "owners": [
     {
       "cleanup": {
-        "current": "_clear_aio_first_pass_cache advances generation and clears entries/order while preserving enabled state and metrics; disable clears entries/order and invalidates stale capture; metrics reset changes metrics only.",
-        "target": "The default owner preserves the same independent clear, enable transition, and metrics-reset dispositions; whole-runtime reverse close and partial-failure ordering remain E-09."
+        "current": "The default owner clear advances its generation and clears entries/order while preserving enabled state and metrics; disable clears entries/order and invalidates stale capture; metrics reset changes metrics only.",
+        "target": "E-08b feature cleanup is complete; whole-runtime reverse close and partial-failure ordering remain E-09."
       },
       "components": [
         {
+          "class": "_AIOFirstPassCacheStore",
           "module": "easyuse_anima/aio/first_pass_cache.py",
-          "state_kind": "module",
+          "state_kind": "instance",
           "state_symbols": [
-            "_AIO_FIRST_PASS_CACHE",
-            "_AIO_FIRST_PASS_CACHE_ENABLED",
-            "_AIO_FIRST_PASS_CACHE_GENERATION",
-            "_AIO_FIRST_PASS_CACHE_LOCK",
-            "_AIO_FIRST_PASS_CACHE_METRICS",
-            "_AIO_FIRST_PASS_CACHE_ORDER"
+            "_cache",
+            "_enabled",
+            "_generation",
+            "_lock",
+            "_metrics",
+            "_order"
           ]
         }
       ],
-      "current_owner": "easyuse_anima.aio.first_pass_cache",
+      "current_owner": "easyuse_anima.aio.first_pass_cache._DEFAULT_AIO_FIRST_PASS_CACHE",
       "e01_entries": [
         "aio-first-pass-cache"
       ],
@@ -179,15 +180,10 @@
         "bounded benchmark clone counts, logical copy bytes, mutation isolation, latency, RSS, and 4K batch projections remain evidence"
       ],
       "state_symbols": [
-        "_AIO_FIRST_PASS_CACHE",
-        "_AIO_FIRST_PASS_CACHE_ENABLED",
-        "_AIO_FIRST_PASS_CACHE_GENERATION",
-        "_AIO_FIRST_PASS_CACHE_LOCK",
-        "_AIO_FIRST_PASS_CACHE_METRICS",
-        "_AIO_FIRST_PASS_CACHE_ORDER"
+        "_DEFAULT_AIO_FIRST_PASS_CACHE"
       ],
       "target_owner": "easyuse_anima.aio.first_pass_cache._DEFAULT_AIO_FIRST_PASS_CACHE",
-      "target_phase": "E-08b"
+      "target_phase": "E-08b-complete"
     }
   ],
   "production_callers": [
@@ -205,7 +201,7 @@
       ]
     }
   ],
-  "production_changes": 0,
+  "production_changes": 1,
   "schema_version": 1,
   "scope": "E-08 AiO first-pass cache process-state ownership, cleanup, callers, compatibility seams, and bounded Move order"
 }

@@ -56,20 +56,20 @@ ordinary `dev` roadmap work.
 
 - Released baseline: 0.6.2.
 - Active owner: Issue #187 for Phase E; Issue #186 retains D-14/shim decisions.
-- Reviewed code baseline before E-08a: E-06e / PR #551 at
-  `b84fba7ed976e0775f241c5ff4350b47e77ceac9`.
+- Reviewed code baseline before E-08b: E-08a / PR #552 at
+  `2c5aefeae16dd0f1411516f659bfef6659712243`.
 - D-08u integrated exit audit is complete.
 - D-08v is not required; the audit found no remaining D-08 production Move.
 - D-14 readiness is audited: every root surface is retained and retirement/final
   freeze is blocked by production/lifecycle consumers, missing release windows, or
   insufficient consumer evidence.
-- E-01 through E-07 and the production-free E-08a Contract are complete. The next
-  work is only a separate #187 E-08b AiO first-pass cache owner Move. The #323
+- E-01 through E-07, E-08a, and the E-08b owner Move are complete. The next work is
+  only a separate #187 E-08c narrow AiO cache composition Move. The #323
   E-02a/E-07 bridge remains completed evidence, not authorization for unrelated
   feature migration.
 - Completed #470 and the 0.6.1 Prompt Studio lane are behavior-contract references,
   not the active queue.
-- Do not remove root compatibility aliases or start E-08c through E-10, release, or
+- Do not remove root compatibility aliases or start E-08d through E-10, release, or
   Registry work from this entrypoint.
 
 ## Completed D-08 composition audit surface
@@ -161,7 +161,8 @@ representative profile list/load/save/delete/rename/fix live smoke
 - A version marker is not a publish action.
 - Technical PRO review is for unresolved cross-boundary architecture choices,
   unavoidable cycles, or insufficient compatibility evidence—not routine failures.
-- D-14 readiness is recorded and authorizes no removal. E-08a freezes the current
-  AiO first-pass cache state and compatibility boundary; use that evidence only to
-  start the separate E-08b owner Move. Do not infer E-08c, E-09 cleanup, release
+- D-14 readiness is recorded and authorizes no removal. E-08b installs the selected
+  AiO first-pass cache owner and preserves the compatibility boundary; use that
+  evidence only to start the separate E-08c composition Move. Do not infer E-08d,
+  E-09 cleanup, release
   publication, or Registry actions.

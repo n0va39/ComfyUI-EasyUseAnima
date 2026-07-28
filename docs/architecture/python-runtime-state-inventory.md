@@ -36,7 +36,7 @@ E-01 drift gate until classified.
 
 | Entry | Current owner and lifetime | Synchronization / cleanup today | Target |
 | --- | --- | --- | --- |
-| `aio-first-pass-cache` | canonical AiO first-pass cache module with one six-state process-lifetime boundary and count/byte/TTL bounds | one `RLock`; clear/disable invalidate entries and generation while preserving metrics; metric reset is separate | E-08a contracted; E-08b next |
+| `aio-first-pass-cache` | one private default AiO cache store owns entries/order/enabled/generation/metrics/`RLock`; module mapping/order names are exact compatibility aliases | owner clear/disable invalidate entries and generation while preserving metrics; metric reset is separate | E-08b complete; E-08c next |
 | `api-file-io-limiters` | canonical API file-I/O module, weak per-event-loop limiter | registry `Lock`; weak expiry, no explicit close | E-09 |
 | `autocomplete-dataset-cache` | canonical dataset snapshot and Future single-flight owner, injected into the bootstrap-composed narrow service | one owner `Lock`; completed-snapshot clear only | E-05 complete; E-05e audited |
 | `autocomplete-index-locks` | canonical index-store per-path lock owner, injected into the bootstrap-composed narrow service | guard plus retained per-path locks; idempotent no-op close | E-05 complete; E-05e audited |
@@ -174,4 +174,10 @@ and selects one private `_AIOFirstPassCacheStore` instance named
 `_DEFAULT_AIO_FIRST_PASS_CACHE` as the E-08b target. It preserves the seven direct
 root aliases and the legacy runtime/stage injection path, and fixes the queue as
 E-08a Contract, E-08b owner Move, E-08c narrow RuntimeServices/bootstrap
-composition, and E-08d completion audit. The next bounded unit is E-08b only.
+composition, and E-08d completion audit.
+
+E-08b installs the selected private default owner. The former raw enabled,
+generation, metrics, and lock globals are removed; mapping/order remain only as exact
+aliases to the owner's objects so root identities and call-time replacement evidence
+remain intact. Isolated stores share no collection, metric dictionary, generation,
+enabled state, or lock. The next bounded unit is E-08c only.
