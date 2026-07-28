@@ -77,6 +77,7 @@ from .easyuse_anima.api.router import (
 )
 from .easyuse_anima.bootstrap import (
     build_settings_route_group as _build_settings_route_group,
+    build_translation_route_handler as _build_translation_route_handler,
     build_wildcard_autocomplete_route_group as _build_wildcard_autocomplete_route_group,
 )
 from .easyuse_anima.api.routes.aio_profile_mutations import (
@@ -106,9 +107,6 @@ from .easyuse_anima.api.routes.profile_saves import (
 from .easyuse_anima.api.routes import settings as _api_settings_routes
 from .easyuse_anima.api.routes import wildcards as _api_wildcard_routes
 from .easyuse_anima.api.routes import translation as _api_translation_routes
-from .easyuse_anima.api.routes.translation import (
-    build_translate_prompt_handler as _build_translate_prompt_handler,
-)
 from .easyuse_anima.api.routes.translation_execution import (
     PromptTranslationRouteExecutor as _PromptTranslationRouteExecutor,
 )
@@ -424,17 +422,20 @@ if web is not None:
         },
     )
 
-    translate_prompt_handler = _request_correlated(
-        _build_translate_prompt_handler(
-            parse_json_object=lambda request: parse_json_object(request),
-            json_string=lambda data, field: json_string(data, field),
-            contract_error_type=ApiContractError,
-            contract_error_response=lambda exc: _contract_error_response(exc),
-            translate_prompt=lambda text: _translate_prompt_for_route(text),
-            translation_error_type=PromptTranslationError,
-            translation_error_response=lambda exc: _prompt_translation_error_response(exc),
-            json_response=lambda payload: web.json_response(payload),
-        )
+    translate_prompt_handler = _build_translation_route_handler(
+        request_correlated=_request_correlated,
+        translation_dependencies={
+            "parse_json_object": lambda request: parse_json_object(request),
+            "json_string": lambda data, field: json_string(data, field),
+            "contract_error_type": ApiContractError,
+            "contract_error_response": lambda exc: _contract_error_response(exc),
+            "translate_prompt": lambda text: _translate_prompt_for_route(text),
+            "translation_error_type": PromptTranslationError,
+            "translation_error_response": lambda exc: _prompt_translation_error_response(
+                exc
+            ),
+            "json_response": lambda payload: web.json_response(payload),
+        },
     )
 
     aio_torch_compile_recommend_handler = _request_correlated(
