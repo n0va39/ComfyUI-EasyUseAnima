@@ -53,6 +53,14 @@ class FakeAutocompleteService:
         )
 
 
+class FakeWildcardSnapshots:
+    def snapshot_for_roots(self, roots, *, scan_sources, build_snapshot):
+        raise AssertionError(
+            "unexpected wildcard snapshot resolution: "
+            f"{(roots, scan_sources, build_snapshot)!r}"
+        )
+
+
 class FakeComfyHostProvider:
     def __init__(
         self,
@@ -143,6 +151,7 @@ def _runtime_support(runtime_module):
             installed.clock,
             installed.translation,
             installed.autocomplete,
+            installed.wildcard_snapshots,
         )
     return (
         runtime_module.RuntimeConfig(
@@ -153,13 +162,16 @@ def _runtime_support(runtime_module):
         FakeClock(),
         FakeTranslationService(),
         FakeAutocompleteService(),
+        FakeWildcardSnapshots(),
     )
 
 
 @contextmanager
 def use_fake_comfy_host(root_module, provider):
     runtime_module = _runtime_module_for(root_module)
-    config, clock, translation, autocomplete = _runtime_support(runtime_module)
+    config, clock, translation, autocomplete, wildcard_snapshots = (
+        _runtime_support(runtime_module)
+    )
     runtime = runtime_module.RuntimeServices(
         comfy=provider,
         seed_reservations=FakeSeedReservationService(),
@@ -167,6 +179,7 @@ def use_fake_comfy_host(root_module, provider):
         clock=clock,
         translation=translation,
         autocomplete=autocomplete,
+        wildcard_snapshots=wildcard_snapshots,
     )
     with patch.object(runtime_module, "_RUNTIME_SERVICES", runtime):
         yield provider
@@ -196,7 +209,9 @@ def patch_comfy_helper(
         else FakeComfyHostProvider()
     )
     provider = _LayeredFakeComfyHostProvider(base, symbol, replacement)
-    config, clock, translation, autocomplete = _runtime_support(runtime_module)
+    config, clock, translation, autocomplete, wildcard_snapshots = (
+        _runtime_support(runtime_module)
+    )
     runtime = runtime_module.RuntimeServices(
         comfy=provider,
         seed_reservations=FakeSeedReservationService(),
@@ -204,6 +219,7 @@ def patch_comfy_helper(
         clock=clock,
         translation=translation,
         autocomplete=autocomplete,
+        wildcard_snapshots=wildcard_snapshots,
     )
     with patch.object(runtime_module, "_RUNTIME_SERVICES", runtime):
         yield replacement

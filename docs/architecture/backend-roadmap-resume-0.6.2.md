@@ -2,18 +2,19 @@
 
 ## Status and authority
 
-- Status: D-08, E-01 through E-05, E-06a, E-06b, and E-06c are completed; the D-14
+- Status: D-08, E-01 through E-05, E-06a, E-06b, E-06c, and E-06d are completed; the D-14
   readiness audit retains every root surface and blocks retirement/final-freeze work.
-- Code-review base before E-06c:
-  `dev@12e2d1d07cd1f9747cdf87d3e620943684f1e489` after E-06b / PR #548.
-- Document baseline: completed E-06c canonical wildcard service/internal caller Move.
+- Code-review base before E-06d:
+  `dev@a51787ce60340bdb9adecd7fbbedb4dd482bbaa4` after E-06c / PR #549.
+- Document baseline: completed E-06d narrow wildcard RuntimeServices/bootstrap composition Move.
 - Released baseline: 0.6.2.
 - Scope: completed D-08 evidence, the D-14 readiness decision, completed #187
   E-01/E-02/E-03/E-04 work, the E-05a Contract, the E-05b snapshot owner Move,
   the E-05c index-store owner Move, the E-05d composition Move, the E-05e
   completion audit Contract, the E-06a wildcard snapshot ownership Contract, the
-  E-06b snapshot owner Move, the E-06c canonical service/internal caller Move, and
-  the next bounded E-06d narrow RuntimeServices/bootstrap composition Move.
+  E-06b snapshot owner Move, the E-06c canonical service/internal caller Move, the
+  E-06d narrow RuntimeServices/bootstrap composition Move, and the next bounded
+  E-06e completion audit Contract.
 - This document owns the current immediate queue and supersedes the stale queue and
   broad preflight command in `python-backend-execution-roadmap.md`.
 - `python-backend.md`, ADR-001, ADR-002, and the compatibility-shim registry still own
@@ -409,7 +410,12 @@ E-06c installs a root-independent private wildcard service, converts canonical n
 Prompt Studio, and seed consumers away from root `wildcard_engine`, and retains root
 signatures, behavior, exact snapshot identities, and call-time source/build seams.
 
-Start only a separate #187 E-06d feature-specific narrow RuntimeServices/bootstrap
-composition Move from latest origin/dev. Do not start E-06e or later Phase E work,
-E-09 cleanup, D-14 retirement, release, or Registry work inside E-06d.
+E-06d types the exact `_DEFAULT_WILDCARD_SNAPSHOTS` identity behind one private
+`WildcardSnapshotPort` and installs it directly as
+`RuntimeServices.wildcard_snapshots`. Feature modules do not import the runtime,
+and initialize order/retry plus wildcard-directory lifecycle remain unchanged.
+
+Start only a separate production-free #187 E-06e wildcard ownership completion
+audit Contract from latest origin/dev. Do not start later Phase E work, E-09 cleanup,
+D-14 retirement, release, or Registry work inside E-06e.
 ```

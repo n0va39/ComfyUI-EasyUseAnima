@@ -17,6 +17,7 @@ from tests.comfy_host_fakes import (
     FakeComfyHostProvider,
     FakeSeedReservationService,
     FakeTranslationService,
+    FakeWildcardSnapshots,
 )
 
 
@@ -254,6 +255,7 @@ class ComfyHostWiringTests(unittest.TestCase):
             clock=FakeClock(),
             translation=FakeTranslationService(),
             autocomplete=FakeAutocompleteService(),
+            wildcard_snapshots=FakeWildcardSnapshots(),
         )
 
         self.assertEqual(
@@ -306,6 +308,7 @@ class ComfyHostWiringTests(unittest.TestCase):
             clock=FakeClock(),
             translation=FakeTranslationService(),
             autocomplete=FakeAutocompleteService(),
+            wildcard_snapshots=FakeWildcardSnapshots(),
         )
 
         require = resolve_comfy_host_helper(

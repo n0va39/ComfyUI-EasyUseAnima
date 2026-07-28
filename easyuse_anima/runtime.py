@@ -10,6 +10,7 @@ from .autocomplete.ports import AutocompletePort
 from .infrastructure.comfy.provider import ComfyHostProvider
 from .seed.reservation import SeedReservationService
 from .translation.ports import PromptTranslationPort
+from .wildcard.ports import WildcardSnapshotPort
 
 
 @dataclass(frozen=True, slots=True)
@@ -43,6 +44,7 @@ class RuntimeServices:
     clock: Clock
     translation: PromptTranslationPort
     autocomplete: AutocompletePort
+    wildcard_snapshots: WildcardSnapshotPort
 
 
 _RUNTIME_SERVICES: RuntimeServices | None = None

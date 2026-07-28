@@ -108,9 +108,12 @@ expansion, and service owners directly. Their module-local patch names remain
 patchable, and all list/signature/expansion behavior is unchanged.
 
 E-06c completes the remaining lifecycle/service facade and internal caller Move while
-retaining the root compatibility surface. E-06d next installs only one
-feature-specific narrow wildcard snapshot capability backed by the exact default
-owner. Feature code does not receive or import the complete `RuntimeServices` object.
+retaining the root compatibility surface. E-06d installs the exact
+`_DEFAULT_WILDCARD_SNAPSHOTS` identity directly as the private
+`RuntimeServices.wildcard_snapshots` capability typed by `WildcardSnapshotPort`.
+The port describes only `snapshot_for_roots`; it creates no wrapper or replacement
+owner. Feature code does not receive or import the complete `RuntimeServices` object,
+and canonical/root callers keep their existing call-time resolver paths.
 
 ## Bounded Move queue
 
@@ -123,9 +126,9 @@ owner. Feature code does not receive or import the complete `RuntimeServices` ob
 3. **E-06c Move — canonical service and internal callers — complete:** canonicalize the
    lifecycle/service facade, convert internal consumers to that owner, and retain the
    exact root compatibility surface.
-4. **E-06d Move — bootstrap composition:** install the exact default owner behind one
-   feature-specific narrow wildcard capability without changing initialization or
-   directory lifecycle.
+4. **E-06d Move — bootstrap composition — complete:** install the exact default owner
+   behind one feature-specific narrow wildcard capability without changing
+   initialization or directory lifecycle.
 5. **E-06e Contract — completion audit:** reconcile E-01, cleanup, import direction,
    root identities, and zero ambiguous wildcard snapshot state before E-07.
 
@@ -164,7 +167,10 @@ import boundaries/analyzer, JSON/Python syntax, document links, and `git diff
 settlement, exact root/default identity, raw-state removal, and actual-code analyzer
 inventory. E-06c covers canonical/root service parity, root signatures and dynamic
 seams, canonical internal import direction, direct node/Prompt Studio/seed behavior,
-and shipped archive/no-host closure.
+and shipped archive/no-host closure. E-06d covers the narrow port shape, exact
+default-owner identity in the installed runtime, bootstrap reuse, feature import
+direction, and unchanged directory initialization order/retry behavior. It adds no
+new public surface or cleanup policy.
 
 Run the official full profile once on each final candidate SHA. E-06c adds one shipped
 private module and changes canonical import closure without changing dependencies,
