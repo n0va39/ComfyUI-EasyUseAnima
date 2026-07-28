@@ -334,7 +334,7 @@
       "module": "api.py",
       "owner": "api._PROMPT_TRANSLATION_WORKER",
       "symbols": ["_PROMPT_TRANSLATION_WORKER"],
-      "target_phase": "E-04",
+      "target_phase": "E-04d",
       "test_evidence": ["tests/test_api_contract.py", "tests/test_prompt_translation_api.py"],
       "thread_safety": "One RLock protects executor creation, admission, Future identity, and close state."
     },
@@ -358,7 +358,7 @@
       "module": "easyuse_anima/translation/service.py",
       "owner": "easyuse_anima.translation.service._DEFAULT_TRANSLATION_SERVICE",
       "symbols": ["_DEFAULT_TRANSLATION_SERVICE"],
-      "target_phase": "E-04",
+      "target_phase": "E-04c",
       "test_evidence": ["tests/test_prompt_translation.py"],
       "thread_safety": "Separate RLocks protect bounded cache and per-key single-flight registry."
     },
@@ -370,7 +370,7 @@
       "module": "easyuse_anima/translation/service.py",
       "owner": "easyuse_anima.translation.service",
       "symbols": ["_TRANSLATION_PROVIDER_INSTANCES", "_TRANSLATION_PROVIDER_LOCK"],
-      "target_phase": "E-04",
+      "target_phase": "E-04b",
       "test_evidence": ["tests/test_prompt_translation.py"],
       "thread_safety": "One RLock protects provider lookup, construction, and publication."
     },

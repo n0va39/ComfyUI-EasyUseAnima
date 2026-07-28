@@ -2,16 +2,16 @@
 
 ## Status and authority
 
-- Status: D-08, E-01, E-02, and E-03 through the E-03e completion audit are
+- Status: D-08, E-01, E-02, E-03, and the E-04a translation ownership Contract are
   completed; the D-14 readiness audit retains every root surface and blocks
   retirement/final-freeze work.
-- Code-review base: `dev@45215242615dccfe647f2c410788f0d61fdd2091`
-  after E-03d / PR #535.
-- Document baseline: E-03e repository/filesystem completion audit.
+- Code-review base: `dev@d952f15f637732ce45a1ab7d9a0006bd1a3362bc`
+  after E-03e / PR #536.
+- Document baseline: E-04a translation runtime ownership Contract.
 - Released baseline: 0.6.2.
 - Scope: completed D-08 evidence, the D-14 readiness decision, completed #187
-  E-01/E-02/E-03 work, and the next bounded E-04 translation
-  provider/client/cache Contract.
+  E-01/E-02/E-03/E-04a work, and the next bounded E-04b provider registry/client
+  ownership Move.
 - This document owns the current immediate queue and supersedes the stale queue and
   broad preflight command in `python-backend-execution-roadmap.md`.
 - `python-backend.md`, ADR-001, ADR-002, and the compatibility-shim registry still own
@@ -277,10 +277,13 @@ The D-08u audit found no required D-08v. After D-08:
 13. E-03d adds a shared private per-call profile repository while retaining the
     canonical store factory and profile directory coordinator as the state owners;
 14. E-03e reconciles both E-01 owners with E-03, records zero ambiguous
-    repository/filesystem state owners, and completes E-03; and
-15. never remove root files merely to make the directory tree appear complete.
+    repository/filesystem state owners, and completes E-03;
+15. E-04a keeps provider registry/client, service cache/per-key single-flight, and
+    API route executor as three distinct translation-owned resources, rejects a
+    generic executor/client port, and records the unproven client-close gap; and
+16. never remove root files merely to make the directory tree appear complete.
 
-## 6. E-01/E-02/E-03 result and Codex resume instruction
+## 6. E-01/E-02/E-03/E-04a result and Codex resume instruction
 
 ```text
 D-08 is complete. Do not restart D-08t or create D-08v without new contrary
@@ -326,7 +329,15 @@ the shared profile directory coordinator. They own no mutable process state.
 E-03e reconciles E-01 ownership targets with those completed Moves and records zero
 ambiguous repository/filesystem state owners. E-03 is complete.
 
-Start only #187 E-04 from latest origin/dev as a production-free translation
-provider/client/cache Contract. Do not start E-04 implementation, E-05 through E-10,
-D-14 retirement, release, or Registry work inside that Contract.
+E-04a is owned by python-runtime-e04-translation-contract.md and
+tests/fixtures/python_translation_runtime_contract.v1.json. Provider registry/client,
+service cache/per-key single-flight, and API route executor remain three distinct
+translation-owned resources. Bootstrap is the target concrete composition root;
+generic executor/client ports and unproven provider-client close calls are rejected.
+
+Start only #187 E-04b from latest origin/dev. Move provider factories, lazy instances,
+registry locking, and client ownership behind one explicit translation provider
+registry while preserving optional import, reuse, timeout, errors, and public/root
+identities. Do not start E-04c through E-10, D-14 retirement, release, or Registry
+work inside E-04b.
 ```

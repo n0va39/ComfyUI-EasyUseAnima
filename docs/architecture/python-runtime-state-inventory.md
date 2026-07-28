@@ -49,10 +49,10 @@ E-01 drift gate until classified.
 | prompt warning-dedupe entries | two canonical Prompt feature modules, process lifetime | unprotected sets; direct-test clear only | E-09 |
 | `prompt-knowledge-path` | canonical filesystem package path re-exported for ANIMA root compatibility | immutable after import | E-02d complete |
 | `root-route-registration` | injected router registrar called by bootstrap | serialized refresh; idempotent marker, no deregistration | E-09 |
-| `root-translation-route-worker` | root compatibility runtime owns lazy single-thread executor | internal `RLock`; idempotent `atexit` shutdown only | E-04 |
+| `root-translation-route-worker` | root compatibility runtime owns lazy single-thread executor | internal `RLock`; idempotent `atexit` shutdown only | E-04d |
 | `runtime-services` | identity-installed process runtime with Comfy and seed capabilities | bootstrap-serialized install; private-global test reset, no close | E-09 |
-| `translation-default-service` | canonical default cache/single-flight service | cache and flight `RLock`s; cache clear exists, no process reset | E-04 |
-| `translation-provider-registry` | canonical lazy provider-client registry | one `RLock`; test patch only, no provider close | E-04 |
+| `translation-default-service` | canonical default cache/single-flight service | cache and flight `RLock`s; cache clear exists, no process reset | E-04c |
+| `translation-provider-registry` | canonical lazy provider-client registry | one `RLock`; test patch only, no provider close | E-04b |
 | `wildcard-snapshot-cache` | root verified-snapshot LRU and build single-flight | one `Condition`; no owner reset/close | E-06 |
 
 The fixture contains exact symbols, tests, owner, lifetime, thread-safety, and
@@ -103,3 +103,19 @@ canonical store factory and profile directory coordinator as the only mutable-st
 owners. The E-03e cross-fixture audit reconciles both E-01 owner entries with those
 E-03 owners and records zero ambiguous repository/filesystem state owners. The next
 bounded unit is the separate E-04 translation provider/client/cache Contract.
+
+## E-04a translation ownership Contract
+
+The production-free
+[`python-runtime-e04-translation-contract.md`](python-runtime-e04-translation-contract.md)
+keeps three translation-owned resource boundaries distinct:
+
+- E-04b owns the provider factory/instance registry and lazy optional client;
+- E-04c owns the process default service, bounded cache, and per-key single-flight;
+- E-04d owns the API route executor construction and bootstrap lifecycle wiring.
+
+No generic executor/client port is introduced. Bootstrap remains the target concrete
+composition root, feature/domain code does not import the complete runtime, and the
+current optional client protocol does not prove a close operation. E-04a therefore
+records that cleanup gap instead of inventing a provider-client lifecycle call. The
+next bounded unit is E-04b only.

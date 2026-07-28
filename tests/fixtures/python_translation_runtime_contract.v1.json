@@ -1,0 +1,271 @@
+{
+  "classification": "Contract",
+  "compatibility_surfaces": [
+    {
+      "id": "root-translation-identity-shim",
+      "kind": "identity_reexport",
+      "module": "prompt_translation.py",
+      "symbols": [
+        "BoundedTranslationCache",
+        "GoogleTranslationProvider",
+        "PromptTranslationService",
+        "get_translation_provider",
+        "google_translate_text",
+        "translate_prompt_markers"
+      ]
+    },
+    {
+      "id": "root-api-dynamic-runtime-seams",
+      "kind": "dynamic_patch",
+      "module": "api.py",
+      "symbols": [
+        "PROMPT_TRANSLATION_ROUTE_TIMEOUT_SECONDS",
+        "_PROMPT_TRANSLATION_WORKER",
+        "_prompt_translation_error_response",
+        "_translate_prompt_for_route",
+        "_translate_prompt_sync",
+        "resolve_prompt_translation_settings",
+        "translate_prompt_markers"
+      ]
+    }
+  ],
+  "decisions": {
+    "adapter_access": "API and node adapters receive or resolve narrow translation-owned ports; feature/domain code does not import RuntimeServices, bootstrap, API adapters, or root shims.",
+    "bootstrap_composition": "Bootstrap is the only target production composition root for concrete translation resources and lifecycle registration.",
+    "generic_executor_client_port": "rejected",
+    "provider_client_cleanup": "unproven: the current optional client protocol exposes translate only, so no close call may be invented in E-04 Moves.",
+    "resource_partition": "Provider registry/client, service cache/per-key single-flight, and API route executor remain three distinct translation-owned resource boundaries.",
+    "runtime_fields": "Any RuntimeServices expansion is limited to narrow translation-owned ports selected by the owning Move; feature code never receives the complete runtime."
+  },
+  "move_queue": [
+    {
+      "classification": "Contract",
+      "goal": "Freeze current owners, lifecycle gaps, callers, compatibility seams, and bounded Move order.",
+      "id": "E-04a",
+      "name": "translation runtime ownership contract",
+      "status": "complete"
+    },
+    {
+      "classification": "Move",
+      "goal": "Move provider factories, lazy instances, registry lock, and client ownership behind one explicit translation provider registry while preserving optional import and errors.",
+      "id": "E-04b",
+      "name": "provider registry and client ownership",
+      "status": "ready"
+    },
+    {
+      "classification": "Move",
+      "goal": "Compose one process translation service with its bounded cache and per-key single-flight owner, then wire existing node/API callers through narrow seams.",
+      "id": "E-04c",
+      "name": "default service and cache composition",
+      "status": "pending"
+    },
+    {
+      "classification": "Move",
+      "goal": "Move route executor construction and lifecycle registration from the root API facade to bootstrap-owned runtime composition while preserving root dynamic seams.",
+      "id": "E-04d",
+      "name": "route executor bootstrap lifecycle wiring",
+      "status": "pending"
+    },
+    {
+      "classification": "Contract",
+      "goal": "Reconcile E-01 targets and prove one owner, optional-import safety, idempotent cleanup coverage, and no ambiguous translation state before E-05.",
+      "id": "E-04e",
+      "name": "translation ownership completion audit",
+      "status": "pending"
+    }
+  ],
+  "owners": [
+    {
+      "cleanup": {
+        "current": "idempotent shutdown registered once with atexit during root api import; package shutdown does not own it",
+        "implemented_methods": [
+          "shutdown"
+        ],
+        "remaining_gap": "bootstrap/runtime shutdown and partial-failure cleanup remain unowned until E-04d and E-09"
+      },
+      "components": [
+        {
+          "class": "PromptTranslationRouteExecutor",
+          "module": "easyuse_anima/api/routes/translation_execution.py",
+          "state_kind": "instance",
+          "state_symbols": [
+            "_closed",
+            "_executor",
+            "_in_flight",
+            "_lock"
+          ]
+        }
+      ],
+      "construction": {
+        "at": "root api module import",
+        "factory": "build_translation_runtime",
+        "factory_module": "easyuse_anima/api/routes/translation.py",
+        "invocation_module": "api.py"
+      },
+      "current_owner": "api._PROMPT_TRANSLATION_WORKER",
+      "e01_entry": "root-translation-route-worker",
+      "evidence": [
+        "tests/test_api_contract.py",
+        "tests/test_prompt_translation_api.py"
+      ],
+      "id": "route-executor",
+      "locking": "one RLock protects lazy executor creation, one in-flight Future identity, admission, release, and closed state",
+      "module": "api.py",
+      "state_symbols": [
+        "_PROMPT_TRANSLATION_WORKER"
+      ],
+      "target_phase": "E-04d"
+    },
+    {
+      "cleanup": {
+        "current": "BoundedTranslationCache.clear exists; flights self-remove when the last user settles; the default service has no close/reset",
+        "implemented_methods": [
+          "BoundedTranslationCache.clear"
+        ],
+        "remaining_gap": "explicit process owner and idempotent service cleanup are deferred to E-04c/E-09"
+      },
+      "components": [
+        {
+          "class": "BoundedTranslationCache",
+          "module": "easyuse_anima/translation/service.py",
+          "state_kind": "instance",
+          "state_symbols": [
+            "_entries",
+            "_lock",
+            "_time_func",
+            "max_entries",
+            "ttl_seconds"
+          ]
+        },
+        {
+          "class": "PromptTranslationService",
+          "module": "easyuse_anima/translation/service.py",
+          "state_kind": "instance",
+          "state_symbols": [
+            "_flights",
+            "_flights_lock",
+            "cache",
+            "max_marker_characters",
+            "max_markers",
+            "max_total_characters"
+          ]
+        }
+      ],
+      "construction": {
+        "at": "translation service module import",
+        "class": "PromptTranslationService",
+        "invocation_module": "easyuse_anima/translation/service.py"
+      },
+      "current_owner": "easyuse_anima.translation.service._DEFAULT_TRANSLATION_SERVICE",
+      "e01_entry": "translation-default-service",
+      "evidence": [
+        "tests/test_prompt_translation.py"
+      ],
+      "id": "default-service",
+      "locking": "cache entries use one RLock; a second RLock protects per-key flight registration while each key has its own Lock",
+      "module": "easyuse_anima/translation/service.py",
+      "state_symbols": [
+        "_DEFAULT_TRANSLATION_SERVICE"
+      ],
+      "target_phase": "E-04c"
+    },
+    {
+      "cleanup": {
+        "current": "production exposes no registry reset or provider/client close; tests patch instance and factory mappings",
+        "implemented_methods": [],
+        "remaining_gap": "registry ownership may clear references, but client close cannot be claimed until a supported client cleanup interface is proven"
+      },
+      "components": [
+        {
+          "module": "easyuse_anima/translation/service.py",
+          "state_kind": "top_level",
+          "state_symbols": [
+            "_TRANSLATION_PROVIDER_FACTORIES",
+            "_TRANSLATION_PROVIDER_INSTANCES",
+            "_TRANSLATION_PROVIDER_LOCK"
+          ]
+        },
+        {
+          "class": "GoogleTranslationProvider",
+          "module": "easyuse_anima/translation/providers/google.py",
+          "state_kind": "instance",
+          "state_symbols": [
+            "_lock",
+            "_timeout_seconds",
+            "_translator",
+            "_translator_factory"
+          ]
+        }
+      ],
+      "construction": {
+        "at": "provider first use",
+        "factory_map": "_TRANSLATION_PROVIDER_FACTORIES",
+        "invocation_module": "easyuse_anima/translation/service.py",
+        "optional_client_at": "GoogleTranslationProvider._create_translator"
+      },
+      "current_owner": "easyuse_anima.translation.service",
+      "e01_entry": "translation-provider-registry",
+      "evidence": [
+        "tests/test_prompt_translation.py"
+      ],
+      "id": "provider-registry-client",
+      "locking": "one registry RLock protects provider lookup, construction, and publication; each provider has a separate RLock protecting lazy client creation and calls",
+      "module": "easyuse_anima/translation/service.py",
+      "state_symbols": [
+        "_TRANSLATION_PROVIDER_INSTANCES",
+        "_TRANSLATION_PROVIDER_LOCK"
+      ],
+      "target_phase": "E-04b"
+    }
+  ],
+  "production_callers": [
+    {
+      "entry": "_translate_prompt_for_route",
+      "function": "build_translation_runtime",
+      "module": "easyuse_anima/api/routes/translation.py",
+      "owner": "route-executor",
+      "uses": [
+        "get_translate_prompt_sync",
+        "get_worker"
+      ]
+    },
+    {
+      "entry": "_translate_prompt_sync",
+      "function": "build_translation_runtime",
+      "module": "easyuse_anima/api/routes/translation.py",
+      "owner": "default-service",
+      "uses": [
+        "resolve_prompt_translation_settings",
+        "translate_prompt_markers"
+      ]
+    },
+    {
+      "entry": "_translate_prompt_text",
+      "module": "easyuse_anima/prompt/correction.py",
+      "owner": "default-service",
+      "uses": [
+        "resolve_prompt_translation_settings",
+        "translate_prompt_markers"
+      ]
+    },
+    {
+      "entry": "translate_prompt_markers",
+      "module": "easyuse_anima/translation/service.py",
+      "owner": "default-service",
+      "uses": [
+        "_DEFAULT_TRANSLATION_SERVICE"
+      ]
+    },
+    {
+      "entry": "google_translate_text",
+      "module": "easyuse_anima/translation/service.py",
+      "owner": "provider-registry-client",
+      "uses": [
+        "get_translation_provider"
+      ]
+    }
+  ],
+  "production_changes": 0,
+  "schema_version": 1,
+  "scope": "E-04a current translation provider, client, cache, single-flight, and route-executor ownership"
+}
