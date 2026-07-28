@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from collections import OrderedDict
-import threading
 from pathlib import Path
 from typing import Iterable, Sequence
 
@@ -67,11 +65,15 @@ except ImportError:
 
 try:
     from .easyuse_anima.wildcard.snapshot import (
+        _DEFAULT_WILDCARD_SNAPSHOTS,
+        _SNAPSHOT_CACHE_LIMIT,
         _build_wildcard_snapshot,
         _WildcardSnapshot,
     )
 except ImportError:
     from easyuse_anima.wildcard.snapshot import (
+        _DEFAULT_WILDCARD_SNAPSHOTS,
+        _SNAPSHOT_CACHE_LIMIT,
         _build_wildcard_snapshot,
         _WildcardSnapshot,
     )
@@ -197,50 +199,12 @@ except ImportError:
         _WildcardLibrary as _WildcardLibraryCore,
     )
 
-_SNAPSHOT_CACHE_LIMIT = 16
-_SNAPSHOT_CONDITION = threading.Condition()
-_SNAPSHOT_CACHE: OrderedDict[tuple, _WildcardSnapshot] = OrderedDict()
-_SNAPSHOT_BUILDING: set[tuple] = set()
-
-
 def _wildcard_snapshot(roots: Iterable[Path]) -> _WildcardSnapshot:
-    resolved_roots = tuple(Path(root) for root in roots)
-    while True:
-        source_state = _wildcard_sources._scan_wildcard_sources(resolved_roots)
-        cache_key = source_state.cache_key
-        with _SNAPSHOT_CONDITION:
-            cached = _SNAPSHOT_CACHE.get(cache_key)
-            if cached is not None:
-                _SNAPSHOT_CACHE.move_to_end(cache_key)
-                return cached
-            if cache_key in _SNAPSHOT_BUILDING:
-                _SNAPSHOT_CONDITION.wait()
-                continue
-            _SNAPSHOT_BUILDING.add(cache_key)
-
-        snapshot = None
-        failure: BaseException | None = None
-        try:
-            candidate = _build_wildcard_snapshot(source_state)
-            verified_state = _wildcard_sources._scan_wildcard_sources(resolved_roots)
-            if verified_state.cache_key == cache_key:
-                snapshot = candidate
-        except BaseException as exc:
-            failure = exc
-        finally:
-            with _SNAPSHOT_CONDITION:
-                _SNAPSHOT_BUILDING.discard(cache_key)
-                if snapshot is not None and snapshot.cacheable:
-                    _SNAPSHOT_CACHE[cache_key] = snapshot
-                    _SNAPSHOT_CACHE.move_to_end(cache_key)
-                    while len(_SNAPSHOT_CACHE) > _SNAPSHOT_CACHE_LIMIT:
-                        _SNAPSHOT_CACHE.popitem(last=False)
-                _SNAPSHOT_CONDITION.notify_all()
-
-        if failure is not None:
-            raise failure
-        if snapshot is not None:
-            return snapshot
+    return _DEFAULT_WILDCARD_SNAPSHOTS.snapshot_for_roots(
+        roots,
+        scan_sources=_wildcard_sources._scan_wildcard_sources,
+        build_snapshot=_build_wildcard_snapshot,
+    )
 
 
 def _load_wildcard_map(roots: Iterable[Path]) -> dict[str, list[WildcardOption]]:

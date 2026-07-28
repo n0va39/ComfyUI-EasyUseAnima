@@ -1178,9 +1178,9 @@ ignored/
             ],
             "dict",
         )
-        self.assertEqual(
-            mutable_by_name[("wildcard_engine.py", "_SNAPSHOT_CACHE")],
-            "dict",
+        self.assertNotIn(
+            ("wildcard_engine.py", "_SNAPSHOT_CACHE"),
+            mutable_by_name,
         )
         self.assertFalse(
             any(
@@ -1197,9 +1197,9 @@ ignored/
             (item["module"], item["name"]): set(item["categories"])
             for item in report["state"]["owner_candidates"]
         }
-        self.assertIn(
-            "cache",
-            owner_by_name[("wildcard_engine.py", "_SNAPSHOT_CACHE")],
+        self.assertNotIn(
+            ("wildcard_engine.py", "_SNAPSHOT_CACHE"),
+            owner_by_name,
         )
         json.loads(expected_text)
 

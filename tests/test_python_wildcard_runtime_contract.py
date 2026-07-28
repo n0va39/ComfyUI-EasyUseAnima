@@ -101,6 +101,25 @@ def _class_method(
     raise AssertionError(f"{module} has no {class_name}.{method_name}")
 
 
+def _instance_assignments(module: str, class_name: str) -> set[str]:
+    initializer = _class_method(module, class_name, "__init__")
+    assignments: set[str] = set()
+    for node in ast.walk(initializer):
+        targets: list[ast.expr] = []
+        if isinstance(node, ast.Assign):
+            targets.extend(node.targets)
+        elif isinstance(node, ast.AnnAssign):
+            targets.append(node.target)
+        for target in targets:
+            if (
+                isinstance(target, ast.Attribute)
+                and isinstance(target.value, ast.Name)
+                and target.value.id == "self"
+            ):
+                assignments.add(target.attr)
+    return assignments
+
+
 def _references(function: ast.FunctionDef | ast.AsyncFunctionDef) -> set[str]:
     return {
         node.id
@@ -180,7 +199,7 @@ class PythonWildcardRuntimeContractTests(unittest.TestCase):
         )
         self.assertEqual(self.fixture["schema_version"], 1)
         self.assertEqual(self.fixture["classification"], "Contract")
-        self.assertEqual(self.fixture["production_changes"], 0)
+        self.assertEqual(self.fixture["production_changes"], 2)
         self.assertEqual(
             [move["id"] for move in self.fixture["move_queue"]],
             ["E-06a", "E-06b", "E-06c", "E-06d", "E-06e"],
@@ -191,7 +210,7 @@ class PythonWildcardRuntimeContractTests(unittest.TestCase):
         )
         self.assertEqual(
             [move["status"] for move in self.fixture["move_queue"]],
-            ["complete", "queued", "queued", "queued", "queued"],
+            ["complete", "complete", "queued", "queued", "queued"],
         )
         self.assertEqual(
             [owner["id"] for owner in self.fixture["owners"]],
@@ -210,9 +229,9 @@ class PythonWildcardRuntimeContractTests(unittest.TestCase):
         entry = entries["wildcard-snapshot-cache"]
         self.assertEqual(entry["module"], owner["module"])
         self.assertEqual(entry["owner"], owner["current_owner"])
-        self.assertEqual(entry["target_phase"], "E-06")
+        self.assertEqual(entry["target_phase"], "E-06b-complete")
         self.assertEqual(set(entry["symbols"]), set(owner["state_symbols"]))
-        self.assertEqual(owner["target_phase"], "E-06b")
+        self.assertEqual(owner["target_phase"], "E-06b-complete")
         self.assertEqual(
             owner["target_owner"],
             "easyuse_anima.wildcard.snapshot._DEFAULT_WILDCARD_SNAPSHOTS",
@@ -222,43 +241,46 @@ class PythonWildcardRuntimeContractTests(unittest.TestCase):
             "rejected",
         )
 
-    def test_current_condition_lru_and_building_state_are_exact(self):
-        module = "wildcard_engine.py"
+    def test_default_owner_condition_lru_and_building_state_are_exact(self):
+        module = "easyuse_anima/wildcard/snapshot.py"
         owner = self.fixture["owners"][0]
         bindings = _top_level_bindings(module)
         self.assertEqual(set(owner["state_symbols"]) - bindings, set())
-        self.assertEqual(set(owner["policy_symbols"]) - bindings, set())
         self.assertEqual(
-            _assignment_call(module, "_SNAPSHOT_CONDITION"),
-            "Condition",
+            _assignment_call(module, "_DEFAULT_WILDCARD_SNAPSHOTS"),
+            "_WildcardSnapshotStore",
         )
         self.assertEqual(
-            _assignment_call(module, "_SNAPSHOT_CACHE"),
-            "OrderedDict",
+            _instance_assignments(module, "_WildcardSnapshotStore"),
+            {"_building", "_cache", "_cache_limit", "_condition"},
         )
-        self.assertEqual(
-            _assignment_call(module, "_SNAPSHOT_BUILDING"),
-            "set",
-        )
+        self.assertEqual(owner["policy_attributes"], ["_cache_limit"])
+        self.assertEqual(owner["policy_symbols"], ["_SNAPSHOT_CACHE_LIMIT"])
         limit = _assignment_value(module, "_SNAPSHOT_CACHE_LIMIT")
         self.assertIsInstance(limit, ast.Constant)
         self.assertEqual(limit.value, 16)
 
-        lifecycle = _top_level_function(module, "_wildcard_snapshot")
+        lifecycle = _class_method(
+            module,
+            "_WildcardSnapshotStore",
+            "snapshot_for_roots",
+        )
+        lifecycle_attributes = {
+            node.attr
+            for node in ast.walk(lifecycle)
+            if isinstance(node, ast.Attribute)
+        }
         self.assertTrue(
             {
-                "_SNAPSHOT_BUILDING",
-                "_SNAPSHOT_CACHE",
-                "_SNAPSHOT_CACHE_LIMIT",
-                "_SNAPSHOT_CONDITION",
-                "_build_wildcard_snapshot",
-                "_wildcard_sources",
+                "_building",
+                "_cache",
+                "_cache_limit",
+                "_condition",
             }
-            <= _references(lifecycle)
+            <= lifecycle_attributes
         )
         self.assertTrue(
             {
-                "_scan_wildcard_sources",
                 "add",
                 "discard",
                 "move_to_end",
@@ -269,10 +291,55 @@ class PythonWildcardRuntimeContractTests(unittest.TestCase):
             <= _called(lifecycle)
         )
 
-    def test_canonical_snapshot_remains_immutable_and_stateless(self):
+        clear = _class_method(module, "_WildcardSnapshotStore", "clear")
+        clear_attributes = {
+            node.attr
+            for node in ast.walk(clear)
+            if isinstance(node, ast.Attribute)
+        }
+        self.assertEqual(
+            clear_attributes,
+            {"_cache", "_condition", "clear"},
+        )
+
+        root_bindings = _top_level_bindings("wildcard_engine.py")
+        self.assertEqual(
+            {
+                "_SNAPSHOT_BUILDING",
+                "_SNAPSHOT_CACHE",
+                "_SNAPSHOT_CONDITION",
+            }
+            & root_bindings,
+            set(),
+        )
+        root_lifecycle = _top_level_function(
+            "wildcard_engine.py",
+            "_wildcard_snapshot",
+        )
+        self.assertTrue(
+            {
+                "_DEFAULT_WILDCARD_SNAPSHOTS",
+                "_build_wildcard_snapshot",
+                "_wildcard_sources",
+            }
+            <= _references(root_lifecycle)
+        )
+        self.assertIn(
+            "snapshot_for_roots",
+            _called(root_lifecycle),
+        )
+
+    def test_canonical_snapshot_value_remains_immutable_and_root_independent(self):
         module = "easyuse_anima/wildcard/snapshot.py"
         self.assertTrue(
-            {"_WildcardSnapshot", "_build_wildcard_snapshot", "__all__"}
+            {
+                "_DEFAULT_WILDCARD_SNAPSHOTS",
+                "_SNAPSHOT_CACHE_LIMIT",
+                "_WildcardSnapshot",
+                "_WildcardSnapshotStore",
+                "_build_wildcard_snapshot",
+                "__all__",
+            }
             <= _top_level_bindings(module)
         )
         all_value = _assignment_value(module, "__all__")
@@ -295,7 +362,10 @@ class PythonWildcardRuntimeContractTests(unittest.TestCase):
                 if not isinstance(statement.value, ast.Call):
                     continue
                 call_initialized_state.update(_target_names(statement.target))
-        self.assertEqual(call_initialized_state, set())
+        self.assertEqual(
+            call_initialized_state,
+            {"_DEFAULT_WILDCARD_SNAPSHOTS"},
+        )
 
     def test_production_callers_resolve_the_one_snapshot_facade(self):
         owner_ids = {owner["id"] for owner in self.fixture["owners"]}

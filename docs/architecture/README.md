@@ -10,14 +10,14 @@ then only the active task section, owning Issue, direct source, and direct tests
 ## Active sequencing
 
 - Issue [#187](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/187)
-  owns Phase E. E-01 through E-05 and the E-06a Contract are complete; the next
-  bounded unit is the separate E-06b wildcard snapshot owner Move.
+  owns Phase E. E-01 through E-05, E-06a, and E-06b are complete; the next bounded
+  unit is the separate E-06c canonical wildcard service/internal caller Move.
   Issue #186 retains D-14/shim decisions.
 - [`backend-roadmap-resume-0.6.2.md`](backend-roadmap-resume-0.6.2.md)
   is the current execution source of truth. Read it before the older accumulated
   roadmap.
-- Reviewed code baseline before E-06a: E-05e / PR #546 at
-  `1df6cab58df7abaec9cc86522e89b982b813bd79`.
+- Reviewed code baseline before E-06b: E-06a / PR #547 at
+  `4b365ea33123c219e1807b6f37f545fcb92e349c`.
 - D-08 is complete and D-08v is not required.
 - D-14 readiness retains every root surface; retirement/final-freeze work is blocked.
 - E-01 inventory Contract:
@@ -38,15 +38,15 @@ then only the active task section, owning Issue, direct source, and direct tests
   [`python-runtime-e05-autocomplete-contract.md`](python-runtime-e05-autocomplete-contract.md).
 - E-06 wildcard snapshot runtime ownership Contract and bounded Move queue:
   [`python-runtime-e06-wildcard-contract.md`](python-runtime-e06-wildcard-contract.md).
-- First READY task after E-06a: a separate #187 E-06b wildcard snapshot owner Move
-  only.
+- First READY task after E-06b: a separate #187 E-06c canonical wildcard
+  service/root identity shim and internal caller Move only.
 - Completed #470 and the #413/#414/#415 queue/live-UI lanes remain contract references,
   not active blockers.
 - Released code baseline: 0.6.2. Registry activation is external administration and
   does not block `dev`; do not republish or mutate the release.
 - Completed #409/#410/#411 and deferred #440/#441 do not alter the E-01 boundary.
-- E-06a authorizes only the separate E-06b snapshot owner Move. It does not authorize
-  E-06c or later Phase E work, root removal, release, or Registry.
+- E-06b authorizes only the separate E-06c Move. It does not authorize E-06d or later
+  Phase E work, root removal, release, or Registry.
 
 ## Current code boundary
 

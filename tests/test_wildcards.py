@@ -39,6 +39,100 @@ from wildcard_engine import (
 )
 
 
+class WildcardSnapshotStoreTests(unittest.TestCase):
+    def test_default_owner_is_exact_root_dependency_and_raw_state_is_gone(self):
+        self.assertIs(
+            wildcard_engine._DEFAULT_WILDCARD_SNAPSHOTS,
+            wildcard_snapshot._DEFAULT_WILDCARD_SNAPSHOTS,
+        )
+        self.assertIs(
+            wildcard_engine._SNAPSHOT_CACHE_LIMIT,
+            wildcard_snapshot._SNAPSHOT_CACHE_LIMIT,
+        )
+        self.assertEqual(
+            wildcard_snapshot._DEFAULT_WILDCARD_SNAPSHOTS._cache_limit,
+            wildcard_snapshot._SNAPSHOT_CACHE_LIMIT,
+        )
+        for raw_state in (
+            "_SNAPSHOT_BUILDING",
+            "_SNAPSHOT_CACHE",
+            "_SNAPSHOT_CONDITION",
+        ):
+            with self.subTest(raw_state=raw_state):
+                self.assertFalse(hasattr(wildcard_engine, raw_state))
+
+    def test_clear_preserves_active_build_admission_and_settlement(self):
+        store = wildcard_snapshot._WildcardSnapshotStore()
+        build_started = threading.Event()
+        release_build = threading.Event()
+        waiter_entered = threading.Event()
+        build_calls = []
+        original_wait = store._condition.wait
+
+        def blocked_build(source_state):
+            snapshot = wildcard_snapshot._build_wildcard_snapshot(source_state)
+            build_calls.append(source_state.cache_key)
+            build_started.set()
+            if not release_build.wait(5):
+                raise AssertionError("timed out waiting to clear completed cache")
+            return snapshot
+
+        def observed_wait(timeout=None):
+            waiter_entered.set()
+            return original_wait(timeout)
+
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            (root / "color.txt").write_text("red\n", encoding="utf-8")
+            cache_key = wildcard_sources._scan_wildcard_sources((root,)).cache_key
+
+            with patch.object(
+                store._condition,
+                "wait",
+                side_effect=observed_wait,
+            ), ThreadPoolExecutor(max_workers=2) as executor:
+                first = executor.submit(
+                    store.snapshot_for_roots,
+                    (root,),
+                    scan_sources=wildcard_sources._scan_wildcard_sources,
+                    build_snapshot=blocked_build,
+                )
+                try:
+                    self.assertTrue(build_started.wait(5))
+                    with store._condition:
+                        self.assertIn(cache_key, store._building)
+                        self.assertNotIn(cache_key, store._cache)
+
+                    store.clear()
+
+                    with store._condition:
+                        self.assertIn(cache_key, store._building)
+                        self.assertNotIn(cache_key, store._cache)
+                    second = executor.submit(
+                        store.snapshot_for_roots,
+                        (root,),
+                        scan_sources=wildcard_sources._scan_wildcard_sources,
+                        build_snapshot=blocked_build,
+                    )
+                    self.assertTrue(waiter_entered.wait(5))
+                    self.assertFalse(first.done())
+                    self.assertFalse(second.done())
+                finally:
+                    release_build.set()
+                first_snapshot = first.result(timeout=5)
+                second_snapshot = second.result(timeout=5)
+
+            self.assertIs(first_snapshot, second_snapshot)
+            self.assertEqual(len(build_calls), 1)
+            with store._condition:
+                self.assertNotIn(cache_key, store._building)
+                self.assertIs(store._cache[cache_key], first_snapshot)
+
+            store.clear()
+            with store._condition:
+                self.assertEqual(store._cache, {})
+
+
 class WildcardEngineTests(unittest.TestCase):
     def test_root_library_adapter_uses_canonical_lookup_core(self):
         self.assertEqual(wildcard_library.__all__, ())
@@ -146,6 +240,10 @@ class WildcardEngineTests(unittest.TestCase):
 
     def test_root_snapshot_surface_has_canonical_identity(self):
         self.assertEqual(wildcard_snapshot.__all__, ())
+        self.assertIs(
+            wildcard_engine._DEFAULT_WILDCARD_SNAPSHOTS,
+            wildcard_snapshot._DEFAULT_WILDCARD_SNAPSHOTS,
+        )
         self.assertIs(
             wildcard_engine._WildcardSnapshot,
             wildcard_snapshot._WildcardSnapshot,
@@ -859,9 +957,15 @@ class WildcardEngineTests(unittest.TestCase):
                 side_effect=flaky_loader,
             ) as loader:
                 first = expand_wildcards("__color__", seed=0, roots=[root])
-                with wildcard_engine._SNAPSHOT_CONDITION:
-                    self.assertNotIn(cache_key, wildcard_engine._SNAPSHOT_CACHE)
-                    self.assertNotIn(cache_key, wildcard_engine._SNAPSHOT_BUILDING)
+                with wildcard_snapshot._DEFAULT_WILDCARD_SNAPSHOTS._condition:
+                    self.assertNotIn(
+                        cache_key,
+                        wildcard_snapshot._DEFAULT_WILDCARD_SNAPSHOTS._cache,
+                    )
+                    self.assertNotIn(
+                        cache_key,
+                        wildcard_snapshot._DEFAULT_WILDCARD_SNAPSHOTS._building,
+                    )
                 second = expand_wildcards("__color__", seed=0, roots=[root])
 
         self.assertEqual(first.text, "__color__")
@@ -883,8 +987,11 @@ class WildcardEngineTests(unittest.TestCase):
                 first = expand_wildcards("__color__", seed=0, roots=[root])
                 second = expand_wildcards("__color__", seed=0, roots=[root])
 
-            with wildcard_engine._SNAPSHOT_CONDITION:
-                self.assertIn(cache_key, wildcard_engine._SNAPSHOT_CACHE)
+            with wildcard_snapshot._DEFAULT_WILDCARD_SNAPSHOTS._condition:
+                self.assertIn(
+                    cache_key,
+                    wildcard_snapshot._DEFAULT_WILDCARD_SNAPSHOTS._cache,
+                )
 
         self.assertEqual(first.text, "__color__")
         self.assertEqual(second.text, "__color__")
@@ -895,7 +1002,9 @@ class WildcardEngineTests(unittest.TestCase):
         release_read = threading.Event()
         waiter_entered = threading.Event()
         read_calls = []
-        original_wait = wildcard_engine._SNAPSHOT_CONDITION.wait
+        original_wait = (
+            wildcard_snapshot._DEFAULT_WILDCARD_SNAPSHOTS._condition.wait
+        )
 
         def unreadable_yaml(path):
             read_calls.append(path)
@@ -919,7 +1028,7 @@ class WildcardEngineTests(unittest.TestCase):
                 "_read_text_file",
                 side_effect=unreadable_yaml,
             ), patch.object(
-                wildcard_engine._SNAPSHOT_CONDITION,
+                wildcard_snapshot._DEFAULT_WILDCARD_SNAPSHOTS._condition,
                 "wait",
                 side_effect=observed_wait,
             ), ThreadPoolExecutor(max_workers=2) as executor:
@@ -943,9 +1052,15 @@ class WildcardEngineTests(unittest.TestCase):
                 first_result = first.result(timeout=5)
                 second_result = second.result(timeout=5)
 
-            with wildcard_engine._SNAPSHOT_CONDITION:
-                self.assertNotIn(cache_key, wildcard_engine._SNAPSHOT_CACHE)
-                self.assertNotIn(cache_key, wildcard_engine._SNAPSHOT_BUILDING)
+            with wildcard_snapshot._DEFAULT_WILDCARD_SNAPSHOTS._condition:
+                self.assertNotIn(
+                    cache_key,
+                    wildcard_snapshot._DEFAULT_WILDCARD_SNAPSHOTS._cache,
+                )
+                self.assertNotIn(
+                    cache_key,
+                    wildcard_snapshot._DEFAULT_WILDCARD_SNAPSHOTS._building,
+                )
 
         self.assertEqual(first_result.text, "__color__")
         self.assertEqual(second_result.text, "__color__")
@@ -998,7 +1113,9 @@ class WildcardEngineTests(unittest.TestCase):
         waiter_entered = threading.Event()
         build_calls = []
         original_build = wildcard_engine._build_wildcard_snapshot
-        original_wait = wildcard_engine._SNAPSHOT_CONDITION.wait
+        original_wait = (
+            wildcard_snapshot._DEFAULT_WILDCARD_SNAPSHOTS._condition.wait
+        )
 
         def blocked_build(source_state):
             snapshot = original_build(source_state)
@@ -1024,18 +1141,22 @@ class WildcardEngineTests(unittest.TestCase):
                 "_build_wildcard_snapshot",
                 side_effect=blocked_build,
             ), patch.object(
-                wildcard_engine._SNAPSHOT_CONDITION,
+                wildcard_snapshot._DEFAULT_WILDCARD_SNAPSHOTS._condition,
                 "wait",
                 side_effect=observed_wait,
             ), ThreadPoolExecutor(max_workers=2) as executor:
                 first = executor.submit(list_wildcards, roots=[root])
                 try:
                     self.assertTrue(build_ready.wait(5))
-                    with wildcard_engine._SNAPSHOT_CONDITION:
+                    with (
+                        wildcard_snapshot._DEFAULT_WILDCARD_SNAPSHOTS._condition
+                    ):
                         self.assertFalse(
                             any(
                                 snapshot.roots == (str(root),)
-                                for snapshot in wildcard_engine._SNAPSHOT_CACHE.values()
+                                for snapshot in (
+                                    wildcard_snapshot._DEFAULT_WILDCARD_SNAPSHOTS._cache.values()
+                                )
                             )
                         )
                     second = executor.submit(list_wildcards, roots=[root])
