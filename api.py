@@ -88,6 +88,7 @@ from .easyuse_anima.api.routes.long_text_settings import (
 from .easyuse_anima.api.routes.lora_catalog import (
     build_loras_handler as _build_loras_handler,
 )
+from .easyuse_anima.api.routes import lora_preview as _api_lora_preview_routes
 from .easyuse_anima.api.routes.lora_profile_fix import (
     build_lora_profile_fix_handler as _build_lora_profile_fix_handler,
 )
@@ -207,7 +208,7 @@ _rename_aio_profile = _aio_profiles._rename_aio_profile
 _rename_aio_profile_payload = _aio_profiles._rename_aio_profile_payload
 
 
-LORA_PREVIEW_EXTENSIONS = (".webp", ".png", ".jpg", ".jpeg")
+LORA_PREVIEW_EXTENSIONS = _api_lora_preview_routes.LORA_PREVIEW_EXTENSIONS
 PROMPT_TRANSLATION_ROUTE_TIMEOUT_SECONDS = 15.0
 _LOGGER = logging.getLogger(__name__)
 
@@ -264,32 +265,14 @@ _request_correlated = _api_responses.build_request_correlator(
 )
 
 
-def _resolve_lora_preview_path(lora_name: str):
-    try:
-        import folder_paths  # type: ignore
-    except Exception:
-        return None
-
-    name = str(lora_name or "").strip()
-    if not name or name == "None":
-        return None
-    lora_path = folder_paths.get_full_path("loras", name)
-    if not lora_path:
-        return None
-
-    lora_abs = os.path.abspath(lora_path)
-    lora_dir = os.path.dirname(lora_abs)
-    preview_base = os.path.splitext(lora_abs)[0]
-    for extension in LORA_PREVIEW_EXTENSIONS:
-        preview_abs = os.path.abspath(preview_base + extension)
-        try:
-            if os.path.commonpath((lora_dir, preview_abs)) != lora_dir:
-                continue
-        except ValueError:
-            continue
-        if os.path.isfile(preview_abs):
-            return preview_abs
-    return None
+_resolve_lora_preview_path = _api_lora_preview_routes.build_lora_preview_path_resolver(
+    get_extensions=lambda: LORA_PREVIEW_EXTENSIONS,
+    abspath=lambda path: os.path.abspath(path),
+    dirname=lambda path: os.path.dirname(path),
+    splitext=lambda path: os.path.splitext(path),
+    commonpath=lambda paths: os.path.commonpath(paths),
+    isfile=lambda path: os.path.isfile(path),
+)
 
 
 _SAFE_PROFILE_VALIDATION_MESSAGES = frozenset(
