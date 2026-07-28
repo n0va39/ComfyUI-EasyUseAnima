@@ -3,81 +3,81 @@
 ## Status and authority
 
 - Status: active execution correction for Issue #186.
-- Reviewed baseline: `dev@a509e87c7021257d514e66710f4ca4afb74c4a05` after D-08s / PR #520.
+- Code-review baseline: `dev@a509e87c7021257d514e66710f4ca4afb74c4a05` after D-08s / PR #520.
+- Document baseline: PR #521 / `faa78eaf3d06be0af934eb9e7592aa9ee9686455`.
 - Released baseline: 0.6.2.
-- Scope: the remaining root `api.py` consolidation and its immediate exit gate.
-- This document supersedes the stale immediate queue and broad preflight command in
-  `python-backend-execution-roadmap.md` for the current D-08 continuation only.
-- The target architecture in `python-backend.md`, ADR-001, ADR-002, and the
-  compatibility-shim registry remain authoritative.
-- Comfy Registry review or activation status is external release administration and
-  does not block this `dev` refactor queue. Codex must not poll, republish, mutate, or
-  replace 0.6.2 while executing this roadmap.
+- Scope: remaining root `api.py` route composition and the D-08 exit gate.
+- This document owns the current immediate queue and supersedes the stale queue and
+  broad preflight command in `python-backend-execution-roadmap.md`.
+- `python-backend.md`, ADR-001, ADR-002, and the compatibility-shim registry still own
+  target architecture and compatibility policy.
+- Registry review/activation is external release administration and does not block
+  this `dev` queue. Do not poll, republish, mutate, or replace 0.6.2.
 
 ## 1. Current code review
 
-The current D-08 direction is sound. No P0/P1 correctness defect was found in the
-reviewed route-composition surface.
+No P0/P1 correctness defect was found in the reviewed D-08 route-composition surface.
+The current structure is a valid transitional state:
 
-Verified structure at the reviewed baseline:
+- root `api.py` is a 640-line compatibility/composition facade;
+- `easyuse_anima/bootstrap.py` owns the private composition helpers moved through
+  D-08s and the production initialization call site;
+- canonical `api/routes/*` modules remain request/response adapters;
+- `api/router.py` owns injected handler order, route definitions/signature, resolver,
+  registrar, and idempotent registration;
+- merged evidence covers route order/signature, request correlation, error redaction,
+  profile persistence/CAS, package import, repeated initialization, and isolated API
+  behavior;
+- import-boundary and package-skeleton gates show no new canonical-to-root back edge.
 
-- root `api.py` is still a transitional 640-line compatibility/composition facade;
-- `easyuse_anima/bootstrap.py` is 173 lines and owns the private composition helpers
-  already moved through D-08s;
-- canonical route modules remain request/response adapters and do not own route-table
-  registration;
-- `api/router.py` owns the injected route order, signature, resolver, registrar, and
-  idempotent registration mechanics;
-- `bootstrap.initialize()` remains the single production call site that invokes the
-  registrar;
-- package import, route order/signature, request correlation, error redaction, profile
-  persistence/CAS, and repeated initialization were covered by the merged D-08 evidence;
-- import-boundary and package-skeleton gates report no new canonical-to-root back edge.
+The remaining debt is explicit:
 
-The current remaining debt is deliberate, but it must not become permanent:
-
-1. Seven handlers are still factory-composed and correlated directly in root `api.py`:
-   two profile loads, two profile saves, two AiO profile mutations, and one LoRA
-   profile-fix handler.
+1. Seven profile handlers are still factory-composed and correlated directly in root
+   `api.py`: two loads, two saves, two AiO mutations, and one LoRA fix handler.
 2. Root `api.py` still constructs compatibility payload/runtime helpers and the route
    registrar. Those responsibilities are not automatically part of the remaining
-   handler-composition Moves.
-3. The root facade retains many evidence-backed aliases and dynamic monkeypatch seams.
-   They cannot be deleted merely because canonical owners exist.
-4. `bootstrap.py` must never import root `api.py` to finish the move; that would invert
-   the dependency direction and create a cycle.
-5. Translation executor creation, file-I/O lifecycle, profile repositories, request
-   parsing, error policy, and route behavior stay outside D-08 composition Moves.
+   composition Move.
+3. Evidence-backed aliases and dynamic monkeypatch seams must remain until a separate
+   compatibility gate permits removal.
+4. `bootstrap.py` must never import root `api.py`; doing so would invert dependency
+   direction and create a cycle.
+5. Translation executors, file-I/O lifecycle, repositories, request parsing, error
+   policy, route behavior, and persistence stay outside D-08 composition work.
 
-## 2. Exact remaining D-08 queue
+## 2. Cohesive remaining queue
 
-Execute one task at a time from the latest `origin/dev`. Search open PRs and branches
-for the task ID before creating a competing implementation.
+The seven remaining handlers share the same feature family, owner, production files,
+PR classification, and validation surface. Splitting them into four nearly identical
+PRs would add review/full-test overhead without a meaningful rollback benefit and
+would conflict with the policy against one PR per tiny mechanical extraction.
 
 ```text
-DONE  D-08q  AiO Torch Compile recommendation composition      PR #518
-DONE  D-08r  LoRA preview/catalog composition                   PR #519
-DONE  D-08s  LoRA/AiO profile-list composition                  PR #520
-READY D-08t  LoRA/AiO profile-load composition
-NEXT  D-08u  LoRA/AiO profile-save composition
-NEXT  D-08v  AiO profile delete/rename composition
-NEXT  D-08w  LoRA profile-fix composition
-NEXT  D-08x  D-08 exit audit and final composition checkpoint
+DONE  D-08q  Torch Compile recommendation composition   PR #518
+DONE  D-08r  LoRA preview/catalog composition            PR #519
+DONE  D-08s  LoRA/AiO profile-list composition           PR #520
+READY D-08t  remaining profile route composition
+NEXT  D-08u  integrated D-08 exit audit
+OPTIONAL D-08v  final facade Move only if D-08u proves it necessary
 ```
 
-Do not skip to D-14, Phase E, quality cleanup, or shim removal while one of D-08t
-through D-08x is incomplete.
+Do not start D-14, Phase E, quality cleanup, or unrelated feature work before D-08u.
 
-### D-08t — Profile load composition
+### D-08t — Remaining profile route composition
 
 Type: Move.
 
-Goal:
+Goal: move only factory invocation and request-correlation composition for:
 
-- move only `build_profile_load_handlers()` invocation and request-correlation wrapping
-  from root `api.py` to a private bootstrap composition helper;
-- preserve the two handler objects, dependency callbacks, error tuples, response
-  payloads, route order, and root dynamic load seams.
+```text
+LoRA/AiO profile load
+LoRA/AiO profile save
+AiO profile delete/rename
+LoRA profile fix
+```
+
+The implementation may use one private profile-group builder or a small set of private
+sub-builders inside `bootstrap.py`, but it must present one cohesive root call-site and
+must not add a public bootstrap export.
 
 Allowed production files:
 
@@ -90,191 +90,178 @@ Allowed support files:
 
 ```text
 tests/test_api_contract.py
-tests/test_bootstrap.py or the current bootstrap owner test
+current bootstrap/runtime owner tests
 tests/fixtures/python_backend_baseline.json
+compatibility/package-skeleton tests only when directly affected
 ```
+
+Required preservation:
+
+- exact seven handler objects and route ordering;
+- all current dependency callbacks and late-bound root seams;
+- load query defaults and route-specific error tuples;
+- save parsing, optional profile ID/revision, strict CAS, and response shape;
+- delete/rename source and target preconditions, overwrite semantics, and error order;
+- LoRA fix input-object forwarding and read-only projection meaning;
+- bounded file-I/O dispatch, request correlation, route signature, registration,
+  repeated initialize behavior, and root compatibility aliases.
 
 Forbidden:
 
-- profile repository or error-policy changes;
-- query/default/response changes;
-- route-definition or registration changes;
-- root alias removal;
-- importing root `api.py` from bootstrap.
+- profile repository, schema, migration, persistence, or error-policy changes;
+- request/response or route method/path/order changes;
+- translation worker, file-I/O lifecycle, or RuntimeServices changes;
+- root alias removal or new public bootstrap/router exports;
+- bootstrap importing root `api.py`;
+- unrelated formatting or cleanup.
 
-### D-08u — Profile save composition
+A focused failure in one subgroup does not justify splitting the PR automatically.
+Split only when the inventory proves an independent behavior owner or an incompatible
+rollback boundary.
 
-Type: Move.
+### D-08u — Integrated D-08 exit audit
 
-Move only the two save factory invocations and correlation wrapping. Preserve JSON
-validation, optional profile identity/revision fields, strict CAS behavior, error
-mapping, file-I/O dispatch, and success payloads.
-
-Do not combine delete/rename behavior, persistence changes, or profile schema changes.
-
-### D-08v — AiO profile mutation composition
-
-Type: Move.
-
-Move only delete/rename factory invocation and correlation wrapping. Preserve source
-and target preconditions, overwrite semantics, multi-token CAS, error ordering, and
-response shapes.
-
-### D-08w — LoRA profile-fix composition
-
-Type: Move.
-
-Move only the fix factory invocation and correlation wrapping. Preserve the current
-read-only projection meaning, input-object forwarding, file-I/O dispatch, and safe
-error boundary. Do not turn the fix endpoint into a persistence operation.
-
-### D-08x — D-08 exit audit
-
-Type: Contract/gate first. If a final Move is necessary, use a separate PR.
+Type: Contract/gate. If production movement is still required, open optional D-08v as
+a separate Move PR after the audit.
 
 The audit must prove:
 
-- all 21 route handlers are created through canonical route factories;
-- all concrete route factory invocation and correlation wiring is owned by private
-  bootstrap composition helpers;
-- root `api.py` has no remaining direct concrete route-factory import;
+- all 21 handlers are created by canonical route factories;
+- all concrete factory invocation and correlation wiring is owned by private bootstrap
+  composition helpers;
+- root `api.py` has no direct concrete route-factory import;
 - `api/router.py` still has no concrete `api/routes/*` dependency;
 - exact route order, signature, marker, idempotence, mismatch behavior, and repeated
-  `initialize()` behavior remain unchanged;
-- root compatibility aliases and dynamic seams are classified in the compatibility
-  registry before any deletion;
-- root `api.py` does not gain new implementation while the final facade is audited;
-- package/no-host import remains side-effect-safe except for the explicitly preserved
-  root compatibility runtime.
+  `initialize()` semantics are unchanged;
+- root dynamic seams and supported identities are classified before deletion;
+- root `api.py` has not gained new implementation;
+- package/no-host import remains safe except for explicitly retained compatibility
+  runtime construction;
+- the remaining payload/runtime helper and registrar ownership is either accepted as
+  a documented shim or assigned to a named follow-up gate.
 
-D-08x does not authorize D-14 shim retirement. It only records whether D-14 has enough
-release and consumer evidence to start a separate Contract gate.
+D-08u does not authorize D-14 shim retirement. It only determines whether a D-14
+readiness Contract has enough release and consumer evidence to begin.
 
-## 3. Validation policy for D-08t through D-08w
+## 3. Validation policy
 
-### Edit loop
+### D-08t edit loop
 
 Run only:
 
 ```text
 changed-file Python syntax/static check
-owning route direct contract tests
+direct profile load/save/mutation/fix route contracts
 route-composition owner test
-bootstrap/runtime owner tests directly affected by the diff
+bootstrap/runtime owner tests affected by the diff
 current import-boundary/analyzer fixture
-`git diff --check`
+git diff --check
 ```
 
-Do not run the repository `quick` profile as a baseline or per-edit command. A clean
-latest `dev`, the owning focused tests, and existing integrated evidence are the
-preflight.
+Do not run the broad `quick` profile as preflight or per-edit validation. A clean latest
+`dev`, focused tests, and integrated evidence are sufficient preflight.
 
-### Final PR candidate
+### D-08t final candidate
 
 Run the official full profile once on the exact final code/test SHA.
 
-### Evidence reuse
+Package/live evidence may be reused when all are true:
 
-For D-08t through D-08w, package and live evidence may be reused when all of the
-following remain true:
-
-- the diff is limited to `api.py`, `bootstrap.py`, direct tests, and the analyzer
-  baseline;
+- diff is limited to `api.py`, `bootstrap.py`, direct tests, and analyzer baseline;
 - no shipped file is added, removed, or renamed;
-- no dependency, `.comfyignore`, registration table, route method/path/order, public
-  response, error taxonomy, worker/lifecycle owner, or optional import changes;
-- the corresponding canonical route already passed direct package and isolated live
-  evidence in its earlier extraction PR;
-- the composition change is covered by package-skeleton/import-boundary tests.
+- no dependency, `.comfyignore`, registration table, route signature/order, public
+  response, error taxonomy, persistence, worker/lifecycle owner, or optional import
+  changes;
+- each canonical route already has package and isolated live evidence from its
+  extraction PR;
+- package-skeleton/import-boundary tests cover the changed composition edge.
 
-Under those conditions, record package/live as `evidence reused; not retriggered`.
-Do not repeat `comfy node pack` and an isolated server/browser run merely because the
-same two production files changed again.
+Record reused evidence explicitly as `not retriggered`. Do not repeat package and live
+checks solely because the same two production files changed again.
 
-### Immediate escalation triggers
+Run package/live in D-08t if any trigger occurs:
 
-Run package and/or live validation in the same PR if any of the following occurs:
+- shipped module or material import closure changes;
+- route definition/signature/registration or `__all__` changes;
+- optional dependency moves to import time;
+- parsing, errors, file-I/O, persistence, payload, or runtime lifecycle changes;
+- focused evidence cannot distinguish Move from Behavior.
 
-- a shipped module or import closure changes beyond already-packed canonical modules;
-- route order/signature/registration or `__all__` changes;
-- an optional dependency moves to import time;
-- request parsing, error mapping, file-I/O, persistence, response shape, or runtime
-  lifecycle changes;
-- the focused tests cannot distinguish a mechanical composition move from behavior.
+### D-08u exit validation
 
-### D-08x exit validation
-
-At the integrated D-08x candidate, run once:
+At the integrated exit candidate, run once:
 
 ```text
 official full
 comfy node validate
 comfy node pack + CRC/archive closure inspection
-package/no-host import and repeated initialize/idempotence
-representative isolated ComfyUI API smoke for all remaining profile groups
+package/no-host import
+repeated initialize/idempotence
+representative isolated profile API smoke
 ```
 
-The live checkpoint must cover at least list, load, save, delete/rename, fix, request
-correlation, one safe error path, and queue-count stability. It need not repeat every
-per-route matrix already proven by focused tests.
+The live matrix covers list, load, save, delete/rename, fix, request correlation, one
+safe error path, and queue-count stability. It need not duplicate every route-specific
+fixture already proven by focused tests.
 
 ## 4. Review and stop conditions
 
-Codex should resolve ordinary focused failures inside the owning task. Stop and record
-a blocker only when:
+Codex resolves ordinary implementation and test failures inside D-08t. Stop only if:
 
 - bootstrap would need to import root `api.py`;
-- a root dynamic seam or supported object identity cannot be preserved;
-- route order/signature, public response, error mapping, persistence, or execution
-  order must change;
-- the change requires a new public bootstrap/router export;
+- a supported dynamic seam or object identity cannot be preserved;
+- route order/signature, response, error mapping, persistence, or execution order must
+  change;
+- a new public bootstrap/router API is required;
 - an optional dependency becomes import-time required;
-- the root facade cannot be reduced without an undocumented consumer decision;
-- a Move cannot be separated from a Behavior or lifecycle change.
+- root facade reduction requires an undocumented consumer decision;
+- the Move cannot be separated from Behavior or lifecycle work.
 
-A technical PRO review is warranted only if several valid architecture choices remain
-across bootstrap/router/root-shim boundaries, a cycle cannot be removed by the existing
-injection pattern, or compatibility evidence is insufficient to choose safely. Normal
-implementation or test failures do not require PRO review.
+Technical PRO review is needed only when several valid architecture choices remain
+across bootstrap/router/root-shim boundaries, the existing injection pattern cannot
+avoid a cycle, or compatibility evidence cannot select safely. Ordinary failures and
+small implementation choices do not require PRO review.
 
 ## 5. After D-08
 
-After D-08x:
+After D-08u and any required D-08v:
 
 1. reconcile Issue #186 and the compatibility-shim registry;
-2. create a D-14 readiness Contract only if canonical-plus-shim release evidence and
+2. create a D-14 readiness Contract only when canonical-plus-shim release evidence and
    actual consumer inventory are sufficient;
-3. if D-14 is still blocked, record the blocker and select the first independent READY
-   Phase E task whose canonical owner and lifecycle Contract already exist;
-4. do not remove root files merely to make the directory tree look complete.
-
-The Registry activation state of 0.6.2 does not select or block these tasks.
+3. if D-14 remains blocked, record why and select the first independent READY Phase E
+   task with an existing canonical owner and lifecycle Contract;
+4. never remove root files merely to make the directory tree appear complete.
 
 ## 6. Codex resume instruction
 
 ```text
-Start D-08t only from the latest origin/dev.
+Start D-08t only from latest origin/dev.
 
 Read:
 - current-policies.md
 - codex-execution-efficiency.md universal rules
 - this document's D-08t and validation sections
 - Issue #186 latest checkpoint
-- api.py, bootstrap.py, profile_loads.py, and direct tests
+- api.py, bootstrap.py
+- profile_loads.py, profile_saves.py, aio_profile_mutations.py,
+  lora_profile_fix.py
+- direct owner tests
 
-Do not reread the full historical backend roadmap or all D-08 PRs.
+Do not reread the full historical roadmap or all prior D-08 PRs.
+Confirm no open branch/PR owns D-08t and create one bounded task card.
 
-Create one bounded task card. Confirm no open PR owns D-08t.
-Move only profile-load factory invocation and correlation wrapping into a private
-bootstrap helper. Preserve every dynamic dependency, error tuple, handler identity,
-route order/signature, and root compatibility seam.
+Move the seven remaining profile handler factory invocations and request-correlation
+wrapping into private bootstrap composition ownership. Keep one cohesive Move PR.
+Preserve every dynamic dependency, error tuple, CAS field, handler identity, route
+order/signature, and root compatibility seam.
 
-Edit loop: changed-file syntax, direct profile-load/API owner tests,
+Edit loop: changed-file syntax, direct profile route/API owner tests,
 bootstrap/runtime/import-boundary/analyzer tests, git diff --check.
 Run official full once on the final candidate SHA.
-Do not run package/live unless an escalation trigger in this document occurs.
-Push and open a dev-targeted Draft PR. Review and squash-merge after the Move boundary
-and evidence are confirmed. Then continue to D-08u.
+Reuse package/live evidence unless an escalation trigger in this document occurs.
+Push and open a dev-targeted Draft PR, review, and squash-merge.
+Then run D-08u as a separate Contract/gate.
 
-Do not poll Registry status, republish 0.6.2, start D-14, or begin Phase E.
+Do not poll Registry, republish 0.6.2, start D-14, or begin Phase E.
 ```
