@@ -36,6 +36,8 @@ Read only the sections needed by the active task.
      [`../architecture/python-runtime-e08-aio-cache-contract.md`](../architecture/python-runtime-e08-aio-cache-contract.md)
    - E-09 runtime shutdown and cleanup Contract:
      [`../architecture/python-runtime-e09-lifecycle-contract.md`](../architecture/python-runtime-e09-lifecycle-contract.md)
+   - E-10 isolated runtime test fixture Contract:
+     [`../architecture/python-runtime-e10-test-isolation-contract.md`](../architecture/python-runtime-e10-test-isolation-contract.md)
 5. Read [`codex-blocker-escalation.md`](codex-blocker-escalation.md) only after a
    documented hard stop or unresolved cross-owner failure. Ordinary implementation
    and test failures remain local task work.
@@ -58,15 +60,15 @@ ordinary `dev` roadmap work.
 
 - Released baseline: 0.6.2.
 - Active owner: Issue #187 for Phase E; Issue #186 retains D-14/shim decisions.
-- E-09c completion-audit base: E-09b / PR #557 at
-  `05fc20eb366be8376a6d3a47a79d2b5d00654a08`.
+- E-10a Contract base: E-09c / PR #558 at
+  `5e99b702731b896ce6a424b7315e98eaff21133f`.
 - D-08u integrated exit audit is complete.
 - D-08v is not required; the audit found no remaining D-08 production Move.
 - D-14 readiness is audited: every root surface is retained and retirement/final
   freeze is blocked by production/lifecycle consumers, missing release windows, or
   insufficient consumer evidence.
-- E-01 through E-09 are complete with `ambiguous_state_owners=[]`. E-10 is the next
-  READY task and requires its own bounded task card. The #323
+- E-01 through E-09 are complete with `ambiguous_state_owners=[]`. E-10a fixes the
+  test-isolation Contract and E-10b is the next READY task. The #323
   E-02a/E-07 bridge remains completed evidence, not authorization for unrelated
   feature migration.
 - Completed #470 and the 0.6.1 Prompt Studio lane are behavior-contract references,
