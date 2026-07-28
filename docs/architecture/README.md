@@ -10,21 +10,24 @@ then only the active task section, owning Issue, direct source, and direct tests
 ## Active sequencing
 
 - Issue [#187](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/187)
-  owns the next E-01 inventory Contract. Issue #186 retains D-14/shim decisions.
+  owns Phase E. E-01 inventory is complete; E-02b is the next bounded Contract.
+  Issue #186 retains D-14/shim decisions.
 - [`backend-roadmap-resume-0.6.2.md`](backend-roadmap-resume-0.6.2.md)
   is the current execution source of truth. Read it before the older accumulated
   roadmap.
-- Reviewed code baseline: D-08u / PR #525 at
-  `597d1c9fc1305baeacd3483b24d7fcec68fc9cf9`.
+- Reviewed code baseline: D-14 readiness / PR #526 at
+  `3c15a34c8e10f3f1999b16496b72343ce30759ae`.
 - D-08 is complete and D-08v is not required.
 - D-14 readiness retains every root surface; retirement/final-freeze work is blocked.
-- First READY task: #187 E-01 global-state inventory only.
+- E-01 inventory Contract:
+  [`python-runtime-state-inventory.md`](python-runtime-state-inventory.md).
+- First READY task after E-01: #187 E-02b RuntimeConfig/base lifecycle Contract only.
 - Completed #470 and the #413/#414/#415 queue/live-UI lanes remain contract references,
   not active blockers.
 - Released code baseline: 0.6.2. Registry activation is external administration and
   does not block `dev`; do not republish or mutate the release.
 - Completed #409/#410/#411 and deferred #440/#441 do not alter the E-01 boundary.
-- E-01 inventory does not authorize later Phase E Moves, root removal, release, or
+- E-01 completion does not authorize later Phase E Moves, root removal, release, or
   Registry work.
 
 ## Current code boundary
@@ -43,9 +46,9 @@ After D-08u:
 - no reviewed evidence requires changing routes, payloads, persistence, error policy,
   workflow contracts, or optional-dependency behavior.
 
-This is transitional debt, not a reason for a broad rewrite. E-01 records ownership,
-lifetime, locking, cleanup, and test evidence without removing aliases or absorbing
-feature behavior.
+This is transitional debt, not a reason for a broad rewrite. The E-01 inventory
+records ownership, lifetime, locking, cleanup, and test evidence without removing
+aliases or absorbing feature behavior.
 
 ## Core documents
 
@@ -57,6 +60,8 @@ feature behavior.
   accumulated progress and historical task details; not the current immediate queue.
 - [`python-compatibility-shims.md`](python-compatibility-shims.md): supported root/shim
   inventory and removal evidence.
+- [`python-runtime-state-inventory.md`](python-runtime-state-inventory.md): E-01
+  runtime-owned/declarative state partition, lifecycle gaps, and target phases.
 - [`adr-001-modular-monolith.md`](adr-001-modular-monolith.md): feature-oriented modular
   monolith decision.
 - [`adr-002-compatibility-shims.md`](adr-002-compatibility-shims.md): shim lifecycle and
