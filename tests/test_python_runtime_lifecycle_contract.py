@@ -134,7 +134,7 @@ class PythonRuntimeLifecycleContractTests(unittest.TestCase):
         )
         self.assertEqual(
             [item["status"] for item in self.fixture["sequence"]],
-            ["complete", "ready", "blocked-on-E-09b"],
+            ["complete", "complete", "ready"],
         )
         for evidence in self.fixture["evidence"]:
             self.assertTrue((ROOT / evidence).is_file(), evidence)
@@ -194,7 +194,7 @@ class PythonRuntimeLifecycleContractTests(unittest.TestCase):
             self.assertIn(item["e01_entry"], entries)
             self.assertNotEqual(entries[item["e01_entry"]]["target_phase"], "E-09")
 
-    def test_current_lifecycle_gap_is_explicit_without_production_change(self):
+    def test_current_lifecycle_matches_the_implemented_contract(self):
         current = self.fixture["current_state"]
         bootstrap_functions = _top_level_function_names(
             "easyuse_anima/bootstrap.py"
@@ -222,15 +222,15 @@ class PythonRuntimeLifecycleContractTests(unittest.TestCase):
         bootstrap_source = (
             ROOT / "easyuse_anima" / "bootstrap.py"
         ).read_text(encoding="utf-8")
-        self.assertIn("register_shutdown(worker.shutdown)", translation_factory)
-        self.assertIn("register_shutdown=atexit.register", bootstrap_source)
+        self.assertNotIn("register_shutdown", translation_factory)
+        self.assertIn("atexit.register(shutdown)", bootstrap_source)
         package_source = (ROOT / "__init__.py").read_text(encoding="utf-8")
         self.assertEqual(
             current["package_entry_calls"],
             "easyuse_anima.bootstrap.initialize",
         )
         self.assertIn("_initialize(", package_source)
-        self.assertTrue(current["translation_worker_registers_own_atexit"])
+        self.assertFalse(current["translation_worker_registers_own_atexit"])
 
     def test_target_lifecycle_is_terminal_serialized_and_compatible(self):
         lifecycle = self.fixture["lifecycle_owner"]
@@ -377,7 +377,7 @@ class PythonRuntimeLifecycleContractTests(unittest.TestCase):
         )
         self.assertEqual(
             _name_reference_count("easyuse_anima/prompt/artist_mix.py", name),
-            1,
+            0,
         )
         self.assertGreaterEqual(
             _name_reference_count("easyuse_anima/prompt/conditioning.py", name),

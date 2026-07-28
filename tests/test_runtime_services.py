@@ -161,13 +161,28 @@ class RuntimeServicesTests(unittest.TestCase):
         self.runtime_state.start()
         self.default_runtime_state = patch.object(bootstrap, "_DEFAULT_RUNTIME", None)
         self.default_runtime_state.start()
+        self.shutdown_state = patch.object(bootstrap, "_SHUTDOWN", False)
+        self.shutdown_state.start()
+        self.atexit_state = patch.object(bootstrap, "_ATEXIT_REGISTERED", False)
+        self.atexit_state.start()
+        self.wildcard_state = patch.object(
+            bootstrap,
+            "_WILDCARDS_INITIALIZED",
+            False,
+        )
+        self.wildcard_state.start()
 
     def tearDown(self):
+        self.wildcard_state.stop()
+        self.atexit_state.stop()
+        self.shutdown_state.stop()
         self.default_runtime_state.stop()
         self.runtime_state.stop()
 
     @staticmethod
-    def make_runtime() -> RuntimeServices:
+    def make_runtime(
+        cleanup_plan=None,
+    ) -> RuntimeServices:
         return RuntimeServices(
             comfy=FakeComfyHostProvider(),
             seed_reservations=InMemorySeedReservationService(),
@@ -181,6 +196,11 @@ class RuntimeServicesTests(unittest.TestCase):
             autocomplete=FakeAutocompleteService(),
             wildcard_snapshots=FakeWildcardSnapshots(),
             aio_first_pass_cache=FakeAIOFirstPassCache(),
+            _cleanup_plan=(
+                cleanup_plan
+                if cleanup_plan is not None
+                else runtime_module._RuntimeCleanupPlan()
+            ),
         )
 
     def test_runtime_value_is_frozen(self):
@@ -197,6 +217,77 @@ class RuntimeServicesTests(unittest.TestCase):
             r"^\[EasyUseAnima\] RuntimeServices has not been installed\.$",
         ):
             get_runtime()
+
+    def test_close_runs_cleanup_once_in_order_and_continues_after_failure(self):
+        calls = []
+        failure = RuntimeError("cleanup")
+
+        def fail():
+            calls.append("first")
+            raise failure
+
+        runtime = self.make_runtime(
+            runtime_module._RuntimeCleanupPlan(
+                (
+                    fail,
+                    lambda: calls.append("second"),
+                    lambda: calls.append("third"),
+                )
+            )
+        )
+
+        with self.assertRaisesRegex(RuntimeError, "cleanup") as raised:
+            runtime.close()
+        runtime.close()
+
+        self.assertIs(raised.exception, failure)
+        self.assertEqual(calls, ["first", "second", "third"])
+
+    def test_detach_runtime_compares_expected_identity(self):
+        first = self.make_runtime()
+        other = self.make_runtime()
+        install_runtime(first)
+
+        self.assertFalse(runtime_module._detach_runtime(other))
+        self.assertIs(get_runtime(), first)
+        self.assertTrue(runtime_module._detach_runtime(first))
+        with self.assertRaisesRegex(RuntimeError, "has not been installed"):
+            get_runtime()
+
+    def test_translation_facade_restore_is_expected_identity_only(self):
+        original = PromptTranslationService()
+        replacement = PromptTranslationService()
+        foreign = PromptTranslationService()
+
+        with patch.object(
+            translation_service,
+            "_DEFAULT_TRANSLATION_SERVICE",
+            original,
+        ):
+            previous = translation_service._install_default_translation_service(
+                replacement
+            )
+            self.assertIs(previous, original)
+            self.assertFalse(
+                translation_service._restore_default_translation_service(
+                    foreign,
+                    original,
+                )
+            )
+            self.assertIs(
+                translation_service._DEFAULT_TRANSLATION_SERVICE,
+                replacement,
+            )
+            self.assertTrue(
+                translation_service._restore_default_translation_service(
+                    replacement,
+                    original,
+                )
+            )
+            self.assertIs(
+                translation_service._DEFAULT_TRANSLATION_SERVICE,
+                original,
+            )
 
     def test_first_install_is_returned_and_available(self):
         runtime = self.make_runtime()

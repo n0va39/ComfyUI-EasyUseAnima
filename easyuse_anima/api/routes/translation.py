@@ -9,7 +9,6 @@ def build_translation_runtime(
     busy_error_type,
     cancelled_error_type,
     timeout_error_type,
-    register_shutdown,
     translate_prompt_markers,
     resolve_prompt_translation_settings,
     get_worker,
@@ -24,7 +23,6 @@ def build_translation_runtime(
         cancelled_error_type=cancelled_error_type,
         timeout_error_type=timeout_error_type,
     )
-    register_shutdown(worker.shutdown)
 
     def _translate_prompt_sync(text: str) -> str:
         return translate_prompt_markers(

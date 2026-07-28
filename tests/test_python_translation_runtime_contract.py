@@ -343,7 +343,7 @@ class PythonTranslationRuntimeContractTests(unittest.TestCase):
                 "TranslationBusyError",
                 "TranslationCancelledError",
                 "TranslationTimeoutError",
-                "atexit",
+                "_TRANSLATION_ROUTE_EXECUTOR",
             }
             <= bootstrap_runtime_references
         )
@@ -411,10 +411,10 @@ class PythonTranslationRuntimeContractTests(unittest.TestCase):
                 "get_worker",
                 "get_translate_prompt_sync",
                 "get_timeout_seconds",
-                "register_shutdown",
             }
             <= root_references
         )
+        self.assertNotIn("register_shutdown", root_references)
 
     def test_optional_client_stays_lazy_and_no_generic_runtime_port_exists(self):
         optional_import = self.fixture["completion_audit"]["optional_import"]
