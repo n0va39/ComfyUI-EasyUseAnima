@@ -185,7 +185,7 @@
       "module": "easyuse_anima/autocomplete/dataset.py",
       "owner": "easyuse_anima.autocomplete.dataset",
       "symbols": ["_CACHE", "_CACHE_LOCK", "_INFLIGHT"],
-      "target_phase": "E-05",
+      "target_phase": "E-05b",
       "test_evidence": ["tests/test_autocomplete_index.py"],
       "thread_safety": "One Lock protects cache snapshots and the Future single-flight map."
     },
@@ -197,7 +197,7 @@
       "module": "easyuse_anima/autocomplete/index.py",
       "owner": "easyuse_anima.autocomplete.index",
       "symbols": ["_INDEX_LOCKS", "_INDEX_LOCKS_GUARD"],
-      "target_phase": "E-05",
+      "target_phase": "E-05c",
       "test_evidence": ["tests/test_autocomplete_index.py"],
       "thread_safety": "The guard serializes creation; each per-path Lock serializes index publication."
     },
@@ -209,7 +209,7 @@
       "module": "easyuse_anima/autocomplete/search.py",
       "owner": "easyuse_anima.autocomplete.search",
       "symbols": ["_AUTOCOMPLETE_INDEX_DIR"],
-      "target_phase": "E-05",
+      "target_phase": "E-05c",
       "test_evidence": ["tests/test_autocomplete_index.py", "tests/test_python_package_skeleton.py"],
       "thread_safety": "Immutable Path-or-None after import."
     },

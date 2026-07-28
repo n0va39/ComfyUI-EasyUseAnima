@@ -2,16 +2,17 @@
 
 ## Status and authority
 
-- Status: D-08 and E-01 through E-04 are
+- Status: D-08, E-01 through E-04, and the production-free E-05a Contract are
   completed; the D-14 readiness audit retains every root surface and blocks
   retirement/final-freeze work.
-- Code-review base before E-04e:
-  `dev@3cc4e413f8147f508a3a7efb45e8eb85f1028981` after E-04d / PR #540.
-- Document baseline: completed production-free E-04 translation ownership audit.
+- Code-review base before E-05a:
+  `dev@e8f3b5b3abb7633aa122dc28956c65f664b017c6` after E-04e / PR #541.
+- Document baseline: completed production-free E-05 autocomplete ownership
+  Contract.
 - Released baseline: 0.6.2.
 - Scope: completed D-08 evidence, the D-14 readiness decision, completed #187
-  E-01/E-02/E-03/E-04 work, and the next bounded E-05 autocomplete ownership
-  Contract.
+  E-01/E-02/E-03/E-04 work, the E-05a ownership Contract, and the next bounded
+  E-05b dataset snapshot/single-flight Move.
 - This document owns the current immediate queue and supersedes the stale queue and
   broad preflight command in `python-backend-execution-roadmap.md`.
 - `python-backend.md`, ADR-001, ADR-002, and the compatibility-shim registry still own
@@ -359,7 +360,14 @@ E-04e reconciles all three translation resources with E-01 and records zero
 ambiguous owners. Optional-client import remains lazy, feature cleanup dispositions
 are explicit, and whole-runtime ordering remains assigned to E-09. E-04 is complete.
 
-Start only a separate #187 E-05 autocomplete source/index/single-flight ownership
-Contract from latest origin/dev. Do not start an E-05 production Move, E-06 through
-E-10, D-14 retirement, release, or Registry work inside that Contract.
+E-05a classifies one declarative source policy and two runtime resource boundaries.
+Dataset snapshots plus the cache-key Future map form one owner. The immutable index
+root plus normalized-path SQLite publication locks form a second owner. Their locks,
+failure semantics, and cleanup remain separate; no generic cache/lock port is added.
+
+Start only a separate #187 E-05b dataset snapshot/cache/Future single-flight owner
+Move from latest origin/dev. Preserve parser/source-change/status behavior, public
+identities, call-time test seams, and follower Future settlement. Do not start E-05c
+through E-05e, E-06 through E-10, D-14 retirement, release, or Registry work inside
+E-05b.
 ```
