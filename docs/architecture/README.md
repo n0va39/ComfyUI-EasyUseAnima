@@ -9,17 +9,18 @@ then only the active task section, owning Issue, direct source, and direct tests
 
 ## Active sequencing
 
-- Issue [#187](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/187)
-  owns Phase E. E-01 through E-10 are complete; E-10c records the production-free
-  completion audit.
-  Issue #186 retains D-14/shim decisions.
+- Issue [#187](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/187) is
+  completed: E-01 through E-10 and Phase E are closed.
+  Issue #186 remains open as the retained D-14/shim decision ledger.
 - [`backend-roadmap-resume-0.6.2.md`](backend-roadmap-resume-0.6.2.md)
   is the current execution source of truth. Read it before the older accumulated
   roadmap.
-- E-10c audit base: E-10b / PR #560 at
-  `87a1689f7c5d6452888e7bb8a8f92856d3f2f76f`.
+- E-10c completion and D-14 post-Phase-E audit base: PR #561 at
+  `121ee8a1cae826fc1b5227208f964d143b5b6324`.
 - D-08 is complete and D-08v is not required.
-- D-14 readiness retains every root surface; retirement/final-freeze work is blocked.
+- D-14 post-Phase-E readiness retains every root surface; lifecycle ownership is
+  complete, but production imports, release windows, and consumer evidence still
+  block retirement/final-freeze work.
 - E-01 inventory Contract:
   [`python-runtime-state-inventory.md`](python-runtime-state-inventory.md).
 - E-02b base Contract:
@@ -145,5 +146,5 @@ The efficiency protocol chooses the smallest sufficient evidence; it does not we
 correctness, compatibility, package, live, or release gates.
 
 The D-14 readiness audit authorizes no deletion. Root removal still needs the recorded
-consumer/release/lifecycle gates and a separate breaking-change decision. The E-01
-inventory authorizes no behavior change, release publication, tag, or Registry action.
+production-import, consumer, release, rollback, and breaking-change gates. Phase E
+completion authorizes no release publication, tag, or Registry action.

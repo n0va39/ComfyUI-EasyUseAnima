@@ -2,11 +2,11 @@
 
 ## Status and authority
 
-- Status: D-08 and Phase E (E-01 through E-10) are completed;
-  the D-14
-  readiness audit retains every root surface and blocks retirement/final-freeze work.
-- E-10c completion-audit base:
-  `dev@87a1689f7c5d6452888e7bb8a8f92856d3f2f76f` after E-10b / PR #560.
+- Status: D-08 and Phase E (E-01 through E-10) are completed; the D-14
+  post-Phase-E readiness audit retains every root surface and blocks
+  retirement/final-freeze work.
+- E-10c completion merge and D-14 post-Phase-E audit base:
+  `dev@121ee8a1cae826fc1b5227208f964d143b5b6324` after E-10c / PR #561.
 - Document baseline: completed E-10 isolated runtime test fixture Contract.
 - Released baseline: 0.6.2.
 - Scope: completed D-08 evidence, the D-14 readiness decision, completed #187
@@ -260,7 +260,7 @@ small implementation choices do not require PRO review.
 
 ## 5. D-14 readiness result and next owner
 
-The D-08u audit found no required D-08v. After D-08:
+The original D-08u audit found no required D-08v. At that checkpoint:
 
 1. Issue #186, local release-tag trees, production consumers, and the compatibility
    registry were reconciled at `dev@597d1c9`;
@@ -299,7 +299,33 @@ The D-08u audit found no required D-08v. After D-08:
     and
 18. never remove root files merely to make the directory tree appear complete.
 
+### D-14 post-Phase-E re-audit
+
+The lifecycle trigger was re-audited at
+`dev@121ee8a1cae826fc1b5227208f964d143b5b6324` after E-10c:
+
+- E-09 completed bootstrap lifecycle ownership, but root `__init__.py` still imports
+  `api.py`, whose injected payload/runtime callbacks and registrar facade remain
+  production composition inputs;
+- E-06d/E-06e completed wildcard runtime binding and cleanup audit, but root
+  `nodes.py` and `api.py` still import `wildcard_engine.py` directly and rely on its
+  call-time seams;
+- the available release tags remain v0.6.0, v0.6.1, and v0.6.2, so the final API,
+  wildcard, `api_contract.py`, `autocomplete_dataset.py`, and `anima_prompt/` forms
+  completed after v0.6.2 have no release N;
+- the older direct/public shims still lack removal-supporting consumer evidence and
+  an approved breaking-change decision; and
+- removal-approved surfaces remain zero. D-14 retirement/final freeze, root deletion,
+  release, and Registry work are not authorized by this audit.
+
+Issue #186 remains open as the retained compatibility ledger. No root-removal task is
+READY until one of its release-window, consumer, production-import, breaking-change,
+or rollback gates materially changes.
+
 ## 6. E-01/E-02/E-03/E-04c result and Codex resume instruction
+
+Phase E is now complete; the block below is accumulated execution history, not a
+READY queue. Current Codex work must use the post-Phase-E D-14 verdict above.
 
 ```text
 D-08 is complete. Do not restart D-08t or create D-08v without new contrary

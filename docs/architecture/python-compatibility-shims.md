@@ -58,20 +58,21 @@ import them.
 | --- | --- | --- | --- | --- | --- | --- |
 | Root `__init__.py` exports | Permanent ComfyUI entrypoint, not a shim | root entrypoint plus `easyuse_anima.registration`/`bootstrap` | #184/#185 | Existing 0.5.2 surface; B-11 rewires internals | ComfyUI loader; node contract fixture | Not removable as a package entrypoint |
 | `nodes.py` mapped public classes | Explicit 18-class compatibility re-export shim; no residual root definitions | `easyuse_anima.nodes.*_nodes` | #184 B-04 through B-11, #188 | Existing 0.5.2 surface; current canonical-plus-shim paths first appear together in release tag v0.6.0 | Root mappings and saved workflows; exact identity fixture; no confirmed external direct importer | Retained; v0.6.1/v0.6.2 satisfy the minimum window, but there is no consumer evidence or approved public breaking change |
-| `api.py` route-registration surface | Transitional API composition/runtime facade after D-08u; not yet an ADR-002 direct re-export shim | `easyuse_anima.api.router`, `.requests`, `.responses`, `.errors`, feature route modules, `easyuse_anima.profiles.*`, and bootstrap composition | #162, #163, #165, #186 D-02-D-08/D-14 | Existing 0.5.2 route surface; D-08u/PR #525 locks the current 21-route composition after v0.6.2 | Root entrypoint side-effect import, frontend endpoints, `wildcard_engine` callback, profile/API tests | Blocked and retained; root entrypoint/runtime consumers remain and no published release contains the current complete facade/canonical composition |
+| `api.py` route-registration surface | Transitional API composition/runtime facade after D-08u and E-09; not yet an ADR-002 direct re-export shim | `easyuse_anima.api.router`, `.requests`, `.responses`, `.errors`, feature route modules, `easyuse_anima.profiles.*`, and bootstrap composition/lifecycle | #162, #163, #165, #186 D-02-D-08/D-14, #187 E-09 | Existing 0.5.2 route surface; D-08u locks the 21-route composition and E-09 completes bootstrap lifecycle after v0.6.2 | Root entrypoint side-effect import, frontend endpoints, `wildcard_engine` callback, injected payload/runtime/registrar seams, profile/API tests | Blocked and retained; root entrypoint/runtime consumers remain and no published release contains the current complete facade/canonical composition/lifecycle |
 | `api_contract.py` request/error helpers | Explicit 12-symbol request/error/response identity shim (D-02) | `easyuse_anima.api.requests`, `.responses`, and `.errors` | #165, #186 D-02/D-14 | Canonicalized in PR #481 after v0.6.2; exact root surface and flat/package identity fixture | External/legacy imports and compatibility tests; production `api.py` uses canonical owners | Retained; first canonical-plus-shim release N has not shipped |
 | `settings.py` | Explicit direct re-export shim (D-09) | `easyuse_anima.settings.schema`, `.repository`, and `.service` | #163, #186 D-09 | Existing 0.5.2 surface; current canonical-plus-shim paths first appear together in release tag v0.6.0 | External/legacy imports and settings compatibility tests; production callers use canonical modules | Retained; minimum window passed, but consumer evidence does not support removal |
 | `storage.py` | Explicit direct re-export shim (D-08) | `easyuse_anima.infrastructure.filesystem.atomic_json` and `.paths` | #163, #186 D-08 | Existing 0.5.2 surface; current canonical-plus-shim paths first appear together in release tag v0.6.0 | External/legacy imports and storage compatibility tests; production callers use canonical modules | Retained; minimum window passed, but consumer evidence does not support removal |
 | `autocomplete_index.py` | Explicit direct re-export shim (D-11a) | `easyuse_anima.autocomplete.index` | #162, #186 D-11a | Exact seven-name `__all__`; current canonical-plus-shim paths first appear together in release tag v0.6.0 | External/legacy imports; production dataset/search owners use the canonical module | Retained; minimum window passed, but consumer evidence does not support removal |
 | `autocomplete_dataset.py` | Explicit 15-symbol dataset/search/classification identity shim (D-11) | `easyuse_anima.autocomplete.dataset`, `.search`, and `.classification` | #162, #186 D-11 | Final classification shim completed in PR #480 after v0.6.2 | External/legacy imports and direct compatibility tests; production API uses canonical owners | Retained; first complete canonical-plus-shim release N has not shipped |
-| `wildcard_engine.py` | Compatibility adapter over canonical wildcard snapshot/service owners; not yet an ADR-002 direct re-export shim because call-time source/build seams and root composition consumers remain | `easyuse_anima.wildcard.models`, `.sources`, `.snapshot`, `.service`, `.seed`, `.mode`, `.selector`, `.library`, and `.expansion`; E-06d owns remaining runtime composition | #184, #186 D-12, #187 E-06 | D-12 completed in PR #469; E-06b/E-06c after v0.6.2 install the final snapshot/service owners and canonical internal imports | `nodes.py`, `api.py`, external/legacy imports, wildcard/workflow tests | Blocked and retained; E-06d/E-06e composition/audit and a later release window are required |
+| `wildcard_engine.py` | Compatibility adapter over completed canonical wildcard snapshot/service/runtime owners; not an ADR-002 direct re-export shim because call-time source/build seams and root production consumers remain | `easyuse_anima.wildcard.models`, `.sources`, `.snapshot`, `.service`, `.seed`, `.mode`, `.selector`, `.library`, and `.expansion` | #184, #186 D-12, #187 E-06 | D-12 and E-06b-E-06e complete the canonical owner, internal caller, runtime binding, and audit after v0.6.2 | `nodes.py`, `api.py`, external/legacy imports, wildcard/workflow tests | Blocked and retained; direct root production consumers remain and the final post-v0.6.2 adapter/canonical form has no release N |
 | `prompt_translation.py` | Explicit direct re-export shim (D-01) | `easyuse_anima.translation.*` | #164, #186 D-01 | Existing 0.5.2 surface; current canonical-plus-shim paths first appear together in release tag v0.6.0 | External/legacy imports and translation compatibility tests; production callers use canonical modules | Retained; minimum window passed, but consumer evidence does not support removal |
 | `anima_prompt/` package | Explicit package and submodule identity shims (D-13) | `easyuse_anima.prompt.anima.*` | #184, #186 D-13/D-14 | Canonicalized in PR #479 after v0.6.2 with explicit `__all__`, flat/package identity, and packed closure | External/legacy imports and direct compatibility tests; production callers use the canonical package | Retained; first canonical-plus-shim release N has not shipped |
 
 ## D-14 readiness checkpoint
 
-The 2026-07-28 audit at `dev@597d1c9` records a retention decision, not a
-retirement authorization:
+The 2026-07-29 post-Phase-E audit at
+`dev@121ee8a1cae826fc1b5227208f964d143b5b6324` confirms the original retention
+decision rather than authorizing retirement:
 
 - release-tree inspection covers tags v0.6.0, v0.6.1, and v0.6.2; it does not
   substitute for a future published-package read-back when a removal is proposed;
@@ -81,17 +82,18 @@ retirement authorization:
   available consumer evidence is insufficient for removal;
 - `api_contract.py`, `autocomplete_dataset.py`, and `anima_prompt/` reached their
   final shim form after v0.6.2, so release N has not started;
-- `api.py` remains the imported API composition/runtime facade, and
-  `wildcard_engine.py` remains an E-06 compatibility/composition adapter with direct
-  root production consumers and call-time seams; neither is a removable direct
-  re-export shim; and
+- `api.py` remains the root-entrypoint-imported API composition/runtime facade even
+  though E-09 completed bootstrap lifecycle ownership;
+- E-06d/E-06e are complete, but `wildcard_engine.py` still has direct `nodes.py` and
+  `api.py` production consumers plus call-time seams, and its final form has not
+  shipped in a release N; neither surface is a removable direct re-export shim; and
 - there are zero removal-approved root surfaces. D-14 retirement/final-freeze work
-  stays blocked until the recorded release, consumer, production-import, lifecycle,
+  stays blocked until the recorded release, consumer, production-import,
   breaking-change, and rollback gates pass.
 
-The next independent roadmap unit is #187 E-01 global-state inventory. It may
-inventory the remaining runtime owners, but it does not remove or weaken any root
-compatibility surface.
+Issue #187 and Phase E are complete. No root-removal task is READY: Issue #186 stays
+open as the retained ledger until release-window, consumer, production-import,
+breaking-change, and rollback evidence changes.
 
 ## Entry details
 
@@ -1385,10 +1387,10 @@ EasyUseAnimaWildcard
   LoRA profile operations/repair to `easyuse_anima.profiles.repository`,
   `.aio`, and `.lora`. Existing envelope/CAS owners remain `.contract` and
   `.mutation`.
-- `api.py` keeps explicit identical aliases for the synchronous profile
-  operations called by its handlers. Request parsing, the bounded file-I/O
-  adapter, error-to-response mapping, response construction, preview handling,
-  and route registration remain root API responsibilities until D-02-D-07.
+- After D-08u, `api.py` keeps compatibility aliases plus injected payload/runtime
+  callbacks and the registrar facade. Concrete handler factories and request
+  correlation are bootstrap-composed, but the root entrypoint still imports the
+  module and passes its registration/runtime seams into bootstrap.
 - Directory, size, mutation, and storage test seams move to their canonical
   owner. The aliases are not promoted into a declared public `api.py`
   `__all__`; D-14 decides the supported root surface after consumer evidence.
@@ -1398,8 +1400,9 @@ EasyUseAnimaWildcard
   composition passes dynamic callables so the established translation service,
   timeout worker, error response, and test patch seams remain effective.
 - D-03b moves the bounded worker implementation and wait/cancel/timeout policy
-  to a side-effect-free canonical executor. Root constructs the singleton,
-  registers shutdown, and keeps the established worker and timeout patch seams.
+  to a side-effect-free canonical executor. E-04d composes the route worker in
+  bootstrap, and E-09 closes admission through the bootstrap lifecycle while root
+  retains its compatibility reference and timeout patch seams.
 - D-04a moves the read-only AiO Torch Compile recommendation handler to a pure
   canonical factory while root keeps diagnostics/recommendation patch seams,
   correlation, route order, and registration composition.
@@ -1515,18 +1518,15 @@ EasyUseAnimaWildcard
   `Generator(PCG64(normalized_seed))`.
 - D-12f2 moves only `_Selector` under that contract. Root retains direct class
   identity, its NumPy binding, and every expansion caller.
-- Root binds the 12 model names, eight supported source names, two private
-  snapshot seams, and nine seed-control names directly to canonical objects.
-  D-12e adds ten direct mode aliases, including the identical mutable alias
-  dictionary. D-12f2 adds the direct private selector alias while preserving
-  root eager NumPy. Source verification, snapshot publication/cache/condition/
-  single-flight/retry, expansion, enforcement, and diagnostics remain
-  root-owned for later D-12 slices and E-06.
-- Canonical target for the remaining implementation:
-  `easyuse_anima.wildcard` sources/snapshot/expansion modules. Snapshot
-  lifecycle/factory/cleanup remains E-06.
-- Removal gate: #159/#160 behavior fixtures, seed and expansion parity,
-  0.5.2 workflow load/save/reload, root/canonical identity, and archive closure.
+- Root binds the supported model/source/seed/mode/selector identities to canonical
+  objects while preserving eager NumPy and call-time source/build patch seams.
+  D-12 and E-06b-E-06e complete canonical materialization, snapshot/service
+  ownership, internal callers, narrow RuntimeServices binding, and cleanup audit.
+  Root `nodes.py` and `api.py` nevertheless still import the adapter directly.
+- Removal gate: eliminate or explicitly migrate those production consumers, ship the
+  final canonical-plus-adapter form through release N, retain #159/#160 behavior,
+  seed/expansion and workflow parity, root/canonical identities, archive closure,
+  consumer evidence, and a separate breaking-change decision.
 
 ### `prompt_translation.py`
 
