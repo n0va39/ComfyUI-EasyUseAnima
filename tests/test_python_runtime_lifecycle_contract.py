@@ -463,7 +463,7 @@ class PythonRuntimeLifecycleContractTests(unittest.TestCase):
         for task_id in ("E-09a", "E-09b", "E-09c"):
             self.assertIn(task_id, roadmap)
         self.assertIn("E-09 is complete", roadmap)
-        self.assertIn("E-10 is the next READY task", roadmap)
+        self.assertIn("Phase E is complete", roadmap)
 
 
 if __name__ == "__main__":
