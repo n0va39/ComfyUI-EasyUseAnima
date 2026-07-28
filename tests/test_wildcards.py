@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import inspect
 import json
 import tempfile
 import threading
@@ -9,15 +10,18 @@ from pathlib import Path
 from unittest.mock import patch
 
 import nodes as nodes_module
-from easyuse_anima.nodes import wildcard_nodes
+import wildcard_engine
+from easyuse_anima.nodes import prompt_advanced_nodes, regional_nodes, wildcard_nodes
 from easyuse_anima.prompt import advanced as prompt_advanced
 from easyuse_anima.seed import compatibility as seed_compatibility
+from easyuse_anima.settings.service import public_settings
 from easyuse_anima.wildcard import expansion as wildcard_expansion
 from easyuse_anima.wildcard import library as wildcard_library
 from easyuse_anima.wildcard import mode as wildcard_mode
 from easyuse_anima.wildcard import models as wildcard_models
 from easyuse_anima.wildcard import seed as wildcard_seed
 from easyuse_anima.wildcard import selector as wildcard_selector
+from easyuse_anima.wildcard import service as wildcard_service
 from easyuse_anima.wildcard import snapshot as wildcard_snapshot
 from easyuse_anima.wildcard import sources as wildcard_sources
 from nodes import (
@@ -26,8 +30,6 @@ from nodes import (
     EasyUseAnimaPromptStudioRegional,
     EasyUseAnimaWildcard,
 )
-from easyuse_anima.settings.service import public_settings
-import wildcard_engine
 from wildcard_engine import (
     DEFAULT_TEST_WILDCARD_FILE,
     WildcardExpansionBudget,
@@ -131,6 +133,117 @@ class WildcardSnapshotStoreTests(unittest.TestCase):
             store.clear()
             with store._condition:
                 self.assertEqual(store._cache, {})
+
+
+class WildcardServiceTests(unittest.TestCase):
+    def test_canonical_service_owns_facade_and_root_preserves_signatures(self):
+        self.assertEqual(wildcard_service.__all__, ())
+        self.assertIs(
+            wildcard_service._DEFAULT_WILDCARD_SNAPSHOTS,
+            wildcard_snapshot._DEFAULT_WILDCARD_SNAPSHOTS,
+        )
+        self.assertTrue(
+            issubclass(
+                wildcard_service._WildcardLibrary,
+                wildcard_library._WildcardLibrary,
+            )
+        )
+        self.assertIs(
+            wildcard_service._WildcardLibrary.options_for,
+            wildcard_library._WildcardLibrary.options_for,
+        )
+        for name in (
+            "list_wildcards",
+            "wildcard_sources_signature",
+            "expand_wildcard_texts",
+            "expand_wildcards",
+        ):
+            with self.subTest(name=name):
+                self.assertEqual(
+                    inspect.signature(getattr(wildcard_engine, name)),
+                    inspect.signature(getattr(wildcard_service, name)),
+                )
+
+    def test_canonical_service_preserves_list_signature_library_and_expansion(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            (root / "colors.txt").write_text("red\nblue\n", encoding="utf-8")
+
+            self.assertEqual(wildcard_service.list_wildcards(roots=[root]), ["colors"])
+            signature = wildcard_service.wildcard_sources_signature(roots=[root])
+            snapshot = wildcard_service._wildcard_snapshot([root])
+            library = wildcard_service._WildcardLibrary(snapshot=snapshot)
+            mutable_map = wildcard_service._load_wildcard_map([root])
+            expansion = wildcard_service.expand_wildcards(
+                "__colors__",
+                seed=0,
+                roots=[root],
+            )
+            root_expansion = wildcard_engine.expand_wildcards(
+                "__colors__",
+                seed=0,
+                roots=[root],
+            )
+
+        self.assertEqual(signature, snapshot.public_signature())
+        self.assertIs(library.mapping, snapshot.mapping)
+        self.assertEqual([option.text for option in library.options_for("colors")], ["red", "blue"])
+        self.assertIsNot(mutable_map["colors"], snapshot.mapping["colors"])
+        self.assertEqual(expansion, root_expansion)
+
+    def test_canonical_empty_batch_returns_before_snapshot_lifecycle(self):
+        with patch.object(
+            wildcard_service,
+            "_wildcard_snapshot",
+            side_effect=AssertionError("empty batch resolved a snapshot"),
+        ):
+            result = wildcard_service.expand_wildcard_texts([], seed=7)
+
+        self.assertEqual(result, ())
+
+    def test_internal_consumers_use_canonical_wildcard_owners(self):
+        expected_identities = (
+            (wildcard_nodes.expand_wildcards, wildcard_service.expand_wildcards),
+            (
+                wildcard_nodes.wildcard_sources_signature,
+                wildcard_service.wildcard_sources_signature,
+            ),
+            (prompt_advanced.expand_wildcard_texts, wildcard_service.expand_wildcard_texts),
+            (
+                prompt_advanced.normalize_prompt_studio_wildcard_mode,
+                wildcard_mode.normalize_prompt_studio_wildcard_mode,
+            ),
+            (prompt_advanced.normalize_seed, wildcard_seed.normalize_seed),
+            (prompt_advanced.has_wildcard_syntax, wildcard_expansion.has_wildcard_syntax),
+            (prompt_advanced_nodes.next_seed, wildcard_seed.next_seed),
+            (
+                prompt_advanced_nodes.wildcard_sources_signature,
+                wildcard_service.wildcard_sources_signature,
+            ),
+            (regional_nodes.next_seed, wildcard_seed.next_seed),
+            (
+                regional_nodes.wildcard_sources_signature,
+                wildcard_service.wildcard_sources_signature,
+            ),
+            (seed_compatibility.normalize_seed, wildcard_seed.normalize_seed),
+            (
+                seed_compatibility.normalize_wildcard_mode,
+                wildcard_mode.normalize_wildcard_mode,
+            ),
+        )
+        for actual, expected in expected_identities:
+            with self.subTest(actual=actual.__module__, name=actual.__name__):
+                self.assertIs(actual, expected)
+
+        for module in (
+            wildcard_nodes,
+            prompt_advanced,
+            prompt_advanced_nodes,
+            regional_nodes,
+            seed_compatibility,
+        ):
+            with self.subTest(module=module.__name__):
+                self.assertFalse(hasattr(module, "_wildcard_engine_module"))
 
 
 class WildcardEngineTests(unittest.TestCase):

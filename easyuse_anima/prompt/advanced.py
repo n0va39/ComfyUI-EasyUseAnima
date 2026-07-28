@@ -12,7 +12,12 @@ from ..naia.resolution import (
     NAIA_ADVANCED_RESOLUTION_BUCKET,
     _normalize_resolution_bucket,
 )
+from ..settings.service import resolve_metadata_filter_words
 from ..translation.markers import has_prompt_translation_markers
+from ..wildcard.expansion import has_wildcard_syntax
+from ..wildcard.mode import normalize_prompt_studio_wildcard_mode
+from ..wildcard.seed import normalize_seed
+from ..wildcard.service import expand_wildcard_texts
 from .artist_mix import (
     ARTIST_MIX_DEFAULT_CLUSTER_COUNT,
     ARTIST_MIX_DEFAULT_DOMINANT_ISOLATION,
@@ -41,8 +46,6 @@ from .fields import (
     _filter_metadata_prompt,
     _join_prompt_tokens,
 )
-
-from ..settings.service import resolve_metadata_filter_words
 
 ADVANCED_FIELD_TYPES = {"quality", "artist", "trigger", "general", "naia"}
 ADVANCED_FIELD_PANES = {"positive", "negative"}
@@ -126,34 +129,6 @@ PROMPT_STUDIO_ADVANCED_RETURN_NAMES = (
 
 _ADVANCED_FIELD_SOCKET_PREFIX = "field_"
 _ADVANCED_FIELD_SOCKET_RE = re.compile(r"[^A-Za-z0-9_]")
-
-
-def _wildcard_engine_module():
-    try:
-        from ... import wildcard_engine as module
-    except ImportError:
-        import wildcard_engine as module
-
-    return module
-
-
-def normalize_prompt_studio_wildcard_mode(*args, **kwargs):
-    return _wildcard_engine_module().normalize_prompt_studio_wildcard_mode(
-        *args,
-        **kwargs,
-    )
-
-
-def normalize_seed(*args, **kwargs):
-    return _wildcard_engine_module().normalize_seed(*args, **kwargs)
-
-
-def has_wildcard_syntax(*args, **kwargs):
-    return _wildcard_engine_module().has_wildcard_syntax(*args, **kwargs)
-
-
-def expand_wildcard_texts(*args, **kwargs):
-    return _wildcard_engine_module().expand_wildcard_texts(*args, **kwargs)
 
 
 def _normalize_prompt_studio_wildcard_seed_control(

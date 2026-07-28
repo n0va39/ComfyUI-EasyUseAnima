@@ -2,18 +2,18 @@
 
 ## Status and authority
 
-- Status: D-08, E-01 through E-05, E-06a, and E-06b are completed; the D-14
+- Status: D-08, E-01 through E-05, E-06a, E-06b, and E-06c are completed; the D-14
   readiness audit retains every root surface and blocks retirement/final-freeze work.
-- Code-review base before E-06b:
-  `dev@4b365ea33123c219e1807b6f37f545fcb92e349c` after E-06a / PR #547.
-- Document baseline: completed E-06b wildcard snapshot owner Move.
+- Code-review base before E-06c:
+  `dev@12e2d1d07cd1f9747cdf87d3e620943684f1e489` after E-06b / PR #548.
+- Document baseline: completed E-06c canonical wildcard service/internal caller Move.
 - Released baseline: 0.6.2.
 - Scope: completed D-08 evidence, the D-14 readiness decision, completed #187
   E-01/E-02/E-03/E-04 work, the E-05a Contract, the E-05b snapshot owner Move,
   the E-05c index-store owner Move, the E-05d composition Move, the E-05e
   completion audit Contract, the E-06a wildcard snapshot ownership Contract, the
-  E-06b snapshot owner Move, and the next bounded E-06c canonical service/internal
-  caller Move.
+  E-06b snapshot owner Move, the E-06c canonical service/internal caller Move, and
+  the next bounded E-06d narrow RuntimeServices/bootstrap composition Move.
 - This document owns the current immediate queue and supersedes the stale queue and
   broad preflight command in `python-backend-execution-roadmap.md`.
 - `python-backend.md`, ADR-001, ADR-002, and the compatibility-shim registry still own
@@ -405,7 +405,11 @@ E-06b moves those three raw states behind one canonical private
 source/build dependencies, completed-cache `clear()` leaves active build settlement
 intact, and no duplicate root state remains.
 
-Start only a separate #187 E-06c canonical wildcard service/root identity shim and
-internal caller Move from latest origin/dev. Do not start E-06d or later Phase E
-work, E-09 cleanup, D-14 retirement, release, or Registry work inside E-06c.
+E-06c installs a root-independent private wildcard service, converts canonical node,
+Prompt Studio, and seed consumers away from root `wildcard_engine`, and retains root
+signatures, behavior, exact snapshot identities, and call-time source/build seams.
+
+Start only a separate #187 E-06d feature-specific narrow RuntimeServices/bootstrap
+composition Move from latest origin/dev. Do not start E-06e or later Phase E work,
+E-09 cleanup, D-14 retirement, release, or Registry work inside E-06d.
 ```

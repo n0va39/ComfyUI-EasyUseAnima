@@ -158,5 +158,7 @@ resource, preserves root dynamic seams and immutable D-12 materialization, selec
 private `_WildcardSnapshotStore` default owner, and records completed-cache-only
 cleanup. E-06b moves the LRU, building-key set, Condition, and capacity behind that
 exact default owner; root delegates with call-time source/build seams and retains no
-raw duplicate lifecycle globals. E-06a and E-06b are complete; the next bounded unit
-is the separate E-06c canonical service/root identity shim and internal caller Move.
+raw duplicate lifecycle globals. E-06c moves the snapshot-backed service facade and
+canonical internal callers to `easyuse_anima.wildcard` without a root back-reference.
+E-06a through E-06c are complete; the next bounded unit is the separate E-06d narrow
+RuntimeServices/bootstrap composition Move.

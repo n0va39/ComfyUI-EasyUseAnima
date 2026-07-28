@@ -6,7 +6,6 @@ import unittest
 from functools import lru_cache
 from pathlib import Path
 
-
 ROOT = Path(__file__).resolve().parents[1]
 FIXTURE_PATH = (
     ROOT / "tests" / "fixtures" / "python_wildcard_runtime_contract.v1.json"
@@ -189,6 +188,7 @@ class PythonWildcardRuntimeContractTests(unittest.TestCase):
                 "classification",
                 "compatibility_surfaces",
                 "decisions",
+                "internal_consumers",
                 "move_queue",
                 "owners",
                 "production_callers",
@@ -199,7 +199,7 @@ class PythonWildcardRuntimeContractTests(unittest.TestCase):
         )
         self.assertEqual(self.fixture["schema_version"], 1)
         self.assertEqual(self.fixture["classification"], "Contract")
-        self.assertEqual(self.fixture["production_changes"], 2)
+        self.assertEqual(self.fixture["production_changes"], 9)
         self.assertEqual(
             [move["id"] for move in self.fixture["move_queue"]],
             ["E-06a", "E-06b", "E-06c", "E-06d", "E-06e"],
@@ -210,7 +210,7 @@ class PythonWildcardRuntimeContractTests(unittest.TestCase):
         )
         self.assertEqual(
             [move["status"] for move in self.fixture["move_queue"]],
-            ["complete", "complete", "queued", "queued", "queued"],
+            ["complete", "complete", "complete", "queued", "queued"],
         )
         self.assertEqual(
             [owner["id"] for owner in self.fixture["owners"]],
@@ -388,9 +388,50 @@ class PythonWildcardRuntimeContractTests(unittest.TestCase):
                     set(),
                 )
 
+    def test_canonical_service_and_internal_import_direction_are_current(self):
+        service_module = "easyuse_anima/wildcard/service.py"
+        lifecycle = _top_level_function(service_module, "_wildcard_snapshot")
+        self.assertTrue(
+            {
+                "_DEFAULT_WILDCARD_SNAPSHOTS",
+                "_build_wildcard_snapshot",
+                "_wildcard_sources",
+            }
+            <= _references(lifecycle)
+        )
+        self.assertIn("snapshot_for_roots", _called(lifecycle))
+
+        forbidden_modules = {"wildcard_engine", "runtime", "bootstrap"}
+        for module in (service_module, *(
+            consumer["module"]
+            for consumer in self.fixture["internal_consumers"]
+        )):
+            with self.subTest(module=module):
+                imported = _imported_names(module)
+                self.assertEqual(
+                    {
+                        imported_module
+                        for imported_module, _ in imported
+                        if imported_module.split(".")[-1] in forbidden_modules
+                    },
+                    set(),
+                )
+
+        for consumer in self.fixture["internal_consumers"]:
+            imported = _imported_names(consumer["module"])
+            with self.subTest(consumer=consumer["module"]):
+                self.assertEqual(
+                    {
+                        tuple(binding)
+                        for binding in consumer["canonical_imports"]
+                    }
+                    - imported,
+                    set(),
+                )
+
     def test_root_compatibility_and_dynamic_seams_are_current(self):
-        bindings = _top_level_bindings("wildcard_engine.py")
         for surface in self.fixture["compatibility_surfaces"]:
+            bindings = _top_level_bindings(surface["module"])
             with self.subTest(surface=surface["id"]):
                 self.assertEqual(set(surface["symbols"]) - bindings, set())
             for symbol, canonical_module in surface.get(

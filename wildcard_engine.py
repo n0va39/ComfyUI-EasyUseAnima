@@ -199,6 +199,11 @@ except ImportError:
         _WildcardLibrary as _WildcardLibraryCore,
     )
 
+try:
+    from .easyuse_anima.wildcard import service as _wildcard_service
+except ImportError:
+    from easyuse_anima.wildcard import service as _wildcard_service
+
 def _wildcard_snapshot(roots: Iterable[Path]) -> _WildcardSnapshot:
     return _DEFAULT_WILDCARD_SNAPSHOTS.snapshot_for_roots(
         roots,
@@ -208,22 +213,26 @@ def _wildcard_snapshot(roots: Iterable[Path]) -> _WildcardSnapshot:
 
 
 def _load_wildcard_map(roots: Iterable[Path]) -> dict[str, list[WildcardOption]]:
-    snapshot = _wildcard_snapshot(roots)
-    return {key: list(options) for key, options in snapshot.mapping.items()}
+    return _wildcard_service._load_wildcard_map_with(
+        roots,
+        snapshot_for_roots=_wildcard_snapshot,
+    )
 
 
 def list_wildcards(extra_paths: str | None = None, roots: Iterable[Path] | None = None) -> list[str]:
-    snapshot = _wildcard_snapshot(
-        roots if roots is not None else resolve_wildcard_roots(extra_paths)
+    return _wildcard_service._list_wildcards_with(
+        extra_paths,
+        roots,
+        snapshot_for_roots=_wildcard_snapshot,
     )
-    return list(snapshot.wildcard_names)
 
 
 def wildcard_sources_signature(extra_paths: str | None = None, roots: Iterable[Path] | None = None) -> dict:
-    snapshot = _wildcard_snapshot(
-        roots if roots is not None else resolve_wildcard_roots(extra_paths)
+    return _wildcard_service._wildcard_sources_signature_with(
+        extra_paths,
+        roots,
+        snapshot_for_roots=_wildcard_snapshot,
     )
-    return snapshot.public_signature()
 
 
 class _WildcardLibrary(_WildcardLibraryCore):
@@ -252,32 +261,14 @@ def expand_wildcard_texts(
     stages run across the texts in order. This matches expanding one Prompt
     Studio prompt without joining fields through a lossy delimiter.
     """
-    sources = tuple(str(text or "") for text in texts)
-    if not sources:
-        return ()
-
-    mode = normalize_wildcard_mode(mode)
-    selector = _Selector(
-        normalize_seed(seed),
-        sequential=mode == WILDCARD_MODE_SEQUENTIAL,
-    )
-    resolved_roots = tuple(
-        Path(root)
-        for root in (
-            roots if roots is not None else resolve_wildcard_roots(extra_paths)
-        )
-    )
-    snapshot = _wildcard_snapshot(resolved_roots)
-    expansion_budget = (
-        budget
-        if isinstance(budget, WildcardExpansionBudget)
-        else WildcardExpansionBudget()
-    )
-    return _expand_snapshot_texts(
-        sources,
-        selector,
-        snapshot,
-        expansion_budget,
+    return _wildcard_service._expand_wildcard_texts_with(
+        texts,
+        seed=seed,
+        mode=mode,
+        extra_paths=extra_paths,
+        roots=roots,
+        budget=budget,
+        snapshot_for_roots=_wildcard_snapshot,
     )
 
 

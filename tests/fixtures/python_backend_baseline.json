@@ -22325,24 +22325,6 @@
       },
       {
         "alias": null,
-        "bound_name": "_wildcard_engine_module",
-        "branch_context": [],
-        "classification": "internal",
-        "column": 0,
-        "conditional": false,
-        "imported": "..prompt.advanced:_wildcard_engine_module",
-        "kind": "static_from",
-        "line": 21,
-        "name": "_wildcard_engine_module",
-        "optional": false,
-        "requested": "..prompt.advanced",
-        "role": "ordinary",
-        "scope": "<module>",
-        "source": "easyuse_anima/nodes/prompt_advanced_nodes.py",
-        "target": "easyuse_anima/prompt/advanced.py"
-      },
-      {
-        "alias": null,
         "bound_name": "normalize_prompt_studio_wildcard_mode",
         "branch_context": [],
         "classification": "internal",
@@ -22386,7 +22368,7 @@
         "conditional": false,
         "imported": "..prompt.artist_mix:ARTIST_MIX_DEFAULT_CLUSTER_COUNT",
         "kind": "static_from",
-        "line": 45,
+        "line": 44,
         "name": "ARTIST_MIX_DEFAULT_CLUSTER_COUNT",
         "optional": false,
         "requested": "..prompt.artist_mix",
@@ -22404,7 +22386,7 @@
         "conditional": false,
         "imported": "..prompt.artist_mix:ARTIST_MIX_DEFAULT_DOMINANT_ISOLATION",
         "kind": "static_from",
-        "line": 45,
+        "line": 44,
         "name": "ARTIST_MIX_DEFAULT_DOMINANT_ISOLATION",
         "optional": false,
         "requested": "..prompt.artist_mix",
@@ -22422,7 +22404,7 @@
         "conditional": false,
         "imported": "..prompt.artist_mix:ARTIST_MIX_DEFAULT_DOMINANT_THRESHOLD",
         "kind": "static_from",
-        "line": 45,
+        "line": 44,
         "name": "ARTIST_MIX_DEFAULT_DOMINANT_THRESHOLD",
         "optional": false,
         "requested": "..prompt.artist_mix",
@@ -22440,7 +22422,7 @@
         "conditional": false,
         "imported": "..prompt.artist_mix:ARTIST_MIX_DEFAULT_EXACT_TOP_K",
         "kind": "static_from",
-        "line": 45,
+        "line": 44,
         "name": "ARTIST_MIX_DEFAULT_EXACT_TOP_K",
         "optional": false,
         "requested": "..prompt.artist_mix",
@@ -22458,7 +22440,7 @@
         "conditional": false,
         "imported": "..prompt.artist_mix:ARTIST_MIX_DEFAULT_RMS_SCALE_CAP",
         "kind": "static_from",
-        "line": 45,
+        "line": 44,
         "name": "ARTIST_MIX_DEFAULT_RMS_SCALE_CAP",
         "optional": false,
         "requested": "..prompt.artist_mix",
@@ -22476,7 +22458,7 @@
         "conditional": false,
         "imported": "..prompt.artist_mix:ARTIST_MIX_DEFAULT_START_PERCENT",
         "kind": "static_from",
-        "line": 45,
+        "line": 44,
         "name": "ARTIST_MIX_DEFAULT_START_PERCENT",
         "optional": false,
         "requested": "..prompt.artist_mix",
@@ -22494,7 +22476,7 @@
         "conditional": false,
         "imported": "..prompt.artist_mix:ARTIST_MIX_DEFAULT_STRENGTH_SCALE",
         "kind": "static_from",
-        "line": 45,
+        "line": 44,
         "name": "ARTIST_MIX_DEFAULT_STRENGTH_SCALE",
         "optional": false,
         "requested": "..prompt.artist_mix",
@@ -22512,7 +22494,7 @@
         "conditional": false,
         "imported": "..prompt.artist_mix:ARTIST_MIX_DEFAULT_STYLE_GAIN",
         "kind": "static_from",
-        "line": 45,
+        "line": 44,
         "name": "ARTIST_MIX_DEFAULT_STYLE_GAIN",
         "optional": false,
         "requested": "..prompt.artist_mix",
@@ -22530,7 +22512,7 @@
         "conditional": false,
         "imported": "..prompt.artist_mix:ARTIST_MIX_MODE_OFF",
         "kind": "static_from",
-        "line": 45,
+        "line": 44,
         "name": "ARTIST_MIX_MODE_OFF",
         "optional": false,
         "requested": "..prompt.artist_mix",
@@ -22548,7 +22530,7 @@
         "conditional": false,
         "imported": "..prompt.artist_mix:ARTIST_MIX_STUDIO_MODES",
         "kind": "static_from",
-        "line": 45,
+        "line": 44,
         "name": "ARTIST_MIX_STUDIO_MODES",
         "optional": false,
         "requested": "..prompt.artist_mix",
@@ -22566,7 +22548,7 @@
         "conditional": false,
         "imported": "..prompt.artist_mix:_artist_mix_mode_tooltip",
         "kind": "static_from",
-        "line": 45,
+        "line": 44,
         "name": "_artist_mix_mode_tooltip",
         "optional": false,
         "requested": "..prompt.artist_mix",
@@ -22584,7 +22566,7 @@
         "conditional": false,
         "imported": "..prompt.artist_mix:_bounded_artist_mix_float",
         "kind": "static_from",
-        "line": 45,
+        "line": 44,
         "name": "_bounded_artist_mix_float",
         "optional": false,
         "requested": "..prompt.artist_mix",
@@ -22602,7 +22584,7 @@
         "conditional": false,
         "imported": "..prompt.artist_mix:_bounded_artist_mix_int",
         "kind": "static_from",
-        "line": 45,
+        "line": 44,
         "name": "_bounded_artist_mix_int",
         "optional": false,
         "requested": "..prompt.artist_mix",
@@ -22620,7 +22602,7 @@
         "conditional": false,
         "imported": "..prompt.artist_mix:_normalize_artist_mix_mode",
         "kind": "static_from",
-        "line": 45,
+        "line": 44,
         "name": "_normalize_artist_mix_mode",
         "optional": false,
         "requested": "..prompt.artist_mix",
@@ -22638,7 +22620,7 @@
         "conditional": false,
         "imported": "..prompt.correction:_prompt_translation_change_key",
         "kind": "static_from",
-        "line": 61,
+        "line": 60,
         "name": "_prompt_translation_change_key",
         "optional": false,
         "requested": "..prompt.correction",
@@ -22656,7 +22638,7 @@
         "conditional": false,
         "imported": "..prompt.correction:_translate_prompt_text",
         "kind": "static_from",
-        "line": 61,
+        "line": 60,
         "name": "_translate_prompt_text",
         "optional": false,
         "requested": "..prompt.correction",
@@ -22674,7 +22656,7 @@
         "conditional": false,
         "imported": "..prompt.data:PROMPT_DATA_TYPE",
         "kind": "static_from",
-        "line": 65,
+        "line": 64,
         "name": "PROMPT_DATA_TYPE",
         "optional": false,
         "requested": "..prompt.data",
@@ -22692,7 +22674,7 @@
         "conditional": false,
         "imported": "..prompt.data:_prompt_data_parameter_snapshot",
         "kind": "static_from",
-        "line": 65,
+        "line": 64,
         "name": "_prompt_data_parameter_snapshot",
         "optional": false,
         "requested": "..prompt.data",
@@ -22710,7 +22692,7 @@
         "conditional": false,
         "imported": "..seed.compatibility:_scrub_reserved_wildcard_next_seed",
         "kind": "static_from",
-        "line": 66,
+        "line": 65,
         "name": "_scrub_reserved_wildcard_next_seed",
         "optional": false,
         "requested": "..seed.compatibility",
@@ -22721,114 +22703,6 @@
       },
       {
         "alias": null,
-        "bound_name": "_get_workflow_node",
-        "branch_context": [],
-        "classification": "internal",
-        "column": 0,
-        "conditional": false,
-        "imported": "..workflow:_get_workflow_node",
-        "kind": "static_from",
-        "line": 67,
-        "name": "_get_workflow_node",
-        "optional": false,
-        "requested": "..workflow",
-        "role": "ordinary",
-        "scope": "<module>",
-        "source": "easyuse_anima/nodes/prompt_advanced_nodes.py",
-        "target": "easyuse_anima/workflow.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "_FlexibleOptionalInputType",
-        "branch_context": [],
-        "classification": "internal",
-        "column": 0,
-        "conditional": false,
-        "imported": ".input_types:_FlexibleOptionalInputType",
-        "kind": "static_from",
-        "line": 68,
-        "name": "_FlexibleOptionalInputType",
-        "optional": false,
-        "requested": ".input_types",
-        "role": "ordinary",
-        "scope": "<module>",
-        "source": "easyuse_anima/nodes/prompt_advanced_nodes.py",
-        "target": "easyuse_anima/nodes/input_types.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "EasyUseAnimaNAIARandomPrompt",
-        "branch_context": [],
-        "classification": "internal",
-        "column": 0,
-        "conditional": false,
-        "imported": ".naia_nodes:EasyUseAnimaNAIARandomPrompt",
-        "kind": "static_from",
-        "line": 69,
-        "name": "EasyUseAnimaNAIARandomPrompt",
-        "optional": false,
-        "requested": ".naia_nodes",
-        "role": "ordinary",
-        "scope": "<module>",
-        "source": "easyuse_anima/nodes/prompt_advanced_nodes.py",
-        "target": "easyuse_anima/nodes/naia_nodes.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "PROMPT_STUDIO_ADVANCED_SEED_FEATURE",
-        "branch_context": [],
-        "classification": "internal",
-        "column": 0,
-        "conditional": false,
-        "imported": ".seed_adapters:PROMPT_STUDIO_ADVANCED_SEED_FEATURE",
-        "kind": "static_from",
-        "line": 70,
-        "name": "PROMPT_STUDIO_ADVANCED_SEED_FEATURE",
-        "optional": false,
-        "requested": ".seed_adapters",
-        "role": "ordinary",
-        "scope": "<module>",
-        "source": "easyuse_anima/nodes/prompt_advanced_nodes.py",
-        "target": "easyuse_anima/nodes/seed_adapters.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "PromptStudioSeedExecution",
-        "branch_context": [],
-        "classification": "internal",
-        "column": 0,
-        "conditional": false,
-        "imported": ".seed_adapters:PromptStudioSeedExecution",
-        "kind": "static_from",
-        "line": 70,
-        "name": "PromptStudioSeedExecution",
-        "optional": false,
-        "requested": ".seed_adapters",
-        "role": "ordinary",
-        "scope": "<module>",
-        "source": "easyuse_anima/nodes/prompt_advanced_nodes.py",
-        "target": "easyuse_anima/nodes/seed_adapters.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "prompt_studio_seed_execution",
-        "branch_context": [],
-        "classification": "internal",
-        "column": 0,
-        "conditional": false,
-        "imported": ".seed_adapters:prompt_studio_seed_execution",
-        "kind": "static_from",
-        "line": 70,
-        "name": "prompt_studio_seed_execution",
-        "optional": false,
-        "requested": ".seed_adapters",
-        "role": "ordinary",
-        "scope": "<module>",
-        "source": "easyuse_anima/nodes/prompt_advanced_nodes.py",
-        "target": "easyuse_anima/nodes/seed_adapters.py"
-      },
-      {
-        "alias": null,
         "bound_name": "resolve_metadata_filter_words",
         "branch_context": [],
         "classification": "internal",
@@ -22836,7 +22710,7 @@
         "conditional": false,
         "imported": "..settings.service:resolve_metadata_filter_words",
         "kind": "static_from",
-        "line": 76,
+        "line": 66,
         "name": "resolve_metadata_filter_words",
         "optional": false,
         "requested": "..settings.service",
@@ -22854,7 +22728,7 @@
         "conditional": false,
         "imported": "..settings.service:resolve_naia_settings",
         "kind": "static_from",
-        "line": 76,
+        "line": 66,
         "name": "resolve_naia_settings",
         "optional": false,
         "requested": "..settings.service",
@@ -22862,6 +22736,150 @@
         "scope": "<module>",
         "source": "easyuse_anima/nodes/prompt_advanced_nodes.py",
         "target": "easyuse_anima/settings/service.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "next_seed",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": "..wildcard.seed:next_seed",
+        "kind": "static_from",
+        "line": 70,
+        "name": "next_seed",
+        "optional": false,
+        "requested": "..wildcard.seed",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/nodes/prompt_advanced_nodes.py",
+        "target": "easyuse_anima/wildcard/seed.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "wildcard_sources_signature",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": "..wildcard.service:wildcard_sources_signature",
+        "kind": "static_from",
+        "line": 71,
+        "name": "wildcard_sources_signature",
+        "optional": false,
+        "requested": "..wildcard.service",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/nodes/prompt_advanced_nodes.py",
+        "target": "easyuse_anima/wildcard/service.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "_get_workflow_node",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": "..workflow:_get_workflow_node",
+        "kind": "static_from",
+        "line": 72,
+        "name": "_get_workflow_node",
+        "optional": false,
+        "requested": "..workflow",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/nodes/prompt_advanced_nodes.py",
+        "target": "easyuse_anima/workflow.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "_FlexibleOptionalInputType",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".input_types:_FlexibleOptionalInputType",
+        "kind": "static_from",
+        "line": 73,
+        "name": "_FlexibleOptionalInputType",
+        "optional": false,
+        "requested": ".input_types",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/nodes/prompt_advanced_nodes.py",
+        "target": "easyuse_anima/nodes/input_types.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "EasyUseAnimaNAIARandomPrompt",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".naia_nodes:EasyUseAnimaNAIARandomPrompt",
+        "kind": "static_from",
+        "line": 74,
+        "name": "EasyUseAnimaNAIARandomPrompt",
+        "optional": false,
+        "requested": ".naia_nodes",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/nodes/prompt_advanced_nodes.py",
+        "target": "easyuse_anima/nodes/naia_nodes.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "PROMPT_STUDIO_ADVANCED_SEED_FEATURE",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".seed_adapters:PROMPT_STUDIO_ADVANCED_SEED_FEATURE",
+        "kind": "static_from",
+        "line": 75,
+        "name": "PROMPT_STUDIO_ADVANCED_SEED_FEATURE",
+        "optional": false,
+        "requested": ".seed_adapters",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/nodes/prompt_advanced_nodes.py",
+        "target": "easyuse_anima/nodes/seed_adapters.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "PromptStudioSeedExecution",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".seed_adapters:PromptStudioSeedExecution",
+        "kind": "static_from",
+        "line": 75,
+        "name": "PromptStudioSeedExecution",
+        "optional": false,
+        "requested": ".seed_adapters",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/nodes/prompt_advanced_nodes.py",
+        "target": "easyuse_anima/nodes/seed_adapters.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "prompt_studio_seed_execution",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".seed_adapters:prompt_studio_seed_execution",
+        "kind": "static_from",
+        "line": 75,
+        "name": "prompt_studio_seed_execution",
+        "optional": false,
+        "requested": ".seed_adapters",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/nodes/prompt_advanced_nodes.py",
+        "target": "easyuse_anima/nodes/seed_adapters.py"
       },
       {
         "alias": null,
@@ -24174,24 +24192,6 @@
       },
       {
         "alias": null,
-        "bound_name": "_wildcard_engine_module",
-        "branch_context": [],
-        "classification": "internal",
-        "column": 0,
-        "conditional": false,
-        "imported": "..prompt.advanced:_wildcard_engine_module",
-        "kind": "static_from",
-        "line": 15,
-        "name": "_wildcard_engine_module",
-        "optional": false,
-        "requested": "..prompt.advanced",
-        "role": "ordinary",
-        "scope": "<module>",
-        "source": "easyuse_anima/nodes/regional_nodes.py",
-        "target": "easyuse_anima/prompt/advanced.py"
-      },
-      {
-        "alias": null,
         "bound_name": "normalize_prompt_studio_wildcard_mode",
         "branch_context": [],
         "classification": "internal",
@@ -24235,7 +24235,7 @@
         "conditional": false,
         "imported": "..prompt.correction:_prompt_translation_change_key",
         "kind": "static_from",
-        "line": 24,
+        "line": 23,
         "name": "_prompt_translation_change_key",
         "optional": false,
         "requested": "..prompt.correction",
@@ -24253,7 +24253,7 @@
         "conditional": false,
         "imported": "..prompt.regional:REGIONAL_CONFIG_WORKFLOW_PROPERTY",
         "kind": "static_from",
-        "line": 25,
+        "line": 24,
         "name": "REGIONAL_CONFIG_WORKFLOW_PROPERTY",
         "optional": false,
         "requested": "..prompt.regional",
@@ -24271,7 +24271,7 @@
         "conditional": false,
         "imported": "..prompt.regional:REGIONAL_FIELDS_WORKFLOW_PROPERTY",
         "kind": "static_from",
-        "line": 25,
+        "line": 24,
         "name": "REGIONAL_FIELDS_WORKFLOW_PROPERTY",
         "optional": false,
         "requested": "..prompt.regional",
@@ -24289,7 +24289,7 @@
         "conditional": false,
         "imported": "..prompt.regional:REGIONAL_PROMPT_DATA_TYPE",
         "kind": "static_from",
-        "line": 25,
+        "line": 24,
         "name": "REGIONAL_PROMPT_DATA_TYPE",
         "optional": false,
         "requested": "..prompt.regional",
@@ -24307,7 +24307,7 @@
         "conditional": false,
         "imported": "..prompt.regional:_apply_regional_field_inputs",
         "kind": "static_from",
-        "line": 25,
+        "line": 24,
         "name": "_apply_regional_field_inputs",
         "optional": false,
         "requested": "..prompt.regional",
@@ -24325,7 +24325,7 @@
         "conditional": false,
         "imported": "..prompt.regional:_build_regional_outputs",
         "kind": "static_from",
-        "line": 25,
+        "line": 24,
         "name": "_build_regional_outputs",
         "optional": false,
         "requested": "..prompt.regional",
@@ -24343,7 +24343,7 @@
         "conditional": false,
         "imported": "..prompt.regional:_clone_regional_fields",
         "kind": "static_from",
-        "line": 25,
+        "line": 24,
         "name": "_clone_regional_fields",
         "optional": false,
         "requested": "..prompt.regional",
@@ -24361,7 +24361,7 @@
         "conditional": false,
         "imported": "..prompt.regional:_conditioning_set_values",
         "kind": "static_from",
-        "line": 25,
+        "line": 24,
         "name": "_conditioning_set_values",
         "optional": false,
         "requested": "..prompt.regional",
@@ -24379,7 +24379,7 @@
         "conditional": false,
         "imported": "..prompt.regional:_normalize_mask_ids",
         "kind": "static_from",
-        "line": 25,
+        "line": 24,
         "name": "_normalize_mask_ids",
         "optional": false,
         "requested": "..prompt.regional",
@@ -24397,7 +24397,7 @@
         "conditional": false,
         "imported": "..prompt.regional:_normalize_regional_config",
         "kind": "static_from",
-        "line": 25,
+        "line": 24,
         "name": "_normalize_regional_config",
         "optional": false,
         "requested": "..prompt.regional",
@@ -24415,7 +24415,7 @@
         "conditional": false,
         "imported": "..prompt.regional:_normalize_regional_fields",
         "kind": "static_from",
-        "line": 25,
+        "line": 24,
         "name": "_normalize_regional_fields",
         "optional": false,
         "requested": "..prompt.regional",
@@ -24433,7 +24433,7 @@
         "conditional": false,
         "imported": "..prompt.regional:_parse_json_object",
         "kind": "static_from",
-        "line": 25,
+        "line": 24,
         "name": "_parse_json_object",
         "optional": false,
         "requested": "..prompt.regional",
@@ -24451,7 +24451,7 @@
         "conditional": false,
         "imported": "..prompt.regional:_regional_config_json",
         "kind": "static_from",
-        "line": 25,
+        "line": 24,
         "name": "_regional_config_json",
         "optional": false,
         "requested": "..prompt.regional",
@@ -24469,7 +24469,7 @@
         "conditional": false,
         "imported": "..prompt.regional:_regional_fields_json",
         "kind": "static_from",
-        "line": 25,
+        "line": 24,
         "name": "_regional_fields_json",
         "optional": false,
         "requested": "..prompt.regional",
@@ -24487,7 +24487,7 @@
         "conditional": false,
         "imported": "..prompt.regional:_regional_mask_bounds_area",
         "kind": "static_from",
-        "line": 25,
+        "line": 24,
         "name": "_regional_mask_bounds_area",
         "optional": false,
         "requested": "..prompt.regional",
@@ -24505,7 +24505,7 @@
         "conditional": false,
         "imported": "..prompt.regional:_regional_payload_canvas",
         "kind": "static_from",
-        "line": 25,
+        "line": 24,
         "name": "_regional_payload_canvas",
         "optional": false,
         "requested": "..prompt.regional",
@@ -24523,7 +24523,7 @@
         "conditional": false,
         "imported": "..prompt.regional:_regional_union_mask_for_ids",
         "kind": "static_from",
-        "line": 25,
+        "line": 24,
         "name": "_regional_union_mask_for_ids",
         "optional": false,
         "requested": "..prompt.regional",
@@ -24541,7 +24541,7 @@
         "conditional": false,
         "imported": "..seed.compatibility:_scrub_reserved_wildcard_next_seed",
         "kind": "static_from",
-        "line": 43,
+        "line": 42,
         "name": "_scrub_reserved_wildcard_next_seed",
         "optional": false,
         "requested": "..seed.compatibility",
@@ -24552,6 +24552,60 @@
       },
       {
         "alias": null,
+        "bound_name": "resolve_metadata_filter_words",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": "..settings.service:resolve_metadata_filter_words",
+        "kind": "static_from",
+        "line": 43,
+        "name": "resolve_metadata_filter_words",
+        "optional": false,
+        "requested": "..settings.service",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/nodes/regional_nodes.py",
+        "target": "easyuse_anima/settings/service.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "next_seed",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": "..wildcard.seed:next_seed",
+        "kind": "static_from",
+        "line": 44,
+        "name": "next_seed",
+        "optional": false,
+        "requested": "..wildcard.seed",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/nodes/regional_nodes.py",
+        "target": "easyuse_anima/wildcard/seed.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "wildcard_sources_signature",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": "..wildcard.service:wildcard_sources_signature",
+        "kind": "static_from",
+        "line": 45,
+        "name": "wildcard_sources_signature",
+        "optional": false,
+        "requested": "..wildcard.service",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/nodes/regional_nodes.py",
+        "target": "easyuse_anima/wildcard/service.py"
+      },
+      {
+        "alias": null,
         "bound_name": "_get_workflow_node",
         "branch_context": [],
         "classification": "internal",
@@ -24559,7 +24613,7 @@
         "conditional": false,
         "imported": "..workflow:_get_workflow_node",
         "kind": "static_from",
-        "line": 44,
+        "line": 46,
         "name": "_get_workflow_node",
         "optional": false,
         "requested": "..workflow",
@@ -24577,7 +24631,7 @@
         "conditional": false,
         "imported": ".input_types:_FlexibleOptionalInputType",
         "kind": "static_from",
-        "line": 45,
+        "line": 47,
         "name": "_FlexibleOptionalInputType",
         "optional": false,
         "requested": ".input_types",
@@ -24595,7 +24649,7 @@
         "conditional": false,
         "imported": ".seed_adapters:PROMPT_STUDIO_REGIONAL_SEED_FEATURE",
         "kind": "static_from",
-        "line": 46,
+        "line": 48,
         "name": "PROMPT_STUDIO_REGIONAL_SEED_FEATURE",
         "optional": false,
         "requested": ".seed_adapters",
@@ -24613,7 +24667,7 @@
         "conditional": false,
         "imported": ".seed_adapters:prompt_studio_seed_execution",
         "kind": "static_from",
-        "line": 46,
+        "line": 48,
         "name": "prompt_studio_seed_execution",
         "optional": false,
         "requested": ".seed_adapters",
@@ -24621,24 +24675,6 @@
         "scope": "<module>",
         "source": "easyuse_anima/nodes/regional_nodes.py",
         "target": "easyuse_anima/nodes/seed_adapters.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "resolve_metadata_filter_words",
-        "branch_context": [],
-        "classification": "internal",
-        "column": 0,
-        "conditional": false,
-        "imported": "..settings.service:resolve_metadata_filter_words",
-        "kind": "static_from",
-        "line": 51,
-        "name": "resolve_metadata_filter_words",
-        "optional": false,
-        "requested": "..settings.service",
-        "role": "ordinary",
-        "scope": "<module>",
-        "source": "easyuse_anima/nodes/regional_nodes.py",
-        "target": "easyuse_anima/settings/service.py"
       },
       {
         "alias": null,
@@ -25459,6 +25495,204 @@
       },
       {
         "alias": null,
+        "bound_name": "WILDCARD_MODE_FIXED",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": "..wildcard.mode:WILDCARD_MODE_FIXED",
+        "kind": "static_from",
+        "line": 7,
+        "name": "WILDCARD_MODE_FIXED",
+        "optional": false,
+        "requested": "..wildcard.mode",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/nodes/wildcard_nodes.py",
+        "target": "easyuse_anima/wildcard/mode.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "WILDCARD_MODE_LABELS",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": "..wildcard.mode:WILDCARD_MODE_LABELS",
+        "kind": "static_from",
+        "line": 7,
+        "name": "WILDCARD_MODE_LABELS",
+        "optional": false,
+        "requested": "..wildcard.mode",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/nodes/wildcard_nodes.py",
+        "target": "easyuse_anima/wildcard/mode.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "WILDCARD_MODE_POPULATE",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": "..wildcard.mode:WILDCARD_MODE_POPULATE",
+        "kind": "static_from",
+        "line": 7,
+        "name": "WILDCARD_MODE_POPULATE",
+        "optional": false,
+        "requested": "..wildcard.mode",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/nodes/wildcard_nodes.py",
+        "target": "easyuse_anima/wildcard/mode.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "WILDCARD_MODE_REPRODUCE",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": "..wildcard.mode:WILDCARD_MODE_REPRODUCE",
+        "kind": "static_from",
+        "line": 7,
+        "name": "WILDCARD_MODE_REPRODUCE",
+        "optional": false,
+        "requested": "..wildcard.mode",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/nodes/wildcard_nodes.py",
+        "target": "easyuse_anima/wildcard/mode.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "WILDCARD_MODE_SEQUENTIAL",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": "..wildcard.mode:WILDCARD_MODE_SEQUENTIAL",
+        "kind": "static_from",
+        "line": 7,
+        "name": "WILDCARD_MODE_SEQUENTIAL",
+        "optional": false,
+        "requested": "..wildcard.mode",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/nodes/wildcard_nodes.py",
+        "target": "easyuse_anima/wildcard/mode.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "normalize_wildcard_mode",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": "..wildcard.mode:normalize_wildcard_mode",
+        "kind": "static_from",
+        "line": 7,
+        "name": "normalize_wildcard_mode",
+        "optional": false,
+        "requested": "..wildcard.mode",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/nodes/wildcard_nodes.py",
+        "target": "easyuse_anima/wildcard/mode.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "MAX_SEED",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": "..wildcard.seed:MAX_SEED",
+        "kind": "static_from",
+        "line": 15,
+        "name": "MAX_SEED",
+        "optional": false,
+        "requested": "..wildcard.seed",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/nodes/wildcard_nodes.py",
+        "target": "easyuse_anima/wildcard/seed.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "PUBLIC_MAX_SEED",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": "..wildcard.seed:PUBLIC_MAX_SEED",
+        "kind": "static_from",
+        "line": 15,
+        "name": "PUBLIC_MAX_SEED",
+        "optional": false,
+        "requested": "..wildcard.seed",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/nodes/wildcard_nodes.py",
+        "target": "easyuse_anima/wildcard/seed.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "normalize_seed",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": "..wildcard.seed:normalize_seed",
+        "kind": "static_from",
+        "line": 15,
+        "name": "normalize_seed",
+        "optional": false,
+        "requested": "..wildcard.seed",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/nodes/wildcard_nodes.py",
+        "target": "easyuse_anima/wildcard/seed.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "expand_wildcards",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": "..wildcard.service:expand_wildcards",
+        "kind": "static_from",
+        "line": 16,
+        "name": "expand_wildcards",
+        "optional": false,
+        "requested": "..wildcard.service",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/nodes/wildcard_nodes.py",
+        "target": "easyuse_anima/wildcard/service.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "wildcard_sources_signature",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": "..wildcard.service:wildcard_sources_signature",
+        "kind": "static_from",
+        "line": 16,
+        "name": "wildcard_sources_signature",
+        "optional": false,
+        "requested": "..wildcard.service",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/nodes/wildcard_nodes.py",
+        "target": "easyuse_anima/wildcard/service.py"
+      },
+      {
+        "alias": null,
         "bound_name": "_get_workflow_node",
         "branch_context": [],
         "classification": "internal",
@@ -25466,7 +25700,7 @@
         "conditional": false,
         "imported": "..workflow:_get_workflow_node",
         "kind": "static_from",
-        "line": 7,
+        "line": 17,
         "name": "_get_workflow_node",
         "optional": false,
         "requested": "..workflow",
@@ -25484,7 +25718,7 @@
         "conditional": false,
         "imported": ".input_types:_FlexibleOptionalInputType",
         "kind": "static_from",
-        "line": 8,
+        "line": 18,
         "name": "_FlexibleOptionalInputType",
         "optional": false,
         "requested": ".input_types",
@@ -25492,721 +25726,6 @@
         "scope": "<module>",
         "source": "easyuse_anima/nodes/wildcard_nodes.py",
         "target": "easyuse_anima/nodes/input_types.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "MAX_SEED",
-        "branch_context": [
-          {
-            "branch": "body",
-            "handles_import_failure": true,
-            "has_import_fallback_handler": true,
-            "kind": "try",
-            "line": 10
-          }
-        ],
-        "classification": "internal",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "MAX_SEED",
-          "target": "wildcard_engine.py",
-          "try_line": 10
-        },
-        "conditional": true,
-        "imported": "...wildcard_engine:MAX_SEED",
-        "kind": "static_from",
-        "line": 11,
-        "name": "MAX_SEED",
-        "optional": false,
-        "requested": "...wildcard_engine",
-        "role": "compatibility_primary",
-        "scope": "<module>",
-        "source": "easyuse_anima/nodes/wildcard_nodes.py",
-        "target": "wildcard_engine.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "PUBLIC_MAX_SEED",
-        "branch_context": [
-          {
-            "branch": "body",
-            "handles_import_failure": true,
-            "has_import_fallback_handler": true,
-            "kind": "try",
-            "line": 10
-          }
-        ],
-        "classification": "internal",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "PUBLIC_MAX_SEED",
-          "target": "wildcard_engine.py",
-          "try_line": 10
-        },
-        "conditional": true,
-        "imported": "...wildcard_engine:PUBLIC_MAX_SEED",
-        "kind": "static_from",
-        "line": 11,
-        "name": "PUBLIC_MAX_SEED",
-        "optional": false,
-        "requested": "...wildcard_engine",
-        "role": "compatibility_primary",
-        "scope": "<module>",
-        "source": "easyuse_anima/nodes/wildcard_nodes.py",
-        "target": "wildcard_engine.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "WILDCARD_MODE_FIXED",
-        "branch_context": [
-          {
-            "branch": "body",
-            "handles_import_failure": true,
-            "has_import_fallback_handler": true,
-            "kind": "try",
-            "line": 10
-          }
-        ],
-        "classification": "internal",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "WILDCARD_MODE_FIXED",
-          "target": "wildcard_engine.py",
-          "try_line": 10
-        },
-        "conditional": true,
-        "imported": "...wildcard_engine:WILDCARD_MODE_FIXED",
-        "kind": "static_from",
-        "line": 11,
-        "name": "WILDCARD_MODE_FIXED",
-        "optional": false,
-        "requested": "...wildcard_engine",
-        "role": "compatibility_primary",
-        "scope": "<module>",
-        "source": "easyuse_anima/nodes/wildcard_nodes.py",
-        "target": "wildcard_engine.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "WILDCARD_MODE_LABELS",
-        "branch_context": [
-          {
-            "branch": "body",
-            "handles_import_failure": true,
-            "has_import_fallback_handler": true,
-            "kind": "try",
-            "line": 10
-          }
-        ],
-        "classification": "internal",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "WILDCARD_MODE_LABELS",
-          "target": "wildcard_engine.py",
-          "try_line": 10
-        },
-        "conditional": true,
-        "imported": "...wildcard_engine:WILDCARD_MODE_LABELS",
-        "kind": "static_from",
-        "line": 11,
-        "name": "WILDCARD_MODE_LABELS",
-        "optional": false,
-        "requested": "...wildcard_engine",
-        "role": "compatibility_primary",
-        "scope": "<module>",
-        "source": "easyuse_anima/nodes/wildcard_nodes.py",
-        "target": "wildcard_engine.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "WILDCARD_MODE_POPULATE",
-        "branch_context": [
-          {
-            "branch": "body",
-            "handles_import_failure": true,
-            "has_import_fallback_handler": true,
-            "kind": "try",
-            "line": 10
-          }
-        ],
-        "classification": "internal",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "WILDCARD_MODE_POPULATE",
-          "target": "wildcard_engine.py",
-          "try_line": 10
-        },
-        "conditional": true,
-        "imported": "...wildcard_engine:WILDCARD_MODE_POPULATE",
-        "kind": "static_from",
-        "line": 11,
-        "name": "WILDCARD_MODE_POPULATE",
-        "optional": false,
-        "requested": "...wildcard_engine",
-        "role": "compatibility_primary",
-        "scope": "<module>",
-        "source": "easyuse_anima/nodes/wildcard_nodes.py",
-        "target": "wildcard_engine.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "WILDCARD_MODE_REPRODUCE",
-        "branch_context": [
-          {
-            "branch": "body",
-            "handles_import_failure": true,
-            "has_import_fallback_handler": true,
-            "kind": "try",
-            "line": 10
-          }
-        ],
-        "classification": "internal",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "WILDCARD_MODE_REPRODUCE",
-          "target": "wildcard_engine.py",
-          "try_line": 10
-        },
-        "conditional": true,
-        "imported": "...wildcard_engine:WILDCARD_MODE_REPRODUCE",
-        "kind": "static_from",
-        "line": 11,
-        "name": "WILDCARD_MODE_REPRODUCE",
-        "optional": false,
-        "requested": "...wildcard_engine",
-        "role": "compatibility_primary",
-        "scope": "<module>",
-        "source": "easyuse_anima/nodes/wildcard_nodes.py",
-        "target": "wildcard_engine.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "WILDCARD_MODE_SEQUENTIAL",
-        "branch_context": [
-          {
-            "branch": "body",
-            "handles_import_failure": true,
-            "has_import_fallback_handler": true,
-            "kind": "try",
-            "line": 10
-          }
-        ],
-        "classification": "internal",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "WILDCARD_MODE_SEQUENTIAL",
-          "target": "wildcard_engine.py",
-          "try_line": 10
-        },
-        "conditional": true,
-        "imported": "...wildcard_engine:WILDCARD_MODE_SEQUENTIAL",
-        "kind": "static_from",
-        "line": 11,
-        "name": "WILDCARD_MODE_SEQUENTIAL",
-        "optional": false,
-        "requested": "...wildcard_engine",
-        "role": "compatibility_primary",
-        "scope": "<module>",
-        "source": "easyuse_anima/nodes/wildcard_nodes.py",
-        "target": "wildcard_engine.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "expand_wildcards",
-        "branch_context": [
-          {
-            "branch": "body",
-            "handles_import_failure": true,
-            "has_import_fallback_handler": true,
-            "kind": "try",
-            "line": 10
-          }
-        ],
-        "classification": "internal",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "expand_wildcards",
-          "target": "wildcard_engine.py",
-          "try_line": 10
-        },
-        "conditional": true,
-        "imported": "...wildcard_engine:expand_wildcards",
-        "kind": "static_from",
-        "line": 11,
-        "name": "expand_wildcards",
-        "optional": false,
-        "requested": "...wildcard_engine",
-        "role": "compatibility_primary",
-        "scope": "<module>",
-        "source": "easyuse_anima/nodes/wildcard_nodes.py",
-        "target": "wildcard_engine.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "normalize_seed",
-        "branch_context": [
-          {
-            "branch": "body",
-            "handles_import_failure": true,
-            "has_import_fallback_handler": true,
-            "kind": "try",
-            "line": 10
-          }
-        ],
-        "classification": "internal",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "normalize_seed",
-          "target": "wildcard_engine.py",
-          "try_line": 10
-        },
-        "conditional": true,
-        "imported": "...wildcard_engine:normalize_seed",
-        "kind": "static_from",
-        "line": 11,
-        "name": "normalize_seed",
-        "optional": false,
-        "requested": "...wildcard_engine",
-        "role": "compatibility_primary",
-        "scope": "<module>",
-        "source": "easyuse_anima/nodes/wildcard_nodes.py",
-        "target": "wildcard_engine.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "normalize_wildcard_mode",
-        "branch_context": [
-          {
-            "branch": "body",
-            "handles_import_failure": true,
-            "has_import_fallback_handler": true,
-            "kind": "try",
-            "line": 10
-          }
-        ],
-        "classification": "internal",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "normalize_wildcard_mode",
-          "target": "wildcard_engine.py",
-          "try_line": 10
-        },
-        "conditional": true,
-        "imported": "...wildcard_engine:normalize_wildcard_mode",
-        "kind": "static_from",
-        "line": 11,
-        "name": "normalize_wildcard_mode",
-        "optional": false,
-        "requested": "...wildcard_engine",
-        "role": "compatibility_primary",
-        "scope": "<module>",
-        "source": "easyuse_anima/nodes/wildcard_nodes.py",
-        "target": "wildcard_engine.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "wildcard_sources_signature",
-        "branch_context": [
-          {
-            "branch": "body",
-            "handles_import_failure": true,
-            "has_import_fallback_handler": true,
-            "kind": "try",
-            "line": 10
-          }
-        ],
-        "classification": "internal",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "wildcard_sources_signature",
-          "target": "wildcard_engine.py",
-          "try_line": 10
-        },
-        "conditional": true,
-        "imported": "...wildcard_engine:wildcard_sources_signature",
-        "kind": "static_from",
-        "line": 11,
-        "name": "wildcard_sources_signature",
-        "optional": false,
-        "requested": "...wildcard_engine",
-        "role": "compatibility_primary",
-        "scope": "<module>",
-        "source": "easyuse_anima/nodes/wildcard_nodes.py",
-        "target": "wildcard_engine.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "MAX_SEED",
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 24,
-            "kind": "try",
-            "line": 10
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "MAX_SEED",
-          "target": "wildcard_engine.py",
-          "try_line": 10
-        },
-        "conditional": true,
-        "imported": "wildcard_engine:MAX_SEED",
-        "kind": "static_from",
-        "line": 25,
-        "name": "MAX_SEED",
-        "optional": false,
-        "requested": "wildcard_engine",
-        "role": "compatibility_fallback",
-        "scope": "<module>",
-        "source": "easyuse_anima/nodes/wildcard_nodes.py",
-        "target": "wildcard_engine.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "PUBLIC_MAX_SEED",
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 24,
-            "kind": "try",
-            "line": 10
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "PUBLIC_MAX_SEED",
-          "target": "wildcard_engine.py",
-          "try_line": 10
-        },
-        "conditional": true,
-        "imported": "wildcard_engine:PUBLIC_MAX_SEED",
-        "kind": "static_from",
-        "line": 25,
-        "name": "PUBLIC_MAX_SEED",
-        "optional": false,
-        "requested": "wildcard_engine",
-        "role": "compatibility_fallback",
-        "scope": "<module>",
-        "source": "easyuse_anima/nodes/wildcard_nodes.py",
-        "target": "wildcard_engine.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "WILDCARD_MODE_FIXED",
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 24,
-            "kind": "try",
-            "line": 10
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "WILDCARD_MODE_FIXED",
-          "target": "wildcard_engine.py",
-          "try_line": 10
-        },
-        "conditional": true,
-        "imported": "wildcard_engine:WILDCARD_MODE_FIXED",
-        "kind": "static_from",
-        "line": 25,
-        "name": "WILDCARD_MODE_FIXED",
-        "optional": false,
-        "requested": "wildcard_engine",
-        "role": "compatibility_fallback",
-        "scope": "<module>",
-        "source": "easyuse_anima/nodes/wildcard_nodes.py",
-        "target": "wildcard_engine.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "WILDCARD_MODE_LABELS",
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 24,
-            "kind": "try",
-            "line": 10
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "WILDCARD_MODE_LABELS",
-          "target": "wildcard_engine.py",
-          "try_line": 10
-        },
-        "conditional": true,
-        "imported": "wildcard_engine:WILDCARD_MODE_LABELS",
-        "kind": "static_from",
-        "line": 25,
-        "name": "WILDCARD_MODE_LABELS",
-        "optional": false,
-        "requested": "wildcard_engine",
-        "role": "compatibility_fallback",
-        "scope": "<module>",
-        "source": "easyuse_anima/nodes/wildcard_nodes.py",
-        "target": "wildcard_engine.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "WILDCARD_MODE_POPULATE",
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 24,
-            "kind": "try",
-            "line": 10
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "WILDCARD_MODE_POPULATE",
-          "target": "wildcard_engine.py",
-          "try_line": 10
-        },
-        "conditional": true,
-        "imported": "wildcard_engine:WILDCARD_MODE_POPULATE",
-        "kind": "static_from",
-        "line": 25,
-        "name": "WILDCARD_MODE_POPULATE",
-        "optional": false,
-        "requested": "wildcard_engine",
-        "role": "compatibility_fallback",
-        "scope": "<module>",
-        "source": "easyuse_anima/nodes/wildcard_nodes.py",
-        "target": "wildcard_engine.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "WILDCARD_MODE_REPRODUCE",
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 24,
-            "kind": "try",
-            "line": 10
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "WILDCARD_MODE_REPRODUCE",
-          "target": "wildcard_engine.py",
-          "try_line": 10
-        },
-        "conditional": true,
-        "imported": "wildcard_engine:WILDCARD_MODE_REPRODUCE",
-        "kind": "static_from",
-        "line": 25,
-        "name": "WILDCARD_MODE_REPRODUCE",
-        "optional": false,
-        "requested": "wildcard_engine",
-        "role": "compatibility_fallback",
-        "scope": "<module>",
-        "source": "easyuse_anima/nodes/wildcard_nodes.py",
-        "target": "wildcard_engine.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "WILDCARD_MODE_SEQUENTIAL",
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 24,
-            "kind": "try",
-            "line": 10
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "WILDCARD_MODE_SEQUENTIAL",
-          "target": "wildcard_engine.py",
-          "try_line": 10
-        },
-        "conditional": true,
-        "imported": "wildcard_engine:WILDCARD_MODE_SEQUENTIAL",
-        "kind": "static_from",
-        "line": 25,
-        "name": "WILDCARD_MODE_SEQUENTIAL",
-        "optional": false,
-        "requested": "wildcard_engine",
-        "role": "compatibility_fallback",
-        "scope": "<module>",
-        "source": "easyuse_anima/nodes/wildcard_nodes.py",
-        "target": "wildcard_engine.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "expand_wildcards",
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 24,
-            "kind": "try",
-            "line": 10
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "expand_wildcards",
-          "target": "wildcard_engine.py",
-          "try_line": 10
-        },
-        "conditional": true,
-        "imported": "wildcard_engine:expand_wildcards",
-        "kind": "static_from",
-        "line": 25,
-        "name": "expand_wildcards",
-        "optional": false,
-        "requested": "wildcard_engine",
-        "role": "compatibility_fallback",
-        "scope": "<module>",
-        "source": "easyuse_anima/nodes/wildcard_nodes.py",
-        "target": "wildcard_engine.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "normalize_seed",
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 24,
-            "kind": "try",
-            "line": 10
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "normalize_seed",
-          "target": "wildcard_engine.py",
-          "try_line": 10
-        },
-        "conditional": true,
-        "imported": "wildcard_engine:normalize_seed",
-        "kind": "static_from",
-        "line": 25,
-        "name": "normalize_seed",
-        "optional": false,
-        "requested": "wildcard_engine",
-        "role": "compatibility_fallback",
-        "scope": "<module>",
-        "source": "easyuse_anima/nodes/wildcard_nodes.py",
-        "target": "wildcard_engine.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "normalize_wildcard_mode",
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 24,
-            "kind": "try",
-            "line": 10
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "normalize_wildcard_mode",
-          "target": "wildcard_engine.py",
-          "try_line": 10
-        },
-        "conditional": true,
-        "imported": "wildcard_engine:normalize_wildcard_mode",
-        "kind": "static_from",
-        "line": 25,
-        "name": "normalize_wildcard_mode",
-        "optional": false,
-        "requested": "wildcard_engine",
-        "role": "compatibility_fallback",
-        "scope": "<module>",
-        "source": "easyuse_anima/nodes/wildcard_nodes.py",
-        "target": "wildcard_engine.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "wildcard_sources_signature",
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 24,
-            "kind": "try",
-            "line": 10
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "wildcard_sources_signature",
-          "target": "wildcard_engine.py",
-          "try_line": 10
-        },
-        "conditional": true,
-        "imported": "wildcard_engine:wildcard_sources_signature",
-        "kind": "static_from",
-        "line": 25,
-        "name": "wildcard_sources_signature",
-        "optional": false,
-        "requested": "wildcard_engine",
-        "role": "compatibility_fallback",
-        "scope": "<module>",
-        "source": "easyuse_anima/nodes/wildcard_nodes.py",
-        "target": "wildcard_engine.py"
       },
       {
         "alias": null,
@@ -27757,6 +27276,24 @@
       },
       {
         "alias": null,
+        "bound_name": "resolve_metadata_filter_words",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": "..settings.service:resolve_metadata_filter_words",
+        "kind": "static_from",
+        "line": 15,
+        "name": "resolve_metadata_filter_words",
+        "optional": false,
+        "requested": "..settings.service",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/prompt/advanced.py",
+        "target": "easyuse_anima/settings/service.py"
+      },
+      {
+        "alias": null,
         "bound_name": "has_prompt_translation_markers",
         "branch_context": [],
         "classification": "internal",
@@ -27764,7 +27301,7 @@
         "conditional": false,
         "imported": "..translation.markers:has_prompt_translation_markers",
         "kind": "static_from",
-        "line": 15,
+        "line": 16,
         "name": "has_prompt_translation_markers",
         "optional": false,
         "requested": "..translation.markers",
@@ -27775,6 +27312,78 @@
       },
       {
         "alias": null,
+        "bound_name": "has_wildcard_syntax",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": "..wildcard.expansion:has_wildcard_syntax",
+        "kind": "static_from",
+        "line": 17,
+        "name": "has_wildcard_syntax",
+        "optional": false,
+        "requested": "..wildcard.expansion",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/prompt/advanced.py",
+        "target": "easyuse_anima/wildcard/expansion.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "normalize_prompt_studio_wildcard_mode",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": "..wildcard.mode:normalize_prompt_studio_wildcard_mode",
+        "kind": "static_from",
+        "line": 18,
+        "name": "normalize_prompt_studio_wildcard_mode",
+        "optional": false,
+        "requested": "..wildcard.mode",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/prompt/advanced.py",
+        "target": "easyuse_anima/wildcard/mode.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "normalize_seed",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": "..wildcard.seed:normalize_seed",
+        "kind": "static_from",
+        "line": 19,
+        "name": "normalize_seed",
+        "optional": false,
+        "requested": "..wildcard.seed",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/prompt/advanced.py",
+        "target": "easyuse_anima/wildcard/seed.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "expand_wildcard_texts",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": "..wildcard.service:expand_wildcard_texts",
+        "kind": "static_from",
+        "line": 20,
+        "name": "expand_wildcard_texts",
+        "optional": false,
+        "requested": "..wildcard.service",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/prompt/advanced.py",
+        "target": "easyuse_anima/wildcard/service.py"
+      },
+      {
+        "alias": null,
         "bound_name": "ARTIST_MIX_DEFAULT_CLUSTER_COUNT",
         "branch_context": [],
         "classification": "internal",
@@ -27782,7 +27391,7 @@
         "conditional": false,
         "imported": ".artist_mix:ARTIST_MIX_DEFAULT_CLUSTER_COUNT",
         "kind": "static_from",
-        "line": 16,
+        "line": 21,
         "name": "ARTIST_MIX_DEFAULT_CLUSTER_COUNT",
         "optional": false,
         "requested": ".artist_mix",
@@ -27800,7 +27409,7 @@
         "conditional": false,
         "imported": ".artist_mix:ARTIST_MIX_DEFAULT_DOMINANT_ISOLATION",
         "kind": "static_from",
-        "line": 16,
+        "line": 21,
         "name": "ARTIST_MIX_DEFAULT_DOMINANT_ISOLATION",
         "optional": false,
         "requested": ".artist_mix",
@@ -27818,7 +27427,7 @@
         "conditional": false,
         "imported": ".artist_mix:ARTIST_MIX_DEFAULT_DOMINANT_THRESHOLD",
         "kind": "static_from",
-        "line": 16,
+        "line": 21,
         "name": "ARTIST_MIX_DEFAULT_DOMINANT_THRESHOLD",
         "optional": false,
         "requested": ".artist_mix",
@@ -27836,7 +27445,7 @@
         "conditional": false,
         "imported": ".artist_mix:ARTIST_MIX_DEFAULT_EXACT_TOP_K",
         "kind": "static_from",
-        "line": 16,
+        "line": 21,
         "name": "ARTIST_MIX_DEFAULT_EXACT_TOP_K",
         "optional": false,
         "requested": ".artist_mix",
@@ -27854,7 +27463,7 @@
         "conditional": false,
         "imported": ".artist_mix:ARTIST_MIX_DEFAULT_RMS_SCALE_CAP",
         "kind": "static_from",
-        "line": 16,
+        "line": 21,
         "name": "ARTIST_MIX_DEFAULT_RMS_SCALE_CAP",
         "optional": false,
         "requested": ".artist_mix",
@@ -27872,7 +27481,7 @@
         "conditional": false,
         "imported": ".artist_mix:ARTIST_MIX_DEFAULT_START_PERCENT",
         "kind": "static_from",
-        "line": 16,
+        "line": 21,
         "name": "ARTIST_MIX_DEFAULT_START_PERCENT",
         "optional": false,
         "requested": ".artist_mix",
@@ -27890,7 +27499,7 @@
         "conditional": false,
         "imported": ".artist_mix:ARTIST_MIX_DEFAULT_STRENGTH_SCALE",
         "kind": "static_from",
-        "line": 16,
+        "line": 21,
         "name": "ARTIST_MIX_DEFAULT_STRENGTH_SCALE",
         "optional": false,
         "requested": ".artist_mix",
@@ -27908,7 +27517,7 @@
         "conditional": false,
         "imported": ".artist_mix:ARTIST_MIX_DEFAULT_STYLE_GAIN",
         "kind": "static_from",
-        "line": 16,
+        "line": 21,
         "name": "ARTIST_MIX_DEFAULT_STYLE_GAIN",
         "optional": false,
         "requested": ".artist_mix",
@@ -27926,7 +27535,7 @@
         "conditional": false,
         "imported": ".artist_mix:ARTIST_MIX_MODE_OFF",
         "kind": "static_from",
-        "line": 16,
+        "line": 21,
         "name": "ARTIST_MIX_MODE_OFF",
         "optional": false,
         "requested": ".artist_mix",
@@ -27944,7 +27553,7 @@
         "conditional": false,
         "imported": ".artist_mix:ARTIST_MIX_MODE_PROMPT",
         "kind": "static_from",
-        "line": 16,
+        "line": 21,
         "name": "ARTIST_MIX_MODE_PROMPT",
         "optional": false,
         "requested": ".artist_mix",
@@ -27962,7 +27571,7 @@
         "conditional": false,
         "imported": ".artist_mix:_artist_mix_inline_prompt",
         "kind": "static_from",
-        "line": 16,
+        "line": 21,
         "name": "_artist_mix_inline_prompt",
         "optional": false,
         "requested": ".artist_mix",
@@ -27980,7 +27589,7 @@
         "conditional": false,
         "imported": ".artist_mix:_artist_tags_from_prompt",
         "kind": "static_from",
-        "line": 16,
+        "line": 21,
         "name": "_artist_tags_from_prompt",
         "optional": false,
         "requested": ".artist_mix",
@@ -27998,7 +27607,7 @@
         "conditional": false,
         "imported": ".artist_mix:_bounded_artist_mix_float",
         "kind": "static_from",
-        "line": 16,
+        "line": 21,
         "name": "_bounded_artist_mix_float",
         "optional": false,
         "requested": ".artist_mix",
@@ -28016,7 +27625,7 @@
         "conditional": false,
         "imported": ".artist_mix:_bounded_artist_mix_int",
         "kind": "static_from",
-        "line": 16,
+        "line": 21,
         "name": "_bounded_artist_mix_int",
         "optional": false,
         "requested": ".artist_mix",
@@ -28034,7 +27643,7 @@
         "conditional": false,
         "imported": ".artist_mix:_join_artist_mix_source_prompts",
         "kind": "static_from",
-        "line": 16,
+        "line": 21,
         "name": "_join_artist_mix_source_prompts",
         "optional": false,
         "requested": ".artist_mix",
@@ -28052,7 +27661,7 @@
         "conditional": false,
         "imported": ".artist_mix:_normalize_artist_mix_mode",
         "kind": "static_from",
-        "line": 16,
+        "line": 21,
         "name": "_normalize_artist_mix_mode",
         "optional": false,
         "requested": ".artist_mix",
@@ -28070,7 +27679,7 @@
         "conditional": false,
         "imported": ".artist_mix:_parse_artist_mix_items",
         "kind": "static_from",
-        "line": 16,
+        "line": 21,
         "name": "_parse_artist_mix_items",
         "optional": false,
         "requested": ".artist_mix",
@@ -28088,7 +27697,7 @@
         "conditional": false,
         "imported": ".correction:_translate_prompt_text",
         "kind": "static_from",
-        "line": 35,
+        "line": 40,
         "name": "_translate_prompt_text",
         "optional": false,
         "requested": ".correction",
@@ -28106,7 +27715,7 @@
         "conditional": false,
         "imported": ".data:PROMPT_DATA_SCHEMA",
         "kind": "static_from",
-        "line": 36,
+        "line": 41,
         "name": "PROMPT_DATA_SCHEMA",
         "optional": false,
         "requested": ".data",
@@ -28124,7 +27733,7 @@
         "conditional": false,
         "imported": ".data:PROMPT_DATA_TYPE",
         "kind": "static_from",
-        "line": 36,
+        "line": 41,
         "name": "PROMPT_DATA_TYPE",
         "optional": false,
         "requested": ".data",
@@ -28142,7 +27751,7 @@
         "conditional": false,
         "imported": ".data:PROMPT_DATA_VERSION",
         "kind": "static_from",
-        "line": 36,
+        "line": 41,
         "name": "PROMPT_DATA_VERSION",
         "optional": false,
         "requested": ".data",
@@ -28160,7 +27769,7 @@
         "conditional": false,
         "imported": ".fields:DEFAULT_QUALITY_TAGS",
         "kind": "static_from",
-        "line": 37,
+        "line": 42,
         "name": "DEFAULT_QUALITY_TAGS",
         "optional": false,
         "requested": ".fields",
@@ -28178,7 +27787,7 @@
         "conditional": false,
         "imported": ".fields:DEFAULT_TRAILING_QUALITY_TAGS",
         "kind": "static_from",
-        "line": 37,
+        "line": 42,
         "name": "DEFAULT_TRAILING_QUALITY_TAGS",
         "optional": false,
         "requested": ".fields",
@@ -28196,7 +27805,7 @@
         "conditional": false,
         "imported": ".fields:_correct_builder_prompt",
         "kind": "static_from",
-        "line": 37,
+        "line": 42,
         "name": "_correct_builder_prompt",
         "optional": false,
         "requested": ".fields",
@@ -28214,7 +27823,7 @@
         "conditional": false,
         "imported": ".fields:_filter_metadata_prompt",
         "kind": "static_from",
-        "line": 37,
+        "line": 42,
         "name": "_filter_metadata_prompt",
         "optional": false,
         "requested": ".fields",
@@ -28232,7 +27841,7 @@
         "conditional": false,
         "imported": ".fields:_join_prompt_tokens",
         "kind": "static_from",
-        "line": 37,
+        "line": 42,
         "name": "_join_prompt_tokens",
         "optional": false,
         "requested": ".fields",
@@ -28240,89 +27849,6 @@
         "scope": "<module>",
         "source": "easyuse_anima/prompt/advanced.py",
         "target": "easyuse_anima/prompt/fields.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "resolve_metadata_filter_words",
-        "branch_context": [],
-        "classification": "internal",
-        "column": 0,
-        "conditional": false,
-        "imported": "..settings.service:resolve_metadata_filter_words",
-        "kind": "static_from",
-        "line": 45,
-        "name": "resolve_metadata_filter_words",
-        "optional": false,
-        "requested": "..settings.service",
-        "role": "ordinary",
-        "scope": "<module>",
-        "source": "easyuse_anima/prompt/advanced.py",
-        "target": "easyuse_anima/settings/service.py"
-      },
-      {
-        "alias": "module",
-        "bound_name": "module",
-        "branch_context": [
-          {
-            "branch": "body",
-            "handles_import_failure": true,
-            "has_import_fallback_handler": true,
-            "kind": "try",
-            "line": 132
-          }
-        ],
-        "classification": "internal",
-        "column": 8,
-        "compatibility_pair": {
-          "bound_name": "module",
-          "target": "wildcard_engine.py",
-          "try_line": 132
-        },
-        "conditional": true,
-        "imported": "...:wildcard_engine",
-        "kind": "static_from",
-        "line": 133,
-        "name": "wildcard_engine",
-        "optional": false,
-        "requested": "...",
-        "role": "compatibility_primary",
-        "scope": "_wildcard_engine_module",
-        "source": "easyuse_anima/prompt/advanced.py",
-        "target": "wildcard_engine.py"
-      },
-      {
-        "alias": "module",
-        "bound_name": "module",
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 134,
-            "kind": "try",
-            "line": 132
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "column": 8,
-        "compatibility_pair": {
-          "bound_name": "module",
-          "target": "wildcard_engine.py",
-          "try_line": 132
-        },
-        "conditional": true,
-        "imported": "wildcard_engine",
-        "kind": "static_import",
-        "line": 135,
-        "name": null,
-        "optional": false,
-        "requested": "wildcard_engine",
-        "role": "compatibility_fallback",
-        "scope": "_wildcard_engine_module",
-        "source": "easyuse_anima/prompt/advanced.py",
-        "target": "wildcard_engine.py"
       },
       {
         "alias": null,
@@ -30748,69 +30274,184 @@
         "target": "easyuse_anima/common/values.py"
       },
       {
-        "alias": "module",
-        "bound_name": "module",
-        "branch_context": [
-          {
-            "branch": "body",
-            "handles_import_failure": true,
-            "has_import_fallback_handler": true,
-            "kind": "try",
-            "line": 15
-          }
-        ],
+        "alias": null,
+        "bound_name": "WILDCARD_MODE_FIXED",
+        "branch_context": [],
         "classification": "internal",
-        "column": 8,
-        "compatibility_pair": {
-          "bound_name": "module",
-          "target": "wildcard_engine.py",
-          "try_line": 15
-        },
-        "conditional": true,
-        "imported": "...:wildcard_engine",
+        "column": 0,
+        "conditional": false,
+        "imported": "..wildcard.mode:WILDCARD_MODE_FIXED",
         "kind": "static_from",
-        "line": 16,
-        "name": "wildcard_engine",
+        "line": 8,
+        "name": "WILDCARD_MODE_FIXED",
         "optional": false,
-        "requested": "...",
-        "role": "compatibility_primary",
-        "scope": "_wildcard_engine_module",
+        "requested": "..wildcard.mode",
+        "role": "ordinary",
+        "scope": "<module>",
         "source": "easyuse_anima/seed/compatibility.py",
-        "target": "wildcard_engine.py"
+        "target": "easyuse_anima/wildcard/mode.py"
       },
       {
-        "alias": "module",
-        "bound_name": "module",
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 17,
-            "kind": "try",
-            "line": 15
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "column": 8,
-        "compatibility_pair": {
-          "bound_name": "module",
-          "target": "wildcard_engine.py",
-          "try_line": 15
-        },
-        "conditional": true,
-        "imported": "wildcard_engine",
-        "kind": "static_import",
-        "line": 18,
-        "name": null,
+        "alias": null,
+        "bound_name": "WILDCARD_MODE_POPULATE",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": "..wildcard.mode:WILDCARD_MODE_POPULATE",
+        "kind": "static_from",
+        "line": 8,
+        "name": "WILDCARD_MODE_POPULATE",
         "optional": false,
-        "requested": "wildcard_engine",
-        "role": "compatibility_fallback",
-        "scope": "_wildcard_engine_module",
+        "requested": "..wildcard.mode",
+        "role": "ordinary",
+        "scope": "<module>",
         "source": "easyuse_anima/seed/compatibility.py",
-        "target": "wildcard_engine.py"
+        "target": "easyuse_anima/wildcard/mode.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "WILDCARD_MODE_SEQUENTIAL",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": "..wildcard.mode:WILDCARD_MODE_SEQUENTIAL",
+        "kind": "static_from",
+        "line": 8,
+        "name": "WILDCARD_MODE_SEQUENTIAL",
+        "optional": false,
+        "requested": "..wildcard.mode",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/seed/compatibility.py",
+        "target": "easyuse_anima/wildcard/mode.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "normalize_wildcard_mode",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": "..wildcard.mode:normalize_wildcard_mode",
+        "kind": "static_from",
+        "line": 8,
+        "name": "normalize_wildcard_mode",
+        "optional": false,
+        "requested": "..wildcard.mode",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/seed/compatibility.py",
+        "target": "easyuse_anima/wildcard/mode.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "SEED_CONTROL_DECREMENT",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": "..wildcard.seed:SEED_CONTROL_DECREMENT",
+        "kind": "static_from",
+        "line": 14,
+        "name": "SEED_CONTROL_DECREMENT",
+        "optional": false,
+        "requested": "..wildcard.seed",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/seed/compatibility.py",
+        "target": "easyuse_anima/wildcard/seed.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "SEED_CONTROL_FIXED",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": "..wildcard.seed:SEED_CONTROL_FIXED",
+        "kind": "static_from",
+        "line": 14,
+        "name": "SEED_CONTROL_FIXED",
+        "optional": false,
+        "requested": "..wildcard.seed",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/seed/compatibility.py",
+        "target": "easyuse_anima/wildcard/seed.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "SEED_CONTROL_INCREMENT",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": "..wildcard.seed:SEED_CONTROL_INCREMENT",
+        "kind": "static_from",
+        "line": 14,
+        "name": "SEED_CONTROL_INCREMENT",
+        "optional": false,
+        "requested": "..wildcard.seed",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/seed/compatibility.py",
+        "target": "easyuse_anima/wildcard/seed.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "SEED_CONTROL_MODES",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": "..wildcard.seed:SEED_CONTROL_MODES",
+        "kind": "static_from",
+        "line": 14,
+        "name": "SEED_CONTROL_MODES",
+        "optional": false,
+        "requested": "..wildcard.seed",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/seed/compatibility.py",
+        "target": "easyuse_anima/wildcard/seed.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "SEED_CONTROL_RANDOMIZE",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": "..wildcard.seed:SEED_CONTROL_RANDOMIZE",
+        "kind": "static_from",
+        "line": 14,
+        "name": "SEED_CONTROL_RANDOMIZE",
+        "optional": false,
+        "requested": "..wildcard.seed",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/seed/compatibility.py",
+        "target": "easyuse_anima/wildcard/seed.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "normalize_seed",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": "..wildcard.seed:normalize_seed",
+        "kind": "static_from",
+        "line": 14,
+        "name": "normalize_seed",
+        "optional": false,
+        "requested": "..wildcard.seed",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/seed/compatibility.py",
+        "target": "easyuse_anima/wildcard/seed.py"
       },
       {
         "alias": null,
@@ -33974,6 +33615,361 @@
         "role": "ordinary",
         "scope": "_Selector.__init__",
         "source": "easyuse_anima/wildcard/selector.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "annotations",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "__future__:annotations",
+        "kind": "static_from",
+        "line": 3,
+        "name": "annotations",
+        "optional": false,
+        "requested": "__future__",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/wildcard/service.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "Callable",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "collections.abc:Callable",
+        "kind": "static_from",
+        "line": 5,
+        "name": "Callable",
+        "optional": false,
+        "requested": "collections.abc",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/wildcard/service.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "Iterable",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "collections.abc:Iterable",
+        "kind": "static_from",
+        "line": 5,
+        "name": "Iterable",
+        "optional": false,
+        "requested": "collections.abc",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/wildcard/service.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "Sequence",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "collections.abc:Sequence",
+        "kind": "static_from",
+        "line": 5,
+        "name": "Sequence",
+        "optional": false,
+        "requested": "collections.abc",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/wildcard/service.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "Path",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "pathlib:Path",
+        "kind": "static_from",
+        "line": 6,
+        "name": "Path",
+        "optional": false,
+        "requested": "pathlib",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/wildcard/service.py"
+      },
+      {
+        "alias": "_wildcard_sources",
+        "bound_name": "_wildcard_sources",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".:sources",
+        "kind": "static_from",
+        "line": 8,
+        "name": "sources",
+        "optional": false,
+        "requested": ".",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/wildcard/service.py",
+        "target": "easyuse_anima/wildcard/sources.py"
+      },
+      {
+        "alias": "_WildcardLibraryCore",
+        "bound_name": "_WildcardLibraryCore",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".library:_WildcardLibrary",
+        "kind": "static_from",
+        "line": 9,
+        "name": "_WildcardLibrary",
+        "optional": false,
+        "requested": ".library",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/wildcard/service.py",
+        "target": "easyuse_anima/wildcard/library.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "WILDCARD_MODE_POPULATE",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".mode:WILDCARD_MODE_POPULATE",
+        "kind": "static_from",
+        "line": 10,
+        "name": "WILDCARD_MODE_POPULATE",
+        "optional": false,
+        "requested": ".mode",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/wildcard/service.py",
+        "target": "easyuse_anima/wildcard/mode.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "WILDCARD_MODE_SEQUENTIAL",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".mode:WILDCARD_MODE_SEQUENTIAL",
+        "kind": "static_from",
+        "line": 10,
+        "name": "WILDCARD_MODE_SEQUENTIAL",
+        "optional": false,
+        "requested": ".mode",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/wildcard/service.py",
+        "target": "easyuse_anima/wildcard/mode.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "normalize_wildcard_mode",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".mode:normalize_wildcard_mode",
+        "kind": "static_from",
+        "line": 10,
+        "name": "normalize_wildcard_mode",
+        "optional": false,
+        "requested": ".mode",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/wildcard/service.py",
+        "target": "easyuse_anima/wildcard/mode.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "WildcardExpansionBudget",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".models:WildcardExpansionBudget",
+        "kind": "static_from",
+        "line": 15,
+        "name": "WildcardExpansionBudget",
+        "optional": false,
+        "requested": ".models",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/wildcard/service.py",
+        "target": "easyuse_anima/wildcard/models.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "WildcardExpansionResult",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".models:WildcardExpansionResult",
+        "kind": "static_from",
+        "line": 15,
+        "name": "WildcardExpansionResult",
+        "optional": false,
+        "requested": ".models",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/wildcard/service.py",
+        "target": "easyuse_anima/wildcard/models.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "WildcardOption",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".models:WildcardOption",
+        "kind": "static_from",
+        "line": 15,
+        "name": "WildcardOption",
+        "optional": false,
+        "requested": ".models",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/wildcard/service.py",
+        "target": "easyuse_anima/wildcard/models.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "normalize_seed",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".seed:normalize_seed",
+        "kind": "static_from",
+        "line": 20,
+        "name": "normalize_seed",
+        "optional": false,
+        "requested": ".seed",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/wildcard/service.py",
+        "target": "easyuse_anima/wildcard/seed.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "_DEFAULT_WILDCARD_SNAPSHOTS",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".snapshot:_DEFAULT_WILDCARD_SNAPSHOTS",
+        "kind": "static_from",
+        "line": 21,
+        "name": "_DEFAULT_WILDCARD_SNAPSHOTS",
+        "optional": false,
+        "requested": ".snapshot",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/wildcard/service.py",
+        "target": "easyuse_anima/wildcard/snapshot.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "_WildcardSnapshot",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".snapshot:_WildcardSnapshot",
+        "kind": "static_from",
+        "line": 21,
+        "name": "_WildcardSnapshot",
+        "optional": false,
+        "requested": ".snapshot",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/wildcard/service.py",
+        "target": "easyuse_anima/wildcard/snapshot.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "_build_wildcard_snapshot",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".snapshot:_build_wildcard_snapshot",
+        "kind": "static_from",
+        "line": 21,
+        "name": "_build_wildcard_snapshot",
+        "optional": false,
+        "requested": ".snapshot",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/wildcard/service.py",
+        "target": "easyuse_anima/wildcard/snapshot.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "resolve_wildcard_roots",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".sources:resolve_wildcard_roots",
+        "kind": "static_from",
+        "line": 26,
+        "name": "resolve_wildcard_roots",
+        "optional": false,
+        "requested": ".sources",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/wildcard/service.py",
+        "target": "easyuse_anima/wildcard/sources.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "_expand_snapshot_texts",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 4,
+        "conditional": false,
+        "imported": ".expansion:_expand_snapshot_texts",
+        "kind": "static_from",
+        "line": 128,
+        "name": "_expand_snapshot_texts",
+        "optional": false,
+        "requested": ".expansion",
+        "role": "ordinary",
+        "scope": "_expand_wildcard_texts_with",
+        "source": "easyuse_anima/wildcard/service.py",
+        "target": "easyuse_anima/wildcard/expansion.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "_Selector",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 4,
+        "conditional": false,
+        "imported": ".selector:_Selector",
+        "kind": "static_from",
+        "line": 129,
+        "name": "_Selector",
+        "optional": false,
+        "requested": ".selector",
+        "role": "ordinary",
+        "scope": "_expand_wildcard_texts_with",
+        "source": "easyuse_anima/wildcard/service.py",
+        "target": "easyuse_anima/wildcard/selector.py"
       },
       {
         "alias": null,
@@ -65003,6 +64999,71 @@
         "scope": "<module>",
         "source": "wildcard_engine.py",
         "target": "easyuse_anima/wildcard/library.py"
+      },
+      {
+        "alias": "_wildcard_service",
+        "bound_name": "_wildcard_service",
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": true,
+            "kind": "try",
+            "line": 202
+          }
+        ],
+        "classification": "internal",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "_wildcard_service",
+          "target": "easyuse_anima/wildcard/service.py",
+          "try_line": 202
+        },
+        "conditional": true,
+        "imported": ".easyuse_anima.wildcard:service",
+        "kind": "static_from",
+        "line": 203,
+        "name": "service",
+        "optional": false,
+        "requested": ".easyuse_anima.wildcard",
+        "role": "compatibility_primary",
+        "scope": "<module>",
+        "source": "wildcard_engine.py",
+        "target": "easyuse_anima/wildcard/service.py"
+      },
+      {
+        "alias": "_wildcard_service",
+        "bound_name": "_wildcard_service",
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 204,
+            "kind": "try",
+            "line": 202
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "_wildcard_service",
+          "target": "easyuse_anima/wildcard/service.py",
+          "try_line": 202
+        },
+        "conditional": true,
+        "imported": "easyuse_anima.wildcard:service",
+        "kind": "static_from",
+        "line": 205,
+        "name": "service",
+        "optional": false,
+        "requested": "easyuse_anima.wildcard",
+        "role": "compatibility_fallback",
+        "scope": "<module>",
+        "source": "wildcard_engine.py",
+        "target": "easyuse_anima/wildcard/service.py"
       }
     ],
     "module_graph": [
@@ -66088,6 +66149,14 @@
       },
       {
         "from": "easyuse_anima/nodes/prompt_advanced_nodes.py",
+        "to": "easyuse_anima/wildcard/seed.py"
+      },
+      {
+        "from": "easyuse_anima/nodes/prompt_advanced_nodes.py",
+        "to": "easyuse_anima/wildcard/service.py"
+      },
+      {
+        "from": "easyuse_anima/nodes/prompt_advanced_nodes.py",
         "to": "easyuse_anima/workflow.py"
       },
       {
@@ -66192,6 +66261,14 @@
       },
       {
         "from": "easyuse_anima/nodes/regional_nodes.py",
+        "to": "easyuse_anima/wildcard/seed.py"
+      },
+      {
+        "from": "easyuse_anima/nodes/regional_nodes.py",
+        "to": "easyuse_anima/wildcard/service.py"
+      },
+      {
+        "from": "easyuse_anima/nodes/regional_nodes.py",
         "to": "easyuse_anima/workflow.py"
       },
       {
@@ -66256,11 +66333,19 @@
       },
       {
         "from": "easyuse_anima/nodes/wildcard_nodes.py",
-        "to": "easyuse_anima/workflow.py"
+        "to": "easyuse_anima/wildcard/mode.py"
       },
       {
         "from": "easyuse_anima/nodes/wildcard_nodes.py",
-        "to": "wildcard_engine.py"
+        "to": "easyuse_anima/wildcard/seed.py"
+      },
+      {
+        "from": "easyuse_anima/nodes/wildcard_nodes.py",
+        "to": "easyuse_anima/wildcard/service.py"
+      },
+      {
+        "from": "easyuse_anima/nodes/wildcard_nodes.py",
+        "to": "easyuse_anima/workflow.py"
       },
       {
         "from": "easyuse_anima/profiles/aio.py",
@@ -66352,7 +66437,19 @@
       },
       {
         "from": "easyuse_anima/prompt/advanced.py",
-        "to": "wildcard_engine.py"
+        "to": "easyuse_anima/wildcard/expansion.py"
+      },
+      {
+        "from": "easyuse_anima/prompt/advanced.py",
+        "to": "easyuse_anima/wildcard/mode.py"
+      },
+      {
+        "from": "easyuse_anima/prompt/advanced.py",
+        "to": "easyuse_anima/wildcard/seed.py"
+      },
+      {
+        "from": "easyuse_anima/prompt/advanced.py",
+        "to": "easyuse_anima/wildcard/service.py"
       },
       {
         "from": "easyuse_anima/prompt/anima/__init__.py",
@@ -66556,7 +66653,11 @@
       },
       {
         "from": "easyuse_anima/seed/compatibility.py",
-        "to": "wildcard_engine.py"
+        "to": "easyuse_anima/wildcard/mode.py"
+      },
+      {
+        "from": "easyuse_anima/seed/compatibility.py",
+        "to": "easyuse_anima/wildcard/seed.py"
       },
       {
         "from": "easyuse_anima/seed/execution_session.py",
@@ -66665,6 +66766,38 @@
       {
         "from": "easyuse_anima/wildcard/selector.py",
         "to": "easyuse_anima/wildcard/seed.py"
+      },
+      {
+        "from": "easyuse_anima/wildcard/service.py",
+        "to": "easyuse_anima/wildcard/expansion.py"
+      },
+      {
+        "from": "easyuse_anima/wildcard/service.py",
+        "to": "easyuse_anima/wildcard/library.py"
+      },
+      {
+        "from": "easyuse_anima/wildcard/service.py",
+        "to": "easyuse_anima/wildcard/mode.py"
+      },
+      {
+        "from": "easyuse_anima/wildcard/service.py",
+        "to": "easyuse_anima/wildcard/models.py"
+      },
+      {
+        "from": "easyuse_anima/wildcard/service.py",
+        "to": "easyuse_anima/wildcard/seed.py"
+      },
+      {
+        "from": "easyuse_anima/wildcard/service.py",
+        "to": "easyuse_anima/wildcard/selector.py"
+      },
+      {
+        "from": "easyuse_anima/wildcard/service.py",
+        "to": "easyuse_anima/wildcard/snapshot.py"
+      },
+      {
+        "from": "easyuse_anima/wildcard/service.py",
+        "to": "easyuse_anima/wildcard/sources.py"
       },
       {
         "from": "easyuse_anima/wildcard/snapshot.py",
@@ -66965,6 +67098,10 @@
       {
         "from": "wildcard_engine.py",
         "to": "easyuse_anima/wildcard/selector.py"
+      },
+      {
+        "from": "wildcard_engine.py",
+        "to": "easyuse_anima/wildcard/service.py"
       },
       {
         "from": "wildcard_engine.py",
@@ -67962,6 +68099,12 @@
       {
         "cyclic": false,
         "modules": [
+          "easyuse_anima/wildcard/service.py"
+        ]
+      },
+      {
+        "cyclic": false,
+        "modules": [
           "easyuse_anima/wildcard/snapshot.py"
         ]
       },
@@ -68010,7 +68153,7 @@
     ]
   },
   "inventory": {
-    "module_count": 170,
+    "module_count": 171,
     "modules": [
       {
         "is_package": true,
@@ -69298,13 +69441,13 @@
       },
       {
         "is_package": false,
-        "loc": 1209,
+        "loc": 1201,
         "module": "easyuse_anima.nodes.prompt_advanced_nodes",
-        "normalized_git_blob_sha1": "69201a7fec362e49fa5e0ad3c5f76f35c94b4b2f",
+        "normalized_git_blob_sha1": "8beec122ad15ff6b02ecc2f5a7303950ec048df3",
         "path": "easyuse_anima/nodes/prompt_advanced_nodes.py",
         "top_level": {
           "class_count": 3,
-          "function_count": 2,
+          "function_count": 0,
           "global_count": 11
         }
       },
@@ -69334,13 +69477,13 @@
       },
       {
         "is_package": false,
-        "loc": 522,
+        "loc": 513,
         "module": "easyuse_anima.nodes.regional_nodes",
-        "normalized_git_blob_sha1": "b2c04fa33925611880735489d080052a348246a0",
+        "normalized_git_blob_sha1": "0133bf6c526ebf1285324ddd4caade1c60b0cef3",
         "path": "easyuse_anima/nodes/regional_nodes.py",
         "top_level": {
           "class_count": 2,
-          "function_count": 4,
+          "function_count": 2,
           "global_count": 11
         }
       },
@@ -69370,9 +69513,9 @@
       },
       {
         "is_package": false,
-        "loc": 254,
+        "loc": 234,
         "module": "easyuse_anima.nodes.wildcard_nodes",
-        "normalized_git_blob_sha1": "ea0ad42c9eeca28b688af0a9b194abdd89e81696",
+        "normalized_git_blob_sha1": "963e87ca3688ec9562724d7fd9f1edbbae39dfeb",
         "path": "easyuse_anima/nodes/wildcard_nodes.py",
         "top_level": {
           "class_count": 1,
@@ -69466,13 +69609,13 @@
       },
       {
         "is_package": false,
-        "loc": 888,
+        "loc": 863,
         "module": "easyuse_anima.prompt.advanced",
-        "normalized_git_blob_sha1": "0792adce8729f8f49031b63746eaa4516d982fdf",
+        "normalized_git_blob_sha1": "c6451c3536951b3d09d264413fabf3396229ccd7",
         "path": "easyuse_anima/prompt/advanced.py",
         "top_level": {
           "class_count": 0,
-          "function_count": 30,
+          "function_count": 25,
           "global_count": 17
         }
       },
@@ -69670,13 +69813,13 @@
       },
       {
         "is_package": false,
-        "loc": 125,
+        "loc": 126,
         "module": "easyuse_anima.seed.compatibility",
-        "normalized_git_blob_sha1": "e3243d4c6060b2fad7e4ec41fa5924727f73fc0b",
+        "normalized_git_blob_sha1": "4c0682705d138d0542984286ebb04e9fe39fe598",
         "path": "easyuse_anima/seed/compatibility.py",
         "top_level": {
           "class_count": 0,
-          "function_count": 3,
+          "function_count": 2,
           "global_count": 3
         }
       },
@@ -69958,6 +70101,18 @@
       },
       {
         "is_package": false,
+        "loc": 201,
+        "module": "easyuse_anima.wildcard.service",
+        "normalized_git_blob_sha1": "f629b3b08c4abfb31a7501ee3e411a1a8cfba9bb",
+        "path": "easyuse_anima/wildcard/service.py",
+        "top_level": {
+          "class_count": 1,
+          "function_count": 10,
+          "global_count": 2
+        }
+      },
+      {
+        "is_package": false,
         "loc": 131,
         "module": "easyuse_anima.wildcard.snapshot",
         "normalized_git_blob_sha1": "873e5e5c4bd74b77256bb4fd46691690a94973e0",
@@ -70042,9 +70197,9 @@
       },
       {
         "is_package": false,
-        "loc": 300,
+        "loc": 291,
         "module": "wildcard_engine",
-        "normalized_git_blob_sha1": "b1c6912266bebda99d05357a645f4b2068258c63",
+        "normalized_git_blob_sha1": "66bb83507b63b45e14d65a02d76e133a0004563b",
         "path": "wildcard_engine.py",
         "top_level": {
           "class_count": 1,
@@ -71880,305 +72035,6 @@
         "role": "compatibility_fallback",
         "source": "autocomplete_index.py",
         "target": "easyuse_anima/autocomplete/index.py"
-      },
-      {
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 24,
-            "kind": "try",
-            "line": 10
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "conditional": true,
-        "imported": "wildcard_engine:MAX_SEED",
-        "kind": "static_from",
-        "line": 25,
-        "optional": false,
-        "role": "compatibility_fallback",
-        "source": "easyuse_anima/nodes/wildcard_nodes.py",
-        "target": "wildcard_engine.py"
-      },
-      {
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 24,
-            "kind": "try",
-            "line": 10
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "conditional": true,
-        "imported": "wildcard_engine:PUBLIC_MAX_SEED",
-        "kind": "static_from",
-        "line": 25,
-        "optional": false,
-        "role": "compatibility_fallback",
-        "source": "easyuse_anima/nodes/wildcard_nodes.py",
-        "target": "wildcard_engine.py"
-      },
-      {
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 24,
-            "kind": "try",
-            "line": 10
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "conditional": true,
-        "imported": "wildcard_engine:WILDCARD_MODE_FIXED",
-        "kind": "static_from",
-        "line": 25,
-        "optional": false,
-        "role": "compatibility_fallback",
-        "source": "easyuse_anima/nodes/wildcard_nodes.py",
-        "target": "wildcard_engine.py"
-      },
-      {
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 24,
-            "kind": "try",
-            "line": 10
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "conditional": true,
-        "imported": "wildcard_engine:WILDCARD_MODE_LABELS",
-        "kind": "static_from",
-        "line": 25,
-        "optional": false,
-        "role": "compatibility_fallback",
-        "source": "easyuse_anima/nodes/wildcard_nodes.py",
-        "target": "wildcard_engine.py"
-      },
-      {
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 24,
-            "kind": "try",
-            "line": 10
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "conditional": true,
-        "imported": "wildcard_engine:WILDCARD_MODE_POPULATE",
-        "kind": "static_from",
-        "line": 25,
-        "optional": false,
-        "role": "compatibility_fallback",
-        "source": "easyuse_anima/nodes/wildcard_nodes.py",
-        "target": "wildcard_engine.py"
-      },
-      {
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 24,
-            "kind": "try",
-            "line": 10
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "conditional": true,
-        "imported": "wildcard_engine:WILDCARD_MODE_REPRODUCE",
-        "kind": "static_from",
-        "line": 25,
-        "optional": false,
-        "role": "compatibility_fallback",
-        "source": "easyuse_anima/nodes/wildcard_nodes.py",
-        "target": "wildcard_engine.py"
-      },
-      {
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 24,
-            "kind": "try",
-            "line": 10
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "conditional": true,
-        "imported": "wildcard_engine:WILDCARD_MODE_SEQUENTIAL",
-        "kind": "static_from",
-        "line": 25,
-        "optional": false,
-        "role": "compatibility_fallback",
-        "source": "easyuse_anima/nodes/wildcard_nodes.py",
-        "target": "wildcard_engine.py"
-      },
-      {
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 24,
-            "kind": "try",
-            "line": 10
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "conditional": true,
-        "imported": "wildcard_engine:expand_wildcards",
-        "kind": "static_from",
-        "line": 25,
-        "optional": false,
-        "role": "compatibility_fallback",
-        "source": "easyuse_anima/nodes/wildcard_nodes.py",
-        "target": "wildcard_engine.py"
-      },
-      {
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 24,
-            "kind": "try",
-            "line": 10
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "conditional": true,
-        "imported": "wildcard_engine:normalize_seed",
-        "kind": "static_from",
-        "line": 25,
-        "optional": false,
-        "role": "compatibility_fallback",
-        "source": "easyuse_anima/nodes/wildcard_nodes.py",
-        "target": "wildcard_engine.py"
-      },
-      {
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 24,
-            "kind": "try",
-            "line": 10
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "conditional": true,
-        "imported": "wildcard_engine:normalize_wildcard_mode",
-        "kind": "static_from",
-        "line": 25,
-        "optional": false,
-        "role": "compatibility_fallback",
-        "source": "easyuse_anima/nodes/wildcard_nodes.py",
-        "target": "wildcard_engine.py"
-      },
-      {
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 24,
-            "kind": "try",
-            "line": 10
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "conditional": true,
-        "imported": "wildcard_engine:wildcard_sources_signature",
-        "kind": "static_from",
-        "line": 25,
-        "optional": false,
-        "role": "compatibility_fallback",
-        "source": "easyuse_anima/nodes/wildcard_nodes.py",
-        "target": "wildcard_engine.py"
-      },
-      {
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 134,
-            "kind": "try",
-            "line": 132
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "conditional": true,
-        "imported": "wildcard_engine",
-        "kind": "static_import",
-        "line": 135,
-        "optional": false,
-        "role": "compatibility_fallback",
-        "source": "easyuse_anima/prompt/advanced.py",
-        "target": "wildcard_engine.py"
-      },
-      {
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 17,
-            "kind": "try",
-            "line": 15
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "conditional": true,
-        "imported": "wildcard_engine",
-        "kind": "static_import",
-        "line": 18,
-        "optional": false,
-        "role": "compatibility_fallback",
-        "source": "easyuse_anima/seed/compatibility.py",
-        "target": "wildcard_engine.py"
       },
       {
         "branch_context": [
@@ -82943,6 +82799,29 @@
         "role": "compatibility_fallback",
         "source": "wildcard_engine.py",
         "target": "easyuse_anima/wildcard/library.py"
+      },
+      {
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 204,
+            "kind": "try",
+            "line": 202
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "conditional": true,
+        "imported": "easyuse_anima.wildcard:service",
+        "kind": "static_from",
+        "line": 205,
+        "optional": false,
+        "role": "compatibility_fallback",
+        "source": "wildcard_engine.py",
+        "target": "easyuse_anima/wildcard/service.py"
       }
     ],
     "entry_modules": [
@@ -89408,6 +89287,61 @@
         "line": 3,
         "optional": false,
         "role": "ordinary",
+        "source": "easyuse_anima/wildcard/service.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "collections.abc:Callable",
+        "kind": "static_from",
+        "line": 5,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/wildcard/service.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "collections.abc:Iterable",
+        "kind": "static_from",
+        "line": 5,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/wildcard/service.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "collections.abc:Sequence",
+        "kind": "static_from",
+        "line": 5,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/wildcard/service.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "pathlib:Path",
+        "kind": "static_from",
+        "line": 6,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/wildcard/service.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "__future__:annotations",
+        "kind": "static_from",
+        "line": 3,
+        "optional": false,
+        "role": "ordinary",
         "source": "easyuse_anima/wildcard/snapshot.py"
       },
       {
@@ -90827,6 +90761,7 @@
       "easyuse_anima/wildcard/models.py",
       "easyuse_anima/wildcard/seed.py",
       "easyuse_anima/wildcard/selector.py",
+      "easyuse_anima/wildcard/service.py",
       "easyuse_anima/wildcard/snapshot.py",
       "easyuse_anima/wildcard/sources.py",
       "easyuse_anima/workflow.py",
@@ -90999,6 +90934,7 @@
       "easyuse_anima/wildcard/models.py",
       "easyuse_anima/wildcard/seed.py",
       "easyuse_anima/wildcard/selector.py",
+      "easyuse_anima/wildcard/service.py",
       "easyuse_anima/wildcard/snapshot.py",
       "easyuse_anima/wildcard/sources.py",
       "easyuse_anima/workflow.py",
@@ -92467,7 +92403,7 @@
         "column": 28,
         "context": "assign:_ADVANCED_FIELD_SOCKET_RE",
         "kind": "import_time_call",
-        "line": 128,
+        "line": 131,
         "module": "easyuse_anima/prompt/advanced.py",
         "scope": "<module>"
       },
@@ -93236,7 +93172,7 @@
       },
       {
         "kind": "dict",
-        "line": 47,
+        "line": 27,
         "module": "easyuse_anima/nodes/wildcard_nodes.py",
         "name": "WILDCARD_MODE_DISPLAY_LABELS"
       },
@@ -93254,37 +93190,37 @@
       },
       {
         "kind": "dict",
-        "line": 49,
+        "line": 52,
         "module": "easyuse_anima/prompt/advanced.py",
         "name": "ADVANCED_FIELD_LABELS"
       },
       {
         "kind": "set",
-        "line": 48,
+        "line": 51,
         "module": "easyuse_anima/prompt/advanced.py",
         "name": "ADVANCED_FIELD_PANES"
       },
       {
         "kind": "set",
-        "line": 47,
+        "line": 50,
         "module": "easyuse_anima/prompt/advanced.py",
         "name": "ADVANCED_FIELD_TYPES"
       },
       {
         "kind": "list",
-        "line": 78,
+        "line": 81,
         "module": "easyuse_anima/prompt/advanced.py",
         "name": "EXTEND_PROMPT_SLOT_SPECS"
       },
       {
         "kind": "set",
-        "line": 72,
+        "line": 75,
         "module": "easyuse_anima/prompt/advanced.py",
         "name": "PROMPT_STUDIO_LEGACY_FIXED_WILDCARD_MODES"
       },
       {
         "kind": "dict",
-        "line": 62,
+        "line": 65,
         "module": "easyuse_anima/prompt/advanced.py",
         "name": "PROMPT_STUDIO_WILDCARD_SEED_CONTROL_ALIASES"
       },
