@@ -13,7 +13,7 @@ Read only the sections needed by the active task.
    - run package/live/benchmark only when triggered.
 3. Active backend queue:
    [`../architecture/backend-roadmap-resume-0.6.2.md`](../architecture/backend-roadmap-resume-0.6.2.md)
-   - read only D-08t and its validation section;
+   - D-08 is completed; use its audit verdict as evidence and do not restart D-08t;
    - it supersedes the stale immediate queue and broad preflight in the older
      execution roadmap.
 4. Backend target architecture and compatibility policy:
@@ -40,16 +40,16 @@ ordinary `dev` roadmap work.
 
 - Released baseline: 0.6.2.
 - Active owner: Issue #186.
-- Reviewed code baseline: D-08s / PR #520.
-- First READY task: D-08t, one cohesive Move for the seven remaining profile route
-  handler compositions.
-- Next: D-08u integrated exit audit.
-- Optional D-08v exists only if the audit proves a final production Move is required.
+- Reviewed code baseline: D-08t / PR #524.
+- D-08u integrated exit audit is complete.
+- D-08v is not required; the audit found no remaining D-08 production Move.
+- Next work must be a separate D-14 readiness Contract after Issue #186 and the
+  compatibility-shim registry are reconciled.
 - Completed #470 and the 0.6.1 Prompt Studio lane are behavior-contract references,
   not the active queue.
-- D-14 and Phase E do not start before D-08u.
+- Phase E does not start from the completed D-08 runbook.
 
-## Direct source map for D-08t
+## Completed D-08 composition audit surface
 
 ```text
 api.py
@@ -66,7 +66,7 @@ tests/fixtures/python_backend_baseline.json
 Use targeted symbol search to confirm current owners. Do not automatically read all
 files under `easyuse_anima/api/`.
 
-## D-08t boundary
+## Completed D-08t boundary
 
 Move factory invocation and request-correlation composition for:
 
@@ -138,5 +138,6 @@ representative profile list/load/save/delete/rename/fix live smoke
 - A version marker is not a publish action.
 - Technical PRO review is for unresolved cross-boundary architecture choices,
   unavoidable cycles, or insufficient compatibility evidence—not routine failures.
-- Do not start D-14, Phase E, unrelated feature work, release publication, or Registry
-  actions from this entrypoint.
+- Start D-14 only as a separate readiness Contract after the Issue and shim-registry
+  reconciliation. Do not start Phase E, unrelated feature work, release publication,
+  or Registry actions from this entrypoint.
