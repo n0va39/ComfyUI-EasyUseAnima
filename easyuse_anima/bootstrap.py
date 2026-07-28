@@ -16,6 +16,9 @@ from .api.routes.long_text_settings import (
     build_long_text_settings_handlers as _build_long_text_settings_handlers,
 )
 from .api.routes.settings import build_settings_handlers as _build_settings_handlers
+from .api.routes.translation import (
+    build_translate_prompt_handler as _build_translate_prompt_handler,
+)
 from .api.routes.wildcards import (
     build_wildcards_handler as _build_wildcards_handler,
 )
@@ -63,6 +66,18 @@ def build_wildcard_autocomplete_route_group(
         _build_classify_prompt_handler(**classify_prompt_dependencies),
     )
     return tuple(request_correlated(handler) for handler in handlers)
+
+
+def build_translation_route_handler(
+    *,
+    request_correlated,
+    translation_dependencies,
+):
+    """Compose the correlated translation route."""
+
+    return request_correlated(
+        _build_translate_prompt_handler(**translation_dependencies)
+    )
 
 
 def initialize(
