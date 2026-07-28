@@ -71,6 +71,7 @@ from .easyuse_anima.api.responses import (
 from .easyuse_anima.api import router as _api_router
 from .easyuse_anima.api.router import (
     ROUTE_REGISTRATION_MARKER as _ROUTE_REGISTRATION_MARKER,
+    build_route_definitions as _build_route_definitions,
     build_route_signature as _build_route_signature,
     register_route_definitions as _register_route_definitions,
 )
@@ -612,36 +613,28 @@ if web is not None:
         )
     )
 
-    _ROUTE_DEFINITIONS = (
-        ("get", "/easyuse_anima/settings", get_settings_handler),
-        ("post", "/easyuse_anima/set_setting", set_setting_handler),
-        ("get", "/easyuse_anima/long_text_settings", get_long_text_settings_handler),
-        ("get", "/easyuse_anima/wildcards", get_wildcards_handler),
-        (
-            "post",
-            "/easyuse_anima/long_text_settings/save",
-            save_long_text_settings_handler,
-        ),
-        ("get", "/easyuse_anima/autocomplete_status", autocomplete_status_handler),
-        ("get", "/easyuse_anima/autocomplete", autocomplete_handler),
-        ("post", "/easyuse_anima/classify_prompt", classify_prompt_handler),
-        ("post", "/easyuse_anima/translate_prompt", translate_prompt_handler),
-        (
-            "post",
-            "/easyuse_anima/aio/torch-compile/recommend",
-            aio_torch_compile_recommend_handler,
-        ),
-        ("get", "/easyuse_anima/lora_preview", lora_preview_handler),
-        ("get", "/easyuse_anima/loras", loras_handler),
-        ("get", "/easyuse_anima/lora_profiles", lora_profiles_handler),
-        ("post", "/easyuse_anima/lora_profiles/save", save_lora_profile_handler),
-        ("get", "/easyuse_anima/lora_profiles/load", load_lora_profile_handler),
-        ("get", "/easyuse_anima/aio_profiles", aio_profiles_handler),
-        ("post", "/easyuse_anima/aio_profiles/save", save_aio_profile_handler),
-        ("get", "/easyuse_anima/aio_profiles/load", load_aio_profile_handler),
-        ("post", "/easyuse_anima/aio_profiles/delete", delete_aio_profile_handler),
-        ("post", "/easyuse_anima/aio_profiles/rename", rename_aio_profile_handler),
-        ("post", "/easyuse_anima/lora_profiles/fix", fix_lora_profile_handler),
+    _ROUTE_DEFINITIONS = _build_route_definitions(
+        get_settings_handler=get_settings_handler,
+        set_setting_handler=set_setting_handler,
+        get_long_text_settings_handler=get_long_text_settings_handler,
+        get_wildcards_handler=get_wildcards_handler,
+        save_long_text_settings_handler=save_long_text_settings_handler,
+        autocomplete_status_handler=autocomplete_status_handler,
+        autocomplete_handler=autocomplete_handler,
+        classify_prompt_handler=classify_prompt_handler,
+        translate_prompt_handler=translate_prompt_handler,
+        aio_torch_compile_recommend_handler=aio_torch_compile_recommend_handler,
+        lora_preview_handler=lora_preview_handler,
+        loras_handler=loras_handler,
+        lora_profiles_handler=lora_profiles_handler,
+        save_lora_profile_handler=save_lora_profile_handler,
+        load_lora_profile_handler=load_lora_profile_handler,
+        aio_profiles_handler=aio_profiles_handler,
+        save_aio_profile_handler=save_aio_profile_handler,
+        load_aio_profile_handler=load_aio_profile_handler,
+        delete_aio_profile_handler=delete_aio_profile_handler,
+        rename_aio_profile_handler=rename_aio_profile_handler,
+        fix_lora_profile_handler=fix_lora_profile_handler,
     )
 else:
     _ROUTE_DEFINITIONS = ()
