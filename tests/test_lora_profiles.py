@@ -92,6 +92,36 @@ class LoraProfileStorageTests(unittest.TestCase):
 
         self.assertIsNone(api.routes)
 
+    def test_repository_dependency_uses_current_lora_dir_factory_and_coordinator(self):
+        api = load_api_module()
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            with (
+                patch.object(api._lora_profiles, "LORA_PROFILE_DIR", root),
+                patch.object(
+                    api._lora_profiles,
+                    "create_atomic_json_store",
+                ) as store_factory,
+                patch.object(
+                    api._lora_profiles,
+                    "PROFILE_MUTATION_COORDINATOR",
+                ) as coordinator,
+            ):
+                repository = api._lora_profiles._current_lora_profile_repository()
+                store = repository.store(root / "profile.json", backup=False)
+                locked = repository.locked()
+
+            self.assertEqual(repository.profile_dir, root)
+            self.assertIs(repository.store_factory, store_factory)
+            self.assertIs(repository.mutation_coordinator, coordinator)
+            self.assertIs(store, store_factory.return_value)
+            self.assertIs(locked, coordinator.locked.return_value)
+            store_factory.assert_called_once_with(
+                root / "profile.json",
+                backup=False,
+            )
+            coordinator.locked.assert_called_once_with(root)
+
     def test_save_and_load_lora_profile_set(self):
         api = load_api_module()
         with tempfile.TemporaryDirectory() as tmp:

@@ -4,15 +4,21 @@ from __future__ import annotations
 
 import json
 import re
+from collections.abc import Callable
+from dataclasses import dataclass
 from pathlib import Path
 
-from ..infrastructure.filesystem.atomic_json import AtomicJsonStore
+from ..infrastructure.filesystem.atomic_json import (
+    AtomicJsonStore,
+    create_atomic_json_store,
+)
 from .contract import (
     ProfileContractError,
     interpret_profile_document,
     legacy_profile_id,
     normalize_profile_filename_identity,
 )
+from .mutation import DirectoryMutationCoordinator
 
 INVALID_PROFILE_NAME_CHARS = re.compile(r'[<>:"/\\|?*\x00-\x1f]+')
 WINDOWS_RESERVED_FILE_BASENAMES = {
@@ -29,6 +35,24 @@ WINDOWS_RESERVED_FILE_BASENAMES = {
 
 class InvalidProfileDataError(ValueError):
     pass
+
+
+@dataclass(frozen=True, slots=True)
+class _ProfileRepository:
+    profile_dir: Path
+    store_factory: Callable[..., AtomicJsonStore]
+    mutation_coordinator: DirectoryMutationCoordinator
+
+    def store(
+        self,
+        path: Path,
+        *,
+        backup: bool | str | Path = True,
+    ) -> AtomicJsonStore:
+        return self.store_factory(path, backup=backup)
+
+    def locked(self):
+        return self.mutation_coordinator.locked(self.profile_dir)
 
 
 def _windows_profile_filename_identity(name: str) -> str:
@@ -49,7 +73,7 @@ def _sanitize_profile_name(name: str) -> str:
 
 
 def _read_profile_json(path: Path):
-    store = AtomicJsonStore(path)
+    store = create_atomic_json_store(path)
     with store.locked():
         try:
             return store.read()

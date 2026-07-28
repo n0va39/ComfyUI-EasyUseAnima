@@ -102,6 +102,22 @@ class AIOProfileStorageTests(unittest.TestCase):
             api.PROFILE_MUTATION_COORDINATOR,
             api._profile_mutation.PROFILE_MUTATION_COORDINATOR,
         )
+        self.assertIs(
+            api._lora_profiles.PROFILE_MUTATION_COORDINATOR,
+            api.PROFILE_MUTATION_COORDINATOR,
+        )
+        self.assertIs(
+            api._aio_profiles.PROFILE_MUTATION_COORDINATOR,
+            api.PROFILE_MUTATION_COORDINATOR,
+        )
+        self.assertIs(
+            api._lora_profiles.AtomicJsonStore,
+            api._profile_repository.AtomicJsonStore,
+        )
+        self.assertIs(
+            api._aio_profiles.AtomicJsonStore,
+            api._profile_repository.AtomicJsonStore,
+        )
         self.assertIs(api.legacy_profile_id, api._profile_contract.legacy_profile_id)
         self.assertIs(api._read_profile_json, api._profile_repository._read_profile_json)
         self.assertIs(api._save_aio_profile, api._aio_profiles._save_aio_profile)
@@ -116,6 +132,36 @@ class AIOProfileStorageTests(unittest.TestCase):
             api._fix_lora_profile_payload,
             api._lora_profiles._fix_lora_profile_payload,
         )
+
+    def test_repository_dependency_uses_current_aio_dir_factory_and_coordinator(self):
+        api = load_api_module()
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            with (
+                patch.object(api._aio_profiles, "AIO_PROFILE_DIR", root),
+                patch.object(
+                    api._aio_profiles,
+                    "create_atomic_json_store",
+                ) as store_factory,
+                patch.object(
+                    api._aio_profiles,
+                    "PROFILE_MUTATION_COORDINATOR",
+                ) as coordinator,
+            ):
+                repository = api._aio_profiles._current_aio_profile_repository()
+                store = repository.store(root / "profile.json", backup=False)
+                locked = repository.locked()
+
+            self.assertEqual(repository.profile_dir, root)
+            self.assertIs(repository.store_factory, store_factory)
+            self.assertIs(repository.mutation_coordinator, coordinator)
+            self.assertIs(store, store_factory.return_value)
+            self.assertIs(locked, coordinator.locked.return_value)
+            store_factory.assert_called_once_with(
+                root / "profile.json",
+                backup=False,
+            )
+            coordinator.locked.assert_called_once_with(root)
 
     def test_save_load_list_rename_and_delete_profile(self):
         api = load_api_module()

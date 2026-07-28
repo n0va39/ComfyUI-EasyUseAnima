@@ -159,14 +159,14 @@
       "goal": "Introduce explicit LoRA/AiO profile directories, store factory, and shared profile coordinator behind current canonical functions and root aliases.",
       "id": "E-03d",
       "name": "profile repositories",
-      "status": "ready"
+      "status": "complete"
     },
     {
       "classification": "Contract",
       "goal": "Reconcile ownership targets and prove no repository or filesystem state remains ambiguously owned before E-04.",
       "id": "E-03e",
       "name": "completion audit",
-      "status": "pending"
+      "status": "ready"
     }
   ],
   "owners": [
@@ -316,7 +316,7 @@
         {
           "function": "_read_profile_json",
           "required_calls": [
-            "AtomicJsonStore",
+            "create_atomic_json_store",
             "store.locked",
             "store.read"
           ]
@@ -334,6 +334,20 @@
       "module": "easyuse_anima/profiles/repository.py",
       "path_inputs": [],
       "preserved_contract": "Filename validation, legacy identity/revision projection, invalid-data mapping, and list metadata remain profile behavior.",
+      "repository_dependency": {
+        "class": "_ProfileRepository",
+        "coordinator_call": "self.mutation_coordinator.locked",
+        "coordinator_method": "locked",
+        "factory": "create_atomic_json_store",
+        "factory_call": "self.store_factory",
+        "factory_import": "..infrastructure.filesystem.atomic_json",
+        "factory_method": "store",
+        "fields": [
+          "profile_dir",
+          "store_factory",
+          "mutation_coordinator"
+        ]
+      },
       "test_evidence": [
         "tests/test_lora_profiles.py",
         "tests/test_aio_profiles.py",
@@ -350,18 +364,28 @@
       ],
       "function_contracts": [
         {
+          "function": "_list_lora_profiles",
+          "required_calls": [
+            "_current_lora_profile_repository",
+            "_profile_list_item"
+          ]
+        },
+        {
           "function": "_save_lora_profile",
           "required_calls": [
-            "AtomicJsonStore",
-            "AtomicJsonStore().write",
-            "PROFILE_MUTATION_COORDINATOR.locked",
+            "_current_lora_profile_repository",
             "_find_lora_profile_path",
+            "_lora_profile_path",
+            "repository.locked",
+            "repository.store",
+            "repository.store().write",
             "verify_profile_precondition"
           ]
         },
         {
           "function": "_load_lora_profile",
           "required_calls": [
+            "_current_lora_profile_repository",
             "_find_lora_profile_path",
             "_read_profile_json",
             "interpret_profile_document"
@@ -387,6 +411,20 @@
         }
       ],
       "preserved_contract": "Create/overwrite identity and revision, filename collision, backup recovery, profile payload normalization, and LoRA repair behavior remain unchanged.",
+      "repository_binding": {
+        "builder": "_current_lora_profile_repository",
+        "class": "_ProfileRepository",
+        "class_import": ".repository",
+        "coordinator": "PROFILE_MUTATION_COORDINATOR",
+        "coordinator_import": ".mutation",
+        "factory": "create_atomic_json_store",
+        "factory_import": "..infrastructure.filesystem.atomic_json",
+        "required_tokens": [
+          "profile_dir=LORA_PROFILE_DIR",
+          "store_factory=create_atomic_json_store",
+          "mutation_coordinator=PROFILE_MUTATION_COORDINATOR"
+        ]
+      },
       "test_evidence": [
         "tests/test_lora_profiles.py",
         "tests/test_profile_contract.py",
@@ -397,18 +435,29 @@
       "dynamic_dependencies": [],
       "function_contracts": [
         {
+          "function": "_list_aio_profiles",
+          "required_calls": [
+            "_current_aio_profile_repository",
+            "_profile_list_item"
+          ]
+        },
+        {
           "function": "_save_aio_profile",
           "required_calls": [
-            "AtomicJsonStore",
-            "AtomicJsonStore().write",
-            "PROFILE_MUTATION_COORDINATOR.locked",
+            "_current_aio_profile_repository",
             "_find_aio_profile_path",
+            "_list_aio_profiles",
+            "_aio_profile_path",
+            "repository.locked",
+            "repository.store",
+            "repository.store().write",
             "verify_profile_precondition"
           ]
         },
         {
           "function": "_load_aio_profile",
           "required_calls": [
+            "_current_aio_profile_repository",
             "_find_aio_profile_path",
             "_read_profile_json"
           ]
@@ -416,9 +465,10 @@
         {
           "function": "_delete_aio_profile",
           "required_calls": [
-            "AtomicJsonStore",
-            "PROFILE_MUTATION_COORDINATOR.locked",
+            "_current_aio_profile_repository",
             "_find_aio_profile_path",
+            "repository.locked",
+            "repository.store",
             "store.delete",
             "verify_profile_precondition"
           ]
@@ -426,10 +476,13 @@
         {
           "function": "_rename_aio_profile",
           "required_calls": [
-            "AtomicJsonStore",
-            "AtomicJsonStore().replace_from",
-            "PROFILE_MUTATION_COORDINATOR.locked",
+            "_current_aio_profile_repository",
+            "_aio_profile_path",
             "_find_aio_profile_path",
+            "repository.locked",
+            "repository.store",
+            "repository.store().replace_from",
+            "repository.store().write",
             "verify_profile_precondition"
           ]
         }
@@ -453,6 +506,20 @@
         }
       ],
       "preserved_contract": "Create/overwrite/delete/rename identity-before-revision CAS, source/target preconditions, same-name rename, backup rollback, size validation, and response payloads remain unchanged.",
+      "repository_binding": {
+        "builder": "_current_aio_profile_repository",
+        "class": "_ProfileRepository",
+        "class_import": ".repository",
+        "coordinator": "PROFILE_MUTATION_COORDINATOR",
+        "coordinator_import": ".mutation",
+        "factory": "create_atomic_json_store",
+        "factory_import": "..infrastructure.filesystem.atomic_json",
+        "required_tokens": [
+          "profile_dir=profile_dir or AIO_PROFILE_DIR",
+          "store_factory=create_atomic_json_store",
+          "mutation_coordinator=PROFILE_MUTATION_COORDINATOR"
+        ]
+      },
       "test_evidence": [
         "tests/test_aio_profiles.py",
         "tests/test_profile_contract.py",

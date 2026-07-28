@@ -174,7 +174,7 @@ class PythonRepositoryFilesystemContractTests(unittest.TestCase):
         )
         self.assertEqual(
             [move["status"] for move in self.fixture["move_queue"]],
-            ["complete", "complete", "ready", "pending"],
+            ["complete", "complete", "complete", "ready"],
         )
 
         evidence = {
@@ -295,14 +295,49 @@ class PythonRepositoryFilesystemContractTests(unittest.TestCase):
                             repository["factory_method"],
                         ),
                     )
-                    self.assertIn(
-                        repository["class"],
-                        _function_calls(module, repository["builder"]),
-                    )
+                    if "builder" in repository:
+                        self.assertIn(
+                            repository["class"],
+                            _function_calls(module, repository["builder"]),
+                        )
                     self.assertEqual(
                         _import_source(module, repository["factory"]),
                         repository["factory_import"],
                     )
+                    if "coordinator_method" in repository:
+                        self.assertIn(
+                            repository["coordinator_call"],
+                            _class_method_calls(
+                                module,
+                                repository["class"],
+                                repository["coordinator_method"],
+                            ),
+                        )
+
+            binding = lane.get("repository_binding")
+            if binding is not None:
+                with self.subTest(lane=lane["id"], binding=binding["builder"]):
+                    self.assertIn(
+                        binding["class"],
+                        _function_calls(module, binding["builder"]),
+                    )
+                    self.assertEqual(
+                        _import_source(module, binding["class"]),
+                        binding["class_import"],
+                    )
+                    self.assertEqual(
+                        _import_source(module, binding["factory"]),
+                        binding["factory_import"],
+                    )
+                    self.assertEqual(
+                        _import_source(module, binding["coordinator"]),
+                        binding["coordinator_import"],
+                    )
+                    for token in binding["required_tokens"]:
+                        self.assertIn(
+                            _normalized_source_token(token),
+                            module_source,
+                        )
 
     def test_root_compatibility_bindings_and_patch_seams_are_preserved(self):
         for binding in self.fixture["compatibility_bindings"]:
