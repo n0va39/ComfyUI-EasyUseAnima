@@ -77,6 +77,7 @@ from .easyuse_anima.api.router import (
 )
 from .easyuse_anima.bootstrap import (
     build_aio_torch_compile_route_handler as _build_aio_torch_compile_route_handler,
+    build_lora_read_route_group as _build_lora_read_route_group,
     build_settings_route_group as _build_settings_route_group,
     build_translation_route_handler as _build_translation_route_handler,
     build_wildcard_autocomplete_route_group as _build_wildcard_autocomplete_route_group,
@@ -86,15 +87,9 @@ from .easyuse_anima.api.routes.aio_profile_mutations import (
 )
 from .easyuse_anima.api.routes import autocomplete as _api_autocomplete_routes
 from .easyuse_anima.api.routes import long_text_settings as _api_long_text_routes
-from .easyuse_anima.api.routes.lora_catalog import (
-    build_loras_handler as _build_loras_handler,
-)
 from .easyuse_anima.api.routes import lora_preview as _api_lora_preview_routes
 from .easyuse_anima.api.routes.lora_profile_fix import (
     build_lora_profile_fix_handler as _build_lora_profile_fix_handler,
-)
-from .easyuse_anima.api.routes.lora_preview import (
-    build_lora_preview_handler as _build_lora_preview_handler,
 )
 from .easyuse_anima.api.routes.profile_lists import (
     build_profile_list_handlers as _build_profile_list_handlers,
@@ -454,22 +449,28 @@ if web is not None:
         },
     )
 
-    lora_preview_handler = _request_correlated(
-        _build_lora_preview_handler(
-            run_file_io=lambda function, *args: _run_file_io(function, *args),
-            resolve_lora_preview_path=lambda name: _resolve_lora_preview_path(name),
-            empty_response=lambda **kwargs: web.Response(**kwargs),
-            file_response=lambda path, **kwargs: web.FileResponse(path, **kwargs),
-            basename=lambda path: os.path.basename(path),
-        )
-    )
-
-    loras_handler = _request_correlated(
-        _build_loras_handler(
-            run_file_io=lambda function, *args: _run_file_io(function, *args),
-            list_loras=lambda: _list_loras(),
-            json_response=lambda payload: web.json_response(payload),
-        )
+    (
+        lora_preview_handler,
+        loras_handler,
+    ) = _build_lora_read_route_group(
+        request_correlated=_request_correlated,
+        lora_preview_dependencies={
+            "run_file_io": lambda function, *args: _run_file_io(function, *args),
+            "resolve_lora_preview_path": lambda name: _resolve_lora_preview_path(
+                name
+            ),
+            "empty_response": lambda **kwargs: web.Response(**kwargs),
+            "file_response": lambda path, **kwargs: web.FileResponse(
+                path,
+                **kwargs,
+            ),
+            "basename": lambda path: os.path.basename(path),
+        },
+        lora_catalog_dependencies={
+            "run_file_io": lambda function, *args: _run_file_io(function, *args),
+            "list_loras": lambda: _list_loras(),
+            "json_response": lambda payload: web.json_response(payload),
+        },
     )
 
     (
