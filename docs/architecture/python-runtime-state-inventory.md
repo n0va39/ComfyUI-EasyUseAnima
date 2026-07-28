@@ -36,7 +36,7 @@ E-01 drift gate until classified.
 
 | Entry | Current owner and lifetime | Synchronization / cleanup today | Target |
 | --- | --- | --- | --- |
-| `aio-first-pass-cache` | one private default AiO cache store owns entries/order/enabled/generation/metrics/`RLock`; bootstrap installs that exact owner behind a narrow private runtime port | owner clear/disable invalidate entries and generation while preserving metrics; metric reset is separate | E-08c complete; E-08d audit next |
+| `aio-first-pass-cache` | one private default AiO cache store owns entries/order/enabled/generation/metrics/`RLock`; bootstrap installs that exact owner behind a narrow private runtime port | owner clear/disable invalidate entries and generation while preserving metrics; metric reset is separate | E-08 complete; E-08d audited |
 | `api-file-io-limiters` | canonical API file-I/O module, weak per-event-loop limiter | registry `Lock`; weak expiry, no explicit close | E-09 |
 | `autocomplete-dataset-cache` | canonical dataset snapshot and Future single-flight owner, injected into the bootstrap-composed narrow service | one owner `Lock`; completed-snapshot clear only | E-05 complete; E-05e audited |
 | `autocomplete-index-locks` | canonical index-store per-path lock owner, injected into the bootstrap-composed narrow service | guard plus retained per-path locks; idempotent no-op close | E-05 complete; E-05e audited |
@@ -187,5 +187,11 @@ the exact `_DEFAULT_AIO_FIRST_PASS_CACHE` identity as
 `RuntimeServices.aio_first_pass_cache`, and leaves the existing canonical key/get/put
 to `FirstPassRuntime` to stage caller path unchanged. Feature code does not import
 the runtime or bootstrap, repeated initialize reuses the same installed runtime, and
-no root alias or public export changes. The next bounded unit is the production-free
-E-08d completion audit only.
+no root alias or public export changes.
+
+The production-free E-08d audit reconciles the single E-01 entry with that exact
+owner, records feature cleanup complete while whole-runtime ordering remains E-09,
+preserves package/no-host safety, feature import direction, all seven root identities,
+and the narrow runtime binding, and records zero ambiguous AiO cache state. E-08 is
+complete. The next bounded unit is a separate E-09 runtime shutdown and cleanup
+Contract.

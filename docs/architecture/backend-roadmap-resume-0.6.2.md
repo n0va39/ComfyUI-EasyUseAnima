@@ -2,13 +2,12 @@
 
 ## Status and authority
 
-- Status: D-08, E-01 through E-07, E-08a, E-08b, and the E-08c composition
-  Move are completed;
+- Status: D-08 and E-01 through E-08 are completed;
   the D-14
   readiness audit retains every root surface and blocks retirement/final-freeze work.
-- Code-review base before E-08c:
-  `dev@ac527cd5d1621a6f1fda694670be6e80f996579c` after E-08b / PR #553.
-- Document baseline: completed E-08c AiO first-pass cache composition Move.
+- Code-review base before E-08d:
+  `dev@5ede3b0e34f8b83c5aaae70bd843e3c58fa9ed1b` after E-08c / PR #554.
+- Document baseline: completed E-08d AiO first-pass cache ownership audit.
 - Released baseline: 0.6.2.
 - Scope: completed D-08 evidence, the D-14 readiness decision, completed #187
   E-01/E-02/E-03/E-04 work, the E-05a Contract, the E-05b snapshot owner Move,
@@ -18,7 +17,7 @@
   E-06d narrow RuntimeServices/bootstrap composition Move, the E-06e completion
   audit Contract, the completed E-07 bridge, the E-08a AiO first-pass cache
   ownership Contract, the E-08b owner Move, the E-08c narrow composition Move, and
-  the next bounded E-08d completion audit Contract.
+  the E-08d completion audit Contract. The next bounded phase is E-09 only.
 - This document owns the current immediate queue and supersedes the stale queue and
   broad preflight command in `python-backend-execution-roadmap.md`.
 - `python-backend.md`, ADR-001, ADR-002, and the compatibility-shim registry still own
@@ -435,7 +434,10 @@ replacement seams. E-08c adds one private `AIOFirstPassCachePort`, installs the 
 default owner as `RuntimeServices.aio_first_pass_cache`, and preserves the existing
 `FirstPassRuntime` caller path, feature import direction, and repeated initialize
 behavior. The queue remains E-08a Contract, E-08b owner Move, E-08c narrow
-RuntimeServices/bootstrap composition, and E-08d completion audit. The next READY
-unit is the production-free E-08d Contract only after E-08c merges. Do not start
-E-09 cleanup, D-14 retirement, release, or Registry work inside E-08d.
+RuntimeServices/bootstrap composition, and E-08d completion audit. E-08d reconciles
+the single E-01 entry, feature cleanup, import direction, seven root identities, and
+the exact narrow runtime binding, and records zero ambiguous AiO cache state without
+production changes. E-08 is complete. The next READY unit after E-08d merges is a
+separate E-09 runtime shutdown and cleanup Contract. Do not start E-09 implementation,
+D-14 retirement, release, or Registry work inside E-08d.
 ```
