@@ -26,7 +26,8 @@ Read only the sections needed by the active task.
    - Prompt Studio execution projection: `../architecture/prompt-studio-execution-derived-projection.md`
    - dual-canvas UI checks: `browser-smoke-matrix.md`
    - custom-node integrations: `custom-node-integrations.md`
-   - Registry scanner prevention for a future release: `registry-scanner-safety.md`
+   - Registry scanner prevention for a future release:
+     [docs/development/registry-scanner-safety.md](registry-scanner-safety.md)
    - workflows: `../Anima AiO/Workflow_Management.md`
 7. Confirm `git status --short`, current branch/worktree, direct source, and direct
    tests.
