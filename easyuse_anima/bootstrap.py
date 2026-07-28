@@ -6,10 +6,19 @@ import logging
 import threading
 from collections.abc import Callable
 
+from .api.routes.autocomplete import (
+    build_autocomplete_handlers as _build_autocomplete_handlers,
+)
+from .api.routes.autocomplete import (
+    build_classify_prompt_handler as _build_classify_prompt_handler,
+)
 from .api.routes.long_text_settings import (
     build_long_text_settings_handlers as _build_long_text_settings_handlers,
 )
 from .api.routes.settings import build_settings_handlers as _build_settings_handlers
+from .api.routes.wildcards import (
+    build_wildcards_handler as _build_wildcards_handler,
+)
 from .infrastructure.comfy.provider import DefaultComfyHostProvider
 from .runtime import RuntimeServices, install_runtime
 from .seed.service import InMemorySeedReservationService
@@ -35,6 +44,23 @@ def build_settings_route_group(
     handlers = (
         *_build_settings_handlers(**settings_dependencies),
         *_build_long_text_settings_handlers(**long_text_settings_dependencies),
+    )
+    return tuple(request_correlated(handler) for handler in handlers)
+
+
+def build_wildcard_autocomplete_route_group(
+    *,
+    request_correlated,
+    wildcards_dependencies,
+    autocomplete_dependencies,
+    classify_prompt_dependencies,
+):
+    """Compose correlated wildcard and autocomplete routes."""
+
+    handlers = (
+        _build_wildcards_handler(**wildcards_dependencies),
+        *_build_autocomplete_handlers(**autocomplete_dependencies),
+        _build_classify_prompt_handler(**classify_prompt_dependencies),
     )
     return tuple(request_correlated(handler) for handler in handlers)
 
