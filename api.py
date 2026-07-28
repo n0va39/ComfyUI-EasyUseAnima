@@ -273,42 +273,22 @@ _resolve_lora_preview_path = _api_lora_preview_routes.build_lora_preview_path_re
 )
 
 
-_SAFE_PROFILE_VALIDATION_MESSAGES = frozenset(
-    {
-        "Profile name is required",
-        "Profile name is reserved on Windows",
-        "Invalid profile path",
-        "System profile names are reserved",
-        "Profile settings must be an object",
-        "Profile settings are too large",
-        f"A maximum of {MAX_AIO_PROFILES} profiles can be saved",
-    }
-)
-
-
-def _profile_error_response(exc: Exception):
-    if isinstance(exc, ProfileMutationError):
-        return _error_response(
-            exc.status,
-            exc.code,
-            exc.message,
-            details=exc.details,
-        )
-    if isinstance(exc, FileExistsError):
-        return _error_response(409, "profile_exists", "Profile already exists")
-    if isinstance(exc, FileNotFoundError):
-        return _error_response(404, "profile_not_found", "Profile not found")
-    if isinstance(
+(
+    _SAFE_PROFILE_VALIDATION_MESSAGES,
+    _profile_error_response,
+) = _api_responses.build_profile_error_response(
+    max_aio_profiles=MAX_AIO_PROFILES,
+    is_profile_mutation_error=lambda exc: isinstance(exc, ProfileMutationError),
+    is_file_exists_error=lambda exc: isinstance(exc, FileExistsError),
+    is_file_not_found_error=lambda exc: isinstance(exc, FileNotFoundError),
+    is_invalid_profile_data_error=lambda exc: isinstance(
         exc,
         (json.JSONDecodeError, UnicodeDecodeError, InvalidProfileDataError),
-    ):
-        return _error_response(422, "invalid_profile_data", "Profile data is invalid")
-    if isinstance(exc, ValueError):
-        message = str(exc)
-        if message not in _SAFE_PROFILE_VALIDATION_MESSAGES:
-            message = "Request validation failed"
-        return _error_response(422, "invalid_request", message)
-    raise exc
+    ),
+    is_value_error=lambda exc: isinstance(exc, ValueError),
+    get_safe_validation_messages=lambda: _SAFE_PROFILE_VALIDATION_MESSAGES,
+    error_response=lambda *args, **kwargs: _error_response(*args, **kwargs),
+)
 
 
 (
