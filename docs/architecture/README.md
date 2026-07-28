@@ -10,15 +10,14 @@ then only the active task section, owning Issue, direct source, and direct tests
 ## Active sequencing
 
 - Issue [#187](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/187)
-  owns Phase E. E-01 through E-04 and E-05a through E-05d are complete; the next
-  bounded unit is the separate E-05e autocomplete ownership completion audit
-  Contract.
+  owns Phase E. E-01 through E-05 are complete; the next bounded unit is the
+  separate production-free E-06a wildcard snapshot ownership Contract.
   Issue #186 retains D-14/shim decisions.
 - [`backend-roadmap-resume-0.6.2.md`](backend-roadmap-resume-0.6.2.md)
   is the current execution source of truth. Read it before the older accumulated
   roadmap.
-- Reviewed code baseline before E-05d: E-05c / PR #544 at
-  `8dfbc1162ee83097f90472663557d0cc38f691e4`.
+- Reviewed code baseline before E-05e: E-05d / PR #545 at
+  `386d4632f5a903a5d03de52d6bd9a997ad1ffe2d`.
 - D-08 is complete and D-08v is not required.
 - D-14 readiness retains every root surface; retirement/final-freeze work is blocked.
 - E-01 inventory Contract:
@@ -35,17 +34,18 @@ then only the active task section, owning Issue, direct source, and direct tests
   [`python-runtime-e03-repository-filesystem-contract.md`](python-runtime-e03-repository-filesystem-contract.md).
 - Completed E-04 translation runtime ownership Contract and audit:
   [`python-runtime-e04-translation-contract.md`](python-runtime-e04-translation-contract.md).
-- E-05 autocomplete runtime ownership Contract:
+- Completed E-05 autocomplete runtime ownership Contract and audit:
   [`python-runtime-e05-autocomplete-contract.md`](python-runtime-e05-autocomplete-contract.md).
-- First READY task after E-05d: a separate #187 E-05e autocomplete ownership
-  completion audit Contract only.
+- First READY task after E-05e: a separate #187 E-06a wildcard snapshot ownership
+  Contract only.
 - Completed #470 and the #413/#414/#415 queue/live-UI lanes remain contract references,
   not active blockers.
 - Released code baseline: 0.6.2. Registry activation is external administration and
   does not block `dev`; do not republish or mutate the release.
 - Completed #409/#410/#411 and deferred #440/#441 do not alter the E-01 boundary.
-- E-05d authorizes only the separate E-05e Contract. It does not authorize E-06+
-  implementation, later Phase E work, root removal, release, or Registry.
+- E-05e authorizes only the separate production-free E-06a Contract. It does not
+  authorize an E-06 production Move, later Phase E work, root removal, release, or
+  Registry.
 
 ## Current code boundary
 

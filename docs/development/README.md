@@ -52,20 +52,21 @@ ordinary `dev` roadmap work.
 
 - Released baseline: 0.6.2.
 - Active owner: Issue #187 for Phase E; Issue #186 retains D-14/shim decisions.
-- Reviewed code baseline before E-05c: E-05b / PR #543.
+- Reviewed code baseline before E-05e: E-05d / PR #545 at
+  `386d4632f5a903a5d03de52d6bd9a997ad1ffe2d`.
 - D-08u integrated exit audit is complete.
 - D-08v is not required; the audit found no remaining D-08 production Move.
 - D-14 readiness is audited: every root surface is retained and retirement/final
   freeze is blocked by production/lifecycle consumers, missing release windows, or
   insufficient consumer evidence.
-- E-01 through E-04 and E-05a through E-05c are complete. The next work is only a
-  separate #187 E-05d bootstrap composition and narrow adapter wiring Move. The
+- E-01 through E-05 are complete. The next work is only a separate production-free
+  #187 E-06a wildcard snapshot ownership Contract. The
   #323 E-02a/E-07 bridge remains completed evidence, not authorization for unrelated
   feature migration.
 - Completed #470 and the 0.6.1 Prompt Studio lane are behavior-contract references,
   not the active queue.
-- Do not remove root aliases or start E-05e+, E-06 through E-10, release, or
-  Registry work from this entrypoint.
+- Do not remove root aliases or start an E-06 production Move, E-07 through E-10,
+  release, or Registry work from this entrypoint.
 
 ## Completed D-08 composition audit surface
 
@@ -156,6 +157,7 @@ representative profile list/load/save/delete/rename/fix live smoke
 - A version marker is not a publish action.
 - Technical PRO review is for unresolved cross-boundary architecture choices,
   unavoidable cycles, or insufficient compatibility evidence—not routine failures.
-- D-14 readiness is recorded and authorizes no removal. E-05c index-store ownership
-  is complete; use it only to start the separate E-05d Move. Do not infer E-05e+,
-  E-09 cleanup, release publication, or Registry actions.
+- D-14 readiness is recorded and authorizes no removal. E-05 ownership and its
+  production-free completion audit are complete; use that evidence only to start the
+  separate E-06a Contract. Do not infer an E-06 production Move, E-09 cleanup,
+  release publication, or Registry actions.

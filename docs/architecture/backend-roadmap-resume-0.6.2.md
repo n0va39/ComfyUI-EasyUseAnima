@@ -2,16 +2,17 @@
 
 ## Status and authority
 
-- Status: D-08, E-01 through E-04, and E-05a through E-05d are completed; the D-14
+- Status: D-08 and E-01 through E-05 are completed; the D-14
   readiness audit retains every root surface and blocks retirement/final-freeze work.
-- Code-review base before E-05d:
-  `dev@8dfbc1162ee83097f90472663557d0cc38f691e4` after E-05c / PR #544.
-- Document baseline: completed E-05d autocomplete bootstrap composition Move.
+- Code-review base before E-05e:
+  `dev@386d4632f5a903a5d03de52d6bd9a997ad1ffe2d` after E-05d / PR #545.
+- Document baseline: completed production-free E-05e autocomplete ownership audit.
 - Released baseline: 0.6.2.
 - Scope: completed D-08 evidence, the D-14 readiness decision, completed #187
   E-01/E-02/E-03/E-04 work, the E-05a Contract, the E-05b snapshot owner Move,
-  the E-05c index-store owner Move, the E-05d composition Move, and the next
-  bounded E-05e completion audit Contract.
+  the E-05c index-store owner Move, the E-05d composition Move, the E-05e
+  completion audit Contract, and the next bounded E-06a wildcard snapshot
+  ownership Contract.
 - This document owns the current immediate queue and supersedes the stale queue and
   broad preflight command in `python-backend-execution-roadmap.md`.
 - `python-backend.md`, ADR-001, ADR-002, and the compatibility-shim registry still own
@@ -385,7 +386,12 @@ canonical pre-initialize fallback. Canonical feature identities, call-time root
 patch seams, owner identities, bootstrap retry/refresh behavior, and no-host import
 safety remain unchanged.
 
-Start only a separate #187 E-05e completion audit Contract from latest origin/dev.
-Do not start E-06 through E-10, D-14 retirement, release, or Registry work inside
-E-05e.
+E-05e reconciles the three E-01 autocomplete entries with exactly two owners,
+records completed-cache `clear()` and retained-lock no-op `close()` dispositions,
+proves direct root identities and package/no-host import safety, and records zero
+ambiguous autocomplete state without changing production. E-05 is complete.
+
+Start only a separate #187 E-06a wildcard snapshot ownership Contract from latest
+origin/dev. Do not start an E-06 production Move, E-07 through E-10, D-14 retirement,
+release, or Registry work inside E-06a.
 ```

@@ -164,6 +164,15 @@ def _top_level_assignment_call(module: str, assigned_name: str) -> str:
     raise AssertionError(f"{module} has no call assignment for {assigned_name}")
 
 
+def _imported_names(module: str) -> set[tuple[str, str]]:
+    return {
+        (node.module, alias.name)
+        for node in ast.walk(_tree(module))
+        if isinstance(node, ast.ImportFrom) and node.module
+        for alias in node.names
+    }
+
+
 class PythonAutocompleteRuntimeContractTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -177,6 +186,7 @@ class PythonAutocompleteRuntimeContractTests(unittest.TestCase):
             set(self.fixture),
             {
                 "classification",
+                "completion_audit",
                 "compatibility_surfaces",
                 "decisions",
                 "declarative_policy",
@@ -201,6 +211,10 @@ class PythonAutocompleteRuntimeContractTests(unittest.TestCase):
             ["Contract", "Move", "Move", "Move", "Contract"],
         )
         self.assertEqual(
+            [move["status"] for move in self.fixture["move_queue"]],
+            ["complete", "complete", "complete", "complete", "complete"],
+        )
+        self.assertEqual(
             [owner["id"] for owner in self.fixture["owners"]],
             ["dataset-snapshots", "index-store"],
         )
@@ -209,6 +223,104 @@ class PythonAutocompleteRuntimeContractTests(unittest.TestCase):
                 self.assertTrue(owner["evidence"])
                 for evidence in owner["evidence"]:
                     self.assertTrue((ROOT / evidence).is_file(), evidence)
+
+    def test_completion_audit_reconciles_cleanup_import_and_root_identity(self):
+        audit = self.fixture["completion_audit"]
+        owners = {owner["id"]: owner for owner in self.fixture["owners"]}
+        e01_entries = {
+            entry["id"]: entry for entry in self.e01_fixture["entries"]
+        }
+
+        self.assertEqual(audit["classification"], "Contract")
+        self.assertEqual(audit["production_changes"], 0)
+        self.assertEqual(audit["ambiguous_state_owners"], [])
+        self.assertEqual(
+            len({owner["current_owner"] for owner in owners.values()}),
+            len(owners),
+        )
+        self.assertEqual(
+            audit["next_phase"],
+            "E-06a wildcard snapshot ownership Contract",
+        )
+
+        reconciliations = {
+            item["e01_entry"]: item
+            for item in audit["e01_reconciliation"]
+        }
+        self.assertEqual(
+            set(reconciliations),
+            {
+                e01_entry
+                for owner in owners.values()
+                for e01_entry in owner["e01_entries"]
+            },
+        )
+        for e01_entry, reconciliation in reconciliations.items():
+            with self.subTest(e01_entry=e01_entry):
+                owner = owners[reconciliation["owner"]]
+                self.assertIn(e01_entry, owner["e01_entries"])
+                self.assertEqual(
+                    e01_entries[e01_entry]["owner"],
+                    owner["current_owner"],
+                )
+                self.assertEqual(
+                    e01_entries[e01_entry]["target_phase"],
+                    reconciliation["completed_phase"],
+                )
+
+        cleanup = {
+            item["owner"]: item
+            for item in audit["cleanup_dispositions"]
+        }
+        self.assertEqual(set(cleanup), set(owners))
+        self.assertEqual(
+            cleanup["dataset-snapshots"]["status"],
+            "feature-cleanup-complete",
+        )
+        self.assertEqual(
+            cleanup["index-store"]["status"],
+            "intentional-no-op-close",
+        )
+        self.assertEqual(
+            {item["remaining_phase"] for item in cleanup.values()},
+            {"E-09"},
+        )
+
+        import_safety = audit["import_safety"]
+        self.assertFalse(import_safety["host_io_at_import"])
+        for evidence in import_safety["evidence"]:
+            self.assertTrue((ROOT / evidence).is_file(), evidence)
+        forbidden = set(import_safety["forbidden_imports"])
+        for module in import_safety["feature_modules"]:
+            imports = {
+                node.module
+                for node in ast.walk(_tree(module))
+                if isinstance(node, ast.ImportFrom) and node.module
+            }
+            with self.subTest(module=module):
+                self.assertEqual(imports & forbidden, set())
+
+        identity_surfaces = {
+            surface["module"]: set(surface["symbols"])
+            for surface in self.fixture["compatibility_surfaces"]
+            if surface["kind"] == "identity_reexport"
+        }
+        audited_bindings: dict[str, set[str]] = {}
+        for binding in audit["root_identity_bindings"]:
+            root_module = binding["root_module"]
+            expected = {
+                (binding["canonical_module"], symbol)
+                for symbol in binding["symbols"]
+            }
+            with self.subTest(root_module=root_module):
+                self.assertEqual(
+                    expected - _imported_names(root_module),
+                    set(),
+                )
+            audited_bindings.setdefault(root_module, set()).update(
+                binding["symbols"]
+            )
+        self.assertEqual(audited_bindings, identity_surfaces)
 
     def test_e01_entries_reconcile_to_two_exact_future_owners(self):
         e01_entries = {
@@ -587,22 +699,9 @@ class PythonAutocompleteRuntimeContractTests(unittest.TestCase):
                 )
 
     def test_feature_modules_do_not_depend_on_runtime_or_outer_adapters(self):
-        forbidden = {
-            "api",
-            "autocomplete_dataset",
-            "autocomplete_index",
-            "easyuse_anima.api",
-            "easyuse_anima.bootstrap",
-            "easyuse_anima.runtime",
-        }
-        for module in (
-            "easyuse_anima/autocomplete/classification.py",
-            "easyuse_anima/autocomplete/dataset.py",
-            "easyuse_anima/autocomplete/index.py",
-            "easyuse_anima/autocomplete/ports.py",
-            "easyuse_anima/autocomplete/search.py",
-            "easyuse_anima/autocomplete/service.py",
-        ):
+        import_safety = self.fixture["completion_audit"]["import_safety"]
+        forbidden = set(import_safety["forbidden_imports"])
+        for module in import_safety["feature_modules"]:
             imports = {
                 node.module
                 for node in ast.walk(_tree(module))
