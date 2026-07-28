@@ -6,6 +6,10 @@ import logging
 import threading
 from collections.abc import Callable
 
+from .api.routes.long_text_settings import (
+    build_long_text_settings_handlers as _build_long_text_settings_handlers,
+)
+from .api.routes.settings import build_settings_handlers as _build_settings_handlers
 from .infrastructure.comfy.provider import DefaultComfyHostProvider
 from .runtime import RuntimeServices, install_runtime
 from .seed.service import InMemorySeedReservationService
@@ -18,6 +22,21 @@ _DEFAULT_RUNTIME: RuntimeServices | None = None
 
 def _missing_comfy_nodes() -> None:
     return None
+
+
+def build_settings_route_group(
+    *,
+    request_correlated,
+    settings_dependencies,
+    long_text_settings_dependencies,
+):
+    """Compose the correlated settings route group from canonical factories."""
+
+    handlers = (
+        *_build_settings_handlers(**settings_dependencies),
+        *_build_long_text_settings_handlers(**long_text_settings_dependencies),
+    )
+    return tuple(request_correlated(handler) for handler in handlers)
 
 
 def initialize(
