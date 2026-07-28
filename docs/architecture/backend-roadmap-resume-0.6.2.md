@@ -2,13 +2,14 @@
 
 ## Status and authority
 
-- Status: D-08 completed by the D-08u integrated Contract/gate.
-- Code-review baseline: `dev@d07a7116fd2f93ad60ce3438739f99e51640aa43`
-  after D-08t / PR #524.
-- Document baseline: PR #522 / `fc88de042e60e2b39ecc7e4594696bdfeacab000`,
-  with the development-entry link repair from PR #523.
+- Status: D-08 completed; the D-14 readiness audit retains every root surface and
+  blocks retirement/final-freeze work.
+- Code-review baseline: `dev@597d1c9fc1305baeacd3483b24d7fcec68fc9cf9`
+  after D-08u / PR #525.
+- Document baseline: D-14 readiness audit after PR #525.
 - Released baseline: 0.6.2.
-- Scope: remaining root `api.py` route composition and the D-08 exit gate.
+- Scope: completed D-08 evidence, the D-14 readiness decision, and the next bounded
+  #187 E-01 inventory handoff.
 - This document owns the current immediate queue and supersedes the stale queue and
   broad preflight command in `python-backend-execution-roadmap.md`.
 - `python-backend.md`, ADR-001, ADR-002, and the compatibility-shim registry still own
@@ -245,16 +246,20 @@ across bootstrap/router/root-shim boundaries, the existing injection pattern can
 avoid a cycle, or compatibility evidence cannot select safely. Ordinary failures and
 small implementation choices do not require PRO review.
 
-## 5. After D-08
+## 5. D-14 readiness result and next owner
 
 The D-08u audit found no required D-08v. After D-08:
 
-1. reconcile Issue #186 and the compatibility-shim registry;
-2. create a D-14 readiness Contract only when canonical-plus-shim release evidence and
-   actual consumer inventory are sufficient;
-3. if D-14 remains blocked, record why and select the first independent READY Phase E
-   task with an existing canonical owner and lifecycle Contract;
-4. never remove root files merely to make the directory tree appear complete.
+1. Issue #186, local release-tag trees, production consumers, and the compatibility
+   registry were reconciled at `dev@597d1c9`;
+2. there are zero removal-approved surfaces: `api.py` and `wildcard_engine.py` retain
+   production/lifecycle owners, three final shims have no release N, and the other
+   public shims lack removal-supporting consumer evidence;
+3. D-14 retirement/final-freeze work remains blocked and no root file or alias is
+   removed;
+4. the first independent READY Phase E unit is #187 E-01 global-state inventory;
+   the narrow E-02a/E-07a/E-07b bridge is already complete through #323; and
+5. never remove root files merely to make the directory tree appear complete.
 
 ## 6. Codex resume instruction
 
@@ -262,11 +267,14 @@ The D-08u audit found no required D-08v. After D-08:
 D-08 is complete. Do not restart D-08t or create D-08v without new contrary
 production evidence.
 
-Before a separate D-14 readiness Contract:
-- reconcile Issue #186 and the compatibility-shim registry;
-- read the latest #186 checkpoint and the current shim policy;
-- classify consumer and release evidence for each root alias before removal;
-- keep root api.py payload/runtime helpers and the injected registrar facade intact.
+D-14 retirement is blocked. Retain every root file and alias. Do not turn the
+readiness audit into removal, deprecation, or release work.
 
-Do not begin Phase E, release, or Registry work from this completed D-08 runbook.
+Start only #187 E-01 global-state inventory from latest origin/dev. Read the
+current #187 body/checkpoint, runtime shell, bootstrap, root api/wildcard runtime
+owners, and direct inventory/analyzer tests. Record owner, lifetime, lock,
+cleanup/reset, and test evidence before proposing any feature migration.
+
+Do not start E-03 through E-10 behavior/lifecycle Moves, release, or Registry work
+inside the E-01 inventory Contract.
 ```
