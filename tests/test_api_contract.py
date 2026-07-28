@@ -1168,6 +1168,95 @@ class ApiLoraProfileFixRouteTests(unittest.TestCase):
 
 
 class ApiWildcardRouteTests(unittest.TestCase):
+    def test_payload_helper_is_owned_by_the_canonical_factory(self):
+        api, _routes = load_api_routes()
+        helper = api._wildcards_payload_sync
+
+        self.assertEqual(helper.__name__, "_wildcards_payload_sync")
+        self.assertTrue(
+            helper.__module__.endswith(
+                ".easyuse_anima.api.routes.wildcards"
+            )
+        )
+        self.assertEqual(helper.__code__.co_argcount, 0)
+        owner = sys.modules[helper.__module__]
+        self.assertEqual(owner.__all__, ("build_wildcards_handler",))
+
+    def test_payload_helper_keeps_dynamic_dependencies_order_and_redaction(self):
+        api, _routes = load_api_routes()
+        calls = []
+
+        class RootProbe:
+            def __init__(self, label, exists):
+                self.label = label
+                self.exists = exists
+
+            def is_dir(self):
+                calls.append(("is_dir", self.label))
+                return self.exists
+
+        resolved_roots = [
+            RootProbe("private-a", True),
+            RootProbe("private-b", False),
+        ]
+        items = ["artist/name"]
+        extra_paths = "C:\\Users\\alice\\wildcards\n/home/alice/wildcards"
+
+        def public_settings():
+            calls.append(("settings",))
+            return {"wildcard.extra_paths": extra_paths}
+
+        def resolve_wildcard_roots(received):
+            calls.append(("resolve", received))
+            return resolved_roots
+
+        def list_wildcards(*, roots):
+            calls.append(("list", roots))
+            return items
+
+        with (
+            patch.object(api, "public_settings", side_effect=public_settings),
+            patch.object(
+                api,
+                "resolve_wildcard_roots",
+                side_effect=resolve_wildcard_roots,
+            ),
+            patch.object(api, "list_wildcards", side_effect=list_wildcards),
+        ):
+            payload = api._wildcards_payload_sync()
+
+        self.assertEqual(
+            calls,
+            [
+                ("settings",),
+                ("resolve", extra_paths),
+                ("is_dir", "private-a"),
+                ("is_dir", "private-b"),
+                ("list", resolved_roots),
+            ],
+        )
+        self.assertIs(calls[-1][1], resolved_roots)
+        self.assertIs(payload["items"], items)
+        self.assertEqual(payload["roots"], ["wildcard:1", "wildcard:2"])
+        self.assertEqual(
+            payload["sources"],
+            [
+                {
+                    "id": "wildcard:1",
+                    "label": "Wildcard source 1",
+                    "exists": True,
+                },
+                {
+                    "id": "wildcard:2",
+                    "label": "Wildcard source 2",
+                    "exists": False,
+                },
+            ],
+        )
+        serialized = json.dumps(payload)
+        for forbidden in ("alice", "private-a", "private-b", "/home"):
+            self.assertNotIn(forbidden, serialized)
+
     def test_route_handler_is_owned_by_the_canonical_factory(self):
         api, routes = load_api_routes()
         handler = routes.handlers["/easyuse_anima/wildcards"]
