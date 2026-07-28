@@ -7,6 +7,8 @@ E-06a is a production-free Contract created from
 autocomplete ownership audit. It freezes the verified wildcard snapshot LRU,
 building-key single-flight state, Condition, source-state rescan/publication loop,
 direct callers, compatibility seams, and the only authorized bounded Move order.
+E-06e completes that sequence with a production-free audit from
+`dev@1919f1670a7074a33d1f51612bf70b830f76f57e`.
 
 The executable source is
 `tests/fixtures/python_wildcard_runtime_contract.v1.json`, checked by
@@ -115,6 +117,28 @@ The port describes only `snapshot_for_roots`; it creates no wrapper or replaceme
 owner. Feature code does not receive or import the complete `RuntimeServices` object,
 and canonical/root callers keep their existing call-time resolver paths.
 
+## Completion audit
+
+E-06e reconciles the E-01 `wildcard-snapshot-cache` entry with exactly one
+feature-private owner:
+`easyuse_anima.wildcard.snapshot._DEFAULT_WILDCARD_SNAPSHOTS`. No raw root cache,
+building set, Condition, wrapper owner, or replacement runtime identity remains.
+The owner exposes completed-cache-only idempotent `clear()` while active admission,
+waiter settlement, and whole-runtime reverse cleanup remain unchanged; whole-runtime
+ordering and wildcard-directory lifecycle stay assigned to E-09.
+
+All canonical wildcard feature modules remain free of root `wildcard_engine`,
+`RuntimeServices`, and bootstrap back-references. Package/no-host evidence covers
+import-time host and directory I/O. Root private snapshot names remain direct imports
+of the canonical identities, and the runtime field is the exact default owner behind
+the narrow `WildcardSnapshotPort`. The executable audit therefore records
+`ambiguous_state_owners=[]` and changes no production file.
+
+The earlier “before E-07” wording described logical feature order. The E-02a/E-07a/
+E-07b Comfy provider bridge was already completed through #323, so the next remaining
+owner after E-06 is the separate E-08a AiO first-pass cache ownership Contract. This
+queue correction does not reopen or repeat E-07.
+
 ## Bounded Move queue
 
 1. **E-06a Contract — complete:** current state, behavior authorities, one target
@@ -129,8 +153,9 @@ and canonical/root callers keep their existing call-time resolver paths.
 4. **E-06d Move — bootstrap composition — complete:** install the exact default owner
    behind one feature-specific narrow wildcard capability without changing
    initialization or directory lifecycle.
-5. **E-06e Contract — completion audit:** reconcile E-01, cleanup, import direction,
-   root identities, and zero ambiguous wildcard snapshot state before E-07.
+5. **E-06e Contract — completion audit — complete:** reconcile E-01, cleanup,
+   import direction, root identities, and zero ambiguous wildcard snapshot state
+   before the next remaining E-08 owner.
 
 Each Move is a separate PR and rollback boundary. The sequence separates state
 ownership, canonical caller direction, process composition, and final audit instead
@@ -170,7 +195,11 @@ seams, canonical internal import direction, direct node/Prompt Studio/seed behav
 and shipped archive/no-host closure. E-06d covers the narrow port shape, exact
 default-owner identity in the installed runtime, bootstrap reuse, feature import
 direction, and unchanged directory initialization order/retry behavior. It adds no
-new public surface or cleanup policy.
+new public surface or cleanup policy. E-06e additionally covers exact E-01 owner
+reconciliation, the cleanup disposition, feature import safety, direct root identity
+bindings, and zero ambiguous wildcard state. Because E-06e changes no production,
+import closure, metadata, or host-visible behavior, E-06d package/live/validate/pack
+evidence remains valid.
 
 Run the official full profile once on each final candidate SHA. E-06c adds one shipped
 private module and changes canonical import closure without changing dependencies,
