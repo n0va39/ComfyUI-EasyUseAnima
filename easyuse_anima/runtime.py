@@ -3,9 +3,32 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from pathlib import Path
+from typing import Protocol
 
 from .infrastructure.comfy.provider import ComfyHostProvider
 from .seed.reservation import SeedReservationService
+
+
+@dataclass(frozen=True, slots=True)
+class RuntimeConfig:
+    """Process paths resolved by a bootstrap-owned config loader."""
+
+    package_root: Path
+    package_data_dir: Path
+    user_data_dir: Path
+
+
+class Clock(Protocol):
+    """Monotonic time source for process-owned caches and deadlines."""
+
+    def monotonic(self) -> float: ...
+
+
+class RuntimeResource(Protocol):
+    """Process-owned resource whose close operation must be idempotent."""
+
+    def close(self) -> None: ...
 
 
 @dataclass(frozen=True, slots=True)
@@ -44,4 +67,11 @@ def get_runtime() -> RuntimeServices:
     return runtime
 
 
-__all__ = ("RuntimeServices", "get_runtime", "install_runtime")
+__all__ = (
+    "Clock",
+    "RuntimeConfig",
+    "RuntimeResource",
+    "RuntimeServices",
+    "get_runtime",
+    "install_runtime",
+)
