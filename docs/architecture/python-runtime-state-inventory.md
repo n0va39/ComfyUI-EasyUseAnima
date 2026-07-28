@@ -50,10 +50,10 @@ E-01 drift gate until classified.
 | `prompt-knowledge-path` | canonical filesystem package path re-exported for ANIMA root compatibility | immutable after import | E-02d complete |
 | `root-route-registration` | injected router registrar called by bootstrap | serialized refresh; idempotent marker, no deregistration | E-09 |
 | `root-translation-route-worker` | bootstrap composes the lazy single-thread executor; root retains its compatibility reference | internal `RLock`; idempotent `atexit` shutdown only | E-04d complete |
-| `runtime-services` | identity-installed process runtime with Comfy, seed, config/clock, and narrow translation/autocomplete capabilities | bootstrap-serialized install; private-global test reset, no whole-runtime close | E-09 |
+| `runtime-services` | identity-installed process runtime with Comfy, seed, config/clock, and narrow translation/autocomplete/wildcard capabilities | bootstrap-serialized install; private-global test reset, no whole-runtime close | E-09 |
 | `translation-default-service` | RuntimeServices-owned translation port, mirrored by the canonical call-time facade | cache and flight `RLock`s; idempotent service close clears cache | E-04c complete |
 | `translation-provider-registry` | private process-owned lazy provider-client registry | one owned `RLock`; no provider close/reset | E-04b complete |
-| `wildcard-snapshot-cache` | canonical private default snapshot-store owner | one owned `Condition`; completed-cache-only `clear()` preserves active builds | E-06b complete |
+| `wildcard-snapshot-cache` | canonical private default snapshot-store owner, directly injected through the narrow runtime port | one owned `Condition`; completed-cache-only `clear()` preserves active builds | E-06 complete; E-06e audited |
 
 The fixture contains exact symbols, tests, owner, lifetime, thread-safety, and
 reset/close status. This table is a review index, not a second machine-readable
@@ -160,5 +160,10 @@ cleanup. E-06b moves the LRU, building-key set, Condition, and capacity behind t
 exact default owner; root delegates with call-time source/build seams and retains no
 raw duplicate lifecycle globals. E-06c moves the snapshot-backed service facade and
 canonical internal callers to `easyuse_anima.wildcard` without a root back-reference.
-E-06a through E-06c are complete; the next bounded unit is the separate E-06d narrow
-RuntimeServices/bootstrap composition Move.
+E-06d injects the exact default owner through one narrow runtime port without a
+wrapper or replacement identity. The production-free E-06e audit reconciles the
+single E-01 entry with that owner, records completed-cache-only cleanup, preserves
+feature import direction, package/no-host safety, and direct root identities, and
+records zero ambiguous wildcard state. E-06 is complete. Because the E-02a/E-07a/
+E-07b Comfy provider bridge was already completed through #323, the next remaining
+bounded owner is the separate E-08a AiO first-pass cache ownership Contract.

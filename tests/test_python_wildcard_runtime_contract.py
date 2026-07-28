@@ -194,6 +194,7 @@ class PythonWildcardRuntimeContractTests(unittest.TestCase):
             {
                 "classification",
                 "compatibility_surfaces",
+                "completion_audit",
                 "decisions",
                 "internal_consumers",
                 "move_queue",
@@ -218,7 +219,7 @@ class PythonWildcardRuntimeContractTests(unittest.TestCase):
         )
         self.assertEqual(
             [move["status"] for move in self.fixture["move_queue"]],
-            ["complete", "complete", "complete", "complete", "queued"],
+            ["complete", "complete", "complete", "complete", "complete"],
         )
         self.assertEqual(
             [owner["id"] for owner in self.fixture["owners"]],
@@ -227,6 +228,105 @@ class PythonWildcardRuntimeContractTests(unittest.TestCase):
         for owner in self.fixture["owners"]:
             for evidence in owner["evidence"]:
                 self.assertTrue((ROOT / evidence).is_file(), evidence)
+
+    def test_completion_audit_reconciles_cleanup_import_and_root_identity(self):
+        audit = self.fixture["completion_audit"]
+        owners = {owner["id"]: owner for owner in self.fixture["owners"]}
+        e01_entries = {
+            entry["id"]: entry for entry in self.e01_fixture["entries"]
+        }
+
+        self.assertEqual(audit["classification"], "Contract")
+        self.assertEqual(audit["production_changes"], 0)
+        self.assertEqual(audit["ambiguous_state_owners"], [])
+        self.assertEqual(
+            len({owner["current_owner"] for owner in owners.values()}),
+            len(owners),
+        )
+        self.assertEqual(
+            audit["next_phase"],
+            "E-08a AiO first-pass cache ownership Contract",
+        )
+
+        reconciliations = {
+            item["e01_entry"]: item
+            for item in audit["e01_reconciliation"]
+        }
+        self.assertEqual(
+            set(reconciliations),
+            {
+                e01_entry
+                for owner in owners.values()
+                for e01_entry in owner["e01_entries"]
+            },
+        )
+        for e01_entry, reconciliation in reconciliations.items():
+            with self.subTest(e01_entry=e01_entry):
+                owner = owners[reconciliation["owner"]]
+                self.assertIn(e01_entry, owner["e01_entries"])
+                self.assertEqual(
+                    e01_entries[e01_entry]["owner"],
+                    owner["current_owner"],
+                )
+                self.assertEqual(
+                    e01_entries[e01_entry]["target_phase"],
+                    reconciliation["completed_phase"],
+                )
+
+        cleanup = {
+            item["owner"]: item
+            for item in audit["cleanup_dispositions"]
+        }
+        self.assertEqual(set(cleanup), set(owners))
+        self.assertEqual(
+            cleanup["wildcard-snapshots"]["status"],
+            "feature-cleanup-complete",
+        )
+        self.assertEqual(
+            {item["remaining_phase"] for item in cleanup.values()},
+            {"E-09"},
+        )
+
+        import_safety = audit["import_safety"]
+        self.assertFalse(import_safety["host_io_at_import"])
+        for evidence in import_safety["evidence"]:
+            self.assertTrue((ROOT / evidence).is_file(), evidence)
+        forbidden = set(import_safety["forbidden_imports"])
+        for module in import_safety["feature_modules"]:
+            imports = {
+                node.module
+                for node in ast.walk(_tree(module))
+                if isinstance(node, ast.ImportFrom) and node.module
+            } | {
+                alias.name
+                for node in ast.walk(_tree(module))
+                if isinstance(node, ast.Import)
+                for alias in node.names
+            }
+            with self.subTest(module=module):
+                self.assertEqual(imports & forbidden, set())
+
+        identity_surfaces = {
+            surface["module"]: set(surface["symbols"])
+            for surface in self.fixture["compatibility_surfaces"]
+            if surface["kind"] == "identity_reexport"
+        }
+        audited_bindings: dict[str, set[str]] = {}
+        for binding in audit["root_identity_bindings"]:
+            root_module = binding["root_module"]
+            expected = {
+                (binding["canonical_module"], symbol)
+                for symbol in binding["symbols"]
+            }
+            with self.subTest(root_module=root_module):
+                self.assertEqual(
+                    expected - _imported_names(root_module),
+                    set(),
+                )
+            audited_bindings.setdefault(root_module, set()).update(
+                binding["symbols"]
+            )
+        self.assertEqual(audited_bindings, identity_surfaces)
 
     def test_e01_entry_reconciles_to_one_exact_target_owner(self):
         owner = self.fixture["owners"][0]

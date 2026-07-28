@@ -2,19 +2,20 @@
 
 ## Status and authority
 
-- Status: D-08, E-01 through E-05, E-06a, E-06b, E-06c, and E-06d are completed; the D-14
+- Status: D-08 and E-01 through E-07 are completed; the D-14
   readiness audit retains every root surface and blocks retirement/final-freeze work.
-- Code-review base before E-06d:
-  `dev@a51787ce60340bdb9adecd7fbbedb4dd482bbaa4` after E-06c / PR #549.
-- Document baseline: completed E-06d narrow wildcard RuntimeServices/bootstrap composition Move.
+- Code-review base before E-06e:
+  `dev@1919f1670a7074a33d1f51612bf70b830f76f57e` after E-06d / PR #550.
+- Document baseline: completed production-free E-06e wildcard ownership audit Contract.
 - Released baseline: 0.6.2.
 - Scope: completed D-08 evidence, the D-14 readiness decision, completed #187
   E-01/E-02/E-03/E-04 work, the E-05a Contract, the E-05b snapshot owner Move,
   the E-05c index-store owner Move, the E-05d composition Move, the E-05e
   completion audit Contract, the E-06a wildcard snapshot ownership Contract, the
   E-06b snapshot owner Move, the E-06c canonical service/internal caller Move, the
-  E-06d narrow RuntimeServices/bootstrap composition Move, and the next bounded
-  E-06e completion audit Contract.
+  E-06d narrow RuntimeServices/bootstrap composition Move, the E-06e completion
+  audit Contract, the completed E-07 bridge, and the next bounded E-08a AiO
+  first-pass cache ownership Contract.
 - This document owns the current immediate queue and supersedes the stale queue and
   broad preflight command in `python-backend-execution-roadmap.md`.
 - `python-backend.md`, ADR-001, ADR-002, and the compatibility-shim registry still own
@@ -415,7 +416,13 @@ E-06d types the exact `_DEFAULT_WILDCARD_SNAPSHOTS` identity behind one private
 `RuntimeServices.wildcard_snapshots`. Feature modules do not import the runtime,
 and initialize order/retry plus wildcard-directory lifecycle remain unchanged.
 
-Start only a separate production-free #187 E-06e wildcard ownership completion
-audit Contract from latest origin/dev. Do not start later Phase E work, E-09 cleanup,
-D-14 retirement, release, or Registry work inside E-06e.
+E-06e reconciles the single E-01 wildcard entry with the exact default owner,
+records completed-cache-only cleanup, preserves feature import direction,
+package/no-host safety, direct root identities, and the narrow runtime binding, and
+records zero ambiguous wildcard state without production changes. E-06 is complete.
+
+E-07a/E-07b were already completed through #323 as the E-02 bridge. Do not repeat
+them. The next READY unit is a separate production-free #187 E-08a AiO first-pass
+cache ownership Contract from latest origin/dev. Do not start E-08 production Moves,
+E-09 cleanup, D-14 retirement, release, or Registry work inside E-08a.
 ```
