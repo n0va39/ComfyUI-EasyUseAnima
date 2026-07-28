@@ -17,7 +17,6 @@ from ..prompt.advanced import (
     _expand_advanced_wildcard_fields,
     _normalize_prompt_studio_wildcard_seed_control,
     _translate_prompt_fields,
-    _wildcard_engine_module,
     normalize_prompt_studio_wildcard_mode,
     normalize_seed,
 )
@@ -41,15 +40,15 @@ from ..prompt.regional import (
     _regional_union_mask_for_ids,
 )
 from ..seed.compatibility import _scrub_reserved_wildcard_next_seed
+from ..settings.service import resolve_metadata_filter_words
+from ..wildcard.seed import next_seed
+from ..wildcard.service import wildcard_sources_signature
 from ..workflow import _get_workflow_node
 from .input_types import _FlexibleOptionalInputType
 from .seed_adapters import (
     PROMPT_STUDIO_REGIONAL_SEED_FEATURE,
     prompt_studio_seed_execution,
 )
-
-from ..settings.service import resolve_metadata_filter_words
-
 
 WILDCARD_MODE_SEQUENTIAL = "sequential"
 PROMPT_STUDIO_WILDCARD_MODE_LABELS = ("일반", "순차")
@@ -73,14 +72,6 @@ WILDCARD_SEED_RANGE_NOTE = (
     "legacy value; increment, decrement, and randomize return the next seed to the "
     "public range."
 )
-
-
-def next_seed(*args, **kwargs):
-    return _wildcard_engine_module().next_seed(*args, **kwargs)
-
-
-def wildcard_sources_signature(*args, **kwargs):
-    return _wildcard_engine_module().wildcard_sources_signature(*args, **kwargs)
 
 
 def _missing_host_helper(name: str):

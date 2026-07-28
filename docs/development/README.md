@@ -54,21 +54,20 @@ ordinary `dev` roadmap work.
 
 - Released baseline: 0.6.2.
 - Active owner: Issue #187 for Phase E; Issue #186 retains D-14/shim decisions.
-- Reviewed code baseline before E-06b: E-06a / PR #547 at
-  `4b365ea33123c219e1807b6f37f545fcb92e349c`.
+- Reviewed code baseline before E-06c: E-06b / PR #548 at
+  `12e2d1d07cd1f9747cdf87d3e620943684f1e489`.
 - D-08u integrated exit audit is complete.
 - D-08v is not required; the audit found no remaining D-08 production Move.
 - D-14 readiness is audited: every root surface is retained and retirement/final
   freeze is blocked by production/lifecycle consumers, missing release windows, or
   insufficient consumer evidence.
-- E-01 through E-05, E-06a, and E-06b are complete. The next work is only a
-  separate #187 E-06c canonical wildcard service/root identity shim and internal
-  caller Move. The
+- E-01 through E-05 and E-06a through E-06c are complete. The next work is only a
+  separate #187 E-06d narrow wildcard RuntimeServices/bootstrap composition Move. The
   #323 E-02a/E-07 bridge remains completed evidence, not authorization for unrelated
   feature migration.
 - Completed #470 and the 0.6.1 Prompt Studio lane are behavior-contract references,
   not the active queue.
-- Do not remove root compatibility aliases or start E-06d, E-07 through E-10,
+- Do not remove root compatibility aliases or start E-06e, E-07 through E-10,
   release, or Registry work from this entrypoint.
 
 ## Completed D-08 composition audit surface
@@ -160,7 +159,7 @@ representative profile list/load/save/delete/rename/fix live smoke
 - A version marker is not a publish action.
 - Technical PRO review is for unresolved cross-boundary architecture choices,
   unavoidable cycles, or insufficient compatibility evidence—not routine failures.
-- D-14 readiness is recorded and authorizes no removal. E-06b installs the selected
-  snapshot owner and preserves root call-time seams; use that evidence only to start
-  the separate E-06c Move. Do not infer E-06d, E-09 cleanup, release publication, or
-  Registry actions.
+- D-14 readiness is recorded and authorizes no removal. E-06c installs the canonical
+  wildcard service/internal import direction and preserves root call-time seams; use
+  that evidence only to start the separate E-06d Move. Do not infer E-06e, E-09
+  cleanup, release publication, or Registry actions.

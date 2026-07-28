@@ -38,7 +38,6 @@ from ..prompt.advanced import (
     _normalize_prompt_studio_wildcard_seed_control,
     _set_naia_field_text,
     _translate_prompt_fields,
-    _wildcard_engine_module,
     normalize_prompt_studio_wildcard_mode,
     normalize_seed,
 )
@@ -64,6 +63,12 @@ from ..prompt.correction import (
 )
 from ..prompt.data import PROMPT_DATA_TYPE, _prompt_data_parameter_snapshot
 from ..seed.compatibility import _scrub_reserved_wildcard_next_seed
+from ..settings.service import (
+    resolve_metadata_filter_words,
+    resolve_naia_settings,
+)
+from ..wildcard.seed import next_seed
+from ..wildcard.service import wildcard_sources_signature
 from ..workflow import _get_workflow_node
 from .input_types import _FlexibleOptionalInputType
 from .naia_nodes import EasyUseAnimaNAIARandomPrompt
@@ -71,11 +76,6 @@ from .seed_adapters import (
     PROMPT_STUDIO_ADVANCED_SEED_FEATURE,
     PromptStudioSeedExecution,
     prompt_studio_seed_execution,
-)
-
-from ..settings.service import (
-    resolve_metadata_filter_words,
-    resolve_naia_settings,
 )
 
 WILDCARD_MODE_SEQUENTIAL = "sequential"
@@ -100,14 +100,6 @@ WILDCARD_SEED_RANGE_NOTE = (
     "legacy value; increment, decrement, and randomize return the next seed to the "
     "public range."
 )
-
-
-def next_seed(*args, **kwargs):
-    return _wildcard_engine_module().next_seed(*args, **kwargs)
-
-
-def wildcard_sources_signature(*args, **kwargs):
-    return _wildcard_engine_module().wildcard_sources_signature(*args, **kwargs)
 
 
 class EasyUseAnimaPromptStudioAdvanced:

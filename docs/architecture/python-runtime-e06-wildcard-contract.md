@@ -18,6 +18,10 @@ E-06a changed no production. E-06b moves only lifecycle ownership between
 `wildcard_engine.py` and `easyuse_anima/wildcard/snapshot.py`, with direct tests and
 actual-code analyzer/inventory evidence. It changes no public export, cache policy,
 source parsing, expansion behavior, bootstrap composition, or directory lifecycle.
+E-06c adds the private canonical `easyuse_anima.wildcard.service`, moves the five
+snapshot-backed facade callers there, and redirects canonical node, prompt, and seed
+consumers away from the root module. Root adapters preserve the existing signatures,
+results, and dynamic source/build seams without a canonical-to-root back-reference.
 
 ## D-12 boundary retained
 
@@ -79,7 +83,7 @@ into the snapshot owner.
 
 ## Compatibility and caller inventory
 
-Root `wildcard_engine.py` remains a transitional facade after E-06b. Its public
+Root `wildcard_engine.py` remains a compatibility facade after E-06c. Its public
 listing/signature/expansion functions preserve signatures and results. The private
 `_WildcardSnapshot` and `_build_wildcard_snapshot` names remain exact canonical
 identities, and its private default-owner dependency is the exact canonical identity.
@@ -87,7 +91,8 @@ The root-bound `_wildcard_sources` and build names remain call-time test seams. 
 raw root `_SNAPSHOT_CACHE`, `_SNAPSHOT_BUILDING`, and `_SNAPSHOT_CONDITION` globals
 are removed rather than retained as duplicate aliases.
 
-The current direct snapshot callers are:
+The canonical direct snapshot callers are now in
+`easyuse_anima.wildcard.service`:
 
 - `_load_wildcard_map()` — mutable-copy compatibility helper;
 - `list_wildcards()` — sorted relative wildcard names;
@@ -96,14 +101,16 @@ The current direct snapshot callers are:
 - `expand_wildcard_texts()` — one snapshot per ordered expansion batch.
 
 `expand_wildcards()` delegates to the ordered-text entrypoint. Empty text batches
-still return before snapshot lifecycle. Root API, node adapters, Prompt Studio,
-Regional, and workflow consumers retain current list/signature/expansion behavior.
+still return before snapshot lifecycle. Root API and `nodes.py` retain their
+compatibility/composition imports. Canonical Wildcard, Prompt Studio
+Advanced/Regional, and seed-compatibility modules import the canonical mode, seed,
+expansion, and service owners directly. Their module-local patch names remain
+patchable, and all list/signature/expansion behavior is unchanged.
 
-E-06c separately moves the remaining lifecycle/service facade and internal callers to
-the canonical wildcard package while retaining the root compatibility identity
-surface. E-06d then installs only one feature-specific narrow wildcard snapshot
-capability backed by the exact default owner. Feature code does not receive or import
-the complete `RuntimeServices` object.
+E-06c completes the remaining lifecycle/service facade and internal caller Move while
+retaining the root compatibility surface. E-06d next installs only one
+feature-specific narrow wildcard snapshot capability backed by the exact default
+owner. Feature code does not receive or import the complete `RuntimeServices` object.
 
 ## Bounded Move queue
 
@@ -113,7 +120,7 @@ the complete `RuntimeServices` object.
 2. **E-06b Move — snapshot owner — complete:** the completed LRU, building-key set,
    and Condition are behind one feature-private default owner; source verification,
    publication, failure, clear, and call-time seam behavior are executable evidence.
-3. **E-06c Move — canonical service and internal callers:** canonicalize the
+3. **E-06c Move — canonical service and internal callers — complete:** canonicalize the
    lifecycle/service facade, convert internal consumers to that owner, and retain the
    exact root compatibility surface.
 4. **E-06d Move — bootstrap composition:** install the exact default owner behind one
@@ -155,13 +162,15 @@ direct wildcard snapshot/cache/concurrency behavior, package/no-host import, cur
 import boundaries/analyzer, JSON/Python syntax, document links, and `git diff
 --check`. E-06b additionally covers the isolated owner, active-build clear
 settlement, exact root/default identity, raw-state removal, and actual-code analyzer
-inventory.
+inventory. E-06c covers canonical/root service parity, root signatures and dynamic
+seams, canonical internal import direction, direct node/Prompt Studio/seed behavior,
+and shipped archive/no-host closure.
 
-Run the official full profile once on each final candidate SHA. E-06b changes two
-existing shipped Python files but adds no shipped file, dependency, public/route/
-bootstrap/RuntimeServices/metadata surface, or host-visible behavior. With package/
-no-host and import gates passing, package/live/validate/pack evidence remains the
-unchanged E-05d production evidence unless a material trigger is discovered.
+Run the official full profile once on each final candidate SHA. E-06c adds one shipped
+private module and changes canonical import closure without changing dependencies,
+public/route/bootstrap/RuntimeServices/metadata surfaces, or host-visible behavior.
+It therefore refreshes package/no-host, validate, pack/archive, and isolated test-
+instance wildcard smoke evidence before promotion.
 
 ## Stop conditions
 

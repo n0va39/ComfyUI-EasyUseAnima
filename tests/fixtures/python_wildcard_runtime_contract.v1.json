@@ -37,13 +37,27 @@
         "_build_wildcard_snapshot",
         "_wildcard_sources"
       ]
+    },
+    {
+      "id": "canonical-private-service",
+      "kind": "canonical_owner",
+      "module": "easyuse_anima/wildcard/service.py",
+      "symbols": [
+        "_wildcard_snapshot",
+        "_load_wildcard_map",
+        "list_wildcards",
+        "wildcard_sources_signature",
+        "_WildcardLibrary",
+        "expand_wildcard_texts",
+        "expand_wildcards"
+      ]
     }
   ],
   "decisions": {
     "default_root_initialization": "Bootstrap wildcard-directory initialization and its retry state remain E-09 and are not part of the snapshot owner.",
     "generic_cache_condition_port": "rejected",
     "resource_partition": "Verified wildcard snapshots, building-key admission, and their Condition form one feature-private owner because they share one cache-key publication invariant.",
-    "root_facade": "After E-06b root wildcard_engine remains the transitional lifecycle/public facade over the exact canonical default owner; E-06c separately canonicalizes the service surface and internal callers while retaining the root compatibility surface.",
+    "root_facade": "After E-06c root wildcard_engine is a compatibility adapter over the canonical wildcard service. It retains the exact root names, signatures, results, private snapshot identities, and call-time source/build seams without owning service behavior or raw lifecycle state.",
     "runtime_composition": "E-06d installs only one feature-specific narrow wildcard snapshot capability backed by the exact default owner; feature modules never receive the complete RuntimeServices object.",
     "snapshot_materialization": "D-12c canonical immutable snapshot values and stateless materialization remain separate behavior authorities and are not reimplemented by E-06.",
     "test_seams": "Root build and source-module patch seams remain call-time dependencies or gain an equivalent isolated-owner injection seam before raw globals are removed."
@@ -68,7 +82,7 @@
       "goal": "Canonicalize the wildcard lifecycle/service facade and internal callers while retaining exact root compatibility identities and behavior.",
       "id": "E-06c",
       "name": "canonical wildcard service and internal callers",
-      "status": "queued"
+      "status": "complete"
     },
     {
       "classification": "Move",
@@ -83,6 +97,47 @@
       "id": "E-06e",
       "name": "wildcard ownership completion audit",
       "status": "queued"
+    }
+  ],
+  "internal_consumers": [
+    {
+      "canonical_imports": [
+        ["wildcard.mode", "normalize_wildcard_mode"],
+        ["wildcard.seed", "normalize_seed"],
+        ["wildcard.service", "expand_wildcards"],
+        ["wildcard.service", "wildcard_sources_signature"]
+      ],
+      "module": "easyuse_anima/nodes/wildcard_nodes.py"
+    },
+    {
+      "canonical_imports": [
+        ["wildcard.expansion", "has_wildcard_syntax"],
+        ["wildcard.mode", "normalize_prompt_studio_wildcard_mode"],
+        ["wildcard.seed", "normalize_seed"],
+        ["wildcard.service", "expand_wildcard_texts"]
+      ],
+      "module": "easyuse_anima/prompt/advanced.py"
+    },
+    {
+      "canonical_imports": [
+        ["wildcard.seed", "next_seed"],
+        ["wildcard.service", "wildcard_sources_signature"]
+      ],
+      "module": "easyuse_anima/nodes/prompt_advanced_nodes.py"
+    },
+    {
+      "canonical_imports": [
+        ["wildcard.seed", "next_seed"],
+        ["wildcard.service", "wildcard_sources_signature"]
+      ],
+      "module": "easyuse_anima/nodes/regional_nodes.py"
+    },
+    {
+      "canonical_imports": [
+        ["wildcard.mode", "normalize_wildcard_mode"],
+        ["wildcard.seed", "normalize_seed"]
+      ],
+      "module": "easyuse_anima/seed/compatibility.py"
     }
   ],
   "owners": [
@@ -142,7 +197,7 @@
     {
       "function": "_load_wildcard_map",
       "kind": "function",
-      "module": "wildcard_engine.py",
+      "module": "easyuse_anima/wildcard/service.py",
       "owner": "wildcard-snapshots",
       "uses": [
         "_wildcard_snapshot"
@@ -151,7 +206,7 @@
     {
       "function": "list_wildcards",
       "kind": "function",
-      "module": "wildcard_engine.py",
+      "module": "easyuse_anima/wildcard/service.py",
       "owner": "wildcard-snapshots",
       "uses": [
         "_wildcard_snapshot"
@@ -160,7 +215,7 @@
     {
       "function": "wildcard_sources_signature",
       "kind": "function",
-      "module": "wildcard_engine.py",
+      "module": "easyuse_anima/wildcard/service.py",
       "owner": "wildcard-snapshots",
       "uses": [
         "_wildcard_snapshot"
@@ -170,7 +225,7 @@
       "class": "_WildcardLibrary",
       "function": "__init__",
       "kind": "method",
-      "module": "wildcard_engine.py",
+      "module": "easyuse_anima/wildcard/service.py",
       "owner": "wildcard-snapshots",
       "uses": [
         "_wildcard_snapshot"
@@ -179,14 +234,14 @@
     {
       "function": "expand_wildcard_texts",
       "kind": "function",
-      "module": "wildcard_engine.py",
+      "module": "easyuse_anima/wildcard/service.py",
       "owner": "wildcard-snapshots",
       "uses": [
         "_wildcard_snapshot"
       ]
     }
   ],
-  "production_changes": 2,
+  "production_changes": 9,
   "schema_version": 1,
   "scope": "E-06 wildcard verified-snapshot LRU, source-rescan publication, and Condition single-flight ownership"
 }

@@ -4,38 +4,18 @@ from __future__ import annotations
 
 from ..common.serialization import _stable_change_key
 from ..common.values import _single_value
+from ..wildcard.mode import (
+    WILDCARD_MODE_FIXED,
+    WILDCARD_MODE_LABELS,
+    WILDCARD_MODE_POPULATE,
+    WILDCARD_MODE_REPRODUCE,
+    WILDCARD_MODE_SEQUENTIAL,
+    normalize_wildcard_mode,
+)
+from ..wildcard.seed import MAX_SEED, PUBLIC_MAX_SEED, normalize_seed
+from ..wildcard.service import expand_wildcards, wildcard_sources_signature
 from ..workflow import _get_workflow_node
 from .input_types import _FlexibleOptionalInputType
-
-try:
-    from ...wildcard_engine import (
-        MAX_SEED,
-        PUBLIC_MAX_SEED,
-        WILDCARD_MODE_FIXED,
-        WILDCARD_MODE_LABELS,
-        WILDCARD_MODE_POPULATE,
-        WILDCARD_MODE_REPRODUCE,
-        WILDCARD_MODE_SEQUENTIAL,
-        expand_wildcards,
-        normalize_seed,
-        normalize_wildcard_mode,
-        wildcard_sources_signature,
-    )
-except ImportError:
-    from wildcard_engine import (
-        MAX_SEED,
-        PUBLIC_MAX_SEED,
-        WILDCARD_MODE_FIXED,
-        WILDCARD_MODE_LABELS,
-        WILDCARD_MODE_POPULATE,
-        WILDCARD_MODE_REPRODUCE,
-        WILDCARD_MODE_SEQUENTIAL,
-        expand_wildcards,
-        normalize_seed,
-        normalize_wildcard_mode,
-        wildcard_sources_signature,
-    )
-
 
 WILDCARD_SEED_RANGE_NOTE = (
     f"Browser/public editing and next-seed range: 0..{PUBLIC_MAX_SEED}. The Python "
