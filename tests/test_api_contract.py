@@ -223,6 +223,15 @@ class ApiRouteRegistrationOwnerTests(unittest.TestCase):
             ].__all__,
         )
         self.assertTrue(
+            api._build_lora_read_route_group.__module__.endswith(
+                ".easyuse_anima.bootstrap"
+            )
+        )
+        self.assertNotIn(
+            "build_lora_read_route_group",
+            sys.modules[api._build_lora_read_route_group.__module__].__all__,
+        )
+        self.assertTrue(
             api._register_route_definitions.__module__.endswith(
                 ".easyuse_anima.api.router"
             )

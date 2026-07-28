@@ -18,6 +18,10 @@ from .api.routes.autocomplete import (
 from .api.routes.long_text_settings import (
     build_long_text_settings_handlers as _build_long_text_settings_handlers,
 )
+from .api.routes.lora_catalog import build_loras_handler as _build_loras_handler
+from .api.routes.lora_preview import (
+    build_lora_preview_handler as _build_lora_preview_handler,
+)
 from .api.routes.settings import build_settings_handlers as _build_settings_handlers
 from .api.routes.translation import (
     build_translate_prompt_handler as _build_translate_prompt_handler,
@@ -95,6 +99,21 @@ def build_aio_torch_compile_route_handler(
             **aio_torch_compile_dependencies
         )
     )
+
+
+def build_lora_read_route_group(
+    *,
+    request_correlated,
+    lora_preview_dependencies,
+    lora_catalog_dependencies,
+):
+    """Compose the correlated LoRA preview and catalog routes."""
+
+    handlers = (
+        _build_lora_preview_handler(**lora_preview_dependencies),
+        _build_loras_handler(**lora_catalog_dependencies),
+    )
+    return tuple(request_correlated(handler) for handler in handlers)
 
 
 def initialize(
