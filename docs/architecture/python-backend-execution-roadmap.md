@@ -1472,8 +1472,13 @@ singleton/path/import-effect gaps without changing production behavior.
 E-02b then adds frozen/slotted `RuntimeConfig`, narrow `Clock`, and idempotent
 `RuntimeResource.close()` canonical contracts. It does not add a generic
 executor/client port: translation admission, API file-I/O, Google provider, and NAIA
-transport semantics are feature-specific. The next bounded unit is E-02c
-config/clock composition; feature owner Moves remain separate.
+transport semantics are feature-specific.
+
+E-02c composes required `RuntimeConfig` and `Clock` fields into the identity-installed
+`RuntimeServices`. The private bootstrap loader projects the existing canonical path
+objects without changing `paths.py`, and a private system clock delegates to
+`time.monotonic()`. No feature consumer receives the complete runtime. The next
+bounded unit is an E-02 completion audit; feature owner Moves remain separate.
 
 Feature services receive only narrow Protocols. They do not import or receive
 the entire `RuntimeServices` object. Node adapters may use `get_runtime()` only

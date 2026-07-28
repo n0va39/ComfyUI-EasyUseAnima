@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 import threading
+import time
 from collections.abc import Callable
 
 from .api.routes.aio_torch_compile import (
@@ -45,13 +46,34 @@ from .api.routes.wildcards import (
     build_wildcards_handler as _build_wildcards_handler,
 )
 from .infrastructure.comfy.provider import DefaultComfyHostProvider
-from .runtime import RuntimeServices, install_runtime
+from .runtime import RuntimeConfig, RuntimeServices, install_runtime
 from .seed.service import InMemorySeedReservationService
 
 _LOGGER = logging.getLogger("ComfyUI-EasyUseAnima")
 _INITIALIZE_LOCK = threading.Lock()
 _WILDCARDS_INITIALIZED = False
 _DEFAULT_RUNTIME: RuntimeServices | None = None
+
+
+class _SystemClock:
+    __slots__ = ()
+
+    def monotonic(self) -> float:
+        return time.monotonic()
+
+
+def _load_runtime_config() -> RuntimeConfig:
+    from .infrastructure.filesystem.paths import (
+        PACKAGE_DATA_DIR,
+        PACKAGE_ROOT,
+        USER_DATA_DIR,
+    )
+
+    return RuntimeConfig(
+        package_root=PACKAGE_ROOT,
+        package_data_dir=PACKAGE_DATA_DIR,
+        user_data_dir=USER_DATA_DIR,
+    )
 
 
 def _missing_comfy_nodes() -> None:
@@ -182,6 +204,8 @@ def initialize(
             runtime = RuntimeServices(
                 comfy=DefaultComfyHostProvider(load_comfy_nodes),
                 seed_reservations=InMemorySeedReservationService(),
+                config=_load_runtime_config(),
+                clock=_SystemClock(),
             )
             install_runtime(runtime)
             _DEFAULT_RUNTIME = runtime

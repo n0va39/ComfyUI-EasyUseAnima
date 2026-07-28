@@ -8,9 +8,9 @@ It follows the versioned
 [E-01 state inventory](python-runtime-state-inventory.md) and the completed
 E-02a/E-07 Comfy provider bridge.
 
-E-02b adds only canonical types. It does not change the installed
-`RuntimeServices` identity, bootstrap wiring, path discovery, feature owners, or
-shutdown behavior.
+E-02b added only canonical types. E-02c composes the config and clock into the
+installed `RuntimeServices` while preserving its identity, path discovery behavior,
+feature owners, and shutdown behavior.
 
 ## Locked canonical types
 
@@ -38,8 +38,27 @@ The contract means:
 - feature caches receive only `Clock`, not the complete runtime;
 - a process-owned resource implements an idempotent `close()`; concrete creation,
   reverse close ordering, and partial-failure cleanup remain E-09 work; and
-- the existing `RuntimeServices(comfy, seed_reservations)` constructor remains
-  unchanged until a separate composition Move.
+- E-02c may add the base contracts to `RuntimeServices` only at the composition
+  boundary; feature consumers still receive narrow protocols rather than the complete
+  runtime.
+
+## E-02c composition
+
+`RuntimeServices` now requires `config: RuntimeConfig` and `clock: Clock` in addition
+to the existing Comfy and seed services. The default runtime supplies them exactly
+once during its first serialized bootstrap initialization:
+
+- the private bootstrap config loader reads the existing `PACKAGE_ROOT`,
+  `PACKAGE_DATA_DIR`, and `USER_DATA_DIR` objects from the canonical path module;
+- it does not duplicate `.resolve()`, `folder_paths` probing, fallback policy,
+  directory creation, or other I/O;
+- the private system clock delegates each call to `time.monotonic()`; and
+- repeated initialize calls reinstall the same runtime identity, refresh routes, and
+  preserve wildcard once/retry behavior.
+
+`paths.py`, root storage aliases, and every settings/profile/wildcard/autocomplete
+path consumer remain unchanged. Their later feature-owner migrations are not part of
+E-02c.
 
 ## Why executor and client remain feature-owned
 
@@ -63,17 +82,18 @@ so no PRO review is required.
 
 ## Preserved contracts
 
-- `RuntimeServices` remains frozen, slotted, identity-installed, and conflict-safe.
+- `RuntimeServices` remains frozen, slotted, identity-installed, and conflict-safe;
+  only its composition fields expand to include the required config and clock.
 - `install_runtime` and `get_runtime` behavior and error text remain unchanged.
-- Bootstrap still creates only the current Comfy and seed services and preserves
-  route refresh, wildcard retry, and repeated initialization.
+- Bootstrap creates the current Comfy and seed services plus the base config and
+  clock, while preserving route refresh, wildcard retry, and repeated initialization.
 - Runtime import remains safe without ComfyUI host modules.
 - No feature cache, provider, client, executor, repository, or monkeypatch seam moves.
 - No root or bootstrap public export is added.
 
 ## Next bounded unit
 
-E-02c is a separate Move for a bootstrap-owned config loader, a concrete system
-clock, and default runtime wiring. It must preserve the current `folder_paths`
-fallback, standalone package behavior, RuntimeServices identity, and initialize
-ordering. Feature owner and shutdown migrations remain separate.
+An E-02 completion audit reconciles the E-01 entries targeted at E-02 before the
+roadmap authorizes E-03. It may record a new bounded Contract/Move if evidence shows
+that a remaining path owner cannot safely wait for its feature phase. Feature owner
+and shutdown migrations remain separate.

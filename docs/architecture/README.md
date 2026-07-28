@@ -10,7 +10,8 @@ then only the active task section, owning Issue, direct source, and direct tests
 ## Active sequencing
 
 - Issue [#187](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/187)
-  owns Phase E. E-01 and E-02b are complete; E-02c is the next bounded Move.
+  owns Phase E. E-01, E-02b, and E-02c are complete; the next bounded unit is
+  an E-02 completion audit.
   Issue #186 retains D-14/shim decisions.
 - [`backend-roadmap-resume-0.6.2.md`](backend-roadmap-resume-0.6.2.md)
   is the current execution source of truth. Read it before the older accumulated
@@ -23,7 +24,10 @@ then only the active task section, owning Issue, direct source, and direct tests
   [`python-runtime-state-inventory.md`](python-runtime-state-inventory.md).
 - E-02b base Contract:
   [`python-runtime-base-contract.md`](python-runtime-base-contract.md).
-- First READY task after E-02b: #187 E-02c config/clock composition Move only.
+- E-02c composition is recorded in the same base Contract: RuntimeConfig and a
+  private system clock are installed in the default runtime without moving feature
+  consumers.
+- First READY task after E-02c: #187 E-02 completion audit only.
 - Completed #470 and the #413/#414/#415 queue/live-UI lanes remain contract references,
   not active blockers.
 - Released code baseline: 0.6.2. Registry activation is external administration and
@@ -65,7 +69,7 @@ aliases or absorbing feature behavior.
 - [`python-runtime-state-inventory.md`](python-runtime-state-inventory.md): E-01
   runtime-owned/declarative state partition, lifecycle gaps, and target phases.
 - [`python-runtime-base-contract.md`](python-runtime-base-contract.md): E-02b
-  RuntimeConfig, Clock, lifecycle-resource shape, and feature-port boundary.
+  base types plus the E-02c private bootstrap composition and feature-port boundary.
 - [`adr-001-modular-monolith.md`](adr-001-modular-monolith.md): feature-oriented modular
   monolith decision.
 - [`adr-002-compatibility-shims.md`](adr-002-compatibility-shims.md): shim lifecycle and
