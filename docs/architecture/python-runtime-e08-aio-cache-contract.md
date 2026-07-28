@@ -11,7 +11,9 @@ authorized bounded Move order. E-08b implements the selected owner from
 `dev@2c5aefeae16dd0f1411516f659bfef6659712243` without changing cache
 behavior or runtime composition. E-08c composes that exact owner from
 `dev@ac527cd5d1621a6f1fda694670be6e80f996579c` behind one private narrow
-runtime port without changing the existing First-pass caller path.
+runtime port without changing the existing First-pass caller path. E-08d audits the
+completed sequence from
+`dev@5ede3b0e34f8b83c5aaae70bd843e3c58fa9ed1b` without production changes.
 
 The executable source is
 `tests/fixtures/python_aio_first_pass_cache_contract.v1.json`, checked by
@@ -133,9 +135,9 @@ receive or import the complete runtime.
 3. **E-08c Move — bootstrap composition — complete:** the exact default owner is
    installed behind one feature-specific narrow RuntimeServices capability without
    changing the existing `FirstPassRuntime` caller path.
-4. **E-08d Contract — completion audit:** reconcile E-01, cleanup, import direction,
-   root identities, runtime composition, and zero ambiguous AiO cache state before
-   E-09.
+4. **E-08d Contract — completion audit — complete:** E-01, cleanup, import direction,
+   root identities, runtime composition, and zero ambiguous AiO cache state are
+   reconciled before E-09.
 
 Each Move is a separate PR and rollback boundary. Do not combine the owner Move,
 runtime composition, completion audit, or E-09 shutdown.
@@ -160,6 +162,16 @@ All E-08 Moves preserve:
 - public node, workflow serialization, API/result, package/no-host, Legacy, and Node
   2.0 behavior.
 
+## Completion audit result
+
+E-08d records one E-01 entry and one exact default owner, one feature cleanup
+disposition with whole-runtime ordering retained for E-09, zero feature-to-runtime or
+root back-references, all seven direct root identities, the exact private two-method
+port/runtime/bootstrap binding, and `ambiguous_state_owners=[]`. No production file,
+import closure, package metadata, archive content, or host-visible behavior changes.
+E-08 is complete; the next phase is a separate E-09 runtime shutdown and cleanup
+Contract.
+
 ## Validation and evidence reuse
 
 E-08a focused validation covers the executable Contract, E-01 reconciliation, direct
@@ -174,10 +186,15 @@ E-08c additionally covers the private two-method port, required RuntimeServices
 field, exact bootstrap owner identity, repeated initialize reuse, fake-host wiring,
 package/no-host import, archive inclusion, and unchanged canonical stage injection.
 
-Run the official full profile once on the final candidate SHA. E-08c adds a shipped
-private port module, so run validate/pack and verify that the archive includes it.
-Reuse the existing isolated-live evidence unless a promotion gate proves material
-host-visible or startup drift.
+E-08d additionally covers exact E-01 owner reconciliation, cleanup disposition,
+feature import safety, all direct root identity bindings, the narrow runtime binding,
+and zero ambiguous state. Because it changes no production, import closure, metadata,
+archive, or host-visible behavior, the E-08c validate/pack/live evidence remains valid.
+
+Run the official full profile once on the final E-08d candidate SHA. Because E-08d
+changes no production, import closure, archive, metadata, or host-visible behavior,
+reuse the exact E-08c validate/pack/isolated-live evidence unless a promotion gate
+proves material drift.
 
 ## Stop conditions
 
@@ -189,4 +206,4 @@ behavior changes; canonical feature code must import root/runtime/bootstrap; pac
 import starts host I/O; or E-09 shutdown must be implemented to finish E-08.
 
 Direct source, #169, E-01, and concurrency tests select one owner and one bounded
-Move sequence. E-08a through E-08c therefore do not trigger additional PRO review.
+Move sequence. E-08a through E-08d therefore do not trigger additional PRO review.

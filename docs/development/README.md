@@ -56,21 +56,21 @@ ordinary `dev` roadmap work.
 
 - Released baseline: 0.6.2.
 - Active owner: Issue #187 for Phase E; Issue #186 retains D-14/shim decisions.
-- Reviewed code baseline before E-08c: E-08b / PR #553 at
-  `ac527cd5d1621a6f1fda694670be6e80f996579c`.
+- Reviewed code baseline before E-08d: E-08c / PR #554 at
+  `5ede3b0e34f8b83c5aaae70bd843e3c58fa9ed1b`.
 - D-08u integrated exit audit is complete.
 - D-08v is not required; the audit found no remaining D-08 production Move.
 - D-14 readiness is audited: every root surface is retained and retirement/final
   freeze is blocked by production/lifecycle consumers, missing release windows, or
   insufficient consumer evidence.
-- E-01 through E-07 and E-08a through E-08c are complete. The next work is only a
-  separate #187 production-free E-08d completion audit Contract. The #323
+- E-01 through E-08 are complete. The next work is only a separate #187 E-09 runtime
+  shutdown and cleanup Contract. The #323
   E-02a/E-07 bridge remains completed evidence, not authorization for unrelated
   feature migration.
 - Completed #470 and the 0.6.1 Prompt Studio lane are behavior-contract references,
   not the active queue.
-- Do not remove root compatibility aliases or start E-09 through E-10, release, or
-  Registry work from this entrypoint.
+- Do not remove root compatibility aliases or start E-09 implementation, E-10,
+  release, or Registry work from this entrypoint.
 
 ## Completed D-08 composition audit surface
 
@@ -161,8 +161,8 @@ representative profile list/load/save/delete/rename/fix live smoke
 - A version marker is not a publish action.
 - Technical PRO review is for unresolved cross-boundary architecture choices,
   unavoidable cycles, or insufficient compatibility evidence—not routine failures.
-- D-14 readiness is recorded and authorizes no removal. E-08c composes the exact
-  AiO first-pass cache owner behind a narrow private runtime port and preserves the
-  compatibility boundary; use that evidence only to start the separate E-08d
-  completion audit. Do not infer E-09 cleanup, release
+- D-14 readiness is recorded and authorizes no removal. The production-free E-08d
+  audit reconciles the exact AiO cache owner, cleanup, import/root/runtime binding,
+  and zero ambiguous state; use that evidence only to start the separate E-09
+  Contract. Do not infer E-09 implementation, release
   publication, or Registry actions.
