@@ -11,9 +11,9 @@ AiO ownership audit. The executable source is
 Issue #187 owns the Phase E decision ledger. The current source, direct owner tests,
 and the separate Sol/max PRO review converge on one bounded sequence:
 
-1. E-09a freezes the lifecycle Contract without production changes;
-2. E-09b implements one cohesive `LIFECYCLE` rollback boundary; and
-3. E-09c performs a production-free completion audit before E-10.
+1. E-09a froze the lifecycle Contract without production changes;
+2. E-09b implemented one cohesive `LIFECYCLE` rollback boundary; and
+3. E-09c completed the production-free reconciliation before E-10.
 
 Multiple Move PRs and a broader roadmap redesign are rejected. Shutdown ordering,
 partial-initialization rollback, and terminal process state are one shared concurrency
@@ -120,19 +120,32 @@ instead of adding a generic client lifecycle.
 
 ## Bounded implementation queue
 
-1. **E-09a Contract:** freeze owner/disposition, cleanup order, rollback, no-op,
-   compatibility, validation, and stop conditions. Production changes: zero.
-2. **E-09b LIFECYCLE:** implement the complete fixed contract in
+1. **E-09a Contract — complete:** freeze owner/disposition, cleanup order, rollback,
+   no-op, compatibility, validation, and stop conditions. Production changes: zero.
+2. **E-09b LIFECYCLE — complete:** implement the complete fixed contract in
    `easyuse_anima/runtime.py`, `easyuse_anima/bootstrap.py`,
    `easyuse_anima/api/routes/translation.py`,
    `easyuse_anima/translation/service.py`,
    `easyuse_anima/prompt/artist_mix.py`, and `__init__.py`, with only the direct
    tests/fixtures/baseline required by actual-code gates.
-3. **E-09c Contract:** reconcile E-01, lifecycle, cleanup, import/package safety, and
-   `ambiguous_state_owners=[]` without production changes.
+3. **E-09c Contract — complete:** reconcile E-01, lifecycle, cleanup,
+   import/package safety, and `ambiguous_state_owners=[]` without production
+   changes.
 
-E-10 remains blocked until E-09c merges. D-14 retirement, release, and Registry work
-remain blocked by the active roadmap.
+E-09 is complete. E-10 is the next READY task and must begin from its own bounded
+task card. D-14 retirement, release, and Registry work remain blocked by the active
+roadmap.
+
+## E-09c completion audit
+
+The E-09c executable audit starts from the merged E-09b result at
+`05fc20eb366be8376a6d3a47a79d2b5d00654a08`. It reconciles the seven formerly pending
+E-01 lifecycle entries as `E-09-complete`, rechecks the seven-step cleanup order and
+four retained no-op owners, and records `ambiguous_state_owners=[]`.
+
+The audit changes no production file. Package, root, runtime, route, API, and import
+surfaces remain the E-09b surfaces. Therefore the E-09b validate/pack/archive and
+isolated ComfyUI import/reload/shutdown evidence remains valid for E-09c.
 
 ## Validation and evidence reuse
 

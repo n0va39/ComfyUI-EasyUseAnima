@@ -172,6 +172,27 @@ class PythonRuntimeStateOwnershipContractTests(unittest.TestCase):
                     self.assertNotIn(pair, declarative_pairs)
                     declarative_pairs.add(pair)
 
+    def test_e09_lifecycle_entries_have_completed_dispositions(self):
+        expected = {
+            "api-file-io-limiters",
+            "bootstrap-initialize-state",
+            "package-bootstrap-effect",
+            "prompt-artist-mix-warning-dedupe",
+            "prompt-conditioning-warning-dedupe",
+            "root-route-registration",
+            "runtime-services",
+        }
+        completed = {
+            entry["id"]
+            for entry in self.fixture["entries"]
+            if entry["target_phase"] == "E-09-complete"
+        }
+        self.assertEqual(completed, expected)
+        self.assertNotIn(
+            "E-09",
+            {entry["target_phase"] for entry in self.fixture["entries"]},
+        )
+
     def test_runtime_entries_bind_existing_shipped_symbols(self):
         for entry in self.fixture["entries"]:
             module_path = ROOT / entry["module"]

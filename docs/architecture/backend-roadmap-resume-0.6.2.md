@@ -2,12 +2,12 @@
 
 ## Status and authority
 
-- Status: D-08 and E-01 through E-08 are completed; E-09a Contract is fixed;
+- Status: D-08 and E-01 through E-09 are completed; E-10 is the next READY task;
   the D-14
   readiness audit retains every root surface and blocks retirement/final-freeze work.
-- E-09a Contract base:
-  `dev@4ad6bc947ba59db2df3cf5212ab07789757d7b96` after E-08d / PR #555.
-- Document baseline: E-09 runtime shutdown and cleanup Contract.
+- E-09c completion-audit base:
+  `dev@05fc20eb366be8376a6d3a47a79d2b5d00654a08` after E-09b / PR #557.
+- Document baseline: completed E-09 runtime shutdown and cleanup lifecycle.
 - Released baseline: 0.6.2.
 - Scope: completed D-08 evidence, the D-14 readiness decision, completed #187
   E-01/E-02/E-03/E-04 work, the E-05a Contract, the E-05b snapshot owner Move,
@@ -17,8 +17,9 @@
   E-06d narrow RuntimeServices/bootstrap composition Move, the E-06e completion
   audit Contract, the completed E-07 bridge, the E-08a AiO first-pass cache
   ownership Contract, the E-08b owner Move, the E-08c narrow composition Move, and
-  the E-08d completion audit Contract, and the E-09a lifecycle Contract. The next
-  bounded implementation is E-09b only.
+  the E-08d completion audit Contract, the E-09a lifecycle Contract, the E-09b
+  cohesive LIFECYCLE implementation, and the E-09c completion audit Contract. The
+  next bounded task is E-10 only.
 - This document owns the current immediate queue and supersedes the stale queue and
   broad preflight command in `python-backend-execution-roadmap.md`.
 - `python-backend.md`, ADR-001, ADR-002, and the compatibility-shim registry still own
@@ -438,20 +439,20 @@ behavior. The queue remains E-08a Contract, E-08b owner Move, E-08c narrow
 RuntimeServices/bootstrap composition, and E-08d completion audit. E-08d reconciles
 the single E-01 entry, feature cleanup, import direction, seven root identities, and
 the exact narrow runtime binding, and records zero ambiguous AiO cache state without
-production changes. E-08 is complete. E-09a fixes one bootstrap-owned terminal
+production changes. E-08 is complete. E-09a fixed one bootstrap-owned terminal
 lifecycle, reverse cleanup order, partial-initialization rollback, and explicit
-file-I/O/route/provider/warning no-op dispositions. The next READY unit after E-09a
-merges is the single cohesive E-09b LIFECYCLE implementation, followed by the
-production-free E-09c audit. Do not start E-10, D-14 retirement, release, or Registry
-work before E-09 completes.
+file-I/O/route/provider/warning no-op dispositions. E-09b implemented the cohesive
+lifecycle and E-09c reconciled E-01 with zero ambiguous owners without production
+changes. E-09 is complete and E-10 is the next READY task. D-14 retirement, release,
+and Registry work remain blocked by their existing roadmap gates.
 ```
 
 ## 7. E-09 runtime shutdown and cleanup queue
 
 ```text
 E-09a  Contract   owner/disposition/order/rollback gate        complete
-E-09b  LIFECYCLE  one cohesive terminal shutdown implementation next
-E-09c  Contract   zero-ambiguity completion audit              blocked on E-09b
+E-09b  LIFECYCLE  one cohesive terminal shutdown implementation complete
+E-09c  Contract   zero-ambiguity completion audit              complete
 ```
 
 E-09a is production-free. It selects bootstrap as the one serialized lifecycle owner,
@@ -463,8 +464,10 @@ Conditioning warning set for process lifetime. Cleanup order and rollback are ow
 E-09b is one rollback boundary rather than several Move PRs because terminal state,
 RuntimeServices close, executor admission, feature cleanup order, global detach, and
 unexpected-startup rollback share one lifecycle/concurrency invariant. E-09c changes
-no production and must reconcile `ambiguous_state_owners=[]` before the next phase.
-E-10 remains blocked, as do D-14, release, and Registry work.
+no production and reconciles `ambiguous_state_owners=[]`, the seven completed E-01
+lifecycle dispositions, package/import safety, and the E-09b promotion evidence.
+E-09 is complete. E-10 is the next READY task; D-14, release, and Registry work
+remain governed by their existing blockers.
 
 ### E-09a validation
 
@@ -473,3 +476,12 @@ E-08 direct contracts, package/no-host import, current import boundary, analyzer
 `git diff --check`. Run official full once on the exact final candidate. Production,
 import closure, archive, metadata, and host-visible behavior do not change, so reuse
 E-08c package/live evidence unless a focused gate proves material drift.
+
+### E-09c validation
+
+Run changed-file JSON/Python syntax, the E-09 lifecycle and E-01 ownership Contracts,
+the E-04/E-05/E-06/E-08 direct Contracts, package/no-host import, current import
+boundaries, analyzer, maintained-document links, and `git diff --check`. Run official
+full once on the exact final candidate. Because E-09c changes no production, import
+closure, archive, metadata, or host-visible behavior, reuse E-09b validate/pack/live
+evidence.

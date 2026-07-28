@@ -105,8 +105,9 @@ class PythonRuntimeLifecycleContractTests(unittest.TestCase):
                 "base_sha",
                 "classification",
                 "cleanup_order",
+                "completion_audit",
                 "current_state",
-                "e01_pending_dispositions",
+                "e01_dispositions",
                 "evidence",
                 "implementation_boundary",
                 "lifecycle_owner",
@@ -123,7 +124,7 @@ class PythonRuntimeLifecycleContractTests(unittest.TestCase):
         )
         self.assertEqual(self.fixture["schema_version"], 1)
         self.assertEqual(self.fixture["classification"], "Contract")
-        self.assertEqual(self.fixture["production_changes"], 0)
+        self.assertEqual(self.fixture["production_changes"], 5)
         self.assertEqual(
             [item["id"] for item in self.fixture["sequence"]],
             ["E-09a", "E-09b", "E-09c"],
@@ -134,12 +135,12 @@ class PythonRuntimeLifecycleContractTests(unittest.TestCase):
         )
         self.assertEqual(
             [item["status"] for item in self.fixture["sequence"]],
-            ["complete", "complete", "ready"],
+            ["complete", "complete", "complete"],
         )
         for evidence in self.fixture["evidence"]:
             self.assertTrue((ROOT / evidence).is_file(), evidence)
 
-    def test_e01_pending_entries_have_exact_dispositions(self):
+    def test_e01_completed_entries_have_exact_dispositions(self):
         expected = [
             "api-file-io-limiters",
             "bootstrap-initialize-state",
@@ -149,18 +150,66 @@ class PythonRuntimeLifecycleContractTests(unittest.TestCase):
             "root-route-registration",
             "runtime-services",
         ]
-        pending = [
+        completed = [
             entry["id"]
             for entry in self.e01_fixture["entries"]
-            if entry["target_phase"] == "E-09"
+            if entry["target_phase"] == "E-09-complete"
         ]
         dispositions = [
             item["id"]
-            for item in self.fixture["e01_pending_dispositions"]
+            for item in self.fixture["e01_dispositions"]
         ]
-        self.assertEqual(pending, expected)
+        self.assertEqual(completed, expected)
         self.assertEqual(dispositions, expected)
         self.assertEqual(len(set(dispositions)), len(dispositions))
+
+    def test_completion_audit_records_zero_ambiguous_owners(self):
+        audit = self.fixture["completion_audit"]
+        entries = {
+            entry["id"]: entry for entry in self.e01_fixture["entries"]
+        }
+        dispositions = {
+            item["id"]: item["decision"]
+            for item in self.fixture["e01_dispositions"]
+        }
+        reconciliations = {
+            item["e01_entry"]: item
+            for item in audit["e01_reconciliation"]
+        }
+
+        self.assertEqual(audit["classification"], "Contract")
+        self.assertEqual(audit["production_changes"], 0)
+        self.assertEqual(audit["ambiguous_state_owners"], [])
+        self.assertEqual(
+            audit["base_sha"],
+            "05fc20eb366be8376a6d3a47a79d2b5d00654a08",
+        )
+        self.assertEqual(audit["next_phase"], "E-10 task card only")
+        self.assertEqual(set(reconciliations), set(dispositions))
+        self.assertNotIn(
+            "E-09",
+            {entry["target_phase"] for entry in entries.values()},
+        )
+        for entry_id, reconciliation in reconciliations.items():
+            with self.subTest(entry=entry_id):
+                self.assertEqual(
+                    entries[entry_id]["target_phase"],
+                    reconciliation["completed_phase"],
+                )
+                self.assertEqual(
+                    reconciliation["decision"],
+                    dispositions[entry_id],
+                )
+        self.assertEqual(
+            audit["verified_cleanup_order"],
+            [item["id"] for item in self.fixture["cleanup_order"]],
+        )
+        self.assertEqual(
+            set(audit["verified_noops"]),
+            {item["id"] for item in self.fixture["retained_noops"]},
+        )
+        for surface in audit["reused_evidence"]["surfaces"]:
+            self.assertTrue(surface.strip())
 
     def test_cleanup_order_reconciles_completed_feature_owners(self):
         expected_order = [
@@ -413,7 +462,8 @@ class PythonRuntimeLifecycleContractTests(unittest.TestCase):
         )
         for task_id in ("E-09a", "E-09b", "E-09c"):
             self.assertIn(task_id, roadmap)
-        self.assertIn("E-10 remains blocked", roadmap)
+        self.assertIn("E-09 is complete", roadmap)
+        self.assertIn("E-10 is the next READY task", roadmap)
 
 
 if __name__ == "__main__":

@@ -58,22 +58,21 @@ ordinary `dev` roadmap work.
 
 - Released baseline: 0.6.2.
 - Active owner: Issue #187 for Phase E; Issue #186 retains D-14/shim decisions.
-- E-09a Contract base: E-08d / PR #555 at
-  `4ad6bc947ba59db2df3cf5212ab07789757d7b96`.
+- E-09c completion-audit base: E-09b / PR #557 at
+  `05fc20eb366be8376a6d3a47a79d2b5d00654a08`.
 - D-08u integrated exit audit is complete.
 - D-08v is not required; the audit found no remaining D-08 production Move.
 - D-14 readiness is audited: every root surface is retained and retirement/final
   freeze is blocked by production/lifecycle consumers, missing release windows, or
   insufficient consumer evidence.
-- E-01 through E-08 are complete. E-09a fixes the runtime shutdown and cleanup
-  Contract; after it merges, the next work is only the single cohesive E-09b
-  LIFECYCLE implementation. The #323
+- E-01 through E-09 are complete with `ambiguous_state_owners=[]`. E-10 is the next
+  READY task and requires its own bounded task card. The #323
   E-02a/E-07 bridge remains completed evidence, not authorization for unrelated
   feature migration.
 - Completed #470 and the 0.6.1 Prompt Studio lane are behavior-contract references,
   not the active queue.
-- Do not remove root compatibility aliases or start E-10, release, or Registry work
-  before the E-09c completion audit.
+- Do not remove root compatibility aliases or start release/Registry work outside
+  the active roadmap gates.
 
 ## Completed D-08 composition audit surface
 
