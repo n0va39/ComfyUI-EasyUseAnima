@@ -10,14 +10,14 @@ then only the active task section, owning Issue, direct source, and direct tests
 ## Active sequencing
 
 - Issue [#187](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/187)
-  owns Phase E. E-01, E-02, and the E-03a repository/filesystem Contract are
-  complete; the E-03b filesystem factory Move is the next bounded unit.
+  owns Phase E. E-01, E-02, E-03a, and the E-03b filesystem factory Move are
+  complete; the E-03c settings repository Move is the next bounded unit.
   Issue #186 retains D-14/shim decisions.
 - [`backend-roadmap-resume-0.6.2.md`](backend-roadmap-resume-0.6.2.md)
   is the current execution source of truth. Read it before the older accumulated
   roadmap.
-- Reviewed code baseline: E-02d / PR #531 at
-  `204e74ab5897e1dc1f769067f9520ecee6803803`.
+- Reviewed code baseline: E-03a / PR #532 at
+  `92704b22fddd3b1b98e3fa037007f7e4916297a4`.
 - D-08 is complete and D-08v is not required.
 - D-14 readiness retains every root surface; retirement/final-freeze work is blocked.
 - E-01 inventory Contract:
@@ -30,9 +30,9 @@ then only the active task section, owning Issue, direct source, and direct tests
 - E-02 completion audit:
   [`python-runtime-e02-completion-audit.md`](python-runtime-e02-completion-audit.md).
 - E-02d canonicalizes the prompt knowledge package-data alias and completes E-02.
-- E-03a repository/filesystem Contract:
+- E-03a/E-03b repository/filesystem Contract and factory result:
   [`python-runtime-e03-repository-filesystem-contract.md`](python-runtime-e03-repository-filesystem-contract.md).
-- First READY task after E-03a: #187 E-03b filesystem factory Move only.
+- First READY task after E-03b: #187 E-03c settings repository Move only.
 - Completed #470 and the #413/#414/#415 queue/live-UI lanes remain contract references,
   not active blockers.
 - Released code baseline: 0.6.2. Registry activation is external administration and
@@ -78,7 +78,8 @@ aliases or absorbing feature behavior.
 - [`python-runtime-e02-completion-audit.md`](python-runtime-e02-completion-audit.md):
   E-02 path-owner disposition, E-02d completion, and E-03 Contract handoff.
 - [`python-runtime-e03-repository-filesystem-contract.md`](python-runtime-e03-repository-filesystem-contract.md):
-  current repository/path/lock/patch boundaries and the E-03b through E-03e queue.
+  current repository/path/lock/patch boundaries, E-03b factory result, and the
+  E-03c through E-03e queue.
 - [`adr-001-modular-monolith.md`](adr-001-modular-monolith.md): feature-oriented modular
   monolith decision.
 - [`adr-002-compatibility-shims.md`](adr-002-compatibility-shims.md): shim lifecycle and

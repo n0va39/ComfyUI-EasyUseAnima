@@ -375,7 +375,7 @@ print(json.dumps({{
             PACKAGE_MODULES.index(
                 "easyuse_anima.infrastructure.filesystem.atomic_json"
             )
-        ] = ["AtomicJsonStore"]
+        ] = ["AtomicJsonStore", "create_atomic_json_store"]
         expected_all[
             PACKAGE_MODULES.index(
                 "easyuse_anima.infrastructure.filesystem.paths"

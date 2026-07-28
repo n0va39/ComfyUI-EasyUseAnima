@@ -48,18 +48,18 @@ ordinary `dev` roadmap work.
 
 - Released baseline: 0.6.2.
 - Active owner: Issue #187 for Phase E; Issue #186 retains D-14/shim decisions.
-- Reviewed code baseline: E-02d / PR #531.
+- Reviewed code baseline: E-03a / PR #532.
 - D-08u integrated exit audit is complete.
 - D-08v is not required; the audit found no remaining D-08 production Move.
 - D-14 readiness is audited: every root surface is retained and retirement/final
   freeze is blocked by production/lifecycle consumers, missing release windows, or
   insufficient consumer evidence.
-- E-01, E-02, and the E-03a repository/filesystem Contract are complete. The next
-  work is only #187 E-03b filesystem factory Move. The #323 E-02a/E-07 bridge
+- E-01, E-02, E-03a, and the E-03b filesystem factory Move are complete. The next
+  work is only #187 E-03c settings repository Move. The #323 E-02a/E-07 bridge
   remains completed evidence, not authorization for unrelated feature migration.
 - Completed #470 and the 0.6.1 Prompt Studio lane are behavior-contract references,
   not the active queue.
-- Do not remove root aliases or start E-03c through E-10, release, or Registry work
+- Do not remove root aliases or start E-03d through E-10, release, or Registry work
   from this entrypoint.
 
 ## Completed D-08 composition audit surface
@@ -151,6 +151,6 @@ representative profile list/load/save/delete/rename/fix live smoke
 - A version marker is not a publish action.
 - Technical PRO review is for unresolved cross-boundary architecture choices,
   unavoidable cycles, or insufficient compatibility evidence—not routine failures.
-- D-14 readiness is recorded and authorizes no removal. Use the E-03a Contract for
-  the bounded E-03b factory Move; do not expand it into settings/profile repository
-  Moves, release publication, or Registry actions.
+- D-14 readiness is recorded and authorizes no removal. Use the E-03a/E-03b Contract
+  evidence for the bounded E-03c settings repository Move; do not expand it into
+  profile repository Moves, release publication, or Registry actions.

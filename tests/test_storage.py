@@ -14,7 +14,10 @@ from unittest.mock import patch
 import storage as root_storage
 from easyuse_anima.infrastructure.filesystem import atomic_json as storage
 from easyuse_anima.infrastructure.filesystem import paths as storage_paths
-from easyuse_anima.infrastructure.filesystem.atomic_json import AtomicJsonStore
+from easyuse_anima.infrastructure.filesystem.atomic_json import (
+    AtomicJsonStore,
+    create_atomic_json_store,
+)
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -395,9 +398,9 @@ class AtomicJsonStoreTests(unittest.TestCase):
         with self.assertRaises(json.JSONDecodeError):
             store.read()
 
-    def test_store_instances_share_the_same_resolved_path_lock(self):
+    def test_direct_and_factory_stores_share_the_same_resolved_path_lock(self):
         first_store = AtomicJsonStore(self.root / "nested" / ".." / "state.json")
-        second_store = self._store()
+        second_store = create_atomic_json_store(self.root / "state.json")
         first_entered = threading.Event()
         release_first = threading.Event()
         second_attempted = threading.Event()
@@ -428,6 +431,21 @@ class AtomicJsonStoreTests(unittest.TestCase):
         self.assertFalse(first.is_alive())
         self.assertFalse(second.is_alive())
         self.assertTrue(second_entered.is_set())
+
+    def test_factory_forwards_backup_policy_to_canonical_store(self):
+        without_backup = create_atomic_json_store(
+            self.root / "without_backup.json",
+            backup=False,
+        )
+        custom_backup = self.root / "custom.backup"
+        with_backup = create_atomic_json_store(
+            self.root / "with_backup.json",
+            backup=custom_backup,
+        )
+
+        self.assertIsInstance(without_backup, AtomicJsonStore)
+        self.assertIsNone(without_backup.backup_path)
+        self.assertEqual(with_backup.backup_path, custom_backup.resolve())
 
     def test_reader_sees_complete_primary_while_publish_is_blocked(self):
         writer_store = self._store()

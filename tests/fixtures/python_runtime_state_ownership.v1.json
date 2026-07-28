@@ -226,7 +226,7 @@
       "module": "easyuse_anima/infrastructure/filesystem/atomic_json.py",
       "owner": "easyuse_anima.infrastructure.filesystem.atomic_json",
       "symbols": ["_PATH_LOCKS", "_PATH_LOCKS_GUARD"],
-      "target_phase": "E-03b",
+      "target_phase": "E-03b-complete",
       "test_evidence": ["tests/test_storage.py"],
       "thread_safety": "The guard serializes registry access; per-path RLocks serialize publish operations."
     },

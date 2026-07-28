@@ -67848,13 +67848,13 @@
       },
       {
         "is_package": false,
-        "loc": 405,
+        "loc": 415,
         "module": "easyuse_anima.infrastructure.filesystem.atomic_json",
-        "normalized_git_blob_sha1": "f087db424ea5802640f24d3ddb2481a23ff8c580",
+        "normalized_git_blob_sha1": "740d64db2cadfbee74f6702799ca5e734da8471a",
         "path": "easyuse_anima/infrastructure/filesystem/atomic_json.py",
         "top_level": {
           "class_count": 1,
-          "function_count": 6,
+          "function_count": 7,
           "global_count": 7
         }
       },

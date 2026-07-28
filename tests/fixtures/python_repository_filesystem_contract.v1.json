@@ -75,7 +75,7 @@
   ],
   "decisions": {
     "dynamic_host_dependencies": "folder_paths lookup remains late-bound in the owning settings or LoRA feature and is not part of the filesystem factory.",
-    "filesystem_factory": "A future factory is a stateless narrow AtomicJsonStore constructor seam. It neither owns nor duplicates the process path-lock registry.",
+    "filesystem_factory": "create_atomic_json_store is the stateless narrow AtomicJsonStore constructor seam. It neither owns nor duplicates the process path-lock registry.",
     "path_lock_owner": "easyuse_anima.infrastructure.filesystem.atomic_json remains the single process owner for normalized-path locks used by direct and factory-created stores.",
     "profile_directory_owner": "PROFILE_MUTATION_COORDINATOR remains a shared profile transaction dependency and is not absorbed into generic filesystem mechanics.",
     "runtime_access": "Repositories receive explicit paths and narrow dependencies; feature code does not receive RuntimeServices."
@@ -142,27 +142,31 @@
   "move_queue": [
     {
       "classification": "Move",
-      "goal": "Add the stateless store-constructor seam while every AtomicJsonStore instance continues to share the canonical path-lock owner.",
+      "goal": "The stateless store-constructor seam delegates to AtomicJsonStore while every instance shares the canonical path-lock owner.",
       "id": "E-03b",
-      "name": "filesystem factory"
+      "name": "filesystem factory",
+      "status": "complete"
     },
     {
       "classification": "Move",
       "goal": "Introduce explicit settings paths and store-factory construction behind the current module functions and patch seams.",
       "id": "E-03c",
-      "name": "settings repository"
+      "name": "settings repository",
+      "status": "ready"
     },
     {
       "classification": "Move",
       "goal": "Introduce explicit LoRA/AiO profile directories, store factory, and shared profile coordinator behind current canonical functions and root aliases.",
       "id": "E-03d",
-      "name": "profile repositories"
+      "name": "profile repositories",
+      "status": "pending"
     },
     {
       "classification": "Contract",
       "goal": "Reconcile ownership targets and prove no repository or filesystem state remains ambiguously owned before E-04.",
       "id": "E-03e",
-      "name": "completion audit"
+      "name": "completion audit",
+      "status": "pending"
     }
   ],
   "owners": [
@@ -175,6 +179,7 @@
           "backup"
         ]
       },
+      "factory": "create_atomic_json_store",
       "id": "atomic-json-store",
       "lifetime": "Direct and future factory-created stores share one process path-lock registry.",
       "methods": [
@@ -190,7 +195,8 @@
       "symbols": [
         "AtomicJsonStore",
         "_PATH_LOCKS",
-        "_PATH_LOCKS_GUARD"
+        "_PATH_LOCKS_GUARD",
+        "create_atomic_json_store"
       ],
       "test_evidence": [
         "tests/test_storage.py"
