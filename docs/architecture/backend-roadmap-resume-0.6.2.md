@@ -2,15 +2,15 @@
 
 ## Status and authority
 
-- Status: D-08, E-01, E-02b, and the E-02c config/clock composition are
+- Status: D-08, E-01, E-02b, E-02c, and the E-02 completion audit are
   completed; the D-14 readiness audit retains every root surface and blocks
   retirement/final-freeze work.
-- Code-review baseline: `dev@49b0e1b44cee95b768884d584b5cb874829a47dd`
-  after E-02b / PR #528.
-- Document baseline: E-02c RuntimeConfig/system-clock composition Move.
+- Code-review baseline: `dev@9a876c2a266b421b23cdd45f1f6baa682340b5cc`
+  after E-02c / PR #529.
+- Document baseline: E-02 completion audit.
 - Released baseline: 0.6.2.
 - Scope: completed D-08 evidence, the D-14 readiness decision, completed #187
-  E-01/E-02b/E-02c work, and the next bounded E-02 completion audit.
+  E-01/E-02b/E-02c/audit work, and the next bounded E-02d Move.
 - This document owns the current immediate queue and supersedes the stale queue and
   broad preflight command in `python-backend-execution-roadmap.md`.
 - `python-backend.md`, ADR-001, ADR-002, and the compatibility-shim registry still own
@@ -263,8 +263,10 @@ The D-08u audit found no required D-08v. After D-08:
 5. E-02b fixes RuntimeConfig, Clock, and idempotent RuntimeResource contracts;
 6. E-02c composes RuntimeConfig and a private system clock into the default
    RuntimeServices while preserving path compatibility and initialize behavior;
-7. the first READY follow-up is an E-02 completion audit; and
-8. never remove root files merely to make the directory tree appear complete.
+7. the E-02 completion audit assigns the autocomplete index root to E-05, records
+   filesystem paths as complete, and selects E-02d for the prompt knowledge path;
+8. the first READY follow-up is E-02d only; and
+9. never remove root files merely to make the directory tree appear complete.
 
 ## 6. E-01/E-02 result and Codex resume instruction
 
@@ -290,8 +292,13 @@ projects the existing canonical path objects without re-resolving them, and a pr
 system clock delegates to time.monotonic(). Existing path constants, feature consumers,
 and root surfaces remain unchanged.
 
-Start only the #187 E-02 completion audit from latest origin/dev. Reconcile the E-01
-E-02 target entries and record whether any bounded E-02 follow-up remains before
-authorizing E-03. Do not start E-03 through E-10 Moves, release, or Registry work
-inside the audit.
+The E-02 completion audit is owned by
+python-runtime-e02-completion-audit.md. It assigns the autocomplete index root to
+E-05, records filesystem paths as E-02c complete, and requires one bounded E-02d
+prompt knowledge path Move.
+
+Start only #187 E-02d from latest origin/dev. Replace the duplicate prompt knowledge
+package-data resolution with the canonical filesystem Path object while preserving
+root compatibility and no-host imports. Do not start E-03 through E-10 Moves,
+release, or Registry work inside E-02d.
 ```
