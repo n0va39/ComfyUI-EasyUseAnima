@@ -37,6 +37,101 @@
       ]
     }
   ],
+  "completion_audit": {
+    "ambiguous_state_owners": [],
+    "classification": "Contract",
+    "cleanup_dispositions": [
+      {
+        "feature_cleanup": "_AutocompleteSnapshotStore.clear idempotently clears completed snapshots while in-flight Futures remain registered until shared settlement",
+        "owner": "dataset-snapshots",
+        "remaining_phase": "E-09",
+        "status": "feature-cleanup-complete"
+      },
+      {
+        "feature_cleanup": "_AutocompleteIndexStore.close is an idempotent no-op because the immutable root and retained per-path Locks own no disposable handle",
+        "owner": "index-store",
+        "remaining_phase": "E-09",
+        "status": "intentional-no-op-close"
+      }
+    ],
+    "e01_reconciliation": [
+      {
+        "completed_phase": "E-05b-complete",
+        "e01_entry": "autocomplete-dataset-cache",
+        "owner": "dataset-snapshots"
+      },
+      {
+        "completed_phase": "E-05c-complete",
+        "e01_entry": "autocomplete-index-locks",
+        "owner": "index-store"
+      },
+      {
+        "completed_phase": "E-05c-complete",
+        "e01_entry": "autocomplete-index-root",
+        "owner": "index-store"
+      }
+    ],
+    "import_safety": {
+      "evidence": [
+        "tests/test_python_package_skeleton.py"
+      ],
+      "feature_modules": [
+        "easyuse_anima/autocomplete/classification.py",
+        "easyuse_anima/autocomplete/dataset.py",
+        "easyuse_anima/autocomplete/index.py",
+        "easyuse_anima/autocomplete/ports.py",
+        "easyuse_anima/autocomplete/search.py",
+        "easyuse_anima/autocomplete/service.py"
+      ],
+      "forbidden_imports": [
+        "api",
+        "autocomplete_dataset",
+        "autocomplete_index",
+        "easyuse_anima.api",
+        "easyuse_anima.bootstrap",
+        "easyuse_anima.runtime"
+      ],
+      "host_io_at_import": false
+    },
+    "next_phase": "E-06a wildcard snapshot ownership Contract",
+    "production_changes": 0,
+    "root_identity_bindings": [
+      {
+        "canonical_module": "easyuse_anima.autocomplete.dataset",
+        "root_module": "autocomplete_dataset.py",
+        "symbols": [
+          "AUTOCOMPLETE_CSV",
+          "AUTOCOMPLETE_SOURCES",
+          "AutocompleteEntry",
+          "autocomplete_status",
+          "resolve_autocomplete_source"
+        ]
+      },
+      {
+        "canonical_module": "easyuse_anima.autocomplete.search",
+        "root_module": "autocomplete_dataset.py",
+        "symbols": [
+          "search_autocomplete"
+        ]
+      },
+      {
+        "canonical_module": "easyuse_anima.autocomplete.classification",
+        "root_module": "autocomplete_dataset.py",
+        "symbols": [
+          "classify_prompt_text"
+        ]
+      },
+      {
+        "canonical_module": "easyuse_anima.autocomplete.index",
+        "root_module": "autocomplete_index.py",
+        "symbols": [
+          "AutocompleteIndexSource",
+          "AutocompleteIndexUnavailable",
+          "search_autocomplete_index"
+        ]
+      }
+    ]
+  },
   "decisions": {
     "adapter_access": "API adapters receive or resolve one narrow autocomplete port; autocomplete feature modules do not import RuntimeServices, bootstrap, API adapters, or root compatibility shims.",
     "bootstrap_composition": "Bootstrap is the only production composition root for the default snapshot and index-store owners and the narrow RuntimeServices autocomplete port.",
@@ -92,7 +187,7 @@
       "goal": "Reconcile E-01 targets, cleanup dispositions, root identities, and zero ambiguous autocomplete state before E-06.",
       "id": "E-05e",
       "name": "autocomplete ownership completion audit",
-      "status": "queued"
+      "status": "complete"
     }
   ],
   "owners": [
@@ -297,5 +392,5 @@
     }
   },
   "schema_version": 1,
-  "scope": "E-05 autocomplete source metadata, dataset snapshot/cache/Future single-flight, SQLite index root and publication path-lock ownership"
+  "scope": "Completed E-05 autocomplete ownership sequence through the production-free E-05e audit"
 }

@@ -11,7 +11,9 @@ E-05b moves the dataset snapshot/cache/Future state behind its selected
 feature-private owner. E-05c moves the immutable index root and retained path-lock
 registry behind the second selected owner. E-05d composes those exact owners behind
 one private autocomplete service and exposes only its narrow port through the
-process runtime.
+process runtime. E-05e reconciles those completed owners with E-01 and records
+their cleanup, import, compatibility, and ambiguity disposition without changing
+production.
 
 The executable source is
 `tests/fixtures/python_autocomplete_runtime_contract.v1.json`, checked by
@@ -127,9 +129,9 @@ port.
 4. **E-05d Move — bootstrap composition and adapter wiring — complete:** compose
    both owners, add only a narrow autocomplete port to RuntimeServices, and
    preserve every canonical/root identity and call-time adapter seam.
-5. **E-05e Contract — completion audit:** reconcile E-01 targets, cleanup
-   dispositions, import safety, root identities, and zero ambiguous autocomplete
-   state before E-06.
+5. **E-05e Contract — completion audit — complete:** reconciles E-01 targets,
+   cleanup dispositions, import safety, root identities, and zero ambiguous
+   autocomplete state before E-06.
 
 Each Move is a separate PR and rollback boundary. E-09 retains whole-runtime reverse
 close ordering and partial-initialization cleanup. E-05 supplies only the
@@ -137,8 +139,31 @@ feature-owned resources and their proven cleanup shapes.
 
 E-05b leaves no duplicate module cache/lock/Future map, E-05c leaves no raw module
 root or index-lock registry, and E-05d creates no duplicate owner while adding the
-single bootstrap-composed narrow runtime port. The next READY unit is the separate
-E-05e completion audit Contract.
+single bootstrap-composed narrow runtime port. E-05e proves that completed state
+without changing production.
+
+## Completion audit result
+
+The E-01 and E-05 fixtures agree on all three autocomplete entries and exactly two
+feature-private owners:
+
+| E-01 entry | E-05 owner | Completed phase | Cleanup disposition |
+| --- | --- | --- | --- |
+| `autocomplete-dataset-cache` | `dataset-snapshots` | E-05b | idempotent completed-cache `clear()`; in-flight Futures remain until shared settlement; whole-runtime ordering remains E-09 |
+| `autocomplete-index-locks` | `index-store` | E-05c | retained normalized-path Locks and idempotent no-op `close()`; whole-runtime ordering remains E-09 |
+| `autocomplete-index-root` | `index-store` | E-05c | immutable Path-or-None root with no disposable handle; whole-runtime ordering remains E-09 |
+
+There are zero ambiguous autocomplete state owners. The source/category tables remain
+one separate declarative policy, not a runtime repository. Feature modules retain no
+runtime, bootstrap, API, or root-shim back-reference; package/no-host import remains
+the direct runtime evidence. Root dataset and index shims continue to import their
+canonical objects directly, while the root API retains the dynamic runtime-port
+facades and canonical pre-initialize fallbacks.
+
+E-05 is complete. The next bounded unit is a separate production-free **E-06a
+wildcard snapshot ownership Contract**. E-05e changes no production, analyzer
+baseline, public surface, package closure, or host-visible behavior and does not
+authorize E-09 cleanup implementation, D-14 retirement, release, or Registry work.
 
 ## Preserved behavior
 
@@ -173,3 +198,5 @@ E-05b preserves that partition and does not trigger a new PRO review.
 E-05c preserves that partition and does not trigger a new PRO review.
 E-05d composes the same two owners without changing their lifecycle partition and
 does not trigger a new PRO review.
+E-05e finds no ambiguous owner or unresolved E-05 boundary and does not trigger a
+new PRO review.
