@@ -30,6 +30,8 @@ Read only the sections needed by the active task.
      [`../architecture/python-runtime-e04-translation-contract.md`](../architecture/python-runtime-e04-translation-contract.md)
    - E-05 autocomplete runtime ownership Contract:
      [`../architecture/python-runtime-e05-autocomplete-contract.md`](../architecture/python-runtime-e05-autocomplete-contract.md)
+   - E-06 wildcard snapshot runtime ownership Contract:
+     [`../architecture/python-runtime-e06-wildcard-contract.md`](../architecture/python-runtime-e06-wildcard-contract.md)
 5. Read [`codex-blocker-escalation.md`](codex-blocker-escalation.md) only after a
    documented hard stop or unresolved cross-owner failure. Ordinary implementation
    and test failures remain local task work.
@@ -52,21 +54,21 @@ ordinary `dev` roadmap work.
 
 - Released baseline: 0.6.2.
 - Active owner: Issue #187 for Phase E; Issue #186 retains D-14/shim decisions.
-- Reviewed code baseline before E-05e: E-05d / PR #545 at
-  `386d4632f5a903a5d03de52d6bd9a997ad1ffe2d`.
+- Reviewed code baseline before E-06a: E-05e / PR #546 at
+  `1df6cab58df7abaec9cc86522e89b982b813bd79`.
 - D-08u integrated exit audit is complete.
 - D-08v is not required; the audit found no remaining D-08 production Move.
 - D-14 readiness is audited: every root surface is retained and retirement/final
   freeze is blocked by production/lifecycle consumers, missing release windows, or
   insufficient consumer evidence.
-- E-01 through E-05 are complete. The next work is only a separate production-free
-  #187 E-06a wildcard snapshot ownership Contract. The
+- E-01 through E-05 and the E-06a Contract are complete. The next work is only a
+  separate #187 E-06b wildcard snapshot owner Move. The
   #323 E-02a/E-07 bridge remains completed evidence, not authorization for unrelated
   feature migration.
 - Completed #470 and the 0.6.1 Prompt Studio lane are behavior-contract references,
   not the active queue.
-- Do not remove root aliases or start an E-06 production Move, E-07 through E-10,
-  release, or Registry work from this entrypoint.
+- Do not remove root aliases or start E-06c, E-07 through E-10, release, or Registry
+  work from this entrypoint.
 
 ## Completed D-08 composition audit surface
 
@@ -157,7 +159,7 @@ representative profile list/load/save/delete/rename/fix live smoke
 - A version marker is not a publish action.
 - Technical PRO review is for unresolved cross-boundary architecture choices,
   unavoidable cycles, or insufficient compatibility evidence—not routine failures.
-- D-14 readiness is recorded and authorizes no removal. E-05 ownership and its
-  production-free completion audit are complete; use that evidence only to start the
-  separate E-06a Contract. Do not infer an E-06 production Move, E-09 cleanup,
-  release publication, or Registry actions.
+- D-14 readiness is recorded and authorizes no removal. E-06a fixes one snapshot
+  owner and a five-step E-06 queue; use that evidence only to start the separate
+  E-06b Move. Do not infer E-06c, E-09 cleanup, release publication, or Registry
+  actions.

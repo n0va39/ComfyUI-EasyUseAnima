@@ -53,7 +53,7 @@ E-01 drift gate until classified.
 | `runtime-services` | identity-installed process runtime with Comfy, seed, config/clock, and narrow translation/autocomplete capabilities | bootstrap-serialized install; private-global test reset, no whole-runtime close | E-09 |
 | `translation-default-service` | RuntimeServices-owned translation port, mirrored by the canonical call-time facade | cache and flight `RLock`s; idempotent service close clears cache | E-04c complete |
 | `translation-provider-registry` | private process-owned lazy provider-client registry | one owned `RLock`; no provider close/reset | E-04b complete |
-| `wildcard-snapshot-cache` | root verified-snapshot LRU and build single-flight | one `Condition`; no owner reset/close | E-06 |
+| `wildcard-snapshot-cache` | root verified-snapshot LRU and build single-flight | one `Condition`; no owner reset/close | E-06a Contract complete; E-06b target |
 
 The fixture contains exact symbols, tests, owner, lifetime, thread-safety, and
 reset/close status. This table is a review index, not a second machine-readable
@@ -151,5 +151,10 @@ registry is introduced. Whole-runtime cleanup ordering remains assigned to E-09;
 the production-free E-05e audit reconciles all three E-01 entries with those two
 owners, records their explicit cleanup dispositions, preserves package/no-host and
 root identity contracts, and records zero ambiguous autocomplete state. E-05 is
-complete. The next bounded unit is a separate E-06a wildcard snapshot ownership
-Contract.
+complete. The production-free
+[`python-runtime-e06-wildcard-contract.md`](python-runtime-e06-wildcard-contract.md)
+reconciles the wildcard entry with one verified-snapshot LRU/building-key/Condition
+resource, preserves root dynamic seams and immutable D-12 materialization, selects a
+private `_WildcardSnapshotStore` default owner, and records completed-cache-only
+cleanup. E-06a is complete; the next bounded unit is the separate E-06b snapshot
+owner Move.

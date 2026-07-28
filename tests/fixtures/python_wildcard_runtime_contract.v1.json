@@ -1,0 +1,186 @@
+{
+  "classification": "Contract",
+  "compatibility_surfaces": [
+    {
+      "id": "root-public-wildcard-facade",
+      "kind": "transitional_root_facade",
+      "module": "wildcard_engine.py",
+      "symbols": [
+        "expand_wildcard_texts",
+        "expand_wildcards",
+        "list_wildcards",
+        "wildcard_sources_signature"
+      ]
+    },
+    {
+      "canonical_bindings": {
+        "_WildcardSnapshot": "easyuse_anima.wildcard.snapshot",
+        "_build_wildcard_snapshot": "easyuse_anima.wildcard.snapshot"
+      },
+      "id": "root-private-snapshot-identities",
+      "kind": "identity_reexport",
+      "module": "wildcard_engine.py",
+      "symbols": [
+        "_WildcardSnapshot",
+        "_build_wildcard_snapshot"
+      ]
+    },
+    {
+      "id": "root-lifecycle-patch-seams",
+      "kind": "dynamic_reference",
+      "module": "wildcard_engine.py",
+      "symbols": [
+        "_build_wildcard_snapshot",
+        "_wildcard_sources"
+      ]
+    }
+  ],
+  "decisions": {
+    "default_root_initialization": "Bootstrap wildcard-directory initialization and its retry state remain E-09 and are not part of the snapshot owner.",
+    "generic_cache_condition_port": "rejected",
+    "resource_partition": "Verified wildcard snapshots, building-key admission, and their Condition form one feature-private owner because they share one cache-key publication invariant.",
+    "root_facade": "Root wildcard_engine remains the current lifecycle/public facade through E-06b; E-06c separately canonicalizes the service surface and internal callers while retaining the root compatibility surface.",
+    "runtime_composition": "E-06d installs only one feature-specific narrow wildcard snapshot capability backed by the exact default owner; feature modules never receive the complete RuntimeServices object.",
+    "snapshot_materialization": "D-12c canonical immutable snapshot values and stateless materialization remain separate behavior authorities and are not reimplemented by E-06.",
+    "test_seams": "Root build and source-module patch seams remain call-time dependencies or gain an equivalent isolated-owner injection seam before raw globals are removed."
+  },
+  "move_queue": [
+    {
+      "classification": "Contract",
+      "goal": "Freeze current lifecycle state, callers, behavior authorities, compatibility seams, one target owner, and bounded Move order.",
+      "id": "E-06a",
+      "name": "wildcard snapshot runtime ownership contract",
+      "status": "complete"
+    },
+    {
+      "classification": "Move",
+      "goal": "Move the completed-snapshot LRU, building-key set, and Condition behind one feature-private owner while preserving source verification, publication, and call-time test seams.",
+      "id": "E-06b",
+      "name": "wildcard snapshot owner",
+      "status": "queued"
+    },
+    {
+      "classification": "Move",
+      "goal": "Canonicalize the wildcard lifecycle/service facade and internal callers while retaining exact root compatibility identities and behavior.",
+      "id": "E-06c",
+      "name": "canonical wildcard service and internal callers",
+      "status": "queued"
+    },
+    {
+      "classification": "Move",
+      "goal": "Compose the exact default snapshot owner behind one feature-specific narrow RuntimeServices wildcard capability without changing initialization or directory lifecycle.",
+      "id": "E-06d",
+      "name": "wildcard bootstrap composition",
+      "status": "queued"
+    },
+    {
+      "classification": "Contract",
+      "goal": "Reconcile E-01, cleanup, import direction, root identities, and zero ambiguous wildcard snapshot state before E-07.",
+      "id": "E-06e",
+      "name": "wildcard ownership completion audit",
+      "status": "queued"
+    }
+  ],
+  "owners": [
+    {
+      "cleanup": {
+        "current": "No owner-level reset or close; building keys self-remove and waiters are notified when each build settles.",
+        "target": "_WildcardSnapshotStore.clear idempotently clears only completed snapshots without cancelling, removing, or replacing active building keys; whole-runtime ordering remains E-09."
+      },
+      "components": [
+        {
+          "module": "wildcard_engine.py",
+          "state_kind": "module",
+          "state_symbols": [
+            "_SNAPSHOT_BUILDING",
+            "_SNAPSHOT_CACHE",
+            "_SNAPSHOT_CONDITION"
+          ]
+        }
+      ],
+      "current_owner": "wildcard_engine snapshot lifecycle",
+      "e01_entries": [
+        "wildcard-snapshot-cache"
+      ],
+      "evidence": [
+        "tests/test_wildcards.py",
+        "tests/test_python_package_skeleton.py"
+      ],
+      "id": "wildcard-snapshots",
+      "lifetime": "Process lifetime with an LRU bound of 16 verified snapshots; building keys live only until success, non-cacheable settlement, or failure.",
+      "locking": "One Condition protects cache lookup/recency/eviction, one-builder admission per source cache key, waiter sleep/wakeup, building-key removal, and publication.",
+      "module": "wildcard_engine.py",
+      "policy_symbols": [
+        "_SNAPSHOT_CACHE_LIMIT"
+      ],
+      "preserved_behavior": [
+        "root sequence and identity remain part of the source-state cache key",
+        "cache hits update LRU recency and eviction retains the newest 16 cacheable snapshots",
+        "one builder scans, builds, rescans, and publishes only when the source cache key is unchanged",
+        "same-key waiters wake and rescan while different keys may build independently",
+        "builder exceptions remove admission state, notify waiters, and propagate unchanged",
+        "non-cacheable snapshots return to the current caller but are not published",
+        "invalid YAML remains a cacheable empty parse while transient or persistent read OSError remains non-cacheable",
+        "list, signature, library, and expansion callers reuse the same immutable snapshot mapping"
+      ],
+      "state_symbols": [
+        "_SNAPSHOT_BUILDING",
+        "_SNAPSHOT_CACHE",
+        "_SNAPSHOT_CONDITION"
+      ],
+      "target_owner": "easyuse_anima.wildcard.snapshot._DEFAULT_WILDCARD_SNAPSHOTS",
+      "target_phase": "E-06b"
+    }
+  ],
+  "production_callers": [
+    {
+      "function": "_load_wildcard_map",
+      "kind": "function",
+      "module": "wildcard_engine.py",
+      "owner": "wildcard-snapshots",
+      "uses": [
+        "_wildcard_snapshot"
+      ]
+    },
+    {
+      "function": "list_wildcards",
+      "kind": "function",
+      "module": "wildcard_engine.py",
+      "owner": "wildcard-snapshots",
+      "uses": [
+        "_wildcard_snapshot"
+      ]
+    },
+    {
+      "function": "wildcard_sources_signature",
+      "kind": "function",
+      "module": "wildcard_engine.py",
+      "owner": "wildcard-snapshots",
+      "uses": [
+        "_wildcard_snapshot"
+      ]
+    },
+    {
+      "class": "_WildcardLibrary",
+      "function": "__init__",
+      "kind": "method",
+      "module": "wildcard_engine.py",
+      "owner": "wildcard-snapshots",
+      "uses": [
+        "_wildcard_snapshot"
+      ]
+    },
+    {
+      "function": "expand_wildcard_texts",
+      "kind": "function",
+      "module": "wildcard_engine.py",
+      "owner": "wildcard-snapshots",
+      "uses": [
+        "_wildcard_snapshot"
+      ]
+    }
+  ],
+  "production_changes": 0,
+  "schema_version": 1,
+  "scope": "E-06 wildcard verified-snapshot LRU, source-rescan publication, and Condition single-flight ownership"
+}
