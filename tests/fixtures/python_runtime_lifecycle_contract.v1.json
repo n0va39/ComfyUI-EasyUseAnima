@@ -1,0 +1,250 @@
+{
+  "base_sha": "4ad6bc947ba59db2df3cf5212ab07789757d7b96",
+  "classification": "Contract",
+  "production_changes": 0,
+  "cleanup_order": [
+    {
+      "action": "shutdown",
+      "disposition": "Close admission, cancel pending futures, do not wait for running work, and allow running work to settle.",
+      "e01_entry": "root-translation-route-worker",
+      "id": "translation-route-executor",
+      "owner": "easyuse_anima.api.routes.translation_execution.PromptTranslationRouteExecutor"
+    },
+    {
+      "action": "clear",
+      "disposition": "Advance generation and clear entries/order while preserving enabled state and metrics.",
+      "e01_entry": "aio-first-pass-cache",
+      "id": "aio-first-pass-cache",
+      "owner": "easyuse_anima.aio.first_pass_cache._DEFAULT_AIO_FIRST_PASS_CACHE"
+    },
+    {
+      "action": "clear",
+      "disposition": "Clear completed snapshots without cancelling active builds or waiter settlement.",
+      "e01_entry": "wildcard-snapshot-cache",
+      "id": "wildcard-snapshot-cache",
+      "owner": "easyuse_anima.wildcard.snapshot._DEFAULT_WILDCARD_SNAPSHOTS"
+    },
+    {
+      "action": "close",
+      "disposition": "Idempotent no-op; retained normalized-path locks remain process-lifetime.",
+      "e01_entry": "autocomplete-index-locks",
+      "id": "autocomplete-index-store",
+      "owner": "easyuse_anima.autocomplete.index._DEFAULT_AUTOCOMPLETE_INDEX_STORE"
+    },
+    {
+      "action": "clear",
+      "disposition": "Clear completed snapshots without cancelling or removing in-flight Futures.",
+      "e01_entry": "autocomplete-dataset-cache",
+      "id": "autocomplete-snapshot-store",
+      "owner": "easyuse_anima.autocomplete.dataset._DEFAULT_AUTOCOMPLETE_SNAPSHOTS"
+    },
+    {
+      "action": "compare-and-restore",
+      "disposition": "Restore the captured prior translation facade only when the facade still names the closing runtime service.",
+      "e01_entry": "translation-default-service",
+      "id": "translation-default-facade",
+      "owner": "easyuse_anima.translation.service._DEFAULT_TRANSLATION_SERVICE"
+    },
+    {
+      "action": "close",
+      "disposition": "Clear the runtime translation cache after the facade is detached; active flights self-remove on settlement.",
+      "e01_entry": "translation-default-service",
+      "id": "translation-service-cache",
+      "owner": "easyuse_anima.runtime.RuntimeServices.translation"
+    }
+  ],
+  "current_state": {
+    "bootstrap_exports": [
+      "initialize"
+    ],
+    "bootstrap_has_shutdown": false,
+    "package_entry_calls": "easyuse_anima.bootstrap.initialize",
+    "runtime_services_has_close": false,
+    "translation_worker_registers_own_atexit": true
+  },
+  "e01_pending_dispositions": [
+    {
+      "decision": "retain-module-owner-self-expiring",
+      "id": "api-file-io-limiters"
+    },
+    {
+      "decision": "bootstrap-terminal-lifecycle",
+      "id": "bootstrap-initialize-state"
+    },
+    {
+      "decision": "retain-root-import-initialize-with-bootstrap-atexit-shutdown",
+      "id": "package-bootstrap-effect"
+    },
+    {
+      "decision": "remove-callerless-duplicate",
+      "id": "prompt-artist-mix-warning-dedupe"
+    },
+    {
+      "decision": "retain-process-lifetime-no-op",
+      "id": "prompt-conditioning-warning-dedupe"
+    },
+    {
+      "decision": "retain-installed-routes-no-deregistration",
+      "id": "root-route-registration"
+    },
+    {
+      "decision": "runtime-services-private-once-only-close-plan",
+      "id": "runtime-services"
+    }
+  ],
+  "evidence": [
+    "__init__.py",
+    "easyuse_anima/runtime.py",
+    "easyuse_anima/bootstrap.py",
+    "easyuse_anima/api/file_io.py",
+    "easyuse_anima/api/router.py",
+    "easyuse_anima/api/routes/translation.py",
+    "easyuse_anima/api/routes/translation_execution.py",
+    "easyuse_anima/translation/service.py",
+    "easyuse_anima/autocomplete/dataset.py",
+    "easyuse_anima/autocomplete/index.py",
+    "easyuse_anima/wildcard/snapshot.py",
+    "easyuse_anima/aio/first_pass_cache.py",
+    "easyuse_anima/prompt/artist_mix.py",
+    "easyuse_anima/prompt/conditioning.py",
+    "tests/test_runtime_services.py",
+    "tests/test_python_bootstrap.py",
+    "tests/test_api_contract.py",
+    "tests/test_prompt_translation_api.py",
+    "tests/test_prompt_corrector.py",
+    "tests/test_python_package_skeleton.py"
+  ],
+  "implementation_boundary": {
+    "allowed_production": [
+      "easyuse_anima/runtime.py",
+      "easyuse_anima/bootstrap.py",
+      "easyuse_anima/api/routes/translation.py",
+      "easyuse_anima/translation/service.py",
+      "easyuse_anima/prompt/artist_mix.py",
+      "__init__.py"
+    ],
+    "forbidden": [
+      "active-request-drain",
+      "file-io-limiter-clear-cancel-release",
+      "hot-shutdown-reinitialize",
+      "provider-client-close",
+      "root-public-export-change",
+      "route-deregistration",
+      "route-side-effect-rollback"
+    ]
+  },
+  "lifecycle_owner": {
+    "atexit_registration": "bootstrap-owned-once",
+    "expected_identity_detach": [
+      "easyuse_anima.bootstrap._DEFAULT_RUNTIME",
+      "easyuse_anima.runtime._RUNTIME_SERVICES"
+    ],
+    "initialize_after_shutdown": "raise-before-callbacks",
+    "module": "easyuse_anima/bootstrap.py",
+    "package_shutdown": "atexit-only",
+    "runtime_close": "RuntimeServices.close delegates to a private once-only cleanup plan",
+    "serialization": "initialize and shutdown share _INITIALIZE_LOCK",
+    "shutdown_idempotence": "shutdown/shutdown is safe",
+    "shutdown_state": "terminal"
+  },
+  "preserved_initialize": {
+    "initialize_initialize": "same runtime identity and route refresh on every call",
+    "route_false": "nonterminal and retryable",
+    "unexpected_exception": "rollback only attempt-created or attempt-bound resources and preserve the startup exception",
+    "wildcard_oserror": "warn, retain runtime, and retry wildcard initialization later",
+    "wildcard_success": "initialize once"
+  },
+  "public_surface": {
+    "bootstrap_all_after_e09b": [
+      "initialize",
+      "shutdown"
+    ],
+    "root_all_unchanged": [
+      "NODE_CLASS_MAPPINGS",
+      "NODE_DISPLAY_NAME_MAPPINGS",
+      "WEB_DIRECTORY"
+    ],
+    "runtime_all_unchanged": [
+      "Clock",
+      "RuntimeConfig",
+      "RuntimeResource",
+      "RuntimeServices",
+      "get_runtime",
+      "install_runtime"
+    ]
+  },
+  "retained_noops": [
+    {
+      "id": "api-file-io-limiters",
+      "reason": "Weak loop keys and weak semaphore values self-expire; active calls retain their limiter until real work settles."
+    },
+    {
+      "id": "prompt-conditioning-warning-dedupe",
+      "reason": "The canonical warning-once set is process-lifetime and accepts the existing benign duplicate-warning race."
+    },
+    {
+      "id": "root-route-registration",
+      "reason": "ComfyUI exposes no proven safe deregistration contract; route markers and definitions stay installed."
+    },
+    {
+      "id": "translation-provider-registry",
+      "reason": "The optional provider/client contract exposes no supported close operation."
+    }
+  ],
+  "rollback_contract": {
+    "continue_cleanup": true,
+    "non_rollback": [
+      "directories",
+      "global-feature-cache-owners",
+      "pre-created-translation-route-executor",
+      "registered-route-side-effects"
+    ],
+    "preserve_startup_exception": true,
+    "rollback_only": [
+      "attempt-created-runtime-services",
+      "attempt-installed-runtime-identity",
+      "attempt-published-bootstrap-runtime",
+      "attempt-replaced-translation-facade"
+    ],
+    "triggers": [
+      "unexpected-register-routes-exception",
+      "unexpected-wildcard-initializer-exception"
+    ]
+  },
+  "schema_version": 1,
+  "scope": "E-09 runtime shutdown and cleanup lifecycle Contract",
+  "sequence": [
+    {
+      "classification": "Contract",
+      "goal": "Freeze lifecycle ownership, cleanup dispositions and order, rollback, no-op boundaries, compatibility, and promotion gates.",
+      "id": "E-09a",
+      "status": "complete"
+    },
+    {
+      "classification": "LIFECYCLE",
+      "goal": "Implement the fixed terminal/idempotent bootstrap and RuntimeServices cleanup contract in one cohesive rollback boundary.",
+      "id": "E-09b",
+      "status": "ready"
+    },
+    {
+      "classification": "Contract",
+      "goal": "Reconcile the implemented lifecycle with E-01 and record zero ambiguous owners before E-10.",
+      "id": "E-09c",
+      "status": "blocked-on-E-09b"
+    }
+  ],
+  "warning_dedupe": [
+    {
+      "action": "remove",
+      "id": "prompt-artist-mix-warning-dedupe",
+      "module": "easyuse_anima/prompt/artist_mix.py",
+      "reason": "The duplicate set has no production caller."
+    },
+    {
+      "action": "retain-process-lifetime",
+      "id": "prompt-conditioning-warning-dedupe",
+      "module": "easyuse_anima/prompt/conditioning.py",
+      "reason": "The canonical warning helper owns membership and warning dispatch."
+    }
+  ]
+}

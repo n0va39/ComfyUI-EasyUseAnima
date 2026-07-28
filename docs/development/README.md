@@ -34,6 +34,8 @@ Read only the sections needed by the active task.
      [`../architecture/python-runtime-e06-wildcard-contract.md`](../architecture/python-runtime-e06-wildcard-contract.md)
    - E-08 AiO first-pass cache ownership Contract:
      [`../architecture/python-runtime-e08-aio-cache-contract.md`](../architecture/python-runtime-e08-aio-cache-contract.md)
+   - E-09 runtime shutdown and cleanup Contract:
+     [`../architecture/python-runtime-e09-lifecycle-contract.md`](../architecture/python-runtime-e09-lifecycle-contract.md)
 5. Read [`codex-blocker-escalation.md`](codex-blocker-escalation.md) only after a
    documented hard stop or unresolved cross-owner failure. Ordinary implementation
    and test failures remain local task work.
@@ -56,21 +58,22 @@ ordinary `dev` roadmap work.
 
 - Released baseline: 0.6.2.
 - Active owner: Issue #187 for Phase E; Issue #186 retains D-14/shim decisions.
-- Reviewed code baseline before E-08d: E-08c / PR #554 at
-  `5ede3b0e34f8b83c5aaae70bd843e3c58fa9ed1b`.
+- E-09a Contract base: E-08d / PR #555 at
+  `4ad6bc947ba59db2df3cf5212ab07789757d7b96`.
 - D-08u integrated exit audit is complete.
 - D-08v is not required; the audit found no remaining D-08 production Move.
 - D-14 readiness is audited: every root surface is retained and retirement/final
   freeze is blocked by production/lifecycle consumers, missing release windows, or
   insufficient consumer evidence.
-- E-01 through E-08 are complete. The next work is only a separate #187 E-09 runtime
-  shutdown and cleanup Contract. The #323
+- E-01 through E-08 are complete. E-09a fixes the runtime shutdown and cleanup
+  Contract; after it merges, the next work is only the single cohesive E-09b
+  LIFECYCLE implementation. The #323
   E-02a/E-07 bridge remains completed evidence, not authorization for unrelated
   feature migration.
 - Completed #470 and the 0.6.1 Prompt Studio lane are behavior-contract references,
   not the active queue.
-- Do not remove root compatibility aliases or start E-09 implementation, E-10,
-  release, or Registry work from this entrypoint.
+- Do not remove root compatibility aliases or start E-10, release, or Registry work
+  before the E-09c completion audit.
 
 ## Completed D-08 composition audit surface
 
