@@ -62,7 +62,6 @@ ARTIST_MIX_DEFAULT_DOMINANT_THRESHOLD = 0.25
 ARTIST_MIX_CONTROL_KEY = "anima_prompt_artist_mix_control"
 ARTIST_MIX_EXACT_KEY = "anima_prompt_artist_mix_exact"
 ARTIST_MIX_SCHEDULE_KEY = "anima_prompt_artist_mix_schedule"
-_SPECTRUM_ANIMA_MOD_GUIDANCE_OLD_SIGNATURE_WARNED: set[str] = set()
 
 ARTIST_TAG_POSITION_CORRECT = "correct"
 ARTIST_TAG_POSITION_FRONT = "front"

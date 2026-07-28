@@ -55,12 +55,13 @@
   ],
   "current_state": {
     "bootstrap_exports": [
-      "initialize"
+      "initialize",
+      "shutdown"
     ],
-    "bootstrap_has_shutdown": false,
+    "bootstrap_has_shutdown": true,
     "package_entry_calls": "easyuse_anima.bootstrap.initialize",
-    "runtime_services_has_close": false,
-    "translation_worker_registers_own_atexit": true
+    "runtime_services_has_close": true,
+    "translation_worker_registers_own_atexit": false
   },
   "e01_pending_dispositions": [
     {
@@ -224,13 +225,13 @@
       "classification": "LIFECYCLE",
       "goal": "Implement the fixed terminal/idempotent bootstrap and RuntimeServices cleanup contract in one cohesive rollback boundary.",
       "id": "E-09b",
-      "status": "ready"
+      "status": "complete"
     },
     {
       "classification": "Contract",
       "goal": "Reconcile the implemented lifecycle with E-01 and record zero ambiguous owners before E-10.",
       "id": "E-09c",
-      "status": "blocked-on-E-09b"
+      "status": "ready"
     }
   ],
   "warning_dedupe": [

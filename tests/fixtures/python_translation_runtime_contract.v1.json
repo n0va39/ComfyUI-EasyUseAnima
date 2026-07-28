@@ -34,7 +34,7 @@
     "classification": "Contract",
     "cleanup_dispositions": [
       {
-        "feature_cleanup": "PromptTranslationRouteExecutor.shutdown is idempotent and registered once with atexit",
+        "feature_cleanup": "PromptTranslationRouteExecutor.shutdown is idempotent and invoked by the bootstrap-owned terminal cleanup plan",
         "owner": "route-executor",
         "remaining_phase": "E-09",
         "status": "feature-cleanup-complete"
@@ -126,7 +126,7 @@
   "owners": [
     {
       "cleanup": {
-        "current": "private bootstrap composition registers idempotent shutdown once with atexit while root retains the compatibility reference; package shutdown does not own it",
+        "current": "private bootstrap composition owns the executor identity and invokes idempotent shutdown from the one terminal cleanup plan while root retains the compatibility reference",
         "implemented_methods": [
           "shutdown"
         ],

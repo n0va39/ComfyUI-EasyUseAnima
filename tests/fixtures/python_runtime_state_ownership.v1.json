@@ -221,16 +221,16 @@
       "thread_safety": "The guard serializes registry access; per-path RLocks serialize publish operations."
     },
     {
-      "categories": ["bootstrap", "lock", "runtime_reference"],
-      "cleanup": "No production reset or shutdown; tests patch _DEFAULT_RUNTIME and _WILDCARDS_INITIALIZED.",
+      "categories": ["atexit", "bootstrap", "executor", "lock", "runtime_reference"],
+      "cleanup": "shutdown terminally detaches the expected runtime identities and executes the once-only cleanup plan; routes remain installed.",
       "id": "bootstrap-initialize-state",
-      "lifetime": "Process lifetime after first successful package initialization.",
+      "lifetime": "Process lifetime from first initialization attempt through terminal shutdown.",
       "module": "easyuse_anima/bootstrap.py",
-      "owner": "easyuse_anima.bootstrap.initialize",
-      "symbols": ["_DEFAULT_RUNTIME", "_INITIALIZE_LOCK", "_WILDCARDS_INITIALIZED", "initialize"],
+      "owner": "easyuse_anima.bootstrap lifecycle",
+      "symbols": ["_ATEXIT_REGISTERED", "_DEFAULT_RUNTIME", "_INITIALIZE_LOCK", "_SHUTDOWN", "_TRANSLATION_ROUTE_EXECUTOR", "_WILDCARDS_INITIALIZED", "initialize", "shutdown"],
       "target_phase": "E-09",
       "test_evidence": ["tests/test_python_bootstrap.py", "tests/test_runtime_services.py"],
-      "thread_safety": "One Lock serializes default config/clock composition, runtime install, route refresh, and wildcard initialization."
+      "thread_safety": "One Lock serializes composition, install, route refresh, wildcard initialization, terminal state, expected-identity detach, and cleanup."
     },
     {
       "categories": ["path_resolution", "runtime_config"],
@@ -270,15 +270,15 @@
     },
     {
       "categories": ["compatibility_warning", "dedupe_set"],
-      "cleanup": "No production reset; direct tests clear the set.",
+      "cleanup": "The callerless duplicate set was removed by E-09b; canonical warning ownership remains in prompt.conditioning.",
       "id": "prompt-artist-mix-warning-dedupe",
-      "lifetime": "Process lifetime, keyed by external patcher class.",
+      "lifetime": "Removed; no production state remains in this module.",
       "module": "easyuse_anima/prompt/artist_mix.py",
-      "owner": "easyuse_anima.prompt.artist_mix",
-      "symbols": ["_SPECTRUM_ANIMA_MOD_GUIDANCE_OLD_SIGNATURE_WARNED"],
+      "owner": "removed by E-09b",
+      "symbols": [],
       "target_phase": "E-09",
       "test_evidence": ["tests/test_prompt_corrector.py"],
-      "thread_safety": "Unprotected membership/add; current execution accepts benign duplicate-warning races."
+      "thread_safety": "No remaining state."
     },
     {
       "categories": ["compatibility_warning", "dedupe_set"],
@@ -330,7 +330,7 @@
     },
     {
       "categories": ["autocomplete_port", "capability", "clock", "runtime_config", "runtime_reference", "seed_reservation_service", "translation_port"],
-      "cleanup": "No production uninstall/close; tests patch _RUNTIME_SERVICES.",
+      "cleanup": "RuntimeServices.close delegates once to the bootstrap-composed cleanup plan; expected-identity detach is private and conflict-safe.",
       "id": "runtime-services",
       "lifetime": "One identity-installed RuntimeServices object for the process, including immutable config, a monotonic clock, and narrow translation and autocomplete service ports.",
       "module": "easyuse_anima/runtime.py",
@@ -338,7 +338,7 @@
       "symbols": ["RuntimeServices", "_RUNTIME_SERVICES"],
       "target_phase": "E-09",
       "test_evidence": ["tests/test_autocomplete_service.py", "tests/test_comfy_host_wiring.py", "tests/test_runtime_services.py", "tests/test_seed_reservation_service.py"],
-      "thread_safety": "Bootstrap serializes production install; install_runtime enforces identity without a Lock."
+      "thread_safety": "Bootstrap serializes install and detach; the private cleanup plan locks its once-only transition and continues the fixed callback sequence after failures."
     },
     {
       "categories": ["cache", "lock", "service", "single_flight"],

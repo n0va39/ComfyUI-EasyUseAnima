@@ -17898,6 +17898,42 @@
       },
       {
         "alias": null,
+        "bound_name": "_RuntimeCleanupPlan",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".runtime:_RuntimeCleanupPlan",
+        "kind": "static_from",
+        "line": 58,
+        "name": "_RuntimeCleanupPlan",
+        "optional": false,
+        "requested": ".runtime",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/bootstrap.py",
+        "target": "easyuse_anima/runtime.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "_detach_runtime",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".runtime:_detach_runtime",
+        "kind": "static_from",
+        "line": 58,
+        "name": "_detach_runtime",
+        "optional": false,
+        "requested": ".runtime",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/bootstrap.py",
+        "target": "easyuse_anima/runtime.py"
+      },
+      {
+        "alias": null,
         "bound_name": "install_runtime",
         "branch_context": [],
         "classification": "internal",
@@ -17923,7 +17959,7 @@
         "conditional": false,
         "imported": ".seed.service:InMemorySeedReservationService",
         "kind": "static_from",
-        "line": 59,
+        "line": 65,
         "name": "InMemorySeedReservationService",
         "optional": false,
         "requested": ".seed.service",
@@ -17941,7 +17977,7 @@
         "conditional": false,
         "imported": ".translation.contracts:TranslationBusyError",
         "kind": "static_from",
-        "line": 60,
+        "line": 66,
         "name": "TranslationBusyError",
         "optional": false,
         "requested": ".translation.contracts",
@@ -17959,7 +17995,7 @@
         "conditional": false,
         "imported": ".translation.contracts:TranslationCancelledError",
         "kind": "static_from",
-        "line": 60,
+        "line": 66,
         "name": "TranslationCancelledError",
         "optional": false,
         "requested": ".translation.contracts",
@@ -17977,7 +18013,7 @@
         "conditional": false,
         "imported": ".translation.contracts:TranslationTimeoutError",
         "kind": "static_from",
-        "line": 60,
+        "line": 66,
         "name": "TranslationTimeoutError",
         "optional": false,
         "requested": ".translation.contracts",
@@ -17988,6 +18024,24 @@
       },
       {
         "alias": null,
+        "bound_name": "PromptTranslationPort",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".translation.ports:PromptTranslationPort",
+        "kind": "static_from",
+        "line": 71,
+        "name": "PromptTranslationPort",
+        "optional": false,
+        "requested": ".translation.ports",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/bootstrap.py",
+        "target": "easyuse_anima/translation/ports.py"
+      },
+      {
+        "alias": null,
         "bound_name": "BoundedTranslationCache",
         "branch_context": [],
         "classification": "internal",
@@ -17995,7 +18049,7 @@
         "conditional": false,
         "imported": ".translation.service:BoundedTranslationCache",
         "kind": "static_from",
-        "line": 65,
+        "line": 72,
         "name": "BoundedTranslationCache",
         "optional": false,
         "requested": ".translation.service",
@@ -18013,7 +18067,7 @@
         "conditional": false,
         "imported": ".translation.service:PromptTranslationService",
         "kind": "static_from",
-        "line": 65,
+        "line": 72,
         "name": "PromptTranslationService",
         "optional": false,
         "requested": ".translation.service",
@@ -18031,8 +18085,26 @@
         "conditional": false,
         "imported": ".translation.service:_install_default_translation_service",
         "kind": "static_from",
-        "line": 65,
+        "line": 72,
         "name": "_install_default_translation_service",
+        "optional": false,
+        "requested": ".translation.service",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/bootstrap.py",
+        "target": "easyuse_anima/translation/service.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "_restore_default_translation_service",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".translation.service:_restore_default_translation_service",
+        "kind": "static_from",
+        "line": 72,
+        "name": "_restore_default_translation_service",
         "optional": false,
         "requested": ".translation.service",
         "role": "ordinary",
@@ -18049,7 +18121,7 @@
         "conditional": false,
         "imported": ".wildcard.snapshot:_DEFAULT_WILDCARD_SNAPSHOTS",
         "kind": "static_from",
-        "line": 70,
+        "line": 78,
         "name": "_DEFAULT_WILDCARD_SNAPSHOTS",
         "optional": false,
         "requested": ".wildcard.snapshot",
@@ -18067,7 +18139,7 @@
         "conditional": false,
         "imported": ".infrastructure.filesystem.paths:PACKAGE_DATA_DIR",
         "kind": "static_from",
-        "line": 86,
+        "line": 97,
         "name": "PACKAGE_DATA_DIR",
         "optional": false,
         "requested": ".infrastructure.filesystem.paths",
@@ -18085,7 +18157,7 @@
         "conditional": false,
         "imported": ".infrastructure.filesystem.paths:PACKAGE_ROOT",
         "kind": "static_from",
-        "line": 86,
+        "line": 97,
         "name": "PACKAGE_ROOT",
         "optional": false,
         "requested": ".infrastructure.filesystem.paths",
@@ -18103,7 +18175,7 @@
         "conditional": false,
         "imported": ".infrastructure.filesystem.paths:USER_DATA_DIR",
         "kind": "static_from",
-        "line": 86,
+        "line": 97,
         "name": "USER_DATA_DIR",
         "optional": false,
         "requested": ".infrastructure.filesystem.paths",
@@ -28935,7 +29007,7 @@
         "conditional": false,
         "imported": ".advanced:_advanced_enabled_pane_fields",
         "kind": "static_from",
-        "line": 127,
+        "line": 126,
         "name": "_advanced_enabled_pane_fields",
         "optional": false,
         "requested": ".advanced",
@@ -28953,7 +29025,7 @@
         "conditional": false,
         "imported": ".advanced:_advanced_prompt_with_artist_override",
         "kind": "static_from",
-        "line": 133,
+        "line": 132,
         "name": "_advanced_prompt_with_artist_override",
         "optional": false,
         "requested": ".advanced",
@@ -28971,7 +29043,7 @@
         "conditional": false,
         "imported": ".advanced:_normalize_advanced_fields",
         "kind": "static_from",
-        "line": 139,
+        "line": 138,
         "name": "_normalize_advanced_fields",
         "optional": false,
         "requested": ".advanced",
@@ -28989,7 +29061,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 409
+            "line": 408
           }
         ],
         "classification": "external",
@@ -28997,7 +29069,7 @@
         "conditional": true,
         "imported": "torch",
         "kind": "static_import",
-        "line": 410,
+        "line": 409,
         "name": null,
         "optional": true,
         "requested": "torch",
@@ -29014,7 +29086,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 425
+            "line": 424
           }
         ],
         "classification": "external",
@@ -29022,7 +29094,7 @@
         "conditional": true,
         "imported": "torch",
         "kind": "static_import",
-        "line": 426,
+        "line": 425,
         "name": null,
         "optional": true,
         "requested": "torch",
@@ -29039,7 +29111,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 445
+            "line": 444
           }
         ],
         "classification": "external",
@@ -29047,7 +29119,7 @@
         "conditional": true,
         "imported": "torch",
         "kind": "static_import",
-        "line": 446,
+        "line": 445,
         "name": null,
         "optional": true,
         "requested": "torch",
@@ -29064,7 +29136,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 520
+            "line": 519
           }
         ],
         "classification": "external",
@@ -29072,7 +29144,7 @@
         "conditional": true,
         "imported": "torch",
         "kind": "static_import",
-        "line": 521,
+        "line": 520,
         "name": null,
         "optional": true,
         "requested": "torch",
@@ -29089,7 +29161,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 1109
+            "line": 1108
           }
         ],
         "classification": "external",
@@ -29097,7 +29169,7 @@
         "conditional": true,
         "imported": "torch",
         "kind": "static_import",
-        "line": 1110,
+        "line": 1109,
         "name": null,
         "optional": true,
         "requested": "torch",
@@ -30133,6 +30205,40 @@
       },
       {
         "alias": null,
+        "bound_name": "threading",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "threading",
+        "kind": "static_import",
+        "line": 5,
+        "name": null,
+        "optional": false,
+        "requested": "threading",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/runtime.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "Callable",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "collections.abc:Callable",
+        "kind": "static_from",
+        "line": 6,
+        "name": "Callable",
+        "optional": false,
+        "requested": "collections.abc",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/runtime.py"
+      },
+      {
+        "alias": null,
         "bound_name": "dataclass",
         "branch_context": [],
         "classification": "external",
@@ -30140,8 +30246,25 @@
         "conditional": false,
         "imported": "dataclasses:dataclass",
         "kind": "static_from",
-        "line": 5,
+        "line": 7,
         "name": "dataclass",
+        "optional": false,
+        "requested": "dataclasses",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/runtime.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "field",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "dataclasses:field",
+        "kind": "static_from",
+        "line": 7,
+        "name": "field",
         "optional": false,
         "requested": "dataclasses",
         "role": "ordinary",
@@ -30157,7 +30280,7 @@
         "conditional": false,
         "imported": "pathlib:Path",
         "kind": "static_from",
-        "line": 6,
+        "line": 8,
         "name": "Path",
         "optional": false,
         "requested": "pathlib",
@@ -30174,7 +30297,7 @@
         "conditional": false,
         "imported": "typing:Protocol",
         "kind": "static_from",
-        "line": 7,
+        "line": 9,
         "name": "Protocol",
         "optional": false,
         "requested": "typing",
@@ -30191,7 +30314,7 @@
         "conditional": false,
         "imported": ".aio.ports:AIOFirstPassCachePort",
         "kind": "static_from",
-        "line": 9,
+        "line": 11,
         "name": "AIOFirstPassCachePort",
         "optional": false,
         "requested": ".aio.ports",
@@ -30209,7 +30332,7 @@
         "conditional": false,
         "imported": ".autocomplete.ports:AutocompletePort",
         "kind": "static_from",
-        "line": 10,
+        "line": 12,
         "name": "AutocompletePort",
         "optional": false,
         "requested": ".autocomplete.ports",
@@ -30227,7 +30350,7 @@
         "conditional": false,
         "imported": ".infrastructure.comfy.provider:ComfyHostProvider",
         "kind": "static_from",
-        "line": 11,
+        "line": 13,
         "name": "ComfyHostProvider",
         "optional": false,
         "requested": ".infrastructure.comfy.provider",
@@ -30245,7 +30368,7 @@
         "conditional": false,
         "imported": ".seed.reservation:SeedReservationService",
         "kind": "static_from",
-        "line": 12,
+        "line": 14,
         "name": "SeedReservationService",
         "optional": false,
         "requested": ".seed.reservation",
@@ -30263,7 +30386,7 @@
         "conditional": false,
         "imported": ".translation.ports:PromptTranslationPort",
         "kind": "static_from",
-        "line": 13,
+        "line": 15,
         "name": "PromptTranslationPort",
         "optional": false,
         "requested": ".translation.ports",
@@ -30281,7 +30404,7 @@
         "conditional": false,
         "imported": ".wildcard.ports:WildcardSnapshotPort",
         "kind": "static_from",
-        "line": 14,
+        "line": 16,
         "name": "WildcardSnapshotPort",
         "optional": false,
         "requested": ".wildcard.ports",
@@ -66188,6 +66311,10 @@
       },
       {
         "from": "easyuse_anima/bootstrap.py",
+        "to": "easyuse_anima/translation/ports.py"
+      },
+      {
+        "from": "easyuse_anima/bootstrap.py",
         "to": "easyuse_anima/translation/service.py"
       },
       {
@@ -69252,9 +69379,9 @@
       },
       {
         "is_package": false,
-        "loc": 85,
+        "loc": 83,
         "module": "easyuse_anima.api.routes.translation",
-        "normalized_git_blob_sha1": "7be0a07e0b07bfc7cda7cfdde00465856ba5d59d",
+        "normalized_git_blob_sha1": "cefaba9951e0f528673c90e8eb45e36e7e080ce4",
         "path": "easyuse_anima/api/routes/translation.py",
         "top_level": {
           "class_count": 0,
@@ -69372,14 +69499,14 @@
       },
       {
         "is_package": false,
-        "loc": 288,
+        "loc": 403,
         "module": "easyuse_anima.bootstrap",
-        "normalized_git_blob_sha1": "9a6d328e87f497320d5a1fb5766ee4575ef57d78",
+        "normalized_git_blob_sha1": "a78b1fa2560ccf77823ef15b732c24acd40f0472",
         "path": "easyuse_anima/bootstrap.py",
         "top_level": {
           "class_count": 1,
-          "function_count": 11,
-          "global_count": 5
+          "function_count": 12,
+          "global_count": 8
         }
       },
       {
@@ -70020,14 +70147,14 @@
       },
       {
         "is_package": false,
-        "loc": 1497,
+        "loc": 1496,
         "module": "easyuse_anima.prompt.artist_mix",
-        "normalized_git_blob_sha1": "d6b4ba5d57c831f6ead9e94b5f595e82f502c275",
+        "normalized_git_blob_sha1": "4b87698d8c7f87066e2533e924ef7f706c2fa86c",
         "path": "easyuse_anima/prompt/artist_mix.py",
         "top_level": {
           "class_count": 0,
           "function_count": 51,
-          "global_count": 36
+          "global_count": 35
         }
       },
       {
@@ -70104,13 +70231,13 @@
       },
       {
         "is_package": false,
-        "loc": 87,
+        "loc": 140,
         "module": "easyuse_anima.runtime",
-        "normalized_git_blob_sha1": "51d8179d45d446bb2b8a8de9e1ceb891e35c35da",
+        "normalized_git_blob_sha1": "4903073ebb65b3a0117170517fc730dee1b76720",
         "path": "easyuse_anima/runtime.py",
         "top_level": {
-          "class_count": 4,
-          "function_count": 2,
+          "class_count": 5,
+          "function_count": 3,
           "global_count": 2
         }
       },
@@ -70320,13 +70447,13 @@
       },
       {
         "is_package": false,
-        "loc": 344,
+        "loc": 360,
         "module": "easyuse_anima.translation.service",
-        "normalized_git_blob_sha1": "3407db664c5d78d5d707c89b69432524ffb8ac43",
+        "normalized_git_blob_sha1": "2782f27cbd0b57dcb7d881dcd363e18c54fbd5a7",
         "path": "easyuse_anima/translation/service.py",
         "top_level": {
           "class_count": 3,
-          "function_count": 6,
+          "function_count": 7,
           "global_count": 4
         }
       },
@@ -88312,14 +88439,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 409
+            "line": 408
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "torch",
         "kind": "static_import",
-        "line": 410,
+        "line": 409,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/prompt/artist_mix.py"
@@ -88331,14 +88458,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 425
+            "line": 424
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "torch",
         "kind": "static_import",
-        "line": 426,
+        "line": 425,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/prompt/artist_mix.py"
@@ -88350,14 +88477,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 445
+            "line": 444
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "torch",
         "kind": "static_import",
-        "line": 446,
+        "line": 445,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/prompt/artist_mix.py"
@@ -88369,14 +88496,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 520
+            "line": 519
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "torch",
         "kind": "static_import",
-        "line": 521,
+        "line": 520,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/prompt/artist_mix.py"
@@ -88388,14 +88515,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 1109
+            "line": 1108
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "torch",
         "kind": "static_import",
-        "line": 1110,
+        "line": 1109,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/prompt/artist_mix.py"
@@ -88596,8 +88723,8 @@
         "branch_context": [],
         "classification": "external",
         "conditional": false,
-        "imported": "dataclasses:dataclass",
-        "kind": "static_from",
+        "imported": "threading",
+        "kind": "static_import",
         "line": 5,
         "optional": false,
         "role": "ordinary",
@@ -88607,7 +88734,7 @@
         "branch_context": [],
         "classification": "external",
         "conditional": false,
-        "imported": "pathlib:Path",
+        "imported": "collections.abc:Callable",
         "kind": "static_from",
         "line": 6,
         "optional": false,
@@ -88618,9 +88745,42 @@
         "branch_context": [],
         "classification": "external",
         "conditional": false,
-        "imported": "typing:Protocol",
+        "imported": "dataclasses:dataclass",
         "kind": "static_from",
         "line": 7,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/runtime.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "dataclasses:field",
+        "kind": "static_from",
+        "line": 7,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/runtime.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "pathlib:Path",
+        "kind": "static_from",
+        "line": 8,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/runtime.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "typing:Protocol",
+        "kind": "static_from",
+        "line": 9,
         "optional": false,
         "role": "ordinary",
         "source": "easyuse_anima/runtime.py"
@@ -90820,14 +90980,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 409
+            "line": 408
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "torch",
         "kind": "static_import",
-        "line": 410,
+        "line": 409,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/prompt/artist_mix.py"
@@ -90839,14 +90999,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 425
+            "line": 424
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "torch",
         "kind": "static_import",
-        "line": 426,
+        "line": 425,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/prompt/artist_mix.py"
@@ -90858,14 +91018,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 445
+            "line": 444
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "torch",
         "kind": "static_import",
-        "line": 446,
+        "line": 445,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/prompt/artist_mix.py"
@@ -90877,14 +91037,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 520
+            "line": 519
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "torch",
         "kind": "static_import",
-        "line": 521,
+        "line": 520,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/prompt/artist_mix.py"
@@ -90896,14 +91056,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 1109
+            "line": 1108
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "torch",
         "kind": "static_import",
-        "line": 1110,
+        "line": 1109,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/prompt/artist_mix.py"
@@ -92590,7 +92750,7 @@
         "column": 10,
         "context": "assign:_LOGGER",
         "kind": "import_time_call",
-        "line": 72,
+        "line": 80,
         "module": "easyuse_anima/bootstrap.py",
         "scope": "<module>"
       },
@@ -92599,7 +92759,7 @@
         "column": 19,
         "context": "assign:_INITIALIZE_LOCK",
         "kind": "import_time_call",
-        "line": 73,
+        "line": 81,
         "module": "easyuse_anima/bootstrap.py",
         "scope": "<module>"
       },
@@ -92982,20 +93142,11 @@
         "scope": "<module>"
       },
       {
-        "callee": "set",
-        "column": 62,
-        "context": "assign:_SPECTRUM_ANIMA_MOD_GUIDANCE_OLD_SIGNATURE_WARNED",
-        "kind": "import_time_call",
-        "line": 65,
-        "module": "easyuse_anima/prompt/artist_mix.py",
-        "scope": "<module>"
-      },
-      {
         "callee": "re.compile",
         "column": 22,
         "context": "assign:_WEIGHTED_ARTIST_RE",
         "kind": "import_time_call",
-        "line": 104,
+        "line": 103,
         "module": "easyuse_anima/prompt/artist_mix.py",
         "scope": "<module>"
       },
@@ -93004,7 +93155,7 @@
         "column": 19,
         "context": "assign:_ARTIST_GROUP_RE",
         "kind": "import_time_call",
-        "line": 107,
+        "line": 106,
         "module": "easyuse_anima/prompt/artist_mix.py",
         "scope": "<module>"
       },
@@ -93013,7 +93164,7 @@
         "column": 24,
         "context": "assign:_SECTION_SEPARATOR_RE",
         "kind": "import_time_call",
-        "line": 111,
+        "line": 110,
         "module": "easyuse_anima/prompt/artist_mix.py",
         "scope": "<module>"
       },
@@ -93058,7 +93209,7 @@
         "column": 1,
         "context": "decorator:RuntimeConfig",
         "kind": "import_time_call",
-        "line": 17,
+        "line": 19,
         "module": "easyuse_anima/runtime.py",
         "scope": "<module>"
       },
@@ -93067,9 +93218,18 @@
         "column": 1,
         "context": "decorator:RuntimeServices",
         "kind": "import_time_call",
-        "line": 38,
+        "line": 70,
         "module": "easyuse_anima/runtime.py",
         "scope": "<module>"
+      },
+      {
+        "callee": "field",
+        "column": 41,
+        "context": "assign:_cleanup_plan",
+        "kind": "import_time_call",
+        "line": 82,
+        "module": "easyuse_anima/runtime.py",
+        "scope": "RuntimeServices"
       },
       {
         "callee": "dataclass",
@@ -93530,7 +93690,7 @@
       },
       {
         "kind": "list",
-        "line": 288,
+        "line": 403,
         "module": "easyuse_anima/bootstrap.py",
         "name": "__all__"
       },
@@ -93656,15 +93816,9 @@
       },
       {
         "kind": "dict",
-        "line": 75,
+        "line": 74,
         "module": "easyuse_anima/prompt/artist_mix.py",
         "name": "ARTIST_MIX_MODE_DESCRIPTIONS"
-      },
-      {
-        "kind": "set",
-        "line": 65,
-        "module": "easyuse_anima/prompt/artist_mix.py",
-        "name": "_SPECTRUM_ANIMA_MOD_GUIDANCE_OLD_SIGNATURE_WARNED"
       },
       {
         "kind": "set",
@@ -93829,7 +93983,7 @@
           "lock"
         ],
         "initializer": "threading.Lock",
-        "line": 73,
+        "line": 81,
         "module": "easyuse_anima/bootstrap.py",
         "name": "_INITIALIZE_LOCK"
       },

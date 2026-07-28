@@ -55,17 +55,25 @@ from .autocomplete.dataset import _DEFAULT_AUTOCOMPLETE_SNAPSHOTS
 from .autocomplete.index import _DEFAULT_AUTOCOMPLETE_INDEX_STORE
 from .autocomplete.service import _AutocompleteService
 from .infrastructure.comfy.provider import DefaultComfyHostProvider
-from .runtime import RuntimeConfig, RuntimeServices, install_runtime
+from .runtime import (
+    RuntimeConfig,
+    RuntimeServices,
+    _RuntimeCleanupPlan,
+    _detach_runtime,
+    install_runtime,
+)
 from .seed.service import InMemorySeedReservationService
 from .translation.contracts import (
     TranslationBusyError,
     TranslationCancelledError,
     TranslationTimeoutError,
 )
+from .translation.ports import PromptTranslationPort
 from .translation.service import (
     BoundedTranslationCache,
     PromptTranslationService,
     _install_default_translation_service,
+    _restore_default_translation_service,
 )
 from .wildcard.snapshot import _DEFAULT_WILDCARD_SNAPSHOTS
 
@@ -73,6 +81,9 @@ _LOGGER = logging.getLogger("ComfyUI-EasyUseAnima")
 _INITIALIZE_LOCK = threading.Lock()
 _WILDCARDS_INITIALIZED = False
 _DEFAULT_RUNTIME: RuntimeServices | None = None
+_TRANSLATION_ROUTE_EXECUTOR: _PromptTranslationRouteExecutor | None = None
+_ATEXIT_REGISTERED = False
+_SHUTDOWN = False
 
 
 class _SystemClock:
@@ -155,12 +166,13 @@ def build_translation_route_runtime(
 ):
     """Compose one translation route executor and its process cleanup."""
 
-    return _build_translation_runtime(
+    global _TRANSLATION_ROUTE_EXECUTOR
+
+    runtime = _build_translation_runtime(
         executor_type=_PromptTranslationRouteExecutor,
         busy_error_type=TranslationBusyError,
         cancelled_error_type=TranslationCancelledError,
         timeout_error_type=TranslationTimeoutError,
-        register_shutdown=atexit.register,
         translate_prompt_markers=translate_prompt_markers,
         resolve_prompt_translation_settings=resolve_prompt_translation_settings,
         get_worker=get_worker,
@@ -168,6 +180,8 @@ def build_translation_route_runtime(
         get_timeout_seconds=get_timeout_seconds,
         error_response=error_response,
     )
+    _TRANSLATION_ROUTE_EXECUTOR = runtime[0]
+    return runtime
 
 
 def build_aio_torch_compile_route_handler(
@@ -243,46 +257,147 @@ def initialize(
 ) -> None:
     """Initialize routes and the default wildcard root without duplicate work."""
 
-    global _DEFAULT_RUNTIME, _WILDCARDS_INITIALIZED
+    global _ATEXIT_REGISTERED, _DEFAULT_RUNTIME, _WILDCARDS_INITIALIZED
     with _INITIALIZE_LOCK:
+        if _SHUTDOWN:
+            raise RuntimeError(
+                "[EasyUseAnima] RuntimeServices has already been shut down."
+            )
+        if not _ATEXIT_REGISTERED:
+            atexit.register(shutdown)
+            _ATEXIT_REGISTERED = True
+
         runtime = _DEFAULT_RUNTIME
-        if runtime is None:
-            clock = _SystemClock()
-            runtime = RuntimeServices(
-                comfy=DefaultComfyHostProvider(load_comfy_nodes),
-                seed_reservations=InMemorySeedReservationService(),
-                config=_load_runtime_config(),
-                clock=clock,
-                translation=PromptTranslationService(
+        created_runtime = runtime is None
+        previous_translation = None
+        previous_translation_holder: list[
+            PromptTranslationPort | None
+        ] | None = None
+        translation_bound = False
+        try:
+            if runtime is None:
+                clock = _SystemClock()
+                translation = PromptTranslationService(
                     cache=BoundedTranslationCache(
                         time_func=clock.monotonic,
                     )
-                ),
-                autocomplete=_AutocompleteService(
+                )
+                autocomplete = _AutocompleteService(
                     snapshots=_DEFAULT_AUTOCOMPLETE_SNAPSHOTS,
                     index_store=_DEFAULT_AUTOCOMPLETE_INDEX_STORE,
-                ),
-                wildcard_snapshots=_DEFAULT_WILDCARD_SNAPSHOTS,
-                aio_first_pass_cache=_DEFAULT_AIO_FIRST_PASS_CACHE,
-            )
+                )
+                previous_translation_holder = [None]
+
+                def restore_translation_facade() -> None:
+                    previous = previous_translation_holder[0]
+                    if previous is not None:
+                        _restore_default_translation_service(
+                            translation,
+                            previous,
+                        )
+
+                cleanup_callbacks = []
+                if _TRANSLATION_ROUTE_EXECUTOR is not None:
+                    cleanup_callbacks.append(
+                        _TRANSLATION_ROUTE_EXECUTOR.shutdown
+                    )
+                cleanup_callbacks.extend(
+                    (
+                        _DEFAULT_AIO_FIRST_PASS_CACHE.clear,
+                        _DEFAULT_WILDCARD_SNAPSHOTS.clear,
+                        _DEFAULT_AUTOCOMPLETE_INDEX_STORE.close,
+                        _DEFAULT_AUTOCOMPLETE_SNAPSHOTS.clear,
+                        restore_translation_facade,
+                        translation.close,
+                    )
+                )
+                runtime = RuntimeServices(
+                    comfy=DefaultComfyHostProvider(load_comfy_nodes),
+                    seed_reservations=InMemorySeedReservationService(),
+                    config=_load_runtime_config(),
+                    clock=clock,
+                    translation=translation,
+                    autocomplete=autocomplete,
+                    wildcard_snapshots=_DEFAULT_WILDCARD_SNAPSHOTS,
+                    aio_first_pass_cache=_DEFAULT_AIO_FIRST_PASS_CACHE,
+                    _cleanup_plan=_RuntimeCleanupPlan(
+                        tuple(cleanup_callbacks)
+                    ),
+                )
             install_runtime(runtime)
-            _install_default_translation_service(runtime.translation)
+            previous_translation = _install_default_translation_service(
+                runtime.translation
+            )
+            translation_bound = True
+            if previous_translation_holder is not None:
+                previous_translation_holder[0] = previous_translation
             _DEFAULT_RUNTIME = runtime
-        else:
-            install_runtime(runtime)
-            _install_default_translation_service(runtime.translation)
-        register_routes()
-        if _WILDCARDS_INITIALIZED:
-            return
-        try:
-            initialize_wildcards()
-        except OSError as exc:
-            _LOGGER.warning(
-                "EasyUse Anima wildcard folder could not be initialized: %s",
-                exc,
-            )
-            return
-        _WILDCARDS_INITIALIZED = True
+            register_routes()
+            if _WILDCARDS_INITIALIZED:
+                return
+            try:
+                initialize_wildcards()
+            except OSError as exc:
+                _LOGGER.warning(
+                    "EasyUse Anima wildcard folder could not be initialized: %s",
+                    exc,
+                )
+                return
+            _WILDCARDS_INITIALIZED = True
+        except BaseException:
+            if (
+                created_runtime
+                and runtime is not None
+                and _DEFAULT_RUNTIME is runtime
+            ):
+                _DEFAULT_RUNTIME = None
+            if created_runtime and runtime is not None:
+                try:
+                    _detach_runtime(runtime)
+                except BaseException:
+                    _LOGGER.exception(
+                        "EasyUse Anima runtime detach failed during startup rollback."
+                    )
+            if (
+                translation_bound
+                and runtime is not None
+                and previous_translation is not None
+            ):
+                try:
+                    _restore_default_translation_service(
+                        runtime.translation,
+                        previous_translation,
+                    )
+                except BaseException:
+                    _LOGGER.exception(
+                        "EasyUse Anima translation facade rollback failed."
+                    )
+            if created_runtime and runtime is not None:
+                try:
+                    runtime.translation.close()
+                except BaseException:
+                    _LOGGER.exception(
+                        "EasyUse Anima translation cleanup failed during startup rollback."
+                    )
+            raise
 
 
-__all__ = ["initialize"]
+def shutdown() -> None:
+    """Terminally close the installed default runtime at most once."""
+
+    global _DEFAULT_RUNTIME, _SHUTDOWN
+
+    with _INITIALIZE_LOCK:
+        if _SHUTDOWN:
+            return
+        _SHUTDOWN = True
+        runtime = _DEFAULT_RUNTIME
+        if runtime is None:
+            return
+        if _DEFAULT_RUNTIME is runtime:
+            _DEFAULT_RUNTIME = None
+        _detach_runtime(runtime)
+        runtime.close()
+
+
+__all__ = ["initialize", "shutdown"]

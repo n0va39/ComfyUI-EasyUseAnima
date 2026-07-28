@@ -243,7 +243,10 @@ class PythonRuntimeStateOwnershipContractTests(unittest.TestCase):
                 "easyuse_anima/autocomplete/index.py",
                 "_DEFAULT_AUTOCOMPLETE_INDEX_STORE",
             ),
+            ("easyuse_anima/bootstrap.py", "_ATEXIT_REGISTERED"),
             ("easyuse_anima/bootstrap.py", "_DEFAULT_RUNTIME"),
+            ("easyuse_anima/bootstrap.py", "_SHUTDOWN"),
+            ("easyuse_anima/bootstrap.py", "_TRANSLATION_ROUTE_EXECUTOR"),
             ("easyuse_anima/bootstrap.py", "_WILDCARDS_INITIALIZED"),
             (
                 "easyuse_anima/infrastructure/filesystem/atomic_json.py",
@@ -256,10 +259,6 @@ class PythonRuntimeStateOwnershipContractTests(unittest.TestCase):
             (
                 "easyuse_anima/profiles/mutation.py",
                 "PROFILE_MUTATION_COORDINATOR",
-            ),
-            (
-                "easyuse_anima/prompt/artist_mix.py",
-                "_SPECTRUM_ANIMA_MOD_GUIDANCE_OLD_SIGNATURE_WARNED",
             ),
             (
                 "easyuse_anima/prompt/conditioning.py",

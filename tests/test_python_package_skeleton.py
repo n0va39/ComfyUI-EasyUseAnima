@@ -209,7 +209,10 @@ print(json.dumps({{
         payload = json.loads(result.stdout)
         self.assertEqual(payload["modules"], list(PACKAGE_MODULES))
         expected_all = [[] for _ in PACKAGE_MODULES]
-        expected_all[PACKAGE_MODULES.index("easyuse_anima.bootstrap")] = ["initialize"]
+        expected_all[PACKAGE_MODULES.index("easyuse_anima.bootstrap")] = [
+            "initialize",
+            "shutdown",
+        ]
         expected_all[PACKAGE_MODULES.index("easyuse_anima.api.errors")] = [
             "ApiContractError"
         ]

@@ -153,11 +153,10 @@ class PromptTranslationApiTests(unittest.TestCase):
         )
         self.assertIs(routes.handlers[ROUTE], api.translate_prompt_handler)
 
-    def test_runtime_builder_constructs_and_registers_one_worker(self):
+    def test_runtime_builder_constructs_one_worker_without_lifecycle_side_effect(self):
         api, _routes, _translation, _translation_service = self.load_routes()
         owner = sys.modules[api._translate_prompt_sync.__module__]
         created = []
-        registered = []
 
         class FakeExecutor:
             def __init__(
@@ -183,7 +182,6 @@ class PromptTranslationApiTests(unittest.TestCase):
             busy_error_type=api.TranslationBusyError,
             cancelled_error_type=api.TranslationCancelledError,
             timeout_error_type=api.TranslationTimeoutError,
-            register_shutdown=registered.append,
             translate_prompt_markers=lambda text, settings: text,
             resolve_prompt_translation_settings=lambda: object(),
             get_worker=lambda: runtime[0],
@@ -192,7 +190,6 @@ class PromptTranslationApiTests(unittest.TestCase):
             error_response=lambda *args: args,
         )
 
-        worker = runtime[0]
         self.assertEqual(
             created,
             [
@@ -203,9 +200,6 @@ class PromptTranslationApiTests(unittest.TestCase):
                 )
             ],
         )
-        self.assertEqual(len(registered), 1)
-        self.assertIs(registered[0].__self__, worker)
-        self.assertIs(registered[0].__func__, FakeExecutor.shutdown)
         self.assertFalse(hasattr(owner, "_PROMPT_TRANSLATION_WORKER"))
 
     def test_runtime_helpers_keep_dynamic_root_dependencies(self):

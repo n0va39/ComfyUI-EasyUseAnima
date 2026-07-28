@@ -793,7 +793,7 @@ class ApiIntegratedRouteCompositionContractTests(unittest.TestCase):
 
         api, _routes = load_api_routes(register=False)
         bootstrap = sys.modules[api._build_profile_route_group.__module__]
-        self.assertEqual(bootstrap.__all__, ["initialize"])
+        self.assertEqual(bootstrap.__all__, ["initialize", "shutdown"])
 
 
 class ApiRequestCorrelationTests(unittest.TestCase):

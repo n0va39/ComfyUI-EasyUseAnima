@@ -310,10 +310,26 @@ _DEFAULT_TRANSLATION_SERVICE: PromptTranslationPort = (
 
 def _install_default_translation_service(
     translation: PromptTranslationPort,
-) -> None:
+) -> PromptTranslationPort:
     global _DEFAULT_TRANSLATION_SERVICE
 
+    previous = _DEFAULT_TRANSLATION_SERVICE
     _DEFAULT_TRANSLATION_SERVICE = translation
+    return previous
+
+
+def _restore_default_translation_service(
+    expected: PromptTranslationPort,
+    replacement: PromptTranslationPort,
+) -> bool:
+    """Restore the facade only while it still names the expected service."""
+
+    global _DEFAULT_TRANSLATION_SERVICE
+
+    if _DEFAULT_TRANSLATION_SERVICE is not expected:
+        return False
+    _DEFAULT_TRANSLATION_SERVICE = replacement
+    return True
 
 
 def strip_prompt_translation_markers(text: str) -> str:
