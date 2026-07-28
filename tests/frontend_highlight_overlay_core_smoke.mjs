@@ -28,6 +28,8 @@ Object.assign(style, {
   borderRightWidth: "1px",
   borderTopWidth: "2px",
   borderBottomWidth: "2px",
+  overflowY: "auto",
+  paddingLeft: "4px",
   paddingRight: "4px",
   paddingBottom: "6px",
   font: "12px sans-serif",
@@ -41,6 +43,7 @@ const input = {
   offsetHeight: 80,
   clientWidth: 100,
   clientHeight: 70,
+  scrollHeight: 140,
   scrollTop: 17,
   scrollLeft: 5,
 };
@@ -53,6 +56,32 @@ const overlay = {
 const padding = overlayScrollbarPadding(input, style);
 assert(padding.right === "22px", "Vertical scrollbar padding changed");
 assert(padding.bottom === "12px", "Horizontal scrollbar padding changed");
+
+const noScrollbarStyle = { ...style, overflowY: "hidden" };
+const noScrollbarInput = { ...input, scrollHeight: input.clientHeight };
+const noScrollbarPadding = overlayScrollbarPadding(noScrollbarInput, noScrollbarStyle);
+assert(
+  noScrollbarPadding.right === "4px",
+  "Hidden overflow must not reserve a vertical scrollbar gutter",
+);
+const textareaWrapWidth = input.offsetWidth
+  - Number.parseFloat(style.borderLeftWidth)
+  - Number.parseFloat(style.borderRightWidth)
+  - Number.parseFloat(style.paddingLeft)
+  - Number.parseFloat(style.paddingRight);
+const overlayWrapWidth = input.offsetWidth
+  - Number.parseFloat(style.borderLeftWidth)
+  - Number.parseFloat(style.borderRightWidth)
+  - Number.parseFloat(style.paddingLeft)
+  - Number.parseFloat(noScrollbarPadding.right);
+assert(
+  overlayWrapWidth === textareaWrapWidth,
+  "No-scrollbar overlay and textarea effective wrap widths diverged",
+);
+assert(
+  overlayScrollbarPadding(noScrollbarInput, style).right === "4px",
+  "Auto overflow without content overflow must not reserve a scrollbar gutter",
+);
 assert(
   JSON.stringify(overlayBounds(input)) === JSON.stringify({
     left: "8px",
