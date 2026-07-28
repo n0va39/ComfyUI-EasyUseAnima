@@ -106,6 +106,7 @@ from .easyuse_anima.api.routes import settings as _api_settings_routes
 from .easyuse_anima.api.routes.settings import (
     build_settings_handlers as _build_settings_handlers,
 )
+from .easyuse_anima.api.routes import wildcards as _api_wildcard_routes
 from .easyuse_anima.api.routes.wildcards import (
     build_wildcards_handler as _build_wildcards_handler,
 )
@@ -347,25 +348,11 @@ def _profile_error_response(exc: Exception):
 )
 
 
-def _wildcards_payload_sync() -> dict:
-    settings = public_settings()
-    extra_paths = settings.get("wildcard.extra_paths", "")
-    roots = resolve_wildcard_roots(extra_paths)
-    sources = [
-        {
-            "id": f"wildcard:{index}",
-            "label": f"Wildcard source {index}",
-            "exists": root.is_dir(),
-        }
-        for index, root in enumerate(roots, start=1)
-    ]
-    return {
-        "status": "ok",
-        "items": list_wildcards(roots=roots),
-        # Preserve the legacy list-of-strings type without publishing paths.
-        "roots": [source["id"] for source in sources],
-        "sources": sources,
-    }
+_wildcards_payload_sync = _api_wildcard_routes.build_wildcards_payload(
+    public_settings=lambda: public_settings(),
+    resolve_wildcard_roots=lambda extra_paths: resolve_wildcard_roots(extra_paths),
+    list_wildcards=lambda **kwargs: list_wildcards(**kwargs),
+)
 
 
 def _autocomplete_status_payload_sync() -> dict:
