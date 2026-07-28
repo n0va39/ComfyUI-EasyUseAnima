@@ -168,7 +168,7 @@
       "module": "easyuse_anima/api/file_io.py",
       "owner": "easyuse_anima.api.file_io",
       "symbols": ["_FILE_IO_LIMITERS", "_FILE_IO_LIMITERS_LOCK"],
-      "target_phase": "E-09",
+      "target_phase": "E-09-complete",
       "test_evidence": ["tests/test_api_contract.py"],
       "thread_safety": "A module Lock serializes weak-registry lookup and semaphore creation."
     },
@@ -228,7 +228,7 @@
       "module": "easyuse_anima/bootstrap.py",
       "owner": "easyuse_anima.bootstrap lifecycle",
       "symbols": ["_ATEXIT_REGISTERED", "_DEFAULT_RUNTIME", "_INITIALIZE_LOCK", "_SHUTDOWN", "_TRANSLATION_ROUTE_EXECUTOR", "_WILDCARDS_INITIALIZED", "initialize", "shutdown"],
-      "target_phase": "E-09",
+      "target_phase": "E-09-complete",
       "test_evidence": ["tests/test_python_bootstrap.py", "tests/test_runtime_services.py"],
       "thread_safety": "One Lock serializes composition, install, route refresh, wildcard initialization, terminal state, expected-identity detach, and cleanup."
     },
@@ -246,13 +246,13 @@
     },
     {
       "categories": ["directory_initialization", "import_effect", "route_registration"],
-      "cleanup": "No package shutdown or route deregistration; bootstrap retries failed initialization.",
+      "cleanup": "Bootstrap registers its terminal shutdown with atexit once; shutdown detaches the expected runtime and leaves routes installed.",
       "id": "package-bootstrap-effect",
       "lifetime": "Executed once per root package import; bootstrap state survives for the process.",
       "module": "__init__.py",
       "owner": "easyuse_anima.bootstrap.initialize",
       "symbols": ["_initialize"],
-      "target_phase": "E-09",
+      "target_phase": "E-09-complete",
       "test_evidence": ["tests/test_python_bootstrap.py", "tests/test_python_package_skeleton.py", "tests/test_runtime_services.py"],
       "thread_safety": "Bootstrap serializes the production call with _INITIALIZE_LOCK."
     },
@@ -276,7 +276,7 @@
       "module": "easyuse_anima/prompt/artist_mix.py",
       "owner": "removed by E-09b",
       "symbols": [],
-      "target_phase": "E-09",
+      "target_phase": "E-09-complete",
       "test_evidence": ["tests/test_prompt_corrector.py"],
       "thread_safety": "No remaining state."
     },
@@ -288,7 +288,7 @@
       "module": "easyuse_anima/prompt/conditioning.py",
       "owner": "easyuse_anima.prompt.conditioning",
       "symbols": ["_SPECTRUM_ANIMA_MOD_GUIDANCE_OLD_SIGNATURE_WARNED"],
-      "target_phase": "E-09",
+      "target_phase": "E-09-complete",
       "test_evidence": ["tests/test_node_contracts.py", "tests/test_python_compatibility_surface.py"],
       "thread_safety": "Unprotected membership/add; current execution accepts benign duplicate-warning races."
     },
@@ -312,13 +312,13 @@
       "module": "api.py",
       "owner": "easyuse_anima.api.router registrar composed through easyuse_anima.bootstrap",
       "symbols": ["_ROUTE_DEFINITIONS", "_ROUTE_SIGNATURE", "register_routes"],
-      "target_phase": "E-09",
+      "target_phase": "E-09-complete",
       "test_evidence": ["tests/test_api_contract.py", "tests/test_python_bootstrap.py"],
       "thread_safety": "Bootstrap serializes production registration; router markers guard duplicate signatures."
     },
     {
       "categories": ["atexit", "executor", "future", "single_flight"],
-      "cleanup": "Executor shutdown is registered with atexit and idempotent; package shutdown does not call it.",
+      "cleanup": "The bootstrap cleanup plan invokes idempotent executor shutdown first; admission closes without waiting for running work.",
       "id": "root-translation-route-worker",
       "lifetime": "Private bootstrap composition creates the route worker while root api binds its compatibility reference; ThreadPoolExecutor is lazy and process-lived until atexit.",
       "module": "api.py",
@@ -336,13 +336,13 @@
       "module": "easyuse_anima/runtime.py",
       "owner": "easyuse_anima.runtime.RuntimeServices",
       "symbols": ["RuntimeServices", "_RUNTIME_SERVICES"],
-      "target_phase": "E-09",
+      "target_phase": "E-09-complete",
       "test_evidence": ["tests/test_autocomplete_service.py", "tests/test_comfy_host_wiring.py", "tests/test_runtime_services.py", "tests/test_seed_reservation_service.py"],
       "thread_safety": "Bootstrap serializes install and detach; the private cleanup plan locks its once-only transition and continues the fixed callback sequence after failures."
     },
     {
       "categories": ["cache", "lock", "service", "single_flight"],
-      "cleanup": "PromptTranslationService.close idempotently clears its owned cache; flights self-remove after the last user settles; E-09 owns whole-runtime close ordering.",
+      "cleanup": "PromptTranslationService.close idempotently clears its owned cache after facade restoration in the E-09b whole-runtime plan; flights self-remove after the last user settles.",
       "id": "translation-default-service",
       "lifetime": "Bootstrap composes one process service from the runtime clock; RuntimeServices owns it and the service facade retains the same identity for node/API callbacks.",
       "module": "easyuse_anima/translation/service.py",
@@ -366,7 +366,7 @@
     },
     {
       "categories": ["cache", "condition", "single_flight"],
-      "cleanup": "The owner exposes idempotent completed-cache clear; active building keys and waiter settlement remain intact. Whole-runtime ordering remains E-09.",
+      "cleanup": "The E-09b whole-runtime plan invokes the owner's idempotent completed-cache clear; active building keys and waiter settlement remain intact.",
       "id": "wildcard-snapshot-cache",
       "lifetime": "Process lifetime with an LRU bound of 16 verified snapshots.",
       "module": "easyuse_anima/wildcard/snapshot.py",
@@ -379,5 +379,5 @@
   ],
   "ignored_mutable_global_names": ["__all__"],
   "schema_version": 1,
-  "scope": "Shipped Python process-wide state, import/bootstrap effects, and analyzer mutable-global disposition after D-08u and D-14 readiness."
+  "scope": "Shipped Python process-wide state, import/bootstrap effects, and analyzer mutable-global disposition through the E-09c lifecycle completion audit."
 }
