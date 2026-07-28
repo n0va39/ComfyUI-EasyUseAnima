@@ -78,6 +78,7 @@ from .easyuse_anima.api.router import (
 from .easyuse_anima.bootstrap import (
     build_aio_torch_compile_route_handler as _build_aio_torch_compile_route_handler,
     build_lora_read_route_group as _build_lora_read_route_group,
+    build_profile_list_route_group as _build_profile_list_route_group,
     build_settings_route_group as _build_settings_route_group,
     build_translation_route_handler as _build_translation_route_handler,
     build_wildcard_autocomplete_route_group as _build_wildcard_autocomplete_route_group,
@@ -90,9 +91,6 @@ from .easyuse_anima.api.routes import long_text_settings as _api_long_text_route
 from .easyuse_anima.api.routes import lora_preview as _api_lora_preview_routes
 from .easyuse_anima.api.routes.lora_profile_fix import (
     build_lora_profile_fix_handler as _build_lora_profile_fix_handler,
-)
-from .easyuse_anima.api.routes.profile_lists import (
-    build_profile_list_handlers as _build_profile_list_handlers,
 )
 from .easyuse_anima.api.routes.profile_loads import (
     build_profile_load_handlers as _build_profile_load_handlers,
@@ -476,16 +474,16 @@ if web is not None:
     (
         lora_profiles_handler,
         aio_profiles_handler,
-    ) = (
-        _request_correlated(handler)
-        for handler in _build_profile_list_handlers(
-            run_file_io=lambda function, *args: _run_file_io(function, *args),
-            list_lora_profiles=lambda: _list_lora_profiles(),
-            list_aio_profiles=lambda: _list_aio_profiles(),
-            profile_data_error_type=InvalidProfileDataError,
-            profile_error_response=lambda exc: _profile_error_response(exc),
-            json_response=lambda payload: web.json_response(payload),
-        )
+    ) = _build_profile_list_route_group(
+        request_correlated=_request_correlated,
+        profile_list_dependencies={
+            "run_file_io": lambda function, *args: _run_file_io(function, *args),
+            "list_lora_profiles": lambda: _list_lora_profiles(),
+            "list_aio_profiles": lambda: _list_aio_profiles(),
+            "profile_data_error_type": InvalidProfileDataError,
+            "profile_error_response": lambda exc: _profile_error_response(exc),
+            "json_response": lambda payload: web.json_response(payload),
+        },
     )
 
     (

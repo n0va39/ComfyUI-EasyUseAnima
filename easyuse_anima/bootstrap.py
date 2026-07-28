@@ -22,6 +22,9 @@ from .api.routes.lora_catalog import build_loras_handler as _build_loras_handler
 from .api.routes.lora_preview import (
     build_lora_preview_handler as _build_lora_preview_handler,
 )
+from .api.routes.profile_lists import (
+    build_profile_list_handlers as _build_profile_list_handlers,
+)
 from .api.routes.settings import build_settings_handlers as _build_settings_handlers
 from .api.routes.translation import (
     build_translate_prompt_handler as _build_translate_prompt_handler,
@@ -114,6 +117,21 @@ def build_lora_read_route_group(
         _build_loras_handler(**lora_catalog_dependencies),
     )
     return tuple(request_correlated(handler) for handler in handlers)
+
+
+def build_profile_list_route_group(
+    *,
+    request_correlated,
+    profile_list_dependencies,
+):
+    """Compose the correlated LoRA and AiO profile list routes."""
+
+    return tuple(
+        request_correlated(handler)
+        for handler in _build_profile_list_handlers(
+            **profile_list_dependencies
+        )
+    )
 
 
 def initialize(
