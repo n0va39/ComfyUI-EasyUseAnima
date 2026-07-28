@@ -89,7 +89,7 @@
       "goal": "Compose the exact default snapshot owner behind one feature-specific narrow RuntimeServices wildcard capability without changing initialization or directory lifecycle.",
       "id": "E-06d",
       "name": "wildcard bootstrap composition",
-      "status": "queued"
+      "status": "complete"
     },
     {
       "classification": "Contract",
@@ -241,7 +241,29 @@
       ]
     }
   ],
-  "production_changes": 9,
+  "production_changes": 12,
+  "runtime_port": {
+    "bootstrap": {
+      "function": "initialize",
+      "module": "easyuse_anima/bootstrap.py",
+      "uses": [
+        "_DEFAULT_WILDCARD_SNAPSHOTS",
+        "RuntimeServices"
+      ]
+    },
+    "interface": {
+      "class": "WildcardSnapshotPort",
+      "methods": [
+        "snapshot_for_roots"
+      ],
+      "module": "easyuse_anima/wildcard/ports.py"
+    },
+    "owner": "easyuse_anima.wildcard.snapshot._DEFAULT_WILDCARD_SNAPSHOTS",
+    "runtime": {
+      "field": "wildcard_snapshots",
+      "module": "easyuse_anima/runtime.py"
+    }
+  },
   "schema_version": 1,
   "scope": "E-06 wildcard verified-snapshot LRU, source-rescan publication, and Condition single-flight ownership"
 }

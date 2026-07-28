@@ -85,6 +85,13 @@ def _top_level_function(
     raise AssertionError(f"{module} has no top-level function {function_name}")
 
 
+def _top_level_class(module: str, class_name: str) -> ast.ClassDef:
+    for statement in _tree(module).body:
+        if isinstance(statement, ast.ClassDef) and statement.name == class_name:
+            return statement
+    raise AssertionError(f"{module} has no top-level class {class_name}")
+
+
 def _class_method(
     module: str,
     class_name: str,
@@ -193,13 +200,14 @@ class PythonWildcardRuntimeContractTests(unittest.TestCase):
                 "owners",
                 "production_callers",
                 "production_changes",
+                "runtime_port",
                 "schema_version",
                 "scope",
             },
         )
         self.assertEqual(self.fixture["schema_version"], 1)
         self.assertEqual(self.fixture["classification"], "Contract")
-        self.assertEqual(self.fixture["production_changes"], 9)
+        self.assertEqual(self.fixture["production_changes"], 12)
         self.assertEqual(
             [move["id"] for move in self.fixture["move_queue"]],
             ["E-06a", "E-06b", "E-06c", "E-06d", "E-06e"],
@@ -210,7 +218,7 @@ class PythonWildcardRuntimeContractTests(unittest.TestCase):
         )
         self.assertEqual(
             [move["status"] for move in self.fixture["move_queue"]],
-            ["complete", "complete", "complete", "queued", "queued"],
+            ["complete", "complete", "complete", "complete", "queued"],
         )
         self.assertEqual(
             [owner["id"] for owner in self.fixture["owners"]],
@@ -426,6 +434,68 @@ class PythonWildcardRuntimeContractTests(unittest.TestCase):
                         for binding in consumer["canonical_imports"]
                     }
                     - imported,
+                    set(),
+                )
+
+    def test_runtime_port_composes_the_exact_default_owner(self):
+        runtime_port = self.fixture["runtime_port"]
+        interface = runtime_port["interface"]
+        interface_methods = {
+            statement.name
+            for statement in _top_level_class(
+                interface["module"],
+                interface["class"],
+            ).body
+            if isinstance(statement, (ast.FunctionDef, ast.AsyncFunctionDef))
+        }
+        self.assertEqual(interface_methods, set(interface["methods"]))
+
+        runtime = runtime_port["runtime"]
+        runtime_field = next(
+            statement
+            for statement in _top_level_class(
+                runtime["module"], "RuntimeServices"
+            ).body
+            if isinstance(statement, ast.AnnAssign)
+            and isinstance(statement.target, ast.Name)
+            and statement.target.id == runtime["field"]
+        )
+        self.assertIsInstance(runtime_field.annotation, ast.Name)
+        self.assertEqual(runtime_field.annotation.id, interface["class"])
+
+        bootstrap = runtime_port["bootstrap"]
+        self.assertEqual(
+            set(bootstrap["uses"])
+            - _references(
+                _top_level_function(
+                    bootstrap["module"],
+                    bootstrap["function"],
+                )
+            ),
+            set(),
+        )
+        self.assertEqual(
+            runtime_port["owner"],
+            "easyuse_anima.wildcard.snapshot._DEFAULT_WILDCARD_SNAPSHOTS",
+        )
+
+        forbidden_modules = {"runtime", "bootstrap"}
+        for module in (
+            "easyuse_anima/wildcard/ports.py",
+            "easyuse_anima/wildcard/service.py",
+            *(
+                consumer["module"]
+                for consumer in self.fixture["internal_consumers"]
+            ),
+        ):
+            with self.subTest(module=module):
+                self.assertEqual(
+                    {
+                        imported_module
+                        for imported_module, _ in _imported_names(module)
+                        if imported_module.split(".")[-1]
+                        in forbidden_modules
+                    },
                     set(),
                 )
 

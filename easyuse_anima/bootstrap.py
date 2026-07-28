@@ -66,6 +66,7 @@ from .translation.service import (
     PromptTranslationService,
     _install_default_translation_service,
 )
+from .wildcard.snapshot import _DEFAULT_WILDCARD_SNAPSHOTS
 
 _LOGGER = logging.getLogger("ComfyUI-EasyUseAnima")
 _INITIALIZE_LOCK = threading.Lock()
@@ -260,6 +261,7 @@ def initialize(
                     snapshots=_DEFAULT_AUTOCOMPLETE_SNAPSHOTS,
                     index_store=_DEFAULT_AUTOCOMPLETE_INDEX_STORE,
                 ),
+                wildcard_snapshots=_DEFAULT_WILDCARD_SNAPSHOTS,
             )
             install_runtime(runtime)
             _install_default_translation_service(runtime.translation)

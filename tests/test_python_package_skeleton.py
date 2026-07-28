@@ -115,6 +115,7 @@ PACKAGE_MODULES = (
     "easyuse_anima.wildcard.library",
     "easyuse_anima.wildcard.mode",
     "easyuse_anima.wildcard.models",
+    "easyuse_anima.wildcard.ports",
     "easyuse_anima.wildcard.seed",
     "easyuse_anima.wildcard.selector",
     "easyuse_anima.wildcard.snapshot",

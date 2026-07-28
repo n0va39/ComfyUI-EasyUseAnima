@@ -17973,6 +17973,24 @@
       },
       {
         "alias": null,
+        "bound_name": "_DEFAULT_WILDCARD_SNAPSHOTS",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".wildcard.snapshot:_DEFAULT_WILDCARD_SNAPSHOTS",
+        "kind": "static_from",
+        "line": 69,
+        "name": "_DEFAULT_WILDCARD_SNAPSHOTS",
+        "optional": false,
+        "requested": ".wildcard.snapshot",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/bootstrap.py",
+        "target": "easyuse_anima/wildcard/snapshot.py"
+      },
+      {
+        "alias": null,
         "bound_name": "PACKAGE_DATA_DIR",
         "branch_context": [],
         "classification": "internal",
@@ -17980,7 +17998,7 @@
         "conditional": false,
         "imported": ".infrastructure.filesystem.paths:PACKAGE_DATA_DIR",
         "kind": "static_from",
-        "line": 84,
+        "line": 85,
         "name": "PACKAGE_DATA_DIR",
         "optional": false,
         "requested": ".infrastructure.filesystem.paths",
@@ -17998,7 +18016,7 @@
         "conditional": false,
         "imported": ".infrastructure.filesystem.paths:PACKAGE_ROOT",
         "kind": "static_from",
-        "line": 84,
+        "line": 85,
         "name": "PACKAGE_ROOT",
         "optional": false,
         "requested": ".infrastructure.filesystem.paths",
@@ -18016,7 +18034,7 @@
         "conditional": false,
         "imported": ".infrastructure.filesystem.paths:USER_DATA_DIR",
         "kind": "static_from",
-        "line": 84,
+        "line": 85,
         "name": "USER_DATA_DIR",
         "optional": false,
         "requested": ".infrastructure.filesystem.paths",
@@ -30168,6 +30186,24 @@
         "target": "easyuse_anima/translation/ports.py"
       },
       {
+        "alias": null,
+        "bound_name": "WildcardSnapshotPort",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".wildcard.ports:WildcardSnapshotPort",
+        "kind": "static_from",
+        "line": 13,
+        "name": "WildcardSnapshotPort",
+        "optional": false,
+        "requested": ".wildcard.ports",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/runtime.py",
+        "target": "easyuse_anima/wildcard/ports.py"
+      },
+      {
         "alias": "_execution_identity",
         "bound_name": "_execution_identity",
         "branch_context": [],
@@ -33429,6 +33465,158 @@
         "role": "ordinary",
         "scope": "<module>",
         "source": "easyuse_anima/wildcard/models.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "annotations",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "__future__:annotations",
+        "kind": "static_from",
+        "line": 3,
+        "name": "annotations",
+        "optional": false,
+        "requested": "__future__",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/wildcard/ports.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "Callable",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "collections.abc:Callable",
+        "kind": "static_from",
+        "line": 5,
+        "name": "Callable",
+        "optional": false,
+        "requested": "collections.abc",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/wildcard/ports.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "Iterable",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "collections.abc:Iterable",
+        "kind": "static_from",
+        "line": 5,
+        "name": "Iterable",
+        "optional": false,
+        "requested": "collections.abc",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/wildcard/ports.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "Path",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "pathlib:Path",
+        "kind": "static_from",
+        "line": 6,
+        "name": "Path",
+        "optional": false,
+        "requested": "pathlib",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/wildcard/ports.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "Protocol",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "typing:Protocol",
+        "kind": "static_from",
+        "line": 7,
+        "name": "Protocol",
+        "optional": false,
+        "requested": "typing",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/wildcard/ports.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "TYPE_CHECKING",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "typing:TYPE_CHECKING",
+        "kind": "static_from",
+        "line": 7,
+        "name": "TYPE_CHECKING",
+        "optional": false,
+        "requested": "typing",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/wildcard/ports.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "_WildcardSnapshot",
+        "branch_context": [
+          {
+            "branch": "body",
+            "kind": "if",
+            "line": 9,
+            "type_checking": true
+          }
+        ],
+        "classification": "internal",
+        "column": 4,
+        "conditional": true,
+        "imported": ".snapshot:_WildcardSnapshot",
+        "kind": "static_from",
+        "line": 10,
+        "name": "_WildcardSnapshot",
+        "optional": true,
+        "requested": ".snapshot",
+        "role": "optional_dependency",
+        "scope": "<module>",
+        "source": "easyuse_anima/wildcard/ports.py",
+        "target": "easyuse_anima/wildcard/snapshot.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "_WildcardSourceState",
+        "branch_context": [
+          {
+            "branch": "body",
+            "kind": "if",
+            "line": 9,
+            "type_checking": true
+          }
+        ],
+        "classification": "internal",
+        "column": 4,
+        "conditional": true,
+        "imported": ".sources:_WildcardSourceState",
+        "kind": "static_from",
+        "line": 11,
+        "name": "_WildcardSourceState",
+        "optional": true,
+        "requested": ".sources",
+        "role": "optional_dependency",
+        "scope": "<module>",
+        "source": "easyuse_anima/wildcard/ports.py",
+        "target": "easyuse_anima/wildcard/sources.py"
       },
       {
         "alias": null,
@@ -65912,6 +66100,10 @@
         "to": "easyuse_anima/translation/service.py"
       },
       {
+        "from": "easyuse_anima/bootstrap.py",
+        "to": "easyuse_anima/wildcard/snapshot.py"
+      },
+      {
         "from": "easyuse_anima/image/detailer.py",
         "to": "easyuse_anima/image/geometry.py"
       },
@@ -66634,6 +66826,10 @@
       {
         "from": "easyuse_anima/runtime.py",
         "to": "easyuse_anima/translation/ports.py"
+      },
+      {
+        "from": "easyuse_anima/runtime.py",
+        "to": "easyuse_anima/wildcard/ports.py"
       },
       {
         "from": "easyuse_anima/seed/__init__.py",
@@ -68087,6 +68283,12 @@
       {
         "cyclic": false,
         "modules": [
+          "easyuse_anima/wildcard/ports.py"
+        ]
+      },
+      {
+        "cyclic": false,
+        "modules": [
           "easyuse_anima/wildcard/seed.py"
         ]
       },
@@ -68153,7 +68355,7 @@
     ]
   },
   "inventory": {
-    "module_count": 171,
+    "module_count": 172,
     "modules": [
       {
         "is_package": true,
@@ -69057,9 +69259,9 @@
       },
       {
         "is_package": false,
-        "loc": 284,
+        "loc": 286,
         "module": "easyuse_anima.bootstrap",
-        "normalized_git_blob_sha1": "8c0c009d70596f52f35a5ce6c2828815a673e0ae",
+        "normalized_git_blob_sha1": "b4994d7c3a0b05817005789acf0c167651f192dc",
         "path": "easyuse_anima/bootstrap.py",
         "top_level": {
           "class_count": 1,
@@ -69789,9 +69991,9 @@
       },
       {
         "is_package": false,
-        "loc": 83,
+        "loc": 85,
         "module": "easyuse_anima.runtime",
-        "normalized_git_blob_sha1": "b6e85007a5059760a37dd3cfb3a1e4b8c215cf57",
+        "normalized_git_blob_sha1": "feacbf426d89f090a530a4fc0ee76342c25744a6",
         "path": "easyuse_anima/runtime.py",
         "top_level": {
           "class_count": 4,
@@ -70073,6 +70275,18 @@
           "class_count": 3,
           "function_count": 2,
           "global_count": 10
+        }
+      },
+      {
+        "is_package": false,
+        "loc": 24,
+        "module": "easyuse_anima.wildcard.ports",
+        "normalized_git_blob_sha1": "0b0493e22b9a81de0ff9d1efd49c99ddf619aaf7",
+        "path": "easyuse_anima/wildcard/ports.py",
+        "top_level": {
+          "class_count": 1,
+          "function_count": 0,
+          "global_count": 1
         }
       },
       {
@@ -89203,6 +89417,72 @@
         "line": 3,
         "optional": false,
         "role": "ordinary",
+        "source": "easyuse_anima/wildcard/ports.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "collections.abc:Callable",
+        "kind": "static_from",
+        "line": 5,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/wildcard/ports.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "collections.abc:Iterable",
+        "kind": "static_from",
+        "line": 5,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/wildcard/ports.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "pathlib:Path",
+        "kind": "static_from",
+        "line": 6,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/wildcard/ports.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "typing:Protocol",
+        "kind": "static_from",
+        "line": 7,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/wildcard/ports.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "typing:TYPE_CHECKING",
+        "kind": "static_from",
+        "line": 7,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/wildcard/ports.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "__future__:annotations",
+        "kind": "static_from",
+        "line": 3,
+        "optional": false,
+        "role": "ordinary",
         "source": "easyuse_anima/wildcard/seed.py"
       },
       {
@@ -90759,6 +91039,7 @@
       "easyuse_anima/wildcard/library.py",
       "easyuse_anima/wildcard/mode.py",
       "easyuse_anima/wildcard/models.py",
+      "easyuse_anima/wildcard/ports.py",
       "easyuse_anima/wildcard/seed.py",
       "easyuse_anima/wildcard/selector.py",
       "easyuse_anima/wildcard/service.py",
@@ -90932,6 +91213,7 @@
       "easyuse_anima/wildcard/library.py",
       "easyuse_anima/wildcard/mode.py",
       "easyuse_anima/wildcard/models.py",
+      "easyuse_anima/wildcard/ports.py",
       "easyuse_anima/wildcard/seed.py",
       "easyuse_anima/wildcard/selector.py",
       "easyuse_anima/wildcard/service.py",
@@ -92160,7 +92442,7 @@
         "column": 10,
         "context": "assign:_LOGGER",
         "kind": "import_time_call",
-        "line": 70,
+        "line": 71,
         "module": "easyuse_anima/bootstrap.py",
         "scope": "<module>"
       },
@@ -92169,7 +92451,7 @@
         "column": 19,
         "context": "assign:_INITIALIZE_LOCK",
         "kind": "import_time_call",
-        "line": 71,
+        "line": 72,
         "module": "easyuse_anima/bootstrap.py",
         "scope": "<module>"
       },
@@ -92628,7 +92910,7 @@
         "column": 1,
         "context": "decorator:RuntimeConfig",
         "kind": "import_time_call",
-        "line": 15,
+        "line": 16,
         "module": "easyuse_anima/runtime.py",
         "scope": "<module>"
       },
@@ -92637,7 +92919,7 @@
         "column": 1,
         "context": "decorator:RuntimeServices",
         "kind": "import_time_call",
-        "line": 36,
+        "line": 37,
         "module": "easyuse_anima/runtime.py",
         "scope": "<module>"
       },
@@ -93118,7 +93400,7 @@
       },
       {
         "kind": "list",
-        "line": 284,
+        "line": 286,
         "module": "easyuse_anima/bootstrap.py",
         "name": "__all__"
       },
@@ -93447,7 +93729,7 @@
           "lock"
         ],
         "initializer": "threading.Lock",
-        "line": 71,
+        "line": 72,
         "module": "easyuse_anima/bootstrap.py",
         "name": "_INITIALIZE_LOCK"
       },

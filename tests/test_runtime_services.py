@@ -29,6 +29,7 @@ from easyuse_anima.runtime import (
 from easyuse_anima.seed.service import InMemorySeedReservationService
 from easyuse_anima.translation import service as translation_service
 from easyuse_anima.translation.service import PromptTranslationService
+from easyuse_anima.wildcard import snapshot as wildcard_snapshot
 
 
 class FakeComfyHostProvider:
@@ -65,6 +66,11 @@ class FakeAutocompleteService:
 
     def classify(self, text, limit=240, path=None):
         raise AssertionError((text, limit, path))
+
+
+class FakeWildcardSnapshots:
+    def snapshot_for_roots(self, roots, *, scan_sources, build_snapshot):
+        raise AssertionError((roots, scan_sources, build_snapshot))
 
 
 class RuntimeBaseContractTests(unittest.TestCase):
@@ -164,6 +170,7 @@ class RuntimeServicesTests(unittest.TestCase):
             clock=FakeClock(),
             translation=PromptTranslationService(),
             autocomplete=FakeAutocompleteService(),
+            wildcard_snapshots=FakeWildcardSnapshots(),
         )
 
     def test_runtime_value_is_frozen(self):
@@ -264,6 +271,10 @@ class RuntimeServicesTests(unittest.TestCase):
         self.assertIs(
             first.autocomplete.index_store,
             autocomplete_index._DEFAULT_AUTOCOMPLETE_INDEX_STORE,
+        )
+        self.assertIs(
+            first.wildcard_snapshots,
+            wildcard_snapshot._DEFAULT_WILDCARD_SNAPSHOTS,
         )
         with patch.object(bootstrap.time, "monotonic", return_value=12.5):
             self.assertEqual(first.clock.monotonic(), 12.5)
