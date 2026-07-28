@@ -245,11 +245,7 @@ class PythonRuntimeStateOwnershipContractTests(unittest.TestCase):
             ),
             (
                 "easyuse_anima/autocomplete/index.py",
-                "_INDEX_LOCKS_GUARD",
-            ),
-            (
-                "easyuse_anima/autocomplete/search.py",
-                "_AUTOCOMPLETE_INDEX_DIR",
+                "_DEFAULT_AUTOCOMPLETE_INDEX_STORE",
             ),
             ("easyuse_anima/bootstrap.py", "_DEFAULT_RUNTIME"),
             ("easyuse_anima/bootstrap.py", "_WILDCARDS_INITIALIZED"),

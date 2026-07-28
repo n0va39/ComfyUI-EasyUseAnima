@@ -6,10 +6,6 @@ import heapq
 import time
 from pathlib import Path
 
-from ..infrastructure.filesystem.paths import (
-    PACKAGE_DATA_DIR as STORAGE_PACKAGE_DATA_DIR,
-)
-from ..infrastructure.filesystem.paths import USER_DATA_DIR
 from .dataset import (
     AUTOCOMPLETE_CSV,
     AutocompleteEntry,
@@ -30,21 +26,8 @@ from .index import (
     AutocompleteIndexDiagnostics,
     AutocompleteIndexSource,
     AutocompleteIndexUnavailable,
-    search_autocomplete_index,
+    _DEFAULT_AUTOCOMPLETE_INDEX_STORE,
 )
-
-
-def _default_autocomplete_index_dir() -> Path | None:
-    user_data_dir = Path(USER_DATA_DIR).resolve(strict=False)
-    package_data_dir = Path(STORAGE_PACKAGE_DATA_DIR).resolve(strict=False)
-    if user_data_dir == package_data_dir:
-        # Standalone imports do not have a ComfyUI-owned writable user-data
-        # boundary. Keep the source/package tree immutable in that case.
-        return None
-    return user_data_dir / "autocomplete_index"
-
-
-_AUTOCOMPLETE_INDEX_DIR = _default_autocomplete_index_dir()
 
 
 def _autocomplete_match_score(
@@ -136,8 +119,7 @@ def _search_autocomplete_with_diagnostics(
             break
 
         try:
-            indexed = search_autocomplete_index(
-                root=_AUTOCOMPLETE_INDEX_DIR,
+            indexed = _DEFAULT_AUTOCOMPLETE_INDEX_STORE.search(
                 source=_index_source(key),
                 normalized_query=normalized_query,
                 categories=categories,

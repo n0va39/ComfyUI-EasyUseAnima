@@ -16531,6 +16531,42 @@
         "source": "easyuse_anima/autocomplete/index.py"
       },
       {
+        "alias": "STORAGE_PACKAGE_DATA_DIR",
+        "bound_name": "STORAGE_PACKAGE_DATA_DIR",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": "..infrastructure.filesystem.paths:PACKAGE_DATA_DIR",
+        "kind": "static_from",
+        "line": 13,
+        "name": "PACKAGE_DATA_DIR",
+        "optional": false,
+        "requested": "..infrastructure.filesystem.paths",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/autocomplete/index.py",
+        "target": "easyuse_anima/infrastructure/filesystem/paths.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "USER_DATA_DIR",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": "..infrastructure.filesystem.paths:USER_DATA_DIR",
+        "kind": "static_from",
+        "line": 16,
+        "name": "USER_DATA_DIR",
+        "optional": false,
+        "requested": "..infrastructure.filesystem.paths",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/autocomplete/index.py",
+        "target": "easyuse_anima/infrastructure/filesystem/paths.py"
+      },
+      {
         "alias": null,
         "bound_name": "annotations",
         "branch_context": [],
@@ -16599,42 +16635,6 @@
         "source": "easyuse_anima/autocomplete/search.py"
       },
       {
-        "alias": "STORAGE_PACKAGE_DATA_DIR",
-        "bound_name": "STORAGE_PACKAGE_DATA_DIR",
-        "branch_context": [],
-        "classification": "internal",
-        "column": 0,
-        "conditional": false,
-        "imported": "..infrastructure.filesystem.paths:PACKAGE_DATA_DIR",
-        "kind": "static_from",
-        "line": 9,
-        "name": "PACKAGE_DATA_DIR",
-        "optional": false,
-        "requested": "..infrastructure.filesystem.paths",
-        "role": "ordinary",
-        "scope": "<module>",
-        "source": "easyuse_anima/autocomplete/search.py",
-        "target": "easyuse_anima/infrastructure/filesystem/paths.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "USER_DATA_DIR",
-        "branch_context": [],
-        "classification": "internal",
-        "column": 0,
-        "conditional": false,
-        "imported": "..infrastructure.filesystem.paths:USER_DATA_DIR",
-        "kind": "static_from",
-        "line": 12,
-        "name": "USER_DATA_DIR",
-        "optional": false,
-        "requested": "..infrastructure.filesystem.paths",
-        "role": "ordinary",
-        "scope": "<module>",
-        "source": "easyuse_anima/autocomplete/search.py",
-        "target": "easyuse_anima/infrastructure/filesystem/paths.py"
-      },
-      {
         "alias": null,
         "bound_name": "AUTOCOMPLETE_CSV",
         "branch_context": [],
@@ -16643,7 +16643,7 @@
         "conditional": false,
         "imported": ".dataset:AUTOCOMPLETE_CSV",
         "kind": "static_from",
-        "line": 13,
+        "line": 9,
         "name": "AUTOCOMPLETE_CSV",
         "optional": false,
         "requested": ".dataset",
@@ -16661,7 +16661,7 @@
         "conditional": false,
         "imported": ".dataset:AutocompleteEntry",
         "kind": "static_from",
-        "line": 13,
+        "line": 9,
         "name": "AutocompleteEntry",
         "optional": false,
         "requested": ".dataset",
@@ -16679,7 +16679,7 @@
         "conditional": false,
         "imported": ".dataset:_AUTOCOMPLETE_CACHE_LOAD_ATTEMPTS",
         "kind": "static_from",
-        "line": 13,
+        "line": 9,
         "name": "_AUTOCOMPLETE_CACHE_LOAD_ATTEMPTS",
         "optional": false,
         "requested": ".dataset",
@@ -16697,7 +16697,7 @@
         "conditional": false,
         "imported": ".dataset:_AutocompleteCacheKey",
         "kind": "static_from",
-        "line": 13,
+        "line": 9,
         "name": "_AutocompleteCacheKey",
         "optional": false,
         "requested": ".dataset",
@@ -16715,7 +16715,7 @@
         "conditional": false,
         "imported": ".dataset:_AutocompleteSnapshot",
         "kind": "static_from",
-        "line": 13,
+        "line": 9,
         "name": "_AutocompleteSnapshot",
         "optional": false,
         "requested": ".dataset",
@@ -16733,7 +16733,7 @@
         "conditional": false,
         "imported": ".dataset:_AutocompleteSourceChanged",
         "kind": "static_from",
-        "line": 13,
+        "line": 9,
         "name": "_AutocompleteSourceChanged",
         "optional": false,
         "requested": ".dataset",
@@ -16751,7 +16751,7 @@
         "conditional": false,
         "imported": ".dataset:_MISSING_FILE_STAT",
         "kind": "static_from",
-        "line": 13,
+        "line": 9,
         "name": "_MISSING_FILE_STAT",
         "optional": false,
         "requested": ".dataset",
@@ -16769,7 +16769,7 @@
         "conditional": false,
         "imported": ".dataset:_cache_key",
         "kind": "static_from",
-        "line": 13,
+        "line": 9,
         "name": "_cache_key",
         "optional": false,
         "requested": ".dataset",
@@ -16787,7 +16787,7 @@
         "conditional": false,
         "imported": ".dataset:_cache_key_from_resolved_path",
         "kind": "static_from",
-        "line": 13,
+        "line": 9,
         "name": "_cache_key_from_resolved_path",
         "optional": false,
         "requested": ".dataset",
@@ -16805,7 +16805,7 @@
         "conditional": false,
         "imported": ".dataset:_load_entries",
         "kind": "static_from",
-        "line": 13,
+        "line": 9,
         "name": "_load_entries",
         "optional": false,
         "requested": ".dataset",
@@ -16823,7 +16823,7 @@
         "conditional": false,
         "imported": ".dataset:_normalize",
         "kind": "static_from",
-        "line": 13,
+        "line": 9,
         "name": "_normalize",
         "optional": false,
         "requested": ".dataset",
@@ -16841,7 +16841,7 @@
         "conditional": false,
         "imported": ".dataset:_snapshot",
         "kind": "static_from",
-        "line": 13,
+        "line": 9,
         "name": "_snapshot",
         "optional": false,
         "requested": ".dataset",
@@ -16859,7 +16859,7 @@
         "conditional": false,
         "imported": ".dataset:_status_from_key",
         "kind": "static_from",
-        "line": 13,
+        "line": 9,
         "name": "_status_from_key",
         "optional": false,
         "requested": ".dataset",
@@ -16877,7 +16877,7 @@
         "conditional": false,
         "imported": ".dataset:autocomplete_status",
         "kind": "static_from",
-        "line": 13,
+        "line": 9,
         "name": "autocomplete_status",
         "optional": false,
         "requested": ".dataset",
@@ -16895,7 +16895,7 @@
         "conditional": false,
         "imported": ".index:AutocompleteIndexDiagnostics",
         "kind": "static_from",
-        "line": 29,
+        "line": 25,
         "name": "AutocompleteIndexDiagnostics",
         "optional": false,
         "requested": ".index",
@@ -16913,7 +16913,7 @@
         "conditional": false,
         "imported": ".index:AutocompleteIndexSource",
         "kind": "static_from",
-        "line": 29,
+        "line": 25,
         "name": "AutocompleteIndexSource",
         "optional": false,
         "requested": ".index",
@@ -16931,7 +16931,7 @@
         "conditional": false,
         "imported": ".index:AutocompleteIndexUnavailable",
         "kind": "static_from",
-        "line": 29,
+        "line": 25,
         "name": "AutocompleteIndexUnavailable",
         "optional": false,
         "requested": ".index",
@@ -16942,15 +16942,15 @@
       },
       {
         "alias": null,
-        "bound_name": "search_autocomplete_index",
+        "bound_name": "_DEFAULT_AUTOCOMPLETE_INDEX_STORE",
         "branch_context": [],
         "classification": "internal",
         "column": 0,
         "conditional": false,
-        "imported": ".index:search_autocomplete_index",
+        "imported": ".index:_DEFAULT_AUTOCOMPLETE_INDEX_STORE",
         "kind": "static_from",
-        "line": 29,
-        "name": "search_autocomplete_index",
+        "line": 25,
+        "name": "_DEFAULT_AUTOCOMPLETE_INDEX_STORE",
         "optional": false,
         "requested": ".index",
         "role": "ordinary",
@@ -65103,16 +65103,16 @@
         "to": "easyuse_anima/infrastructure/filesystem/paths.py"
       },
       {
+        "from": "easyuse_anima/autocomplete/index.py",
+        "to": "easyuse_anima/infrastructure/filesystem/paths.py"
+      },
+      {
         "from": "easyuse_anima/autocomplete/search.py",
         "to": "easyuse_anima/autocomplete/dataset.py"
       },
       {
         "from": "easyuse_anima/autocomplete/search.py",
         "to": "easyuse_anima/autocomplete/index.py"
-      },
-      {
-        "from": "easyuse_anima/autocomplete/search.py",
-        "to": "easyuse_anima/infrastructure/filesystem/paths.py"
       },
       {
         "from": "easyuse_anima/bootstrap.py",
@@ -68194,26 +68194,26 @@
       },
       {
         "is_package": false,
-        "loc": 599,
+        "loc": 684,
         "module": "easyuse_anima.autocomplete.index",
-        "normalized_git_blob_sha1": "5296ad1fcaa7aaa689b3b80a79ab1b23decf9fdb",
+        "normalized_git_blob_sha1": "d16540946907a69522ccc027dfc13eaafd6f4b41",
         "path": "easyuse_anima/autocomplete/index.py",
         "top_level": {
-          "class_count": 7,
+          "class_count": 8,
           "function_count": 15,
-          "global_count": 5
+          "global_count": 4
         }
       },
       {
         "is_package": false,
-        "loc": 226,
+        "loc": 208,
         "module": "easyuse_anima.autocomplete.search",
-        "normalized_git_blob_sha1": "e36fa147f72dd3bdaf5fb546b921b3a28255f55d",
+        "normalized_git_blob_sha1": "6b1c76d6970ed62284f98be436401f753cd8c0b6",
         "path": "easyuse_anima/autocomplete/search.py",
         "top_level": {
           "class_count": 0,
-          "function_count": 8,
-          "global_count": 2
+          "function_count": 7,
+          "global_count": 1
         }
       },
       {
@@ -91314,7 +91314,7 @@
         "column": 1,
         "context": "decorator:AutocompleteIndexSource",
         "kind": "import_time_call",
-        "line": 36,
+        "line": 41,
         "module": "easyuse_anima/autocomplete/index.py",
         "scope": "<module>"
       },
@@ -91323,7 +91323,7 @@
         "column": 1,
         "context": "decorator:IndexedAutocompleteEntry",
         "kind": "import_time_call",
-        "line": 47,
+        "line": 52,
         "module": "easyuse_anima/autocomplete/index.py",
         "scope": "<module>"
       },
@@ -91332,7 +91332,7 @@
         "column": 1,
         "context": "decorator:AutocompleteIndexDiagnostics",
         "kind": "import_time_call",
-        "line": 55,
+        "line": 60,
         "module": "easyuse_anima/autocomplete/index.py",
         "scope": "<module>"
       },
@@ -91341,26 +91341,26 @@
         "column": 1,
         "context": "decorator:AutocompleteIndexResult",
         "kind": "import_time_call",
-        "line": 65,
+        "line": 70,
         "module": "easyuse_anima/autocomplete/index.py",
         "scope": "<module>"
       },
       {
-        "callee": "threading.Lock",
-        "column": 21,
-        "context": "assign:_INDEX_LOCKS_GUARD",
+        "callee": "_AutocompleteIndexStore",
+        "column": 36,
+        "context": "assign:_DEFAULT_AUTOCOMPLETE_INDEX_STORE",
         "kind": "import_time_call",
-        "line": 84,
+        "line": 661,
         "module": "easyuse_anima/autocomplete/index.py",
         "scope": "<module>"
       },
       {
         "callee": "_default_autocomplete_index_dir",
-        "column": 26,
-        "context": "assign:_AUTOCOMPLETE_INDEX_DIR",
+        "column": 4,
+        "context": "assign:_DEFAULT_AUTOCOMPLETE_INDEX_STORE",
         "kind": "import_time_call",
-        "line": 47,
-        "module": "easyuse_anima/autocomplete/search.py",
+        "line": 662,
+        "module": "easyuse_anima/autocomplete/index.py",
         "scope": "<module>"
       },
       {
@@ -92343,12 +92343,6 @@
         "name": "_MERGED_E621_CATEGORY_NAMES"
       },
       {
-        "kind": "dict",
-        "line": 83,
-        "module": "easyuse_anima/autocomplete/index.py",
-        "name": "_INDEX_LOCKS"
-      },
-      {
         "kind": "list",
         "line": 277,
         "module": "easyuse_anima/bootstrap.py",
@@ -92685,25 +92679,6 @@
         "line": 9,
         "module": "easyuse_anima/api/file_io.py",
         "name": "_FILE_IO_LIMITERS_LOCK"
-      },
-      {
-        "categories": [
-          "lock",
-          "mutable_container"
-        ],
-        "initializer": "Dict",
-        "line": 83,
-        "module": "easyuse_anima/autocomplete/index.py",
-        "name": "_INDEX_LOCKS"
-      },
-      {
-        "categories": [
-          "lock"
-        ],
-        "initializer": "threading.Lock",
-        "line": 84,
-        "module": "easyuse_anima/autocomplete/index.py",
-        "name": "_INDEX_LOCKS_GUARD"
       },
       {
         "categories": [

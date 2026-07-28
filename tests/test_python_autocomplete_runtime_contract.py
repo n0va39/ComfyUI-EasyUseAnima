@@ -190,7 +190,7 @@ class PythonAutocompleteRuntimeContractTests(unittest.TestCase):
         )
         self.assertEqual(self.fixture["schema_version"], 1)
         self.assertEqual(self.fixture["classification"], "Contract")
-        self.assertEqual(self.fixture["production_changes"], 1)
+        self.assertEqual(self.fixture["production_changes"], 2)
         self.assertEqual(
             [move["id"] for move in self.fixture["move_queue"]],
             ["E-05a", "E-05b", "E-05c", "E-05d", "E-05e"],
@@ -237,10 +237,6 @@ class PythonAutocompleteRuntimeContractTests(unittest.TestCase):
         )
 
         index_owner = owners["index-store"]
-        current_owners = {
-            item["e01_entry"]: item["owner"]
-            for item in index_owner["current_owners"]
-        }
         for entry_id in (
             "autocomplete-index-locks",
             "autocomplete-index-root",
@@ -248,11 +244,19 @@ class PythonAutocompleteRuntimeContractTests(unittest.TestCase):
             with self.subTest(entry=entry_id):
                 self.assertEqual(
                     e01_entries[entry_id]["owner"],
-                    current_owners[entry_id],
+                    index_owner["current_owner"],
                 )
                 self.assertEqual(
                     e01_entries[entry_id]["target_phase"],
-                    "E-05c",
+                    "E-05c-complete",
+                )
+                self.assertEqual(
+                    set(e01_entries[entry_id]["symbols"]),
+                    {
+                        symbol
+                        for symbols in index_owner["state_symbols"].values()
+                        for symbol in symbols
+                    },
                 )
 
     def test_source_metadata_remains_declarative_and_separate(self):
@@ -377,42 +381,89 @@ class PythonAutocompleteRuntimeContractTests(unittest.TestCase):
         )
 
     def test_index_root_and_path_publication_lock_contract_are_current(self):
+        module = "easyuse_anima/autocomplete/index.py"
         index_bindings = _top_level_bindings(
-            "easyuse_anima/autocomplete/index.py"
+            module
         )
         self.assertTrue(
-            {"_INDEX_LOCKS", "_INDEX_LOCKS_GUARD"} <= index_bindings
+            {
+                "_AutocompleteIndexStore",
+                "_DEFAULT_AUTOCOMPLETE_INDEX_STORE",
+                "_default_autocomplete_index_dir",
+            }
+            <= index_bindings
         )
-        lock_references = _function_references(
-            "easyuse_anima/autocomplete/index.py",
+        self.assertEqual(
+            {"_INDEX_LOCKS", "_INDEX_LOCKS_GUARD"} & index_bindings,
+            set(),
+        )
+        self.assertEqual(
+            _instance_assignments(module, "_AutocompleteIndexStore"),
+            {"_locks", "_locks_guard", "_root"},
+        )
+        owner_methods = {
+            statement.name
+            for statement in _top_level_class(
+                module,
+                "_AutocompleteIndexStore",
+            ).body
+            if isinstance(statement, (ast.FunctionDef, ast.AsyncFunctionDef))
+        }
+        self.assertEqual(
+            owner_methods,
+            {
+                "__init__",
+                "_index_lock",
+                "_search_at_root",
+                "close",
+                "root",
+                "search",
+            },
+        )
+        lock_method = _class_method(
+            module,
+            "_AutocompleteIndexStore",
             "_index_lock",
         )
+        lock_references = {
+            node.id
+            for node in ast.walk(lock_method)
+            if isinstance(node, ast.Name)
+        }
         self.assertTrue(
-            {"_INDEX_LOCKS", "_INDEX_LOCKS_GUARD", "os"} <= lock_references
+            {"os", "threading"} <= lock_references
         )
-        called = _called_attributes(
-            "easyuse_anima/autocomplete/index.py",
-            "_index_lock",
-        )
+        called = {
+            node.func.attr
+            for node in ast.walk(lock_method)
+            if isinstance(node, ast.Call)
+            and isinstance(node.func, ast.Attribute)
+        }
         self.assertTrue({"abspath", "normcase"} <= called)
         self.assertNotIn("resolve", called)
+        search_method = _class_method(
+            module,
+            "_AutocompleteIndexStore",
+            "_search_at_root",
+        )
         self.assertIn(
             "_index_lock",
-            _function_references(
-                "easyuse_anima/autocomplete/index.py",
-                "search_autocomplete_index",
-            ),
+            {
+                node.attr
+                for node in ast.walk(search_method)
+                if isinstance(node, ast.Attribute)
+            },
         )
-
         self.assertEqual(
             _top_level_assignment_call(
-                "easyuse_anima/autocomplete/search.py",
-                "_AUTOCOMPLETE_INDEX_DIR",
+                module,
+                "_DEFAULT_AUTOCOMPLETE_INDEX_STORE",
             ),
-            "_default_autocomplete_index_dir",
+            "_AutocompleteIndexStore",
         )
+
         root_references = _function_references(
-            "easyuse_anima/autocomplete/search.py",
+            module,
             "_default_autocomplete_index_dir",
         )
         self.assertTrue(
@@ -421,14 +472,18 @@ class PythonAutocompleteRuntimeContractTests(unittest.TestCase):
         )
         self.assertTrue(
             {
-                "_AUTOCOMPLETE_INDEX_DIR",
+                "_DEFAULT_AUTOCOMPLETE_INDEX_STORE",
                 "_snapshot",
-                "search_autocomplete_index",
+                "_validate_index_source",
             }
             <= _function_references(
                 "easyuse_anima/autocomplete/search.py",
                 "_search_autocomplete_with_diagnostics",
             )
+        )
+        self.assertIn(
+            "_DEFAULT_AUTOCOMPLETE_INDEX_STORE",
+            _function_references(module, "search_autocomplete_index"),
         )
 
     def test_production_callers_and_compatibility_surfaces_are_current(self):

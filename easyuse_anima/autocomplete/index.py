@@ -10,6 +10,11 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Protocol
 
+from ..infrastructure.filesystem.paths import (
+    PACKAGE_DATA_DIR as STORAGE_PACKAGE_DATA_DIR,
+)
+from ..infrastructure.filesystem.paths import USER_DATA_DIR
+
 
 AUTOCOMPLETE_INDEX_SCHEMA_VERSION = 1
 __all__ = (
@@ -80,25 +85,8 @@ class _InvalidAutocompleteIndex(RuntimeError):
         self.reason = reason
 
 
-_INDEX_LOCKS: dict[str, threading.Lock] = {}
-_INDEX_LOCKS_GUARD = threading.Lock()
-
-
 def _index_path(root: Path, source: AutocompleteIndexSource) -> Path:
     return Path(root) / f"autocomplete-{source.identity[:24]}.sqlite3"
-
-
-def _index_lock(path: Path) -> threading.Lock:
-    # Do not use Path.resolve() here. On Windows its canonicalization can
-    # differ before and after the index directory is created, splitting first
-    # access across two locks for the same eventual file.
-    key = os.path.normcase(os.path.abspath(path))
-    with _INDEX_LOCKS_GUARD:
-        lock = _INDEX_LOCKS.get(key)
-        if lock is None:
-            lock = threading.Lock()
-            _INDEX_LOCKS[key] = lock
-        return lock
 
 
 def _is_locked_error(error: BaseException) -> bool:
@@ -509,6 +497,172 @@ def _query_or_invalid(
         raise AutocompleteIndexUnavailable("unreadable") from error
 
 
+def _default_autocomplete_index_dir() -> Path | None:
+    user_data_dir = Path(USER_DATA_DIR).resolve(strict=False)
+    package_data_dir = Path(STORAGE_PACKAGE_DATA_DIR).resolve(strict=False)
+    if user_data_dir == package_data_dir:
+        # Standalone imports do not have a ComfyUI-owned writable user-data
+        # boundary. Keep the source/package tree immutable in that case.
+        return None
+    return user_data_dir / "autocomplete_index"
+
+
+class _AutocompleteIndexStore:
+    __slots__ = ("_locks", "_locks_guard", "_root")
+
+    def __init__(self, root: Path | None) -> None:
+        self._root = None if root is None else Path(root)
+        self._locks: dict[str, threading.Lock] = {}
+        self._locks_guard = threading.Lock()
+
+    @property
+    def root(self) -> Path | None:
+        return self._root
+
+    def close(self) -> None:
+        # Per-path locks have process lifetime and own no disposable resource.
+        return None
+
+    def _index_lock(self, path: Path) -> threading.Lock:
+        # Do not use Path.resolve() here. On Windows its canonicalization can
+        # differ before and after the index directory is created, splitting first
+        # access across two locks for the same eventual file.
+        key = os.path.normcase(os.path.abspath(path))
+        with self._locks_guard:
+            lock = self._locks.get(key)
+            if lock is None:
+                lock = threading.Lock()
+                self._locks[key] = lock
+            return lock
+
+    def search(
+        self,
+        *,
+        source: AutocompleteIndexSource,
+        normalized_query: str,
+        categories: set[str],
+        limit: int,
+        load_entries: Callable[[], Iterable[_AutocompleteIndexEntry]],
+        validate_source: Callable[[], None],
+    ) -> AutocompleteIndexResult:
+        return self._search_at_root(
+            root=self._root,
+            source=source,
+            normalized_query=normalized_query,
+            categories=categories,
+            limit=limit,
+            load_entries=load_entries,
+            validate_source=validate_source,
+        )
+
+    def _search_at_root(
+        self,
+        *,
+        root: Path | None,
+        source: AutocompleteIndexSource,
+        normalized_query: str,
+        categories: set[str],
+        limit: int,
+        load_entries: Callable[[], Iterable[_AutocompleteIndexEntry]],
+        validate_source: Callable[[], None],
+    ) -> AutocompleteIndexResult:
+        if root is None:
+            raise AutocompleteIndexUnavailable("disabled")
+
+        path = _index_path(Path(root), source)
+        try:
+            rows, entry_count, backend = _query_or_invalid(
+                path,
+                source,
+                normalized_query,
+                categories,
+                limit,
+            )
+        except _InvalidAutocompleteIndex:
+            with self._index_lock(path):
+                try:
+                    rows, entry_count, backend = _query_or_invalid(
+                        path,
+                        source,
+                        normalized_query,
+                        categories,
+                        limit,
+                    )
+                except _InvalidAutocompleteIndex as current_invalid:
+                    rebuild_reason = current_invalid.reason
+                    try:
+                        _build_index(
+                            path,
+                            source,
+                            load_entries(),
+                            validate_source,
+                        )
+                        rows, entry_count, backend = _query_or_invalid(
+                            path,
+                            source,
+                            normalized_query,
+                            categories,
+                            limit,
+                        )
+                    except AutocompleteIndexUnavailable:
+                        raise
+                    except _InvalidAutocompleteIndex as error:
+                        raise AutocompleteIndexUnavailable(
+                            "rebuild_unreadable"
+                        ) from error
+                    except sqlite3.OperationalError as error:
+                        reason = (
+                            "locked" if _is_locked_error(error) else "build_failed"
+                        )
+                        raise AutocompleteIndexUnavailable(reason) from error
+                    except (OSError, sqlite3.DatabaseError) as error:
+                        raise AutocompleteIndexUnavailable(
+                            "build_failed"
+                        ) from error
+                    diagnostics = AutocompleteIndexDiagnostics(
+                        outcome="rebuild",
+                        reason=rebuild_reason,
+                        backend=backend,
+                        source_revision=source.revision,
+                        entry_count=entry_count,
+                        index_path=path,
+                    )
+                    return AutocompleteIndexResult(
+                        entries=rows,
+                        diagnostics=diagnostics,
+                    )
+                else:
+                    diagnostics = AutocompleteIndexDiagnostics(
+                        outcome="hit",
+                        reason="concurrent_reuse",
+                        backend=backend,
+                        source_revision=source.revision,
+                        entry_count=entry_count,
+                        index_path=path,
+                    )
+                    return AutocompleteIndexResult(
+                        entries=rows,
+                        diagnostics=diagnostics,
+                    )
+        else:
+            diagnostics = AutocompleteIndexDiagnostics(
+                outcome="hit",
+                reason="valid",
+                backend=backend,
+                source_revision=source.revision,
+                entry_count=entry_count,
+                index_path=path,
+            )
+            return AutocompleteIndexResult(entries=rows, diagnostics=diagnostics)
+
+        raise AssertionError("unreachable autocomplete index state")
+
+
+_DEFAULT_AUTOCOMPLETE_INDEX_STORE = _AutocompleteIndexStore(
+    _default_autocomplete_index_dir()
+)
+
+
 def search_autocomplete_index(
     *,
     root: Path | None,
@@ -519,81 +673,12 @@ def search_autocomplete_index(
     load_entries: Callable[[], Iterable[_AutocompleteIndexEntry]],
     validate_source: Callable[[], None],
 ) -> AutocompleteIndexResult:
-    if root is None:
-        raise AutocompleteIndexUnavailable("disabled")
-
-    path = _index_path(Path(root), source)
-    try:
-        rows, entry_count, backend = _query_or_invalid(
-            path,
-            source,
-            normalized_query,
-            categories,
-            limit,
-        )
-    except _InvalidAutocompleteIndex:
-        with _index_lock(path):
-            try:
-                rows, entry_count, backend = _query_or_invalid(
-                    path,
-                    source,
-                    normalized_query,
-                    categories,
-                    limit,
-                )
-            except _InvalidAutocompleteIndex as current_invalid:
-                rebuild_reason = current_invalid.reason
-                try:
-                    _build_index(
-                        path,
-                        source,
-                        load_entries(),
-                        validate_source,
-                    )
-                    rows, entry_count, backend = _query_or_invalid(
-                        path,
-                        source,
-                        normalized_query,
-                        categories,
-                        limit,
-                    )
-                except AutocompleteIndexUnavailable:
-                    raise
-                except _InvalidAutocompleteIndex as error:
-                    raise AutocompleteIndexUnavailable("rebuild_unreadable") from error
-                except sqlite3.OperationalError as error:
-                    reason = "locked" if _is_locked_error(error) else "build_failed"
-                    raise AutocompleteIndexUnavailable(reason) from error
-                except (OSError, sqlite3.DatabaseError) as error:
-                    raise AutocompleteIndexUnavailable("build_failed") from error
-                diagnostics = AutocompleteIndexDiagnostics(
-                    outcome="rebuild",
-                    reason=rebuild_reason,
-                    backend=backend,
-                    source_revision=source.revision,
-                    entry_count=entry_count,
-                    index_path=path,
-                )
-                return AutocompleteIndexResult(entries=rows, diagnostics=diagnostics)
-            else:
-                diagnostics = AutocompleteIndexDiagnostics(
-                    outcome="hit",
-                    reason="concurrent_reuse",
-                    backend=backend,
-                    source_revision=source.revision,
-                    entry_count=entry_count,
-                    index_path=path,
-                )
-                return AutocompleteIndexResult(entries=rows, diagnostics=diagnostics)
-    else:
-        diagnostics = AutocompleteIndexDiagnostics(
-            outcome="hit",
-            reason="valid",
-            backend=backend,
-            source_revision=source.revision,
-            entry_count=entry_count,
-            index_path=path,
-        )
-        return AutocompleteIndexResult(entries=rows, diagnostics=diagnostics)
-
-    raise AssertionError("unreachable autocomplete index state")
+    return _DEFAULT_AUTOCOMPLETE_INDEX_STORE._search_at_root(
+        root=root,
+        source=source,
+        normalized_query=normalized_query,
+        categories=categories,
+        limit=limit,
+        load_entries=load_entries,
+        validate_source=validate_source,
+    )

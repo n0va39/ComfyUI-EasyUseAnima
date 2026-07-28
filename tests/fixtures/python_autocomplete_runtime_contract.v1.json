@@ -78,14 +78,14 @@
       "goal": "Encapsulate the immutable index root and normalized-path publication lock registry behind one autocomplete index-store owner.",
       "id": "E-05c",
       "name": "index-store root and path-lock ownership",
-      "status": "queued"
+      "status": "complete"
     },
     {
       "classification": "Move",
       "goal": "Compose the two autocomplete owners in bootstrap, expose one narrow RuntimeServices port, and wire existing adapter facades without changing public identities.",
       "id": "E-05d",
       "name": "bootstrap composition and adapter wiring",
-      "status": "blocked-by-E-05c"
+      "status": "queued"
     },
     {
       "classification": "Contract",
@@ -142,19 +142,22 @@
     },
     {
       "cleanup": {
-        "current": "The index root is immutable after import and path locks remain for process lifetime; production has no reset.",
-        "target": "The feature-private index store owns the immutable root and retained path-lock registry; close is an idempotent no-op unless direct evidence later proves disposable resources."
+        "current": "_AutocompleteIndexStore.close is an idempotent no-op because the immutable root and normalized-path Locks are retained for process lifetime.",
+        "target": "Whole-runtime reverse close ordering remains an E-09 gate; E-05c does not invent disposal for non-disposable Locks."
       },
-      "current_owners": [
+      "components": [
         {
-          "e01_entry": "autocomplete-index-locks",
-          "owner": "easyuse_anima.autocomplete.index"
-        },
-        {
-          "e01_entry": "autocomplete-index-root",
-          "owner": "easyuse_anima.autocomplete.search"
+          "class": "_AutocompleteIndexStore",
+          "module": "easyuse_anima/autocomplete/index.py",
+          "state_kind": "instance",
+          "state_symbols": [
+            "_locks",
+            "_locks_guard",
+            "_root"
+          ]
         }
       ],
+      "current_owner": "easyuse_anima.autocomplete.index._DEFAULT_AUTOCOMPLETE_INDEX_STORE",
       "e01_entries": [
         "autocomplete-index-locks",
         "autocomplete-index-root"
@@ -179,15 +182,11 @@
       ],
       "state_symbols": {
         "easyuse_anima/autocomplete/index.py": [
-          "_INDEX_LOCKS",
-          "_INDEX_LOCKS_GUARD"
-        ],
-        "easyuse_anima/autocomplete/search.py": [
-          "_AUTOCOMPLETE_INDEX_DIR"
+          "_DEFAULT_AUTOCOMPLETE_INDEX_STORE"
         ]
       },
-      "target_owner": "feature-private autocomplete index store",
-      "target_phase": "E-05c"
+      "target_owner": "easyuse_anima.autocomplete.index._DEFAULT_AUTOCOMPLETE_INDEX_STORE",
+      "target_phase": "E-05c-complete"
     }
   ],
   "production_callers": [
@@ -210,9 +209,9 @@
         "index-store"
       ],
       "uses": [
-        "_AUTOCOMPLETE_INDEX_DIR",
+        "_DEFAULT_AUTOCOMPLETE_INDEX_STORE",
         "_snapshot",
-        "search_autocomplete_index"
+        "_validate_index_source"
       ]
     },
     {
@@ -226,7 +225,7 @@
       ]
     }
   ],
-  "production_changes": 1,
+  "production_changes": 2,
   "schema_version": 1,
   "scope": "E-05 autocomplete source metadata, dataset snapshot/cache/Future single-flight, SQLite index root and publication path-lock ownership"
 }

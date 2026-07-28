@@ -7,8 +7,9 @@ E-05a is a production-free Contract created from
 translation audit. It classifies current autocomplete source metadata, dataset
 snapshot and single-flight state, SQLite index publication state, production
 callers, compatibility seams, and the only authorized bounded Move order.
-E-05b moves only the dataset snapshot/cache/Future state behind its selected
-feature-private owner.
+E-05b moves the dataset snapshot/cache/Future state behind its selected
+feature-private owner. E-05c moves the immutable index root and retained path-lock
+registry behind the second selected owner.
 
 The executable source is
 `tests/fixtures/python_autocomplete_runtime_contract.v1.json`, checked by
@@ -54,25 +55,27 @@ public status continue to observe the same snapshot identity and status semantic
 
 ### Index store root and publication locks
 
-The current search module resolves `_AUTOCOMPLETE_INDEX_DIR` once from the process
-user-data boundary. When user data and package data resolve to the same standalone
-boundary, persistent indexing remains disabled so a package import cannot write to
-its source tree.
+`_DEFAULT_AUTOCOMPLETE_INDEX_STORE` is the process owner. Its private
+`_AutocompleteIndexStore` instance owns the immutable Path-or-None root, one guard,
+and the retained normalized-path Lock registry. The default root is still resolved
+once from the process user-data boundary. When user data and package data resolve to
+the same standalone boundary, persistent indexing remains disabled so a package
+import cannot write to its source tree.
 
-The current index module owns `_INDEX_LOCKS`, `_INDEX_LOCKS_GUARD`, and the
-per-path publication critical section. The lock key deliberately uses
-`normcase(abspath(path))` without `Path.resolve()` before the directory exists;
-changing that can split first Windows access across two locks for the same eventual
-file. One per-path lock protects the second validity check, rebuild, atomic
-publication, and concurrent reuse.
+The lock key still uses `normcase(abspath(path))` without `Path.resolve()` before
+the directory exists; changing that can split first Windows access across two locks
+for the same eventual file. One per-path lock protects the second validity check,
+rebuild, atomic publication, and concurrent reuse. `search.py` resolves its private
+store reference at call time, so tests inject an isolated root by replacing the
+store instead of mutating a raw root constant.
 
-E-05c moves the immutable root and retained path-lock registry behind one
-feature-private index-store owner. It does not create a generic filesystem lock
-service. Read-only hit behavior, source/schema/corrupt invalidation, temporary
-SQLite construction, backend selection, atomic replace, diagnostics, and exact
-Python snapshot fallback remain unchanged. The proven resource has no disposable
-handle, so its feature close shape is an idempotent no-op unless later direct
-evidence proves otherwise.
+The public `search_autocomplete_index(*, root, ...)` signature and identity remain
+unchanged. Its explicit-root compatibility path delegates to the same default owner
+and therefore retains the process-wide per-path lock registry. No generic filesystem
+lock service is added. Read-only hit behavior, source/schema/corrupt invalidation,
+temporary SQLite construction, backend selection, atomic replace, diagnostics, and
+exact Python snapshot fallback remain unchanged. `close()` is an idempotent no-op
+because the proven owner has no disposable handle.
 
 The dataset owner and index-store owner are not merged. Their locks protect
 different invariants, their failures have different meanings, and index
@@ -93,8 +96,8 @@ The following surfaces remain compatible throughout E-05:
   status functions retain their public identity and result contracts;
 - root `api.py` retains call-time callback seams for source resolution, status,
   search, and classification;
-- the import-stable index-root patch seam remains available until E-05c replaces it
-  with an equivalent isolated owner seam;
+- the former import-stable index-root patch seam is replaced by the equivalent
+  private isolated-store injection seam;
 - package/no-host imports do not create directories or require ComfyUI host state.
 
 E-05 does not add a public runtime/bootstrap/root export or a generic cache/lock
@@ -108,9 +111,9 @@ port.
    `_AutocompleteSnapshotStore` owns the cache, Future map, and Lock behind one
    default reference while preserving parser, source-change, Future settlement,
    status, and call-time patch behavior.
-3. **E-05c Move — index-store root and path-lock ownership:** encapsulate the
-   immutable Path-or-None root and normalized-path lock registry behind one
-   feature-private index store.
+3. **E-05c Move — index-store root and path-lock ownership — complete:**
+   `_AutocompleteIndexStore` owns the immutable root, guard, and retained
+   normalized-path Locks behind one default reference.
 4. **E-05d Move — bootstrap composition and adapter wiring:** compose both owners,
    add only a narrow autocomplete port to RuntimeServices, and preserve every
    canonical/root identity and call-time adapter seam.
@@ -122,8 +125,9 @@ Each Move is a separate PR and rollback boundary. E-09 retains whole-runtime rev
 close ordering and partial-initialization cleanup. E-05 supplies only the
 feature-owned resources and their proven cleanup shapes.
 
-E-05b leaves no duplicate module cache/lock/Future map. The next READY unit is the
-separate E-05c index-store root and normalized-path publication-lock Move.
+E-05b leaves no duplicate module cache/lock/Future map, and E-05c leaves no raw
+module root or index-lock registry. The next READY unit is the separate E-05d
+bootstrap composition and narrow adapter wiring Move.
 
 ## Preserved behavior
 
@@ -155,3 +159,4 @@ the two lock lifecycles, or cancellation/replacement of a shared Future.
 Direct source and tests select one snapshot owner, one index-store owner, and one
 declarative policy. E-05a therefore does not trigger additional PRO review.
 E-05b preserves that partition and does not trigger a new PRO review.
+E-05c preserves that partition and does not trigger a new PRO review.
