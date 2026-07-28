@@ -37,6 +37,8 @@ class RuntimeServices:
 
     comfy: ComfyHostProvider
     seed_reservations: SeedReservationService
+    config: RuntimeConfig
+    clock: Clock
 
 
 _RUNTIME_SERVICES: RuntimeServices | None = None

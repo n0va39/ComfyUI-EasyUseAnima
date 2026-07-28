@@ -20,7 +20,7 @@ Read only the sections needed by the active task.
    [`../architecture/README.md`](../architecture/README.md)
    - E-01 runtime state ledger:
      [`../architecture/python-runtime-state-inventory.md`](../architecture/python-runtime-state-inventory.md)
-   - E-02b runtime base Contract:
+   - E-02b/E-02c runtime base and composition Contract:
      [`../architecture/python-runtime-base-contract.md`](../architecture/python-runtime-base-contract.md)
 5. Read [`codex-blocker-escalation.md`](codex-blocker-escalation.md) only after a
    documented hard stop or unresolved cross-owner failure. Ordinary implementation
@@ -50,8 +50,8 @@ ordinary `dev` roadmap work.
 - D-14 readiness is audited: every root surface is retained and retirement/final
   freeze is blocked by production/lifecycle consumers, missing release windows, or
   insufficient consumer evidence.
-- E-01 inventory and E-02b RuntimeConfig/base lifecycle Contract are complete. The
-  next work is only #187 E-02c config/clock composition Move. The #323 E-02a/E-07
+- E-01 inventory, E-02b base Contract, and E-02c config/clock composition are
+  complete. The next work is only #187 E-02 completion audit. The #323 E-02a/E-07
   bridge remains completed evidence, not authorization for feature migration.
 - Completed #470 and the 0.6.1 Prompt Studio lane are behavior-contract references,
   not the active queue.
@@ -147,6 +147,6 @@ representative profile list/load/save/delete/rename/fix live smoke
 - A version marker is not a publish action.
 - Technical PRO review is for unresolved cross-boundary architecture choices,
   unavoidable cycles, or insufficient compatibility evidence—not routine failures.
-- D-14 readiness is recorded and authorizes no removal. Use the completed E-01/E-02b
-  contracts for E-02c; do not expand that Move into feature lifecycle migrations,
+- D-14 readiness is recorded and authorizes no removal. Use the completed E-01/E-02
+  evidence for the completion audit; do not expand that audit into feature migrations,
   release publication, or Registry actions.

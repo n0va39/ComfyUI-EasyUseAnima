@@ -43,7 +43,7 @@ E-01 drift gate until classified.
 | `autocomplete-index-root` | import-resolved user-data index path | immutable after import; test patch only | E-02 |
 | `atomic-json-path-locks` | filesystem atomic JSON per-path lock registry | guard plus per-path `RLock`; no clear | E-03 |
 | `bootstrap-initialize-state` | bootstrap default runtime and wildcard completion state | initialize `Lock`; private-global test reset, no shutdown | E-09 |
-| `filesystem-runtime-paths` | import-resolved package/user-data paths | immutable after import; no runtime config object | E-02 |
+| `filesystem-runtime-paths` | import-resolved package/user-data paths projected into the default RuntimeConfig | immutable after import; bootstrap composition does not re-resolve | E-02 audit |
 | `package-bootstrap-effect` | root import invokes bootstrap route/directory initialization | bootstrap `Lock`; retry behavior, no package shutdown | E-09 |
 | `profile-directory-mutation-coordinator` | canonical process coordinator with weak per-directory locks | guard plus per-directory `RLock`; weak expiry | E-03 |
 | prompt warning-dedupe entries | two canonical Prompt feature modules, process lifetime | unprotected sets; direct-test clear only | E-09 |
@@ -72,7 +72,7 @@ source.
 - No production Python, analyzer heuristic, public surface, cache policy, or
   lifecycle behavior changes in E-01.
 
-## E-02b result and next bounded unit
+## E-02b/E-02c result and next bounded unit
 
 E-02b is owned by
 [`python-runtime-base-contract.md`](python-runtime-base-contract.md). It fixes
@@ -81,6 +81,11 @@ source evidence rejects a shared executor/client abstraction: those ports remain
 feature-owned because their admission, cancellation, timeout, reuse, and transport
 contracts differ.
 
-The next bounded unit is an **E-02c Move** for the bootstrap-owned config loader,
-concrete system clock, and default runtime wiring. E-03 through E-09 feature/lifecycle
+E-02c adds required config/clock fields to the installed runtime. Its private
+bootstrap loader projects the current canonical path objects, and its private system
+clock delegates to `time.monotonic()`. It changes no path constant, fallback, feature
+consumer, root surface, or shutdown behavior.
+
+The next bounded unit is an **E-02 completion audit**. It reconciles the remaining
+E-02 target entries before E-03 is authorized. E-03 through E-09 feature/lifecycle
 Moves remain separate and use this fixture's target phases and cleanup gaps.

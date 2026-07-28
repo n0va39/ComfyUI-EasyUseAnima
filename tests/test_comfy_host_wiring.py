@@ -10,8 +10,9 @@ from unittest.mock import patch
 from easyuse_anima import runtime as runtime_module
 from easyuse_anima.infrastructure.comfy.provider import DefaultComfyHostProvider
 from easyuse_anima.infrastructure.comfy.wiring import resolve_comfy_host_helper
-from easyuse_anima.runtime import RuntimeServices
+from easyuse_anima.runtime import RuntimeConfig, RuntimeServices
 from tests.comfy_host_fakes import (
+    FakeClock,
     FakeComfyHostProvider,
     FakeSeedReservationService,
 )
@@ -243,6 +244,12 @@ class ComfyHostWiringTests(unittest.TestCase):
         runtime_module._RUNTIME_SERVICES = RuntimeServices(
             comfy=provider,
             seed_reservations=FakeSeedReservationService(),
+            config=RuntimeConfig(
+                package_root=Path("package-root"),
+                package_data_dir=Path("package-data"),
+                user_data_dir=Path("user-data"),
+            ),
+            clock=FakeClock(),
         )
 
         self.assertEqual(
@@ -287,6 +294,12 @@ class ComfyHostWiringTests(unittest.TestCase):
         runtime_module._RUNTIME_SERVICES = RuntimeServices(
             comfy=provider,
             seed_reservations=FakeSeedReservationService(),
+            config=RuntimeConfig(
+                package_root=Path("package-root"),
+                package_data_dir=Path("package-data"),
+                user_data_dir=Path("user-data"),
+            ),
+            clock=FakeClock(),
         )
 
         require = resolve_comfy_host_helper(

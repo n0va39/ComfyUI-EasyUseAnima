@@ -240,18 +240,18 @@
       "symbols": ["_DEFAULT_RUNTIME", "_INITIALIZE_LOCK", "_WILDCARDS_INITIALIZED", "initialize"],
       "target_phase": "E-09",
       "test_evidence": ["tests/test_python_bootstrap.py", "tests/test_runtime_services.py"],
-      "thread_safety": "One Lock serializes runtime install, route refresh, and wildcard initialization."
+      "thread_safety": "One Lock serializes default config/clock composition, runtime install, route refresh, and wildcard initialization."
     },
     {
       "categories": ["path_resolution", "runtime_config"],
-      "cleanup": "No reset; tests isolate imports or patch consumers.",
+      "cleanup": "No reset; the default RuntimeConfig retains the same Path identities and tests isolate imports or patch consumers.",
       "id": "filesystem-runtime-paths",
-      "lifetime": "Package paths are import-stable; USER_DATA_DIR is resolved once from ComfyUI or package fallback.",
+      "lifetime": "Package paths are import-stable; USER_DATA_DIR is resolved once from ComfyUI or package fallback and projected once into the default runtime.",
       "module": "easyuse_anima/infrastructure/filesystem/paths.py",
       "owner": "easyuse_anima.infrastructure.filesystem.paths",
       "symbols": ["PACKAGE_DATA_DIR", "PACKAGE_ROOT", "USER_DATA_DIR"],
       "target_phase": "E-02",
-      "test_evidence": ["tests/test_python_package_skeleton.py", "tests/test_runtime_services.py"],
+      "test_evidence": ["tests/test_python_package_skeleton.py", "tests/test_runtime_services.py", "tests/test_storage.py"],
       "thread_safety": "Immutable Path values after import."
     },
     {
@@ -339,10 +339,10 @@
       "thread_safety": "One RLock protects executor creation, admission, Future identity, and close state."
     },
     {
-      "categories": ["capability", "runtime_reference", "seed_reservation_service"],
+      "categories": ["capability", "clock", "runtime_config", "runtime_reference", "seed_reservation_service"],
       "cleanup": "No production uninstall/close; tests patch _RUNTIME_SERVICES.",
       "id": "runtime-services",
-      "lifetime": "One identity-installed RuntimeServices object for the process.",
+      "lifetime": "One identity-installed RuntimeServices object for the process, including immutable config and a monotonic clock.",
       "module": "easyuse_anima/runtime.py",
       "owner": "easyuse_anima.runtime.RuntimeServices",
       "symbols": ["RuntimeServices", "_RUNTIME_SERVICES"],

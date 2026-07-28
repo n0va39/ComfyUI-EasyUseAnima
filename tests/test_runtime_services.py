@@ -14,6 +14,7 @@ if str(ROOT) not in sys.path:
 
 from easyuse_anima import bootstrap, runtime as runtime_module
 from easyuse_anima.infrastructure.comfy.provider import DefaultComfyHostProvider
+from easyuse_anima.infrastructure.filesystem import paths as storage_paths
 from easyuse_anima.runtime import (
     Clock,
     RuntimeConfig,
@@ -37,6 +38,11 @@ class FakeComfyHostProvider:
 
     def find_loaded_node_class(self, node_id: str) -> type[object] | None:
         return None
+
+
+class FakeClock:
+    def monotonic(self) -> float:
+        return 0.0
 
 
 class RuntimeBaseContractTests(unittest.TestCase):
@@ -128,6 +134,12 @@ class RuntimeServicesTests(unittest.TestCase):
         return RuntimeServices(
             comfy=FakeComfyHostProvider(),
             seed_reservations=InMemorySeedReservationService(),
+            config=RuntimeConfig(
+                package_root=Path("package-root"),
+                package_data_dir=Path("package-data"),
+                user_data_dir=Path("user-data"),
+            ),
+            clock=FakeClock(),
         )
 
     def test_runtime_value_is_frozen(self):
@@ -180,7 +192,14 @@ class RuntimeServicesTests(unittest.TestCase):
         host = type("Host", (), {"MAX_RESOLUTION": "8192"})()
         load_comfy_nodes = Mock(return_value=host)
 
-        with patch.object(bootstrap, "_WILDCARDS_INITIALIZED", False):
+        with (
+            patch.object(bootstrap, "_WILDCARDS_INITIALIZED", False),
+            patch.object(
+                bootstrap,
+                "_load_runtime_config",
+                wraps=bootstrap._load_runtime_config,
+            ) as load_runtime_config,
+        ):
             bootstrap.initialize(
                 register_routes=register_routes,
                 initialize_wildcards=initialize_wildcards,
@@ -199,8 +218,14 @@ class RuntimeServicesTests(unittest.TestCase):
             first.seed_reservations,
             InMemorySeedReservationService,
         )
+        self.assertIs(first.config.package_root, storage_paths.PACKAGE_ROOT)
+        self.assertIs(first.config.package_data_dir, storage_paths.PACKAGE_DATA_DIR)
+        self.assertIs(first.config.user_data_dir, storage_paths.USER_DATA_DIR)
+        with patch.object(bootstrap.time, "monotonic", return_value=12.5):
+            self.assertEqual(first.clock.monotonic(), 12.5)
         self.assertEqual(first.comfy.max_resolution(), 8192)
         self.assertIs(get_runtime(), first)
+        load_runtime_config.assert_called_once_with()
         load_comfy_nodes.assert_called_once_with()
         self.assertEqual(register_routes.call_count, 2)
         initialize_wildcards.assert_called_once_with()

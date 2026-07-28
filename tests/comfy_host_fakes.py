@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import sys
 from contextlib import contextmanager
+from pathlib import Path
 from unittest.mock import DEFAULT, Mock, patch
 
 
@@ -15,6 +16,11 @@ class FakeSeedReservationService:
         raise AssertionError(
             f"unexpected seed settlement: {reservation_id!r} {settlement!r}"
         )
+
+
+class FakeClock:
+    def monotonic(self) -> float:
+        return 0.0
 
 
 class FakeComfyHostProvider:
@@ -99,12 +105,29 @@ def _runtime_module_for(root_module):
     return runtime_module
 
 
+def _runtime_support(runtime_module):
+    installed = runtime_module._RUNTIME_SERVICES
+    if installed is not None:
+        return installed.config, installed.clock
+    return (
+        runtime_module.RuntimeConfig(
+            package_root=Path("package-root"),
+            package_data_dir=Path("package-data"),
+            user_data_dir=Path("user-data"),
+        ),
+        FakeClock(),
+    )
+
+
 @contextmanager
 def use_fake_comfy_host(root_module, provider):
     runtime_module = _runtime_module_for(root_module)
+    config, clock = _runtime_support(runtime_module)
     runtime = runtime_module.RuntimeServices(
         comfy=provider,
         seed_reservations=FakeSeedReservationService(),
+        config=config,
+        clock=clock,
     )
     with patch.object(runtime_module, "_RUNTIME_SERVICES", runtime):
         yield provider
@@ -134,9 +157,12 @@ def patch_comfy_helper(
         else FakeComfyHostProvider()
     )
     provider = _LayeredFakeComfyHostProvider(base, symbol, replacement)
+    config, clock = _runtime_support(runtime_module)
     runtime = runtime_module.RuntimeServices(
         comfy=provider,
         seed_reservations=FakeSeedReservationService(),
+        config=config,
+        clock=clock,
     )
     with patch.object(runtime_module, "_RUNTIME_SERVICES", runtime):
         yield replacement
