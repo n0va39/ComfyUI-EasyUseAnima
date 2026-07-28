@@ -1463,6 +1463,14 @@ Recommended sequence:
 10. E-10 isolated runtime fixtures and removal of module reload/private-global
     reset patterns.
 
+E-01 is complete through the versioned
+[`python-runtime-state-inventory.md`](python-runtime-state-inventory.md) Contract and
+`tests/fixtures/python_runtime_state_ownership.v1.json`. The direct gate partitions
+every analyzer mutable global, maps owner candidates, and covers manual
+singleton/path/import-effect gaps without changing production behavior. The next
+bounded unit is E-02b RuntimeConfig/base lifecycle Contract; feature owner Moves
+remain separate.
+
 Feature services receive only narrow Protocols. They do not import or receive
 the entire `RuntimeServices` object. Node adapters may use `get_runtime()` only
 at the ComfyUI construction boundary.

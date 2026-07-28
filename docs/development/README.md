@@ -18,6 +18,8 @@ Read only the sections needed by the active task.
      execution roadmap.
 4. Backend target architecture and compatibility policy:
    [`../architecture/README.md`](../architecture/README.md)
+   - E-01 runtime state ledger:
+     [`../architecture/python-runtime-state-inventory.md`](../architecture/python-runtime-state-inventory.md)
 5. Read [`codex-blocker-escalation.md`](codex-blocker-escalation.md) only after a
    documented hard stop or unresolved cross-owner failure. Ordinary implementation
    and test failures remain local task work.
@@ -39,19 +41,19 @@ ordinary `dev` roadmap work.
 ## Active state
 
 - Released baseline: 0.6.2.
-- Active owner: Issue #187 for the next inventory Contract; Issue #186 retains
-  D-14/shim decisions.
-- Reviewed code baseline: D-08u / PR #525.
+- Active owner: Issue #187 for Phase E; Issue #186 retains D-14/shim decisions.
+- Reviewed code baseline: D-14 readiness / PR #526.
 - D-08u integrated exit audit is complete.
 - D-08v is not required; the audit found no remaining D-08 production Move.
 - D-14 readiness is audited: every root surface is retained and retirement/final
   freeze is blocked by production/lifecycle consumers, missing release windows, or
   insufficient consumer evidence.
-- Next work is only #187 E-01 global-state inventory. The #323 E-02a/E-07 bridge
-  remains completed evidence, not authorization for later feature migration.
+- E-01 global-state inventory is complete and versioned. The next work is only #187
+  E-02b RuntimeConfig/base lifecycle Contract. The #323 E-02a/E-07 bridge remains
+  completed evidence, not authorization for later feature migration.
 - Completed #470 and the 0.6.1 Prompt Studio lane are behavior-contract references,
   not the active queue.
-- Do not remove root aliases or start E-03 through E-10, release, or Registry work
+- Do not remove root aliases or start E-03 through E-10 Moves, release, or Registry work
   from this entrypoint.
 
 ## Completed D-08 composition audit surface
@@ -143,6 +145,6 @@ representative profile list/load/save/delete/rename/fix live smoke
 - A version marker is not a publish action.
 - Technical PRO review is for unresolved cross-boundary architecture choices,
   unavoidable cycles, or insufficient compatibility evidence—not routine failures.
-- D-14 readiness is recorded and authorizes no removal. Start only #187 E-01
-  global-state inventory; do not expand it into feature lifecycle Moves, release
-  publication, or Registry actions.
+- D-14 readiness is recorded and authorizes no removal. Use the completed E-01
+  ledger for E-02b; do not expand that Contract into feature lifecycle Moves,
+  release publication, or Registry actions.

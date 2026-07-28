@@ -2,14 +2,14 @@
 
 ## Status and authority
 
-- Status: D-08 completed; the D-14 readiness audit retains every root surface and
-  blocks retirement/final-freeze work.
-- Code-review baseline: `dev@597d1c9fc1305baeacd3483b24d7fcec68fc9cf9`
-  after D-08u / PR #525.
-- Document baseline: D-14 readiness audit after PR #525.
+- Status: D-08 and the E-01 inventory Contract are completed; the D-14 readiness
+  audit retains every root surface and blocks retirement/final-freeze work.
+- Code-review baseline: `dev@3c15a34c8e10f3f1999b16496b72343ce30759ae`
+  after the D-14 readiness audit / PR #526.
+- Document baseline: E-01 inventory Contract after the D-14 readiness audit.
 - Released baseline: 0.6.2.
-- Scope: completed D-08 evidence, the D-14 readiness decision, and the next bounded
-  #187 E-01 inventory handoff.
+- Scope: completed D-08 evidence, the D-14 readiness decision, the completed #187
+  E-01 inventory, and the next bounded E-02b Contract handoff.
 - This document owns the current immediate queue and supersedes the stale queue and
   broad preflight command in `python-backend-execution-roadmap.md`.
 - `python-backend.md`, ADR-001, ADR-002, and the compatibility-shim registry still own
@@ -257,11 +257,12 @@ The D-08u audit found no required D-08v. After D-08:
    public shims lack removal-supporting consumer evidence;
 3. D-14 retirement/final-freeze work remains blocked and no root file or alias is
    removed;
-4. the first independent READY Phase E unit is #187 E-01 global-state inventory;
-   the narrow E-02a/E-07a/E-07b bridge is already complete through #323; and
-5. never remove root files merely to make the directory tree appear complete.
+4. #187 E-01 global-state inventory is complete and versioned; the narrow
+   E-02a/E-07a/E-07b bridge is already complete through #323;
+5. the first READY follow-up is E-02b RuntimeConfig/base lifecycle Contract; and
+6. never remove root files merely to make the directory tree appear complete.
 
-## 6. Codex resume instruction
+## 6. E-01 result and Codex resume instruction
 
 ```text
 D-08 is complete. Do not restart D-08t or create D-08v without new contrary
@@ -270,11 +271,12 @@ production evidence.
 D-14 retirement is blocked. Retain every root file and alias. Do not turn the
 readiness audit into removal, deprecation, or release work.
 
-Start only #187 E-01 global-state inventory from latest origin/dev. Read the
-current #187 body/checkpoint, runtime shell, bootstrap, root api/wildcard runtime
-owners, and direct inventory/analyzer tests. Record owner, lifetime, lock,
-cleanup/reset, and test evidence before proposing any feature migration.
+E-01 is owned by python-runtime-state-inventory.md and
+tests/fixtures/python_runtime_state_ownership.v1.json. Its direct gate requires
+every analyzer mutable global to be runtime-owned or declarative-only, maps every
+owner candidate, and adds manual singleton/path/import-effect coverage.
 
-Do not start E-03 through E-10 behavior/lifecycle Moves, release, or Registry work
-inside the E-01 inventory Contract.
+Start only #187 E-02b RuntimeConfig/base lifecycle Contract from latest origin/dev.
+Use the E-01 target phases and cleanup gaps as input. Do not start E-03 through E-10
+behavior/lifecycle Moves, release, or Registry work inside E-02b.
 ```
