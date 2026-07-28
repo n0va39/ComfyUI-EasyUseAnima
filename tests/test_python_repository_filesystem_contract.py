@@ -153,6 +153,10 @@ class PythonRepositoryFilesystemContractTests(unittest.TestCase):
             [move["id"] for move in self.fixture["move_queue"]],
             ["E-03b", "E-03c", "E-03d", "E-03e"],
         )
+        self.assertEqual(
+            [move["status"] for move in self.fixture["move_queue"]],
+            ["complete", "ready", "pending", "pending"],
+        )
 
         evidence = {
             path
@@ -202,6 +206,12 @@ class PythonRepositoryFilesystemContractTests(unittest.TestCase):
         self.assertEqual(
             _assignment_expression(atomic["module"], "_PATH_LOCKS_GUARD"),
             "threading.Lock()",
+        )
+        self.assertEqual(atomic["factory"], "create_atomic_json_store")
+        self.assertEqual(
+            {"AtomicJsonStore"}
+            - _function_calls(atomic["module"], atomic["factory"]),
+            set(),
         )
 
         profile = self.fixture["owners"][1]

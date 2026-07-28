@@ -1485,9 +1485,9 @@ the duplicate prompt knowledge package path. E-02 is complete. The next bounded 
 is the production-free
 [`python-runtime-e03-repository-filesystem-contract.md`](python-runtime-e03-repository-filesystem-contract.md).
 It fixes the current paths, store construction, lock ordering, CAS ownership,
-dynamic dependencies, and monkeypatch seams. E-03b adds only a stateless filesystem
-factory that delegates to the canonical `AtomicJsonStore` path-lock owner; settings
-and profile repository Moves remain separate.
+dynamic dependencies, and monkeypatch seams. E-03b adds the stateless
+`create_atomic_json_store` seam, which delegates to the canonical `AtomicJsonStore`
+path-lock owner. E-03c settings and E-03d profile repository Moves remain separate.
 
 Feature services receive only narrow Protocols. They do not import or receive
 the entire `RuntimeServices` object. Node adapters may use `get_runtime()` only

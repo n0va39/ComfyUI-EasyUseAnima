@@ -41,7 +41,7 @@ E-01 drift gate until classified.
 | `autocomplete-dataset-cache` | canonical dataset snapshot and Future single-flight maps | one `Lock`; test-only clear | E-05 |
 | `autocomplete-index-locks` | canonical index per-path lock registry | guard plus per-path locks; no clear | E-05 |
 | `autocomplete-index-root` | import-resolved user-data index path | immutable after import; test patch coupled to index fallback/publication | E-05 |
-| `atomic-json-path-locks` | filesystem atomic JSON per-path lock registry | guard plus per-path `RLock`; no clear | E-03b |
+| `atomic-json-path-locks` | filesystem atomic JSON per-path lock registry shared by direct/factory stores | guard plus per-path `RLock`; no clear | E-03b complete |
 | `bootstrap-initialize-state` | bootstrap default runtime and wildcard completion state | initialize `Lock`; private-global test reset, no shutdown | E-09 |
 | `filesystem-runtime-paths` | import-resolved package/user-data paths projected into the default RuntimeConfig | immutable after import; bootstrap composition does not re-resolve | E-02c complete |
 | `package-bootstrap-effect` | root import invokes bootstrap route/directory initialization | bootstrap `Lock`; retry behavior, no package shutdown | E-09 |
@@ -95,6 +95,7 @@ E-02 is complete. The production-free
 [`python-runtime-e03-repository-filesystem-contract.md`](python-runtime-e03-repository-filesystem-contract.md)
 fixes the current settings/profile paths, atomic store construction, path and
 directory lock ownership, revision/CAS boundary, dynamic dependencies, and
-monkeypatch seams. It narrows `atomic-json-path-locks` to E-03b and the profile
-directory coordinator to E-03d. The next bounded unit is the E-03b filesystem
-factory Move; later feature/lifecycle Moves remain separate.
+monkeypatch seams. E-03b adds a stateless factory that delegates to the canonical
+store constructor and keeps the same process path-lock owner. The profile directory
+coordinator remains targeted to E-03d. The next bounded unit is the E-03c settings
+repository Move; later feature/lifecycle Moves remain separate.

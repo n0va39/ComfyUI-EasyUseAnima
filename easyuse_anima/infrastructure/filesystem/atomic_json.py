@@ -402,4 +402,14 @@ class AtomicJsonStore:
                     _unlink_if_present(source_backup_restore_temp)
 
 
-__all__ = ("AtomicJsonStore",)
+def create_atomic_json_store(
+    path: str | os.PathLike[str],
+    *,
+    backup: bool | str | os.PathLike[str] = True,
+) -> AtomicJsonStore:
+    """Create a store that uses the canonical process path-lock owner."""
+
+    return AtomicJsonStore(path, backup=backup)
+
+
+__all__ = ("AtomicJsonStore", "create_atomic_json_store")

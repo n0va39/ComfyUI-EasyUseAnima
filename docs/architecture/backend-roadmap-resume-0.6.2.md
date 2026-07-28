@@ -2,15 +2,15 @@
 
 ## Status and authority
 
-- Status: D-08, E-01, E-02, and the E-03a repository/filesystem Contract are
+- Status: D-08, E-01, E-02, E-03a, and the E-03b filesystem factory Move are
   completed; the D-14 readiness audit retains every root surface and blocks
   retirement/final-freeze work.
-- Code-review baseline: `dev@204e74ab5897e1dc1f769067f9520ecee6803803`
-  after E-02d / PR #531.
-- Document baseline: E-03a repository/filesystem Contract.
+- Code-review baseline: `dev@92704b22fddd3b1b98e3fa037007f7e4916297a4`
+  after E-03a / PR #532.
+- Document baseline: E-03b filesystem factory Move.
 - Released baseline: 0.6.2.
 - Scope: completed D-08 evidence, the D-14 readiness decision, completed #187
-  E-01/E-02/E-03a work, and the next bounded E-03b factory Move.
+  E-01/E-02/E-03a/E-03b work, and the next bounded E-03c settings Move.
 - This document owns the current immediate queue and supersedes the stale queue and
   broad preflight command in `python-backend-execution-roadmap.md`.
 - `python-backend.md`, ADR-001, ADR-002, and the compatibility-shim registry still own
@@ -269,9 +269,12 @@ The D-08u audit found no required D-08v. After D-08:
 9. E-03a fixes current repository constructors, path inputs, lock order, revision/CAS,
    dynamic dependencies, and monkeypatch seams without changing production;
 10. the first READY follow-up is the E-03b stateless filesystem factory Move only; and
-11. never remove root files merely to make the directory tree appear complete.
+11. E-03b adds `create_atomic_json_store` as a stateless canonical-constructor seam
+    without adding a lock registry or root export;
+12. the first READY follow-up is the E-03c settings repository Move only; and
+13. never remove root files merely to make the directory tree appear complete.
 
-## 6. E-01/E-02/E-03a result and Codex resume instruction
+## 6. E-01/E-02/E-03a/E-03b result and Codex resume instruction
 
 ```text
 D-08 is complete. Do not restart D-08t or create D-08v without new contrary
@@ -306,8 +309,12 @@ is a stateless AtomicJsonStore constructor seam; the canonical atomic module kee
 single process path-lock registry. The profile directory coordinator remains a
 separate shared CAS transaction dependency.
 
-Start only #187 E-03b from latest origin/dev. Add the filesystem factory seam while
-proving direct and factory-created stores share the canonical normalized-path lock.
-Do not start settings/profile repository Moves, E-04 through E-10, release, or
-Registry work inside E-03b.
+E-03b adds `create_atomic_json_store(path, *, backup=True)`. It delegates directly to
+the canonical `AtomicJsonStore`, creates no state, preserves root `storage.py`, and
+proves direct/factory stores share one normalized-path lock.
+
+Start only #187 E-03c from latest origin/dev. Add explicit settings paths and the
+store factory behind the existing module functions and path monkeypatch seams. Do not
+start profile repository Moves, E-04 through E-10, release, or Registry work inside
+E-03c.
 ```

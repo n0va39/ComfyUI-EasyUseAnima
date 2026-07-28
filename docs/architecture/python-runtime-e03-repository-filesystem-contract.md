@@ -26,9 +26,9 @@ atomic publication, delete, and same-directory replacement. Multi-path replaceme
 acquires normalized path keys in sorted order and releases them in reverse order.
 The process registry has no explicit cleanup today.
 
-This owner must remain shared by direct `AtomicJsonStore(path)` callers and future
-factory-created stores. A factory that creates another lock registry would allow two
-writers for the same path and violate the direct storage contract.
+This owner remains shared by direct `AtomicJsonStore(path)` callers and stores created
+through `create_atomic_json_store(path, backup=...)`. The E-03b factory delegates to
+the canonical constructor and creates no lock registry of its own.
 
 ### Profile transaction coordination
 
@@ -98,7 +98,8 @@ its current constructor and methods.
 
 ## Factory decision
 
-The E-03 filesystem factory is a stateless narrow store-constructor seam:
+The E-03b filesystem factory is the stateless
+`create_atomic_json_store(path, *, backup=True)` seam:
 
 ```text
 explicit path + backup policy -> canonical AtomicJsonStore
@@ -111,9 +112,10 @@ constructor compatibility or introducing a dependency-injection framework.
 
 ## Bounded Move queue
 
-1. **E-03b Move — filesystem factory:** add only the stateless constructor seam and
-   prove direct and factory-created stores share the canonical path lock.
-2. **E-03c Move — settings repository:** add explicit settings paths and the store
+1. **E-03b Move — filesystem factory — complete:** the stateless constructor seam
+   delegates to `AtomicJsonStore`; direct and factory-created stores share the
+   canonical path lock and backup policy.
+2. **E-03c Move — settings repository — READY:** add explicit settings paths and the store
    factory behind current functions and monkeypatch seams.
 3. **E-03d Move — profile repositories:** add explicit LoRA/AiO directories, the
    store factory, and shared profile coordinator behind current canonical functions
@@ -132,8 +134,9 @@ bootstrap, RuntimeServices, persistence, schema, error, lock, response, or lifec
 behavior. Package/no-host and live evidence from the preceding runtime work remains
 valid.
 
-E-03a does not authorize E-03b production changes, E-04 or later work, root alias
-retirement, D-14 retirement, release, or Registry actions.
+E-03b changes only the canonical factory seam and its direct contract evidence. It
+does not authorize E-03c production changes, E-04 or later work, root alias retirement,
+D-14 retirement, release, or Registry actions.
 
 The direct evidence leaves one owner for each boundary, so no material PRO review is
 required.
