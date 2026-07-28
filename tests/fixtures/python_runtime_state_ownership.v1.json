@@ -274,7 +274,7 @@
       "module": "easyuse_anima/profiles/mutation.py",
       "owner": "easyuse_anima.profiles.mutation.PROFILE_MUTATION_COORDINATOR",
       "symbols": ["PROFILE_MUTATION_COORDINATOR"],
-      "target_phase": "E-03d",
+      "target_phase": "E-03d-complete",
       "test_evidence": ["tests/test_aio_profiles.py", "tests/test_lora_profiles.py"],
       "thread_safety": "A guard protects the weak registry; one RLock serializes CAS per directory."
     },

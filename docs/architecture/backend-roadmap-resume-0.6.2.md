@@ -2,16 +2,16 @@
 
 ## Status and authority
 
-- Status: D-08, E-01, E-02, E-03a, E-03b, E-03c, and the E-03d profile repositories
-  Move are completed; the D-14 readiness audit retains every root surface and blocks
+- Status: D-08, E-01, E-02, and E-03 through the E-03e completion audit are
+  completed; the D-14 readiness audit retains every root surface and blocks
   retirement/final-freeze work.
-- Code-review base: `dev@2ccf6f91a1bf458fc4afbc6352c66fb67a934a6d`
-  after E-03c / PR #534.
-- Document baseline: E-03d profile repositories Move.
+- Code-review base: `dev@45215242615dccfe647f2c410788f0d61fdd2091`
+  after E-03d / PR #535.
+- Document baseline: E-03e repository/filesystem completion audit.
 - Released baseline: 0.6.2.
 - Scope: completed D-08 evidence, the D-14 readiness decision, completed #187
-  E-01/E-02/E-03a/E-03b/E-03c/E-03d work, and the next bounded E-03e completion
-  Contract/audit.
+  E-01/E-02/E-03 work, and the next bounded E-04 translation
+  provider/client/cache Contract.
 - This document owns the current immediate queue and supersedes the stale queue and
   broad preflight command in `python-backend-execution-roadmap.md`.
 - `python-backend.md`, ADR-001, ADR-002, and the compatibility-shim registry still own
@@ -272,10 +272,15 @@ The D-08u audit found no required D-08v. After D-08:
 10. the first READY follow-up is the E-03b stateless filesystem factory Move only; and
 11. E-03b adds `create_atomic_json_store` as a stateless canonical-constructor seam
     without adding a lock registry or root export;
-12. the first READY follow-up is the E-03c settings repository Move only; and
-13. never remove root files merely to make the directory tree appear complete.
+12. E-03c adds a private per-call settings repository without capturing an
+    import-time default or mutable process state;
+13. E-03d adds a shared private per-call profile repository while retaining the
+    canonical store factory and profile directory coordinator as the state owners;
+14. E-03e reconciles both E-01 owners with E-03, records zero ambiguous
+    repository/filesystem state owners, and completes E-03; and
+15. never remove root files merely to make the directory tree appear complete.
 
-## 6. E-01/E-02/E-03a/E-03b result and Codex resume instruction
+## 6. E-01/E-02/E-03 result and Codex resume instruction
 
 ```text
 D-08 is complete. Do not restart D-08t or create D-08v without new contrary
@@ -314,8 +319,14 @@ E-03b adds `create_atomic_json_store(path, *, backup=True)`. It delegates direct
 the canonical `AtomicJsonStore`, creates no state, preserves root `storage.py`, and
 proves direct/factory stores share one normalized-path lock.
 
-Start only #187 E-03e from latest origin/dev. Reconcile E-01 ownership targets with
-the completed E-03 factory/repository Moves and prove no repository/filesystem state
-is ambiguously owned before E-04. E-03e is a production-free Contract/audit. Do not
-start E-04 through E-10, D-14 retirement, release, or Registry work inside E-03e.
+E-03c and E-03d add private per-call settings and profile repository values. They
+retain current path and monkeypatch seams, the canonical stateless store factory, and
+the shared profile directory coordinator. They own no mutable process state.
+
+E-03e reconciles E-01 ownership targets with those completed Moves and records zero
+ambiguous repository/filesystem state owners. E-03 is complete.
+
+Start only #187 E-04 from latest origin/dev as a production-free translation
+provider/client/cache Contract. Do not start E-04 implementation, E-05 through E-10,
+D-14 retirement, release, or Registry work inside that Contract.
 ```

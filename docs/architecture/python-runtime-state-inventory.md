@@ -45,7 +45,7 @@ E-01 drift gate until classified.
 | `bootstrap-initialize-state` | bootstrap default runtime and wildcard completion state | initialize `Lock`; private-global test reset, no shutdown | E-09 |
 | `filesystem-runtime-paths` | import-resolved package/user-data paths projected into the default RuntimeConfig | immutable after import; bootstrap composition does not re-resolve | E-02c complete |
 | `package-bootstrap-effect` | root import invokes bootstrap route/directory initialization | bootstrap `Lock`; retry behavior, no package shutdown | E-09 |
-| `profile-directory-mutation-coordinator` | canonical process coordinator with weak per-directory locks | guard plus per-directory `RLock`; weak expiry | E-03d |
+| `profile-directory-mutation-coordinator` | canonical process coordinator with weak per-directory locks | guard plus per-directory `RLock`; weak expiry | E-03d complete |
 | prompt warning-dedupe entries | two canonical Prompt feature modules, process lifetime | unprotected sets; direct-test clear only | E-09 |
 | `prompt-knowledge-path` | canonical filesystem package path re-exported for ANIMA root compatibility | immutable after import | E-02d complete |
 | `root-route-registration` | injected router registrar called by bootstrap | serialized refresh; idempotent marker, no deregistration | E-09 |
@@ -72,7 +72,7 @@ source.
 - No production Python, analyzer heuristic, public surface, cache policy, or
   lifecycle behavior changes in E-01.
 
-## E-02 and E-03a result
+## E-02 and E-03 result
 
 E-02b is owned by
 [`python-runtime-base-contract.md`](python-runtime-base-contract.md). It fixes
@@ -96,6 +96,10 @@ E-02 is complete. The production-free
 fixes the current settings/profile paths, atomic store construction, path and
 directory lock ownership, revision/CAS boundary, dynamic dependencies, and
 monkeypatch seams. E-03b adds a stateless factory that delegates to the canonical
-store constructor and keeps the same process path-lock owner. The profile directory
-coordinator remains targeted to E-03d. The next bounded unit is the E-03c settings
-repository Move; later feature/lifecycle Moves remain separate.
+store constructor and keeps the same process path-lock owner. E-03c adds a private
+per-call settings repository value without capturing an import-time default. E-03d
+adds the shared private per-call profile repository value while retaining the
+canonical store factory and profile directory coordinator as the only mutable-state
+owners. The E-03e cross-fixture audit reconciles both E-01 owner entries with those
+E-03 owners and records zero ambiguous repository/filesystem state owners. The next
+bounded unit is the separate E-04 translation provider/client/cache Contract.

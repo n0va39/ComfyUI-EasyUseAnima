@@ -73,6 +73,42 @@
       "symbol": "save_setting"
     }
   ],
+  "completion_audit": {
+    "ambiguous_state_owners": [],
+    "classification": "Contract",
+    "next_phase": "E-04 translation provider/client/cache Contract",
+    "production_changes": 0,
+    "repository_values": [
+      {
+        "builders": [
+          {
+            "function": "_current_settings_repository",
+            "module": "easyuse_anima/settings/repository.py"
+          }
+        ],
+        "captures_import_default": false,
+        "class": "_SettingsRepository",
+        "module": "easyuse_anima/settings/repository.py",
+        "owns_mutable_state": false
+      },
+      {
+        "builders": [
+          {
+            "function": "_current_lora_profile_repository",
+            "module": "easyuse_anima/profiles/lora.py"
+          },
+          {
+            "function": "_current_aio_profile_repository",
+            "module": "easyuse_anima/profiles/aio.py"
+          }
+        ],
+        "captures_import_default": false,
+        "class": "_ProfileRepository",
+        "module": "easyuse_anima/profiles/repository.py",
+        "owns_mutable_state": false
+      }
+    ]
+  },
   "decisions": {
     "dynamic_host_dependencies": "folder_paths lookup remains late-bound in the owning settings or LoRA feature and is not part of the filesystem factory.",
     "filesystem_factory": "create_atomic_json_store is the stateless narrow AtomicJsonStore constructor seam. It neither owns nor duplicates the process path-lock registry.",
@@ -166,7 +202,7 @@
       "goal": "Reconcile ownership targets and prove no repository or filesystem state remains ambiguously owned before E-04.",
       "id": "E-03e",
       "name": "completion audit",
-      "status": "ready"
+      "status": "complete"
     }
   ],
   "owners": [
@@ -191,6 +227,7 @@
         "write"
       ],
       "module": "easyuse_anima/infrastructure/filesystem/atomic_json.py",
+      "owner": "easyuse_anima.infrastructure.filesystem.atomic_json",
       "path_normalization": "Path(path).expanduser().resolve(strict=False)",
       "symbols": [
         "AtomicJsonStore",
@@ -216,6 +253,7 @@
         "locked"
       ],
       "module": "easyuse_anima/profiles/mutation.py",
+      "owner": "easyuse_anima.profiles.mutation.PROFILE_MUTATION_COORDINATOR",
       "path_normalization": "os.path.normcase(str(Path(directory).resolve(strict=False)))",
       "symbols": [
         "DirectoryMutationCoordinator",
@@ -527,6 +565,29 @@
       ]
     }
   ],
+  "ownership_reconciliation": [
+    {
+      "completed_phase": "E-03b-complete",
+      "e01_entry": "atomic-json-path-locks",
+      "e03_owner": "atomic-json-store",
+      "module": "easyuse_anima/infrastructure/filesystem/atomic_json.py",
+      "owner": "easyuse_anima.infrastructure.filesystem.atomic_json",
+      "state_symbols": [
+        "_PATH_LOCKS",
+        "_PATH_LOCKS_GUARD"
+      ]
+    },
+    {
+      "completed_phase": "E-03d-complete",
+      "e01_entry": "profile-directory-mutation-coordinator",
+      "e03_owner": "profile-directory-coordinator",
+      "module": "easyuse_anima/profiles/mutation.py",
+      "owner": "easyuse_anima.profiles.mutation.PROFILE_MUTATION_COORDINATOR",
+      "state_symbols": [
+        "PROFILE_MUTATION_COORDINATOR"
+      ]
+    }
+  ],
   "schema_version": 1,
-  "scope": "E-03a current settings/profile repository and filesystem boundary"
+  "scope": "Completed E-03 settings/profile repository and filesystem boundary"
 }
