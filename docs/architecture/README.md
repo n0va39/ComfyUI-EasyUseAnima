@@ -10,14 +10,14 @@ then only the active task section, owning Issue, direct source, and direct tests
 ## Active sequencing
 
 - Issue [#187](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/187)
-  owns Phase E. E-01 through E-09 are complete; E-10a fixes the isolated-runtime
-  fixture Contract and E-10b is the next READY task.
+  owns Phase E. E-01 through E-10 are complete; E-10c records the production-free
+  completion audit.
   Issue #186 retains D-14/shim decisions.
 - [`backend-roadmap-resume-0.6.2.md`](backend-roadmap-resume-0.6.2.md)
   is the current execution source of truth. Read it before the older accumulated
   roadmap.
-- E-10a Contract base: E-09c / PR #558 at
-  `5e99b702731b896ce6a424b7315e98eaff21133f`.
+- E-10c audit base: E-10b / PR #560 at
+  `87a1689f7c5d6452888e7bb8a8f92856d3f2f76f`.
 - D-08 is complete and D-08v is not required.
 - D-14 readiness retains every root surface; retirement/final-freeze work is blocked.
 - E-01 inventory Contract:
@@ -44,14 +44,15 @@ then only the active task section, owning Issue, direct source, and direct tests
   [`python-runtime-e09-lifecycle-contract.md`](python-runtime-e09-lifecycle-contract.md).
 - E-10 isolated runtime test fixture Contract and bounded queue:
   [`python-runtime-e10-test-isolation-contract.md`](python-runtime-e10-test-isolation-contract.md).
-- E-09 is complete with `ambiguous_state_owners=[]`; E-10b is the next READY task.
+- Phase E is complete with `ambiguous_state_owners=[]`, module reload sites `[]`,
+  and direct private runtime mutation outside the test helper `[]`.
 - Completed #470 and the #413/#414/#415 queue/live-UI lanes remain contract references,
   not active blockers.
 - Released code baseline: 0.6.2. Registry activation is external administration and
   does not block `dev`; do not republish or mutate the release.
 - Completed #409/#410/#411 and deferred #440/#441 do not alter the E-01 boundary.
-- Root removal, release, and Registry remain governed by the active roadmap; E-10a
-  authorizes only the E-10b test-infrastructure migration next.
+- Root removal, release, and Registry remain governed by the active roadmap; Phase E
+  completion does not itself authorize those operations.
 
 ## Current code boundary
 
@@ -77,7 +78,7 @@ aliases or absorbing feature behavior.
 
 - [`backend-roadmap-resume-0.6.2.md`](backend-roadmap-resume-0.6.2.md):
   completed D-08 evidence, D-14 readiness verdict, completed Phase E units, and the
-  bounded E-08 handoff.
+  completed E-10 audit.
 - [`python-backend.md`](python-backend.md): target ownership and dependency direction.
   Its early implementation snapshot is historical where the active checkpoint differs.
 - [`python-backend-execution-roadmap.md`](python-backend-execution-roadmap.md):
@@ -108,8 +109,8 @@ aliases or absorbing feature behavior.
   bootstrap terminal lifecycle, reverse cleanup order, partial-initialization
   rollback, retained no-op resources, and the bounded E-09a/b/c queue.
 - [`python-runtime-e10-test-isolation-contract.md`](python-runtime-e10-test-isolation-contract.md):
-  current test reset inventory, one test-only fixture owner, isolation modes, and the
-  bounded E-10a/b/c queue.
+  completed test reset inventory, one test-only fixture owner, isolation modes, and
+  the completed E-10a/b/c queue.
 - [`adr-001-modular-monolith.md`](adr-001-modular-monolith.md): feature-oriented modular
   monolith decision.
 - [`adr-002-compatibility-shims.md`](adr-002-compatibility-shims.md): shim lifecycle and

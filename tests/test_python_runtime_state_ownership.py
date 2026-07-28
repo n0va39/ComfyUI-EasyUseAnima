@@ -193,6 +193,15 @@ class PythonRuntimeStateOwnershipContractTests(unittest.TestCase):
             {entry["target_phase"] for entry in self.fixture["entries"]},
         )
 
+    def test_phase_e_completion_has_no_active_owner_targets(self):
+        self.assertTrue(
+            all(
+                entry["target_phase"].endswith("-complete")
+                for entry in self.fixture["entries"]
+            )
+        )
+        self.assertIn("E-10c Phase E completion audit", self.fixture["scope"])
+
     def test_runtime_entries_bind_existing_shipped_symbols(self):
         for entry in self.fixture["entries"]:
             module_path = ROOT / entry["module"]

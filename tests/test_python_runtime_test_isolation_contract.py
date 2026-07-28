@@ -148,6 +148,7 @@ class PythonRuntimeTestIsolationContractTests(unittest.TestCase):
             {
                 "base_sha",
                 "classification",
+                "completion_audit",
                 "current_inventory",
                 "evidence",
                 "implementation_boundary",
@@ -171,7 +172,7 @@ class PythonRuntimeTestIsolationContractTests(unittest.TestCase):
         )
         self.assertEqual(
             [item["status"] for item in self.fixture["queue"]],
-            ["complete", "complete", "ready"],
+            ["complete", "complete", "complete"],
         )
         for evidence in self.fixture["evidence"]:
             self.assertTrue((ROOT / evidence).is_file(), evidence)
@@ -185,6 +186,30 @@ class PythonRuntimeTestIsolationContractTests(unittest.TestCase):
         self.assertEqual(_module_reload_sites(), inventory["module_reload_sites"])
         self.assertEqual(_private_mutation_sites(), expected_mutations)
         self.assertEqual(inventory["module_reload_sites"], [])
+        helper = self.fixture["target_fixture"]["module"]
+        self.assertEqual(
+            {
+                module: symbols
+                for module, symbols in expected_mutations.items()
+                if module != helper
+            },
+            {},
+        )
+
+    def test_completion_audit_closes_phase_e_without_new_behavior(self):
+        audit = self.fixture["completion_audit"]
+        self.assertEqual(audit["ambiguous_test_reset_owners"], [])
+        self.assertEqual(
+            audit["direct_private_mutation_sites_outside_helper"],
+            [],
+        )
+        self.assertEqual(audit["module_reload_sites"], [])
+        self.assertEqual(audit["phase_e_status"], "complete")
+        self.assertEqual(audit["production_changes"], 0)
+        self.assertIn(
+            "inspect private state",
+            audit["retained_read_only_assertion_policy"],
+        )
 
     def test_target_fixture_has_one_test_only_serialized_owner(self):
         target = self.fixture["target_fixture"]
@@ -268,7 +293,8 @@ class PythonRuntimeTestIsolationContractTests(unittest.TestCase):
         )
         for task_id in ("E-10a", "E-10b", "E-10c"):
             self.assertIn(task_id, roadmap)
-        self.assertIn("E-10b is the next READY task", roadmap)
+        self.assertIn("Phase E is complete", roadmap)
+        self.assertIn("E-10c", roadmap)
 
 
 class PythonRuntimeTestSupportTests(unittest.TestCase):

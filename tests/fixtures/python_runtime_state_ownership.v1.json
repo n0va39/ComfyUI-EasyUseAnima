@@ -379,5 +379,5 @@
   ],
   "ignored_mutable_global_names": ["__all__"],
   "schema_version": 1,
-  "scope": "Shipped Python process-wide state, import/bootstrap effects, and analyzer mutable-global disposition through the E-09c lifecycle completion audit."
+  "scope": "Shipped Python process-wide state, import/bootstrap effects, and analyzer mutable-global disposition through the E-10c Phase E completion audit."
 }

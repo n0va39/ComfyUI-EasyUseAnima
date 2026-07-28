@@ -60,15 +60,16 @@ ordinary `dev` roadmap work.
 
 - Released baseline: 0.6.2.
 - Active owner: Issue #187 for Phase E; Issue #186 retains D-14/shim decisions.
-- E-10a Contract base: E-09c / PR #558 at
-  `5e99b702731b896ce6a424b7315e98eaff21133f`.
+- E-10c audit base: E-10b / PR #560 at
+  `87a1689f7c5d6452888e7bb8a8f92856d3f2f76f`.
 - D-08u integrated exit audit is complete.
 - D-08v is not required; the audit found no remaining D-08 production Move.
 - D-14 readiness is audited: every root surface is retained and retirement/final
   freeze is blocked by production/lifecycle consumers, missing release windows, or
   insufficient consumer evidence.
-- E-01 through E-09 are complete with `ambiguous_state_owners=[]`. E-10a fixes the
-  test-isolation Contract and E-10b is the next READY task. The #323
+- E-01 through E-10 and Phase E are complete with `ambiguous_state_owners=[]`, zero
+  module reload sites, and zero direct private runtime mutation outside the test-only
+  helper. The #323
   E-02a/E-07 bridge remains completed evidence, not authorization for unrelated
   feature migration.
 - Completed #470 and the 0.6.1 Prompt Studio lane are behavior-contract references,
