@@ -12,6 +12,7 @@ from easyuse_anima.infrastructure.comfy.provider import DefaultComfyHostProvider
 from easyuse_anima.infrastructure.comfy.wiring import resolve_comfy_host_helper
 from easyuse_anima.runtime import RuntimeConfig, RuntimeServices
 from tests.comfy_host_fakes import (
+    FakeAIOFirstPassCache,
     FakeAutocompleteService,
     FakeClock,
     FakeComfyHostProvider,
@@ -256,6 +257,7 @@ class ComfyHostWiringTests(unittest.TestCase):
             translation=FakeTranslationService(),
             autocomplete=FakeAutocompleteService(),
             wildcard_snapshots=FakeWildcardSnapshots(),
+            aio_first_pass_cache=FakeAIOFirstPassCache(),
         )
 
         self.assertEqual(
@@ -309,6 +311,7 @@ class ComfyHostWiringTests(unittest.TestCase):
             translation=FakeTranslationService(),
             autocomplete=FakeAutocompleteService(),
             wildcard_snapshots=FakeWildcardSnapshots(),
+            aio_first_pass_cache=FakeAIOFirstPassCache(),
         )
 
         require = resolve_comfy_host_helper(

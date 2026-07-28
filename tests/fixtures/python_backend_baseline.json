@@ -13651,6 +13651,57 @@
         "requested": "__future__",
         "role": "ordinary",
         "scope": "<module>",
+        "source": "easyuse_anima/aio/ports.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "Any",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "typing:Any",
+        "kind": "static_from",
+        "line": 5,
+        "name": "Any",
+        "optional": false,
+        "requested": "typing",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/ports.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "Protocol",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "typing:Protocol",
+        "kind": "static_from",
+        "line": 5,
+        "name": "Protocol",
+        "optional": false,
+        "requested": "typing",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/ports.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "annotations",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "__future__:annotations",
+        "kind": "static_from",
+        "line": 3,
+        "name": "annotations",
+        "optional": false,
+        "requested": "__future__",
+        "role": "ordinary",
+        "scope": "<module>",
         "source": "easyuse_anima/aio/postprocess.py"
       },
       {
@@ -17721,6 +17772,24 @@
       },
       {
         "alias": null,
+        "bound_name": "_DEFAULT_AIO_FIRST_PASS_CACHE",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".aio.first_pass_cache:_DEFAULT_AIO_FIRST_PASS_CACHE",
+        "kind": "static_from",
+        "line": 53,
+        "name": "_DEFAULT_AIO_FIRST_PASS_CACHE",
+        "optional": false,
+        "requested": ".aio.first_pass_cache",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/bootstrap.py",
+        "target": "easyuse_anima/aio/first_pass_cache.py"
+      },
+      {
+        "alias": null,
         "bound_name": "_DEFAULT_AUTOCOMPLETE_SNAPSHOTS",
         "branch_context": [],
         "classification": "internal",
@@ -17728,7 +17797,7 @@
         "conditional": false,
         "imported": ".autocomplete.dataset:_DEFAULT_AUTOCOMPLETE_SNAPSHOTS",
         "kind": "static_from",
-        "line": 53,
+        "line": 54,
         "name": "_DEFAULT_AUTOCOMPLETE_SNAPSHOTS",
         "optional": false,
         "requested": ".autocomplete.dataset",
@@ -17746,7 +17815,7 @@
         "conditional": false,
         "imported": ".autocomplete.index:_DEFAULT_AUTOCOMPLETE_INDEX_STORE",
         "kind": "static_from",
-        "line": 54,
+        "line": 55,
         "name": "_DEFAULT_AUTOCOMPLETE_INDEX_STORE",
         "optional": false,
         "requested": ".autocomplete.index",
@@ -17764,7 +17833,7 @@
         "conditional": false,
         "imported": ".autocomplete.service:_AutocompleteService",
         "kind": "static_from",
-        "line": 55,
+        "line": 56,
         "name": "_AutocompleteService",
         "optional": false,
         "requested": ".autocomplete.service",
@@ -17782,7 +17851,7 @@
         "conditional": false,
         "imported": ".infrastructure.comfy.provider:DefaultComfyHostProvider",
         "kind": "static_from",
-        "line": 56,
+        "line": 57,
         "name": "DefaultComfyHostProvider",
         "optional": false,
         "requested": ".infrastructure.comfy.provider",
@@ -17800,7 +17869,7 @@
         "conditional": false,
         "imported": ".runtime:RuntimeConfig",
         "kind": "static_from",
-        "line": 57,
+        "line": 58,
         "name": "RuntimeConfig",
         "optional": false,
         "requested": ".runtime",
@@ -17818,7 +17887,7 @@
         "conditional": false,
         "imported": ".runtime:RuntimeServices",
         "kind": "static_from",
-        "line": 57,
+        "line": 58,
         "name": "RuntimeServices",
         "optional": false,
         "requested": ".runtime",
@@ -17836,7 +17905,7 @@
         "conditional": false,
         "imported": ".runtime:install_runtime",
         "kind": "static_from",
-        "line": 57,
+        "line": 58,
         "name": "install_runtime",
         "optional": false,
         "requested": ".runtime",
@@ -17854,7 +17923,7 @@
         "conditional": false,
         "imported": ".seed.service:InMemorySeedReservationService",
         "kind": "static_from",
-        "line": 58,
+        "line": 59,
         "name": "InMemorySeedReservationService",
         "optional": false,
         "requested": ".seed.service",
@@ -17872,7 +17941,7 @@
         "conditional": false,
         "imported": ".translation.contracts:TranslationBusyError",
         "kind": "static_from",
-        "line": 59,
+        "line": 60,
         "name": "TranslationBusyError",
         "optional": false,
         "requested": ".translation.contracts",
@@ -17890,7 +17959,7 @@
         "conditional": false,
         "imported": ".translation.contracts:TranslationCancelledError",
         "kind": "static_from",
-        "line": 59,
+        "line": 60,
         "name": "TranslationCancelledError",
         "optional": false,
         "requested": ".translation.contracts",
@@ -17908,7 +17977,7 @@
         "conditional": false,
         "imported": ".translation.contracts:TranslationTimeoutError",
         "kind": "static_from",
-        "line": 59,
+        "line": 60,
         "name": "TranslationTimeoutError",
         "optional": false,
         "requested": ".translation.contracts",
@@ -17926,7 +17995,7 @@
         "conditional": false,
         "imported": ".translation.service:BoundedTranslationCache",
         "kind": "static_from",
-        "line": 64,
+        "line": 65,
         "name": "BoundedTranslationCache",
         "optional": false,
         "requested": ".translation.service",
@@ -17944,7 +18013,7 @@
         "conditional": false,
         "imported": ".translation.service:PromptTranslationService",
         "kind": "static_from",
-        "line": 64,
+        "line": 65,
         "name": "PromptTranslationService",
         "optional": false,
         "requested": ".translation.service",
@@ -17962,7 +18031,7 @@
         "conditional": false,
         "imported": ".translation.service:_install_default_translation_service",
         "kind": "static_from",
-        "line": 64,
+        "line": 65,
         "name": "_install_default_translation_service",
         "optional": false,
         "requested": ".translation.service",
@@ -17980,7 +18049,7 @@
         "conditional": false,
         "imported": ".wildcard.snapshot:_DEFAULT_WILDCARD_SNAPSHOTS",
         "kind": "static_from",
-        "line": 69,
+        "line": 70,
         "name": "_DEFAULT_WILDCARD_SNAPSHOTS",
         "optional": false,
         "requested": ".wildcard.snapshot",
@@ -17998,7 +18067,7 @@
         "conditional": false,
         "imported": ".infrastructure.filesystem.paths:PACKAGE_DATA_DIR",
         "kind": "static_from",
-        "line": 85,
+        "line": 86,
         "name": "PACKAGE_DATA_DIR",
         "optional": false,
         "requested": ".infrastructure.filesystem.paths",
@@ -18016,7 +18085,7 @@
         "conditional": false,
         "imported": ".infrastructure.filesystem.paths:PACKAGE_ROOT",
         "kind": "static_from",
-        "line": 85,
+        "line": 86,
         "name": "PACKAGE_ROOT",
         "optional": false,
         "requested": ".infrastructure.filesystem.paths",
@@ -18034,7 +18103,7 @@
         "conditional": false,
         "imported": ".infrastructure.filesystem.paths:USER_DATA_DIR",
         "kind": "static_from",
-        "line": 85,
+        "line": 86,
         "name": "USER_DATA_DIR",
         "optional": false,
         "requested": ".infrastructure.filesystem.paths",
@@ -30115,6 +30184,24 @@
       },
       {
         "alias": null,
+        "bound_name": "AIOFirstPassCachePort",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".aio.ports:AIOFirstPassCachePort",
+        "kind": "static_from",
+        "line": 9,
+        "name": "AIOFirstPassCachePort",
+        "optional": false,
+        "requested": ".aio.ports",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/runtime.py",
+        "target": "easyuse_anima/aio/ports.py"
+      },
+      {
+        "alias": null,
         "bound_name": "AutocompletePort",
         "branch_context": [],
         "classification": "internal",
@@ -30122,7 +30209,7 @@
         "conditional": false,
         "imported": ".autocomplete.ports:AutocompletePort",
         "kind": "static_from",
-        "line": 9,
+        "line": 10,
         "name": "AutocompletePort",
         "optional": false,
         "requested": ".autocomplete.ports",
@@ -30140,7 +30227,7 @@
         "conditional": false,
         "imported": ".infrastructure.comfy.provider:ComfyHostProvider",
         "kind": "static_from",
-        "line": 10,
+        "line": 11,
         "name": "ComfyHostProvider",
         "optional": false,
         "requested": ".infrastructure.comfy.provider",
@@ -30158,7 +30245,7 @@
         "conditional": false,
         "imported": ".seed.reservation:SeedReservationService",
         "kind": "static_from",
-        "line": 11,
+        "line": 12,
         "name": "SeedReservationService",
         "optional": false,
         "requested": ".seed.reservation",
@@ -30176,7 +30263,7 @@
         "conditional": false,
         "imported": ".translation.ports:PromptTranslationPort",
         "kind": "static_from",
-        "line": 12,
+        "line": 13,
         "name": "PromptTranslationPort",
         "optional": false,
         "requested": ".translation.ports",
@@ -30194,7 +30281,7 @@
         "conditional": false,
         "imported": ".wildcard.ports:WildcardSnapshotPort",
         "kind": "static_from",
-        "line": 13,
+        "line": 14,
         "name": "WildcardSnapshotPort",
         "optional": false,
         "requested": ".wildcard.ports",
@@ -66009,6 +66096,10 @@
       },
       {
         "from": "easyuse_anima/bootstrap.py",
+        "to": "easyuse_anima/aio/first_pass_cache.py"
+      },
+      {
+        "from": "easyuse_anima/bootstrap.py",
         "to": "easyuse_anima/api/routes/aio_profile_mutations.py"
       },
       {
@@ -66813,6 +66904,10 @@
       },
       {
         "from": "easyuse_anima/runtime.py",
+        "to": "easyuse_anima/aio/ports.py"
+      },
+      {
+        "from": "easyuse_anima/runtime.py",
         "to": "easyuse_anima/autocomplete/ports.py"
       },
       {
@@ -67563,6 +67658,12 @@
         "cyclic": false,
         "modules": [
           "easyuse_anima/aio/output_settings.py"
+        ]
+      },
+      {
+        "cyclic": false,
+        "modules": [
+          "easyuse_anima/aio/ports.py"
         ]
       },
       {
@@ -68355,7 +68456,7 @@
     ]
   },
   "inventory": {
-    "module_count": 172,
+    "module_count": 173,
     "modules": [
       {
         "is_package": true,
@@ -68839,6 +68940,18 @@
       },
       {
         "is_package": false,
+        "loc": 14,
+        "module": "easyuse_anima.aio.ports",
+        "normalized_git_blob_sha1": "2f6a0582ff6bd33ea383428feb52d4fb3095be23",
+        "path": "easyuse_anima/aio/ports.py",
+        "top_level": {
+          "class_count": 1,
+          "function_count": 0,
+          "global_count": 1
+        }
+      },
+      {
+        "is_package": false,
         "loc": 188,
         "module": "easyuse_anima.aio.postprocess",
         "normalized_git_blob_sha1": "7a9b7adb5aa184ae55ee6323e62ce18d937551c7",
@@ -69259,9 +69372,9 @@
       },
       {
         "is_package": false,
-        "loc": 286,
+        "loc": 288,
         "module": "easyuse_anima.bootstrap",
-        "normalized_git_blob_sha1": "b4994d7c3a0b05817005789acf0c167651f192dc",
+        "normalized_git_blob_sha1": "9a6d328e87f497320d5a1fb5766ee4575ef57d78",
         "path": "easyuse_anima/bootstrap.py",
         "top_level": {
           "class_count": 1,
@@ -69991,9 +70104,9 @@
       },
       {
         "is_package": false,
-        "loc": 85,
+        "loc": 87,
         "module": "easyuse_anima.runtime",
-        "normalized_git_blob_sha1": "feacbf426d89f090a530a4fc0ee76342c25744a6",
+        "normalized_git_blob_sha1": "51d8179d45d446bb2b8a8de9e1ceb891e35c35da",
         "path": "easyuse_anima/runtime.py",
         "top_level": {
           "class_count": 4,
@@ -84623,6 +84736,39 @@
         "line": 3,
         "optional": false,
         "role": "ordinary",
+        "source": "easyuse_anima/aio/ports.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "typing:Any",
+        "kind": "static_from",
+        "line": 5,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/ports.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "typing:Protocol",
+        "kind": "static_from",
+        "line": 5,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/ports.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "__future__:annotations",
+        "kind": "static_from",
+        "line": 3,
+        "optional": false,
+        "role": "ordinary",
         "source": "easyuse_anima/aio/postprocess.py"
       },
       {
@@ -90919,6 +91065,7 @@
       "easyuse_anima/aio/negpip.py",
       "easyuse_anima/aio/output.py",
       "easyuse_anima/aio/output_settings.py",
+      "easyuse_anima/aio/ports.py",
       "easyuse_anima/aio/postprocess.py",
       "easyuse_anima/aio/preview.py",
       "easyuse_anima/aio/resources.py",
@@ -91093,6 +91240,7 @@
       "easyuse_anima/aio/negpip.py",
       "easyuse_anima/aio/output.py",
       "easyuse_anima/aio/output_settings.py",
+      "easyuse_anima/aio/ports.py",
       "easyuse_anima/aio/postprocess.py",
       "easyuse_anima/aio/preview.py",
       "easyuse_anima/aio/resources.py",
@@ -92442,7 +92590,7 @@
         "column": 10,
         "context": "assign:_LOGGER",
         "kind": "import_time_call",
-        "line": 71,
+        "line": 72,
         "module": "easyuse_anima/bootstrap.py",
         "scope": "<module>"
       },
@@ -92451,7 +92599,7 @@
         "column": 19,
         "context": "assign:_INITIALIZE_LOCK",
         "kind": "import_time_call",
-        "line": 72,
+        "line": 73,
         "module": "easyuse_anima/bootstrap.py",
         "scope": "<module>"
       },
@@ -92910,7 +93058,7 @@
         "column": 1,
         "context": "decorator:RuntimeConfig",
         "kind": "import_time_call",
-        "line": 16,
+        "line": 17,
         "module": "easyuse_anima/runtime.py",
         "scope": "<module>"
       },
@@ -92919,7 +93067,7 @@
         "column": 1,
         "context": "decorator:RuntimeServices",
         "kind": "import_time_call",
-        "line": 37,
+        "line": 38,
         "module": "easyuse_anima/runtime.py",
         "scope": "<module>"
       },
@@ -93382,7 +93530,7 @@
       },
       {
         "kind": "list",
-        "line": 286,
+        "line": 288,
         "module": "easyuse_anima/bootstrap.py",
         "name": "__all__"
       },
@@ -93681,7 +93829,7 @@
           "lock"
         ],
         "initializer": "threading.Lock",
-        "line": 72,
+        "line": 73,
         "module": "easyuse_anima/bootstrap.py",
         "name": "_INITIALIZE_LOCK"
       },

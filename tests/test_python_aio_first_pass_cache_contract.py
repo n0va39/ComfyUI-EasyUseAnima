@@ -208,13 +208,14 @@ class PythonAIOFirstPassCacheContractTests(unittest.TestCase):
                 "owners",
                 "production_callers",
                 "production_changes",
+                "runtime_port",
                 "schema_version",
                 "scope",
             },
         )
         self.assertEqual(self.fixture["schema_version"], 1)
         self.assertEqual(self.fixture["classification"], "Contract")
-        self.assertEqual(self.fixture["production_changes"], 1)
+        self.assertEqual(self.fixture["production_changes"], 4)
         self.assertEqual(
             [move["id"] for move in self.fixture["move_queue"]],
             ["E-08a", "E-08b", "E-08c", "E-08d"],
@@ -225,7 +226,7 @@ class PythonAIOFirstPassCacheContractTests(unittest.TestCase):
         )
         self.assertEqual(
             [move["status"] for move in self.fixture["move_queue"]],
-            ["complete", "complete", "queued", "queued"],
+            ["complete", "complete", "complete", "queued"],
         )
         self.assertEqual(
             [owner["id"] for owner in self.fixture["owners"]],
@@ -472,6 +473,63 @@ class PythonAIOFirstPassCacheContractTests(unittest.TestCase):
                 ),
                 set(),
             )
+
+    def test_runtime_port_composes_the_exact_default_owner(self):
+        runtime_port = self.fixture["runtime_port"]
+        interface = runtime_port["interface"]
+        interface_methods = {
+            statement.name
+            for statement in _top_level_class(
+                interface["module"],
+                interface["class"],
+            ).body
+            if isinstance(statement, (ast.FunctionDef, ast.AsyncFunctionDef))
+        }
+        self.assertEqual(interface_methods, set(interface["methods"]))
+        all_value = _assignment_value(interface["module"], "__all__")
+        self.assertIsInstance(all_value, ast.Tuple)
+        self.assertEqual(all_value.elts, [])
+
+        runtime = runtime_port["runtime"]
+        runtime_field = next(
+            statement
+            for statement in _top_level_class(
+                runtime["module"], "RuntimeServices"
+            ).body
+            if isinstance(statement, ast.AnnAssign)
+            and isinstance(statement.target, ast.Name)
+            and statement.target.id == runtime["field"]
+        )
+        self.assertIsInstance(runtime_field.annotation, ast.Name)
+        self.assertEqual(runtime_field.annotation.id, interface["class"])
+
+        bootstrap = runtime_port["bootstrap"]
+        self.assertEqual(
+            set(bootstrap["uses"])
+            - _references(
+                _top_level_function(
+                    bootstrap["module"],
+                    bootstrap["function"],
+                )
+            ),
+            set(),
+        )
+        self.assertEqual(
+            runtime_port["owner"],
+            "easyuse_anima.aio.first_pass_cache._DEFAULT_AIO_FIRST_PASS_CACHE",
+        )
+
+        forbidden_modules = {"runtime", "bootstrap", "nodes"}
+        for module in self.fixture["import_direction"]["feature_modules"]:
+            with self.subTest(module=module):
+                self.assertEqual(
+                    {
+                        imported_module
+                        for imported_module in _imported_modules(module)
+                        if imported_module.split(".")[-1] in forbidden_modules
+                    },
+                    set(),
+                )
 
     def test_root_private_identities_remain_direct_canonical_aliases(self):
         surface = next(

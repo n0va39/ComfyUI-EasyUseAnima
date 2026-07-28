@@ -2,12 +2,13 @@
 
 ## Status and authority
 
-- Status: D-08, E-01 through E-07, E-08a, and the E-08b owner Move are completed;
+- Status: D-08, E-01 through E-07, E-08a, E-08b, and the E-08c composition
+  Move are completed;
   the D-14
   readiness audit retains every root surface and blocks retirement/final-freeze work.
-- Code-review base before E-08b:
-  `dev@2c5aefeae16dd0f1411516f659bfef6659712243` after E-08a / PR #552.
-- Document baseline: completed E-08b AiO first-pass cache mutable owner Move.
+- Code-review base before E-08c:
+  `dev@ac527cd5d1621a6f1fda694670be6e80f996579c` after E-08b / PR #553.
+- Document baseline: completed E-08c AiO first-pass cache composition Move.
 - Released baseline: 0.6.2.
 - Scope: completed D-08 evidence, the D-14 readiness decision, completed #187
   E-01/E-02/E-03/E-04 work, the E-05a Contract, the E-05b snapshot owner Move,
@@ -16,8 +17,8 @@
   E-06b snapshot owner Move, the E-06c canonical service/internal caller Move, the
   E-06d narrow RuntimeServices/bootstrap composition Move, the E-06e completion
   audit Contract, the completed E-07 bridge, the E-08a AiO first-pass cache
-  ownership Contract, the E-08b owner Move, and the next bounded E-08c composition
-  Move.
+  ownership Contract, the E-08b owner Move, the E-08c narrow composition Move, and
+  the next bounded E-08d completion audit Contract.
 - This document owns the current immediate queue and supersedes the stale queue and
   broad preflight command in `python-backend-execution-roadmap.md`.
 - `python-backend.md`, ADR-001, ADR-002, and the compatibility-shim registry still own
@@ -430,8 +431,11 @@ path, and selects one private `_AIOFirstPassCacheStore` default instance as the
 owner target without production changes. E-08b moves all six mutable states behind
 that default owner, removes the raw enabled/generation/metrics/lock globals, and
 retains mapping/order only as exact owner aliases for root identity and call-time
-replacement seams. The queue remains E-08a Contract, E-08b owner Move, E-08c narrow
+replacement seams. E-08c adds one private `AIOFirstPassCachePort`, installs the exact
+default owner as `RuntimeServices.aio_first_pass_cache`, and preserves the existing
+`FirstPassRuntime` caller path, feature import direction, and repeated initialize
+behavior. The queue remains E-08a Contract, E-08b owner Move, E-08c narrow
 RuntimeServices/bootstrap composition, and E-08d completion audit. The next READY
-unit is E-08c only from latest origin/dev. Do not start E-08d, E-09 cleanup, D-14
-retirement, release, or Registry work inside E-08c.
+unit is the production-free E-08d Contract only after E-08c merges. Do not start
+E-09 cleanup, D-14 retirement, release, or Registry work inside E-08d.
 ```

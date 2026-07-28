@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Protocol
 
+from .aio.ports import AIOFirstPassCachePort
 from .autocomplete.ports import AutocompletePort
 from .infrastructure.comfy.provider import ComfyHostProvider
 from .seed.reservation import SeedReservationService
@@ -45,6 +46,7 @@ class RuntimeServices:
     translation: PromptTranslationPort
     autocomplete: AutocompletePort
     wildcard_snapshots: WildcardSnapshotPort
+    aio_first_pass_cache: AIOFirstPassCachePort
 
 
 _RUNTIME_SERVICES: RuntimeServices | None = None

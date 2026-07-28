@@ -9,7 +9,9 @@ freezes the AiO first-pass cache process state, policy and behavior authorities,
 typed caller boundary, root compatibility identities, cleanup semantics, and the only
 authorized bounded Move order. E-08b implements the selected owner from
 `dev@2c5aefeae16dd0f1411516f659bfef6659712243` without changing cache
-behavior or runtime composition.
+behavior or runtime composition. E-08c composes that exact owner from
+`dev@ac527cd5d1621a6f1fda694670be6e80f996579c` behind one private narrow
+runtime port without changing the existing First-pass caller path.
 
 The executable source is
 `tests/fixtures/python_aio_first_pass_cache_contract.v1.json`, checked by
@@ -17,8 +19,9 @@ The executable source is
 cache, benchmark, First-pass stage, legacy-generation, package, analyzer, and import-
 boundary tests remain the behavior authorities.
 
-E-08 changes ownership only. E-08b changes one production module and does not reopen
-#169 cache policy, stage execution, workflow results, or queue/live evidence.
+E-08 changes ownership only. E-08b changes one production module; E-08c adds one
+private port module and updates runtime/bootstrap composition. Neither reopens #169
+cache policy, stage execution, workflow results, or queue/live evidence.
 
 ## Completed #169 behavior boundary
 
@@ -101,9 +104,9 @@ capture invalidates stale publication without waiting for capture. Clear does no
 for checkout cloning. Same-key overwrite is not an eviction, and clear, disable, or
 metrics reset does not invent eviction counts.
 
-E-08b preserves these feature cleanup dispositions. E-08c may expose only a narrow
-AiO cache capability backed by the exact default owner. Whole-runtime reverse close,
-partial-initialization cleanup, and shutdown idempotence remain E-09.
+E-08b preserves these feature cleanup dispositions. E-08c exposes only the `get` and
+`put` AiO cache capability backed by the exact default owner. Whole-runtime reverse
+close, partial-initialization cleanup, and shutdown idempotence remain E-09.
 
 ## Caller and import direction
 
@@ -115,10 +118,10 @@ key helper and injects canonical get/put callables into the existing frozen
 sampling; a miss samples and decodes; resize may re-encode; store remains best
 effort; metadata and preview order remain unchanged.
 
-The cache module, First-pass stage, and legacy orchestrator do not import root
-`nodes.py`, bootstrap, or `RuntimeServices`. E-08c must preserve that direction:
-bootstrap may compose the exact default owner, but feature code does not receive or
-import the complete runtime.
+The cache module, private port, First-pass stage, and legacy orchestrator do not
+import root `nodes.py`, bootstrap, or `RuntimeServices`. E-08c preserves that
+direction: bootstrap composes the exact default owner, but feature code does not
+receive or import the complete runtime.
 
 ## Bounded Move queue
 
@@ -127,9 +130,9 @@ import the complete runtime.
 2. **E-08b Move — mutable cache owner — complete:** entries, order, enabled state,
    generation, metrics, and `RLock` are behind one feature-private default owner;
    direct aliases and call-time replacement seams remain executable evidence.
-3. **E-08c Move — bootstrap composition:** install the exact default owner behind one
-   feature-specific narrow RuntimeServices capability without changing the existing
-   `FirstPassRuntime` caller path.
+3. **E-08c Move — bootstrap composition — complete:** the exact default owner is
+   installed behind one feature-specific narrow RuntimeServices capability without
+   changing the existing `FirstPassRuntime` caller path.
 4. **E-08d Contract — completion audit:** reconcile E-01, cleanup, import direction,
    root identities, runtime composition, and zero ambiguous AiO cache state before
    E-09.
@@ -167,10 +170,14 @@ E-08b additionally covers isolated-owner separation, exact default mapping/order
 identity, raw module-state removal, facade delegation, preserved replacement seams,
 and actual-code inventory/analyzer evidence.
 
-Run the official full profile once on the final candidate SHA. E-08b changes only
-private in-module ownership and does not change import closure, archive contents,
-metadata, or host-visible behavior, so the E-06d validate/pack/isolated-live evidence
-remains valid unless a promotion gate proves otherwise.
+E-08c additionally covers the private two-method port, required RuntimeServices
+field, exact bootstrap owner identity, repeated initialize reuse, fake-host wiring,
+package/no-host import, archive inclusion, and unchanged canonical stage injection.
+
+Run the official full profile once on the final candidate SHA. E-08c adds a shipped
+private port module, so run validate/pack and verify that the archive includes it.
+Reuse the existing isolated-live evidence unless a promotion gate proves material
+host-visible or startup drift.
 
 ## Stop conditions
 
@@ -182,4 +189,4 @@ behavior changes; canonical feature code must import root/runtime/bootstrap; pac
 import starts host I/O; or E-09 shutdown must be implemented to finish E-08.
 
 Direct source, #169, E-01, and concurrency tests select one owner and one bounded
-Move sequence. E-08a and E-08b therefore do not trigger additional PRO review.
+Move sequence. E-08a through E-08c therefore do not trigger additional PRO review.
