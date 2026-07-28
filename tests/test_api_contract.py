@@ -545,6 +545,166 @@ class ApiRequestCorrelationTests(unittest.TestCase):
         self.assertIn("X-Request-ID", found.headers)
 
 
+class ApiProfileErrorResponseTests(unittest.TestCase):
+    def test_profile_error_boundary_is_owned_by_canonical_responses(self):
+        api, _routes = load_api_routes(register=False)
+        owner = sys.modules[api._profile_error_response.__module__]
+
+        self.assertEqual(
+            api._profile_error_response.__name__,
+            "_profile_error_response",
+        )
+        self.assertTrue(
+            api._profile_error_response.__module__.endswith(
+                ".easyuse_anima.api.responses"
+            )
+        )
+        self.assertEqual(api._profile_error_response.__code__.co_argcount, 1)
+        self.assertEqual(
+            api._SAFE_PROFILE_VALIDATION_MESSAGES,
+            frozenset(
+                {
+                    "Profile name is required",
+                    "Profile name is reserved on Windows",
+                    "Invalid profile path",
+                    "System profile names are reserved",
+                    "Profile settings must be an object",
+                    "Profile settings are too large",
+                    f"A maximum of {api.MAX_AIO_PROFILES} profiles can be saved",
+                }
+            ),
+        )
+        self.assertEqual(
+            owner.__all__,
+            (
+                "REQUEST_ID_HEADER",
+                "error_payload",
+                "create_request_id",
+                "attach_request_id_header",
+                "correlate_response",
+            ),
+        )
+
+    def test_profile_error_boundary_preserves_mapping_order_and_redaction(self):
+        api, _routes = load_api_routes(register=False)
+        mutation = api.ProfileMutationError(
+            status=409,
+            code="profile_revision_conflict",
+            message="Profile revision does not match",
+            details={"profile": "target"},
+        )
+        invalid_json = json.JSONDecodeError("private", "{", 0)
+        invalid_unicode = UnicodeDecodeError("utf-8", b"\xff", 0, 1, "private")
+        cases = (
+            (
+                mutation,
+                (
+                    409,
+                    "profile_revision_conflict",
+                    "Profile revision does not match",
+                ),
+                {"details": {"profile": "target"}},
+            ),
+            (
+                FileExistsError("private"),
+                (409, "profile_exists", "Profile already exists"),
+                {},
+            ),
+            (
+                FileNotFoundError("private"),
+                (404, "profile_not_found", "Profile not found"),
+                {},
+            ),
+            (
+                invalid_json,
+                (422, "invalid_profile_data", "Profile data is invalid"),
+                {},
+            ),
+            (
+                invalid_unicode,
+                (422, "invalid_profile_data", "Profile data is invalid"),
+                {},
+            ),
+            (
+                api.InvalidProfileDataError("private"),
+                (422, "invalid_profile_data", "Profile data is invalid"),
+                {},
+            ),
+            (
+                ValueError("Profile name is required"),
+                (422, "invalid_request", "Profile name is required"),
+                {},
+            ),
+            (
+                ValueError("C:\\private\\secret.json"),
+                (422, "invalid_request", "Request validation failed"),
+                {},
+            ),
+        )
+
+        for error, expected_args, expected_kwargs in cases:
+            expected_response = object()
+            with self.subTest(error=type(error).__name__), patch.object(
+                api,
+                "_error_response",
+                return_value=expected_response,
+            ) as error_response:
+                response = api._profile_error_response(error)
+
+            self.assertIs(response, expected_response)
+            error_response.assert_called_once_with(
+                *expected_args,
+                **expected_kwargs,
+            )
+
+        unexpected = RuntimeError("unexpected")
+        with self.assertRaises(RuntimeError) as raised:
+            api._profile_error_response(unexpected)
+        self.assertIs(raised.exception, unexpected)
+
+    def test_profile_error_boundary_keeps_dynamic_root_dependencies(self):
+        api, _routes = load_api_routes(register=False)
+
+        class DynamicMutationError(ValueError):
+            status = 428
+            code = "dynamic_precondition"
+            message = "Dynamic precondition"
+            details = {"profile": "dynamic"}
+
+        mutation = DynamicMutationError("private")
+        expected_response = object()
+        with (
+            patch.object(api, "ProfileMutationError", DynamicMutationError),
+            patch.object(
+                api,
+                "_SAFE_PROFILE_VALIDATION_MESSAGES",
+                frozenset({"dynamic-safe"}),
+            ),
+            patch.object(
+                api,
+                "_error_response",
+                return_value=expected_response,
+            ) as error_response,
+        ):
+            response = api._profile_error_response(mutation)
+            safe_response = api._profile_error_response(ValueError("dynamic-safe"))
+
+        self.assertIs(response, expected_response)
+        self.assertIs(safe_response, expected_response)
+        self.assertEqual(
+            error_response.call_args_list,
+            [
+                unittest.mock.call(
+                    428,
+                    "dynamic_precondition",
+                    "Dynamic precondition",
+                    details={"profile": "dynamic"},
+                ),
+                unittest.mock.call(422, "invalid_request", "dynamic-safe"),
+            ],
+        )
+
+
 class ApiLoraCatalogRouteTests(unittest.TestCase):
     def test_route_handler_is_owned_by_the_canonical_factory(self):
         api, routes = load_api_routes()

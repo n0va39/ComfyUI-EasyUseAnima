@@ -4,7 +4,7 @@ import asyncio
 import json
 import uuid
 from functools import wraps
-from typing import Any, Mapping
+from typing import Any, Mapping, cast
 
 
 REQUEST_ID_HEADER = "X-Request-ID"
@@ -95,6 +95,68 @@ def build_contract_error_response(*, error_response):
         )
 
     return _contract_error_response
+
+
+def build_profile_error_response(
+    *,
+    max_aio_profiles,
+    is_profile_mutation_error,
+    is_file_exists_error,
+    is_file_not_found_error,
+    is_invalid_profile_data_error,
+    is_value_error,
+    get_safe_validation_messages,
+    error_response,
+):
+    """Build the shared profile error mapper without profile-domain imports."""
+
+    safe_validation_messages = frozenset(
+        {
+            "Profile name is required",
+            "Profile name is reserved on Windows",
+            "Invalid profile path",
+            "System profile names are reserved",
+            "Profile settings must be an object",
+            "Profile settings are too large",
+            f"A maximum of {max_aio_profiles} profiles can be saved",
+        }
+    )
+
+    def _profile_error_response(exc: Exception):
+        if is_profile_mutation_error(exc):
+            mutation_error = cast(Any, exc)
+            return error_response(
+                mutation_error.status,
+                mutation_error.code,
+                mutation_error.message,
+                details=mutation_error.details,
+            )
+        if is_file_exists_error(exc):
+            return error_response(
+                409,
+                "profile_exists",
+                "Profile already exists",
+            )
+        if is_file_not_found_error(exc):
+            return error_response(
+                404,
+                "profile_not_found",
+                "Profile not found",
+            )
+        if is_invalid_profile_data_error(exc):
+            return error_response(
+                422,
+                "invalid_profile_data",
+                "Profile data is invalid",
+            )
+        if is_value_error(exc):
+            message = str(exc)
+            if message not in get_safe_validation_messages():
+                message = "Request validation failed"
+            return error_response(422, "invalid_request", message)
+        raise exc
+
+    return safe_validation_messages, _profile_error_response
 
 
 def build_request_correlator(
