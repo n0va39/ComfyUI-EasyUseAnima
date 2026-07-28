@@ -14,6 +14,12 @@ FIXTURE_PATH = (
     / "fixtures"
     / "python_repository_filesystem_contract.v1.json"
 )
+E01_FIXTURE_PATH = (
+    ROOT
+    / "tests"
+    / "fixtures"
+    / "python_runtime_state_ownership.v1.json"
+)
 CONTRACT_DOC = (
     ROOT
     / "docs"
@@ -139,21 +145,48 @@ def _normalized_source_token(value: str) -> str:
     return "".join(value.split())
 
 
+def _top_level_constructor_assignments(module: str, class_name: str) -> set[str]:
+    assigned = set()
+    for statement in _tree(module).body:
+        value = None
+        targets: tuple[ast.expr, ...] = ()
+        if isinstance(statement, ast.Assign):
+            value = statement.value
+            targets = tuple(statement.targets)
+        elif isinstance(statement, ast.AnnAssign):
+            value = statement.value
+            targets = (statement.target,)
+        if (
+            not isinstance(value, ast.Call)
+            or _expression_name(value.func) != class_name
+        ):
+            continue
+        assigned.update(
+            target.id for target in targets if isinstance(target, ast.Name)
+        )
+    return assigned
+
+
 class PythonRepositoryFilesystemContractTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.fixture = json.loads(FIXTURE_PATH.read_text(encoding="utf-8"))
+        cls.e01_fixture = json.loads(
+            E01_FIXTURE_PATH.read_text(encoding="utf-8")
+        )
 
     def test_schema_ids_and_evidence_are_complete(self):
         self.assertEqual(
             set(self.fixture),
             {
                 "compatibility_bindings",
+                "completion_audit",
                 "decisions",
                 "lock_order",
                 "monkeypatch_seams",
                 "move_queue",
                 "owners",
+                "ownership_reconciliation",
                 "repository_lanes",
                 "schema_version",
                 "scope",
@@ -174,7 +207,7 @@ class PythonRepositoryFilesystemContractTests(unittest.TestCase):
         )
         self.assertEqual(
             [move["status"] for move in self.fixture["move_queue"]],
-            ["complete", "complete", "complete", "ready"],
+            ["complete", "complete", "complete", "complete"],
         )
 
         evidence = {
@@ -388,6 +421,99 @@ class PythonRepositoryFilesystemContractTests(unittest.TestCase):
             [move["classification"] for move in self.fixture["move_queue"]],
             ["Move", "Move", "Move", "Contract"],
         )
+
+    def test_completion_audit_reconciles_e01_owners_and_per_call_values(self):
+        e01_entries = {
+            entry["id"]: entry for entry in self.e01_fixture["entries"]
+        }
+        e03_owners = {
+            owner["id"]: owner for owner in self.fixture["owners"]
+        }
+        reconciliations = self.fixture["ownership_reconciliation"]
+        self.assertEqual(
+            {item["e01_entry"] for item in reconciliations},
+            {
+                entry["id"]
+                for entry in self.e01_fixture["entries"]
+                if entry["target_phase"].startswith("E-03")
+            },
+        )
+        self.assertEqual(
+            {item["e03_owner"] for item in reconciliations},
+            set(e03_owners),
+        )
+        self.assertEqual(
+            len(reconciliations),
+            len({item["e01_entry"] for item in reconciliations}),
+        )
+        for reconciliation in reconciliations:
+            with self.subTest(owner=reconciliation["e03_owner"]):
+                e01 = e01_entries[reconciliation["e01_entry"]]
+                e03 = e03_owners[reconciliation["e03_owner"]]
+                self.assertEqual(e01["module"], reconciliation["module"])
+                self.assertEqual(e03["module"], reconciliation["module"])
+                self.assertEqual(e01["owner"], reconciliation["owner"])
+                self.assertEqual(e03["owner"], reconciliation["owner"])
+                self.assertEqual(
+                    e01["target_phase"],
+                    reconciliation["completed_phase"],
+                )
+                self.assertEqual(
+                    set(reconciliation["state_symbols"]) - set(e01["symbols"]),
+                    set(),
+                )
+                self.assertEqual(
+                    set(reconciliation["state_symbols"]) - set(e03["symbols"]),
+                    set(),
+                )
+
+        audit = self.fixture["completion_audit"]
+        self.assertEqual(audit["classification"], "Contract")
+        self.assertEqual(audit["production_changes"], 0)
+        self.assertEqual(audit["ambiguous_state_owners"], [])
+        self.assertEqual(
+            audit["next_phase"],
+            "E-04 translation provider/client/cache Contract",
+        )
+        for repository in audit["repository_values"]:
+            with self.subTest(repository=repository["class"]):
+                self.assertFalse(repository["owns_mutable_state"])
+                self.assertFalse(repository["captures_import_default"])
+                _top_level_class(repository["module"], repository["class"])
+                self.assertEqual(
+                    _top_level_constructor_assignments(
+                        repository["module"],
+                        repository["class"],
+                    ),
+                    set(),
+                )
+                for builder in repository["builders"]:
+                    builder_function = _top_level_function(
+                        builder["module"],
+                        builder["function"],
+                    )
+                    defaults = (
+                        *builder_function.args.defaults,
+                        *(
+                            default
+                            for default in builder_function.args.kw_defaults
+                            if default is not None
+                        ),
+                    )
+                    self.assertTrue(
+                        all(
+                            isinstance(default, ast.Constant)
+                            and default.value is None
+                            for default in defaults
+                        )
+                    )
+                    self.assertIn(
+                        repository["class"],
+                        _function_calls(
+                            builder["module"],
+                            builder["function"],
+                        ),
+                    )
 
     def test_contract_document_is_linked_from_maintained_entries(self):
         self.assertTrue(CONTRACT_DOC.is_file())

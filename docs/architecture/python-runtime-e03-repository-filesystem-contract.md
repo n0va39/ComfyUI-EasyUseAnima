@@ -2,10 +2,11 @@
 
 ## Scope
 
-E-03a is a production-free Contract at
-`dev@204e74ab5897e1dc1f769067f9520ecee6803803`. It inventories the current
-settings, LoRA profile, AiO profile, atomic JSON, and profile mutation boundaries
-before any factory or repository Move.
+E-03 began with a production-free Contract at
+`dev@204e74ab5897e1dc1f769067f9520ecee6803803` and completed its factory and
+repository Moves at `dev@45215242615dccfe647f2c410788f0d61fdd2091`. This
+completion audit reconciles the current settings, LoRA profile, AiO profile, atomic
+JSON, and profile mutation boundaries after those Moves.
 
 The executable source of this inventory is
 `tests/fixtures/python_repository_filesystem_contract.v1.json`, checked by
@@ -123,12 +124,28 @@ constructor compatibility or introducing a dependency-injection framework.
 3. **E-03d Move — profile repositories — complete:** a shared private per-call value
    binds each current LoRA/AiO directory to the canonical store factory and shared
    coordinator behind the existing canonical functions and root aliases.
-4. **E-03e Contract — completion audit — READY:** reconcile E-01 ownership targets and prove
-   no repository/filesystem state remains ambiguously owned before E-04.
+4. **E-03e Contract — completion audit — complete:** E-01 ownership targets are
+   reconciled and no repository/filesystem state remains ambiguously owned before
+   E-04.
 
 Each Move is a separate rollback boundary. A Move may be split further when direct
 source review proves that preserving AiO rename/delete transactions would otherwise
 mix behavior with mechanical construction.
+
+## Completion audit result
+
+The E-01 and E-03 fixtures now agree on both stateful owners:
+
+| E-01 entry | E-03 owner | Completed phase | Mutable state |
+| --- | --- | --- | --- |
+| `atomic-json-path-locks` | `atomic-json-store` | E-03b | `_PATH_LOCKS`, `_PATH_LOCKS_GUARD` |
+| `profile-directory-mutation-coordinator` | `profile-directory-coordinator` | E-03d | `PROFILE_MUTATION_COORDINATOR` |
+
+`_SettingsRepository` and `_ProfileRepository` remain private per-call values. They
+capture neither an import-time default instance nor mutable process state; their
+builders resolve the current module path, factory, and coordinator seams on every
+call. The completion fixture therefore records zero ambiguous state owners and zero
+production changes.
 
 ## Preserved and forbidden
 
@@ -137,9 +154,11 @@ bootstrap, RuntimeServices, persistence, schema, error, lock, response, or lifec
 behavior. Package/no-host and live evidence from the preceding runtime work remains
 valid.
 
-E-03d changes only private profile repository construction and its direct contract
-evidence. It does not authorize the E-03e audit, E-04 or later work, root alias
-retirement, D-14 retirement, release, or Registry actions.
+E-03e changes only the versioned ownership fixtures, their direct Contract test, and
+maintained architecture records. E-03 is complete. The next bounded unit is a
+separate E-04 translation provider/client/cache Contract; E-03e does not authorize
+its implementation, root alias retirement, D-14 retirement, release, or Registry
+actions.
 
 The direct evidence leaves one owner for each boundary, so no material PRO review is
 required.
