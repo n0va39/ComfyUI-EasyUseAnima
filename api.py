@@ -101,6 +101,7 @@ from .easyuse_anima.api.routes.profile_loads import (
 from .easyuse_anima.api.routes.profile_saves import (
     build_profile_save_handlers as _build_profile_save_handlers,
 )
+from .easyuse_anima.api.routes import settings as _api_settings_routes
 from .easyuse_anima.api.routes.settings import (
     build_settings_handlers as _build_settings_handlers,
 )
@@ -326,13 +327,13 @@ def _profile_error_response(exc: Exception):
     raise exc
 
 
-def _get_settings_payload_sync() -> dict:
-    return public_settings()
-
-
-def _save_setting_payload_sync(key: str, value) -> dict:
-    save_setting(key, value)
-    return {"status": "ok", **public_settings()}
+(
+    _get_settings_payload_sync,
+    _save_setting_payload_sync,
+) = _api_settings_routes.build_settings_payloads(
+    public_settings=lambda: public_settings(),
+    save_setting=lambda key, value: save_setting(key, value),
+)
 
 
 def _get_long_text_settings_payload_sync() -> dict:
