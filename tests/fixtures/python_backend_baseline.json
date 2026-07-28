@@ -3854,6 +3854,24 @@
         "target": "easyuse_anima/api/routes/lora_catalog.py"
       },
       {
+        "alias": "_api_lora_preview_routes",
+        "bound_name": "_api_lora_preview_routes",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".easyuse_anima.api.routes:lora_preview",
+        "kind": "static_from",
+        "line": 91,
+        "name": "lora_preview",
+        "optional": false,
+        "requested": ".easyuse_anima.api.routes",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "api.py",
+        "target": "easyuse_anima/api/routes/lora_preview.py"
+      },
+      {
         "alias": "_build_lora_profile_fix_handler",
         "bound_name": "_build_lora_profile_fix_handler",
         "branch_context": [],
@@ -3862,7 +3880,7 @@
         "conditional": false,
         "imported": ".easyuse_anima.api.routes.lora_profile_fix:build_lora_profile_fix_handler",
         "kind": "static_from",
-        "line": 91,
+        "line": 92,
         "name": "build_lora_profile_fix_handler",
         "optional": false,
         "requested": ".easyuse_anima.api.routes.lora_profile_fix",
@@ -3880,7 +3898,7 @@
         "conditional": false,
         "imported": ".easyuse_anima.api.routes.lora_preview:build_lora_preview_handler",
         "kind": "static_from",
-        "line": 94,
+        "line": 95,
         "name": "build_lora_preview_handler",
         "optional": false,
         "requested": ".easyuse_anima.api.routes.lora_preview",
@@ -3898,7 +3916,7 @@
         "conditional": false,
         "imported": ".easyuse_anima.api.routes.profile_lists:build_profile_list_handlers",
         "kind": "static_from",
-        "line": 97,
+        "line": 98,
         "name": "build_profile_list_handlers",
         "optional": false,
         "requested": ".easyuse_anima.api.routes.profile_lists",
@@ -3916,7 +3934,7 @@
         "conditional": false,
         "imported": ".easyuse_anima.api.routes.profile_loads:build_profile_load_handlers",
         "kind": "static_from",
-        "line": 100,
+        "line": 101,
         "name": "build_profile_load_handlers",
         "optional": false,
         "requested": ".easyuse_anima.api.routes.profile_loads",
@@ -3934,7 +3952,7 @@
         "conditional": false,
         "imported": ".easyuse_anima.api.routes.profile_saves:build_profile_save_handlers",
         "kind": "static_from",
-        "line": 103,
+        "line": 104,
         "name": "build_profile_save_handlers",
         "optional": false,
         "requested": ".easyuse_anima.api.routes.profile_saves",
@@ -3952,7 +3970,7 @@
         "conditional": false,
         "imported": ".easyuse_anima.api.routes:settings",
         "kind": "static_from",
-        "line": 106,
+        "line": 107,
         "name": "settings",
         "optional": false,
         "requested": ".easyuse_anima.api.routes",
@@ -3970,7 +3988,7 @@
         "conditional": false,
         "imported": ".easyuse_anima.api.routes.settings:build_settings_handlers",
         "kind": "static_from",
-        "line": 107,
+        "line": 108,
         "name": "build_settings_handlers",
         "optional": false,
         "requested": ".easyuse_anima.api.routes.settings",
@@ -3988,7 +4006,7 @@
         "conditional": false,
         "imported": ".easyuse_anima.api.routes:wildcards",
         "kind": "static_from",
-        "line": 110,
+        "line": 111,
         "name": "wildcards",
         "optional": false,
         "requested": ".easyuse_anima.api.routes",
@@ -4006,7 +4024,7 @@
         "conditional": false,
         "imported": ".easyuse_anima.api.routes.wildcards:build_wildcards_handler",
         "kind": "static_from",
-        "line": 111,
+        "line": 112,
         "name": "build_wildcards_handler",
         "optional": false,
         "requested": ".easyuse_anima.api.routes.wildcards",
@@ -4024,7 +4042,7 @@
         "conditional": false,
         "imported": ".easyuse_anima.api.routes.translation:build_translate_prompt_handler",
         "kind": "static_from",
-        "line": 114,
+        "line": 115,
         "name": "build_translate_prompt_handler",
         "optional": false,
         "requested": ".easyuse_anima.api.routes.translation",
@@ -4042,7 +4060,7 @@
         "conditional": false,
         "imported": ".easyuse_anima.api.routes.translation_execution:PromptTranslationRouteExecutor",
         "kind": "static_from",
-        "line": 117,
+        "line": 118,
         "name": "PromptTranslationRouteExecutor",
         "optional": false,
         "requested": ".easyuse_anima.api.routes.translation_execution",
@@ -4060,7 +4078,7 @@
         "conditional": false,
         "imported": ".easyuse_anima.api.routes.aio_torch_compile:build_aio_torch_compile_recommend_handler",
         "kind": "static_from",
-        "line": 120,
+        "line": 121,
         "name": "build_aio_torch_compile_recommend_handler",
         "optional": false,
         "requested": ".easyuse_anima.api.routes.aio_torch_compile",
@@ -4078,7 +4096,7 @@
         "conditional": false,
         "imported": ".easyuse_anima.aio.torch_compile_diagnostics:collect_torch_compile_diagnostics",
         "kind": "static_from",
-        "line": 123,
+        "line": 124,
         "name": "collect_torch_compile_diagnostics",
         "optional": false,
         "requested": ".easyuse_anima.aio.torch_compile_diagnostics",
@@ -4096,7 +4114,7 @@
         "conditional": false,
         "imported": ".easyuse_anima.aio.torch_compile_recommendation:recommend_torch_compile",
         "kind": "static_from",
-        "line": 126,
+        "line": 127,
         "name": "recommend_torch_compile",
         "optional": false,
         "requested": ".easyuse_anima.aio.torch_compile_recommendation",
@@ -4114,7 +4132,7 @@
         "conditional": false,
         "imported": ".easyuse_anima.profiles:aio",
         "kind": "static_from",
-        "line": 129,
+        "line": 130,
         "name": "aio",
         "optional": false,
         "requested": ".easyuse_anima.profiles",
@@ -4132,7 +4150,7 @@
         "conditional": false,
         "imported": ".easyuse_anima.profiles:contract",
         "kind": "static_from",
-        "line": 130,
+        "line": 131,
         "name": "contract",
         "optional": false,
         "requested": ".easyuse_anima.profiles",
@@ -4150,7 +4168,7 @@
         "conditional": false,
         "imported": ".easyuse_anima.profiles:lora",
         "kind": "static_from",
-        "line": 131,
+        "line": 132,
         "name": "lora",
         "optional": false,
         "requested": ".easyuse_anima.profiles",
@@ -4168,7 +4186,7 @@
         "conditional": false,
         "imported": ".easyuse_anima.profiles:mutation",
         "kind": "static_from",
-        "line": 132,
+        "line": 133,
         "name": "mutation",
         "optional": false,
         "requested": ".easyuse_anima.profiles",
@@ -4186,7 +4204,7 @@
         "conditional": false,
         "imported": ".easyuse_anima.profiles:repository",
         "kind": "static_from",
-        "line": 133,
+        "line": 134,
         "name": "repository",
         "optional": false,
         "requested": ".easyuse_anima.profiles",
@@ -4194,31 +4212,6 @@
         "scope": "<module>",
         "source": "api.py",
         "target": "easyuse_anima/profiles/repository.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "folder_paths",
-        "branch_context": [
-          {
-            "branch": "body",
-            "handles_import_failure": true,
-            "has_import_fallback_handler": false,
-            "kind": "try",
-            "line": 268
-          }
-        ],
-        "classification": "external",
-        "column": 8,
-        "conditional": true,
-        "imported": "folder_paths",
-        "kind": "static_import",
-        "line": 269,
-        "name": null,
-        "optional": true,
-        "requested": "folder_paths",
-        "role": "optional_dependency",
-        "scope": "_resolve_lora_preview_path",
-        "source": "api.py"
       },
       {
         "alias": null,
@@ -15721,6 +15714,31 @@
         "requested": "__future__",
         "role": "ordinary",
         "scope": "<module>",
+        "source": "easyuse_anima/api/routes/lora_preview.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "folder_paths",
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": false,
+            "kind": "try",
+            "line": 18
+          }
+        ],
+        "classification": "external",
+        "column": 12,
+        "conditional": true,
+        "imported": "folder_paths",
+        "kind": "static_import",
+        "line": 19,
+        "name": null,
+        "optional": true,
+        "requested": "folder_paths",
+        "role": "optional_dependency",
+        "scope": "build_lora_preview_path_resolver._resolve_lora_preview_path",
         "source": "easyuse_anima/api/routes/lora_preview.py"
       },
       {
@@ -66489,14 +66507,14 @@
       },
       {
         "is_package": false,
-        "loc": 706,
+        "loc": 689,
         "module": "api",
-        "normalized_git_blob_sha1": "19c606932ae29f6d40456ef27a430bf56cf2cfd1",
+        "normalized_git_blob_sha1": "e981d02aaff82e857a2f4a7ecb5737f2208689d6",
         "path": "api.py",
         "top_level": {
           "class_count": 0,
-          "function_count": 7,
-          "global_count": 105
+          "function_count": 6,
+          "global_count": 106
         }
       },
       {
@@ -67101,14 +67119,14 @@
       },
       {
         "is_package": false,
-        "loc": 29,
+        "loc": 72,
         "module": "easyuse_anima.api.routes.lora_preview",
-        "normalized_git_blob_sha1": "03bdcfbe68d71124ea2c424e271543a61c2093c4",
+        "normalized_git_blob_sha1": "fd79567fc6825589b0aca088485b25ff44dc627c",
         "path": "easyuse_anima/api/routes/lora_preview.py",
         "top_level": {
           "class_count": 0,
-          "function_count": 1,
-          "global_count": 1
+          "function_count": 2,
+          "global_count": 2
         }
       },
       {
@@ -81372,25 +81390,6 @@
         "source": "api.py"
       },
       {
-        "branch_context": [
-          {
-            "branch": "body",
-            "handles_import_failure": true,
-            "has_import_fallback_handler": false,
-            "kind": "try",
-            "line": 268
-          }
-        ],
-        "classification": "external",
-        "conditional": true,
-        "imported": "folder_paths",
-        "kind": "static_import",
-        "line": 269,
-        "optional": true,
-        "role": "optional_dependency",
-        "source": "api.py"
-      },
-      {
         "branch_context": [],
         "classification": "external",
         "conditional": false,
@@ -83559,6 +83558,25 @@
         "line": 1,
         "optional": false,
         "role": "ordinary",
+        "source": "easyuse_anima/api/routes/lora_preview.py"
+      },
+      {
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": false,
+            "kind": "try",
+            "line": 18
+          }
+        ],
+        "classification": "external",
+        "conditional": true,
+        "imported": "folder_paths",
+        "kind": "static_import",
+        "line": 19,
+        "optional": true,
+        "role": "optional_dependency",
         "source": "easyuse_anima/api/routes/lora_preview.py"
       },
       {
@@ -87802,25 +87820,6 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 268
-          }
-        ],
-        "classification": "external",
-        "conditional": true,
-        "imported": "folder_paths",
-        "kind": "static_import",
-        "line": 269,
-        "optional": true,
-        "role": "optional_dependency",
-        "source": "api.py"
-      },
-      {
-        "branch_context": [
-          {
-            "branch": "body",
-            "handles_import_failure": true,
-            "has_import_fallback_handler": false,
-            "kind": "try",
             "line": 517
           }
         ],
@@ -87971,6 +87970,25 @@
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/aio/resources.py"
+      },
+      {
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": false,
+            "kind": "try",
+            "line": 18
+          }
+        ],
+        "classification": "external",
+        "conditional": true,
+        "imported": "folder_paths",
+        "kind": "static_import",
+        "line": 19,
+        "optional": true,
+        "role": "optional_dependency",
+        "source": "easyuse_anima/api/routes/lora_preview.py"
       },
       {
         "branch_context": [
@@ -89051,7 +89069,7 @@
         "column": 10,
         "context": "assign:_LOGGER",
         "kind": "import_time_call",
-        "line": 212,
+        "line": 213,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -89060,7 +89078,7 @@
         "column": 29,
         "context": "assign:_PROMPT_TRANSLATION_WORKER",
         "kind": "route_registry_creation",
-        "line": 215,
+        "line": 216,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -89069,7 +89087,7 @@
         "column": 0,
         "context": "expression",
         "kind": "import_time_call",
-        "line": 220,
+        "line": 221,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -89078,7 +89096,7 @@
         "column": 18,
         "context": "assign:_error_response",
         "kind": "import_time_call",
-        "line": 243,
+        "line": 244,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -89087,7 +89105,7 @@
         "column": 27,
         "context": "assign:_contract_error_response",
         "kind": "import_time_call",
-        "line": 251,
+        "line": 252,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -89096,7 +89114,16 @@
         "column": 22,
         "context": "assign:_request_correlated",
         "kind": "import_time_call",
-        "line": 254,
+        "line": 255,
+        "module": "api.py",
+        "scope": "<module>"
+      },
+      {
+        "callee": "_api_lora_preview_routes.build_lora_preview_path_resolver",
+        "column": 29,
+        "context": "assign:_resolve_lora_preview_path",
+        "kind": "route_registry_creation",
+        "line": 268,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -89105,7 +89132,7 @@
         "column": 36,
         "context": "assign:_SAFE_PROFILE_VALIDATION_MESSAGES",
         "kind": "import_time_call",
-        "line": 295,
+        "line": 278,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -89114,7 +89141,7 @@
         "column": 4,
         "context": "assign:_get_settings_payload_sync,_save_setting_payload_sync",
         "kind": "route_registry_creation",
-        "line": 336,
+        "line": 319,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -89123,7 +89150,7 @@
         "column": 4,
         "context": "assign:_get_long_text_settings_payload_sync,_save_long_text_settings_payload_sync",
         "kind": "route_registry_creation",
-        "line": 345,
+        "line": 328,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -89132,7 +89159,7 @@
         "column": 26,
         "context": "assign:_wildcards_payload_sync",
         "kind": "route_registry_creation",
-        "line": 352,
+        "line": 335,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -89141,7 +89168,7 @@
         "column": 4,
         "context": "assign:_autocomplete_status_payload_sync,_classify_prompt_payload_sync,_public_autocomplete_payload,_public_autocomplete_status,_search_autocomplete_payload_sync",
         "kind": "route_registry_creation",
-        "line": 365,
+        "line": 348,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -89150,7 +89177,7 @@
         "column": 9,
         "context": "assign:routes",
         "kind": "route_registry_creation",
-        "line": 389,
+        "line": 372,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -89159,7 +89186,7 @@
         "column": 8,
         "context": "assign:get_settings_handler,set_setting_handler",
         "kind": "import_time_call",
-        "line": 397,
+        "line": 380,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -89168,7 +89195,7 @@
         "column": 23,
         "context": "assign:get_settings_handler,set_setting_handler",
         "kind": "import_time_call",
-        "line": 398,
+        "line": 381,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -89177,7 +89204,7 @@
         "column": 8,
         "context": "assign:get_long_text_settings_handler,save_long_text_settings_handler",
         "kind": "import_time_call",
-        "line": 427,
+        "line": 410,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -89186,7 +89213,7 @@
         "column": 23,
         "context": "assign:get_long_text_settings_handler,save_long_text_settings_handler",
         "kind": "import_time_call",
-        "line": 428,
+        "line": 411,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -89195,7 +89222,7 @@
         "column": 28,
         "context": "assign:get_wildcards_handler",
         "kind": "import_time_call",
-        "line": 442,
+        "line": 425,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -89204,7 +89231,7 @@
         "column": 8,
         "context": "assign:get_wildcards_handler",
         "kind": "import_time_call",
-        "line": 443,
+        "line": 426,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -89213,7 +89240,7 @@
         "column": 8,
         "context": "assign:autocomplete_handler,autocomplete_status_handler",
         "kind": "import_time_call",
-        "line": 454,
+        "line": 437,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -89222,7 +89249,7 @@
         "column": 23,
         "context": "assign:autocomplete_handler,autocomplete_status_handler",
         "kind": "import_time_call",
-        "line": 455,
+        "line": 438,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -89231,7 +89258,7 @@
         "column": 30,
         "context": "assign:classify_prompt_handler",
         "kind": "import_time_call",
-        "line": 465,
+        "line": 448,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -89240,7 +89267,7 @@
         "column": 8,
         "context": "assign:classify_prompt_handler",
         "kind": "import_time_call",
-        "line": 466,
+        "line": 449,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -89249,7 +89276,7 @@
         "column": 31,
         "context": "assign:translate_prompt_handler",
         "kind": "import_time_call",
-        "line": 484,
+        "line": 467,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -89258,7 +89285,7 @@
         "column": 8,
         "context": "assign:translate_prompt_handler",
         "kind": "import_time_call",
-        "line": 485,
+        "line": 468,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -89267,7 +89294,7 @@
         "column": 42,
         "context": "assign:aio_torch_compile_recommend_handler",
         "kind": "import_time_call",
-        "line": 497,
+        "line": 480,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -89276,7 +89303,7 @@
         "column": 8,
         "context": "assign:aio_torch_compile_recommend_handler",
         "kind": "import_time_call",
-        "line": 498,
+        "line": 481,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -89285,7 +89312,7 @@
         "column": 27,
         "context": "assign:lora_preview_handler",
         "kind": "import_time_call",
-        "line": 514,
+        "line": 497,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -89294,7 +89321,7 @@
         "column": 8,
         "context": "assign:lora_preview_handler",
         "kind": "import_time_call",
-        "line": 515,
+        "line": 498,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -89303,7 +89330,7 @@
         "column": 20,
         "context": "assign:loras_handler",
         "kind": "import_time_call",
-        "line": 524,
+        "line": 507,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -89312,7 +89339,7 @@
         "column": 8,
         "context": "assign:loras_handler",
         "kind": "import_time_call",
-        "line": 525,
+        "line": 508,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -89321,7 +89348,7 @@
         "column": 8,
         "context": "assign:aio_profiles_handler,lora_profiles_handler",
         "kind": "import_time_call",
-        "line": 536,
+        "line": 519,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -89330,7 +89357,7 @@
         "column": 23,
         "context": "assign:aio_profiles_handler,lora_profiles_handler",
         "kind": "import_time_call",
-        "line": 537,
+        "line": 520,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -89339,7 +89366,7 @@
         "column": 8,
         "context": "assign:load_aio_profile_handler,load_lora_profile_handler",
         "kind": "import_time_call",
-        "line": 551,
+        "line": 534,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -89348,7 +89375,7 @@
         "column": 23,
         "context": "assign:load_aio_profile_handler,load_lora_profile_handler",
         "kind": "import_time_call",
-        "line": 552,
+        "line": 535,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -89357,7 +89384,7 @@
         "column": 8,
         "context": "assign:save_aio_profile_handler,save_lora_profile_handler",
         "kind": "import_time_call",
-        "line": 572,
+        "line": 555,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -89366,7 +89393,7 @@
         "column": 23,
         "context": "assign:save_aio_profile_handler,save_lora_profile_handler",
         "kind": "import_time_call",
-        "line": 573,
+        "line": 556,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -89375,7 +89402,7 @@
         "column": 8,
         "context": "assign:delete_aio_profile_handler,rename_aio_profile_handler",
         "kind": "import_time_call",
-        "line": 607,
+        "line": 590,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -89384,7 +89411,7 @@
         "column": 23,
         "context": "assign:delete_aio_profile_handler,rename_aio_profile_handler",
         "kind": "import_time_call",
-        "line": 608,
+        "line": 591,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -89393,7 +89420,7 @@
         "column": 31,
         "context": "assign:fix_lora_profile_handler",
         "kind": "import_time_call",
-        "line": 639,
+        "line": 622,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -89402,7 +89429,7 @@
         "column": 8,
         "context": "assign:fix_lora_profile_handler",
         "kind": "import_time_call",
-        "line": 640,
+        "line": 623,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -89411,7 +89438,7 @@
         "column": 19,
         "context": "assign:_ROUTE_SIGNATURE",
         "kind": "route_registry_creation",
-        "line": 690,
+        "line": 673,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -91700,7 +91727,7 @@
           "executor"
         ],
         "initializer": "_PromptTranslationRouteExecutor",
-        "line": 215,
+        "line": 216,
         "module": "api.py",
         "name": "_PROMPT_TRANSLATION_WORKER"
       },
