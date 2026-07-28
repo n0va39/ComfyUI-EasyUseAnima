@@ -3,9 +3,10 @@
 ## Scope and authority
 
 E-04a is a production-free Contract created at
-`dev@d952f15f637732ce45a1ab7d9a0006bd1a3362bc`. E-04b completes the first
-bounded Move from the E-04a queue: provider registry ownership is explicit while
-the default service/cache and API route executor remain unchanged.
+`dev@d952f15f637732ce45a1ab7d9a0006bd1a3362bc`. E-04b makes provider registry
+ownership explicit. E-04c completes the second bounded Move by composing the process
+translation service/cache into RuntimeServices while the API route executor remains
+unchanged.
 
 The executable source is
 `tests/fixtures/python_translation_runtime_contract.v1.json`, checked by
@@ -31,15 +32,19 @@ invent one.
 
 ### Default service, cache, and per-key single-flight
 
-The canonical service module constructs `_DEFAULT_TRANSLATION_SERVICE` at import.
-That service owns one bounded TTL/LRU cache and a per-key single-flight registry.
+Bootstrap constructs one `_SystemClock`, one bounded TTL/LRU cache using that
+clock's `monotonic` method, and one `PromptTranslationService`. RuntimeServices owns
+the service through the translation-owned `PromptTranslationPort`; the canonical
+service facade installs and resolves the same identity for current node/API calls.
+A standalone canonical import retains its local compatibility default until
+production bootstrap composition.
+
 Cache entries use one `RLock`; flight registration uses a second `RLock`; each cache
 key gets its own `Lock`, so different translation keys can proceed independently.
-
-`BoundedTranslationCache.clear()` exists, and each flight removes itself after the
-last user settles. The module default service has no process reset or idempotent
-close. API and Prompt-node paths currently converge through
-`translate_prompt_markers()`.
+`PromptTranslationService.close()` idempotently clears its owned cache, and each
+flight removes itself after the last user settles. It does not close providers,
+cancel work, or create a terminal closed state. API and Prompt-node paths continue
+to converge through `translate_prompt_markers()`.
 
 ### API route executor
 
@@ -104,10 +109,10 @@ semantics are Behavior and remain out of scope.
 2. **E-04b Move — provider registry/client ownership — complete:** factories,
    instances, and registry locking are owned by one private provider registry; the
    call-time default facade, lazy client behavior, and errors are preserved.
-3. **E-04c Move — default service/cache composition — READY:** compose one
-   process translation service with its cache and flights, then wire current node/API
-   callers through narrow seams.
-4. **E-04d Move — route executor/bootstrap lifecycle wiring — pending:** move worker
+3. **E-04c Move — default service/cache composition — complete:** bootstrap composes
+   the clock/cache/service, RuntimeServices owns the narrow port, and current node/API
+   callers retain the call-time service facade.
+4. **E-04d Move — route executor/bootstrap lifecycle wiring — READY:** move worker
    construction and lifecycle registration from root `api.py` into bootstrap-owned
    composition while preserving every dynamic root seam.
 5. **E-04e Contract — completion audit — pending:** reconcile E-01 targets, prove

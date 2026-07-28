@@ -35,7 +35,7 @@
     "generic_executor_client_port": "rejected",
     "provider_client_cleanup": "unproven: the current optional client protocol exposes translate only, so no close call may be invented in E-04 Moves.",
     "resource_partition": "Provider registry/client, service cache/per-key single-flight, and API route executor remain three distinct translation-owned resource boundaries.",
-    "runtime_fields": "Any RuntimeServices expansion is limited to narrow translation-owned ports selected by the owning Move; feature code never receives the complete runtime."
+    "runtime_fields": "E-04c adds only PromptTranslationPort to RuntimeServices; feature code never receives the complete runtime."
   },
   "move_queue": [
     {
@@ -57,14 +57,14 @@
       "goal": "Compose one process translation service with its bounded cache and per-key single-flight owner, then wire existing node/API callers through narrow seams.",
       "id": "E-04c",
       "name": "default service and cache composition",
-      "status": "ready"
+      "status": "complete"
     },
     {
       "classification": "Move",
       "goal": "Move route executor construction and lifecycle registration from the root API facade to bootstrap-owned runtime composition while preserving root dynamic seams.",
       "id": "E-04d",
       "name": "route executor bootstrap lifecycle wiring",
-      "status": "pending"
+      "status": "ready"
     },
     {
       "classification": "Contract",
@@ -118,11 +118,12 @@
     },
     {
       "cleanup": {
-        "current": "BoundedTranslationCache.clear exists; flights self-remove when the last user settles; the default service has no close/reset",
+        "current": "PromptTranslationService.close idempotently clears its owned cache; flights self-remove when the last user settles",
         "implemented_methods": [
-          "BoundedTranslationCache.clear"
+          "BoundedTranslationCache.clear",
+          "PromptTranslationService.close"
         ],
-        "remaining_gap": "explicit process owner and idempotent service cleanup are deferred to E-04c/E-09"
+        "remaining_gap": "whole-runtime reverse close ordering and partial-initialization cleanup remain deferred to E-09"
       },
       "components": [
         {
@@ -152,11 +153,14 @@
         }
       ],
       "construction": {
-        "at": "translation service module import",
+        "at": "first serialized bootstrap initialization",
+        "cache_clock": "RuntimeServices.clock.monotonic",
         "class": "PromptTranslationService",
-        "invocation_module": "easyuse_anima/translation/service.py"
+        "facade_binding": "easyuse_anima.translation.service._DEFAULT_TRANSLATION_SERVICE",
+        "invocation_module": "easyuse_anima/bootstrap.py",
+        "runtime_field": "RuntimeServices.translation"
       },
-      "current_owner": "easyuse_anima.translation.service._DEFAULT_TRANSLATION_SERVICE",
+      "current_owner": "easyuse_anima.runtime.RuntimeServices.translation",
       "e01_entry": "translation-default-service",
       "evidence": [
         "tests/test_prompt_translation.py"
@@ -167,7 +171,7 @@
       "state_symbols": [
         "_DEFAULT_TRANSLATION_SERVICE"
       ],
-      "target_phase": "E-04c"
+      "target_phase": "E-04c-complete"
     },
     {
       "cleanup": {
@@ -265,7 +269,7 @@
       ]
     }
   ],
-  "production_changes": 2,
+  "production_changes": 6,
   "schema_version": 1,
-  "scope": "E-04a translation ownership contract plus completed E-04b provider registry/client ownership Move"
+  "scope": "E-04a translation ownership contract plus completed E-04b provider registry and E-04c default service/cache Moves"
 }

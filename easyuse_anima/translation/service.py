@@ -29,6 +29,7 @@ from .contracts import (
     normalize_prompt_translation_provider,
 )
 from .markers import iter_prompt_translation_markers
+from .ports import PromptTranslationPort
 from .provider_registry import _TranslationProviderRegistry
 from .providers.google import GoogleTranslationProvider
 
@@ -298,8 +299,21 @@ class PromptTranslationService:
         output.append(value[cursor:])
         return "".join(output)
 
+    def close(self) -> None:
+        self.cache.clear()
 
-_DEFAULT_TRANSLATION_SERVICE = PromptTranslationService()
+
+_DEFAULT_TRANSLATION_SERVICE: PromptTranslationPort = (
+    PromptTranslationService()
+)
+
+
+def _install_default_translation_service(
+    translation: PromptTranslationPort,
+) -> None:
+    global _DEFAULT_TRANSLATION_SERVICE
+
+    _DEFAULT_TRANSLATION_SERVICE = translation
 
 
 def strip_prompt_translation_markers(text: str) -> str:

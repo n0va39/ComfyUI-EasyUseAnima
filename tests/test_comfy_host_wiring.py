@@ -15,6 +15,7 @@ from tests.comfy_host_fakes import (
     FakeClock,
     FakeComfyHostProvider,
     FakeSeedReservationService,
+    FakeTranslationService,
 )
 
 
@@ -250,6 +251,7 @@ class ComfyHostWiringTests(unittest.TestCase):
                 user_data_dir=Path("user-data"),
             ),
             clock=FakeClock(),
+            translation=FakeTranslationService(),
         )
 
         self.assertEqual(
@@ -300,6 +302,7 @@ class ComfyHostWiringTests(unittest.TestCase):
                 user_data_dir=Path("user-data"),
             ),
             clock=FakeClock(),
+            translation=FakeTranslationService(),
         )
 
         require = resolve_comfy_host_helper(

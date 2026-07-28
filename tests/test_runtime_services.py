@@ -24,6 +24,8 @@ from easyuse_anima.runtime import (
     install_runtime,
 )
 from easyuse_anima.seed.service import InMemorySeedReservationService
+from easyuse_anima.translation import service as translation_service
+from easyuse_anima.translation.service import PromptTranslationService
 
 
 class FakeComfyHostProvider:
@@ -140,6 +142,7 @@ class RuntimeServicesTests(unittest.TestCase):
                 user_data_dir=Path("user-data"),
             ),
             clock=FakeClock(),
+            translation=PromptTranslationService(),
         )
 
     def test_runtime_value_is_frozen(self):
@@ -221,6 +224,14 @@ class RuntimeServicesTests(unittest.TestCase):
         self.assertIs(first.config.package_root, storage_paths.PACKAGE_ROOT)
         self.assertIs(first.config.package_data_dir, storage_paths.PACKAGE_DATA_DIR)
         self.assertIs(first.config.user_data_dir, storage_paths.USER_DATA_DIR)
+        self.assertIs(
+            first.translation,
+            translation_service._DEFAULT_TRANSLATION_SERVICE,
+        )
+        self.assertIs(
+            first.translation.cache._time_func.__self__,
+            first.clock,
+        )
         with patch.object(bootstrap.time, "monotonic", return_value=12.5):
             self.assertEqual(first.clock.monotonic(), 12.5)
         self.assertEqual(first.comfy.max_resolution(), 8192)

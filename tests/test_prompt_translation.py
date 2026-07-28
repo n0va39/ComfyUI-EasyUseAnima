@@ -299,6 +299,43 @@ class PromptTranslationServiceTests(unittest.TestCase):
 
         self.assertEqual(provider.call_count, 4)
 
+    def test_service_close_clears_cache_and_is_idempotent(self):
+        cache = BoundedTranslationCache(max_entries=8, ttl_seconds=60)
+        translation = PromptTranslationService(cache=cache)
+
+        with patch(
+            "easyuse_anima.translation.service.google_translate_text",
+            return_value="cached",
+        ) as provider:
+            translation.translate_prompt("%{same}", GOOGLE_SETTINGS)
+            translation.translate_prompt("%{same}", GOOGLE_SETTINGS)
+            self.assertEqual(len(cache), 1)
+            translation.close()
+            translation.close()
+            self.assertEqual(len(cache), 0)
+            translation.translate_prompt("%{same}", GOOGLE_SETTINGS)
+
+        self.assertEqual(provider.call_count, 2)
+
+    def test_translation_facade_resolves_current_default_service(self):
+        current = SimpleNamespace(
+            translate_prompt=lambda text, settings=None: (
+                text,
+                settings,
+            )
+        )
+        with patch.object(
+            service,
+            "_DEFAULT_TRANSLATION_SERVICE",
+            current,
+        ):
+            resolved = service.translate_prompt_markers(
+                "%{value}",
+                GOOGLE_SETTINGS,
+            )
+
+        self.assertEqual(resolved, ("%{value}", GOOGLE_SETTINGS))
+
     def test_cache_and_request_dedup_are_thread_safe(self):
         service = PromptTranslationService(
             cache=BoundedTranslationCache(max_entries=8, ttl_seconds=60)

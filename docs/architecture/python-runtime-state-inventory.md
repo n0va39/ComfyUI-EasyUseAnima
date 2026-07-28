@@ -50,8 +50,8 @@ E-01 drift gate until classified.
 | `prompt-knowledge-path` | canonical filesystem package path re-exported for ANIMA root compatibility | immutable after import | E-02d complete |
 | `root-route-registration` | injected router registrar called by bootstrap | serialized refresh; idempotent marker, no deregistration | E-09 |
 | `root-translation-route-worker` | root compatibility runtime owns lazy single-thread executor | internal `RLock`; idempotent `atexit` shutdown only | E-04d |
-| `runtime-services` | identity-installed process runtime with Comfy and seed capabilities | bootstrap-serialized install; private-global test reset, no close | E-09 |
-| `translation-default-service` | canonical default cache/single-flight service | cache and flight `RLock`s; cache clear exists, no process reset | E-04c |
+| `runtime-services` | identity-installed process runtime with Comfy, seed, config/clock, and narrow translation capabilities | bootstrap-serialized install; private-global test reset, no whole-runtime close | E-09 |
+| `translation-default-service` | RuntimeServices-owned translation port, mirrored by the canonical call-time facade | cache and flight `RLock`s; idempotent service close clears cache | E-04c complete |
 | `translation-provider-registry` | private process-owned lazy provider-client registry | one owned `RLock`; no provider close/reset | E-04b complete |
 | `wildcard-snapshot-cache` | root verified-snapshot LRU and build single-flight | one `Condition`; no owner reset/close | E-06 |
 
@@ -104,7 +104,7 @@ owners. The E-03e cross-fixture audit reconciles both E-01 owner entries with th
 E-03 owners and records zero ambiguous repository/filesystem state owners. The next
 bounded unit is the separate E-04 translation provider/client/cache Contract.
 
-## E-04a Contract and E-04b result
+## E-04a Contract and E-04b/E-04c result
 
 The production-free
 [`python-runtime-e04-translation-contract.md`](python-runtime-e04-translation-contract.md)
@@ -123,4 +123,11 @@ E-04b replaces the service module's separate factory map, instance map, and lock
 one private `_TranslationProviderRegistry`. The process default remains in the
 canonical service module, and `get_translation_provider()` resolves that default at
 call time. Provider/client laziness, reuse, optional imports, timeout and error
-normalization remain unchanged. The next bounded unit is E-04c only.
+normalization remain unchanged.
+
+E-04c adds a translation-owned narrow port to RuntimeServices. Bootstrap constructs
+the process clock, bounded cache, and service together, then installs that exact
+service identity behind the existing node/API facade. `PromptTranslationService`
+implements the E-02 idempotent resource shape by clearing only its owned cache;
+per-key flights still self-remove and provider/client cleanup remains separate. The
+next bounded unit is E-04d only.

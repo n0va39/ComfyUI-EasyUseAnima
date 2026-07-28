@@ -8,6 +8,7 @@ from typing import Protocol
 
 from .infrastructure.comfy.provider import ComfyHostProvider
 from .seed.reservation import SeedReservationService
+from .translation.ports import PromptTranslationPort
 
 
 @dataclass(frozen=True, slots=True)
@@ -39,6 +40,7 @@ class RuntimeServices:
     seed_reservations: SeedReservationService
     config: RuntimeConfig
     clock: Clock
+    translation: PromptTranslationPort
 
 
 _RUNTIME_SERVICES: RuntimeServices | None = None
