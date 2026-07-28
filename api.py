@@ -76,6 +76,7 @@ from .easyuse_anima.api.router import (
     register_route_definitions as _register_route_definitions,
 )
 from .easyuse_anima.bootstrap import (
+    build_aio_torch_compile_route_handler as _build_aio_torch_compile_route_handler,
     build_settings_route_group as _build_settings_route_group,
     build_translation_route_handler as _build_translation_route_handler,
     build_wildcard_autocomplete_route_group as _build_wildcard_autocomplete_route_group,
@@ -109,9 +110,6 @@ from .easyuse_anima.api.routes import wildcards as _api_wildcard_routes
 from .easyuse_anima.api.routes import translation as _api_translation_routes
 from .easyuse_anima.api.routes.translation_execution import (
     PromptTranslationRouteExecutor as _PromptTranslationRouteExecutor,
-)
-from .easyuse_anima.api.routes.aio_torch_compile import (
-    build_aio_torch_compile_recommend_handler as _build_aio_torch_compile_recommend_handler,
 )
 from .easyuse_anima.aio.torch_compile_diagnostics import (
     collect_torch_compile_diagnostics as _collect_torch_compile_diagnostics,
@@ -438,21 +436,22 @@ if web is not None:
         },
     )
 
-    aio_torch_compile_recommend_handler = _request_correlated(
-        _build_aio_torch_compile_recommend_handler(
-            parse_json_object=lambda request: parse_json_object(request),
-            json_object=lambda data, field: json_object(data, field),
-            json_integer=lambda data, field, **kwargs: json_integer(
+    aio_torch_compile_recommend_handler = _build_aio_torch_compile_route_handler(
+        request_correlated=_request_correlated,
+        aio_torch_compile_dependencies={
+            "parse_json_object": lambda request: parse_json_object(request),
+            "json_object": lambda data, field: json_object(data, field),
+            "json_integer": lambda data, field, **kwargs: json_integer(
                 data,
                 field,
                 **kwargs,
             ),
-            contract_error_type=ApiContractError,
-            contract_error_response=lambda exc: _contract_error_response(exc),
-            collect_diagnostics=lambda: _collect_torch_compile_diagnostics(),
-            recommend_torch_compile=lambda *args: _recommend_torch_compile(*args),
-            json_response=lambda payload: web.json_response(payload),
-        )
+            "contract_error_type": ApiContractError,
+            "contract_error_response": lambda exc: _contract_error_response(exc),
+            "collect_diagnostics": lambda: _collect_torch_compile_diagnostics(),
+            "recommend_torch_compile": lambda *args: _recommend_torch_compile(*args),
+            "json_response": lambda payload: web.json_response(payload),
+        },
     )
 
     lora_preview_handler = _request_correlated(
