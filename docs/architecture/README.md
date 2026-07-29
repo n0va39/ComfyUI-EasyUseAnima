@@ -82,10 +82,17 @@ of architectural success by itself.
   monolith decision.
 - [`adr-002-compatibility-shims.md`](adr-002-compatibility-shims.md): support-window,
   evidence, staged-retirement, and public-breaking-change policy.
-- [`python-runtime-state-inventory.md`](python-runtime-state-inventory.md) and
-  `python-runtime-e02-*` through `python-runtime-e10-*`: completed Phase E contracts,
-  including [`python-runtime-e05-autocomplete-contract.md`](python-runtime-e05-autocomplete-contract.md)
-  and [`python-runtime-e06-wildcard-contract.md`](python-runtime-e06-wildcard-contract.md).
+- [`python-runtime-base-contract.md`](python-runtime-base-contract.md) and
+  [`python-runtime-state-inventory.md`](python-runtime-state-inventory.md):
+  base runtime contract and process-state owner inventory.
+- Completed Phase E feature/lifecycle contracts:
+  [`python-runtime-e03-repository-filesystem-contract.md`](python-runtime-e03-repository-filesystem-contract.md),
+  [`python-runtime-e04-translation-contract.md`](python-runtime-e04-translation-contract.md),
+  [`python-runtime-e05-autocomplete-contract.md`](python-runtime-e05-autocomplete-contract.md),
+  [`python-runtime-e06-wildcard-contract.md`](python-runtime-e06-wildcard-contract.md),
+  [`python-runtime-e08-aio-cache-contract.md`](python-runtime-e08-aio-cache-contract.md),
+  [`python-runtime-e09-lifecycle-contract.md`](python-runtime-e09-lifecycle-contract.md), and
+  [`python-runtime-e10-test-isolation-contract.md`](python-runtime-e10-test-isolation-contract.md).
 - [`../development/codex-execution-efficiency.md`](../development/codex-execution-efficiency.md):
   context budget, focused test ladder, evidence reuse, and reporting.
 

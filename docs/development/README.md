@@ -23,14 +23,22 @@ Read only the sections needed by the active task.
 6. Read a topic guide only when the active task touches it:
    - completed D/E execution record: `../architecture/backend-roadmap-resume-0.6.2.md`
    - F-01 typed-boundary audit: `../architecture/python-typed-boundary-f01-audit.md`
+   - runtime base/state inventory: `../architecture/python-runtime-base-contract.md`,
+     `../architecture/python-runtime-state-inventory.md`
+   - repository/filesystem runtime contract: `../architecture/python-runtime-e03-repository-filesystem-contract.md`
+   - translation runtime contract: `../architecture/python-runtime-e04-translation-contract.md`
    - Autocomplete runtime contract: `../architecture/python-runtime-e05-autocomplete-contract.md`
    - Wildcard runtime contract: `../architecture/python-runtime-e06-wildcard-contract.md`
+   - AiO cache runtime contract: `../architecture/python-runtime-e08-aio-cache-contract.md`
+   - lifecycle runtime contract: `../architecture/python-runtime-e09-lifecycle-contract.md`
+   - test-isolation runtime contract: `../architecture/python-runtime-e10-test-isolation-contract.md`
    - compatibility registry: `../architecture/python-compatibility-shims.md`
    - queue identity: `../architecture/queue-ui-two-phase-correlation-addendum.md`
    - Prompt Studio execution projection: `../architecture/prompt-studio-execution-derived-projection.md`
    - dual-canvas UI checks: `browser-smoke-matrix.md`
    - custom-node integrations: `custom-node-integrations.md`
-   - Registry scanner prevention for a future release: `registry-scanner-safety.md`
+   - Registry scanner prevention for a future release:
+     [`docs/development/registry-scanner-safety.md`](registry-scanner-safety.md)
    - workflows: `../Anima AiO/Workflow_Management.md`
 7. Confirm `git status --short`, current branch/worktree, direct source, and direct
    tests.

@@ -370,13 +370,14 @@ Read:
 
 Do not read all historical D/E PRs and do not restart D-14 removal.
 
-Perform a production-free typed-boundary completion audit. Reuse existing fixtures;
-create no duplicate manifest unless deterministic evidence cannot be represented.
-Classify every area as complete, intentional adapter/migration boundary, or exact
-F-02 follow-up.
+Define canonical Autocomplete source/status/search/classification TypedDict results
+and apply them to the runtime port, service, core, and API redaction adapter without
+changing runtime dictionaries, path redaction, owner identity, or public exports.
+Reuse the existing Autocomplete runtime fixture and direct owner tests; update only a
+direct generated analyzer baseline when the new canonical module requires it.
 
 Run only targeted consistency/focused checks during the edit loop and git diff check.
-Run official full once on the final test/tool SHA if tests or runner change.
+Run official full once on the final production/test/tool SHA.
 Package/live are not triggered.
 
 Push a dev-targeted Draft PR. After review and merge, execute the smallest F-02 only
