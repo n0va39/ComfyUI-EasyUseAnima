@@ -35,31 +35,21 @@ COMPLETE  P-WC Wildcard direct-shim conversion
 COMPLETE  SEC-01 through SEC-05 security/admin lane
 COMPLETE  #593 FC-01, FC-02 and FC-03 prerequisites
 COMPLETE  FC-04A canonical API application/E-09 lifecycle Contract
+COMPLETE  FC-04B canonical API application cohesive Move
+COMPLETE  FC-05 technical architecture completion
 
-READY     FC-04B canonical API application cohesive Move
-NEXT      FC-05 technical completion audit
+READY     none for backend refactoring
 
 EVENT     next ordinary release N
 LATER     H/D-14 compatibility re-audit
 ```
 
-The former `no READY task` statement applied to the completed F/G/security and
-compatibility-removal lanes. It did not close the original backend Definition of Done.
+## Technical completion and remaining event
 
-## Why final convergence remains
-
-The current backend is functional and validated, but two technical gaps remain:
-
-1. the blocking import-boundary gate covers a reviewed subset while the G-06 owner map
-   covers the complete canonical package/test surface;
-2. root `api.py` still creates the production API application, translation route
-   executor, handlers, route definitions and registrar.
-
-P-API-01 retained that facade because the then-current canonical candidates could not
-preserve both request-time root patch seams and E-09 executor/cleanup timing. The same
-Contract explicitly allows a later revisit after those patch seams move to exact
-canonical owners. FC-03 performs that prerequisite before FC-04 reevaluates application
-placement.
+FC-05 closes the original backend Definition of Done at
+`dev@bb1452c9996293f1f77bb361e7317ddb2664ae19`. The complete owner gate, canonical API
+application, E-09 lifecycle, typed/migration compatibility and integrated validation
+have executable owners. There is no READY backend implementation task.
 
 Actual shim deletion remains release/consumer gated and is not required for technical
 architecture completion.

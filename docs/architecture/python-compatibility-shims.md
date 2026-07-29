@@ -58,7 +58,7 @@ import them.
 | --- | --- | --- | --- | --- | --- | --- |
 | Root `__init__.py` exports | Permanent ComfyUI entrypoint, not a shim | root entrypoint plus `easyuse_anima.registration`/`bootstrap` | #184/#185 | Existing 0.5.2 surface; B-11 rewires internals | ComfyUI loader; node contract fixture | Not removable as a package entrypoint |
 | `nodes.py` mapped public classes | Explicit 18-class compatibility re-export shim; no residual root definitions | `easyuse_anima.nodes.*_nodes` | #184 B-04 through B-11, #188 | Existing 0.5.2 surface; current canonical-plus-shim paths first appear together in release tag v0.6.0 | Root mappings and saved workflows; exact identity fixture; no confirmed external direct importer | Retained; v0.6.1/v0.6.2 satisfy the minimum window, but there is no consumer evidence or approved public breaking change |
-| `api.py` route-registration surface | Transitional API composition/runtime facade after D-08u and E-09; not yet an ADR-002 direct re-export shim | `easyuse_anima.api.router`, `.requests`, `.responses`, `.errors`, feature route modules, `easyuse_anima.profiles.*`, and bootstrap composition/lifecycle | #162, #163, #165, #186 D-02-D-08/D-14, #187 E-09 | Existing 0.5.2 route surface; D-08u locks the 21-route composition and E-09 completes bootstrap lifecycle after v0.6.2 | Root entrypoint side-effect import, frontend endpoints, `wildcard_engine` callback, injected payload/runtime/registrar seams, profile/API tests | Blocked and retained; root entrypoint/runtime consumers remain and no published release contains the current complete facade/canonical composition/lifecycle |
+| `api.py` route-registration surface | Explicit compatibility binder/route facade; no production application identity ownership after FC-04B | `easyuse_anima.api.application*`, router, requests/responses/errors, feature route modules, profiles and bootstrap private composition/lifecycle | #162, #163, #165, #186 D-02-D-08/D-14, #187 E-09, #593 FC-03/FC-04 | Existing 0.5.2 route surface; FC-03B/FC-04B move dependency and application ownership after v0.6.2 | Root entrypoint import, frontend endpoints, exact root aliases, injected payload/runtime/registrar seams and profile/API/lifecycle tests | Retained; release N has not published the complete binder/canonical application form and the root entrypoint/runtime consumers remain |
 | `api_contract.py` request/error helpers | Explicit 12-symbol request/error/response identity shim (D-02) | `easyuse_anima.api.requests`, `.responses`, and `.errors` | #165, #186 D-02/D-14 | Canonicalized in PR #481 after v0.6.2; exact root surface and flat/package identity fixture | External/legacy imports and compatibility tests; production `api.py` uses canonical owners | Retained; first canonical-plus-shim release N has not shipped |
 | `settings.py` | Explicit direct re-export shim (D-09) | `easyuse_anima.settings.schema`, `.repository`, and `.service` | #163, #186 D-09 | Existing 0.5.2 surface; current canonical-plus-shim paths first appear together in release tag v0.6.0 | External/legacy imports and settings compatibility tests; production callers use canonical modules | Retained; minimum window passed, but consumer evidence does not support removal |
 | `storage.py` | Explicit direct re-export shim (D-08) | `easyuse_anima.infrastructure.filesystem.atomic_json` and `.paths` | #163, #186 D-08 | Existing 0.5.2 surface; current canonical-plus-shim paths first appear together in release tag v0.6.0 | External/legacy imports and storage compatibility tests; production callers use canonical modules | Retained; minimum window passed, but consumer evidence does not support removal |
@@ -1388,15 +1388,16 @@ EasyUseAnimaWildcard
   LoRA profile operations/repair to `easyuse_anima.profiles.repository`,
   `.aio`, and `.lora`. Existing envelope/CAS owners remain `.contract` and
   `.mutation`.
-- After D-08u, `api.py` keeps compatibility aliases plus injected payload/runtime
-  callbacks and the registrar facade. Concrete handler factories and request
-  correlation are bootstrap-composed, but the root entrypoint still imports the
-  module and passes its registration/runtime seams into bootstrap.
+- FC-03B moves the complete named dependency/patch cell to the canonical package.
+  FC-04B then moves the publish-once immutable application, executor, handlers,
+  definitions/signature and registrar construction to private canonical application
+  owners. Bootstrap owns the sole production composition call site; root `api.py`
+  binds exact aliases and publishes the current route table.
 - Directory, size, mutation, and storage test seams move to their canonical
   owner. The aliases are not promoted into a declared public `api.py`
   `__all__`; D-14 decides the supported root surface after consumer evidence.
-- Canonical target: `easyuse_anima.api.router`, requests/responses/errors, and
-  feature route modules.
+- Canonical target: `easyuse_anima.api.application*`, router,
+  requests/responses/errors, feature route modules and bootstrap private composition.
 - D-03a moves the translation handler body to a pure canonical factory. Root
   composition passes dynamic callables so the established translation service,
   timeout worker, error response, and test patch seams remain effective.
@@ -1407,9 +1408,10 @@ EasyUseAnimaWildcard
 - D-04a moves the read-only AiO Torch Compile recommendation handler to a pure
   canonical factory while root keeps diagnostics/recommendation patch seams,
   correlation, route order, and registration composition.
-- Removal gate: root entrypoint no longer imports `api.py`; repeated initialize
-  registers no duplicate routes; the #165 request/error matrix and 0.5.2 API
-  parity pass; actual package import succeeds.
+- Removal gate: release N publishes the complete binder/canonical application form;
+  consumer evidence and breaking-change approval permit retirement; root entrypoint
+  no longer imports `api.py`; repeated initialize registers no duplicate routes; the
+  #165 request/error matrix and 0.5.2 API parity pass; actual package import succeeds.
 
 ### `api_contract.py`
 

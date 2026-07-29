@@ -459,49 +459,53 @@ the ledger and checker-owned expected set.
 
 ## Overall Definition of Done
 
-The Python backend refactor is complete only when all of the following hold.
+FC-05 records technical architecture completion on integrated
+`dev@bb1452c9996293f1f77bb361e7317ddb2664ae19`. Checked rows are executable
+technical contracts. The one unchecked Registry row is the separately named FC-06
+compatibility event and does not reopen technical implementation.
 
 ### Structure and dependencies
 
-- [ ] `easyuse_anima` is the only production implementation root.
-- [ ] Root Python files are the ComfyUI entrypoint or registered shims.
-- [ ] Node/API adapters call feature services and contain no repository,
+- [x] `easyuse_anima` is the only production implementation root.
+- [x] Root Python files are the ComfyUI entrypoint or registered compatibility
+      facades/shims.
+- [x] Node/API adapters call feature services and contain no repository,
       external HTTP, migration, or cache implementation.
-- [ ] Feature/domain and infrastructure code have no adapter, registration,
+- [x] Feature/domain and infrastructure code have no adapter, registration,
       bootstrap, or root-shim back references.
-- [ ] The final owner matrix is enforced by an import-boundary gate.
+- [x] The final owner matrix is enforced by an import-boundary gate.
 
 ### State and lifecycle
 
-- [ ] Every process-wide cache, lock, client, executor, repository, and
+- [x] Every process-wide cache, lock, client, executor, repository, and
       capability has an owner, lifetime, thread-safety, and cleanup contract.
-- [ ] Initialize and shutdown are idempotent, including partial-failure cleanup.
-- [ ] Optional dependency failure is contained to its feature.
-- [ ] Runtime fixtures isolate user data and do not rely on private-global
+- [x] Initialize and shutdown are idempotent, including partial-failure cleanup.
+- [x] Optional dependency failure is contained to its feature.
+- [x] Runtime fixtures isolate user data and do not rely on private-global
       patch/reload cleanup.
 
 ### Data and compatibility
 
-- [ ] Settings, profiles, and workflow-owned backend data use versioned pure
+- [x] Settings, profiles, and workflow-owned backend data use versioned pure
       migrations and atomic final writes.
-- [ ] API request/result/error and feature boundaries are typed.
-- [ ] 0.5.2 node/workflow/profile/settings/API fixtures pass.
-- [ ] Supported root and canonical objects have identity parity.
+- [x] API request/result/error and feature boundaries are typed.
+- [x] 0.5.2 node/workflow/profile/settings/API fixtures pass.
+- [x] Supported root and canonical objects have identity parity.
 - [ ] The actual Registry package contains the complete canonical/shim import
-      closure and imports with optional providers disabled.
+      closure and imports with optional providers disabled. This is FC-06 release N.
 
 ### Quality and operations
 
-- [ ] Pinned Ruff/Pyright or approved equivalents run in the official runner.
-- [ ] Cycle, forbidden import, public API, and size-growth ratchets block new
+- [x] Pinned Ruff/Pyright or approved equivalents run in the official runner.
+- [x] Cycle, forbidden import, public API, and size-growth ratchets block new
       debt.
-- [ ] Every merged implementation PR is classified Move, Contract, or Behavior.
-- [ ] The shim registry has owners, evidence, and removal gates for every root
+- [x] Every merged implementation PR is classified Move, Contract, or Behavior.
+- [x] The shim registry has owners, evidence, and removal gates for every root
       compatibility surface.
-- [ ] Private shims are retired only after the support window; each public shim
+- [x] Private shims are retired only after the support window; each public shim
       is either deliberately retained or removed through a reviewed breaking
       change.
-- [ ] Final full runner, `comfy node validate`, actual `comfy node pack`, archive
+- [x] Final full runner, `comfy node validate`, actual `comfy node pack`, archive
       closure, 0.5.2 compatibility, and representative ComfyUI execution gates
       pass at the release/integration stage.
 

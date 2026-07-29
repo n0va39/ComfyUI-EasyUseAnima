@@ -27,8 +27,9 @@ COMPLETE SEC-01 through SEC-05 security/admin lane
 COMPLETE FC-01, FC-02 and FC-03 final-convergence prerequisites
 COMPLETE FC-04A canonical API application/E-09 lifecycle Contract
 COMPLETE FC-04B canonical API application cohesive Move
+COMPLETE FC-05 technical architecture completion
 
-READY    FC-05 technical completion audit
+READY    none for backend refactoring
 
 EVENT    ordinary release N
   ->     later H/D-14 compatibility re-audit
@@ -40,7 +41,8 @@ Done had been fully reconciled.
 
 ## Current code boundary
 
-The backend is functional and validated.
+The backend is functionally validated and technically complete at
+`dev@bb1452c9996293f1f77bb361e7317ddb2664ae19`.
 
 ### Completed boundaries
 
@@ -53,21 +55,17 @@ The backend is functional and validated.
   import-only;
 - public API coverage, size-growth ratchet and canonical test ownership are executable
   gates;
+- the complete 16-group role-aware import gate covers the G-06 production owner map;
+- canonical application owners create the API identity while root `api.py` is an exact
+  compatibility binder and bootstrap remains the sole lifecycle/composition owner;
 - sensitive settings responses use safe logging and `no-store` under the completed
   TRUSTED_DEPLOYMENT_ONLY security boundary.
 
-### Remaining technical convergence
+### Technical completion
 
-1. The import-boundary checker covers a reviewed subset of canonical package groups.
-   The G-06 owner map contains additional canonical feature, adapter and composition
-   groups that need role-aware blocking coverage.
-2. Root `api.py` is still the production API application/composition module. Importing
-   it creates the translation route executor, handlers, route definitions and registrar
-   before bootstrap creates RuntimeServices.
-3. P-API-01 retained that shape because request-time root-global patch seams and E-09
-   creation timing could not both be preserved by the evaluated canonical candidates.
-   It explicitly permits a revisit after those patch seams migrate to exact canonical
-   owners. FC-03 is that prerequisite.
+FC-05 reconciles every original Definition-of-Done row and records the integrated
+full, owner, package/no-host, lifecycle, 0.5.2 compatibility and isolated ComfyUI
+API/node execution gates. No technical backend refactor task remains READY.
 
 ### Compatibility boundary
 
@@ -99,7 +97,7 @@ The target owner matrix remains:
 | `infrastructure/*` | generic Comfy/filesystem/HTTP integration without feature meaning |
 | `common` | proven domain-neutral primitives only |
 
-FC-02 must enforce this complete role model without forcing adapters and composition
+FC-02D enforces this complete role model without forcing adapters and composition
 modules through feature-only rules.
 
 ## E-09 lifecycle invariants
