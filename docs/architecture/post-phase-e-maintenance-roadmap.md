@@ -132,6 +132,17 @@ Exit:
 - no gap: record Phase F complete and start G-04A;
 - gap: execute only the smallest F-02, re-audit the affected row, then start G-04A.
 
+Audit result at `bade01e36146456e163341998ab1a7a19a4ae0b3`:
+
+- [`python-typed-boundary-f01-audit.md`](python-typed-boundary-f01-audit.md)
+  records the production-free six-area inventory and reuses the existing
+  deterministic fixtures;
+- Phase F remains open: settings typed migration, Prompt/Autocomplete result
+  boundaries, and the common feature error taxonomy have exact follow-up findings;
+- only the smallest follow-up, F-02a Autocomplete typed result contracts, is selected
+  as the next task card;
+- G-04A and Issue #188 remain blocked until the affected Phase F rows are re-audited.
+
 ## 4. G-04A — Public API snapshot coverage audit
 
 Owner: Issue #188.

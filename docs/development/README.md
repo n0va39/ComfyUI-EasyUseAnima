@@ -22,6 +22,9 @@ Read only the sections needed by the active task.
    implementation and test failures remain local task work.
 6. Read a topic guide only when the active task touches it:
    - completed D/E execution record: `../architecture/backend-roadmap-resume-0.6.2.md`
+   - F-01 typed-boundary audit: `../architecture/python-typed-boundary-f01-audit.md`
+   - Autocomplete runtime contract: `../architecture/python-runtime-e05-autocomplete-contract.md`
+   - Wildcard runtime contract: `../architecture/python-runtime-e06-wildcard-contract.md`
    - compatibility registry: `../architecture/python-compatibility-shims.md`
    - queue identity: `../architecture/queue-ui-two-phase-correlation-addendum.md`
    - Prompt Studio execution projection: `../architecture/prompt-studio-execution-derived-projection.md`
