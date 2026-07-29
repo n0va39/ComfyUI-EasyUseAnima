@@ -13,9 +13,10 @@ Read only the sections needed by the active task.
    - run package/live/benchmark only when triggered.
 3. Active independent maintenance lane:
    [`../architecture/security-admin-settings-roadmap.md`](../architecture/security-admin-settings-roadmap.md)
-   - first READY task: Issue #199 / SEC-01 host capability and threat-model Contract;
-   - SEC-01 is production-free and must not implement authentication, a token,
-     diagnostics, or a settings split.
+   - SEC-01 completed with TRUSTED_DEPLOYMENT_ONLY;
+   - first READY task: Issue #199 / SEC-02 response-confidentiality Contract;
+   - SEC-02 is production-free and must not implement authentication, a token,
+     diagnostics, a settings split, or response changes.
 4. Completed backend and compatibility state:
    [`../architecture/post-phase-e-maintenance-roadmap.md`](../architecture/post-phase-e-maintenance-roadmap.md)
    - Phase F/G and G-CLOSE are complete; there is no READY Phase F/G task;
@@ -61,7 +62,8 @@ COMPLETE  G-04 public API / G-05 size ratchet / G-06 test ownership
 COMPLETE  G-CLOSE Phase F/G completion audit
 RETAIN    P-API-01; P-API-02 parked
 PARKED    D-14 / Phase H root removal
-READY     #199 SEC-01 security/admin host-capability Contract
+COMPLETE  #199 SEC-01 security/admin host-capability Contract
+READY     #199 SEC-02 response-confidentiality Contract
 EVENT     next ordinary release N -> later D-14 re-audit
 ```
 
@@ -76,7 +78,7 @@ The original backend stop is correct:
 That stop applies to the completed compatibility lane. It does not block the separate
 Issue #199 security/admin Contract.
 
-## Active SEC-01 boundary
+## Completed SEC-01 boundary
 
 Current primary-source evidence must be treated as follows:
 
@@ -89,7 +91,7 @@ Current primary-source evidence must be treated as follows:
 - the projection currently contains local/network configuration such as
   `wildcard.extra_paths`, `naia.host`, `naia.port`, and `naia.allow_remote_api`.
 
-SEC-01 must produce:
+SEC-01 produced:
 
 ```text
 deployment/threat matrix
@@ -109,9 +111,16 @@ TRUSTED_DEPLOYMENT_ONLY
 NO_DIAGNOSTICS
 ```
 
-SEC-01 must not add a token, diagnostics endpoint, settings split, authentication
-middleware, or frontend migration. It must not trust `comfy-user` or proxy headers as
-admin identity.
+The primary verdict is **TRUSTED_DEPLOYMENT_ONLY**. A single trusted operator on
+loopback is supported; an authenticated reverse proxy is conditionally supported only
+when every authenticated principal has equal operator authority and direct bypass is
+prevented. Direct LAN/remote, unauthenticated proxy, and managed/multi-tenant exposure
+are unsupported. `--multi-user` is not an authorization boundary.
+
+The authoritative result is
+[`../architecture/security-admin-settings-sec01-contract.md`](../architecture/security-admin-settings-sec01-contract.md).
+SEC-01 added no token, diagnostics endpoint, settings split, authentication
+middleware, frontend migration, or lifecycle state.
 
 ## E-09 non-regression summary
 
@@ -125,16 +134,16 @@ admin identity.
 - no API application or security capability may add a reset/close registry, second
   lock, second atexit, or production module reload.
 
-If a later SEC task needs an EasyUseAnima-owned capability, it must be immutable
-process-start configuration loaded by RuntimeConfig/bootstrap. SEC-01 only decides
-whether that owner is justified.
+SEC-01 rejected a process capability for this lane. If a future independently proven
+task needs one, it must still be immutable process-start configuration loaded by
+RuntimeConfig/bootstrap.
 
 ## Following state
 
 After SEC-01:
 
-1. create exactly one bounded SEC-02 only when the verdict proves implementation is
-   needed;
+1. run the exact production-free SEC-02 response-confidentiality Contract in the
+   security roadmap;
 2. keep diagnostics absent by default when no reliable authorization owner exists;
 3. do not reopen Phase F/G, P-API-02, or D-14 as a side effect;
 4. let the next ordinary release containing final shims become release N;

@@ -4,7 +4,10 @@
 
 - Status: active independent maintenance lane after Phase F/G completion.
 - Owner: Issue #199.
-- First READY task: SEC-01 host capability and threat-model Contract.
+- SEC-01 host capability and threat-model Contract: complete with
+  **TRUSTED_DEPLOYMENT_ONLY**; see
+  [`security-admin-settings-sec01-contract.md`](security-admin-settings-sec01-contract.md).
+- First READY task: SEC-02 response-confidentiality Contract.
 - Released baseline: 0.6.2.
 - This lane does not reopen Phase F/G, P-API-02, D-14, or Phase H.
 - Type: Security/Admin Contract first; no production behavior change before the
@@ -160,6 +163,12 @@ SEC-01 does not implement that owner.
 
 The audit must return exactly one primary verdict.
 
+SEC-01 selected **TRUSTED_DEPLOYMENT_ONLY**. No host administrator capability was
+proven, and conveying a process capability to the current browser UI would require a
+new authentication or gateway design. Administrator diagnostics remain absent. The
+current mixed settings projection stays within one trusted-operator deployment
+boundary; ordinary wildcard/autocomplete endpoints stay redacted.
+
 ### HOST_CAPABILITY
 
 Use only when a stable ComfyUI authenticated-admin contract is proven and available to
@@ -194,12 +203,18 @@ choose later.
 No task after SEC-01 is automatically READY.
 
 ```text
-READY       SEC-01 threat model / capability owner / field classification
-CONDITIONAL SEC-02 exact access and response Contract
+COMPLETE    SEC-01 threat model / capability owner / field classification
+READY       SEC-02 response-confidentiality Contract
 CONDITIONAL SEC-03 narrow backend implementation
 CONDITIONAL SEC-04 frontend settings migration, only if UI behavior changes
 CONDITIONAL SEC-05 security/package/live completion audit
 ```
+
+SEC-02 is justified by two directly observed response-confidentiality gaps: the shared
+unexpected-error correlator uses traceback-bearing exception logging, and the four
+sensitive settings read/mutation responses do not own an explicit
+`Cache-Control: no-store` contract. SEC-02 does not reconsider authentication,
+capability ownership, a diagnostics route, or a settings split.
 
 Examples of valid SEC-02 boundaries:
 
@@ -252,34 +267,89 @@ security architectures that are all viable, for example:
 User preference is not used as a substitute for security evidence. A missing host
 admin capability by itself is not a PRO blocker; it is an input to the SEC-01 verdict.
 
-## 9. Codex resume instruction
+## 9. SEC-02 task card and Codex resume instruction
 
 ```text
-Start Issue #199 / SEC-01 from latest origin/dev.
+Task / Issue:
+Issue #199 / SEC-02 response-confidentiality Contract
+
+Base SHA:
+Latest origin/dev after the SEC-01 Contract PR.
+
+Goal:
+Write the exact executable Contract for:
+1. sanitizing the shared unexpected-error request-correlation log so it contains only
+   the correlated request ID and a fixed event/category; and
+2. Cache-Control: no-store on GET /settings, POST /set_setting,
+   GET /long_text_settings, and POST /long_text_settings/save.
+Produce exactly one bounded SEC-03 implementation card only if the two requirements
+can remain inside their direct response owners.
+
+Allowed files:
+- docs/architecture/security-admin-settings-sec02-response-contract.md
+- docs/architecture/security-admin-settings-sec01-contract.md
+- docs/architecture/security-admin-settings-roadmap.md
+- docs/architecture/README.md
+- docs/development/README.md
+
+Production, test, tool, and fixture changes are forbidden in SEC-02.
 
 Read only:
 - current-policies.md
 - codex-execution-efficiency.md universal rules
 - this document
 - Issue #199 latest checkpoint
-- current EasyUseAnima settings/status/wildcard/autocomplete route owners and direct tests
-- current settings public projection and frontend consumers
-- current ComfyUI PromptServer middleware and UserManager primary source
-- E-09 lifecycle Contract only for the process-capability guard
+- security-admin-settings-sec01-contract.md
+- easyuse_anima/api/responses.py
+- settings.py and long_text_settings.py direct response owners
+- ApiRequestCorrelationTests, ApiSettingsRouteTests,
+  ApiLongTextSettingsRouteTests, and ApiPathRedactionTests
 
-Do not reopen Phase F/G, P-API-02, D-14, release, or Registry work.
-Do not implement authentication, a token, a diagnostics route, or a settings split in
-SEC-01.
+Preserve:
+- response status/body/request-ID/header behavior;
+- CancelledError and aiohttp HTTPException control flow;
+- handler identity, route order/signature/registration, and repeated initialize;
+- all E-09 lifecycle invariants;
+- current settings fields, storage, projection, and frontend behavior;
+- ordinary wildcard/autocomplete redaction.
 
-Produce:
-- deployment/threat matrix
-- route/field sensitivity inventory
-- host capability verdict
-- logging/redaction contract
-- one primary verdict: HOST_CAPABILITY, PROCESS_CAPABILITY,
-  TRUSTED_DEPLOYMENT_ONLY, or NO_DIAGNOSTICS
-- exact SEC-02 task card only when implementation is justified
+Forbidden changes:
+- authentication, token/capability, proxy/header trust, diagnostics endpoint;
+- settings split, schema/persistence/migration, frontend behavior;
+- global ComfyUI/access-log configuration or middleware;
+- RuntimeConfig/bootstrap/lifecycle/reset/shutdown changes;
+- broad logger refactor or unrelated API cleanup.
 
-Reuse existing deterministic tests. Add a fixture only for a real unowned contract.
-Package/live are not triggered by a docs-only SEC-01 result.
+Focused evidence, one target per runner:
+- ApiRequestCorrelationTests: correlation and safe unexpected-error behavior;
+- ApiSettingsRouteTests: settings response and failure behavior;
+- ApiLongTextSettingsRouteTests: long-text response behavior;
+- ApiPathRedactionTests: ordinary endpoint path redaction;
+- source/Contract consistency and git diff --check.
+
+Promotion gates:
+Docs-only SEC-02 does not run official full, package, live HTTP, or browser checks.
+The SEC-03 card must require official full once on its final candidate SHA. It may
+reuse package/no-host evidence when only the direct response owners change. No live
+or browser smoke is triggered for a pure log/header change; trigger isolated live HTTP
+only if status/body/request-ID behavior or host logger integration changes, and browser
+only if frontend files or interaction change.
+
+Rollback boundary:
+Revert the SEC-02 documentation PR. There is no runtime state, storage, schema, or
+migration rollback.
+
+Stop conditions:
+- safe logging requires global ComfyUI/access/proxy logger changes;
+- no-store cannot be attached without changing public response semantics;
+- proxy-header trust or a capability owner becomes necessary;
+- any E-09 lifecycle or frontend/settings migration change is required.
+
+Next:
+SEC-03 narrow backend implementation only after this Contract proves one bounded
+owner set. SEC-04/SEC-05 remain conditional. D-14, release, tag, and Registry remain
+blocked.
+
+Reuse existing deterministic tests. Add no fixture unless the response Contract cannot
+be represented by the existing direct owner tests.
 ```

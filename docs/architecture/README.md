@@ -24,9 +24,9 @@ then only the active task section, owning Issue, direct source, and direct tests
   consumer, rollback, and breaking-change gates.
 - The completed compatibility lane is recorded in
   [`post-phase-e-maintenance-roadmap.md`](post-phase-e-maintenance-roadmap.md).
-- First READY independent task: Issue
-  [#199](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/199) / SEC-01 host
-  capability and settings threat-model Contract.
+- Issue [#199](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/199) / SEC-01
+  completed with **TRUSTED_DEPLOYMENT_ONLY**. The first READY task is SEC-02
+  response-confidentiality Contract.
 - [`security-admin-settings-roadmap.md`](security-admin-settings-roadmap.md) owns that
   active lane. It does not reopen Phase F/G, P-API-02, or D-14.
 - Released baseline: 0.6.2. Registry activation is external administration and does
@@ -38,8 +38,8 @@ COMPLETE Phase D/E/F/G
   -> RETAIN P-API current root production facade
   -> PARKED H/D-14 compatibility retirement
 
-READY #199 SEC-01 security/admin Contract
-  -> CONDITIONAL exact SEC-02
+COMPLETE #199 SEC-01 security/admin Contract
+  -> READY SEC-02 response-confidentiality Contract
   -> CONDITIONAL narrow implementation/audit
 
 EVENT next ordinary release N
@@ -77,18 +77,24 @@ projection contains ordinary UI choices together with local/network configuratio
 including `wildcard.extra_paths`, `naia.host`, `naia.port`, and
 `naia.allow_remote_api`.
 
-SEC-01 must classify deployment trust, route/field sensitivity, authorization owner,
-and logging/redaction before any access-control or diagnostics implementation. It must
-not assume `request.remote`, Host, Origin, `comfy-user`, or forwarded headers are
-administrator authentication.
+[`security-admin-settings-sec01-contract.md`](security-admin-settings-sec01-contract.md)
+classifies the surface as **TRUSTED_DEPLOYMENT_ONLY**. `comfy-user`, `request.remote`,
+Host, Origin, and forwarded headers are not administrator authentication. The current
+settings UI remains inside one trusted-operator boundary, diagnostics remain absent,
+and ordinary wildcard/autocomplete endpoints remain redacted. SEC-02 owns only the
+exact response-confidentiality Contract for safe unexpected-error logging and
+`Cache-Control: no-store` on sensitive settings responses.
 
 ## Core documents
 
 ### Active
 
 - [`security-admin-settings-roadmap.md`](security-admin-settings-roadmap.md):
-  Issue #199 deployment/threat matrix, host-capability audit, settings-field
-  classification, E-09 guard, verdicts, validation, and Codex start instruction.
+  Issue #199 queue, validation, and exact SEC-02 resume card.
+- [`security-admin-settings-sec01-contract.md`](security-admin-settings-sec01-contract.md):
+  completed deployment/threat matrix, host-capability audit, settings-field
+  classification, logging/redaction Contract, E-09 disposition, and
+  TRUSTED_DEPLOYMENT_ONLY verdict.
 
 ### Completed backend and compatibility plan
 
