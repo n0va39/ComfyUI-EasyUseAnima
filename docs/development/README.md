@@ -13,7 +13,7 @@ Read only the sections needed by the active task.
    - run package/live/benchmark only when triggered.
 3. Current backend queue:
    [`../architecture/post-phase-e-maintenance-roadmap.md`](../architecture/post-phase-e-maintenance-roadmap.md)
-   - first READY task: Issue #563 / F-01 typed-boundary completion audit;
+   - first READY task: Issue #563 / F-02a Autocomplete typed result contracts;
    - D-14/H root removal is parked, not failed.
 4. Backend target architecture and compatibility policy:
    [`../architecture/README.md`](../architecture/README.md)
@@ -45,8 +45,8 @@ ordinary `dev` work.
 COMPLETE  Phase D package/root consolidation
 COMPLETE  Phase E runtime ownership/lifecycle/test isolation
 PARKED    D-14 / Phase H root removal
-READY     #563 F-01 typed-boundary completion audit
-NEXT      #188 G-04 public API snapshot audit
+READY     #563 F-02a Autocomplete typed result contracts
+BLOCKED   #188 G-04 public API snapshot audit until Phase F closes
 LATER     G-05 size ratchet / G-06 test ownership
 EVENT     next ordinary release N -> later D-14 re-audit
 ```
@@ -60,34 +60,34 @@ The D-14 stop is correct:
 
 That stop applies only to removal. It does not complete Phase F or G.
 
-## Active F-01 source map
+## Active F-02a source map
 
 Start with targeted owners rather than the full repository:
 
 ```text
-docs/architecture/python-backend.md              # Phase F and Definition of Done
-Issue #563
-merged #163 / #165 / #168 contract owners
-current Pyright baseline and strict-path ledger
-current API/schema/migration contracts
-current import-boundary and compatibility fixtures
-direct typed owner source/tests for each audited row
+docs/architecture/python-typed-boundary-f01-audit.md  # F-02a task card
+docs/architecture/python-runtime-e05-autocomplete-contract.md
+Issue #563 latest checkpoint
+direct Autocomplete owner source/tests
+current Pyright, import-boundary, and API fixtures
 ```
 
-F-01 is production-free. Classify each boundary as complete, intentionally dynamic at
-an adapter/migration edge, or one exact F-02 follow-up. Reuse existing fixtures and do
-not create a duplicate inventory by default.
+F-02a adds internal Autocomplete result types without changing runtime dictionary
+keys, order, values, redaction, owner identity, or public exports. Reuse the direct
+runtime/API contracts and do not expand into settings, Prompt, or error-taxonomy work.
 
 ## Following queue
 
-After F-01:
+After F-02a:
 
-1. execute only the smallest F-02 if the audit finds a real leak;
-2. run #188 G-04A against existing compatibility/node/API/package fixtures;
-3. audit Wildcard and API pure-shim feasibility without deleting root modules;
-4. add G-05 changed-path size growth and G-06 test-ownership gates;
-5. let the next ordinary release containing final shims become release N;
-6. re-audit D-14 only after an event-gate changes.
+1. re-audit the Prompt/Wildcard/Autocomplete row;
+2. execute the next smallest F-02 while any Phase F finding remains;
+3. only after Phase F closes, run #188 G-04A against existing
+   compatibility/node/API/package fixtures;
+4. audit Wildcard and API pure-shim feasibility without deleting root modules;
+5. add G-05 changed-path size growth and G-06 test-ownership gates;
+6. let the next ordinary release containing final shims become release N;
+7. re-audit D-14 only after an event-gate changes.
 
 No dedicated release, outbound telemetry, import-time deprecation warning, or public
 root removal is authorized by this queue.

@@ -17,7 +17,7 @@ then only the active task section, owning Issue, direct source, and direct tests
 - [`post-phase-e-maintenance-roadmap.md`](post-phase-e-maintenance-roadmap.md)
   owns the current queue.
 - First READY task: Issue [#563](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/563)
-  / F-01 typed-boundary completion audit.
+  / F-02a Autocomplete typed result contracts.
 - After Phase F handoff, Issue
   [#188](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/188)
   owns G-04 public API snapshot, G-05 size/complexity ratchet, and G-06 test ownership.
@@ -28,8 +28,9 @@ then only the active task section, owning Issue, direct source, and direct tests
   not block `dev`; do not republish or mutate the release.
 
 ```text
-READY  F-01 typed-boundary completion audit
-  -> optional smallest F-02
+READY  F-02a Autocomplete typed result contracts
+  -> re-audit the affected Phase F row
+  -> next smallest F-02 while a finding remains
   -> G-04A public API snapshot coverage audit
   -> optional G-04B gap
   -> Wildcard pure-shim feasibility Contract
