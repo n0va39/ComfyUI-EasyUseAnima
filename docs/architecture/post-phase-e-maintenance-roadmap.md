@@ -4,7 +4,7 @@
 
 - Status: active execution plan after Phase D and Phase E completion.
 - Primary parent: Issue #185.
-- Active first task: Issue #563 / F-02b Prompt Studio Advanced field typed contract.
+- Active first task: Issue #563 / F-02b Prompt field-family typed contract.
 - Quality owner: Issue #188.
 - Compatibility ledger: Issue #186.
 - D-14/H status: parked by compatibility gates, not failed.
@@ -67,7 +67,7 @@ ADR-002 result when evidence is absent or ambiguous.
 ```text
 COMPLETE F-02a Autocomplete typed result contracts             #563 / PR #566
   -> COMPLETE affected-row re-audit
-  -> READY F-02b Prompt Studio Advanced field typed contract   #563
+  -> READY F-02b Prompt field-family typed contract            #563
   -> RE-AUDIT affected Prompt row
   -> F-02      next smallest targeted gap while one remains
   -> G-04A    public API snapshot coverage audit              #188
@@ -144,7 +144,7 @@ Audit result, updated after F-02a merged at
   deterministic fixtures;
 - Autocomplete and Wildcard are complete after F-02a; Prompt's normalized Advanced
   fields and canonical Prompt Data remain exact, separable follow-up findings;
-- only the smallest follow-up, F-02b Prompt Studio Advanced field typed contract, is
+- only the smallest cohesive follow-up, F-02b Prompt field-family typed contract, is
   selected as the next task card;
 - settings migration and common error taxonomy remain separate findings;
 - G-04A and Issue #188 remain blocked until all Phase F follow-up rows are closed.
@@ -371,16 +371,18 @@ Read:
 - this document's F-01 result and validation sections
 - python-typed-boundary-f01-audit.md F-02b task card
 - Issue #563 latest checkpoint
-- direct Prompt Advanced owner source/tests and current Pyright/import fixtures
+- direct Prompt Advanced/Regional owner source/tests and current Pyright/import fixtures
 
 Do not read all historical D/E PRs and do not restart D-14 removal.
 
-Define one canonical internal TypedDict for the normalized eight-key Advanced-field
-shape and apply it through direct Prompt, Prompt Studio node-adapter, AiO-conditioning,
-wildcard, translation, and artist-mix consumers without changing runtime dictionaries,
-input/workflow migration, field order/defaults, behavior, identities, or public exports.
-Reuse the direct Prompt Studio, AiO conditioning, node-owner, Pyright, and import tests;
-update only a direct generated analyzer baseline if the canonical module requires it.
+Define internal PromptField, AdvancedField, and RegionalField TypedDicts, using a
+bounded generic only where shared correction/wildcard/translation helpers preserve the
+concrete subtype. Apply them through both normalizers, Prompt Studio node adapters,
+AiO conditioning, and artist mix without changing runtime dictionaries, input/workflow
+migration, field order/defaults, behavior, identities, or public exports. Preserve the
+legacy Extend adapter's omitted `pin`. Reuse direct Advanced/Regional Prompt Studio,
+AiO conditioning, node-owner, Pyright, and import tests; update only a direct generated
+analyzer baseline if the canonical module requires it.
 
 Run only targeted consistency/focused checks during the edit loop and git diff check.
 Run official full once on the final production/test/tool SHA.
