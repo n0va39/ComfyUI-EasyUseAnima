@@ -1,177 +1,169 @@
 # Python Backend Architecture
 
-These documents define the target backend architecture, migration rules, and reviewed
+These documents define the target backend architecture, migration rules and reviewed
 cross-surface contracts. They do not imply that every target state is implemented.
 
-Before selecting work, read the bounded execution policy in
-[`../development/codex-execution-efficiency.md`](../development/codex-execution-efficiency.md),
-then only the active task section, owning Issue, direct source, and direct tests.
+Read the bounded execution policy first, then only the active task, its owning Issue,
+direct source and direct tests.
 
 ## Active sequencing
 
-- Phase D root/package consolidation is complete.
-- Issue [#187](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/187)
-  and Phase E runtime ownership/lifecycle/test isolation are complete.
-- Phase F typed boundaries and Issue
-  [#188](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/188) G-04/G-05/G-06
-  quality gates are complete. G-CLOSE records zero unfinished executable Phase F/G
-  tasks.
-- P-WC-01/P-WC-02 completed the Wildcard direct-shim conversion.
-- P-API-01 / Issue
-  [#582](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/582) completed with a
-  **RETAIN** verdict. P-API-02 is not READY.
-- D-14/Phase H root removal is correctly parked by production-import, release-window,
-  consumer, rollback, and breaking-change gates.
-- The completed compatibility lane is recorded in
-  [`post-phase-e-maintenance-roadmap.md`](post-phase-e-maintenance-roadmap.md).
-- Issue [#199](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/199) / SEC-01
-  completed with **TRUSTED_DEPLOYMENT_ONLY**. SEC-02 completed with a direct-owner
-  **FEASIBLE** result, SEC-03 implemented it, SEC-04 was skipped, and SEC-05 closed the
-  lane with no follow-up. There is no READY security task.
-- [`security-admin-settings-roadmap.md`](security-admin-settings-roadmap.md) owns that
-  completed lane. It does not reopen Phase F/G, P-API-02, or D-14.
-- Released baseline: 0.6.2. Registry activation is external administration and does
-  not block `dev`; do not republish or mutate the release.
+- Active final-convergence plan:
+  [`backend-final-convergence-roadmap.md`](backend-final-convergence-roadmap.md)
+- Active owner: Issue
+  [#593](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/593)
+- First READY task: FC-01 original Definition-of-Done closure audit.
+- Parent architecture: Issue
+  [#185](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/185)
+- Compatibility/release ledger: Issue
+  [#186](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/186)
+- E-09 lifecycle owner: completed Issue
+  [#187](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/187)
 
 ```text
-COMPLETE Phase D/E/F/G
-  -> COMPLETE P-WC direct-shim preparation
-  -> RETAIN P-API current root production facade
-  -> PARKED H/D-14 compatibility retirement
+COMPLETE Phase D/E/F/G and G-CLOSE
+COMPLETE P-WC Wildcard direct-shim conversion
+RETAIN   P-API-01 current root API production facade
+COMPLETE SEC-01 through SEC-05 security/admin lane
 
-COMPLETE #199 SEC-01 security/admin Contract
-  -> COMPLETE SEC-02 response-confidentiality Contract
-  -> COMPLETE SEC-03 narrow backend implementation
-  -> SKIPPED SEC-04 frontend migration
-  -> COMPLETE SEC-05 completion audit; no follow-up
+READY    FC-01 Definition-of-Done closure audit
+  ->     FC-02 complete owner-boundary gate
+  ->     FC-03 root API patch-owner migration
+  ->     FC-04 canonical API application/E-09 convergence
+  ->     FC-05 technical completion audit
 
-EVENT next ordinary release N
-  -> later H/D-14 re-audit
+EVENT    ordinary release N
+  ->     later H/D-14 compatibility re-audit
 ```
+
+The prior `no READY task` conclusion was correct for completed F/G/security work and
+compatibility deletion. It did not mean that the initial architecture Definition of
+Done had been fully reconciled.
 
 ## Current code boundary
 
-The current backend is functional and validated.
+The backend is functional and validated.
 
-### Compatibility/lifecycle boundary
+### Completed boundaries
 
-- root `__init__.py` imports root `api.py` and passes `api.register_routes` into
-  bootstrap initialization;
-- importing root `api.py` creates the translation route executor and route application
-  before bootstrap freezes the RuntimeServices cleanup plan;
-- root `api.py` remains a production route/payload/runtime facade;
-- root `wildcard_engine.py` is an import-only compatibility shim over canonical
-  Wildcard owners, but its final form has not shipped and release N has not begun.
+- node implementations live in canonical packages and root `nodes.py` is an explicit
+  compatibility facade;
+- feature routes, typed boundaries, migrations and common error categories are owned by
+  canonical packages;
+- RuntimeServices ownership, cleanup, rollback and isolated test runtime are complete;
+- Wildcard production consumers use canonical owners and root `wildcard_engine.py` is
+  import-only;
+- public API coverage, size-growth ratchet and canonical test ownership are executable
+  gates;
+- sensitive settings responses use safe logging and `no-store` under the completed
+  TRUSTED_DEPLOYMENT_ONLY security boundary.
 
-The API import order is part of the E-09 lifecycle contract. Any future candidate must
-preserve one application/executor identity, executor-before-cleanup-plan timing,
-repeated initialize behavior, terminal shutdown, and late root-import safety without a
-canonical-to-root back-reference.
+### Remaining technical convergence
 
-### Security/admin boundary
+1. The import-boundary checker covers a reviewed subset of canonical package groups.
+   The G-06 owner map contains additional canonical feature, adapter and composition
+   groups that need role-aware blocking coverage.
+2. Root `api.py` is still the production API application/composition module. Importing
+   it creates the translation route executor, handlers, route definitions and registrar
+   before bootstrap creates RuntimeServices.
+3. P-API-01 retained that shape because request-time root-global patch seams and E-09
+   creation timing could not both be preserved by the evaluated canonical candidates.
+   It explicitly permits a revisit after those patch seams migrate to exact canonical
+   owners. FC-03 is that prerequisite.
 
-Current ComfyUI source provides user-profile selection, origin/host controls, and
-optional CORS, but no demonstrated authenticated administrator capability for
-custom-node routes. The `comfy-user` header is a user-data selector, not proof of
-administrator authority.
+### Compatibility boundary
 
-Current EasyUseAnima settings routes read and mutate the settings projection. The
-projection contains ordinary UI choices together with local/network configuration,
-including `wildcard.extra_paths`, `naia.host`, `naia.port`, and
-`naia.allow_remote_api`.
+Actual root-shim removal remains event-gated:
 
-[`security-admin-settings-sec01-contract.md`](security-admin-settings-sec01-contract.md)
-classifies the surface as **TRUSTED_DEPLOYMENT_ONLY**. `comfy-user`, `request.remote`,
-Host, Origin, and forwarded headers are not administrator authentication. The current
-settings UI remains inside one trusted-operator boundary, diagnostics remain absent,
-and ordinary wildcard/autocomplete endpoints remain redacted. SEC-02 proved, and
-SEC-03 implemented, safe unexpected-error logging and `Cache-Control: no-store` on
-sensitive settings responses inside three direct production owners without root
-composition or lifecycle change.
+- final forms need an ordinary published release N;
+- consumer and harm evidence must be considered;
+- public removal needs breaking-change approval, release notes and rollback;
+- low-cost shims may be deliberately retained.
 
-## Core documents
+Technical architecture completion does not require deleting every public shim.
 
-### Completed security/admin lane
+## Fixed owner model
 
-- [`security-admin-settings-roadmap.md`](security-admin-settings-roadmap.md):
-  completed Issue #199 queue, validation, SEC-03 implementation, and SEC-05 audit.
-- [`security-admin-settings-sec01-contract.md`](security-admin-settings-sec01-contract.md):
-  completed deployment/threat matrix, host-capability audit, settings-field
-  classification, logging/redaction Contract, E-09 disposition, and
-  TRUSTED_DEPLOYMENT_ONLY verdict.
-- [`security-admin-settings-sec02-response-contract.md`](security-admin-settings-sec02-response-contract.md):
-  safe fixed logging, private sensitivity marker, `no-store` coverage, exact owner set,
-  preserved invariants, verification ownership, and SEC-03 rollback/stop boundary.
+The target owner matrix remains:
 
-### Completed backend and compatibility plan
+| Surface | Owner and durable responsibility |
+| --- | --- |
+| Root `__init__.py` | permanent ComfyUI entrypoint; exported mappings and one guarded startup path |
+| Root compatibility files | explicit aliases/facades only; no new feature, I/O, cache or lifecycle logic |
+| `bootstrap.py` | sole lifecycle/composition owner, RuntimeConfig, initialize/shutdown and concrete wiring |
+| `runtime.py` | installed RuntimeServices identity and process runtime access |
+| `registration.py` | pure node mapping composition |
+| `nodes/*` | raw ComfyUI-to-feature adapters |
+| `api/application` | canonical API application identities after FC-04 |
+| `api/router.py` | route order/signature/resolver/registrar infrastructure |
+| `api/routes/*` | request parse, feature call and response/error mapping |
+| Feature packages | domain rules, typed contracts, migrations and feature ports |
+| `infrastructure/*` | generic Comfy/filesystem/HTTP integration without feature meaning |
+| `common` | proven domain-neutral primitives only |
 
-- [`post-phase-e-maintenance-roadmap.md`](post-phase-e-maintenance-roadmap.md):
-  completed Phase F/G plan, P-WC/P-API results, release-N runway, and D-14 event gates.
+FC-02 must enforce this complete role model without forcing adapters and composition
+modules through feature-only rules.
+
+## E-09 lifecycle invariants
+
+All final-convergence work preserves:
+
+- bootstrap as the only lifecycle owner;
+- one initialize/shutdown lock and one atexit registration;
+- terminal/idempotent shutdown and no hot reinitialize;
+- repeated initialize preserving runtime identity while refreshing routes;
+- one translation route executor created before cleanup-plan composition;
+- executor shutdown as cleanup item 1;
+- the fixed seven-step cleanup order;
+- expected-identity rollback and preservation of the original startup error;
+- retained route marker/routes and no invented route deregistration;
+- no file-I/O limiter or provider/client cleanup without a separate contract.
+
+FC-03 changes patch ownership only. FC-04 may move application construction only after
+its lifecycle Contract proves these invariants.
+
+## Core active documents
+
+- [`backend-final-convergence-roadmap.md`](backend-final-convergence-roadmap.md):
+  FC-01 through FC-07, technical versus compatibility completion, optional large-module
+  disposition, validation and Codex resume instruction.
+- [`python-backend.md`](python-backend.md): target architecture, phases and original
+  Definition of Done.
 - [`python-api-papi01-e09-lifecycle-gate.md`](python-api-papi01-e09-lifecycle-gate.md):
-  P-API creation-order, identity, terminal lifecycle, cleanup, rollback, RETAIN result,
-  and revisit events.
+  current API identity graph, RETAIN verdict, root patch-time seam inventory and revisit
+  events.
 - [`python-runtime-e09-lifecycle-contract.md`](python-runtime-e09-lifecycle-contract.md):
-  authoritative bootstrap lifecycle, fixed cleanup order, startup rollback, retained
-  no-op boundaries, and terminal shutdown contract.
-- [`python-runtime-base-contract.md`](python-runtime-base-contract.md):
-  RuntimeServices identity, construction, installation, and cleanup-plan base contract.
-- [`python-runtime-e03-repository-filesystem-contract.md`](python-runtime-e03-repository-filesystem-contract.md):
-  repository and filesystem runtime ownership.
-- [`python-runtime-e04-translation-contract.md`](python-runtime-e04-translation-contract.md):
-  translation service, facade, route-executor, and cleanup ownership.
-- [`python-runtime-e05-autocomplete-contract.md`](python-runtime-e05-autocomplete-contract.md):
-  autocomplete index and snapshot lifecycle ownership.
-- [`python-runtime-e06-wildcard-contract.md`](python-runtime-e06-wildcard-contract.md):
-  wildcard cache and source lifecycle ownership.
-- [`python-runtime-e08-aio-cache-contract.md`](python-runtime-e08-aio-cache-contract.md):
-  AiO first-pass cache ownership and cleanup contract.
-- [`python-runtime-e10-test-isolation-contract.md`](python-runtime-e10-test-isolation-contract.md):
-  package, runtime, and host test-isolation boundary.
-- [`python-runtime-state-inventory.md`](python-runtime-state-inventory.md):
-  completed mutable-runtime owner and disposition inventory.
-- [`python-phase-fg-completion-audit.md`](python-phase-fg-completion-audit.md):
-  final Phase F/G evidence reconciliation and zero-follow-up decision.
-- [`python-size-complexity-g05a-contract.md`](python-size-complexity-g05a-contract.md):
-  analyzer-owned line metrics and incremental growth ratchet.
-- [`python-test-ownership-g06a-contract.md`](python-test-ownership-g06a-contract.md):
-  canonical package direct test owners and shared matrix ownership.
-- [`python-public-api-g04a-audit.md`](python-public-api-g04a-audit.md):
-  completed public-surface owner map and no-G-04B decision.
-- [`python-wildcard-pwc01-facade-feasibility.md`](python-wildcard-pwc01-facade-feasibility.md):
-  FEASIBLE Wildcard direct-shim decision and P-WC-02 boundary.
-- [`backend-roadmap-resume-0.6.2.md`](backend-roadmap-resume-0.6.2.md):
-  completed D-08 and Phase E execution record plus post-Phase-E D-14 verdict.
-
-### Target architecture and policy
-
-- [`python-backend.md`](python-backend.md): target ownership, phase definitions, and
-  overall Definition of Done.
-- [`python-backend-execution-roadmap.md`](python-backend-execution-roadmap.md):
-  accumulated historical execution detail; not the current immediate queue.
-- [`python-compatibility-shims.md`](python-compatibility-shims.md): current root/shim
-  inventory, known consumers, release evidence, and removal gates.
-- [`adr-001-modular-monolith.md`](adr-001-modular-monolith.md): feature-oriented modular
-  monolith decision.
-- [`adr-002-compatibility-shims.md`](adr-002-compatibility-shims.md): support-window,
-  evidence, staged-retirement, and public-breaking-change policy.
+  authoritative lifecycle and cleanup/rollback contract.
+- [`python-compatibility-shims.md`](python-compatibility-shims.md): current root surfaces,
+  release evidence and ADR-002 gates.
 - [`../development/codex-execution-efficiency.md`](../development/codex-execution-efficiency.md):
-  context budget, focused test ladder, evidence reuse, and reporting.
+  task-card, focused validation, evidence reuse and context policy.
 
-## E-09 conflict guardrails
+## Completed evidence documents
 
-- A security capability, when justified by a later Contract, is immutable process-start
-  configuration owned through RuntimeConfig/bootstrap.
-- It does not add a second lifecycle lock, atexit hook, shutdown/reset API, closeable
-  registry, or hot reinitialize behavior.
-- G-05 thresholds do not split the cohesive lifecycle owner merely to reduce line
-  counts.
-- G-06 keeps lifecycle integration evidence with bootstrap/runtime and does not add
-  production reload/reset behavior.
-- Release/package shutdown evidence runs in a fresh process.
+Read only when the active task touches the boundary:
+
+- [`backend-roadmap-resume-0.6.2.md`](backend-roadmap-resume-0.6.2.md): completed D-08
+  and Phase E execution record.
+- [`python-phase-fg-completion-audit.md`](python-phase-fg-completion-audit.md): completed
+  typed/quality lane under its scoped criteria.
+- [`python-public-api-g04a-audit.md`](python-public-api-g04a-audit.md)
+- [`python-size-complexity-g05a-contract.md`](python-size-complexity-g05a-contract.md)
+- [`python-test-ownership-g06a-contract.md`](python-test-ownership-g06a-contract.md)
+- [`python-wildcard-pwc01-facade-feasibility.md`](python-wildcard-pwc01-facade-feasibility.md)
+- [`security-admin-settings-roadmap.md`](security-admin-settings-roadmap.md)
+- [`python-runtime-base-contract.md`](python-runtime-base-contract.md)
+- [`python-runtime-state-inventory.md`](python-runtime-state-inventory.md)
+- [`python-runtime-e03-repository-filesystem-contract.md`](python-runtime-e03-repository-filesystem-contract.md)
+- [`python-runtime-e04-translation-contract.md`](python-runtime-e04-translation-contract.md)
+- [`python-runtime-e05-autocomplete-contract.md`](python-runtime-e05-autocomplete-contract.md)
+- [`python-runtime-e06-wildcard-contract.md`](python-runtime-e06-wildcard-contract.md)
+- [`python-runtime-e08-aio-cache-contract.md`](python-runtime-e08-aio-cache-contract.md)
+- [`python-runtime-e10-test-isolation-contract.md`](python-runtime-e10-test-isolation-contract.md)
 
 ## Cross-surface references
 
-Read only when the task touches the surface:
+Read only when needed:
 
 - [`queue-ui-two-phase-correlation-addendum.md`](queue-ui-two-phase-correlation-addendum.md)
 - [`prompt-studio-execution-derived-projection.md`](prompt-studio-execution-derived-projection.md)
@@ -183,15 +175,10 @@ Read only when the task touches the surface:
 
 - Branch/release/validation policy: [`MAINTAINING.md`](../../MAINTAINING.md)
 - Development entrypoint: [`../development/README.md`](../development/README.md)
-- Completed security/admin queue: `security-admin-settings-roadmap.md`
-- Completed Phase F/G and compatibility event gates: `post-phase-e-maintenance-roadmap.md`
-- Target architecture: `python-backend.md`, ADR-001, ADR-002
-- Feature behavior: owning Issue
+- Active technical queue: `backend-final-convergence-roadmap.md`
+- Target architecture: `python-backend.md`, ADR-001 and ADR-002
 - Compatibility decisions: Issue #186 plus the shim registry
-- Security/admin settings boundary: Issue #199
+- Feature behavior: owning Issue
 
-The efficiency protocol chooses the smallest sufficient evidence; it does not weaken
-correctness, compatibility, package, live, security, or release gates.
-
-No document in this directory authorizes root deletion, public breaking changes,
-release publication, tags, Registry actions, or an authentication mechanism by itself.
+No document here independently authorizes root deletion, a public breaking change,
+release publication, tags or Registry actions.
