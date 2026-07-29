@@ -4,7 +4,7 @@
 
 - Status: active execution plan after Phase D and Phase E completion.
 - Primary parent: Issue #185.
-- Active first task: Issue #188 / G-04A public API snapshot coverage audit.
+- Active first task: Issue #186 / P-WC-01 wildcard pure-shim feasibility Contract.
 - Quality owner: Issue #188.
 - Compatibility ledger: Issue #186.
 - D-14/H status: parked by compatibility gates, not failed.
@@ -53,7 +53,7 @@ ADR-002 result when evidence is absent or ambiguous.
 
 ### Remaining global roadmap work
 
-- G-04 public API snapshot completion is not recorded.
+- G-04 public API snapshot coverage is complete; no G-04B gate was required.
 - G-05 size/complexity growth ratchet is not implemented as a blocking incremental gate.
 - G-06 canonical test ownership is not completed.
 - `api.py` and `wildcard_engine.py` have not reached a proven pure-shim form that can
@@ -76,9 +76,9 @@ COMPLETE F-02a Autocomplete typed result contracts             #563 / PR #566
   -> COMPLETE F-02f canonical categories and feature inheritance #563
   -> COMPLETE F-02g authoritative profile/translation API mappings #563 / PR #577
   -> COMPLETE F-02h affected error-row re-audit and Phase F close #563
-  -> READY G-04A public API snapshot coverage audit            #188
-  -> OPTIONAL G-04B  minimal missing public-surface gate
-  -> P-WC-01  wildcard pure-shim feasibility Contract         #186
+  -> COMPLETE G-04A public API snapshot coverage audit         #188
+  -> NOT REQUIRED G-04B minimal missing public-surface gate
+  -> READY P-WC-01 wildcard pure-shim feasibility Contract     #186
   -> OPTIONAL P-WC-02  internal consumer/facade Move
   -> P-API-01 API production-facade feasibility Contract      #186
   -> OPTIONAL P-API-02 canonical production-entry Move
@@ -199,6 +199,18 @@ Exit:
 
 - existing gates already complete G-04: record completion without a synthetic rewrite;
 - gaps exist: create one bounded G-04B Contract/tool PR.
+
+Audit result:
+
+- [`python-public-api-g04a-audit.md`](python-public-api-g04a-audit.md) maps every
+  required surface to its existing deterministic owner;
+- the three permanent root entrypoint names, 18 supported mapped-node identities,
+  explicit root/canonical `__all__`, F-01 schema/result/error boundaries, and shipped
+  archive closure are already covered;
+- private/transitional bindings remain excluded or compatibility-ledger-owned, and no
+  unsupported name is promoted;
+- G-04A is complete without a synthetic fixture, so G-04B is not required;
+- the next READY task is Issue #186 / P-WC-01.
 
 ## 5. Pre-retirement preparation without removal
 
@@ -374,32 +386,31 @@ with Codex.
 ## 10. Codex resume instruction
 
 ```text
-Start Issue #188 / G-04A only from latest origin/dev after F-02h merges.
+Start Issue #186 / P-WC-01 only from latest origin/dev after G-04A merges.
 
 Read:
 - current-policies.md
 - codex-execution-efficiency.md universal rules
-- this document's G-04A and validation sections
-- python-typed-boundary-f01-audit.md G-04A handoff surface
-- Issue #188 latest checkpoint
-- python_compatibility_surface.v1.json and its direct owner
-- node/workflow, API/schema, package-skeleton, and Registry archive-closure contracts
+- this document's P-WC-01 and validation sections
+- Issue #186 latest P-WC-01 checkpoint
+- wildcard_engine.py and its direct api.py/nodes.py/canonical callers
+- direct wildcard compatibility, identity, determinism, package, and import owners
 
-Do not read all historical D/E PRs and do not restart D-14 removal.
+Do not read all historical D/E PRs and do not start D-14 removal.
 
-Audit the existing supported public surface against the current compatibility,
-node/workflow, API/schema, package, and archive-closure fixtures. Map existing evidence
-instead of creating a duplicate manifest. Classify each required public surface as
-covered, intentionally private/compatibility-only, or the smallest exact G-04B gap.
-Do not remove or deprecate a public/root symbol during the audit.
+Audit whether root wildcard_engine.py can become a pure compatibility shim while
+preserving call-time snapshot/source/build seams, deterministic NumPy seed, expansion
+budget, errors, object identity, and flat-import compatibility. Produce only a
+production-free FEASIBLE or RETAIN contract with exact evidence and a bounded Move
+card when feasible. Do not implement the Move in P-WC-01.
 
 Run only targeted consistency/focused checks during the edit loop and git diff check.
-Run official full once on the final test/tool SHA when the audit changes an executable
-gate or fixture.
+Run official full once on the final test/tool SHA when the contract changes an
+executable gate or fixture.
 Package/live are not triggered.
 
-Push a dev-targeted Draft PR. If coverage is complete, close G-04A and select the next
-roadmap task. If a gap exists, emit only the smallest G-04B Contract/gate card.
+Push a dev-targeted Draft PR. If FEASIBLE, select only the bounded P-WC-02 Move. If
+RETAIN, record the exact blocker and next evidence trigger before selecting P-API-01.
 
 Do not change production behavior, public/root exports, API/node payloads, migration
 semantics, root files, deprecation warnings/telemetry, release/tag, or Registry state.

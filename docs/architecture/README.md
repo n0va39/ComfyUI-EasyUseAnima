@@ -16,11 +16,14 @@ then only the active task section, owning Issue, direct source, and direct tests
   production-import, release-window, consumer, rollback, or breaking-change gates.
 - [`post-phase-e-maintenance-roadmap.md`](post-phase-e-maintenance-roadmap.md)
   owns the current queue.
-- First READY task: Issue [#563](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/563)
-  / F-02g authoritative profile/translation API mappings.
-- After Phase F handoff, Issue
-  [#188](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/188)
-  owns G-04 public API snapshot, G-05 size/complexity ratchet, and G-06 test ownership.
+- Phase F and Issue
+  [#188](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/188) / G-04 public
+  API snapshot coverage are complete; existing deterministic owners required no G-04B
+  fixture. Issue #188 continues to own G-05 size/complexity ratchet and G-06 test
+  ownership.
+- First READY task: Issue
+  [#186](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/186) / P-WC-01
+  wildcard pure-shim feasibility Contract.
 - Issue [#186](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/186)
   remains the retained compatibility ledger. It owns pre-retirement feasibility and
   later D-14 decisions, not an immediately executable deletion task.
@@ -38,11 +41,11 @@ COMPLETE F-02a Autocomplete typed result contracts
   -> COMPLETE affected settings/profile/workflow-row re-audit
   -> COMPLETE F-02e common feature error taxonomy Contract
   -> COMPLETE F-02f canonical categories and feature inheritance
-  -> READY F-02g authoritative profile/translation API mappings
-  -> F-02h error-row and Phase F completion audit
-  -> G-04A public API snapshot coverage audit
-  -> optional G-04B gap
-  -> Wildcard pure-shim feasibility Contract
+  -> COMPLETE F-02g authoritative profile/translation API mappings
+  -> COMPLETE F-02h error-row and Phase F completion audit
+  -> COMPLETE G-04A public API snapshot coverage audit
+  -> NOT REQUIRED G-04B gap
+  -> READY Wildcard pure-shim feasibility Contract
   -> API production-facade feasibility Contract
   -> approved internal-consumer Moves only
   -> G-05 size ratchet
@@ -79,6 +82,9 @@ of architectural success by itself.
 - [`python-typed-boundary-f01-audit.md`](python-typed-boundary-f01-audit.md):
   current Phase F typed-boundary inventory, classifications, G-04A handoff surface,
   and the selected smallest F-02 task card.
+- [`python-public-api-g04a-audit.md`](python-public-api-g04a-audit.md):
+  completed public-surface owner map, root-name classifications, archive-closure
+  evidence, and the no-G-04B decision.
 - [`python-feature-error-taxonomy-contract.md`](python-feature-error-taxonomy-contract.md):
   executable error inventory, canonical categories, preserved compatibility, adapter
   authority decision, and ordered F-02f/F-02g/F-02h task boundaries.
