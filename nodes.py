@@ -542,25 +542,29 @@ try:
     from .easyuse_anima.translation.service import (
         translate_prompt_markers,
     )
-    from .wildcard_engine import (
+    from .easyuse_anima.wildcard.expansion import has_wildcard_syntax
+    from .easyuse_anima.wildcard.mode import (
+        PROMPT_STUDIO_WILDCARD_MODE_LABELS,
+        WILDCARD_MODE_FIXED,
+        WILDCARD_MODE_POPULATE,
+        WILDCARD_MODE_SEQUENTIAL,
+        normalize_prompt_studio_wildcard_mode,
+        normalize_wildcard_mode,
+    )
+    from .easyuse_anima.wildcard.seed import (
         MAX_SEED,
         PUBLIC_MAX_SEED,
-        PROMPT_STUDIO_WILDCARD_MODE_LABELS,
         SEED_CONTROL_DECREMENT,
         SEED_CONTROL_FIXED,
         SEED_CONTROL_INCREMENT,
         SEED_CONTROL_MODES,
         SEED_CONTROL_RANDOMIZE,
-        WILDCARD_MODE_FIXED,
-        WILDCARD_MODE_POPULATE,
-        WILDCARD_MODE_SEQUENTIAL,
-        expand_wildcard_texts,
-        expand_wildcards,
-        has_wildcard_syntax,
         next_seed,
         normalize_seed,
-        normalize_prompt_studio_wildcard_mode,
-        normalize_wildcard_mode,
+    )
+    from .easyuse_anima.wildcard.service import (
+        expand_wildcard_texts,
+        expand_wildcards,
         wildcard_sources_signature,
     )
 except ImportError:  # allows simple local import tests outside ComfyUI's package loader
@@ -1104,25 +1108,29 @@ except ImportError:  # allows simple local import tests outside ComfyUI's packag
     from easyuse_anima.translation.service import (
         translate_prompt_markers,
     )
-    from wildcard_engine import (
+    from easyuse_anima.wildcard.expansion import has_wildcard_syntax
+    from easyuse_anima.wildcard.mode import (
+        PROMPT_STUDIO_WILDCARD_MODE_LABELS,
+        WILDCARD_MODE_FIXED,
+        WILDCARD_MODE_POPULATE,
+        WILDCARD_MODE_SEQUENTIAL,
+        normalize_prompt_studio_wildcard_mode,
+        normalize_wildcard_mode,
+    )
+    from easyuse_anima.wildcard.seed import (
         MAX_SEED,
         PUBLIC_MAX_SEED,
-        PROMPT_STUDIO_WILDCARD_MODE_LABELS,
         SEED_CONTROL_DECREMENT,
         SEED_CONTROL_FIXED,
         SEED_CONTROL_INCREMENT,
         SEED_CONTROL_MODES,
         SEED_CONTROL_RANDOMIZE,
-        WILDCARD_MODE_FIXED,
-        WILDCARD_MODE_POPULATE,
-        WILDCARD_MODE_SEQUENTIAL,
-        expand_wildcard_texts,
-        expand_wildcards,
-        has_wildcard_syntax,
         next_seed,
         normalize_seed,
-        normalize_prompt_studio_wildcard_mode,
-        normalize_wildcard_mode,
+    )
+    from easyuse_anima.wildcard.service import (
+        expand_wildcard_texts,
+        expand_wildcards,
         wildcard_sources_signature,
     )
 

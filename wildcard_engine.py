@@ -1,8 +1,5 @@
 from __future__ import annotations
 
-from pathlib import Path
-from typing import Iterable, Sequence
-
 # NumPy is mandatory in supported ComfyUI runtimes and defines the seeded
 # wildcard sampling contract. A stdlib fallback would produce different results.
 import numpy as np
@@ -191,101 +188,22 @@ except ImportError:
     )
 
 try:
-    from .easyuse_anima.wildcard.library import (
-        _WildcardLibrary as _WildcardLibraryCore,
+    from .easyuse_anima.wildcard.service import (
+        _load_wildcard_map,
+        _wildcard_snapshot,
+        _WildcardLibrary,
+        expand_wildcard_texts,
+        expand_wildcards,
+        list_wildcards,
+        wildcard_sources_signature,
     )
 except ImportError:
-    from easyuse_anima.wildcard.library import (
-        _WildcardLibrary as _WildcardLibraryCore,
+    from easyuse_anima.wildcard.service import (
+        _load_wildcard_map,
+        _wildcard_snapshot,
+        _WildcardLibrary,
+        expand_wildcard_texts,
+        expand_wildcards,
+        list_wildcards,
+        wildcard_sources_signature,
     )
-
-try:
-    from .easyuse_anima.wildcard import service as _wildcard_service
-except ImportError:
-    from easyuse_anima.wildcard import service as _wildcard_service
-
-def _wildcard_snapshot(roots: Iterable[Path]) -> _WildcardSnapshot:
-    return _DEFAULT_WILDCARD_SNAPSHOTS.snapshot_for_roots(
-        roots,
-        scan_sources=_wildcard_sources._scan_wildcard_sources,
-        build_snapshot=_build_wildcard_snapshot,
-    )
-
-
-def _load_wildcard_map(roots: Iterable[Path]) -> dict[str, list[WildcardOption]]:
-    return _wildcard_service._load_wildcard_map_with(
-        roots,
-        snapshot_for_roots=_wildcard_snapshot,
-    )
-
-
-def list_wildcards(extra_paths: str | None = None, roots: Iterable[Path] | None = None) -> list[str]:
-    return _wildcard_service._list_wildcards_with(
-        extra_paths,
-        roots,
-        snapshot_for_roots=_wildcard_snapshot,
-    )
-
-
-def wildcard_sources_signature(extra_paths: str | None = None, roots: Iterable[Path] | None = None) -> dict:
-    return _wildcard_service._wildcard_sources_signature_with(
-        extra_paths,
-        roots,
-        snapshot_for_roots=_wildcard_snapshot,
-    )
-
-
-class _WildcardLibrary(_WildcardLibraryCore):
-    def __init__(
-        self,
-        roots: Iterable[Path] | None = None,
-        *,
-        snapshot: _WildcardSnapshot | None = None,
-    ):
-        if snapshot is None:
-            snapshot = _wildcard_snapshot(roots or ())
-        super().__init__(snapshot)
-
-
-def expand_wildcard_texts(
-    texts: Sequence[str],
-    seed=0,
-    mode: str = WILDCARD_MODE_POPULATE,
-    extra_paths: str | None = None,
-    roots: Iterable[Path] | None = None,
-    budget: WildcardExpansionBudget | None = None,
-) -> tuple[WildcardExpansionResult, ...]:
-    """Expand ordered texts through one deterministic selector stream.
-
-    Each text keeps its existing recursion and safety budget, while expansion
-    stages run across the texts in order. This matches expanding one Prompt
-    Studio prompt without joining fields through a lossy delimiter.
-    """
-    return _wildcard_service._expand_wildcard_texts_with(
-        texts,
-        seed=seed,
-        mode=mode,
-        extra_paths=extra_paths,
-        roots=roots,
-        budget=budget,
-        snapshot_for_roots=_wildcard_snapshot,
-    )
-
-
-
-def expand_wildcards(
-    text: str,
-    seed=0,
-    mode: str = WILDCARD_MODE_POPULATE,
-    extra_paths: str | None = None,
-    roots: Iterable[Path] | None = None,
-    budget: WildcardExpansionBudget | None = None,
-) -> WildcardExpansionResult:
-    return expand_wildcard_texts(
-        (text,),
-        seed=seed,
-        mode=mode,
-        extra_paths=extra_paths,
-        roots=roots,
-        budget=budget,
-    )[0]

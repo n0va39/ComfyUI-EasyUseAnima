@@ -46,6 +46,7 @@ REGISTRY_ENTRY_MODULE_CANDIDATES = (
     "prompt_translation.py",
     "settings.py",
     "storage.py",
+    "wildcard_engine.py",
 )
 DYNAMIC_IMPORT_CALLEES = frozenset({"__import__", "importlib.import_module"})
 MUTABLE_CONSTRUCTORS = {

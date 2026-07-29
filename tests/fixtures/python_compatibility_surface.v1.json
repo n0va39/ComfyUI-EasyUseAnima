@@ -118,8 +118,8 @@
   "expected_counts": {
     "root_entrypoints": 3,
     "excluded_preamble_implementation_bindings": 0,
-    "nodes_canonical_bindings": 297,
-    "nodes_legacy_bindings": 19,
+    "nodes_canonical_bindings": 316,
+    "nodes_legacy_bindings": 0,
     "nodes_public_exports": 18,
     "mapped_public_classes": 18,
     "unmapped_classes": 2,
@@ -2833,18 +2833,18 @@
       "lifecycle_state": "unsupported"
     },
     {
-      "id": "nodes_canonical_bindings:easyuse_anima.workflow:unsupported_test_only",
+      "id": "nodes_canonical_bindings:easyuse_anima.wildcard.expansion:unsupported_test_only",
       "surface": "nodes_canonical_bindings",
       "symbols": {
-        "_get_workflow_node": "_get_workflow_node"
+        "has_wildcard_syntax": "has_wildcard_syntax"
       },
       "classification": "unsupported_test_only",
       "current_target": "nodes.py",
-      "canonical_target": "easyuse_anima.workflow",
+      "canonical_target": "easyuse_anima.wildcard.expansion",
       "target_state": "canonical",
       "identity_requirement": "not_applicable",
       "binding_shape": "direct_import",
-      "import_target": "easyuse_anima.workflow",
+      "import_target": "easyuse_anima.wildcard.expansion",
       "owner": "#184/#188",
       "first_release": null,
       "known_consumers": [
@@ -2862,37 +2862,121 @@
       "lifecycle_state": "unsupported"
     },
     {
-      "id": "nodes_legacy_bindings:wildcard_engine:unsupported_test_only",
-      "surface": "nodes_legacy_bindings",
+      "id": "nodes_canonical_bindings:easyuse_anima.wildcard.mode:unsupported_test_only",
+      "surface": "nodes_canonical_bindings",
+      "symbols": {
+        "PROMPT_STUDIO_WILDCARD_MODE_LABELS": "PROMPT_STUDIO_WILDCARD_MODE_LABELS",
+        "WILDCARD_MODE_FIXED": "WILDCARD_MODE_FIXED",
+        "WILDCARD_MODE_POPULATE": "WILDCARD_MODE_POPULATE",
+        "WILDCARD_MODE_SEQUENTIAL": "WILDCARD_MODE_SEQUENTIAL",
+        "normalize_prompt_studio_wildcard_mode": "normalize_prompt_studio_wildcard_mode",
+        "normalize_wildcard_mode": "normalize_wildcard_mode"
+      },
+      "classification": "unsupported_test_only",
+      "current_target": "nodes.py",
+      "canonical_target": "easyuse_anima.wildcard.mode",
+      "target_state": "canonical",
+      "identity_requirement": "not_applicable",
+      "binding_shape": "direct_import",
+      "import_target": "easyuse_anima.wildcard.mode",
+      "owner": "#184/#188",
+      "first_release": null,
+      "known_consumers": [
+        "repository tests may import this root name"
+      ],
+      "evidence": [
+        "AST:no nodes.py runtime load",
+        "test-only consumption is not public support evidence"
+      ],
+      "removal_gates": [
+        "test imports migrate to canonical targets",
+        "no production consumer evidence",
+        "separate B-10b removal review"
+      ],
+      "lifecycle_state": "unsupported"
+    },
+    {
+      "id": "nodes_canonical_bindings:easyuse_anima.wildcard.seed:unsupported_test_only",
+      "surface": "nodes_canonical_bindings",
       "symbols": {
         "MAX_SEED": "MAX_SEED",
-        "PROMPT_STUDIO_WILDCARD_MODE_LABELS": "PROMPT_STUDIO_WILDCARD_MODE_LABELS",
         "PUBLIC_MAX_SEED": "PUBLIC_MAX_SEED",
         "SEED_CONTROL_DECREMENT": "SEED_CONTROL_DECREMENT",
         "SEED_CONTROL_FIXED": "SEED_CONTROL_FIXED",
         "SEED_CONTROL_INCREMENT": "SEED_CONTROL_INCREMENT",
         "SEED_CONTROL_MODES": "SEED_CONTROL_MODES",
         "SEED_CONTROL_RANDOMIZE": "SEED_CONTROL_RANDOMIZE",
-        "WILDCARD_MODE_FIXED": "WILDCARD_MODE_FIXED",
-        "WILDCARD_MODE_POPULATE": "WILDCARD_MODE_POPULATE",
-        "WILDCARD_MODE_SEQUENTIAL": "WILDCARD_MODE_SEQUENTIAL",
+        "next_seed": "next_seed",
+        "normalize_seed": "normalize_seed"
+      },
+      "classification": "unsupported_test_only",
+      "current_target": "nodes.py",
+      "canonical_target": "easyuse_anima.wildcard.seed",
+      "target_state": "canonical",
+      "identity_requirement": "not_applicable",
+      "binding_shape": "direct_import",
+      "import_target": "easyuse_anima.wildcard.seed",
+      "owner": "#184/#188",
+      "first_release": null,
+      "known_consumers": [
+        "repository tests may import this root name"
+      ],
+      "evidence": [
+        "AST:no nodes.py runtime load",
+        "test-only consumption is not public support evidence"
+      ],
+      "removal_gates": [
+        "test imports migrate to canonical targets",
+        "no production consumer evidence",
+        "separate B-10b removal review"
+      ],
+      "lifecycle_state": "unsupported"
+    },
+    {
+      "id": "nodes_canonical_bindings:easyuse_anima.wildcard.service:unsupported_test_only",
+      "surface": "nodes_canonical_bindings",
+      "symbols": {
         "expand_wildcard_texts": "expand_wildcard_texts",
         "expand_wildcards": "expand_wildcards",
-        "has_wildcard_syntax": "has_wildcard_syntax",
-        "next_seed": "next_seed",
-        "normalize_prompt_studio_wildcard_mode": "normalize_prompt_studio_wildcard_mode",
-        "normalize_seed": "normalize_seed",
-        "normalize_wildcard_mode": "normalize_wildcard_mode",
         "wildcard_sources_signature": "wildcard_sources_signature"
       },
       "classification": "unsupported_test_only",
       "current_target": "nodes.py",
-      "canonical_target": null,
-      "target_state": "legacy_owner",
+      "canonical_target": "easyuse_anima.wildcard.service",
+      "target_state": "canonical",
       "identity_requirement": "not_applicable",
       "binding_shape": "direct_import",
-      "import_target": "wildcard_engine",
-      "owner": "#184/#186",
+      "import_target": "easyuse_anima.wildcard.service",
+      "owner": "#184/#188",
+      "first_release": null,
+      "known_consumers": [
+        "repository tests may import this root name"
+      ],
+      "evidence": [
+        "AST:no nodes.py runtime load",
+        "test-only consumption is not public support evidence"
+      ],
+      "removal_gates": [
+        "test imports migrate to canonical targets",
+        "no production consumer evidence",
+        "separate B-10b removal review"
+      ],
+      "lifecycle_state": "unsupported"
+    },
+    {
+      "id": "nodes_canonical_bindings:easyuse_anima.workflow:unsupported_test_only",
+      "surface": "nodes_canonical_bindings",
+      "symbols": {
+        "_get_workflow_node": "_get_workflow_node"
+      },
+      "classification": "unsupported_test_only",
+      "current_target": "nodes.py",
+      "canonical_target": "easyuse_anima.workflow",
+      "target_state": "canonical",
+      "identity_requirement": "not_applicable",
+      "binding_shape": "direct_import",
+      "import_target": "easyuse_anima.workflow",
+      "owner": "#184/#188",
       "first_release": null,
       "known_consumers": [
         "repository tests may import this root name"

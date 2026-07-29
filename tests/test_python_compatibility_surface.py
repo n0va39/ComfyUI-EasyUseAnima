@@ -2361,8 +2361,8 @@ def _build_document() -> dict[str, Any]:
         "expected_counts": {
             "root_entrypoints": 3,
             "excluded_preamble_implementation_bindings": 0,
-            "nodes_canonical_bindings": 297,
-            "nodes_legacy_bindings": 19,
+            "nodes_canonical_bindings": 316,
+            "nodes_legacy_bindings": 0,
             "nodes_public_exports": 18,
             "mapped_public_classes": 18,
             "unmapped_classes": 2,

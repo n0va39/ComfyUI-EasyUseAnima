@@ -21,11 +21,12 @@ then only the active task section, owning Issue, direct source, and direct tests
   API snapshot coverage are complete; existing deterministic owners required no G-04B
   fixture. Issue #188 continues to own G-05 size/complexity ratchet and G-06 test
   ownership.
-- P-WC-01 found the Wildcard facade direct-shim conversion feasible with the existing
-  canonical service owner.
+- P-WC-01/P-WC-02 selected and completed the Wildcard direct-shim conversion with the
+  existing canonical service owner. The final form has not shipped, so release N and
+  removal remain parked.
 - First READY task: Issue
-  [#186](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/186) / P-WC-02
-  wildcard internal-consumer and facade Move.
+  [#186](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/186) / P-API-01 API
+  production-facade feasibility Contract.
 - Issue [#186](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/186)
   remains the retained compatibility ledger. It owns pre-retirement feasibility and
   later D-14 decisions, not an immediately executable deletion task.
@@ -48,8 +49,8 @@ COMPLETE F-02a Autocomplete typed result contracts
   -> COMPLETE G-04A public API snapshot coverage audit
   -> NOT REQUIRED G-04B gap
   -> COMPLETE Wildcard pure-shim feasibility Contract
-  -> READY Wildcard internal-consumer and facade Move
-  -> API production-facade feasibility Contract
+  -> COMPLETE Wildcard internal-consumer and facade Move
+  -> READY API production-facade feasibility Contract
   -> approved internal-consumer Moves only
   -> G-05 size ratchet
   -> G-06 test ownership
@@ -59,15 +60,14 @@ COMPLETE F-02a Autocomplete typed result contracts
 
 ## Current code boundary
 
-The current backend is functional and validated, but two root surfaces are not yet pure
-compatibility shims:
+The current backend is functional and validated. The API root surface is not yet a
+pure compatibility shim:
 
 - root `__init__.py` imports root `api.py` and passes `api.register_routes` into
   bootstrap initialization;
 - root `api.py` remains a production route/payload/runtime facade;
-- root `api.py` and `nodes.py` consume `wildcard_engine.py`;
-- root `wildcard_engine.py` retains call-time snapshot/source/build adapters over the
-  canonical Wildcard package.
+- root `wildcard_engine.py` is an import-only compatibility shim over canonical
+  Wildcard owners, but its final form has not shipped and release N has not begun.
 
 Other final shim forms completed after 0.6.2 and therefore have no release N yet.
 Older direct/public shims may already satisfy a minimum version window, but absence of

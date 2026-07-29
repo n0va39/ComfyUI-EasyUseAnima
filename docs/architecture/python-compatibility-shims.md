@@ -64,7 +64,7 @@ import them.
 | `storage.py` | Explicit direct re-export shim (D-08) | `easyuse_anima.infrastructure.filesystem.atomic_json` and `.paths` | #163, #186 D-08 | Existing 0.5.2 surface; current canonical-plus-shim paths first appear together in release tag v0.6.0 | External/legacy imports and storage compatibility tests; production callers use canonical modules | Retained; minimum window passed, but consumer evidence does not support removal |
 | `autocomplete_index.py` | Explicit direct re-export shim (D-11a) | `easyuse_anima.autocomplete.index` | #162, #186 D-11a | Exact seven-name `__all__`; current canonical-plus-shim paths first appear together in release tag v0.6.0 | External/legacy imports; production dataset/search owners use the canonical module | Retained; minimum window passed, but consumer evidence does not support removal |
 | `autocomplete_dataset.py` | Explicit 15-symbol dataset/search/classification identity shim (D-11) | `easyuse_anima.autocomplete.dataset`, `.search`, and `.classification` | #162, #186 D-11 | Final classification shim completed in PR #480 after v0.6.2 | External/legacy imports and direct compatibility tests; production API uses canonical owners | Retained; first complete canonical-plus-shim release N has not shipped |
-| `wildcard_engine.py` | Compatibility adapter over completed canonical wildcard snapshot/service/runtime owners; not an ADR-002 direct re-export shim because call-time source/build seams and root production consumers remain | `easyuse_anima.wildcard.models`, `.sources`, `.snapshot`, `.service`, `.seed`, `.mode`, `.selector`, `.library`, and `.expansion` | #184, #186 D-12, #187 E-06 | D-12 and E-06b-E-06e complete the canonical owner, internal caller, runtime binding, and audit after v0.6.2 | `nodes.py`, `api.py`, external/legacy imports, wildcard/workflow tests | Blocked and retained; direct root production consumers remain and the final post-v0.6.2 adapter/canonical form has no release N |
+| `wildcard_engine.py` | Explicit import-only identity shim over completed canonical wildcard snapshot/service/runtime owners (P-WC-02) | `easyuse_anima.wildcard.models`, `.sources`, `.snapshot`, `.service`, `.seed`, `.mode`, `.selector`, `.library`, and `.expansion` | #184, #186 D-12/P-WC-01/P-WC-02, #187 E-06 | P-WC-02 moved `api.py` and `nodes.py` to canonical owners and preserved the root surface as exact aliases after v0.6.2 | External/legacy imports and wildcard compatibility tests; production callers use canonical modules | Retained; first final canonical-plus-shim release N has not shipped |
 | `prompt_translation.py` | Explicit direct re-export shim (D-01) | `easyuse_anima.translation.*` | #164, #186 D-01 | Existing 0.5.2 surface; current canonical-plus-shim paths first appear together in release tag v0.6.0 | External/legacy imports and translation compatibility tests; production callers use canonical modules | Retained; minimum window passed, but consumer evidence does not support removal |
 | `anima_prompt/` package | Explicit package and submodule identity shims (D-13) | `easyuse_anima.prompt.anima.*` | #184, #186 D-13/D-14 | Canonicalized in PR #479 after v0.6.2 with explicit `__all__`, flat/package identity, and packed closure | External/legacy imports and direct compatibility tests; production callers use the canonical package | Retained; first canonical-plus-shim release N has not shipped |
 
@@ -1529,9 +1529,12 @@ EasyUseAnimaWildcard
   canonical imports. E-06-classified root build/snapshot patching is a private test
   seam with the same call-time patch point in the canonical service, while
   `api.list_wildcards` remains a dynamic module-global callback seam.
-- P-WC-02 is the bounded Move that implements that form. Until it merges, the root
-  adapter remains behavior-bearing. After it merges, the file remains shipped and
-  retained; release N still has not started and no removal is authorized.
+- P-WC-02 completes that bounded Move. `api.py` and `nodes.py` now use canonical
+  Wildcard owners, and root `wildcard_engine.py` is import-only with exact canonical
+  service identities. The analyzer enrolls it as a direct Registry compatibility
+  entry module so archive closure does not depend on a production consumer.
+- The file remains shipped and retained. This final direct-shim form has not been
+  published, release N has not started, and no removal is authorized.
 - Removal gate: eliminate or explicitly migrate those production consumers, ship the
   final canonical-plus-adapter form through release N, retain #159/#160 behavior,
   seed/expansion and workflow parity, root/canonical identities, archive closure,

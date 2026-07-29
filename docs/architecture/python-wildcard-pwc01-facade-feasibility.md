@@ -6,7 +6,8 @@
 - Base: `769888aa0a48d32107d35fc0962241fee405aade`
 - Classification: Contract; production-free
 - Decision: **FEASIBLE**
-- Next: one bounded P-WC-02 Move
+- P-WC-02: **complete**
+- Next: P-API-01
 
 Root `wildcard_engine.py` can become a direct-import compatibility shim without a new
 canonical module. `easyuse_anima.wildcard.service` already owns the four transitional
@@ -130,3 +131,21 @@ Next: P-API-01 after P-WC-02 is reviewed and merged
 No focused technical PRO review is required. Direct source and executable E-06
 evidence leave one owner-preserving shape: the existing canonical service plus a root
 direct-import shim. No second valid cross-boundary design remains.
+
+## P-WC-02 implementation result
+
+P-WC-02 implements the selected shape without changing canonical wildcard behavior:
+
+- `api.py` and `nodes.py` import the existing canonical Wildcard owners directly;
+- root `wildcard_engine.py` defines no function or class and binds all seven service
+  names directly to `easyuse_anima.wildcard.service`;
+- private lifecycle patch tests use the canonical service seam, while the API
+  module-global callback remains dynamic;
+- the compatibility fixture now records 316 canonical and zero legacy `nodes.py`
+  bindings;
+- the backend analyzer treats shipped `wildcard_engine.py` as an explicit Registry
+  compatibility entry module, so all 176 shipped Python modules remain in the archive
+  import closure without a production root consumer.
+
+The final direct-shim form has not been published. Release N, deprecation, telemetry,
+and removal remain blocked by ADR-002.

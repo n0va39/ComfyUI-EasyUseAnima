@@ -4,7 +4,7 @@
 
 - Status: active execution plan after Phase D and Phase E completion.
 - Primary parent: Issue #185.
-- Active first task: Issue #186 / P-WC-02 wildcard internal-consumer and facade Move.
+- Active first task: Issue #186 / P-API-01 API production-facade feasibility Contract.
 - Quality owner: Issue #188.
 - Compatibility ledger: Issue #186.
 - D-14/H status: parked by compatibility gates, not failed.
@@ -56,8 +56,8 @@ ADR-002 result when evidence is absent or ambiguous.
 - G-04 public API snapshot coverage is complete; no G-04B gate was required.
 - G-05 size/complexity growth ratchet is not implemented as a blocking incremental gate.
 - G-06 canonical test ownership is not completed.
-- `api.py` and `wildcard_engine.py` have not reached a proven pure-shim form that can
-  begin a final support window.
+- `api.py` has not reached a proven pure-shim form. `wildcard_engine.py` has reached
+  its final direct-shim form, but that form has not shipped and release N has not begun.
 
 ## 2. Execution lanes
 
@@ -79,8 +79,8 @@ COMPLETE F-02a Autocomplete typed result contracts             #563 / PR #566
   -> COMPLETE G-04A public API snapshot coverage audit         #188
   -> NOT REQUIRED G-04B minimal missing public-surface gate
   -> COMPLETE P-WC-01 wildcard pure-shim feasibility Contract  #186
-  -> READY P-WC-02 internal consumer/facade Move               #186
-  -> P-API-01 API production-facade feasibility Contract      #186
+  -> COMPLETE P-WC-02 internal consumer/facade Move            #186
+  -> READY P-API-01 API production-facade feasibility Contract #186
   -> OPTIONAL P-API-02 canonical production-entry Move
   -> G-05A    size/complexity baseline and changed-path ratchet #188
   -> G-06A    canonical test-ownership Contract               #188
@@ -258,6 +258,19 @@ P-WC-01 result:
 - P-WC-02 is the one bounded Move in the Contract task card. It preserves the root
   file and does not start the release-N support window.
 
+P-WC-02 result:
+
+- `api.py` and `nodes.py` have zero `wildcard_engine` import edges and use the existing
+  canonical mode, seed, expansion, source, and service owners;
+- root `wildcard_engine.py` is import-only and its seven former service wrappers/classes
+  have exact canonical service identity;
+- the private build/snapshot patch owner is canonical, while API callback, eager
+  NumPy, deterministic output, lifecycle, package/flat import, and all supported root
+  bindings are preserved;
+- the analyzer includes the shipped compatibility shim as an explicit Registry entry
+  module, retaining complete 176-module archive closure without a production import;
+- the next READY task is P-API-01. Release N remains event-gated.
+
 ### P-API-01 — API facade feasibility Contract
 
 Inventory:
@@ -399,35 +412,34 @@ with Codex.
 ## 10. Codex resume instruction
 
 ```text
-Start Issue #186 / P-WC-02 only from latest origin/dev after P-WC-01 merges.
+Start Issue #186 / P-API-01 only from latest origin/dev after P-WC-02 merges.
 
 Read:
 - current-policies.md
 - codex-execution-efficiency.md universal rules
-- this document's P-WC-02 card and validation sections
-- python-wildcard-pwc01-facade-feasibility.md
-- Issue #186 latest P-WC-02 checkpoint
-- api.py, nodes.py, wildcard_engine.py
-- direct wildcard/API/route/compatibility/identity/determinism/package/import owners
+- this document's P-API-01 and validation sections
+- Issue #186 latest P-API-01 checkpoint
+- root __init__.py, api.py, easyuse_anima/bootstrap.py, api/router.py, route factories
+- direct entrypoint/bootstrap/route/API compatibility and import/package owners
 
 Do not read all historical D/E PRs and do not start D-14 removal.
 
-In one cohesive Move, import api.py list_wildcards and the 19 nodes.py wildcard names
-from their existing canonical modules. Replace wildcard_engine.py's seven service
-wrappers/classes with direct canonical service imports while retaining eager numpy,
-all other root identities, package/flat fallback, signatures, results, cache/retry,
-determinism, budgets, errors, API callback monkeypatching, and node behavior. Move
-private root lifecycle patch targets to the equivalent canonical service owner.
+Without production changes, audit whether root api.py can become a pure compatibility
+facade. Inventory the root entrypoint's register_routes dependency, bootstrap
+composition, route/payload/runtime helpers, supported public names, private
+monkeypatch seams, exact object identities, and import-cycle constraints. Select one
+FEASIBLE shape with an exact bounded Move card, or RETAIN with an exact blocker and
+next evidence trigger.
 
 Run only targeted consistency/focused checks during the edit loop and git diff check.
-Run official full exactly once on the final candidate SHA. Run validate/pack/archive
-because the production import closure changes. Live is not triggered because no
-host-visible behavior changes.
+Run only targeted consistency/focused checks and git diff check. Run official full
+once only if an executable gate or fixture changes. Package/live are not triggered.
 
-Push a dev-targeted Draft PR, review, and squash merge. Record the final shim form on
-Issue #186, then select P-API-01. Do not start release N merely for the shim.
+Push a dev-targeted Draft PR, review, and squash merge. Request focused technical PRO
+review only if direct evidence still leaves multiple valid bootstrap/router/root
+facade shapes. Do not implement the later Move in P-API-01.
 
-Do not change canonical wildcard behavior, public/root exports, API/node payloads,
-migration semantics, RuntimeServices/bootstrap, deprecation warnings/telemetry,
-release/tag, or Registry state. Do not delete the root file.
+Do not change production behavior, public/root exports, routes, API payloads,
+RuntimeServices/bootstrap lifecycle, migration semantics, deprecation
+warnings/telemetry, release/tag, or Registry state. Do not delete a root file.
 ```
