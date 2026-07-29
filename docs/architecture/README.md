@@ -23,13 +23,11 @@ direct source and direct tests.
 ```text
 COMPLETE Phase D/E/F/G and G-CLOSE
 COMPLETE P-WC Wildcard direct-shim conversion
-RETAIN   P-API-01 current root API production facade
 COMPLETE SEC-01 through SEC-05 security/admin lane
+COMPLETE FC-01, FC-02 and FC-03 final-convergence prerequisites
+COMPLETE FC-04A canonical API application/E-09 lifecycle Contract
 
-READY    FC-01 Definition-of-Done closure audit
-  ->     FC-02 complete owner-boundary gate
-  ->     FC-03 root API patch-owner migration
-  ->     FC-04 canonical API application/E-09 convergence
+READY    FC-04B canonical API application cohesive Move
   ->     FC-05 technical completion audit
 
 EVENT    ordinary release N
@@ -94,7 +92,7 @@ The target owner matrix remains:
 | `runtime.py` | installed RuntimeServices identity and process runtime access |
 | `registration.py` | pure node mapping composition |
 | `nodes/*` | raw ComfyUI-to-feature adapters |
-| `api/application` | canonical API application identities after FC-04 |
+| `api/application*` | canonical API application identity, compatibility parts and exact handler wiring after FC-04; one cohesive owner with no new size exception |
 | `api/router.py` | route order/signature/resolver/registrar infrastructure |
 | `api/routes/*` | request parse, feature call and response/error mapping |
 | Feature packages | domain rules, typed contracts, migrations and feature ports |
@@ -132,6 +130,9 @@ its lifecycle Contract proves these invariants.
 - [`python-api-papi01-e09-lifecycle-gate.md`](python-api-papi01-e09-lifecycle-gate.md):
   current API identity graph, RETAIN verdict, root patch-time seam inventory and revisit
   events.
+- [`python-api-fc04-application-lifecycle-contract.md`](python-api-fc04-application-lifecycle-contract.md):
+  selected canonical application identity, bootstrap composition sequence, root binder,
+  E-09 gates and the exact FC-04B task card.
 - [`python-runtime-e09-lifecycle-contract.md`](python-runtime-e09-lifecycle-contract.md):
   authoritative lifecycle and cleanup/rollback contract.
 - [`python-compatibility-shims.md`](python-compatibility-shims.md): current root surfaces,

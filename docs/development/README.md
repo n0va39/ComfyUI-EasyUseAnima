@@ -32,13 +32,11 @@ COMPLETE  Phase E runtime ownership/lifecycle/test isolation
 COMPLETE  Phase F typed boundaries and feature errors
 COMPLETE  G-04 public API / G-05 size ratchet / G-06 test ownership
 COMPLETE  P-WC Wildcard direct-shim conversion
-RETAIN    P-API-01 current root API production facade
 COMPLETE  SEC-01 through SEC-05 security/admin lane
+COMPLETE  #593 FC-01, FC-02 and FC-03 prerequisites
+COMPLETE  FC-04A canonical API application/E-09 lifecycle Contract
 
-READY     #593 FC-01 original Definition-of-Done closure audit
-NEXT      FC-02 complete canonical owner-boundary gate
-NEXT      FC-03 root API patch-owner migration
-NEXT      FC-04 canonical API application/E-09 convergence
+READY     FC-04B canonical API application cohesive Move
 NEXT      FC-05 technical completion audit
 
 EVENT     next ordinary release N
@@ -124,6 +122,10 @@ Later FC tasks must preserve:
 FC-03 may migrate patch ownership but does not change behavior. FC-04 application
 construction remains outside `initialize()` unless a separate reviewed Behavior Contract
 explicitly changes rollback semantics.
+
+FC-04A selects one canonical publish-once immutable application identity, bootstrap
+private outer composition and a root exact binder. Its executable Move boundary is
+[`../architecture/python-api-fc04-application-lifecycle-contract.md`](../architecture/python-api-fc04-application-lifecycle-contract.md).
 
 ## Validation
 
