@@ -19,6 +19,14 @@ from tests.api_test_support import replace_sys_modules
 
 ROOT = Path(__file__).resolve().parents[1]
 PRESETS_JS = ROOT / "web" / "js" / "aio" / "presets.js"
+PACKAGE_NAME = "easyuse_anima_aio_profile_test_package"
+
+
+def _clear_package_modules():
+    prefix = f"{PACKAGE_NAME}."
+    for name in list(sys.modules):
+        if name == PACKAGE_NAME or name.startswith(prefix):
+            sys.modules.pop(name, None)
 
 
 def profile_tokens(profile: dict, *, prefix: str = "") -> dict:
@@ -37,20 +45,20 @@ def directory_snapshot(root: Path) -> dict:
 
 
 def load_api_module():
-    package_name = "easyuse_anima_aio_profile_test_package"
-    package = types.ModuleType(package_name)
+    _clear_package_modules()
+    package = types.ModuleType(PACKAGE_NAME)
     package.__path__ = [str(ROOT)]
-    sys.modules[package_name] = package
+    sys.modules[PACKAGE_NAME] = package
 
     sys.modules.pop(
-        f"{package_name}.easyuse_anima.api.dependencies",
+        f"{PACKAGE_NAME}.easyuse_anima.api.dependencies",
         None,
     )
-    api_package = sys.modules.get(f"{package_name}.easyuse_anima.api")
+    api_package = sys.modules.get(f"{PACKAGE_NAME}.easyuse_anima.api")
     if api_package is not None:
         vars(api_package).pop("dependencies", None)
     spec = importlib.util.spec_from_file_location(
-        f"{package_name}.api",
+        f"{PACKAGE_NAME}.api",
         ROOT / "api.py",
     )
     module = importlib.util.module_from_spec(spec)

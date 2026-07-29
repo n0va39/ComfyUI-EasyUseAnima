@@ -72,6 +72,7 @@ class ComfyHostWiringTests(unittest.TestCase):
         self.assertEqual(
             access_files,
             {
+                "easyuse_anima/api/application.py",
                 "easyuse_anima/infrastructure/comfy/wiring.py",
                 "easyuse_anima/nodes/seed_adapters.py",
                 "easyuse_anima/runtime.py",

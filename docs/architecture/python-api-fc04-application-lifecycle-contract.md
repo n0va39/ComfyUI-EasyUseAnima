@@ -7,6 +7,11 @@ FC-04A is a production-free Contract based on
 preserved request/registration-time patch seam to the single private
 `ApiApplicationDependencies` owner.
 
+FC-04B implements this Contract as one cohesive Move based on
+`dev@39143399b30d4d47d7576f273b2a8a9552137b6e`. The selected three-module
+application boundary, private bootstrap call site, exact root binder and E-09 sequence
+are now executable owners; FC-05 is next after the Move merges.
+
 The selected shape is one **canonical application identity with bootstrap-owned
 outer composition**:
 

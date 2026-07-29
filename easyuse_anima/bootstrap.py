@@ -1,5 +1,3 @@
-"""Guard startup work owned by the ComfyUI package entrypoint."""
-
 from __future__ import annotations
 
 import atexit
@@ -8,11 +6,13 @@ import threading
 import time
 from collections.abc import Callable
 
-from .api.routes.aio_torch_compile import (
-    build_aio_torch_compile_recommend_handler as _build_aio_torch_compile_recommend_handler,
-)
+from .aio.first_pass_cache import _DEFAULT_AIO_FIRST_PASS_CACHE
+from .api.application import _build_api_application
 from .api.routes.aio_profile_mutations import (
     build_aio_profile_mutation_handlers as _build_aio_profile_mutation_handlers,
+)
+from .api.routes.aio_torch_compile import (
+    build_aio_torch_compile_recommend_handler as _build_aio_torch_compile_recommend_handler,
 )
 from .api.routes.autocomplete import (
     build_autocomplete_handlers as _build_autocomplete_handlers,
@@ -41,8 +41,10 @@ from .api.routes.profile_saves import (
 )
 from .api.routes.settings import build_settings_handlers as _build_settings_handlers
 from .api.routes.translation import (
-    build_translation_runtime as _build_translation_runtime,
     build_translate_prompt_handler as _build_translate_prompt_handler,
+)
+from .api.routes.translation import (
+    build_translation_runtime as _build_translation_runtime,
 )
 from .api.routes.translation_execution import (
     PromptTranslationRouteExecutor as _PromptTranslationRouteExecutor,
@@ -50,7 +52,6 @@ from .api.routes.translation_execution import (
 from .api.routes.wildcards import (
     build_wildcards_handler as _build_wildcards_handler,
 )
-from .aio.first_pass_cache import _DEFAULT_AIO_FIRST_PASS_CACHE
 from .autocomplete.dataset import _DEFAULT_AUTOCOMPLETE_SNAPSHOTS
 from .autocomplete.index import _DEFAULT_AUTOCOMPLETE_INDEX_STORE
 from .autocomplete.service import _AutocompleteService
@@ -58,8 +59,8 @@ from .infrastructure.comfy.provider import DefaultComfyHostProvider
 from .runtime import (
     RuntimeConfig,
     RuntimeServices,
-    _RuntimeCleanupPlan,
     _detach_runtime,
+    _RuntimeCleanupPlan,
     install_runtime,
 )
 from .seed.service import InMemorySeedReservationService
@@ -124,8 +125,6 @@ def build_settings_route_group(
     settings_dependencies,
     long_text_settings_dependencies,
 ):
-    """Compose the correlated settings route group from canonical factories."""
-
     handlers = (
         *_build_settings_handlers(**settings_dependencies),
         *_build_long_text_settings_handlers(**long_text_settings_dependencies),
@@ -140,8 +139,6 @@ def build_wildcard_autocomplete_route_group(
     autocomplete_dependencies,
     classify_prompt_dependencies,
 ):
-    """Compose correlated wildcard and autocomplete routes."""
-
     handlers = (
         _build_wildcards_handler(**wildcards_dependencies),
         *_build_autocomplete_handlers(**autocomplete_dependencies),
@@ -155,8 +152,6 @@ def build_translation_route_handler(
     request_correlated,
     translation_dependencies,
 ):
-    """Compose the correlated translation route."""
-
     return request_correlated(
         _build_translate_prompt_handler(**translation_dependencies)
     )
@@ -171,8 +166,6 @@ def build_translation_route_runtime(
     get_timeout_seconds,
     error_response,
 ):
-    """Compose one translation route executor and its process cleanup."""
-
     global _TRANSLATION_ROUTE_EXECUTOR
 
     runtime = _build_translation_runtime(
@@ -208,8 +201,6 @@ def build_aio_torch_compile_route_handler(
     request_correlated,
     aio_torch_compile_dependencies,
 ):
-    """Compose the correlated AiO Torch Compile recommendation route."""
-
     return request_correlated(
         _build_aio_torch_compile_recommend_handler(
             **aio_torch_compile_dependencies
@@ -223,8 +214,6 @@ def build_lora_read_route_group(
     lora_preview_dependencies,
     lora_catalog_dependencies,
 ):
-    """Compose the correlated LoRA preview and catalog routes."""
-
     handlers = (
         _build_lora_preview_handler(**lora_preview_dependencies),
         _build_loras_handler(**lora_catalog_dependencies),
@@ -237,8 +226,6 @@ def build_profile_list_route_group(
     request_correlated,
     profile_list_dependencies,
 ):
-    """Compose the correlated LoRA and AiO profile list routes."""
-
     return tuple(
         request_correlated(handler)
         for handler in _build_profile_list_handlers(
@@ -255,8 +242,6 @@ def build_profile_route_group(
     aio_profile_mutation_dependencies,
     lora_profile_fix_dependencies,
 ):
-    """Compose the correlated profile load, save, mutation, and fix routes."""
-
     handlers = (
         *_build_profile_load_handlers(**profile_load_dependencies),
         *_build_profile_save_handlers(**profile_save_dependencies),
@@ -266,6 +251,21 @@ def build_profile_route_group(
         _build_lora_profile_fix_handler(**lora_profile_fix_dependencies),
     )
     return tuple(request_correlated(handler) for handler in handlers)
+
+
+def _compose_api_application(*, logger, publish_routes):
+    return _build_api_application(
+        logger=logger,
+        publish_routes=publish_routes,
+        build_settings_route_group=build_settings_route_group,
+        build_wildcard_autocomplete_route_group=build_wildcard_autocomplete_route_group,
+        build_translation_route_runtime=build_translation_route_runtime,
+        build_translation_route_handler=build_translation_route_handler,
+        build_aio_torch_compile_route_handler=build_aio_torch_compile_route_handler,
+        build_lora_read_route_group=build_lora_read_route_group,
+        build_profile_list_route_group=build_profile_list_route_group,
+        build_profile_route_group=build_profile_route_group,
+    )
 
 
 def initialize(

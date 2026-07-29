@@ -26,9 +26,9 @@ COMPLETE P-WC Wildcard direct-shim conversion
 COMPLETE SEC-01 through SEC-05 security/admin lane
 COMPLETE FC-01, FC-02 and FC-03 final-convergence prerequisites
 COMPLETE FC-04A canonical API application/E-09 lifecycle Contract
+COMPLETE FC-04B canonical API application cohesive Move
 
-READY    FC-04B canonical API application cohesive Move
-  ->     FC-05 technical completion audit
+READY    FC-05 technical completion audit
 
 EVENT    ordinary release N
   ->     later H/D-14 compatibility re-audit
@@ -92,7 +92,7 @@ The target owner matrix remains:
 | `runtime.py` | installed RuntimeServices identity and process runtime access |
 | `registration.py` | pure node mapping composition |
 | `nodes/*` | raw ComfyUI-to-feature adapters |
-| `api/application*` | canonical API application identity, compatibility parts and exact handler wiring after FC-04; one cohesive owner with no new size exception |
+| `api/application*` | canonical API application identity, compatibility parts and exact handler wiring; one cohesive owner with no new size exception |
 | `api/router.py` | route order/signature/resolver/registrar infrastructure |
 | `api/routes/*` | request parse, feature call and response/error mapping |
 | Feature packages | domain rules, typed contracts, migrations and feature ports |
@@ -117,8 +117,8 @@ All final-convergence work preserves:
 - retained route marker/routes and no invented route deregistration;
 - no file-I/O limiter or provider/client cleanup without a separate contract.
 
-FC-03 changes patch ownership only. FC-04 may move application construction only after
-its lifecycle Contract proves these invariants.
+FC-03 changes patch ownership only. FC-04 moved application construction only after
+its lifecycle Contract proved these invariants.
 
 ## Core active documents
 

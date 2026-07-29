@@ -258,6 +258,7 @@ class PythonRuntimeStateOwnershipContractTests(unittest.TestCase):
         }
         required = {
             ("__init__.py", "_initialize"),
+            ("easyuse_anima/api/application.py", "_APPLICATION"),
             ("api.py", "_PROMPT_TRANSLATION_WORKER"),
             ("api.py", "register_routes"),
             (

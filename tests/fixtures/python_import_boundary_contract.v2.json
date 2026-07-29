@@ -72,6 +72,18 @@
   ],
   "path_role_overrides": [
     {
+      "path": "easyuse_anima/api/application.py",
+      "role": "process-composition"
+    },
+    {
+      "path": "easyuse_anima/api/application_compatibility.py",
+      "role": "process-composition"
+    },
+    {
+      "path": "easyuse_anima/api/application_routes.py",
+      "role": "process-composition"
+    },
+    {
       "allowed_target_roles": [
         "common",
         "http-adapter"

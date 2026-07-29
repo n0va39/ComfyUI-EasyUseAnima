@@ -2,7 +2,8 @@
 
 ## Status and authority
 
-- Status: FC-03A and FC-03B complete; FC-04A is next after this Move merges.
+- Status: FC-03A, FC-03B and FC-04A complete; FC-04B implements the selected
+  application move.
 - Owner: Issue #593.
 - Baseline: `e6f509879054854a3dec49eae29d44ca5bd98dc6`.
 - Parent evidence:

@@ -90,6 +90,21 @@ def _top_level_function(
     raise AssertionError(f"{module} has no top-level function {function_name}")
 
 
+def _nested_function(
+    module: str,
+    parent_name: str,
+    function_name: str,
+) -> ast.FunctionDef | ast.AsyncFunctionDef:
+    parent = _top_level_function(module, parent_name)
+    for statement in ast.walk(parent):
+        if isinstance(statement, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            if statement.name == function_name:
+                return statement
+    raise AssertionError(
+        f"{module}:{parent_name} has no nested function {function_name}"
+    )
+
+
 def _top_level_class(module: str, class_name: str) -> ast.ClassDef:
     for statement in _tree(module).body:
         if isinstance(statement, ast.ClassDef) and statement.name == class_name:
@@ -861,16 +876,19 @@ class PythonAutocompleteRuntimeContractTests(unittest.TestCase):
         )
 
         root_adapter = runtime_port["root_adapter"]
+        builder = root_adapter["builder"]
+        resolver = _nested_function(
+            root_adapter["module"],
+            builder,
+            root_adapter["resolver"],
+        )
         self.assertIn(
             root_adapter["runtime_getter"],
-            _function_references(
-                root_adapter["module"],
-                root_adapter["resolver"],
-            ),
-        )
-        resolver = _top_level_function(
-            root_adapter["module"],
-            root_adapter["resolver"],
+            {
+                node.id
+                for node in ast.walk(resolver)
+                if isinstance(node, ast.Name)
+            },
         )
         dependency_reads = {
             tuple(argument.value for argument in node.args)
@@ -889,10 +907,16 @@ class PythonAutocompleteRuntimeContractTests(unittest.TestCase):
         )
         for adapter in runtime_port["adapters"]:
             with self.subTest(adapter=adapter["function"]):
-                references = _function_references(
+                function = _nested_function(
                     root_adapter["module"],
+                    builder,
                     adapter["function"],
                 )
+                references = {
+                    node.id
+                    for node in ast.walk(function)
+                    if isinstance(node, ast.Name)
+                }
                 self.assertTrue(
                     {
                         adapter["canonical_fallback"],
@@ -902,10 +926,12 @@ class PythonAutocompleteRuntimeContractTests(unittest.TestCase):
                 )
                 self.assertIn(
                     adapter["port_method"],
-                    _called_attributes(
-                        root_adapter["module"],
-                        adapter["function"],
-                    ),
+                    {
+                        node.func.attr
+                        for node in ast.walk(function)
+                        if isinstance(node, ast.Call)
+                        and isinstance(node.func, ast.Attribute)
+                    },
                 )
 
     def test_feature_modules_do_not_depend_on_runtime_or_outer_adapters(self):

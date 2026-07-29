@@ -142,8 +142,8 @@ def _class_methods(module: str, class_name: str) -> set[str]:
     }
 
 
-def _tuple_assignment_call(module: str, assigned_name: str) -> str:
-    for statement in _tree(module).body:
+def _assignment_call(module: str, assigned_name: str) -> str:
+    for statement in ast.walk(_tree(module)):
         if not isinstance(statement, ast.Assign):
             continue
         if not any(assigned_name in _target_names(target) for target in statement.targets):
@@ -329,8 +329,11 @@ class PythonTranslationRuntimeContractTests(unittest.TestCase):
                     )
 
         self.assertEqual(
-            _tuple_assignment_call("api.py", "_PROMPT_TRANSLATION_WORKER"),
-            "_build_translation_route_runtime",
+            _assignment_call(
+                "easyuse_anima/api/application_compatibility.py",
+                "translation",
+            ),
+            "build_translation_route_runtime",
         )
         bootstrap_runtime_references = _function_references(
             "easyuse_anima/bootstrap.py",

@@ -16,6 +16,13 @@ PACKAGE_NAME = "easyuse_anima_translation_api_test_package"
 ROUTE = "/easyuse_anima/translate_prompt"
 
 
+def _clear_package_modules():
+    prefix = f"{PACKAGE_NAME}."
+    for name in list(sys.modules):
+        if name == PACKAGE_NAME or name.startswith(prefix):
+            sys.modules.pop(name, None)
+
+
 class RouteRegistry:
     def __init__(self):
         self.handlers = {}
@@ -40,6 +47,7 @@ class JsonRequest:
 
 
 def load_api_routes():
+    _clear_package_modules()
     package = types.ModuleType(PACKAGE_NAME)
     package.__path__ = [str(ROOT)]
     sys.modules[PACKAGE_NAME] = package
@@ -56,13 +64,6 @@ def load_api_routes():
         json_response=lambda payload, status=200: {"payload": payload, "status": status},
     )
 
-    sys.modules.pop(
-        f"{PACKAGE_NAME}.easyuse_anima.api.dependencies",
-        None,
-    )
-    api_package = sys.modules.get(f"{PACKAGE_NAME}.easyuse_anima.api")
-    if api_package is not None:
-        vars(api_package).pop("dependencies", None)
     spec = importlib.util.spec_from_file_location(
         f"{PACKAGE_NAME}.api",
         ROOT / "api.py",
@@ -96,6 +97,7 @@ def load_api_routes():
 class PromptTranslationApiTests(unittest.TestCase):
     def load_routes(self):
         api, routes, translation, translation_service = load_api_routes()
+        self.addCleanup(_clear_package_modules)
         self.addCleanup(api._PROMPT_TRANSLATION_WORKER.shutdown)
         return api, routes, translation, translation_service
 
@@ -223,7 +225,7 @@ class PromptTranslationApiTests(unittest.TestCase):
         )
         self.assertFalse(hasattr(owner, "_PROMPT_TRANSLATION_WORKER"))
 
-    def test_runtime_helpers_keep_dynamic_root_dependencies(self):
+    def test_runtime_helpers_keep_dynamic_application_dependencies(self):
         api, _routes, _translation, _translation_service = self.load_routes()
         calls = []
         settings = object()
@@ -260,17 +262,16 @@ class PromptTranslationApiTests(unittest.TestCase):
         )
 
         calls.clear()
-        replacement_sync = lambda text: text
+        async def execute(function, text, *, timeout_seconds):
+            calls.append(("execute", function, text, timeout_seconds))
+            return "async-translated"
 
-        class FakeWorker:
-            async def execute(self, function, text, *, timeout_seconds):
-                calls.append(("execute", function, text, timeout_seconds))
-                return "async-translated"
-
-        worker = FakeWorker()
         with (
-            patch.object(api, "_PROMPT_TRANSLATION_WORKER", worker),
-            patch.object(api, "_translate_prompt_sync", replacement_sync),
+            patch.object(
+                api._PROMPT_TRANSLATION_WORKER,
+                "execute",
+                side_effect=execute,
+            ),
             patch.object(
                 api._APPLICATION_DEPENDENCIES.translation,
                 "route_timeout_seconds",
@@ -282,7 +283,7 @@ class PromptTranslationApiTests(unittest.TestCase):
         self.assertEqual(translated, "async-translated")
         self.assertEqual(
             calls,
-            [("execute", replacement_sync, "%{async}", 0.25)],
+            [("execute", api._translate_prompt_sync, "%{async}", 0.25)],
         )
 
     def test_translation_error_boundary_uses_static_policy_and_semantic_messages(self):
@@ -674,8 +675,8 @@ class PromptTranslationApiTests(unittest.TestCase):
         expected_response = object()
         with (
             patch.object(
-                api,
-                "_translate_prompt_for_route",
+                api._PROMPT_TRANSLATION_WORKER,
+                "execute",
                 side_effect=error,
             ),
             patch.object(
