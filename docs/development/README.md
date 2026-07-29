@@ -75,7 +75,7 @@ docs/architecture/python-phase-fg-completion-audit.md
 docs/architecture/python-api-papi01-e09-lifecycle-gate.md
 docs/architecture/python-compatibility-shims.md
 tools/check_python_import_boundaries.py
-tests/fixtures/python_import_boundary_contract.v1.json
+tests/fixtures/python_import_boundary_contract.v2.json
 tests/fixtures/python_test_ownership_contract.v1.json
 ```
 
