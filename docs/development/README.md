@@ -13,7 +13,7 @@ Read only the sections needed by the active task.
    - run package/live/benchmark only when triggered.
 3. Current backend queue:
    [`../architecture/post-phase-e-maintenance-roadmap.md`](../architecture/post-phase-e-maintenance-roadmap.md)
-   - first READY task: Issue #188 / G-CLOSE Phase F/G completion audit;
+   - Phase F/G and G-CLOSE are complete; there is no READY maintenance task;
    - D-14/H root removal is parked, not failed.
 4. Mandatory P-API lifecycle gate:
    [`../architecture/python-api-papi01-e09-lifecycle-gate.md`](../architecture/python-api-papi01-e09-lifecycle-gate.md)
@@ -28,6 +28,7 @@ Read only the sections needed by the active task.
 7. Read a topic guide only when the active task touches it:
    - completed D/E execution record: `../architecture/backend-roadmap-resume-0.6.2.md`
    - F-01 typed-boundary audit: `../architecture/python-typed-boundary-f01-audit.md`
+   - Phase F/G completion audit: `../architecture/python-phase-fg-completion-audit.md`
    - feature error taxonomy: `../architecture/python-feature-error-taxonomy-contract.md`
    - runtime base/state inventory: `../architecture/python-runtime-base-contract.md`,
      `../architecture/python-runtime-state-inventory.md`
@@ -68,7 +69,8 @@ COMPLETE  #582 P-API-01 API facade / E-09 lifecycle Contract (RETAIN)
 PARKED    P-API-02 until a recorded revisit event
 COMPLETE  #188 G-05 size ratchet
 COMPLETE  #188 G-06 test ownership
-READY     #188 G-CLOSE Phase F/G completion audit
+COMPLETE  #188 G-CLOSE Phase F/G completion audit
+NONE      no READY Phase F/G task
 EVENT     next ordinary release N -> later D-14 re-audit
 ```
 
@@ -80,7 +82,7 @@ The D-14 stop is correct:
 - final forms completed after 0.6.2 have no release N;
 - consumer evidence and public breaking-change approval do not support removal.
 
-That stop applies only to removal. The G-CLOSE completion audit remains executable.
+That stop is an event-gated compatibility state, not an unfinished Phase F/G task.
 
 ## Completed P-API-01 result
 
@@ -121,13 +123,13 @@ P-API-01 made no production change and does not authorize the Move.
 - no API application reset/close registry, second lock, second atexit, or production
   module reload is added.
 
-## Following queue
+## Following state
 
-After P-API-01, G-05A, and G-06A:
+After P-API-01, G-05A, G-06A, and G-CLOSE:
 
 1. run one bounded P-API-02 only when the verdict is FEASIBLE;
 2. retain the recorded P-API verdict and completed G-05/G-06 gates;
-3. continue with the Phase F/G completion audit;
+3. do not create another Phase F/G task without a new concrete finding;
 4. let the next ordinary release containing final shims become release N;
 5. re-audit D-14 only after an event gate changes.
 

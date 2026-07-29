@@ -2,9 +2,9 @@
 
 ## Status and authority
 
-- Status: active execution plan after Phase D and Phase E completion.
+- Status: completed Phase F/G maintenance plan with an event-gated compatibility runway.
 - Primary parent: Issue #185.
-- Active first task: Issue #188 / G-CLOSE Phase F/G completion audit.
+- Active first task: none; Phase F/G and G-CLOSE are complete.
 - Quality owner: Issue #188.
 - Compatibility ledger: Issue #186.
 - D-14/H status: parked by compatibility gates, not failed.
@@ -14,14 +14,14 @@
 This plan separates two facts that must not be collapsed:
 
 ```text
-D-14 root removal has no READY task
+no Phase F/G or D-14 task is READY
 !=
-the entire backend roadmap has no remaining work
+the event-gated compatibility runway has failed or is overdue
 ```
 
 D-14/H waits for production-import, release-window, consumer, rollback, and
 breaking-change evidence. Phase F and G-04 through G-06 completed without deleting a
-root surface; G-CLOSE is the remaining audit.
+root surface; G-CLOSE confirms that no executable Phase F/G task remains.
 
 ## 1. Current verified state
 
@@ -51,17 +51,18 @@ The post-Phase-E D-14 audit records zero removal-approved root surfaces.
 This is not a Registry, scanner, test, or runtime failure. Retention is the required
 ADR-002 result when evidence is absent or ambiguous.
 
-### Remaining global roadmap work
+### Completed global quality work
 
 - G-04 public API snapshot coverage is complete; no G-04B gate was required.
 - G-05 size/complexity growth ratchet is complete as a blocking incremental gate.
-- G-06 canonical test ownership is complete; the Phase F/G completion audit remains.
+- G-06 canonical test ownership is complete.
+- G-CLOSE records zero unfinished executable Phase F/G tasks.
 - `api.py` has not reached a proven pure-shim form. `wildcard_engine.py` has reached
   its final direct-shim form, but that form has not shipped and release N has not begun.
 
 ## 2. Execution lanes
 
-### Lane A — Active maintainability work
+### Lane A — Completed maintainability work
 
 ```text
 COMPLETE F-02a Autocomplete typed result contracts             #563 / PR #566
@@ -84,11 +85,10 @@ COMPLETE F-02a Autocomplete typed result contracts             #563 / PR #566
   -> RETAIN P-API-02 canonical production-entry Move
   -> COMPLETE G-05A size/complexity baseline and changed-path ratchet #188
   -> COMPLETE G-06A canonical test-ownership Contract          #188
-  -> READY G-CLOSE Phase F/G completion audit                  #188
+  -> COMPLETE G-CLOSE Phase F/G completion audit               #188
 ```
 
-One task is active at a time unless allowed-file sets and evidence owners are proven
-disjoint. No task above removes a public root module.
+No Phase F/G task is READY. No task above removes a public root module.
 
 ### Lane B — Event-gated compatibility runway
 
@@ -269,7 +269,7 @@ P-WC-02 result:
   bindings are preserved;
 - the analyzer includes the shipped compatibility shim as an explicit Registry entry
   module, retaining complete 176-module archive closure without a production import;
-- P-API-01 completed with RETAIN; G-05A and G-06A are complete, and G-CLOSE is next.
+- P-API-01 completed with RETAIN; G-05A, G-06A, and G-CLOSE are complete.
   Release N remains event-gated.
 
 ### P-API-01 — API facade feasibility Contract
@@ -317,8 +317,8 @@ P-API-01 result:
   compatibility migration;
 - moving application creation into initialize or attaching it after runtime creation
   would change E-09 rollback and fixed cleanup-plan timing;
-- P-API-02 is not READY. G-05A and G-06A are complete, and G-CLOSE is the next task;
-  P-API may be revisited only after a
+- P-API-02 is not READY. G-05A, G-06A, and G-CLOSE are complete; P-API may be
+  revisited only after a
   recorded patch-owner migration, consumer-backed seam retirement, acyclic private
   pre-initialize publication proof, or an explicit lifecycle Behavior Contract.
 
@@ -380,11 +380,24 @@ Owner: Issue #188.
 
 Type: Contract/audit.
 
+Status: complete. The result is documented in
+[`python-phase-fg-completion-audit.md`](python-phase-fg-completion-audit.md).
+
 Reconcile the completed G-04, G-05, and G-06 evidence with Phase F completion. Close
 the maintenance phase only when the current roadmap and development entrypoints name
 zero unfinished executable F/G tasks. Do not change production, add another fixture,
 or rerun package/live. If the audit finds an executable-contract inconsistency, stop
 and create only the smallest follow-up task instead of declaring completion.
+
+Audit result:
+
+- Phase F's six typed-boundary rows are complete or intentionally end at named
+  adapter/migration boundaries; F-02a through F-02h require no follow-up;
+- G-04 has complete deterministic coverage and G-04B remains not required;
+- G-05 and G-06 are blocking executable gates in the official quality path;
+- the roadmap and development entrypoints name zero unfinished executable F/G tasks;
+- P-API-02, H/D-14, release N, and Registry work remain parked or event-gated and are
+  not Phase F/G completion blockers.
 
 ## 8. Release N and H/D-14 re-audit
 
@@ -452,28 +465,15 @@ with Codex.
 ## 10. Codex resume instruction
 
 ```text
-P-API-01 is complete with RETAIN. Do not start P-API-02 from this result.
+Phase F, G-04, G-05, G-06, and G-CLOSE are complete. Issue #188 has no remaining
+executable task. Do not invent a new cleanup task merely to keep this roadmap active.
 
-For the next task, start Issue #188 / G-CLOSE from latest origin/dev and read:
-- current-policies.md
-- codex-execution-efficiency.md universal rules
-- this document's G-CLOSE and validation sections
-- Issue #188 latest G-06A completion checkpoint
-- the completed G-04 audit, G-05 size contract, G-06 test-ownership contract, and their
-  direct owner tests
+P-API-01 remains RETAIN and P-API-02 is not READY. D-14/H remains parked. Resume the
+compatibility runway only when a recorded ADR-002 event changes: an ordinary release
+publishes release N, a production consumer reaches zero, new consumer or harm evidence
+appears, or a breaking-change release is explicitly planned.
 
-Do not read all historical D/E PRs and do not start D-14 removal.
-
-Without production, test, tool, or fixture changes, reconcile the completed Phase F/G
-evidence and record either Phase G completion or one exact smallest follow-up.
-
-Run only targeted consistency/focused checks and git diff check. Run official full
-only if an executable gate or fixture changes. Package/live are not triggered.
-
-Push a dev-targeted Draft PR, review, and squash merge. Do not reopen P-API-02, D-14,
-release, or Registry work while performing G-CLOSE.
-
-Do not change production behavior, public/root exports, routes, API payloads,
-RuntimeServices/bootstrap lifecycle, migration semantics, deprecation
-warnings/telemetry, release/tag, or Registry state. Do not delete a root file.
+An ordinary future feature/bug task starts from its own owning Issue and the latest
+origin/dev. Release/tag/Registry work requires an explicit release task; this completed
+roadmap does not authorize it.
 ```
