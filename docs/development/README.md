@@ -13,7 +13,7 @@ Read only the sections needed by the active task.
    - run package/live/benchmark only when triggered.
 3. Current backend queue:
    [`../architecture/post-phase-e-maintenance-roadmap.md`](../architecture/post-phase-e-maintenance-roadmap.md)
-   - first READY task: Issue #563 / F-02b Prompt field-family typed contract;
+   - first READY task: Issue #563 / F-02c canonical Prompt Data typed read/output contract;
    - D-14/H root removal is parked, not failed.
 4. Backend target architecture and compatibility policy:
    [`../architecture/README.md`](../architecture/README.md)
@@ -54,7 +54,9 @@ COMPLETE  Phase D package/root consolidation
 COMPLETE  Phase E runtime ownership/lifecycle/test isolation
 PARKED    D-14 / Phase H root removal
 COMPLETE  #563 F-02a Autocomplete typed result contracts
-READY     #563 F-02b Prompt field-family typed contract
+COMPLETE  #563 F-02b Prompt field-family typed contract
+COMPLETE  #563 affected Prompt-row re-audit
+READY     #563 F-02c canonical Prompt Data typed read/output contract
 BLOCKED   #188 G-04 public API snapshot audit until Phase F closes
 LATER     G-05 size ratchet / G-06 test ownership
 EVENT     next ordinary release N -> later D-14 re-audit
@@ -69,27 +71,26 @@ The D-14 stop is correct:
 
 That stop applies only to removal. It does not complete Phase F or G.
 
-## Active F-02b source map
+## Active F-02c source map
 
 Start with targeted owners rather than the full repository:
 
 ```text
-docs/architecture/python-typed-boundary-f01-audit.md  # F-02b task card
+docs/architecture/python-typed-boundary-f01-audit.md  # F-02c task card
 Issue #563 latest checkpoint
-easyuse_anima/prompt/advanced.py, prompt/regional.py, and direct typed consumers
-direct Advanced/Regional Prompt Studio, AiO conditioning, node-owner, Pyright,
-and import fixtures
+easyuse_anima/prompt/contracts.py, prompt/data.py, prompt/advanced.py
+direct Prompt Data unpack/conditioning, AiO consumer, Pyright, and import fixtures
 ```
 
-F-02b adds the internal PromptField/AdvancedField/RegionalField structural family
-without changing runtime dictionaries, JSON/workflow migration, field order/defaults,
-Prompt/AiO/wildcard/translation/artist-mix behavior, Regional mask assignments, node
-results, or public exports. Preserve Extend's omitted `pin`; do not expand into Prompt
-Data, settings, or error-taxonomy work.
+F-02c types the canonical Prompt Data builder result and feature-side read mapping
+without converting runtime dictionaries or rejecting legacy/future workflow keys. It
+must preserve schema/version, exact nested values and order, fallback precedence,
+copy-on-update/override behavior, Prompt/AiO/artist-mix outputs, node identities, and
+public exports. Do not expand into settings migration or error-taxonomy work.
 
 ## Following queue
 
-After F-02b:
+After F-02c:
 
 1. re-audit the affected Prompt row;
 2. execute the next smallest F-02 while any Phase F finding remains;
