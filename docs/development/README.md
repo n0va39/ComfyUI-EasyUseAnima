@@ -11,35 +11,31 @@ Read only the sections needed by the active task.
    - use focused edit-loop tests;
    - run official full once on the final candidate SHA;
    - run package/live/benchmark only when triggered.
-3. Current backend queue:
+3. Active independent maintenance lane:
+   [`../architecture/security-admin-settings-roadmap.md`](../architecture/security-admin-settings-roadmap.md)
+   - first READY task: Issue #199 / SEC-01 host capability and threat-model Contract;
+   - SEC-01 is production-free and must not implement authentication, a token,
+     diagnostics, or a settings split.
+4. Completed backend and compatibility state:
    [`../architecture/post-phase-e-maintenance-roadmap.md`](../architecture/post-phase-e-maintenance-roadmap.md)
-   - Phase F/G and G-CLOSE are complete; there is no READY maintenance task;
-   - D-14/H root removal is parked, not failed.
-4. Mandatory P-API lifecycle gate:
+   - Phase F/G and G-CLOSE are complete; there is no READY Phase F/G task;
+   - D-14/H root removal and P-API-02 are event-gated, not failed.
+5. E-09/P-API compatibility gate:
    [`../architecture/python-api-papi01-e09-lifecycle-gate.md`](../architecture/python-api-papi01-e09-lifecycle-gate.md)
    - preserve one bootstrap lifecycle owner, terminal shutdown, translation-executor
      identity, fixed cleanup order, rollback, and late root-import behavior;
-   - P-API-01 completed with RETAIN; P-API-02 remains parked until a recorded revisit event.
-5. Backend target architecture and compatibility policy:
+   - P-API-01 completed with RETAIN; #199 may use RuntimeConfig/bootstrap only as an
+     immutable process-capability owner and must not add another lifecycle owner.
+6. Backend target architecture and compatibility policy:
    [`../architecture/README.md`](../architecture/README.md)
-6. Read [`codex-blocker-escalation.md`](codex-blocker-escalation.md) only after a
+7. Read [`codex-blocker-escalation.md`](codex-blocker-escalation.md) only after a
    documented hard stop or unresolved cross-owner architecture ambiguity. Ordinary
    implementation and test failures remain local task work.
-7. Read a topic guide only when the active task touches it:
+8. Read a topic guide only when the active task touches it:
    - completed D/E execution record: `../architecture/backend-roadmap-resume-0.6.2.md`
-   - F-01 typed-boundary audit: `../architecture/python-typed-boundary-f01-audit.md`
    - Phase F/G completion audit: `../architecture/python-phase-fg-completion-audit.md`
-   - feature error taxonomy: `../architecture/python-feature-error-taxonomy-contract.md`
-   - runtime base/state inventory: `../architecture/python-runtime-base-contract.md`,
-     `../architecture/python-runtime-state-inventory.md`
-   - repository/filesystem runtime contract: `../architecture/python-runtime-e03-repository-filesystem-contract.md`
-   - translation runtime contract: `../architecture/python-runtime-e04-translation-contract.md`
-   - Autocomplete runtime contract: `../architecture/python-runtime-e05-autocomplete-contract.md`
-   - Wildcard runtime contract: `../architecture/python-runtime-e06-wildcard-contract.md`
-   - Wildcard facade feasibility: `../architecture/python-wildcard-pwc01-facade-feasibility.md`
-   - AiO cache runtime contract: `../architecture/python-runtime-e08-aio-cache-contract.md`
+   - security/admin settings boundary: `../architecture/security-admin-settings-roadmap.md`
    - lifecycle runtime contract: `../architecture/python-runtime-e09-lifecycle-contract.md`
-   - test-isolation runtime contract: `../architecture/python-runtime-e10-test-isolation-contract.md`
    - compatibility registry: `../architecture/python-compatibility-shims.md`
    - queue identity: `../architecture/queue-ui-two-phase-correlation-addendum.md`
    - Prompt Studio execution projection: `../architecture/prompt-studio-execution-derived-projection.md`
@@ -48,7 +44,7 @@ Read only the sections needed by the active task.
    - Registry scanner prevention for a future release:
      [`docs/development/registry-scanner-safety.md`](registry-scanner-safety.md)
    - workflows: `../Anima AiO/Workflow_Management.md`
-8. Confirm `git status --short`, current branch/worktree, direct source, and direct
+9. Confirm `git status --short`, current branch/worktree, direct source, and direct
    tests.
 
 Do not read every roadmap, closed Issue, or historical PR. Registry activation is
@@ -60,21 +56,16 @@ ordinary `dev` work.
 ```text
 COMPLETE  Phase D package/root consolidation
 COMPLETE  Phase E runtime ownership/lifecycle/test isolation
+COMPLETE  Phase F typed boundaries and feature errors
+COMPLETE  G-04 public API / G-05 size ratchet / G-06 test ownership
+COMPLETE  G-CLOSE Phase F/G completion audit
+RETAIN    P-API-01; P-API-02 parked
 PARKED    D-14 / Phase H root removal
-COMPLETE  #563 Phase F typed-boundary and feature-error work
-COMPLETE  #188 G-04 public API snapshot coverage audit
-COMPLETE  #186 P-WC-01 Wildcard facade feasibility Contract
-COMPLETE  #186 P-WC-02 Wildcard direct-shim Move
-COMPLETE  #582 P-API-01 API facade / E-09 lifecycle Contract (RETAIN)
-PARKED    P-API-02 until a recorded revisit event
-COMPLETE  #188 G-05 size ratchet
-COMPLETE  #188 G-06 test ownership
-COMPLETE  #188 G-CLOSE Phase F/G completion audit
-NONE      no READY Phase F/G task
+READY     #199 SEC-01 security/admin host-capability Contract
 EVENT     next ordinary release N -> later D-14 re-audit
 ```
 
-The D-14 stop is correct:
+The original backend stop is correct:
 
 - root `__init__.py` still imports root `api.py` for production registration;
 - root `api.py` remains a production route/payload/runtime facade;
@@ -82,34 +73,45 @@ The D-14 stop is correct:
 - final forms completed after 0.6.2 have no release N;
 - consumer evidence and public breaking-change approval do not support removal.
 
-That stop is an event-gated compatibility state, not an unfinished Phase F/G task.
+That stop applies to the completed compatibility lane. It does not block the separate
+Issue #199 security/admin Contract.
 
-## Completed P-API-01 result
+## Active SEC-01 boundary
 
-The completed evidence is intentionally narrow:
+Current primary-source evidence must be treated as follows:
+
+- ComfyUI `comfy-user` selects a user profile; it is not authenticated administrator
+  identity;
+- origin/host and CORS middleware are request-origin controls, not authorization;
+- `request.remote`, Host, Origin, or forwarded headers alone do not prove authority;
+- EasyUseAnima `GET /settings` returns the current public settings projection and
+  `POST /set_setting` mutates a known setting;
+- the projection currently contains local/network configuration such as
+  `wildcard.extra_paths`, `naia.host`, `naia.port`, and `naia.allow_remote_api`.
+
+SEC-01 must produce:
 
 ```text
-Issue #582 and #186 final P-API-01 checkpoints
-python-api-papi01-e09-lifecycle-gate.md  # RETAIN decision and revisit events
-test_python_api_facade_lifecycle_contract.py  # package -> late api identity proof
-existing E-09, route-owner, compatibility, import, and package/no-host owners
+deployment/threat matrix
+route and field sensitivity inventory
+host capability verdict
+logging/redaction contract
+one primary verdict
+exact SEC-02 task card only when justified
 ```
 
-P-API-01 confirmed the current order:
+Allowed primary verdicts:
 
 ```text
-import root api.py
-  -> create translation route executor/application
-  -> bootstrap.initialize(register_routes)
-  -> freeze RuntimeServices cleanup plan
+HOST_CAPABILITY
+PROCESS_CAPABILITY
+TRUSTED_DEPLOYMENT_ONLY
+NO_DIAGNOSTICS
 ```
 
-The canonical-application and bootstrap-owned-application shapes cannot preserve both
-the pre-cleanup-plan executor timing and all registration/request-time root callback
-seams without a back-reference, second mutable owner, or separate Behavior Contract.
-The retained-root shape is the only candidate that satisfies every current gate.
-
-P-API-01 made no production change and does not authorize the Move.
+SEC-01 must not add a token, diagnostics endpoint, settings split, authentication
+middleware, or frontend migration. It must not trust `comfy-user` or proxy headers as
+admin identity.
 
 ## E-09 non-regression summary
 
@@ -120,22 +122,23 @@ P-API-01 made no production change and does not authorize the Move.
 - translation route executor is unique and cleanup item 1;
 - seven-step cleanup order and expected-identity rollback remain fixed;
 - routes/marker remain installed; file-I/O limiters and provider clients are not closed;
-- no API application reset/close registry, second lock, second atexit, or production
-  module reload is added.
+- no API application or security capability may add a reset/close registry, second
+  lock, second atexit, or production module reload.
+
+If a later SEC task needs an EasyUseAnima-owned capability, it must be immutable
+process-start configuration loaded by RuntimeConfig/bootstrap. SEC-01 only decides
+whether that owner is justified.
 
 ## Following state
 
-After P-API-01, G-05A, G-06A, and G-CLOSE:
+After SEC-01:
 
-1. run one bounded P-API-02 only when the verdict is FEASIBLE;
-2. retain the recorded P-API verdict and completed G-05/G-06 gates;
-3. do not create another Phase F/G task without a new concrete finding;
+1. create exactly one bounded SEC-02 only when the verdict proves implementation is
+   needed;
+2. keep diagnostics absent by default when no reliable authorization owner exists;
+3. do not reopen Phase F/G, P-API-02, or D-14 as a side effect;
 4. let the next ordinary release containing final shims become release N;
 5. re-audit D-14 only after an event gate changes.
-
-G-05 must not split E-09 lifecycle ownership merely to satisfy a line threshold. G-06
-must not add production reset APIs, `importlib.reload()` lifecycle tests, or private
-runtime mutation outside `tests/runtime_test_support.py`.
 
 No dedicated release, outbound telemetry, import-time deprecation warning, or public
 root removal is authorized by this queue.
@@ -161,18 +164,17 @@ command.
 - Documentation-only changes reuse the latest valid code evidence.
 - Run package validation only for import/registration/archive/dependency/release
   closure changes.
-- Run live ComfyUI only for host-visible behavior.
-- Release lifecycle smoke uses a fresh process for terminal shutdown; shutdown followed
-  by production reinitialize is not a supported gate.
-- Run benchmark only for performance/output-quality policy.
+- Run isolated HTTP live smoke for a later backend security behavior change.
+- Run browser smoke only when settings UI behavior changes.
+- Release lifecycle smoke uses a fresh process; shutdown followed by production
+  reinitialize is not a supported gate.
 
 ## Technical PRO boundary
 
-Request focused technical PRO review only when direct evidence leaves multiple valid
-cross-boundary designs, an import cycle cannot be avoided by the existing injection
-pattern, translation-executor identity cannot precede cleanup-plan creation without a
-new lifecycle mechanism, or compatibility evidence cannot distinguish public support
-from test-only seams. User preference is not a substitute for technical analysis.
+Request focused technical PRO review only when primary-source evidence leaves multiple
+viable security architectures with materially different trust guarantees, a capability
+owner would require changing E-09 lifecycle semantics, or proxy/header normalization
+cannot be resolved within the bounded route owner.
 
-Routine test failures, helper layout, type annotation choices, and owner-local
-implementation decisions remain with Codex.
+A missing ComfyUI admin capability, ordinary test failure, field classification, helper
+layout, and owner-local implementation choices remain with Codex.
