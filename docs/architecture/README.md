@@ -9,142 +9,102 @@ then only the active task section, owning Issue, direct source, and direct tests
 
 ## Active sequencing
 
-- Issue [#187](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/187) is
-  completed: E-01 through E-10 and Phase E are closed.
-  Issue #186 remains open as the retained D-14/shim decision ledger.
-- [`backend-roadmap-resume-0.6.2.md`](backend-roadmap-resume-0.6.2.md)
-  is the current execution source of truth. Read it before the older accumulated
-  roadmap.
-- E-10c completion and D-14 post-Phase-E audit base: PR #561 at
-  `121ee8a1cae826fc1b5227208f964d143b5b6324`.
-- D-08 is complete and D-08v is not required.
-- D-14 post-Phase-E readiness retains every root surface; lifecycle ownership is
-  complete, but production imports, release windows, and consumer evidence still
-  block retirement/final-freeze work.
-- E-01 inventory Contract:
-  [`python-runtime-state-inventory.md`](python-runtime-state-inventory.md).
-- E-02b base Contract:
-  [`python-runtime-base-contract.md`](python-runtime-base-contract.md).
-- E-02c composition is recorded in the same base Contract: RuntimeConfig and a
-  private system clock are installed in the default runtime without moving feature
-  consumers.
-- E-02 completion audit:
-  [`python-runtime-e02-completion-audit.md`](python-runtime-e02-completion-audit.md).
-- E-02d canonicalizes the prompt knowledge package-data alias and completes E-02.
-- E-03 repository/filesystem Contract and completion result:
-  [`python-runtime-e03-repository-filesystem-contract.md`](python-runtime-e03-repository-filesystem-contract.md).
-- Completed E-04 translation runtime ownership Contract and audit:
-  [`python-runtime-e04-translation-contract.md`](python-runtime-e04-translation-contract.md).
-- Completed E-05 autocomplete runtime ownership Contract and audit:
-  [`python-runtime-e05-autocomplete-contract.md`](python-runtime-e05-autocomplete-contract.md).
-- Completed E-06 wildcard snapshot runtime ownership Contract and audit:
-  [`python-runtime-e06-wildcard-contract.md`](python-runtime-e06-wildcard-contract.md).
-- E-08 AiO first-pass cache ownership Contract and bounded Move queue:
-  [`python-runtime-e08-aio-cache-contract.md`](python-runtime-e08-aio-cache-contract.md).
-- E-09 runtime shutdown and cleanup Contract and bounded queue:
-  [`python-runtime-e09-lifecycle-contract.md`](python-runtime-e09-lifecycle-contract.md).
-- E-10 isolated runtime test fixture Contract and bounded queue:
-  [`python-runtime-e10-test-isolation-contract.md`](python-runtime-e10-test-isolation-contract.md).
-- Phase E is complete with `ambiguous_state_owners=[]`, module reload sites `[]`,
-  and direct private runtime mutation outside the test helper `[]`.
-- Completed #470 and the #413/#414/#415 queue/live-UI lanes remain contract references,
-  not active blockers.
-- Released code baseline: 0.6.2. Registry activation is external administration and
-  does not block `dev`; do not republish or mutate the release.
-- Completed #409/#410/#411 and deferred #440/#441 do not alter the E-01 boundary.
-- Root removal, release, and Registry remain governed by the active roadmap; Phase E
-  completion does not itself authorize those operations.
+- Phase D root/package consolidation is complete.
+- Issue [#187](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/187)
+  and Phase E runtime ownership/lifecycle/test isolation are complete.
+- D-14/Phase H root removal is correctly parked: all root surfaces remain retained by
+  production-import, release-window, consumer, rollback, or breaking-change gates.
+- [`post-phase-e-maintenance-roadmap.md`](post-phase-e-maintenance-roadmap.md)
+  owns the current queue.
+- First READY task: Issue [#563](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/563)
+  / F-01 typed-boundary completion audit.
+- After Phase F handoff, Issue
+  [#188](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/188)
+  owns G-04 public API snapshot, G-05 size/complexity ratchet, and G-06 test ownership.
+- Issue [#186](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/186)
+  remains the retained compatibility ledger. It owns pre-retirement feasibility and
+  later D-14 decisions, not an immediately executable deletion task.
+- Released baseline: 0.6.2. Registry activation is external administration and does
+  not block `dev`; do not republish or mutate the release.
+
+```text
+READY  F-01 typed-boundary completion audit
+  -> optional smallest F-02
+  -> G-04A public API snapshot coverage audit
+  -> optional G-04B gap
+  -> Wildcard pure-shim feasibility Contract
+  -> API production-facade feasibility Contract
+  -> approved internal-consumer Moves only
+  -> G-05 size ratchet
+  -> G-06 test ownership
+  -> next ordinary release N
+  -> later H/D-14 re-audit
+```
 
 ## Current code boundary
 
-After D-08u:
+The current backend is functional and validated, but two root surfaces are not yet pure
+compatibility shims:
 
-- root `api.py` is a temporary compatibility/composition facade;
-- canonical route implementations live under `easyuse_anima/api/routes/`;
-- `api/router.py` owns injected route order, definitions/signature, resolver,
-  registrar, and idempotent registration;
-- `bootstrap.py` owns migrated concrete factory/dependency/correlation composition and
-  the production initialization call site;
-- all 21 route handlers retain their locked composition/registration contract;
-- root `api.py` remains a transitional imported runtime facade;
-- root `wildcard_engine.py` retains snapshot lifecycle and direct production consumers;
-- no reviewed evidence requires changing routes, payloads, persistence, error policy,
-  workflow contracts, or optional-dependency behavior.
+- root `__init__.py` imports root `api.py` and passes `api.register_routes` into
+  bootstrap initialization;
+- root `api.py` remains a production route/payload/runtime facade;
+- root `api.py` and `nodes.py` consume `wildcard_engine.py`;
+- root `wildcard_engine.py` retains call-time snapshot/source/build adapters over the
+  canonical Wildcard package.
 
-This is transitional debt, not a reason for a broad rewrite. The E-01 inventory
-records ownership, lifetime, locking, cleanup, and test evidence without removing
-aliases or absorbing feature behavior.
+Other final shim forms completed after 0.6.2 and therefore have no release N yet.
+Older direct/public shims may already satisfy a minimum version window, but absence of
+consumer evidence requires conservative retention under ADR-002.
+
+This is not a test or Registry failure. It is an evidence-based compatibility stop.
+Root modules may remain indefinitely when their cost is low; deletion is not a measure
+of architectural success by itself.
 
 ## Core documents
 
+- [`post-phase-e-maintenance-roadmap.md`](post-phase-e-maintenance-roadmap.md):
+  active Phase F/G queue, pre-retirement feasibility, release N runway, D-14 triggers,
+  validation, and Codex start instruction.
 - [`backend-roadmap-resume-0.6.2.md`](backend-roadmap-resume-0.6.2.md):
-  completed D-08 evidence, D-14 readiness verdict, completed Phase E units, and the
-  completed E-10 audit.
-- [`python-backend.md`](python-backend.md): target ownership and dependency direction.
-  Its early implementation snapshot is historical where the active checkpoint differs.
+  completed D-08 and Phase E execution record plus post-Phase-E D-14 verdict.
+- [`python-backend.md`](python-backend.md): target ownership, phase definitions, and
+  overall Definition of Done.
 - [`python-backend-execution-roadmap.md`](python-backend-execution-roadmap.md):
-  accumulated progress and historical task details; not the current immediate queue.
-- [`python-compatibility-shims.md`](python-compatibility-shims.md): supported root/shim
-  inventory and removal evidence.
-- [`python-runtime-state-inventory.md`](python-runtime-state-inventory.md): E-01
-  runtime-owned/declarative state partition, lifecycle gaps, and target phases.
-- [`python-runtime-base-contract.md`](python-runtime-base-contract.md): E-02b
-  base types plus the E-02c private bootstrap composition and feature-port boundary.
-- [`python-runtime-e02-completion-audit.md`](python-runtime-e02-completion-audit.md):
-  E-02 path-owner disposition, E-02d completion, and E-03 Contract handoff.
-- [`python-runtime-e03-repository-filesystem-contract.md`](python-runtime-e03-repository-filesystem-contract.md):
-  repository/path/lock/patch boundaries and the completed E-03 queue.
-- [`python-runtime-e04-translation-contract.md`](python-runtime-e04-translation-contract.md):
-  completed translation provider/client, service cache/single-flight, route executor
-  owners, lifecycle gaps, and the E-04 completion audit.
-- [`python-runtime-e05-autocomplete-contract.md`](python-runtime-e05-autocomplete-contract.md):
-  autocomplete declarative source policy, completed snapshot/Future and
-  index-store owner Moves, compatibility seams, and bounded queue.
-- [`python-runtime-e06-wildcard-contract.md`](python-runtime-e06-wildcard-contract.md):
-  wildcard snapshot LRU/single-flight ownership, compatibility seams, cleanup
-  disposition, and bounded Move queue.
-- [`python-runtime-e08-aio-cache-contract.md`](python-runtime-e08-aio-cache-contract.md):
-  AiO first-pass cache state ownership, direct compatibility surfaces, cleanup
-  disposition, caller boundary, and bounded Move queue.
-- [`python-runtime-e09-lifecycle-contract.md`](python-runtime-e09-lifecycle-contract.md):
-  bootstrap terminal lifecycle, reverse cleanup order, partial-initialization
-  rollback, retained no-op resources, and the bounded E-09a/b/c queue.
-- [`python-runtime-e10-test-isolation-contract.md`](python-runtime-e10-test-isolation-contract.md):
-  completed test reset inventory, one test-only fixture owner, isolation modes, and
-  the completed E-10a/b/c queue.
+  accumulated historical execution detail; not the current immediate queue.
+- [`python-compatibility-shims.md`](python-compatibility-shims.md): current root/shim
+  inventory, known consumers, release evidence, and removal gates.
 - [`adr-001-modular-monolith.md`](adr-001-modular-monolith.md): feature-oriented modular
   monolith decision.
-- [`adr-002-compatibility-shims.md`](adr-002-compatibility-shims.md): shim lifecycle and
-  retirement policy.
+- [`adr-002-compatibility-shims.md`](adr-002-compatibility-shims.md): support-window,
+  evidence, staged-retirement, and public-breaking-change policy.
+- [`python-runtime-state-inventory.md`](python-runtime-state-inventory.md) and
+  `python-runtime-e02-*` through `python-runtime-e10-*`: completed Phase E contracts.
 - [`../development/codex-execution-efficiency.md`](../development/codex-execution-efficiency.md):
-  context budget, focused test ladder, invalidation, evidence reuse, and reporting.
+  context budget, focused test ladder, evidence reuse, and reporting.
 
-## Cross-surface contract references
+## Cross-surface references
 
 Read only when the task touches the surface:
 
-- [`queue-ui-two-phase-correlation-addendum.md`](queue-ui-two-phase-correlation-addendum.md):
-  queue identity, revision, executed envelope, mapped result, and cleanup.
-- [`prompt-studio-execution-derived-projection.md`](prompt-studio-execution-derived-projection.md):
-  completed linked-input/NAIA projection contract.
-- [`seed-ui-semantics-gate.md`](seed-ui-semantics-gate.md): Prompt Studio concrete seed
-  versus AiO persistent special-token semantics.
-- [`aio-advanced-integrations-roadmap.md`](aio-advanced-integrations-roadmap.md): completed
-  DAVE/Torch Compile/NegPip plan; patch follow-ups remain separate.
-- [`comfy-host-provider-bridge.md`](comfy-host-provider-bridge.md): completed historical
-  host-provider bridge.
+- [`queue-ui-two-phase-correlation-addendum.md`](queue-ui-two-phase-correlation-addendum.md)
+- [`prompt-studio-execution-derived-projection.md`](prompt-studio-execution-derived-projection.md)
+- [`seed-ui-semantics-gate.md`](seed-ui-semantics-gate.md)
+- [`aio-advanced-integrations-roadmap.md`](aio-advanced-integrations-roadmap.md)
+- [`comfy-host-provider-bridge.md`](comfy-host-provider-bridge.md)
 
 ## Authority
 
-- Repository branch/release/validation policy: [`MAINTAINING.md`](../../MAINTAINING.md)
+- Branch/release/validation policy: [`MAINTAINING.md`](../../MAINTAINING.md)
 - Development entrypoint: [`../development/README.md`](../development/README.md)
-- Active immediate queue: `backend-roadmap-resume-0.6.2.md`
+- Active immediate queue: `post-phase-e-maintenance-roadmap.md`
 - Target architecture: `python-backend.md`, ADR-001, ADR-002
-- Feature-specific behavior: owning Issue
+- Feature behavior: owning Issue
+- Compatibility decisions: Issue #186 plus the shim registry
+- Quality ratchets: Issue #188
 
 The efficiency protocol chooses the smallest sufficient evidence; it does not weaken
 correctness, compatibility, package, live, or release gates.
 
-The D-14 readiness audit authorizes no deletion. Root removal still needs the recorded
-production-import, consumer, release, rollback, and breaking-change gates. Phase E
-completion authorizes no release publication, tag, or Registry action.
+No document in this directory authorizes root deletion, public breaking changes,
+release publication, tags, or Registry actions by itself.
