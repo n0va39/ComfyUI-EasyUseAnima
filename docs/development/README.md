@@ -163,13 +163,20 @@ choices remain with Codex.
 Read only when a current task touches the boundary:
 
 - completed D/E record: `../architecture/backend-roadmap-resume-0.6.2.md`
+- runtime state inventory: `../architecture/python-runtime-state-inventory.md`
+- repository/filesystem ownership: `../architecture/python-runtime-e03-repository-filesystem-contract.md`
+- translation runtime: `../architecture/python-runtime-e04-translation-contract.md`
+- autocomplete runtime: `../architecture/python-runtime-e05-autocomplete-contract.md`
+- wildcard runtime: `../architecture/python-runtime-e06-wildcard-contract.md`
+- AiO first-pass cache: `../architecture/python-runtime-e08-aio-cache-contract.md`
 - E-09 lifecycle: `../architecture/python-runtime-e09-lifecycle-contract.md`
+- runtime test isolation: `../architecture/python-runtime-e10-test-isolation-contract.md`
 - Phase F/G close: `../architecture/python-phase-fg-completion-audit.md`
 - security/admin: `../architecture/security-admin-settings-roadmap.md`
 - queue/live UI identity: `../architecture/queue-ui-two-phase-correlation-addendum.md`
 - Prompt Studio projection: `../architecture/prompt-studio-execution-derived-projection.md`
 - dual-canvas UI: `browser-smoke-matrix.md`
-- Registry scanner safety: `registry-scanner-safety.md`
+- Registry scanner safety: [`docs/development/registry-scanner-safety.md`](registry-scanner-safety.md)
 - workflows: `../Anima AiO/Workflow_Management.md`
 
 No roadmap document alone authorizes root deletion, public breaking changes, release,
