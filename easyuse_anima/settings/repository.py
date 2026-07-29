@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 import os
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from pathlib import Path
 from typing import cast
@@ -20,6 +20,8 @@ from .schema import (
     DEFAULT_SETTINGS,
     LONG_TEXT_SETTING_ALIASES,
     LONG_TEXT_SETTING_KEYS,
+    _SettingsDocumentV1,
+    _SettingsValues,
 )
 
 SETTINGS_FILE = USER_DATA_DIR / "settings.json"
@@ -53,20 +55,57 @@ def _current_settings_repository() -> _SettingsRepository:
     )
 
 
-def _read_json_file(path: Path) -> dict:
+def _read_json_file(path: Path) -> dict[str, object]:
     repository = _current_settings_repository()
     try:
         data = repository.store(path).read(default={})
     except (OSError, json.JSONDecodeError):
         return {}
-    return data if isinstance(data, dict) else {}
+    return cast(dict[str, object], data) if isinstance(data, dict) else {}
 
 
-def _normalize_long_text_settings(data: dict) -> dict:
+def _detect_settings_document_version(data: object) -> int:
+    if not isinstance(data, dict):
+        return 0
+    return (
+        1
+        if data.get("version") == 1 and isinstance(data.get("values"), dict)
+        else 0
+    )
+
+
+def _settings_document(values: Mapping[str, object]) -> _SettingsDocumentV1:
+    return {"version": 1, "values": dict(values)}
+
+
+def _migrate_settings_document(data: object) -> _SettingsDocumentV1:
+    if not isinstance(data, dict):
+        return _settings_document({})
+    if _detect_settings_document_version(data) == 1:
+        values = cast(dict[str, object], data["values"])
+    else:
+        values = cast(dict[str, object], data)
+    return _settings_document(values)
+
+
+def _normalize_settings_values(data: object) -> _SettingsValues:
+    if not isinstance(data, dict):
+        return {}
+    normalized: _SettingsValues = {}
+    for key in DEFAULT_SETTINGS:
+        if key in data:
+            value = data[key]
+            normalized[key] = "" if value is None else str(value)
+    return normalized
+
+
+def _normalize_long_text_settings(data: object) -> _SettingsValues:
+    if not isinstance(data, dict):
+        return {}
     values = data.get("values", data)
     if not isinstance(values, dict):
         return {}
-    normalized = {}
+    normalized: _SettingsValues = {}
     for key, value in values.items():
         internal_key = LONG_TEXT_SETTING_ALIASES.get(str(key), str(key))
         if internal_key in LONG_TEXT_SETTING_KEYS:
@@ -74,32 +113,34 @@ def _normalize_long_text_settings(data: dict) -> dict:
     return normalized
 
 
-def load_long_text_settings() -> dict:
+def _migrate_long_text_settings_document(data: object) -> _SettingsDocumentV1:
+    return _settings_document(_normalize_long_text_settings(data))
+
+
+def load_long_text_settings() -> _SettingsValues:
     repository = _current_settings_repository()
-    return _normalize_long_text_settings(
+    document = _migrate_long_text_settings_document(
         _read_json_file(repository.long_text_settings_file)
     )
+    return cast(_SettingsValues, document["values"])
 
 
-def save_long_text_settings(values: dict) -> dict:
+def save_long_text_settings(values: object) -> _SettingsValues:
     repository = _current_settings_repository()
     if not isinstance(values, dict):
         values = {}
     updates = _normalize_long_text_settings(values)
-    saved: dict = {}
+    saved: _SettingsValues = {}
 
-    def merge(current) -> dict:
-        settings = _normalize_long_text_settings(
-            current if isinstance(current, dict) else {}
-        )
+    def merge(current: object) -> _SettingsDocumentV1:
+        settings = _normalize_long_text_settings(current)
         settings.update(updates)
         saved.update(settings)
-        return {
-            "version": 1,
-            "values": {
+        return _settings_document(
+            {
                 key: settings.get(key, "") for key in sorted(LONG_TEXT_SETTING_KEYS)
-            },
-        }
+            }
+        )
 
     repository.store(repository.long_text_settings_file).update(
         merge,
@@ -130,7 +171,7 @@ def _comfy_settings_candidates() -> list[Path]:
     return candidates
 
 
-def _load_comfy_settings() -> dict:
+def _load_comfy_settings() -> dict[str, object]:
     for path in _comfy_settings_candidates():
         data = _read_json_file(path)
         if data:
@@ -138,7 +179,7 @@ def _load_comfy_settings() -> dict:
     return {}
 
 
-def _is_korean_locale(value) -> bool:
+def _is_korean_locale(value: object) -> bool:
     locale = str(value or "").strip().casefold()
     return (
         locale == "ko"
@@ -148,13 +189,16 @@ def _is_korean_locale(value) -> bool:
     )
 
 
-def _initial_autocomplete_source(comfy_settings: dict) -> str:
+def _initial_autocomplete_source(comfy_settings: Mapping[str, object]) -> str:
     if _is_korean_locale(comfy_settings.get(_COMFY_LOCALE_KEY)):
         return _KOREAN_AUTOCOMPLETE_SOURCE
     return DEFAULT_SETTINGS[_AUTOCOMPLETE_SOURCE_KEY]
 
 
-def _initialize_autocomplete_source(data: dict, comfy_settings: dict) -> dict:
+def _initialize_autocomplete_source(
+    data: _SettingsValues,
+    comfy_settings: Mapping[str, object],
+) -> _SettingsValues:
     if (
         _AUTOCOMPLETE_SOURCE_KEY in data
         or _COMFY_AUTOCOMPLETE_SOURCE_KEY in comfy_settings
@@ -165,14 +209,12 @@ def _initialize_autocomplete_source(data: dict, comfy_settings: dict) -> dict:
     initialized = dict(data)
     initialized[_AUTOCOMPLETE_SOURCE_KEY] = source
 
-    def merge(current) -> dict:
-        if not isinstance(current, dict):
-            return initialized
-        if _AUTOCOMPLETE_SOURCE_KEY in current:
-            return current
-        current = dict(current)
-        current[_AUTOCOMPLETE_SOURCE_KEY] = source
-        return current
+    def merge(current: object) -> _SettingsDocumentV1:
+        document = _migrate_settings_document(current)
+        current_values = document["values"]
+        if _AUTOCOMPLETE_SOURCE_KEY not in current_values:
+            current_values[_AUTOCOMPLETE_SOURCE_KEY] = source
+        return document
 
     repository = _current_settings_repository()
     try:
@@ -183,10 +225,11 @@ def _initialize_autocomplete_source(data: dict, comfy_settings: dict) -> dict:
         )
     except OSError:
         return initialized
-    return persisted if isinstance(persisted, dict) else initialized
+    document = _migrate_settings_document(persisted)
+    return _normalize_settings_values(document["values"])
 
 
-def _stringify_setting_value(value) -> str:
+def _stringify_setting_value(value: object) -> str:
     if value is None:
         return ""
     if isinstance(value, bool):
@@ -195,13 +238,13 @@ def _stringify_setting_value(value) -> str:
 
 
 def _apply_prompt_studio_color_settings(
-    settings: dict,
-    comfy_settings: dict,
+    settings: _SettingsValues,
+    comfy_settings: Mapping[str, object],
 ) -> None:
     if "EasyUseAnima.Prompt.HighlightColors" in comfy_settings:
         return
 
-    colors = {}
+    colors: dict[str, str] = {}
     current = settings.get("prompt_studio.colors", "")
     if current:
         try:
@@ -225,9 +268,9 @@ def _apply_prompt_studio_color_settings(
 
 
 def _apply_comfy_settings(
-    settings: dict,
-    comfy_settings: dict | None = None,
-) -> dict:
+    settings: _SettingsValues,
+    comfy_settings: Mapping[str, object] | None = None,
+) -> _SettingsValues:
     comfy_settings = (
         _load_comfy_settings()
         if comfy_settings is None
@@ -242,27 +285,27 @@ def _apply_comfy_settings(
     return settings
 
 
-def _apply_long_text_settings(settings: dict) -> dict:
+def _apply_long_text_settings(settings: _SettingsValues) -> _SettingsValues:
     settings.update(load_long_text_settings())
     return settings
 
 
-def get_settings() -> dict:
+def get_settings() -> _SettingsValues:
     repository = _current_settings_repository()
-    data = _read_json_file(repository.settings_file)
+    document = _migrate_settings_document(
+        _read_json_file(repository.settings_file)
+    )
+    data = _normalize_settings_values(document["values"])
     comfy_settings = _load_comfy_settings()
     data = _initialize_autocomplete_source(data, comfy_settings)
-    settings = dict(DEFAULT_SETTINGS)
-    for key in DEFAULT_SETTINGS:
-        if key in data:
-            value = data[key]
-            settings[key] = "" if value is None else str(value)
+    settings: _SettingsValues = dict(DEFAULT_SETTINGS)
+    settings.update(data)
     return _apply_long_text_settings(
         _apply_comfy_settings(settings, comfy_settings)
     )
 
 
-def save_setting(key: str, value) -> dict:
+def save_setting(key: str, value: object) -> _SettingsValues:
     if key not in DEFAULT_SETTINGS:
         raise KeyError(f"Unknown setting: {key}")
     repository = _current_settings_repository()
@@ -270,7 +313,7 @@ def save_setting(key: str, value) -> dict:
     with store.locked():
         settings = get_settings()
         settings[key] = _stringify_setting_value(value)
-        store.write(settings, trailing_newline=True)
+        store.write(_settings_document(settings), trailing_newline=True)
     return settings
 
 

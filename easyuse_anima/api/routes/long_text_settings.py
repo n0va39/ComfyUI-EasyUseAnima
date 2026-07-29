@@ -9,14 +9,14 @@ def build_long_text_settings_payloads(
 ):
     """Build long-text payload helpers with runtime-resolved dependencies."""
 
-    def _get_long_text_settings_payload_sync() -> dict:
+    def _get_long_text_settings_payload_sync() -> dict[str, object]:
         return {
             "status": "ok",
             "values": load_long_text_settings(),
             "settings": public_settings(),
         }
 
-    def _save_long_text_settings_payload_sync(values: dict) -> dict:
+    def _save_long_text_settings_payload_sync(values: dict) -> dict[str, object]:
         return {
             "status": "ok",
             "values": save_long_text_settings(values),

@@ -58,7 +58,10 @@ class AutocompleteLocaleSettingsTests(unittest.TestCase):
         self.assertEqual(settings["autocomplete.source"], DANBOORU_SOURCE)
         self.assertEqual(
             json.loads(settings_file.read_text(encoding="utf-8")),
-            {"autocomplete.source": DANBOORU_SOURCE},
+            {
+                "version": 1,
+                "values": {"autocomplete.source": DANBOORU_SOURCE},
+            },
         )
 
         cases = (
@@ -81,7 +84,10 @@ class AutocompleteLocaleSettingsTests(unittest.TestCase):
                 self.assertEqual(settings["autocomplete.source"], expected)
                 self.assertEqual(
                     persisted,
-                    {"autocomplete.source": expected},
+                    {
+                        "version": 1,
+                        "values": {"autocomplete.source": expected},
+                    },
                 )
 
     def test_explicit_internal_sources_are_preserved(self):
@@ -197,7 +203,10 @@ class AutocompleteLocaleSettingsTests(unittest.TestCase):
         self.assertEqual(second["autocomplete.source"], KOREAN_SOURCE)
         self.assertEqual(
             json.loads(settings_file.read_text(encoding="utf-8")),
-            {"autocomplete.source": KOREAN_SOURCE},
+            {
+                "version": 1,
+                "values": {"autocomplete.source": KOREAN_SOURCE},
+            },
         )
 
     def test_persistence_failure_keeps_locale_derived_runtime_value(self):

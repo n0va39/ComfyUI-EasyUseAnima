@@ -18,10 +18,14 @@ from .schema import (
     NAIA_PREPROCESSING_KEYS,
     NAIA_RESOLUTION_BUCKETS,
     NAIA_RESOLUTION_MODES,
+    _SettingsRead,
 )
 
+_PublicSettingsValue = str | int | float
+_PublicSettings = dict[str, _PublicSettingsValue]
 
-def public_settings() -> dict:
+
+def public_settings() -> _PublicSettings:
     settings = get_settings()
     return {
         "prompt.metadata_filter_words": settings.get(
@@ -155,7 +159,7 @@ def resolve_autocomplete_source() -> str:
     )
 
 
-def resolve_autocomplete_limit(settings: dict | None = None) -> int:
+def resolve_autocomplete_limit(settings: _SettingsRead | None = None) -> int:
     settings = settings or get_settings()
     try:
         value = int(
@@ -169,7 +173,7 @@ def resolve_autocomplete_limit(settings: dict | None = None) -> int:
     return max(1, min(100, value))
 
 
-def resolve_autocomplete_mode(settings: dict | None = None) -> str:
+def resolve_autocomplete_mode(settings: _SettingsRead | None = None) -> str:
     settings = settings or get_settings()
     value = str(
         settings.get("autocomplete.mode", DEFAULT_SETTINGS["autocomplete.mode"])
@@ -180,7 +184,9 @@ def resolve_autocomplete_mode(settings: dict | None = None) -> str:
     return DEFAULT_SETTINGS["autocomplete.mode"]
 
 
-def _resolve_autocomplete_artist_prefix(settings: dict | None = None) -> str:
+def _resolve_autocomplete_artist_prefix(
+    settings: _SettingsRead | None = None,
+) -> str:
     settings = settings or get_settings()
     default = DEFAULT_SETTINGS["autocomplete.artist_prefix"]
     value = str(settings.get("autocomplete.artist_prefix", default) or "").strip()
@@ -194,7 +200,7 @@ def _resolve_autocomplete_artist_prefix(settings: dict | None = None) -> str:
     return value
 
 
-def resolve_autocomplete_commit_key(settings: dict | None = None) -> str:
+def resolve_autocomplete_commit_key(settings: _SettingsRead | None = None) -> str:
     settings = settings or get_settings()
     value = str(
         settings.get(
@@ -208,7 +214,7 @@ def resolve_autocomplete_commit_key(settings: dict | None = None) -> str:
     return DEFAULT_SETTINGS["autocomplete.commit_key"]
 
 
-def resolve_autocomplete_commit_mode(settings: dict | None = None) -> str:
+def resolve_autocomplete_commit_mode(settings: _SettingsRead | None = None) -> str:
     settings = settings or get_settings()
     value = str(
         settings.get(
@@ -223,7 +229,7 @@ def resolve_autocomplete_commit_mode(settings: dict | None = None) -> str:
 
 
 def _resolve_lora_preset_strength_step(
-    settings: dict,
+    settings: _SettingsRead,
     key: str,
     max_value: float,
 ) -> float:
@@ -235,7 +241,7 @@ def _resolve_lora_preset_strength_step(
 
 
 def resolve_lora_preset_strength_button_step(
-    settings: dict | None = None,
+    settings: _SettingsRead | None = None,
 ) -> float:
     settings = settings or get_settings()
     return _resolve_lora_preset_strength_step(
@@ -246,7 +252,7 @@ def resolve_lora_preset_strength_button_step(
 
 
 def resolve_lora_preset_strength_drag_step(
-    settings: dict | None = None,
+    settings: _SettingsRead | None = None,
 ) -> float:
     settings = settings or get_settings()
     return _resolve_lora_preset_strength_step(
@@ -257,7 +263,7 @@ def resolve_lora_preset_strength_drag_step(
 
 
 def resolve_lora_preset_strength_drag_pixels(
-    settings: dict | None = None,
+    settings: _SettingsRead | None = None,
 ) -> int:
     settings = settings or get_settings()
     try:
@@ -274,7 +280,7 @@ def resolve_lora_preset_strength_drag_pixels(
     return max(1, min(100, value))
 
 
-def resolve_lora_preset_menu_mode(settings: dict | None = None) -> str:
+def resolve_lora_preset_menu_mode(settings: _SettingsRead | None = None) -> str:
     settings = settings or get_settings()
     value = str(
         settings.get(
@@ -288,7 +294,9 @@ def resolve_lora_preset_menu_mode(settings: dict | None = None) -> str:
     return DEFAULT_SETTINGS["lora_preset.menu_mode"]
 
 
-def resolve_prompt_studio_font_family(settings: dict | None = None) -> str:
+def resolve_prompt_studio_font_family(
+    settings: _SettingsRead | None = None,
+) -> str:
     settings = settings or get_settings()
     value = str(settings.get("prompt_studio.font_family", "") or "")
     for token in (";", "{", "}", "\r", "\n"):
@@ -296,7 +304,7 @@ def resolve_prompt_studio_font_family(settings: dict | None = None) -> str:
     return value.strip()[:160]
 
 
-def resolve_prompt_studio_font_size(settings: dict | None = None) -> int:
+def resolve_prompt_studio_font_size(settings: _SettingsRead | None = None) -> int:
     settings = settings or get_settings()
     try:
         value = int(
@@ -312,7 +320,9 @@ def resolve_prompt_studio_font_size(settings: dict | None = None) -> int:
     return max(8, min(24, value))
 
 
-def resolve_prompt_translation_provider(settings: dict | None = None) -> str:
+def resolve_prompt_translation_provider(
+    settings: _SettingsRead | None = None,
+) -> str:
     settings = settings or get_settings()
     return normalize_prompt_translation_provider(
         settings.get(
@@ -322,7 +332,9 @@ def resolve_prompt_translation_provider(settings: dict | None = None) -> str:
     )
 
 
-def resolve_prompt_translation_source(settings: dict | None = None) -> str:
+def resolve_prompt_translation_source(
+    settings: _SettingsRead | None = None,
+) -> str:
     settings = settings or get_settings()
     return normalize_prompt_translation_language(
         settings.get(
@@ -333,7 +345,9 @@ def resolve_prompt_translation_source(settings: dict | None = None) -> str:
     )
 
 
-def resolve_prompt_translation_target(settings: dict | None = None) -> str:
+def resolve_prompt_translation_target(
+    settings: _SettingsRead | None = None,
+) -> str:
     settings = settings or get_settings()
     return normalize_prompt_translation_language(
         settings.get(
@@ -345,7 +359,7 @@ def resolve_prompt_translation_target(settings: dict | None = None) -> str:
 
 
 def resolve_prompt_translation_settings(
-    settings: dict | None = None,
+    settings: _SettingsRead | None = None,
 ) -> PromptTranslationSettings:
     settings = settings or get_settings()
     return PromptTranslationSettings(
@@ -355,7 +369,7 @@ def resolve_prompt_translation_settings(
     )
 
 
-def _resolve_settings_bool(settings: dict, key: str) -> bool:
+def _resolve_settings_bool(settings: _SettingsRead, key: str) -> bool:
     return str(settings.get(key, DEFAULT_SETTINGS[key])).strip().lower() in {
         "true",
         "1",
@@ -365,7 +379,7 @@ def _resolve_settings_bool(settings: dict, key: str) -> bool:
     }
 
 
-def resolve_naia_port(settings: dict | None = None) -> int:
+def resolve_naia_port(settings: _SettingsRead | None = None) -> int:
     settings = settings or get_settings()
     try:
         value = int(settings.get("naia.port", DEFAULT_SETTINGS["naia.port"]))
@@ -374,7 +388,7 @@ def resolve_naia_port(settings: dict | None = None) -> int:
     return max(1, min(65535, value))
 
 
-def resolve_naia_resolution_mode(settings: dict | None = None) -> str:
+def resolve_naia_resolution_mode(settings: _SettingsRead | None = None) -> str:
     settings = settings or get_settings()
     value = str(
         settings.get(
@@ -390,7 +404,7 @@ def resolve_naia_resolution_mode(settings: dict | None = None) -> str:
     return DEFAULT_SETTINGS["naia.resolution_mode"]
 
 
-def resolve_naia_resolution_bucket(settings: dict | None = None) -> str:
+def resolve_naia_resolution_bucket(settings: _SettingsRead | None = None) -> str:
     settings = settings or get_settings()
     value = str(
         settings.get(
@@ -406,7 +420,7 @@ def resolve_naia_resolution_bucket(settings: dict | None = None) -> str:
     )
 
 
-def resolve_naia_resolution_scale(settings: dict | None = None) -> float:
+def resolve_naia_resolution_scale(settings: _SettingsRead | None = None) -> float:
     settings = settings or get_settings()
     try:
         value = float(
@@ -421,7 +435,7 @@ def resolve_naia_resolution_scale(settings: dict | None = None) -> float:
 
 
 def resolve_naia_resolution_max_long_edge(
-    settings: dict | None = None,
+    settings: _SettingsRead | None = None,
 ) -> int:
     settings = settings or get_settings()
     try:
@@ -443,7 +457,7 @@ def resolve_naia_resolution_max_long_edge(
 def resolve_naia_settings() -> dict:
     settings = get_settings()
     use_naia_settings = _resolve_settings_bool(settings, "naia.use_naia_settings")
-    preprocessing = {}
+    preprocessing: dict[str, str] = {}
     for key in NAIA_PREPROCESSING_KEYS:
         value = settings.get(
             f"naia.{key}",

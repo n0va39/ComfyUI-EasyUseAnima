@@ -3017,6 +3017,112 @@ class SettingsTests(unittest.TestCase):
             self.assertIs(store, store_factory.return_value)
             store_factory.assert_called_once_with(settings_file, backup=False)
 
+    def test_settings_document_migration_is_pure_and_versioned(self):
+        legacy = {
+            "autocomplete.source": "localsmile_kr_wiki",
+            "autocomplete.limit": 7,
+            "prompt_studio.font_family": None,
+            "autocomplete.append_separator": True,
+            "future.unknown": {"kept": True},
+        }
+        original = json.loads(json.dumps(legacy))
+
+        self.assertEqual(
+            settings_repository._detect_settings_document_version(legacy),
+            0,
+        )
+        migrated = settings_repository._migrate_settings_document(legacy)
+
+        self.assertEqual(legacy, original)
+        self.assertEqual(migrated, {"version": 1, "values": legacy})
+        self.assertIsNot(migrated["values"], legacy)
+        self.assertEqual(
+            settings_repository._detect_settings_document_version(migrated),
+            1,
+        )
+        self.assertEqual(
+            settings_repository._normalize_settings_values(migrated["values"]),
+            {
+                "autocomplete.source": "localsmile_kr_wiki",
+                "autocomplete.limit": "7",
+                "prompt_studio.font_family": "",
+                "autocomplete.append_separator": "True",
+            },
+        )
+        self.assertEqual(
+            settings_repository._migrate_settings_document(migrated),
+            migrated,
+        )
+
+    def test_get_settings_accepts_legacy_and_v1_documents_without_rewrite(self):
+        legacy = {
+            "autocomplete.source": "localsmile_kr_wiki",
+            "autocomplete.limit": 17,
+            "future.unknown": {"kept": True},
+        }
+        cases = (legacy, {"version": 1, "values": legacy})
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            settings_file = root / "settings.json"
+            long_text_settings_file = root / "long_text_settings.json"
+            with (
+                patch.object(settings_repository, "SETTINGS_FILE", settings_file),
+                patch.object(
+                    settings_repository,
+                    "LONG_TEXT_SETTINGS_FILE",
+                    long_text_settings_file,
+                ),
+                patch.object(
+                    settings_repository,
+                    "_load_comfy_settings",
+                    return_value={},
+                ),
+            ):
+                for document in cases:
+                    with self.subTest(document=document):
+                        settings_file.write_text(
+                            json.dumps(document),
+                            encoding="utf-8",
+                        )
+                        settings = settings_repository.get_settings()
+
+                        self.assertEqual(
+                            settings["autocomplete.source"],
+                            "localsmile_kr_wiki",
+                        )
+                        self.assertEqual(settings["autocomplete.limit"], "17")
+                        self.assertEqual(
+                            json.loads(settings_file.read_text(encoding="utf-8")),
+                            document,
+                        )
+
+    def test_long_text_document_migration_accepts_raw_and_v1_aliases(self):
+        raw = {
+            "metadataFilter": "artist, copyright",
+            "naia.pre_prompt": None,
+            "future.unknown": {"ignored": True},
+        }
+        expected_values = {
+            "prompt.metadata_filter_words": "artist, copyright",
+            "naia.pre_prompt": "",
+        }
+
+        for document in (raw, {"version": 1, "values": raw}):
+            original = json.loads(json.dumps(document))
+            with self.subTest(document=document):
+                migrated = (
+                    settings_repository._migrate_long_text_settings_document(
+                        document
+                    )
+                )
+
+                self.assertEqual(document, original)
+                self.assertEqual(
+                    migrated,
+                    {"version": 1, "values": expected_values},
+                )
+
     def test_save_setting_round_trips_false_zero_empty_string_and_null(self):
         with tempfile.TemporaryDirectory() as tmp:
             settings_file = Path(tmp) / "settings.json"
@@ -3048,7 +3154,8 @@ class SettingsTests(unittest.TestCase):
                         reloaded = settings_repository.get_settings()
 
                         self.assertEqual(saved[key], expected)
-                        self.assertEqual(persisted[key], expected)
+                        self.assertEqual(persisted["version"], 1)
+                        self.assertEqual(persisted["values"][key], expected)
                         self.assertEqual(reloaded[key], expected)
 
     def test_parallel_save_setting_updates_do_not_lose_different_keys(self):
@@ -3121,8 +3228,12 @@ class SettingsTests(unittest.TestCase):
             self.assertFalse(second.is_alive())
             self.assertEqual(errors, [])
             persisted = json.loads(settings_file.read_text(encoding="utf-8"))
-            self.assertEqual(persisted["autocomplete.limit"], "33")
-            self.assertEqual(persisted["prompt_studio.font_family"], "Inter")
+            self.assertEqual(persisted["version"], 1)
+            self.assertEqual(persisted["values"]["autocomplete.limit"], "33")
+            self.assertEqual(
+                persisted["values"]["prompt_studio.font_family"],
+                "Inter",
+            )
         finally:
             release_first.set()
             shutil.rmtree(root, ignore_errors=True)
@@ -3199,6 +3310,7 @@ class SettingsTests(unittest.TestCase):
             self.assertFalse(second.is_alive())
             self.assertEqual(errors, [])
             persisted = json.loads(long_text_settings_file.read_text(encoding="utf-8"))
+            self.assertEqual(persisted["version"], 1)
             self.assertEqual(persisted["values"]["prompt.metadata_filter_words"], "metadata")
             self.assertEqual(persisted["values"]["naia.pre_prompt"], "prefix")
         finally:

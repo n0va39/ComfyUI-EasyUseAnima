@@ -32717,6 +32717,23 @@
       },
       {
         "alias": null,
+        "bound_name": "Mapping",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "collections.abc:Mapping",
+        "kind": "static_from",
+        "line": 7,
+        "name": "Mapping",
+        "optional": false,
+        "requested": "collections.abc",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/settings/repository.py"
+      },
+      {
+        "alias": null,
         "bound_name": "dataclass",
         "branch_context": [],
         "classification": "external",
@@ -32912,6 +32929,42 @@
       },
       {
         "alias": null,
+        "bound_name": "_SettingsDocumentV1",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".schema:_SettingsDocumentV1",
+        "kind": "static_from",
+        "line": 17,
+        "name": "_SettingsDocumentV1",
+        "optional": false,
+        "requested": ".schema",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/settings/repository.py",
+        "target": "easyuse_anima/settings/schema.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "_SettingsValues",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".schema:_SettingsValues",
+        "kind": "static_from",
+        "line": 17,
+        "name": "_SettingsValues",
+        "optional": false,
+        "requested": ".schema",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/settings/repository.py",
+        "target": "easyuse_anima/settings/schema.py"
+      },
+      {
+        "alias": null,
         "bound_name": "folder_paths",
         "branch_context": [
           {
@@ -32919,7 +32972,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 114
+            "line": 155
           }
         ],
         "classification": "external",
@@ -32927,7 +32980,7 @@
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 115,
+        "line": 156,
         "name": null,
         "optional": true,
         "requested": "folder_paths",
@@ -32954,6 +33007,74 @@
       },
       {
         "alias": null,
+        "bound_name": "Mapping",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "collections.abc:Mapping",
+        "kind": "static_from",
+        "line": 5,
+        "name": "Mapping",
+        "optional": false,
+        "requested": "collections.abc",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/settings/schema.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "Literal",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "typing:Literal",
+        "kind": "static_from",
+        "line": 6,
+        "name": "Literal",
+        "optional": false,
+        "requested": "typing",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/settings/schema.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "TypeAlias",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "typing:TypeAlias",
+        "kind": "static_from",
+        "line": 6,
+        "name": "TypeAlias",
+        "optional": false,
+        "requested": "typing",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/settings/schema.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "TypedDict",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "typing:TypedDict",
+        "kind": "static_from",
+        "line": 6,
+        "name": "TypedDict",
+        "optional": false,
+        "requested": "typing",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/settings/schema.py"
+      },
+      {
+        "alias": null,
         "bound_name": "DEFAULT_PROMPT_TRANSLATION_SOURCE",
         "branch_context": [],
         "classification": "internal",
@@ -32961,7 +33082,7 @@
         "conditional": false,
         "imported": "..translation.contracts:DEFAULT_PROMPT_TRANSLATION_SOURCE",
         "kind": "static_from",
-        "line": 5,
+        "line": 8,
         "name": "DEFAULT_PROMPT_TRANSLATION_SOURCE",
         "optional": false,
         "requested": "..translation.contracts",
@@ -32979,7 +33100,7 @@
         "conditional": false,
         "imported": "..translation.contracts:DEFAULT_PROMPT_TRANSLATION_TARGET",
         "kind": "static_from",
-        "line": 5,
+        "line": 8,
         "name": "DEFAULT_PROMPT_TRANSLATION_TARGET",
         "optional": false,
         "requested": "..translation.contracts",
@@ -32997,7 +33118,7 @@
         "conditional": false,
         "imported": "..translation.contracts:PROMPT_TRANSLATION_PROVIDER_OFF",
         "kind": "static_from",
-        "line": 5,
+        "line": 8,
         "name": "PROMPT_TRANSLATION_PROVIDER_OFF",
         "optional": false,
         "requested": "..translation.contracts",
@@ -33250,6 +33371,24 @@
         "kind": "static_from",
         "line": 13,
         "name": "NAIA_RESOLUTION_MODES",
+        "optional": false,
+        "requested": ".schema",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/settings/service.py",
+        "target": "easyuse_anima/settings/schema.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "_SettingsRead",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".schema:_SettingsRead",
+        "kind": "static_from",
+        "line": 13,
+        "name": "_SettingsRead",
         "optional": false,
         "requested": ".schema",
         "role": "ordinary",
@@ -70370,7 +70509,7 @@
         "is_package": false,
         "loc": 63,
         "module": "easyuse_anima.api.routes.long_text_settings",
-        "normalized_git_blob_sha1": "26e85ca17eed3e39798eca30e11b13c156a0cb4a",
+        "normalized_git_blob_sha1": "6243033451ff6a532b1ee0f4d2825b268c87f6a1",
         "path": "easyuse_anima/api/routes/long_text_settings.py",
         "top_level": {
           "class_count": 0,
@@ -70454,7 +70593,7 @@
         "is_package": false,
         "loc": 55,
         "module": "easyuse_anima.api.routes.settings",
-        "normalized_git_blob_sha1": "6b3b68f8929056619472d02cadf4889688526b91",
+        "normalized_git_blob_sha1": "86d3953f2f78ba58bfad7cdfa9f9ec398f0c3504",
         "path": "easyuse_anima/api/routes/settings.py",
         "top_level": {
           "class_count": 0,
@@ -71436,38 +71575,38 @@
       },
       {
         "is_package": false,
-        "loc": 284,
+        "loc": 327,
         "module": "easyuse_anima.settings.repository",
-        "normalized_git_blob_sha1": "25044507a6d2eea4a73efa84af152556e207d756",
+        "normalized_git_blob_sha1": "8b0fbfb069972afc24d90299e23e86bf123b3c50",
         "path": "easyuse_anima/settings/repository.py",
         "top_level": {
           "class_count": 1,
-          "function_count": 16,
+          "function_count": 21,
           "global_count": 7
         }
       },
       {
         "is_package": false,
-        "loc": 230,
+        "loc": 242,
         "module": "easyuse_anima.settings.schema",
-        "normalized_git_blob_sha1": "1a0a9046f9e6c1d7dd79b594854b6b899c7d1278",
+        "normalized_git_blob_sha1": "ae54460b69f504937f22fee99c2149685ed0562d",
         "path": "easyuse_anima/settings/schema.py",
         "top_level": {
-          "class_count": 0,
+          "class_count": 1,
           "function_count": 0,
-          "global_count": 13
+          "global_count": 15
         }
       },
       {
         "is_package": false,
-        "loc": 494,
+        "loc": 508,
         "module": "easyuse_anima.settings.service",
-        "normalized_git_blob_sha1": "19963faaba9203febba90cad7c71d06b3341c8c7",
+        "normalized_git_blob_sha1": "203b71739e0a951dd08f3442fdb3904bc24e6935",
         "path": "easyuse_anima/settings/service.py",
         "top_level": {
           "class_count": 0,
           "function_count": 26,
-          "global_count": 1
+          "global_count": 3
         }
       },
       {
@@ -90514,6 +90653,17 @@
         "branch_context": [],
         "classification": "external",
         "conditional": false,
+        "imported": "collections.abc:Mapping",
+        "kind": "static_from",
+        "line": 7,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/settings/repository.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
         "imported": "dataclasses:dataclass",
         "kind": "static_from",
         "line": 8,
@@ -90550,14 +90700,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 114
+            "line": 155
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 115,
+        "line": 156,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/settings/repository.py"
@@ -90569,6 +90719,50 @@
         "imported": "__future__:annotations",
         "kind": "static_from",
         "line": 3,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/settings/schema.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "collections.abc:Mapping",
+        "kind": "static_from",
+        "line": 5,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/settings/schema.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "typing:Literal",
+        "kind": "static_from",
+        "line": 6,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/settings/schema.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "typing:TypeAlias",
+        "kind": "static_from",
+        "line": 6,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/settings/schema.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "typing:TypedDict",
+        "kind": "static_from",
+        "line": 6,
         "optional": false,
         "role": "ordinary",
         "source": "easyuse_anima/settings/schema.py"
@@ -92431,14 +92625,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 114
+            "line": 155
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 115,
+        "line": 156,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/settings/repository.py"
@@ -94675,7 +94869,7 @@
         "column": 1,
         "context": "decorator:_SettingsRepository",
         "kind": "import_time_call",
-        "line": 33,
+        "line": 35,
         "module": "easyuse_anima/settings/repository.py",
         "scope": "<module>"
       },
@@ -95201,67 +95395,67 @@
       },
       {
         "kind": "set",
-        "line": 77,
+        "line": 89,
         "module": "easyuse_anima/settings/schema.py",
         "name": "AUTOCOMPLETE_COMMIT_KEYS"
       },
       {
         "kind": "set",
-        "line": 82,
+        "line": 94,
         "module": "easyuse_anima/settings/schema.py",
         "name": "AUTOCOMPLETE_COMMIT_MODES"
       },
       {
         "kind": "set",
-        "line": 71,
+        "line": 83,
         "module": "easyuse_anima/settings/schema.py",
         "name": "AUTOCOMPLETE_MODES"
       },
       {
         "kind": "dict",
-        "line": 138,
+        "line": 150,
         "module": "easyuse_anima/settings/schema.py",
         "name": "COMFY_SETTING_KEYS"
       },
       {
         "kind": "dict",
-        "line": 11,
+        "line": 23,
         "module": "easyuse_anima/settings/schema.py",
         "name": "DEFAULT_SETTINGS"
       },
       {
         "kind": "dict",
-        "line": 201,
+        "line": 213,
         "module": "easyuse_anima/settings/schema.py",
         "name": "LONG_TEXT_SETTING_ALIASES"
       },
       {
         "kind": "set",
-        "line": 194,
+        "line": 206,
         "module": "easyuse_anima/settings/schema.py",
         "name": "LONG_TEXT_SETTING_KEYS"
       },
       {
         "kind": "list",
-        "line": 102,
+        "line": 114,
         "module": "easyuse_anima/settings/schema.py",
         "name": "NAIA_PREPROCESSING_KEYS"
       },
       {
         "kind": "set",
-        "line": 93,
+        "line": 105,
         "module": "easyuse_anima/settings/schema.py",
         "name": "NAIA_RESOLUTION_BUCKETS"
       },
       {
         "kind": "set",
-        "line": 88,
+        "line": 100,
         "module": "easyuse_anima/settings/schema.py",
         "name": "NAIA_RESOLUTION_MODES"
       },
       {
         "kind": "list",
-        "line": 120,
+        "line": 132,
         "module": "easyuse_anima/settings/schema.py",
         "name": "PROMPT_STUDIO_COLOR_KEYS"
       },

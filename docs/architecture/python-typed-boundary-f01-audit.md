@@ -104,6 +104,7 @@ Allowed production files:
   easyuse_anima/api/routes/long_text_settings.py only for direct result annotations
 Allowed test/config files:
   tests/test_prompt_corrector.py only SettingsTests
+  tests/test_autocomplete_locale_settings.py only persisted initialization shape
   tests/test_api_contract.py only ApiSettingsRouteTests and
     ApiLongTextSettingsRouteTests
   tests/test_pyright_baseline.py

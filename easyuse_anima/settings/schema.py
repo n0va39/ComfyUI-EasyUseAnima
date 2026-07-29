@@ -2,13 +2,25 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
+from typing import Literal, TypeAlias, TypedDict
+
 from ..translation.contracts import (
     DEFAULT_PROMPT_TRANSLATION_SOURCE,
     DEFAULT_PROMPT_TRANSLATION_TARGET,
     PROMPT_TRANSLATION_PROVIDER_OFF,
 )
 
-DEFAULT_SETTINGS = {
+_SettingsValues: TypeAlias = dict[str, str]
+_SettingsRead: TypeAlias = Mapping[str, str]
+
+
+class _SettingsDocumentV1(TypedDict):
+    version: Literal[1]
+    values: dict[str, object]
+
+
+DEFAULT_SETTINGS: _SettingsValues = {
     "prompt.metadata_filter_words": "",
     "autocomplete.source": "dbr_danbooru_2025_09_01",
     "autocomplete.limit": "20",
@@ -68,29 +80,29 @@ DEFAULT_SETTINGS = {
     "naia.tag_implication_compression": "skip",
 }
 
-AUTOCOMPLETE_MODES = {
+AUTOCOMPLETE_MODES: set[str] = {
     "off",
     "easyuse_nodes",
     "compatible_global",
 }
 
-AUTOCOMPLETE_COMMIT_KEYS = {
+AUTOCOMPLETE_COMMIT_KEYS: set[str] = {
     "enter",
     "tab",
 }
 
-AUTOCOMPLETE_COMMIT_MODES = {
+AUTOCOMPLETE_COMMIT_MODES: set[str] = {
     "smart",
     "insert",
     "replace",
 }
 
-NAIA_RESOLUTION_MODES = {
+NAIA_RESOLUTION_MODES: set[str] = {
     "scale",
     "bucket",
 }
 
-NAIA_RESOLUTION_BUCKETS = {
+NAIA_RESOLUTION_BUCKETS: set[str] = {
     "512",
     "768",
     "896",
@@ -99,7 +111,7 @@ NAIA_RESOLUTION_BUCKETS = {
     "1536",
 }
 
-NAIA_PREPROCESSING_KEYS = [
+NAIA_PREPROCESSING_KEYS: list[str] = [
     "remove_author",
     "remove_work_title",
     "remove_character_name",
@@ -117,7 +129,7 @@ NAIA_PREPROCESSING_KEYS = [
     "tag_implication_compression",
 ]
 
-PROMPT_STUDIO_COLOR_KEYS = [
+PROMPT_STUDIO_COLOR_KEYS: list[str] = [
     "quality",
     "safety",
     "year",
@@ -135,7 +147,7 @@ PROMPT_STUDIO_COLOR_KEYS = [
     "unknown",
 ]
 
-COMFY_SETTING_KEYS = {
+COMFY_SETTING_KEYS: dict[str, str] = {
     "EasyUseAnima.Prompt.MetadataFilter": "prompt.metadata_filter_words",
     "EasyUseAnima.Prompt.AutocompleteSource": "autocomplete.source",
     "EasyUseAnima.Prompt.AutocompleteLimit": "autocomplete.limit",
@@ -186,19 +198,19 @@ COMFY_SETTING_KEYS = {
     },
 }
 
-COMFY_COLOR_SETTING_KEYS = {
+COMFY_COLOR_SETTING_KEYS: dict[str, str] = {
     f"EasyUseAnima.Prompt.HighlightColor.{key}": key
     for key in PROMPT_STUDIO_COLOR_KEYS
 }
 
-LONG_TEXT_SETTING_KEYS = {
+LONG_TEXT_SETTING_KEYS: set[str] = {
     "prompt.metadata_filter_words",
     "naia.pre_prompt",
     "naia.post_prompt",
     "naia.auto_hide",
 }
 
-LONG_TEXT_SETTING_ALIASES = {
+LONG_TEXT_SETTING_ALIASES: dict[str, str] = {
     "metadata_filter": "prompt.metadata_filter_words",
     "metadataFilter": "prompt.metadata_filter_words",
     "EasyUseAnima.Prompt.MetadataFilter": "prompt.metadata_filter_words",
