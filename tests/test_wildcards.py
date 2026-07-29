@@ -159,6 +159,10 @@ class WildcardServiceTests(unittest.TestCase):
             "expand_wildcards",
         ):
             with self.subTest(name=name):
+                self.assertIs(
+                    getattr(wildcard_engine, name),
+                    getattr(wildcard_service, name),
+                )
                 self.assertEqual(
                     inspect.signature(getattr(wildcard_engine, name)),
                     inspect.signature(getattr(wildcard_service, name)),
@@ -249,6 +253,10 @@ class WildcardServiceTests(unittest.TestCase):
 class WildcardEngineTests(unittest.TestCase):
     def test_root_library_adapter_uses_canonical_lookup_core(self):
         self.assertEqual(wildcard_library.__all__, ())
+        self.assertIs(
+            wildcard_engine._WildcardLibrary,
+            wildcard_service._WildcardLibrary,
+        )
         self.assertTrue(
             issubclass(
                 wildcard_engine._WildcardLibrary,
@@ -469,7 +477,7 @@ class WildcardEngineTests(unittest.TestCase):
 
     def test_empty_text_batch_returns_before_snapshot_lifecycle(self):
         with patch.object(
-            wildcard_engine,
+            wildcard_service,
             "_wildcard_snapshot",
             side_effect=AssertionError("empty batch resolved a snapshot"),
         ):
@@ -993,7 +1001,7 @@ class WildcardEngineTests(unittest.TestCase):
             snapshot = wildcard_engine._wildcard_snapshot([root])
 
             with patch.object(
-                wildcard_engine,
+                wildcard_service,
                 "_load_wildcard_map",
                 side_effect=AssertionError("runtime library copied the snapshot mapping"),
             ):
@@ -1183,7 +1191,7 @@ class WildcardEngineTests(unittest.TestCase):
         build_started = threading.Event()
         release_build = threading.Event()
         build_calls = []
-        original_build = wildcard_engine._build_wildcard_snapshot
+        original_build = wildcard_service._build_wildcard_snapshot
 
         def blocked_first_build(source_state):
             snapshot = original_build(source_state)
@@ -1200,7 +1208,7 @@ class WildcardEngineTests(unittest.TestCase):
             colors.write_text("colors: [red]\n", encoding="utf-8")
 
             with patch.object(
-                wildcard_engine,
+                wildcard_service,
                 "_build_wildcard_snapshot",
                 side_effect=blocked_first_build,
             ), ThreadPoolExecutor(max_workers=1) as executor:
@@ -1225,7 +1233,7 @@ class WildcardEngineTests(unittest.TestCase):
         release_build = threading.Event()
         waiter_entered = threading.Event()
         build_calls = []
-        original_build = wildcard_engine._build_wildcard_snapshot
+        original_build = wildcard_service._build_wildcard_snapshot
         original_wait = (
             wildcard_snapshot._DEFAULT_WILDCARD_SNAPSHOTS._condition.wait
         )
@@ -1250,7 +1258,7 @@ class WildcardEngineTests(unittest.TestCase):
             )
 
             with patch.object(
-                wildcard_engine,
+                wildcard_service,
                 "_build_wildcard_snapshot",
                 side_effect=blocked_build,
             ), patch.object(

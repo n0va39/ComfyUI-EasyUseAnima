@@ -711,6 +711,7 @@ ignored/
                 "prompt_translation.py",
                 "settings.py",
                 "storage.py",
+                "wildcard_engine.py",
             ],
         )
         self.assertEqual(report["registry"]["missing_internal_imports"], [])
@@ -1013,7 +1014,7 @@ ignored/
         self.assertIn(
             {
                 "from": "wildcard_engine.py",
-                "to": "easyuse_anima/wildcard/library.py",
+                "to": "easyuse_anima/wildcard/service.py",
             },
             report["imports"]["module_graph"],
         )
@@ -1150,10 +1151,13 @@ ignored/
             (item["source"], item["target"])
             for item in report["registry"]["compatibility_fallback_imports"]
         }
-        self.assertTrue(
-            {
-                ("nodes.py", "wildcard_engine.py"),
-            }.issubset(fallback_targets)
+        self.assertNotIn(
+            ("nodes.py", "wildcard_engine.py"),
+            fallback_targets,
+        )
+        self.assertIn(
+            ("wildcard_engine.py", "easyuse_anima/wildcard/service.py"),
+            fallback_targets,
         )
         self.assertFalse(
             [

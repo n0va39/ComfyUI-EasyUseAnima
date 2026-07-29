@@ -13,7 +13,7 @@ Read only the sections needed by the active task.
    - run package/live/benchmark only when triggered.
 3. Current backend queue:
    [`../architecture/post-phase-e-maintenance-roadmap.md`](../architecture/post-phase-e-maintenance-roadmap.md)
-   - first READY task: Issue #186 / P-WC-02 Wildcard facade Move;
+   - first READY task: Issue #186 / P-API-01 API facade feasibility Contract;
    - D-14/H root removal is parked, not failed.
 4. Backend target architecture and compatibility policy:
    [`../architecture/README.md`](../architecture/README.md)
@@ -55,17 +55,11 @@ ordinary `dev` work.
 COMPLETE  Phase D package/root consolidation
 COMPLETE  Phase E runtime ownership/lifecycle/test isolation
 PARKED    D-14 / Phase H root removal
-COMPLETE  #563 F-02a Autocomplete typed result contracts
-COMPLETE  #563 F-02b Prompt field-family typed contract
-COMPLETE  #563 F-02c canonical Prompt Data typed read/output contract
-COMPLETE  #563 affected Prompt-row re-audit
-COMPLETE  #563 F-02d settings typed migration contract
-COMPLETE  #563 affected settings/profile/workflow-row re-audit
-COMPLETE  #563 F-02e common feature error taxonomy contract
-COMPLETE  #563 F-02f canonical categories and feature inheritance
-READY     #563 F-02g authoritative profile/translation API mappings
-NEXT      #563 F-02h error-row and Phase F completion audit
-BLOCKED   #188 G-04 public API snapshot audit until Phase F closes
+COMPLETE  #563 Phase F typed-boundary and feature-error work
+COMPLETE  #188 G-04 public API snapshot coverage audit
+COMPLETE  #186 P-WC-01 Wildcard facade feasibility Contract
+COMPLETE  #186 P-WC-02 Wildcard direct-shim Move
+READY     #186 P-API-01 API facade feasibility Contract
 LATER     G-05 size ratchet / G-06 test ownership
 EVENT     next ordinary release N -> later D-14 re-audit
 ```
@@ -73,40 +67,38 @@ EVENT     next ordinary release N -> later D-14 re-audit
 The D-14 stop is correct:
 
 - root `__init__.py` still imports root `api.py` for production registration;
-- `api.py` and `nodes.py` still consume `wildcard_engine.py`;
+- root `api.py` remains a production route/payload/runtime facade;
+- `wildcard_engine.py` is a direct shim, but that final form has not shipped;
 - final forms completed after 0.6.2 have no release N;
 - consumer evidence and public breaking-change approval do not support removal.
 
 That stop applies only to removal. It does not complete Phase F or G.
 
-## Active F-02g source map
+## Active P-API-01 source map
 
 Start with targeted owners rather than the full repository:
 
 ```text
-docs/architecture/python-feature-error-taxonomy-contract.md  # F-02g task card
-Issue #563 latest checkpoint
-api.py dynamic profile dependency composition
-easyuse_anima/api/responses.py and api/routes/translation.py mapping owners
-bootstrap translation composition plus taxonomy/API/runtime tests
+docs/architecture/post-phase-e-maintenance-roadmap.md  # P-API-01 task card
+Issue #186 latest checkpoint
+root __init__.py and api.py production entry/composition
+easyuse_anima/bootstrap.py and easyuse_anima/api/router.py
+direct route/API compatibility, entrypoint, package, and import owners
 ```
 
-F-02g moves profile and translation HTTP authority into canonical API adapters while
-preserving exact payloads, correlation, redaction, catch order, compatibility metadata,
-and the dynamic profile dependency seam. It does not change feature exceptions,
-taxonomy, root exports, or runtime lifecycle.
+P-API-01 is a production-free feasibility Contract. It inventories the root entrypoint,
+bootstrap composition, route/payload/runtime helpers, public names, private test seams,
+object identities, and import-cycle constraints. It selects one bounded Move only when
+the evidence converges; otherwise it records RETAIN. It does not implement the Move.
 
 ## Following queue
 
-After F-02g:
+After P-API-01:
 
-1. run F-02h to re-audit the common error row and record Phase F completion;
-2. after Phase F closes, run #188 G-04A against existing
-   compatibility/node/API/package fixtures;
-3. audit Wildcard and API pure-shim feasibility without deleting root modules;
-4. add G-05 changed-path size growth and G-06 test-ownership gates;
-5. let the next ordinary release containing final shims become release N;
-6. re-audit D-14 only after an event-gate changes.
+1. run only the bounded P-API-02 Move when P-API-01 is FEASIBLE;
+2. add G-05 changed-path size growth and G-06 test-ownership gates;
+3. let the next ordinary release containing final shims become release N;
+4. re-audit D-14 only after an event-gate changes.
 
 No dedicated release, outbound telemetry, import-time deprecation warning, or public
 root removal is authorized by this queue.
