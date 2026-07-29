@@ -151,6 +151,13 @@
       "decomposition_boundary": "E-09 initialization, rollback, repeated-call identity, and terminal shutdown checks remain serialized by one lock."
     },
     {
+      "path": "easyuse_anima/image/sam3_detailer.py",
+      "qualified_name": "_run_sam3_detailer",
+      "baseline_loc": 125,
+      "owner_issue": 188,
+      "decomposition_boundary": "Keep SAM3 detection, mask-to-SEGS conversion, empty-result handling, and Impact delegation ordered at the shared image operation boundary."
+    },
+    {
       "path": "easyuse_anima/infrastructure/filesystem/atomic_json.py",
       "qualified_name": "AtomicJsonStore.replace_from",
       "baseline_loc": 140,
@@ -191,13 +198,6 @@
       "baseline_loc": 184,
       "owner_issue": 188,
       "decomposition_boundary": "Keep seed reservation and Prompt Data node output assembly ordered until a typed request owns both."
-    },
-    {
-      "path": "easyuse_anima/nodes/sam3_nodes.py",
-      "qualified_name": "EasyUseAnimaSAM3Detailer.doit",
-      "baseline_loc": 126,
-      "owner_issue": 188,
-      "decomposition_boundary": "Separate SAM3 detection from detailer result assembly only through the canonical image adapter."
     },
     {
       "path": "easyuse_anima/prompt/advanced.py",

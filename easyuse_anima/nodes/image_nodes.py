@@ -7,10 +7,8 @@ from ..image.geometry import _alignment_value
 from ..image.scaling import (
     IMAGE_SCALE_MULTIPLES,
     IMAGE_UPSCALE_METHODS,
-    _image_scale_by_multiple_size,
-    _normalize_image_scale_options,
 )
-from ..infrastructure.comfy.invocation import _common_upscale_image
+from ..image.upscale import _upscale_image_by_multiple
 
 
 class EasyUseAnimaImageScaleByMultiple:
@@ -67,21 +65,13 @@ class EasyUseAnimaImageScaleByMultiple:
     CATEGORY = "EasyUse Anima/Image"
 
     def upscale(self, image, scale_by=1.5, upscale_method="bicubic", multiple="32", max_long_edge=0):
-        upscale_method, multiple, max_long_edge = _normalize_image_scale_options(
+        return _upscale_image_by_multiple(
+            image,
+            scale_by,
             upscale_method,
             multiple,
             max_long_edge,
         )
-        samples = image.movedim(-1, 1)
-        width, height, applied_scale = _image_scale_by_multiple_size(
-            int(samples.shape[3]),
-            int(samples.shape[2]),
-            scale_by,
-            multiple,
-            max_long_edge,
-        )
-        scaled = _common_upscale_image(samples, width, height, str(upscale_method))
-        return (scaled.movedim(1, -1), width, height, applied_scale)
 
 
 class EasyUseAnimaDetailerAlignHook:

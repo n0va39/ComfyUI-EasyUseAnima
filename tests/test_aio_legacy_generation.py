@@ -200,14 +200,10 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
             )
             return stage_sampler
 
-        class ScaleByMultiple:
-            def __init__(self):
-                trace.append("construct:scaler")
-
-            def upscale(self, *args):
-                trace.append("call:upscale")
-                test_case.assertEqual(args, (image, 1.5, "lanczos", "64", 2048))
-                return scaled_image, 128, 192, 1.5
+        def upscale_image_by_multiple(*args):
+            trace.append("call:upscale")
+            test_case.assertEqual(args, (image, 1.5, "lanczos", "64", 2048))
+            return scaled_image, 128, 192, 1.5
 
         def encode(source_vae, source_image):
             trace.append(f"call:encode:{source_image.name}")
@@ -269,7 +265,7 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
         helpers = {
             "_as_bool": as_bool,
             "_aio_stage_sampler_settings": stage_sampler_settings,
-            "EasyUseAnimaImageScaleByMultiple": ScaleByMultiple,
+            "_upscale_image_by_multiple": upscale_image_by_multiple,
             "_encode_image_with_comfy_vae": encode,
             "_apply_aio_spectrum_model_patches_for_comfy_sampler": apply_patch,
             "_sample_latent_with_aio_backend": sample,
@@ -325,7 +321,6 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
             [
                 "call:_as_bool",
                 "call:_aio_stage_sampler_settings",
-                "construct:scaler",
                 "call:upscale",
                 "call:encode:scaled_image",
                 "call:patch",
@@ -343,10 +338,9 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
         model = _Token("model")
         stage_sampler = {"backend": "spectrum_mod_guidance_advanced"}
 
-        class ScaleByMultiple:
-            def upscale(self, *args):
-                trace.append("upscale")
-                return _Token("scaled"), 64, 96, 1.0
+        def upscale_image_by_multiple(*args):
+            trace.append("upscale")
+            return _Token("scaled"), 64, 96, 1.0
 
         def sample(*args):
             trace.append("sample")
@@ -360,7 +354,7 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
         helpers = {
             "_as_bool": lambda value, default: True,
             "_aio_stage_sampler_settings": lambda *args, **kwargs: stage_sampler,
-            "EasyUseAnimaImageScaleByMultiple": ScaleByMultiple,
+            "_upscale_image_by_multiple": upscale_image_by_multiple,
             "_encode_image_with_comfy_vae": lambda vae, image: _Token("latent"),
             "_sample_latent_with_aio_backend": sample,
             "_cleanup_aio_ephemeral_model": cleanup,
@@ -775,14 +769,10 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
             )
             return stage_model
 
-        class Detailer:
-            def __init__(self):
-                trace.append("construct:detailer")
-
-            def doit(self, **kwargs):
-                trace.append("call:doit")
-                captured_kwargs.update(kwargs)
-                return detailed_image, segs, object(), object()
+        def run_sam3_detailer(**kwargs):
+            trace.append("call:doit")
+            captured_kwargs.update(kwargs)
+            return detailed_image, segs, object(), object()
 
         def cleanup(current_model, original_model):
             trace.append("call:cleanup")
@@ -806,7 +796,7 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
             "_as_float": as_float,
             "_aio_stage_sampler_settings": stage_sampler_settings,
             "_apply_aio_spectrum_model_patches_for_comfy_sampler": apply_patch,
-            "EasyUseAnimaSAM3Detailer": Detailer,
+            "_run_sam3_detailer": run_sam3_detailer,
             "_cleanup_aio_ephemeral_model": cleanup,
             "_segs_has_items": segs_has_items,
             "_prompt_data_json_safe": json_safe,
@@ -914,10 +904,9 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
         }
 
         def execute(overrides, trace):
-            class Detailer:
-                def doit(self, **kwargs):
-                    trace.append("doit")
-                    return _Token("output"), ((1, 1), ["seg"])
+            def run_sam3_detailer(**kwargs):
+                trace.append("doit")
+                return _Token("output"), ((1, 1), ["seg"])
 
             helpers = {
                 "_as_bool": lambda value, default: bool(value),
@@ -927,7 +916,7 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
                 "_apply_aio_spectrum_model_patches_for_comfy_sampler": (
                     lambda *args: stage_model
                 ),
-                "EasyUseAnimaSAM3Detailer": Detailer,
+                "_run_sam3_detailer": run_sam3_detailer,
                 "_cleanup_aio_ephemeral_model": (
                     lambda current, original: trace.append("cleanup")
                 ),
@@ -960,22 +949,21 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
             execute({"_aio_stage_sampler_settings": fail_planner}, planner_trace)
         self.assertNotIn("cleanup", planner_trace)
 
-        class_trace = []
+        operation_trace = []
 
-        def fail_class():
-            class_trace.append("construct")
-            raise LookupError("class failed")
+        def fail_operation(**kwargs):
+            operation_trace.append("operation")
+            raise LookupError("operation failed")
 
-        with self.assertRaisesRegex(LookupError, "class failed"):
-            execute({"EasyUseAnimaSAM3Detailer": fail_class}, class_trace)
-        self.assertEqual(class_trace[-1:], ["cleanup"])
+        with self.assertRaisesRegex(LookupError, "operation failed"):
+            execute({"_run_sam3_detailer": fail_operation}, operation_trace)
+        self.assertEqual(operation_trace[-1:], ["cleanup"])
 
         cleanup_trace = []
 
-        class FailingDetailer:
-            def doit(self, **kwargs):
-                cleanup_trace.append("doit")
-                raise ValueError("detailer failed")
+        def failing_detailer(**kwargs):
+            cleanup_trace.append("doit")
+            raise ValueError("detailer failed")
 
         def fail_cleanup(current, original):
             cleanup_trace.append("cleanup")
@@ -984,7 +972,7 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError, "cleanup failed"):
             execute(
                 {
-                    "EasyUseAnimaSAM3Detailer": FailingDetailer,
+                    "_run_sam3_detailer": failing_detailer,
                     "_cleanup_aio_ephemeral_model": fail_cleanup,
                 },
                 cleanup_trace,

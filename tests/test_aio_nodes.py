@@ -1719,7 +1719,7 @@ class AIOHighresDetailerStageTests(unittest.TestCase):
             return "high_latent"
 
         with (
-            patch.object(nodes.EasyUseAnimaImageScaleByMultiple, "upscale", return_value=("scaled_image", 640, 960, 1.25)),
+            patch.object(legacy_generation, "_upscale_image_by_multiple", return_value=("scaled_image", 640, 960, 1.25)),
             patch.object(legacy_generation, "_encode_image_with_comfy_vae", return_value="high_latent_image"),
             patch.object(legacy_generation, "_apply_aio_spectrum_model_patches_for_comfy_sampler", return_value="stage_model"),
             patch.object(legacy_generation, "_sample_latent_with_aio_backend", side_effect=fake_sample),
@@ -1774,7 +1774,7 @@ class AIOHighresDetailerStageTests(unittest.TestCase):
             return "high_latent"
 
         with (
-            patch.object(nodes.EasyUseAnimaImageScaleByMultiple, "upscale", return_value=("scaled_image", 640, 960, 1.25)),
+            patch.object(legacy_generation, "_upscale_image_by_multiple", return_value=("scaled_image", 640, 960, 1.25)),
             patch.object(legacy_generation, "_encode_image_with_comfy_vae", return_value="high_latent_image"),
             patch.object(legacy_generation, "_apply_aio_spectrum_model_patches_for_comfy_sampler", return_value="stage_model"),
             patch.object(legacy_generation, "_sample_latent_with_aio_backend", side_effect=fake_sample),
@@ -1822,7 +1822,7 @@ class AIOHighresDetailerStageTests(unittest.TestCase):
         }))
 
         with (
-            patch.object(nodes.EasyUseAnimaImageScaleByMultiple, "upscale", return_value=("scaled_image", 640, 960, 1.25)),
+            patch.object(legacy_generation, "_upscale_image_by_multiple", return_value=("scaled_image", 640, 960, 1.25)),
             patch.object(legacy_generation, "_encode_image_with_comfy_vae", return_value="high_latent_image"),
             patch.object(legacy_generation, "_apply_aio_spectrum_model_patches_for_comfy_sampler") as comfy_patch,
             patch.object(legacy_generation, "_sample_latent_with_aio_backend", return_value="high_latent") as sample,
@@ -1884,7 +1884,7 @@ class AIOHighresDetailerStageTests(unittest.TestCase):
         }))
 
         with (
-            patch.object(nodes.EasyUseAnimaImageScaleByMultiple, "upscale", return_value=("scaled_image", 640, 960, 1.25)),
+            patch.object(legacy_generation, "_upscale_image_by_multiple", return_value=("scaled_image", 640, 960, 1.25)),
             patch.object(legacy_generation, "_encode_image_with_comfy_vae", return_value="high_latent_image"),
             patch.object(legacy_generation, "_apply_aio_spectrum_model_patches_for_comfy_sampler", return_value="stage_model") as comfy_patch,
             patch.object(legacy_generation, "_sample_latent_with_aio_backend", return_value="high_latent"),
@@ -1926,7 +1926,7 @@ class AIOHighresDetailerStageTests(unittest.TestCase):
         }))
 
         with (
-            patch.object(nodes.EasyUseAnimaImageScaleByMultiple, "upscale", return_value=("scaled_image", 640, 960, 1.25)),
+            patch.object(legacy_generation, "_upscale_image_by_multiple", return_value=("scaled_image", 640, 960, 1.25)),
             patch.object(legacy_generation, "_encode_image_with_comfy_vae", return_value="high_latent_image"),
             patch.object(legacy_generation, "_apply_aio_spectrum_model_patches_for_comfy_sampler", return_value="stage_model"),
             patch.object(legacy_generation, "_sample_latent_with_aio_backend", return_value="high_latent") as sample,
@@ -1963,7 +1963,7 @@ class AIOHighresDetailerStageTests(unittest.TestCase):
         }))
 
         with (
-            patch.object(nodes.EasyUseAnimaImageScaleByMultiple, "upscale", return_value=("scaled_image", 640, 960, 1.25)),
+            patch.object(legacy_generation, "_upscale_image_by_multiple", return_value=("scaled_image", 640, 960, 1.25)),
             patch.object(legacy_generation, "_encode_image_with_comfy_vae", side_effect=["high_latent_image", "corrected_latent"]) as encode,
             patch.object(legacy_generation, "_apply_aio_spectrum_model_patches_for_comfy_sampler", return_value="stage_model"),
             patch.object(legacy_generation, "_sample_latent_with_aio_backend", return_value="high_latent"),
@@ -2018,7 +2018,7 @@ class AIOHighresDetailerStageTests(unittest.TestCase):
 
         with (
             patch.object(legacy_generation, "_apply_aio_spectrum_model_patches_for_comfy_sampler", return_value="detail_model") as comfy_patch,
-            patch.object(nodes.EasyUseAnimaSAM3Detailer, "doit", return_value=("detailed_image", ((1, 1), ["seg"]), "mask", "raw_image")) as detailer,
+            patch.object(legacy_generation, "_run_sam3_detailer", return_value=("detailed_image", ((1, 1), ["seg"]), "mask", "raw_image")) as detailer,
             patch.object(legacy_generation, "_cleanup_aio_ephemeral_model"),
         ):
             image, metadata = nodes._run_aio_detailer_target(

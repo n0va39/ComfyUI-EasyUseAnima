@@ -11447,6 +11447,42 @@
       },
       {
         "alias": null,
+        "bound_name": "_run_sam3_detailer",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": "..image.sam3_detailer:_run_sam3_detailer",
+        "kind": "static_from",
+        "line": 11,
+        "name": "_run_sam3_detailer",
+        "optional": false,
+        "requested": "..image.sam3_detailer",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/legacy_generation.py",
+        "target": "easyuse_anima/image/sam3_detailer.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "_upscale_image_by_multiple",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": "..image.upscale:_upscale_image_by_multiple",
+        "kind": "static_from",
+        "line": 12,
+        "name": "_upscale_image_by_multiple",
+        "optional": false,
+        "requested": "..image.upscale",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/legacy_generation.py",
+        "target": "easyuse_anima/image/upscale.py"
+      },
+      {
+        "alias": null,
         "bound_name": "_node_output_tuple",
         "branch_context": [],
         "classification": "internal",
@@ -11454,7 +11490,7 @@
         "conditional": false,
         "imported": "..infrastructure.comfy.invocation:_node_output_tuple",
         "kind": "static_from",
-        "line": 11,
+        "line": 13,
         "name": "_node_output_tuple",
         "optional": false,
         "requested": "..infrastructure.comfy.invocation",
@@ -11472,7 +11508,7 @@
         "conditional": false,
         "imported": "..infrastructure.comfy.wiring:resolve_comfy_host_helper",
         "kind": "static_from",
-        "line": 12,
+        "line": 14,
         "name": "resolve_comfy_host_helper",
         "optional": false,
         "requested": "..infrastructure.comfy.wiring",
@@ -11480,42 +11516,6 @@
         "scope": "<module>",
         "source": "easyuse_anima/aio/legacy_generation.py",
         "target": "easyuse_anima/infrastructure/comfy/wiring.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "EasyUseAnimaImageScaleByMultiple",
-        "branch_context": [],
-        "classification": "internal",
-        "column": 0,
-        "conditional": false,
-        "imported": "..nodes.image_nodes:EasyUseAnimaImageScaleByMultiple",
-        "kind": "static_from",
-        "line": 13,
-        "name": "EasyUseAnimaImageScaleByMultiple",
-        "optional": false,
-        "requested": "..nodes.image_nodes",
-        "role": "ordinary",
-        "scope": "<module>",
-        "source": "easyuse_anima/aio/legacy_generation.py",
-        "target": "easyuse_anima/nodes/image_nodes.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "EasyUseAnimaSAM3Detailer",
-        "branch_context": [],
-        "classification": "internal",
-        "column": 0,
-        "conditional": false,
-        "imported": "..nodes.sam3_nodes:EasyUseAnimaSAM3Detailer",
-        "kind": "static_from",
-        "line": 14,
-        "name": "EasyUseAnimaSAM3Detailer",
-        "optional": false,
-        "requested": "..nodes.sam3_nodes",
-        "role": "ordinary",
-        "scope": "<module>",
-        "source": "easyuse_anima/aio/legacy_generation.py",
-        "target": "easyuse_anima/nodes/sam3_nodes.py"
       },
       {
         "alias": null,
@@ -19438,6 +19438,292 @@
         "requested": "__future__",
         "role": "ordinary",
         "scope": "<module>",
+        "source": "easyuse_anima/image/sam3_detailer.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "logging",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "logging",
+        "kind": "static_import",
+        "line": 5,
+        "name": null,
+        "optional": false,
+        "requested": "logging",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/image/sam3_detailer.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "_as_bool",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": "..common.values:_as_bool",
+        "kind": "static_from",
+        "line": 7,
+        "name": "_as_bool",
+        "optional": false,
+        "requested": "..common.values",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/image/sam3_detailer.py",
+        "target": "easyuse_anima/common/values.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "_node_output_tuple",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": "..infrastructure.comfy.invocation:_node_output_tuple",
+        "kind": "static_from",
+        "line": 8,
+        "name": "_node_output_tuple",
+        "optional": false,
+        "requested": "..infrastructure.comfy.invocation",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/image/sam3_detailer.py",
+        "target": "easyuse_anima/infrastructure/comfy/invocation.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "resolve_comfy_host_helper",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": "..infrastructure.comfy.wiring:resolve_comfy_host_helper",
+        "kind": "static_from",
+        "line": 9,
+        "name": "resolve_comfy_host_helper",
+        "optional": false,
+        "requested": "..infrastructure.comfy.wiring",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/image/sam3_detailer.py",
+        "target": "easyuse_anima/infrastructure/comfy/wiring.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "_EasyUseAnimaAlignedDetailerHook",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".detailer:_EasyUseAnimaAlignedDetailerHook",
+        "kind": "static_from",
+        "line": 10,
+        "name": "_EasyUseAnimaAlignedDetailerHook",
+        "optional": false,
+        "requested": ".detailer",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/image/sam3_detailer.py",
+        "target": "easyuse_anima/image/detailer.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "_alignment_value",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".geometry:_alignment_value",
+        "kind": "static_from",
+        "line": 11,
+        "name": "_alignment_value",
+        "optional": false,
+        "requested": ".geometry",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/image/sam3_detailer.py",
+        "target": "easyuse_anima/image/geometry.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "_call_impact_detailer",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".sam3:_call_impact_detailer",
+        "kind": "static_from",
+        "line": 12,
+        "name": "_call_impact_detailer",
+        "optional": false,
+        "requested": ".sam3",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/image/sam3_detailer.py",
+        "target": "easyuse_anima/image/sam3.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "_context_value",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".sam3:_context_value",
+        "kind": "static_from",
+        "line": 12,
+        "name": "_context_value",
+        "optional": false,
+        "requested": ".sam3",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/image/sam3_detailer.py",
+        "target": "easyuse_anima/image/sam3.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "_empty_mask_for_image",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".sam3:_empty_mask_for_image",
+        "kind": "static_from",
+        "line": 12,
+        "name": "_empty_mask_for_image",
+        "optional": false,
+        "requested": ".sam3",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/image/sam3_detailer.py",
+        "target": "easyuse_anima/image/sam3.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "_empty_segs_for_image",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".sam3:_empty_segs_for_image",
+        "kind": "static_from",
+        "line": 12,
+        "name": "_empty_segs_for_image",
+        "optional": false,
+        "requested": ".sam3",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/image/sam3_detailer.py",
+        "target": "easyuse_anima/image/sam3.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "_find_impact_detailer_class",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".sam3:_find_impact_detailer_class",
+        "kind": "static_from",
+        "line": 12,
+        "name": "_find_impact_detailer_class",
+        "optional": false,
+        "requested": ".sam3",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/image/sam3_detailer.py",
+        "target": "easyuse_anima/image/sam3.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "_find_impact_mask_to_segs_class",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".sam3:_find_impact_mask_to_segs_class",
+        "kind": "static_from",
+        "line": 12,
+        "name": "_find_impact_mask_to_segs_class",
+        "optional": false,
+        "requested": ".sam3",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/image/sam3_detailer.py",
+        "target": "easyuse_anima/image/sam3.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "_find_sam3_detect_class",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".sam3:_find_sam3_detect_class",
+        "kind": "static_from",
+        "line": 12,
+        "name": "_find_sam3_detect_class",
+        "optional": false,
+        "requested": ".sam3",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/image/sam3_detailer.py",
+        "target": "easyuse_anima/image/sam3.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "_format_sam3_detection_prompt",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".sam3:_format_sam3_detection_prompt",
+        "kind": "static_from",
+        "line": 12,
+        "name": "_format_sam3_detection_prompt",
+        "optional": false,
+        "requested": ".sam3",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/image/sam3_detailer.py",
+        "target": "easyuse_anima/image/sam3.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "_segs_has_items",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".sam3:_segs_has_items",
+        "kind": "static_from",
+        "line": 12,
+        "name": "_segs_has_items",
+        "optional": false,
+        "requested": ".sam3",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/image/sam3_detailer.py",
+        "target": "easyuse_anima/image/sam3.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "annotations",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "__future__:annotations",
+        "kind": "static_from",
+        "line": 3,
+        "name": "annotations",
+        "optional": false,
+        "requested": "__future__",
+        "role": "ordinary",
+        "scope": "<module>",
         "source": "easyuse_anima/image/scaling.py"
       },
       {
@@ -19598,6 +19884,77 @@
         "scope": "<module>",
         "source": "easyuse_anima/image/scaling.py",
         "target": "easyuse_anima/image/geometry.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "annotations",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "__future__:annotations",
+        "kind": "static_from",
+        "line": 3,
+        "name": "annotations",
+        "optional": false,
+        "requested": "__future__",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/image/upscale.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "_common_upscale_image",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": "..infrastructure.comfy.invocation:_common_upscale_image",
+        "kind": "static_from",
+        "line": 5,
+        "name": "_common_upscale_image",
+        "optional": false,
+        "requested": "..infrastructure.comfy.invocation",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/image/upscale.py",
+        "target": "easyuse_anima/infrastructure/comfy/invocation.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "_image_scale_by_multiple_size",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".scaling:_image_scale_by_multiple_size",
+        "kind": "static_from",
+        "line": 6,
+        "name": "_image_scale_by_multiple_size",
+        "optional": false,
+        "requested": ".scaling",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/image/upscale.py",
+        "target": "easyuse_anima/image/scaling.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "_normalize_image_scale_options",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".scaling:_normalize_image_scale_options",
+        "kind": "static_from",
+        "line": 6,
+        "name": "_normalize_image_scale_options",
+        "optional": false,
+        "requested": ".scaling",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/image/upscale.py",
+        "target": "easyuse_anima/image/scaling.py"
       },
       {
         "alias": null,
@@ -21783,57 +22140,21 @@
       },
       {
         "alias": null,
-        "bound_name": "_image_scale_by_multiple_size",
+        "bound_name": "_upscale_image_by_multiple",
         "branch_context": [],
         "classification": "internal",
         "column": 0,
         "conditional": false,
-        "imported": "..image.scaling:_image_scale_by_multiple_size",
+        "imported": "..image.upscale:_upscale_image_by_multiple",
         "kind": "static_from",
-        "line": 7,
-        "name": "_image_scale_by_multiple_size",
+        "line": 11,
+        "name": "_upscale_image_by_multiple",
         "optional": false,
-        "requested": "..image.scaling",
+        "requested": "..image.upscale",
         "role": "ordinary",
         "scope": "<module>",
         "source": "easyuse_anima/nodes/image_nodes.py",
-        "target": "easyuse_anima/image/scaling.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "_normalize_image_scale_options",
-        "branch_context": [],
-        "classification": "internal",
-        "column": 0,
-        "conditional": false,
-        "imported": "..image.scaling:_normalize_image_scale_options",
-        "kind": "static_from",
-        "line": 7,
-        "name": "_normalize_image_scale_options",
-        "optional": false,
-        "requested": "..image.scaling",
-        "role": "ordinary",
-        "scope": "<module>",
-        "source": "easyuse_anima/nodes/image_nodes.py",
-        "target": "easyuse_anima/image/scaling.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "_common_upscale_image",
-        "branch_context": [],
-        "classification": "internal",
-        "column": 0,
-        "conditional": false,
-        "imported": "..infrastructure.comfy.invocation:_common_upscale_image",
-        "kind": "static_from",
-        "line": 13,
-        "name": "_common_upscale_image",
-        "optional": false,
-        "requested": "..infrastructure.comfy.invocation",
-        "role": "ordinary",
-        "scope": "<module>",
-        "source": "easyuse_anima/nodes/image_nodes.py",
-        "target": "easyuse_anima/infrastructure/comfy/invocation.py"
+        "target": "easyuse_anima/image/upscale.py"
       },
       {
         "alias": null,
@@ -21854,110 +22175,21 @@
       },
       {
         "alias": null,
-        "bound_name": "logging",
+        "bound_name": "_run_impact_detailer",
         "branch_context": [],
-        "classification": "external",
+        "classification": "internal",
         "column": 0,
         "conditional": false,
-        "imported": "logging",
-        "kind": "static_import",
+        "imported": "..image.sam3_detailer:_run_impact_detailer",
+        "kind": "static_from",
         "line": 5,
-        "name": null,
+        "name": "_run_impact_detailer",
         "optional": false,
-        "requested": "logging",
-        "role": "ordinary",
-        "scope": "<module>",
-        "source": "easyuse_anima/nodes/impact_detailer_nodes.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "_as_bool",
-        "branch_context": [],
-        "classification": "internal",
-        "column": 0,
-        "conditional": false,
-        "imported": "..common.values:_as_bool",
-        "kind": "static_from",
-        "line": 7,
-        "name": "_as_bool",
-        "optional": false,
-        "requested": "..common.values",
+        "requested": "..image.sam3_detailer",
         "role": "ordinary",
         "scope": "<module>",
         "source": "easyuse_anima/nodes/impact_detailer_nodes.py",
-        "target": "easyuse_anima/common/values.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "_EasyUseAnimaAlignedDetailerHook",
-        "branch_context": [],
-        "classification": "internal",
-        "column": 0,
-        "conditional": false,
-        "imported": "..image.detailer:_EasyUseAnimaAlignedDetailerHook",
-        "kind": "static_from",
-        "line": 8,
-        "name": "_EasyUseAnimaAlignedDetailerHook",
-        "optional": false,
-        "requested": "..image.detailer",
-        "role": "ordinary",
-        "scope": "<module>",
-        "source": "easyuse_anima/nodes/impact_detailer_nodes.py",
-        "target": "easyuse_anima/image/detailer.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "_alignment_value",
-        "branch_context": [],
-        "classification": "internal",
-        "column": 0,
-        "conditional": false,
-        "imported": "..image.geometry:_alignment_value",
-        "kind": "static_from",
-        "line": 9,
-        "name": "_alignment_value",
-        "optional": false,
-        "requested": "..image.geometry",
-        "role": "ordinary",
-        "scope": "<module>",
-        "source": "easyuse_anima/nodes/impact_detailer_nodes.py",
-        "target": "easyuse_anima/image/geometry.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "_call_impact_detailer",
-        "branch_context": [],
-        "classification": "internal",
-        "column": 0,
-        "conditional": false,
-        "imported": "..image.sam3:_call_impact_detailer",
-        "kind": "static_from",
-        "line": 10,
-        "name": "_call_impact_detailer",
-        "optional": false,
-        "requested": "..image.sam3",
-        "role": "ordinary",
-        "scope": "<module>",
-        "source": "easyuse_anima/nodes/impact_detailer_nodes.py",
-        "target": "easyuse_anima/image/sam3.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "_find_impact_detailer_class",
-        "branch_context": [],
-        "classification": "internal",
-        "column": 0,
-        "conditional": false,
-        "imported": "..image.sam3:_find_impact_detailer_class",
-        "kind": "static_from",
-        "line": 10,
-        "name": "_find_impact_detailer_class",
-        "optional": false,
-        "requested": "..image.sam3",
-        "role": "ordinary",
-        "scope": "<module>",
-        "source": "easyuse_anima/nodes/impact_detailer_nodes.py",
-        "target": "easyuse_anima/image/sam3.py"
+        "target": "easyuse_anima/image/sam3_detailer.py"
       },
       {
         "alias": null,
@@ -21968,7 +22200,7 @@
         "conditional": false,
         "imported": "..infrastructure.comfy.capabilities:_comfy_sampler_names",
         "kind": "static_from",
-        "line": 11,
+        "line": 6,
         "name": "_comfy_sampler_names",
         "optional": false,
         "requested": "..infrastructure.comfy.capabilities",
@@ -21986,7 +22218,7 @@
         "conditional": false,
         "imported": "..infrastructure.comfy.capabilities:_impact_scheduler_names",
         "kind": "static_from",
-        "line": 11,
+        "line": 6,
         "name": "_impact_scheduler_names",
         "optional": false,
         "requested": "..infrastructure.comfy.capabilities",
@@ -22004,7 +22236,7 @@
         "conditional": false,
         "imported": "..infrastructure.comfy.wiring:resolve_comfy_host_helper",
         "kind": "static_from",
-        "line": 15,
+        "line": 10,
         "name": "resolve_comfy_host_helper",
         "optional": false,
         "requested": "..infrastructure.comfy.wiring",
@@ -25705,23 +25937,6 @@
       },
       {
         "alias": null,
-        "bound_name": "logging",
-        "branch_context": [],
-        "classification": "external",
-        "column": 0,
-        "conditional": false,
-        "imported": "logging",
-        "kind": "static_import",
-        "line": 5,
-        "name": null,
-        "optional": false,
-        "requested": "logging",
-        "role": "ordinary",
-        "scope": "<module>",
-        "source": "easyuse_anima/nodes/sam3_nodes.py"
-      },
-      {
-        "alias": null,
         "bound_name": "_load_checkpoint_with_comfy",
         "branch_context": [],
         "classification": "internal",
@@ -25729,7 +25944,7 @@
         "conditional": false,
         "imported": "..aio.resources:_load_checkpoint_with_comfy",
         "kind": "static_from",
-        "line": 7,
+        "line": 5,
         "name": "_load_checkpoint_with_comfy",
         "optional": false,
         "requested": "..aio.resources",
@@ -25747,7 +25962,7 @@
         "conditional": false,
         "imported": "..aio.resources:_preferred_checkpoint_default",
         "kind": "static_from",
-        "line": 7,
+        "line": 5,
         "name": "_preferred_checkpoint_default",
         "optional": false,
         "requested": "..aio.resources",
@@ -25758,132 +25973,6 @@
       },
       {
         "alias": null,
-        "bound_name": "_as_bool",
-        "branch_context": [],
-        "classification": "internal",
-        "column": 0,
-        "conditional": false,
-        "imported": "..common.values:_as_bool",
-        "kind": "static_from",
-        "line": 11,
-        "name": "_as_bool",
-        "optional": false,
-        "requested": "..common.values",
-        "role": "ordinary",
-        "scope": "<module>",
-        "source": "easyuse_anima/nodes/sam3_nodes.py",
-        "target": "easyuse_anima/common/values.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "_context_value",
-        "branch_context": [],
-        "classification": "internal",
-        "column": 0,
-        "conditional": false,
-        "imported": "..image.sam3:_context_value",
-        "kind": "static_from",
-        "line": 12,
-        "name": "_context_value",
-        "optional": false,
-        "requested": "..image.sam3",
-        "role": "ordinary",
-        "scope": "<module>",
-        "source": "easyuse_anima/nodes/sam3_nodes.py",
-        "target": "easyuse_anima/image/sam3.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "_empty_mask_for_image",
-        "branch_context": [],
-        "classification": "internal",
-        "column": 0,
-        "conditional": false,
-        "imported": "..image.sam3:_empty_mask_for_image",
-        "kind": "static_from",
-        "line": 12,
-        "name": "_empty_mask_for_image",
-        "optional": false,
-        "requested": "..image.sam3",
-        "role": "ordinary",
-        "scope": "<module>",
-        "source": "easyuse_anima/nodes/sam3_nodes.py",
-        "target": "easyuse_anima/image/sam3.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "_empty_segs_for_image",
-        "branch_context": [],
-        "classification": "internal",
-        "column": 0,
-        "conditional": false,
-        "imported": "..image.sam3:_empty_segs_for_image",
-        "kind": "static_from",
-        "line": 12,
-        "name": "_empty_segs_for_image",
-        "optional": false,
-        "requested": "..image.sam3",
-        "role": "ordinary",
-        "scope": "<module>",
-        "source": "easyuse_anima/nodes/sam3_nodes.py",
-        "target": "easyuse_anima/image/sam3.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "_find_impact_mask_to_segs_class",
-        "branch_context": [],
-        "classification": "internal",
-        "column": 0,
-        "conditional": false,
-        "imported": "..image.sam3:_find_impact_mask_to_segs_class",
-        "kind": "static_from",
-        "line": 12,
-        "name": "_find_impact_mask_to_segs_class",
-        "optional": false,
-        "requested": "..image.sam3",
-        "role": "ordinary",
-        "scope": "<module>",
-        "source": "easyuse_anima/nodes/sam3_nodes.py",
-        "target": "easyuse_anima/image/sam3.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "_find_sam3_detect_class",
-        "branch_context": [],
-        "classification": "internal",
-        "column": 0,
-        "conditional": false,
-        "imported": "..image.sam3:_find_sam3_detect_class",
-        "kind": "static_from",
-        "line": 12,
-        "name": "_find_sam3_detect_class",
-        "optional": false,
-        "requested": "..image.sam3",
-        "role": "ordinary",
-        "scope": "<module>",
-        "source": "easyuse_anima/nodes/sam3_nodes.py",
-        "target": "easyuse_anima/image/sam3.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "_format_sam3_detection_prompt",
-        "branch_context": [],
-        "classification": "internal",
-        "column": 0,
-        "conditional": false,
-        "imported": "..image.sam3:_format_sam3_detection_prompt",
-        "kind": "static_from",
-        "line": 12,
-        "name": "_format_sam3_detection_prompt",
-        "optional": false,
-        "requested": "..image.sam3",
-        "role": "ordinary",
-        "scope": "<module>",
-        "source": "easyuse_anima/nodes/sam3_nodes.py",
-        "target": "easyuse_anima/image/sam3.py"
-      },
-      {
-        "alias": null,
         "bound_name": "_sam3_context",
         "branch_context": [],
         "classification": "internal",
@@ -25891,7 +25980,7 @@
         "conditional": false,
         "imported": "..image.sam3:_sam3_context",
         "kind": "static_from",
-        "line": 12,
+        "line": 9,
         "name": "_sam3_context",
         "optional": false,
         "requested": "..image.sam3",
@@ -25902,39 +25991,21 @@
       },
       {
         "alias": null,
-        "bound_name": "_segs_has_items",
+        "bound_name": "_run_sam3_detailer",
         "branch_context": [],
         "classification": "internal",
         "column": 0,
         "conditional": false,
-        "imported": "..image.sam3:_segs_has_items",
+        "imported": "..image.sam3_detailer:_run_sam3_detailer",
         "kind": "static_from",
-        "line": 12,
-        "name": "_segs_has_items",
+        "line": 10,
+        "name": "_run_sam3_detailer",
         "optional": false,
-        "requested": "..image.sam3",
+        "requested": "..image.sam3_detailer",
         "role": "ordinary",
         "scope": "<module>",
         "source": "easyuse_anima/nodes/sam3_nodes.py",
-        "target": "easyuse_anima/image/sam3.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "_node_output_tuple",
-        "branch_context": [],
-        "classification": "internal",
-        "column": 0,
-        "conditional": false,
-        "imported": "..infrastructure.comfy.invocation:_node_output_tuple",
-        "kind": "static_from",
-        "line": 22,
-        "name": "_node_output_tuple",
-        "optional": false,
-        "requested": "..infrastructure.comfy.invocation",
-        "role": "ordinary",
-        "scope": "<module>",
-        "source": "easyuse_anima/nodes/sam3_nodes.py",
-        "target": "easyuse_anima/infrastructure/comfy/invocation.py"
+        "target": "easyuse_anima/image/sam3_detailer.py"
       },
       {
         "alias": null,
@@ -25945,7 +26016,7 @@
         "conditional": false,
         "imported": "..infrastructure.comfy.resources:_comfy_checkpoint_names",
         "kind": "static_from",
-        "line": 23,
+        "line": 11,
         "name": "_comfy_checkpoint_names",
         "optional": false,
         "requested": "..infrastructure.comfy.resources",
@@ -25963,7 +26034,7 @@
         "conditional": false,
         "imported": "..infrastructure.comfy.wiring:resolve_comfy_host_helper",
         "kind": "static_from",
-        "line": 24,
+        "line": 12,
         "name": "resolve_comfy_host_helper",
         "optional": false,
         "requested": "..infrastructure.comfy.wiring",
@@ -25981,7 +26052,7 @@
         "conditional": false,
         "imported": ".impact_detailer_nodes:_EasyUseAnimaImpactDetailerDelegate",
         "kind": "static_from",
-        "line": 25,
+        "line": 13,
         "name": "_EasyUseAnimaImpactDetailerDelegate",
         "optional": false,
         "requested": ".impact_detailer_nodes",
@@ -67996,19 +68067,19 @@
       },
       {
         "from": "easyuse_anima/aio/legacy_generation.py",
+        "to": "easyuse_anima/image/sam3_detailer.py"
+      },
+      {
+        "from": "easyuse_anima/aio/legacy_generation.py",
+        "to": "easyuse_anima/image/upscale.py"
+      },
+      {
+        "from": "easyuse_anima/aio/legacy_generation.py",
         "to": "easyuse_anima/infrastructure/comfy/invocation.py"
       },
       {
         "from": "easyuse_anima/aio/legacy_generation.py",
         "to": "easyuse_anima/infrastructure/comfy/wiring.py"
-      },
-      {
-        "from": "easyuse_anima/aio/legacy_generation.py",
-        "to": "easyuse_anima/nodes/image_nodes.py"
-      },
-      {
-        "from": "easyuse_anima/aio/legacy_generation.py",
-        "to": "easyuse_anima/nodes/sam3_nodes.py"
       },
       {
         "from": "easyuse_anima/aio/legacy_generation.py",
@@ -68395,12 +68466,44 @@
         "to": "easyuse_anima/infrastructure/comfy/wiring.py"
       },
       {
+        "from": "easyuse_anima/image/sam3_detailer.py",
+        "to": "easyuse_anima/common/values.py"
+      },
+      {
+        "from": "easyuse_anima/image/sam3_detailer.py",
+        "to": "easyuse_anima/image/detailer.py"
+      },
+      {
+        "from": "easyuse_anima/image/sam3_detailer.py",
+        "to": "easyuse_anima/image/geometry.py"
+      },
+      {
+        "from": "easyuse_anima/image/sam3_detailer.py",
+        "to": "easyuse_anima/image/sam3.py"
+      },
+      {
+        "from": "easyuse_anima/image/sam3_detailer.py",
+        "to": "easyuse_anima/infrastructure/comfy/invocation.py"
+      },
+      {
+        "from": "easyuse_anima/image/sam3_detailer.py",
+        "to": "easyuse_anima/infrastructure/comfy/wiring.py"
+      },
+      {
         "from": "easyuse_anima/image/scaling.py",
         "to": "easyuse_anima/common/values.py"
       },
       {
         "from": "easyuse_anima/image/scaling.py",
         "to": "easyuse_anima/image/geometry.py"
+      },
+      {
+        "from": "easyuse_anima/image/upscale.py",
+        "to": "easyuse_anima/image/scaling.py"
+      },
+      {
+        "from": "easyuse_anima/image/upscale.py",
+        "to": "easyuse_anima/infrastructure/comfy/invocation.py"
       },
       {
         "from": "easyuse_anima/infrastructure/comfy/provider.py",
@@ -68500,23 +68603,11 @@
       },
       {
         "from": "easyuse_anima/nodes/image_nodes.py",
-        "to": "easyuse_anima/infrastructure/comfy/invocation.py"
+        "to": "easyuse_anima/image/upscale.py"
       },
       {
         "from": "easyuse_anima/nodes/impact_detailer_nodes.py",
-        "to": "easyuse_anima/common/values.py"
-      },
-      {
-        "from": "easyuse_anima/nodes/impact_detailer_nodes.py",
-        "to": "easyuse_anima/image/detailer.py"
-      },
-      {
-        "from": "easyuse_anima/nodes/impact_detailer_nodes.py",
-        "to": "easyuse_anima/image/geometry.py"
-      },
-      {
-        "from": "easyuse_anima/nodes/impact_detailer_nodes.py",
-        "to": "easyuse_anima/image/sam3.py"
+        "to": "easyuse_anima/image/sam3_detailer.py"
       },
       {
         "from": "easyuse_anima/nodes/impact_detailer_nodes.py",
@@ -68752,15 +68843,11 @@
       },
       {
         "from": "easyuse_anima/nodes/sam3_nodes.py",
-        "to": "easyuse_anima/common/values.py"
-      },
-      {
-        "from": "easyuse_anima/nodes/sam3_nodes.py",
         "to": "easyuse_anima/image/sam3.py"
       },
       {
         "from": "easyuse_anima/nodes/sam3_nodes.py",
-        "to": "easyuse_anima/infrastructure/comfy/invocation.py"
+        "to": "easyuse_anima/image/sam3_detailer.py"
       },
       {
         "from": "easyuse_anima/nodes/sam3_nodes.py",
@@ -70203,7 +70290,19 @@
       {
         "cyclic": false,
         "modules": [
+          "easyuse_anima/image/sam3_detailer.py"
+        ]
+      },
+      {
+        "cyclic": false,
+        "modules": [
           "easyuse_anima/image/scaling.py"
+        ]
+      },
+      {
+        "cyclic": false,
+        "modules": [
+          "easyuse_anima/image/upscale.py"
         ]
       },
       {
@@ -70749,7 +70848,7 @@
     ]
   },
   "inventory": {
-    "module_count": 177,
+    "module_count": 179,
     "modules": [
       {
         "functions": [
@@ -72745,7 +72844,7 @@
         "is_package": false,
         "loc": 1095,
         "module": "easyuse_anima.aio.legacy_generation",
-        "normalized_git_blob_sha1": "c9414010fdd6ebd11567dc827d3c2f01143bfb03",
+        "normalized_git_blob_sha1": "5880f1c30c1543d8327da04a1ec18f5e3dd2ccce",
         "path": "easyuse_anima/aio/legacy_generation.py",
         "top_level": {
           "class_count": 0,
@@ -76418,6 +76517,52 @@
         "functions": [
           {
             "async": false,
+            "end_line": 28,
+            "kind": "function",
+            "line": 27,
+            "loc": 2,
+            "qualified_name": "_missing_host_helper"
+          },
+          {
+            "async": false,
+            "end_line": 36,
+            "kind": "function",
+            "line": 31,
+            "loc": 6,
+            "qualified_name": "_encode_with_comfy_clip"
+          },
+          {
+            "async": false,
+            "end_line": 124,
+            "kind": "function",
+            "line": 39,
+            "loc": 86,
+            "qualified_name": "_run_impact_detailer"
+          },
+          {
+            "async": false,
+            "end_line": 251,
+            "kind": "function",
+            "line": 127,
+            "loc": 125,
+            "qualified_name": "_run_sam3_detailer"
+          }
+        ],
+        "is_package": false,
+        "loc": 254,
+        "module": "easyuse_anima.image.sam3_detailer",
+        "normalized_git_blob_sha1": "15299662869cb5a83fdfdbd77dc3547dba8c3f84",
+        "path": "easyuse_anima/image/sam3_detailer.py",
+        "top_level": {
+          "class_count": 0,
+          "function_count": 4,
+          "global_count": 2
+        }
+      },
+      {
+        "functions": [
+          {
+            "async": false,
             "end_line": 19,
             "kind": "function",
             "line": 15,
@@ -76458,6 +76603,28 @@
           "class_count": 0,
           "function_count": 4,
           "global_count": 3
+        }
+      },
+      {
+        "functions": [
+          {
+            "async": false,
+            "end_line": 30,
+            "kind": "function",
+            "line": 9,
+            "loc": 22,
+            "qualified_name": "_upscale_image_by_multiple"
+          }
+        ],
+        "is_package": false,
+        "loc": 33,
+        "module": "easyuse_anima.image.upscale",
+        "normalized_git_blob_sha1": "210e20378eacfc9fea291ada7d6e905c1d07a43e",
+        "path": "easyuse_anima/image/upscale.py",
+        "top_level": {
+          "class_count": 0,
+          "function_count": 1,
+          "global_count": 1
         }
       },
       {
@@ -77622,41 +77789,41 @@
         "functions": [
           {
             "async": false,
-            "end_line": 62,
+            "end_line": 60,
             "kind": "method",
-            "line": 32,
+            "line": 30,
             "loc": 31,
             "qualified_name": "EasyUseAnimaImageScaleByMultiple.INPUT_TYPES"
           },
           {
             "async": false,
-            "end_line": 84,
+            "end_line": 74,
             "kind": "method",
-            "line": 69,
-            "loc": 16,
+            "line": 67,
+            "loc": 8,
             "qualified_name": "EasyUseAnimaImageScaleByMultiple.upscale"
           },
           {
             "async": false,
-            "end_line": 116,
+            "end_line": 106,
             "kind": "method",
-            "line": 99,
+            "line": 89,
             "loc": 18,
             "qualified_name": "EasyUseAnimaDetailerAlignHook.INPUT_TYPES"
           },
           {
             "async": false,
-            "end_line": 125,
+            "end_line": 115,
             "kind": "method",
-            "line": 123,
+            "line": 113,
             "loc": 3,
             "qualified_name": "EasyUseAnimaDetailerAlignHook.build"
           }
         ],
         "is_package": false,
-        "loc": 131,
+        "loc": 121,
         "module": "easyuse_anima.nodes.image_nodes",
-        "normalized_git_blob_sha1": "5dd0df22eb511b2454fbba95c636b0c72b5c907b",
+        "normalized_git_blob_sha1": "a3051fc3fd6d1b406c8e5f4d711f7f2a4b081d91",
         "path": "easyuse_anima/nodes/image_nodes.py",
         "top_level": {
           "class_count": 2,
@@ -77668,46 +77835,46 @@
         "functions": [
           {
             "async": false,
-            "end_line": 21,
+            "end_line": 14,
             "kind": "function",
-            "line": 20,
+            "line": 13,
             "loc": 2,
             "qualified_name": "_missing_host_helper"
           },
           {
             "async": false,
-            "end_line": 29,
+            "end_line": 22,
             "kind": "function",
-            "line": 24,
+            "line": 17,
             "loc": 6,
             "qualified_name": "_comfy_max_resolution"
           },
           {
             "async": false,
-            "end_line": 170,
+            "end_line": 163,
             "kind": "method",
-            "line": 42,
+            "line": 35,
             "loc": 129,
             "qualified_name": "_EasyUseAnimaImpactDetailerDelegate.INPUT_TYPES"
           },
           {
             "async": false,
-            "end_line": 263,
+            "end_line": 234,
             "kind": "method",
-            "line": 177,
-            "loc": 87,
+            "line": 170,
+            "loc": 65,
             "qualified_name": "_EasyUseAnimaImpactDetailerDelegate.doit"
           }
         ],
         "is_package": false,
-        "loc": 266,
+        "loc": 237,
         "module": "easyuse_anima.nodes.impact_detailer_nodes",
-        "normalized_git_blob_sha1": "ce6551a48a8fcb596d046724ca0644ca27d88622",
+        "normalized_git_blob_sha1": "c05becd71b3a36014d0c897dc2d6011b2156dc32",
         "path": "easyuse_anima/nodes/impact_detailer_nodes.py",
         "top_level": {
           "class_count": 1,
           "function_count": 2,
-          "global_count": 2
+          "global_count": 1
         }
       },
       {
@@ -78372,70 +78539,62 @@
         "functions": [
           {
             "async": false,
-            "end_line": 31,
+            "end_line": 17,
             "kind": "function",
-            "line": 30,
+            "line": 16,
             "loc": 2,
             "qualified_name": "_missing_host_helper"
           },
           {
             "async": false,
-            "end_line": 39,
+            "end_line": 25,
             "kind": "function",
-            "line": 34,
+            "line": 20,
             "loc": 6,
             "qualified_name": "_comfy_max_resolution"
           },
           {
             "async": false,
-            "end_line": 47,
-            "kind": "function",
-            "line": 42,
-            "loc": 6,
-            "qualified_name": "_encode_with_comfy_clip"
-          },
-          {
-            "async": false,
-            "end_line": 75,
+            "end_line": 52,
             "kind": "method",
-            "line": 65,
+            "line": 42,
             "loc": 11,
             "qualified_name": "EasyUseAnimaSAM3Context.INPUT_TYPES"
           },
           {
             "async": false,
-            "end_line": 84,
+            "end_line": 61,
             "kind": "method",
-            "line": 82,
+            "line": 59,
             "loc": 3,
             "qualified_name": "EasyUseAnimaSAM3Context.load"
           },
           {
             "async": false,
-            "end_line": 191,
+            "end_line": 168,
             "kind": "method",
-            "line": 101,
+            "line": 78,
             "loc": 91,
             "qualified_name": "EasyUseAnimaSAM3Detailer.INPUT_TYPES"
           },
           {
             "async": false,
-            "end_line": 323,
+            "end_line": 261,
             "kind": "method",
-            "line": 198,
-            "loc": 126,
+            "line": 175,
+            "loc": 87,
             "qualified_name": "EasyUseAnimaSAM3Detailer.doit"
           }
         ],
         "is_package": false,
-        "loc": 326,
+        "loc": 264,
         "module": "easyuse_anima.nodes.sam3_nodes",
-        "normalized_git_blob_sha1": "2aede23aed23964b3a8beb13143c206b76c8221a",
+        "normalized_git_blob_sha1": "985a37f0680e79d7095d3b6f51b8a218c05c7ecd",
         "path": "easyuse_anima/nodes/sam3_nodes.py",
         "top_level": {
           "class_count": 2,
-          "function_count": 3,
-          "global_count": 2
+          "function_count": 2,
+          "global_count": 1
         }
       },
       {
@@ -99056,6 +99215,28 @@
         "line": 3,
         "optional": false,
         "role": "ordinary",
+        "source": "easyuse_anima/image/sam3_detailer.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "logging",
+        "kind": "static_import",
+        "line": 5,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/image/sam3_detailer.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "__future__:annotations",
+        "kind": "static_from",
+        "line": 3,
+        "optional": false,
+        "role": "ordinary",
         "source": "easyuse_anima/image/scaling.py"
       },
       {
@@ -99090,6 +99271,17 @@
         "optional": false,
         "role": "ordinary",
         "source": "easyuse_anima/image/scaling.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "__future__:annotations",
+        "kind": "static_from",
+        "line": 3,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/image/upscale.py"
       },
       {
         "branch_context": [],
@@ -100034,17 +100226,6 @@
         "branch_context": [],
         "classification": "external",
         "conditional": false,
-        "imported": "logging",
-        "kind": "static_import",
-        "line": 5,
-        "optional": false,
-        "role": "ordinary",
-        "source": "easyuse_anima/nodes/impact_detailer_nodes.py"
-      },
-      {
-        "branch_context": [],
-        "classification": "external",
-        "conditional": false,
         "imported": "__future__:annotations",
         "kind": "static_from",
         "line": 3,
@@ -100235,17 +100416,6 @@
         "imported": "__future__:annotations",
         "kind": "static_from",
         "line": 3,
-        "optional": false,
-        "role": "ordinary",
-        "source": "easyuse_anima/nodes/sam3_nodes.py"
-      },
-      {
-        "branch_context": [],
-        "classification": "external",
-        "conditional": false,
-        "imported": "logging",
-        "kind": "static_import",
-        "line": 5,
         "optional": false,
         "role": "ordinary",
         "source": "easyuse_anima/nodes/sam3_nodes.py"
@@ -103963,7 +104133,9 @@
       "easyuse_anima/image/detailer.py",
       "easyuse_anima/image/geometry.py",
       "easyuse_anima/image/sam3.py",
+      "easyuse_anima/image/sam3_detailer.py",
       "easyuse_anima/image/scaling.py",
+      "easyuse_anima/image/upscale.py",
       "easyuse_anima/infrastructure/__init__.py",
       "easyuse_anima/infrastructure/comfy/__init__.py",
       "easyuse_anima/infrastructure/comfy/capabilities.py",
@@ -104142,7 +104314,9 @@
       "easyuse_anima/image/detailer.py",
       "easyuse_anima/image/geometry.py",
       "easyuse_anima/image/sam3.py",
+      "easyuse_anima/image/sam3_detailer.py",
       "easyuse_anima/image/scaling.py",
+      "easyuse_anima/image/upscale.py",
       "easyuse_anima/infrastructure/__init__.py",
       "easyuse_anima/infrastructure/comfy/__init__.py",
       "easyuse_anima/infrastructure/comfy/capabilities.py",
@@ -105473,6 +105647,15 @@
         "scope": "<module>"
       },
       {
+        "callee": "logging.getLogger",
+        "column": 9,
+        "context": "assign:logger",
+        "kind": "import_time_call",
+        "line": 24,
+        "module": "easyuse_anima/image/sam3_detailer.py",
+        "scope": "<module>"
+      },
+      {
         "callee": "TypeVar",
         "column": 5,
         "context": "assign:_T",
@@ -105563,15 +105746,6 @@
         "scope": "<module>"
       },
       {
-        "callee": "logging.getLogger",
-        "column": 9,
-        "context": "assign:logger",
-        "kind": "import_time_call",
-        "line": 17,
-        "module": "easyuse_anima/nodes/impact_detailer_nodes.py",
-        "scope": "<module>"
-      },
-      {
         "callee": "_AnyType",
         "column": 12,
         "context": "assign:_ANY_TYPE",
@@ -105587,15 +105761,6 @@
         "kind": "import_time_call",
         "line": 24,
         "module": "easyuse_anima/nodes/naia_nodes.py",
-        "scope": "<module>"
-      },
-      {
-        "callee": "logging.getLogger",
-        "column": 9,
-        "context": "assign:logger",
-        "kind": "import_time_call",
-        "line": 27,
-        "module": "easyuse_anima/nodes/sam3_nodes.py",
         "scope": "<module>"
       },
       {

@@ -31,7 +31,9 @@ from easyuse_anima.common import serialization as common_serialization
 from easyuse_anima.common import values as common_values
 from easyuse_anima.image import detailer as image_detailer
 from easyuse_anima.image import geometry as image_geometry
+from easyuse_anima.image import sam3_detailer as image_sam3_detailer
 from easyuse_anima.image import scaling as image_scaling
+from easyuse_anima.image import upscale as image_upscale
 from easyuse_anima.infrastructure.comfy import capabilities as comfy_capabilities
 from easyuse_anima.infrastructure.comfy import invocation as comfy_invocation
 from easyuse_anima.infrastructure.comfy import resources as comfy_resources
@@ -42,7 +44,6 @@ from easyuse_anima.naia import resolution as naia_resolution
 from easyuse_anima.nodes import (
     aio_nodes,
     image_nodes,
-    impact_detailer_nodes,
     input_types,
     lora_nodes,
     naia_nodes,
@@ -2318,7 +2319,7 @@ class ImageNodeMoveContractTests(unittest.TestCase):
             image_detailer._EasyUseAnimaAlignedDetailerHook,
         )
         self.assertIs(
-            impact_detailer_nodes._EasyUseAnimaAlignedDetailerHook,
+            image_sam3_detailer._EasyUseAnimaAlignedDetailerHook,
             image_detailer._EasyUseAnimaAlignedDetailerHook,
         )
         aligned_hook = image_nodes.EasyUseAnimaDetailerAlignHook().build(
@@ -2339,7 +2340,14 @@ class ImageNodeMoveContractTests(unittest.TestCase):
             nodes.EasyUseAnimaDetailerAlignHook,
             image_nodes.EasyUseAnimaDetailerAlignHook,
         )
-        self.assertIs(image_nodes._common_upscale_image, comfy_invocation._common_upscale_image)
+        self.assertIs(
+            image_upscale._common_upscale_image,
+            comfy_invocation._common_upscale_image,
+        )
+        self.assertIs(
+            image_nodes._upscale_image_by_multiple,
+            image_upscale._upscale_image_by_multiple,
+        )
 
     def test_package_loaded_root_nodes_image_objects_are_direct_canonical_aliases(self):
         with _loaded_package_entrypoint() as (_, package_nodes):
@@ -2349,14 +2357,15 @@ class ImageNodeMoveContractTests(unittest.TestCase):
             package_name = package_nodes.__package__
             package_scaling = sys.modules[f"{package_name}.easyuse_anima.image.scaling"]
             package_detailer = sys.modules[f"{package_name}.easyuse_anima.image.detailer"]
+            package_sam3_detailer = sys.modules[
+                f"{package_name}.easyuse_anima.image.sam3_detailer"
+            ]
+            package_upscale = sys.modules[f"{package_name}.easyuse_anima.image.upscale"]
             package_invocation = sys.modules[
                 f"{package_name}.easyuse_anima.infrastructure.comfy.invocation"
             ]
             package_node_adapters = sys.modules[
                 f"{package_name}.easyuse_anima.nodes.image_nodes"
-            ]
-            package_impact_adapters = sys.modules[
-                f"{package_name}.easyuse_anima.nodes.impact_detailer_nodes"
             ]
             for name in self.RETAINED_SCALING_ALIASES:
                 with self.subTest(name=name):
@@ -2387,7 +2396,7 @@ class ImageNodeMoveContractTests(unittest.TestCase):
                 package_detailer._EasyUseAnimaAlignedDetailerHook,
             )
             self.assertIs(
-                package_impact_adapters._EasyUseAnimaAlignedDetailerHook,
+                package_sam3_detailer._EasyUseAnimaAlignedDetailerHook,
                 package_detailer._EasyUseAnimaAlignedDetailerHook,
             )
             aligned_hook = package_node_adapters.EasyUseAnimaDetailerAlignHook().build(
@@ -2406,8 +2415,12 @@ class ImageNodeMoveContractTests(unittest.TestCase):
                     canonical_class = getattr(package_node_adapters, name)
                     self.assertIs(getattr(package_nodes, name), canonical_class)
             self.assertIs(
-                package_node_adapters._common_upscale_image,
+                package_upscale._common_upscale_image,
                 package_invocation._common_upscale_image,
+            )
+            self.assertIs(
+                package_node_adapters._upscale_image_by_multiple,
+                package_upscale._upscale_image_by_multiple,
             )
 
 

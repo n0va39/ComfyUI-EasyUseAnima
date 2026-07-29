@@ -15,7 +15,7 @@
   },
   "expected_counts": {
     "production_consumer_slots": 23,
-    "unique_production_modules": 16,
+    "unique_production_modules": 17,
     "root_monkeypatch_test_files": 0,
     "canonical_monkeypatch_test_files": 3
   },
@@ -112,17 +112,17 @@
           "root_observation": "call_time"
         },
         {
+          "module": "easyuse_anima.image.sam3_detailer",
+          "binder": null,
+          "root_observation": "call_time"
+        },
+        {
           "module": "easyuse_anima.nodes.prompt_data_nodes",
           "binder": null,
           "root_observation": "call_time"
         },
         {
           "module": "easyuse_anima.nodes.regional_nodes",
-          "binder": null,
-          "root_observation": "call_time"
-        },
-        {
-          "module": "easyuse_anima.nodes.sam3_nodes",
           "binder": null,
           "root_observation": "call_time"
         },

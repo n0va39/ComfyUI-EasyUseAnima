@@ -401,6 +401,17 @@ This is one rollback unit because both violations are the same AiO orchestration
 owner invoking Comfy node adapters for reusable behavior. The adapters keep
 their host-facing metadata; the shared image operations own execution.
 
+FC-02C removes both exact `legacy_generation -> nodes` edges through the owners
+fixed by FC-02B. The image, SAM3, and Impact node classes retain their original
+host-facing schemas and method signatures while delegating to
+`_upscale_image_by_multiple`, `_run_sam3_detailer`, and
+`_run_impact_detailer`. Provider discovery remains call-time, AiO still owns
+stage planning and `try/finally` model cleanup, and both operation modules have
+empty public surfaces and no import-time side effects. The analyzer inventory
+grows from 177 to 179 shipped modules, and the reviewed SAM3 function-size
+exception moves from the node method to the exact shared operation. After the
+cohesive Move merges, FC-02D is the only authorized next task.
+
 ### FC-02D — Complete owner-boundary Contract/tool
 
 Use the G-06 production-path groups as the sole current owner inventory and the

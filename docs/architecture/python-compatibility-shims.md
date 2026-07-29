@@ -1195,10 +1195,10 @@ EasyUseAnimaWildcard
   `easyuse_anima.infrastructure.comfy.resources` function directly, and tests
   patch that real consumer rather than retaining a root-only monkeypatch seam.
 - B-10b2 Detailer-hook cleanup: `_EasyUseAnimaAlignedDetailerHook` is no longer
-  a root alias. The image and Impact Detailer adapters already import the
-  canonical `easyuse_anima.image.detailer` class directly; normal-package and
-  synthetic package-entrypoint tests preserve class identity and hook
-  construction without a root-only private import.
+  a root alias. The image adapter and shared SAM3/Impact execution operation
+  import the canonical `easyuse_anima.image.detailer` class directly;
+  normal-package and synthetic package-entrypoint tests preserve class identity
+  and hook construction without a root-only private import.
 - B-10b3 Impact-delegate cleanup: `_EasyUseAnimaImpactDetailerDelegate` is no
   longer a root alias. The SAM3 adapter already imports the canonical
   `easyuse_anima.nodes.impact_detailer_nodes` class directly; normal-package
@@ -1217,9 +1217,10 @@ EasyUseAnimaWildcard
   `_align_nearest` and `_align_down` remain for residual runtime callers.
 - B-10b6 image-scaling cleanup: `_image_scale_by_multiple_size`,
   `_max_long_edge_value`, `_normalize_image_scale_options`, and
-  `_scale_by_value` are no longer root aliases. The canonical image adapter and
-  scaling policy already consume `easyuse_anima.image.scaling` directly;
-  normal-package and synthetic package-entrypoint tests preserve size,
+  `_scale_by_value` are no longer root aliases. The shared image upscale
+  operation consumes `easyuse_anima.image.scaling` directly, and the image/AiO
+  adapters delegate to that operation; normal-package and synthetic
+  package-entrypoint tests preserve size,
   max-edge, and legacy shifted-widget normalization behavior. The two scaling
   constants and mapped image-scale node class remain root compatibility seams.
 - B-10b7 AiO cache-clear cleanup: `_clear_aio_first_pass_cache` is no longer a
