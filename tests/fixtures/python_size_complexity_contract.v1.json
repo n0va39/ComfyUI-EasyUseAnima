@@ -1,0 +1,238 @@
+{
+  "schema_version": 1,
+  "thresholds": {
+    "module_lines": 800,
+    "adapter_module_lines": 400,
+    "function_lines": 120
+  },
+  "adapter_paths": {
+    "exact": [
+      "__init__.py",
+      "api.py",
+      "easyuse_anima/bootstrap.py",
+      "easyuse_anima/registration.py",
+      "nodes.py"
+    ],
+    "prefixes": [
+      "easyuse_anima/api/",
+      "easyuse_anima/infrastructure/",
+      "easyuse_anima/nodes/"
+    ]
+  },
+  "module_exceptions": [
+    {
+      "path": "api.py",
+      "baseline_loc": 698,
+      "owner_issue": 188,
+      "decomposition_boundary": "Retire root compatibility groups only after their canonical API aliases and patch seams have direct consumer proof."
+    },
+    {
+      "path": "easyuse_anima/aio/generation_normalization.py",
+      "baseline_loc": 1115,
+      "owner_issue": 188,
+      "decomposition_boundary": "Separate versioned settings-section normalizers only with migration default and future-key parity."
+    },
+    {
+      "path": "easyuse_anima/aio/legacy_generation.py",
+      "baseline_loc": 1095,
+      "owner_issue": 188,
+      "decomposition_boundary": "Move legacy stage orchestration only along existing stage-port calls while preserving root monkeypatch seams."
+    },
+    {
+      "path": "easyuse_anima/bootstrap.py",
+      "baseline_loc": 422,
+      "owner_issue": 187,
+      "decomposition_boundary": "E-09 lifecycle lock, initialization, cleanup plan, rollback, and terminal shutdown remain one bootstrap owner."
+    },
+    {
+      "path": "easyuse_anima/infrastructure/filesystem/atomic_json.py",
+      "baseline_loc": 415,
+      "owner_issue": 188,
+      "decomposition_boundary": "Split filesystem primitives only if lock, compare-and-swap, atomic replace, and recovery ordering remain one transaction contract."
+    },
+    {
+      "path": "easyuse_anima/nodes/naia_nodes.py",
+      "baseline_loc": 577,
+      "owner_issue": 188,
+      "decomposition_boundary": "Separate NAIA node schema and request adapters only with unchanged public socket and response identities."
+    },
+    {
+      "path": "easyuse_anima/nodes/prompt_advanced_nodes.py",
+      "baseline_loc": 1208,
+      "owner_issue": 188,
+      "decomposition_boundary": "Separate Advanced node generations by public node class while preserving shared field, seed, and root alias contracts."
+    },
+    {
+      "path": "easyuse_anima/nodes/prompt_data_nodes.py",
+      "baseline_loc": 684,
+      "owner_issue": 188,
+      "decomposition_boundary": "Split Prompt Data node adapters by node class only with workflow field and output tuple parity."
+    },
+    {
+      "path": "easyuse_anima/nodes/regional_nodes.py",
+      "baseline_loc": 513,
+      "owner_issue": 188,
+      "decomposition_boundary": "Split Regional node adapters only across existing node classes with socket and workflow parity."
+    },
+    {
+      "path": "easyuse_anima/prompt/advanced.py",
+      "baseline_loc": 890,
+      "owner_issue": 188,
+      "decomposition_boundary": "Separate pure Advanced Prompt Data construction from field normalization without changing serialized output."
+    },
+    {
+      "path": "easyuse_anima/prompt/artist_mix.py",
+      "baseline_loc": 1511,
+      "owner_issue": 188,
+      "decomposition_boundary": "Separate Artist Mix tag/config selection from conditioning encoding without duplicating warning or cache ownership."
+    },
+    {
+      "path": "nodes.py",
+      "baseline_loc": 1156,
+      "owner_issue": 188,
+      "decomposition_boundary": "Reduce the root compatibility facade only through canonical node adapters with exact alias and monkeypatch parity."
+    }
+  ],
+  "function_exceptions": [
+    {
+      "path": "easyuse_anima/aio/generation_normalization.py",
+      "qualified_name": "_normalize_aio_dit_corrections_settings",
+      "baseline_loc": 131,
+      "owner_issue": 188,
+      "decomposition_boundary": "Keep the DiT correction section validation and default projection as one migration unit."
+    },
+    {
+      "path": "easyuse_anima/aio/generation_normalization.py",
+      "qualified_name": "_normalize_aio_generation_settings",
+      "baseline_loc": 681,
+      "owner_issue": 188,
+      "decomposition_boundary": "Extract settings-section normalizers only with exact version dispatch, defaults, and future-key parity."
+    },
+    {
+      "path": "easyuse_anima/aio/generation_save_output_stage.py",
+      "qualified_name": "AIOSaveOutputStage.run",
+      "baseline_loc": 141,
+      "owner_issue": 188,
+      "decomposition_boundary": "Separate save backend dispatch from result assembly only with identical output and disabled-save behavior."
+    },
+    {
+      "path": "easyuse_anima/aio/legacy_generation.py",
+      "qualified_name": "_run_aio_generation_pipeline",
+      "baseline_loc": 385,
+      "owner_issue": 188,
+      "decomposition_boundary": "Move legacy pipeline stages only through existing stage ports while preserving call and error order."
+    },
+    {
+      "path": "easyuse_anima/aio/legacy_generation.py",
+      "qualified_name": "_run_aio_usdu_upscale_stage",
+      "baseline_loc": 154,
+      "owner_issue": 188,
+      "decomposition_boundary": "Keep USDU option projection and adapter invocation together until a typed stage request owns both."
+    },
+    {
+      "path": "easyuse_anima/aio/sampling.py",
+      "qualified_name": "_sample_latent_with_spectrum_mod_guidance_advanced",
+      "baseline_loc": 129,
+      "owner_issue": 188,
+      "decomposition_boundary": "Split sampling setup only at the existing Spectrum and mod-guidance adapter boundaries."
+    },
+    {
+      "path": "easyuse_anima/aio/torch_compile_recommendation.py",
+      "qualified_name": "recommend_torch_compile",
+      "baseline_loc": 124,
+      "owner_issue": 188,
+      "decomposition_boundary": "Keep recommendation precedence together unless rule groups gain direct table-driven ownership tests."
+    },
+    {
+      "path": "easyuse_anima/bootstrap.py",
+      "qualified_name": "initialize",
+      "baseline_loc": 131,
+      "owner_issue": 187,
+      "decomposition_boundary": "E-09 initialization, rollback, repeated-call identity, and terminal shutdown checks remain serialized by one lock."
+    },
+    {
+      "path": "easyuse_anima/infrastructure/filesystem/atomic_json.py",
+      "qualified_name": "AtomicJsonStore.replace_from",
+      "baseline_loc": 140,
+      "owner_issue": 188,
+      "decomposition_boundary": "Keep validation, expected-revision compare, atomic replacement, and failure cleanup in one transaction."
+    },
+    {
+      "path": "easyuse_anima/nodes/impact_detailer_nodes.py",
+      "qualified_name": "_EasyUseAnimaImpactDetailerDelegate.INPUT_TYPES",
+      "baseline_loc": 129,
+      "owner_issue": 188,
+      "decomposition_boundary": "Extract socket groups only through immutable schema helpers with exact ComfyUI input ordering."
+    },
+    {
+      "path": "easyuse_anima/nodes/naia_nodes.py",
+      "qualified_name": "EasyUseAnimaNAIARandomPrompt.INPUT_TYPES",
+      "baseline_loc": 137,
+      "owner_issue": 188,
+      "decomposition_boundary": "Extract NAIA socket groups only with exact default, choice, and ordering parity."
+    },
+    {
+      "path": "easyuse_anima/nodes/naia_nodes.py",
+      "qualified_name": "EasyUseAnimaNAIARandomPrompt.request",
+      "baseline_loc": 137,
+      "owner_issue": 188,
+      "decomposition_boundary": "Separate NAIA request preparation from node result conversion only at the typed client boundary."
+    },
+    {
+      "path": "easyuse_anima/nodes/prompt_advanced_nodes.py",
+      "qualified_name": "EasyUseAnimaPromptStudioAdvanced.build",
+      "baseline_loc": 171,
+      "owner_issue": 188,
+      "decomposition_boundary": "Separate legacy Advanced node conversion only after shared Prompt Data and seed adapters own the inputs."
+    },
+    {
+      "path": "easyuse_anima/nodes/prompt_advanced_nodes.py",
+      "qualified_name": "EasyUseAnimaPromptStudioAdvancedV2._build_with_seed",
+      "baseline_loc": 184,
+      "owner_issue": 188,
+      "decomposition_boundary": "Keep seed reservation and Prompt Data node output assembly ordered until a typed request owns both."
+    },
+    {
+      "path": "easyuse_anima/nodes/sam3_nodes.py",
+      "qualified_name": "EasyUseAnimaSAM3Detailer.doit",
+      "baseline_loc": 126,
+      "owner_issue": 188,
+      "decomposition_boundary": "Separate SAM3 detection from detailer result assembly only through the canonical image adapter."
+    },
+    {
+      "path": "easyuse_anima/prompt/advanced.py",
+      "qualified_name": "_build_advanced_prompt_data",
+      "baseline_loc": 227,
+      "owner_issue": 188,
+      "decomposition_boundary": "Extract field-family builders only with exact Prompt Data serialization and optional-field parity."
+    },
+    {
+      "path": "easyuse_anima/prompt/artist_mix.py",
+      "qualified_name": "_encode_artist_clustered",
+      "baseline_loc": 130,
+      "owner_issue": 188,
+      "decomposition_boundary": "Separate cluster planning from encoding only with deterministic weighting and conditioning parity."
+    },
+    {
+      "path": "easyuse_anima/prompt/artist_mix.py",
+      "qualified_name": "_encode_prompt_data_positive_conditioning",
+      "baseline_loc": 217,
+      "owner_issue": 188,
+      "decomposition_boundary": "Split conditioning branches only with identical cache, warning, and tensor metadata behavior."
+    },
+    {
+      "path": "easyuse_anima/prompt/artist_mix.py",
+      "qualified_name": "_prompt_data_artist_mix_config",
+      "baseline_loc": 138,
+      "owner_issue": 188,
+      "decomposition_boundary": "Keep Artist Mix config migration and validation together until a typed config constructor owns both."
+    },
+    {
+      "path": "easyuse_anima/prompt/regional.py",
+      "qualified_name": "_build_regional_outputs",
+      "baseline_loc": 140,
+      "owner_issue": 188,
+      "decomposition_boundary": "Separate regional field projection only with exact region order, masks, and serialized Prompt Data parity."
+    }
+  ]
+}

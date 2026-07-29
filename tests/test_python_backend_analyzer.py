@@ -66,6 +66,78 @@ class PythonBackendAnalyzerTests(unittest.TestCase):
 
         self.assertEqual(lf_report, crlf_report)
 
+    def test_function_metrics_include_decorators_methods_nested_and_duplicates(self):
+        report = analyzer.analyze_source_set(
+            {
+                "__init__.py": """\
+def decorator(function):
+    return function
+
+@decorator
+def top():
+    def nested():
+        return 1
+    return nested()
+
+class Owner:
+    @decorator
+    async def method(self):
+        return 2
+
+def top():
+    return 3
+""",
+            }
+        )
+
+        functions = report["inventory"]["modules"][0]["functions"]
+
+        self.assertEqual(
+            functions,
+            [
+                {
+                    "qualified_name": "decorator",
+                    "kind": "function",
+                    "async": False,
+                    "line": 1,
+                    "end_line": 2,
+                    "loc": 2,
+                },
+                {
+                    "qualified_name": "top",
+                    "kind": "function",
+                    "async": False,
+                    "line": 4,
+                    "end_line": 8,
+                    "loc": 5,
+                },
+                {
+                    "qualified_name": "top.nested",
+                    "kind": "function",
+                    "async": False,
+                    "line": 6,
+                    "end_line": 7,
+                    "loc": 2,
+                },
+                {
+                    "qualified_name": "Owner.method",
+                    "kind": "method",
+                    "async": True,
+                    "line": 11,
+                    "end_line": 13,
+                    "loc": 3,
+                },
+                {
+                    "qualified_name": "top#2",
+                    "kind": "function",
+                    "async": False,
+                    "line": 15,
+                    "end_line": 16,
+                    "loc": 2,
+                },
+            ],
+        )
+
     def test_alias_static_relative_and_literal_dynamic_import_edges(self):
         sources = {
             "__init__.py": """\
@@ -689,7 +761,7 @@ ignored/
         expected_text = BASELINE_PATH.read_text(encoding="utf-8")
 
         self.assertEqual(analyzer.render_json(report), expected_text)
-        self.assertEqual(report["schema_version"], 2)
+        self.assertEqual(report["schema_version"], 3)
         self.assertEqual(report["inventory"]["module_count"], 176)
         self.assertEqual(len(report["registry"]["shipped_python_modules"]), 176)
         self.assertEqual(len(report["registry"]["runtime_import_closure"]), 176)
