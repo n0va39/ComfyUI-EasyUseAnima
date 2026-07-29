@@ -89,7 +89,7 @@ Prompt Data, settings, or error-taxonomy work.
 
 After F-02b:
 
-1. re-audit the Prompt/Wildcard/Autocomplete row;
+1. re-audit the affected Prompt row;
 2. execute the next smallest F-02 while any Phase F finding remains;
 3. only after Phase F closes, run #188 G-04A against existing
    compatibility/node/API/package fixtures;
