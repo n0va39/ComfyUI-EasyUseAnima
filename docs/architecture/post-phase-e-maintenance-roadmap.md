@@ -4,7 +4,7 @@
 
 - Status: active execution plan after Phase D and Phase E completion.
 - Primary parent: Issue #185.
-- Active first task: Issue #186 / P-API-01 API production-facade feasibility Contract.
+- Active first task: Issue #188 / G-05A size and complexity ratchet.
 - Quality owner: Issue #188.
 - Compatibility ledger: Issue #186.
 - D-14/H status: parked by compatibility gates, not failed.
@@ -42,7 +42,7 @@ The post-Phase-E D-14 audit records zero removal-approved root surfaces.
 | --- | --- |
 | root `__init__.py` | permanent ComfyUI entrypoint; still imports root `api.py` for production route registration |
 | `api.py` | transitional production facade; current complete canonical/facade form has not shipped and root entrypoint/runtime consumers remain |
-| `wildcard_engine.py` | behavior-bearing compatibility adapter; `api.py` and `nodes.py` still consume it and final form has not shipped |
+| `wildcard_engine.py` | import-only direct shim with no production consumer; final form has not shipped and release N has not started |
 | `api_contract.py` | final direct shim form completed after 0.6.2; release N has not started |
 | `autocomplete_dataset.py` | final direct shim form completed after 0.6.2; release N has not started |
 | `anima_prompt/` | final package shim form completed after 0.6.2; release N has not started |
@@ -80,9 +80,9 @@ COMPLETE F-02a Autocomplete typed result contracts             #563 / PR #566
   -> NOT REQUIRED G-04B minimal missing public-surface gate
   -> COMPLETE P-WC-01 wildcard pure-shim feasibility Contract  #186
   -> COMPLETE P-WC-02 internal consumer/facade Move            #186
-  -> READY P-API-01 API production-facade feasibility Contract #186
-  -> OPTIONAL P-API-02 canonical production-entry Move
-  -> G-05A    size/complexity baseline and changed-path ratchet #188
+  -> COMPLETE P-API-01 API production-facade feasibility Contract #582
+  -> RETAIN P-API-02 canonical production-entry Move
+  -> READY G-05A size/complexity baseline and changed-path ratchet #188
   -> G-06A    canonical test-ownership Contract               #188
   -> G-CLOSE  Phase F/G completion audit
 ```
@@ -210,7 +210,7 @@ Audit result:
 - private/transitional bindings remain excluded or compatibility-ledger-owned, and no
   unsupported name is promoted;
 - G-04A is complete without a synthetic fixture, so G-04B is not required;
-- the next READY task is Issue #186 / P-WC-01.
+- this audit originally advanced the queue to P-WC-01; P-WC-01/P-WC-02 are now complete.
 
 ## 5. Pre-retirement preparation without removal
 
@@ -269,7 +269,7 @@ P-WC-02 result:
   bindings are preserved;
 - the analyzer includes the shipped compatibility shim as an explicit Registry entry
   module, retaining complete 176-module archive closure without a production import;
-- the next READY task is P-API-01. Release N remains event-gated.
+- P-API-01 completed with RETAIN; G-05A is next. Release N remains event-gated.
 
 ### P-API-01 — API facade feasibility Contract
 
@@ -299,6 +299,26 @@ used as a substitute for technical ownership analysis.
 
 If a safe shape is selected, P-API-02 migrates the production entrypoint and leaves a
 compatible root facade. Public removal remains forbidden.
+
+P-API-01 result:
+
+- [`python-api-papi01-e09-lifecycle-gate.md`](python-api-papi01-e09-lifecycle-gate.md)
+  records **RETAIN** at audited base
+  `ffa986df7a477ff68af08cae4dfe834e01bf3aa4`;
+- the current root module is the application/composition identity; one executor is
+  shared by the root facade, bootstrap cleanup item 1, and translation handler;
+- a narrow isolated-package test proves ordinary late import resolves that cached
+  application and creates no duplicate runtime, atexit callback, executor, handler,
+  registrar, route marker, or route registration;
+- canonical and bootstrap-owned candidates cannot both make root `api.py` genuinely
+  late and preserve the existing registration/request-time root callback seams without
+  a canonical-to-root back-reference, a second mutable proxy owner, or a separate
+  compatibility migration;
+- moving application creation into initialize or attaching it after runtime creation
+  would change E-09 rollback and fixed cleanup-plan timing;
+- P-API-02 is not READY. G-05A is the next task; P-API may be revisited only after a
+  recorded patch-owner migration, consumer-backed seam retirement, acyclic private
+  pre-initialize publication proof, or an explicit lifecycle Behavior Contract.
 
 ## 6. G-05A — Size and complexity ratchet
 
@@ -412,32 +432,25 @@ with Codex.
 ## 10. Codex resume instruction
 
 ```text
-Start Issue #186 / P-API-01 only from latest origin/dev after P-WC-02 merges.
+P-API-01 is complete with RETAIN. Do not start P-API-02 from this result.
 
-Read:
+For the next task, start Issue #188 / G-05A from latest origin/dev and read:
 - current-policies.md
 - codex-execution-efficiency.md universal rules
-- this document's P-API-01 and validation sections
-- Issue #186 latest P-API-01 checkpoint
-- root __init__.py, api.py, easyuse_anima/bootstrap.py, api/router.py, route factories
-- direct entrypoint/bootstrap/route/API compatibility and import/package owners
+- this document's G-05A and validation sections
+- Issue #188 latest G-05A checkpoint
+- tools/analyze_python_backend.py metric owners and the existing analyzer fixture/tests
 
 Do not read all historical D/E PRs and do not start D-14 removal.
 
-Without production changes, audit whether root api.py can become a pure compatibility
-facade. Inventory the root entrypoint's register_routes dependency, bootstrap
-composition, route/payload/runtime helpers, supported public names, private
-monkeypatch seams, exact object identities, and import-cycle constraints. Select one
-FEASIBLE shape with an exact bounded Move card, or RETAIN with an exact blocker and
-next evidence trigger.
+Without production changes, freeze the existing analyzer size/complexity baseline and
+add only the reviewed changed-path growth ratchet described by G-05A.
 
-Run only targeted consistency/focused checks during the edit loop and git diff check.
 Run only targeted consistency/focused checks and git diff check. Run official full
 once only if an executable gate or fixture changes. Package/live are not triggered.
 
-Push a dev-targeted Draft PR, review, and squash merge. Request focused technical PRO
-review only if direct evidence still leaves multiple valid bootstrap/router/root
-facade shapes. Do not implement the later Move in P-API-01.
+Push a dev-targeted Draft PR, review, and squash merge. Do not reopen P-API-02, D-14,
+release, or Registry work while performing G-05A.
 
 Do not change production behavior, public/root exports, routes, API payloads,
 RuntimeServices/bootstrap lifecycle, migration semantics, deprecation
