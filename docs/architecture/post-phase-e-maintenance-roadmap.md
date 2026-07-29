@@ -4,7 +4,7 @@
 
 - Status: active execution plan after Phase D and Phase E completion.
 - Primary parent: Issue #185.
-- Active first task: Issue #563 / F-02b Prompt field-family typed contract.
+- Active first task: Issue #563 / F-02c canonical Prompt Data typed read/output contract.
 - Quality owner: Issue #188.
 - Compatibility ledger: Issue #186.
 - D-14/H status: parked by compatibility gates, not failed.
@@ -67,7 +67,9 @@ ADR-002 result when evidence is absent or ambiguous.
 ```text
 COMPLETE F-02a Autocomplete typed result contracts             #563 / PR #566
   -> COMPLETE affected-row re-audit
-  -> READY F-02b Prompt field-family typed contract            #563
+  -> COMPLETE F-02b Prompt field-family typed contract         #563 / PR #569
+  -> COMPLETE affected Prompt-row re-audit
+  -> READY F-02c canonical Prompt Data typed read/output       #563
   -> RE-AUDIT affected Prompt row
   -> F-02      next smallest targeted gap while one remains
   -> G-04A    public API snapshot coverage audit              #188
@@ -136,16 +138,18 @@ Exit:
 - gap: execute only the smallest F-02, re-audit the affected row, then select the
   next smallest remaining finding or start G-04A when Phase F closes.
 
-Audit result, updated after F-02a merged at
-`3a306498325c48126325aadc6d31665acf3517b4`:
+Audit result, updated after F-02b merged at
+`4cf0c82ee459d37e67fa0b8d7b80cd162e111658`:
 
 - [`python-typed-boundary-f01-audit.md`](python-typed-boundary-f01-audit.md)
   records the production-free six-area inventory and reuses the existing
   deterministic fixtures;
-- Autocomplete and Wildcard are complete after F-02a; Prompt's normalized Advanced
-  fields and canonical Prompt Data remain exact, separable follow-up findings;
-- only the smallest cohesive follow-up, F-02b Prompt field-family typed contract, is
-  selected as the next task card;
+- Autocomplete and Wildcard are complete after F-02a; the Prompt field family is
+  complete after F-02b;
+- legacy/future Prompt Data JSON remains intentionally raw only at the workflow and
+  node adapter boundary;
+- only the smallest remaining Prompt leak, F-02c canonical Prompt Data typed
+  read/output contract, is selected as the next task card;
 - settings migration and common error taxonomy remain separate findings;
 - G-04A and Issue #188 remain blocked until all Phase F follow-up rows are closed.
 
@@ -362,27 +366,28 @@ with Codex.
 ## 10. Codex resume instruction
 
 ```text
-Start Issue #563 / F-02b only from latest origin/dev after the F-02a affected-row
+Start Issue #563 / F-02c only from latest origin/dev after the F-02b affected Prompt-row
 re-audit merges.
 
 Read:
 - current-policies.md
 - codex-execution-efficiency.md universal rules
 - this document's F-01 result and validation sections
-- python-typed-boundary-f01-audit.md F-02b task card
+- python-typed-boundary-f01-audit.md F-02c task card
 - Issue #563 latest checkpoint
-- direct Prompt Advanced/Regional owner source/tests and current Pyright/import fixtures
+- direct Prompt Data/Advanced/AiO/artist-mix owner source/tests and current
+  Pyright/import fixtures
 
 Do not read all historical D/E PRs and do not restart D-14 removal.
 
-Define internal PromptField, AdvancedField, and RegionalField TypedDicts, using a
-bounded generic only where shared correction/wildcard/translation helpers preserve the
-concrete subtype. Apply them through both normalizers, Prompt Studio node adapters,
-AiO conditioning, and artist mix without changing runtime dictionaries, input/workflow
-migration, field order/defaults, behavior, identities, or public exports. Preserve the
-legacy Extend adapter's omitted `pin`. Reuse direct Advanced/Regional Prompt Studio,
-AiO conditioning, node-owner, Pyright, and import tests; update only a direct generated
-analyzer baseline if the canonical module requires it.
+Define internal canonical Prompt Data output and nested TypedDicts plus a typed
+feature-side read mapping. Apply them from the Advanced v2 builder through Prompt Data
+helpers and direct Prompt/AiO/artist-mix consumers without changing runtime
+dictionaries, schema/version, nested key order/values, fallback precedence,
+copy-on-update behavior, input/workflow acceptance, identities, or public exports.
+Keep legacy and future JSON raw only at the adapter boundary. Reuse direct Prompt Data,
+AiO conditioning/generation, node-owner, Pyright, and import tests; update only a direct
+generated analyzer baseline if the canonical type surface requires it.
 
 Run only targeted consistency/focused checks during the edit loop and git diff check.
 Run official full once on the final production/test/tool SHA.
