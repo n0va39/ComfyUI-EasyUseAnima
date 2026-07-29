@@ -1,11 +1,12 @@
 from __future__ import annotations
 
 import ast
+import importlib.util
 import json
+import typing
 import unittest
 from functools import lru_cache
 from pathlib import Path
-
 
 ROOT = Path(__file__).resolve().parents[1]
 FIXTURE_PATH = (
@@ -19,6 +20,9 @@ CONTRACT_DOC = (
     / "docs"
     / "architecture"
     / "python-runtime-e05-autocomplete-contract.md"
+)
+TYPED_CONTRACTS_PATH = (
+    ROOT / "easyuse_anima" / "autocomplete" / "contracts.py"
 )
 
 
@@ -171,6 +175,27 @@ def _imported_names(module: str) -> set[tuple[str, str]]:
         if isinstance(node, ast.ImportFrom) and node.module
         for alias in node.names
     }
+
+
+@lru_cache(maxsize=1)
+def _typed_contracts():
+    spec = importlib.util.spec_from_file_location(
+        "easyuse_anima_autocomplete_typed_contracts",
+        TYPED_CONTRACTS_PATH,
+    )
+    if spec is None or spec.loader is None:
+        raise RuntimeError(f"Could not load {TYPED_CONTRACTS_PATH.name}")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def _return_annotation(
+    function: ast.FunctionDef | ast.AsyncFunctionDef,
+) -> str | None:
+    if function.returns is None:
+        return None
+    return ast.unparse(function.returns)
 
 
 class PythonAutocompleteRuntimeContractTests(unittest.TestCase):
@@ -391,6 +416,172 @@ class PythonAutocompleteRuntimeContractTests(unittest.TestCase):
         partition = self.fixture["decisions"]["resource_partition"].lower()
         self.assertIn("one owner", partition)
         self.assertIn("second owner", partition)
+
+    def test_typed_result_contracts_freeze_core_and_public_payload_shapes(self):
+        contracts = _typed_contracts()
+        expected = {
+            "AutocompleteSourcePayload": (
+                {
+                    "key",
+                    "label",
+                    "source",
+                    "license",
+                    "path",
+                    "exists",
+                    "selected",
+                },
+                set(),
+            ),
+            "AutocompletePublicSourcePayload": (
+                {
+                    "key",
+                    "label",
+                    "source",
+                    "license",
+                    "exists",
+                    "selected",
+                },
+                set(),
+            ),
+            "AutocompleteStatusPayload": (
+                {"path", "exists", "count", "mtime"},
+                set(),
+            ),
+            "AutocompletePublicStatusPayload": (
+                {"exists", "count", "mtime"},
+                set(),
+            ),
+            "AutocompletePublicStatusResultPayload": (
+                {
+                    "exists",
+                    "count",
+                    "mtime",
+                    "source",
+                    "source_label",
+                    "sources",
+                },
+                set(),
+            ),
+            "AutocompleteSearchEntryPayload": (
+                {"tag", "category", "count", "description"},
+                set(),
+            ),
+            "AutocompleteSearchPayload": (
+                {"query", "results", "status", "elapsed_ms"},
+                {"category"},
+            ),
+            "AutocompletePublicSearchPayload": (
+                {"query", "results", "status", "elapsed_ms"},
+                {"category"},
+            ),
+            "AutocompleteClassificationTokenPayload": (
+                {
+                    "token",
+                    "base",
+                    "section",
+                    "label",
+                    "learned",
+                    "weighted",
+                    "count",
+                    "description",
+                },
+                set(),
+            ),
+            "AutocompleteClassificationPayload": (
+                {"tokens", "status"},
+                set(),
+            ),
+            "AutocompletePublicClassificationPayload": (
+                {"tokens", "status"},
+                set(),
+            ),
+        }
+
+        self.assertEqual(contracts.__all__, ())
+        for name, (required, optional) in expected.items():
+            with self.subTest(contract=name):
+                contract = getattr(contracts, name)
+                self.assertTrue(typing.is_typeddict(contract))
+                self.assertEqual(set(contract.__required_keys__), required)
+                self.assertEqual(set(contract.__optional_keys__), optional)
+
+    def test_typed_results_are_applied_to_port_service_core_and_api_adapter(self):
+        function_annotations = {
+            (
+                "easyuse_anima/autocomplete/dataset.py",
+                "available_autocomplete_sources",
+            ): "list[AutocompleteSourcePayload]",
+            (
+                "easyuse_anima/autocomplete/dataset.py",
+                "autocomplete_status",
+            ): "AutocompleteStatusPayload",
+            (
+                "easyuse_anima/autocomplete/search.py",
+                "search_autocomplete",
+            ): "AutocompleteSearchPayload",
+            (
+                "easyuse_anima/autocomplete/classification.py",
+                "classify_prompt_text",
+            ): "AutocompleteClassificationPayload",
+        }
+        for (module, function_name), expected in function_annotations.items():
+            with self.subTest(module=module, function=function_name):
+                self.assertEqual(
+                    _return_annotation(_top_level_function(module, function_name)),
+                    expected,
+                )
+
+        method_annotations = {
+            ("AutocompletePort", "available_sources"): (
+                "list[AutocompleteSourcePayload]"
+            ),
+            ("AutocompletePort", "status"): "AutocompleteStatusPayload",
+            ("AutocompletePort", "search"): "AutocompleteSearchPayload",
+            ("AutocompletePort", "classify"): (
+                "AutocompleteClassificationPayload"
+            ),
+            ("_AutocompleteService", "available_sources"): (
+                "list[AutocompleteSourcePayload]"
+            ),
+            ("_AutocompleteService", "status"): "AutocompleteStatusPayload",
+            ("_AutocompleteService", "search"): "AutocompleteSearchPayload",
+            ("_AutocompleteService", "classify"): (
+                "AutocompleteClassificationPayload"
+            ),
+        }
+        method_modules = {
+            "AutocompletePort": "easyuse_anima/autocomplete/ports.py",
+            "_AutocompleteService": "easyuse_anima/autocomplete/service.py",
+        }
+        for (class_name, method_name), expected in method_annotations.items():
+            with self.subTest(owner=class_name, method=method_name):
+                self.assertEqual(
+                    _return_annotation(
+                        _class_method(
+                            method_modules[class_name],
+                            class_name,
+                            method_name,
+                        )
+                    ),
+                    expected,
+                )
+
+        api_references = _function_references(
+            "easyuse_anima/api/routes/autocomplete.py",
+            "build_autocomplete_payloads",
+        )
+        self.assertTrue(
+            {
+                "AutocompleteSourcePayload",
+                "AutocompleteStatusPayload",
+                "AutocompletePublicStatusResultPayload",
+                "AutocompletePublicSourcePayload",
+                "AutocompletePublicStatusPayload",
+                "AutocompletePublicSearchPayload",
+                "AutocompletePublicClassificationPayload",
+            }
+            <= api_references
+        )
 
     def test_dataset_snapshot_state_and_single_flight_contract_are_current(self):
         module = "easyuse_anima/autocomplete/dataset.py"

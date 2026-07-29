@@ -7,14 +7,15 @@ import time
 from collections.abc import Callable
 from pathlib import Path
 
+from .contracts import AutocompleteSearchPayload, AutocompleteStatusPayload
 from .dataset import (
+    _AUTOCOMPLETE_CACHE_LOAD_ATTEMPTS,
+    _MISSING_FILE_STAT,
     AUTOCOMPLETE_CSV,
     AutocompleteEntry,
-    _AUTOCOMPLETE_CACHE_LOAD_ATTEMPTS,
     _AutocompleteCacheKey,
     _AutocompleteSnapshot,
     _AutocompleteSourceChanged,
-    _MISSING_FILE_STAT,
     _cache_key,
     _cache_key_from_resolved_path,
     _load_entries,
@@ -24,11 +25,11 @@ from .dataset import (
     autocomplete_status,
 )
 from .index import (
+    _DEFAULT_AUTOCOMPLETE_INDEX_STORE,
     AutocompleteIndexDiagnostics,
     AutocompleteIndexSource,
     AutocompleteIndexUnavailable,
     _AutocompleteIndexStore,
-    _DEFAULT_AUTOCOMPLETE_INDEX_STORE,
 )
 
 
@@ -103,7 +104,7 @@ def _search_autocomplete_diagnostics_with_owners(
     *,
     snapshot: Callable[[Path], _AutocompleteSnapshot],
     index_store: _AutocompleteIndexStore,
-) -> tuple[dict, AutocompleteIndexDiagnostics]:
+) -> tuple[AutocompleteSearchPayload, AutocompleteIndexDiagnostics]:
     started = time.perf_counter()
     effective_limit = max(1, min(limit, 100))
     normalized_query = _normalize(query)
@@ -177,7 +178,7 @@ def _search_autocomplete_diagnostics_with_owners(
     else:
         result_entries = indexed_entries
 
-    payload = {
+    payload: AutocompleteSearchPayload = {
         "query": query,
         "category": category,
         "results": [
@@ -200,7 +201,7 @@ def _search_autocomplete_with_diagnostics(
     limit: int = 20,
     path: Path = AUTOCOMPLETE_CSV,
     category: str | None = None,
-) -> tuple[dict, AutocompleteIndexDiagnostics]:
+) -> tuple[AutocompleteSearchPayload, AutocompleteIndexDiagnostics]:
     return _search_autocomplete_diagnostics_with_owners(
         query,
         limit=limit,
@@ -217,10 +218,10 @@ def _search_autocomplete_with_owners(
     path: Path,
     category: str | None,
     *,
-    status: Callable[[Path], dict],
+    status: Callable[[Path], AutocompleteStatusPayload],
     snapshot: Callable[[Path], _AutocompleteSnapshot],
     index_store: _AutocompleteIndexStore,
-) -> dict:
+) -> AutocompleteSearchPayload:
     normalized_query = _normalize(query)
     if not normalized_query:
         return {
@@ -245,7 +246,7 @@ def search_autocomplete(
     limit: int = 20,
     path: Path = AUTOCOMPLETE_CSV,
     category: str | None = None,
-) -> dict:
+) -> AutocompleteSearchPayload:
     return _search_autocomplete_with_owners(
         query,
         limit=limit,

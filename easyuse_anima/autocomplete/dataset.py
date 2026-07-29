@@ -13,8 +13,10 @@ from concurrent.futures import Future
 from dataclasses import dataclass
 from pathlib import Path
 from types import MappingProxyType
+from typing import TypedDict
 
 from ..infrastructure.filesystem.paths import PACKAGE_DATA_DIR
+from .contracts import AutocompleteSourcePayload, AutocompleteStatusPayload
 
 DBR_TAG_ARCHIVE_SOURCE = "https://github.com/DraconicDragon/dbr-e621-lists-archive"
 
@@ -41,7 +43,21 @@ DEFAULT_AUTOCOMPLETE_SOURCE = "dbr_danbooru_2025_09_01"
 _KOREAN_AUTOCOMPLETE_SOURCE = "localsmile_kr_wiki"
 
 
-AUTOCOMPLETE_SOURCES = {
+class _AutocompleteSourceDefinitionRequired(TypedDict):
+    label: str
+    path: Path
+    entry_count: int
+    source: str
+
+
+class _AutocompleteSourceDefinition(
+    _AutocompleteSourceDefinitionRequired,
+    total=False,
+):
+    license: str
+
+
+AUTOCOMPLETE_SOURCES: dict[str, _AutocompleteSourceDefinition] = {
     "dbr_danbooru_2025_09_01": {
         "label": "Danbooru 2025-09-01 (recommended)",
         "path": DBR_DANBOORU_AUTOCOMPLETE_CSV,
@@ -235,9 +251,11 @@ def resolve_autocomplete_source(source: str | None = None) -> tuple[str, Path]:
     return key, path
 
 
-def available_autocomplete_sources(selected: str | None = None) -> list[dict]:
+def available_autocomplete_sources(
+    selected: str | None = None,
+) -> list[AutocompleteSourcePayload]:
     selected_key, _ = resolve_autocomplete_source(selected)
-    sources = []
+    sources: list[AutocompleteSourcePayload] = []
     for key, data in AUTOCOMPLETE_SOURCES.items():
         path = Path(data["path"])
         sources.append(
@@ -460,7 +478,11 @@ def _entry_map(path: Path = AUTOCOMPLETE_CSV) -> Mapping[str, AutocompleteEntry]
     return _snapshot(path).entry_map
 
 
-def _status_from_key(key: _AutocompleteCacheKey, path: Path, count: int) -> dict:
+def _status_from_key(
+    key: _AutocompleteCacheKey,
+    path: Path,
+    count: int,
+) -> AutocompleteStatusPayload:
     exists = key.mtime_ns != _MISSING_FILE_STAT
     return {
         "path": str(path),
@@ -470,7 +492,10 @@ def _status_from_key(key: _AutocompleteCacheKey, path: Path, count: int) -> dict
     }
 
 
-def _snapshot_status(snapshot: _AutocompleteSnapshot, path: Path) -> dict:
+def _snapshot_status(
+    snapshot: _AutocompleteSnapshot,
+    path: Path,
+) -> AutocompleteStatusPayload:
     return _status_from_key(snapshot.key, path, len(snapshot.entries))
 
 
@@ -503,7 +528,7 @@ def _autocomplete_status_with_owner(
         _AutocompleteSnapshot | None,
     ],
     snapshot: Callable[[Path], _AutocompleteSnapshot],
-) -> dict:
+) -> AutocompleteStatusPayload:
     key = _cache_key(path)
     if key.mtime_ns == _MISSING_FILE_STAT:
         return _status_from_key(key, path, 0)
@@ -521,7 +546,9 @@ def _autocomplete_status_with_owner(
     return _snapshot_status(snapshot(path), path)
 
 
-def autocomplete_status(path: Path = AUTOCOMPLETE_CSV) -> dict:
+def autocomplete_status(
+    path: Path = AUTOCOMPLETE_CSV,
+) -> AutocompleteStatusPayload:
     return _autocomplete_status_with_owner(
         path,
         cached_snapshot_for_key=_cached_snapshot_for_key,

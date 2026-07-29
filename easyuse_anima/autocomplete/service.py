@@ -5,11 +5,17 @@ from __future__ import annotations
 from pathlib import Path
 
 from .classification import _classify_prompt_text_from_snapshot
+from .contracts import (
+    AutocompleteClassificationPayload,
+    AutocompleteSearchPayload,
+    AutocompleteSourcePayload,
+    AutocompleteStatusPayload,
+)
 from .dataset import (
     AUTOCOMPLETE_CSV,
+    _autocomplete_status_with_owner,
     _AutocompleteSnapshot,
     _AutocompleteSnapshotStore,
-    _autocomplete_status_with_owner,
     _snapshot_with_owner,
     available_autocomplete_sources,
     resolve_autocomplete_source,
@@ -41,7 +47,10 @@ class _AutocompleteService:
     def resolve_source(self, source: str | None = None) -> tuple[str, Path]:
         return resolve_autocomplete_source(source)
 
-    def available_sources(self, selected: str | None = None) -> list[dict]:
+    def available_sources(
+        self,
+        selected: str | None = None,
+    ) -> list[AutocompleteSourcePayload]:
         return available_autocomplete_sources(selected)
 
     def _snapshot(self, path: Path) -> _AutocompleteSnapshot:
@@ -50,7 +59,10 @@ class _AutocompleteService:
             snapshot_for_key=self._snapshots.snapshot_for_key,
         )
 
-    def status(self, path: Path = AUTOCOMPLETE_CSV) -> dict:
+    def status(
+        self,
+        path: Path = AUTOCOMPLETE_CSV,
+    ) -> AutocompleteStatusPayload:
         return _autocomplete_status_with_owner(
             path,
             cached_snapshot_for_key=self._snapshots.cached_snapshot_for_key,
@@ -63,7 +75,7 @@ class _AutocompleteService:
         limit: int = 20,
         path: Path | None = None,
         category: str | None = None,
-    ) -> dict:
+    ) -> AutocompleteSearchPayload:
         effective_path = AUTOCOMPLETE_CSV if path is None else Path(path)
         return _search_autocomplete_with_owners(
             query,
@@ -80,7 +92,7 @@ class _AutocompleteService:
         text: str,
         limit: int = 240,
         path: Path | None = None,
-    ) -> dict:
+    ) -> AutocompleteClassificationPayload:
         effective_path = AUTOCOMPLETE_CSV if path is None else Path(path)
         return _classify_prompt_text_from_snapshot(
             text,

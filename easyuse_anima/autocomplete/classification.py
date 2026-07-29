@@ -7,11 +7,15 @@ from ..prompt.anima.models import TagSection
 from ..prompt.anima.ordering import builtin_tag_section
 from ..prompt.anima.parser import parse_prompt
 from ..translation.markers import iter_prompt_translation_markers
+from .contracts import (
+    AutocompleteClassificationPayload,
+    AutocompleteClassificationTokenPayload,
+)
 from .dataset import (
+    _INLINE_SPACE_RE,
     AUTOCOMPLETE_CSV,
     AutocompleteEntry,
     _AutocompleteSnapshot,
-    _INLINE_SPACE_RE,
     _normalize,
     _snapshot,
     _snapshot_status,
@@ -295,7 +299,7 @@ def _classify_prompt_text_from_snapshot(
     limit: int,
     path: Path,
     snapshot: _AutocompleteSnapshot,
-) -> dict:
+) -> AutocompleteClassificationPayload:
     entries = snapshot.entry_map
     tokens: list[tuple[str, bool, bool, bool]] = []
 
@@ -328,7 +332,7 @@ def _classify_prompt_text_from_snapshot(
             tokens = tokens[:max_limit]
             break
 
-    classified = []
+    classified: list[AutocompleteClassificationTokenPayload] = []
     for token, weighted, syntax_error, is_comment in tokens:
         if syntax_error:
             classified.append(
@@ -383,7 +387,7 @@ def _classify_prompt_text_from_snapshot(
 
 def classify_prompt_text(
     text: str, limit: int = 240, path: Path = AUTOCOMPLETE_CSV
-) -> dict:
+) -> AutocompleteClassificationPayload:
     return _classify_prompt_text_from_snapshot(
         text,
         limit=limit,
