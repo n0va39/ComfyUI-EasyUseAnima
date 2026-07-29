@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
+from typing import Any, cast
 
 PROMPT_TRANSLATION_ROUTE_TIMEOUT_SECONDS = 15.0
 
@@ -66,12 +67,38 @@ def _build_translation_error_response(
     error_mappings = tuple(
         (error_types[key], status, code, default_message)
         for key, status, code, default_message in _TRANSLATION_HTTP_MAPPINGS
+        if key != "base"
+    )
+    base_error_type = error_types["base"]
+    base_status, base_code, base_default_message = next(
+        (status, code, default_message)
+        for key, status, code, default_message in _TRANSLATION_HTTP_MAPPINGS
+        if key == "base"
     )
 
     def _prompt_translation_error_response(exc: Exception):
         for error_type, status, code, default_message in error_mappings:
             if isinstance(exc, error_type):
-                return error_response(status, code, str(exc) or default_message)
+                mapped_error = cast(Any, exc)
+                return error_response(
+                    status,
+                    code,
+                    str(mapped_error) or default_message,
+                )
+        if type(exc) is base_error_type:
+            mapped_error = cast(Any, exc)
+            return error_response(
+                base_status,
+                base_code,
+                str(mapped_error) or base_default_message,
+            )
+        if isinstance(exc, base_error_type):
+            compatibility_error = cast(Any, exc)
+            return error_response(
+                compatibility_error.status,
+                compatibility_error.code,
+                compatibility_error.message,
+            )
         raise exc
 
     return _prompt_translation_error_response

@@ -981,14 +981,34 @@ class ApiRequestCorrelationTests(unittest.TestCase):
             code = "translation_upstream_error"
 
         cases = (
-            (api.TranslationCancelledError(), 499, "translation_cancelled"),
-            (TranslationUpstreamTestError(), 502, "translation_upstream_error"),
-            (api.TranslationBusyError(), 503, "translation_busy"),
-            (api.TranslationTimeoutError(), 504, "translation_timeout"),
+            (
+                api.TranslationCancelledError(),
+                499,
+                "translation_cancelled",
+                "The translation request was cancelled.",
+            ),
+            (
+                TranslationUpstreamTestError(),
+                502,
+                "translation_upstream_error",
+                "Prompt translation failed.",
+            ),
+            (
+                api.TranslationBusyError(),
+                503,
+                "translation_busy",
+                "A prompt translation request is already in progress.",
+            ),
+            (
+                api.TranslationTimeoutError(),
+                504,
+                "translation_timeout",
+                "The translation provider timed out.",
+            ),
         )
         handler = routes.handlers["/easyuse_anima/translate_prompt"]
 
-        for error, status, code in cases:
+        for error, status, code, message in cases:
             with self.subTest(code=code), patch.object(
                 api,
                 "_translate_prompt_for_route",
@@ -997,6 +1017,7 @@ class ApiRequestCorrelationTests(unittest.TestCase):
                 response = asyncio.run(handler(JsonRequest({"text": "%{text}"})))
             self.assertEqual(response["status"], status)
             self.assertEqual(response["payload"]["code"], code)
+            self.assertEqual(response["payload"]["message"], message)
             self.assertEqual(
                 response["payload"]["request_id"],
                 response.headers["X-Request-ID"],

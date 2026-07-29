@@ -234,13 +234,20 @@ class PythonFeatureErrorContractTests(unittest.TestCase):
         )
         self.assertEqual(
             authority["static_resolution"],
-            "ordered-specific-to-base-isinstance",
+            "ordered-specific-isinstance-exact-base-then-dynamic-derived-base",
         )
         self.assertEqual(
             authority["profile_dynamic_compatibility"],
             {
                 "adapter_inputs": ["status", "code", "message", "details"],
                 "scope": "generic-or-injected-ProfileMutationError",
+            },
+        )
+        self.assertEqual(
+            authority["translation_dynamic_compatibility"],
+            {
+                "adapter_inputs": ["status", "code", "message"],
+                "scope": "unregistered-or-root-derived-PromptTranslationError",
             },
         )
         for prefix in ("profile", "translation"):

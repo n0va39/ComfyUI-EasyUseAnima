@@ -280,6 +280,10 @@ class PromptTranslationApiTests(unittest.TestCase):
         class DerivedMarkerCountError(translation.TranslationMarkerCountError):
             pass
 
+        class RootDerivedTranslationError(translation.PromptTranslationError):
+            status = 502
+            code = "translation_upstream_error"
+
         cases = (
             (
                 translation.PromptTranslationError(),
@@ -369,6 +373,24 @@ class PromptTranslationApiTests(unittest.TestCase):
 
             self.assertIs(response, expected_response)
             error_response.assert_called_once_with(status, code, message)
+
+        compatibility_error = RootDerivedTranslationError(
+            "Derived translation compatibility failure."
+        )
+        expected_response = object()
+        with patch.object(
+            api,
+            "_error_response",
+            return_value=expected_response,
+        ) as error_response:
+            response = api._prompt_translation_error_response(compatibility_error)
+
+        self.assertIs(response, expected_response)
+        error_response.assert_called_once_with(
+            502,
+            "translation_upstream_error",
+            "Derived translation compatibility failure.",
+        )
 
         unexpected = RuntimeError("unexpected")
         with self.assertRaises(RuntimeError) as raised:

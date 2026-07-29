@@ -74,20 +74,32 @@
       "compatibility_error.details"
     ],
     "profile_mapper_source": "easyuse_anima/api/responses.py",
-    "static_resolution": "ordered-specific-to-base-isinstance",
+    "static_resolution": "ordered-specific-isinstance-exact-base-then-dynamic-derived-base",
+    "translation_dynamic_compatibility": {
+      "adapter_inputs": [
+        "status",
+        "code",
+        "message"
+      ],
+      "scope": "unregistered-or-root-derived-PromptTranslationError"
+    },
     "translation_mapper_forbidden_reads": [
-      "exc.status",
-      "exc.code",
-      "exc.message"
+      "mapped_error.status",
+      "mapped_error.code",
+      "mapped_error.message"
     ],
     "translation_mapper_required_reads": [
       "_TRANSLATION_HTTP_MAPPINGS",
-      "str(exc)"
+      "str(mapped_error)",
+      "compatibility_error.status",
+      "compatibility_error.code",
+      "compatibility_error.message"
     ],
     "translation_mapper_source": "easyuse_anima/api/routes/translation.py"
   },
   "direct_test_owners": [
     "tests.test_api_contract.ApiProfileErrorResponseTests",
+    "tests.test_api_contract.ApiRequestCorrelationTests",
     "tests.test_prompt_translation_api.PromptTranslationApiTests",
     "tests.test_autocomplete_service.AutocompleteServiceTests",
     "tests.test_prompt_corrector.AutocompleteDatasetTests",
@@ -723,7 +735,7 @@
     {
       "classification": "ADAPTER",
       "id": "F-02g",
-      "scope": "Make API-owned concrete status, code, and default-message mappings authoritative while retaining profile details and generic or injected ProfileMutationError metadata as explicitly named dynamic-compatibility adapter inputs."
+      "scope": "Make API-owned concrete status, code, and default-message mappings authoritative while retaining profile details, generic or injected ProfileMutationError metadata, and unregistered or root-derived PromptTranslationError metadata as explicitly named dynamic-compatibility adapter inputs."
     },
     {
       "classification": "CONTRACT",
@@ -752,6 +764,7 @@
     "exception-constructors-messages-details-and-reasons",
     "profile-dynamic-monkeypatch-seam",
     "profile-dynamic-compatibility-adapter-inputs",
+    "translation-derived-dynamic-compatibility-adapter-inputs",
     "profile-and-translation-status-code-message-details-payloads",
     "request-id-correlation-and-redaction",
     "autocomplete-fallback-diagnostics",

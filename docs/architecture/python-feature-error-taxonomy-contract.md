@@ -81,21 +81,25 @@ request_id
 X-Request-ID
 ```
 
-The existing concrete feature exception status/code/message metadata is retained as a
-passive compatibility mirror during the current support window, but production API
-adapters do not read it after F-02g. Removing that mirror is a later compatibility
-decision, not Phase F work.
+The existing fixture-owned concrete feature exception status/code/message metadata is
+retained as a passive compatibility mirror during the current support window, but its
+fixed mappings do not read it after F-02g. Removing that mirror or either named dynamic
+compatibility seam is a later compatibility decision, not Phase F work.
 
-The focused F-02g PRO review found that the original absolute no-metadata-read wording
-conflicted with two preserved contracts. Concrete profile errors store their dynamic
-`profile` and `fields` values only in `details`, and the generic or root-injected
-`ProfileMutationError` seam deliberately supplies arbitrary status/code/message/details.
-The corrected invariant therefore names two adapter inputs instead of calling them
+The focused F-02g PRO review and final full gate found that the original absolute
+no-metadata-read wording conflicted with three preserved contracts. Concrete profile
+errors store their dynamic `profile` and `fields` values only in `details`; the generic
+or root-injected `ProfileMutationError` seam deliberately supplies arbitrary
+status/code/message/details; and the public root `PromptTranslationError` base supports
+unregistered derived types whose status/code/message were already mapped dynamically.
+The corrected invariant therefore names these adapter inputs instead of calling them
 passive mirrors:
 
 - concrete profile `details` remains semantic instance data read by the adapter;
 - generic or injected `ProfileMutationError` status/code/message/details remains a
-  dynamic-compatibility adapter input.
+  dynamic-compatibility adapter input;
+- unregistered or root-derived `PromptTranslationError` status/code/message remains a
+  dynamic-compatibility adapter input after known concrete and exact-base resolution.
 
 This exception does not return concrete HTTP policy to feature behavior: all known
 concrete profile status/code/default-message values still come from the API table.
@@ -106,9 +110,13 @@ semantic details; a deliberately patched compatibility error type continues thro
 the existing injected fallback. No raw unexpected `ValueError` gains a new mapping,
 and current redaction/order rules remain fixed.
 
-Translation adapters continue to map only `PromptTranslationError` instances. Custom
-message text remains semantic instance data, while status, code, and default message
-are selected by the ordered API table. Cancellation remains a stable 499 response and
+Translation adapters continue to map only `PromptTranslationError` instances. Known
+fixture-owned concrete kinds and their descendants use the ordered API table, and the
+exact canonical base uses its 500 mapping. Custom message text remains semantic
+instance data. An unregistered or root-derived subclass that reaches only the base
+fallback retains its status/code/message as a named dynamic-compatibility input; this
+preserves the existing public root subclass contract without returning known concrete
+HTTP policy to feature behavior. Cancellation remains a stable 499 response and
 request cancellation outside that exception family remains unnormalized.
 
 ## Ordered implementation
@@ -228,8 +236,9 @@ Forbidden: feature exception or category changes, exception metadata removal, ro
 Preserve: exact profile/translation status/code/message/details, request correlation,
   redaction and catch order, profile details as semantic adapter input, arbitrary
   dynamic ProfileMutationError status/code/message/details dependency seam, concrete
-  exception identity and compatibility metadata, translation worker identity, route
-  identity/order/signature/registration, repeated initialize behavior
+  exception identity and compatibility metadata, unregistered or root-derived
+  PromptTranslationError status/code/message dependency seam, translation worker
+  identity, route identity/order/signature/registration, repeated initialize behavior
 Focused: taxonomy authority contract; direct profile error response and Prompt
   translation API/runtime owners; bootstrap/package; Pyright; analyzer; import boundary;
   changed-file syntax/static; git diff --check
@@ -244,22 +253,25 @@ Next: F-02h production-free completion audit only
 ### F-02g focused PRO contract correction
 
 The original requirements could not all hold simultaneously. With an exception as the
-only mapper input, removing every metadata read loses both dynamic concrete profile
-details and the arbitrary generic/root-monkeypatched payload. Adding new semantic
-feature fields or a registration API would cross the forbidden feature/public boundary.
+only mapper input, removing every metadata read loses dynamic concrete profile details,
+the arbitrary generic/root-monkeypatched profile payload, and the already-supported
+public root-derived translation mapping. Adding new semantic feature fields or a
+registration API would cross the forbidden feature/public boundary.
 
 Only two material designs remained:
 
-1. A pure static table could remove every read but would change profile payloads or the
-   dynamic seam.
-2. A static concrete table plus one named compatibility fallback preserves behavior and
-   keeps concrete HTTP policy API-owned.
+1. A pure static table could remove every read but would change profile payloads or
+   either dynamic seam.
+2. Static concrete tables plus the named compatibility fallbacks preserve behavior and
+   keep fixture-owned concrete HTTP policy API-owned.
 
 F-02g selects the second design. The invariant changes from "production reads no
-feature metadata" to "production reads no concrete status/code/default-message
-compatibility mirror; profile semantic details, translation message text, and generic
-or injected `ProfileMutationError` dynamic fields are explicit adapter inputs." No
-feature exception, constructor, attribute, payload, root alias, or lifecycle changes.
+feature metadata" to "production reads no fixture-owned concrete
+status/code/default-message compatibility mirror; profile semantic details,
+translation message text, generic or injected `ProfileMutationError` dynamic fields,
+and unregistered or root-derived `PromptTranslationError` dynamic fields are explicit
+adapter inputs." No feature exception, constructor, attribute, payload, root alias, or
+lifecycle changes.
 
 ## Validation and stop policy
 
