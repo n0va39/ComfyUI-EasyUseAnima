@@ -337,6 +337,17 @@ Stop conditions:
 Next: FC-02C only
 ```
 
+FC-02B completed from `dev@9ed21c2aa58cf61ea37b04ec1bedb5084a5b8ca4`
+with the production-free
+`python-aio-adapter-backreference-contract.md`. The direct evidence converges on
+one design: AiO and the image node share
+`easyuse_anima.image.upscale._upscale_image_by_multiple`; AiO and the SAM3 node
+share `easyuse_anima.image.sam3_detailer._run_sam3_detailer`; and that operation
+and the Impact adapter share the same module's `_run_impact_detailer`. Host
+provider lookup remains call-time, while AiO retains planning, ephemeral-model
+cleanup, result inspection, metadata, and stage ordering. No Behavior Contract
+or strengthened review is required before FC-02C.
+
 ### FC-02C — Cohesive AiO adapter-back-reference Move
 
 ```text
@@ -363,6 +374,16 @@ Preserve:
   SAM3 detection, mask/SEGS and Impact kwargs/order;
   disabled/empty short circuits, alignment, warnings, errors and cleanup;
   node metadata/signatures/results, AiO stage order, root identities and __all__
+Exact private operations:
+  easyuse_anima.image.upscale._upscale_image_by_multiple;
+  easyuse_anima.image.sam3_detailer._run_sam3_detailer;
+  easyuse_anima.image.sam3_detailer._run_impact_detailer
+Additional fixed guards:
+  empty mask/SEGS creation remains before the SAM3 enabled short circuit;
+  SAM3, MaskToSEGS and DetailerForEach lookup remains call-time;
+  Impact signature filtering preserves keyword insertion order;
+  AiO owns stage planning and try/finally cleanup, then SEGS/metadata projection;
+  both new modules remain private/import-pure with __all__ = ()
 Focused tests and purpose:
   image and SAM3/Impact operation parity; AiO highres/detailer parity;
   node schema/identity; analyzer removal of both exact back-references;
