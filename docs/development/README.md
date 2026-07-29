@@ -13,7 +13,7 @@ Read only the sections needed by the active task.
    - run package/live/benchmark only when triggered.
 3. Current backend queue:
    [`../architecture/post-phase-e-maintenance-roadmap.md`](../architecture/post-phase-e-maintenance-roadmap.md)
-   - first READY task: Issue #563 / F-02d settings typed migration contract;
+   - first READY task: Issue #563 / F-02e common feature error taxonomy contract;
    - D-14/H root removal is parked, not failed.
 4. Backend target architecture and compatibility policy:
    [`../architecture/README.md`](../architecture/README.md)
@@ -57,7 +57,9 @@ COMPLETE  #563 F-02a Autocomplete typed result contracts
 COMPLETE  #563 F-02b Prompt field-family typed contract
 COMPLETE  #563 F-02c canonical Prompt Data typed read/output contract
 COMPLETE  #563 affected Prompt-row re-audit
-READY     #563 F-02d settings typed migration contract
+COMPLETE  #563 F-02d settings typed migration contract
+COMPLETE  #563 affected settings/profile/workflow-row re-audit
+READY     #563 F-02e common feature error taxonomy contract
 BLOCKED   #188 G-04 public API snapshot audit until Phase F closes
 LATER     G-05 size ratchet / G-06 test ownership
 EVENT     next ordinary release N -> later D-14 re-audit
@@ -72,30 +74,29 @@ The D-14 stop is correct:
 
 That stop applies only to removal. It does not complete Phase F or G.
 
-## Active F-02d source map
+## Active F-02e source map
 
 Start with targeted owners rather than the full repository:
 
 ```text
-docs/architecture/python-typed-boundary-f01-audit.md  # F-02d task card
+docs/architecture/python-typed-boundary-f01-audit.md  # F-02e task card
 Issue #563 latest checkpoint
-easyuse_anima/settings/schema.py, repository.py, service.py
-direct SettingsTests, settings/long-text API routes, Pyright, and import fixtures
+direct feature error owners under profiles, autocomplete, prompt, aio, translation, seed
+direct API/node error mappers plus Pyright, package, analyzer, and import fixtures
 ```
 
-F-02d gives ordinary and long-text settings one typed normalized model and one pure
-v0/raw-to-v1 persisted-document migration. It preserves existing defaults, aliases,
-Comfy overlay precedence, first-run autocomplete initialization, atomic locking,
-public/API payloads, and root identities. Do not expand into profile/workflow migration
-or common error-taxonomy work.
+F-02e first defines a production-free executable contract for the documented
+`EasyUseAnimaError` hierarchy. It classifies every current feature error and freezes
+built-in exception compatibility plus exact API/node mapping before any inheritance or
+HTTP-metadata change. Do not combine production implementation with this contract.
 
 ## Following queue
 
-After F-02d:
+After F-02e Contract:
 
-1. re-audit the affected settings row;
-2. execute the next smallest F-02 while any Phase F finding remains;
-3. only after Phase F closes, run #188 G-04A against existing
+1. execute only the contract-selected cohesive cutover or smallest ordered slices;
+2. re-audit the common error row and record Phase F completion;
+3. after Phase F closes, run #188 G-04A against existing
    compatibility/node/API/package fixtures;
 4. audit Wildcard and API pure-shim feasibility without deleting root modules;
 5. add G-05 changed-path size growth and G-06 test-ownership gates;
