@@ -10,7 +10,8 @@
 - Current released baseline: 0.6.2.
 - Current completed lanes: Phase D, Phase E, Phase F, G-04/G-05/G-06, P-WC,
   P-API-01, G-CLOSE, and SEC-01 through SEC-05.
-- First READY task: FC-01, production-free Definition-of-Done closure audit.
+- FC-01 audit base: `81e07c6c12c21f84ba0642c93d6655c8936b7c3b`.
+- First READY task after FC-01 merges: FC-02A, the Prompt runtime-SCC correction.
 
 This document supersedes the `no READY task` conclusion only for the initial backend
 architecture Definition of Done. It does not reopen completed Phase F/G or security
@@ -69,8 +70,11 @@ Technical completion does not require deletion of every public shim.
 ## 3. Ordered execution queue
 
 ```text
-READY FC-01  original Definition-of-Done closure audit
-  -> FC-02   complete canonical owner-boundary gate
+FC-01        original Definition-of-Done closure audit
+  -> FC-02A  Prompt runtime-SCC correction
+  -> FC-02B  AiO adapter-back-reference Contract
+  -> FC-02C  cohesive AiO adapter-back-reference Move
+  -> FC-02D  complete canonical owner-boundary gate
   -> FC-03A  root API patch-owner compatibility Contract
   -> FC-03B  canonical dependency/patch-owner Move
   -> FC-04A  canonical API application + E-09 lifecycle Contract
@@ -118,52 +122,307 @@ Exit:
 - publish one compact closure matrix;
 - select FC-02 as READY unless the audit proves a smaller prerequisite.
 
+### FC-01 result
+
+The audit at `81e07c6c12c21f84ba0642c93d6655c8936b7c3b` proves that a
+gate-only FC-02 is not yet valid.
+
+- The current import contract enrolls 11 package prefixes and passes its direct
+  owner. The G-06 map owns 16 groups: 15 canonical package groups plus
+  `runtime-bootstrap`.
+- The G-06 production paths cover all 158 non-facade canonical Python modules.
+  `easyuse_anima/__init__.py` is the one intentional package-facade exception.
+- The current 11-prefix gate omits the complete `aio`, `nodes`, `prompt`,
+  `runtime-bootstrap`, `seed`, and `wildcard` groups. It also omits the
+  G-06-owned top-level paths `errors.py`, `workflow.py`, and
+  `registration.py`, and does not enroll `infrastructure/__init__.py` through
+  its two current subpackage prefixes.
+- Projecting the current analyzer through the reviewed role rules finds two
+  real owner-boundary defects: the two
+  `aio/legacy_generation.py -> nodes/{image_nodes,sam3_nodes}.py` imports and
+  the runtime SCC formed by `prompt/advanced.py` and `prompt/artist_mix.py`.
+  These are production corrections, not gate allowlist candidates.
+- `nodes/seed_adapters.py -> runtime.py` and
+  `infrastructure/comfy/wiring.py -> runtime.py` are not defects. They are the
+  already documented, exact call-time `get_runtime()` seams at node and Comfy
+  host-adapter boundaries. The full gate must encode that narrow rule instead
+  of broadly allowing adapter-to-composition imports.
+
+The G-06 map remains the sole production-path inventory. FC-02D derives paths
+from it and stores only role assignments and exact subrole overrides in the
+import contract.
+
+#### Original Definition-of-Done closure matrix
+
+| # | Original row | Classification | Current evidence or remaining work |
+|---:|---|---|---|
+| 1 | `easyuse_anima` is the only production implementation root | **technical gap** | Root `api.py` still constructs the production API application/composition. FC-03 and FC-04 close it. |
+| 2 | Root Python files are a permanent entrypoint or registered shims | **technical gap** | Every root surface except `api.py` has that disposition. FC-04 makes `api.py` an explicit facade. |
+| 3 | Node/API adapters contain conversion and service delegation, not repository/HTTP/migration/cache implementation | **complete** | Phase F/G owner tests and the direct API/node contracts own the intentional adapter boundaries. |
+| 4 | Feature/domain/infrastructure code has no outer adapter, registration, bootstrap, or root back-reference | **technical gap** | The two AiO legacy-generation imports of node classes remain. FC-02B and FC-02C remove them. |
+| 5 | The final owner matrix is enforced by the import gate | **technical gap** | G-06 owns the complete paths, but the blocking gate owns only 11 prefixes. FC-02D closes the mismatch. |
+| 6 | Every runtime cache/lock/client/executor/repository/capability has an owner, lifetime, thread model, and cleanup disposition | **complete** | E-01 inventory, E-09 lifecycle contract, and E-09 completion audit have zero ambiguous owners. |
+| 7 | Initialization and shutdown are idempotent, including partial failure | **complete** | E-09 owns serialized initialize/shutdown, terminal shutdown, bounded retry, and attempt-only rollback. |
+| 8 | Optional dependency failure is contained | **complete** | The no-host/package owners and completed E-02/E-07 contracts retain lazy, bounded failure. |
+| 9 | Runtime tests isolate user data and avoid private-global/reload cleanup | **complete** | E-10 owns the deterministic runtime test-isolation contract. |
+| 10 | Settings/profile/workflow data is versioned, purely migrated, and atomically written at the persistence boundary | **complete** | The Phase F completion audit and existing schema/migration fixtures close this row. |
+| 11 | API and feature boundaries use typed request/result/error contracts | **complete** | F-01/F-02a through F-02h close all six typed-boundary areas or name their intentional adapter/migration boundary. |
+| 12 | 0.5.2 workflow/settings/profile/API fixtures pass | **complete** | Existing migration, compatibility, and API fixtures remain the deterministic owners. |
+| 13 | Supported root/canonical surfaces preserve object identity and metadata parity | **complete** | G-04 and the compatibility-surface fixture own exact supported identity. The not-yet-canonical API application is tracked by rows 1 and 2. |
+| 14 | The actual Registry package contains the final canonical/shim closure and imports with providers off | **compatibility event** | The current final shim forms need ordinary release N and Registry read-back. FC-05 owns the pre-release package proof; FC-06 owns publication. |
+| 15 | Ruff and Pyright are pinned and enforced | **complete** | The official quality runner and current baselines own this row. |
+| 16 | Cycle, forbidden-import, public-API, and size ratchets are in CI | **technical gap** | Public-API and size ratchets are complete, but the Prompt SCC and incomplete import enrollment prevent closure. FC-02A and FC-02D close it. |
+| 17 | Every implementation PR is classified as Move, Contract, or Behavior | **complete** | The completed phase ledgers and current task cards retain the classification. |
+| 18 | Every root surface has a shim owner, evidence, and removal gate | **complete** | ADR-002 and `python-compatibility-shims.md` contain the complete current ledger. |
+| 19 | Public compatibility surfaces are deliberately retained or removed only through a breaking-change event | **deliberate retain** | No root surface is removal-approved. Low-cost public shims remain supported until a later evidence-backed event. |
+| 20 | Final full, quality, package/archive, compatibility, and representative host gates pass at integration/release | **technical gap** | FC-05 runs the one integrated technical gate after FC-02 through FC-04. Registry publication remains FC-06. |
+
+#### Exact current role/group matrix for FC-02D
+
+| G-06 owner/path | Import role | Allowed canonical direction | Additional prohibition or exact exception |
+|---|---|---|---|
+| Every `easyuse_anima/**/__init__.py` | package facade | reviewed exports from its owning group | No application/lifecycle creation, host I/O, registration side effect, compatibility fallback, cross-owner re-export, or root import. |
+| Non-facade `common/`, `errors.py` | common | common | No feature, infrastructure, adapter, composition, or root imports. |
+| Non-facade `infrastructure/filesystem/` | infrastructure-core | common, infrastructure-core | No feature meaning, host/node/API adapter, runtime, bootstrap, registration, or root imports. |
+| Non-facade `infrastructure/comfy/` | Comfy host adapter | common, infrastructure-core, same host-adapter group | Only `wiring.py -> runtime.get_runtime` is an accepted runtime edge; no broad composition permission. |
+| Non-facade `aio`, `autocomplete`, `image`, `lora`, `naia`, `profiles`, `prompt`, `seed`, `settings`, `translation`, `wildcard` | feature/service | common, infrastructure including host adapters, feature/service | No API/node adapter, registration, bootstrap/runtime, or root back-reference. |
+| Non-facade `api/` except `api/router.py` | HTTP adapter | common, infrastructure, feature/service, same HTTP-adapter group | No node adapter, registration, bootstrap/runtime, or root import. A future `api/application.py` receives an exact composition override when introduced. |
+| Non-facade `nodes/` and `workflow.py` | Comfy node/workflow adapter | common, infrastructure, feature/service, same node-adapter group | Only `nodes/seed_adapters.py -> runtime.get_runtime` is accepted; no API, registration, bootstrap, or root import. |
+| `registration.py`, `api/router.py` | registration adapter | node adapters for `registration.py`; injected API primitives for `api/router.py` | Literal node mappings and injected route-table composition only. `api/router.py` may not import `api/routes`; neither owner may construct services, import runtime/bootstrap/root, or register at import time. |
+| `bootstrap.py`, `runtime.py` | process composition/lifecycle | all canonical roles required by composition | No root import. Bootstrap remains the only production registration and lifecycle call site; runtime remains the installed-services access owner. |
+
+All roles additionally reject canonical-to-root imports, compatibility fallback
+imports, runtime SCCs, and unowned import-time registration side effects. Exact
+path overrides take precedence over a package prefix so FC-03/FC-04 can add the
+future API application as composition without weakening the rest of `api/`.
+
+#### Root disposition at FC-01
+
+| Root surface | Disposition | Closure owner |
+|---|---|---|
+| `__init__.py` | permanent ComfyUI entrypoint | package/entrypoint contracts |
+| `api.py` | remaining production application/composition implementation | FC-03 and FC-04 technical gap |
+| `nodes.py`, `settings.py`, `storage.py`, `autocomplete_index.py`, `prompt_translation.py` | explicit compatibility shims, deliberately retained | ADR-002 consumer/removal gates |
+| `api_contract.py`, `autocomplete_dataset.py`, `wildcard_engine.py` | explicit compatibility shims awaiting release N | FC-06 compatibility event |
+| `anima_prompt/__init__.py` and its six compatibility submodules | explicit package/submodule shims awaiting release N | FC-06 compatibility event |
+
+There is no removal-approved root surface. FC-02 through FC-05 must not delete
+or deprecate any of them.
+
+#### FC-03 and FC-04 decisions fixed by FC-01
+
+The exact FC-03 canonical patch owner is the private, import-pure
+`easyuse_anima.api.dependencies.ApiApplicationDependencies` bundle. It owns the
+mutable request/registration-time dependency slots or resolvers currently
+spread across root late-bound, profile-operation, and payload helper cells. It
+does not own feature implementations, route-registration behavior, or process
+lifecycle, and it imports neither bootstrap nor the future application owner.
+
+- `api/router.py` keeps handler ordering, route signature, resolver/registrar,
+  and idempotent table registration.
+- `bootstrap.py` keeps concrete route-factory, dependency, correlation, and
+  single production registration/lifecycle composition.
+- The named dynamic profile and translation error compatibility inputs remain
+  supported as fields/resolvers of the canonical bundle. Their patch point
+  moves to that owner; root may expose a read-only identity alias but not a
+  second mutable cell.
+- Transitional private patch seams move their test patch target to the bundle.
+  Arbitrary assignment interception on the root module is not a required or
+  acceptable design substitute, and `api.<private_name> = replacement` is no
+  longer a supported patch target after its consumer moves. Root may retain
+  read-only exact aliases for explicitly supported compatibility objects.
+  Unsupported owner-inspection mirrors move to canonical tests.
+- FC-03B introduces the bundle while application construction remains in its
+  current location. FC-04 reuses that exact object in the canonical application;
+  the dependency and application modules import neither bootstrap nor root.
+
+FC-04 then introduces one immutable canonical application identity bundle. The
+application owns only the executor, handlers, definitions/signature, registrar,
+and compatibility identity view. Bootstrap still owns the sole lifecycle lock,
+once-only `atexit`, terminal/idempotent shutdown, and cleanup plan. Construction
+must occur before `bootstrap.initialize()` freezes the plan, the exact executor
+remains cleanup item 1, the fixed seven-step cleanup and attempt-only rollback
+remain unchanged, and direct canonical/no-host imports create neither the
+application nor lifecycle state. Package entry followed by a late root `api.py`
+import must resolve the same application/executor/handler/registrar identities
+without a second registration or lifecycle state.
+
+#### Work required before FC-05
+
+1. Break the Prompt runtime SCC without changing Prompt/Artist Mix behavior or
+   compatibility identities.
+2. Replace each AiO legacy call into a node class with one feature operation
+   shared by the node adapter and AiO service.
+3. Enroll the complete G-06 path set in the role-aware blocking gate.
+4. Move the root API patch owner, then move the immutable application identity
+   while preserving every E-09 invariant.
+5. Run the integrated FC-05 evidence once on the resulting candidate.
+
+The optional large-module lane is not otherwise reopened. Its Prompt and AiO
+modules are FC-05 blockers only to the minimum extent required to remove these
+observed owner/cycle violations.
+
 ## 5. FC-02 — Complete canonical owner-boundary gate
 
-Type: Contract/tool. A real violation may require a separate smallest correction Move.
+The FC-01 projection found two real defects, so FC-02 is now an ordered correction
+queue followed by one Contract/tool gate. Do not add temporary allowlists for the
+observed edges or SCC.
 
-### Source of truth
-
-Use the G-06 production-path groups as the current complete owner inventory and the
-existing AST analyzer as the only import graph. Do not create a second repository
-inventory.
-
-### Required coverage
-
-The current role-aware gate must account for at least:
+### FC-02A — Prompt runtime-SCC correction
 
 ```text
-feature/service:
-  aio, autocomplete, image, lora, naia, profiles, prompt, seed, settings,
-  translation, wildcard
-
-common:
-  common and canonical error primitives
-
-infrastructure:
-  the complete infrastructure package, with reviewed subroles where needed
-
-adapter:
-  api/routes and nodes
-
-composition/entry:
-  bootstrap, runtime, registration, API application/router, workflow adapter
+Task / Issue: #593 / FC-02A
+Base SHA: latest dev after FC-01 merges
+Goal: remove prompt/advanced.py <-> prompt/artist_mix.py from every runtime SCC
+Allowed production:
+  easyuse_anima/prompt/advanced.py
+  easyuse_anima/prompt/artist_mix.py
+  easyuse_anima/prompt/artist_mix_primitives.py (new private lower owner)
+Allowed evidence:
+  direct Prompt/Artist Mix/node compatibility tests
+  analyzer/import/package owners and directly changed fixtures
+  this roadmap and the compatibility registry when ownership wording changes
+Preserve:
+  Prompt Data/Advanced/Artist Mix payloads, ordering, defaults, parsing,
+  conditioning, warnings, signatures, root/canonical symbol identity, __all__
+Focused tests and purpose:
+  Prompt service behavior; node adapter integration; root identity;
+  analyzer SCC projection; import and package closure
+Promotion gates:
+  changed-file static, focused owners, git diff --check, official full once;
+  validate/pack/archive because a shipped module is added; no live smoke
+Stop conditions:
+  any payload/conditioning/signature/identity change, a new SCC, or a public export
+Next: FC-02B only
 ```
 
-The exact role rules are fixed by FC-01. Adapter and composition modules must not be
-forced through feature-only rules merely to increase coverage.
+Move only the Artist Mix constants and parsing/config primitives consumed by
+`advanced.py` into the lower owner. `artist_mix.py` re-exports the same objects,
+while `advanced.py` imports the lower owner directly. The existing Artist Mix
+service may then retain its narrow calls into Advanced without a reverse import.
 
-### Implementation rules
+### FC-02B — AiO adapter-back-reference Contract
 
-- extend the existing import-boundary contract/checker rather than adding another tool;
-- reject canonical-to-root imports, new runtime SCCs, feature-to-adapter/bootstrap/
-  registration back references, compatibility fallback imports and unowned side effects;
-- preserve intentional adapter-to-feature and composition-to-adapter directions;
-- do not broad-allowlist actual violations;
-- if violations exist, fix one cohesive owner group at a time before enabling its gate.
+Production-free. This Contract fixes the operation boundary before moving the
+SAM3/Impact path, where schema, host capability timing, cleanup, and error order
+are coupled.
 
-Exit: every current canonical production path is included in a blocking role-specific
-owner gate or an explicitly reviewed permanent entry/compatibility rule.
+```text
+Task / Issue: #593 / FC-02B
+Base SHA: latest dev after FC-02A merges
+Goal: freeze the two node-independent operations that replace both AiO node calls
+Allowed:
+  docs/architecture/python-aio-adapter-backreference-contract.md (new)
+  docs/architecture/backend-final-convergence-roadmap.md
+  compatibility ownership wording only when the direct identity target changes
+Read-only evidence:
+  aio/legacy_generation.py; image scaling/SAM3 owners; image/SAM3/Impact adapters;
+  direct image, SAM3, AiO legacy, node identity, analyzer and package tests
+Forbidden:
+  production, test, tool or shared-fixture changes; generic utility/service locator;
+  node schema, feature behavior, root shim, lifecycle or public export changes
+Required decisions:
+  easyuse_anima/image/upscale.py::_upscale_image_by_multiple is the shared
+    scaling operation called by the image node adapter and AiO
+  easyuse_anima/image/sam3_detailer.py owns private Impact and SAM3 execution
+    operations called by the Impact/SAM3 node adapters and AiO
+  node classes retain metadata/signatures and delegate; feature code never
+    instantiates or imports a node class
+Focused validation:
+  targeted document/source/test consistency and git diff --check;
+  no official full, package or live run
+Stop conditions:
+  direct service ownership cannot preserve host lookup, kwargs, cleanup,
+  result or error ordering without a Behavior Contract
+Next: FC-02C only
+```
+
+### FC-02C — Cohesive AiO adapter-back-reference Move
+
+```text
+Task / Issue: #593 / FC-02C
+Base SHA: latest dev after FC-02B merges
+Goal: remove both legacy_generation -> node-class imports/invocations through
+  the two operation owners fixed by FC-02B
+Allowed production:
+  easyuse_anima/aio/legacy_generation.py
+  easyuse_anima/image/upscale.py (new private operation owner)
+  easyuse_anima/image/sam3.py
+  easyuse_anima/image/sam3_detailer.py (new private operation owner)
+  easyuse_anima/nodes/image_nodes.py
+  easyuse_anima/nodes/sam3_nodes.py
+  easyuse_anima/nodes/impact_detailer_nodes.py
+Allowed evidence:
+  tests/test_image_scale.py
+  tests/test_sam3_nodes.py
+  tests/test_aio_legacy_generation.py
+  directly affected node/analyzer/import/package owners and fixtures
+  the FC-02B Contract, this roadmap, and compatibility wording when required
+Preserve:
+  image option normalization, interpolation and result tuple;
+  SAM3 detection, mask/SEGS and Impact kwargs/order;
+  disabled/empty short circuits, alignment, warnings, errors and cleanup;
+  node metadata/signatures/results, AiO stage order, root identities and __all__
+Focused tests and purpose:
+  image and SAM3/Impact operation parity; AiO highres/detailer parity;
+  node schema/identity; analyzer removal of both exact back-references;
+  import and package closure
+Promotion gates:
+  changed-file static, focused owners, git diff --check, official full once;
+  validate/pack/archive because shipped modules are added; no live smoke
+Stop conditions:
+  host capability timing, schema, kwargs, cleanup, result identity, error order,
+  public export, or another owner direction must change
+Next: FC-02D only
+```
+
+This is one rollback unit because both violations are the same AiO orchestration
+owner invoking Comfy node adapters for reusable behavior. The adapters keep
+their host-facing metadata; the shared image operations own execution.
+
+### FC-02D — Complete owner-boundary Contract/tool
+
+Use the G-06 production-path groups as the sole current owner inventory and the
+existing AST analyzer as the sole import graph. Migrate the existing import
+contract rather than creating another checker or path inventory.
+
+```text
+Task / Issue: #593 / FC-02D
+Base SHA: latest dev after FC-02C merges
+Goal: block every G-06 production path with the FC-01 role/direction matrix
+Allowed:
+  tools/check_python_import_boundaries.py
+  tests/test_python_import_boundaries.py
+  tests/fixtures/python_import_boundary_contract.v1.json (remove after migration)
+  tests/fixtures/python_import_boundary_contract.v2.json (single replacement)
+  docs/architecture/backend-final-convergence-roadmap.md
+  direct import/analyzer/test-ownership documentation only when required
+Forbidden:
+  production changes, duplicated production-path inventory, broad allowlists,
+  root-shim/lifecycle/application changes, public export or behavior changes
+Focused tests and purpose:
+  import contract validation and five universal rules; G-06 source-map equality;
+  analyzer determinism; package facade/no-host import; quality-runner invocation
+Promotion gates:
+  changed-file static, focused owners, git diff --check, official full once;
+  reuse package/live evidence
+Stop conditions:
+  any remaining real edge/SCC, an unclassified current path, role ambiguity,
+  or a gate that can silently weaken when the G-06 map changes
+Next: FC-03A only
+```
+
+The v2 contract references G-06 group names and derives their
+`production_paths`; it records only group roles, exact subrole overrides, and
+the exact package-facade rules. Longest exact-path matching precedes prefix matching.
+It rejects canonical-to-root imports, forbidden role directions,
+compatibility-fallback imports, runtime SCCs, and unowned registration side
+effects. It preserves intentional adapter-to-feature, composition-to-adapter,
+and the two exact adapter-time `get_runtime()` directions.
+
+Exit: every current canonical production path is included in a blocking
+role-specific owner gate or an exact permanent package-facade rule, with zero
+real violations.
 
 ## 6. FC-03 — Root API patch-owner migration
 
@@ -191,19 +450,24 @@ Required decisions:
   behavior;
 - retain the specifically supported dynamic profile/translation error seams;
 - move repository-only owner inspection to canonical tests;
-- assign request/registration-time mutable dependencies to one canonical patch/injection
-  owner;
+- assign request/registration-time mutable dependencies to the private
+  `easyuse_anima.api.dependencies.ApiApplicationDependencies` patch/injection owner;
 - define the minimum long-lived root facade surface;
 - forbid a canonical-to-root back reference.
 
 ### FC-03B — Dependency/patch-owner Move
 
-Introduce one typed/private canonical dependency owner, such as an
-`ApiApplicationDependencies` bundle or a reviewed equivalent.
+Introduce the typed/private
+`easyuse_anima.api.dependencies.ApiApplicationDependencies` owner fixed by
+FC-01. Do not add it to a public package `__all__`.
 
 - handlers and registrar resolve supported call-time dependencies through that owner;
 - root compatibility patching, where deliberately retained, targets the same canonical
   owner rather than a second root-owned cell;
+- the named dynamic profile/translation error inputs remain supported at canonical
+  patch points; transitional private seams also move to canonical patch targets;
+- the dependency module imports neither bootstrap, the future application owner, nor
+  a root module;
 - test-only root mirrors are migrated to direct canonical owner tests;
 - application construction remains in its current location during FC-03B;
 - route behavior, payloads, errors, lifecycle, public exports and execution order remain
@@ -251,8 +515,12 @@ easyuse_anima/bootstrap.py
 Together with direct tests, analyzer/contract fixtures and docs.
 
 - move production application construction into the canonical package;
+- have bootstrap private outer composition call the canonical application factory once
+  before `initialize()` freezes the cleanup plan;
 - make root `api.py` an explicit compatibility facade/binder over exact canonical
   objects;
+- forbid both `api/dependencies.py` and `api/application.py` from importing bootstrap
+  or a root module;
 - preserve E-09 cleanup order, rollback, repeated initialize, route refresh, terminal
   shutdown and late-import identity;
 - preserve package/flat import and all supported host/API contracts.
