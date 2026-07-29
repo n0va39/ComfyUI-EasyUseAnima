@@ -3,8 +3,8 @@
 ## Status and authority
 
 - Status: technical convergence complete; compatibility retirement remains event-gated.
-- Active owner: Issue #593.
-- Parent architecture: Issue #185.
+- Technical completion owner: completed Issue #593.
+- Parent architecture: completed Issue #185.
 - Compatibility ledger: Issue #186 and ADR-002.
 - Lifecycle authority: E-09 / Issue #187.
 - Current released baseline: 0.6.2.
@@ -746,24 +746,21 @@ owner. Stop and request focused technical PRO review only when:
 
 ## 13. Codex resume instruction
 
-```text
-Start Issue #593 / FC-01 from latest origin/dev.
+No backend refactor task is READY. Do not reopen completed FC-01 through FC-05 work.
 
-Read only:
-- current-policies.md
-- codex-execution-efficiency.md universal rules
-- this document's FC-01 and validation sections
-- Issue #593 latest checkpoint
-- python-backend.md Overall Definition of Done
-- current import-boundary checker/ledger
-- G-06 test ownership map
-- P-API-01 completed inventory/revisit events
-- compatibility registry and direct evidence named by those documents
+Start FC-06 only when an independently justified ordinary feature or bug-fix release is
+ready. Backend completion or starting a shim-support clock is not a release trigger.
 
-Do not implement FC-02+ during FC-01. Do not reopen completed F/G/security lanes.
-Do not start P-API-02, root removal, release, tag or Registry work.
+At that event, read only:
 
-Produce one closure matrix, confirm or correct the next task boundaries, run only direct
-consistency/focused checks and git diff check, then create a dev-targeted Draft PR.
-Documentation-only FC-01 does not trigger official full/package/live.
-```
+- `current-policies.md`;
+- `codex-execution-efficiency.md` universal rules;
+- this document's FC-06 and validation sections;
+- Issue #186's latest compatibility checkpoint;
+- `MAINTAINING.md` release procedure; and
+- current `main`/`dev`, version, changelog, package and Registry metadata.
+
+Use a separate release task card to integrate the validated candidate into `main`, bump
+the version, validate the exact archive, create the immutable tag, publish and read back
+the Registry state. FC-06 does not authorize P-API-02, root removal, lifecycle changes or
+FC-07/H/D-14. When no ordinary release event exists, make no FC code or release change.

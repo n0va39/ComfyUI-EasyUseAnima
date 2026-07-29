@@ -3,17 +3,18 @@
 These documents define the target backend architecture, migration rules and reviewed
 cross-surface contracts. They do not imply that every target state is implemented.
 
-Read the bounded execution policy first, then only the active task, its owning Issue,
-direct source and direct tests.
+Read the bounded execution policy first, then only the current READY or event task, its
+owning Issue, direct source and direct tests. When neither exists, do not reopen a
+completed lane.
 
-## Active sequencing
+## Current sequencing
 
-- Active final-convergence plan:
+- Final-convergence completion and event plan:
   [`backend-final-convergence-roadmap.md`](backend-final-convergence-roadmap.md)
-- Active owner: Issue
+- Technical completion owner: completed Issue
   [#593](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/593)
-- First READY task: FC-01 original Definition-of-Done closure audit.
-- Parent architecture: Issue
+- READY backend refactor task: none. FC-06 waits for an ordinary release event.
+- Parent architecture: completed Issue
   [#185](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/185)
 - Compatibility/release ledger: Issue
   [#186](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/186)
@@ -35,9 +36,9 @@ EVENT    ordinary release N
   ->     later H/D-14 compatibility re-audit
 ```
 
-The prior `no READY task` conclusion was correct for completed F/G/security work and
-compatibility deletion. It did not mean that the initial architecture Definition of
-Done had been fully reconciled.
+FC-01 through FC-05 temporarily superseded the earlier `no READY task` state to close
+the initial architecture Definition of Done. That technical work is now complete, so
+the current `no READY task` state is authoritative until the FC-06 release event.
 
 ## Current code boundary
 
@@ -118,7 +119,7 @@ All final-convergence work preserves:
 FC-03 changes patch ownership only. FC-04 moved application construction only after
 its lifecycle Contract proved these invariants.
 
-## Core active documents
+## Core current documents
 
 - [`backend-final-convergence-roadmap.md`](backend-final-convergence-roadmap.md):
   FC-01 through FC-07, technical versus compatibility completion, optional large-module
