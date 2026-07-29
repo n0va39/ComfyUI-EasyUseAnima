@@ -11,14 +11,13 @@ Read only the sections needed by the active task.
    - use focused edit-loop tests;
    - run official full once on the final candidate SHA;
    - run package/live/benchmark only when triggered.
-3. Active independent maintenance lane:
+3. Completed independent security/admin lane:
    [`../architecture/security-admin-settings-roadmap.md`](../architecture/security-admin-settings-roadmap.md)
    - SEC-01 completed with TRUSTED_DEPLOYMENT_ONLY;
    - SEC-02 completed with a direct-owner FEASIBLE result;
    - SEC-03 completed the narrow backend implementation and SEC-04 was skipped;
-   - first READY task: Issue #199 / SEC-05 production-free completion audit;
-   - SEC-05 must not implement authentication, a token, diagnostics, a settings split,
-     frontend behavior, root composition, or lifecycle changes.
+   - SEC-05 completed the production-free audit with no follow-up;
+   - there is no READY security task and the lane remains TRUSTED_DEPLOYMENT_ONLY.
 4. Completed backend and compatibility state:
    [`../architecture/post-phase-e-maintenance-roadmap.md`](../architecture/post-phase-e-maintenance-roadmap.md)
    - Phase F/G and G-CLOSE are complete; there is no READY Phase F/G task;
@@ -76,7 +75,7 @@ COMPLETE  #199 SEC-01 security/admin host-capability Contract
 COMPLETE  #199 SEC-02 response-confidentiality Contract
 COMPLETE  #199 SEC-03 narrow backend implementation
 SKIPPED   #199 SEC-04 frontend settings migration
-READY     #199 SEC-05 security completion audit
+COMPLETE  #199 SEC-05 security completion audit; no follow-up
 EVENT     next ordinary release N -> later D-14 re-audit
 ```
 
@@ -153,9 +152,10 @@ RuntimeConfig/bootstrap.
 
 ## Following state
 
-After SEC-03:
+After SEC-05:
 
-1. run the exact SEC-05 production-free completion audit in the security roadmap;
+1. keep the completed security lane closed unless new primary-source evidence changes
+   the deployment or authorization boundary;
 2. keep diagnostics absent by default when no reliable authorization owner exists;
 3. do not reopen Phase F/G, P-API-02, or D-14 as a side effect;
 4. let the next ordinary release containing final shims become release N;

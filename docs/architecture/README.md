@@ -26,10 +26,10 @@ then only the active task section, owning Issue, direct source, and direct tests
   [`post-phase-e-maintenance-roadmap.md`](post-phase-e-maintenance-roadmap.md).
 - Issue [#199](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/199) / SEC-01
   completed with **TRUSTED_DEPLOYMENT_ONLY**. SEC-02 completed with a direct-owner
-  **FEASIBLE** result, SEC-03 implemented it, and SEC-04 was skipped. The first READY
-  task is SEC-05 completion audit.
+  **FEASIBLE** result, SEC-03 implemented it, SEC-04 was skipped, and SEC-05 closed the
+  lane with no follow-up. There is no READY security task.
 - [`security-admin-settings-roadmap.md`](security-admin-settings-roadmap.md) owns that
-  active lane. It does not reopen Phase F/G, P-API-02, or D-14.
+  completed lane. It does not reopen Phase F/G, P-API-02, or D-14.
 - Released baseline: 0.6.2. Registry activation is external administration and does
   not block `dev`; do not republish or mutate the release.
 
@@ -43,7 +43,7 @@ COMPLETE #199 SEC-01 security/admin Contract
   -> COMPLETE SEC-02 response-confidentiality Contract
   -> COMPLETE SEC-03 narrow backend implementation
   -> SKIPPED SEC-04 frontend migration
-  -> READY SEC-05 completion audit
+  -> COMPLETE SEC-05 completion audit; no follow-up
 
 EVENT next ordinary release N
   -> later H/D-14 re-audit
@@ -91,10 +91,10 @@ composition or lifecycle change.
 
 ## Core documents
 
-### Active
+### Completed security/admin lane
 
 - [`security-admin-settings-roadmap.md`](security-admin-settings-roadmap.md):
-  Issue #199 queue, validation, completed SEC-03 card, and exact SEC-05 resume card.
+  completed Issue #199 queue, validation, SEC-03 implementation, and SEC-05 audit.
 - [`security-admin-settings-sec01-contract.md`](security-admin-settings-sec01-contract.md):
   completed deployment/threat matrix, host-capability audit, settings-field
   classification, logging/redaction Contract, E-09 disposition, and
@@ -183,7 +183,7 @@ Read only when the task touches the surface:
 
 - Branch/release/validation policy: [`MAINTAINING.md`](../../MAINTAINING.md)
 - Development entrypoint: [`../development/README.md`](../development/README.md)
-- Active security/admin queue: `security-admin-settings-roadmap.md`
+- Completed security/admin queue: `security-admin-settings-roadmap.md`
 - Completed Phase F/G and compatibility event gates: `post-phase-e-maintenance-roadmap.md`
 - Target architecture: `python-backend.md`, ADR-001, ADR-002
 - Feature behavior: owning Issue
