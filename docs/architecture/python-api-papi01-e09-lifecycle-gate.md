@@ -487,6 +487,14 @@ fixes one private canonical dependency-bundle owner before any application move.
 FC-03B performs only that patch-owner migration; FC-04 separately re-evaluates
 the application identity under every E-09 gate.
 
+FC-04A completes that re-evaluation after FC-03B. The former A/B distinction now
+converges on one concrete division of responsibility: the canonical package owns one
+publish-once immutable application identity, bootstrap privately owns its outer
+composition before `initialize()`, and root `api.py` binds exact aliases. See
+[`python-api-fc04-application-lifecycle-contract.md`](python-api-fc04-application-lifecycle-contract.md).
+P-API-01's production-free RETAIN verdict remains historically correct for its pre-FC-03
+evidence, but no longer blocks the separately authorized FC-04B Move.
+
 ## 9. Future conflict guards
 
 ### G-05 size ratchet

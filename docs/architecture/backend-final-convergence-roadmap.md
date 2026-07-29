@@ -11,7 +11,10 @@
 - Current completed lanes: Phase D, Phase E, Phase F, G-04/G-05/G-06, P-WC,
   P-API-01, G-CLOSE, and SEC-01 through SEC-05.
 - FC-01 audit base: `81e07c6c12c21f84ba0642c93d6655c8936b7c3b`.
-- First READY task after FC-01 merges: FC-02A, the Prompt runtime-SCC correction.
+- Completed final-convergence lanes: FC-01, FC-02A through FC-02D, FC-03A and
+  FC-03B.
+- Current READY task after this Contract merges: FC-04B canonical API application
+  cohesive Move.
 
 This document supersedes the `no READY task` conclusion only for the initial backend
 architecture Definition of Done. It does not reopen completed Phase F/G or security
@@ -567,6 +570,15 @@ Frozen requirements:
 Compare only evidence-backed shapes after FC-03. Request focused technical PRO review
 only when at least two shapes satisfy every lifecycle and compatibility condition.
 
+FC-04A is complete in
+[`python-api-fc04-application-lifecycle-contract.md`](python-api-fc04-application-lifecycle-contract.md).
+The single feasible concrete shape combines a canonical publish-once immutable
+application identity with bootstrap-owned private outer composition and a root exact
+binder. FC-03B removed the former patch-time conflict; eager canonical construction,
+root-direct factory ownership, bootstrap-owned application identity and continued root
+production composition each fail at least one frozen owner/import gate. No PRO trigger
+remains. FC-04B is the only next task after this Contract merges.
+
 ### FC-04B — Cohesive Move
 
 Expected production surface, subject to FC-04A:
@@ -574,7 +586,9 @@ Expected production surface, subject to FC-04A:
 ```text
 __init__.py
 api.py
-easyuse_anima/api/application.py or the selected canonical owner
+easyuse_anima/api/application.py
+easyuse_anima/api/application_compatibility.py
+easyuse_anima/api/application_routes.py
 easyuse_anima/bootstrap.py
 ```
 
@@ -585,8 +599,10 @@ Together with direct tests, analyzer/contract fixtures and docs.
   before `initialize()` freezes the cleanup plan;
 - make root `api.py` an explicit compatibility facade/binder over exact canonical
   objects;
-- forbid both `api/dependencies.py` and `api/application.py` from importing bootstrap
-  or a root module;
+- forbid `api/dependencies.py` and all `api/application*` modules from importing
+  bootstrap or a root module;
+- reduce root `api.py` below the 400-line adapter limit and keep every new application
+  module below current adapter/function thresholds without a new exception;
 - preserve E-09 cleanup order, rollback, repeated initialize, route refresh, terminal
   shutdown and late-import identity;
 - preserve package/flat import and all supported host/API contracts.
