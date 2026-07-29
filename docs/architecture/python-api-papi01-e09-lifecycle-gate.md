@@ -479,6 +479,12 @@ Revisit P-API only after at least one of these evidence events:
 The next ordinary roadmap task is G-05A. P-API-02, D-14, release, and Registry work stay
 parked.
 
+The later FC-03A Contract satisfies revisit event 1 without starting P-API-02:
+[`python-api-fc03-patch-owner-contract.md`](python-api-fc03-patch-owner-contract.md)
+fixes one private canonical dependency-bundle owner before any application move.
+FC-03B performs only that patch-owner migration; FC-04 separately re-evaluates
+the application identity under every E-09 gate.
+
 ## 9. Future conflict guards
 
 ### G-05 size ratchet

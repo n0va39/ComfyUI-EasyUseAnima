@@ -477,6 +477,15 @@ its first recorded revisit event before reevaluating application placement.
 
 Production-free.
 
+The completed Contract is
+[`python-api-fc03-patch-owner-contract.md`](python-api-fc03-patch-owner-contract.md).
+It reuses P-API-01's exact root inventory and fixes one private canonical
+`ApiApplicationDependencies` bundle, seven typed leaf families, one canonical
+private cell/root identity alias, call-time field patching, and the exact FC-03B
+rollback boundary. It creates no duplicate machine inventory. Direct evidence
+leaves one acyclic design, so FC-03B is READY after FC-03A merges and no PRO
+review is required.
+
 For each root API symbol family, classify:
 
 ```text
