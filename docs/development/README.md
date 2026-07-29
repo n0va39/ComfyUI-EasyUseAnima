@@ -13,13 +13,13 @@ Read only the sections needed by the active task.
    - run package/live/benchmark only when triggered.
 3. Current backend queue:
    [`../architecture/post-phase-e-maintenance-roadmap.md`](../architecture/post-phase-e-maintenance-roadmap.md)
-   - first READY task: Issue #582 / P-API-01 API facade and E-09 lifecycle feasibility Contract;
+   - first READY task: Issue #188 / G-05A size and complexity ratchet;
    - D-14/H root removal is parked, not failed.
 4. Mandatory P-API lifecycle gate:
    [`../architecture/python-api-papi01-e09-lifecycle-gate.md`](../architecture/python-api-papi01-e09-lifecycle-gate.md)
    - preserve one bootstrap lifecycle owner, terminal shutdown, translation-executor
      identity, fixed cleanup order, rollback, and late root-import behavior;
-   - P-API-01 is production-free and must return FEASIBLE or RETAIN before a Move.
+   - P-API-01 completed with RETAIN; P-API-02 remains parked until a recorded revisit event.
 5. Backend target architecture and compatibility policy:
    [`../architecture/README.md`](../architecture/README.md)
 6. Read [`codex-blocker-escalation.md`](codex-blocker-escalation.md) only after a
@@ -64,9 +64,10 @@ COMPLETE  #563 Phase F typed-boundary and feature-error work
 COMPLETE  #188 G-04 public API snapshot coverage audit
 COMPLETE  #186 P-WC-01 Wildcard facade feasibility Contract
 COMPLETE  #186 P-WC-02 Wildcard direct-shim Move
-READY     #582 P-API-01 API facade / E-09 lifecycle Contract
-OPTIONAL  P-API-02 only after FEASIBLE verdict
-LATER     G-05 size ratchet / G-06 test ownership
+COMPLETE  #582 P-API-01 API facade / E-09 lifecycle Contract (RETAIN)
+PARKED    P-API-02 until a recorded revisit event
+READY     #188 G-05 size ratchet
+LATER     #188 G-06 test ownership
 EVENT     next ordinary release N -> later D-14 re-audit
 ```
 
@@ -78,25 +79,20 @@ The D-14 stop is correct:
 - final forms completed after 0.6.2 have no release N;
 - consumer evidence and public breaking-change approval do not support removal.
 
-That stop applies only to removal. P-API-01, G-05, and G-06 remain executable.
+That stop applies only to removal. G-05 and G-06 remain executable.
 
-## Active P-API-01 source map
+## Completed P-API-01 result
 
-Start with targeted owners rather than the full repository:
+The completed evidence is intentionally narrow:
 
 ```text
-Issue #582 latest checkpoint
-Issue #186 compatibility checkpoint
-docs/architecture/post-phase-e-maintenance-roadmap.md  # P-API section
-docs/architecture/python-api-papi01-e09-lifecycle-gate.md
-root __init__.py and api.py
-easyuse_anima/bootstrap.py and runtime.py
-easyuse_anima/api/router.py
-python-runtime-e09-lifecycle-contract.md
-direct API route-owner, bootstrap/lifecycle, compatibility, package/no-host tests
+Issue #582 and #186 final P-API-01 checkpoints
+python-api-papi01-e09-lifecycle-gate.md  # RETAIN decision and revisit events
+test_python_api_facade_lifecycle_contract.py  # package -> late api identity proof
+existing E-09, route-owner, compatibility, import, and package/no-host owners
 ```
 
-P-API-01 must model the current order:
+P-API-01 confirmed the current order:
 
 ```text
 import root api.py
@@ -105,13 +101,12 @@ import root api.py
   -> freeze RuntimeServices cleanup plan
 ```
 
-The audit compares canonical-application, bootstrap-owned-application, and retained-root
-shapes. A move is FEASIBLE only when it preserves one application/executor identity,
-creates the executor before cleanup-plan composition, avoids canonical-to-root cycles,
-and makes late root `api.py` import side-effect-free with respect to application and
-lifecycle state.
+The canonical-application and bootstrap-owned-application shapes cannot preserve both
+the pre-cleanup-plan executor timing and all registration/request-time root callback
+seams without a back-reference, second mutable owner, or separate Behavior Contract.
+The retained-root shape is the only candidate that satisfies every current gate.
 
-P-API-01 does not implement the Move.
+P-API-01 made no production change and does not authorize the Move.
 
 ## E-09 non-regression summary
 

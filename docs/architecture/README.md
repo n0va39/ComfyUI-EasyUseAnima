@@ -23,13 +23,15 @@ then only the active task section, owning Issue, direct source, and direct tests
 - P-WC-01/P-WC-02 completed the Wildcard direct-shim conversion with the existing
   canonical service owner. The final form has not shipped, so release N and removal
   remain parked.
-- First READY task: Issue
-  [#582](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/582) / P-API-01 API
-  facade and E-09 lifecycle feasibility Contract.
-- P-API-01 must use
+- P-API-01 / Issue
+  [#582](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/582) completed with a
+  **RETAIN** verdict. P-API-02 is not READY.
+- The completed evidence and revisit gates are recorded in
   [`python-api-papi01-e09-lifecycle-gate.md`](python-api-papi01-e09-lifecycle-gate.md)
-  before selecting an API application owner. P-API-02 is forbidden until that audit
-  returns FEASIBLE.
+  and preserve the E-09 application/executor timing and root call-time seams.
+- First READY task: Issue
+  [#188](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/188) / G-05A size and
+  complexity ratchet.
 - Issue [#186](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/186)
   remains the compatibility ledger. It owns pre-retirement evidence and later D-14
   decisions, not an immediately executable deletion task.
@@ -41,9 +43,9 @@ COMPLETE Phase F typed-boundary and feature-error work
   -> COMPLETE G-04A public API snapshot coverage audit
   -> COMPLETE P-WC-01 Wildcard facade feasibility Contract
   -> COMPLETE P-WC-02 Wildcard internal-consumer/facade Move
-  -> READY #582 P-API-01 API facade / E-09 lifecycle Contract
-  -> OPTIONAL P-API-02 only after FEASIBLE
-  -> G-05 size ratchet
+  -> COMPLETE #582 P-API-01 API facade / E-09 lifecycle Contract (RETAIN)
+  -> PARKED P-API-02 until a recorded revisit event
+  -> READY G-05 size ratchet
   -> G-06 test ownership
   -> next ordinary release N
   -> later H/D-14 re-audit
@@ -145,7 +147,7 @@ Read only when the task touches the surface:
 
 - Branch/release/validation policy: [`MAINTAINING.md`](../../MAINTAINING.md)
 - Development entrypoint: [`../development/README.md`](../development/README.md)
-- Active immediate queue: `post-phase-e-maintenance-roadmap.md` + Issue #582
+- Active immediate queue: `post-phase-e-maintenance-roadmap.md` + Issue #188
 - P-API lifecycle compatibility: `python-api-papi01-e09-lifecycle-gate.md`
 - Target architecture: `python-backend.md`, ADR-001, ADR-002
 - Feature behavior: owning Issue
