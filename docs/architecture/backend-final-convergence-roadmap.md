@@ -525,6 +525,20 @@ FC-01. Do not add it to a public package `__all__`.
 - route behavior, payloads, errors, lifecycle, public exports and execution order remain
   unchanged.
 
+Implementation ordering is exact: root application composition creates the
+executor/helpers and uncalled handler closures, fixes the 21-route table and
+signature, publishes one fully populated dependency bundle, then resolves the
+initial host table and creates the registrar. The closures cannot be invoked
+before publication. This preserves observable import and E-09 initialization
+order while allowing the host family to own the final definitions/signature.
+
+FC-03B is complete: all named request/registration-time seams now resolve the
+single private canonical bundle, while root application/executor/handler and
+E-09 lifecycle identities remain unchanged. Its #593-owned G-05A root-module
+baseline is a reviewed transitional overage whose exact reduction boundary is
+the FC-04B application move; further growth is forbidden. FC-04A is the only
+next task.
+
 Exit: a future canonical application can preserve every supported seam without importing
 root `api.py`.
 

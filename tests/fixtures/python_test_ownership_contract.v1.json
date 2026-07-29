@@ -97,7 +97,8 @@
       ],
       "owners": {
         "adapter_api_node_integration": [
-          "tests/test_api_contract.py"
+          "tests/test_api_contract.py",
+          "tests/test_python_api_dependencies_contract.py"
         ],
         "live_host": [
           "@matrix:dual-canvas-live"
@@ -110,7 +111,8 @@
           "@matrix:registry-archive-closure"
         ],
         "pure_service_unit": [
-          "tests/test_api_contract.py"
+          "tests/test_api_contract.py",
+          "tests/test_python_api_dependencies_contract.py"
         ]
       }
     },

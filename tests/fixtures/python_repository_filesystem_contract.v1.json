@@ -161,8 +161,8 @@
     },
     {
       "evidence": "tests/test_lora_profiles.py",
-      "target": "api._save_lora_profile",
-      "token": "patch.object(api, \"_save_lora_profile\""
+      "target": "easyuse_anima.api.dependencies._APPLICATION_DEPENDENCIES.profiles.save_lora_profile",
+      "token": "patch.object(api._APPLICATION_DEPENDENCIES.profiles, \"save_lora_profile\""
     },
     {
       "evidence": "tests/test_aio_profiles.py",

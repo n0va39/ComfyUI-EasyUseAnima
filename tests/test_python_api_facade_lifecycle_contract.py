@@ -10,7 +10,6 @@ from contextlib import contextmanager
 from pathlib import Path
 from unittest.mock import Mock, patch
 
-
 ROOT = Path(__file__).resolve().parents[1]
 PACKAGE_NAME = "_easyuse_anima_api_facade_lifecycle_contract"
 MAPPED_CLASS_NAMES = (
@@ -147,6 +146,8 @@ class PythonApiFacadeLifecycleContractTests(unittest.TestCase):
             )
             definitions = api._ROUTE_DEFINITIONS
             registrar = api.register_routes
+            dependencies = api._APPLICATION_DEPENDENCIES
+            dependencies_owner = sys.modules[type(dependencies).__module__]
             marker = getattr(routes, api._ROUTE_REGISTRATION_MARKER)
             registrations = tuple(routes.registrations)
 
@@ -165,6 +166,11 @@ class PythonApiFacadeLifecycleContractTests(unittest.TestCase):
             self.assertIs(late_api, api)
             self.assertIs(late_api._PROMPT_TRANSLATION_WORKER, executor)
             self.assertIs(late_api._ROUTE_DEFINITIONS, definitions)
+            self.assertIs(late_api._APPLICATION_DEPENDENCIES, dependencies)
+            self.assertIs(
+                dependencies_owner._APPLICATION_DEPENDENCIES,
+                dependencies,
+            )
             self.assertEqual(
                 tuple(handler for _method, _path, handler in late_api._ROUTE_DEFINITIONS),
                 handlers,

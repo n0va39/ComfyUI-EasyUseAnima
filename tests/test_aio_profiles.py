@@ -42,6 +42,13 @@ def load_api_module():
     package.__path__ = [str(ROOT)]
     sys.modules[package_name] = package
 
+    sys.modules.pop(
+        f"{package_name}.easyuse_anima.api.dependencies",
+        None,
+    )
+    api_package = sys.modules.get(f"{package_name}.easyuse_anima.api")
+    if api_package is not None:
+        vars(api_package).pop("dependencies", None)
     spec = importlib.util.spec_from_file_location(
         f"{package_name}.api",
         ROOT / "api.py",
@@ -1583,8 +1590,8 @@ class AIOProfileApiRouteTests(unittest.TestCase):
             for overwrite_payload, expected in overwrite_cases:
                 with self.subTest(path=path, overwrite=overwrite_payload):
                     with patch.object(
-                        api,
-                        function_name,
+                        api._APPLICATION_DEPENDENCIES.profiles,
+                        function_name.removeprefix("_"),
                         return_value={"name": "Saved"},
                     ) as operation:
                         response = asyncio.run(
@@ -1602,7 +1609,10 @@ class AIOProfileApiRouteTests(unittest.TestCase):
             handler = routes.handlers[path]
             for overwrite in invalid_values:
                 with self.subTest(path=path, overwrite=overwrite):
-                    with patch.object(api, function_name) as operation:
+                    with patch.object(
+                        api._APPLICATION_DEPENDENCIES.profiles,
+                        function_name.removeprefix("_"),
+                    ) as operation:
                         response = asyncio.run(
                             handler(JsonRequest({**base_payload, "overwrite": overwrite}))
                         )
@@ -1665,8 +1675,8 @@ class AIOProfileApiRouteTests(unittest.TestCase):
 
         for path, payload, operation_name, expected in cases:
             with self.subTest(path=path), patch.object(
-                api,
-                operation_name,
+                api._APPLICATION_DEPENDENCIES.profiles,
+                operation_name.removeprefix("_"),
                 return_value={"name": "Saved"},
             ) as operation:
                 response = asyncio.run(routes.handlers[path](JsonRequest(payload)))
@@ -1714,8 +1724,8 @@ class AIOProfileApiRouteTests(unittest.TestCase):
 
         for path, payload, operation_name, field in cases:
             with self.subTest(path=path, field=field), patch.object(
-                api,
-                operation_name,
+                api._APPLICATION_DEPENDENCIES.profiles,
+                operation_name.removeprefix("_"),
             ) as operation:
                 response = asyncio.run(routes.handlers[path](JsonRequest(payload)))
 
@@ -1731,8 +1741,8 @@ class AIOProfileApiRouteTests(unittest.TestCase):
             handler = routes.handlers[path]
             with self.subTest(path=path):
                 with patch.object(
-                    api,
-                    function_name,
+                    api._APPLICATION_DEPENDENCIES.profiles,
+                    function_name.removeprefix("_"),
                     side_effect=FileExistsError("Profile already exists"),
                 ):
                     response = asyncio.run(handler(JsonRequest(base_payload)))
@@ -1752,8 +1762,8 @@ class AIOProfileApiRouteTests(unittest.TestCase):
         handler = routes.handlers["/easyuse_anima/aio_profiles/delete"]
 
         with patch.object(
-            api,
-            "_delete_aio_profile",
+            api._APPLICATION_DEPENDENCIES.profiles,
+            "delete_aio_profile",
             side_effect=FileNotFoundError("Profile not found"),
         ):
             response = asyncio.run(handler(JsonRequest({"name": "Missing"})))

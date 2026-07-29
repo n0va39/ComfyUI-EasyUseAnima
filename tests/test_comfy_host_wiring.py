@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import re
+import ast
 import sys
 import types
 import unittest
@@ -53,7 +53,20 @@ class ComfyHostWiringTests(unittest.TestCase):
         access_files = {
             path.relative_to(package_root.parent).as_posix()
             for path in package_root.rglob("*.py")
-            if re.search(r"\bget_runtime\b", path.read_text(encoding="utf-8"))
+            if any(
+                (
+                    isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+                    and node.name == "get_runtime"
+                )
+                or (
+                    isinstance(node, ast.Name)
+                    and isinstance(node.ctx, ast.Load)
+                    and node.id == "get_runtime"
+                )
+                for node in ast.walk(
+                    ast.parse(path.read_text(encoding="utf-8-sig"))
+                )
+            )
         }
 
         self.assertEqual(

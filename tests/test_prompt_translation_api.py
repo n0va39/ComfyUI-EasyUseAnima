@@ -56,6 +56,13 @@ def load_api_routes():
         json_response=lambda payload, status=200: {"payload": payload, "status": status},
     )
 
+    sys.modules.pop(
+        f"{PACKAGE_NAME}.easyuse_anima.api.dependencies",
+        None,
+    )
+    api_package = sys.modules.get(f"{PACKAGE_NAME}.easyuse_anima.api")
+    if api_package is not None:
+        vars(api_package).pop("dependencies", None)
     spec = importlib.util.spec_from_file_location(
         f"{PACKAGE_NAME}.api",
         ROOT / "api.py",
@@ -231,12 +238,12 @@ class PromptTranslationApiTests(unittest.TestCase):
 
         with (
             patch.object(
-                api,
+                api._APPLICATION_DEPENDENCIES.translation,
                 "resolve_prompt_translation_settings",
                 side_effect=resolve_settings,
             ),
             patch.object(
-                api,
+                api._APPLICATION_DEPENDENCIES.translation,
                 "translate_prompt_markers",
                 side_effect=translate,
             ),
@@ -264,7 +271,11 @@ class PromptTranslationApiTests(unittest.TestCase):
         with (
             patch.object(api, "_PROMPT_TRANSLATION_WORKER", worker),
             patch.object(api, "_translate_prompt_sync", replacement_sync),
-            patch.object(api, "PROMPT_TRANSLATION_ROUTE_TIMEOUT_SECONDS", 0.25),
+            patch.object(
+                api._APPLICATION_DEPENDENCIES.translation,
+                "route_timeout_seconds",
+                0.25,
+            ),
         ):
             translated = asyncio.run(api._translate_prompt_for_route("%{async}"))
 
@@ -365,8 +376,8 @@ class PromptTranslationApiTests(unittest.TestCase):
             error.message = "Tampered message"
             expected_response = object()
             with self.subTest(error=type(error).__name__, message=message), patch.object(
-                api,
-                "_error_response",
+                api._APPLICATION_DEPENDENCIES.request,
+                "error_response",
                 return_value=expected_response,
             ) as error_response:
                 response = api._prompt_translation_error_response(error)
@@ -379,8 +390,8 @@ class PromptTranslationApiTests(unittest.TestCase):
         )
         expected_response = object()
         with patch.object(
-            api,
-            "_error_response",
+            api._APPLICATION_DEPENDENCIES.request,
+            "error_response",
             return_value=expected_response,
         ) as error_response:
             response = api._prompt_translation_error_response(compatibility_error)
@@ -438,11 +449,15 @@ class PromptTranslationApiTests(unittest.TestCase):
 
         with (
             patch.object(
-                api,
+                api._APPLICATION_DEPENDENCIES.translation,
                 "resolve_prompt_translation_settings",
                 return_value=translation.PromptTranslationSettings(provider="google"),
             ),
-            patch.object(api, "translate_prompt_markers", side_effect=slow_translation),
+            patch.object(
+                api._APPLICATION_DEPENDENCIES.translation,
+                "translate_prompt_markers",
+                side_effect=slow_translation,
+            ),
         ):
             response, heartbeat = asyncio.run(exercise())
 
@@ -495,13 +510,17 @@ class PromptTranslationApiTests(unittest.TestCase):
 
         with (
             patch.object(
-                api,
+                api._APPLICATION_DEPENDENCIES.translation,
                 "resolve_prompt_translation_settings",
                 return_value=translation.PromptTranslationSettings(provider="google"),
             ),
-            patch.object(api, "PROMPT_TRANSLATION_ROUTE_TIMEOUT_SECONDS", 0.01),
             patch.object(
-                api,
+                api._APPLICATION_DEPENDENCIES.translation,
+                "route_timeout_seconds",
+                0.01,
+            ),
+            patch.object(
+                api._APPLICATION_DEPENDENCIES.translation,
                 "translate_prompt_markers",
                 side_effect=blocking_translation,
             ) as worker,
@@ -571,11 +590,15 @@ class PromptTranslationApiTests(unittest.TestCase):
 
         with (
             patch.object(
-                api,
+                api._APPLICATION_DEPENDENCIES.translation,
                 "resolve_prompt_translation_settings",
                 return_value=translation.PromptTranslationSettings(provider="google"),
             ),
-            patch.object(api, "translate_prompt_markers", side_effect=blocking_translation),
+            patch.object(
+                api._APPLICATION_DEPENDENCIES.translation,
+                "translate_prompt_markers",
+                side_effect=blocking_translation,
+            ),
         ):
             response, busy_response = asyncio.run(exercise())
 
@@ -616,12 +639,12 @@ class PromptTranslationApiTests(unittest.TestCase):
             with self.subTest(code=code):
                 with (
                     patch.object(
-                        api,
+                        api._APPLICATION_DEPENDENCIES.translation,
                         "resolve_prompt_translation_settings",
                         return_value=settings,
                     ),
                     patch.object(
-                        api,
+                        api._APPLICATION_DEPENDENCIES.translation,
                         "translate_prompt_markers",
                         side_effect=error,
                     ),
@@ -640,6 +663,37 @@ class PromptTranslationApiTests(unittest.TestCase):
                     },
                 )
 
+    def test_route_observes_translation_error_type_and_response_leaves_at_call_time(self):
+        api, routes, _translation, _translation_service = self.load_routes()
+        handler = routes.handlers[ROUTE]
+
+        class InjectedTranslationError(Exception):
+            pass
+
+        error = InjectedTranslationError("injected")
+        expected_response = object()
+        with (
+            patch.object(
+                api,
+                "_translate_prompt_for_route",
+                side_effect=error,
+            ),
+            patch.object(
+                api._APPLICATION_DEPENDENCIES.translation,
+                "prompt_translation_error_type",
+                InjectedTranslationError,
+            ),
+            patch.object(
+                api._APPLICATION_DEPENDENCIES.translation,
+                "prompt_translation_error_response",
+                return_value=expected_response,
+            ) as error_response,
+        ):
+            response = asyncio.run(handler(JsonRequest({"text": "%{text}"})))
+
+        self.assertIs(response, expected_response)
+        error_response.assert_called_once_with(error)
+
     def test_route_does_not_mask_settings_or_payload_programming_errors_as_upstream(self):
         api, routes, _translation, _translation_service = self.load_routes()
         handler = routes.handlers[ROUTE]
@@ -651,7 +705,7 @@ class PromptTranslationApiTests(unittest.TestCase):
             with self.subTest(error=type(error).__name__):
                 with (
                     patch.object(
-                        api,
+                        api._APPLICATION_DEPENDENCIES.translation,
                         "resolve_prompt_translation_settings",
                         side_effect=error,
                     ),
@@ -692,7 +746,11 @@ class PromptTranslationApiTests(unittest.TestCase):
         )
 
         with (
-            patch.object(api, "resolve_prompt_translation_settings", return_value=settings),
+            patch.object(
+                api._APPLICATION_DEPENDENCIES.translation,
+                "resolve_prompt_translation_settings",
+                return_value=settings,
+            ),
             patch.object(
                 translation_service,
                 "get_translation_provider",
