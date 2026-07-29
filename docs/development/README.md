@@ -1,7 +1,8 @@
 # EasyUse Anima Development Entry
 
 Use this file as the first development-doc entry point for a new Codex session. Read
-only the active task section and its direct owners.
+only the current READY or event task and its direct owners; do not reopen a completed
+lane when neither exists.
 
 ## Read order
 
@@ -11,9 +12,10 @@ only the active task section and its direct owners.
    - use focused edit-loop tests;
    - run official full once on the final candidate SHA;
    - run package/live/benchmark only when triggered.
-3. Active final-convergence queue:
+3. Current final-convergence status and event queue:
    [`../architecture/backend-final-convergence-roadmap.md`](../architecture/backend-final-convergence-roadmap.md)
-4. Active owner: Issue #593.
+4. Compatibility/release ledger: Issue #186. Technical owner #593 and parent #185 are
+   completed.
 5. Target architecture and original Definition of Done:
    [`../architecture/python-backend.md`](../architecture/python-backend.md)
 6. Read [`codex-blocker-escalation.md`](codex-blocker-escalation.md) only after a
@@ -54,46 +56,18 @@ have executable owners. There is no READY backend implementation task.
 Actual shim deletion remains release/consumer gated and is not required for technical
 architecture completion.
 
-## FC-01 direct reading scope
+## Current event-wait boundary
 
-```text
-docs/architecture/backend-final-convergence-roadmap.md      # FC-01 only
-docs/architecture/python-backend.md                         # Overall DoD
-docs/architecture/python-phase-fg-completion-audit.md
-docs/architecture/python-api-papi01-e09-lifecycle-gate.md
-docs/architecture/python-compatibility-shims.md
-tools/check_python_import_boundaries.py
-tests/fixtures/python_import_boundary_contract.v2.json
-tests/fixtures/python_test_ownership_contract.v1.json
-```
+No backend refactor task is READY. Do not reopen FC-01 through FC-05 or create a release
+only to start a compatibility clock.
 
-Read direct tests or analyzer output only when the closure matrix needs to verify a
-specific row. Do not read every production package during FC-01.
+When an independently justified ordinary feature or bug-fix release is ready, FC-06
+reads only the roadmap's FC-06/validation sections, Issue #186's latest checkpoint,
+`MAINTAINING.md`, and the current `main`/`dev`, version, changelog, package and Registry
+metadata. Use a separate release task card and preserve the fixed guards below.
 
-## FC-01 boundary
-
-Production, test, tool and fixture changes are forbidden unless the audit proves that
-existing deterministic evidence cannot express one required row.
-
-Classify every original Definition-of-Done item as:
-
-```text
-complete
-technical gap
-compatibility event
-deliberate retain
-```
-
-Required outputs:
-
-- one compact closure matrix;
-- exact gap between import-boundary and G-06 owner coverage;
-- confirmed FC-02 owner/role model;
-- confirmed FC-03 root patch-owner migration boundary;
-- confirmed FC-04 E-09 application/lifecycle boundary;
-- corrected next task card if the evidence disproves an assumption.
-
-Do not implement FC-02 or later work in the FC-01 PR.
+Without that release event, new bugs and features use their own owning Issue and do not
+reactivate the backend convergence queue.
 
 ## Fixed lifecycle and compatibility guards
 
@@ -132,7 +106,7 @@ The broad quick/full profiles are not edit-loop commands.
 
 ### Promotion
 
-- Documentation-only FC-01 reuses current valid code evidence.
+- Documentation-only roadmap/navigation corrections reuse current valid code evidence.
 - Run official full once when code, tests, tools or shared fixtures change.
 - Run validate/pack/archive for import, entrypoint, registration, dependency, archive or
   release changes.
