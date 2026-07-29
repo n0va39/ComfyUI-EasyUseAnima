@@ -108,6 +108,15 @@ class PythonQualityContractTests(unittest.TestCase):
         self.assertIn("Pyright execution failed", source)
         self.assertIn("Pyright baseline ratchet failed", source)
 
+    def test_dedicated_runner_invokes_size_complexity_ratchet_once(self):
+        source = (
+            ROOT / "tools" / "check_python_quality.ps1"
+        ).read_text(encoding="utf-8")
+        invocation = '(Join-Path $PSScriptRoot "check_python_size_complexity.py")'
+
+        self.assertEqual(source.count(invocation), 1)
+        self.assertIn("Python size/complexity ratchet failed", source)
+
     def test_project_runner_calls_g01_before_profile_specific_full_tests(self):
         source = (
             ROOT / "tools" / "check_project.ps1"

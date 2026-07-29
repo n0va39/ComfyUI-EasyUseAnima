@@ -18,8 +18,8 @@ then only the active task section, owning Issue, direct source, and direct tests
   owns the current queue.
 - Phase F and Issue
   [#188](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/188) / G-04 public
-  API snapshot coverage are complete. Issue #188 continues to own G-05 size/complexity
-  ratchet and G-06 test ownership.
+  API snapshot coverage and G-05 size/complexity ratchet are complete. Issue #188
+  continues to own G-06 test ownership.
 - P-WC-01/P-WC-02 completed the Wildcard direct-shim conversion with the existing
   canonical service owner. The final form has not shipped, so release N and removal
   remain parked.
@@ -30,8 +30,8 @@ then only the active task section, owning Issue, direct source, and direct tests
   [`python-api-papi01-e09-lifecycle-gate.md`](python-api-papi01-e09-lifecycle-gate.md)
   and preserve the E-09 application/executor timing and root call-time seams.
 - First READY task: Issue
-  [#188](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/188) / G-05A size and
-  complexity ratchet.
+  [#188](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/188) / G-06A canonical
+  test-ownership Contract.
 - Issue [#186](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/186)
   remains the compatibility ledger. It owns pre-retirement evidence and later D-14
   decisions, not an immediately executable deletion task.
@@ -45,8 +45,8 @@ COMPLETE Phase F typed-boundary and feature-error work
   -> COMPLETE P-WC-02 Wildcard internal-consumer/facade Move
   -> COMPLETE #582 P-API-01 API facade / E-09 lifecycle Contract (RETAIN)
   -> PARKED P-API-02 until a recorded revisit event
-  -> READY G-05 size ratchet
-  -> G-06 test ownership
+  -> COMPLETE G-05 size ratchet
+  -> READY G-06 test ownership
   -> next ordinary release N
   -> later H/D-14 re-audit
 ```
@@ -92,6 +92,9 @@ of architectural success by itself.
   completed Phase F typed-boundary inventory and classifications.
 - [`python-public-api-g04a-audit.md`](python-public-api-g04a-audit.md):
   completed public-surface owner map, root-name classifications, and no-G-04B decision.
+- [`python-size-complexity-g05a-contract.md`](python-size-complexity-g05a-contract.md):
+  analyzer-owned line metrics, compact reviewed-overage ledger, and incremental growth
+  ratchet.
 - [`python-wildcard-pwc01-facade-feasibility.md`](python-wildcard-pwc01-facade-feasibility.md):
   FEASIBLE Wildcard direct-shim decision and P-WC-02 boundary.
 - [`python-feature-error-taxonomy-contract.md`](python-feature-error-taxonomy-contract.md):

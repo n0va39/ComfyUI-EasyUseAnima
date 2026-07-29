@@ -94,6 +94,13 @@ try {
     if ($importBoundaryExitCode -ne 0) {
         throw "Python import boundary gate failed with exit code $importBoundaryExitCode."
     }
+
+    Write-Host "`n== Python size/complexity ratchet (G-05A) =="
+    & $pythonCommand (Join-Path $PSScriptRoot "check_python_size_complexity.py")
+    $sizeComplexityExitCode = $LASTEXITCODE
+    if ($sizeComplexityExitCode -ne 0) {
+        throw "Python size/complexity ratchet failed with exit code $sizeComplexityExitCode."
+    }
 }
 finally {
     Set-Location -LiteralPath $originalLocation

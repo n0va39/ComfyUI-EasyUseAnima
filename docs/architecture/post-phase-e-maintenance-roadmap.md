@@ -4,7 +4,7 @@
 
 - Status: active execution plan after Phase D and Phase E completion.
 - Primary parent: Issue #185.
-- Active first task: Issue #188 / G-05A size and complexity ratchet.
+- Active first task: Issue #188 / G-06A canonical test ownership.
 - Quality owner: Issue #188.
 - Compatibility ledger: Issue #186.
 - D-14/H status: parked by compatibility gates, not failed.
@@ -54,7 +54,7 @@ ADR-002 result when evidence is absent or ambiguous.
 ### Remaining global roadmap work
 
 - G-04 public API snapshot coverage is complete; no G-04B gate was required.
-- G-05 size/complexity growth ratchet is not implemented as a blocking incremental gate.
+- G-05 size/complexity growth ratchet is complete as a blocking incremental gate.
 - G-06 canonical test ownership is not completed.
 - `api.py` has not reached a proven pure-shim form. `wildcard_engine.py` has reached
   its final direct-shim form, but that form has not shipped and release N has not begun.
@@ -82,8 +82,8 @@ COMPLETE F-02a Autocomplete typed result contracts             #563 / PR #566
   -> COMPLETE P-WC-02 internal consumer/facade Move            #186
   -> COMPLETE P-API-01 API production-facade feasibility Contract #582
   -> RETAIN P-API-02 canonical production-entry Move
-  -> READY G-05A size/complexity baseline and changed-path ratchet #188
-  -> G-06A    canonical test-ownership Contract               #188
+  -> COMPLETE G-05A size/complexity baseline and changed-path ratchet #188
+  -> READY G-06A canonical test-ownership Contract             #188
   -> G-CLOSE  Phase F/G completion audit
 ```
 
@@ -159,7 +159,7 @@ Audit result, updated after F-02d merged at
 - the common feature error taxonomy row is complete after F-02e fixes the executable
   inventory, F-02f adds category inheritance, F-02g makes fixture-known concrete HTTP
   policy API-authoritative, and F-02h records zero unmapped errors;
-- Phase F is complete and Issue #188 / G-04A is READY.
+- Phase F and Issue #188 / G-04A are complete.
 
 ## 4. G-04A — Public API snapshot coverage audit
 
@@ -269,7 +269,8 @@ P-WC-02 result:
   bindings are preserved;
 - the analyzer includes the shipped compatibility shim as an explicit Registry entry
   module, retaining complete 176-module archive closure without a production import;
-- P-API-01 completed with RETAIN; G-05A is next. Release N remains event-gated.
+- P-API-01 completed with RETAIN; G-05A is complete and G-06A is next. Release N
+  remains event-gated.
 
 ### P-API-01 — API facade feasibility Contract
 
@@ -316,7 +317,8 @@ P-API-01 result:
   compatibility migration;
 - moving application creation into initialize or attaching it after runtime creation
   would change E-09 rollback and fixed cleanup-plan timing;
-- P-API-02 is not READY. G-05A is the next task; P-API may be revisited only after a
+- P-API-02 is not READY. G-05A is complete and G-06A is the next task; P-API may be
+  revisited only after a
   recorded patch-owner migration, consumer-backed seam retirement, acyclic private
   pre-initialize publication proof, or an explicit lifecycle Behavior Contract.
 
@@ -325,6 +327,9 @@ P-API-01 result:
 Owner: Issue #188.
 
 Type: Contract/tool.
+
+Status: complete. The executable contract is documented in
+[`python-size-complexity-g05a-contract.md`](python-size-complexity-g05a-contract.md).
 
 Reuse `tools/analyze_python_backend.py` module/function metrics. Do not introduce a
 second repository inventory.
@@ -434,23 +439,24 @@ with Codex.
 ```text
 P-API-01 is complete with RETAIN. Do not start P-API-02 from this result.
 
-For the next task, start Issue #188 / G-05A from latest origin/dev and read:
+For the next task, start Issue #188 / G-06A from latest origin/dev and read:
 - current-policies.md
 - codex-execution-efficiency.md universal rules
-- this document's G-05A and validation sections
-- Issue #188 latest G-05A checkpoint
-- tools/analyze_python_backend.py metric owners and the existing analyzer fixture/tests
+- this document's G-06A and validation sections
+- Issue #188 latest G-06A checkpoint
+- existing feature-package test owners, compatibility/package/live matrices, and their
+  direct contract tests
 
 Do not read all historical D/E PRs and do not start D-14 removal.
 
-Without production changes, freeze the existing analyzer size/complexity baseline and
-add only the reviewed changed-path growth ratchet described by G-05A.
+Without production changes, create only the compact canonical test-ownership map
+described by G-06A. Reuse existing tests and do not move historical tests for symmetry.
 
 Run only targeted consistency/focused checks and git diff check. Run official full
 once only if an executable gate or fixture changes. Package/live are not triggered.
 
 Push a dev-targeted Draft PR, review, and squash merge. Do not reopen P-API-02, D-14,
-release, or Registry work while performing G-05A.
+release, or Registry work while performing G-06A.
 
 Do not change production behavior, public/root exports, routes, API payloads,
 RuntimeServices/bootstrap lifecycle, migration semantics, deprecation
