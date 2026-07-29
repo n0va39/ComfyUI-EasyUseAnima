@@ -1,7 +1,7 @@
 # EasyUse Anima Development Entry
 
-Use this file as the first development-doc entry point for a new Codex session.
-Read only the sections needed by the active task.
+Use this file as the first development-doc entry point for a new Codex session. Read
+only the active task section and its direct owners.
 
 ## Read order
 
@@ -11,54 +11,17 @@ Read only the sections needed by the active task.
    - use focused edit-loop tests;
    - run official full once on the final candidate SHA;
    - run package/live/benchmark only when triggered.
-3. Completed independent security/admin lane:
-   [`../architecture/security-admin-settings-roadmap.md`](../architecture/security-admin-settings-roadmap.md)
-   - SEC-01 completed with TRUSTED_DEPLOYMENT_ONLY;
-   - SEC-02 completed with a direct-owner FEASIBLE result;
-   - SEC-03 completed the narrow backend implementation and SEC-04 was skipped;
-   - SEC-05 completed the production-free audit with no follow-up;
-   - there is no READY security task and the lane remains TRUSTED_DEPLOYMENT_ONLY.
-4. Completed backend and compatibility state:
-   [`../architecture/post-phase-e-maintenance-roadmap.md`](../architecture/post-phase-e-maintenance-roadmap.md)
-   - Phase F/G and G-CLOSE are complete; there is no READY Phase F/G task;
-   - D-14/H root removal and P-API-02 are event-gated, not failed.
-5. E-09/P-API compatibility gate:
-   [`../architecture/python-api-papi01-e09-lifecycle-gate.md`](../architecture/python-api-papi01-e09-lifecycle-gate.md)
-   - preserve one bootstrap lifecycle owner, terminal shutdown, translation-executor
-     identity, fixed cleanup order, rollback, and late root-import behavior;
-   - P-API-01 completed with RETAIN; #199 may use RuntimeConfig/bootstrap only as an
-     immutable process-capability owner and must not add another lifecycle owner.
-6. Backend target architecture and compatibility policy:
-   [`../architecture/README.md`](../architecture/README.md)
-7. Read [`codex-blocker-escalation.md`](codex-blocker-escalation.md) only after a
-   documented hard stop or unresolved cross-owner architecture ambiguity. Ordinary
-   implementation and test failures remain local task work.
-8. Read a topic guide only when the active task touches it:
-   - completed D/E execution record: `../architecture/backend-roadmap-resume-0.6.2.md`
-   - Phase F/G completion audit: `../architecture/python-phase-fg-completion-audit.md`
-   - security/admin settings boundary: `../architecture/security-admin-settings-roadmap.md`
-   - lifecycle runtime contract: `../architecture/python-runtime-e09-lifecycle-contract.md`
-   - runtime base contract: `../architecture/python-runtime-base-contract.md`
-   - repository/filesystem contract: `../architecture/python-runtime-e03-repository-filesystem-contract.md`
-   - translation runtime contract: `../architecture/python-runtime-e04-translation-contract.md`
-   - autocomplete runtime contract: `../architecture/python-runtime-e05-autocomplete-contract.md`
-   - wildcard runtime contract: `../architecture/python-runtime-e06-wildcard-contract.md`
-   - AiO cache runtime contract: `../architecture/python-runtime-e08-aio-cache-contract.md`
-   - test-isolation contract: `../architecture/python-runtime-e10-test-isolation-contract.md`
-   - runtime state inventory: `../architecture/python-runtime-state-inventory.md`
-   - compatibility registry: `../architecture/python-compatibility-shims.md`
-   - queue identity: `../architecture/queue-ui-two-phase-correlation-addendum.md`
-   - Prompt Studio execution projection: `../architecture/prompt-studio-execution-derived-projection.md`
-   - dual-canvas UI checks: `browser-smoke-matrix.md`
-   - custom-node integrations: `custom-node-integrations.md`
-   - Registry scanner prevention for a future release:
-     [`docs/development/registry-scanner-safety.md`](registry-scanner-safety.md)
-   - workflows: `../Anima AiO/Workflow_Management.md`
-9. Confirm `git status --short`, current branch/worktree, direct source, and direct
-   tests.
+3. Active final-convergence queue:
+   [`../architecture/backend-final-convergence-roadmap.md`](../architecture/backend-final-convergence-roadmap.md)
+4. Active owner: Issue #593.
+5. Target architecture and original Definition of Done:
+   [`../architecture/python-backend.md`](../architecture/python-backend.md)
+6. Read [`codex-blocker-escalation.md`](codex-blocker-escalation.md) only after a
+   documented hard stop or unresolved cross-owner architecture ambiguity.
+7. Confirm branch/worktree status, direct source and direct tests.
 
-Do not read every roadmap, closed Issue, or historical PR. Registry activation is
-external release administration; do not poll or modify an immutable release during
+Do not reread all historical roadmaps, closed PRs or completed Phase D/E/F/G/security
+lanes. Registry activation is external release administration and does not block
 ordinary `dev` work.
 
 ## Current state
@@ -68,101 +31,99 @@ COMPLETE  Phase D package/root consolidation
 COMPLETE  Phase E runtime ownership/lifecycle/test isolation
 COMPLETE  Phase F typed boundaries and feature errors
 COMPLETE  G-04 public API / G-05 size ratchet / G-06 test ownership
-COMPLETE  G-CLOSE Phase F/G completion audit
-RETAIN    P-API-01; P-API-02 parked
-PARKED    D-14 / Phase H root removal
-COMPLETE  #199 SEC-01 security/admin host-capability Contract
-COMPLETE  #199 SEC-02 response-confidentiality Contract
-COMPLETE  #199 SEC-03 narrow backend implementation
-SKIPPED   #199 SEC-04 frontend settings migration
-COMPLETE  #199 SEC-05 security completion audit; no follow-up
-EVENT     next ordinary release N -> later D-14 re-audit
+COMPLETE  P-WC Wildcard direct-shim conversion
+RETAIN    P-API-01 current root API production facade
+COMPLETE  SEC-01 through SEC-05 security/admin lane
+
+READY     #593 FC-01 original Definition-of-Done closure audit
+NEXT      FC-02 complete canonical owner-boundary gate
+NEXT      FC-03 root API patch-owner migration
+NEXT      FC-04 canonical API application/E-09 convergence
+NEXT      FC-05 technical completion audit
+
+EVENT     next ordinary release N
+LATER     H/D-14 compatibility re-audit
 ```
 
-The original backend stop is correct:
+The former `no READY task` statement applied to the completed F/G/security and
+compatibility-removal lanes. It did not close the original backend Definition of Done.
 
-- root `__init__.py` still imports root `api.py` for production registration;
-- root `api.py` remains a production route/payload/runtime facade;
-- `wildcard_engine.py` is a direct shim, but that final form has not shipped;
-- final forms completed after 0.6.2 have no release N;
-- consumer evidence and public breaking-change approval do not support removal.
+## Why final convergence remains
 
-That stop applies to the completed compatibility lane. It does not block the separate
-Issue #199 security/admin Contract.
+The current backend is functional and validated, but two technical gaps remain:
 
-## Completed SEC-01 boundary
+1. the blocking import-boundary gate covers a reviewed subset while the G-06 owner map
+   covers the complete canonical package/test surface;
+2. root `api.py` still creates the production API application, translation route
+   executor, handlers, route definitions and registrar.
 
-Current primary-source evidence must be treated as follows:
+P-API-01 retained that facade because the then-current canonical candidates could not
+preserve both request-time root patch seams and E-09 executor/cleanup timing. The same
+Contract explicitly allows a later revisit after those patch seams move to exact
+canonical owners. FC-03 performs that prerequisite before FC-04 reevaluates application
+placement.
 
-- ComfyUI `comfy-user` selects a user profile; it is not authenticated administrator
-  identity;
-- origin/host and CORS middleware are request-origin controls, not authorization;
-- `request.remote`, Host, Origin, or forwarded headers alone do not prove authority;
-- EasyUseAnima `GET /settings` returns the current public settings projection and
-  `POST /set_setting` mutates a known setting;
-- the projection currently contains local/network configuration such as
-  `wildcard.extra_paths`, `naia.host`, `naia.port`, and `naia.allow_remote_api`.
+Actual shim deletion remains release/consumer gated and is not required for technical
+architecture completion.
 
-SEC-01 produced:
+## FC-01 direct reading scope
 
 ```text
-deployment/threat matrix
-route and field sensitivity inventory
-host capability verdict
-logging/redaction contract
-one primary verdict
-exact SEC-02 task card only when justified
+docs/architecture/backend-final-convergence-roadmap.md      # FC-01 only
+docs/architecture/python-backend.md                         # Overall DoD
+docs/architecture/python-phase-fg-completion-audit.md
+docs/architecture/python-api-papi01-e09-lifecycle-gate.md
+docs/architecture/python-compatibility-shims.md
+tools/check_python_import_boundaries.py
+tests/fixtures/python_import_boundary_contract.v1.json
+tests/fixtures/python_test_ownership_contract.v1.json
 ```
 
-Allowed primary verdicts:
+Read direct tests or analyzer output only when the closure matrix needs to verify a
+specific row. Do not read every production package during FC-01.
+
+## FC-01 boundary
+
+Production, test, tool and fixture changes are forbidden unless the audit proves that
+existing deterministic evidence cannot express one required row.
+
+Classify every original Definition-of-Done item as:
 
 ```text
-HOST_CAPABILITY
-PROCESS_CAPABILITY
-TRUSTED_DEPLOYMENT_ONLY
-NO_DIAGNOSTICS
+complete
+technical gap
+compatibility event
+deliberate retain
 ```
 
-The primary verdict is **TRUSTED_DEPLOYMENT_ONLY**. A single trusted operator on
-loopback is supported; an authenticated reverse proxy is conditionally supported only
-when every authenticated principal has equal operator authority and direct bypass is
-prevented. Direct LAN/remote, unauthenticated proxy, and managed/multi-tenant exposure
-are unsupported. `--multi-user` is not an authorization boundary.
+Required outputs:
 
-The authoritative result is
-[`../architecture/security-admin-settings-sec01-contract.md`](../architecture/security-admin-settings-sec01-contract.md).
-SEC-01 added no token, diagnostics endpoint, settings split, authentication
-middleware, frontend migration, or lifecycle state.
+- one compact closure matrix;
+- exact gap between import-boundary and G-06 owner coverage;
+- confirmed FC-02 owner/role model;
+- confirmed FC-03 root patch-owner migration boundary;
+- confirmed FC-04 E-09 application/lifecycle boundary;
+- corrected next task card if the evidence disproves an assumption.
 
-## E-09 non-regression summary
+Do not implement FC-02 or later work in the FC-01 PR.
 
-- bootstrap is the sole lifecycle owner;
-- initialize/shutdown share one lock and atexit is registered once;
-- shutdown is terminal/idempotent; no hot reinitialize;
-- repeated initialize before shutdown reuses runtime identity and refreshes routes;
-- translation route executor is unique and cleanup item 1;
-- seven-step cleanup order and expected-identity rollback remain fixed;
-- routes/marker remain installed; file-I/O limiters and provider clients are not closed;
-- no API application or security capability may add a reset/close registry, second
-  lock, second atexit, or production module reload.
+## Fixed lifecycle and compatibility guards
 
-SEC-01 rejected a process capability for this lane. If a future independently proven
-task needs one, it must still be immutable process-start configuration loaded by
-RuntimeConfig/bootstrap.
+Later FC tasks must preserve:
 
-## Following state
+- bootstrap as the single lifecycle owner;
+- one initialize/shutdown lock and one atexit registration;
+- terminal/idempotent shutdown and no hot reinitialize;
+- one translation route executor created before cleanup-plan composition;
+- executor shutdown as cleanup item 1 and the fixed seven-step cleanup order;
+- expected-identity rollback and original startup error;
+- route marker retention and no route deregistration;
+- no file-I/O limiter or provider/client cleanup invention;
+- root/canonical identity and 0.5.2 workflow/profile/settings/API compatibility.
 
-After SEC-05:
-
-1. keep the completed security lane closed unless new primary-source evidence changes
-   the deployment or authorization boundary;
-2. keep diagnostics absent by default when no reliable authorization owner exists;
-3. do not reopen Phase F/G, P-API-02, or D-14 as a side effect;
-4. let the next ordinary release containing final shims become release N;
-5. re-audit D-14 only after an event gate changes.
-
-No dedicated release, outbound telemetry, import-time deprecation warning, or public
-root removal is authorized by this queue.
+FC-03 may migrate patch ownership but does not change behavior. FC-04 application
+construction remains outside `initialize()` unless a separate reviewed Behavior Contract
+explicitly changes rollback semantics.
 
 ## Validation
 
@@ -170,32 +131,46 @@ root removal is authorized by this queue.
 
 ```text
 changed-file syntax/static check
-one task-specific focused target at a time
-current direct contract/analyzer fixture
+one direct focused owner at a time
+current analyzer/contract projection
 git diff --check
 ```
 
-The repository `quick` profile is broad and is not a task preflight or per-edit
-command.
+The broad quick/full profiles are not edit-loop commands.
 
-### Final candidate
+### Promotion
 
-- Run official full once on the exact final code/test diff when tests, tools, shared
-  fixtures, or production change.
-- Documentation-only changes reuse the latest valid code evidence.
-- Run package validation only for import/registration/archive/dependency/release
-  closure changes.
-- Run isolated HTTP live smoke for a later backend security behavior change.
-- Run browser smoke only when settings UI behavior changes.
-- Release lifecycle smoke uses a fresh process; shutdown followed by production
-  reinitialize is not a supported gate.
+- Documentation-only FC-01 reuses current valid code evidence.
+- Run official full once when code, tests, tools or shared fixtures change.
+- Run validate/pack/archive for import, entrypoint, registration, dependency, archive or
+  release changes.
+- Run isolated live ComfyUI only for host-visible behavior or FC-05 integration.
+- Terminal lifecycle smoke runs in a fresh process; shutdown followed by production
+  reinitialize is not supported.
 
 ## Technical PRO boundary
 
-Request focused technical PRO review only when primary-source evidence leaves multiple
-viable security architectures with materially different trust guarantees, a capability
-owner would require changing E-09 lifecycle semantics, or proxy/header normalization
-cannot be resolved within the bounded route owner.
+Request focused technical PRO review only when direct evidence leaves multiple valid
+API/lifecycle designs, the complete owner gate exposes an unresolvable role/cycle
+ambiguity, or preserving a supported seam requires a canonical-to-root dependency,
+dynamic cleanup-plan mutation or second lifecycle owner.
 
-A missing ComfyUI admin capability, ordinary test failure, field classification, helper
-layout, and owner-local implementation choices remain with Codex.
+Routine test failures, helper names, fixture placement and owner-local implementation
+choices remain with Codex.
+
+## Completed reference lanes
+
+Read only when a current task touches the boundary:
+
+- completed D/E record: `../architecture/backend-roadmap-resume-0.6.2.md`
+- E-09 lifecycle: `../architecture/python-runtime-e09-lifecycle-contract.md`
+- Phase F/G close: `../architecture/python-phase-fg-completion-audit.md`
+- security/admin: `../architecture/security-admin-settings-roadmap.md`
+- queue/live UI identity: `../architecture/queue-ui-two-phase-correlation-addendum.md`
+- Prompt Studio projection: `../architecture/prompt-studio-execution-derived-projection.md`
+- dual-canvas UI: `browser-smoke-matrix.md`
+- Registry scanner safety: `registry-scanner-safety.md`
+- workflows: `../Anima AiO/Workflow_Management.md`
+
+No roadmap document alone authorizes root deletion, public breaking changes, release,
+tag or Registry publication.
