@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 from contextlib import nullcontext
-from typing import Any
+from typing import Any, cast
 
 from ..common.serialization import _stable_change_key
 from ..common.values import _as_bool, _as_int, _single_value
@@ -57,12 +57,12 @@ from ..prompt.artist_mix import (
     _bounded_artist_mix_int,
     _normalize_artist_mix_mode,
 )
+from ..prompt.contracts import AdvancedField, PromptDataCompatResult
 from ..prompt.correction import (
     _prompt_translation_change_key,
     _translate_prompt_text,
 )
 from ..prompt.data import PROMPT_DATA_TYPE, _prompt_data_parameter_snapshot
-from ..prompt.contracts import AdvancedField
 from ..seed.compatibility import _scrub_reserved_wildcard_next_seed
 from ..settings.service import (
     resolve_metadata_filter_words,
@@ -818,7 +818,10 @@ class EasyUseAnimaPromptStudioAdvancedV2(EasyUseAnimaPromptStudioAdvanced):
             _seed_execution=_seed_execution,
             **field_inputs,
         )
-        compat_result = tuple(base.get("result") or ())
+        compat_result = cast(
+            PromptDataCompatResult,
+            tuple(base.get("result") or ()),
+        )
         ui_payloads = base.get("ui", {}).get("prompt_studio_advanced", [])
         ui_payload = ui_payloads[0] if ui_payloads and isinstance(ui_payloads[0], dict) else {}
         if isinstance(ui_payload, dict):

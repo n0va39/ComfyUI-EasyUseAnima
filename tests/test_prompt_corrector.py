@@ -19,9 +19,12 @@ from easyuse_anima.naia.client import _clean_prompt
 from easyuse_anima.naia.resolution import ADVANCED_RESOLUTION_BUCKETS
 from easyuse_anima.nodes import prompt_data_nodes, prompt_nodes
 from easyuse_anima.nodes.prompt_advanced_nodes import EasyUseAnimaPromptStudioExtend
+from easyuse_anima.prompt import advanced as prompt_advanced
 from easyuse_anima.prompt import artist_mix as prompt_artist_mix
 from easyuse_anima.prompt import conditioning as prompt_conditioning
+from easyuse_anima.prompt import contracts as prompt_contracts
 from easyuse_anima.prompt import correction as prompt_correction
+from easyuse_anima.prompt import data as prompt_data_service
 from easyuse_anima.prompt.advanced import (
     ADVANCED_FIELDS_WORKFLOW_PROPERTY,
     _advanced_prompt_data_fields,
@@ -41,7 +44,13 @@ from easyuse_anima.prompt.artist_mix import (
 from easyuse_anima.prompt.conditioning import (
     _SPECTRUM_ANIMA_MOD_GUIDANCE_OLD_SIGNATURE_WARNED,
 )
-from easyuse_anima.prompt.contracts import AdvancedField
+from easyuse_anima.prompt.contracts import (
+    AdvancedField,
+    PromptData,
+    PromptDataCompatResult,
+    PromptDataOutputs,
+    PromptDataRead,
+)
 from easyuse_anima.prompt.data import PROMPT_DATA_SCHEMA
 from easyuse_anima.settings import repository as settings_repository
 from easyuse_anima.settings import schema as settings_schema
@@ -644,6 +653,29 @@ class PromptBuilderTests(unittest.TestCase):
             self.assertIn(name, input_types["optional"])
         self.assertEqual(EasyUseAnimaPromptDataUnpack.RETURN_TYPES[0], PROMPT_DATA_TYPE)
         self.assertEqual(EasyUseAnimaPromptDataUnpack.RETURN_NAMES[0], PROMPT_DATA_TYPE)
+
+    def test_prompt_data_internal_types_bind_canonical_builder_and_readers(self):
+        self.assertIs(
+            get_type_hints(prompt_advanced._build_advanced_prompt_data)["return"],
+            PromptData,
+        )
+        self.assertEqual(
+            get_type_hints(prompt_advanced._build_advanced_prompt_data)["compat_result"],
+            PromptDataCompatResult,
+        )
+        self.assertEqual(
+            get_type_hints(prompt_data_service._normalize_prompt_data)["return"],
+            dict[str, object],
+        )
+        self.assertEqual(
+            get_type_hints(prompt_data_service._advanced_outputs_from_prompt_data)["return"],
+            PromptDataCompatResult,
+        )
+        self.assertEqual(
+            get_type_hints(prompt_artist_mix._prompt_data_artist_base_prompt)["data"],
+            PromptDataRead,
+        )
+        self.assertEqual(prompt_contracts.__all__, ())
 
     def test_prompt_data_conditioning_uses_prompt_data_socket_and_sampler_outputs(self):
         input_types = EasyUseAnimaPromptDataConditioning.INPUT_TYPES()
@@ -1281,6 +1313,11 @@ class PromptBuilderTests(unittest.TestCase):
         prompt_data = result["result"][0]
         self.assertIsInstance(prompt_data, dict)
         self.assertEqual(len(result["result"]), 1)
+        self.assertEqual(PromptData.__required_keys__, frozenset(prompt_data))
+        self.assertEqual(
+            PromptDataOutputs.__required_keys__,
+            frozenset(prompt_data["outputs"]),
+        )
         self.assertEqual(prompt_data["schema"], PROMPT_DATA_SCHEMA)
         self.assertEqual(prompt_data["type"], PROMPT_DATA_TYPE)
         self.assertEqual(prompt_data["outputs"]["positive_prompt"], prompt_data["positive_prompt"])

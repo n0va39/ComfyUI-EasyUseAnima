@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, cast
 
 from ..common.values import _as_bool
 from ..infrastructure.comfy.wiring import resolve_comfy_host_helper
@@ -39,7 +39,7 @@ def _aio_prompt_data_fields_for_usdu(
     fields = data.get("fields")
     if not isinstance(fields, list):
         fields = data.get("saved_fields")
-    return _normalize_advanced_fields(fields)
+    return _normalize_advanced_fields(cast(str | list | None, fields))
 
 
 def _aio_usdu_prompt_without_general(
