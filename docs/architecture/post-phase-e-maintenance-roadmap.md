@@ -4,7 +4,7 @@
 
 - Status: active execution plan after Phase D and Phase E completion.
 - Primary parent: Issue #185.
-- Active first task: Issue #188 / G-06A canonical test ownership.
+- Active first task: Issue #188 / G-CLOSE Phase F/G completion audit.
 - Quality owner: Issue #188.
 - Compatibility ledger: Issue #186.
 - D-14/H status: parked by compatibility gates, not failed.
@@ -20,8 +20,8 @@ the entire backend roadmap has no remaining work
 ```
 
 D-14/H waits for production-import, release-window, consumer, rollback, and
-breaking-change evidence. Phase F completion and G-04 through G-06 remain executable
-without deleting a root surface.
+breaking-change evidence. Phase F and G-04 through G-06 completed without deleting a
+root surface; G-CLOSE is the remaining audit.
 
 ## 1. Current verified state
 
@@ -55,7 +55,7 @@ ADR-002 result when evidence is absent or ambiguous.
 
 - G-04 public API snapshot coverage is complete; no G-04B gate was required.
 - G-05 size/complexity growth ratchet is complete as a blocking incremental gate.
-- G-06 canonical test ownership is not completed.
+- G-06 canonical test ownership is complete; the Phase F/G completion audit remains.
 - `api.py` has not reached a proven pure-shim form. `wildcard_engine.py` has reached
   its final direct-shim form, but that form has not shipped and release N has not begun.
 
@@ -83,8 +83,8 @@ COMPLETE F-02a Autocomplete typed result contracts             #563 / PR #566
   -> COMPLETE P-API-01 API production-facade feasibility Contract #582
   -> RETAIN P-API-02 canonical production-entry Move
   -> COMPLETE G-05A size/complexity baseline and changed-path ratchet #188
-  -> READY G-06A canonical test-ownership Contract             #188
-  -> G-CLOSE  Phase F/G completion audit
+  -> COMPLETE G-06A canonical test-ownership Contract          #188
+  -> READY G-CLOSE Phase F/G completion audit                  #188
 ```
 
 One task is active at a time unless allowed-file sets and evidence owners are proven
@@ -269,8 +269,8 @@ P-WC-02 result:
   bindings are preserved;
 - the analyzer includes the shipped compatibility shim as an explicit Registry entry
   module, retaining complete 176-module archive closure without a production import;
-- P-API-01 completed with RETAIN; G-05A is complete and G-06A is next. Release N
-  remains event-gated.
+- P-API-01 completed with RETAIN; G-05A and G-06A are complete, and G-CLOSE is next.
+  Release N remains event-gated.
 
 ### P-API-01 — API facade feasibility Contract
 
@@ -317,8 +317,8 @@ P-API-01 result:
   compatibility migration;
 - moving application creation into initialize or attaching it after runtime creation
   would change E-09 rollback and fixed cleanup-plan timing;
-- P-API-02 is not READY. G-05A is complete and G-06A is the next task; P-API may be
-  revisited only after a
+- P-API-02 is not READY. G-05A and G-06A are complete, and G-CLOSE is the next task;
+  P-API may be revisited only after a
   recorded patch-owner migration, consumer-backed seam retirement, acyclic private
   pre-initialize publication proof, or an explicit lifecycle Behavior Contract.
 
@@ -352,6 +352,9 @@ Owner: Issue #188.
 
 Type: Contract/gate first.
 
+Status: complete. The executable ownership map is documented in
+[`python-test-ownership-g06a-contract.md`](python-test-ownership-g06a-contract.md).
+
 Create a compact ownership map from feature packages to:
 
 ```text
@@ -370,6 +373,18 @@ Rules:
   the test is not explicitly a compatibility test;
 - each compatibility, package, migration, and live matrix has one named owner;
 - new canonical packages must identify their direct test owner.
+
+### G-CLOSE — Phase F/G completion audit
+
+Owner: Issue #188.
+
+Type: Contract/audit.
+
+Reconcile the completed G-04, G-05, and G-06 evidence with Phase F completion. Close
+the maintenance phase only when the current roadmap and development entrypoints name
+zero unfinished executable F/G tasks. Do not change production, add another fixture,
+or rerun package/live. If the audit finds an executable-contract inconsistency, stop
+and create only the smallest follow-up task instead of declaring completion.
 
 ## 8. Release N and H/D-14 re-audit
 
@@ -439,24 +454,24 @@ with Codex.
 ```text
 P-API-01 is complete with RETAIN. Do not start P-API-02 from this result.
 
-For the next task, start Issue #188 / G-06A from latest origin/dev and read:
+For the next task, start Issue #188 / G-CLOSE from latest origin/dev and read:
 - current-policies.md
 - codex-execution-efficiency.md universal rules
-- this document's G-06A and validation sections
-- Issue #188 latest G-06A checkpoint
-- existing feature-package test owners, compatibility/package/live matrices, and their
-  direct contract tests
+- this document's G-CLOSE and validation sections
+- Issue #188 latest G-06A completion checkpoint
+- the completed G-04 audit, G-05 size contract, G-06 test-ownership contract, and their
+  direct owner tests
 
 Do not read all historical D/E PRs and do not start D-14 removal.
 
-Without production changes, create only the compact canonical test-ownership map
-described by G-06A. Reuse existing tests and do not move historical tests for symmetry.
+Without production, test, tool, or fixture changes, reconcile the completed Phase F/G
+evidence and record either Phase G completion or one exact smallest follow-up.
 
 Run only targeted consistency/focused checks and git diff check. Run official full
-once only if an executable gate or fixture changes. Package/live are not triggered.
+only if an executable gate or fixture changes. Package/live are not triggered.
 
 Push a dev-targeted Draft PR, review, and squash merge. Do not reopen P-API-02, D-14,
-release, or Registry work while performing G-06A.
+release, or Registry work while performing G-CLOSE.
 
 Do not change production behavior, public/root exports, routes, API payloads,
 RuntimeServices/bootstrap lifecycle, migration semantics, deprecation
