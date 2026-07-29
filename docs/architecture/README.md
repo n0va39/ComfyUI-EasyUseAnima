@@ -19,7 +19,7 @@ then only the active task section, owning Issue, direct source, and direct tests
 - Phase F and Issue
   [#188](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/188) / G-04 public
   API snapshot coverage, G-05 size/complexity ratchet, and G-06 test ownership are
-  complete. Issue #188 continues to own the Phase F/G completion audit.
+  complete. G-CLOSE records zero unfinished executable Phase F/G tasks.
 - P-WC-01/P-WC-02 completed the Wildcard direct-shim conversion with the existing
   canonical service owner. The final form has not shipped, so release N and removal
   remain parked.
@@ -29,9 +29,7 @@ then only the active task section, owning Issue, direct source, and direct tests
 - The completed evidence and revisit gates are recorded in
   [`python-api-papi01-e09-lifecycle-gate.md`](python-api-papi01-e09-lifecycle-gate.md)
   and preserve the E-09 application/executor timing and root call-time seams.
-- First READY task: Issue
-  [#188](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/188) / G-CLOSE Phase F/G
-  completion audit.
+- First READY task: none. The next compatibility step is event-gated, not queued.
 - Issue [#186](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/186)
   remains the compatibility ledger. It owns pre-retirement evidence and later D-14
   decisions, not an immediately executable deletion task.
@@ -47,7 +45,8 @@ COMPLETE Phase F typed-boundary and feature-error work
   -> PARKED P-API-02 until a recorded revisit event
   -> COMPLETE G-05 size ratchet
   -> COMPLETE G-06 test ownership
-  -> READY G-CLOSE Phase F/G completion audit
+  -> COMPLETE G-CLOSE Phase F/G completion audit
+  -> no READY Phase F/G task
   -> next ordinary release N
   -> later H/D-14 re-audit
 ```
@@ -99,6 +98,9 @@ of architectural success by itself.
 - [`python-test-ownership-g06a-contract.md`](python-test-ownership-g06a-contract.md):
   canonical package direct test owners and single-owner migration, package, and live
   matrices.
+- [`python-phase-fg-completion-audit.md`](python-phase-fg-completion-audit.md):
+  final Phase F/G evidence reconciliation, zero-follow-up decision, and event-gated
+  compatibility handoff.
 - [`python-wildcard-pwc01-facade-feasibility.md`](python-wildcard-pwc01-facade-feasibility.md):
   FEASIBLE Wildcard direct-shim decision and P-WC-02 boundary.
 - [`python-feature-error-taxonomy-contract.md`](python-feature-error-taxonomy-contract.md):
@@ -154,7 +156,7 @@ Read only when the task touches the surface:
 
 - Branch/release/validation policy: [`MAINTAINING.md`](../../MAINTAINING.md)
 - Development entrypoint: [`../development/README.md`](../development/README.md)
-- Active immediate queue: `post-phase-e-maintenance-roadmap.md` + Issue #188
+- Completed Phase F/G plan and event gates: `post-phase-e-maintenance-roadmap.md`
 - P-API lifecycle compatibility: `python-api-papi01-e09-lifecycle-gate.md`
 - Target architecture: `python-backend.md`, ADR-001, ADR-002
 - Feature behavior: owning Issue
