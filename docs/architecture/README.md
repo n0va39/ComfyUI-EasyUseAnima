@@ -17,7 +17,7 @@ then only the active task section, owning Issue, direct source, and direct tests
 - [`post-phase-e-maintenance-roadmap.md`](post-phase-e-maintenance-roadmap.md)
   owns the current queue.
 - First READY task: Issue [#563](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/563)
-  / F-02b Prompt Studio Advanced field typed contract.
+  / F-02b Prompt field-family typed contract.
 - After Phase F handoff, Issue
   [#188](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/188)
   owns G-04 public API snapshot, G-05 size/complexity ratchet, and G-06 test ownership.
@@ -30,7 +30,7 @@ then only the active task section, owning Issue, direct source, and direct tests
 ```text
 COMPLETE F-02a Autocomplete typed result contracts
   -> COMPLETE affected-row re-audit
-  -> READY F-02b Prompt Studio Advanced field typed contract
+  -> READY F-02b Prompt field-family typed contract
   -> re-audit the affected Prompt row
   -> next smallest F-02 while a finding remains
   -> G-04A public API snapshot coverage audit

@@ -13,7 +13,7 @@ Read only the sections needed by the active task.
    - run package/live/benchmark only when triggered.
 3. Current backend queue:
    [`../architecture/post-phase-e-maintenance-roadmap.md`](../architecture/post-phase-e-maintenance-roadmap.md)
-   - first READY task: Issue #563 / F-02b Prompt Studio Advanced field typed contract;
+   - first READY task: Issue #563 / F-02b Prompt field-family typed contract;
    - D-14/H root removal is parked, not failed.
 4. Backend target architecture and compatibility policy:
    [`../architecture/README.md`](../architecture/README.md)
@@ -54,7 +54,7 @@ COMPLETE  Phase D package/root consolidation
 COMPLETE  Phase E runtime ownership/lifecycle/test isolation
 PARKED    D-14 / Phase H root removal
 COMPLETE  #563 F-02a Autocomplete typed result contracts
-READY     #563 F-02b Prompt Studio Advanced field typed contract
+READY     #563 F-02b Prompt field-family typed contract
 BLOCKED   #188 G-04 public API snapshot audit until Phase F closes
 LATER     G-05 size ratchet / G-06 test ownership
 EVENT     next ordinary release N -> later D-14 re-audit
@@ -76,14 +76,16 @@ Start with targeted owners rather than the full repository:
 ```text
 docs/architecture/python-typed-boundary-f01-audit.md  # F-02b task card
 Issue #563 latest checkpoint
-easyuse_anima/prompt/advanced.py and direct typed consumers
-direct Prompt Studio, AiO conditioning, node-owner, Pyright, and import fixtures
+easyuse_anima/prompt/advanced.py, prompt/regional.py, and direct typed consumers
+direct Advanced/Regional Prompt Studio, AiO conditioning, node-owner, Pyright,
+and import fixtures
 ```
 
-F-02b adds one internal normalized eight-key Advanced-field type without changing runtime
-dictionaries, JSON/workflow migration, field order/defaults, Prompt/AiO/wildcard/
-translation/artist-mix behavior, node results, or public exports. Do not expand into
-Prompt Data, settings, or error-taxonomy work.
+F-02b adds the internal PromptField/AdvancedField/RegionalField structural family
+without changing runtime dictionaries, JSON/workflow migration, field order/defaults,
+Prompt/AiO/wildcard/translation/artist-mix behavior, Regional mask assignments, node
+results, or public exports. Preserve Extend's omitted `pin`; do not expand into Prompt
+Data, settings, or error-taxonomy work.
 
 ## Following queue
 
