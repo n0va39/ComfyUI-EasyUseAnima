@@ -8,6 +8,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
 
+from ..errors import ValidationError
 from ..infrastructure.filesystem.atomic_json import (
     AtomicJsonStore,
     create_atomic_json_store,
@@ -33,7 +34,7 @@ WINDOWS_RESERVED_FILE_BASENAMES = {
 }
 
 
-class InvalidProfileDataError(ValueError):
+class InvalidProfileDataError(ValidationError, ValueError):
     pass
 
 

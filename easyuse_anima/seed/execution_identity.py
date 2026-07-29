@@ -10,6 +10,8 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from typing import TypeAlias, cast
 
+from ..errors import ValidationError
+
 SEED_EXECUTION_IDENTITY_VERSION = 1
 
 _REQUEST_NAMESPACE = (
@@ -25,7 +27,7 @@ _ExecutionContextLoader: TypeAlias = Callable[[], object]
 _RequestIdFactory: TypeAlias = Callable[[], str]
 
 
-class SeedExecutionIdentityError(ValueError):
+class SeedExecutionIdentityError(ValidationError, ValueError):
     """A seed execution identity component is invalid."""
 
 

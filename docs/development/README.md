@@ -13,7 +13,7 @@ Read only the sections needed by the active task.
    - run package/live/benchmark only when triggered.
 3. Current backend queue:
    [`../architecture/post-phase-e-maintenance-roadmap.md`](../architecture/post-phase-e-maintenance-roadmap.md)
-   - first READY task: Issue #563 / F-02f common category inheritance;
+   - first READY task: Issue #563 / F-02g authoritative API mappings;
    - D-14/H root removal is parked, not failed.
 4. Backend target architecture and compatibility policy:
    [`../architecture/README.md`](../architecture/README.md)
@@ -61,8 +61,8 @@ COMPLETE  #563 affected Prompt-row re-audit
 COMPLETE  #563 F-02d settings typed migration contract
 COMPLETE  #563 affected settings/profile/workflow-row re-audit
 COMPLETE  #563 F-02e common feature error taxonomy contract
-READY     #563 F-02f canonical categories and feature inheritance
-NEXT      #563 F-02g authoritative profile/translation API mappings
+COMPLETE  #563 F-02f canonical categories and feature inheritance
+READY     #563 F-02g authoritative profile/translation API mappings
 NEXT      #563 F-02h error-row and Phase F completion audit
 BLOCKED   #188 G-04 public API snapshot audit until Phase F closes
 LATER     G-05 size ratchet / G-06 test ownership
@@ -78,34 +78,34 @@ The D-14 stop is correct:
 
 That stop applies only to removal. It does not complete Phase F or G.
 
-## Active F-02f source map
+## Active F-02g source map
 
 Start with targeted owners rather than the full repository:
 
 ```text
-docs/architecture/python-feature-error-taxonomy-contract.md  # F-02f task card
+docs/architecture/python-feature-error-taxonomy-contract.md  # F-02g task card
 Issue #563 latest checkpoint
-direct feature error owners under profiles, autocomplete, prompt, aio, translation, seed
-taxonomy fixture/test plus Pyright, package, analyzer, and import fixtures
+api.py dynamic profile dependency composition
+easyuse_anima/api/responses.py and api/routes/translation.py mapping owners
+bootstrap translation composition plus taxonomy/API/runtime tests
 ```
 
-F-02f adds the documented categories and category ancestry in place. Preserve each
-concrete class object/module/name, existing feature-specific inheritance, built-in
-catch compatibility, constructor, attributes, exports, and behavior. Do not combine
-the F-02g profile/translation API mapping cutover into this task.
+F-02g moves profile and translation HTTP authority into canonical API adapters while
+preserving exact payloads, correlation, redaction, catch order, compatibility metadata,
+and the dynamic profile dependency seam. It does not change feature exceptions,
+taxonomy, root exports, or runtime lifecycle.
 
 ## Following queue
 
-After F-02f:
+After F-02g:
 
-1. execute F-02g as the separate authoritative API adapter mapping cutover;
-2. run F-02h to re-audit the common error row and record Phase F completion;
-3. after Phase F closes, run #188 G-04A against existing
+1. run F-02h to re-audit the common error row and record Phase F completion;
+2. after Phase F closes, run #188 G-04A against existing
    compatibility/node/API/package fixtures;
-4. audit Wildcard and API pure-shim feasibility without deleting root modules;
-5. add G-05 changed-path size growth and G-06 test-ownership gates;
-6. let the next ordinary release containing final shims become release N;
-7. re-audit D-14 only after an event-gate changes.
+3. audit Wildcard and API pure-shim feasibility without deleting root modules;
+4. add G-05 changed-path size growth and G-06 test-ownership gates;
+5. let the next ordinary release containing final shims become release N;
+6. re-audit D-14 only after an event-gate changes.
 
 No dedicated release, outbound telemetry, import-time deprecation warning, or public
 root removal is authorized by this queue.

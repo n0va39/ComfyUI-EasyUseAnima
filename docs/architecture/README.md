@@ -17,7 +17,7 @@ then only the active task section, owning Issue, direct source, and direct tests
 - [`post-phase-e-maintenance-roadmap.md`](post-phase-e-maintenance-roadmap.md)
   owns the current queue.
 - First READY task: Issue [#563](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/563)
-  / F-02f common category inheritance.
+  / F-02g authoritative profile/translation API mappings.
 - After Phase F handoff, Issue
   [#188](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/188)
   owns G-04 public API snapshot, G-05 size/complexity ratchet, and G-06 test ownership.
@@ -37,8 +37,8 @@ COMPLETE F-02a Autocomplete typed result contracts
   -> COMPLETE F-02d settings typed migration contract
   -> COMPLETE affected settings/profile/workflow-row re-audit
   -> COMPLETE F-02e common feature error taxonomy Contract
-  -> READY F-02f canonical categories and feature inheritance
-  -> F-02g authoritative profile/translation API mappings
+  -> COMPLETE F-02f canonical categories and feature inheritance
+  -> READY F-02g authoritative profile/translation API mappings
   -> F-02h error-row and Phase F completion audit
   -> G-04A public API snapshot coverage audit
   -> optional G-04B gap

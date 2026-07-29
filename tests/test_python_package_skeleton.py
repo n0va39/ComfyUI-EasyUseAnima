@@ -11,6 +11,7 @@ ROOT = Path(__file__).resolve().parents[1]
 PACKAGE_MODULES = (
     "easyuse_anima",
     "easyuse_anima.bootstrap",
+    "easyuse_anima.errors",
     "easyuse_anima.workflow",
     "easyuse_anima.aio",
     "easyuse_anima.aio.conditioning",
@@ -212,6 +213,15 @@ print(json.dumps({{
         expected_all[PACKAGE_MODULES.index("easyuse_anima.bootstrap")] = [
             "initialize",
             "shutdown",
+        ]
+        expected_all[PACKAGE_MODULES.index("easyuse_anima.errors")] = [
+            "EasyUseAnimaError",
+            "ValidationError",
+            "ConflictError",
+            "NotFoundError",
+            "CapabilityUnavailableError",
+            "UpstreamTimeoutError",
+            "StorageError",
         ]
         expected_all[PACKAGE_MODULES.index("easyuse_anima.api.errors")] = [
             "ApiContractError"

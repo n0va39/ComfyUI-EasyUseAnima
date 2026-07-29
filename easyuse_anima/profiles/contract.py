@@ -4,6 +4,7 @@ import uuid
 from collections.abc import Mapping
 from typing import Any, cast
 
+from ..errors import ValidationError
 
 PROFILE_ENVELOPE_VERSION = 2
 PROFILE_KIND_AIO = "aio"
@@ -14,7 +15,7 @@ _PROFILE_KINDS = frozenset({PROFILE_KIND_AIO, PROFILE_KIND_LORA})
 _ENVELOPE_FIELDS = frozenset({"version", "profile_id", "revision", "name"})
 
 
-class ProfileContractError(ValueError):
+class ProfileContractError(ValidationError, ValueError):
     """A stored profile does not satisfy the supported envelope taxonomy."""
 
 

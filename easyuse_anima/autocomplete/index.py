@@ -10,11 +10,11 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Protocol
 
+from ..errors import CapabilityUnavailableError
 from ..infrastructure.filesystem.paths import (
     PACKAGE_DATA_DIR as STORAGE_PACKAGE_DATA_DIR,
 )
 from ..infrastructure.filesystem.paths import USER_DATA_DIR
-
 
 AUTOCOMPLETE_INDEX_SCHEMA_VERSION = 1
 __all__ = (
@@ -73,7 +73,7 @@ class AutocompleteIndexResult:
     diagnostics: AutocompleteIndexDiagnostics
 
 
-class AutocompleteIndexUnavailable(RuntimeError):
+class AutocompleteIndexUnavailable(CapabilityUnavailableError, RuntimeError):
     def __init__(self, reason: str) -> None:
         super().__init__(reason)
         self.reason = reason
