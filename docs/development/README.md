@@ -13,7 +13,7 @@ Read only the sections needed by the active task.
    - run package/live/benchmark only when triggered.
 3. Current backend queue:
    [`../architecture/post-phase-e-maintenance-roadmap.md`](../architecture/post-phase-e-maintenance-roadmap.md)
-   - first READY task: Issue #563 / F-02a Autocomplete typed result contracts;
+   - first READY task: Issue #563 / F-02b Prompt Studio Advanced field typed contract;
    - D-14/H root removal is parked, not failed.
 4. Backend target architecture and compatibility policy:
    [`../architecture/README.md`](../architecture/README.md)
@@ -53,7 +53,8 @@ ordinary `dev` work.
 COMPLETE  Phase D package/root consolidation
 COMPLETE  Phase E runtime ownership/lifecycle/test isolation
 PARKED    D-14 / Phase H root removal
-READY     #563 F-02a Autocomplete typed result contracts
+COMPLETE  #563 F-02a Autocomplete typed result contracts
+READY     #563 F-02b Prompt Studio Advanced field typed contract
 BLOCKED   #188 G-04 public API snapshot audit until Phase F closes
 LATER     G-05 size ratchet / G-06 test ownership
 EVENT     next ordinary release N -> later D-14 re-audit
@@ -68,27 +69,27 @@ The D-14 stop is correct:
 
 That stop applies only to removal. It does not complete Phase F or G.
 
-## Active F-02a source map
+## Active F-02b source map
 
 Start with targeted owners rather than the full repository:
 
 ```text
-docs/architecture/python-typed-boundary-f01-audit.md  # F-02a task card
-docs/architecture/python-runtime-e05-autocomplete-contract.md
+docs/architecture/python-typed-boundary-f01-audit.md  # F-02b task card
 Issue #563 latest checkpoint
-direct Autocomplete owner source/tests
-current Pyright, import-boundary, and API fixtures
+easyuse_anima/prompt/advanced.py and direct typed consumers
+direct Prompt Studio, AiO conditioning, node-owner, Pyright, and import fixtures
 ```
 
-F-02a adds internal Autocomplete result types without changing runtime dictionary
-keys, order, values, redaction, owner identity, or public exports. Reuse the direct
-runtime/API contracts and do not expand into settings, Prompt, or error-taxonomy work.
+F-02b adds one internal normalized eight-key Advanced-field type without changing runtime
+dictionaries, JSON/workflow migration, field order/defaults, Prompt/AiO/wildcard/
+translation/artist-mix behavior, node results, or public exports. Do not expand into
+Prompt Data, settings, or error-taxonomy work.
 
 ## Following queue
 
-After F-02a:
+After F-02b:
 
-1. re-audit the Prompt/Wildcard/Autocomplete row;
+1. re-audit the affected Prompt row;
 2. execute the next smallest F-02 while any Phase F finding remains;
 3. only after Phase F closes, run #188 G-04A against existing
    compatibility/node/API/package fixtures;

@@ -4,7 +4,7 @@
 
 - Status: active execution plan after Phase D and Phase E completion.
 - Primary parent: Issue #185.
-- Active first task: Issue #563 / F-02a Autocomplete typed result contracts.
+- Active first task: Issue #563 / F-02b Prompt Studio Advanced field typed contract.
 - Quality owner: Issue #188.
 - Compatibility ledger: Issue #186.
 - D-14/H status: parked by compatibility gates, not failed.
@@ -65,8 +65,10 @@ ADR-002 result when evidence is absent or ambiguous.
 ### Lane A — Active maintainability work
 
 ```text
-READY F-02a   Autocomplete typed result contracts             #563
-  -> RE-AUDIT affected Phase F row
+COMPLETE F-02a Autocomplete typed result contracts             #563 / PR #566
+  -> COMPLETE affected-row re-audit
+  -> READY F-02b Prompt Studio Advanced field typed contract   #563
+  -> RE-AUDIT affected Prompt row
   -> F-02      next smallest targeted gap while one remains
   -> G-04A    public API snapshot coverage audit              #188
   -> OPTIONAL G-04B  minimal missing public-surface gate
@@ -131,18 +133,21 @@ Rules:
 Exit:
 
 - no gap: record Phase F complete and start G-04A;
-- gap: execute only the smallest F-02, re-audit the affected row, then start G-04A.
+- gap: execute only the smallest F-02, re-audit the affected row, then select the
+  next smallest remaining finding or start G-04A when Phase F closes.
 
-Audit result at `bade01e36146456e163341998ab1a7a19a4ae0b3`:
+Audit result, updated after F-02a merged at
+`3a306498325c48126325aadc6d31665acf3517b4`:
 
 - [`python-typed-boundary-f01-audit.md`](python-typed-boundary-f01-audit.md)
   records the production-free six-area inventory and reuses the existing
   deterministic fixtures;
-- Phase F remains open: settings typed migration, Prompt/Autocomplete result
-  boundaries, and the common feature error taxonomy have exact follow-up findings;
-- only the smallest follow-up, F-02a Autocomplete typed result contracts, is selected
-  as the next task card;
-- G-04A and Issue #188 remain blocked until the affected Phase F rows are re-audited.
+- Autocomplete and Wildcard are complete after F-02a; Prompt's normalized Advanced
+  fields and canonical Prompt Data remain exact, separable follow-up findings;
+- only the smallest follow-up, F-02b Prompt Studio Advanced field typed contract, is
+  selected as the next task card;
+- settings migration and common error taxonomy remain separate findings;
+- G-04A and Issue #188 remain blocked until all Phase F follow-up rows are closed.
 
 ## 4. G-04A — Public API snapshot coverage audit
 
@@ -357,31 +362,33 @@ with Codex.
 ## 10. Codex resume instruction
 
 ```text
-Start Issue #563 / F-02a only from latest origin/dev after F-01 merges.
+Start Issue #563 / F-02b only from latest origin/dev after the F-02a affected-row
+re-audit merges.
 
 Read:
 - current-policies.md
 - codex-execution-efficiency.md universal rules
 - this document's F-01 result and validation sections
-- python-typed-boundary-f01-audit.md F-02a task card
+- python-typed-boundary-f01-audit.md F-02b task card
 - Issue #563 latest checkpoint
-- python-runtime-e05-autocomplete-contract.md
-- direct Autocomplete owner source/tests and current Pyright/import/API fixtures
+- direct Prompt Advanced owner source/tests and current Pyright/import fixtures
 
 Do not read all historical D/E PRs and do not restart D-14 removal.
 
-Define canonical Autocomplete source/status/search/classification TypedDict results
-and apply them to the runtime port, service, core, and API redaction adapter without
-changing runtime dictionaries, path redaction, owner identity, or public exports.
-Reuse the existing Autocomplete runtime fixture and direct owner tests; update only a
-direct generated analyzer baseline when the new canonical module requires it.
+Define one canonical internal TypedDict for the normalized eight-key Advanced-field
+shape and apply it through direct Prompt, Prompt Studio node-adapter, AiO-conditioning,
+wildcard, translation, and artist-mix consumers without changing runtime dictionaries,
+input/workflow migration, field order/defaults, behavior, identities, or public exports.
+Reuse the direct Prompt Studio, AiO conditioning, node-owner, Pyright, and import tests;
+update only a direct generated analyzer baseline if the canonical module requires it.
 
 Run only targeted consistency/focused checks during the edit loop and git diff check.
 Run official full once on the final production/test/tool SHA.
 Package/live are not triggered.
 
-Push a dev-targeted Draft PR. After review and merge, execute the smallest F-02 only
-if required; otherwise start #188 G-04A.
+Push a dev-targeted Draft PR. After review and merge, re-audit the Prompt row and
+execute only its next smallest F-02 while a finding remains; otherwise continue the
+remaining Phase F rows before #188 G-04A.
 
 Do not remove root files, add deprecation warnings/telemetry, publish a release, or
 perform Registry work.
