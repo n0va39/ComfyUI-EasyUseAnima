@@ -4,7 +4,7 @@
 
 - Status: active execution plan after Phase D and Phase E completion.
 - Primary parent: Issue #185.
-- Active first task: Issue #563 / F-02c canonical Prompt Data typed read/output contract.
+- Active first task: Issue #563 / F-02d settings typed migration contract.
 - Quality owner: Issue #188.
 - Compatibility ledger: Issue #186.
 - D-14/H status: parked by compatibility gates, not failed.
@@ -69,8 +69,10 @@ COMPLETE F-02a Autocomplete typed result contracts             #563 / PR #566
   -> COMPLETE affected-row re-audit
   -> COMPLETE F-02b Prompt field-family typed contract         #563 / PR #569
   -> COMPLETE affected Prompt-row re-audit
-  -> READY F-02c canonical Prompt Data typed read/output       #563
-  -> RE-AUDIT affected Prompt row
+  -> COMPLETE F-02c canonical Prompt Data typed read/output    #563 / PR #571
+  -> COMPLETE affected Prompt-row re-audit
+  -> READY F-02d settings typed migration contract             #563
+  -> RE-AUDIT affected settings row
   -> F-02      next smallest targeted gap while one remains
   -> G-04A    public API snapshot coverage audit              #188
   -> OPTIONAL G-04B  minimal missing public-surface gate
@@ -138,19 +140,20 @@ Exit:
 - gap: execute only the smallest F-02, re-audit the affected row, then select the
   next smallest remaining finding or start G-04A when Phase F closes.
 
-Audit result, updated after F-02b merged at
-`4cf0c82ee459d37e67fa0b8d7b80cd162e111658`:
+Audit result, updated after F-02c merged at
+`789c29075f6a0651bd2da5c9abe6d0619e7cf8b7`:
 
 - [`python-typed-boundary-f01-audit.md`](python-typed-boundary-f01-audit.md)
   records the production-free six-area inventory and reuses the existing
   deterministic fixtures;
-- Autocomplete and Wildcard are complete after F-02a; the Prompt field family is
-  complete after F-02b;
+- Autocomplete and Wildcard are complete after F-02a; the Prompt field family and
+  canonical Prompt Data are complete after F-02b/F-02c;
 - legacy/future Prompt Data JSON remains intentionally raw only at the workflow and
   node adapter boundary;
-- only the smallest remaining Prompt leak, F-02c canonical Prompt Data typed
-  read/output contract, is selected as the next task card;
-- settings migration and common error taxonomy remain separate findings;
+- the Prompt/Wildcard/Autocomplete row is complete;
+- only the smaller remaining Phase F finding, F-02d settings typed migration contract,
+  is selected as the next task card;
+- common error taxonomy remains a separate later finding;
 - G-04A and Issue #188 remain blocked until all Phase F follow-up rows are closed.
 
 ## 4. G-04A — Public API snapshot coverage audit
@@ -366,37 +369,38 @@ with Codex.
 ## 10. Codex resume instruction
 
 ```text
-Start Issue #563 / F-02c only from latest origin/dev after the F-02b affected Prompt-row
-re-audit merges.
+Start Issue #563 / F-02d only from latest origin/dev after the F-02c affected Prompt-row
+completion re-audit merges.
 
 Read:
 - current-policies.md
 - codex-execution-efficiency.md universal rules
 - this document's F-01 result and validation sections
-- python-typed-boundary-f01-audit.md F-02c task card
+- python-typed-boundary-f01-audit.md F-02d task card
 - Issue #563 latest checkpoint
-- direct Prompt Data/Advanced/AiO/artist-mix owner source/tests and current
+- direct settings schema/repository/service/API owner source/tests and current
   Pyright/import fixtures
 
 Do not read all historical D/E PRs and do not restart D-14 removal.
 
-Define internal canonical Prompt Data output and nested TypedDicts plus a typed
-feature-side read mapping. Apply them from the Advanced v2 builder through Prompt Data
-helpers and direct Prompt/AiO/artist-mix consumers without changing runtime
-dictionaries, schema/version, nested key order/values, fallback precedence,
-copy-on-update behavior, input/workflow acceptance, identities, or public exports.
-Keep legacy and future JSON raw only at the adapter boundary. Reuse direct Prompt Data,
-AiO conditioning/generation, node-owner, Pyright, and import tests; update only a direct
-generated analyzer baseline if the canonical type surface requires it.
+Define typed normalized ordinary/long-text settings values and versioned v1 persisted
+documents. Add pure detection/migration from accepted v0 raw mappings to v1 and apply
+the contract through repository/service/API adapters without changing public payloads,
+defaults, aliases, Comfy overlay precedence, first-run autocomplete initialization,
+atomic locking, file-I/O dispatch, identities, or root exports. Preserve raw v0
+settings reads and raw/v1 long-text reads. Reuse direct settings, settings/long-text
+API, Pyright, analyzer, and import tests; add no new fixture unless current deterministic
+tests cannot express the migration contract.
 
 Run only targeted consistency/focused checks during the edit loop and git diff check.
 Run official full once on the final production/test/tool SHA.
 Package/live are not triggered.
 
-Push a dev-targeted Draft PR. After review and merge, re-audit the Prompt row and
-execute only its next smallest F-02 while a finding remains; otherwise continue the
-remaining Phase F rows before #188 G-04A.
+Push a dev-targeted Draft PR. After review and merge, re-audit the settings row and
+execute only its smallest residual if one remains; otherwise select common feature
+error taxonomy before #188 G-04A.
 
-Do not remove root files, add deprecation warnings/telemetry, publish a release, or
-perform Registry work.
+Do not change profile/workflow/AiO migrations or common error taxonomy. Do not remove
+root files, add deprecation warnings/telemetry, publish a release, or perform Registry
+work.
 ```
