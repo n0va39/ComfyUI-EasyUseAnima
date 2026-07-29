@@ -4,7 +4,7 @@
 
 - Status: active execution plan after Phase D and Phase E completion.
 - Primary parent: Issue #185.
-- Active first task: Issue #563 / F-02d settings typed migration contract.
+- Active first task: Issue #563 / F-02e common feature error taxonomy contract.
 - Quality owner: Issue #188.
 - Compatibility ledger: Issue #186.
 - D-14/H status: parked by compatibility gates, not failed.
@@ -71,9 +71,11 @@ COMPLETE F-02a Autocomplete typed result contracts             #563 / PR #566
   -> COMPLETE affected Prompt-row re-audit
   -> COMPLETE F-02c canonical Prompt Data typed read/output    #563 / PR #571
   -> COMPLETE affected Prompt-row re-audit
-  -> READY F-02d settings typed migration contract             #563
-  -> RE-AUDIT affected settings row
-  -> F-02      next smallest targeted gap while one remains
+  -> COMPLETE F-02d settings typed migration contract          #563 / PR #573
+  -> COMPLETE affected settings/profile/workflow row re-audit
+  -> READY F-02e common feature error taxonomy Contract        #563
+  -> IMPLEMENT only the contract-selected error cutover
+  -> RE-AUDIT affected error row and close Phase F
   -> G-04A    public API snapshot coverage audit              #188
   -> OPTIONAL G-04B  minimal missing public-surface gate
   -> P-WC-01  wildcard pure-shim feasibility Contract         #186
@@ -140,8 +142,8 @@ Exit:
 - gap: execute only the smallest F-02, re-audit the affected row, then select the
   next smallest remaining finding or start G-04A when Phase F closes.
 
-Audit result, updated after F-02c merged at
-`789c29075f6a0651bd2da5c9abe6d0619e7cf8b7`:
+Audit result, updated after F-02d merged at
+`e9640c4db951939173ff5ffb8d54472795599383`:
 
 - [`python-typed-boundary-f01-audit.md`](python-typed-boundary-f01-audit.md)
   records the production-free six-area inventory and reuses the existing
@@ -151,9 +153,11 @@ Audit result, updated after F-02c merged at
 - legacy/future Prompt Data JSON remains intentionally raw only at the workflow and
   node adapter boundary;
 - the Prompt/Wildcard/Autocomplete row is complete;
-- only the smaller remaining Phase F finding, F-02d settings typed migration contract,
-  is selected as the next task card;
-- common error taxonomy remains a separate later finding;
+- typed v1 ordinary/long-text settings persistence plus pure legacy/raw reads close
+  the settings/profile/workflow row while profile future fields and raw host workflow
+  lookup remain intentional migration/adapter boundaries;
+- common feature error taxonomy is the only remaining Phase F finding, and F-02e
+  starts with a production-free executable contract before implementation;
 - G-04A and Issue #188 remain blocked until all Phase F follow-up rows are closed.
 
 ## 4. G-04A — Public API snapshot coverage audit
@@ -369,38 +373,37 @@ with Codex.
 ## 10. Codex resume instruction
 
 ```text
-Start Issue #563 / F-02d only from latest origin/dev after the F-02c affected Prompt-row
-completion re-audit merges.
+Start Issue #563 / F-02e only from latest origin/dev after the F-02d affected
+settings/profile/workflow-row completion re-audit merges.
 
 Read:
 - current-policies.md
 - codex-execution-efficiency.md universal rules
 - this document's F-01 result and validation sections
-- python-typed-boundary-f01-audit.md F-02d task card
+- python-typed-boundary-f01-audit.md F-02e task card
 - Issue #563 latest checkpoint
-- direct settings schema/repository/service/API owner source/tests and current
-  Pyright/import fixtures
+- direct profile, Autocomplete, Prompt knowledge, AiO migration, translation, seed,
+  API/node error owners/tests and current Pyright/import/package fixtures
 
 Do not read all historical D/E PRs and do not restart D-14 removal.
 
-Define typed normalized ordinary/long-text settings values and versioned v1 persisted
-documents. Add pure detection/migration from accepted v0 raw mappings to v1 and apply
-the contract through repository/service/API adapters without changing public payloads,
-defaults, aliases, Comfy overlay precedence, first-run autocomplete initialization,
-atomic locking, file-I/O dispatch, identities, or root exports. Preserve raw v0
-settings reads and raw/v1 long-text reads. Reuse direct settings, settings/long-text
-API, Pyright, analyzer, and import tests; add no new fixture unless current deterministic
-tests cannot express the migration contract.
+Create a production-free executable contract for the documented `EasyUseAnimaError`
+categories. Inventory every current feature error, preserve its concrete identity and
+built-in exception compatibility, and freeze exact API/node status, code, message,
+details, redaction, and request-correlation mappings. A new narrow machine-readable
+fixture is allowed because the hierarchy does not yet exist and current fixtures
+cannot express category completeness. Do not change production inheritance or error
+behavior in this task.
 
 Run only targeted consistency/focused checks during the edit loop and git diff check.
-Run official full once on the final production/test/tool SHA.
+Run official full once on the final test/tool SHA.
 Package/live are not triggered.
 
-Push a dev-targeted Draft PR. After review and merge, re-audit the settings row and
-execute only its smallest residual if one remains; otherwise select common feature
-error taxonomy before #188 G-04A.
+Push a dev-targeted Draft PR. After review and merge, execute only the contract-selected
+cohesive cutover or smallest ordered slices, re-audit the error row, and mark Phase F
+complete before #188 G-04A.
 
-Do not change profile/workflow/AiO migrations or common error taxonomy. Do not remove
-root files, add deprecation warnings/telemetry, publish a release, or perform Registry
-work.
+Do not change profile/settings/workflow/AiO migration semantics, public/root exports,
+or API payloads. Do not remove root files, add deprecation warnings/telemetry, publish
+a release, or perform Registry work.
 ```

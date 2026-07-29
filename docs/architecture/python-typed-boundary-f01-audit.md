@@ -10,15 +10,16 @@
 
 This audit reuses the current Pyright, import-boundary, API, profile, workflow,
 Autocomplete, Wildcard, and AiO schema/migration evidence. The Prompt/Wildcard/
-Autocomplete row was re-audited after F-02c merged as PR #571. It adds no second
-machine-readable inventory because the current deterministic fixtures and direct
-owner tests can express every finding below.
+Autocomplete row was re-audited after F-02c merged as PR #571, and the settings,
+profile, and workflow row was re-audited after F-02d merged as PR #573. It adds no
+second machine-readable inventory because the current deterministic fixtures and
+direct owner tests can express every finding below.
 
 ## Classification
 
 | Area | Canonical typed owner and evidence | Intentional raw boundary | Classification and exact finding |
 | --- | --- | --- | --- |
-| Settings, profile, and workflow schema/migration | Profile v2 identity/revision and pure read migration are owned by `easyuse_anima/profiles/contract.py`; the strict Pyright owner is fixed by `tests/fixtures/pyright_baseline.json`. Settings persistence/projection is owned by `easyuse_anima/settings/schema.py`, `repository.py`, and `service.py`. Read-only ComfyUI workflow lookup is owned by `easyuse_anima/workflow.py`. Direct evidence is in `tests/test_profile_contract.py`, `tests/test_lora_profiles.py`, `tests/test_aio_profiles.py`, `tests/test_api_contract.py`, and `tests/test_node_contracts.py`. | Profile payload mappings preserve legacy and future fields at the persisted JSON migration boundary. `_get_workflow_node` accepts dynamic host `extra_pnginfo` and returns a raw workflow node only at the ComfyUI adapter boundary. | **exact F-02 follow-up required.** Profile and workflow boundaries are complete or intentional, but ordinary settings have no version detection, pure migration sequence, or typed post-normalization model. Long-text settings write a v1 envelope, yet their normalized value and the settings service still cross feature code as unparameterized dictionaries. |
+| Settings, profile, and workflow schema/migration | Profile v2 identity/revision and pure read migration are owned by `easyuse_anima/profiles/contract.py`; the strict Pyright owner is fixed by `tests/fixtures/pyright_baseline.json`. Settings typed values, v1 persisted documents, detection/migration, persistence, and projection are owned by `easyuse_anima/settings/schema.py`, `repository.py`, and `service.py`. Read-only ComfyUI workflow lookup is owned by `easyuse_anima/workflow.py`. Direct evidence is in `tests/test_prompt_corrector.py`, `tests/test_autocomplete_locale_settings.py`, `tests/test_profile_contract.py`, `tests/test_lora_profiles.py`, `tests/test_aio_profiles.py`, `tests/test_api_contract.py`, and `tests/test_node_contracts.py`. | Settings accept legacy flat ordinary mappings and raw long-text mappings only at pure read-migration boundaries. Profile payload mappings preserve legacy and future fields at the persisted JSON migration boundary. `_get_workflow_node` accepts dynamic host `extra_pnginfo` and returns a raw workflow node only at the ComfyUI adapter boundary. | **complete.** F-02d adds typed normalized settings values, strict v1 detection, and pure legacy/raw-to-v1 reads while new ordinary, long-text, and first-run initialization writes use the v1 envelope. Existing settings payloads and profile/workflow compatibility boundaries remain unchanged. |
 | API request/result/error | `easyuse_anima/api/requests.py` validates JSON-object bodies and produces typed scalar fields; `easyuse_anima/api/errors.py` owns `ApiContractError`; `easyuse_anima/api/responses.py` owns the stable error envelope and request correlation. `tests/test_api_contract_compatibility.py` and the direct route classes in `tests/test_api_contract.py` freeze the behavior. | Request bodies and success/error dictionaries exist at the JSON serialization adapter. Profile and settings sub-objects remain mappings only while they are validated or handed to their persisted-schema boundary. | **intentional adapter/migration boundary.** Malformed/body/schema/conflict/not-found mappings and request-id correlation are typed or tested before feature calls; raw response dictionaries do not become feature-service state. |
 | Prompt, Wildcard, and Autocomplete | Prompt correction owns `TagInfo`, `TagToken`, `ParsedPrompt`, and `CorrectionResult` in `easyuse_anima/prompt/anima/models.py`. `easyuse_anima/prompt/contracts.py` owns the `PromptField` family plus canonical `PromptData` nested/output contracts and the feature-side `PromptDataRead` mapping. Wildcard owns `WildcardOption`, `WildcardExpansionBudget`, and `WildcardExpansionResult` in `easyuse_anima/wildcard/models.py`. Autocomplete source/status/search/classification payloads are owned by `easyuse_anima/autocomplete/contracts.py`. Direct evidence is in the Prompt, Regional, AiO-conditioning, Wildcard, Autocomplete, Pyright, and analyzer owner tests. | Prompt Data JSON accepts old layouts, malformed nested values, and future keys at the workflow/node adapter boundary. The legacy Extend adapter intentionally omits optional `pin`, and legacy Regional fallback may omit optional `pin`/`collapsed`; Wildcard and Autocomplete payload dictionaries are serialized by API adapters after typed feature results. | **complete.** F-02a through F-02c type the Autocomplete results, shared Prompt field family, canonical Prompt Data output, and feature-side read mapping. Raw workflow/node JSON stays at the intentional adapter/migration boundary and no untyped Prompt feature-state leak remains. |
 | AiO config/request/state/result | `AIOGenerationConfig` and its section dataclasses are owned by `easyuse_anima/aio/generation_settings.py` and adjacent strict generation modules. `GenerationRequest`, `GenerationState`, and `GenerationStage` are owned by `easyuse_anima/aio/generation_pipeline.py`; version detection and pure v1-to-v4 migration are owned by `generation_migrations.py`. Evidence is in the v1-v4 schema/surface fixtures and `tests/test_aio_schema_contract.py`, `tests/test_aio_generation_settings.py`, and `tests/test_aio_generation_migrations.py`. | `Mapping[str, object]` is retained only for JSON freeze/thaw, unknown-field preservation, host capability maps, prompt/workflow context, and final ComfyUI result serialization. Tensor/model values remain `object` at host boundaries. | **complete.** Normalized settings enter the generation pipeline as a typed config and typed request/state objects; strict per-file Pyright directives cover the generation contract modules. |
@@ -81,60 +82,72 @@ typed contracts. Legacy, future, and malformed workflow/node JSON remains raw on
 the intentional adapter boundary. The Prompt/Wildcard/Autocomplete row is therefore
 **complete**.
 
-## Selected next task: F-02d
+## F-02d completion re-audit
 
-Settings typed migration is the smaller of the two remaining Phase F findings. Common
-feature error taxonomy remains separate and is not silently combined into this task.
+F-02d merged as PR #573 at `e9640c4db951939173ff5ffb8d54472795599383`.
+Its final candidate passed 1,442 Python tests, 120-file frontend validation,
+Pyright/import-boundary checks, and `git diff --check`; package/live were not
+triggered. Ordinary settings and long-text settings now share typed normalized values,
+strict v1 persisted-document detection, and pure accepted legacy/raw-to-v1 reads. New
+ordinary, long-text, and first-run initialization writes use v1 envelopes. Public/API
+payloads, defaults, aliases, Comfy overlay precedence, unknown-key behavior, atomic
+locking, and root identities remain unchanged. Profile future-field preservation and
+raw ComfyUI workflow lookup remain intentional migration/adapter boundaries. The
+settings/profile/workflow row is therefore **complete**.
+
+## Selected next task: F-02e
+
+Common feature error taxonomy is the only remaining Phase F finding. The first unit is
+a production-free executable Contract so the shared categories, built-in exception
+compatibility, and adapter mappings are fixed before any cross-feature inheritance or
+HTTP-metadata move.
 
 ```text
-Task ID: F-02d settings typed migration contract
+Task ID: F-02e common feature error taxonomy contract
 Owner Issue: #563
-Primary class: CONTRACT + MIGRATION
+Primary class: CONTRACT/GATE; production-free
 Base SHA: latest origin/dev after this completion re-audit merges
-Goal: define typed normalized ordinary/long-text settings values and versioned v1
-      persisted documents; add pure detection/migration from accepted v0 raw mappings
-      to v1; apply the contract through repository/service/API adapters while
-      preserving the existing public payloads.
-Prerequisites: merged F-02c and this affected Prompt-row completion re-audit
-Allowed production files:
-  easyuse_anima/settings/schema.py
-  easyuse_anima/settings/repository.py
-  easyuse_anima/settings/service.py
-  easyuse_anima/api/routes/settings.py only for direct result annotations
-  easyuse_anima/api/routes/long_text_settings.py only for direct result annotations
-Allowed test/config files:
-  tests/test_prompt_corrector.py only SettingsTests
-  tests/test_autocomplete_locale_settings.py only persisted initialization shape
-  tests/test_api_contract.py only ApiSettingsRouteTests and
-    ApiLongTextSettingsRouteTests
-  tests/test_pyright_baseline.py
-  tests/test_python_backend_analyzer.py
-  tests/fixtures/python_backend_baseline.json only for generated analyzer evidence
-  pyrightconfig.json and tests/fixtures/pyright_baseline.json only if the exact
-    touched owners are strict-clean and deliberately enrolled without new debt
-  no new schema fixture unless the current deterministic tests cannot express the
-    migration contract
-Forbidden changes: public settings/API shapes, accepted keys/defaults, resolver
-  semantics, profile/workflow/AiO migrations, common error taxonomy, root exports,
-  broad Any cleanup, ignore additions
-Preserved invariants: raw v0 settings and raw/v1 long-text reads; invalid/non-object/
-  OSError fallback behavior; alias normalization and current unknown-key behavior;
-  Comfy overlay precedence, colors, locale, and autocomplete first-run behavior;
-  sorted long-text write order; atomic locking/concurrent updates; root aliases and
-  route handler identity
+Goal: define one machine-readable contract for the documented `EasyUseAnimaError`
+      hierarchy; classify every current feature error; freeze built-in exception
+      compatibility plus exact API/node status, code, message, details, redaction,
+      and request-correlation behavior; emit the smallest implementation card(s).
+Prerequisites: merged F-02d and this settings-row completion re-audit
+Allowed files:
+  docs/architecture/python-feature-error-taxonomy-contract.md
+  docs/architecture/python-typed-boundary-f01-audit.md
+  docs/architecture/post-phase-e-maintenance-roadmap.md
+  docs/architecture/README.md
+  docs/development/README.md
+  tests/fixtures/python_feature_error_contract.v1.json
+  tests/test_python_feature_error_contract.py
+  tests/test_python_package_skeleton.py only if needed to freeze the planned
+    canonical private/public surface; no production files
+Required inventory:
+  profile contract/repository/mutation errors
+  Autocomplete index unavailable
+  Prompt knowledge-base compatibility error
+  AiO generation migration error
+  translation contract errors
+  seed contract/identity/reservation errors
+  API-only ApiContractError and direct API/node mappers
+Forbidden changes: production inheritance or behavior, status/code/message/details,
+  public/root exports, exception construction/catch order, broad error redesign,
+  migration/storage semantics, Any cleanup, ignore additions
+Preserved invariants: exact concrete exception identity and built-in catch
+  compatibility; profile dynamic monkeypatch seams; translation and profile HTTP
+  responses; Autocomplete fallback diagnostics; seed conflict/capacity behavior;
+  AiO migration messages; Prompt compatibility imports; request correlation/redaction
 Focused tests and purpose:
-  tests.test_prompt_corrector.SettingsTests — defaults, legacy reads, migration,
-    aliases, overlays, initialization, and atomic writes remain exact
-  tests.test_api_contract.ApiSettingsRouteTests — settings API payload/error/identity
-  tests.test_api_contract.ApiLongTextSettingsRouteTests — long-text payload/order/error
-  tests.test_pyright_baseline plus the current quality gate — no new debt
-  tests.test_python_backend_analyzer and import-boundary owners — dependency surface
-Promotion gates: changed-file syntax/static, focused tests, import boundary,
-  git diff --check, official full once on the final production/test/tool SHA;
-  no package/live
-Stop conditions: a public/API payload change, incompatible persisted-data rewrite,
-  import-time I/O, lock/order change, root export, or profile/workflow/error-taxonomy
-  change is required
-Next task: re-audit the settings row; if complete, select common feature error taxonomy,
-  otherwise select only the smallest residual; G-04A remains blocked
+  new taxonomy contract owner — category/inheritance/mapping completeness
+  direct profile and translation API error owners — frozen adapter mapping evidence
+  direct Autocomplete/AiO/seed/Prompt error owners — concrete behavior evidence
+  tests.test_pyright_baseline, package skeleton, analyzer, and import-boundary owners
+Promotion gates: changed-file syntax/static, exact direct focused targets,
+  git diff --check, official full once on the final test/tool SHA; no package/live
+Stop conditions: direct evidence cannot select one inheritance/mapping design while
+  preserving built-in and public identity compatibility; a new public root export,
+  API payload change, or feature behavior change is required
+Next task: one cohesive implementation if the contract proves one safe inheritance
+  and adapter cutover; otherwise the smallest ordered implementation slices; then
+  re-audit the error row and mark Phase F complete before G-04A
 ```
