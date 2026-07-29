@@ -191,6 +191,17 @@ class PythonFeatureErrorContractTests(unittest.TestCase):
             with self.subTest(error=name):
                 self.assertEqual(mapping["target_authority"], "api-adapter")
                 self.assertTrue(mapping["owner"].startswith("easyuse_anima.api."))
+                if mapping["mapping_policy"] == "dynamic-compatibility":
+                    self.assertEqual(
+                        mapping["adapter_inputs"],
+                        ["status", "code", "message", "details"],
+                    )
+                elif name.startswith("Profile"):
+                    self.assertEqual(mapping["adapter_inputs"], ["details"])
+                elif name == "InvalidProfileDataError":
+                    self.assertEqual(mapping["adapter_inputs"], [])
+                else:
+                    self.assertEqual(mapping["adapter_inputs"], ["message-text"])
                 if mapping["current_metadata_owner"] == "api-adapter":
                     continue
                 error = feature_errors[name]
@@ -211,18 +222,42 @@ class PythonFeatureErrorContractTests(unittest.TestCase):
                     mapping["details"],
                 )
 
-    def test_current_http_authority_is_recorded_before_the_adapter_cutover(self):
+    def test_api_authority_and_named_compatibility_inputs_are_current(self):
         authority = self.fixture["current_authority"]
         self.assertEqual(
             (ROOT / self.fixture["canonical_taxonomy"]["module"]).is_file(),
             authority["canonical_module_exists"],
         )
+        self.assertEqual(
+            authority["policy_fields"],
+            ["status", "code", "default_message"],
+        )
+        self.assertEqual(
+            authority["static_resolution"],
+            "ordered-specific-isinstance-exact-base-then-dynamic-derived-base",
+        )
+        self.assertEqual(
+            authority["profile_dynamic_compatibility"],
+            {
+                "adapter_inputs": ["status", "code", "message", "details"],
+                "scope": "generic-or-injected-ProfileMutationError",
+            },
+        )
+        self.assertEqual(
+            authority["translation_dynamic_compatibility"],
+            {
+                "adapter_inputs": ["status", "code", "message"],
+                "scope": "unregistered-or-root-derived-PromptTranslationError",
+            },
+        )
         for prefix in ("profile", "translation"):
             source = (ROOT / authority[f"{prefix}_mapper_source"]).read_text(
                 encoding="utf-8"
             )
-            for expression in authority[f"{prefix}_mapper_reads"]:
+            for expression in authority[f"{prefix}_mapper_required_reads"]:
                 self.assertIn(expression, source)
+            for expression in authority[f"{prefix}_mapper_forbidden_reads"]:
+                self.assertNotIn(expression, source)
 
     def test_direct_test_owners_and_ordered_implementation_exist(self):
         for target in self.fixture["direct_test_owners"]:
@@ -257,6 +292,10 @@ class PythonFeatureErrorContractTests(unittest.TestCase):
         )
         self.assertIn(
             "profile-and-translation-status-code-message-details-payloads",
+            self.fixture["preserved_invariants"],
+        )
+        self.assertIn(
+            "profile-dynamic-compatibility-adapter-inputs",
             self.fixture["preserved_invariants"],
         )
 

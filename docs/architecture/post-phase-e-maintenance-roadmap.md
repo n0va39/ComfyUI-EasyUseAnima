@@ -390,11 +390,15 @@ Read:
 
 Do not read all historical D/E PRs and do not restart D-14 removal.
 
-Make the canonical profile and translation API mappings authoritative without reading
-feature-owned HTTP status/code/message/details metadata. Preserve those attributes as
-compatibility mirrors, preserve exact payloads/correlation/redaction/catch order, and
-retain the arbitrary dynamic ProfileMutationError dependency seam. Do not change the
-feature exceptions, taxonomy, route/runtime lifecycle, or root exports.
+Apply the focused PRO correction recorded in the error-taxonomy Contract. Canonical
+concrete tables own fixture-known profile and translation status/code/default-message
+without reading those compatibility mirrors. Preserve concrete profile details as
+semantic adapter input; retain generic or injected ProfileMutationError
+status/code/message/details and unregistered or root-derived PromptTranslationError
+status/code/message as the explicitly named dynamic-compatibility seams. Translation
+message text remains semantic instance input. Preserve exact
+payloads/correlation/redaction/catch order and do not change feature exceptions,
+taxonomy, route/runtime lifecycle, or root exports.
 
 Run only targeted consistency/focused checks during the edit loop and git diff check.
 Run official full once on the final production/test/tool SHA.

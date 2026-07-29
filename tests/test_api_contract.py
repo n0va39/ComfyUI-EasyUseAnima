@@ -981,14 +981,34 @@ class ApiRequestCorrelationTests(unittest.TestCase):
             code = "translation_upstream_error"
 
         cases = (
-            (api.TranslationCancelledError(), 499, "translation_cancelled"),
-            (TranslationUpstreamTestError(), 502, "translation_upstream_error"),
-            (api.TranslationBusyError(), 503, "translation_busy"),
-            (api.TranslationTimeoutError(), 504, "translation_timeout"),
+            (
+                api.TranslationCancelledError(),
+                499,
+                "translation_cancelled",
+                "The translation request was cancelled.",
+            ),
+            (
+                TranslationUpstreamTestError(),
+                502,
+                "translation_upstream_error",
+                "Prompt translation failed.",
+            ),
+            (
+                api.TranslationBusyError(),
+                503,
+                "translation_busy",
+                "A prompt translation request is already in progress.",
+            ),
+            (
+                api.TranslationTimeoutError(),
+                504,
+                "translation_timeout",
+                "The translation provider timed out.",
+            ),
         )
         handler = routes.handlers["/easyuse_anima/translate_prompt"]
 
-        for error, status, code in cases:
+        for error, status, code, message in cases:
             with self.subTest(code=code), patch.object(
                 api,
                 "_translate_prompt_for_route",
@@ -997,6 +1017,7 @@ class ApiRequestCorrelationTests(unittest.TestCase):
                 response = asyncio.run(handler(JsonRequest({"text": "%{text}"})))
             self.assertEqual(response["status"], status)
             self.assertEqual(response["payload"]["code"], code)
+            self.assertEqual(response["payload"]["message"], message)
             self.assertEqual(
                 response["payload"]["request_id"],
                 response.headers["X-Request-ID"],
@@ -1220,6 +1241,72 @@ class ApiProfileErrorResponseTests(unittest.TestCase):
         with self.assertRaises(RuntimeError) as raised:
             api._profile_error_response(unexpected)
         self.assertIs(raised.exception, unexpected)
+
+    def test_profile_concrete_policy_ignores_metadata_but_keeps_semantic_details(self):
+        api, _routes = load_api_routes(register=False)
+        mutation_owner = sys.modules[api.ProfileMutationError.__module__]
+
+        class DerivedRevisionConflictError(
+            mutation_owner.ProfileRevisionConflictError
+        ):
+            pass
+
+        cases = (
+            (
+                mutation_owner.ProfilePreconditionRequiredError(
+                    ("profile_id", "revision"),
+                    profile="target",
+                ),
+                428,
+                "profile_precondition_required",
+                "Profile precondition is required",
+                {
+                    "profile": "target",
+                    "fields": ["profile_id", "revision"],
+                },
+            ),
+            (
+                mutation_owner.ProfileIdentityMismatchError(profile="target"),
+                409,
+                "profile_identity_mismatch",
+                "Profile identity does not match",
+                {"profile": "target"},
+            ),
+            (
+                mutation_owner.ProfileRevisionConflictError(profile="target"),
+                409,
+                "profile_revision_conflict",
+                "Profile revision does not match",
+                {"profile": "target"},
+            ),
+            (
+                DerivedRevisionConflictError(profile="derived"),
+                409,
+                "profile_revision_conflict",
+                "Profile revision does not match",
+                {"profile": "derived"},
+            ),
+        )
+
+        for error, status, code, message, details in cases:
+            error.status = 599
+            error.code = "tampered_code"
+            error.message = "Tampered message"
+            expected_response = object()
+            with self.subTest(error=type(error).__name__), patch.object(
+                api,
+                "_error_response",
+                return_value=expected_response,
+            ) as error_response:
+                response = api._profile_error_response(error)
+
+            self.assertIs(response, expected_response)
+            error_response.assert_called_once_with(
+                status,
+                code,
+                message,
+                details=details,
+            )
 
     def test_profile_error_boundary_keeps_dynamic_root_dependencies(self):
         api, _routes = load_api_routes(register=False)

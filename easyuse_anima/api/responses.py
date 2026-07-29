@@ -9,6 +9,27 @@ from typing import Any, Mapping, cast
 
 REQUEST_ID_HEADER = "X-Request-ID"
 
+_PROFILE_MUTATION_HTTP_MAPPINGS: tuple[tuple[str, int, str, str], ...] = (
+    (
+        "precondition_required",
+        428,
+        "profile_precondition_required",
+        "Profile precondition is required",
+    ),
+    (
+        "identity_mismatch",
+        409,
+        "profile_identity_mismatch",
+        "Profile identity does not match",
+    ),
+    (
+        "revision_conflict",
+        409,
+        "profile_revision_conflict",
+        "Profile revision does not match",
+    ),
+)
+
 
 def error_payload(
     code: str,
@@ -100,6 +121,7 @@ def build_contract_error_response(*, error_response):
 def build_profile_error_response(
     *,
     max_aio_profiles,
+    profile_mutation_error_types: Mapping[str, type[Exception]],
     is_profile_mutation_error,
     is_file_exists_error,
     is_file_not_found_error,
@@ -109,6 +131,11 @@ def build_profile_error_response(
     error_response,
 ):
     """Build the shared profile error mapper without profile-domain imports."""
+
+    mutation_error_mappings = tuple(
+        (profile_mutation_error_types[key], status, code, default_message)
+        for key, status, code, default_message in _PROFILE_MUTATION_HTTP_MAPPINGS
+    )
 
     safe_validation_messages = frozenset(
         {
@@ -123,13 +150,22 @@ def build_profile_error_response(
     )
 
     def _profile_error_response(exc: Exception):
+        for error_type, status, code, default_message in mutation_error_mappings:
+            if isinstance(exc, error_type):
+                mapped_error = cast(Any, exc)
+                return error_response(
+                    status,
+                    code,
+                    default_message,
+                    details=mapped_error.details,
+                )
         if is_profile_mutation_error(exc):
-            mutation_error = cast(Any, exc)
+            compatibility_error = cast(Any, exc)
             return error_response(
-                mutation_error.status,
-                mutation_error.code,
-                mutation_error.message,
-                details=mutation_error.details,
+                compatibility_error.status,
+                compatibility_error.code,
+                compatibility_error.message,
+                details=compatibility_error.details,
             )
         if is_file_exists_error(exc):
             return error_response(

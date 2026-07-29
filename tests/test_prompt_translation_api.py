@@ -154,7 +154,7 @@ class PromptTranslationApiTests(unittest.TestCase):
         self.assertIs(routes.handlers[ROUTE], api.translate_prompt_handler)
 
     def test_runtime_builder_constructs_one_worker_without_lifecycle_side_effect(self):
-        api, _routes, _translation, _translation_service = self.load_routes()
+        api, _routes, translation, _translation_service = self.load_routes()
         owner = sys.modules[api._translate_prompt_sync.__module__]
         created = []
 
@@ -187,6 +187,20 @@ class PromptTranslationApiTests(unittest.TestCase):
             get_worker=lambda: runtime[0],
             get_translate_prompt_sync=lambda: runtime[1],
             get_timeout_seconds=lambda: 15.0,
+            translation_error_types={
+                "marker_count": translation.TranslationMarkerCountError,
+                "marker_size": translation.TranslationMarkerSizeError,
+                "total_size": translation.TranslationTotalSizeError,
+                "limit": translation.PromptTranslationLimitError,
+                "provider_unavailable": (
+                    translation.TranslationProviderUnavailableError
+                ),
+                "timeout": translation.TranslationTimeoutError,
+                "cancelled": translation.TranslationCancelledError,
+                "busy": translation.TranslationBusyError,
+                "upstream": translation.TranslationUpstreamError,
+                "base": translation.PromptTranslationError,
+            },
             error_response=lambda *args: args,
         )
 
@@ -260,25 +274,128 @@ class PromptTranslationApiTests(unittest.TestCase):
             [("execute", replacement_sync, "%{async}", 0.25)],
         )
 
-        error = types.SimpleNamespace(
-            status=502,
-            code="translation_upstream_error",
-            message="The translation provider request failed.",
+    def test_translation_error_boundary_uses_static_policy_and_semantic_messages(self):
+        api, _routes, translation, _translation_service = self.load_routes()
+
+        class DerivedMarkerCountError(translation.TranslationMarkerCountError):
+            pass
+
+        class RootDerivedTranslationError(translation.PromptTranslationError):
+            status = 502
+            code = "translation_upstream_error"
+
+        cases = (
+            (
+                translation.PromptTranslationError(),
+                500,
+                "translation_error",
+                "Prompt translation failed.",
+            ),
+            (
+                translation.PromptTranslationLimitError(),
+                413,
+                "translation_error",
+                "Prompt translation failed.",
+            ),
+            (
+                translation.TranslationMarkerCountError(),
+                413,
+                "translation_marker_count_exceeded",
+                "Prompt translation failed.",
+            ),
+            (
+                translation.TranslationMarkerSizeError(),
+                413,
+                "translation_marker_too_long",
+                "Prompt translation failed.",
+            ),
+            (
+                translation.TranslationTotalSizeError(),
+                413,
+                "translation_marker_characters_exceeded",
+                "Prompt translation failed.",
+            ),
+            (
+                translation.TranslationProviderUnavailableError(),
+                503,
+                "translation_provider_unavailable",
+                "The selected translation provider is unavailable.",
+            ),
+            (
+                translation.TranslationTimeoutError(),
+                504,
+                "translation_timeout",
+                "The translation provider timed out.",
+            ),
+            (
+                translation.TranslationCancelledError(),
+                499,
+                "translation_cancelled",
+                "The translation request was cancelled.",
+            ),
+            (
+                translation.TranslationBusyError(),
+                503,
+                "translation_busy",
+                "A prompt translation request is already in progress.",
+            ),
+            (
+                translation.TranslationUpstreamError(),
+                502,
+                "translation_upstream_error",
+                "The translation provider request failed.",
+            ),
+            (
+                translation.TranslationMarkerCountError("Custom marker limit"),
+                413,
+                "translation_marker_count_exceeded",
+                "Custom marker limit",
+            ),
+            (
+                DerivedMarkerCountError("Derived marker limit"),
+                413,
+                "translation_marker_count_exceeded",
+                "Derived marker limit",
+            ),
         )
-        expected_response = {"status": 502}
+
+        for error, status, code, message in cases:
+            error.status = 599
+            error.code = "tampered_code"
+            error.message = "Tampered message"
+            expected_response = object()
+            with self.subTest(error=type(error).__name__, message=message), patch.object(
+                api,
+                "_error_response",
+                return_value=expected_response,
+            ) as error_response:
+                response = api._prompt_translation_error_response(error)
+
+            self.assertIs(response, expected_response)
+            error_response.assert_called_once_with(status, code, message)
+
+        compatibility_error = RootDerivedTranslationError(
+            "Derived translation compatibility failure."
+        )
+        expected_response = object()
         with patch.object(
             api,
             "_error_response",
             return_value=expected_response,
         ) as error_response:
-            response = api._prompt_translation_error_response(error)
+            response = api._prompt_translation_error_response(compatibility_error)
 
         self.assertIs(response, expected_response)
         error_response.assert_called_once_with(
-            error.status,
-            error.code,
-            error.message,
+            502,
+            "translation_upstream_error",
+            "Derived translation compatibility failure.",
         )
+
+        unexpected = RuntimeError("unexpected")
+        with self.assertRaises(RuntimeError) as raised:
+            api._prompt_translation_error_response(unexpected)
+        self.assertIs(raised.exception, unexpected)
 
     def test_route_executor_is_owned_by_the_canonical_module(self):
         api, _routes, _translation, _translation_service = self.load_routes()

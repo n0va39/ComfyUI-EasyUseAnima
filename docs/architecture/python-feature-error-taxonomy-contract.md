@@ -5,9 +5,10 @@
 - Owner: Issue #563
 - Contract base: `e5e0329cd64afa9894d631f9b6baa6514a81ab48`
 - F-02f implementation base: `878a86f739a37a000a56b9e76ee2179aa86271f1`
-- Status: F-02e Contract complete; F-02f inheritance complete; F-02g READY
+- F-02g implementation base: `d5e6512c110b2ae6654e57013a32dff39944de5a`
+- Status: F-02e Contract complete; F-02f inheritance complete; F-02g candidate
 - Current class: Adapter
-- Production changes: F-02f categories and additive inheritance only
+- Production changes: F-02f inheritance plus the F-02g API-adapter cutover only
 - Fixture: `tests/fixtures/python_feature_error_contract.v1.json`
 - Gate: `tests/test_python_feature_error_contract.py`
 
@@ -67,10 +68,9 @@ does not cross a feature boundary.
 
 ## HTTP mapping authority and compatibility
 
-Current profile and translation adapters read status/code/message metadata directly
-from feature exceptions. F-02g makes API mapping tables or equivalent injected
-adapter callbacks authoritative by exact exception kind and preserved MRO fallback.
-The externally observable response remains unchanged:
+F-02g makes API mapping tables authoritative for concrete status, code, and default
+message by exact exception kind and ordered MRO fallback. The externally observable
+response remains unchanged:
 
 ```text
 status
@@ -81,22 +81,43 @@ request_id
 X-Request-ID
 ```
 
-The existing feature exception metadata is retained as a passive compatibility mirror
-during the current support window. Production API adapters must no longer use that
-mirror after F-02g. This preserves existing direct Python consumers and root aliases
-without leaving HTTP policy authoritative in feature behavior. Removing a mirror is a
-later compatibility/removal decision, not Phase F work.
+The existing fixture-owned concrete feature exception status/code/message metadata is
+retained as a passive compatibility mirror during the current support window, but its
+fixed mappings do not read it after F-02g. Removing that mirror or either named dynamic
+compatibility seam is a later compatibility decision, not Phase F work.
+
+The focused F-02g PRO review and final full gate found that the original absolute
+no-metadata-read wording conflicted with three preserved contracts. Concrete profile
+errors store their dynamic `profile` and `fields` values only in `details`; the generic
+or root-injected `ProfileMutationError` seam deliberately supplies arbitrary
+status/code/message/details; and the public root `PromptTranslationError` base supports
+unregistered derived types whose status/code/message were already mapped dynamically.
+The corrected invariant therefore names these adapter inputs instead of calling them
+passive mirrors:
+
+- concrete profile `details` remains semantic instance data read by the adapter;
+- generic or injected `ProfileMutationError` status/code/message/details remains a
+  dynamic-compatibility adapter input;
+- unregistered or root-derived `PromptTranslationError` status/code/message remains a
+  dynamic-compatibility adapter input after known concrete and exact-base resolution.
+
+This exception does not return concrete HTTP policy to feature behavior: all known
+concrete profile status/code/default-message values still come from the API table.
 
 Profile mutation mapping retains the dynamic root monkeypatch seam. Canonical
-precondition, identity, and revision errors use exact adapter mappings; a deliberately
-patched compatibility error type may continue through the existing injected fallback.
-No raw unexpected `ValueError` gains a new mapping, and current redaction/order rules
-remain fixed.
+precondition, identity, and revision errors use exact adapter mappings plus their
+semantic details; a deliberately patched compatibility error type continues through
+the existing injected fallback. No raw unexpected `ValueError` gains a new mapping,
+and current redaction/order rules remain fixed.
 
-Translation adapters continue to map only `PromptTranslationError` instances. Custom
-limit messages remain semantic instance messages, while status and code are selected
-by the adapter. Cancellation remains a stable 499 response and request cancellation
-outside that exception family remains unnormalized.
+Translation adapters continue to map only `PromptTranslationError` instances. Known
+fixture-owned concrete kinds and their descendants use the ordered API table, and the
+exact canonical base uses its 500 mapping. Custom message text remains semantic
+instance data. An unregistered or root-derived subclass that reaches only the base
+fallback retains its status/code/message as a named dynamic-compatibility input; this
+preserves the existing public root subclass contract without returning known concrete
+HTTP policy to feature behavior. Cancellation remains a stable 499 response and
+request cancellation outside that exception family remains unnormalized.
 
 ## Ordered implementation
 
@@ -118,8 +139,8 @@ One adapter cutover after F-02f:
 - make profile and translation API mappings authoritative outside feature behavior;
 - preserve exact status/code/message/details, request correlation, redaction, catch
   order, and dynamic profile dependency seams;
-- retain current exception metadata as compatibility mirrors, but prove production
-  mappers do not read it;
+- prove concrete status/code/default-message mappings do not read their compatibility
+  mirrors while preserving the explicitly named semantic/dynamic adapter inputs;
 - do not change Autocomplete fallback, seed behavior, migration behavior, or node
   payloads.
 
@@ -129,8 +150,8 @@ F-02f is complete. `easyuse_anima/errors.py` owns the seven categories with an
 explicit module `__all__` and no root export. All 24 fixture-owned feature errors keep
 their original module, name, concrete object identity, feature-specific subclass
 relations, constructor/metadata/message behavior, and built-in exception catches while
-also inheriting the selected semantic category. Profile and translation adapters still
-read the compatibility metadata; that authority cutover remains exclusively F-02g.
+also inheriting the selected semantic category. F-02g changes only API mapping
+authority; those feature contracts remain unchanged.
 
 ### F-02h — Completion audit
 
@@ -192,8 +213,9 @@ Task ID: F-02g authoritative profile/translation API mappings
 Owner Issue: #563
 Primary class: ADAPTER
 Base SHA: latest origin/dev after F-02f merges
-Goal: make canonical API adapters authoritative for every fixture-owned profile and
-      translation HTTP mapping without changing any response or feature behavior.
+Goal: make canonical API adapters authoritative for every fixture-owned concrete
+      profile and translation status/code/default-message mapping without changing any
+      response or feature behavior, while retaining the named dynamic profile seam.
 Allowed production:
   api.py
   easyuse_anima/bootstrap.py
@@ -212,18 +234,44 @@ Forbidden: feature exception or category changes, exception metadata removal, ro
   alias/export changes, route/runtime lifecycle changes, Autocomplete/seed/migration/
   node behavior changes, broad error cleanup, Any cleanup, ignore addition
 Preserve: exact profile/translation status/code/message/details, request correlation,
-  redaction and catch order, arbitrary dynamic ProfileMutationError dependency seam,
-  concrete exception identity and compatibility metadata, translation worker identity,
-  route identity/order/signature/registration, repeated initialize behavior
+  redaction and catch order, profile details as semantic adapter input, arbitrary
+  dynamic ProfileMutationError status/code/message/details dependency seam, concrete
+  exception identity and compatibility metadata, unregistered or root-derived
+  PromptTranslationError status/code/message dependency seam, translation worker
+  identity, route identity/order/signature/registration, repeated initialize behavior
 Focused: taxonomy authority contract; direct profile error response and Prompt
   translation API/runtime owners; bootstrap/package; Pyright; analyzer; import boundary;
   changed-file syntax/static; git diff --check
 Promotion: official full exactly once on final production/test/tool SHA; no package/live
-Stop: preserving the dynamic profile seam requires feature-owned HTTP authority,
-  a canonical adapter must import root api.py, exception metadata/payload/identity must
-  change, or route/runtime lifecycle behavior must change
+Stop: a fixed concrete mapping still requires feature-owned status/code/message,
+  exact profile details cannot use the existing semantic details input, a canonical
+  adapter must import root api.py, exception metadata/payload/identity must change, or
+  route/runtime lifecycle behavior must change
 Next: F-02h production-free completion audit only
 ```
+
+### F-02g focused PRO contract correction
+
+The original requirements could not all hold simultaneously. With an exception as the
+only mapper input, removing every metadata read loses dynamic concrete profile details,
+the arbitrary generic/root-monkeypatched profile payload, and the already-supported
+public root-derived translation mapping. Adding new semantic feature fields or a
+registration API would cross the forbidden feature/public boundary.
+
+Only two material designs remained:
+
+1. A pure static table could remove every read but would change profile payloads or
+   either dynamic seam.
+2. Static concrete tables plus the named compatibility fallbacks preserve behavior and
+   keep fixture-owned concrete HTTP policy API-owned.
+
+F-02g selects the second design. The invariant changes from "production reads no
+feature metadata" to "production reads no fixture-owned concrete
+status/code/default-message compatibility mirror; profile semantic details,
+translation message text, generic or injected `ProfileMutationError` dynamic fields,
+and unregistered or root-derived `PromptTranslationError` dynamic fields are explicit
+adapter inputs." No feature exception, constructor, attribute, payload, root alias, or
+lifecycle changes.
 
 ## Validation and stop policy
 
