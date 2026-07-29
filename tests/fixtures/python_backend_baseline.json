@@ -32972,7 +32972,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 155
+            "line": 158
           }
         ],
         "classification": "external",
@@ -32980,7 +32980,7 @@
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 156,
+        "line": 159,
         "name": null,
         "optional": true,
         "requested": "folder_paths",
@@ -71575,9 +71575,9 @@
       },
       {
         "is_package": false,
-        "loc": 327,
+        "loc": 330,
         "module": "easyuse_anima.settings.repository",
-        "normalized_git_blob_sha1": "8b0fbfb069972afc24d90299e23e86bf123b3c50",
+        "normalized_git_blob_sha1": "d991f7fded7cc686644ad6b17919dd56a853d30b",
         "path": "easyuse_anima/settings/repository.py",
         "top_level": {
           "class_count": 1,
@@ -90700,14 +90700,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 155
+            "line": 158
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 156,
+        "line": 159,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/settings/repository.py"
@@ -92625,14 +92625,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 155
+            "line": 158
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 156,
+        "line": 159,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/settings/repository.py"

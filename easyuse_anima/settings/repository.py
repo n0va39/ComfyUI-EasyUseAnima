@@ -67,9 +67,12 @@ def _read_json_file(path: Path) -> dict[str, object]:
 def _detect_settings_document_version(data: object) -> int:
     if not isinstance(data, dict):
         return 0
+    version = data.get("version")
     return (
         1
-        if data.get("version") == 1 and isinstance(data.get("values"), dict)
+        if type(version) is int
+        and version == 1
+        and isinstance(data.get("values"), dict)
         else 0
     )
 

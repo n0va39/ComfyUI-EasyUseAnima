@@ -3053,6 +3053,27 @@ class SettingsTests(unittest.TestCase):
             settings_repository._migrate_settings_document(migrated),
             migrated,
         )
+        for invalid_version in (True, 1.0, "1"):
+            with self.subTest(invalid_version=invalid_version):
+                invalid = {
+                    "version": invalid_version,
+                    "values": {"autocomplete.limit": 99},
+                }
+                self.assertEqual(
+                    settings_repository._detect_settings_document_version(
+                        invalid
+                    ),
+                    0,
+                )
+                invalid_document = (
+                    settings_repository._migrate_settings_document(invalid)
+                )
+                self.assertEqual(
+                    settings_repository._normalize_settings_values(
+                        invalid_document["values"]
+                    ),
+                    {},
+                )
 
     def test_get_settings_accepts_legacy_and_v1_documents_without_rewrite(self):
         legacy = {
