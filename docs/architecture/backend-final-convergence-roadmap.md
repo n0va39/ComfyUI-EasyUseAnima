@@ -456,6 +456,17 @@ Exit: every current canonical production path is included in a blocking
 role-specific owner gate or an exact permanent package-facade rule, with zero
 real violations.
 
+FC-02D replaces the 11-prefix v1 ledger with one v2 role contract. The checker
+derives all 16 group names and every `production_paths` selector directly from
+the G-06 test-ownership map, so an added, removed, or renamed owner cannot leave
+the blocking gate silently unchanged. Four ordered path overrides distinguish
+the API router, Comfy host adapter, registration owner, and workflow adapter;
+only the two exact `get_runtime` imports are retained as edge exceptions. The
+root package facade may import only the reviewed `seed` group, nested package
+facades may import only their owning group, and every current canonical path
+passes the five universal rules with zero violations. FC-03A is the only
+authorized next task after this Contract/tool gate merges.
+
 ## 6. FC-03 — Root API patch-owner migration
 
 P-API-01 retained root `api.py` because canonical candidates could not preserve both
