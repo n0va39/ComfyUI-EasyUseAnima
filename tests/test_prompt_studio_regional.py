@@ -2,11 +2,13 @@ from __future__ import annotations
 
 import json
 import unittest
+from typing import get_type_hints
 from unittest.mock import patch
 
 import nodes as easy_nodes
 from easyuse_anima.nodes import regional_nodes
 from easyuse_anima.prompt import regional as regional_service
+from easyuse_anima.prompt.contracts import PromptField, RegionalField
 from tests.comfy_host_fakes import patch_comfy_helper
 from nodes import (
     EasyUseAnimaRegionalConditioning,
@@ -15,6 +17,62 @@ from nodes import (
 
 
 class PromptStudioRegionalTests(unittest.TestCase):
+    def test_regional_field_contract_preserves_normalized_and_default_shapes(self):
+        shared_keys = {"id", "pane", "type", "label", "text", "height", "enabled"}
+        self.assertEqual(PromptField.__required_keys__, frozenset(shared_keys))
+        self.assertEqual(
+            RegionalField.__required_keys__,
+            frozenset({*shared_keys, "mask_ids"}),
+        )
+        self.assertEqual(
+            RegionalField.__optional_keys__,
+            frozenset({"pin", "collapsed"}),
+        )
+        self.assertEqual(
+            get_type_hints(regional_service._normalize_regional_fields)["return"],
+            list[RegionalField],
+        )
+        self.assertEqual(
+            get_type_hints(regional_service._build_regional_outputs)["fields"],
+            list[RegionalField],
+        )
+
+        normalized = regional_service._normalize_regional_fields([
+            {
+                "id": "masked_general",
+                "pane": "positive",
+                "type": "general",
+                "label": "Masked prompt",
+                "text": "red dress",
+                "height": 120,
+                "enabled": True,
+                "pin": False,
+                "collapsed": True,
+                "mask_ids": [1],
+                "future_key": "ignored",
+            }
+        ])
+        self.assertEqual(
+            list(normalized[0]),
+            [
+                "id",
+                "pane",
+                "type",
+                "label",
+                "text",
+                "height",
+                "enabled",
+                "pin",
+                "collapsed",
+                "mask_ids",
+            ],
+        )
+
+        fallback = regional_service._normalize_regional_fields([None])
+        self.assertNotIn("collapsed", fallback[0])
+        self.assertNotIn("pin", fallback[0])
+        self.assertIn("mask_ids", fallback[0])
+
     def test_root_exports_are_canonical_regional_identities(self):
         self.assertIs(
             EasyUseAnimaPromptStudioRegional,

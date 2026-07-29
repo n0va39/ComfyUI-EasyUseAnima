@@ -12,6 +12,7 @@ from ..prompt.advanced import (
     _correct_advanced_field_sequence,
     _normalize_advanced_fields,
 )
+from ..prompt.contracts import AdvancedField
 from ..prompt.data import _normalize_prompt_data
 from .generation_defaults import AIO_USDU_PROMPT_FULL, AIO_USDU_PROMPT_NO_GENERAL
 from .negpip import _aio_negpip_execution_prompts
@@ -31,7 +32,9 @@ def _encode_with_comfy_clip(clip, text: str):
     return helper(clip, text)
 
 
-def _aio_prompt_data_fields_for_usdu(prompt_data: str | dict | None) -> list[dict]:
+def _aio_prompt_data_fields_for_usdu(
+    prompt_data: str | dict | None,
+) -> list[AdvancedField]:
     data = _normalize_prompt_data(prompt_data)
     fields = data.get("fields")
     if not isinstance(fields, list):

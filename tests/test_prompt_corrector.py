@@ -9,6 +9,7 @@ import threading
 import unittest
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
+from typing import get_type_hints
 from unittest.mock import patch
 
 import nodes
@@ -21,7 +22,11 @@ from easyuse_anima.nodes.prompt_advanced_nodes import EasyUseAnimaPromptStudioEx
 from easyuse_anima.prompt import artist_mix as prompt_artist_mix
 from easyuse_anima.prompt import conditioning as prompt_conditioning
 from easyuse_anima.prompt import correction as prompt_correction
-from easyuse_anima.prompt.advanced import ADVANCED_FIELDS_WORKFLOW_PROPERTY
+from easyuse_anima.prompt.advanced import (
+    ADVANCED_FIELDS_WORKFLOW_PROPERTY,
+    _advanced_prompt_data_fields,
+    _normalize_advanced_fields,
+)
 from easyuse_anima.prompt.artist_mix import (
     ARTIST_MIX_CONTROL_KEY,
     ARTIST_MIX_EXACT_KEY,
@@ -36,6 +41,7 @@ from easyuse_anima.prompt.artist_mix import (
 from easyuse_anima.prompt.conditioning import (
     _SPECTRUM_ANIMA_MOD_GUIDANCE_OLD_SIGNATURE_WARNED,
 )
+from easyuse_anima.prompt.contracts import AdvancedField
 from easyuse_anima.prompt.data import PROMPT_DATA_SCHEMA
 from easyuse_anima.settings import repository as settings_repository
 from easyuse_anima.settings import schema as settings_schema
@@ -394,6 +400,56 @@ class PromptCorrectorTests(unittest.TestCase):
 
 
 class PromptBuilderTests(unittest.TestCase):
+    def test_advanced_field_contract_preserves_normalized_and_extend_shapes(self):
+        self.assertEqual(
+            AdvancedField.__required_keys__,
+            frozenset({"id", "pane", "type", "label", "text", "height", "enabled"}),
+        )
+        self.assertEqual(AdvancedField.__optional_keys__, frozenset({"pin"}))
+        self.assertEqual(
+            get_type_hints(_normalize_advanced_fields)["return"],
+            list[AdvancedField],
+        )
+        self.assertEqual(
+            get_type_hints(_advanced_prompt_data_fields)["return"],
+            list[AdvancedField],
+        )
+        self.assertEqual(
+            get_type_hints(prompt_artist_mix._prompt_data_positive_fields)["return"],
+            list[AdvancedField],
+        )
+
+        normalized = _normalize_advanced_fields([
+            {
+                "id": "positive_general",
+                "pane": "positive",
+                "type": "general",
+                "label": "General Tags",
+                "text": "1girl",
+                "height": 150,
+                "enabled": True,
+                "pin": False,
+                "future_key": "ignored",
+            }
+        ])
+        self.assertEqual(
+            list(normalized[0]),
+            ["id", "pane", "type", "label", "text", "height", "enabled", "pin"],
+        )
+
+        extended = EasyUseAnimaPromptStudioExtend._fields_from_slots(
+            {"quality_tags_1": "best quality"},
+            ["quality_tags_1"],
+        )
+        self.assertEqual(
+            list(extended[0]),
+            ["id", "pane", "type", "label", "text", "height", "enabled"],
+        )
+        self.assertEqual(
+            get_type_hints(EasyUseAnimaPromptStudioExtend._fields_from_slots)["return"],
+            list[AdvancedField],
+        )
+
     def test_prompt_builder_and_studio_default_quality_tags(self):
         builder_inputs = EasyUseAnimaPromptBuilder.INPUT_TYPES()["required"]
         studio_inputs = EasyUseAnimaPromptStudio.INPUT_TYPES()["required"]

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 import re
-from typing import Any
+from typing import Any, cast
 
 from ..common.values import _as_bool, _as_float, _as_int, _single_value
 from ..naia.resolution import _ratio_label
@@ -15,6 +15,7 @@ from .advanced import (
     _as_advanced_height,
     _correct_advanced_field_sequence,
 )
+from .contracts import RegionalField
 from ..settings.service import resolve_metadata_filter_words
 from .fields import _filter_metadata_prompt, _join_prompt_tokens
 
@@ -36,18 +37,18 @@ ADVANCED_FIELD_LABELS = {
 }
 
 
-def _regional_default_fields() -> list[dict]:
-    fields = []
+def _regional_default_fields() -> list[RegionalField]:
+    fields: list[RegionalField] = []
     for field in _advanced_default_fields():
         if field.get("type") == "naia":
             continue
-        item = dict(field)
+        item = cast(RegionalField, dict(field))
         item["mask_ids"] = []
         fields.append(item)
     return fields
 
 
-def _regional_fields_json(fields: list[dict] | None = None) -> str:
+def _regional_fields_json(fields: list[RegionalField] | None = None) -> str:
     return json.dumps(
         fields if fields is not None else _regional_default_fields(),
         ensure_ascii=False,
@@ -74,7 +75,7 @@ def _normalize_mask_ids(value) -> list[int]:
     return mask_ids
 
 
-def _normalize_regional_fields(value: str | list | None) -> list[dict]:
+def _normalize_regional_fields(value: str | list | None) -> list[RegionalField]:
     raw = value
     if isinstance(value, str):
         try:
@@ -86,7 +87,7 @@ def _normalize_regional_fields(value: str | list | None) -> list[dict]:
     if not raw:
         raw = _regional_default_fields()
 
-    fields: list[dict] = []
+    fields: list[RegionalField] = []
     seen_trigger = False
     for index, item in enumerate(raw):
         if not isinstance(item, dict):
@@ -128,17 +129,20 @@ def _normalize_regional_fields(value: str | list | None) -> list[dict]:
     return fields or _regional_default_fields()
 
 
-def _clone_regional_fields(fields: list[dict]) -> list[dict]:
+def _clone_regional_fields(fields: list[RegionalField]) -> list[RegionalField]:
     return [
-        {
+        cast(RegionalField, {
             **dict(field),
             "mask_ids": list(field.get("mask_ids") or []),
-        }
+        })
         for field in fields
     ]
 
 
-def _apply_regional_field_inputs(fields: list[dict], field_inputs: dict) -> list[dict]:
+def _apply_regional_field_inputs(
+    fields: list[RegionalField],
+    field_inputs: dict,
+) -> list[RegionalField]:
     values = _advanced_field_input_values(field_inputs)
     if not values:
         return _clone_regional_fields(fields)
@@ -283,7 +287,7 @@ def _regional_config_json(config: dict[str, Any] | None = None) -> str:
     )
 
 
-def _regional_field_prompt(field: dict, artist_overrides: str = "") -> str:
+def _regional_field_prompt(field: RegionalField, artist_overrides: str = "") -> str:
     return _correct_advanced_field_sequence(
         [field],
         include_quality=True,
@@ -293,7 +297,7 @@ def _regional_field_prompt(field: dict, artist_overrides: str = "") -> str:
 
 
 def _build_regional_outputs(
-    fields: list[dict],
+    fields: list[RegionalField],
     config: dict[str, Any],
     width: int,
     height: int,
