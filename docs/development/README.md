@@ -11,163 +11,114 @@ Read only the sections needed by the active task.
    - use focused edit-loop tests;
    - run official full once on the final candidate SHA;
    - run package/live/benchmark only when triggered.
-3. Active backend queue:
-   [`../architecture/backend-roadmap-resume-0.6.2.md`](../architecture/backend-roadmap-resume-0.6.2.md)
-   - D-08 is completed; use its audit verdict as evidence and do not restart D-08t;
-   - it supersedes the stale immediate queue and broad preflight in the older
-     execution roadmap.
+3. Current backend queue:
+   [`../architecture/post-phase-e-maintenance-roadmap.md`](../architecture/post-phase-e-maintenance-roadmap.md)
+   - first READY task: Issue #563 / F-01 typed-boundary completion audit;
+   - D-14/H root removal is parked, not failed.
 4. Backend target architecture and compatibility policy:
    [`../architecture/README.md`](../architecture/README.md)
-   - E-01 runtime state ledger:
-     [`../architecture/python-runtime-state-inventory.md`](../architecture/python-runtime-state-inventory.md)
-   - E-02b/E-02c runtime base and composition Contract:
-     [`../architecture/python-runtime-base-contract.md`](../architecture/python-runtime-base-contract.md)
-   - E-02 completion audit:
-     [`../architecture/python-runtime-e02-completion-audit.md`](../architecture/python-runtime-e02-completion-audit.md)
-   - E-03 repository/filesystem Contract:
-     [`../architecture/python-runtime-e03-repository-filesystem-contract.md`](../architecture/python-runtime-e03-repository-filesystem-contract.md)
-   - E-04 translation runtime ownership Contract:
-     [`../architecture/python-runtime-e04-translation-contract.md`](../architecture/python-runtime-e04-translation-contract.md)
-   - E-05 autocomplete runtime ownership Contract:
-     [`../architecture/python-runtime-e05-autocomplete-contract.md`](../architecture/python-runtime-e05-autocomplete-contract.md)
-   - E-06 wildcard snapshot runtime ownership Contract:
-     [`../architecture/python-runtime-e06-wildcard-contract.md`](../architecture/python-runtime-e06-wildcard-contract.md)
-   - E-08 AiO first-pass cache ownership Contract:
-     [`../architecture/python-runtime-e08-aio-cache-contract.md`](../architecture/python-runtime-e08-aio-cache-contract.md)
-   - E-09 runtime shutdown and cleanup Contract:
-     [`../architecture/python-runtime-e09-lifecycle-contract.md`](../architecture/python-runtime-e09-lifecycle-contract.md)
-   - E-10 isolated runtime test fixture Contract:
-     [`../architecture/python-runtime-e10-test-isolation-contract.md`](../architecture/python-runtime-e10-test-isolation-contract.md)
 5. Read [`codex-blocker-escalation.md`](codex-blocker-escalation.md) only after a
-   documented hard stop or unresolved cross-owner failure. Ordinary implementation
-   and test failures remain local task work.
-6. Read a topic guide only when the task actually touches it:
+   documented hard stop or unresolved cross-owner architecture ambiguity. Ordinary
+   implementation and test failures remain local task work.
+6. Read a topic guide only when the active task touches it:
+   - completed D/E execution record: `../architecture/backend-roadmap-resume-0.6.2.md`
+   - compatibility registry: `../architecture/python-compatibility-shims.md`
    - queue identity: `../architecture/queue-ui-two-phase-correlation-addendum.md`
    - Prompt Studio execution projection: `../architecture/prompt-studio-execution-derived-projection.md`
    - dual-canvas UI checks: `browser-smoke-matrix.md`
    - custom-node integrations: `custom-node-integrations.md`
-   - Registry scanner prevention for a future release:
-     [docs/development/registry-scanner-safety.md](registry-scanner-safety.md)
+   - Registry scanner prevention for a future release: `registry-scanner-safety.md`
    - workflows: `../Anima AiO/Workflow_Management.md`
 7. Confirm `git status --short`, current branch/worktree, direct source, and direct
    tests.
 
 Do not read every roadmap, closed Issue, or historical PR. Registry activation is
 external release administration; do not poll or modify an immutable release during
-ordinary `dev` roadmap work.
+ordinary `dev` work.
 
-## Active state
-
-- Released baseline: 0.6.2.
-- Issue #187 and Phase E are complete. Issue #186 remains open as the retained
-  D-14/shim decision ledger.
-- E-10c completion and D-14 post-Phase-E audit base: PR #561 at
-  `121ee8a1cae826fc1b5227208f964d143b5b6324`.
-- D-08u integrated exit audit is complete.
-- D-08v is not required; the audit found no remaining D-08 production Move.
-- D-14 post-Phase-E readiness retains every root surface. Lifecycle ownership is
-  complete, but direct production imports, missing release windows, and insufficient
-  consumer evidence still block retirement/final freeze.
-- E-01 through E-10 and Phase E are complete with `ambiguous_state_owners=[]`, zero
-  module reload sites, and zero direct private runtime mutation outside the test-only
-  helper. The #323
-  E-02a/E-07 bridge remains completed evidence, not authorization for unrelated
-  feature migration.
-- Completed #470 and the 0.6.1 Prompt Studio lane are behavior-contract references,
-  not the active queue.
-- Do not remove root compatibility aliases or start release/Registry work outside
-  the active roadmap gates.
-
-## Completed D-08 composition audit surface
+## Current state
 
 ```text
-api.py
-easyuse_anima/bootstrap.py
-easyuse_anima/api/routes/profile_loads.py
-easyuse_anima/api/routes/profile_saves.py
-easyuse_anima/api/routes/aio_profile_mutations.py
-easyuse_anima/api/routes/lora_profile_fix.py
-tests/test_api_contract.py
-current bootstrap/runtime owner tests
-tests/fixtures/python_backend_baseline.json
+COMPLETE  Phase D package/root consolidation
+COMPLETE  Phase E runtime ownership/lifecycle/test isolation
+PARKED    D-14 / Phase H root removal
+READY     #563 F-01 typed-boundary completion audit
+NEXT      #188 G-04 public API snapshot audit
+LATER     G-05 size ratchet / G-06 test ownership
+EVENT     next ordinary release N -> later D-14 re-audit
 ```
 
-Use targeted symbol search to confirm current owners. Do not automatically read all
-files under `easyuse_anima/api/`.
+The D-14 stop is correct:
 
-## Completed D-08t boundary
+- root `__init__.py` still imports root `api.py` for production registration;
+- `api.py` and `nodes.py` still consume `wildcard_engine.py`;
+- final forms completed after 0.6.2 have no release N;
+- consumer evidence and public breaking-change approval do not support removal.
 
-Move factory invocation and request-correlation composition for:
+That stop applies only to removal. It does not complete Phase F or G.
+
+## Active F-01 source map
+
+Start with targeted owners rather than the full repository:
 
 ```text
-LoRA/AiO profile load
-LoRA/AiO profile save
-AiO profile delete/rename
-LoRA profile fix
+docs/architecture/python-backend.md              # Phase F and Definition of Done
+Issue #563
+merged #163 / #165 / #168 contract owners
+current Pyright baseline and strict-path ledger
+current API/schema/migration contracts
+current import-boundary and compatibility fixtures
+direct typed owner source/tests for each audited row
 ```
 
-Keep one cohesive Move PR because all seven handlers share the same owner, production
-files, classification, and validation surface. Do not split solely to create smaller
-commits.
+F-01 is production-free. Classify each boundary as complete, intentionally dynamic at
+an adapter/migration edge, or one exact F-02 follow-up. Reuse existing fixtures and do
+not create a duplicate inventory by default.
 
-Preserve:
+## Following queue
 
-- dynamic root callback and monkeypatch seams;
-- parsing, query defaults, error tuples/order, payloads, and handler identities;
-- profile IDs, revisions, strict CAS, overwrite and target preconditions;
-- file-I/O dispatch, route order/signature/registration, request correlation;
-- root compatibility aliases and repeated initialize behavior.
+After F-01:
 
-Do not change repositories, persistence, schemas, route behavior, translation worker,
-file-I/O lifecycle, RuntimeServices, public bootstrap/router exports, or import root
-`api.py` from bootstrap.
+1. execute only the smallest F-02 if the audit finds a real leak;
+2. run #188 G-04A against existing compatibility/node/API/package fixtures;
+3. audit Wildcard and API pure-shim feasibility without deleting root modules;
+4. add G-05 changed-path size growth and G-06 test-ownership gates;
+5. let the next ordinary release containing final shims become release N;
+6. re-audit D-14 only after an event-gate changes.
+
+No dedicated release, outbound telemetry, import-time deprecation warning, or public
+root removal is authorized by this queue.
 
 ## Validation
 
 ### Edit loop
 
 ```text
-changed-file Python syntax/static check
-direct profile route contracts
-route-composition owner test
-affected bootstrap/runtime tests
-current import-boundary/analyzer fixture
+changed-file syntax/static check
+one task-specific focused target at a time
+current direct contract/analyzer fixture
 git diff --check
 ```
 
 The repository `quick` profile is broad and is not a task preflight or per-edit
 command.
 
-### Final D-08t candidate
+### Final candidate
 
-- Run official full once on the exact final code/test SHA.
-- Reuse earlier package/live evidence when the diff is limited to existing
-  `api.py`/`bootstrap.py` composition and direct tests, with no shipped file,
-  dependency, route signature, public behavior, error, persistence, optional-import,
-  or lifecycle change.
-- Escalate package/live immediately when one of those boundaries changes.
+- Run official full once on the exact final code/test diff when tests, tools, shared
+  fixtures, or production change.
+- Documentation-only changes reuse the latest valid code evidence.
+- Run package validation only for import/registration/archive/dependency/release
+  closure changes.
+- Run live ComfyUI only for host-visible behavior.
+- Run benchmark only for performance/output-quality policy.
 
-### D-08u exit gate
+## Technical PRO boundary
 
-Run once on the integrated candidate:
+Request focused technical PRO review only when direct evidence leaves multiple valid
+cross-boundary designs, an import cycle cannot be avoided by the existing injection
+pattern, or compatibility evidence cannot distinguish public support from test-only
+seams. User preference is not a substitute for technical analysis.
 
-```text
-official full
-comfy node validate
-comfy node pack and archive/CRC closure
-package/no-host import
-repeated initialize/idempotence
-representative profile list/load/save/delete/rename/fix live smoke
-```
-
-## Other policy notes
-
-- Current release notes are in `RELEASE.md`; package version is in `pyproject.toml`.
-- Workflow JSON belongs under `docs/example_workflows/`.
-- A version marker is not a publish action.
-- Technical PRO review is for unresolved cross-boundary architecture choices,
-  unavoidable cycles, or insufficient compatibility evidence—not routine failures.
-- D-14 post-Phase-E readiness is recorded and authorizes no removal. E-09/E-10 and
-  Phase E are complete, but `api.py` and `wildcard_engine.py` still have direct
-  production consumers and final post-v0.6.2 forms without release N. Do not infer
-  root deletion, release publication, or Registry actions.
+Routine test failures, helper layout, type annotation choices, and owner-local
+implementation decisions remain with Codex.
