@@ -19,7 +19,7 @@ from ..wildcard.expansion import has_wildcard_syntax
 from ..wildcard.mode import normalize_prompt_studio_wildcard_mode
 from ..wildcard.seed import normalize_seed
 from ..wildcard.service import expand_wildcard_texts
-from .artist_mix import (
+from .artist_mix_primitives import (
     ARTIST_MIX_DEFAULT_CLUSTER_COUNT,
     ARTIST_MIX_DEFAULT_DOMINANT_ISOLATION,
     ARTIST_MIX_DEFAULT_DOMINANT_THRESHOLD,

@@ -28522,16 +28522,16 @@
         "classification": "internal",
         "column": 0,
         "conditional": false,
-        "imported": ".artist_mix:ARTIST_MIX_DEFAULT_CLUSTER_COUNT",
+        "imported": ".artist_mix_primitives:ARTIST_MIX_DEFAULT_CLUSTER_COUNT",
         "kind": "static_from",
         "line": 22,
         "name": "ARTIST_MIX_DEFAULT_CLUSTER_COUNT",
         "optional": false,
-        "requested": ".artist_mix",
+        "requested": ".artist_mix_primitives",
         "role": "ordinary",
         "scope": "<module>",
         "source": "easyuse_anima/prompt/advanced.py",
-        "target": "easyuse_anima/prompt/artist_mix.py"
+        "target": "easyuse_anima/prompt/artist_mix_primitives.py"
       },
       {
         "alias": null,
@@ -28540,16 +28540,16 @@
         "classification": "internal",
         "column": 0,
         "conditional": false,
-        "imported": ".artist_mix:ARTIST_MIX_DEFAULT_DOMINANT_ISOLATION",
+        "imported": ".artist_mix_primitives:ARTIST_MIX_DEFAULT_DOMINANT_ISOLATION",
         "kind": "static_from",
         "line": 22,
         "name": "ARTIST_MIX_DEFAULT_DOMINANT_ISOLATION",
         "optional": false,
-        "requested": ".artist_mix",
+        "requested": ".artist_mix_primitives",
         "role": "ordinary",
         "scope": "<module>",
         "source": "easyuse_anima/prompt/advanced.py",
-        "target": "easyuse_anima/prompt/artist_mix.py"
+        "target": "easyuse_anima/prompt/artist_mix_primitives.py"
       },
       {
         "alias": null,
@@ -28558,16 +28558,16 @@
         "classification": "internal",
         "column": 0,
         "conditional": false,
-        "imported": ".artist_mix:ARTIST_MIX_DEFAULT_DOMINANT_THRESHOLD",
+        "imported": ".artist_mix_primitives:ARTIST_MIX_DEFAULT_DOMINANT_THRESHOLD",
         "kind": "static_from",
         "line": 22,
         "name": "ARTIST_MIX_DEFAULT_DOMINANT_THRESHOLD",
         "optional": false,
-        "requested": ".artist_mix",
+        "requested": ".artist_mix_primitives",
         "role": "ordinary",
         "scope": "<module>",
         "source": "easyuse_anima/prompt/advanced.py",
-        "target": "easyuse_anima/prompt/artist_mix.py"
+        "target": "easyuse_anima/prompt/artist_mix_primitives.py"
       },
       {
         "alias": null,
@@ -28576,16 +28576,16 @@
         "classification": "internal",
         "column": 0,
         "conditional": false,
-        "imported": ".artist_mix:ARTIST_MIX_DEFAULT_EXACT_TOP_K",
+        "imported": ".artist_mix_primitives:ARTIST_MIX_DEFAULT_EXACT_TOP_K",
         "kind": "static_from",
         "line": 22,
         "name": "ARTIST_MIX_DEFAULT_EXACT_TOP_K",
         "optional": false,
-        "requested": ".artist_mix",
+        "requested": ".artist_mix_primitives",
         "role": "ordinary",
         "scope": "<module>",
         "source": "easyuse_anima/prompt/advanced.py",
-        "target": "easyuse_anima/prompt/artist_mix.py"
+        "target": "easyuse_anima/prompt/artist_mix_primitives.py"
       },
       {
         "alias": null,
@@ -28594,16 +28594,16 @@
         "classification": "internal",
         "column": 0,
         "conditional": false,
-        "imported": ".artist_mix:ARTIST_MIX_DEFAULT_RMS_SCALE_CAP",
+        "imported": ".artist_mix_primitives:ARTIST_MIX_DEFAULT_RMS_SCALE_CAP",
         "kind": "static_from",
         "line": 22,
         "name": "ARTIST_MIX_DEFAULT_RMS_SCALE_CAP",
         "optional": false,
-        "requested": ".artist_mix",
+        "requested": ".artist_mix_primitives",
         "role": "ordinary",
         "scope": "<module>",
         "source": "easyuse_anima/prompt/advanced.py",
-        "target": "easyuse_anima/prompt/artist_mix.py"
+        "target": "easyuse_anima/prompt/artist_mix_primitives.py"
       },
       {
         "alias": null,
@@ -28612,16 +28612,16 @@
         "classification": "internal",
         "column": 0,
         "conditional": false,
-        "imported": ".artist_mix:ARTIST_MIX_DEFAULT_START_PERCENT",
+        "imported": ".artist_mix_primitives:ARTIST_MIX_DEFAULT_START_PERCENT",
         "kind": "static_from",
         "line": 22,
         "name": "ARTIST_MIX_DEFAULT_START_PERCENT",
         "optional": false,
-        "requested": ".artist_mix",
+        "requested": ".artist_mix_primitives",
         "role": "ordinary",
         "scope": "<module>",
         "source": "easyuse_anima/prompt/advanced.py",
-        "target": "easyuse_anima/prompt/artist_mix.py"
+        "target": "easyuse_anima/prompt/artist_mix_primitives.py"
       },
       {
         "alias": null,
@@ -28630,16 +28630,16 @@
         "classification": "internal",
         "column": 0,
         "conditional": false,
-        "imported": ".artist_mix:ARTIST_MIX_DEFAULT_STRENGTH_SCALE",
+        "imported": ".artist_mix_primitives:ARTIST_MIX_DEFAULT_STRENGTH_SCALE",
         "kind": "static_from",
         "line": 22,
         "name": "ARTIST_MIX_DEFAULT_STRENGTH_SCALE",
         "optional": false,
-        "requested": ".artist_mix",
+        "requested": ".artist_mix_primitives",
         "role": "ordinary",
         "scope": "<module>",
         "source": "easyuse_anima/prompt/advanced.py",
-        "target": "easyuse_anima/prompt/artist_mix.py"
+        "target": "easyuse_anima/prompt/artist_mix_primitives.py"
       },
       {
         "alias": null,
@@ -28648,16 +28648,16 @@
         "classification": "internal",
         "column": 0,
         "conditional": false,
-        "imported": ".artist_mix:ARTIST_MIX_DEFAULT_STYLE_GAIN",
+        "imported": ".artist_mix_primitives:ARTIST_MIX_DEFAULT_STYLE_GAIN",
         "kind": "static_from",
         "line": 22,
         "name": "ARTIST_MIX_DEFAULT_STYLE_GAIN",
         "optional": false,
-        "requested": ".artist_mix",
+        "requested": ".artist_mix_primitives",
         "role": "ordinary",
         "scope": "<module>",
         "source": "easyuse_anima/prompt/advanced.py",
-        "target": "easyuse_anima/prompt/artist_mix.py"
+        "target": "easyuse_anima/prompt/artist_mix_primitives.py"
       },
       {
         "alias": null,
@@ -28666,16 +28666,16 @@
         "classification": "internal",
         "column": 0,
         "conditional": false,
-        "imported": ".artist_mix:ARTIST_MIX_MODE_OFF",
+        "imported": ".artist_mix_primitives:ARTIST_MIX_MODE_OFF",
         "kind": "static_from",
         "line": 22,
         "name": "ARTIST_MIX_MODE_OFF",
         "optional": false,
-        "requested": ".artist_mix",
+        "requested": ".artist_mix_primitives",
         "role": "ordinary",
         "scope": "<module>",
         "source": "easyuse_anima/prompt/advanced.py",
-        "target": "easyuse_anima/prompt/artist_mix.py"
+        "target": "easyuse_anima/prompt/artist_mix_primitives.py"
       },
       {
         "alias": null,
@@ -28684,16 +28684,16 @@
         "classification": "internal",
         "column": 0,
         "conditional": false,
-        "imported": ".artist_mix:ARTIST_MIX_MODE_PROMPT",
+        "imported": ".artist_mix_primitives:ARTIST_MIX_MODE_PROMPT",
         "kind": "static_from",
         "line": 22,
         "name": "ARTIST_MIX_MODE_PROMPT",
         "optional": false,
-        "requested": ".artist_mix",
+        "requested": ".artist_mix_primitives",
         "role": "ordinary",
         "scope": "<module>",
         "source": "easyuse_anima/prompt/advanced.py",
-        "target": "easyuse_anima/prompt/artist_mix.py"
+        "target": "easyuse_anima/prompt/artist_mix_primitives.py"
       },
       {
         "alias": null,
@@ -28702,16 +28702,16 @@
         "classification": "internal",
         "column": 0,
         "conditional": false,
-        "imported": ".artist_mix:_artist_mix_inline_prompt",
+        "imported": ".artist_mix_primitives:_artist_mix_inline_prompt",
         "kind": "static_from",
         "line": 22,
         "name": "_artist_mix_inline_prompt",
         "optional": false,
-        "requested": ".artist_mix",
+        "requested": ".artist_mix_primitives",
         "role": "ordinary",
         "scope": "<module>",
         "source": "easyuse_anima/prompt/advanced.py",
-        "target": "easyuse_anima/prompt/artist_mix.py"
+        "target": "easyuse_anima/prompt/artist_mix_primitives.py"
       },
       {
         "alias": null,
@@ -28720,16 +28720,16 @@
         "classification": "internal",
         "column": 0,
         "conditional": false,
-        "imported": ".artist_mix:_artist_tags_from_prompt",
+        "imported": ".artist_mix_primitives:_artist_tags_from_prompt",
         "kind": "static_from",
         "line": 22,
         "name": "_artist_tags_from_prompt",
         "optional": false,
-        "requested": ".artist_mix",
+        "requested": ".artist_mix_primitives",
         "role": "ordinary",
         "scope": "<module>",
         "source": "easyuse_anima/prompt/advanced.py",
-        "target": "easyuse_anima/prompt/artist_mix.py"
+        "target": "easyuse_anima/prompt/artist_mix_primitives.py"
       },
       {
         "alias": null,
@@ -28738,16 +28738,16 @@
         "classification": "internal",
         "column": 0,
         "conditional": false,
-        "imported": ".artist_mix:_bounded_artist_mix_float",
+        "imported": ".artist_mix_primitives:_bounded_artist_mix_float",
         "kind": "static_from",
         "line": 22,
         "name": "_bounded_artist_mix_float",
         "optional": false,
-        "requested": ".artist_mix",
+        "requested": ".artist_mix_primitives",
         "role": "ordinary",
         "scope": "<module>",
         "source": "easyuse_anima/prompt/advanced.py",
-        "target": "easyuse_anima/prompt/artist_mix.py"
+        "target": "easyuse_anima/prompt/artist_mix_primitives.py"
       },
       {
         "alias": null,
@@ -28756,16 +28756,16 @@
         "classification": "internal",
         "column": 0,
         "conditional": false,
-        "imported": ".artist_mix:_bounded_artist_mix_int",
+        "imported": ".artist_mix_primitives:_bounded_artist_mix_int",
         "kind": "static_from",
         "line": 22,
         "name": "_bounded_artist_mix_int",
         "optional": false,
-        "requested": ".artist_mix",
+        "requested": ".artist_mix_primitives",
         "role": "ordinary",
         "scope": "<module>",
         "source": "easyuse_anima/prompt/advanced.py",
-        "target": "easyuse_anima/prompt/artist_mix.py"
+        "target": "easyuse_anima/prompt/artist_mix_primitives.py"
       },
       {
         "alias": null,
@@ -28774,16 +28774,16 @@
         "classification": "internal",
         "column": 0,
         "conditional": false,
-        "imported": ".artist_mix:_join_artist_mix_source_prompts",
+        "imported": ".artist_mix_primitives:_join_artist_mix_source_prompts",
         "kind": "static_from",
         "line": 22,
         "name": "_join_artist_mix_source_prompts",
         "optional": false,
-        "requested": ".artist_mix",
+        "requested": ".artist_mix_primitives",
         "role": "ordinary",
         "scope": "<module>",
         "source": "easyuse_anima/prompt/advanced.py",
-        "target": "easyuse_anima/prompt/artist_mix.py"
+        "target": "easyuse_anima/prompt/artist_mix_primitives.py"
       },
       {
         "alias": null,
@@ -28792,16 +28792,16 @@
         "classification": "internal",
         "column": 0,
         "conditional": false,
-        "imported": ".artist_mix:_normalize_artist_mix_mode",
+        "imported": ".artist_mix_primitives:_normalize_artist_mix_mode",
         "kind": "static_from",
         "line": 22,
         "name": "_normalize_artist_mix_mode",
         "optional": false,
-        "requested": ".artist_mix",
+        "requested": ".artist_mix_primitives",
         "role": "ordinary",
         "scope": "<module>",
         "source": "easyuse_anima/prompt/advanced.py",
-        "target": "easyuse_anima/prompt/artist_mix.py"
+        "target": "easyuse_anima/prompt/artist_mix_primitives.py"
       },
       {
         "alias": null,
@@ -28810,16 +28810,16 @@
         "classification": "internal",
         "column": 0,
         "conditional": false,
-        "imported": ".artist_mix:_parse_artist_mix_items",
+        "imported": ".artist_mix_primitives:_parse_artist_mix_items",
         "kind": "static_from",
         "line": 22,
         "name": "_parse_artist_mix_items",
         "optional": false,
-        "requested": ".artist_mix",
+        "requested": ".artist_mix_primitives",
         "role": "ordinary",
         "scope": "<module>",
         "source": "easyuse_anima/prompt/advanced.py",
-        "target": "easyuse_anima/prompt/artist_mix.py"
+        "target": "easyuse_anima/prompt/artist_mix_primitives.py"
       },
       {
         "alias": null,
@@ -29887,23 +29887,6 @@
       },
       {
         "alias": null,
-        "bound_name": "re",
-        "branch_context": [],
-        "classification": "external",
-        "column": 0,
-        "conditional": false,
-        "imported": "re",
-        "kind": "static_import",
-        "line": 4,
-        "name": null,
-        "optional": false,
-        "requested": "re",
-        "role": "ordinary",
-        "scope": "<module>",
-        "source": "easyuse_anima/prompt/artist_mix.py"
-      },
-      {
-        "alias": null,
         "bound_name": "isfinite",
         "branch_context": [],
         "classification": "external",
@@ -29911,7 +29894,7 @@
         "conditional": false,
         "imported": "math:isfinite",
         "kind": "static_from",
-        "line": 5,
+        "line": 4,
         "name": "isfinite",
         "optional": false,
         "requested": "math",
@@ -29928,7 +29911,7 @@
         "conditional": false,
         "imported": "typing:Any",
         "kind": "static_from",
-        "line": 6,
+        "line": 5,
         "name": "Any",
         "optional": false,
         "requested": "typing",
@@ -29945,7 +29928,7 @@
         "conditional": false,
         "imported": "typing:cast",
         "kind": "static_from",
-        "line": 6,
+        "line": 5,
         "name": "cast",
         "optional": false,
         "requested": "typing",
@@ -29962,44 +29945,8 @@
         "conditional": false,
         "imported": "..common.values:_as_bool",
         "kind": "static_from",
-        "line": 8,
+        "line": 7,
         "name": "_as_bool",
-        "optional": false,
-        "requested": "..common.values",
-        "role": "ordinary",
-        "scope": "<module>",
-        "source": "easyuse_anima/prompt/artist_mix.py",
-        "target": "easyuse_anima/common/values.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "_as_float",
-        "branch_context": [],
-        "classification": "internal",
-        "column": 0,
-        "conditional": false,
-        "imported": "..common.values:_as_float",
-        "kind": "static_from",
-        "line": 8,
-        "name": "_as_float",
-        "optional": false,
-        "requested": "..common.values",
-        "role": "ordinary",
-        "scope": "<module>",
-        "source": "easyuse_anima/prompt/artist_mix.py",
-        "target": "easyuse_anima/common/values.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "_as_int",
-        "branch_context": [],
-        "classification": "internal",
-        "column": 0,
-        "conditional": false,
-        "imported": "..common.values:_as_int",
-        "kind": "static_from",
-        "line": 8,
-        "name": "_as_int",
         "optional": false,
         "requested": "..common.values",
         "role": "ordinary",
@@ -30016,7 +29963,7 @@
         "conditional": false,
         "imported": "..infrastructure.comfy.wiring:resolve_comfy_host_helper",
         "kind": "static_from",
-        "line": 9,
+        "line": 8,
         "name": "resolve_comfy_host_helper",
         "optional": false,
         "requested": "..infrastructure.comfy.wiring",
@@ -30024,6 +29971,24 @@
         "scope": "<module>",
         "source": "easyuse_anima/prompt/artist_mix.py",
         "target": "easyuse_anima/infrastructure/comfy/wiring.py"
+      },
+      {
+        "alias": "_artist_mix_primitives",
+        "bound_name": "_artist_mix_primitives",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".:artist_mix_primitives",
+        "kind": "static_from",
+        "line": 9,
+        "name": "artist_mix_primitives",
+        "optional": false,
+        "requested": ".",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/prompt/artist_mix.py",
+        "target": "easyuse_anima/prompt/artist_mix_primitives.py"
       },
       {
         "alias": null,
@@ -30036,24 +30001,6 @@
         "kind": "static_from",
         "line": 10,
         "name": "AdvancedField",
-        "optional": false,
-        "requested": ".contracts",
-        "role": "ordinary",
-        "scope": "<module>",
-        "source": "easyuse_anima/prompt/artist_mix.py",
-        "target": "easyuse_anima/prompt/contracts.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "PromptDataArtistTag",
-        "branch_context": [],
-        "classification": "internal",
-        "column": 0,
-        "conditional": false,
-        "imported": ".contracts:PromptDataArtistTag",
-        "kind": "static_from",
-        "line": 10,
-        "name": "PromptDataArtistTag",
         "optional": false,
         "requested": ".contracts",
         "role": "ordinary",
@@ -30080,7 +30027,7 @@
         "target": "easyuse_anima/prompt/contracts.py"
       },
       {
-        "alias": null,
+        "alias": "_normalize_prompt_data",
         "bound_name": "_normalize_prompt_data",
         "branch_context": [],
         "classification": "internal",
@@ -30106,7 +30053,7 @@
         "conditional": false,
         "imported": ".data:_prompt_data_nested",
         "kind": "static_from",
-        "line": 11,
+        "line": 14,
         "name": "_prompt_data_nested",
         "optional": false,
         "requested": ".data",
@@ -30124,7 +30071,7 @@
         "conditional": false,
         "imported": ".data:_prompt_data_output",
         "kind": "static_from",
-        "line": 11,
+        "line": 14,
         "name": "_prompt_data_output",
         "optional": false,
         "requested": ".data",
@@ -30142,7 +30089,7 @@
         "conditional": false,
         "imported": ".fields:_correct_builder_prompt",
         "kind": "static_from",
-        "line": 12,
+        "line": 18,
         "name": "_correct_builder_prompt",
         "optional": false,
         "requested": ".fields",
@@ -30160,7 +30107,7 @@
         "conditional": false,
         "imported": ".fields:_join_prompt_tokens",
         "kind": "static_from",
-        "line": 12,
+        "line": 18,
         "name": "_join_prompt_tokens",
         "optional": false,
         "requested": ".fields",
@@ -30178,7 +30125,7 @@
         "conditional": false,
         "imported": ".advanced:_advanced_enabled_pane_fields",
         "kind": "static_from",
-        "line": 127,
+        "line": 143,
         "name": "_advanced_enabled_pane_fields",
         "optional": false,
         "requested": ".advanced",
@@ -30196,7 +30143,7 @@
         "conditional": false,
         "imported": ".advanced:_advanced_prompt_with_artist_override",
         "kind": "static_from",
-        "line": 133,
+        "line": 149,
         "name": "_advanced_prompt_with_artist_override",
         "optional": false,
         "requested": ".advanced",
@@ -30214,7 +30161,7 @@
         "conditional": false,
         "imported": ".advanced:_normalize_advanced_fields",
         "kind": "static_from",
-        "line": 139,
+        "line": 155,
         "name": "_normalize_advanced_fields",
         "optional": false,
         "requested": ".advanced",
@@ -30232,7 +30179,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 412
+            "line": 256
           }
         ],
         "classification": "external",
@@ -30240,7 +30187,7 @@
         "conditional": true,
         "imported": "torch",
         "kind": "static_import",
-        "line": 413,
+        "line": 257,
         "name": null,
         "optional": true,
         "requested": "torch",
@@ -30257,7 +30204,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 428
+            "line": 272
           }
         ],
         "classification": "external",
@@ -30265,7 +30212,7 @@
         "conditional": true,
         "imported": "torch",
         "kind": "static_import",
-        "line": 429,
+        "line": 273,
         "name": null,
         "optional": true,
         "requested": "torch",
@@ -30282,7 +30229,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 448
+            "line": 292
           }
         ],
         "classification": "external",
@@ -30290,7 +30237,7 @@
         "conditional": true,
         "imported": "torch",
         "kind": "static_import",
-        "line": 449,
+        "line": 293,
         "name": null,
         "optional": true,
         "requested": "torch",
@@ -30307,7 +30254,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 528
+            "line": 372
           }
         ],
         "classification": "external",
@@ -30315,7 +30262,7 @@
         "conditional": true,
         "imported": "torch",
         "kind": "static_import",
-        "line": 529,
+        "line": 373,
         "name": null,
         "optional": true,
         "requested": "torch",
@@ -30332,7 +30279,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 1123
+            "line": 967
           }
         ],
         "classification": "external",
@@ -30340,13 +30287,153 @@
         "conditional": true,
         "imported": "torch",
         "kind": "static_import",
-        "line": 1124,
+        "line": 968,
         "name": null,
         "optional": true,
         "requested": "torch",
         "role": "optional_dependency",
         "scope": "_encode_artist_clustered",
         "source": "easyuse_anima/prompt/artist_mix.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "annotations",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "__future__:annotations",
+        "kind": "static_from",
+        "line": 3,
+        "name": "annotations",
+        "optional": false,
+        "requested": "__future__",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/prompt/artist_mix_primitives.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "re",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "re",
+        "kind": "static_import",
+        "line": 5,
+        "name": null,
+        "optional": false,
+        "requested": "re",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/prompt/artist_mix_primitives.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "isfinite",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "math:isfinite",
+        "kind": "static_from",
+        "line": 6,
+        "name": "isfinite",
+        "optional": false,
+        "requested": "math",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/prompt/artist_mix_primitives.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "Any",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "typing:Any",
+        "kind": "static_from",
+        "line": 7,
+        "name": "Any",
+        "optional": false,
+        "requested": "typing",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/prompt/artist_mix_primitives.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "_as_float",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": "..common.values:_as_float",
+        "kind": "static_from",
+        "line": 9,
+        "name": "_as_float",
+        "optional": false,
+        "requested": "..common.values",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/prompt/artist_mix_primitives.py",
+        "target": "easyuse_anima/common/values.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "_as_int",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": "..common.values:_as_int",
+        "kind": "static_from",
+        "line": 9,
+        "name": "_as_int",
+        "optional": false,
+        "requested": "..common.values",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/prompt/artist_mix_primitives.py",
+        "target": "easyuse_anima/common/values.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "PromptDataArtistTag",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".contracts:PromptDataArtistTag",
+        "kind": "static_from",
+        "line": 10,
+        "name": "PromptDataArtistTag",
+        "optional": false,
+        "requested": ".contracts",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/prompt/artist_mix_primitives.py",
+        "target": "easyuse_anima/prompt/contracts.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "_join_prompt_tokens",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".fields:_join_prompt_tokens",
+        "kind": "static_from",
+        "line": 11,
+        "name": "_join_prompt_tokens",
+        "optional": false,
+        "requested": ".fields",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/prompt/artist_mix_primitives.py",
+        "target": "easyuse_anima/prompt/fields.py"
       },
       {
         "alias": null,
@@ -68813,7 +68900,7 @@
       },
       {
         "from": "easyuse_anima/prompt/advanced.py",
-        "to": "easyuse_anima/prompt/artist_mix.py"
+        "to": "easyuse_anima/prompt/artist_mix_primitives.py"
       },
       {
         "from": "easyuse_anima/prompt/advanced.py",
@@ -68933,6 +69020,10 @@
       },
       {
         "from": "easyuse_anima/prompt/artist_mix.py",
+        "to": "easyuse_anima/prompt/artist_mix_primitives.py"
+      },
+      {
+        "from": "easyuse_anima/prompt/artist_mix.py",
         "to": "easyuse_anima/prompt/contracts.py"
       },
       {
@@ -68941,6 +69032,18 @@
       },
       {
         "from": "easyuse_anima/prompt/artist_mix.py",
+        "to": "easyuse_anima/prompt/fields.py"
+      },
+      {
+        "from": "easyuse_anima/prompt/artist_mix_primitives.py",
+        "to": "easyuse_anima/common/values.py"
+      },
+      {
+        "from": "easyuse_anima/prompt/artist_mix_primitives.py",
+        "to": "easyuse_anima/prompt/contracts.py"
+      },
+      {
+        "from": "easyuse_anima/prompt/artist_mix_primitives.py",
         "to": "easyuse_anima/prompt/fields.py"
       },
       {
@@ -70326,10 +70429,9 @@
         ]
       },
       {
-        "cyclic": true,
+        "cyclic": false,
         "modules": [
-          "easyuse_anima/prompt/advanced.py",
-          "easyuse_anima/prompt/artist_mix.py"
+          "easyuse_anima/prompt/advanced.py"
         ]
       },
       {
@@ -70372,6 +70474,18 @@
         "cyclic": false,
         "modules": [
           "easyuse_anima/prompt/anima/parser.py"
+        ]
+      },
+      {
+        "cyclic": false,
+        "modules": [
+          "easyuse_anima/prompt/artist_mix.py"
+        ]
+      },
+      {
+        "cyclic": false,
+        "modules": [
+          "easyuse_anima/prompt/artist_mix_primitives.py"
         ]
       },
       {
@@ -70635,7 +70749,7 @@
     ]
   },
   "inventory": {
-    "module_count": 176,
+    "module_count": 177,
     "modules": [
       {
         "functions": [
@@ -79278,7 +79392,7 @@
         "is_package": false,
         "loc": 890,
         "module": "easyuse_anima.prompt.advanced",
-        "normalized_git_blob_sha1": "24a57846671caa513a8a09341f34ca20402c5b25",
+        "normalized_git_blob_sha1": "8935c98271bd953cd042eef8818425d4bfd85cf8",
         "path": "easyuse_anima/prompt/advanced.py",
         "top_level": {
           "class_count": 0,
@@ -79602,422 +79716,436 @@
         "functions": [
           {
             "async": false,
-            "end_line": 115,
+            "end_line": 131,
             "kind": "function",
-            "line": 114,
+            "line": 130,
             "loc": 2,
             "qualified_name": "_missing_host_helper"
           },
           {
             "async": false,
-            "end_line": 123,
+            "end_line": 139,
             "kind": "function",
-            "line": 118,
+            "line": 134,
             "loc": 6,
             "qualified_name": "_encode_with_comfy_clip"
           },
           {
             "async": false,
-            "end_line": 129,
+            "end_line": 145,
             "kind": "function",
-            "line": 126,
+            "line": 142,
             "loc": 4,
             "qualified_name": "_advanced_enabled_pane_fields"
           },
           {
             "async": false,
-            "end_line": 135,
+            "end_line": 151,
             "kind": "function",
-            "line": 132,
+            "line": 148,
             "loc": 4,
             "qualified_name": "_advanced_prompt_with_artist_override"
           },
           {
             "async": false,
-            "end_line": 141,
+            "end_line": 157,
             "kind": "function",
-            "line": 138,
+            "line": 154,
             "loc": 4,
             "qualified_name": "_normalize_advanced_fields"
           },
           {
             "async": false,
-            "end_line": 189,
+            "end_line": 162,
             "kind": "function",
-            "line": 143,
-            "loc": 47,
-            "qualified_name": "_split_artist_mix_items"
-          },
-          {
-            "async": false,
-            "end_line": 208,
-            "kind": "function",
-            "line": 191,
-            "loc": 18,
-            "qualified_name": "_split_artist_mix_blocks"
-          },
-          {
-            "async": false,
-            "end_line": 221,
-            "kind": "function",
-            "line": 210,
-            "loc": 12,
-            "qualified_name": "_parse_artist_mix_group"
-          },
-          {
-            "async": false,
-            "end_line": 229,
-            "kind": "function",
-            "line": 223,
-            "loc": 7,
-            "qualified_name": "_artist_group_token"
-          },
-          {
-            "async": false,
-            "end_line": 243,
-            "kind": "function",
-            "line": 231,
-            "loc": 13,
-            "qualified_name": "_join_artist_mix_source_prompts"
-          },
-          {
-            "async": false,
-            "end_line": 253,
-            "kind": "function",
-            "line": 245,
-            "loc": 9,
-            "qualified_name": "_artist_mix_inline_prompt"
-          },
-          {
-            "async": false,
-            "end_line": 285,
-            "kind": "function",
-            "line": 255,
-            "loc": 31,
-            "qualified_name": "_parse_artist_mix_entries"
-          },
-          {
-            "async": false,
-            "end_line": 291,
-            "kind": "function",
-            "line": 287,
-            "loc": 5,
-            "qualified_name": "_parse_artist_mix_items"
-          },
-          {
-            "async": false,
-            "end_line": 305,
-            "kind": "function",
-            "line": 293,
-            "loc": 13,
-            "qualified_name": "_artist_tags_from_prompt"
-          },
-          {
-            "async": false,
-            "end_line": 311,
-            "kind": "function",
-            "line": 307,
-            "loc": 5,
-            "qualified_name": "_bounded_artist_mix_float"
-          },
-          {
-            "async": false,
-            "end_line": 314,
-            "kind": "function",
-            "line": 313,
-            "loc": 2,
-            "qualified_name": "_bounded_artist_mix_int"
-          },
-          {
-            "async": false,
-            "end_line": 320,
-            "kind": "function",
-            "line": 316,
-            "loc": 5,
-            "qualified_name": "_normalize_artist_mix_mode"
-          },
-          {
-            "async": false,
-            "end_line": 324,
-            "kind": "function",
-            "line": 322,
+            "line": 160,
             "loc": 3,
             "qualified_name": "_normalize_artist_tag_position"
           },
           {
             "async": false,
-            "end_line": 333,
+            "end_line": 176,
             "kind": "function",
-            "line": 326,
-            "loc": 8,
+            "line": 165,
+            "loc": 12,
             "qualified_name": "_artist_mix_mode_tooltip"
           },
           {
             "async": false,
-            "end_line": 353,
+            "end_line": 197,
             "kind": "function",
-            "line": 335,
+            "line": 179,
             "loc": 19,
             "qualified_name": "_coalesce_artist_mix_items"
           },
           {
             "async": false,
-            "end_line": 362,
+            "end_line": 206,
             "kind": "function",
-            "line": 355,
+            "line": 199,
             "loc": 8,
             "qualified_name": "_artist_mix_prompt_tags"
           },
           {
             "async": false,
-            "end_line": 386,
+            "end_line": 230,
             "kind": "function",
-            "line": 364,
+            "line": 208,
             "loc": 23,
             "qualified_name": "_artist_prompt_with_position"
           },
           {
             "async": false,
-            "end_line": 392,
+            "end_line": 236,
             "kind": "function",
-            "line": 388,
+            "line": 232,
             "loc": 5,
             "qualified_name": "_normalized_artist_weights"
           },
           {
             "async": false,
-            "end_line": 395,
+            "end_line": 239,
             "kind": "function",
-            "line": 394,
+            "line": 238,
             "loc": 2,
             "qualified_name": "_equal_artist_weights"
           },
           {
             "async": false,
-            "end_line": 402,
+            "end_line": 246,
             "kind": "function",
-            "line": 397,
+            "line": 241,
             "loc": 6,
             "qualified_name": "_normalize_weight_values"
           },
           {
             "async": false,
-            "end_line": 409,
+            "end_line": 253,
             "kind": "function",
-            "line": 404,
+            "line": 248,
             "loc": 6,
             "qualified_name": "_interpolate_artist_weights"
           },
           {
             "async": false,
-            "end_line": 423,
+            "end_line": 267,
             "kind": "function",
-            "line": 411,
+            "line": 255,
             "loc": 13,
             "qualified_name": "_copy_conditioning_metadata"
           },
           {
             "async": false,
-            "end_line": 437,
+            "end_line": 281,
             "kind": "function",
-            "line": 425,
+            "line": 269,
             "loc": 13,
             "qualified_name": "_pad_conditioning_tensor"
           },
           {
             "async": false,
-            "end_line": 494,
+            "end_line": 338,
             "kind": "function",
-            "line": 439,
+            "line": 283,
             "loc": 56,
             "qualified_name": "_blend_conditionings"
           },
           {
             "async": false,
-            "end_line": 512,
+            "end_line": 356,
             "kind": "function",
-            "line": 496,
+            "line": 340,
             "loc": 17,
             "qualified_name": "_encoded_artist_conditionings"
           },
           {
             "async": false,
-            "end_line": 604,
+            "end_line": 448,
             "kind": "function",
-            "line": 514,
+            "line": 358,
             "loc": 91,
             "qualified_name": "_artist_delta_rms_from_encoded"
           },
           {
             "async": false,
-            "end_line": 615,
+            "end_line": 459,
             "kind": "function",
-            "line": 606,
+            "line": 450,
             "loc": 10,
             "qualified_name": "_fallback_artist_average_or_exact"
           },
           {
             "async": false,
-            "end_line": 656,
+            "end_line": 500,
             "kind": "function",
-            "line": 617,
+            "line": 461,
             "loc": 40,
             "qualified_name": "_encode_artist_delta_rms"
           },
           {
             "async": false,
-            "end_line": 664,
+            "end_line": 508,
             "kind": "function",
-            "line": 658,
+            "line": 502,
             "loc": 7,
             "qualified_name": "_conditionings_with_values"
           },
           {
             "async": false,
-            "end_line": 669,
+            "end_line": 513,
             "kind": "function",
-            "line": 666,
+            "line": 510,
             "loc": 4,
             "qualified_name": "_conditionings_with_range"
           },
           {
             "async": false,
-            "end_line": 672,
+            "end_line": 516,
             "kind": "function",
-            "line": 671,
+            "line": 515,
             "loc": 2,
             "qualified_name": "_conditionings_with_strength"
           },
           {
             "async": false,
-            "end_line": 675,
+            "end_line": 519,
             "kind": "function",
-            "line": 674,
+            "line": 518,
             "loc": 2,
             "qualified_name": "_mark_artist_mix_conditioning"
           },
           {
             "async": false,
-            "end_line": 681,
+            "end_line": 525,
             "kind": "function",
-            "line": 677,
+            "line": 521,
             "loc": 5,
             "qualified_name": "_prompt_data_positive_fields"
           },
           {
             "async": false,
-            "end_line": 694,
+            "end_line": 538,
             "kind": "function",
-            "line": 683,
+            "line": 527,
             "loc": 12,
             "qualified_name": "_prompt_data_artist_base_prompt"
           },
           {
             "async": false,
-            "end_line": 731,
+            "end_line": 575,
             "kind": "function",
-            "line": 696,
+            "line": 540,
             "loc": 36,
             "qualified_name": "_artist_variant_prompt_from_prompt_data"
           },
           {
             "async": false,
-            "end_line": 870,
+            "end_line": 714,
             "kind": "function",
-            "line": 733,
+            "line": 577,
             "loc": 138,
             "qualified_name": "_prompt_data_artist_mix_config"
           },
           {
             "async": false,
-            "end_line": 902,
+            "end_line": 746,
             "kind": "function",
-            "line": 872,
+            "line": 716,
             "loc": 31,
             "qualified_name": "_encode_artist_exact"
           },
           {
             "async": false,
-            "end_line": 930,
+            "end_line": 774,
             "kind": "function",
-            "line": 904,
+            "line": 748,
             "loc": 27,
             "qualified_name": "_encode_artist_average"
           },
           {
             "async": false,
-            "end_line": 989,
+            "end_line": 833,
             "kind": "function",
-            "line": 932,
+            "line": 776,
             "loc": 58,
             "qualified_name": "_encode_artist_hybrid"
           },
           {
             "async": false,
-            "end_line": 1016,
+            "end_line": 860,
             "kind": "function",
-            "line": 991,
+            "line": 835,
             "loc": 26,
             "qualified_name": "_artist_conditioning_feature"
           },
           {
             "async": false,
-            "end_line": 1049,
+            "end_line": 893,
             "kind": "function",
-            "line": 1018,
+            "line": 862,
             "loc": 32,
             "qualified_name": "_greedy_cluster_encoded_artists"
           },
           {
             "async": false,
-            "end_line": 1180,
+            "end_line": 1024,
             "kind": "function",
-            "line": 1051,
+            "line": 895,
             "loc": 130,
             "qualified_name": "_encode_artist_clustered"
           },
           {
             "async": false,
-            "end_line": 1205,
+            "end_line": 1049,
             "kind": "function",
-            "line": 1182,
+            "line": 1026,
             "loc": 24,
             "qualified_name": "_encode_artist_composite_exact"
           },
           {
             "async": false,
-            "end_line": 1234,
+            "end_line": 1078,
             "kind": "function",
-            "line": 1207,
+            "line": 1051,
             "loc": 28,
             "qualified_name": "_encode_artist_average_late_exact"
           },
           {
             "async": false,
-            "end_line": 1291,
+            "end_line": 1135,
             "kind": "function",
-            "line": 1236,
+            "line": 1080,
             "loc": 56,
             "qualified_name": "_encode_artist_scheduled_average"
           },
           {
             "async": false,
-            "end_line": 1509,
+            "end_line": 1353,
             "kind": "function",
-            "line": 1293,
+            "line": 1137,
             "loc": 217,
             "qualified_name": "_encode_prompt_data_positive_conditioning"
           }
         ],
         "is_package": false,
-        "loc": 1511,
+        "loc": 1355,
         "module": "easyuse_anima.prompt.artist_mix",
-        "normalized_git_blob_sha1": "8899cd2eb3d4c05b0daffa03a84cbd960f59c638",
+        "normalized_git_blob_sha1": "6d8d5998e6bbf69fb45641245c87ff8277f6409c",
         "path": "easyuse_anima/prompt/artist_mix.py",
         "top_level": {
           "class_count": 0,
-          "function_count": 51,
-          "global_count": 35
+          "function_count": 39,
+          "global_count": 47
+        }
+      },
+      {
+        "functions": [
+          {
+            "async": false,
+            "end_line": 106,
+            "kind": "function",
+            "line": 55,
+            "loc": 52,
+            "qualified_name": "_split_artist_mix_items"
+          },
+          {
+            "async": false,
+            "end_line": 126,
+            "kind": "function",
+            "line": 109,
+            "loc": 18,
+            "qualified_name": "_split_artist_mix_blocks"
+          },
+          {
+            "async": false,
+            "end_line": 144,
+            "kind": "function",
+            "line": 129,
+            "loc": 16,
+            "qualified_name": "_parse_artist_mix_group"
+          },
+          {
+            "async": false,
+            "end_line": 153,
+            "kind": "function",
+            "line": 147,
+            "loc": 7,
+            "qualified_name": "_artist_group_token"
+          },
+          {
+            "async": false,
+            "end_line": 168,
+            "kind": "function",
+            "line": 156,
+            "loc": 13,
+            "qualified_name": "_join_artist_mix_source_prompts"
+          },
+          {
+            "async": false,
+            "end_line": 179,
+            "kind": "function",
+            "line": 171,
+            "loc": 9,
+            "qualified_name": "_artist_mix_inline_prompt"
+          },
+          {
+            "async": false,
+            "end_line": 216,
+            "kind": "function",
+            "line": 182,
+            "loc": 35,
+            "qualified_name": "_parse_artist_mix_entries"
+          },
+          {
+            "async": false,
+            "end_line": 223,
+            "kind": "function",
+            "line": 219,
+            "loc": 5,
+            "qualified_name": "_parse_artist_mix_items"
+          },
+          {
+            "async": false,
+            "end_line": 238,
+            "kind": "function",
+            "line": 226,
+            "loc": 13,
+            "qualified_name": "_artist_tags_from_prompt"
+          },
+          {
+            "async": false,
+            "end_line": 250,
+            "kind": "function",
+            "line": 241,
+            "loc": 10,
+            "qualified_name": "_bounded_artist_mix_float"
+          },
+          {
+            "async": false,
+            "end_line": 259,
+            "kind": "function",
+            "line": 253,
+            "loc": 7,
+            "qualified_name": "_bounded_artist_mix_int"
+          },
+          {
+            "async": false,
+            "end_line": 269,
+            "kind": "function",
+            "line": 262,
+            "loc": 8,
+            "qualified_name": "_normalize_artist_mix_mode"
+          }
+        ],
+        "is_package": false,
+        "loc": 272,
+        "module": "easyuse_anima.prompt.artist_mix_primitives",
+        "normalized_git_blob_sha1": "6a3f1e20ea5e78a1f5bf8caf06daaccac798859b",
+        "path": "easyuse_anima/prompt/artist_mix_primitives.py",
+        "top_level": {
+          "class_count": 0,
+          "function_count": 12,
+          "global_count": 25
         }
       },
       {
@@ -100835,20 +100963,9 @@
         "branch_context": [],
         "classification": "external",
         "conditional": false,
-        "imported": "re",
-        "kind": "static_import",
-        "line": 4,
-        "optional": false,
-        "role": "ordinary",
-        "source": "easyuse_anima/prompt/artist_mix.py"
-      },
-      {
-        "branch_context": [],
-        "classification": "external",
-        "conditional": false,
         "imported": "math:isfinite",
         "kind": "static_from",
-        "line": 5,
+        "line": 4,
         "optional": false,
         "role": "ordinary",
         "source": "easyuse_anima/prompt/artist_mix.py"
@@ -100859,7 +100976,7 @@
         "conditional": false,
         "imported": "typing:Any",
         "kind": "static_from",
-        "line": 6,
+        "line": 5,
         "optional": false,
         "role": "ordinary",
         "source": "easyuse_anima/prompt/artist_mix.py"
@@ -100870,7 +100987,7 @@
         "conditional": false,
         "imported": "typing:cast",
         "kind": "static_from",
-        "line": 6,
+        "line": 5,
         "optional": false,
         "role": "ordinary",
         "source": "easyuse_anima/prompt/artist_mix.py"
@@ -100882,14 +100999,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 412
+            "line": 256
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "torch",
         "kind": "static_import",
-        "line": 413,
+        "line": 257,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/prompt/artist_mix.py"
@@ -100901,14 +101018,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 428
+            "line": 272
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "torch",
         "kind": "static_import",
-        "line": 429,
+        "line": 273,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/prompt/artist_mix.py"
@@ -100920,14 +101037,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 448
+            "line": 292
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "torch",
         "kind": "static_import",
-        "line": 449,
+        "line": 293,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/prompt/artist_mix.py"
@@ -100939,14 +101056,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 528
+            "line": 372
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "torch",
         "kind": "static_import",
-        "line": 529,
+        "line": 373,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/prompt/artist_mix.py"
@@ -100958,17 +101075,61 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 1123
+            "line": 967
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "torch",
         "kind": "static_import",
-        "line": 1124,
+        "line": 968,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/prompt/artist_mix.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "__future__:annotations",
+        "kind": "static_from",
+        "line": 3,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/prompt/artist_mix_primitives.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "re",
+        "kind": "static_import",
+        "line": 5,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/prompt/artist_mix_primitives.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "math:isfinite",
+        "kind": "static_from",
+        "line": 6,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/prompt/artist_mix_primitives.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "typing:Any",
+        "kind": "static_from",
+        "line": 7,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/prompt/artist_mix_primitives.py"
       },
       {
         "branch_context": [],
@@ -103511,14 +103672,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 412
+            "line": 256
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "torch",
         "kind": "static_import",
-        "line": 413,
+        "line": 257,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/prompt/artist_mix.py"
@@ -103530,14 +103691,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 428
+            "line": 272
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "torch",
         "kind": "static_import",
-        "line": 429,
+        "line": 273,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/prompt/artist_mix.py"
@@ -103549,14 +103710,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 448
+            "line": 292
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "torch",
         "kind": "static_import",
-        "line": 449,
+        "line": 293,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/prompt/artist_mix.py"
@@ -103568,14 +103729,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 528
+            "line": 372
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "torch",
         "kind": "static_import",
-        "line": 529,
+        "line": 373,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/prompt/artist_mix.py"
@@ -103587,14 +103748,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 1123
+            "line": 967
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "torch",
         "kind": "static_import",
-        "line": 1124,
+        "line": 968,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/prompt/artist_mix.py"
@@ -103849,6 +104010,7 @@
       "easyuse_anima/prompt/anima/ordering.py",
       "easyuse_anima/prompt/anima/parser.py",
       "easyuse_anima/prompt/artist_mix.py",
+      "easyuse_anima/prompt/artist_mix_primitives.py",
       "easyuse_anima/prompt/conditioning.py",
       "easyuse_anima/prompt/contracts.py",
       "easyuse_anima/prompt/correction.py",
@@ -104027,6 +104189,7 @@
       "easyuse_anima/prompt/anima/ordering.py",
       "easyuse_anima/prompt/anima/parser.py",
       "easyuse_anima/prompt/artist_mix.py",
+      "easyuse_anima/prompt/artist_mix_primitives.py",
       "easyuse_anima/prompt/conditioning.py",
       "easyuse_anima/prompt/contracts.py",
       "easyuse_anima/prompt/correction.py",
@@ -105692,8 +105855,8 @@
         "column": 22,
         "context": "assign:_WEIGHTED_ARTIST_RE",
         "kind": "import_time_call",
-        "line": 104,
-        "module": "easyuse_anima/prompt/artist_mix.py",
+        "line": 45,
+        "module": "easyuse_anima/prompt/artist_mix_primitives.py",
         "scope": "<module>"
       },
       {
@@ -105701,8 +105864,8 @@
         "column": 19,
         "context": "assign:_ARTIST_GROUP_RE",
         "kind": "import_time_call",
-        "line": 107,
-        "module": "easyuse_anima/prompt/artist_mix.py",
+        "line": 48,
+        "module": "easyuse_anima/prompt/artist_mix_primitives.py",
         "scope": "<module>"
       },
       {
@@ -105710,8 +105873,8 @@
         "column": 24,
         "context": "assign:_SECTION_SEPARATOR_RE",
         "kind": "import_time_call",
-        "line": 111,
-        "module": "easyuse_anima/prompt/artist_mix.py",
+        "line": 52,
+        "module": "easyuse_anima/prompt/artist_mix_primitives.py",
         "scope": "<module>"
       },
       {
@@ -106362,7 +106525,7 @@
       },
       {
         "kind": "dict",
-        "line": 75,
+        "line": 100,
         "module": "easyuse_anima/prompt/artist_mix.py",
         "name": "ARTIST_MIX_MODE_DESCRIPTIONS"
       },

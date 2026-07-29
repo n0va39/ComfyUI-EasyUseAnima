@@ -55,6 +55,7 @@ from easyuse_anima.nodes import (
 )
 from tests.comfy_host_fakes import patch_comfy_helper
 from easyuse_anima.prompt import artist_mix as prompt_artist_mix
+from easyuse_anima.prompt import artist_mix_primitives as prompt_artist_mix_primitives
 from easyuse_anima.prompt import advanced as prompt_advanced
 from easyuse_anima.prompt import conditioning as prompt_conditioning
 from easyuse_anima.prompt import data as prompt_data
@@ -3000,6 +3001,63 @@ print(json.dumps({{
 
 
 class PromptDataConditioningMoveContractTests(unittest.TestCase):
+    ARTIST_MIX_PRIMITIVE_ALIASES = (
+        "ARTIST_MIX_DEFAULT_CLUSTER_COUNT",
+        "ARTIST_MIX_DEFAULT_DOMINANT_ISOLATION",
+        "ARTIST_MIX_DEFAULT_DOMINANT_THRESHOLD",
+        "ARTIST_MIX_DEFAULT_EXACT_TOP_K",
+        "ARTIST_MIX_DEFAULT_RMS_SCALE_CAP",
+        "ARTIST_MIX_DEFAULT_START_PERCENT",
+        "ARTIST_MIX_DEFAULT_STRENGTH_SCALE",
+        "ARTIST_MIX_DEFAULT_STYLE_GAIN",
+        "ARTIST_MIX_MODE_AVERAGE",
+        "ARTIST_MIX_MODE_AVERAGE_LATE_EXACT",
+        "ARTIST_MIX_MODE_CLUSTERED",
+        "ARTIST_MIX_MODE_COMPOSITE_EXACT",
+        "ARTIST_MIX_MODE_DELTA_RMS",
+        "ARTIST_MIX_MODE_EXACT",
+        "ARTIST_MIX_MODE_FROM_PROMPT_DATA",
+        "ARTIST_MIX_MODE_HYBRID",
+        "ARTIST_MIX_MODE_LATE_EXACT",
+        "ARTIST_MIX_MODE_OFF",
+        "ARTIST_MIX_MODE_PROMPT",
+        "ARTIST_MIX_MODE_SCHEDULED_AVERAGE",
+        "ARTIST_MIX_MODES",
+        "_ARTIST_GROUP_RE",
+        "_SECTION_SEPARATOR_RE",
+        "_WEIGHTED_ARTIST_RE",
+        "_artist_group_token",
+        "_artist_mix_inline_prompt",
+        "_artist_tags_from_prompt",
+        "_bounded_artist_mix_float",
+        "_bounded_artist_mix_int",
+        "_join_artist_mix_source_prompts",
+        "_normalize_artist_mix_mode",
+        "_parse_artist_mix_entries",
+        "_parse_artist_mix_group",
+        "_parse_artist_mix_items",
+        "_split_artist_mix_blocks",
+        "_split_artist_mix_items",
+    )
+    ADVANCED_ARTIST_MIX_PRIMITIVE_ALIASES = (
+        "ARTIST_MIX_DEFAULT_CLUSTER_COUNT",
+        "ARTIST_MIX_DEFAULT_DOMINANT_ISOLATION",
+        "ARTIST_MIX_DEFAULT_DOMINANT_THRESHOLD",
+        "ARTIST_MIX_DEFAULT_EXACT_TOP_K",
+        "ARTIST_MIX_DEFAULT_RMS_SCALE_CAP",
+        "ARTIST_MIX_DEFAULT_START_PERCENT",
+        "ARTIST_MIX_DEFAULT_STRENGTH_SCALE",
+        "ARTIST_MIX_DEFAULT_STYLE_GAIN",
+        "ARTIST_MIX_MODE_OFF",
+        "ARTIST_MIX_MODE_PROMPT",
+        "_artist_mix_inline_prompt",
+        "_artist_tags_from_prompt",
+        "_bounded_artist_mix_float",
+        "_bounded_artist_mix_int",
+        "_join_artist_mix_source_prompts",
+        "_normalize_artist_mix_mode",
+        "_parse_artist_mix_items",
+    )
     RETIRED_PROMPT_DATA_ALIASES = (
         "PROMPT_DATA_COMPAT_OUTPUT_TOOLTIPS",
         "PROMPT_DATA_COMPAT_RETURN_NAMES",
@@ -3125,6 +3183,20 @@ class PromptDataConditioningMoveContractTests(unittest.TestCase):
             for name in names:
                 with self.subTest(module=module.__name__, name=name):
                     self.assertIs(getattr(nodes, name), getattr(module, name))
+
+    def test_artist_mix_primitives_keep_canonical_alias_identity(self):
+        for name in self.ARTIST_MIX_PRIMITIVE_ALIASES:
+            with self.subTest(module="artist_mix", name=name):
+                self.assertIs(
+                    getattr(prompt_artist_mix, name),
+                    getattr(prompt_artist_mix_primitives, name),
+                )
+        for name in self.ADVANCED_ARTIST_MIX_PRIMITIVE_ALIASES:
+            with self.subTest(module="advanced", name=name):
+                self.assertIs(
+                    getattr(prompt_advanced, name),
+                    getattr(prompt_artist_mix_primitives, name),
+                )
 
     def test_package_entrypoint_mappings_keep_canonical_class_identity_and_display(self):
         expected_display = {
