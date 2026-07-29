@@ -4,7 +4,7 @@
 
 - Status: active execution plan after Phase D and Phase E completion.
 - Primary parent: Issue #185.
-- Active first task: Issue #563 / F-02e common feature error taxonomy contract.
+- Active first task: Issue #563 / F-02f common category inheritance.
 - Quality owner: Issue #188.
 - Compatibility ledger: Issue #186.
 - D-14/H status: parked by compatibility gates, not failed.
@@ -73,9 +73,10 @@ COMPLETE F-02a Autocomplete typed result contracts             #563 / PR #566
   -> COMPLETE affected Prompt-row re-audit
   -> COMPLETE F-02d settings typed migration contract          #563 / PR #573
   -> COMPLETE affected settings/profile/workflow row re-audit
-  -> READY F-02e common feature error taxonomy Contract        #563
-  -> IMPLEMENT only the contract-selected error cutover
-  -> RE-AUDIT affected error row and close Phase F
+  -> COMPLETE F-02e common feature error taxonomy Contract     #563
+  -> READY F-02f canonical categories and feature inheritance  #563
+  -> F-02g    authoritative profile/translation API mappings   #563
+  -> F-02h    affected error-row re-audit and Phase F close    #563
   -> G-04A    public API snapshot coverage audit              #188
   -> OPTIONAL G-04B  minimal missing public-surface gate
   -> P-WC-01  wildcard pure-shim feasibility Contract         #186
@@ -156,8 +157,9 @@ Audit result, updated after F-02d merged at
 - typed v1 ordinary/long-text settings persistence plus pure legacy/raw reads close
   the settings/profile/workflow row while profile future fields and raw host workflow
   lookup remain intentional migration/adapter boundaries;
-- common feature error taxonomy is the only remaining Phase F finding, and F-02e
-  starts with a production-free executable contract before implementation;
+- common feature error taxonomy is the only remaining Phase F finding; F-02e fixes
+  its production-free executable contract and selects ordered F-02f inheritance,
+  F-02g API mapping, and F-02h completion-audit slices;
 - G-04A and Issue #188 remain blocked until all Phase F follow-up rows are closed.
 
 ## 4. G-04A — Public API snapshot coverage audit
@@ -373,37 +375,36 @@ with Codex.
 ## 10. Codex resume instruction
 
 ```text
-Start Issue #563 / F-02e only from latest origin/dev after the F-02d affected
-settings/profile/workflow-row completion re-audit merges.
+Start Issue #563 / F-02f only from latest origin/dev after the F-02e taxonomy Contract
+merges.
 
 Read:
 - current-policies.md
 - codex-execution-efficiency.md universal rules
 - this document's F-01 result and validation sections
-- python-typed-boundary-f01-audit.md F-02e task card
+- python-feature-error-taxonomy-contract.md F-02f task card
+- python-typed-boundary-f01-audit.md F-02e decision
 - Issue #563 latest checkpoint
-- direct profile, Autocomplete, Prompt knowledge, AiO migration, translation, seed,
-  API/node error owners/tests and current Pyright/import/package fixtures
+- direct profile, Autocomplete, Prompt knowledge, AiO migration, translation, and seed
+  error owners/tests plus taxonomy, Pyright, import, package, and analyzer fixtures
 
 Do not read all historical D/E PRs and do not restart D-14 removal.
 
-Create a production-free executable contract for the documented `EasyUseAnimaError`
-categories. Inventory every current feature error, preserve its concrete identity and
-built-in exception compatibility, and freeze exact API/node status, code, message,
-details, redaction, and request-correlation mappings. A new narrow machine-readable
-fixture is allowed because the hierarchy does not yet exist and current fixtures
-cannot express category completeness. Do not change production inheritance or error
-behavior in this task.
+Add `easyuse_anima/errors.py` with the seven documented categories and explicit module
+exports but no root export. Add category ancestry to every fixture-owned feature error
+in place while preserving its concrete class identity, feature-specific subclass
+graph, ValueError/RuntimeError/FileNotFoundError catches, constructor, attributes,
+messages, details, reason, export identity, and behavior. Do not perform the profile or
+translation API mapping cutover in this task.
 
 Run only targeted consistency/focused checks during the edit loop and git diff check.
-Run official full once on the final test/tool SHA.
+Run official full once on the final production/test/tool SHA.
 Package/live are not triggered.
 
-Push a dev-targeted Draft PR. After review and merge, execute only the contract-selected
-cohesive cutover or smallest ordered slices, re-audit the error row, and mark Phase F
-complete before #188 G-04A.
+Push a dev-targeted Draft PR. After review and merge, run F-02g as a separate adapter
+cutover, then F-02h re-audits the error row and closes Phase F before #188 G-04A.
 
-Do not change profile/settings/workflow/AiO migration semantics, public/root exports,
-or API payloads. Do not remove root files, add deprecation warnings/telemetry, publish
-a release, or perform Registry work.
+Do not change profile/settings/workflow/AiO migration semantics, exception metadata,
+public/root exports, or API/node payloads. Do not remove root files, add deprecation
+warnings/telemetry, publish a release, or perform Registry work.
 ```

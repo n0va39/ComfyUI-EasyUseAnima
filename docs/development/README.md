@@ -13,7 +13,7 @@ Read only the sections needed by the active task.
    - run package/live/benchmark only when triggered.
 3. Current backend queue:
    [`../architecture/post-phase-e-maintenance-roadmap.md`](../architecture/post-phase-e-maintenance-roadmap.md)
-   - first READY task: Issue #563 / F-02e common feature error taxonomy contract;
+   - first READY task: Issue #563 / F-02f common category inheritance;
    - D-14/H root removal is parked, not failed.
 4. Backend target architecture and compatibility policy:
    [`../architecture/README.md`](../architecture/README.md)
@@ -23,6 +23,7 @@ Read only the sections needed by the active task.
 6. Read a topic guide only when the active task touches it:
    - completed D/E execution record: `../architecture/backend-roadmap-resume-0.6.2.md`
    - F-01 typed-boundary audit: `../architecture/python-typed-boundary-f01-audit.md`
+   - feature error taxonomy: `../architecture/python-feature-error-taxonomy-contract.md`
    - runtime base/state inventory: `../architecture/python-runtime-base-contract.md`,
      `../architecture/python-runtime-state-inventory.md`
    - repository/filesystem runtime contract: `../architecture/python-runtime-e03-repository-filesystem-contract.md`
@@ -59,7 +60,10 @@ COMPLETE  #563 F-02c canonical Prompt Data typed read/output contract
 COMPLETE  #563 affected Prompt-row re-audit
 COMPLETE  #563 F-02d settings typed migration contract
 COMPLETE  #563 affected settings/profile/workflow-row re-audit
-READY     #563 F-02e common feature error taxonomy contract
+COMPLETE  #563 F-02e common feature error taxonomy contract
+READY     #563 F-02f canonical categories and feature inheritance
+NEXT      #563 F-02g authoritative profile/translation API mappings
+NEXT      #563 F-02h error-row and Phase F completion audit
 BLOCKED   #188 G-04 public API snapshot audit until Phase F closes
 LATER     G-05 size ratchet / G-06 test ownership
 EVENT     next ordinary release N -> later D-14 re-audit
@@ -74,28 +78,28 @@ The D-14 stop is correct:
 
 That stop applies only to removal. It does not complete Phase F or G.
 
-## Active F-02e source map
+## Active F-02f source map
 
 Start with targeted owners rather than the full repository:
 
 ```text
-docs/architecture/python-typed-boundary-f01-audit.md  # F-02e task card
+docs/architecture/python-feature-error-taxonomy-contract.md  # F-02f task card
 Issue #563 latest checkpoint
 direct feature error owners under profiles, autocomplete, prompt, aio, translation, seed
-direct API/node error mappers plus Pyright, package, analyzer, and import fixtures
+taxonomy fixture/test plus Pyright, package, analyzer, and import fixtures
 ```
 
-F-02e first defines a production-free executable contract for the documented
-`EasyUseAnimaError` hierarchy. It classifies every current feature error and freezes
-built-in exception compatibility plus exact API/node mapping before any inheritance or
-HTTP-metadata change. Do not combine production implementation with this contract.
+F-02f adds the documented categories and category ancestry in place. Preserve each
+concrete class object/module/name, existing feature-specific inheritance, built-in
+catch compatibility, constructor, attributes, exports, and behavior. Do not combine
+the F-02g profile/translation API mapping cutover into this task.
 
 ## Following queue
 
-After F-02e Contract:
+After F-02f:
 
-1. execute only the contract-selected cohesive cutover or smallest ordered slices;
-2. re-audit the common error row and record Phase F completion;
+1. execute F-02g as the separate authoritative API adapter mapping cutover;
+2. run F-02h to re-audit the common error row and record Phase F completion;
 3. after Phase F closes, run #188 G-04A against existing
    compatibility/node/API/package fixtures;
 4. audit Wildcard and API pure-shim feasibility without deleting root modules;
