@@ -4,7 +4,7 @@
 
 - Status: active execution plan after Phase D and Phase E completion.
 - Primary parent: Issue #185.
-- Active first task: Issue #563 / F-01 typed-boundary completion audit.
+- Active first task: Issue #563 / F-02a Autocomplete typed result contracts.
 - Quality owner: Issue #188.
 - Compatibility ledger: Issue #186.
 - D-14/H status: parked by compatibility gates, not failed.
@@ -65,8 +65,9 @@ ADR-002 result when evidence is absent or ambiguous.
 ### Lane A — Active maintainability work
 
 ```text
-READY F-01    typed-boundary completion audit                 #563
-  -> OPTIONAL F-02  smallest targeted typed/error gap
+READY F-02a   Autocomplete typed result contracts             #563
+  -> RE-AUDIT affected Phase F row
+  -> F-02      next smallest targeted gap while one remains
   -> G-04A    public API snapshot coverage audit              #188
   -> OPTIONAL G-04B  minimal missing public-surface gate
   -> P-WC-01  wildcard pure-shim feasibility Contract         #186
@@ -131,6 +132,17 @@ Exit:
 
 - no gap: record Phase F complete and start G-04A;
 - gap: execute only the smallest F-02, re-audit the affected row, then start G-04A.
+
+Audit result at `bade01e36146456e163341998ab1a7a19a4ae0b3`:
+
+- [`python-typed-boundary-f01-audit.md`](python-typed-boundary-f01-audit.md)
+  records the production-free six-area inventory and reuses the existing
+  deterministic fixtures;
+- Phase F remains open: settings typed migration, Prompt/Autocomplete result
+  boundaries, and the common feature error taxonomy have exact follow-up findings;
+- only the smallest follow-up, F-02a Autocomplete typed result contracts, is selected
+  as the next task card;
+- G-04A and Issue #188 remain blocked until the affected Phase F rows are re-audited.
 
 ## 4. G-04A — Public API snapshot coverage audit
 
@@ -345,16 +357,16 @@ with Codex.
 ## 10. Codex resume instruction
 
 ```text
-Start Issue #563 / F-01 only from latest origin/dev.
+Start Issue #563 / F-02a only from latest origin/dev after F-01 merges.
 
 Read:
 - current-policies.md
 - codex-execution-efficiency.md universal rules
-- this document's F-01 and validation sections
-- Issue #563
-- python-backend.md Phase F / Definition of Done
-- merged #163/#165/#168 contract owners
-- current Pyright/import/API/schema fixtures directly relevant to each row
+- this document's F-01 result and validation sections
+- python-typed-boundary-f01-audit.md F-02a task card
+- Issue #563 latest checkpoint
+- python-runtime-e05-autocomplete-contract.md
+- direct Autocomplete owner source/tests and current Pyright/import/API fixtures
 
 Do not read all historical D/E PRs and do not restart D-14 removal.
 

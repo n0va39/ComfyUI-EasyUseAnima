@@ -17,7 +17,7 @@ then only the active task section, owning Issue, direct source, and direct tests
 - [`post-phase-e-maintenance-roadmap.md`](post-phase-e-maintenance-roadmap.md)
   owns the current queue.
 - First READY task: Issue [#563](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/563)
-  / F-01 typed-boundary completion audit.
+  / F-02a Autocomplete typed result contracts.
 - After Phase F handoff, Issue
   [#188](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/188)
   owns G-04 public API snapshot, G-05 size/complexity ratchet, and G-06 test ownership.
@@ -28,8 +28,9 @@ then only the active task section, owning Issue, direct source, and direct tests
   not block `dev`; do not republish or mutate the release.
 
 ```text
-READY  F-01 typed-boundary completion audit
-  -> optional smallest F-02
+READY  F-02a Autocomplete typed result contracts
+  -> re-audit the affected Phase F row
+  -> next smallest F-02 while a finding remains
   -> G-04A public API snapshot coverage audit
   -> optional G-04B gap
   -> Wildcard pure-shim feasibility Contract
@@ -66,6 +67,9 @@ of architectural success by itself.
 - [`post-phase-e-maintenance-roadmap.md`](post-phase-e-maintenance-roadmap.md):
   active Phase F/G queue, pre-retirement feasibility, release N runway, D-14 triggers,
   validation, and Codex start instruction.
+- [`python-typed-boundary-f01-audit.md`](python-typed-boundary-f01-audit.md):
+  current Phase F typed-boundary inventory, classifications, G-04A handoff surface,
+  and the selected smallest F-02 task card.
 - [`backend-roadmap-resume-0.6.2.md`](backend-roadmap-resume-0.6.2.md):
   completed D-08 and Phase E execution record plus post-Phase-E D-14 verdict.
 - [`python-backend.md`](python-backend.md): target ownership, phase definitions, and
@@ -79,7 +83,9 @@ of architectural success by itself.
 - [`adr-002-compatibility-shims.md`](adr-002-compatibility-shims.md): support-window,
   evidence, staged-retirement, and public-breaking-change policy.
 - [`python-runtime-state-inventory.md`](python-runtime-state-inventory.md) and
-  `python-runtime-e02-*` through `python-runtime-e10-*`: completed Phase E contracts.
+  `python-runtime-e02-*` through `python-runtime-e10-*`: completed Phase E contracts,
+  including [`python-runtime-e05-autocomplete-contract.md`](python-runtime-e05-autocomplete-contract.md)
+  and [`python-runtime-e06-wildcard-contract.md`](python-runtime-e06-wildcard-contract.md).
 - [`../development/codex-execution-efficiency.md`](../development/codex-execution-efficiency.md):
   context budget, focused test ladder, evidence reuse, and reporting.
 
