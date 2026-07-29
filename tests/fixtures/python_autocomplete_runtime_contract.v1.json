@@ -376,7 +376,9 @@
     "root_adapter": {
       "module": "api.py",
       "resolver": "_runtime_autocomplete",
-      "runtime_getter": "_get_runtime"
+      "runtime_family": "wildcard_autocomplete",
+      "runtime_getter": "_read",
+      "runtime_leaf": "get_runtime"
     },
     "runtime": {
       "field": "autocomplete",

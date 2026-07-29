@@ -16,6 +16,13 @@ def load_api_module():
     package.__path__ = [str(ROOT)]
     sys.modules[package_name] = package
 
+    sys.modules.pop(
+        f"{package_name}.easyuse_anima.api.dependencies",
+        None,
+    )
+    api_package = sys.modules.get(f"{package_name}.easyuse_anima.api")
+    if api_package is not None:
+        vars(api_package).pop("dependencies", None)
     spec = importlib.util.spec_from_file_location(
         f"{package_name}.api",
         ROOT / "api.py",

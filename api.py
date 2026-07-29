@@ -12,6 +12,132 @@ except ImportError:
     server = None
     web = None
 
+from .easyuse_anima.aio.torch_compile_diagnostics import (
+    collect_torch_compile_diagnostics as _collect_torch_compile_diagnostics,
+)
+from .easyuse_anima.aio.torch_compile_recommendation import (
+    recommend_torch_compile as _recommend_torch_compile,
+)
+from .easyuse_anima.api import responses as _api_responses
+from .easyuse_anima.api import router as _api_router
+from .easyuse_anima.api.dependencies import (
+    ApiApplicationDependencies,
+    ApiHostDependencies,
+    ApiProfileDependencies,
+    ApiRequestDependencies,
+    ApiSettingsDependencies,
+    ApiTorchCompileDependencies,
+    ApiTranslationDependencies,
+    ApiWildcardAutocompleteDependencies,
+    _publish_application_dependencies,
+)
+from .easyuse_anima.api.dependencies import (
+    _late_application_attribute as _late_attr,
+)
+from .easyuse_anima.api.dependencies import (
+    _late_application_dependency as _late,
+)
+from .easyuse_anima.api.dependencies import (
+    _late_application_value as _late_value,
+)
+from .easyuse_anima.api.dependencies import (
+    _read_application_dependency as _read,
+)
+from .easyuse_anima.api.errors import ApiContractError
+from .easyuse_anima.api.file_io import (
+    _FILE_IO_LIMITERS,
+    _FILE_IO_LIMITERS_LOCK,
+    FILE_IO_MAX_IN_FLIGHT,
+)
+from .easyuse_anima.api.file_io import (
+    file_io_limiter as _file_io_limiter,
+)
+from .easyuse_anima.api.file_io import (
+    release_file_io_slot as _release_file_io_slot,
+)
+from .easyuse_anima.api.file_io import (
+    run_file_io as _run_file_io,
+)
+from .easyuse_anima.api.requests import (
+    json_boolean,
+    json_integer,
+    json_object,
+    json_string,
+    json_uuid_string,
+    parse_json_object,
+)
+from .easyuse_anima.api.responses import (
+    attach_request_id_header,
+    correlate_response,
+    create_request_id,
+    error_payload,
+)
+from .easyuse_anima.api.router import (
+    ROUTE_REGISTRATION_MARKER as _ROUTE_REGISTRATION_MARKER,
+)
+from .easyuse_anima.api.router import (
+    build_route_definitions as _build_route_definitions,
+)
+from .easyuse_anima.api.router import (
+    build_route_signature as _build_route_signature,
+)
+from .easyuse_anima.api.router import (
+    register_route_definitions as _register_route_definitions,
+)
+from .easyuse_anima.api.routes import autocomplete as _api_autocomplete_routes
+from .easyuse_anima.api.routes import long_text_settings as _api_long_text_routes
+from .easyuse_anima.api.routes import lora_preview as _api_lora_preview_routes
+from .easyuse_anima.api.routes import settings as _api_settings_routes
+from .easyuse_anima.api.routes import translation as _api_translation_routes
+from .easyuse_anima.api.routes import wildcards as _api_wildcard_routes
+from .easyuse_anima.autocomplete.classification import (
+    classify_prompt_text as _canonical_classify_prompt_text,
+)
+from .easyuse_anima.autocomplete.dataset import (
+    AUTOCOMPLETE_CSV,
+)
+from .easyuse_anima.autocomplete.dataset import (
+    autocomplete_status as _canonical_autocomplete_status,
+)
+from .easyuse_anima.autocomplete.dataset import (
+    available_autocomplete_sources as _canonical_available_autocomplete_sources,
+)
+from .easyuse_anima.autocomplete.dataset import (
+    resolve_autocomplete_source as _canonical_resolve_autocomplete_source_path,
+)
+from .easyuse_anima.autocomplete.search import (
+    search_autocomplete as _canonical_search_autocomplete,
+)
+from .easyuse_anima.bootstrap import (
+    build_aio_torch_compile_route_handler as _build_aio_torch_compile_route_handler,
+)
+from .easyuse_anima.bootstrap import (
+    build_lora_read_route_group as _build_lora_read_route_group,
+)
+from .easyuse_anima.bootstrap import (
+    build_profile_list_route_group as _build_profile_list_route_group,
+)
+from .easyuse_anima.bootstrap import (
+    build_profile_route_group as _build_profile_route_group,
+)
+from .easyuse_anima.bootstrap import (
+    build_settings_route_group as _build_settings_route_group,
+)
+from .easyuse_anima.bootstrap import (
+    build_translation_route_handler as _build_translation_route_handler,
+)
+from .easyuse_anima.bootstrap import (
+    build_translation_route_runtime as _build_translation_route_runtime,
+)
+from .easyuse_anima.bootstrap import (
+    build_wildcard_autocomplete_route_group as _build_wildcard_autocomplete_route_group,
+)
+from .easyuse_anima.profiles import aio as _aio_profiles
+from .easyuse_anima.profiles import contract as _profile_contract
+from .easyuse_anima.profiles import lora as _lora_profiles
+from .easyuse_anima.profiles import mutation as _profile_mutation
+from .easyuse_anima.profiles import repository as _profile_repository
+from .easyuse_anima.runtime import get_runtime as _get_runtime
 from .easyuse_anima.settings.repository import (
     load_long_text_settings,
     save_long_text_settings,
@@ -23,20 +149,6 @@ from .easyuse_anima.settings.service import (
     resolve_autocomplete_source,
     resolve_prompt_translation_settings,
 )
-from .easyuse_anima.autocomplete.dataset import (
-    AUTOCOMPLETE_CSV,
-    autocomplete_status as _canonical_autocomplete_status,
-    available_autocomplete_sources as _canonical_available_autocomplete_sources,
-    resolve_autocomplete_source as _canonical_resolve_autocomplete_source_path,
-)
-from .easyuse_anima.autocomplete.search import (
-    search_autocomplete as _canonical_search_autocomplete,
-)
-from .easyuse_anima.autocomplete.classification import (
-    classify_prompt_text as _canonical_classify_prompt_text,
-)
-from .easyuse_anima.wildcard.service import list_wildcards
-from .easyuse_anima.wildcard.sources import resolve_wildcard_roots
 from .easyuse_anima.translation.contracts import (
     PromptTranslationError,
     TranslationBusyError,
@@ -46,65 +158,8 @@ from .easyuse_anima.translation.contracts import (
 from .easyuse_anima.translation.service import (
     translate_prompt_markers,
 )
-from .easyuse_anima.api.errors import ApiContractError
-from .easyuse_anima.api.file_io import (
-    FILE_IO_MAX_IN_FLIGHT,
-    _FILE_IO_LIMITERS,
-    _FILE_IO_LIMITERS_LOCK,
-    file_io_limiter as _file_io_limiter,
-    release_file_io_slot as _release_file_io_slot,
-    run_file_io as _run_file_io,
-)
-from .easyuse_anima.api.requests import (
-    json_boolean,
-    json_integer,
-    json_object,
-    json_string,
-    json_uuid_string,
-    parse_json_object,
-)
-from .easyuse_anima.api import responses as _api_responses
-from .easyuse_anima.api.responses import (
-    attach_request_id_header,
-    correlate_response,
-    create_request_id,
-    error_payload,
-)
-from .easyuse_anima.api import router as _api_router
-from .easyuse_anima.api.router import (
-    ROUTE_REGISTRATION_MARKER as _ROUTE_REGISTRATION_MARKER,
-    build_route_definitions as _build_route_definitions,
-    build_route_signature as _build_route_signature,
-    register_route_definitions as _register_route_definitions,
-)
-from .easyuse_anima.bootstrap import (
-    build_aio_torch_compile_route_handler as _build_aio_torch_compile_route_handler,
-    build_lora_read_route_group as _build_lora_read_route_group,
-    build_profile_list_route_group as _build_profile_list_route_group,
-    build_profile_route_group as _build_profile_route_group,
-    build_settings_route_group as _build_settings_route_group,
-    build_translation_route_handler as _build_translation_route_handler,
-    build_translation_route_runtime as _build_translation_route_runtime,
-    build_wildcard_autocomplete_route_group as _build_wildcard_autocomplete_route_group,
-)
-from .easyuse_anima.api.routes import autocomplete as _api_autocomplete_routes
-from .easyuse_anima.api.routes import long_text_settings as _api_long_text_routes
-from .easyuse_anima.api.routes import lora_preview as _api_lora_preview_routes
-from .easyuse_anima.api.routes import settings as _api_settings_routes
-from .easyuse_anima.api.routes import wildcards as _api_wildcard_routes
-from .easyuse_anima.api.routes import translation as _api_translation_routes
-from .easyuse_anima.runtime import get_runtime as _get_runtime
-from .easyuse_anima.aio.torch_compile_diagnostics import (
-    collect_torch_compile_diagnostics as _collect_torch_compile_diagnostics,
-)
-from .easyuse_anima.aio.torch_compile_recommendation import (
-    recommend_torch_compile as _recommend_torch_compile,
-)
-from .easyuse_anima.profiles import aio as _aio_profiles
-from .easyuse_anima.profiles import contract as _profile_contract
-from .easyuse_anima.profiles import lora as _lora_profiles
-from .easyuse_anima.profiles import mutation as _profile_mutation
-from .easyuse_anima.profiles import repository as _profile_repository
+from .easyuse_anima.wildcard.service import list_wildcards
+from .easyuse_anima.wildcard.sources import resolve_wildcard_roots
 
 PROFILE_KIND_AIO = _profile_contract.PROFILE_KIND_AIO
 PROFILE_KIND_LORA = _profile_contract.PROFILE_KIND_LORA
@@ -186,11 +241,22 @@ PROMPT_TRANSLATION_ROUTE_TIMEOUT_SECONDS = (
     _api_translation_routes.PROMPT_TRANSLATION_ROUTE_TIMEOUT_SECONDS
 )
 _LOGGER = logging.getLogger(__name__)
+_ROOT_COMPATIBILITY_ALIASES = (
+    asyncio,
+    TranslationBusyError,
+    TranslationCancelledError,
+    TranslationTimeoutError,
+    FILE_IO_MAX_IN_FLIGHT,
+    _FILE_IO_LIMITERS,
+    _FILE_IO_LIMITERS_LOCK,
+    _file_io_limiter,
+    _release_file_io_slot,
+)
 
 
 def _runtime_autocomplete():
     try:
-        return _get_runtime().autocomplete
+        return _read("wildcard_autocomplete", "get_runtime")().autocomplete
     except RuntimeError as exc:
         if str(exc) != "[EasyUseAnima] RuntimeServices has not been installed.":
             raise
@@ -265,20 +331,19 @@ def classify_prompt_text(
     _translate_prompt_for_route,
     _prompt_translation_error_response,
 ) = _build_translation_route_runtime(
-    translate_prompt_markers=lambda text, settings: translate_prompt_markers(
-        text,
-        settings,
+    translate_prompt_markers=_late("translation", "translate_prompt_markers"),
+    resolve_prompt_translation_settings=_late(
+        "translation", "resolve_prompt_translation_settings"
     ),
-    resolve_prompt_translation_settings=lambda: resolve_prompt_translation_settings(),
     get_worker=lambda: _PROMPT_TRANSLATION_WORKER,
     get_translate_prompt_sync=lambda: _translate_prompt_sync,
-    get_timeout_seconds=lambda: PROMPT_TRANSLATION_ROUTE_TIMEOUT_SECONDS,
-    error_response=lambda *args, **kwargs: _error_response(*args, **kwargs),
+    get_timeout_seconds=_late_value("translation", "route_timeout_seconds"),
+    error_response=_late("request", "error_response"),
 )
 
 
 _error_response = _api_responses.build_error_response(
-    json_response=lambda payload, **kwargs: web.json_response(payload, **kwargs),
+    json_response=_late_attr("host", "web", "json_response"),
     build_error_payload=lambda code, message, **kwargs: error_payload(
         code,
         message,
@@ -286,18 +351,19 @@ _error_response = _api_responses.build_error_response(
     ),
 )
 _contract_error_response = _api_responses.build_contract_error_response(
-    error_response=lambda *args, **kwargs: _error_response(*args, **kwargs),
+    error_response=_late("request", "error_response"),
 )
 _request_correlated = _api_responses.build_request_correlator(
-    create_id=lambda: create_request_id(),
-    get_http_exception_type=lambda: getattr(web, "HTTPException", ()),
-    attach_id_header=lambda response, request_id: attach_request_id_header(
-        response,
-        request_id,
+    create_id=_late("request", "create_request_id"),
+    get_http_exception_type=lambda: getattr(
+        _read("host", "web"),
+        "HTTPException",
+        (),
     ),
-    correlate=lambda response, request_id: correlate_response(response, request_id),
+    attach_id_header=attach_request_id_header,
+    correlate=correlate_response,
     get_logger=lambda: _LOGGER,
-    error_response=lambda *args, **kwargs: _error_response(*args, **kwargs),
+    error_response=_late("request", "error_response"),
 )
 
 
@@ -321,7 +387,10 @@ _resolve_lora_preview_path = _api_lora_preview_routes.build_lora_preview_path_re
         "identity_mismatch": _profile_mutation.ProfileIdentityMismatchError,
         "revision_conflict": _profile_mutation.ProfileRevisionConflictError,
     },
-    is_profile_mutation_error=lambda exc: isinstance(exc, ProfileMutationError),
+    is_profile_mutation_error=lambda exc: isinstance(
+        exc,
+        _read("request", "profile_mutation_error_type"),
+    ),
     is_file_exists_error=lambda exc: isinstance(exc, FileExistsError),
     is_file_not_found_error=lambda exc: isinstance(exc, FileNotFoundError),
     is_invalid_profile_data_error=lambda exc: isinstance(
@@ -329,8 +398,10 @@ _resolve_lora_preview_path = _api_lora_preview_routes.build_lora_preview_path_re
         (json.JSONDecodeError, UnicodeDecodeError, InvalidProfileDataError),
     ),
     is_value_error=lambda exc: isinstance(exc, ValueError),
-    get_safe_validation_messages=lambda: _SAFE_PROFILE_VALIDATION_MESSAGES,
-    error_response=lambda *args, **kwargs: _error_response(*args, **kwargs),
+    get_safe_validation_messages=_late_value(
+        "request", "safe_profile_validation_messages"
+    ),
+    error_response=_late("request", "error_response"),
 )
 
 
@@ -338,8 +409,8 @@ _resolve_lora_preview_path = _api_lora_preview_routes.build_lora_preview_path_re
     _get_settings_payload_sync,
     _save_setting_payload_sync,
 ) = _api_settings_routes.build_settings_payloads(
-    public_settings=lambda: public_settings(),
-    save_setting=lambda key, value: save_setting(key, value),
+    public_settings=_late("settings", "public_settings"),
+    save_setting=_late("settings", "save_setting"),
 )
 
 
@@ -347,16 +418,16 @@ _resolve_lora_preview_path = _api_lora_preview_routes.build_lora_preview_path_re
     _get_long_text_settings_payload_sync,
     _save_long_text_settings_payload_sync,
 ) = _api_long_text_routes.build_long_text_settings_payloads(
-    load_long_text_settings=lambda: load_long_text_settings(),
-    save_long_text_settings=lambda values: save_long_text_settings(values),
-    public_settings=lambda: public_settings(),
+    load_long_text_settings=_late("settings", "load_long_text_settings"),
+    save_long_text_settings=_late("settings", "save_long_text_settings"),
+    public_settings=_late("settings", "public_settings"),
 )
 
 
 _wildcards_payload_sync = _api_wildcard_routes.build_wildcards_payload(
-    public_settings=lambda: public_settings(),
-    resolve_wildcard_roots=lambda extra_paths: resolve_wildcard_roots(extra_paths),
-    list_wildcards=lambda **kwargs: list_wildcards(**kwargs),
+    public_settings=_late("settings", "public_settings"),
+    resolve_wildcard_roots=_late("wildcard_autocomplete", "resolve_wildcard_roots"),
+    list_wildcards=_late("wildcard_autocomplete", "list_wildcards"),
 )
 
 
@@ -367,28 +438,33 @@ _wildcards_payload_sync = _api_wildcard_routes.build_wildcards_payload(
     _search_autocomplete_payload_sync,
     _classify_prompt_payload_sync,
 ) = _api_autocomplete_routes.build_autocomplete_payloads(
-    resolve_autocomplete_source=lambda: resolve_autocomplete_source(),
-    resolve_autocomplete_source_path=lambda source: resolve_autocomplete_source_path(
-        source
+    resolve_autocomplete_source=_late(
+        "wildcard_autocomplete", "resolve_autocomplete_source"
     ),
-    autocomplete_status=lambda path: autocomplete_status(path),
-    available_autocomplete_sources=lambda source: available_autocomplete_sources(
-        source
+    resolve_autocomplete_source_path=_late(
+        "wildcard_autocomplete", "resolve_autocomplete_source_path"
     ),
-    resolve_autocomplete_limit=lambda: resolve_autocomplete_limit(),
-    search_autocomplete=lambda query, **kwargs: search_autocomplete(query, **kwargs),
-    classify_prompt_text=lambda text, **kwargs: classify_prompt_text(text, **kwargs),
-    public_autocomplete_status=lambda status: _public_autocomplete_status(status),
-    public_autocomplete_payload=lambda payload: _public_autocomplete_payload(payload),
+    autocomplete_status=_late("wildcard_autocomplete", "autocomplete_status"),
+    available_autocomplete_sources=_late(
+        "wildcard_autocomplete", "available_autocomplete_sources"
+    ),
+    resolve_autocomplete_limit=_late(
+        "wildcard_autocomplete", "resolve_autocomplete_limit"
+    ),
+    search_autocomplete=_late("wildcard_autocomplete", "search_autocomplete"),
+    classify_prompt_text=_late("wildcard_autocomplete", "classify_prompt_text"),
+    public_autocomplete_status=_late(
+        "wildcard_autocomplete", "public_autocomplete_status"
+    ),
+    public_autocomplete_payload=_late(
+        "wildcard_autocomplete", "public_autocomplete_payload"
+    ),
 )
 
 
 _get_prompt_routes = _api_router.build_prompt_routes_resolver(
-    resolve_server=lambda: server,
+    resolve_server=_late_value("host", "server"),
 )
-
-
-routes = _get_prompt_routes()
 
 
 if web is not None:
@@ -403,36 +479,31 @@ if web is not None:
             "parse_json_object": parse_json_object,
             "json_string": json_string,
             "contract_error_type": ApiContractError,
-            "contract_error_response": lambda exc: _contract_error_response(exc),
-            "run_file_io": lambda function, *args, **kwargs: _run_file_io(
-                function,
-                *args,
-                **kwargs,
-            ),
-            "get_settings_payload": lambda: _get_settings_payload_sync(),
-            "save_setting_payload": lambda key, value: _save_setting_payload_sync(
-                key,
-                value,
-            ),
+            "contract_error_response": _late("request", "contract_error_response"),
+            "run_file_io": _late("request", "run_file_io"),
+            "get_settings_payload": _late("settings", "get_settings_payload"),
+            "save_setting_payload": _late("settings", "save_setting_payload"),
             "unknown_setting_error_type": KeyError,
-            "unknown_setting_response": lambda: _error_response(
+            "unknown_setting_response": lambda: _read("request", "error_response")(
                 422,
                 "unknown_setting",
                 "Unknown setting",
             ),
-            "json_response": lambda payload: web.json_response(payload),
+            "json_response": _late_attr("host", "web", "json_response"),
         },
         long_text_settings_dependencies={
-            "parse_json_object": lambda request: parse_json_object(request),
-            "json_object": lambda data, field: json_object(data, field),
+            "parse_json_object": parse_json_object,
+            "json_object": json_object,
             "contract_error_type": ApiContractError,
-            "contract_error_response": lambda exc: _contract_error_response(exc),
-            "run_file_io": lambda function, *args: _run_file_io(function, *args),
-            "get_long_text_settings_payload": lambda: _get_long_text_settings_payload_sync(),
-            "save_long_text_settings_payload": lambda values: _save_long_text_settings_payload_sync(
-                values
+            "contract_error_response": _late("request", "contract_error_response"),
+            "run_file_io": _late("request", "run_file_io"),
+            "get_long_text_settings_payload": _late(
+                "settings", "get_long_text_settings_payload"
             ),
-            "json_response": lambda payload: web.json_response(payload),
+            "save_long_text_settings_payload": _late(
+                "settings", "save_long_text_settings_payload"
+            ),
+            "json_response": _late_attr("host", "web", "json_response"),
         },
     )
 
@@ -444,67 +515,67 @@ if web is not None:
     ) = _build_wildcard_autocomplete_route_group(
         request_correlated=_request_correlated,
         wildcards_dependencies={
-            "run_file_io": lambda function, *args: _run_file_io(function, *args),
-            "wildcards_payload": lambda: _wildcards_payload_sync(),
-            "json_response": lambda payload: web.json_response(payload),
+            "run_file_io": _late("request", "run_file_io"),
+            "wildcards_payload": _late(
+                "wildcard_autocomplete", "wildcards_payload"
+            ),
+            "json_response": _late_attr("host", "web", "json_response"),
         },
         autocomplete_dependencies={
-            "run_file_io": lambda function, *args: _run_file_io(function, *args),
-            "autocomplete_status_payload": lambda: _autocomplete_status_payload_sync(),
-            "search_autocomplete_payload": lambda *args: _search_autocomplete_payload_sync(
-                *args
+            "run_file_io": _late("request", "run_file_io"),
+            "autocomplete_status_payload": _late(
+                "wildcard_autocomplete", "autocomplete_status_payload"
             ),
-            "json_response": lambda payload: web.json_response(payload),
+            "search_autocomplete_payload": _late(
+                "wildcard_autocomplete", "search_autocomplete_payload"
+            ),
+            "json_response": _late_attr("host", "web", "json_response"),
         },
         classify_prompt_dependencies={
-            "parse_json_object": lambda request: parse_json_object(request),
-            "json_string": lambda data, field: json_string(data, field),
-            "json_integer": lambda data, field, **kwargs: json_integer(
-                data,
-                field,
-                **kwargs,
-            ),
+            "parse_json_object": parse_json_object,
+            "json_string": json_string,
+            "json_integer": json_integer,
             "contract_error_type": ApiContractError,
-            "contract_error_response": lambda exc: _contract_error_response(exc),
-            "run_file_io": lambda function, *args: _run_file_io(function, *args),
-            "classify_prompt_payload": lambda *args: _classify_prompt_payload_sync(
-                *args
+            "contract_error_response": _late("request", "contract_error_response"),
+            "run_file_io": _late("request", "run_file_io"),
+            "classify_prompt_payload": _late(
+                "wildcard_autocomplete", "classify_prompt_payload"
             ),
-            "json_response": lambda payload: web.json_response(payload),
+            "json_response": _late_attr("host", "web", "json_response"),
         },
     )
 
     translate_prompt_handler = _build_translation_route_handler(
         request_correlated=_request_correlated,
         translation_dependencies={
-            "parse_json_object": lambda request: parse_json_object(request),
-            "json_string": lambda data, field: json_string(data, field),
+            "parse_json_object": parse_json_object,
+            "json_string": json_string,
             "contract_error_type": ApiContractError,
-            "contract_error_response": lambda exc: _contract_error_response(exc),
+            "contract_error_response": _late("request", "contract_error_response"),
             "translate_prompt": lambda text: _translate_prompt_for_route(text),
-            "translation_error_type": PromptTranslationError,
-            "translation_error_response": lambda exc: _prompt_translation_error_response(
-                exc
+            "get_translation_error_type": _late_value(
+                "translation", "prompt_translation_error_type"
             ),
-            "json_response": lambda payload: web.json_response(payload),
+            "translation_error_response": _late(
+                "translation", "prompt_translation_error_response"
+            ),
+            "json_response": _late_attr("host", "web", "json_response"),
         },
     )
 
     aio_torch_compile_recommend_handler = _build_aio_torch_compile_route_handler(
         request_correlated=_request_correlated,
         aio_torch_compile_dependencies={
-            "parse_json_object": lambda request: parse_json_object(request),
-            "json_object": lambda data, field: json_object(data, field),
-            "json_integer": lambda data, field, **kwargs: json_integer(
-                data,
-                field,
-                **kwargs,
-            ),
+            "parse_json_object": parse_json_object,
+            "json_object": json_object,
+            "json_integer": json_integer,
             "contract_error_type": ApiContractError,
-            "contract_error_response": lambda exc: _contract_error_response(exc),
-            "collect_diagnostics": lambda: _collect_torch_compile_diagnostics(),
-            "recommend_torch_compile": lambda *args: _recommend_torch_compile(*args),
-            "json_response": lambda payload: web.json_response(payload),
+            "contract_error_response": _late("request", "contract_error_response"),
+            "collect_diagnostics": _late("torch_compile", "collect_diagnostics"),
+            "recommend_torch_compile": _late(
+                "torch_compile", "recommend_torch_compile"
+            ),
+            "json_response": _late_attr("host", "web", "json_response"),
         },
     )
 
@@ -514,21 +585,18 @@ if web is not None:
     ) = _build_lora_read_route_group(
         request_correlated=_request_correlated,
         lora_preview_dependencies={
-            "run_file_io": lambda function, *args: _run_file_io(function, *args),
-            "resolve_lora_preview_path": lambda name: _resolve_lora_preview_path(
-                name
+            "run_file_io": _late("request", "run_file_io"),
+            "resolve_lora_preview_path": _late(
+                "profiles", "resolve_lora_preview_path"
             ),
-            "empty_response": lambda **kwargs: web.Response(**kwargs),
-            "file_response": lambda path, **kwargs: web.FileResponse(
-                path,
-                **kwargs,
-            ),
-            "basename": lambda path: os.path.basename(path),
+            "empty_response": _late_attr("host", "web", "Response"),
+            "file_response": _late_attr("host", "web", "FileResponse"),
+            "basename": os.path.basename,
         },
         lora_catalog_dependencies={
-            "run_file_io": lambda function, *args: _run_file_io(function, *args),
-            "list_loras": lambda: _list_loras(),
-            "json_response": lambda payload: web.json_response(payload),
+            "run_file_io": _late("request", "run_file_io"),
+            "list_loras": _late("profiles", "list_loras"),
+            "json_response": _late_attr("host", "web", "json_response"),
         },
     )
 
@@ -538,12 +606,12 @@ if web is not None:
     ) = _build_profile_list_route_group(
         request_correlated=_request_correlated,
         profile_list_dependencies={
-            "run_file_io": lambda function, *args: _run_file_io(function, *args),
-            "list_lora_profiles": lambda: _list_lora_profiles(),
-            "list_aio_profiles": lambda: _list_aio_profiles(),
+            "run_file_io": _late("request", "run_file_io"),
+            "list_lora_profiles": _late("profiles", "list_lora_profiles"),
+            "list_aio_profiles": _late("profiles", "list_aio_profiles"),
             "profile_data_error_type": InvalidProfileDataError,
-            "profile_error_response": lambda exc: _profile_error_response(exc),
-            "json_response": lambda payload: web.json_response(payload),
+            "profile_error_response": _late("request", "profile_error_response"),
+            "json_response": _late_attr("host", "web", "json_response"),
         },
     )
 
@@ -558,12 +626,9 @@ if web is not None:
     ) = _build_profile_route_group(
         request_correlated=_request_correlated,
         profile_load_dependencies={
-            "run_file_io": lambda function, *args: _run_file_io(
-                function,
-                *args,
-            ),
-            "load_lora_profile": lambda name: _load_lora_profile(name),
-            "load_aio_profile": lambda name: _load_aio_profile(name),
+            "run_file_io": _late("request", "run_file_io"),
+            "load_lora_profile": _late("profiles", "load_lora_profile"),
+            "load_aio_profile": _late("profiles", "load_aio_profile"),
             "lora_load_error_types": (
                 json.JSONDecodeError,
                 UnicodeDecodeError,
@@ -571,8 +636,8 @@ if web is not None:
                 ValueError,
             ),
             "aio_load_error_types": (FileNotFoundError, ValueError),
-            "profile_error_response": lambda exc: _profile_error_response(exc),
-            "json_response": lambda payload: web.json_response(payload),
+            "profile_error_response": _late("request", "profile_error_response"),
+            "json_response": _late_attr("host", "web", "json_response"),
         },
         profile_save_dependencies={
             "parse_json_object": parse_json_object,
@@ -582,29 +647,17 @@ if web is not None:
             "json_uuid_string": json_uuid_string,
             "json_integer": json_integer,
             "contract_error_type": ApiContractError,
-            "contract_error_response": lambda exc: _contract_error_response(exc),
-            "run_file_io": lambda function, *args, **kwargs: _run_file_io(
-                function,
-                *args,
-                **kwargs,
-            ),
-            "save_lora_profile": lambda name, data, **kwargs: _save_lora_profile(
-                name,
-                data,
-                **kwargs,
-            ),
-            "save_aio_profile": lambda name, data, **kwargs: _save_aio_profile(
-                name,
-                data,
-                **kwargs,
-            ),
+            "contract_error_response": _late("request", "contract_error_response"),
+            "run_file_io": _late("request", "run_file_io"),
+            "save_lora_profile": _late("profiles", "save_lora_profile"),
+            "save_aio_profile": _late("profiles", "save_aio_profile"),
             "save_error_types": (
                 FileExistsError,
                 FileNotFoundError,
                 ValueError,
             ),
-            "profile_error_response": lambda exc: _profile_error_response(exc),
-            "json_response": lambda payload: web.json_response(payload),
+            "profile_error_response": _late("request", "profile_error_response"),
+            "json_response": _late_attr("host", "web", "json_response"),
         },
         aio_profile_mutation_dependencies={
             "parse_json_object": parse_json_object,
@@ -613,44 +666,27 @@ if web is not None:
             "json_uuid_string": json_uuid_string,
             "json_integer": json_integer,
             "contract_error_type": ApiContractError,
-            "contract_error_response": lambda exc: _contract_error_response(exc),
-            "run_file_io": lambda function, *args, **kwargs: _run_file_io(
-                function,
-                *args,
-                **kwargs,
-            ),
-            "delete_aio_profile": lambda name, **kwargs: _delete_aio_profile(
-                name,
-                **kwargs,
-            ),
-            "rename_aio_profile": lambda old_name, new_name, **kwargs: (
-                _rename_aio_profile(
-                    old_name,
-                    new_name,
-                    **kwargs,
-                )
-            ),
+            "contract_error_response": _late("request", "contract_error_response"),
+            "run_file_io": _late("request", "run_file_io"),
+            "delete_aio_profile": _late("profiles", "delete_aio_profile"),
+            "rename_aio_profile": _late("profiles", "rename_aio_profile"),
             "delete_error_types": (FileNotFoundError, ValueError),
             "rename_error_types": (
                 FileExistsError,
                 FileNotFoundError,
                 ValueError,
             ),
-            "profile_error_response": lambda exc: _profile_error_response(exc),
-            "json_response": lambda payload: web.json_response(payload),
+            "profile_error_response": _late("request", "profile_error_response"),
+            "json_response": _late_attr("host", "web", "json_response"),
         },
         lora_profile_fix_dependencies={
             "parse_json_object": parse_json_object,
             "json_object": json_object,
             "contract_error_type": ApiContractError,
-            "contract_error_response": lambda exc: _contract_error_response(exc),
-            "run_file_io": lambda function, *args, **kwargs: _run_file_io(
-                function,
-                *args,
-                **kwargs,
-            ),
-            "fix_lora_profile": lambda data: _fix_lora_profile_payload(data),
-            "json_response": lambda payload: web.json_response(payload),
+            "contract_error_response": _late("request", "contract_error_response"),
+            "run_file_io": _late("request", "run_file_io"),
+            "fix_lora_profile": _late("profiles", "fix_lora_profile_payload"),
+            "json_response": _late_attr("host", "web", "json_response"),
         },
     )
 
@@ -684,15 +720,90 @@ else:
 _ROUTE_SIGNATURE = _build_route_signature(_ROUTE_DEFINITIONS)
 
 
+_APPLICATION_DEPENDENCIES = _publish_application_dependencies(
+    ApiApplicationDependencies(
+        host=ApiHostDependencies(
+            server=server,
+            web=web,
+            get_prompt_routes=_get_prompt_routes,
+            route_definitions=_ROUTE_DEFINITIONS,
+            route_signature=_ROUTE_SIGNATURE,
+            register_route_definitions=_register_route_definitions,
+        ),
+        request=ApiRequestDependencies(
+            create_request_id=create_request_id,
+            run_file_io=_run_file_io,
+            error_response=_error_response,
+            contract_error_response=_contract_error_response,
+            profile_error_response=_profile_error_response,
+            profile_mutation_error_type=ProfileMutationError,
+            safe_profile_validation_messages=_SAFE_PROFILE_VALIDATION_MESSAGES,
+        ),
+        settings=ApiSettingsDependencies(
+            public_settings=public_settings,
+            save_setting=save_setting,
+            load_long_text_settings=load_long_text_settings,
+            save_long_text_settings=save_long_text_settings,
+            get_settings_payload=_get_settings_payload_sync,
+            save_setting_payload=_save_setting_payload_sync,
+            get_long_text_settings_payload=_get_long_text_settings_payload_sync,
+            save_long_text_settings_payload=_save_long_text_settings_payload_sync,
+        ),
+        wildcard_autocomplete=ApiWildcardAutocompleteDependencies(
+            get_runtime=_get_runtime,
+            resolve_wildcard_roots=resolve_wildcard_roots,
+            list_wildcards=list_wildcards,
+            resolve_autocomplete_source=resolve_autocomplete_source,
+            resolve_autocomplete_source_path=resolve_autocomplete_source_path,
+            resolve_autocomplete_limit=resolve_autocomplete_limit,
+            available_autocomplete_sources=available_autocomplete_sources,
+            autocomplete_status=autocomplete_status,
+            search_autocomplete=search_autocomplete,
+            classify_prompt_text=classify_prompt_text,
+            wildcards_payload=_wildcards_payload_sync,
+            autocomplete_status_payload=_autocomplete_status_payload_sync,
+            search_autocomplete_payload=_search_autocomplete_payload_sync,
+            classify_prompt_payload=_classify_prompt_payload_sync,
+            public_autocomplete_status=_public_autocomplete_status,
+            public_autocomplete_payload=_public_autocomplete_payload,
+        ),
+        profiles=ApiProfileDependencies(
+            list_loras=_list_loras,
+            list_lora_profiles=_list_lora_profiles,
+            list_aio_profiles=_list_aio_profiles,
+            load_lora_profile=_load_lora_profile,
+            load_aio_profile=_load_aio_profile,
+            save_lora_profile=_save_lora_profile,
+            save_aio_profile=_save_aio_profile,
+            delete_aio_profile=_delete_aio_profile,
+            rename_aio_profile=_rename_aio_profile,
+            fix_lora_profile_payload=_fix_lora_profile_payload,
+            resolve_lora_preview_path=_resolve_lora_preview_path,
+        ),
+        translation=ApiTranslationDependencies(
+            translate_prompt_markers=translate_prompt_markers,
+            resolve_prompt_translation_settings=resolve_prompt_translation_settings,
+            route_timeout_seconds=PROMPT_TRANSLATION_ROUTE_TIMEOUT_SECONDS,
+            prompt_translation_error_type=PromptTranslationError,
+            prompt_translation_error_response=_prompt_translation_error_response,
+        ),
+        torch_compile=ApiTorchCompileDependencies(
+            collect_diagnostics=_collect_torch_compile_diagnostics,
+            recommend_torch_compile=_recommend_torch_compile,
+        ),
+    )
+)
+
+
+routes = _read("host", "get_prompt_routes")()
+
+
 register_routes = _api_router.build_route_registrar(
-    resolve_prompt_routes=lambda: _get_prompt_routes(),
+    resolve_prompt_routes=_late("host", "get_prompt_routes"),
     publish_routes=lambda target: globals().__setitem__("routes", target),
-    resolve_web=lambda: web,
-    resolve_route_definitions=lambda: _ROUTE_DEFINITIONS,
-    resolve_route_signature=lambda: _ROUTE_SIGNATURE,
-    register_route_definitions=lambda *args, **kwargs: _register_route_definitions(
-        *args,
-        **kwargs,
-    ),
+    resolve_web=_late_value("host", "web"),
+    resolve_route_definitions=_late_value("host", "route_definitions"),
+    resolve_route_signature=_late_value("host", "route_signature"),
+    register_route_definitions=_late("host", "register_route_definitions"),
     marker=_ROUTE_REGISTRATION_MARKER,
 )

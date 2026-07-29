@@ -868,6 +868,25 @@ class PythonAutocompleteRuntimeContractTests(unittest.TestCase):
                 root_adapter["resolver"],
             ),
         )
+        resolver = _top_level_function(
+            root_adapter["module"],
+            root_adapter["resolver"],
+        )
+        dependency_reads = {
+            tuple(argument.value for argument in node.args)
+            for node in ast.walk(resolver)
+            if isinstance(node, ast.Call)
+            and isinstance(node.func, ast.Name)
+            and node.func.id == root_adapter["runtime_getter"]
+            and all(isinstance(argument, ast.Constant) for argument in node.args)
+        }
+        self.assertIn(
+            (
+                root_adapter["runtime_family"],
+                root_adapter["runtime_leaf"],
+            ),
+            dependency_reads,
+        )
         for adapter in runtime_port["adapters"]:
             with self.subTest(adapter=adapter["function"]):
                 references = _function_references(

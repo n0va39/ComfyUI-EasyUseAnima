@@ -158,7 +158,7 @@ def build_translate_prompt_handler(
     contract_error_type,
     contract_error_response,
     translate_prompt,
-    translation_error_type,
+    get_translation_error_type,
     translation_error_response,
     json_response,
 ):
@@ -172,7 +172,7 @@ def build_translate_prompt_handler(
             return contract_error_response(exc)
         try:
             translated = await translate_prompt(text)
-        except translation_error_type as exc:
+        except get_translation_error_type() as exc:
             return translation_error_response(exc)
         return json_response({"status": "ok", "text": translated})
 

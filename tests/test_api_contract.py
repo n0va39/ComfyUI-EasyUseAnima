@@ -104,6 +104,14 @@ def load_api_routes(*, register=True, routes=None):
     package.__path__ = [str(ROOT)]
     sys.modules[package_name] = package
 
+    sys.modules.pop(
+        f"{package_name}.easyuse_anima.api.dependencies",
+        None,
+    )
+    api_package = sys.modules.get(f"{package_name}.easyuse_anima.api")
+    if api_package is not None:
+        vars(api_package).pop("dependencies", None)
+
     routes = RouteRegistry() if routes is None else routes
     fake_server = types.ModuleType("server")
     fake_server.PromptServer = type(
@@ -294,8 +302,8 @@ class ApiRouteRegistrationOwnerTests(unittest.TestCase):
         )
 
         with patch.object(
-            api,
-            "_register_route_definitions",
+            api._APPLICATION_DEPENDENCIES.host,
+            "register_route_definitions",
             return_value=True,
         ) as register:
             self.assertTrue(api.register_routes(target))
@@ -317,12 +325,16 @@ class ApiRouteRegistrationOwnerTests(unittest.TestCase):
             )
         )
 
-        with patch.object(api, "server", None):
+        with patch.object(api._APPLICATION_DEPENDENCIES.host, "server", None):
             self.assertIsNone(api._get_prompt_routes())
-        with patch.object(api, "server", replacement_server):
+        with patch.object(
+            api._APPLICATION_DEPENDENCIES.host,
+            "server",
+            replacement_server,
+        ):
             self.assertIs(api._get_prompt_routes(), replacement_routes)
 
-        with patch.object(api, "web", None):
+        with patch.object(api._APPLICATION_DEPENDENCIES.host, "web", None):
             self.assertFalse(api.register_routes(routes))
             self.assertIs(api.routes, routes)
         self.assertEqual(routes.registrations, [])
@@ -330,11 +342,19 @@ class ApiRouteRegistrationOwnerTests(unittest.TestCase):
         replacement_definitions = (("get", "/replacement", object()),)
         replacement_signature = (("GET", "/replacement"),)
         with (
-            patch.object(api, "_ROUTE_DEFINITIONS", replacement_definitions),
-            patch.object(api, "_ROUTE_SIGNATURE", replacement_signature),
             patch.object(
-                api,
-                "_register_route_definitions",
+                api._APPLICATION_DEPENDENCIES.host,
+                "route_definitions",
+                replacement_definitions,
+            ),
+            patch.object(
+                api._APPLICATION_DEPENDENCIES.host,
+                "route_signature",
+                replacement_signature,
+            ),
+            patch.object(
+                api._APPLICATION_DEPENDENCIES.host,
+                "register_route_definitions",
                 return_value=True,
             ) as register,
         ):
@@ -913,7 +933,11 @@ class ApiRequestCorrelationTests(unittest.TestCase):
         api, routes = load_api_routes(register=False)
         later_routes = RouteRegistry()
 
-        with patch.object(api, "_get_prompt_routes", return_value=None):
+        with patch.object(
+            api._APPLICATION_DEPENDENCIES.host,
+            "get_prompt_routes",
+            return_value=None,
+        ):
             self.assertFalse(api.register_routes())
             self.assertIsNone(api.routes)
         self.assertTrue(api.register_routes(later_routes))
@@ -923,7 +947,11 @@ class ApiRequestCorrelationTests(unittest.TestCase):
     def test_json_error_body_and_header_share_one_uuid(self):
         api, routes = load_api_routes()
         request_id = "12345678-1234-4567-89ab-1234567890ab"
-        with patch.object(api, "create_request_id", return_value=request_id):
+        with patch.object(
+            api._APPLICATION_DEPENDENCIES.request,
+            "create_request_id",
+            return_value=request_id,
+        ):
             response = asyncio.run(
                 routes.handlers["/easyuse_anima/set_setting"](JsonRequest([]))
             )
@@ -962,8 +990,16 @@ class ApiRequestCorrelationTests(unittest.TestCase):
         request_id = "22345678-1234-4567-89ab-1234567890ab"
         payload = {"future": {"kept": True}}
         with (
-            patch.object(api, "create_request_id", return_value=request_id),
-            patch.object(api, "_get_settings_payload_sync", return_value=payload),
+            patch.object(
+                api._APPLICATION_DEPENDENCIES.request,
+                "create_request_id",
+                return_value=request_id,
+            ),
+            patch.object(
+                api._APPLICATION_DEPENDENCIES.settings,
+                "get_settings_payload",
+                return_value=payload,
+            ),
         ):
             response = asyncio.run(
                 routes.handlers["/easyuse_anima/settings"](JsonRequest())
@@ -1029,8 +1065,16 @@ class ApiRequestCorrelationTests(unittest.TestCase):
         request_id = "32345678-1234-4567-89ab-1234567890ab"
         secret = r"C:\Users\alice\secret.json API_TOKEN=top-secret"
         with (
-            patch.object(api, "create_request_id", return_value=request_id),
-            patch.object(api, "_list_aio_profiles", side_effect=RuntimeError(secret)),
+            patch.object(
+                api._APPLICATION_DEPENDENCIES.request,
+                "create_request_id",
+                return_value=request_id,
+            ),
+            patch.object(
+                api._APPLICATION_DEPENDENCIES.profiles,
+                "list_aio_profiles",
+                side_effect=RuntimeError(secret),
+            ),
             patch.object(api._LOGGER, "error") as log_error,
             patch.object(api._LOGGER, "exception") as log_exception,
         ):
@@ -1064,7 +1108,11 @@ class ApiRequestCorrelationTests(unittest.TestCase):
     def test_cancelled_request_is_not_normalized_or_logged(self):
         api, routes = load_api_routes()
         with (
-            patch.object(api, "_run_file_io", side_effect=asyncio.CancelledError()),
+            patch.object(
+                api._APPLICATION_DEPENDENCIES.request,
+                "run_file_io",
+                side_effect=asyncio.CancelledError(),
+            ),
             patch.object(api._LOGGER, "error") as log_error,
         ):
             with self.assertRaises(asyncio.CancelledError):
@@ -1085,7 +1133,11 @@ class ApiRequestCorrelationTests(unittest.TestCase):
             raise original
 
         with (
-            patch.object(api, "create_request_id", return_value=request_id),
+            patch.object(
+                api._APPLICATION_DEPENDENCIES.request,
+                "create_request_id",
+                return_value=request_id,
+            ),
             patch.object(api.web, "HTTPException", aiohttp_web.HTTPException),
             patch.object(api._LOGGER, "error") as log_error,
         ):
@@ -1104,8 +1156,16 @@ class ApiRequestCorrelationTests(unittest.TestCase):
         original = FakeHTTPException(status=409, body=b"conflict")
 
         with (
-            patch.object(api, "create_request_id", return_value=request_id),
-            patch.object(api, "_get_settings_payload_sync", side_effect=original),
+            patch.object(
+                api._APPLICATION_DEPENDENCIES.request,
+                "create_request_id",
+                return_value=request_id,
+            ),
+            patch.object(
+                api._APPLICATION_DEPENDENCIES.settings,
+                "get_settings_payload",
+                side_effect=original,
+            ),
             patch.object(api._LOGGER, "error") as log_error,
         ):
             with self.assertRaises(FakeHTTPException) as raised:
@@ -1133,7 +1193,11 @@ class ApiRequestCorrelationTests(unittest.TestCase):
         )
         self.assertTrue(handler._easyuse_anima_request_correlation)
 
-        with patch.object(api, "_resolve_lora_preview_path", return_value=None):
+        with patch.object(
+            api._APPLICATION_DEPENDENCIES.profiles,
+            "resolve_lora_preview_path",
+            return_value=None,
+        ):
             missing = asyncio.run(handler(JsonRequest(query={"name": "missing"})))
         self.assertIsInstance(missing, FakeResponse)
         self.assertEqual(missing.status, 404)
@@ -1142,8 +1206,8 @@ class ApiRequestCorrelationTests(unittest.TestCase):
 
         preview_path = r"C:\safe-test\preview.webp"
         with patch.object(
-            api,
-            "_resolve_lora_preview_path",
+            api._APPLICATION_DEPENDENCIES.profiles,
+            "resolve_lora_preview_path",
             return_value=preview_path,
         ):
             found = asyncio.run(handler(JsonRequest(query={"name": "preview"})))
@@ -1256,8 +1320,8 @@ class ApiProfileErrorResponseTests(unittest.TestCase):
         for error, expected_args, expected_kwargs in cases:
             expected_response = object()
             with self.subTest(error=type(error).__name__), patch.object(
-                api,
-                "_error_response",
+                api._APPLICATION_DEPENDENCIES.request,
+                "error_response",
                 return_value=expected_response,
             ) as error_response:
                 response = api._profile_error_response(error)
@@ -1325,8 +1389,8 @@ class ApiProfileErrorResponseTests(unittest.TestCase):
             error.message = "Tampered message"
             expected_response = object()
             with self.subTest(error=type(error).__name__), patch.object(
-                api,
-                "_error_response",
+                api._APPLICATION_DEPENDENCIES.request,
+                "error_response",
                 return_value=expected_response,
             ) as error_response:
                 response = api._profile_error_response(error)
@@ -1339,7 +1403,7 @@ class ApiProfileErrorResponseTests(unittest.TestCase):
                 details=details,
             )
 
-    def test_profile_error_boundary_keeps_dynamic_root_dependencies(self):
+    def test_profile_error_boundary_keeps_dynamic_canonical_dependencies(self):
         api, _routes = load_api_routes(register=False)
 
         class DynamicMutationError(ValueError):
@@ -1351,15 +1415,19 @@ class ApiProfileErrorResponseTests(unittest.TestCase):
         mutation = DynamicMutationError("private")
         expected_response = object()
         with (
-            patch.object(api, "ProfileMutationError", DynamicMutationError),
             patch.object(
-                api,
-                "_SAFE_PROFILE_VALIDATION_MESSAGES",
+                api._APPLICATION_DEPENDENCIES.request,
+                "profile_mutation_error_type",
+                DynamicMutationError,
+            ),
+            patch.object(
+                api._APPLICATION_DEPENDENCIES.request,
+                "safe_profile_validation_messages",
                 frozenset({"dynamic-safe"}),
             ),
             patch.object(
-                api,
-                "_error_response",
+                api._APPLICATION_DEPENDENCIES.request,
+                "error_response",
                 return_value=expected_response,
             ) as error_response,
         ):
@@ -1400,7 +1468,11 @@ class ApiLoraCatalogRouteTests(unittest.TestCase):
         api, routes = load_api_routes()
         loras = ["style/foo.safetensors", "artist/bar.safetensors"]
 
-        with patch.object(api, "_list_loras", return_value=loras) as list_loras:
+        with patch.object(
+            api._APPLICATION_DEPENDENCIES.profiles,
+            "list_loras",
+            return_value=loras,
+        ) as list_loras:
             response = asyncio.run(
                 routes.handlers["/easyuse_anima/loras"](JsonRequest())
             )
@@ -1454,8 +1526,8 @@ class ApiProfileListRouteTests(unittest.TestCase):
 
         for path, operation_name, expected_payload in cases:
             with self.subTest(path=path), patch.object(
-                api,
-                operation_name,
+                api._APPLICATION_DEPENDENCIES.profiles,
+                operation_name.removeprefix("_"),
                 return_value=profiles,
             ) as list_profiles:
                 response = asyncio.run(routes.handlers[path](JsonRequest()))
@@ -1473,8 +1545,8 @@ class ApiProfileListRouteTests(unittest.TestCase):
 
         for path, operation_name in cases:
             with self.subTest(path=path), patch.object(
-                api,
-                operation_name,
+                api._APPLICATION_DEPENDENCIES.profiles,
+                operation_name.removeprefix("_"),
                 side_effect=api.InvalidProfileDataError("private path"),
             ):
                 response = asyncio.run(routes.handlers[path](JsonRequest()))
@@ -1534,8 +1606,8 @@ class ApiProfileLoadRouteTests(unittest.TestCase):
 
         for path, operation_name, request, expected_name in cases:
             with self.subTest(path=path), patch.object(
-                api,
-                operation_name,
+                api._APPLICATION_DEPENDENCIES.profiles,
+                operation_name.removeprefix("_"),
                 return_value=profile,
             ) as load_profile:
                 response = asyncio.run(routes.handlers[path](request))
@@ -1582,8 +1654,8 @@ class ApiProfileLoadRouteTests(unittest.TestCase):
 
         for path, operation_name, error, status, code in cases:
             with self.subTest(path=path, code=code), patch.object(
-                api,
-                operation_name,
+                api._APPLICATION_DEPENDENCIES.profiles,
+                operation_name.removeprefix("_"),
                 side_effect=error,
             ):
                 response = asyncio.run(
@@ -1658,8 +1730,8 @@ class ApiProfileSaveRouteTests(unittest.TestCase):
                 "revision": 6,
             }
             with self.subTest(path=path), patch.object(
-                api,
-                operation_name,
+                api._APPLICATION_DEPENDENCIES.profiles,
+                operation_name.removeprefix("_"),
                 return_value=saved,
             ) as save_profile:
                 response = asyncio.run(routes.handlers[path](JsonRequest(data)))
@@ -1679,7 +1751,10 @@ class ApiProfileSaveRouteTests(unittest.TestCase):
 
     def test_aio_route_requires_settings_before_file_io(self):
         api, routes = load_api_routes()
-        with patch.object(api, "_save_aio_profile") as save_profile:
+        with patch.object(
+            api._APPLICATION_DEPENDENCIES.profiles,
+            "save_aio_profile",
+        ) as save_profile:
             response = asyncio.run(
                 routes.handlers["/easyuse_anima/aio_profiles/save"](
                     JsonRequest({"name": "Portrait"})
@@ -1730,8 +1805,8 @@ class ApiProfileSaveRouteTests(unittest.TestCase):
 
         for path, operation_name, data, error, status, code, details in cases:
             with self.subTest(path=path, code=code), patch.object(
-                api,
-                operation_name,
+                api._APPLICATION_DEPENDENCIES.profiles,
+                operation_name.removeprefix("_"),
                 side_effect=error,
             ):
                 response = asyncio.run(routes.handlers[path](JsonRequest(data)))
@@ -1817,8 +1892,8 @@ class ApiAioProfileMutationRouteTests(unittest.TestCase):
                 "revision": 8,
             }
             with self.subTest(path=path), patch.object(
-                api,
-                operation_name,
+                api._APPLICATION_DEPENDENCIES.profiles,
+                operation_name.removeprefix("_"),
                 return_value=changed,
             ) as operation:
                 response = asyncio.run(routes.handlers[path](JsonRequest(data)))
@@ -1832,7 +1907,10 @@ class ApiAioProfileMutationRouteTests(unittest.TestCase):
 
     def test_rename_rejects_invalid_target_revision_before_file_io(self):
         api, routes = load_api_routes()
-        with patch.object(api, "_rename_aio_profile") as rename_profile:
+        with patch.object(
+            api._APPLICATION_DEPENDENCIES.profiles,
+            "rename_aio_profile",
+        ) as rename_profile:
             response = asyncio.run(
                 routes.handlers["/easyuse_anima/aio_profiles/rename"](
                     JsonRequest(
@@ -1892,8 +1970,8 @@ class ApiAioProfileMutationRouteTests(unittest.TestCase):
 
         for path, operation_name, data, error, status, code, details in cases:
             with self.subTest(path=path, code=code), patch.object(
-                api,
-                operation_name,
+                api._APPLICATION_DEPENDENCIES.profiles,
+                operation_name.removeprefix("_"),
                 side_effect=error,
             ):
                 response = asyncio.run(routes.handlers[path](JsonRequest(data)))
@@ -1937,8 +2015,8 @@ class ApiLoraProfileFixRouteTests(unittest.TestCase):
             changed = {**data, "fixed": [], "unresolved": []}
             before = json.dumps(data, sort_keys=True)
             with self.subTest(profile_data="profile_data" in data), patch.object(
-                api,
-                "_fix_lora_profile_payload",
+                api._APPLICATION_DEPENDENCIES.profiles,
+                "fix_lora_profile_payload",
                 return_value=changed,
             ) as operation:
                 response = asyncio.run(
@@ -1959,8 +2037,14 @@ class ApiLoraProfileFixRouteTests(unittest.TestCase):
     def test_invalid_profile_data_is_rejected_before_file_io(self):
         api, routes = load_api_routes()
         with (
-            patch.object(api, "_fix_lora_profile_payload") as operation,
-            patch.object(api, "_run_file_io") as file_io,
+            patch.object(
+                api._APPLICATION_DEPENDENCIES.profiles,
+                "fix_lora_profile_payload",
+            ) as operation,
+            patch.object(
+                api._APPLICATION_DEPENDENCIES.request,
+                "run_file_io",
+            ) as file_io,
         ):
             response = asyncio.run(
                 routes.handlers["/easyuse_anima/lora_profiles/fix"](
@@ -1979,8 +2063,8 @@ class ApiLoraProfileFixRouteTests(unittest.TestCase):
         secret = "C:\\Users\\alice\\profile.json API_TOKEN=top-secret"
         with (
             patch.object(
-                api,
-                "_fix_lora_profile_payload",
+                api._APPLICATION_DEPENDENCIES.profiles,
+                "fix_lora_profile_payload",
                 side_effect=ValueError(secret),
             ),
             patch.object(api._LOGGER, "error") as log_error,
@@ -2052,13 +2136,21 @@ class ApiWildcardRouteTests(unittest.TestCase):
             return items
 
         with (
-            patch.object(api, "public_settings", side_effect=public_settings),
             patch.object(
-                api,
+                api._APPLICATION_DEPENDENCIES.settings,
+                "public_settings",
+                side_effect=public_settings,
+            ),
+            patch.object(
+                api._APPLICATION_DEPENDENCIES.wildcard_autocomplete,
                 "resolve_wildcard_roots",
                 side_effect=resolve_wildcard_roots,
             ),
-            patch.object(api, "list_wildcards", side_effect=list_wildcards),
+            patch.object(
+                api._APPLICATION_DEPENDENCIES.wildcard_autocomplete,
+                "list_wildcards",
+                side_effect=list_wildcards,
+            ),
         ):
             payload = api._wildcards_payload_sync()
 
@@ -2117,8 +2209,8 @@ class ApiWildcardRouteTests(unittest.TestCase):
         }
 
         with patch.object(
-            api,
-            "_wildcards_payload_sync",
+            api._APPLICATION_DEPENDENCIES.wildcard_autocomplete,
+            "wildcards_payload",
             return_value=payload,
         ) as wildcards_payload:
             response = asyncio.run(
@@ -2155,7 +2247,11 @@ class ApiSettingsRouteTests(unittest.TestCase):
     def test_payload_helpers_keep_dynamic_dependencies_and_merge_order(self):
         api, _routes = load_api_routes()
         get_payload = {"future": {"kept": True}}
-        with patch.object(api, "public_settings", return_value=get_payload) as read:
+        with patch.object(
+            api._APPLICATION_DEPENDENCIES.settings,
+            "public_settings",
+            return_value=get_payload,
+        ) as read:
             result = api._get_settings_payload_sync()
 
         self.assertIs(result, get_payload)
@@ -2175,8 +2271,16 @@ class ApiSettingsRouteTests(unittest.TestCase):
             return saved_settings
 
         with (
-            patch.object(api, "save_setting", side_effect=save_setting),
-            patch.object(api, "public_settings", side_effect=public_settings),
+            patch.object(
+                api._APPLICATION_DEPENDENCIES.settings,
+                "save_setting",
+                side_effect=save_setting,
+            ),
+            patch.object(
+                api._APPLICATION_DEPENDENCIES.settings,
+                "public_settings",
+                side_effect=public_settings,
+            ),
         ):
             result = api._save_setting_payload_sync(
                 "future.setting",
@@ -2226,8 +2330,8 @@ class ApiSettingsRouteTests(unittest.TestCase):
             "wildcard.extra_paths": ["D:\\private\\wildcards"],
         }
         with patch.object(
-            api,
-            "_get_settings_payload_sync",
+            api._APPLICATION_DEPENDENCIES.settings,
+            "get_settings_payload",
             return_value=payload,
         ) as get_payload:
             response = asyncio.run(
@@ -2256,8 +2360,8 @@ class ApiSettingsRouteTests(unittest.TestCase):
         for data, expected_value in cases:
             payload = {"status": "ok", "saved": expected_value}
             with self.subTest(data=data), patch.object(
-                api,
-                "_save_setting_payload_sync",
+                api._APPLICATION_DEPENDENCIES.settings,
+                "save_setting_payload",
                 return_value=payload,
             ) as save_payload:
                 response = asyncio.run(
@@ -2277,8 +2381,14 @@ class ApiSettingsRouteTests(unittest.TestCase):
     def test_invalid_key_is_rejected_before_file_io(self):
         api, routes = load_api_routes()
         with (
-            patch.object(api, "_save_setting_payload_sync") as save_payload,
-            patch.object(api, "_run_file_io") as file_io,
+            patch.object(
+                api._APPLICATION_DEPENDENCIES.settings,
+                "save_setting_payload",
+            ) as save_payload,
+            patch.object(
+                api._APPLICATION_DEPENDENCIES.request,
+                "run_file_io",
+            ) as file_io,
         ):
             response = asyncio.run(
                 routes.handlers["/easyuse_anima/set_setting"](
@@ -2297,8 +2407,8 @@ class ApiSettingsRouteTests(unittest.TestCase):
         api, routes = load_api_routes()
         secret = "C:\\Users\\alice\\settings.json API_TOKEN=top-secret"
         with patch.object(
-            api,
-            "_save_setting_payload_sync",
+            api._APPLICATION_DEPENDENCIES.settings,
+            "save_setting_payload",
             side_effect=KeyError(secret),
         ):
             response = asyncio.run(
@@ -2327,8 +2437,8 @@ class ApiSettingsRouteTests(unittest.TestCase):
         secret = "C:\\Users\\alice\\settings.json API_TOKEN=top-secret"
         with (
             patch.object(
-                api,
-                "_save_setting_payload_sync",
+                api._APPLICATION_DEPENDENCIES.settings,
+                "save_setting_payload",
                 side_effect=ValueError(secret),
             ),
             patch.object(api._LOGGER, "error") as log_error,
@@ -2391,11 +2501,15 @@ class ApiLongTextSettingsRouteTests(unittest.TestCase):
 
         with (
             patch.object(
-                api,
+                api._APPLICATION_DEPENDENCIES.settings,
                 "load_long_text_settings",
                 side_effect=load_long_text_settings,
             ),
-            patch.object(api, "public_settings", side_effect=public_settings),
+            patch.object(
+                api._APPLICATION_DEPENDENCIES.settings,
+                "public_settings",
+                side_effect=public_settings,
+            ),
         ):
             result = api._get_long_text_settings_payload_sync()
 
@@ -2414,11 +2528,15 @@ class ApiLongTextSettingsRouteTests(unittest.TestCase):
 
         with (
             patch.object(
-                api,
+                api._APPLICATION_DEPENDENCIES.settings,
                 "save_long_text_settings",
                 side_effect=save_long_text_settings,
             ),
-            patch.object(api, "public_settings", side_effect=public_settings),
+            patch.object(
+                api._APPLICATION_DEPENDENCIES.settings,
+                "public_settings",
+                side_effect=public_settings,
+            ),
         ):
             result = api._save_long_text_settings_payload_sync(values)
 
@@ -2463,8 +2581,8 @@ class ApiLongTextSettingsRouteTests(unittest.TestCase):
         }
 
         with patch.object(
-            api,
-            "_get_long_text_settings_payload_sync",
+            api._APPLICATION_DEPENDENCIES.settings,
+            "get_long_text_settings_payload",
             return_value=payload,
         ) as get_payload:
             response = asyncio.run(
@@ -2495,8 +2613,8 @@ class ApiLongTextSettingsRouteTests(unittest.TestCase):
                     "settings": expected_values,
                 }
                 with patch.object(
-                    api,
-                    "_save_long_text_settings_payload_sync",
+                    api._APPLICATION_DEPENDENCIES.settings,
+                    "save_long_text_settings_payload",
                     return_value=payload,
                 ) as save_payload:
                     response = asyncio.run(
@@ -2534,7 +2652,11 @@ class ApiAutocompleteRouteTests(unittest.TestCase):
         runtime = type("Runtime", (), {"autocomplete": port})()
         path = object()
 
-        with patch.object(api, "_get_runtime", return_value=runtime):
+        with patch.object(
+            api._APPLICATION_DEPENDENCIES.wildcard_autocomplete,
+            "get_runtime",
+            return_value=runtime,
+        ):
             self.assertEqual(
                 api.resolve_autocomplete_source_path("selected")[0],
                 "source",
@@ -2581,7 +2703,11 @@ class ApiAutocompleteRouteTests(unittest.TestCase):
         path = object()
 
         with (
-            patch.object(api, "_get_runtime", side_effect=unavailable),
+            patch.object(
+                api._APPLICATION_DEPENDENCIES.wildcard_autocomplete,
+                "get_runtime",
+                side_effect=unavailable,
+            ),
             patch.object(
                 api,
                 "_canonical_resolve_autocomplete_source_path",
@@ -2691,8 +2817,8 @@ class ApiAutocompleteRouteTests(unittest.TestCase):
         produced = {"status": private_status, "future": future}
         redacted = {"redacted": True}
         with patch.object(
-            api,
-            "_public_autocomplete_status",
+            api._APPLICATION_DEPENDENCIES.wildcard_autocomplete,
+            "public_autocomplete_status",
             return_value=redacted,
         ) as public_status_helper:
             public_payload = api._public_autocomplete_payload(produced)
@@ -2745,18 +2871,22 @@ class ApiAutocompleteRouteTests(unittest.TestCase):
 
         with (
             patch.object(
-                api,
+                api._APPLICATION_DEPENDENCIES.wildcard_autocomplete,
                 "resolve_autocomplete_source",
                 side_effect=resolve_source,
             ),
             patch.object(
-                api,
+                api._APPLICATION_DEPENDENCIES.wildcard_autocomplete,
                 "resolve_autocomplete_source_path",
                 side_effect=resolve_path,
             ),
-            patch.object(api, "autocomplete_status", side_effect=read_status),
             patch.object(
-                api,
+                api._APPLICATION_DEPENDENCIES.wildcard_autocomplete,
+                "autocomplete_status",
+                side_effect=read_status,
+            ),
+            patch.object(
+                api._APPLICATION_DEPENDENCIES.wildcard_autocomplete,
                 "available_autocomplete_sources",
                 side_effect=list_sources,
             ),
@@ -2785,20 +2915,28 @@ class ApiAutocompleteRouteTests(unittest.TestCase):
         redacted = {"count": 9}
         with (
             patch.object(
-                api,
+                api._APPLICATION_DEPENDENCIES.wildcard_autocomplete,
                 "resolve_autocomplete_source",
                 return_value=selected_source,
             ),
             patch.object(
-                api,
+                api._APPLICATION_DEPENDENCIES.wildcard_autocomplete,
                 "resolve_autocomplete_source_path",
                 return_value=(source_key, path),
             ),
-            patch.object(api, "autocomplete_status", return_value=status),
-            patch.object(api, "available_autocomplete_sources", return_value=[]),
             patch.object(
-                api,
-                "_public_autocomplete_status",
+                api._APPLICATION_DEPENDENCIES.wildcard_autocomplete,
+                "autocomplete_status",
+                return_value=status,
+            ),
+            patch.object(
+                api._APPLICATION_DEPENDENCIES.wildcard_autocomplete,
+                "available_autocomplete_sources",
+                return_value=[],
+            ),
+            patch.object(
+                api._APPLICATION_DEPENDENCIES.wildcard_autocomplete,
+                "public_autocomplete_status",
                 return_value=redacted,
             ) as public_status_helper,
         ):
@@ -2844,24 +2982,28 @@ class ApiAutocompleteRouteTests(unittest.TestCase):
             with self.subTest(requested_limit=requested_limit):
                 with (
                     patch.object(
-                        api,
+                        api._APPLICATION_DEPENDENCIES.wildcard_autocomplete,
                         "resolve_autocomplete_limit",
                         side_effect=default_limit,
                     ),
                     patch.object(
-                        api,
+                        api._APPLICATION_DEPENDENCIES.wildcard_autocomplete,
                         "resolve_autocomplete_source",
                         side_effect=resolve_source,
                     ),
                     patch.object(
-                        api,
+                        api._APPLICATION_DEPENDENCIES.wildcard_autocomplete,
                         "resolve_autocomplete_source_path",
                         side_effect=resolve_path,
                     ),
-                    patch.object(api, "search_autocomplete", side_effect=search),
                     patch.object(
-                        api,
-                        "_public_autocomplete_payload",
+                        api._APPLICATION_DEPENDENCIES.wildcard_autocomplete,
+                        "search_autocomplete",
+                        side_effect=search,
+                    ),
+                    patch.object(
+                        api._APPLICATION_DEPENDENCIES.wildcard_autocomplete,
+                        "public_autocomplete_payload",
                         side_effect=redact,
                     ),
                 ):
@@ -2914,19 +3056,23 @@ class ApiAutocompleteRouteTests(unittest.TestCase):
 
         with (
             patch.object(
-                api,
+                api._APPLICATION_DEPENDENCIES.wildcard_autocomplete,
                 "resolve_autocomplete_source",
                 side_effect=resolve_source,
             ),
             patch.object(
-                api,
+                api._APPLICATION_DEPENDENCIES.wildcard_autocomplete,
                 "resolve_autocomplete_source_path",
                 side_effect=resolve_path,
             ),
-            patch.object(api, "classify_prompt_text", side_effect=classify),
             patch.object(
-                api,
-                "_public_autocomplete_payload",
+                api._APPLICATION_DEPENDENCIES.wildcard_autocomplete,
+                "classify_prompt_text",
+                side_effect=classify,
+            ),
+            patch.object(
+                api._APPLICATION_DEPENDENCIES.wildcard_autocomplete,
+                "public_autocomplete_payload",
                 side_effect=redact,
             ),
         ):
@@ -2974,8 +3120,8 @@ class ApiAutocompleteRouteTests(unittest.TestCase):
         for category, expected_filter in cases:
             with self.subTest(category=category):
                 with patch.object(
-                    api,
-                    "_search_autocomplete_payload_sync",
+                    api._APPLICATION_DEPENDENCIES.wildcard_autocomplete,
+                    "search_autocomplete_payload",
                     return_value={"query": "cat", "results": []},
                 ) as search_payload:
                     response = asyncio.run(
@@ -3021,8 +3167,8 @@ class ApiAutocompleteRouteTests(unittest.TestCase):
         for payload, expected_limit in cases:
             with self.subTest(payload=payload):
                 with patch.object(
-                    api,
-                    "_classify_prompt_payload_sync",
+                    api._APPLICATION_DEPENDENCIES.wildcard_autocomplete,
+                    "classify_prompt_payload",
                     return_value={"tokens": [], "status": {}},
                 ) as classify_payload:
                     response = asyncio.run(handler(JsonRequest(payload)))
@@ -3080,16 +3226,19 @@ class ApiTorchCompileDiagnosticsTests(unittest.TestCase):
 
         with (
             patch.object(
-                api,
-                "_collect_torch_compile_diagnostics",
+                api._APPLICATION_DEPENDENCIES.torch_compile,
+                "collect_diagnostics",
                 return_value=diagnostics,
             ) as collect,
             patch.object(
-                api,
-                "_recommend_torch_compile",
+                api._APPLICATION_DEPENDENCIES.torch_compile,
+                "recommend_torch_compile",
                 return_value=recommendation,
             ) as recommend,
-            patch.object(api, "_run_file_io") as file_io,
+            patch.object(
+                api._APPLICATION_DEPENDENCIES.request,
+                "run_file_io",
+            ) as file_io,
         ):
             response = asyncio.run(handler(request))
 
@@ -3120,8 +3269,14 @@ class ApiTorchCompileDiagnosticsTests(unittest.TestCase):
         )
 
         with (
-            patch.object(api, "_collect_torch_compile_diagnostics") as collect,
-            patch.object(api, "_recommend_torch_compile") as recommend,
+            patch.object(
+                api._APPLICATION_DEPENDENCIES.torch_compile,
+                "collect_diagnostics",
+            ) as collect,
+            patch.object(
+                api._APPLICATION_DEPENDENCIES.torch_compile,
+                "recommend_torch_compile",
+            ) as recommend,
         ):
             for payload, field in cases:
                 with self.subTest(payload=payload):
@@ -3257,7 +3412,11 @@ class ApiRequestContractTests(unittest.TestCase):
 
         for route, request, operation_name, error, status, code in cases:
             with self.subTest(route=route, code=code):
-                with patch.object(api, operation_name, side_effect=error):
+                with patch.object(
+                    api._APPLICATION_DEPENDENCIES.profiles,
+                    operation_name.removeprefix("_"),
+                    side_effect=error,
+                ):
                     response = asyncio.run(routes.handlers[route](request))
                 self.assertEqual(response["status"], status)
                 self.assertEqual(response["payload"]["code"], code)
@@ -3275,8 +3434,8 @@ class ApiRequestContractTests(unittest.TestCase):
 
         for status, code, message in cases:
             with self.subTest(code=code), patch.object(
-                api,
-                "_save_aio_profile",
+                api._APPLICATION_DEPENDENCIES.profiles,
+                "save_aio_profile",
                 side_effect=api.ProfileMutationError(
                     status=status,
                     code=code,
@@ -3423,7 +3582,11 @@ class ApiRequestContractTests(unittest.TestCase):
                             directory_name,
                             root,
                         ),
-                        patch.object(api, "create_request_id", return_value=request_id),
+                        patch.object(
+                            api._APPLICATION_DEPENDENCIES.request,
+                            "create_request_id",
+                            return_value=request_id,
+                        ),
                     ):
                         response = asyncio.run(
                             routes.handlers[route](
@@ -3583,7 +3746,11 @@ class ApiRequestContractTests(unittest.TestCase):
     def test_public_validation_error_does_not_echo_path_stack_or_secret(self):
         api, routes = load_api_routes()
         secret = "C:\\Users\\alice\\profile.json API_TOKEN=top-secret"
-        with patch.object(api, "_save_aio_profile", side_effect=ValueError(secret)):
+        with patch.object(
+            api._APPLICATION_DEPENDENCIES.profiles,
+            "save_aio_profile",
+            side_effect=ValueError(secret),
+        ):
             response = asyncio.run(
                 routes.handlers["/easyuse_anima/aio_profiles/save"](
                     JsonRequest({"name": "Safe", "settings": {}})
@@ -3601,8 +3768,8 @@ class ApiRequestContractTests(unittest.TestCase):
         api, routes = load_api_routes()
         with (
             patch.object(
-                api,
-                "_list_aio_profiles",
+                api._APPLICATION_DEPENDENCIES.profiles,
+                "list_aio_profiles",
                 side_effect=RuntimeError("storage programming error"),
             ),
             patch.object(api._LOGGER, "error") as log_error,
@@ -3629,8 +3796,8 @@ class ApiRequestContractTests(unittest.TestCase):
             with (
                 self.subTest(route=route),
                 patch.object(
-                    api,
-                    operation_name,
+                    api._APPLICATION_DEPENDENCIES.profiles,
+                    operation_name.removeprefix("_"),
                     side_effect=ValueError("storage programming error"),
                 ),
                 patch.object(api._LOGGER, "error") as log_error,
@@ -3648,14 +3815,22 @@ class ApiRequestContractTests(unittest.TestCase):
             "autocomplete.source": "dbr_danbooru_2025_09_01",
             "autocomplete.limit": 20,
         }
-        with patch.object(api, "_get_settings_payload_sync", return_value=settings_payload):
+        with patch.object(
+            api._APPLICATION_DEPENDENCIES.settings,
+            "get_settings_payload",
+            return_value=settings_payload,
+        ):
             settings_response = asyncio.run(
                 routes.handlers["/easyuse_anima/settings"](JsonRequest())
             )
         self.assertEqual(settings_response, {"payload": settings_payload, "status": 200})
 
         saved_profile = {"name": "Saved", "settings": {"future": {"kept": True}}}
-        with patch.object(api, "_save_aio_profile", return_value=saved_profile):
+        with patch.object(
+            api._APPLICATION_DEPENDENCIES.profiles,
+            "save_aio_profile",
+            return_value=saved_profile,
+        ):
             profile_response = asyncio.run(
                 routes.handlers["/easyuse_anima/aio_profiles/save"](
                     JsonRequest({"name": "Saved", "settings": saved_profile["settings"]})
@@ -3684,14 +3859,18 @@ class ApiPathRedactionTests(unittest.TestCase):
     def test_autocomplete_status_replaces_all_paths_with_public_source_metadata(self):
         api, routes = load_api_routes()
         with (
-            patch.object(api, "resolve_autocomplete_source", return_value="selected"),
             patch.object(
-                api,
+                api._APPLICATION_DEPENDENCIES.wildcard_autocomplete,
+                "resolve_autocomplete_source",
+                return_value="selected",
+            ),
+            patch.object(
+                api._APPLICATION_DEPENDENCIES.wildcard_autocomplete,
                 "resolve_autocomplete_source_path",
                 return_value=("selected", Path(r"C:\Users\alice\secret.csv")),
             ),
             patch.object(
-                api,
+                api._APPLICATION_DEPENDENCIES.wildcard_autocomplete,
                 "autocomplete_status",
                 return_value={
                     "path": r"C:\Users\alice\secret.csv",
@@ -3701,7 +3880,7 @@ class ApiPathRedactionTests(unittest.TestCase):
                 },
             ),
             patch.object(
-                api,
+                api._APPLICATION_DEPENDENCIES.wildcard_autocomplete,
                 "available_autocomplete_sources",
                 return_value=[
                     {
@@ -3740,14 +3919,26 @@ class ApiPathRedactionTests(unittest.TestCase):
             "future": {"kept": True},
         }
         with (
-            patch.object(api, "resolve_autocomplete_limit", return_value=20),
-            patch.object(api, "resolve_autocomplete_source", return_value="selected"),
             patch.object(
-                api,
+                api._APPLICATION_DEPENDENCIES.wildcard_autocomplete,
+                "resolve_autocomplete_limit",
+                return_value=20,
+            ),
+            patch.object(
+                api._APPLICATION_DEPENDENCIES.wildcard_autocomplete,
+                "resolve_autocomplete_source",
+                return_value="selected",
+            ),
+            patch.object(
+                api._APPLICATION_DEPENDENCIES.wildcard_autocomplete,
                 "resolve_autocomplete_source_path",
                 return_value=("selected", Path(r"C:\Users\alice\secret.csv")),
             ),
-            patch.object(api, "search_autocomplete", return_value=produced),
+            patch.object(
+                api._APPLICATION_DEPENDENCIES.wildcard_autocomplete,
+                "search_autocomplete",
+                return_value=produced,
+            ),
         ):
             response = asyncio.run(
                 routes.handlers["/easyuse_anima/autocomplete"](
@@ -3779,13 +3970,21 @@ class ApiPathRedactionTests(unittest.TestCase):
             "future": ["kept"],
         }
         with (
-            patch.object(api, "resolve_autocomplete_source", return_value="selected"),
             patch.object(
-                api,
+                api._APPLICATION_DEPENDENCIES.wildcard_autocomplete,
+                "resolve_autocomplete_source",
+                return_value="selected",
+            ),
+            patch.object(
+                api._APPLICATION_DEPENDENCIES.wildcard_autocomplete,
                 "resolve_autocomplete_source_path",
                 return_value=("selected", Path("/home/alice/secret.csv")),
             ),
-            patch.object(api, "classify_prompt_text", return_value=produced),
+            patch.object(
+                api._APPLICATION_DEPENDENCIES.wildcard_autocomplete,
+                "classify_prompt_text",
+                return_value=produced,
+            ),
         ):
             response = asyncio.run(
                 routes.handlers["/easyuse_anima/classify_prompt"](
@@ -3808,14 +4007,22 @@ class ApiPathRedactionTests(unittest.TestCase):
         secret_roots = [Path(r"C:\Users\alice\wildcards"), Path("/home/alice/wildcards")]
         with (
             patch.object(
-                api,
+                api._APPLICATION_DEPENDENCIES.settings,
                 "public_settings",
                 return_value={
                     "wildcard.extra_paths": "C:\\Users\\alice\\wildcards\n/home/alice/wildcards"
                 },
             ),
-            patch.object(api, "resolve_wildcard_roots", return_value=secret_roots),
-            patch.object(api, "list_wildcards", return_value=["artist/name"]),
+            patch.object(
+                api._APPLICATION_DEPENDENCIES.wildcard_autocomplete,
+                "resolve_wildcard_roots",
+                return_value=secret_roots,
+            ),
+            patch.object(
+                api._APPLICATION_DEPENDENCIES.wildcard_autocomplete,
+                "list_wildcards",
+                return_value=["artist/name"],
+            ),
         ):
             response = asyncio.run(
                 routes.handlers["/easyuse_anima/wildcards"](JsonRequest())
@@ -3884,24 +4091,27 @@ class ApiFileIoOffloadTests(unittest.TestCase):
             (
                 "/easyuse_anima/autocomplete_status",
                 JsonRequest(),
-                "_autocomplete_status_payload_sync",
+                api._APPLICATION_DEPENDENCIES.wildcard_autocomplete,
+                "autocomplete_status_payload",
                 {"source": "safe", "source_label": "Safe", "sources": []},
             ),
             (
                 "/easyuse_anima/aio_profiles/save",
                 JsonRequest({"name": "Saved", "settings": {}}),
-                "_save_aio_profile",
+                api._APPLICATION_DEPENDENCIES.profiles,
+                "save_aio_profile",
                 {"name": "Saved", "settings": {}},
             ),
             (
                 "/easyuse_anima/aio_profiles",
                 JsonRequest(),
-                "_list_aio_profiles",
+                api._APPLICATION_DEPENDENCIES.profiles,
+                "list_aio_profiles",
                 [],
             ),
         )
 
-        for route, request, operation_name, result in cases:
+        for route, request, owner, operation_name, result in cases:
             started = threading.Event()
 
             def slow_operation(*_args, owned_result=result, **_kwargs):
@@ -3920,7 +4130,11 @@ class ApiFileIoOffloadTests(unittest.TestCase):
                 return await task, heartbeat
 
             with self.subTest(route=route):
-                with patch.object(api, operation_name, side_effect=slow_operation):
+                with patch.object(
+                    owner,
+                    operation_name,
+                    side_effect=slow_operation,
+                ):
                     response, heartbeat = asyncio.run(exercise())
                 self.assertEqual(response["status"], 200)
                 self.assertGreaterEqual(heartbeat, 3)

@@ -292,7 +292,7 @@ root api module (current application identity)
               == cleanup_plan.callbacks[0].__self__
   -> handlers == each _ROUTE_DEFINITIONS[*].handler
   -> registrar == api.register_routes
-  -> registrar resolves api.routes / definitions / signature / web at call time
+  -> registrar resolves canonical dependency-bundle host leaves at call time
 
 bootstrap._DEFAULT_RUNTIME == runtime._RUNTIME_SERVICES
 runtime.translation == canonical translation default facade after initialize
@@ -316,7 +316,9 @@ Package entrypoint:
 import root package
   -> import root api.py
      -> create executor and publish both root/bootstrap references
-     -> create callbacks, handlers, definitions, and registrar
+     -> create callbacks, uncalled handlers, definitions, and signature
+     -> publish one fully populated canonical dependency bundle
+     -> resolve the initial route table and create the registrar
   -> bootstrap.initialize under _INITIALIZE_LOCK
      -> register atexit once
      -> create and install RuntimeServices
@@ -379,9 +381,9 @@ public exports. The exact current buckets are:
 | --- | --- | --- |
 | supported compatibility input | `PromptTranslationError` base and unregistered/root-derived subclasses; injected `ProfileMutationError` | profile/translation error adapters read the injected type or dynamic fields at handler call time |
 | production application identity | `_PROMPT_TRANSLATION_WORKER`, `_translate_prompt_sync`, `_translate_prompt_for_route`, `_prompt_translation_error_response`; all 21 `*_handler` globals; `_ROUTE_DEFINITIONS`, `_ROUTE_SIGNATURE`, `routes`, `register_routes` | root entrypoint, registered host routes, bootstrap cleanup; objects are created at root import except `routes`, which the registrar republishes at call time |
-| transitional late-bound dependency seam | `server`, `web`, `_get_prompt_routes`, `_register_route_definitions`, `create_request_id`, `_run_file_io`, `public_settings`, `save_setting`, `list_wildcards`, `resolve_wildcard_roots`, `autocomplete_status`, `available_autocomplete_sources`, `search_autocomplete`, `classify_prompt_text`, `resolve_autocomplete_source`, `resolve_autocomplete_limit`, `_get_runtime`, `_collect_torch_compile_diagnostics`, `_recommend_torch_compile`, `translate_prompt_markers`, `resolve_prompt_translation_settings`, `PROMPT_TRANSLATION_ROUTE_TIMEOUT_SECONDS` | registrar and handler closures resolve root module globals at each registration or request call; direct owner tests intentionally patch these names |
-| transitional profile operation seam | `_list_loras`, `_list_lora_profiles`, `_list_aio_profiles`, `_load_lora_profile`, `_load_aio_profile`, `_save_lora_profile`, `_save_aio_profile`, `_delete_aio_profile`, `_rename_aio_profile`, `_fix_lora_profile_payload`, `_resolve_lora_preview_path` | profile route closures resolve them at request call time; prior Move contracts preserved the root patch point |
-| transitional payload seam | `_get_settings_payload_sync`, `_save_setting_payload_sync`, `_wildcards_payload_sync`, runtime autocomplete wrapper functions, and the profile/settings/autocomplete/translation dependency dictionaries passed to bootstrap factories | root-created lambdas resolve the module globals at request call time |
+| canonical late-bound dependency seam | `ApiApplicationDependencies.host/request/settings/wildcard_autocomplete/translation/torch_compile` exact leaves from the FC-03 Contract | registrar and handler closures resolve the single canonical bundle at each registration or request call; direct owner tests patch named leaves |
+| canonical profile operation seam | `ApiApplicationDependencies.profiles` exact list/load/save/delete/rename/fix/preview leaves | profile route closures resolve the single canonical bundle at request call time; root spellings remain inert compatibility aliases rather than patch owners |
+| canonical payload seam | named settings/wildcard/autocomplete payload leaves and dynamic profile/translation error leaves | root-created closures resolve canonical bundle fields at request call time; application identity remains root-owned until FC-04 |
 | unsupported/test-only owner inspection | `_build_route_definitions`, `_build_route_signature`, `_build_*_route_group`, `_build_translation_route_runtime`, `_build_translation_route_handler`, `_api_router`, `_api_responses`, and feature route module aliases | direct owner tests inspect canonical factory ownership; production callers do not import these names |
 | unsupported/test-only canonical mirrors | `PROFILE_KIND_*`, profile directories/limits, repository/path/normalization helpers, and canonical profile document aliases | direct API compatibility tests inspect or invoke them; they are not in a root public export list and production route callbacks use only the subset explicitly injected above |
 

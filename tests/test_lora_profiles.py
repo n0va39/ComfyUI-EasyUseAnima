@@ -28,6 +28,13 @@ def load_api_module():
     package.__path__ = [str(ROOT)]
     sys.modules[package_name] = package
 
+    sys.modules.pop(
+        f"{package_name}.easyuse_anima.api.dependencies",
+        None,
+    )
+    api_package = sys.modules.get(f"{package_name}.easyuse_anima.api")
+    if api_package is not None:
+        vars(api_package).pop("dependencies", None)
     spec = importlib.util.spec_from_file_location(
         f"{package_name}.api",
         ROOT / "api.py",
@@ -640,8 +647,8 @@ class LoraProfileApiRouteTests(unittest.TestCase):
         for overwrite_payload, expected in overwrite_cases:
             with self.subTest(overwrite=overwrite_payload):
                 with patch.object(
-                    api,
-                    "_save_lora_profile",
+                    api._APPLICATION_DEPENDENCIES.profiles,
+                    "save_lora_profile",
                     return_value={"name": "Saved"},
                 ) as operation:
                     response = asyncio.run(
@@ -657,7 +664,10 @@ class LoraProfileApiRouteTests(unittest.TestCase):
 
         for overwrite in ("false", "true", 0, 1, "", None, [], {}):
             with self.subTest(overwrite=overwrite):
-                with patch.object(api, "_save_lora_profile") as operation:
+                with patch.object(
+                    api._APPLICATION_DEPENDENCIES.profiles,
+                    "save_lora_profile",
+                ) as operation:
                     response = asyncio.run(
                         handler(JsonRequest({**self.BASE_PAYLOAD, "overwrite": overwrite}))
                     )
@@ -680,8 +690,8 @@ class LoraProfileApiRouteTests(unittest.TestCase):
         profile_id = "12345678-1234-4234-9234-1234567890AB"
 
         with patch.object(
-            api,
-            "_save_lora_profile",
+            api._APPLICATION_DEPENDENCIES.profiles,
+            "save_lora_profile",
             return_value={"name": "Saved"},
         ) as operation:
             response = asyncio.run(
@@ -701,7 +711,10 @@ class LoraProfileApiRouteTests(unittest.TestCase):
         self.assertEqual(operation.call_args.kwargs["revision"], 8)
 
         for field, value in (("profile_id", "bad"), ("revision", False)):
-            with self.subTest(field=field), patch.object(api, "_save_lora_profile") as operation:
+            with self.subTest(field=field), patch.object(
+                api._APPLICATION_DEPENDENCIES.profiles,
+                "save_lora_profile",
+            ) as operation:
                 response = asyncio.run(
                     handler(JsonRequest({**self.BASE_PAYLOAD, field: value}))
                 )
@@ -715,8 +728,8 @@ class LoraProfileApiRouteTests(unittest.TestCase):
         handler = routes.handlers[self.PATH]
 
         with patch.object(
-            api,
-            "_save_lora_profile",
+            api._APPLICATION_DEPENDENCIES.profiles,
+            "save_lora_profile",
             side_effect=FileExistsError("Profile already exists"),
         ):
             response = asyncio.run(handler(JsonRequest(self.BASE_PAYLOAD)))
@@ -845,14 +858,26 @@ class AutocompleteApiRouteTests(unittest.TestCase):
 
         handler = routes.get_handlers["/easyuse_anima/autocomplete"]
         with (
-            patch.object(api, "resolve_autocomplete_limit", return_value=51),
-            patch.object(api, "resolve_autocomplete_source", return_value="test_source"),
             patch.object(
-                api,
+                api._APPLICATION_DEPENDENCIES.wildcard_autocomplete,
+                "resolve_autocomplete_limit",
+                return_value=51,
+            ),
+            patch.object(
+                api._APPLICATION_DEPENDENCIES.wildcard_autocomplete,
+                "resolve_autocomplete_source",
+                return_value="test_source",
+            ),
+            patch.object(
+                api._APPLICATION_DEPENDENCIES.wildcard_autocomplete,
                 "resolve_autocomplete_source_path",
                 return_value=("test_source", Path("tags.csv")),
             ),
-            patch.object(api, "search_autocomplete", side_effect=search),
+            patch.object(
+                api._APPLICATION_DEPENDENCIES.wildcard_autocomplete,
+                "search_autocomplete",
+                side_effect=search,
+            ),
         ):
             for raw_limit, expected_limit in (("51", 51), ("100", 100), ("bad", 51)):
                 with self.subTest(raw_limit=raw_limit):

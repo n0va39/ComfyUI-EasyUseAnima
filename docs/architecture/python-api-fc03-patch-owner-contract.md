@@ -2,7 +2,7 @@
 
 ## Status and authority
 
-- Status: FC-03A complete; FC-03B is READY after this Contract merges.
+- Status: FC-03A and FC-03B complete; FC-04A is next after this Move merges.
 - Owner: Issue #593.
 - Baseline: `e6f509879054854a3dec49eae29d44ca5bd98dc6`.
 - Parent evidence:
@@ -28,10 +28,12 @@ easyuse_anima.api.dependencies
   -> holds one private _APPLICATION_DEPENDENCIES cell
 
 current root api.py application composition
-  -> constructs one ApiApplicationDependencies instance
+  -> builds executor/helpers and uncalled handler closures
+  -> fixes the 21 route definitions and signature
+  -> constructs one fully populated ApiApplicationDependencies instance
   -> publishes that exact instance to the canonical private cell once
   -> exposes the same object as root _APPLICATION_DEPENDENCIES
-  -> builds handlers and registrar whose closures read bundle leaf fields
+  -> builds the registrar whose closures read bundle leaf fields
 
 future canonical application (FC-04)
   -> reuses the same bundle type, cell, and field contract
@@ -129,6 +131,10 @@ supported patch operation after its consumer moves. FC-03B does not implement
 module assignment interception, duplicate root cells, proxy modules, deprecation
 warnings, telemetry, or fallback reads from root globals.
 
+Production callbacks read the canonical private cell through its private getter;
+they do not read the root `_APPLICATION_DEPENDENCIES` alias. Reassigning that
+root alias is therefore neither a patch point nor a second mutable owner.
+
 FC-03B deletes no root symbol. The minimum root surface that must survive this
 lane is:
 
@@ -150,8 +156,9 @@ FC-03B changes neither application placement nor construction order:
 root api.py import
   -> translation executor/runtime creation
   -> response/payload helper creation
-  -> one dependency bundle publication
-  -> 21 handler and registrar creation
+  -> 21 uncalled handler closures and route definition/signature creation
+  -> one fully populated dependency bundle publication
+  -> initial route-table resolution and registrar creation
   -> root entrypoint calls bootstrap.initialize
   -> RuntimeServices freezes the same executor shutdown as cleanup item 1
 ```
@@ -167,6 +174,19 @@ Package entrypoint import followed by a late ordinary root `api.py` import still
 resolves cached application, executor, handler, registrar, dependency-bundle,
 runtime, and facade identities without duplicate registration or lifecycle
 state.
+
+Handler closure creation necessarily precedes publication because the host
+family contains the final route definitions and signature. No handler, payload
+helper, or translation callback is invoked before publication. This is the only
+ordering correction from FC-03A wording; runtime initialization and every
+observable E-09 event remain in their original order.
+
+FC-03B temporarily raises the reviewed `api.py` module-size ledger because the
+single canonical dependency owner exists before FC-04B moves application
+construction out of the root facade. The ledger is owned by #593 and names
+FC-04B as its exact decomposition boundary; increasing it again is forbidden.
+Reflection, positional field wiring, and duplicate mutable cells are not valid
+ways to hide this transitional composition cost.
 
 ## 5. FC-03B task card
 
@@ -188,9 +208,17 @@ Allowed tests/evidence:
   tests/test_python_package_skeleton.py
   tests/test_python_import_boundaries.py
   tests/test_python_backend_analyzer.py
+  tests/test_python_size_complexity.py
+  tests/test_comfy_host_wiring.py
+  tests/test_python_autocomplete_runtime_contract.py
+  tests/test_python_repository_filesystem_contract.py
   tests/test_python_compatibility_surface.py
   tests/test_python_feature_error_contract.py
-  directly required analyzer/error/compatibility fixtures and this Contract,
+  tests/test_aio_profiles.py
+  tests/test_lora_profiles.py
+  tests/test_lora_preview.py
+  directly required analyzer/error/compatibility/size/runtime/repository fixtures
+  and this Contract,
   P-API-01, the final-convergence roadmap, and compatibility wording
 Preserve:
   every route method/path/order/signature/marker and all 21 handler identities;
@@ -235,6 +263,7 @@ late-import, lifecycle, package/no-host, compatibility, import, and analyzer
 owners. No new executable fixture is required because P-API-01 already owns the
 exact symbol inventory and current direct tests prove each observation class.
 
-Verdict: **READY for FC-03B**. Direct evidence leaves one acyclic design and no
-PRO trigger. FC-04 application movement, D-14/root removal, release, tag, and
-Registry work remain forbidden.
+Verdict: **FC-03B complete**. Direct evidence leaves one acyclic design and no
+PRO trigger. FC-04A is the only next task after this Move merges. FC-04B
+application movement, D-14/root removal, release, tag, and Registry work remain
+forbidden until their own gates.
