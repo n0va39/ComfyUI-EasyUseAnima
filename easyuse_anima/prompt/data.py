@@ -2,9 +2,11 @@
 from __future__ import annotations
 
 import json
-from typing import Any
+from collections.abc import Mapping
+from typing import Any, cast
 
 from ..common.values import _as_bool, _as_int
+from .contracts import JsonValue, PromptDataCompatResult, PromptDataRead
 
 PROMPT_DATA_VERSION = 1
 PROMPT_DATA_TYPE = "EASYUSE_ANIMA_PROMPT_DATA"
@@ -39,23 +41,27 @@ PROMPT_DATA_COMPAT_OUTPUT_TOOLTIPS = (
     "Selected latent height.",
 )
 
-def _normalize_prompt_data(value: str | dict | None) -> dict[str, Any]:
+def _normalize_prompt_data(value: str | dict | None) -> dict[str, object]:
     if isinstance(value, dict):
-        return dict(value)
+        return cast(dict[str, object], dict(value))
     if isinstance(value, str):
         try:
             parsed = json.loads(value or "{}")
         except json.JSONDecodeError:
             parsed = {}
         if isinstance(parsed, dict):
-            return parsed
+            return cast(dict[str, object], parsed)
     return {}
 
-def _prompt_data_nested(data: dict[str, Any], key: str) -> dict[str, Any]:
+def _prompt_data_nested(data: PromptDataRead, key: str) -> PromptDataRead:
     value = data.get(key)
-    return value if isinstance(value, dict) else {}
+    return cast(dict[str, object], value) if isinstance(value, dict) else {}
 
-def _prompt_data_output(data: dict[str, Any], name: str, default=None):
+def _prompt_data_output(
+    data: PromptDataRead,
+    name: str,
+    default: object = None,
+) -> object:
     outputs = _prompt_data_nested(data, "outputs")
     if name in outputs:
         return outputs[name]
@@ -107,7 +113,7 @@ def _prompt_data_input_default(input_spec):
         return ""
     return None
 
-def _prompt_data_json_safe(value):
+def _prompt_data_json_safe(value: object) -> JsonValue:
     if value is None or isinstance(value, (str, int, float, bool)):
         return value
     if isinstance(value, (list, tuple)):
@@ -120,9 +126,9 @@ def _prompt_data_parameter_snapshot(
     input_defs: dict[str, Any],
     values: dict[str, Any],
     ui_payload: dict[str, Any] | None = None,
-) -> dict[str, Any]:
+) -> dict[str, JsonValue]:
     ui_payload = ui_payload if isinstance(ui_payload, dict) else {}
-    snapshot: dict[str, Any] = {}
+    snapshot: dict[str, JsonValue] = {}
     for name, input_spec in input_defs.items():
         if name in ui_payload:
             value = ui_payload[name]
@@ -133,7 +139,9 @@ def _prompt_data_parameter_snapshot(
         snapshot[name] = _prompt_data_json_safe(value)
     return snapshot
 
-def _advanced_outputs_from_prompt_data(value: str | dict | None) -> tuple:
+def _advanced_outputs_from_prompt_data(
+    value: str | dict | None,
+) -> PromptDataCompatResult:
     data = _normalize_prompt_data(value)
     return (
         str(_prompt_data_output(data, "positive_prompt", "") or ""),
@@ -148,7 +156,7 @@ def _advanced_outputs_from_prompt_data(value: str | dict | None) -> tuple:
         _as_int(_prompt_data_output(data, "height", 1024), 1024),
     )
 
-def _copy_prompt_data_for_update(value: str | dict | None) -> dict[str, Any]:
+def _copy_prompt_data_for_update(value: str | dict | None) -> dict[str, object]:
     data = dict(_normalize_prompt_data(value))
     for key in ("outputs", "mod_guidance", "anima_mod_guidance", "resolution"):
         nested = data.get(key)
@@ -156,7 +164,11 @@ def _copy_prompt_data_for_update(value: str | dict | None) -> dict[str, Any]:
             data[key] = dict(nested)
     return data
 
-def _set_prompt_data_output(data: dict[str, Any], name: str, value) -> None:
+def _set_prompt_data_output(
+    data: dict[str, object],
+    name: str,
+    value: object,
+) -> None:
     outputs = data.setdefault("outputs", {})
     if not isinstance(outputs, dict):
         outputs = {}
@@ -217,8 +229,8 @@ def _set_prompt_data_output(data: dict[str, Any], name: str, value) -> None:
 
 def _apply_prompt_data_overrides(
     value: str | dict | None,
-    overrides: dict[str, Any],
-) -> dict[str, Any]:
+    overrides: Mapping[str, object],
+) -> dict[str, object]:
     data = _copy_prompt_data_for_update(value)
     for name in PROMPT_DATA_COMPAT_RETURN_NAMES:
         if name not in overrides:

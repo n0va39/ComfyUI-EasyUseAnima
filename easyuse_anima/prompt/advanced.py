@@ -38,8 +38,15 @@ from .artist_mix import (
     _normalize_artist_mix_mode,
     _parse_artist_mix_items,
 )
+from .contracts import (
+    AdvancedField,
+    JsonValue,
+    PromptData,
+    PromptDataCompatResult,
+    PromptDataOutputs,
+    PromptField,
+)
 from .correction import _translate_prompt_text
-from .contracts import AdvancedField, PromptField
 from .data import PROMPT_DATA_SCHEMA, PROMPT_DATA_TYPE, PROMPT_DATA_VERSION
 from .fields import (
     DEFAULT_QUALITY_TAGS,
@@ -652,7 +659,7 @@ def _advanced_prompt_with_artist_override(
 
 
 def _build_advanced_prompt_data(
-    compat_result: tuple,
+    compat_result: PromptDataCompatResult,
     effective_fields: list[AdvancedField],
     saved_fields: list[AdvancedField],
     field_inputs: dict[str, str],
@@ -665,7 +672,7 @@ def _build_advanced_prompt_data(
     wildcard_seed_after_generate: str,
     wildcard_updates: dict[str, Any] | None = None,
     pin_trigger_tags_to_front: bool = False,
-    parameters: dict[str, Any] | None = None,
+    parameters: dict[str, JsonValue] | None = None,
     artist_mix_mode: str = ARTIST_MIX_MODE_OFF,
     artist_mix_start_percent: float = ARTIST_MIX_DEFAULT_START_PERCENT,
     artist_mix_strength_scale: float = ARTIST_MIX_DEFAULT_STRENGTH_SCALE,
@@ -675,7 +682,7 @@ def _build_advanced_prompt_data(
     artist_mix_cluster_count: int = ARTIST_MIX_DEFAULT_CLUSTER_COUNT,
     artist_mix_dominant_isolation: bool = ARTIST_MIX_DEFAULT_DOMINANT_ISOLATION,
     artist_mix_dominant_threshold: float = ARTIST_MIX_DEFAULT_DOMINANT_THRESHOLD,
-) -> dict[str, Any]:
+) -> PromptData:
     (
         positive_prompt,
         negative_prompt,
@@ -688,10 +695,13 @@ def _build_advanced_prompt_data(
         width,
         height,
     ) = compat_result
-    outputs = {
-        name: value
-        for name, value in zip(PROMPT_STUDIO_ADVANCED_RETURN_NAMES, compat_result)
-    }
+    outputs = cast(
+        PromptDataOutputs,
+        {
+            name: value
+            for name, value in zip(PROMPT_STUDIO_ADVANCED_RETURN_NAMES, compat_result)
+        },
+    )
     positive_fields = _advanced_enabled_pane_fields(effective_fields, "positive")
     negative_fields = _advanced_enabled_pane_fields(effective_fields, "negative")
     positive_artist_prompt = _advanced_artist_field_prompt(effective_fields, "positive")
@@ -738,7 +748,7 @@ def _build_advanced_prompt_data(
     outputs["positive_prompt"] = prompt_data_positive_prompt
     wildcard_updates = wildcard_updates or {}
     parameters = parameters or {}
-    return {
+    prompt_data: PromptData = {
         "schema": PROMPT_DATA_SCHEMA,
         "version": PROMPT_DATA_VERSION,
         "type": PROMPT_DATA_TYPE,
@@ -874,6 +884,7 @@ def _build_advanced_prompt_data(
             "return_types": list(PROMPT_STUDIO_ADVANCED_RETURN_TYPES),
         },
     }
+    return prompt_data
 
 
 __all__ = ()

@@ -3,11 +3,11 @@ from __future__ import annotations
 
 import re
 from math import isfinite
-from typing import Any
+from typing import Any, cast
 
 from ..common.values import _as_bool, _as_float, _as_int
 from ..infrastructure.comfy.wiring import resolve_comfy_host_helper
-from .contracts import AdvancedField
+from .contracts import AdvancedField, PromptDataArtistTag, PromptDataRead
 from .data import _normalize_prompt_data, _prompt_data_nested, _prompt_data_output
 from .fields import _correct_builder_prompt, _join_prompt_tokens
 
@@ -290,7 +290,10 @@ def _parse_artist_mix_items(text: str) -> list[tuple[str, float]]:
         for entry in _parse_artist_mix_entries(text)
     ]
 
-def _artist_tags_from_prompt(text: str, source: str = "artist_field") -> list[dict[str, Any]]:
+def _artist_tags_from_prompt(
+    text: str,
+    source: str = "artist_field",
+) -> list[PromptDataArtistTag]:
     return [
         {
             "tag": str(entry["tag"]),
@@ -490,7 +493,12 @@ def _blend_conditionings(conditionings: list, weights: list[float], composite_co
         blended.append([tensor, metadata])
     return blended
 
-def _encoded_artist_conditionings(clip, data: dict[str, Any], base_prompt: str, artists: list[tuple[str, float]]) -> list:
+def _encoded_artist_conditionings(
+    clip,
+    data: PromptDataRead,
+    base_prompt: str,
+    artists: list[tuple[str, float]],
+) -> list:
     return [
         (
             tag,
@@ -597,7 +605,7 @@ def _artist_delta_rms_from_encoded(
 
 def _fallback_artist_average_or_exact(
     clip,
-    data: dict[str, Any],
+    data: PromptDataRead,
     base_prompt: str,
     artists: list[tuple[str, float]],
 ) -> list:
@@ -608,7 +616,7 @@ def _fallback_artist_average_or_exact(
 
 def _encode_artist_delta_rms(
     clip,
-    data: dict[str, Any],
+    data: PromptDataRead,
     base_prompt: str,
     artists: list[tuple[str, float]],
     weights: list[float] | None = None,
@@ -666,13 +674,13 @@ def _conditionings_with_strength(conditioning, strength: float) -> list:
 def _mark_artist_mix_conditioning(conditioning, key: str) -> list:
     return _conditionings_with_values(conditioning, {key: True})
 
-def _prompt_data_positive_fields(data: dict[str, Any]) -> list[AdvancedField]:
+def _prompt_data_positive_fields(data: PromptDataRead) -> list[AdvancedField]:
     fields = data.get("fields")
     if not isinstance(fields, list) or not fields:
         return []
     return _advanced_enabled_pane_fields(_normalize_advanced_fields(fields), "positive")
 
-def _prompt_data_artist_base_prompt(data: dict[str, Any], positive_prompt: str) -> str:
+def _prompt_data_artist_base_prompt(data: PromptDataRead, positive_prompt: str) -> str:
     artist = _prompt_data_nested(data, "artist")
     artist_mix = _prompt_data_nested(data, "artist_mix")
     for source in (
@@ -686,7 +694,7 @@ def _prompt_data_artist_base_prompt(data: dict[str, Any], positive_prompt: str) 
     return str(positive_prompt or "")
 
 def _artist_variant_prompt_from_prompt_data(
-    data: dict[str, Any],
+    data: PromptDataRead,
     base_prompt: str,
     artist_prompt: str,
 ) -> str:
@@ -696,7 +704,13 @@ def _artist_variant_prompt_from_prompt_data(
         return base_text
     artist_mix = _prompt_data_nested(data, "artist_mix")
     artist_position = _normalize_artist_tag_position(
-        artist_mix.get("artist_position", data.get("artist_position", ARTIST_TAG_POSITION_CORRECT))
+        cast(
+            str,
+            artist_mix.get(
+                "artist_position",
+                data.get("artist_position", ARTIST_TAG_POSITION_CORRECT),
+            ),
+        )
     )
     if not base_text:
         return _artist_prompt_with_position("", artist_text, artist_position)
@@ -717,7 +731,7 @@ def _artist_variant_prompt_from_prompt_data(
     return _artist_prompt_with_position(base_text, artist_text, artist_position)
 
 def _prompt_data_artist_mix_config(
-    data: dict[str, Any],
+    data: PromptDataRead,
     artist_mix_mode: str,
     artist_mix_start_percent: float,
     artist_mix_strength_scale: float,
@@ -857,7 +871,7 @@ def _prompt_data_artist_mix_config(
 
 def _encode_artist_exact(
     clip,
-    data: dict[str, Any],
+    data: PromptDataRead,
     base_prompt: str,
     artists: list[tuple[str, float]],
     start_percent: float | None = None,
@@ -889,7 +903,7 @@ def _encode_artist_exact(
 
 def _encode_artist_average(
     clip,
-    data: dict[str, Any],
+    data: PromptDataRead,
     base_prompt: str,
     artists: list[tuple[str, float]],
     weights: list[float] | None = None,
@@ -917,7 +931,7 @@ def _encode_artist_average(
 
 def _encode_artist_hybrid(
     clip,
-    data: dict[str, Any],
+    data: PromptDataRead,
     base_prompt: str,
     artists: list[tuple[str, float]],
     exact_top_k: int = ARTIST_MIX_DEFAULT_EXACT_TOP_K,
@@ -1036,7 +1050,7 @@ def _greedy_cluster_encoded_artists(torch, encoded_artists: list, features: list
 
 def _encode_artist_clustered(
     clip,
-    data: dict[str, Any],
+    data: PromptDataRead,
     base_prompt: str,
     artists: list[tuple[str, float]],
     cluster_count: int = ARTIST_MIX_DEFAULT_CLUSTER_COUNT,
@@ -1167,7 +1181,7 @@ def _encode_artist_clustered(
 
 def _encode_artist_composite_exact(
     clip,
-    data: dict[str, Any],
+    data: PromptDataRead,
     base_prompt: str,
     artists: list[tuple[str, float]],
     start_percent: float | None = None,
@@ -1192,7 +1206,7 @@ def _encode_artist_composite_exact(
 
 def _encode_artist_average_late_exact(
     clip,
-    data: dict[str, Any],
+    data: PromptDataRead,
     base_prompt: str,
     artists: list[tuple[str, float]],
     artist_mix: dict[str, Any],
@@ -1221,7 +1235,7 @@ def _encode_artist_average_late_exact(
 
 def _encode_artist_scheduled_average(
     clip,
-    data: dict[str, Any],
+    data: PromptDataRead,
     base_prompt: str,
     artists: list[tuple[str, float]],
     artist_mix: dict[str, Any],
@@ -1278,7 +1292,7 @@ def _encode_artist_scheduled_average(
 
 def _encode_prompt_data_positive_conditioning(
     clip,
-    data: dict[str, Any],
+    data: PromptDataRead,
     positive_prompt: str,
     artist_mix_mode: str = ARTIST_MIX_MODE_FROM_PROMPT_DATA,
     artist_mix_start_percent: float = ARTIST_MIX_DEFAULT_START_PERCENT,
