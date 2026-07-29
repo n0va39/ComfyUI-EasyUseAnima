@@ -13,7 +13,7 @@ Read only the sections needed by the active task.
    - run package/live/benchmark only when triggered.
 3. Current backend queue:
    [`../architecture/post-phase-e-maintenance-roadmap.md`](../architecture/post-phase-e-maintenance-roadmap.md)
-   - first READY task: Issue #563 / F-02g authoritative API mappings;
+   - first READY task: Issue #186 / P-WC-02 Wildcard facade Move;
    - D-14/H root removal is parked, not failed.
 4. Backend target architecture and compatibility policy:
    [`../architecture/README.md`](../architecture/README.md)
@@ -30,6 +30,7 @@ Read only the sections needed by the active task.
    - translation runtime contract: `../architecture/python-runtime-e04-translation-contract.md`
    - Autocomplete runtime contract: `../architecture/python-runtime-e05-autocomplete-contract.md`
    - Wildcard runtime contract: `../architecture/python-runtime-e06-wildcard-contract.md`
+   - Wildcard facade feasibility: `../architecture/python-wildcard-pwc01-facade-feasibility.md`
    - AiO cache runtime contract: `../architecture/python-runtime-e08-aio-cache-contract.md`
    - lifecycle runtime contract: `../architecture/python-runtime-e09-lifecycle-contract.md`
    - test-isolation runtime contract: `../architecture/python-runtime-e10-test-isolation-contract.md`

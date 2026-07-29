@@ -1523,6 +1523,15 @@ EasyUseAnimaWildcard
   D-12 and E-06b-E-06e complete canonical materialization, snapshot/service
   ownership, internal callers, narrow RuntimeServices binding, and cleanup audit.
   Root `nodes.py` and `api.py` nevertheless still import the adapter directly.
+- P-WC-01 finds the direct-shim conversion **FEASIBLE**. The existing
+  `easyuse_anima.wildcard.service` is the only required facade owner; the four root
+  facade functions can become direct aliases after `api.py` and `nodes.py` move to
+  canonical imports. E-06-classified root build/snapshot patching is a private test
+  seam with the same call-time patch point in the canonical service, while
+  `api.list_wildcards` remains a dynamic module-global callback seam.
+- P-WC-02 is the bounded Move that implements that form. Until it merges, the root
+  adapter remains behavior-bearing. After it merges, the file remains shipped and
+  retained; release N still has not started and no removal is authorized.
 - Removal gate: eliminate or explicitly migrate those production consumers, ship the
   final canonical-plus-adapter form through release N, retain #159/#160 behavior,
   seed/expansion and workflow parity, root/canonical identities, archive closure,

@@ -21,9 +21,11 @@ then only the active task section, owning Issue, direct source, and direct tests
   API snapshot coverage are complete; existing deterministic owners required no G-04B
   fixture. Issue #188 continues to own G-05 size/complexity ratchet and G-06 test
   ownership.
+- P-WC-01 found the Wildcard facade direct-shim conversion feasible with the existing
+  canonical service owner.
 - First READY task: Issue
-  [#186](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/186) / P-WC-01
-  wildcard pure-shim feasibility Contract.
+  [#186](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/186) / P-WC-02
+  wildcard internal-consumer and facade Move.
 - Issue [#186](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/186)
   remains the retained compatibility ledger. It owns pre-retirement feasibility and
   later D-14 decisions, not an immediately executable deletion task.
@@ -45,7 +47,8 @@ COMPLETE F-02a Autocomplete typed result contracts
   -> COMPLETE F-02h error-row and Phase F completion audit
   -> COMPLETE G-04A public API snapshot coverage audit
   -> NOT REQUIRED G-04B gap
-  -> READY Wildcard pure-shim feasibility Contract
+  -> COMPLETE Wildcard pure-shim feasibility Contract
+  -> READY Wildcard internal-consumer and facade Move
   -> API production-facade feasibility Contract
   -> approved internal-consumer Moves only
   -> G-05 size ratchet
@@ -85,6 +88,9 @@ of architectural success by itself.
 - [`python-public-api-g04a-audit.md`](python-public-api-g04a-audit.md):
   completed public-surface owner map, root-name classifications, archive-closure
   evidence, and the no-G-04B decision.
+- [`python-wildcard-pwc01-facade-feasibility.md`](python-wildcard-pwc01-facade-feasibility.md):
+  FEASIBLE Wildcard direct-shim decision, public/private seam classification, and the
+  bounded P-WC-02 Move card.
 - [`python-feature-error-taxonomy-contract.md`](python-feature-error-taxonomy-contract.md):
   executable error inventory, canonical categories, preserved compatibility, adapter
   authority decision, and ordered F-02f/F-02g/F-02h task boundaries.
