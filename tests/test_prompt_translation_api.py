@@ -655,13 +655,13 @@ class PromptTranslationApiTests(unittest.TestCase):
                         "resolve_prompt_translation_settings",
                         side_effect=error,
                     ),
-                    patch.object(api._LOGGER, "exception") as log_exception,
+                    patch.object(api._LOGGER, "error") as log_error,
                 ):
                     response = asyncio.run(handler(JsonRequest({"text": "%{text}"})))
                 self.assertEqual(response["status"], 500)
                 self.assertEqual(response["payload"]["code"], "internal_error")
                 self.assertNotEqual(response["payload"]["code"], "translation_upstream_error")
-                log_exception.assert_called_once()
+                log_error.assert_called_once()
 
         response = asyncio.run(handler(JsonRequest([])))
         self.assertEqual(response["status"], 400)

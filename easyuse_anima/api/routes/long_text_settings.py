@@ -57,6 +57,16 @@ def build_long_text_settings_handlers(
             await run_file_io(save_long_text_settings_payload, values)
         )
 
+    setattr(
+        get_long_text_settings_handler,
+        "_easyuse_anima_sensitive_response",
+        True,
+    )
+    setattr(
+        save_long_text_settings_handler,
+        "_easyuse_anima_sensitive_response",
+        True,
+    )
     return get_long_text_settings_handler, save_long_text_settings_handler
 
 

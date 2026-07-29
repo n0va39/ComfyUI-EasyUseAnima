@@ -49,6 +49,8 @@ def build_settings_handlers(
             return unknown_setting_response()
         return json_response(payload)
 
+    setattr(get_settings_handler, "_easyuse_anima_sensitive_response", True)
+    setattr(set_setting_handler, "_easyuse_anima_sensitive_response", True)
     return get_settings_handler, set_setting_handler
 
 

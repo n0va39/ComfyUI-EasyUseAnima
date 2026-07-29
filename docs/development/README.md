@@ -15,8 +15,9 @@ Read only the sections needed by the active task.
    [`../architecture/security-admin-settings-roadmap.md`](../architecture/security-admin-settings-roadmap.md)
    - SEC-01 completed with TRUSTED_DEPLOYMENT_ONLY;
    - SEC-02 completed with a direct-owner FEASIBLE result;
-   - first READY task: Issue #199 / SEC-03 narrow backend implementation;
-   - SEC-03 must not implement authentication, a token, diagnostics, a settings split,
+   - SEC-03 completed the narrow backend implementation and SEC-04 was skipped;
+   - first READY task: Issue #199 / SEC-05 production-free completion audit;
+   - SEC-05 must not implement authentication, a token, diagnostics, a settings split,
      frontend behavior, root composition, or lifecycle changes.
 4. Completed backend and compatibility state:
    [`../architecture/post-phase-e-maintenance-roadmap.md`](../architecture/post-phase-e-maintenance-roadmap.md)
@@ -38,6 +39,14 @@ Read only the sections needed by the active task.
    - Phase F/G completion audit: `../architecture/python-phase-fg-completion-audit.md`
    - security/admin settings boundary: `../architecture/security-admin-settings-roadmap.md`
    - lifecycle runtime contract: `../architecture/python-runtime-e09-lifecycle-contract.md`
+   - runtime base contract: `../architecture/python-runtime-base-contract.md`
+   - repository/filesystem contract: `../architecture/python-runtime-e03-repository-filesystem-contract.md`
+   - translation runtime contract: `../architecture/python-runtime-e04-translation-contract.md`
+   - autocomplete runtime contract: `../architecture/python-runtime-e05-autocomplete-contract.md`
+   - wildcard runtime contract: `../architecture/python-runtime-e06-wildcard-contract.md`
+   - AiO cache runtime contract: `../architecture/python-runtime-e08-aio-cache-contract.md`
+   - test-isolation contract: `../architecture/python-runtime-e10-test-isolation-contract.md`
+   - runtime state inventory: `../architecture/python-runtime-state-inventory.md`
    - compatibility registry: `../architecture/python-compatibility-shims.md`
    - queue identity: `../architecture/queue-ui-two-phase-correlation-addendum.md`
    - Prompt Studio execution projection: `../architecture/prompt-studio-execution-derived-projection.md`
@@ -65,7 +74,9 @@ RETAIN    P-API-01; P-API-02 parked
 PARKED    D-14 / Phase H root removal
 COMPLETE  #199 SEC-01 security/admin host-capability Contract
 COMPLETE  #199 SEC-02 response-confidentiality Contract
-READY     #199 SEC-03 narrow backend implementation
+COMPLETE  #199 SEC-03 narrow backend implementation
+SKIPPED   #199 SEC-04 frontend settings migration
+READY     #199 SEC-05 security completion audit
 EVENT     next ordinary release N -> later D-14 re-audit
 ```
 
@@ -142,10 +153,9 @@ RuntimeConfig/bootstrap.
 
 ## Following state
 
-After SEC-01:
+After SEC-03:
 
-1. run the exact SEC-03 response-confidentiality implementation in the security
-   roadmap and SEC-02 Contract;
+1. run the exact SEC-05 production-free completion audit in the security roadmap;
 2. keep diagnostics absent by default when no reliable authorization owner exists;
 3. do not reopen Phase F/G, P-API-02, or D-14 as a side effect;
 4. let the next ordinary release containing final shims become release N;
