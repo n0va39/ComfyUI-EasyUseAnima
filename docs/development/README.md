@@ -14,9 +14,10 @@ Read only the sections needed by the active task.
 3. Active independent maintenance lane:
    [`../architecture/security-admin-settings-roadmap.md`](../architecture/security-admin-settings-roadmap.md)
    - SEC-01 completed with TRUSTED_DEPLOYMENT_ONLY;
-   - first READY task: Issue #199 / SEC-02 response-confidentiality Contract;
-   - SEC-02 is production-free and must not implement authentication, a token,
-     diagnostics, a settings split, or response changes.
+   - SEC-02 completed with a direct-owner FEASIBLE result;
+   - first READY task: Issue #199 / SEC-03 narrow backend implementation;
+   - SEC-03 must not implement authentication, a token, diagnostics, a settings split,
+     frontend behavior, root composition, or lifecycle changes.
 4. Completed backend and compatibility state:
    [`../architecture/post-phase-e-maintenance-roadmap.md`](../architecture/post-phase-e-maintenance-roadmap.md)
    - Phase F/G and G-CLOSE are complete; there is no READY Phase F/G task;
@@ -63,7 +64,8 @@ COMPLETE  G-CLOSE Phase F/G completion audit
 RETAIN    P-API-01; P-API-02 parked
 PARKED    D-14 / Phase H root removal
 COMPLETE  #199 SEC-01 security/admin host-capability Contract
-READY     #199 SEC-02 response-confidentiality Contract
+COMPLETE  #199 SEC-02 response-confidentiality Contract
+READY     #199 SEC-03 narrow backend implementation
 EVENT     next ordinary release N -> later D-14 re-audit
 ```
 
@@ -142,8 +144,8 @@ RuntimeConfig/bootstrap.
 
 After SEC-01:
 
-1. run the exact production-free SEC-02 response-confidentiality Contract in the
-   security roadmap;
+1. run the exact SEC-03 response-confidentiality implementation in the security
+   roadmap and SEC-02 Contract;
 2. keep diagnostics absent by default when no reliable authorization owner exists;
 3. do not reopen Phase F/G, P-API-02, or D-14 as a side effect;
 4. let the next ordinary release containing final shims become release N;

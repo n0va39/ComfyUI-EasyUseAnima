@@ -7,7 +7,10 @@
 - SEC-01 host capability and threat-model Contract: complete with
   **TRUSTED_DEPLOYMENT_ONLY**; see
   [`security-admin-settings-sec01-contract.md`](security-admin-settings-sec01-contract.md).
-- First READY task: SEC-02 response-confidentiality Contract.
+- SEC-02 response-confidentiality Contract: complete with a direct-owner
+  **FEASIBLE** result; see
+  [`security-admin-settings-sec02-response-contract.md`](security-admin-settings-sec02-response-contract.md).
+- First READY task: SEC-03 narrow backend implementation.
 - Released baseline: 0.6.2.
 - This lane does not reopen Phase F/G, P-API-02, D-14, or Phase H.
 - Type: Security/Admin Contract first; no production behavior change before the
@@ -204,17 +207,17 @@ No task after SEC-01 is automatically READY.
 
 ```text
 COMPLETE    SEC-01 threat model / capability owner / field classification
-READY       SEC-02 response-confidentiality Contract
-CONDITIONAL SEC-03 narrow backend implementation
+COMPLETE    SEC-02 response-confidentiality Contract
+READY       SEC-03 narrow backend implementation
 CONDITIONAL SEC-04 frontend settings migration, only if UI behavior changes
 CONDITIONAL SEC-05 security/package/live completion audit
 ```
 
-SEC-02 is justified by two directly observed response-confidentiality gaps: the shared
-unexpected-error correlator uses traceback-bearing exception logging, and the four
-sensitive settings read/mutation responses do not own an explicit
-`Cache-Control: no-store` contract. SEC-02 does not reconsider authentication,
-capability ownership, a diagnostics route, or a settings split.
+SEC-02 fixed one executable Contract for the two directly observed
+response-confidentiality gaps: traceback-bearing unexpected-error logging and the
+missing `Cache-Control: no-store` owner for four sensitive settings responses. The
+direct-owner result does not reconsider authentication, capability ownership, a
+diagnostics route, or a settings split.
 
 Examples of valid SEC-02 boundaries:
 
@@ -267,43 +270,49 @@ security architectures that are all viable, for example:
 User preference is not used as a substitute for security evidence. A missing host
 admin capability by itself is not a PRO blocker; it is an input to the SEC-01 verdict.
 
-## 9. SEC-02 task card and Codex resume instruction
+## 9. SEC-03 task card and Codex resume instruction
 
 ```text
 Task / Issue:
-Issue #199 / SEC-02 response-confidentiality Contract
+Issue #199 / SEC-03 response-confidentiality implementation
 
 Base SHA:
-Latest origin/dev after the SEC-01 Contract PR.
+Latest origin/dev after the SEC-02 Contract PR.
 
 Goal:
-Write the exact executable Contract for:
-1. sanitizing the shared unexpected-error request-correlation log so it contains only
-   the correlated request ID and a fixed event/category; and
-2. Cache-Control: no-store on GET /settings, POST /set_setting,
-   GET /long_text_settings, and POST /long_text_settings/save.
-Produce exactly one bounded SEC-03 implementation card only if the two requirements
-can remain inside their direct response owners.
+Implement security-admin-settings-sec02-response-contract.md exactly:
+1. replace traceback-bearing unexpected-error logging with one fixed error event that
+   contains only the correlated request ID; and
+2. mark the four settings/long-text handlers as sensitive so the existing correlation
+   wrapper sets Cache-Control: no-store on every returned or re-raised outcome.
 
-Allowed files:
+Allowed production files:
+- easyuse_anima/api/responses.py
+- easyuse_anima/api/routes/settings.py
+- easyuse_anima/api/routes/long_text_settings.py
+
+Allowed test/docs files:
+- tests/test_api_contract.py
+- tests/fixtures/python_backend_baseline.json only when the analyzer requires the
+  exact changed-owner delta
 - docs/architecture/security-admin-settings-sec02-response-contract.md
 - docs/architecture/security-admin-settings-sec01-contract.md
 - docs/architecture/security-admin-settings-roadmap.md
 - docs/architecture/README.md
 - docs/development/README.md
 
-Production, test, tool, and fixture changes are forbidden in SEC-02.
-
 Read only:
 - current-policies.md
 - codex-execution-efficiency.md universal rules
 - this document
 - Issue #199 latest checkpoint
+- security-admin-settings-sec02-response-contract.md
 - security-admin-settings-sec01-contract.md
 - easyuse_anima/api/responses.py
 - settings.py and long_text_settings.py direct response owners
 - ApiRequestCorrelationTests, ApiSettingsRouteTests,
   ApiLongTextSettingsRouteTests, and ApiPathRedactionTests
+- direct bootstrap/package/import/analyzer owners when their focused gate runs
 
 Preserve:
 - response status/body/request-ID/header behavior;
@@ -318,38 +327,44 @@ Forbidden changes:
 - settings split, schema/persistence/migration, frontend behavior;
 - global ComfyUI/access-log configuration or middleware;
 - RuntimeConfig/bootstrap/lifecycle/reset/shutdown changes;
+- api.py, bootstrap.py, router.py, public exports, or route definition changes;
 - broad logger refactor or unrelated API cleanup.
 
-Focused evidence, one target per runner:
-- ApiRequestCorrelationTests: correlation and safe unexpected-error behavior;
-- ApiSettingsRouteTests: settings response and failure behavior;
-- ApiLongTextSettingsRouteTests: long-text response behavior;
+Edit loop and focused evidence, one target per runner:
+- changed-file Python syntax/static and git diff --check;
+- ApiRequestCorrelationTests: fixed safe log event, exact sensitive headers,
+  correlation, CancelledError/HTTPException, and ordinary-route non-marking;
+- ApiSettingsRouteTests: both marked handlers and unchanged settings behavior;
+- ApiLongTextSettingsRouteTests: both marked handlers and unchanged long-text behavior;
 - ApiPathRedactionTests: ordinary endpoint path redaction;
-- source/Contract consistency and git diff --check.
+- PythonBootstrapTests: unchanged composition/repeated initialize/lifecycle behavior;
+- PythonPackageSkeletonTests: direct package/no-host import remains safe;
+- current import-boundary and analyzer owners: no forbidden edge or unexplained metric
+  change.
 
 Promotion gates:
-Docs-only SEC-02 does not run official full, package, live HTTP, or browser checks.
-The SEC-03 card must require official full once on its final candidate SHA. It may
-reuse package/no-host evidence when only the direct response owners change. No live
-or browser smoke is triggered for a pure log/header change; trigger isolated live HTTP
-only if status/body/request-ID behavior or host logger integration changes, and browser
-only if frontend files or interaction change.
+Run official full exactly once on the final candidate SHA. Package/pack, live HTTP,
+and browser are not triggered while the diff stays inside the fixed three production
+owners and direct tests. Trigger isolated live HTTP only if status/body/request-ID
+behavior or host logger integration changes; trigger browser only if frontend files or
+interaction change.
 
 Rollback boundary:
-Revert the SEC-02 documentation PR. There is no runtime state, storage, schema, or
-migration rollback.
+Revert the one SEC-03 implementation PR. There is no runtime state, storage, schema,
+migration, or frontend rollback.
 
 Stop conditions:
 - safe logging requires global ComfyUI/access/proxy logger changes;
 - no-store cannot be attached without changing public response semantics;
 - proxy-header trust or a capability owner becomes necessary;
-- any E-09 lifecycle or frontend/settings migration change is required.
+- api.py/bootstrap/router/public export, E-09 lifecycle, or frontend/settings
+  migration change is required;
+- an analyzer/import failure cannot be explained by the exact three-file owner delta.
 
 Next:
-SEC-03 narrow backend implementation only after this Contract proves one bounded
-owner set. SEC-04/SEC-05 remain conditional. D-14, release, tag, and Registry remain
-blocked.
+If SEC-03 stays inside this card, skip SEC-04 and make SEC-05 the next completion audit.
+D-14, release, tag, and Registry remain blocked until the security lane closes and a
+later roadmap gate explicitly authorizes them.
 
-Reuse existing deterministic tests. Add no fixture unless the response Contract cannot
-be represented by the existing direct owner tests.
+Reuse existing deterministic tests. Add no new fixture or test module.
 ```

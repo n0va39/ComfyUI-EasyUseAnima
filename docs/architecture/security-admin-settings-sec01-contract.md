@@ -137,8 +137,8 @@ or hot reinitialize API.
 
 ## Exact next task
 
-SEC-02 is READY only as the response-confidentiality Contract described in
-[`security-admin-settings-roadmap.md`](security-admin-settings-roadmap.md). It must fix
-the exact SEC-03 implementation boundary for sanitized unexpected-error logging and
-`no-store` on the four sensitive settings responses. Authentication, tokens,
-diagnostics, settings projection changes, and frontend migration remain forbidden.
+SEC-02 completed with a direct-owner **FEASIBLE** result in
+[`security-admin-settings-sec02-response-contract.md`](security-admin-settings-sec02-response-contract.md).
+SEC-03 is READY only for sanitized unexpected-error logging and `no-store` on the four
+sensitive settings responses. Authentication, tokens, diagnostics, settings projection
+changes, and frontend migration remain forbidden.
