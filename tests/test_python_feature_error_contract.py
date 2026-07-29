@@ -63,6 +63,7 @@ class PythonFeatureErrorContractTests(unittest.TestCase):
                 "base_sha",
                 "canonical_taxonomy",
                 "classification",
+                "completion_audit",
                 "current_authority",
                 "direct_test_owners",
                 "evidence",
@@ -87,6 +88,53 @@ class PythonFeatureErrorContractTests(unittest.TestCase):
         self.assertTrue(CONTRACT_DOC.is_file())
         for source in self.fixture["evidence"]:
             self.assertTrue((ROOT / source).is_file(), source)
+
+    def test_completion_audit_records_zero_unmapped_feature_errors(self):
+        audit = self.fixture["completion_audit"]
+        self.assertEqual(
+            audit["audited_base_sha"],
+            "d618bb705f9ec28f89fdbce8ba80a94847932c92",
+        )
+        self.assertEqual(
+            audit["canonical_category_count"],
+            len(self.fixture["canonical_taxonomy"]["categories"]),
+        )
+        self.assertEqual(
+            audit["feature_error_count"],
+            len(self.fixture["feature_errors"]),
+        )
+        self.assertEqual(
+            audit["excluded_adapter_or_private_error_count"],
+            len(self.fixture["excluded_errors"]),
+        )
+        self.assertEqual(
+            audit["http_mapping_count"],
+            len(self.fixture["http_mappings"]),
+        )
+        self.assertEqual(
+            audit["inventory_module_count"],
+            len(self.fixture["inventory_modules"]),
+        )
+
+        discovered = set()
+        for source in self.fixture["inventory_modules"]:
+            for statement in _tree(source).body:
+                if isinstance(statement, ast.ClassDef) and (
+                    statement.name.endswith(("Error", "Unavailable", "NotFound"))
+                    or statement.name.startswith("_Invalid")
+                ):
+                    discovered.add((source, statement.name))
+        classified = {
+            (item["source"], item["name"])
+            for key in ("feature_errors", "excluded_errors")
+            for item in self.fixture[key]
+        }
+        self.assertEqual(
+            audit["unmapped_feature_errors"],
+            sorted(f"{source}:{name}" for source, name in discovered - classified),
+        )
+        self.assertEqual(audit["phase_f_status"], "complete")
+        self.assertEqual(audit["next_task"], "G-04A")
 
     def test_canonical_taxonomy_matches_the_documented_hierarchy(self):
         taxonomy = self.fixture["canonical_taxonomy"]
@@ -296,6 +344,10 @@ class PythonFeatureErrorContractTests(unittest.TestCase):
         )
         self.assertIn(
             "profile-dynamic-compatibility-adapter-inputs",
+            self.fixture["preserved_invariants"],
+        )
+        self.assertIn(
+            "translation-derived-dynamic-compatibility-adapter-inputs",
             self.fixture["preserved_invariants"],
         )
 

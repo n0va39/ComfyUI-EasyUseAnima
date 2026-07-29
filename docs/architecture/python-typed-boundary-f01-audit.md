@@ -3,10 +3,10 @@
 ## Status
 
 - Owner: Issue #563
-- Base: `789c29075f6a0651bd2da5c9abe6d0619e7cf8b7`
+- Base: `d618bb705f9ec28f89fdbce8ba80a94847932c92`
 - Class: Contract/gate
 - Production changes: none
-- Result: Phase F remains open; G-04A is not READY
+- Result: Phase F complete; G-04A READY
 
 This audit reuses the current Pyright, import-boundary, API, profile, workflow,
 Autocomplete, Wildcard, and AiO schema/migration evidence. The Prompt/Wildcard/
@@ -24,7 +24,7 @@ direct owner tests can express every finding below.
 | Prompt, Wildcard, and Autocomplete | Prompt correction owns `TagInfo`, `TagToken`, `ParsedPrompt`, and `CorrectionResult` in `easyuse_anima/prompt/anima/models.py`. `easyuse_anima/prompt/contracts.py` owns the `PromptField` family plus canonical `PromptData` nested/output contracts and the feature-side `PromptDataRead` mapping. Wildcard owns `WildcardOption`, `WildcardExpansionBudget`, and `WildcardExpansionResult` in `easyuse_anima/wildcard/models.py`. Autocomplete source/status/search/classification payloads are owned by `easyuse_anima/autocomplete/contracts.py`. Direct evidence is in the Prompt, Regional, AiO-conditioning, Wildcard, Autocomplete, Pyright, and analyzer owner tests. | Prompt Data JSON accepts old layouts, malformed nested values, and future keys at the workflow/node adapter boundary. The legacy Extend adapter intentionally omits optional `pin`, and legacy Regional fallback may omit optional `pin`/`collapsed`; Wildcard and Autocomplete payload dictionaries are serialized by API adapters after typed feature results. | **complete.** F-02a through F-02c type the Autocomplete results, shared Prompt field family, canonical Prompt Data output, and feature-side read mapping. Raw workflow/node JSON stays at the intentional adapter/migration boundary and no untyped Prompt feature-state leak remains. |
 | AiO config/request/state/result | `AIOGenerationConfig` and its section dataclasses are owned by `easyuse_anima/aio/generation_settings.py` and adjacent strict generation modules. `GenerationRequest`, `GenerationState`, and `GenerationStage` are owned by `easyuse_anima/aio/generation_pipeline.py`; version detection and pure v1-to-v4 migration are owned by `generation_migrations.py`. Evidence is in the v1-v4 schema/surface fixtures and `tests/test_aio_schema_contract.py`, `tests/test_aio_generation_settings.py`, and `tests/test_aio_generation_migrations.py`. | `Mapping[str, object]` is retained only for JSON freeze/thaw, unknown-field preservation, host capability maps, prompt/workflow context, and final ComfyUI result serialization. Tensor/model values remain `object` at host boundaries. | **complete.** Normalized settings enter the generation pipeline as a typed config and typed request/state objects; strict per-file Pyright directives cover the generation contract modules. |
 | Node adapter raw input/output conversion | `easyuse_anima/nodes/aio_nodes.py`, `prompt_nodes.py`, and `wildcard_nodes.py` convert ComfyUI inputs into the typed AiO, Prompt, and Wildcard owners before feature work. `tests/test_node_contracts.py` and the 0.5.2 node/workflow fixtures freeze the public socket and result shapes. | Dynamic ComfyUI objects, tensor/model values, workflow metadata, input dictionaries, UI dictionaries, and output tuples are host adapter values. | **intentional adapter/migration boundary.** Their dynamic shape is not feature-service typing debt and no broad `Any` removal is justified. |
-| Common feature error taxonomy and adapter mappings | Existing concrete errors include `ProfileContractError`, `ProfileMutationError`, `InvalidProfileDataError`, `AutocompleteIndexUnavailable`, `KnowledgeBaseNotFound`, `AIOGenerationMigrationError`, and API-only `ApiContractError`. Their current behavior is covered by profile, Autocomplete, AiO migration, and API tests. | `ApiContractError` is allowed to carry HTTP status/code because it is an API request-adapter error. Node adapters may translate feature errors to the existing host-visible `RuntimeError` or UI status at the final adapter. | **exact F-02 follow-up required.** The documented `EasyUseAnimaError` category hierarchy does not exist, feature errors have no shared category base, and `ProfileMutationError` currently owns HTTP status alongside feature conflict meaning. Category-to-API/node mapping is therefore not a common tested contract. |
+| Common feature error taxonomy and adapter mappings | `easyuse_anima/errors.py` owns seven semantic categories. The executable fixture covers all 24 feature errors across 11 owner modules, their built-in catches and concrete identities, and all 15 HTTP mappings. Direct taxonomy, profile, translation, Autocomplete, Prompt, AiO, seed, API, Pyright, import, package, and analyzer owners freeze the result. | `ApiContractError` remains an API request-adapter error and `_InvalidAutocompleteIndex` remains private repair control flow. Concrete profile details and translation message text are semantic inputs. Generic/root-injected `ProfileMutationError` and unregistered/root-derived `PromptTranslationError` retain the two explicitly named compatibility seams. | **complete.** F-02e fixed the inventory, F-02f added category ancestry, F-02g made fixture-known concrete HTTP policy API-authoritative, and F-02h records zero unmapped feature errors without a production correction. |
 
 The current Pyright baseline remains valid rather than being rewritten: the global
 package stays on `basic`, the reviewed profile contract/mutation group is strict,
@@ -48,8 +48,8 @@ selected F-02 row is complete:
   canonical typed result contracts;
 - AiO generation settings v4, `AIOGenerationConfig`, `GenerationRequest`,
   `GenerationState`, and final node/API serialization shapes;
-- common feature error categories only after their adapter mapping follow-up is
-  complete.
+- common feature error categories and their API-authoritative concrete mappings,
+  including the two named dynamic compatibility seams.
 
 Root shims, deprecation warnings, telemetry, release metadata, tags, and Registry
 state are not part of this handoff.
@@ -172,13 +172,14 @@ The ordered implementation is:
 
 ```text
 COMPLETE F-02f canonical categories and additive feature inheritance
-  -> READY F-02g authoritative profile/translation API mappings
-  -> F-02h production-free error-row and Phase F completion audit
-  -> G-04A
+  -> COMPLETE F-02g authoritative profile/translation API mappings
+  -> COMPLETE F-02h production-free error-row and Phase F completion audit
+  -> READY G-04A
 ```
 
 F-02f is complete: the canonical categories and additive ancestry now preserve every
 recorded identity, built-in catch, export, constructor, metadata, message, and direct
-behavior. F-02g is the next task. Its complete task card is in
-`python-feature-error-taxonomy-contract.md`; it owns only the profile/translation API
-mapping authority cutover and must not change feature errors or payloads.
+behavior. F-02g completed the profile/translation API-authority cutover while retaining
+the named dynamic compatibility seams. F-02h re-audits 24 feature errors, two explicit
+exclusions, and 15 HTTP mappings with zero unmapped errors. Phase F is complete and
+Issue #188 / G-04A is READY.
