@@ -79,10 +79,10 @@ class PythonFeatureErrorContractTests(unittest.TestCase):
         )
         self.assertEqual(self.fixture["schema_version"], 1)
         self.assertEqual(self.fixture["classification"], "Contract")
-        self.assertEqual(self.fixture["production_changes"], 0)
+        self.assertEqual(self.fixture["production_changes"], 11)
         self.assertEqual(
             self.fixture["base_sha"],
-            "e5e0329cd64afa9894d631f9b6baa6514a81ab48",
+            "878a86f739a37a000a56b9e76ee2179aa86271f1",
         )
         self.assertTrue(CONTRACT_DOC.is_file())
         for source in self.fixture["evidence"]:
@@ -108,6 +108,11 @@ class PythonFeatureErrorContractTests(unittest.TestCase):
         self.assertEqual(
             taxonomy["module_exports"],
             [item["name"] for item in categories],
+        )
+        taxonomy_module = importlib.import_module("easyuse_anima.errors")
+        self.assertEqual(
+            list(taxonomy_module.__all__),
+            taxonomy["module_exports"],
         )
         self.assertEqual(categories[0]["parent"], "Exception")
         self.assertEqual(
@@ -141,6 +146,7 @@ class PythonFeatureErrorContractTests(unittest.TestCase):
             item["name"]
             for item in self.fixture["canonical_taxonomy"]["categories"]
         }
+        taxonomy_module = importlib.import_module("easyuse_anima.errors")
         for item in self.fixture["feature_errors"]:
             with self.subTest(error=item["name"]):
                 class_def = _class_def(item["source"], item["name"])
@@ -159,6 +165,13 @@ class PythonFeatureErrorContractTests(unittest.TestCase):
                         f"{item['name']} no longer catches as {builtin_name}",
                     )
                 self.assertIn(item["target_category"], category_names)
+                self.assertTrue(
+                    issubclass(
+                        error_type,
+                        getattr(taxonomy_module, item["target_category"]),
+                    ),
+                    f"{item['name']} lacks {item['target_category']}",
+                )
 
     def test_http_mapping_is_exhaustive_and_current_payloads_are_frozen(self):
         http_errors = {

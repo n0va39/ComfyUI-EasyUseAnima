@@ -171,13 +171,14 @@ being removed during Phase F.
 The ordered implementation is:
 
 ```text
-READY F-02f canonical categories and additive feature inheritance
-  -> F-02g authoritative profile/translation API mappings
+COMPLETE F-02f canonical categories and additive feature inheritance
+  -> READY F-02g authoritative profile/translation API mappings
   -> F-02h production-free error-row and Phase F completion audit
   -> G-04A
 ```
 
-F-02f is the next task. Its complete task card is in
-`python-feature-error-taxonomy-contract.md`. It must not perform the F-02g adapter
-cutover, change any exception constructor/attribute/message, add a root export, or
-change feature/API/node behavior.
+F-02f is complete: the canonical categories and additive ancestry now preserve every
+recorded identity, built-in catch, export, constructor, metadata, message, and direct
+behavior. F-02g is the next task. Its complete task card is in
+`python-feature-error-taxonomy-contract.md`; it owns only the profile/translation API
+mapping authority cutover and must not change feature errors or payloads.

@@ -4,13 +4,14 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from ...errors import NotFoundError
 from ...infrastructure.filesystem.paths import PACKAGE_DATA_DIR
 from .models import TagInfo
 from .normalize import lookup_key
 from .ordering import TagSection, builtin_tag_section
 
 
-class KnowledgeBaseNotFound(FileNotFoundError):
+class KnowledgeBaseNotFound(NotFoundError, FileNotFoundError):
     """Compatibility exception for older callers."""
 
 

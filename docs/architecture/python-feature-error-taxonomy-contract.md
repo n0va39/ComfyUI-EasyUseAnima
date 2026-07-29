@@ -3,17 +3,19 @@
 ## Status
 
 - Owner: Issue #563
-- Base: `e5e0329cd64afa9894d631f9b6baa6514a81ab48`
-- Task: F-02e
-- Class: Contract/gate
-- Production changes: none
+- Contract base: `e5e0329cd64afa9894d631f9b6baa6514a81ab48`
+- F-02f implementation base: `878a86f739a37a000a56b9e76ee2179aa86271f1`
+- Status: F-02e Contract complete; F-02f inheritance complete; F-02g READY
+- Current class: Adapter
+- Production changes: F-02f categories and additive inheritance only
 - Fixture: `tests/fixtures/python_feature_error_contract.v1.json`
 - Gate: `tests/test_python_feature_error_contract.py`
 
-This contract resolves the final Phase F finding without changing production
-inheritance, exceptions, API payloads, node behavior, or public exports. The fixture is
-the executable inventory; this document records the decisions and ordered
-implementation boundaries.
+This contract resolves the final Phase F finding in ordered slices. F-02f implemented
+the categories and additive inheritance without changing concrete exception identity,
+API payloads, node behavior, or public exports. The fixture is the executable
+inventory; this document records the decisions and the remaining adapter/audit
+boundaries.
 
 ## Canonical categories
 
@@ -121,6 +123,15 @@ One adapter cutover after F-02f:
 - do not change Autocomplete fallback, seed behavior, migration behavior, or node
   payloads.
 
+## F-02f completion
+
+F-02f is complete. `easyuse_anima/errors.py` owns the seven categories with an
+explicit module `__all__` and no root export. All 24 fixture-owned feature errors keep
+their original module, name, concrete object identity, feature-specific subclass
+relations, constructor/metadata/message behavior, and built-in exception catches while
+also inheriting the selected semantic category. Profile and translation adapters still
+read the compatibility metadata; that authority cutover remains exclusively F-02g.
+
 ### F-02h — Completion audit
 
 A production-free audit must reconcile every fixture-owned feature error, record zero
@@ -172,6 +183,46 @@ Promotion: official full exactly once on final production/test/tool SHA; no pack
 Stop: MRO conflict, public/root export change, concrete identity/catch change, API or
   feature behavior change, or canonical-to-root import is required
 Next: F-02g adapter authority cutover only
+```
+
+## F-02g task card
+
+```text
+Task ID: F-02g authoritative profile/translation API mappings
+Owner Issue: #563
+Primary class: ADAPTER
+Base SHA: latest origin/dev after F-02f merges
+Goal: make canonical API adapters authoritative for every fixture-owned profile and
+      translation HTTP mapping without changing any response or feature behavior.
+Allowed production:
+  api.py
+  easyuse_anima/bootstrap.py
+  easyuse_anima/api/responses.py
+  easyuse_anima/api/routes/translation.py
+Allowed tests/config/docs:
+  tests/test_python_feature_error_contract.py
+  tests/fixtures/python_feature_error_contract.v1.json
+  tests/test_api_contract.py
+  tests/test_prompt_translation_api.py
+  tests/test_python_translation_runtime_contract.py
+  direct bootstrap/package/Pyright/analyzer/import owners
+  tests/fixtures/python_backend_baseline.json only as generated analyzer evidence
+  current queue/audit docs
+Forbidden: feature exception or category changes, exception metadata removal, root
+  alias/export changes, route/runtime lifecycle changes, Autocomplete/seed/migration/
+  node behavior changes, broad error cleanup, Any cleanup, ignore addition
+Preserve: exact profile/translation status/code/message/details, request correlation,
+  redaction and catch order, arbitrary dynamic ProfileMutationError dependency seam,
+  concrete exception identity and compatibility metadata, translation worker identity,
+  route identity/order/signature/registration, repeated initialize behavior
+Focused: taxonomy authority contract; direct profile error response and Prompt
+  translation API/runtime owners; bootstrap/package; Pyright; analyzer; import boundary;
+  changed-file syntax/static; git diff --check
+Promotion: official full exactly once on final production/test/tool SHA; no package/live
+Stop: preserving the dynamic profile seam requires feature-owned HTTP authority,
+  a canonical adapter must import root api.py, exception metadata/payload/identity must
+  change, or route/runtime lifecycle behavior must change
+Next: F-02h production-free completion audit only
 ```
 
 ## Validation and stop policy

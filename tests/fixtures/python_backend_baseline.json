@@ -8496,6 +8496,24 @@
       },
       {
         "alias": null,
+        "bound_name": "ValidationError",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": "..errors:ValidationError",
+        "kind": "static_from",
+        "line": 8,
+        "name": "ValidationError",
+        "optional": false,
+        "requested": "..errors",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/generation_migrations.py",
+        "target": "easyuse_anima/errors.py"
+      },
+      {
+        "alias": null,
         "bound_name": "freeze_object",
         "branch_context": [],
         "classification": "internal",
@@ -8503,7 +8521,7 @@
         "conditional": false,
         "imported": ".generation_values:freeze_object",
         "kind": "static_from",
-        "line": 8,
+        "line": 9,
         "name": "freeze_object",
         "optional": false,
         "requested": ".generation_values",
@@ -8521,7 +8539,7 @@
         "conditional": false,
         "imported": ".generation_values:thaw_object",
         "kind": "static_from",
-        "line": 8,
+        "line": 9,
         "name": "thaw_object",
         "optional": false,
         "requested": ".generation_values",
@@ -17041,6 +17059,24 @@
         "source": "easyuse_anima/autocomplete/index.py"
       },
       {
+        "alias": null,
+        "bound_name": "CapabilityUnavailableError",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": "..errors:CapabilityUnavailableError",
+        "kind": "static_from",
+        "line": 13,
+        "name": "CapabilityUnavailableError",
+        "optional": false,
+        "requested": "..errors",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/autocomplete/index.py",
+        "target": "easyuse_anima/errors.py"
+      },
+      {
         "alias": "STORAGE_PACKAGE_DATA_DIR",
         "bound_name": "STORAGE_PACKAGE_DATA_DIR",
         "branch_context": [],
@@ -17049,7 +17085,7 @@
         "conditional": false,
         "imported": "..infrastructure.filesystem.paths:PACKAGE_DATA_DIR",
         "kind": "static_from",
-        "line": 13,
+        "line": 14,
         "name": "PACKAGE_DATA_DIR",
         "optional": false,
         "requested": "..infrastructure.filesystem.paths",
@@ -17067,7 +17103,7 @@
         "conditional": false,
         "imported": "..infrastructure.filesystem.paths:USER_DATA_DIR",
         "kind": "static_from",
-        "line": 16,
+        "line": 17,
         "name": "USER_DATA_DIR",
         "optional": false,
         "requested": "..infrastructure.filesystem.paths",
@@ -18785,6 +18821,23 @@
         "role": "ordinary",
         "scope": "<module>",
         "source": "easyuse_anima/common/serialization.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "annotations",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "__future__:annotations",
+        "kind": "static_from",
+        "line": 3,
+        "name": "annotations",
+        "optional": false,
+        "requested": "__future__",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/errors.py"
       },
       {
         "alias": null,
@@ -27039,6 +27092,24 @@
       },
       {
         "alias": null,
+        "bound_name": "ValidationError",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": "..errors:ValidationError",
+        "kind": "static_from",
+        "line": 7,
+        "name": "ValidationError",
+        "optional": false,
+        "requested": "..errors",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/profiles/contract.py",
+        "target": "easyuse_anima/errors.py"
+      },
+      {
+        "alias": null,
         "bound_name": "annotations",
         "branch_context": [],
         "classification": "external",
@@ -27634,6 +27705,42 @@
       },
       {
         "alias": null,
+        "bound_name": "ConflictError",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": "..errors:ConflictError",
+        "kind": "static_from",
+        "line": 11,
+        "name": "ConflictError",
+        "optional": false,
+        "requested": "..errors",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/profiles/mutation.py",
+        "target": "easyuse_anima/errors.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "ValidationError",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": "..errors:ValidationError",
+        "kind": "static_from",
+        "line": 11,
+        "name": "ValidationError",
+        "optional": false,
+        "requested": "..errors",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/profiles/mutation.py",
+        "target": "easyuse_anima/errors.py"
+      },
+      {
+        "alias": null,
         "bound_name": "read_profile_metadata",
         "branch_context": [],
         "classification": "internal",
@@ -27641,7 +27748,7 @@
         "conditional": false,
         "imported": ".contract:read_profile_metadata",
         "kind": "static_from",
-        "line": 11,
+        "line": 12,
         "name": "read_profile_metadata",
         "optional": false,
         "requested": ".contract",
@@ -27754,6 +27861,24 @@
       },
       {
         "alias": null,
+        "bound_name": "ValidationError",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": "..errors:ValidationError",
+        "kind": "static_from",
+        "line": 11,
+        "name": "ValidationError",
+        "optional": false,
+        "requested": "..errors",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/profiles/repository.py",
+        "target": "easyuse_anima/errors.py"
+      },
+      {
+        "alias": null,
         "bound_name": "AtomicJsonStore",
         "branch_context": [],
         "classification": "internal",
@@ -27761,7 +27886,7 @@
         "conditional": false,
         "imported": "..infrastructure.filesystem.atomic_json:AtomicJsonStore",
         "kind": "static_from",
-        "line": 11,
+        "line": 12,
         "name": "AtomicJsonStore",
         "optional": false,
         "requested": "..infrastructure.filesystem.atomic_json",
@@ -27779,7 +27904,7 @@
         "conditional": false,
         "imported": "..infrastructure.filesystem.atomic_json:create_atomic_json_store",
         "kind": "static_from",
-        "line": 11,
+        "line": 12,
         "name": "create_atomic_json_store",
         "optional": false,
         "requested": "..infrastructure.filesystem.atomic_json",
@@ -27797,7 +27922,7 @@
         "conditional": false,
         "imported": ".contract:ProfileContractError",
         "kind": "static_from",
-        "line": 15,
+        "line": 16,
         "name": "ProfileContractError",
         "optional": false,
         "requested": ".contract",
@@ -27815,7 +27940,7 @@
         "conditional": false,
         "imported": ".contract:interpret_profile_document",
         "kind": "static_from",
-        "line": 15,
+        "line": 16,
         "name": "interpret_profile_document",
         "optional": false,
         "requested": ".contract",
@@ -27833,7 +27958,7 @@
         "conditional": false,
         "imported": ".contract:legacy_profile_id",
         "kind": "static_from",
-        "line": 15,
+        "line": 16,
         "name": "legacy_profile_id",
         "optional": false,
         "requested": ".contract",
@@ -27851,7 +27976,7 @@
         "conditional": false,
         "imported": ".contract:normalize_profile_filename_identity",
         "kind": "static_from",
-        "line": 15,
+        "line": 16,
         "name": "normalize_profile_filename_identity",
         "optional": false,
         "requested": ".contract",
@@ -27869,7 +27994,7 @@
         "conditional": false,
         "imported": ".mutation:DirectoryMutationCoordinator",
         "kind": "static_from",
-        "line": 21,
+        "line": 22,
         "name": "DirectoryMutationCoordinator",
         "optional": false,
         "requested": ".mutation",
@@ -29218,6 +29343,24 @@
       },
       {
         "alias": null,
+        "bound_name": "NotFoundError",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": "...errors:NotFoundError",
+        "kind": "static_from",
+        "line": 7,
+        "name": "NotFoundError",
+        "optional": false,
+        "requested": "...errors",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/prompt/anima/knowledge.py",
+        "target": "easyuse_anima/errors.py"
+      },
+      {
+        "alias": null,
         "bound_name": "PACKAGE_DATA_DIR",
         "branch_context": [],
         "classification": "internal",
@@ -29225,7 +29368,7 @@
         "conditional": false,
         "imported": "...infrastructure.filesystem.paths:PACKAGE_DATA_DIR",
         "kind": "static_from",
-        "line": 7,
+        "line": 8,
         "name": "PACKAGE_DATA_DIR",
         "optional": false,
         "requested": "...infrastructure.filesystem.paths",
@@ -29243,7 +29386,7 @@
         "conditional": false,
         "imported": ".models:TagInfo",
         "kind": "static_from",
-        "line": 8,
+        "line": 9,
         "name": "TagInfo",
         "optional": false,
         "requested": ".models",
@@ -29261,7 +29404,7 @@
         "conditional": false,
         "imported": ".normalize:lookup_key",
         "kind": "static_from",
-        "line": 9,
+        "line": 10,
         "name": "lookup_key",
         "optional": false,
         "requested": ".normalize",
@@ -29279,7 +29422,7 @@
         "conditional": false,
         "imported": ".ordering:TagSection",
         "kind": "static_from",
-        "line": 10,
+        "line": 11,
         "name": "TagSection",
         "optional": false,
         "requested": ".ordering",
@@ -29297,7 +29440,7 @@
         "conditional": false,
         "imported": ".ordering:builtin_tag_section",
         "kind": "static_from",
-        "line": 10,
+        "line": 11,
         "name": "builtin_tag_section",
         "optional": false,
         "requested": ".ordering",
@@ -31862,6 +32005,24 @@
       },
       {
         "alias": null,
+        "bound_name": "ValidationError",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": "..errors:ValidationError",
+        "kind": "static_from",
+        "line": 13,
+        "name": "ValidationError",
+        "optional": false,
+        "requested": "..errors",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/seed/execution_identity.py",
+        "target": "easyuse_anima/errors.py"
+      },
+      {
+        "alias": null,
         "bound_name": "annotations",
         "branch_context": [],
         "classification": "external",
@@ -32209,6 +32370,24 @@
       },
       {
         "alias": null,
+        "bound_name": "ValidationError",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": "..errors:ValidationError",
+        "kind": "static_from",
+        "line": 10,
+        "name": "ValidationError",
+        "optional": false,
+        "requested": "..errors",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/seed/reservation.py",
+        "target": "easyuse_anima/errors.py"
+      },
+      {
+        "alias": null,
         "bound_name": "annotations",
         "branch_context": [],
         "classification": "external",
@@ -32379,6 +32558,60 @@
       },
       {
         "alias": null,
+        "bound_name": "CapabilityUnavailableError",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": "..errors:CapabilityUnavailableError",
+        "kind": "static_from",
+        "line": 14,
+        "name": "CapabilityUnavailableError",
+        "optional": false,
+        "requested": "..errors",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/seed/service.py",
+        "target": "easyuse_anima/errors.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "ConflictError",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": "..errors:ConflictError",
+        "kind": "static_from",
+        "line": 14,
+        "name": "ConflictError",
+        "optional": false,
+        "requested": "..errors",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/seed/service.py",
+        "target": "easyuse_anima/errors.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "EasyUseAnimaError",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": "..errors:EasyUseAnimaError",
+        "kind": "static_from",
+        "line": 14,
+        "name": "EasyUseAnimaError",
+        "optional": false,
+        "requested": "..errors",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/seed/service.py",
+        "target": "easyuse_anima/errors.py"
+      },
+      {
+        "alias": null,
         "bound_name": "SEED_CONTROL_FIXED",
         "branch_context": [],
         "classification": "internal",
@@ -32386,7 +32619,7 @@
         "conditional": false,
         "imported": ".reservation:SEED_CONTROL_FIXED",
         "kind": "static_from",
-        "line": 14,
+        "line": 15,
         "name": "SEED_CONTROL_FIXED",
         "optional": false,
         "requested": ".reservation",
@@ -32404,7 +32637,7 @@
         "conditional": false,
         "imported": ".reservation:SEED_OVERFLOW_CLAMP",
         "kind": "static_from",
-        "line": 14,
+        "line": 15,
         "name": "SEED_OVERFLOW_CLAMP",
         "optional": false,
         "requested": ".reservation",
@@ -32422,7 +32655,7 @@
         "conditional": false,
         "imported": ".reservation:SEED_OVERFLOW_WRAP",
         "kind": "static_from",
-        "line": 14,
+        "line": 15,
         "name": "SEED_OVERFLOW_WRAP",
         "optional": false,
         "requested": ".reservation",
@@ -32440,7 +32673,7 @@
         "conditional": false,
         "imported": ".reservation:SEED_RESERVATION_CONTRACT_VERSION",
         "kind": "static_from",
-        "line": 14,
+        "line": 15,
         "name": "SEED_RESERVATION_CONTRACT_VERSION",
         "optional": false,
         "requested": ".reservation",
@@ -32458,7 +32691,7 @@
         "conditional": false,
         "imported": ".reservation:SEED_SELECTION_CONCRETE",
         "kind": "static_from",
-        "line": 14,
+        "line": 15,
         "name": "SEED_SELECTION_CONCRETE",
         "optional": false,
         "requested": ".reservation",
@@ -32476,7 +32709,7 @@
         "conditional": false,
         "imported": ".reservation:SEED_SELECTION_DECREMENT",
         "kind": "static_from",
-        "line": 14,
+        "line": 15,
         "name": "SEED_SELECTION_DECREMENT",
         "optional": false,
         "requested": ".reservation",
@@ -32494,7 +32727,7 @@
         "conditional": false,
         "imported": ".reservation:SEED_SELECTION_INCREMENT",
         "kind": "static_from",
-        "line": 14,
+        "line": 15,
         "name": "SEED_SELECTION_INCREMENT",
         "optional": false,
         "requested": ".reservation",
@@ -32512,7 +32745,7 @@
         "conditional": false,
         "imported": ".reservation:SEED_SELECTION_RANDOMIZE",
         "kind": "static_from",
-        "line": 14,
+        "line": 15,
         "name": "SEED_SELECTION_RANDOMIZE",
         "optional": false,
         "requested": ".reservation",
@@ -32530,7 +32763,7 @@
         "conditional": false,
         "imported": ".reservation:SEED_SETTLEMENTS",
         "kind": "static_from",
-        "line": 14,
+        "line": 15,
         "name": "SEED_SETTLEMENTS",
         "optional": false,
         "requested": ".reservation",
@@ -32548,7 +32781,7 @@
         "conditional": false,
         "imported": ".reservation:SEED_SETTLEMENT_ACCEPTED",
         "kind": "static_from",
-        "line": 14,
+        "line": 15,
         "name": "SEED_SETTLEMENT_ACCEPTED",
         "optional": false,
         "requested": ".reservation",
@@ -32566,7 +32799,7 @@
         "conditional": false,
         "imported": ".reservation:SeedOverflowPolicy",
         "kind": "static_from",
-        "line": 14,
+        "line": 15,
         "name": "SeedOverflowPolicy",
         "optional": false,
         "requested": ".reservation",
@@ -32584,7 +32817,7 @@
         "conditional": false,
         "imported": ".reservation:SeedReservation",
         "kind": "static_from",
-        "line": 14,
+        "line": 15,
         "name": "SeedReservation",
         "optional": false,
         "requested": ".reservation",
@@ -32602,7 +32835,7 @@
         "conditional": false,
         "imported": ".reservation:SeedReservationContractError",
         "kind": "static_from",
-        "line": 14,
+        "line": 15,
         "name": "SeedReservationContractError",
         "optional": false,
         "requested": ".reservation",
@@ -32620,7 +32853,7 @@
         "conditional": false,
         "imported": ".reservation:SeedReservationRequest",
         "kind": "static_from",
-        "line": 14,
+        "line": 15,
         "name": "SeedReservationRequest",
         "optional": false,
         "requested": ".reservation",
@@ -32638,7 +32871,7 @@
         "conditional": false,
         "imported": ".reservation:SeedReservationSettlement",
         "kind": "static_from",
-        "line": 14,
+        "line": 15,
         "name": "SeedReservationSettlement",
         "optional": false,
         "requested": ".reservation",
@@ -33446,6 +33679,96 @@
         "role": "ordinary",
         "scope": "<module>",
         "source": "easyuse_anima/translation/contracts.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "CapabilityUnavailableError",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": "..errors:CapabilityUnavailableError",
+        "kind": "static_from",
+        "line": 8,
+        "name": "CapabilityUnavailableError",
+        "optional": false,
+        "requested": "..errors",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/translation/contracts.py",
+        "target": "easyuse_anima/errors.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "ConflictError",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": "..errors:ConflictError",
+        "kind": "static_from",
+        "line": 8,
+        "name": "ConflictError",
+        "optional": false,
+        "requested": "..errors",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/translation/contracts.py",
+        "target": "easyuse_anima/errors.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "EasyUseAnimaError",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": "..errors:EasyUseAnimaError",
+        "kind": "static_from",
+        "line": 8,
+        "name": "EasyUseAnimaError",
+        "optional": false,
+        "requested": "..errors",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/translation/contracts.py",
+        "target": "easyuse_anima/errors.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "UpstreamTimeoutError",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": "..errors:UpstreamTimeoutError",
+        "kind": "static_from",
+        "line": 8,
+        "name": "UpstreamTimeoutError",
+        "optional": false,
+        "requested": "..errors",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/translation/contracts.py",
+        "target": "easyuse_anima/errors.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "ValidationError",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": "..errors:ValidationError",
+        "kind": "static_from",
+        "line": 8,
+        "name": "ValidationError",
+        "optional": false,
+        "requested": "..errors",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/translation/contracts.py",
+        "target": "easyuse_anima/errors.py"
       },
       {
         "alias": null,
@@ -66922,6 +67245,10 @@
         "to": "easyuse_anima/aio/generation_values.py"
       },
       {
+        "from": "easyuse_anima/aio/generation_migrations.py",
+        "to": "easyuse_anima/errors.py"
+      },
+      {
         "from": "easyuse_anima/aio/generation_normalization.py",
         "to": "easyuse_anima/aio/generation_defaults.py"
       },
@@ -67368,6 +67695,10 @@
       {
         "from": "easyuse_anima/autocomplete/dataset.py",
         "to": "easyuse_anima/infrastructure/filesystem/paths.py"
+      },
+      {
+        "from": "easyuse_anima/autocomplete/index.py",
+        "to": "easyuse_anima/errors.py"
       },
       {
         "from": "easyuse_anima/autocomplete/index.py",
@@ -67974,6 +68305,10 @@
         "to": "easyuse_anima/profiles/repository.py"
       },
       {
+        "from": "easyuse_anima/profiles/contract.py",
+        "to": "easyuse_anima/errors.py"
+      },
+      {
         "from": "easyuse_anima/profiles/lora.py",
         "to": "easyuse_anima/infrastructure/filesystem/atomic_json.py"
       },
@@ -67995,7 +68330,15 @@
       },
       {
         "from": "easyuse_anima/profiles/mutation.py",
+        "to": "easyuse_anima/errors.py"
+      },
+      {
+        "from": "easyuse_anima/profiles/mutation.py",
         "to": "easyuse_anima/profiles/contract.py"
+      },
+      {
+        "from": "easyuse_anima/profiles/repository.py",
+        "to": "easyuse_anima/errors.py"
       },
       {
         "from": "easyuse_anima/profiles/repository.py",
@@ -68092,6 +68435,10 @@
       {
         "from": "easyuse_anima/prompt/anima/correction.py",
         "to": "easyuse_anima/prompt/anima/parser.py"
+      },
+      {
+        "from": "easyuse_anima/prompt/anima/knowledge.py",
+        "to": "easyuse_anima/errors.py"
       },
       {
         "from": "easyuse_anima/prompt/anima/knowledge.py",
@@ -68290,8 +68637,20 @@
         "to": "easyuse_anima/wildcard/seed.py"
       },
       {
+        "from": "easyuse_anima/seed/execution_identity.py",
+        "to": "easyuse_anima/errors.py"
+      },
+      {
         "from": "easyuse_anima/seed/execution_session.py",
         "to": "easyuse_anima/seed/reservation.py"
+      },
+      {
+        "from": "easyuse_anima/seed/reservation.py",
+        "to": "easyuse_anima/errors.py"
+      },
+      {
+        "from": "easyuse_anima/seed/service.py",
+        "to": "easyuse_anima/errors.py"
       },
       {
         "from": "easyuse_anima/seed/service.py",
@@ -68324,6 +68683,10 @@
       {
         "from": "easyuse_anima/settings/service.py",
         "to": "easyuse_anima/translation/contracts.py"
+      },
+      {
+        "from": "easyuse_anima/translation/contracts.py",
+        "to": "easyuse_anima/errors.py"
       },
       {
         "from": "easyuse_anima/translation/ports.py",
@@ -69248,6 +69611,12 @@
       {
         "cyclic": false,
         "modules": [
+          "easyuse_anima/errors.py"
+        ]
+      },
+      {
+        "cyclic": false,
+        "modules": [
           "easyuse_anima/image/__init__.py"
         ]
       },
@@ -69807,7 +70176,7 @@
     ]
   },
   "inventory": {
-    "module_count": 175,
+    "module_count": 176,
     "modules": [
       {
         "is_package": true,
@@ -70087,9 +70456,9 @@
       },
       {
         "is_package": false,
-        "loc": 244,
+        "loc": 245,
         "module": "easyuse_anima.aio.generation_migrations",
-        "normalized_git_blob_sha1": "d13d009205b63f37f36c5a37e489cd3924042ede",
+        "normalized_git_blob_sha1": "1d0cd29d8937e58e95383e89fd7540ed02d4c5c4",
         "path": "easyuse_anima/aio/generation_migrations.py",
         "top_level": {
           "class_count": 3,
@@ -70689,7 +71058,7 @@
         "is_package": false,
         "loc": 684,
         "module": "easyuse_anima.autocomplete.index",
-        "normalized_git_blob_sha1": "d16540946907a69522ccc027dfc13eaafd6f4b41",
+        "normalized_git_blob_sha1": "fa5f5b8ce47e3c4f4f64a017beae8ecb7c350954",
         "path": "easyuse_anima/autocomplete/index.py",
         "top_level": {
           "class_count": 8,
@@ -70778,6 +71147,18 @@
         "top_level": {
           "class_count": 0,
           "function_count": 5,
+          "global_count": 1
+        }
+      },
+      {
+        "is_package": false,
+        "loc": 42,
+        "module": "easyuse_anima.errors",
+        "normalized_git_blob_sha1": "1d56d0f371b698329361069804cc7c826d30e64c",
+        "path": "easyuse_anima/errors.py",
+        "top_level": {
+          "class_count": 7,
+          "function_count": 0,
           "global_count": 1
         }
       },
@@ -71227,9 +71608,9 @@
       },
       {
         "is_package": false,
-        "loc": 191,
+        "loc": 192,
         "module": "easyuse_anima.profiles.contract",
-        "normalized_git_blob_sha1": "9e2b528291c85e34a207d2d77395c607102978b2",
+        "normalized_git_blob_sha1": "6a6e6899abdba5bc74e0afbae0aaf28c09ea7bd7",
         "path": "easyuse_anima/profiles/contract.py",
         "top_level": {
           "class_count": 1,
@@ -71251,9 +71632,9 @@
       },
       {
         "is_package": false,
-        "loc": 150,
+        "loc": 151,
         "module": "easyuse_anima.profiles.mutation",
-        "normalized_git_blob_sha1": "71cb4340b6eec8c1a25e8f4ee311e97bc7ae89b2",
+        "normalized_git_blob_sha1": "d22dc126f4b1b5ff04c49e21ed7ad57a79654672",
         "path": "easyuse_anima/profiles/mutation.py",
         "top_level": {
           "class_count": 5,
@@ -71263,9 +71644,9 @@
       },
       {
         "is_package": false,
-        "loc": 111,
+        "loc": 112,
         "module": "easyuse_anima.profiles.repository",
-        "normalized_git_blob_sha1": "ee5775d083714330156fb417157e8cb91725cdea",
+        "normalized_git_blob_sha1": "c8fc846e51d98da409f7cb0469f94a8ecfc8b3ee",
         "path": "easyuse_anima/profiles/repository.py",
         "top_level": {
           "class_count": 2,
@@ -71323,9 +71704,9 @@
       },
       {
         "is_package": false,
-        "loc": 46,
+        "loc": 47,
         "module": "easyuse_anima.prompt.anima.knowledge",
-        "normalized_git_blob_sha1": "98cb99d4f8920f4e11aea2a397852c9022265ceb",
+        "normalized_git_blob_sha1": "2c667cd958c2b892decac7ef0be668856d6f2a21",
         "path": "easyuse_anima/prompt/anima/knowledge.py",
         "top_level": {
           "class_count": 2,
@@ -71515,9 +71896,9 @@
       },
       {
         "is_package": false,
-        "loc": 212,
+        "loc": 214,
         "module": "easyuse_anima.seed.execution_identity",
-        "normalized_git_blob_sha1": "4f09455dd43382096ea3e87946f793c16bdba870",
+        "normalized_git_blob_sha1": "6c1ae95e6f6bb899e37287cf28650cadf7c1db8d",
         "path": "easyuse_anima/seed/execution_identity.py",
         "top_level": {
           "class_count": 3,
@@ -71539,9 +71920,9 @@
       },
       {
         "is_package": false,
-        "loc": 349,
+        "loc": 351,
         "module": "easyuse_anima.seed.reservation",
-        "normalized_git_blob_sha1": "6b3d2d9a96a3969b26088471c9f0ba1fba45806b",
+        "normalized_git_blob_sha1": "f2e72b8aeb35950607545cb4b13c95ed24499536",
         "path": "easyuse_anima/seed/reservation.py",
         "top_level": {
           "class_count": 4,
@@ -71551,9 +71932,9 @@
       },
       {
         "is_package": false,
-        "loc": 501,
+        "loc": 505,
         "module": "easyuse_anima.seed.service",
-        "normalized_git_blob_sha1": "b8ef428d579f3f65984d505a7937f33153c94161",
+        "normalized_git_blob_sha1": "6203014bbd6305a767de3570d31a70218306344f",
         "path": "easyuse_anima/seed/service.py",
         "top_level": {
           "class_count": 7,
@@ -71623,9 +72004,9 @@
       },
       {
         "is_package": false,
-        "loc": 135,
+        "loc": 146,
         "module": "easyuse_anima.translation.contracts",
-        "normalized_git_blob_sha1": "4655be5fb22056d89fef34216a30067eccacad12",
+        "normalized_git_blob_sha1": "d48643fe74a034e1498cb5f661ac07c2aea37803",
         "path": "easyuse_anima/translation/contracts.py",
         "top_level": {
           "class_count": 12,
@@ -87625,6 +88006,17 @@
         "line": 3,
         "optional": false,
         "role": "ordinary",
+        "source": "easyuse_anima/errors.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "__future__:annotations",
+        "kind": "static_from",
+        "line": 3,
+        "optional": false,
+        "role": "ordinary",
         "source": "easyuse_anima/image/detailer.py"
       },
       {
@@ -92778,6 +93170,7 @@
       "easyuse_anima/common/__init__.py",
       "easyuse_anima/common/serialization.py",
       "easyuse_anima/common/values.py",
+      "easyuse_anima/errors.py",
       "easyuse_anima/image/__init__.py",
       "easyuse_anima/image/detailer.py",
       "easyuse_anima/image/geometry.py",
@@ -92955,6 +93348,7 @@
       "easyuse_anima/common/__init__.py",
       "easyuse_anima/common/serialization.py",
       "easyuse_anima/common/values.py",
+      "easyuse_anima/errors.py",
       "easyuse_anima/image/__init__.py",
       "easyuse_anima/image/detailer.py",
       "easyuse_anima/image/geometry.py",
@@ -93663,7 +94057,7 @@
         "column": 1,
         "context": "decorator:AIOGenerationMigrationStep",
         "kind": "import_time_call",
-        "line": 63,
+        "line": 64,
         "module": "easyuse_anima/aio/generation_migrations.py",
         "scope": "<module>"
       },
@@ -93672,7 +94066,7 @@
         "column": 1,
         "context": "decorator:AIOGenerationMigrationRegistry",
         "kind": "import_time_call",
-        "line": 86,
+        "line": 87,
         "module": "easyuse_anima/aio/generation_migrations.py",
         "scope": "<module>"
       },
@@ -93681,7 +94075,7 @@
         "column": 4,
         "context": "assign:AIO_GENERATION_MIGRATION_REGISTRY",
         "kind": "import_time_call",
-        "line": 178,
+        "line": 179,
         "module": "easyuse_anima/aio/generation_migrations.py",
         "scope": "<module>"
       },
@@ -93690,7 +94084,7 @@
         "column": 4,
         "context": "assign:AIO_GENERATION_MIGRATION_REGISTRY",
         "kind": "import_time_call",
-        "line": 178,
+        "line": 179,
         "module": "easyuse_anima/aio/generation_migrations.py",
         "scope": "<module>"
       },
@@ -93699,7 +94093,7 @@
         "column": 4,
         "context": "assign:AIO_GENERATION_MIGRATION_REGISTRY",
         "kind": "import_time_call",
-        "line": 178,
+        "line": 179,
         "module": "easyuse_anima/aio/generation_migrations.py",
         "scope": "<module>"
       },
@@ -93708,7 +94102,7 @@
         "column": 4,
         "context": "assign:AIO_GENERATION_MIGRATION_REGISTRY",
         "kind": "import_time_call",
-        "line": 178,
+        "line": 179,
         "module": "easyuse_anima/aio/generation_migrations.py",
         "scope": "<module>"
       },
@@ -93717,7 +94111,7 @@
         "column": 8,
         "context": "assign:AIO_GENERATION_MIGRATION_REGISTRY",
         "kind": "import_time_call",
-        "line": 180,
+        "line": 181,
         "module": "easyuse_anima/aio/generation_migrations.py",
         "scope": "<module>"
       },
@@ -93726,7 +94120,7 @@
         "column": 8,
         "context": "assign:AIO_GENERATION_MIGRATION_REGISTRY",
         "kind": "import_time_call",
-        "line": 185,
+        "line": 186,
         "module": "easyuse_anima/aio/generation_migrations.py",
         "scope": "<module>"
       },
@@ -93735,7 +94129,7 @@
         "column": 8,
         "context": "assign:AIO_GENERATION_MIGRATION_REGISTRY",
         "kind": "import_time_call",
-        "line": 190,
+        "line": 191,
         "module": "easyuse_anima/aio/generation_migrations.py",
         "scope": "<module>"
       },
@@ -94437,7 +94831,7 @@
         "column": 23,
         "context": "assign:PROFILE_ID_NAMESPACE",
         "kind": "import_time_call",
-        "line": 11,
+        "line": 12,
         "module": "easyuse_anima/profiles/contract.py",
         "scope": "<module>"
       },
@@ -94446,7 +94840,7 @@
         "column": 17,
         "context": "assign:_PROFILE_KINDS",
         "kind": "import_time_call",
-        "line": 13,
+        "line": 14,
         "module": "easyuse_anima/profiles/contract.py",
         "scope": "<module>"
       },
@@ -94455,7 +94849,7 @@
         "column": 19,
         "context": "assign:_ENVELOPE_FIELDS",
         "kind": "import_time_call",
-        "line": 14,
+        "line": 15,
         "module": "easyuse_anima/profiles/contract.py",
         "scope": "<module>"
       },
@@ -94464,7 +94858,7 @@
         "column": 31,
         "context": "assign:PROFILE_MUTATION_COORDINATOR",
         "kind": "import_time_call",
-        "line": 147,
+        "line": 148,
         "module": "easyuse_anima/profiles/mutation.py",
         "scope": "<module>"
       },
@@ -94473,16 +94867,7 @@
         "column": 29,
         "context": "assign:INVALID_PROFILE_NAME_CHARS",
         "kind": "import_time_call",
-        "line": 23,
-        "module": "easyuse_anima/profiles/repository.py",
-        "scope": "<module>"
-      },
-      {
-        "callee": "range",
-        "column": 33,
-        "context": "assign:WINDOWS_RESERVED_FILE_BASENAMES",
-        "kind": "import_time_call",
-        "line": 29,
+        "line": 24,
         "module": "easyuse_anima/profiles/repository.py",
         "scope": "<module>"
       },
@@ -94496,11 +94881,20 @@
         "scope": "<module>"
       },
       {
+        "callee": "range",
+        "column": 33,
+        "context": "assign:WINDOWS_RESERVED_FILE_BASENAMES",
+        "kind": "import_time_call",
+        "line": 31,
+        "module": "easyuse_anima/profiles/repository.py",
+        "scope": "<module>"
+      },
+      {
         "callee": "dataclass",
         "column": 1,
         "context": "decorator:_ProfileRepository",
         "kind": "import_time_call",
-        "line": 40,
+        "line": 41,
         "module": "easyuse_anima/profiles/repository.py",
         "scope": "<module>"
       },
@@ -94761,7 +95155,7 @@
         "column": 1,
         "context": "decorator:SeedExecutionContext",
         "kind": "import_time_call",
-        "line": 73,
+        "line": 75,
         "module": "easyuse_anima/seed/execution_identity.py",
         "scope": "<module>"
       },
@@ -94770,7 +95164,7 @@
         "column": 1,
         "context": "decorator:SeedExecutionIdentity",
         "kind": "import_time_call",
-        "line": 100,
+        "line": 102,
         "module": "easyuse_anima/seed/execution_identity.py",
         "scope": "<module>"
       },
@@ -94779,7 +95173,7 @@
         "column": 18,
         "context": "assign:SEED_SELECTIONS",
         "kind": "import_time_call",
-        "line": 18,
+        "line": 20,
         "module": "easyuse_anima/seed/reservation.py",
         "scope": "<module>"
       },
@@ -94788,7 +95182,7 @@
         "column": 16,
         "context": "assign:SEED_CONTROLS",
         "kind": "import_time_call",
-        "line": 28,
+        "line": 30,
         "module": "easyuse_anima/seed/reservation.py",
         "scope": "<module>"
       },
@@ -94797,7 +95191,7 @@
         "column": 25,
         "context": "assign:SEED_OVERFLOW_POLICIES",
         "kind": "import_time_call",
-        "line": 39,
+        "line": 41,
         "module": "easyuse_anima/seed/reservation.py",
         "scope": "<module>"
       },
@@ -94806,7 +95200,7 @@
         "column": 19,
         "context": "assign:SEED_SETTLEMENTS",
         "kind": "import_time_call",
-        "line": 49,
+        "line": 51,
         "module": "easyuse_anima/seed/reservation.py",
         "scope": "<module>"
       },
@@ -94815,7 +95209,7 @@
         "column": 1,
         "context": "decorator:SeedReservationRequest",
         "kind": "import_time_call",
-        "line": 131,
+        "line": 133,
         "module": "easyuse_anima/seed/reservation.py",
         "scope": "<module>"
       },
@@ -94824,7 +95218,7 @@
         "column": 1,
         "context": "decorator:SeedReservation",
         "kind": "import_time_call",
-        "line": 207,
+        "line": 209,
         "module": "easyuse_anima/seed/reservation.py",
         "scope": "<module>"
       },
@@ -94833,7 +95227,7 @@
         "column": 1,
         "context": "decorator:_ReservationRecord",
         "kind": "import_time_call",
-        "line": 89,
+        "line": 93,
         "module": "easyuse_anima/seed/service.py",
         "scope": "<module>"
       },
@@ -94842,7 +95236,7 @@
         "column": 1,
         "context": "decorator:_StreamState",
         "kind": "import_time_call",
-        "line": 101,
+        "line": 105,
         "module": "easyuse_anima/seed/service.py",
         "scope": "<module>"
       },
@@ -94851,7 +95245,7 @@
         "column": 46,
         "context": "assign:reservations",
         "kind": "import_time_call",
-        "line": 109,
+        "line": 113,
         "module": "easyuse_anima/seed/service.py",
         "scope": "_StreamState"
       },
@@ -94860,7 +95254,7 @@
         "column": 1,
         "context": "decorator:_AcceptedRecord",
         "kind": "import_time_call",
-        "line": 114,
+        "line": 118,
         "module": "easyuse_anima/seed/service.py",
         "scope": "<module>"
       },
@@ -94878,7 +95272,7 @@
         "column": 1,
         "context": "decorator:PromptTranslationSettings",
         "kind": "import_time_call",
-        "line": 27,
+        "line": 35,
         "module": "easyuse_anima/translation/contracts.py",
         "scope": "<module>"
       },
@@ -95281,7 +95675,7 @@
       },
       {
         "kind": "set",
-        "line": 24,
+        "line": 25,
         "module": "easyuse_anima/profiles/repository.py",
         "name": "WINDOWS_RESERVED_FILE_BASENAMES"
       },
@@ -95389,7 +95783,7 @@
       },
       {
         "kind": "dict",
-        "line": 79,
+        "line": 81,
         "module": "easyuse_anima/seed/reservation.py",
         "name": "_LEGACY_SELECTION_BY_SEED"
       },
@@ -95461,7 +95855,7 @@
       },
       {
         "kind": "set",
-        "line": 10,
+        "line": 18,
         "module": "easyuse_anima/translation/contracts.py",
         "name": "PROMPT_TRANSLATION_PROVIDERS"
       },
