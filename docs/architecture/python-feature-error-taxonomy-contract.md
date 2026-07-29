@@ -6,17 +6,18 @@
 - Contract base: `e5e0329cd64afa9894d631f9b6baa6514a81ab48`
 - F-02f implementation base: `878a86f739a37a000a56b9e76ee2179aa86271f1`
 - F-02g implementation base: `d5e6512c110b2ae6654e57013a32dff39944de5a`
-- Status: F-02e Contract complete; F-02f inheritance complete; F-02g candidate
-- Current class: Adapter
+- F-02h audit base: `d618bb705f9ec28f89fdbce8ba80a94847932c92`
+- Status: F-02e through F-02h complete; Phase F complete
+- Current class: Contract/gate completion audit
 - Production changes: F-02f inheritance plus the F-02g API-adapter cutover only
 - Fixture: `tests/fixtures/python_feature_error_contract.v1.json`
 - Gate: `tests/test_python_feature_error_contract.py`
 
 This contract resolves the final Phase F finding in ordered slices. F-02f implemented
 the categories and additive inheritance without changing concrete exception identity,
-API payloads, node behavior, or public exports. The fixture is the executable
-inventory; this document records the decisions and the remaining adapter/audit
-boundaries.
+API payloads, node behavior, or public exports. F-02g completed the API-authority
+cutover with the named compatibility seams below. The fixture is the executable
+inventory, and F-02h records zero unmapped errors and closes Phase F.
 
 ## Canonical categories
 
@@ -155,10 +156,14 @@ authority; those feature contracts remain unchanged.
 
 ### F-02h — Completion audit
 
-A production-free audit must reconcile every fixture-owned feature error, record zero
-unmapped errors, mark the common error row and Phase F complete, and transition Issue
-#188 to G-04A READY. Production corrections require a separate task instead of being
-hidden in the audit.
+The production-free audit at `d618bb705f9ec28f89fdbce8ba80a94847932c92`
+reconciles 11 owner modules into 24 fixture-owned feature errors and two explicit
+adapter/private exclusions. All 15 HTTP errors have one recorded API mapping, all
+feature errors have one canonical category, and the executable inventory reports zero
+unmapped errors. No production correction is required.
+
+The common feature-error row and Phase F are complete. Issue #188 / G-04A is the next
+READY task.
 
 ## F-02f task card
 

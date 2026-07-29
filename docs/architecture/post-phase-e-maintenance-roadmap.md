@@ -4,7 +4,7 @@
 
 - Status: active execution plan after Phase D and Phase E completion.
 - Primary parent: Issue #185.
-- Active first task: Issue #563 / F-02g authoritative API mappings.
+- Active first task: Issue #188 / G-04A public API snapshot coverage audit.
 - Quality owner: Issue #188.
 - Compatibility ledger: Issue #186.
 - D-14/H status: parked by compatibility gates, not failed.
@@ -53,7 +53,6 @@ ADR-002 result when evidence is absent or ambiguous.
 
 ### Remaining global roadmap work
 
-- Phase F typed-boundary completion has not been reconciled as one audited state.
 - G-04 public API snapshot completion is not recorded.
 - G-05 size/complexity growth ratchet is not implemented as a blocking incremental gate.
 - G-06 canonical test ownership is not completed.
@@ -75,9 +74,9 @@ COMPLETE F-02a Autocomplete typed result contracts             #563 / PR #566
   -> COMPLETE affected settings/profile/workflow row re-audit
   -> COMPLETE F-02e common feature error taxonomy Contract     #563
   -> COMPLETE F-02f canonical categories and feature inheritance #563
-  -> READY F-02g authoritative profile/translation API mappings  #563
-  -> F-02h    affected error-row re-audit and Phase F close    #563
-  -> G-04A    public API snapshot coverage audit              #188
+  -> COMPLETE F-02g authoritative profile/translation API mappings #563 / PR #577
+  -> COMPLETE F-02h affected error-row re-audit and Phase F close #563
+  -> READY G-04A public API snapshot coverage audit            #188
   -> OPTIONAL G-04B  minimal missing public-surface gate
   -> P-WC-01  wildcard pure-shim feasibility Contract         #186
   -> OPTIONAL P-WC-02  internal consumer/facade Move
@@ -157,11 +156,10 @@ Audit result, updated after F-02d merged at
 - typed v1 ordinary/long-text settings persistence plus pure legacy/raw reads close
   the settings/profile/workflow row while profile future fields and raw host workflow
   lookup remain intentional migration/adapter boundaries;
-- common feature error taxonomy is the only remaining Phase F finding; F-02e fixes
-  its production-free executable contract and F-02f completes the canonical categories
-  and additive inheritance; F-02g API mapping is READY before the F-02h completion
-  audit;
-- G-04A and Issue #188 remain blocked until all Phase F follow-up rows are closed.
+- the common feature error taxonomy row is complete after F-02e fixes the executable
+  inventory, F-02f adds category inheritance, F-02g makes fixture-known concrete HTTP
+  policy API-authoritative, and F-02h records zero unmapped errors;
+- Phase F is complete and Issue #188 / G-04A is READY.
 
 ## 4. G-04A — Public API snapshot coverage audit
 
@@ -376,38 +374,33 @@ with Codex.
 ## 10. Codex resume instruction
 
 ```text
-Start Issue #563 / F-02g only from latest origin/dev after F-02f merges.
+Start Issue #188 / G-04A only from latest origin/dev after F-02h merges.
 
 Read:
 - current-policies.md
 - codex-execution-efficiency.md universal rules
-- this document's F-01 result and validation sections
-- python-feature-error-taxonomy-contract.md F-02g task card
-- python-typed-boundary-f01-audit.md F-02f completion decision
-- Issue #563 latest checkpoint
-- direct profile, Autocomplete, Prompt knowledge, AiO migration, translation, and seed
-  error owners/tests plus taxonomy, Pyright, import, package, and analyzer fixtures
+- this document's G-04A and validation sections
+- python-typed-boundary-f01-audit.md G-04A handoff surface
+- Issue #188 latest checkpoint
+- python_compatibility_surface.v1.json and its direct owner
+- node/workflow, API/schema, package-skeleton, and Registry archive-closure contracts
 
 Do not read all historical D/E PRs and do not restart D-14 removal.
 
-Apply the focused PRO correction recorded in the error-taxonomy Contract. Canonical
-concrete tables own fixture-known profile and translation status/code/default-message
-without reading those compatibility mirrors. Preserve concrete profile details as
-semantic adapter input; retain generic or injected ProfileMutationError
-status/code/message/details and unregistered or root-derived PromptTranslationError
-status/code/message as the explicitly named dynamic-compatibility seams. Translation
-message text remains semantic instance input. Preserve exact
-payloads/correlation/redaction/catch order and do not change feature exceptions,
-taxonomy, route/runtime lifecycle, or root exports.
+Audit the existing supported public surface against the current compatibility,
+node/workflow, API/schema, package, and archive-closure fixtures. Map existing evidence
+instead of creating a duplicate manifest. Classify each required public surface as
+covered, intentionally private/compatibility-only, or the smallest exact G-04B gap.
+Do not remove or deprecate a public/root symbol during the audit.
 
 Run only targeted consistency/focused checks during the edit loop and git diff check.
-Run official full once on the final production/test/tool SHA.
+Run official full once on the final test/tool SHA when the audit changes an executable
+gate or fixture.
 Package/live are not triggered.
 
-Push a dev-targeted Draft PR. After review and merge, F-02h re-audits the error row and
-closes Phase F before #188 G-04A.
+Push a dev-targeted Draft PR. If coverage is complete, close G-04A and select the next
+roadmap task. If a gap exists, emit only the smallest G-04B Contract/gate card.
 
-Do not change profile/settings/workflow/AiO migration semantics, exception metadata,
-public/root exports, or API/node payloads. Do not remove root files, add deprecation
-warnings/telemetry, publish a release, or perform Registry work.
+Do not change production behavior, public/root exports, API/node payloads, migration
+semantics, root files, deprecation warnings/telemetry, release/tag, or Registry state.
 ```

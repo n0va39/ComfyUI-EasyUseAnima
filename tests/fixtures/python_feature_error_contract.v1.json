@@ -44,6 +44,17 @@
     "root_exports": []
   },
   "classification": "Contract",
+  "completion_audit": {
+    "audited_base_sha": "d618bb705f9ec28f89fdbce8ba80a94847932c92",
+    "canonical_category_count": 7,
+    "excluded_adapter_or_private_error_count": 2,
+    "feature_error_count": 24,
+    "http_mapping_count": 15,
+    "inventory_module_count": 11,
+    "next_task": "G-04A",
+    "phase_f_status": "complete",
+    "unmapped_feature_errors": []
+  },
   "current_authority": {
     "canonical_module_exists": true,
     "policy_fields": [
