@@ -2,7 +2,7 @@
 
 ## Status and authority
 
-- Status: active final-convergence plan.
+- Status: technical convergence complete; compatibility retirement remains event-gated.
 - Active owner: Issue #593.
 - Parent architecture: Issue #185.
 - Compatibility ledger: Issue #186 and ADR-002.
@@ -12,34 +12,29 @@
   P-API-01, G-CLOSE, and SEC-01 through SEC-05.
 - FC-01 audit base: `81e07c6c12c21f84ba0642c93d6655c8936b7c3b`.
 - Completed final-convergence lanes: FC-01, FC-02A through FC-02D, FC-03A,
-  FC-03B, FC-04A and FC-04B.
-- Current READY task after this Move merges: FC-05 technical completion audit.
+  FC-03B, FC-04A, FC-04B and FC-05.
+- Current READY technical task: none. FC-06 starts only with the next ordinary
+  release event.
 
 This document supersedes the `no READY task` conclusion only for the initial backend
 architecture Definition of Done. It does not reopen completed Phase F/G or security
 work, and it does not authorize P-API-02, root deletion, release, tag, or Registry work.
 
-## 1. Current stop and the remaining gap
+## 1. Current stop after technical completion
 
-The current event-gated stop is correct for compatibility retirement:
+FC-01 through FC-05 close the original technical Definition of Done. The complete
+role-aware owner gate, canonical API application, bootstrap-owned E-09 lifecycle and
+integrated validation now have executable owners. The optional large-module lane is
+not a blocker unless a future audit finds an actual owner or import violation.
 
-- P-API-01 retained root `api.py` because current request-time root patch seams and the
-  E-09 executor-before-cleanup-plan timing cannot both be preserved by the previously
-  evaluated canonical application shapes;
-- P-API-02 is not READY from that verdict;
-- final direct shims have not all shipped in a release N;
-- consumer evidence and public breaking-change approval do not authorize removal.
+The remaining stop is compatibility/release policy, not unfinished architecture:
 
-The stop is not identical to the original technical Definition of Done:
-
-1. The blocking import-boundary checker covers a reviewed subset of canonical package
-   groups, while the G-06 owner map covers the complete current package/test surface.
-2. Root `api.py` is still a production application/composition container rather than an
-   explicit compatibility facade.
-3. The P-API-01 retention document names a separate compatibility patch-owner migration
-   as a valid revisit event; that prerequisite has not been attempted.
-4. Several large-module exceptions have reviewed decomposition boundaries but no final
-   disposition. They are not all mandatory splits, but they need one finite audit.
+- the final canonical-plus-shim tree has not shipped in the next ordinary release N;
+- root `api.py` remains an explicit compatibility binder because the entrypoint and
+  current route consumers still use it;
+- no consumer/harm evidence or reviewed breaking-change approval authorizes public
+  removal; and
+- P-API-02, D-14, release, tag and Registry work remain event-gated.
 
 ## 2. Two completion states
 
@@ -154,15 +149,15 @@ The G-06 map remains the sole production-path inventory. FC-02D derives paths
 from it and stores only role assignments and exact subrole overrides in the
 import contract.
 
-#### Original Definition-of-Done closure matrix
+#### Final Definition-of-Done reconciliation
 
 | # | Original row | Classification | Current evidence or remaining work |
 |---:|---|---|---|
-| 1 | `easyuse_anima` is the only production implementation root | **technical gap** | Root `api.py` still constructs the production API application/composition. FC-03 and FC-04 close it. |
-| 2 | Root Python files are a permanent entrypoint or registered shims | **technical gap** | Every root surface except `api.py` has that disposition. FC-04 makes `api.py` an explicit facade. |
+| 1 | `easyuse_anima` is the only production implementation root | **complete** | FC-04B gives the canonical package the publish-once application identity and complete production composition; root `api.py` only binds compatibility aliases and publishes the selected route table. |
+| 2 | Root Python files are a permanent entrypoint or registered shims | **complete** | Root `__init__.py` is the permanent ComfyUI entrypoint and every other root file is an explicit compatibility facade/shim with a ledger disposition. |
 | 3 | Node/API adapters contain conversion and service delegation, not repository/HTTP/migration/cache implementation | **complete** | Phase F/G owner tests and the direct API/node contracts own the intentional adapter boundaries. |
-| 4 | Feature/domain/infrastructure code has no outer adapter, registration, bootstrap, or root back-reference | **technical gap** | The two AiO legacy-generation imports of node classes remain. FC-02B and FC-02C remove them. |
-| 5 | The final owner matrix is enforced by the import gate | **technical gap** | G-06 owns the complete paths, but the blocking gate owns only 11 prefixes. FC-02D closes the mismatch. |
+| 4 | Feature/domain/infrastructure code has no outer adapter, registration, bootstrap, or root back-reference | **complete** | FC-02A and FC-02C remove the Prompt SCC and both AiO adapter back-references; the blocking gate rejects recurrence. |
+| 5 | The final owner matrix is enforced by the import gate | **complete** | FC-02D derives all production paths from the G-06 map and enforces 16 role-aware owner groups plus exact subrole rules. |
 | 6 | Every runtime cache/lock/client/executor/repository/capability has an owner, lifetime, thread model, and cleanup disposition | **complete** | E-01 inventory, E-09 lifecycle contract, and E-09 completion audit have zero ambiguous owners. |
 | 7 | Initialization and shutdown are idempotent, including partial failure | **complete** | E-09 owns serialized initialize/shutdown, terminal shutdown, bounded retry, and attempt-only rollback. |
 | 8 | Optional dependency failure is contained | **complete** | The no-host/package owners and completed E-02/E-07 contracts retain lazy, bounded failure. |
@@ -170,14 +165,14 @@ import contract.
 | 10 | Settings/profile/workflow data is versioned, purely migrated, and atomically written at the persistence boundary | **complete** | The Phase F completion audit and existing schema/migration fixtures close this row. |
 | 11 | API and feature boundaries use typed request/result/error contracts | **complete** | F-01/F-02a through F-02h close all six typed-boundary areas or name their intentional adapter/migration boundary. |
 | 12 | 0.5.2 workflow/settings/profile/API fixtures pass | **complete** | Existing migration, compatibility, and API fixtures remain the deterministic owners. |
-| 13 | Supported root/canonical surfaces preserve object identity and metadata parity | **complete** | G-04 and the compatibility-surface fixture own exact supported identity. The not-yet-canonical API application is tracked by rows 1 and 2. |
+| 13 | Supported root/canonical surfaces preserve object identity and metadata parity | **complete** | G-04, the compatibility-surface fixture and FC-04 lifecycle owners prove exact supported identity, including the application/executor/handler/registrar graph. |
 | 14 | The actual Registry package contains the final canonical/shim closure and imports with providers off | **compatibility event** | The current final shim forms need ordinary release N and Registry read-back. FC-05 owns the pre-release package proof; FC-06 owns publication. |
 | 15 | Ruff and Pyright are pinned and enforced | **complete** | The official quality runner and current baselines own this row. |
-| 16 | Cycle, forbidden-import, public-API, and size ratchets are in CI | **technical gap** | Public-API and size ratchets are complete, but the Prompt SCC and incomplete import enrollment prevent closure. FC-02A and FC-02D close it. |
+| 16 | Cycle, forbidden-import, public-API, and size ratchets are in CI | **complete** | FC-02A/FC-02D close the SCC/import gaps; the current public-API, Pyright and size/complexity ratchets reject new debt. |
 | 17 | Every implementation PR is classified as Move, Contract, or Behavior | **complete** | The completed phase ledgers and current task cards retain the classification. |
 | 18 | Every root surface has a shim owner, evidence, and removal gate | **complete** | ADR-002 and `python-compatibility-shims.md` contain the complete current ledger. |
 | 19 | Public compatibility surfaces are deliberately retained or removed only through a breaking-change event | **deliberate retain** | No root surface is removal-approved. Low-cost public shims remain supported until a later evidence-backed event. |
-| 20 | Final full, quality, package/archive, compatibility, and representative host gates pass at integration/release | **technical gap** | FC-05 runs the one integrated technical gate after FC-02 through FC-04. Registry publication remains FC-06. |
+| 20 | Final full, quality, package/archive, compatibility, and representative host gates pass at integration/release | **complete** | FC-05 records the integrated full, quality, archive/no-host, lifecycle, 0.5.2 compatibility and isolated ComfyUI API/node execution evidence. Registry publication remains FC-06. |
 
 #### Exact current role/group matrix for FC-02D
 
@@ -203,13 +198,13 @@ future API application as composition without weakening the rest of `api/`.
 | Root surface | Disposition | Closure owner |
 |---|---|---|
 | `__init__.py` | permanent ComfyUI entrypoint | package/entrypoint contracts |
-| `api.py` | remaining production application/composition implementation | FC-03 and FC-04 technical gap |
+| `api.py` | explicit compatibility binder/route facade | FC-03B/FC-04B canonical application ownership; FC-06 publication event |
 | `nodes.py`, `settings.py`, `storage.py`, `autocomplete_index.py`, `prompt_translation.py` | explicit compatibility shims, deliberately retained | ADR-002 consumer/removal gates |
 | `api_contract.py`, `autocomplete_dataset.py`, `wildcard_engine.py` | explicit compatibility shims awaiting release N | FC-06 compatibility event |
 | `anima_prompt/__init__.py` and its six compatibility submodules | explicit package/submodule shims awaiting release N | FC-06 compatibility event |
 
-There is no removal-approved root surface. FC-02 through FC-05 must not delete
-or deprecate any of them.
+There is no removal-approved root surface. FC-02 through FC-05 did not delete
+or deprecate any of them, and FC-06 does not authorize removal.
 
 #### FC-03 and FC-04 decisions fixed by FC-01
 
@@ -249,7 +244,7 @@ application nor lifecycle state. Package entry followed by a late root `api.py`
 import must resolve the same application/executor/handler/registrar identities
 without a second registration or lifecycle state.
 
-#### Work required before FC-05
+#### Work completed before FC-05
 
 1. Break the Prompt runtime SCC without changing Prompt/Artist Mix behavior or
    compatibility identities.
@@ -618,8 +613,8 @@ publishes the selected route table. The three exact files are classified as
 `process-composition` path overrides in the blocking import contract; the surrounding
 `api` group remains an HTTP adapter. Root `api.py` is below 400 lines with its reviewed
 exception removed, all three application modules pass existing size/function limits,
-and the E-09 executor/cleanup identities remain unchanged. FC-05 is the only next task
-after the cohesive Move merges.
+and the E-09 executor/cleanup identities remain unchanged. FC-05 was the only next task
+after the cohesive Move merged and now records the integrated completion evidence below.
 
 ## 8. FC-05 — Technical completion audit
 
@@ -643,6 +638,26 @@ representative isolated ComfyUI API/node execution smoke
 
 Record technical architecture completion and close the implementation lane of #185.
 Issue #186 remains open only as the compatibility/release ledger.
+
+### FC-05 result
+
+The integrated code candidate is `dev@bb1452c9996293f1f77bb361e7317ddb2664ae19`.
+Its tree is byte-for-byte identical to the validated FC-04B candidate
+`2cd66806f0cd114cef051f52c7c7462328e5c8da`, so the code/full/package evidence is
+reused without repeating the same broad gates after this documentation-only audit.
+
+| Gate | Result |
+| --- | --- |
+| Official full | 1,490 Python tests and 120 frontend files passed on the identical FC-04B tree. |
+| Pinned quality and complete ownership | Pyright checked 166 files with the existing 14-error baseline and zero new diagnostics; Ruff retained 128 report-only findings; 16 owner groups had zero violations; size/complexity passed. |
+| Validate and actual archive | `comfy node validate` passed. The actual 0.6.2 archive had 325 entries, clean CRC, the complete application closure and SHA-256 `3470af5200110152aa2ef394616786fd4518572d546848b999076660cb9675c9`. |
+| Identity, no-host and lifecycle | Package-to-late-API identity, canonical no-host imports, fixed E-09 cleanup, terminal shutdown, retry/rollback and root/canonical compatibility owners all passed on merged `dev`. |
+| 0.5.2 compatibility | Node, AiO generation/schema, profile, settings and API compatibility owners passed on merged `dev`; the official full covers the remaining workflow fixtures. |
+| Isolated ComfyUI | The canonical test install matched the merged source hashes, loaded once, served the settings route, exposed `EasyUseAnimaWildcard`, and completed a queued Wildcard-to-text workflow with `blue flower`; the owned server was then stopped with no listener or child process left. |
+
+Verdict: **technical architecture completion is recorded.** Rows 1 through 13,
+15 through 18 and 20 are complete; row 14 remains the FC-06 Registry publication
+event and row 19 is a deliberate retain. There is no READY backend refactor task.
 
 ## 9. Optional MD lane — large-module disposition
 
