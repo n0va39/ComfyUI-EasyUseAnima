@@ -762,9 +762,9 @@ ignored/
 
         self.assertEqual(analyzer.render_json(report), expected_text)
         self.assertEqual(report["schema_version"], 3)
-        self.assertEqual(report["inventory"]["module_count"], 176)
-        self.assertEqual(len(report["registry"]["shipped_python_modules"]), 176)
-        self.assertEqual(len(report["registry"]["runtime_import_closure"]), 176)
+        self.assertEqual(report["inventory"]["module_count"], 177)
+        self.assertEqual(len(report["registry"]["shipped_python_modules"]), 177)
+        self.assertEqual(len(report["registry"]["runtime_import_closure"]), 177)
         self.assertEqual(
             report["registry"]["entry_modules"],
             [

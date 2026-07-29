@@ -82,7 +82,7 @@
     },
     {
       "path": "easyuse_anima/prompt/artist_mix.py",
-      "baseline_loc": 1511,
+      "baseline_loc": 1355,
       "owner_issue": 188,
       "decomposition_boundary": "Separate Artist Mix tag/config selection from conditioning encoding without duplicating warning or cache ownership."
     },
