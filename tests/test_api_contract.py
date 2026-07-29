@@ -1221,6 +1221,72 @@ class ApiProfileErrorResponseTests(unittest.TestCase):
             api._profile_error_response(unexpected)
         self.assertIs(raised.exception, unexpected)
 
+    def test_profile_concrete_policy_ignores_metadata_but_keeps_semantic_details(self):
+        api, _routes = load_api_routes(register=False)
+        mutation_owner = sys.modules[api.ProfileMutationError.__module__]
+
+        class DerivedRevisionConflictError(
+            mutation_owner.ProfileRevisionConflictError
+        ):
+            pass
+
+        cases = (
+            (
+                mutation_owner.ProfilePreconditionRequiredError(
+                    ("profile_id", "revision"),
+                    profile="target",
+                ),
+                428,
+                "profile_precondition_required",
+                "Profile precondition is required",
+                {
+                    "profile": "target",
+                    "fields": ["profile_id", "revision"],
+                },
+            ),
+            (
+                mutation_owner.ProfileIdentityMismatchError(profile="target"),
+                409,
+                "profile_identity_mismatch",
+                "Profile identity does not match",
+                {"profile": "target"},
+            ),
+            (
+                mutation_owner.ProfileRevisionConflictError(profile="target"),
+                409,
+                "profile_revision_conflict",
+                "Profile revision does not match",
+                {"profile": "target"},
+            ),
+            (
+                DerivedRevisionConflictError(profile="derived"),
+                409,
+                "profile_revision_conflict",
+                "Profile revision does not match",
+                {"profile": "derived"},
+            ),
+        )
+
+        for error, status, code, message, details in cases:
+            error.status = 599
+            error.code = "tampered_code"
+            error.message = "Tampered message"
+            expected_response = object()
+            with self.subTest(error=type(error).__name__), patch.object(
+                api,
+                "_error_response",
+                return_value=expected_response,
+            ) as error_response:
+                response = api._profile_error_response(error)
+
+            self.assertIs(response, expected_response)
+            error_response.assert_called_once_with(
+                status,
+                code,
+                message,
+                details=details,
+            )
+
     def test_profile_error_boundary_keeps_dynamic_root_dependencies(self):
         api, _routes = load_api_routes(register=False)
 

@@ -340,9 +340,16 @@ class PythonTranslationRuntimeContractTests(unittest.TestCase):
             {
                 "_PromptTranslationRouteExecutor",
                 "_build_translation_runtime",
+                "PromptTranslationError",
+                "PromptTranslationLimitError",
                 "TranslationBusyError",
                 "TranslationCancelledError",
+                "TranslationMarkerCountError",
+                "TranslationMarkerSizeError",
+                "TranslationProviderUnavailableError",
                 "TranslationTimeoutError",
+                "TranslationTotalSizeError",
+                "TranslationUpstreamError",
                 "_TRANSLATION_ROUTE_EXECUTOR",
             }
             <= bootstrap_runtime_references
@@ -408,9 +415,11 @@ class PythonTranslationRuntimeContractTests(unittest.TestCase):
         )
         self.assertTrue(
             {
+                "_build_translation_error_response",
                 "get_worker",
                 "get_translate_prompt_sync",
                 "get_timeout_seconds",
+                "translation_error_types",
             }
             <= root_references
         )

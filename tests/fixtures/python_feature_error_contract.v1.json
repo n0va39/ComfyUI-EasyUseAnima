@@ -46,17 +46,43 @@
   "classification": "Contract",
   "current_authority": {
     "canonical_module_exists": true,
-    "profile_mapper_reads": [
-      "mutation_error.status",
-      "mutation_error.code",
-      "mutation_error.message",
-      "mutation_error.details"
+    "policy_fields": [
+      "status",
+      "code",
+      "default_message"
+    ],
+    "profile_dynamic_compatibility": {
+      "adapter_inputs": [
+        "status",
+        "code",
+        "message",
+        "details"
+      ],
+      "scope": "generic-or-injected-ProfileMutationError"
+    },
+    "profile_mapper_forbidden_reads": [
+      "mapped_error.status",
+      "mapped_error.code",
+      "mapped_error.message"
+    ],
+    "profile_mapper_required_reads": [
+      "_PROFILE_MUTATION_HTTP_MAPPINGS",
+      "mapped_error.details",
+      "compatibility_error.status",
+      "compatibility_error.code",
+      "compatibility_error.message",
+      "compatibility_error.details"
     ],
     "profile_mapper_source": "easyuse_anima/api/responses.py",
-    "translation_mapper_reads": [
+    "static_resolution": "ordered-specific-to-base-isinstance",
+    "translation_mapper_forbidden_reads": [
       "exc.status",
       "exc.code",
       "exc.message"
+    ],
+    "translation_mapper_required_reads": [
+      "_TRANSLATION_HTTP_MAPPINGS",
+      "str(exc)"
     ],
     "translation_mapper_source": "easyuse_anima/api/routes/translation.py"
   },
@@ -435,6 +461,12 @@
   ],
   "http_mappings": [
     {
+      "adapter_inputs": [
+        "status",
+        "code",
+        "message",
+        "details"
+      ],
       "code": "profile_revision_conflict",
       "constructor": {
         "kwargs": {
@@ -458,6 +490,9 @@
       "target_authority": "api-adapter"
     },
     {
+      "adapter_inputs": [
+        "details"
+      ],
       "code": "profile_precondition_required",
       "constructor": {
         "args": [
@@ -483,6 +518,9 @@
       "target_authority": "api-adapter"
     },
     {
+      "adapter_inputs": [
+        "details"
+      ],
       "code": "profile_identity_mismatch",
       "constructor": {},
       "current_metadata_owner": "feature-compatibility",
@@ -497,6 +535,9 @@
       "target_authority": "api-adapter"
     },
     {
+      "adapter_inputs": [
+        "details"
+      ],
       "code": "profile_revision_conflict",
       "constructor": {},
       "current_metadata_owner": "feature-compatibility",
@@ -511,6 +552,7 @@
       "target_authority": "api-adapter"
     },
     {
+      "adapter_inputs": [],
       "code": "invalid_profile_data",
       "current_metadata_owner": "api-adapter",
       "default_message": "Profile data is invalid",
@@ -522,6 +564,9 @@
       "target_authority": "api-adapter"
     },
     {
+      "adapter_inputs": [
+        "message-text"
+      ],
       "code": "translation_error",
       "constructor": {},
       "current_metadata_owner": "feature-compatibility",
@@ -534,6 +579,9 @@
       "target_authority": "api-adapter"
     },
     {
+      "adapter_inputs": [
+        "message-text"
+      ],
       "code": "translation_error",
       "constructor": {},
       "current_metadata_owner": "feature-compatibility",
@@ -546,6 +594,9 @@
       "target_authority": "api-adapter"
     },
     {
+      "adapter_inputs": [
+        "message-text"
+      ],
       "code": "translation_marker_count_exceeded",
       "constructor": {},
       "current_metadata_owner": "feature-compatibility",
@@ -558,6 +609,9 @@
       "target_authority": "api-adapter"
     },
     {
+      "adapter_inputs": [
+        "message-text"
+      ],
       "code": "translation_marker_too_long",
       "constructor": {},
       "current_metadata_owner": "feature-compatibility",
@@ -570,6 +624,9 @@
       "target_authority": "api-adapter"
     },
     {
+      "adapter_inputs": [
+        "message-text"
+      ],
       "code": "translation_marker_characters_exceeded",
       "constructor": {},
       "current_metadata_owner": "feature-compatibility",
@@ -582,6 +639,9 @@
       "target_authority": "api-adapter"
     },
     {
+      "adapter_inputs": [
+        "message-text"
+      ],
       "code": "translation_provider_unavailable",
       "constructor": {},
       "current_metadata_owner": "feature-compatibility",
@@ -594,6 +654,9 @@
       "target_authority": "api-adapter"
     },
     {
+      "adapter_inputs": [
+        "message-text"
+      ],
       "code": "translation_timeout",
       "constructor": {},
       "current_metadata_owner": "feature-compatibility",
@@ -606,6 +669,9 @@
       "target_authority": "api-adapter"
     },
     {
+      "adapter_inputs": [
+        "message-text"
+      ],
       "code": "translation_cancelled",
       "constructor": {},
       "current_metadata_owner": "feature-compatibility",
@@ -618,6 +684,9 @@
       "target_authority": "api-adapter"
     },
     {
+      "adapter_inputs": [
+        "message-text"
+      ],
       "code": "translation_busy",
       "constructor": {},
       "current_metadata_owner": "feature-compatibility",
@@ -630,6 +699,9 @@
       "target_authority": "api-adapter"
     },
     {
+      "adapter_inputs": [
+        "message-text"
+      ],
       "code": "translation_upstream_error",
       "constructor": {},
       "current_metadata_owner": "feature-compatibility",
@@ -651,7 +723,7 @@
     {
       "classification": "ADAPTER",
       "id": "F-02g",
-      "scope": "Make API-owned mappings authoritative for profile and translation errors while preserving exact HTTP payloads, dynamic profile seams, and current exception metadata as passive compatibility mirrors."
+      "scope": "Make API-owned concrete status, code, and default-message mappings authoritative while retaining profile details and generic or injected ProfileMutationError metadata as explicitly named dynamic-compatibility adapter inputs."
     },
     {
       "classification": "CONTRACT",
@@ -679,6 +751,7 @@
     "canonical-and-compatibility-exports",
     "exception-constructors-messages-details-and-reasons",
     "profile-dynamic-monkeypatch-seam",
+    "profile-dynamic-compatibility-adapter-inputs",
     "profile-and-translation-status-code-message-details-payloads",
     "request-id-correlation-and-redaction",
     "autocomplete-fallback-diagnostics",

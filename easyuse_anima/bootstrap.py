@@ -64,9 +64,16 @@ from .runtime import (
 )
 from .seed.service import InMemorySeedReservationService
 from .translation.contracts import (
+    PromptTranslationError,
+    PromptTranslationLimitError,
     TranslationBusyError,
     TranslationCancelledError,
+    TranslationMarkerCountError,
+    TranslationMarkerSizeError,
+    TranslationProviderUnavailableError,
     TranslationTimeoutError,
+    TranslationTotalSizeError,
+    TranslationUpstreamError,
 )
 from .translation.ports import PromptTranslationPort
 from .translation.service import (
@@ -178,6 +185,18 @@ def build_translation_route_runtime(
         get_worker=get_worker,
         get_translate_prompt_sync=get_translate_prompt_sync,
         get_timeout_seconds=get_timeout_seconds,
+        translation_error_types={
+            "marker_count": TranslationMarkerCountError,
+            "marker_size": TranslationMarkerSizeError,
+            "total_size": TranslationTotalSizeError,
+            "limit": PromptTranslationLimitError,
+            "provider_unavailable": TranslationProviderUnavailableError,
+            "timeout": TranslationTimeoutError,
+            "cancelled": TranslationCancelledError,
+            "busy": TranslationBusyError,
+            "upstream": TranslationUpstreamError,
+            "base": PromptTranslationError,
+        },
         error_response=error_response,
     )
     _TRANSLATION_ROUTE_EXECUTOR = runtime[0]

@@ -316,6 +316,11 @@ _resolve_lora_preview_path = _api_lora_preview_routes.build_lora_preview_path_re
     _profile_error_response,
 ) = _api_responses.build_profile_error_response(
     max_aio_profiles=MAX_AIO_PROFILES,
+    profile_mutation_error_types={
+        "precondition_required": _profile_mutation.ProfilePreconditionRequiredError,
+        "identity_mismatch": _profile_mutation.ProfileIdentityMismatchError,
+        "revision_conflict": _profile_mutation.ProfileRevisionConflictError,
+    },
     is_profile_mutation_error=lambda exc: isinstance(exc, ProfileMutationError),
     is_file_exists_error=lambda exc: isinstance(exc, FileExistsError),
     is_file_not_found_error=lambda exc: isinstance(exc, FileNotFoundError),
