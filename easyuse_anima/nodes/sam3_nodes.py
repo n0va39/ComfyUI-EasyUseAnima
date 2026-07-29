@@ -2,29 +2,15 @@
 
 from __future__ import annotations
 
-import logging
-
 from ..aio.resources import (
     _load_checkpoint_with_comfy,
     _preferred_checkpoint_default,
 )
-from ..common.values import _as_bool
-from ..image.sam3 import (
-    _context_value,
-    _empty_mask_for_image,
-    _empty_segs_for_image,
-    _find_impact_mask_to_segs_class,
-    _find_sam3_detect_class,
-    _format_sam3_detection_prompt,
-    _sam3_context,
-    _segs_has_items,
-)
-from ..infrastructure.comfy.invocation import _node_output_tuple
+from ..image.sam3 import _sam3_context
+from ..image.sam3_detailer import _run_sam3_detailer
 from ..infrastructure.comfy.resources import _comfy_checkpoint_names
 from ..infrastructure.comfy.wiring import resolve_comfy_host_helper
 from .impact_detailer_nodes import _EasyUseAnimaImpactDetailerDelegate
-
-logger = logging.getLogger("ComfyUI-EasyUseAnima")
 
 
 def _missing_host_helper(name: str):
@@ -37,15 +23,6 @@ def _comfy_max_resolution() -> int:
         _missing_host_helper,
     )
     return helper()
-
-
-def _encode_with_comfy_clip(clip, text: str):
-    helper = resolve_comfy_host_helper(
-        "_encode_with_comfy_clip",
-        _missing_host_helper,
-    )
-    return helper(clip, text)
-
 
 
 class EasyUseAnimaSAM3Context:
@@ -239,57 +216,20 @@ class EasyUseAnimaSAM3Detailer:
         tiled_encode=False,
         tiled_decode=False,
     ):
-        empty_mask = _empty_mask_for_image(image)
-        empty_segs = _empty_segs_for_image(image)
-        if not _as_bool(enabled, True):
-            return (image, empty_segs, empty_mask, image)
-
-        sam3_model = _context_value(ctx_SAM3, "model")
-        sam3_clip = _context_value(ctx_SAM3, "clip")
-        if sam3_model is None or sam3_clip is None:
-            raise RuntimeError(
-                "[EasyUseAnima] ctx_SAM3 must contain SAM3 model and CLIP. "
-                "Use the AiO SAM3 detailer path or a compatible rgthree context."
-            )
-
-        sam3_text = _format_sam3_detection_prompt(detect_prompt, detect_count)
-        conditioning = _encode_with_comfy_clip(sam3_clip, sam3_text)
-
-        sam3_cls = _find_sam3_detect_class()
-        sam3_result = sam3_cls.execute(
-            model=sam3_model,
+        return _run_sam3_detailer(
+            enabled=enabled,
             image=image,
-            conditioning=conditioning,
-            threshold=float(threshold),
-            refine_iterations=int(refine_iterations),
-            individual_masks=_as_bool(individual_masks, False),
-        )
-        sam3_values = _node_output_tuple(sam3_result)
-        if len(sam3_values) < 1:
-            raise RuntimeError("[EasyUseAnima] SAM3_Detect returned no mask.")
-        mask = sam3_values[0]
-
-        mask_to_segs_cls = _find_impact_mask_to_segs_class()
-        mask_to_segs_result = mask_to_segs_cls.doit(
-            mask,
-            _as_bool(combined, False),
-            float(crop_factor),
-            _as_bool(bbox_fill, False),
-            int(drop_size),
-            _as_bool(contour_fill, False),
-        )
-        segs_values = _node_output_tuple(mask_to_segs_result)
-        if len(segs_values) < 1:
-            raise RuntimeError("[EasyUseAnima] MaskToSEGS returned no SEGS.")
-        segs = segs_values[0]
-
-        if not _segs_has_items(segs):
-            logger.info("[EasyUseAnima] SAM3 Detailer detected no SEGS for prompt %r.", sam3_text)
-            return (image, segs, mask, image)
-
-        detailed_image = _EasyUseAnimaImpactDetailerDelegate().doit(
-            image=image,
-            segs=segs,
+            ctx_SAM3=ctx_SAM3,
+            detect_prompt=detect_prompt,
+            detect_count=detect_count,
+            threshold=threshold,
+            refine_iterations=refine_iterations,
+            individual_masks=individual_masks,
+            combined=combined,
+            crop_factor=crop_factor,
+            bbox_fill=bbox_fill,
+            drop_size=drop_size,
+            contour_fill=contour_fill,
             model=model,
             clip=clip,
             vae=vae,
@@ -318,9 +258,7 @@ class EasyUseAnimaSAM3Detailer:
             scheduler_func_opt=scheduler_func_opt,
             tiled_encode=tiled_encode,
             tiled_decode=tiled_decode,
-        )[0]
-
-        return (detailed_image, segs, mask, image)
+        )
 
 
 __all__ = ()

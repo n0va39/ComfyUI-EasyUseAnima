@@ -762,9 +762,42 @@ ignored/
 
         self.assertEqual(analyzer.render_json(report), expected_text)
         self.assertEqual(report["schema_version"], 3)
-        self.assertEqual(report["inventory"]["module_count"], 177)
-        self.assertEqual(len(report["registry"]["shipped_python_modules"]), 177)
-        self.assertEqual(len(report["registry"]["runtime_import_closure"]), 177)
+        self.assertEqual(report["inventory"]["module_count"], 179)
+        self.assertEqual(len(report["registry"]["shipped_python_modules"]), 179)
+        self.assertEqual(len(report["registry"]["runtime_import_closure"]), 179)
+        runtime_edges = {
+            (edge["source"], edge.get("target"))
+            for edge in report["imports"]["edges"]
+            if edge["classification"] == "internal"
+        }
+        self.assertNotIn(
+            (
+                "easyuse_anima/aio/legacy_generation.py",
+                "easyuse_anima/nodes/image_nodes.py",
+            ),
+            runtime_edges,
+        )
+        self.assertNotIn(
+            (
+                "easyuse_anima/aio/legacy_generation.py",
+                "easyuse_anima/nodes/sam3_nodes.py",
+            ),
+            runtime_edges,
+        )
+        self.assertIn(
+            (
+                "easyuse_anima/aio/legacy_generation.py",
+                "easyuse_anima/image/upscale.py",
+            ),
+            runtime_edges,
+        )
+        self.assertIn(
+            (
+                "easyuse_anima/aio/legacy_generation.py",
+                "easyuse_anima/image/sam3_detailer.py",
+            ),
+            runtime_edges,
+        )
         self.assertEqual(
             report["registry"]["entry_modules"],
             [

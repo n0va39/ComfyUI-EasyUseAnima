@@ -8,10 +8,10 @@ from typing import Any, cast
 from ..common.values import _as_bool, _as_float, _as_int, _single_value
 from ..image.geometry import _image_tensor_size
 from ..image.sam3 import _context_value, _segs_has_items
+from ..image.sam3_detailer import _run_sam3_detailer
+from ..image.upscale import _upscale_image_by_multiple
 from ..infrastructure.comfy.invocation import _node_output_tuple
 from ..infrastructure.comfy.wiring import resolve_comfy_host_helper
-from ..nodes.image_nodes import EasyUseAnimaImageScaleByMultiple
-from ..nodes.sam3_nodes import EasyUseAnimaSAM3Detailer
 from ..prompt.artist_mix import _encode_prompt_data_positive_conditioning
 from ..prompt.conditioning import (
     ANIMA_MOD_GUIDANCE_PROFILE_OFF,
@@ -165,7 +165,7 @@ def _run_aio_highres_stage(
         scheduler_default="simple",
         inherit_backend=True,
     )
-    scaled_image, width, height, applied_scale = EasyUseAnimaImageScaleByMultiple().upscale(
+    scaled_image, width, height, applied_scale = _upscale_image_by_multiple(
         image,
         highres_settings.get("scale_by", 1.25),
         highres_settings.get("upscale_method", "bicubic"),
@@ -292,7 +292,7 @@ def _run_aio_detailer_target(
         stage_sampler,
     )
     try:
-        result = EasyUseAnimaSAM3Detailer().doit(
+        result = _run_sam3_detailer(
             enabled=True,
             image=image,
             ctx_SAM3=sam3_context,

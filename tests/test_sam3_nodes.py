@@ -7,9 +7,9 @@ from unittest.mock import Mock, patch
 import nodes
 from easyuse_anima.aio import resources as aio_resources
 from easyuse_anima.image import sam3 as sam3_service
+from easyuse_anima.image import sam3_detailer as sam3_detailer_service
 from easyuse_anima.infrastructure.comfy import capabilities
-from easyuse_anima.nodes import impact_detailer_nodes
-from easyuse_anima.nodes import sam3_nodes
+from easyuse_anima.nodes import impact_detailer_nodes, sam3_nodes
 from tests.comfy_host_fakes import patch_comfy_helper
 
 
@@ -60,6 +60,8 @@ class SAM3MoveTests(unittest.TestCase):
             "_find_impact_mask_to_segs_class",
             "_find_sam3_detect_class",
             "_format_sam3_detection_prompt",
+            "_run_impact_detailer",
+            "_run_sam3_detailer",
         )
         for name in retired_service_names:
             with self.subTest(retired=name):
@@ -153,6 +155,13 @@ class SAM3MoveTests(unittest.TestCase):
             self.assertIs(sam3_service._find_impact_detailer_class(), sentinel)
         find.assert_called_once_with("DetailerForEach")
 
+    def test_detailer_missing_host_helper_error_is_preserved(self):
+        with self.assertRaisesRegex(
+            RuntimeError,
+            "SAM3 node Comfy host helper is unavailable: _encode_with_comfy_clip",
+        ):
+            sam3_detailer_service._missing_host_helper("_encode_with_comfy_clip")
+
     def test_context_node_keeps_call_time_checkpoint_loader(self):
         with patch.object(
             sam3_nodes,
@@ -169,8 +178,8 @@ class SAM3MoveTests(unittest.TestCase):
 
     def test_disabled_detailer_preserves_original_outputs(self):
         with (
-            patch.object(sam3_nodes, "_empty_mask_for_image", return_value="empty-mask"),
-            patch.object(sam3_nodes, "_empty_segs_for_image", return_value="empty-segs"),
+            patch.object(sam3_detailer_service, "_empty_mask_for_image", return_value="empty-mask"),
+            patch.object(sam3_detailer_service, "_empty_segs_for_image", return_value="empty-segs"),
         ):
             result = sam3_nodes.EasyUseAnimaSAM3Detailer().doit(
                 **self._detailer_kwargs(enabled=False)
@@ -181,22 +190,20 @@ class SAM3MoveTests(unittest.TestCase):
     def test_detector_mask_and_impact_delegation_arguments_are_preserved(self):
         sam3_detect = SimpleNamespace(execute=Mock(return_value=("mask",)))
         mask_to_segs = SimpleNamespace(doit=Mock(return_value=(((64, 64), ["seg"]),)))
+        detail = Mock(return_value=("detailed-image",))
+        detailer_cls = Mock(return_value=SimpleNamespace(doit=detail))
 
         with (
-            patch.object(sam3_nodes, "_empty_mask_for_image", return_value="empty-mask"),
-            patch.object(sam3_nodes, "_empty_segs_for_image", return_value="empty-segs"),
+            patch.object(sam3_detailer_service, "_empty_mask_for_image", return_value="empty-mask"),
+            patch.object(sam3_detailer_service, "_empty_segs_for_image", return_value="empty-segs"),
             patch_comfy_helper(
                 nodes,
                 "_encode_with_comfy_clip",
                 return_value="conditioning",
             ) as encode,
-            patch.object(sam3_nodes, "_find_sam3_detect_class", return_value=sam3_detect),
-            patch.object(sam3_nodes, "_find_impact_mask_to_segs_class", return_value=mask_to_segs),
-            patch.object(
-                sam3_nodes._EasyUseAnimaImpactDetailerDelegate,
-                "doit",
-                return_value=("detailed-image",),
-            ) as detail,
+            patch.object(sam3_detailer_service, "_find_sam3_detect_class", return_value=sam3_detect),
+            patch.object(sam3_detailer_service, "_find_impact_mask_to_segs_class", return_value=mask_to_segs),
+            patch.object(sam3_detailer_service, "_find_impact_detailer_class", return_value=detailer_cls),
         ):
             result = sam3_nodes.EasyUseAnimaSAM3Detailer().doit(**self._detailer_kwargs())
 
@@ -220,21 +227,54 @@ class SAM3MoveTests(unittest.TestCase):
         mask_to_segs = SimpleNamespace(doit=Mock(return_value=(((64, 64), []),)))
 
         with (
-            patch.object(sam3_nodes, "_empty_mask_for_image", return_value="empty-mask"),
-            patch.object(sam3_nodes, "_empty_segs_for_image", return_value="empty-segs"),
+            patch.object(sam3_detailer_service, "_empty_mask_for_image", return_value="empty-mask"),
+            patch.object(sam3_detailer_service, "_empty_segs_for_image", return_value="empty-segs"),
             patch_comfy_helper(
                 nodes,
                 "_encode_with_comfy_clip",
                 return_value="conditioning",
             ),
-            patch.object(sam3_nodes, "_find_sam3_detect_class", return_value=sam3_detect),
-            patch.object(sam3_nodes, "_find_impact_mask_to_segs_class", return_value=mask_to_segs),
-            patch.object(sam3_nodes._EasyUseAnimaImpactDetailerDelegate, "doit") as detail,
+            patch.object(sam3_detailer_service, "_find_sam3_detect_class", return_value=sam3_detect),
+            patch.object(sam3_detailer_service, "_find_impact_mask_to_segs_class", return_value=mask_to_segs),
+            patch.object(sam3_detailer_service, "_run_impact_detailer") as detail,
         ):
             result = sam3_nodes.EasyUseAnimaSAM3Detailer().doit(**self._detailer_kwargs())
 
         self.assertEqual(result, ("input-image", ((64, 64), []), "mask", "input-image"))
         detail.assert_not_called()
+
+    def test_impact_node_adapter_delegates_to_shared_operation(self):
+        kwargs = self._detailer_kwargs()
+        for key in (
+            "enabled",
+            "ctx_SAM3",
+            "detect_prompt",
+            "detect_count",
+            "threshold",
+            "refine_iterations",
+            "individual_masks",
+            "combined",
+            "crop_factor",
+            "bbox_fill",
+            "drop_size",
+            "contour_fill",
+        ):
+            kwargs.pop(key)
+        kwargs["segs"] = "detail-segs"
+
+        with patch.object(
+            impact_detailer_nodes,
+            "_run_impact_detailer",
+            return_value=("detailed-image",),
+        ) as run:
+            result = impact_detailer_nodes._EasyUseAnimaImpactDetailerDelegate().doit(**kwargs)
+
+        self.assertEqual(result, ("detailed-image",))
+        self.assertEqual(run.call_args.kwargs["image"], "input-image")
+        self.assertEqual(run.call_args.kwargs["segs"], "detail-segs")
+        self.assertEqual(run.call_args.kwargs["scheduler"], "scheduler")
+        self.assertEqual(run.call_args.kwargs["alignment"], "impact")
+        self.assertEqual(run.call_args.kwargs["noise_mask_feather"], 0)
 
     def test_impact_call_filters_unknown_keywords_without_changing_order(self):
         class Detailer:

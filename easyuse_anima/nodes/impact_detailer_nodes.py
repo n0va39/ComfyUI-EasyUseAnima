@@ -2,19 +2,12 @@
 
 from __future__ import annotations
 
-import logging
-
-from ..common.values import _as_bool
-from ..image.detailer import _EasyUseAnimaAlignedDetailerHook
-from ..image.geometry import _alignment_value
-from ..image.sam3 import _call_impact_detailer, _find_impact_detailer_class
+from ..image.sam3_detailer import _run_impact_detailer
 from ..infrastructure.comfy.capabilities import (
     _comfy_sampler_names,
     _impact_scheduler_names,
 )
 from ..infrastructure.comfy.wiring import resolve_comfy_host_helper
-
-logger = logging.getLogger("ComfyUI-EasyUseAnima")
 
 
 def _missing_host_helper(name: str):
@@ -207,23 +200,7 @@ class _EasyUseAnimaImpactDetailerDelegate:
         tiled_encode=False,
         tiled_decode=False,
     ):
-        alignment_text = str(alignment or "impact")
-        alignment_int = _alignment_value(alignment_text)
-
-        if not _as_bool(preserve_conditioning_metadata, True):
-            logger.warning(
-                "[EasyUseAnima] preserve_conditioning_metadata=false is reserved for a native backend; "
-                "the Impact backend leaves conditioning handling to Impact Pack."
-            )
-
-        effective_detailer_hook = detailer_hook
-        if alignment_int is not None:
-            effective_detailer_hook = _EasyUseAnimaAlignedDetailerHook(detailer_hook, alignment_int)
-
-        detailer_cls = _find_impact_detailer_class()
-        detailer = detailer_cls()
-        result = _call_impact_detailer(
-            detailer,
+        return _run_impact_detailer(
             image=image,
             segs=segs,
             model=model,
@@ -245,22 +222,16 @@ class _EasyUseAnimaImpactDetailerDelegate:
             force_inpaint=force_inpaint,
             wildcard=wildcard,
             cycle=cycle,
-            detailer_hook=effective_detailer_hook,
+            alignment=alignment,
+            preserve_conditioning_metadata=preserve_conditioning_metadata,
+            fail_on_unsupported_opt=fail_on_unsupported_opt,
+            detailer_hook=detailer_hook,
             inpaint_model=inpaint_model,
             noise_mask_feather=noise_mask_feather,
             scheduler_func_opt=scheduler_func_opt,
             tiled_encode=tiled_encode,
             tiled_decode=tiled_decode,
         )
-        if isinstance(result, dict):
-            value = result.get("result")
-            if isinstance(value, tuple) and value:
-                return (value[0],)
-        if isinstance(result, tuple):
-            if not result:
-                raise RuntimeError("[EasyUseAnima] Impact DetailerForEach returned an empty tuple.")
-            return (result[0],)
-        return (result,)
 
 
 __all__ = ()
