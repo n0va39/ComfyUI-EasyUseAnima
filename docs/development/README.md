@@ -13,7 +13,7 @@ Read only the sections needed by the active task.
    - run package/live/benchmark only when triggered.
 3. Current backend queue:
    [`../architecture/post-phase-e-maintenance-roadmap.md`](../architecture/post-phase-e-maintenance-roadmap.md)
-   - first READY task: Issue #188 / G-06A canonical test-ownership Contract;
+   - first READY task: Issue #188 / G-CLOSE Phase F/G completion audit;
    - D-14/H root removal is parked, not failed.
 4. Mandatory P-API lifecycle gate:
    [`../architecture/python-api-papi01-e09-lifecycle-gate.md`](../architecture/python-api-papi01-e09-lifecycle-gate.md)
@@ -67,7 +67,8 @@ COMPLETE  #186 P-WC-02 Wildcard direct-shim Move
 COMPLETE  #582 P-API-01 API facade / E-09 lifecycle Contract (RETAIN)
 PARKED    P-API-02 until a recorded revisit event
 COMPLETE  #188 G-05 size ratchet
-READY     #188 G-06 test ownership
+COMPLETE  #188 G-06 test ownership
+READY     #188 G-CLOSE Phase F/G completion audit
 EVENT     next ordinary release N -> later D-14 re-audit
 ```
 
@@ -79,7 +80,7 @@ The D-14 stop is correct:
 - final forms completed after 0.6.2 have no release N;
 - consumer evidence and public breaking-change approval do not support removal.
 
-That stop applies only to removal. G-05 and G-06 remain executable.
+That stop applies only to removal. The G-CLOSE completion audit remains executable.
 
 ## Completed P-API-01 result
 
@@ -122,11 +123,11 @@ P-API-01 made no production change and does not authorize the Move.
 
 ## Following queue
 
-After P-API-01 and G-05A:
+After P-API-01, G-05A, and G-06A:
 
 1. run one bounded P-API-02 only when the verdict is FEASIBLE;
-2. retain the recorded P-API verdict and completed G-05 changed-path growth gate;
-3. continue with the G-06 test-ownership Contract;
+2. retain the recorded P-API verdict and completed G-05/G-06 gates;
+3. continue with the Phase F/G completion audit;
 4. let the next ordinary release containing final shims become release N;
 5. re-audit D-14 only after an event gate changes.
 
