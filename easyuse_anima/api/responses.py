@@ -8,6 +8,7 @@ from typing import Any, Mapping, cast
 
 
 REQUEST_ID_HEADER = "X-Request-ID"
+_SENSITIVE_RESPONSE_MARKER = "_easyuse_anima_sensitive_response"
 
 _PROFILE_MUTATION_HTTP_MAPPINGS: tuple[tuple[str, int, str, str], ...] = (
     (
@@ -61,6 +62,13 @@ def attach_request_id_header(response, request_id: str):
     headers = getattr(response, "headers", None)
     if headers is not None:
         headers[REQUEST_ID_HEADER] = request_id
+    return response
+
+
+def _attach_no_store_header(response):
+    headers = getattr(response, "headers", None)
+    if headers is not None:
+        headers["Cache-Control"] = "no-store"
     return response
 
 
@@ -207,6 +215,10 @@ def build_request_correlator(
     """Build the root-compatible cancellation and correlation boundary."""
 
     def _request_correlated(handler):
+        sensitive_response = (
+            getattr(handler, _SENSITIVE_RESPONSE_MARKER, False) is True
+        )
+
         @wraps(handler)
         async def correlated_handler(request):
             request_id = create_id()
@@ -216,9 +228,11 @@ def build_request_correlator(
                 raise
             except Exception as exc:
                 if isinstance(exc, get_http_exception_type()):
+                    if sensitive_response:
+                        _attach_no_store_header(exc)
                     attach_id_header(exc, request_id)
                     raise
-                get_logger().exception(
+                get_logger().error(
                     "Unhandled EasyUseAnima API error (request_id=%s)",
                     request_id,
                 )
@@ -227,6 +241,8 @@ def build_request_correlator(
                     "internal_error",
                     "An unexpected server error occurred.",
                 )
+            if sensitive_response:
+                _attach_no_store_header(response)
             return correlate(response, request_id)
 
         setattr(correlated_handler, "_easyuse_anima_request_correlation", True)

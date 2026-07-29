@@ -972,6 +972,7 @@ class ApiRequestCorrelationTests(unittest.TestCase):
         self.assertEqual(response["payload"], payload)
         self.assertNotIn("request_id", response["payload"])
         self.assertEqual(response.headers["X-Request-ID"], request_id)
+        self.assertEqual(response.headers["Cache-Control"], "no-store")
 
     def test_translation_status_taxonomy_keeps_request_correlation(self):
         api, routes = load_api_routes()
@@ -1023,13 +1024,14 @@ class ApiRequestCorrelationTests(unittest.TestCase):
                 response.headers["X-Request-ID"],
             )
 
-    def test_unexpected_exception_is_safe_500_and_logged_with_request_id(self):
+    def test_unexpected_exception_is_safe_500_and_logged_with_request_id_only(self):
         api, routes = load_api_routes()
         request_id = "32345678-1234-4567-89ab-1234567890ab"
         secret = r"C:\Users\alice\secret.json API_TOKEN=top-secret"
         with (
             patch.object(api, "create_request_id", return_value=request_id),
             patch.object(api, "_list_aio_profiles", side_effect=RuntimeError(secret)),
+            patch.object(api._LOGGER, "error") as log_error,
             patch.object(api._LOGGER, "exception") as log_exception,
         ):
             response = asyncio.run(
@@ -1047,23 +1049,29 @@ class ApiRequestCorrelationTests(unittest.TestCase):
             },
         )
         self.assertEqual(response.headers["X-Request-ID"], request_id)
-        log_exception.assert_called_once()
-        self.assertEqual(log_exception.call_args.args[1], request_id)
+        self.assertNotIn("Cache-Control", response.headers)
+        log_error.assert_called_once_with(
+            "Unhandled EasyUseAnima API error (request_id=%s)",
+            request_id,
+        )
+        log_exception.assert_not_called()
         serialized = json.dumps(response["payload"])
+        serialized_log = repr(log_error.call_args)
         for forbidden in ("alice", "secret.json", "API_TOKEN", "top-secret", "Traceback"):
             self.assertNotIn(forbidden, serialized)
+            self.assertNotIn(forbidden, serialized_log)
 
     def test_cancelled_request_is_not_normalized_or_logged(self):
         api, routes = load_api_routes()
         with (
             patch.object(api, "_run_file_io", side_effect=asyncio.CancelledError()),
-            patch.object(api._LOGGER, "exception") as log_exception,
+            patch.object(api._LOGGER, "error") as log_error,
         ):
             with self.assertRaises(asyncio.CancelledError):
                 asyncio.run(
                     routes.handlers["/easyuse_anima/aio_profiles"](JsonRequest())
                 )
-        log_exception.assert_not_called()
+        log_error.assert_not_called()
 
     def test_http_exception_preserves_control_flow_and_body_with_header(self):
         from aiohttp import web as aiohttp_web
@@ -1079,7 +1087,7 @@ class ApiRequestCorrelationTests(unittest.TestCase):
         with (
             patch.object(api, "create_request_id", return_value=request_id),
             patch.object(api.web, "HTTPException", aiohttp_web.HTTPException),
-            patch.object(api._LOGGER, "exception") as log_exception,
+            patch.object(api._LOGGER, "error") as log_error,
         ):
             with self.assertRaises(aiohttp_web.HTTPNotFound) as raised:
                 asyncio.run(raises_http_exception(JsonRequest()))
@@ -1087,7 +1095,30 @@ class ApiRequestCorrelationTests(unittest.TestCase):
         self.assertEqual(raised.exception.status, 404)
         self.assertEqual(raised.exception.text, "not found")
         self.assertEqual(raised.exception.headers["X-Request-ID"], request_id)
-        log_exception.assert_not_called()
+        self.assertNotIn("Cache-Control", raised.exception.headers)
+        log_error.assert_not_called()
+
+    def test_sensitive_http_exception_keeps_control_flow_and_adds_no_store(self):
+        api, routes = load_api_routes()
+        request_id = "52345678-1234-4567-89ab-1234567890ab"
+        original = FakeHTTPException(status=409, body=b"conflict")
+
+        with (
+            patch.object(api, "create_request_id", return_value=request_id),
+            patch.object(api, "_get_settings_payload_sync", side_effect=original),
+            patch.object(api._LOGGER, "error") as log_error,
+        ):
+            with self.assertRaises(FakeHTTPException) as raised:
+                asyncio.run(
+                    routes.handlers["/easyuse_anima/settings"](JsonRequest())
+                )
+
+        self.assertIs(raised.exception, original)
+        self.assertEqual(raised.exception.status, 409)
+        self.assertEqual(raised.exception.body, b"conflict")
+        self.assertEqual(raised.exception.headers["X-Request-ID"], request_id)
+        self.assertEqual(raised.exception.headers["Cache-Control"], "no-store")
+        log_error.assert_not_called()
 
     def test_lora_preview_keeps_raw_and_binary_contracts_with_header(self):
         api, routes = load_api_routes()
@@ -1952,7 +1983,7 @@ class ApiLoraProfileFixRouteTests(unittest.TestCase):
                 "_fix_lora_profile_payload",
                 side_effect=ValueError(secret),
             ),
-            patch.object(api._LOGGER, "exception") as log_exception,
+            patch.object(api._LOGGER, "error") as log_error,
         ):
             response = asyncio.run(
                 routes.handlers["/easyuse_anima/lora_profiles/fix"](
@@ -1970,7 +2001,7 @@ class ApiLoraProfileFixRouteTests(unittest.TestCase):
         serialized = json.dumps(response["payload"])
         for forbidden in ("alice", "profile.json", "API_TOKEN", "top-secret"):
             self.assertNotIn(forbidden, serialized)
-        log_exception.assert_called_once()
+        log_error.assert_called_once()
 
 
 class ApiWildcardRouteTests(unittest.TestCase):
@@ -2186,6 +2217,7 @@ class ApiSettingsRouteTests(unittest.TestCase):
                     )
                 )
                 self.assertTrue(handler._easyuse_anima_request_correlation)
+                self.assertTrue(handler._easyuse_anima_sensitive_response)
 
     def test_get_keeps_dynamic_payload_seam_and_legacy_success_shape(self):
         api, routes = load_api_routes()
@@ -2204,6 +2236,7 @@ class ApiSettingsRouteTests(unittest.TestCase):
 
         self.assertEqual(response["status"], 200)
         self.assertIs(response["payload"], payload)
+        self.assertEqual(response.headers["Cache-Control"], "no-store")
         get_payload.assert_called_once_with()
 
     def test_set_keeps_dynamic_seam_raw_value_default_and_success_shape(self):
@@ -2235,6 +2268,7 @@ class ApiSettingsRouteTests(unittest.TestCase):
 
             self.assertEqual(response["status"], 200)
             self.assertIs(response["payload"], payload)
+            self.assertEqual(response.headers["Cache-Control"], "no-store")
             save_payload.assert_called_once_with(
                 data["key"],
                 expected_value,
@@ -2255,6 +2289,7 @@ class ApiSettingsRouteTests(unittest.TestCase):
         self.assertEqual(response["status"], 422)
         self.assertEqual(response["payload"]["code"], "invalid_request")
         self.assertEqual(response["payload"]["details"], {"field": "key"})
+        self.assertEqual(response.headers["Cache-Control"], "no-store")
         save_payload.assert_not_called()
         file_io.assert_not_called()
 
@@ -2285,6 +2320,7 @@ class ApiSettingsRouteTests(unittest.TestCase):
         serialized = json.dumps(response["payload"])
         for forbidden in ("alice", "settings.json", "API_TOKEN", "top-secret"):
             self.assertNotIn(forbidden, serialized)
+        self.assertEqual(response.headers["Cache-Control"], "no-store")
 
     def test_unexpected_save_failure_stays_on_correlated_safe_500_boundary(self):
         api, routes = load_api_routes()
@@ -2295,7 +2331,7 @@ class ApiSettingsRouteTests(unittest.TestCase):
                 "_save_setting_payload_sync",
                 side_effect=ValueError(secret),
             ),
-            patch.object(api._LOGGER, "exception") as log_exception,
+            patch.object(api._LOGGER, "error") as log_error,
         ):
             response = asyncio.run(
                 routes.handlers["/easyuse_anima/set_setting"](
@@ -2313,7 +2349,8 @@ class ApiSettingsRouteTests(unittest.TestCase):
         serialized = json.dumps(response["payload"])
         for forbidden in ("alice", "settings.json", "API_TOKEN", "top-secret"):
             self.assertNotIn(forbidden, serialized)
-        log_exception.assert_called_once()
+        self.assertEqual(response.headers["Cache-Control"], "no-store")
+        log_error.assert_called_once()
 
 
 class ApiLongTextSettingsRouteTests(unittest.TestCase):
@@ -2415,6 +2452,7 @@ class ApiLongTextSettingsRouteTests(unittest.TestCase):
                     )
                 )
                 self.assertTrue(handler._easyuse_anima_request_correlation)
+                self.assertTrue(handler._easyuse_anima_sensitive_response)
 
     def test_get_route_keeps_dynamic_payload_seam(self):
         api, routes = load_api_routes()
@@ -2437,6 +2475,7 @@ class ApiLongTextSettingsRouteTests(unittest.TestCase):
 
         self.assertEqual(response["status"], 200)
         self.assertEqual(response["payload"], payload)
+        self.assertEqual(response.headers["Cache-Control"], "no-store")
         get_payload.assert_called_once_with()
 
     def test_save_route_preserves_wrapped_and_legacy_payloads(self):
@@ -2466,7 +2505,21 @@ class ApiLongTextSettingsRouteTests(unittest.TestCase):
 
                 self.assertEqual(response["status"], 200)
                 self.assertEqual(response["payload"], payload)
+                self.assertEqual(response.headers["Cache-Control"], "no-store")
                 save_payload.assert_called_once_with(expected_values)
+
+    def test_invalid_save_payload_is_correlated_and_not_cached(self):
+        api, routes = load_api_routes()
+
+        response = asyncio.run(
+            routes.handlers["/easyuse_anima/long_text_settings/save"](
+                JsonRequest({"values": []})
+            )
+        )
+
+        self.assertEqual(response["status"], 422)
+        self.assertEqual(response["payload"]["code"], "invalid_request")
+        self.assertEqual(response.headers["Cache-Control"], "no-store")
 
 
 class ApiAutocompleteRouteTests(unittest.TestCase):
@@ -3552,7 +3605,7 @@ class ApiRequestContractTests(unittest.TestCase):
                 "_list_aio_profiles",
                 side_effect=RuntimeError("storage programming error"),
             ),
-            patch.object(api._LOGGER, "exception") as log_exception,
+            patch.object(api._LOGGER, "error") as log_error,
         ):
             response = asyncio.run(
                 routes.handlers["/easyuse_anima/aio_profiles"](JsonRequest())
@@ -3563,7 +3616,7 @@ class ApiRequestContractTests(unittest.TestCase):
             response["payload"]["request_id"],
             response.headers["X-Request-ID"],
         )
-        log_exception.assert_called_once()
+        log_error.assert_called_once()
 
     def test_profile_list_does_not_mask_arbitrary_value_error_as_invalid_request(self):
         api, routes = load_api_routes()
@@ -3580,14 +3633,14 @@ class ApiRequestContractTests(unittest.TestCase):
                     operation_name,
                     side_effect=ValueError("storage programming error"),
                 ),
-                patch.object(api._LOGGER, "exception") as log_exception,
+                patch.object(api._LOGGER, "error") as log_error,
             ):
                 response = asyncio.run(routes.handlers[route](JsonRequest()))
 
             self.assertEqual(response["status"], 500)
             self.assertEqual(response["payload"]["code"], "internal_error")
             self.assertNotEqual(response["payload"]["code"], "invalid_request")
-            log_exception.assert_called_once()
+            log_error.assert_called_once()
 
     def test_normal_settings_and_profile_success_payloads_remain_compatible(self):
         api, routes = load_api_routes()
@@ -3665,6 +3718,7 @@ class ApiPathRedactionTests(unittest.TestCase):
                 routes.handlers["/easyuse_anima/autocomplete_status"](JsonRequest())
             )
 
+        self.assertNotIn("Cache-Control", response.headers)
         payload = response["payload"]
         self.assertEqual(payload["source"], "selected")
         self.assertEqual(payload["source_label"], "Selected dataset")
@@ -3701,6 +3755,7 @@ class ApiPathRedactionTests(unittest.TestCase):
                 )
             )
 
+        self.assertNotIn("Cache-Control", response.headers)
         payload = response["payload"]
         self.assertEqual(payload["query"], produced["query"])
         self.assertEqual(payload["results"], produced["results"])
@@ -3738,6 +3793,7 @@ class ApiPathRedactionTests(unittest.TestCase):
                 )
             )
 
+        self.assertNotIn("Cache-Control", response.headers)
         payload = response["payload"]
         self.assertEqual(payload["tokens"], produced["tokens"])
         self.assertEqual(payload["future"], produced["future"])
@@ -3765,6 +3821,7 @@ class ApiPathRedactionTests(unittest.TestCase):
                 routes.handlers["/easyuse_anima/wildcards"](JsonRequest())
             )
 
+        self.assertNotIn("Cache-Control", response.headers)
         payload = response["payload"]
         self.assertEqual(payload["status"], "ok")
         self.assertEqual(payload["items"], ["artist/name"])

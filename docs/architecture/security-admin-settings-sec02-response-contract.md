@@ -4,12 +4,15 @@
 
 - Issue: [#199](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/199).
 - Base: `185021175cb5c9a535c20d49fc6fd5eb8dd3b8ce` (`origin/dev`, merged PR #589).
-- Primary class: `CONTRACT`; production, tests, tools, and fixtures are unchanged.
+- Primary class: `CONTRACT`; implemented by SEC-03 without changing the frozen owner
+  or rollback boundary.
 - Result: **FEASIBLE** inside the direct response owners.
-- Next: SEC-03 narrow backend implementation is READY.
+- SEC-03 status: complete.
+- Next: SEC-05 completion audit is READY; SEC-04 was skipped because no frontend
+  behavior changed.
 
-This Contract implements none of the rules below. It fixes one executable owner set
-and rollback boundary for the later implementation.
+This Contract fixed one executable owner set and rollback boundary. SEC-03 implemented
+that exact boundary in the three production owners and its existing direct test owner.
 
 ## Frozen response flow
 
@@ -131,6 +134,8 @@ fixture is justified.
 - `ApiLongTextSettingsRouteTests` owns both long-text handlers, legacy/wrapped input,
   dynamic dependencies, and payload shapes.
 - `ApiPathRedactionTests` owns the unchanged ordinary wildcard/autocomplete redaction.
+- `PromptTranslationApiTests` owns unchanged translation error taxonomy while the
+  shared correlation boundary emits the fixed safe logging event.
 - `PythonBootstrapTests`, package-skeleton direct import, import-boundary, and analyzer
   owners prove that composition/lifecycle/import surfaces did not expand.
 
@@ -139,6 +144,19 @@ candidate SHA. Package/live/browser are not triggered while the implementation s
 inside this fixed pure log/header boundary. An isolated live HTTP smoke becomes
 required only if status/body/request-ID behavior or host logger integration changes;
 browser smoke becomes required only if frontend files or interaction change.
+
+## SEC-03 implementation record
+
+SEC-03 implemented the fixed logging event and private sensitive-response marker in
+`easyuse_anima/api/responses.py`, marked only the four settings/long-text handlers in
+their two route modules, and extended `tests/test_api_contract.py`. The generated
+analyzer baseline records only those owner deltas. No status, body, request-ID, route,
+bootstrap, lifecycle, persistence, schema, or frontend behavior changed.
+
+Direct response contracts, path redaction, bootstrap, package import, import-boundary,
+and analyzer gates passed. The final candidate runs official full exactly once; its
+result is the promotion evidence consumed by SEC-05. Package/live/browser remain
+untriggered because the implementation stayed inside this pure log/header boundary.
 
 ## Rollback and stop boundary
 

@@ -73954,118 +73954,126 @@
         "functions": [
           {
             "async": false,
-            "end_line": 49,
+            "end_line": 50,
             "kind": "function",
-            "line": 34,
+            "line": 35,
             "loc": 16,
             "qualified_name": "error_payload"
           },
           {
             "async": false,
-            "end_line": 55,
+            "end_line": 56,
             "kind": "function",
-            "line": 52,
+            "line": 53,
             "loc": 4,
             "qualified_name": "create_request_id"
           },
           {
             "async": false,
-            "end_line": 64,
+            "end_line": 65,
             "kind": "function",
-            "line": 58,
+            "line": 59,
             "loc": 7,
             "qualified_name": "attach_request_id_header"
           },
           {
             "async": false,
-            "end_line": 86,
+            "end_line": 72,
             "kind": "function",
-            "line": 67,
+            "line": 68,
+            "loc": 5,
+            "qualified_name": "_attach_no_store_header"
+          },
+          {
+            "async": false,
+            "end_line": 94,
+            "kind": "function",
+            "line": 75,
             "loc": 20,
             "qualified_name": "correlate_response"
           },
           {
             "async": false,
-            "end_line": 104,
+            "end_line": 112,
             "kind": "function",
-            "line": 89,
+            "line": 97,
             "loc": 16,
             "qualified_name": "build_error_response"
           },
           {
             "async": false,
-            "end_line": 102,
+            "end_line": 110,
             "kind": "function",
-            "line": 92,
+            "line": 100,
             "loc": 11,
             "qualified_name": "build_error_response._error_response"
           },
           {
             "async": false,
-            "end_line": 118,
+            "end_line": 126,
             "kind": "function",
-            "line": 107,
+            "line": 115,
             "loc": 12,
             "qualified_name": "build_contract_error_response"
           },
           {
             "async": false,
-            "end_line": 116,
+            "end_line": 124,
             "kind": "function",
-            "line": 110,
+            "line": 118,
             "loc": 7,
             "qualified_name": "build_contract_error_response._contract_error_response"
           },
           {
             "async": false,
-            "end_line": 195,
+            "end_line": 203,
             "kind": "function",
-            "line": 121,
+            "line": 129,
             "loc": 75,
             "qualified_name": "build_profile_error_response"
           },
           {
             "async": false,
-            "end_line": 193,
+            "end_line": 201,
             "kind": "function",
-            "line": 152,
+            "line": 160,
             "loc": 42,
             "qualified_name": "build_profile_error_response._profile_error_response"
           },
           {
             "async": false,
-            "end_line": 235,
+            "end_line": 251,
             "kind": "function",
-            "line": 198,
-            "loc": 38,
+            "line": 206,
+            "loc": 46,
             "qualified_name": "build_request_correlator"
           },
           {
             "async": false,
-            "end_line": 233,
+            "end_line": 249,
             "kind": "function",
-            "line": 209,
-            "loc": 25,
+            "line": 217,
+            "loc": 33,
             "qualified_name": "build_request_correlator._request_correlated"
           },
           {
             "async": true,
-            "end_line": 230,
+            "end_line": 246,
             "kind": "function",
-            "line": 210,
-            "loc": 21,
+            "line": 222,
+            "loc": 25,
             "qualified_name": "build_request_correlator._request_correlated.correlated_handler"
           }
         ],
         "is_package": false,
-        "loc": 244,
+        "loc": 260,
         "module": "easyuse_anima.api.responses",
-        "normalized_git_blob_sha1": "2d29dbb90c61cedd8a7bc190658a7e80d2841b5b",
+        "normalized_git_blob_sha1": "26440d8794e12895d044460246bc9934ea18cd80",
         "path": "easyuse_anima/api/responses.py",
         "top_level": {
           "class_count": 0,
-          "function_count": 8,
-          "global_count": 3
+          "function_count": 9,
+          "global_count": 4
         }
       },
       {
@@ -74365,10 +74373,10 @@
           },
           {
             "async": false,
-            "end_line": 60,
+            "end_line": 70,
             "kind": "function",
             "line": 32,
-            "loc": 29,
+            "loc": 39,
             "qualified_name": "build_long_text_settings_handlers"
           },
           {
@@ -74389,9 +74397,9 @@
           }
         ],
         "is_package": false,
-        "loc": 63,
+        "loc": 73,
         "module": "easyuse_anima.api.routes.long_text_settings",
-        "normalized_git_blob_sha1": "6243033451ff6a532b1ee0f4d2825b268c87f6a1",
+        "normalized_git_blob_sha1": "dfb465f183130b36d8d418c423b566c76a7ddd00",
         "path": "easyuse_anima/api/routes/long_text_settings.py",
         "top_level": {
           "class_count": 0,
@@ -74647,10 +74655,10 @@
           },
           {
             "async": false,
-            "end_line": 52,
+            "end_line": 54,
             "kind": "function",
             "line": 17,
-            "loc": 36,
+            "loc": 38,
             "qualified_name": "build_settings_handlers"
           },
           {
@@ -74671,9 +74679,9 @@
           }
         ],
         "is_package": false,
-        "loc": 55,
+        "loc": 57,
         "module": "easyuse_anima.api.routes.settings",
-        "normalized_git_blob_sha1": "86d3953f2f78ba58bfad7cdfa9f9ec398f0c3504",
+        "normalized_git_blob_sha1": "d6a75144cb4735e1b43c61976f527eaea7dab5ad",
         "path": "easyuse_anima/api/routes/settings.py",
         "top_level": {
           "class_count": 0,

@@ -10,7 +10,9 @@
 - SEC-02 response-confidentiality Contract: complete with a direct-owner
   **FEASIBLE** result; see
   [`security-admin-settings-sec02-response-contract.md`](security-admin-settings-sec02-response-contract.md).
-- First READY task: SEC-03 narrow backend implementation.
+- SEC-03 narrow backend implementation: complete.
+- SEC-04 frontend migration: skipped because no frontend behavior changed.
+- First READY task: SEC-05 completion audit.
 - Released baseline: 0.6.2.
 - This lane does not reopen Phase F/G, P-API-02, D-14, or Phase H.
 - Type: Security/Admin Contract first; no production behavior change before the
@@ -208,9 +210,9 @@ No task after SEC-01 is automatically READY.
 ```text
 COMPLETE    SEC-01 threat model / capability owner / field classification
 COMPLETE    SEC-02 response-confidentiality Contract
-READY       SEC-03 narrow backend implementation
-CONDITIONAL SEC-04 frontend settings migration, only if UI behavior changes
-CONDITIONAL SEC-05 security/package/live completion audit
+COMPLETE    SEC-03 narrow backend implementation
+SKIPPED     SEC-04 frontend settings migration; no UI behavior changed
+READY       SEC-05 security completion audit
 ```
 
 SEC-02 fixed one executable Contract for the two directly observed
@@ -270,7 +272,7 @@ security architectures that are all viable, for example:
 User preference is not used as a substitute for security evidence. A missing host
 admin capability by itself is not a PRO blocker; it is an input to the SEC-01 verdict.
 
-## 9. SEC-03 task card and Codex resume instruction
+## 9. Completed SEC-03 task card
 
 ```text
 Task / Issue:
@@ -293,6 +295,8 @@ Allowed production files:
 
 Allowed test/docs files:
 - tests/test_api_contract.py
+- tests/test_prompt_translation_api.py, because the shared correlator logging method is
+  a direct existing expectation exposed by official full
 - tests/fixtures/python_backend_baseline.json only when the analyzer requires the
   exact changed-owner delta
 - docs/architecture/security-admin-settings-sec02-response-contract.md
@@ -337,6 +341,8 @@ Edit loop and focused evidence, one target per runner:
 - ApiSettingsRouteTests: both marked handlers and unchanged settings behavior;
 - ApiLongTextSettingsRouteTests: both marked handlers and unchanged long-text behavior;
 - ApiPathRedactionTests: ordinary endpoint path redaction;
+- PromptTranslationApiTests: unchanged translation status/payload taxonomy with the
+  fixed shared logging event;
 - PythonBootstrapTests: unchanged composition/repeated initialize/lifecycle behavior;
 - PythonPackageSkeletonTests: direct package/no-host import remains safe;
 - current import-boundary and analyzer owners: no forbidden edge or unexplained metric
@@ -367,4 +373,71 @@ D-14, release, tag, and Registry remain blocked until the security lane closes a
 later roadmap gate explicitly authorizes them.
 
 Reuse existing deterministic tests. Add no new fixture or test module.
+```
+
+## 10. SEC-05 task card and Codex resume instruction
+
+```text
+Task / Issue:
+Issue #199 / SEC-05 security completion audit
+
+Base SHA:
+Latest origin/dev after the SEC-03 implementation PR.
+
+Goal:
+Audit the merged SEC-03 result against the SEC-01 threat model and SEC-02 response
+Contract, reconcile the security roadmap/indexes, and close Issue #199 only when the
+lane has no unowned response-confidentiality gap.
+
+Allowed production files:
+- none
+
+Allowed docs files:
+- docs/architecture/security-admin-settings-sec01-contract.md
+- docs/architecture/security-admin-settings-sec02-response-contract.md
+- docs/architecture/security-admin-settings-roadmap.md
+- docs/architecture/README.md
+- docs/development/README.md
+
+Read only:
+- current-policies.md
+- codex-execution-efficiency.md universal rules
+- this SEC-05 card
+- Issue #199 latest checkpoint
+- SEC-01 and SEC-02 Contracts
+- merged SEC-03 diff and validation record
+- easyuse_anima/api/responses.py
+- easyuse_anima/api/routes/settings.py
+- easyuse_anima/api/routes/long_text_settings.py
+- the direct SEC-03 tests and generated analyzer fixture
+
+Required audit:
+- fixed unexpected-error log contains only the correlated request ID;
+- all four sensitive routes receive Cache-Control: no-store on every specified
+  success/error/HTTPException outcome;
+- ordinary wildcard/autocomplete responses remain unmarked and redacted;
+- status/body/request-ID, route identity/order, bootstrap, package import, and E-09
+  lifecycle invariants remain preserved;
+- no authentication, capability, proxy trust, diagnostics, settings split,
+  persistence, frontend, root-composition, or lifecycle scope entered the lane;
+- SEC-03 official-full evidence belongs to the merged implementation SHA and no
+  package/live/browser trigger fired.
+
+Validation:
+- targeted source/Contract/test-fixture consistency;
+- git diff --check for the docs-only audit;
+- reuse the merged SEC-03 focused and official-full evidence;
+- do not rerun official full, package/pack, live HTTP, or browser for docs-only
+  reconciliation.
+
+Stop conditions:
+- a production or test correction is required;
+- a sensitive outcome lacks no-store or a log can disclose exception/request data;
+- route/public API, package import, or E-09 lifecycle behavior changed;
+- package/live/browser evidence becomes necessary to support a claim.
+
+Next:
+If the audit passes, mark SEC-01 through SEC-05 complete, close Issue #199, and leave
+D-14, release, tag, and Registry blocked until a separate roadmap gate explicitly
+authorizes them. If it fails, stop and write only the smallest exact follow-up card.
 ```
