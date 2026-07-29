@@ -95,7 +95,7 @@ locking, and root identities remain unchanged. Profile future-field preservation
 raw ComfyUI workflow lookup remain intentional migration/adapter boundaries. The
 settings/profile/workflow row is therefore **complete**.
 
-## Selected next task: F-02e
+## F-02e selected contract task
 
 Common feature error taxonomy is the only remaining Phase F finding. The first unit is
 a production-free executable Contract so the shared categories, built-in exception
@@ -151,3 +151,33 @@ Next task: one cohesive implementation if the contract proves one safe inheritan
   and adapter cutover; otherwise the smallest ordered implementation slices; then
   re-audit the error row and mark Phase F complete before G-04A
 ```
+
+## F-02e contract decision and selected next task
+
+F-02e fixes the production-free executable contract in
+[`python-feature-error-taxonomy-contract.md`](python-feature-error-taxonomy-contract.md)
+and `tests/fixtures/python_feature_error_contract.v1.json`. The inventory covers all
+24 current feature errors across profile, Autocomplete, Prompt knowledge, AiO
+migration, translation, and seed owners. `ApiContractError` remains API-only and the
+private `_InvalidAutocompleteIndex` remains internal repair control flow.
+
+The contract selects the documented seven-category hierarchy in
+`easyuse_anima/errors.py`, no root exports, in-place concrete classes, and additive
+multiple inheritance that preserves every current `ValueError`, `RuntimeError`, and
+`FileNotFoundError` catch. HTTP mappings become API-authoritative in a later adapter
+slice; current exception metadata remains a passive compatibility mirror rather than
+being removed during Phase F.
+
+The ordered implementation is:
+
+```text
+READY F-02f canonical categories and additive feature inheritance
+  -> F-02g authoritative profile/translation API mappings
+  -> F-02h production-free error-row and Phase F completion audit
+  -> G-04A
+```
+
+F-02f is the next task. Its complete task card is in
+`python-feature-error-taxonomy-contract.md`. It must not perform the F-02g adapter
+cutover, change any exception constructor/attribute/message, add a root export, or
+change feature/API/node behavior.
