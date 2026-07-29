@@ -6583,6 +6583,24 @@
       },
       {
         "alias": null,
+        "bound_name": "AdvancedField",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": "..prompt.contracts:AdvancedField",
+        "kind": "static_from",
+        "line": 15,
+        "name": "AdvancedField",
+        "optional": false,
+        "requested": "..prompt.contracts",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/conditioning.py",
+        "target": "easyuse_anima/prompt/contracts.py"
+      },
+      {
+        "alias": null,
         "bound_name": "_normalize_prompt_data",
         "branch_context": [],
         "classification": "internal",
@@ -6590,7 +6608,7 @@
         "conditional": false,
         "imported": "..prompt.data:_normalize_prompt_data",
         "kind": "static_from",
-        "line": 15,
+        "line": 16,
         "name": "_normalize_prompt_data",
         "optional": false,
         "requested": "..prompt.data",
@@ -6608,7 +6626,7 @@
         "conditional": false,
         "imported": ".generation_defaults:AIO_USDU_PROMPT_FULL",
         "kind": "static_from",
-        "line": 16,
+        "line": 17,
         "name": "AIO_USDU_PROMPT_FULL",
         "optional": false,
         "requested": ".generation_defaults",
@@ -6626,7 +6644,7 @@
         "conditional": false,
         "imported": ".generation_defaults:AIO_USDU_PROMPT_NO_GENERAL",
         "kind": "static_from",
-        "line": 16,
+        "line": 17,
         "name": "AIO_USDU_PROMPT_NO_GENERAL",
         "optional": false,
         "requested": ".generation_defaults",
@@ -6644,7 +6662,7 @@
         "conditional": false,
         "imported": ".negpip:_aio_negpip_execution_prompts",
         "kind": "static_from",
-        "line": 17,
+        "line": 18,
         "name": "_aio_negpip_execution_prompts",
         "optional": false,
         "requested": ".negpip",
@@ -23377,6 +23395,24 @@
       },
       {
         "alias": null,
+        "bound_name": "AdvancedField",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": "..prompt.contracts:AdvancedField",
+        "kind": "static_from",
+        "line": 65,
+        "name": "AdvancedField",
+        "optional": false,
+        "requested": "..prompt.contracts",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/nodes/prompt_advanced_nodes.py",
+        "target": "easyuse_anima/prompt/contracts.py"
+      },
+      {
+        "alias": null,
         "bound_name": "_scrub_reserved_wildcard_next_seed",
         "branch_context": [],
         "classification": "internal",
@@ -23384,7 +23420,7 @@
         "conditional": false,
         "imported": "..seed.compatibility:_scrub_reserved_wildcard_next_seed",
         "kind": "static_from",
-        "line": 65,
+        "line": 66,
         "name": "_scrub_reserved_wildcard_next_seed",
         "optional": false,
         "requested": "..seed.compatibility",
@@ -23402,7 +23438,7 @@
         "conditional": false,
         "imported": "..settings.service:resolve_metadata_filter_words",
         "kind": "static_from",
-        "line": 66,
+        "line": 67,
         "name": "resolve_metadata_filter_words",
         "optional": false,
         "requested": "..settings.service",
@@ -23420,7 +23456,7 @@
         "conditional": false,
         "imported": "..settings.service:resolve_naia_settings",
         "kind": "static_from",
-        "line": 66,
+        "line": 67,
         "name": "resolve_naia_settings",
         "optional": false,
         "requested": "..settings.service",
@@ -23438,7 +23474,7 @@
         "conditional": false,
         "imported": "..wildcard.seed:next_seed",
         "kind": "static_from",
-        "line": 70,
+        "line": 71,
         "name": "next_seed",
         "optional": false,
         "requested": "..wildcard.seed",
@@ -23456,7 +23492,7 @@
         "conditional": false,
         "imported": "..wildcard.service:wildcard_sources_signature",
         "kind": "static_from",
-        "line": 71,
+        "line": 72,
         "name": "wildcard_sources_signature",
         "optional": false,
         "requested": "..wildcard.service",
@@ -23474,7 +23510,7 @@
         "conditional": false,
         "imported": "..workflow:_get_workflow_node",
         "kind": "static_from",
-        "line": 72,
+        "line": 73,
         "name": "_get_workflow_node",
         "optional": false,
         "requested": "..workflow",
@@ -23492,7 +23528,7 @@
         "conditional": false,
         "imported": ".input_types:_FlexibleOptionalInputType",
         "kind": "static_from",
-        "line": 73,
+        "line": 74,
         "name": "_FlexibleOptionalInputType",
         "optional": false,
         "requested": ".input_types",
@@ -23510,7 +23546,7 @@
         "conditional": false,
         "imported": ".naia_nodes:EasyUseAnimaNAIARandomPrompt",
         "kind": "static_from",
-        "line": 74,
+        "line": 75,
         "name": "EasyUseAnimaNAIARandomPrompt",
         "optional": false,
         "requested": ".naia_nodes",
@@ -23528,7 +23564,7 @@
         "conditional": false,
         "imported": ".seed_adapters:PROMPT_STUDIO_ADVANCED_SEED_FEATURE",
         "kind": "static_from",
-        "line": 75,
+        "line": 76,
         "name": "PROMPT_STUDIO_ADVANCED_SEED_FEATURE",
         "optional": false,
         "requested": ".seed_adapters",
@@ -23546,7 +23582,7 @@
         "conditional": false,
         "imported": ".seed_adapters:PromptStudioSeedExecution",
         "kind": "static_from",
-        "line": 75,
+        "line": 76,
         "name": "PromptStudioSeedExecution",
         "optional": false,
         "requested": ".seed_adapters",
@@ -23564,7 +23600,7 @@
         "conditional": false,
         "imported": ".seed_adapters:prompt_studio_seed_execution",
         "kind": "static_from",
-        "line": 75,
+        "line": 76,
         "name": "prompt_studio_seed_execution",
         "optional": false,
         "requested": ".seed_adapters",
@@ -27843,6 +27879,23 @@
       },
       {
         "alias": null,
+        "bound_name": "Sequence",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "collections.abc:Sequence",
+        "kind": "static_from",
+        "line": 7,
+        "name": "Sequence",
+        "optional": false,
+        "requested": "collections.abc",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/prompt/advanced.py"
+      },
+      {
+        "alias": null,
         "bound_name": "Any",
         "branch_context": [],
         "classification": "external",
@@ -27850,8 +27903,42 @@
         "conditional": false,
         "imported": "typing:Any",
         "kind": "static_from",
-        "line": 7,
+        "line": 8,
         "name": "Any",
+        "optional": false,
+        "requested": "typing",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/prompt/advanced.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "TypeVar",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "typing:TypeVar",
+        "kind": "static_from",
+        "line": 8,
+        "name": "TypeVar",
+        "optional": false,
+        "requested": "typing",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/prompt/advanced.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "cast",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "typing:cast",
+        "kind": "static_from",
+        "line": 8,
+        "name": "cast",
         "optional": false,
         "requested": "typing",
         "role": "ordinary",
@@ -27867,7 +27954,7 @@
         "conditional": false,
         "imported": "..common.values:_as_bool",
         "kind": "static_from",
-        "line": 9,
+        "line": 10,
         "name": "_as_bool",
         "optional": false,
         "requested": "..common.values",
@@ -27885,7 +27972,7 @@
         "conditional": false,
         "imported": "..common.values:_as_int",
         "kind": "static_from",
-        "line": 9,
+        "line": 10,
         "name": "_as_int",
         "optional": false,
         "requested": "..common.values",
@@ -27903,7 +27990,7 @@
         "conditional": false,
         "imported": "..common.values:_single_value",
         "kind": "static_from",
-        "line": 9,
+        "line": 10,
         "name": "_single_value",
         "optional": false,
         "requested": "..common.values",
@@ -27921,7 +28008,7 @@
         "conditional": false,
         "imported": "..naia.resolution:DEFAULT_ADVANCED_RESOLUTION_BUCKET",
         "kind": "static_from",
-        "line": 10,
+        "line": 11,
         "name": "DEFAULT_ADVANCED_RESOLUTION_BUCKET",
         "optional": false,
         "requested": "..naia.resolution",
@@ -27939,7 +28026,7 @@
         "conditional": false,
         "imported": "..naia.resolution:NAIA_ADVANCED_RESOLUTION_BUCKET",
         "kind": "static_from",
-        "line": 10,
+        "line": 11,
         "name": "NAIA_ADVANCED_RESOLUTION_BUCKET",
         "optional": false,
         "requested": "..naia.resolution",
@@ -27957,7 +28044,7 @@
         "conditional": false,
         "imported": "..naia.resolution:_normalize_resolution_bucket",
         "kind": "static_from",
-        "line": 10,
+        "line": 11,
         "name": "_normalize_resolution_bucket",
         "optional": false,
         "requested": "..naia.resolution",
@@ -27975,7 +28062,7 @@
         "conditional": false,
         "imported": "..settings.service:resolve_metadata_filter_words",
         "kind": "static_from",
-        "line": 15,
+        "line": 16,
         "name": "resolve_metadata_filter_words",
         "optional": false,
         "requested": "..settings.service",
@@ -27993,7 +28080,7 @@
         "conditional": false,
         "imported": "..translation.markers:has_prompt_translation_markers",
         "kind": "static_from",
-        "line": 16,
+        "line": 17,
         "name": "has_prompt_translation_markers",
         "optional": false,
         "requested": "..translation.markers",
@@ -28011,7 +28098,7 @@
         "conditional": false,
         "imported": "..wildcard.expansion:has_wildcard_syntax",
         "kind": "static_from",
-        "line": 17,
+        "line": 18,
         "name": "has_wildcard_syntax",
         "optional": false,
         "requested": "..wildcard.expansion",
@@ -28029,7 +28116,7 @@
         "conditional": false,
         "imported": "..wildcard.mode:normalize_prompt_studio_wildcard_mode",
         "kind": "static_from",
-        "line": 18,
+        "line": 19,
         "name": "normalize_prompt_studio_wildcard_mode",
         "optional": false,
         "requested": "..wildcard.mode",
@@ -28047,7 +28134,7 @@
         "conditional": false,
         "imported": "..wildcard.seed:normalize_seed",
         "kind": "static_from",
-        "line": 19,
+        "line": 20,
         "name": "normalize_seed",
         "optional": false,
         "requested": "..wildcard.seed",
@@ -28065,7 +28152,7 @@
         "conditional": false,
         "imported": "..wildcard.service:expand_wildcard_texts",
         "kind": "static_from",
-        "line": 20,
+        "line": 21,
         "name": "expand_wildcard_texts",
         "optional": false,
         "requested": "..wildcard.service",
@@ -28083,7 +28170,7 @@
         "conditional": false,
         "imported": ".artist_mix:ARTIST_MIX_DEFAULT_CLUSTER_COUNT",
         "kind": "static_from",
-        "line": 21,
+        "line": 22,
         "name": "ARTIST_MIX_DEFAULT_CLUSTER_COUNT",
         "optional": false,
         "requested": ".artist_mix",
@@ -28101,7 +28188,7 @@
         "conditional": false,
         "imported": ".artist_mix:ARTIST_MIX_DEFAULT_DOMINANT_ISOLATION",
         "kind": "static_from",
-        "line": 21,
+        "line": 22,
         "name": "ARTIST_MIX_DEFAULT_DOMINANT_ISOLATION",
         "optional": false,
         "requested": ".artist_mix",
@@ -28119,7 +28206,7 @@
         "conditional": false,
         "imported": ".artist_mix:ARTIST_MIX_DEFAULT_DOMINANT_THRESHOLD",
         "kind": "static_from",
-        "line": 21,
+        "line": 22,
         "name": "ARTIST_MIX_DEFAULT_DOMINANT_THRESHOLD",
         "optional": false,
         "requested": ".artist_mix",
@@ -28137,7 +28224,7 @@
         "conditional": false,
         "imported": ".artist_mix:ARTIST_MIX_DEFAULT_EXACT_TOP_K",
         "kind": "static_from",
-        "line": 21,
+        "line": 22,
         "name": "ARTIST_MIX_DEFAULT_EXACT_TOP_K",
         "optional": false,
         "requested": ".artist_mix",
@@ -28155,7 +28242,7 @@
         "conditional": false,
         "imported": ".artist_mix:ARTIST_MIX_DEFAULT_RMS_SCALE_CAP",
         "kind": "static_from",
-        "line": 21,
+        "line": 22,
         "name": "ARTIST_MIX_DEFAULT_RMS_SCALE_CAP",
         "optional": false,
         "requested": ".artist_mix",
@@ -28173,7 +28260,7 @@
         "conditional": false,
         "imported": ".artist_mix:ARTIST_MIX_DEFAULT_START_PERCENT",
         "kind": "static_from",
-        "line": 21,
+        "line": 22,
         "name": "ARTIST_MIX_DEFAULT_START_PERCENT",
         "optional": false,
         "requested": ".artist_mix",
@@ -28191,7 +28278,7 @@
         "conditional": false,
         "imported": ".artist_mix:ARTIST_MIX_DEFAULT_STRENGTH_SCALE",
         "kind": "static_from",
-        "line": 21,
+        "line": 22,
         "name": "ARTIST_MIX_DEFAULT_STRENGTH_SCALE",
         "optional": false,
         "requested": ".artist_mix",
@@ -28209,7 +28296,7 @@
         "conditional": false,
         "imported": ".artist_mix:ARTIST_MIX_DEFAULT_STYLE_GAIN",
         "kind": "static_from",
-        "line": 21,
+        "line": 22,
         "name": "ARTIST_MIX_DEFAULT_STYLE_GAIN",
         "optional": false,
         "requested": ".artist_mix",
@@ -28227,7 +28314,7 @@
         "conditional": false,
         "imported": ".artist_mix:ARTIST_MIX_MODE_OFF",
         "kind": "static_from",
-        "line": 21,
+        "line": 22,
         "name": "ARTIST_MIX_MODE_OFF",
         "optional": false,
         "requested": ".artist_mix",
@@ -28245,7 +28332,7 @@
         "conditional": false,
         "imported": ".artist_mix:ARTIST_MIX_MODE_PROMPT",
         "kind": "static_from",
-        "line": 21,
+        "line": 22,
         "name": "ARTIST_MIX_MODE_PROMPT",
         "optional": false,
         "requested": ".artist_mix",
@@ -28263,7 +28350,7 @@
         "conditional": false,
         "imported": ".artist_mix:_artist_mix_inline_prompt",
         "kind": "static_from",
-        "line": 21,
+        "line": 22,
         "name": "_artist_mix_inline_prompt",
         "optional": false,
         "requested": ".artist_mix",
@@ -28281,7 +28368,7 @@
         "conditional": false,
         "imported": ".artist_mix:_artist_tags_from_prompt",
         "kind": "static_from",
-        "line": 21,
+        "line": 22,
         "name": "_artist_tags_from_prompt",
         "optional": false,
         "requested": ".artist_mix",
@@ -28299,7 +28386,7 @@
         "conditional": false,
         "imported": ".artist_mix:_bounded_artist_mix_float",
         "kind": "static_from",
-        "line": 21,
+        "line": 22,
         "name": "_bounded_artist_mix_float",
         "optional": false,
         "requested": ".artist_mix",
@@ -28317,7 +28404,7 @@
         "conditional": false,
         "imported": ".artist_mix:_bounded_artist_mix_int",
         "kind": "static_from",
-        "line": 21,
+        "line": 22,
         "name": "_bounded_artist_mix_int",
         "optional": false,
         "requested": ".artist_mix",
@@ -28335,7 +28422,7 @@
         "conditional": false,
         "imported": ".artist_mix:_join_artist_mix_source_prompts",
         "kind": "static_from",
-        "line": 21,
+        "line": 22,
         "name": "_join_artist_mix_source_prompts",
         "optional": false,
         "requested": ".artist_mix",
@@ -28353,7 +28440,7 @@
         "conditional": false,
         "imported": ".artist_mix:_normalize_artist_mix_mode",
         "kind": "static_from",
-        "line": 21,
+        "line": 22,
         "name": "_normalize_artist_mix_mode",
         "optional": false,
         "requested": ".artist_mix",
@@ -28371,7 +28458,7 @@
         "conditional": false,
         "imported": ".artist_mix:_parse_artist_mix_items",
         "kind": "static_from",
-        "line": 21,
+        "line": 22,
         "name": "_parse_artist_mix_items",
         "optional": false,
         "requested": ".artist_mix",
@@ -28389,7 +28476,7 @@
         "conditional": false,
         "imported": ".correction:_translate_prompt_text",
         "kind": "static_from",
-        "line": 40,
+        "line": 41,
         "name": "_translate_prompt_text",
         "optional": false,
         "requested": ".correction",
@@ -28400,6 +28487,42 @@
       },
       {
         "alias": null,
+        "bound_name": "AdvancedField",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".contracts:AdvancedField",
+        "kind": "static_from",
+        "line": 42,
+        "name": "AdvancedField",
+        "optional": false,
+        "requested": ".contracts",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/prompt/advanced.py",
+        "target": "easyuse_anima/prompt/contracts.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "PromptField",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".contracts:PromptField",
+        "kind": "static_from",
+        "line": 42,
+        "name": "PromptField",
+        "optional": false,
+        "requested": ".contracts",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/prompt/advanced.py",
+        "target": "easyuse_anima/prompt/contracts.py"
+      },
+      {
+        "alias": null,
         "bound_name": "PROMPT_DATA_SCHEMA",
         "branch_context": [],
         "classification": "internal",
@@ -28407,7 +28530,7 @@
         "conditional": false,
         "imported": ".data:PROMPT_DATA_SCHEMA",
         "kind": "static_from",
-        "line": 41,
+        "line": 43,
         "name": "PROMPT_DATA_SCHEMA",
         "optional": false,
         "requested": ".data",
@@ -28425,7 +28548,7 @@
         "conditional": false,
         "imported": ".data:PROMPT_DATA_TYPE",
         "kind": "static_from",
-        "line": 41,
+        "line": 43,
         "name": "PROMPT_DATA_TYPE",
         "optional": false,
         "requested": ".data",
@@ -28443,7 +28566,7 @@
         "conditional": false,
         "imported": ".data:PROMPT_DATA_VERSION",
         "kind": "static_from",
-        "line": 41,
+        "line": 43,
         "name": "PROMPT_DATA_VERSION",
         "optional": false,
         "requested": ".data",
@@ -28461,7 +28584,7 @@
         "conditional": false,
         "imported": ".fields:DEFAULT_QUALITY_TAGS",
         "kind": "static_from",
-        "line": 42,
+        "line": 44,
         "name": "DEFAULT_QUALITY_TAGS",
         "optional": false,
         "requested": ".fields",
@@ -28479,7 +28602,7 @@
         "conditional": false,
         "imported": ".fields:DEFAULT_TRAILING_QUALITY_TAGS",
         "kind": "static_from",
-        "line": 42,
+        "line": 44,
         "name": "DEFAULT_TRAILING_QUALITY_TAGS",
         "optional": false,
         "requested": ".fields",
@@ -28497,7 +28620,7 @@
         "conditional": false,
         "imported": ".fields:_correct_builder_prompt",
         "kind": "static_from",
-        "line": 42,
+        "line": 44,
         "name": "_correct_builder_prompt",
         "optional": false,
         "requested": ".fields",
@@ -28515,7 +28638,7 @@
         "conditional": false,
         "imported": ".fields:_filter_metadata_prompt",
         "kind": "static_from",
-        "line": 42,
+        "line": 44,
         "name": "_filter_metadata_prompt",
         "optional": false,
         "requested": ".fields",
@@ -28533,7 +28656,7 @@
         "conditional": false,
         "imported": ".fields:_join_prompt_tokens",
         "kind": "static_from",
-        "line": 42,
+        "line": 44,
         "name": "_join_prompt_tokens",
         "optional": false,
         "requested": ".fields",
@@ -29443,6 +29566,24 @@
       },
       {
         "alias": null,
+        "bound_name": "AdvancedField",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".contracts:AdvancedField",
+        "kind": "static_from",
+        "line": 10,
+        "name": "AdvancedField",
+        "optional": false,
+        "requested": ".contracts",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/prompt/artist_mix.py",
+        "target": "easyuse_anima/prompt/contracts.py"
+      },
+      {
+        "alias": null,
         "bound_name": "_normalize_prompt_data",
         "branch_context": [],
         "classification": "internal",
@@ -29450,7 +29591,7 @@
         "conditional": false,
         "imported": ".data:_normalize_prompt_data",
         "kind": "static_from",
-        "line": 10,
+        "line": 11,
         "name": "_normalize_prompt_data",
         "optional": false,
         "requested": ".data",
@@ -29468,7 +29609,7 @@
         "conditional": false,
         "imported": ".data:_prompt_data_nested",
         "kind": "static_from",
-        "line": 10,
+        "line": 11,
         "name": "_prompt_data_nested",
         "optional": false,
         "requested": ".data",
@@ -29486,7 +29627,7 @@
         "conditional": false,
         "imported": ".data:_prompt_data_output",
         "kind": "static_from",
-        "line": 10,
+        "line": 11,
         "name": "_prompt_data_output",
         "optional": false,
         "requested": ".data",
@@ -29504,7 +29645,7 @@
         "conditional": false,
         "imported": ".fields:_correct_builder_prompt",
         "kind": "static_from",
-        "line": 11,
+        "line": 12,
         "name": "_correct_builder_prompt",
         "optional": false,
         "requested": ".fields",
@@ -29522,7 +29663,7 @@
         "conditional": false,
         "imported": ".fields:_join_prompt_tokens",
         "kind": "static_from",
-        "line": 11,
+        "line": 12,
         "name": "_join_prompt_tokens",
         "optional": false,
         "requested": ".fields",
@@ -29540,7 +29681,7 @@
         "conditional": false,
         "imported": ".advanced:_advanced_enabled_pane_fields",
         "kind": "static_from",
-        "line": 126,
+        "line": 127,
         "name": "_advanced_enabled_pane_fields",
         "optional": false,
         "requested": ".advanced",
@@ -29558,7 +29699,7 @@
         "conditional": false,
         "imported": ".advanced:_advanced_prompt_with_artist_override",
         "kind": "static_from",
-        "line": 132,
+        "line": 133,
         "name": "_advanced_prompt_with_artist_override",
         "optional": false,
         "requested": ".advanced",
@@ -29576,7 +29717,7 @@
         "conditional": false,
         "imported": ".advanced:_normalize_advanced_fields",
         "kind": "static_from",
-        "line": 138,
+        "line": 139,
         "name": "_normalize_advanced_fields",
         "optional": false,
         "requested": ".advanced",
@@ -29594,7 +29735,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 408
+            "line": 409
           }
         ],
         "classification": "external",
@@ -29602,7 +29743,7 @@
         "conditional": true,
         "imported": "torch",
         "kind": "static_import",
-        "line": 409,
+        "line": 410,
         "name": null,
         "optional": true,
         "requested": "torch",
@@ -29619,7 +29760,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 424
+            "line": 425
           }
         ],
         "classification": "external",
@@ -29627,7 +29768,7 @@
         "conditional": true,
         "imported": "torch",
         "kind": "static_import",
-        "line": 425,
+        "line": 426,
         "name": null,
         "optional": true,
         "requested": "torch",
@@ -29644,7 +29785,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 444
+            "line": 445
           }
         ],
         "classification": "external",
@@ -29652,7 +29793,7 @@
         "conditional": true,
         "imported": "torch",
         "kind": "static_import",
-        "line": 445,
+        "line": 446,
         "name": null,
         "optional": true,
         "requested": "torch",
@@ -29669,7 +29810,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 519
+            "line": 520
           }
         ],
         "classification": "external",
@@ -29677,7 +29818,7 @@
         "conditional": true,
         "imported": "torch",
         "kind": "static_import",
-        "line": 520,
+        "line": 521,
         "name": null,
         "optional": true,
         "requested": "torch",
@@ -29694,7 +29835,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 1108
+            "line": 1109
           }
         ],
         "classification": "external",
@@ -29702,7 +29843,7 @@
         "conditional": true,
         "imported": "torch",
         "kind": "static_import",
-        "line": 1109,
+        "line": 1110,
         "name": null,
         "optional": true,
         "requested": "torch",
@@ -29796,6 +29937,23 @@
         "scope": "<module>",
         "source": "easyuse_anima/prompt/conditioning.py",
         "target": "easyuse_anima/infrastructure/comfy/wiring.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "TypedDict",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "typing:TypedDict",
+        "kind": "static_from",
+        "line": 3,
+        "name": "TypedDict",
+        "optional": false,
+        "requested": "typing",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/prompt/contracts.py"
       },
       {
         "alias": null,
@@ -30113,6 +30271,23 @@
       },
       {
         "alias": null,
+        "bound_name": "cast",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "typing:cast",
+        "kind": "static_from",
+        "line": 7,
+        "name": "cast",
+        "optional": false,
+        "requested": "typing",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/prompt/regional.py"
+      },
+      {
+        "alias": null,
         "bound_name": "_as_bool",
         "branch_context": [],
         "classification": "internal",
@@ -30293,6 +30468,24 @@
       },
       {
         "alias": null,
+        "bound_name": "RegionalField",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".contracts:RegionalField",
+        "kind": "static_from",
+        "line": 18,
+        "name": "RegionalField",
+        "optional": false,
+        "requested": ".contracts",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/prompt/regional.py",
+        "target": "easyuse_anima/prompt/contracts.py"
+      },
+      {
+        "alias": null,
         "bound_name": "resolve_metadata_filter_words",
         "branch_context": [],
         "classification": "internal",
@@ -30300,7 +30493,7 @@
         "conditional": false,
         "imported": "..settings.service:resolve_metadata_filter_words",
         "kind": "static_from",
-        "line": 18,
+        "line": 19,
         "name": "resolve_metadata_filter_words",
         "optional": false,
         "requested": "..settings.service",
@@ -30318,7 +30511,7 @@
         "conditional": false,
         "imported": ".fields:_filter_metadata_prompt",
         "kind": "static_from",
-        "line": 19,
+        "line": 20,
         "name": "_filter_metadata_prompt",
         "optional": false,
         "requested": ".fields",
@@ -30336,7 +30529,7 @@
         "conditional": false,
         "imported": ".fields:_join_prompt_tokens",
         "kind": "static_from",
-        "line": 19,
+        "line": 20,
         "name": "_join_prompt_tokens",
         "optional": false,
         "requested": ".fields",
@@ -30354,7 +30547,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 475
+            "line": 479
           }
         ],
         "classification": "external",
@@ -30362,7 +30555,7 @@
         "conditional": true,
         "imported": "torch",
         "kind": "static_import",
-        "line": 476,
+        "line": 480,
         "name": null,
         "optional": true,
         "requested": "torch",
@@ -30379,7 +30572,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 513
+            "line": 517
           }
         ],
         "classification": "external",
@@ -30387,7 +30580,7 @@
         "conditional": true,
         "imported": "torch",
         "kind": "static_import",
-        "line": 514,
+        "line": 518,
         "name": null,
         "optional": true,
         "requested": "torch",
@@ -66212,6 +66405,10 @@
       },
       {
         "from": "easyuse_anima/aio/conditioning.py",
+        "to": "easyuse_anima/prompt/contracts.py"
+      },
+      {
+        "from": "easyuse_anima/aio/conditioning.py",
         "to": "easyuse_anima/prompt/data.py"
       },
       {
@@ -67100,6 +67297,10 @@
       },
       {
         "from": "easyuse_anima/nodes/prompt_advanced_nodes.py",
+        "to": "easyuse_anima/prompt/contracts.py"
+      },
+      {
+        "from": "easyuse_anima/nodes/prompt_advanced_nodes.py",
         "to": "easyuse_anima/prompt/correction.py"
       },
       {
@@ -67384,6 +67585,10 @@
       },
       {
         "from": "easyuse_anima/prompt/advanced.py",
+        "to": "easyuse_anima/prompt/contracts.py"
+      },
+      {
+        "from": "easyuse_anima/prompt/advanced.py",
         "to": "easyuse_anima/prompt/correction.py"
       },
       {
@@ -67492,6 +67697,10 @@
       },
       {
         "from": "easyuse_anima/prompt/artist_mix.py",
+        "to": "easyuse_anima/prompt/contracts.py"
+      },
+      {
+        "from": "easyuse_anima/prompt/artist_mix.py",
         "to": "easyuse_anima/prompt/data.py"
       },
       {
@@ -67541,6 +67750,10 @@
       {
         "from": "easyuse_anima/prompt/regional.py",
         "to": "easyuse_anima/prompt/advanced.py"
+      },
+      {
+        "from": "easyuse_anima/prompt/regional.py",
+        "to": "easyuse_anima/prompt/contracts.py"
       },
       {
         "from": "easyuse_anima/prompt/regional.py",
@@ -68900,6 +69113,12 @@
       {
         "cyclic": false,
         "modules": [
+          "easyuse_anima/prompt/contracts.py"
+        ]
+      },
+      {
+        "cyclic": false,
+        "modules": [
           "easyuse_anima/prompt/correction.py"
         ]
       },
@@ -69146,7 +69365,7 @@
     ]
   },
   "inventory": {
-    "module_count": 174,
+    "module_count": 175,
     "modules": [
       {
         "is_package": true,
@@ -69318,9 +69537,9 @@
       },
       {
         "is_package": false,
-        "loc": 127,
+        "loc": 130,
         "module": "easyuse_anima.aio.conditioning",
-        "normalized_git_blob_sha1": "37ab4f25419f9a1cb0b0c56a6d377518e3c87772",
+        "normalized_git_blob_sha1": "406bddfe59ffd24e6aca9148b9b62668236c4a85",
         "path": "easyuse_anima/aio/conditioning.py",
         "top_level": {
           "class_count": 0,
@@ -70458,9 +70677,9 @@
       },
       {
         "is_package": false,
-        "loc": 1201,
+        "loc": 1205,
         "module": "easyuse_anima.nodes.prompt_advanced_nodes",
-        "normalized_git_blob_sha1": "8beec122ad15ff6b02ecc2f5a7303950ec048df3",
+        "normalized_git_blob_sha1": "118b36d1c647e5a6264181258ad29eac7c784fbc",
         "path": "easyuse_anima/nodes/prompt_advanced_nodes.py",
         "top_level": {
           "class_count": 3,
@@ -70626,14 +70845,14 @@
       },
       {
         "is_package": false,
-        "loc": 863,
+        "loc": 879,
         "module": "easyuse_anima.prompt.advanced",
-        "normalized_git_blob_sha1": "c6451c3536951b3d09d264413fabf3396229ccd7",
+        "normalized_git_blob_sha1": "6adfa4eafa7d6041f1ceb96f144a7408fc35fa10",
         "path": "easyuse_anima/prompt/advanced.py",
         "top_level": {
           "class_count": 0,
           "function_count": 25,
-          "global_count": 17
+          "global_count": 18
         }
       },
       {
@@ -70722,9 +70941,9 @@
       },
       {
         "is_package": false,
-        "loc": 1496,
+        "loc": 1497,
         "module": "easyuse_anima.prompt.artist_mix",
-        "normalized_git_blob_sha1": "4b87698d8c7f87066e2533e924ef7f706c2fa86c",
+        "normalized_git_blob_sha1": "fbf1843e72604fb88a72a618aa11687bc4c424cc",
         "path": "easyuse_anima/prompt/artist_mix.py",
         "top_level": {
           "class_count": 0,
@@ -70742,6 +70961,18 @@
           "class_count": 0,
           "function_count": 8,
           "global_count": 9
+        }
+      },
+      {
+        "is_package": false,
+        "loc": 35,
+        "module": "easyuse_anima.prompt.contracts",
+        "normalized_git_blob_sha1": "e18777bb7141370dffacbbdd738fa25074374c9c",
+        "path": "easyuse_anima/prompt/contracts.py",
+        "top_level": {
+          "class_count": 4,
+          "function_count": 0,
+          "global_count": 1
         }
       },
       {
@@ -70782,9 +71013,9 @@
       },
       {
         "is_package": false,
-        "loc": 552,
+        "loc": 556,
         "module": "easyuse_anima.prompt.regional",
-        "normalized_git_blob_sha1": "bc7cdc829f1f0f31f3ad0388b0a61e1997727973",
+        "normalized_git_blob_sha1": "de5c3c9795cfa37813d52af7b9249120458f364d",
         "path": "easyuse_anima/prompt/regional.py",
         "top_level": {
           "class_count": 0,
@@ -88868,9 +89099,42 @@
         "branch_context": [],
         "classification": "external",
         "conditional": false,
-        "imported": "typing:Any",
+        "imported": "collections.abc:Sequence",
         "kind": "static_from",
         "line": 7,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/prompt/advanced.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "typing:Any",
+        "kind": "static_from",
+        "line": 8,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/prompt/advanced.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "typing:TypeVar",
+        "kind": "static_from",
+        "line": 8,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/prompt/advanced.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "typing:cast",
+        "kind": "static_from",
+        "line": 8,
         "optional": false,
         "role": "ordinary",
         "source": "easyuse_anima/prompt/advanced.py"
@@ -89091,14 +89355,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 408
+            "line": 409
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "torch",
         "kind": "static_import",
-        "line": 409,
+        "line": 410,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/prompt/artist_mix.py"
@@ -89110,14 +89374,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 424
+            "line": 425
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "torch",
         "kind": "static_import",
-        "line": 425,
+        "line": 426,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/prompt/artist_mix.py"
@@ -89129,14 +89393,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 444
+            "line": 445
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "torch",
         "kind": "static_import",
-        "line": 445,
+        "line": 446,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/prompt/artist_mix.py"
@@ -89148,14 +89412,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 519
+            "line": 520
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "torch",
         "kind": "static_import",
-        "line": 520,
+        "line": 521,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/prompt/artist_mix.py"
@@ -89167,14 +89431,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 1108
+            "line": 1109
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "torch",
         "kind": "static_import",
-        "line": 1109,
+        "line": 1110,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/prompt/artist_mix.py"
@@ -89211,6 +89475,17 @@
         "optional": false,
         "role": "ordinary",
         "source": "easyuse_anima/prompt/conditioning.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "typing:TypedDict",
+        "kind": "static_from",
+        "line": 3,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/prompt/contracts.py"
       },
       {
         "branch_context": [],
@@ -89323,20 +89598,31 @@
         "source": "easyuse_anima/prompt/regional.py"
       },
       {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "typing:cast",
+        "kind": "static_from",
+        "line": 7,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/prompt/regional.py"
+      },
+      {
         "branch_context": [
           {
             "branch": "body",
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 475
+            "line": 479
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "torch",
         "kind": "static_import",
-        "line": 476,
+        "line": 480,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/prompt/regional.py"
@@ -89348,14 +89634,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 513
+            "line": 517
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "torch",
         "kind": "static_import",
-        "line": 514,
+        "line": 518,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/prompt/regional.py"
@@ -91632,14 +91918,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 408
+            "line": 409
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "torch",
         "kind": "static_import",
-        "line": 409,
+        "line": 410,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/prompt/artist_mix.py"
@@ -91651,14 +91937,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 424
+            "line": 425
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "torch",
         "kind": "static_import",
-        "line": 425,
+        "line": 426,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/prompt/artist_mix.py"
@@ -91670,14 +91956,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 444
+            "line": 445
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "torch",
         "kind": "static_import",
-        "line": 445,
+        "line": 446,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/prompt/artist_mix.py"
@@ -91689,14 +91975,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 519
+            "line": 520
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "torch",
         "kind": "static_import",
-        "line": 520,
+        "line": 521,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/prompt/artist_mix.py"
@@ -91708,14 +91994,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 1108
+            "line": 1109
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "torch",
         "kind": "static_import",
-        "line": 1109,
+        "line": 1110,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/prompt/artist_mix.py"
@@ -91727,14 +92013,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 475
+            "line": 479
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "torch",
         "kind": "static_import",
-        "line": 476,
+        "line": 480,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/prompt/regional.py"
@@ -91746,14 +92032,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 513
+            "line": 517
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "torch",
         "kind": "static_import",
-        "line": 514,
+        "line": 518,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/prompt/regional.py"
@@ -91970,6 +92256,7 @@
       "easyuse_anima/prompt/anima/parser.py",
       "easyuse_anima/prompt/artist_mix.py",
       "easyuse_anima/prompt/conditioning.py",
+      "easyuse_anima/prompt/contracts.py",
       "easyuse_anima/prompt/correction.py",
       "easyuse_anima/prompt/data.py",
       "easyuse_anima/prompt/fields.py",
@@ -92146,6 +92433,7 @@
       "easyuse_anima/prompt/anima/parser.py",
       "easyuse_anima/prompt/artist_mix.py",
       "easyuse_anima/prompt/conditioning.py",
+      "easyuse_anima/prompt/contracts.py",
       "easyuse_anima/prompt/correction.py",
       "easyuse_anima/prompt/data.py",
       "easyuse_anima/prompt/fields.py",
@@ -93647,7 +93935,16 @@
         "column": 28,
         "context": "assign:_ADVANCED_FIELD_SOCKET_RE",
         "kind": "import_time_call",
-        "line": 131,
+        "line": 133,
+        "module": "easyuse_anima/prompt/advanced.py",
+        "scope": "<module>"
+      },
+      {
+        "callee": "TypeVar",
+        "column": 16,
+        "context": "assign:_PromptFieldT",
+        "kind": "import_time_call",
+        "line": 134,
         "module": "easyuse_anima/prompt/advanced.py",
         "scope": "<module>"
       },
@@ -93800,7 +94097,7 @@
         "column": 22,
         "context": "assign:_WEIGHTED_ARTIST_RE",
         "kind": "import_time_call",
-        "line": 103,
+        "line": 104,
         "module": "easyuse_anima/prompt/artist_mix.py",
         "scope": "<module>"
       },
@@ -93809,7 +94106,7 @@
         "column": 19,
         "context": "assign:_ARTIST_GROUP_RE",
         "kind": "import_time_call",
-        "line": 106,
+        "line": 107,
         "module": "easyuse_anima/prompt/artist_mix.py",
         "scope": "<module>"
       },
@@ -93818,7 +94115,7 @@
         "column": 24,
         "context": "assign:_SECTION_SEPARATOR_RE",
         "kind": "import_time_call",
-        "line": 110,
+        "line": 111,
         "module": "easyuse_anima/prompt/artist_mix.py",
         "scope": "<module>"
       },
@@ -94416,37 +94713,37 @@
       },
       {
         "kind": "dict",
-        "line": 52,
+        "line": 54,
         "module": "easyuse_anima/prompt/advanced.py",
         "name": "ADVANCED_FIELD_LABELS"
       },
       {
         "kind": "set",
-        "line": 51,
+        "line": 53,
         "module": "easyuse_anima/prompt/advanced.py",
         "name": "ADVANCED_FIELD_PANES"
       },
       {
         "kind": "set",
-        "line": 50,
+        "line": 52,
         "module": "easyuse_anima/prompt/advanced.py",
         "name": "ADVANCED_FIELD_TYPES"
       },
       {
         "kind": "list",
-        "line": 81,
+        "line": 83,
         "module": "easyuse_anima/prompt/advanced.py",
         "name": "EXTEND_PROMPT_SLOT_SPECS"
       },
       {
         "kind": "set",
-        "line": 75,
+        "line": 77,
         "module": "easyuse_anima/prompt/advanced.py",
         "name": "PROMPT_STUDIO_LEGACY_FIXED_WILDCARD_MODES"
       },
       {
         "kind": "dict",
-        "line": 65,
+        "line": 67,
         "module": "easyuse_anima/prompt/advanced.py",
         "name": "PROMPT_STUDIO_WILDCARD_SEED_CONTROL_ALIASES"
       },
@@ -94470,7 +94767,7 @@
       },
       {
         "kind": "dict",
-        "line": 74,
+        "line": 75,
         "module": "easyuse_anima/prompt/artist_mix.py",
         "name": "ARTIST_MIX_MODE_DESCRIPTIONS"
       },
@@ -94482,19 +94779,19 @@
       },
       {
         "kind": "dict",
-        "line": 31,
+        "line": 32,
         "module": "easyuse_anima/prompt/regional.py",
         "name": "ADVANCED_FIELD_LABELS"
       },
       {
         "kind": "set",
-        "line": 30,
+        "line": 31,
         "module": "easyuse_anima/prompt/regional.py",
         "name": "ADVANCED_FIELD_PANES"
       },
       {
         "kind": "set",
-        "line": 24,
+        "line": 25,
         "module": "easyuse_anima/prompt/regional.py",
         "name": "REGIONAL_FIELD_TYPES"
       },

@@ -62,6 +62,7 @@ from ..prompt.correction import (
     _translate_prompt_text,
 )
 from ..prompt.data import PROMPT_DATA_TYPE, _prompt_data_parameter_snapshot
+from ..prompt.contracts import AdvancedField
 from ..seed.compatibility import _scrub_reserved_wildcard_next_seed
 from ..settings.service import (
     resolve_metadata_filter_words,
@@ -1106,7 +1107,10 @@ class EasyUseAnimaPromptStudioExtend:
         return {str(name) for name in parsed if str(name) in valid_names}
 
     @staticmethod
-    def _fields_from_slots(values: dict[str, str], active_slots: Any = None) -> list[dict]:
+    def _fields_from_slots(
+        values: dict[str, str],
+        active_slots: Any = None,
+    ) -> list[AdvancedField]:
         active_slot_names = EasyUseAnimaPromptStudioExtend._active_slot_set(active_slots)
         fields = []
         for name, pane, field_type, label, _default, height in EXTEND_PROMPT_SLOT_SPECS:

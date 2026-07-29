@@ -1,14 +1,22 @@
 from __future__ import annotations
 
 import unittest
+from typing import get_type_hints
 from unittest.mock import Mock, patch
 
 import nodes
 from easyuse_anima.aio import conditioning
+from easyuse_anima.prompt.contracts import AdvancedField
 from tests.comfy_host_fakes import patch_comfy_helper
 
 
 class AIOConditioningMoveTests(unittest.TestCase):
+    def test_prompt_data_fields_use_canonical_advanced_field_contract(self):
+        self.assertEqual(
+            get_type_hints(conditioning._aio_prompt_data_fields_for_usdu)["return"],
+            list[AdvancedField],
+        )
+
     def test_root_symbols_are_direct_canonical_aliases(self):
         for name in (
             "_aio_prompt_data_fields_for_usdu",

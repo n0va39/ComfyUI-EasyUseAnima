@@ -4,7 +4,8 @@ from __future__ import annotations
 
 import json
 import re
-from typing import Any
+from collections.abc import Sequence
+from typing import Any, TypeVar, cast
 
 from ..common.values import _as_bool, _as_int, _single_value
 from ..naia.resolution import (
@@ -38,6 +39,7 @@ from .artist_mix import (
     _parse_artist_mix_items,
 )
 from .correction import _translate_prompt_text
+from .contracts import AdvancedField, PromptField
 from .data import PROMPT_DATA_SCHEMA, PROMPT_DATA_TYPE, PROMPT_DATA_VERSION
 from .fields import (
     DEFAULT_QUALITY_TAGS,
@@ -129,6 +131,7 @@ PROMPT_STUDIO_ADVANCED_RETURN_NAMES = (
 
 _ADVANCED_FIELD_SOCKET_PREFIX = "field_"
 _ADVANCED_FIELD_SOCKET_RE = re.compile(r"[^A-Za-z0-9_]")
+_PromptFieldT = TypeVar("_PromptFieldT", bound=PromptField)
 
 
 def _normalize_prompt_studio_wildcard_seed_control(
@@ -144,10 +147,10 @@ def _normalize_prompt_studio_wildcard_seed_control(
     )
 
 
-def _translate_prompt_fields(fields: list[dict]) -> list[dict]:
-    translated: list[dict] = []
+def _translate_prompt_fields(fields: list[_PromptFieldT]) -> list[_PromptFieldT]:
+    translated: list[_PromptFieldT] = []
     for field in fields:
-        item = dict(field)
+        item = cast(_PromptFieldT, dict(field))
         text = str(item.get("text") or "")
         if text and has_prompt_translation_markers(text):
             item["text"] = _translate_prompt_text(text)
@@ -155,7 +158,7 @@ def _translate_prompt_fields(fields: list[dict]) -> list[dict]:
     return translated
 
 
-def _advanced_default_fields() -> list[dict]:
+def _advanced_default_fields() -> list[AdvancedField]:
     return [
         {
             "id": "positive_quality",
@@ -215,7 +218,7 @@ def _advanced_default_fields() -> list[dict]:
     ]
 
 
-def _advanced_fields_json(fields: list[dict] | None = None) -> str:
+def _advanced_fields_json(fields: list[AdvancedField] | None = None) -> str:
     return json.dumps(
         fields if fields is not None else _advanced_default_fields(),
         ensure_ascii=False,
@@ -227,7 +230,7 @@ def _as_advanced_height(value, default: int = 72) -> int:
     return max(36, _as_int(value, default))
 
 
-def _normalize_advanced_fields(value: str | list | None) -> list[dict]:
+def _normalize_advanced_fields(value: str | list | None) -> list[AdvancedField]:
     raw = value
     if isinstance(value, str):
         try:
@@ -239,7 +242,7 @@ def _normalize_advanced_fields(value: str | list | None) -> list[dict]:
     if not raw:
         raw = _advanced_default_fields()
 
-    fields: list[dict] = []
+    fields: list[AdvancedField] = []
     seen_naia_panes: set[str] = set()
     seen_trigger = False
     for index, item in enumerate(raw):
@@ -286,11 +289,11 @@ def _normalize_advanced_fields(value: str | list | None) -> list[dict]:
     return fields or _advanced_default_fields()
 
 
-def _clone_advanced_fields(fields: list[dict]) -> list[dict]:
-    return [dict(field) for field in fields]
+def _clone_advanced_fields(fields: list[AdvancedField]) -> list[AdvancedField]:
+    return [cast(AdvancedField, dict(field)) for field in fields]
 
 
-def _advanced_field_socket_name(field: dict) -> str:
+def _advanced_field_socket_name(field: PromptField) -> str:
     raw = _ADVANCED_FIELD_SOCKET_RE.sub(
         "_",
         str(field.get("id") or "field"),
@@ -310,7 +313,10 @@ def _advanced_field_input_values(field_inputs: dict) -> dict[str, str]:
     return values
 
 
-def _apply_advanced_field_inputs(fields: list[dict], field_inputs: dict) -> list[dict]:
+def _apply_advanced_field_inputs(
+    fields: list[AdvancedField],
+    field_inputs: dict,
+) -> list[AdvancedField]:
     values = _advanced_field_input_values(field_inputs)
     if not values:
         return _clone_advanced_fields(fields)
@@ -323,7 +329,7 @@ def _apply_advanced_field_inputs(fields: list[dict], field_inputs: dict) -> list
     return effective
 
 
-def _advanced_enabled_naia_panes(fields: list[dict]) -> set[str]:
+def _advanced_enabled_naia_panes(fields: list[AdvancedField]) -> set[str]:
     return {
         str(field.get("pane") or "positive")
         for field in fields
@@ -331,7 +337,7 @@ def _advanced_enabled_naia_panes(fields: list[dict]) -> set[str]:
     }
 
 
-def _advanced_has_enabled_naia(fields: list[dict]) -> bool:
+def _advanced_has_enabled_naia(fields: list[AdvancedField]) -> bool:
     return bool(_advanced_enabled_naia_panes(fields))
 
 
@@ -339,7 +345,11 @@ def _advanced_uses_naia_resolution(bucket) -> bool:
     return _normalize_resolution_bucket(bucket) == NAIA_ADVANCED_RESOLUTION_BUCKET
 
 
-def _set_naia_field_text(fields: list[dict], pane: str, prompt: str) -> list[dict]:
+def _set_naia_field_text(
+    fields: list[AdvancedField],
+    pane: str,
+    prompt: str,
+) -> list[AdvancedField]:
     normalized = _normalize_advanced_fields(fields)
     for field in normalized:
         if field["pane"] == pane and field["type"] == "naia":
@@ -350,7 +360,7 @@ def _set_naia_field_text(fields: list[dict], pane: str, prompt: str) -> list[dic
 
 
 def _advanced_naia_field_updates(
-    fields: list[dict],
+    fields: list[AdvancedField],
     prompts_by_pane: dict[str, str],
 ) -> dict[str, str]:
     updates: dict[str, str] = {}
@@ -367,7 +377,10 @@ def _advanced_naia_field_updates(
     return updates
 
 
-def _advanced_pane_parts(fields: list[dict], pane: str) -> dict[str, list[str]]:
+def _advanced_pane_parts(
+    fields: list[AdvancedField],
+    pane: str,
+) -> dict[str, list[str]]:
     parts = {
         "quality": [],
         "artist": [],
@@ -396,7 +409,10 @@ def _advanced_pane_parts(fields: list[dict], pane: str) -> dict[str, list[str]]:
     return parts
 
 
-def _advanced_enabled_pane_fields(fields: list[dict], pane: str) -> list[dict]:
+def _advanced_enabled_pane_fields(
+    fields: list[_PromptFieldT],
+    pane: str,
+) -> list[_PromptFieldT]:
     return [
         field
         for field in fields
@@ -405,7 +421,7 @@ def _advanced_enabled_pane_fields(fields: list[dict], pane: str) -> list[dict]:
 
 
 def _correct_advanced_field_sequence(
-    fields: list[dict],
+    fields: Sequence[PromptField],
     include_quality: bool,
     artist_overrides: str,
     force_pin_triggers: bool = False,
@@ -446,7 +462,7 @@ def _correct_advanced_field_sequence(
 
 
 def _build_advanced_prompts(
-    fields: list[dict],
+    fields: list[AdvancedField],
     use_anima_mod_guidance: bool,
     use_negative_anima_mod_guidance: bool,
     pin_trigger_tags_to_front: bool,
@@ -506,12 +522,12 @@ def _build_advanced_prompts(
 
 
 def _expand_advanced_wildcard_fields(
-    fields: list[dict],
+    fields: list[_PromptFieldT],
     seed: int,
     mode: str,
-) -> tuple[list[dict], dict[str, Any]]:
+) -> tuple[list[_PromptFieldT], dict[str, Any]]:
     mode_key = normalize_prompt_studio_wildcard_mode(mode)
-    expanded_fields = _clone_advanced_fields(fields)
+    expanded_fields = [cast(_PromptFieldT, dict(field)) for field in fields]
 
     wildcard_fields = []
     wildcard_texts = []
@@ -552,8 +568,8 @@ def _expand_advanced_wildcard_fields(
     }
 
 
-def _advanced_prompt_data_fields(fields: list[dict]) -> list[dict[str, Any]]:
-    output = []
+def _advanced_prompt_data_fields(fields: list[AdvancedField]) -> list[AdvancedField]:
+    output: list[AdvancedField] = []
     for field in fields:
         output.append(
             {
@@ -570,7 +586,7 @@ def _advanced_prompt_data_fields(fields: list[dict]) -> list[dict[str, Any]]:
     return output
 
 
-def _advanced_artist_field_prompt(fields: list[dict], pane: str) -> str:
+def _advanced_artist_field_prompt(fields: Sequence[PromptField], pane: str) -> str:
     # Artist data is sourced only from Advanced artist fields, not from @ tags in other fields.
     return _join_artist_mix_source_prompts(
         *(
@@ -584,21 +600,21 @@ def _advanced_artist_field_prompt(fields: list[dict], pane: str) -> str:
 
 
 def _advanced_fields_with_artist_override(
-    fields: list[dict],
+    fields: list[AdvancedField],
     artist_prompt: str,
-) -> list[dict]:
+) -> list[AdvancedField]:
     artist_text = _join_prompt_tokens(artist_prompt)
-    output: list[dict] = []
+    output: list[AdvancedField] = []
     inserted = False
     for field in fields:
         if field.get("type") == "artist":
             if artist_text and not inserted:
-                item = dict(field)
+                item = cast(AdvancedField, dict(field))
                 item["text"] = artist_text
                 output.append(item)
                 inserted = True
             continue
-        output.append(dict(field))
+        output.append(cast(AdvancedField, dict(field)))
 
     if artist_text and not inserted:
         insert_at = 0
@@ -622,7 +638,7 @@ def _advanced_fields_with_artist_override(
 
 
 def _advanced_prompt_with_artist_override(
-    fields: list[dict],
+    fields: list[AdvancedField],
     artist_prompt: str,
     include_quality: bool,
     force_pin_triggers: bool = False,
@@ -637,8 +653,8 @@ def _advanced_prompt_with_artist_override(
 
 def _build_advanced_prompt_data(
     compat_result: tuple,
-    effective_fields: list[dict],
-    saved_fields: list[dict],
+    effective_fields: list[AdvancedField],
+    saved_fields: list[AdvancedField],
     field_inputs: dict[str, str],
     resolution_bucket: str,
     resolution_size: str,

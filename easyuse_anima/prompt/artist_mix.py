@@ -7,6 +7,7 @@ from typing import Any
 
 from ..common.values import _as_bool, _as_float, _as_int
 from ..infrastructure.comfy.wiring import resolve_comfy_host_helper
+from .contracts import AdvancedField
 from .data import _normalize_prompt_data, _prompt_data_nested, _prompt_data_output
 from .fields import _correct_builder_prompt, _join_prompt_tokens
 
@@ -665,7 +666,7 @@ def _conditionings_with_strength(conditioning, strength: float) -> list:
 def _mark_artist_mix_conditioning(conditioning, key: str) -> list:
     return _conditionings_with_values(conditioning, {key: True})
 
-def _prompt_data_positive_fields(data: dict[str, Any]) -> list[dict]:
+def _prompt_data_positive_fields(data: dict[str, Any]) -> list[AdvancedField]:
     fields = data.get("fields")
     if not isinstance(fields, list) or not fields:
         return []
