@@ -14,14 +14,12 @@ import types
 import unittest
 import uuid
 import weakref
-from itertools import count
 from pathlib import Path
 from unittest.mock import Mock, patch
 
 from tests.api_test_support import replace_sys_modules
 
 ROOT = Path(__file__).resolve().parents[1]
-_LOAD_COUNTER = count()
 
 
 class RouteRegistry:
@@ -99,7 +97,7 @@ class JsonRequest:
 
 
 def load_api_routes(*, register=True, routes=None):
-    package_name = f"easyuse_anima_api_contract_test_package_{next(_LOAD_COUNTER)}"
+    package_name = f"easyuse_anima_api_contract_test_package_{uuid.uuid4().hex}"
     package = types.ModuleType(package_name)
     package.__path__ = [str(ROOT)]
     sys.modules[package_name] = package
@@ -636,6 +634,11 @@ class ApiIntegratedRouteCompositionContractTests(unittest.TestCase):
     ROOT_HELPER_IMPORTS = {
         (
             "easyuse_anima.bootstrap",
+            "_compose_api_application",
+            None,
+        ),
+        (
+            "easyuse_anima.bootstrap",
             "build_aio_torch_compile_route_handler",
             "_build_aio_torch_compile_route_handler",
         ),
@@ -777,9 +780,11 @@ class ApiIntegratedRouteCompositionContractTests(unittest.TestCase):
         self.assertEqual(root_helper_imports, self.ROOT_HELPER_IMPORTS)
 
         root_calls = self._named_calls(root_tree)
-        for _module, _name, alias in self.ROOT_HELPER_IMPORTS:
-            with self.subTest(root_helper=alias):
-                self.assertEqual(root_calls.count(alias), 1)
+        for _module, name, alias in self.ROOT_HELPER_IMPORTS:
+            binding = alias or name
+            with self.subTest(root_helper=binding):
+                expected_calls = 1 if binding == "_compose_api_application" else 0
+                self.assertEqual(root_calls.count(binding), expected_calls)
 
         factory_call_owners = {}
         helper_definitions = {
@@ -1047,8 +1052,8 @@ class ApiRequestCorrelationTests(unittest.TestCase):
 
         for error, status, code, message in cases:
             with self.subTest(code=code), patch.object(
-                api,
-                "_translate_prompt_for_route",
+                api._PROMPT_TRANSLATION_WORKER,
+                "execute",
                 side_effect=error,
             ):
                 response = asyncio.run(handler(JsonRequest({"text": "%{text}"})))
@@ -2697,6 +2702,7 @@ class ApiAutocompleteRouteTests(unittest.TestCase):
 
     def test_root_autocomplete_facades_keep_preinitialize_canonical_fallback(self):
         api, _routes = load_api_routes()
+        owner = sys.modules[api.resolve_autocomplete_source_path.__module__]
         unavailable = RuntimeError(
             "[EasyUseAnima] RuntimeServices has not been installed."
         )
@@ -2709,27 +2715,27 @@ class ApiAutocompleteRouteTests(unittest.TestCase):
                 side_effect=unavailable,
             ),
             patch.object(
-                api,
+                owner,
                 "_canonical_resolve_autocomplete_source_path",
                 return_value=("source", path),
             ) as resolve_source,
             patch.object(
-                api,
+                owner,
                 "_canonical_available_autocomplete_sources",
                 return_value=[{"key": "source"}],
             ) as available_sources,
             patch.object(
-                api,
+                owner,
                 "_canonical_autocomplete_status",
                 return_value={"count": 1},
             ) as status,
             patch.object(
-                api,
+                owner,
                 "_canonical_search_autocomplete",
                 return_value={"results": []},
             ) as search,
             patch.object(
-                api,
+                owner,
                 "_canonical_classify_prompt_text",
                 return_value={"tokens": []},
             ) as classify,
@@ -3316,7 +3322,7 @@ class ApiRequestContractTests(unittest.TestCase):
 
         with (
             patch.object(api.asyncio, "to_thread") as submit,
-            patch.object(api, "_translate_prompt_for_route") as translate,
+            patch.object(api._PROMPT_TRANSLATION_WORKER, "execute") as translate,
         ):
             for route in self.POST_ROUTES:
                 for request, code in cases:
@@ -3369,7 +3375,7 @@ class ApiRequestContractTests(unittest.TestCase):
 
         with (
             patch.object(api.asyncio, "to_thread") as submit,
-            patch.object(api, "_translate_prompt_for_route") as translate,
+            patch.object(api._PROMPT_TRANSLATION_WORKER, "execute") as translate,
         ):
             for route, payload, field in cases:
                 with self.subTest(route=route, field=field):

@@ -146,16 +146,17 @@
         }
       ],
       "construction": {
-        "at": "root api composition through one private bootstrap helper",
+        "at": "canonical API application composition through one private bootstrap helper",
         "factory": "build_translation_runtime",
         "factory_module": "easyuse_anima/api/routes/translation.py",
-        "invocation_module": "easyuse_anima/bootstrap.py",
-        "root_composition_helper": "build_translation_route_runtime"
+        "invocation_module": "easyuse_anima/api/application_compatibility.py",
+        "root_composition_helper": "_compose_api_application"
       },
-      "current_owner": "easyuse_anima.bootstrap composition exposed by api._PROMPT_TRANSLATION_WORKER",
+      "current_owner": "easyuse_anima.api.application.ApiApplication composed through easyuse_anima.bootstrap",
       "e01_entry": "root-translation-route-worker",
       "evidence": [
         "tests/test_api_contract.py",
+        "tests/test_python_api_application_lifecycle_contract.py",
         "tests/test_prompt_translation_api.py"
       ],
       "id": "route-executor",

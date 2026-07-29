@@ -21,12 +21,6 @@
   },
   "module_exceptions": [
     {
-      "path": "api.py",
-      "baseline_loc": 809,
-      "owner_issue": 593,
-      "decomposition_boundary": "Reduce the reviewed FC-03B root composition overage when FC-04B moves application construction into the canonical API application owner."
-    },
-    {
       "path": "easyuse_anima/aio/generation_normalization.py",
       "baseline_loc": 1115,
       "owner_issue": 188,

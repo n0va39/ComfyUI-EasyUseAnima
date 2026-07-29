@@ -11,10 +11,9 @@
 - Current completed lanes: Phase D, Phase E, Phase F, G-04/G-05/G-06, P-WC,
   P-API-01, G-CLOSE, and SEC-01 through SEC-05.
 - FC-01 audit base: `81e07c6c12c21f84ba0642c93d6655c8936b7c3b`.
-- Completed final-convergence lanes: FC-01, FC-02A through FC-02D, FC-03A and
-  FC-03B.
-- Current READY task after this Contract merges: FC-04B canonical API application
-  cohesive Move.
+- Completed final-convergence lanes: FC-01, FC-02A through FC-02D, FC-03A,
+  FC-03B, FC-04A and FC-04B.
+- Current READY task after this Move merges: FC-05 technical completion audit.
 
 This document supersedes the `no READY task` conclusion only for the initial backend
 architecture Definition of Done. It does not reopen completed Phase F/G or security
@@ -577,7 +576,7 @@ application identity with bootstrap-owned private outer composition and a root e
 binder. FC-03B removed the former patch-time conflict; eager canonical construction,
 root-direct factory ownership, bootstrap-owned application identity and continued root
 production composition each fail at least one frozen owner/import gate. No PRO trigger
-remains. FC-04B is the only next task after this Contract merges.
+remains. FC-04B implements that selected shape as one cohesive Move.
 
 ### FC-04B — Cohesive Move
 
@@ -609,6 +608,18 @@ Together with direct tests, analyzer/contract fixtures and docs.
 
 This is one rollback unit. Do not split executor/application identity and entrypoint
 wiring across separately deployable intermediate states.
+
+FC-04B completes this Move with three private canonical composition modules:
+`api/application.py` owns the publish-once immutable application identity,
+`api/application_compatibility.py` owns guarded compatibility parts, and
+`api/application_routes.py` owns explicit 21-handler wiring. Bootstrap has the sole
+private production composition call site, while root `api.py` binds exact aliases and
+publishes the selected route table. The three exact files are classified as
+`process-composition` path overrides in the blocking import contract; the surrounding
+`api` group remains an HTTP adapter. Root `api.py` is below 400 lines with its reviewed
+exception removed, all three application modules pass existing size/function limits,
+and the E-09 executor/cleanup identities remain unchanged. FC-05 is the only next task
+after the cohesive Move merges.
 
 ## 8. FC-05 — Technical completion audit
 

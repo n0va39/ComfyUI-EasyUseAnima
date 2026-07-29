@@ -26,7 +26,7 @@
       ]
     },
     {
-      "id": "root-api-call-time-seams",
+      "id": "root-api-runtime-adapter-aliases",
       "kind": "dynamic_callback",
       "module": "api.py",
       "symbols": [
@@ -374,8 +374,9 @@
       "module": "easyuse_anima/autocomplete/ports.py"
     },
     "root_adapter": {
-      "module": "api.py",
-      "resolver": "_runtime_autocomplete",
+      "builder": "_build_runtime_autocomplete_parts",
+      "module": "easyuse_anima/api/application_compatibility.py",
+      "resolver": "runtime_autocomplete",
       "runtime_family": "wildcard_autocomplete",
       "runtime_getter": "_read",
       "runtime_leaf": "get_runtime"

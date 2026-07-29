@@ -493,7 +493,8 @@ publish-once immutable application identity, bootstrap privately owns its outer
 composition before `initialize()`, and root `api.py` binds exact aliases. See
 [`python-api-fc04-application-lifecycle-contract.md`](python-api-fc04-application-lifecycle-contract.md).
 P-API-01's production-free RETAIN verdict remains historically correct for its pre-FC-03
-evidence, but no longer blocks the separately authorized FC-04B Move.
+evidence. FC-04B now implements the separately proven canonical application shape, so
+FC-05 owns the next integrated technical audit.
 
 ## 9. Future conflict guards
 

@@ -316,6 +316,9 @@ class CompletedPackageImportBoundaryTests(unittest.TestCase):
         self.assertEqual(
             [override["path"] for override in self.contract["path_role_overrides"]],
             [
+                "easyuse_anima/api/application.py",
+                "easyuse_anima/api/application_compatibility.py",
+                "easyuse_anima/api/application_routes.py",
                 "easyuse_anima/api/router.py",
                 "easyuse_anima/infrastructure/comfy/",
                 "easyuse_anima/registration.py",
