@@ -2,7 +2,7 @@
 
 ## Status and authority
 
-- Status: active independent maintenance lane after Phase F/G completion.
+- Status: complete independent maintenance lane after Phase F/G completion.
 - Owner: Issue #199.
 - SEC-01 host capability and threat-model Contract: complete with
   **TRUSTED_DEPLOYMENT_ONLY**; see
@@ -12,7 +12,8 @@
   [`security-admin-settings-sec02-response-contract.md`](security-admin-settings-sec02-response-contract.md).
 - SEC-03 narrow backend implementation: complete.
 - SEC-04 frontend migration: skipped because no frontend behavior changed.
-- First READY task: SEC-05 completion audit.
+- SEC-05 completion audit: complete with no follow-up.
+- First READY task: none.
 - Released baseline: 0.6.2.
 - This lane does not reopen Phase F/G, P-API-02, D-14, or Phase H.
 - Type: Security/Admin Contract first; no production behavior change before the
@@ -212,7 +213,7 @@ COMPLETE    SEC-01 threat model / capability owner / field classification
 COMPLETE    SEC-02 response-confidentiality Contract
 COMPLETE    SEC-03 narrow backend implementation
 SKIPPED     SEC-04 frontend settings migration; no UI behavior changed
-READY       SEC-05 security completion audit
+COMPLETE    SEC-05 security completion audit; no follow-up
 ```
 
 SEC-02 fixed one executable Contract for the two directly observed
@@ -375,7 +376,7 @@ later roadmap gate explicitly authorizes them.
 Reuse existing deterministic tests. Add no new fixture or test module.
 ```
 
-## 10. SEC-05 task card and Codex resume instruction
+## 10. Completed SEC-05 task card
 
 ```text
 Task / Issue:
@@ -441,3 +442,28 @@ If the audit passes, mark SEC-01 through SEC-05 complete, close Issue #199, and 
 D-14, release, tag, and Registry blocked until a separate roadmap gate explicitly
 authorizes them. If it fails, stop and write only the smallest exact follow-up card.
 ```
+
+## 11. SEC-05 completion audit result
+
+SEC-05 audited merged SEC-03 commit
+`7e08c635ff5c08cef5b4287399e9ca5c88484622` against the SEC-01 threat model and
+SEC-02 response Contract. Its tree is identical to validated PR head
+`0b62b3908588b040c4e05e69b27a1227225c1166`.
+
+| Requirement | Direct evidence | Verdict |
+| --- | --- | --- |
+| Unexpected-error logging | `api/responses.py` emits the one fixed `logger.error` call; `ApiRequestCorrelationTests` proves exact arguments, no `logger.exception`, and no secret/path/traceback text. | complete |
+| Four sensitive response surfaces | Both settings factories attach the private marker; the shared correlator applies `no-store` to normal, normalized-error, and re-raised HTTPException outcomes. Settings and long-text direct tests cover the four handlers and their success/error paths. | complete |
+| Ordinary redacted endpoints | `ApiPathRedactionTests` proves wildcard/autocomplete/classify responses stay redacted and unmarked. | complete |
+| API and lifecycle compatibility | Direct API/translation tests preserve status, body, request ID, taxonomy, and control flow. Bootstrap, package-skeleton, import-boundary, and analyzer gates preserve route/composition/E-09 boundaries. | complete |
+| Scope and deployment boundary | Production changed only the three fixed response owners. No authentication, capability, proxy trust, diagnostics, settings split, persistence, frontend, root composition, or lifecycle behavior entered the lane. | complete |
+
+Final promotion evidence on the validated head was: Python 1,471 tests, frontend 120
+JavaScript files, Pyright baseline, import-boundary, size/complexity, and diff check all
+PASS. Package/pack, live HTTP, and browser were not triggered because status/body,
+host integration, package closure, and frontend behavior did not change.
+
+The security/admin lane is complete with no SEC-06 follow-up. The primary deployment
+verdict remains **TRUSTED_DEPLOYMENT_ONLY** and administrator diagnostics remain absent.
+Issue #199 closes with this audit. D-14, release, tag, and Registry remain blocked until
+a separate roadmap gate explicitly authorizes them.
