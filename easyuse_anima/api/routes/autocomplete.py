@@ -1,32 +1,84 @@
 from __future__ import annotations
 
+from collections.abc import Callable
+from pathlib import Path
+from typing import Protocol, cast
+
+from ...autocomplete.contracts import (
+    AutocompleteClassificationPayload,
+    AutocompletePublicClassificationPayload,
+    AutocompletePublicSearchPayload,
+    AutocompletePublicSourcePayload,
+    AutocompletePublicStatusPayload,
+    AutocompletePublicStatusResultPayload,
+    AutocompleteSearchPayload,
+    AutocompleteSourcePayload,
+    AutocompleteStatusPayload,
+)
+
+
+class _SearchAutocomplete(Protocol):
+    def __call__(
+        self,
+        query: str,
+        *,
+        limit: int,
+        path: Path,
+        category: str | None,
+    ) -> AutocompleteSearchPayload: ...
+
+
+class _ClassifyPromptText(Protocol):
+    def __call__(
+        self,
+        text: str,
+        *,
+        limit: int,
+        path: Path,
+    ) -> AutocompleteClassificationPayload: ...
+
 
 def build_autocomplete_payloads(
     *,
-    resolve_autocomplete_source,
-    resolve_autocomplete_source_path,
-    autocomplete_status,
-    available_autocomplete_sources,
-    resolve_autocomplete_limit,
-    search_autocomplete,
-    classify_prompt_text,
-    public_autocomplete_status,
-    public_autocomplete_payload,
-):
+    resolve_autocomplete_source: Callable[[], str],
+    resolve_autocomplete_source_path: Callable[[str], tuple[str, Path]],
+    autocomplete_status: Callable[[Path], AutocompleteStatusPayload],
+    available_autocomplete_sources: Callable[
+        [str | None],
+        list[AutocompleteSourcePayload],
+    ],
+    resolve_autocomplete_limit: Callable[[], int],
+    search_autocomplete: _SearchAutocomplete,
+    classify_prompt_text: _ClassifyPromptText,
+    public_autocomplete_status: Callable[[object], dict[str, object]],
+    public_autocomplete_payload: Callable[[object], dict[str, object]],
+) -> tuple[
+    Callable[[], AutocompletePublicStatusResultPayload],
+    Callable[[object], dict[str, object]],
+    Callable[[object], dict[str, object]],
+    Callable[[str, str | None, str | None], AutocompletePublicSearchPayload],
+    Callable[[str, int], AutocompletePublicClassificationPayload],
+]:
     """Build redacted autocomplete payloads with runtime-resolved owners."""
 
-    def _autocomplete_status_payload_sync() -> dict:
+    def _autocomplete_status_payload_sync() -> AutocompletePublicStatusResultPayload:
         selected_source = resolve_autocomplete_source()
         source_key, path = resolve_autocomplete_source_path(selected_source)
-        status = public_autocomplete_status(autocomplete_status(path))
-        sources = []
+        status = cast(
+            AutocompletePublicStatusPayload,
+            public_autocomplete_status(autocomplete_status(path)),
+        )
+        sources: list[AutocompletePublicSourcePayload] = []
         source_label = source_key
         for source in available_autocomplete_sources(source_key):
-            public_source = {
-                key: value
-                for key, value in source.items()
-                if key != "path"
-            }
+            public_source = cast(
+                AutocompletePublicSourcePayload,
+                {
+                    key: value
+                    for key, value in source.items()
+                    if key != "path"
+                },
+            )
             sources.append(public_source)
             if public_source.get("selected"):
                 source_label = str(public_source.get("label") or source_key)
@@ -37,13 +89,21 @@ def build_autocomplete_payloads(
             "sources": sources,
         }
 
-    def _public_autocomplete_status(status) -> dict:
-        public_status = dict(status) if isinstance(status, dict) else {}
+    def _public_autocomplete_status(status: object) -> dict[str, object]:
+        public_status = (
+            cast(dict[str, object], dict(status))
+            if isinstance(status, dict)
+            else {}
+        )
         public_status.pop("path", None)
         return public_status
 
-    def _public_autocomplete_payload(payload) -> dict:
-        public_payload = dict(payload) if isinstance(payload, dict) else {}
+    def _public_autocomplete_payload(payload: object) -> dict[str, object]:
+        public_payload = (
+            cast(dict[str, object], dict(payload))
+            if isinstance(payload, dict)
+            else {}
+        )
         if "status" in public_payload:
             public_payload["status"] = public_autocomplete_status(
                 public_payload["status"]
@@ -54,7 +114,7 @@ def build_autocomplete_payloads(
         query: str,
         requested_limit: str | None,
         category_filter: str | None,
-    ):
+    ) -> AutocompletePublicSearchPayload:
         default_limit = resolve_autocomplete_limit()
         try:
             limit = (
@@ -65,19 +125,28 @@ def build_autocomplete_payloads(
         except ValueError:
             limit = default_limit
         _, path = resolve_autocomplete_source_path(resolve_autocomplete_source())
-        return public_autocomplete_payload(
-            search_autocomplete(
-                query,
-                limit=limit,
-                path=path,
-                category=category_filter,
+        return cast(
+            AutocompletePublicSearchPayload,
+            public_autocomplete_payload(
+                search_autocomplete(
+                    query,
+                    limit=limit,
+                    path=path,
+                    category=category_filter,
+                )
             )
         )
 
-    def _classify_prompt_payload_sync(text: str, limit: int):
+    def _classify_prompt_payload_sync(
+        text: str,
+        limit: int,
+    ) -> AutocompletePublicClassificationPayload:
         _, path = resolve_autocomplete_source_path(resolve_autocomplete_source())
-        return public_autocomplete_payload(
-            classify_prompt_text(text, limit=limit, path=path)
+        return cast(
+            AutocompletePublicClassificationPayload,
+            public_autocomplete_payload(
+                classify_prompt_text(text, limit=limit, path=path)
+            ),
         )
 
     return (
