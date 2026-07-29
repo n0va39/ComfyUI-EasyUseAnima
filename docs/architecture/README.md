@@ -25,8 +25,8 @@ then only the active task section, owning Issue, direct source, and direct tests
 - The completed compatibility lane is recorded in
   [`post-phase-e-maintenance-roadmap.md`](post-phase-e-maintenance-roadmap.md).
 - Issue [#199](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/199) / SEC-01
-  completed with **TRUSTED_DEPLOYMENT_ONLY**. The first READY task is SEC-02
-  response-confidentiality Contract.
+  completed with **TRUSTED_DEPLOYMENT_ONLY**. SEC-02 completed with a direct-owner
+  **FEASIBLE** result. The first READY task is SEC-03 narrow backend implementation.
 - [`security-admin-settings-roadmap.md`](security-admin-settings-roadmap.md) owns that
   active lane. It does not reopen Phase F/G, P-API-02, or D-14.
 - Released baseline: 0.6.2. Registry activation is external administration and does
@@ -39,8 +39,9 @@ COMPLETE Phase D/E/F/G
   -> PARKED H/D-14 compatibility retirement
 
 COMPLETE #199 SEC-01 security/admin Contract
-  -> READY SEC-02 response-confidentiality Contract
-  -> CONDITIONAL narrow implementation/audit
+  -> COMPLETE SEC-02 response-confidentiality Contract
+  -> READY SEC-03 narrow backend implementation
+  -> CONDITIONAL completion audit
 
 EVENT next ordinary release N
   -> later H/D-14 re-audit
@@ -81,20 +82,23 @@ including `wildcard.extra_paths`, `naia.host`, `naia.port`, and
 classifies the surface as **TRUSTED_DEPLOYMENT_ONLY**. `comfy-user`, `request.remote`,
 Host, Origin, and forwarded headers are not administrator authentication. The current
 settings UI remains inside one trusted-operator boundary, diagnostics remain absent,
-and ordinary wildcard/autocomplete endpoints remain redacted. SEC-02 owns only the
-exact response-confidentiality Contract for safe unexpected-error logging and
-`Cache-Control: no-store` on sensitive settings responses.
+and ordinary wildcard/autocomplete endpoints remain redacted. SEC-02 proved that safe
+unexpected-error logging and `Cache-Control: no-store` on sensitive settings responses
+fit inside three direct production owners without root composition or lifecycle change.
 
 ## Core documents
 
 ### Active
 
 - [`security-admin-settings-roadmap.md`](security-admin-settings-roadmap.md):
-  Issue #199 queue, validation, and exact SEC-02 resume card.
+  Issue #199 queue, validation, and exact SEC-03 resume card.
 - [`security-admin-settings-sec01-contract.md`](security-admin-settings-sec01-contract.md):
   completed deployment/threat matrix, host-capability audit, settings-field
   classification, logging/redaction Contract, E-09 disposition, and
   TRUSTED_DEPLOYMENT_ONLY verdict.
+- [`security-admin-settings-sec02-response-contract.md`](security-admin-settings-sec02-response-contract.md):
+  safe fixed logging, private sensitivity marker, `no-store` coverage, exact owner set,
+  preserved invariants, verification ownership, and SEC-03 rollback/stop boundary.
 
 ### Completed backend and compatibility plan
 
