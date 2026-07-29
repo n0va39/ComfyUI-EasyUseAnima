@@ -4,7 +4,7 @@
 
 - Status: active execution plan after Phase D and Phase E completion.
 - Primary parent: Issue #185.
-- Active first task: Issue #186 / P-WC-01 wildcard pure-shim feasibility Contract.
+- Active first task: Issue #186 / P-WC-02 wildcard internal-consumer and facade Move.
 - Quality owner: Issue #188.
 - Compatibility ledger: Issue #186.
 - D-14/H status: parked by compatibility gates, not failed.
@@ -78,8 +78,8 @@ COMPLETE F-02a Autocomplete typed result contracts             #563 / PR #566
   -> COMPLETE F-02h affected error-row re-audit and Phase F close #563
   -> COMPLETE G-04A public API snapshot coverage audit         #188
   -> NOT REQUIRED G-04B minimal missing public-surface gate
-  -> READY P-WC-01 wildcard pure-shim feasibility Contract     #186
-  -> OPTIONAL P-WC-02  internal consumer/facade Move
+  -> COMPLETE P-WC-01 wildcard pure-shim feasibility Contract  #186
+  -> READY P-WC-02 internal consumer/facade Move               #186
   -> P-API-01 API production-facade feasibility Contract      #186
   -> OPTIONAL P-API-02 canonical production-entry Move
   -> G-05A    size/complexity baseline and changed-path ratchet #188
@@ -245,6 +245,19 @@ RETAIN
 If feasible, P-WC-02 moves internal production consumers to the canonical facade and
 turns the root module into explicit direct imports. It does not delete the file.
 
+P-WC-01 result:
+
+- [`python-wildcard-pwc01-facade-feasibility.md`](python-wildcard-pwc01-facade-feasibility.md)
+  records **FEASIBLE** without adding a duplicate fixture;
+- `easyuse_anima.wildcard.service` is the existing canonical facade owner; no new
+  production module or cross-boundary design is needed;
+- `api.py` and `nodes.py` are the only remaining root consumers;
+- the four root facade functions remain supported, while root snapshot/build patching
+  is an E-06-classified private test seam with an equivalent canonical service patch
+  owner;
+- P-WC-02 is the one bounded Move in the Contract task card. It preserves the root
+  file and does not start the release-N support window.
+
 ### P-API-01 — API facade feasibility Contract
 
 Inventory:
@@ -386,32 +399,35 @@ with Codex.
 ## 10. Codex resume instruction
 
 ```text
-Start Issue #186 / P-WC-01 only from latest origin/dev after G-04A merges.
+Start Issue #186 / P-WC-02 only from latest origin/dev after P-WC-01 merges.
 
 Read:
 - current-policies.md
 - codex-execution-efficiency.md universal rules
-- this document's P-WC-01 and validation sections
-- Issue #186 latest P-WC-01 checkpoint
-- wildcard_engine.py and its direct api.py/nodes.py/canonical callers
-- direct wildcard compatibility, identity, determinism, package, and import owners
+- this document's P-WC-02 card and validation sections
+- python-wildcard-pwc01-facade-feasibility.md
+- Issue #186 latest P-WC-02 checkpoint
+- api.py, nodes.py, wildcard_engine.py
+- direct wildcard/API/route/compatibility/identity/determinism/package/import owners
 
 Do not read all historical D/E PRs and do not start D-14 removal.
 
-Audit whether root wildcard_engine.py can become a pure compatibility shim while
-preserving call-time snapshot/source/build seams, deterministic NumPy seed, expansion
-budget, errors, object identity, and flat-import compatibility. Produce only a
-production-free FEASIBLE or RETAIN contract with exact evidence and a bounded Move
-card when feasible. Do not implement the Move in P-WC-01.
+In one cohesive Move, import api.py list_wildcards and the 19 nodes.py wildcard names
+from their existing canonical modules. Replace wildcard_engine.py's seven service
+wrappers/classes with direct canonical service imports while retaining eager numpy,
+all other root identities, package/flat fallback, signatures, results, cache/retry,
+determinism, budgets, errors, API callback monkeypatching, and node behavior. Move
+private root lifecycle patch targets to the equivalent canonical service owner.
 
 Run only targeted consistency/focused checks during the edit loop and git diff check.
-Run official full once on the final test/tool SHA when the contract changes an
-executable gate or fixture.
-Package/live are not triggered.
+Run official full exactly once on the final candidate SHA. Run validate/pack/archive
+because the production import closure changes. Live is not triggered because no
+host-visible behavior changes.
 
-Push a dev-targeted Draft PR. If FEASIBLE, select only the bounded P-WC-02 Move. If
-RETAIN, record the exact blocker and next evidence trigger before selecting P-API-01.
+Push a dev-targeted Draft PR, review, and squash merge. Record the final shim form on
+Issue #186, then select P-API-01. Do not start release N merely for the shim.
 
-Do not change production behavior, public/root exports, API/node payloads, migration
-semantics, root files, deprecation warnings/telemetry, release/tag, or Registry state.
+Do not change canonical wildcard behavior, public/root exports, API/node payloads,
+migration semantics, RuntimeServices/bootstrap, deprecation warnings/telemetry,
+release/tag, or Registry state. Do not delete the root file.
 ```
