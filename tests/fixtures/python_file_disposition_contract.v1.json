@@ -714,7 +714,7 @@
       "role": "aio-legacy-orchestration-facade",
       "owner_group": "aio",
       "disposition": "split",
-      "status": "planned",
+      "status": "complete",
       "targets": [
         {
           "path": "easyuse_anima/aio/legacy_detailer.py",
@@ -748,7 +748,7 @@
           "final_owner": "easyuse_anima/aio/legacy_generation.py"
         },
         {
-          "id": "function:easyuse_anima/aio/legacy_generation.py::_run_aio_usdu_upscale_stage",
+          "id": "function:easyuse_anima/aio/legacy_upscale.py::run_aio_usdu_upscale_stage",
           "verdict": "move_retain_cohesive",
           "final_owner": "easyuse_anima/aio/legacy_upscale.py"
         },

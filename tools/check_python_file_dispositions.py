@@ -384,15 +384,19 @@ def validate_contract(
             final_owner = size_value["final_owner"]
             if size_id not in size_records:
                 raise ContractError(f"unknown size exception ID: {size_id}")
-            if size_records[size_id]["path"] != path:
+            size_path = size_records[size_id]["path"]
+            allowed_final_owners = {target["path"] for target in targets}
+            allowed_size_paths = allowed_final_owners if disposition == "split" else {path}
+            if size_path not in allowed_size_paths:
                 raise ContractError(f"size exception linked to wrong path: {size_id}")
             if verdict not in SIZE_VERDICTS:
                 raise ContractError(f"unknown size exception verdict: {size_id}")
-            allowed_final_owners = {target["path"] for target in targets}
             if disposition == "delete":
                 allowed_final_owners.add(replacement_owner)
             if final_owner not in allowed_final_owners:
                 raise ContractError(f"size final owner is not a target: {size_id}")
+            if status == "complete" and size_path != final_owner:
+                raise ContractError(f"completed size exception is not at final owner: {size_id}")
             size_ids.append(size_id)
         if size_ids != sorted(set(size_ids)):
             raise ContractError(f"size verdicts must be sorted and unique: {path}")
