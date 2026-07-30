@@ -7,7 +7,8 @@ This repository is prepared for future ComfyUI Manager / Comfy Registry registra
 - Keep `pyproject.toml` version in semantic version format: `X.Y.Z`.
 - Patch version: bug fixes and documentation-only changes.
 - Minor version: backward-compatible node inputs, UI, or behavior additions.
-- Major version: breaking node class names, input names, output types, or workflow behavior.
+- Major version: breaking node class names, input names, output types, workflow
+  behavior, HTTP/data contracts, or supported Python import/API surfaces.
 - Once a version is published to Comfy Registry, do not rewrite that release. Publish a newer version instead.
 
 ## Branch Rules

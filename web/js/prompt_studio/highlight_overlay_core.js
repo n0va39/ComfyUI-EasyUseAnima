@@ -69,16 +69,33 @@ function cssPixel(value) {
 
 /**
  * @param {HTMLTextAreaElement | HTMLInputElement} input
+ * @param {CSSStyleDeclaration} style
+ */
+function hasVisibleVerticalScrollbar(input, style) {
+  const overflowY = String(style.overflowY || "").trim().toLowerCase();
+  if (overflowY === "scroll") {
+    return true;
+  }
+  if (overflowY !== "auto" && overflowY !== "overlay") {
+    return false;
+  }
+  return (Number(input.scrollHeight) || 0) > (Number(input.clientHeight) || 0);
+}
+
+/**
+ * @param {HTMLTextAreaElement | HTMLInputElement} input
  * @param {CSSStyleDeclaration} [style]
  */
 function overlayScrollbarPadding(input, style = getComputedStyle(input)) {
-  const verticalGutter = Math.max(
-    0,
-    (Number(input.offsetWidth) || 0)
-      - (Number(input.clientWidth) || 0)
-      - cssPixelNumber(style.borderLeftWidth)
-      - cssPixelNumber(style.borderRightWidth),
-  );
+  const verticalGutter = hasVisibleVerticalScrollbar(input, style)
+    ? Math.max(
+      0,
+      (Number(input.offsetWidth) || 0)
+        - (Number(input.clientWidth) || 0)
+        - cssPixelNumber(style.borderLeftWidth)
+        - cssPixelNumber(style.borderRightWidth),
+    )
+    : 0;
   const horizontalGutter = Math.max(
     0,
     (Number(input.offsetHeight) || 0)

@@ -1,0 +1,397 @@
+{
+  "declarative_mutable_globals": [
+    {
+      "module": "easyuse_anima/aio/generation_defaults.py",
+      "reason": "Published generation defaults and special-seed lookup data; production treats both containers as immutable tables.",
+      "symbols": ["AIO_GENERATION_DEFAULT_SETTINGS", "AIO_SPECIAL_SEEDS"]
+    },
+    {
+      "module": "easyuse_anima/aio/generation_normalization_stages.py",
+      "reason": "Private immutable membership table used by normalization.",
+      "symbols": ["AIO_DETAILER_RESERVED_KEYS"]
+    },
+    {
+      "module": "easyuse_anima/aio/input_defaults.py",
+      "reason": "Published immutable input-default table.",
+      "symbols": ["AIO_INPUT_DEFAULT_SETTINGS"]
+    },
+    {
+      "module": "easyuse_anima/aio/negpip.py",
+      "reason": "Static compatibility and bracket lookup tables.",
+      "symbols": ["_EXPECTED_INPUTS", "_OPEN_TO_CLOSE"]
+    },
+    {
+      "module": "easyuse_anima/aio/preview.py",
+      "reason": "Published immutable stage-label table.",
+      "symbols": ["AIO_PREVIEW_STAGE_LABELS"]
+    },
+    {
+      "module": "easyuse_anima/aio/torch_compile_recommendation.py",
+      "reason": "Static recommendation lookup values.",
+      "symbols": ["_COMMON_VALUES"]
+    },
+    {
+      "module": "easyuse_anima/autocomplete/dataset.py",
+      "reason": "Source and category metadata; distinct from the runtime snapshot cache.",
+      "symbols": [
+        "AUTOCOMPLETE_SOURCES",
+        "_DANBOORU_CATEGORY_NAMES",
+        "_E621_CATEGORY_NAMES",
+        "_MERGED_E621_CATEGORY_NAMES"
+      ]
+    },
+    {
+      "module": "easyuse_anima/image/scaling.py",
+      "reason": "Published immutable UI choice lists.",
+      "symbols": ["IMAGE_SCALE_MULTIPLES", "IMAGE_UPSCALE_METHODS"]
+    },
+    {
+      "module": "easyuse_anima/infrastructure/filesystem/atomic_json.py",
+      "reason": "Static platform error-code membership table; distinct from the runtime path-lock registry.",
+      "symbols": ["_UNSUPPORTED_DIRECTORY_FSYNC_ERRORS"]
+    },
+    {
+      "module": "easyuse_anima/naia/client.py",
+      "reason": "Published immutable host and payload-key metadata.",
+      "symbols": ["NAIA_LOCAL_HOSTS", "PP_STATE_CHOICES", "PREPROCESSING_KEYS"]
+    },
+    {
+      "module": "easyuse_anima/naia/resolution.py",
+      "reason": "Published immutable resolution-bucket table.",
+      "symbols": ["ADVANCED_RESOLUTION_BUCKETS"]
+    },
+    {
+      "module": "easyuse_anima/nodes/wildcard_nodes.py",
+      "reason": "Published immutable display-label table.",
+      "symbols": ["WILDCARD_MODE_DISPLAY_LABELS"]
+    },
+    {
+      "module": "easyuse_anima/profiles/aio.py",
+      "reason": "Static reserved-name membership table.",
+      "symbols": ["AIO_RESERVED_PROFILE_NAMES"]
+    },
+    {
+      "module": "easyuse_anima/profiles/repository.py",
+      "reason": "Static Windows reserved-name membership table.",
+      "symbols": ["WINDOWS_RESERVED_FILE_BASENAMES"]
+    },
+    {
+      "module": "easyuse_anima/prompt/advanced.py",
+      "reason": "Published immutable Prompt Studio schema, alias, and layout metadata.",
+      "symbols": [
+        "EXTEND_PROMPT_SLOT_SPECS",
+        "PROMPT_STUDIO_LEGACY_FIXED_WILDCARD_MODES",
+        "PROMPT_STUDIO_WILDCARD_SEED_CONTROL_ALIASES"
+      ]
+    },
+    {
+      "module": "easyuse_anima/prompt/advanced_fields.py",
+      "reason": "Canonical immutable Advanced Prompt Studio field schema metadata.",
+      "symbols": ["ADVANCED_FIELD_LABELS", "ADVANCED_FIELD_PANES", "ADVANCED_FIELD_TYPES"]
+    },
+    {
+      "module": "easyuse_anima/prompt/anima/ordering.py",
+      "reason": "Static tag-section ordering tables.",
+      "symbols": ["BUILTIN_TAG_SECTIONS", "SECTION_ORDER"]
+    },
+    {
+      "module": "easyuse_anima/prompt/artist_mix_config.py",
+      "reason": "Immutable mode descriptions; distinct from the runtime warning-dedupe set.",
+      "symbols": ["ARTIST_MIX_MODE_DESCRIPTIONS"]
+    },
+    {
+      "module": "easyuse_anima/prompt/regional.py",
+      "reason": "Published immutable regional field schema metadata.",
+      "symbols": ["REGIONAL_FIELD_TYPES"]
+    },
+    {
+      "module": "easyuse_anima/registration.py",
+      "reason": "ComfyUI node registration metadata assembled once and treated as immutable.",
+      "symbols": ["NODE_CLASS_MAPPINGS", "NODE_DISPLAY_NAME_MAPPINGS"]
+    },
+    {
+      "module": "easyuse_anima/seed/reservation.py",
+      "reason": "Static legacy seed-selection compatibility lookup.",
+      "symbols": ["_LEGACY_SELECTION_BY_SEED"]
+    },
+    {
+      "module": "easyuse_anima/settings/schema.py",
+      "reason": "Published immutable settings schema, defaults, keys, aliases, and choices.",
+      "symbols": [
+        "AUTOCOMPLETE_COMMIT_KEYS",
+        "AUTOCOMPLETE_COMMIT_MODES",
+        "AUTOCOMPLETE_MODES",
+        "COMFY_SETTING_KEYS",
+        "DEFAULT_SETTINGS",
+        "LONG_TEXT_SETTING_ALIASES",
+        "LONG_TEXT_SETTING_KEYS",
+        "NAIA_PREPROCESSING_KEYS",
+        "NAIA_RESOLUTION_BUCKETS",
+        "NAIA_RESOLUTION_MODES",
+        "PROMPT_STUDIO_COLOR_KEYS"
+      ]
+    },
+    {
+      "module": "easyuse_anima/translation/contracts.py",
+      "reason": "Published immutable provider-choice membership table.",
+      "symbols": ["PROMPT_TRANSLATION_PROVIDERS"]
+    },
+    {
+      "module": "easyuse_anima/wildcard/mode.py",
+      "reason": "Published immutable wildcard-mode alias lookup.",
+      "symbols": ["WILDCARD_MODE_ALIASES"]
+    },
+    {
+      "module": "easyuse_anima/wildcard/sources.py",
+      "reason": "Published immutable wildcard-extension membership table.",
+      "symbols": ["WILDCARD_EXTENSIONS"]
+    }
+  ],
+  "entries": [
+    {
+      "categories": ["cache", "lock", "metrics"],
+      "cleanup": "The default owner clear advances generation and clears entries/order; disable invalidates stale capture and clears entries/order; metrics reset remains independent.",
+      "id": "aio-first-pass-cache",
+      "lifetime": "Process lifetime from module import; entries are bounded by count, bytes, and TTL.",
+      "module": "easyuse_anima/aio/first_pass_cache.py",
+      "owner": "easyuse_anima.aio.first_pass_cache._DEFAULT_AIO_FIRST_PASS_CACHE",
+      "symbols": [
+        "_DEFAULT_AIO_FIRST_PASS_CACHE"
+      ],
+      "target_phase": "E-08b-complete",
+      "test_evidence": ["tests/test_aio_first_pass_cache.py", "tests/test_aio_first_pass_cache_benchmark.py"],
+      "thread_safety": "One RLock protects enabled/generation/cache/order/metrics publication and mutation."
+    },
+    {
+      "categories": ["async_limiter", "lock", "weak_registry"],
+      "cleanup": "Weak loop keys and weak semaphore values self-expire; no explicit process shutdown hook.",
+      "id": "api-file-io-limiters",
+      "lifetime": "One limiter per live asyncio event loop while the loop and active work remain reachable.",
+      "module": "easyuse_anima/api/file_io.py",
+      "owner": "easyuse_anima.api.file_io",
+      "symbols": ["_FILE_IO_LIMITERS", "_FILE_IO_LIMITERS_LOCK"],
+      "target_phase": "E-09-complete",
+      "test_evidence": ["tests/test_api_contract.py"],
+      "thread_safety": "A module Lock serializes weak-registry lookup and semaphore creation."
+    },
+    {
+      "categories": ["cache", "future", "lock", "single_flight"],
+      "cleanup": "_AutocompleteSnapshotStore.clear idempotently clears completed snapshots without cancelling, removing, or replacing in-flight Futures.",
+      "id": "autocomplete-dataset-cache",
+      "lifetime": "Process lifetime through one default store; completed entries are keyed by source identity and in-flight work is retained until settlement.",
+      "module": "easyuse_anima/autocomplete/dataset.py",
+      "owner": "easyuse_anima.autocomplete.dataset._DEFAULT_AUTOCOMPLETE_SNAPSHOTS",
+      "symbols": ["_DEFAULT_AUTOCOMPLETE_SNAPSHOTS"],
+      "target_phase": "E-05b-complete",
+      "test_evidence": ["tests/test_autocomplete_index.py", "tests/test_prompt_corrector.py"],
+      "thread_safety": "One owner Lock protects its completed snapshot cache and cache-key Future single-flight map."
+    },
+    {
+      "categories": ["lock", "path_registry"],
+      "cleanup": "_AutocompleteIndexStore.close is an idempotent no-op; retained path locks remain after first index access.",
+      "id": "autocomplete-index-locks",
+      "lifetime": "Process lifetime through one default store, one Lock per normalized index path.",
+      "module": "easyuse_anima/autocomplete/index.py",
+      "owner": "easyuse_anima.autocomplete.index._DEFAULT_AUTOCOMPLETE_INDEX_STORE",
+      "symbols": ["_DEFAULT_AUTOCOMPLETE_INDEX_STORE"],
+      "target_phase": "E-05c-complete",
+      "test_evidence": ["tests/test_autocomplete_index.py"],
+      "thread_safety": "The owner guard serializes creation; each retained per-path Lock serializes index publication."
+    },
+    {
+      "categories": ["path_resolution", "runtime_config"],
+      "cleanup": "The immutable root owns no disposable resource; tests inject an isolated private store when a separate root is required.",
+      "id": "autocomplete-index-root",
+      "lifetime": "Resolved once at import from process USER_DATA_DIR and retained by the default store.",
+      "module": "easyuse_anima/autocomplete/index.py",
+      "owner": "easyuse_anima.autocomplete.index._DEFAULT_AUTOCOMPLETE_INDEX_STORE",
+      "symbols": ["_DEFAULT_AUTOCOMPLETE_INDEX_STORE"],
+      "target_phase": "E-05c-complete",
+      "test_evidence": ["tests/test_autocomplete_index.py", "tests/test_python_package_skeleton.py"],
+      "thread_safety": "The store exposes one immutable Path-or-None root after construction."
+    },
+    {
+      "categories": ["lock", "path_registry"],
+      "cleanup": "No explicit cleanup; normalized-path locks remain after first atomic operation.",
+      "id": "atomic-json-path-locks",
+      "lifetime": "Process lifetime, one RLock per normalized filesystem path.",
+      "module": "easyuse_anima/infrastructure/filesystem/atomic_json.py",
+      "owner": "easyuse_anima.infrastructure.filesystem.atomic_json",
+      "symbols": ["_PATH_LOCKS", "_PATH_LOCKS_GUARD"],
+      "target_phase": "E-03b-complete",
+      "test_evidence": ["tests/test_storage.py"],
+      "thread_safety": "The guard serializes registry access; per-path RLocks serialize publish operations."
+    },
+    {
+      "categories": ["atexit", "bootstrap", "executor", "lock", "runtime_reference"],
+      "cleanup": "shutdown terminally detaches the expected runtime identities and executes the once-only cleanup plan; routes remain installed.",
+      "id": "bootstrap-initialize-state",
+      "lifetime": "Process lifetime from first initialization attempt through terminal shutdown.",
+      "module": "easyuse_anima/bootstrap.py",
+      "owner": "easyuse_anima.bootstrap lifecycle",
+      "symbols": ["_ATEXIT_REGISTERED", "_DEFAULT_RUNTIME", "_INITIALIZE_LOCK", "_SHUTDOWN", "_TRANSLATION_ROUTE_EXECUTOR", "_WILDCARDS_INITIALIZED", "initialize", "shutdown"],
+      "target_phase": "E-09-complete",
+      "test_evidence": ["tests/test_python_bootstrap.py", "tests/test_runtime_services.py"],
+      "thread_safety": "One Lock serializes composition, install, route refresh, wildcard initialization, terminal state, expected-identity detach, and cleanup."
+    },
+    {
+      "categories": ["path_resolution", "runtime_config"],
+      "cleanup": "No reset; the default RuntimeConfig retains the same Path identities and tests isolate imports or patch consumers.",
+      "id": "filesystem-runtime-paths",
+      "lifetime": "Package paths are import-stable; USER_DATA_DIR is resolved once from ComfyUI or package fallback and projected once into the default runtime.",
+      "module": "easyuse_anima/infrastructure/filesystem/paths.py",
+      "owner": "easyuse_anima.infrastructure.filesystem.paths",
+      "symbols": ["PACKAGE_DATA_DIR", "PACKAGE_ROOT", "USER_DATA_DIR"],
+      "target_phase": "E-02c-complete",
+      "test_evidence": ["tests/test_python_package_skeleton.py", "tests/test_runtime_services.py", "tests/test_storage.py"],
+      "thread_safety": "Immutable Path values after import."
+    },
+    {
+      "categories": ["directory_initialization", "import_effect", "route_registration"],
+      "cleanup": "Bootstrap registers its terminal shutdown with atexit once; shutdown detaches the expected runtime and leaves routes installed.",
+      "id": "package-bootstrap-effect",
+      "lifetime": "Executed once per root package import; bootstrap state survives for the process.",
+      "module": "__init__.py",
+      "owner": "easyuse_anima.bootstrap._initialize_package",
+      "symbols": ["_initialize_package"],
+      "target_phase": "E-09-complete",
+      "test_evidence": ["tests/test_python_bootstrap.py", "tests/test_python_entrypoint_lifecycle_contract.py", "tests/test_python_package_skeleton.py", "tests/test_runtime_services.py"],
+      "thread_safety": "Bootstrap serializes the production call with _INITIALIZE_LOCK."
+    },
+    {
+      "categories": ["lock", "repository", "weak_registry"],
+      "cleanup": "Per-directory RLocks disappear when unreferenced; the process coordinator has no close.",
+      "id": "profile-directory-mutation-coordinator",
+      "lifetime": "One process coordinator created at canonical profile module import.",
+      "module": "easyuse_anima/profiles/mutation.py",
+      "owner": "easyuse_anima.profiles.mutation.PROFILE_MUTATION_COORDINATOR",
+      "symbols": ["PROFILE_MUTATION_COORDINATOR"],
+      "target_phase": "E-03d-complete",
+      "test_evidence": ["tests/test_aio_profiles.py", "tests/test_lora_profiles.py"],
+      "thread_safety": "A guard protects the weak registry; one RLock serializes CAS per directory."
+    },
+    {
+      "categories": ["compatibility_warning", "dedupe_set"],
+      "cleanup": "The callerless duplicate set was removed by E-09b; canonical warning ownership remains in prompt.conditioning.",
+      "id": "prompt-artist-mix-warning-dedupe",
+      "lifetime": "Removed; no production state remains in this module.",
+      "module": "easyuse_anima/prompt/artist_mix.py",
+      "owner": "removed by E-09b",
+      "symbols": [],
+      "target_phase": "E-09-complete",
+      "test_evidence": ["tests/test_prompt_corrector.py"],
+      "thread_safety": "No remaining state."
+    },
+    {
+      "categories": ["compatibility_warning", "dedupe_set"],
+      "cleanup": "No production reset; compatibility tests inspect canonical identity.",
+      "id": "prompt-conditioning-warning-dedupe",
+      "lifetime": "Process lifetime, keyed by external patcher class.",
+      "module": "easyuse_anima/prompt/conditioning.py",
+      "owner": "easyuse_anima.prompt.conditioning",
+      "symbols": ["_SPECTRUM_ANIMA_MOD_GUIDANCE_OLD_SIGNATURE_WARNED"],
+      "target_phase": "E-09-complete",
+      "test_evidence": ["tests/test_node_contracts.py", "tests/test_prompt_corrector.py"],
+      "thread_safety": "Unprotected membership/add; current execution accepts benign duplicate-warning races."
+    },
+    {
+      "categories": ["path_resolution"],
+      "cleanup": "No reset is needed; the canonical package-owned Path object is immutable after import.",
+      "id": "prompt-knowledge-path",
+      "lifetime": "Canonical package-data Path imported once by the prompt package.",
+      "module": "easyuse_anima/prompt/anima/knowledge.py",
+      "owner": "easyuse_anima.infrastructure.filesystem.paths via easyuse_anima.prompt.anima.knowledge",
+      "symbols": ["PACKAGE_DATA_DIR"],
+      "target_phase": "E-02d-complete",
+      "test_evidence": ["tests/test_prompt_corrector.py", "tests/test_python_package_skeleton.py"],
+      "thread_safety": "Immutable Path after import."
+    },
+    {
+      "categories": ["application", "executor", "route_registration", "route_table"],
+      "cleanup": "Bootstrap owns lifecycle cleanup; the application cell has no reset, close, replacement, or hot-reload API.",
+      "id": "api-application",
+      "lifetime": "One immutable canonical application identity is published after complete pre-initialize composition and retained for the process.",
+      "module": "easyuse_anima/api/application.py",
+      "owner": "easyuse_anima.api.application.ApiApplication composed through easyuse_anima.bootstrap",
+      "symbols": ["_APPLICATION"],
+      "target_phase": "FC-04B-complete",
+      "test_evidence": ["tests/test_python_api_application_lifecycle_contract.py", "tests/test_python_entrypoint_lifecycle_contract.py"],
+      "thread_safety": "Python import serialization and publish-once identity cover supported startup; no second lifecycle lock is introduced."
+    },
+    {
+      "categories": ["route_registration", "route_table"],
+      "cleanup": "No deregistration; identical tables are idempotent and changed tables register on refresh.",
+      "id": "root-route-registration",
+      "lifetime": "Canonical application owns one route table and registrar; registration refreshes on every bootstrap initialize.",
+      "module": "easyuse_anima/api/application.py",
+      "owner": "easyuse_anima.api.application registrar composed through easyuse_anima.bootstrap",
+      "symbols": ["_APPLICATION"],
+      "target_phase": "E-09-complete",
+      "test_evidence": ["tests/test_api_contract.py", "tests/test_python_bootstrap.py"],
+      "thread_safety": "Bootstrap serializes production registration; router markers guard duplicate signatures."
+    },
+    {
+      "categories": ["atexit", "executor", "future", "single_flight"],
+      "cleanup": "The bootstrap cleanup plan invokes idempotent executor shutdown first; admission closes without waiting for running work.",
+      "id": "root-translation-route-worker",
+      "lifetime": "Canonical application composition creates the route worker and bootstrap retains the cleanup identity; ThreadPoolExecutor is lazy and process-lived until atexit.",
+      "module": "easyuse_anima/bootstrap.py",
+      "owner": "easyuse_anima.api.application.ApiApplication composed through easyuse_anima.bootstrap",
+      "symbols": ["_TRANSLATION_ROUTE_EXECUTOR"],
+      "target_phase": "E-04d-complete",
+      "test_evidence": ["tests/test_api_contract.py", "tests/test_prompt_translation_api.py", "tests/test_python_api_application_lifecycle_contract.py"],
+      "thread_safety": "One RLock protects executor creation, admission, Future identity, and close state."
+    },
+    {
+      "categories": ["autocomplete_port", "capability", "clock", "runtime_config", "runtime_reference", "seed_reservation_service", "translation_port"],
+      "cleanup": "RuntimeServices.close delegates once to the bootstrap-composed cleanup plan; expected-identity detach is private and conflict-safe.",
+      "id": "runtime-services",
+      "lifetime": "One identity-installed RuntimeServices object for the process, including immutable config, a monotonic clock, and narrow translation and autocomplete service ports.",
+      "module": "easyuse_anima/runtime.py",
+      "owner": "easyuse_anima.runtime.RuntimeServices",
+      "symbols": ["RuntimeServices", "_RUNTIME_SERVICES"],
+      "target_phase": "E-09-complete",
+      "test_evidence": ["tests/test_autocomplete_service.py", "tests/test_comfy_host_wiring.py", "tests/test_runtime_services.py", "tests/test_seed_reservation_service.py"],
+      "thread_safety": "Bootstrap serializes install and detach; the private cleanup plan locks its once-only transition and continues the fixed callback sequence after failures."
+    },
+    {
+      "categories": ["cache", "lock", "service", "single_flight"],
+      "cleanup": "PromptTranslationService.close idempotently clears its owned cache after facade restoration in the E-09b whole-runtime plan; flights self-remove after the last user settles.",
+      "id": "translation-default-service",
+      "lifetime": "Bootstrap composes one process service from the runtime clock; RuntimeServices owns it and the service facade retains the same identity for node/API callbacks.",
+      "module": "easyuse_anima/translation/service.py",
+      "owner": "easyuse_anima.runtime.RuntimeServices.translation",
+      "symbols": ["_DEFAULT_TRANSLATION_SERVICE"],
+      "target_phase": "E-04c-complete",
+      "test_evidence": ["tests/test_prompt_translation.py", "tests/test_runtime_services.py"],
+      "thread_safety": "Separate RLocks protect bounded cache and per-key single-flight registry."
+    },
+    {
+      "categories": ["client", "lock", "provider_registry"],
+      "cleanup": "The registry owns provider references; production exposes no provider/client close or registry reset.",
+      "id": "translation-provider-registry",
+      "lifetime": "The default registry is process-owned; provider clients remain lazy and cached for the process.",
+      "module": "easyuse_anima/translation/service.py",
+      "owner": "easyuse_anima.translation.service._DEFAULT_TRANSLATION_PROVIDER_REGISTRY",
+      "symbols": ["_DEFAULT_TRANSLATION_PROVIDER_REGISTRY"],
+      "target_phase": "E-04b-complete",
+      "test_evidence": ["tests/test_prompt_translation.py"],
+      "thread_safety": "The private registry instance owns one RLock protecting provider lookup, construction, and publication."
+    },
+    {
+      "categories": ["cache", "condition", "single_flight"],
+      "cleanup": "The E-09b whole-runtime plan invokes the owner's idempotent completed-cache clear; active building keys and waiter settlement remain intact.",
+      "id": "wildcard-snapshot-cache",
+      "lifetime": "Process lifetime with an LRU bound of 16 verified snapshots.",
+      "module": "easyuse_anima/wildcard/snapshot.py",
+      "owner": "easyuse_anima.wildcard.snapshot._DEFAULT_WILDCARD_SNAPSHOTS",
+      "symbols": ["_DEFAULT_WILDCARD_SNAPSHOTS"],
+      "target_phase": "E-06b-complete",
+      "test_evidence": ["tests/test_python_wildcard_runtime_contract.py", "tests/test_wildcards.py"],
+      "thread_safety": "The private owner instance owns one Condition protecting publication, LRU mutation, admission, wait, notification, and completed-cache clear."
+    }
+  ],
+  "ignored_mutable_global_names": ["__all__"],
+  "schema_version": 1,
+  "scope": "Shipped Python process-wide state, import/bootstrap effects, and analyzer mutable-global disposition through the E-10c Phase E completion audit."
+}

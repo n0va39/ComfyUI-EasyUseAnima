@@ -12,8 +12,8 @@
   ],
   "owners": {
     "python_default": {
-      "root-default": {
-        "module": "nodes.py"
+      "canonical-node-default": {
+        "module": "easyuse_anima/nodes/aio_nodes.py"
       },
       "schema-definition": {
         "module": "easyuse_anima/aio/schemas/generation_settings.v4.json"
@@ -148,7 +148,7 @@
     },
     {
       "coverage": {
-        "python_default": "root-default",
+        "python_default": "canonical-node-default",
         "python_typed": "generation-detailer",
         "frontend_default": "settings-core",
         "frontend_sanitization": "default-merge",
@@ -209,7 +209,7 @@
     },
     {
       "coverage": {
-        "python_default": "root-default",
+        "python_default": "canonical-node-default",
         "python_typed": "generation-sampling",
         "frontend_default": "settings-core",
         "frontend_sanitization": "optional-dependency-aware-merge",
@@ -263,7 +263,7 @@
     },
     {
       "coverage": {
-        "python_default": "root-default",
+        "python_default": "canonical-node-default",
         "python_typed": "generation-features",
         "frontend_default": "settings-core",
         "frontend_sanitization": "default-merge",
@@ -305,7 +305,7 @@
     },
     {
       "coverage": {
-        "python_default": "root-default",
+        "python_default": "canonical-node-default",
         "python_typed": "generation-detailer",
         "frontend_default": "settings-core",
         "frontend_sanitization": "optional-dependency-sanitizer",
@@ -320,7 +320,7 @@
     },
     {
       "coverage": {
-        "python_default": "root-default",
+        "python_default": "canonical-node-default",
         "python_typed": "generation-features",
         "frontend_default": "settings-core",
         "frontend_sanitization": "default-merge",
@@ -376,7 +376,7 @@
     },
     {
       "coverage": {
-        "python_default": "root-default",
+        "python_default": "canonical-node-default",
         "python_typed": "generation-features",
         "frontend_default": "settings-core",
         "frontend_sanitization": "optional-dependency-sanitizer",
@@ -393,7 +393,7 @@
     },
     {
       "coverage": {
-        "python_default": "root-default",
+        "python_default": "canonical-node-default",
         "python_typed": "generation-features",
         "frontend_default": "settings-core",
         "frontend_sanitization": "default-merge",
@@ -416,7 +416,7 @@
     },
     {
       "coverage": {
-        "python_default": "root-default",
+        "python_default": "canonical-node-default",
         "python_typed": "generation-settings",
         "frontend_default": "settings-core",
         "frontend_sanitization": "default-merge",
@@ -429,7 +429,7 @@
     },
     {
       "coverage": {
-        "python_default": "root-default",
+        "python_default": "canonical-node-default",
         "python_typed": "generation-features",
         "frontend_default": "settings-core",
         "frontend_sanitization": "optional-dependency-sanitizer",
@@ -446,7 +446,7 @@
     },
     {
       "coverage": {
-        "python_default": "root-default",
+        "python_default": "canonical-node-default",
         "python_typed": "generation-features",
         "frontend_default": "settings-core",
         "frontend_sanitization": "default-merge",
@@ -462,7 +462,7 @@
     },
     {
       "coverage": {
-        "python_default": "root-default",
+        "python_default": "canonical-node-default",
         "python_typed": "generation-features",
         "frontend_default": "settings-core",
         "frontend_sanitization": "default-merge",
@@ -478,7 +478,7 @@
     },
     {
       "coverage": {
-        "python_default": "root-default",
+        "python_default": "canonical-node-default",
         "python_typed": "generation-features",
         "frontend_default": "settings-core",
         "frontend_sanitization": "default-merge",
@@ -494,7 +494,7 @@
     },
     {
       "coverage": {
-        "python_default": "root-default",
+        "python_default": "canonical-node-default",
         "python_typed": "generation-negpip",
         "frontend_default": "settings-core",
         "frontend_sanitization": "default-merge",
@@ -507,7 +507,7 @@
     },
     {
       "coverage": {
-        "python_default": "root-default",
+        "python_default": "canonical-node-default",
         "python_typed": "generation-features",
         "frontend_default": "settings-core",
         "frontend_sanitization": "default-merge",
@@ -524,7 +524,7 @@
     },
     {
       "coverage": {
-        "python_default": "root-default",
+        "python_default": "canonical-node-default",
         "python_typed": "generation-output",
         "frontend_default": "settings-core",
         "frontend_sanitization": "preview-normalizer",
@@ -540,7 +540,7 @@
     },
     {
       "coverage": {
-        "python_default": "root-default",
+        "python_default": "canonical-node-default",
         "python_typed": "generation-sampling",
         "frontend_default": "settings-core",
         "frontend_sanitization": "optional-dependency-sanitizer",
@@ -555,7 +555,7 @@
     },
     {
       "coverage": {
-        "python_default": "root-default",
+        "python_default": "canonical-node-default",
         "python_typed": "generation-sampling",
         "frontend_default": "settings-core",
         "frontend_sanitization": "default-merge",
@@ -574,7 +574,7 @@
     },
     {
       "coverage": {
-        "python_default": "root-default",
+        "python_default": "canonical-node-default",
         "python_typed": "generation-sampling",
         "frontend_default": "settings-core",
         "frontend_sanitization": "default-merge",
@@ -590,7 +590,7 @@
     },
     {
       "coverage": {
-        "python_default": "root-default",
+        "python_default": "canonical-node-default",
         "python_typed": "generation-sampling",
         "frontend_default": "settings-core",
         "frontend_sanitization": "extension-preserve",
@@ -604,7 +604,7 @@
     },
     {
       "coverage": {
-        "python_default": "root-default",
+        "python_default": "canonical-node-default",
         "python_typed": "generation-output",
         "frontend_default": "settings-core",
         "frontend_sanitization": "optional-dependency-sanitizer",
@@ -617,7 +617,7 @@
     },
     {
       "coverage": {
-        "python_default": "root-default",
+        "python_default": "canonical-node-default",
         "python_typed": "generation-output",
         "frontend_default": "settings-core",
         "frontend_sanitization": "default-merge",
@@ -648,7 +648,7 @@
     },
     {
       "coverage": {
-        "python_default": "root-default",
+        "python_default": "canonical-node-default",
         "python_typed": "generation-settings",
         "frontend_default": "settings-core",
         "frontend_sanitization": "default-merge",

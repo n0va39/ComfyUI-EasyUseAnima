@@ -179,16 +179,26 @@ ComfyUI-EasyUseAnima/
 | --- | --- | --- | --- |
 | Root `__init__.py` | ComfyUI entrypoint | `WEB_DIRECTORY`, exported mappings, one guarded bootstrap call | feature rules, repositories, caches, route implementations |
 | Root compatibility files | [shim registry](python-compatibility-shims.md) | explicit direct re-exports and `__all__` | wrappers/subclasses, star imports, new logic, I/O, clients, caches |
-| `bootstrap.py` | production composition | `RuntimeConfig`, factories, route registration, user-directory initialization, initialize/shutdown | Prompt rules, schemas, ranking, AiO stages |
+| `bootstrap.py` | production composition | `RuntimeConfig`, factories, concrete route factory/dependency/correlation wiring, the single production route-registration call site, user-directory initialization, initialize/shutdown | Prompt rules, schemas, ranking, AiO stages |
 | `runtime.py` | process runtime | access to the single production `RuntimeServices`, lifecycle state | feature behavior or request-local mutable state |
 | `registration.py` | node registration | class/display mapping composition | file/network access, routes, service creation, cache initialization |
 | `nodes/*_nodes.py` | ComfyUI adapters | node metadata, raw-to-typed conversion, service call, ComfyUI output/UI conversion | persistence, migration, provider HTTP, cache implementation, invoking another node class for reuse |
-| `api/router.py`, `api/routes/*` | HTTP adapters | route composition, request parse, service call, response/error mapping | repository internals, filesystem writes, source scanning, provider construction, mutable module cache |
+| `api/router.py` | HTTP routing infrastructure | injected handler order, route definitions/signature, resolver/registrar, idempotent route-table registration | concrete route factories, `api/routes/*` imports, feature dependency wiring, provider construction |
+| `api/routes/*` | HTTP feature adapters | request parse, service call, response/error mapping | route-table lifecycle/registration, repository internals, filesystem writes, source scanning, provider construction, mutable module cache |
 | Feature packages | feature owner | domain rules, typed request/result/config, validation, use cases, feature migrations and ports | node/API adapters, registration/bootstrap, root shims |
 | `infrastructure/comfy` | ComfyUI integration | capability discovery, invocation, resources, events, paths | feature schema meaning, node classes |
 | `infrastructure/filesystem` | generic persistence | atomic JSON publish, locks, path primitives | profile revisions, settings keys, workflow semantics |
 | `infrastructure/http` | transport | client lifecycle, timeout and transport primitives | provider-specific feature policy |
 | `common` | cross-feature primitives | coercion/serialization proven to be domain-neutral | Prompt, AiO, profile, or settings meaning; miscellaneous helpers |
+
+Here, router composition means binding injected handlers to the canonical
+ordered route definitions. Bootstrap owns the concrete route factories,
+dependency callbacks, and correlation wiring, then invokes registration from
+the single production call site. “Single” is not process-once: every
+`initialize` refreshes the current route table, identical signatures remain
+idempotent, and a new table is registered. During the transition, root
+`api.py` only forwards legacy callback mappings into bootstrap; it is not the
+durable composition owner and remains subject to the existing removal gate.
 
 ## RuntimeServices and lifecycle
 
@@ -311,9 +321,9 @@ while changing profile migration semantics.
 | Phase A - baseline | A-01 whole-backend AST inventory; A-02 public node/workflow snapshot; A-03 report-only import gate; A-04 ADR/shim policy. PR #189 is only an A-02/A-03 seed. | Deterministic inventory, real current-surface reports, versioned public fixtures, and these docs exist independently. No production move is hidden here. |
 | Phase B - `nodes.py` extraction | B-01 package/archive skeleton; B-02 common primitives; B-03 Comfy adapters; B-04 through B-10 vertical Move PRs; B-11 registration/bootstrap and `nodes.py` shim. Owned by #184. | `nodes.py` is an explicit re-export shim, node implementations live under `easyuse_anima`, and node/workflow parity plus package closure pass. |
 | Phase C - feature contracts/behavior | #162 Autocomplete, #163 profile/storage, #164 translation, #165 API, #167 seed, #168 AiO schema, #169 AiO stage/cache. #166 is the adjacent frontend lifecycle registry and is explicitly excluded; it does not gate this or any other Python backend phase. These Python PRs remain separate from moves. | Each feature's contract and behavior are stable enough for its D/E move; unresolved behavior is not smuggled into a move. |
-| Phase D - root consolidation | D-01 translation; D-02 router; D-03 through D-07 route groups; D-08 filesystem; D-09 settings; D-10 profiles; D-11 autocomplete; D-12 wildcard; D-13 `anima_prompt`; D-14 root shim surface freeze. Owned by #186. | All production implementations use `easyuse_anima`; root files are entrypoints or explicit shims; internal root-shim imports are zero. |
+| Phase D - root consolidation | D-01 translation; D-02 API contracts; D-03 through D-07 route groups and injected route-table composition, with concrete wiring in bootstrap; D-08 filesystem; D-09 settings; D-10 profiles; D-11 autocomplete; D-12 wildcard; D-13 `anima_prompt`; D-14 root shim surface freeze. Owned by #186. | All production implementations use `easyuse_anima`; root files are entrypoints or explicit shims; internal root-shim imports are zero. |
 | Phase E - runtime ownership | E-01 global-state inventory; E-02 base runtime; E-03 through E-08 feature owners; E-09 idempotent lifecycle; E-10 isolated test runtime. Owned by #187. | Every process-wide cache/lock/client/executor/repository/capability has one owner and tested initialize/shutdown/partial-failure behavior. |
-| Phase F - typed boundaries | Extend #163/#165/#168 patterns to settings/profile/workflow, API, Prompt, Wildcard, Autocomplete, and AiO; establish the common error taxonomy. | Raw dictionaries remain only at adapter/migration boundaries; migrations and error mappings are versioned and tested. |
+| Phase F - typed boundaries (complete) | Extend #163/#165/#168 patterns to settings/profile/workflow, API, Prompt, Wildcard, Autocomplete, and AiO; establish the common error taxonomy. | Raw dictionaries remain only at adapter/migration boundaries; migrations and error mappings are versioned and tested. Completion evidence is recorded by F-02h at `d618bb705f9ec28f89fdbce8ba80a94847932c92`. |
 | Phase G - quality ratchet | G-01 Ruff report-only; G-02 Pyright baseline; G-03 import-boundary fail gate; G-04 public API snapshot; G-05 size/complexity ratchet; G-06 test ownership layout. Owned by #188. | Fixed-version, offline-reproducible gates reject new violations without hiding existing debt. |
 | Phase H - shim retirement | Introduce canonical paths, migrate internal consumers, verify at least one release, remove private aliases first, and decide public re-exports separately. | Every removal meets ADR-002 and registry gates; public removal has a breaking-change issue and release note, or is documented as long-term support. |
 
@@ -449,49 +459,53 @@ the ledger and checker-owned expected set.
 
 ## Overall Definition of Done
 
-The Python backend refactor is complete only when all of the following hold.
+FC-05 records technical architecture completion on integrated
+`dev@bb1452c9996293f1f77bb361e7317ddb2664ae19`. Checked rows are executable
+technical contracts. The one unchecked Registry row is the separately named FC-06
+compatibility event and does not reopen technical implementation.
 
 ### Structure and dependencies
 
-- [ ] `easyuse_anima` is the only production implementation root.
-- [ ] Root Python files are the ComfyUI entrypoint or registered shims.
-- [ ] Node/API adapters call feature services and contain no repository,
+- [x] `easyuse_anima` is the only production implementation root.
+- [x] Root Python files are the ComfyUI entrypoint or registered compatibility
+      facades/shims.
+- [x] Node/API adapters call feature services and contain no repository,
       external HTTP, migration, or cache implementation.
-- [ ] Feature/domain and infrastructure code have no adapter, registration,
+- [x] Feature/domain and infrastructure code have no adapter, registration,
       bootstrap, or root-shim back references.
-- [ ] The final owner matrix is enforced by an import-boundary gate.
+- [x] The final owner matrix is enforced by an import-boundary gate.
 
 ### State and lifecycle
 
-- [ ] Every process-wide cache, lock, client, executor, repository, and
+- [x] Every process-wide cache, lock, client, executor, repository, and
       capability has an owner, lifetime, thread-safety, and cleanup contract.
-- [ ] Initialize and shutdown are idempotent, including partial-failure cleanup.
-- [ ] Optional dependency failure is contained to its feature.
-- [ ] Runtime fixtures isolate user data and do not rely on private-global
+- [x] Initialize and shutdown are idempotent, including partial-failure cleanup.
+- [x] Optional dependency failure is contained to its feature.
+- [x] Runtime fixtures isolate user data and do not rely on private-global
       patch/reload cleanup.
 
 ### Data and compatibility
 
-- [ ] Settings, profiles, and workflow-owned backend data use versioned pure
+- [x] Settings, profiles, and workflow-owned backend data use versioned pure
       migrations and atomic final writes.
-- [ ] API request/result/error and feature boundaries are typed.
-- [ ] 0.5.2 node/workflow/profile/settings/API fixtures pass.
-- [ ] Supported root and canonical objects have identity parity.
+- [x] API request/result/error and feature boundaries are typed.
+- [x] 0.5.2 node/workflow/profile/settings/API fixtures pass.
+- [x] Supported root and canonical objects have identity parity.
 - [ ] The actual Registry package contains the complete canonical/shim import
-      closure and imports with optional providers disabled.
+      closure and imports with optional providers disabled. This is FC-06 release N.
 
 ### Quality and operations
 
-- [ ] Pinned Ruff/Pyright or approved equivalents run in the official runner.
-- [ ] Cycle, forbidden import, public API, and size-growth ratchets block new
+- [x] Pinned Ruff/Pyright or approved equivalents run in the official runner.
+- [x] Cycle, forbidden import, public API, and size-growth ratchets block new
       debt.
-- [ ] Every merged implementation PR is classified Move, Contract, or Behavior.
-- [ ] The shim registry has owners, evidence, and removal gates for every root
+- [x] Every merged implementation PR is classified Move, Contract, or Behavior.
+- [x] The shim registry has owners, evidence, and removal gates for every root
       compatibility surface.
-- [ ] Private shims are retired only after the support window; each public shim
+- [x] Private shims are retired only after the support window; each public shim
       is either deliberately retained or removed through a reviewed breaking
       change.
-- [ ] Final full runner, `comfy node validate`, actual `comfy node pack`, archive
+- [x] Final full runner, `comfy node validate`, actual `comfy node pack`, archive
       closure, 0.5.2 compatibility, and representative ComfyUI execution gates
       pass at the release/integration stage.
 

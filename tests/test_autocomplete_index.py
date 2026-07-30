@@ -10,8 +10,6 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from unittest.mock import patch
 
-import autocomplete_dataset
-import autocomplete_index
 from easyuse_anima.autocomplete import dataset
 from easyuse_anima.autocomplete import index as autocomplete_index_impl
 from easyuse_anima.autocomplete import search as autocomplete_search_impl
@@ -27,11 +25,12 @@ class AutocompleteIndexTests(unittest.TestCase):
         )
         self.root = Path(self.temporary_directory.name)
         self.index_root = self.root / "index"
+        self.index_store = autocomplete_index_impl._AutocompleteIndexStore(
+            self.index_root
+        )
 
     def tearDown(self) -> None:
-        with dataset._CACHE_LOCK:
-            dataset._CACHE.clear()
-            dataset._INFLIGHT.clear()
+        dataset._DEFAULT_AUTOCOMPLETE_SNAPSHOTS.clear()
         self.temporary_directory.cleanup()
 
     def _write(self, name: str, rows: list[str]) -> Path:
@@ -42,8 +41,8 @@ class AutocompleteIndexTests(unittest.TestCase):
     def _search(self, query: str, *, path: Path, limit: int = 20, category: str = ""):
         with patch.object(
             autocomplete_search_impl,
-            "_AUTOCOMPLETE_INDEX_DIR",
-            self.index_root,
+            "_DEFAULT_AUTOCOMPLETE_INDEX_STORE",
+            self.index_store,
         ):
             return autocomplete_search_impl._search_autocomplete_with_diagnostics(
                 query,
@@ -271,8 +270,8 @@ class AutocompleteIndexTests(unittest.TestCase):
 
         with patch.object(
             autocomplete_search_impl,
-            "_AUTOCOMPLETE_INDEX_DIR",
-            self.index_root,
+            "_DEFAULT_AUTOCOMPLETE_INDEX_STORE",
+            self.index_store,
         ):
             with ThreadPoolExecutor(max_workers=6) as executor:
                 futures = [executor.submit(search_once) for _ in range(6)]
@@ -311,7 +310,11 @@ class AutocompleteIndexTests(unittest.TestCase):
                 'custom general,0,100,"[일반] 사용자 정의 일반"',
             ],
         )
-        with patch.object(autocomplete_search_impl, "_AUTOCOMPLETE_INDEX_DIR", None):
+        with patch.object(
+            autocomplete_search_impl,
+            "_DEFAULT_AUTOCOMPLETE_INDEX_STORE",
+            autocomplete_index_impl._AutocompleteIndexStore(None),
+        ):
             result, diagnostics = autocomplete_search_impl._search_autocomplete_with_diagnostics(
                 "사용자 정의",
                 path=path,
@@ -323,6 +326,58 @@ class AutocompleteIndexTests(unittest.TestCase):
         self.assertEqual(result["results"][0]["tag"], "custom character")
         self.assertEqual(result["results"][0]["category"], "character")
         self.assertEqual(result["status"]["count"], 2)
+
+    def test_index_store_owns_immutable_root_and_retained_path_locks(self):
+        store = autocomplete_index_impl._AutocompleteIndexStore(self.index_root)
+        index_path = self.index_root / "nested" / ".." / "index.sqlite3"
+        normalized_path = self.index_root / "index.sqlite3"
+
+        first = store._index_lock(index_path)
+        store.close()
+        store.close()
+        retained = store._index_lock(normalized_path)
+
+        self.assertEqual(store.root, self.index_root)
+        self.assertIs(first, retained)
+        self.assertEqual(len(store._locks), 1)
+        with self.assertRaises(AttributeError):
+            setattr(store, "root", self.root)
+
+        isolated = autocomplete_index_impl._AutocompleteIndexStore(self.index_root)
+        self.assertIsNot(isolated._index_lock(normalized_path), first)
+
+    def test_public_explicit_root_uses_default_owner_and_shared_path_locks(self):
+        path = self._write(
+            "public-index.csv",
+            ['public indexed tag,0,100,"[일반] public"'],
+        )
+        source = autocomplete_index_impl.AutocompleteIndexSource(
+            resolved_path=str(path.resolve(strict=False)),
+            revision="public-test-revision",
+        )
+        search_args = {
+            "root": self.index_root,
+            "source": source,
+            "normalized_query": "public",
+            "categories": set(),
+            "limit": 20,
+            "load_entries": lambda: dataset._load_entries(path),
+            "validate_source": lambda: None,
+        }
+
+        first = autocomplete_index_impl.search_autocomplete_index(**search_args)
+        second = autocomplete_index_impl.search_autocomplete_index(**search_args)
+
+        self.assertEqual(first.diagnostics.outcome, "rebuild")
+        self.assertEqual(second.diagnostics.outcome, "hit")
+        self.assertEqual(second.entries[0].tag, "public indexed tag")
+        index_path = autocomplete_index_impl._index_path(self.index_root, source)
+        lock_key = os.path.normcase(os.path.abspath(index_path))
+        default_owner = autocomplete_index_impl._DEFAULT_AUTOCOMPLETE_INDEX_STORE
+        self.assertIs(
+            default_owner._locks[lock_key],
+            default_owner._index_lock(index_path),
+        )
 
     def test_index_module_is_inside_registry_package_closure(self):
         source = (ROOT / "easyuse_anima" / "autocomplete" / "search.py").read_text(
@@ -337,7 +392,6 @@ class AutocompleteIndexTests(unittest.TestCase):
                 "--ignored",
                 "--exclude-from=.comfyignore",
                 "--",
-                "autocomplete_index.py",
                 "easyuse_anima/autocomplete/__init__.py",
                 "easyuse_anima/autocomplete/dataset.py",
                 "easyuse_anima/autocomplete/index.py",
@@ -351,52 +405,104 @@ class AutocompleteIndexTests(unittest.TestCase):
         self.assertEqual(ignored.returncode, 0, ignored.stdout + ignored.stderr)
         self.assertEqual(ignored.stdout.strip(), "", ignored.stdout + ignored.stderr)
 
-    def test_root_index_module_is_an_explicit_canonical_identity_shim(self):
-        expected = (
-            "AUTOCOMPLETE_INDEX_SCHEMA_VERSION",
-            "AutocompleteIndexSource",
-            "IndexedAutocompleteEntry",
-            "AutocompleteIndexDiagnostics",
-            "AutocompleteIndexResult",
-            "AutocompleteIndexUnavailable",
-            "search_autocomplete_index",
-        )
-        self.assertEqual(autocomplete_index.__all__, expected)
-        self.assertEqual(autocomplete_index_impl.__all__, expected)
-        for name in expected:
-            with self.subTest(name=name):
-                self.assertIs(
-                    getattr(autocomplete_index, name),
-                    getattr(autocomplete_index_impl, name),
-                )
+class AutocompleteSnapshotStoreTests(unittest.TestCase):
+    def test_store_instances_isolate_snapshots_and_clear_completed_cache(self):
+        with tempfile.TemporaryDirectory(
+            prefix="easyuse-anima-snapshot-store-test-"
+        ) as temporary_directory:
+            path = Path(temporary_directory) / "tags.csv"
+            path.write_text(
+                'isolated tag,0,100,"[일반] isolated"\n',
+                encoding="utf-8",
+            )
+            key = dataset._cache_key(path)
+            first_store = dataset._AutocompleteSnapshotStore()
+            second_store = dataset._AutocompleteSnapshotStore()
+            original_build = dataset._build_snapshot
 
-    def test_root_dataset_moved_surface_has_canonical_identity(self):
-        dataset_names = (
-            "DBR_TAG_ARCHIVE_SOURCE",
-            "DBR_TAG_ARCHIVE_LICENSE",
-            "DBR_DANBOORU_AUTOCOMPLETE_CSV",
-            "DBR_E621_AUTOCOMPLETE_CSV",
-            "DBR_MERGED_AUTOCOMPLETE_CSV",
-            "LOCALSMILE_AUTOCOMPLETE_CSV",
-            "AUTOCOMPLETE_CSV",
-            "DEFAULT_AUTOCOMPLETE_SOURCE",
-            "AUTOCOMPLETE_SOURCES",
-            "AutocompleteEntry",
-            "resolve_autocomplete_source",
-            "available_autocomplete_sources",
-            "autocomplete_status",
-        )
-        self.assertEqual(dataset.__all__, dataset_names)
-        for name in dataset_names:
-            with self.subTest(name=name):
-                self.assertIs(
-                    getattr(autocomplete_dataset, name),
-                    getattr(dataset, name),
-                )
-        self.assertIs(
-            autocomplete_dataset.search_autocomplete,
-            autocomplete_search_impl.search_autocomplete,
-        )
+            with patch.object(
+                dataset,
+                "_build_snapshot",
+                wraps=original_build,
+            ) as build_snapshot:
+                first = first_store.snapshot_for_key(key)
+                first_hit = first_store.snapshot_for_key(key)
+                second = second_store.snapshot_for_key(key)
+                first_store.clear()
+                first_after_clear = first_store.snapshot_for_key(key)
+
+        self.assertIs(first_hit, first)
+        self.assertIsNot(second, first)
+        self.assertIsNot(first_after_clear, first)
+        self.assertEqual(build_snapshot.call_count, 3)
+
+    def test_clear_retains_inflight_future_until_shared_settlement(self):
+        with tempfile.TemporaryDirectory(
+            prefix="easyuse-anima-snapshot-flight-test-"
+        ) as temporary_directory:
+            path = Path(temporary_directory) / "tags.csv"
+            path.write_text(
+                'shared tag,0,100,"[일반] shared"\n',
+                encoding="utf-8",
+            )
+            key = dataset._cache_key(path)
+            store = dataset._AutocompleteSnapshotStore()
+            old_snapshot = store.snapshot_for_key(key)
+            previous_stat = path.stat()
+            path.write_text(
+                'shared replacement tag,0,90,"[일반] replacement"\n',
+                encoding="utf-8",
+            )
+            next_mtime = previous_stat.st_mtime_ns + 1_000_000_000
+            os.utime(path, ns=(next_mtime, next_mtime))
+            key = dataset._cache_key(path)
+            self.assertNotEqual(key, old_snapshot.key)
+            load_started = threading.Event()
+            waiter_joined = threading.Event()
+            release_load = threading.Event()
+            original_build = dataset._build_snapshot
+            original_await = dataset._await_snapshot
+
+            def blocking_build(build_key):
+                load_started.set()
+                if not release_load.wait(timeout=5):
+                    raise AssertionError("timed out waiting to release snapshot build")
+                return original_build(build_key)
+
+            def observed_await(future):
+                waiter_joined.set()
+                return original_await(future)
+
+            with (
+                patch.object(
+                    dataset,
+                    "_build_snapshot",
+                    side_effect=blocking_build,
+                ) as build_snapshot,
+                patch.object(
+                    dataset,
+                    "_await_snapshot",
+                    side_effect=observed_await,
+                ),
+                ThreadPoolExecutor(max_workers=2) as executor,
+            ):
+                loader = executor.submit(store.snapshot_for_key, key)
+                self.assertTrue(load_started.wait(timeout=5))
+                store.clear()
+                with store._lock:
+                    self.assertIn(key, store._inflight)
+                follower = executor.submit(store.snapshot_for_key, key)
+                self.assertTrue(waiter_joined.wait(timeout=5))
+                release_load.set()
+                loaded = loader.result(timeout=5)
+                followed = follower.result(timeout=5)
+
+            with store._lock:
+                self.assertNotIn(key, store._inflight)
+
+        self.assertIs(followed, loaded)
+        self.assertIsNot(loaded, old_snapshot)
+        self.assertEqual(build_snapshot.call_count, 1)
 
 
 if __name__ == "__main__":

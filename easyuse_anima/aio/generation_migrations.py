@@ -5,6 +5,7 @@ from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from typing import TypeAlias, cast
 
+from ..errors import ValidationError
 from .generation_values import freeze_object, thaw_object
 
 AIO_GENERATION_SETTINGS_SCHEMA = "easyuse_anima_aio_generation_settings"
@@ -27,7 +28,7 @@ AIOGenerationMigrationFunction: TypeAlias = Callable[
 ]
 
 
-class AIOGenerationMigrationError(ValueError):
+class AIOGenerationMigrationError(ValidationError, ValueError):
     """A pure generation-settings version contract could not be satisfied."""
 
 

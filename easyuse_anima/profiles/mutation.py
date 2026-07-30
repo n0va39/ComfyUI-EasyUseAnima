@@ -8,10 +8,11 @@ from contextlib import contextmanager
 from pathlib import Path
 from typing import Any
 
+from ..errors import ConflictError, ValidationError
 from .contract import read_profile_metadata
 
 
-class ProfileMutationError(ValueError):
+class ProfileMutationError(ConflictError, ValueError):
     """A public optimistic-concurrency failure with a stable API mapping."""
 
     status: int
@@ -33,7 +34,7 @@ class ProfileMutationError(ValueError):
         self.details = dict(details) if details is not None else None
 
 
-class ProfilePreconditionRequiredError(ProfileMutationError):
+class ProfilePreconditionRequiredError(ProfileMutationError, ValidationError):
     def __init__(self, fields: tuple[str, ...], *, profile: str = "profile") -> None:
         super().__init__(
             status=428,

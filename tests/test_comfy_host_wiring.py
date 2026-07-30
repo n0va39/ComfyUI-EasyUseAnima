@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import re
+import ast
 import sys
 import types
 import unittest
@@ -10,10 +10,20 @@ from unittest.mock import patch
 from easyuse_anima import runtime as runtime_module
 from easyuse_anima.infrastructure.comfy.provider import DefaultComfyHostProvider
 from easyuse_anima.infrastructure.comfy.wiring import resolve_comfy_host_helper
-from easyuse_anima.runtime import RuntimeServices
+from easyuse_anima.runtime import RuntimeConfig
 from tests.comfy_host_fakes import (
+    FakeAIOFirstPassCache,
+    FakeAutocompleteService,
+    FakeClock,
     FakeComfyHostProvider,
     FakeSeedReservationService,
+    FakeTranslationService,
+    FakeWildcardSnapshots,
+)
+from tests.runtime_test_support import (
+    build_runtime_services,
+    enter_test_context,
+    isolated_installed_runtime,
 )
 
 
@@ -24,11 +34,10 @@ class ClipTextEncode:
 
 class ComfyHostWiringTests(unittest.TestCase):
     def setUp(self):
-        self.runtime_state = patch.object(runtime_module, "_RUNTIME_SERVICES", None)
-        self.runtime_state.start()
-
-    def tearDown(self):
-        self.runtime_state.stop()
+        enter_test_context(
+            self,
+            isolated_installed_runtime(runtime_module),
+        )
 
     @staticmethod
     def _fallback(name: str):
@@ -44,12 +53,26 @@ class ComfyHostWiringTests(unittest.TestCase):
         access_files = {
             path.relative_to(package_root.parent).as_posix()
             for path in package_root.rglob("*.py")
-            if re.search(r"\bget_runtime\b", path.read_text(encoding="utf-8"))
+            if any(
+                (
+                    isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+                    and node.name == "get_runtime"
+                )
+                or (
+                    isinstance(node, ast.Name)
+                    and isinstance(node.ctx, ast.Load)
+                    and node.id == "get_runtime"
+                )
+                for node in ast.walk(
+                    ast.parse(path.read_text(encoding="utf-8-sig"))
+                )
+            )
         }
 
         self.assertEqual(
             access_files,
             {
+                "easyuse_anima/api/application.py",
                 "easyuse_anima/infrastructure/comfy/wiring.py",
                 "easyuse_anima/nodes/seed_adapters.py",
                 "easyuse_anima/runtime.py",
@@ -240,9 +263,24 @@ class ComfyHostWiringTests(unittest.TestCase):
             mapping_classes={"Mapping": mapping},
             loaded_classes={"Loaded": loaded},
         )
-        runtime_module._RUNTIME_SERVICES = RuntimeServices(
+        runtime = build_runtime_services(
+            runtime_module,
             comfy=provider,
             seed_reservations=FakeSeedReservationService(),
+            config=RuntimeConfig(
+                package_root=Path("package-root"),
+                package_data_dir=Path("package-data"),
+                user_data_dir=Path("user-data"),
+            ),
+            clock=FakeClock(),
+            translation=FakeTranslationService(),
+            autocomplete=FakeAutocompleteService(),
+            wildcard_snapshots=FakeWildcardSnapshots(),
+            aio_first_pass_cache=FakeAIOFirstPassCache(),
+        )
+        enter_test_context(
+            self,
+            isolated_installed_runtime(runtime_module, runtime),
         )
 
         self.assertEqual(
@@ -284,9 +322,24 @@ class ComfyHostWiringTests(unittest.TestCase):
                 "CLIPTextEncode": ClipTextEncode,
             },
         )
-        runtime_module._RUNTIME_SERVICES = RuntimeServices(
+        runtime = build_runtime_services(
+            runtime_module,
             comfy=provider,
             seed_reservations=FakeSeedReservationService(),
+            config=RuntimeConfig(
+                package_root=Path("package-root"),
+                package_data_dir=Path("package-data"),
+                user_data_dir=Path("user-data"),
+            ),
+            clock=FakeClock(),
+            translation=FakeTranslationService(),
+            autocomplete=FakeAutocompleteService(),
+            wildcard_snapshots=FakeWildcardSnapshots(),
+            aio_first_pass_cache=FakeAIOFirstPassCache(),
+        )
+        enter_test_context(
+            self,
+            isolated_installed_runtime(runtime_module, runtime),
         )
 
         require = resolve_comfy_host_helper(

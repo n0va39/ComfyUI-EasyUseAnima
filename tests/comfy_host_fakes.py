@@ -4,7 +4,13 @@ from __future__ import annotations
 
 import sys
 from contextlib import contextmanager
-from unittest.mock import DEFAULT, Mock, patch
+from pathlib import Path
+from unittest.mock import DEFAULT, Mock
+
+from tests.runtime_test_support import (
+    build_runtime_services,
+    isolated_installed_runtime,
+)
 
 
 class FakeSeedReservationService:
@@ -14,6 +20,60 @@ class FakeSeedReservationService:
     def settle(self, reservation_id, settlement):
         raise AssertionError(
             f"unexpected seed settlement: {reservation_id!r} {settlement!r}"
+        )
+
+
+class FakeClock:
+    def monotonic(self) -> float:
+        return 0.0
+
+
+class FakeTranslationService:
+    def translate_prompt(self, text, settings=None):
+        return str(text or "")
+
+    def close(self) -> None:
+        return None
+
+
+class FakeAutocompleteService:
+    def resolve_source(self, source=None):
+        raise AssertionError(f"unexpected autocomplete source resolution: {source!r}")
+
+    def available_sources(self, selected=None):
+        raise AssertionError(f"unexpected autocomplete source list: {selected!r}")
+
+    def status(self, path):
+        raise AssertionError(f"unexpected autocomplete status: {path!r}")
+
+    def search(self, query, limit=20, path=None, category=None):
+        raise AssertionError(
+            "unexpected autocomplete search: "
+            f"{query!r} {limit!r} {path!r} {category!r}"
+        )
+
+    def classify(self, text, limit=240, path=None):
+        raise AssertionError(
+            f"unexpected autocomplete classification: {text!r} {limit!r} {path!r}"
+        )
+
+
+class FakeWildcardSnapshots:
+    def snapshot_for_roots(self, roots, *, scan_sources, build_snapshot):
+        raise AssertionError(
+            "unexpected wildcard snapshot resolution: "
+            f"{(roots, scan_sources, build_snapshot)!r}"
+        )
+
+
+class FakeAIOFirstPassCache:
+    def get(self, cache_key):
+        raise AssertionError(f"unexpected AiO first-pass cache get: {cache_key!r}")
+
+    def put(self, cache_key, latent, image):
+        raise AssertionError(
+            "unexpected AiO first-pass cache put: "
+            f"{(cache_key, latent, image)!r}"
         )
 
 
@@ -87,26 +147,67 @@ class _LayeredFakeComfyHostProvider:
 
 
 def _runtime_module_for(root_module):
-    package = root_module.__package__
-    module_name = (
-        f"{package}.easyuse_anima.runtime"
-        if package
-        else "easyuse_anima.runtime"
-    )
+    module_parts = root_module.__name__.split(".")
+    if "easyuse_anima" in module_parts:
+        package_index = module_parts.index("easyuse_anima")
+        canonical_package = ".".join(module_parts[: package_index + 1])
+        module_name = f"{canonical_package}.runtime"
+    else:
+        package = root_module.__package__
+        module_name = (
+            f"{package}.easyuse_anima.runtime"
+            if package
+            else "easyuse_anima.runtime"
+        )
     runtime_module = sys.modules.get(module_name)
     if runtime_module is None:
         raise AssertionError(f"Runtime module is not loaded: {module_name}")
     return runtime_module
 
 
+def _runtime_support(runtime_module):
+    installed = runtime_module._RUNTIME_SERVICES
+    if installed is not None:
+        return (
+            installed.config,
+            installed.clock,
+            installed.translation,
+            installed.autocomplete,
+            installed.wildcard_snapshots,
+            installed.aio_first_pass_cache,
+        )
+    return (
+        runtime_module.RuntimeConfig(
+            package_root=Path("package-root"),
+            package_data_dir=Path("package-data"),
+            user_data_dir=Path("user-data"),
+        ),
+        FakeClock(),
+        FakeTranslationService(),
+        FakeAutocompleteService(),
+        FakeWildcardSnapshots(),
+        FakeAIOFirstPassCache(),
+    )
+
+
 @contextmanager
 def use_fake_comfy_host(root_module, provider):
     runtime_module = _runtime_module_for(root_module)
-    runtime = runtime_module.RuntimeServices(
+    config, clock, translation, autocomplete, wildcard_snapshots, aio_cache = (
+        _runtime_support(runtime_module)
+    )
+    runtime = build_runtime_services(
+        runtime_module,
         comfy=provider,
         seed_reservations=FakeSeedReservationService(),
+        config=config,
+        clock=clock,
+        translation=translation,
+        autocomplete=autocomplete,
+        wildcard_snapshots=wildcard_snapshots,
+        aio_first_pass_cache=aio_cache,
     )
-    with patch.object(runtime_module, "_RUNTIME_SERVICES", runtime):
+    with isolated_installed_runtime(runtime_module, runtime):
         yield provider
 
 
@@ -134,9 +235,19 @@ def patch_comfy_helper(
         else FakeComfyHostProvider()
     )
     provider = _LayeredFakeComfyHostProvider(base, symbol, replacement)
-    runtime = runtime_module.RuntimeServices(
+    config, clock, translation, autocomplete, wildcard_snapshots, aio_cache = (
+        _runtime_support(runtime_module)
+    )
+    runtime = build_runtime_services(
+        runtime_module,
         comfy=provider,
         seed_reservations=FakeSeedReservationService(),
+        config=config,
+        clock=clock,
+        translation=translation,
+        autocomplete=autocomplete,
+        wildcard_snapshots=wildcard_snapshots,
+        aio_first_pass_cache=aio_cache,
     )
-    with patch.object(runtime_module, "_RUNTIME_SERVICES", runtime):
+    with isolated_installed_runtime(runtime_module, runtime):
         yield replacement

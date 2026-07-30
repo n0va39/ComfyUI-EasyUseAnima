@@ -13,7 +13,7 @@ READ_ONLY_JSON_EVIDENCE = (
     ROOT / "tests" / "fixtures" / "aio_legacy_execution_trace.v1.json",
     ROOT / "tests" / "fixtures" / "aio_generation_settings_0_5_2.json",
     ROOT / "tests" / "fixtures" / "node_contracts_0_5_2.json",
-    ROOT / "tests" / "fixtures" / "python_compatibility_surface.v1.json",
+    ROOT / "tests" / "fixtures" / "python_file_disposition_contract.v1.json",
     ROOT / "tests" / "fixtures" / "comfy_host_compatibility.v1.json",
     ROOT
     / "docs"

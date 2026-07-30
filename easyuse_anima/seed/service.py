@@ -11,6 +11,7 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import TypeAlias
 
+from ..errors import CapabilityUnavailableError, ConflictError, EasyUseAnimaError
 from .reservation import (
     SEED_CONTROL_FIXED,
     SEED_OVERFLOW_CLAMP,
@@ -34,15 +35,18 @@ _RandomSeed: TypeAlias = Callable[[int], int]
 _ReservationIdFactory: TypeAlias = Callable[[], str]
 
 
-class SeedReservationServiceError(RuntimeError):
+class SeedReservationServiceError(EasyUseAnimaError, RuntimeError):
     """The process-local reservation service cannot complete an operation."""
 
 
-class SeedReservationConflictError(SeedReservationServiceError):
+class SeedReservationConflictError(SeedReservationServiceError, ConflictError):
     """A request identity or stream domain conflicts with retained state."""
 
 
-class SeedReservationCapacityError(SeedReservationServiceError):
+class SeedReservationCapacityError(
+    SeedReservationServiceError,
+    CapabilityUnavailableError,
+):
     """A configured bounded state store has no safe capacity."""
 
 

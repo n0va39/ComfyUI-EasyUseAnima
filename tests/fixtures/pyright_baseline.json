@@ -29,7 +29,7 @@
     }
   ],
   "totals": {
-    "error": 60,
+    "error": 23,
     "information": 0,
     "warning": 0
   },
@@ -53,21 +53,21 @@
       "severity": "error"
     },
     {
-      "count": 4,
-      "path": "easyuse_anima/prompt/artist_mix.py",
+      "count": 2,
+      "path": "easyuse_anima/prompt/artist_mix_conditioning.py",
+      "rule": "reportOptionalMemberAccess",
+      "severity": "error"
+    },
+    {
+      "count": 2,
+      "path": "easyuse_anima/prompt/artist_mix_planning.py",
       "rule": "reportOptionalMemberAccess",
       "severity": "error"
     },
     {
       "count": 1,
-      "path": "easyuse_anima/prompt/artist_mix.py",
+      "path": "easyuse_anima/prompt/artist_mix_planning.py",
       "rule": "reportOptionalOperand",
-      "severity": "error"
-    },
-    {
-      "count": 37,
-      "path": "easyuse_anima/prompt/artist_mix.py",
-      "rule": "reportUndefinedVariable",
       "severity": "error"
     },
     {
@@ -78,19 +78,19 @@
     },
     {
       "count": 3,
-      "path": "easyuse_anima/prompt/regional.py",
+      "path": "easyuse_anima/prompt/regional_builder.py",
       "rule": "reportOptionalIterable",
       "severity": "error"
     },
     {
       "count": 2,
-      "path": "easyuse_anima/prompt/regional.py",
+      "path": "easyuse_anima/prompt/regional_builder.py",
       "rule": "reportOptionalMemberAccess",
       "severity": "error"
     },
     {
       "count": 1,
-      "path": "easyuse_anima/prompt/regional.py",
+      "path": "easyuse_anima/prompt/regional_builder.py",
       "rule": "reportReturnType",
       "severity": "error"
     }

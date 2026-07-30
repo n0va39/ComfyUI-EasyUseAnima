@@ -19,47 +19,29 @@ from .contracts import (
     PROMPT_TRANSLATION_CACHE_TTL_SECONDS,
     PROMPT_TRANSLATION_PROVIDER_GOOGLE,
     PROMPT_TRANSLATION_PROVIDER_OFF,
-    PromptTranslationError,
     PromptTranslationSettings,
     TranslationCacheKey,
     TranslationMarkerCountError,
     TranslationMarkerSizeError,
     TranslationProvider,
-    TranslationProviderUnavailableError,
     TranslationTotalSizeError,
     normalize_prompt_translation_language,
     normalize_prompt_translation_provider,
 )
 from .markers import iter_prompt_translation_markers
+from .ports import PromptTranslationPort
+from .provider_registry import _TranslationProviderRegistry
 from .providers.google import GoogleTranslationProvider
 
-_TRANSLATION_PROVIDER_FACTORIES: dict[
-    str,
-    Callable[[], TranslationProvider],
-] = {
-    PROMPT_TRANSLATION_PROVIDER_GOOGLE: GoogleTranslationProvider,
-}
-_TRANSLATION_PROVIDER_INSTANCES: dict[str, TranslationProvider] = {}
-_TRANSLATION_PROVIDER_LOCK = threading.RLock()
+_DEFAULT_TRANSLATION_PROVIDER_REGISTRY = _TranslationProviderRegistry(
+    {
+        PROMPT_TRANSLATION_PROVIDER_GOOGLE: GoogleTranslationProvider,
+    }
+)
 
 
 def get_translation_provider(provider: str) -> TranslationProvider:
-    name = str(provider or "").strip().lower()
-    with _TRANSLATION_PROVIDER_LOCK:
-        instance = _TRANSLATION_PROVIDER_INSTANCES.get(name)
-        if instance is not None:
-            return instance
-        factory = _TRANSLATION_PROVIDER_FACTORIES.get(name)
-        if factory is None:
-            raise TranslationProviderUnavailableError()
-        try:
-            instance = factory()
-        except PromptTranslationError:
-            raise
-        except Exception as exc:
-            raise TranslationProviderUnavailableError() from exc
-        _TRANSLATION_PROVIDER_INSTANCES[name] = instance
-        return instance
+    return _DEFAULT_TRANSLATION_PROVIDER_REGISTRY.get(provider)
 
 
 def google_translate_text(
@@ -317,8 +299,37 @@ class PromptTranslationService:
         output.append(value[cursor:])
         return "".join(output)
 
+    def close(self) -> None:
+        self.cache.clear()
 
-_DEFAULT_TRANSLATION_SERVICE = PromptTranslationService()
+
+_DEFAULT_TRANSLATION_SERVICE: PromptTranslationPort = (
+    PromptTranslationService()
+)
+
+
+def _install_default_translation_service(
+    translation: PromptTranslationPort,
+) -> PromptTranslationPort:
+    global _DEFAULT_TRANSLATION_SERVICE
+
+    previous = _DEFAULT_TRANSLATION_SERVICE
+    _DEFAULT_TRANSLATION_SERVICE = translation
+    return previous
+
+
+def _restore_default_translation_service(
+    expected: PromptTranslationPort,
+    replacement: PromptTranslationPort,
+) -> bool:
+    """Restore the facade only while it still names the expected service."""
+
+    global _DEFAULT_TRANSLATION_SERVICE
+
+    if _DEFAULT_TRANSLATION_SERVICE is not expected:
+        return False
+    _DEFAULT_TRANSLATION_SERVICE = replacement
+    return True
 
 
 def strip_prompt_translation_markers(text: str) -> str:

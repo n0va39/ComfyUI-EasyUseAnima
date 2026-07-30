@@ -8,13 +8,15 @@ import re
 import stat
 import threading
 import unicodedata
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 from concurrent.futures import Future
 from dataclasses import dataclass
 from pathlib import Path
 from types import MappingProxyType
+from typing import TypedDict
 
 from ..infrastructure.filesystem.paths import PACKAGE_DATA_DIR
+from .contracts import AutocompleteSourcePayload, AutocompleteStatusPayload
 
 DBR_TAG_ARCHIVE_SOURCE = "https://github.com/DraconicDragon/dbr-e621-lists-archive"
 
@@ -41,7 +43,21 @@ DEFAULT_AUTOCOMPLETE_SOURCE = "dbr_danbooru_2025_09_01"
 _KOREAN_AUTOCOMPLETE_SOURCE = "localsmile_kr_wiki"
 
 
-AUTOCOMPLETE_SOURCES = {
+class _AutocompleteSourceDefinitionRequired(TypedDict):
+    label: str
+    path: Path
+    entry_count: int
+    source: str
+
+
+class _AutocompleteSourceDefinition(
+    _AutocompleteSourceDefinitionRequired,
+    total=False,
+):
+    license: str
+
+
+AUTOCOMPLETE_SOURCES: dict[str, _AutocompleteSourceDefinition] = {
     "dbr_danbooru_2025_09_01": {
         "label": "Danbooru 2025-09-01 (recommended)",
         "path": DBR_DANBOORU_AUTOCOMPLETE_CSV,
@@ -145,13 +161,83 @@ class _AutocompleteSourceChanged(RuntimeError):
     pass
 
 
-_CACHE_LOCK = threading.Lock()
+class _AutocompleteSnapshotStore:
+    def __init__(self) -> None:
+        self._lock = threading.Lock()
+        self._cache: dict[str, _AutocompleteSnapshot] = {}
+        self._inflight: dict[
+            _AutocompleteCacheKey,
+            Future[_AutocompleteSnapshot],
+        ] = {}
+
+    def clear(self) -> None:
+        with self._lock:
+            self._cache.clear()
+
+    def cached_snapshot_for_key(
+        self,
+        key: _AutocompleteCacheKey,
+    ) -> _AutocompleteSnapshot | None:
+        with self._lock:
+            snapshot = self._cache.get(key.resolved_path)
+            if snapshot is not None and snapshot.key == key:
+                return snapshot
+        return None
+
+    def snapshot_for_key(
+        self,
+        key: _AutocompleteCacheKey,
+    ) -> _AutocompleteSnapshot:
+        with self._lock:
+            cached = self._cache.get(key.resolved_path)
+            if cached is not None and cached.key == key:
+                return cached
+            future = self._inflight.get(key)
+            is_loader = future is None
+            if future is None:
+                future = Future()
+                self._inflight[key] = future
+
+        if not is_loader:
+            return _await_snapshot(future)
+
+        try:
+            try:
+                snapshot = _build_snapshot(key)
+            except Exception as load_error:
+                current_key = _cache_key_from_resolved_path(
+                    Path(key.resolved_path)
+                )
+                if current_key != key:
+                    raise _AutocompleteSourceChanged(
+                        key.resolved_path
+                    ) from load_error
+                raise
+            current_key = _cache_key_from_resolved_path(
+                Path(key.resolved_path)
+            )
+            if current_key != key:
+                raise _AutocompleteSourceChanged(key.resolved_path)
+            with self._lock:
+                current_cached = self._cache.get(key.resolved_path)
+                if current_cached is not cached and (
+                    current_cached is not None and current_cached.key != key
+                ):
+                    raise _AutocompleteSourceChanged(key.resolved_path)
+                self._cache[key.resolved_path] = snapshot
+                self._inflight.pop(key, None)
+        except BaseException as error:
+            with self._lock:
+                if self._inflight.get(key) is future:
+                    self._inflight.pop(key, None)
+            future.set_exception(error)
+            raise
+
+        future.set_result(snapshot)
+        return snapshot
 
 
-_CACHE: dict[str, _AutocompleteSnapshot] = {}
-
-
-_INFLIGHT: dict[_AutocompleteCacheKey, Future[_AutocompleteSnapshot]] = {}
+_DEFAULT_AUTOCOMPLETE_SNAPSHOTS = _AutocompleteSnapshotStore()
 
 
 def resolve_autocomplete_source(source: str | None = None) -> tuple[str, Path]:
@@ -165,9 +251,11 @@ def resolve_autocomplete_source(source: str | None = None) -> tuple[str, Path]:
     return key, path
 
 
-def available_autocomplete_sources(selected: str | None = None) -> list[dict]:
+def available_autocomplete_sources(
+    selected: str | None = None,
+) -> list[AutocompleteSourcePayload]:
     selected_key, _ = resolve_autocomplete_source(selected)
-    sources = []
+    sources: list[AutocompleteSourcePayload] = []
     for key, data in AUTOCOMPLETE_SOURCES.items():
         path = Path(data["path"])
         sources.append(
@@ -355,60 +443,31 @@ def _await_snapshot(future: Future[_AutocompleteSnapshot]) -> _AutocompleteSnaps
 
 
 def _snapshot_for_key(key: _AutocompleteCacheKey) -> _AutocompleteSnapshot:
-    with _CACHE_LOCK:
-        cached = _CACHE.get(key.resolved_path)
-        if cached is not None and cached.key == key:
-            return cached
-        future = _INFLIGHT.get(key)
-        is_loader = future is None
-        if future is None:
-            future = Future()
-            _INFLIGHT[key] = future
-
-    if not is_loader:
-        return _await_snapshot(future)
-
-    try:
-        try:
-            snapshot = _build_snapshot(key)
-        except Exception as load_error:
-            current_key = _cache_key_from_resolved_path(Path(key.resolved_path))
-            if current_key != key:
-                raise _AutocompleteSourceChanged(key.resolved_path) from load_error
-            raise
-        current_key = _cache_key_from_resolved_path(Path(key.resolved_path))
-        if current_key != key:
-            raise _AutocompleteSourceChanged(key.resolved_path)
-        with _CACHE_LOCK:
-            current_cached = _CACHE.get(key.resolved_path)
-            if current_cached is not cached and (
-                current_cached is None or current_cached.key != key
-            ):
-                raise _AutocompleteSourceChanged(key.resolved_path)
-            _CACHE[key.resolved_path] = snapshot
-            _INFLIGHT.pop(key, None)
-    except BaseException as error:
-        with _CACHE_LOCK:
-            if _INFLIGHT.get(key) is future:
-                _INFLIGHT.pop(key, None)
-        future.set_exception(error)
-        raise
-
-    future.set_result(snapshot)
-    return snapshot
+    return _DEFAULT_AUTOCOMPLETE_SNAPSHOTS.snapshot_for_key(key)
 
 
-def _snapshot(path: Path = AUTOCOMPLETE_CSV) -> _AutocompleteSnapshot:
+def _snapshot_with_owner(
+    path: Path,
+    *,
+    snapshot_for_key: Callable[[_AutocompleteCacheKey], _AutocompleteSnapshot],
+) -> _AutocompleteSnapshot:
     for _attempt in range(_AUTOCOMPLETE_CACHE_LOAD_ATTEMPTS):
         key = _cache_key(path)
         try:
-            return _snapshot_for_key(key)
+            return snapshot_for_key(key)
         except _AutocompleteSourceChanged:
             continue
     resolved_path = Path(path).resolve(strict=False)
     raise RuntimeError(
         f"Autocomplete dataset changed repeatedly while loading: {resolved_path}"
     ) from None
+
+
+def _snapshot(path: Path = AUTOCOMPLETE_CSV) -> _AutocompleteSnapshot:
+    return _snapshot_with_owner(
+        path,
+        snapshot_for_key=_snapshot_for_key,
+    )
 
 
 def _entries(path: Path = AUTOCOMPLETE_CSV) -> tuple[AutocompleteEntry, ...]:
@@ -419,7 +478,11 @@ def _entry_map(path: Path = AUTOCOMPLETE_CSV) -> Mapping[str, AutocompleteEntry]
     return _snapshot(path).entry_map
 
 
-def _status_from_key(key: _AutocompleteCacheKey, path: Path, count: int) -> dict:
+def _status_from_key(
+    key: _AutocompleteCacheKey,
+    path: Path,
+    count: int,
+) -> AutocompleteStatusPayload:
     exists = key.mtime_ns != _MISSING_FILE_STAT
     return {
         "path": str(path),
@@ -429,18 +492,17 @@ def _status_from_key(key: _AutocompleteCacheKey, path: Path, count: int) -> dict
     }
 
 
-def _snapshot_status(snapshot: _AutocompleteSnapshot, path: Path) -> dict:
+def _snapshot_status(
+    snapshot: _AutocompleteSnapshot,
+    path: Path,
+) -> AutocompleteStatusPayload:
     return _status_from_key(snapshot.key, path, len(snapshot.entries))
 
 
 def _cached_snapshot_for_key(
     key: _AutocompleteCacheKey,
 ) -> _AutocompleteSnapshot | None:
-    with _CACHE_LOCK:
-        snapshot = _CACHE.get(key.resolved_path)
-        if snapshot is not None and snapshot.key == key:
-            return snapshot
-    return None
+    return _DEFAULT_AUTOCOMPLETE_SNAPSHOTS.cached_snapshot_for_key(key)
 
 
 def _builtin_manifest_entry_count(key: _AutocompleteCacheKey) -> int | None:
@@ -458,12 +520,20 @@ def _builtin_manifest_entry_count(key: _AutocompleteCacheKey) -> int | None:
     return None
 
 
-def autocomplete_status(path: Path = AUTOCOMPLETE_CSV) -> dict:
+def _autocomplete_status_with_owner(
+    path: Path,
+    *,
+    cached_snapshot_for_key: Callable[
+        [_AutocompleteCacheKey],
+        _AutocompleteSnapshot | None,
+    ],
+    snapshot: Callable[[Path], _AutocompleteSnapshot],
+) -> AutocompleteStatusPayload:
     key = _cache_key(path)
     if key.mtime_ns == _MISSING_FILE_STAT:
         return _status_from_key(key, path, 0)
 
-    cached = _cached_snapshot_for_key(key)
+    cached = cached_snapshot_for_key(key)
     if cached is not None:
         return _snapshot_status(cached, path)
 
@@ -473,7 +543,17 @@ def autocomplete_status(path: Path = AUTOCOMPLETE_CSV) -> dict:
 
     # Public helper callers may provide arbitrary paths. Preserve their exact
     # count semantics when no verified built-in manifest applies.
-    return _snapshot_status(_snapshot(path), path)
+    return _snapshot_status(snapshot(path), path)
+
+
+def autocomplete_status(
+    path: Path = AUTOCOMPLETE_CSV,
+) -> AutocompleteStatusPayload:
+    return _autocomplete_status_with_owner(
+        path,
+        cached_snapshot_for_key=_cached_snapshot_for_key,
+        snapshot=_snapshot,
+    )
 
 
 __all__ = (

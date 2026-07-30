@@ -33,8 +33,8 @@ merged PR, the owning issue's evidence record, and every stated exit gate.
 | A - baseline | Complete; #191 is closed | Keep fixtures and analyzers current during later moves |
 | B - `nodes.py` extraction | Complete in B-11d / PR #356 | Preserve the audited compatibility shim until ADR-002 retirement gates are met |
 | C - feature contracts/behavior | Partially complete through S167-01a / PR #344 | Continue #167 and #169 in separate Contract/Move/Behavior PRs |
-| D - root consolidation | D-01, D-08, D-09, D-10, and D-12 complete on `dev`; D-11a/#385 and D-11b/#386 validated | Continue D-13; finish D-11 classification only after D-13 removes its root-package dependency |
-| E - runtime ownership | Partial: E-02a and E-07a/E-07b integrated | Continue #187 only where canonical feature owners and explicit contracts exist |
+| D - root consolidation | D-01 through D-13 and D-08u route-composition exit are complete | D-14 readiness retains every root surface; retirement/final freeze remains blocked |
+| E - runtime ownership | Partial: E-01a plus E-02a and E-07a/E-07b bridge integrated | Start the full #187 E-01 global-state inventory; do not infer later feature-Move readiness |
 | F - typed boundaries | Partial patterns exist | Extend typed request/result/config and pure migration patterns feature by feature |
 | G - quality ratchet | G-01, G-02a/G-02b, and G-03a complete | Extend G-03 enrollment, then continue with G-04 through G-06 |
 | H - shim retirement | Not started | Requires canonical release evidence and ADR-002 gates |
@@ -408,8 +408,8 @@ mechanical retirement series.
 | 15 | S167 backend seed reservation series | S167-01 through S167-03d COMPLETE on `dev`; S167-03e AiO cutover VALIDATED with isolated API/module/browser-load parity | Contract then Move then Behavior | #167 | Canonical AiO/node seams |
 | 16 | A169 stage pipeline series | A169-01 through A169-08 MERGED; A169-09 final adapter/integration VALIDATED in PR #372 | Contract then Behavior | #169 | Typed config and mechanical AiO move |
 | 17 | A169 first-pass cache policy | COMPLETE through CACHE-06; 4K/batch evidence VALIDATED in PR #380 | Contract then Behavior | #169 | Mechanical cache move and stable stage seam |
-| 18 | D-series canonical root consolidation | D-01 translation, D-08 filesystem, D-09 settings, D-10 profiles, and D-12 wildcard COMPLETE on `dev`; D-11a/#385 and D-11b/#386 autocomplete VALIDATED | Contract then Move | #186 | Phase B exit; per-feature behavior stable |
-| 19 | E-series RuntimeServices/lifecycle | BLOCKED by canonical owners | Move/Contract, split PRs | #187 | Relevant D moves |
+| 18 | D-series canonical root consolidation | D-01 through D-13 plus D-08u composition exit COMPLETE; D-14 readiness audited | Retain all root surfaces; retirement/final freeze blocked by release, consumer, and lifecycle gates | #186 | Phase B exit; per-feature behavior stable |
+| 19 | E-series RuntimeServices/lifecycle | E-01a/E-02a/E-07 bridge complete; full E-01 inventory READY | Contract inventory first; later Moves remain separately gated | #187 | D-08u and D-14 readiness evidence |
 | 20 | G-04 through G-06 and H | INCREMENTAL/LATER | Gate/Contract | #188 | Appropriate package and release evidence |
 
 Issue #199, authenticated diagnostics/settings access, is an independent security
@@ -1325,15 +1325,67 @@ the canonical path, leaves an explicit root shim, and proves root/canonical
 identity plus packed-archive closure. Behavior, error semantics, migration,
 ranking, async, and cache changes remain in their owner issues.
 
+D-02 moves the stable #165 request validators, public contract error, error
+payload, and request-correlation helpers from root `api_contract.py` to
+`easyuse_anima.api.requests`, `.errors`, and `.responses`. Root
+`api_contract.py` remains an explicit 12-symbol identity shim and `api.py`
+imports the canonical owners directly. Route handlers, registration, bounded
+file-I/O, redaction, and error semantics remain root-owned until D-03 through
+D-07. The canonical contract package becomes the eleventh G-03 completed group.
+
+D-03a starts route ownership with the single translation leaf. A pure
+`easyuse_anima.api.routes.translation` factory owns its request/service/error/
+success mapping, while root `api.py` supplies dynamic callables and retains the
+existing correlation wrapper, timeout worker, route signature, and registration
+composition. This preserves the observed root monkeypatch seams and separates
+handler ownership from a later concurrency/lifecycle decision.
+
+D-03b moves the route-specific bounded executor and its wait/cancel/timeout
+policy to side-effect-free `easyuse_anima.api.routes.translation_execution`.
+Root `api.py` still constructs the singleton, registers its idempotent shutdown,
+and supplies the dynamic translation and timeout seams. The canonical module
+therefore owns the frozen #164 admission policy without creating an executor or
+registering lifecycle work at import time.
+
+D-04a moves the read-only AiO Torch Compile recommendation handler to a pure
+`easyuse_anima.api.routes.aio_torch_compile` factory. Root composition supplies
+dynamic request, diagnostics, recommendation, correlation, and JSON seams. The
+factory retains #410's validation and response contract without file I/O,
+compile, model, persistence, or import-time registration work.
+
+D-05a moves the read-only autocomplete dataset-status and search GET adapters
+to a pure `easyuse_anima.api.routes.autocomplete` factory. Root composition
+retains dynamic payload-helper, bounded file-I/O, correlation, route-table, and
+registration seams. The factory preserves #162's metadata-only status,
+path-redacted responses, raw limit forwarding, and exact category mapping while
+classification POST, dataset/index/cache/ranking, and lifecycle ownership stay
+outside this rollback boundary.
+
+D-05b completes the autocomplete route group by moving the classify-prompt
+POST adapter into the same pure route module. Root composition retains dynamic
+request-contract, sync payload, bounded file-I/O, redaction, correlation, and
+registration seams. The canonical factory preserves text/limit validation and
+the #162 offload contract while classification tokenization, dataset snapshot,
+index/cache, response policy, and frontend consumers remain unchanged.
+
+D-06a moves the always-redacted wildcard-list GET adapter to a pure
+`easyuse_anima.api.routes.wildcards` factory. Root composition retains dynamic
+payload, bounded file-I/O, correlation, route-table, and registration seams.
+The factory does not import settings or wildcard owners, so #199 access policy
+and D-12 snapshot/cache lifecycle remain outside this rollback boundary.
+
 D-11 is split by dependency ownership. D-11a moves the SQLite index leaf to
 `easyuse_anima.autocomplete.index`, retains `autocomplete_index.py` as an
 explicit identity shim, and enrolls the canonical package as the tenth G-03
 completed-package boundary. D-11b moves dataset source discovery, CSV
 snapshot/cache/status, and fallback/index search to
 `easyuse_anima.autocomplete.dataset` and `.search`. Root
-`autocomplete_dataset.py` retains prompt classification plus direct canonical
-aliases because classification still imports root `anima_prompt`; D-13 must
-canonicalize that package before the final D-11 shim slice.
+`autocomplete_dataset.py` retained prompt classification plus direct canonical
+aliases until D-13 canonicalized the ANIMA prompt dependency. The final D-11
+slice moves classification to `easyuse_anima.autocomplete.classification`,
+switches the API consumer to that owner, and leaves root
+`autocomplete_dataset.py` as an explicit 15-symbol identity shim. This
+completes D-11 without changing dataset/cache, search/ranking, or route behavior.
 
 D-12 is split to keep Move work separate from E-06 lifecycle ownership.
 D-12a moves immutable option/budget/result models and their fixed limit
@@ -1379,6 +1431,18 @@ to the canonical expansion owner with an immutable snapshot input. Root keeps
 the public facade, selector construction, root resolution, budget preparation,
 and snapshot lifecycle; this completes D-12 without starting E-06.
 
+D-13 moves the dependency-light ANIMA prompt parser, normalization, ordering,
+knowledge, models, and correction core together to
+`easyuse_anima.prompt.anima`. The seven root `anima_prompt` modules remain
+explicit identity shims, and the Registry analyzer treats each directly
+importable shim as an external compatibility entry so packed closure remains
+complete. Internal Prompt Corrector, Prompt Builder/field, autocomplete
+classification, and root node consumers import only the canonical owner.
+`PACKAGE_DATA_DIR` still resolves to the repository `__easyuse_anima__`
+directory. Keeping the small, tightly coupled package in one Move avoids
+temporary cross-root dependencies; parse, normalize, order, correction, and
+classification behavior is unchanged.
+
 ## 12. Phase E — Runtime ownership and lifecycle
 
 E-01 global-state inventory may start after Phase B establishes final node and
@@ -1398,6 +1462,32 @@ Recommended sequence:
 9. E-09 idempotent initialize/shutdown and reverse partial-failure cleanup;
 10. E-10 isolated runtime fixtures and removal of module reload/private-global
     reset patterns.
+
+E-01 is complete through the versioned
+[`python-runtime-state-inventory.md`](python-runtime-state-inventory.md) Contract and
+`tests/fixtures/python_runtime_state_ownership.v1.json`. The direct gate partitions
+every analyzer mutable global, maps owner candidates, and covers manual
+singleton/path/import-effect gaps without changing production behavior.
+
+E-02b then adds frozen/slotted `RuntimeConfig`, narrow `Clock`, and idempotent
+`RuntimeResource.close()` canonical contracts. It does not add a generic
+executor/client port: translation admission, API file-I/O, Google provider, and NAIA
+transport semantics are feature-specific.
+
+E-02c composes required `RuntimeConfig` and `Clock` fields into the identity-installed
+`RuntimeServices`. The private bootstrap loader projects the existing canonical path
+objects without changing `paths.py`, and a private system clock delegates to
+`time.monotonic()`. No feature consumer receives the complete runtime.
+
+The E-02 completion audit records filesystem paths as E-02c complete, assigns the
+autocomplete index root to its E-05 cache/index lifecycle, and E-02d canonicalizes
+the duplicate prompt knowledge package path. E-02 is complete. The next bounded unit
+is the production-free
+[`python-runtime-e03-repository-filesystem-contract.md`](python-runtime-e03-repository-filesystem-contract.md).
+It fixes the current paths, store construction, lock ordering, CAS ownership,
+dynamic dependencies, and monkeypatch seams. E-03b adds the stateless
+`create_atomic_json_store` seam, which delegates to the canonical `AtomicJsonStore`
+path-lock owner. E-03c settings and E-03d profile repository Moves remain separate.
 
 Feature services receive only narrow Protocols. They do not import or receive
 the entire `RuntimeServices` object. Node adapters may use `get_runtime()` only

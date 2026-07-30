@@ -1,0 +1,465 @@
+{
+  "schema_version": 1,
+  "runner": "python -m unittest discover -s tests",
+  "categories": [
+    "adapter_api_node_integration",
+    "live_host",
+    "migration_compatibility",
+    "package_archive",
+    "pure_service_unit"
+  ],
+  "root_private_import_policy": {
+    "entrypoint_owner": "tests/test_python_entrypoint_lifecycle_contract.py",
+    "existing_test_reclassification": "completed by PTC-09B",
+    "legacy_path_owner": "tests/test_python_legacy_path_retirement.py",
+    "new_test_imports": "canonical owner; retired root imports forbidden"
+  },
+  "matrices": [
+    {
+      "name": "aio-settings-migration",
+      "category": "migration_compatibility",
+      "mode": "unittest",
+      "owner": "tests/test_aio_generation_migrations.py",
+      "purpose": "versioned AiO settings migration and defaults"
+    },
+    {
+      "name": "dual-canvas-live",
+      "category": "live_host",
+      "mode": "manual-on-trigger",
+      "owner": "docs/development/browser-smoke-matrix.md",
+      "purpose": "host-visible Legacy Canvas and Node 2.0 behavior"
+    },
+    {
+      "name": "package-import-closure",
+      "category": "package_archive",
+      "mode": "unittest",
+      "owner": "tests/test_python_package_skeleton.py",
+      "purpose": "package and no-host import closure"
+    },
+    {
+      "name": "profile-migration",
+      "category": "migration_compatibility",
+      "mode": "unittest",
+      "owner": "tests/test_profile_contract.py",
+      "purpose": "profile schema identity revision and legacy reads"
+    },
+    {
+      "name": "registry-archive-closure",
+      "category": "package_archive",
+      "mode": "unittest",
+      "owner": "tests/test_registry_scanner_safety.py",
+      "purpose": "shipped Python and frontend archive surface"
+    },
+    {
+      "name": "release-runtime-lifecycle",
+      "category": "live_host",
+      "mode": "manual-on-trigger",
+      "owner": "docs/architecture/python-api-papi01-e09-lifecycle-gate.md",
+      "purpose": "fresh-process terminal lifecycle package and host smoke"
+    },
+    {
+      "name": "root-retirement",
+      "category": "migration_compatibility",
+      "mode": "unittest",
+      "owner": "tests/test_python_legacy_path_retirement.py",
+      "purpose": "retired root paths stay absent while canonical owners remain callable"
+    }
+  ],
+  "groups": [
+    {
+      "name": "aio",
+      "production_paths": [
+        "easyuse_anima/aio/"
+      ],
+      "owners": {
+        "adapter_api_node_integration": [
+          "tests/test_aio_nodes.py"
+        ],
+        "live_host": [
+          "@matrix:dual-canvas-live"
+        ],
+        "migration_compatibility": [
+          "@matrix:aio-settings-migration"
+        ],
+        "package_archive": [
+          "@matrix:package-import-closure",
+          "@matrix:registry-archive-closure"
+        ],
+        "pure_service_unit": [
+          "tests/test_aio_stage_pipeline_contract.py"
+        ]
+      }
+    },
+    {
+      "name": "api",
+      "production_paths": [
+        "easyuse_anima/api/"
+      ],
+      "owners": {
+        "adapter_api_node_integration": [
+          "tests/test_api_contract.py",
+          "tests/test_python_api_dependencies_contract.py"
+        ],
+        "live_host": [
+          "@matrix:dual-canvas-live"
+        ],
+        "migration_compatibility": [
+          "tests/test_python_legacy_path_retirement.py"
+        ],
+        "package_archive": [
+          "@matrix:package-import-closure",
+          "@matrix:registry-archive-closure"
+        ],
+        "pure_service_unit": [
+          "tests/test_api_contract.py",
+          "tests/test_python_api_dependencies_contract.py"
+        ]
+      }
+    },
+    {
+      "name": "autocomplete",
+      "production_paths": [
+        "easyuse_anima/autocomplete/"
+      ],
+      "owners": {
+        "adapter_api_node_integration": [
+          "tests/test_autocomplete_index.py"
+        ],
+        "live_host": [
+          "@matrix:dual-canvas-live"
+        ],
+        "migration_compatibility": [
+          "tests/test_python_legacy_path_retirement.py"
+        ],
+        "package_archive": [
+          "@matrix:package-import-closure",
+          "@matrix:registry-archive-closure"
+        ],
+        "pure_service_unit": [
+          "tests/test_autocomplete_service.py"
+        ]
+      }
+    },
+    {
+      "name": "common",
+      "production_paths": [
+        "easyuse_anima/common/",
+        "easyuse_anima/errors.py"
+      ],
+      "owners": {
+        "adapter_api_node_integration": [
+          "tests/test_node_contracts.py"
+        ],
+        "live_host": [
+          "@matrix:dual-canvas-live"
+        ],
+        "migration_compatibility": [
+          "@matrix:root-retirement"
+        ],
+        "package_archive": [
+          "@matrix:package-import-closure",
+          "@matrix:registry-archive-closure"
+        ],
+        "pure_service_unit": [
+          "tests/test_node_contracts.py",
+          "tests/test_python_feature_error_contract.py"
+        ]
+      }
+    },
+    {
+      "name": "image",
+      "production_paths": [
+        "easyuse_anima/image/"
+      ],
+      "owners": {
+        "adapter_api_node_integration": [
+          "tests/test_node_contracts.py"
+        ],
+        "live_host": [
+          "@matrix:dual-canvas-live"
+        ],
+        "migration_compatibility": [
+          "@matrix:root-retirement"
+        ],
+        "package_archive": [
+          "@matrix:package-import-closure",
+          "@matrix:registry-archive-closure"
+        ],
+        "pure_service_unit": [
+          "tests/test_image_scale.py"
+        ]
+      }
+    },
+    {
+      "name": "infrastructure",
+      "production_paths": [
+        "easyuse_anima/infrastructure/"
+      ],
+      "owners": {
+        "adapter_api_node_integration": [
+          "tests/test_comfy_adapters.py"
+        ],
+        "live_host": [
+          "@matrix:dual-canvas-live"
+        ],
+        "migration_compatibility": [
+          "@matrix:root-retirement"
+        ],
+        "package_archive": [
+          "@matrix:package-import-closure",
+          "@matrix:registry-archive-closure"
+        ],
+        "pure_service_unit": [
+          "tests/test_python_repository_filesystem_contract.py"
+        ]
+      }
+    },
+    {
+      "name": "lora",
+      "production_paths": [
+        "easyuse_anima/lora/"
+      ],
+      "owners": {
+        "adapter_api_node_integration": [
+          "tests/test_node_contracts.py"
+        ],
+        "live_host": [
+          "@matrix:dual-canvas-live"
+        ],
+        "migration_compatibility": [
+          "tests/test_lora_profiles.py"
+        ],
+        "package_archive": [
+          "@matrix:package-import-closure",
+          "@matrix:registry-archive-closure"
+        ],
+        "pure_service_unit": [
+          "tests/test_lora_preset.py"
+        ]
+      }
+    },
+    {
+      "name": "naia",
+      "production_paths": [
+        "easyuse_anima/naia/"
+      ],
+      "owners": {
+        "adapter_api_node_integration": [
+          "tests/test_node_contracts.py"
+        ],
+        "live_host": [
+          "@matrix:dual-canvas-live"
+        ],
+        "migration_compatibility": [
+          "@matrix:root-retirement"
+        ],
+        "package_archive": [
+          "@matrix:package-import-closure",
+          "@matrix:registry-archive-closure"
+        ],
+        "pure_service_unit": [
+          "tests/test_naia_settings.py"
+        ]
+      }
+    },
+    {
+      "name": "nodes",
+      "production_paths": [
+        "easyuse_anima/nodes/",
+        "easyuse_anima/registration.py"
+      ],
+      "owners": {
+        "adapter_api_node_integration": [
+          "tests/test_node_contracts.py"
+        ],
+        "live_host": [
+          "@matrix:dual-canvas-live"
+        ],
+        "migration_compatibility": [
+          "@matrix:root-retirement"
+        ],
+        "package_archive": [
+          "@matrix:package-import-closure",
+          "@matrix:registry-archive-closure"
+        ],
+        "pure_service_unit": [
+          "tests/test_nodes_module_analyzer.py"
+        ]
+      }
+    },
+    {
+      "name": "profiles",
+      "production_paths": [
+        "easyuse_anima/profiles/"
+      ],
+      "owners": {
+        "adapter_api_node_integration": [
+          "tests/test_api_contract.py"
+        ],
+        "live_host": [
+          "@matrix:dual-canvas-live"
+        ],
+        "migration_compatibility": [
+          "@matrix:profile-migration"
+        ],
+        "package_archive": [
+          "@matrix:package-import-closure",
+          "@matrix:registry-archive-closure"
+        ],
+        "pure_service_unit": [
+          "tests/test_profile_contract.py"
+        ]
+      }
+    },
+    {
+      "name": "prompt",
+      "production_paths": [
+        "easyuse_anima/prompt/"
+      ],
+      "owners": {
+        "adapter_api_node_integration": [
+          "tests/test_node_contracts.py"
+        ],
+        "live_host": [
+          "@matrix:dual-canvas-live"
+        ],
+        "migration_compatibility": [
+          "tests/test_python_legacy_path_retirement.py"
+        ],
+        "package_archive": [
+          "@matrix:package-import-closure",
+          "@matrix:registry-archive-closure"
+        ],
+        "pure_service_unit": [
+          "tests/test_prompt_corrector.py"
+        ]
+      }
+    },
+    {
+      "name": "runtime-bootstrap",
+      "production_paths": [
+        "easyuse_anima/bootstrap.py",
+        "easyuse_anima/runtime.py"
+      ],
+      "owners": {
+        "adapter_api_node_integration": [
+          "tests/test_python_bootstrap.py"
+        ],
+        "live_host": [
+          "@matrix:release-runtime-lifecycle"
+        ],
+        "migration_compatibility": [
+          "tests/test_python_runtime_lifecycle_contract.py",
+          "tests/test_python_runtime_test_isolation_contract.py"
+        ],
+        "package_archive": [
+          "@matrix:package-import-closure",
+          "@matrix:registry-archive-closure"
+        ],
+        "pure_service_unit": [
+          "tests/test_runtime_services.py"
+        ]
+      }
+    },
+    {
+      "name": "seed",
+      "production_paths": [
+        "easyuse_anima/seed/"
+      ],
+      "owners": {
+        "adapter_api_node_integration": [
+          "tests/test_seed_adapters.py"
+        ],
+        "live_host": [
+          "@matrix:dual-canvas-live"
+        ],
+        "migration_compatibility": [
+          "tests/test_seed_compatibility.py"
+        ],
+        "package_archive": [
+          "@matrix:package-import-closure",
+          "@matrix:registry-archive-closure"
+        ],
+        "pure_service_unit": [
+          "tests/test_seed_reservation_service.py"
+        ]
+      }
+    },
+    {
+      "name": "settings",
+      "production_paths": [
+        "easyuse_anima/settings/",
+        "easyuse_anima/workflow.py"
+      ],
+      "owners": {
+        "adapter_api_node_integration": [
+          "tests/test_api_contract.py"
+        ],
+        "live_host": [
+          "@matrix:dual-canvas-live"
+        ],
+        "migration_compatibility": [
+          "tests/test_autocomplete_locale_settings.py",
+          "tests/test_prompt_corrector.py"
+        ],
+        "package_archive": [
+          "@matrix:package-import-closure",
+          "@matrix:registry-archive-closure"
+        ],
+        "pure_service_unit": [
+          "tests/test_autocomplete_locale_settings.py",
+          "tests/test_prompt_corrector.py"
+        ]
+      }
+    },
+    {
+      "name": "translation",
+      "production_paths": [
+        "easyuse_anima/translation/"
+      ],
+      "owners": {
+        "adapter_api_node_integration": [
+          "tests/test_prompt_translation_api.py"
+        ],
+        "live_host": [
+          "@matrix:dual-canvas-live"
+        ],
+        "migration_compatibility": [
+          "tests/test_python_translation_runtime_contract.py"
+        ],
+        "package_archive": [
+          "@matrix:package-import-closure",
+          "@matrix:registry-archive-closure"
+        ],
+        "pure_service_unit": [
+          "tests/test_prompt_translation.py"
+        ]
+      }
+    },
+    {
+      "name": "wildcard",
+      "production_paths": [
+        "easyuse_anima/wildcard/"
+      ],
+      "owners": {
+        "adapter_api_node_integration": [
+          "tests/test_api_contract.py",
+          "tests/test_wildcards.py"
+        ],
+        "live_host": [
+          "@matrix:dual-canvas-live"
+        ],
+        "migration_compatibility": [
+          "tests/test_python_wildcard_runtime_contract.py"
+        ],
+        "package_archive": [
+          "@matrix:package-import-closure",
+          "@matrix:registry-archive-closure"
+        ],
+        "pure_service_unit": [
+          "tests/test_wildcards.py"
+        ]
+      }
+    }
+  ]
+}

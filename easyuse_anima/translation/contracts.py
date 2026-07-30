@@ -5,6 +5,14 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Protocol
 
+from ..errors import (
+    CapabilityUnavailableError,
+    ConflictError,
+    EasyUseAnimaError,
+    UpstreamTimeoutError,
+    ValidationError,
+)
+
 PROMPT_TRANSLATION_PROVIDER_OFF = "off"
 PROMPT_TRANSLATION_PROVIDER_GOOGLE = "google"
 PROMPT_TRANSLATION_PROVIDERS = {
@@ -31,7 +39,7 @@ class PromptTranslationSettings:
     target: str = DEFAULT_PROMPT_TRANSLATION_TARGET
 
 
-class PromptTranslationError(RuntimeError):
+class PromptTranslationError(EasyUseAnimaError, RuntimeError):
     code = "translation_error"
     status = 500
     default_message = "Prompt translation failed."
@@ -41,7 +49,7 @@ class PromptTranslationError(RuntimeError):
         self.message = message or self.default_message
 
 
-class PromptTranslationLimitError(PromptTranslationError):
+class PromptTranslationLimitError(PromptTranslationError, ValidationError):
     status = 413
 
 
@@ -57,13 +65,16 @@ class TranslationTotalSizeError(PromptTranslationLimitError):
     code = "translation_marker_characters_exceeded"
 
 
-class TranslationProviderUnavailableError(PromptTranslationError):
+class TranslationProviderUnavailableError(
+    PromptTranslationError,
+    CapabilityUnavailableError,
+):
     code = "translation_provider_unavailable"
     status = 503
     default_message = "The selected translation provider is unavailable."
 
 
-class TranslationTimeoutError(PromptTranslationError):
+class TranslationTimeoutError(PromptTranslationError, UpstreamTimeoutError):
     code = "translation_timeout"
     status = 504
     default_message = "The translation provider timed out."
@@ -75,7 +86,7 @@ class TranslationCancelledError(PromptTranslationError):
     default_message = "The translation request was cancelled."
 
 
-class TranslationBusyError(PromptTranslationError):
+class TranslationBusyError(PromptTranslationError, ConflictError):
     code = "translation_busy"
     status = 503
     default_message = "A prompt translation request is already in progress."

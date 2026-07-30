@@ -7,7 +7,10 @@ import os
 from pathlib import Path
 from typing import cast
 
-from ..infrastructure.filesystem.atomic_json import AtomicJsonStore
+from ..infrastructure.filesystem.atomic_json import (
+    AtomicJsonStore,
+    create_atomic_json_store,
+)
 from ..infrastructure.filesystem.paths import USER_DATA_DIR
 from .contract import (
     PROFILE_KIND_AIO,
@@ -26,6 +29,7 @@ from .mutation import (
 )
 from .repository import (
     InvalidProfileDataError,
+    _ProfileRepository,
     _profile_list_item,
     _read_profile_json,
     _sanitize_profile_name,
@@ -51,6 +55,16 @@ AIO_RESERVED_PROFILE_NAMES = {
     "优化",
     "自定义",
 }
+
+
+def _current_aio_profile_repository(
+    profile_dir: Path | None = None,
+) -> _ProfileRepository:
+    return _ProfileRepository(
+        profile_dir=profile_dir or AIO_PROFILE_DIR,
+        store_factory=create_atomic_json_store,
+        mutation_coordinator=PROFILE_MUTATION_COORDINATOR,
+    )
 
 
 def _sanitize_aio_profile_name(name: str) -> str:
@@ -110,13 +124,13 @@ def _normalize_aio_profile_payload(name: str, data: dict) -> dict:
 
 
 def _list_aio_profiles(profile_dir: Path | None = None) -> list[dict]:
-    root = profile_dir or AIO_PROFILE_DIR
-    if not root.is_dir():
+    repository = _current_aio_profile_repository(profile_dir)
+    if not repository.profile_dir.is_dir():
         return []
     return [
         _profile_list_item(PROFILE_KIND_AIO, path)
         for path in sorted(
-            root.glob("*.json"),
+            repository.profile_dir.glob("*.json"),
             key=lambda item: item.stem.casefold(),
         )
     ]
@@ -136,17 +150,24 @@ def _save_aio_profile(
     profile_id: str | None = None,
     revision: int | None = None,
 ) -> dict:
+    repository = _current_aio_profile_repository()
     payload = _normalize_aio_profile_payload(name, data)
-    requested_path = _aio_profile_path(payload["name"])
+    requested_path = _aio_profile_path(payload["name"], repository.profile_dir)
     if overwrite:
         require_profile_precondition(profile_id, revision)
-    with PROFILE_MUTATION_COORDINATOR.locked(AIO_PROFILE_DIR):
-        existing = _find_aio_profile_path(payload["name"])
+    with repository.locked():
+        existing = _find_aio_profile_path(
+            payload["name"],
+            repository.profile_dir,
+        )
         if existing is not None and not overwrite:
             raise FileExistsError("Profile already exists")
         if existing is None and overwrite:
             raise FileNotFoundError("Profile not found")
-        if existing is None and len(_list_aio_profiles()) >= MAX_AIO_PROFILES:
+        if (
+            existing is None
+            and len(_list_aio_profiles(repository.profile_dir)) >= MAX_AIO_PROFILES
+        ):
             raise ValueError(
                 f"A maximum of {MAX_AIO_PROFILES} profiles can be saved"
             )
@@ -178,7 +199,7 @@ def _save_aio_profile(
         except ProfileContractError as exc:
             raise InvalidProfileDataError(str(exc)) from exc
         _validate_aio_profile_size(document)
-        AtomicJsonStore(path).write(document)
+        repository.store(path).write(document)
     return document
 
 
@@ -200,7 +221,8 @@ def _normalize_stored_aio_profile_payload(name: str, data) -> dict:
 
 
 def _load_aio_profile(name: str) -> dict:
-    path = _find_aio_profile_path(name)
+    repository = _current_aio_profile_repository()
+    path = _find_aio_profile_path(name, repository.profile_dir)
     if path is None or not path.is_file():
         raise FileNotFoundError("Profile not found")
     try:
@@ -216,12 +238,13 @@ def _delete_aio_profile(
     profile_id: str | None = None,
     revision: int | None = None,
 ) -> dict:
+    repository = _current_aio_profile_repository()
     require_profile_precondition(profile_id, revision)
-    with PROFILE_MUTATION_COORDINATOR.locked(AIO_PROFILE_DIR):
-        path = _find_aio_profile_path(name)
+    with repository.locked():
+        path = _find_aio_profile_path(name, repository.profile_dir)
         if path is None or not path.is_file():
             raise FileNotFoundError("Profile not found")
-        store = AtomicJsonStore(path)
+        store = repository.store(path)
         try:
             data = _read_profile_json(path)
             if not isinstance(data, dict):
@@ -256,9 +279,10 @@ def _rename_aio_profile(
     target_profile_id: str | None = None,
     target_revision: int | None = None,
 ) -> dict:
+    repository = _current_aio_profile_repository()
     require_profile_precondition(profile_id, revision, profile="source")
-    with PROFILE_MUTATION_COORDINATOR.locked(AIO_PROFILE_DIR):
-        source = _find_aio_profile_path(old_name)
+    with repository.locked():
+        source = _find_aio_profile_path(old_name, repository.profile_dir)
         if source is None or not source.is_file():
             raise FileNotFoundError("Profile not found")
         safe_new_name = _sanitize_aio_profile_name(new_name)
@@ -287,10 +311,13 @@ def _rename_aio_profile(
                 data,
             )
             if data != renamed:
-                AtomicJsonStore(source, backup=False).write(renamed)
+                repository.store(source, backup=False).write(renamed)
             return renamed
 
-        target = _find_aio_profile_path(safe_new_name)
+        target = _find_aio_profile_path(
+            safe_new_name,
+            repository.profile_dir,
+        )
         if target is not None and not overwrite:
             raise FileExistsError("Profile already exists")
         if target is None and (
@@ -322,11 +349,14 @@ def _rename_aio_profile(
             except ProfileContractError as exc:
                 raise InvalidProfileDataError(str(exc)) from exc
 
-        target_path = target or _aio_profile_path(safe_new_name)
+        target_path = target or _aio_profile_path(
+            safe_new_name,
+            repository.profile_dir,
+        )
         renamed = cast(
             dict,
-            AtomicJsonStore(target_path).replace_from(
-                AtomicJsonStore(source),
+            repository.store(target_path).replace_from(
+                repository.store(source),
                 overwrite=overwrite,
                 backup_target=True,
                 transform=lambda current: _rename_aio_profile_payload(

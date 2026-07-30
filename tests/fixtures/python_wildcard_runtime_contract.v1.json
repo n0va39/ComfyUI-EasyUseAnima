@@ -1,0 +1,346 @@
+{
+  "classification": "Contract",
+  "compatibility_surfaces": [
+    {
+      "id": "canonical-private-lifecycle-patch-seams",
+      "kind": "dynamic_reference",
+      "module": "easyuse_anima/wildcard/service.py",
+      "symbols": [
+        "_build_wildcard_snapshot",
+        "_wildcard_sources"
+      ]
+    },
+    {
+      "id": "canonical-private-service",
+      "kind": "canonical_owner",
+      "module": "easyuse_anima/wildcard/service.py",
+      "symbols": [
+        "_wildcard_snapshot",
+        "_load_wildcard_map",
+        "list_wildcards",
+        "wildcard_sources_signature",
+        "_WildcardLibrary",
+        "expand_wildcard_texts",
+        "expand_wildcards"
+      ]
+    }
+  ],
+  "completion_audit": {
+    "ambiguous_state_owners": [],
+    "classification": "Contract",
+    "cleanup_dispositions": [
+      {
+        "feature_cleanup": "_WildcardSnapshotStore.clear idempotently clears completed snapshots while active building keys and waiter settlement remain intact",
+        "owner": "wildcard-snapshots",
+        "remaining_phase": "E-09",
+        "status": "feature-cleanup-complete"
+      }
+    ],
+    "e01_reconciliation": [
+      {
+        "completed_phase": "E-06b-complete",
+        "e01_entry": "wildcard-snapshot-cache",
+        "owner": "wildcard-snapshots"
+      }
+    ],
+    "import_safety": {
+      "evidence": [
+        "tests/test_python_package_skeleton.py"
+      ],
+      "feature_modules": [
+        "easyuse_anima/wildcard/expansion.py",
+        "easyuse_anima/wildcard/mode.py",
+        "easyuse_anima/wildcard/ports.py",
+        "easyuse_anima/wildcard/seed.py",
+        "easyuse_anima/wildcard/service.py",
+        "easyuse_anima/wildcard/snapshot.py",
+        "easyuse_anima/wildcard/sources.py"
+      ],
+      "forbidden_imports": [
+        "bootstrap",
+        "easyuse_anima.bootstrap",
+        "easyuse_anima.runtime",
+        "runtime",
+        "wildcard_engine"
+      ],
+      "host_io_at_import": false
+    },
+    "next_phase": "E-08a AiO first-pass cache ownership Contract",
+    "production_changes": 0,
+    "root_identity_bindings": []
+  },
+  "decisions": {
+    "default_root_initialization": "Bootstrap wildcard-directory initialization and its retry state remain E-09 and are not part of the snapshot owner.",
+    "generic_cache_condition_port": "rejected",
+    "resource_partition": "Verified wildcard snapshots, building-key admission, and their Condition form one feature-private owner because they share one cache-key publication invariant.",
+    "root_facade": "PTC-09B retires wildcard_engine.py; wildcard behavior and lifecycle seams are callable only from canonical easyuse_anima.wildcard owners.",
+    "runtime_composition": "E-06d installs only one feature-specific narrow wildcard snapshot capability backed by the exact default owner; feature modules never receive the complete RuntimeServices object.",
+    "snapshot_materialization": "D-12c canonical immutable snapshot values and stateless materialization remain separate behavior authorities and are not reimplemented by E-06.",
+    "test_seams": "Private build, snapshot, and source-module patching uses call-time seams in easyuse_anima.wildcard.service and canonical API dependencies."
+  },
+  "move_queue": [
+    {
+      "classification": "Contract",
+      "goal": "Freeze current lifecycle state, callers, behavior authorities, compatibility seams, one target owner, and bounded Move order.",
+      "id": "E-06a",
+      "name": "wildcard snapshot runtime ownership contract",
+      "status": "complete"
+    },
+    {
+      "classification": "Move",
+      "goal": "Move the completed-snapshot LRU, building-key set, and Condition behind one feature-private owner while preserving source verification, publication, and call-time test seams.",
+      "id": "E-06b",
+      "name": "wildcard snapshot owner",
+      "status": "complete"
+    },
+    {
+      "classification": "Move",
+      "goal": "Canonicalize the wildcard lifecycle/service facade and internal callers while retaining exact root compatibility identities and behavior.",
+      "id": "E-06c",
+      "name": "canonical wildcard service and internal callers",
+      "status": "complete"
+    },
+    {
+      "classification": "Move",
+      "goal": "Compose the exact default snapshot owner behind one feature-specific narrow RuntimeServices wildcard capability without changing initialization or directory lifecycle.",
+      "id": "E-06d",
+      "name": "wildcard bootstrap composition",
+      "status": "complete"
+    },
+    {
+      "classification": "Contract",
+      "goal": "Reconcile E-01, cleanup, import direction, root identities, and zero ambiguous wildcard snapshot state before the next remaining E-08 owner.",
+      "id": "E-06e",
+      "name": "wildcard ownership completion audit",
+      "status": "complete"
+    }
+  ],
+  "internal_consumers": [
+    {
+      "canonical_imports": [
+        ["wildcard.mode", "normalize_wildcard_mode"],
+        ["wildcard.seed", "normalize_seed"],
+        ["wildcard.service", "expand_wildcards"],
+        ["wildcard.service", "wildcard_sources_signature"]
+      ],
+      "module": "easyuse_anima/nodes/wildcard_nodes.py"
+    },
+    {
+      "canonical_imports": [
+        ["wildcard.expansion", "has_wildcard_syntax"],
+        ["wildcard.mode", "normalize_prompt_studio_wildcard_mode"],
+        ["wildcard.seed", "normalize_seed"],
+        ["wildcard.service", "expand_wildcard_texts"]
+      ],
+      "module": "easyuse_anima/prompt/advanced.py"
+    },
+    {
+      "canonical_imports": [
+        ["wildcard.seed", "next_seed"],
+        ["wildcard.service", "wildcard_sources_signature"]
+      ],
+      "module": "easyuse_anima/nodes/prompt_advanced_nodes.py"
+    },
+    {
+      "canonical_imports": [
+        ["wildcard.seed", "next_seed"],
+        ["wildcard.service", "wildcard_sources_signature"]
+      ],
+      "module": "easyuse_anima/nodes/regional_nodes.py"
+    },
+    {
+      "canonical_imports": [
+        ["wildcard.mode", "normalize_wildcard_mode"],
+        ["wildcard.seed", "normalize_seed"]
+      ],
+      "module": "easyuse_anima/seed/compatibility.py"
+    }
+  ],
+  "owners": [
+    {
+      "cleanup": {
+        "current": "_WildcardSnapshotStore.clear idempotently clears only completed snapshots without cancelling, removing, replacing, or notifying active building keys and waiters.",
+        "target": "_WildcardSnapshotStore.clear idempotently clears only completed snapshots without cancelling, removing, or replacing active building keys; whole-runtime ordering remains E-09."
+      },
+      "components": [
+        {
+          "module": "easyuse_anima/wildcard/snapshot.py",
+          "owner_symbol": "_DEFAULT_WILDCARD_SNAPSHOTS",
+          "state_kind": "instance",
+          "state_symbols": [
+            "_building",
+            "_cache",
+            "_condition"
+          ]
+        }
+      ],
+      "current_owner": "easyuse_anima.wildcard.snapshot._DEFAULT_WILDCARD_SNAPSHOTS",
+      "e01_entries": [
+        "wildcard-snapshot-cache"
+      ],
+      "evidence": [
+        "tests/test_wildcards.py",
+        "tests/test_python_package_skeleton.py"
+      ],
+      "id": "wildcard-snapshots",
+      "lifetime": "Process lifetime with an LRU bound of 16 verified snapshots; building keys live only until success, non-cacheable settlement, or failure.",
+      "locking": "One Condition protects cache lookup/recency/eviction, one-builder admission per source cache key, waiter sleep/wakeup, building-key removal, and publication.",
+      "module": "easyuse_anima/wildcard/snapshot.py",
+      "policy_attributes": [
+        "_cache_limit"
+      ],
+      "policy_symbols": [
+        "_SNAPSHOT_CACHE_LIMIT"
+      ],
+      "preserved_behavior": [
+        "root sequence and identity remain part of the source-state cache key",
+        "cache hits update LRU recency and eviction retains the newest 16 cacheable snapshots",
+        "one builder scans, builds, rescans, and publishes only when the source cache key is unchanged",
+        "same-key waiters wake and rescan while different keys may build independently",
+        "builder exceptions remove admission state, notify waiters, and propagate unchanged",
+        "non-cacheable snapshots return to the current caller but are not published",
+        "invalid YAML remains a cacheable empty parse while transient or persistent read OSError remains non-cacheable",
+        "list, signature, library, and expansion callers reuse the same immutable snapshot mapping"
+      ],
+      "state_symbols": [
+        "_DEFAULT_WILDCARD_SNAPSHOTS"
+      ],
+      "target_owner": "easyuse_anima.wildcard.snapshot._DEFAULT_WILDCARD_SNAPSHOTS",
+      "target_phase": "E-06b-complete"
+    }
+  ],
+  "post_e06_facade_move": {
+    "canonical_private_patch_owner": {
+      "module": "easyuse_anima/wildcard/service.py",
+      "symbols": [
+        "_wildcard_snapshot",
+        "_build_wildcard_snapshot",
+        "_wildcard_sources"
+      ]
+    },
+    "classification": "Move",
+    "id": "P-WC-02",
+    "next_task": "P-API-01",
+    "production_files": [
+      "api.py",
+      "nodes.py",
+      "wildcard_engine.py"
+    ],
+    "root_consumer_migrations": [
+      {
+        "canonical_imports": [
+          ["easyuse_anima.wildcard.service", "list_wildcards"],
+          ["easyuse_anima.wildcard.sources", "resolve_wildcard_roots"]
+        ],
+        "module": "api.py"
+      },
+      {
+        "canonical_imports": [
+          ["easyuse_anima.wildcard.expansion", "has_wildcard_syntax"],
+          ["easyuse_anima.wildcard.mode", "PROMPT_STUDIO_WILDCARD_MODE_LABELS"],
+          ["easyuse_anima.wildcard.mode", "WILDCARD_MODE_FIXED"],
+          ["easyuse_anima.wildcard.mode", "WILDCARD_MODE_POPULATE"],
+          ["easyuse_anima.wildcard.mode", "WILDCARD_MODE_SEQUENTIAL"],
+          ["easyuse_anima.wildcard.mode", "normalize_prompt_studio_wildcard_mode"],
+          ["easyuse_anima.wildcard.mode", "normalize_wildcard_mode"],
+          ["easyuse_anima.wildcard.seed", "MAX_SEED"],
+          ["easyuse_anima.wildcard.seed", "PUBLIC_MAX_SEED"],
+          ["easyuse_anima.wildcard.seed", "SEED_CONTROL_DECREMENT"],
+          ["easyuse_anima.wildcard.seed", "SEED_CONTROL_FIXED"],
+          ["easyuse_anima.wildcard.seed", "SEED_CONTROL_INCREMENT"],
+          ["easyuse_anima.wildcard.seed", "SEED_CONTROL_MODES"],
+          ["easyuse_anima.wildcard.seed", "SEED_CONTROL_RANDOMIZE"],
+          ["easyuse_anima.wildcard.seed", "next_seed"],
+          ["easyuse_anima.wildcard.seed", "normalize_seed"],
+          ["easyuse_anima.wildcard.service", "expand_wildcard_texts"],
+          ["easyuse_anima.wildcard.service", "expand_wildcards"],
+          ["easyuse_anima.wildcard.service", "wildcard_sources_signature"]
+        ],
+        "module": "nodes.py"
+      }
+    ],
+    "root_service_bindings": [
+      "_wildcard_snapshot",
+      "_load_wildcard_map",
+      "_WildcardLibrary",
+      "expand_wildcard_texts",
+      "expand_wildcards",
+      "list_wildcards",
+      "wildcard_sources_signature"
+    ],
+    "status": "complete"
+  },
+  "production_callers": [
+    {
+      "function": "_load_wildcard_map",
+      "kind": "function",
+      "module": "easyuse_anima/wildcard/service.py",
+      "owner": "wildcard-snapshots",
+      "uses": [
+        "_wildcard_snapshot"
+      ]
+    },
+    {
+      "function": "list_wildcards",
+      "kind": "function",
+      "module": "easyuse_anima/wildcard/service.py",
+      "owner": "wildcard-snapshots",
+      "uses": [
+        "_wildcard_snapshot"
+      ]
+    },
+    {
+      "function": "wildcard_sources_signature",
+      "kind": "function",
+      "module": "easyuse_anima/wildcard/service.py",
+      "owner": "wildcard-snapshots",
+      "uses": [
+        "_wildcard_snapshot"
+      ]
+    },
+    {
+      "class": "_WildcardLibrary",
+      "function": "__init__",
+      "kind": "method",
+      "module": "easyuse_anima/wildcard/service.py",
+      "owner": "wildcard-snapshots",
+      "uses": [
+        "_wildcard_snapshot"
+      ]
+    },
+    {
+      "function": "expand_wildcard_texts",
+      "kind": "function",
+      "module": "easyuse_anima/wildcard/service.py",
+      "owner": "wildcard-snapshots",
+      "uses": [
+        "_wildcard_snapshot"
+      ]
+    }
+  ],
+  "production_changes": 12,
+  "runtime_port": {
+    "bootstrap": {
+      "function": "initialize",
+      "module": "easyuse_anima/bootstrap.py",
+      "uses": [
+        "_DEFAULT_WILDCARD_SNAPSHOTS",
+        "RuntimeServices"
+      ]
+    },
+    "interface": {
+      "class": "WildcardSnapshotPort",
+      "methods": [
+        "snapshot_for_roots"
+      ],
+      "module": "easyuse_anima/wildcard/ports.py"
+    },
+    "owner": "easyuse_anima.wildcard.snapshot._DEFAULT_WILDCARD_SNAPSHOTS",
+    "runtime": {
+      "field": "wildcard_snapshots",
+      "module": "easyuse_anima/runtime.py"
+    }
+  },
+  "schema_version": 1,
+  "scope": "Completed E-06 wildcard ownership and P-WC-02 import-only root facade move"
+}

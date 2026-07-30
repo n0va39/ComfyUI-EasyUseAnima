@@ -5,27 +5,11 @@ import types
 import unittest
 from unittest.mock import Mock, patch
 
-import nodes
 from easyuse_anima.aio import preview
 from tests.comfy_host_fakes import patch_comfy_helper
 
 
 class AIOPreviewMoveTests(unittest.TestCase):
-    def test_root_constants_and_functions_are_direct_canonical_aliases(self):
-        for name in (
-            "AIO_PREVIEW_STAGE_LABELS",
-            "AIO_PREVIEW_EVENT",
-            "AIO_PREVIEW_CACHE_FORMAT",
-            "AIO_PREVIEW_CACHE_QUALITY",
-            "_aio_preview_base_directory",
-            "_aio_preview_file_size_bytes",
-            "_tag_aio_preview_images",
-            "_send_aio_preview_event",
-            "_save_aio_temp_preview_image",
-        ):
-            with self.subTest(name=name):
-                self.assertIs(getattr(nodes, name), getattr(preview, name))
-
     def test_base_directory_preserves_lazy_folder_paths_selection_and_failure(self):
         folder_paths = types.ModuleType("folder_paths")
         folder_paths.get_temp_directory = Mock(return_value="temp-root")
@@ -217,7 +201,7 @@ class AIOPreviewMoveTests(unittest.TestCase):
             patch.dict(sys.modules, {"folder_paths": None}),
             patch.object(preview, "_image_tensor_size", return_value=(512, 768)),
             patch_comfy_helper(
-                nodes,
+                preview,
                 "_find_comfy_node_class",
                 return_value=PreviewImage,
             ),

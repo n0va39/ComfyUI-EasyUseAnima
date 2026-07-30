@@ -9,20 +9,54 @@ import threading
 import unittest
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
+from typing import get_type_hints
 from unittest.mock import patch
 
-import nodes
-import settings as root_settings
 from easyuse_anima.autocomplete import dataset as autocomplete_dataset
+from easyuse_anima.autocomplete.classification import classify_prompt_text
+from easyuse_anima.autocomplete.dataset import (
+    autocomplete_status,
+    available_autocomplete_sources,
+    resolve_autocomplete_source,
+)
+from easyuse_anima.autocomplete.search import search_autocomplete
+from easyuse_anima.aio.sampling import _generate_empty_latent_with_comfy
 from easyuse_anima.naia.client import _clean_prompt
 from easyuse_anima.naia.resolution import ADVANCED_RESOLUTION_BUCKETS
-from easyuse_anima.nodes import prompt_data_nodes, prompt_nodes
-from easyuse_anima.nodes.prompt_advanced_nodes import EasyUseAnimaPromptStudioExtend
+from easyuse_anima.nodes import (
+    prompt_data_nodes,
+    prompt_nodes,
+)
+from easyuse_anima.nodes.image_nodes import EasyUseAnimaDetailerAlignHook
+from easyuse_anima.nodes.prompt_advanced_nodes import (
+    EasyUseAnimaPromptStudioAdvanced,
+    EasyUseAnimaPromptStudioAdvancedV2,
+    EasyUseAnimaPromptStudioExtend,
+)
+from easyuse_anima.nodes.prompt_data_nodes import (
+    EasyUseAnimaArtistMixConditioning,
+    EasyUseAnimaPromptDataConditioning,
+    EasyUseAnimaPromptDataUnpack,
+)
+from easyuse_anima.nodes.prompt_nodes import (
+    EasyUseAnimaPromptBuilder,
+    EasyUseAnimaPromptCorrector,
+    EasyUseAnimaPromptCorrectorSimple,
+    EasyUseAnimaPromptStudio,
+)
+from easyuse_anima.prompt import advanced as prompt_advanced
 from easyuse_anima.prompt import artist_mix as prompt_artist_mix
 from easyuse_anima.prompt import conditioning as prompt_conditioning
+from easyuse_anima.prompt import contracts as prompt_contracts
 from easyuse_anima.prompt import correction as prompt_correction
-from easyuse_anima.prompt.advanced import ADVANCED_FIELDS_WORKFLOW_PROPERTY
+from easyuse_anima.prompt import data as prompt_data_service
+from easyuse_anima.prompt.advanced import (
+    ADVANCED_FIELDS_WORKFLOW_PROPERTY,
+    _advanced_prompt_data_fields,
+    _normalize_advanced_fields,
+)
 from easyuse_anima.prompt.artist_mix import (
+    ARTIST_MIX_MODE_FROM_PROMPT_DATA,
     ARTIST_MIX_CONTROL_KEY,
     ARTIST_MIX_EXACT_KEY,
     ARTIST_MIX_MODE_CLUSTERED,
@@ -36,36 +70,20 @@ from easyuse_anima.prompt.artist_mix import (
 from easyuse_anima.prompt.conditioning import (
     _SPECTRUM_ANIMA_MOD_GUIDANCE_OLD_SIGNATURE_WARNED,
 )
-from easyuse_anima.prompt.data import PROMPT_DATA_SCHEMA
+from easyuse_anima.prompt.contracts import (
+    AdvancedField,
+    PromptData,
+    PromptDataCompatResult,
+    PromptDataOutputs,
+    PromptDataRead,
+)
+from easyuse_anima.prompt.data import PROMPT_DATA_SCHEMA, PROMPT_DATA_TYPE
 from easyuse_anima.settings import repository as settings_repository
-from easyuse_anima.settings import schema as settings_schema
 from easyuse_anima.settings import service as settings_service
 from easyuse_anima.prompt.fields import (
     DEFAULT_QUALITY_TAGS,
     DEFAULT_TRAILING_QUALITY_TAGS,
-)
-from nodes import (
-    ARTIST_MIX_MODE_FROM_PROMPT_DATA,
-    PROMPT_DATA_TYPE,
-    EasyUseAnimaArtistMixConditioning,
-    EasyUseAnimaDetailerAlignHook,
-    EasyUseAnimaPromptDataConditioning,
-    EasyUseAnimaPromptDataUnpack,
-    EasyUseAnimaPromptBuilder,
-    EasyUseAnimaPromptCorrector,
-    EasyUseAnimaPromptCorrectorSimple,
-    EasyUseAnimaPromptStudio,
-    EasyUseAnimaPromptStudioAdvanced,
-    EasyUseAnimaPromptStudioAdvancedV2,
-    _generate_empty_latent_with_comfy,
     _prompt_tokens,
-)
-from autocomplete_dataset import (
-    autocomplete_status,
-    available_autocomplete_sources,
-    classify_prompt_text,
-    resolve_autocomplete_source,
-    search_autocomplete,
 )
 from easyuse_anima.translation.contracts import (
     PROMPT_TRANSLATION_PROVIDER_GOOGLE,
@@ -95,7 +113,7 @@ from easyuse_anima.settings.service import (
     resolve_prompt_studio_font_family,
     resolve_prompt_studio_font_size,
 )
-from wildcard_engine import expand_wildcards
+from easyuse_anima.wildcard.service import expand_wildcards
 from tests.comfy_host_fakes import patch_comfy_helper
 
 
@@ -394,6 +412,56 @@ class PromptCorrectorTests(unittest.TestCase):
 
 
 class PromptBuilderTests(unittest.TestCase):
+    def test_advanced_field_contract_preserves_normalized_and_extend_shapes(self):
+        self.assertEqual(
+            AdvancedField.__required_keys__,
+            frozenset({"id", "pane", "type", "label", "text", "height", "enabled"}),
+        )
+        self.assertEqual(AdvancedField.__optional_keys__, frozenset({"pin"}))
+        self.assertEqual(
+            get_type_hints(_normalize_advanced_fields)["return"],
+            list[AdvancedField],
+        )
+        self.assertEqual(
+            get_type_hints(_advanced_prompt_data_fields)["return"],
+            list[AdvancedField],
+        )
+        self.assertEqual(
+            get_type_hints(prompt_artist_mix._prompt_data_positive_fields)["return"],
+            list[AdvancedField],
+        )
+
+        normalized = _normalize_advanced_fields([
+            {
+                "id": "positive_general",
+                "pane": "positive",
+                "type": "general",
+                "label": "General Tags",
+                "text": "1girl",
+                "height": 150,
+                "enabled": True,
+                "pin": False,
+                "future_key": "ignored",
+            }
+        ])
+        self.assertEqual(
+            list(normalized[0]),
+            ["id", "pane", "type", "label", "text", "height", "enabled", "pin"],
+        )
+
+        extended = EasyUseAnimaPromptStudioExtend._fields_from_slots(
+            {"quality_tags_1": "best quality"},
+            ["quality_tags_1"],
+        )
+        self.assertEqual(
+            list(extended[0]),
+            ["id", "pane", "type", "label", "text", "height", "enabled"],
+        )
+        self.assertEqual(
+            get_type_hints(EasyUseAnimaPromptStudioExtend._fields_from_slots)["return"],
+            list[AdvancedField],
+        )
+
     def test_prompt_builder_and_studio_default_quality_tags(self):
         builder_inputs = EasyUseAnimaPromptBuilder.INPUT_TYPES()["required"]
         studio_inputs = EasyUseAnimaPromptStudio.INPUT_TYPES()["required"]
@@ -589,6 +657,29 @@ class PromptBuilderTests(unittest.TestCase):
         self.assertEqual(EasyUseAnimaPromptDataUnpack.RETURN_TYPES[0], PROMPT_DATA_TYPE)
         self.assertEqual(EasyUseAnimaPromptDataUnpack.RETURN_NAMES[0], PROMPT_DATA_TYPE)
 
+    def test_prompt_data_internal_types_bind_canonical_builder_and_readers(self):
+        self.assertIs(
+            get_type_hints(prompt_advanced._build_advanced_prompt_data)["return"],
+            PromptData,
+        )
+        self.assertEqual(
+            get_type_hints(prompt_advanced._build_advanced_prompt_data)["compat_result"],
+            PromptDataCompatResult,
+        )
+        self.assertEqual(
+            get_type_hints(prompt_data_service._normalize_prompt_data)["return"],
+            dict[str, object],
+        )
+        self.assertEqual(
+            get_type_hints(prompt_data_service._advanced_outputs_from_prompt_data)["return"],
+            PromptDataCompatResult,
+        )
+        self.assertEqual(
+            get_type_hints(prompt_artist_mix._prompt_data_artist_base_prompt)["data"],
+            PromptDataRead,
+        )
+        self.assertEqual(prompt_contracts.__all__, ())
+
     def test_prompt_data_conditioning_uses_prompt_data_socket_and_sampler_outputs(self):
         input_types = EasyUseAnimaPromptDataConditioning.INPUT_TYPES()
 
@@ -629,7 +720,7 @@ class PromptBuilderTests(unittest.TestCase):
             encoded_texts.append(text)
             return [[f"cond:{text}", {"encoded_text": text}]]
 
-        with patch_comfy_helper(nodes, "_encode_with_comfy_clip", fake_encode):
+        with patch_comfy_helper(prompt_data_nodes, "_encode_with_comfy_clip", fake_encode):
             with patch.object(
                 prompt_artist_mix,
                 "_correct_builder_prompt",
@@ -647,7 +738,7 @@ class PromptBuilderTests(unittest.TestCase):
         correct_mock.assert_called_once_with("1girl, artist_a", artist_overrides="artist_a")
 
         encoded_texts.clear()
-        with patch_comfy_helper(nodes, "_encode_with_comfy_clip", fake_encode):
+        with patch_comfy_helper(prompt_data_nodes, "_encode_with_comfy_clip", fake_encode):
             with patch.object(prompt_artist_mix, "_correct_builder_prompt") as correct_mock:
                 front_positive = EasyUseAnimaArtistMixConditioning().encode(
                     object(),
@@ -675,7 +766,7 @@ class PromptBuilderTests(unittest.TestCase):
             encoded_texts.append(text)
             return [[f"cond:{text}", {"encoded_text": text}]]
 
-        with patch_comfy_helper(nodes, "_encode_with_comfy_clip", fake_encode):
+        with patch_comfy_helper(prompt_data_nodes, "_encode_with_comfy_clip", fake_encode):
             positive = EasyUseAnimaArtistMixConditioning().encode(
                 object(),
                 prompt="1girl",
@@ -696,7 +787,7 @@ class PromptBuilderTests(unittest.TestCase):
             encoded_texts.append(text)
             return [[f"cond:{text}", {"encoded_text": text}]]
 
-        with patch_comfy_helper(nodes, "_encode_with_comfy_clip", fake_encode):
+        with patch_comfy_helper(prompt_data_nodes, "_encode_with_comfy_clip", fake_encode):
             positive = EasyUseAnimaArtistMixConditioning().encode(
                 object(),
                 prompt="1girl",
@@ -718,7 +809,7 @@ class PromptBuilderTests(unittest.TestCase):
             encoded_texts.append(text)
             return [[f"cond:{text}", {"encoded_text": text}]]
 
-        with patch_comfy_helper(nodes, "_encode_with_comfy_clip", fake_encode):
+        with patch_comfy_helper(prompt_data_nodes, "_encode_with_comfy_clip", fake_encode):
             EasyUseAnimaArtistMixConditioning().encode(
                 object(),
                 prompt="1girl",
@@ -738,7 +829,7 @@ class PromptBuilderTests(unittest.TestCase):
                 return ({"samples": "latent"},)
 
         with patch_comfy_helper(
-            nodes,
+            prompt_data_nodes,
             "_find_comfy_node_class",
             lambda node_id: (
                 FakeEmptyLatentImage
@@ -764,7 +855,7 @@ class PromptBuilderTests(unittest.TestCase):
         }
 
         with patch_comfy_helper(
-            nodes,
+            prompt_data_nodes,
             "_encode_with_comfy_clip",
             lambda clip, text: [[f"cond:{text}", {"encoded_text": text}]],
         ):
@@ -822,7 +913,7 @@ class PromptBuilderTests(unittest.TestCase):
 
         _SPECTRUM_ANIMA_MOD_GUIDANCE_OLD_SIGNATURE_WARNED.clear()
         with patch_comfy_helper(
-            nodes,
+            prompt_data_nodes,
             "_encode_with_comfy_clip",
             lambda clip, text: [[f"cond:{text}", {"encoded_text": text}]],
         ):
@@ -891,7 +982,7 @@ class PromptBuilderTests(unittest.TestCase):
 
         _SPECTRUM_ANIMA_MOD_GUIDANCE_OLD_SIGNATURE_WARNED.clear()
         with patch_comfy_helper(
-            nodes,
+            prompt_data_nodes,
             "_encode_with_comfy_clip",
             lambda clip, text: [[f"cond:{text}", {"encoded_text": text}]],
         ):
@@ -979,7 +1070,7 @@ class PromptBuilderTests(unittest.TestCase):
                 },
             ]]
 
-        with patch_comfy_helper(nodes, "_encode_with_comfy_clip", fake_encode):
+        with patch_comfy_helper(prompt_data_nodes, "_encode_with_comfy_clip", fake_encode):
             with patch.object(prompt_artist_mix, "_blend_conditionings", fake_blend):
                 with patch.object(
                     prompt_data_nodes,
@@ -1021,7 +1112,7 @@ class PromptBuilderTests(unittest.TestCase):
             encoded_texts.append(text)
             return [[f"cond:{text}", {"encoded_text": text}]]
 
-        with patch_comfy_helper(nodes, "_encode_with_comfy_clip", fake_encode):
+        with patch_comfy_helper(prompt_data_nodes, "_encode_with_comfy_clip", fake_encode):
             with patch.object(
                 prompt_data_nodes,
                 "_generate_empty_latent_with_comfy",
@@ -1061,7 +1152,7 @@ class PromptBuilderTests(unittest.TestCase):
             encoded_texts.append(text)
             return [[f"cond:{text}", {"encoded_text": text}]]
 
-        with patch_comfy_helper(nodes, "_encode_with_comfy_clip", fake_encode):
+        with patch_comfy_helper(prompt_data_nodes, "_encode_with_comfy_clip", fake_encode):
             with patch.object(
                 prompt_data_nodes,
                 "_generate_empty_latent_with_comfy",
@@ -1099,7 +1190,7 @@ class PromptBuilderTests(unittest.TestCase):
             delta_calls.append((artists, list(weights or []), kwargs))
             return [["tail", {"strength": kwargs.get("branch_strength")}]]
 
-        with patch_comfy_helper(nodes, "_encode_with_comfy_clip", fake_encode):
+        with patch_comfy_helper(prompt_data_nodes, "_encode_with_comfy_clip", fake_encode):
             with patch.object(prompt_artist_mix, "_encode_artist_delta_rms", fake_delta):
                 with patch.object(
                     prompt_data_nodes,
@@ -1149,7 +1240,7 @@ class PromptBuilderTests(unittest.TestCase):
             calls.append(("clustered", kwargs))
             return [["clustered", {}]]
 
-        with patch_comfy_helper(nodes, "_encode_with_comfy_clip", fake_encode):
+        with patch_comfy_helper(prompt_data_nodes, "_encode_with_comfy_clip", fake_encode):
             with patch.object(prompt_artist_mix, "_encode_artist_delta_rms", fake_delta):
                 with patch.object(prompt_artist_mix, "_encode_artist_clustered", fake_clustered):
                     with patch.object(
@@ -1225,6 +1316,11 @@ class PromptBuilderTests(unittest.TestCase):
         prompt_data = result["result"][0]
         self.assertIsInstance(prompt_data, dict)
         self.assertEqual(len(result["result"]), 1)
+        self.assertEqual(PromptData.__required_keys__, frozenset(prompt_data))
+        self.assertEqual(
+            PromptDataOutputs.__required_keys__,
+            frozenset(prompt_data["outputs"]),
+        )
         self.assertEqual(prompt_data["schema"], PROMPT_DATA_SCHEMA)
         self.assertEqual(prompt_data["type"], PROMPT_DATA_TYPE)
         self.assertEqual(prompt_data["outputs"]["positive_prompt"], prompt_data["positive_prompt"])
@@ -2875,25 +2971,159 @@ class PromptBuilderTests(unittest.TestCase):
 
 
 class SettingsTests(unittest.TestCase):
-    def test_root_exports_are_identical_canonical_objects(self):
-        owners = (settings_schema, settings_repository, settings_service)
-        expected = {
-            name
-            for owner in owners
-            for name in owner.__all__
+    def test_repository_dependency_uses_current_paths_and_store_factory(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            settings_file = Path(tmp) / "settings.json"
+            long_text_settings_file = Path(tmp) / "long_text_settings.json"
+            with (
+                patch.object(settings_repository, "SETTINGS_FILE", settings_file),
+                patch.object(
+                    settings_repository,
+                    "LONG_TEXT_SETTINGS_FILE",
+                    long_text_settings_file,
+                ),
+                patch.object(
+                    settings_repository,
+                    "create_atomic_json_store",
+                ) as store_factory,
+            ):
+                repository = settings_repository._current_settings_repository()
+                store = repository.store(settings_file, backup=False)
+
+            self.assertEqual(repository.settings_file, settings_file)
+            self.assertEqual(
+                repository.long_text_settings_file,
+                long_text_settings_file,
+            )
+            self.assertIs(repository.store_factory, store_factory)
+            self.assertIs(store, store_factory.return_value)
+            store_factory.assert_called_once_with(settings_file, backup=False)
+
+    def test_settings_document_migration_is_pure_and_versioned(self):
+        legacy = {
+            "autocomplete.source": "localsmile_kr_wiki",
+            "autocomplete.limit": 7,
+            "prompt_studio.font_family": None,
+            "autocomplete.append_separator": True,
+            "future.unknown": {"kept": True},
+        }
+        original = json.loads(json.dumps(legacy))
+
+        self.assertEqual(
+            settings_repository._detect_settings_document_version(legacy),
+            0,
+        )
+        migrated = settings_repository._migrate_settings_document(legacy)
+
+        self.assertEqual(legacy, original)
+        self.assertEqual(migrated, {"version": 1, "values": legacy})
+        self.assertIsNot(migrated["values"], legacy)
+        self.assertEqual(
+            settings_repository._detect_settings_document_version(migrated),
+            1,
+        )
+        self.assertEqual(
+            settings_repository._normalize_settings_values(migrated["values"]),
+            {
+                "autocomplete.source": "localsmile_kr_wiki",
+                "autocomplete.limit": "7",
+                "prompt_studio.font_family": "",
+                "autocomplete.append_separator": "True",
+            },
+        )
+        self.assertEqual(
+            settings_repository._migrate_settings_document(migrated),
+            migrated,
+        )
+        for invalid_version in (True, 1.0, "1"):
+            with self.subTest(invalid_version=invalid_version):
+                invalid = {
+                    "version": invalid_version,
+                    "values": {"autocomplete.limit": 99},
+                }
+                self.assertEqual(
+                    settings_repository._detect_settings_document_version(
+                        invalid
+                    ),
+                    0,
+                )
+                invalid_document = (
+                    settings_repository._migrate_settings_document(invalid)
+                )
+                self.assertEqual(
+                    settings_repository._normalize_settings_values(
+                        invalid_document["values"]
+                    ),
+                    {},
+                )
+
+    def test_get_settings_accepts_legacy_and_v1_documents_without_rewrite(self):
+        legacy = {
+            "autocomplete.source": "localsmile_kr_wiki",
+            "autocomplete.limit": 17,
+            "future.unknown": {"kept": True},
+        }
+        cases = (legacy, {"version": 1, "values": legacy})
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            settings_file = root / "settings.json"
+            long_text_settings_file = root / "long_text_settings.json"
+            with (
+                patch.object(settings_repository, "SETTINGS_FILE", settings_file),
+                patch.object(
+                    settings_repository,
+                    "LONG_TEXT_SETTINGS_FILE",
+                    long_text_settings_file,
+                ),
+                patch.object(
+                    settings_repository,
+                    "_load_comfy_settings",
+                    return_value={},
+                ),
+            ):
+                for document in cases:
+                    with self.subTest(document=document):
+                        settings_file.write_text(
+                            json.dumps(document),
+                            encoding="utf-8",
+                        )
+                        settings = settings_repository.get_settings()
+
+                        self.assertEqual(
+                            settings["autocomplete.source"],
+                            "localsmile_kr_wiki",
+                        )
+                        self.assertEqual(settings["autocomplete.limit"], "17")
+                        self.assertEqual(
+                            json.loads(settings_file.read_text(encoding="utf-8")),
+                            document,
+                        )
+
+    def test_long_text_document_migration_accepts_raw_and_v1_aliases(self):
+        raw = {
+            "metadataFilter": "artist, copyright",
+            "naia.pre_prompt": None,
+            "future.unknown": {"ignored": True},
+        }
+        expected_values = {
+            "prompt.metadata_filter_words": "artist, copyright",
+            "naia.pre_prompt": "",
         }
 
-        self.assertEqual(len(root_settings.__all__), 41)
-        self.assertEqual(set(root_settings.__all__), expected)
-        for name in root_settings.__all__:
-            canonical_owners = [
-                owner for owner in owners if name in owner.__all__
-            ]
-            with self.subTest(name=name):
-                self.assertEqual(len(canonical_owners), 1)
-                self.assertIs(
-                    getattr(root_settings, name),
-                    getattr(canonical_owners[0], name),
+        for document in (raw, {"version": 1, "values": raw}):
+            original = json.loads(json.dumps(document))
+            with self.subTest(document=document):
+                migrated = (
+                    settings_repository._migrate_long_text_settings_document(
+                        document
+                    )
+                )
+
+                self.assertEqual(document, original)
+                self.assertEqual(
+                    migrated,
+                    {"version": 1, "values": expected_values},
                 )
 
     def test_save_setting_round_trips_false_zero_empty_string_and_null(self):
@@ -2927,7 +3157,8 @@ class SettingsTests(unittest.TestCase):
                         reloaded = settings_repository.get_settings()
 
                         self.assertEqual(saved[key], expected)
-                        self.assertEqual(persisted[key], expected)
+                        self.assertEqual(persisted["version"], 1)
+                        self.assertEqual(persisted["values"][key], expected)
                         self.assertEqual(reloaded[key], expected)
 
     def test_parallel_save_setting_updates_do_not_lose_different_keys(self):
@@ -3000,8 +3231,12 @@ class SettingsTests(unittest.TestCase):
             self.assertFalse(second.is_alive())
             self.assertEqual(errors, [])
             persisted = json.loads(settings_file.read_text(encoding="utf-8"))
-            self.assertEqual(persisted["autocomplete.limit"], "33")
-            self.assertEqual(persisted["prompt_studio.font_family"], "Inter")
+            self.assertEqual(persisted["version"], 1)
+            self.assertEqual(persisted["values"]["autocomplete.limit"], "33")
+            self.assertEqual(
+                persisted["values"]["prompt_studio.font_family"],
+                "Inter",
+            )
         finally:
             release_first.set()
             shutil.rmtree(root, ignore_errors=True)
@@ -3078,6 +3313,7 @@ class SettingsTests(unittest.TestCase):
             self.assertFalse(second.is_alive())
             self.assertEqual(errors, [])
             persisted = json.loads(long_text_settings_file.read_text(encoding="utf-8"))
+            self.assertEqual(persisted["version"], 1)
             self.assertEqual(persisted["values"]["prompt.metadata_filter_words"], "metadata")
             self.assertEqual(persisted["values"]["naia.pre_prompt"], "prefix")
         finally:

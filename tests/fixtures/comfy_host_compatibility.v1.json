@@ -14,10 +14,10 @@
     ]
   },
   "expected_counts": {
-    "production_consumer_slots": 23,
-    "unique_production_modules": 16,
+    "production_consumer_slots": 21,
+    "unique_production_modules": 15,
     "root_monkeypatch_test_files": 0,
-    "canonical_monkeypatch_test_files": 3
+    "canonical_monkeypatch_test_files": 2
   },
   "external_evidence": {
     "github_public_code_search_2026_07_23": {
@@ -49,23 +49,12 @@
           "module": "easyuse_anima.aio.generation_normalization",
           "binder": null,
           "root_observation": "call_time"
-        },
-        {
-          "module": "easyuse_anima.nodes.impact_detailer_nodes",
-          "binder": null,
-          "root_observation": "call_time"
-        },
-        {
-          "module": "easyuse_anima.nodes.sam3_nodes",
-          "binder": null,
-          "root_observation": "call_time"
         }
       ],
       "repository_monkeypatch_consumers": {
         "root": [],
         "canonical": [
-          "tests/test_node_contracts.py",
-          "tests/test_sam3_nodes.py"
+          "tests/test_node_contracts.py"
         ]
       },
       "confirmed_external_consumers": [],
@@ -112,6 +101,11 @@
           "root_observation": "call_time"
         },
         {
+          "module": "easyuse_anima.image.sam3_detailer",
+          "binder": null,
+          "root_observation": "call_time"
+        },
+        {
           "module": "easyuse_anima.nodes.prompt_data_nodes",
           "binder": null,
           "root_observation": "call_time"
@@ -122,12 +116,7 @@
           "root_observation": "call_time"
         },
         {
-          "module": "easyuse_anima.nodes.sam3_nodes",
-          "binder": null,
-          "root_observation": "call_time"
-        },
-        {
-          "module": "easyuse_anima.prompt.artist_mix",
+          "module": "easyuse_anima.prompt.artist_mix_conditioning",
           "binder": null,
           "root_observation": "call_time"
         }
@@ -485,7 +474,7 @@
       "test_files": [
         "tests/comfy_host_fakes.py",
         "tests/test_comfy_host_wiring.py",
-        "tests/test_python_compatibility_surface.py"
+        "tests/test_python_legacy_path_retirement.py"
       ],
       "forbidden": [
         "root wrapper move, removal, or behavior change",

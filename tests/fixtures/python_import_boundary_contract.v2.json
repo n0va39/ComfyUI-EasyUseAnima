@@ -1,0 +1,134 @@
+{
+  "schema_version": 2,
+  "owner_inventory": {
+    "path": "tests/fixtures/python_test_ownership_contract.v1.json",
+    "schema_version": 1
+  },
+  "groups": [
+    {
+      "group": "aio",
+      "role": "feature-service"
+    },
+    {
+      "group": "api",
+      "role": "http-adapter"
+    },
+    {
+      "group": "autocomplete",
+      "role": "feature-service"
+    },
+    {
+      "group": "common",
+      "role": "common"
+    },
+    {
+      "group": "image",
+      "role": "feature-service"
+    },
+    {
+      "group": "infrastructure",
+      "role": "infrastructure-core"
+    },
+    {
+      "group": "lora",
+      "role": "feature-service"
+    },
+    {
+      "group": "naia",
+      "role": "feature-service"
+    },
+    {
+      "group": "nodes",
+      "role": "node-adapter"
+    },
+    {
+      "group": "profiles",
+      "role": "feature-service"
+    },
+    {
+      "group": "prompt",
+      "role": "feature-service"
+    },
+    {
+      "group": "runtime-bootstrap",
+      "role": "process-composition"
+    },
+    {
+      "group": "seed",
+      "role": "feature-service"
+    },
+    {
+      "group": "settings",
+      "role": "feature-service"
+    },
+    {
+      "group": "translation",
+      "role": "feature-service"
+    },
+    {
+      "group": "wildcard",
+      "role": "feature-service"
+    }
+  ],
+  "path_role_overrides": [
+    {
+      "path": "easyuse_anima/api/application.py",
+      "role": "process-composition"
+    },
+    {
+      "path": "easyuse_anima/api/application_compatibility.py",
+      "role": "process-composition"
+    },
+    {
+      "path": "easyuse_anima/api/application_routes.py",
+      "role": "process-composition"
+    },
+    {
+      "allowed_target_roles": [
+        "common",
+        "http-adapter"
+      ],
+      "path": "easyuse_anima/api/router.py",
+      "role": "registration-adapter"
+    },
+    {
+      "path": "easyuse_anima/infrastructure/comfy/",
+      "role": "comfy-host-adapter"
+    },
+    {
+      "allowed_target_roles": [
+        "node-adapter"
+      ],
+      "path": "easyuse_anima/registration.py",
+      "role": "registration-adapter"
+    },
+    {
+      "path": "easyuse_anima/workflow.py",
+      "role": "node-adapter"
+    }
+  ],
+  "package_facades": {
+    "nested": {
+      "path_suffix": "/__init__.py",
+      "rule": "same-group-only"
+    },
+    "root": {
+      "allowed_target_groups": [
+        "seed"
+      ],
+      "path": "easyuse_anima/__init__.py"
+    }
+  },
+  "edge_exceptions": [
+    {
+      "name": "get_runtime",
+      "source": "easyuse_anima/infrastructure/comfy/wiring.py",
+      "target": "easyuse_anima/runtime.py"
+    },
+    {
+      "name": "get_runtime",
+      "source": "easyuse_anima/nodes/seed_adapters.py",
+      "target": "easyuse_anima/runtime.py"
+    }
+  ]
+}

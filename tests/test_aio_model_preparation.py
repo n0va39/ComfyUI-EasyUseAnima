@@ -5,29 +5,11 @@ import types
 import unittest
 from unittest.mock import Mock, patch
 
-import nodes
 from easyuse_anima.aio import model_preparation
 from tests.comfy_host_fakes import patch_comfy_helper
 
 
 class AIOModelPreparationMoveTests(unittest.TestCase):
-    def test_root_symbols_are_direct_canonical_aliases(self):
-        for name in (
-            "_patch_model_sampling_aura_flow",
-            "_apply_aio_kj_model_patches",
-            "_apply_aio_model_patches",
-            "_normalize_aio_lora_stack",
-            "_apply_aio_lora_stack",
-            "_apply_aio_anima_dave_patch",
-            "_apply_aio_safe_pag_patch",
-            "_cleanup_aio_ephemeral_model",
-            "_apply_aio_spectrum_correction_patch_for_comfy_sampler",
-            "_apply_aio_spectrum_forecast_patch_for_comfy_sampler",
-            "_apply_aio_spectrum_model_patches_for_comfy_sampler",
-        ):
-            with self.subTest(name=name):
-                self.assertIs(getattr(nodes, name), getattr(model_preparation, name))
-
     def test_lora_normalization_and_application_preserve_order_and_identity(self):
         stack = {
             "__value__": [
@@ -54,7 +36,7 @@ class AIOModelPreparationMoveTests(unittest.TestCase):
                 return f"{model}>{name}", f"{clip}>{name}"
 
         with patch_comfy_helper(
-            nodes,
+            model_preparation,
             "_find_comfy_node_class",
             return_value=LoraLoader,
         ):
@@ -347,7 +329,7 @@ class AIOModelPreparationMoveTests(unittest.TestCase):
 
     def test_sage_unknown_mode_and_node_contract_drift_fail_before_patch(self):
         with patch_comfy_helper(
-            nodes,
+            model_preparation,
             "_require_custom_node_class",
         ) as require_node:
             with self.assertRaisesRegex(RuntimeError, "Unsupported KJ SageAttention"):
@@ -372,7 +354,7 @@ class AIOModelPreparationMoveTests(unittest.TestCase):
                 raise AssertionError("drifted Sage patch must not run")
 
         with patch_comfy_helper(
-            nodes,
+            model_preparation,
             "_require_custom_node_class",
             return_value=DriftedSageAttention,
         ):
@@ -588,7 +570,7 @@ class AIOModelPreparationMoveTests(unittest.TestCase):
                 side_effect=lambda model, _settings: model,
             ),
             patch_comfy_helper(
-                nodes,
+                model_preparation,
                 "_require_custom_node_class",
                 side_effect=require_node,
             ),
@@ -642,7 +624,7 @@ class AIOModelPreparationMoveTests(unittest.TestCase):
             "TorchCompileModelAdvanced": TorchCompile,
         }
         with patch_comfy_helper(
-            nodes,
+            model_preparation,
             "_require_custom_node_class",
             side_effect=lambda node_id: classes[node_id],
         ):
@@ -785,11 +767,11 @@ class AIOModelPreparationMoveTests(unittest.TestCase):
         model = object()
         with (
             patch_comfy_helper(
-                nodes,
+                model_preparation,
                 "_require_custom_node_class",
             ) as require_correction,
             patch_comfy_helper(
-                nodes,
+                model_preparation,
                 "_require_any_custom_node_class",
             ) as require_forecast,
         ):

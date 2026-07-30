@@ -7,8 +7,7 @@ from dataclasses import FrozenInstanceError
 from pathlib import Path
 from unittest.mock import patch
 
-import nodes
-from easyuse_anima.aio import generation_normalization
+from easyuse_anima.aio import generation_defaults, generation_normalization
 from easyuse_anima.aio.generation_migrations import (
     AIO_GENERATION_MIGRATION_REGISTRY,
     AIO_GENERATION_SETTINGS_CURRENT_VERSION,
@@ -45,10 +44,13 @@ def _payload(
 
 class AIOGenerationMigrationTests(unittest.TestCase):
     def test_shipped_registry_has_three_immutable_consecutive_steps(self):
-        self.assertEqual(AIO_GENERATION_SETTINGS_SCHEMA, nodes.AIO_GENERATION_SETTINGS_SCHEMA)
+        self.assertEqual(
+            AIO_GENERATION_SETTINGS_SCHEMA,
+            generation_defaults.AIO_GENERATION_SETTINGS_SCHEMA,
+        )
         self.assertEqual(
             AIO_GENERATION_SETTINGS_CURRENT_VERSION,
-            nodes.AIO_GENERATION_SETTINGS_VERSION,
+            generation_defaults.AIO_GENERATION_SETTINGS_VERSION,
         )
         self.assertEqual(
             [
@@ -185,17 +187,17 @@ class AIOGenerationMigrationTests(unittest.TestCase):
         with (
             patch.multiple(generation_normalization, **capabilities),
             patch_comfy_helper(
-                nodes,
+                generation_normalization,
                 "_comfy_max_resolution",
                 return_value=16384,
             ),
         ):
-            expected = nodes._normalize_aio_generation_settings(
+            expected = generation_normalization._normalize_aio_generation_settings(
                 migrate_aio_generation_settings(legacy)
             )
             actual = migrate_normalize_and_round_trip_aio_generation_settings(
                 legacy,
-                normalize=nodes._normalize_aio_generation_settings,
+                normalize=generation_normalization._normalize_aio_generation_settings,
             )
 
         self.assertEqual(actual, expected)
@@ -204,12 +206,12 @@ class AIOGenerationMigrationTests(unittest.TestCase):
         with (
             patch.multiple(generation_normalization, **capabilities),
             patch_comfy_helper(
-                nodes,
+                generation_normalization,
                 "_comfy_max_resolution",
                 return_value=16384,
             ),
         ):
-            current_runtime = nodes._normalize_aio_generation_settings(
+            current_runtime = generation_normalization._normalize_aio_generation_settings(
                 {"schema": AIO_GENERATION_SETTINGS_SCHEMA, "version": 4}
             )
         self.assertEqual(current_runtime["version"], 4)

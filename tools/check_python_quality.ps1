@@ -94,6 +94,27 @@ try {
     if ($importBoundaryExitCode -ne 0) {
         throw "Python import boundary gate failed with exit code $importBoundaryExitCode."
     }
+
+    Write-Host "`n== Python size/complexity ratchet (G-05A) =="
+    & $pythonCommand (Join-Path $PSScriptRoot "check_python_size_complexity.py")
+    $sizeComplexityExitCode = $LASTEXITCODE
+    if ($sizeComplexityExitCode -ne 0) {
+        throw "Python size/complexity ratchet failed with exit code $sizeComplexityExitCode."
+    }
+
+    Write-Host "`n== Python file-disposition contract (PTC-01) =="
+    & $pythonCommand (Join-Path $PSScriptRoot "check_python_file_dispositions.py")
+    $fileDispositionExitCode = $LASTEXITCODE
+    if ($fileDispositionExitCode -ne 0) {
+        throw "Python file-disposition contract failed with exit code $fileDispositionExitCode."
+    }
+
+    Write-Host "`n== Python support ownership contract (PTC-08) =="
+    & $pythonCommand (Join-Path $PSScriptRoot "check_python_support_ownership.py")
+    $supportOwnershipExitCode = $LASTEXITCODE
+    if ($supportOwnershipExitCode -ne 0) {
+        throw "Python support ownership contract failed with exit code $supportOwnershipExitCode."
+    }
 }
 finally {
     Set-Location -LiteralPath $originalLocation

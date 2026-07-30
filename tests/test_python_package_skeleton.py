@@ -11,6 +11,7 @@ ROOT = Path(__file__).resolve().parents[1]
 PACKAGE_MODULES = (
     "easyuse_anima",
     "easyuse_anima.bootstrap",
+    "easyuse_anima.errors",
     "easyuse_anima.workflow",
     "easyuse_anima.aio",
     "easyuse_anima.aio.conditioning",
@@ -42,10 +43,34 @@ PACKAGE_MODULES = (
     "easyuse_anima.aio.generation_settings",
     "easyuse_anima.aio.resources",
     "easyuse_anima.aio.usdu",
+    "easyuse_anima.api",
+    "easyuse_anima.api.errors",
+    "easyuse_anima.api.file_io",
+    "easyuse_anima.api.requests",
+    "easyuse_anima.api.responses",
+    "easyuse_anima.api.router",
+    "easyuse_anima.api.routes",
+    "easyuse_anima.api.routes.aio_profile_mutations",
+    "easyuse_anima.api.routes.aio_torch_compile",
+    "easyuse_anima.api.routes.autocomplete",
+    "easyuse_anima.api.routes.lora_catalog",
+    "easyuse_anima.api.routes.lora_profile_fix",
+    "easyuse_anima.api.routes.lora_preview",
+    "easyuse_anima.api.routes.long_text_settings",
+    "easyuse_anima.api.routes.profile_lists",
+    "easyuse_anima.api.routes.profile_loads",
+    "easyuse_anima.api.routes.profile_saves",
+    "easyuse_anima.api.routes.settings",
+    "easyuse_anima.api.routes.translation",
+    "easyuse_anima.api.routes.translation_execution",
+    "easyuse_anima.api.routes.wildcards",
     "easyuse_anima.autocomplete",
+    "easyuse_anima.autocomplete.classification",
     "easyuse_anima.autocomplete.dataset",
     "easyuse_anima.autocomplete.index",
+    "easyuse_anima.autocomplete.ports",
     "easyuse_anima.autocomplete.search",
+    "easyuse_anima.autocomplete.service",
     "easyuse_anima.common",
     "easyuse_anima.common.values",
     "easyuse_anima.common.serialization",
@@ -65,11 +90,9 @@ PACKAGE_MODULES = (
     "easyuse_anima.nodes",
     "easyuse_anima.nodes.aio_nodes",
     "easyuse_anima.nodes.input_types",
-    "easyuse_anima.nodes.impact_detailer_nodes",
     "easyuse_anima.nodes.prompt_advanced_nodes",
     "easyuse_anima.nodes.prompt_data_nodes",
     "easyuse_anima.nodes.regional_nodes",
-    "easyuse_anima.nodes.sam3_nodes",
     "easyuse_anima.profiles",
     "easyuse_anima.profiles.aio",
     "easyuse_anima.profiles.contract",
@@ -91,6 +114,7 @@ PACKAGE_MODULES = (
     "easyuse_anima.wildcard.library",
     "easyuse_anima.wildcard.mode",
     "easyuse_anima.wildcard.models",
+    "easyuse_anima.wildcard.ports",
     "easyuse_anima.wildcard.seed",
     "easyuse_anima.wildcard.selector",
     "easyuse_anima.wildcard.snapshot",
@@ -99,6 +123,7 @@ PACKAGE_MODULES = (
     "easyuse_anima.seed.execution_session",
     "easyuse_anima.seed.service",
     "easyuse_anima.prompt",
+    "easyuse_anima.prompt.anima",
     "easyuse_anima.prompt.advanced",
     "easyuse_anima.prompt.artist_mix",
     "easyuse_anima.prompt.conditioning",
@@ -183,7 +208,102 @@ print(json.dumps({{
         payload = json.loads(result.stdout)
         self.assertEqual(payload["modules"], list(PACKAGE_MODULES))
         expected_all = [[] for _ in PACKAGE_MODULES]
-        expected_all[PACKAGE_MODULES.index("easyuse_anima.bootstrap")] = ["initialize"]
+        expected_all[PACKAGE_MODULES.index("easyuse_anima.bootstrap")] = [
+            "initialize",
+            "shutdown",
+        ]
+        expected_all[PACKAGE_MODULES.index("easyuse_anima.errors")] = [
+            "EasyUseAnimaError",
+            "ValidationError",
+            "ConflictError",
+            "NotFoundError",
+            "CapabilityUnavailableError",
+            "UpstreamTimeoutError",
+            "StorageError",
+        ]
+        expected_all[PACKAGE_MODULES.index("easyuse_anima.api.errors")] = [
+            "ApiContractError"
+        ]
+        expected_all[PACKAGE_MODULES.index("easyuse_anima.api.file_io")] = [
+            "FILE_IO_MAX_IN_FLIGHT",
+            "file_io_limiter",
+            "release_file_io_slot",
+            "run_file_io",
+        ]
+        expected_all[PACKAGE_MODULES.index("easyuse_anima.api.requests")] = [
+            "parse_json_object",
+            "json_object",
+            "json_string",
+            "json_boolean",
+            "json_integer",
+            "json_uuid_string",
+        ]
+        expected_all[PACKAGE_MODULES.index("easyuse_anima.api.responses")] = [
+            "REQUEST_ID_HEADER",
+            "error_payload",
+            "create_request_id",
+            "attach_request_id_header",
+            "correlate_response",
+        ]
+        expected_all[PACKAGE_MODULES.index("easyuse_anima.api.router")] = [
+            "ROUTE_REGISTRATION_MARKER",
+            "build_route_signature",
+            "register_route_definitions",
+        ]
+        expected_all[
+            PACKAGE_MODULES.index(
+                "easyuse_anima.api.routes.aio_profile_mutations"
+            )
+        ] = ["build_aio_profile_mutation_handlers"]
+        expected_all[
+            PACKAGE_MODULES.index(
+                "easyuse_anima.api.routes.aio_torch_compile"
+            )
+        ] = ["build_aio_torch_compile_recommend_handler"]
+        expected_all[
+            PACKAGE_MODULES.index("easyuse_anima.api.routes.autocomplete")
+        ] = [
+            "build_autocomplete_handlers",
+            "build_classify_prompt_handler",
+        ]
+        expected_all[
+            PACKAGE_MODULES.index("easyuse_anima.api.routes.lora_catalog")
+        ] = ["build_loras_handler"]
+        expected_all[
+            PACKAGE_MODULES.index("easyuse_anima.api.routes.lora_profile_fix")
+        ] = ["build_lora_profile_fix_handler"]
+        expected_all[
+            PACKAGE_MODULES.index("easyuse_anima.api.routes.lora_preview")
+        ] = ["build_lora_preview_handler"]
+        expected_all[
+            PACKAGE_MODULES.index("easyuse_anima.api.routes.long_text_settings")
+        ] = ["build_long_text_settings_handlers"]
+        expected_all[
+            PACKAGE_MODULES.index("easyuse_anima.api.routes.profile_lists")
+        ] = ["build_profile_list_handlers"]
+        expected_all[
+            PACKAGE_MODULES.index("easyuse_anima.api.routes.profile_loads")
+        ] = ["build_profile_load_handlers"]
+        expected_all[
+            PACKAGE_MODULES.index("easyuse_anima.api.routes.profile_saves")
+        ] = ["build_profile_save_handlers"]
+        expected_all[
+            PACKAGE_MODULES.index("easyuse_anima.api.routes.settings")
+        ] = ["build_settings_handlers"]
+        expected_all[
+            PACKAGE_MODULES.index("easyuse_anima.api.routes.translation")
+        ] = ["build_translate_prompt_handler"]
+        expected_all[
+            PACKAGE_MODULES.index(
+                "easyuse_anima.api.routes.translation_execution"
+            )
+        ] = ["PromptTranslationRouteExecutor"]
+        expected_all[
+            PACKAGE_MODULES.index("easyuse_anima.api.routes.wildcards")
+        ] = ["build_wildcards_handler"]
+        expected_all[
+            PACKAGE_MODULES.index("easyuse_anima.autocomplete.classification")
+        ] = ["classify_prompt_text"]
         expected_all[
             PACKAGE_MODULES.index("easyuse_anima.autocomplete.dataset")
         ] = [
@@ -254,11 +374,22 @@ print(json.dumps({{
             "is_comfy_processing_interruption",
             "seed_execution_session",
         ]
+        expected_all[PACKAGE_MODULES.index("easyuse_anima.prompt.anima")] = [
+            "CorrectionResult",
+            "KnowledgeBaseNotFound",
+            "ParsedPrompt",
+            "PromptKnowledgeBase",
+            "TagInfo",
+            "TagToken",
+            "correct_prompt",
+            "inspect_prompt",
+            "load_knowledge_base",
+        ]
         expected_all[
             PACKAGE_MODULES.index(
                 "easyuse_anima.infrastructure.filesystem.atomic_json"
             )
-        ] = ["AtomicJsonStore"]
+        ] = ["AtomicJsonStore", "create_atomic_json_store"]
         expected_all[
             PACKAGE_MODULES.index(
                 "easyuse_anima.infrastructure.filesystem.paths"

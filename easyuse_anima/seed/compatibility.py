@@ -5,19 +5,23 @@ from __future__ import annotations
 import json
 
 from ..common.values import _single_value
-
+from ..wildcard.mode import (
+    WILDCARD_MODE_FIXED,
+    WILDCARD_MODE_POPULATE,
+    WILDCARD_MODE_SEQUENTIAL,
+    normalize_wildcard_mode,
+)
+from ..wildcard.seed import (
+    SEED_CONTROL_DECREMENT,
+    SEED_CONTROL_FIXED,
+    SEED_CONTROL_INCREMENT,
+    SEED_CONTROL_MODES,
+    SEED_CONTROL_RANDOMIZE,
+    normalize_seed,
+)
 
 WILDCARD_RESERVED_NEXT_SEED_INPUT = "easyuse_anima_reserved_wildcard_next_seed"
 WILDCARD_QUEUE_MAX_SAFE_SEED = (1 << 53) - 1
-
-
-def _wildcard_engine_module():
-    try:
-        from ... import wildcard_engine as module
-    except ImportError:
-        import wildcard_engine as module
-
-    return module
 
 
 def _scrub_reserved_wildcard_next_seed(
@@ -82,36 +86,33 @@ def _consume_reserved_wildcard_next_seed(
     if reservation_current_seed is None or reservation_next_seed is None:
         return None
 
-    wildcard_engine = _wildcard_engine_module()
     reservation_mode = str(reservation.get("mode") or "")
     if reservation_mode not in {
-        wildcard_engine.WILDCARD_MODE_POPULATE,
-        wildcard_engine.WILDCARD_MODE_FIXED,
-        wildcard_engine.WILDCARD_MODE_SEQUENTIAL,
+        WILDCARD_MODE_POPULATE,
+        WILDCARD_MODE_FIXED,
+        WILDCARD_MODE_SEQUENTIAL,
     }:
         return None
     reservation_control = str(reservation.get("control") or "")
-    if reservation_control not in set(wildcard_engine.SEED_CONTROL_MODES):
+    if reservation_control not in set(SEED_CONTROL_MODES):
         return None
-    if reservation_current_seed != wildcard_engine.normalize_seed(current_seed):
+    if reservation_current_seed != normalize_seed(current_seed):
         return None
-    if reservation_mode != wildcard_engine.normalize_wildcard_mode(wildcard_mode):
+    if reservation_mode != normalize_wildcard_mode(wildcard_mode):
         return None
-    if reservation_control != str(
-        seed_control or wildcard_engine.SEED_CONTROL_FIXED
-    ):
+    if reservation_control != str(seed_control or SEED_CONTROL_FIXED):
         return None
-    if reservation_control == wildcard_engine.SEED_CONTROL_RANDOMIZE:
+    if reservation_control == SEED_CONTROL_RANDOMIZE:
         return reservation_next_seed
-    if reservation_control == wildcard_engine.SEED_CONTROL_FIXED:
+    if reservation_control == SEED_CONTROL_FIXED:
         expected_next_seed = reservation_current_seed
-    elif reservation_control == wildcard_engine.SEED_CONTROL_INCREMENT:
+    elif reservation_control == SEED_CONTROL_INCREMENT:
         expected_next_seed = (
             0
             if reservation_current_seed >= WILDCARD_QUEUE_MAX_SAFE_SEED
             else reservation_current_seed + 1
         )
-    elif reservation_control == wildcard_engine.SEED_CONTROL_DECREMENT:
+    elif reservation_control == SEED_CONTROL_DECREMENT:
         expected_next_seed = (
             WILDCARD_QUEUE_MAX_SAFE_SEED
             if reservation_current_seed <= 0
