@@ -2968,7 +2968,7 @@
       "role": "artist-mix-service-facade",
       "owner_group": "prompt",
       "disposition": "split",
-      "status": "planned",
+      "status": "complete",
       "targets": [
         {
           "path": "easyuse_anima/prompt/artist_mix.py",
@@ -3001,24 +3001,19 @@
       "replacement_owner": null,
       "size_exception_verdicts": [
         {
-          "id": "function:easyuse_anima/prompt/artist_mix.py::_encode_artist_clustered",
+          "id": "function:easyuse_anima/prompt/artist_mix_conditioning.py::_encode_artist_clustered",
           "verdict": "split",
           "final_owner": "easyuse_anima/prompt/artist_mix_conditioning.py"
         },
         {
-          "id": "function:easyuse_anima/prompt/artist_mix.py::_encode_prompt_data_positive_conditioning",
+          "id": "function:easyuse_anima/prompt/artist_mix_conditioning.py::_encode_prompt_data_positive_conditioning",
           "verdict": "split",
           "final_owner": "easyuse_anima/prompt/artist_mix_conditioning.py"
         },
         {
-          "id": "function:easyuse_anima/prompt/artist_mix.py::_prompt_data_artist_mix_config",
+          "id": "function:easyuse_anima/prompt/artist_mix_config.py::_prompt_data_artist_mix_config",
           "verdict": "move_retain_cohesive",
           "final_owner": "easyuse_anima/prompt/artist_mix_config.py"
-        },
-        {
-          "id": "module:easyuse_anima/prompt/artist_mix.py",
-          "verdict": "split",
-          "final_owner": "easyuse_anima/prompt/artist_mix.py"
         }
       ]
     },

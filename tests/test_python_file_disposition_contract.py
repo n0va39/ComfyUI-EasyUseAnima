@@ -148,7 +148,7 @@ class PythonFileDispositionContractTests(unittest.TestCase):
         contract = self.validate(self.document)
         inventory = copy.deepcopy(self.inventory_document)
         inventory["inventory"]["modules"].append(
-            {"path": "easyuse_anima/prompt/artist_mix_conditioning.py"}
+            {"path": "easyuse_anima/naia/random_prompt.py"}
         )
         violations = checker.check_current_inventory(inventory, contract)
         self.assertIn(

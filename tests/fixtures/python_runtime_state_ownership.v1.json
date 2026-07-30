@@ -95,7 +95,7 @@
       "symbols": ["BUILTIN_TAG_SECTIONS", "SECTION_ORDER"]
     },
     {
-      "module": "easyuse_anima/prompt/artist_mix.py",
+      "module": "easyuse_anima/prompt/artist_mix_config.py",
       "reason": "Immutable mode descriptions; distinct from the runtime warning-dedupe set.",
       "symbols": ["ARTIST_MIX_MODE_DESCRIPTIONS"]
     },
