@@ -15,7 +15,7 @@ completed lane.
   [#593](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/593)
 - Total Python Convergence Contract:
   [`python-total-convergence-contract.md`](python-total-convergence-contract.md)
-- READY backend refactor task: PTC-09A after the PTC-08 Contract merge.
+- READY backend refactor task: PTC-09B after the PTC-09A Contract merge.
 - Parent architecture: completed Issue
   [#185](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/185)
 - Compatibility/release ledger: Issue
@@ -32,16 +32,17 @@ COMPLETE FC-04A canonical API application/E-09 lifecycle Contract
 COMPLETE FC-04B canonical API application cohesive Move
 COMPLETE FC-05 technical architecture completion
 
-COMPLETE PTC-01 through PTC-08 total structure and support ownership
-READY    PTC-09A root canonical-entrypoint/caller Contract
-NEXT     PTC-09B canonical cutover/legacy removal -> PTC-10 final audit
+COMPLETE PTC-01 through PTC-09A total structure, support and cutover Contract
+READY    PTC-09B canonical cutover/legacy removal
+NEXT     PTC-10 final audit
 
 EVENT    ordinary release N
 ```
 
 FC-01 through FC-05 closed the initial ownership and lifecycle Definition of Done.
-PTC-01 through PTC-08 complete the per-file, size and support-ownership layer; PTC-09A
-is the current READY Contract. Release events remain separate from this sequence.
+PTC-01 through PTC-09A complete the per-file, size, support-ownership and E-09-safe
+root-cutover Contracts; PTC-09B is the current READY implementation. Release events
+remain separate from this sequence.
 
 ## Current code boundary
 
@@ -131,6 +132,9 @@ its lifecycle Contract proved these invariants.
 - [`python-total-convergence-contract.md`](python-total-convergence-contract.md):
   explicit 183-file disposition, 31 size-exception decisions, exact target tree,
   root canonical cutover and the blocking completion definition.
+- [`python-ptc09-root-cutover-contract.md`](python-ptc09-root-cutover-contract.md):
+  selected private bootstrap package-start sequence, exact legacy retirement boundary,
+  E-09 proof obligations and the PTC-09B task card.
 - [`python-backend.md`](python-backend.md): target architecture, phases and original
   Definition of Done.
 - [`python-api-papi01-e09-lifecycle-gate.md`](python-api-papi01-e09-lifecycle-gate.md):

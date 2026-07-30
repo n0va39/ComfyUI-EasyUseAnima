@@ -41,9 +41,9 @@ COMPLETE  FC-04A canonical API application/E-09 lifecycle Contract
 COMPLETE  FC-04B canonical API application cohesive Move
 COMPLETE  FC-05 technical architecture completion
 
-COMPLETE  PTC-01 through PTC-08 total structure and support ownership
-READY     PTC-09A root canonical-entrypoint/caller Contract
-NEXT      PTC-09B canonical cutover/legacy removal -> PTC-10 final audit
+COMPLETE  PTC-01 through PTC-09A total structure, support and cutover Contract
+READY     PTC-09B canonical cutover/legacy removal
+NEXT      PTC-10 final audit
 
 EVENT     next ordinary release N
 ```
@@ -57,10 +57,10 @@ legacy root/`anima_prompt` modules are removed after a canonical caller cutover.
 
 ## Current execution boundary
 
-PTC-09A is READY after PTC-08 merges. Do not repeat FC-01 through FC-05 or the completed
-PTC Move tasks. PTC-09A is production-free and fixes the exact canonical entrypoint,
-caller and E-09-safe application/registrar sequence before PTC-09B deletes the legacy
-paths.
+PTC-09B is READY after the production-free PTC-09A Contract merges. Do not repeat FC-01
+through FC-05 or the completed PTC Move tasks. PTC-09B follows the fixed private
+bootstrap package-start sequence, migrates callers to canonical owners and deletes the
+exact 16 legacy paths without a replacement facade.
 
 ## Fixed lifecycle and compatibility guards
 
