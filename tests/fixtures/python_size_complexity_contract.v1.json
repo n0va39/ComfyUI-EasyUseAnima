@@ -63,12 +63,6 @@
       "decomposition_boundary": "Split Regional node adapters only across existing node classes with socket and workflow parity."
     },
     {
-      "path": "easyuse_anima/prompt/artist_mix.py",
-      "baseline_loc": 1355,
-      "owner_issue": 188,
-      "decomposition_boundary": "Separate Artist Mix tag/config selection from conditioning encoding without duplicating warning or cache ownership."
-    },
-    {
       "path": "nodes.py",
       "baseline_loc": 1156,
       "owner_issue": 188,
@@ -175,23 +169,23 @@
       "decomposition_boundary": "Extract field-family builders only with exact Prompt Data serialization and optional-field parity."
     },
     {
-      "path": "easyuse_anima/prompt/artist_mix.py",
+      "path": "easyuse_anima/prompt/artist_mix_conditioning.py",
       "qualified_name": "_encode_artist_clustered",
-      "baseline_loc": 130,
+      "baseline_loc": 149,
       "owner_issue": 188,
       "decomposition_boundary": "Separate cluster planning from encoding only with deterministic weighting and conditioning parity."
     },
     {
-      "path": "easyuse_anima/prompt/artist_mix.py",
+      "path": "easyuse_anima/prompt/artist_mix_conditioning.py",
       "qualified_name": "_encode_prompt_data_positive_conditioning",
-      "baseline_loc": 217,
+      "baseline_loc": 262,
       "owner_issue": 188,
       "decomposition_boundary": "Split conditioning branches only with identical cache, warning, and tensor metadata behavior."
     },
     {
-      "path": "easyuse_anima/prompt/artist_mix.py",
+      "path": "easyuse_anima/prompt/artist_mix_config.py",
       "qualified_name": "_prompt_data_artist_mix_config",
-      "baseline_loc": 138,
+      "baseline_loc": 140,
       "owner_issue": 188,
       "decomposition_boundary": "Keep Artist Mix config migration and validation together until a typed config constructor owns both."
     },

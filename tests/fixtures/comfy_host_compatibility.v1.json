@@ -127,7 +127,7 @@
           "root_observation": "call_time"
         },
         {
-          "module": "easyuse_anima.prompt.artist_mix",
+          "module": "easyuse_anima.prompt.artist_mix_conditioning",
           "binder": null,
           "root_observation": "call_time"
         }

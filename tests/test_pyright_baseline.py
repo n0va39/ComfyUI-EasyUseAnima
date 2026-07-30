@@ -78,7 +78,7 @@ class PyrightBaselineTests(unittest.TestCase):
 
         self.assertEqual(failures, [])
         self.assertEqual(summary["totals"], baseline["totals"])
-        self.assertEqual(sum(baseline["totals"].values()), 60)
+        self.assertEqual(sum(baseline["totals"].values()), 23)
         self.assertEqual(
             baseline["strict_groups"],
             [
