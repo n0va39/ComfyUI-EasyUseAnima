@@ -32,29 +32,6 @@
   "classification": "Contract",
   "compatibility_surfaces": [
     {
-      "canonical_bindings": {
-        "AIO_FIRST_PASS_CACHE_MAX_ENTRIES": "easyuse_anima.aio.first_pass_cache",
-        "_AIO_FIRST_PASS_CACHE": "easyuse_anima.aio.first_pass_cache",
-        "_AIO_FIRST_PASS_CACHE_ORDER": "easyuse_anima.aio.first_pass_cache",
-        "_aio_first_pass_cache_key": "easyuse_anima.aio.first_pass_cache",
-        "_clone_aio_cache_value": "easyuse_anima.aio.first_pass_cache",
-        "_get_aio_first_pass_cache": "easyuse_anima.aio.first_pass_cache",
-        "_put_aio_first_pass_cache": "easyuse_anima.aio.first_pass_cache"
-      },
-      "id": "root-private-cache-identities",
-      "kind": "identity_reexport",
-      "module": "nodes.py",
-      "symbols": [
-        "AIO_FIRST_PASS_CACHE_MAX_ENTRIES",
-        "_AIO_FIRST_PASS_CACHE",
-        "_AIO_FIRST_PASS_CACHE_ORDER",
-        "_aio_first_pass_cache_key",
-        "_clone_aio_cache_value",
-        "_get_aio_first_pass_cache",
-        "_put_aio_first_pass_cache"
-      ]
-    },
-    {
       "id": "canonical-call-time-patch-seams",
       "kind": "dynamic_reference",
       "module": "easyuse_anima/aio/first_pass_cache.py",
@@ -111,21 +88,7 @@
     },
     "next_phase": "E-09 runtime shutdown and cleanup Contract",
     "production_changes": 0,
-    "root_identity_bindings": [
-      {
-        "canonical_module": "easyuse_anima.aio.first_pass_cache",
-        "root_module": "nodes.py",
-        "symbols": [
-          "AIO_FIRST_PASS_CACHE_MAX_ENTRIES",
-          "_AIO_FIRST_PASS_CACHE",
-          "_AIO_FIRST_PASS_CACHE_ORDER",
-          "_aio_first_pass_cache_key",
-          "_clone_aio_cache_value",
-          "_get_aio_first_pass_cache",
-          "_put_aio_first_pass_cache"
-        ]
-      }
-    ],
+    "root_identity_bindings": [],
     "runtime_binding": {
       "bootstrap_owner": "easyuse_anima.aio.first_pass_cache._DEFAULT_AIO_FIRST_PASS_CACHE",
       "interface": "easyuse_anima.aio.ports.AIOFirstPassCachePort",
@@ -138,7 +101,7 @@
     "generic_cache_lock_port": "rejected",
     "policy_boundary": "Count, total-byte, single-entry, and absolute-TTL constants plus immutable entry/key/clone/size helpers are policy or behavior, not separate mutable runtime owners.",
     "resource_partition": "Entries, LRU order, enabled state, mutation generation, metrics, and their RLock form one AiO-specific owner because get, put, clear, disable, stale-capture rejection, and metric publication share one mutation invariant.",
-    "root_compatibility": "The seven root private identities remain direct canonical aliases. Replacement mapping/order and policy/clock/helper tests require an equivalent call-time or isolated-owner injection seam before raw globals move.",
+    "root_retirement": "PTC-09B removes the root node facade; cache policy and call-time seams remain owned only by easyuse_anima.aio.first_pass_cache.",
     "runtime_composition": "Bootstrap installs the exact default owner behind one feature-specific narrow RuntimeServices capability without adding a feature-to-runtime back-reference or changing the FirstPassRuntime caller path."
   },
   "import_direction": {

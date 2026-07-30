@@ -1,78 +1,5 @@
 {
-  "compatibility_bindings": [
-    {
-      "expression": "_profile_mutation.PROFILE_MUTATION_COORDINATOR",
-      "kind": "assignment",
-      "module": "api.py",
-      "symbol": "PROFILE_MUTATION_COORDINATOR"
-    },
-    {
-      "expression": "_lora_profiles.LORA_PROFILE_DIR",
-      "kind": "assignment",
-      "module": "api.py",
-      "symbol": "LORA_PROFILE_DIR"
-    },
-    {
-      "expression": "_lora_profiles._load_lora_profile",
-      "kind": "assignment",
-      "module": "api.py",
-      "symbol": "_load_lora_profile"
-    },
-    {
-      "expression": "_lora_profiles._save_lora_profile",
-      "kind": "assignment",
-      "module": "api.py",
-      "symbol": "_save_lora_profile"
-    },
-    {
-      "expression": "_aio_profiles.AIO_PROFILE_DIR",
-      "kind": "assignment",
-      "module": "api.py",
-      "symbol": "AIO_PROFILE_DIR"
-    },
-    {
-      "expression": "_aio_profiles._delete_aio_profile",
-      "kind": "assignment",
-      "module": "api.py",
-      "symbol": "_delete_aio_profile"
-    },
-    {
-      "expression": "_aio_profiles._load_aio_profile",
-      "kind": "assignment",
-      "module": "api.py",
-      "symbol": "_load_aio_profile"
-    },
-    {
-      "expression": "_aio_profiles._rename_aio_profile",
-      "kind": "assignment",
-      "module": "api.py",
-      "symbol": "_rename_aio_profile"
-    },
-    {
-      "expression": "_aio_profiles._save_aio_profile",
-      "kind": "assignment",
-      "module": "api.py",
-      "symbol": "_save_aio_profile"
-    },
-    {
-      "kind": "import",
-      "module": "api.py",
-      "source": ".easyuse_anima.settings.repository",
-      "symbol": "load_long_text_settings"
-    },
-    {
-      "kind": "import",
-      "module": "api.py",
-      "source": ".easyuse_anima.settings.repository",
-      "symbol": "save_long_text_settings"
-    },
-    {
-      "kind": "import",
-      "module": "api.py",
-      "source": ".easyuse_anima.settings.repository",
-      "symbol": "save_setting"
-    }
-  ],
+  "compatibility_bindings": [],
   "completion_audit": {
     "ambiguous_state_owners": [],
     "classification": "Contract",
@@ -157,22 +84,22 @@
     {
       "evidence": "tests/test_lora_profiles.py",
       "target": "easyuse_anima.profiles.lora.LORA_PROFILE_DIR",
-      "token": "patch.object(api._lora_profiles, \"LORA_PROFILE_DIR\""
+      "token": "patch.object(api.lora_profiles, \"LORA_PROFILE_DIR\""
     },
     {
       "evidence": "tests/test_lora_profiles.py",
       "target": "easyuse_anima.api.dependencies._APPLICATION_DEPENDENCIES.profiles.save_lora_profile",
-      "token": "patch.object(api._APPLICATION_DEPENDENCIES.profiles, \"save_lora_profile\""
+      "token": "patch.object(api.application.dependencies.profiles, \"save_lora_profile\""
     },
     {
       "evidence": "tests/test_aio_profiles.py",
       "target": "easyuse_anima.profiles.aio.AIO_PROFILE_DIR",
-      "token": "patch.object(api._aio_profiles, \"AIO_PROFILE_DIR\""
+      "token": "patch.object(api.aio_profiles, \"AIO_PROFILE_DIR\""
     },
     {
       "evidence": "tests/test_aio_profiles.py",
-      "target": "api.PROFILE_MUTATION_COORDINATOR",
-      "token": "api.PROFILE_MUTATION_COORDINATOR"
+      "target": "easyuse_anima.profiles.mutation.PROFILE_MUTATION_COORDINATOR",
+      "token": "api.profile_mutation.PROFILE_MUTATION_COORDINATOR"
     }
   ],
   "move_queue": [

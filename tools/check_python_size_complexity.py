@@ -31,10 +31,8 @@ EXPECTED_THRESHOLDS = {
 }
 EXPECTED_ADAPTER_EXACT_PATHS = (
     "__init__.py",
-    "api.py",
     "easyuse_anima/bootstrap.py",
     "easyuse_anima/registration.py",
-    "nodes.py",
 )
 EXPECTED_ADAPTER_PREFIXES = (
     "easyuse_anima/api/",

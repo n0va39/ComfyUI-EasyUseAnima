@@ -147,12 +147,18 @@ class _LayeredFakeComfyHostProvider:
 
 
 def _runtime_module_for(root_module):
-    package = root_module.__package__
-    module_name = (
-        f"{package}.easyuse_anima.runtime"
-        if package
-        else "easyuse_anima.runtime"
-    )
+    module_parts = root_module.__name__.split(".")
+    if "easyuse_anima" in module_parts:
+        package_index = module_parts.index("easyuse_anima")
+        canonical_package = ".".join(module_parts[: package_index + 1])
+        module_name = f"{canonical_package}.runtime"
+    else:
+        package = root_module.__package__
+        module_name = (
+            f"{package}.easyuse_anima.runtime"
+            if package
+            else "easyuse_anima.runtime"
+        )
     runtime_module = sys.modules.get(module_name)
     if runtime_module is None:
         raise AssertionError(f"Runtime module is not loaded: {module_name}")

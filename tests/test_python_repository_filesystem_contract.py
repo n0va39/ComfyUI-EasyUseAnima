@@ -372,7 +372,9 @@ class PythonRepositoryFilesystemContractTests(unittest.TestCase):
                             module_source,
                         )
 
-    def test_root_compatibility_bindings_and_patch_seams_are_preserved(self):
+    def test_root_bindings_are_retired_and_canonical_patch_seams_are_preserved(self):
+        self.assertEqual(self.fixture["compatibility_bindings"], [])
+        self.assertFalse((ROOT / "api.py").exists())
         for binding in self.fixture["compatibility_bindings"]:
             with self.subTest(symbol=binding["symbol"]):
                 if binding["kind"] == "assignment":

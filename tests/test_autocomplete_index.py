@@ -10,8 +10,6 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from unittest.mock import patch
 
-import autocomplete_dataset
-import autocomplete_index
 from easyuse_anima.autocomplete import dataset
 from easyuse_anima.autocomplete import index as autocomplete_index_impl
 from easyuse_anima.autocomplete import search as autocomplete_search_impl
@@ -394,7 +392,6 @@ class AutocompleteIndexTests(unittest.TestCase):
                 "--ignored",
                 "--exclude-from=.comfyignore",
                 "--",
-                "autocomplete_index.py",
                 "easyuse_anima/autocomplete/__init__.py",
                 "easyuse_anima/autocomplete/dataset.py",
                 "easyuse_anima/autocomplete/index.py",
@@ -407,54 +404,6 @@ class AutocompleteIndexTests(unittest.TestCase):
         )
         self.assertEqual(ignored.returncode, 0, ignored.stdout + ignored.stderr)
         self.assertEqual(ignored.stdout.strip(), "", ignored.stdout + ignored.stderr)
-
-    def test_root_index_module_is_an_explicit_canonical_identity_shim(self):
-        expected = (
-            "AUTOCOMPLETE_INDEX_SCHEMA_VERSION",
-            "AutocompleteIndexSource",
-            "IndexedAutocompleteEntry",
-            "AutocompleteIndexDiagnostics",
-            "AutocompleteIndexResult",
-            "AutocompleteIndexUnavailable",
-            "search_autocomplete_index",
-        )
-        self.assertEqual(autocomplete_index.__all__, expected)
-        self.assertEqual(autocomplete_index_impl.__all__, expected)
-        for name in expected:
-            with self.subTest(name=name):
-                self.assertIs(
-                    getattr(autocomplete_index, name),
-                    getattr(autocomplete_index_impl, name),
-                )
-
-    def test_root_dataset_moved_surface_has_canonical_identity(self):
-        dataset_names = (
-            "DBR_TAG_ARCHIVE_SOURCE",
-            "DBR_TAG_ARCHIVE_LICENSE",
-            "DBR_DANBOORU_AUTOCOMPLETE_CSV",
-            "DBR_E621_AUTOCOMPLETE_CSV",
-            "DBR_MERGED_AUTOCOMPLETE_CSV",
-            "LOCALSMILE_AUTOCOMPLETE_CSV",
-            "AUTOCOMPLETE_CSV",
-            "DEFAULT_AUTOCOMPLETE_SOURCE",
-            "AUTOCOMPLETE_SOURCES",
-            "AutocompleteEntry",
-            "resolve_autocomplete_source",
-            "available_autocomplete_sources",
-            "autocomplete_status",
-        )
-        self.assertEqual(dataset.__all__, dataset_names)
-        for name in dataset_names:
-            with self.subTest(name=name):
-                self.assertIs(
-                    getattr(autocomplete_dataset, name),
-                    getattr(dataset, name),
-                )
-        self.assertIs(
-            autocomplete_dataset.search_autocomplete,
-            autocomplete_search_impl.search_autocomplete,
-        )
-
 
 class AutocompleteSnapshotStoreTests(unittest.TestCase):
     def test_store_instances_isolate_snapshots_and_clear_completed_cache(self):

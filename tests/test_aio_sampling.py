@@ -3,29 +3,11 @@ from __future__ import annotations
 import unittest
 from unittest.mock import Mock, patch
 
-import nodes
 from easyuse_anima.aio import sampling
 from tests.comfy_host_fakes import patch_comfy_helper
 
 
 class AIOSamplingMoveTests(unittest.TestCase):
-    def test_root_symbols_are_direct_canonical_aliases(self):
-        for name in (
-            "_new_aio_random_seed",
-            "_resolve_aio_runtime_seed",
-            "_generate_empty_latent_with_comfy",
-            "_sample_latent_with_comfy",
-            "_sample_latent_with_spectrum_mod_guidance_advanced",
-            "_sample_latent_with_spectrum_spd",
-            "_sample_latent_with_aio_backend",
-            "_decode_latent_with_comfy",
-            "_encode_image_with_comfy_vae",
-            "_aio_stage_sampler_settings",
-            "_aio_highres_effective_backend",
-        ):
-            with self.subTest(name=name):
-                self.assertIs(getattr(nodes, name), getattr(sampling, name))
-
     def test_backend_dispatch_uses_selected_canonical_helper_at_call_time(self):
         settings = {
             "seed": 1,
@@ -93,7 +75,7 @@ class AIOSamplingMoveTests(unittest.TestCase):
         }
         with (
             patch_comfy_helper(
-                nodes,
+                sampling,
                 "_find_comfy_node_class",
                 side_effect=classes.get,
             ),
@@ -135,7 +117,7 @@ class AIOSamplingMoveTests(unittest.TestCase):
             pass
 
         with patch_comfy_helper(
-            nodes,
+            sampling,
             "_find_comfy_node_class",
             return_value=None,
         ):
@@ -146,7 +128,7 @@ class AIOSamplingMoveTests(unittest.TestCase):
                     None, 0, 1, 1.0, "euler", "normal", None, None, None, 1.0
                 )
         with patch_comfy_helper(
-            nodes,
+            sampling,
             "_find_comfy_node_class",
             return_value=MissingAPI,
         ):
@@ -160,7 +142,7 @@ class AIOSamplingMoveTests(unittest.TestCase):
                 return ()
 
         with patch_comfy_helper(
-            nodes,
+            sampling,
             "_find_comfy_node_class",
             return_value=EmptyLatentImage,
         ):
@@ -196,7 +178,7 @@ class AIOSamplingMoveTests(unittest.TestCase):
         }
         with (
             patch_comfy_helper(
-                nodes,
+                sampling,
                 "_require_custom_node_class",
                 return_value=SpectrumKSamplerAdvanced,
             ),
@@ -236,7 +218,7 @@ class AIOSamplingMoveTests(unittest.TestCase):
 
         with (
             patch_comfy_helper(
-                nodes,
+                sampling,
                 "_require_custom_node_class",
                 return_value=SpectrumSPDKSampler,
             ),

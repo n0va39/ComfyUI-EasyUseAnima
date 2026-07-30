@@ -12,13 +12,38 @@ from pathlib import Path
 from typing import get_type_hints
 from unittest.mock import patch
 
-import nodes
-import settings as root_settings
 from easyuse_anima.autocomplete import dataset as autocomplete_dataset
+from easyuse_anima.autocomplete.classification import classify_prompt_text
+from easyuse_anima.autocomplete.dataset import (
+    autocomplete_status,
+    available_autocomplete_sources,
+    resolve_autocomplete_source,
+)
+from easyuse_anima.autocomplete.search import search_autocomplete
+from easyuse_anima.aio.sampling import _generate_empty_latent_with_comfy
 from easyuse_anima.naia.client import _clean_prompt
 from easyuse_anima.naia.resolution import ADVANCED_RESOLUTION_BUCKETS
-from easyuse_anima.nodes import prompt_data_nodes, prompt_nodes
-from easyuse_anima.nodes.prompt_advanced_nodes import EasyUseAnimaPromptStudioExtend
+from easyuse_anima.nodes import (
+    prompt_data_nodes,
+    prompt_nodes,
+)
+from easyuse_anima.nodes.image_nodes import EasyUseAnimaDetailerAlignHook
+from easyuse_anima.nodes.prompt_advanced_nodes import (
+    EasyUseAnimaPromptStudioAdvanced,
+    EasyUseAnimaPromptStudioAdvancedV2,
+    EasyUseAnimaPromptStudioExtend,
+)
+from easyuse_anima.nodes.prompt_data_nodes import (
+    EasyUseAnimaArtistMixConditioning,
+    EasyUseAnimaPromptDataConditioning,
+    EasyUseAnimaPromptDataUnpack,
+)
+from easyuse_anima.nodes.prompt_nodes import (
+    EasyUseAnimaPromptBuilder,
+    EasyUseAnimaPromptCorrector,
+    EasyUseAnimaPromptCorrectorSimple,
+    EasyUseAnimaPromptStudio,
+)
 from easyuse_anima.prompt import advanced as prompt_advanced
 from easyuse_anima.prompt import artist_mix as prompt_artist_mix
 from easyuse_anima.prompt import conditioning as prompt_conditioning
@@ -31,6 +56,7 @@ from easyuse_anima.prompt.advanced import (
     _normalize_advanced_fields,
 )
 from easyuse_anima.prompt.artist_mix import (
+    ARTIST_MIX_MODE_FROM_PROMPT_DATA,
     ARTIST_MIX_CONTROL_KEY,
     ARTIST_MIX_EXACT_KEY,
     ARTIST_MIX_MODE_CLUSTERED,
@@ -51,36 +77,13 @@ from easyuse_anima.prompt.contracts import (
     PromptDataOutputs,
     PromptDataRead,
 )
-from easyuse_anima.prompt.data import PROMPT_DATA_SCHEMA
+from easyuse_anima.prompt.data import PROMPT_DATA_SCHEMA, PROMPT_DATA_TYPE
 from easyuse_anima.settings import repository as settings_repository
-from easyuse_anima.settings import schema as settings_schema
 from easyuse_anima.settings import service as settings_service
 from easyuse_anima.prompt.fields import (
     DEFAULT_QUALITY_TAGS,
     DEFAULT_TRAILING_QUALITY_TAGS,
-)
-from nodes import (
-    ARTIST_MIX_MODE_FROM_PROMPT_DATA,
-    PROMPT_DATA_TYPE,
-    EasyUseAnimaArtistMixConditioning,
-    EasyUseAnimaDetailerAlignHook,
-    EasyUseAnimaPromptDataConditioning,
-    EasyUseAnimaPromptDataUnpack,
-    EasyUseAnimaPromptBuilder,
-    EasyUseAnimaPromptCorrector,
-    EasyUseAnimaPromptCorrectorSimple,
-    EasyUseAnimaPromptStudio,
-    EasyUseAnimaPromptStudioAdvanced,
-    EasyUseAnimaPromptStudioAdvancedV2,
-    _generate_empty_latent_with_comfy,
     _prompt_tokens,
-)
-from autocomplete_dataset import (
-    autocomplete_status,
-    available_autocomplete_sources,
-    classify_prompt_text,
-    resolve_autocomplete_source,
-    search_autocomplete,
 )
 from easyuse_anima.translation.contracts import (
     PROMPT_TRANSLATION_PROVIDER_GOOGLE,
@@ -110,7 +113,7 @@ from easyuse_anima.settings.service import (
     resolve_prompt_studio_font_family,
     resolve_prompt_studio_font_size,
 )
-from wildcard_engine import expand_wildcards
+from easyuse_anima.wildcard.service import expand_wildcards
 from tests.comfy_host_fakes import patch_comfy_helper
 
 
@@ -717,7 +720,7 @@ class PromptBuilderTests(unittest.TestCase):
             encoded_texts.append(text)
             return [[f"cond:{text}", {"encoded_text": text}]]
 
-        with patch_comfy_helper(nodes, "_encode_with_comfy_clip", fake_encode):
+        with patch_comfy_helper(prompt_data_nodes, "_encode_with_comfy_clip", fake_encode):
             with patch.object(
                 prompt_artist_mix,
                 "_correct_builder_prompt",
@@ -735,7 +738,7 @@ class PromptBuilderTests(unittest.TestCase):
         correct_mock.assert_called_once_with("1girl, artist_a", artist_overrides="artist_a")
 
         encoded_texts.clear()
-        with patch_comfy_helper(nodes, "_encode_with_comfy_clip", fake_encode):
+        with patch_comfy_helper(prompt_data_nodes, "_encode_with_comfy_clip", fake_encode):
             with patch.object(prompt_artist_mix, "_correct_builder_prompt") as correct_mock:
                 front_positive = EasyUseAnimaArtistMixConditioning().encode(
                     object(),
@@ -763,7 +766,7 @@ class PromptBuilderTests(unittest.TestCase):
             encoded_texts.append(text)
             return [[f"cond:{text}", {"encoded_text": text}]]
 
-        with patch_comfy_helper(nodes, "_encode_with_comfy_clip", fake_encode):
+        with patch_comfy_helper(prompt_data_nodes, "_encode_with_comfy_clip", fake_encode):
             positive = EasyUseAnimaArtistMixConditioning().encode(
                 object(),
                 prompt="1girl",
@@ -784,7 +787,7 @@ class PromptBuilderTests(unittest.TestCase):
             encoded_texts.append(text)
             return [[f"cond:{text}", {"encoded_text": text}]]
 
-        with patch_comfy_helper(nodes, "_encode_with_comfy_clip", fake_encode):
+        with patch_comfy_helper(prompt_data_nodes, "_encode_with_comfy_clip", fake_encode):
             positive = EasyUseAnimaArtistMixConditioning().encode(
                 object(),
                 prompt="1girl",
@@ -806,7 +809,7 @@ class PromptBuilderTests(unittest.TestCase):
             encoded_texts.append(text)
             return [[f"cond:{text}", {"encoded_text": text}]]
 
-        with patch_comfy_helper(nodes, "_encode_with_comfy_clip", fake_encode):
+        with patch_comfy_helper(prompt_data_nodes, "_encode_with_comfy_clip", fake_encode):
             EasyUseAnimaArtistMixConditioning().encode(
                 object(),
                 prompt="1girl",
@@ -826,7 +829,7 @@ class PromptBuilderTests(unittest.TestCase):
                 return ({"samples": "latent"},)
 
         with patch_comfy_helper(
-            nodes,
+            prompt_data_nodes,
             "_find_comfy_node_class",
             lambda node_id: (
                 FakeEmptyLatentImage
@@ -852,7 +855,7 @@ class PromptBuilderTests(unittest.TestCase):
         }
 
         with patch_comfy_helper(
-            nodes,
+            prompt_data_nodes,
             "_encode_with_comfy_clip",
             lambda clip, text: [[f"cond:{text}", {"encoded_text": text}]],
         ):
@@ -910,7 +913,7 @@ class PromptBuilderTests(unittest.TestCase):
 
         _SPECTRUM_ANIMA_MOD_GUIDANCE_OLD_SIGNATURE_WARNED.clear()
         with patch_comfy_helper(
-            nodes,
+            prompt_data_nodes,
             "_encode_with_comfy_clip",
             lambda clip, text: [[f"cond:{text}", {"encoded_text": text}]],
         ):
@@ -979,7 +982,7 @@ class PromptBuilderTests(unittest.TestCase):
 
         _SPECTRUM_ANIMA_MOD_GUIDANCE_OLD_SIGNATURE_WARNED.clear()
         with patch_comfy_helper(
-            nodes,
+            prompt_data_nodes,
             "_encode_with_comfy_clip",
             lambda clip, text: [[f"cond:{text}", {"encoded_text": text}]],
         ):
@@ -1067,7 +1070,7 @@ class PromptBuilderTests(unittest.TestCase):
                 },
             ]]
 
-        with patch_comfy_helper(nodes, "_encode_with_comfy_clip", fake_encode):
+        with patch_comfy_helper(prompt_data_nodes, "_encode_with_comfy_clip", fake_encode):
             with patch.object(prompt_artist_mix, "_blend_conditionings", fake_blend):
                 with patch.object(
                     prompt_data_nodes,
@@ -1109,7 +1112,7 @@ class PromptBuilderTests(unittest.TestCase):
             encoded_texts.append(text)
             return [[f"cond:{text}", {"encoded_text": text}]]
 
-        with patch_comfy_helper(nodes, "_encode_with_comfy_clip", fake_encode):
+        with patch_comfy_helper(prompt_data_nodes, "_encode_with_comfy_clip", fake_encode):
             with patch.object(
                 prompt_data_nodes,
                 "_generate_empty_latent_with_comfy",
@@ -1149,7 +1152,7 @@ class PromptBuilderTests(unittest.TestCase):
             encoded_texts.append(text)
             return [[f"cond:{text}", {"encoded_text": text}]]
 
-        with patch_comfy_helper(nodes, "_encode_with_comfy_clip", fake_encode):
+        with patch_comfy_helper(prompt_data_nodes, "_encode_with_comfy_clip", fake_encode):
             with patch.object(
                 prompt_data_nodes,
                 "_generate_empty_latent_with_comfy",
@@ -1187,7 +1190,7 @@ class PromptBuilderTests(unittest.TestCase):
             delta_calls.append((artists, list(weights or []), kwargs))
             return [["tail", {"strength": kwargs.get("branch_strength")}]]
 
-        with patch_comfy_helper(nodes, "_encode_with_comfy_clip", fake_encode):
+        with patch_comfy_helper(prompt_data_nodes, "_encode_with_comfy_clip", fake_encode):
             with patch.object(prompt_artist_mix, "_encode_artist_delta_rms", fake_delta):
                 with patch.object(
                     prompt_data_nodes,
@@ -1237,7 +1240,7 @@ class PromptBuilderTests(unittest.TestCase):
             calls.append(("clustered", kwargs))
             return [["clustered", {}]]
 
-        with patch_comfy_helper(nodes, "_encode_with_comfy_clip", fake_encode):
+        with patch_comfy_helper(prompt_data_nodes, "_encode_with_comfy_clip", fake_encode):
             with patch.object(prompt_artist_mix, "_encode_artist_delta_rms", fake_delta):
                 with patch.object(prompt_artist_mix, "_encode_artist_clustered", fake_clustered):
                     with patch.object(
@@ -2968,27 +2971,6 @@ class PromptBuilderTests(unittest.TestCase):
 
 
 class SettingsTests(unittest.TestCase):
-    def test_root_exports_are_identical_canonical_objects(self):
-        owners = (settings_schema, settings_repository, settings_service)
-        expected = {
-            name
-            for owner in owners
-            for name in owner.__all__
-        }
-
-        self.assertEqual(len(root_settings.__all__), 41)
-        self.assertEqual(set(root_settings.__all__), expected)
-        for name in root_settings.__all__:
-            canonical_owners = [
-                owner for owner in owners if name in owner.__all__
-            ]
-            with self.subTest(name=name):
-                self.assertEqual(len(canonical_owners), 1)
-                self.assertIs(
-                    getattr(root_settings, name),
-                    getattr(canonical_owners[0], name),
-                )
-
     def test_repository_dependency_uses_current_paths_and_store_factory(self):
         with tempfile.TemporaryDirectory() as tmp:
             settings_file = Path(tmp) / "settings.json"

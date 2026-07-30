@@ -9,10 +9,10 @@
     "pure_service_unit"
   ],
   "root_private_import_policy": {
-    "compatibility_fixture": "tests/fixtures/python_compatibility_surface.v1.json",
-    "compatibility_owner": "tests/test_python_compatibility_surface.py",
-    "existing_test_reclassification": "not part of G-06A",
-    "new_test_imports": "canonical owner unless explicitly testing compatibility"
+    "entrypoint_owner": "tests/test_python_entrypoint_lifecycle_contract.py",
+    "existing_test_reclassification": "completed by PTC-09B",
+    "legacy_path_owner": "tests/test_python_legacy_path_retirement.py",
+    "new_test_imports": "canonical owner; retired root imports forbidden"
   },
   "matrices": [
     {
@@ -58,11 +58,11 @@
       "purpose": "fresh-process terminal lifecycle package and host smoke"
     },
     {
-      "name": "root-compatibility",
+      "name": "root-retirement",
       "category": "migration_compatibility",
       "mode": "unittest",
-      "owner": "tests/test_python_compatibility_surface.py",
-      "purpose": "supported root aliases patch seams and canonical identity"
+      "owner": "tests/test_python_legacy_path_retirement.py",
+      "purpose": "retired root paths stay absent while canonical owners remain callable"
     }
   ],
   "groups": [
@@ -104,7 +104,7 @@
           "@matrix:dual-canvas-live"
         ],
         "migration_compatibility": [
-          "tests/test_api_contract_compatibility.py"
+          "tests/test_python_legacy_path_retirement.py"
         ],
         "package_archive": [
           "@matrix:package-import-closure",
@@ -129,7 +129,7 @@
           "@matrix:dual-canvas-live"
         ],
         "migration_compatibility": [
-          "tests/test_autocomplete_dataset_compatibility.py"
+          "tests/test_python_legacy_path_retirement.py"
         ],
         "package_archive": [
           "@matrix:package-import-closure",
@@ -154,7 +154,7 @@
           "@matrix:dual-canvas-live"
         ],
         "migration_compatibility": [
-          "@matrix:root-compatibility"
+          "@matrix:root-retirement"
         ],
         "package_archive": [
           "@matrix:package-import-closure",
@@ -179,7 +179,7 @@
           "@matrix:dual-canvas-live"
         ],
         "migration_compatibility": [
-          "@matrix:root-compatibility"
+          "@matrix:root-retirement"
         ],
         "package_archive": [
           "@matrix:package-import-closure",
@@ -203,7 +203,7 @@
           "@matrix:dual-canvas-live"
         ],
         "migration_compatibility": [
-          "@matrix:root-compatibility"
+          "@matrix:root-retirement"
         ],
         "package_archive": [
           "@matrix:package-import-closure",
@@ -251,7 +251,7 @@
           "@matrix:dual-canvas-live"
         ],
         "migration_compatibility": [
-          "@matrix:root-compatibility"
+          "@matrix:root-retirement"
         ],
         "package_archive": [
           "@matrix:package-import-closure",
@@ -276,7 +276,7 @@
           "@matrix:dual-canvas-live"
         ],
         "migration_compatibility": [
-          "@matrix:root-compatibility"
+          "@matrix:root-retirement"
         ],
         "package_archive": [
           "@matrix:package-import-closure",
@@ -324,7 +324,7 @@
           "@matrix:dual-canvas-live"
         ],
         "migration_compatibility": [
-          "tests/test_anima_prompt_compatibility.py"
+          "tests/test_python_legacy_path_retirement.py"
         ],
         "package_archive": [
           "@matrix:package-import-closure",

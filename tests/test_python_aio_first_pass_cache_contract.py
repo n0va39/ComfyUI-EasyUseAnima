@@ -639,34 +639,15 @@ class PythonAIOFirstPassCacheContractTests(unittest.TestCase):
                     set(),
                 )
 
-    def test_root_private_identities_remain_direct_canonical_aliases(self):
+    def test_canonical_patch_seams_remain_and_root_facade_is_retired(self):
         surface = next(
             surface
             for surface in self.fixture["compatibility_surfaces"]
-            if surface["kind"] == "identity_reexport"
+            if surface["kind"] == "dynamic_reference"
         )
         bindings = _top_level_bindings(surface["module"])
         self.assertEqual(set(surface["symbols"]) - bindings, set())
-        imported = _imported_names(surface["module"])
-        for symbol, canonical_module in surface[
-            "canonical_bindings"
-        ].items():
-            with self.subTest(symbol=symbol):
-                self.assertIn((canonical_module, symbol), imported)
-
-        self.assertEqual(
-            {
-                "_AIO_FIRST_PASS_CACHE_GENERATION",
-                "_AIO_FIRST_PASS_CACHE_LOCK",
-                "_AIO_FIRST_PASS_CACHE_METRICS",
-                "_DEFAULT_AIO_FIRST_PASS_CACHE",
-                "_aio_first_pass_cache_metrics_snapshot",
-                "_clear_aio_first_pass_cache",
-                "_reset_aio_first_pass_cache_metrics",
-            }
-            & bindings,
-            set(),
-        )
+        self.assertFalse((ROOT / "nodes.py").exists())
 
     def test_contract_document_is_linked_from_maintained_entries(self):
         self.assertTrue(CONTRACT_DOC.is_file())

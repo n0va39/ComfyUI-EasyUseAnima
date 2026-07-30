@@ -3,18 +3,16 @@ from unittest.mock import patch
 
 from easyuse_anima.naia import random_prompt as naia_random_prompt
 from easyuse_anima.naia.client import (
+    LATENT_ALIGN,
     NAI_1MP,
     NAIA_MAX_RESOLUTION,
     _build_naia_random_url,
     _fit_to_1mp,
-)
-from easyuse_anima.nodes import naia_nodes
-from nodes import (
-    LATENT_ALIGN,
-    EasyUseAnimaNAIARandomPrompt,
-    _advanced_resolution_from_selection,
     _parse_random_response,
 )
+from easyuse_anima.naia.resolution import _advanced_resolution_from_selection
+from easyuse_anima.nodes import naia_nodes
+from easyuse_anima.nodes.naia_nodes import EasyUseAnimaNAIARandomPrompt
 
 
 def settings(**overrides):

@@ -3,7 +3,6 @@ from __future__ import annotations
 import ast
 import asyncio
 import gc
-import importlib.util
 import json
 import re
 import sys
@@ -17,7 +16,7 @@ import weakref
 from pathlib import Path
 from unittest.mock import Mock, patch
 
-from tests.api_test_support import replace_sys_modules
+from tests.api_test_support import load_canonical_api_application
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -97,19 +96,6 @@ class JsonRequest:
 
 
 def load_api_routes(*, register=True, routes=None):
-    package_name = f"easyuse_anima_api_contract_test_package_{uuid.uuid4().hex}"
-    package = types.ModuleType(package_name)
-    package.__path__ = [str(ROOT)]
-    sys.modules[package_name] = package
-
-    sys.modules.pop(
-        f"{package_name}.easyuse_anima.api.dependencies",
-        None,
-    )
-    api_package = sys.modules.get(f"{package_name}.easyuse_anima.api")
-    if api_package is not None:
-        vars(api_package).pop("dependencies", None)
-
     routes = RouteRegistry() if routes is None else routes
     fake_server = types.ModuleType("server")
     fake_server.PromptServer = type(
@@ -125,17 +111,13 @@ def load_api_routes(*, register=True, routes=None):
         HTTPException=FakeHTTPException,
     )
 
-    spec = importlib.util.spec_from_file_location(
-        f"{package_name}.api",
-        ROOT / "api.py",
+    context = load_canonical_api_application(
+        root=ROOT,
+        server=fake_server,
+        aiohttp=fake_aiohttp,
+        register=register,
     )
-    module = importlib.util.module_from_spec(spec)
-    sys.modules[spec.name] = module
-    with replace_sys_modules({"server": fake_server, "aiohttp": fake_aiohttp}):
-        spec.loader.exec_module(module)
-        if register:
-            module.register_routes()
-    return module, routes
+    return context, routes
 
 
 def response_strings(value):
@@ -152,135 +134,135 @@ def response_strings(value):
 
 def profile_directory_owner(api, directory_name):
     if directory_name == "AIO_PROFILE_DIR":
-        return api._aio_profiles
+        return api.aio_profiles
     if directory_name == "LORA_PROFILE_DIR":
-        return api._lora_profiles
+        return api.lora_profiles
     raise AssertionError(f"Unknown profile directory: {directory_name}")
 
 
 class ApiRouteRegistrationOwnerTests(unittest.TestCase):
-    def test_public_facade_delegates_to_the_canonical_router_owner(self):
+    def test_canonical_application_delegates_to_the_router_owner(self):
         api, _routes = load_api_routes(register=False)
         target = RouteRegistry()
-        owner = sys.modules[api.register_routes.__module__]
+        owner = sys.modules[api.application.register_routes.__module__]
 
         self.assertTrue(
-            api._get_prompt_routes.__module__.endswith(
+            api.application.compatibility.parts.get_prompt_routes.__module__.endswith(
                 ".easyuse_anima.api.router"
             )
         )
         self.assertTrue(
-            api.register_routes.__module__.endswith(
+            api.application.register_routes.__module__.endswith(
                 ".easyuse_anima.api.router"
             )
         )
-        self.assertEqual(api._get_prompt_routes.__name__, "_get_prompt_routes")
-        self.assertEqual(api.register_routes.__name__, "register_routes")
-        self.assertEqual(api.register_routes.__code__.co_argcount, 1)
+        self.assertEqual(api.application.compatibility.parts.get_prompt_routes.__name__, "_get_prompt_routes")
+        self.assertEqual(api.application.register_routes.__name__, "register_routes")
+        self.assertEqual(api.application.register_routes.__code__.co_argcount, 1)
         self.assertTrue(
-            api._build_route_signature.__module__.endswith(
-                ".easyuse_anima.api.router"
-            )
-        )
-        self.assertTrue(
-            api._build_route_definitions.__module__.endswith(
+            api.router.build_route_signature.__module__.endswith(
                 ".easyuse_anima.api.router"
             )
         )
         self.assertTrue(
-            api._build_settings_route_group.__module__.endswith(
+            api.router.build_route_definitions.__module__.endswith(
+                ".easyuse_anima.api.router"
+            )
+        )
+        self.assertTrue(
+            api.bootstrap.build_settings_route_group.__module__.endswith(
                 ".easyuse_anima.bootstrap"
             )
         )
         self.assertNotIn(
             "build_settings_route_group",
-            sys.modules[api._build_settings_route_group.__module__].__all__,
+            sys.modules[api.bootstrap.build_settings_route_group.__module__].__all__,
         )
         self.assertTrue(
-            api._build_wildcard_autocomplete_route_group.__module__.endswith(
+            api.bootstrap.build_wildcard_autocomplete_route_group.__module__.endswith(
                 ".easyuse_anima.bootstrap"
             )
         )
         self.assertNotIn(
             "build_wildcard_autocomplete_route_group",
             sys.modules[
-                api._build_wildcard_autocomplete_route_group.__module__
+                api.bootstrap.build_wildcard_autocomplete_route_group.__module__
             ].__all__,
         )
         self.assertTrue(
-            api._build_translation_route_handler.__module__.endswith(
+            api.bootstrap.build_translation_route_handler.__module__.endswith(
                 ".easyuse_anima.bootstrap"
             )
         )
         self.assertNotIn(
             "build_translation_route_handler",
             sys.modules[
-                api._build_translation_route_handler.__module__
+                api.bootstrap.build_translation_route_handler.__module__
             ].__all__,
         )
         self.assertTrue(
-            api._build_translation_route_runtime.__module__.endswith(
+            api.bootstrap.build_translation_route_runtime.__module__.endswith(
                 ".easyuse_anima.bootstrap"
             )
         )
         self.assertNotIn(
             "build_translation_route_runtime",
             sys.modules[
-                api._build_translation_route_runtime.__module__
+                api.bootstrap.build_translation_route_runtime.__module__
             ].__all__,
         )
         self.assertTrue(
-            api._build_aio_torch_compile_route_handler.__module__.endswith(
+            api.bootstrap.build_aio_torch_compile_route_handler.__module__.endswith(
                 ".easyuse_anima.bootstrap"
             )
         )
         self.assertNotIn(
             "build_aio_torch_compile_route_handler",
             sys.modules[
-                api._build_aio_torch_compile_route_handler.__module__
+                api.bootstrap.build_aio_torch_compile_route_handler.__module__
             ].__all__,
         )
         self.assertTrue(
-            api._build_lora_read_route_group.__module__.endswith(
+            api.bootstrap.build_lora_read_route_group.__module__.endswith(
                 ".easyuse_anima.bootstrap"
             )
         )
         self.assertNotIn(
             "build_lora_read_route_group",
-            sys.modules[api._build_lora_read_route_group.__module__].__all__,
+            sys.modules[api.bootstrap.build_lora_read_route_group.__module__].__all__,
         )
         self.assertTrue(
-            api._build_profile_list_route_group.__module__.endswith(
+            api.bootstrap.build_profile_list_route_group.__module__.endswith(
                 ".easyuse_anima.bootstrap"
             )
         )
         self.assertNotIn(
             "build_profile_list_route_group",
             sys.modules[
-                api._build_profile_list_route_group.__module__
+                api.bootstrap.build_profile_list_route_group.__module__
             ].__all__,
         )
         self.assertTrue(
-            api._build_profile_route_group.__module__.endswith(
+            api.bootstrap.build_profile_route_group.__module__.endswith(
                 ".easyuse_anima.bootstrap"
             )
         )
         self.assertNotIn(
             "build_profile_route_group",
-            sys.modules[api._build_profile_route_group.__module__].__all__,
+            sys.modules[api.bootstrap.build_profile_route_group.__module__].__all__,
         )
         self.assertTrue(
-            api._register_route_definitions.__module__.endswith(
+            api.router.register_route_definitions.__module__.endswith(
                 ".easyuse_anima.api.router"
             )
         )
         self.assertEqual(
-            api._ROUTE_REGISTRATION_MARKER,
+            api.router.ROUTE_REGISTRATION_MARKER,
             "_easyuse_anima_registered_routes_v1",
         )
         self.assertEqual(
-            api._ROUTE_SIGNATURE,
-            api._build_route_signature(api._ROUTE_DEFINITIONS),
+            api.application.route_signature,
+            api.router.build_route_signature(api.application.route_definitions),
         )
         self.assertEqual(
             owner.__all__,
@@ -292,29 +274,28 @@ class ApiRouteRegistrationOwnerTests(unittest.TestCase):
         )
         handlers = {
             handler.__name__: handler
-            for _method, _path, handler in api._ROUTE_DEFINITIONS
+            for _method, _path, handler in api.application.route_definitions
         }
         self.assertEqual(
-            api._build_route_definitions(**handlers),
-            api._ROUTE_DEFINITIONS,
+            api.router.build_route_definitions(**handlers),
+            api.application.route_definitions,
         )
 
         with patch.object(
-            api._APPLICATION_DEPENDENCIES.host,
+            api.application.dependencies.host,
             "register_route_definitions",
             return_value=True,
         ) as register:
-            self.assertTrue(api.register_routes(target))
+            self.assertTrue(api.application.register_routes(target))
 
-        self.assertIs(api.routes, target)
         register.assert_called_once_with(
             target,
-            api._ROUTE_DEFINITIONS,
-            signature=api._ROUTE_SIGNATURE,
-            marker=api._ROUTE_REGISTRATION_MARKER,
+            api.application.route_definitions,
+            signature=api.application.route_signature,
+            marker=api.router.ROUTE_REGISTRATION_MARKER,
         )
 
-    def test_resolver_and_registrar_keep_root_dependencies_late_bound(self):
+    def test_resolver_and_registrar_keep_host_dependencies_late_bound(self):
         api, routes = load_api_routes(register=False)
         replacement_routes = RouteRegistry()
         replacement_server = types.SimpleNamespace(
@@ -323,63 +304,62 @@ class ApiRouteRegistrationOwnerTests(unittest.TestCase):
             )
         )
 
-        with patch.object(api._APPLICATION_DEPENDENCIES.host, "server", None):
-            self.assertIsNone(api._get_prompt_routes())
+        with patch.object(api.application.dependencies.host, "server", None):
+            self.assertIsNone(api.application.compatibility.parts.get_prompt_routes())
         with patch.object(
-            api._APPLICATION_DEPENDENCIES.host,
+            api.application.dependencies.host,
             "server",
             replacement_server,
         ):
-            self.assertIs(api._get_prompt_routes(), replacement_routes)
+            self.assertIs(api.application.compatibility.parts.get_prompt_routes(), replacement_routes)
 
-        with patch.object(api._APPLICATION_DEPENDENCIES.host, "web", None):
-            self.assertFalse(api.register_routes(routes))
-            self.assertIs(api.routes, routes)
+        with patch.object(api.application.dependencies.host, "web", None):
+            self.assertFalse(api.application.register_routes(routes))
         self.assertEqual(routes.registrations, [])
 
         replacement_definitions = (("get", "/replacement", object()),)
         replacement_signature = (("GET", "/replacement"),)
         with (
             patch.object(
-                api._APPLICATION_DEPENDENCIES.host,
+                api.application.dependencies.host,
                 "route_definitions",
                 replacement_definitions,
             ),
             patch.object(
-                api._APPLICATION_DEPENDENCIES.host,
+                api.application.dependencies.host,
                 "route_signature",
                 replacement_signature,
             ),
             patch.object(
-                api._APPLICATION_DEPENDENCIES.host,
+                api.application.dependencies.host,
                 "register_route_definitions",
                 return_value=True,
             ) as register,
         ):
-            self.assertTrue(api.register_routes(routes))
+            self.assertTrue(api.application.register_routes(routes))
 
         register.assert_called_once_with(
             routes,
             replacement_definitions,
             signature=replacement_signature,
-            marker=api._ROUTE_REGISTRATION_MARKER,
+            marker=api.router.ROUTE_REGISTRATION_MARKER,
         )
 
     def test_signature_mismatch_fails_before_any_registration(self):
         api, _routes = load_api_routes(register=False)
         target = RouteRegistry()
         other_signature = (("GET", "/easyuse_anima/other"),)
-        setattr(target, api._ROUTE_REGISTRATION_MARKER, other_signature)
+        setattr(target, api.router.ROUTE_REGISTRATION_MARKER, other_signature)
 
         with self.assertRaisesRegex(
             RuntimeError,
             "route registration signature mismatch",
         ):
-            api.register_routes(target)
+            api.application.register_routes(target)
 
         self.assertEqual(target.registrations, [])
         self.assertEqual(
-            getattr(target, api._ROUTE_REGISTRATION_MARKER),
+            getattr(target, api.router.ROUTE_REGISTRATION_MARKER),
             other_signature,
         )
 
@@ -398,18 +378,18 @@ class ApiRouteRegistrationOwnerTests(unittest.TestCase):
             ("get", "/first", object()),
             ("post", "/second", object()),
         )
-        signature = api._build_route_signature(definitions)
+        signature = api.router.build_route_signature(definitions)
 
         with self.assertRaisesRegex(RuntimeError, "registration failed"):
-            api._register_route_definitions(
+            api.router.register_route_definitions(
                 target,
                 definitions,
                 signature=signature,
-                marker=api._ROUTE_REGISTRATION_MARKER,
+                marker=api.router.ROUTE_REGISTRATION_MARKER,
             )
 
         self.assertEqual(target.registrations, [("GET", "/first")])
-        self.assertFalse(hasattr(target, api._ROUTE_REGISTRATION_MARKER))
+        self.assertFalse(hasattr(target, api.router.ROUTE_REGISTRATION_MARKER))
 
 
 class ApiIntegratedRouteCompositionContractTests(unittest.TestCase):
@@ -631,51 +611,11 @@ class ApiIntegratedRouteCompositionContractTests(unittest.TestCase):
             "_build_wildcards_handler",
         ),
     }
-    ROOT_HELPER_IMPORTS = {
+    ENTRYPOINT_IMPORTS = {
         (
             "easyuse_anima.bootstrap",
-            "_compose_api_application",
+            "_initialize_package",
             None,
-        ),
-        (
-            "easyuse_anima.bootstrap",
-            "build_aio_torch_compile_route_handler",
-            "_build_aio_torch_compile_route_handler",
-        ),
-        (
-            "easyuse_anima.bootstrap",
-            "build_lora_read_route_group",
-            "_build_lora_read_route_group",
-        ),
-        (
-            "easyuse_anima.bootstrap",
-            "build_profile_list_route_group",
-            "_build_profile_list_route_group",
-        ),
-        (
-            "easyuse_anima.bootstrap",
-            "build_profile_route_group",
-            "_build_profile_route_group",
-        ),
-        (
-            "easyuse_anima.bootstrap",
-            "build_settings_route_group",
-            "_build_settings_route_group",
-        ),
-        (
-            "easyuse_anima.bootstrap",
-            "build_translation_route_handler",
-            "_build_translation_route_handler",
-        ),
-        (
-            "easyuse_anima.bootstrap",
-            "build_translation_route_runtime",
-            "_build_translation_route_runtime",
-        ),
-        (
-            "easyuse_anima.bootstrap",
-            "build_wildcard_autocomplete_route_group",
-            "_build_wildcard_autocomplete_route_group",
         ),
     }
 
@@ -705,9 +645,9 @@ class ApiIntegratedRouteCompositionContractTests(unittest.TestCase):
     def test_all_21_routes_keep_exact_canonical_factory_identity_and_order(self):
         api, routes = load_api_routes()
 
-        self.assertEqual(len(api._ROUTE_DEFINITIONS), 21)
+        self.assertEqual(len(api.application.route_definitions), 21)
         for definition, expected in zip(
-            api._ROUTE_DEFINITIONS,
+            api.application.route_definitions,
             self.ROUTE_CONTRACT,
             strict=True,
         ):
@@ -721,7 +661,7 @@ class ApiIntegratedRouteCompositionContractTests(unittest.TestCase):
                 self.assertIs(routes.handlers[path], handler)
 
     def test_concrete_factories_are_private_bootstrap_owned_without_backrefs(self):
-        root_tree = self._tree("api.py")
+        root_tree = self._tree("__init__.py")
         bootstrap_tree = self._tree("easyuse_anima/bootstrap.py")
         router_tree = self._tree("easyuse_anima/api/router.py")
         factory_names = {
@@ -736,12 +676,13 @@ class ApiIntegratedRouteCompositionContractTests(unittest.TestCase):
         }
         self.assertEqual(bootstrap_factory_imports, self.FACTORY_IMPORTS)
 
-        root_factory_imports = {
+        entrypoint_factory_imports = {
             imported
             for imported in self._from_imports(root_tree)
             if imported[1] in factory_names
         }
-        self.assertEqual(root_factory_imports, set())
+        self.assertEqual(entrypoint_factory_imports, set())
+        self.assertFalse((ROOT / "api.py").exists())
 
         router_route_imports = {
             (node.level, node.module)
@@ -769,22 +710,18 @@ class ApiIntegratedRouteCompositionContractTests(unittest.TestCase):
         }
         self.assertEqual(bootstrap_root_api_imports, set())
 
-    def test_each_factory_and_root_composition_helper_has_one_owner_call_site(self):
-        root_tree = self._tree("api.py")
+    def test_each_factory_and_entrypoint_composition_helper_has_one_owner_call_site(self):
+        root_tree = self._tree("__init__.py")
         bootstrap_tree = self._tree("easyuse_anima/bootstrap.py")
-        root_helper_imports = {
+        entrypoint_imports = {
             imported
             for imported in self._from_imports(root_tree)
             if imported[0] == "easyuse_anima.bootstrap"
         }
-        self.assertEqual(root_helper_imports, self.ROOT_HELPER_IMPORTS)
+        self.assertEqual(entrypoint_imports, self.ENTRYPOINT_IMPORTS)
 
         root_calls = self._named_calls(root_tree)
-        for _module, name, alias in self.ROOT_HELPER_IMPORTS:
-            binding = alias or name
-            with self.subTest(root_helper=binding):
-                expected_calls = 1 if binding == "_compose_api_application" else 0
-                self.assertEqual(root_calls.count(binding), expected_calls)
+        self.assertEqual(root_calls.count("_initialize_package"), 1)
 
         factory_call_owners = {}
         helper_definitions = {
@@ -792,6 +729,12 @@ class ApiIntegratedRouteCompositionContractTests(unittest.TestCase):
             for node in bootstrap_tree.body
             if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
         }
+        self.assertEqual(
+            self._named_calls(helper_definitions["_initialize_package"]).count(
+                "_compose_api_application"
+            ),
+            1,
+        )
         for helper_name, helper in helper_definitions.items():
             helper_calls = self._named_calls(helper)
             for factory_alias in self.FACTORY_OWNER_BY_ALIAS:
@@ -817,7 +760,7 @@ class ApiIntegratedRouteCompositionContractTests(unittest.TestCase):
                 )
 
         api, _routes = load_api_routes(register=False)
-        bootstrap = sys.modules[api._build_profile_route_group.__module__]
+        bootstrap = sys.modules[api.bootstrap.build_profile_route_group.__module__]
         self.assertEqual(bootstrap.__all__, ["initialize", "shutdown"])
 
 
@@ -873,19 +816,19 @@ class ApiRequestCorrelationTests(unittest.TestCase):
         api, _routes = load_api_routes(register=False)
         owner_suffix = ".easyuse_anima.api.responses"
 
-        self.assertTrue(api._error_response.__module__.endswith(owner_suffix))
+        self.assertTrue(api.application.compatibility.parts.error_response.__module__.endswith(owner_suffix))
         self.assertTrue(
-            api._contract_error_response.__module__.endswith(owner_suffix)
+            api.application.compatibility.parts.contract_error_response.__module__.endswith(owner_suffix)
         )
-        self.assertTrue(api._request_correlated.__module__.endswith(owner_suffix))
-        self.assertEqual(api._error_response.__name__, "_error_response")
+        self.assertTrue(api.application.compatibility.parts.request_correlated.__module__.endswith(owner_suffix))
+        self.assertEqual(api.application.compatibility.parts.error_response.__name__, "_error_response")
         self.assertEqual(
-            api._contract_error_response.__name__,
+            api.application.compatibility.parts.contract_error_response.__name__,
             "_contract_error_response",
         )
-        self.assertEqual(api._request_correlated.__name__, "_request_correlated")
+        self.assertEqual(api.application.compatibility.parts.request_correlated.__name__, "_request_correlated")
         self.assertEqual(
-            sys.modules[api._request_correlated.__module__].__all__,
+            sys.modules[api.application.compatibility.parts.request_correlated.__module__].__all__,
             (
                 "REQUEST_ID_HEADER",
                 "error_payload",
@@ -897,7 +840,7 @@ class ApiRequestCorrelationTests(unittest.TestCase):
 
     def test_every_owned_route_has_source_and_registration_correlation(self):
         api, routes = load_api_routes()
-        self.assertEqual(api._ROUTE_SIGNATURE, self.ROUTE_SEQUENCE)
+        self.assertEqual(api.application.route_signature, self.ROUTE_SEQUENCE)
         self.assertEqual(tuple(routes.registrations), self.ROUTE_SEQUENCE)
         self.assertEqual(set(routes.handlers), self.ROUTES)
         for path, handler in routes.handlers.items():
@@ -910,16 +853,16 @@ class ApiRequestCorrelationTests(unittest.TestCase):
         api, routes = load_api_routes(register=False)
 
         self.assertEqual(routes.registrations, [])
-        self.assertTrue(api.register_routes())
+        self.assertTrue(api.application.register_routes())
         self.assertEqual(tuple(routes.registrations), self.ROUTE_SEQUENCE)
-        self.assertTrue(api.register_routes())
+        self.assertTrue(api.application.register_routes())
         self.assertEqual(tuple(routes.registrations), self.ROUTE_SEQUENCE)
 
     def test_each_new_route_table_receives_the_exact_route_set(self):
         api, first_routes = load_api_routes()
         second_routes = RouteRegistry()
 
-        self.assertTrue(api.register_routes(second_routes))
+        self.assertTrue(api.application.register_routes(second_routes))
         self.assertEqual(tuple(first_routes.registrations), self.ROUTE_SEQUENCE)
         self.assertEqual(tuple(second_routes.registrations), self.ROUTE_SEQUENCE)
 
@@ -939,13 +882,13 @@ class ApiRequestCorrelationTests(unittest.TestCase):
         later_routes = RouteRegistry()
 
         with patch.object(
-            api._APPLICATION_DEPENDENCIES.host,
+            api.application.dependencies.host,
             "get_prompt_routes",
             return_value=None,
-        ):
-            self.assertFalse(api.register_routes())
-            self.assertIsNone(api.routes)
-        self.assertTrue(api.register_routes(later_routes))
+        ) as resolve_routes:
+            self.assertFalse(api.application.register_routes())
+            resolve_routes.assert_called_once_with()
+        self.assertTrue(api.application.register_routes(later_routes))
         self.assertEqual(tuple(routes.registrations), ())
         self.assertEqual(tuple(later_routes.registrations), self.ROUTE_SEQUENCE)
 
@@ -953,7 +896,7 @@ class ApiRequestCorrelationTests(unittest.TestCase):
         api, routes = load_api_routes()
         request_id = "12345678-1234-4567-89ab-1234567890ab"
         with patch.object(
-            api._APPLICATION_DEPENDENCIES.request,
+            api.application.dependencies.request,
             "create_request_id",
             return_value=request_id,
         ):
@@ -982,7 +925,7 @@ class ApiRequestCorrelationTests(unittest.TestCase):
             status=422,
         )
 
-        correlated = api.correlate_response(response, request_id)
+        correlated = api.responses.correlate_response(response, request_id)
 
         self.assertIs(correlated, response)
         self.assertEqual(response.headers["X-Request-ID"], request_id)
@@ -996,12 +939,12 @@ class ApiRequestCorrelationTests(unittest.TestCase):
         payload = {"future": {"kept": True}}
         with (
             patch.object(
-                api._APPLICATION_DEPENDENCIES.request,
+                api.application.dependencies.request,
                 "create_request_id",
                 return_value=request_id,
             ),
             patch.object(
-                api._APPLICATION_DEPENDENCIES.settings,
+                api.application.dependencies.settings,
                 "get_settings_payload",
                 return_value=payload,
             ),
@@ -1018,13 +961,13 @@ class ApiRequestCorrelationTests(unittest.TestCase):
     def test_translation_status_taxonomy_keeps_request_correlation(self):
         api, routes = load_api_routes()
 
-        class TranslationUpstreamTestError(api.PromptTranslationError):
+        class TranslationUpstreamTestError(api.translation_contracts.PromptTranslationError):
             status = 502
             code = "translation_upstream_error"
 
         cases = (
             (
-                api.TranslationCancelledError(),
+                api.translation_contracts.TranslationCancelledError(),
                 499,
                 "translation_cancelled",
                 "The translation request was cancelled.",
@@ -1036,13 +979,13 @@ class ApiRequestCorrelationTests(unittest.TestCase):
                 "Prompt translation failed.",
             ),
             (
-                api.TranslationBusyError(),
+                api.translation_contracts.TranslationBusyError(),
                 503,
                 "translation_busy",
                 "A prompt translation request is already in progress.",
             ),
             (
-                api.TranslationTimeoutError(),
+                api.translation_contracts.TranslationTimeoutError(),
                 504,
                 "translation_timeout",
                 "The translation provider timed out.",
@@ -1052,7 +995,7 @@ class ApiRequestCorrelationTests(unittest.TestCase):
 
         for error, status, code, message in cases:
             with self.subTest(code=code), patch.object(
-                api._PROMPT_TRANSLATION_WORKER,
+                api.application.translation_executor,
                 "execute",
                 side_effect=error,
             ):
@@ -1071,17 +1014,17 @@ class ApiRequestCorrelationTests(unittest.TestCase):
         secret = r"C:\Users\alice\secret.json API_TOKEN=top-secret"
         with (
             patch.object(
-                api._APPLICATION_DEPENDENCIES.request,
+                api.application.dependencies.request,
                 "create_request_id",
                 return_value=request_id,
             ),
             patch.object(
-                api._APPLICATION_DEPENDENCIES.profiles,
+                api.application.dependencies.profiles,
                 "list_aio_profiles",
                 side_effect=RuntimeError(secret),
             ),
-            patch.object(api._LOGGER, "error") as log_error,
-            patch.object(api._LOGGER, "exception") as log_exception,
+            patch.object(api.application.compatibility.parts.logger, "error") as log_error,
+            patch.object(api.application.compatibility.parts.logger, "exception") as log_exception,
         ):
             response = asyncio.run(
                 routes.handlers["/easyuse_anima/aio_profiles"](JsonRequest())
@@ -1114,11 +1057,11 @@ class ApiRequestCorrelationTests(unittest.TestCase):
         api, routes = load_api_routes()
         with (
             patch.object(
-                api._APPLICATION_DEPENDENCIES.request,
+                api.application.dependencies.request,
                 "run_file_io",
                 side_effect=asyncio.CancelledError(),
             ),
-            patch.object(api._LOGGER, "error") as log_error,
+            patch.object(api.application.compatibility.parts.logger, "error") as log_error,
         ):
             with self.assertRaises(asyncio.CancelledError):
                 asyncio.run(
@@ -1133,18 +1076,22 @@ class ApiRequestCorrelationTests(unittest.TestCase):
         request_id = "42345678-1234-4567-89ab-1234567890ab"
         original = aiohttp_web.HTTPNotFound(text="not found")
 
-        @api._request_correlated
+        @api.application.compatibility.parts.request_correlated
         async def raises_http_exception(_request):
             raise original
 
         with (
             patch.object(
-                api._APPLICATION_DEPENDENCIES.request,
+                api.application.dependencies.request,
                 "create_request_id",
                 return_value=request_id,
             ),
-            patch.object(api.web, "HTTPException", aiohttp_web.HTTPException),
-            patch.object(api._LOGGER, "error") as log_error,
+            patch.object(
+                api.application.compatibility.parts.web,
+                "HTTPException",
+                aiohttp_web.HTTPException,
+            ),
+            patch.object(api.application.compatibility.parts.logger, "error") as log_error,
         ):
             with self.assertRaises(aiohttp_web.HTTPNotFound) as raised:
                 asyncio.run(raises_http_exception(JsonRequest()))
@@ -1162,16 +1109,16 @@ class ApiRequestCorrelationTests(unittest.TestCase):
 
         with (
             patch.object(
-                api._APPLICATION_DEPENDENCIES.request,
+                api.application.dependencies.request,
                 "create_request_id",
                 return_value=request_id,
             ),
             patch.object(
-                api._APPLICATION_DEPENDENCIES.settings,
+                api.application.dependencies.settings,
                 "get_settings_payload",
                 side_effect=original,
             ),
-            patch.object(api._LOGGER, "error") as log_error,
+            patch.object(api.application.compatibility.parts.logger, "error") as log_error,
         ):
             with self.assertRaises(FakeHTTPException) as raised:
                 asyncio.run(
@@ -1189,7 +1136,7 @@ class ApiRequestCorrelationTests(unittest.TestCase):
         api, routes = load_api_routes()
         handler = routes.handlers["/easyuse_anima/lora_preview"]
 
-        self.assertIs(api.lora_preview_handler, handler)
+        self.assertIs(api.application.handlers.lora_preview_handler, handler)
         self.assertEqual(handler.__name__, "lora_preview_handler")
         self.assertTrue(
             handler.__module__.endswith(
@@ -1199,7 +1146,7 @@ class ApiRequestCorrelationTests(unittest.TestCase):
         self.assertTrue(handler._easyuse_anima_request_correlation)
 
         with patch.object(
-            api._APPLICATION_DEPENDENCIES.profiles,
+            api.application.dependencies.profiles,
             "resolve_lora_preview_path",
             return_value=None,
         ):
@@ -1211,7 +1158,7 @@ class ApiRequestCorrelationTests(unittest.TestCase):
 
         preview_path = r"C:\safe-test\preview.webp"
         with patch.object(
-            api._APPLICATION_DEPENDENCIES.profiles,
+            api.application.dependencies.profiles,
             "resolve_lora_preview_path",
             return_value=preview_path,
         ):
@@ -1228,20 +1175,20 @@ class ApiRequestCorrelationTests(unittest.TestCase):
 class ApiProfileErrorResponseTests(unittest.TestCase):
     def test_profile_error_boundary_is_owned_by_canonical_responses(self):
         api, _routes = load_api_routes(register=False)
-        owner = sys.modules[api._profile_error_response.__module__]
+        owner = sys.modules[api.application.compatibility.parts.profile_error_response.__module__]
 
         self.assertEqual(
-            api._profile_error_response.__name__,
+            api.application.compatibility.parts.profile_error_response.__name__,
             "_profile_error_response",
         )
         self.assertTrue(
-            api._profile_error_response.__module__.endswith(
+            api.application.compatibility.parts.profile_error_response.__module__.endswith(
                 ".easyuse_anima.api.responses"
             )
         )
-        self.assertEqual(api._profile_error_response.__code__.co_argcount, 1)
+        self.assertEqual(api.application.compatibility.parts.profile_error_response.__code__.co_argcount, 1)
         self.assertEqual(
-            api._SAFE_PROFILE_VALIDATION_MESSAGES,
+            api.application.compatibility.parts.safe_profile_validation_messages,
             frozenset(
                 {
                     "Profile name is required",
@@ -1250,7 +1197,7 @@ class ApiProfileErrorResponseTests(unittest.TestCase):
                     "System profile names are reserved",
                     "Profile settings must be an object",
                     "Profile settings are too large",
-                    f"A maximum of {api.MAX_AIO_PROFILES} profiles can be saved",
+                    f"A maximum of {api.aio_profiles.MAX_AIO_PROFILES} profiles can be saved",
                 }
             ),
         )
@@ -1267,7 +1214,7 @@ class ApiProfileErrorResponseTests(unittest.TestCase):
 
     def test_profile_error_boundary_preserves_mapping_order_and_redaction(self):
         api, _routes = load_api_routes(register=False)
-        mutation = api.ProfileMutationError(
+        mutation = api.profile_mutation.ProfileMutationError(
             status=409,
             code="profile_revision_conflict",
             message="Profile revision does not match",
@@ -1306,7 +1253,7 @@ class ApiProfileErrorResponseTests(unittest.TestCase):
                 {},
             ),
             (
-                api.InvalidProfileDataError("private"),
+                api.profile_repository.InvalidProfileDataError("private"),
                 (422, "invalid_profile_data", "Profile data is invalid"),
                 {},
             ),
@@ -1325,11 +1272,11 @@ class ApiProfileErrorResponseTests(unittest.TestCase):
         for error, expected_args, expected_kwargs in cases:
             expected_response = object()
             with self.subTest(error=type(error).__name__), patch.object(
-                api._APPLICATION_DEPENDENCIES.request,
+                api.application.dependencies.request,
                 "error_response",
                 return_value=expected_response,
             ) as error_response:
-                response = api._profile_error_response(error)
+                response = api.application.compatibility.parts.profile_error_response(error)
 
             self.assertIs(response, expected_response)
             error_response.assert_called_once_with(
@@ -1339,12 +1286,12 @@ class ApiProfileErrorResponseTests(unittest.TestCase):
 
         unexpected = RuntimeError("unexpected")
         with self.assertRaises(RuntimeError) as raised:
-            api._profile_error_response(unexpected)
+            api.application.compatibility.parts.profile_error_response(unexpected)
         self.assertIs(raised.exception, unexpected)
 
     def test_profile_concrete_policy_ignores_metadata_but_keeps_semantic_details(self):
         api, _routes = load_api_routes(register=False)
-        mutation_owner = sys.modules[api.ProfileMutationError.__module__]
+        mutation_owner = sys.modules[api.profile_mutation.ProfileMutationError.__module__]
 
         class DerivedRevisionConflictError(
             mutation_owner.ProfileRevisionConflictError
@@ -1394,11 +1341,11 @@ class ApiProfileErrorResponseTests(unittest.TestCase):
             error.message = "Tampered message"
             expected_response = object()
             with self.subTest(error=type(error).__name__), patch.object(
-                api._APPLICATION_DEPENDENCIES.request,
+                api.application.dependencies.request,
                 "error_response",
                 return_value=expected_response,
             ) as error_response:
-                response = api._profile_error_response(error)
+                response = api.application.compatibility.parts.profile_error_response(error)
 
             self.assertIs(response, expected_response)
             error_response.assert_called_once_with(
@@ -1421,23 +1368,23 @@ class ApiProfileErrorResponseTests(unittest.TestCase):
         expected_response = object()
         with (
             patch.object(
-                api._APPLICATION_DEPENDENCIES.request,
+                api.application.dependencies.request,
                 "profile_mutation_error_type",
                 DynamicMutationError,
             ),
             patch.object(
-                api._APPLICATION_DEPENDENCIES.request,
+                api.application.dependencies.request,
                 "safe_profile_validation_messages",
                 frozenset({"dynamic-safe"}),
             ),
             patch.object(
-                api._APPLICATION_DEPENDENCIES.request,
+                api.application.dependencies.request,
                 "error_response",
                 return_value=expected_response,
             ) as error_response,
         ):
-            response = api._profile_error_response(mutation)
-            safe_response = api._profile_error_response(ValueError("dynamic-safe"))
+            response = api.application.compatibility.parts.profile_error_response(mutation)
+            safe_response = api.application.compatibility.parts.profile_error_response(ValueError("dynamic-safe"))
 
         self.assertIs(response, expected_response)
         self.assertIs(safe_response, expected_response)
@@ -1460,7 +1407,7 @@ class ApiLoraCatalogRouteTests(unittest.TestCase):
         api, routes = load_api_routes()
         handler = routes.handlers["/easyuse_anima/loras"]
 
-        self.assertIs(api.loras_handler, handler)
+        self.assertIs(api.application.handlers.loras_handler, handler)
         self.assertEqual(handler.__name__, "loras_handler")
         self.assertTrue(
             handler.__module__.endswith(
@@ -1474,7 +1421,7 @@ class ApiLoraCatalogRouteTests(unittest.TestCase):
         loras = ["style/foo.safetensors", "artist/bar.safetensors"]
 
         with patch.object(
-            api._APPLICATION_DEPENDENCIES.profiles,
+            api.application.dependencies.profiles,
             "list_loras",
             return_value=loras,
         ) as list_loras:
@@ -1498,7 +1445,7 @@ class ApiProfileListRouteTests(unittest.TestCase):
         for name, path in cases:
             with self.subTest(path=path):
                 handler = routes.handlers[path]
-                self.assertIs(getattr(api, name), handler)
+                self.assertIs(getattr(api.application.handlers, name), handler)
                 self.assertEqual(handler.__name__, name)
                 self.assertTrue(
                     handler.__module__.endswith(
@@ -1531,7 +1478,7 @@ class ApiProfileListRouteTests(unittest.TestCase):
 
         for path, operation_name, expected_payload in cases:
             with self.subTest(path=path), patch.object(
-                api._APPLICATION_DEPENDENCIES.profiles,
+                api.application.dependencies.profiles,
                 operation_name.removeprefix("_"),
                 return_value=profiles,
             ) as list_profiles:
@@ -1550,9 +1497,9 @@ class ApiProfileListRouteTests(unittest.TestCase):
 
         for path, operation_name in cases:
             with self.subTest(path=path), patch.object(
-                api._APPLICATION_DEPENDENCIES.profiles,
+                api.application.dependencies.profiles,
                 operation_name.removeprefix("_"),
-                side_effect=api.InvalidProfileDataError("private path"),
+                side_effect=api.profile_repository.InvalidProfileDataError("private path"),
             ):
                 response = asyncio.run(routes.handlers[path](JsonRequest()))
 
@@ -1578,7 +1525,7 @@ class ApiProfileLoadRouteTests(unittest.TestCase):
         for name, path in cases:
             with self.subTest(path=path):
                 handler = routes.handlers[path]
-                self.assertIs(getattr(api, name), handler)
+                self.assertIs(getattr(api.application.handlers, name), handler)
                 self.assertEqual(handler.__name__, name)
                 self.assertTrue(
                     handler.__module__.endswith(
@@ -1611,7 +1558,7 @@ class ApiProfileLoadRouteTests(unittest.TestCase):
 
         for path, operation_name, request, expected_name in cases:
             with self.subTest(path=path), patch.object(
-                api._APPLICATION_DEPENDENCIES.profiles,
+                api.application.dependencies.profiles,
                 operation_name.removeprefix("_"),
                 return_value=profile,
             ) as load_profile:
@@ -1651,7 +1598,7 @@ class ApiProfileLoadRouteTests(unittest.TestCase):
             (
                 "/easyuse_anima/aio_profiles/load",
                 "_load_aio_profile",
-                api.InvalidProfileDataError("private profile"),
+                api.profile_repository.InvalidProfileDataError("private profile"),
                 422,
                 "invalid_profile_data",
             ),
@@ -1659,7 +1606,7 @@ class ApiProfileLoadRouteTests(unittest.TestCase):
 
         for path, operation_name, error, status, code in cases:
             with self.subTest(path=path, code=code), patch.object(
-                api._APPLICATION_DEPENDENCIES.profiles,
+                api.application.dependencies.profiles,
                 operation_name.removeprefix("_"),
                 side_effect=error,
             ):
@@ -1691,7 +1638,7 @@ class ApiProfileSaveRouteTests(unittest.TestCase):
         for name, path in cases:
             with self.subTest(path=path):
                 handler = routes.handlers[path]
-                self.assertIs(getattr(api, name), handler)
+                self.assertIs(getattr(api.application.handlers, name), handler)
                 self.assertEqual(handler.__name__, name)
                 self.assertTrue(
                     handler.__module__.endswith(
@@ -1735,7 +1682,7 @@ class ApiProfileSaveRouteTests(unittest.TestCase):
                 "revision": 6,
             }
             with self.subTest(path=path), patch.object(
-                api._APPLICATION_DEPENDENCIES.profiles,
+                api.application.dependencies.profiles,
                 operation_name.removeprefix("_"),
                 return_value=saved,
             ) as save_profile:
@@ -1757,7 +1704,7 @@ class ApiProfileSaveRouteTests(unittest.TestCase):
     def test_aio_route_requires_settings_before_file_io(self):
         api, routes = load_api_routes()
         with patch.object(
-            api._APPLICATION_DEPENDENCIES.profiles,
+            api.application.dependencies.profiles,
             "save_aio_profile",
         ) as save_profile:
             response = asyncio.run(
@@ -1796,7 +1743,7 @@ class ApiProfileSaveRouteTests(unittest.TestCase):
                 "/easyuse_anima/aio_profiles/save",
                 "_save_aio_profile",
                 {"name": "Portrait", "settings": {}},
-                api.ProfileMutationError(
+                api.profile_mutation.ProfileMutationError(
                     status=409,
                     code="profile_revision_conflict",
                     message="Profile revision does not match",
@@ -1810,7 +1757,7 @@ class ApiProfileSaveRouteTests(unittest.TestCase):
 
         for path, operation_name, data, error, status, code, details in cases:
             with self.subTest(path=path, code=code), patch.object(
-                api._APPLICATION_DEPENDENCIES.profiles,
+                api.application.dependencies.profiles,
                 operation_name.removeprefix("_"),
                 side_effect=error,
             ):
@@ -1842,7 +1789,7 @@ class ApiAioProfileMutationRouteTests(unittest.TestCase):
         for name, path in cases:
             with self.subTest(path=path):
                 handler = routes.handlers[path]
-                self.assertIs(getattr(api, name), handler)
+                self.assertIs(getattr(api.application.handlers, name), handler)
                 self.assertEqual(handler.__name__, name)
                 self.assertTrue(
                     handler.__module__.endswith(
@@ -1897,7 +1844,7 @@ class ApiAioProfileMutationRouteTests(unittest.TestCase):
                 "revision": 8,
             }
             with self.subTest(path=path), patch.object(
-                api._APPLICATION_DEPENDENCIES.profiles,
+                api.application.dependencies.profiles,
                 operation_name.removeprefix("_"),
                 return_value=changed,
             ) as operation:
@@ -1913,7 +1860,7 @@ class ApiAioProfileMutationRouteTests(unittest.TestCase):
     def test_rename_rejects_invalid_target_revision_before_file_io(self):
         api, routes = load_api_routes()
         with patch.object(
-            api._APPLICATION_DEPENDENCIES.profiles,
+            api.application.dependencies.profiles,
             "rename_aio_profile",
         ) as rename_profile:
             response = asyncio.run(
@@ -1961,7 +1908,7 @@ class ApiAioProfileMutationRouteTests(unittest.TestCase):
                 "/easyuse_anima/aio_profiles/rename",
                 "_rename_aio_profile",
                 {"old_name": "Portrait", "new_name": "Portrait 2"},
-                api.ProfileMutationError(
+                api.profile_mutation.ProfileMutationError(
                     status=409,
                     code="profile_revision_conflict",
                     message="Profile revision does not match",
@@ -1975,7 +1922,7 @@ class ApiAioProfileMutationRouteTests(unittest.TestCase):
 
         for path, operation_name, data, error, status, code, details in cases:
             with self.subTest(path=path, code=code), patch.object(
-                api._APPLICATION_DEPENDENCIES.profiles,
+                api.application.dependencies.profiles,
                 operation_name.removeprefix("_"),
                 side_effect=error,
             ):
@@ -1995,7 +1942,7 @@ class ApiLoraProfileFixRouteTests(unittest.TestCase):
         api, routes = load_api_routes()
         handler = routes.handlers["/easyuse_anima/lora_profiles/fix"]
 
-        self.assertIs(api.fix_lora_profile_handler, handler)
+        self.assertIs(api.application.handlers.fix_lora_profile_handler, handler)
         self.assertEqual(handler.__name__, "fix_lora_profile_handler")
         self.assertTrue(
             handler.__module__.endswith(
@@ -2020,7 +1967,7 @@ class ApiLoraProfileFixRouteTests(unittest.TestCase):
             changed = {**data, "fixed": [], "unresolved": []}
             before = json.dumps(data, sort_keys=True)
             with self.subTest(profile_data="profile_data" in data), patch.object(
-                api._APPLICATION_DEPENDENCIES.profiles,
+                api.application.dependencies.profiles,
                 "fix_lora_profile_payload",
                 return_value=changed,
             ) as operation:
@@ -2043,11 +1990,11 @@ class ApiLoraProfileFixRouteTests(unittest.TestCase):
         api, routes = load_api_routes()
         with (
             patch.object(
-                api._APPLICATION_DEPENDENCIES.profiles,
+                api.application.dependencies.profiles,
                 "fix_lora_profile_payload",
             ) as operation,
             patch.object(
-                api._APPLICATION_DEPENDENCIES.request,
+                api.application.dependencies.request,
                 "run_file_io",
             ) as file_io,
         ):
@@ -2068,11 +2015,11 @@ class ApiLoraProfileFixRouteTests(unittest.TestCase):
         secret = "C:\\Users\\alice\\profile.json API_TOKEN=top-secret"
         with (
             patch.object(
-                api._APPLICATION_DEPENDENCIES.profiles,
+                api.application.dependencies.profiles,
                 "fix_lora_profile_payload",
                 side_effect=ValueError(secret),
             ),
-            patch.object(api._LOGGER, "error") as log_error,
+            patch.object(api.application.compatibility.parts.logger, "error") as log_error,
         ):
             response = asyncio.run(
                 routes.handlers["/easyuse_anima/lora_profiles/fix"](
@@ -2096,7 +2043,7 @@ class ApiLoraProfileFixRouteTests(unittest.TestCase):
 class ApiWildcardRouteTests(unittest.TestCase):
     def test_payload_helper_is_owned_by_the_canonical_factory(self):
         api, _routes = load_api_routes()
-        helper = api._wildcards_payload_sync
+        helper = api.application.compatibility.parts.wildcards_payload_sync
 
         self.assertEqual(helper.__name__, "_wildcards_payload_sync")
         self.assertTrue(
@@ -2142,22 +2089,22 @@ class ApiWildcardRouteTests(unittest.TestCase):
 
         with (
             patch.object(
-                api._APPLICATION_DEPENDENCIES.settings,
+                api.application.dependencies.settings,
                 "public_settings",
                 side_effect=public_settings,
             ),
             patch.object(
-                api._APPLICATION_DEPENDENCIES.wildcard_autocomplete,
+                api.application.dependencies.wildcard_autocomplete,
                 "resolve_wildcard_roots",
                 side_effect=resolve_wildcard_roots,
             ),
             patch.object(
-                api._APPLICATION_DEPENDENCIES.wildcard_autocomplete,
+                api.application.dependencies.wildcard_autocomplete,
                 "list_wildcards",
                 side_effect=list_wildcards,
             ),
         ):
-            payload = api._wildcards_payload_sync()
+            payload = api.application.compatibility.parts.wildcards_payload_sync()
 
         self.assertEqual(
             calls,
@@ -2195,7 +2142,7 @@ class ApiWildcardRouteTests(unittest.TestCase):
         api, routes = load_api_routes()
         handler = routes.handlers["/easyuse_anima/wildcards"]
 
-        self.assertIs(api.get_wildcards_handler, handler)
+        self.assertIs(api.application.handlers.get_wildcards_handler, handler)
         self.assertEqual(handler.__name__, "get_wildcards_handler")
         self.assertTrue(
             handler.__module__.endswith(
@@ -2214,7 +2161,7 @@ class ApiWildcardRouteTests(unittest.TestCase):
         }
 
         with patch.object(
-            api._APPLICATION_DEPENDENCIES.wildcard_autocomplete,
+            api.application.dependencies.wildcard_autocomplete,
             "wildcards_payload",
             return_value=payload,
         ) as wildcards_payload:
@@ -2237,7 +2184,7 @@ class ApiSettingsRouteTests(unittest.TestCase):
 
         for name, argument_count in cases:
             with self.subTest(name=name):
-                helper = getattr(api, name)
+                helper = getattr(api.application.compatibility.parts, name.removeprefix("_"))
                 self.assertEqual(helper.__name__, name)
                 self.assertTrue(
                     helper.__module__.endswith(
@@ -2246,18 +2193,18 @@ class ApiSettingsRouteTests(unittest.TestCase):
                 )
                 self.assertEqual(helper.__code__.co_argcount, argument_count)
 
-        owner = sys.modules[api._get_settings_payload_sync.__module__]
+        owner = sys.modules[api.application.compatibility.parts.get_settings_payload_sync.__module__]
         self.assertEqual(owner.__all__, ("build_settings_handlers",))
 
     def test_payload_helpers_keep_dynamic_dependencies_and_merge_order(self):
         api, _routes = load_api_routes()
         get_payload = {"future": {"kept": True}}
         with patch.object(
-            api._APPLICATION_DEPENDENCIES.settings,
+            api.application.dependencies.settings,
             "public_settings",
             return_value=get_payload,
         ) as read:
-            result = api._get_settings_payload_sync()
+            result = api.application.compatibility.parts.get_settings_payload_sync()
 
         self.assertIs(result, get_payload)
         read.assert_called_once_with()
@@ -2277,17 +2224,17 @@ class ApiSettingsRouteTests(unittest.TestCase):
 
         with (
             patch.object(
-                api._APPLICATION_DEPENDENCIES.settings,
+                api.application.dependencies.settings,
                 "save_setting",
                 side_effect=save_setting,
             ),
             patch.object(
-                api._APPLICATION_DEPENDENCIES.settings,
+                api.application.dependencies.settings,
                 "public_settings",
                 side_effect=public_settings,
             ),
         ):
-            result = api._save_setting_payload_sync(
+            result = api.application.compatibility.parts.save_setting_payload_sync(
                 "future.setting",
                 {"raw": [None, True]},
             )
@@ -2318,7 +2265,7 @@ class ApiSettingsRouteTests(unittest.TestCase):
         for name, path in cases:
             with self.subTest(path=path):
                 handler = routes.handlers[path]
-                self.assertIs(getattr(api, name), handler)
+                self.assertIs(getattr(api.application.handlers, name), handler)
                 self.assertEqual(handler.__name__, name)
                 self.assertTrue(
                     handler.__module__.endswith(
@@ -2335,7 +2282,7 @@ class ApiSettingsRouteTests(unittest.TestCase):
             "wildcard.extra_paths": ["D:\\private\\wildcards"],
         }
         with patch.object(
-            api._APPLICATION_DEPENDENCIES.settings,
+            api.application.dependencies.settings,
             "get_settings_payload",
             return_value=payload,
         ) as get_payload:
@@ -2365,7 +2312,7 @@ class ApiSettingsRouteTests(unittest.TestCase):
         for data, expected_value in cases:
             payload = {"status": "ok", "saved": expected_value}
             with self.subTest(data=data), patch.object(
-                api._APPLICATION_DEPENDENCIES.settings,
+                api.application.dependencies.settings,
                 "save_setting_payload",
                 return_value=payload,
             ) as save_payload:
@@ -2387,11 +2334,11 @@ class ApiSettingsRouteTests(unittest.TestCase):
         api, routes = load_api_routes()
         with (
             patch.object(
-                api._APPLICATION_DEPENDENCIES.settings,
+                api.application.dependencies.settings,
                 "save_setting_payload",
             ) as save_payload,
             patch.object(
-                api._APPLICATION_DEPENDENCIES.request,
+                api.application.dependencies.request,
                 "run_file_io",
             ) as file_io,
         ):
@@ -2412,7 +2359,7 @@ class ApiSettingsRouteTests(unittest.TestCase):
         api, routes = load_api_routes()
         secret = "C:\\Users\\alice\\settings.json API_TOKEN=top-secret"
         with patch.object(
-            api._APPLICATION_DEPENDENCIES.settings,
+            api.application.dependencies.settings,
             "save_setting_payload",
             side_effect=KeyError(secret),
         ):
@@ -2442,11 +2389,11 @@ class ApiSettingsRouteTests(unittest.TestCase):
         secret = "C:\\Users\\alice\\settings.json API_TOKEN=top-secret"
         with (
             patch.object(
-                api._APPLICATION_DEPENDENCIES.settings,
+                api.application.dependencies.settings,
                 "save_setting_payload",
                 side_effect=ValueError(secret),
             ),
-            patch.object(api._LOGGER, "error") as log_error,
+            patch.object(api.application.compatibility.parts.logger, "error") as log_error,
         ):
             response = asyncio.run(
                 routes.handlers["/easyuse_anima/set_setting"](
@@ -2478,7 +2425,7 @@ class ApiLongTextSettingsRouteTests(unittest.TestCase):
 
         for name, argument_count in cases:
             with self.subTest(name=name):
-                helper = getattr(api, name)
+                helper = getattr(api.application.compatibility.parts, name.removeprefix("_"))
                 self.assertEqual(helper.__name__, name)
                 self.assertTrue(
                     helper.__module__.endswith(
@@ -2487,7 +2434,7 @@ class ApiLongTextSettingsRouteTests(unittest.TestCase):
                 )
                 self.assertEqual(helper.__code__.co_argcount, argument_count)
 
-        owner = sys.modules[api._get_long_text_settings_payload_sync.__module__]
+        owner = sys.modules[api.application.compatibility.parts.get_long_text_settings_payload_sync.__module__]
         self.assertEqual(owner.__all__, ("build_long_text_settings_handlers",))
 
     def test_payload_helpers_keep_dynamic_dependencies_call_order_and_identity(self):
@@ -2506,17 +2453,17 @@ class ApiLongTextSettingsRouteTests(unittest.TestCase):
 
         with (
             patch.object(
-                api._APPLICATION_DEPENDENCIES.settings,
+                api.application.dependencies.settings,
                 "load_long_text_settings",
                 side_effect=load_long_text_settings,
             ),
             patch.object(
-                api._APPLICATION_DEPENDENCIES.settings,
+                api.application.dependencies.settings,
                 "public_settings",
                 side_effect=public_settings,
             ),
         ):
-            result = api._get_long_text_settings_payload_sync()
+            result = api.application.compatibility.parts.get_long_text_settings_payload_sync()
 
         self.assertEqual(calls, [("load",), ("public",)])
         self.assertEqual(result["status"], "ok")
@@ -2533,17 +2480,17 @@ class ApiLongTextSettingsRouteTests(unittest.TestCase):
 
         with (
             patch.object(
-                api._APPLICATION_DEPENDENCIES.settings,
+                api.application.dependencies.settings,
                 "save_long_text_settings",
                 side_effect=save_long_text_settings,
             ),
             patch.object(
-                api._APPLICATION_DEPENDENCIES.settings,
+                api.application.dependencies.settings,
                 "public_settings",
                 side_effect=public_settings,
             ),
         ):
-            result = api._save_long_text_settings_payload_sync(values)
+            result = api.application.compatibility.parts.save_long_text_settings_payload_sync(values)
 
         self.assertEqual(calls, [("save", values), ("public",)])
         self.assertIs(calls[0][1], values)
@@ -2567,7 +2514,7 @@ class ApiLongTextSettingsRouteTests(unittest.TestCase):
         for name, path in cases:
             with self.subTest(path=path):
                 handler = routes.handlers[path]
-                self.assertIs(getattr(api, name), handler)
+                self.assertIs(getattr(api.application.handlers, name), handler)
                 self.assertEqual(handler.__name__, name)
                 self.assertTrue(
                     handler.__module__.endswith(
@@ -2586,7 +2533,7 @@ class ApiLongTextSettingsRouteTests(unittest.TestCase):
         }
 
         with patch.object(
-            api._APPLICATION_DEPENDENCIES.settings,
+            api.application.dependencies.settings,
             "get_long_text_settings_payload",
             return_value=payload,
         ) as get_payload:
@@ -2618,7 +2565,7 @@ class ApiLongTextSettingsRouteTests(unittest.TestCase):
                     "settings": expected_values,
                 }
                 with patch.object(
-                    api._APPLICATION_DEPENDENCIES.settings,
+                    api.application.dependencies.settings,
                     "save_long_text_settings_payload",
                     return_value=payload,
                 ) as save_payload:
@@ -2658,21 +2605,21 @@ class ApiAutocompleteRouteTests(unittest.TestCase):
         path = object()
 
         with patch.object(
-            api._APPLICATION_DEPENDENCIES.wildcard_autocomplete,
+            api.application.dependencies.wildcard_autocomplete,
             "get_runtime",
             return_value=runtime,
         ):
             self.assertEqual(
-                api.resolve_autocomplete_source_path("selected")[0],
+                api.application.compatibility.parts.resolve_autocomplete_source_path("selected")[0],
                 "source",
             )
             self.assertEqual(
-                api.available_autocomplete_sources("selected"),
+                api.application.compatibility.parts.available_autocomplete_sources("selected"),
                 [{"key": "source"}],
             )
-            self.assertEqual(api.autocomplete_status(path), {"count": 1})
+            self.assertEqual(api.application.compatibility.parts.autocomplete_status(path), {"count": 1})
             self.assertEqual(
-                api.search_autocomplete(
+                api.application.compatibility.parts.search_autocomplete(
                     "cat",
                     limit=17,
                     path=path,
@@ -2681,7 +2628,7 @@ class ApiAutocompleteRouteTests(unittest.TestCase):
                 {"results": []},
             )
             self.assertEqual(
-                api.classify_prompt_text("cat", limit=19, path=path),
+                api.application.compatibility.parts.classify_prompt_text("cat", limit=19, path=path),
                 {"tokens": []},
             )
 
@@ -2702,7 +2649,7 @@ class ApiAutocompleteRouteTests(unittest.TestCase):
 
     def test_root_autocomplete_facades_keep_preinitialize_canonical_fallback(self):
         api, _routes = load_api_routes()
-        owner = sys.modules[api.resolve_autocomplete_source_path.__module__]
+        owner = sys.modules[api.application.compatibility.parts.resolve_autocomplete_source_path.__module__]
         unavailable = RuntimeError(
             "[EasyUseAnima] RuntimeServices has not been installed."
         )
@@ -2710,7 +2657,7 @@ class ApiAutocompleteRouteTests(unittest.TestCase):
 
         with (
             patch.object(
-                api._APPLICATION_DEPENDENCIES.wildcard_autocomplete,
+                api.application.dependencies.wildcard_autocomplete,
                 "get_runtime",
                 side_effect=unavailable,
             ),
@@ -2741,20 +2688,20 @@ class ApiAutocompleteRouteTests(unittest.TestCase):
             ) as classify,
         ):
             self.assertEqual(
-                api.resolve_autocomplete_source_path("selected"),
+                api.application.compatibility.parts.resolve_autocomplete_source_path("selected"),
                 ("source", path),
             )
             self.assertEqual(
-                api.available_autocomplete_sources("selected"),
+                api.application.compatibility.parts.available_autocomplete_sources("selected"),
                 [{"key": "source"}],
             )
-            self.assertEqual(api.autocomplete_status(path), {"count": 1})
+            self.assertEqual(api.application.compatibility.parts.autocomplete_status(path), {"count": 1})
             self.assertEqual(
-                api.search_autocomplete("cat", path=path),
+                api.application.compatibility.parts.search_autocomplete("cat", path=path),
                 {"results": []},
             )
             self.assertEqual(
-                api.classify_prompt_text("cat", path=path),
+                api.application.compatibility.parts.classify_prompt_text("cat", path=path),
                 {"tokens": []},
             )
 
@@ -2781,7 +2728,7 @@ class ApiAutocompleteRouteTests(unittest.TestCase):
 
         for name, argcount in cases:
             with self.subTest(name=name):
-                helper = getattr(api, name)
+                helper = getattr(api.application.compatibility.parts, name.removeprefix("_"))
                 self.assertEqual(helper.__name__, name)
                 self.assertTrue(
                     helper.__module__.endswith(
@@ -2790,7 +2737,7 @@ class ApiAutocompleteRouteTests(unittest.TestCase):
                 )
                 self.assertEqual(helper.__code__.co_argcount, argcount)
 
-        owner = sys.modules[api._autocomplete_status_payload_sync.__module__]
+        owner = sys.modules[api.application.compatibility.parts.autocomplete_status_payload_sync.__module__]
         self.assertEqual(
             owner.__all__,
             (
@@ -2808,7 +2755,7 @@ class ApiAutocompleteRouteTests(unittest.TestCase):
             "future": future,
         }
 
-        public_status = api._public_autocomplete_status(status)
+        public_status = api.application.compatibility.parts.public_autocomplete_status(status)
 
         self.assertEqual(
             public_status,
@@ -2816,18 +2763,18 @@ class ApiAutocompleteRouteTests(unittest.TestCase):
         )
         self.assertIs(public_status["future"], future)
         self.assertIn("path", status)
-        self.assertEqual(api._public_autocomplete_status(None), {})
-        self.assertEqual(api._public_autocomplete_payload(None), {})
+        self.assertEqual(api.application.compatibility.parts.public_autocomplete_status(None), {})
+        self.assertEqual(api.application.compatibility.parts.public_autocomplete_payload(None), {})
 
         private_status = object()
         produced = {"status": private_status, "future": future}
         redacted = {"redacted": True}
         with patch.object(
-            api._APPLICATION_DEPENDENCIES.wildcard_autocomplete,
+            api.application.dependencies.wildcard_autocomplete,
             "public_autocomplete_status",
             return_value=redacted,
         ) as public_status_helper:
-            public_payload = api._public_autocomplete_payload(produced)
+            public_payload = api.application.compatibility.parts.public_autocomplete_payload(produced)
 
         self.assertIsNot(public_payload, produced)
         self.assertIs(public_payload["status"], redacted)
@@ -2877,27 +2824,27 @@ class ApiAutocompleteRouteTests(unittest.TestCase):
 
         with (
             patch.object(
-                api._APPLICATION_DEPENDENCIES.wildcard_autocomplete,
+                api.application.dependencies.wildcard_autocomplete,
                 "resolve_autocomplete_source",
                 side_effect=resolve_source,
             ),
             patch.object(
-                api._APPLICATION_DEPENDENCIES.wildcard_autocomplete,
+                api.application.dependencies.wildcard_autocomplete,
                 "resolve_autocomplete_source_path",
                 side_effect=resolve_path,
             ),
             patch.object(
-                api._APPLICATION_DEPENDENCIES.wildcard_autocomplete,
+                api.application.dependencies.wildcard_autocomplete,
                 "autocomplete_status",
                 side_effect=read_status,
             ),
             patch.object(
-                api._APPLICATION_DEPENDENCIES.wildcard_autocomplete,
+                api.application.dependencies.wildcard_autocomplete,
                 "available_autocomplete_sources",
                 side_effect=list_sources,
             ),
         ):
-            payload = api._autocomplete_status_payload_sync()
+            payload = api.application.compatibility.parts.autocomplete_status_payload_sync()
 
         self.assertEqual(
             calls,
@@ -2921,32 +2868,32 @@ class ApiAutocompleteRouteTests(unittest.TestCase):
         redacted = {"count": 9}
         with (
             patch.object(
-                api._APPLICATION_DEPENDENCIES.wildcard_autocomplete,
+                api.application.dependencies.wildcard_autocomplete,
                 "resolve_autocomplete_source",
                 return_value=selected_source,
             ),
             patch.object(
-                api._APPLICATION_DEPENDENCIES.wildcard_autocomplete,
+                api.application.dependencies.wildcard_autocomplete,
                 "resolve_autocomplete_source_path",
                 return_value=(source_key, path),
             ),
             patch.object(
-                api._APPLICATION_DEPENDENCIES.wildcard_autocomplete,
+                api.application.dependencies.wildcard_autocomplete,
                 "autocomplete_status",
                 return_value=status,
             ),
             patch.object(
-                api._APPLICATION_DEPENDENCIES.wildcard_autocomplete,
+                api.application.dependencies.wildcard_autocomplete,
                 "available_autocomplete_sources",
                 return_value=[],
             ),
             patch.object(
-                api._APPLICATION_DEPENDENCIES.wildcard_autocomplete,
+                api.application.dependencies.wildcard_autocomplete,
                 "public_autocomplete_status",
                 return_value=redacted,
             ) as public_status_helper,
         ):
-            dynamically_redacted = api._autocomplete_status_payload_sync()
+            dynamically_redacted = api.application.compatibility.parts.autocomplete_status_payload_sync()
 
         self.assertEqual(dynamically_redacted["count"], 9)
         public_status_helper.assert_called_once_with(status)
@@ -2988,32 +2935,32 @@ class ApiAutocompleteRouteTests(unittest.TestCase):
             with self.subTest(requested_limit=requested_limit):
                 with (
                     patch.object(
-                        api._APPLICATION_DEPENDENCIES.wildcard_autocomplete,
+                        api.application.dependencies.wildcard_autocomplete,
                         "resolve_autocomplete_limit",
                         side_effect=default_limit,
                     ),
                     patch.object(
-                        api._APPLICATION_DEPENDENCIES.wildcard_autocomplete,
+                        api.application.dependencies.wildcard_autocomplete,
                         "resolve_autocomplete_source",
                         side_effect=resolve_source,
                     ),
                     patch.object(
-                        api._APPLICATION_DEPENDENCIES.wildcard_autocomplete,
+                        api.application.dependencies.wildcard_autocomplete,
                         "resolve_autocomplete_source_path",
                         side_effect=resolve_path,
                     ),
                     patch.object(
-                        api._APPLICATION_DEPENDENCIES.wildcard_autocomplete,
+                        api.application.dependencies.wildcard_autocomplete,
                         "search_autocomplete",
                         side_effect=search,
                     ),
                     patch.object(
-                        api._APPLICATION_DEPENDENCIES.wildcard_autocomplete,
+                        api.application.dependencies.wildcard_autocomplete,
                         "public_autocomplete_payload",
                         side_effect=redact,
                     ),
                 ):
-                    payload = api._search_autocomplete_payload_sync(
+                    payload = api.application.compatibility.parts.search_autocomplete_payload_sync(
                         "cat",
                         requested_limit,
                         "artist,general",
@@ -3062,27 +3009,27 @@ class ApiAutocompleteRouteTests(unittest.TestCase):
 
         with (
             patch.object(
-                api._APPLICATION_DEPENDENCIES.wildcard_autocomplete,
+                api.application.dependencies.wildcard_autocomplete,
                 "resolve_autocomplete_source",
                 side_effect=resolve_source,
             ),
             patch.object(
-                api._APPLICATION_DEPENDENCIES.wildcard_autocomplete,
+                api.application.dependencies.wildcard_autocomplete,
                 "resolve_autocomplete_source_path",
                 side_effect=resolve_path,
             ),
             patch.object(
-                api._APPLICATION_DEPENDENCIES.wildcard_autocomplete,
+                api.application.dependencies.wildcard_autocomplete,
                 "classify_prompt_text",
                 side_effect=classify,
             ),
             patch.object(
-                api._APPLICATION_DEPENDENCIES.wildcard_autocomplete,
+                api.application.dependencies.wildcard_autocomplete,
                 "public_autocomplete_payload",
                 side_effect=redact,
             ),
         ):
-            payload = api._classify_prompt_payload_sync("cat", 17)
+            payload = api.application.compatibility.parts.classify_prompt_payload_sync("cat", 17)
 
         self.assertIs(payload, public)
         self.assertEqual(
@@ -3105,7 +3052,7 @@ class ApiAutocompleteRouteTests(unittest.TestCase):
         for name, path in cases:
             with self.subTest(path=path):
                 handler = routes.handlers[path]
-                self.assertIs(getattr(api, name), handler)
+                self.assertIs(getattr(api.application.handlers, name), handler)
                 self.assertEqual(handler.__name__, name)
                 self.assertTrue(
                     handler.__module__.endswith(
@@ -3126,7 +3073,7 @@ class ApiAutocompleteRouteTests(unittest.TestCase):
         for category, expected_filter in cases:
             with self.subTest(category=category):
                 with patch.object(
-                    api._APPLICATION_DEPENDENCIES.wildcard_autocomplete,
+                    api.application.dependencies.wildcard_autocomplete,
                     "search_autocomplete_payload",
                     return_value={"query": "cat", "results": []},
                 ) as search_payload:
@@ -3153,7 +3100,7 @@ class ApiAutocompleteRouteTests(unittest.TestCase):
         api, routes = load_api_routes()
         handler = routes.handlers["/easyuse_anima/classify_prompt"]
 
-        self.assertIs(api.classify_prompt_handler, handler)
+        self.assertIs(api.application.handlers.classify_prompt_handler, handler)
         self.assertEqual(handler.__name__, "classify_prompt_handler")
         self.assertTrue(
             handler.__module__.endswith(
@@ -3173,7 +3120,7 @@ class ApiAutocompleteRouteTests(unittest.TestCase):
         for payload, expected_limit in cases:
             with self.subTest(payload=payload):
                 with patch.object(
-                    api._APPLICATION_DEPENDENCIES.wildcard_autocomplete,
+                    api.application.dependencies.wildcard_autocomplete,
                     "classify_prompt_payload",
                     return_value={"tokens": [], "status": {}},
                 ) as classify_payload:
@@ -3191,7 +3138,7 @@ class ApiTorchCompileDiagnosticsTests(unittest.TestCase):
         api, routes = load_api_routes()
         handler = routes.handlers["/easyuse_anima/aio/torch-compile/recommend"]
 
-        self.assertIs(api.aio_torch_compile_recommend_handler, handler)
+        self.assertIs(api.application.handlers.aio_torch_compile_recommend_handler, handler)
         self.assertEqual(
             handler.__name__,
             "aio_torch_compile_recommend_handler",
@@ -3232,17 +3179,17 @@ class ApiTorchCompileDiagnosticsTests(unittest.TestCase):
 
         with (
             patch.object(
-                api._APPLICATION_DEPENDENCIES.torch_compile,
+                api.application.dependencies.torch_compile,
                 "collect_diagnostics",
                 return_value=diagnostics,
             ) as collect,
             patch.object(
-                api._APPLICATION_DEPENDENCIES.torch_compile,
+                api.application.dependencies.torch_compile,
                 "recommend_torch_compile",
                 return_value=recommendation,
             ) as recommend,
             patch.object(
-                api._APPLICATION_DEPENDENCIES.request,
+                api.application.dependencies.request,
                 "run_file_io",
             ) as file_io,
         ):
@@ -3276,11 +3223,11 @@ class ApiTorchCompileDiagnosticsTests(unittest.TestCase):
 
         with (
             patch.object(
-                api._APPLICATION_DEPENDENCIES.torch_compile,
+                api.application.dependencies.torch_compile,
                 "collect_diagnostics",
             ) as collect,
             patch.object(
-                api._APPLICATION_DEPENDENCIES.torch_compile,
+                api.application.dependencies.torch_compile,
                 "recommend_torch_compile",
             ) as recommend,
         ):
@@ -3321,8 +3268,8 @@ class ApiRequestContractTests(unittest.TestCase):
         )
 
         with (
-            patch.object(api.asyncio, "to_thread") as submit,
-            patch.object(api._PROMPT_TRANSLATION_WORKER, "execute") as translate,
+            patch.object(asyncio, "to_thread") as submit,
+            patch.object(api.application.translation_executor, "execute") as translate,
         ):
             for route in self.POST_ROUTES:
                 for request, code in cases:
@@ -3374,8 +3321,8 @@ class ApiRequestContractTests(unittest.TestCase):
         )
 
         with (
-            patch.object(api.asyncio, "to_thread") as submit,
-            patch.object(api._PROMPT_TRANSLATION_WORKER, "execute") as translate,
+            patch.object(asyncio, "to_thread") as submit,
+            patch.object(api.application.translation_executor, "execute") as translate,
         ):
             for route, payload, field in cases:
                 with self.subTest(route=route, field=field):
@@ -3419,7 +3366,7 @@ class ApiRequestContractTests(unittest.TestCase):
         for route, request, operation_name, error, status, code in cases:
             with self.subTest(route=route, code=code):
                 with patch.object(
-                    api._APPLICATION_DEPENDENCIES.profiles,
+                    api.application.dependencies.profiles,
                     operation_name.removeprefix("_"),
                     side_effect=error,
                 ):
@@ -3440,9 +3387,9 @@ class ApiRequestContractTests(unittest.TestCase):
 
         for status, code, message in cases:
             with self.subTest(code=code), patch.object(
-                api._APPLICATION_DEPENDENCIES.profiles,
+                api.application.dependencies.profiles,
                 "save_aio_profile",
-                side_effect=api.ProfileMutationError(
+                side_effect=api.profile_mutation.ProfileMutationError(
                     status=status,
                     code=code,
                     message=message,
@@ -3589,7 +3536,7 @@ class ApiRequestContractTests(unittest.TestCase):
                             root,
                         ),
                         patch.object(
-                            api._APPLICATION_DEPENDENCIES.request,
+                            api.application.dependencies.request,
                             "create_request_id",
                             return_value=request_id,
                         ),
@@ -3663,15 +3610,15 @@ class ApiRequestContractTests(unittest.TestCase):
                 target = root / "Target.json"
                 source.write_bytes(source_bytes)
 
-                with patch.object(api._aio_profiles, "AIO_PROFILE_DIR", root):
+                with patch.object(api.aio_profiles, "AIO_PROFILE_DIR", root):
                     response = asyncio.run(
                         handler(
                             JsonRequest(
                                 {
                                     "old_name": "Source",
                                     "new_name": "Target",
-                                    "profile_id": api.legacy_profile_id(
-                                        api.PROFILE_KIND_AIO,
+                                    "profile_id": api.profile_contract.legacy_profile_id(
+                                        api.profile_contract.PROFILE_KIND_AIO,
                                         "Source",
                                     ),
                                     "revision": 0,
@@ -3704,7 +3651,7 @@ class ApiRequestContractTests(unittest.TestCase):
             root = Path(tmp)
             (root / "Empty.json").write_text("", encoding="utf-8")
 
-            with patch.object(api._lora_profiles, "LORA_PROFILE_DIR", root):
+            with patch.object(api.lora_profiles, "LORA_PROFILE_DIR", root):
                 lora_response = asyncio.run(
                     routes.handlers["/easyuse_anima/lora_profiles/load"](
                         JsonRequest(query={"name": "Empty"})
@@ -3714,7 +3661,7 @@ class ApiRequestContractTests(unittest.TestCase):
             self.assertEqual(lora_response["payload"]["profile"]["profile_data"], {})
             self.assertEqual(lora_response["payload"]["profile"]["profile_count"], 1)
 
-            with patch.object(api._aio_profiles, "AIO_PROFILE_DIR", root):
+            with patch.object(api.aio_profiles, "AIO_PROFILE_DIR", root):
                 aio_response = asyncio.run(
                     routes.handlers["/easyuse_anima/aio_profiles/load"](
                         JsonRequest(query={"name": "Empty"})
@@ -3736,7 +3683,7 @@ class ApiRequestContractTests(unittest.TestCase):
                 json.dumps(stored),
                 encoding="utf-8",
             )
-            with patch.object(api._lora_profiles, "LORA_PROFILE_DIR", root):
+            with patch.object(api.lora_profiles, "LORA_PROFILE_DIR", root):
                 response = asyncio.run(
                     routes.handlers["/easyuse_anima/lora_profiles/load"](
                         JsonRequest(query={"name": "Legacy"})
@@ -3753,7 +3700,7 @@ class ApiRequestContractTests(unittest.TestCase):
         api, routes = load_api_routes()
         secret = "C:\\Users\\alice\\profile.json API_TOKEN=top-secret"
         with patch.object(
-            api._APPLICATION_DEPENDENCIES.profiles,
+            api.application.dependencies.profiles,
             "save_aio_profile",
             side_effect=ValueError(secret),
         ):
@@ -3774,11 +3721,11 @@ class ApiRequestContractTests(unittest.TestCase):
         api, routes = load_api_routes()
         with (
             patch.object(
-                api._APPLICATION_DEPENDENCIES.profiles,
+                api.application.dependencies.profiles,
                 "list_aio_profiles",
                 side_effect=RuntimeError("storage programming error"),
             ),
-            patch.object(api._LOGGER, "error") as log_error,
+            patch.object(api.application.compatibility.parts.logger, "error") as log_error,
         ):
             response = asyncio.run(
                 routes.handlers["/easyuse_anima/aio_profiles"](JsonRequest())
@@ -3802,11 +3749,11 @@ class ApiRequestContractTests(unittest.TestCase):
             with (
                 self.subTest(route=route),
                 patch.object(
-                    api._APPLICATION_DEPENDENCIES.profiles,
+                    api.application.dependencies.profiles,
                     operation_name.removeprefix("_"),
                     side_effect=ValueError("storage programming error"),
                 ),
-                patch.object(api._LOGGER, "error") as log_error,
+                patch.object(api.application.compatibility.parts.logger, "error") as log_error,
             ):
                 response = asyncio.run(routes.handlers[route](JsonRequest()))
 
@@ -3822,7 +3769,7 @@ class ApiRequestContractTests(unittest.TestCase):
             "autocomplete.limit": 20,
         }
         with patch.object(
-            api._APPLICATION_DEPENDENCIES.settings,
+            api.application.dependencies.settings,
             "get_settings_payload",
             return_value=settings_payload,
         ):
@@ -3833,7 +3780,7 @@ class ApiRequestContractTests(unittest.TestCase):
 
         saved_profile = {"name": "Saved", "settings": {"future": {"kept": True}}}
         with patch.object(
-            api._APPLICATION_DEPENDENCIES.profiles,
+            api.application.dependencies.profiles,
             "save_aio_profile",
             return_value=saved_profile,
         ):
@@ -3866,17 +3813,17 @@ class ApiPathRedactionTests(unittest.TestCase):
         api, routes = load_api_routes()
         with (
             patch.object(
-                api._APPLICATION_DEPENDENCIES.wildcard_autocomplete,
+                api.application.dependencies.wildcard_autocomplete,
                 "resolve_autocomplete_source",
                 return_value="selected",
             ),
             patch.object(
-                api._APPLICATION_DEPENDENCIES.wildcard_autocomplete,
+                api.application.dependencies.wildcard_autocomplete,
                 "resolve_autocomplete_source_path",
                 return_value=("selected", Path(r"C:\Users\alice\secret.csv")),
             ),
             patch.object(
-                api._APPLICATION_DEPENDENCIES.wildcard_autocomplete,
+                api.application.dependencies.wildcard_autocomplete,
                 "autocomplete_status",
                 return_value={
                     "path": r"C:\Users\alice\secret.csv",
@@ -3886,7 +3833,7 @@ class ApiPathRedactionTests(unittest.TestCase):
                 },
             ),
             patch.object(
-                api._APPLICATION_DEPENDENCIES.wildcard_autocomplete,
+                api.application.dependencies.wildcard_autocomplete,
                 "available_autocomplete_sources",
                 return_value=[
                     {
@@ -3926,22 +3873,22 @@ class ApiPathRedactionTests(unittest.TestCase):
         }
         with (
             patch.object(
-                api._APPLICATION_DEPENDENCIES.wildcard_autocomplete,
+                api.application.dependencies.wildcard_autocomplete,
                 "resolve_autocomplete_limit",
                 return_value=20,
             ),
             patch.object(
-                api._APPLICATION_DEPENDENCIES.wildcard_autocomplete,
+                api.application.dependencies.wildcard_autocomplete,
                 "resolve_autocomplete_source",
                 return_value="selected",
             ),
             patch.object(
-                api._APPLICATION_DEPENDENCIES.wildcard_autocomplete,
+                api.application.dependencies.wildcard_autocomplete,
                 "resolve_autocomplete_source_path",
                 return_value=("selected", Path(r"C:\Users\alice\secret.csv")),
             ),
             patch.object(
-                api._APPLICATION_DEPENDENCIES.wildcard_autocomplete,
+                api.application.dependencies.wildcard_autocomplete,
                 "search_autocomplete",
                 return_value=produced,
             ),
@@ -3977,17 +3924,17 @@ class ApiPathRedactionTests(unittest.TestCase):
         }
         with (
             patch.object(
-                api._APPLICATION_DEPENDENCIES.wildcard_autocomplete,
+                api.application.dependencies.wildcard_autocomplete,
                 "resolve_autocomplete_source",
                 return_value="selected",
             ),
             patch.object(
-                api._APPLICATION_DEPENDENCIES.wildcard_autocomplete,
+                api.application.dependencies.wildcard_autocomplete,
                 "resolve_autocomplete_source_path",
                 return_value=("selected", Path("/home/alice/secret.csv")),
             ),
             patch.object(
-                api._APPLICATION_DEPENDENCIES.wildcard_autocomplete,
+                api.application.dependencies.wildcard_autocomplete,
                 "classify_prompt_text",
                 return_value=produced,
             ),
@@ -4013,19 +3960,19 @@ class ApiPathRedactionTests(unittest.TestCase):
         secret_roots = [Path(r"C:\Users\alice\wildcards"), Path("/home/alice/wildcards")]
         with (
             patch.object(
-                api._APPLICATION_DEPENDENCIES.settings,
+                api.application.dependencies.settings,
                 "public_settings",
                 return_value={
                     "wildcard.extra_paths": "C:\\Users\\alice\\wildcards\n/home/alice/wildcards"
                 },
             ),
             patch.object(
-                api._APPLICATION_DEPENDENCIES.wildcard_autocomplete,
+                api.application.dependencies.wildcard_autocomplete,
                 "resolve_wildcard_roots",
                 return_value=secret_roots,
             ),
             patch.object(
-                api._APPLICATION_DEPENDENCIES.wildcard_autocomplete,
+                api.application.dependencies.wildcard_autocomplete,
                 "list_wildcards",
                 return_value=["artist/name"],
             ),
@@ -4050,20 +3997,20 @@ class ApiPathRedactionTests(unittest.TestCase):
 class ApiFileIoOffloadTests(unittest.TestCase):
     def test_root_compatibility_symbols_share_the_canonical_owner_state(self):
         api, _routes = load_api_routes()
-        owner = sys.modules[api._run_file_io.__module__]
+        owner = sys.modules[api.file_io.run_file_io.__module__]
 
         self.assertTrue(
-            api._run_file_io.__module__.endswith(
+            api.file_io.run_file_io.__module__.endswith(
                 ".easyuse_anima.api.file_io"
             )
         )
-        self.assertIs(api._file_io_limiter, owner.file_io_limiter)
-        self.assertIs(api._release_file_io_slot, owner.release_file_io_slot)
-        self.assertIs(api._run_file_io, owner.run_file_io)
-        self.assertIs(api._FILE_IO_LIMITERS_LOCK, owner._FILE_IO_LIMITERS_LOCK)
-        self.assertIs(api._FILE_IO_LIMITERS, owner._FILE_IO_LIMITERS)
-        self.assertIs(api.asyncio, owner.asyncio)
-        self.assertEqual(api.FILE_IO_MAX_IN_FLIGHT, owner.FILE_IO_MAX_IN_FLIGHT)
+        self.assertIs(api.file_io.file_io_limiter, owner.file_io_limiter)
+        self.assertIs(api.file_io.release_file_io_slot, owner.release_file_io_slot)
+        self.assertIs(api.file_io.run_file_io, owner.run_file_io)
+        self.assertIs(api.file_io._FILE_IO_LIMITERS_LOCK, owner._FILE_IO_LIMITERS_LOCK)
+        self.assertIs(api.file_io._FILE_IO_LIMITERS, owner._FILE_IO_LIMITERS)
+        self.assertIs(asyncio, owner.asyncio)
+        self.assertEqual(api.file_io.FILE_IO_MAX_IN_FLIGHT, owner.FILE_IO_MAX_IN_FLIGHT)
 
     def test_closed_loop_limiter_registry_converges_after_gc(self):
         api, _routes = load_api_routes()
@@ -4071,15 +4018,15 @@ class ApiFileIoOffloadTests(unittest.TestCase):
 
         async def bind_limiter_to_loop():
             loop_refs.append(weakref.ref(asyncio.get_running_loop()))
-            limiter = api._file_io_limiter()
-            for _index in range(api.FILE_IO_MAX_IN_FLIGHT):
+            limiter = api.file_io.file_io_limiter()
+            for _index in range(api.file_io.FILE_IO_MAX_IN_FLIGHT):
                 await limiter.acquire()
             waiter = asyncio.create_task(limiter.acquire())
             await asyncio.sleep(0)
             self.assertFalse(waiter.done())
             limiter.release()
             await waiter
-            for _index in range(api.FILE_IO_MAX_IN_FLIGHT):
+            for _index in range(api.file_io.FILE_IO_MAX_IN_FLIGHT):
                 limiter.release()
 
         for _index in range(12):
@@ -4089,7 +4036,7 @@ class ApiFileIoOffloadTests(unittest.TestCase):
             gc.collect()
 
         self.assertTrue(all(loop_ref() is None for loop_ref in loop_refs))
-        self.assertEqual(len(api._FILE_IO_LIMITERS), 0)
+        self.assertEqual(len(api.file_io._FILE_IO_LIMITERS), 0)
 
     def test_slow_scan_save_and_stat_leave_event_loop_heartbeat_running(self):
         api, routes = load_api_routes()
@@ -4097,21 +4044,21 @@ class ApiFileIoOffloadTests(unittest.TestCase):
             (
                 "/easyuse_anima/autocomplete_status",
                 JsonRequest(),
-                api._APPLICATION_DEPENDENCIES.wildcard_autocomplete,
+                api.application.dependencies.wildcard_autocomplete,
                 "autocomplete_status_payload",
                 {"source": "safe", "source_label": "Safe", "sources": []},
             ),
             (
                 "/easyuse_anima/aio_profiles/save",
                 JsonRequest({"name": "Saved", "settings": {}}),
-                api._APPLICATION_DEPENDENCIES.profiles,
+                api.application.dependencies.profiles,
                 "save_aio_profile",
                 {"name": "Saved", "settings": {}},
             ),
             (
                 "/easyuse_anima/aio_profiles",
                 JsonRequest(),
-                api._APPLICATION_DEPENDENCIES.profiles,
+                api.application.dependencies.profiles,
                 "list_aio_profiles",
                 [],
             ),
@@ -4148,10 +4095,10 @@ class ApiFileIoOffloadTests(unittest.TestCase):
     def test_file_io_result_exception_and_cancellation_meanings_are_preserved(self):
         api, _routes = load_api_routes()
 
-        self.assertEqual(asyncio.run(api._run_file_io(lambda: "ok")), "ok")
+        self.assertEqual(asyncio.run(api.file_io.run_file_io(lambda: "ok")), "ok")
         with self.assertRaisesRegex(RuntimeError, "worker failed"):
             asyncio.run(
-                api._run_file_io(
+                api.file_io.run_file_io(
                     lambda: (_ for _ in ()).throw(RuntimeError("worker failed"))
                 )
             )
@@ -4166,7 +4113,7 @@ class ApiFileIoOffloadTests(unittest.TestCase):
             completed.set()
 
         async def cancel_wait_only():
-            task = asyncio.create_task(api._run_file_io(slow_worker))
+            task = asyncio.create_task(api.file_io.run_file_io(slow_worker))
             while not started.is_set():
                 await asyncio.sleep(0)
             task.cancel()
@@ -4201,27 +4148,27 @@ class ApiFileIoOffloadTests(unittest.TestCase):
                 finally:
                     active -= 1
 
-            with patch.object(api.asyncio, "to_thread", new=fake_to_thread):
+            with patch.object(asyncio, "to_thread", new=fake_to_thread):
                 first = [
-                    asyncio.create_task(api._run_file_io(lambda: None))
+                    asyncio.create_task(api.file_io.run_file_io(lambda: None))
                     for _index in range(20)
                 ]
-                while submitted < api.FILE_IO_MAX_IN_FLIGHT:
+                while submitted < api.file_io.FILE_IO_MAX_IN_FLIGHT:
                     await asyncio.sleep(0)
                 for task in first:
                     task.cancel()
                 await asyncio.gather(*first, return_exceptions=True)
 
                 repeated = [
-                    asyncio.create_task(api._run_file_io(lambda: None))
+                    asyncio.create_task(api.file_io.run_file_io(lambda: None))
                     for _index in range(20)
                 ]
                 for _index in range(20):
                     await asyncio.sleep(0)
 
-                self.assertEqual(submitted, api.FILE_IO_MAX_IN_FLIGHT)
-                self.assertEqual(active, api.FILE_IO_MAX_IN_FLIGHT)
-                self.assertEqual(peak_active, api.FILE_IO_MAX_IN_FLIGHT)
+                self.assertEqual(submitted, api.file_io.FILE_IO_MAX_IN_FLIGHT)
+                self.assertEqual(active, api.file_io.FILE_IO_MAX_IN_FLIGHT)
+                self.assertEqual(peak_active, api.file_io.FILE_IO_MAX_IN_FLIGHT)
 
                 for task in repeated:
                     task.cancel()
@@ -4231,7 +4178,7 @@ class ApiFileIoOffloadTests(unittest.TestCase):
                 while active and asyncio.get_running_loop().time() < deadline:
                     await asyncio.sleep(0)
                 self.assertEqual(active, 0)
-                self.assertEqual(submitted, api.FILE_IO_MAX_IN_FLIGHT)
+                self.assertEqual(submitted, api.file_io.FILE_IO_MAX_IN_FLIGHT)
 
         asyncio.run(exercise())
 

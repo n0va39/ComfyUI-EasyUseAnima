@@ -10,8 +10,7 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
 
-import nodes
-from easyuse_anima.aio import legacy_generation
+from easyuse_anima.aio import generation_normalization, legacy_generation
 from easyuse_anima.aio.generation_lifecycle import StageModelPatchPlan
 from easyuse_anima.nodes import aio_nodes
 from tests.comfy_host_fakes import patch_comfy_helper
@@ -60,7 +59,7 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
         )
 
     def test_current_normalized_settings_enter_typed_stage_boundary_before_resources(self):
-        settings = nodes._normalize_aio_generation_settings("{}")
+        settings = generation_normalization._normalize_aio_generation_settings("{}")
 
         with patch.object(
             legacy_generation,
@@ -74,69 +73,34 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
                     settings,
                 )
 
-    def test_private_implementation_aliases_are_canonical_in_both_import_modes(self):
+    def test_private_implementation_is_canonical_in_both_import_modes(self):
         self.assertEqual(legacy_generation.__all__, ())
-        self.assertIs(
-            nodes._run_aio_legacy_generation,
-            legacy_generation._run_aio_legacy_generation,
+        names = (
+            "_run_aio_legacy_generation",
+            "_run_aio_resshift_upscale_stage",
+            "_run_aio_detailer_stage",
+            "_run_aio_detailer_target",
+            "_run_aio_highres_stage",
+            "_run_aio_upscale_stage",
+            "_run_aio_usdu_upscale_stage",
         )
-        self.assertIs(
-            nodes._run_aio_resshift_upscale_stage,
-            legacy_generation._run_aio_resshift_upscale_stage,
-        )
-        self.assertIs(
-            nodes._run_aio_detailer_stage,
-            legacy_generation._run_aio_detailer_stage,
-        )
-        self.assertIs(
-            nodes._run_aio_detailer_target,
-            legacy_generation._run_aio_detailer_target,
-        )
-        self.assertIs(
-            nodes._run_aio_highres_stage,
-            legacy_generation._run_aio_highres_stage,
-        )
-        self.assertIs(
-            nodes._run_aio_upscale_stage,
-            legacy_generation._run_aio_upscale_stage,
-        )
-        self.assertIs(
-            nodes._run_aio_usdu_upscale_stage,
-            legacy_generation._run_aio_usdu_upscale_stage,
-        )
+        for name in names:
+            with self.subTest(mode="direct", name=name):
+                self.assertEqual(
+                    getattr(legacy_generation, name).__module__,
+                    legacy_generation.__name__,
+                )
 
-        with _loaded_package_entrypoint() as (package_entrypoint, package_nodes):
+        with _loaded_package_entrypoint() as (package_entrypoint, _):
             canonical_module = sys.modules[
                 f"{package_entrypoint.__name__}.easyuse_anima.aio.legacy_generation"
             ]
-            self.assertIs(
-                package_nodes._run_aio_legacy_generation,
-                canonical_module._run_aio_legacy_generation,
-            )
-            self.assertIs(
-                package_nodes._run_aio_resshift_upscale_stage,
-                canonical_module._run_aio_resshift_upscale_stage,
-            )
-            self.assertIs(
-                package_nodes._run_aio_detailer_stage,
-                canonical_module._run_aio_detailer_stage,
-            )
-            self.assertIs(
-                package_nodes._run_aio_detailer_target,
-                canonical_module._run_aio_detailer_target,
-            )
-            self.assertIs(
-                package_nodes._run_aio_highres_stage,
-                canonical_module._run_aio_highres_stage,
-            )
-            self.assertIs(
-                package_nodes._run_aio_upscale_stage,
-                canonical_module._run_aio_upscale_stage,
-            )
-            self.assertIs(
-                package_nodes._run_aio_usdu_upscale_stage,
-                canonical_module._run_aio_usdu_upscale_stage,
-            )
+            for name in names:
+                with self.subTest(mode="package", name=name):
+                    self.assertEqual(
+                        getattr(canonical_module, name).__module__,
+                        canonical_module.__name__,
+                    )
 
     def test_highres_stage_disabled_short_circuits_after_as_bool(self):
         trace: list[str] = []
@@ -148,7 +112,7 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
             "_as_bool",
             side_effect=lambda value, default: trace.append("as_bool") or False,
         ):
-            result = nodes._run_aio_highres_stage(
+            result = legacy_generation._run_aio_highres_stage(
                 object(),
                 object(),
                 object(),
@@ -276,7 +240,7 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
         }
 
         with patch.multiple(legacy_generation, **helpers):
-            result = nodes._run_aio_highres_stage(
+            result = legacy_generation._run_aio_highres_stage(
                 model,
                 clip,
                 vae,
@@ -362,7 +326,7 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
 
         with patch.multiple(legacy_generation, **helpers):
             with self.assertRaisesRegex(RuntimeError, "sample failed"):
-                nodes._run_aio_highres_stage(
+                legacy_generation._run_aio_highres_stage(
                     model,
                     object(),
                     object(),
@@ -403,7 +367,7 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
             }
 
             with patch.multiple(legacy_generation, **helpers):
-                result = nodes._run_aio_detailer_stage(
+                result = legacy_generation._run_aio_detailer_stage(
                     object(),
                     object(),
                     object(),
@@ -524,7 +488,7 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
             trace.append(("callback", stage, output.name))
 
         with patch.multiple(legacy_generation, **helpers):
-            result = nodes._run_aio_detailer_stage(
+            result = legacy_generation._run_aio_detailer_stage(
                 model,
                 clip,
                 vae,
@@ -583,7 +547,7 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
             }
 
             with patch.multiple(legacy_generation, **helpers):
-                nodes._run_aio_detailer_stage(
+                legacy_generation._run_aio_detailer_stage(
                     object(),
                     object(),
                     object(),
@@ -676,7 +640,7 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
             "_as_bool",
             side_effect=lambda value, default: trace.append("call:_as_bool") or False,
         ):
-            result = nodes._run_aio_detailer_target(
+            result = legacy_generation._run_aio_detailer_target(
                 "face",
                 {"enabled": False},
                 image,
@@ -803,7 +767,7 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
         }
 
         with patch.multiple(legacy_generation, **helpers):
-            result = nodes._run_aio_detailer_target(
+            result = legacy_generation._run_aio_detailer_target(
                 "face",
                 target_settings,
                 image,
@@ -926,7 +890,7 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
             }
 
             with patch.multiple(legacy_generation, **helpers):
-                return nodes._run_aio_detailer_target(
+                return legacy_generation._run_aio_detailer_target(
                     "face",
                     {"enabled": True},
                     image,
@@ -1167,7 +1131,7 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
         }
 
         with patch.multiple(legacy_generation, **helpers):
-            result = nodes._run_aio_usdu_upscale_stage(
+            result = legacy_generation._run_aio_usdu_upscale_stage(
                 model,
                 clip,
                 vae,
@@ -1308,7 +1272,7 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
             }
 
             with patch.multiple(legacy_generation, **helpers):
-                return nodes._run_aio_usdu_upscale_stage(
+                return legacy_generation._run_aio_usdu_upscale_stage(
                     model,
                     object(),
                     object(),
@@ -1450,7 +1414,7 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
         }
 
         with patch.multiple(legacy_generation, **helpers):
-            result = nodes._run_aio_resshift_upscale_stage(
+            result = legacy_generation._run_aio_resshift_upscale_stage(
                 image,
                 sampler_settings,
                 upscale_settings,
@@ -1508,7 +1472,7 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
 
         def execute(helpers, trace):
             with patch.multiple(legacy_generation, **helpers):
-                return nodes._run_aio_resshift_upscale_stage(
+                return legacy_generation._run_aio_resshift_upscale_stage(
                     image,
                     {"seed": 7},
                     {"resshift": {}},
@@ -1656,7 +1620,7 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
             helpers = {"_as_bool": as_bool, **leaf_helpers}
 
             with patch.multiple(legacy_generation, **helpers):
-                return nodes._run_aio_upscale_stage(
+                return legacy_generation._run_aio_upscale_stage(
                     model,
                     clip,
                     vae,
@@ -1806,7 +1770,7 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
         )
 
     def test_root_generate_keeps_signature_and_forwards_normalized_execution(self):
-        signature = inspect.signature(nodes.EasyUseAnimaAIOGenerator.generate)
+        signature = inspect.signature(aio_nodes.EasyUseAnimaAIOGenerator.generate)
         self.assertEqual(
             list(signature.parameters),
             [
@@ -1828,7 +1792,7 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
         ):
             self.assertIsNone(signature.parameters[name].default)
 
-        generator = nodes.EasyUseAnimaAIOGenerator()
+        generator = aio_nodes.EasyUseAnimaAIOGenerator()
         normalized = {
             "sampler": {
                 "seed": 7,
@@ -2247,7 +2211,7 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
             "detailer": "shared-stage-model",
             "upscale": "shared-stage-model",
         }
-        generator = nodes.EasyUseAnimaAIOGenerator()
+        generator = aio_nodes.EasyUseAnimaAIOGenerator()
         context = {
             "prompt_data": {"positive_prompt": "prompt"},
             "resource_info": {"unet_name": "model.safetensors"},
@@ -2646,7 +2610,7 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
                 require,
             ),
             patch_comfy_helper(
-                nodes,
+                aio_nodes,
                 "_encode_with_comfy_clip",
                 encode_negative,
             ),

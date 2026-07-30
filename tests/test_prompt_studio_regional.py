@@ -5,12 +5,13 @@ import unittest
 from typing import get_type_hints
 from unittest.mock import patch
 
-import nodes as easy_nodes
 from easyuse_anima.nodes import regional_nodes
 from easyuse_anima.prompt import regional as regional_service
+from easyuse_anima.prompt import regional_builder
 from easyuse_anima.prompt.contracts import PromptField, RegionalField
+from easyuse_anima.seed.compatibility import WILDCARD_RESERVED_NEXT_SEED_INPUT
 from tests.comfy_host_fakes import patch_comfy_helper
-from nodes import (
+from easyuse_anima.nodes.regional_nodes import (
     EasyUseAnimaRegionalConditioning,
     EasyUseAnimaPromptStudioRegional,
 )
@@ -73,7 +74,7 @@ class PromptStudioRegionalTests(unittest.TestCase):
         self.assertNotIn("pin", fallback[0])
         self.assertIn("mask_ids", fallback[0])
 
-    def test_root_exports_are_canonical_regional_identities(self):
+    def test_regional_exports_are_canonical_identities(self):
         self.assertIs(
             EasyUseAnimaPromptStudioRegional,
             regional_nodes.EasyUseAnimaPromptStudioRegional,
@@ -82,13 +83,13 @@ class PromptStudioRegionalTests(unittest.TestCase):
             EasyUseAnimaRegionalConditioning,
             regional_nodes.EasyUseAnimaRegionalConditioning,
         )
-        self.assertIs(
-            easy_nodes._normalize_regional_fields,
-            regional_service._normalize_regional_fields,
+        self.assertEqual(
+            regional_service._normalize_regional_fields.__module__,
+            regional_service.__name__,
         )
         self.assertIs(
-            easy_nodes._build_regional_outputs,
             regional_service._build_regional_outputs,
+            regional_builder._build_regional_outputs,
         )
 
     def test_defaults_return_global_prompts_and_regional_payload(self):
@@ -268,7 +269,7 @@ class PromptStudioRegionalTests(unittest.TestCase):
             ],
         }
         with patch_comfy_helper(
-            easy_nodes,
+            regional_nodes,
             "_encode_with_comfy_clip",
             lambda clip, text: [[f"cond:{text}", {"encoded_text": text}]],
         ):
@@ -340,7 +341,7 @@ class PromptStudioRegionalTests(unittest.TestCase):
         )
 
     def test_build_ignores_retired_browser_seed_and_scrubs_token(self):
-        reservation_key = easy_nodes.WILDCARD_RESERVED_NEXT_SEED_INPUT
+        reservation_key = WILDCARD_RESERVED_NEXT_SEED_INPUT
         reservation = json.dumps({
             "version": 1,
             "current_seed": 2,
@@ -404,7 +405,7 @@ class PromptStudioRegionalTests(unittest.TestCase):
         self.assertEqual(extra_pnginfo["workflow"]["nodes"][0]["widgets_values"][7], 2)
 
     def test_invalid_reserved_queue_seed_scrubs_token_and_uses_fallback(self):
-        reservation_key = easy_nodes.WILDCARD_RESERVED_NEXT_SEED_INPUT
+        reservation_key = WILDCARD_RESERVED_NEXT_SEED_INPUT
         mismatched_reservation = json.dumps({
             "version": 1,
             "current_seed": 2,

@@ -115,19 +115,19 @@ class PythonFileDispositionContractTests(unittest.TestCase):
         with self.assertRaises(checker.ContractError):
             self.validate(mutation)
 
-    def test_ptc08_size_closure_has_only_root_cutover_pending(self):
+    def test_ptc09b_size_closure_has_no_root_cutover_pending(self):
         contract = self.validate(self.document)
         verdicts = [
             (entry["status"], verdict["id"])
             for entry in contract["entries"]
             for verdict in entry["size_exception_verdicts"]
         ]
-        self.assertEqual(len(self.size_document["module_exceptions"]), 8)
+        self.assertEqual(len(self.size_document["module_exceptions"]), 7)
         self.assertEqual(len(self.size_document["function_exceptions"]), 15)
-        self.assertEqual(len(verdicts), 23)
+        self.assertEqual(len(verdicts), 22)
         self.assertEqual(
             [item for item in verdicts if item[0] == "planned"],
-            [("planned", "module:nodes.py")],
+            [],
         )
 
     def test_compatibility_entries_reference_authoritative_registry(self):

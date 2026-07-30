@@ -1,41 +1,15 @@
 from __future__ import annotations
 
 import asyncio
-import importlib.util
 import sys
 import threading
 import time
-import types
 import unittest
-from pathlib import Path
 from unittest.mock import patch
 
+from tests.test_api_contract import load_api_routes as load_canonical_api_routes
 
-ROOT = Path(__file__).resolve().parents[1]
-PACKAGE_NAME = "easyuse_anima_translation_api_test_package"
 ROUTE = "/easyuse_anima/translate_prompt"
-
-
-def _clear_package_modules():
-    prefix = f"{PACKAGE_NAME}."
-    for name in list(sys.modules):
-        if name == PACKAGE_NAME or name.startswith(prefix):
-            sys.modules.pop(name, None)
-
-
-class RouteRegistry:
-    def __init__(self):
-        self.handlers = {}
-
-    def get(self, path):
-        def register(handler):
-            self.handlers[path] = handler
-            return handler
-
-        return register
-
-    def post(self, path):
-        return self.get(path)
 
 
 class JsonRequest:
@@ -47,69 +21,26 @@ class JsonRequest:
 
 
 def load_api_routes():
-    _clear_package_modules()
-    package = types.ModuleType(PACKAGE_NAME)
-    package.__path__ = [str(ROOT)]
-    sys.modules[PACKAGE_NAME] = package
-
-    routes = RouteRegistry()
-    fake_server = types.ModuleType("server")
-    fake_server.PromptServer = type(
-        "PromptServer",
-        (),
-        {"instance": types.SimpleNamespace(routes=routes)},
-    )
-    fake_aiohttp = types.ModuleType("aiohttp")
-    fake_aiohttp.web = types.SimpleNamespace(
-        json_response=lambda payload, status=200: {"payload": payload, "status": status},
-    )
-
-    spec = importlib.util.spec_from_file_location(
-        f"{PACKAGE_NAME}.api",
-        ROOT / "api.py",
-    )
-    module = importlib.util.module_from_spec(spec)
-    sys.modules[spec.name] = module
-    missing = object()
-    previous_modules = {
-        name: sys.modules.get(name, missing)
-        for name in ("server", "aiohttp")
-    }
-    sys.modules.update({"server": fake_server, "aiohttp": fake_aiohttp})
-    try:
-        spec.loader.exec_module(module)
-        module.register_routes()
-        translation_contracts = sys.modules[
-            module.PromptTranslationError.__module__
-        ]
-        translation_service = sys.modules[
-            module.translate_prompt_markers.__module__
-        ]
-    finally:
-        for name, previous in previous_modules.items():
-            if previous is missing:
-                sys.modules.pop(name, None)
-            else:
-                sys.modules[name] = previous
-    return module, routes, translation_contracts, translation_service
+    api, routes = load_canonical_api_routes()
+    return api, routes, api.translation_contracts, api.translation_service
 
 
 class PromptTranslationApiTests(unittest.TestCase):
     def load_routes(self):
         api, routes, translation, translation_service = load_api_routes()
-        self.addCleanup(_clear_package_modules)
-        self.addCleanup(api._PROMPT_TRANSLATION_WORKER.shutdown)
+        self.addCleanup(api.application.translation_executor.shutdown)
         return api, routes, translation, translation_service
 
     def test_route_handler_is_owned_by_the_canonical_factory(self):
         api, routes, _translation, _translation_service = self.load_routes()
         handler = routes.handlers[ROUTE]
 
-        self.assertIs(api.translate_prompt_handler, handler)
+        self.assertIs(api.application.handlers.translate_prompt_handler, handler)
         self.assertEqual(handler.__name__, "translate_prompt_handler")
-        self.assertEqual(
-            handler.__module__,
-            f"{PACKAGE_NAME}.easyuse_anima.api.routes.translation",
+        self.assertTrue(
+            handler.__module__.endswith(
+                ".easyuse_anima.api.routes.translation"
+            )
         )
         self.assertTrue(handler._easyuse_anima_request_correlation)
 
@@ -123,48 +54,52 @@ class PromptTranslationApiTests(unittest.TestCase):
 
         for name, argcount in cases:
             with self.subTest(name=name):
-                helper = getattr(api, name)
+                helper = getattr(
+                    api.application.compatibility.parts,
+                    name.removeprefix("_"),
+                )
                 self.assertEqual(helper.__name__, name)
-                self.assertEqual(
-                    helper.__module__,
-                    f"{PACKAGE_NAME}.easyuse_anima.api.routes.translation",
+                self.assertTrue(
+                    helper.__module__.endswith(
+                        ".easyuse_anima.api.routes.translation"
+                    )
                 )
                 self.assertEqual(helper.__code__.co_argcount, argcount)
 
-        owner = sys.modules[api._translate_prompt_sync.__module__]
+        owner = sys.modules[api.application.compatibility.parts.translate_prompt_sync.__module__]
         self.assertIs(
-            api.PROMPT_TRANSLATION_ROUTE_TIMEOUT_SECONDS,
+            api.translation_routes.PROMPT_TRANSLATION_ROUTE_TIMEOUT_SECONDS,
             owner.PROMPT_TRANSLATION_ROUTE_TIMEOUT_SECONDS,
         )
-        self.assertEqual(api.PROMPT_TRANSLATION_ROUTE_TIMEOUT_SECONDS, 15.0)
+        self.assertEqual(api.translation_routes.PROMPT_TRANSLATION_ROUTE_TIMEOUT_SECONDS, 15.0)
         self.assertEqual(owner.__all__, ("build_translate_prompt_handler",))
         self.assertFalse(hasattr(owner, "_PROMPT_TRANSLATION_WORKER"))
 
     def test_repeated_registration_keeps_one_bootstrap_composed_runtime(self):
         api, routes, _translation, _translation_service = self.load_routes()
         runtime = (
-            api._PROMPT_TRANSLATION_WORKER,
-            api._translate_prompt_sync,
-            api._translate_prompt_for_route,
-            api._prompt_translation_error_response,
+            api.application.translation_executor,
+            api.application.compatibility.parts.translate_prompt_sync,
+            api.application.compatibility.parts.translate_prompt_for_route,
+            api.application.compatibility.parts.prompt_translation_error_response,
         )
 
-        api.register_routes()
+        api.application.register_routes()
 
         self.assertEqual(
             (
-                api._PROMPT_TRANSLATION_WORKER,
-                api._translate_prompt_sync,
-                api._translate_prompt_for_route,
-                api._prompt_translation_error_response,
+                api.application.translation_executor,
+                api.application.compatibility.parts.translate_prompt_sync,
+                api.application.compatibility.parts.translate_prompt_for_route,
+                api.application.compatibility.parts.prompt_translation_error_response,
             ),
             runtime,
         )
-        self.assertIs(routes.handlers[ROUTE], api.translate_prompt_handler)
+        self.assertIs(routes.handlers[ROUTE], api.application.handlers.translate_prompt_handler)
 
     def test_runtime_builder_constructs_one_worker_without_lifecycle_side_effect(self):
         api, _routes, translation, _translation_service = self.load_routes()
-        owner = sys.modules[api._translate_prompt_sync.__module__]
+        owner = sys.modules[api.application.compatibility.parts.translate_prompt_sync.__module__]
         created = []
 
         class FakeExecutor:
@@ -188,9 +123,9 @@ class PromptTranslationApiTests(unittest.TestCase):
 
         runtime = owner.build_translation_runtime(
             executor_type=FakeExecutor,
-            busy_error_type=api.TranslationBusyError,
-            cancelled_error_type=api.TranslationCancelledError,
-            timeout_error_type=api.TranslationTimeoutError,
+            busy_error_type=api.translation_contracts.TranslationBusyError,
+            cancelled_error_type=api.translation_contracts.TranslationCancelledError,
+            timeout_error_type=api.translation_contracts.TranslationTimeoutError,
             translate_prompt_markers=lambda text, settings: text,
             resolve_prompt_translation_settings=lambda: object(),
             get_worker=lambda: runtime[0],
@@ -217,9 +152,9 @@ class PromptTranslationApiTests(unittest.TestCase):
             created,
             [
                 (
-                    api.TranslationBusyError,
-                    api.TranslationCancelledError,
-                    api.TranslationTimeoutError,
+                    api.translation_contracts.TranslationBusyError,
+                    api.translation_contracts.TranslationCancelledError,
+                    api.translation_contracts.TranslationTimeoutError,
                 )
             ],
         )
@@ -240,17 +175,17 @@ class PromptTranslationApiTests(unittest.TestCase):
 
         with (
             patch.object(
-                api._APPLICATION_DEPENDENCIES.translation,
+                api.application.dependencies.translation,
                 "resolve_prompt_translation_settings",
                 side_effect=resolve_settings,
             ),
             patch.object(
-                api._APPLICATION_DEPENDENCIES.translation,
+                api.application.dependencies.translation,
                 "translate_prompt_markers",
                 side_effect=translate,
             ),
         ):
-            translated = api._translate_prompt_sync("%{text}")
+            translated = api.application.compatibility.parts.translate_prompt_sync("%{text}")
 
         self.assertEqual(translated, "translated")
         self.assertEqual(
@@ -268,22 +203,22 @@ class PromptTranslationApiTests(unittest.TestCase):
 
         with (
             patch.object(
-                api._PROMPT_TRANSLATION_WORKER,
+                api.application.translation_executor,
                 "execute",
                 side_effect=execute,
             ),
             patch.object(
-                api._APPLICATION_DEPENDENCIES.translation,
+                api.application.dependencies.translation,
                 "route_timeout_seconds",
                 0.25,
             ),
         ):
-            translated = asyncio.run(api._translate_prompt_for_route("%{async}"))
+            translated = asyncio.run(api.application.compatibility.parts.translate_prompt_for_route("%{async}"))
 
         self.assertEqual(translated, "async-translated")
         self.assertEqual(
             calls,
-            [("execute", api._translate_prompt_sync, "%{async}", 0.25)],
+            [("execute", api.application.compatibility.parts.translate_prompt_sync, "%{async}", 0.25)],
         )
 
     def test_translation_error_boundary_uses_static_policy_and_semantic_messages(self):
@@ -377,11 +312,11 @@ class PromptTranslationApiTests(unittest.TestCase):
             error.message = "Tampered message"
             expected_response = object()
             with self.subTest(error=type(error).__name__, message=message), patch.object(
-                api._APPLICATION_DEPENDENCIES.request,
+                api.application.dependencies.request,
                 "error_response",
                 return_value=expected_response,
             ) as error_response:
-                response = api._prompt_translation_error_response(error)
+                response = api.application.compatibility.parts.prompt_translation_error_response(error)
 
             self.assertIs(response, expected_response)
             error_response.assert_called_once_with(status, code, message)
@@ -391,11 +326,11 @@ class PromptTranslationApiTests(unittest.TestCase):
         )
         expected_response = object()
         with patch.object(
-            api._APPLICATION_DEPENDENCIES.request,
+            api.application.dependencies.request,
             "error_response",
             return_value=expected_response,
         ) as error_response:
-            response = api._prompt_translation_error_response(compatibility_error)
+            response = api.application.compatibility.parts.prompt_translation_error_response(compatibility_error)
 
         self.assertIs(response, expected_response)
         error_response.assert_called_once_with(
@@ -406,17 +341,18 @@ class PromptTranslationApiTests(unittest.TestCase):
 
         unexpected = RuntimeError("unexpected")
         with self.assertRaises(RuntimeError) as raised:
-            api._prompt_translation_error_response(unexpected)
+            api.application.compatibility.parts.prompt_translation_error_response(unexpected)
         self.assertIs(raised.exception, unexpected)
 
     def test_route_executor_is_owned_by_the_canonical_module(self):
         api, _routes, _translation, _translation_service = self.load_routes()
-        executor = api._PROMPT_TRANSLATION_WORKER
+        executor = api.application.translation_executor
         executor_module = sys.modules[type(executor).__module__]
 
-        self.assertEqual(
-            type(executor).__module__,
-            f"{PACKAGE_NAME}.easyuse_anima.api.routes.translation_execution",
+        self.assertTrue(
+            type(executor).__module__.endswith(
+                ".easyuse_anima.api.routes.translation_execution"
+            )
         )
         self.assertIs(
             type(executor),
@@ -450,12 +386,12 @@ class PromptTranslationApiTests(unittest.TestCase):
 
         with (
             patch.object(
-                api._APPLICATION_DEPENDENCIES.translation,
+                api.application.dependencies.translation,
                 "resolve_prompt_translation_settings",
                 return_value=translation.PromptTranslationSettings(provider="google"),
             ),
             patch.object(
-                api._APPLICATION_DEPENDENCIES.translation,
+                api.application.dependencies.translation,
                 "translate_prompt_markers",
                 side_effect=slow_translation,
             ),
@@ -490,7 +426,7 @@ class PromptTranslationApiTests(unittest.TestCase):
             try:
                 first_response = await handler(JsonRequest({"text": "%{first}"}))
                 self.assertTrue(worker_started.is_set())
-                self.assertTrue(api._PROMPT_TRANSLATION_WORKER.has_in_flight)
+                self.assertTrue(api.application.translation_executor.has_in_flight)
                 repeated_responses = await asyncio.gather(
                     *(
                         handler(JsonRequest({"text": f"%{{later-{index}}}"}))
@@ -501,7 +437,7 @@ class PromptTranslationApiTests(unittest.TestCase):
                 release_worker.set()
                 deadline = asyncio.get_running_loop().time() + 1
                 while (
-                    api._PROMPT_TRANSLATION_WORKER.has_in_flight
+                    api.application.translation_executor.has_in_flight
                     and asyncio.get_running_loop().time() < deadline
                 ):
                     await asyncio.sleep(0.001)
@@ -511,24 +447,25 @@ class PromptTranslationApiTests(unittest.TestCase):
 
         with (
             patch.object(
-                api._APPLICATION_DEPENDENCIES.translation,
+                api.application.dependencies.translation,
                 "resolve_prompt_translation_settings",
                 return_value=translation.PromptTranslationSettings(provider="google"),
             ),
             patch.object(
-                api._APPLICATION_DEPENDENCIES.translation,
+                api.application.dependencies.translation,
                 "route_timeout_seconds",
                 0.01,
             ),
             patch.object(
-                api._APPLICATION_DEPENDENCIES.translation,
+                api.application.dependencies.translation,
                 "translate_prompt_markers",
                 side_effect=blocking_translation,
             ) as worker,
-            patch.object(api.asyncio, "to_thread") as shared_executor_submit,
+            patch.object(asyncio, "to_thread") as shared_executor_submit,
         ):
             response, repeated_responses, heartbeat = asyncio.run(exercise())
 
+        self.assertIsInstance(response["payload"].pop("request_id"), str)
         self.assertEqual(
             response,
             {
@@ -543,7 +480,12 @@ class PromptTranslationApiTests(unittest.TestCase):
         self.assertEqual(worker.call_count, 1)
         shared_executor_submit.assert_not_called()
         self.assertGreaterEqual(heartbeat, 3)
-        self.assertFalse(api._PROMPT_TRANSLATION_WORKER.has_in_flight)
+        self.assertFalse(api.application.translation_executor.has_in_flight)
+        for repeated_response in repeated_responses:
+            self.assertIsInstance(
+                repeated_response["payload"].pop("request_id"),
+                str,
+            )
         self.assertEqual(
             repeated_responses,
             [
@@ -577,13 +519,13 @@ class PromptTranslationApiTests(unittest.TestCase):
             task.cancel()
             try:
                 response = await task
-                self.assertTrue(api._PROMPT_TRANSLATION_WORKER.has_in_flight)
+                self.assertTrue(api.application.translation_executor.has_in_flight)
                 busy_response = await handler(JsonRequest({"text": "%{later}"}))
             finally:
                 release_worker.set()
                 deadline = asyncio.get_running_loop().time() + 1
                 while (
-                    api._PROMPT_TRANSLATION_WORKER.has_in_flight
+                    api.application.translation_executor.has_in_flight
                     and asyncio.get_running_loop().time() < deadline
                 ):
                     await asyncio.sleep(0.001)
@@ -591,18 +533,19 @@ class PromptTranslationApiTests(unittest.TestCase):
 
         with (
             patch.object(
-                api._APPLICATION_DEPENDENCIES.translation,
+                api.application.dependencies.translation,
                 "resolve_prompt_translation_settings",
                 return_value=translation.PromptTranslationSettings(provider="google"),
             ),
             patch.object(
-                api._APPLICATION_DEPENDENCIES.translation,
+                api.application.dependencies.translation,
                 "translate_prompt_markers",
                 side_effect=blocking_translation,
             ),
         ):
             response, busy_response = asyncio.run(exercise())
 
+        self.assertIsInstance(response["payload"].pop("request_id"), str)
         self.assertEqual(
             response,
             {
@@ -616,7 +559,7 @@ class PromptTranslationApiTests(unittest.TestCase):
         )
         self.assertEqual(busy_response["status"], 503)
         self.assertEqual(busy_response["payload"]["code"], "translation_busy")
-        self.assertFalse(api._PROMPT_TRANSLATION_WORKER.has_in_flight)
+        self.assertFalse(api.application.translation_executor.has_in_flight)
 
     def test_route_maps_only_prompt_translation_errors(self):
         api, routes, translation, _translation_service = self.load_routes()
@@ -640,18 +583,19 @@ class PromptTranslationApiTests(unittest.TestCase):
             with self.subTest(code=code):
                 with (
                     patch.object(
-                        api._APPLICATION_DEPENDENCIES.translation,
+                        api.application.dependencies.translation,
                         "resolve_prompt_translation_settings",
                         return_value=settings,
                     ),
                     patch.object(
-                        api._APPLICATION_DEPENDENCIES.translation,
+                        api.application.dependencies.translation,
                         "translate_prompt_markers",
                         side_effect=error,
                     ),
                 ):
                     response = asyncio.run(handler(JsonRequest({"text": "%{text}"})))
 
+                self.assertIsInstance(response["payload"].pop("request_id"), str)
                 self.assertEqual(
                     response,
                     {
@@ -675,17 +619,17 @@ class PromptTranslationApiTests(unittest.TestCase):
         expected_response = object()
         with (
             patch.object(
-                api._PROMPT_TRANSLATION_WORKER,
+                api.application.translation_executor,
                 "execute",
                 side_effect=error,
             ),
             patch.object(
-                api._APPLICATION_DEPENDENCIES.translation,
+                api.application.dependencies.translation,
                 "prompt_translation_error_type",
                 InjectedTranslationError,
             ),
             patch.object(
-                api._APPLICATION_DEPENDENCIES.translation,
+                api.application.dependencies.translation,
                 "prompt_translation_error_response",
                 return_value=expected_response,
             ) as error_response,
@@ -706,11 +650,11 @@ class PromptTranslationApiTests(unittest.TestCase):
             with self.subTest(error=type(error).__name__):
                 with (
                     patch.object(
-                        api._APPLICATION_DEPENDENCIES.translation,
+                        api.application.dependencies.translation,
                         "resolve_prompt_translation_settings",
                         side_effect=error,
                     ),
-                    patch.object(api._LOGGER, "error") as log_error,
+                    patch.object(api.application.compatibility.parts.logger, "error") as log_error,
                 ):
                     response = asyncio.run(handler(JsonRequest({"text": "%{text}"})))
                 self.assertEqual(response["status"], 500)
@@ -748,7 +692,7 @@ class PromptTranslationApiTests(unittest.TestCase):
 
         with (
             patch.object(
-                api._APPLICATION_DEPENDENCIES.translation,
+                api.application.dependencies.translation,
                 "resolve_prompt_translation_settings",
                 return_value=settings,
             ),

@@ -39,10 +39,8 @@ def contract_document(*, modules=(), functions=()):
         "adapter_paths": {
             "exact": [
                 "__init__.py",
-                "api.py",
                 "easyuse_anima/bootstrap.py",
                 "easyuse_anima/registration.py",
-                "nodes.py",
             ],
             "prefixes": [
                 "easyuse_anima/api/",
@@ -116,7 +114,7 @@ class PythonSizeComplexityContractTests(unittest.TestCase):
         report = checker.analyzer.analyze_source_set(
             {
                 "__init__.py": "VALUE = 1\n",
-                "api.py": "# adapter\n" * 401,
+                "easyuse_anima/bootstrap.py": "# adapter\n" * 401,
                 "easyuse_anima/service.py": "# service\n" * 801,
                 "easyuse_anima/small.py": function_source(121),
             }
@@ -137,7 +135,7 @@ class PythonSizeComplexityContractTests(unittest.TestCase):
         self.assertEqual(
             {(item["path"], item["symbol"]) for item in violations},
             {
-                ("api.py", "<module>"),
+                ("easyuse_anima/bootstrap.py", "<module>"),
                 ("easyuse_anima/service.py", "<module>"),
                 ("easyuse_anima/small.py", "oversized"),
             },

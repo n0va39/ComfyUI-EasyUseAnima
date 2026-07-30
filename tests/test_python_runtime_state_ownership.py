@@ -257,10 +257,8 @@ class PythonRuntimeStateOwnershipContractTests(unittest.TestCase):
             for symbol in entry["symbols"]
         }
         required = {
-            ("__init__.py", "_initialize"),
+            ("__init__.py", "_initialize_package"),
             ("easyuse_anima/api/application.py", "_APPLICATION"),
-            ("api.py", "_PROMPT_TRANSLATION_WORKER"),
-            ("api.py", "register_routes"),
             (
                 "easyuse_anima/aio/first_pass_cache.py",
                 "_DEFAULT_AIO_FIRST_PASS_CACHE",

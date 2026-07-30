@@ -1,42 +1,6 @@
 {
   "classification": "Contract",
-  "compatibility_surfaces": [
-    {
-      "id": "root-dataset-identity-shim",
-      "kind": "identity_reexport",
-      "module": "autocomplete_dataset.py",
-      "symbols": [
-        "AUTOCOMPLETE_CSV",
-        "AUTOCOMPLETE_SOURCES",
-        "AutocompleteEntry",
-        "autocomplete_status",
-        "classify_prompt_text",
-        "resolve_autocomplete_source",
-        "search_autocomplete"
-      ]
-    },
-    {
-      "id": "root-index-identity-shim",
-      "kind": "identity_reexport",
-      "module": "autocomplete_index.py",
-      "symbols": [
-        "AutocompleteIndexSource",
-        "AutocompleteIndexUnavailable",
-        "search_autocomplete_index"
-      ]
-    },
-    {
-      "id": "root-api-runtime-adapter-aliases",
-      "kind": "dynamic_callback",
-      "module": "api.py",
-      "symbols": [
-        "autocomplete_status",
-        "classify_prompt_text",
-        "resolve_autocomplete_source",
-        "search_autocomplete"
-      ]
-    }
-  ],
+  "compatibility_surfaces": [],
   "completion_audit": {
     "ambiguous_state_owners": [],
     "classification": "Contract",
@@ -95,42 +59,7 @@
     },
     "next_phase": "E-06a wildcard snapshot ownership Contract",
     "production_changes": 0,
-    "root_identity_bindings": [
-      {
-        "canonical_module": "easyuse_anima.autocomplete.dataset",
-        "root_module": "autocomplete_dataset.py",
-        "symbols": [
-          "AUTOCOMPLETE_CSV",
-          "AUTOCOMPLETE_SOURCES",
-          "AutocompleteEntry",
-          "autocomplete_status",
-          "resolve_autocomplete_source"
-        ]
-      },
-      {
-        "canonical_module": "easyuse_anima.autocomplete.search",
-        "root_module": "autocomplete_dataset.py",
-        "symbols": [
-          "search_autocomplete"
-        ]
-      },
-      {
-        "canonical_module": "easyuse_anima.autocomplete.classification",
-        "root_module": "autocomplete_dataset.py",
-        "symbols": [
-          "classify_prompt_text"
-        ]
-      },
-      {
-        "canonical_module": "easyuse_anima.autocomplete.index",
-        "root_module": "autocomplete_index.py",
-        "symbols": [
-          "AutocompleteIndexSource",
-          "AutocompleteIndexUnavailable",
-          "search_autocomplete_index"
-        ]
-      }
-    ]
+    "root_identity_bindings": []
   },
   "decisions": {
     "adapter_access": "API adapters receive or resolve one narrow autocomplete port; autocomplete feature modules do not import RuntimeServices, bootstrap, API adapters, or root compatibility shims.",
@@ -215,7 +144,7 @@
       "evidence": [
         "tests/test_autocomplete_service.py",
         "tests/test_autocomplete_index.py",
-        "tests/test_autocomplete_dataset_compatibility.py",
+        "tests/test_python_legacy_path_retirement.py",
         "tests/test_autocomplete_locale_settings.py",
         "tests/test_prompt_corrector.py"
       ],

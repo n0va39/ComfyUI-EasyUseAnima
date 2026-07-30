@@ -1,34 +1,6 @@
 {
   "classification": "Contract",
-  "compatibility_surfaces": [
-    {
-      "id": "root-translation-identity-shim",
-      "kind": "identity_reexport",
-      "module": "prompt_translation.py",
-      "symbols": [
-        "BoundedTranslationCache",
-        "GoogleTranslationProvider",
-        "PromptTranslationService",
-        "get_translation_provider",
-        "google_translate_text",
-        "translate_prompt_markers"
-      ]
-    },
-    {
-      "id": "root-api-dynamic-runtime-seams",
-      "kind": "dynamic_patch",
-      "module": "api.py",
-      "symbols": [
-        "PROMPT_TRANSLATION_ROUTE_TIMEOUT_SECONDS",
-        "_PROMPT_TRANSLATION_WORKER",
-        "_prompt_translation_error_response",
-        "_translate_prompt_for_route",
-        "_translate_prompt_sync",
-        "resolve_prompt_translation_settings",
-        "translate_prompt_markers"
-      ]
-    }
-  ],
+  "compatibility_surfaces": [],
   "completion_audit": {
     "ambiguous_state_owners": [],
     "classification": "Contract",
@@ -126,7 +98,7 @@
   "owners": [
     {
       "cleanup": {
-        "current": "private bootstrap composition owns the executor identity and invokes idempotent shutdown from the one terminal cleanup plan while root retains the compatibility reference",
+        "current": "private bootstrap composition owns the executor identity and invokes idempotent shutdown from the one terminal cleanup plan",
         "implemented_methods": [
           "shutdown"
         ],
@@ -150,7 +122,7 @@
         "factory": "build_translation_runtime",
         "factory_module": "easyuse_anima/api/routes/translation.py",
         "invocation_module": "easyuse_anima/api/application_compatibility.py",
-        "root_composition_helper": "_compose_api_application"
+        "root_composition_helper": "_initialize_package"
       },
       "current_owner": "easyuse_anima.api.application.ApiApplication composed through easyuse_anima.bootstrap",
       "e01_entry": "root-translation-route-worker",
@@ -161,9 +133,9 @@
       ],
       "id": "route-executor",
       "locking": "one RLock protects lazy executor creation, one in-flight Future identity, admission, release, and closed state",
-      "module": "api.py",
+      "module": "easyuse_anima/bootstrap.py",
       "state_symbols": [
-        "_PROMPT_TRANSLATION_WORKER"
+        "_TRANSLATION_ROUTE_EXECUTOR"
       ],
       "target_phase": "E-04d-complete"
     },

@@ -4,7 +4,6 @@ import unittest
 from types import SimpleNamespace
 from unittest.mock import Mock, patch
 
-import nodes
 from easyuse_anima.aio import resources as aio_resources
 from easyuse_anima.image import sam3 as sam3_service
 from easyuse_anima.image import sam3_detailer as sam3_detailer_service
@@ -51,39 +50,7 @@ class SAM3MoveTests(unittest.TestCase):
         values.update(overrides)
         return values
 
-    def test_root_symbols_are_direct_canonical_aliases(self):
-        retired_service_names = (
-            "_call_impact_detailer",
-            "_empty_mask_for_image",
-            "_empty_segs_for_image",
-            "_find_impact_detailer_class",
-            "_find_impact_mask_to_segs_class",
-            "_find_sam3_detect_class",
-            "_format_sam3_detection_prompt",
-            "_run_impact_detailer",
-            "_run_sam3_detailer",
-        )
-        for name in retired_service_names:
-            with self.subTest(retired=name):
-                self.assertFalse(hasattr(nodes, name))
-
-        retained_service_names = (
-            "_context_value",
-            "_sam3_context",
-            "_segs_has_items",
-        )
-        for name in retained_service_names:
-            with self.subTest(name=name):
-                self.assertIs(getattr(nodes, name), getattr(sam3_service, name))
-
-        node_names = (
-            "EasyUseAnimaSAM3Context",
-            "EasyUseAnimaSAM3Detailer",
-        )
-        for name in node_names:
-            with self.subTest(name=name):
-                self.assertIs(getattr(nodes, name), getattr(sam3_nodes, name))
-        self.assertFalse(hasattr(nodes, "_EasyUseAnimaImpactDetailerDelegate"))
+    def test_sam3_adapters_use_direct_canonical_owners(self):
         self.assertIs(
             sam3_nodes._EasyUseAnimaImpactDetailerDelegate,
             impact_detailer_nodes._EasyUseAnimaImpactDetailerDelegate,
@@ -140,7 +107,7 @@ class SAM3MoveTests(unittest.TestCase):
     def test_sam3_lookup_uses_call_time_provider(self):
         sentinel = object()
         with patch_comfy_helper(
-            nodes,
+            sam3_nodes,
             "_find_comfy_node_class",
             return_value=sentinel,
         ) as find:
@@ -148,7 +115,7 @@ class SAM3MoveTests(unittest.TestCase):
         find.assert_called_once_with("SAM3_Detect")
 
         with patch_comfy_helper(
-            nodes,
+            sam3_nodes,
             "_find_comfy_node_mapping_class",
             return_value=sentinel,
         ) as find:
@@ -197,7 +164,7 @@ class SAM3MoveTests(unittest.TestCase):
             patch.object(sam3_detailer_service, "_empty_mask_for_image", return_value="empty-mask"),
             patch.object(sam3_detailer_service, "_empty_segs_for_image", return_value="empty-segs"),
             patch_comfy_helper(
-                nodes,
+                sam3_nodes,
                 "_encode_with_comfy_clip",
                 return_value="conditioning",
             ) as encode,
@@ -230,7 +197,7 @@ class SAM3MoveTests(unittest.TestCase):
             patch.object(sam3_detailer_service, "_empty_mask_for_image", return_value="empty-mask"),
             patch.object(sam3_detailer_service, "_empty_segs_for_image", return_value="empty-segs"),
             patch_comfy_helper(
-                nodes,
+                sam3_nodes,
                 "_encode_with_comfy_clip",
                 return_value="conditioning",
             ),

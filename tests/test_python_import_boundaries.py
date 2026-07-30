@@ -191,6 +191,28 @@ class PythonImportBoundarySeedTests(unittest.TestCase):
                     {violation["rule"] for violation in violations},
                 )
 
+    def test_bootstrap_allows_only_the_exact_comfy_host_nodes_import(self):
+        self.assertEqual(
+            analyzer.find_import_boundary_violations(
+                "import nodes as comfy_nodes\n",
+                module_name="easyuse_anima.bootstrap",
+            ),
+            [],
+        )
+        for source in (
+            "from nodes import NODE_CLASS_MAPPINGS\n",
+            "import nodes.mapping\n",
+        ):
+            with self.subTest(source=source.strip()):
+                violations = analyzer.find_import_boundary_violations(
+                    source,
+                    module_name="easyuse_anima.bootstrap",
+                )
+                self.assertIn(
+                    "internal-imports-root-nodes",
+                    {violation["rule"] for violation in violations},
+                )
+
     def test_literal_dynamic_import_aliases_are_rejected(self):
         sources = (
             "import importlib as il\nil.import_module('nodes')\n",

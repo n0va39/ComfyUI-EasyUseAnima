@@ -413,25 +413,7 @@ class PythonWildcardRuntimeContractTests(unittest.TestCase):
             {"_cache", "_condition", "clear"},
         )
 
-        root_bindings = _top_level_bindings("wildcard_engine.py")
-        self.assertEqual(
-            {
-                "_SNAPSHOT_BUILDING",
-                "_SNAPSHOT_CACHE",
-                "_SNAPSHOT_CONDITION",
-            }
-            & root_bindings,
-            set(),
-        )
-        root_definitions = {
-            statement.name
-            for statement in _tree("wildcard_engine.py").body
-            if isinstance(
-                statement,
-                (ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef),
-            )
-        }
-        self.assertEqual(root_definitions, set())
+        self.assertFalse((ROOT / "wildcard_engine.py").exists())
 
     def test_canonical_snapshot_value_remains_immutable_and_root_independent(self):
         module = "easyuse_anima/wildcard/snapshot.py"
@@ -595,18 +577,12 @@ class PythonWildcardRuntimeContractTests(unittest.TestCase):
                     set(),
                 )
 
-    def test_root_compatibility_and_dynamic_seams_are_current(self):
+    def test_canonical_dynamic_seams_are_current_and_root_is_retired(self):
         for surface in self.fixture["compatibility_surfaces"]:
             bindings = _top_level_bindings(surface["module"])
             with self.subTest(surface=surface["id"]):
                 self.assertEqual(set(surface["symbols"]) - bindings, set())
-            for symbol, canonical_module in surface.get(
-                "canonical_bindings", {}
-            ).items():
-                self.assertIn(
-                    (canonical_module, symbol),
-                    _imported_names("wildcard_engine.py"),
-                )
+        self.assertFalse((ROOT / "wildcard_engine.py").exists())
 
         dynamic = next(
             surface
@@ -618,7 +594,7 @@ class PythonWildcardRuntimeContractTests(unittest.TestCase):
         )
         self.assertEqual(set(dynamic["symbols"]) - lifecycle_references, set())
 
-    def test_post_e06_facade_move_is_current_and_import_only(self):
+    def test_post_e06_historical_facade_paths_are_now_retired(self):
         move = self.fixture["post_e06_facade_move"]
         self.assertEqual(move["id"], "P-WC-02")
         self.assertEqual(move["classification"], "Move")
@@ -629,30 +605,12 @@ class PythonWildcardRuntimeContractTests(unittest.TestCase):
             ["api.py", "nodes.py", "wildcard_engine.py"],
         )
 
-        root_imports = _imported_names("wildcard_engine.py")
-        expected_service_imports = {
-            ("easyuse_anima.wildcard.service", symbol)
-            for symbol in move["root_service_bindings"]
-        }
-        self.assertEqual(expected_service_imports - root_imports, set())
-        self.assertIn("np", _top_level_bindings("wildcard_engine.py"))
+        for retired_path in move["production_files"]:
+            self.assertFalse((ROOT / retired_path).exists(), retired_path)
 
-        for migration in move["root_consumer_migrations"]:
-            imported = _imported_names(migration["module"])
-            with self.subTest(module=migration["module"]):
-                self.assertEqual(
-                    {tuple(binding) for binding in migration["canonical_imports"]}
-                    - imported,
-                    set(),
-                )
-                self.assertEqual(
-                    {
-                        imported_module
-                        for imported_module, _ in imported
-                        if imported_module.split(".")[-1] == "wildcard_engine"
-                    },
-                    set(),
-                )
+        canonical_owner = move["canonical_private_patch_owner"]
+        bindings = _top_level_bindings(canonical_owner["module"])
+        self.assertEqual(set(canonical_owner["symbols"]) - bindings, set())
 
         patch_owner = move["canonical_private_patch_owner"]
         lifecycle_references = _references(

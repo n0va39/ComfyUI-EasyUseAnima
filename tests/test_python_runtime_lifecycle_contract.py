@@ -276,9 +276,9 @@ class PythonRuntimeLifecycleContractTests(unittest.TestCase):
         package_source = (ROOT / "__init__.py").read_text(encoding="utf-8")
         self.assertEqual(
             current["package_entry_calls"],
-            "easyuse_anima.bootstrap.initialize",
+            "easyuse_anima.bootstrap._initialize_package",
         )
-        self.assertIn("_initialize(", package_source)
+        self.assertIn("_initialize_package()", package_source)
         self.assertFalse(current["translation_worker_registers_own_atexit"])
 
     def test_target_lifecycle_is_terminal_serialized_and_compatible(self):

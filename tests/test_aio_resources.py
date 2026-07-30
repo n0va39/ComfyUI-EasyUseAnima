@@ -3,14 +3,12 @@ from __future__ import annotations
 import unittest
 from unittest.mock import Mock, patch
 
-import nodes
 from easyuse_anima.aio import input_defaults, resources as aio_resources
-from easyuse_anima.infrastructure.comfy import capabilities
 from tests.comfy_host_fakes import patch_comfy_helper
 
 
 class AIOResourceMoveTests(unittest.TestCase):
-    def test_root_symbols_are_direct_canonical_aliases(self):
+    def test_resource_symbols_are_owned_by_canonical_modules(self):
         resource_names = (
             "_preferred_name_default",
             "_preferred_checkpoint_default",
@@ -25,7 +23,7 @@ class AIOResourceMoveTests(unittest.TestCase):
         )
         for name in resource_names:
             with self.subTest(name=name):
-                self.assertIs(getattr(nodes, name), getattr(aio_resources, name))
+                self.assertTrue(callable(getattr(aio_resources, name)))
 
         for name in (
             "AIO_INPUT_DEFAULT_SETTINGS",
@@ -39,10 +37,7 @@ class AIOResourceMoveTests(unittest.TestCase):
             "EASY_USE_ANIMA_INPUT_SETTINGS_VERSION",
         ):
             with self.subTest(name=name):
-                self.assertIs(getattr(nodes, name), getattr(input_defaults, name))
-
-        self.assertFalse(hasattr(nodes, "_impact_core_module"))
-        self.assertIs(nodes._impact_scheduler_names, capabilities._impact_scheduler_names)
+                self.assertTrue(hasattr(input_defaults, name))
 
     def test_preferred_resource_defaults_preserve_exact_and_basename_order(self):
         names = ["models\\anima.safetensors", "fallback.safetensors"]
@@ -104,7 +99,7 @@ class AIOResourceMoveTests(unittest.TestCase):
         }
         with (
             patch_comfy_helper(
-                nodes,
+                aio_resources,
                 "_find_comfy_node_class",
                 side_effect=classes.get,
             ),
@@ -141,7 +136,7 @@ class AIOResourceMoveTests(unittest.TestCase):
 
     def test_missing_loader_error_text_is_preserved(self):
         with patch_comfy_helper(
-            nodes,
+            aio_resources,
             "_find_comfy_node_class",
             return_value=None,
         ):
@@ -162,7 +157,7 @@ class AIOResourceMoveTests(unittest.TestCase):
         loader_cls = type("UpscaleModelLoader", (), {"load_model": load_model})
         with (
             patch_comfy_helper(
-                nodes,
+                aio_resources,
                 "_find_comfy_node_class",
                 return_value=loader_cls,
             ),

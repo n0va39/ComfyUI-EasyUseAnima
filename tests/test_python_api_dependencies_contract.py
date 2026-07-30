@@ -122,7 +122,7 @@ class PythonApiDependenciesContractTests(unittest.TestCase):
 
     def test_bundle_has_exact_typed_families_and_leaf_inventory(self):
         api, _routes = load_api_routes(register=False)
-        dependencies = api._APPLICATION_DEPENDENCIES
+        dependencies = api.application.dependencies
 
         self.assertEqual(
             tuple(field.name for field in fields(dependencies)),
@@ -136,11 +136,12 @@ class PythonApiDependenciesContractTests(unittest.TestCase):
                     expected_leaves,
                 )
 
-    def test_root_and_canonical_cell_share_one_publish_once_identity(self):
+    def test_application_and_canonical_cell_share_one_publish_once_identity(self):
         api, _routes = load_api_routes(register=False)
-        dependencies = api._APPLICATION_DEPENDENCIES
+        dependencies = api.application.dependencies
         owner = sys.modules[type(dependencies).__module__]
 
+        self.assertIs(api.application.dependencies, dependencies)
         self.assertIs(owner._APPLICATION_DEPENDENCIES, dependencies)
         self.assertIs(owner._publish_application_dependencies(dependencies), dependencies)
         with self.assertRaisesRegex(
@@ -152,12 +153,11 @@ class PythonApiDependenciesContractTests(unittest.TestCase):
 
     def test_request_and_registration_consumers_observe_named_leaves_at_call_time(self):
         api, routes = load_api_routes()
-        dependencies = api._APPLICATION_DEPENDENCIES
+        dependencies = api.application.dependencies
         request_id = "12345678-1234-4567-89ab-1234567890ab"
         payload = {"future": {"kept": True}}
 
         with (
-            patch.object(api, "_APPLICATION_DEPENDENCIES", object()),
             patch.object(
                 dependencies.request,
                 "create_request_id",
@@ -188,13 +188,13 @@ class PythonApiDependenciesContractTests(unittest.TestCase):
                 return_value=True,
             ) as register,
         ):
-            self.assertTrue(api.register_routes(target))
+            self.assertTrue(api.application.register_routes(target))
 
         register.assert_called_once_with(
             target,
             definitions,
             signature=signature,
-            marker=api._ROUTE_REGISTRATION_MARKER,
+            marker=api.router.ROUTE_REGISTRATION_MARKER,
         )
 
 

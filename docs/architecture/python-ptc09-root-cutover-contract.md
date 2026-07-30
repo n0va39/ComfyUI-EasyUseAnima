@@ -3,9 +3,10 @@
 ## Status and authority
 
 - Verdict: **FEASIBLE**.
-- PTC-09A is a production-free Contract on
-  `dev@5ab3f54c4d6eba930de5bf7a813d0fd89654ad01`.
-- PTC-09B becomes READY only after this Contract merges.
+- PTC-09A is the merged production-free Contract; its dev merge is
+  `a281e3c5f6ee52e214dca89226aed69075810112`.
+- PTC-09B implements the selected cutover in one cohesive change and makes PTC-10 the
+  next task after validation and merge.
 - Technical owner: Issue #593; parent architecture owner: Issue #185.
 - Lifecycle authority: E-09 / Issue #187 and
   [`python-runtime-e09-lifecycle-contract.md`](python-runtime-e09-lifecycle-contract.md).
@@ -96,7 +97,7 @@ ComfyUI imports root __init__.py
      -> bootstrap.initialize(
           register_routes = application.register_routes,
           initialize_wildcards = canonical wildcard owner,
-          load_comfy_nodes = private canonical package loader,
+          load_comfy_nodes = private ComfyUI host-node loader,
         )
         -> one lock and one atexit registration
         -> one RuntimeServices identity
@@ -123,6 +124,30 @@ only attempt-created/bound runtime resources by expected identity.
   application composition, host I/O, registration, runtime install or atexit callback.
 - There is no supported reload, reset or shutdown-to-reinitialize path.
 
+## PTC-09B implementation result
+
+The cohesive cutover leaves root `__init__.py` with only the two canonical registration
+mappings, `WEB_DIRECTORY`, and one call to private bootstrap package startup. Bootstrap
+now owns the private ComfyUI host-node loader and the stateless route-table sink. It
+composes the publish-once canonical API application before calling the unchanged
+`initialize()` lifecycle.
+
+The exact nine non-entrypoint root modules and seven `anima_prompt` modules are absent.
+Repository production and direct tests import canonical symbol owners, while one
+retirement test proves that every deleted import path fails and no replacement facade
+exists. The obsolete compatibility-surface fixture and compatibility-only owner tests
+are removed instead of being rewritten as a second legacy surface.
+
+The post-cutover analyzer reports exactly two shipped canonical modules outside the
+root-entrypoint runtime closure:
+
+- `easyuse_anima/nodes/impact_detailer_nodes.py`
+- `easyuse_anima/nodes/sam3_nodes.py`
+
+PTC-09B records this as a PTC-10 completion-audit input. It does not speculate by
+registering an unmapped node or deleting a canonical owner in the entrypoint cutover
+rollback unit.
+
 ## E-09 invariant matrix
 
 | Invariant | PTC-09B proof obligation |
@@ -144,7 +169,7 @@ owners, while importing `<package>.api` fails because the legacy module is absen
 canonical application, handler, registrar and executor identities remain available at
 their exact canonical owners without creating duplicate lifecycle state.
 
-## PTC-09B task card
+## Completed PTC-09B task card
 
 ```text
 Task / Issue:

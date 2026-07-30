@@ -5,19 +5,18 @@ import types
 import unittest
 from unittest.mock import Mock, patch
 
-import nodes
 from easyuse_anima.aio import output, output_settings
+from easyuse_anima.aio.generation_defaults import AIO_GENERATION_DEFAULT_SETTINGS
 from tests.comfy_host_fakes import patch_comfy_helper
 
 
 class AIOOutputMoveTests(unittest.TestCase):
-    def test_root_functions_are_direct_canonical_aliases(self):
+    def test_output_functions_are_owned_by_canonical_modules(self):
         for name in (
             "_normalize_aio_hash_bundles",
             "_normalize_aio_civitai_hash_fetchers",
         ):
             with self.subTest(name=name):
-                self.assertIs(getattr(nodes, name), getattr(output_settings, name))
                 self.assertIs(getattr(output, name), getattr(output_settings, name))
 
         for name in (
@@ -30,7 +29,7 @@ class AIOOutputMoveTests(unittest.TestCase):
             "_save_image_with_image_saver",
         ):
             with self.subTest(name=name):
-                self.assertIs(getattr(nodes, name), getattr(output, name))
+                self.assertEqual(getattr(output, name).__module__, output.__name__)
 
     def test_normalizers_preserve_json_fallback_filtering_and_canonical_bool_seam(self):
         self.assertEqual(output_settings._normalize_aio_hash_bundles(" raw, "), ["raw"])
@@ -85,7 +84,7 @@ class AIOOutputMoveTests(unittest.TestCase):
         }
         with (
             patch_comfy_helper(
-                nodes,
+                output,
                 "_require_custom_node_class",
                 return_value=Fetcher,
             ) as require,
@@ -103,7 +102,7 @@ class AIOOutputMoveTests(unittest.TestCase):
 
     def test_civitai_empty_and_hard_error_paths_keep_dependency_boundaries(self):
         require = Mock(side_effect=AssertionError("must not resolve dependency"))
-        with patch_comfy_helper(nodes, "_require_custom_node_class", require):
+        with patch_comfy_helper(output, "_require_custom_node_class", require):
             self.assertEqual(
                 output._aio_image_saver_civitai_hash_fetcher_entries(
                     {"civitai_hash_fetchers": [{"enabled": False, "username": "u", "model_name": "m"}]}
@@ -117,7 +116,7 @@ class AIOOutputMoveTests(unittest.TestCase):
                 return ("unused",)
 
         with patch_comfy_helper(
-            nodes,
+            output,
             "_require_custom_node_class",
             return_value=Fetcher,
         ):
@@ -176,7 +175,7 @@ class AIOOutputMoveTests(unittest.TestCase):
                 return {"ui": {"images": ["saved"]}}
 
         with patch_comfy_helper(
-            nodes,
+            output,
             "_find_comfy_node_class",
             return_value=SaveImage,
         ) as find:
@@ -210,7 +209,7 @@ class AIOOutputMoveTests(unittest.TestCase):
 
         save_settings = {
             "image_saver": {
-                **nodes.AIO_GENERATION_DEFAULT_SETTINGS["save"]["image_saver"],
+                **AIO_GENERATION_DEFAULT_SETTINGS["save"]["image_saver"],
                 "filename": "frame",
                 "path": "EasyUseAnima/Test",
                 "extension": "webp",
@@ -223,7 +222,7 @@ class AIOOutputMoveTests(unittest.TestCase):
         seed = Mock(return_value=987654321)
         with (
             patch_comfy_helper(
-                nodes,
+                output,
                 "_require_custom_node_class",
                 return_value=ImageSaver,
             ),
