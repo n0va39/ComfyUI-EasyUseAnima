@@ -1,6 +1,7 @@
 import unittest
 from unittest.mock import patch
 
+from easyuse_anima.naia import random_prompt as naia_random_prompt
 from easyuse_anima.naia.client import (
     NAI_1MP,
     NAIA_MAX_RESOLUTION,
@@ -35,7 +36,59 @@ def settings(**overrides):
     return base
 
 
+def request_kwargs(**overrides):
+    values = {
+        "use_naia_bridge": True,
+        "freeze_naia_output": False,
+        "show_preview": True,
+        "cached_prompt": "",
+        "cached_negative_prompt": "",
+        "cached_width": 0,
+        "cached_height": 0,
+        "cached_signature": "",
+        "prompt": "input prompt",
+        "override_prompt": True,
+        "negative_prompt": "input negative",
+        "override_negative": True,
+        "width": 832,
+        "override_width": True,
+        "height": 1216,
+        "override_height": True,
+        "use_naia_settings": True,
+        "pre_prompt": "node pre",
+        "post_prompt": "node post",
+        "auto_hide": "node hide",
+        "host": "node-host",
+        "port": 9999,
+    }
+    values.update(overrides)
+    return values
+
+
 class NaiaSettingsTests(unittest.TestCase):
+    def test_node_keeps_schema_identity_and_uses_canonical_request_helpers(self):
+        self.assertEqual(
+            EasyUseAnimaNAIARandomPrompt.request.__module__,
+            naia_nodes.__name__,
+        )
+        self.assertIs(
+            EasyUseAnimaNAIARandomPrompt._cached_tuple,
+            naia_random_prompt._cached_tuple,
+        )
+        self.assertIs(
+            EasyUseAnimaNAIARandomPrompt._make_signature,
+            naia_random_prompt._make_signature,
+        )
+        self.assertIs(
+            EasyUseAnimaNAIARandomPrompt._make_request_body,
+            naia_random_prompt._make_request_body,
+        )
+        self.assertIs(
+            EasyUseAnimaNAIARandomPrompt._apply_overrides,
+            naia_random_prompt._apply_overrides,
+        )
+        self.assertIs(EasyUseAnimaNAIARandomPrompt._ui, naia_random_prompt._ui)
+
     def test_fit_to_1mp_preserves_normal_shapes(self):
         self.assertEqual(_fit_to_1mp(4096, 4096), (1024, 1024))
         self.assertEqual(_fit_to_1mp(832, 1216), (832, 1216))
@@ -160,6 +213,101 @@ class NaiaSettingsTests(unittest.TestCase):
             calls[0][2]["peng_override"]["preprocessing_options"],
             {"remove_author": True, "e621_auto_boost": False},
         )
+
+    def test_request_preserves_disabled_and_matching_frozen_shortcuts(self):
+        node = EasyUseAnimaNAIARandomPrompt()
+        current_settings = settings()
+        signature = node._make_signature(
+            "input prompt",
+            True,
+            "input negative",
+            True,
+            832,
+            True,
+            1216,
+            True,
+            current_settings["use_naia_settings"],
+            current_settings["pre_prompt"],
+            current_settings["post_prompt"],
+            current_settings["auto_hide"],
+            current_settings["host"],
+            current_settings["port"],
+            current_settings["preprocessing"],
+        )
+
+        with (
+            patch.object(naia_nodes, "resolve_naia_settings", lambda: current_settings),
+            patch.object(naia_nodes, "_post_random") as post_random,
+        ):
+            disabled = node.request(**request_kwargs(use_naia_bridge=False))
+            frozen = node.request(**request_kwargs(
+                freeze_naia_output=True,
+                cached_prompt="saved prompt",
+                cached_negative_prompt="saved negative",
+                cached_width=1024,
+                cached_height=1024,
+                cached_signature=signature,
+            ))
+
+        post_random.assert_not_called()
+        self.assertEqual(
+            disabled["result"],
+            ("input prompt", "input negative", 832, 1216),
+        )
+        self.assertEqual(disabled["ui"]["status"], ["disabled"])
+        self.assertEqual(
+            frozen["result"],
+            ("saved prompt", "saved negative", 1024, 1024),
+        )
+        self.assertEqual(frozen["ui"]["status"], ["frozen"])
+
+    def test_fresh_request_updates_both_workflow_metadata_forms(self):
+        workflow_prompt = {"7": {"inputs": {}}}
+        workflow_node = {"id": 7, "widgets_values": []}
+        extra_pnginfo = {"workflow": {"nodes": [workflow_node]}}
+        response = {
+            "request_id": "request-7",
+            "prompt": "generated prompt",
+            "negative_prompt": "generated negative",
+            "width": 1024,
+            "height": 1024,
+        }
+
+        with (
+            patch.object(naia_nodes, "resolve_naia_settings", lambda: settings()),
+            patch.object(naia_nodes, "_post_random", return_value=response) as post_random,
+        ):
+            result = EasyUseAnimaNAIARandomPrompt().request(**request_kwargs(
+                workflow_prompt=workflow_prompt,
+                extra_pnginfo=extra_pnginfo,
+                unique_id="7",
+            ))
+
+        post_random.assert_called_once()
+        self.assertEqual(
+            result["result"],
+            ("generated prompt", "generated negative", 1024, 1024),
+        )
+        self.assertEqual(result["ui"]["status"], ["fresh"])
+        prompt_inputs = workflow_prompt["7"]["inputs"]
+        self.assertTrue(prompt_inputs["freeze_naia_output"])
+        self.assertEqual(prompt_inputs["cached_prompt"], "generated prompt")
+        self.assertEqual(prompt_inputs["cached_negative_prompt"], "generated negative")
+        self.assertEqual(prompt_inputs["cached_width"], 1024)
+        self.assertEqual(prompt_inputs["cached_height"], 1024)
+        input_names = EasyUseAnimaNAIARandomPrompt._widget_input_names()
+        for name in (
+            "freeze_naia_output",
+            "cached_prompt",
+            "cached_negative_prompt",
+            "cached_width",
+            "cached_height",
+            "cached_signature",
+        ):
+            self.assertEqual(
+                workflow_node["widgets_values"][input_names.index(name)],
+                prompt_inputs[name],
+            )
 
     def test_desktop_naia_settings_skip_peng_override(self):
         with patch.object(

@@ -2,26 +2,27 @@
 
 from __future__ import annotations
 
-import json
-import logging
-from typing import Optional
-
 from ..common.serialization import _stable_change_key
 from ..common.values import _as_bool, _as_int, _single_value
 from ..naia.client import (
     DEFAULT_HOST,
     DEFAULT_PORT,
     NAIA_MAX_RESOLUTION,
-    NAIA_REQUEST_TIMEOUT,
     PP_STATE_CHOICES,
     PREPROCESSING_KEYS,
     _parse_random_response,
     _post_random,
 )
+from ..naia.random_prompt import (
+    _apply_overrides,
+    _cached_tuple,
+    _make_request_body,
+    _make_signature,
+    _request_random_prompt,
+    _ui,
+)
 from ..settings.service import resolve_naia_settings
 from ..workflow import _get_workflow_node
-
-logger = logging.getLogger("ComfyUI-EasyUseAnima")
 
 
 class EasyUseAnimaNAIARandomPrompt:
@@ -182,8 +183,8 @@ class EasyUseAnimaNAIARandomPrompt:
     CATEGORY = "NAIA Bridge/API"
 
     def __init__(self):
-        self._cache_signature: Optional[str] = None
-        self._cache_value: Optional[tuple[str, str, int, int]] = None
+        self._cache_signature: str | None = None
+        self._cache_value: tuple[str, str, int, int] | None = None
 
     @classmethod
     def IS_CHANGED(
@@ -268,117 +269,15 @@ class EasyUseAnimaNAIARandomPrompt:
 
         return float("nan")
 
-    @staticmethod
-    def _cached_tuple(
-        cached_prompt: str,
-        cached_negative_prompt: str,
-        cached_width: int,
-        cached_height: int,
-    ) -> Optional[tuple[str, str, int, int]]:
-        width = _as_int(cached_width, 0)
-        height = _as_int(cached_height, 0)
-        if width <= 0 or height <= 0:
-            return None
-        if not cached_prompt and not cached_negative_prompt:
-            return None
-        return (str(cached_prompt), str(cached_negative_prompt), width, height)
+    _cached_tuple = staticmethod(_cached_tuple)
+    _make_signature = staticmethod(_make_signature)
+    _make_request_body = staticmethod(_make_request_body)
+    _apply_overrides = staticmethod(_apply_overrides)
+    _ui = staticmethod(_ui)
 
     @classmethod
     def _widget_input_names(cls) -> list[str]:
         return list(cls.INPUT_TYPES()["required"].keys())
-
-    @staticmethod
-    def _make_signature(
-        prompt: str,
-        override_prompt: bool,
-        negative_prompt: str,
-        override_negative: bool,
-        width: int,
-        override_width: bool,
-        height: int,
-        override_height: bool,
-        use_naia_settings: bool,
-        pre_prompt: str,
-        post_prompt: str,
-        auto_hide: str,
-        host: str,
-        port: int,
-        pp_kwargs: dict,
-    ) -> str:
-        use_settings = _as_bool(use_naia_settings, True)
-        preprocessing = {}
-        if not use_settings:
-            preprocessing = {
-                key: str(pp_kwargs.get(key, "skip"))
-                for key in PREPROCESSING_KEYS
-            }
-        payload = {
-            "prompt": str(prompt),
-            "override_prompt": _as_bool(override_prompt, True),
-            "negative_prompt": str(negative_prompt),
-            "override_negative": _as_bool(override_negative, True),
-            "width": _as_int(width, 1024),
-            "override_width": _as_bool(override_width, True),
-            "height": _as_int(height, 1024),
-            "override_height": _as_bool(override_height, True),
-            "use_naia_settings": use_settings,
-            "pre_prompt": "" if use_settings else str(pre_prompt),
-            "post_prompt": "" if use_settings else str(post_prompt),
-            "auto_hide": "" if use_settings else str(auto_hide),
-            "preprocessing": preprocessing,
-            "host": str(host),
-            "port": _as_int(port, DEFAULT_PORT),
-        }
-        return json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
-
-    @staticmethod
-    def _make_request_body(
-        use_naia_settings: bool,
-        pre_prompt: str,
-        post_prompt: str,
-        auto_hide: str,
-        pp_kwargs: dict,
-    ) -> dict:
-        body = {
-            "timeout": NAIA_REQUEST_TIMEOUT,
-            "respect_naia_autogen": True,
-            "force_naia_skip_generate": False,
-        }
-        if not use_naia_settings:
-            preprocessing_options = {}
-            for key in PREPROCESSING_KEYS:
-                state = pp_kwargs.get(key, "skip")
-                if state == "on":
-                    preprocessing_options[key] = True
-                elif state == "off":
-                    preprocessing_options[key] = False
-            body["peng_override"] = {
-                "pre_prompt": pre_prompt,
-                "post_prompt": post_prompt,
-                "auto_hide": auto_hide,
-                "preprocessing_options": preprocessing_options,
-            }
-        return body
-
-    @staticmethod
-    def _apply_overrides(
-        naia_value: tuple[str, str, int, int],
-        prompt: str,
-        override_prompt: bool,
-        negative_prompt: str,
-        override_negative: bool,
-        width: int,
-        override_width: bool,
-        height: int,
-        override_height: bool,
-    ) -> tuple[str, str, int, int]:
-        naia_prompt, naia_negative, naia_width, naia_height = naia_value
-        return (
-            naia_prompt if override_prompt else str(prompt),
-            naia_negative if override_negative else str(negative_prompt),
-            naia_width if override_width else _as_int(width, 1024),
-            naia_height if override_height else _as_int(height, 1024),
-        )
 
     @classmethod
     def _update_metadata_cache(
@@ -425,17 +324,6 @@ class EasyUseAnimaNAIARandomPrompt:
                 widgets_values.append(None)
             widgets_values[index] = value
 
-    @staticmethod
-    def _ui(prompt: str, negative: str, width: int, height: int, status: str, signature: str):
-        return {
-            "prompt": [prompt],
-            "negative_prompt": [negative],
-            "width": [width],
-            "height": [height],
-            "status": [status],
-            "cached_signature": [signature],
-        }
-
     def request(
         self,
         use_naia_bridge: bool,
@@ -465,113 +353,35 @@ class EasyUseAnimaNAIARandomPrompt:
         unique_id=None,
         **pp_kwargs,
     ):
-        naia_settings = resolve_naia_settings()
-        use_naia_settings = naia_settings["use_naia_settings"]
-        pre_prompt = naia_settings["pre_prompt"]
-        post_prompt = naia_settings["post_prompt"]
-        auto_hide = naia_settings["auto_hide"]
-        host = naia_settings["host"]
-        port = naia_settings["port"]
-        pp_kwargs = naia_settings["preprocessing"]
-
-        bridge_enabled = _as_bool(use_naia_bridge, True)
-        freeze_output = _as_bool(freeze_naia_output, False)
-        use_settings = _as_bool(use_naia_settings, True)
-        override_prompt = _as_bool(override_prompt, True)
-        override_negative = _as_bool(override_negative, True)
-        override_width = _as_bool(override_width, True)
-        override_height = _as_bool(override_height, True)
-
-        signature = self._make_signature(
-            prompt,
-            override_prompt,
-            negative_prompt,
-            override_negative,
-            width,
-            override_width,
-            height,
-            override_height,
-            use_settings,
-            pre_prompt,
-            post_prompt,
-            auto_hide,
-            host,
-            port,
-            pp_kwargs,
+        return _request_random_prompt(
+            self,
+            use_naia_bridge=use_naia_bridge,
+            freeze_naia_output=freeze_naia_output,
+            cached_prompt=cached_prompt,
+            cached_negative_prompt=cached_negative_prompt,
+            cached_width=cached_width,
+            cached_height=cached_height,
+            cached_signature=cached_signature,
+            prompt=prompt,
+            override_prompt=override_prompt,
+            negative_prompt=negative_prompt,
+            override_negative=override_negative,
+            width=width,
+            override_width=override_width,
+            height=height,
+            override_height=override_height,
+            workflow_prompt=workflow_prompt,
+            extra_pnginfo=extra_pnginfo,
+            unique_id=unique_id,
+            resolve_settings=resolve_naia_settings,
+            post_random=_post_random,
+            parse_random_response=_parse_random_response,
+            update_metadata_cache=self._update_metadata_cache,
+            make_signature=self._make_signature,
+            cached_tuple=self._cached_tuple,
+            make_request_body=self._make_request_body,
+            apply_overrides=self._apply_overrides,
+            render_ui=self._ui,
         )
-
-        if not bridge_enabled:
-            out_prompt = str(prompt)
-            out_negative = str(negative_prompt)
-            out_width = _as_int(width, 1024)
-            out_height = _as_int(height, 1024)
-            return {
-                "ui": self._ui(out_prompt, out_negative, out_width, out_height, "disabled", signature),
-                "result": (out_prompt, out_negative, out_width, out_height),
-            }
-
-        saved_cache = self._cached_tuple(
-            cached_prompt,
-            cached_negative_prompt,
-            cached_width,
-            cached_height,
-        )
-        if freeze_output and saved_cache is not None and str(cached_signature) == signature:
-            out_prompt, out_negative, out_width, out_height = saved_cache
-            return {
-                "ui": self._ui(out_prompt, out_negative, out_width, out_height, "frozen", signature),
-                "result": (out_prompt, out_negative, out_width, out_height),
-            }
-
-        if self._cache_signature != signature:
-            self._cache_signature = signature
-            self._cache_value = (
-                saved_cache if saved_cache is not None and str(cached_signature) == signature else None
-            )
-
-        if self._cache_value is None or not freeze_output:
-            body = self._make_request_body(use_settings, pre_prompt, post_prompt, auto_hide, pp_kwargs)
-            resp = _post_random(
-                host,
-                port,
-                body,
-                allow_remote_api=bool(naia_settings.get("allow_remote_api", False)),
-            )
-            naia_value = _parse_random_response(resp)
-            self._cache_value = self._apply_overrides(
-                naia_value,
-                prompt,
-                override_prompt,
-                negative_prompt,
-                override_negative,
-                width,
-                override_width,
-                height,
-                override_height,
-            )
-            logger.debug(
-                "request_id=%s prompt_len=%d size=%dx%d use_naia_settings=%s",
-                resp.get("request_id"),
-                len(self._cache_value[0]),
-                self._cache_value[2],
-                self._cache_value[3],
-                use_settings,
-            )
-
-        if self._cache_value is None:
-            raise RuntimeError("[EasyUse Anima] Internal cache creation failed.")
-
-        out_prompt, out_negative, out_width, out_height = self._cache_value
-        self._update_metadata_cache(
-            workflow_prompt,
-            extra_pnginfo,
-            unique_id,
-            (out_prompt, out_negative, out_width, out_height),
-            signature,
-        )
-        return {
-            "ui": self._ui(out_prompt, out_negative, out_width, out_height, "fresh", signature),
-            "result": (out_prompt, out_negative, out_width, out_height),
-        }
 
 __all__ = ("EasyUseAnimaNAIARandomPrompt",)
