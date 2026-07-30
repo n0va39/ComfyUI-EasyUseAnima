@@ -22,7 +22,7 @@
   "module_exceptions": [
     {
       "path": "easyuse_anima/aio/legacy_generation.py",
-      "baseline_loc": 1095,
+      "baseline_loc": 842,
       "owner_issue": 188,
       "decomposition_boundary": "Move legacy stage orchestration only along existing stage-port calls while preserving root monkeypatch seams."
     },
@@ -97,9 +97,9 @@
       "decomposition_boundary": "Move legacy pipeline stages only through existing stage ports while preserving call and error order."
     },
     {
-      "path": "easyuse_anima/aio/legacy_generation.py",
-      "qualified_name": "_run_aio_usdu_upscale_stage",
-      "baseline_loc": 154,
+      "path": "easyuse_anima/aio/legacy_upscale.py",
+      "qualified_name": "run_aio_usdu_upscale_stage",
+      "baseline_loc": 160,
       "owner_issue": 188,
       "decomposition_boundary": "Keep USDU option projection and adapter invocation together until a typed stage request owns both."
     },

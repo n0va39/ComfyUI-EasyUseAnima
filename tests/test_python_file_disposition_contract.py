@@ -98,6 +98,23 @@ class PythonFileDispositionContractTests(unittest.TestCase):
         with self.assertRaises(checker.ContractError):
             self.validate(mutation)
 
+        mutation = copy.deepcopy(self.document)
+        entry = next(
+            item
+            for item in mutation["entries"]
+            if item["path"] == "easyuse_anima/aio/legacy_generation.py"
+        )
+        moved_exception = next(
+            item
+            for item in entry["size_exception_verdicts"]
+            if item["id"].startswith(
+                "function:easyuse_anima/aio/legacy_upscale.py::"
+            )
+        )
+        moved_exception["final_owner"] = "easyuse_anima/aio/legacy_detailer.py"
+        with self.assertRaises(checker.ContractError):
+            self.validate(mutation)
+
     def test_compatibility_entries_reference_authoritative_registry(self):
         mutation = copy.deepcopy(self.document)
         entry = next(item for item in mutation["entries"] if item["path"] == "api.py")
