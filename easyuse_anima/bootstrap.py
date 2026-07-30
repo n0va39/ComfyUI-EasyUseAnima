@@ -84,8 +84,10 @@ from .translation.service import (
     _restore_default_translation_service,
 )
 from .wildcard.snapshot import _DEFAULT_WILDCARD_SNAPSHOTS
+from .wildcard.sources import ensure_default_wildcard_root
 
 _LOGGER = logging.getLogger("ComfyUI-EasyUseAnima")
+_API_LOGGER = logging.getLogger(f"{__package__}.api")
 _INITIALIZE_LOCK = threading.Lock()
 _WILDCARDS_INITIALIZED = False
 _DEFAULT_RUNTIME: RuntimeServices | None = None
@@ -116,6 +118,18 @@ def _load_runtime_config() -> RuntimeConfig:
 
 
 def _missing_comfy_nodes() -> None:
+    return None
+
+
+def _load_comfy_nodes():
+    try:
+        import nodes as comfy_nodes  # type: ignore
+    except Exception:
+        return None
+    return comfy_nodes
+
+
+def _discard_selected_route_table(_target) -> None:
     return None
 
 
@@ -399,6 +413,18 @@ def initialize(
                         "EasyUse Anima translation cleanup failed during startup rollback."
                     )
             raise
+
+
+def _initialize_package() -> None:
+    application = _compose_api_application(
+        logger=_API_LOGGER,
+        publish_routes=_discard_selected_route_table,
+    )
+    initialize(
+        register_routes=application.register_routes,
+        initialize_wildcards=ensure_default_wildcard_root,
+        load_comfy_nodes=_load_comfy_nodes,
+    )
 
 
 def shutdown() -> None:

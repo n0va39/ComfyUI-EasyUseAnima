@@ -13,8 +13,7 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-import nodes
-from easyuse_anima.aio import resources as aio_resources
+from easyuse_anima.aio import input_defaults, resources as aio_resources
 from easyuse_anima.infrastructure.comfy import capabilities, invocation, resources
 from easyuse_anima.nodes import sam3_nodes
 
@@ -509,18 +508,8 @@ class ComfyInvocationAdapterTests(unittest.TestCase):
         self.assertEqual(invocation._node_output_tuple("value"), ("value",))
 
 
-class ComfyRootCompatibilityTests(unittest.TestCase):
-    def test_domain_neutral_root_names_are_direct_aliases(self):
-        self.assertIs(nodes._comfy_sampler_names, capabilities._comfy_sampler_names)
-        self.assertIs(nodes._comfy_scheduler_names, capabilities._comfy_scheduler_names)
-        self.assertIs(nodes._folder_path_names, resources._folder_path_names)
-        self.assertIs(nodes._node_output_tuple, invocation._node_output_tuple)
-        self.assertIs(nodes._call_with_supported_kwargs, invocation._call_with_supported_kwargs)
-        self.assertFalse(hasattr(nodes, "_impact_core_module"))
-        self.assertIs(nodes._impact_scheduler_names, capabilities._impact_scheduler_names)
-
+class ComfyCanonicalOwnerTests(unittest.TestCase):
     def test_checkpoint_names_are_owned_by_the_canonical_sam3_consumer(self):
-        self.assertFalse(hasattr(nodes, "_comfy_checkpoint_names"))
         self.assertIs(
             sam3_nodes._comfy_checkpoint_names,
             resources._comfy_checkpoint_names,
@@ -565,17 +554,23 @@ class ComfyRootCompatibilityTests(unittest.TestCase):
         ):
             self.assertEqual(
                 aio_resources._comfy_diffusion_model_names(),
-                list(nodes.ANIMA_DEFAULT_DIFFUSION_MODEL_CANDIDATES),
+                list(input_defaults.ANIMA_DEFAULT_DIFFUSION_MODEL_CANDIDATES),
             )
             self.assertEqual(
                 aio_resources._comfy_text_encoder_names(),
-                list(nodes.ANIMA_DEFAULT_CLIP_CANDIDATES),
+                list(input_defaults.ANIMA_DEFAULT_CLIP_CANDIDATES),
             )
         self.assertEqual(
             folder_calls,
             [
-                ("diffusion_models", list(nodes.ANIMA_DEFAULT_DIFFUSION_MODEL_CANDIDATES)),
-                ("text_encoders", list(nodes.ANIMA_DEFAULT_CLIP_CANDIDATES)),
+                (
+                    "diffusion_models",
+                    list(input_defaults.ANIMA_DEFAULT_DIFFUSION_MODEL_CANDIDATES),
+                ),
+                (
+                    "text_encoders",
+                    list(input_defaults.ANIMA_DEFAULT_CLIP_CANDIDATES),
+                ),
             ],
         )
 

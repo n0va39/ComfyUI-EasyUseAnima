@@ -11,8 +11,11 @@ from contextlib import contextmanager
 from pathlib import Path
 from unittest.mock import patch
 
-import nodes
-from easyuse_anima.aio import generation_normalization
+from easyuse_anima.aio import (
+    generation_defaults,
+    generation_normalization,
+    output_settings,
+)
 from easyuse_anima.aio.generation_migrations import (
     AIO_GENERATION_STAGE_IDS,
     AIO_MODEL_PATCH_ORDER_REVISION,
@@ -22,6 +25,10 @@ from easyuse_anima.aio.generation_settings import (
     _aio_generation_config_from_dict,
 )
 from easyuse_anima.aio.negpip import NEGPIP_MODES
+from easyuse_anima.common import values as common_values
+from easyuse_anima.image import scaling as image_scaling
+from easyuse_anima.nodes import aio_nodes
+from easyuse_anima.prompt import artist_mix_config, conditioning as prompt_conditioning
 from easyuse_anima.prompt.conditioning import ANIMA_MOD_GUIDANCE_PROFILES
 from tests.comfy_host_fakes import (
     FakeComfyHostProvider,
@@ -46,7 +53,10 @@ REQUIRED_SETTING_SURFACES = (
     "documentation",
 )
 
-_DEFAULT_COMFY_HOST = use_fake_comfy_host(nodes, FakeComfyHostProvider())
+_DEFAULT_COMFY_HOST = use_fake_comfy_host(
+    generation_normalization,
+    FakeComfyHostProvider(),
+)
 
 
 def setUpModule():
@@ -382,7 +392,7 @@ def _deterministic_capabilities(
             _impact_scheduler_names=lambda: list(impact_schedulers),
         ),
         patch_comfy_helper(
-            nodes,
+            aio_nodes,
             "_comfy_max_resolution",
             return_value=16384,
         ),
@@ -398,7 +408,7 @@ def _authoritative_static_enum_choices() -> dict[tuple[str, ...], tuple[str, ...
             "spectrum_mod_guidance_advanced",
             "spectrum_spd_speed",
         ),
-        ("sampler", "seed_after_generate"): tuple(nodes.SEED_CONTROL_MODES),
+        ("sampler", "seed_after_generate"): tuple(generation_normalization.SEED_CONTROL_MODES),
         ("sampler", "spd", "split_mode"): ("single",),
         ("negpip", "mode"): tuple(NEGPIP_MODES),
         ("model_patches", "safe_pag", "rescale_mode"): ("full", "partial"),
@@ -420,19 +430,19 @@ def _authoritative_static_enum_choices() -> dict[tuple[str, ...], tuple[str, ...
             "reduce-overhead",
         ),
         ("model_patches", "kj", "torch_compile", "dynamic"): ("auto", "true", "false"),
-        ("mod_guidance", "mode"): tuple(nodes.ANIMA_MOD_GUIDANCE_MODES),
+        ("mod_guidance", "mode"): tuple(prompt_conditioning.ANIMA_MOD_GUIDANCE_MODES),
         ("mod_guidance", "profile"): tuple(ANIMA_MOD_GUIDANCE_PROFILES),
-        ("artist_mix", "mode"): tuple(nodes.ARTIST_MIX_INPUT_MODES),
-        ("highres", "upscale_method"): tuple(nodes.IMAGE_UPSCALE_METHODS),
-        ("highres", "multiple"): tuple(nodes.IMAGE_SCALE_MULTIPLES),
-        ("upscale", "backend"): tuple(nodes.AIO_FINAL_UPSCALE_BACKENDS),
-        ("upscale", "usdu", "prompt_mode"): tuple(nodes.AIO_USDU_PROMPT_MODES),
-        ("upscale", "usdu", "mode_type"): tuple(nodes.AIO_USDU_MODE_TYPES),
-        ("upscale", "usdu", "seam_fix_mode"): tuple(nodes.AIO_USDU_SEAM_FIX_MODES),
-        ("upscale", "resshift", "scale"): tuple(nodes.AIO_RESHIFT_SCALES),
-        ("upscale", "resshift", "dtype"): tuple(nodes.AIO_RESHIFT_DTYPES),
-        ("postprocess", "fit", "mode"): tuple(nodes.AIO_FINAL_FIT_MODES),
-        ("postprocess", "fit", "method"): tuple(nodes.IMAGE_UPSCALE_METHODS),
+        ("artist_mix", "mode"): tuple(artist_mix_config.ARTIST_MIX_INPUT_MODES),
+        ("highres", "upscale_method"): tuple(image_scaling.IMAGE_UPSCALE_METHODS),
+        ("highres", "multiple"): tuple(image_scaling.IMAGE_SCALE_MULTIPLES),
+        ("upscale", "backend"): tuple(generation_defaults.AIO_FINAL_UPSCALE_BACKENDS),
+        ("upscale", "usdu", "prompt_mode"): tuple(generation_defaults.AIO_USDU_PROMPT_MODES),
+        ("upscale", "usdu", "mode_type"): tuple(generation_defaults.AIO_USDU_MODE_TYPES),
+        ("upscale", "usdu", "seam_fix_mode"): tuple(generation_defaults.AIO_USDU_SEAM_FIX_MODES),
+        ("upscale", "resshift", "scale"): tuple(generation_defaults.AIO_RESHIFT_SCALES),
+        ("upscale", "resshift", "dtype"): tuple(generation_defaults.AIO_RESHIFT_DTYPES),
+        ("postprocess", "fit", "mode"): tuple(generation_defaults.AIO_FINAL_FIT_MODES),
+        ("postprocess", "fit", "method"): tuple(image_scaling.IMAGE_UPSCALE_METHODS),
         ("detailer", "sam3", "context"): ("load_checkpoint",),
         ("save", "backend"): ("image_saver", "comfy_save_image"),
         ("save", "image_saver", "extension"): ("png", "jpeg", "jpg", "webp"),
@@ -470,7 +480,7 @@ def _runtime_static_enum_choices(path: tuple[str, ...]) -> tuple[str, ...]:
         "_choice",
         side_effect=capture_choice,
     ):
-        nodes._normalize_aio_generation_settings(_payload_with(path, marker))
+        generation_normalization._normalize_aio_generation_settings(_payload_with(path, marker))
     if len(observed) != 1:
         raise AssertionError(f"Expected one runtime choice source for {path}, got {observed}")
     return observed[0]
@@ -481,7 +491,7 @@ class AIOGenerationSettingsManifestTests(unittest.TestCase):
         manifest = _manifest()
 
         manifest_paths = dict(_default_leaves(manifest["default"]))
-        python_paths = dict(_default_leaves(nodes.AIO_GENERATION_DEFAULT_SETTINGS))
+        python_paths = dict(_default_leaves(generation_defaults.AIO_GENERATION_DEFAULT_SETTINGS))
         failures = [
             *(
                 f"/shape/{'/'.join(path)}: missing surface python_default"
@@ -495,16 +505,16 @@ class AIOGenerationSettingsManifestTests(unittest.TestCase):
         if failures:
             self.fail("\n".join(failures))
 
-        self.assertEqual(manifest["settings"]["schema"], nodes.AIO_GENERATION_SETTINGS_SCHEMA)
-        self.assertEqual(manifest["settings"]["version"], nodes.AIO_GENERATION_SETTINGS_VERSION)
-        self.assertEqual(manifest["default"], nodes.AIO_GENERATION_DEFAULT_SETTINGS)
+        self.assertEqual(manifest["settings"]["schema"], generation_defaults.AIO_GENERATION_SETTINGS_SCHEMA)
+        self.assertEqual(manifest["settings"]["version"], generation_defaults.AIO_GENERATION_SETTINGS_VERSION)
+        self.assertEqual(manifest["default"], generation_defaults.AIO_GENERATION_DEFAULT_SETTINGS)
 
     def test_every_manifest_default_leaf_is_owned_by_typed_config(self):
         manifest = _manifest()
         missing: list[str] = []
 
         for path, _value in _default_leaves(manifest["default"]):
-            source = copy.deepcopy(nodes.AIO_GENERATION_DEFAULT_SETTINGS)
+            source = copy.deepcopy(generation_defaults.AIO_GENERATION_DEFAULT_SETTINGS)
             _delete_path(source, path)
             try:
                 _aio_generation_config_from_dict(source)
@@ -522,7 +532,7 @@ class AIOGenerationSettingsManifestTests(unittest.TestCase):
             "version": "v1",
         }
         for field in fetcher_fields:
-            source = copy.deepcopy(nodes.AIO_GENERATION_DEFAULT_SETTINGS)
+            source = copy.deepcopy(generation_defaults.AIO_GENERATION_DEFAULT_SETTINGS)
             source["save"]["image_saver"]["civitai_hash_fetchers"] = [
                 {name: value for name, value in fetcher.items() if name != field}
             ]
@@ -619,13 +629,13 @@ class AIOGenerationSettingsManifestTests(unittest.TestCase):
             samplers=tuple(capabilities["samplers"]),
             schedulers=tuple(capabilities["schedulers"]),
             impact_schedulers=tuple(capabilities["impact_schedulers"]),
-        ):
+            ):
             with patch_comfy_helper(
-                nodes,
+                aio_nodes,
                 "_comfy_max_resolution",
                 return_value=capabilities["max_resolution"],
             ):
-                normalized = nodes._normalize_aio_generation_settings(serialized)
+                normalized = generation_normalization._normalize_aio_generation_settings(serialized)
 
         self.assertEqual(serialized, serialized_before)
         self.assertEqual(normalized, fixture["expected_normalized_generation_settings"])
@@ -689,14 +699,14 @@ class AIOGenerationSettingsManifestTests(unittest.TestCase):
             for path, contract in enum_contracts.items():
                 default = _get_path(defaults, path)
                 with self.subTest(path="/" + "/".join(path), rule="invalid"):
-                    normalized = nodes._normalize_aio_generation_settings(
+                    normalized = generation_normalization._normalize_aio_generation_settings(
                         _payload_with(path, "__invalid_manifest_choice__")
                     )
                     self.assertEqual(_get_path(normalized, path), default)
 
                 for member in contract["enum"]:
                     with self.subTest(path="/" + "/".join(path), rule="round-trip", member=member):
-                        normalized = nodes._normalize_aio_generation_settings(
+                        normalized = generation_normalization._normalize_aio_generation_settings(
                             _payload_with(path, member)
                         )
                         self.assertEqual(_get_path(normalized, path), member)
@@ -710,7 +720,7 @@ class AIOGenerationSettingsManifestTests(unittest.TestCase):
                 if "minimum" in contract:
                     with self.subTest(path="/" + "/".join(path), rule="minimum"):
                         minimum = contract["minimum"]
-                        normalized = nodes._normalize_aio_generation_settings(
+                        normalized = generation_normalization._normalize_aio_generation_settings(
                             _payload_with(path, minimum - 1)
                         )
                         self.assertEqual(_get_path(normalized, path), minimum)
@@ -718,7 +728,7 @@ class AIOGenerationSettingsManifestTests(unittest.TestCase):
                 if "maximum" in contract:
                     with self.subTest(path="/" + "/".join(path), rule="maximum"):
                         maximum = contract["maximum"]
-                        normalized = nodes._normalize_aio_generation_settings(
+                        normalized = generation_normalization._normalize_aio_generation_settings(
                             _payload_with(path, maximum + 1)
                         )
                         self.assertEqual(_get_path(normalized, path), maximum)
@@ -729,24 +739,24 @@ class AIOGenerationSettingsManifestTests(unittest.TestCase):
 
         for value in coercions["backend_boolean"]["true_strings"]:
             with self.subTest(value=value):
-                self.assertTrue(nodes._as_bool(value, False))
+                self.assertTrue(common_values._as_bool(value, False))
         for value in ("false", "0", "no", "off", "disabled", "unknown"):
             with self.subTest(value=value):
-                self.assertFalse(nodes._as_bool(value, True))
+                self.assertFalse(common_values._as_bool(value, True))
 
-        self.assertEqual(nodes._as_int("12", 7), 12)
-        self.assertEqual(nodes._as_int("12.9", 7), 7)
-        self.assertEqual(nodes._as_float("12.9", 7.0), 12.9)
-        self.assertEqual(nodes._choice(" two ", ("one", "two"), "one"), "two")
-        self.assertEqual(nodes._choice("missing", ("one", "two"), "one"), "one")
+        self.assertEqual(common_values._as_int("12", 7), 12)
+        self.assertEqual(common_values._as_int("12.9", 7), 7)
+        self.assertEqual(common_values._as_float("12.9", 7.0), 12.9)
+        self.assertEqual(common_values._choice(" two ", ("one", "two"), "one"), "two")
+        self.assertEqual(common_values._choice("missing", ("one", "two"), "one"), "one")
         self.assertEqual(coercions["choice"]["invalid"]["static_enum"], "default")
         self.assertEqual(coercions["backend_boolean"]["list_or_tuple"], "first-value")
         self.assertEqual(coercions["backend_boolean"]["empty_list_or_tuple"], "default")
-        self.assertTrue(nodes._as_bool(["yes"], False))
-        self.assertTrue(nodes._as_bool(("enabled",), False))
-        self.assertFalse(nodes._as_bool(["off"], True))
-        self.assertTrue(nodes._as_bool([], True))
-        self.assertFalse(nodes._as_bool((), False))
+        self.assertTrue(common_values._as_bool(["yes"], False))
+        self.assertTrue(common_values._as_bool(("enabled",), False))
+        self.assertFalse(common_values._as_bool(["off"], True))
+        self.assertTrue(common_values._as_bool([], True))
+        self.assertFalse(common_values._as_bool((), False))
 
     def test_field_specific_choice_coercions_match_current_backend(self):
         manifest = _manifest()
@@ -757,10 +767,10 @@ class AIOGenerationSettingsManifestTests(unittest.TestCase):
 
         cases = (
             (("mod_guidance", "profile"), "step_i14", "step_i14"),
-            (("mod_guidance", "profile"), " step_i14 ", nodes.ANIMA_MOD_GUIDANCE_DEFAULT_PROFILE),
-            (("mod_guidance", "profile"), "STEP_I14", nodes.ANIMA_MOD_GUIDANCE_DEFAULT_PROFILE),
-            (("mod_guidance", "profile"), ["step_i14"], nodes.ANIMA_MOD_GUIDANCE_DEFAULT_PROFILE),
-            (("mod_guidance", "profile"), ("step_i14",), nodes.ANIMA_MOD_GUIDANCE_DEFAULT_PROFILE),
+            (("mod_guidance", "profile"), " step_i14 ", prompt_conditioning.ANIMA_MOD_GUIDANCE_DEFAULT_PROFILE),
+            (("mod_guidance", "profile"), "STEP_I14", prompt_conditioning.ANIMA_MOD_GUIDANCE_DEFAULT_PROFILE),
+            (("mod_guidance", "profile"), ["step_i14"], prompt_conditioning.ANIMA_MOD_GUIDANCE_DEFAULT_PROFILE),
+            (("mod_guidance", "profile"), ("step_i14",), prompt_conditioning.ANIMA_MOD_GUIDANCE_DEFAULT_PROFILE),
             (("upscale", "usdu", "prompt_mode"), " no_general ", "no_general"),
             (("upscale", "usdu", "prompt_mode"), "quality_tags_only", "no_general"),
             (("upscale", "usdu", "prompt_mode"), " quality_tags_only ", "full"),
@@ -773,7 +783,7 @@ class AIOGenerationSettingsManifestTests(unittest.TestCase):
         with _deterministic_capabilities():
             for path, value, expected in cases:
                 with self.subTest(path="/" + "/".join(path), value=value):
-                    normalized = nodes._normalize_aio_generation_settings(_payload_with(path, value))
+                    normalized = generation_normalization._normalize_aio_generation_settings(_payload_with(path, value))
                     self.assertEqual(_get_path(normalized, path), expected)
 
     def test_every_referenced_coercion_has_a_self_contained_definition(self):
@@ -828,7 +838,7 @@ class AIOGenerationSettingsManifestTests(unittest.TestCase):
             {"enabled", "username", "model_name", "version"},
         )
 
-        normalized = nodes._normalize_aio_generation_settings({
+        normalized = generation_normalization._normalize_aio_generation_settings({
             "save": {
                 "image_saver": {
                     "additional_hash_bundles": '[" alpha, ", null, " beta "]',
@@ -854,11 +864,11 @@ class AIOGenerationSettingsManifestTests(unittest.TestCase):
             normalized["save"]["image_saver"]["civitai_hash_fetchers"],
             [{"enabled": False, "username": "user", "model_name": "model", "version": "v1"}],
         )
-        self.assertEqual(nodes._normalize_aio_hash_bundles(" raw, "), ["raw"])
-        self.assertEqual(nodes._normalize_aio_hash_bundles('"json-string"'), [])
-        self.assertEqual(nodes._normalize_aio_civitai_hash_fetchers("not-json"), [])
+        self.assertEqual(output_settings._normalize_aio_hash_bundles(" raw, "), ["raw"])
+        self.assertEqual(output_settings._normalize_aio_hash_bundles('"json-string"'), [])
+        self.assertEqual(output_settings._normalize_aio_civitai_hash_fetchers("not-json"), [])
         self.assertEqual(
-            nodes._aio_detailer_target_order({
+            generation_normalization._aio_detailer_target_order({
                 "order": [" custom_2 ", "face", "custom_2", "invalid"],
                 "custom_3": {},
                 "custom_4": "not-an-object",
@@ -886,7 +896,7 @@ class AIOGenerationSettingsManifestTests(unittest.TestCase):
         )
 
         with _deterministic_capabilities():
-            normalized = nodes._normalize_aio_generation_settings({
+            normalized = generation_normalization._normalize_aio_generation_settings({
                 "detailer": {
                     "order": ["custom_7"],
                     "custom_7": {
@@ -926,7 +936,7 @@ class AIOGenerationSettingsManifestTests(unittest.TestCase):
         with _deterministic_capabilities():
             for path, contract in dynamic_contracts:
                 with self.subTest(path="/" + "/".join(path), default_present=True):
-                    normalized = nodes._normalize_aio_generation_settings(
+                    normalized = generation_normalization._normalize_aio_generation_settings(
                         _payload_with(path, "__invalid_dynamic_choice__")
                     )
                     self.assertEqual(_get_path(normalized, path), _get_path(defaults, path))
@@ -943,7 +953,7 @@ class AIOGenerationSettingsManifestTests(unittest.TestCase):
         ):
             for path, contract in dynamic_contracts:
                 with self.subTest(path="/" + "/".join(path), default_present=False):
-                    normalized = nodes._normalize_aio_generation_settings(
+                    normalized = generation_normalization._normalize_aio_generation_settings(
                         _payload_with(path, "__invalid_dynamic_choice__")
                     )
                     self.assertEqual(
@@ -951,12 +961,12 @@ class AIOGenerationSettingsManifestTests(unittest.TestCase):
                         first_by_source[contract["dynamic_enum"]],
                     )
 
-        self.assertEqual(nodes._choice("missing", (), "preferred"), "preferred")
+        self.assertEqual(common_values._choice("missing", (), "preferred"), "preferred")
 
     def test_alias_unknown_field_and_surface_drift_policies_match_current_code(self):
         manifest = _manifest()
         policies = manifest["policies"]
-        normalized = nodes._normalize_aio_generation_settings({
+        normalized = generation_normalization._normalize_aio_generation_settings({
             "sampler": {"dave": {"enabled": True}, "future_sampler": "kept"},
             "model_patches": {"aura_flow": {"enabled": True}},
             "highres": {"backend": "future_backend"},
@@ -1033,8 +1043,8 @@ class AIOGenerationSettingsManifestTests(unittest.TestCase):
             frontend_source,
         )
 
-        self.assertEqual(shape_fields["schema"]["const"], nodes.AIO_GENERATION_SETTINGS_SCHEMA)
-        self.assertEqual(shape_fields["version"]["current"], nodes.AIO_GENERATION_SETTINGS_VERSION)
+        self.assertEqual(shape_fields["schema"]["const"], generation_defaults.AIO_GENERATION_SETTINGS_SCHEMA)
+        self.assertEqual(shape_fields["version"]["current"], generation_defaults.AIO_GENERATION_SETTINGS_VERSION)
         self.assertEqual(
             tuple(patch_contract["sampling_stage_ids"]),
             AIO_GENERATION_STAGE_IDS,
@@ -1105,7 +1115,7 @@ class AIOGenerationSettingsManifestTests(unittest.TestCase):
             set(capabilities["sources"]),
             {"comfy.samplers", "comfy.schedulers", "impact.schedulers", "comfy.max_resolution"},
         )
-        self.assertEqual(seed_contract["maximum_by_surface"]["backend"], str(nodes.MAX_SEED))
+        self.assertEqual(seed_contract["maximum_by_surface"]["backend"], str(generation_normalization.MAX_SEED))
         self.assertIsNotNone(frontend_seed_match)
         self.assertEqual(
             seed_contract["maximum_by_surface"]["frontend"],

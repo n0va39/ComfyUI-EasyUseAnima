@@ -64,44 +64,33 @@ def load_dynamic():
         )
 
     def test_json_and_text_rendering_are_deterministic(self):
-        first_report = analyzer.analyze_path(ROOT / "nodes.py")
-        second_report = analyzer.analyze_path(ROOT / "nodes.py")
+        registration = ROOT / "easyuse_anima" / "registration.py"
+        first_report = analyzer.analyze_path(registration)
+        second_report = analyzer.analyze_path(registration)
 
         self.assertEqual(analyzer.render_json(first_report), analyzer.render_json(second_report))
         self.assertEqual(analyzer.render_text(first_report), analyzer.render_text(second_report))
 
-    def test_current_nodes_module_shape_matches_recorded_baseline(self):
-        report = analyzer.analyze_path(ROOT / "nodes.py")
+    def test_current_registration_module_shape_matches_recorded_baseline(self):
+        report = analyzer.analyze_path(ROOT / "easyuse_anima" / "registration.py")
 
-        self.assertEqual(report["git_blob_sha1"], "fe124beda36e09e3c4c003764b9be9895cbae2b5")
-        # B-11d removes the final residual implementation globals and records
-        # the supported mapped class surface in an explicit __all__.
+        self.assertEqual(report["source"], "easyuse_anima/registration.py")
+        self.assertEqual(
+            report["git_blob_sha1"],
+            "04fc702300d859ec8ec9f71fbff7317859ea045a",
+        )
         self.assertEqual(report["top_level"]["function_count"], 0)
         self.assertEqual(report["top_level"]["class_count"], 0)
-        self.assertEqual(report["line_count"], 1_156)
-        class_names = {item["name"] for item in report["top_level"]["classes"]}
-        self.assertNotIn("EasyUseAnimaAIOGenerator", class_names)
-        self.assertNotIn("EasyUseAnimaInput", class_names)
-        self.assertNotIn("EasyUseAnimaPromptStudioAdvanced", class_names)
-        self.assertNotIn("EasyUseAnimaPromptStudioAdvancedV2", class_names)
-        self.assertNotIn("EasyUseAnimaPromptStudioExtend", class_names)
-        self.assertNotIn("EasyUseAnimaNAIARandomPrompt", class_names)
-        self.assertNotIn("EasyUseAnimaWildcard", class_names)
-        self.assertNotIn("EasyUseAnimaImageScaleByMultiple", class_names)
-        self.assertNotIn("EasyUseAnimaDetailerAlignHook", class_names)
-        self.assertNotIn("EasyUseAnimaLoraPreset", class_names)
-        self.assertNotIn("EasyUseAnimaPromptCorrector", class_names)
-        self.assertNotIn("EasyUseAnimaPromptCorrectorSimple", class_names)
-        self.assertNotIn("EasyUseAnimaPromptBuilder", class_names)
-        self.assertNotIn("EasyUseAnimaPromptStudio", class_names)
-        self.assertNotIn("EasyUseAnimaPromptStudioRegional", class_names)
-        self.assertNotIn("EasyUseAnimaRegionalConditioning", class_names)
-        self.assertNotIn("EasyUseAnimaPromptDataUnpack", class_names)
-        self.assertNotIn("EasyUseAnimaArtistMixConditioning", class_names)
-        self.assertNotIn("EasyUseAnimaPromptDataConditioning", class_names)
-        self.assertNotIn("EasyUseAnimaSAM3Context", class_names)
-        self.assertNotIn("_EasyUseAnimaImpactDetailerDelegate", class_names)
-        self.assertNotIn("EasyUseAnimaSAM3Detailer", class_names)
+        self.assertEqual(report["line_count"], 73)
+        self.assertEqual(
+            [item["name"] for item in report["top_level"]["globals"]],
+            [
+                "NODE_CLASS_MAPPINGS",
+                "NODE_DISPLAY_NAME_MAPPINGS",
+                "__all__",
+            ],
+        )
+        self.assertEqual(len(report["imports"]), 18)
 
     def test_external_source_label_does_not_expose_parent_directories(self):
         label = analyzer._source_label(Path("Z:/private/user/data/example.py"))

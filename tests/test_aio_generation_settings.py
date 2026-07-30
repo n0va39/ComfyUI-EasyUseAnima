@@ -7,7 +7,6 @@ from contextlib import contextmanager
 from pathlib import Path
 from unittest.mock import patch
 
-import nodes
 from easyuse_anima.aio import generation_defaults, generation_normalization
 from easyuse_anima.aio.generation_detailer import AIOGenerationDetailerTargetConfig
 from easyuse_anima.aio.generation_features import (
@@ -44,7 +43,7 @@ def _deterministic_capabilities(
             _impact_scheduler_names=lambda: list(impact_schedulers),
         ),
         patch_comfy_helper(
-            nodes,
+            generation_normalization,
             "_comfy_max_resolution",
             return_value=max_resolution,
         ),
@@ -53,18 +52,14 @@ def _deterministic_capabilities(
 
 
 class AIOGenerationConfigTests(unittest.TestCase):
-    def test_root_facade_reexports_canonical_normalizers_by_identity(self):
-        self.assertIs(
-            nodes.AIO_GENERATION_DEFAULT_SETTINGS,
-            generation_defaults.AIO_GENERATION_DEFAULT_SETTINGS,
+    def test_generation_settings_use_direct_canonical_owners(self):
+        self.assertEqual(
+            generation_defaults.AIO_GENERATION_DEFAULT_SETTINGS["schema"],
+            generation_defaults.AIO_GENERATION_SETTINGS_SCHEMA,
         )
-        self.assertIs(
-            nodes._merge_versioned_settings,
-            generation_normalization._merge_versioned_settings,
-        )
-        self.assertIs(
-            nodes._normalize_aio_generation_settings,
-            generation_normalization._normalize_aio_generation_settings,
+        self.assertEqual(
+            generation_normalization._normalize_aio_generation_settings.__module__,
+            "easyuse_anima.aio.generation_normalization",
         )
 
     def test_canonical_normalizer_uses_canonical_helpers_at_call_time(self):
@@ -90,7 +85,7 @@ class AIOGenerationConfigTests(unittest.TestCase):
         )
 
     def test_default_payload_round_trips_with_exact_shape_and_order(self):
-        source = copy.deepcopy(nodes.AIO_GENERATION_DEFAULT_SETTINGS)
+        source = copy.deepcopy(generation_defaults.AIO_GENERATION_DEFAULT_SETTINGS)
 
         config = _aio_generation_config_from_dict(source)
         restored = _aio_generation_config_to_dict(config)
@@ -113,7 +108,7 @@ class AIOGenerationConfigTests(unittest.TestCase):
 
     def test_negpip_turbo_round_trips_unknown_fields_and_owns_effective_cfg_only(self):
         with _deterministic_capabilities():
-            normalized = nodes._normalize_aio_generation_settings({
+            normalized = generation_normalization._normalize_aio_generation_settings({
                 "negpip": {
                     "mode": "turbo",
                     "future_negpip": {"revision": 3},
@@ -133,13 +128,13 @@ class AIOGenerationConfigTests(unittest.TestCase):
         )
 
         with _deterministic_capabilities():
-            invalid = nodes._normalize_aio_generation_settings({
+            invalid = generation_normalization._normalize_aio_generation_settings({
                 "negpip": {"mode": "unsupported"},
             })
         self.assertEqual(invalid["negpip"], {"mode": "off"})
 
     def test_fresh_v4_legacy_scopes_and_malformed_scopes_normalize_without_ambiguity(self):
-        legacy = copy.deepcopy(nodes.AIO_GENERATION_DEFAULT_SETTINGS)
+        legacy = copy.deepcopy(generation_defaults.AIO_GENERATION_DEFAULT_SETTINGS)
         legacy["version"] = 1
         legacy_dave = legacy["model_patches"]["dave"]
         del legacy_dave["stage_scope"]
@@ -147,14 +142,14 @@ class AIOGenerationConfigTests(unittest.TestCase):
         del legacy_safe_pag["stage_scope"]
         legacy_kj = legacy["model_patches"]["kj"]
         del legacy_kj["sage_stage_scope"]
-        malformed = copy.deepcopy(nodes.AIO_GENERATION_DEFAULT_SETTINGS)
+        malformed = copy.deepcopy(generation_defaults.AIO_GENERATION_DEFAULT_SETTINGS)
         malformed["model_patches"]["safe_pag"]["stage_scope"] = "all"
         malformed["model_patches"]["kj"]["sage_stage_scope"] = "all"
 
         with _deterministic_capabilities():
-            fresh = nodes._normalize_aio_generation_settings({})
-            migrated = nodes._normalize_aio_generation_settings(legacy)
-            malformed_normalized = nodes._normalize_aio_generation_settings(malformed)
+            fresh = generation_normalization._normalize_aio_generation_settings({})
+            migrated = generation_normalization._normalize_aio_generation_settings(legacy)
+            malformed_normalized = generation_normalization._normalize_aio_generation_settings(malformed)
 
         self.assertEqual(fresh["version"], 4)
         self.assertEqual(
@@ -242,7 +237,7 @@ class AIOGenerationConfigTests(unittest.TestCase):
         self.assertEqual(restored, expected)
 
     def test_root_nested_unknown_and_extension_objects_are_isolated(self):
-        source = copy.deepcopy(nodes.AIO_GENERATION_DEFAULT_SETTINGS)
+        source = copy.deepcopy(generation_defaults.AIO_GENERATION_DEFAULT_SETTINGS)
         source["root_extension"] = {"rows": [{"name": "root", "values": [1, 2]}]}
         source["sampler"]["sampler_extension"] = {"nested": {"enabled": True}}
         source["model_patches"]["future_patch"] = {"weights": [0.25, 0.75]}
@@ -265,7 +260,7 @@ class AIOGenerationConfigTests(unittest.TestCase):
         self.assertEqual(_aio_generation_config_to_dict(config), expected)
 
     def test_every_typed_object_section_preserves_unknown_json(self):
-        source = copy.deepcopy(nodes.AIO_GENERATION_DEFAULT_SETTINGS)
+        source = copy.deepcopy(generation_defaults.AIO_GENERATION_DEFAULT_SETTINGS)
         section_paths = (
             ("sampler", "spectrum"),
             ("sampler", "spd"),
@@ -310,7 +305,7 @@ class AIOGenerationConfigTests(unittest.TestCase):
         self.assertEqual(restored, source)
 
     def test_custom_detailer_targets_and_order_round_trip(self):
-        source = copy.deepcopy(nodes.AIO_GENERATION_DEFAULT_SETTINGS)
+        source = copy.deepcopy(generation_defaults.AIO_GENERATION_DEFAULT_SETTINGS)
         custom_target = copy.deepcopy(source["detailer"]["face"])
         custom_target["label"] = "Custom Detailer 12"
         custom_target["target_extension"] = {"tokens": ["a", "b"]}
@@ -331,7 +326,7 @@ class AIOGenerationConfigTests(unittest.TestCase):
         source = {"detailer": {"custom_9": "preserve non-object"}}
 
         with _deterministic_capabilities():
-            normalized = nodes._normalize_aio_generation_settings(source)
+            normalized = generation_normalization._normalize_aio_generation_settings(source)
 
         config = _aio_generation_config_from_dict(normalized)
         restored = _aio_generation_config_to_dict(config)
@@ -345,7 +340,7 @@ class AIOGenerationConfigTests(unittest.TestCase):
         source = {"detailer": {"custom_²": {"future": {"value": 7}}}}
 
         with _deterministic_capabilities():
-            normalized = nodes._normalize_aio_generation_settings(source)
+            normalized = generation_normalization._normalize_aio_generation_settings(source)
 
         config = _aio_generation_config_from_dict(normalized)
         restored = _aio_generation_config_to_dict(config)
@@ -373,8 +368,8 @@ class AIOGenerationConfigTests(unittest.TestCase):
         }
 
         with _deterministic_capabilities():
-            first = nodes._normalize_aio_generation_settings(legacy)
-            second = nodes._normalize_aio_generation_settings(legacy)
+            first = generation_normalization._normalize_aio_generation_settings(legacy)
+            second = generation_normalization._normalize_aio_generation_settings(legacy)
 
         self.assertNotIn("dave", first["sampler"])
         self.assertNotIn("enabled", first["model_patches"]["aura_flow"])
@@ -401,7 +396,7 @@ class AIOGenerationConfigTests(unittest.TestCase):
             impact_schedulers=tuple(capabilities["impact_schedulers"]),
             max_resolution=capabilities["max_resolution"],
         ):
-            normalized = nodes._normalize_aio_generation_settings(serialized)
+            normalized = generation_normalization._normalize_aio_generation_settings(serialized)
 
         self.assertEqual(serialized, serialized_before)
         self.assertEqual(normalized, fixture["expected_normalized_generation_settings"])

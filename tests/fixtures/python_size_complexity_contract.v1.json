@@ -8,10 +8,8 @@
   "adapter_paths": {
     "exact": [
       "__init__.py",
-      "api.py",
       "easyuse_anima/bootstrap.py",
-      "easyuse_anima/registration.py",
-      "nodes.py"
+      "easyuse_anima/registration.py"
     ],
     "prefixes": [
       "easyuse_anima/api/",
@@ -28,7 +26,7 @@
     },
     {
       "path": "easyuse_anima/bootstrap.py",
-      "baseline_loc": 422,
+      "baseline_loc": 448,
       "owner_issue": 187,
       "decomposition_boundary": "E-09 lifecycle lock, initialization, cleanup plan, rollback, and terminal shutdown remain one bootstrap owner."
     },
@@ -61,12 +59,6 @@
       "baseline_loc": 476,
       "owner_issue": 188,
       "decomposition_boundary": "Split Regional node adapters only across existing node classes with socket and workflow parity."
-    },
-    {
-      "path": "nodes.py",
-      "baseline_loc": 1156,
-      "owner_issue": 188,
-      "decomposition_boundary": "Reduce the root compatibility facade only through canonical node adapters with exact alias and monkeypatch parity."
     }
   ],
   "function_exceptions": [

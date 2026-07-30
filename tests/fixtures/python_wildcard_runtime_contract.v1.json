@@ -2,55 +2,6 @@
   "classification": "Contract",
   "compatibility_surfaces": [
     {
-      "canonical_bindings": {
-        "expand_wildcard_texts": "easyuse_anima.wildcard.service",
-        "expand_wildcards": "easyuse_anima.wildcard.service",
-        "list_wildcards": "easyuse_anima.wildcard.service",
-        "wildcard_sources_signature": "easyuse_anima.wildcard.service"
-      },
-      "id": "root-public-wildcard-facade",
-      "kind": "identity_reexport",
-      "module": "wildcard_engine.py",
-      "symbols": [
-        "expand_wildcard_texts",
-        "expand_wildcards",
-        "list_wildcards",
-        "wildcard_sources_signature"
-      ]
-    },
-    {
-      "canonical_bindings": {
-        "_DEFAULT_WILDCARD_SNAPSHOTS": "easyuse_anima.wildcard.snapshot",
-        "_SNAPSHOT_CACHE_LIMIT": "easyuse_anima.wildcard.snapshot",
-        "_WildcardSnapshot": "easyuse_anima.wildcard.snapshot",
-        "_build_wildcard_snapshot": "easyuse_anima.wildcard.snapshot"
-      },
-      "id": "root-private-snapshot-identities",
-      "kind": "identity_reexport",
-      "module": "wildcard_engine.py",
-      "symbols": [
-        "_DEFAULT_WILDCARD_SNAPSHOTS",
-        "_SNAPSHOT_CACHE_LIMIT",
-        "_WildcardSnapshot",
-        "_build_wildcard_snapshot"
-      ]
-    },
-    {
-      "canonical_bindings": {
-        "_WildcardLibrary": "easyuse_anima.wildcard.service",
-        "_load_wildcard_map": "easyuse_anima.wildcard.service",
-        "_wildcard_snapshot": "easyuse_anima.wildcard.service"
-      },
-      "id": "root-private-service-identities",
-      "kind": "identity_reexport",
-      "module": "wildcard_engine.py",
-      "symbols": [
-        "_wildcard_snapshot",
-        "_load_wildcard_map",
-        "_WildcardLibrary"
-      ]
-    },
-    {
       "id": "canonical-private-lifecycle-patch-seams",
       "kind": "dynamic_reference",
       "module": "easyuse_anima/wildcard/service.py",
@@ -116,40 +67,16 @@
     },
     "next_phase": "E-08a AiO first-pass cache ownership Contract",
     "production_changes": 0,
-    "root_identity_bindings": [
-      {
-        "canonical_module": "easyuse_anima.wildcard.service",
-        "root_module": "wildcard_engine.py",
-        "symbols": [
-          "_wildcard_snapshot",
-          "_load_wildcard_map",
-          "_WildcardLibrary",
-          "expand_wildcard_texts",
-          "expand_wildcards",
-          "list_wildcards",
-          "wildcard_sources_signature"
-        ]
-      },
-      {
-        "canonical_module": "easyuse_anima.wildcard.snapshot",
-        "root_module": "wildcard_engine.py",
-        "symbols": [
-          "_DEFAULT_WILDCARD_SNAPSHOTS",
-          "_SNAPSHOT_CACHE_LIMIT",
-          "_WildcardSnapshot",
-          "_build_wildcard_snapshot"
-        ]
-      }
-    ]
+    "root_identity_bindings": []
   },
   "decisions": {
     "default_root_initialization": "Bootstrap wildcard-directory initialization and its retry state remain E-09 and are not part of the snapshot owner.",
     "generic_cache_condition_port": "rejected",
     "resource_partition": "Verified wildcard snapshots, building-key admission, and their Condition form one feature-private owner because they share one cache-key publication invariant.",
-    "root_facade": "After P-WC-02 root wildcard_engine is an import-only compatibility shim. Its service facade names, private helpers, and snapshot identities bind directly to canonical owners while signatures, results, eager NumPy, and package/flat import parity remain.",
+    "root_facade": "PTC-09B retires wildcard_engine.py; wildcard behavior and lifecycle seams are callable only from canonical easyuse_anima.wildcard owners.",
     "runtime_composition": "E-06d installs only one feature-specific narrow wildcard snapshot capability backed by the exact default owner; feature modules never receive the complete RuntimeServices object.",
     "snapshot_materialization": "D-12c canonical immutable snapshot values and stateless materialization remain separate behavior authorities and are not reimplemented by E-06.",
-    "test_seams": "Private build, snapshot, and source-module patching uses the equivalent call-time seam in easyuse_anima.wildcard.service; api.list_wildcards remains a dynamic module-global callback seam."
+    "test_seams": "Private build, snapshot, and source-module patching uses call-time seams in easyuse_anima.wildcard.service and canonical API dependencies."
   },
   "move_queue": [
     {

@@ -2,8 +2,9 @@
 
 ## Status and authority
 
-- Status: PTC-01 through PTC-09A complete; PTC-09B is the next implementation task.
-- PTC-09A base: `5ab3f54c4d6eba930de5bf7a813d0fd89654ad01`.
+- Status: PTC-01 through PTC-09B complete in the current change; PTC-10 is the next
+  completion-audit task after merge.
+- PTC-09B base: `a281e3c5f6ee52e214dca89226aed69075810112`.
 - Technical owner: Issue #593; parent architecture owner: Issue #185.
 - Lifecycle authority: E-09 / Issue #187.
 - Compatibility inventory: Issue #186 and
@@ -110,10 +111,10 @@ canonical registration/application owners.
 ## Size-exception closure
 
 The original PTC-01 review classified 11 module and 20 function exceptions. Completed
-PTC-02 through PTC-07B moves resolved eight overages, so the current
-`python_size_complexity_contract.v1.json` contains eight module and fifteen function
-exceptions. All current 23 records are linked exactly once by ID: 22 have completed
-owners and the root `nodes.py` module remains the single planned PTC-09B deletion.
+PTC-02 through PTC-09B work resolved nine overages, so the current
+`python_size_complexity_contract.v1.json` contains seven module and fifteen function
+exceptions. All current 22 records are linked exactly once by ID and have completed
+owners; the deleted root `nodes.py` exception is no longer in the active ledger.
 The final verdict families are:
 
 - split: AiO normalization and legacy orchestration, NAIA/Advanced/PromptData/Regional
@@ -189,8 +190,8 @@ COMPLETE  PTC-01  total inventory, target and deletion Contract
 COMPLETE  PTC-02 through PTC-07B behavior-preserving Moves
 COMPLETE  PTC-08  size and support-ownership closure Contract
 COMPLETE  PTC-09A root canonical-entrypoint/caller cutover Contract
-READY     PTC-09B canonical cutover and 16-file legacy deletion
-NEXT      PTC-10  total Python convergence audit
+COMPLETE  PTC-09B canonical cutover and 16-file legacy deletion
+READY     PTC-10  total Python convergence audit
 EVENT     ordinary release; no automatic compatibility shim recreation
 ```
 
@@ -254,11 +255,16 @@ stateless private sink, not another state cell. Root `api.py` and all other lega
 are deleted without replacement. No second lock, atexit, cleanup registry, reset API,
 hot reinitialize, route deregistration or canonical-to-root import is introduced.
 
-PTC-09B then migrates root-importing tests to exact canonical owners, updates package
-and compatibility fixtures, changes root `__init__.py` to the selected canonical call,
-and deletes the 16 legacy files. Because entrypoint, registration and archive closure
-change, it requires official full, validate/pack/archive, extracted no-host import and
-one representative isolated ComfyUI API/node execution smoke.
+PTC-09B migrates root-importing tests to exact canonical owners, updates package and
+ownership fixtures, changes root `__init__.py` to the selected canonical call, and
+deletes the 16 legacy files. The post-cutover analyzer also exposes
+`nodes/impact_detailer_nodes.py` and `nodes/sam3_nodes.py` as the exact two shipped
+canonical modules outside the entrypoint runtime closure. PTC-10 must classify and
+close that residual without reopening the retired root paths.
+
+Because entrypoint, registration and archive closure change, PTC-09B requires official
+full, validate/pack/archive, extracted no-host import and one representative isolated
+ComfyUI API/node execution smoke.
 
 ## Final Definition of Done
 

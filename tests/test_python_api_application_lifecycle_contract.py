@@ -108,17 +108,17 @@ register_atexit.assert_not_called()
         )
         self.assertEqual(result.returncode, 0, result.stderr or result.stdout)
 
-    def test_root_aliases_one_frozen_application_and_exact_handler_order(self):
+    def test_one_frozen_application_keeps_exact_handler_order(self):
         api, _routes = load_api_routes(register=False)
-        application = api._APPLICATION
+        application = api.application
         owner = sys.modules[type(application).__module__]
 
         self.assertIs(owner._APPLICATION, application)
-        self.assertIs(application.dependencies, api._APPLICATION_DEPENDENCIES)
-        self.assertIs(application.translation_executor, api._PROMPT_TRANSLATION_WORKER)
-        self.assertIs(application.route_definitions, api._ROUTE_DEFINITIONS)
-        self.assertIs(application.route_signature, api._ROUTE_SIGNATURE)
-        self.assertIs(application.register_routes, api.register_routes)
+        dependencies_owner = sys.modules[type(application.dependencies).__module__]
+        self.assertIs(
+            dependencies_owner._APPLICATION_DEPENDENCIES,
+            application.dependencies,
+        )
         self.assertEqual(tuple(field.name for field in fields(application)), APPLICATION_FIELDS)
         self.assertEqual(
             tuple(field.name for field in fields(application.handlers)),
@@ -127,32 +127,34 @@ register_atexit.assert_not_called()
         self.assertEqual(len(application.route_definitions), 21)
         for name in HANDLER_FIELDS:
             with self.subTest(handler=name):
-                self.assertIs(getattr(api, name), getattr(application.handlers, name))
+                self.assertIsNotNone(getattr(application.handlers, name))
         with self.assertRaises(FrozenInstanceError):
             application.translation_executor = object()
 
     def test_publish_once_and_bootstrap_composition_use_exact_identities(self):
         api, _routes = load_api_routes(register=False)
-        application = api._APPLICATION
+        application = api.application
         owner = sys.modules[type(application).__module__]
-        bootstrap = sys.modules[api._compose_api_application.__module__]
+        bootstrap = api.bootstrap
 
         self.assertIs(owner._publish_application(application), application)
         with self.assertRaisesRegex(RuntimeError, "API application already installed"):
             owner._publish_application(copy.copy(application))
 
         sentinel = object()
+        logger = object()
+        publish_routes = Mock()
         with patch.object(bootstrap, "_build_api_application", return_value=sentinel) as build:
             self.assertIs(
                 bootstrap._compose_api_application(
-                    logger=api._LOGGER,
-                    publish_routes=api._publish_routes,
+                    logger=logger,
+                    publish_routes=publish_routes,
                 ),
                 sentinel,
             )
         build.assert_called_once_with(
-            logger=api._LOGGER,
-            publish_routes=api._publish_routes,
+            logger=logger,
+            publish_routes=publish_routes,
             build_settings_route_group=bootstrap.build_settings_route_group,
             build_wildcard_autocomplete_route_group=(
                 bootstrap.build_wildcard_autocomplete_route_group
@@ -169,16 +171,16 @@ register_atexit.assert_not_called()
 
     def test_executor_is_bootstrap_identity_and_cleanup_item_one(self):
         api, routes = load_api_routes(register=False)
-        bootstrap = sys.modules[api._compose_api_application.__module__]
-        runtime_module = sys.modules[api._get_runtime.__module__]
+        bootstrap = api.bootstrap
+        runtime_module = api.runtime
         try:
             with patch.object(atexit, "register"):
                 bootstrap.initialize(
-                    register_routes=api.register_routes,
+                    register_routes=api.application.register_routes,
                     initialize_wildcards=Mock(return_value=object()),
                 )
             runtime = runtime_module.get_runtime()
-            executor = api._APPLICATION.translation_executor
+            executor = api.application.translation_executor
 
             self.assertIs(bootstrap._TRANSLATION_ROUTE_EXECUTOR, executor)
             self.assertEqual(len(runtime._cleanup_plan._callbacks), 7)

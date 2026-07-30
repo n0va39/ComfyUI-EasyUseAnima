@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import ast
+import atexit
 import importlib.util
 import json
 import math
@@ -17,7 +18,6 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-import nodes
 from easyuse_anima import workflow
 from easyuse_anima.aio import (
     generation_normalization as aio_generation_normalization,
@@ -32,15 +32,12 @@ from easyuse_anima.common import values as common_values
 from easyuse_anima.image import detailer as image_detailer
 from easyuse_anima.image import geometry as image_geometry
 from easyuse_anima.image import sam3_detailer as image_sam3_detailer
-from easyuse_anima.image import scaling as image_scaling
 from easyuse_anima.image import upscale as image_upscale
 from easyuse_anima.infrastructure.comfy import capabilities as comfy_capabilities
 from easyuse_anima.infrastructure.comfy import invocation as comfy_invocation
 from easyuse_anima.infrastructure.comfy import resources as comfy_resources
 from easyuse_anima.lora import metadata as lora_metadata
 from easyuse_anima.lora import preset as lora_preset
-from easyuse_anima.naia import client as naia_client
-from easyuse_anima.naia import resolution as naia_resolution
 from easyuse_anima.nodes import (
     aio_nodes,
     image_nodes,
@@ -63,6 +60,7 @@ from easyuse_anima.prompt import data as prompt_data
 from easyuse_anima.prompt import correction as prompt_correction
 from easyuse_anima.prompt import fields as prompt_fields
 from easyuse_anima.prompt import regional as prompt_regional
+from easyuse_anima.registration import NODE_CLASS_MAPPINGS
 
 
 PACKAGE_INIT = ROOT / "__init__.py"
@@ -215,7 +213,6 @@ def _deterministic_comfy_inputs():
         },
     }
     with (
-        patch.multiple(nodes, **replacements),
         patch.multiple(
             aio_nodes,
             _comfy_diffusion_model_names=replacements[
@@ -278,7 +275,7 @@ def _deterministic_comfy_inputs():
             resolve_naia_settings=replacements["resolve_naia_settings"],
         ),
         patch_comfy_helper(
-            nodes,
+            aio_nodes,
             "_comfy_max_resolution",
             return_value=16384,
         ),
@@ -312,43 +309,70 @@ def _loaded_package_entrypoint():
         raise AssertionError("Could not create package entrypoint spec")
     package_module = importlib.util.module_from_spec(package_spec)
     sys.modules[package_name] = package_module
+    host_nodes = types.ModuleType("nodes")
+    host_nodes.MAX_RESOLUTION = 16384
 
-    api_stub = types.ModuleType(f"{package_name}.api")
-    api_stub.register_routes = lambda: True
-    sys.modules[api_stub.__name__] = api_stub
-    package_module.api = api_stub
+    registrations = []
+
+    def route_decorator(method, path):
+        def register(handler):
+            registrations.append((method, path, handler))
+            return handler
+
+        return register
+
+    routes = types.SimpleNamespace(
+        get=lambda path: route_decorator("GET", path),
+        post=lambda path: route_decorator("POST", path),
+    )
+    server = types.ModuleType("server")
+    server.PromptServer = type(
+        "PromptServer",
+        (),
+        {"instance": types.SimpleNamespace(routes=routes)},
+    )
+    aiohttp = types.ModuleType("aiohttp")
+    aiohttp.web = types.SimpleNamespace(
+        FileResponse=object,
+        HTTPException=Exception,
+        Response=object,
+        json_response=lambda payload, status=200: (payload, status),
+    )
+    bootstrap = None
 
     try:
-        nodes_spec = importlib.util.spec_from_file_location(
-            f"{package_name}.nodes",
-            ROOT / "nodes.py",
-        )
-        if nodes_spec is None or nodes_spec.loader is None:
-            raise AssertionError("Could not create canonical package nodes spec")
-        package_nodes = importlib.util.module_from_spec(nodes_spec)
-        sys.modules[nodes_spec.name] = package_nodes
-        nodes_spec.loader.exec_module(package_nodes)
-
-        wildcard_sources_module = sys.modules.get(
-            f"{package_name}.easyuse_anima.wildcard.sources"
-        )
-        if wildcard_sources_module is None:
-            raise AssertionError("Package nodes did not load canonical wildcard sources")
-        with patch.object(
-            wildcard_sources_module,
-            "ensure_default_wildcard_root",
-            return_value=None,
+        with (
+            patch.dict(
+                sys.modules,
+                {"aiohttp": aiohttp, "nodes": host_nodes, "server": server},
+            ),
+            patch.object(atexit, "register"),
         ):
-            package_spec.loader.exec_module(package_module)
-            yield package_module, package_nodes
+            wildcard_sources_module = importlib.import_module(
+                f"{package_name}.easyuse_anima.wildcard.sources"
+            )
+            with patch.object(
+                wildcard_sources_module,
+                "ensure_default_wildcard_root",
+                return_value=None,
+            ):
+                package_spec.loader.exec_module(package_module)
+                bootstrap = sys.modules[f"{package_name}.easyuse_anima.bootstrap"]
+                yield package_module, package_module
     finally:
-        for name in list(sys.modules):
-            if name == package_name or name.startswith(package_prefix):
-                sys.modules.pop(name, None)
+        try:
+            if bootstrap is not None:
+                bootstrap.shutdown()
+        finally:
+            for name in list(sys.modules):
+                if name == package_name or name.startswith(package_prefix):
+                    sys.modules.pop(name, None)
 
 
 def _node_contract(node_id: str, class_name: str, display_name: str) -> dict:
-    node_class = getattr(nodes, class_name)
+    node_class = NODE_CLASS_MAPPINGS[node_id]
+    if node_class.__name__ != class_name:
+        raise AssertionError(f"Unexpected class mapping for {node_id}: {node_class!r}")
     input_types = node_class.INPUT_TYPES()
     sections = []
     for section_name, entries in input_types.items():
@@ -379,7 +403,7 @@ def _node_contract(node_id: str, class_name: str, display_name: str) -> dict:
 
 
 def _representative_is_changed() -> list[dict]:
-    input_context = nodes.EasyUseAnimaInput().build(
+    input_context = aio_nodes.EasyUseAnimaInput().build(
         {
             "positive_prompt": "contract prompt",
             "negative_prompt": "",
@@ -458,7 +482,7 @@ def _representative_is_changed() -> list[dict]:
         {
             "id": node_id,
             "inputs": _normalize(kwargs),
-            "result": _normalize(getattr(nodes, node_id).IS_CHANGED(**kwargs)),
+            "result": _normalize(NODE_CLASS_MAPPINGS[node_id].IS_CHANGED(**kwargs)),
         }
         for node_id, kwargs in samples
     ]
@@ -560,48 +584,12 @@ class CommonHelperMoveContractTests(unittest.TestCase):
         ),
     )
 
-    def test_root_nodes_private_aliases_are_canonical_objects(self):
-        for canonical_module, helper_names in self.HELPER_MODULES:
-            for helper_name in helper_names:
-                with self.subTest(module=canonical_module.__name__, helper=helper_name):
-                    self.assertIs(
-                        getattr(nodes, helper_name),
-                        getattr(canonical_module, helper_name),
-                    )
-        for helper_name in self.RETIRED_IMAGE_GEOMETRY_HELPERS:
-            with self.subTest(retired=helper_name):
-                self.assertFalse(hasattr(nodes, helper_name))
-
-    def test_package_nodes_private_aliases_are_canonical_objects(self):
+    def test_package_canonical_geometry_preserves_behavior(self):
         with _loaded_package_entrypoint() as (_, package_nodes):
             package_name = package_nodes.__package__
             package_geometry = sys.modules[
                 f"{package_name}.easyuse_anima.image.geometry"
             ]
-            package_helper_modules = (
-                (
-                    sys.modules[f"{package_name}.easyuse_anima.common.values"],
-                    self.HELPER_MODULES[0][1],
-                ),
-                (
-                    sys.modules[f"{package_name}.easyuse_anima.common.serialization"],
-                    self.HELPER_MODULES[1][1],
-                ),
-                (
-                    package_geometry,
-                    self.HELPER_MODULES[2][1],
-                ),
-            )
-            for canonical_module, helper_names in package_helper_modules:
-                for helper_name in helper_names:
-                    with self.subTest(module=canonical_module.__name__, helper=helper_name):
-                        self.assertIs(
-                            getattr(package_nodes, helper_name),
-                            getattr(canonical_module, helper_name),
-                        )
-            for helper_name in self.RETIRED_IMAGE_GEOMETRY_HELPERS:
-                with self.subTest(retired=helper_name):
-                    self.assertFalse(hasattr(package_nodes, helper_name))
             self.assertEqual(package_geometry._alignment_value(["64"]), 64)
             self.assertIsNone(package_geometry._alignment_value("impact"))
             self.assertEqual(package_geometry._align_up(65, 64), 128)
@@ -611,37 +599,37 @@ class CommonHelperMoveContractTests(unittest.TestCase):
             )
 
     def test_moved_helper_behavior_matches_existing_contract(self):
-        self.assertEqual(nodes._single_value(["first", "second"]), "first")
-        self.assertIsNone(nodes._single_value(()))
-        self.assertTrue(nodes._as_bool(" enabled "))
-        self.assertFalse(nodes._as_bool("false", True))
-        self.assertEqual(nodes._as_int(["7"], 3), 7)
-        self.assertEqual(nodes._as_int("invalid", 3), 3)
-        self.assertEqual(nodes._as_float(["1.5"], 3.0), 1.5)
-        self.assertEqual(nodes._choice(" beta ", ("alpha", "beta"), "alpha"), "beta")
-        self.assertEqual(nodes._choice("missing", ("alpha", "beta"), "beta"), "beta")
+        self.assertEqual(common_values._single_value(["first", "second"]), "first")
+        self.assertIsNone(common_values._single_value(()))
+        self.assertTrue(common_values._as_bool(" enabled "))
+        self.assertFalse(common_values._as_bool("false", True))
+        self.assertEqual(common_values._as_int(["7"], 3), 7)
+        self.assertEqual(common_values._as_int("invalid", 3), 3)
+        self.assertEqual(common_values._as_float(["1.5"], 3.0), 1.5)
+        self.assertEqual(common_values._choice(" beta ", ("alpha", "beta"), "alpha"), "beta")
+        self.assertEqual(common_values._choice("missing", ("alpha", "beta"), "beta"), "beta")
 
         self.assertEqual(
-            nodes._stable_change_key({"b": 2, "a": "한"}),
+            common_serialization._stable_change_key({"b": 2, "a": "한"}),
             '{"a":"한","b":2}',
         )
         source = {"nested": [{"value": "한"}]}
-        clone = nodes._json_clone(source)
+        clone = common_serialization._json_clone(source)
         self.assertEqual(clone, source)
         self.assertIsNot(clone, source)
         self.assertIsNot(clone["nested"], source["nested"])
         json_object_source = {"value": 1}
-        self.assertEqual(nodes._json_object(json_object_source), json_object_source)
-        self.assertIsNot(nodes._json_object(json_object_source), json_object_source)
-        self.assertEqual(nodes._json_object('{"value": 1}'), {"value": 1})
-        self.assertEqual(nodes._json_object("invalid"), {})
+        self.assertEqual(common_serialization._json_object(json_object_source), json_object_source)
+        self.assertIsNot(common_serialization._json_object(json_object_source), json_object_source)
+        self.assertEqual(common_serialization._json_object('{"value": 1}'), {"value": 1})
+        self.assertEqual(common_serialization._json_object("invalid"), {})
 
         self.assertEqual(image_geometry._alignment_value(["64"]), 64)
         self.assertIsNone(image_geometry._alignment_value("impact"))
         self.assertEqual(image_geometry._align_up(65, 64), 128)
-        self.assertEqual(nodes._align_nearest(95, 64), 64)
-        self.assertEqual(nodes._align_nearest(96, 64), 128)
-        self.assertEqual(nodes._align_down(65, 64), 64)
+        self.assertEqual(image_geometry._align_nearest(95, 64), 64)
+        self.assertEqual(image_geometry._align_nearest(96, 64), 128)
+        self.assertEqual(image_geometry._align_down(65, 64), 64)
         self.assertEqual(
             image_geometry._image_tensor_size(
                 types.SimpleNamespace(shape=(1, 5, 7, 4)),
@@ -671,7 +659,7 @@ class AioLoraSignatureMoveContractTests(unittest.TestCase):
 
     def test_root_alias_and_canonical_normalizer_rebind(self):
         self.assertIs(
-            nodes._aio_lora_stack_signature,
+            aio_model_preparation._aio_lora_stack_signature,
             aio_model_preparation._aio_lora_stack_signature,
         )
         normalized = [("styles/test.safetensors", 0.8, 0.6)]
@@ -692,10 +680,6 @@ class AioLoraSignatureMoveContractTests(unittest.TestCase):
             package_model_preparation = sys.modules[
                 f"{package_name}.easyuse_anima.aio.model_preparation"
             ]
-            self.assertIs(
-                package_nodes._aio_lora_stack_signature,
-                package_model_preparation._aio_lora_stack_signature,
-            )
             normalized = [("styles/test.safetensors", 0.8, 0.6)]
             with patch.object(
                 package_model_preparation,
@@ -792,7 +776,7 @@ class AioSpectrumNormalizationMoveContractTests(unittest.TestCase):
             self.assertGreater(helper.call_count, 0)
 
     def test_root_alias_and_canonical_helpers(self):
-        self._assert_contract(nodes, aio_generation_normalization)
+        self._assert_contract(aio_generation_normalization, aio_generation_normalization)
 
     def test_package_alias_and_canonical_helpers(self):
         with _loaded_package_entrypoint() as (_, package_nodes):
@@ -800,7 +784,7 @@ class AioSpectrumNormalizationMoveContractTests(unittest.TestCase):
             package_generation_normalization = sys.modules[
                 f"{package_name}.easyuse_anima.aio.generation_normalization"
             ]
-            self._assert_contract(package_nodes, package_generation_normalization)
+            self._assert_contract(package_generation_normalization, package_generation_normalization)
 
 
 class AioDitNormalizationMoveContractTests(unittest.TestCase):
@@ -901,7 +885,7 @@ class AioDitNormalizationMoveContractTests(unittest.TestCase):
             self.assertGreater(helper.call_count, 0)
 
     def test_root_alias_and_canonical_helpers(self):
-        self._assert_contract(nodes, aio_generation_normalization)
+        self._assert_contract(aio_generation_normalization, aio_generation_normalization)
 
     def test_package_alias_and_canonical_helpers(self):
         with _loaded_package_entrypoint() as (_, package_nodes):
@@ -909,7 +893,7 @@ class AioDitNormalizationMoveContractTests(unittest.TestCase):
             package_generation_normalization = sys.modules[
                 f"{package_name}.easyuse_anima.aio.generation_normalization"
             ]
-            self._assert_contract(package_nodes, package_generation_normalization)
+            self._assert_contract(package_generation_normalization, package_generation_normalization)
 
 
 class AioDetailerNormalizationMoveContractTests(unittest.TestCase):
@@ -1032,7 +1016,7 @@ class AioDetailerNormalizationMoveContractTests(unittest.TestCase):
         )
 
     def test_root_aliases_and_canonical_state(self):
-        self._assert_contract(nodes, aio_generation_normalization)
+        self._assert_contract(aio_generation_normalization, aio_generation_normalization)
 
     def test_package_aliases_and_canonical_state(self):
         with _loaded_package_entrypoint() as (_, package_nodes):
@@ -1040,7 +1024,7 @@ class AioDetailerNormalizationMoveContractTests(unittest.TestCase):
             package_generation_normalization = sys.modules[
                 f"{package_name}.easyuse_anima.aio.generation_normalization"
             ]
-            self._assert_contract(package_nodes, package_generation_normalization)
+            self._assert_contract(package_generation_normalization, package_generation_normalization)
 
 
 class AioUsduTilePlanningMoveContractTests(unittest.TestCase):
@@ -1143,13 +1127,13 @@ class AioUsduTilePlanningMoveContractTests(unittest.TestCase):
         )
 
     def test_root_aliases_and_canonical_helpers(self):
-        self._assert_contract(nodes, aio_usdu)
+        self._assert_contract(aio_usdu, aio_usdu)
 
     def test_package_aliases_and_canonical_helpers(self):
         with _loaded_package_entrypoint() as (_, package_nodes):
             package_name = package_nodes.__package__
             package_usdu = sys.modules[f"{package_name}.easyuse_anima.aio.usdu"]
-            self._assert_contract(package_nodes, package_usdu)
+            self._assert_contract(package_usdu, package_usdu)
 
 
 class AioFinalFitPlanningMoveContractTests(unittest.TestCase):
@@ -1595,7 +1579,7 @@ class AioFinalFitPlanningMoveContractTests(unittest.TestCase):
         self._assert_stage_contract(root_module, canonical_module)
 
     def test_root_aliases_and_canonical_helpers(self):
-        self._assert_contract(nodes, aio_postprocess)
+        self._assert_contract(aio_postprocess, aio_postprocess)
 
     def test_package_aliases_and_canonical_helpers(self):
         with _loaded_package_entrypoint() as (_, package_nodes):
@@ -1603,7 +1587,7 @@ class AioFinalFitPlanningMoveContractTests(unittest.TestCase):
             package_postprocess = sys.modules[
                 f"{package_name}.easyuse_anima.aio.postprocess"
             ]
-            self._assert_contract(package_nodes, package_postprocess)
+            self._assert_contract(package_postprocess, package_postprocess)
 
 
 class AioResourceNameMoveContractTests(unittest.TestCase):
@@ -1646,7 +1630,7 @@ class AioResourceNameMoveContractTests(unittest.TestCase):
         )
 
     def test_root_alias_and_call_time_dependencies(self):
-        self._assert_contract(nodes, aio_resources)
+        self._assert_contract(aio_resources, aio_resources)
 
     def test_package_alias_and_call_time_dependencies(self):
         with _loaded_package_entrypoint() as (_, package_nodes):
@@ -1654,7 +1638,7 @@ class AioResourceNameMoveContractTests(unittest.TestCase):
             package_resources = sys.modules[
                 f"{package_name}.easyuse_anima.aio.resources"
             ]
-            self._assert_contract(package_nodes, package_resources)
+            self._assert_contract(package_resources, package_resources)
 
     def _assert_text_encoder_contract(self, root_module, canonical_module):
         self.assertIs(
@@ -1695,7 +1679,7 @@ class AioResourceNameMoveContractTests(unittest.TestCase):
         )
 
     def test_text_encoder_root_alias_and_call_time_dependencies(self):
-        self._assert_text_encoder_contract(nodes, aio_resources)
+        self._assert_text_encoder_contract(aio_resources, aio_resources)
 
     def test_text_encoder_package_alias_and_call_time_dependencies(self):
         with _loaded_package_entrypoint() as (_, package_nodes):
@@ -1703,7 +1687,7 @@ class AioResourceNameMoveContractTests(unittest.TestCase):
             package_resources = sys.modules[
                 f"{package_name}.easyuse_anima.aio.resources"
             ]
-            self._assert_text_encoder_contract(package_nodes, package_resources)
+            self._assert_text_encoder_contract(package_resources, package_resources)
 
     def _assert_vae_contract(self, root_module, canonical_module):
         self.assertIs(
@@ -1758,7 +1742,7 @@ class AioResourceNameMoveContractTests(unittest.TestCase):
         self.assertEqual(find_calls, ["ContractProbe"])
 
     def test_vae_root_alias_and_call_time_dependencies(self):
-        self._assert_vae_contract(nodes, aio_resources)
+        self._assert_vae_contract(aio_resources, aio_resources)
 
     def test_vae_package_alias_and_call_time_dependencies(self):
         with _loaded_package_entrypoint() as (_, package_nodes):
@@ -1766,7 +1750,7 @@ class AioResourceNameMoveContractTests(unittest.TestCase):
             package_resources = sys.modules[
                 f"{package_name}.easyuse_anima.aio.resources"
             ]
-            self._assert_vae_contract(package_nodes, package_resources)
+            self._assert_vae_contract(package_resources, package_resources)
 
     def _assert_clip_loader_type_contract(self, root_module, canonical_module):
         self.assertIs(
@@ -1812,7 +1796,7 @@ class AioResourceNameMoveContractTests(unittest.TestCase):
         self.assertEqual(find_calls, ["ContractProbe"])
 
     def test_clip_loader_type_root_alias_and_call_time_dependencies(self):
-        self._assert_clip_loader_type_contract(nodes, aio_resources)
+        self._assert_clip_loader_type_contract(aio_resources, aio_resources)
 
     def test_clip_loader_type_package_alias_and_call_time_dependencies(self):
         with _loaded_package_entrypoint() as (_, package_nodes):
@@ -1820,7 +1804,7 @@ class AioResourceNameMoveContractTests(unittest.TestCase):
             package_resources = sys.modules[
                 f"{package_name}.easyuse_anima.aio.resources"
             ]
-            self._assert_clip_loader_type_contract(package_nodes, package_resources)
+            self._assert_clip_loader_type_contract(package_resources, package_resources)
 
 
 class AioSeedNormalizationMoveContractTests(unittest.TestCase):
@@ -1865,7 +1849,7 @@ class AioSeedNormalizationMoveContractTests(unittest.TestCase):
         )
 
     def test_root_aliases_and_canonical_clamp_helpers(self):
-        self._assert_contract(nodes, aio_generation_normalization)
+        self._assert_contract(aio_generation_normalization, aio_generation_normalization)
 
     def test_package_aliases_and_canonical_clamp_helpers(self):
         with _loaded_package_entrypoint() as (_, package_nodes):
@@ -1873,7 +1857,7 @@ class AioSeedNormalizationMoveContractTests(unittest.TestCase):
             package_generation_normalization = sys.modules[
                 f"{package_name}.easyuse_anima.aio.generation_normalization"
             ]
-            self._assert_contract(package_nodes, package_generation_normalization)
+            self._assert_contract(package_generation_normalization, package_generation_normalization)
 
 
 class AioRuntimeSeedMoveContractTests(unittest.TestCase):
@@ -1923,13 +1907,13 @@ class AioRuntimeSeedMoveContractTests(unittest.TestCase):
         new_seed.assert_called_once_with()
 
     def test_root_aliases_and_canonical_replacements(self):
-        self._assert_contract(nodes, aio_sampling)
+        self._assert_contract(aio_sampling, aio_sampling)
 
     def test_package_aliases_and_canonical_replacements(self):
         with _loaded_package_entrypoint() as (_, package_nodes):
             package_name = package_nodes.__package__
             package_sampling = sys.modules[f"{package_name}.easyuse_anima.aio.sampling"]
-            self._assert_contract(package_nodes, package_sampling)
+            self._assert_contract(package_sampling, package_sampling)
 
 
 class AioWidgetDefaultSerializerMoveContractTests(unittest.TestCase):
@@ -1995,27 +1979,33 @@ class AioWidgetDefaultSerializerMoveContractTests(unittest.TestCase):
             )
 
     def test_root_aliases_and_call_time_serialization_inputs(self):
-        self._assert_contract(nodes, aio_nodes)
+        self._assert_contract(aio_nodes, aio_nodes)
 
     def test_package_aliases_and_call_time_serialization_inputs(self):
         with _loaded_package_entrypoint() as (_, package_nodes):
             package_name = package_nodes.__package__
-            package_aio_nodes = sys.modules[f"{package_name}.easyuse_anima.nodes.aio_nodes"]
-            self._assert_contract(package_nodes, package_aio_nodes)
+            package_aio_nodes = sys.modules[
+                f"{package_name}.easyuse_anima.nodes.aio_nodes"
+            ]
+            self._assert_contract(package_aio_nodes, package_aio_nodes)
 
 
 class AioSettingsJsonRetirementContractTests(unittest.TestCase):
-    def _assert_contract(self, root_module):
-        self.assertFalse(hasattr(root_module, "_settings_json"))
-        self.assertTrue(callable(root_module._aio_input_settings_json))
-        self.assertTrue(callable(root_module._aio_generation_settings_json))
+    def _assert_contract(self, canonical_module):
+        self.assertFalse(hasattr(canonical_module, "_settings_json"))
+        self.assertTrue(callable(canonical_module._aio_input_settings_json))
+        self.assertTrue(callable(canonical_module._aio_generation_settings_json))
 
-    def test_flat_root_has_no_dead_settings_json_helper(self):
-        self._assert_contract(nodes)
+    def test_canonical_adapter_has_no_dead_settings_json_helper(self):
+        self._assert_contract(aio_nodes)
 
-    def test_package_root_has_no_dead_settings_json_helper(self):
+    def test_package_canonical_adapter_has_no_dead_settings_json_helper(self):
         with _loaded_package_entrypoint() as (_, package_nodes):
-            self._assert_contract(package_nodes)
+            package_name = package_nodes.__package__
+            package_aio_nodes = sys.modules[
+                f"{package_name}.easyuse_anima.nodes.aio_nodes"
+            ]
+            self._assert_contract(package_aio_nodes)
 
 
 class AioInputSettingsNormalizerMoveContractTests(unittest.TestCase):
@@ -2104,7 +2094,7 @@ class AioInputSettingsNormalizerMoveContractTests(unittest.TestCase):
         self.assertEqual(result["future"], {"kept": True})
 
     def test_root_alias_and_call_time_input_contract(self):
-        self._assert_contract(nodes, aio_resources)
+        self._assert_contract(aio_resources, aio_resources)
 
     def test_package_alias_and_call_time_input_contract(self):
         with _loaded_package_entrypoint() as (_, package_nodes):
@@ -2112,7 +2102,7 @@ class AioInputSettingsNormalizerMoveContractTests(unittest.TestCase):
             package_resources = sys.modules[
                 f"{package_name}.easyuse_anima.aio.resources"
             ]
-            self._assert_contract(package_nodes, package_resources)
+            self._assert_contract(package_resources, package_resources)
 
 
 class ComfyAdapterMoveContractTests(unittest.TestCase):
@@ -2140,55 +2130,18 @@ class ComfyAdapterMoveContractTests(unittest.TestCase):
         ),
     )
 
-    def test_root_nodes_comfy_aliases_are_canonical_objects(self):
-        self.assertFalse(hasattr(nodes, "_comfy_max_resolution"))
-        self.assertFalse(hasattr(nodes, "_find_comfy_node_class"))
-        self.assertFalse(hasattr(nodes, "_find_comfy_node_mapping_class"))
-        self.assertFalse(hasattr(nodes, "_find_loaded_node_class"))
-        self.assertFalse(hasattr(nodes, "_require_custom_node_class"))
-        self.assertFalse(hasattr(nodes, "_require_any_custom_node_class"))
-        self.assertFalse(hasattr(nodes, "_encode_with_comfy_clip"))
-        for canonical_module, helper_names in self.DIRECT_HELPER_MODULES:
-            for helper_name in helper_names:
-                with self.subTest(module=canonical_module.__name__, helper=helper_name):
-                    self.assertIs(
-                        getattr(nodes, helper_name),
-                        getattr(canonical_module, helper_name),
-                    )
-
-    def test_package_nodes_comfy_aliases_are_canonical_objects(self):
+    def test_package_canonical_comfy_adapters_preserve_behavior(self):
         with _loaded_package_entrypoint() as (_, package_nodes):
-            self.assertFalse(hasattr(package_nodes, "_comfy_max_resolution"))
-            self.assertFalse(hasattr(package_nodes, "_find_comfy_node_class"))
-            self.assertFalse(
-                hasattr(package_nodes, "_find_comfy_node_mapping_class")
-            )
-            self.assertFalse(hasattr(package_nodes, "_find_loaded_node_class"))
-            self.assertFalse(
-                hasattr(package_nodes, "_require_custom_node_class")
-            )
-            self.assertFalse(
-                hasattr(package_nodes, "_require_any_custom_node_class")
-            )
-            self.assertFalse(hasattr(package_nodes, "_encode_with_comfy_clip"))
-            self.assertFalse(hasattr(package_nodes, "_comfy_checkpoint_names"))
-            self.assertFalse(hasattr(package_nodes, "_impact_core_module"))
-            self.assertFalse(
-                hasattr(package_nodes, "_EasyUseAnimaImpactDetailerDelegate")
-            )
-            for helper_name in self.RETIRED_SAM3_SERVICE_HELPERS:
-                with self.subTest(retired=helper_name):
-                    self.assertFalse(hasattr(package_nodes, helper_name))
             package_name = package_nodes.__package__
             package_capabilities = sys.modules[
                 f"{package_name}.easyuse_anima.infrastructure.comfy.capabilities"
             ]
-            package_sam3_nodes = sys.modules[
+            package_sam3_nodes = importlib.import_module(
                 f"{package_name}.easyuse_anima.nodes.sam3_nodes"
-            ]
-            package_impact_nodes = sys.modules[
+            )
+            package_impact_nodes = importlib.import_module(
                 f"{package_name}.easyuse_anima.nodes.impact_detailer_nodes"
-            ]
+            )
             package_resources = sys.modules[
                 f"{package_name}.easyuse_anima.infrastructure.comfy.resources"
             ]
@@ -2266,33 +2219,6 @@ class ComfyAdapterMoveContractTests(unittest.TestCase):
                     ["package-impact"],
                 )
             impact_core.assert_called_once_with()
-            package_helper_modules = (
-                (
-                    package_capabilities,
-                    self.DIRECT_HELPER_MODULES[0][1],
-                ),
-                (
-                    sys.modules[
-                        f"{package_name}.easyuse_anima.infrastructure.comfy.resources"
-                    ],
-                    self.DIRECT_HELPER_MODULES[1][1],
-                ),
-                (
-                    sys.modules[
-                        f"{package_name}.easyuse_anima.infrastructure.comfy.invocation"
-                    ],
-                    self.DIRECT_HELPER_MODULES[2][1],
-                ),
-            )
-            for canonical_module, helper_names in package_helper_modules:
-                for helper_name in helper_names:
-                    with self.subTest(module=canonical_module.__name__, helper=helper_name):
-                        self.assertIs(
-                            getattr(package_nodes, helper_name),
-                            getattr(canonical_module, helper_name),
-                        )
-
-
 class ImageNodeMoveContractTests(unittest.TestCase):
     RETAINED_SCALING_ALIASES = (
         "IMAGE_SCALE_MULTIPLES",
@@ -2305,15 +2231,7 @@ class ImageNodeMoveContractTests(unittest.TestCase):
         "_scale_by_value",
     )
 
-    def test_root_nodes_image_objects_are_direct_canonical_aliases(self):
-        for name in self.RETAINED_SCALING_ALIASES:
-            with self.subTest(name=name):
-                self.assertIs(getattr(nodes, name), getattr(image_scaling, name))
-        for name in self.RETIRED_SCALING_HELPERS:
-            with self.subTest(retired=name):
-                self.assertFalse(hasattr(nodes, name))
-
-        self.assertFalse(hasattr(nodes, "_EasyUseAnimaAlignedDetailerHook"))
+    def test_canonical_image_node_adapters_preserve_behavior(self):
         self.assertIs(
             image_nodes._EasyUseAnimaAlignedDetailerHook,
             image_detailer._EasyUseAnimaAlignedDetailerHook,
@@ -2333,14 +2251,6 @@ class ImageNodeMoveContractTests(unittest.TestCase):
         self.assertEqual(aligned_hook.base_hook, "existing-hook")
         self.assertEqual(aligned_hook.alignment, 32)
         self.assertIs(
-            nodes.EasyUseAnimaImageScaleByMultiple,
-            image_nodes.EasyUseAnimaImageScaleByMultiple,
-        )
-        self.assertIs(
-            nodes.EasyUseAnimaDetailerAlignHook,
-            image_nodes.EasyUseAnimaDetailerAlignHook,
-        )
-        self.assertIs(
             image_upscale._common_upscale_image,
             comfy_invocation._common_upscale_image,
         )
@@ -2349,11 +2259,8 @@ class ImageNodeMoveContractTests(unittest.TestCase):
             image_upscale._upscale_image_by_multiple,
         )
 
-    def test_package_loaded_root_nodes_image_objects_are_direct_canonical_aliases(self):
-        with _loaded_package_entrypoint() as (_, package_nodes):
-            self.assertFalse(
-                hasattr(package_nodes, "_EasyUseAnimaAlignedDetailerHook")
-            )
+    def test_package_canonical_image_objects_preserve_behavior(self):
+        with _loaded_package_entrypoint() as (package_entrypoint, package_nodes):
             package_name = package_nodes.__package__
             package_scaling = sys.modules[f"{package_name}.easyuse_anima.image.scaling"]
             package_detailer = sys.modules[f"{package_name}.easyuse_anima.image.detailer"]
@@ -2367,15 +2274,6 @@ class ImageNodeMoveContractTests(unittest.TestCase):
             package_node_adapters = sys.modules[
                 f"{package_name}.easyuse_anima.nodes.image_nodes"
             ]
-            for name in self.RETAINED_SCALING_ALIASES:
-                with self.subTest(name=name):
-                    self.assertIs(
-                        getattr(package_nodes, name),
-                        getattr(package_scaling, name),
-                    )
-            for name in self.RETIRED_SCALING_HELPERS:
-                with self.subTest(retired=name):
-                    self.assertFalse(hasattr(package_nodes, name))
             self.assertEqual(package_scaling._scale_by_value("1.25"), 1.25)
             self.assertEqual(package_scaling._max_long_edge_value("20000"), 16384)
             self.assertEqual(
@@ -2413,7 +2311,10 @@ class ImageNodeMoveContractTests(unittest.TestCase):
             ):
                 with self.subTest(name=name):
                     canonical_class = getattr(package_node_adapters, name)
-                    self.assertIs(getattr(package_nodes, name), canonical_class)
+                    self.assertIs(
+                        package_entrypoint.NODE_CLASS_MAPPINGS[name],
+                        canonical_class,
+                    )
             self.assertIs(
                 package_upscale._common_upscale_image,
                 package_invocation._common_upscale_image,
@@ -2471,29 +2372,7 @@ class WildcardNaiaMoveContractTests(unittest.TestCase):
         "_resolve_naia_resolution",
     )
 
-    def test_root_nodes_wildcard_naia_objects_are_direct_canonical_aliases(self):
-        for name in self.RETIRED_CLIENT_ALIASES:
-            with self.subTest(retired=name):
-                self.assertFalse(hasattr(nodes, name))
-        for name in self.RETAINED_CLIENT_ALIASES:
-            with self.subTest(module="client", name=name):
-                self.assertIs(getattr(nodes, name), getattr(naia_client, name))
-        for name in self.RETIRED_RESOLUTION_ALIASES:
-            with self.subTest(retired=name):
-                self.assertFalse(hasattr(nodes, name))
-        for name in self.RETAINED_RESOLUTION_ALIASES:
-            with self.subTest(module="resolution", name=name):
-                self.assertIs(getattr(nodes, name), getattr(naia_resolution, name))
-
-        self.assertIs(
-            nodes.EasyUseAnimaWildcard,
-            wildcard_nodes.EasyUseAnimaWildcard,
-        )
-        self.assertIs(
-            nodes.EasyUseAnimaNAIARandomPrompt,
-            naia_nodes.EasyUseAnimaNAIARandomPrompt,
-        )
-        self.assertFalse(hasattr(nodes, "WILDCARD_SEED_RANGE_NOTE"))
+    def test_canonical_wildcard_node_preserves_seed_tooltip(self):
         self.assertIn(
             wildcard_nodes.WILDCARD_SEED_RANGE_NOTE,
             wildcard_nodes.EasyUseAnimaWildcard.INPUT_TYPES()["required"]["seed"][1][
@@ -2501,40 +2380,25 @@ class WildcardNaiaMoveContractTests(unittest.TestCase):
             ],
         )
 
-    def test_package_loaded_root_wildcard_naia_objects_are_direct_canonical_aliases(self):
-        with _loaded_package_entrypoint() as (_, package_nodes):
+    def test_package_mappings_use_canonical_wildcard_and_naia_nodes(self):
+        with _loaded_package_entrypoint() as (package_entrypoint, package_nodes):
             package_name = package_nodes.__package__
-            package_client = sys.modules[f"{package_name}.easyuse_anima.naia.client"]
-            package_resolution = sys.modules[f"{package_name}.easyuse_anima.naia.resolution"]
-            package_naia_nodes = sys.modules[f"{package_name}.easyuse_anima.nodes.naia_nodes"]
+            package_naia_nodes = sys.modules[
+                f"{package_name}.easyuse_anima.nodes.naia_nodes"
+            ]
             package_wildcard_nodes = sys.modules[
                 f"{package_name}.easyuse_anima.nodes.wildcard_nodes"
             ]
-
-            for name in self.RETIRED_CLIENT_ALIASES:
-                with self.subTest(retired=name):
-                    self.assertFalse(hasattr(package_nodes, name))
-            for name in self.RETAINED_CLIENT_ALIASES:
-                with self.subTest(module="client", name=name):
-                    self.assertIs(getattr(package_nodes, name), getattr(package_client, name))
-            for name in self.RETIRED_RESOLUTION_ALIASES:
-                with self.subTest(retired=name):
-                    self.assertFalse(hasattr(package_nodes, name))
-            for name in self.RETAINED_RESOLUTION_ALIASES:
-                with self.subTest(module="resolution", name=name):
-                    self.assertIs(
-                        getattr(package_nodes, name),
-                        getattr(package_resolution, name),
-                    )
             self.assertIs(
-                package_nodes.EasyUseAnimaWildcard,
+                package_entrypoint.NODE_CLASS_MAPPINGS["EasyUseAnimaWildcard"],
                 package_wildcard_nodes.EasyUseAnimaWildcard,
             )
             self.assertIs(
-                package_nodes.EasyUseAnimaNAIARandomPrompt,
+                package_entrypoint.NODE_CLASS_MAPPINGS[
+                    "EasyUseAnimaNAIARandomPrompt"
+                ],
                 package_naia_nodes.EasyUseAnimaNAIARandomPrompt,
             )
-            self.assertFalse(hasattr(package_nodes, "WILDCARD_SEED_RANGE_NOTE"))
 
 
 class WorkflowLookupMoveContractTests(unittest.TestCase):
@@ -2564,17 +2428,6 @@ class WorkflowLookupMoveContractTests(unittest.TestCase):
         self.assertIsNone(workflow._get_workflow_node(None, "3"))
         self.assertEqual(extra_pnginfo, original)
 
-    def test_flat_and_package_roots_reexport_the_canonical_workflow_lookup(self):
-        self.assertIs(nodes._get_workflow_node, workflow._get_workflow_node)
-
-        with _loaded_package_entrypoint() as (_, package_nodes):
-            package_name = package_nodes.__package__
-            package_workflow = sys.modules[f"{package_name}.easyuse_anima.workflow"]
-            self.assertIs(
-                package_nodes._get_workflow_node,
-                package_workflow._get_workflow_node,
-            )
-
     def test_wildcard_naia_adapters_use_the_canonical_workflow_lookup(self):
         for adapter in (wildcard_nodes, naia_nodes):
             with self.subTest(adapter=adapter.__name__):
@@ -2603,12 +2456,6 @@ class InputTypeMoveContractTests(unittest.TestCase):
             input_types._ANY_TYPE,
         )
 
-        self.assertIs(nodes._AnyType, input_types._AnyType)
-        self.assertIs(
-            nodes._FlexibleOptionalInputType,
-            input_types._FlexibleOptionalInputType,
-        )
-        self.assertIs(nodes._ANY_TYPE, input_types._ANY_TYPE)
         self.assertIs(lora_nodes._ANY_TYPE, input_types._ANY_TYPE)
         for adapter in (
             lora_nodes,
@@ -2622,7 +2469,7 @@ class InputTypeMoveContractTests(unittest.TestCase):
                     input_types._FlexibleOptionalInputType,
                 )
 
-    def test_package_root_and_adapters_share_the_canonical_input_types(self):
+    def test_package_adapters_share_the_canonical_input_types(self):
         with _loaded_package_entrypoint() as (_, package_nodes):
             package_name = package_nodes.__package__
             package_input_types = sys.modules[
@@ -2639,12 +2486,6 @@ class InputTypeMoveContractTests(unittest.TestCase):
                 sys.modules[f"{package_name}.easyuse_anima.nodes.wildcard_nodes"],
             )
 
-            self.assertIs(package_nodes._AnyType, package_input_types._AnyType)
-            self.assertIs(
-                package_nodes._FlexibleOptionalInputType,
-                package_input_types._FlexibleOptionalInputType,
-            )
-            self.assertIs(package_nodes._ANY_TYPE, package_input_types._ANY_TYPE)
             self.assertIs(
                 package_adapters[0]._ANY_TYPE,
                 package_input_types._ANY_TYPE,
@@ -2684,14 +2525,7 @@ class LoraPresetMoveContractTests(unittest.TestCase):
         "_select_profile_values",
     )
 
-    def test_root_lora_objects_are_direct_canonical_aliases(self):
-        for name in self.METADATA_HELPERS:
-            with self.subTest(module="metadata", name=name):
-                self.assertIs(getattr(nodes, name), getattr(lora_metadata, name))
-        for name in self.PRESET_HELPERS:
-            with self.subTest(module="preset", name=name):
-                self.assertIs(getattr(nodes, name), getattr(lora_preset, name))
-        self.assertIs(nodes.EasyUseAnimaLoraPreset, lora_nodes.EasyUseAnimaLoraPreset)
+    def test_canonical_lora_owners_have_no_runtime_binders(self):
         for module, binder_name in (
             (lora_metadata, "_bind_lora_metadata_runtime"),
             (lora_preset, "_bind_lora_preset_runtime"),
@@ -2700,21 +2534,14 @@ class LoraPresetMoveContractTests(unittest.TestCase):
             with self.subTest(module=module.__name__, binder=binder_name):
                 self.assertFalse(hasattr(module, binder_name))
 
-    def test_package_loaded_root_lora_objects_are_direct_canonical_aliases(self):
-        with _loaded_package_entrypoint() as (_, package_nodes):
+    def test_package_mapping_uses_canonical_lora_node(self):
+        with _loaded_package_entrypoint() as (package_entrypoint, package_nodes):
             package_name = package_nodes.__package__
-            package_metadata = sys.modules[f"{package_name}.easyuse_anima.lora.metadata"]
-            package_preset = sys.modules[f"{package_name}.easyuse_anima.lora.preset"]
-            package_lora_nodes = sys.modules[f"{package_name}.easyuse_anima.nodes.lora_nodes"]
-
-            for name in self.METADATA_HELPERS:
-                with self.subTest(module="metadata", name=name):
-                    self.assertIs(getattr(package_nodes, name), getattr(package_metadata, name))
-            for name in self.PRESET_HELPERS:
-                with self.subTest(module="preset", name=name):
-                    self.assertIs(getattr(package_nodes, name), getattr(package_preset, name))
+            package_lora_nodes = sys.modules[
+                f"{package_name}.easyuse_anima.nodes.lora_nodes"
+            ]
             self.assertIs(
-                package_nodes.EasyUseAnimaLoraPreset,
+                package_entrypoint.NODE_CLASS_MAPPINGS["EasyUseAnimaLoraPreset"],
                 package_lora_nodes.EasyUseAnimaLoraPreset,
             )
 
@@ -2800,32 +2627,22 @@ class PromptCorrectorMoveContractTests(unittest.TestCase):
         "EasyUseAnimaPromptCorrectorSimple",
     )
 
-    def test_root_prompt_corrector_objects_are_direct_canonical_aliases(self):
+    def test_canonical_prompt_corrector_owners_have_no_runtime_binders(self):
         self.assertFalse(hasattr(prompt_correction, "_bind_prompt_correction_runtime"))
         self.assertFalse(hasattr(prompt_nodes, "_bind_prompt_node_runtime"))
-        for name in self.CORRECTION_HELPERS:
-            with self.subTest(name=name):
-                self.assertIs(getattr(nodes, name), getattr(prompt_correction, name))
-        for name in self.NODE_CLASSES:
-            with self.subTest(name=name):
-                self.assertIs(getattr(nodes, name), getattr(prompt_nodes, name))
 
-    def test_package_loaded_root_prompt_corrector_objects_are_direct_canonical_aliases(self):
-        with _loaded_package_entrypoint() as (_, package_nodes):
+    def test_package_mappings_use_canonical_prompt_corrector_nodes(self):
+        with _loaded_package_entrypoint() as (package_entrypoint, package_nodes):
             package_name = package_nodes.__package__
-            package_correction = sys.modules[
-                f"{package_name}.easyuse_anima.prompt.correction"
-            ]
             package_prompt_nodes = sys.modules[
                 f"{package_name}.easyuse_anima.nodes.prompt_nodes"
             ]
-
-            for name in self.CORRECTION_HELPERS:
-                with self.subTest(name=name):
-                    self.assertIs(getattr(package_nodes, name), getattr(package_correction, name))
             for name in self.NODE_CLASSES:
                 with self.subTest(name=name):
-                    self.assertIs(getattr(package_nodes, name), getattr(package_prompt_nodes, name))
+                    self.assertIs(
+                        package_entrypoint.NODE_CLASS_MAPPINGS[name],
+                        getattr(package_prompt_nodes, name),
+                    )
 
     def test_canonical_service_and_adapter_monkeypatches_drive_prompt_corrector_nodes(self):
         settings = types.SimpleNamespace(provider="off", source="auto", target="en")
@@ -2907,7 +2724,7 @@ class PromptCorrectorMoveContractTests(unittest.TestCase):
             ) as has_markers,
             patch.object(prompt_correction, "translate_prompt_markers") as translate_markers,
         ):
-            untranslated = nodes._translate_prompt_text("%{abc}")
+            untranslated = prompt_correction._translate_prompt_text("%{abc}")
 
         self.assertEqual(untranslated, "%{abc}")
         has_markers.assert_called_once_with("%{abc}")
@@ -2930,7 +2747,7 @@ class PromptCorrectorMoveContractTests(unittest.TestCase):
                 return_value=settings,
             ) as resolve_settings,
         ):
-            translated = nodes._translate_prompt_text("%{abc}")
+            translated = prompt_correction._translate_prompt_text("%{abc}")
 
         self.assertEqual(translated, "bound")
         has_markers.assert_called_once_with("%{abc}")
@@ -3176,26 +2993,10 @@ class PromptDataConditioningMoveContractTests(unittest.TestCase):
         ),
     }
 
-    def test_root_prompt_data_conditioning_objects_are_direct_canonical_aliases(self):
+    def test_canonical_prompt_data_owners_have_no_runtime_binders(self):
         self.assertFalse(hasattr(prompt_artist_mix, "_bind_artist_mix_runtime"))
         self.assertFalse(hasattr(prompt_conditioning, "_bind_conditioning_runtime"))
         self.assertFalse(hasattr(prompt_data_nodes, "_bind_prompt_data_node_runtime"))
-        for name in (
-            *self.RETIRED_PROMPT_DATA_ALIASES,
-            *self.RETIRED_CONDITIONING_ALIASES,
-            *self.RETIRED_ARTIST_MIX_PARSING_ALIASES,
-            *self.RETIRED_ARTIST_MIX_MODE_ALIASES,
-            *self.RETIRED_ARTIST_MIX_CONDITIONING_ALIASES,
-        ):
-            with self.subTest(retired=name):
-                self.assertFalse(hasattr(nodes, name))
-        for name in self.NODE_CLASSES:
-            with self.subTest(module="prompt_data_nodes", name=name):
-                self.assertIs(getattr(nodes, name), getattr(prompt_data_nodes, name))
-        for module, names in self.MOVED_HELPERS.items():
-            for name in names:
-                with self.subTest(module=module.__name__, name=name):
-                    self.assertIs(getattr(nodes, name), getattr(module, name))
 
     def test_artist_mix_primitives_keep_canonical_alias_identity(self):
         for name in self.ARTIST_MIX_PRIMITIVE_ALIASES:
@@ -3213,7 +3014,7 @@ class PromptDataConditioningMoveContractTests(unittest.TestCase):
 
     def test_package_entrypoint_mappings_keep_canonical_class_identity_and_display(self):
         expected_display = {
-            "EasyUseAnimaPromptDataUnpack": nodes.PROMPT_DATA_TYPE,
+            "EasyUseAnimaPromptDataUnpack": prompt_data.PROMPT_DATA_TYPE,
             "EasyUseAnimaArtistMixConditioning": "Anima Artist Mix Conditioning",
             "EasyUseAnimaPromptDataConditioning": "Anima Prompt Data Conditioning",
         }
@@ -3222,19 +3023,9 @@ class PromptDataConditioningMoveContractTests(unittest.TestCase):
             package_adapters = sys.modules[
                 f"{package_name}.easyuse_anima.nodes.prompt_data_nodes"
             ]
-            for name in (
-                *self.RETIRED_PROMPT_DATA_ALIASES,
-                *self.RETIRED_CONDITIONING_ALIASES,
-                *self.RETIRED_ARTIST_MIX_PARSING_ALIASES,
-                *self.RETIRED_ARTIST_MIX_MODE_ALIASES,
-                *self.RETIRED_ARTIST_MIX_CONDITIONING_ALIASES,
-            ):
-                with self.subTest(retired=name):
-                    self.assertFalse(hasattr(package_nodes, name))
             for name in self.NODE_CLASSES:
                 with self.subTest(name=name):
                     canonical_class = getattr(package_adapters, name)
-                    self.assertIs(getattr(package_nodes, name), canonical_class)
                     self.assertIs(package_entry.NODE_CLASS_MAPPINGS[name], canonical_class)
                     self.assertEqual(
                         package_entry.NODE_DISPLAY_NAME_MAPPINGS[name],
@@ -3251,11 +3042,17 @@ class PromptDataConditioningMoveContractTests(unittest.TestCase):
         )
         self.assertEqual(
             prompt_data_nodes.EasyUseAnimaPromptDataUnpack.RETURN_TYPES,
-            (nodes.PROMPT_DATA_TYPE, *nodes.EasyUseAnimaPromptStudioAdvanced.RETURN_TYPES),
+            (
+                prompt_data.PROMPT_DATA_TYPE,
+                *prompt_advanced_nodes.EasyUseAnimaPromptStudioAdvanced.RETURN_TYPES,
+            ),
         )
         self.assertEqual(
             prompt_data_nodes.EasyUseAnimaPromptDataUnpack.RETURN_NAMES,
-            (nodes.PROMPT_DATA_TYPE, *nodes.EasyUseAnimaPromptStudioAdvanced.RETURN_NAMES),
+            (
+                prompt_data.PROMPT_DATA_TYPE,
+                *prompt_advanced_nodes.EasyUseAnimaPromptStudioAdvanced.RETURN_NAMES,
+            ),
         )
 
     def test_canonical_change_key_monkeypatch_drives_canonical_adapter(self):
@@ -3265,11 +3062,11 @@ class PromptDataConditioningMoveContractTests(unittest.TestCase):
             side_effect=lambda value: value,
         ) as stable:
             change_key = prompt_data_nodes.EasyUseAnimaPromptDataUnpack.IS_CHANGED(
-                {nodes.PROMPT_DATA_TYPE: True}
+                {prompt_data.PROMPT_DATA_TYPE: True}
             )
 
         self.assertEqual(change_key["mode"], "prompt_data_unpack")
-        self.assertEqual(change_key["prompt_data"], {nodes.PROMPT_DATA_TYPE: True})
+        self.assertEqual(change_key["prompt_data"], {prompt_data.PROMPT_DATA_TYPE: True})
         stable.assert_called_once_with(change_key)
 
     def test_fresh_process_direct_imports_do_not_load_root_nodes(self):
@@ -3333,37 +3130,20 @@ class PromptBuilderStudioMoveContractTests(unittest.TestCase):
         "EasyUseAnimaPromptStudio",
     )
 
-    def test_root_prompt_builder_studio_objects_are_direct_canonical_aliases(self):
+    def test_canonical_prompt_builder_owners_have_no_runtime_binders(self):
         self.assertFalse(hasattr(prompt_fields, "_bind_prompt_fields_runtime"))
         self.assertFalse(hasattr(prompt_nodes, "_bind_prompt_node_runtime"))
-        for name in self.RETIRED_FIELD_DEFAULTS:
-            with self.subTest(retired=name):
-                self.assertFalse(hasattr(nodes, name))
-        for name in self.FIELD_OBJECTS:
-            with self.subTest(module="fields", name=name):
-                self.assertIs(getattr(nodes, name), getattr(prompt_fields, name))
-        for name in self.NODE_CLASSES:
-            with self.subTest(module="prompt_nodes", name=name):
-                self.assertIs(getattr(nodes, name), getattr(prompt_nodes, name))
 
-    def test_package_loaded_root_prompt_builder_studio_objects_are_direct_aliases(self):
-        with _loaded_package_entrypoint() as (_, package_nodes):
+    def test_package_mappings_use_canonical_prompt_builder_nodes(self):
+        with _loaded_package_entrypoint() as (package_entrypoint, package_nodes):
             package_name = package_nodes.__package__
-            package_fields = sys.modules[f"{package_name}.easyuse_anima.prompt.fields"]
             package_prompt_nodes = sys.modules[
                 f"{package_name}.easyuse_anima.nodes.prompt_nodes"
             ]
-
-            for name in self.RETIRED_FIELD_DEFAULTS:
-                with self.subTest(retired=name):
-                    self.assertFalse(hasattr(package_nodes, name))
-            for name in self.FIELD_OBJECTS:
-                with self.subTest(module="fields", name=name):
-                    self.assertIs(getattr(package_nodes, name), getattr(package_fields, name))
             for name in self.NODE_CLASSES:
                 with self.subTest(module="prompt_nodes", name=name):
                     self.assertIs(
-                        getattr(package_nodes, name),
+                        package_entrypoint.NODE_CLASS_MAPPINGS[name],
                         getattr(package_prompt_nodes, name),
                     )
 
@@ -3374,8 +3154,8 @@ class PromptBuilderStudioMoveContractTests(unittest.TestCase):
         )
         self.assertTrue(
             issubclass(
-                nodes.EasyUseAnimaPromptStudio,
-                nodes.EasyUseAnimaPromptBuilder,
+                prompt_nodes.EasyUseAnimaPromptStudio,
+                prompt_nodes.EasyUseAnimaPromptBuilder,
             )
         )
 
@@ -3571,41 +3351,18 @@ class PromptAdvancedMoveContractTests(unittest.TestCase):
         "EasyUseAnimaPromptStudioAdvancedV2",
     )
 
-    def test_root_advanced_objects_are_direct_canonical_aliases(self):
+    def test_canonical_advanced_owners_have_no_runtime_binders(self):
         self.assertFalse(hasattr(prompt_advanced, "_bind_advanced_runtime"))
         self.assertFalse(
             hasattr(prompt_advanced_nodes, "_bind_prompt_advanced_node_runtime")
         )
-        for name in (*self.RETIRED_NODE_CLASSES, *self.RETIRED_ADVANCED_ALIASES):
-            with self.subTest(retired=name):
-                self.assertFalse(hasattr(nodes, name))
-        for name in self.SERVICE_OBJECTS:
-            with self.subTest(module="advanced", name=name):
-                self.assertIs(getattr(nodes, name), getattr(prompt_advanced, name))
-        for name in self.NODE_CLASSES:
-            with self.subTest(module="prompt_advanced_nodes", name=name):
-                self.assertIs(getattr(nodes, name), getattr(prompt_advanced_nodes, name))
 
-    def test_package_loaded_root_advanced_objects_are_direct_aliases(self):
+    def test_package_mappings_use_canonical_advanced_nodes(self):
         with _loaded_package_entrypoint() as (package_entrypoint, package_nodes):
             package_name = package_nodes.__package__
-            package_advanced = sys.modules[f"{package_name}.easyuse_anima.prompt.advanced"]
             package_advanced_nodes = sys.modules[
                 f"{package_name}.easyuse_anima.nodes.prompt_advanced_nodes"
             ]
-
-            for name in (*self.RETIRED_NODE_CLASSES, *self.RETIRED_ADVANCED_ALIASES):
-                with self.subTest(retired=name):
-                    self.assertFalse(hasattr(package_nodes, name))
-            for name in self.SERVICE_OBJECTS:
-                with self.subTest(module="advanced", name=name):
-                    self.assertIs(getattr(package_nodes, name), getattr(package_advanced, name))
-            for name in self.NODE_CLASSES:
-                with self.subTest(module="prompt_advanced_nodes", name=name):
-                    self.assertIs(
-                        getattr(package_nodes, name),
-                        getattr(package_advanced_nodes, name),
-                    )
 
             self.assertIs(
                 package_entrypoint.NODE_CLASS_MAPPINGS["EasyUseAnimaPromptStudioAdvanced"],
@@ -3801,41 +3558,23 @@ class RegionalMoveContractTests(unittest.TestCase):
         "EasyUseAnimaRegionalConditioning",
     )
 
-    def test_root_regional_objects_are_direct_canonical_aliases(self):
+    def test_canonical_regional_owners_have_no_runtime_binders(self):
         self.assertFalse(hasattr(prompt_regional, "_bind_regional_runtime"))
         self.assertFalse(hasattr(regional_nodes, "_bind_regional_node_runtime"))
-        for name in self.RETIRED_REGIONAL_ALIASES:
-            with self.subTest(retired=name):
-                self.assertFalse(hasattr(nodes, name))
-        for name in self.SERVICE_OBJECTS:
-            with self.subTest(module="regional", name=name):
-                self.assertIs(getattr(nodes, name), getattr(prompt_regional, name))
-        for name in self.NODE_CLASSES:
-            with self.subTest(module="regional_nodes", name=name):
-                self.assertIs(getattr(nodes, name), getattr(regional_nodes, name))
 
-    def test_package_loaded_root_regional_objects_are_direct_aliases(self):
+    def test_package_mappings_use_canonical_regional_nodes(self):
         expected_display = {
             "EasyUseAnimaPromptStudioRegional": "Anima Prompt Studio Regional",
             "EasyUseAnimaRegionalConditioning": "Anima Regional Conditioning",
         }
         with _loaded_package_entrypoint() as (package_entrypoint, package_nodes):
             package_name = package_nodes.__package__
-            package_regional = sys.modules[f"{package_name}.easyuse_anima.prompt.regional"]
             package_regional_nodes = sys.modules[
                 f"{package_name}.easyuse_anima.nodes.regional_nodes"
             ]
-
-            for name in self.RETIRED_REGIONAL_ALIASES:
-                with self.subTest(retired=name):
-                    self.assertFalse(hasattr(package_nodes, name))
-            for name in self.SERVICE_OBJECTS:
-                with self.subTest(module="regional", name=name):
-                    self.assertIs(getattr(package_nodes, name), getattr(package_regional, name))
             for name in self.NODE_CLASSES:
                 with self.subTest(module="regional_nodes", name=name):
                     canonical_class = getattr(package_regional_nodes, name)
-                    self.assertIs(getattr(package_nodes, name), canonical_class)
                     self.assertIs(package_entrypoint.NODE_CLASS_MAPPINGS[name], canonical_class)
                     self.assertEqual(
                         package_entrypoint.NODE_DISPLAY_NAME_MAPPINGS[name],
@@ -3852,7 +3591,7 @@ class PublicNodeContractTests(unittest.TestCase):
     def test_package_mappings_use_the_canonical_runtime_class_objects(self):
         class_mappings, display_mappings = _registration_mappings()
 
-        with _loaded_package_entrypoint() as (package_entrypoint, package_nodes):
+        with _loaded_package_entrypoint() as (package_entrypoint, _):
             runtime_mappings = package_entrypoint.NODE_CLASS_MAPPINGS
             package_registration = sys.modules[
                 f"{package_entrypoint.__package__}.easyuse_anima.registration"
@@ -3865,14 +3604,18 @@ class PublicNodeContractTests(unittest.TestCase):
             self.assertEqual(list(runtime_mappings), [node_id for node_id, _ in class_mappings])
             self.assertEqual(package_entrypoint.NODE_DISPLAY_NAME_MAPPINGS, display_mappings)
             self.assertEqual(
-                package_nodes.__all__,
-                [class_name for _, class_name in class_mappings],
+                package_entrypoint.__all__,
+                [
+                    "NODE_CLASS_MAPPINGS",
+                    "NODE_DISPLAY_NAME_MAPPINGS",
+                    "WEB_DIRECTORY",
+                ],
             )
             for node_id, class_name in class_mappings:
                 with self.subTest(node_id=node_id):
                     mapped_class = runtime_mappings[node_id]
-                    self.assertIs(mapped_class, getattr(package_entrypoint, class_name))
-                    self.assertIs(mapped_class, getattr(package_nodes, class_name))
+                    self.assertEqual(mapped_class.__name__, class_name)
+                    self.assertFalse(hasattr(package_entrypoint, class_name))
 
     def test_fixture_provenance_is_the_explicit_0_5_2_baseline(self):
         expected = json.loads(FIXTURE.read_text(encoding="utf-8"))

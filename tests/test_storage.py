@@ -11,9 +11,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-import storage as root_storage
 from easyuse_anima.infrastructure.filesystem import atomic_json as storage
-from easyuse_anima.infrastructure.filesystem import paths as storage_paths
 from easyuse_anima.infrastructure.filesystem.atomic_json import (
     AtomicJsonStore,
     create_atomic_json_store,
@@ -46,22 +44,6 @@ def load_paths_module(folder_paths_module=None):
             sys.modules["folder_paths"] = previous_folder_paths
         else:
             sys.modules.pop("folder_paths", None)
-
-
-class StorageCompatibilityTests(unittest.TestCase):
-    def test_root_exports_are_identical_canonical_objects(self):
-        canonical = {
-            "AtomicJsonStore": AtomicJsonStore,
-            "PACKAGE_DATA_DIR": storage_paths.PACKAGE_DATA_DIR,
-            "PACKAGE_ROOT": storage_paths.PACKAGE_ROOT,
-            "SYSTEM_USER_NAME": storage_paths.SYSTEM_USER_NAME,
-            "USER_DATA_DIR": storage_paths.USER_DATA_DIR,
-        }
-
-        self.assertEqual(tuple(root_storage.__all__), tuple(canonical))
-        for name, value in canonical.items():
-            with self.subTest(name=name):
-                self.assertIs(getattr(root_storage, name), value)
 
 
 class StoragePathTests(unittest.TestCase):

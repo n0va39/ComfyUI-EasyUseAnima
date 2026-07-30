@@ -1,5 +1,4 @@
 import asyncio
-import importlib.util
 import json
 import sys
 import tempfile
@@ -10,17 +9,10 @@ import uuid
 from pathlib import Path
 from unittest.mock import patch
 
-from tests.api_test_support import replace_sys_modules
+from tests.api_test_support import load_canonical_api_application
+from tests.test_api_contract import load_api_routes as load_canonical_api_routes
 
 ROOT = Path(__file__).resolve().parents[1]
-PACKAGE_NAME = "easyuse_anima_profile_test_package"
-
-
-def _clear_package_modules():
-    prefix = f"{PACKAGE_NAME}."
-    for name in list(sys.modules):
-        if name == PACKAGE_NAME or name.startswith(prefix):
-            sys.modules.pop(name, None)
 
 
 def profile_tokens(profile: dict) -> dict:
@@ -31,41 +23,7 @@ def profile_tokens(profile: dict) -> dict:
 
 
 def load_api_module():
-    _clear_package_modules()
-    package = types.ModuleType(PACKAGE_NAME)
-    package.__path__ = [str(ROOT)]
-    sys.modules[PACKAGE_NAME] = package
-
-    sys.modules.pop(
-        f"{PACKAGE_NAME}.easyuse_anima.api.dependencies",
-        None,
-    )
-    api_package = sys.modules.get(f"{PACKAGE_NAME}.easyuse_anima.api")
-    if api_package is not None:
-        vars(api_package).pop("dependencies", None)
-    spec = importlib.util.spec_from_file_location(
-        f"{PACKAGE_NAME}.api",
-        ROOT / "api.py",
-    )
-    module = importlib.util.module_from_spec(spec)
-    sys.modules[spec.name] = module
-    spec.loader.exec_module(module)
-    return module
-
-
-class RouteRegistry:
-    def __init__(self):
-        self.handlers = {}
-
-    def get(self, path):
-        def register(handler):
-            self.handlers[path] = handler
-            return handler
-
-        return register
-
-    def post(self, path):
-        return self.get(path)
+    return load_canonical_api_routes(register=False)[0]
 
 
 class JsonRequest:
@@ -77,21 +35,7 @@ class JsonRequest:
 
 
 def load_api_routes():
-    routes = RouteRegistry()
-    fake_server = types.ModuleType("server")
-    fake_server.PromptServer = type(
-        "PromptServer",
-        (),
-        {"instance": types.SimpleNamespace(routes=routes)},
-    )
-    fake_aiohttp = types.ModuleType("aiohttp")
-    fake_aiohttp.web = types.SimpleNamespace(
-        json_response=lambda payload, status=200: {"payload": payload, "status": status},
-    )
-    with replace_sys_modules({"server": fake_server, "aiohttp": fake_aiohttp}):
-        api = load_api_module()
-        api.register_routes()
-    return api, routes
+    return load_canonical_api_routes()
 
 
 class LoraProfileStorageTests(unittest.TestCase):
@@ -101,28 +45,32 @@ class LoraProfileStorageTests(unittest.TestCase):
         fake_aiohttp = types.ModuleType("aiohttp")
         fake_aiohttp.web = types.SimpleNamespace()
 
-        with replace_sys_modules({"server": fake_server, "aiohttp": fake_aiohttp}):
-            api = load_api_module()
-            api.register_routes()
+        api = load_canonical_api_application(
+            root=ROOT,
+            server=fake_server,
+            aiohttp=fake_aiohttp,
+            register=False,
+        )
+        api.application.register_routes()
 
-        self.assertIsNone(api.routes)
+        self.assertIsNone(api.application.compatibility.initial_routes)
 
     def test_repository_dependency_uses_current_lora_dir_factory_and_coordinator(self):
         api = load_api_module()
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             with (
-                patch.object(api._lora_profiles, "LORA_PROFILE_DIR", root),
+                patch.object(api.lora_profiles, "LORA_PROFILE_DIR", root),
                 patch.object(
-                    api._lora_profiles,
+                    api.lora_profiles,
                     "create_atomic_json_store",
                 ) as store_factory,
                 patch.object(
-                    api._lora_profiles,
+                    api.lora_profiles,
                     "PROFILE_MUTATION_COORDINATOR",
                 ) as coordinator,
             ):
-                repository = api._lora_profiles._current_lora_profile_repository()
+                repository = api.lora_profiles._current_lora_profile_repository()
                 store = repository.store(root / "profile.json", backup=False)
                 locked = repository.locked()
 
@@ -140,8 +88,8 @@ class LoraProfileStorageTests(unittest.TestCase):
     def test_save_and_load_lora_profile_set(self):
         api = load_api_module()
         with tempfile.TemporaryDirectory() as tmp:
-            with patch.object(api._lora_profiles, "LORA_PROFILE_DIR", Path(tmp)):
-                saved = api._save_lora_profile(
+            with patch.object(api.lora_profiles, "LORA_PROFILE_DIR", Path(tmp)):
+                saved = api.lora_profiles._save_lora_profile(
                     "style:preset",
                     {
                         "profile_count": "2",
@@ -165,12 +113,12 @@ class LoraProfileStorageTests(unittest.TestCase):
                 self.assertNotIn("name", saved["profile_data"]["1"])
                 self.assertTrue((Path(tmp) / "style_preset.json").is_file())
 
-                profiles = api._list_lora_profiles()
+                profiles = api.lora_profiles._list_lora_profiles()
                 self.assertEqual([profile["name"] for profile in profiles], ["style_preset"])
                 self.assertEqual(profiles[0]["profile_id"], saved["profile_id"])
                 self.assertEqual(profiles[0]["revision"], 1)
 
-                loaded = api._load_lora_profile("style_preset")
+                loaded = api.lora_profiles._load_lora_profile("style_preset")
                 self.assertEqual(loaded["profile_id"], saved["profile_id"])
                 self.assertEqual(loaded["revision"], 1)
                 self.assertEqual(loaded["profile_data"]["2"]["style_prompt"], "@b")
@@ -180,12 +128,12 @@ class LoraProfileStorageTests(unittest.TestCase):
         api = load_api_module()
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            with patch.object(api._lora_profiles, "LORA_PROFILE_DIR", root):
-                first = api._save_lora_profile(
+            with patch.object(api.lora_profiles, "LORA_PROFILE_DIR", root):
+                first = api.lora_profiles._save_lora_profile(
                     "Recoverable",
                     {"profile_data": {"1": {"style_prompt": "first"}}},
                 )
-                api._save_lora_profile(
+                api.lora_profiles._save_lora_profile(
                     "Recoverable",
                     {"profile_data": {"1": {"style_prompt": "second"}}},
                     overwrite=True,
@@ -193,7 +141,7 @@ class LoraProfileStorageTests(unittest.TestCase):
                 )
                 (root / "Recoverable.json").write_text("{", encoding="utf-8")
 
-                recovered = api._load_lora_profile("Recoverable")
+                recovered = api.lora_profiles._load_lora_profile("Recoverable")
 
         self.assertEqual(recovered["name"], "Recoverable")
         self.assertEqual(recovered["profile_data"]["1"]["style_prompt"], "first")
@@ -202,29 +150,29 @@ class LoraProfileStorageTests(unittest.TestCase):
         api = load_api_module()
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            with patch.object(api._lora_profiles, "LORA_PROFILE_DIR", root):
+            with patch.object(api.lora_profiles, "LORA_PROFILE_DIR", root):
                 (root / "Broken.json").write_text("{", encoding="utf-8")
                 (root / "Broken.json.bak").write_text("[", encoding="utf-8")
                 primary_before = (root / "Broken.json").read_bytes()
                 backup_before = (root / "Broken.json.bak").read_bytes()
 
-                listed = api._list_lora_profiles()
+                listed = api.lora_profiles._list_lora_profiles()
                 self.assertEqual(listed[0]["name"], "Broken")
                 self.assertEqual(listed[0]["revision"], 0)
                 self.assertEqual((root / "Broken.json").read_bytes(), primary_before)
                 self.assertEqual((root / "Broken.json.bak").read_bytes(), backup_before)
 
                 with self.assertRaises(json.JSONDecodeError):
-                    api._load_lora_profile("Broken")
+                    api.lora_profiles._load_lora_profile("Broken")
 
     def test_empty_profile_preserves_legacy_default_payload_contract(self):
         api = load_api_module()
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            with patch.object(api._lora_profiles, "LORA_PROFILE_DIR", root):
+            with patch.object(api.lora_profiles, "LORA_PROFILE_DIR", root):
                 (root / "Empty.json").write_text("", encoding="utf-8")
 
-                loaded = api._load_lora_profile("Empty")
+                loaded = api.lora_profiles._load_lora_profile("Empty")
 
         self.assertEqual(loaded["name"], "Empty")
         self.assertEqual(loaded["profile_count"], 1)
@@ -255,9 +203,9 @@ class LoraProfileStorageTests(unittest.TestCase):
             primary_before = (primary.read_bytes(), primary.stat().st_mtime_ns)
             backup_before = (backup.read_bytes(), backup.stat().st_mtime_ns)
 
-            with patch.object(api._lora_profiles, "LORA_PROFILE_DIR", root):
-                listed = api._list_lora_profiles()[0]
-                loaded = api._load_lora_profile("legacy")
+            with patch.object(api.lora_profiles, "LORA_PROFILE_DIR", root):
+                listed = api.lora_profiles._list_lora_profiles()[0]
+                loaded = api.lora_profiles._load_lora_profile("legacy")
 
                 self.assertEqual(listed["profile_id"], loaded["profile_id"])
                 self.assertEqual(listed["revision"], 0)
@@ -271,7 +219,7 @@ class LoraProfileStorageTests(unittest.TestCase):
                     backup_before,
                 )
 
-                promoted = api._save_lora_profile(
+                promoted = api.lora_profiles._save_lora_profile(
                     "Legacy",
                     {"profile_data": {"1": {"style_prompt": "updated"}}},
                     overwrite=True,
@@ -286,12 +234,12 @@ class LoraProfileStorageTests(unittest.TestCase):
     def test_v2_overwrite_preserves_id_and_advances_matching_revision(self):
         api = load_api_module()
         with tempfile.TemporaryDirectory() as tmp:
-            with patch.object(api._lora_profiles, "LORA_PROFILE_DIR", Path(tmp)):
-                created = api._save_lora_profile(
+            with patch.object(api.lora_profiles, "LORA_PROFILE_DIR", Path(tmp)):
+                created = api.lora_profiles._save_lora_profile(
                     "Updated",
                     {"profile_data": {"1": {"style_prompt": "first"}}},
                 )
-                updated = api._save_lora_profile(
+                updated = api.lora_profiles._save_lora_profile(
                     "Updated",
                     {"profile_data": {"1": {"style_prompt": "second"}}},
                     overwrite=True,
@@ -314,25 +262,25 @@ class LoraProfileStorageTests(unittest.TestCase):
         for original_name, colliding_name, filename in collision_cases:
             with self.subTest(original_name=original_name, colliding_name=colliding_name):
                 with tempfile.TemporaryDirectory() as tmp:
-                    with patch.object(api._lora_profiles, "LORA_PROFILE_DIR", Path(tmp)):
-                        created = api._save_lora_profile(
+                    with patch.object(api.lora_profiles, "LORA_PROFILE_DIR", Path(tmp)):
+                        created = api.lora_profiles._save_lora_profile(
                             original_name,
                             {"profile_data": {"1": {"style_prompt": "first"}}},
                         )
                         for overwrite_kwargs in ({}, {"overwrite": False}):
                             with self.subTest(overwrite_kwargs=overwrite_kwargs):
                                 with self.assertRaisesRegex(FileExistsError, "Profile already exists"):
-                                    api._save_lora_profile(
+                                    api.lora_profiles._save_lora_profile(
                                         colliding_name,
                                         {"profile_data": {"1": {"style_prompt": "second"}}},
                                         **overwrite_kwargs,
                                     )
 
-                        preserved = api._load_lora_profile(colliding_name)
+                        preserved = api.lora_profiles._load_lora_profile(colliding_name)
                         self.assertEqual(preserved["profile_data"]["1"]["style_prompt"], "first")
                         self.assertEqual(preserved["name"], filename)
 
-                        overwritten = api._save_lora_profile(
+                        overwritten = api.lora_profiles._save_lora_profile(
                             colliding_name,
                             {"profile_data": {"1": {"style_prompt": "second"}}},
                             overwrite=True,
@@ -340,7 +288,7 @@ class LoraProfileStorageTests(unittest.TestCase):
                         )
                         self.assertEqual(overwritten["name"], filename)
                         self.assertEqual(
-                            api._load_lora_profile(original_name)["profile_data"]["1"]["style_prompt"],
+                            api.lora_profiles._load_lora_profile(original_name)["profile_data"]["1"]["style_prompt"],
                             "second",
                         )
                         self.assertEqual(
@@ -352,11 +300,11 @@ class LoraProfileStorageTests(unittest.TestCase):
         api = load_api_module()
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            with patch.object(api._lora_profiles, "LORA_PROFILE_DIR", root):
-                created = api._save_lora_profile("Strict", {"profile_data": {}})
+            with patch.object(api.lora_profiles, "LORA_PROFILE_DIR", root):
+                created = api.lora_profiles._save_lora_profile("Strict", {"profile_data": {}})
 
-                with self.assertRaises(api.ProfileMutationError) as missing_tokens:
-                    api._save_lora_profile(
+                with self.assertRaises(api.profile_mutation.ProfileMutationError) as missing_tokens:
+                    api.lora_profiles._save_lora_profile(
                         "Strict",
                         {"profile_data": {}},
                         overwrite=True,
@@ -368,7 +316,7 @@ class LoraProfileStorageTests(unittest.TestCase):
 
                 (root / "Strict.json").unlink()
                 with self.assertRaises(FileNotFoundError):
-                    api._save_lora_profile(
+                    api.lora_profiles._save_lora_profile(
                         "Strict",
                         {"profile_data": {}},
                         overwrite=True,
@@ -380,9 +328,9 @@ class LoraProfileStorageTests(unittest.TestCase):
         api = load_api_module()
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            with patch.object(api._lora_profiles, "LORA_PROFILE_DIR", root):
-                first = api._save_lora_profile("Stable", {"profile_data": {}})
-                current = api._save_lora_profile(
+            with patch.object(api.lora_profiles, "LORA_PROFILE_DIR", root):
+                first = api.lora_profiles._save_lora_profile("Stable", {"profile_data": {}})
+                current = api.lora_profiles._save_lora_profile(
                     "Stable",
                     {"profile_data": {"1": {"style_prompt": "current"}}},
                     overwrite=True,
@@ -403,8 +351,8 @@ class LoraProfileStorageTests(unittest.TestCase):
                     tokens = profile_tokens(current)
                     tokens[field] = value
 
-                    with self.assertRaises(api.ProfileMutationError) as mismatch:
-                        api._save_lora_profile(
+                    with self.assertRaises(api.profile_mutation.ProfileMutationError) as mismatch:
+                        api.lora_profiles._save_lora_profile(
                             "stable. ",
                             {"profile_data": {"1": {"style_prompt": "rejected"}}},
                             overwrite=True,
@@ -425,8 +373,8 @@ class LoraProfileStorageTests(unittest.TestCase):
         api = load_api_module()
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            with patch.object(api._lora_profiles, "LORA_PROFILE_DIR", root):
-                created = api._save_lora_profile("Concurrent", {"profile_data": {}})
+            with patch.object(api.lora_profiles, "LORA_PROFILE_DIR", root):
+                created = api.lora_profiles._save_lora_profile("Concurrent", {"profile_data": {}})
                 barrier = threading.Barrier(3)
                 successes = []
                 failures = []
@@ -435,7 +383,7 @@ class LoraProfileStorageTests(unittest.TestCase):
                     barrier.wait()
                     try:
                         successes.append(
-                            api._save_lora_profile(
+                            api.lora_profiles._save_lora_profile(
                                 "Concurrent",
                                 {"profile_data": {"1": {"style_prompt": value}}},
                                 overwrite=True,
@@ -465,7 +413,7 @@ class LoraProfileStorageTests(unittest.TestCase):
         api = load_api_module()
         for name in ("CON", "con.txt", "LPT9", "COM¹.txt", "aux."):
             with self.subTest(name=name), self.assertRaisesRegex(ValueError, "reserved on Windows"):
-                api._sanitize_lora_profile_name(name)
+                api.lora_profiles._sanitize_lora_profile_name(name)
 
     def test_profile_paths_remain_within_the_configured_root(self):
         api = load_api_module()
@@ -473,12 +421,12 @@ class LoraProfileStorageTests(unittest.TestCase):
             root = Path(tmp).resolve()
             for name in ("../outside", r"C:\outside", r"\\server\share\outside"):
                 with self.subTest(name=name):
-                    self.assertEqual(api._lora_profile_path(name, root).parent, root)
+                    self.assertEqual(api.lora_profiles._lora_profile_path(name, root).parent, root)
 
     def test_empty_lora_profile_name_is_rejected(self):
         api = load_api_module()
         with self.assertRaises(ValueError):
-            api._sanitize_lora_profile_name(" ")
+            api.lora_profiles._sanitize_lora_profile_name(" ")
 
 
     def test_list_loras_refreshes_folder_paths_cache_and_normalizes_names(self):
@@ -500,7 +448,7 @@ class LoraProfileStorageTests(unittest.TestCase):
         )
 
         with patch.dict(sys.modules, {"folder_paths": fake_folder_paths}):
-            loras = api._list_loras()
+            loras = api.lora_profiles._list_loras()
 
         self.assertEqual(loras, ["style\\한글.safetensors", "extra/foo.pt"])
         self.assertNotIn("loras", fake_folder_paths.filename_list_cache)
@@ -525,7 +473,7 @@ class LoraProfileStorageTests(unittest.TestCase):
             )
 
             with patch.dict(sys.modules, {"folder_paths": fake_folder_paths}):
-                fixed = api._fix_lora_profile_payload({
+                fixed = api.lora_profiles._fix_lora_profile_payload({
                     "profile_count": 1,
                     "profile_index": 1,
                     "profile_data": {
@@ -560,7 +508,7 @@ class LoraProfileStorageTests(unittest.TestCase):
             )
 
             with patch.dict(sys.modules, {"folder_paths": fake_folder_paths}):
-                fixed = api._fix_lora_profile_payload({
+                fixed = api.lora_profiles._fix_lora_profile_payload({
                     "profile_count": 1,
                     "profile_index": 1,
                     "profile_data": {
@@ -586,7 +534,7 @@ class LoraProfileStorageTests(unittest.TestCase):
         )
 
         with patch.dict(sys.modules, {"folder_paths": fake_folder_paths}):
-            fixed = api._fix_lora_profile_payload({
+            fixed = api.lora_profiles._fix_lora_profile_payload({
                 "profile_count": 1,
                 "profile_index": 1,
                 "profile_data": {
@@ -623,7 +571,7 @@ class LoraProfileStorageTests(unittest.TestCase):
             )
 
             with patch.dict(sys.modules, {"folder_paths": fake_folder_paths}):
-                fixed = api._fix_lora_profile_payload({
+                fixed = api.lora_profiles._fix_lora_profile_payload({
                     "profile_count": 1,
                     "profile_index": 1,
                     "profile_data": {
@@ -655,7 +603,7 @@ class LoraProfileApiRouteTests(unittest.TestCase):
         for overwrite_payload, expected in overwrite_cases:
             with self.subTest(overwrite=overwrite_payload):
                 with patch.object(
-                    api._APPLICATION_DEPENDENCIES.profiles,
+                    api.application.dependencies.profiles,
                     "save_lora_profile",
                     return_value={"name": "Saved"},
                 ) as operation:
@@ -673,7 +621,7 @@ class LoraProfileApiRouteTests(unittest.TestCase):
         for overwrite in ("false", "true", 0, 1, "", None, [], {}):
             with self.subTest(overwrite=overwrite):
                 with patch.object(
-                    api._APPLICATION_DEPENDENCIES.profiles,
+                    api.application.dependencies.profiles,
                     "save_lora_profile",
                 ) as operation:
                     response = asyncio.run(
@@ -681,6 +629,7 @@ class LoraProfileApiRouteTests(unittest.TestCase):
                     )
 
                 self.assertEqual(response["status"], 422)
+                self.assertIsInstance(response["payload"].pop("request_id"), str)
                 self.assertEqual(
                     response["payload"],
                     {
@@ -698,7 +647,7 @@ class LoraProfileApiRouteTests(unittest.TestCase):
         profile_id = "12345678-1234-4234-9234-1234567890AB"
 
         with patch.object(
-            api._APPLICATION_DEPENDENCIES.profiles,
+            api.application.dependencies.profiles,
             "save_lora_profile",
             return_value={"name": "Saved"},
         ) as operation:
@@ -720,7 +669,7 @@ class LoraProfileApiRouteTests(unittest.TestCase):
 
         for field, value in (("profile_id", "bad"), ("revision", False)):
             with self.subTest(field=field), patch.object(
-                api._APPLICATION_DEPENDENCIES.profiles,
+                api.application.dependencies.profiles,
                 "save_lora_profile",
             ) as operation:
                 response = asyncio.run(
@@ -736,13 +685,14 @@ class LoraProfileApiRouteTests(unittest.TestCase):
         handler = routes.handlers[self.PATH]
 
         with patch.object(
-            api._APPLICATION_DEPENDENCIES.profiles,
+            api.application.dependencies.profiles,
             "save_lora_profile",
             side_effect=FileExistsError("Profile already exists"),
         ):
             response = asyncio.run(handler(JsonRequest(self.BASE_PAYLOAD)))
 
         self.assertEqual(response["status"], 409)
+        self.assertIsInstance(response["payload"].pop("request_id"), str)
         self.assertEqual(
             response["payload"],
             {
@@ -757,7 +707,7 @@ class LoraProfileApiRouteTests(unittest.TestCase):
         handler = routes.handlers[self.PATH]
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            with patch.object(api._lora_profiles, "LORA_PROFILE_DIR", root):
+            with patch.object(api.lora_profiles, "LORA_PROFILE_DIR", root):
                 created_response = asyncio.run(handler(JsonRequest(self.BASE_PAYLOAD)))
                 created = created_response["payload"]["profile"]
 
@@ -828,35 +778,7 @@ class LoraProfileApiRouteTests(unittest.TestCase):
 
 class AutocompleteApiRouteTests(unittest.TestCase):
     def test_autocomplete_route_forwards_valid_limits_and_uses_resolver_fallback(self):
-        class RouteRegistry:
-            def __init__(self):
-                self.get_handlers = {}
-
-            def get(self, path):
-                def register(handler):
-                    self.get_handlers[path] = handler
-                    return handler
-
-                return register
-
-            def post(self, path):
-                return self.get(path)
-
-        routes = RouteRegistry()
-        fake_server = types.ModuleType("server")
-        fake_server.PromptServer = type(
-            "PromptServer",
-            (),
-            {"instance": types.SimpleNamespace(routes=routes)},
-        )
-        fake_aiohttp = types.ModuleType("aiohttp")
-        fake_aiohttp.web = types.SimpleNamespace(
-            json_response=lambda payload, status=200: {"payload": payload, "status": status},
-        )
-
-        with replace_sys_modules({"server": fake_server, "aiohttp": fake_aiohttp}):
-            api = load_api_module()
-            api.register_routes()
+        api, routes = load_api_routes()
 
         calls = []
 
@@ -864,25 +786,25 @@ class AutocompleteApiRouteTests(unittest.TestCase):
             calls.append({"query": query, "limit": limit, "path": path, "category": category})
             return {"results": [{"tag": f"match {index}"} for index in range(limit)]}
 
-        handler = routes.get_handlers["/easyuse_anima/autocomplete"]
+        handler = routes.handlers["/easyuse_anima/autocomplete"]
         with (
             patch.object(
-                api._APPLICATION_DEPENDENCIES.wildcard_autocomplete,
+                api.application.dependencies.wildcard_autocomplete,
                 "resolve_autocomplete_limit",
                 return_value=51,
             ),
             patch.object(
-                api._APPLICATION_DEPENDENCIES.wildcard_autocomplete,
+                api.application.dependencies.wildcard_autocomplete,
                 "resolve_autocomplete_source",
                 return_value="test_source",
             ),
             patch.object(
-                api._APPLICATION_DEPENDENCIES.wildcard_autocomplete,
+                api.application.dependencies.wildcard_autocomplete,
                 "resolve_autocomplete_source_path",
                 return_value=("test_source", Path("tags.csv")),
             ),
             patch.object(
-                api._APPLICATION_DEPENDENCIES.wildcard_autocomplete,
+                api.application.dependencies.wildcard_autocomplete,
                 "search_autocomplete",
                 side_effect=search,
             ),

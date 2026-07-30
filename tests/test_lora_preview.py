@@ -1,4 +1,4 @@
-import importlib.util
+import os
 import sys
 import tempfile
 import types
@@ -6,45 +6,16 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-
-ROOT = Path(__file__).resolve().parents[1]
-PACKAGE_NAME = "easyuse_anima_test_package"
-
-
-def _clear_package_modules():
-    prefix = f"{PACKAGE_NAME}."
-    for name in list(sys.modules):
-        if name == PACKAGE_NAME or name.startswith(prefix):
-            sys.modules.pop(name, None)
-
+from tests.test_api_contract import load_api_routes
 
 def load_api_module():
-    _clear_package_modules()
-    package = types.ModuleType(PACKAGE_NAME)
-    package.__path__ = [str(ROOT)]
-    sys.modules[PACKAGE_NAME] = package
-
-    sys.modules.pop(
-        f"{PACKAGE_NAME}.easyuse_anima.api.dependencies",
-        None,
-    )
-    api_package = sys.modules.get(f"{PACKAGE_NAME}.easyuse_anima.api")
-    if api_package is not None:
-        vars(api_package).pop("dependencies", None)
-    spec = importlib.util.spec_from_file_location(
-        f"{PACKAGE_NAME}.api",
-        ROOT / "api.py",
-    )
-    module = importlib.util.module_from_spec(spec)
-    sys.modules[spec.name] = module
-    spec.loader.exec_module(module)
-    return module
+    return load_api_routes(register=False)[0]
 
 
 class LoraPreviewTests(unittest.TestCase):
     def test_resolver_is_owned_by_the_canonical_factory(self):
         api = load_api_module()
-        resolver = api._resolve_lora_preview_path
+        resolver = api.application.compatibility.parts.resolve_lora_preview_path
 
         self.assertEqual(resolver.__name__, "_resolve_lora_preview_path")
         self.assertTrue(
@@ -54,9 +25,9 @@ class LoraPreviewTests(unittest.TestCase):
         )
         self.assertEqual(resolver.__code__.co_argcount, 1)
         owner = sys.modules[resolver.__module__]
-        self.assertIs(api.LORA_PREVIEW_EXTENSIONS, owner.LORA_PREVIEW_EXTENSIONS)
+        self.assertIs(api.lora_preview_routes.LORA_PREVIEW_EXTENSIONS, owner.LORA_PREVIEW_EXTENSIONS)
         self.assertEqual(
-            api.LORA_PREVIEW_EXTENSIONS,
+            api.lora_preview_routes.LORA_PREVIEW_EXTENSIONS,
             (".webp", ".png", ".jpg", ".jpeg"),
         )
         self.assertEqual(owner.__all__, ("build_lora_preview_handler",))
@@ -71,7 +42,7 @@ class LoraPreviewTests(unittest.TestCase):
             return original_import(name, *args, **kwargs)
 
         with patch("builtins.__import__", side_effect=guarded_import):
-            self.assertIsNone(api._resolve_lora_preview_path("example.safetensors"))
+            self.assertIsNone(api.application.compatibility.parts.resolve_lora_preview_path("example.safetensors"))
 
         calls = []
         folder_paths = types.SimpleNamespace(
@@ -80,9 +51,9 @@ class LoraPreviewTests(unittest.TestCase):
         with patch.dict(sys.modules, {"folder_paths": folder_paths}):
             for name in (None, "", "  ", "None", " None "):
                 with self.subTest(name=name):
-                    self.assertIsNone(api._resolve_lora_preview_path(name))
+                    self.assertIsNone(api.application.compatibility.parts.resolve_lora_preview_path(name))
             self.assertIsNone(
-                api._resolve_lora_preview_path(" style/example.safetensors ")
+                api.application.compatibility.parts.resolve_lora_preview_path(" style/example.safetensors ")
             )
 
         self.assertEqual(calls, [("loras", "style/example.safetensors")])
@@ -128,13 +99,13 @@ class LoraPreviewTests(unittest.TestCase):
         folder_paths = types.SimpleNamespace(get_full_path=get_full_path)
         with (
             patch.dict(sys.modules, {"folder_paths": folder_paths}),
-            patch.object(api.os.path, "abspath", side_effect=abspath),
-            patch.object(api.os.path, "dirname", side_effect=dirname),
-            patch.object(api.os.path, "splitext", side_effect=splitext),
-            patch.object(api.os.path, "commonpath", side_effect=commonpath),
-            patch.object(api.os.path, "isfile", side_effect=isfile),
+            patch.object(os.path, "abspath", side_effect=abspath),
+            patch.object(os.path, "dirname", side_effect=dirname),
+            patch.object(os.path, "splitext", side_effect=splitext),
+            patch.object(os.path, "commonpath", side_effect=commonpath),
+            patch.object(os.path, "isfile", side_effect=isfile),
         ):
-            preview = api._resolve_lora_preview_path(
+            preview = api.application.compatibility.parts.resolve_lora_preview_path(
                 "style/example.safetensors"
             )
 
@@ -175,7 +146,7 @@ class LoraPreviewTests(unittest.TestCase):
             )
             try:
                 self.assertEqual(
-                    api._resolve_lora_preview_path("style/example.safetensors"),
+                    api.application.compatibility.parts.resolve_lora_preview_path("style/example.safetensors"),
                     str(preview_path.resolve()),
                 )
             finally:

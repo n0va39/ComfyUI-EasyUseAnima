@@ -151,27 +151,26 @@ class PythonTestOwnershipContractTests(unittest.TestCase):
 
         self.assertEqual(referenced, set(self.matrices))
 
-    def test_root_private_imports_remain_compatibility_owned(self):
+    def test_root_private_imports_are_retired_and_entrypoint_owned(self):
         policy = self.contract["root_private_import_policy"]
         self.assertEqual(
             policy,
             {
-                "compatibility_fixture": (
-                    "tests/fixtures/python_compatibility_surface.v1.json"
+                "entrypoint_owner": (
+                    "tests/test_python_entrypoint_lifecycle_contract.py"
                 ),
-                "compatibility_owner": (
-                    "tests/test_python_compatibility_surface.py"
+                "existing_test_reclassification": "completed by PTC-09B",
+                "legacy_path_owner": (
+                    "tests/test_python_legacy_path_retirement.py"
                 ),
-                "existing_test_reclassification": "not part of G-06A",
-                "new_test_imports": (
-                    "canonical owner unless explicitly testing compatibility"
-                ),
+                "new_test_imports": "canonical owner; retired root imports forbidden",
             },
         )
-        self.assertTrue((ROOT / policy["compatibility_fixture"]).is_file())
+        self.assertTrue((ROOT / policy["entrypoint_owner"]).is_file())
+        self.assertTrue((ROOT / policy["legacy_path_owner"]).is_file())
         self.assertEqual(
-            self.matrices["root-compatibility"]["owner"],
-            policy["compatibility_owner"],
+            self.matrices["root-retirement"]["owner"],
+            policy["legacy_path_owner"],
         )
 
     def test_e09_lifecycle_integration_stays_bootstrap_runtime_owned(self):

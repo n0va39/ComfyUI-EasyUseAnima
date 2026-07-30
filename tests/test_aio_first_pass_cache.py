@@ -7,7 +7,6 @@ from concurrent.futures import ThreadPoolExecutor
 from dataclasses import FrozenInstanceError
 from unittest.mock import Mock, patch
 
-import nodes
 from easyuse_anima.aio import first_pass_cache
 
 
@@ -284,37 +283,6 @@ class AIOFirstPassCacheMoveTests(unittest.TestCase):
         self.assertFalse(
             first_pass_cache._DEFAULT_AIO_FIRST_PASS_CACHE.enabled
         )
-
-    def test_root_state_and_functions_are_direct_canonical_aliases(self):
-        self.assertFalse(
-            hasattr(first_pass_cache, "_bind_aio_first_pass_cache_runtime")
-        )
-        self.assertFalse(
-            hasattr(nodes, "_AIO_FIRST_PASS_CACHE_LOCK")
-        )
-        self.assertFalse(
-            hasattr(nodes, "_AIO_FIRST_PASS_CACHE_GENERATION")
-        )
-        self.assertFalse(
-            hasattr(nodes, "_AIO_FIRST_PASS_CACHE_METRICS")
-        )
-        self.assertFalse(
-            hasattr(nodes, "_aio_first_pass_cache_metrics_snapshot")
-        )
-        self.assertFalse(
-            hasattr(nodes, "_reset_aio_first_pass_cache_metrics")
-        )
-        for name in (
-            "AIO_FIRST_PASS_CACHE_MAX_ENTRIES",
-            "_AIO_FIRST_PASS_CACHE",
-            "_AIO_FIRST_PASS_CACHE_ORDER",
-            "_clone_aio_cache_value",
-            "_aio_first_pass_cache_key",
-            "_get_aio_first_pass_cache",
-            "_put_aio_first_pass_cache",
-        ):
-            with self.subTest(name=name):
-                self.assertIs(getattr(nodes, name), getattr(first_pass_cache, name))
 
     def test_metrics_snapshot_is_frozen_and_reset_preserves_cache_state(self):
         first_pass_cache._put_aio_first_pass_cache(

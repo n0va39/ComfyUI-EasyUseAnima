@@ -6,14 +6,14 @@
   `14015769634d387fe5afa6a74a5594007e86346c`
 - Compatibility provenance: package/workflow version 0.5.2
 - Policy: [ADR-002](adr-002-compatibility-shims.md)
-- Machine-readable audit:
-  [`python_compatibility_surface.v1.json`](../../tests/fixtures/python_compatibility_surface.v1.json)
-- Current state: B-11a through B-11c30e / PR #355 are integrated in the
-  reviewed sequence, and B-11d / PR #356 implements the final explicit root
-  shim with package/pack/live gates pending. S167-01a / PR #344 supplies the
-  canonical reserved-seed compatibility consumer while retaining its root
-  aliases. No runtime binder, resolver, or residual root implementation
-  remains.
+- Machine-readable current owners:
+  [`python_file_disposition_contract.v1.json`](../../tests/fixtures/python_file_disposition_contract.v1.json)
+  and
+  [`python_support_ownership_contract.v1.json`](../../tests/fixtures/python_support_ownership_contract.v1.json)
+- Current state: PTC-09B retires the exact nine non-entrypoint root modules and seven
+  `anima_prompt` modules after canonical caller migration. The former compatibility
+  surface fixture and compatibility-only tests are removed. Root `__init__.py` remains
+  the permanent ComfyUI entrypoint; no replacement facade or import hook exists.
 
 This is an actionable registry, not a removal schedule. `N` means the first
 published Registry release containing both a canonical target and its root
@@ -57,20 +57,20 @@ import them.
 | Surface | Current role | Canonical target | Owner | Introduced / conversion | Known dependents and evidence | Earliest removal |
 | --- | --- | --- | --- | --- | --- | --- |
 | Root `__init__.py` exports | Permanent ComfyUI entrypoint, not a shim | root entrypoint plus `easyuse_anima.registration`/`bootstrap` | #184/#185 | Existing 0.5.2 surface; B-11 rewires internals | ComfyUI loader; node contract fixture | Not removable as a package entrypoint |
-| `nodes.py` mapped public classes | Legacy 18-class re-export shim; no residual root definitions | `easyuse_anima.nodes.*_nodes` and `easyuse_anima.registration` | #184 B-04 through B-11, #188, #593 PTC-09 | PTC-09A accepts direct-import retirement while permanent root mappings retain exact canonical classes | No supported direct importer; saved workflows consume node IDs/mappings rather than `nodes.py` | PTC-09B deletion authorized after caller/test migration; no replacement facade |
-| `api.py` route-registration surface | Legacy binder with no production application identity ownership after FC-04B | `easyuse_anima.api.application*`, router, requests/responses/errors, feature route modules, profiles and bootstrap private composition/lifecycle | #162, #163, #165, #186 D-02-D-08/D-14, #187 E-09, #593 FC-03/FC-04/PTC-09 | PTC-09A fixes the canonical bootstrap package-start sequence and accepts retirement of the undeclared Python alias surface | No supported consumer requirement remains; frontend HTTP endpoints are canonical behavior contracts, not Python shim consumers | PTC-09B deletion authorized after canonical caller/test migration; no replacement facade |
-| `api_contract.py` request/error helpers | Legacy 12-symbol request/error/response shim | `easyuse_anima.api.requests`, `.responses`, and `.errors` | #165, #186 D-02/D-14, #593 PTC-09 | PTC-09A accepts direct-import retirement after canonicalization | No supported direct importer; tests migrate to exact canonical owners | PTC-09B deletion authorized; no replacement facade |
-| `settings.py` | Legacy direct re-export shim | `easyuse_anima.settings.schema`, `.repository`, and `.service` | #163, #186 D-09, #593 PTC-09 | PTC-09A accepts direct-import retirement | No supported direct importer; production callers are canonical | PTC-09B deletion authorized; no replacement facade |
-| `storage.py` | Legacy direct re-export shim | `easyuse_anima.infrastructure.filesystem.atomic_json` and `.paths` | #163, #186 D-08, #593 PTC-09 | PTC-09A accepts direct-import retirement | No supported direct importer; production callers are canonical | PTC-09B deletion authorized; no replacement facade |
-| `autocomplete_index.py` | Legacy direct re-export shim | `easyuse_anima.autocomplete.index` | #162, #186 D-11a, #593 PTC-09 | PTC-09A accepts direct-import retirement | No supported direct importer; production callers are canonical | PTC-09B deletion authorized; no replacement facade |
-| `autocomplete_dataset.py` | Legacy dataset/search/classification shim | `easyuse_anima.autocomplete.dataset`, `.search`, and `.classification` | #162, #186 D-11, #593 PTC-09 | PTC-09A accepts direct-import retirement after canonicalization | No supported direct importer; API callers are canonical | PTC-09B deletion authorized; no replacement facade |
-| `wildcard_engine.py` | Legacy import-only shim over canonical wildcard owners | `easyuse_anima.wildcard.models`, `.sources`, `.snapshot`, `.service`, `.seed`, `.mode`, `.selector`, `.library`, and `.expansion` | #184, #186 D-12/P-WC-01/P-WC-02, #187 E-06, #593 PTC-09 | PTC-09A accepts direct-import retirement after canonical caller cutover | No supported direct importer; production callers are canonical | PTC-09B deletion authorized; no replacement facade |
-| `prompt_translation.py` | Legacy direct re-export shim | `easyuse_anima.translation.*` | #164, #186 D-01, #593 PTC-09 | PTC-09A accepts direct-import retirement | No supported direct importer; production callers are canonical | PTC-09B deletion authorized; no replacement facade |
-| `anima_prompt/` package | Legacy package and submodule identity shims | `easyuse_anima.prompt.anima.*` | #184, #186 D-13/D-14, #593 PTC-09 | PTC-09A accepts package/submodule import retirement after canonicalization | No supported direct importer; production callers are canonical | PTC-09B deletion authorized; no replacement package |
+| `nodes.py` mapped public classes | **retired by PTC-09B** | `easyuse_anima.nodes.*_nodes` and `easyuse_anima.registration` | #184 B-04 through B-11, #188, #593 PTC-09 | canonical callers and permanent root mappings retain exact classes | Saved workflows consume node IDs/mappings rather than `nodes.py` | deleted; no replacement facade |
+| `api.py` route-registration surface | **retired by PTC-09B** | `easyuse_anima.api.application*`, router, requests/responses/errors, feature route modules, profiles and bootstrap private composition/lifecycle | #162, #163, #165, #186 D-02-D-08/D-14, #187 E-09, #593 FC-03/FC-04/PTC-09 | private bootstrap package-start owns canonical composition | Frontend HTTP endpoints remain behavior contracts, not Python shim consumers | deleted; no replacement facade |
+| `api_contract.py` request/error helpers | **retired by PTC-09B** | `easyuse_anima.api.requests`, `.responses`, and `.errors` | #165, #186 D-02/D-14, #593 PTC-09 | canonicalized | Tests use exact canonical owners | deleted; no replacement facade |
+| `settings.py` | **retired by PTC-09B** | `easyuse_anima.settings.schema`, `.repository`, and `.service` | #163, #186 D-09, #593 PTC-09 | canonicalized | Production callers are canonical | deleted; no replacement facade |
+| `storage.py` | **retired by PTC-09B** | `easyuse_anima.infrastructure.filesystem.atomic_json` and `.paths` | #163, #186 D-08, #593 PTC-09 | canonicalized | Production callers are canonical | deleted; no replacement facade |
+| `autocomplete_index.py` | **retired by PTC-09B** | `easyuse_anima.autocomplete.index` | #162, #186 D-11a, #593 PTC-09 | canonicalized | Production callers are canonical | deleted; no replacement facade |
+| `autocomplete_dataset.py` | **retired by PTC-09B** | `easyuse_anima.autocomplete.dataset`, `.search`, and `.classification` | #162, #186 D-11, #593 PTC-09 | canonicalized | API callers are canonical | deleted; no replacement facade |
+| `wildcard_engine.py` | **retired by PTC-09B** | `easyuse_anima.wildcard.models`, `.sources`, `.snapshot`, `.service`, `.seed`, `.mode`, `.selector`, `.library`, and `.expansion` | #184, #186 D-12/P-WC-01/P-WC-02, #187 E-06, #593 PTC-09 | canonical caller cutover complete | Production callers are canonical | deleted; no replacement facade |
+| `prompt_translation.py` | **retired by PTC-09B** | `easyuse_anima.translation.*` | #164, #186 D-01, #593 PTC-09 | canonicalized | Production callers are canonical | deleted; no replacement facade |
+| `anima_prompt/` package | **retired by PTC-09B** | `easyuse_anima.prompt.anima.*` | #184, #186 D-13/D-14, #593 PTC-09 | canonicalized | Production callers are canonical | deleted; no replacement package |
 
-The PTC-09A decision above supersedes the historical D-14/release-N retention wording
-below for these exact 16 legacy files. The older checkpoints remain as migration
-history; they are not a PTC-09B blocker and do not authorize recreating a deleted path.
+The PTC-09A decision and PTC-09B implementation above supersede the historical
+D-14/release-N retention wording below for these exact 16 legacy files. The older
+checkpoints remain migration history and do not authorize recreating a deleted path.
 
 ## D-14 readiness checkpoint
 

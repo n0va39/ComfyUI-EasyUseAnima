@@ -197,8 +197,6 @@ class RegistryScannerSafetyTests(unittest.TestCase):
         )
         for filename in (
             "__init__.py",
-            "api.py",
-            "api_contract.py",
             "easyuse_anima/aio/conditioning.py",
             "easyuse_anima/aio/first_pass_cache.py",
             "easyuse_anima/aio/legacy_generation.py",
@@ -242,9 +240,6 @@ class RegistryScannerSafetyTests(unittest.TestCase):
             "easyuse_anima/prompt/fields.py",
             "easyuse_anima/wildcard/mode.py",
             "easyuse_anima/wildcard/selector.py",
-            "nodes.py",
-            "prompt_translation.py",
-            "settings.py",
         ):
             source = (ROOT / filename).read_text(encoding="utf-8")
             for pattern in patterns:
@@ -253,13 +248,8 @@ class RegistryScannerSafetyTests(unittest.TestCase):
 
     def test_naia_is_only_documented_runtime_post_call(self):
         runtime_files = (
-            "api.py",
-            "api_contract.py",
             "easyuse_anima/naia/client.py",
             "easyuse_anima/nodes/naia_nodes.py",
-            "nodes.py",
-            "prompt_translation.py",
-            "settings.py",
         )
         matches = []
         for filename in runtime_files:
@@ -378,19 +368,27 @@ class RegistryScannerSafetyTests(unittest.TestCase):
 
     def test_api_contract_runtime_modules_are_in_registry_package_surface(self):
         runtime_paths = {
-            "api_contract.py",
             "easyuse_anima/api/__init__.py",
+            "easyuse_anima/api/application.py",
             "easyuse_anima/api/errors.py",
             "easyuse_anima/api/requests.py",
             "easyuse_anima/api/responses.py",
+            "easyuse_anima/bootstrap.py",
         }
         for runtime_path in runtime_paths:
             with self.subTest(runtime_path=runtime_path):
                 self.assertTrue((ROOT / runtime_path).is_file())
 
-        api_source = (ROOT / "api.py").read_text(encoding="utf-8")
-        for module in ("errors", "requests", "responses"):
-            self.assertIn(f"from .easyuse_anima.api.{module} import", api_source)
+        import_owners = {
+            "errors": "application_routes.py",
+            "requests": "application_routes.py",
+            "responses": "application.py",
+        }
+        for module, owner in import_owners.items():
+            owner_source = (ROOT / "easyuse_anima" / "api" / owner).read_text(
+                encoding="utf-8"
+            )
+            self.assertIn(f"from .{module} import", owner_source)
 
         tracked = _git_paths("ls-files", "--cached")
         self.assertFalse(runtime_paths - tracked)

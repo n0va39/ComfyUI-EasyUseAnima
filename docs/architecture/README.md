@@ -15,7 +15,7 @@ completed lane.
   [#593](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/593)
 - Total Python Convergence Contract:
   [`python-total-convergence-contract.md`](python-total-convergence-contract.md)
-- READY backend refactor task: PTC-09B after the PTC-09A Contract merge.
+- READY backend refactor task after this cutover merges: PTC-10 completion audit.
 - Parent architecture: completed Issue
   [#185](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/185)
 - Compatibility/release ledger: Issue
@@ -32,17 +32,16 @@ COMPLETE FC-04A canonical API application/E-09 lifecycle Contract
 COMPLETE FC-04B canonical API application cohesive Move
 COMPLETE FC-05 technical architecture completion
 
-COMPLETE PTC-01 through PTC-09A total structure, support and cutover Contract
-READY    PTC-09B canonical cutover/legacy removal
-NEXT     PTC-10 final audit
+COMPLETE PTC-01 through PTC-09B total structure, support and root cutover
+READY    PTC-10 final audit
 
 EVENT    ordinary release N
 ```
 
 FC-01 through FC-05 closed the initial ownership and lifecycle Definition of Done.
-PTC-01 through PTC-09A complete the per-file, size, support-ownership and E-09-safe
-root-cutover Contracts; PTC-09B is the current READY implementation. Release events
-remain separate from this sequence.
+PTC-01 through PTC-09B complete the per-file, size, support-ownership and E-09-safe
+root cutover. PTC-10 is the remaining completion audit. Release events remain separate
+from this sequence.
 
 ## Current code boundary
 
@@ -53,18 +52,18 @@ reopening completed feature, lifecycle or security work.
 
 ### Completed boundaries
 
-- node implementations live in canonical packages and root `nodes.py` is an explicit
-  compatibility facade;
+- node implementations live in canonical packages and the retired root `nodes.py`
+  facade is absent;
 - feature routes, typed boundaries, migrations and common error categories are owned by
   canonical packages;
 - RuntimeServices ownership, cleanup, rollback and isolated test runtime are complete;
-- Wildcard production consumers use canonical owners and root `wildcard_engine.py` is
-  import-only;
+- Wildcard production consumers use canonical owners and the root
+  `wildcard_engine.py` shim is absent;
 - public API coverage, size-growth ratchet and canonical test ownership are executable
   gates;
 - the complete 16-group role-aware import gate covers the G-06 production owner map;
-- canonical application owners create the API identity while root `api.py` is an exact
-  compatibility binder and bootstrap remains the sole lifecycle/composition owner;
+- canonical application owners create the API identity and bootstrap remains the sole
+  lifecycle/composition owner; the root `api.py` binder is absent;
 - sensitive settings responses use safe logging and `no-store` under the completed
   TRUSTED_DEPLOYMENT_ONLY security boundary.
 
@@ -78,11 +77,10 @@ root import paths are removed after canonical callers are proven.
 
 ### Legacy import boundary
 
-Root `__init__.py` remains the permanent ComfyUI entrypoint. The other nine root Python
-modules and seven `anima_prompt` compatibility modules are planned PTC-09B deletions,
-after PTC-09A fixes canonical entrypoint/caller ownership and proves the E-09 lifecycle
-identity sequence. The cutover intentionally stops supporting those legacy import paths;
-it must not recreate equivalent compatibility facades in a new package.
+Root `__init__.py` remains the permanent ComfyUI entrypoint. PTC-09B removes the other
+nine root Python modules and seven `anima_prompt` compatibility modules after canonical
+entrypoint/caller ownership and the E-09 lifecycle identity sequence are proven. Those
+legacy import paths are intentionally unsupported and must not be recreated.
 
 ## Fixed owner model
 
@@ -91,7 +89,7 @@ The target owner matrix remains:
 | Surface | Owner and durable responsibility |
 | --- | --- |
 | Root `__init__.py` | permanent ComfyUI entrypoint; exported mappings and one guarded startup path |
-| Legacy root files until PTC-09B | transitional exact aliases/facades only; migrate callers to canonical owners, then delete without replacement facade |
+| Retired root import paths | absent after PTC-09B; canonical owners only, no replacement facade |
 | `bootstrap.py` | sole lifecycle/composition owner, RuntimeConfig, initialize/shutdown and concrete wiring |
 | `runtime.py` | installed RuntimeServices identity and process runtime access |
 | `registration.py` | pure node mapping composition |

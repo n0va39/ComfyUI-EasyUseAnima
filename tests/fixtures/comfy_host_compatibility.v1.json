@@ -485,7 +485,7 @@
       "test_files": [
         "tests/comfy_host_fakes.py",
         "tests/test_comfy_host_wiring.py",
-        "tests/test_python_compatibility_surface.py"
+        "tests/test_python_legacy_path_retirement.py"
       ],
       "forbidden": [
         "root wrapper move, removal, or behavior change",

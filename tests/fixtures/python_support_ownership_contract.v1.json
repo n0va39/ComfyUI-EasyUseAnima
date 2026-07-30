@@ -2,7 +2,7 @@
   "schema_version": 1,
   "baseline_commit": "a0b0dc1f599fcf01ec0f25fc75a23f7524f165ab",
   "inventory": {
-    "expected_files": 210,
+    "expected_files": 206,
     "manual_matrix_source": "tests/fixtures/python_test_ownership_contract.v1.json",
     "patterns": [
       "tests/**/*.json",
@@ -209,7 +209,7 @@
       "execution_mode": "fixture-input",
       "generated": false,
       "kind": "test_fixture",
-      "owner": "tests/test_python_compatibility_surface.py",
+      "owner": "tests/test_aio_stage_integration_matrix.py",
       "path": "tests/fixtures/comfy_host_compatibility.v1.json",
       "production_groups": [
         "infrastructure",
@@ -283,17 +283,6 @@
         "cross-cutting"
       ],
       "purpose": "Generated deterministic analyzer baseline for python backend baseline."
-    },
-    {
-      "execution_mode": "fixture-input",
-      "generated": false,
-      "kind": "test_fixture",
-      "owner": "tests/test_python_compatibility_surface.py",
-      "path": "tests/fixtures/python_compatibility_surface.v1.json",
-      "production_groups": [
-        "cross-cutting"
-      ],
-      "purpose": "Deterministic contract fixture input for python compatibility surface.v1."
     },
     {
       "execution_mode": "fixture-input",
@@ -1521,45 +1510,12 @@
       "execution_mode": "unittest",
       "generated": false,
       "kind": "test",
-      "owner": "tests/test_anima_prompt_compatibility.py",
-      "path": "tests/test_anima_prompt_compatibility.py",
-      "production_groups": [
-        "prompt"
-      ],
-      "purpose": "Direct Python unittest contract for test anima prompt compatibility."
-    },
-    {
-      "execution_mode": "unittest",
-      "generated": false,
-      "kind": "test",
       "owner": "tests/test_api_contract.py",
       "path": "tests/test_api_contract.py",
       "production_groups": [
         "api"
       ],
       "purpose": "Direct Python unittest contract for test api contract."
-    },
-    {
-      "execution_mode": "unittest",
-      "generated": false,
-      "kind": "test",
-      "owner": "tests/test_api_contract_compatibility.py",
-      "path": "tests/test_api_contract_compatibility.py",
-      "production_groups": [
-        "api"
-      ],
-      "purpose": "Direct Python unittest contract for test api contract compatibility."
-    },
-    {
-      "execution_mode": "unittest",
-      "generated": false,
-      "kind": "test",
-      "owner": "tests/test_autocomplete_dataset_compatibility.py",
-      "path": "tests/test_autocomplete_dataset_compatibility.py",
-      "production_groups": [
-        "autocomplete"
-      ],
-      "purpose": "Direct Python unittest contract for test autocomplete dataset compatibility."
     },
     {
       "execution_mode": "unittest",
@@ -1916,18 +1872,6 @@
       "execution_mode": "unittest",
       "generated": false,
       "kind": "test",
-      "owner": "tests/test_python_api_facade_lifecycle_contract.py",
-      "path": "tests/test_python_api_facade_lifecycle_contract.py",
-      "production_groups": [
-        "api",
-        "runtime-bootstrap"
-      ],
-      "purpose": "Direct Python unittest contract for test python api facade lifecycle contract."
-    },
-    {
-      "execution_mode": "unittest",
-      "generated": false,
-      "kind": "test",
       "owner": "tests/test_python_autocomplete_runtime_contract.py",
       "path": "tests/test_python_autocomplete_runtime_contract.py",
       "production_groups": [
@@ -1962,12 +1906,13 @@
       "execution_mode": "unittest",
       "generated": false,
       "kind": "test",
-      "owner": "tests/test_python_compatibility_surface.py",
-      "path": "tests/test_python_compatibility_surface.py",
+      "owner": "tests/test_python_entrypoint_lifecycle_contract.py",
+      "path": "tests/test_python_entrypoint_lifecycle_contract.py",
       "production_groups": [
-        "cross-cutting"
+        "cross-cutting",
+        "runtime-bootstrap"
       ],
-      "purpose": "Direct Python unittest contract for test python compatibility surface."
+      "purpose": "Direct Python unittest contract for the permanent ComfyUI entrypoint lifecycle."
     },
     {
       "execution_mode": "unittest",
@@ -2001,6 +1946,17 @@
         "cross-cutting"
       ],
       "purpose": "Direct Python unittest contract for test python import boundaries."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_python_legacy_path_retirement.py",
+      "path": "tests/test_python_legacy_path_retirement.py",
+      "production_groups": [
+        "cross-cutting"
+      ],
+      "purpose": "Direct Python unittest contract for retired root compatibility paths."
     },
     {
       "execution_mode": "unittest",

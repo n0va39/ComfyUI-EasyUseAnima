@@ -9,8 +9,7 @@ from concurrent.futures import ThreadPoolExecutor
 from types import SimpleNamespace
 from unittest.mock import patch
 
-import prompt_translation as root_translation
-from easyuse_anima.translation import contracts, markers, service
+from easyuse_anima.translation import service
 from easyuse_anima.translation.contracts import (
     PROMPT_TRANSLATION_PROVIDER_GOOGLE,
     PROMPT_TRANSLATION_PROVIDER_TIMEOUT_SECONDS,
@@ -22,7 +21,6 @@ from easyuse_anima.translation.contracts import (
     TranslationTotalSizeError,
     TranslationUpstreamError,
 )
-from easyuse_anima.translation.providers import google as google_provider
 from easyuse_anima.translation.providers.google import (
     GoogleTranslationProvider,
 )
@@ -42,29 +40,6 @@ GOOGLE_SETTINGS = PromptTranslationSettings(
     source="ko",
     target="en",
 )
-
-
-class PromptTranslationCompatibilityTests(unittest.TestCase):
-    def test_root_shim_exports_identical_canonical_objects(self):
-        canonical = {
-            name: getattr(module, name)
-            for module in (
-                contracts,
-                markers,
-                google_provider,
-                service,
-            )
-            for name in module.__all__
-        }
-
-        self.assertEqual(set(root_translation.__all__), set(canonical))
-        self.assertEqual(
-            len(root_translation.__all__),
-            len(set(root_translation.__all__)),
-        )
-        for name, value in canonical.items():
-            with self.subTest(name=name):
-                self.assertIs(getattr(root_translation, name), value)
 
 
 class PromptTranslationServiceTests(unittest.TestCase):

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Deterministically describe the monolithic ``nodes.py`` module.
+"""Deterministically describe the canonical node registration module.
 
 The analyzer is intentionally AST-only.  It never imports the custom node, so it
 can be used before ComfyUI, model folders, or optional node packs are available.
@@ -16,8 +16,9 @@ from typing import Iterable
 
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_SOURCE = REPOSITORY_ROOT / "nodes.py"
+DEFAULT_SOURCE = REPOSITORY_ROOT / "easyuse_anima" / "registration.py"
 DEFAULT_INTERNAL_PACKAGE = "easyuse_anima"
+EXACT_EXTERNAL_HOST_IMPORTS = frozenset({("easyuse_anima.bootstrap", "nodes")})
 DOMAIN_LAYERS = frozenset({"domain", "service", "services"})
 OUTER_LAYER_PATHS = frozenset(
     {
@@ -151,7 +152,12 @@ def _definition_references(node: ast.AST, known_names: set[str]) -> list[str]:
     return sorted(referenced & known_names)
 
 
-def analyze_source(source: str, *, source_label: str = "nodes.py", raw_bytes: bytes | None = None) -> dict:
+def analyze_source(
+    source: str,
+    *,
+    source_label: str = "easyuse_anima/registration.py",
+    raw_bytes: bytes | None = None,
+) -> dict:
     raw_bytes = raw_bytes if raw_bytes is not None else source.encode("utf-8")
     tree = ast.parse(source, filename=source_label)
 
@@ -379,7 +385,10 @@ def find_import_boundary_violations(
     violations: set[tuple[str, int, str]] = set()
 
     for line, target in _import_targets(tree, module_name=module_name, is_package=is_package):
-        if target == "nodes" or target.startswith("nodes."):
+        if (
+            (target == "nodes" or target.startswith("nodes."))
+            and (module_name, target) not in EXACT_EXTERNAL_HOST_IMPORTS
+        ):
             violations.add(("internal-imports-root-nodes", line, target))
 
         if is_inner_layer:
