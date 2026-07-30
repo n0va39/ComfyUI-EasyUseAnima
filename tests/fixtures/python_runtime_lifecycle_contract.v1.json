@@ -127,7 +127,7 @@
       "shutdown"
     ],
     "bootstrap_has_shutdown": true,
-    "package_entry_calls": "easyuse_anima.bootstrap.initialize",
+    "package_entry_calls": "easyuse_anima.bootstrap._initialize_package",
     "runtime_services_has_close": true,
     "translation_worker_registers_own_atexit": false
   },
