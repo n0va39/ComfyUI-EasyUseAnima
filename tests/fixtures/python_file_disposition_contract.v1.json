@@ -2438,7 +2438,7 @@
       "role": "prompt-advanced-node-schema-adapter",
       "owner_group": "nodes",
       "disposition": "split",
-      "status": "planned",
+      "status": "complete",
       "targets": [
         {
           "path": "easyuse_anima/nodes/prompt_advanced_execution.py",
@@ -2462,12 +2462,7 @@
       "replacement_owner": null,
       "size_exception_verdicts": [
         {
-          "id": "function:easyuse_anima/nodes/prompt_advanced_nodes.py::EasyUseAnimaPromptStudioAdvanced.build",
-          "verdict": "split",
-          "final_owner": "easyuse_anima/nodes/prompt_advanced_execution.py"
-        },
-        {
-          "id": "function:easyuse_anima/nodes/prompt_advanced_nodes.py::EasyUseAnimaPromptStudioAdvancedV2._build_with_seed",
+          "id": "module:easyuse_anima/nodes/prompt_advanced_execution.py",
           "verdict": "split",
           "final_owner": "easyuse_anima/nodes/prompt_advanced_execution.py"
         },
@@ -2543,7 +2538,7 @@
       "role": "regional-node-schema-adapter",
       "owner_group": "nodes",
       "disposition": "split",
-      "status": "planned",
+      "status": "complete",
       "targets": [
         {
           "path": "easyuse_anima/nodes/regional_conditioning_adapter.py",
