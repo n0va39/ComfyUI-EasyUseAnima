@@ -2403,7 +2403,7 @@
       "role": "naia-node-schema-adapter",
       "owner_group": "nodes",
       "disposition": "split",
-      "status": "planned",
+      "status": "complete",
       "targets": [
         {
           "path": "easyuse_anima/naia/random_prompt.py",
@@ -2429,16 +2429,6 @@
         {
           "id": "function:easyuse_anima/nodes/naia_nodes.py::EasyUseAnimaNAIARandomPrompt.INPUT_TYPES",
           "verdict": "cohesive_retain",
-          "final_owner": "easyuse_anima/nodes/naia_nodes.py"
-        },
-        {
-          "id": "function:easyuse_anima/nodes/naia_nodes.py::EasyUseAnimaNAIARandomPrompt.request",
-          "verdict": "split",
-          "final_owner": "easyuse_anima/naia/random_prompt.py"
-        },
-        {
-          "id": "module:easyuse_anima/nodes/naia_nodes.py",
-          "verdict": "split",
           "final_owner": "easyuse_anima/nodes/naia_nodes.py"
         }
       ]
