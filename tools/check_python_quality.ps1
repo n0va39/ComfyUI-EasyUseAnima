@@ -101,6 +101,13 @@ try {
     if ($sizeComplexityExitCode -ne 0) {
         throw "Python size/complexity ratchet failed with exit code $sizeComplexityExitCode."
     }
+
+    Write-Host "`n== Python file-disposition contract (PTC-01) =="
+    & $pythonCommand (Join-Path $PSScriptRoot "check_python_file_dispositions.py")
+    $fileDispositionExitCode = $LASTEXITCODE
+    if ($fileDispositionExitCode -ne 0) {
+        throw "Python file-disposition contract failed with exit code $fileDispositionExitCode."
+    }
 }
 finally {
     Set-Location -LiteralPath $originalLocation

@@ -1,0 +1,289 @@
+# Python Total Convergence Contract
+
+## Status and authority
+
+- Status: PTC-01 Contract complete; PTC-02 is the next implementation task.
+- Base: `39997c5423847d4280737f0d78d353d3c6273e07`.
+- Technical owner: Issue #593; parent architecture owner: Issue #185.
+- Lifecycle authority: E-09 / Issue #187.
+- Compatibility inventory: Issue #186 and
+  [`python-compatibility-shims.md`](python-compatibility-shims.md).
+- Machine-readable owner:
+  `tests/fixtures/python_file_disposition_contract.v1.json`.
+
+This Contract extends, rather than discards, FC-01 through FC-05. Those tasks completed
+canonical ownership, role-aware imports, typed boundaries, API application composition
+and E-09 lifecycle ownership. They did not classify every shipped Python file or make
+large-module disposition a completion blocker.
+
+The completion meaning is now stricter: every shipped production `.py` has one reviewed
+role, final owner and disposition, every reviewed size exception has a final verdict,
+and the repository root contains only the ComfyUI entrypoint. Legacy root and
+`anima_prompt` import paths are intentionally retired after their callers and tests use
+canonical modules. This import-path break is accepted; node IDs, workflows, settings,
+profiles and HTTP behavior are not.
+
+## Review verdict
+
+`ROADMAP_EXTENSION_REQUIRED` is accepted with one user-directed correction.
+
+- Retain the current 16-group import gate, canonical API application, root entrypoint,
+  E-09 lifecycle and completed FC evidence.
+- Make the former optional large-module lane blocking.
+- Classify all 183 baseline production files explicitly.
+- Add 16 responsibility-owned canonical modules through cohesive Move tasks.
+- Delete the 9 non-entrypoint root modules and 7 `anima_prompt` compatibility modules
+  after a canonical entrypoint/caller cutover.
+- Do not keep a new compatibility facade merely to preserve the removed import paths.
+
+The target count remains 183: 183 baseline files, plus 16 canonical targets, minus 16
+legacy compatibility files.
+
+## Structural references
+
+No external repository is a template. The pinned references establish useful and
+rejected patterns only.
+
+| Reference | Commit | Accepted | Rejected |
+| --- | --- | --- | --- |
+| [ComfyUI-Easy-Use](https://github.com/yolain/ComfyUI-Easy-Use/tree/595e0738a9e3f8d0d9c4d875461b2d2c9e7559c7) | `595e0738` | broad feature, node and route topology | root import-time configuration/file work and dynamic scanning |
+| [ComfyUI-Impact-Pack](https://github.com/ltdrdata/ComfyUI-Impact-Pack/tree/429d0159ad429e64d2b3916e6e7be9c22d025c3c) | `429d0159` | explicit companion custom-node boundary | root star imports, import-time workers and global server/model coupling |
+| [ComfyUI-KJNodes](https://github.com/kijai/ComfyUI-KJNodes/tree/eb356e6cd5dedac54bb84bc54b8da8f185fa8472) | `eb356e6c` | domain-grouped small related nodes | allowing a domain file to grow without an executable disposition |
+| [rgthree-comfy](https://github.com/rgthree/rgthree-comfy/tree/6b76ee6f2c5a007710b5a16f97c94330d6ecc871) | `6b76ee6f` | independent files for complex public nodes and route families | import-time cleanup/scanning and weaker lifecycle ownership |
+
+EasyUse Anima deliberately keeps stronger executable architecture gates, deterministic
+registration, compatibility inventory during the migration, package/no-host proof and
+the E-09 single lifecycle owner.
+
+## Baseline and final disposition
+
+| Disposition | Baseline files | Final files | Meaning |
+| --- | ---: | ---: | --- |
+| `permanent_entrypoint` | 1 | 1 | root `__init__.py` only |
+| `cohesive_retain` | 157 | 157 | current canonical path and owner remain |
+| `split` | 9 | 25 | current facade/class owner remains and 16 exact targets are added |
+| `delete` | 16 | 0 | canonical callers replace legacy import paths, then files are removed |
+| **Total** | **183** | **183** | zero unclassified shipped Python files |
+
+The fixture lists all 183 baseline paths explicitly. It has no wildcard/default entry.
+Each split records its exact targets, role, G-06 owner group, direct tests, task and
+rollback unit. Each deletion records the canonical replacement owner, current
+compatibility-registry key, caller-migration tests, task and rollback unit.
+
+### Mandatory split boundaries
+
+| Task | Current owner | Added canonical targets |
+| --- | --- | --- |
+| PTC-02 | `aio/generation_normalization.py` | `generation_normalization_core.py`, `generation_normalization_model.py`, `generation_normalization_stages.py` |
+| PTC-03 | `aio/legacy_generation.py` | `legacy_detailer.py`, `legacy_upscale.py` |
+| PTC-04 | `prompt/advanced.py`, `prompt/regional.py` | `advanced_fields.py`, `advanced_builder.py`, `regional_builder.py` |
+| PTC-05 | `prompt/artist_mix.py` | `artist_mix_config.py`, `artist_mix_planning.py`, `artist_mix_conditioning.py` |
+| PTC-06 | `nodes/naia_nodes.py` | `naia/random_prompt.py` |
+| PTC-07A | Advanced and Regional node adapters | `prompt_advanced_execution.py`, `regional_conditioning_adapter.py` |
+| PTC-07B | PromptData and Artist Mix node adapters | `prompt_data_conditioning_adapter.py`, `artist_mix_conditioning_adapter.py` |
+
+Public node class definitions remain in their current canonical node modules. Helper
+movement must not change class identity, `__module__`, registration mappings, socket
+order or workflow class IDs.
+
+### Mandatory legacy retirement
+
+| Legacy path | Canonical replacement owner |
+| --- | --- |
+| `api.py` | `easyuse_anima/api/application.py` plus bootstrap-owned composition |
+| `api_contract.py` | canonical `easyuse_anima/api` request/response/error modules |
+| `autocomplete_dataset.py` | `easyuse_anima/autocomplete/dataset.py` |
+| `autocomplete_index.py` | `easyuse_anima/autocomplete/index.py` |
+| `nodes.py` | `easyuse_anima/registration.py` and symbol-owning canonical modules |
+| `prompt_translation.py` | `easyuse_anima/translation/service.py` |
+| `settings.py` | `easyuse_anima/settings/service.py` and repository/schema owners |
+| `storage.py` | `easyuse_anima/infrastructure/filesystem/atomic_json.py` |
+| `wildcard_engine.py` | `easyuse_anima/wildcard/service.py` and symbol-owning modules |
+| `anima_prompt/` seven modules | matching `easyuse_anima/prompt/anima/` modules |
+
+PTC-09B removes these paths only after production and test callers use canonical
+owners. A deleted aggregator does not create a replacement aggregator: private helper
+tests import the exact symbol owner, while ComfyUI loads the root `__init__.py` and
+canonical registration/application owners.
+
+## Size-exception closure
+
+The 11 module and 20 function exceptions in
+`python_size_complexity_contract.v1.json` are linked exactly once by ID. The final
+verdicts are:
+
+- split: AiO normalization and legacy orchestration, NAIA/Advanced/PromptData/Regional
+  node adapters, Advanced/Artist Mix services, and Regional output construction;
+- move then cohesive retain: DiT correction normalization, legacy USDU execution and
+  Artist Mix config projection;
+- cohesive retain: `bootstrap.initialize`, atomic JSON transaction, save-output stage,
+  Spectrum sampling, Torch Compile recommendation, SAM3 detailer and declarative node
+  schemas;
+- delete after canonical cutover: root `nodes.py`.
+
+The checker rejects an unlinked exception, a final owner outside the target plan, a
+large retain without an executable direct contract, and any growth still rejected by
+the existing size ratchet.
+
+## Machine-readable rules
+
+`tools/check_python_file_dispositions.py` reuses four authoritative sources:
+
+1. `python_backend_baseline.json` for the shipped production inventory;
+2. `python_test_ownership_contract.v1.json` for canonical role/test/package owners;
+3. `python_size_complexity_contract.v1.json` for reviewed overages; and
+4. `python-compatibility-shims.md` for current legacy surfaces.
+
+It fails closed on:
+
+- missing, duplicate or unclassified production paths;
+- a planned target present without the task status update;
+- a completed target missing from the analyzer inventory;
+- owner-group ambiguity or an ownerless new target;
+- target collisions;
+- missing task, direct test or rollback for structural work;
+- missing compatibility-registry linkage for a legacy deletion;
+- any of the 31 size exceptions not classified exactly once; and
+- new generic `util`, `utils`, `helper`, `helpers` or `misc` buckets.
+
+Tests, tools, fixtures, runners and manual/live matrices remain support artifacts. PTC-08
+adds their separate support-ownership Contract; they are not rearranged to mirror the
+production package.
+
+## Preserved contracts
+
+Every implementation task preserves:
+
+- public node IDs, display mappings, class definitions, input/output schemas and saved
+  workflows;
+- API routes, payloads, status/error mapping and request correlation;
+- settings/profile/workflow schema, migrations, revisions and atomic persistence;
+- deterministic registration and package/no-host imports;
+- optional provider and external custom-node failure containment;
+- repeated initialize runtime identity and route refresh;
+- bootstrap as the only lifecycle owner, one lock, one atexit registration and terminal
+  idempotent shutdown;
+- the exact translation executor identity, executor shutdown as cleanup item 1, fixed
+  seven-step cleanup, expected-identity rollback and original startup error; and
+- no route deregistration/marker clear, file-I/O limiter cleanup, provider close, reset
+  API or hot reinitialize.
+
+Root/canonical object identity is preserved only until PTC-09B. After that task,
+canonical identities and ComfyUI entrypoint behavior are preserved; removed root import
+paths intentionally fail instead of silently recreating a compatibility layer.
+
+## Ordered execution
+
+```text
+COMPLETE  FC-01 through FC-05
+COMPLETE  PTC-01  total inventory, target and deletion Contract
+READY     PTC-02  AiO generation normalization Move
+NEXT      PTC-03  AiO legacy orchestration Move
+          PTC-04  Advanced/Regional Prompt service Move
+          PTC-05  Artist Mix service Move
+          PTC-06  NAIA node/service vertical Move
+          PTC-07A Advanced/Regional node-adapter Move
+          PTC-07B PromptData/ArtistMix node-adapter Move
+          PTC-08  size and support-ownership closure Contract
+          PTC-09A root canonical-entrypoint/caller cutover Contract
+          PTC-09B canonical cutover and 16-file legacy deletion
+          PTC-10  total Python convergence audit
+EVENT     ordinary release; no automatic compatibility shim recreation
+```
+
+One task is merged before the next starts. PTC-02 through PTC-07B are behavior-preserving
+Move PRs. PTC-08 and PTC-09A are production-free Contracts. PTC-09B is one cohesive
+entrypoint/import-surface change with a single rollback boundary. PTC-10 changes only
+contracts, ledgers and current documentation unless it finds a production correction.
+
+## First implementation card
+
+```text
+Task ID: PTC-02
+Owner: Issue #593, parent #185
+Class: MOVE
+Base: merged PTC-01 SHA
+Goal: split version/core, model-patch and stage/output normalization from the stable
+      generation_normalization.py facade without changing normalized values or order.
+Allowed production:
+  easyuse_anima/aio/generation_normalization.py
+  easyuse_anima/aio/generation_normalization_core.py
+  easyuse_anima/aio/generation_normalization_model.py
+  easyuse_anima/aio/generation_normalization_stages.py
+Allowed tests/contracts:
+  tests/test_aio_generation_settings.py
+  tests/test_aio_generation_migrations.py
+  tests/fixtures/python_file_disposition_contract.v1.json
+  tests/fixtures/python_backend_baseline.json
+  tests/fixtures/python_size_complexity_contract.v1.json
+  direct import/test-owner/analyzer fixtures only when changed output requires it
+Forbidden:
+  defaults, version dispatch, future-key, error, schema or serialized-output changes
+  node/API/root/lifecycle changes
+  generic helper modules
+Preserve:
+  exact normalization result, key insertion/removal order, version/default projection,
+  direct imports and facade identity
+Focused:
+  changed-file syntax/static
+  AioGenerationSettingsTests
+  AioGenerationMigrationsTests
+  file-disposition, size, import-owner and analyzer gates
+  git diff --check
+Promotion:
+  official full once on final SHA
+  comfy validate, actual pack and archive/import closure because shipped paths change
+Live:
+  not triggered without host-visible behavior
+Rollback:
+  revert the one cohesive PTC-02 Move PR
+Stop:
+  exact normalization parity requires a default, migration, error or schema change
+Next:
+  PTC-03 only
+```
+
+## Root cutover gate
+
+PTC-09A must resolve the exact E-09-safe sequence before deletion:
+
+```text
+ComfyUI imports root __init__.py
+  -> canonical API application is composed once by the existing bootstrap owner
+  -> initialize receives or resolves the canonical registrar
+  -> runtime cleanup plan observes the same translation executor
+  -> repeated initialize refreshes routes without duplicate lifecycle state
+```
+
+The Contract compares only designs that keep bootstrap as the single production
+composition/lifecycle owner. It may adjust the private bootstrap/application interface
+and the root entrypoint call, but may not introduce a second lock, atexit, cleanup
+registry, reset API, hot reinitialize, route deregistration or canonical-to-root import.
+Use focused high-reasoning review only if direct evidence leaves multiple designs that
+satisfy every E-09 gate.
+
+PTC-09B then migrates root-importing tests to exact canonical owners, updates package
+and compatibility fixtures, changes root `__init__.py` to the selected canonical call,
+and deletes the 16 legacy files. Because entrypoint, registration and archive closure
+change, it requires official full, validate/pack/archive, extracted no-host import and
+one representative isolated ComfyUI API/node execution smoke.
+
+## Final Definition of Done
+
+- [ ] Every shipped production `.py` is classified exactly once; unclassified count is
+      zero.
+- [ ] The final target tree has 183 files: one root entrypoint and 182 canonical package
+      files.
+- [ ] No root production `.py` remains except `__init__.py`; `anima_prompt/` is absent.
+- [ ] Every retained file has an exact role and G-06 owner.
+- [ ] Every split/delete has an implemented task, direct test and rollback unit.
+- [ ] All 11 module and 20 function exceptions have a final owner and no unexplained
+      overage remains.
+- [ ] No generic bucket or service locator is introduced.
+- [ ] All canonical production paths pass the role-aware import gate with no cycle.
+- [ ] Public node/workflow/API/data behavior and all E-09 invariants pass.
+- [ ] Support ownership has zero orphan test/tool/fixture/runner entries.
+- [ ] Official full passes once on the final candidate.
+- [ ] Validate, actual pack/archive/CRC/import closure and no-host import pass.
+- [ ] The root-entrypoint change passes representative isolated ComfyUI execution.
+- [ ] Release/tag/Registry evidence remains a separate release operation.
