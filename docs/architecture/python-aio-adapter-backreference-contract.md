@@ -186,7 +186,7 @@ than widening this Move.
 ## Evidence and validation
 
 The deterministic owners are `tests/test_image_scale.py`,
-`tests/test_sam3_nodes.py`, `tests/test_aio_legacy_generation.py`, the direct
+`tests/test_sam3_services.py`, `tests/test_aio_legacy_generation.py`, the direct
 node identity/schema tests, analyzer/import-boundary tests, and package/no-host
 tests. FC-02B changes no executable evidence because those owners already cover
 the fixed contract. Its validation is targeted document/source/test

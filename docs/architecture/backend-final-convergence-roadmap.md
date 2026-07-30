@@ -15,7 +15,7 @@
 - Completed final-convergence lanes: FC-01, FC-02A through FC-02D, FC-03A,
   FC-03B, FC-04A, FC-04B and FC-05.
 - Completed extension lanes: PTC-01 through PTC-09B.
-- Current READY technical task: PTC-10 total Python convergence audit.
+- Current technical queue: PTC-01 through PTC-10 complete in the current change.
 
 The FC results remain valid for their original ownership/lifecycle Definition of Done.
 [`python-total-convergence-contract.md`](python-total-convergence-contract.md) adds the
@@ -56,13 +56,13 @@ This state was reached before release N:
 
 This state is blocking technical work, independent of release timing:
 
-- all 183 current Python source files have one executable disposition;
+- all 183 baseline Python source files have one executable disposition;
 - all 31 size exceptions have one explicit disposition and task/retain evidence;
 - 16 responsibility-owned canonical files are added by the approved split tasks;
 - the nine non-entrypoint root files and seven `anima_prompt` compatibility files are
   removed by PTC-09B after canonical caller and E-09 lifecycle proof;
-- the final shipped Python target remains 183 files with root `__init__.py` as the only
-  root production Python file;
+- the final shipped Python target is 181 files with root `__init__.py` as the only root
+  production Python file; PTC-10 removes the two unregistered, callerless node adapters;
 - no replacement compatibility facade recreates a deleted legacy import path.
 
 ## 3. Ordered execution queue
@@ -363,7 +363,7 @@ Allowed production:
   easyuse_anima/nodes/impact_detailer_nodes.py
 Allowed evidence:
   tests/test_image_scale.py
-  tests/test_sam3_nodes.py
+  tests/test_sam3_services.py
   tests/test_aio_legacy_generation.py
   directly affected node/analyzer/import/package owners and fixtures
   the FC-02B Contract, this roadmap, and compatibility wording when required
@@ -759,10 +759,11 @@ completion audit. Reuse the current disposition, ownership, import, analyzer, pa
 and live evidence; do not rerun FC-01 through FC-05, the external reference audit or
 completed PTC Move tasks.
 
-PTC-10 must resolve the post-cutover analyzer's exact two runtime-unreachable shipped
-canonical modules, `nodes/impact_detailer_nodes.py` and `nodes/sam3_nodes.py`, as either
-a technical correction or a deliberate non-production disposition. It must not restore
-any retired root path to make the analyzer green.
+PTC-10 resolves the post-cutover analyzer's exact two runtime-unreachable shipped
+canonical modules, `nodes/impact_detailer_nodes.py` and `nodes/sam3_nodes.py`, as a
+technical correction. Both were unregistered and callerless; their AiO behavior already
+lives in canonical image/resource owners. They are deleted without restoring any retired
+root path or introducing a synthetic runtime import.
 An ordinary bug-fix release may proceed in its own lane when independently required, but
 it does not complete or replace the PTC queue and must not recreate removed shims.
 
@@ -774,7 +775,7 @@ Definition of Done are owned by
 
 ```text
 COMPLETE  PTC-01 through PTC-09B
-READY     PTC-10 total Python convergence audit
+COMPLETE  PTC-10 total Python convergence audit and dead-adapter retirement
 ```
 
 FC-06 release and Registry publication remain separate from this technical queue.

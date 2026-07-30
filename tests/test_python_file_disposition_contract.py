@@ -60,9 +60,9 @@ class PythonFileDispositionContractTests(unittest.TestCase):
         self.assertEqual(checker.check_repository(ROOT, CONTRACT_PATH), [])
         contract = self.validate(self.document)
         self.assertEqual(contract["expected_baseline_files"], 183)
-        self.assertEqual(contract["expected_target_files"], 183)
+        self.assertEqual(contract["expected_target_files"], 181)
         self.assertEqual(len(contract["entries"]), 183)
-        self.assertEqual(len(contract["target_paths"]), 183)
+        self.assertEqual(len(contract["target_paths"]), 181)
 
     def test_inventory_requires_every_source_exactly_once(self):
         missing = copy.deepcopy(self.document)
@@ -115,7 +115,7 @@ class PythonFileDispositionContractTests(unittest.TestCase):
         with self.assertRaises(checker.ContractError):
             self.validate(mutation)
 
-    def test_ptc09b_size_closure_has_no_root_cutover_pending(self):
+    def test_ptc10_size_closure_has_no_pending_exceptions(self):
         contract = self.validate(self.document)
         verdicts = [
             (entry["status"], verdict["id"])
@@ -123,8 +123,8 @@ class PythonFileDispositionContractTests(unittest.TestCase):
             for verdict in entry["size_exception_verdicts"]
         ]
         self.assertEqual(len(self.size_document["module_exceptions"]), 7)
-        self.assertEqual(len(self.size_document["function_exceptions"]), 15)
-        self.assertEqual(len(verdicts), 22)
+        self.assertEqual(len(self.size_document["function_exceptions"]), 14)
+        self.assertEqual(len(verdicts), 21)
         self.assertEqual(
             [item for item in verdicts if item[0] == "planned"],
             [],
@@ -155,7 +155,7 @@ class PythonFileDispositionContractTests(unittest.TestCase):
             if item["path"] == "easyuse_anima/prompt/advanced.py"
         )
         entry["targets"][1]["path"] = "easyuse_anima/prompt/helpers2.py"
-        generic_target["inventory_owner"]["expected_target_files"] = 183
+        generic_target["inventory_owner"]["expected_target_files"] = 181
         with self.assertRaises(checker.ContractError):
             self.validate(generic_target)
 

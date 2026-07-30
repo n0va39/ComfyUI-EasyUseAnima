@@ -119,13 +119,6 @@
       "decomposition_boundary": "Keep validation, expected-revision compare, atomic replacement, and failure cleanup in one transaction."
     },
     {
-      "path": "easyuse_anima/nodes/impact_detailer_nodes.py",
-      "qualified_name": "_EasyUseAnimaImpactDetailerDelegate.INPUT_TYPES",
-      "baseline_loc": 129,
-      "owner_issue": 188,
-      "decomposition_boundary": "Extract socket groups only through immutable schema helpers with exact ComfyUI input ordering."
-    },
-    {
       "path": "easyuse_anima/nodes/naia_nodes.py",
       "qualified_name": "EasyUseAnimaNAIARandomPrompt.INPUT_TYPES",
       "baseline_loc": 137,
