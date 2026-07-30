@@ -108,6 +108,13 @@ try {
     if ($fileDispositionExitCode -ne 0) {
         throw "Python file-disposition contract failed with exit code $fileDispositionExitCode."
     }
+
+    Write-Host "`n== Python support ownership contract (PTC-08) =="
+    & $pythonCommand (Join-Path $PSScriptRoot "check_python_support_ownership.py")
+    $supportOwnershipExitCode = $LASTEXITCODE
+    if ($supportOwnershipExitCode -ne 0) {
+        throw "Python support ownership contract failed with exit code $supportOwnershipExitCode."
+    }
 }
 finally {
     Set-Location -LiteralPath $originalLocation

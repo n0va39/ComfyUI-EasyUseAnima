@@ -2,14 +2,15 @@
 
 ## Status and authority
 
-- Status: PTC-01 Contract complete; PTC-02 is the next implementation task.
-- Base: `39997c5423847d4280737f0d78d353d3c6273e07`.
+- Status: PTC-01 through PTC-08 complete; PTC-09A is the next Contract task.
+- PTC-08 base: `a0b0dc1f599fcf01ec0f25fc75a23f7524f165ab`.
 - Technical owner: Issue #593; parent architecture owner: Issue #185.
 - Lifecycle authority: E-09 / Issue #187.
 - Compatibility inventory: Issue #186 and
   [`python-compatibility-shims.md`](python-compatibility-shims.md).
-- Machine-readable owner:
-  `tests/fixtures/python_file_disposition_contract.v1.json`.
+- Machine-readable owners:
+  `tests/fixtures/python_file_disposition_contract.v1.json` and
+  `tests/fixtures/python_support_ownership_contract.v1.json`.
 
 This Contract extends, rather than discards, FC-01 through FC-05. Those tasks completed
 canonical ownership, role-aware imports, typed boundaries, API application composition
@@ -108,9 +109,12 @@ canonical registration/application owners.
 
 ## Size-exception closure
 
-The 11 module and 20 function exceptions in
-`python_size_complexity_contract.v1.json` are linked exactly once by ID. The final
-verdicts are:
+The original PTC-01 review classified 11 module and 20 function exceptions. Completed
+PTC-02 through PTC-07B moves resolved eight overages, so the current
+`python_size_complexity_contract.v1.json` contains eight module and fifteen function
+exceptions. All current 23 records are linked exactly once by ID: 22 have completed
+owners and the root `nodes.py` module remains the single planned PTC-09B deletion.
+The final verdict families are:
 
 - split: AiO normalization and legacy orchestration, NAIA/Advanced/PromptData/Regional
   node adapters, Advanced/Artist Mix services, and Regional output construction;
@@ -143,11 +147,16 @@ It fails closed on:
 - target collisions;
 - missing task, direct test or rollback for structural work;
 - missing compatibility-registry linkage for a legacy deletion;
-- any of the 31 size exceptions not classified exactly once; and
+- any current size exception not classified exactly once; and
 - new generic `util`, `utils`, `helper`, `helpers` or `misc` buckets.
 
 Tests, tools, fixtures, runners and manual/live matrices remain support artifacts. PTC-08
-adds their separate support-ownership Contract; they are not rearranged to mirror the
+classifies the exact 210-file support scope in
+`python_support_ownership_contract.v1.json`. Each entry declares its kind, canonical
+owner, concrete purpose, production group, execution mode and generated status. The
+checker reuses the 16 G-06 production groups and its two manual-on-trigger matrices,
+fails on an unclassified path or owner outside the inventory, and is registered once in
+the official Python quality runner. Support files are not rearranged to mirror the
 production package.
 
 ## Preserved contracts
@@ -177,16 +186,10 @@ paths intentionally fail instead of silently recreating a compatibility layer.
 ```text
 COMPLETE  FC-01 through FC-05
 COMPLETE  PTC-01  total inventory, target and deletion Contract
-READY     PTC-02  AiO generation normalization Move
-NEXT      PTC-03  AiO legacy orchestration Move
-          PTC-04  Advanced/Regional Prompt service Move
-          PTC-05  Artist Mix service Move
-          PTC-06  NAIA node/service vertical Move
-          PTC-07A Advanced/Regional node-adapter Move
-          PTC-07B PromptData/ArtistMix node-adapter Move
-          PTC-08  size and support-ownership closure Contract
-          PTC-09A root canonical-entrypoint/caller cutover Contract
-          PTC-09B canonical cutover and 16-file legacy deletion
+COMPLETE  PTC-02 through PTC-07B behavior-preserving Moves
+COMPLETE  PTC-08  size and support-ownership closure Contract
+READY     PTC-09A root canonical-entrypoint/caller cutover Contract
+NEXT      PTC-09B canonical cutover and 16-file legacy deletion
           PTC-10  total Python convergence audit
 EVENT     ordinary release; no automatic compatibility shim recreation
 ```
@@ -196,51 +199,42 @@ Move PRs. PTC-08 and PTC-09A are production-free Contracts. PTC-09B is one cohes
 entrypoint/import-surface change with a single rollback boundary. PTC-10 changes only
 contracts, ledgers and current documentation unless it finds a production correction.
 
-## First implementation card
+## Current task card
 
 ```text
-Task ID: PTC-02
+Task ID: PTC-08
 Owner: Issue #593, parent #185
-Class: MOVE
-Base: merged PTC-01 SHA
-Goal: split version/core, model-patch and stage/output normalization from the stable
-      generation_normalization.py facade without changing normalized values or order.
-Allowed production:
-  easyuse_anima/aio/generation_normalization.py
-  easyuse_anima/aio/generation_normalization_core.py
-  easyuse_anima/aio/generation_normalization_model.py
-  easyuse_anima/aio/generation_normalization_stages.py
-Allowed tests/contracts:
-  tests/test_aio_generation_settings.py
-  tests/test_aio_generation_migrations.py
-  tests/fixtures/python_file_disposition_contract.v1.json
-  tests/fixtures/python_backend_baseline.json
-  tests/fixtures/python_size_complexity_contract.v1.json
-  direct import/test-owner/analyzer fixtures only when changed output requires it
+Class: CONTRACT/TOOL
+Base: a0b0dc1f599fcf01ec0f25fc75a23f7524f165ab
+Goal: close current size-exception review and classify every test, fixture, maintenance
+      tool, official runner and G-06 manual/live matrix under one separate support owner.
+Allowed:
+  tests/fixtures/python_support_ownership_contract.v1.json
+  tests/test_python_support_ownership_contract.py
+  tools/check_python_support_ownership.py
+  tools/check_python_quality.ps1
+  current total-convergence roadmap/contract/index status
 Forbidden:
-  defaults, version dispatch, future-key, error, schema or serialized-output changes
-  node/API/root/lifecycle changes
-  generic helper modules
+  production changes, threshold weakening, support-file rearrangement
+  PTC-09A/09B implementation, release/tag/Registry work
 Preserve:
-  exact normalization result, key insertion/removal order, version/default projection,
-  direct imports and facade identity
+  production source and behavior, G-06 groups, E-09 lifecycle and package contents
 Focused:
-  changed-file syntax/static
-  AioGenerationSettingsTests
-  AioGenerationMigrationsTests
-  file-disposition, size, import-owner and analyzer gates
+  support ownership exact-set/orphan tests
+  current file-disposition and size closure
+  G-06/import/analyzer/Pyright consistency
   git diff --check
 Promotion:
   official full once on final SHA
-  comfy validate, actual pack and archive/import closure because shipped paths change
-Live:
-  not triggered without host-visible behavior
+Package/live:
+  not triggered because production/package/runtime behavior is unchanged
 Rollback:
-  revert the one cohesive PTC-02 Move PR
+  revert the one PTC-08 Contract/tool PR
 Stop:
-  exact normalization parity requires a default, migration, error or schema change
+  a current size exception lacks an owner/executable contract, or a support artifact
+  cannot be assigned a responsible owner and execution mode
 Next:
-  PTC-03 only
+  PTC-09A production-free root canonical-entrypoint/caller cutover Contract only
 ```
 
 ## Root cutover gate
@@ -277,8 +271,8 @@ one representative isolated ComfyUI API/node execution smoke.
 - [ ] No root production `.py` remains except `__init__.py`; `anima_prompt/` is absent.
 - [ ] Every retained file has an exact role and G-06 owner.
 - [ ] Every split/delete has an implemented task, direct test and rollback unit.
-- [ ] All 11 module and 20 function exceptions have a final owner and no unexplained
-      overage remains.
+- [ ] All 31 originally reviewed size exceptions have a final verdict; every current
+      ledger exception is linked exactly once and no unexplained overage remains.
 - [ ] No generic bucket or service locator is introduced.
 - [ ] All canonical production paths pass the role-aware import gate with no cycle.
 - [ ] Public node/workflow/API/data behavior and all E-09 invariants pass.
