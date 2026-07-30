@@ -770,7 +770,7 @@ ignored/
         )
         self.assertEqual(
             len(report["registry"]["runtime_import_closure"]),
-            current_module_count - 2,
+            current_module_count,
         )
         runtime_edges = {
             (edge["source"], edge.get("target"))
@@ -812,10 +812,7 @@ ignored/
         self.assertEqual(report["registry"]["missing_internal_imports"], [])
         self.assertEqual(
             report["registry"]["unreachable_shipped_python_modules"],
-            [
-                "easyuse_anima/nodes/impact_detailer_nodes.py",
-                "easyuse_anima/nodes/sam3_nodes.py",
-            ],
+            [],
         )
         self.assertTrue(
             {

@@ -1208,6 +1208,13 @@ EasyUseAnimaWildcard
   `easyuse_anima.nodes.impact_detailer_nodes` class directly; normal-package
   and synthetic package-entrypoint tests preserve class identity,
   `INPUT_TYPES`, and the existing canonical delegation path.
+- PTC-10 supersedes the B-07f/B-10b1/B-10b3 transition state. The standalone
+  SAM3 context/detailer node IDs were already absent from registration and
+  locales, and neither node adapter had a production caller after the AiO
+  cutover. `easyuse_anima.nodes.sam3_nodes` and
+  `easyuse_anima.nodes.impact_detailer_nodes` are therefore deleted; retained
+  behavior is owned by `easyuse_anima.aio.resources`,
+  `easyuse_anima.image.sam3`, and `easyuse_anima.image.sam3_detailer`.
 - B-10b4 Impact-core cleanup: `_impact_core_module` is no longer a root alias.
   The canonical `_impact_scheduler_names` implementation calls the helper in
   `easyuse_anima.infrastructure.comfy.capabilities` directly; normal-package

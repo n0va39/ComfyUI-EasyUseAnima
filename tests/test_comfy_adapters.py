@@ -15,7 +15,6 @@ if str(ROOT) not in sys.path:
 
 from easyuse_anima.aio import input_defaults, resources as aio_resources
 from easyuse_anima.infrastructure.comfy import capabilities, invocation, resources
-from easyuse_anima.nodes import sam3_nodes
 
 
 class ComfyCapabilityAdapterTests(unittest.TestCase):
@@ -509,37 +508,6 @@ class ComfyInvocationAdapterTests(unittest.TestCase):
 
 
 class ComfyCanonicalOwnerTests(unittest.TestCase):
-    def test_checkpoint_names_are_owned_by_the_canonical_sam3_consumer(self):
-        self.assertIs(
-            sam3_nodes._comfy_checkpoint_names,
-            resources._comfy_checkpoint_names,
-        )
-        checkpoint_names = ["sam3-b.safetensors", "sam3-a.safetensors"]
-        with (
-            patch.object(
-                sam3_nodes,
-                "_comfy_checkpoint_names",
-                return_value=checkpoint_names,
-            ) as names,
-            patch.object(
-                sam3_nodes,
-                "_preferred_checkpoint_default",
-                return_value="sam3-a.safetensors",
-            ) as preferred,
-        ):
-            input_types = sam3_nodes.EasyUseAnimaSAM3Context.INPUT_TYPES()
-
-        self.assertIs(input_types["required"]["ckpt_name"][0], checkpoint_names)
-        self.assertEqual(
-            input_types["required"]["ckpt_name"][1]["default"],
-            "sam3-a.safetensors",
-        )
-        names.assert_called_once_with()
-        preferred.assert_called_once_with(
-            checkpoint_names,
-            "sam3.1_multiplex_fp16.safetensors",
-        )
-
     def test_aio_resource_wrappers_inject_canonical_constants_and_aliases(self):
         folder_calls = []
 

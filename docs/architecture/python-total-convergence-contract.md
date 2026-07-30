@@ -2,8 +2,7 @@
 
 ## Status and authority
 
-- Status: PTC-01 through PTC-09B complete in the current change; PTC-10 is the next
-  completion-audit task after merge.
+- Status: PTC-01 through PTC-10 complete in the current change.
 - PTC-09B base: `a281e3c5f6ee52e214dca89226aed69075810112`.
 - Technical owner: Issue #593; parent architecture owner: Issue #185.
 - Lifecycle authority: E-09 / Issue #187.
@@ -38,8 +37,9 @@ profiles and HTTP behavior are not.
   after a canonical entrypoint/caller cutover.
 - Do not keep a new compatibility facade merely to preserve the removed import paths.
 
-The target count remains 183: 183 baseline files, plus 16 canonical targets, minus 16
-legacy compatibility files.
+PTC-10 corrects the final target to 181: 183 baseline files, plus 16 canonical targets,
+minus 16 legacy compatibility files and the two unregistered node adapters that have no
+production caller.
 
 ## Structural references
 
@@ -62,10 +62,10 @@ the E-09 single lifecycle owner.
 | Disposition | Baseline files | Final files | Meaning |
 | --- | ---: | ---: | --- |
 | `permanent_entrypoint` | 1 | 1 | root `__init__.py` only |
-| `cohesive_retain` | 157 | 157 | current canonical path and owner remain |
+| `cohesive_retain` | 155 | 155 | current canonical path and owner remain |
 | `split` | 9 | 25 | current facade/class owner remains and 16 exact targets are added |
-| `delete` | 16 | 0 | canonical callers replace legacy import paths, then files are removed |
-| **Total** | **183** | **183** | zero unclassified shipped Python files |
+| `delete` | 18 | 0 | canonical callers replace legacy paths or prove an adapter unregistered and callerless, then files are removed |
+| **Total** | **183** | **181** | zero unclassified shipped Python files |
 
 The fixture lists all 183 baseline paths explicitly. It has no wildcard/default entry.
 Each split records its exact targets, role, G-06 owner group, direct tests, task and
@@ -111,10 +111,11 @@ canonical registration/application owners.
 ## Size-exception closure
 
 The original PTC-01 review classified 11 module and 20 function exceptions. Completed
-PTC-02 through PTC-09B work resolved nine overages, so the current
-`python_size_complexity_contract.v1.json` contains seven module and fifteen function
-exceptions. All current 22 records are linked exactly once by ID and have completed
-owners; the deleted root `nodes.py` exception is no longer in the active ledger.
+PTC-02 through PTC-10 work resolved ten overages, so the current
+`python_size_complexity_contract.v1.json` contains seven module and fourteen function
+exceptions. All current 21 records are linked exactly once by ID and have completed
+owners; the deleted root `nodes.py` and unregistered Impact node-adapter exceptions are
+no longer in the active ledger.
 The final verdict families are:
 
 - split: AiO normalization and legacy orchestration, NAIA/Advanced/PromptData/Regional
@@ -191,7 +192,7 @@ COMPLETE  PTC-02 through PTC-07B behavior-preserving Moves
 COMPLETE  PTC-08  size and support-ownership closure Contract
 COMPLETE  PTC-09A root canonical-entrypoint/caller cutover Contract
 COMPLETE  PTC-09B canonical cutover and 16-file legacy deletion
-READY     PTC-10  total Python convergence audit
+COMPLETE  PTC-10  total Python convergence audit and dead-adapter retirement
 EVENT     ordinary release; no automatic compatibility shim recreation
 ```
 
@@ -199,6 +200,34 @@ One task is merged before the next starts. PTC-02 through PTC-07B are behavior-p
 Move PRs. PTC-08 and PTC-09A are production-free Contracts. PTC-09B is one cohesive
 entrypoint/import-surface change with a single rollback boundary. PTC-10 changes only
 contracts, ledgers and current documentation unless it finds a production correction.
+The audit found one: the two shipped standalone SAM3/Impact node adapters were neither
+registered nor imported by production, while AiO already uses the canonical image and
+resource owners. PTC-10 deletes both adapters and retains direct tests on those owners.
+
+## Completed PTC-10 task card
+
+```text
+Task / Issue: #593 / PTC-10
+Base SHA: 603a7bac1547fe0574c6a6d171724fa0a1dc6161
+Goal: close the exact two runtime-unreachable shipped modules without synthetic imports
+      or restoration of a retired root path.
+Production deletion:
+  easyuse_anima/nodes/impact_detailer_nodes.py
+  easyuse_anima/nodes/sam3_nodes.py
+Preserve:
+  registration and locale surfaces; AiO SAM3 context/detailer behavior; canonical
+  image/resource owners; import boundaries; package entrypoint; every E-09 invariant.
+Focused evidence:
+  canonical SAM3 services; node/Comfy adapters; analyzer/disposition/size/support;
+  package skeleton; import boundaries; Registry scanner; locale non-registration.
+Promotion:
+  official full once; validate/pack/archive and extracted no-host import; reuse the
+  PTC-09B isolated ComfyUI execution because no registered host-visible surface changes.
+Rollback:
+  revert the cohesive PTC-10 dead node-adapter retirement PR.
+Result:
+  shipped modules 181; runtime closure 181; unreachable shipped modules 0.
+```
 
 ## Completed PTC-09A task card
 
@@ -262,26 +291,32 @@ deletes the 16 legacy files. The post-cutover analyzer also exposes
 canonical modules outside the entrypoint runtime closure. PTC-10 must classify and
 close that residual without reopening the retired root paths.
 
+PTC-10 classifies both as callerless, unregistered node adapters and deletes them. The
+public registration map already excluded `EasyUseAnimaSAM3Context` and
+`EasyUseAnimaSAM3Detailer`; AiO retains SAM3 context loading in `aio/resources.py` and
+detailer execution in `image/sam3_detailer.py`. The final analyzer has 181 shipped
+modules, a 181-module runtime closure and zero unreachable shipped modules.
+
 Because entrypoint, registration and archive closure change, PTC-09B requires official
 full, validate/pack/archive, extracted no-host import and one representative isolated
 ComfyUI API/node execution smoke.
 
 ## Final Definition of Done
 
-- [ ] Every shipped production `.py` is classified exactly once; unclassified count is
+- [x] Every shipped production `.py` is classified exactly once; unclassified count is
       zero.
-- [ ] The final target tree has 183 files: one root entrypoint and 182 canonical package
+- [x] The final target tree has 181 files: one root entrypoint and 180 canonical package
       files.
-- [ ] No root production `.py` remains except `__init__.py`; `anima_prompt/` is absent.
-- [ ] Every retained file has an exact role and G-06 owner.
-- [ ] Every split/delete has an implemented task, direct test and rollback unit.
-- [ ] All 31 originally reviewed size exceptions have a final verdict; every current
+- [x] No root production `.py` remains except `__init__.py`; `anima_prompt/` is absent.
+- [x] Every retained file has an exact role and G-06 owner.
+- [x] Every split/delete has an implemented task, direct test and rollback unit.
+- [x] All 31 originally reviewed size exceptions have a final verdict; every current
       ledger exception is linked exactly once and no unexplained overage remains.
-- [ ] No generic bucket or service locator is introduced.
-- [ ] All canonical production paths pass the role-aware import gate with no cycle.
-- [ ] Public node/workflow/API/data behavior and all E-09 invariants pass.
-- [ ] Support ownership has zero orphan test/tool/fixture/runner entries.
-- [ ] Official full passes once on the final candidate.
-- [ ] Validate, actual pack/archive/CRC/import closure and no-host import pass.
-- [ ] The root-entrypoint change passes representative isolated ComfyUI execution.
-- [ ] Release/tag/Registry evidence remains a separate release operation.
+- [x] No generic bucket or service locator is introduced.
+- [x] All canonical production paths pass the role-aware import gate with no cycle.
+- [x] Public node/workflow/API/data behavior and all E-09 invariants pass.
+- [x] Support ownership has zero orphan test/tool/fixture/runner entries.
+- [x] Official full passes once on the final candidate.
+- [x] Validate, actual pack/archive/CRC/import closure and no-host import pass.
+- [x] The root-entrypoint change passes representative isolated ComfyUI execution.
+- [x] Release/tag/Registry evidence remains a separate release operation.

@@ -15,7 +15,7 @@ completed lane.
   [#593](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/593)
 - Total Python Convergence Contract:
   [`python-total-convergence-contract.md`](python-total-convergence-contract.md)
-- READY backend refactor task after this cutover merges: PTC-10 completion audit.
+- Backend refactor technical queue: PTC-01 through PTC-10 complete in the current change.
 - Parent architecture: completed Issue
   [#185](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/185)
 - Compatibility/release ledger: Issue
@@ -33,15 +33,15 @@ COMPLETE FC-04B canonical API application cohesive Move
 COMPLETE FC-05 technical architecture completion
 
 COMPLETE PTC-01 through PTC-09B total structure, support and root cutover
-READY    PTC-10 final audit
+COMPLETE PTC-10 final audit and dead-adapter retirement
 
 EVENT    ordinary release N
 ```
 
 FC-01 through FC-05 closed the initial ownership and lifecycle Definition of Done.
 PTC-01 through PTC-09B complete the per-file, size, support-ownership and E-09-safe
-root cutover. PTC-10 is the remaining completion audit. Release events remain separate
-from this sequence.
+root cutover. PTC-10 closes the two unregistered runtime-closure residuals. Release
+events remain separate from this sequence.
 
 ## Current code boundary
 

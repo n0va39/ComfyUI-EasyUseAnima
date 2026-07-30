@@ -2118,13 +2118,12 @@
       "execution_mode": "unittest",
       "generated": false,
       "kind": "test",
-      "owner": "tests/test_sam3_nodes.py",
-      "path": "tests/test_sam3_nodes.py",
+      "owner": "tests/test_sam3_services.py",
+      "path": "tests/test_sam3_services.py",
       "production_groups": [
-        "image",
-        "nodes"
+        "image"
       ],
-      "purpose": "Direct Python unittest contract for test sam3 nodes."
+      "purpose": "Direct Python unittest contract for canonical SAM3 image services."
     },
     {
       "execution_mode": "unittest",

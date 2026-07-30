@@ -33,9 +33,7 @@ from easyuse_anima.image import detailer as image_detailer
 from easyuse_anima.image import geometry as image_geometry
 from easyuse_anima.image import sam3_detailer as image_sam3_detailer
 from easyuse_anima.image import upscale as image_upscale
-from easyuse_anima.infrastructure.comfy import capabilities as comfy_capabilities
 from easyuse_anima.infrastructure.comfy import invocation as comfy_invocation
-from easyuse_anima.infrastructure.comfy import resources as comfy_resources
 from easyuse_anima.lora import metadata as lora_metadata
 from easyuse_anima.lora import preset as lora_preset
 from easyuse_anima.nodes import (
@@ -48,7 +46,6 @@ from easyuse_anima.nodes import (
     prompt_data_nodes,
     prompt_nodes,
     regional_nodes,
-    sam3_nodes,
     wildcard_nodes,
 )
 from tests.comfy_host_fakes import patch_comfy_helper
@@ -278,11 +275,6 @@ def _deterministic_comfy_inputs():
             aio_nodes,
             "_comfy_max_resolution",
             return_value=16384,
-        ),
-        patch.object(
-            sam3_nodes,
-            "_comfy_checkpoint_names",
-            return_value=["contract/checkpoint.safetensors"],
         ),
         patch.object(
             lora_nodes,
@@ -2105,120 +2097,6 @@ class AioInputSettingsNormalizerMoveContractTests(unittest.TestCase):
             self._assert_contract(package_resources, package_resources)
 
 
-class ComfyAdapterMoveContractTests(unittest.TestCase):
-    RETIRED_SAM3_SERVICE_HELPERS = (
-        "_call_impact_detailer",
-        "_empty_mask_for_image",
-        "_empty_segs_for_image",
-        "_find_impact_detailer_class",
-        "_find_impact_mask_to_segs_class",
-        "_find_sam3_detect_class",
-        "_format_sam3_detection_prompt",
-    )
-    DIRECT_HELPER_MODULES = (
-        (
-            comfy_capabilities,
-            ("_comfy_sampler_names", "_comfy_scheduler_names"),
-        ),
-        (
-            comfy_resources,
-            ("_folder_path_names",),
-        ),
-        (
-            comfy_invocation,
-            ("_node_output_tuple", "_call_with_supported_kwargs", "_common_upscale_image"),
-        ),
-    )
-
-    def test_package_canonical_comfy_adapters_preserve_behavior(self):
-        with _loaded_package_entrypoint() as (_, package_nodes):
-            package_name = package_nodes.__package__
-            package_capabilities = sys.modules[
-                f"{package_name}.easyuse_anima.infrastructure.comfy.capabilities"
-            ]
-            package_sam3_nodes = importlib.import_module(
-                f"{package_name}.easyuse_anima.nodes.sam3_nodes"
-            )
-            package_impact_nodes = importlib.import_module(
-                f"{package_name}.easyuse_anima.nodes.impact_detailer_nodes"
-            )
-            package_resources = sys.modules[
-                f"{package_name}.easyuse_anima.infrastructure.comfy.resources"
-            ]
-            self.assertIs(
-                package_sam3_nodes._comfy_checkpoint_names,
-                package_resources._comfy_checkpoint_names,
-            )
-            checkpoint_names = ["package/sam3.safetensors"]
-            with (
-                patch.object(
-                    package_sam3_nodes,
-                    "_comfy_checkpoint_names",
-                    return_value=checkpoint_names,
-                ),
-                patch.object(
-                    package_sam3_nodes,
-                    "_preferred_checkpoint_default",
-                    return_value="package/sam3.safetensors",
-                ),
-            ):
-                input_types = package_sam3_nodes.EasyUseAnimaSAM3Context.INPUT_TYPES()
-            self.assertIs(
-                input_types["required"]["ckpt_name"][0],
-                checkpoint_names,
-            )
-            self.assertEqual(
-                input_types["required"]["ckpt_name"][1]["default"],
-                "package/sam3.safetensors",
-            )
-            self.assertIs(
-                package_sam3_nodes._EasyUseAnimaImpactDetailerDelegate,
-                package_impact_nodes._EasyUseAnimaImpactDetailerDelegate,
-            )
-            with (
-                patch.object(
-                    package_impact_nodes,
-                    "_comfy_max_resolution",
-                    return_value=8192,
-                ),
-                patch.object(
-                    package_impact_nodes,
-                    "_comfy_sampler_names",
-                    return_value=["package-sampler"],
-                ),
-                patch.object(
-                    package_impact_nodes,
-                    "_impact_scheduler_names",
-                    return_value=["package-scheduler"],
-                ),
-            ):
-                detailer_inputs = (
-                    package_sam3_nodes._EasyUseAnimaImpactDetailerDelegate.INPUT_TYPES()
-                )
-            self.assertEqual(
-                detailer_inputs["required"]["guide_size"][1]["max"],
-                8192,
-            )
-            self.assertEqual(
-                detailer_inputs["required"]["sampler_name"][0],
-                ["package-sampler"],
-            )
-            self.assertEqual(
-                detailer_inputs["required"]["scheduler"][0],
-                ["package-scheduler"],
-            )
-            with patch.object(
-                package_capabilities,
-                "_impact_core_module",
-                return_value=types.SimpleNamespace(
-                    get_schedulers=lambda: ("package-impact",)
-                ),
-            ) as impact_core:
-                self.assertEqual(
-                    package_capabilities._impact_scheduler_names(),
-                    ["package-impact"],
-                )
-            impact_core.assert_called_once_with()
 class ImageNodeMoveContractTests(unittest.TestCase):
     RETAINED_SCALING_ALIASES = (
         "IMAGE_SCALE_MULTIPLES",

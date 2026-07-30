@@ -4,7 +4,7 @@
   "inventory_owner": {
     "path": "tests/fixtures/python_backend_baseline.json",
     "expected_baseline_files": 183,
-    "expected_target_files": 183
+    "expected_target_files": 181
   },
   "linked_contracts": {
     "compatibility_registry": "docs/architecture/python-compatibility-shims.md",
@@ -1885,7 +1885,7 @@
         }
       ],
       "direct_contracts": [
-        "tests/test_sam3_nodes.py"
+        "tests/test_sam3_services.py"
       ],
       "compatibility_registry_key": null,
       "task_id": null,
@@ -2336,29 +2336,18 @@
       "path": "easyuse_anima/nodes/impact_detailer_nodes.py",
       "role": "comfyui-node-adapter",
       "owner_group": "nodes",
-      "disposition": "cohesive_retain",
+      "disposition": "delete",
       "status": "complete",
-      "targets": [
-        {
-          "path": "easyuse_anima/nodes/impact_detailer_nodes.py",
-          "role": "comfyui-node-adapter",
-          "owner_group": "nodes"
-        }
-      ],
+      "targets": [],
       "direct_contracts": [
-        "tests/test_node_contracts.py"
+        "tests/test_python_backend_analyzer.py",
+        "tests/test_sam3_services.py"
       ],
       "compatibility_registry_key": null,
-      "task_id": null,
-      "rollback_unit": null,
-      "replacement_owner": null,
-      "size_exception_verdicts": [
-        {
-          "id": "function:easyuse_anima/nodes/impact_detailer_nodes.py::_EasyUseAnimaImpactDetailerDelegate.INPUT_TYPES",
-          "verdict": "cohesive_retain",
-          "final_owner": "easyuse_anima/nodes/impact_detailer_nodes.py"
-        }
-      ]
+      "task_id": "PTC-10",
+      "rollback_unit": "Revert the cohesive PTC-10 dead node-adapter retirement PR.",
+      "replacement_owner": "easyuse_anima/image/sam3_detailer.py",
+      "size_exception_verdicts": []
     },
     {
       "path": "easyuse_anima/nodes/input_types.py",
@@ -2574,20 +2563,18 @@
       "path": "easyuse_anima/nodes/sam3_nodes.py",
       "role": "comfyui-node-adapter",
       "owner_group": "nodes",
-      "disposition": "cohesive_retain",
+      "disposition": "delete",
       "status": "complete",
-      "targets": [
-        {
-          "path": "easyuse_anima/nodes/sam3_nodes.py",
-          "role": "comfyui-node-adapter",
-          "owner_group": "nodes"
-        }
+      "targets": [],
+      "direct_contracts": [
+        "tests/test_locales.py",
+        "tests/test_python_backend_analyzer.py",
+        "tests/test_sam3_services.py"
       ],
-      "direct_contracts": [],
       "compatibility_registry_key": null,
-      "task_id": null,
-      "rollback_unit": null,
-      "replacement_owner": null,
+      "task_id": "PTC-10",
+      "rollback_unit": "Revert the cohesive PTC-10 dead node-adapter retirement PR.",
+      "replacement_owner": "easyuse_anima/image/sam3_detailer.py",
       "size_exception_verdicts": []
     },
     {

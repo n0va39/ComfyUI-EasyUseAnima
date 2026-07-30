@@ -18889,95 +18889,6 @@
         "requested": "__future__",
         "role": "ordinary",
         "scope": "<module>",
-        "source": "easyuse_anima/nodes/impact_detailer_nodes.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "_run_impact_detailer",
-        "branch_context": [],
-        "classification": "internal",
-        "column": 0,
-        "conditional": false,
-        "imported": "..image.sam3_detailer:_run_impact_detailer",
-        "kind": "static_from",
-        "line": 5,
-        "name": "_run_impact_detailer",
-        "optional": false,
-        "requested": "..image.sam3_detailer",
-        "role": "ordinary",
-        "scope": "<module>",
-        "source": "easyuse_anima/nodes/impact_detailer_nodes.py",
-        "target": "easyuse_anima/image/sam3_detailer.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "_comfy_sampler_names",
-        "branch_context": [],
-        "classification": "internal",
-        "column": 0,
-        "conditional": false,
-        "imported": "..infrastructure.comfy.capabilities:_comfy_sampler_names",
-        "kind": "static_from",
-        "line": 6,
-        "name": "_comfy_sampler_names",
-        "optional": false,
-        "requested": "..infrastructure.comfy.capabilities",
-        "role": "ordinary",
-        "scope": "<module>",
-        "source": "easyuse_anima/nodes/impact_detailer_nodes.py",
-        "target": "easyuse_anima/infrastructure/comfy/capabilities.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "_impact_scheduler_names",
-        "branch_context": [],
-        "classification": "internal",
-        "column": 0,
-        "conditional": false,
-        "imported": "..infrastructure.comfy.capabilities:_impact_scheduler_names",
-        "kind": "static_from",
-        "line": 6,
-        "name": "_impact_scheduler_names",
-        "optional": false,
-        "requested": "..infrastructure.comfy.capabilities",
-        "role": "ordinary",
-        "scope": "<module>",
-        "source": "easyuse_anima/nodes/impact_detailer_nodes.py",
-        "target": "easyuse_anima/infrastructure/comfy/capabilities.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "resolve_comfy_host_helper",
-        "branch_context": [],
-        "classification": "internal",
-        "column": 0,
-        "conditional": false,
-        "imported": "..infrastructure.comfy.wiring:resolve_comfy_host_helper",
-        "kind": "static_from",
-        "line": 10,
-        "name": "resolve_comfy_host_helper",
-        "optional": false,
-        "requested": "..infrastructure.comfy.wiring",
-        "role": "ordinary",
-        "scope": "<module>",
-        "source": "easyuse_anima/nodes/impact_detailer_nodes.py",
-        "target": "easyuse_anima/infrastructure/comfy/wiring.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "annotations",
-        "branch_context": [],
-        "classification": "external",
-        "column": 0,
-        "conditional": false,
-        "imported": "__future__:annotations",
-        "kind": "static_from",
-        "line": 3,
-        "name": "annotations",
-        "optional": false,
-        "requested": "__future__",
-        "role": "ordinary",
-        "scope": "<module>",
         "source": "easyuse_anima/nodes/input_types.py"
       },
       {
@@ -23653,149 +23564,6 @@
         "scope": "<module>",
         "source": "easyuse_anima/nodes/regional_nodes.py",
         "target": "easyuse_anima/nodes/seed_adapters.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "annotations",
-        "branch_context": [],
-        "classification": "external",
-        "column": 0,
-        "conditional": false,
-        "imported": "__future__:annotations",
-        "kind": "static_from",
-        "line": 3,
-        "name": "annotations",
-        "optional": false,
-        "requested": "__future__",
-        "role": "ordinary",
-        "scope": "<module>",
-        "source": "easyuse_anima/nodes/sam3_nodes.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "_load_checkpoint_with_comfy",
-        "branch_context": [],
-        "classification": "internal",
-        "column": 0,
-        "conditional": false,
-        "imported": "..aio.resources:_load_checkpoint_with_comfy",
-        "kind": "static_from",
-        "line": 5,
-        "name": "_load_checkpoint_with_comfy",
-        "optional": false,
-        "requested": "..aio.resources",
-        "role": "ordinary",
-        "scope": "<module>",
-        "source": "easyuse_anima/nodes/sam3_nodes.py",
-        "target": "easyuse_anima/aio/resources.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "_preferred_checkpoint_default",
-        "branch_context": [],
-        "classification": "internal",
-        "column": 0,
-        "conditional": false,
-        "imported": "..aio.resources:_preferred_checkpoint_default",
-        "kind": "static_from",
-        "line": 5,
-        "name": "_preferred_checkpoint_default",
-        "optional": false,
-        "requested": "..aio.resources",
-        "role": "ordinary",
-        "scope": "<module>",
-        "source": "easyuse_anima/nodes/sam3_nodes.py",
-        "target": "easyuse_anima/aio/resources.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "_sam3_context",
-        "branch_context": [],
-        "classification": "internal",
-        "column": 0,
-        "conditional": false,
-        "imported": "..image.sam3:_sam3_context",
-        "kind": "static_from",
-        "line": 9,
-        "name": "_sam3_context",
-        "optional": false,
-        "requested": "..image.sam3",
-        "role": "ordinary",
-        "scope": "<module>",
-        "source": "easyuse_anima/nodes/sam3_nodes.py",
-        "target": "easyuse_anima/image/sam3.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "_run_sam3_detailer",
-        "branch_context": [],
-        "classification": "internal",
-        "column": 0,
-        "conditional": false,
-        "imported": "..image.sam3_detailer:_run_sam3_detailer",
-        "kind": "static_from",
-        "line": 10,
-        "name": "_run_sam3_detailer",
-        "optional": false,
-        "requested": "..image.sam3_detailer",
-        "role": "ordinary",
-        "scope": "<module>",
-        "source": "easyuse_anima/nodes/sam3_nodes.py",
-        "target": "easyuse_anima/image/sam3_detailer.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "_comfy_checkpoint_names",
-        "branch_context": [],
-        "classification": "internal",
-        "column": 0,
-        "conditional": false,
-        "imported": "..infrastructure.comfy.resources:_comfy_checkpoint_names",
-        "kind": "static_from",
-        "line": 11,
-        "name": "_comfy_checkpoint_names",
-        "optional": false,
-        "requested": "..infrastructure.comfy.resources",
-        "role": "ordinary",
-        "scope": "<module>",
-        "source": "easyuse_anima/nodes/sam3_nodes.py",
-        "target": "easyuse_anima/infrastructure/comfy/resources.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "resolve_comfy_host_helper",
-        "branch_context": [],
-        "classification": "internal",
-        "column": 0,
-        "conditional": false,
-        "imported": "..infrastructure.comfy.wiring:resolve_comfy_host_helper",
-        "kind": "static_from",
-        "line": 12,
-        "name": "resolve_comfy_host_helper",
-        "optional": false,
-        "requested": "..infrastructure.comfy.wiring",
-        "role": "ordinary",
-        "scope": "<module>",
-        "source": "easyuse_anima/nodes/sam3_nodes.py",
-        "target": "easyuse_anima/infrastructure/comfy/wiring.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "_EasyUseAnimaImpactDetailerDelegate",
-        "branch_context": [],
-        "classification": "internal",
-        "column": 0,
-        "conditional": false,
-        "imported": ".impact_detailer_nodes:_EasyUseAnimaImpactDetailerDelegate",
-        "kind": "static_from",
-        "line": 13,
-        "name": "_EasyUseAnimaImpactDetailerDelegate",
-        "optional": false,
-        "requested": ".impact_detailer_nodes",
-        "role": "ordinary",
-        "scope": "<module>",
-        "source": "easyuse_anima/nodes/sam3_nodes.py",
-        "target": "easyuse_anima/nodes/impact_detailer_nodes.py"
       },
       {
         "alias": null,
@@ -39617,18 +39385,6 @@
         "to": "easyuse_anima/image/upscale.py"
       },
       {
-        "from": "easyuse_anima/nodes/impact_detailer_nodes.py",
-        "to": "easyuse_anima/image/sam3_detailer.py"
-      },
-      {
-        "from": "easyuse_anima/nodes/impact_detailer_nodes.py",
-        "to": "easyuse_anima/infrastructure/comfy/capabilities.py"
-      },
-      {
-        "from": "easyuse_anima/nodes/impact_detailer_nodes.py",
-        "to": "easyuse_anima/infrastructure/comfy/wiring.py"
-      },
-      {
         "from": "easyuse_anima/nodes/lora_nodes.py",
         "to": "easyuse_anima/common/serialization.py"
       },
@@ -39915,30 +39671,6 @@
       {
         "from": "easyuse_anima/nodes/regional_nodes.py",
         "to": "easyuse_anima/workflow.py"
-      },
-      {
-        "from": "easyuse_anima/nodes/sam3_nodes.py",
-        "to": "easyuse_anima/aio/resources.py"
-      },
-      {
-        "from": "easyuse_anima/nodes/sam3_nodes.py",
-        "to": "easyuse_anima/image/sam3.py"
-      },
-      {
-        "from": "easyuse_anima/nodes/sam3_nodes.py",
-        "to": "easyuse_anima/image/sam3_detailer.py"
-      },
-      {
-        "from": "easyuse_anima/nodes/sam3_nodes.py",
-        "to": "easyuse_anima/infrastructure/comfy/resources.py"
-      },
-      {
-        "from": "easyuse_anima/nodes/sam3_nodes.py",
-        "to": "easyuse_anima/infrastructure/comfy/wiring.py"
-      },
-      {
-        "from": "easyuse_anima/nodes/sam3_nodes.py",
-        "to": "easyuse_anima/nodes/impact_detailer_nodes.py"
       },
       {
         "from": "easyuse_anima/nodes/seed_adapters.py",
@@ -41767,7 +41499,7 @@
     ]
   },
   "inventory": {
-    "module_count": 183,
+    "module_count": 181,
     "modules": [
       {
         "functions": [],
@@ -49299,52 +49031,6 @@
         "functions": [
           {
             "async": false,
-            "end_line": 14,
-            "kind": "function",
-            "line": 13,
-            "loc": 2,
-            "qualified_name": "_missing_host_helper"
-          },
-          {
-            "async": false,
-            "end_line": 22,
-            "kind": "function",
-            "line": 17,
-            "loc": 6,
-            "qualified_name": "_comfy_max_resolution"
-          },
-          {
-            "async": false,
-            "end_line": 163,
-            "kind": "method",
-            "line": 35,
-            "loc": 129,
-            "qualified_name": "_EasyUseAnimaImpactDetailerDelegate.INPUT_TYPES"
-          },
-          {
-            "async": false,
-            "end_line": 234,
-            "kind": "method",
-            "line": 170,
-            "loc": 65,
-            "qualified_name": "_EasyUseAnimaImpactDetailerDelegate.doit"
-          }
-        ],
-        "is_package": false,
-        "loc": 237,
-        "module": "easyuse_anima.nodes.impact_detailer_nodes",
-        "normalized_git_blob_sha1": "c05becd71b3a36014d0c897dc2d6011b2156dc32",
-        "path": "easyuse_anima/nodes/impact_detailer_nodes.py",
-        "top_level": {
-          "class_count": 1,
-          "function_count": 2,
-          "global_count": 1
-        }
-      },
-      {
-        "functions": [
-          {
-            "async": false,
             "end_line": 10,
             "kind": "method",
             "line": 9,
@@ -50079,68 +49765,6 @@
           "class_count": 2,
           "function_count": 2,
           "global_count": 11
-        }
-      },
-      {
-        "functions": [
-          {
-            "async": false,
-            "end_line": 17,
-            "kind": "function",
-            "line": 16,
-            "loc": 2,
-            "qualified_name": "_missing_host_helper"
-          },
-          {
-            "async": false,
-            "end_line": 25,
-            "kind": "function",
-            "line": 20,
-            "loc": 6,
-            "qualified_name": "_comfy_max_resolution"
-          },
-          {
-            "async": false,
-            "end_line": 52,
-            "kind": "method",
-            "line": 42,
-            "loc": 11,
-            "qualified_name": "EasyUseAnimaSAM3Context.INPUT_TYPES"
-          },
-          {
-            "async": false,
-            "end_line": 61,
-            "kind": "method",
-            "line": 59,
-            "loc": 3,
-            "qualified_name": "EasyUseAnimaSAM3Context.load"
-          },
-          {
-            "async": false,
-            "end_line": 168,
-            "kind": "method",
-            "line": 78,
-            "loc": 91,
-            "qualified_name": "EasyUseAnimaSAM3Detailer.INPUT_TYPES"
-          },
-          {
-            "async": false,
-            "end_line": 261,
-            "kind": "method",
-            "line": 175,
-            "loc": 87,
-            "qualified_name": "EasyUseAnimaSAM3Detailer.doit"
-          }
-        ],
-        "is_package": false,
-        "loc": 264,
-        "module": "easyuse_anima.nodes.sam3_nodes",
-        "normalized_git_blob_sha1": "985a37f0680e79d7095d3b6f51b8a218c05c7ecd",
-        "path": "easyuse_anima/nodes/sam3_nodes.py",
-        "top_level": {
-          "class_count": 2,
-          "function_count": 2,
-          "global_count": 1
         }
       },
       {
@@ -63814,7 +63438,6 @@
       "easyuse_anima/nodes/aio_nodes.py",
       "easyuse_anima/nodes/artist_mix_conditioning_adapter.py",
       "easyuse_anima/nodes/image_nodes.py",
-      "easyuse_anima/nodes/impact_detailer_nodes.py",
       "easyuse_anima/nodes/input_types.py",
       "easyuse_anima/nodes/lora_nodes.py",
       "easyuse_anima/nodes/naia_nodes.py",
@@ -63825,7 +63448,6 @@
       "easyuse_anima/nodes/prompt_nodes.py",
       "easyuse_anima/nodes/regional_conditioning_adapter.py",
       "easyuse_anima/nodes/regional_nodes.py",
-      "easyuse_anima/nodes/sam3_nodes.py",
       "easyuse_anima/nodes/seed_adapters.py",
       "easyuse_anima/nodes/wildcard_nodes.py",
       "easyuse_anima/profiles/__init__.py",
@@ -63890,10 +63512,7 @@
       "easyuse_anima/wildcard/sources.py",
       "easyuse_anima/workflow.py"
     ],
-    "unreachable_shipped_python_modules": [
-      "easyuse_anima/nodes/impact_detailer_nodes.py",
-      "easyuse_anima/nodes/sam3_nodes.py"
-    ]
+    "unreachable_shipped_python_modules": []
   },
   "schema_version": 3,
   "side_effects": {
