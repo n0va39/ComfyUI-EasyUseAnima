@@ -2,8 +2,8 @@
 
 ## Status and authority
 
-- Status: PTC-01 through PTC-08 complete; PTC-09A is the next Contract task.
-- PTC-08 base: `a0b0dc1f599fcf01ec0f25fc75a23f7524f165ab`.
+- Status: PTC-01 through PTC-09A complete; PTC-09B is the next implementation task.
+- PTC-09A base: `5ab3f54c4d6eba930de5bf7a813d0fd89654ad01`.
 - Technical owner: Issue #593; parent architecture owner: Issue #185.
 - Lifecycle authority: E-09 / Issue #187.
 - Compatibility inventory: Issue #186 and
@@ -188,9 +188,9 @@ COMPLETE  FC-01 through FC-05
 COMPLETE  PTC-01  total inventory, target and deletion Contract
 COMPLETE  PTC-02 through PTC-07B behavior-preserving Moves
 COMPLETE  PTC-08  size and support-ownership closure Contract
-READY     PTC-09A root canonical-entrypoint/caller cutover Contract
-NEXT      PTC-09B canonical cutover and 16-file legacy deletion
-          PTC-10  total Python convergence audit
+COMPLETE  PTC-09A root canonical-entrypoint/caller cutover Contract
+READY     PTC-09B canonical cutover and 16-file legacy deletion
+NEXT      PTC-10  total Python convergence audit
 EVENT     ordinary release; no automatic compatibility shim recreation
 ```
 
@@ -199,62 +199,60 @@ Move PRs. PTC-08 and PTC-09A are production-free Contracts. PTC-09B is one cohes
 entrypoint/import-surface change with a single rollback boundary. PTC-10 changes only
 contracts, ledgers and current documentation unless it finds a production correction.
 
-## Current task card
+## Completed PTC-09A task card
 
 ```text
-Task ID: PTC-08
+Task ID: PTC-09A
 Owner: Issue #593, parent #185
-Class: CONTRACT/TOOL
-Base: a0b0dc1f599fcf01ec0f25fc75a23f7524f165ab
-Goal: close current size-exception review and classify every test, fixture, maintenance
-      tool, official runner and G-06 manual/live matrix under one separate support owner.
+Class: CONTRACT
+Base: 5ab3f54c4d6eba930de5bf7a813d0fd89654ad01
+Goal: select the one canonical entrypoint/application sequence that deletes the exact
+      16 legacy paths while preserving every E-09 lifecycle invariant.
 Allowed:
-  tests/fixtures/python_support_ownership_contract.v1.json
-  tests/test_python_support_ownership_contract.py
-  tools/check_python_support_ownership.py
-  tools/check_python_quality.ps1
-  current total-convergence roadmap/contract/index status
+  docs/architecture/python-ptc09-root-cutover-contract.md
+  current total-convergence roadmap/contract/compatibility/index status
 Forbidden:
-  production changes, threshold weakening, support-file rearrangement
-  PTC-09A/09B implementation, release/tag/Registry work
+  production/test/tool/shared-fixture changes
+  PTC-09B implementation, release/tag/Registry work
 Preserve:
-  production source and behavior, G-06 groups, E-09 lifecycle and package contents
+  production source and behavior, canonical identities, G-06 groups, E-09 lifecycle
 Focused:
-  support ownership exact-set/orphan tests
-  current file-disposition and size closure
-  G-06/import/analyzer/Pyright consistency
+  targeted entrypoint/application/bootstrap/router/registration source consistency
+  E-09 and FC-04 lifecycle Contract consistency
+  exact 16-path disposition consistency
   git diff --check
 Promotion:
-  official full once on final SHA
+  documentation-only; no official full
 Package/live:
-  not triggered because production/package/runtime behavior is unchanged
+  not triggered
 Rollback:
-  revert the one PTC-08 Contract/tool PR
+  revert the one PTC-09A documentation PR
 Stop:
-  a current size exception lacks an owner/executable contract, or a support artifact
-  cannot be assigned a responsible owner and execution mode
+  multiple E-09-safe cutover shapes remain, or a supported legacy consumer requires
+  retention of one of the exact 16 import paths
 Next:
-  PTC-09A production-free root canonical-entrypoint/caller cutover Contract only
+  PTC-09B cohesive canonical cutover and exact 16-file deletion
 ```
 
 ## Root cutover gate
 
-PTC-09A must resolve the exact E-09-safe sequence before deletion:
+PTC-09A resolves the exact E-09-safe sequence in
+[`python-ptc09-root-cutover-contract.md`](python-ptc09-root-cutover-contract.md):
 
 ```text
 ComfyUI imports root __init__.py
-  -> canonical API application is composed once by the existing bootstrap owner
-  -> initialize receives or resolves the canonical registrar
-  -> runtime cleanup plan observes the same translation executor
-  -> repeated initialize refreshes routes without duplicate lifecycle state
+  -> root calls private bootstrap package startup
+  -> bootstrap composes the canonical API application before initialize
+  -> initialize receives the canonical registrar
+  -> runtime cleanup plan observes the same translation executor as item 1
+  -> repeated startup keeps one application/runtime and refreshes routes
 ```
 
-The Contract compares only designs that keep bootstrap as the single production
-composition/lifecycle owner. It may adjust the private bootstrap/application interface
-and the root entrypoint call, but may not introduce a second lock, atexit, cleanup
-registry, reset API, hot reinitialize, route deregistration or canonical-to-root import.
-Use focused high-reasoning review only if direct evidence leaves multiple designs that
-satisfy every E-09 gate.
+The selected private bootstrap function is not public. Application construction remains
+before and outside `initialize`; the obsolete root route-table mirror is replaced by a
+stateless private sink, not another state cell. Root `api.py` and all other legacy paths
+are deleted without replacement. No second lock, atexit, cleanup registry, reset API,
+hot reinitialize, route deregistration or canonical-to-root import is introduced.
 
 PTC-09B then migrates root-importing tests to exact canonical owners, updates package
 and compatibility fixtures, changes root `__init__.py` to the selected canonical call,

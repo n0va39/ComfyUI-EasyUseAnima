@@ -14,8 +14,8 @@
 - FC-01 audit base: `81e07c6c12c21f84ba0642c93d6655c8936b7c3b`.
 - Completed final-convergence lanes: FC-01, FC-02A through FC-02D, FC-03A,
   FC-03B, FC-04A, FC-04B and FC-05.
-- Completed extension lanes: PTC-01 through PTC-08.
-- Current READY technical task: PTC-09A root canonical-entrypoint/caller Contract.
+- Completed extension lanes: PTC-01 through PTC-09A.
+- Current READY technical task: PTC-09B canonical cutover and 16-file legacy deletion.
 
 The FC results remain valid for their original ownership/lifecycle Definition of Done.
 [`python-total-convergence-contract.md`](python-total-convergence-contract.md) adds the
@@ -753,14 +753,15 @@ owner. Stop and request focused technical PRO review only when:
 
 ## 13. Codex resume instruction
 
-PTC-09A is READY after PTC-08 merges. Read only current policy/universal efficiency,
-[`python-total-convergence-contract.md`](python-total-convergence-contract.md)'s root
-cutover gate, Issue #593's latest checkpoint, root entrypoint/application/bootstrap
-owners and their direct lifecycle/package tests. Do not rerun FC-01 through FC-05,
-the external reference audit or completed PTC Move tasks.
+PTC-09B is READY after PTC-09A merges. Read only current policy/universal efficiency,
+[`python-ptc09-root-cutover-contract.md`](python-ptc09-root-cutover-contract.md), Issue
+#593's latest checkpoint, root entrypoint/bootstrap/application owners and the direct
+callers/tests named by the PTC-09B card. Do not rerun FC-01 through FC-05, the external
+reference audit or completed PTC Move tasks.
 
-Complete and merge one PTC task before starting the next. Root/API compatibility removal
-does not start before PTC-09A fixes the canonical entrypoint and E-09 lifecycle sequence.
+Complete and merge one PTC task before starting the next. PTC-09B follows the fixed
+private bootstrap package-start sequence and removes the exact 16 legacy paths without
+a replacement facade.
 An ordinary bug-fix release may proceed in its own lane when independently required, but
 it does not complete or replace the PTC queue and must not recreate removed shims.
 
@@ -771,10 +772,9 @@ Definition of Done are owned by
 [`python-total-convergence-contract.md`](python-total-convergence-contract.md).
 
 ```text
-COMPLETE  PTC-01 through PTC-08
-READY     PTC-09A root canonical-entrypoint/caller Contract
-NEXT      PTC-09B canonical cutover and 16-file legacy deletion
-          -> PTC-10 total Python convergence audit
+COMPLETE  PTC-01 through PTC-09A
+READY     PTC-09B canonical cutover and 16-file legacy deletion
+NEXT      PTC-10 total Python convergence audit
 ```
 
 FC-06 release and Registry publication remain separate from this technical queue.
