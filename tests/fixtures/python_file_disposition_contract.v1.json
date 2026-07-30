@@ -468,7 +468,7 @@
       "role": "aio-settings-normalization-facade",
       "owner_group": "aio",
       "disposition": "split",
-      "status": "planned",
+      "status": "complete",
       "targets": [
         {
           "path": "easyuse_anima/aio/generation_normalization.py",
@@ -499,23 +499,7 @@
       "task_id": "PTC-02",
       "rollback_unit": "Revert the cohesive PTC-02 normalization Move PR.",
       "replacement_owner": null,
-      "size_exception_verdicts": [
-        {
-          "id": "function:easyuse_anima/aio/generation_normalization.py::_normalize_aio_dit_corrections_settings",
-          "verdict": "move_retain_cohesive",
-          "final_owner": "easyuse_anima/aio/generation_normalization_model.py"
-        },
-        {
-          "id": "function:easyuse_anima/aio/generation_normalization.py::_normalize_aio_generation_settings",
-          "verdict": "split",
-          "final_owner": "easyuse_anima/aio/generation_normalization.py"
-        },
-        {
-          "id": "module:easyuse_anima/aio/generation_normalization.py",
-          "verdict": "split",
-          "final_owner": "easyuse_anima/aio/generation_normalization.py"
-        }
-      ]
+      "size_exception_verdicts": []
     },
     {
       "path": "easyuse_anima/aio/generation_output.py",
