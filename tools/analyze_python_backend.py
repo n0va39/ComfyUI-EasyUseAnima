@@ -9,7 +9,7 @@ Deterministic output rules:
 
 * paths are repository-relative POSIX paths;
 * CRLF and bare CR are normalized to LF before parsing and blob hashing;
-* module, edge, state, side-effect, and SCC collections are sorted;
+* module, function, edge, state, side-effect, and SCC collections are sorted;
 * JSON object keys are sorted and the rendered document ends with one LF;
 * no absolute paths, user names, object ids, timestamps, or runtime values are
   included.
@@ -29,14 +29,9 @@ from typing import Iterable, Mapping, Sequence
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 ROOT_MODULE = "__root__"
-SCHEMA_VERSION = 2
+SCHEMA_VERSION = 3
 REGISTRY_ENTRY_MODULE_CANDIDATES = (
     "__init__.py",
-    "autocomplete_index.py",
-    "nodes.py",
-    "prompt_translation.py",
-    "settings.py",
-    "storage.py",
 )
 DYNAMIC_IMPORT_CALLEES = frozenset({"__import__", "importlib.import_module"})
 MUTABLE_CONSTRUCTORS = {
@@ -937,6 +932,70 @@ def _literal_string_sequence(value: ast.AST | None) -> list[str]:
     return values if len(values) == len(value.elts) else []
 
 
+class _FunctionMetricVisitor(ast.NodeVisitor):
+    """Collect stable line metrics for functions without executing source."""
+
+    def __init__(self) -> None:
+        self.records: list[dict[str, object]] = []
+        self.scope_parts: list[str] = []
+        self.scope_kinds: list[str] = []
+        self.name_counts: dict[str, int] = {}
+
+    def visit_ClassDef(self, node: ast.ClassDef) -> None:
+        self.scope_parts.append(node.name)
+        self.scope_kinds.append("class")
+        for statement in node.body:
+            self.visit(statement)
+        self.scope_kinds.pop()
+        self.scope_parts.pop()
+
+    def _visit_function(
+        self,
+        node: ast.FunctionDef | ast.AsyncFunctionDef,
+    ) -> None:
+        base_name = ".".join((*self.scope_parts, node.name))
+        occurrence = self.name_counts.get(base_name, 0) + 1
+        self.name_counts[base_name] = occurrence
+        qualified_name = base_name if occurrence == 1 else f"{base_name}#{occurrence}"
+        decorator_lines = [decorator.lineno for decorator in node.decorator_list]
+        line = min([node.lineno, *decorator_lines])
+        end_line = node.end_lineno or node.lineno
+        self.records.append(
+            {
+                "qualified_name": qualified_name,
+                "kind": "method"
+                if self.scope_kinds and self.scope_kinds[-1] == "class"
+                else "function",
+                "async": isinstance(node, ast.AsyncFunctionDef),
+                "line": line,
+                "end_line": end_line,
+                "loc": end_line - line + 1,
+            }
+        )
+
+        self.scope_parts.append(qualified_name.rsplit(".", 1)[-1])
+        self.scope_kinds.append("function")
+        for statement in node.body:
+            self.visit(statement)
+        self.scope_kinds.pop()
+        self.scope_parts.pop()
+
+    def visit_FunctionDef(self, node: ast.FunctionDef) -> None:
+        self._visit_function(node)
+
+    def visit_AsyncFunctionDef(self, node: ast.AsyncFunctionDef) -> None:
+        self._visit_function(node)
+
+
+def _function_metrics(tree: ast.Module) -> list[dict[str, object]]:
+    visitor = _FunctionMetricVisitor()
+    visitor.visit(tree)
+    return sorted(
+        visitor.records,
+        key=lambda item: (int(item["line"]), str(item["qualified_name"])),
+    )
+
+
 def _analyze_module(path: str, data: bytes) -> dict[str, object]:
     source = _decode_source(data)
     module_name, is_package = _module_identity(path)
@@ -997,6 +1056,7 @@ def _analyze_module(path: str, data: bytes) -> dict[str, object]:
         "is_package": is_package,
         "normalized_git_blob_sha1": _normalized_git_blob_sha1(data),
         "loc": len(source.splitlines()),
+        "functions": _function_metrics(tree),
         "top_level": {
             "function_count": function_count,
             "class_count": class_count,
@@ -1516,7 +1576,10 @@ def analyze_source_set(
             "encoding": "utf-8-sig",
             "newline_normalization": "CRLF and CR become LF before parsing and hashing",
             "path_format": "repository-relative POSIX",
-            "ordering": "paths, modules, edges, candidates, SCCs, and JSON keys are sorted",
+            "ordering": (
+                "paths, modules, functions, edges, candidates, SCCs, and JSON keys "
+                "are sorted"
+            ),
         },
         "inventory": {
             "module_count": len(shipped_paths),

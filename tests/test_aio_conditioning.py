@@ -1,32 +1,43 @@
 from __future__ import annotations
 
 import unittest
+from typing import get_type_hints
 from unittest.mock import Mock, patch
 
-import nodes
 from easyuse_anima.aio import conditioning
+from easyuse_anima.aio.generation_defaults import (
+    AIO_USDU_PROMPT_FULL,
+    AIO_USDU_PROMPT_NO_GENERAL,
+)
+from easyuse_anima.prompt.contracts import AdvancedField
 from tests.comfy_host_fakes import patch_comfy_helper
 
 
 class AIOConditioningMoveTests(unittest.TestCase):
-    def test_root_symbols_are_direct_canonical_aliases(self):
+    def test_prompt_data_fields_use_canonical_advanced_field_contract(self):
+        self.assertEqual(
+            get_type_hints(conditioning._aio_prompt_data_fields_for_usdu)["return"],
+            list[AdvancedField],
+        )
+
+    def test_conditioning_symbols_are_owned_by_the_canonical_module(self):
         for name in (
             "_aio_prompt_data_fields_for_usdu",
             "_aio_usdu_prompt_without_general",
             "_aio_usdu_conditioning",
         ):
             with self.subTest(name=name):
-                self.assertIs(getattr(nodes, name), getattr(conditioning, name))
+                self.assertEqual(getattr(conditioning, name).__module__, conditioning.__name__)
 
     def test_full_mode_preserves_original_conditioning_identity(self):
         positive = object()
         negative = object()
-        with patch_comfy_helper(nodes, "_encode_with_comfy_clip") as encode:
+        with patch_comfy_helper(conditioning, "_encode_with_comfy_clip") as encode:
             result = conditioning._aio_usdu_conditioning(
                 "clip",
                 positive,
                 negative,
-                {"prompt_mode": nodes.AIO_USDU_PROMPT_FULL},
+                {"prompt_mode": AIO_USDU_PROMPT_FULL},
                 "quality",
                 "negative quality",
             )
@@ -76,7 +87,7 @@ class AIOConditioningMoveTests(unittest.TestCase):
             return f"encoded:{text}"
 
         with patch_comfy_helper(
-            nodes,
+            conditioning,
             "_encode_with_comfy_clip",
             side_effect=encode,
         ):
@@ -84,7 +95,7 @@ class AIOConditioningMoveTests(unittest.TestCase):
                 "clip",
                 "original-positive",
                 "original-negative",
-                {"prompt_mode": nodes.AIO_USDU_PROMPT_NO_GENERAL},
+                {"prompt_mode": AIO_USDU_PROMPT_NO_GENERAL},
                 "fallback quality",
                 "fallback negative",
                 prompt_data=prompt_data,
@@ -127,7 +138,7 @@ class AIOConditioningMoveTests(unittest.TestCase):
             return {"prompt": text}
 
         with patch_comfy_helper(
-            nodes,
+            conditioning,
             "_encode_with_comfy_clip",
             side_effect=encode,
         ):
@@ -135,7 +146,7 @@ class AIOConditioningMoveTests(unittest.TestCase):
                 clip,
                 "original-positive",
                 "original-negative",
-                {"prompt_mode": nodes.AIO_USDU_PROMPT_NO_GENERAL},
+                {"prompt_mode": AIO_USDU_PROMPT_NO_GENERAL},
                 "",
                 "",
                 prompt_data=prompt_data,
@@ -173,7 +184,7 @@ class AIOConditioningMoveTests(unittest.TestCase):
                 return_value=("", False),
             ),
             patch_comfy_helper(
-                nodes,
+                conditioning,
                 "_encode_with_comfy_clip",
                 side_effect=first_encode,
             ) as encode,

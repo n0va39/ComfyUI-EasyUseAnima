@@ -1,0 +1,328 @@
+{
+  "classification": "Contract",
+  "compatibility_surfaces": [],
+  "completion_audit": {
+    "ambiguous_state_owners": [],
+    "classification": "Contract",
+    "cleanup_dispositions": [
+      {
+        "feature_cleanup": "_AutocompleteSnapshotStore.clear idempotently clears completed snapshots while in-flight Futures remain registered until shared settlement",
+        "owner": "dataset-snapshots",
+        "remaining_phase": "E-09",
+        "status": "feature-cleanup-complete"
+      },
+      {
+        "feature_cleanup": "_AutocompleteIndexStore.close is an idempotent no-op because the immutable root and retained per-path Locks own no disposable handle",
+        "owner": "index-store",
+        "remaining_phase": "E-09",
+        "status": "intentional-no-op-close"
+      }
+    ],
+    "e01_reconciliation": [
+      {
+        "completed_phase": "E-05b-complete",
+        "e01_entry": "autocomplete-dataset-cache",
+        "owner": "dataset-snapshots"
+      },
+      {
+        "completed_phase": "E-05c-complete",
+        "e01_entry": "autocomplete-index-locks",
+        "owner": "index-store"
+      },
+      {
+        "completed_phase": "E-05c-complete",
+        "e01_entry": "autocomplete-index-root",
+        "owner": "index-store"
+      }
+    ],
+    "import_safety": {
+      "evidence": [
+        "tests/test_python_package_skeleton.py"
+      ],
+      "feature_modules": [
+        "easyuse_anima/autocomplete/classification.py",
+        "easyuse_anima/autocomplete/dataset.py",
+        "easyuse_anima/autocomplete/index.py",
+        "easyuse_anima/autocomplete/ports.py",
+        "easyuse_anima/autocomplete/search.py",
+        "easyuse_anima/autocomplete/service.py"
+      ],
+      "forbidden_imports": [
+        "api",
+        "autocomplete_dataset",
+        "autocomplete_index",
+        "easyuse_anima.api",
+        "easyuse_anima.bootstrap",
+        "easyuse_anima.runtime"
+      ],
+      "host_io_at_import": false
+    },
+    "next_phase": "E-06a wildcard snapshot ownership Contract",
+    "production_changes": 0,
+    "root_identity_bindings": []
+  },
+  "decisions": {
+    "adapter_access": "API adapters receive or resolve one narrow autocomplete port; autocomplete feature modules do not import RuntimeServices, bootstrap, API adapters, or root compatibility shims.",
+    "bootstrap_composition": "Bootstrap is the only production composition root for the default snapshot and index-store owners and the narrow RuntimeServices autocomplete port.",
+    "declarative_source_policy": "AUTOCOMPLETE_SOURCES and category maps remain declarative dataset metadata; source selection and missing Korean-source fallback do not become runtime mutable state.",
+    "generic_cache_lock_port": "rejected",
+    "resource_partition": "Dataset snapshots and Future single-flight form one owner. The index root and normalized-path publication locks form a second owner. They retain independent locks, cleanup, and failure semantics.",
+    "runtime_fields": "E-05d adds only one narrow autocomplete-owned port to RuntimeServices; feature code never receives the complete runtime."
+  },
+  "declarative_policy": [
+    {
+      "e01_module": "easyuse_anima/autocomplete/dataset.py",
+      "id": "source-and-category-metadata",
+      "module": "easyuse_anima/autocomplete/dataset.py",
+      "symbols": [
+        "AUTOCOMPLETE_SOURCES",
+        "_DANBOORU_CATEGORY_NAMES",
+        "_E621_CATEGORY_NAMES",
+        "_MERGED_E621_CATEGORY_NAMES"
+      ]
+    }
+  ],
+  "move_queue": [
+    {
+      "classification": "Contract",
+      "goal": "Freeze current state, behavior authorities, compatibility seams, target owners, and bounded Move order.",
+      "id": "E-05a",
+      "name": "autocomplete runtime ownership contract",
+      "status": "complete"
+    },
+    {
+      "classification": "Move",
+      "goal": "Encapsulate dataset snapshots, cache publication, and Future single-flight behind one feature-private owner while preserving call-time parser and test seams.",
+      "id": "E-05b",
+      "name": "dataset snapshot and single-flight ownership",
+      "status": "complete"
+    },
+    {
+      "classification": "Move",
+      "goal": "Encapsulate the immutable index root and normalized-path publication lock registry behind one autocomplete index-store owner.",
+      "id": "E-05c",
+      "name": "index-store root and path-lock ownership",
+      "status": "complete"
+    },
+    {
+      "classification": "Move",
+      "goal": "Compose the two autocomplete owners in bootstrap, expose one narrow RuntimeServices port, and wire existing adapter facades without changing public identities.",
+      "id": "E-05d",
+      "name": "bootstrap composition and adapter wiring",
+      "status": "complete"
+    },
+    {
+      "classification": "Contract",
+      "goal": "Reconcile E-01 targets, cleanup dispositions, root identities, and zero ambiguous autocomplete state before E-06.",
+      "id": "E-05e",
+      "name": "autocomplete ownership completion audit",
+      "status": "complete"
+    }
+  ],
+  "owners": [
+    {
+      "cleanup": {
+        "current": "_AutocompleteSnapshotStore.clear idempotently clears completed snapshots without cancelling, removing, or replacing in-flight Futures.",
+        "target": "Whole-runtime shutdown disposition remains an explicit E-09 gate; E-05b does not invent a terminal close state."
+      },
+      "components": [
+        {
+          "class": "_AutocompleteSnapshotStore",
+          "module": "easyuse_anima/autocomplete/dataset.py",
+          "state_kind": "instance",
+          "state_symbols": [
+            "_cache",
+            "_inflight",
+            "_lock"
+          ]
+        }
+      ],
+      "current_owner": "easyuse_anima.autocomplete.dataset._DEFAULT_AUTOCOMPLETE_SNAPSHOTS",
+      "e01_entries": [
+        "autocomplete-dataset-cache"
+      ],
+      "evidence": [
+        "tests/test_autocomplete_service.py",
+        "tests/test_autocomplete_index.py",
+        "tests/test_python_legacy_path_retirement.py",
+        "tests/test_autocomplete_locale_settings.py",
+        "tests/test_prompt_corrector.py"
+      ],
+      "id": "dataset-snapshots",
+      "lifetime": "Process lifetime, keyed by resolved source path and source stat/schema revision.",
+      "locking": "One Lock protects the path snapshot cache and cache-key Future map; one loader builds each key while followers await the same Future.",
+      "module": "easyuse_anima/autocomplete/dataset.py",
+      "preserved_behavior": [
+        "CSV parsing, header detection, normalization, category mapping, and stable entry ordering",
+        "cache key resolved path, mtime_ns, size, and schema version",
+        "four-attempt source-change retry and no publication of a stale snapshot",
+        "loader exception propagation through the shared Future",
+        "status fast path and arbitrary-path exact count semantics"
+      ],
+      "state_symbols": [
+        "_DEFAULT_AUTOCOMPLETE_SNAPSHOTS"
+      ],
+      "target_owner": "easyuse_anima.autocomplete.dataset._DEFAULT_AUTOCOMPLETE_SNAPSHOTS",
+      "target_phase": "E-05b-complete"
+    },
+    {
+      "cleanup": {
+        "current": "_AutocompleteIndexStore.close is an idempotent no-op because the immutable root and normalized-path Locks are retained for process lifetime.",
+        "target": "Whole-runtime reverse close ordering remains an E-09 gate; E-05c does not invent disposal for non-disposable Locks."
+      },
+      "components": [
+        {
+          "class": "_AutocompleteIndexStore",
+          "module": "easyuse_anima/autocomplete/index.py",
+          "state_kind": "instance",
+          "state_symbols": [
+            "_locks",
+            "_locks_guard",
+            "_root"
+          ]
+        }
+      ],
+      "current_owner": "easyuse_anima.autocomplete.index._DEFAULT_AUTOCOMPLETE_INDEX_STORE",
+      "e01_entries": [
+        "autocomplete-index-locks",
+        "autocomplete-index-root"
+      ],
+      "evidence": [
+        "tests/test_autocomplete_service.py",
+        "tests/test_autocomplete_index.py",
+        "tests/test_python_package_skeleton.py"
+      ],
+      "id": "index-store",
+      "lifetime": "Process lifetime, one immutable Path-or-None root and one retained Lock per normalized index path.",
+      "locking": "A guard serializes per-path Lock creation; each Lock serializes recheck, rebuild, atomic publication, and concurrent reuse for one index path.",
+      "modules": [
+        "easyuse_anima/autocomplete/index.py",
+        "easyuse_anima/autocomplete/search.py"
+      ],
+      "preserved_behavior": [
+        "standalone package-data boundary disables persistent indexing",
+        "tests may isolate the import-stable index root without host I/O",
+        "lock keys use normcase(abspath(path)) without pre-directory Path.resolve",
+        "readonly hit, schema/source/corrupt rebuild, temporary SQLite build, synchronous FULL commit, and atomic replace",
+        "locked, unreadable, or build failures keep exact Python snapshot fallback and diagnostics"
+      ],
+      "state_symbols": {
+        "easyuse_anima/autocomplete/index.py": [
+          "_DEFAULT_AUTOCOMPLETE_INDEX_STORE"
+        ]
+      },
+      "target_owner": "easyuse_anima.autocomplete.index._DEFAULT_AUTOCOMPLETE_INDEX_STORE",
+      "target_phase": "E-05c-complete"
+    }
+  ],
+  "production_callers": [
+    {
+      "entry": "classification snapshot",
+      "function": "classify_prompt_text",
+      "module": "easyuse_anima/autocomplete/classification.py",
+      "owner": "dataset-snapshots",
+      "uses": [
+        "_classify_prompt_text_from_snapshot",
+        "_snapshot"
+      ]
+    },
+    {
+      "entry": "search snapshot and index",
+      "function": "_search_autocomplete_with_diagnostics",
+      "module": "easyuse_anima/autocomplete/search.py",
+      "owners": [
+        "dataset-snapshots",
+        "index-store"
+      ],
+      "uses": [
+        "_DEFAULT_AUTOCOMPLETE_INDEX_STORE",
+        "_snapshot",
+        "_search_autocomplete_diagnostics_with_owners"
+      ]
+    },
+    {
+      "entry": "public status",
+      "function": "autocomplete_status",
+      "module": "easyuse_anima/autocomplete/dataset.py",
+      "owner": "dataset-snapshots",
+      "uses": [
+        "_autocomplete_status_with_owner",
+        "_cached_snapshot_for_key",
+        "_snapshot"
+      ]
+    }
+  ],
+  "production_changes": 8,
+  "runtime_port": {
+    "adapters": [
+      {
+        "canonical_fallback": "_canonical_resolve_autocomplete_source_path",
+        "function": "resolve_autocomplete_source_path",
+        "port_method": "resolve_source"
+      },
+      {
+        "canonical_fallback": "_canonical_available_autocomplete_sources",
+        "function": "available_autocomplete_sources",
+        "port_method": "available_sources"
+      },
+      {
+        "canonical_fallback": "_canonical_autocomplete_status",
+        "function": "autocomplete_status",
+        "port_method": "status"
+      },
+      {
+        "canonical_fallback": "_canonical_search_autocomplete",
+        "function": "search_autocomplete",
+        "port_method": "search"
+      },
+      {
+        "canonical_fallback": "_canonical_classify_prompt_text",
+        "function": "classify_prompt_text",
+        "port_method": "classify"
+      }
+    ],
+    "bootstrap": {
+      "function": "initialize",
+      "module": "easyuse_anima/bootstrap.py",
+      "uses": [
+        "_AutocompleteService",
+        "_DEFAULT_AUTOCOMPLETE_INDEX_STORE",
+        "_DEFAULT_AUTOCOMPLETE_SNAPSHOTS",
+        "RuntimeServices"
+      ]
+    },
+    "interface": {
+      "class": "AutocompletePort",
+      "methods": [
+        "available_sources",
+        "classify",
+        "resolve_source",
+        "search",
+        "status"
+      ],
+      "module": "easyuse_anima/autocomplete/ports.py"
+    },
+    "root_adapter": {
+      "builder": "_build_runtime_autocomplete_parts",
+      "module": "easyuse_anima/api/application_compatibility.py",
+      "resolver": "runtime_autocomplete",
+      "runtime_family": "wildcard_autocomplete",
+      "runtime_getter": "_read",
+      "runtime_leaf": "get_runtime"
+    },
+    "runtime": {
+      "field": "autocomplete",
+      "module": "easyuse_anima/runtime.py"
+    },
+    "service": {
+      "class": "_AutocompleteService",
+      "module": "easyuse_anima/autocomplete/service.py",
+      "owner_fields": [
+        "_index_store",
+        "_snapshots"
+      ]
+    }
+  },
+  "schema_version": 1,
+  "scope": "Completed E-05 autocomplete ownership sequence through the production-free E-05e audit"
+}

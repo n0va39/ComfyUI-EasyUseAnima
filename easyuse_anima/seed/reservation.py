@@ -7,6 +7,8 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import Literal, Protocol, TypeAlias, cast
 
+from ..errors import ValidationError
+
 SEED_RESERVATION_REQUEST_SCHEMA = "easyuse_anima_seed_reservation_request"
 SEED_RESERVATION_CONTRACT_VERSION = 2
 SEED_MAX_UINT64 = 0xFFFFFFFFFFFFFFFF
@@ -83,7 +85,7 @@ _LEGACY_SELECTION_BY_SEED: Mapping[int, SeedSelection] = {
 }
 
 
-class SeedReservationContractError(ValueError):
+class SeedReservationContractError(ValidationError, ValueError):
     """A seed reservation request or result violates the versioned contract."""
 
 

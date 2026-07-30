@@ -484,7 +484,7 @@ tests/test_comfy_adapters.py
 tests/test_node_contracts.py
 tests/test_prompt_corrector.py
 tests/test_prompt_studio_regional.py
-tests/test_sam3_nodes.py
+tests/test_sam3_services.py
 tests/test_python_compatibility_surface.py
 tests/test_python_backend_analyzer.py
 tests/test_nodes_module_analyzer.py
@@ -657,7 +657,7 @@ Allowed test, fixture, and documentation files:
 tests/test_comfy_host_wiring.py
 tests/test_comfy_host_provider.py
 tests/test_node_contracts.py
-tests/test_sam3_nodes.py
+tests/test_sam3_services.py
 tests/test_python_compatibility_surface.py
 tests/test_nodes_module_analyzer.py
 tests/fixtures/comfy_host_compatibility.v1.json
@@ -973,7 +973,7 @@ tests/test_aio_output.py
 tests/test_aio_preview.py
 tests/test_aio_resources.py
 tests/test_aio_sampling.py
-tests/test_sam3_nodes.py
+tests/test_sam3_services.py
 tests/test_python_compatibility_surface.py
 tests/test_nodes_module_analyzer.py
 tests/fixtures/comfy_host_compatibility.v1.json

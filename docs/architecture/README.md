@@ -1,127 +1,197 @@
 # Python Backend Architecture
 
-These documents define the target Python backend architecture, migration rules,
-and explicitly reviewed cross-surface execution plans for ComfyUI EasyUse Anima.
+These documents define the target backend architecture, migration rules and reviewed
+cross-surface contracts. They do not imply that every target state is implemented.
 
-They are contracts for future work, not a claim that every target package or
-feature already exists. Before selecting a task, read the bounded execution and
-test-escalation policy in
-[`../development/codex-execution-efficiency.md`](../development/codex-execution-efficiency.md).
-Then follow the active sequencing notes below and read only the current task
-section, owning Issue, direct owner files, and direct tests.
+Read the bounded execution policy first, then only the current READY or event task, its
+owning Issue, direct source and direct tests. When neither exists, do not reopen a
+completed lane.
 
-## Active sequencing notes
+## Current sequencing
 
-- [`codex-execution-efficiency.md`](../development/codex-execution-efficiency.md)
-  applies to every active and ordinary roadmap. It defines the bounded task card,
-  focused edit loop, final-full-once rule, package/live/benchmark triggers,
-  evidence reuse, and current task-specific test maps. It reduces repeated work;
-  it does not weaken an Issue or release gate.
-- Issue [#470](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/470) is the
-  active P1 post-0.6.0 regression lane. Read
-  [`prompt-studio-execution-derived-projection.md`](prompt-studio-execution-derived-projection.md)
-  before modifying Prompt Studio queue/result behavior. QSTATE-04C1 is the first
-  READY task and targets a 0.6.1 patch.
-- Issues [#413](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/413),
-  [#414](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/414), and
-  [#415](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/415) completed the
-  original queue/live-UI hotfix and release lane. Their two-phase correlation and
-  seed ownership contracts remain authoritative. Issue #470 supersedes only the
-  old classification that treated linked `field_inputs` and NAIA responses as
-  non-projectable submitted snapshots.
-- Before Prompt Studio wildcard next-seed publication or AiO seed cutover, read
-  [`seed-ui-semantics-gate.md`](seed-ui-semantics-gate.md). Prompt Studio uses a
-  concrete seed plus an after-generate transition; AiO special `-1/-2/-3` values
-  are persistent selection tokens. The shared transaction owner must not merge
-  those feature meanings.
-- Issue [#395](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/395)
-  separately tracks the external Comfy Registry activation checkpoint for the
-  immutable 0.5.5 release. Waiting for that external approval does not block
-  confirmed P1 post-release bug fixes, and it does not authorize rewriting the
-  `v0.5.5` tag.
-- The DAVE stage-scope, Torch Compile recommendation, and NegPip plans are
-  recorded in
-  [`aio-advanced-integrations-roadmap.md`](aio-advanced-integrations-roadmap.md).
-  Issues #409, #410, and #411 and the 0.6.0 release lane #452 are complete.
-- Deferred patch-specific follow-ups #440/#441, ordinary backend work,
-  opportunistic cleanup, and unrelated features do not jump the active #470
-  patch lane.
-- The former B-11 Comfy host-provider bridge is complete. Its document remains a
-  historical sequencing record and no longer overrides the active queue.
+- Final-convergence completion and event plan:
+  [`backend-final-convergence-roadmap.md`](backend-final-convergence-roadmap.md)
+- Technical completion owner: completed Issue
+  [#593](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/593)
+- Total Python Convergence Contract:
+  [`python-total-convergence-contract.md`](python-total-convergence-contract.md)
+- Backend refactor technical queue: PTC-01 through PTC-10 complete in the current change.
+- Parent architecture: completed Issue
+  [#185](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/185)
+- Compatibility/release ledger: Issue
+  [#186](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/186)
+- E-09 lifecycle owner: completed Issue
+  [#187](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/187)
 
-## Documents
+```text
+COMPLETE Phase D/E/F/G and G-CLOSE
+COMPLETE P-WC Wildcard direct-shim conversion
+COMPLETE SEC-01 through SEC-05 security/admin lane
+COMPLETE FC-01, FC-02 and FC-03 final-convergence prerequisites
+COMPLETE FC-04A canonical API application/E-09 lifecycle Contract
+COMPLETE FC-04B canonical API application cohesive Move
+COMPLETE FC-05 technical architecture completion
 
+COMPLETE PTC-01 through PTC-09B total structure, support and root cutover
+COMPLETE PTC-10 final audit and dead-adapter retirement
+
+READY    FC-06 ordinary release N as EasyUse Anima 1.0.0
+```
+
+FC-01 through FC-05 closed the initial ownership and lifecycle Definition of Done.
+PTC-01 through PTC-09B complete the per-file, size, support-ownership and E-09-safe
+root cutover. PTC-10 closes the two unregistered runtime-closure residuals. The
+selected release N is 1.0.0 because the retired legacy Python imports are an explicit
+breaking boundary. Version 1.0 defines the stable public contract at the ComfyUI
+entrypoint, node, workflow, HTTP and persisted-data boundaries; exact canonical modules
+remain directly importable without a broad package-root re-export.
+
+## Current code boundary
+
+The FC backend boundary was functionally validated at
+`dev@bb1452c9996293f1f77bb361e7317ddb2664ae19`. PTC-01 is based on
+`dev@39997c5423847d4280737f0d78d353d3c6273e07` and extends that boundary without
+reopening completed feature, lifecycle or security work.
+
+### Completed boundaries
+
+- node implementations live in canonical packages and the retired root `nodes.py`
+  facade is absent;
+- feature routes, typed boundaries, migrations and common error categories are owned by
+  canonical packages;
+- RuntimeServices ownership, cleanup, rollback and isolated test runtime are complete;
+- Wildcard production consumers use canonical owners and the root
+  `wildcard_engine.py` shim is absent;
+- public API coverage, size-growth ratchet and canonical test ownership are executable
+  gates;
+- the complete 16-group role-aware import gate covers the G-06 production owner map;
+- canonical application owners create the API identity and bootstrap remains the sole
+  lifecycle/composition owner; the root `api.py` binder is absent;
+- sensitive settings responses use safe logging and `no-store` under the completed
+  TRUSTED_DEPLOYMENT_ONLY security boundary.
+
+### FC technical completion and PTC extension
+
+FC-05 reconciled the original ownership/lifecycle Definition-of-Done rows and recorded
+the integrated full, owner, package/no-host, lifecycle, 0.5.2 compatibility and
+isolated ComfyUI API/node execution gates. PTC now completes the broader objective:
+every Python file has an explicit disposition, oversized modules are closed, and legacy
+root import paths are removed after canonical callers are proven.
+
+### Legacy import boundary
+
+Root `__init__.py` remains the permanent ComfyUI entrypoint. PTC-09B removes the other
+nine root Python modules and seven `anima_prompt` compatibility modules after canonical
+entrypoint/caller ownership and the E-09 lifecycle identity sequence are proven. Those
+legacy import paths are intentionally unsupported and must not be recreated.
+
+## Fixed owner model
+
+The target owner matrix remains:
+
+| Surface | Owner and durable responsibility |
+| --- | --- |
+| Root `__init__.py` | permanent ComfyUI entrypoint; exported mappings and one guarded startup path |
+| Retired root import paths | absent after PTC-09B; canonical owners only, no replacement facade |
+| `bootstrap.py` | sole lifecycle/composition owner, RuntimeConfig, initialize/shutdown and concrete wiring |
+| `runtime.py` | installed RuntimeServices identity and process runtime access |
+| `registration.py` | pure node mapping composition |
+| `nodes/*` | raw ComfyUI-to-feature adapters |
+| `api/application*` | canonical API application identity, compatibility parts and exact handler wiring; one cohesive owner with no new size exception |
+| `api/router.py` | route order/signature/resolver/registrar infrastructure |
+| `api/routes/*` | request parse, feature call and response/error mapping |
+| Feature packages | domain rules, typed contracts, migrations and feature ports |
+| `infrastructure/*` | generic Comfy/filesystem/HTTP integration without feature meaning |
+| `common` | proven domain-neutral primitives only |
+
+FC-02D enforces this complete role model without forcing adapters and composition
+modules through feature-only rules.
+
+## E-09 lifecycle invariants
+
+All final-convergence work preserves:
+
+- bootstrap as the only lifecycle owner;
+- one initialize/shutdown lock and one atexit registration;
+- terminal/idempotent shutdown and no hot reinitialize;
+- repeated initialize preserving runtime identity while refreshing routes;
+- one translation route executor created before cleanup-plan composition;
+- executor shutdown as cleanup item 1;
+- the fixed seven-step cleanup order;
+- expected-identity rollback and preservation of the original startup error;
+- retained route marker/routes and no invented route deregistration;
+- no file-I/O limiter or provider/client cleanup without a separate contract.
+
+FC-03 changes patch ownership only. FC-04 moved application construction only after
+its lifecycle Contract proved these invariants.
+
+## Core current documents
+
+- [`backend-final-convergence-roadmap.md`](backend-final-convergence-roadmap.md):
+  completed FC ownership/lifecycle convergence, active PTC queue, release events,
+  validation and Codex resume instruction.
+- [`python-total-convergence-contract.md`](python-total-convergence-contract.md):
+  explicit 183-file disposition, 31 size-exception decisions, exact target tree,
+  root canonical cutover and the blocking completion definition.
+- [`python-ptc09-root-cutover-contract.md`](python-ptc09-root-cutover-contract.md):
+  selected private bootstrap package-start sequence, exact legacy retirement boundary,
+  E-09 proof obligations and the PTC-09B task card.
+- [`python-backend.md`](python-backend.md): target architecture, phases and original
+  Definition of Done.
+- [`python-api-papi01-e09-lifecycle-gate.md`](python-api-papi01-e09-lifecycle-gate.md):
+  current API identity graph, RETAIN verdict, root patch-time seam inventory and revisit
+  events.
+- [`python-api-fc04-application-lifecycle-contract.md`](python-api-fc04-application-lifecycle-contract.md):
+  selected canonical application identity, bootstrap composition sequence, root binder,
+  E-09 gates and the exact FC-04B task card.
+- [`python-runtime-e09-lifecycle-contract.md`](python-runtime-e09-lifecycle-contract.md):
+  authoritative lifecycle and cleanup/rollback contract.
+- [`python-compatibility-shims.md`](python-compatibility-shims.md): current root surfaces,
+  release evidence and ADR-002 gates.
 - [`../development/codex-execution-efficiency.md`](../development/codex-execution-efficiency.md):
-  cross-roadmap Codex context budget, work-packet format, test ladder, invalidation
-  rules, compact evidence format, and scoped test maps for queue/UI, AiO integration,
-  and ordinary backend work.
-- [`prompt-studio-execution-derived-projection.md`](prompt-studio-execution-derived-projection.md):
-  active Issue #470 plan separating submitted Prompt Studio snapshots from
-  execution-derived linked-input and NAIA deltas; defines latest-accepted queue
-  ownership, per-field revisions, persistence rules, one-envelope fan-out,
-  implementation units, focused tests, dual-canvas evidence, and the 0.6.1 gate.
-- [`queue-ui-two-phase-correlation-addendum.md`](queue-ui-two-phase-correlation-addendum.md):
-  identity/revision correction after QSTATE-02A. It separates provisional
-  submission, accepted `promptId`, and the executed-event envelope; removes
-  mandatory `listIndex` from node-level stale-result correlation; and defines
-  cache, subgraph, mapped-result, transaction-core, and envelope-bridge boundaries.
-- [`seed-ui-semantics-gate.md`](seed-ui-semantics-gate.md): feature boundary and
-  hard test gate separating Prompt Studio Wildcard concrete after-generate seed
-  publication from AiO rgthree-style persistent special-token selection, including
-  the special-token x stored-control no-double-advance matrix.
-- [`queue-ui-execution-state-hotfix.md`](queue-ui-execution-state-hotfix.md):
-  historical base runbook for stale LoRA/Prompt Studio execution results (#413),
-  rgthree-compatible AiO special-seed display semantics (#414), integrated
-  validation, and the completed release gate owned by #415. Its exact-identity-at-
-  submission assumptions are superseded by the two-phase addendum.
-- [`python-backend.md`](python-backend.md): living architecture, ownership,
-  execution phases, validation gates, and overall Definition of Done.
-- [`python-backend-execution-roadmap.md`](python-backend-execution-roadmap.md):
-  verified backend progress, ordered work units, stop conditions, and task-level
-  validation gates. Its next-work ordering is paused while #470 is open. When it
-  resumes, apply the efficiency protocol instead of rerunning every historical
-  inventory and broad test after each edit.
-- [`aio-advanced-integrations-roadmap.md`](aio-advanced-integrations-roadmap.md):
-  completed sequencing plan for stage-scoped DAVE (#409), KJNodes Torch Compile
-  recommendations (#410), and ComfyUI-ppm NegPip (#411). Patch-specific follow-ups
-  remain independently tracked.
-- [`aio-hook-extensibility-plan.md`](aio-hook-extensibility-plan.md): follow-on AiO
-  extension contract and stage/cache/lifecycle sequencing. It does not authorize
-  implementation while a higher-priority bug or release gate is active.
-- [`comfy-host-provider-bridge.md`](comfy-host-provider-bridge.md): completed
-  historical sequencing addendum for the seven former root Comfy capability and
-  invocation wrappers and the minimum runtime-bound provider Contract required
-  before the final B-11 shim.
-- [`adr-001-modular-monolith.md`](adr-001-modular-monolith.md): why the backend
-  converges on a feature-oriented modular monolith under `easyuse_anima`.
-- [`adr-002-compatibility-shims.md`](adr-002-compatibility-shims.md): policy for
-  introducing, supporting, and retiring root compatibility shims.
-- [`python-compatibility-shims.md`](python-compatibility-shims.md): registry schema
-  and inventory of root/module compatibility surfaces.
+  task-card, focused validation, evidence reuse and context policy.
 
-## Authority and scope
+## Completed evidence documents
 
-- Repository policy remains authoritative for branches, releases, Registry
-  publication, and validation: [`MAINTAINING.md`](../../MAINTAINING.md).
-- The development-document entry point remains
-  [`docs/development/README.md`](../development/README.md).
-- The efficiency protocol selects the smallest sufficient evidence and timing;
-  it does not permit skipping explicit correctness, compatibility, package, live,
-  or release gates owned by a task.
-- The architecture ADRs and ordinary backend roadmap own Python package and
-  lifecycle boundaries.
-- Cross-surface bug and AiO plans may also cover frontend state, queue identity,
-  workflow/profile compatibility, optional custom-node contracts, packaging,
-  and live ComfyUI evidence when those surfaces are inseparable from the backend
-  execution contract.
-- The active post-0.6.0 patch is tracked by
-  [#470](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/470). Completed
-  #413/#414/#415 remain historical contract sources and are not reopened.
-- Long-term implementation is tracked by
-  [#184](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/184),
-  [#185](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/185), and their
-  child issues. Deferred patch-specific integrations are tracked independently by
-  [#440](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/440) and
-  [#441](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/441).
-- An ADR, roadmap, or sequencing note does not authorize a behavior change,
-  package move, merge, version bump, tag, or Registry publication by itself.
+Read only when the active task touches the boundary:
+
+- [`backend-roadmap-resume-0.6.2.md`](backend-roadmap-resume-0.6.2.md): completed D-08
+  and Phase E execution record.
+- [`python-phase-fg-completion-audit.md`](python-phase-fg-completion-audit.md): completed
+  typed/quality lane under its scoped criteria.
+- [`python-public-api-g04a-audit.md`](python-public-api-g04a-audit.md)
+- [`python-size-complexity-g05a-contract.md`](python-size-complexity-g05a-contract.md)
+- [`python-test-ownership-g06a-contract.md`](python-test-ownership-g06a-contract.md)
+- [`python-wildcard-pwc01-facade-feasibility.md`](python-wildcard-pwc01-facade-feasibility.md)
+- [`security-admin-settings-roadmap.md`](security-admin-settings-roadmap.md)
+- [`python-runtime-base-contract.md`](python-runtime-base-contract.md)
+- [`python-runtime-state-inventory.md`](python-runtime-state-inventory.md)
+- [`python-runtime-e03-repository-filesystem-contract.md`](python-runtime-e03-repository-filesystem-contract.md)
+- [`python-runtime-e04-translation-contract.md`](python-runtime-e04-translation-contract.md)
+- [`python-runtime-e05-autocomplete-contract.md`](python-runtime-e05-autocomplete-contract.md)
+- [`python-runtime-e06-wildcard-contract.md`](python-runtime-e06-wildcard-contract.md)
+- [`python-runtime-e08-aio-cache-contract.md`](python-runtime-e08-aio-cache-contract.md)
+- [`python-runtime-e10-test-isolation-contract.md`](python-runtime-e10-test-isolation-contract.md)
+
+## Cross-surface references
+
+Read only when needed:
+
+- [`queue-ui-two-phase-correlation-addendum.md`](queue-ui-two-phase-correlation-addendum.md)
+- [`prompt-studio-execution-derived-projection.md`](prompt-studio-execution-derived-projection.md)
+- [`seed-ui-semantics-gate.md`](seed-ui-semantics-gate.md)
+- [`aio-advanced-integrations-roadmap.md`](aio-advanced-integrations-roadmap.md)
+- [`comfy-host-provider-bridge.md`](comfy-host-provider-bridge.md)
+
+## Authority
+
+- Branch/release/validation policy: [`MAINTAINING.md`](../../MAINTAINING.md)
+- Development entrypoint: [`../development/README.md`](../development/README.md)
+- Active technical queue: `backend-final-convergence-roadmap.md`
+- Target architecture: `python-backend.md`, ADR-001 and ADR-002
+- Compatibility decisions: Issue #186 plus the shim registry
+- Feature behavior: owning Issue
+
+Only the staged PTC-09A/PTC-09B Contract authorizes removal of the reviewed legacy import
+paths. No document here independently authorizes release publication, tags or Registry
+actions.

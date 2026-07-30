@@ -7,12 +7,12 @@ from types import SimpleNamespace
 from unittest.mock import patch
 
 from easyuse_anima.lora import metadata as lora_metadata
-from easyuse_anima.nodes import lora_nodes
-from nodes import (
-    EasyUseAnimaLoraPreset,
+from easyuse_anima.lora.metadata import (
     _lora_combo_values,
     _lora_manager_trigger_words_from_metadata,
 )
+from easyuse_anima.nodes import lora_nodes
+from easyuse_anima.nodes.lora_nodes import EasyUseAnimaLoraPreset
 
 
 def unwrap_result(response):

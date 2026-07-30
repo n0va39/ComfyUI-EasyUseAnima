@@ -66,6 +66,78 @@ class PythonBackendAnalyzerTests(unittest.TestCase):
 
         self.assertEqual(lf_report, crlf_report)
 
+    def test_function_metrics_include_decorators_methods_nested_and_duplicates(self):
+        report = analyzer.analyze_source_set(
+            {
+                "__init__.py": """\
+def decorator(function):
+    return function
+
+@decorator
+def top():
+    def nested():
+        return 1
+    return nested()
+
+class Owner:
+    @decorator
+    async def method(self):
+        return 2
+
+def top():
+    return 3
+""",
+            }
+        )
+
+        functions = report["inventory"]["modules"][0]["functions"]
+
+        self.assertEqual(
+            functions,
+            [
+                {
+                    "qualified_name": "decorator",
+                    "kind": "function",
+                    "async": False,
+                    "line": 1,
+                    "end_line": 2,
+                    "loc": 2,
+                },
+                {
+                    "qualified_name": "top",
+                    "kind": "function",
+                    "async": False,
+                    "line": 4,
+                    "end_line": 8,
+                    "loc": 5,
+                },
+                {
+                    "qualified_name": "top.nested",
+                    "kind": "function",
+                    "async": False,
+                    "line": 6,
+                    "end_line": 7,
+                    "loc": 2,
+                },
+                {
+                    "qualified_name": "Owner.method",
+                    "kind": "method",
+                    "async": True,
+                    "line": 11,
+                    "end_line": 13,
+                    "loc": 3,
+                },
+                {
+                    "qualified_name": "top#2",
+                    "kind": "function",
+                    "async": False,
+                    "line": 15,
+                    "end_line": 16,
+                    "loc": 2,
+                },
+            ],
+        )
+
     def test_alias_static_relative_and_literal_dynamic_import_edges(self):
         sources = {
             "__init__.py": """\
@@ -292,9 +364,9 @@ def comfy_runtime():
         )
         self.assertEqual(
             report["registry"]["entry_modules"],
-            ["__init__.py", "nodes.py"],
+            ["__init__.py"],
         )
-        self.assertIn(
+        self.assertNotIn(
             "nodes.py",
             report["registry"]["runtime_import_closure"],
         )
@@ -613,7 +685,7 @@ ignored/
         expected = sorted(
             path
             for path in tracked - ignored
-            if path.endswith(".py")
+            if path.endswith(".py") and (ROOT / path).is_file()
         )
 
         self.assertEqual(report["registry"]["shipped_python_modules"], expected)
@@ -689,26 +761,74 @@ ignored/
         expected_text = BASELINE_PATH.read_text(encoding="utf-8")
 
         self.assertEqual(analyzer.render_json(report), expected_text)
-        self.assertEqual(report["schema_version"], 2)
-        self.assertEqual(report["inventory"]["module_count"], 137)
-        self.assertEqual(len(report["registry"]["shipped_python_modules"]), 137)
-        self.assertEqual(len(report["registry"]["runtime_import_closure"]), 137)
+        self.assertEqual(report["schema_version"], 3)
+        current_module_count = len(report["inventory"]["modules"])
+        self.assertEqual(report["inventory"]["module_count"], current_module_count)
+        self.assertEqual(
+            len(report["registry"]["shipped_python_modules"]),
+            current_module_count,
+        )
+        self.assertEqual(
+            len(report["registry"]["runtime_import_closure"]),
+            current_module_count,
+        )
+        runtime_edges = {
+            (edge["source"], edge.get("target"))
+            for edge in report["imports"]["edges"]
+            if edge["classification"] == "internal"
+        }
+        self.assertNotIn(
+            (
+                "easyuse_anima/aio/legacy_generation.py",
+                "easyuse_anima/nodes/image_nodes.py",
+            ),
+            runtime_edges,
+        )
+        self.assertNotIn(
+            (
+                "easyuse_anima/aio/legacy_generation.py",
+                "easyuse_anima/nodes/sam3_nodes.py",
+            ),
+            runtime_edges,
+        )
+        self.assertIn(
+            (
+                "easyuse_anima/aio/legacy_generation.py",
+                "easyuse_anima/image/upscale.py",
+            ),
+            runtime_edges,
+        )
+        self.assertIn(
+            (
+                "easyuse_anima/aio/legacy_generation.py",
+                "easyuse_anima/image/sam3_detailer.py",
+            ),
+            runtime_edges,
+        )
         self.assertEqual(
             report["registry"]["entry_modules"],
-            [
-                "__init__.py",
-                "autocomplete_index.py",
-                "nodes.py",
-                "prompt_translation.py",
-                "settings.py",
-                "storage.py",
-            ],
+            ["__init__.py"],
         )
         self.assertEqual(report["registry"]["missing_internal_imports"], [])
-        self.assertEqual(report["registry"]["unreachable_shipped_python_modules"], [])
+        self.assertEqual(
+            report["registry"]["unreachable_shipped_python_modules"],
+            [],
+        )
         self.assertTrue(
             {
                 "easyuse_anima/__init__.py",
+                "easyuse_anima/api/__init__.py",
+                "easyuse_anima/api/errors.py",
+                "easyuse_anima/api/file_io.py",
+                "easyuse_anima/api/requests.py",
+                "easyuse_anima/api/responses.py",
+                "easyuse_anima/api/router.py",
+                "easyuse_anima/api/routes/__init__.py",
+                "easyuse_anima/api/routes/aio_torch_compile.py",
+                "easyuse_anima/api/routes/autocomplete.py",
+                "easyuse_anima/api/routes/translation.py",
+                "easyuse_anima/api/routes/translation_execution.py",
+                "easyuse_anima/api/routes/wildcards.py",
                 "easyuse_anima/aio/__init__.py",
                 "easyuse_anima/aio/conditioning.py",
                 "easyuse_anima/aio/first_pass_cache.py",
@@ -735,6 +855,7 @@ ignored/
                 "easyuse_anima/aio/negpip.py",
                 "easyuse_anima/aio/output.py",
                 "easyuse_anima/aio/output_settings.py",
+                "easyuse_anima/aio/ports.py",
                 "easyuse_anima/aio/postprocess.py",
                 "easyuse_anima/aio/preview.py",
                 "easyuse_anima/aio/resources.py",
@@ -769,14 +890,12 @@ ignored/
                 "easyuse_anima/nodes/__init__.py",
                 "easyuse_anima/nodes/aio_nodes.py",
                 "easyuse_anima/nodes/image_nodes.py",
-                "easyuse_anima/nodes/impact_detailer_nodes.py",
                 "easyuse_anima/nodes/lora_nodes.py",
                 "easyuse_anima/nodes/naia_nodes.py",
                 "easyuse_anima/nodes/prompt_advanced_nodes.py",
                 "easyuse_anima/nodes/prompt_data_nodes.py",
                 "easyuse_anima/nodes/prompt_nodes.py",
                 "easyuse_anima/nodes/regional_nodes.py",
-                "easyuse_anima/nodes/sam3_nodes.py",
                 "easyuse_anima/nodes/wildcard_nodes.py",
                 "easyuse_anima/profiles/__init__.py",
                 "easyuse_anima/profiles/aio.py",
@@ -803,6 +922,13 @@ ignored/
                 "easyuse_anima/seed/reservation.py",
                 "easyuse_anima/seed/service.py",
                 "easyuse_anima/prompt/__init__.py",
+                "easyuse_anima/prompt/anima/__init__.py",
+                "easyuse_anima/prompt/anima/correction.py",
+                "easyuse_anima/prompt/anima/knowledge.py",
+                "easyuse_anima/prompt/anima/models.py",
+                "easyuse_anima/prompt/anima/normalize.py",
+                "easyuse_anima/prompt/anima/ordering.py",
+                "easyuse_anima/prompt/anima/parser.py",
                 "easyuse_anima/prompt/advanced.py",
                 "easyuse_anima/prompt/correction.py",
                 "easyuse_anima/prompt/artist_mix.py",
@@ -812,8 +938,30 @@ ignored/
                 "easyuse_anima/prompt/regional.py",
             }.issubset(report["registry"]["shipped_python_modules"])
         )
-        self.assertIn("nodes.py", report["registry"]["shipped_python_modules"])
-        self.assertIn("api.py", report["registry"]["runtime_import_closure"])
+        retired_paths = {
+            "anima_prompt/__init__.py",
+            "anima_prompt/correction.py",
+            "anima_prompt/knowledge.py",
+            "anima_prompt/models.py",
+            "anima_prompt/normalize.py",
+            "anima_prompt/ordering.py",
+            "anima_prompt/parser.py",
+            "api.py",
+            "api_contract.py",
+            "autocomplete_dataset.py",
+            "autocomplete_index.py",
+            "nodes.py",
+            "prompt_translation.py",
+            "settings.py",
+            "storage.py",
+            "wildcard_engine.py",
+        }
+        self.assertFalse(
+            retired_paths & set(report["registry"]["shipped_python_modules"])
+        )
+        self.assertFalse(
+            retired_paths & set(report["registry"]["runtime_import_closure"])
+        )
         self.assertTrue(
             {
                 "easyuse_anima/aio/conditioning.py",
@@ -822,6 +970,7 @@ ignored/
                 "easyuse_anima/aio/model_preparation.py",
                 "easyuse_anima/aio/negpip.py",
                 "easyuse_anima/aio/output.py",
+                "easyuse_anima/aio/ports.py",
                 "easyuse_anima/aio/preview.py",
                 "easyuse_anima/aio/resources.py",
                 "easyuse_anima/aio/sampling.py",
@@ -848,16 +997,21 @@ ignored/
                 "easyuse_anima/naia/resolution.py",
                 "easyuse_anima/nodes/aio_nodes.py",
                 "easyuse_anima/nodes/image_nodes.py",
-                "easyuse_anima/nodes/impact_detailer_nodes.py",
                 "easyuse_anima/nodes/lora_nodes.py",
                 "easyuse_anima/nodes/naia_nodes.py",
                 "easyuse_anima/nodes/prompt_advanced_nodes.py",
                 "easyuse_anima/nodes/prompt_data_nodes.py",
                 "easyuse_anima/nodes/prompt_nodes.py",
                 "easyuse_anima/nodes/regional_nodes.py",
-                "easyuse_anima/nodes/sam3_nodes.py",
                 "easyuse_anima/nodes/wildcard_nodes.py",
                 "easyuse_anima/prompt/__init__.py",
+                "easyuse_anima/prompt/anima/__init__.py",
+                "easyuse_anima/prompt/anima/correction.py",
+                "easyuse_anima/prompt/anima/knowledge.py",
+                "easyuse_anima/prompt/anima/models.py",
+                "easyuse_anima/prompt/anima/normalize.py",
+                "easyuse_anima/prompt/anima/ordering.py",
+                "easyuse_anima/prompt/anima/parser.py",
                 "easyuse_anima/prompt/advanced.py",
                 "easyuse_anima/prompt/correction.py",
                 "easyuse_anima/prompt/artist_mix.py",
@@ -887,22 +1041,6 @@ ignored/
             }.issubset(report["registry"]["runtime_import_closure"])
         )
         self.assertIn(
-            "api_contract.py",
-            report["registry"]["shipped_python_modules"],
-        )
-        self.assertIn(
-            "api_contract.py",
-            report["registry"]["runtime_import_closure"],
-        )
-        self.assertIn(
-            "autocomplete_index.py",
-            report["registry"]["shipped_python_modules"],
-        )
-        self.assertIn(
-            "autocomplete_index.py",
-            report["registry"]["runtime_import_closure"],
-        )
-        self.assertIn(
             "easyuse_anima/autocomplete/index.py",
             report["registry"]["shipped_python_modules"],
         )
@@ -911,6 +1049,7 @@ ignored/
             report["registry"]["runtime_import_closure"],
         )
         for module in (
+            "easyuse_anima/autocomplete/classification.py",
             "easyuse_anima/autocomplete/dataset.py",
             "easyuse_anima/autocomplete/search.py",
         ):
@@ -925,20 +1064,6 @@ ignored/
                 )
         self.assertIn(
             {
-                "from": "autocomplete_dataset.py",
-                "to": "easyuse_anima/autocomplete/dataset.py",
-            },
-            report["imports"]["module_graph"],
-        )
-        self.assertIn(
-            {
-                "from": "autocomplete_dataset.py",
-                "to": "easyuse_anima/autocomplete/search.py",
-            },
-            report["imports"]["module_graph"],
-        )
-        self.assertIn(
-            {
                 "from": "easyuse_anima/autocomplete/search.py",
                 "to": "easyuse_anima/autocomplete/index.py",
             },
@@ -946,69 +1071,6 @@ ignored/
         )
         self.assertIn(
             {
-                "from": "autocomplete_index.py",
-                "to": "easyuse_anima/autocomplete/index.py",
-            },
-            report["imports"]["module_graph"],
-        )
-        self.assertIn(
-            {
-                "from": "wildcard_engine.py",
-                "to": "easyuse_anima/wildcard/expansion.py",
-            },
-            report["imports"]["module_graph"],
-        )
-        self.assertIn(
-            {
-                "from": "wildcard_engine.py",
-                "to": "easyuse_anima/wildcard/library.py",
-            },
-            report["imports"]["module_graph"],
-        )
-        self.assertIn(
-            {
-                "from": "wildcard_engine.py",
-                "to": "easyuse_anima/wildcard/mode.py",
-            },
-            report["imports"]["module_graph"],
-        )
-        self.assertIn(
-            {
-                "from": "wildcard_engine.py",
-                "to": "easyuse_anima/wildcard/models.py",
-            },
-            report["imports"]["module_graph"],
-        )
-        self.assertIn(
-            {
-                "from": "wildcard_engine.py",
-                "to": "easyuse_anima/wildcard/sources.py",
-            },
-            report["imports"]["module_graph"],
-        )
-        self.assertIn(
-            {
-                "from": "wildcard_engine.py",
-                "to": "easyuse_anima/wildcard/selector.py",
-            },
-            report["imports"]["module_graph"],
-        )
-        self.assertIn(
-            {
-                "from": "wildcard_engine.py",
-                "to": "easyuse_anima/wildcard/snapshot.py",
-            },
-            report["imports"]["module_graph"],
-        )
-        self.assertIn(
-            {
-                "from": "wildcard_engine.py",
-                "to": "easyuse_anima/wildcard/seed.py",
-            },
-            report["imports"]["module_graph"],
-        )
-        self.assertIn(
-            {
                 "from": "easyuse_anima/wildcard/snapshot.py",
                 "to": "easyuse_anima/wildcard/models.py",
             },
@@ -1017,13 +1079,6 @@ ignored/
         self.assertIn(
             {
                 "from": "easyuse_anima/wildcard/snapshot.py",
-                "to": "easyuse_anima/wildcard/sources.py",
-            },
-            report["imports"]["module_graph"],
-        )
-        self.assertIn(
-            {
-                "from": "api.py",
                 "to": "easyuse_anima/wildcard/sources.py",
             },
             report["imports"]["module_graph"],
@@ -1048,24 +1103,27 @@ ignored/
                     module,
                     report["registry"]["runtime_import_closure"],
                 )
-        self.assertIn(
-            {"from": "api.py", "to": "api_contract.py"},
-            report["imports"]["module_graph"],
-        )
-        profile_edges = {
-            (item["from"], item["to"])
-            for item in report["imports"]["module_graph"]
-            if item["from"] == "api.py"
-        }
-        self.assertTrue(
-            {
-                ("api.py", "easyuse_anima/profiles/aio.py"),
-                ("api.py", "easyuse_anima/profiles/contract.py"),
-                ("api.py", "easyuse_anima/profiles/lora.py"),
-                ("api.py", "easyuse_anima/profiles/mutation.py"),
-                ("api.py", "easyuse_anima/profiles/repository.py"),
-            }.issubset(profile_edges)
-        )
+        for source, target in (
+            ("__init__.py", "easyuse_anima/bootstrap.py"),
+            ("__init__.py", "easyuse_anima/registration.py"),
+            (
+                "easyuse_anima/bootstrap.py",
+                "easyuse_anima/api/application.py",
+            ),
+            (
+                "easyuse_anima/bootstrap.py",
+                "easyuse_anima/api/routes/translation_execution.py",
+            ),
+            (
+                "easyuse_anima/bootstrap.py",
+                "easyuse_anima/api/routes/aio_torch_compile.py",
+            ),
+        ):
+            with self.subTest(source=source, target=target):
+                self.assertIn(
+                    {"from": source, "to": target},
+                    report["imports"]["module_graph"],
+                )
         self.assertNotIn(
             "tests/test_python_backend_analyzer.py",
             report["registry"]["shipped_python_modules"],
@@ -1078,18 +1136,12 @@ ignored/
             (item["source"], item["target"])
             for item in report["registry"]["compatibility_fallback_imports"]
         }
-        self.assertTrue(
-            {
-                ("nodes.py", "wildcard_engine.py"),
-            }.issubset(fallback_targets)
-        )
         self.assertFalse(
-            [
-                item
-                for item in report["registry"]["compatibility_fallback_imports"]
-                if item["source"] == "api.py"
-                and item["target"].startswith("easyuse_anima/profiles/")
-            ]
+            {
+                (source, target)
+                for source, target in fallback_targets
+                if source in retired_paths or target in retired_paths
+            }
         )
         self.assertFalse(
             [
@@ -1108,10 +1160,6 @@ ignored/
             ],
             "dict",
         )
-        self.assertEqual(
-            mutable_by_name[("wildcard_engine.py", "_SNAPSHOT_CACHE")],
-            "dict",
-        )
         self.assertFalse(
             any(
                 module
@@ -1122,14 +1170,6 @@ ignored/
                 }
                 for module, _name in mutable_by_name
             )
-        )
-        owner_by_name = {
-            (item["module"], item["name"]): set(item["categories"])
-            for item in report["state"]["owner_candidates"]
-        }
-        self.assertIn(
-            "cache",
-            owner_by_name[("wildcard_engine.py", "_SNAPSHOT_CACHE")],
         )
         json.loads(expected_text)
 

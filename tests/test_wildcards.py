@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import inspect
 import json
 import tempfile
 import threading
@@ -8,52 +9,229 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from unittest.mock import patch
 
-import nodes as nodes_module
-from easyuse_anima.nodes import wildcard_nodes
+import numpy as np
+
+from easyuse_anima.nodes import prompt_advanced_nodes, regional_nodes, wildcard_nodes
+from easyuse_anima.nodes.prompt_advanced_nodes import (
+    EasyUseAnimaPromptStudioAdvanced,
+    EasyUseAnimaPromptStudioAdvancedV2,
+)
+from easyuse_anima.nodes.regional_nodes import EasyUseAnimaPromptStudioRegional
+from easyuse_anima.nodes.wildcard_nodes import EasyUseAnimaWildcard
 from easyuse_anima.prompt import advanced as prompt_advanced
 from easyuse_anima.seed import compatibility as seed_compatibility
+from easyuse_anima.settings.service import public_settings
 from easyuse_anima.wildcard import expansion as wildcard_expansion
 from easyuse_anima.wildcard import library as wildcard_library
 from easyuse_anima.wildcard import mode as wildcard_mode
 from easyuse_anima.wildcard import models as wildcard_models
 from easyuse_anima.wildcard import seed as wildcard_seed
 from easyuse_anima.wildcard import selector as wildcard_selector
+from easyuse_anima.wildcard import service as wildcard_service
 from easyuse_anima.wildcard import snapshot as wildcard_snapshot
 from easyuse_anima.wildcard import sources as wildcard_sources
-from nodes import (
-    EasyUseAnimaPromptStudioAdvanced,
-    EasyUseAnimaPromptStudioAdvancedV2,
-    EasyUseAnimaPromptStudioRegional,
-    EasyUseAnimaWildcard,
-)
-from easyuse_anima.settings.service import public_settings
-import wildcard_engine
-from wildcard_engine import (
-    DEFAULT_TEST_WILDCARD_FILE,
+from easyuse_anima.wildcard.models import (
     WildcardExpansionBudget,
     WildcardExpansionResult,
-    ensure_default_wildcard_root,
+)
+from easyuse_anima.wildcard.service import (
     expand_wildcard_texts,
     expand_wildcards,
     list_wildcards,
 )
+from easyuse_anima.wildcard.sources import (
+    DEFAULT_TEST_WILDCARD_FILE,
+    ensure_default_wildcard_root,
+)
 
 
-class WildcardEngineTests(unittest.TestCase):
-    def test_root_library_adapter_uses_canonical_lookup_core(self):
-        self.assertEqual(wildcard_library.__all__, ())
+class WildcardSnapshotStoreTests(unittest.TestCase):
+    def test_default_owner_is_canonical_and_raw_state_is_gone(self):
+        self.assertEqual(
+            wildcard_snapshot._DEFAULT_WILDCARD_SNAPSHOTS._cache_limit,
+            wildcard_snapshot._SNAPSHOT_CACHE_LIMIT,
+        )
+        for raw_state in (
+            "_SNAPSHOT_BUILDING",
+            "_SNAPSHOT_CACHE",
+            "_SNAPSHOT_CONDITION",
+        ):
+            with self.subTest(raw_state=raw_state):
+                self.assertFalse(hasattr(wildcard_snapshot, raw_state))
+
+    def test_clear_preserves_active_build_admission_and_settlement(self):
+        store = wildcard_snapshot._WildcardSnapshotStore()
+        build_started = threading.Event()
+        release_build = threading.Event()
+        waiter_entered = threading.Event()
+        build_calls = []
+        original_wait = store._condition.wait
+
+        def blocked_build(source_state):
+            snapshot = wildcard_snapshot._build_wildcard_snapshot(source_state)
+            build_calls.append(source_state.cache_key)
+            build_started.set()
+            if not release_build.wait(5):
+                raise AssertionError("timed out waiting to clear completed cache")
+            return snapshot
+
+        def observed_wait(timeout=None):
+            waiter_entered.set()
+            return original_wait(timeout)
+
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            (root / "color.txt").write_text("red\n", encoding="utf-8")
+            cache_key = wildcard_sources._scan_wildcard_sources((root,)).cache_key
+
+            with patch.object(
+                store._condition,
+                "wait",
+                side_effect=observed_wait,
+            ), ThreadPoolExecutor(max_workers=2) as executor:
+                first = executor.submit(
+                    store.snapshot_for_roots,
+                    (root,),
+                    scan_sources=wildcard_sources._scan_wildcard_sources,
+                    build_snapshot=blocked_build,
+                )
+                try:
+                    self.assertTrue(build_started.wait(5))
+                    with store._condition:
+                        self.assertIn(cache_key, store._building)
+                        self.assertNotIn(cache_key, store._cache)
+
+                    store.clear()
+
+                    with store._condition:
+                        self.assertIn(cache_key, store._building)
+                        self.assertNotIn(cache_key, store._cache)
+                    second = executor.submit(
+                        store.snapshot_for_roots,
+                        (root,),
+                        scan_sources=wildcard_sources._scan_wildcard_sources,
+                        build_snapshot=blocked_build,
+                    )
+                    self.assertTrue(waiter_entered.wait(5))
+                    self.assertFalse(first.done())
+                    self.assertFalse(second.done())
+                finally:
+                    release_build.set()
+                first_snapshot = first.result(timeout=5)
+                second_snapshot = second.result(timeout=5)
+
+            self.assertIs(first_snapshot, second_snapshot)
+            self.assertEqual(len(build_calls), 1)
+            with store._condition:
+                self.assertNotIn(cache_key, store._building)
+                self.assertIs(store._cache[cache_key], first_snapshot)
+
+            store.clear()
+            with store._condition:
+                self.assertEqual(store._cache, {})
+
+
+class WildcardServiceTests(unittest.TestCase):
+    def test_canonical_service_owns_snapshot_and_library_dependencies(self):
+        self.assertEqual(wildcard_service.__all__, ())
+        self.assertIs(
+            wildcard_service._DEFAULT_WILDCARD_SNAPSHOTS,
+            wildcard_snapshot._DEFAULT_WILDCARD_SNAPSHOTS,
+        )
         self.assertTrue(
             issubclass(
-                wildcard_engine._WildcardLibrary,
+                wildcard_service._WildcardLibrary,
                 wildcard_library._WildcardLibrary,
             )
         )
         self.assertIs(
-            wildcard_engine._WildcardLibrary.options_for,
+            wildcard_service._WildcardLibrary.options_for,
             wildcard_library._WildcardLibrary.options_for,
         )
+        self.assertEqual(
+            inspect.signature(wildcard_service.expand_wildcards),
+            inspect.signature(expand_wildcards),
+        )
 
-    def test_root_expansion_state_surface_has_canonical_identity(self):
+    def test_canonical_service_preserves_list_signature_library_and_expansion(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            (root / "colors.txt").write_text("red\nblue\n", encoding="utf-8")
+
+            self.assertEqual(wildcard_service.list_wildcards(roots=[root]), ["colors"])
+            signature = wildcard_service.wildcard_sources_signature(roots=[root])
+            snapshot = wildcard_service._wildcard_snapshot([root])
+            library = wildcard_service._WildcardLibrary(snapshot=snapshot)
+            mutable_map = wildcard_service._load_wildcard_map([root])
+            expansion = wildcard_service.expand_wildcards(
+                "__colors__",
+                seed=0,
+                roots=[root],
+            )
+
+        self.assertEqual(signature, snapshot.public_signature())
+        self.assertIs(library.mapping, snapshot.mapping)
+        self.assertEqual([option.text for option in library.options_for("colors")], ["red", "blue"])
+        self.assertIsNot(mutable_map["colors"], snapshot.mapping["colors"])
+        self.assertIn(expansion.text, {"red", "blue"})
+
+    def test_canonical_empty_batch_returns_before_snapshot_lifecycle(self):
+        with patch.object(
+            wildcard_service,
+            "_wildcard_snapshot",
+            side_effect=AssertionError("empty batch resolved a snapshot"),
+        ):
+            result = wildcard_service.expand_wildcard_texts([], seed=7)
+
+        self.assertEqual(result, ())
+
+    def test_internal_consumers_use_canonical_wildcard_owners(self):
+        expected_identities = (
+            (wildcard_nodes.expand_wildcards, wildcard_service.expand_wildcards),
+            (
+                wildcard_nodes.wildcard_sources_signature,
+                wildcard_service.wildcard_sources_signature,
+            ),
+            (prompt_advanced.expand_wildcard_texts, wildcard_service.expand_wildcard_texts),
+            (
+                prompt_advanced.normalize_prompt_studio_wildcard_mode,
+                wildcard_mode.normalize_prompt_studio_wildcard_mode,
+            ),
+            (prompt_advanced.normalize_seed, wildcard_seed.normalize_seed),
+            (prompt_advanced.has_wildcard_syntax, wildcard_expansion.has_wildcard_syntax),
+            (prompt_advanced_nodes.next_seed, wildcard_seed.next_seed),
+            (
+                prompt_advanced_nodes.wildcard_sources_signature,
+                wildcard_service.wildcard_sources_signature,
+            ),
+            (regional_nodes.next_seed, wildcard_seed.next_seed),
+            (
+                regional_nodes.wildcard_sources_signature,
+                wildcard_service.wildcard_sources_signature,
+            ),
+            (seed_compatibility.normalize_seed, wildcard_seed.normalize_seed),
+            (
+                seed_compatibility.normalize_wildcard_mode,
+                wildcard_mode.normalize_wildcard_mode,
+            ),
+        )
+        for actual, expected in expected_identities:
+            with self.subTest(actual=actual.__module__, name=actual.__name__):
+                self.assertIs(actual, expected)
+
+        for module in (
+            wildcard_nodes,
+            prompt_advanced,
+            prompt_advanced_nodes,
+            regional_nodes,
+            seed_compatibility,
+        ):
+            with self.subTest(module=module.__name__):
+                self.assertFalse(hasattr(module, "_wildcard_engine_module"))
+
+
+class WildcardCanonicalContractTests(unittest.TestCase):
+    def test_expansion_state_surface_is_owned_by_canonical_module(self):
         public_names = (
             "COMMENT_RE",
             "DYNAMIC_RE",
@@ -85,16 +263,12 @@ class WildcardEngineTests(unittest.TestCase):
         )
         for name in (*public_names, *state_names):
             with self.subTest(name=name):
-                self.assertIs(
-                    getattr(wildcard_engine, name),
-                    getattr(wildcard_expansion, name),
-                )
+                self.assertTrue(hasattr(wildcard_expansion, name))
 
-    def test_root_selector_has_canonical_identity(self):
+    def test_selector_private_surface_is_explicit(self):
         self.assertEqual(wildcard_selector.__all__, ())
-        self.assertIs(wildcard_engine._Selector, wildcard_selector._Selector)
 
-    def test_root_mode_surface_has_canonical_identity(self):
+    def test_mode_surface_is_canonical(self):
         expected = (
             "WILDCARD_MODE_POPULATE",
             "WILDCARD_MODE_FIXED",
@@ -108,23 +282,17 @@ class WildcardEngineTests(unittest.TestCase):
             "normalize_prompt_studio_wildcard_mode",
         )
         self.assertEqual(wildcard_mode.__all__, expected)
-        for name in expected:
-            with self.subTest(name=name):
-                self.assertIs(
-                    getattr(wildcard_engine, name),
-                    getattr(wildcard_mode, name),
-                )
 
         with patch.dict(
             wildcard_mode.WILDCARD_MODE_ALIASES,
             {"legacy-test": wildcard_mode.WILDCARD_MODE_FIXED},
         ):
             self.assertEqual(
-                wildcard_engine.normalize_wildcard_mode("legacy-test"),
+                wildcard_mode.normalize_wildcard_mode("legacy-test"),
                 wildcard_mode.WILDCARD_MODE_FIXED,
             )
 
-    def test_root_seed_surface_has_canonical_identity(self):
+    def test_seed_surface_is_canonical(self):
         expected = (
             "SEED_CONTROL_FIXED",
             "SEED_CONTROL_RANDOMIZE",
@@ -137,25 +305,11 @@ class WildcardEngineTests(unittest.TestCase):
             "next_seed",
         )
         self.assertEqual(wildcard_seed.__all__, expected)
-        for name in expected:
-            with self.subTest(name=name):
-                self.assertIs(
-                    getattr(wildcard_engine, name),
-                    getattr(wildcard_seed, name),
-                )
 
-    def test_root_snapshot_surface_has_canonical_identity(self):
+    def test_snapshot_private_surface_is_explicit(self):
         self.assertEqual(wildcard_snapshot.__all__, ())
-        self.assertIs(
-            wildcard_engine._WildcardSnapshot,
-            wildcard_snapshot._WildcardSnapshot,
-        )
-        self.assertIs(
-            wildcard_engine._build_wildcard_snapshot,
-            wildcard_snapshot._build_wildcard_snapshot,
-        )
 
-    def test_root_source_surface_has_canonical_identity(self):
+    def test_source_surface_is_canonical(self):
         expected = (
             "WILDCARD_DIR_NAME",
             "DEFAULT_TEST_WILDCARD_FILE",
@@ -167,14 +321,8 @@ class WildcardEngineTests(unittest.TestCase):
             "resolve_wildcard_roots",
         )
         self.assertEqual(wildcard_sources.__all__, expected)
-        for name in expected:
-            with self.subTest(name=name):
-                self.assertIs(
-                    getattr(wildcard_engine, name),
-                    getattr(wildcard_sources, name),
-                )
 
-    def test_root_model_surface_has_canonical_identity(self):
+    def test_model_surface_is_canonical(self):
         expected = (
             "MAX_EXPANSION_DEPTH",
             "REPLACE_DEPTH",
@@ -190,34 +338,14 @@ class WildcardEngineTests(unittest.TestCase):
             "WildcardExpansionResult",
         )
         self.assertEqual(wildcard_models.__all__, expected)
-        for name in expected:
-            with self.subTest(name=name):
-                self.assertIs(
-                    getattr(wildcard_engine, name),
-                    getattr(wildcard_models, name),
-                )
-
-    def test_reserved_seed_consumer_root_symbols_are_direct_aliases(self):
-        self.assertIs(
-            nodes_module._consume_reserved_wildcard_next_seed,
-            seed_compatibility._consume_reserved_wildcard_next_seed,
-        )
-        self.assertEqual(
-            nodes_module.WILDCARD_RESERVED_NEXT_SEED_INPUT,
-            seed_compatibility.WILDCARD_RESERVED_NEXT_SEED_INPUT,
-        )
-        self.assertEqual(
-            nodes_module.WILDCARD_QUEUE_MAX_SAFE_SEED,
-            seed_compatibility.WILDCARD_QUEUE_MAX_SAFE_SEED,
-        )
 
     def test_standalone_modes_remain_distinct_from_prompt_studio_modes(self):
         self.assertEqual(
-            wildcard_engine.WILDCARD_MODES,
+            wildcard_mode.WILDCARD_MODES,
             ("populate", "fixed", "sequential", "reproduce"),
         )
         self.assertEqual(
-            wildcard_engine.WILDCARD_MODE_LABELS,
+            wildcard_mode.WILDCARD_MODE_LABELS,
             ("일반", "고정", "순차", "재현"),
         )
         for value, expected in (
@@ -232,7 +360,7 @@ class WildcardEngineTests(unittest.TestCase):
         ):
             with self.subTest(value=value):
                 self.assertEqual(
-                    wildcard_engine.normalize_wildcard_mode(value),
+                    wildcard_mode.normalize_wildcard_mode(value),
                     expected,
                 )
         for value, expected in (
@@ -243,7 +371,7 @@ class WildcardEngineTests(unittest.TestCase):
         ):
             with self.subTest(surface="prompt-studio", value=value):
                 self.assertEqual(
-                    wildcard_engine.normalize_prompt_studio_wildcard_mode(value),
+                    wildcard_mode.normalize_prompt_studio_wildcard_mode(value),
                     expected,
                 )
 
@@ -258,7 +386,7 @@ class WildcardEngineTests(unittest.TestCase):
 
     def test_empty_text_batch_returns_before_snapshot_lifecycle(self):
         with patch.object(
-            wildcard_engine,
+            wildcard_service,
             "_wildcard_snapshot",
             side_effect=AssertionError("empty batch resolved a snapshot"),
         ):
@@ -268,7 +396,7 @@ class WildcardEngineTests(unittest.TestCase):
 
     def test_extra_paths_are_parsed_one_path_per_line(self):
         self.assertEqual(
-            wildcard_engine.parse_wildcard_extra_paths('D:/wildcards;E:/ignored\n"custom/wildcards"'),
+            wildcard_sources.parse_wildcard_extra_paths('D:/wildcards;E:/ignored\n"custom/wildcards"'),
             ["D:/wildcards;E:/ignored", "custom/wildcards"],
         )
 
@@ -294,7 +422,7 @@ class WildcardEngineTests(unittest.TestCase):
         self.assertEqual(result.used_keys, ("style",))
 
     def test_sequential_mode_uses_seed_modulo_option_count(self):
-        self.assertIsNone(wildcard_engine._Selector(4, sequential=True).rng)
+        self.assertIsNone(wildcard_selector._Selector(4, sequential=True).rng)
 
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
@@ -504,12 +632,12 @@ class WildcardEngineTests(unittest.TestCase):
             max_growth_per_pass=10**9,
         )
 
-        self.assertEqual(budget.max_depth, wildcard_engine.MAX_EXPANSION_DEPTH)
-        self.assertEqual(budget.max_replacements, wildcard_engine.MAX_EXPANSION_REPLACEMENTS)
-        self.assertEqual(budget.max_output_chars, wildcard_engine.MAX_EXPANSION_OUTPUT_CHARS)
+        self.assertEqual(budget.max_depth, wildcard_models.MAX_EXPANSION_DEPTH)
+        self.assertEqual(budget.max_replacements, wildcard_models.MAX_EXPANSION_REPLACEMENTS)
+        self.assertEqual(budget.max_output_chars, wildcard_models.MAX_EXPANSION_OUTPUT_CHARS)
         self.assertEqual(
             budget.max_growth_per_pass,
-            wildcard_engine.MAX_EXPANSION_GROWTH_PER_PASS,
+            wildcard_models.MAX_EXPANSION_GROWTH_PER_PASS,
         )
 
     def test_output_and_growth_limits_check_candidates_before_append(self):
@@ -544,8 +672,8 @@ class WildcardEngineTests(unittest.TestCase):
         self.assertEqual(growth_limited.replacement_count, 0)
 
     def test_random_mode_uses_numpy_pcg64_golden_outputs(self):
-        selector = wildcard_engine._Selector(7, sequential=False)
-        self.assertIsInstance(selector.rng.bit_generator, wildcard_engine.np.random.PCG64)
+        selector = wildcard_selector._Selector(7, sequential=False)
+        self.assertIsInstance(selector.rng.bit_generator, np.random.PCG64)
 
         cases = (
             ("option_count_one", "{only}", "only"),
@@ -698,7 +826,7 @@ class WildcardEngineTests(unittest.TestCase):
             lines.append(f"{'  ' * 10}- only-leaf")
             (root / "deep.yaml").write_text("\n".join(lines), encoding="utf-8")
 
-            mapping = wildcard_engine._load_wildcard_map([root])
+            mapping = wildcard_service._load_wildcard_map([root])
 
         for depth in range(10):
             alias = "/".join(f"level-{index}" for index in range(depth + 1))
@@ -717,7 +845,7 @@ class WildcardEngineTests(unittest.TestCase):
                 encoding="utf-8",
             )
 
-            mapping = wildcard_engine._load_wildcard_map([root])
+            mapping = wildcard_service._load_wildcard_map([root])
 
         self.assertEqual(
             [option.text for option in mapping["root/branch-a/leaf"]],
@@ -744,10 +872,10 @@ class WildcardEngineTests(unittest.TestCase):
                 wraps=wildcard_sources.yaml.safe_load,
             ) as safe_load:
                 first_list = list_wildcards(roots=[root])
-                first_signature = wildcard_engine.wildcard_sources_signature(roots=[root])
+                first_signature = wildcard_service.wildcard_sources_signature(roots=[root])
                 first_expansion = expand_wildcards("__colors__", seed=0, roots=[root])
                 second_list = list_wildcards(roots=[root])
-                second_signature = wildcard_engine.wildcard_sources_signature(roots=[root])
+                second_signature = wildcard_service.wildcard_sources_signature(roots=[root])
                 second_expansion = expand_wildcards("__colors__", seed=0, roots=[root])
 
         self.assertEqual(safe_load.call_count, 1)
@@ -767,8 +895,8 @@ class WildcardEngineTests(unittest.TestCase):
 
             left_first = expand_wildcards("__style__", seed=0, roots=[left, right])
             right_first = expand_wildcards("__style__", seed=0, roots=[right, left])
-            left_signature = wildcard_engine.wildcard_sources_signature(roots=[left, right])
-            right_signature = wildcard_engine.wildcard_sources_signature(roots=[right, left])
+            left_signature = wildcard_service.wildcard_sources_signature(roots=[left, right])
+            right_signature = wildcard_service.wildcard_sources_signature(roots=[right, left])
 
         self.assertEqual(left_first.text, "left")
         self.assertEqual(right_first.text, "right")
@@ -779,18 +907,18 @@ class WildcardEngineTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
             (root / "color.txt").write_text("red\nblue\ngreen\n", encoding="utf-8")
-            snapshot = wildcard_engine._wildcard_snapshot([root])
+            snapshot = wildcard_service._wildcard_snapshot([root])
 
             with patch.object(
-                wildcard_engine,
+                wildcard_service,
                 "_load_wildcard_map",
                 side_effect=AssertionError("runtime library copied the snapshot mapping"),
             ):
-                library = wildcard_engine._WildcardLibrary([root])
+                library = wildcard_service._WildcardLibrary([root])
 
             exact_options = library.options_for("color")
-            mutable_copy = wildcard_engine._load_wildcard_map([root])
-            mutable_copy["color"].append(wildcard_engine.WildcardOption("mutated"))
+            mutable_copy = wildcard_service._load_wildcard_map([root])
+            mutable_copy["color"].append(wildcard_models.WildcardOption("mutated"))
             first = expand_wildcards("{2$$__color__}", seed=7, roots=[root])
             second = expand_wildcards("{2$$__color__}", seed=7, roots=[root])
 
@@ -811,11 +939,11 @@ class WildcardEngineTests(unittest.TestCase):
             shapes = root / "shapes.yaml"
             colors.write_text("colors: [red]\n", encoding="utf-8")
 
-            initial_signature = wildcard_engine.wildcard_sources_signature(roots=[root])
+            initial_signature = wildcard_service.wildcard_sources_signature(roots=[root])
             initial = expand_wildcards("__colors__", seed=0, roots=[root])
 
             colors.write_text("colors: [blue, green]\n", encoding="utf-8")
-            modified_signature = wildcard_engine.wildcard_sources_signature(roots=[root])
+            modified_signature = wildcard_service.wildcard_sources_signature(roots=[root])
             modified = expand_wildcards(
                 "__colors__",
                 seed=0,
@@ -859,9 +987,15 @@ class WildcardEngineTests(unittest.TestCase):
                 side_effect=flaky_loader,
             ) as loader:
                 first = expand_wildcards("__color__", seed=0, roots=[root])
-                with wildcard_engine._SNAPSHOT_CONDITION:
-                    self.assertNotIn(cache_key, wildcard_engine._SNAPSHOT_CACHE)
-                    self.assertNotIn(cache_key, wildcard_engine._SNAPSHOT_BUILDING)
+                with wildcard_snapshot._DEFAULT_WILDCARD_SNAPSHOTS._condition:
+                    self.assertNotIn(
+                        cache_key,
+                        wildcard_snapshot._DEFAULT_WILDCARD_SNAPSHOTS._cache,
+                    )
+                    self.assertNotIn(
+                        cache_key,
+                        wildcard_snapshot._DEFAULT_WILDCARD_SNAPSHOTS._building,
+                    )
                 second = expand_wildcards("__color__", seed=0, roots=[root])
 
         self.assertEqual(first.text, "__color__")
@@ -883,8 +1017,11 @@ class WildcardEngineTests(unittest.TestCase):
                 first = expand_wildcards("__color__", seed=0, roots=[root])
                 second = expand_wildcards("__color__", seed=0, roots=[root])
 
-            with wildcard_engine._SNAPSHOT_CONDITION:
-                self.assertIn(cache_key, wildcard_engine._SNAPSHOT_CACHE)
+            with wildcard_snapshot._DEFAULT_WILDCARD_SNAPSHOTS._condition:
+                self.assertIn(
+                    cache_key,
+                    wildcard_snapshot._DEFAULT_WILDCARD_SNAPSHOTS._cache,
+                )
 
         self.assertEqual(first.text, "__color__")
         self.assertEqual(second.text, "__color__")
@@ -895,7 +1032,9 @@ class WildcardEngineTests(unittest.TestCase):
         release_read = threading.Event()
         waiter_entered = threading.Event()
         read_calls = []
-        original_wait = wildcard_engine._SNAPSHOT_CONDITION.wait
+        original_wait = (
+            wildcard_snapshot._DEFAULT_WILDCARD_SNAPSHOTS._condition.wait
+        )
 
         def unreadable_yaml(path):
             read_calls.append(path)
@@ -919,7 +1058,7 @@ class WildcardEngineTests(unittest.TestCase):
                 "_read_text_file",
                 side_effect=unreadable_yaml,
             ), patch.object(
-                wildcard_engine._SNAPSHOT_CONDITION,
+                wildcard_snapshot._DEFAULT_WILDCARD_SNAPSHOTS._condition,
                 "wait",
                 side_effect=observed_wait,
             ), ThreadPoolExecutor(max_workers=2) as executor:
@@ -943,9 +1082,15 @@ class WildcardEngineTests(unittest.TestCase):
                 first_result = first.result(timeout=5)
                 second_result = second.result(timeout=5)
 
-            with wildcard_engine._SNAPSHOT_CONDITION:
-                self.assertNotIn(cache_key, wildcard_engine._SNAPSHOT_CACHE)
-                self.assertNotIn(cache_key, wildcard_engine._SNAPSHOT_BUILDING)
+            with wildcard_snapshot._DEFAULT_WILDCARD_SNAPSHOTS._condition:
+                self.assertNotIn(
+                    cache_key,
+                    wildcard_snapshot._DEFAULT_WILDCARD_SNAPSHOTS._cache,
+                )
+                self.assertNotIn(
+                    cache_key,
+                    wildcard_snapshot._DEFAULT_WILDCARD_SNAPSHOTS._building,
+                )
 
         self.assertEqual(first_result.text, "__color__")
         self.assertEqual(second_result.text, "__color__")
@@ -955,7 +1100,7 @@ class WildcardEngineTests(unittest.TestCase):
         build_started = threading.Event()
         release_build = threading.Event()
         build_calls = []
-        original_build = wildcard_engine._build_wildcard_snapshot
+        original_build = wildcard_service._build_wildcard_snapshot
 
         def blocked_first_build(source_state):
             snapshot = original_build(source_state)
@@ -972,7 +1117,7 @@ class WildcardEngineTests(unittest.TestCase):
             colors.write_text("colors: [red]\n", encoding="utf-8")
 
             with patch.object(
-                wildcard_engine,
+                wildcard_service,
                 "_build_wildcard_snapshot",
                 side_effect=blocked_first_build,
             ), ThreadPoolExecutor(max_workers=1) as executor:
@@ -997,8 +1142,10 @@ class WildcardEngineTests(unittest.TestCase):
         release_build = threading.Event()
         waiter_entered = threading.Event()
         build_calls = []
-        original_build = wildcard_engine._build_wildcard_snapshot
-        original_wait = wildcard_engine._SNAPSHOT_CONDITION.wait
+        original_build = wildcard_service._build_wildcard_snapshot
+        original_wait = (
+            wildcard_snapshot._DEFAULT_WILDCARD_SNAPSHOTS._condition.wait
+        )
 
         def blocked_build(source_state):
             snapshot = original_build(source_state)
@@ -1020,22 +1167,26 @@ class WildcardEngineTests(unittest.TestCase):
             )
 
             with patch.object(
-                wildcard_engine,
+                wildcard_service,
                 "_build_wildcard_snapshot",
                 side_effect=blocked_build,
             ), patch.object(
-                wildcard_engine._SNAPSHOT_CONDITION,
+                wildcard_snapshot._DEFAULT_WILDCARD_SNAPSHOTS._condition,
                 "wait",
                 side_effect=observed_wait,
             ), ThreadPoolExecutor(max_workers=2) as executor:
                 first = executor.submit(list_wildcards, roots=[root])
                 try:
                     self.assertTrue(build_ready.wait(5))
-                    with wildcard_engine._SNAPSHOT_CONDITION:
+                    with (
+                        wildcard_snapshot._DEFAULT_WILDCARD_SNAPSHOTS._condition
+                    ):
                         self.assertFalse(
                             any(
                                 snapshot.roots == (str(root),)
-                                for snapshot in wildcard_engine._SNAPSHOT_CACHE.values()
+                                for snapshot in (
+                                    wildcard_snapshot._DEFAULT_WILDCARD_SNAPSHOTS._cache.values()
+                                )
                             )
                         )
                     second = executor.submit(list_wildcards, roots=[root])
@@ -1074,22 +1225,22 @@ class WildcardEngineTests(unittest.TestCase):
 
 class WildcardSeedContractTests(unittest.TestCase):
     def test_public_seed_controls_share_the_javascript_safe_range(self):
-        public_max = wildcard_engine.PUBLIC_MAX_SEED
+        public_max = wildcard_seed.PUBLIC_MAX_SEED
 
         self.assertEqual(public_max, (1 << 53) - 1)
-        self.assertEqual(wildcard_engine.next_seed(0, "fixed"), 0)
-        self.assertEqual(wildcard_engine.next_seed(public_max, "fixed"), public_max)
-        self.assertEqual(wildcard_engine.next_seed(public_max, "increment"), 0)
-        self.assertEqual(wildcard_engine.next_seed(0, "decrement"), public_max)
+        self.assertEqual(wildcard_seed.next_seed(0, "fixed"), 0)
+        self.assertEqual(wildcard_seed.next_seed(public_max, "fixed"), public_max)
+        self.assertEqual(wildcard_seed.next_seed(public_max, "increment"), 0)
+        self.assertEqual(wildcard_seed.next_seed(0, "decrement"), public_max)
         self.assertEqual(
-            wildcard_engine.next_seed(public_max, "decrement"),
+            wildcard_seed.next_seed(public_max, "decrement"),
             public_max - 1,
         )
         with patch.object(wildcard_seed.random, "SystemRandom") as system_random:
             system_random.return_value.randrange.return_value = public_max
 
             self.assertEqual(
-                wildcard_engine.next_seed(123, "randomize"),
+                wildcard_seed.next_seed(123, "randomize"),
                 public_max,
             )
 
@@ -1099,16 +1250,16 @@ class WildcardSeedContractTests(unittest.TestCase):
             )
 
     def test_legacy_uint64_seed_is_preserved_until_a_control_advances_it(self):
-        public_max = wildcard_engine.PUBLIC_MAX_SEED
-        legacy_max = wildcard_engine.MAX_SEED
+        public_max = wildcard_seed.PUBLIC_MAX_SEED
+        legacy_max = wildcard_seed.MAX_SEED
 
-        self.assertEqual(wildcard_engine.normalize_seed(legacy_max), legacy_max)
-        self.assertEqual(wildcard_engine.normalize_seed(legacy_max + 1), legacy_max)
-        self.assertEqual(wildcard_engine.next_seed(legacy_max, "fixed"), legacy_max)
-        self.assertEqual(wildcard_engine.next_seed(legacy_max + 1, "fixed"), legacy_max)
-        self.assertEqual(wildcard_engine.next_seed(legacy_max, "increment"), 0)
+        self.assertEqual(wildcard_seed.normalize_seed(legacy_max), legacy_max)
+        self.assertEqual(wildcard_seed.normalize_seed(legacy_max + 1), legacy_max)
+        self.assertEqual(wildcard_seed.next_seed(legacy_max, "fixed"), legacy_max)
+        self.assertEqual(wildcard_seed.next_seed(legacy_max + 1, "fixed"), legacy_max)
+        self.assertEqual(wildcard_seed.next_seed(legacy_max, "increment"), 0)
         self.assertEqual(
-            wildcard_engine.next_seed(legacy_max, "decrement"),
+            wildcard_seed.next_seed(legacy_max, "decrement"),
             public_max - 1,
         )
 
@@ -1122,8 +1273,8 @@ class WildcardSeedContractTests(unittest.TestCase):
         for node_class, input_name in node_inputs:
             with self.subTest(node=node_class.__name__):
                 _input_type, config = node_class.INPUT_TYPES()["required"][input_name]
-                self.assertEqual(config["max"], wildcard_engine.MAX_SEED)
-                self.assertIn(str(wildcard_engine.PUBLIC_MAX_SEED), config["tooltip"])
+                self.assertEqual(config["max"], wildcard_seed.MAX_SEED)
+                self.assertIn(str(wildcard_seed.PUBLIC_MAX_SEED), config["tooltip"])
                 self.assertIn("legacy", config["tooltip"].lower())
 
     def test_prompt_studio_seed_control_is_independent_from_mode(self):
@@ -1177,11 +1328,11 @@ class WildcardSeedContractTests(unittest.TestCase):
             with self.subTest(node=node_class.__name__):
                 self.assertEqual(
                     node_class.INPUT_TYPES()["required"]["wildcard_seed_after_generate"][0],
-                    wildcard_engine.SEED_CONTROL_MODES,
+                    wildcard_seed.SEED_CONTROL_MODES,
                 )
 
     def test_legacy_current_seed_is_used_before_next_seed_reenters_public_range(self):
-        legacy_max = wildcard_engine.MAX_SEED
+        legacy_max = wildcard_seed.MAX_SEED
         expansion = WildcardExpansionResult(
             text="expanded style",
             changed=True,
@@ -1224,7 +1375,7 @@ class WildcardNodeTests(unittest.TestCase):
             },
         ]
 
-        expanded, metadata = nodes_module._expand_advanced_wildcard_fields(
+        expanded, metadata = prompt_advanced._expand_advanced_wildcard_fields(
             fields,
             7,
             "일반",
@@ -1261,12 +1412,12 @@ class WildcardNodeTests(unittest.TestCase):
                 "expand_wildcard_texts",
                 side_effect=expand_from_test_root,
             ):
-                first, _ = nodes_module._expand_advanced_wildcard_fields(
+                first, _ = prompt_advanced._expand_advanced_wildcard_fields(
                     source_fields,
                     5,
                     "일반",
                 )
-                second, _ = nodes_module._expand_advanced_wildcard_fields(
+                second, _ = prompt_advanced._expand_advanced_wildcard_fields(
                     source_fields,
                     5,
                     "일반",
@@ -1287,7 +1438,7 @@ class WildcardNodeTests(unittest.TestCase):
         }]
 
         outputs = [
-            nodes_module._expand_advanced_wildcard_fields(fields, seed, "순차")[0][0]["text"]
+            prompt_advanced._expand_advanced_wildcard_fields(fields, seed, "순차")[0][0]["text"]
             for seed in (0, 1, 2, 3, 1)
         ]
 
@@ -1499,11 +1650,11 @@ class WildcardNodeTests(unittest.TestCase):
         field_inputs = {
             "field_positive_connected": "{cat|dog|fox}",
         }
-        effective_source = nodes_module._apply_advanced_field_inputs(
+        effective_source = prompt_advanced._apply_advanced_field_inputs(
             saved_source,
             field_inputs,
         )
-        effective_fields, _effective_metadata = nodes_module._expand_advanced_wildcard_fields(
+        effective_fields, _effective_metadata = prompt_advanced._expand_advanced_wildcard_fields(
             effective_source,
             17,
             "일반",

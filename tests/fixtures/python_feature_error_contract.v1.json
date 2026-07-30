@@ -1,0 +1,796 @@
+{
+  "base_sha": "878a86f739a37a000a56b9e76ee2179aa86271f1",
+  "canonical_taxonomy": {
+    "categories": [
+      {
+        "name": "EasyUseAnimaError",
+        "parent": "Exception"
+      },
+      {
+        "name": "ValidationError",
+        "parent": "EasyUseAnimaError"
+      },
+      {
+        "name": "ConflictError",
+        "parent": "EasyUseAnimaError"
+      },
+      {
+        "name": "NotFoundError",
+        "parent": "EasyUseAnimaError"
+      },
+      {
+        "name": "CapabilityUnavailableError",
+        "parent": "EasyUseAnimaError"
+      },
+      {
+        "name": "UpstreamTimeoutError",
+        "parent": "EasyUseAnimaError"
+      },
+      {
+        "name": "StorageError",
+        "parent": "EasyUseAnimaError"
+      }
+    ],
+    "module": "easyuse_anima/errors.py",
+    "module_exports": [
+      "EasyUseAnimaError",
+      "ValidationError",
+      "ConflictError",
+      "NotFoundError",
+      "CapabilityUnavailableError",
+      "UpstreamTimeoutError",
+      "StorageError"
+    ],
+    "root_exports": []
+  },
+  "classification": "Contract",
+  "completion_audit": {
+    "audited_base_sha": "d618bb705f9ec28f89fdbce8ba80a94847932c92",
+    "canonical_category_count": 7,
+    "excluded_adapter_or_private_error_count": 2,
+    "feature_error_count": 24,
+    "http_mapping_count": 15,
+    "inventory_module_count": 11,
+    "next_task": "G-04A",
+    "phase_f_status": "complete",
+    "unmapped_feature_errors": []
+  },
+  "current_authority": {
+    "canonical_module_exists": true,
+    "policy_fields": [
+      "status",
+      "code",
+      "default_message"
+    ],
+    "profile_dynamic_compatibility": {
+      "adapter_inputs": [
+        "status",
+        "code",
+        "message",
+        "details"
+      ],
+      "scope": "generic-or-injected-ProfileMutationError"
+    },
+    "profile_mapper_forbidden_reads": [
+      "mapped_error.status",
+      "mapped_error.code",
+      "mapped_error.message"
+    ],
+    "profile_mapper_required_reads": [
+      "_PROFILE_MUTATION_HTTP_MAPPINGS",
+      "mapped_error.details",
+      "compatibility_error.status",
+      "compatibility_error.code",
+      "compatibility_error.message",
+      "compatibility_error.details"
+    ],
+    "profile_mapper_source": "easyuse_anima/api/responses.py",
+    "static_resolution": "ordered-specific-isinstance-exact-base-then-dynamic-derived-base",
+    "translation_dynamic_compatibility": {
+      "adapter_inputs": [
+        "status",
+        "code",
+        "message"
+      ],
+      "scope": "unregistered-or-root-derived-PromptTranslationError"
+    },
+    "translation_mapper_forbidden_reads": [
+      "mapped_error.status",
+      "mapped_error.code",
+      "mapped_error.message"
+    ],
+    "translation_mapper_required_reads": [
+      "_TRANSLATION_HTTP_MAPPINGS",
+      "str(mapped_error)",
+      "compatibility_error.status",
+      "compatibility_error.code",
+      "compatibility_error.message"
+    ],
+    "translation_mapper_source": "easyuse_anima/api/routes/translation.py"
+  },
+  "direct_test_owners": [
+    "tests.test_api_contract.ApiProfileErrorResponseTests",
+    "tests.test_api_contract.ApiRequestCorrelationTests",
+    "tests.test_prompt_translation_api.PromptTranslationApiTests",
+    "tests.test_autocomplete_service.AutocompleteServiceTests",
+    "tests.test_prompt_corrector.AutocompleteDatasetTests",
+    "tests.test_aio_generation_migrations.AIOGenerationMigrationTests",
+    "tests.test_seed_reservation_contract.SeedReservationContractTests",
+    "tests.test_seed_reservation_service.SeedReservationServiceTests",
+    "tests.test_seed_execution_identity.SeedExecutionIdentityTests",
+    "tests.test_profile_contract.ProfileContractTests"
+  ],
+  "evidence": [
+    "docs/architecture/python-backend.md",
+    "docs/architecture/python-feature-error-taxonomy-contract.md",
+    "docs/architecture/python-typed-boundary-f01-audit.md",
+    "easyuse_anima/errors.py",
+    "easyuse_anima/api/errors.py",
+    "easyuse_anima/api/responses.py",
+    "easyuse_anima/api/routes/translation.py",
+    "easyuse_anima/profiles/contract.py",
+    "easyuse_anima/profiles/repository.py",
+    "easyuse_anima/profiles/mutation.py",
+    "easyuse_anima/autocomplete/index.py",
+    "easyuse_anima/prompt/anima/knowledge.py",
+    "easyuse_anima/aio/generation_migrations.py",
+    "easyuse_anima/translation/contracts.py",
+    "easyuse_anima/seed/reservation.py",
+    "easyuse_anima/seed/execution_identity.py",
+    "easyuse_anima/seed/service.py"
+  ],
+  "excluded_errors": [
+    {
+      "name": "ApiContractError",
+      "reason": "API request-adapter error; HTTP metadata remains adapter-owned.",
+      "source": "easyuse_anima/api/errors.py"
+    },
+    {
+      "name": "_InvalidAutocompleteIndex",
+      "reason": "Private index repair control flow; never crosses the feature boundary.",
+      "source": "easyuse_anima/autocomplete/index.py"
+    }
+  ],
+  "feature_errors": [
+    {
+      "adapter": "converted-before-adapter",
+      "builtin_compatibility": [
+        "ValueError"
+      ],
+      "current_direct_bases": [
+        "ValidationError",
+        "ValueError"
+      ],
+      "module": "easyuse_anima.profiles.contract",
+      "name": "ProfileContractError",
+      "source": "easyuse_anima/profiles/contract.py",
+      "target_category": "ValidationError"
+    },
+    {
+      "adapter": "http",
+      "builtin_compatibility": [
+        "ValueError"
+      ],
+      "current_direct_bases": [
+        "ValidationError",
+        "ValueError"
+      ],
+      "module": "easyuse_anima.profiles.repository",
+      "name": "InvalidProfileDataError",
+      "source": "easyuse_anima/profiles/repository.py",
+      "target_category": "ValidationError"
+    },
+    {
+      "adapter": "http",
+      "builtin_compatibility": [
+        "ValueError"
+      ],
+      "current_direct_bases": [
+        "ConflictError",
+        "ValueError"
+      ],
+      "module": "easyuse_anima.profiles.mutation",
+      "name": "ProfileMutationError",
+      "source": "easyuse_anima/profiles/mutation.py",
+      "target_category": "ConflictError"
+    },
+    {
+      "adapter": "http",
+      "builtin_compatibility": [
+        "ValueError"
+      ],
+      "current_direct_bases": [
+        "ProfileMutationError",
+        "ValidationError"
+      ],
+      "module": "easyuse_anima.profiles.mutation",
+      "name": "ProfilePreconditionRequiredError",
+      "source": "easyuse_anima/profiles/mutation.py",
+      "target_category": "ValidationError"
+    },
+    {
+      "adapter": "http",
+      "builtin_compatibility": [
+        "ValueError"
+      ],
+      "current_direct_bases": [
+        "ProfileMutationError"
+      ],
+      "module": "easyuse_anima.profiles.mutation",
+      "name": "ProfileIdentityMismatchError",
+      "source": "easyuse_anima/profiles/mutation.py",
+      "target_category": "ConflictError"
+    },
+    {
+      "adapter": "http",
+      "builtin_compatibility": [
+        "ValueError"
+      ],
+      "current_direct_bases": [
+        "ProfileMutationError"
+      ],
+      "module": "easyuse_anima.profiles.mutation",
+      "name": "ProfileRevisionConflictError",
+      "source": "easyuse_anima/profiles/mutation.py",
+      "target_category": "ConflictError"
+    },
+    {
+      "adapter": "fallback-diagnostics",
+      "builtin_compatibility": [
+        "RuntimeError"
+      ],
+      "current_direct_bases": [
+        "CapabilityUnavailableError",
+        "RuntimeError"
+      ],
+      "module": "easyuse_anima.autocomplete.index",
+      "name": "AutocompleteIndexUnavailable",
+      "source": "easyuse_anima/autocomplete/index.py",
+      "target_category": "CapabilityUnavailableError"
+    },
+    {
+      "adapter": "compatibility-only",
+      "builtin_compatibility": [
+        "FileNotFoundError"
+      ],
+      "current_direct_bases": [
+        "NotFoundError",
+        "FileNotFoundError"
+      ],
+      "module": "easyuse_anima.prompt.anima.knowledge",
+      "name": "KnowledgeBaseNotFound",
+      "source": "easyuse_anima/prompt/anima/knowledge.py",
+      "target_category": "NotFoundError"
+    },
+    {
+      "adapter": "propagate",
+      "builtin_compatibility": [
+        "ValueError"
+      ],
+      "current_direct_bases": [
+        "ValidationError",
+        "ValueError"
+      ],
+      "module": "easyuse_anima.aio.generation_migrations",
+      "name": "AIOGenerationMigrationError",
+      "source": "easyuse_anima/aio/generation_migrations.py",
+      "target_category": "ValidationError"
+    },
+    {
+      "adapter": "propagate",
+      "builtin_compatibility": [
+        "RuntimeError"
+      ],
+      "current_direct_bases": [
+        "EasyUseAnimaError",
+        "RuntimeError"
+      ],
+      "module": "easyuse_anima.seed.service",
+      "name": "SeedReservationServiceError",
+      "source": "easyuse_anima/seed/service.py",
+      "target_category": "EasyUseAnimaError"
+    },
+    {
+      "adapter": "propagate",
+      "builtin_compatibility": [
+        "RuntimeError"
+      ],
+      "current_direct_bases": [
+        "SeedReservationServiceError",
+        "ConflictError"
+      ],
+      "module": "easyuse_anima.seed.service",
+      "name": "SeedReservationConflictError",
+      "source": "easyuse_anima/seed/service.py",
+      "target_category": "ConflictError"
+    },
+    {
+      "adapter": "propagate",
+      "builtin_compatibility": [
+        "RuntimeError"
+      ],
+      "current_direct_bases": [
+        "SeedReservationServiceError",
+        "CapabilityUnavailableError"
+      ],
+      "module": "easyuse_anima.seed.service",
+      "name": "SeedReservationCapacityError",
+      "source": "easyuse_anima/seed/service.py",
+      "target_category": "CapabilityUnavailableError"
+    },
+    {
+      "adapter": "propagate",
+      "builtin_compatibility": [
+        "ValueError"
+      ],
+      "current_direct_bases": [
+        "ValidationError",
+        "ValueError"
+      ],
+      "module": "easyuse_anima.seed.execution_identity",
+      "name": "SeedExecutionIdentityError",
+      "source": "easyuse_anima/seed/execution_identity.py",
+      "target_category": "ValidationError"
+    },
+    {
+      "adapter": "propagate",
+      "builtin_compatibility": [
+        "ValueError"
+      ],
+      "current_direct_bases": [
+        "ValidationError",
+        "ValueError"
+      ],
+      "module": "easyuse_anima.seed.reservation",
+      "name": "SeedReservationContractError",
+      "source": "easyuse_anima/seed/reservation.py",
+      "target_category": "ValidationError"
+    },
+    {
+      "adapter": "http",
+      "builtin_compatibility": [
+        "RuntimeError"
+      ],
+      "current_direct_bases": [
+        "EasyUseAnimaError",
+        "RuntimeError"
+      ],
+      "module": "easyuse_anima.translation.contracts",
+      "name": "PromptTranslationError",
+      "source": "easyuse_anima/translation/contracts.py",
+      "target_category": "EasyUseAnimaError"
+    },
+    {
+      "adapter": "http",
+      "builtin_compatibility": [
+        "RuntimeError"
+      ],
+      "current_direct_bases": [
+        "PromptTranslationError",
+        "ValidationError"
+      ],
+      "module": "easyuse_anima.translation.contracts",
+      "name": "PromptTranslationLimitError",
+      "source": "easyuse_anima/translation/contracts.py",
+      "target_category": "ValidationError"
+    },
+    {
+      "adapter": "http",
+      "builtin_compatibility": [
+        "RuntimeError"
+      ],
+      "current_direct_bases": [
+        "PromptTranslationLimitError"
+      ],
+      "module": "easyuse_anima.translation.contracts",
+      "name": "TranslationMarkerCountError",
+      "source": "easyuse_anima/translation/contracts.py",
+      "target_category": "ValidationError"
+    },
+    {
+      "adapter": "http",
+      "builtin_compatibility": [
+        "RuntimeError"
+      ],
+      "current_direct_bases": [
+        "PromptTranslationLimitError"
+      ],
+      "module": "easyuse_anima.translation.contracts",
+      "name": "TranslationMarkerSizeError",
+      "source": "easyuse_anima/translation/contracts.py",
+      "target_category": "ValidationError"
+    },
+    {
+      "adapter": "http",
+      "builtin_compatibility": [
+        "RuntimeError"
+      ],
+      "current_direct_bases": [
+        "PromptTranslationLimitError"
+      ],
+      "module": "easyuse_anima.translation.contracts",
+      "name": "TranslationTotalSizeError",
+      "source": "easyuse_anima/translation/contracts.py",
+      "target_category": "ValidationError"
+    },
+    {
+      "adapter": "http",
+      "builtin_compatibility": [
+        "RuntimeError"
+      ],
+      "current_direct_bases": [
+        "PromptTranslationError",
+        "CapabilityUnavailableError"
+      ],
+      "module": "easyuse_anima.translation.contracts",
+      "name": "TranslationProviderUnavailableError",
+      "source": "easyuse_anima/translation/contracts.py",
+      "target_category": "CapabilityUnavailableError"
+    },
+    {
+      "adapter": "http",
+      "builtin_compatibility": [
+        "RuntimeError"
+      ],
+      "current_direct_bases": [
+        "PromptTranslationError",
+        "UpstreamTimeoutError"
+      ],
+      "module": "easyuse_anima.translation.contracts",
+      "name": "TranslationTimeoutError",
+      "source": "easyuse_anima/translation/contracts.py",
+      "target_category": "UpstreamTimeoutError"
+    },
+    {
+      "adapter": "http",
+      "builtin_compatibility": [
+        "RuntimeError"
+      ],
+      "current_direct_bases": [
+        "PromptTranslationError"
+      ],
+      "module": "easyuse_anima.translation.contracts",
+      "name": "TranslationCancelledError",
+      "source": "easyuse_anima/translation/contracts.py",
+      "target_category": "EasyUseAnimaError"
+    },
+    {
+      "adapter": "http",
+      "builtin_compatibility": [
+        "RuntimeError"
+      ],
+      "current_direct_bases": [
+        "PromptTranslationError",
+        "ConflictError"
+      ],
+      "module": "easyuse_anima.translation.contracts",
+      "name": "TranslationBusyError",
+      "source": "easyuse_anima/translation/contracts.py",
+      "target_category": "ConflictError"
+    },
+    {
+      "adapter": "http",
+      "builtin_compatibility": [
+        "RuntimeError"
+      ],
+      "current_direct_bases": [
+        "PromptTranslationError"
+      ],
+      "module": "easyuse_anima.translation.contracts",
+      "name": "TranslationUpstreamError",
+      "source": "easyuse_anima/translation/contracts.py",
+      "target_category": "EasyUseAnimaError"
+    }
+  ],
+  "http_mappings": [
+    {
+      "adapter_inputs": [
+        "status",
+        "code",
+        "message",
+        "details"
+      ],
+      "code": "profile_revision_conflict",
+      "constructor": {
+        "kwargs": {
+          "code": "profile_revision_conflict",
+          "details": {
+            "profile": "profile"
+          },
+          "message": "Profile revision does not match",
+          "status": 409
+        }
+      },
+      "current_metadata_owner": "feature-compatibility",
+      "default_message": "Profile revision does not match",
+      "details": {
+        "profile": "profile"
+      },
+      "mapping_policy": "dynamic-compatibility",
+      "name": "ProfileMutationError",
+      "owner": "easyuse_anima.api.responses.build_profile_error_response",
+      "status": 409,
+      "target_authority": "api-adapter"
+    },
+    {
+      "adapter_inputs": [
+        "details"
+      ],
+      "code": "profile_precondition_required",
+      "constructor": {
+        "args": [
+          [
+            "profile_id",
+            "revision"
+          ]
+        ]
+      },
+      "current_metadata_owner": "feature-compatibility",
+      "default_message": "Profile precondition is required",
+      "details": {
+        "fields": [
+          "profile_id",
+          "revision"
+        ],
+        "profile": "profile"
+      },
+      "mapping_policy": "fixed-by-exception-kind",
+      "name": "ProfilePreconditionRequiredError",
+      "owner": "easyuse_anima.api.responses.build_profile_error_response",
+      "status": 428,
+      "target_authority": "api-adapter"
+    },
+    {
+      "adapter_inputs": [
+        "details"
+      ],
+      "code": "profile_identity_mismatch",
+      "constructor": {},
+      "current_metadata_owner": "feature-compatibility",
+      "default_message": "Profile identity does not match",
+      "details": {
+        "profile": "profile"
+      },
+      "mapping_policy": "fixed-by-exception-kind",
+      "name": "ProfileIdentityMismatchError",
+      "owner": "easyuse_anima.api.responses.build_profile_error_response",
+      "status": 409,
+      "target_authority": "api-adapter"
+    },
+    {
+      "adapter_inputs": [
+        "details"
+      ],
+      "code": "profile_revision_conflict",
+      "constructor": {},
+      "current_metadata_owner": "feature-compatibility",
+      "default_message": "Profile revision does not match",
+      "details": {
+        "profile": "profile"
+      },
+      "mapping_policy": "fixed-by-exception-kind",
+      "name": "ProfileRevisionConflictError",
+      "owner": "easyuse_anima.api.responses.build_profile_error_response",
+      "status": 409,
+      "target_authority": "api-adapter"
+    },
+    {
+      "adapter_inputs": [],
+      "code": "invalid_profile_data",
+      "current_metadata_owner": "api-adapter",
+      "default_message": "Profile data is invalid",
+      "details": null,
+      "mapping_policy": "fixed-by-exception-kind",
+      "name": "InvalidProfileDataError",
+      "owner": "easyuse_anima.api.responses.build_profile_error_response",
+      "status": 422,
+      "target_authority": "api-adapter"
+    },
+    {
+      "adapter_inputs": [
+        "message-text"
+      ],
+      "code": "translation_error",
+      "constructor": {},
+      "current_metadata_owner": "feature-compatibility",
+      "default_message": "Prompt translation failed.",
+      "details": null,
+      "mapping_policy": "fixed-by-exception-kind",
+      "name": "PromptTranslationError",
+      "owner": "easyuse_anima.api.routes.translation",
+      "status": 500,
+      "target_authority": "api-adapter"
+    },
+    {
+      "adapter_inputs": [
+        "message-text"
+      ],
+      "code": "translation_error",
+      "constructor": {},
+      "current_metadata_owner": "feature-compatibility",
+      "default_message": "Prompt translation failed.",
+      "details": null,
+      "mapping_policy": "fixed-by-exception-kind",
+      "name": "PromptTranslationLimitError",
+      "owner": "easyuse_anima.api.routes.translation",
+      "status": 413,
+      "target_authority": "api-adapter"
+    },
+    {
+      "adapter_inputs": [
+        "message-text"
+      ],
+      "code": "translation_marker_count_exceeded",
+      "constructor": {},
+      "current_metadata_owner": "feature-compatibility",
+      "default_message": "Prompt translation failed.",
+      "details": null,
+      "mapping_policy": "fixed-by-exception-kind",
+      "name": "TranslationMarkerCountError",
+      "owner": "easyuse_anima.api.routes.translation",
+      "status": 413,
+      "target_authority": "api-adapter"
+    },
+    {
+      "adapter_inputs": [
+        "message-text"
+      ],
+      "code": "translation_marker_too_long",
+      "constructor": {},
+      "current_metadata_owner": "feature-compatibility",
+      "default_message": "Prompt translation failed.",
+      "details": null,
+      "mapping_policy": "fixed-by-exception-kind",
+      "name": "TranslationMarkerSizeError",
+      "owner": "easyuse_anima.api.routes.translation",
+      "status": 413,
+      "target_authority": "api-adapter"
+    },
+    {
+      "adapter_inputs": [
+        "message-text"
+      ],
+      "code": "translation_marker_characters_exceeded",
+      "constructor": {},
+      "current_metadata_owner": "feature-compatibility",
+      "default_message": "Prompt translation failed.",
+      "details": null,
+      "mapping_policy": "fixed-by-exception-kind",
+      "name": "TranslationTotalSizeError",
+      "owner": "easyuse_anima.api.routes.translation",
+      "status": 413,
+      "target_authority": "api-adapter"
+    },
+    {
+      "adapter_inputs": [
+        "message-text"
+      ],
+      "code": "translation_provider_unavailable",
+      "constructor": {},
+      "current_metadata_owner": "feature-compatibility",
+      "default_message": "The selected translation provider is unavailable.",
+      "details": null,
+      "mapping_policy": "fixed-by-exception-kind",
+      "name": "TranslationProviderUnavailableError",
+      "owner": "easyuse_anima.api.routes.translation",
+      "status": 503,
+      "target_authority": "api-adapter"
+    },
+    {
+      "adapter_inputs": [
+        "message-text"
+      ],
+      "code": "translation_timeout",
+      "constructor": {},
+      "current_metadata_owner": "feature-compatibility",
+      "default_message": "The translation provider timed out.",
+      "details": null,
+      "mapping_policy": "fixed-by-exception-kind",
+      "name": "TranslationTimeoutError",
+      "owner": "easyuse_anima.api.routes.translation",
+      "status": 504,
+      "target_authority": "api-adapter"
+    },
+    {
+      "adapter_inputs": [
+        "message-text"
+      ],
+      "code": "translation_cancelled",
+      "constructor": {},
+      "current_metadata_owner": "feature-compatibility",
+      "default_message": "The translation request was cancelled.",
+      "details": null,
+      "mapping_policy": "fixed-by-exception-kind",
+      "name": "TranslationCancelledError",
+      "owner": "easyuse_anima.api.routes.translation",
+      "status": 499,
+      "target_authority": "api-adapter"
+    },
+    {
+      "adapter_inputs": [
+        "message-text"
+      ],
+      "code": "translation_busy",
+      "constructor": {},
+      "current_metadata_owner": "feature-compatibility",
+      "default_message": "A prompt translation request is already in progress.",
+      "details": null,
+      "mapping_policy": "fixed-by-exception-kind",
+      "name": "TranslationBusyError",
+      "owner": "easyuse_anima.api.routes.translation",
+      "status": 503,
+      "target_authority": "api-adapter"
+    },
+    {
+      "adapter_inputs": [
+        "message-text"
+      ],
+      "code": "translation_upstream_error",
+      "constructor": {},
+      "current_metadata_owner": "feature-compatibility",
+      "default_message": "The translation provider request failed.",
+      "details": null,
+      "mapping_policy": "fixed-by-exception-kind",
+      "name": "TranslationUpstreamError",
+      "owner": "easyuse_anima.api.routes.translation",
+      "status": 502,
+      "target_authority": "api-adapter"
+    }
+  ],
+  "implementation_sequence": [
+    {
+      "classification": "CONTRACT",
+      "id": "F-02f",
+      "scope": "Add the canonical categories and category inheritance while preserving every concrete class identity, feature-specific base relationship, built-in catch, export, constructor, attribute, and behavior."
+    },
+    {
+      "classification": "ADAPTER",
+      "id": "F-02g",
+      "scope": "Make API-owned concrete status, code, and default-message mappings authoritative while retaining profile details, generic or injected ProfileMutationError metadata, and unregistered or root-derived PromptTranslationError metadata as explicitly named dynamic-compatibility adapter inputs."
+    },
+    {
+      "classification": "CONTRACT",
+      "id": "F-02h",
+      "scope": "Re-audit the common error row, record zero unmapped feature errors, close Phase F, and hand off to G-04A."
+    }
+  ],
+  "inventory_modules": [
+    "easyuse_anima/api/errors.py",
+    "easyuse_anima/profiles/contract.py",
+    "easyuse_anima/profiles/repository.py",
+    "easyuse_anima/profiles/mutation.py",
+    "easyuse_anima/autocomplete/index.py",
+    "easyuse_anima/prompt/anima/knowledge.py",
+    "easyuse_anima/aio/generation_migrations.py",
+    "easyuse_anima/translation/contracts.py",
+    "easyuse_anima/seed/reservation.py",
+    "easyuse_anima/seed/execution_identity.py",
+    "easyuse_anima/seed/service.py"
+  ],
+  "preserved_invariants": [
+    "concrete-class-module-name-and-identity",
+    "existing-feature-specific-subclass-relations",
+    "ValueError-RuntimeError-FileNotFoundError-catch-compatibility",
+    "canonical-and-compatibility-exports",
+    "exception-constructors-messages-details-and-reasons",
+    "profile-dynamic-monkeypatch-seam",
+    "profile-dynamic-compatibility-adapter-inputs",
+    "translation-derived-dynamic-compatibility-adapter-inputs",
+    "profile-and-translation-status-code-message-details-payloads",
+    "request-id-correlation-and-redaction",
+    "autocomplete-fallback-diagnostics",
+    "aio-migration-failure-messages",
+    "seed-conflict-capacity-and-contract-behavior"
+  ],
+  "production_changes": 11,
+  "schema_version": 1,
+  "stop_conditions": [
+    "public-or-root-export-change",
+    "concrete-exception-identity-change",
+    "built-in-catch-compatibility-change",
+    "api-payload-or-correlation-change",
+    "profile-dynamic-seam-change",
+    "feature-behavior-or-migration-change",
+    "root-shim-import-from-canonical-code"
+  ]
+}

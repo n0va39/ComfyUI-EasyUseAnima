@@ -4,8 +4,6 @@ import json
 import unittest
 from copy import deepcopy
 from pathlib import Path
-from types import SimpleNamespace
-
 from easyuse_anima.aio import negpip as negpip_contract
 from easyuse_anima.prompt import artist_mix
 from tests.comfy_host_fakes import FakeComfyHostProvider, use_fake_comfy_host
@@ -176,7 +174,7 @@ class AIONegPipTurboContractTests(unittest.TestCase):
             node_classes={"CLIPTextEncode": ClipTextEncode}
         )
         with use_fake_comfy_host(
-            SimpleNamespace(__package__=""),
+            artist_mix,
             provider,
         ):
             conditioning = artist_mix._encode_prompt_data_positive_conditioning(

@@ -4,20 +4,18 @@ from __future__ import annotations
 
 import heapq
 import time
+from collections.abc import Callable
 from pathlib import Path
 
-from ..infrastructure.filesystem.paths import (
-    PACKAGE_DATA_DIR as STORAGE_PACKAGE_DATA_DIR,
-)
-from ..infrastructure.filesystem.paths import USER_DATA_DIR
+from .contracts import AutocompleteSearchPayload, AutocompleteStatusPayload
 from .dataset import (
+    _AUTOCOMPLETE_CACHE_LOAD_ATTEMPTS,
+    _MISSING_FILE_STAT,
     AUTOCOMPLETE_CSV,
     AutocompleteEntry,
-    _AUTOCOMPLETE_CACHE_LOAD_ATTEMPTS,
     _AutocompleteCacheKey,
     _AutocompleteSnapshot,
     _AutocompleteSourceChanged,
-    _MISSING_FILE_STAT,
     _cache_key,
     _cache_key_from_resolved_path,
     _load_entries,
@@ -27,24 +25,12 @@ from .dataset import (
     autocomplete_status,
 )
 from .index import (
+    _DEFAULT_AUTOCOMPLETE_INDEX_STORE,
     AutocompleteIndexDiagnostics,
     AutocompleteIndexSource,
     AutocompleteIndexUnavailable,
-    search_autocomplete_index,
+    _AutocompleteIndexStore,
 )
-
-
-def _default_autocomplete_index_dir() -> Path | None:
-    user_data_dir = Path(USER_DATA_DIR).resolve(strict=False)
-    package_data_dir = Path(STORAGE_PACKAGE_DATA_DIR).resolve(strict=False)
-    if user_data_dir == package_data_dir:
-        # Standalone imports do not have a ComfyUI-owned writable user-data
-        # boundary. Keep the source/package tree immutable in that case.
-        return None
-    return user_data_dir / "autocomplete_index"
-
-
-_AUTOCOMPLETE_INDEX_DIR = _default_autocomplete_index_dir()
 
 
 def _autocomplete_match_score(
@@ -110,12 +96,15 @@ def _fallback_index_diagnostics(
     )
 
 
-def _search_autocomplete_with_diagnostics(
+def _search_autocomplete_diagnostics_with_owners(
     query: str,
     limit: int = 20,
     path: Path = AUTOCOMPLETE_CSV,
     category: str | None = None,
-) -> tuple[dict, AutocompleteIndexDiagnostics]:
+    *,
+    snapshot: Callable[[Path], _AutocompleteSnapshot],
+    index_store: _AutocompleteIndexStore,
+) -> tuple[AutocompleteSearchPayload, AutocompleteIndexDiagnostics]:
     started = time.perf_counter()
     effective_limit = max(1, min(limit, 100))
     normalized_query = _normalize(query)
@@ -125,19 +114,22 @@ def _search_autocomplete_with_diagnostics(
     for _attempt in range(_AUTOCOMPLETE_CACHE_LOAD_ATTEMPTS):
         key = _cache_key(path)
         if key.mtime_ns == _MISSING_FILE_STAT:
-            snapshot = _snapshot(path)
-            key = snapshot.key
+            current_snapshot = snapshot(path)
+            key = current_snapshot.key
             if key.mtime_ns != _MISSING_FILE_STAT:
                 continue
-            diagnostics = _fallback_index_diagnostics(key, snapshot, "missing_source")
+            diagnostics = _fallback_index_diagnostics(
+                key,
+                current_snapshot,
+                "missing_source",
+            )
             limited: list[tuple[int, AutocompleteEntry]] = []
             entry_count = 0
             indexed_entries = None
             break
 
         try:
-            indexed = search_autocomplete_index(
-                root=_AUTOCOMPLETE_INDEX_DIR,
+            indexed = index_store.search(
                 source=_index_source(key),
                 normalized_query=normalized_query,
                 categories=categories,
@@ -150,16 +142,20 @@ def _search_autocomplete_with_diagnostics(
         except _AutocompleteSourceChanged:
             continue
         except AutocompleteIndexUnavailable as error:
-            snapshot = _snapshot(path)
-            key = snapshot.key
-            diagnostics = _fallback_index_diagnostics(key, snapshot, error.reason)
+            current_snapshot = snapshot(path)
+            key = current_snapshot.key
+            diagnostics = _fallback_index_diagnostics(
+                key,
+                current_snapshot,
+                error.reason,
+            )
             limited = _top_autocomplete_matches(
-                snapshot.entries,
+                current_snapshot.entries,
                 normalized_query,
                 categories,
                 effective_limit,
             )
-            entry_count = len(snapshot.entries)
+            entry_count = len(current_snapshot.entries)
             indexed_entries = None
         else:
             try:
@@ -182,7 +178,7 @@ def _search_autocomplete_with_diagnostics(
     else:
         result_entries = indexed_entries
 
-    payload = {
+    payload: AutocompleteSearchPayload = {
         "query": query,
         "category": category,
         "results": [
@@ -200,27 +196,66 @@ def _search_autocomplete_with_diagnostics(
     return payload, diagnostics
 
 
-def search_autocomplete(
+def _search_autocomplete_with_diagnostics(
     query: str,
     limit: int = 20,
     path: Path = AUTOCOMPLETE_CSV,
     category: str | None = None,
-) -> dict:
+) -> tuple[AutocompleteSearchPayload, AutocompleteIndexDiagnostics]:
+    return _search_autocomplete_diagnostics_with_owners(
+        query,
+        limit=limit,
+        path=path,
+        category=category,
+        snapshot=_snapshot,
+        index_store=_DEFAULT_AUTOCOMPLETE_INDEX_STORE,
+    )
+
+
+def _search_autocomplete_with_owners(
+    query: str,
+    limit: int,
+    path: Path,
+    category: str | None,
+    *,
+    status: Callable[[Path], AutocompleteStatusPayload],
+    snapshot: Callable[[Path], _AutocompleteSnapshot],
+    index_store: _AutocompleteIndexStore,
+) -> AutocompleteSearchPayload:
     normalized_query = _normalize(query)
     if not normalized_query:
         return {
             "query": query,
             "results": [],
-            "status": autocomplete_status(path),
+            "status": status(path),
             "elapsed_ms": 0,
         }
-    payload, _diagnostics = _search_autocomplete_with_diagnostics(
+    payload, _diagnostics = _search_autocomplete_diagnostics_with_owners(
         query,
         limit=limit,
         path=path,
         category=category,
+        snapshot=snapshot,
+        index_store=index_store,
     )
     return payload
+
+
+def search_autocomplete(
+    query: str,
+    limit: int = 20,
+    path: Path = AUTOCOMPLETE_CSV,
+    category: str | None = None,
+) -> AutocompleteSearchPayload:
+    return _search_autocomplete_with_owners(
+        query,
+        limit=limit,
+        path=path,
+        category=category,
+        status=autocomplete_status,
+        snapshot=_snapshot,
+        index_store=_DEFAULT_AUTOCOMPLETE_INDEX_STORE,
+    )
 
 
 __all__ = ("search_autocomplete",)

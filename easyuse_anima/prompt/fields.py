@@ -4,12 +4,8 @@ from __future__ import annotations
 
 import re
 
-try:
-    from ...anima_prompt import correct_prompt, load_knowledge_base
-    from ...anima_prompt.parser import parse_prompt
-except ImportError:
-    from anima_prompt import correct_prompt, load_knowledge_base
-    from anima_prompt.parser import parse_prompt
+from .anima import correct_prompt, load_knowledge_base
+from .anima.parser import parse_prompt
 
 
 DEFAULT_QUALITY_TAGS = (

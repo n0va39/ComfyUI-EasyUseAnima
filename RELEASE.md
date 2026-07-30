@@ -1,5 +1,42 @@
 # Release Notes
 
+## 1.0.0
+
+### Changed
+
+- EasyUse Anima now keeps its Python implementation under the canonical
+  `easyuse_anima` package, with the repository root reserved for the ComfyUI
+  entrypoint.
+- The legacy root modules `api`, `api_contract`, `autocomplete_dataset`,
+  `autocomplete_index`, `nodes`, `prompt_translation`, `settings`, `storage`,
+  and `wildcard_engine`, together with the legacy `anima_prompt` package, have
+  been removed. Third-party Python integrations must import the matching
+  canonical owners under `easyuse_anima`.
+
+### Fixed
+
+- Prompt Studio highlight overlays now wrap at the same width as the editable
+  text when no scrollbar is present, preventing highlighted and transparent
+  text from splitting onto different lines.
+### Compatibility
+
+- Existing ComfyUI workflows, public node identifiers, input and output socket
+  order, HTTP routes and payloads, settings, profiles, and saved data remain
+  compatible.
+- Python import compatibility is intentionally broken only for the removed
+  legacy root modules and `anima_prompt` package. Ordinary ComfyUI workflows do
+  not require migration.
+- The stable 1.0 public contract is the ComfyUI entrypoint, mapped nodes,
+  workflows, HTTP payloads, settings, profiles, and saved data. The
+  `easyuse_anima` package root does not re-export private implementation names;
+  advanced Python integrations import the exact canonical owner they use.
+
+### Update
+
+- After updating, restart ComfyUI and hard-refresh the browser.
+- Before installing 1.0.0, update third-party Python code that imports a
+  removed legacy module to use its canonical `easyuse_anima` owner.
+
 ## 0.6.2
 
 ### Fixed

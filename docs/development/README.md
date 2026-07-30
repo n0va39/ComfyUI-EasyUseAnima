@@ -1,191 +1,148 @@
 # EasyUse Anima Development Entry
 
-Use this file as the first development-doc entry point when starting from a new
-conversation.
+Use this file as the first development-doc entry point for a new Codex session. Read
+only the current READY or event task and its direct owners; do not reopen a completed
+lane when neither exists.
 
-## Read Order
+## Read order
 
 1. `docs/development/current-policies.md`
-2. [`docs/development/codex-execution-efficiency.md`](codex-execution-efficiency.md)
+2. [`codex-execution-efficiency.md`](codex-execution-efficiency.md)
    - create one bounded task card;
    - use focused edit-loop tests;
-   - run the official full runner once per final candidate SHA;
-   - escalate to package, live, and benchmark evidence only when triggered.
-3. Only after a documented stop condition or final live-gate failure, read
-   [`docs/development/codex-blocker-escalation.md`](codex-blocker-escalation.md)
-   before requesting PRO review. A stop condition starts bounded local triage; it
-   is not an automatic whole-roadmap stop.
-4. While Issue #470 is open, read
-   [`docs/architecture/prompt-studio-execution-derived-projection.md`](../architecture/prompt-studio-execution-derived-projection.md)
-   and only the current QSTATE-04C task section. It owns the 0.6.0 regression
-   correction that distinguishes submitted editor snapshots from linked-input and
-   NAIA execution deltas.
-5. Queue identity or stale-result lifecycle work may also require
-   [`docs/architecture/queue-ui-two-phase-correlation-addendum.md`](../architecture/queue-ui-two-phase-correlation-addendum.md).
-   It remains the identity/revision foundation, but its older QSTATE-04 field-input
-   classification is superseded by the Issue #470 projection roadmap.
-6. Python backend architecture or migration work:
-   [`docs/architecture/README.md`](../architecture/README.md)
-7. Active frontend maintenance execution plan:
-   `docs/development/frontend-maintenance-execution-plan.md`
-8. Current released baseline: `docs/development/0.6.0.md`
-9. Relevant topic guide:
-   - Registry publish or flagged-version prevention:
-     `docs/development/registry-scanner-safety.md`
-   - workflow docs or release templates: `docs/Anima AiO/Workflow_Management.md`
-   - user-facing AiO docs: `docs/Anima AiO/README.md`
-   - custom-node model patch integrations: `docs/development/custom-node-integrations.md`
-   - current frontend maintenance roadmap and Issue #14 close boundary:
-     `docs/development/frontend-maintenance-roadmap.md`
-   - repeatable legacy-canvas and Node 2.0 browser validation:
-     `docs/development/browser-smoke-matrix.md`
-   - Safe PAG stage-scope risk-based live evidence:
-     `docs/development/aio-safe-pag-live-matrix.md`
-   - SageAttention stage-scope risk-based live evidence:
-     `docs/development/aio-sage-live-matrix.md`
-   - historical Issue #14 PR #18 execution plan:
-     `docs/development/issue-14-frontend-js-maintenance.md`
-   - deferred Node 2.0 DOM widget resize investigation:
-     `docs/development/node2-dom-widget-resize-limitation.md`
-   - language or locale work: `docs/development/language-management.md`
-10. `git status --short`
-11. Relevant source and tests for the target area.
+   - run official full once on the final candidate SHA;
+   - run package/live/benchmark only when triggered.
+3. Current final-convergence status and event queue:
+   [`../architecture/backend-final-convergence-roadmap.md`](../architecture/backend-final-convergence-roadmap.md)
+4. Total Python Convergence Contract:
+   [`../architecture/python-total-convergence-contract.md`](../architecture/python-total-convergence-contract.md).
+   Active owner #593 and parent #185; compatibility inventory remains Issue #186.
+5. Target architecture and original Definition of Done:
+   [`../architecture/python-backend.md`](../architecture/python-backend.md)
+6. Read [`codex-blocker-escalation.md`](codex-blocker-escalation.md) only after a
+   documented hard stop or unresolved cross-owner architecture ambiguity.
+7. Confirm branch/worktree status, direct source and direct tests.
 
-Do not read every roadmap or historical document by default. The efficiency
-protocol defines the maximum initial context and the conditions that justify
-expanding it. The blocker-escalation document is conditional context and should
-not be loaded during ordinary successful tasks.
+Do not reread all historical roadmaps, closed PRs or completed Phase D/E/F/G/security
+lanes. Registry activation is external release administration and does not block
+ordinary `dev` work.
 
-## Source Map
+## Current state
 
-- Current policy baseline: `docs/development/current-policies.md`
-- Codex work-packet, test-escalation, evidence-reuse, and token policy:
-  [`docs/development/codex-execution-efficiency.md`](codex-execution-efficiency.md)
-- Conditional stop-triage, self-resolution budget, and hard-PRO criteria:
-  [`docs/development/codex-blocker-escalation.md`](codex-blocker-escalation.md)
-- Active Prompt Studio linked-input/NAIA projection correction:
-  [`docs/architecture/prompt-studio-execution-derived-projection.md`](../architecture/prompt-studio-execution-derived-projection.md)
-- Queue/live-UI identity and revision foundation:
-  [`docs/architecture/queue-ui-two-phase-correlation-addendum.md`](../architecture/queue-ui-two-phase-correlation-addendum.md)
-- Python backend architecture and compatibility-shim registry:
-  [`docs/architecture/README.md`](../architecture/README.md)
-- Active frontend maintenance execution ledger:
-  `docs/development/frontend-maintenance-execution-plan.md`
-- Current released baseline: `docs/development/0.6.0.md`
-- Registry scanner safety: `docs/development/registry-scanner-safety.md`
-- Older implementation history: `docs/version-plans/`
-- Public workflow JSON templates and preview/source images: `docs/example_workflows/`
-- User-facing workflow documentation: `docs/Anima AiO/`
-- User-facing node documentation: `docs/nodes/`
-- User-facing wildcard syntax: `docs/wildcards.ko.md` /
-  `docs/wildcards.en.md`
-- Current frontend maintenance roadmap:
-  `docs/development/frontend-maintenance-roadmap.md`
-- Dual-canvas browser smoke matrix:
-  `docs/development/browser-smoke-matrix.md`
-- Safe PAG stage-scope live matrix:
-  `docs/development/aio-safe-pag-live-matrix.md`
-- SageAttention stage-scope live matrix:
-  `docs/development/aio-sage-live-matrix.md`
-- Historical Issue #14 PR #18 execution plan:
-  `docs/development/issue-14-frontend-js-maintenance.md`
-- Deferred Node 2.0 DOM widget resize investigation:
-  `docs/development/node2-dom-widget-resize-limitation.md`
+```text
+COMPLETE  Phase D package/root consolidation
+COMPLETE  Phase E runtime ownership/lifecycle/test isolation
+COMPLETE  Phase F typed boundaries and feature errors
+COMPLETE  G-04 public API / G-05 size ratchet / G-06 test ownership
+COMPLETE  P-WC Wildcard direct-shim conversion
+COMPLETE  SEC-01 through SEC-05 security/admin lane
+COMPLETE  #593 FC-01, FC-02 and FC-03 prerequisites
+COMPLETE  FC-04A canonical API application/E-09 lifecycle Contract
+COMPLETE  FC-04B canonical API application cohesive Move
+COMPLETE  FC-05 technical architecture completion
 
-## Area-Specific Files
+COMPLETE  PTC-01 through PTC-09B total structure, support and root cutover
+COMPLETE  PTC-10 final audit and dead-adapter retirement
 
-- LoRA preset bugs:
-  - `api.py`
-  - `web/js/easyuse_anima_lora_preset.js`
-  - `tests/test_lora_profiles.py`
-  - `tests/test_frontend_lora_preset.py`
-- Prompt Studio execution-derived projection / Issue #470:
-  - `easyuse_anima/nodes/prompt_advanced_nodes.py`
-  - `easyuse_anima/prompt/advanced.py`
-  - `web/js/prompt_studio/extension_runtime.js`
-  - `web/js/prompt_studio/advanced_values.js`
-  - `web/js/prompt_studio/advanced_fields_ui.js`
-  - `web/js/prompt_studio/serialization.js`
-  - `web/js/prompt_studio/wildcard_seed_transaction.js`
-  - `web/js/lifecycle/queue_ui_transaction.js`
-  - `web/js/lifecycle/executed_event_context.js`
-  - direct Prompt Studio projection, Wildcard, transaction, and backend payload tests
-- Other Prompt Studio or wildcard work:
-  - confirm the current canonical Python owner under `easyuse_anima/prompt/` and
-    `easyuse_anima/nodes/` before using a root compatibility shim;
-  - `web/js/easyuse_anima_autocomplete.js`
-  - `web/js/easyuse_anima_prompt_studio.js`
-  - `web/js/easyuse_anima_prompt_studio_common.js`
-  - `web/js/easyuse_anima_settings.js`
-  - `docs/development/frontend-maintenance-roadmap.md`
-  - prompt-related tests
-  - `tests/test_wildcards.py`
-  - `docs/nodes/anima-prompt-studio-advanced.*.md`
-  - `docs/nodes/anima-wildcard.*.md`
-  - `docs/wildcards.ko.md` / `docs/wildcards.en.md`
-  - workflow serialization paths
-- Workflow template work:
-  - `docs/example_workflows/`
-  - `tests/test_workflows.py`
-  - `docs/Anima AiO/Workflow_Management.md`
-- Custom-node integration work:
-  - `docs/development/custom-node-integrations.md`
-  - `nodes.py`
-  - `web/js/easyuse_anima_aio.js`
-  - `tests/test_aio_nodes.py`
-  - `tests/test_workflows.py`
+READY     FC-06 ordinary release N as EasyUse Anima 1.0.0
+```
 
-Use this map only as an initial hint. Confirm the current canonical owner with a
-targeted symbol search; do not automatically read every listed file.
+## FC and total-convergence completion
 
-## Current Policy Notes
+FC-05 closes the original ownership/lifecycle Definition of Done. PTC-01 through
+PTC-10 close the broader per-file goal: every shipped Python file and size exception
+has a final owner, responsibility-owned canonical modules are extracted, and all 16
+non-entrypoint legacy root/`anima_prompt` modules are removed after canonical caller
+and lifecycle proof.
 
-- Issue #470 is the first READY production lane. Start QSTATE-04C1 Contract work
-  before #440/#441, ordinary backend refactoring, or opportunistic feature work.
-- Do not keep duplicated workflow JSON outside `docs/example_workflows/`.
-- `docs/workflows/` has been removed; use `docs/example_workflows/` as the
-  workflow JSON and preview/source image source.
-- Example workflow JSON and matching PNG/JPG assets should share a basename.
-- If another document conflicts with `docs/development/current-policies.md`,
-  update or treat the conflicting document as stale before using it as a basis
-  for implementation.
-- `pyproject.toml` may be bumped early as a next-version marker, but it is not a
-  release or publish step by itself.
+## Current execution boundary
 
-## Validation Shortlist
+The only current roadmap task is FC-06, the first ordinary post-PTC release. Version
+1.0.0 defines the stable ComfyUI entrypoint, node, workflow, HTTP and data surface and
+explicitly records the retired legacy Python imports as a breaking boundary. Exact
+canonical modules remain directly importable; the package root does not become a broad
+SDK re-export. Do not reopen the completed FC/PTC implementation queue or recreate a
+deleted compatibility facade.
+
+Release task card: [`1.0.0.md`](1.0.0.md).
+
+## Fixed lifecycle and compatibility guards
+
+Later FC tasks must preserve:
+
+- bootstrap as the single lifecycle owner;
+- one initialize/shutdown lock and one atexit registration;
+- terminal/idempotent shutdown and no hot reinitialize;
+- one translation route executor created before cleanup-plan composition;
+- executor shutdown as cleanup item 1 and the fixed seven-step cleanup order;
+- expected-identity rollback and original startup error;
+- route marker retention and no route deregistration;
+- no file-I/O limiter or provider/client cleanup invention;
+- canonical identity and 0.5.2 workflow/profile/settings/API behavior. Root import-path
+  identity is preserved only until the reviewed PTC-09B cutover.
+
+FC-03 may migrate patch ownership but does not change behavior. FC-04 application
+construction remains outside `initialize()` unless a separate reviewed Behavior Contract
+explicitly changes rollback semantics.
+
+FC-04A selects one canonical publish-once immutable application identity, bootstrap
+private outer composition and a root exact binder. Its executable Move boundary is
+[`../architecture/python-api-fc04-application-lifecycle-contract.md`](../architecture/python-api-fc04-application-lifecycle-contract.md).
+
+## Validation
 
 ### Edit loop
 
-Use only changed-file syntax checks and the task-specific focused tests listed in
-`codex-execution-efficiency.md`, the active Issue #470 projection roadmap, the
-two-phase addendum, or the owning Issue.
-
 ```text
-node --check web/js/<changed-file>.js
-node tests/<focused-frontend-smoke>.mjs
-python -m unittest <focused test modules>
+changed-file syntax/static check
+one direct focused owner at a time
+current analyzer/contract projection
 git diff --check
 ```
 
-The repository `quick` profile is still broad: it runs repository-wide Python
-quality, all frontend syntax/smoke checks, TypeScript, and diff checks. Do not run
-it after every edit.
+The broad quick/full profiles are not edit-loop commands.
 
-A failed stop condition or live path should follow the bounded self-resolution
-budget in `codex-blocker-escalation.md`. Do not request PRO review until a hard
-technical-depth criterion is evidenced.
+### Promotion
 
-### Final PR candidate
+- Documentation-only roadmap/navigation corrections reuse current valid code evidence.
+- Run official full once when code, tests, tools or shared fixtures change.
+- Run validate/pack/archive for import, entrypoint, registration, dependency, archive or
+  release changes.
+- Run isolated live ComfyUI only for host-visible behavior or FC-05 integration.
+- Terminal lifecycle smoke runs in a fresh process; shutdown followed by production
+  reinitialize is not supported.
 
-- Official full, once per final code/test diff:
-  `powershell -ExecutionPolicy Bypass -File tools\check_project.ps1 -Profile full`
-- Rerun only when an invalidating code, test, runner, shared fixture, or
-  configuration change occurs.
-- Frontend behavior changes: follow
-  `docs/development/browser-smoke-matrix.md` once per final diff.
-- `comfy node validate` and `comfy node pack` only when package/import/registration,
-  `.comfyignore`, dependency, release, or runtime closure can change.
-- Registry scanner grep from `docs/development/registry-scanner-safety.md` only
-  for scanner-sensitive or release work.
-- Workflow JSON parse and package-version checks for
-  `docs/example_workflows/*.json` only when workflow/release metadata changes.
+## Technical PRO boundary
+
+Request focused technical PRO review only when direct evidence leaves multiple valid
+API/lifecycle designs, the complete owner gate exposes an unresolvable role/cycle
+ambiguity, or preserving a supported seam requires a canonical-to-root dependency,
+dynamic cleanup-plan mutation or second lifecycle owner.
+
+Routine test failures, helper names, fixture placement and owner-local implementation
+choices remain with Codex.
+
+## Completed reference lanes
+
+Read only when a current task touches the boundary:
+
+- completed D/E record: `../architecture/backend-roadmap-resume-0.6.2.md`
+- runtime state inventory: `../architecture/python-runtime-state-inventory.md`
+- repository/filesystem ownership: `../architecture/python-runtime-e03-repository-filesystem-contract.md`
+- translation runtime: `../architecture/python-runtime-e04-translation-contract.md`
+- autocomplete runtime: `../architecture/python-runtime-e05-autocomplete-contract.md`
+- wildcard runtime: `../architecture/python-runtime-e06-wildcard-contract.md`
+- AiO first-pass cache: `../architecture/python-runtime-e08-aio-cache-contract.md`
+- E-09 lifecycle: `../architecture/python-runtime-e09-lifecycle-contract.md`
+- runtime test isolation: `../architecture/python-runtime-e10-test-isolation-contract.md`
+- Phase F/G close: `../architecture/python-phase-fg-completion-audit.md`
+- security/admin: `../architecture/security-admin-settings-roadmap.md`
+- queue/live UI identity: `../architecture/queue-ui-two-phase-correlation-addendum.md`
+- Prompt Studio projection: `../architecture/prompt-studio-execution-derived-projection.md`
+- dual-canvas UI: `browser-smoke-matrix.md`
+- Registry scanner safety: [`docs/development/registry-scanner-safety.md`](registry-scanner-safety.md)
+- workflows: `../Anima AiO/Workflow_Management.md`
+
+The Total Python Convergence Contract authorizes only the staged PTC-09B root import-path
+break after PTC-09A. No roadmap document alone authorizes release, tag or Registry
+publication.

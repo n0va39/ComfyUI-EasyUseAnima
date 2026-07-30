@@ -32,6 +32,16 @@ EXPECTED_PYTHON_PACKAGE_FILES = {
     "easyuse_anima/aio/preview.py",
     "easyuse_anima/aio/resources.py",
     "easyuse_anima/aio/sampling.py",
+    "easyuse_anima/api/__init__.py",
+    "easyuse_anima/api/errors.py",
+    "easyuse_anima/api/requests.py",
+    "easyuse_anima/api/responses.py",
+    "easyuse_anima/api/routes/__init__.py",
+    "easyuse_anima/api/routes/aio_torch_compile.py",
+    "easyuse_anima/api/routes/autocomplete.py",
+    "easyuse_anima/api/routes/translation.py",
+    "easyuse_anima/api/routes/translation_execution.py",
+    "easyuse_anima/api/routes/wildcards.py",
     "easyuse_anima/autocomplete/__init__.py",
     "easyuse_anima/autocomplete/dataset.py",
     "easyuse_anima/autocomplete/index.py",
@@ -63,13 +73,11 @@ EXPECTED_PYTHON_PACKAGE_FILES = {
     "easyuse_anima/nodes/__init__.py",
     "easyuse_anima/nodes/aio_nodes.py",
     "easyuse_anima/nodes/image_nodes.py",
-    "easyuse_anima/nodes/impact_detailer_nodes.py",
     "easyuse_anima/nodes/input_types.py",
     "easyuse_anima/nodes/lora_nodes.py",
     "easyuse_anima/nodes/naia_nodes.py",
     "easyuse_anima/nodes/prompt_data_nodes.py",
     "easyuse_anima/nodes/prompt_nodes.py",
-    "easyuse_anima/nodes/sam3_nodes.py",
     "easyuse_anima/nodes/wildcard_nodes.py",
     "easyuse_anima/profiles/__init__.py",
     "easyuse_anima/profiles/aio.py",
@@ -187,8 +195,6 @@ class RegistryScannerSafetyTests(unittest.TestCase):
         )
         for filename in (
             "__init__.py",
-            "api.py",
-            "api_contract.py",
             "easyuse_anima/aio/conditioning.py",
             "easyuse_anima/aio/first_pass_cache.py",
             "easyuse_anima/aio/legacy_generation.py",
@@ -217,12 +223,10 @@ class RegistryScannerSafetyTests(unittest.TestCase):
             "easyuse_anima/naia/resolution.py",
             "easyuse_anima/nodes/aio_nodes.py",
             "easyuse_anima/nodes/image_nodes.py",
-            "easyuse_anima/nodes/impact_detailer_nodes.py",
             "easyuse_anima/nodes/lora_nodes.py",
             "easyuse_anima/nodes/naia_nodes.py",
             "easyuse_anima/nodes/prompt_data_nodes.py",
             "easyuse_anima/nodes/prompt_nodes.py",
-            "easyuse_anima/nodes/sam3_nodes.py",
             "easyuse_anima/nodes/wildcard_nodes.py",
             "easyuse_anima/registration.py",
             "easyuse_anima/prompt/correction.py",
@@ -232,9 +236,6 @@ class RegistryScannerSafetyTests(unittest.TestCase):
             "easyuse_anima/prompt/fields.py",
             "easyuse_anima/wildcard/mode.py",
             "easyuse_anima/wildcard/selector.py",
-            "nodes.py",
-            "prompt_translation.py",
-            "settings.py",
         ):
             source = (ROOT / filename).read_text(encoding="utf-8")
             for pattern in patterns:
@@ -243,13 +244,8 @@ class RegistryScannerSafetyTests(unittest.TestCase):
 
     def test_naia_is_only_documented_runtime_post_call(self):
         runtime_files = (
-            "api.py",
-            "api_contract.py",
             "easyuse_anima/naia/client.py",
             "easyuse_anima/nodes/naia_nodes.py",
-            "nodes.py",
-            "prompt_translation.py",
-            "settings.py",
         )
         matches = []
         for filename in runtime_files:
@@ -366,13 +362,32 @@ class RegistryScannerSafetyTests(unittest.TestCase):
             f"{sorted(closure & ignored)}",
         )
 
-    def test_api_contract_runtime_module_is_in_registry_package_surface(self):
-        runtime_path = "api_contract.py"
-        self.assertTrue((ROOT / runtime_path).is_file())
-        self.assertIn("from .api_contract import (", (ROOT / "api.py").read_text(encoding="utf-8"))
+    def test_api_contract_runtime_modules_are_in_registry_package_surface(self):
+        runtime_paths = {
+            "easyuse_anima/api/__init__.py",
+            "easyuse_anima/api/application.py",
+            "easyuse_anima/api/errors.py",
+            "easyuse_anima/api/requests.py",
+            "easyuse_anima/api/responses.py",
+            "easyuse_anima/bootstrap.py",
+        }
+        for runtime_path in runtime_paths:
+            with self.subTest(runtime_path=runtime_path):
+                self.assertTrue((ROOT / runtime_path).is_file())
+
+        import_owners = {
+            "errors": "application_routes.py",
+            "requests": "application_routes.py",
+            "responses": "application.py",
+        }
+        for module, owner in import_owners.items():
+            owner_source = (ROOT / "easyuse_anima" / "api" / owner).read_text(
+                encoding="utf-8"
+            )
+            self.assertIn(f"from .{module} import", owner_source)
 
         tracked = _git_paths("ls-files", "--cached")
-        self.assertIn(runtime_path, tracked)
+        self.assertFalse(runtime_paths - tracked)
 
         ignored = _git_paths(
             "ls-files",
@@ -380,7 +395,7 @@ class RegistryScannerSafetyTests(unittest.TestCase):
             "--ignored",
             "--exclude-from=.comfyignore",
         )
-        self.assertNotIn(runtime_path, ignored)
+        self.assertFalse(runtime_paths & ignored)
 
     def test_python_package_skeleton_is_in_registry_package_surface(self):
         for runtime_path in EXPECTED_PYTHON_PACKAGE_FILES:

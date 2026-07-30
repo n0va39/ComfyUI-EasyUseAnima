@@ -7,14 +7,16 @@ import json
 import unittest
 from pathlib import Path
 
-
 ROOT = Path(__file__).resolve().parents[1]
 ANALYZER_PATH = ROOT / "tools" / "analyze_nodes_module.py"
 INTERNAL_PACKAGE = ROOT / "easyuse_anima"
 REGISTRATION_PATH = INTERNAL_PACKAGE / "registration.py"
 CHECKER_PATH = ROOT / "tools" / "check_python_import_boundaries.py"
 CONTRACT_PATH = (
-    ROOT / "tests" / "fixtures" / "python_import_boundary_contract.v1.json"
+    ROOT / "tests" / "fixtures" / "python_import_boundary_contract.v2.json"
+)
+OWNER_INVENTORY_PATH = (
+    ROOT / "tests" / "fixtures" / "python_test_ownership_contract.v1.json"
 )
 
 
@@ -189,6 +191,28 @@ class PythonImportBoundarySeedTests(unittest.TestCase):
                     {violation["rule"] for violation in violations},
                 )
 
+    def test_bootstrap_allows_only_the_exact_comfy_host_nodes_import(self):
+        self.assertEqual(
+            analyzer.find_import_boundary_violations(
+                "import nodes as comfy_nodes\n",
+                module_name="easyuse_anima.bootstrap",
+            ),
+            [],
+        )
+        for source in (
+            "from nodes import NODE_CLASS_MAPPINGS\n",
+            "import nodes.mapping\n",
+        ):
+            with self.subTest(source=source.strip()):
+                violations = analyzer.find_import_boundary_violations(
+                    source,
+                    module_name="easyuse_anima.bootstrap",
+                )
+                self.assertIn(
+                    "internal-imports-root-nodes",
+                    {violation["rule"] for violation in violations},
+                )
+
     def test_literal_dynamic_import_aliases_are_rejected(self):
         sources = (
             "import importlib as il\nil.import_module('nodes')\n",
@@ -264,9 +288,120 @@ class CompletedPackageImportBoundaryTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.contract_document = json.loads(CONTRACT_PATH.read_text(encoding="utf-8"))
-        cls.groups = checker.validate_contract(cls.contract_document)
+        cls.owner_document = json.loads(
+            OWNER_INVENTORY_PATH.read_text(encoding="utf-8")
+        )
+        cls.contract = checker.validate_contract(
+            cls.contract_document,
+            cls.owner_document,
+        )
 
-    def test_synthetic_report_rejects_all_five_boundary_rules(self):
+    def test_contract_derives_all_g06_paths_and_fixes_roles_and_overrides(self):
+        owner_paths = {
+            group["name"]: group["production_paths"]
+            for group in self.owner_document["groups"]
+        }
+        contract_groups = self.contract["groups"]
+
+        self.assertEqual(len(contract_groups), 16)
+        self.assertEqual(
+            {
+                group["group"]: list(group["production_paths"])
+                for group in contract_groups
+            },
+            owner_paths,
+        )
+        self.assertEqual(
+            {
+                group["group"]: group["role"]
+                for group in contract_groups
+            },
+            {
+                "aio": "feature-service",
+                "api": "http-adapter",
+                "autocomplete": "feature-service",
+                "common": "common",
+                "image": "feature-service",
+                "infrastructure": "infrastructure-core",
+                "lora": "feature-service",
+                "naia": "feature-service",
+                "nodes": "node-adapter",
+                "profiles": "feature-service",
+                "prompt": "feature-service",
+                "runtime-bootstrap": "process-composition",
+                "seed": "feature-service",
+                "settings": "feature-service",
+                "translation": "feature-service",
+                "wildcard": "feature-service",
+            },
+        )
+        self.assertEqual(
+            [override["path"] for override in self.contract["path_role_overrides"]],
+            [
+                "easyuse_anima/api/application.py",
+                "easyuse_anima/api/application_compatibility.py",
+                "easyuse_anima/api/application_routes.py",
+                "easyuse_anima/api/router.py",
+                "easyuse_anima/infrastructure/comfy/",
+                "easyuse_anima/registration.py",
+                "easyuse_anima/workflow.py",
+            ],
+        )
+        self.assertEqual(
+            {
+                (
+                    exception["source"],
+                    exception["target"],
+                    exception["name"],
+                )
+                for exception in self.contract["edge_exceptions"]
+            },
+            {
+                (
+                    "easyuse_anima/infrastructure/comfy/wiring.py",
+                    "easyuse_anima/runtime.py",
+                    "get_runtime",
+                ),
+                (
+                    "easyuse_anima/nodes/seed_adapters.py",
+                    "easyuse_anima/runtime.py",
+                    "get_runtime",
+                ),
+            },
+        )
+
+    def test_owner_matching_prefers_exact_then_longest_prefix(self):
+        groups = (
+            {
+                "group": "broad",
+                "production_paths": ("easyuse_anima/",),
+            },
+            {
+                "group": "nested",
+                "production_paths": ("easyuse_anima/settings/",),
+            },
+            {
+                "group": "exact",
+                "production_paths": ("easyuse_anima/settings/service.py",),
+            },
+        )
+
+        self.assertEqual(
+            checker._source_group(
+                "easyuse_anima/settings/service.py",
+                groups,
+            )["group"],
+            "exact",
+        )
+        self.assertEqual(
+            checker._source_group(
+                "easyuse_anima/settings/other.py",
+                groups,
+            )["group"],
+            "nested",
+        )
+
+    def test_synthetic_report_rejects_all_five_universal_rules(self):
         report = analyzed(
             {
                 "__init__.py": synthetic_root(
@@ -319,7 +454,7 @@ class CompletedPackageImportBoundaryTests(unittest.TestCase):
         self.assertEqual(root_edge["classification"], "external")
         self.assertNotIn("target", root_edge)
 
-        violations = checker.check_report(report, self.groups)
+        violations = checker.check_report(report, self.contract)
         self.assertEqual(
             {violation["rule"] for violation in violations},
             {
@@ -369,9 +504,162 @@ class CompletedPackageImportBoundaryTests(unittest.TestCase):
         ]
         self.assertTrue(external_edges)
         self.assertTrue(all("target" not in edge for edge in external_edges))
-        self.assertEqual(checker.check_report(report, self.groups), [])
+        self.assertEqual(checker.check_report(report, self.contract), [])
 
-    def test_contract_rejects_missing_duplicate_unsorted_empty_and_changed_groups(self):
+    def test_reviewed_role_directions_and_exact_runtime_edges_are_allowed(self):
+        report = analyzed(
+            {
+                "__init__.py": "from .easyuse_anima import bootstrap\n",
+                "easyuse_anima/__init__.py": "from . import seed\n",
+                "easyuse_anima/aio/__init__.py": "from . import service\n",
+                "easyuse_anima/aio/service.py": (
+                    "from ..common import values\n"
+                    "from ..infrastructure.comfy import provider\n"
+                ),
+                "easyuse_anima/api/__init__.py": "",
+                "easyuse_anima/api/router.py": (
+                    "from .routes import endpoint\n"
+                ),
+                "easyuse_anima/api/routes/__init__.py": "",
+                "easyuse_anima/api/routes/endpoint.py": (
+                    "from ...aio import service\n"
+                ),
+                "easyuse_anima/bootstrap.py": (
+                    "from .api.routes import endpoint\n"
+                    "from . import registration, runtime\n"
+                ),
+                "easyuse_anima/common/__init__.py": "",
+                "easyuse_anima/common/values.py": "VALUE = 1\n",
+                "easyuse_anima/infrastructure/__init__.py": "",
+                "easyuse_anima/infrastructure/core.py": (
+                    "from ..common import values\n"
+                ),
+                "easyuse_anima/infrastructure/comfy/__init__.py": "",
+                "easyuse_anima/infrastructure/comfy/provider.py": (
+                    "from .. import core\n"
+                ),
+                "easyuse_anima/infrastructure/comfy/wiring.py": (
+                    "from ...runtime import get_runtime\n"
+                    "from . import provider\n"
+                ),
+                "easyuse_anima/nodes/__init__.py": "",
+                "easyuse_anima/nodes/adapter.py": (
+                    "from ..aio import service\n"
+                ),
+                "easyuse_anima/nodes/seed_adapters.py": (
+                    "from ..runtime import get_runtime\n"
+                ),
+                "easyuse_anima/registration.py": (
+                    "from .nodes import adapter\n"
+                ),
+                "easyuse_anima/runtime.py": "from .aio import service\n",
+                "easyuse_anima/seed/__init__.py": "",
+                "easyuse_anima/workflow.py": (
+                    "from .common import values\n"
+                    "from .nodes import adapter\n"
+                ),
+            }
+        )
+
+        self.assertEqual(checker.check_report(report, self.contract), [])
+
+    def test_each_forbidden_role_direction_is_rejected(self):
+        report = analyzed(
+            {
+                "__init__.py": "",
+                "easyuse_anima/__init__.py": "",
+                "easyuse_anima/aio/__init__.py": "",
+                "easyuse_anima/aio/service.py": "VALUE = 1\n",
+                "easyuse_anima/aio/bad.py": (
+                    "from ..api.routes import view\n"
+                ),
+                "easyuse_anima/api/__init__.py": "",
+                "easyuse_anima/api/router.py": (
+                    "from ..nodes import adapter\n"
+                ),
+                "easyuse_anima/api/routes/__init__.py": "",
+                "easyuse_anima/api/routes/view.py": "VALUE = 1\n",
+                "easyuse_anima/api/routes/node_bad.py": (
+                    "from ...nodes import adapter\n"
+                ),
+                "easyuse_anima/common/__init__.py": "",
+                "easyuse_anima/common/bad.py": "from ..aio import service\n",
+                "easyuse_anima/infrastructure/__init__.py": "",
+                "easyuse_anima/infrastructure/bad.py": (
+                    "from ..aio import service\n"
+                ),
+                "easyuse_anima/infrastructure/comfy/__init__.py": "",
+                "easyuse_anima/infrastructure/comfy/bad.py": (
+                    "from ...aio import service\n"
+                ),
+                "easyuse_anima/nodes/__init__.py": "",
+                "easyuse_anima/nodes/adapter.py": "VALUE = 1\n",
+                "easyuse_anima/nodes/api_bad.py": (
+                    "from ..api.routes import view\n"
+                ),
+                "easyuse_anima/registration.py": (
+                    "from .api.routes import view\n"
+                ),
+            }
+        )
+
+        violations = checker.check_report(report, self.contract)
+        role_sources = {
+            violation["source"]
+            for violation in violations
+            if violation["rule"] == "role-back-reference"
+        }
+        self.assertEqual(
+            role_sources,
+            {
+                "easyuse_anima/aio/bad.py",
+                "easyuse_anima/api/router.py",
+                "easyuse_anima/api/routes/node_bad.py",
+                "easyuse_anima/common/bad.py",
+                "easyuse_anima/infrastructure/bad.py",
+                "easyuse_anima/infrastructure/comfy/bad.py",
+                "easyuse_anima/nodes/api_bad.py",
+                "easyuse_anima/registration.py",
+            },
+        )
+
+    def test_root_and_nested_package_facades_reject_cross_owner_exports(self):
+        report = analyzed(
+            {
+                "__init__.py": "",
+                "easyuse_anima/__init__.py": (
+                    "from . import image, seed\n"
+                ),
+                "easyuse_anima/image/__init__.py": "",
+                "easyuse_anima/prompt/__init__.py": (
+                    "from ..settings import service\n"
+                ),
+                "easyuse_anima/seed/__init__.py": "",
+                "easyuse_anima/settings/__init__.py": "",
+                "easyuse_anima/settings/service.py": "VALUE = 1\n",
+            }
+        )
+
+        violations = checker.check_report(report, self.contract)
+        self.assertEqual(
+            {
+                (violation["source"], violation["target"])
+                for violation in violations
+                if violation["rule"] == "role-back-reference"
+            },
+            {
+                (
+                    "easyuse_anima/__init__.py",
+                    "easyuse_anima/image/__init__.py",
+                ),
+                (
+                    "easyuse_anima/prompt/__init__.py",
+                    "easyuse_anima/settings/service.py",
+                ),
+            },
+        )
+
+    def test_contract_rejects_drift_and_g06_map_changes(self):
         mutations = []
 
         missing = copy.deepcopy(self.contract_document)
@@ -386,16 +674,8 @@ class CompletedPackageImportBoundaryTests(unittest.TestCase):
         unsorted["groups"].reverse()
         mutations.append(unsorted)
 
-        empty_prefix = copy.deepcopy(self.contract_document)
-        empty_prefix["groups"][0]["prefix"] = ""
-        mutations.append(empty_prefix)
-
-        changed_owner = copy.deepcopy(self.contract_document)
-        changed_owner["groups"][0]["owner_issue"] = 188
-        mutations.append(changed_owner)
-
         changed_role = copy.deepcopy(self.contract_document)
-        changed_role["groups"][0]["role"] = "common"
+        changed_role["groups"][0]["role"] = "unknown"
         mutations.append(changed_role)
 
         renamed_group = copy.deepcopy(self.contract_document)
@@ -405,12 +685,67 @@ class CompletedPackageImportBoundaryTests(unittest.TestCase):
         for mutation in mutations:
             with self.subTest(mutation=mutation):
                 with self.assertRaises(checker.ContractError):
-                    checker.validate_contract(mutation)
+                    checker.validate_contract(mutation, self.owner_document)
 
-    def test_current_repository_has_zero_enrolled_violations(self):
+        changed_owner_map = copy.deepcopy(self.owner_document)
+        changed_owner_map["groups"].append(
+            {
+                "name": "z-new-owner",
+                "owners": {},
+                "production_paths": ["easyuse_anima/z_new_owner/"],
+            }
+        )
+        with self.assertRaises(checker.ContractError):
+            checker.validate_contract(
+                self.contract_document,
+                changed_owner_map,
+            )
+
+    def test_changed_g06_paths_immediately_change_gate_coverage(self):
+        changed_owner_map = copy.deepcopy(self.owner_document)
+        changed_owner_map["groups"][0]["production_paths"] = [
+            "easyuse_anima/aio_v2/"
+        ]
+        contract = checker.validate_contract(
+            self.contract_document,
+            changed_owner_map,
+        )
+        report = analyzed(
+            {
+                "__init__.py": "",
+                "easyuse_anima/__init__.py": "",
+                "easyuse_anima/aio/__init__.py": "",
+                "easyuse_anima/aio/service.py": "VALUE = 1\n",
+            }
+        )
+
+        violations = checker.check_report(
+            report,
+            contract,
+            require_complete_owner_map=True,
+        )
+        self.assertIn(
+            (
+                "easyuse_anima/aio/service.py",
+                "unowned-production-path",
+            ),
+            {
+                (violation["source"], violation["rule"])
+                for violation in violations
+            },
+        )
+        self.assertIn(
+            ("easyuse_anima/aio_v2/", "owner-path-empty"),
+            {
+                (violation["source"], violation["rule"])
+                for violation in violations
+            },
+        )
+
+    def test_current_repository_has_complete_g06_coverage_and_zero_violations(self):
         self.assertEqual(checker.check_repository(ROOT, CONTRACT_PATH), [])
 
-    def test_unenrolled_legacy_debt_does_not_block_the_gate(self):
+    def test_unowned_path_and_formerly_unenrolled_prompt_debt_block_the_gate(self):
         report = analyzed(
             {
                 "__init__.py": "from .easyuse_anima.prompt import debt\n",
@@ -418,10 +753,31 @@ class CompletedPackageImportBoundaryTests(unittest.TestCase):
                 "easyuse_anima/__init__.py": "",
                 "easyuse_anima/prompt/__init__.py": "",
                 "easyuse_anima/prompt/debt.py": "import nodes\n",
+                "easyuse_anima/unowned.py": "VALUE = 1\n",
             }
         )
 
-        self.assertEqual(checker.check_report(report, self.groups), [])
+        violations = checker.check_report(report, self.contract)
+        self.assertIn(
+            (
+                "easyuse_anima/prompt/debt.py",
+                "canonical-imports-root",
+            ),
+            {
+                (violation["source"], violation["rule"])
+                for violation in violations
+            },
+        )
+        self.assertIn(
+            (
+                "easyuse_anima/unowned.py",
+                "unowned-production-path",
+            ),
+            {
+                (violation["source"], violation["rule"])
+                for violation in violations
+            },
+        )
 
     def test_quality_runner_invokes_the_checker_once_for_quick_and_full(self):
         source = (ROOT / "tools" / "check_python_quality.ps1").read_text(

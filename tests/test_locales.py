@@ -5,7 +5,8 @@ import re
 import unittest
 from pathlib import Path
 
-import nodes
+from easyuse_anima.prompt.data import PROMPT_DATA_TYPE
+from easyuse_anima.registration import NODE_CLASS_MAPPINGS
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -47,7 +48,7 @@ class LocaleTests(unittest.TestCase):
 
                 for node_id in public_nodes:
                     node_data = data[node_id]
-                    cls = getattr(nodes, node_id)
+                    cls = NODE_CLASS_MAPPINGS[node_id]
                     self.assertTrue(node_data.get("description"), node_id)
                     self.assertTrue(node_data.get("display_name"), node_id)
 
@@ -147,21 +148,21 @@ class LocaleTests(unittest.TestCase):
             data = json.loads((ROOT / "locales" / locale_code / "nodeDefs.json").read_text(encoding="utf-8"))
             self.assertEqual(
                 data["EasyUseAnimaPromptDataUnpack"]["display_name"],
-                nodes.PROMPT_DATA_TYPE,
+                PROMPT_DATA_TYPE,
             )
             for node_id in node_ids:
                 with self.subTest(locale=locale_code, node=node_id):
-                    cls = getattr(nodes, node_id)
+                    cls = NODE_CLASS_MAPPINGS[node_id]
                     outputs = data[node_id]["outputs"]
                     for index, name in enumerate(cls.RETURN_NAMES):
                         self.assertEqual(outputs[str(index)]["name"], name)
 
                     required_inputs = cls.INPUT_TYPES().get("required", {})
-                    if nodes.PROMPT_DATA_TYPE in required_inputs:
+                    if PROMPT_DATA_TYPE in required_inputs:
                         prompt_data_inputs = data[node_id]["inputs"]
                         self.assertEqual(
-                            prompt_data_inputs[nodes.PROMPT_DATA_TYPE]["name"],
-                            nodes.PROMPT_DATA_TYPE,
+                            prompt_data_inputs[PROMPT_DATA_TYPE]["name"],
+                            PROMPT_DATA_TYPE,
                         )
 
     def test_easy_use_anima_input_socket_names_are_not_localized(self):

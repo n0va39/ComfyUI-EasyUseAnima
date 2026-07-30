@@ -1,9 +1,11 @@
 import unittest
+from unittest.mock import patch
 
 from easyuse_anima.image.scaling import (
     _image_scale_by_multiple_size,
     _normalize_image_scale_options,
 )
+from easyuse_anima.nodes import image_nodes
 from easyuse_anima.nodes.image_nodes import EasyUseAnimaImageScaleByMultiple
 
 
@@ -112,6 +114,26 @@ class ImageScaleByMultipleTests(unittest.TestCase):
         self.assertEqual(tuple(output.shape), (1, 1152, 1504, 3))
         self.assertAlmostEqual(applied_scale, 1.4933127413127414)
         self.assertEqual(output.dtype, image.dtype)
+
+    def test_node_adapter_delegates_to_shared_operation(self):
+        expected = (object(), 128, 192, 1.5)
+        image = object()
+
+        with patch.object(
+            image_nodes,
+            "_upscale_image_by_multiple",
+            return_value=expected,
+        ) as upscale:
+            result = EasyUseAnimaImageScaleByMultiple().upscale(
+                image,
+                1.5,
+                "lanczos",
+                "64",
+                2048,
+            )
+
+        self.assertIs(result, expected)
+        upscale.assert_called_once_with(image, 1.5, "lanczos", "64", 2048)
 
 
 if __name__ == "__main__":

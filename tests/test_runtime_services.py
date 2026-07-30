@@ -13,9 +13,30 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from easyuse_anima import bootstrap, runtime as runtime_module
+from easyuse_anima.aio import first_pass_cache as aio_first_pass_cache
+from easyuse_anima.autocomplete import dataset as autocomplete_dataset
+from easyuse_anima.autocomplete import index as autocomplete_index
+from easyuse_anima.autocomplete import service as autocomplete_service
 from easyuse_anima.infrastructure.comfy.provider import DefaultComfyHostProvider
-from easyuse_anima.runtime import RuntimeServices, get_runtime, install_runtime
+from easyuse_anima.infrastructure.filesystem import paths as storage_paths
+from easyuse_anima.runtime import (
+    Clock,
+    RuntimeConfig,
+    RuntimeResource,
+    RuntimeServices,
+    get_runtime,
+    install_runtime,
+)
 from easyuse_anima.seed.service import InMemorySeedReservationService
+from easyuse_anima.translation import service as translation_service
+from easyuse_anima.translation.service import PromptTranslationService
+from easyuse_anima.wildcard import snapshot as wildcard_snapshot
+from tests.runtime_test_support import (
+    build_runtime_services,
+    enter_test_context,
+    isolated_bootstrap_runtime,
+    isolated_translation_facade,
+)
 
 
 class FakeComfyHostProvider:
@@ -32,22 +53,148 @@ class FakeComfyHostProvider:
         return None
 
 
+class FakeClock:
+    def monotonic(self) -> float:
+        return 0.0
+
+
+class FakeAutocompleteService:
+    def resolve_source(self, source=None):
+        raise AssertionError(source)
+
+    def available_sources(self, selected=None):
+        raise AssertionError(selected)
+
+    def status(self, path):
+        raise AssertionError(path)
+
+    def search(self, query, limit=20, path=None, category=None):
+        raise AssertionError((query, limit, path, category))
+
+    def classify(self, text, limit=240, path=None):
+        raise AssertionError((text, limit, path))
+
+
+class FakeWildcardSnapshots:
+    def snapshot_for_roots(self, roots, *, scan_sources, build_snapshot):
+        raise AssertionError((roots, scan_sources, build_snapshot))
+
+
+class FakeAIOFirstPassCache:
+    def get(self, cache_key):
+        raise AssertionError(cache_key)
+
+    def put(self, cache_key, latent, image):
+        raise AssertionError((cache_key, latent, image))
+
+
+class RuntimeBaseContractTests(unittest.TestCase):
+    def test_runtime_config_is_frozen_slotted_and_does_not_resolve_paths(self):
+        package_root = Path("package-root")
+        package_data_dir = Path("package-data")
+        user_data_dir = Path("user-data")
+
+        config = RuntimeConfig(
+            package_root=package_root,
+            package_data_dir=package_data_dir,
+            user_data_dir=user_data_dir,
+        )
+
+        self.assertIs(config.package_root, package_root)
+        self.assertIs(config.package_data_dir, package_data_dir)
+        self.assertIs(config.user_data_dir, user_data_dir)
+        self.assertFalse(hasattr(config, "__dict__"))
+        with self.assertRaises(FrozenInstanceError):
+            config.user_data_dir = Path("other")
+
+    def test_clock_is_a_narrow_monotonic_structural_contract(self):
+        class FakeClock:
+            def monotonic(self) -> float:
+                return 12.5
+
+        clock: Clock = FakeClock()
+
+        self.assertEqual(clock.monotonic(), 12.5)
+
+    def test_runtime_resource_is_an_idempotent_close_structural_contract(self):
+        class FakeResource:
+            def __init__(self) -> None:
+                self.closed = False
+                self.release_calls = 0
+
+            def close(self) -> None:
+                if self.closed:
+                    return
+                self.release_calls += 1
+                self.closed = True
+
+        resource: RuntimeResource = FakeResource()
+
+        resource.close()
+        resource.close()
+
+        self.assertTrue(resource.closed)
+        self.assertEqual(resource.release_calls, 1)
+
+    def test_runtime_public_surface_adds_only_base_contracts(self):
+        self.assertEqual(
+            runtime_module.__all__,
+            (
+                "Clock",
+                "RuntimeConfig",
+                "RuntimeResource",
+                "RuntimeServices",
+                "get_runtime",
+                "install_runtime",
+            ),
+        )
+
+    def test_runtime_contract_document_is_linked_from_architecture_entry(self):
+        contract_name = "python-runtime-base-contract.md"
+        contract = ROOT / "docs" / "architecture" / contract_name
+        architecture_entry = ROOT / "docs" / "architecture" / "README.md"
+
+        self.assertTrue(contract.is_file())
+        self.assertIn(
+            contract_name,
+            architecture_entry.read_text(encoding="utf-8"),
+        )
+
+
 class RuntimeServicesTests(unittest.TestCase):
     def setUp(self):
-        self.runtime_state = patch.object(runtime_module, "_RUNTIME_SERVICES", None)
-        self.runtime_state.start()
-        self.default_runtime_state = patch.object(bootstrap, "_DEFAULT_RUNTIME", None)
-        self.default_runtime_state.start()
-
-    def tearDown(self):
-        self.default_runtime_state.stop()
-        self.runtime_state.stop()
+        enter_test_context(
+            self,
+            isolated_bootstrap_runtime(
+                bootstrap,
+                runtime_module,
+                translation_service,
+            ),
+        )
 
     @staticmethod
-    def make_runtime() -> RuntimeServices:
-        return RuntimeServices(
+    def make_runtime(
+        cleanup_plan=None,
+    ) -> RuntimeServices:
+        return build_runtime_services(
+            runtime_module,
             comfy=FakeComfyHostProvider(),
             seed_reservations=InMemorySeedReservationService(),
+            config=RuntimeConfig(
+                package_root=Path("package-root"),
+                package_data_dir=Path("package-data"),
+                user_data_dir=Path("user-data"),
+            ),
+            clock=FakeClock(),
+            translation=PromptTranslationService(),
+            autocomplete=FakeAutocompleteService(),
+            wildcard_snapshots=FakeWildcardSnapshots(),
+            aio_first_pass_cache=FakeAIOFirstPassCache(),
+            cleanup_plan=(
+                cleanup_plan
+                if cleanup_plan is not None
+                else runtime_module._RuntimeCleanupPlan()
+            ),
         )
 
     def test_runtime_value_is_frozen(self):
@@ -64,6 +211,76 @@ class RuntimeServicesTests(unittest.TestCase):
             r"^\[EasyUseAnima\] RuntimeServices has not been installed\.$",
         ):
             get_runtime()
+
+    def test_close_runs_cleanup_once_in_order_and_continues_after_failure(self):
+        calls = []
+        failure = RuntimeError("cleanup")
+
+        def fail():
+            calls.append("first")
+            raise failure
+
+        runtime = self.make_runtime(
+            runtime_module._RuntimeCleanupPlan(
+                (
+                    fail,
+                    lambda: calls.append("second"),
+                    lambda: calls.append("third"),
+                )
+            )
+        )
+
+        with self.assertRaisesRegex(RuntimeError, "cleanup") as raised:
+            runtime.close()
+        runtime.close()
+
+        self.assertIs(raised.exception, failure)
+        self.assertEqual(calls, ["first", "second", "third"])
+
+    def test_detach_runtime_compares_expected_identity(self):
+        first = self.make_runtime()
+        other = self.make_runtime()
+        install_runtime(first)
+
+        self.assertFalse(runtime_module._detach_runtime(other))
+        self.assertIs(get_runtime(), first)
+        self.assertTrue(runtime_module._detach_runtime(first))
+        with self.assertRaisesRegex(RuntimeError, "has not been installed"):
+            get_runtime()
+
+    def test_translation_facade_restore_is_expected_identity_only(self):
+        original = PromptTranslationService()
+        replacement = PromptTranslationService()
+        foreign = PromptTranslationService()
+
+        with isolated_translation_facade(
+            translation_service,
+            original,
+        ):
+            previous = translation_service._install_default_translation_service(
+                replacement
+            )
+            self.assertIs(previous, original)
+            self.assertFalse(
+                translation_service._restore_default_translation_service(
+                    foreign,
+                    original,
+                )
+            )
+            self.assertIs(
+                translation_service._DEFAULT_TRANSLATION_SERVICE,
+                replacement,
+            )
+            self.assertTrue(
+                translation_service._restore_default_translation_service(
+                    replacement,
+                    original,
+                )
+            )
+            self.assertIs(
+                translation_service._DEFAULT_TRANSLATION_SERVICE,
+                original,
+            )
 
     def test_first_install_is_returned_and_available(self):
         runtime = self.make_runtime()
@@ -100,7 +317,11 @@ class RuntimeServicesTests(unittest.TestCase):
         host = type("Host", (), {"MAX_RESOLUTION": "8192"})()
         load_comfy_nodes = Mock(return_value=host)
 
-        with patch.object(bootstrap, "_WILDCARDS_INITIALIZED", False):
+        with patch.object(
+            bootstrap,
+            "_load_runtime_config",
+            wraps=bootstrap._load_runtime_config,
+        ) as load_runtime_config:
             bootstrap.initialize(
                 register_routes=register_routes,
                 initialize_wildcards=initialize_wildcards,
@@ -119,8 +340,42 @@ class RuntimeServicesTests(unittest.TestCase):
             first.seed_reservations,
             InMemorySeedReservationService,
         )
+        self.assertIs(first.config.package_root, storage_paths.PACKAGE_ROOT)
+        self.assertIs(first.config.package_data_dir, storage_paths.PACKAGE_DATA_DIR)
+        self.assertIs(first.config.user_data_dir, storage_paths.USER_DATA_DIR)
+        self.assertIs(
+            first.translation,
+            translation_service._DEFAULT_TRANSLATION_SERVICE,
+        )
+        self.assertIs(
+            first.translation.cache._time_func.__self__,
+            first.clock,
+        )
+        self.assertIsInstance(
+            first.autocomplete,
+            autocomplete_service._AutocompleteService,
+        )
+        self.assertIs(
+            first.autocomplete.snapshots,
+            autocomplete_dataset._DEFAULT_AUTOCOMPLETE_SNAPSHOTS,
+        )
+        self.assertIs(
+            first.autocomplete.index_store,
+            autocomplete_index._DEFAULT_AUTOCOMPLETE_INDEX_STORE,
+        )
+        self.assertIs(
+            first.wildcard_snapshots,
+            wildcard_snapshot._DEFAULT_WILDCARD_SNAPSHOTS,
+        )
+        self.assertIs(
+            first.aio_first_pass_cache,
+            aio_first_pass_cache._DEFAULT_AIO_FIRST_PASS_CACHE,
+        )
+        with patch.object(bootstrap.time, "monotonic", return_value=12.5):
+            self.assertEqual(first.clock.monotonic(), 12.5)
         self.assertEqual(first.comfy.max_resolution(), 8192)
         self.assertIs(get_runtime(), first)
+        load_runtime_config.assert_called_once_with()
         load_comfy_nodes.assert_called_once_with()
         self.assertEqual(register_routes.call_count, 2)
         initialize_wildcards.assert_called_once_with()
@@ -131,14 +386,11 @@ class RuntimeServicesTests(unittest.TestCase):
         initialize_wildcards = Mock(return_value=object())
         install_runtime(runtime)
 
-        with (
-            patch.object(bootstrap, "_WILDCARDS_INITIALIZED", False),
-            self.assertRaisesRegex(
-                RuntimeError,
-                (
-                    r"^\[EasyUseAnima\] A different RuntimeServices instance "
-                    r"is already installed\.$"
-                ),
+        with self.assertRaisesRegex(
+            RuntimeError,
+            (
+                r"^\[EasyUseAnima\] A different RuntimeServices instance "
+                r"is already installed\.$"
             ),
         ):
             bootstrap.initialize(
@@ -166,7 +418,14 @@ builtins.__import__ = guarded_import
 
 from easyuse_anima.infrastructure.comfy.provider import ComfyHostProvider
 from easyuse_anima.infrastructure.comfy.provider import DefaultComfyHostProvider
-from easyuse_anima.runtime import RuntimeServices, get_runtime, install_runtime
+from easyuse_anima.runtime import (
+    Clock,
+    RuntimeConfig,
+    RuntimeResource,
+    RuntimeServices,
+    get_runtime,
+    install_runtime,
+)
 from easyuse_anima.bootstrap import initialize
 from easyuse_anima.seed.service import InMemorySeedReservationService
 """

@@ -8,9 +8,6 @@ from types import SimpleNamespace
 from easyuse_anima.aio import negpip as negpip_contract
 from tests.comfy_host_fakes import FakeComfyHostProvider, use_fake_comfy_host
 
-_ROOT_MODULE = SimpleNamespace(__package__="")
-
-
 class FakeValue:
     def __init__(self, *, patch_depth: int = 0):
         self.patch_depth = patch_depth
@@ -228,7 +225,7 @@ class NegPipOnModeTests(unittest.TestCase):
         provider = TrackingProvider()
         model = FakeValue()
         clip = FakeValue()
-        with use_fake_comfy_host(_ROOT_MODULE, provider):
+        with use_fake_comfy_host(negpip_contract, provider):
             for value in (None, {"mode": "off"}):
                 with self.subTest(value=value):
                     mode = negpip_contract._aio_negpip_mode(value)
@@ -248,7 +245,7 @@ class NegPipOnModeTests(unittest.TestCase):
         provider = FakeComfyHostProvider(
             node_classes={"CLIPNegPip": CompatibleCLIPNegPip}
         )
-        with use_fake_comfy_host(_ROOT_MODULE, provider):
+        with use_fake_comfy_host(negpip_contract, provider):
             patched_model, patched_clip = negpip_contract.apply_aio_negpip(
                 model,
                 clip,
@@ -273,7 +270,7 @@ class NegPipOnModeTests(unittest.TestCase):
         provider = FakeComfyHostProvider(
             node_classes={"CLIPNegPip": CompatibleCLIPNegPip}
         )
-        with use_fake_comfy_host(_ROOT_MODULE, provider):
+        with use_fake_comfy_host(negpip_contract, provider):
             patched_model, patched_clip = negpip_contract.apply_aio_negpip(
                 model,
                 clip,
@@ -316,7 +313,7 @@ class NegPipOnModeTests(unittest.TestCase):
         )
 
     def test_missing_dependency_and_unsupported_modes_fail_closed(self):
-        with use_fake_comfy_host(_ROOT_MODULE, FakeComfyHostProvider()):
+        with use_fake_comfy_host(negpip_contract, FakeComfyHostProvider()):
             for mode in ("on", "turbo"):
                 with self.subTest(mode=mode):
                     with self.assertRaisesRegex(RuntimeError, "ComfyUI-ppm"):

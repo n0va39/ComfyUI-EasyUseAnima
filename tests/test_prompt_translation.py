@@ -9,8 +9,7 @@ from concurrent.futures import ThreadPoolExecutor
 from types import SimpleNamespace
 from unittest.mock import patch
 
-import prompt_translation as root_translation
-from easyuse_anima.translation import contracts, markers, service
+from easyuse_anima.translation import service
 from easyuse_anima.translation.contracts import (
     PROMPT_TRANSLATION_PROVIDER_GOOGLE,
     PROMPT_TRANSLATION_PROVIDER_TIMEOUT_SECONDS,
@@ -22,17 +21,18 @@ from easyuse_anima.translation.contracts import (
     TranslationTotalSizeError,
     TranslationUpstreamError,
 )
-from easyuse_anima.translation.providers import google as google_provider
 from easyuse_anima.translation.providers.google import (
     GoogleTranslationProvider,
+)
+from easyuse_anima.translation.provider_registry import (
+    _TranslationProviderRegistry,
 )
 from easyuse_anima.translation.service import (
     BoundedTranslationCache,
     PromptTranslationService,
-    _TRANSLATION_PROVIDER_FACTORIES,
-    _TRANSLATION_PROVIDER_INSTANCES,
     get_translation_provider,
 )
+from tests.runtime_test_support import isolated_translation_facade
 
 
 GOOGLE_SETTINGS = PromptTranslationSettings(
@@ -40,29 +40,6 @@ GOOGLE_SETTINGS = PromptTranslationSettings(
     source="ko",
     target="en",
 )
-
-
-class PromptTranslationCompatibilityTests(unittest.TestCase):
-    def test_root_shim_exports_identical_canonical_objects(self):
-        canonical = {
-            name: getattr(module, name)
-            for module in (
-                contracts,
-                markers,
-                google_provider,
-                service,
-            )
-            for name in module.__all__
-        }
-
-        self.assertEqual(set(root_translation.__all__), set(canonical))
-        self.assertEqual(
-            len(root_translation.__all__),
-            len(set(root_translation.__all__)),
-        )
-        for name, value in canonical.items():
-            with self.subTest(name=name):
-                self.assertIs(getattr(root_translation, name), value)
 
 
 class PromptTranslationServiceTests(unittest.TestCase):
@@ -161,20 +138,82 @@ class PromptTranslationServiceTests(unittest.TestCase):
             factory_calls.append(True)
             return provider
 
-        with (
-            patch.dict(_TRANSLATION_PROVIDER_INSTANCES, {}, clear=True),
-            patch.dict(
-                _TRANSLATION_PROVIDER_FACTORIES,
-                {PROMPT_TRANSLATION_PROVIDER_GOOGLE: factory},
-                clear=True,
-            ),
-        ):
-            first = get_translation_provider(PROMPT_TRANSLATION_PROVIDER_GOOGLE)
-            second = get_translation_provider(PROMPT_TRANSLATION_PROVIDER_GOOGLE)
+        registry = _TranslationProviderRegistry(
+            {PROMPT_TRANSLATION_PROVIDER_GOOGLE: factory}
+        )
+        first = registry.get(PROMPT_TRANSLATION_PROVIDER_GOOGLE)
+        second = registry.get(PROMPT_TRANSLATION_PROVIDER_GOOGLE)
 
         self.assertIs(first, provider)
         self.assertIs(second, provider)
         self.assertEqual(len(factory_calls), 1)
+
+    def test_provider_registry_constructs_once_under_concurrency(self):
+        provider = GoogleTranslationProvider(translator_factory=lambda: object())
+        factory_calls = []
+
+        def factory():
+            factory_calls.append(True)
+            return provider
+
+        registry = _TranslationProviderRegistry(
+            {PROMPT_TRANSLATION_PROVIDER_GOOGLE: factory}
+        )
+        with ThreadPoolExecutor(max_workers=8) as executor:
+            instances = list(
+                executor.map(
+                    registry.get,
+                    [PROMPT_TRANSLATION_PROVIDER_GOOGLE] * 16,
+                )
+            )
+
+        self.assertTrue(all(instance is provider for instance in instances))
+        self.assertEqual(len(factory_calls), 1)
+
+    def test_provider_registry_preserves_factory_error_policy(self):
+        timeout = TranslationTimeoutError()
+
+        def timeout_factory():
+            raise timeout
+
+        def broken_factory():
+            raise ValueError("broken provider")
+
+        with self.assertRaises(TranslationProviderUnavailableError):
+            _TranslationProviderRegistry({}).get("missing")
+        with self.assertRaises(TranslationTimeoutError) as raised:
+            _TranslationProviderRegistry(
+                {PROMPT_TRANSLATION_PROVIDER_GOOGLE: timeout_factory}
+            ).get(PROMPT_TRANSLATION_PROVIDER_GOOGLE)
+        self.assertIs(raised.exception, timeout)
+
+        with self.assertRaises(TranslationProviderUnavailableError) as raised:
+            _TranslationProviderRegistry(
+                {PROMPT_TRANSLATION_PROVIDER_GOOGLE: broken_factory}
+            ).get(PROMPT_TRANSLATION_PROVIDER_GOOGLE)
+        self.assertIsInstance(raised.exception.__cause__, ValueError)
+
+    def test_provider_facade_resolves_current_default_registry(self):
+        provider = GoogleTranslationProvider(translator_factory=lambda: object())
+
+        class Registry:
+            def __init__(self):
+                self.calls = []
+
+            def get(self, name):
+                self.calls.append(name)
+                return provider
+
+        registry = Registry()
+        with patch.object(
+            service,
+            "_DEFAULT_TRANSLATION_PROVIDER_REGISTRY",
+            registry,
+        ):
+            resolved = get_translation_provider(" GOOGLE ")
+
+        self.assertIs(resolved, provider)
+        self.assertEqual(registry.calls, [" GOOGLE "])
 
     def test_cache_hit_ttl_expiry_and_lru_bound_are_deterministic(self):
         now = [0.0]
@@ -235,6 +274,42 @@ class PromptTranslationServiceTests(unittest.TestCase):
             service.translate_prompt("%{same}", GOOGLE_SETTINGS)
 
         self.assertEqual(provider.call_count, 4)
+
+    def test_service_close_clears_cache_and_is_idempotent(self):
+        cache = BoundedTranslationCache(max_entries=8, ttl_seconds=60)
+        translation = PromptTranslationService(cache=cache)
+
+        with patch(
+            "easyuse_anima.translation.service.google_translate_text",
+            return_value="cached",
+        ) as provider:
+            translation.translate_prompt("%{same}", GOOGLE_SETTINGS)
+            translation.translate_prompt("%{same}", GOOGLE_SETTINGS)
+            self.assertEqual(len(cache), 1)
+            translation.close()
+            translation.close()
+            self.assertEqual(len(cache), 0)
+            translation.translate_prompt("%{same}", GOOGLE_SETTINGS)
+
+        self.assertEqual(provider.call_count, 2)
+
+    def test_translation_facade_resolves_current_default_service(self):
+        current = SimpleNamespace(
+            translate_prompt=lambda text, settings=None: (
+                text,
+                settings,
+            )
+        )
+        with isolated_translation_facade(
+            service,
+            current,
+        ):
+            resolved = service.translate_prompt_markers(
+                "%{value}",
+                GOOGLE_SETTINGS,
+            )
+
+        self.assertEqual(resolved, ("%{value}", GOOGLE_SETTINGS))
 
     def test_cache_and_request_dedup_are_thread_safe(self):
         service = PromptTranslationService(
