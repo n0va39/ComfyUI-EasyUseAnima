@@ -145,12 +145,15 @@ class PythonFileDispositionContractTests(unittest.TestCase):
             self.validate(generic_target)
 
     def test_planned_target_cannot_land_without_status_update(self):
-        contract = self.validate(self.document)
-        inventory = copy.deepcopy(self.inventory_document)
-        inventory["inventory"]["modules"].append(
-            {"path": "easyuse_anima/nodes/prompt_data_conditioning_adapter.py"}
+        mutation = copy.deepcopy(self.document)
+        entry = next(
+            item
+            for item in mutation["entries"]
+            if item["path"] == "easyuse_anima/nodes/prompt_data_nodes.py"
         )
-        violations = checker.check_current_inventory(inventory, contract)
+        entry["status"] = "planned"
+        contract = self.validate(mutation)
+        violations = checker.check_current_inventory(self.inventory_document, contract)
         self.assertIn(
             "planned-target-already-present",
             {violation["rule"] for violation in violations},

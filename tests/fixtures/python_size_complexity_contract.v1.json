@@ -52,7 +52,7 @@
     },
     {
       "path": "easyuse_anima/nodes/prompt_data_nodes.py",
-      "baseline_loc": 684,
+      "baseline_loc": 585,
       "owner_issue": 188,
       "decomposition_boundary": "Split Prompt Data node adapters by node class only with workflow field and output tuple parity."
     },

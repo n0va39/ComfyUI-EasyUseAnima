@@ -2478,7 +2478,7 @@
       "role": "prompt-data-node-schema-adapter",
       "owner_group": "nodes",
       "disposition": "split",
-      "status": "planned",
+      "status": "complete",
       "targets": [
         {
           "path": "easyuse_anima/nodes/artist_mix_conditioning_adapter.py",

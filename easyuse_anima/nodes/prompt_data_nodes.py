@@ -15,30 +15,25 @@ from ..prompt.artist_mix import (
     ARTIST_MIX_DEFAULT_STRENGTH_SCALE,
     ARTIST_MIX_DEFAULT_STYLE_GAIN,
     ARTIST_MIX_INPUT_MODES,
-    ARTIST_MIX_MODES,
     ARTIST_MIX_MODE_FROM_PROMPT_DATA,
     ARTIST_MIX_MODE_PROMPT,
+    ARTIST_MIX_MODES,
     ARTIST_TAG_POSITION_CORRECT,
     ARTIST_TAG_POSITION_MODES,
-    _artist_mix_inline_prompt,
     _artist_mix_mode_tooltip,
-    _artist_prompt_with_position,
     _bounded_artist_mix_float,
     _bounded_artist_mix_int,
     _encode_prompt_data_positive_conditioning,
-    _join_artist_mix_source_prompts,
     _normalize_artist_mix_mode,
     _normalize_artist_tag_position,
 )
 from ..prompt.conditioning import (
     ANIMA_MOD_GUIDANCE_DEFAULT_PROFILE,
-    ANIMA_MOD_GUIDANCE_MODES,
     ANIMA_MOD_GUIDANCE_MODE_FROM_PROMPT_DATA,
+    ANIMA_MOD_GUIDANCE_MODES,
     ANIMA_MOD_GUIDANCE_PROFILES,
-    ANIMA_MOD_GUIDANCE_PROFILE_OFF,
     _apply_spectrum_anima_mod_guidance,
     _normalize_anima_mod_guidance_profile,
-    _resolve_anima_mod_guidance_enabled,
 )
 from ..prompt.data import (
     PROMPT_DATA_COMPAT_OUTPUT_TOOLTIPS,
@@ -49,7 +44,8 @@ from ..prompt.data import (
     _apply_prompt_data_overrides,
     _normalize_prompt_data,
 )
-from ..prompt.fields import _join_prompt_tokens
+from .artist_mix_conditioning_adapter import _encode_artist_mix_conditioning
+from .prompt_data_conditioning_adapter import _apply_prompt_data_conditioning
 
 
 def _missing_host_helper(name: str):
@@ -350,89 +346,23 @@ class EasyUseAnimaArtistMixConditioning:
         artist_mix_dominant_isolation: bool = ARTIST_MIX_DEFAULT_DOMINANT_ISOLATION,
         artist_mix_dominant_threshold: float = ARTIST_MIX_DEFAULT_DOMINANT_THRESHOLD,
     ):
-        position = _normalize_artist_tag_position(artist_position)
-        mode = _normalize_artist_mix_mode(artist_mix_mode, ARTIST_MIX_MODE_PROMPT)
-        base_prompt = _join_prompt_tokens(prompt)
-        artist_prompt = _join_artist_mix_source_prompts(artist_tags)
-        if mode == ARTIST_MIX_MODE_PROMPT:
-            return (_encode_with_comfy_clip(
-                clip,
-                _artist_prompt_with_position(base_prompt, _artist_mix_inline_prompt(artist_prompt), position),
-            ),)
-
-        prompt_data = {
-            "positive_prompt": base_prompt,
-            "positive_without_artist_section": base_prompt,
-            "artist_position": position,
-            "artist_mix": {
-                "enabled": True,
-                "mode": mode,
-                "artist_position": position,
-                "base_source": "positive_without_artist_section",
-                "base_prompt": base_prompt,
-                "artist_prompt": artist_prompt,
-                "start_percent": _bounded_artist_mix_float(
-                    artist_mix_start_percent,
-                    ARTIST_MIX_DEFAULT_START_PERCENT,
-                    0.0,
-                    1.0,
-                ),
-                "strength_scale": _bounded_artist_mix_float(
-                    artist_mix_strength_scale,
-                    ARTIST_MIX_DEFAULT_STRENGTH_SCALE,
-                    0.0,
-                    5.0,
-                ),
-                "style_gain": _bounded_artist_mix_float(
-                    artist_mix_style_gain,
-                    ARTIST_MIX_DEFAULT_STYLE_GAIN,
-                    0.0,
-                    3.0,
-                ),
-                "rms_scale_cap": _bounded_artist_mix_float(
-                    artist_mix_rms_scale_cap,
-                    ARTIST_MIX_DEFAULT_RMS_SCALE_CAP,
-                    1.0,
-                    5.0,
-                ),
-                "exact_top_k": _bounded_artist_mix_int(
-                    artist_mix_exact_top_k,
-                    ARTIST_MIX_DEFAULT_EXACT_TOP_K,
-                    0,
-                    64,
-                ),
-                "cluster_count": _bounded_artist_mix_int(
-                    artist_mix_cluster_count,
-                    ARTIST_MIX_DEFAULT_CLUSTER_COUNT,
-                    1,
-                    32,
-                ),
-                "dominant_isolation": _as_bool(
-                    artist_mix_dominant_isolation,
-                    ARTIST_MIX_DEFAULT_DOMINANT_ISOLATION,
-                ),
-                "dominant_threshold": _bounded_artist_mix_float(
-                    artist_mix_dominant_threshold,
-                    ARTIST_MIX_DEFAULT_DOMINANT_THRESHOLD,
-                    0.0,
-                    1.0,
-                ),
-            },
-        }
-        return (_encode_prompt_data_positive_conditioning(
+        return _encode_artist_mix_conditioning(
             clip,
-            prompt_data,
-            base_prompt,
-            artist_mix_mode=mode,
-            artist_mix_start_percent=artist_mix_start_percent,
-            artist_mix_strength_scale=artist_mix_strength_scale,
-            artist_mix_style_gain=artist_mix_style_gain,
-            artist_mix_rms_scale_cap=artist_mix_rms_scale_cap,
-            artist_mix_exact_top_k=artist_mix_exact_top_k,
-            artist_mix_cluster_count=artist_mix_cluster_count,
-            artist_mix_dominant_isolation=artist_mix_dominant_isolation,
-            artist_mix_dominant_threshold=artist_mix_dominant_threshold,
-        ),)
+            prompt,
+            artist_tags,
+            artist_position,
+            artist_mix_mode,
+            artist_mix_start_percent,
+            artist_mix_strength_scale,
+            artist_mix_style_gain,
+            artist_mix_rms_scale_cap,
+            artist_mix_exact_top_k,
+            artist_mix_cluster_count,
+            artist_mix_dominant_isolation,
+            artist_mix_dominant_threshold,
+            encode_with_comfy_clip=_encode_with_comfy_clip,
+            encode_prompt_data_positive_conditioning=_encode_prompt_data_positive_conditioning,
+        )
 
 class EasyUseAnimaPromptDataConditioning:
     """Encode EASYUSE_ANIMA_PROMPT_DATA and apply prompt-driven model patches."""
@@ -631,54 +561,25 @@ class EasyUseAnimaPromptDataConditioning:
         artist_mix_dominant_isolation: bool = ARTIST_MIX_DEFAULT_DOMINANT_ISOLATION,
         artist_mix_dominant_threshold: float = ARTIST_MIX_DEFAULT_DOMINANT_THRESHOLD,
     ):
-        prompt_data = _normalize_prompt_data(EASYUSE_ANIMA_PROMPT_DATA)
-        (
-            positive_prompt,
-            negative_prompt,
-            quality_tags,
-            quality_neg,
-            use_anima_mod_guidance,
-            use_negative_anima_mod_guidance,
-            _metadata_prompt,
-            _metadata_negative_prompt,
-            width,
-            height,
-        ) = _advanced_outputs_from_prompt_data(EASYUSE_ANIMA_PROMPT_DATA)
-
-        positive = _encode_prompt_data_positive_conditioning(
+        return _apply_prompt_data_conditioning(
+            model,
             clip,
-            prompt_data,
-            positive_prompt,
-            artist_mix_mode=artist_mix_mode,
-            artist_mix_start_percent=artist_mix_start_percent,
-            artist_mix_strength_scale=artist_mix_strength_scale,
-            artist_mix_style_gain=artist_mix_style_gain,
-            artist_mix_rms_scale_cap=artist_mix_rms_scale_cap,
-            artist_mix_exact_top_k=artist_mix_exact_top_k,
-            artist_mix_cluster_count=artist_mix_cluster_count,
-            artist_mix_dominant_isolation=artist_mix_dominant_isolation,
-            artist_mix_dominant_threshold=artist_mix_dominant_threshold,
+            EASYUSE_ANIMA_PROMPT_DATA,
+            mod_guidance_mode,
+            mod_w_profile,
+            artist_mix_mode,
+            artist_mix_start_percent,
+            artist_mix_strength_scale,
+            artist_mix_style_gain,
+            artist_mix_rms_scale_cap,
+            artist_mix_exact_top_k,
+            artist_mix_cluster_count,
+            artist_mix_dominant_isolation,
+            artist_mix_dominant_threshold,
+            encode_prompt_data_positive_conditioning=_encode_prompt_data_positive_conditioning,
+            encode_with_comfy_clip=_encode_with_comfy_clip,
+            generate_empty_latent_with_comfy=_generate_empty_latent_with_comfy,
+            apply_spectrum_anima_mod_guidance=_apply_spectrum_anima_mod_guidance,
         )
-        negative = _encode_with_comfy_clip(clip, negative_prompt)
-        latent_image = _generate_empty_latent_with_comfy(width, height)
-        profile = _normalize_anima_mod_guidance_profile(mod_w_profile)
-        use_mod_guidance = _resolve_anima_mod_guidance_enabled(
-            use_anima_mod_guidance,
-            str(mod_guidance_mode or ANIMA_MOD_GUIDANCE_MODE_FROM_PROMPT_DATA),
-        )
-
-        patched_model = model
-        if use_mod_guidance and profile != ANIMA_MOD_GUIDANCE_PROFILE_OFF:
-            patched_model = _apply_spectrum_anima_mod_guidance(
-                model,
-                clip,
-                positive,
-                negative,
-                quality_tags,
-                quality_neg if use_negative_anima_mod_guidance else "",
-                profile,
-            )
-
-        return (patched_model, positive, negative, latent_image)
 
 __all__ = ()
