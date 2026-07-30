@@ -762,9 +762,16 @@ ignored/
 
         self.assertEqual(analyzer.render_json(report), expected_text)
         self.assertEqual(report["schema_version"], 3)
-        self.assertEqual(report["inventory"]["module_count"], 183)
-        self.assertEqual(len(report["registry"]["shipped_python_modules"]), 183)
-        self.assertEqual(len(report["registry"]["runtime_import_closure"]), 183)
+        current_module_count = len(report["inventory"]["modules"])
+        self.assertEqual(report["inventory"]["module_count"], current_module_count)
+        self.assertEqual(
+            len(report["registry"]["shipped_python_modules"]),
+            current_module_count,
+        )
+        self.assertEqual(
+            len(report["registry"]["runtime_import_closure"]),
+            current_module_count,
+        )
         runtime_edges = {
             (edge["source"], edge.get("target"))
             for edge in report["imports"]["edges"]

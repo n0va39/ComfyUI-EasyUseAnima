@@ -6,9 +6,9 @@
       "symbols": ["AIO_GENERATION_DEFAULT_SETTINGS", "AIO_SPECIAL_SEEDS"]
     },
     {
-      "module": "easyuse_anima/aio/generation_normalization.py",
+      "module": "easyuse_anima/aio/generation_normalization_stages.py",
       "reason": "Private immutable membership table used by normalization.",
-      "symbols": ["_AIO_DETAILER_RESERVED_KEYS"]
+      "symbols": ["AIO_DETAILER_RESERVED_KEYS"]
     },
     {
       "module": "easyuse_anima/aio/input_defaults.py",
