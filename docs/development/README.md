@@ -14,8 +14,9 @@ lane when neither exists.
    - run package/live/benchmark only when triggered.
 3. Current final-convergence status and event queue:
    [`../architecture/backend-final-convergence-roadmap.md`](../architecture/backend-final-convergence-roadmap.md)
-4. Compatibility/release ledger: Issue #186. Technical owner #593 and parent #185 are
-   completed.
+4. Total Python Convergence Contract:
+   [`../architecture/python-total-convergence-contract.md`](../architecture/python-total-convergence-contract.md).
+   Active owner #593 and parent #185; compatibility inventory remains Issue #186.
 5. Target architecture and original Definition of Done:
    [`../architecture/python-backend.md`](../architecture/python-backend.md)
 6. Read [`codex-blocker-escalation.md`](codex-blocker-escalation.md) only after a
@@ -40,34 +41,26 @@ COMPLETE  FC-04A canonical API application/E-09 lifecycle Contract
 COMPLETE  FC-04B canonical API application cohesive Move
 COMPLETE  FC-05 technical architecture completion
 
-READY     none for backend refactoring
+COMPLETE  PTC-01 total production inventory/target Contract
+READY     PTC-02 AiO generation normalization Move
 
 EVENT     next ordinary release N
-LATER     H/D-14 compatibility re-audit
+LATER     PTC-09A/B canonical root cutover and legacy removal
 ```
 
-## Technical completion and remaining event
+## FC completion and active total convergence
 
-FC-05 closes the original backend Definition of Done at
-`dev@bb1452c9996293f1f77bb361e7317ddb2664ae19`. The complete owner gate, canonical API
-application, E-09 lifecycle, typed/migration compatibility and integrated validation
-have executable owners. There is no READY backend implementation task.
+FC-05 closes the original ownership/lifecycle Definition of Done. PTC-01 adds the
+broader blocking goal: every shipped Python file and size exception has a final owner,
+16 responsibility-owned canonical modules are extracted, and all 16 non-entrypoint
+legacy root/`anima_prompt` modules are removed after a canonical caller cutover.
 
-Actual shim deletion remains release/consumer gated and is not required for technical
-architecture completion.
+## Current execution boundary
 
-## Current event-wait boundary
-
-No backend refactor task is READY. Do not reopen FC-01 through FC-05 or create a release
-only to start a compatibility clock.
-
-When an independently justified ordinary feature or bug-fix release is ready, FC-06
-reads only the roadmap's FC-06/validation sections, Issue #186's latest checkpoint,
-`MAINTAINING.md`, and the current `main`/`dev`, version, changelog, package and Registry
-metadata. Use a separate release task card and preserve the fixed guards below.
-
-Without that release event, new bugs and features use their own owning Issue and do not
-reactivate the backend convergence queue.
+PTC-02 is READY after PTC-01 merges. Do not repeat FC-01 through FC-05. Follow the exact
+PTC-02 allowed files, focused tests and stop condition in the Total Python Convergence
+Contract. Root deletion is not an early cleanup task; PTC-09A first fixes the canonical
+entrypoint and E-09-safe application/registrar sequence.
 
 ## Fixed lifecycle and compatibility guards
 
@@ -81,7 +74,8 @@ Later FC tasks must preserve:
 - expected-identity rollback and original startup error;
 - route marker retention and no route deregistration;
 - no file-I/O limiter or provider/client cleanup invention;
-- root/canonical identity and 0.5.2 workflow/profile/settings/API compatibility.
+- canonical identity and 0.5.2 workflow/profile/settings/API behavior. Root import-path
+  identity is preserved only until the reviewed PTC-09B cutover.
 
 FC-03 may migrate patch ownership but does not change behavior. FC-04 application
 construction remains outside `initialize()` unless a separate reviewed Behavior Contract
@@ -145,5 +139,6 @@ Read only when a current task touches the boundary:
 - Registry scanner safety: [`docs/development/registry-scanner-safety.md`](registry-scanner-safety.md)
 - workflows: `../Anima AiO/Workflow_Management.md`
 
-No roadmap document alone authorizes root deletion, public breaking changes, release,
-tag or Registry publication.
+The Total Python Convergence Contract authorizes only the staged PTC-09B root import-path
+break after PTC-09A. No roadmap document alone authorizes release, tag or Registry
+publication.

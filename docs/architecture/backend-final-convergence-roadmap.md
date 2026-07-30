@@ -2,9 +2,10 @@
 
 ## Status and authority
 
-- Status: technical convergence complete; compatibility retirement remains event-gated.
-- Technical completion owner: completed Issue #593.
-- Parent architecture: completed Issue #185.
+- Status: FC ownership/lifecycle convergence complete; mandatory Total Python
+  Convergence extension active.
+- Technical completion owner: reactivated Issue #593.
+- Parent architecture: reactivated Issue #185.
 - Compatibility ledger: Issue #186 and ADR-002.
 - Lifecycle authority: E-09 / Issue #187.
 - Current released baseline: 0.6.2.
@@ -13,34 +14,33 @@
 - FC-01 audit base: `81e07c6c12c21f84ba0642c93d6655c8936b7c3b`.
 - Completed final-convergence lanes: FC-01, FC-02A through FC-02D, FC-03A,
   FC-03B, FC-04A, FC-04B and FC-05.
-- Current READY technical task: none. FC-06 starts only with the next ordinary
-  release event.
+- Completed extension lane: PTC-01 inventory/target Contract.
+- Current READY technical task: PTC-02 AiO generation normalization Move.
 
-This document supersedes the `no READY task` conclusion only for the initial backend
-architecture Definition of Done. It does not reopen completed Phase F/G or security
-work, and it does not authorize P-API-02, root deletion, release, tag, or Registry work.
+The FC results remain valid for their original ownership/lifecycle Definition of Done.
+[`python-total-convergence-contract.md`](python-total-convergence-contract.md) adds the
+blocking per-file, size-exception and final root-cutover requirements. It does not reopen
+completed Phase F/G or security work. Root deletion is authorized only in PTC-09B after
+the production-free PTC-09A lifecycle/caller Contract; release, tag and Registry remain
+separate operations.
 
-## 1. Current stop after technical completion
+## 1. Total-convergence extension after FC completion
 
-FC-01 through FC-05 close the original technical Definition of Done. The complete
-role-aware owner gate, canonical API application, bootstrap-owned E-09 lifecycle and
-integrated validation now have executable owners. The optional large-module lane is
-not a blocker unless a future audit finds an actual owner or import violation.
+FC-01 through FC-05 close the original ownership/lifecycle Definition of Done. The
+complete role-aware owner gate, canonical API application, bootstrap-owned E-09
+lifecycle and integrated validation remain authoritative.
 
-The remaining stop is compatibility/release policy, not unfinished architecture:
+PTC-01 found the broader completion gap: the former optional large-module lane did not
+classify all 183 shipped files, did not close all 31 size exceptions, and retained 16
+legacy import modules. The accepted target now requires zero unclassified files, 16
+responsibility-owned canonical additions and removal of every non-entrypoint root/
+`anima_prompt` compatibility module after canonical caller cutover.
 
-- the final canonical-plus-shim tree has not shipped in the next ordinary release N;
-- root `api.py` remains an explicit compatibility binder because the entrypoint and
-  current route consumers still use it;
-- no consumer/harm evidence or reviewed breaking-change approval authorizes public
-  removal; and
-- P-API-02, D-14, release, tag and Registry work remain event-gated.
+## 2. FC completion and current total-convergence completion
 
-## 2. Two completion states
+### FC technical architecture completion (historical)
 
-### Technical architecture completion
-
-This state may be reached before release N:
+This state was reached before release N:
 
 - `easyuse_anima` owns all production implementation;
 - root Python files are the permanent entrypoint or explicit compatibility
@@ -52,17 +52,18 @@ This state may be reached before release N:
   remain compatible;
 - full, package/archive, no-host, lifecycle and representative host/API gates pass.
 
-### Compatibility retirement completion
+### Total Python convergence completion (current)
 
-This state is event-gated:
+This state is blocking technical work, independent of release timing:
 
-- an ordinary release publishes the final canonical-plus-shim forms as release N;
-- support-window, consumer, harm and rollback evidence are collected;
-- eligible private shims may be removed first;
-- public removal requires a reviewed breaking-change Issue and release note;
-- low-cost public shims may be deliberately retained indefinitely.
-
-Technical completion does not require deletion of every public shim.
+- all 183 current Python source files have one executable disposition;
+- all 31 size exceptions have one explicit disposition and task/retain evidence;
+- 16 responsibility-owned canonical files are added by the approved split tasks;
+- the nine non-entrypoint root files and seven `anima_prompt` compatibility files are
+  removed by PTC-09B after canonical caller and E-09 lifecycle proof;
+- the final shipped Python target remains 183 files with root `__init__.py` as the only
+  root production Python file;
+- no replacement compatibility facade recreates a deleted legacy import path.
 
 ## 3. Ordered execution queue
 
@@ -655,11 +656,12 @@ reused without repeating the same broad gates after this documentation-only audi
 | 0.5.2 compatibility | Node, AiO generation/schema, profile, settings and API compatibility owners passed on merged `dev`; the official full covers the remaining workflow fixtures. |
 | Isolated ComfyUI | The canonical test install matched the merged source hashes, loaded once, served the settings route, exposed `EasyUseAnimaWildcard`, and completed a queued Wildcard-to-text workflow with `blue flower`; the owned server was then stopped with no listener or child process left. |
 
-Verdict: **technical architecture completion is recorded.** Rows 1 through 13,
-15 through 18 and 20 are complete; row 14 remains the FC-06 Registry publication
-event and row 19 is a deliberate retain. There is no READY backend refactor task.
+Verdict at the FC-05 checkpoint: **technical architecture completion was recorded.**
+Rows 1 through 13, 15 through 18 and 20 were complete; row 14 remained the FC-06
+Registry publication event and row 19 was a deliberate retain. PTC-01 later extended
+the completion definition, so PTC-02 is now the READY backend refactor task.
 
-## 9. Optional MD lane — large-module disposition
+## 9. Superseded optional MD lane — large-module disposition
 
 After FC-01, audit the current G-05 exception ledger without changing production.
 Classify each exception as:
@@ -679,8 +681,9 @@ Priority review candidates:
 - `easyuse_anima/nodes/prompt_advanced_nodes.py`
 - `easyuse_anima/prompt/advanced.py`
 
-Do not split the E-09 bootstrap lifecycle, the atomic JSON transaction owner or root
-compatibility shims merely to satisfy a line threshold.
+Do not split the E-09 bootstrap lifecycle or the atomic JSON transaction owner merely
+to satisfy a line threshold. Legacy root modules are removed only through the
+PTC-09A/PTC-09B canonical caller cutover.
 
 A split is allowed only when it has:
 
@@ -690,22 +693,25 @@ A split is allowed only when it has:
 - one bounded rollback unit;
 - no new generic `utils`, `misc` or service-locator module.
 
-The MD lane is not an FC-05 blocker unless it finds an owner/import violation or a
-module that prevents FC-03/FC-04 convergence.
+The following historical FC rule is superseded by PTC-01: the MD lane was not an FC-05
+blocker unless it found an owner/import violation or a module that prevented FC-03/FC-04
+convergence.
 
 ## 10. Release N and H/D-14
 
 ### FC-06 — Ordinary release N
 
-Do not publish solely to start a shim clock. The next normal feature/bug release that
-contains the final canonical-plus-shim forms becomes release N. Record exact tag, SHA,
-archive hash, identity parity, internal root-import scan and validate/pack/read-back.
+Do not publish solely for PTC. An ordinary pre-PTC feature/bug release remains valid but
+does not satisfy total convergence. The first post-PTC release must record the exact tag,
+SHA, archive hash, absence of the sixteen legacy paths, canonical entrypoint identity,
+internal root-import scan and validate/pack/read-back.
 
 ### FC-07 — Later compatibility re-audit
 
-Run only after an ADR-002 event changes. Consider private shims first. Public removal
-requires breaking-change approval, impact, release notes and rollback. Deliberate
-long-term retention of low-cost shims is a valid completed outcome.
+This is now a historical compatibility re-audit lane. PTC-01 supersedes its release-window
+prerequisite for the sixteen explicitly inventoried legacy paths. Issue #186 remains an
+evidence ledger until PTC-09B/PTC-10 prove canonical callers, delete the paths and close
+the rollback boundary; unrelated compatibility surfaces still follow ADR-002.
 
 ## 11. Validation efficiency
 
@@ -746,21 +752,27 @@ owner. Stop and request focused technical PRO review only when:
 
 ## 13. Codex resume instruction
 
-No backend refactor task is READY. Do not reopen completed FC-01 through FC-05 work.
+PTC-02 is READY after PTC-01 merges. Read only current policy/universal efficiency,
+[`python-total-convergence-contract.md`](python-total-convergence-contract.md)'s PTC-02
+card, Issue #593's latest checkpoint, the four allowed production files and direct tests.
+Do not rerun FC-01 through FC-05 or the external reference audit.
 
-Start FC-06 only when an independently justified ordinary feature or bug-fix release is
-ready. Backend completion or starting a shim-support clock is not a release trigger.
+Complete and merge one PTC task before starting the next. Root/API compatibility removal
+does not start before PTC-09A fixes the canonical entrypoint and E-09 lifecycle sequence.
+An ordinary bug-fix release may proceed in its own lane when independently required, but
+it does not complete or replace the PTC queue and must not recreate removed shims.
 
-At that event, read only:
+## 14. Mandatory Total Python Convergence queue
 
-- `current-policies.md`;
-- `codex-execution-efficiency.md` universal rules;
-- this document's FC-06 and validation sections;
-- Issue #186's latest compatibility checkpoint;
-- `MAINTAINING.md` release procedure; and
-- current `main`/`dev`, version, changelog, package and Registry metadata.
+The executable disposition, target tree, task cards, root cutover gate and corrected
+Definition of Done are owned by
+[`python-total-convergence-contract.md`](python-total-convergence-contract.md).
 
-Use a separate release task card to integrate the validated candidate into `main`, bump
-the version, validate the exact archive, create the immutable tag, publish and read back
-the Registry state. FC-06 does not authorize P-API-02, root removal, lifecycle changes or
-FC-07/H/D-14. When no ordinary release event exists, make no FC code or release change.
+```text
+COMPLETE  PTC-01 inventory/target Contract
+READY     PTC-02 AiO generation normalization Move
+NEXT      PTC-03 -> PTC-04 -> PTC-05 -> PTC-06 -> PTC-07A -> PTC-07B
+          -> PTC-08 -> PTC-09A -> PTC-09B -> PTC-10
+```
+
+FC-06 release and Registry publication remain separate from this technical queue.

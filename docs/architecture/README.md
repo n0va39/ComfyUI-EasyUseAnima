@@ -13,7 +13,9 @@ completed lane.
   [`backend-final-convergence-roadmap.md`](backend-final-convergence-roadmap.md)
 - Technical completion owner: completed Issue
   [#593](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/593)
-- READY backend refactor task: none. FC-06 waits for an ordinary release event.
+- Total Python Convergence Contract:
+  [`python-total-convergence-contract.md`](python-total-convergence-contract.md)
+- READY backend refactor task: PTC-02 after the PTC-01 Contract merge.
 - Parent architecture: completed Issue
   [#185](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/185)
 - Compatibility/release ledger: Issue
@@ -30,20 +32,23 @@ COMPLETE FC-04A canonical API application/E-09 lifecycle Contract
 COMPLETE FC-04B canonical API application cohesive Move
 COMPLETE FC-05 technical architecture completion
 
-READY    none for backend refactoring
+COMPLETE PTC-01 total production inventory/target Contract
+READY    PTC-02 AiO generation normalization Move
 
 EVENT    ordinary release N
   ->     later H/D-14 compatibility re-audit
 ```
 
-FC-01 through FC-05 temporarily superseded the earlier `no READY task` state to close
-the initial architecture Definition of Done. That technical work is now complete, so
-the current `no READY task` state is authoritative until the FC-06 release event.
+FC-01 through FC-05 closed the initial ownership and lifecycle Definition of Done.
+PTC-01 adds the mandatory per-file convergence and legacy-root removal layer; PTC-02 is
+the current READY task. Release events remain separate from this technical sequence.
 
 ## Current code boundary
 
-The backend is functionally validated and technically complete at
-`dev@bb1452c9996293f1f77bb361e7317ddb2664ae19`.
+The FC backend boundary was functionally validated at
+`dev@bb1452c9996293f1f77bb361e7317ddb2664ae19`. PTC-01 is based on
+`dev@39997c5423847d4280737f0d78d353d3c6273e07` and extends that boundary without
+reopening completed feature, lifecycle or security work.
 
 ### Completed boundaries
 
@@ -62,22 +67,21 @@ The backend is functionally validated and technically complete at
 - sensitive settings responses use safe logging and `no-store` under the completed
   TRUSTED_DEPLOYMENT_ONLY security boundary.
 
-### Technical completion
+### FC technical completion and PTC extension
 
-FC-05 reconciles every original Definition-of-Done row and records the integrated
-full, owner, package/no-host, lifecycle, 0.5.2 compatibility and isolated ComfyUI
-API/node execution gates. No technical backend refactor task remains READY.
+FC-05 reconciled the original ownership/lifecycle Definition-of-Done rows and recorded
+the integrated full, owner, package/no-host, lifecycle, 0.5.2 compatibility and
+isolated ComfyUI API/node execution gates. PTC now completes the broader objective:
+every Python file has an explicit disposition, oversized modules are closed, and legacy
+root import paths are removed after canonical callers are proven.
 
-### Compatibility boundary
+### Legacy import boundary
 
-Actual root-shim removal remains event-gated:
-
-- final forms need an ordinary published release N;
-- consumer and harm evidence must be considered;
-- public removal needs breaking-change approval, release notes and rollback;
-- low-cost shims may be deliberately retained.
-
-Technical architecture completion does not require deleting every public shim.
+Root `__init__.py` remains the permanent ComfyUI entrypoint. The other nine root Python
+modules and seven `anima_prompt` compatibility modules are planned PTC-09B deletions,
+after PTC-09A fixes canonical entrypoint/caller ownership and proves the E-09 lifecycle
+identity sequence. The cutover intentionally stops supporting those legacy import paths;
+it must not recreate equivalent compatibility facades in a new package.
 
 ## Fixed owner model
 
@@ -86,7 +90,7 @@ The target owner matrix remains:
 | Surface | Owner and durable responsibility |
 | --- | --- |
 | Root `__init__.py` | permanent ComfyUI entrypoint; exported mappings and one guarded startup path |
-| Root compatibility files | explicit aliases/facades only; no new feature, I/O, cache or lifecycle logic |
+| Legacy root files until PTC-09B | transitional exact aliases/facades only; migrate callers to canonical owners, then delete without replacement facade |
 | `bootstrap.py` | sole lifecycle/composition owner, RuntimeConfig, initialize/shutdown and concrete wiring |
 | `runtime.py` | installed RuntimeServices identity and process runtime access |
 | `registration.py` | pure node mapping composition |
@@ -122,8 +126,11 @@ its lifecycle Contract proved these invariants.
 ## Core current documents
 
 - [`backend-final-convergence-roadmap.md`](backend-final-convergence-roadmap.md):
-  FC-01 through FC-07, technical versus compatibility completion, optional large-module
-  disposition, validation and Codex resume instruction.
+  completed FC ownership/lifecycle convergence, active PTC queue, release events,
+  validation and Codex resume instruction.
+- [`python-total-convergence-contract.md`](python-total-convergence-contract.md):
+  explicit 183-file disposition, 31 size-exception decisions, exact target tree,
+  root canonical cutover and the blocking completion definition.
 - [`python-backend.md`](python-backend.md): target architecture, phases and original
   Definition of Done.
 - [`python-api-papi01-e09-lifecycle-gate.md`](python-api-papi01-e09-lifecycle-gate.md):
@@ -180,5 +187,6 @@ Read only when needed:
 - Compatibility decisions: Issue #186 plus the shim registry
 - Feature behavior: owning Issue
 
-No document here independently authorizes root deletion, a public breaking change,
-release publication, tags or Registry actions.
+Only the staged PTC-09A/PTC-09B Contract authorizes removal of the reviewed legacy import
+paths. No document here independently authorizes release publication, tags or Registry
+actions.

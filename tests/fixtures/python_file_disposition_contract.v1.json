@@ -1,0 +1,3929 @@
+{
+  "schema_version": 1,
+  "baseline_commit": "39997c5423847d4280737f0d78d353d3c6273e07",
+  "inventory_owner": {
+    "path": "tests/fixtures/python_backend_baseline.json",
+    "expected_baseline_files": 183,
+    "expected_target_files": 183
+  },
+  "linked_contracts": {
+    "compatibility_registry": "docs/architecture/python-compatibility-shims.md",
+    "import_owner_map": "tests/fixtures/python_test_ownership_contract.v1.json",
+    "size_ledger": "tests/fixtures/python_size_complexity_contract.v1.json"
+  },
+  "allowed_dispositions": [
+    "cohesive_retain",
+    "delete",
+    "merge",
+    "move",
+    "permanent_entrypoint",
+    "split"
+  ],
+  "allowed_statuses": [
+    "complete",
+    "planned"
+  ],
+  "entries": [
+    {
+      "path": "__init__.py",
+      "role": "comfyui-entrypoint",
+      "owner_group": "entrypoint",
+      "disposition": "permanent_entrypoint",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "__init__.py",
+          "role": "comfyui-entrypoint",
+          "owner_group": "entrypoint"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": "__init__.py",
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "anima_prompt/__init__.py",
+      "role": "legacy-anima-prompt-facade",
+      "owner_group": "compatibility",
+      "disposition": "delete",
+      "status": "planned",
+      "targets": [],
+      "direct_contracts": [
+        "tests/test_anima_prompt_compatibility.py"
+      ],
+      "compatibility_registry_key": "anima_prompt/",
+      "task_id": "PTC-09B",
+      "rollback_unit": "Revert the cohesive PTC-09B canonical entrypoint and legacy retirement PR.",
+      "replacement_owner": "easyuse_anima/prompt/anima/__init__.py",
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "anima_prompt/correction.py",
+      "role": "legacy-anima-prompt-facade",
+      "owner_group": "compatibility",
+      "disposition": "delete",
+      "status": "planned",
+      "targets": [],
+      "direct_contracts": [
+        "tests/test_anima_prompt_compatibility.py"
+      ],
+      "compatibility_registry_key": "anima_prompt/",
+      "task_id": "PTC-09B",
+      "rollback_unit": "Revert the cohesive PTC-09B canonical entrypoint and legacy retirement PR.",
+      "replacement_owner": "easyuse_anima/prompt/anima/correction.py",
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "anima_prompt/knowledge.py",
+      "role": "legacy-anima-prompt-facade",
+      "owner_group": "compatibility",
+      "disposition": "delete",
+      "status": "planned",
+      "targets": [],
+      "direct_contracts": [
+        "tests/test_anima_prompt_compatibility.py"
+      ],
+      "compatibility_registry_key": "anima_prompt/",
+      "task_id": "PTC-09B",
+      "rollback_unit": "Revert the cohesive PTC-09B canonical entrypoint and legacy retirement PR.",
+      "replacement_owner": "easyuse_anima/prompt/anima/knowledge.py",
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "anima_prompt/models.py",
+      "role": "legacy-anima-prompt-facade",
+      "owner_group": "compatibility",
+      "disposition": "delete",
+      "status": "planned",
+      "targets": [],
+      "direct_contracts": [
+        "tests/test_anima_prompt_compatibility.py"
+      ],
+      "compatibility_registry_key": "anima_prompt/",
+      "task_id": "PTC-09B",
+      "rollback_unit": "Revert the cohesive PTC-09B canonical entrypoint and legacy retirement PR.",
+      "replacement_owner": "easyuse_anima/prompt/anima/models.py",
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "anima_prompt/normalize.py",
+      "role": "legacy-anima-prompt-facade",
+      "owner_group": "compatibility",
+      "disposition": "delete",
+      "status": "planned",
+      "targets": [],
+      "direct_contracts": [
+        "tests/test_anima_prompt_compatibility.py"
+      ],
+      "compatibility_registry_key": "anima_prompt/",
+      "task_id": "PTC-09B",
+      "rollback_unit": "Revert the cohesive PTC-09B canonical entrypoint and legacy retirement PR.",
+      "replacement_owner": "easyuse_anima/prompt/anima/normalize.py",
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "anima_prompt/ordering.py",
+      "role": "legacy-anima-prompt-facade",
+      "owner_group": "compatibility",
+      "disposition": "delete",
+      "status": "planned",
+      "targets": [],
+      "direct_contracts": [
+        "tests/test_anima_prompt_compatibility.py"
+      ],
+      "compatibility_registry_key": "anima_prompt/",
+      "task_id": "PTC-09B",
+      "rollback_unit": "Revert the cohesive PTC-09B canonical entrypoint and legacy retirement PR.",
+      "replacement_owner": "easyuse_anima/prompt/anima/ordering.py",
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "anima_prompt/parser.py",
+      "role": "legacy-anima-prompt-facade",
+      "owner_group": "compatibility",
+      "disposition": "delete",
+      "status": "planned",
+      "targets": [],
+      "direct_contracts": [
+        "tests/test_anima_prompt_compatibility.py"
+      ],
+      "compatibility_registry_key": "anima_prompt/",
+      "task_id": "PTC-09B",
+      "rollback_unit": "Revert the cohesive PTC-09B canonical entrypoint and legacy retirement PR.",
+      "replacement_owner": "easyuse_anima/prompt/anima/parser.py",
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "api.py",
+      "role": "legacy-api-application-facade",
+      "owner_group": "compatibility",
+      "disposition": "delete",
+      "status": "planned",
+      "targets": [],
+      "direct_contracts": [
+        "tests/test_api_contract.py",
+        "tests/test_python_api_application_lifecycle_contract.py",
+        "tests/test_python_api_facade_lifecycle_contract.py",
+        "tests/test_python_bootstrap.py"
+      ],
+      "compatibility_registry_key": "api.py",
+      "task_id": "PTC-09B",
+      "rollback_unit": "Revert the cohesive PTC-09B canonical entrypoint and legacy retirement PR.",
+      "replacement_owner": "easyuse_anima/api/application.py",
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "api_contract.py",
+      "role": "legacy-api-contract-facade",
+      "owner_group": "compatibility",
+      "disposition": "delete",
+      "status": "planned",
+      "targets": [],
+      "direct_contracts": [
+        "tests/test_api_contract_compatibility.py"
+      ],
+      "compatibility_registry_key": "api_contract.py",
+      "task_id": "PTC-09B",
+      "rollback_unit": "Revert the cohesive PTC-09B canonical entrypoint and legacy retirement PR.",
+      "replacement_owner": "easyuse_anima/api/responses.py",
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "autocomplete_dataset.py",
+      "role": "legacy-autocomplete-dataset-facade",
+      "owner_group": "compatibility",
+      "disposition": "delete",
+      "status": "planned",
+      "targets": [],
+      "direct_contracts": [
+        "tests/test_autocomplete_dataset_compatibility.py"
+      ],
+      "compatibility_registry_key": "autocomplete_dataset.py",
+      "task_id": "PTC-09B",
+      "rollback_unit": "Revert the cohesive PTC-09B canonical entrypoint and legacy retirement PR.",
+      "replacement_owner": "easyuse_anima/autocomplete/dataset.py",
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "autocomplete_index.py",
+      "role": "legacy-autocomplete-index-facade",
+      "owner_group": "compatibility",
+      "disposition": "delete",
+      "status": "planned",
+      "targets": [],
+      "direct_contracts": [
+        "tests/test_autocomplete_index.py"
+      ],
+      "compatibility_registry_key": "autocomplete_index.py",
+      "task_id": "PTC-09B",
+      "rollback_unit": "Revert the cohesive PTC-09B canonical entrypoint and legacy retirement PR.",
+      "replacement_owner": "easyuse_anima/autocomplete/index.py",
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/__init__.py",
+      "role": "package-facade",
+      "owner_group": "package",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/__init__.py",
+          "role": "package-facade",
+          "owner_group": "package"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/aio/__init__.py",
+      "role": "package-facade",
+      "owner_group": "aio",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/aio/__init__.py",
+          "role": "package-facade",
+          "owner_group": "aio"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/aio/conditioning.py",
+      "role": "aio-feature-module",
+      "owner_group": "aio",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/aio/conditioning.py",
+          "role": "aio-feature-module",
+          "owner_group": "aio"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/aio/first_pass_cache.py",
+      "role": "aio-feature-module",
+      "owner_group": "aio",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/aio/first_pass_cache.py",
+          "role": "aio-feature-module",
+          "owner_group": "aio"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/aio/generation_defaults.py",
+      "role": "aio-feature-module",
+      "owner_group": "aio",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/aio/generation_defaults.py",
+          "role": "aio-feature-module",
+          "owner_group": "aio"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/aio/generation_detailer.py",
+      "role": "aio-feature-module",
+      "owner_group": "aio",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/aio/generation_detailer.py",
+          "role": "aio-feature-module",
+          "owner_group": "aio"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/aio/generation_detailer_stage.py",
+      "role": "aio-pipeline-stage",
+      "owner_group": "aio",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/aio/generation_detailer_stage.py",
+          "role": "aio-pipeline-stage",
+          "owner_group": "aio"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/aio/generation_features.py",
+      "role": "aio-feature-module",
+      "owner_group": "aio",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/aio/generation_features.py",
+          "role": "aio-feature-module",
+          "owner_group": "aio"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/aio/generation_first_pass.py",
+      "role": "aio-feature-module",
+      "owner_group": "aio",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/aio/generation_first_pass.py",
+          "role": "aio-feature-module",
+          "owner_group": "aio"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/aio/generation_highres.py",
+      "role": "aio-feature-module",
+      "owner_group": "aio",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/aio/generation_highres.py",
+          "role": "aio-feature-module",
+          "owner_group": "aio"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/aio/generation_lifecycle.py",
+      "role": "aio-feature-module",
+      "owner_group": "aio",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/aio/generation_lifecycle.py",
+          "role": "aio-feature-module",
+          "owner_group": "aio"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/aio/generation_migrations.py",
+      "role": "aio-feature-module",
+      "owner_group": "aio",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/aio/generation_migrations.py",
+          "role": "aio-feature-module",
+          "owner_group": "aio"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/aio/generation_normalization.py",
+      "role": "aio-settings-normalization-facade",
+      "owner_group": "aio",
+      "disposition": "split",
+      "status": "planned",
+      "targets": [
+        {
+          "path": "easyuse_anima/aio/generation_normalization.py",
+          "role": "aio-settings-normalization-facade",
+          "owner_group": "aio"
+        },
+        {
+          "path": "easyuse_anima/aio/generation_normalization_core.py",
+          "role": "aio-core-settings-normalizer",
+          "owner_group": "aio"
+        },
+        {
+          "path": "easyuse_anima/aio/generation_normalization_model.py",
+          "role": "aio-model-settings-normalizer",
+          "owner_group": "aio"
+        },
+        {
+          "path": "easyuse_anima/aio/generation_normalization_stages.py",
+          "role": "aio-stage-settings-normalizer",
+          "owner_group": "aio"
+        }
+      ],
+      "direct_contracts": [
+        "tests/test_aio_generation_migrations.py",
+        "tests/test_aio_generation_settings.py"
+      ],
+      "compatibility_registry_key": null,
+      "task_id": "PTC-02",
+      "rollback_unit": "Revert the cohesive PTC-02 normalization Move PR.",
+      "replacement_owner": null,
+      "size_exception_verdicts": [
+        {
+          "id": "function:easyuse_anima/aio/generation_normalization.py::_normalize_aio_dit_corrections_settings",
+          "verdict": "move_retain_cohesive",
+          "final_owner": "easyuse_anima/aio/generation_normalization_model.py"
+        },
+        {
+          "id": "function:easyuse_anima/aio/generation_normalization.py::_normalize_aio_generation_settings",
+          "verdict": "split",
+          "final_owner": "easyuse_anima/aio/generation_normalization.py"
+        },
+        {
+          "id": "module:easyuse_anima/aio/generation_normalization.py",
+          "verdict": "split",
+          "final_owner": "easyuse_anima/aio/generation_normalization.py"
+        }
+      ]
+    },
+    {
+      "path": "easyuse_anima/aio/generation_output.py",
+      "role": "aio-feature-module",
+      "owner_group": "aio",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/aio/generation_output.py",
+          "role": "aio-feature-module",
+          "owner_group": "aio"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/aio/generation_pipeline.py",
+      "role": "aio-pipeline-stage",
+      "owner_group": "aio",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/aio/generation_pipeline.py",
+          "role": "aio-pipeline-stage",
+          "owner_group": "aio"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/aio/generation_postprocess_stage.py",
+      "role": "aio-pipeline-stage",
+      "owner_group": "aio",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/aio/generation_postprocess_stage.py",
+          "role": "aio-pipeline-stage",
+          "owner_group": "aio"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/aio/generation_sampling.py",
+      "role": "aio-feature-module",
+      "owner_group": "aio",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/aio/generation_sampling.py",
+          "role": "aio-feature-module",
+          "owner_group": "aio"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/aio/generation_save_output_stage.py",
+      "role": "aio-pipeline-stage",
+      "owner_group": "aio",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/aio/generation_save_output_stage.py",
+          "role": "aio-pipeline-stage",
+          "owner_group": "aio"
+        }
+      ],
+      "direct_contracts": [
+        "tests/test_aio_stage_pipeline_contract.py"
+      ],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": [
+        {
+          "id": "function:easyuse_anima/aio/generation_save_output_stage.py::AIOSaveOutputStage.run",
+          "verdict": "cohesive_retain",
+          "final_owner": "easyuse_anima/aio/generation_save_output_stage.py"
+        }
+      ]
+    },
+    {
+      "path": "easyuse_anima/aio/generation_settings.py",
+      "role": "aio-feature-module",
+      "owner_group": "aio",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/aio/generation_settings.py",
+          "role": "aio-feature-module",
+          "owner_group": "aio"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/aio/generation_upscale_stage.py",
+      "role": "aio-pipeline-stage",
+      "owner_group": "aio",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/aio/generation_upscale_stage.py",
+          "role": "aio-pipeline-stage",
+          "owner_group": "aio"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/aio/generation_values.py",
+      "role": "aio-feature-module",
+      "owner_group": "aio",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/aio/generation_values.py",
+          "role": "aio-feature-module",
+          "owner_group": "aio"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/aio/input_context.py",
+      "role": "aio-feature-module",
+      "owner_group": "aio",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/aio/input_context.py",
+          "role": "aio-feature-module",
+          "owner_group": "aio"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/aio/input_defaults.py",
+      "role": "aio-feature-module",
+      "owner_group": "aio",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/aio/input_defaults.py",
+          "role": "aio-feature-module",
+          "owner_group": "aio"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/aio/legacy_generation.py",
+      "role": "aio-legacy-orchestration-facade",
+      "owner_group": "aio",
+      "disposition": "split",
+      "status": "planned",
+      "targets": [
+        {
+          "path": "easyuse_anima/aio/legacy_detailer.py",
+          "role": "aio-legacy-detailer-adapter",
+          "owner_group": "aio"
+        },
+        {
+          "path": "easyuse_anima/aio/legacy_generation.py",
+          "role": "aio-legacy-orchestration-facade",
+          "owner_group": "aio"
+        },
+        {
+          "path": "easyuse_anima/aio/legacy_upscale.py",
+          "role": "aio-legacy-upscale-adapter",
+          "owner_group": "aio"
+        }
+      ],
+      "direct_contracts": [
+        "tests/test_aio_legacy_generation.py",
+        "tests/test_aio_nodes.py",
+        "tests/test_aio_stage_pipeline_contract.py"
+      ],
+      "compatibility_registry_key": null,
+      "task_id": "PTC-03",
+      "rollback_unit": "Revert the cohesive PTC-03 legacy orchestration Move PR.",
+      "replacement_owner": null,
+      "size_exception_verdicts": [
+        {
+          "id": "function:easyuse_anima/aio/legacy_generation.py::_run_aio_generation_pipeline",
+          "verdict": "split",
+          "final_owner": "easyuse_anima/aio/legacy_generation.py"
+        },
+        {
+          "id": "function:easyuse_anima/aio/legacy_generation.py::_run_aio_usdu_upscale_stage",
+          "verdict": "move_retain_cohesive",
+          "final_owner": "easyuse_anima/aio/legacy_upscale.py"
+        },
+        {
+          "id": "module:easyuse_anima/aio/legacy_generation.py",
+          "verdict": "split",
+          "final_owner": "easyuse_anima/aio/legacy_generation.py"
+        }
+      ]
+    },
+    {
+      "path": "easyuse_anima/aio/model_preparation.py",
+      "role": "aio-feature-module",
+      "owner_group": "aio",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/aio/model_preparation.py",
+          "role": "aio-feature-module",
+          "owner_group": "aio"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/aio/negpip.py",
+      "role": "aio-feature-module",
+      "owner_group": "aio",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/aio/negpip.py",
+          "role": "aio-feature-module",
+          "owner_group": "aio"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/aio/output.py",
+      "role": "aio-feature-module",
+      "owner_group": "aio",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/aio/output.py",
+          "role": "aio-feature-module",
+          "owner_group": "aio"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/aio/output_settings.py",
+      "role": "aio-feature-module",
+      "owner_group": "aio",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/aio/output_settings.py",
+          "role": "aio-feature-module",
+          "owner_group": "aio"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/aio/ports.py",
+      "role": "domain-contract",
+      "owner_group": "aio",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/aio/ports.py",
+          "role": "domain-contract",
+          "owner_group": "aio"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/aio/postprocess.py",
+      "role": "aio-feature-module",
+      "owner_group": "aio",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/aio/postprocess.py",
+          "role": "aio-feature-module",
+          "owner_group": "aio"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/aio/preview.py",
+      "role": "aio-feature-module",
+      "owner_group": "aio",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/aio/preview.py",
+          "role": "aio-feature-module",
+          "owner_group": "aio"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/aio/resources.py",
+      "role": "aio-feature-module",
+      "owner_group": "aio",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/aio/resources.py",
+          "role": "aio-feature-module",
+          "owner_group": "aio"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/aio/sampling.py",
+      "role": "aio-feature-module",
+      "owner_group": "aio",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/aio/sampling.py",
+          "role": "aio-feature-module",
+          "owner_group": "aio"
+        }
+      ],
+      "direct_contracts": [
+        "tests/test_aio_stage_pipeline_contract.py"
+      ],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": [
+        {
+          "id": "function:easyuse_anima/aio/sampling.py::_sample_latent_with_spectrum_mod_guidance_advanced",
+          "verdict": "cohesive_retain",
+          "final_owner": "easyuse_anima/aio/sampling.py"
+        }
+      ]
+    },
+    {
+      "path": "easyuse_anima/aio/torch_compile_diagnostics.py",
+      "role": "aio-feature-module",
+      "owner_group": "aio",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/aio/torch_compile_diagnostics.py",
+          "role": "aio-feature-module",
+          "owner_group": "aio"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/aio/torch_compile_recommendation.py",
+      "role": "aio-feature-module",
+      "owner_group": "aio",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/aio/torch_compile_recommendation.py",
+          "role": "aio-feature-module",
+          "owner_group": "aio"
+        }
+      ],
+      "direct_contracts": [
+        "tests/test_aio_torch_compile_recommendation.py"
+      ],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": [
+        {
+          "id": "function:easyuse_anima/aio/torch_compile_recommendation.py::recommend_torch_compile",
+          "verdict": "cohesive_retain",
+          "final_owner": "easyuse_anima/aio/torch_compile_recommendation.py"
+        }
+      ]
+    },
+    {
+      "path": "easyuse_anima/aio/usdu.py",
+      "role": "aio-feature-module",
+      "owner_group": "aio",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/aio/usdu.py",
+          "role": "aio-feature-module",
+          "owner_group": "aio"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/api/__init__.py",
+      "role": "package-facade",
+      "owner_group": "api",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/api/__init__.py",
+          "role": "package-facade",
+          "owner_group": "api"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/api/application.py",
+      "role": "api-application-composition",
+      "owner_group": "api",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/api/application.py",
+          "role": "api-application-composition",
+          "owner_group": "api"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/api/application_compatibility.py",
+      "role": "api-application-composition",
+      "owner_group": "api",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/api/application_compatibility.py",
+          "role": "api-application-composition",
+          "owner_group": "api"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/api/application_routes.py",
+      "role": "api-application-composition",
+      "owner_group": "api",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/api/application_routes.py",
+          "role": "api-application-composition",
+          "owner_group": "api"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/api/dependencies.py",
+      "role": "api-boundary-contract",
+      "owner_group": "api",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/api/dependencies.py",
+          "role": "api-boundary-contract",
+          "owner_group": "api"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/api/errors.py",
+      "role": "api-boundary-contract",
+      "owner_group": "api",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/api/errors.py",
+          "role": "api-boundary-contract",
+          "owner_group": "api"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/api/file_io.py",
+      "role": "api-file-io-adapter",
+      "owner_group": "api",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/api/file_io.py",
+          "role": "api-file-io-adapter",
+          "owner_group": "api"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/api/requests.py",
+      "role": "api-boundary-contract",
+      "owner_group": "api",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/api/requests.py",
+          "role": "api-boundary-contract",
+          "owner_group": "api"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/api/responses.py",
+      "role": "api-boundary-contract",
+      "owner_group": "api",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/api/responses.py",
+          "role": "api-boundary-contract",
+          "owner_group": "api"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/api/router.py",
+      "role": "api-route-registrar",
+      "owner_group": "api",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/api/router.py",
+          "role": "api-route-registrar",
+          "owner_group": "api"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/api/routes/__init__.py",
+      "role": "package-facade",
+      "owner_group": "api",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/api/routes/__init__.py",
+          "role": "package-facade",
+          "owner_group": "api"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/api/routes/aio_profile_mutations.py",
+      "role": "api-route-adapter",
+      "owner_group": "api",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/api/routes/aio_profile_mutations.py",
+          "role": "api-route-adapter",
+          "owner_group": "api"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/api/routes/aio_torch_compile.py",
+      "role": "api-route-adapter",
+      "owner_group": "api",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/api/routes/aio_torch_compile.py",
+          "role": "api-route-adapter",
+          "owner_group": "api"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/api/routes/autocomplete.py",
+      "role": "api-route-adapter",
+      "owner_group": "api",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/api/routes/autocomplete.py",
+          "role": "api-route-adapter",
+          "owner_group": "api"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/api/routes/long_text_settings.py",
+      "role": "api-route-adapter",
+      "owner_group": "api",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/api/routes/long_text_settings.py",
+          "role": "api-route-adapter",
+          "owner_group": "api"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/api/routes/lora_catalog.py",
+      "role": "api-route-adapter",
+      "owner_group": "api",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/api/routes/lora_catalog.py",
+          "role": "api-route-adapter",
+          "owner_group": "api"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/api/routes/lora_preview.py",
+      "role": "api-route-adapter",
+      "owner_group": "api",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/api/routes/lora_preview.py",
+          "role": "api-route-adapter",
+          "owner_group": "api"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/api/routes/lora_profile_fix.py",
+      "role": "api-route-adapter",
+      "owner_group": "api",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/api/routes/lora_profile_fix.py",
+          "role": "api-route-adapter",
+          "owner_group": "api"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/api/routes/profile_lists.py",
+      "role": "api-route-adapter",
+      "owner_group": "api",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/api/routes/profile_lists.py",
+          "role": "api-route-adapter",
+          "owner_group": "api"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/api/routes/profile_loads.py",
+      "role": "api-route-adapter",
+      "owner_group": "api",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/api/routes/profile_loads.py",
+          "role": "api-route-adapter",
+          "owner_group": "api"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/api/routes/profile_saves.py",
+      "role": "api-route-adapter",
+      "owner_group": "api",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/api/routes/profile_saves.py",
+          "role": "api-route-adapter",
+          "owner_group": "api"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/api/routes/settings.py",
+      "role": "api-route-adapter",
+      "owner_group": "api",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/api/routes/settings.py",
+          "role": "api-route-adapter",
+          "owner_group": "api"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/api/routes/translation.py",
+      "role": "api-route-adapter",
+      "owner_group": "api",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/api/routes/translation.py",
+          "role": "api-route-adapter",
+          "owner_group": "api"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/api/routes/translation_execution.py",
+      "role": "api-route-adapter",
+      "owner_group": "api",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/api/routes/translation_execution.py",
+          "role": "api-route-adapter",
+          "owner_group": "api"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/api/routes/wildcards.py",
+      "role": "api-route-adapter",
+      "owner_group": "api",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/api/routes/wildcards.py",
+          "role": "api-route-adapter",
+          "owner_group": "api"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/autocomplete/__init__.py",
+      "role": "package-facade",
+      "owner_group": "autocomplete",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/autocomplete/__init__.py",
+          "role": "package-facade",
+          "owner_group": "autocomplete"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/autocomplete/classification.py",
+      "role": "autocomplete-feature-module",
+      "owner_group": "autocomplete",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/autocomplete/classification.py",
+          "role": "autocomplete-feature-module",
+          "owner_group": "autocomplete"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/autocomplete/contracts.py",
+      "role": "domain-contract",
+      "owner_group": "autocomplete",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/autocomplete/contracts.py",
+          "role": "domain-contract",
+          "owner_group": "autocomplete"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/autocomplete/dataset.py",
+      "role": "autocomplete-feature-module",
+      "owner_group": "autocomplete",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/autocomplete/dataset.py",
+          "role": "autocomplete-feature-module",
+          "owner_group": "autocomplete"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/autocomplete/index.py",
+      "role": "autocomplete-feature-module",
+      "owner_group": "autocomplete",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/autocomplete/index.py",
+          "role": "autocomplete-feature-module",
+          "owner_group": "autocomplete"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/autocomplete/ports.py",
+      "role": "domain-contract",
+      "owner_group": "autocomplete",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/autocomplete/ports.py",
+          "role": "domain-contract",
+          "owner_group": "autocomplete"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/autocomplete/search.py",
+      "role": "autocomplete-feature-module",
+      "owner_group": "autocomplete",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/autocomplete/search.py",
+          "role": "autocomplete-feature-module",
+          "owner_group": "autocomplete"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/autocomplete/service.py",
+      "role": "feature-service",
+      "owner_group": "autocomplete",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/autocomplete/service.py",
+          "role": "feature-service",
+          "owner_group": "autocomplete"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/bootstrap.py",
+      "role": "lifecycle-composition-root",
+      "owner_group": "runtime-bootstrap",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/bootstrap.py",
+          "role": "lifecycle-composition-root",
+          "owner_group": "runtime-bootstrap"
+        }
+      ],
+      "direct_contracts": [
+        "tests/test_python_bootstrap.py",
+        "tests/test_python_runtime_lifecycle_contract.py"
+      ],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": [
+        {
+          "id": "function:easyuse_anima/bootstrap.py::initialize",
+          "verdict": "cohesive_retain",
+          "final_owner": "easyuse_anima/bootstrap.py"
+        },
+        {
+          "id": "module:easyuse_anima/bootstrap.py",
+          "verdict": "cohesive_retain",
+          "final_owner": "easyuse_anima/bootstrap.py"
+        }
+      ]
+    },
+    {
+      "path": "easyuse_anima/common/__init__.py",
+      "role": "package-facade",
+      "owner_group": "common",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/common/__init__.py",
+          "role": "package-facade",
+          "owner_group": "common"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/common/serialization.py",
+      "role": "common-feature-module",
+      "owner_group": "common",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/common/serialization.py",
+          "role": "common-feature-module",
+          "owner_group": "common"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/common/values.py",
+      "role": "common-feature-module",
+      "owner_group": "common",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/common/values.py",
+          "role": "common-feature-module",
+          "owner_group": "common"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/errors.py",
+      "role": "common-feature-module",
+      "owner_group": "common",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/errors.py",
+          "role": "common-feature-module",
+          "owner_group": "common"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/image/__init__.py",
+      "role": "package-facade",
+      "owner_group": "image",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/image/__init__.py",
+          "role": "package-facade",
+          "owner_group": "image"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/image/detailer.py",
+      "role": "image-feature-module",
+      "owner_group": "image",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/image/detailer.py",
+          "role": "image-feature-module",
+          "owner_group": "image"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/image/geometry.py",
+      "role": "image-feature-module",
+      "owner_group": "image",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/image/geometry.py",
+          "role": "image-feature-module",
+          "owner_group": "image"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/image/sam3.py",
+      "role": "image-feature-module",
+      "owner_group": "image",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/image/sam3.py",
+          "role": "image-feature-module",
+          "owner_group": "image"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/image/sam3_detailer.py",
+      "role": "image-feature-module",
+      "owner_group": "image",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/image/sam3_detailer.py",
+          "role": "image-feature-module",
+          "owner_group": "image"
+        }
+      ],
+      "direct_contracts": [
+        "tests/test_sam3_nodes.py"
+      ],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": [
+        {
+          "id": "function:easyuse_anima/image/sam3_detailer.py::_run_sam3_detailer",
+          "verdict": "cohesive_retain",
+          "final_owner": "easyuse_anima/image/sam3_detailer.py"
+        }
+      ]
+    },
+    {
+      "path": "easyuse_anima/image/scaling.py",
+      "role": "image-feature-module",
+      "owner_group": "image",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/image/scaling.py",
+          "role": "image-feature-module",
+          "owner_group": "image"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/image/upscale.py",
+      "role": "image-feature-module",
+      "owner_group": "image",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/image/upscale.py",
+          "role": "image-feature-module",
+          "owner_group": "image"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/infrastructure/__init__.py",
+      "role": "package-facade",
+      "owner_group": "infrastructure",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/infrastructure/__init__.py",
+          "role": "package-facade",
+          "owner_group": "infrastructure"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/infrastructure/comfy/__init__.py",
+      "role": "package-facade",
+      "owner_group": "infrastructure",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/infrastructure/comfy/__init__.py",
+          "role": "package-facade",
+          "owner_group": "infrastructure"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/infrastructure/comfy/capabilities.py",
+      "role": "infrastructure-adapter",
+      "owner_group": "infrastructure",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/infrastructure/comfy/capabilities.py",
+          "role": "infrastructure-adapter",
+          "owner_group": "infrastructure"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/infrastructure/comfy/invocation.py",
+      "role": "infrastructure-adapter",
+      "owner_group": "infrastructure",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/infrastructure/comfy/invocation.py",
+          "role": "infrastructure-adapter",
+          "owner_group": "infrastructure"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/infrastructure/comfy/provider.py",
+      "role": "provider-adapter",
+      "owner_group": "infrastructure",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/infrastructure/comfy/provider.py",
+          "role": "provider-adapter",
+          "owner_group": "infrastructure"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/infrastructure/comfy/resources.py",
+      "role": "infrastructure-adapter",
+      "owner_group": "infrastructure",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/infrastructure/comfy/resources.py",
+          "role": "infrastructure-adapter",
+          "owner_group": "infrastructure"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/infrastructure/comfy/wiring.py",
+      "role": "infrastructure-adapter",
+      "owner_group": "infrastructure",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/infrastructure/comfy/wiring.py",
+          "role": "infrastructure-adapter",
+          "owner_group": "infrastructure"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/infrastructure/filesystem/__init__.py",
+      "role": "package-facade",
+      "owner_group": "infrastructure",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/infrastructure/filesystem/__init__.py",
+          "role": "package-facade",
+          "owner_group": "infrastructure"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/infrastructure/filesystem/atomic_json.py",
+      "role": "infrastructure-adapter",
+      "owner_group": "infrastructure",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/infrastructure/filesystem/atomic_json.py",
+          "role": "infrastructure-adapter",
+          "owner_group": "infrastructure"
+        }
+      ],
+      "direct_contracts": [
+        "tests/test_python_repository_filesystem_contract.py"
+      ],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": [
+        {
+          "id": "function:easyuse_anima/infrastructure/filesystem/atomic_json.py::AtomicJsonStore.replace_from",
+          "verdict": "cohesive_retain",
+          "final_owner": "easyuse_anima/infrastructure/filesystem/atomic_json.py"
+        },
+        {
+          "id": "module:easyuse_anima/infrastructure/filesystem/atomic_json.py",
+          "verdict": "cohesive_retain",
+          "final_owner": "easyuse_anima/infrastructure/filesystem/atomic_json.py"
+        }
+      ]
+    },
+    {
+      "path": "easyuse_anima/infrastructure/filesystem/paths.py",
+      "role": "infrastructure-adapter",
+      "owner_group": "infrastructure",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/infrastructure/filesystem/paths.py",
+          "role": "infrastructure-adapter",
+          "owner_group": "infrastructure"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/lora/__init__.py",
+      "role": "package-facade",
+      "owner_group": "lora",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/lora/__init__.py",
+          "role": "package-facade",
+          "owner_group": "lora"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/lora/metadata.py",
+      "role": "lora-feature-module",
+      "owner_group": "lora",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/lora/metadata.py",
+          "role": "lora-feature-module",
+          "owner_group": "lora"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/lora/preset.py",
+      "role": "lora-feature-module",
+      "owner_group": "lora",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/lora/preset.py",
+          "role": "lora-feature-module",
+          "owner_group": "lora"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/naia/__init__.py",
+      "role": "package-facade",
+      "owner_group": "naia",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/naia/__init__.py",
+          "role": "package-facade",
+          "owner_group": "naia"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/naia/client.py",
+      "role": "naia-feature-module",
+      "owner_group": "naia",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/naia/client.py",
+          "role": "naia-feature-module",
+          "owner_group": "naia"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/naia/resolution.py",
+      "role": "naia-feature-module",
+      "owner_group": "naia",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/naia/resolution.py",
+          "role": "naia-feature-module",
+          "owner_group": "naia"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/nodes/__init__.py",
+      "role": "package-facade",
+      "owner_group": "nodes",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/nodes/__init__.py",
+          "role": "package-facade",
+          "owner_group": "nodes"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/nodes/aio_nodes.py",
+      "role": "comfyui-node-adapter",
+      "owner_group": "nodes",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/nodes/aio_nodes.py",
+          "role": "comfyui-node-adapter",
+          "owner_group": "nodes"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/nodes/image_nodes.py",
+      "role": "comfyui-node-adapter",
+      "owner_group": "nodes",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/nodes/image_nodes.py",
+          "role": "comfyui-node-adapter",
+          "owner_group": "nodes"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/nodes/impact_detailer_nodes.py",
+      "role": "comfyui-node-adapter",
+      "owner_group": "nodes",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/nodes/impact_detailer_nodes.py",
+          "role": "comfyui-node-adapter",
+          "owner_group": "nodes"
+        }
+      ],
+      "direct_contracts": [
+        "tests/test_node_contracts.py"
+      ],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": [
+        {
+          "id": "function:easyuse_anima/nodes/impact_detailer_nodes.py::_EasyUseAnimaImpactDetailerDelegate.INPUT_TYPES",
+          "verdict": "cohesive_retain",
+          "final_owner": "easyuse_anima/nodes/impact_detailer_nodes.py"
+        }
+      ]
+    },
+    {
+      "path": "easyuse_anima/nodes/input_types.py",
+      "role": "comfyui-node-adapter",
+      "owner_group": "nodes",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/nodes/input_types.py",
+          "role": "comfyui-node-adapter",
+          "owner_group": "nodes"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/nodes/lora_nodes.py",
+      "role": "comfyui-node-adapter",
+      "owner_group": "nodes",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/nodes/lora_nodes.py",
+          "role": "comfyui-node-adapter",
+          "owner_group": "nodes"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/nodes/naia_nodes.py",
+      "role": "naia-node-schema-adapter",
+      "owner_group": "nodes",
+      "disposition": "split",
+      "status": "planned",
+      "targets": [
+        {
+          "path": "easyuse_anima/naia/random_prompt.py",
+          "role": "naia-random-prompt-service",
+          "owner_group": "naia"
+        },
+        {
+          "path": "easyuse_anima/nodes/naia_nodes.py",
+          "role": "naia-node-schema-adapter",
+          "owner_group": "nodes"
+        }
+      ],
+      "direct_contracts": [
+        "tests/test_naia_settings.py",
+        "tests/test_node_contracts.py",
+        "tests/test_workflows.py"
+      ],
+      "compatibility_registry_key": null,
+      "task_id": "PTC-06",
+      "rollback_unit": "Revert the cohesive PTC-06 NAIA vertical Move PR.",
+      "replacement_owner": null,
+      "size_exception_verdicts": [
+        {
+          "id": "function:easyuse_anima/nodes/naia_nodes.py::EasyUseAnimaNAIARandomPrompt.INPUT_TYPES",
+          "verdict": "cohesive_retain",
+          "final_owner": "easyuse_anima/nodes/naia_nodes.py"
+        },
+        {
+          "id": "function:easyuse_anima/nodes/naia_nodes.py::EasyUseAnimaNAIARandomPrompt.request",
+          "verdict": "split",
+          "final_owner": "easyuse_anima/naia/random_prompt.py"
+        },
+        {
+          "id": "module:easyuse_anima/nodes/naia_nodes.py",
+          "verdict": "split",
+          "final_owner": "easyuse_anima/nodes/naia_nodes.py"
+        }
+      ]
+    },
+    {
+      "path": "easyuse_anima/nodes/prompt_advanced_nodes.py",
+      "role": "prompt-advanced-node-schema-adapter",
+      "owner_group": "nodes",
+      "disposition": "split",
+      "status": "planned",
+      "targets": [
+        {
+          "path": "easyuse_anima/nodes/prompt_advanced_execution.py",
+          "role": "prompt-advanced-execution-adapter",
+          "owner_group": "nodes"
+        },
+        {
+          "path": "easyuse_anima/nodes/prompt_advanced_nodes.py",
+          "role": "prompt-advanced-node-schema-adapter",
+          "owner_group": "nodes"
+        }
+      ],
+      "direct_contracts": [
+        "tests/test_node_contracts.py",
+        "tests/test_prompt_studio_seed_cutover.py",
+        "tests/test_workflows.py"
+      ],
+      "compatibility_registry_key": null,
+      "task_id": "PTC-07A",
+      "rollback_unit": "Revert the cohesive PTC-07A advanced node-adapter Move PR.",
+      "replacement_owner": null,
+      "size_exception_verdicts": [
+        {
+          "id": "function:easyuse_anima/nodes/prompt_advanced_nodes.py::EasyUseAnimaPromptStudioAdvanced.build",
+          "verdict": "split",
+          "final_owner": "easyuse_anima/nodes/prompt_advanced_execution.py"
+        },
+        {
+          "id": "function:easyuse_anima/nodes/prompt_advanced_nodes.py::EasyUseAnimaPromptStudioAdvancedV2._build_with_seed",
+          "verdict": "split",
+          "final_owner": "easyuse_anima/nodes/prompt_advanced_execution.py"
+        },
+        {
+          "id": "module:easyuse_anima/nodes/prompt_advanced_nodes.py",
+          "verdict": "split",
+          "final_owner": "easyuse_anima/nodes/prompt_advanced_nodes.py"
+        }
+      ]
+    },
+    {
+      "path": "easyuse_anima/nodes/prompt_data_nodes.py",
+      "role": "prompt-data-node-schema-adapter",
+      "owner_group": "nodes",
+      "disposition": "split",
+      "status": "planned",
+      "targets": [
+        {
+          "path": "easyuse_anima/nodes/artist_mix_conditioning_adapter.py",
+          "role": "artist-mix-node-conditioning-adapter",
+          "owner_group": "nodes"
+        },
+        {
+          "path": "easyuse_anima/nodes/prompt_data_conditioning_adapter.py",
+          "role": "prompt-data-node-conditioning-adapter",
+          "owner_group": "nodes"
+        },
+        {
+          "path": "easyuse_anima/nodes/prompt_data_nodes.py",
+          "role": "prompt-data-node-schema-adapter",
+          "owner_group": "nodes"
+        }
+      ],
+      "direct_contracts": [
+        "tests/test_node_contracts.py",
+        "tests/test_prompt_corrector.py",
+        "tests/test_workflows.py"
+      ],
+      "compatibility_registry_key": null,
+      "task_id": "PTC-07B",
+      "rollback_unit": "Revert the cohesive PTC-07B prompt-data adapter Move PR.",
+      "replacement_owner": null,
+      "size_exception_verdicts": [
+        {
+          "id": "module:easyuse_anima/nodes/prompt_data_nodes.py",
+          "verdict": "split",
+          "final_owner": "easyuse_anima/nodes/prompt_data_nodes.py"
+        }
+      ]
+    },
+    {
+      "path": "easyuse_anima/nodes/prompt_nodes.py",
+      "role": "comfyui-node-adapter",
+      "owner_group": "nodes",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/nodes/prompt_nodes.py",
+          "role": "comfyui-node-adapter",
+          "owner_group": "nodes"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/nodes/regional_nodes.py",
+      "role": "regional-node-schema-adapter",
+      "owner_group": "nodes",
+      "disposition": "split",
+      "status": "planned",
+      "targets": [
+        {
+          "path": "easyuse_anima/nodes/regional_conditioning_adapter.py",
+          "role": "regional-node-conditioning-adapter",
+          "owner_group": "nodes"
+        },
+        {
+          "path": "easyuse_anima/nodes/regional_nodes.py",
+          "role": "regional-node-schema-adapter",
+          "owner_group": "nodes"
+        }
+      ],
+      "direct_contracts": [
+        "tests/test_node_contracts.py",
+        "tests/test_prompt_studio_regional.py",
+        "tests/test_workflows.py"
+      ],
+      "compatibility_registry_key": null,
+      "task_id": "PTC-07A",
+      "rollback_unit": "Revert the cohesive PTC-07A regional node-adapter Move PR.",
+      "replacement_owner": null,
+      "size_exception_verdicts": [
+        {
+          "id": "module:easyuse_anima/nodes/regional_nodes.py",
+          "verdict": "split",
+          "final_owner": "easyuse_anima/nodes/regional_nodes.py"
+        }
+      ]
+    },
+    {
+      "path": "easyuse_anima/nodes/sam3_nodes.py",
+      "role": "comfyui-node-adapter",
+      "owner_group": "nodes",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/nodes/sam3_nodes.py",
+          "role": "comfyui-node-adapter",
+          "owner_group": "nodes"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/nodes/seed_adapters.py",
+      "role": "comfyui-node-adapter",
+      "owner_group": "nodes",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/nodes/seed_adapters.py",
+          "role": "comfyui-node-adapter",
+          "owner_group": "nodes"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/nodes/wildcard_nodes.py",
+      "role": "comfyui-node-adapter",
+      "owner_group": "nodes",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/nodes/wildcard_nodes.py",
+          "role": "comfyui-node-adapter",
+          "owner_group": "nodes"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/profiles/__init__.py",
+      "role": "package-facade",
+      "owner_group": "profiles",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/profiles/__init__.py",
+          "role": "package-facade",
+          "owner_group": "profiles"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/profiles/aio.py",
+      "role": "profiles-feature-module",
+      "owner_group": "profiles",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/profiles/aio.py",
+          "role": "profiles-feature-module",
+          "owner_group": "profiles"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/profiles/contract.py",
+      "role": "profiles-feature-module",
+      "owner_group": "profiles",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/profiles/contract.py",
+          "role": "profiles-feature-module",
+          "owner_group": "profiles"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/profiles/lora.py",
+      "role": "profiles-feature-module",
+      "owner_group": "profiles",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/profiles/lora.py",
+          "role": "profiles-feature-module",
+          "owner_group": "profiles"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/profiles/mutation.py",
+      "role": "profiles-feature-module",
+      "owner_group": "profiles",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/profiles/mutation.py",
+          "role": "profiles-feature-module",
+          "owner_group": "profiles"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/profiles/repository.py",
+      "role": "persistence-repository",
+      "owner_group": "profiles",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/profiles/repository.py",
+          "role": "persistence-repository",
+          "owner_group": "profiles"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/prompt/__init__.py",
+      "role": "package-facade",
+      "owner_group": "prompt",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/prompt/__init__.py",
+          "role": "package-facade",
+          "owner_group": "prompt"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/prompt/advanced.py",
+      "role": "advanced-prompt-service-facade",
+      "owner_group": "prompt",
+      "disposition": "split",
+      "status": "planned",
+      "targets": [
+        {
+          "path": "easyuse_anima/prompt/advanced.py",
+          "role": "advanced-prompt-service-facade",
+          "owner_group": "prompt"
+        },
+        {
+          "path": "easyuse_anima/prompt/advanced_builder.py",
+          "role": "advanced-prompt-data-builder",
+          "owner_group": "prompt"
+        },
+        {
+          "path": "easyuse_anima/prompt/advanced_fields.py",
+          "role": "advanced-field-normalization-service",
+          "owner_group": "prompt"
+        }
+      ],
+      "direct_contracts": [
+        "tests/test_prompt_corrector.py",
+        "tests/test_prompt_studio_seed_cutover.py",
+        "tests/test_workflows.py"
+      ],
+      "compatibility_registry_key": null,
+      "task_id": "PTC-04",
+      "rollback_unit": "Revert the cohesive PTC-04 advanced prompt service Move PR.",
+      "replacement_owner": null,
+      "size_exception_verdicts": [
+        {
+          "id": "function:easyuse_anima/prompt/advanced.py::_build_advanced_prompt_data",
+          "verdict": "split",
+          "final_owner": "easyuse_anima/prompt/advanced_builder.py"
+        },
+        {
+          "id": "module:easyuse_anima/prompt/advanced.py",
+          "verdict": "split",
+          "final_owner": "easyuse_anima/prompt/advanced.py"
+        }
+      ]
+    },
+    {
+      "path": "easyuse_anima/prompt/anima/__init__.py",
+      "role": "package-facade",
+      "owner_group": "prompt",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/prompt/anima/__init__.py",
+          "role": "package-facade",
+          "owner_group": "prompt"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/prompt/anima/correction.py",
+      "role": "prompt-feature-module",
+      "owner_group": "prompt",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/prompt/anima/correction.py",
+          "role": "prompt-feature-module",
+          "owner_group": "prompt"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/prompt/anima/knowledge.py",
+      "role": "prompt-feature-module",
+      "owner_group": "prompt",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/prompt/anima/knowledge.py",
+          "role": "prompt-feature-module",
+          "owner_group": "prompt"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/prompt/anima/models.py",
+      "role": "domain-contract",
+      "owner_group": "prompt",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/prompt/anima/models.py",
+          "role": "domain-contract",
+          "owner_group": "prompt"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/prompt/anima/normalize.py",
+      "role": "prompt-feature-module",
+      "owner_group": "prompt",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/prompt/anima/normalize.py",
+          "role": "prompt-feature-module",
+          "owner_group": "prompt"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/prompt/anima/ordering.py",
+      "role": "prompt-feature-module",
+      "owner_group": "prompt",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/prompt/anima/ordering.py",
+          "role": "prompt-feature-module",
+          "owner_group": "prompt"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/prompt/anima/parser.py",
+      "role": "prompt-feature-module",
+      "owner_group": "prompt",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/prompt/anima/parser.py",
+          "role": "prompt-feature-module",
+          "owner_group": "prompt"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/prompt/artist_mix.py",
+      "role": "artist-mix-service-facade",
+      "owner_group": "prompt",
+      "disposition": "split",
+      "status": "planned",
+      "targets": [
+        {
+          "path": "easyuse_anima/prompt/artist_mix.py",
+          "role": "artist-mix-service-facade",
+          "owner_group": "prompt"
+        },
+        {
+          "path": "easyuse_anima/prompt/artist_mix_conditioning.py",
+          "role": "artist-mix-conditioning-service",
+          "owner_group": "prompt"
+        },
+        {
+          "path": "easyuse_anima/prompt/artist_mix_config.py",
+          "role": "artist-mix-config-service",
+          "owner_group": "prompt"
+        },
+        {
+          "path": "easyuse_anima/prompt/artist_mix_planning.py",
+          "role": "artist-mix-planning-service",
+          "owner_group": "prompt"
+        }
+      ],
+      "direct_contracts": [
+        "tests/test_node_contracts.py",
+        "tests/test_prompt_corrector.py"
+      ],
+      "compatibility_registry_key": null,
+      "task_id": "PTC-05",
+      "rollback_unit": "Revert the cohesive PTC-05 Artist Mix service Move PR.",
+      "replacement_owner": null,
+      "size_exception_verdicts": [
+        {
+          "id": "function:easyuse_anima/prompt/artist_mix.py::_encode_artist_clustered",
+          "verdict": "split",
+          "final_owner": "easyuse_anima/prompt/artist_mix_conditioning.py"
+        },
+        {
+          "id": "function:easyuse_anima/prompt/artist_mix.py::_encode_prompt_data_positive_conditioning",
+          "verdict": "split",
+          "final_owner": "easyuse_anima/prompt/artist_mix_conditioning.py"
+        },
+        {
+          "id": "function:easyuse_anima/prompt/artist_mix.py::_prompt_data_artist_mix_config",
+          "verdict": "move_retain_cohesive",
+          "final_owner": "easyuse_anima/prompt/artist_mix_config.py"
+        },
+        {
+          "id": "module:easyuse_anima/prompt/artist_mix.py",
+          "verdict": "split",
+          "final_owner": "easyuse_anima/prompt/artist_mix.py"
+        }
+      ]
+    },
+    {
+      "path": "easyuse_anima/prompt/artist_mix_primitives.py",
+      "role": "prompt-feature-module",
+      "owner_group": "prompt",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/prompt/artist_mix_primitives.py",
+          "role": "prompt-feature-module",
+          "owner_group": "prompt"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/prompt/conditioning.py",
+      "role": "prompt-feature-module",
+      "owner_group": "prompt",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/prompt/conditioning.py",
+          "role": "prompt-feature-module",
+          "owner_group": "prompt"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/prompt/contracts.py",
+      "role": "domain-contract",
+      "owner_group": "prompt",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/prompt/contracts.py",
+          "role": "domain-contract",
+          "owner_group": "prompt"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/prompt/correction.py",
+      "role": "prompt-feature-module",
+      "owner_group": "prompt",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/prompt/correction.py",
+          "role": "prompt-feature-module",
+          "owner_group": "prompt"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/prompt/data.py",
+      "role": "prompt-feature-module",
+      "owner_group": "prompt",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/prompt/data.py",
+          "role": "prompt-feature-module",
+          "owner_group": "prompt"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/prompt/fields.py",
+      "role": "prompt-feature-module",
+      "owner_group": "prompt",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/prompt/fields.py",
+          "role": "prompt-feature-module",
+          "owner_group": "prompt"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/prompt/regional.py",
+      "role": "regional-prompt-service-facade",
+      "owner_group": "prompt",
+      "disposition": "split",
+      "status": "planned",
+      "targets": [
+        {
+          "path": "easyuse_anima/prompt/regional.py",
+          "role": "regional-prompt-service-facade",
+          "owner_group": "prompt"
+        },
+        {
+          "path": "easyuse_anima/prompt/regional_builder.py",
+          "role": "regional-prompt-output-builder",
+          "owner_group": "prompt"
+        }
+      ],
+      "direct_contracts": [
+        "tests/test_prompt_corrector.py",
+        "tests/test_prompt_studio_regional.py",
+        "tests/test_workflows.py"
+      ],
+      "compatibility_registry_key": null,
+      "task_id": "PTC-04",
+      "rollback_unit": "Revert the cohesive PTC-04 regional prompt service Move PR.",
+      "replacement_owner": null,
+      "size_exception_verdicts": [
+        {
+          "id": "function:easyuse_anima/prompt/regional.py::_build_regional_outputs",
+          "verdict": "split",
+          "final_owner": "easyuse_anima/prompt/regional_builder.py"
+        }
+      ]
+    },
+    {
+      "path": "easyuse_anima/registration.py",
+      "role": "node-registration-owner",
+      "owner_group": "nodes",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/registration.py",
+          "role": "node-registration-owner",
+          "owner_group": "nodes"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/runtime.py",
+      "role": "runtime-services-owner",
+      "owner_group": "runtime-bootstrap",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/runtime.py",
+          "role": "runtime-services-owner",
+          "owner_group": "runtime-bootstrap"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/seed/__init__.py",
+      "role": "package-facade",
+      "owner_group": "seed",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/seed/__init__.py",
+          "role": "package-facade",
+          "owner_group": "seed"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/seed/compatibility.py",
+      "role": "seed-feature-module",
+      "owner_group": "seed",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/seed/compatibility.py",
+          "role": "seed-feature-module",
+          "owner_group": "seed"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/seed/execution_identity.py",
+      "role": "seed-feature-module",
+      "owner_group": "seed",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/seed/execution_identity.py",
+          "role": "seed-feature-module",
+          "owner_group": "seed"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/seed/execution_session.py",
+      "role": "seed-feature-module",
+      "owner_group": "seed",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/seed/execution_session.py",
+          "role": "seed-feature-module",
+          "owner_group": "seed"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/seed/reservation.py",
+      "role": "seed-feature-module",
+      "owner_group": "seed",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/seed/reservation.py",
+          "role": "seed-feature-module",
+          "owner_group": "seed"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/seed/service.py",
+      "role": "feature-service",
+      "owner_group": "seed",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/seed/service.py",
+          "role": "feature-service",
+          "owner_group": "seed"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/settings/__init__.py",
+      "role": "package-facade",
+      "owner_group": "settings",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/settings/__init__.py",
+          "role": "package-facade",
+          "owner_group": "settings"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/settings/repository.py",
+      "role": "persistence-repository",
+      "owner_group": "settings",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/settings/repository.py",
+          "role": "persistence-repository",
+          "owner_group": "settings"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/settings/schema.py",
+      "role": "domain-contract",
+      "owner_group": "settings",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/settings/schema.py",
+          "role": "domain-contract",
+          "owner_group": "settings"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/settings/service.py",
+      "role": "feature-service",
+      "owner_group": "settings",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/settings/service.py",
+          "role": "feature-service",
+          "owner_group": "settings"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/translation/__init__.py",
+      "role": "package-facade",
+      "owner_group": "translation",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/translation/__init__.py",
+          "role": "package-facade",
+          "owner_group": "translation"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/translation/contracts.py",
+      "role": "domain-contract",
+      "owner_group": "translation",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/translation/contracts.py",
+          "role": "domain-contract",
+          "owner_group": "translation"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/translation/markers.py",
+      "role": "translation-feature-module",
+      "owner_group": "translation",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/translation/markers.py",
+          "role": "translation-feature-module",
+          "owner_group": "translation"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/translation/ports.py",
+      "role": "domain-contract",
+      "owner_group": "translation",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/translation/ports.py",
+          "role": "domain-contract",
+          "owner_group": "translation"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/translation/provider_registry.py",
+      "role": "provider-adapter",
+      "owner_group": "translation",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/translation/provider_registry.py",
+          "role": "provider-adapter",
+          "owner_group": "translation"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/translation/providers/__init__.py",
+      "role": "package-facade",
+      "owner_group": "translation",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/translation/providers/__init__.py",
+          "role": "package-facade",
+          "owner_group": "translation"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/translation/providers/google.py",
+      "role": "translation-feature-module",
+      "owner_group": "translation",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/translation/providers/google.py",
+          "role": "translation-feature-module",
+          "owner_group": "translation"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/translation/service.py",
+      "role": "feature-service",
+      "owner_group": "translation",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/translation/service.py",
+          "role": "feature-service",
+          "owner_group": "translation"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/wildcard/__init__.py",
+      "role": "package-facade",
+      "owner_group": "wildcard",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/wildcard/__init__.py",
+          "role": "package-facade",
+          "owner_group": "wildcard"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/wildcard/expansion.py",
+      "role": "wildcard-feature-module",
+      "owner_group": "wildcard",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/wildcard/expansion.py",
+          "role": "wildcard-feature-module",
+          "owner_group": "wildcard"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/wildcard/library.py",
+      "role": "wildcard-feature-module",
+      "owner_group": "wildcard",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/wildcard/library.py",
+          "role": "wildcard-feature-module",
+          "owner_group": "wildcard"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/wildcard/mode.py",
+      "role": "wildcard-feature-module",
+      "owner_group": "wildcard",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/wildcard/mode.py",
+          "role": "wildcard-feature-module",
+          "owner_group": "wildcard"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/wildcard/models.py",
+      "role": "domain-contract",
+      "owner_group": "wildcard",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/wildcard/models.py",
+          "role": "domain-contract",
+          "owner_group": "wildcard"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/wildcard/ports.py",
+      "role": "domain-contract",
+      "owner_group": "wildcard",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/wildcard/ports.py",
+          "role": "domain-contract",
+          "owner_group": "wildcard"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/wildcard/seed.py",
+      "role": "wildcard-feature-module",
+      "owner_group": "wildcard",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/wildcard/seed.py",
+          "role": "wildcard-feature-module",
+          "owner_group": "wildcard"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/wildcard/selector.py",
+      "role": "wildcard-feature-module",
+      "owner_group": "wildcard",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/wildcard/selector.py",
+          "role": "wildcard-feature-module",
+          "owner_group": "wildcard"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/wildcard/service.py",
+      "role": "feature-service",
+      "owner_group": "wildcard",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/wildcard/service.py",
+          "role": "feature-service",
+          "owner_group": "wildcard"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/wildcard/snapshot.py",
+      "role": "wildcard-feature-module",
+      "owner_group": "wildcard",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/wildcard/snapshot.py",
+          "role": "wildcard-feature-module",
+          "owner_group": "wildcard"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/wildcard/sources.py",
+      "role": "wildcard-feature-module",
+      "owner_group": "wildcard",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/wildcard/sources.py",
+          "role": "wildcard-feature-module",
+          "owner_group": "wildcard"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/workflow.py",
+      "role": "workflow-query-service",
+      "owner_group": "settings",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/workflow.py",
+          "role": "workflow-query-service",
+          "owner_group": "settings"
+        }
+      ],
+      "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "nodes.py",
+      "role": "legacy-node-and-helper-facade",
+      "owner_group": "compatibility",
+      "disposition": "delete",
+      "status": "planned",
+      "targets": [],
+      "direct_contracts": [
+        "tests/test_node_contracts.py",
+        "tests/test_python_compatibility_surface.py"
+      ],
+      "compatibility_registry_key": "nodes.py",
+      "task_id": "PTC-09B",
+      "rollback_unit": "Revert the cohesive PTC-09B canonical entrypoint and legacy retirement PR.",
+      "replacement_owner": "easyuse_anima/registration.py",
+      "size_exception_verdicts": [
+        {
+          "id": "module:nodes.py",
+          "verdict": "delete_after_canonical_cutover",
+          "final_owner": "easyuse_anima/registration.py"
+        }
+      ]
+    },
+    {
+      "path": "prompt_translation.py",
+      "role": "legacy-translation-facade",
+      "owner_group": "compatibility",
+      "disposition": "delete",
+      "status": "planned",
+      "targets": [],
+      "direct_contracts": [
+        "tests/test_prompt_translation.py"
+      ],
+      "compatibility_registry_key": "prompt_translation.py",
+      "task_id": "PTC-09B",
+      "rollback_unit": "Revert the cohesive PTC-09B canonical entrypoint and legacy retirement PR.",
+      "replacement_owner": "easyuse_anima/translation/service.py",
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "settings.py",
+      "role": "legacy-settings-facade",
+      "owner_group": "compatibility",
+      "disposition": "delete",
+      "status": "planned",
+      "targets": [],
+      "direct_contracts": [
+        "tests/test_prompt_corrector.py"
+      ],
+      "compatibility_registry_key": "settings.py",
+      "task_id": "PTC-09B",
+      "rollback_unit": "Revert the cohesive PTC-09B canonical entrypoint and legacy retirement PR.",
+      "replacement_owner": "easyuse_anima/settings/service.py",
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "storage.py",
+      "role": "legacy-storage-facade",
+      "owner_group": "compatibility",
+      "disposition": "delete",
+      "status": "planned",
+      "targets": [],
+      "direct_contracts": [
+        "tests/test_storage.py"
+      ],
+      "compatibility_registry_key": "storage.py",
+      "task_id": "PTC-09B",
+      "rollback_unit": "Revert the cohesive PTC-09B canonical entrypoint and legacy retirement PR.",
+      "replacement_owner": "easyuse_anima/infrastructure/filesystem/atomic_json.py",
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "wildcard_engine.py",
+      "role": "legacy-wildcard-facade",
+      "owner_group": "compatibility",
+      "disposition": "delete",
+      "status": "planned",
+      "targets": [],
+      "direct_contracts": [
+        "tests/test_wildcards.py"
+      ],
+      "compatibility_registry_key": "wildcard_engine.py",
+      "task_id": "PTC-09B",
+      "rollback_unit": "Revert the cohesive PTC-09B canonical entrypoint and legacy retirement PR.",
+      "replacement_owner": "easyuse_anima/wildcard/service.py",
+      "size_exception_verdicts": []
+    }
+  ]
+}
