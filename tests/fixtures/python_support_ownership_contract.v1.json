@@ -1,0 +1,2416 @@
+{
+  "schema_version": 1,
+  "baseline_commit": "a0b0dc1f599fcf01ec0f25fc75a23f7524f165ab",
+  "inventory": {
+    "expected_files": 210,
+    "manual_matrix_source": "tests/fixtures/python_test_ownership_contract.v1.json",
+    "patterns": [
+      "tests/**/*.json",
+      "tests/**/*.mjs",
+      "tests/**/*.py",
+      "tools/**/*.ps1",
+      "tools/**/*.py"
+    ]
+  },
+  "linked_contracts": {
+    "production_owner_map": "tests/fixtures/python_test_ownership_contract.v1.json"
+  },
+  "allowed_kinds": [
+    "generated_baseline",
+    "maintenance_tool",
+    "manual_live_matrix",
+    "runner",
+    "test",
+    "test_fixture"
+  ],
+  "allowed_execution_modes": [
+    "benchmark-on-demand",
+    "direct-python",
+    "fixture-input",
+    "manual-on-trigger",
+    "node-smoke",
+    "official-runner",
+    "unittest"
+  ],
+  "entries": [
+    {
+      "execution_mode": "manual-on-trigger",
+      "generated": false,
+      "kind": "manual_live_matrix",
+      "owner": "docs/architecture/python-api-papi01-e09-lifecycle-gate.md",
+      "path": "docs/architecture/python-api-papi01-e09-lifecycle-gate.md",
+      "production_groups": [
+        "api",
+        "runtime-bootstrap"
+      ],
+      "purpose": "Manual release-time fresh-process API and E-09 lifecycle matrix."
+    },
+    {
+      "execution_mode": "manual-on-trigger",
+      "generated": false,
+      "kind": "manual_live_matrix",
+      "owner": "docs/development/browser-smoke-matrix.md",
+      "path": "docs/development/browser-smoke-matrix.md",
+      "production_groups": [
+        "cross-cutting"
+      ],
+      "purpose": "Manual Legacy Canvas and Node 2.0 browser behavior matrix."
+    },
+    {
+      "execution_mode": "fixture-input",
+      "generated": false,
+      "kind": "test_fixture",
+      "owner": "tests/test_api_contract.py",
+      "path": "tests/api_test_support.py",
+      "production_groups": [
+        "api"
+      ],
+      "purpose": "Shared isolated-module replacement support for API and profile tests."
+    },
+    {
+      "execution_mode": "fixture-input",
+      "generated": false,
+      "kind": "test_fixture",
+      "owner": "tests/test_comfy_host_wiring.py",
+      "path": "tests/comfy_host_fakes.py",
+      "production_groups": [
+        "infrastructure",
+        "nodes"
+      ],
+      "purpose": "Canonical fake Comfy host provider and patch context for direct contracts."
+    },
+    {
+      "execution_mode": "fixture-input",
+      "generated": false,
+      "kind": "test_fixture",
+      "owner": "tests/test_aio_generation_settings.py",
+      "path": "tests/fixtures/aio_generation_settings_0_5_2.json",
+      "production_groups": [
+        "aio",
+        "settings"
+      ],
+      "purpose": "Deterministic contract fixture input for aio generation settings 0 5 2."
+    },
+    {
+      "execution_mode": "fixture-input",
+      "generated": false,
+      "kind": "test_fixture",
+      "owner": "tests/test_aio_schema_contract.py",
+      "path": "tests/fixtures/aio_generation_settings_surface_coverage.v1.json",
+      "production_groups": [
+        "aio",
+        "settings"
+      ],
+      "purpose": "Deterministic contract fixture input for aio generation settings surface coverage.v1."
+    },
+    {
+      "execution_mode": "fixture-input",
+      "generated": false,
+      "kind": "test_fixture",
+      "owner": "tests/test_aio_schema_contract.py",
+      "path": "tests/fixtures/aio_generation_settings_surface_coverage.v2.json",
+      "production_groups": [
+        "aio",
+        "settings"
+      ],
+      "purpose": "Deterministic contract fixture input for aio generation settings surface coverage.v2."
+    },
+    {
+      "execution_mode": "fixture-input",
+      "generated": false,
+      "kind": "test_fixture",
+      "owner": "tests/test_aio_schema_contract.py",
+      "path": "tests/fixtures/aio_generation_settings_surface_coverage.v3.json",
+      "production_groups": [
+        "aio",
+        "settings"
+      ],
+      "purpose": "Deterministic contract fixture input for aio generation settings surface coverage.v3."
+    },
+    {
+      "execution_mode": "fixture-input",
+      "generated": false,
+      "kind": "test_fixture",
+      "owner": "tests/test_aio_schema_contract.py",
+      "path": "tests/fixtures/aio_generation_settings_surface_coverage.v4.json",
+      "production_groups": [
+        "aio",
+        "settings"
+      ],
+      "purpose": "Deterministic contract fixture input for aio generation settings surface coverage.v4."
+    },
+    {
+      "execution_mode": "fixture-input",
+      "generated": false,
+      "kind": "test_fixture",
+      "owner": "tests/test_aio_generation_migrations.py",
+      "path": "tests/fixtures/aio_generation_stage_scope_contract.v2.json",
+      "production_groups": [
+        "aio"
+      ],
+      "purpose": "Deterministic contract fixture input for aio generation stage scope contract.v2."
+    },
+    {
+      "execution_mode": "fixture-input",
+      "generated": false,
+      "kind": "test_fixture",
+      "owner": "tests/test_aio_legacy_generation.py",
+      "path": "tests/fixtures/aio_legacy_execution_trace.v1.json",
+      "production_groups": [
+        "aio"
+      ],
+      "purpose": "Deterministic contract fixture input for aio legacy execution trace.v1."
+    },
+    {
+      "execution_mode": "fixture-input",
+      "generated": false,
+      "kind": "test_fixture",
+      "owner": "tests/test_aio_negpip_turbo_contract.py",
+      "path": "tests/fixtures/aio_negpip_turbo_contract.v1.json",
+      "production_groups": [
+        "aio"
+      ],
+      "purpose": "Deterministic contract fixture input for aio negpip turbo contract.v1."
+    },
+    {
+      "execution_mode": "fixture-input",
+      "generated": false,
+      "kind": "test_fixture",
+      "owner": "tests/test_aio_safe_pag_stage_scope_contract.py",
+      "path": "tests/fixtures/aio_safe_pag_stage_scope_contract.v1.json",
+      "production_groups": [
+        "aio"
+      ],
+      "purpose": "Deterministic contract fixture input for aio safe pag stage scope contract.v1."
+    },
+    {
+      "execution_mode": "fixture-input",
+      "generated": false,
+      "kind": "test_fixture",
+      "owner": "tests/test_aio_sage_stage_scope_contract.py",
+      "path": "tests/fixtures/aio_sage_stage_scope_contract.v1.json",
+      "production_groups": [
+        "aio"
+      ],
+      "purpose": "Deterministic contract fixture input for aio sage stage scope contract.v1."
+    },
+    {
+      "execution_mode": "fixture-input",
+      "generated": false,
+      "kind": "test_fixture",
+      "owner": "tests/test_autocomplete_edit_contract.py",
+      "path": "tests/fixtures/autocomplete_edit_contract.v1.json",
+      "production_groups": [
+        "autocomplete"
+      ],
+      "purpose": "Deterministic contract fixture input for autocomplete edit contract.v1."
+    },
+    {
+      "execution_mode": "fixture-input",
+      "generated": false,
+      "kind": "test_fixture",
+      "owner": "tests/test_python_compatibility_surface.py",
+      "path": "tests/fixtures/comfy_host_compatibility.v1.json",
+      "production_groups": [
+        "infrastructure",
+        "nodes"
+      ],
+      "purpose": "Deterministic contract fixture input for comfy host compatibility.v1."
+    },
+    {
+      "execution_mode": "fixture-input",
+      "generated": false,
+      "kind": "test_fixture",
+      "owner": "tests/test_node_contracts.py",
+      "path": "tests/fixtures/node_contracts_0_5_2.json",
+      "production_groups": [
+        "nodes"
+      ],
+      "purpose": "Deterministic contract fixture input for node contracts 0 5 2."
+    },
+    {
+      "execution_mode": "fixture-input",
+      "generated": false,
+      "kind": "test_fixture",
+      "owner": "tests/frontend_prompt_studio_execution_projection_smoke.mjs",
+      "path": "tests/fixtures/prompt_studio_execution_projection_contract.v1.json",
+      "production_groups": [
+        "prompt"
+      ],
+      "purpose": "Deterministic contract fixture input for prompt studio execution projection contract.v1."
+    },
+    {
+      "execution_mode": "fixture-input",
+      "generated": true,
+      "kind": "generated_baseline",
+      "owner": "tests/test_pyright_baseline.py",
+      "path": "tests/fixtures/pyright_baseline.json",
+      "production_groups": [
+        "cross-cutting"
+      ],
+      "purpose": "Generated deterministic analyzer baseline for pyright baseline."
+    },
+    {
+      "execution_mode": "fixture-input",
+      "generated": false,
+      "kind": "test_fixture",
+      "owner": "tests/test_python_aio_first_pass_cache_contract.py",
+      "path": "tests/fixtures/python_aio_first_pass_cache_contract.v1.json",
+      "production_groups": [
+        "aio"
+      ],
+      "purpose": "Deterministic contract fixture input for python aio first pass cache contract.v1."
+    },
+    {
+      "execution_mode": "fixture-input",
+      "generated": false,
+      "kind": "test_fixture",
+      "owner": "tests/test_python_autocomplete_runtime_contract.py",
+      "path": "tests/fixtures/python_autocomplete_runtime_contract.v1.json",
+      "production_groups": [
+        "autocomplete",
+        "runtime-bootstrap"
+      ],
+      "purpose": "Deterministic contract fixture input for python autocomplete runtime contract.v1."
+    },
+    {
+      "execution_mode": "fixture-input",
+      "generated": true,
+      "kind": "generated_baseline",
+      "owner": "tests/test_python_backend_analyzer.py",
+      "path": "tests/fixtures/python_backend_baseline.json",
+      "production_groups": [
+        "cross-cutting"
+      ],
+      "purpose": "Generated deterministic analyzer baseline for python backend baseline."
+    },
+    {
+      "execution_mode": "fixture-input",
+      "generated": false,
+      "kind": "test_fixture",
+      "owner": "tests/test_python_compatibility_surface.py",
+      "path": "tests/fixtures/python_compatibility_surface.v1.json",
+      "production_groups": [
+        "cross-cutting"
+      ],
+      "purpose": "Deterministic contract fixture input for python compatibility surface.v1."
+    },
+    {
+      "execution_mode": "fixture-input",
+      "generated": false,
+      "kind": "test_fixture",
+      "owner": "tests/test_python_feature_error_contract.py",
+      "path": "tests/fixtures/python_feature_error_contract.v1.json",
+      "production_groups": [
+        "common"
+      ],
+      "purpose": "Deterministic contract fixture input for python feature error contract.v1."
+    },
+    {
+      "execution_mode": "fixture-input",
+      "generated": false,
+      "kind": "test_fixture",
+      "owner": "tests/test_python_file_disposition_contract.py",
+      "path": "tests/fixtures/python_file_disposition_contract.v1.json",
+      "production_groups": [
+        "cross-cutting"
+      ],
+      "purpose": "Deterministic contract fixture input for python file disposition contract.v1."
+    },
+    {
+      "execution_mode": "fixture-input",
+      "generated": false,
+      "kind": "test_fixture",
+      "owner": "tests/test_python_import_boundaries.py",
+      "path": "tests/fixtures/python_import_boundary_contract.v2.json",
+      "production_groups": [
+        "cross-cutting"
+      ],
+      "purpose": "Deterministic contract fixture input for python import boundary contract.v2."
+    },
+    {
+      "execution_mode": "fixture-input",
+      "generated": false,
+      "kind": "test_fixture",
+      "owner": "tests/test_python_repository_filesystem_contract.py",
+      "path": "tests/fixtures/python_repository_filesystem_contract.v1.json",
+      "production_groups": [
+        "infrastructure"
+      ],
+      "purpose": "Deterministic contract fixture input for python repository filesystem contract.v1."
+    },
+    {
+      "execution_mode": "fixture-input",
+      "generated": false,
+      "kind": "test_fixture",
+      "owner": "tests/test_python_runtime_lifecycle_contract.py",
+      "path": "tests/fixtures/python_runtime_lifecycle_contract.v1.json",
+      "production_groups": [
+        "runtime-bootstrap"
+      ],
+      "purpose": "Deterministic contract fixture input for python runtime lifecycle contract.v1."
+    },
+    {
+      "execution_mode": "fixture-input",
+      "generated": false,
+      "kind": "test_fixture",
+      "owner": "tests/test_python_runtime_state_ownership.py",
+      "path": "tests/fixtures/python_runtime_state_ownership.v1.json",
+      "production_groups": [
+        "runtime-bootstrap"
+      ],
+      "purpose": "Deterministic contract fixture input for python runtime state ownership.v1."
+    },
+    {
+      "execution_mode": "fixture-input",
+      "generated": false,
+      "kind": "test_fixture",
+      "owner": "tests/test_python_runtime_test_isolation_contract.py",
+      "path": "tests/fixtures/python_runtime_test_isolation_contract.v1.json",
+      "production_groups": [
+        "runtime-bootstrap"
+      ],
+      "purpose": "Deterministic contract fixture input for python runtime test isolation contract.v1."
+    },
+    {
+      "execution_mode": "fixture-input",
+      "generated": false,
+      "kind": "test_fixture",
+      "owner": "tests/test_python_size_complexity.py",
+      "path": "tests/fixtures/python_size_complexity_contract.v1.json",
+      "production_groups": [
+        "cross-cutting"
+      ],
+      "purpose": "Deterministic contract fixture input for python size complexity contract.v1."
+    },
+    {
+      "execution_mode": "fixture-input",
+      "generated": false,
+      "kind": "test_fixture",
+      "owner": "tests/test_python_support_ownership_contract.py",
+      "path": "tests/fixtures/python_support_ownership_contract.v1.json",
+      "production_groups": [
+        "cross-cutting"
+      ],
+      "purpose": "Deterministic contract fixture input for python support ownership contract.v1."
+    },
+    {
+      "execution_mode": "fixture-input",
+      "generated": false,
+      "kind": "test_fixture",
+      "owner": "tests/test_python_test_ownership_contract.py",
+      "path": "tests/fixtures/python_test_ownership_contract.v1.json",
+      "production_groups": [
+        "cross-cutting"
+      ],
+      "purpose": "Deterministic contract fixture input for python test ownership contract.v1."
+    },
+    {
+      "execution_mode": "fixture-input",
+      "generated": false,
+      "kind": "test_fixture",
+      "owner": "tests/test_python_translation_runtime_contract.py",
+      "path": "tests/fixtures/python_translation_runtime_contract.v1.json",
+      "production_groups": [
+        "runtime-bootstrap",
+        "translation"
+      ],
+      "purpose": "Deterministic contract fixture input for python translation runtime contract.v1."
+    },
+    {
+      "execution_mode": "fixture-input",
+      "generated": false,
+      "kind": "test_fixture",
+      "owner": "tests/test_python_wildcard_runtime_contract.py",
+      "path": "tests/fixtures/python_wildcard_runtime_contract.v1.json",
+      "production_groups": [
+        "runtime-bootstrap",
+        "wildcard"
+      ],
+      "purpose": "Deterministic contract fixture input for python wildcard runtime contract.v1."
+    },
+    {
+      "execution_mode": "node-smoke",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/frontend_aio_advanced_settings_dialog_smoke.mjs",
+      "path": "tests/frontend_aio_advanced_settings_dialog_smoke.mjs",
+      "production_groups": [
+        "aio",
+        "settings"
+      ],
+      "purpose": "Deterministic Node smoke contract for frontend aio advanced settings dialog smoke."
+    },
+    {
+      "execution_mode": "node-smoke",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/frontend_aio_dependency_core_smoke.mjs",
+      "path": "tests/frontend_aio_dependency_core_smoke.mjs",
+      "production_groups": [
+        "aio"
+      ],
+      "purpose": "Deterministic Node smoke contract for frontend aio dependency core smoke."
+    },
+    {
+      "execution_mode": "node-smoke",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/frontend_aio_detailer_settings_dialog_smoke.mjs",
+      "path": "tests/frontend_aio_detailer_settings_dialog_smoke.mjs",
+      "production_groups": [
+        "aio",
+        "image",
+        "settings"
+      ],
+      "purpose": "Deterministic Node smoke contract for frontend aio detailer settings dialog smoke."
+    },
+    {
+      "execution_mode": "node-smoke",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/frontend_aio_dialog_primitives_smoke.mjs",
+      "path": "tests/frontend_aio_dialog_primitives_smoke.mjs",
+      "production_groups": [
+        "aio"
+      ],
+      "purpose": "Deterministic Node smoke contract for frontend aio dialog primitives smoke."
+    },
+    {
+      "execution_mode": "node-smoke",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/frontend_aio_dom_controls_core_smoke.mjs",
+      "path": "tests/frontend_aio_dom_controls_core_smoke.mjs",
+      "production_groups": [
+        "aio"
+      ],
+      "purpose": "Deterministic Node smoke contract for frontend aio dom controls core smoke."
+    },
+    {
+      "execution_mode": "node-smoke",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/frontend_aio_executed_seed_runtime_smoke.mjs",
+      "path": "tests/frontend_aio_executed_seed_runtime_smoke.mjs",
+      "production_groups": [
+        "aio",
+        "runtime-bootstrap",
+        "seed"
+      ],
+      "purpose": "Deterministic Node smoke contract for frontend aio executed seed runtime smoke."
+    },
+    {
+      "execution_mode": "node-smoke",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/frontend_aio_extension_runtime_smoke.mjs",
+      "path": "tests/frontend_aio_extension_runtime_smoke.mjs",
+      "production_groups": [
+        "aio",
+        "runtime-bootstrap"
+      ],
+      "purpose": "Deterministic Node smoke contract for frontend aio extension runtime smoke."
+    },
+    {
+      "execution_mode": "node-smoke",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/frontend_aio_generator_panel_runtime_smoke.mjs",
+      "path": "tests/frontend_aio_generator_panel_runtime_smoke.mjs",
+      "production_groups": [
+        "aio",
+        "runtime-bootstrap"
+      ],
+      "purpose": "Deterministic Node smoke contract for frontend aio generator panel runtime smoke."
+    },
+    {
+      "execution_mode": "node-smoke",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/frontend_aio_input_settings_dialog_smoke.mjs",
+      "path": "tests/frontend_aio_input_settings_dialog_smoke.mjs",
+      "production_groups": [
+        "aio",
+        "settings"
+      ],
+      "purpose": "Deterministic Node smoke contract for frontend aio input settings dialog smoke."
+    },
+    {
+      "execution_mode": "node-smoke",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/frontend_aio_native_preview_runtime_smoke.mjs",
+      "path": "tests/frontend_aio_native_preview_runtime_smoke.mjs",
+      "production_groups": [
+        "aio",
+        "runtime-bootstrap"
+      ],
+      "purpose": "Deterministic Node smoke contract for frontend aio native preview runtime smoke."
+    },
+    {
+      "execution_mode": "node-smoke",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/frontend_aio_postprocess_settings_dialog_smoke.mjs",
+      "path": "tests/frontend_aio_postprocess_settings_dialog_smoke.mjs",
+      "production_groups": [
+        "aio",
+        "settings"
+      ],
+      "purpose": "Deterministic Node smoke contract for frontend aio postprocess settings dialog smoke."
+    },
+    {
+      "execution_mode": "node-smoke",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/frontend_aio_preview_core_smoke.mjs",
+      "path": "tests/frontend_aio_preview_core_smoke.mjs",
+      "production_groups": [
+        "aio"
+      ],
+      "purpose": "Deterministic Node smoke contract for frontend aio preview core smoke."
+    },
+    {
+      "execution_mode": "node-smoke",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/frontend_aio_preview_settings_dialog_smoke.mjs",
+      "path": "tests/frontend_aio_preview_settings_dialog_smoke.mjs",
+      "production_groups": [
+        "aio",
+        "settings"
+      ],
+      "purpose": "Deterministic Node smoke contract for frontend aio preview settings dialog smoke."
+    },
+    {
+      "execution_mode": "node-smoke",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/frontend_aio_profile_api_client_smoke.mjs",
+      "path": "tests/frontend_aio_profile_api_client_smoke.mjs",
+      "production_groups": [
+        "aio",
+        "api",
+        "profiles"
+      ],
+      "purpose": "Deterministic Node smoke contract for frontend aio profile api client smoke."
+    },
+    {
+      "execution_mode": "node-smoke",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/frontend_aio_profile_core_smoke.mjs",
+      "path": "tests/frontend_aio_profile_core_smoke.mjs",
+      "production_groups": [
+        "aio",
+        "profiles"
+      ],
+      "purpose": "Deterministic Node smoke contract for frontend aio profile core smoke."
+    },
+    {
+      "execution_mode": "node-smoke",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/frontend_aio_profile_dialogs_smoke.mjs",
+      "path": "tests/frontend_aio_profile_dialogs_smoke.mjs",
+      "production_groups": [
+        "aio",
+        "profiles"
+      ],
+      "purpose": "Deterministic Node smoke contract for frontend aio profile dialogs smoke."
+    },
+    {
+      "execution_mode": "node-smoke",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/frontend_aio_profile_settings_runtime_smoke.mjs",
+      "path": "tests/frontend_aio_profile_settings_runtime_smoke.mjs",
+      "production_groups": [
+        "aio",
+        "profiles",
+        "runtime-bootstrap",
+        "settings"
+      ],
+      "purpose": "Deterministic Node smoke contract for frontend aio profile settings runtime smoke."
+    },
+    {
+      "execution_mode": "node-smoke",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/frontend_aio_sampler_settings_dialog_smoke.mjs",
+      "path": "tests/frontend_aio_sampler_settings_dialog_smoke.mjs",
+      "production_groups": [
+        "aio",
+        "settings"
+      ],
+      "purpose": "Deterministic Node smoke contract for frontend aio sampler settings dialog smoke."
+    },
+    {
+      "execution_mode": "node-smoke",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/frontend_aio_save_settings_dialog_smoke.mjs",
+      "path": "tests/frontend_aio_save_settings_dialog_smoke.mjs",
+      "production_groups": [
+        "aio",
+        "settings"
+      ],
+      "purpose": "Deterministic Node smoke contract for frontend aio save settings dialog smoke."
+    },
+    {
+      "execution_mode": "node-smoke",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/frontend_aio_settings_core_smoke.mjs",
+      "path": "tests/frontend_aio_settings_core_smoke.mjs",
+      "production_groups": [
+        "aio",
+        "settings"
+      ],
+      "purpose": "Deterministic Node smoke contract for frontend aio settings core smoke."
+    },
+    {
+      "execution_mode": "node-smoke",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/frontend_aio_stage_settings_dialogs_smoke.mjs",
+      "path": "tests/frontend_aio_stage_settings_dialogs_smoke.mjs",
+      "production_groups": [
+        "aio",
+        "settings"
+      ],
+      "purpose": "Deterministic Node smoke contract for frontend aio stage settings dialogs smoke."
+    },
+    {
+      "execution_mode": "node-smoke",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/frontend_aio_torch_compile_recommendation_smoke.mjs",
+      "path": "tests/frontend_aio_torch_compile_recommendation_smoke.mjs",
+      "production_groups": [
+        "aio"
+      ],
+      "purpose": "Deterministic Node smoke contract for frontend aio torch compile recommendation smoke."
+    },
+    {
+      "execution_mode": "node-smoke",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/frontend_autocomplete_data_adapter_smoke.mjs",
+      "path": "tests/frontend_autocomplete_data_adapter_smoke.mjs",
+      "production_groups": [
+        "autocomplete"
+      ],
+      "purpose": "Deterministic Node smoke contract for frontend autocomplete data adapter smoke."
+    },
+    {
+      "execution_mode": "node-smoke",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/frontend_autocomplete_entry_lifecycle_smoke.mjs",
+      "path": "tests/frontend_autocomplete_entry_lifecycle_smoke.mjs",
+      "production_groups": [
+        "autocomplete",
+        "runtime-bootstrap"
+      ],
+      "purpose": "Deterministic Node smoke contract for frontend autocomplete entry lifecycle smoke."
+    },
+    {
+      "execution_mode": "node-smoke",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/frontend_autocomplete_input_binding_smoke.mjs",
+      "path": "tests/frontend_autocomplete_input_binding_smoke.mjs",
+      "production_groups": [
+        "autocomplete"
+      ],
+      "purpose": "Deterministic Node smoke contract for frontend autocomplete input binding smoke."
+    },
+    {
+      "execution_mode": "node-smoke",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/frontend_autocomplete_input_controller_smoke.mjs",
+      "path": "tests/frontend_autocomplete_input_controller_smoke.mjs",
+      "production_groups": [
+        "autocomplete"
+      ],
+      "purpose": "Deterministic Node smoke contract for frontend autocomplete input controller smoke."
+    },
+    {
+      "execution_mode": "node-smoke",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/frontend_autocomplete_popup_geometry_smoke.mjs",
+      "path": "tests/frontend_autocomplete_popup_geometry_smoke.mjs",
+      "production_groups": [
+        "autocomplete"
+      ],
+      "purpose": "Deterministic Node smoke contract for frontend autocomplete popup geometry smoke."
+    },
+    {
+      "execution_mode": "node-smoke",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/frontend_autocomplete_text_model_smoke.mjs",
+      "path": "tests/frontend_autocomplete_text_model_smoke.mjs",
+      "production_groups": [
+        "autocomplete"
+      ],
+      "purpose": "Deterministic Node smoke contract for frontend autocomplete text model smoke."
+    },
+    {
+      "execution_mode": "node-smoke",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/frontend_executed_event_context_smoke.mjs",
+      "path": "tests/frontend_executed_event_context_smoke.mjs",
+      "production_groups": [
+        "prompt"
+      ],
+      "purpose": "Deterministic Node smoke contract for frontend executed event context smoke."
+    },
+    {
+      "execution_mode": "node-smoke",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/frontend_highlight_core_smoke.mjs",
+      "path": "tests/frontend_highlight_core_smoke.mjs",
+      "production_groups": [
+        "prompt"
+      ],
+      "purpose": "Deterministic Node smoke contract for frontend highlight core smoke."
+    },
+    {
+      "execution_mode": "node-smoke",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/frontend_highlight_overlay_core_smoke.mjs",
+      "path": "tests/frontend_highlight_overlay_core_smoke.mjs",
+      "production_groups": [
+        "prompt"
+      ],
+      "purpose": "Deterministic Node smoke contract for frontend highlight overlay core smoke."
+    },
+    {
+      "execution_mode": "node-smoke",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/frontend_host_hook_registry_smoke.mjs",
+      "path": "tests/frontend_host_hook_registry_smoke.mjs",
+      "production_groups": [
+        "cross-cutting"
+      ],
+      "purpose": "Deterministic Node smoke contract for frontend host hook registry smoke."
+    },
+    {
+      "execution_mode": "node-smoke",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/frontend_lora_preset_api_client_smoke.mjs",
+      "path": "tests/frontend_lora_preset_api_client_smoke.mjs",
+      "production_groups": [
+        "api",
+        "lora"
+      ],
+      "purpose": "Deterministic Node smoke contract for frontend lora preset api client smoke."
+    },
+    {
+      "execution_mode": "node-smoke",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/frontend_lora_preset_canvas_widgets_smoke.mjs",
+      "path": "tests/frontend_lora_preset_canvas_widgets_smoke.mjs",
+      "production_groups": [
+        "lora"
+      ],
+      "purpose": "Deterministic Node smoke contract for frontend lora preset canvas widgets smoke."
+    },
+    {
+      "execution_mode": "node-smoke",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/frontend_lora_preset_entry_lifecycle_smoke.mjs",
+      "path": "tests/frontend_lora_preset_entry_lifecycle_smoke.mjs",
+      "production_groups": [
+        "lora",
+        "runtime-bootstrap"
+      ],
+      "purpose": "Deterministic Node smoke contract for frontend lora preset entry lifecycle smoke."
+    },
+    {
+      "execution_mode": "node-smoke",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/frontend_lora_preset_lora_state_smoke.mjs",
+      "path": "tests/frontend_lora_preset_lora_state_smoke.mjs",
+      "production_groups": [
+        "lora"
+      ],
+      "purpose": "Deterministic Node smoke contract for frontend lora preset lora state smoke."
+    },
+    {
+      "execution_mode": "node-smoke",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/frontend_lora_preset_menu_lifecycle_smoke.mjs",
+      "path": "tests/frontend_lora_preset_menu_lifecycle_smoke.mjs",
+      "production_groups": [
+        "lora",
+        "runtime-bootstrap"
+      ],
+      "purpose": "Deterministic Node smoke contract for frontend lora preset menu lifecycle smoke."
+    },
+    {
+      "execution_mode": "node-smoke",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/frontend_lora_preset_node_runtime_smoke.mjs",
+      "path": "tests/frontend_lora_preset_node_runtime_smoke.mjs",
+      "production_groups": [
+        "lora",
+        "nodes",
+        "runtime-bootstrap"
+      ],
+      "purpose": "Deterministic Node smoke contract for frontend lora preset node runtime smoke."
+    },
+    {
+      "execution_mode": "node-smoke",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/frontend_lora_preset_preview_lifecycle_smoke.mjs",
+      "path": "tests/frontend_lora_preset_preview_lifecycle_smoke.mjs",
+      "production_groups": [
+        "lora",
+        "runtime-bootstrap"
+      ],
+      "purpose": "Deterministic Node smoke contract for frontend lora preset preview lifecycle smoke."
+    },
+    {
+      "execution_mode": "node-smoke",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/frontend_lora_preset_profile_data_smoke.mjs",
+      "path": "tests/frontend_lora_preset_profile_data_smoke.mjs",
+      "production_groups": [
+        "lora",
+        "profiles"
+      ],
+      "purpose": "Deterministic Node smoke contract for frontend lora preset profile data smoke."
+    },
+    {
+      "execution_mode": "node-smoke",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/frontend_lora_preset_profile_mutations_smoke.mjs",
+      "path": "tests/frontend_lora_preset_profile_mutations_smoke.mjs",
+      "production_groups": [
+        "lora",
+        "profiles"
+      ],
+      "purpose": "Deterministic Node smoke contract for frontend lora preset profile mutations smoke."
+    },
+    {
+      "execution_mode": "node-smoke",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/frontend_prompt_studio_advanced_values_smoke.mjs",
+      "path": "tests/frontend_prompt_studio_advanced_values_smoke.mjs",
+      "production_groups": [
+        "prompt"
+      ],
+      "purpose": "Deterministic Node smoke contract for frontend prompt studio advanced values smoke."
+    },
+    {
+      "execution_mode": "node-smoke",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/frontend_prompt_studio_classic_values_smoke.mjs",
+      "path": "tests/frontend_prompt_studio_classic_values_smoke.mjs",
+      "production_groups": [
+        "prompt"
+      ],
+      "purpose": "Deterministic Node smoke contract for frontend prompt studio classic values smoke."
+    },
+    {
+      "execution_mode": "node-smoke",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/frontend_prompt_studio_execution_projection_smoke.mjs",
+      "path": "tests/frontend_prompt_studio_execution_projection_smoke.mjs",
+      "production_groups": [
+        "prompt"
+      ],
+      "purpose": "Deterministic Node smoke contract for frontend prompt studio execution projection smoke."
+    },
+    {
+      "execution_mode": "node-smoke",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/frontend_prompt_studio_linked_projection_smoke.mjs",
+      "path": "tests/frontend_prompt_studio_linked_projection_smoke.mjs",
+      "production_groups": [
+        "prompt"
+      ],
+      "purpose": "Deterministic Node smoke contract for frontend prompt studio linked projection smoke."
+    },
+    {
+      "execution_mode": "node-smoke",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/frontend_prompt_studio_naia_projection_smoke.mjs",
+      "path": "tests/frontend_prompt_studio_naia_projection_smoke.mjs",
+      "production_groups": [
+        "naia",
+        "prompt"
+      ],
+      "purpose": "Deterministic Node smoke contract for frontend prompt studio naia projection smoke."
+    },
+    {
+      "execution_mode": "node-smoke",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/frontend_prompt_studio_paste_autosize_smoke.mjs",
+      "path": "tests/frontend_prompt_studio_paste_autosize_smoke.mjs",
+      "production_groups": [
+        "prompt"
+      ],
+      "purpose": "Deterministic Node smoke contract for frontend prompt studio paste autosize smoke."
+    },
+    {
+      "execution_mode": "node-smoke",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/frontend_prompt_studio_resolution_orientation_smoke.mjs",
+      "path": "tests/frontend_prompt_studio_resolution_orientation_smoke.mjs",
+      "production_groups": [
+        "prompt"
+      ],
+      "purpose": "Deterministic Node smoke contract for frontend prompt studio resolution orientation smoke."
+    },
+    {
+      "execution_mode": "node-smoke",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/frontend_prompt_studio_wildcard_transaction_smoke.mjs",
+      "path": "tests/frontend_prompt_studio_wildcard_transaction_smoke.mjs",
+      "production_groups": [
+        "prompt",
+        "wildcard"
+      ],
+      "purpose": "Deterministic Node smoke contract for frontend prompt studio wildcard transaction smoke."
+    },
+    {
+      "execution_mode": "node-smoke",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/frontend_prompt_studio_wildcard_view_sync_smoke.mjs",
+      "path": "tests/frontend_prompt_studio_wildcard_view_sync_smoke.mjs",
+      "production_groups": [
+        "prompt",
+        "wildcard"
+      ],
+      "purpose": "Deterministic Node smoke contract for frontend prompt studio wildcard view sync smoke."
+    },
+    {
+      "execution_mode": "node-smoke",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/frontend_queue_ui_transaction_smoke.mjs",
+      "path": "tests/frontend_queue_ui_transaction_smoke.mjs",
+      "production_groups": [
+        "prompt"
+      ],
+      "purpose": "Deterministic Node smoke contract for frontend queue ui transaction smoke."
+    },
+    {
+      "execution_mode": "node-smoke",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/frontend_regional_pure_data_smoke.mjs",
+      "path": "tests/frontend_regional_pure_data_smoke.mjs",
+      "production_groups": [
+        "cross-cutting"
+      ],
+      "purpose": "Deterministic Node smoke contract for frontend regional pure data smoke."
+    },
+    {
+      "execution_mode": "node-smoke",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/frontend_regional_runtime_smoke.mjs",
+      "path": "tests/frontend_regional_runtime_smoke.mjs",
+      "production_groups": [
+        "runtime-bootstrap"
+      ],
+      "purpose": "Deterministic Node smoke contract for frontend regional runtime smoke."
+    },
+    {
+      "execution_mode": "node-smoke",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/frontend_settings_color_editor_smoke.mjs",
+      "path": "tests/frontend_settings_color_editor_smoke.mjs",
+      "production_groups": [
+        "settings"
+      ],
+      "purpose": "Deterministic Node smoke contract for frontend settings color editor smoke."
+    },
+    {
+      "execution_mode": "node-smoke",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/frontend_settings_definition_data_smoke.mjs",
+      "path": "tests/frontend_settings_definition_data_smoke.mjs",
+      "production_groups": [
+        "settings"
+      ],
+      "purpose": "Deterministic Node smoke contract for frontend settings definition data smoke."
+    },
+    {
+      "execution_mode": "node-smoke",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/frontend_settings_definitions_smoke.mjs",
+      "path": "tests/frontend_settings_definitions_smoke.mjs",
+      "production_groups": [
+        "settings"
+      ],
+      "purpose": "Deterministic Node smoke contract for frontend settings definitions smoke."
+    },
+    {
+      "execution_mode": "node-smoke",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/frontend_settings_long_text_editor_smoke.mjs",
+      "path": "tests/frontend_settings_long_text_editor_smoke.mjs",
+      "production_groups": [
+        "settings"
+      ],
+      "purpose": "Deterministic Node smoke contract for frontend settings long text editor smoke."
+    },
+    {
+      "execution_mode": "node-smoke",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/frontend_settings_resolution_editors_smoke.mjs",
+      "path": "tests/frontend_settings_resolution_editors_smoke.mjs",
+      "production_groups": [
+        "settings"
+      ],
+      "purpose": "Deterministic Node smoke contract for frontend settings resolution editors smoke."
+    },
+    {
+      "execution_mode": "node-smoke",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/frontend_settings_runtime_smoke.mjs",
+      "path": "tests/frontend_settings_runtime_smoke.mjs",
+      "production_groups": [
+        "runtime-bootstrap",
+        "settings"
+      ],
+      "purpose": "Deterministic Node smoke contract for frontend settings runtime smoke."
+    },
+    {
+      "execution_mode": "node-smoke",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/frontend_settings_wildcard_path_editor_smoke.mjs",
+      "path": "tests/frontend_settings_wildcard_path_editor_smoke.mjs",
+      "production_groups": [
+        "settings",
+        "wildcard"
+      ],
+      "purpose": "Deterministic Node smoke contract for frontend settings wildcard path editor smoke."
+    },
+    {
+      "execution_mode": "node-smoke",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/frontend_support/fake_dom.mjs",
+      "path": "tests/frontend_support/fake_dom.mjs",
+      "production_groups": [
+        "cross-cutting"
+      ],
+      "purpose": "Deterministic Node smoke contract for fake dom."
+    },
+    {
+      "execution_mode": "node-smoke",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/frontend_wildcard_values_smoke.mjs",
+      "path": "tests/frontend_wildcard_values_smoke.mjs",
+      "production_groups": [
+        "wildcard"
+      ],
+      "purpose": "Deterministic Node smoke contract for frontend wildcard values smoke."
+    },
+    {
+      "execution_mode": "fixture-input",
+      "generated": false,
+      "kind": "test_fixture",
+      "owner": "tests/test_python_runtime_test_isolation_contract.py",
+      "path": "tests/runtime_test_support.py",
+      "production_groups": [
+        "runtime-bootstrap"
+      ],
+      "purpose": "Deterministic contract fixture input for runtime test support."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_aio_conditioning.py",
+      "path": "tests/test_aio_conditioning.py",
+      "production_groups": [
+        "aio"
+      ],
+      "purpose": "Direct Python unittest contract for test aio conditioning."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_aio_detailer_stage.py",
+      "path": "tests/test_aio_detailer_stage.py",
+      "production_groups": [
+        "aio",
+        "image"
+      ],
+      "purpose": "Direct Python unittest contract for test aio detailer stage."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_aio_first_pass_cache.py",
+      "path": "tests/test_aio_first_pass_cache.py",
+      "production_groups": [
+        "aio"
+      ],
+      "purpose": "Direct Python unittest contract for test aio first pass cache."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_aio_first_pass_cache_benchmark.py",
+      "path": "tests/test_aio_first_pass_cache_benchmark.py",
+      "production_groups": [
+        "aio"
+      ],
+      "purpose": "Direct Python unittest contract for test aio first pass cache benchmark."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_aio_first_pass_stage.py",
+      "path": "tests/test_aio_first_pass_stage.py",
+      "production_groups": [
+        "aio"
+      ],
+      "purpose": "Direct Python unittest contract for test aio first pass stage."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_aio_frontend.py",
+      "path": "tests/test_aio_frontend.py",
+      "production_groups": [
+        "aio"
+      ],
+      "purpose": "Direct Python unittest contract for test aio frontend."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_aio_generation_lifecycle.py",
+      "path": "tests/test_aio_generation_lifecycle.py",
+      "production_groups": [
+        "aio",
+        "runtime-bootstrap"
+      ],
+      "purpose": "Direct Python unittest contract for test aio generation lifecycle."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_aio_generation_migrations.py",
+      "path": "tests/test_aio_generation_migrations.py",
+      "production_groups": [
+        "aio"
+      ],
+      "purpose": "Direct Python unittest contract for test aio generation migrations."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_aio_generation_settings.py",
+      "path": "tests/test_aio_generation_settings.py",
+      "production_groups": [
+        "aio",
+        "settings"
+      ],
+      "purpose": "Direct Python unittest contract for test aio generation settings."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_aio_highres_stage.py",
+      "path": "tests/test_aio_highres_stage.py",
+      "production_groups": [
+        "aio"
+      ],
+      "purpose": "Direct Python unittest contract for test aio highres stage."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_aio_legacy_generation.py",
+      "path": "tests/test_aio_legacy_generation.py",
+      "production_groups": [
+        "aio"
+      ],
+      "purpose": "Direct Python unittest contract for test aio legacy generation."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_aio_model_preparation.py",
+      "path": "tests/test_aio_model_preparation.py",
+      "production_groups": [
+        "aio"
+      ],
+      "purpose": "Direct Python unittest contract for test aio model preparation."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_aio_negpip_contract.py",
+      "path": "tests/test_aio_negpip_contract.py",
+      "production_groups": [
+        "aio"
+      ],
+      "purpose": "Direct Python unittest contract for test aio negpip contract."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_aio_negpip_turbo_contract.py",
+      "path": "tests/test_aio_negpip_turbo_contract.py",
+      "production_groups": [
+        "aio"
+      ],
+      "purpose": "Direct Python unittest contract for test aio negpip turbo contract."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_aio_nodes.py",
+      "path": "tests/test_aio_nodes.py",
+      "production_groups": [
+        "aio",
+        "nodes"
+      ],
+      "purpose": "Direct Python unittest contract for test aio nodes."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_aio_output.py",
+      "path": "tests/test_aio_output.py",
+      "production_groups": [
+        "aio"
+      ],
+      "purpose": "Direct Python unittest contract for test aio output."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_aio_postprocess_stage.py",
+      "path": "tests/test_aio_postprocess_stage.py",
+      "production_groups": [
+        "aio"
+      ],
+      "purpose": "Direct Python unittest contract for test aio postprocess stage."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_aio_preview.py",
+      "path": "tests/test_aio_preview.py",
+      "production_groups": [
+        "aio"
+      ],
+      "purpose": "Direct Python unittest contract for test aio preview."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_aio_profiles.py",
+      "path": "tests/test_aio_profiles.py",
+      "production_groups": [
+        "aio",
+        "profiles"
+      ],
+      "purpose": "Direct Python unittest contract for test aio profiles."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_aio_resources.py",
+      "path": "tests/test_aio_resources.py",
+      "production_groups": [
+        "aio"
+      ],
+      "purpose": "Direct Python unittest contract for test aio resources."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_aio_safe_pag_stage_scope_contract.py",
+      "path": "tests/test_aio_safe_pag_stage_scope_contract.py",
+      "production_groups": [
+        "aio"
+      ],
+      "purpose": "Direct Python unittest contract for test aio safe pag stage scope contract."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_aio_sage_stage_scope_contract.py",
+      "path": "tests/test_aio_sage_stage_scope_contract.py",
+      "production_groups": [
+        "aio"
+      ],
+      "purpose": "Direct Python unittest contract for test aio sage stage scope contract."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_aio_sampling.py",
+      "path": "tests/test_aio_sampling.py",
+      "production_groups": [
+        "aio"
+      ],
+      "purpose": "Direct Python unittest contract for test aio sampling."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_aio_save_output_stage.py",
+      "path": "tests/test_aio_save_output_stage.py",
+      "production_groups": [
+        "aio"
+      ],
+      "purpose": "Direct Python unittest contract for test aio save output stage."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_aio_schema_contract.py",
+      "path": "tests/test_aio_schema_contract.py",
+      "production_groups": [
+        "aio"
+      ],
+      "purpose": "Direct Python unittest contract for test aio schema contract."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_aio_seed_cutover.py",
+      "path": "tests/test_aio_seed_cutover.py",
+      "production_groups": [
+        "aio",
+        "seed"
+      ],
+      "purpose": "Direct Python unittest contract for test aio seed cutover."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_aio_stage_integration_matrix.py",
+      "path": "tests/test_aio_stage_integration_matrix.py",
+      "production_groups": [
+        "aio"
+      ],
+      "purpose": "Direct Python unittest contract for test aio stage integration matrix."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_aio_stage_pipeline_contract.py",
+      "path": "tests/test_aio_stage_pipeline_contract.py",
+      "production_groups": [
+        "aio"
+      ],
+      "purpose": "Direct Python unittest contract for test aio stage pipeline contract."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_aio_torch_compile_diagnostics.py",
+      "path": "tests/test_aio_torch_compile_diagnostics.py",
+      "production_groups": [
+        "aio"
+      ],
+      "purpose": "Direct Python unittest contract for test aio torch compile diagnostics."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_aio_torch_compile_recommendation.py",
+      "path": "tests/test_aio_torch_compile_recommendation.py",
+      "production_groups": [
+        "aio"
+      ],
+      "purpose": "Direct Python unittest contract for test aio torch compile recommendation."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_aio_upscale_stage.py",
+      "path": "tests/test_aio_upscale_stage.py",
+      "production_groups": [
+        "aio",
+        "image"
+      ],
+      "purpose": "Direct Python unittest contract for test aio upscale stage."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_aio_wheel.py",
+      "path": "tests/test_aio_wheel.py",
+      "production_groups": [
+        "aio"
+      ],
+      "purpose": "Direct Python unittest contract for test aio wheel."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_anima_prompt_compatibility.py",
+      "path": "tests/test_anima_prompt_compatibility.py",
+      "production_groups": [
+        "prompt"
+      ],
+      "purpose": "Direct Python unittest contract for test anima prompt compatibility."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_api_contract.py",
+      "path": "tests/test_api_contract.py",
+      "production_groups": [
+        "api"
+      ],
+      "purpose": "Direct Python unittest contract for test api contract."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_api_contract_compatibility.py",
+      "path": "tests/test_api_contract_compatibility.py",
+      "production_groups": [
+        "api"
+      ],
+      "purpose": "Direct Python unittest contract for test api contract compatibility."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_autocomplete_dataset_compatibility.py",
+      "path": "tests/test_autocomplete_dataset_compatibility.py",
+      "production_groups": [
+        "autocomplete"
+      ],
+      "purpose": "Direct Python unittest contract for test autocomplete dataset compatibility."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_autocomplete_edit_contract.py",
+      "path": "tests/test_autocomplete_edit_contract.py",
+      "production_groups": [
+        "autocomplete"
+      ],
+      "purpose": "Direct Python unittest contract for test autocomplete edit contract."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_autocomplete_frontend.py",
+      "path": "tests/test_autocomplete_frontend.py",
+      "production_groups": [
+        "autocomplete"
+      ],
+      "purpose": "Direct Python unittest contract for test autocomplete frontend."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_autocomplete_index.py",
+      "path": "tests/test_autocomplete_index.py",
+      "production_groups": [
+        "autocomplete"
+      ],
+      "purpose": "Direct Python unittest contract for test autocomplete index."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_autocomplete_locale_settings.py",
+      "path": "tests/test_autocomplete_locale_settings.py",
+      "production_groups": [
+        "autocomplete",
+        "settings"
+      ],
+      "purpose": "Direct Python unittest contract for test autocomplete locale settings."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_autocomplete_service.py",
+      "path": "tests/test_autocomplete_service.py",
+      "production_groups": [
+        "autocomplete"
+      ],
+      "purpose": "Direct Python unittest contract for test autocomplete service."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_comfy_adapters.py",
+      "path": "tests/test_comfy_adapters.py",
+      "production_groups": [
+        "nodes"
+      ],
+      "purpose": "Direct Python unittest contract for test comfy adapters."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_comfy_host_provider.py",
+      "path": "tests/test_comfy_host_provider.py",
+      "production_groups": [
+        "infrastructure",
+        "nodes"
+      ],
+      "purpose": "Direct Python unittest contract for test comfy host provider."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_comfy_host_wiring.py",
+      "path": "tests/test_comfy_host_wiring.py",
+      "production_groups": [
+        "infrastructure",
+        "nodes"
+      ],
+      "purpose": "Direct Python unittest contract for test comfy host wiring."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_frontend_lora_preset.py",
+      "path": "tests/test_frontend_lora_preset.py",
+      "production_groups": [
+        "lora"
+      ],
+      "purpose": "Direct Python unittest contract for test frontend lora preset."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_frontend_modules.py",
+      "path": "tests/test_frontend_modules.py",
+      "production_groups": [
+        "cross-cutting"
+      ],
+      "purpose": "Direct Python unittest contract for test frontend modules."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_frontend_settings.py",
+      "path": "tests/test_frontend_settings.py",
+      "production_groups": [
+        "settings"
+      ],
+      "purpose": "Direct Python unittest contract for test frontend settings."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_image_scale.py",
+      "path": "tests/test_image_scale.py",
+      "production_groups": [
+        "image"
+      ],
+      "purpose": "Direct Python unittest contract for test image scale."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_locales.py",
+      "path": "tests/test_locales.py",
+      "production_groups": [
+        "cross-cutting"
+      ],
+      "purpose": "Direct Python unittest contract for test locales."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_lora_preset.py",
+      "path": "tests/test_lora_preset.py",
+      "production_groups": [
+        "lora"
+      ],
+      "purpose": "Direct Python unittest contract for test lora preset."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_lora_preview.py",
+      "path": "tests/test_lora_preview.py",
+      "production_groups": [
+        "lora"
+      ],
+      "purpose": "Direct Python unittest contract for test lora preview."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_lora_profiles.py",
+      "path": "tests/test_lora_profiles.py",
+      "production_groups": [
+        "lora",
+        "profiles"
+      ],
+      "purpose": "Direct Python unittest contract for test lora profiles."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_naia_frontend.py",
+      "path": "tests/test_naia_frontend.py",
+      "production_groups": [
+        "naia"
+      ],
+      "purpose": "Direct Python unittest contract for test naia frontend."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_naia_settings.py",
+      "path": "tests/test_naia_settings.py",
+      "production_groups": [
+        "naia",
+        "settings"
+      ],
+      "purpose": "Direct Python unittest contract for test naia settings."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_node_contracts.py",
+      "path": "tests/test_node_contracts.py",
+      "production_groups": [
+        "nodes"
+      ],
+      "purpose": "Direct Python unittest contract for test node contracts."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_nodes_module_analyzer.py",
+      "path": "tests/test_nodes_module_analyzer.py",
+      "production_groups": [
+        "nodes"
+      ],
+      "purpose": "Direct Python unittest contract for test nodes module analyzer."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_profile_contract.py",
+      "path": "tests/test_profile_contract.py",
+      "production_groups": [
+        "profiles"
+      ],
+      "purpose": "Direct Python unittest contract for test profile contract."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_prompt_corrector.py",
+      "path": "tests/test_prompt_corrector.py",
+      "production_groups": [
+        "prompt"
+      ],
+      "purpose": "Direct Python unittest contract for test prompt corrector."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_prompt_studio_regional.py",
+      "path": "tests/test_prompt_studio_regional.py",
+      "production_groups": [
+        "prompt"
+      ],
+      "purpose": "Direct Python unittest contract for test prompt studio regional."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_prompt_studio_seed_cutover.py",
+      "path": "tests/test_prompt_studio_seed_cutover.py",
+      "production_groups": [
+        "prompt",
+        "seed"
+      ],
+      "purpose": "Direct Python unittest contract for test prompt studio seed cutover."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_prompt_studio_wheel.py",
+      "path": "tests/test_prompt_studio_wheel.py",
+      "production_groups": [
+        "prompt"
+      ],
+      "purpose": "Direct Python unittest contract for test prompt studio wheel."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_prompt_translation.py",
+      "path": "tests/test_prompt_translation.py",
+      "production_groups": [
+        "prompt",
+        "translation"
+      ],
+      "purpose": "Direct Python unittest contract for test prompt translation."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_prompt_translation_api.py",
+      "path": "tests/test_prompt_translation_api.py",
+      "production_groups": [
+        "api",
+        "prompt",
+        "translation"
+      ],
+      "purpose": "Direct Python unittest contract for test prompt translation api."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_pyright_baseline.py",
+      "path": "tests/test_pyright_baseline.py",
+      "production_groups": [
+        "cross-cutting"
+      ],
+      "purpose": "Direct Python unittest contract for test pyright baseline."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_python_aio_first_pass_cache_contract.py",
+      "path": "tests/test_python_aio_first_pass_cache_contract.py",
+      "production_groups": [
+        "aio"
+      ],
+      "purpose": "Direct Python unittest contract for test python aio first pass cache contract."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_python_api_application_lifecycle_contract.py",
+      "path": "tests/test_python_api_application_lifecycle_contract.py",
+      "production_groups": [
+        "api",
+        "runtime-bootstrap"
+      ],
+      "purpose": "Direct Python unittest contract for test python api application lifecycle contract."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_python_api_dependencies_contract.py",
+      "path": "tests/test_python_api_dependencies_contract.py",
+      "production_groups": [
+        "api"
+      ],
+      "purpose": "Direct Python unittest contract for test python api dependencies contract."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_python_api_facade_lifecycle_contract.py",
+      "path": "tests/test_python_api_facade_lifecycle_contract.py",
+      "production_groups": [
+        "api",
+        "runtime-bootstrap"
+      ],
+      "purpose": "Direct Python unittest contract for test python api facade lifecycle contract."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_python_autocomplete_runtime_contract.py",
+      "path": "tests/test_python_autocomplete_runtime_contract.py",
+      "production_groups": [
+        "autocomplete",
+        "runtime-bootstrap"
+      ],
+      "purpose": "Direct Python unittest contract for test python autocomplete runtime contract."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_python_backend_analyzer.py",
+      "path": "tests/test_python_backend_analyzer.py",
+      "production_groups": [
+        "cross-cutting"
+      ],
+      "purpose": "Direct Python unittest contract for test python backend analyzer."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_python_bootstrap.py",
+      "path": "tests/test_python_bootstrap.py",
+      "production_groups": [
+        "runtime-bootstrap"
+      ],
+      "purpose": "Direct Python unittest contract for test python bootstrap."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_python_compatibility_surface.py",
+      "path": "tests/test_python_compatibility_surface.py",
+      "production_groups": [
+        "cross-cutting"
+      ],
+      "purpose": "Direct Python unittest contract for test python compatibility surface."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_python_feature_error_contract.py",
+      "path": "tests/test_python_feature_error_contract.py",
+      "production_groups": [
+        "common"
+      ],
+      "purpose": "Direct Python unittest contract for test python feature error contract."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_python_file_disposition_contract.py",
+      "path": "tests/test_python_file_disposition_contract.py",
+      "production_groups": [
+        "cross-cutting"
+      ],
+      "purpose": "Direct Python unittest contract for test python file disposition contract."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_python_import_boundaries.py",
+      "path": "tests/test_python_import_boundaries.py",
+      "production_groups": [
+        "cross-cutting"
+      ],
+      "purpose": "Direct Python unittest contract for test python import boundaries."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_python_package_skeleton.py",
+      "path": "tests/test_python_package_skeleton.py",
+      "production_groups": [
+        "cross-cutting"
+      ],
+      "purpose": "Direct Python unittest contract for test python package skeleton."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_python_quality_contract.py",
+      "path": "tests/test_python_quality_contract.py",
+      "production_groups": [
+        "cross-cutting"
+      ],
+      "purpose": "Direct Python unittest contract for test python quality contract."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_python_repository_filesystem_contract.py",
+      "path": "tests/test_python_repository_filesystem_contract.py",
+      "production_groups": [
+        "infrastructure"
+      ],
+      "purpose": "Direct Python unittest contract for test python repository filesystem contract."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_python_runtime_lifecycle_contract.py",
+      "path": "tests/test_python_runtime_lifecycle_contract.py",
+      "production_groups": [
+        "runtime-bootstrap"
+      ],
+      "purpose": "Direct Python unittest contract for test python runtime lifecycle contract."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_python_runtime_state_ownership.py",
+      "path": "tests/test_python_runtime_state_ownership.py",
+      "production_groups": [
+        "runtime-bootstrap"
+      ],
+      "purpose": "Direct Python unittest contract for test python runtime state ownership."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_python_runtime_test_isolation_contract.py",
+      "path": "tests/test_python_runtime_test_isolation_contract.py",
+      "production_groups": [
+        "runtime-bootstrap"
+      ],
+      "purpose": "Direct Python unittest contract for test python runtime test isolation contract."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_python_size_complexity.py",
+      "path": "tests/test_python_size_complexity.py",
+      "production_groups": [
+        "cross-cutting"
+      ],
+      "purpose": "Direct Python unittest contract for test python size complexity."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_python_support_ownership_contract.py",
+      "path": "tests/test_python_support_ownership_contract.py",
+      "production_groups": [
+        "cross-cutting"
+      ],
+      "purpose": "Direct Python unittest contract for test python support ownership contract."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_python_test_ownership_contract.py",
+      "path": "tests/test_python_test_ownership_contract.py",
+      "production_groups": [
+        "cross-cutting"
+      ],
+      "purpose": "Direct Python unittest contract for test python test ownership contract."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_python_translation_runtime_contract.py",
+      "path": "tests/test_python_translation_runtime_contract.py",
+      "production_groups": [
+        "runtime-bootstrap",
+        "translation"
+      ],
+      "purpose": "Direct Python unittest contract for test python translation runtime contract."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_python_wildcard_runtime_contract.py",
+      "path": "tests/test_python_wildcard_runtime_contract.py",
+      "production_groups": [
+        "runtime-bootstrap",
+        "wildcard"
+      ],
+      "purpose": "Direct Python unittest contract for test python wildcard runtime contract."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_registry_release_copy.py",
+      "path": "tests/test_registry_release_copy.py",
+      "production_groups": [
+        "cross-cutting"
+      ],
+      "purpose": "Direct Python unittest contract for test registry release copy."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_registry_scanner_safety.py",
+      "path": "tests/test_registry_scanner_safety.py",
+      "production_groups": [
+        "cross-cutting"
+      ],
+      "purpose": "Direct Python unittest contract for test registry scanner safety."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_runtime_services.py",
+      "path": "tests/test_runtime_services.py",
+      "production_groups": [
+        "runtime-bootstrap"
+      ],
+      "purpose": "Direct Python unittest contract for test runtime services."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_sam3_nodes.py",
+      "path": "tests/test_sam3_nodes.py",
+      "production_groups": [
+        "image",
+        "nodes"
+      ],
+      "purpose": "Direct Python unittest contract for test sam3 nodes."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_seed_adapters.py",
+      "path": "tests/test_seed_adapters.py",
+      "production_groups": [
+        "seed"
+      ],
+      "purpose": "Direct Python unittest contract for test seed adapters."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_seed_compatibility.py",
+      "path": "tests/test_seed_compatibility.py",
+      "production_groups": [
+        "seed"
+      ],
+      "purpose": "Direct Python unittest contract for test seed compatibility."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_seed_execution_identity.py",
+      "path": "tests/test_seed_execution_identity.py",
+      "production_groups": [
+        "seed"
+      ],
+      "purpose": "Direct Python unittest contract for test seed execution identity."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_seed_execution_session.py",
+      "path": "tests/test_seed_execution_session.py",
+      "production_groups": [
+        "seed"
+      ],
+      "purpose": "Direct Python unittest contract for test seed execution session."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_seed_reservation_contract.py",
+      "path": "tests/test_seed_reservation_contract.py",
+      "production_groups": [
+        "seed"
+      ],
+      "purpose": "Direct Python unittest contract for test seed reservation contract."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_seed_reservation_service.py",
+      "path": "tests/test_seed_reservation_service.py",
+      "production_groups": [
+        "seed"
+      ],
+      "purpose": "Direct Python unittest contract for test seed reservation service."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_storage.py",
+      "path": "tests/test_storage.py",
+      "production_groups": [
+        "infrastructure"
+      ],
+      "purpose": "Direct Python unittest contract for test storage."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_validation_contract.py",
+      "path": "tests/test_validation_contract.py",
+      "production_groups": [
+        "cross-cutting"
+      ],
+      "purpose": "Direct Python unittest contract for test validation contract."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_wildcards.py",
+      "path": "tests/test_wildcards.py",
+      "production_groups": [
+        "wildcard"
+      ],
+      "purpose": "Direct Python unittest contract for test wildcards."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_workflows.py",
+      "path": "tests/test_workflows.py",
+      "production_groups": [
+        "nodes"
+      ],
+      "purpose": "Direct Python unittest contract for test workflows."
+    },
+    {
+      "execution_mode": "direct-python",
+      "generated": false,
+      "kind": "maintenance_tool",
+      "owner": "tests/test_nodes_module_analyzer.py",
+      "path": "tools/analyze_nodes_module.py",
+      "production_groups": [
+        "nodes"
+      ],
+      "purpose": "Static root-node module analyzer used by compatibility and boundary tests."
+    },
+    {
+      "execution_mode": "direct-python",
+      "generated": false,
+      "kind": "maintenance_tool",
+      "owner": "tests/test_python_backend_analyzer.py",
+      "path": "tools/analyze_python_backend.py",
+      "production_groups": [
+        "cross-cutting"
+      ],
+      "purpose": "Generated production Python inventory and dependency analyzer."
+    },
+    {
+      "execution_mode": "benchmark-on-demand",
+      "generated": false,
+      "kind": "maintenance_tool",
+      "owner": "tests/test_aio_first_pass_cache_benchmark.py",
+      "path": "tools/benchmark_aio_first_pass_cache.py",
+      "production_groups": [
+        "aio"
+      ],
+      "purpose": "On-demand deterministic AiO first-pass cache benchmark."
+    },
+    {
+      "execution_mode": "benchmark-on-demand",
+      "generated": false,
+      "kind": "maintenance_tool",
+      "owner": "tools/benchmark_autocomplete.py",
+      "path": "tools/benchmark_autocomplete.py",
+      "production_groups": [
+        "autocomplete"
+      ],
+      "purpose": "On-demand autocomplete index construction and query benchmark."
+    },
+    {
+      "execution_mode": "official-runner",
+      "generated": false,
+      "kind": "runner",
+      "owner": "tests/test_frontend_modules.py",
+      "path": "tools/check_frontend.ps1",
+      "production_groups": [
+        "cross-cutting"
+      ],
+      "purpose": "Official frontend syntax, TypeScript, and Node smoke runner."
+    },
+    {
+      "execution_mode": "official-runner",
+      "generated": false,
+      "kind": "runner",
+      "owner": "tests/test_validation_contract.py",
+      "path": "tools/check_project.ps1",
+      "production_groups": [
+        "cross-cutting"
+      ],
+      "purpose": "Official repository validation profile entrypoint."
+    },
+    {
+      "execution_mode": "direct-python",
+      "generated": false,
+      "kind": "maintenance_tool",
+      "owner": "tests/test_pyright_baseline.py",
+      "path": "tools/check_pyright_baseline.py",
+      "production_groups": [
+        "cross-cutting"
+      ],
+      "purpose": "Pinned Pyright diagnostic-baseline ratchet checker."
+    },
+    {
+      "execution_mode": "direct-python",
+      "generated": false,
+      "kind": "maintenance_tool",
+      "owner": "tests/test_python_file_disposition_contract.py",
+      "path": "tools/check_python_file_dispositions.py",
+      "production_groups": [
+        "cross-cutting"
+      ],
+      "purpose": "Blocking shipped Python disposition and target-owner checker."
+    },
+    {
+      "execution_mode": "direct-python",
+      "generated": false,
+      "kind": "maintenance_tool",
+      "owner": "tests/test_python_import_boundaries.py",
+      "path": "tools/check_python_import_boundaries.py",
+      "production_groups": [
+        "cross-cutting"
+      ],
+      "purpose": "Blocking role-aware canonical Python import-boundary checker."
+    },
+    {
+      "execution_mode": "official-runner",
+      "generated": false,
+      "kind": "runner",
+      "owner": "tests/test_python_quality_contract.py",
+      "path": "tools/check_python_quality.ps1",
+      "production_groups": [
+        "cross-cutting"
+      ],
+      "purpose": "Official Python quality and architecture-gate runner."
+    },
+    {
+      "execution_mode": "direct-python",
+      "generated": false,
+      "kind": "maintenance_tool",
+      "owner": "tests/test_python_size_complexity.py",
+      "path": "tools/check_python_size_complexity.py",
+      "production_groups": [
+        "cross-cutting"
+      ],
+      "purpose": "Blocking Python module and function size ratchet checker."
+    },
+    {
+      "execution_mode": "direct-python",
+      "generated": false,
+      "kind": "maintenance_tool",
+      "owner": "tests/test_python_support_ownership_contract.py",
+      "path": "tools/check_python_support_ownership.py",
+      "production_groups": [
+        "cross-cutting"
+      ],
+      "purpose": "Blocking support-artifact ownership and exact-inventory checker."
+    }
+  ]
+}

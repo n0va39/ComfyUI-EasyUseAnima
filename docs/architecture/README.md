@@ -15,7 +15,7 @@ completed lane.
   [#593](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/593)
 - Total Python Convergence Contract:
   [`python-total-convergence-contract.md`](python-total-convergence-contract.md)
-- READY backend refactor task: PTC-02 after the PTC-01 Contract merge.
+- READY backend refactor task: PTC-09A after the PTC-08 Contract merge.
 - Parent architecture: completed Issue
   [#185](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/185)
 - Compatibility/release ledger: Issue
@@ -32,16 +32,16 @@ COMPLETE FC-04A canonical API application/E-09 lifecycle Contract
 COMPLETE FC-04B canonical API application cohesive Move
 COMPLETE FC-05 technical architecture completion
 
-COMPLETE PTC-01 total production inventory/target Contract
-READY    PTC-02 AiO generation normalization Move
+COMPLETE PTC-01 through PTC-08 total structure and support ownership
+READY    PTC-09A root canonical-entrypoint/caller Contract
+NEXT     PTC-09B canonical cutover/legacy removal -> PTC-10 final audit
 
 EVENT    ordinary release N
-  ->     later H/D-14 compatibility re-audit
 ```
 
 FC-01 through FC-05 closed the initial ownership and lifecycle Definition of Done.
-PTC-01 adds the mandatory per-file convergence and legacy-root removal layer; PTC-02 is
-the current READY task. Release events remain separate from this technical sequence.
+PTC-01 through PTC-08 complete the per-file, size and support-ownership layer; PTC-09A
+is the current READY Contract. Release events remain separate from this sequence.
 
 ## Current code boundary
 

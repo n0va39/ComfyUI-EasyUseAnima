@@ -14,8 +14,8 @@
 - FC-01 audit base: `81e07c6c12c21f84ba0642c93d6655c8936b7c3b`.
 - Completed final-convergence lanes: FC-01, FC-02A through FC-02D, FC-03A,
   FC-03B, FC-04A, FC-04B and FC-05.
-- Completed extension lane: PTC-01 inventory/target Contract.
-- Current READY technical task: PTC-02 AiO generation normalization Move.
+- Completed extension lanes: PTC-01 through PTC-08.
+- Current READY technical task: PTC-09A root canonical-entrypoint/caller Contract.
 
 The FC results remain valid for their original ownership/lifecycle Definition of Done.
 [`python-total-convergence-contract.md`](python-total-convergence-contract.md) adds the
@@ -659,7 +659,8 @@ reused without repeating the same broad gates after this documentation-only audi
 Verdict at the FC-05 checkpoint: **technical architecture completion was recorded.**
 Rows 1 through 13, 15 through 18 and 20 were complete; row 14 remained the FC-06
 Registry publication event and row 19 was a deliberate retain. PTC-01 later extended
-the completion definition, so PTC-02 is now the READY backend refactor task.
+the completion definition; PTC-02 through PTC-08 have now completed the structural
+Moves and size/support ownership closure.
 
 ## 9. Superseded optional MD lane — large-module disposition
 
@@ -752,10 +753,11 @@ owner. Stop and request focused technical PRO review only when:
 
 ## 13. Codex resume instruction
 
-PTC-02 is READY after PTC-01 merges. Read only current policy/universal efficiency,
-[`python-total-convergence-contract.md`](python-total-convergence-contract.md)'s PTC-02
-card, Issue #593's latest checkpoint, the four allowed production files and direct tests.
-Do not rerun FC-01 through FC-05 or the external reference audit.
+PTC-09A is READY after PTC-08 merges. Read only current policy/universal efficiency,
+[`python-total-convergence-contract.md`](python-total-convergence-contract.md)'s root
+cutover gate, Issue #593's latest checkpoint, root entrypoint/application/bootstrap
+owners and their direct lifecycle/package tests. Do not rerun FC-01 through FC-05,
+the external reference audit or completed PTC Move tasks.
 
 Complete and merge one PTC task before starting the next. Root/API compatibility removal
 does not start before PTC-09A fixes the canonical entrypoint and E-09 lifecycle sequence.
@@ -769,10 +771,10 @@ Definition of Done are owned by
 [`python-total-convergence-contract.md`](python-total-convergence-contract.md).
 
 ```text
-COMPLETE  PTC-01 inventory/target Contract
-READY     PTC-02 AiO generation normalization Move
-NEXT      PTC-03 -> PTC-04 -> PTC-05 -> PTC-06 -> PTC-07A -> PTC-07B
-          -> PTC-08 -> PTC-09A -> PTC-09B -> PTC-10
+COMPLETE  PTC-01 through PTC-08
+READY     PTC-09A root canonical-entrypoint/caller Contract
+NEXT      PTC-09B canonical cutover and 16-file legacy deletion
+          -> PTC-10 total Python convergence audit
 ```
 
 FC-06 release and Registry publication remain separate from this technical queue.

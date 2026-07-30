@@ -41,11 +41,11 @@ COMPLETE  FC-04A canonical API application/E-09 lifecycle Contract
 COMPLETE  FC-04B canonical API application cohesive Move
 COMPLETE  FC-05 technical architecture completion
 
-COMPLETE  PTC-01 total production inventory/target Contract
-READY     PTC-02 AiO generation normalization Move
+COMPLETE  PTC-01 through PTC-08 total structure and support ownership
+READY     PTC-09A root canonical-entrypoint/caller Contract
+NEXT      PTC-09B canonical cutover/legacy removal -> PTC-10 final audit
 
 EVENT     next ordinary release N
-LATER     PTC-09A/B canonical root cutover and legacy removal
 ```
 
 ## FC completion and active total convergence
@@ -57,10 +57,10 @@ legacy root/`anima_prompt` modules are removed after a canonical caller cutover.
 
 ## Current execution boundary
 
-PTC-02 is READY after PTC-01 merges. Do not repeat FC-01 through FC-05. Follow the exact
-PTC-02 allowed files, focused tests and stop condition in the Total Python Convergence
-Contract. Root deletion is not an early cleanup task; PTC-09A first fixes the canonical
-entrypoint and E-09-safe application/registrar sequence.
+PTC-09A is READY after PTC-08 merges. Do not repeat FC-01 through FC-05 or the completed
+PTC Move tasks. PTC-09A is production-free and fixes the exact canonical entrypoint,
+caller and E-09-safe application/registrar sequence before PTC-09B deletes the legacy
+paths.
 
 ## Fixed lifecycle and compatibility guards
 
