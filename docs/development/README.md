@@ -41,26 +41,30 @@ COMPLETE  FC-04A canonical API application/E-09 lifecycle Contract
 COMPLETE  FC-04B canonical API application cohesive Move
 COMPLETE  FC-05 technical architecture completion
 
-COMPLETE  PTC-01 through PTC-09A total structure, support and cutover Contract
-READY     PTC-09B canonical cutover/legacy removal
-NEXT      PTC-10 final audit
+COMPLETE  PTC-01 through PTC-09B total structure, support and root cutover
+COMPLETE  PTC-10 final audit and dead-adapter retirement
 
-EVENT     next ordinary release N
+READY     FC-06 ordinary release N as EasyUse Anima 1.0.0
 ```
 
-## FC completion and active total convergence
+## FC and total-convergence completion
 
-FC-05 closes the original ownership/lifecycle Definition of Done. PTC-01 adds the
-broader blocking goal: every shipped Python file and size exception has a final owner,
-16 responsibility-owned canonical modules are extracted, and all 16 non-entrypoint
-legacy root/`anima_prompt` modules are removed after a canonical caller cutover.
+FC-05 closes the original ownership/lifecycle Definition of Done. PTC-01 through
+PTC-10 close the broader per-file goal: every shipped Python file and size exception
+has a final owner, responsibility-owned canonical modules are extracted, and all 16
+non-entrypoint legacy root/`anima_prompt` modules are removed after canonical caller
+and lifecycle proof.
 
 ## Current execution boundary
 
-PTC-09B is READY after the production-free PTC-09A Contract merges. Do not repeat FC-01
-through FC-05 or the completed PTC Move tasks. PTC-09B follows the fixed private
-bootstrap package-start sequence, migrates callers to canonical owners and deletes the
-exact 16 legacy paths without a replacement facade.
+The only current roadmap task is FC-06, the first ordinary post-PTC release. Version
+1.0.0 defines the stable ComfyUI entrypoint, node, workflow, HTTP and data surface and
+explicitly records the retired legacy Python imports as a breaking boundary. Exact
+canonical modules remain directly importable; the package root does not become a broad
+SDK re-export. Do not reopen the completed FC/PTC implementation queue or recreate a
+deleted compatibility facade.
+
+Release task card: [`1.0.0.md`](1.0.0.md).
 
 ## Fixed lifecycle and compatibility guards
 

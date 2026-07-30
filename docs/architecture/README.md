@@ -35,13 +35,16 @@ COMPLETE FC-05 technical architecture completion
 COMPLETE PTC-01 through PTC-09B total structure, support and root cutover
 COMPLETE PTC-10 final audit and dead-adapter retirement
 
-EVENT    ordinary release N
+READY    FC-06 ordinary release N as EasyUse Anima 1.0.0
 ```
 
 FC-01 through FC-05 closed the initial ownership and lifecycle Definition of Done.
 PTC-01 through PTC-09B complete the per-file, size, support-ownership and E-09-safe
-root cutover. PTC-10 closes the two unregistered runtime-closure residuals. Release
-events remain separate from this sequence.
+root cutover. PTC-10 closes the two unregistered runtime-closure residuals. The
+selected release N is 1.0.0 because the retired legacy Python imports are an explicit
+breaking boundary. Version 1.0 defines the stable public contract at the ComfyUI
+entrypoint, node, workflow, HTTP and persisted-data boundaries; exact canonical modules
+remain directly importable without a broad package-root re-export.
 
 ## Current code boundary
 

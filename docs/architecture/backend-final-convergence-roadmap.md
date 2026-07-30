@@ -2,8 +2,8 @@
 
 ## Status and authority
 
-- Status: FC ownership/lifecycle convergence complete; mandatory Total Python
-  Convergence extension active.
+- Status: FC ownership/lifecycle convergence and Total Python Convergence complete;
+  FC-06 release N selected as EasyUse Anima 1.0.0.
 - Technical completion owner: reactivated Issue #593.
 - Parent architecture: reactivated Issue #185.
 - Compatibility ledger: Issue #186 and ADR-002.
@@ -79,7 +79,7 @@ FC-01        original Definition-of-Done closure audit
   -> FC-04B  cohesive production application Move
   -> FC-05   technical completion audit
 
-EVENT FC-06  next ordinary release N
+READY FC-06  ordinary release N as EasyUse Anima 1.0.0
   -> FC-07   later H/D-14 compatibility re-audit
 ```
 
@@ -706,6 +706,13 @@ Do not publish solely for PTC. An ordinary pre-PTC feature/bug release remains v
 does not satisfy total convergence. The first post-PTC release must record the exact tag,
 SHA, archive hash, absence of the sixteen legacy paths, canonical entrypoint identity,
 internal root-import scan and validate/pack/read-back.
+
+EasyUse Anima 1.0.0 is the selected release N. The major version makes the exact legacy
+Python import-path retirement explicit and establishes the stable public contract at
+the ComfyUI entrypoint, node, workflow, HTTP and persisted-data boundaries. Canonical
+implementation modules remain directly importable without adding a broad package-root
+export. Public node identifiers, socket ordering, workflows, HTTP routes/payloads,
+settings, profiles and persisted data do not change.
 
 ### FC-07 — Later compatibility re-audit
 

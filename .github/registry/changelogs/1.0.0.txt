@@ -1,0 +1,9 @@
+EasyUse Anima 1.0.0 establishes a stable ComfyUI node, workflow, HTTP, and saved-data surface on the fully canonical backend.
+
+Changes:
+1. Custom Python integrations can no longer import the legacy root-level modules or anima_prompt package. Integrations that need internal owners must import the exact canonical module under easyuse_anima.
+2. Existing public node identifiers, socket order, HTTP routes and payloads, settings, profiles, and saved workflows remain compatible.
+3. Fixed Prompt Studio highlight wrapping so highlighted text and the editable text use the same line width when no scrollbar is present.
+
+Action required:
+After updating, restart ComfyUI and hard-refresh the browser. If third-party Python code imports the removed root modules or anima_prompt package, update those imports before installing 1.0.0. Ordinary ComfyUI workflows do not require migration.
