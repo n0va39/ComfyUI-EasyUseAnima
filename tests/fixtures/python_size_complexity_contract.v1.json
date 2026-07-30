@@ -63,12 +63,6 @@
       "decomposition_boundary": "Split Regional node adapters only across existing node classes with socket and workflow parity."
     },
     {
-      "path": "easyuse_anima/prompt/advanced.py",
-      "baseline_loc": 890,
-      "owner_issue": 188,
-      "decomposition_boundary": "Separate pure Advanced Prompt Data construction from field normalization without changing serialized output."
-    },
-    {
       "path": "easyuse_anima/prompt/artist_mix.py",
       "baseline_loc": 1355,
       "owner_issue": 188,
@@ -174,7 +168,7 @@
       "decomposition_boundary": "Keep seed reservation and Prompt Data node output assembly ordered until a typed request owns both."
     },
     {
-      "path": "easyuse_anima/prompt/advanced.py",
+      "path": "easyuse_anima/prompt/advanced_builder.py",
       "qualified_name": "_build_advanced_prompt_data",
       "baseline_loc": 227,
       "owner_issue": 188,
@@ -202,7 +196,7 @@
       "decomposition_boundary": "Keep Artist Mix config migration and validation together until a typed config constructor owns both."
     },
     {
-      "path": "easyuse_anima/prompt/regional.py",
+      "path": "easyuse_anima/prompt/regional_builder.py",
       "qualified_name": "_build_regional_outputs",
       "baseline_loc": 140,
       "owner_issue": 188,

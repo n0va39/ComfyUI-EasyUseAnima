@@ -2788,7 +2788,7 @@
       "role": "advanced-prompt-service-facade",
       "owner_group": "prompt",
       "disposition": "split",
-      "status": "planned",
+      "status": "complete",
       "targets": [
         {
           "path": "easyuse_anima/prompt/advanced.py",
@@ -2817,14 +2817,9 @@
       "replacement_owner": null,
       "size_exception_verdicts": [
         {
-          "id": "function:easyuse_anima/prompt/advanced.py::_build_advanced_prompt_data",
+          "id": "function:easyuse_anima/prompt/advanced_builder.py::_build_advanced_prompt_data",
           "verdict": "split",
           "final_owner": "easyuse_anima/prompt/advanced_builder.py"
-        },
-        {
-          "id": "module:easyuse_anima/prompt/advanced.py",
-          "verdict": "split",
-          "final_owner": "easyuse_anima/prompt/advanced.py"
         }
       ]
     },
@@ -3152,7 +3147,7 @@
       "role": "regional-prompt-service-facade",
       "owner_group": "prompt",
       "disposition": "split",
-      "status": "planned",
+      "status": "complete",
       "targets": [
         {
           "path": "easyuse_anima/prompt/regional.py",
@@ -3176,7 +3171,7 @@
       "replacement_owner": null,
       "size_exception_verdicts": [
         {
-          "id": "function:easyuse_anima/prompt/regional.py::_build_regional_outputs",
+          "id": "function:easyuse_anima/prompt/regional_builder.py::_build_regional_outputs",
           "verdict": "split",
           "final_owner": "easyuse_anima/prompt/regional_builder.py"
         }

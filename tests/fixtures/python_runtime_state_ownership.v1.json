@@ -79,13 +79,15 @@
       "module": "easyuse_anima/prompt/advanced.py",
       "reason": "Published immutable Prompt Studio schema, alias, and layout metadata.",
       "symbols": [
-        "ADVANCED_FIELD_LABELS",
-        "ADVANCED_FIELD_PANES",
-        "ADVANCED_FIELD_TYPES",
         "EXTEND_PROMPT_SLOT_SPECS",
         "PROMPT_STUDIO_LEGACY_FIXED_WILDCARD_MODES",
         "PROMPT_STUDIO_WILDCARD_SEED_CONTROL_ALIASES"
       ]
+    },
+    {
+      "module": "easyuse_anima/prompt/advanced_fields.py",
+      "reason": "Canonical immutable Advanced Prompt Studio field schema metadata.",
+      "symbols": ["ADVANCED_FIELD_LABELS", "ADVANCED_FIELD_PANES", "ADVANCED_FIELD_TYPES"]
     },
     {
       "module": "easyuse_anima/prompt/anima/ordering.py",
@@ -100,7 +102,7 @@
     {
       "module": "easyuse_anima/prompt/regional.py",
       "reason": "Published immutable regional field schema metadata.",
-      "symbols": ["ADVANCED_FIELD_LABELS", "ADVANCED_FIELD_PANES", "REGIONAL_FIELD_TYPES"]
+      "symbols": ["REGIONAL_FIELD_TYPES"]
     },
     {
       "module": "easyuse_anima/registration.py",
