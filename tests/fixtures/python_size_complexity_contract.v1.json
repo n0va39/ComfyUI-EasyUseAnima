@@ -39,8 +39,14 @@
       "decomposition_boundary": "Split filesystem primitives only if lock, compare-and-swap, atomic replace, and recovery ordering remain one transaction contract."
     },
     {
+      "path": "easyuse_anima/nodes/prompt_advanced_execution.py",
+      "baseline_loc": 482,
+      "owner_issue": 188,
+      "decomposition_boundary": "Keep typed Advanced build requests, call-time seams, and v1/v2 execution ordering together through PTC-07A."
+    },
+    {
       "path": "easyuse_anima/nodes/prompt_advanced_nodes.py",
-      "baseline_loc": 1208,
+      "baseline_loc": 975,
       "owner_issue": 188,
       "decomposition_boundary": "Separate Advanced node generations by public node class while preserving shared field, seed, and root alias contracts."
     },
@@ -52,7 +58,7 @@
     },
     {
       "path": "easyuse_anima/nodes/regional_nodes.py",
-      "baseline_loc": 513,
+      "baseline_loc": 476,
       "owner_issue": 188,
       "decomposition_boundary": "Split Regional node adapters only across existing node classes with socket and workflow parity."
     },
@@ -133,20 +139,6 @@
       "baseline_loc": 137,
       "owner_issue": 188,
       "decomposition_boundary": "Extract NAIA socket groups only with exact default, choice, and ordering parity."
-    },
-    {
-      "path": "easyuse_anima/nodes/prompt_advanced_nodes.py",
-      "qualified_name": "EasyUseAnimaPromptStudioAdvanced.build",
-      "baseline_loc": 171,
-      "owner_issue": 188,
-      "decomposition_boundary": "Separate legacy Advanced node conversion only after shared Prompt Data and seed adapters own the inputs."
-    },
-    {
-      "path": "easyuse_anima/nodes/prompt_advanced_nodes.py",
-      "qualified_name": "EasyUseAnimaPromptStudioAdvancedV2._build_with_seed",
-      "baseline_loc": 184,
-      "owner_issue": 188,
-      "decomposition_boundary": "Keep seed reservation and Prompt Data node output assembly ordered until a typed request owns both."
     },
     {
       "path": "easyuse_anima/prompt/advanced_builder.py",

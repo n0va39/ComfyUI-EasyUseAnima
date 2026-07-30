@@ -3,41 +3,33 @@
 from __future__ import annotations
 
 import json
-from contextlib import nullcontext
-from typing import Any, cast
+from typing import Any
 
 from ..common.serialization import _stable_change_key
-from ..common.values import _as_bool, _as_int, _single_value
+from ..common.values import _as_bool, _single_value
 from ..naia.client import _parse_random_response, _post_random
 from ..naia.resolution import (
-    CUSTOM_ADVANCED_RESOLUTION_BUCKET,
     DEFAULT_ADVANCED_RESOLUTION_BUCKET,
     DEFAULT_ADVANCED_RESOLUTION_SIZE,
-    NAIA_ADVANCED_RESOLUTION_BUCKET,
     _advanced_resolution_from_selection,
-    _resolution_label,
     _resolve_naia_resolution,
+)
+from ..naia.resolution import (
+    NAIA_ADVANCED_RESOLUTION_BUCKET as _NAIA_ADVANCED_RESOLUTION_BUCKET,
 )
 from ..prompt.advanced import (
     ADVANCED_FIELDS_WORKFLOW_PROPERTY,
     EXTEND_PROMPT_SLOT_SPECS,
     PROMPT_STUDIO_ADVANCED_RETURN_NAMES,
     PROMPT_STUDIO_ADVANCED_RETURN_TYPES,
-    _advanced_enabled_naia_panes,
-    _advanced_field_input_values,
     _advanced_fields_json,
     _advanced_has_enabled_naia,
-    _advanced_naia_field_updates,
     _advanced_uses_naia_resolution,
     _apply_advanced_field_inputs,
-    _build_advanced_prompt_data,
     _build_advanced_prompts,
-    _clone_advanced_fields,
     _expand_advanced_wildcard_fields,
     _normalize_advanced_fields,
     _normalize_prompt_studio_wildcard_seed_control,
-    _set_naia_field_text,
-    _translate_prompt_fields,
     normalize_prompt_studio_wildcard_mode,
     normalize_seed,
 )
@@ -57,12 +49,12 @@ from ..prompt.artist_mix import (
     _bounded_artist_mix_int,
     _normalize_artist_mix_mode,
 )
-from ..prompt.contracts import AdvancedField, PromptDataCompatResult
+from ..prompt.contracts import AdvancedField
 from ..prompt.correction import (
     _prompt_translation_change_key,
     _translate_prompt_text,
 )
-from ..prompt.data import PROMPT_DATA_TYPE, _prompt_data_parameter_snapshot
+from ..prompt.data import PROMPT_DATA_TYPE
 from ..seed.compatibility import _scrub_reserved_wildcard_next_seed
 from ..settings.service import (
     resolve_metadata_filter_words,
@@ -73,6 +65,13 @@ from ..wildcard.service import wildcard_sources_signature
 from ..workflow import _get_workflow_node
 from .input_types import _FlexibleOptionalInputType
 from .naia_nodes import EasyUseAnimaNAIARandomPrompt
+from .prompt_advanced_execution import (
+    _AdvancedBuildRequest,
+    _AdvancedExecutionBindings,
+    _AdvancedV2BuildRequest,
+    _build_prompt_studio_advanced,
+    _build_prompt_studio_advanced_v2,
+)
 from .seed_adapters import (
     PROMPT_STUDIO_ADVANCED_SEED_FEATURE,
     PromptStudioSeedExecution,
@@ -81,6 +80,7 @@ from .seed_adapters import (
 
 WILDCARD_MODE_SEQUENTIAL = "sequential"
 PROMPT_STUDIO_WILDCARD_MODE_LABELS = ("일반", "순차")
+NAIA_ADVANCED_RESOLUTION_BUCKET = _NAIA_ADVANCED_RESOLUTION_BUCKET
 SEED_CONTROL_FIXED = "fixed"
 SEED_CONTROL_RANDOMIZE = "randomize"
 SEED_CONTROL_INCREMENT = "increment"
@@ -362,156 +362,39 @@ class EasyUseAnimaPromptStudioAdvanced:
         _seed_execution: PromptStudioSeedExecution | None = None,
         **field_inputs,
     ):
-        fields = _normalize_advanced_fields(advanced_fields)
-        saved_fields = _clone_advanced_fields(fields)
-        effective_field_inputs = _advanced_field_input_values(field_inputs)
-        requested_use_naia = _as_bool(use_naia, False)
-        enabled_naia_panes = _advanced_enabled_naia_panes(fields)
-        use_naia_resolution = _advanced_uses_naia_resolution(resolution_bucket)
-        live_use_naia = requested_use_naia and (bool(enabled_naia_panes) or use_naia_resolution)
-        metadata_use_naia = live_use_naia
-        metadata_updates: dict[str, Any] = {}
-        ui_updates: dict[str, Any] = {}
-        wildcard_mode_key = normalize_prompt_studio_wildcard_mode(wildcard_mode)
-        wildcard_mode_label = (
-            PROMPT_STUDIO_WILDCARD_MODE_LABELS[1]
-            if wildcard_mode_key == WILDCARD_MODE_SEQUENTIAL
-            else PROMPT_STUDIO_WILDCARD_MODE_LABELS[0]
+        request = _AdvancedBuildRequest(
+            use_naia=use_naia,
+            consume_naia_on_queue=consume_naia_on_queue,
+            use_anima_mod_guidance=use_anima_mod_guidance,
+            pin_trigger_tags_to_front=pin_trigger_tags_to_front,
+            advanced_fields=advanced_fields,
+            use_negative_anima_mod_guidance=use_negative_anima_mod_guidance,
+            wildcard_mode=wildcard_mode,
+            wildcard_seed=wildcard_seed,
+            wildcard_seed_after_generate=wildcard_seed_after_generate,
+            resolution_bucket=resolution_bucket,
+            resolution_size=resolution_size,
+            resolution_custom_width=resolution_custom_width,
+            resolution_custom_height=resolution_custom_height,
+            workflow_prompt=workflow_prompt,
+            extra_pnginfo=extra_pnginfo,
+            unique_id=unique_id,
+            seed_execution=_seed_execution,
+            field_inputs=field_inputs,
         )
-        effective_fields = _apply_advanced_field_inputs(fields, effective_field_inputs)
-        wildcard_seed_value = normalize_seed(wildcard_seed)
-        wildcard_effective_seed_control = _normalize_prompt_studio_wildcard_seed_control(
-            wildcard_seed_after_generate,
-            wildcard_mode,
+        bindings = _AdvancedExecutionBindings(
+            update_metadata_fields=self._update_metadata_fields,
+            render_ui=self._ui,
+            seed_execution=prompt_studio_seed_execution,
+            next_seed=next_seed,
+            expand_fields=_expand_advanced_wildcard_fields,
+            resolve_settings=resolve_naia_settings,
+            make_request_body=EasyUseAnimaNAIARandomPrompt._make_request_body,
+            post_random=_post_random,
+            parse_random_response=_parse_random_response,
+            resolve_naia_resolution=_resolve_naia_resolution,
         )
-        _scrub_reserved_wildcard_next_seed(
-            field_inputs,
-            workflow_prompt,
-            unique_id,
-        )
-        width, height = _advanced_resolution_from_selection(
-            resolution_bucket,
-            resolution_size,
-            resolution_custom_width,
-            resolution_custom_height,
-        )
-
-        seed_context = (
-            nullcontext(_seed_execution)
-            if _seed_execution is not None
-            else prompt_studio_seed_execution(
-                feature=PROMPT_STUDIO_ADVANCED_SEED_FEATURE,
-                unique_id=unique_id,
-                seed=wildcard_seed_value,
-                after_generate=wildcard_effective_seed_control,
-                fallback_next_seed=lambda: next_seed(
-                    wildcard_seed_value,
-                    wildcard_effective_seed_control,
-                ),
-            )
-        )
-        with seed_context as seed_execution:
-            execution_seed = seed_execution.execution_seed
-            if live_use_naia:
-                naia_settings = resolve_naia_settings()
-                body = EasyUseAnimaNAIARandomPrompt._make_request_body(
-                    _as_bool(naia_settings["use_naia_settings"], True),
-                    naia_settings["pre_prompt"],
-                    naia_settings["post_prompt"],
-                    naia_settings["auto_hide"],
-                    naia_settings["preprocessing"],
-                )
-                resp = _post_random(
-                    naia_settings["host"],
-                    naia_settings["port"],
-                    body,
-                    allow_remote_api=bool(naia_settings.get("allow_remote_api", False)),
-                )
-                naia_prompt, naia_negative, naia_width, naia_height = _parse_random_response(resp)
-                naia_field_updates = _advanced_naia_field_updates(
-                    fields,
-                    {
-                        "positive": naia_prompt,
-                        "negative": naia_negative,
-                    },
-                )
-                if naia_field_updates:
-                    ui_updates["naia_field_updates"] = naia_field_updates
-                if "positive" in enabled_naia_panes:
-                    saved_fields = _set_naia_field_text(saved_fields, "positive", naia_prompt)
-                    effective_fields = _set_naia_field_text(effective_fields, "positive", naia_prompt)
-                if "negative" in enabled_naia_panes:
-                    saved_fields = _set_naia_field_text(saved_fields, "negative", naia_negative)
-                    effective_fields = _set_naia_field_text(effective_fields, "negative", naia_negative)
-                if use_naia_resolution:
-                    width, height = _resolve_naia_resolution(naia_width, naia_height, naia_settings)
-                    ui_updates["naia_resolution_update"] = {
-                        "width": width,
-                        "height": height,
-                    }
-                    resolution_label = _resolution_label(width, height)
-                    metadata_updates.update({
-                        "resolution_bucket": CUSTOM_ADVANCED_RESOLUTION_BUCKET,
-                        "resolution_size": resolution_label,
-                        "resolution_custom_width": width,
-                        "resolution_custom_height": height,
-                    })
-                    ui_updates.update({
-                        "resolution_bucket": NAIA_ADVANCED_RESOLUTION_BUCKET,
-                        "resolution_size": resolution_label,
-                        "resolution_custom_width": width,
-                        "resolution_custom_height": height,
-                    })
-                metadata_use_naia = False
-
-            ui_fields = _clone_advanced_fields(saved_fields)
-            effective_fields, effective_wildcard = _expand_advanced_wildcard_fields(
-                effective_fields,
-                execution_seed,
-                wildcard_mode_key,
-            )
-            effective_fields = _translate_prompt_fields(effective_fields)
-            ui_updates.update({
-                "wildcard_mode": wildcard_mode_label,
-                "wildcard_execution_seed": execution_seed,
-                "wildcard_seed": seed_execution.next_seed,
-                "wildcard_seed_after_generate": wildcard_effective_seed_control,
-                "wildcard_used_keys": list(effective_wildcard["used_keys"]),
-                "wildcard_missing_keys": list(effective_wildcard["missing_keys"]),
-            })
-            metadata_updates.update({
-                "wildcard_mode": wildcard_mode_label,
-                "wildcard_seed": execution_seed,
-                "wildcard_seed_after_generate": SEED_CONTROL_FIXED,
-            })
-
-            fields_json = _advanced_fields_json(saved_fields)
-            ui_fields_json = _advanced_fields_json(ui_fields)
-            if live_use_naia or metadata_updates:
-                self._update_metadata_fields(
-                    workflow_prompt,
-                    extra_pnginfo,
-                    unique_id,
-                    fields_json,
-                    metadata_use_naia,
-                    metadata_updates,
-                )
-
-            result = _build_advanced_prompts(
-                effective_fields,
-                use_anima_mod_guidance,
-                use_negative_anima_mod_guidance,
-                pin_trigger_tags_to_front,
-            )
-            return {
-                "ui": self._ui(
-                    ui_fields_json,
-                    requested_use_naia,
-                    effective_field_inputs,
-                    ui_updates,
-                ),
-                "result": (*result, width, height),
-            }
+        return _build_prompt_studio_advanced(request, bindings)
 
 
 class EasyUseAnimaPromptStudioAdvancedV2(EasyUseAnimaPromptStudioAdvanced):
@@ -796,14 +679,12 @@ class EasyUseAnimaPromptStudioAdvancedV2(EasyUseAnimaPromptStudioAdvanced):
         _seed_execution: PromptStudioSeedExecution | None = None,
         **field_inputs,
     ):
-        if _seed_execution is None:
-            raise RuntimeError("Advanced v2 seed execution was not reserved")
-        base = super().build(
-            use_naia,
-            consume_naia_on_queue,
-            use_anima_mod_guidance,
-            pin_trigger_tags_to_front,
-            advanced_fields,
+        base_request = _AdvancedBuildRequest(
+            use_naia=use_naia,
+            consume_naia_on_queue=consume_naia_on_queue,
+            use_anima_mod_guidance=use_anima_mod_guidance,
+            pin_trigger_tags_to_front=pin_trigger_tags_to_front,
+            advanced_fields=advanced_fields,
             use_negative_anima_mod_guidance=use_negative_anima_mod_guidance,
             wildcard_mode=wildcard_mode,
             wildcard_seed=wildcard_seed,
@@ -815,127 +696,11 @@ class EasyUseAnimaPromptStudioAdvancedV2(EasyUseAnimaPromptStudioAdvanced):
             workflow_prompt=workflow_prompt,
             extra_pnginfo=extra_pnginfo,
             unique_id=unique_id,
-            _seed_execution=_seed_execution,
-            **field_inputs,
+            seed_execution=_seed_execution,
+            field_inputs=field_inputs,
         )
-        compat_result = cast(
-            PromptDataCompatResult,
-            tuple(base.get("result") or ()),
-        )
-        ui_payloads = base.get("ui", {}).get("prompt_studio_advanced", [])
-        ui_payload = ui_payloads[0] if ui_payloads and isinstance(ui_payloads[0], dict) else {}
-        if isinstance(ui_payload, dict):
-            ui_payload.update({
-                "artist_mix_mode": _normalize_artist_mix_mode(artist_mix_mode, ARTIST_MIX_MODE_OFF),
-                "artist_mix_start_percent": _bounded_artist_mix_float(
-                    artist_mix_start_percent,
-                    ARTIST_MIX_DEFAULT_START_PERCENT,
-                    0.0,
-                    1.0,
-                ),
-                "artist_mix_strength_scale": _bounded_artist_mix_float(
-                    artist_mix_strength_scale,
-                    ARTIST_MIX_DEFAULT_STRENGTH_SCALE,
-                    0.0,
-                    5.0,
-                ),
-                "artist_mix_style_gain": _bounded_artist_mix_float(
-                    artist_mix_style_gain,
-                    ARTIST_MIX_DEFAULT_STYLE_GAIN,
-                    0.0,
-                    3.0,
-                ),
-                "artist_mix_rms_scale_cap": _bounded_artist_mix_float(
-                    artist_mix_rms_scale_cap,
-                    ARTIST_MIX_DEFAULT_RMS_SCALE_CAP,
-                    1.0,
-                    5.0,
-                ),
-                "artist_mix_exact_top_k": _bounded_artist_mix_int(
-                    artist_mix_exact_top_k,
-                    ARTIST_MIX_DEFAULT_EXACT_TOP_K,
-                    0,
-                    64,
-                ),
-                "artist_mix_cluster_count": _bounded_artist_mix_int(
-                    artist_mix_cluster_count,
-                    ARTIST_MIX_DEFAULT_CLUSTER_COUNT,
-                    1,
-                    32,
-                ),
-                "artist_mix_dominant_isolation": _as_bool(
-                    artist_mix_dominant_isolation,
-                    ARTIST_MIX_DEFAULT_DOMINANT_ISOLATION,
-                ),
-                "artist_mix_dominant_threshold": _bounded_artist_mix_float(
-                    artist_mix_dominant_threshold,
-                    ARTIST_MIX_DEFAULT_DOMINANT_THRESHOLD,
-                    0.0,
-                    1.0,
-                ),
-            })
-        saved_fields = _normalize_advanced_fields(ui_payload.get("advanced_fields", advanced_fields))
-        effective_field_inputs = _advanced_field_input_values(ui_payload.get("field_inputs") or field_inputs)
-        wildcard_mode_key = normalize_prompt_studio_wildcard_mode(wildcard_mode)
-        effective_fields = _apply_advanced_field_inputs(saved_fields, effective_field_inputs)
-        effective_fields, _wildcard = _expand_advanced_wildcard_fields(
-            effective_fields,
-            _seed_execution.execution_seed,
-            wildcard_mode_key,
-        )
-        effective_fields = _translate_prompt_fields(effective_fields)
-        prompt_data_parameters = _prompt_data_parameter_snapshot(
-            self.INPUT_TYPES().get("required", {}),
-            {
-                "use_naia": use_naia,
-                "consume_naia_on_queue": consume_naia_on_queue,
-                "use_anima_mod_guidance": use_anima_mod_guidance,
-                "pin_trigger_tags_to_front": pin_trigger_tags_to_front,
-                "advanced_fields": advanced_fields,
-                "use_negative_anima_mod_guidance": use_negative_anima_mod_guidance,
-                "wildcard_mode": (
-                    PROMPT_STUDIO_WILDCARD_MODE_LABELS[1]
-                    if wildcard_mode_key == WILDCARD_MODE_SEQUENTIAL
-                    else PROMPT_STUDIO_WILDCARD_MODE_LABELS[0]
-                ),
-                "wildcard_seed": wildcard_seed,
-                "wildcard_seed_after_generate": _normalize_prompt_studio_wildcard_seed_control(
-                    wildcard_seed_after_generate,
-                    wildcard_mode,
-                ),
-                "resolution_bucket": resolution_bucket,
-                "resolution_size": resolution_size,
-                "resolution_custom_width": resolution_custom_width,
-                "resolution_custom_height": resolution_custom_height,
-                "artist_mix_mode": artist_mix_mode,
-                "artist_mix_start_percent": artist_mix_start_percent,
-                "artist_mix_strength_scale": artist_mix_strength_scale,
-                "artist_mix_style_gain": artist_mix_style_gain,
-                "artist_mix_rms_scale_cap": artist_mix_rms_scale_cap,
-                "artist_mix_exact_top_k": artist_mix_exact_top_k,
-                "artist_mix_cluster_count": artist_mix_cluster_count,
-                "artist_mix_dominant_isolation": artist_mix_dominant_isolation,
-                "artist_mix_dominant_threshold": artist_mix_dominant_threshold,
-                **field_inputs,
-            },
-            ui_payload,
-        )
-        prompt_data_parameters["wildcard_seed"] = _seed_execution.execution_seed
-        prompt_data = _build_advanced_prompt_data(
-            compat_result,
-            effective_fields,
-            saved_fields,
-            effective_field_inputs,
-            str(ui_payload.get("resolution_bucket", resolution_bucket)),
-            str(ui_payload.get("resolution_size", resolution_size)),
-            _as_int(ui_payload.get("resolution_custom_width", resolution_custom_width), resolution_custom_width),
-            _as_int(ui_payload.get("resolution_custom_height", resolution_custom_height), resolution_custom_height),
-            str(ui_payload.get("wildcard_mode", wildcard_mode)),
-            _seed_execution.execution_seed,
-            str(ui_payload.get("wildcard_seed_after_generate", wildcard_seed_after_generate)),
-            ui_payload,
-            pin_trigger_tags_to_front,
-            parameters=prompt_data_parameters,
+        request = _AdvancedV2BuildRequest(
+            base=base_request,
             artist_mix_mode=artist_mix_mode,
             artist_mix_start_percent=artist_mix_start_percent,
             artist_mix_strength_scale=artist_mix_strength_scale,
@@ -946,10 +711,12 @@ class EasyUseAnimaPromptStudioAdvancedV2(EasyUseAnimaPromptStudioAdvanced):
             artist_mix_dominant_isolation=artist_mix_dominant_isolation,
             artist_mix_dominant_threshold=artist_mix_dominant_threshold,
         )
-        return {
-            **base,
-            "result": (prompt_data,),
-        }
+        return _build_prompt_studio_advanced_v2(
+            request,
+            base_build=super().build,
+            input_types=self.INPUT_TYPES,
+            expand_fields=_expand_advanced_wildcard_fields,
+        )
 
 
 class EasyUseAnimaPromptStudioExtend:
