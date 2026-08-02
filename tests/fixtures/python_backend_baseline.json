@@ -45615,7 +45615,7 @@
         "is_package": false,
         "loc": 840,
         "module": "easyuse_anima.aio.legacy_generation",
-        "normalized_git_blob_sha1": "ea543efe0b1a2360d3766eaec4dfd74d0d503abb",
+        "normalized_git_blob_sha1": "bb0bf06c4a759708cc266466204a9ae5ee632448",
         "path": "easyuse_anima/aio/legacy_generation.py",
         "top_level": {
           "class_count": 0,
@@ -50968,25 +50968,25 @@
         "functions": [
           {
             "async": false,
-            "end_line": 31,
+            "end_line": 32,
             "kind": "method",
-            "line": 22,
+            "line": 23,
             "loc": 10,
             "qualified_name": "EasyUseAnimaAIOHookCombine.INPUT_TYPES"
           },
           {
             "async": false,
-            "end_line": 39,
+            "end_line": 40,
             "kind": "method",
-            "line": 38,
+            "line": 39,
             "loc": 2,
             "qualified_name": "EasyUseAnimaAIOHookCombine.combine"
           }
         ],
         "is_package": false,
-        "loc": 42,
+        "loc": 43,
         "module": "easyuse_anima.nodes.aio_hook_nodes",
-        "normalized_git_blob_sha1": "07fdc2d9cdd68588d87905eae7581e7505eeb12a",
+        "normalized_git_blob_sha1": "e8a8aa1569ff6ad4a015d62daec03173e21bf63b",
         "path": "easyuse_anima/nodes/aio_hook_nodes.py",
         "top_level": {
           "class_count": 1,

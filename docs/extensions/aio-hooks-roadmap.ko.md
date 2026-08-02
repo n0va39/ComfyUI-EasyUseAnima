@@ -30,9 +30,9 @@
 | 확장 metadata | `extensions.hook_data.<hook_id>#<ordinal>` 아래 JSON-safe 기록 추가 |
 | 미리보기 | hook이 처리 중간 이미지를 AiO preview transport로 보낼 수 있음 |
 | 실행별 session | reusable definition과 queue 실행별 mutable session 분리 |
-| 정리 callback | session `close()`와 등록 cleanup을 역순으로 실행 |
+| 정리 callback | session `close()`는 provider 역순, 등록 cleanup은 전역 등록 역순(LIFO)으로 실행 |
 | Hook 조합 | `Anima AiO Hook Combine`에서 2~4개 provider를 연결 순서대로 조합 |
-| 결정적 순서 | before는 A→B, after/close/cleanup은 B→A |
+| 결정적 순서 | before는 A→B, after/session close는 B→A, cleanup은 전역 LIFO |
 | 캐시 변경 감지 | JSON-safe `fingerprint`를 Generator `IS_CHANGED`에 포함. 없으면 보수적으로 재실행 |
 | fail-closed 오류 | 잘못된 descriptor, patch, shape, metadata 또는 provider 예외에서 저장을 정상 완료로 위장하지 않음 |
 | no-hook 호환 | Hook 미연결 시 기존 Generator 출력·metadata·cache signature 경로를 유지 |

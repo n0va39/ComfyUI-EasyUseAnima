@@ -13,7 +13,8 @@ class EasyUseAnimaAIOHookCombine:
 
     DESCRIPTION = (
         "Combines AiO hook definitions. Before callbacks run from hook_a to hook_d; "
-        "after callbacks and cleanup run in reverse order."
+        "after callbacks and session close run in reverse, while cleanup callbacks "
+        "use global reverse-registration order."
     )
     OUTPUT_TOOLTIPS = (
         "Combined EASYUSE_ANIMA_AIO_HOOK value for Anima AiO Generator.",

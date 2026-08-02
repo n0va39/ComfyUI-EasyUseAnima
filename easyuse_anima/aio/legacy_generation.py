@@ -464,7 +464,7 @@ def _run_aio_generation_pipeline(
 ):
     if settings["mode"] != "txt2img":
         raise RuntimeError("[EasyUseAnima] AiO Generator draft currently supports txt2img only.")
-    generation_config = _aio_generation_config_from_dict(settings)
+    generation_config, prepared_aio_hook = _aio_generation_config_from_dict(settings), prepare_aio_hook(aio_hook)
     base_model, base_clip, vae = _load_aio_resources_from_input_context(context)
     model_with_lora, clip, applied_loras = _apply_aio_lora_stack(
         base_model,
@@ -812,7 +812,7 @@ def _run_aio_generation_pipeline(
             add_preview=preview_collector.add,
         )
         run_aio_postprocess_hook_stage(
-            prepare_aio_hook(aio_hook), generation_request,
+            prepared_aio_hook, generation_request,
             generation_state,
             preview_run_id,
             preview_collector.add,

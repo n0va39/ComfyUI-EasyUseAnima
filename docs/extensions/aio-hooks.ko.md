@@ -115,7 +115,7 @@ cleanup과 앞선 session은 역순으로 정리됩니다.
 - `event.request`: normalized mode, node ID, generation settings
 - `event.state`: 현재 `image`, width, height, core metadata, extension metadata
 - `event.services.emit_preview(stage, image, label=None)`: 선택적 중간 미리보기
-- `event.services.register_cleanup(callback)`: run 종료 시 역순 정리
+- `event.services.register_cleanup(callback)`: run 종료 시 전역 등록 역순(LIFO) 정리
 
 `event.state` 내부 dict를 직접 수정하거나 입력 image를 in-place로 바꾸지 말고
 새 `AioHookPatch`를 반환하세요. v1 image patch는 이전 image와 동일하고 읽을 수
@@ -138,7 +138,8 @@ metadata는 hook별 `extensions.hook_data["<hook_id>#<ordinal>"]` 아래에 저�
 ```text
 hook_a.before → hook_b.before → core postprocess
               → hook_b.after → hook_a.after
-close hook_b → close hook_a → cleanup hook_b → cleanup hook_a
+close hook_b → close hook_a
+cleanup callbacks → 전체 callback의 등록 역순(LIFO)
 ```
 
 이는 중첩 middleware와 같은 순서입니다. 여러 hook을 쓸 때는 before에서 입력을
@@ -146,7 +147,9 @@ close hook_b → close hook_a → cleanup hook_b → cleanup hook_a
 일반적인 참고 사례는 [pluggy hook wrappers](https://pluggy.readthedocs.io/en/stable/)를,
 역순 자원 정리는 Python
 [`ExitStack`](https://docs.python.org/3/library/contextlib.html#contextlib.ExitStack)을
-참고할 수 있습니다.
+참고할 수 있습니다. session `close()`는 provider의 역순으로 실행됩니다. cleanup
+callback은 provider별로 묶이지 않고 전체 등록 순서를 기준으로 역순 실행되므로,
+before/after에서 늦게 등록한 callback이 먼저 실행됩니다.
 
 ## fingerprint와 재현성
 
@@ -180,6 +183,10 @@ tensor, model, 열린 파일, callback, 세션별 ID처럼 mutable하거나 JSON
   정리 작업을 시도한 뒤 원래 종료 신호를 그대로 전달합니다. Python의 공식
   [exception hierarchy](https://docs.python.org/3/library/exceptions.html#exception-hierarchy)도
   참고하세요.
+
+AiO Hook은 sandbox가 아닙니다. provider 노드팩은 EasyUse Anima 및 ComfyUI와
+같은 Python 프로세스에서 실행되며 파일·네트워크·호스트 상태에 접근할 수
+있습니다. 출처와 코드를 신뢰할 수 있는 provider만 설치하고 연결하세요.
 
 ## 체크리스트와 문제 해결
 

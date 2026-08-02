@@ -585,7 +585,7 @@
   },
   "EasyUseAnimaAIOHookCombine": {
     "display_name": "Anima AiO Hook Combine",
-    "description": "Combines EASYUSE_ANIMA_AIO_HOOK values in socket order. Before callbacks run a to d; after callbacks and cleanup run in reverse.",
+    "description": "Combines EASYUSE_ANIMA_AIO_HOOK values in socket order. Before runs a to d; after and session close run in reverse; cleanup callbacks use global LIFO order.",
     "inputs": {
       "hook_a": {"name": "hook_a", "tooltip": "Required first AiO hook."},
       "hook_b": {"name": "hook_b", "tooltip": "Required second AiO hook."},

@@ -226,6 +226,61 @@ class AioHookRuntimeTests(unittest.TestCase):
         )
         self.assertEqual(state.extensions["existing"], {"preserved": True})
 
+    def test_cleanup_callbacks_use_global_reverse_registration_order(self):
+        class PhaseCleanupSession(_Session):
+            def before_stage(self, event):
+                self.services.register_cleanup(
+                    lambda: self.log.append(("cleanup", "before", self.hook_id))
+                )
+                return super().before_stage(event)
+
+            def after_stage(self, event):
+                self.services.register_cleanup(
+                    lambda: self.log.append(("cleanup", "after", self.hook_id))
+                )
+                return super().after_stage(event)
+
+        class PhaseCleanupDefinition(_Definition):
+            def create_session(self, context):
+                self.log.append(("create", self.hook_id, context.request.node_id))
+                context.services.register_cleanup(
+                    lambda: self.log.append(("cleanup", "create", self.hook_id))
+                )
+                return PhaseCleanupSession(
+                    self.hook_id,
+                    self.log,
+                    context.services,
+                    patch_image=self.patch_image,
+                )
+
+        log = []
+        state = GenerationState(None, _Image("input"), 32, 32)
+        run_aio_postprocess_hook_stage(
+            prepare_aio_hook(combine_aio_hooks(
+                PhaseCleanupDefinition("example.first", log),
+                PhaseCleanupDefinition("example.second", log),
+            )),
+            _request(),
+            state,
+            "run-id",
+            None,
+            _Stage(log),
+        )
+
+        self.assertEqual(
+            log[-8:],
+            [
+                ("close", "example.second"),
+                ("close", "example.first"),
+                ("cleanup", "after", "example.first"),
+                ("cleanup", "after", "example.second"),
+                ("cleanup", "before", "example.second"),
+                ("cleanup", "before", "example.first"),
+                ("cleanup", "create", "example.second"),
+                ("cleanup", "create", "example.first"),
+            ],
+        )
+
     def test_stage_error_preserves_original_and_cleans_up_in_reverse(self):
         log = []
         state = GenerationState(None, _Image("input"), 32, 32)

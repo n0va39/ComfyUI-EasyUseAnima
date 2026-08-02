@@ -112,7 +112,7 @@ callbacks and already-created sessions in reverse order.
 - `event.request`: normalized mode, node ID, and generation settings
 - `event.state`: current image, dimensions, core metadata, and extension metadata
 - `event.services.emit_preview(stage, image, label=None)`: optional preview
-- `event.services.register_cleanup(callback)`: reverse-order run cleanup
+- `event.services.register_cleanup(callback)`: global reverse-registration (LIFO) cleanup
 
 Do not mutate dictionaries in the views or modify the input image in place.
 Return a new `AioHookPatch`. A v1 image patch must have the same readable tensor
@@ -136,13 +136,17 @@ dependencies.
 ```text
 hook_a.before → hook_b.before → core postprocess
               → hook_b.after → hook_a.after
-close hook_b → close hook_a → cleanup hook_b → cleanup hook_a
+close hook_b → close hook_a
+cleanup callbacks → global reverse-registration order (LIFO)
 ```
 
 This is nested middleware ordering: before callbacks prepare input and after
 callbacks wrap the result. For related established designs, see
 [pluggy hook wrappers](https://pluggy.readthedocs.io/en/stable/) and Python's
 reverse-order [`ExitStack`](https://docs.python.org/3/library/contextlib.html#contextlib.ExitStack).
+Session `close()` methods run in reverse provider order. Cleanup callbacks are
+not grouped by provider: the most recently registered callback runs first, so a
+callback registered during before/after runs before earlier creation callbacks.
 
 ## Fingerprints and reproducibility
 
@@ -175,6 +179,10 @@ Generator then reports itself changed so an old result is not reused.
   runtime attempts cleanup, then propagates the original termination signal.
   See Python's official
   [exception hierarchy](https://docs.python.org/3/library/exceptions.html#exception-hierarchy).
+
+AiO Hook is not a sandbox. A provider pack executes in the same Python process
+as EasyUse Anima and ComfyUI and can access files, the network, and host state.
+Only install and connect providers whose source and code you trust.
 
 ## Checklist and troubleshooting
 

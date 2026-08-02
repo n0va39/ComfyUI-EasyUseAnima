@@ -585,7 +585,7 @@
   },
   "EasyUseAnimaAIOHookCombine": {
     "display_name": "Anima AiO Hook Combine",
-    "description": "여러 EASYUSE_ANIMA_AIO_HOOK을 소켓 순서대로 결합합니다. before는 a에서 d 순서, after와 정리는 역순으로 실행됩니다.",
+    "description": "여러 EASYUSE_ANIMA_AIO_HOOK을 소켓 순서대로 결합합니다. before는 a에서 d 순서, after와 session close는 역순이며 cleanup callback은 전체 등록 역순으로 실행됩니다.",
     "inputs": {
       "hook_a": {
         "name": "hook_a",

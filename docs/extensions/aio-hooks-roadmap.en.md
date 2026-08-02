@@ -30,9 +30,9 @@ and `easyuse_anima.extensions.aio`.
 | Extension metadata | JSON-safe values under `extensions.hook_data.<hook_id>#<ordinal>` |
 | Preview emission | Send intermediate hook images through the AiO preview transport |
 | Per-run sessions | Reusable definitions are separated from mutable queue-run sessions |
-| Cleanup | Reverse-order session close and registered cleanup callbacks |
+| Cleanup | Reverse provider session close; global reverse-registration (LIFO) callbacks |
 | Composition | Combine two to four providers in socket order |
-| Deterministic order | A→B before; B→A after, close, and cleanup |
+| Deterministic order | A→B before; B→A after/session close; global LIFO cleanup |
 | Cache change detection | JSON-safe `fingerprint` participates in Generator `IS_CHANGED`; missing fingerprints rerun conservatively |
 | Fail closed | Invalid descriptors, patches, shapes, metadata, and provider exceptions stop the run |
 | No-hook compatibility | The disconnected output, metadata, and cache-signature path remains unchanged |
