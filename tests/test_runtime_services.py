@@ -237,6 +237,20 @@ class RuntimeServicesTests(unittest.TestCase):
         self.assertIs(raised.exception, failure)
         self.assertEqual(calls, ["first", "second", "third"])
 
+    def test_abandon_prevents_cleanup_and_is_idempotent(self):
+        calls = []
+        plan = runtime_module._RuntimeCleanupPlan(
+            (lambda: calls.append("cleanup"),)
+        )
+        runtime = self.make_runtime(plan)
+
+        plan.abandon()
+        plan.abandon()
+        runtime.close()
+        runtime.close()
+
+        self.assertEqual(calls, [])
+
     def test_detach_runtime_compares_expected_identity(self):
         first = self.make_runtime()
         other = self.make_runtime()

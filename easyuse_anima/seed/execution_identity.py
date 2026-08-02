@@ -20,6 +20,8 @@ _REQUEST_NAMESPACE = (
 _STREAM_NAMESPACE = (
     f"easyuse_anima.seed.stream.v{SEED_EXECUTION_IDENTITY_VERSION}"
 )
+# Preserve v1 for metadata-less callers; v2 adds the stable workflow scope.
+_WORKFLOW_STREAM_NAMESPACE = "easyuse_anima.seed.stream.v2"
 _COMFY_EXECUTION_UTILS = "comfy_execution.utils"
 
 _HostModuleLoader: TypeAlias = Callable[[str], object]
@@ -51,6 +53,24 @@ def _normalize_node_id(value: object) -> str | None:
     return None
 
 
+def _normalize_workflow_id(extra_pnginfo: object) -> str | None:
+    if isinstance(extra_pnginfo, (list, tuple)):
+        if not extra_pnginfo:
+            return None
+        extra_pnginfo = cast(object, extra_pnginfo[0])
+    if not isinstance(extra_pnginfo, dict):
+        return None
+    metadata = cast(dict[object, object], extra_pnginfo)
+    workflow = metadata.get("workflow")
+    if not isinstance(workflow, dict):
+        return None
+    workflow_metadata = cast(dict[object, object], workflow)
+    workflow_id = workflow_metadata.get("id")
+    if not isinstance(workflow_id, str) or not workflow_id.strip():
+        return None
+    return workflow_id.strip()
+
+
 def _require_list_index(value: object) -> int | None:
     if value is None:
         return None
@@ -69,6 +89,25 @@ def _encoded_identity(namespace: str, *components: object) -> str:
             ensure_ascii=False,
             separators=(",", ":"),
         )
+    )
+
+
+def _seed_stream_id(
+    feature_id: str,
+    node_id: str,
+    workflow_id: str | None,
+) -> str:
+    if workflow_id is None:
+        return _encoded_identity(
+            _STREAM_NAMESPACE,
+            feature_id,
+            node_id,
+        )
+    return _encoded_identity(
+        _WORKFLOW_STREAM_NAMESPACE,
+        feature_id,
+        workflow_id,
+        node_id,
     )
 
 
@@ -152,12 +191,14 @@ def resolve_seed_execution_identity(
     feature: str,
     *,
     unique_id: object = None,
+    extra_pnginfo: object = None,
     load_context: _ExecutionContextLoader = read_comfy_execution_context,
     request_id_factory: _RequestIdFactory = _new_opaque_request_id,
 ) -> SeedExecutionIdentity | None:
     """Resolve the authoritative context identity or a UNIQUE_ID fallback."""
 
     feature_id = _require_text(feature, "Seed execution feature")
+    workflow_id = _normalize_workflow_id(extra_pnginfo)
     context = load_context()
 
     if context is not None:
@@ -166,10 +207,10 @@ def resolve_seed_execution_identity(
                 "load_context must return a SeedExecutionContext or None"
             )
         return SeedExecutionIdentity(
-            stream_id=_encoded_identity(
-                _STREAM_NAMESPACE,
+            stream_id=_seed_stream_id(
                 feature_id,
                 context.node_id,
+                workflow_id,
             ),
             request_id=_encoded_identity(
                 _REQUEST_NAMESPACE,
@@ -189,10 +230,10 @@ def resolve_seed_execution_identity(
         "Opaque seed request ID",
     )
     return SeedExecutionIdentity(
-        stream_id=_encoded_identity(
-            _STREAM_NAMESPACE,
+        stream_id=_seed_stream_id(
             feature_id,
             fallback_node_id,
+            workflow_id,
         ),
         request_id=_encoded_identity(
             _REQUEST_NAMESPACE,

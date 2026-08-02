@@ -89,6 +89,90 @@ class SeedExecutionIdentityTests(unittest.TestCase):
         self.assertEqual(first.stream_id, second.stream_id)
         self.assertNotEqual(first.request_id, second.request_id)
 
+    def test_workflow_stream_is_stable_across_prompts_and_isolated_by_id(self):
+        first = execution_identity.resolve_seed_execution_identity(
+            "aio",
+            extra_pnginfo=({"workflow": {"id": " workflow-a "}},),
+            load_context=lambda: execution_identity.SeedExecutionContext(
+                prompt_id="prompt-a",
+                node_id="7",
+            ),
+        )
+        next_prompt = execution_identity.resolve_seed_execution_identity(
+            "aio",
+            extra_pnginfo={"workflow": {"id": "workflow-a"}},
+            load_context=lambda: execution_identity.SeedExecutionContext(
+                prompt_id="prompt-b",
+                node_id="7",
+            ),
+        )
+        other_workflow = execution_identity.resolve_seed_execution_identity(
+            "aio",
+            extra_pnginfo={"workflow": {"id": "workflow-b"}},
+            load_context=lambda: execution_identity.SeedExecutionContext(
+                prompt_id="prompt-a",
+                node_id="7",
+            ),
+        )
+
+        self.assertIsNotNone(first)
+        self.assertIsNotNone(next_prompt)
+        self.assertIsNotNone(other_workflow)
+        assert first is not None
+        assert next_prompt is not None
+        assert other_workflow is not None
+        self.assertEqual(first.stream_id, next_prompt.stream_id)
+        self.assertNotEqual(first.stream_id, other_workflow.stream_id)
+        self.assertEqual(
+            first.stream_id,
+            'easyuse_anima.seed.stream.v2:["aio","workflow-a","7"]',
+        )
+        self.assertEqual(first.request_id, other_workflow.request_id)
+        self.assertNotEqual(first.request_id, next_prompt.request_id)
+
+    def test_invalid_workflow_metadata_preserves_exact_legacy_stream(self):
+        expected_stream = 'easyuse_anima.seed.stream.v1:["aio","7"]'
+        invalid_metadata = (
+            None,
+            [],
+            {},
+            {"workflow": None},
+            {"workflow": {}},
+            {"workflow": {"id": "  "}},
+            {"workflow": {"id": 42}},
+        )
+
+        for extra_pnginfo in invalid_metadata:
+            with self.subTest(extra_pnginfo=extra_pnginfo):
+                context_identity = (
+                    execution_identity.resolve_seed_execution_identity(
+                        "aio",
+                        extra_pnginfo=extra_pnginfo,
+                        load_context=lambda: (
+                            execution_identity.SeedExecutionContext(
+                                prompt_id="prompt-a",
+                                node_id="7",
+                            )
+                        ),
+                    )
+                )
+                fallback_identity = (
+                    execution_identity.resolve_seed_execution_identity(
+                        "aio",
+                        unique_id=7,
+                        extra_pnginfo=extra_pnginfo,
+                        load_context=lambda: None,
+                        request_id_factory=lambda: "opaque-a",
+                    )
+                )
+
+                self.assertIsNotNone(context_identity)
+                self.assertIsNotNone(fallback_identity)
+                assert context_identity is not None
+                assert fallback_identity is not None
+                self.assertEqual(context_identity.stream_id, expected_stream)
+                self.assertEqual(fallback_identity.stream_id, expected_stream)
+
     def test_list_index_distinguishes_mapped_calls(self):
         identities = [
             execution_identity.resolve_seed_execution_identity(

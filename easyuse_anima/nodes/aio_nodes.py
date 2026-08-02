@@ -288,6 +288,7 @@ class EasyUseAnimaAIOGenerator:
         sampler = settings["sampler"]
         with aio_seed_execution(
             unique_id=unique_id,
+            extra_pnginfo=extra_pnginfo,
             normalized_seed=sampler["seed"],
             after_generate=sampler.get(
                 "seed_after_generate",
