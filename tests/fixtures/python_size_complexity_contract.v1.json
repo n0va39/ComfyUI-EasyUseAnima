@@ -121,7 +121,7 @@
     {
       "path": "easyuse_anima/nodes/naia_nodes.py",
       "qualified_name": "EasyUseAnimaNAIARandomPrompt.INPUT_TYPES",
-      "baseline_loc": 137,
+      "baseline_loc": 135,
       "owner_issue": 188,
       "decomposition_boundary": "Extract NAIA socket groups only with exact default, choice, and ordering parity."
     },
