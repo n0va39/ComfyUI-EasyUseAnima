@@ -27,6 +27,7 @@ from .mutation import (
 from .repository import (
     InvalidProfileDataError,
     _ProfileRepository,
+    _profile_json_candidates,
     _profile_list_item,
     _read_profile_json,
     _sanitize_profile_name,
@@ -71,7 +72,7 @@ def _find_lora_profile_path(
         (
             path
             for path in sorted(
-                root.glob("*.json"),
+                _profile_json_candidates(root),
                 key=lambda item: (item.name.casefold(), item.name),
             )
             if _windows_profile_filename_identity(path.stem) == expected
@@ -141,7 +142,7 @@ def _list_lora_profiles() -> list[dict]:
         return []
     profiles = []
     for path in sorted(
-        repository.profile_dir.glob("*.json"),
+        _profile_json_candidates(repository.profile_dir),
         key=lambda item: item.stem.lower(),
     ):
         if path.name == ".gitignore":

@@ -24687,6 +24687,24 @@
       },
       {
         "alias": null,
+        "bound_name": "_profile_json_candidates",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".repository:_profile_json_candidates",
+        "kind": "static_from",
+        "line": 30,
+        "name": "_profile_json_candidates",
+        "optional": false,
+        "requested": ".repository",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/profiles/aio.py",
+        "target": "easyuse_anima/profiles/repository.py"
+      },
+      {
+        "alias": null,
         "bound_name": "_profile_list_item",
         "branch_context": [],
         "classification": "internal",
@@ -25182,6 +25200,24 @@
       },
       {
         "alias": null,
+        "bound_name": "_profile_json_candidates",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".repository:_profile_json_candidates",
+        "kind": "static_from",
+        "line": 27,
+        "name": "_profile_json_candidates",
+        "optional": false,
+        "requested": ".repository",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/profiles/lora.py",
+        "target": "easyuse_anima/profiles/repository.py"
+      },
+      {
+        "alias": null,
         "bound_name": "_profile_list_item",
         "branch_context": [],
         "classification": "internal",
@@ -25261,7 +25297,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 165
+            "line": 166
           }
         ],
         "classification": "external",
@@ -25269,7 +25305,7 @@
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 166,
+        "line": 167,
         "name": null,
         "optional": true,
         "requested": "folder_paths",
@@ -25286,7 +25322,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 191
+            "line": 192
           }
         ],
         "classification": "external",
@@ -25294,7 +25330,7 @@
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 192,
+        "line": 193,
         "name": null,
         "optional": true,
         "requested": "folder_paths",
@@ -25545,6 +25581,23 @@
       },
       {
         "alias": null,
+        "bound_name": "os",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "os",
+        "kind": "static_import",
+        "line": 6,
+        "name": null,
+        "optional": false,
+        "requested": "os",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/profiles/repository.py"
+      },
+      {
+        "alias": null,
         "bound_name": "re",
         "branch_context": [],
         "classification": "external",
@@ -25552,10 +25605,27 @@
         "conditional": false,
         "imported": "re",
         "kind": "static_import",
-        "line": 6,
+        "line": 7,
         "name": null,
         "optional": false,
         "requested": "re",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/profiles/repository.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "stat",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "stat",
+        "kind": "static_import",
+        "line": 8,
+        "name": null,
+        "optional": false,
+        "requested": "stat",
         "role": "ordinary",
         "scope": "<module>",
         "source": "easyuse_anima/profiles/repository.py"
@@ -25569,7 +25639,7 @@
         "conditional": false,
         "imported": "collections.abc:Callable",
         "kind": "static_from",
-        "line": 7,
+        "line": 9,
         "name": "Callable",
         "optional": false,
         "requested": "collections.abc",
@@ -25586,7 +25656,7 @@
         "conditional": false,
         "imported": "dataclasses:dataclass",
         "kind": "static_from",
-        "line": 8,
+        "line": 10,
         "name": "dataclass",
         "optional": false,
         "requested": "dataclasses",
@@ -25603,7 +25673,7 @@
         "conditional": false,
         "imported": "pathlib:Path",
         "kind": "static_from",
-        "line": 9,
+        "line": 11,
         "name": "Path",
         "optional": false,
         "requested": "pathlib",
@@ -25620,7 +25690,7 @@
         "conditional": false,
         "imported": "..errors:ValidationError",
         "kind": "static_from",
-        "line": 11,
+        "line": 13,
         "name": "ValidationError",
         "optional": false,
         "requested": "..errors",
@@ -25638,7 +25708,7 @@
         "conditional": false,
         "imported": "..infrastructure.filesystem.atomic_json:AtomicJsonStore",
         "kind": "static_from",
-        "line": 12,
+        "line": 14,
         "name": "AtomicJsonStore",
         "optional": false,
         "requested": "..infrastructure.filesystem.atomic_json",
@@ -25656,7 +25726,7 @@
         "conditional": false,
         "imported": "..infrastructure.filesystem.atomic_json:create_atomic_json_store",
         "kind": "static_from",
-        "line": 12,
+        "line": 14,
         "name": "create_atomic_json_store",
         "optional": false,
         "requested": "..infrastructure.filesystem.atomic_json",
@@ -25674,7 +25744,7 @@
         "conditional": false,
         "imported": ".contract:ProfileContractError",
         "kind": "static_from",
-        "line": 16,
+        "line": 18,
         "name": "ProfileContractError",
         "optional": false,
         "requested": ".contract",
@@ -25692,7 +25762,7 @@
         "conditional": false,
         "imported": ".contract:interpret_profile_document",
         "kind": "static_from",
-        "line": 16,
+        "line": 18,
         "name": "interpret_profile_document",
         "optional": false,
         "requested": ".contract",
@@ -25710,7 +25780,7 @@
         "conditional": false,
         "imported": ".contract:legacy_profile_id",
         "kind": "static_from",
-        "line": 16,
+        "line": 18,
         "name": "legacy_profile_id",
         "optional": false,
         "requested": ".contract",
@@ -25728,7 +25798,7 @@
         "conditional": false,
         "imported": ".contract:normalize_profile_filename_identity",
         "kind": "static_from",
-        "line": 16,
+        "line": 18,
         "name": "normalize_profile_filename_identity",
         "optional": false,
         "requested": ".contract",
@@ -25746,7 +25816,7 @@
         "conditional": false,
         "imported": ".mutation:DirectoryMutationCoordinator",
         "kind": "static_from",
-        "line": 22,
+        "line": 24,
         "name": "DirectoryMutationCoordinator",
         "optional": false,
         "requested": ".mutation",
@@ -49924,113 +49994,113 @@
         "functions": [
           {
             "async": false,
-            "end_line": 67,
+            "end_line": 68,
             "kind": "function",
-            "line": 60,
+            "line": 61,
             "loc": 8,
             "qualified_name": "_current_aio_profile_repository"
           },
           {
             "async": false,
-            "end_line": 76,
+            "end_line": 77,
             "kind": "function",
-            "line": 70,
+            "line": 71,
             "loc": 7,
             "qualified_name": "_sanitize_aio_profile_name"
           },
           {
             "async": false,
-            "end_line": 85,
+            "end_line": 86,
             "kind": "function",
-            "line": 79,
+            "line": 80,
             "loc": 7,
             "qualified_name": "_aio_profile_path"
           },
           {
             "async": false,
-            "end_line": 107,
+            "end_line": 108,
             "kind": "function",
-            "line": 88,
+            "line": 89,
             "loc": 20,
             "qualified_name": "_find_aio_profile_path"
           },
           {
             "async": false,
-            "end_line": 123,
+            "end_line": 124,
             "kind": "function",
-            "line": 110,
+            "line": 111,
             "loc": 14,
             "qualified_name": "_normalize_aio_profile_payload"
           },
           {
             "async": false,
-            "end_line": 136,
+            "end_line": 137,
             "kind": "function",
-            "line": 126,
+            "line": 127,
             "loc": 11,
             "qualified_name": "_list_aio_profiles"
           },
           {
             "async": false,
-            "end_line": 142,
+            "end_line": 143,
             "kind": "function",
-            "line": 139,
+            "line": 140,
             "loc": 4,
             "qualified_name": "_validate_aio_profile_size"
           },
           {
             "async": false,
-            "end_line": 203,
+            "end_line": 204,
             "kind": "function",
-            "line": 145,
+            "line": 146,
             "loc": 59,
             "qualified_name": "_save_aio_profile"
           },
           {
             "async": false,
-            "end_line": 220,
+            "end_line": 221,
             "kind": "function",
-            "line": 206,
+            "line": 207,
             "loc": 15,
             "qualified_name": "_normalize_stored_aio_profile_payload"
           },
           {
             "async": false,
-            "end_line": 232,
+            "end_line": 233,
             "kind": "function",
-            "line": 223,
+            "line": 224,
             "loc": 10,
             "qualified_name": "_load_aio_profile"
           },
           {
             "async": false,
-            "end_line": 269,
+            "end_line": 270,
             "kind": "function",
-            "line": 235,
+            "line": 236,
             "loc": 35,
             "qualified_name": "_delete_aio_profile"
           },
           {
             "async": false,
-            "end_line": 369,
+            "end_line": 370,
             "kind": "function",
-            "line": 272,
+            "line": 273,
             "loc": 98,
             "qualified_name": "_rename_aio_profile"
           },
           {
             "async": false,
-            "end_line": 389,
+            "end_line": 390,
             "kind": "function",
-            "line": 372,
+            "line": 373,
             "loc": 18,
             "qualified_name": "_rename_aio_profile_payload"
           }
         ],
         "is_package": false,
-        "loc": 392,
+        "loc": 393,
         "module": "easyuse_anima.profiles.aio",
-        "normalized_git_blob_sha1": "4dd56bb9563b39c6dbaa75c6a46583e0a8391cc0",
+        "normalized_git_blob_sha1": "f39453f1f737d821b7fa9f70418a64516cdc28f6",
         "path": "easyuse_anima/profiles/aio.py",
         "top_level": {
           "class_count": 0,
@@ -50152,185 +50222,185 @@
         "functions": [
           {
             "async": false,
-            "end_line": 45,
+            "end_line": 46,
             "kind": "function",
-            "line": 40,
+            "line": 41,
             "loc": 6,
             "qualified_name": "_current_lora_profile_repository"
           },
           {
             "async": false,
-            "end_line": 49,
+            "end_line": 50,
             "kind": "function",
-            "line": 48,
+            "line": 49,
             "loc": 2,
             "qualified_name": "_sanitize_lora_profile_name"
           },
           {
             "async": false,
-            "end_line": 58,
+            "end_line": 59,
             "kind": "function",
-            "line": 52,
+            "line": 53,
             "loc": 7,
             "qualified_name": "_lora_profile_path"
           },
           {
             "async": false,
-            "end_line": 80,
+            "end_line": 81,
             "kind": "function",
-            "line": 61,
+            "line": 62,
             "loc": 20,
             "qualified_name": "_find_lora_profile_path"
           },
           {
             "async": false,
-            "end_line": 88,
+            "end_line": 89,
             "kind": "function",
-            "line": 83,
+            "line": 84,
             "loc": 6,
             "qualified_name": "_as_lora_profile_count"
           },
           {
             "async": false,
-            "end_line": 97,
+            "end_line": 98,
             "kind": "function",
-            "line": 91,
+            "line": 92,
             "loc": 7,
             "qualified_name": "_as_lora_profile_index"
           },
           {
             "async": false,
-            "end_line": 120,
+            "end_line": 121,
             "kind": "function",
-            "line": 100,
+            "line": 101,
             "loc": 21,
             "qualified_name": "_normalize_lora_profile_data"
           },
           {
             "async": false,
-            "end_line": 135,
+            "end_line": 136,
             "kind": "function",
-            "line": 123,
+            "line": 124,
             "loc": 13,
             "qualified_name": "_normalize_lora_profile_payload"
           },
           {
             "async": false,
-            "end_line": 150,
+            "end_line": 151,
             "kind": "function",
-            "line": 138,
+            "line": 139,
             "loc": 13,
             "qualified_name": "_list_lora_profiles"
           },
           {
             "async": false,
-            "end_line": 161,
+            "end_line": 162,
             "kind": "function",
-            "line": 153,
+            "line": 154,
             "loc": 9,
             "qualified_name": "_clear_folder_paths_cache"
           },
           {
             "async": false,
-            "end_line": 187,
+            "end_line": 188,
             "kind": "function",
-            "line": 164,
+            "line": 165,
             "loc": 24,
             "qualified_name": "_list_loras"
           },
           {
             "async": false,
-            "end_line": 213,
+            "end_line": 214,
             "kind": "function",
-            "line": 190,
+            "line": 191,
             "loc": 24,
             "qualified_name": "_lora_full_path"
           },
           {
             "async": false,
-            "end_line": 228,
+            "end_line": 229,
             "kind": "function",
-            "line": 216,
+            "line": 217,
             "loc": 13,
             "qualified_name": "_dedupe_text_values"
           },
           {
             "async": false,
-            "end_line": 233,
+            "end_line": 234,
             "kind": "function",
-            "line": 231,
+            "line": 232,
             "loc": 3,
             "qualified_name": "_lora_file_key"
           },
           {
             "async": false,
-            "end_line": 248,
+            "end_line": 249,
             "kind": "function",
-            "line": 236,
+            "line": 237,
             "loc": 13,
             "qualified_name": "_put_unique"
           },
           {
             "async": false,
-            "end_line": 253,
+            "end_line": 254,
             "kind": "function",
-            "line": 251,
+            "line": 252,
             "loc": 3,
             "qualified_name": "_lora_path_exists"
           },
           {
             "async": false,
-            "end_line": 266,
+            "end_line": 267,
             "kind": "function",
-            "line": 256,
+            "line": 257,
             "loc": 11,
             "qualified_name": "_build_lora_fix_index"
           },
           {
             "async": false,
-            "end_line": 272,
+            "end_line": 273,
             "kind": "function",
-            "line": 269,
+            "line": 270,
             "loc": 4,
             "qualified_name": "_resolve_lora_for_fix"
           },
           {
             "async": false,
-            "end_line": 294,
+            "end_line": 295,
             "kind": "function",
-            "line": 275,
+            "line": 276,
             "loc": 20,
             "qualified_name": "_apply_lora_fix"
           },
           {
             "async": false,
-            "end_line": 352,
+            "end_line": 353,
             "kind": "function",
-            "line": 297,
+            "line": 298,
             "loc": 56,
             "qualified_name": "_fix_lora_profile_payload"
           },
           {
             "async": false,
-            "end_line": 403,
+            "end_line": 404,
             "kind": "function",
-            "line": 355,
+            "line": 356,
             "loc": 49,
             "qualified_name": "_save_lora_profile"
           },
           {
             "async": false,
-            "end_line": 438,
+            "end_line": 439,
             "kind": "function",
-            "line": 406,
+            "line": 407,
             "loc": 33,
             "qualified_name": "_load_lora_profile"
           }
         ],
         "is_package": false,
-        "loc": 441,
+        "loc": 442,
         "module": "easyuse_anima.profiles.lora",
-        "normalized_git_blob_sha1": "37320f122c881120fcbe2d519d755c94e46ef500",
+        "normalized_git_blob_sha1": "63802484602488a83eb2f9c9c13e2ee9be79160b",
         "path": "easyuse_anima/profiles/lora.py",
         "top_level": {
           "class_count": 0,
@@ -50436,61 +50506,69 @@
         "functions": [
           {
             "async": false,
-            "end_line": 53,
+            "end_line": 55,
             "kind": "method",
-            "line": 47,
+            "line": 49,
             "loc": 7,
             "qualified_name": "_ProfileRepository.store"
           },
           {
             "async": false,
-            "end_line": 56,
+            "end_line": 58,
             "kind": "method",
-            "line": 55,
+            "line": 57,
             "loc": 2,
             "qualified_name": "_ProfileRepository.locked"
           },
           {
             "async": false,
-            "end_line": 60,
+            "end_line": 62,
             "kind": "function",
-            "line": 59,
+            "line": 61,
             "loc": 2,
             "qualified_name": "_windows_profile_filename_identity"
           },
           {
             "async": false,
-            "end_line": 73,
+            "end_line": 94,
             "kind": "function",
-            "line": 63,
+            "line": 65,
+            "loc": 30,
+            "qualified_name": "_profile_json_candidates"
+          },
+          {
+            "async": false,
+            "end_line": 107,
+            "kind": "function",
+            "line": 97,
             "loc": 11,
             "qualified_name": "_sanitize_profile_name"
           },
           {
             "async": false,
-            "end_line": 84,
+            "end_line": 118,
             "kind": "function",
-            "line": 76,
+            "line": 110,
             "loc": 9,
             "qualified_name": "_read_profile_json"
           },
           {
             "async": false,
-            "end_line": 109,
+            "end_line": 143,
             "kind": "function",
-            "line": 87,
+            "line": 121,
             "loc": 23,
             "qualified_name": "_profile_list_item"
           }
         ],
         "is_package": false,
-        "loc": 112,
+        "loc": 146,
         "module": "easyuse_anima.profiles.repository",
-        "normalized_git_blob_sha1": "c8fc846e51d98da409f7cb0469f94a8ecfc8b3ee",
+        "normalized_git_blob_sha1": "1f5af21fcec719ac721ee5474ae40e2e3aa989e6",
         "path": "easyuse_anima/profiles/repository.py",
         "top_level": {
           "class_count": 2,
-          "function_count": 4,
+          "function_count": 5,
           "global_count": 3
         }
       },
@@ -59681,14 +59759,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 165
+            "line": 166
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 166,
+        "line": 167,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/profiles/lora.py"
@@ -59700,14 +59778,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 191
+            "line": 192
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 192,
+        "line": 193,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/profiles/lora.py"
@@ -59837,7 +59915,7 @@
         "branch_context": [],
         "classification": "external",
         "conditional": false,
-        "imported": "re",
+        "imported": "os",
         "kind": "static_import",
         "line": 6,
         "optional": false,
@@ -59848,9 +59926,31 @@
         "branch_context": [],
         "classification": "external",
         "conditional": false,
+        "imported": "re",
+        "kind": "static_import",
+        "line": 7,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/profiles/repository.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "stat",
+        "kind": "static_import",
+        "line": 8,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/profiles/repository.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
         "imported": "collections.abc:Callable",
         "kind": "static_from",
-        "line": 7,
+        "line": 9,
         "optional": false,
         "role": "ordinary",
         "source": "easyuse_anima/profiles/repository.py"
@@ -59861,7 +59961,7 @@
         "conditional": false,
         "imported": "dataclasses:dataclass",
         "kind": "static_from",
-        "line": 8,
+        "line": 10,
         "optional": false,
         "role": "ordinary",
         "source": "easyuse_anima/profiles/repository.py"
@@ -59872,7 +59972,7 @@
         "conditional": false,
         "imported": "pathlib:Path",
         "kind": "static_from",
-        "line": 9,
+        "line": 11,
         "optional": false,
         "role": "ordinary",
         "source": "easyuse_anima/profiles/repository.py"
@@ -62904,14 +63004,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 165
+            "line": 166
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 166,
+        "line": 167,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/profiles/lora.py"
@@ -62923,14 +63023,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 191
+            "line": 192
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 192,
+        "line": 193,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/profiles/lora.py"
@@ -64935,7 +65035,7 @@
         "column": 29,
         "context": "assign:INVALID_PROFILE_NAME_CHARS",
         "kind": "import_time_call",
-        "line": 24,
+        "line": 26,
         "module": "easyuse_anima/profiles/repository.py",
         "scope": "<module>"
       },
@@ -64944,7 +65044,7 @@
         "column": 33,
         "context": "assign:WINDOWS_RESERVED_FILE_BASENAMES",
         "kind": "import_time_call",
-        "line": 30,
+        "line": 32,
         "module": "easyuse_anima/profiles/repository.py",
         "scope": "<module>"
       },
@@ -64953,7 +65053,7 @@
         "column": 33,
         "context": "assign:WINDOWS_RESERVED_FILE_BASENAMES",
         "kind": "import_time_call",
-        "line": 31,
+        "line": 33,
         "module": "easyuse_anima/profiles/repository.py",
         "scope": "<module>"
       },
@@ -64962,7 +65062,7 @@
         "column": 1,
         "context": "decorator:_ProfileRepository",
         "kind": "import_time_call",
-        "line": 41,
+        "line": 43,
         "module": "easyuse_anima/profiles/repository.py",
         "scope": "<module>"
       },
@@ -65692,13 +65792,13 @@
       },
       {
         "kind": "set",
-        "line": 42,
+        "line": 43,
         "module": "easyuse_anima/profiles/aio.py",
         "name": "AIO_RESERVED_PROFILE_NAMES"
       },
       {
         "kind": "set",
-        "line": 25,
+        "line": 27,
         "module": "easyuse_anima/profiles/repository.py",
         "name": "WINDOWS_RESERVED_FILE_BASENAMES"
       },

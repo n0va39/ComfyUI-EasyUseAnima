@@ -3,11 +3,13 @@ from __future__ import annotations
 import asyncio
 import json
 import shutil
+import stat
 import subprocess
 import sys
 import tempfile
 import textwrap
 import threading
+import types
 import unittest
 import uuid
 from pathlib import Path
@@ -1026,6 +1028,93 @@ class AIOProfileStorageTests(unittest.TestCase):
             for name in ("../outside", r"C:\outside", r"\\server\share\outside"):
                 with self.subTest(name=name):
                     self.assertEqual(api.aio_profiles._aio_profile_path(name, root).parent, root)
+
+    def test_linked_profile_outside_root_is_ignored_without_mutation(self):
+        api = load_api_module()
+        with tempfile.TemporaryDirectory() as tmp:
+            base = Path(tmp)
+            root = base / "profiles"
+            outside = base / "outside"
+            root.mkdir()
+            outside.mkdir()
+            with patch.object(api.aio_profiles, "AIO_PROFILE_DIR", outside):
+                external = api.aio_profiles._save_aio_profile(
+                    "Linked",
+                    {"settings": {"marker": "outside"}},
+                )
+            external_path = outside / "Linked.json"
+            before = external_path.read_bytes()
+            try:
+                (root / "Linked.json").symlink_to(external_path)
+            except (NotImplementedError, OSError) as exc:
+                self.skipTest(f"file symlinks are unavailable: {exc}")
+
+            with patch.object(api.aio_profiles, "AIO_PROFILE_DIR", root):
+                self.assertEqual(api.aio_profiles._list_aio_profiles(), [])
+                with self.assertRaises(FileNotFoundError):
+                    api.aio_profiles._load_aio_profile("Linked")
+                with self.assertRaises(ValueError):
+                    api.aio_profiles._save_aio_profile(
+                        "Linked",
+                        {"settings": {"marker": "changed"}},
+                        overwrite=True,
+                        **profile_tokens(external),
+                    )
+                with self.assertRaises(FileNotFoundError):
+                    api.aio_profiles._delete_aio_profile(
+                        "Linked",
+                        **profile_tokens(external),
+                    )
+
+            self.assertEqual(external_path.read_bytes(), before)
+
+    def test_profile_candidate_filter_rejects_reparse_points(self):
+        api = load_api_module()
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            candidate = root / "Linked.json"
+            candidate.write_text("{}", encoding="utf-8")
+            real_lstat = Path.lstat
+            reparse_flag = getattr(stat, "FILE_ATTRIBUTE_REPARSE_POINT", 0x400)
+
+            def reparse_lstat(path, *args, **kwargs):
+                if path == candidate:
+                    return types.SimpleNamespace(
+                        st_mode=stat.S_IFREG,
+                        st_file_attributes=reparse_flag,
+                    )
+                return real_lstat(path, *args, **kwargs)
+
+            with patch.object(Path, "lstat", autospec=True, side_effect=reparse_lstat):
+                self.assertEqual(
+                    api.profile_repository._profile_json_candidates(root),
+                    (),
+                )
+
+    def test_profile_candidate_filter_rejects_resolved_escape(self):
+        api = load_api_module()
+        with tempfile.TemporaryDirectory() as tmp:
+            base = Path(tmp)
+            root = base / "profiles"
+            outside = base / "outside"
+            root.mkdir()
+            outside.mkdir()
+            candidate = root / "Linked.json"
+            external = outside / "Linked.json"
+            candidate.write_text("{}", encoding="utf-8")
+            external.write_text("{}", encoding="utf-8")
+            real_resolve = Path.resolve
+
+            def escaped_resolve(path, *args, **kwargs):
+                if path == candidate:
+                    return external
+                return real_resolve(path, *args, **kwargs)
+
+            with patch.object(Path, "resolve", autospec=True, side_effect=escaped_resolve):
+                self.assertEqual(
+                    api.profile_repository._profile_json_candidates(root),
+                    (),
+                )
 
     def test_builtin_names_and_invalid_payloads_are_rejected(self):
         api = load_api_module()
