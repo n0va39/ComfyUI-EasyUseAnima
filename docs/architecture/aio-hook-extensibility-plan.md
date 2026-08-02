@@ -1,19 +1,30 @@
 # ComfyUI-EasyUseAnima 백엔드 리팩토링 및 AiO Hook 확장성 통합 계획
 
-> 기준일: 2026-07-19
+> 기준일: 2026-08-02
 > 기준 브랜치: `dev`
 > 문서 성격: 기존 Python 백엔드 장기 리팩토링 계획의 AiO Hook 확장성 보강안
 > 주요 연계: #184, #168, #169, #187
-> 상태: 저장된 장기 계획안 — 현재 구현 범위와 분리
-> 릴리즈 목표: 전체 Hook 확장성 완료 및 통합 검증 후 0.6.0
+> 상태: 역사적 장기 계획안 — 구현된 public v1 계약의 근거 문서가 아님
+> 릴리즈 목표: 없음 — 아래 H0~H9와 0.6.0 문구는 역사적 설계 기록
+>
+> **구현된 API의 권위 문서:**
+> [한국어 가이드](../extensions/aio-hooks.ko.md) ·
+> [English guide](../extensions/aio-hooks.en.md) ·
+> [현재/예정 기능 로드맵](../extensions/aio-hooks-roadmap.ko.md) ·
+> [`easyuse_anima.extensions.aio`](../../easyuse_anima/extensions/aio.py)
 
 ---
 
-## 0. 계획 상태와 0.6.0 릴리즈 게이트
+## 0. 계획 상태와 현재 권위 경계
 
+- 2026-08-02 PR 후보의 public v1 prototype은 강화 검토 결과 범위를 의도적으로 줄였다.
+  `postprocess/before`와 `postprocess/after`만 dispatch하고, patch는 같은 shape의
+  image와 namespaced metadata만 허용한다. 이 문서 뒤쪽의 future stage,
+  capability, `on_error`, model/conditioning/latent patch 예시는 향후 설계 탐색이며
+  현재 public API가 아니다.
 - 이 문서는 장기 설계와 실행 순서를 저장하는 계획 문서이며, 문서 병합만으로 Hook 구현이나 공개 API가 활성화되지는 않는다.
 - 현재 진행 중인 #184/#168/#169/#187 작업은 그대로 유지한다. Hook Phase H는 각 선행 종료 조건을 만족한 조각만 백엔드 리팩토링과 병행하고, 결합 위험이 남은 조각은 리팩토링 완료 후 진행한다.
-- Phase H0~H9와 이 문서의 전체 완료 기준을 충족하고 no-hook 호환성, Legacy Canvas, Node 2.0, Registry package 검증을 통과한 통합 결과를 **0.6.0 릴리즈 목표**로 삼는다.
+- 실제 다음 작업과 promotion gate는 현재 로드맵과 [#622](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/622)를 따른다. 이 문서의 H0~H9와 0.6.0 목표는 새 작업의 자동 승인이나 현재 API 약속이 아니다.
 - `dev` 통합, `main` 반영, version/tag/release/Registry publication은 기존 릴리즈 승인 절차에 따라 별도로 수행한다.
 
 ---

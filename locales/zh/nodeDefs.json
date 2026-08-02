@@ -553,7 +553,7 @@
   },
   "EasyUseAnimaAIOGenerator": {
     "display_name": "Anima AiO Generator",
-    "description": "Consumes the easy use anima input context and runs the base txt2img generation path. Common generation parameters stay visible; advanced options are stored as hidden versioned JSON and managed by popup UI.",
+    "description": "Consumes the easy use anima input context and runs txt2img. Explicit AiO hooks currently run at the postprocess before/after boundary.",
     "inputs": {
       "easy_use_anima_input": {
         "name": "easy use anima input",
@@ -562,6 +562,10 @@
       "generation_settings": {
         "name": "generation_settings",
         "tooltip": "Hidden versioned JSON storage for popup generation settings. Keep this field serialized."
+      },
+      "aio_hook": {
+        "name": "aio_hook",
+        "tooltip": "Optional explicit EASYUSE_ANIMA_AIO_HOOK input. See the public extension guide."
       }
     },
     "outputs": {
@@ -577,6 +581,19 @@
         "name": "metadata_json",
         "tooltip": "JSON metadata summary for debugging or downstream integration."
       }
+    }
+  },
+  "EasyUseAnimaAIOHookCombine": {
+    "display_name": "Anima AiO Hook Combine",
+    "description": "Combines EASYUSE_ANIMA_AIO_HOOK values in socket order. Before callbacks run a to d; after callbacks and cleanup run in reverse.",
+    "inputs": {
+      "hook_a": {"name": "hook_a", "tooltip": "Required first AiO hook."},
+      "hook_b": {"name": "hook_b", "tooltip": "Required second AiO hook."},
+      "hook_c": {"name": "hook_c", "tooltip": "Optional third AiO hook."},
+      "hook_d": {"name": "hook_d", "tooltip": "Optional fourth AiO hook."}
+    },
+    "outputs": {
+      "0": {"name": "aio_hook", "tooltip": "Combined hook for Anima AiO Generator."}
     }
   },
   "EasyUseAnimaArtistMixConditioning": {

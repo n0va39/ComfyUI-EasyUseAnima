@@ -66,6 +66,7 @@ from .generation_save_output_stage import (
 )
 from .generation_settings import _aio_generation_config_from_dict
 from .generation_upscale_stage import AIOUpscaleStage, UpscaleRuntime
+from .hooks import prepare_aio_hook, run_aio_postprocess_hook_stage
 from .input_context import _require_easy_use_anima_input
 from .legacy_detailer import (
     run_aio_detailer_stage as _run_aio_detailer_stage_impl,
@@ -459,12 +460,11 @@ def _run_aio_generation_pipeline(
     lora_stack=None,
     workflow_prompt=None,
     extra_pnginfo=None,
-    unique_id=None,
+    unique_id=None, aio_hook=None,
 ):
     if settings["mode"] != "txt2img":
         raise RuntimeError("[EasyUseAnima] AiO Generator draft currently supports txt2img only.")
     generation_config = _aio_generation_config_from_dict(settings)
-
     base_model, base_clip, vae = _load_aio_resources_from_input_context(context)
     model_with_lora, clip, applied_loras = _apply_aio_lora_stack(
         base_model,
@@ -523,7 +523,6 @@ def _run_aio_generation_pipeline(
             _cleanup_aio_ephemeral_model(model_lineage_base, base_model)
         _cleanup_aio_ephemeral_model(model_with_lora, base_model)
         raise
-
     sampler = settings["sampler"]
     mod_guidance = settings["mod_guidance"]
     will_run_highres = _as_bool(settings["highres"].get("enabled"), False)
@@ -572,7 +571,6 @@ def _run_aio_generation_pipeline(
         ),
     )
     model_variant_resolvers: dict[int, ModelVariantResolver] = {}
-
     def variants_for(stage_model: object) -> ModelVariantResolver:
         model_id = id(stage_model)
         existing = model_variant_resolvers.get(model_id)
@@ -597,7 +595,6 @@ def _run_aio_generation_pipeline(
         )
         model_variant_resolvers[model_id] = resolver
         return resolver
-
     try:
         first_pass_model = stage_models.resolve("first_pass")
         first_pass_variants = variants_for(first_pass_model)
@@ -607,7 +604,6 @@ def _run_aio_generation_pipeline(
     except BaseException:
         model_registry.close()
         raise
-
     generation_state = GenerationState(
         latent=None,
         image=None,
@@ -697,7 +693,6 @@ def _run_aio_generation_pipeline(
             cache_scope=cache_scope,
         ),
     )
-
     first_pass_stage = AIOFirstPassStage(
         runtime=FirstPassRuntime(
             get_cache=_get_aio_first_pass_cache,
@@ -716,7 +711,6 @@ def _run_aio_generation_pipeline(
             else None
         ),
     )
-
     try:
         first_pass_stage.validate(
             generation_request,
@@ -817,11 +811,15 @@ def _run_aio_generation_pipeline(
             will_run_postprocess=will_run_postprocess,
             add_preview=preview_collector.add,
         )
-        postprocess_stage.validate(generation_request, {})
-        postprocess_stage.run(generation_request, generation_state)
+        run_aio_postprocess_hook_stage(
+            prepare_aio_hook(aio_hook), generation_request,
+            generation_state,
+            preview_run_id,
+            preview_collector.add,
+            postprocess_stage,
+        )
     finally:
         model_registry.close()
-
     save_output_stage = AIOSaveOutputStage(
         runtime=SaveOutputRuntime(
             save_comfy=_save_image_with_comfy,

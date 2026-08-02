@@ -1781,6 +1781,7 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
                 "workflow_prompt",
                 "extra_pnginfo",
                 "unique_id",
+                "aio_hook",
             ],
         )
         self.assertIsNone(signature.parameters["generation_settings"].default)
@@ -1789,6 +1790,7 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
             "workflow_prompt",
             "extra_pnginfo",
             "unique_id",
+            "aio_hook",
         ):
             self.assertIsNone(signature.parameters[name].default)
 
@@ -1849,6 +1851,7 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
             "workflow",
             "pnginfo",
             "node-id",
+            None,
         )
 
     def test_execution_trace_matches_move_boundary_fixture(self):

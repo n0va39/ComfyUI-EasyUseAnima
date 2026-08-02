@@ -15,6 +15,18 @@
 2. `Easy Use Anima Input`에서 ANIMA diffusion model, VAE, CLIP을 각각 선택합니다.
 3. `Easy Use Anima Input` 출력을 `Anima AiO Generator`의 `easy use anima input`에 연결합니다.
 4. 필요하면 `Anima LoRA Preset`의 `LORA_STACK`을 `lora_stack`에 연결합니다.
+5. 다른 노드팩의 AiO 확장을 쓸 때만 `EASYUSE_ANIMA_AIO_HOOK` 출력을
+   `aio_hook`에 연결합니다. 여러 hook은 `Anima AiO Hook Combine`으로 합칩니다.
+
+## 확장 hook
+
+`aio_hook`은 연결하지 않아도 기존 생성과 저장 동작이 그대로 유지되는 선택
+입력입니다. 현재 v1은 최종 postprocess의 before/after callback과 같은 shape의
+`IMAGE`, 확장 metadata, 선택적 preview만 공개합니다. hook으로 바뀐 `IMAGE`는
+Generator의 `LATENT`와 일치하도록 다시 인코딩되지 않습니다.
+
+직접 hook 노드를 만들려면 [AiO Hook API v1 개발 가이드](../extensions/aio-hooks.ko.md)와
+[복사 가능한 예제](../../examples/third_party_aio_hook/)를 참고하세요.
 
 ## 생성 프로필
 
