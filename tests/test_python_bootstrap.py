@@ -298,6 +298,73 @@ class PythonBootstrapTests(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError, "has not been installed"):
             runtime_module.get_runtime()
 
+    def test_route_failure_disarms_stale_runtime_cleanup_plan(self):
+        calls = []
+        captured = []
+
+        class Resource:
+            def __init__(self, name):
+                self.name = name
+
+            def shutdown(self):
+                calls.append(self.name)
+
+            def clear(self):
+                calls.append(self.name)
+
+            def close(self):
+                calls.append(self.name)
+
+        def fail_after_capture():
+            captured.append(runtime_module.get_runtime())
+            raise RuntimeError("routes")
+
+        with (
+            isolated_translation_route_executor(
+                bootstrap,
+                Resource("translation-route-executor"),
+            ),
+            patch.object(
+                bootstrap,
+                "_DEFAULT_AIO_FIRST_PASS_CACHE",
+                Resource("aio-first-pass-cache"),
+            ),
+            patch.object(
+                bootstrap,
+                "_DEFAULT_WILDCARD_SNAPSHOTS",
+                Resource("wildcard-snapshot-cache"),
+            ),
+            patch.object(
+                bootstrap,
+                "_DEFAULT_AUTOCOMPLETE_INDEX_STORE",
+                Resource("autocomplete-index-store"),
+            ),
+            patch.object(
+                bootstrap,
+                "_DEFAULT_AUTOCOMPLETE_SNAPSHOTS",
+                Resource("autocomplete-snapshot-store"),
+            ),
+        ):
+            with self.assertRaisesRegex(RuntimeError, "routes"):
+                bootstrap.initialize(
+                    register_routes=fail_after_capture,
+                    initialize_wildcards=Mock(return_value=object()),
+                )
+
+            stale_runtime = captured[0]
+            bootstrap.initialize(
+                register_routes=Mock(return_value=True),
+                initialize_wildcards=Mock(return_value=object()),
+            )
+            current_runtime = runtime_module.get_runtime()
+            calls.clear()
+
+            stale_runtime.close()
+
+        self.assertIsNot(stale_runtime, current_runtime)
+        self.assertIs(runtime_module.get_runtime(), current_runtime)
+        self.assertEqual(calls, [])
+
     def test_repeated_initialize_failure_restores_only_attempt_bound_facade(self):
         bootstrap.initialize(
             register_routes=Mock(return_value=True),
