@@ -13,6 +13,18 @@ RELEASE_PATH = ROOT / "RELEASE.md"
 
 
 class RegistryReleaseCopyTests(unittest.TestCase):
+    def test_only_current_registry_version_is_not_deprecated(self) -> None:
+        project = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
+        current_version = project["project"]["version"]
+        metadata = json.loads(METADATA_PATH.read_text(encoding="utf-8"))
+
+        current = [
+            item["version"]
+            for item in metadata["versions"]
+            if not item.get("deprecated", False)
+        ]
+        self.assertEqual(current, [current_version])
+
     def test_current_version_uses_user_facing_plain_text_changelog(self) -> None:
         project = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
         version = project["project"]["version"]
