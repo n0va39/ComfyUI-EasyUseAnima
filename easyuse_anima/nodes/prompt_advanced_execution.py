@@ -304,6 +304,7 @@ def _build_prompt_studio_advanced(
         else bindings.seed_execution(
             feature=PROMPT_STUDIO_ADVANCED_SEED_FEATURE,
             unique_id=request.unique_id,
+            extra_pnginfo=request.extra_pnginfo,
             seed=state.wildcard_seed_value,
             after_generate=state.wildcard_seed_control,
             fallback_next_seed=lambda: bindings.next_seed(

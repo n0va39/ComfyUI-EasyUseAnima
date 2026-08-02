@@ -70,6 +70,7 @@ class AioSeedCutoverTests(unittest.TestCase):
                 kwargs,
                 {
                     "unique_id": "41",
+                    "extra_pnginfo": {"workflow": {}},
                     "normalized_seed": -1,
                     "after_generate": "increment",
                 },

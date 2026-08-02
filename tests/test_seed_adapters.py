@@ -6,11 +6,15 @@ from types import SimpleNamespace
 from unittest.mock import Mock, patch
 
 from easyuse_anima.nodes.seed_adapters import (
+    AIO_GENERATOR_SEED_FEATURE,
     AioSeedExecution,
     aio_seed_execution,
     prompt_studio_seed_execution,
 )
-from easyuse_anima.seed.execution_identity import SeedExecutionIdentity
+from easyuse_anima.seed.execution_identity import (
+    SeedExecutionIdentity,
+    resolve_seed_execution_identity,
+)
 from easyuse_anima.seed.reservation import (
     SEED_CONTROL_FIXED,
     SEED_OVERFLOW_CLAMP,
@@ -139,11 +143,12 @@ class SeedAdapterTests(unittest.TestCase):
             stream_id="stream:aio",
             request_id="request:aio",
         )
+        extra_pnginfo = {"workflow": {"id": "workflow-a"}}
         with (
             patch(
                 "easyuse_anima.nodes.seed_adapters.resolve_seed_execution_identity",
                 return_value=identity,
-            ),
+            ) as resolve_identity,
             patch(
                 "easyuse_anima.nodes.seed_adapters.get_runtime",
                 return_value=SimpleNamespace(seed_reservations=service),
@@ -151,6 +156,7 @@ class SeedAdapterTests(unittest.TestCase):
         ):
             with aio_seed_execution(
                 unique_id="8",
+                extra_pnginfo=extra_pnginfo,
                 normalized_seed=-2,
                 after_generate="increment",
             ) as execution:
@@ -159,6 +165,11 @@ class SeedAdapterTests(unittest.TestCase):
                     (12, 13),
                 )
 
+        resolve_identity.assert_called_once_with(
+            AIO_GENERATOR_SEED_FEATURE,
+            unique_id="8",
+            extra_pnginfo=extra_pnginfo,
+        )
         request = service.reserve.call_args.args[0]
         self.assertEqual(request.selection, "increment")
         self.assertIsNone(request.seed)
@@ -462,11 +473,12 @@ class SeedAdapterTests(unittest.TestCase):
             stream_id="stream:1",
             request_id="request:1",
         )
+        extra_pnginfo = {"workflow": {"id": "workflow-a"}}
         with (
             patch(
                 "easyuse_anima.nodes.seed_adapters.resolve_seed_execution_identity",
                 return_value=identity,
-            ),
+            ) as resolve_identity,
             patch(
                 "easyuse_anima.nodes.seed_adapters.get_runtime",
                 return_value=SimpleNamespace(seed_reservations=service),
@@ -475,6 +487,7 @@ class SeedAdapterTests(unittest.TestCase):
             with prompt_studio_seed_execution(
                 feature="prompt_studio_advanced",
                 unique_id="41",
+                extra_pnginfo=extra_pnginfo,
                 seed=7,
                 after_generate="increment",
                 fallback_next_seed=fallback_next_seed,
@@ -484,6 +497,11 @@ class SeedAdapterTests(unittest.TestCase):
                     (9, 10),
                 )
 
+        resolve_identity.assert_called_once_with(
+            "prompt_studio_advanced",
+            unique_id="41",
+            extra_pnginfo=extra_pnginfo,
+        )
         request = service.reserve.call_args.args[0]
         self.assertEqual(request.seed, 7)
         self.assertEqual(request.after_generate, "increment")
@@ -492,6 +510,57 @@ class SeedAdapterTests(unittest.TestCase):
         service.settle.assert_called_once_with(
             "reservation:1",
             SEED_SETTLEMENT_ACCEPTED,
+        )
+
+    def test_workflow_streams_progress_independently_and_fixed_replays(self):
+        request_ids = iter(f"request:{index}" for index in range(5))
+        reservation_ids = iter(
+            f"reservation:{index}" for index in range(5)
+        )
+        service = InMemorySeedReservationService(
+            reservation_id_factory=lambda: next(reservation_ids),
+        )
+
+        def resolve_headless(feature, **kwargs):
+            return resolve_seed_execution_identity(
+                feature,
+                **kwargs,
+                load_context=lambda: None,
+                request_id_factory=lambda: next(request_ids),
+            )
+
+        def execute(workflow_id: str, after_generate: str) -> tuple[int, int]:
+            with prompt_studio_seed_execution(
+                feature="prompt_studio_advanced",
+                unique_id="41",
+                extra_pnginfo={"workflow": {"id": workflow_id}},
+                seed=7,
+                after_generate=after_generate,
+                fallback_next_seed=lambda: -1,
+            ) as execution:
+                return execution.execution_seed, execution.next_seed
+
+        with (
+            patch(
+                "easyuse_anima.nodes.seed_adapters.resolve_seed_execution_identity",
+                side_effect=resolve_headless,
+            ),
+            patch(
+                "easyuse_anima.nodes.seed_adapters.get_runtime",
+                return_value=SimpleNamespace(seed_reservations=service),
+            ),
+        ):
+            observed = (
+                execute("workflow-a", "increment"),
+                execute("workflow-b", "increment"),
+                execute("workflow-a", "increment"),
+                execute("workflow-a", "fixed"),
+                execute("workflow-b", "increment"),
+            )
+
+        self.assertEqual(
+            observed,
+            ((7, 8), (7, 8), (8, 9), (7, 7), (8, 9)),
         )
 
 

@@ -46,6 +46,7 @@ class PromptStudioSeedCutoverTests(unittest.TestCase):
                 self.assertNotEqual(changed, changed)
 
     def test_advanced_uses_authoritative_execution_and_next_seed(self):
+        extra_pnginfo = {"workflow": {"id": "workflow-advanced"}}
         with (
             patch.object(
                 prompt_advanced_nodes,
@@ -66,6 +67,7 @@ class PromptStudioSeedCutoverTests(unittest.TestCase):
                 "[]",
                 wildcard_seed=7,
                 wildcard_seed_after_generate="increment",
+                extra_pnginfo=extra_pnginfo,
                 unique_id="41",
             )
 
@@ -74,6 +76,10 @@ class PromptStudioSeedCutoverTests(unittest.TestCase):
         self.assertEqual(payload["wildcard_seed"], 10)
         self.assertEqual(expand.call_args.args[1], 9)
         session.assert_called_once()
+        self.assertIs(
+            session.call_args.kwargs["extra_pnginfo"],
+            extra_pnginfo,
+        )
 
     def test_advanced_emits_explicit_linked_and_naia_execution_deltas(self):
         fields = [
@@ -190,6 +196,7 @@ class PromptStudioSeedCutoverTests(unittest.TestCase):
 
     def test_advanced_v2_keeps_one_session_through_structured_output(self):
         expansion_seeds: list[int] = []
+        extra_pnginfo = {"workflow": {"id": "workflow-advanced-v2"}}
 
         def record_expansion(fields, seed, mode):
             expansion_seeds.append(seed)
@@ -215,6 +222,7 @@ class PromptStudioSeedCutoverTests(unittest.TestCase):
                 "[]",
                 wildcard_seed=7,
                 wildcard_seed_after_generate="increment",
+                extra_pnginfo=extra_pnginfo,
                 unique_id="42",
             )
 
@@ -225,6 +233,10 @@ class PromptStudioSeedCutoverTests(unittest.TestCase):
         self.assertEqual(expansion_seeds, [9])
         self.assertEqual(prompt_data["parameters"]["wildcard_seed"], 9)
         session.assert_called_once()
+        self.assertIs(
+            session.call_args.kwargs["extra_pnginfo"],
+            extra_pnginfo,
+        )
 
     def test_advanced_v2_reuses_first_effective_field_snapshot(self):
         fields = [{
@@ -288,6 +300,7 @@ class PromptStudioSeedCutoverTests(unittest.TestCase):
         self.assertEqual(parameter_fields[0]["text"], "saved fallback")
 
     def test_regional_uses_authoritative_execution_and_next_seed(self):
+        extra_pnginfo = {"workflow": {"id": "workflow-regional"}}
         with (
             patch.object(
                 regional_nodes,
@@ -305,6 +318,7 @@ class PromptStudioSeedCutoverTests(unittest.TestCase):
                 "",
                 wildcard_seed=7,
                 wildcard_seed_after_generate="increment",
+                extra_pnginfo=extra_pnginfo,
                 unique_id="43",
             )
 
@@ -313,6 +327,10 @@ class PromptStudioSeedCutoverTests(unittest.TestCase):
         self.assertEqual(payload["wildcard_seed"], 10)
         self.assertEqual(expand.call_args.args[1], 9)
         session.assert_called_once()
+        self.assertIs(
+            session.call_args.kwargs["extra_pnginfo"],
+            extra_pnginfo,
+        )
 
     def test_advanced_real_service_advances_then_fixed_replays_saved_seed(self):
         service = InMemorySeedReservationService()
