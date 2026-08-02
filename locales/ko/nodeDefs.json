@@ -553,7 +553,7 @@
   },
   "EasyUseAnimaAIOGenerator": {
     "display_name": "Anima AiO Generator",
-    "description": "easy use anima input 컨텍스트를 받아 기본 txt2img 생성 경로를 실행합니다. 자주 쓰는 생성값은 노드에 표시하고 상세 설정은 숨김 versioned JSON과 팝업 UI로 관리합니다.",
+    "description": "easy use anima input 컨텍스트를 받아 기본 txt2img 생성 경로를 실행합니다. 명시적으로 연결한 AiO Hook은 현재 postprocess before/after 경계에서 실행됩니다.",
     "inputs": {
       "easy_use_anima_input": {
         "name": "easy use anima input",
@@ -562,6 +562,10 @@
       "generation_settings": {
         "name": "generation_settings",
         "tooltip": "생성 팝업 설정을 저장하는 숨김 versioned JSON입니다. 직렬화 상태를 유지해야 합니다."
+      },
+      "aio_hook": {
+        "name": "aio_hook",
+        "tooltip": "선택적 EASYUSE_ANIMA_AIO_HOOK 입력입니다. 공개 가이드에 따라 만든 확장을 명시적으로 연결합니다."
       }
     },
     "outputs": {
@@ -576,6 +580,34 @@
       "2": {
         "name": "metadata_json",
         "tooltip": "디버깅과 다운스트림 연동을 위한 생성 메타데이터 JSON입니다."
+      }
+    }
+  },
+  "EasyUseAnimaAIOHookCombine": {
+    "display_name": "Anima AiO Hook Combine",
+    "description": "여러 EASYUSE_ANIMA_AIO_HOOK을 소켓 순서대로 결합합니다. before는 a에서 d 순서, after와 session close는 역순이며 cleanup callback은 전체 등록 역순으로 실행됩니다.",
+    "inputs": {
+      "hook_a": {
+        "name": "hook_a",
+        "tooltip": "가장 먼저 실행할 필수 AiO Hook입니다."
+      },
+      "hook_b": {
+        "name": "hook_b",
+        "tooltip": "두 번째로 실행할 필수 AiO Hook입니다."
+      },
+      "hook_c": {
+        "name": "hook_c",
+        "tooltip": "선택적인 세 번째 AiO Hook입니다."
+      },
+      "hook_d": {
+        "name": "hook_d",
+        "tooltip": "선택적인 네 번째 AiO Hook입니다."
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "aio_hook",
+        "tooltip": "Anima AiO Generator에 연결할 결합 Hook입니다."
       }
     }
   },

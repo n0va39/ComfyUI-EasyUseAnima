@@ -1,5 +1,6 @@
 """Pure ComfyUI node mapping composition for EasyUse Anima."""
 
+from .nodes.aio_hook_nodes import EasyUseAnimaAIOHookCombine
 from .nodes.aio_nodes import EasyUseAnimaAIOGenerator, EasyUseAnimaInput
 from .nodes.image_nodes import (
     EasyUseAnimaDetailerAlignHook,
@@ -30,6 +31,7 @@ from .nodes.wildcard_nodes import EasyUseAnimaWildcard
 
 NODE_CLASS_MAPPINGS = {
     "EasyUseAnimaAIOGenerator": EasyUseAnimaAIOGenerator,
+    "EasyUseAnimaAIOHookCombine": EasyUseAnimaAIOHookCombine,
     "EasyUseAnimaDetailerAlignHook": EasyUseAnimaDetailerAlignHook,
     "EasyUseAnimaArtistMixConditioning": EasyUseAnimaArtistMixConditioning,
     "EasyUseAnimaInput": EasyUseAnimaInput,
@@ -51,6 +53,7 @@ NODE_CLASS_MAPPINGS = {
 
 NODE_DISPLAY_NAME_MAPPINGS = {
     "EasyUseAnimaAIOGenerator": "Anima AiO Generator",
+    "EasyUseAnimaAIOHookCombine": "Anima AiO Hook Combine",
     "EasyUseAnimaDetailerAlignHook": "Anima Detailer Align Hook",
     "EasyUseAnimaArtistMixConditioning": "Anima Artist Mix Conditioning",
     "EasyUseAnimaInput": "Easy Use Anima Input",

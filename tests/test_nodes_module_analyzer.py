@@ -77,11 +77,11 @@ def load_dynamic():
         self.assertEqual(report["source"], "easyuse_anima/registration.py")
         self.assertEqual(
             report["git_blob_sha1"],
-            "04fc702300d859ec8ec9f71fbff7317859ea045a",
+            "aa5aabdc38b0f2c9a6375a0696c2222534713eee",
         )
         self.assertEqual(report["top_level"]["function_count"], 0)
         self.assertEqual(report["top_level"]["class_count"], 0)
-        self.assertEqual(report["line_count"], 73)
+        self.assertEqual(report["line_count"], 76)
         self.assertEqual(
             [item["name"] for item in report["top_level"]["globals"]],
             [
@@ -90,7 +90,7 @@ def load_dynamic():
                 "__all__",
             ],
         )
-        self.assertEqual(len(report["imports"]), 18)
+        self.assertEqual(len(report["imports"]), 19)
 
     def test_external_source_label_does_not_expose_parent_directories(self):
         label = analyzer._source_label(Path("Z:/private/user/data/example.py"))

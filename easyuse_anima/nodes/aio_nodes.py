@@ -9,6 +9,7 @@ from ..aio.generation_defaults import (
     AIO_SPECIAL_SEEDS,
 )
 from ..aio.generation_normalization import _normalize_aio_generation_settings
+from ..aio.hooks import EASYUSE_ANIMA_AIO_HOOK_TYPE, aio_hook_change_token
 from ..aio.input_context import (
     _easy_use_anima_input_signature as _easy_use_anima_input_signature,
 )
@@ -241,6 +242,13 @@ class EasyUseAnimaAIOGenerator:
                         "tooltip": "Optional LoRA stack applied to MODEL and CLIP before conditioning and sampling.",
                     },
                 ),
+                "aio_hook": (
+                    EASYUSE_ANIMA_AIO_HOOK_TYPE,
+                    {
+                        "forceInput": True,
+                        "tooltip": "Optional explicit AiO extension hook. See docs/extensions/aio-hooks.en.md.",
+                    },
+                ),
             },
         }
 
@@ -256,6 +264,7 @@ class EasyUseAnimaAIOGenerator:
         easy_use_anima_input=None,
         lora_stack=None,
         generation_settings: str | dict | None = None,
+        aio_hook=None,
         **kwargs,
     ):
         settings = _normalize_aio_generation_settings(
@@ -267,12 +276,18 @@ class EasyUseAnimaAIOGenerator:
             or sampler.get("seed_after_generate") != SEED_CONTROL_FIXED
         ):
             return float("nan")
-        return _stable_change_key({
+        payload = {
             "mode": "easy_use_anima_generator",
             "input": _easy_use_anima_input_signature(easy_use_anima_input),
             "lora_stack": _aio_lora_stack_signature(lora_stack),
             "generation_settings": settings,
-        })
+        }
+        if aio_hook is not None:
+            hook_is_stable, hook_change_token = aio_hook_change_token(aio_hook)
+            if not hook_is_stable:
+                return float("nan")
+            payload["aio_hook"] = hook_change_token
+        return _stable_change_key(payload)
 
     def generate(
         self,
@@ -282,6 +297,7 @@ class EasyUseAnimaAIOGenerator:
         workflow_prompt=None,
         extra_pnginfo=None,
         unique_id=None,
+        aio_hook=None,
     ):
         context = _require_easy_use_anima_input(easy_use_anima_input)
         settings = _normalize_aio_generation_settings(generation_settings)
@@ -306,6 +322,7 @@ class EasyUseAnimaAIOGenerator:
                 workflow_prompt,
                 extra_pnginfo,
                 unique_id,
+                aio_hook,
             )
             payload_factory = getattr(seed_execution, "ui_payload", None)
             seed_payload = (

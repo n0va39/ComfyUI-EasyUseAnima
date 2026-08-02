@@ -22,6 +22,10 @@
       "role": "common"
     },
     {
+      "group": "extensions",
+      "role": "common"
+    },
+    {
       "group": "image",
       "role": "feature-service"
     },
@@ -90,6 +94,10 @@
       ],
       "path": "easyuse_anima/api/router.py",
       "role": "registration-adapter"
+    },
+    {
+      "path": "easyuse_anima/extensions/aio.py",
+      "role": "node-adapter"
     },
     {
       "path": "easyuse_anima/infrastructure/comfy/",

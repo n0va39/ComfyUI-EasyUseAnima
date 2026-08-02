@@ -59,10 +59,10 @@ class PythonFileDispositionContractTests(unittest.TestCase):
     def test_repository_contract_passes_with_zero_unclassified_files(self):
         self.assertEqual(checker.check_repository(ROOT, CONTRACT_PATH), [])
         contract = self.validate(self.document)
-        self.assertEqual(contract["expected_baseline_files"], 183)
-        self.assertEqual(contract["expected_target_files"], 181)
-        self.assertEqual(len(contract["entries"]), 183)
-        self.assertEqual(len(contract["target_paths"]), 181)
+        self.assertEqual(contract["expected_baseline_files"], 189)
+        self.assertEqual(contract["expected_target_files"], 187)
+        self.assertEqual(len(contract["entries"]), 189)
+        self.assertEqual(len(contract["target_paths"]), 187)
 
     def test_inventory_requires_every_source_exactly_once(self):
         missing = copy.deepcopy(self.document)

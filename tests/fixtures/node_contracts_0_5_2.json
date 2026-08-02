@@ -195,6 +195,13 @@
               },
               "name": "lora_stack",
               "type": "LORA_STACK"
+            },
+            {
+              "config": {
+                "forceInput": true
+              },
+              "name": "aio_hook",
+              "type": "EASYUSE_ANIMA_AIO_HOOK"
             }
           ],
           "name": "optional"
@@ -210,6 +217,60 @@
         "IMAGE",
         "LATENT",
         "STRING"
+      ]
+    },
+    {
+      "category": "EasyUse Anima/AiO/Extensions",
+      "class_name": "EasyUseAnimaAIOHookCombine",
+      "display_name": "Anima AiO Hook Combine",
+      "function": "combine",
+      "id": "EasyUseAnimaAIOHookCombine",
+      "input_sections": [
+        {
+          "entries": [
+            {
+              "config": {
+                "forceInput": true
+              },
+              "name": "hook_a",
+              "type": "EASYUSE_ANIMA_AIO_HOOK"
+            },
+            {
+              "config": {
+                "forceInput": true
+              },
+              "name": "hook_b",
+              "type": "EASYUSE_ANIMA_AIO_HOOK"
+            }
+          ],
+          "name": "required"
+        },
+        {
+          "entries": [
+            {
+              "config": {
+                "forceInput": true
+              },
+              "name": "hook_c",
+              "type": "EASYUSE_ANIMA_AIO_HOOK"
+            },
+            {
+              "config": {
+                "forceInput": true
+              },
+              "name": "hook_d",
+              "type": "EASYUSE_ANIMA_AIO_HOOK"
+            }
+          ],
+          "name": "optional"
+        }
+      ],
+      "output_node": false,
+      "return_names": [
+        "aio_hook"
+      ],
+      "return_types": [
+        "EASYUSE_ANIMA_AIO_HOOK"
       ]
     },
     {

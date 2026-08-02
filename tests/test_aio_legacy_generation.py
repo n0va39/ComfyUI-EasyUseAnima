@@ -12,6 +12,7 @@ from unittest.mock import patch
 
 from easyuse_anima.aio import generation_normalization, legacy_generation
 from easyuse_anima.aio.generation_lifecycle import StageModelPatchPlan
+from easyuse_anima.extensions.aio import AioHookExecutionError
 from easyuse_anima.nodes import aio_nodes
 from tests.comfy_host_fakes import patch_comfy_helper
 from tests.test_node_contracts import _loaded_package_entrypoint
@@ -72,6 +73,33 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
                     {"prompt_data": {}},
                     settings,
                 )
+
+    def test_invalid_hook_descriptor_fails_before_resource_loading(self):
+        class FailingDescriptorHook:
+            def describe(self):
+                raise ValueError("invalid descriptor")
+
+            def create_session(self, context):
+                del context
+                raise AssertionError("session must not be created")
+
+        settings = generation_normalization._normalize_aio_generation_settings("{}")
+        with patch.object(
+            legacy_generation,
+            "_load_aio_resources_from_input_context",
+        ) as load_resources:
+            with self.assertRaisesRegex(
+                AioHookExecutionError,
+                "describe.*invalid descriptor",
+            ):
+                legacy_generation._run_aio_generation_pipeline(
+                    object(),
+                    {"prompt_data": {}},
+                    settings,
+                    aio_hook=FailingDescriptorHook(),
+                )
+
+        load_resources.assert_not_called()
 
     def test_private_implementation_is_canonical_in_both_import_modes(self):
         self.assertEqual(legacy_generation.__all__, ())
@@ -1781,6 +1809,7 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
                 "workflow_prompt",
                 "extra_pnginfo",
                 "unique_id",
+                "aio_hook",
             ],
         )
         self.assertIsNone(signature.parameters["generation_settings"].default)
@@ -1789,6 +1818,7 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
             "workflow_prompt",
             "extra_pnginfo",
             "unique_id",
+            "aio_hook",
         ):
             self.assertIsNone(signature.parameters[name].default)
 
@@ -1849,6 +1879,7 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
             "workflow",
             "pnginfo",
             "node-id",
+            None,
         )
 
     def test_execution_trace_matches_move_boundary_fixture(self):
