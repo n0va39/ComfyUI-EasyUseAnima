@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import importlib
 import json
 import os
 from dataclasses import dataclass
@@ -116,8 +115,8 @@ class _PayloadCompatibilityParts:
 
 def _resolve_host_modules() -> tuple[Any, Any]:
     try:
-        server = importlib.import_module("server")
-        web = getattr(importlib.import_module("aiohttp"), "web")
+        import server  # pyright: ignore[reportMissingImports]
+        from aiohttp import web  # pyright: ignore[reportMissingImports]
     except (AttributeError, ImportError):
         return None, None
     return server, web

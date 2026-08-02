@@ -193,51 +193,13 @@ class RegistryScannerSafetyTests(unittest.TestCase):
             "GOOGLE_TRANSLATION_API_KEY",
             "os.environ",
         )
-        for filename in (
-            "__init__.py",
-            "easyuse_anima/aio/conditioning.py",
-            "easyuse_anima/aio/first_pass_cache.py",
-            "easyuse_anima/aio/legacy_generation.py",
-            "easyuse_anima/aio/generation_values.py",
-            "easyuse_anima/aio/generation_sampling.py",
-            "easyuse_anima/aio/generation_features.py",
-            "easyuse_anima/aio/generation_detailer.py",
-            "easyuse_anima/aio/generation_output.py",
-            "easyuse_anima/aio/generation_migrations.py",
-            "easyuse_anima/aio/generation_settings.py",
-            "easyuse_anima/aio/model_preparation.py",
-            "easyuse_anima/aio/output.py",
-            "easyuse_anima/aio/preview.py",
-            "easyuse_anima/aio/resources.py",
-            "easyuse_anima/aio/sampling.py",
-            "easyuse_anima/bootstrap.py",
-            "easyuse_anima/infrastructure/comfy/capabilities.py",
-            "easyuse_anima/infrastructure/comfy/invocation.py",
-            "easyuse_anima/infrastructure/comfy/resources.py",
-            "easyuse_anima/image/detailer.py",
-            "easyuse_anima/image/sam3.py",
-            "easyuse_anima/image/scaling.py",
-            "easyuse_anima/lora/metadata.py",
-            "easyuse_anima/lora/preset.py",
-            "easyuse_anima/naia/client.py",
-            "easyuse_anima/naia/resolution.py",
-            "easyuse_anima/nodes/aio_nodes.py",
-            "easyuse_anima/nodes/image_nodes.py",
-            "easyuse_anima/nodes/lora_nodes.py",
-            "easyuse_anima/nodes/naia_nodes.py",
-            "easyuse_anima/nodes/prompt_data_nodes.py",
-            "easyuse_anima/nodes/prompt_nodes.py",
-            "easyuse_anima/nodes/wildcard_nodes.py",
-            "easyuse_anima/registration.py",
-            "easyuse_anima/prompt/correction.py",
-            "easyuse_anima/prompt/artist_mix.py",
-            "easyuse_anima/prompt/conditioning.py",
-            "easyuse_anima/prompt/data.py",
-            "easyuse_anima/prompt/fields.py",
-            "easyuse_anima/wildcard/mode.py",
-            "easyuse_anima/wildcard/selector.py",
-        ):
-            source = (ROOT / filename).read_text(encoding="utf-8")
+        runtime_python = (
+            ROOT / "__init__.py",
+            *sorted((ROOT / "easyuse_anima").rglob("*.py")),
+        )
+        for source_path in runtime_python:
+            filename = source_path.relative_to(ROOT).as_posix()
+            source = source_path.read_text(encoding="utf-8")
             for pattern in patterns:
                 with self.subTest(filename=filename, pattern=pattern):
                     self.assertNotIn(pattern, source)
