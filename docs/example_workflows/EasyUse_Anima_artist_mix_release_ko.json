@@ -1523,7 +1523,8 @@
       "id": "easyuse-anima-artist-mix",
       "title": "EasyUse Anima Artist Mix",
       "language": "ko",
-      "package_version": "0.6.1",
+      "package": "comfyui-easyuse-anima",
+      "package_version": "1.0.1",
       "release_filename": "EasyUse_Anima_artist_mix_release_ko.json",
       "source": "user/default/workflows/EasyUseAnima_Artist-Mix.json",
       "required_node_packs": [
