@@ -60,10 +60,12 @@ def _normalize_workflow_id(extra_pnginfo: object) -> str | None:
         extra_pnginfo = cast(object, extra_pnginfo[0])
     if not isinstance(extra_pnginfo, dict):
         return None
-    workflow = extra_pnginfo.get("workflow")
+    metadata = cast(dict[object, object], extra_pnginfo)
+    workflow = metadata.get("workflow")
     if not isinstance(workflow, dict):
         return None
-    workflow_id = workflow.get("id")
+    workflow_metadata = cast(dict[object, object], workflow)
+    workflow_id = workflow_metadata.get("id")
     if not isinstance(workflow_id, str) or not workflow_id.strip():
         return None
     return workflow_id.strip()

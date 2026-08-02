@@ -52359,89 +52359,89 @@
           },
           {
             "async": false,
-            "end_line": 69,
+            "end_line": 71,
             "kind": "function",
             "line": 56,
-            "loc": 14,
+            "loc": 16,
             "qualified_name": "_normalize_workflow_id"
           },
           {
             "async": false,
-            "end_line": 79,
+            "end_line": 81,
             "kind": "function",
-            "line": 72,
+            "line": 74,
             "loc": 8,
             "qualified_name": "_require_list_index"
           },
           {
             "async": false,
-            "end_line": 90,
+            "end_line": 92,
             "kind": "function",
-            "line": 82,
+            "line": 84,
             "loc": 9,
             "qualified_name": "_encoded_identity"
           },
           {
             "async": false,
-            "end_line": 109,
+            "end_line": 111,
             "kind": "function",
-            "line": 93,
+            "line": 95,
             "loc": 17,
             "qualified_name": "_seed_stream_id"
           },
           {
             "async": false,
-            "end_line": 136,
+            "end_line": 138,
             "kind": "method",
-            "line": 120,
+            "line": 122,
             "loc": 17,
             "qualified_name": "SeedExecutionContext.__post_init__"
           },
           {
             "async": false,
-            "end_line": 156,
+            "end_line": 158,
             "kind": "method",
-            "line": 146,
+            "line": 148,
             "loc": 11,
             "qualified_name": "SeedExecutionIdentity.__post_init__"
           },
           {
             "async": false,
-            "end_line": 160,
+            "end_line": 162,
             "kind": "function",
-            "line": 159,
+            "line": 161,
             "loc": 2,
             "qualified_name": "_import_host_module"
           },
           {
             "async": false,
-            "end_line": 181,
+            "end_line": 183,
             "kind": "function",
-            "line": 163,
+            "line": 165,
             "loc": 19,
             "qualified_name": "read_comfy_execution_context"
           },
           {
             "async": false,
-            "end_line": 185,
+            "end_line": 187,
             "kind": "function",
-            "line": 184,
+            "line": 186,
             "loc": 2,
             "qualified_name": "_new_opaque_request_id"
           },
           {
             "async": false,
-            "end_line": 243,
+            "end_line": 245,
             "kind": "function",
-            "line": 188,
+            "line": 190,
             "loc": 56,
             "qualified_name": "resolve_seed_execution_identity"
           }
         ],
         "is_package": false,
-        "loc": 253,
+        "loc": 255,
         "module": "easyuse_anima.seed.execution_identity",
-        "normalized_git_blob_sha1": "86e94e7620142998f634459c03efaeb3f60509cd",
+        "normalized_git_blob_sha1": "c5d09a975f6d8c7b12abd83fd07f7446a7b6a00a",
         "path": "easyuse_anima/seed/execution_identity.py",
         "top_level": {
           "class_count": 3,
@@ -65411,7 +65411,7 @@
         "column": 1,
         "context": "decorator:SeedExecutionContext",
         "kind": "import_time_call",
-        "line": 112,
+        "line": 114,
         "module": "easyuse_anima/seed/execution_identity.py",
         "scope": "<module>"
       },
@@ -65420,7 +65420,7 @@
         "column": 1,
         "context": "decorator:SeedExecutionIdentity",
         "kind": "import_time_call",
-        "line": 139,
+        "line": 141,
         "module": "easyuse_anima/seed/execution_identity.py",
         "scope": "<module>"
       },

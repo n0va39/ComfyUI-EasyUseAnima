@@ -26,7 +26,7 @@
     },
     {
       "path": "easyuse_anima/bootstrap.py",
-      "baseline_loc": 448,
+      "baseline_loc": 450,
       "owner_issue": 187,
       "decomposition_boundary": "E-09 lifecycle lock, initialization, cleanup plan, rollback, and terminal shutdown remain one bootstrap owner."
     },
@@ -38,13 +38,13 @@
     },
     {
       "path": "easyuse_anima/nodes/prompt_advanced_execution.py",
-      "baseline_loc": 482,
+      "baseline_loc": 506,
       "owner_issue": 188,
       "decomposition_boundary": "Keep typed Advanced build requests, call-time seams, and v1/v2 execution ordering together through PTC-07A."
     },
     {
       "path": "easyuse_anima/nodes/prompt_advanced_nodes.py",
-      "baseline_loc": 975,
+      "baseline_loc": 979,
       "owner_issue": 188,
       "decomposition_boundary": "Separate Advanced node generations by public node class while preserving shared field, seed, and root alias contracts."
     },
@@ -56,7 +56,7 @@
     },
     {
       "path": "easyuse_anima/nodes/regional_nodes.py",
-      "baseline_loc": 476,
+      "baseline_loc": 477,
       "owner_issue": 188,
       "decomposition_boundary": "Split Regional node adapters only across existing node classes with socket and workflow parity."
     }
@@ -100,7 +100,7 @@
     {
       "path": "easyuse_anima/bootstrap.py",
       "qualified_name": "initialize",
-      "baseline_loc": 131,
+      "baseline_loc": 133,
       "owner_issue": 187,
       "decomposition_boundary": "E-09 initialization, rollback, repeated-call identity, and terminal shutdown checks remain serialized by one lock."
     },
