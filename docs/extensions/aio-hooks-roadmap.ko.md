@@ -49,8 +49,9 @@
 - [완료] Registry package가 공개 API의 단일 type identity를 게시하고, EasyUse
   Anima보다 먼저 발견된 provider도 지연 import 후 정상 실행되는지 확인
 - [완료] 격리된 ComfyUI에서 provider 연결/미연결 queue 실행 비교
-- [남음] Legacy Canvas와 Node 2.0에서 optional socket 저장·로드와 prompt
-  serialization 확인
+- [완료] ComfyUI 0.27.0 / frontend 1.45.20의 Legacy Canvas와 Node 2.0에서
+  optional socket을 저장·재로드하고, API prompt가 같은 provider 링크를
+  `aio_hook` 입력으로 직렬화하는지 확인
 - [완료] 결과 metadata에 descriptor와 hook data가 예상 namespace로 기록되는지 확인
 - package/live 검증에서 production correction이 생기면 해당 focused test와 공식
   full을 최종 후보 SHA에서 다시 실행

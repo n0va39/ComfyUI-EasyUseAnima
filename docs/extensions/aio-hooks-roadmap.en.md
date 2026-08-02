@@ -46,8 +46,9 @@ difference.
 - [Done] Confirm the Registry package publishes one public type identity and
   that a provider discovered first can execute through a deferred public import.
 - [Done] Compare connected and disconnected provider queues in isolated ComfyUI.
-- [Pending] Verify optional-socket workflow round trips and prompt serialization
-  in Legacy Canvas and Node 2.0.
+- [Done] In ComfyUI 0.27.0 / frontend 1.45.20, round-trip the optional socket in
+  Legacy Canvas and Node 2.0 and confirm both API prompts serialize the same
+  provider link as the `aio_hook` input.
 - [Done] Read back the result descriptor and hook-data metadata namespaces.
 - If package/live work requires a production correction, rerun its focused test
   and one official full validation on the final candidate SHA.
