@@ -61,6 +61,16 @@ _Callback = Callable[..., Any]
 
 
 @dataclass(frozen=True)
+class _AdvancedExecutionSnapshot:
+    effective_fields_json: str
+    saved_fields_json: str
+    effective_field_inputs: tuple[tuple[str, str], ...]
+    wildcard_changed: bool
+    wildcard_used_keys: tuple[str, ...]
+    wildcard_missing_keys: tuple[str, ...]
+
+
+@dataclass(frozen=True)
 class _AdvancedBuildRequest:
     use_naia: bool
     consume_naia_on_queue: bool
@@ -80,6 +90,7 @@ class _AdvancedBuildRequest:
     unique_id: Any
     seed_execution: PromptStudioSeedExecution | None
     field_inputs: dict[str, Any]
+    execution_capture: Callable[[_AdvancedExecutionSnapshot], None] | None = None
 
 
 @dataclass(frozen=True)
@@ -247,6 +258,15 @@ def _finish_advanced_build(
     })
     fields_json = _advanced_fields_json(state.saved_fields)
     ui_fields_json = _advanced_fields_json(ui_fields)
+    if request.execution_capture is not None:
+        request.execution_capture(_AdvancedExecutionSnapshot(
+            effective_fields_json=_advanced_fields_json(state.effective_fields),
+            saved_fields_json=fields_json,
+            effective_field_inputs=tuple(state.effective_field_inputs.items()),
+            wildcard_changed=bool(effective_wildcard["changed"]),
+            wildcard_used_keys=tuple(effective_wildcard["used_keys"]),
+            wildcard_missing_keys=tuple(effective_wildcard["missing_keys"]),
+        ))
     if state.live_use_naia or state.metadata_updates:
         bindings.update_metadata_fields(
             request.workflow_prompt,
@@ -344,7 +364,11 @@ def _artist_mix_ui_values(request: _AdvancedV2BuildRequest) -> dict[str, Any]:
     }
 
 
-def _base_build(request: _AdvancedV2BuildRequest, base_build: _Callback) -> dict[str, Any]:
+def _base_build(
+    request: _AdvancedV2BuildRequest,
+    base_build: _Callback,
+    execution_capture: Callable[[_AdvancedExecutionSnapshot], None],
+) -> dict[str, Any]:
     base = request.base
     return base_build(
         base.use_naia,
@@ -364,6 +388,7 @@ def _base_build(request: _AdvancedV2BuildRequest, base_build: _Callback) -> dict
         extra_pnginfo=base.extra_pnginfo,
         unique_id=base.unique_id,
         _seed_execution=base.seed_execution,
+        _execution_capture=execution_capture,
         **base.field_inputs,
     )
 
@@ -421,30 +446,28 @@ def _build_prompt_studio_advanced_v2(
     *,
     base_build: _Callback,
     input_types: _Callback,
-    expand_fields: _Callback,
 ) -> dict[str, Any]:
     base_request = request.base
     if base_request.seed_execution is None:
         raise RuntimeError("Advanced v2 seed execution was not reserved")
-    base = _base_build(request, base_build)
+    snapshots: list[_AdvancedExecutionSnapshot] = []
+    base = _base_build(request, base_build, snapshots.append)
+    if len(snapshots) != 1:
+        raise RuntimeError("Advanced v2 base execution snapshot was not captured exactly once")
+    snapshot = snapshots[0]
     compat_result = cast(PromptDataCompatResult, tuple(base.get("result") or ()))
     ui_payloads = base.get("ui", {}).get("prompt_studio_advanced", [])
     ui_payload = ui_payloads[0] if ui_payloads and isinstance(ui_payloads[0], dict) else {}
     ui_payload.update(_artist_mix_ui_values(request))
-    saved_fields = _normalize_advanced_fields(
-        ui_payload.get("advanced_fields", base_request.advanced_fields)
-    )
-    effective_field_inputs = _advanced_field_input_values(
-        ui_payload.get("field_inputs") or base_request.field_inputs
-    )
-    wildcard_mode_key = normalize_prompt_studio_wildcard_mode(base_request.wildcard_mode)
-    effective_fields = _apply_advanced_field_inputs(saved_fields, effective_field_inputs)
-    effective_fields, _wildcard = expand_fields(
-        effective_fields,
-        base_request.seed_execution.execution_seed,
-        wildcard_mode_key,
-    )
-    effective_fields = _translate_prompt_fields(effective_fields)
+    saved_fields = _normalize_advanced_fields(snapshot.saved_fields_json)
+    effective_fields = _normalize_advanced_fields(snapshot.effective_fields_json)
+    effective_field_inputs = dict(snapshot.effective_field_inputs)
+    wildcard_updates = dict(ui_payload)
+    wildcard_updates.update({
+        "wildcard_changed": snapshot.wildcard_changed,
+        "wildcard_used_keys": list(snapshot.wildcard_used_keys),
+        "wildcard_missing_keys": list(snapshot.wildcard_missing_keys),
+    })
     prompt_data = _build_advanced_prompt_data(
         compat_result,
         effective_fields,
@@ -463,7 +486,7 @@ def _build_prompt_studio_advanced_v2(
         str(ui_payload.get("wildcard_mode", base_request.wildcard_mode)),
         base_request.seed_execution.execution_seed,
         str(ui_payload.get("wildcard_seed_after_generate", base_request.wildcard_seed_after_generate)),
-        ui_payload,
+        wildcard_updates,
         base_request.pin_trigger_tags_to_front,
         parameters=_v2_parameter_snapshot(request, ui_payload, input_types),
         artist_mix_mode=request.artist_mix_mode,

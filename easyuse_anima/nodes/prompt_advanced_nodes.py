@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Callable
 from typing import Any
 
 from ..common.serialization import _stable_change_key
@@ -68,6 +69,7 @@ from .naia_nodes import EasyUseAnimaNAIARandomPrompt
 from .prompt_advanced_execution import (
     _AdvancedBuildRequest,
     _AdvancedExecutionBindings,
+    _AdvancedExecutionSnapshot,
     _AdvancedV2BuildRequest,
     _build_prompt_studio_advanced,
     _build_prompt_studio_advanced_v2,
@@ -360,6 +362,7 @@ class EasyUseAnimaPromptStudioAdvanced:
         extra_pnginfo=None,
         unique_id=None,
         _seed_execution: PromptStudioSeedExecution | None = None,
+        _execution_capture: Callable[[_AdvancedExecutionSnapshot], None] | None = None,
         **field_inputs,
     ):
         request = _AdvancedBuildRequest(
@@ -381,6 +384,7 @@ class EasyUseAnimaPromptStudioAdvanced:
             unique_id=unique_id,
             seed_execution=_seed_execution,
             field_inputs=field_inputs,
+            execution_capture=_execution_capture,
         )
         bindings = _AdvancedExecutionBindings(
             update_metadata_fields=self._update_metadata_fields,
@@ -715,7 +719,6 @@ class EasyUseAnimaPromptStudioAdvancedV2(EasyUseAnimaPromptStudioAdvanced):
             request,
             base_build=super().build,
             input_types=self.INPUT_TYPES,
-            expand_fields=_expand_advanced_wildcard_fields,
         )
 
 
