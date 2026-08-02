@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import re
+import tomllib
 import unittest
 from pathlib import Path
 
@@ -137,15 +138,25 @@ class ReleaseWorkflowTests(unittest.TestCase):
         ko_path, en_path = RELEASE_WORKFLOWS[:2]
         self.assertEqual(topology(en_path), topology(ko_path))
 
-    def test_example_workflow_package_versions_are_valid_metadata(self):
+    def test_example_workflow_package_metadata_matches_project_release(self):
+        project = tomllib.loads(
+            (ROOT / "pyproject.toml").read_text(encoding="utf-8")
+        )["project"]
+        package_name = project["name"]
+        package_version = project["version"]
+        self.assertRegex(package_version, PACKAGE_VERSION_RE)
+
         for path in EXAMPLE_WORKFLOWS:
             with self.subTest(path=path.name):
                 metadata = load_workflow(path).get("extra", {}).get("easyuse_anima_workflow")
-                if not isinstance(metadata, dict):
-                    continue
-                package_version = metadata.get("package_version")
-                self.assertIsInstance(package_version, str)
-                self.assertRegex(package_version, PACKAGE_VERSION_RE)
+                self.assertIsInstance(metadata, dict)
+                metadata_package = metadata.get("package")
+                metadata_version = metadata.get("package_version")
+                self.assertEqual(metadata_package, package_name)
+                self.assertIsInstance(metadata_version, str)
+                self.assertRegex(metadata_version, PACKAGE_VERSION_RE)
+                self.assertEqual(metadata_version, package_version)
+                self.assertEqual(metadata.get("release_filename"), path.name)
 
     def test_aio_generator_samples_list_required_node_packs(self):
         for workflow_path in (AIO_GENERATOR_WORKFLOW, ANIMA_EASY_USE_WORKFLOW):
