@@ -3,7 +3,6 @@
 
 from __future__ import annotations
 
-import importlib
 import json
 import uuid
 from collections.abc import Callable
@@ -120,7 +119,11 @@ class SeedExecutionIdentity:
 
 
 def _import_host_module(module_name: str) -> object:
-    return importlib.import_module(module_name)
+    from comfy_execution import utils  # noqa: I001  # pyright: ignore[reportMissingImports, reportUnknownVariableType]
+
+    if module_name != _COMFY_EXECUTION_UTILS:
+        raise ImportError(f"Unsupported Comfy execution module: {module_name}")
+    return cast(object, utils)
 
 
 def read_comfy_execution_context(

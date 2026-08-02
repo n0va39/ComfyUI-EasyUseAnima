@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import importlib
 import inspect
 import platform
 from collections.abc import Callable, Mapping, Sequence
@@ -42,7 +41,9 @@ def _bounded_text(value: object, *, fallback: str = "") -> str:
 
 
 def _torch_module():
-    return importlib.import_module("torch")
+    import torch  # pyright: ignore[reportMissingImports]
+
+    return torch
 
 
 def _input_map(value: object) -> dict[str, object]:
