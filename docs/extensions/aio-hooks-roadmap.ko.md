@@ -2,10 +2,10 @@
 
 > 기준일: 2026-08-02
 > 추적 이슈: [#622](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/622)
-> 상태: `codex/aio-hook-v1` PR 후보 기준. 아직 `dev` 또는 공개 릴리즈에 포함되지 않았습니다.
+> 상태: [PR #623](https://github.com/n0va39/ComfyUI-EasyUseAnima/pull/623)으로 `dev`에 포함된 써드파티 postprocess prototype 기준. 아직 공개 릴리즈에는 포함되지 않았습니다.
 
-이 문서는 AiO Generator Hook으로 지금 만들 수 있는 기능, prototype 병합 전에
-남은 검증, 그리고 이후 확장 후보를 구분합니다. 공개 사용 계약은
+이 문서는 현재 `dev` prototype으로 만들 수 있는 기능, 승격에 사용한 검증,
+그리고 이후 확장 후보를 구분합니다. 공개 사용 계약은
 [AiO Hook API v1 가이드](aio-hooks.ko.md)와 `easyuse_anima.extensions.aio`가
 소유합니다.
 
@@ -13,13 +13,13 @@
 
 | 상태 | 의미 |
 | --- | --- |
-| PR 후보 | 현재 브랜치에 구현되어 테스트된 기능. 병합·릴리즈 전에는 공개 지원이 아님 |
-| Prototype gate | 현재 기능을 `dev`에 병합하기 전에 필요한 통합 증거 |
+| Dev prototype | 구현·검증을 마치고 `dev`에 병합됐지만 아직 릴리즈 지원은 아닌 기능 |
+| Prototype 증거 | 현재 기능을 `dev`에 유지하기 위해 필요한 통합 증거 |
 | 단기 예정 | 현재 v1 계약을 깨지 않고 별도 PR로 추가할 기능 |
 | 탐색 예정 | 직접 evidence와 별도 계약 검토 후에만 API에 추가할 기능 |
 | 비범위 | AiO Hook 대신 별도 provider/API가 소유해야 하는 기능 |
 
-## 현재 PR 후보가 지원하는 기능
+## 현재 `dev` prototype이 지원하는 기능
 
 | 기능 | 계약과 활용 예 |
 | --- | --- |
@@ -41,10 +41,10 @@
 인코딩하지 않으므로 image와 latent의 픽셀 의미가 반드시 같아야 하는 후속 노드에는
 이 차이를 고려해야 합니다.
 
-## Prototype 병합 gate
+## Prototype 통합 증거
 
-다음은 새 기능이 아니라 현재 구현을 실제 써드파티 prototype으로 승격하기 위한
-필수 증거입니다.
+다음은 새 기능이 아니라 현재 구현을 `dev`의 실제 써드파티 prototype으로
+승격하는 데 사용한 필수 증거입니다.
 
 - [완료] Registry package가 공개 API의 단일 type identity를 게시하고, EasyUse
   Anima보다 먼저 발견된 provider도 지연 import 후 정상 실행되는지 확인
@@ -56,7 +56,8 @@
 - package/live 검증에서 production correction이 생기면 해당 focused test와 공식
   full을 최종 후보 SHA에서 다시 실행
 
-이 gate가 끝나기 전에는 public v1을 릴리즈된 SDK로 표현하지 않습니다.
+완료된 증거는 이 표면을 `dev` prototype으로 승격하지만, 릴리즈된 SDK를
+의미하지는 않습니다.
 
 ## 단기 예정 기능
 
@@ -137,8 +138,8 @@ adapter로 합치지 않습니다.
 
 ## Promotion 순서
 
-1. 현재 postprocess prototype의 package/live gate 완료
-2. `codex/aio-hook-v1 -> dev` Draft PR review와 병합
+1. [완료] 현재 postprocess prototype의 package/live gate 완료
+2. [완료] [PR #623](https://github.com/n0va39/ComfyUI-EasyUseAnima/pull/623)을 review하고 `dev`에 병합
 3. Impact `DETAILER_HOOK` 호환을 독립 PR로 구현
 4. save/metadata와 post-detailer/upscale stage를 작은 PR로 확장
 5. cache-sensitive stage는 실제 cache isolation evidence 후 하나씩 추가

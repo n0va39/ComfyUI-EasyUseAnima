@@ -2,10 +2,10 @@
 
 > Baseline: 2026-08-02
 > Tracking issue: [#622](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/622)
-> Status: describes the `codex/aio-hook-v1` PR candidate; it is not yet on `dev` or in a public release.
+> Status: available on `dev` as the third-party postprocess prototype from [PR #623](https://github.com/n0va39/ComfyUI-EasyUseAnima/pull/623); not yet in a public release.
 
-This roadmap separates what the current candidate can do, the evidence required
-to promote it as a usable third-party prototype, and later extension candidates.
+This roadmap separates what the current `dev` prototype can do, the evidence
+that promoted it, and later extension candidates.
 The supported usage contract remains the [AiO Hook API v1 guide](aio-hooks.en.md)
 and `easyuse_anima.extensions.aio`.
 
@@ -13,13 +13,13 @@ and `easyuse_anima.extensions.aio`.
 
 | Status | Meaning |
 | --- | --- |
-| PR candidate | Implemented and tested on the current branch, but not released support |
-| Prototype gate | Integration evidence required before merging the current surface |
+| Dev prototype | Implemented, tested, and merged to `dev`, but not released support |
+| Prototype evidence | Integration evidence required to keep the current surface on `dev` |
 | Near term | Additive work that can use the existing v1 contract in a separate PR |
 | Exploration | Requires direct evidence and a separate contract review |
 | Out of scope | Better owned by a distinct provider/API |
 
-## Current PR candidate
+## Current `dev` prototype
 
 | Capability | Contract and example uses |
 | --- | --- |
@@ -41,7 +41,7 @@ An image patch changes the final Generator `IMAGE`, not its `LATENT`. Downstream
 nodes that assume pixel-equivalent image and latent values must account for that
 difference.
 
-## Prototype promotion gate
+## Prototype evidence
 
 - [Done] Confirm the Registry package publishes one public type identity and
   that a provider discovered first can execute through a deferred public import.
@@ -53,7 +53,7 @@ difference.
 - If package/live work requires a production correction, rerun its focused test
   and one official full validation on the final candidate SHA.
 
-Until these gates pass, v1 is a PR candidate rather than a released SDK.
+These completed gates promote the surface to a `dev` prototype, not a released SDK.
 
 ## Near-term additions
 
@@ -112,8 +112,8 @@ These should become distinct contracts such as `SamplingBackendProvider`,
 
 ## Promotion order
 
-1. Finish package/live evidence for the postprocess prototype.
-2. Review and merge the `codex/aio-hook-v1 -> dev` Draft PR.
+1. [Done] Finish package/live evidence for the postprocess prototype.
+2. [Done] Review and merge [PR #623](https://github.com/n0va39/ComfyUI-EasyUseAnima/pull/623) into `dev`.
 3. Implement Impact `DETAILER_HOOK` compatibility independently.
 4. Add save/metadata and post-detailer/upscale stages in small PRs.
 5. Add cache-sensitive stages only after cache-isolation evidence.
