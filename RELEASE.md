@@ -1,5 +1,27 @@
 # Release Notes
 
+## 1.0.2
+
+### Fixed
+
+- Prompt Corrector now treats an explicit `@artist` tag as a known artist when
+  artist validation is disabled, so it is no longer reported as unknown while
+  also being moved into the artist section.
+- Prompt Studio Classic, Advanced, Advanced V2, and Regional highlights no
+  longer apply cached classification from earlier text after paste or rapid
+  text replacement.
+
+### Compatibility
+
+- Existing workflows, prompt text, artist overrides and exclusions, settings,
+  public node identifiers, and socket order remain compatible.
+- General tags and natural-language prompt phrases keep the existing unknown
+  tag policy.
+
+### Update
+
+- After updating, restart ComfyUI and hard-refresh the browser.
+
 ## 1.0.1
 
 ### Fixed
