@@ -125,6 +125,12 @@ PROMPT_STUDIO_HIGHLIGHT_CORE_JS = PROMPT_STUDIO_MODULES / "highlight_core.js"
 PROMPT_STUDIO_HIGHLIGHT_OVERLAY_CORE_JS = (
     PROMPT_STUDIO_MODULES / "highlight_overlay_core.js"
 )
+PROMPT_STUDIO_HIGHLIGHT_REVISION_JS = (
+    PROMPT_STUDIO_MODULES / "highlight_revision.js"
+)
+PROMPT_STUDIO_HIGHLIGHT_REVISION_SMOKE = (
+    ROOT / "tests" / "frontend_prompt_studio_highlight_revision_smoke.mjs"
+)
 PROMPT_STUDIO_REGIONAL_JS = WEB_JS / "easyuse_anima_prompt_studio_regional.js"
 PROMPT_STUDIO_REGIONAL_MODULES = PROMPT_STUDIO_MODULES / "regional"
 PROMPT_STUDIO_REGIONAL_PURE_DATA_SMOKE = (
@@ -2584,6 +2590,37 @@ class FrontendModuleStructureTests(unittest.TestCase):
             with self.subTest(export=name):
                 self.assertIn(f"  {name},", core_source)
 
+    def test_prompt_highlight_revisions_are_text_owned_across_studio_surfaces(self):
+        revision_source = PROMPT_STUDIO_HIGHLIGHT_REVISION_JS.read_text(
+            encoding="utf-8"
+        )
+        classic_overlay_source = (
+            PROMPT_STUDIO_MODULES / "highlight_ui.js"
+        ).read_text(encoding="utf-8")
+        classic_request_source = (
+            PROMPT_STUDIO_MODULES / "studio_node_ui.js"
+        ).read_text(encoding="utf-8")
+        advanced_source = (
+            PROMPT_STUDIO_MODULES / "advanced_highlights.js"
+        ).read_text(encoding="utf-8")
+        regional_source = PROMPT_STUDIO_REGIONAL_ADAPTER_JS.read_text(
+            encoding="utf-8"
+        )
+        frontend_check_source = FRONTEND_CHECK_SCRIPT.read_text(encoding="utf-8")
+
+        self.assertTrue(PROMPT_STUDIO_HIGHLIGHT_REVISION_SMOKE.is_file())
+        self.assertIn("function highlightTokensForText", revision_source)
+        self.assertIn("function highlightRequestOwnsText", revision_source)
+        self.assertIn("highlightTokensForText(", classic_overlay_source)
+        self.assertIn("highlightRequestOwnsText(", classic_request_source)
+        for source in (advanced_source, regional_source):
+            self.assertIn("highlightTokensForText(", source)
+            self.assertIn("highlightRequestOwnsText(", source)
+        self.assertIn(
+            r'node "tests\frontend_prompt_studio_highlight_revision_smoke.mjs"',
+            frontend_check_source,
+        )
+
     def test_regional_pure_data_modules_own_dom_free_rules(self):
         entry_source = PROMPT_STUDIO_REGIONAL_JS.read_text(encoding="utf-8")
         adapter_source = PROMPT_STUDIO_REGIONAL_ADAPTER_JS.read_text(
@@ -3760,6 +3797,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
             "fields.js",
             "highlight_core.js",
             "highlight_overlay_core.js",
+            "highlight_revision.js",
             "highlight_ui.js",
             "legend.js",
             "naia_projection.js",

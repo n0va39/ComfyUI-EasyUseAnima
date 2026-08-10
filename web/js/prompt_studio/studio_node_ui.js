@@ -7,6 +7,9 @@ import {
   displayText,
 } from "./highlight_ui.js";
 import {
+  highlightRequestOwnsText,
+} from "./highlight_revision.js";
+import {
   psText,
 } from "./text.js";
 import {
@@ -67,15 +70,27 @@ function hookStudioNode(node, attempt = 0, hooks = {}) {
 
       const seq = ++classifySeq;
       widget.__easyuseAnimaPendingClassifyText = text;
+      const request = { sequence: seq, text };
       try {
         const tokens = await classifyPrompt(text);
-        if (seq !== classifySeq) {
+        if (!highlightRequestOwnsText(
+          request,
+          classifySeq,
+          displayText(node, widget),
+        )) {
           return;
         }
         widget.__easyuseAnimaLastClassifiedText = text;
         widget.__easyuseAnimaTokens = tokens;
         updateHighlight(node, widget, tokens);
       } catch {
+        if (!highlightRequestOwnsText(
+          request,
+          classifySeq,
+          displayText(node, widget),
+        )) {
+          return;
+        }
         widget.__easyuseAnimaTokens = [];
         updateHighlight(node, widget);
       } finally {
