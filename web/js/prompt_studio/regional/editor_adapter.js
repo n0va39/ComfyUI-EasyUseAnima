@@ -8,6 +8,10 @@ import {
   createHighlightOverlayRenderer,
   syncOverlayBounds,
 } from "../highlight_overlay_core.js";
+import {
+  highlightRequestOwnsText,
+  highlightTokensForText,
+} from "../highlight_revision.js";
 import { PROMPT_STUDIO_VARIANT_FIELD_LABELS } from "./constants.js";
 import { registerExternalAutocompleteInput } from "../../autocomplete/entry_lifecycle.js";
 
@@ -1297,7 +1301,12 @@ export function updatePromptStudioFieldHighlight(node, field, textarea, tokens =
     copyInputTextMetrics(textarea, overlay);
   }
   syncOverlayBounds(textarea, overlay);
-  overlay.innerHTML = highlightOverlayHtml(value, tokens || state.tokens || [], textarea.placeholder || "", textarea);
+  const currentTokens = highlightTokensForText(
+    value,
+    state.lastText,
+    tokens || state.tokens || [],
+  );
+  overlay.innerHTML = highlightOverlayHtml(value, currentTokens, textarea.placeholder || "", textarea);
 }
 
 export function schedulePromptStudioFieldHighlight(node, field, textarea, { namespace = "variant" } = {}) {
@@ -1321,10 +1330,16 @@ export function schedulePromptStudioFieldHighlight(node, field, textarea, { name
 
   const seq = ++state.seq;
   state.pendingText = text;
+  const request = { sequence: seq, text };
   updatePromptStudioFieldHighlight(node, field, textarea, state.tokens, false, namespace);
   classifyPrompt(text)
     .then((tokens) => {
-      if (seq !== state.seq || !textarea.isConnected) {
+      if (!highlightRequestOwnsText(
+        request,
+        state.seq,
+        textarea.value,
+        textarea.isConnected,
+      )) {
         return;
       }
       state.lastText = text;
@@ -1332,7 +1347,12 @@ export function schedulePromptStudioFieldHighlight(node, field, textarea, { name
       updatePromptStudioFieldHighlight(node, field, textarea, tokens, false, namespace);
     })
     .catch(() => {
-      if (seq !== state.seq || !textarea.isConnected) {
+      if (!highlightRequestOwnsText(
+        request,
+        state.seq,
+        textarea.value,
+        textarea.isConnected,
+      )) {
         return;
       }
       state.tokens = [];

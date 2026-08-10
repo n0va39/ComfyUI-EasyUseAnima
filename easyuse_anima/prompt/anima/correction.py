@@ -130,6 +130,7 @@ def _classify_with_artist_options(
     normalized: str,
     *,
     info,
+    validate_artist_tags: bool,
     artist_overrides: set[str],
     artist_exclusions: set[str],
 ):
@@ -139,7 +140,10 @@ def _classify_with_artist_options(
     if key in artist_overrides:
         return classify_tag(f"@{key}", info)
     if normalized.strip().startswith("@"):
-        return classify_tag(normalized, info)
+        validated_section = classify_tag(normalized.lstrip("@"), info)
+        if not validate_artist_tags or validated_section.value == "artist":
+            return classify_tag(normalized, info)
+        return classify_tag(normalized.lstrip("@"), None)
     return classify_tag(normalized, info)
 
 
@@ -168,11 +172,19 @@ def inspect_prompt(
         normalized = normalize_tag(syntax.tag_text)
         key = lookup_key(normalized)
         info = kb.lookup(normalized)
-        manual_known = key in override_keys
-        preserve_override_text = manual_known
+        explicit_artist = (
+            normalized.strip().startswith("@")
+            and key not in exclusion_keys
+        )
+        manual_known = (
+            key in override_keys
+            or (explicit_artist and not validate_artist_tags)
+        )
+        preserve_override_text = key in override_keys
         section = _classify_with_artist_options(
             normalized,
             info=info,
+            validate_artist_tags=validate_artist_tags,
             artist_overrides=override_keys,
             artist_exclusions=exclusion_keys,
         )

@@ -52959,33 +52959,33 @@
           },
           {
             "async": false,
-            "end_line": 143,
+            "end_line": 147,
             "kind": "function",
             "line": 129,
-            "loc": 15,
+            "loc": 19,
             "qualified_name": "_classify_with_artist_options"
           },
           {
             "async": false,
-            "end_line": 217,
+            "end_line": 229,
             "kind": "function",
-            "line": 146,
-            "loc": 72,
+            "line": 150,
+            "loc": 80,
             "qualified_name": "inspect_prompt"
           },
           {
             "async": false,
-            "end_line": 275,
+            "end_line": 287,
             "kind": "function",
-            "line": 220,
+            "line": 232,
             "loc": 56,
             "qualified_name": "correct_prompt"
           }
         ],
         "is_package": false,
-        "loc": 275,
+        "loc": 287,
         "module": "easyuse_anima.prompt.anima.correction",
-        "normalized_git_blob_sha1": "8423904dbfed4d46030a689f0db9f54912976682",
+        "normalized_git_blob_sha1": "aa386be64f20c13e08fa4085ed95ab65b805643d",
         "path": "easyuse_anima/prompt/anima/correction.py",
         "top_level": {
           "class_count": 1,
