@@ -219,6 +219,11 @@ try {
         throw "Frontend Prompt Studio paste autosize smoke failed with exit code $LASTEXITCODE."
     }
 
+    & node "tests\frontend_prompt_studio_highlight_revision_smoke.mjs"
+    if ($LASTEXITCODE -ne 0) {
+        throw "Frontend Prompt Studio highlight revision smoke failed with exit code $LASTEXITCODE."
+    }
+
     & node "tests\frontend_wildcard_values_smoke.mjs"
     if ($LASTEXITCODE -ne 0) {
         throw "Frontend standalone Wildcard populated-text smoke failed with exit code $LASTEXITCODE."

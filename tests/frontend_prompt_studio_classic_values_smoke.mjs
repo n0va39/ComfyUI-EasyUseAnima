@@ -48,10 +48,14 @@ const nodeHooksUrl = dataModule(
   },
 );
 const { registerPromptStudioNodeHooks } = await import(nodeHooksUrl);
+const highlightRevisionUrl = dataModule(
+  "../web/js/prompt_studio/highlight_revision.js",
+);
 const highlightUiUrl = dataModule(
   "../web/js/prompt_studio/highlight_ui.js",
   {
     "./highlight.js": highlightUrl,
+    "./highlight_revision.js": highlightRevisionUrl,
     "./settings.js": settingsUrl,
     "./widgets.js": highlightWidgetsUrl,
   },

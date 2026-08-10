@@ -16,6 +16,10 @@ import {
   applyPromptStudioTextStyle,
 } from "./settings.js";
 import {
+  highlightRequestOwnsText,
+  highlightTokensForText,
+} from "./highlight_revision.js";
+import {
   getAdvancedEditorElement,
   getAdvancedFields,
 } from "./state.js";
@@ -68,7 +72,12 @@ function updateAdvancedFieldHighlight(node, field, textarea, tokens = null, forc
     copyInputTextMetrics(textarea, overlay);
   }
   syncOverlayBounds(textarea, overlay);
-  overlay.innerHTML = highlightOverlayHtml(value, tokens || state.tokens || [], textarea.placeholder || "", textarea);
+  const currentTokens = highlightTokensForText(
+    value,
+    state.lastText,
+    tokens || state.tokens || [],
+  );
+  overlay.innerHTML = highlightOverlayHtml(value, currentTokens, textarea.placeholder || "", textarea);
 }
 
 function scheduleAdvancedFieldHighlight(node, field, textarea) {
@@ -92,10 +101,16 @@ function scheduleAdvancedFieldHighlight(node, field, textarea) {
 
   const seq = ++state.seq;
   state.pendingText = text;
+  const request = { sequence: seq, text };
   updateAdvancedFieldHighlight(node, field, textarea, state.tokens);
   classifyPrompt(text)
     .then((tokens) => {
-      if (seq !== state.seq || !textarea.isConnected) {
+      if (!highlightRequestOwnsText(
+        request,
+        state.seq,
+        textarea.value,
+        textarea.isConnected,
+      )) {
         return;
       }
       state.lastText = text;
@@ -103,7 +118,12 @@ function scheduleAdvancedFieldHighlight(node, field, textarea) {
       updateAdvancedFieldHighlight(node, field, textarea, tokens);
     })
     .catch(() => {
-      if (seq !== state.seq || !textarea.isConnected) {
+      if (!highlightRequestOwnsText(
+        request,
+        state.seq,
+        textarea.value,
+        textarea.isConnected,
+      )) {
         return;
       }
       state.tokens = [];
@@ -161,7 +181,12 @@ function refreshAdvancedHighlights(node, { classify = true, forceCopyMetrics = f
 
     const state = advancedHighlightState(node, field);
     const value = String(textarea.value || "");
-    const htmlContent = highlightOverlayHtml(value, state.tokens || [], textarea.placeholder || "", textarea);
+    const htmlContent = highlightOverlayHtml(
+      value,
+      highlightTokensForText(value, state.lastText, state.tokens),
+      textarea.placeholder || "",
+      textarea,
+    );
 
     updates.push({
       overlay,

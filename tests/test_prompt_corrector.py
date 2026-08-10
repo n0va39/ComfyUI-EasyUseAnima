@@ -49,6 +49,7 @@ from easyuse_anima.prompt import artist_mix as prompt_artist_mix
 from easyuse_anima.prompt import conditioning as prompt_conditioning
 from easyuse_anima.prompt import contracts as prompt_contracts
 from easyuse_anima.prompt import correction as prompt_correction
+from easyuse_anima.prompt.anima import inspect_prompt
 from easyuse_anima.prompt import data as prompt_data_service
 from easyuse_anima.prompt.advanced import (
     ADVANCED_FIELDS_WORKFLOW_PROPERTY,
@@ -144,6 +145,47 @@ class PromptCorrectorTests(unittest.TestCase):
         self.assertEqual(corrected, "1girl, long hair")
         data = json.loads(report)
         self.assertEqual(data["duplicate_tags"], ["long hair"])
+
+    def test_unvalidated_explicit_artist_is_known_and_not_reported_unknown(self):
+        corrected, report = EasyUseAnimaPromptCorrector().correct(
+            "general_subject, (@unregistered_artist:0.5), descriptive phrase",
+            "",
+            "",
+        )
+
+        self.assertEqual(
+            corrected,
+            "(@unregistered artist:0.5), general subject, descriptive phrase",
+        )
+        data = json.loads(report)
+        self.assertEqual(data["sections"], ["artist", "unknown", "unknown"])
+        self.assertEqual(
+            data["unknown_tags"],
+            ["general subject", "descriptive phrase"],
+        )
+        self.assertNotIn("@unregistered artist", " ".join(data["warnings"]))
+
+        unvalidated = inspect_prompt(
+            "@unregistered_artist",
+            validate_artist_tags=False,
+        )
+        validated = inspect_prompt(
+            "@unregistered_artist",
+            validate_artist_tags=True,
+        )
+        excluded = inspect_prompt(
+            "@unregistered_artist",
+            validate_artist_tags=False,
+            artist_exclusions=("unregistered_artist",),
+        )
+        self.assertTrue(unvalidated.tokens[0].known)
+        self.assertEqual(unvalidated.tokens[0].section.value, "artist")
+        self.assertEqual(unvalidated.unknown_tags, ())
+        self.assertFalse(validated.tokens[0].known)
+        self.assertEqual(validated.tokens[0].section.value, "unknown")
+        self.assertEqual(validated.unknown_tags, ("@unregistered artist",))
+        self.assertFalse(excluded.tokens[0].known)
+        self.assertEqual(excluded.tokens[0].section.value, "unknown")
 
     def test_prompt_translation_marker_translates_only_wrapped_text(self):
         def fake_translate(text, source="auto", target="en"):

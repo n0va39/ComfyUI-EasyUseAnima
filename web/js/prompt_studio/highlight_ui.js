@@ -10,6 +10,9 @@ import {
   applyPromptStudioTextStyle,
 } from "./settings.js";
 import {
+  highlightTokensForText,
+} from "./highlight_revision.js";
+import {
   findInputEl,
   isWidgetInputLinked,
 } from "./widgets.js";
@@ -47,7 +50,12 @@ function updateHighlight(node, widget, tokens = widget.__easyuseAnimaTokens || [
   }
   syncOverlayBounds(input, overlay);
   const value = displayText(node, widget);
-  overlay.innerHTML = highlightOverlayHtml(value, tokens, input.placeholder || "", input);
+  const currentTokens = highlightTokensForText(
+    value,
+    widget.__easyuseAnimaLastClassifiedText,
+    tokens,
+  );
+  overlay.innerHTML = highlightOverlayHtml(value, currentTokens, input.placeholder || "", input);
 }
 
 export {

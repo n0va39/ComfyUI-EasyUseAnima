@@ -2,7 +2,7 @@
   "schema_version": 1,
   "baseline_commit": "a0b0dc1f599fcf01ec0f25fc75a23f7524f165ab",
   "inventory": {
-    "expected_files": 206,
+    "expected_files": 207,
     "manual_matrix_source": "tests/fixtures/python_test_ownership_contract.v1.json",
     "patterns": [
       "tests/**/*.json",
@@ -932,6 +932,17 @@
         "prompt"
       ],
       "purpose": "Deterministic Node smoke contract for frontend prompt studio execution projection smoke."
+    },
+    {
+      "execution_mode": "node-smoke",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/frontend_prompt_studio_highlight_revision_smoke.mjs",
+      "path": "tests/frontend_prompt_studio_highlight_revision_smoke.mjs",
+      "production_groups": [
+        "prompt"
+      ],
+      "purpose": "Deterministic Node smoke contract for text-owned Prompt Studio highlight revisions."
     },
     {
       "execution_mode": "node-smoke",
