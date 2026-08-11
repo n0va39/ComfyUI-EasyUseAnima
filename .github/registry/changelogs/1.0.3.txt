@@ -1,0 +1,10 @@
+EasyUse Anima 1.0.3 aligns Prompt Corrector and Prompt Builder tag recognition with Prompt Studio.
+
+Changes:
+1. Character, series/work, artist, and learned tags now use the selected autocomplete data source across Prompt Corrector, Prompt Builder, and Prompt Studio.
+2. Recognized character and work tags are no longer reported as unknown or moved behind artist tags.
+3. If the selected autocomplete data cannot be read, Prompt Corrector and Prompt Builder fall back to the built-in rules.
+4. Existing workflows, node inputs and outputs, settings, artist overrides and exclusions, and the natural-language unknown-tag policy remain compatible.
+
+Action required:
+After updating, restart ComfyUI.
