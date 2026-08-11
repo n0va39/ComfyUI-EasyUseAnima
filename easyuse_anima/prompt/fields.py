@@ -4,9 +4,9 @@ from __future__ import annotations
 
 import re
 
-from .anima import correct_prompt, load_knowledge_base
+from .anima import correct_prompt
 from .anima.parser import parse_prompt
-
+from .correction import _load_prompt_knowledge_base
 
 DEFAULT_QUALITY_TAGS = (
     "newest, masterpiece, best quality, score_8, score_7:, highres, absurdres, very aesthetic"
@@ -48,7 +48,7 @@ def _correct_builder_prompt(prompt: str, artist_overrides: str = "") -> str:
     result = correct_prompt(
         prompt,
         profile="prompt",
-        knowledge_base=load_knowledge_base(allow_missing=True),
+        knowledge_base=_load_prompt_knowledge_base(),
         validate_artist_tags=False,
         artist_overrides=_prompt_tokens(artist_overrides),
     )

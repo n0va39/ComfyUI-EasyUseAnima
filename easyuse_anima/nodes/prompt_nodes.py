@@ -6,7 +6,9 @@ import json
 
 from ..common.serialization import _stable_change_key
 from ..common.values import _as_bool
+from ..prompt.anima import correct_prompt
 from ..prompt.correction import (
+    _load_prompt_knowledge_base,
     _prompt_translation_change_key,
     _split_tag_text,
     _translate_prompt_text,
@@ -19,7 +21,6 @@ from ..prompt.fields import (
     _join_prompt_tokens,
 )
 from ..settings.service import resolve_metadata_filter_words
-from ..prompt.anima import correct_prompt, load_knowledge_base
 
 
 def _correct_prompt_with_report(
@@ -29,7 +30,7 @@ def _correct_prompt_with_report(
 ) -> tuple[str, str]:
     prompt = _translate_prompt_text(prompt)
     try:
-        kb = load_knowledge_base(allow_missing=True)
+        kb = _load_prompt_knowledge_base()
         result = correct_prompt(
             str(prompt or ""),
             profile="prompt",
