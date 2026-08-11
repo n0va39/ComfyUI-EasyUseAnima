@@ -317,6 +317,7 @@ print(json.dumps({{
             "DEFAULT_AUTOCOMPLETE_SOURCE",
             "AUTOCOMPLETE_SOURCES",
             "AutocompleteEntry",
+            "autocomplete_entry_lookup",
             "resolve_autocomplete_source",
             "available_autocomplete_sources",
             "autocomplete_status",

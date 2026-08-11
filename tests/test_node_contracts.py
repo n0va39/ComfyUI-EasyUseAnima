@@ -2551,7 +2551,7 @@ class PromptCorrectorMoveContractTests(unittest.TestCase):
             ) as stable_key,
             patch.object(
                 prompt_nodes,
-                "load_knowledge_base",
+                "_load_prompt_knowledge_base",
                 return_value="bound kb",
             ) as load_kb,
             patch.object(
@@ -2575,7 +2575,7 @@ class PromptCorrectorMoveContractTests(unittest.TestCase):
         translation_key.assert_called_once_with()
         stable_key.assert_called_once_with(change_key)
         resolve_settings.assert_called_once_with()
-        load_kb.assert_called_once_with(allow_missing=True)
+        load_kb.assert_called_once_with()
         correct.assert_called_once_with(
             "bound prompt",
             profile="prompt",
@@ -2643,7 +2643,7 @@ class PromptCorrectorMoveContractTests(unittest.TestCase):
 
         with patch.object(
             prompt_nodes,
-            "load_knowledge_base",
+            "_load_prompt_knowledge_base",
             side_effect=ValueError("correct"),
         ):
             with self.assertRaisesRegex(
@@ -3055,7 +3055,7 @@ class PromptBuilderStudioMoveContractTests(unittest.TestCase):
             ) as tokens,
             patch.object(
                 prompt_fields,
-                "load_knowledge_base",
+                "_load_prompt_knowledge_base",
                 return_value="bound kb",
             ) as load_kb,
             patch.object(
@@ -3068,7 +3068,7 @@ class PromptBuilderStudioMoveContractTests(unittest.TestCase):
 
         self.assertEqual(corrected, "bound correction")
         tokens.assert_called_once_with("artist")
-        load_kb.assert_called_once_with(allow_missing=True)
+        load_kb.assert_called_once_with()
         correct.assert_called_once_with(
             "prompt",
             profile="prompt",

@@ -156,6 +156,9 @@ class _AutocompleteSnapshot:
     entries: tuple[AutocompleteEntry, ...]
     entry_map: Mapping[str, AutocompleteEntry]
 
+    def lookup(self, tag: str) -> AutocompleteEntry | None:
+        return self.entry_map.get(_normalize(tag))
+
 
 class _AutocompleteSourceChanged(RuntimeError):
     pass
@@ -478,6 +481,14 @@ def _entry_map(path: Path = AUTOCOMPLETE_CSV) -> Mapping[str, AutocompleteEntry]
     return _snapshot(path).entry_map
 
 
+def autocomplete_entry_lookup(
+    path: Path = AUTOCOMPLETE_CSV,
+) -> Callable[[str], AutocompleteEntry | None]:
+    """Return an exact-tag lookup bound to the shared cached snapshot."""
+
+    return _snapshot(path).lookup
+
+
 def _status_from_key(
     key: _AutocompleteCacheKey,
     path: Path,
@@ -567,6 +578,7 @@ __all__ = (
     "DEFAULT_AUTOCOMPLETE_SOURCE",
     "AUTOCOMPLETE_SOURCES",
     "AutocompleteEntry",
+    "autocomplete_entry_lookup",
     "resolve_autocomplete_source",
     "available_autocomplete_sources",
     "autocomplete_status",

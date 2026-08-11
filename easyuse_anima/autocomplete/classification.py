@@ -4,7 +4,7 @@ import re
 from pathlib import Path
 
 from ..prompt.anima.models import TagSection
-from ..prompt.anima.ordering import builtin_tag_section
+from ..prompt.anima.ordering import builtin_tag_section, category_tag_section
 from ..prompt.anima.parser import parse_prompt
 from ..translation.markers import iter_prompt_translation_markers
 from .contracts import (
@@ -287,7 +287,8 @@ def _token_section(token: str, entry: AutocompleteEntry | None) -> tuple[str, st
             "meta": "메타",
             "general": "학습 태그",
         }
-        return (entry.category, labels.get(entry.category, entry.category or "태그"))
+        section = category_tag_section(entry.category) or TagSection.GENERAL
+        return (section.value, labels.get(section.value, section.value or "태그"))
     if len(base) >= 32 or re.search(r"[.!?]", base):
         return ("natural", "자연어")
     return ("unknown", "미확인")
@@ -300,7 +301,6 @@ def _classify_prompt_text_from_snapshot(
     path: Path,
     snapshot: _AutocompleteSnapshot,
 ) -> AutocompleteClassificationPayload:
-    entries = snapshot.entry_map
     tokens: list[tuple[str, bool, bool, bool]] = []
 
     last_idx = 0
@@ -363,8 +363,7 @@ def _classify_prompt_text_from_snapshot(
             )
             continue
         base = _token_base(token)
-        key = _normalize(base)
-        entry = entries.get(key)
+        entry = snapshot.lookup(base)
         section, label = _token_section(token, entry)
         classified.append(
             {
