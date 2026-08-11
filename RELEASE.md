@@ -1,5 +1,25 @@
 # Release Notes
 
+## 1.0.3
+
+### Fixed
+
+- Prompt Corrector and Prompt Builder now use the same selected autocomplete
+  data as Prompt Studio for character, series/work, artist, and learned tags.
+- Recognized character and work tags are no longer reported as unknown or
+  ordered after artist tags.
+- If the selected autocomplete data cannot be read, Prompt Corrector and Prompt
+  Builder fall back to the existing built-in rules.
+
+### Compatibility
+
+- Existing workflows, node inputs and outputs, settings, artist overrides and
+  exclusions, and the natural-language unknown-tag policy remain compatible.
+
+### Update
+
+- After updating, restart ComfyUI.
+
 ## 1.0.2
 
 ### Fixed
