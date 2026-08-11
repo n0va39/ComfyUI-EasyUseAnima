@@ -2,9 +2,55 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
+from csv import Error as CsvError
+
+from ..autocomplete.dataset import (
+    AutocompleteEntry,
+    autocomplete_entry_lookup,
+)
+from ..autocomplete.dataset import (
+    resolve_autocomplete_source as resolve_autocomplete_source_path,
+)
+from ..settings.service import (
+    resolve_autocomplete_source,
+    resolve_prompt_translation_settings,
+)
 from ..translation.markers import has_prompt_translation_markers
 from ..translation.service import translate_prompt_markers
-from ..settings.service import resolve_prompt_translation_settings
+from .anima import PromptKnowledgeBase, TagInfo
+
+
+class _AutocompletePromptKnowledgeBase(PromptKnowledgeBase):
+    def __init__(
+        self,
+        lookup_entry: Callable[[str], AutocompleteEntry | None],
+    ) -> None:
+        self._lookup_entry = lookup_entry
+
+    def lookup(self, tag: str) -> TagInfo | None:
+        builtin = super().lookup(tag)
+        if builtin is not None:
+            return builtin
+        entry: AutocompleteEntry | None = self._lookup_entry(tag)
+        if entry is None:
+            return None
+        return TagInfo(
+            tag=entry.tag_key,
+            category_path=(entry.category,),
+            post_count=entry.count,
+            source="autocomplete",
+        )
+
+
+def _load_prompt_knowledge_base() -> PromptKnowledgeBase:
+    try:
+        selected = resolve_autocomplete_source()
+        _source, path = resolve_autocomplete_source_path(selected)
+        lookup_entry = autocomplete_entry_lookup(path)
+    except (CsvError, OSError, RuntimeError, UnicodeError):
+        return PromptKnowledgeBase.empty()
+    return _AutocompletePromptKnowledgeBase(lookup_entry)
 
 
 def _split_tag_text(value: str) -> list[str]:

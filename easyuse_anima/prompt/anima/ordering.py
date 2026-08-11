@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+from types import MappingProxyType
 
 from .models import TagInfo, TagSection
 from .normalize import lookup_key
@@ -124,6 +125,28 @@ BUILTIN_TAG_SECTIONS = {
     **{tag: TagSection.COUNT for tag in ANIMA_PERSON_COUNT_TAGS},
 }
 
+CATEGORY_TAG_SECTIONS = MappingProxyType({
+    "quality": TagSection.QUALITY,
+    "품질": TagSection.QUALITY,
+    "meta": TagSection.META,
+    "메타": TagSection.META,
+    "year": TagSection.YEAR,
+    "연도": TagSection.YEAR,
+    "safety": TagSection.SAFETY,
+    "등급": TagSection.SAFETY,
+    "count": TagSection.COUNT,
+    "인원수": TagSection.COUNT,
+    "character": TagSection.CHARACTER,
+    "캐릭터": TagSection.CHARACTER,
+    "copyright": TagSection.COPYRIGHT,
+    "작품": TagSection.COPYRIGHT,
+    "미디어": TagSection.COPYRIGHT,
+    "artist": TagSection.ARTIST,
+    "작가": TagSection.ARTIST,
+    "general": TagSection.GENERAL,
+    "일반": TagSection.GENERAL,
+})
+
 
 def builtin_tag_section(tag: str) -> TagSection | None:
     key = lookup_key(tag)
@@ -132,6 +155,10 @@ def builtin_tag_section(tag: str) -> TagSection | None:
     if YEAR_TAG_PATTERN.match(key):
         return TagSection.YEAR
     return None
+
+
+def category_tag_section(category: str) -> TagSection | None:
+    return CATEGORY_TAG_SECTIONS.get(str(category or "").strip().casefold())
 
 
 def classify_tag(tag: str, info: TagInfo | None = None) -> TagSection:
@@ -143,14 +170,11 @@ def classify_tag(tag: str, info: TagInfo | None = None) -> TagSection:
 
     category_path = info.category_path if info else ()
     root = category_path[0] if category_path else ""
-    if root == "캐릭터":
-        return TagSection.CHARACTER
-    if root in {"작품", "미디어"}:
-        return TagSection.COPYRIGHT
-    if root == "작가":
-        return TagSection.ARTIST
     if root == "인물" and any(part == "인원수" for part in category_path):
         return TagSection.COUNT
+    category_section = category_tag_section(root)
+    if category_section is not None:
+        return category_section
     return TagSection.GENERAL if info is not None else TagSection.UNKNOWN
 
 
