@@ -84,6 +84,7 @@ from easyuse_anima.settings import service as settings_service
 from easyuse_anima.prompt.fields import (
     DEFAULT_QUALITY_TAGS,
     DEFAULT_TRAILING_QUALITY_TAGS,
+    _correct_builder_prompt,
     _prompt_tokens,
 )
 from easyuse_anima.translation.contracts import (
@@ -145,6 +146,87 @@ class PromptCorrectorTests(unittest.TestCase):
         self.assertEqual(corrected, "1girl, long hair")
         data = json.loads(report)
         self.assertEqual(data["duplicate_tags"], ["long hair"])
+
+    def test_corrector_builder_and_studio_share_autocomplete_categories(self):
+        prompt = (
+            "sample_subject, sample_series, sample_character, @sample_artist"
+        )
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "tags.csv"
+            path.write_text(
+                "\n".join(
+                    [
+                        'sample subject,0,100,"[일반] sample subject"',
+                        'sample series,3,100,"[작품] sample series"',
+                        'sample character,4,100,"[캐릭터] sample character"',
+                        'sample artist,1,100,"[작가] sample artist"',
+                    ]
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            original_load = autocomplete_dataset._load_entries
+
+            with (
+                patch.object(
+                    prompt_correction,
+                    "resolve_autocomplete_source",
+                    return_value="fixture",
+                ),
+                patch.object(
+                    prompt_correction,
+                    "resolve_autocomplete_source_path",
+                    return_value=("fixture", path),
+                ),
+                patch.object(
+                    autocomplete_dataset,
+                    "_load_entries",
+                    wraps=original_load,
+                ) as load_entries,
+            ):
+                corrected, report = EasyUseAnimaPromptCorrector().correct(
+                    prompt,
+                    "",
+                    "",
+                )
+                simple = EasyUseAnimaPromptCorrectorSimple().correct(prompt)[0]
+                builder = _correct_builder_prompt(prompt)
+                classified = classify_prompt_text(prompt, path=path)
+
+        self.assertEqual(
+            corrected,
+            "sample character, sample series, @sample artist, sample subject",
+        )
+        self.assertEqual(simple, corrected)
+        self.assertEqual(builder, corrected)
+        data = json.loads(report)
+        self.assertEqual(
+            data["sections"],
+            ["character", "copyright", "artist", "general"],
+        )
+        self.assertEqual(data["unknown_tags"], [])
+        self.assertEqual(
+            [token["section"] for token in classified["tokens"]],
+            ["general", "copyright", "character", "artist"],
+        )
+        self.assertEqual(load_entries.call_count, 1)
+
+    def test_corrector_falls_back_to_builtin_knowledge_on_dataset_error(self):
+        with patch.object(
+            prompt_correction,
+            "autocomplete_entry_lookup",
+            side_effect=OSError("fixture unavailable"),
+        ):
+            corrected, report = EasyUseAnimaPromptCorrector().correct(
+                "unknown_tag, 1girl",
+                "",
+                "",
+            )
+
+        self.assertEqual(corrected, "1girl, unknown tag")
+        data = json.loads(report)
+        self.assertEqual(data["sections"], ["count", "unknown"])
+        self.assertEqual(data["unknown_tags"], ["unknown tag"])
 
     def test_unvalidated_explicit_artist_is_known_and_not_reported_unknown(self):
         corrected, report = EasyUseAnimaPromptCorrector().correct(
@@ -337,7 +419,7 @@ class PromptCorrectorTests(unittest.TestCase):
             "1girl, (long hair:1.2), character \\(series\\), foo \\(bar\\)",
         )
         data = json.loads(report)
-        self.assertIn("long hair", data["unknown_tags"])
+        self.assertNotIn("long hair", data["unknown_tags"])
         self.assertIn("character \\(series\\)", data["unknown_tags"])
 
     def test_preserves_natural_language_case_and_splits_sentence_count_tag(self):
