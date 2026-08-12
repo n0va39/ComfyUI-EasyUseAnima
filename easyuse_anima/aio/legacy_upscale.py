@@ -4,6 +4,22 @@ from collections.abc import Callable
 from typing import Any
 
 
+def _usdu_flash_attention_error(error: Exception) -> RuntimeError | None:
+    message = str(error).strip()
+    normalized = message.lower().replace(" ", "").replace("-", "").replace("_", "")
+    if "flashattention" not in normalized:
+        return None
+    original = message or type(error).__name__
+    return RuntimeError(
+        "[EasyUseAnima] AiO Upscale > USDU failed in an active FlashAttention "
+        "backend. EasyUseAnima does not enable FlashAttention by default. Disable "
+        "ComfyUI --use-flash-attention or an external KJNodes Patch Flash Attention "
+        "model patch, or install a flash-attn build compatible with the active "
+        "PyTorch/CUDA/GPU. If AiO SageAttention is enabled for the Upscale stage, "
+        f"disable that stage scope and retry. Original error: {original}"
+    )
+
+
 def run_aio_usdu_upscale_stage(
     model,
     clip,
@@ -129,20 +145,20 @@ def run_aio_usdu_upscale_stage(
             mask_blur=as_int(usdu_settings.get("mask_blur"), 8),
             tile_padding=as_int(usdu_settings.get("tile_padding"), 32),
             seam_fix_mode=str(usdu_settings.get("seam_fix_mode") or "None"),
-            seam_fix_denoise=as_float(
-                usdu_settings.get("seam_fix_denoise"), 1.0
-            ),
-            seam_fix_mask_blur=as_int(
-                usdu_settings.get("seam_fix_mask_blur"), 8
-            ),
+            seam_fix_denoise=as_float(usdu_settings.get("seam_fix_denoise"), 1.0),
+            seam_fix_mask_blur=as_int(usdu_settings.get("seam_fix_mask_blur"), 8),
             seam_fix_width=as_int(usdu_settings.get("seam_fix_width"), 64),
             seam_fix_padding=as_int(usdu_settings.get("seam_fix_padding"), 16),
-            force_uniform_tiles=as_bool(
-                usdu_settings.get("force_uniform_tiles"), True
-            ),
+            force_uniform_tiles=as_bool(usdu_settings.get("force_uniform_tiles"), True),
             tiled_decode=as_bool(usdu_settings.get("tiled_decode"), False),
             batch_size=as_int(usdu_settings.get("batch_size"), 1),
         )
+    except Exception as error:
+        diagnostic = _usdu_flash_attention_error(error)
+        if diagnostic is None:
+            raise
+        # Keep the upstream exception available to ComfyUI's traceback renderer.
+        raise diagnostic from error
     finally:
         cleanup_model(stage_model, model)
     values = node_output_tuple(result)
