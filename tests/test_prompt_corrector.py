@@ -1440,7 +1440,11 @@ class PromptBuilderTests(unittest.TestCase):
         prompt_data = result["result"][0]
         self.assertIsInstance(prompt_data, dict)
         self.assertEqual(len(result["result"]), 1)
-        self.assertEqual(PromptData.__required_keys__, frozenset(prompt_data))
+        self.assertEqual(PromptData.__optional_keys__, frozenset({"lora"}))
+        self.assertEqual(
+            frozenset(prompt_data),
+            PromptData.__required_keys__ | PromptData.__optional_keys__,
+        )
         self.assertEqual(
             PromptDataOutputs.__required_keys__,
             frozenset(prompt_data["outputs"]),
@@ -3465,6 +3469,7 @@ class SettingsTests(unittest.TestCase):
                 "autocomplete.detect_natural_sentences",
                 "autocomplete.preview_completion",
                 "autocomplete.preview_closing_brackets",
+                "prompt_studio.lora_autocomplete",
                 "lora_preset.name_display",
                 "lora_preset.menu_mode",
                 "lora_preset.strength_button_step",
@@ -3742,6 +3747,7 @@ class SettingsTests(unittest.TestCase):
                     "EasyUseAnima.Prompt.AutocompleteAppendSeparator": "true",
                     "EasyUseAnima.Prompt.AutocompleteNoCommaAfterPeriod": "false",
                     "EasyUseAnima.Prompt.AutocompleteDetectNaturalSentences": "false",
+                    "EasyUseAnima.Prompt.LoraAutocomplete": "false",
                     "EasyUseAnima.Prompt.TypoIndicator": "false",
                     "EasyUseAnima.Prompt.SelectionParenthesisWeight": "true",
                     "EasyUseAnima.Prompt.CommentItalic": "false",
@@ -3771,6 +3777,7 @@ class SettingsTests(unittest.TestCase):
         self.assertEqual(settings["autocomplete.append_separator"], "true")
         self.assertEqual(settings["autocomplete.no_comma_after_period"], "false")
         self.assertEqual(settings["autocomplete.detect_natural_sentences"], "false")
+        self.assertEqual(settings["prompt_studio.lora_autocomplete"], "false")
         self.assertEqual(settings["prompt_studio.typo_indicator"], "false")
         self.assertEqual(
             settings["prompt_studio.selection_parenthesis_weight"],
@@ -3808,6 +3815,7 @@ class SettingsTests(unittest.TestCase):
                     "EasyUseAnima.Prompt.HighlightColor.quality": "#222222",
                     "EasyUseAnima.Prompt.HighlightColor.artist": "#333333",
                     "EasyUseAnima.Prompt.HighlightColor.wildcard": "#444444",
+                    "EasyUseAnima.Prompt.HighlightColor.lora": "#555555",
                 },
             ),
         ):
@@ -3817,6 +3825,7 @@ class SettingsTests(unittest.TestCase):
         self.assertEqual(colors["quality"], "#222222")
         self.assertEqual(colors["artist"], "#333333")
         self.assertEqual(colors["wildcard"], "#444444")
+        self.assertEqual(colors["lora"], "#555555")
 
     def test_prompt_studio_highlight_colors_prefer_aggregate_comfy_setting(self):
         with (

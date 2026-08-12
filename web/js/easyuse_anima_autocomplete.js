@@ -21,12 +21,15 @@ import {
 import {
   artistCompletionText,
   autocompleteQuery,
+  currentLoraToken as currentAutocompleteLoraToken,
   currentToken as currentAutocompleteToken,
   currentWildcardToken as currentAutocompleteWildcardToken,
   isCaretInComment,
   isCaretInPromptTranslationMarker as caretInPromptTranslationMarker,
+  loraAutocompleteQuery,
   normalizeAutocompleteArtistPrefix,
   normalizeAutocompleteCommitMode,
+  normalizeLoraSearchText,
   normalizeWildcardSearchText,
   parseAutocompleteText,
   planAutocompleteInsertion,
@@ -64,6 +67,10 @@ const TARGETS = {
     "text",
     "populated_text",
   ]),
+  EasyUseAnimaWildcardLora: new Set([
+    "text",
+    "populated_text",
+  ]),
 };
 
 const ARTIST_ONLY_TARGETS = {
@@ -71,6 +78,12 @@ const ARTIST_ONLY_TARGETS = {
     "style_prompt",
   ]),
 };
+
+const LORA_AUTOCOMPLETE_NODE_TYPES = new Set([
+  "EasyUseAnimaPromptStudioAdvancedV2",
+  "EasyUseAnimaPromptStudioAdvancedLora",
+  "EasyUseAnimaWildcardLora",
+]);
 
 const EXCLUDED_NODE_PATTERNS = [
   /lora\s*stacker/i,
@@ -125,6 +138,7 @@ const AUTOCOMPLETE_TEXT = {
     "category.general": "general",
     "category.meta": "meta",
     "category.wildcard": "wildcard",
+    "category.lora": "LoRA",
   },
   ko: {
     "category.tag": "태그",
@@ -138,6 +152,7 @@ const AUTOCOMPLETE_TEXT = {
     "category.general": "일반",
     "category.meta": "메타",
     "category.wildcard": "와일드카드",
+    "category.lora": "LoRA",
   },
   ja: {
     "category.tag": "タグ",
@@ -151,6 +166,7 @@ const AUTOCOMPLETE_TEXT = {
     "category.general": "一般",
     "category.meta": "メタ",
     "category.wildcard": "ワイルドカード",
+    "category.lora": "LoRA",
   },
   zh: {
     "category.tag": "标签",
@@ -164,6 +180,7 @@ const AUTOCOMPLETE_TEXT = {
     "category.general": "通用",
     "category.meta": "元数据",
     "category.wildcard": "通配符",
+    "category.lora": "LoRA",
   },
 };
 const PREVIEW_STYLES = {
@@ -177,6 +194,7 @@ const PREVIEW_STYLES = {
   meta: { color: "#94a3b8", background: "rgba(100, 116, 139, 0.18)", weight: 600 },
   general: { color: "#4ade80", background: "rgba(22, 163, 74, 0.16)", weight: 600 },
   wildcard: { color: "#c084fc", background: "rgba(126, 34, 206, 0.24)", weight: 700 },
+  lora: { color: "#e879f9", background: "rgba(192, 38, 211, 0.22)", weight: 700 },
   syntax: { color: "#a78bfa", background: "transparent", weight: 700 },
   unknown: { color: "#cbd5e1", background: "transparent", weight: 500 },
 };
@@ -193,6 +211,7 @@ let autocompleteDetectNaturalSentences = true;
 let autocompletePreviewClosingBrackets = false;
 let autocompletePreviewCompletion = false;
 let promptStudioSelectionParenthesisWeight = false;
+let promptStudioLoraAutocomplete = true;
 let popup = null;
 let activeState = null;
 let activeRefreshFrame = null;
@@ -204,6 +223,7 @@ let autocompleteEntryLifecycle = null;
 const autocompleteData = createAutocompleteDataAdapter({
   fetchJson: easyuseAnimaFetchJson,
   normalizeWildcardSearchText,
+  normalizeLoraSearchText,
   getLimit: () => maxResults,
 });
 
@@ -271,6 +291,13 @@ function setAutocompletePreviewCompletion(value) {
   }
 }
 
+function setPromptStudioLoraAutocomplete(value) {
+  const next = parseBooleanSetting(value, true);
+  const changed = next !== promptStudioLoraAutocomplete;
+  promptStudioLoraAutocomplete = next;
+  return changed;
+}
+
 function autocompleteText(key) {
   return easyuseAnimaText(AUTOCOMPLETE_TEXT, key);
 }
@@ -286,7 +313,7 @@ function autocompleteCategoryLabel(category) {
 
 function autocompleteEntryMetaText(entry) {
   const count = Number(entry?.count || 0).toLocaleString();
-  return entry?.kind === "wildcard"
+  return entry?.kind === "wildcard" || entry?.kind === "lora"
     ? autocompleteCategoryLabel(entry?.category)
     : `${autocompleteCategoryLabel(entry?.category)} · ${count}`;
 }
@@ -466,6 +493,9 @@ async function refreshAutocompleteSettings() {
     setPromptStudioSelectionParenthesisWeight(
       settings["prompt_studio.selection_parenthesis_weight"],
     );
+    if (setPromptStudioLoraAutocomplete(settings["prompt_studio.lora_autocomplete"])) {
+      dataRequestsInvalidated = true;
+    }
     const previousPreviewCompletion = autocompletePreviewCompletion;
     setAutocompletePreviewCompletion(settings["autocomplete.preview_completion"]);
     if (autocompletePreviewCompletion !== previousPreviewCompletion) {
@@ -768,6 +798,24 @@ function currentWildcardToken(input) {
   );
 }
 
+function currentLoraToken(input) {
+  const value = input?.value || "";
+  return currentAutocompleteLoraToken(
+    value,
+    input?.selectionStart ?? value.length,
+  );
+}
+
+function nodeSupportsLoraAutocomplete(node) {
+  return [node?.type, node?.comfyClass, node?.constructor?.nodeData?.name]
+    .filter(Boolean)
+    .some((value) => LORA_AUTOCOMPLETE_NODE_TYPES.has(String(value)));
+}
+
+function loraAutocompleteEnabledForState(state) {
+  return promptStudioLoraAutocomplete && nodeSupportsLoraAutocomplete(state?.node);
+}
+
 function isCaretInPromptTranslationMarker(input) {
   const value = input?.value || "";
   return caretInPromptTranslationMarker(
@@ -797,6 +845,9 @@ function autocompleteStateSignature(token, context, state) {
 
 function strictAutocompleteResults(context, token, _state, results) {
   if (!autocompletePreviewCompletion) {
+    return results;
+  }
+  if (context.kind === "lora") {
     return results;
   }
   const rawQuery = context.kind === "wildcard"
@@ -1154,8 +1205,9 @@ function forwardMiddlePanFromAutocompleteInput(event) {
 
 function commitSuggestion(state, entry, options = {}) {
   const promptToken = currentToken(state.input);
+  const loraToken = entry?.kind === "lora" ? currentLoraToken(state.input) : null;
   const wildcardToken = entry?.kind === "wildcard" ? currentWildcardToken(state.input) : null;
-  const token = wildcardToken || promptToken;
+  const token = loraToken || wildcardToken || promptToken;
   const insert = completionText(token, entry, state.forceArtistOnly);
   const plan = planAutocompleteInsertion(token, insert, {
     appendSeparator: autocompleteAppendSeparator,
@@ -1170,7 +1222,8 @@ function commitSuggestion(state, entry, options = {}) {
     plan.start,
     plan.end,
     plan.replacement,
-    plan.caretOffset,
+    plan.selectionStartOffset ?? plan.caretOffset,
+    plan.selectionEndOffset ?? plan.caretOffset,
   );
   syncWidgetValue(state);
   state.onCommit?.(state.input.value);
@@ -1189,6 +1242,10 @@ function promptTagText(value) {
 }
 
 function completionText(token, entry, forceArtistOnly = false) {
+  if (entry?.kind === "lora") {
+    const name = String(entry.tag || "").replaceAll("\\", "/");
+    return `<lora:${name}:1.0>`;
+  }
   if (entry?.kind === "wildcard") {
     return `__${String(entry.tag || "").replace(/^__|__$/g, "")}__`;
   }
@@ -1218,6 +1275,9 @@ function clearAutocompletePreview(input) {
 }
 
 function autocompletePreviewCategory(state, entry, token) {
+  if (entry?.kind === "lora") {
+    return "lora";
+  }
   if (entry?.kind === "wildcard") {
     return "wildcard";
   }
@@ -1260,11 +1320,15 @@ function completionPreviewPlan(state, entry) {
     return null;
   }
   const sourceValue = String(state.input.value || "");
+  const loraToken = entry?.kind === "lora" ? currentLoraToken(state.input) : null;
   const wildcardToken = entry?.kind === "wildcard" ? currentWildcardToken(state.input) : null;
+  if (entry?.kind === "lora" && !loraToken) {
+    return null;
+  }
   if (entry?.kind === "wildcard" && !wildcardToken) {
     return null;
   }
-  const token = wildcardToken || currentToken(state.input);
+  const token = loraToken || wildcardToken || currentToken(state.input);
   const insert = completionText(token, entry, state.forceArtistOnly);
   const plan = planAutocompleteInsertion(token, insert, {
     appendSeparator: autocompleteAppendSeparator,
@@ -1297,9 +1361,11 @@ function completionPreviewPlan(state, entry) {
     candidateEnd,
     ghostStart,
     ghostEnd,
-    category: token.wildcard
-      ? "wildcard"
-      : autocompletePreviewCategory(state, entry, token),
+    category: token.lora
+      ? "lora"
+      : token.wildcard
+        ? "wildcard"
+        : autocompletePreviewCategory(state, entry, token),
   };
 }
 
@@ -1541,17 +1607,22 @@ function hookInput(input, options = {}) {
         hidePopup();
         return;
       }
-      const wildcardToken = currentWildcardToken(input);
-      const token = wildcardToken || currentToken(input);
+      const loraToken = loraAutocompleteEnabledForState(state)
+        ? currentLoraToken(input)
+        : null;
+      const wildcardToken = loraToken ? null : currentWildcardToken(input);
+      const token = loraToken || wildcardToken || currentToken(input);
       if (!token?.active) {
         markAutocompleteInactive();
         hidePopup();
         return;
       }
-      const context = wildcardToken
-        ? wildcardAutocompleteQuery(wildcardToken)
-        : autocompleteQuery(token, state.forceArtistOnly, autocompleteArtistPrefix);
-      if (context.kind !== "wildcard" && context.query.length < MIN_QUERY_LENGTH) {
+      const context = loraToken
+        ? loraAutocompleteQuery(loraToken)
+        : wildcardToken
+          ? wildcardAutocompleteQuery(wildcardToken)
+          : autocompleteQuery(token, state.forceArtistOnly, autocompleteArtistPrefix);
+      if (!["wildcard", "lora"].includes(context.kind) && context.query.length < MIN_QUERY_LENGTH) {
         markAutocompleteInactive();
         hidePopup();
         return;
@@ -1569,9 +1640,11 @@ function hookInput(input, options = {}) {
       }
       const results = await request(
         signature,
-        () => context.kind === "wildcard"
-          ? autocompleteData.searchWildcards(context.query)
-          : autocompleteData.search(context.query, context.category),
+        () => context.kind === "lora"
+          ? autocompleteData.searchLoras(context.query)
+          : context.kind === "wildcard"
+            ? autocompleteData.searchWildcards(context.query)
+            : autocompleteData.search(context.query, context.category),
       );
       if (
         isCurrent()
@@ -1830,6 +1903,11 @@ function handleAutocompleteSettingsUpdated(event) {
     setPromptStudioSelectionParenthesisWeight(
       detail["prompt_studio.selection_parenthesis_weight"],
     );
+  }
+  if ("prompt_studio.lora_autocomplete" in detail) {
+    if (setPromptStudioLoraAutocomplete(detail["prompt_studio.lora_autocomplete"])) {
+      dataRequestsInvalidated = true;
+    }
   }
   if ("autocomplete.preview_completion" in detail) {
     const previousPreviewCompletion = autocompletePreviewCompletion;

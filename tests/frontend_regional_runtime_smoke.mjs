@@ -76,8 +76,10 @@ const extensionUrl = dataModule("../web/js/prompt_studio/regional/extension.js",
 const nodeHookConstantsUrl = `data:text/javascript;base64,${Buffer.from(`
   export const NODE_TYPE = "EasyUseAnimaPromptStudio";
   export const ADVANCED_NODE_TYPE = "EasyUseAnimaPromptStudioAdvanced";
+  export const ADVANCED_LORA_NODE_TYPE = "EasyUseAnimaPromptStudioAdvancedLora";
   export const ADVANCED_V2_NODE_TYPE = "EasyUseAnimaPromptStudioAdvancedV2";
   export const EXTEND_NODE_TYPE = "EasyUseAnimaPromptStudioExtend";
+  export const WILDCARD_LORA_NODE_TYPE = "EasyUseAnimaWildcardLora";
   export const WILDCARD_NODE_TYPE = "EasyUseAnimaWildcard";
 `).toString("base64")}`;
 const nodeHooksUrl = dataModule("../web/js/prompt_studio/node_hooks.js", {

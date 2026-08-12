@@ -41,6 +41,7 @@ DEFAULT_SETTINGS: _SettingsValues = {
     "prompt_studio.typo_indicator": "true",
     "prompt_studio.weight_syntax_underline": "false",
     "prompt_studio.selection_parenthesis_weight": "false",
+    "prompt_studio.lora_autocomplete": "true",
     "prompt_studio.comment_italic": "true",
     "prompt_studio.font_override": "false",
     "prompt_studio.font_family": "",
@@ -141,6 +142,7 @@ PROMPT_STUDIO_COLOR_KEYS: list[str] = [
     "meta",
     "natural",
     "wildcard",
+    "lora",
     "translation",
     "comment",
     "artist_unknown",
@@ -165,6 +167,7 @@ COMFY_SETTING_KEYS: dict[str, str] = {
     "EasyUseAnima.Prompt.SelectionParenthesisWeight": (
         "prompt_studio.selection_parenthesis_weight"
     ),
+    "EasyUseAnima.Prompt.LoraAutocomplete": "prompt_studio.lora_autocomplete",
     "EasyUseAnima.Prompt.CommentItalic": "prompt_studio.comment_italic",
     "EasyUseAnima.Prompt.FontOverride": "prompt_studio.font_override",
     "EasyUseAnima.Prompt.FontFamily": "prompt_studio.font_family",

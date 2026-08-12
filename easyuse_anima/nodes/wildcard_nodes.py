@@ -4,6 +4,12 @@ from __future__ import annotations
 
 from ..common.serialization import _stable_change_key
 from ..common.values import _single_value
+from ..lora.prompt_syntax import (
+    _lora_stack_signature,
+    _merge_lora_stack,
+    _parse_a1111_lora_tags,
+    _resolve_a1111_lora_directives,
+)
 from ..wildcard.mode import (
     WILDCARD_MODE_FIXED,
     WILDCARD_MODE_LABELS,
@@ -179,6 +185,10 @@ class EasyUseAnimaWildcard:
             }]
         }
 
+    @staticmethod
+    def _transform_output_text(text: str):
+        return text, None
+
     def generate(
         self,
         text: str,
@@ -201,7 +211,10 @@ class EasyUseAnimaWildcard:
             else text
         )
         expansion = expand_wildcards(str(source_text or ""), seed=seed_value, mode=mode_key)
-        output_text = expansion.text
+        populated_output_text = expansion.text
+        output_text, transform_result = self._transform_output_text(
+            populated_output_text
+        )
         used_keys = expansion.used_keys
         missing_keys = expansion.missing_keys
         status = mode_key
@@ -215,13 +228,13 @@ class EasyUseAnimaWildcard:
             workflow_prompt,
             extra_pnginfo,
             unique_id,
-            output_text,
+            populated_output_text,
             next_mode_label,
             seed_value,
         )
-        return {
+        output = {
             "ui": self._ui(
-                output_text,
+                populated_output_text,
                 next_mode_label,
                 seed_value,
                 status,
@@ -230,5 +243,69 @@ class EasyUseAnimaWildcard:
             ),
             "result": (output_text, seed_value),
         }
+        if transform_result is not None:
+            output["_transform_result"] = transform_result
+        return output
 
-__all__ = ("EasyUseAnimaWildcard",)
+
+class EasyUseAnimaWildcardLora(EasyUseAnimaWildcard):
+    """Wildcard expansion with A1111 LoRA tag extraction and stack output."""
+
+    DESCRIPTION = (
+        "Anima Wildcard with the same populated_text lifecycle, plus A1111 "
+        "and LoraManager <lora:name:model[:clip]> extraction and an appended "
+        "LORA_STACK output."
+    )
+    OUTPUT_TOOLTIPS = (
+        *EasyUseAnimaWildcard.OUTPUT_TOOLTIPS,
+        "Input LoRA stack followed by LoRAs extracted after wildcard expansion.",
+    )
+    RETURN_TYPES = (*EasyUseAnimaWildcard.RETURN_TYPES, "LORA_STACK")
+    RETURN_NAMES = (*EasyUseAnimaWildcard.RETURN_NAMES, "LORA_STACK")
+
+    @classmethod
+    def INPUT_TYPES(cls):
+        base = EasyUseAnimaWildcard.INPUT_TYPES()
+        return {
+            **base,
+            "optional": _FlexibleOptionalInputType(
+                "STRING",
+                {
+                    "lora_stack": (
+                        "LORA_STACK",
+                        {
+                            "forceInput": True,
+                            "tooltip": (
+                                "Optional LoRA stack. Wildcard-expanded prompt LoRAs "
+                                "are appended in prompt order."
+                            ),
+                        },
+                    ),
+                },
+            ),
+        }
+
+    @staticmethod
+    def _transform_output_text(text: str):
+        return _parse_a1111_lora_tags(text)
+
+    @classmethod
+    def IS_CHANGED(cls, lora_stack=None, **kwargs):
+        return _stable_change_key(
+            {
+                "base": EasyUseAnimaWildcard.IS_CHANGED(**kwargs),
+                "lora_stack": _lora_stack_signature(lora_stack),
+            }
+        )
+
+    def generate(self, *args, lora_stack=None, **kwargs):
+        output = super().generate(*args, **kwargs)
+        directives = output.pop("_transform_result", [])
+        prompt_stack = _resolve_a1111_lora_directives(directives)
+        output["result"] = (
+            *tuple(output.get("result") or ()),
+            _merge_lora_stack(lora_stack, prompt_stack),
+        )
+        return output
+
+__all__ = ("EasyUseAnimaWildcard", "EasyUseAnimaWildcardLora")

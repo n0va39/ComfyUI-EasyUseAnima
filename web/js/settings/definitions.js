@@ -216,6 +216,15 @@ export function createEasyUseAnimaSettings(dependencies) {
       defaultValue: false,
     }),
     setting({
+      id: "EasyUseAnima.Prompt.LoraAutocomplete",
+      section: "Autocomplete",
+      group: t("autocomplete"),
+      name: t("loraAutocomplete"),
+      tooltip: t("loraAutocompleteTip"),
+      type: "boolean",
+      defaultValue: true,
+    }),
+    setting({
       id: "EasyUseAnima.Prompt.SelectionParenthesisWeight",
       section: "Autocomplete",
       group: t("autocomplete"),

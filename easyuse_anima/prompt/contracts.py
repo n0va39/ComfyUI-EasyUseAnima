@@ -134,12 +134,23 @@ class PromptDataWildcard(TypedDict):
     missing_keys: list[str]
 
 
+class PromptDataLoraDirective(TypedDict):
+    name: str
+    strength_model: float
+    strength_clip: float
+
+
+class PromptDataLora(TypedDict):
+    syntax: str
+    directives: list[PromptDataLoraDirective]
+
+
 class PromptDataCompatibility(TypedDict):
     return_names: list[str]
     return_types: list[str]
 
 
-class PromptData(TypedDict):
+class PromptDataBase(TypedDict):
     schema: str
     version: int
     type: str
@@ -169,6 +180,10 @@ class PromptData(TypedDict):
     field_inputs: dict[str, str]
     wildcard: PromptDataWildcard
     compatibility: PromptDataCompatibility
+
+
+class PromptData(PromptDataBase, total=False):
+    lora: PromptDataLora
 
 
 PromptDataRead: TypeAlias = Mapping[str, object]

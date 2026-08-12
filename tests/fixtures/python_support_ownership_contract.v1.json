@@ -2,7 +2,7 @@
   "schema_version": 1,
   "baseline_commit": "a0b0dc1f599fcf01ec0f25fc75a23f7524f165ab",
   "inventory": {
-    "expected_files": 209,
+    "expected_files": 210,
     "manual_matrix_source": "tests/fixtures/python_test_ownership_contract.v1.json",
     "patterns": [
       "tests/**/*.json",
@@ -1731,6 +1731,23 @@
         "profiles"
       ],
       "purpose": "Direct Python unittest contract for test lora profiles."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_lora_prompt_syntax.py",
+      "path": "tests/test_lora_prompt_syntax.py",
+      "production_groups": [
+        "aio",
+        "autocomplete",
+        "lora",
+        "nodes",
+        "prompt",
+        "settings",
+        "wildcard"
+      ],
+      "purpose": "Direct contract for shared LoRA prompt syntax, node adapters, Prompt Data, AiO consumption, and autocomplete settings."
     },
     {
       "execution_mode": "unittest",

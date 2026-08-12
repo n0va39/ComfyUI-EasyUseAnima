@@ -21,7 +21,6 @@ from ..prompt.conditioning import (
 )
 from ..prompt.data import (
     _advanced_outputs_from_prompt_data,
-    _normalize_prompt_data,
     _prompt_data_json_safe,
 )
 from .conditioning import _aio_usdu_conditioning
@@ -110,6 +109,7 @@ from .preview import (
     _send_aio_preview_event,
     _tag_aio_preview_images,
 )
+from .prompt_lora import _normalize_prompt_data, _prepare_aio_prompt_loras
 from .resources import (
     _load_aio_resources_from_input_context,
     _load_aio_sam3_context,
@@ -465,11 +465,12 @@ def _run_aio_generation_pipeline(
     if settings["mode"] != "txt2img":
         raise RuntimeError("[EasyUseAnima] AiO Generator draft currently supports txt2img only.")
     generation_config, prepared_aio_hook = _aio_generation_config_from_dict(settings), prepare_aio_hook(aio_hook)
+    prompt_data, effective_lora_stack = _prepare_aio_prompt_loras(context["prompt_data"], lora_stack, normalize_prompt_data=_normalize_prompt_data)
     base_model, base_clip, vae = _load_aio_resources_from_input_context(context)
     model_with_lora, clip, applied_loras = _apply_aio_lora_stack(
         base_model,
         base_clip,
-        lora_stack,
+        effective_lora_stack,
     )
     negpip_mode = _aio_negpip_mode(settings.get("negpip"))
     model_lineage_base = model_with_lora
@@ -479,7 +480,6 @@ def _run_aio_generation_pipeline(
             clip,
             negpip_mode,
         )
-        prompt_data = _normalize_prompt_data(context["prompt_data"])
         (
             positive_prompt,
             negative_prompt,
@@ -645,7 +645,7 @@ def _run_aio_generation_pipeline(
         cache_scope=cache_scope,
         context=context,
         prompt_data=prompt_data,
-        lora_stack=lora_stack,
+        lora_stack=effective_lora_stack,
         settings=settings,
         positive_prompt=positive_prompt,
         negative_prompt=negative_prompt,
@@ -686,7 +686,7 @@ def _run_aio_generation_pipeline(
         ),
         workflow=WorkflowContext(
             input_context=context,
-            lora_stack=lora_stack,
+            lora_stack=effective_lora_stack,
             workflow_prompt=workflow_prompt,
             extra_pnginfo=extra_pnginfo,
             unique_id=unique_id,

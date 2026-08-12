@@ -37,12 +37,6 @@
       "decomposition_boundary": "Split filesystem primitives only if lock, compare-and-swap, atomic replace, and recovery ordering remain one transaction contract."
     },
     {
-      "path": "easyuse_anima/nodes/prompt_advanced_execution.py",
-      "baseline_loc": 482,
-      "owner_issue": 188,
-      "decomposition_boundary": "Keep typed Advanced build requests, call-time seams, and v1/v2 execution ordering together through PTC-07A."
-    },
-    {
       "path": "easyuse_anima/nodes/prompt_advanced_nodes.py",
       "baseline_loc": 975,
       "owner_issue": 188,

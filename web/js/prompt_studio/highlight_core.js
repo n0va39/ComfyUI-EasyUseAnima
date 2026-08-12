@@ -7,6 +7,8 @@ const WEIGHTED_TOKEN_RE = /^\((.*):[+-]?(?:\d+(?:\.\d*)?|\.\d+)\)$/s;
 const WEIGHT_NUMBER_COLOR = "#fb923c";
 const WILDCARD_HIGHLIGHT_RE = /(?:\d+#)?__[\p{L}\p{N}_.\-+/*\\]+?__/gu;
 const ARTIST_MIX_GROUP_HIGHLIGHT_RE = /\[\[[\s\S]*?(?::[-+]?(?:\d+(?:\.\d*)?|\.\d+))?\]\]/g;
+const LORA_TAG_HIGHLIGHT_RE = /<<?lora:[^>,\r\n]*(?:>|(?=,)|$)/gi;
+const LORA_TRIGGER_HIGHLIGHT_RE = /<:[^,:<>\r\n]*(?:>|(?=,)|$)/g;
 const INLINE_SPACE_RE = /[ \t]+/g;
 
 /**
@@ -128,8 +130,24 @@ function findArtistMixGroupSyntaxRange(value, offset) {
     : null;
 }
 
+function findLoraSyntaxRange(value, offset) {
+  const ranges = [];
+  for (const pattern of [LORA_TAG_HIGHLIGHT_RE, LORA_TRIGGER_HIGHLIGHT_RE]) {
+    pattern.lastIndex = offset;
+    const match = pattern.exec(value);
+    if (match) {
+      ranges.push({ start: match.index, end: match.index + match[0].length });
+    }
+  }
+  if (!ranges.length) {
+    return null;
+  }
+  return ranges.reduce((first, range) => (range.start < first.start ? range : first), ranges[0]);
+}
+
 function firstSyntaxRange(value, offset) {
   const ranges = [
+    findLoraSyntaxRange(value, offset),
     findWildcardSyntaxRange(value, offset),
     findPromptTranslationRange(value, offset),
     findArtistMixGroupSyntaxRange(value, offset),
@@ -142,6 +160,10 @@ function firstSyntaxRange(value, offset) {
 
 function hasHighlightSyntax(text) {
   return !!firstSyntaxRange(String(text ?? ""), 0);
+}
+
+function hasLoraSyntax(text) {
+  return !!findLoraSyntaxRange(String(text ?? ""), 0);
 }
 
 function isPromptLineCommentStart(value, index) {
@@ -427,6 +449,12 @@ function createPromptHighlightRenderer(options) {
       + "</span>";
   }
 
+  function loraSyntaxSpanHtml(text) {
+    return `<span style="${tokenStyle({ section: "lora" })}" title="${escapeHtml(sectionLabel("lora"))}">`
+      + escapeHtml(text)
+      + "</span>";
+  }
+
   function artistMixGroupShellHtml(parts, bodyHtml) {
     if (!parts || parts.syntaxError) {
       return syntaxErrorSpanHtml(`${parts?.open || ""}${parts?.body || ""}${parts?.close || ""}`);
@@ -463,7 +491,9 @@ function createPromptHighlightRenderer(options) {
       }
       html.push(basicSyntaxHtml(value.slice(cursor, range.start)));
       const snippet = value.slice(range.start, range.end);
-      if (snippet.startsWith("[[")) {
+      if (/^<<?lora:/i.test(snippet) || snippet.startsWith("<:")) {
+        html.push(loraSyntaxSpanHtml(snippet));
+      } else if (snippet.startsWith("[[")) {
         html.push(artistMixGroupSyntaxHtml(snippet));
       } else if (snippet.startsWith("%{")) {
         html.push(translationSyntaxSpanHtml(snippet));
@@ -582,7 +612,7 @@ function createPromptHighlightRenderer(options) {
         continue;
       }
 
-      if (preferSyntaxBeforeToken && hasHighlightSyntax(body)) {
+      if ((preferSyntaxBeforeToken && hasHighlightSyntax(body)) || hasLoraSyntax(body)) {
         html.push(escapeHtml(leading));
         html.push(syntaxHtml(body));
         html.push(escapeHtml(trailing));
