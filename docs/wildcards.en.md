@@ -118,8 +118,27 @@ __style/anime__
 selection. Sequential mode counts it as one candidate and strips the `N::`
 prefix.
 
-`<lora:name:weight>` syntax is preserved as text. EasyUse Anima wildcard
-expansion does not apply LoRAs to MODEL or CLIP.
+The wildcard expander preserves `<lora:name:weight>` and
+`<lora:name:model_weight:clip_weight>` as text. How an expanded tag is handled
+depends on the connected node.
+
+- LoRA tags emitted in positive fields of `Anima Prompt Studio Advanced v2`
+  become structured LoRA data in `EASYUSE_ANIMA_PROMPT_DATA`. `Anima AiO
+  Generator` applies them after its existing LoRA stack.
+- `Anima Prompt Studio Advanced LoRA` and `Anima Wildcard LoRA` append expanded
+  tags to their input LoRA stack and return the result.
+- The standard `Anima Wildcard` node returns text only and does not directly
+  apply a LoRA to MODEL or CLIP.
+
+For example, a candidate in `prompt_lora.txt` may contain:
+
+```text
+<lora:styles/my-style:0.7:0.4>
+```
+
+When `__prompt_lora__` is used in a positive Prompt Studio Advanced v2 field,
+the expanded LoRA tag is removed from the final prompt text and carried as
+structured LoRA data.
 
 ## Modes
 

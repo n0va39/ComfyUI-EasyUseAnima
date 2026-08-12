@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import inspect
-import json
 import logging
 from typing import Any
 
@@ -14,7 +13,7 @@ from ..infrastructure.comfy.invocation import (
     _node_output_tuple,
 )
 from ..infrastructure.comfy.wiring import resolve_comfy_host_helper
-from ..lora.metadata import _lora_stack_name
+from ..lora.prompt_syntax import _normalize_lora_stack as _normalize_aio_lora_stack
 from .generation_lifecycle import StageModelPatchPlan
 from .generation_migrations import (
     AIO_GENERATION_STAGE_IDS,
@@ -361,48 +360,6 @@ def _apply_aio_stage_model_patch_plan(model, plan: StageModelPatchPlan):
 def _apply_aio_model_patches(model, settings: dict[str, Any]):
     plan = _aio_stage_model_patch_plan(settings, "first_pass")
     return _apply_aio_stage_model_patch_plan(model, plan)
-
-
-def _normalize_aio_lora_stack(lora_stack) -> list[tuple[str, float, float]]:
-    if isinstance(lora_stack, dict) and "__value__" in lora_stack:
-        lora_stack = lora_stack["__value__"]
-    if isinstance(lora_stack, str):
-        try:
-            lora_stack = json.loads(lora_stack or "[]")
-        except json.JSONDecodeError:
-            lora_stack = []
-    if not isinstance(lora_stack, list):
-        return []
-
-    entries: list[tuple[str, float, float]] = []
-    for item in lora_stack:
-        if isinstance(item, dict):
-            raw_name = item.get("name", item.get("lora", item.get("lora_name", "")))
-            model_strength = item.get(
-                "strength_model", item.get("model_strength", item.get("strength", 1.0))
-            )
-            clip_strength = item.get(
-                "strength_clip",
-                item.get("clip_strength", item.get("strengthTwo", model_strength)),
-            )
-        elif isinstance(item, (list, tuple)) and len(item) >= 3:
-            raw_name, model_strength, clip_strength = item[:3]
-        else:
-            continue
-        name = str(raw_name or "").strip()
-        if not name or name.lower() == "none":
-            continue
-        entries.append(
-            (
-                _lora_stack_name(name),
-                _as_float(model_strength, 1.0),
-                _as_float(
-                    clip_strength,
-                    _as_float(model_strength, 1.0),
-                ),
-            )
-        )
-    return entries
 
 
 def _aio_lora_stack_signature(lora_stack) -> list[dict[str, Any]]:

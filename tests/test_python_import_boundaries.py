@@ -303,7 +303,7 @@ class CompletedPackageImportBoundaryTests(unittest.TestCase):
         }
         contract_groups = self.contract["groups"]
 
-        self.assertEqual(len(contract_groups), 16)
+        self.assertEqual(len(contract_groups), 17)
         self.assertEqual(
             {
                 group["group"]: list(group["production_paths"])
@@ -321,6 +321,7 @@ class CompletedPackageImportBoundaryTests(unittest.TestCase):
                 "api": "http-adapter",
                 "autocomplete": "feature-service",
                 "common": "common",
+                "extensions": "common",
                 "image": "feature-service",
                 "infrastructure": "infrastructure-core",
                 "lora": "feature-service",
@@ -342,6 +343,7 @@ class CompletedPackageImportBoundaryTests(unittest.TestCase):
                 "easyuse_anima/api/application_compatibility.py",
                 "easyuse_anima/api/application_routes.py",
                 "easyuse_anima/api/router.py",
+                "easyuse_anima/extensions/aio.py",
                 "easyuse_anima/infrastructure/comfy/",
                 "easyuse_anima/registration.py",
                 "easyuse_anima/workflow.py",

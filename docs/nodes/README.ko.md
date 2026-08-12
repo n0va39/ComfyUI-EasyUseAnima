@@ -21,6 +21,7 @@
 | Anima LoRA Preset | LoRA profile, style prompt, trigger word를 저장 및 출력 | [문서](anima-lora-preset.ko.md) |
 | Easy Use Anima Input | ANIMA diffusion model, VAE, CLIP과 prompt data를 AiO 전용 context로 묶음 | [문서](anima-aio-generator.ko.md) |
 | Anima AiO Generator | prompt data context를 받아 샘플링, Highres, Detailer, 저장을 한 노드에서 실행 | [문서](anima-aio-generator.ko.md) |
+| Anima AiO Hook Combine | 여러 AiO extension hook을 middleware 순서로 조합 | [개발 가이드](../extensions/aio-hooks.ko.md) |
 | Anima Image Scale By Multiple | 원본 비율을 유지하며 지정 배수에 맞는 유효 크기로 이미지 확대 | [문서](anima-image-scale-by-multiple.ko.md) |
 | Anima Detailer Align Hook | Impact detailer crop sampling 크기 정렬 hook | [문서](anima-detailer-align-hook.ko.md) |
 
@@ -28,4 +29,5 @@
 
 - 와일드카드 문법: [와일드카드 가이드](../wildcards.ko.md)
 - 자동완성 CSV: [자동완성 CSV 가이드](../autocomplete-csv.ko.md)
+- AiO 확장 개발: [AiO Hook API v1](../extensions/aio-hooks.ko.md)
 - 릴리즈 변경사항: [RELEASE.md](../../RELEASE.md)

@@ -40,6 +40,7 @@ export const INTERNAL_KEYS = {
   "EasyUseAnima.Prompt.TypoIndicator": "prompt_studio.typo_indicator",
   "EasyUseAnima.Prompt.WeightSyntaxUnderline": "prompt_studio.weight_syntax_underline",
   "EasyUseAnima.Prompt.SelectionParenthesisWeight": "prompt_studio.selection_parenthesis_weight",
+  "EasyUseAnima.Prompt.LoraAutocomplete": "prompt_studio.lora_autocomplete",
   "EasyUseAnima.Prompt.CommentItalic": "prompt_studio.comment_italic",
   "EasyUseAnima.Prompt.FontOverride": "prompt_studio.font_override",
   "EasyUseAnima.Prompt.FontFamily": "prompt_studio.font_family",

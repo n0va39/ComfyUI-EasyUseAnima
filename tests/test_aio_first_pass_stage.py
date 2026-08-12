@@ -76,6 +76,43 @@ def _unexpected(*_args, **_kwargs):
 
 
 class AIOFirstPassStageTests(unittest.TestCase):
+    def test_hook_affected_first_pass_can_bypass_shared_cache(self):
+        calls = []
+        runtime = FirstPassRuntime(
+            get_cache=_unexpected,
+            put_cache=_unexpected,
+            generate_empty_latent=lambda width, height: (
+                calls.append(("empty", width, height)) or "empty-latent"
+            ),
+            sample_latent=lambda model, *_args: (
+                calls.append(("sample", model)) or "sampled-latent"
+            ),
+            decode_latent=lambda vae, latent: (
+                calls.append(("decode", vae, latent)) or "decoded-image"
+            ),
+            resize_image=lambda image, *_args: (image, False),
+            encode_image=_unexpected,
+        )
+        state = GenerationState(None, None, 64, 96)
+
+        AIOFirstPassStage(
+            runtime=runtime,
+            cache_key="must-not-be-used",
+            use_mod_guidance=False,
+            use_cache=False,
+        ).run(_request(), state)
+
+        self.assertEqual(
+            calls,
+            [
+                ("empty", 64, 96),
+                ("sample", "sample-model"),
+                ("decode", "vae", "sampled-latent"),
+            ],
+        )
+        self.assertEqual(state.latent, "sampled-latent")
+        self.assertEqual(state.image, "decoded-image")
+
     def test_turbo_uses_effective_cfg_one_without_mutating_saved_sampler(self):
         observed: list[tuple[float, str, bool]] = []
         request = _request(negpip_mode="turbo")

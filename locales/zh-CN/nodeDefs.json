@@ -553,7 +553,7 @@
   },
   "EasyUseAnimaAIOGenerator": {
     "display_name": "Anima AiO Generator",
-    "description": "Consumes the easy use anima input context and runs the base txt2img generation path. Common generation parameters stay visible; advanced options are stored as hidden versioned JSON and managed by popup UI.",
+    "description": "Consumes the easy use anima input context and runs txt2img. Explicit AiO hooks currently run at the postprocess before/after boundary.",
     "inputs": {
       "easy_use_anima_input": {
         "name": "easy use anima input",
@@ -562,6 +562,10 @@
       "generation_settings": {
         "name": "generation_settings",
         "tooltip": "Hidden versioned JSON storage for popup generation settings. Keep this field serialized."
+      },
+      "aio_hook": {
+        "name": "aio_hook",
+        "tooltip": "Optional explicit EASYUSE_ANIMA_AIO_HOOK input. See the public extension guide."
       }
     },
     "outputs": {
@@ -577,6 +581,19 @@
         "name": "metadata_json",
         "tooltip": "JSON metadata summary for debugging or downstream integration."
       }
+    }
+  },
+  "EasyUseAnimaAIOHookCombine": {
+    "display_name": "Anima AiO Hook Combine",
+    "description": "Combines EASYUSE_ANIMA_AIO_HOOK values in socket order. Before runs a to d; after and session close run in reverse; cleanup callbacks use global LIFO order.",
+    "inputs": {
+      "hook_a": {"name": "hook_a", "tooltip": "Required first AiO hook."},
+      "hook_b": {"name": "hook_b", "tooltip": "Required second AiO hook."},
+      "hook_c": {"name": "hook_c", "tooltip": "Optional third AiO hook."},
+      "hook_d": {"name": "hook_d", "tooltip": "Optional fourth AiO hook."}
+    },
+    "outputs": {
+      "0": {"name": "aio_hook", "tooltip": "Combined hook for Anima AiO Generator."}
     }
   },
   "EasyUseAnimaArtistMixConditioning": {
@@ -1025,6 +1042,55 @@
         "name": "高度",
         "tooltip": "Height from NAIA or the original input when bypassed or not overridden."
       }
+    }
+  },
+  "EasyUseAnimaPromptStudioAdvancedLora": {
+    "display_name": "Anima 高级提示词工作室 LoRA",
+    "description": "在现有高级提示词工作室的编辑与通配符行为上，加入 A1111 <lora:name:weight> 提取和 LoRA 堆栈输入输出。",
+    "inputs": {
+      "use_naia": {"name": "使用 NAIA"},
+      "consume_naia_on_queue": {"name": "NAIA 仅应用一次"},
+      "use_anima_mod_guidance": {"name": "使用 Mod Guidance"},
+      "resolution_bucket": {"name": "分辨率分组"},
+      "resolution_size": {"name": "分辨率尺寸"},
+      "resolution_custom_width": {"name": "自定义宽度"},
+      "resolution_custom_height": {"name": "自定义高度"},
+      "pin_trigger_tags_to_front": {"name": "将触发词固定在前方"},
+      "advanced_fields": {"name": "高级字段"},
+      "use_negative_anima_mod_guidance": {"name": "使用负向 Mod Guidance"},
+      "wildcard_mode": {"name": "通配符模式"},
+      "wildcard_seed": {"name": "通配符种子"},
+      "wildcard_seed_after_generate": {"name": "生成后种子控制"},
+      "lora_stack": {"name": "LoRA 堆栈"}
+    },
+    "outputs": {
+      "0": {"name": "正向提示词"},
+      "1": {"name": "负向提示词"},
+      "2": {"name": "Mod Guidance 质量标签"},
+      "3": {"name": "Mod Guidance 负向提示词"},
+      "4": {"name": "使用 Mod Guidance"},
+      "5": {"name": "使用负向 Mod Guidance"},
+      "6": {"name": "元数据提示词"},
+      "7": {"name": "元数据负向提示词"},
+      "8": {"name": "宽度"},
+      "9": {"name": "高度"},
+      "10": {"name": "LORA_STACK"}
+    }
+  },
+  "EasyUseAnimaWildcardLora": {
+    "display_name": "Anima 通配符 LoRA",
+    "description": "在现有 Anima 通配符的展开与 populated_text 行为上，加入 A1111 LoRA 提取和 LoRA 堆栈输入输出。",
+    "inputs": {
+      "text": {"name": "文本"},
+      "populated_text": {"name": "已填充文本"},
+      "mode": {"name": "模式"},
+      "seed": {"name": "种子"},
+      "lora_stack": {"name": "LoRA 堆栈"}
+    },
+    "outputs": {
+      "0": {"name": "文本"},
+      "1": {"name": "种子"},
+      "2": {"name": "LORA_STACK"}
     }
   }
 }

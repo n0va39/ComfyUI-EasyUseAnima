@@ -1,0 +1,12 @@
+EasyUse Anima 1.1.0 adds prompt-driven LoRA loading and public first-pass AiO Hook controls.
+
+Changes:
+1. Prompt Studio Advanced V2 recognizes A1111 and LoraManager-style LoRA tags after wildcard expansion, stores them in structured Prompt Data, and lets Anima AiO Generator apply them automatically.
+2. Anima Prompt Studio Advanced LoRA and Anima Wildcard LoRA add LORA_STACK input and output sockets while preserving the behavior of their existing node counterparts.
+3. Typing <: or <<: offers installed-LoRA autocomplete, completes a closed LoRA tag, selects the strength for quick editing, and uses a dedicated configurable highlight color.
+4. LoRA parsing and highlighting remain separate from <|> and <|...|> prompt syntax.
+5. Public AiO Hook v1 providers can replace the first-pass model and override the allowed first-pass steps, CFG, sampler, scheduler, and denoise settings.
+6. Existing workflows, node identifiers, settings, profiles, socket order, and LoRA stack order remain compatible. Prompt-derived LoRAs are appended after existing stack entries.
+
+Action required:
+After updating, restart ComfyUI and hard-refresh the browser. Route wildcard-produced LoRA tags through Prompt Studio Advanced V2 or a LoRA-enabled node before Anima AiO Generator.

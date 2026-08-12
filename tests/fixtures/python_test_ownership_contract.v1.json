@@ -167,6 +167,30 @@
       }
     },
     {
+      "name": "extensions",
+      "production_paths": [
+        "easyuse_anima/extensions/"
+      ],
+      "owners": {
+        "adapter_api_node_integration": [
+          "tests/test_aio_nodes.py"
+        ],
+        "live_host": [
+          "@matrix:dual-canvas-live"
+        ],
+        "migration_compatibility": [
+          "tests/test_aio_hook_runtime.py"
+        ],
+        "package_archive": [
+          "@matrix:package-import-closure",
+          "@matrix:registry-archive-closure"
+        ],
+        "pure_service_unit": [
+          "tests/test_aio_hook_runtime.py"
+        ]
+      }
+    },
+    {
       "name": "image",
       "production_paths": [
         "easyuse_anima/image/"

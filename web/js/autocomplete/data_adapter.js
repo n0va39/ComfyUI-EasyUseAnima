@@ -4,6 +4,7 @@
  * @typedef {object} AutocompleteDataAdapterDependencies
  * @property {(url: string, options?: {signal?: AbortSignal}) => Promise<any>} fetchJson
  * @property {(value: any) => string} normalizeWildcardSearchText
+ * @property {(value: any) => string} normalizeLoraSearchText
  * @property {() => number} getLimit
  * @property {() => number} [now]
  */
@@ -56,6 +57,7 @@ export function createAutocompleteDataAdapter(dependencies) {
   const {
     fetchJson,
     normalizeWildcardSearchText,
+    normalizeLoraSearchText,
     getLimit,
     now = Date.now,
   } = dependencies;
@@ -69,6 +71,12 @@ export function createAutocompleteDataAdapter(dependencies) {
   let wildcardItemsCache = null;
   /** @type {WildcardSourceRequestOwner | null} */
   let wildcardLoadOwner = null;
+  /** @type {string[] | null} */
+  let loraItemsCache = null;
+  /** @type {Promise<string[]> | null} */
+  let loraLoadPromise = null;
+  let loraItemsExpiresAt = 0;
+  let loraSourceEpoch = 0;
   let autocompleteSourceSeen = false;
   let autocompleteSourceSignature = "";
   let wildcardExtraPathsSeen = false;
@@ -463,9 +471,61 @@ export function createAutocompleteDataAdapter(dependencies) {
     });
   }
 
+  function loadLoraItems() {
+    if (Array.isArray(loraItemsCache) && loraItemsExpiresAt > now()) {
+      return Promise.resolve(loraItemsCache);
+    }
+    if (loraLoadPromise) {
+      return loraLoadPromise;
+    }
+    const epoch = loraSourceEpoch;
+    loraLoadPromise = Promise.resolve(fetchJson("/easyuse_anima/loras"))
+      .then((data) => {
+        const items = Array.isArray(data?.loras)
+          ? data.loras.map((item) => String(item || "")).filter(Boolean)
+          : [];
+        if (loraSourceEpoch === epoch) {
+          loraItemsCache = items;
+          loraItemsExpiresAt = now() + RESOLVED_CACHE_TTL_MS;
+        }
+        return items;
+      })
+      .finally(() => {
+        loraLoadPromise = null;
+      });
+    return loraLoadPromise;
+  }
+
+  function searchLoras(query) {
+    const normalized = normalizeLoraSearchText(query);
+    const limit = getLimit();
+    const key = JSON.stringify(["lora", limit, normalized]);
+    return requestResults(key, async () => {
+      const items = await loadLoraItems();
+      return items
+        .filter((item) => !normalized || normalizeLoraSearchText(item).includes(normalized))
+        .slice(0, limit)
+        .map((item) => ({
+          tag: item,
+          category: "lora",
+          count: 0,
+          kind: "lora",
+        }));
+    });
+  }
+
+  function clearLoras() {
+    loraSourceEpoch += 1;
+    loraItemsCache = null;
+    loraItemsExpiresAt = 0;
+    clearResults();
+  }
+
   return {
     search,
+    searchLoras,
     searchWildcards,
+    clearLoras,
     clearResults,
     clearWildcards,
     syncSourceSettings,

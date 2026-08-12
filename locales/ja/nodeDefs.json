@@ -553,7 +553,7 @@
   },
   "EasyUseAnimaAIOGenerator": {
     "display_name": "Anima AiO Generator",
-    "description": "Consumes the easy use anima input context and runs the base txt2img generation path. Common generation parameters stay visible; advanced options are stored as hidden versioned JSON and managed by popup UI.",
+    "description": "Consumes the easy use anima input context and runs txt2img. Explicit AiO hooks currently run at the postprocess before/after boundary.",
     "inputs": {
       "easy_use_anima_input": {
         "name": "easy use anima input",
@@ -562,6 +562,10 @@
       "generation_settings": {
         "name": "generation_settings",
         "tooltip": "Hidden versioned JSON storage for popup generation settings. Keep this field serialized."
+      },
+      "aio_hook": {
+        "name": "aio_hook",
+        "tooltip": "Optional explicit EASYUSE_ANIMA_AIO_HOOK input. See the public extension guide."
       }
     },
     "outputs": {
@@ -577,6 +581,19 @@
         "name": "metadata_json",
         "tooltip": "JSON metadata summary for debugging or downstream integration."
       }
+    }
+  },
+  "EasyUseAnimaAIOHookCombine": {
+    "display_name": "Anima AiO Hook Combine",
+    "description": "Combines EASYUSE_ANIMA_AIO_HOOK values in socket order. Before runs a to d; after and session close run in reverse; cleanup callbacks use global LIFO order.",
+    "inputs": {
+      "hook_a": {"name": "hook_a", "tooltip": "Required first AiO hook."},
+      "hook_b": {"name": "hook_b", "tooltip": "Required second AiO hook."},
+      "hook_c": {"name": "hook_c", "tooltip": "Optional third AiO hook."},
+      "hook_d": {"name": "hook_d", "tooltip": "Optional fourth AiO hook."}
+    },
+    "outputs": {
+      "0": {"name": "aio_hook", "tooltip": "Combined hook for Anima AiO Generator."}
     }
   },
   "EasyUseAnimaArtistMixConditioning": {
@@ -1025,6 +1042,55 @@
         "name": "高さ",
         "tooltip": "Height from NAIA or the original input when bypassed or not overridden."
       }
+    }
+  },
+  "EasyUseAnimaPromptStudioAdvancedLora": {
+    "display_name": "Anima プロンプトスタジオ Advanced LoRA",
+    "description": "既存の Advanced Prompt Studio と同じ編集・ワイルドカード動作に、A1111 <lora:name:weight> 抽出と LoRA スタック入出力を追加します。",
+    "inputs": {
+      "use_naia": {"name": "NAIA を使用"},
+      "consume_naia_on_queue": {"name": "NAIA を一度適用"},
+      "use_anima_mod_guidance": {"name": "Mod Guidance を使用"},
+      "resolution_bucket": {"name": "解像度バケット"},
+      "resolution_size": {"name": "解像度サイズ"},
+      "resolution_custom_width": {"name": "カスタム幅"},
+      "resolution_custom_height": {"name": "カスタム高さ"},
+      "pin_trigger_tags_to_front": {"name": "トリガーを先頭に固定"},
+      "advanced_fields": {"name": "Advanced フィールド"},
+      "use_negative_anima_mod_guidance": {"name": "Negative Mod Guidance"},
+      "wildcard_mode": {"name": "ワイルドカードモード"},
+      "wildcard_seed": {"name": "ワイルドカードシード"},
+      "wildcard_seed_after_generate": {"name": "生成後のシード制御"},
+      "lora_stack": {"name": "LoRA スタック", "tooltip": "既存スタックの後に、正のフィールドから抽出した LoRA を順番に追加します。"}
+    },
+    "outputs": {
+      "0": {"name": "正のプロンプト"},
+      "1": {"name": "負のプロンプト"},
+      "2": {"name": "Mod Guidance 品質タグ"},
+      "3": {"name": "Mod Guidance 負のプロンプト"},
+      "4": {"name": "Mod Guidance を使用"},
+      "5": {"name": "Negative Mod Guidance を使用"},
+      "6": {"name": "メタデータプロンプト"},
+      "7": {"name": "メタデータ負のプロンプト"},
+      "8": {"name": "幅"},
+      "9": {"name": "高さ"},
+      "10": {"name": "LORA_STACK"}
+    }
+  },
+  "EasyUseAnimaWildcardLora": {
+    "display_name": "Anima ワイルドカード LoRA",
+    "description": "既存の Anima ワイルドカードと同じ展開・populated_text 動作に、A1111 LoRA 抽出と LoRA スタック入出力を追加します。",
+    "inputs": {
+      "text": {"name": "テキスト"},
+      "populated_text": {"name": "展開済みテキスト"},
+      "mode": {"name": "モード"},
+      "seed": {"name": "シード"},
+      "lora_stack": {"name": "LoRA スタック"}
+    },
+    "outputs": {
+      "0": {"name": "テキスト"},
+      "1": {"name": "シード"},
+      "2": {"name": "LORA_STACK"}
     }
   }
 }

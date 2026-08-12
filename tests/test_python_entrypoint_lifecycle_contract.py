@@ -49,6 +49,11 @@ def _registration_stub() -> types.ModuleType:
 @contextmanager
 def _loaded_package_entrypoint():
     prefix = f"{PACKAGE_NAME}."
+    canonical_modules = {
+        name: module
+        for name, module in tuple(sys.modules.items())
+        if name == "easyuse_anima" or name.startswith("easyuse_anima.")
+    }
     if any(name == PACKAGE_NAME or name.startswith(prefix) for name in sys.modules):
         raise AssertionError(f"Synthetic package namespace is already loaded: {PACKAGE_NAME}")
 
@@ -82,6 +87,8 @@ def _loaded_package_entrypoint():
     host_nodes.MAX_RESOLUTION = 16384
     bootstrap = None
 
+    for name in canonical_modules:
+        sys.modules.pop(name, None)
     try:
         with (
             patch.dict(
@@ -109,6 +116,9 @@ def _loaded_package_entrypoint():
             for name in list(sys.modules):
                 if name == PACKAGE_NAME or name.startswith(prefix):
                     sys.modules.pop(name, None)
+                elif name == "easyuse_anima" or name.startswith("easyuse_anima."):
+                    sys.modules.pop(name, None)
+            sys.modules.update(canonical_modules)
 
 
 class PythonEntrypointLifecycleContractTests(unittest.TestCase):

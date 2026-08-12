@@ -15,6 +15,19 @@ Prompt Studio, so the generator UI does not expose prompt fields.
 2. In `Easy Use Anima Input`, select the ANIMA diffusion model, VAE, and CLIP separately.
 3. Connect `Easy Use Anima Input` to the generator's `easy use anima input` socket.
 4. Optionally connect `LORA_STACK` from `Anima LoRA Preset` to `lora_stack`.
+5. Only for a third-party AiO extension, connect its `EASYUSE_ANIMA_AIO_HOOK`
+   output to `aio_hook`. Compose multiple hooks with `Anima AiO Hook Combine`.
+
+## Extension hooks
+
+`aio_hook` is optional; leaving it disconnected preserves existing generation
+and save behavior. Version 1 exposes first-pass MODEL and allowlisted sampler
+patches, final postprocess before/after callbacks, same-shape `IMAGE` patches,
+extension metadata, and optional previews. A postprocess hook-modified `IMAGE`
+is not re-encoded to make the Generator's `LATENT` output match it.
+
+To build a hook node, see the [AiO Hook API v1 developer guide](../extensions/aio-hooks.en.md)
+and the [copyable example](../../examples/third_party_aio_hook/).
 
 ## Generation Profiles
 

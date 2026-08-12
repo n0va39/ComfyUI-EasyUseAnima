@@ -51,6 +51,9 @@
 - 저장 이미지 workflow는 확장 결과를 `재현` mode로 저장합니다.
 - NAIA 채우기와 같이 사용할 때는 NAIA 결과를 먼저 받은 뒤 와일드카드를
   확장합니다.
+- Advanced v2의 양성 필드에서 와일드카드가 `<lora:...>` 태그를 반환하면 태그를
+  구조화된 LoRA 정보로 변환합니다. 연결된 `Anima AiO Generator`는 이를 기존 LoRA
+  stack 뒤에 적용합니다.
 
 문법은 [와일드카드 가이드](../wildcards.ko.md)를 참고하세요.
 

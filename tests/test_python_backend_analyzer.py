@@ -768,9 +768,16 @@ ignored/
             len(report["registry"]["shipped_python_modules"]),
             current_module_count,
         )
+        runtime_import_closure = set(
+            report["registry"]["runtime_import_closure"]
+        )
         self.assertEqual(
-            len(report["registry"]["runtime_import_closure"]),
-            current_module_count,
+            set(report["registry"]["shipped_python_modules"])
+            - runtime_import_closure,
+            {
+                "easyuse_anima/extensions/__init__.py",
+                "easyuse_anima/extensions/aio.py",
+            },
         )
         runtime_edges = {
             (edge["source"], edge.get("target"))
@@ -812,7 +819,10 @@ ignored/
         self.assertEqual(report["registry"]["missing_internal_imports"], [])
         self.assertEqual(
             report["registry"]["unreachable_shipped_python_modules"],
-            [],
+            [
+                "easyuse_anima/extensions/__init__.py",
+                "easyuse_anima/extensions/aio.py",
+            ],
         )
         self.assertTrue(
             {

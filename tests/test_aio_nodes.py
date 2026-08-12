@@ -21,6 +21,14 @@ from easyuse_anima.aio import (
     usdu,
 )
 from easyuse_anima.nodes import aio_nodes
+from easyuse_anima.extensions.aio import (
+    AioHookDescriptor,
+    AioHookPatch,
+    AioHookPoint,
+    AioHookSessionBase,
+    AioStage,
+    AioStagePhase,
+)
 from easyuse_anima.prompt.data import PROMPT_DATA_TYPE
 from easyuse_anima.wildcard.seed import SEED_CONTROL_FIXED
 from tests.comfy_host_fakes import (
@@ -382,7 +390,10 @@ class AIONodeContractTests(unittest.TestCase):
             list(input_types["hidden"]),
             ["workflow_prompt", "extra_pnginfo", "unique_id"],
         )
-        self.assertEqual(list(input_types["optional"]), ["lora_stack"])
+        self.assertEqual(
+            list(input_types["optional"]),
+            ["lora_stack", "aio_hook"],
+        )
 
     def test_generator_change_key_forces_only_nonfixed_seed_execution(self):
         calls = []
@@ -411,12 +422,17 @@ class AIONodeContractTests(unittest.TestCase):
             calls.append(("stable_key", value))
             return "change-key"
 
+        def hook_change_token(value):
+            calls.append(("hook_change_token", value))
+            return True, {"hook": value}
+
         with (
             patch.multiple(
                 aio_nodes,
                 AIO_SPECIAL_SEEDS=special_seeds,
                 _normalize_aio_generation_settings=normalize,
                 _aio_lora_stack_signature=lora_signature,
+                aio_hook_change_token=hook_change_token,
                 _stable_change_key=stable_key,
             ),
             patch.object(
@@ -429,9 +445,17 @@ class AIONodeContractTests(unittest.TestCase):
                 "context",
                 "lora",
                 "settings",
+                aio_hook="hook",
                 ignored="compatibility",
             )
             fixed_calls = list(calls)
+            calls.clear()
+            no_hook_result = aio_nodes.EasyUseAnimaAIOGenerator.IS_CHANGED(
+                "context",
+                "lora",
+                "settings",
+            )
+            no_hook_calls = list(calls)
             calls.clear()
             special_seeds.add("runtime")
             special_result = aio_nodes.EasyUseAnimaAIOGenerator.IS_CHANGED(
@@ -460,6 +484,7 @@ class AIONodeContractTests(unittest.TestCase):
                 },
                 "future": {"kept": True},
             },
+            "aio_hook": {"hook": "hook"},
         }
         self.assertEqual(fixed_result, "change-key")
         self.assertEqual(
@@ -468,7 +493,20 @@ class AIONodeContractTests(unittest.TestCase):
                 ("normalize", "settings"),
                 ("input_signature", "context"),
                 ("lora_signature", "lora"),
+                ("hook_change_token", "hook"),
                 ("stable_key", fixed_payload),
+            ],
+        )
+        no_hook_payload = dict(fixed_payload)
+        no_hook_payload.pop("aio_hook")
+        self.assertEqual(no_hook_result, "change-key")
+        self.assertEqual(
+            no_hook_calls,
+            [
+                ("normalize", "settings"),
+                ("input_signature", "context"),
+                ("lora_signature", "lora"),
+                ("stable_key", no_hook_payload),
             ],
         )
         self.assertNotEqual(special_result, special_result)
@@ -2411,6 +2449,29 @@ class AIOGeneratorRuntimeTests(unittest.TestCase):
     def test_generator_exposes_standard_images_and_custom_preview_key(self):
         context = self._context()
 
+        class MetadataSession(AioHookSessionBase):
+            def after_stage(self, event):
+                del event
+                return AioHookPatch(metadata={"integration": True})
+
+        class MetadataHook:
+            def describe(self):
+                return AioHookDescriptor(
+                    hook_id="tests.metadata",
+                    hook_version="1",
+                    points=frozenset({
+                        AioHookPoint(
+                            AioStage.POSTPROCESS,
+                            AioStagePhase.AFTER,
+                        )
+                    }),
+                    fingerprint={"test": 1},
+                )
+
+            def create_session(self, context):
+                del context
+                return MetadataSession()
+
         with (
             patch.object(legacy_generation, "_load_aio_resources_from_input_context", return_value=("base_model", "base_clip", "vae")),
             patch.object(legacy_generation, "_apply_aio_lora_stack", return_value=("lora_model", "lora_clip", [{"name": "a"}])),
@@ -2428,12 +2489,110 @@ class AIOGeneratorRuntimeTests(unittest.TestCase):
                 context,
                 generation_settings=json.dumps({"save": {"enabled": True}}),
                 lora_stack=[("a.safetensors", 1.0, 1.0)],
+                aio_hook=MetadataHook(),
             )
 
         self.assertEqual(result["ui"]["images"][0]["filename"], "preview.webp")
         self.assertEqual(result["ui"]["easyuse_anima_preview"][0]["filename"], "preview.webp")
         self.assertEqual(result["ui"]["sampler_backend"], ["comfy_ksampler"])
         self.assertIn("easyuse_anima_run_id", result["ui"])
+        metadata = json.loads(result["result"][2])
+        self.assertTrue(
+            metadata["extensions"]["hook_data"]["tests.metadata#0"]["integration"]
+        )
+
+    def test_generator_applies_first_pass_hook_model_and_sampler_overrides(self):
+        context = self._context()
+        lifecycle = []
+
+        class SamplingSession(AioHookSessionBase):
+            def before_stage(self, event):
+                lifecycle.append(("before", event.state.model))
+                return AioHookPatch(
+                    model="third_party_model",
+                    settings={
+                        "sampler": {
+                            "steps": 18,
+                            "cfg": 4.5,
+                            "sampler_name": "euler",
+                            "scheduler": "normal",
+                            "denoise": 0.8,
+                        }
+                    },
+                    metadata={"sampling_override": True},
+                )
+
+            def close(self):
+                lifecycle.append(("close",))
+
+        class SamplingHook:
+            def describe(self):
+                return AioHookDescriptor(
+                    hook_id="tests.sampling",
+                    hook_version="1",
+                    points=frozenset({
+                        AioHookPoint(
+                            AioStage.FIRST_PASS,
+                            AioStagePhase.BEFORE,
+                        )
+                    }),
+                    fingerprint={"test": "sampling"},
+                )
+
+            def create_session(self, hook_context):
+                lifecycle.append(("create", hook_context.request.node_id))
+                return SamplingSession()
+
+        with (
+            patch.object(legacy_generation, "_load_aio_resources_from_input_context", return_value=("base_model", "base_clip", "vae")),
+            patch.object(legacy_generation, "_apply_aio_lora_stack", return_value=("lora_model", "lora_clip", [])),
+            patch.object(legacy_generation, "_apply_aio_stage_model_patch_plan", return_value="patched_model"),
+            patch.object(legacy_generation, "_advanced_outputs_from_prompt_data", return_value=("p", "n", "q", "qn", False, False, "", "", 512, 768)),
+            patch.object(legacy_generation, "_encode_prompt_data_positive_conditioning", return_value="positive"),
+            patch_comfy_helper(aio_nodes, "_encode_with_comfy_clip", return_value="negative"),
+            patch.object(legacy_generation, "_generate_empty_latent_with_comfy", return_value="latent_image"),
+            patch.object(legacy_generation, "_sample_latent_with_aio_backend", return_value="latent") as sample,
+            patch.object(legacy_generation, "_decode_latent_with_comfy", return_value="image"),
+            patch.object(legacy_generation, "_save_image_with_image_saver", return_value={"ui": {"images": [{"filename": "hook.webp"}]}}),
+            patch.object(legacy_generation, "_cleanup_aio_ephemeral_model"),
+        ):
+            result = aio_nodes.EasyUseAnimaAIOGenerator().generate(
+                context,
+                generation_settings=json.dumps({"save": {"enabled": True}}),
+                aio_hook=SamplingHook(),
+            )
+
+        sampler = sample.call_args.args[5]
+        self.assertEqual(sample.call_args.args[0], "third_party_model")
+        self.assertEqual(
+            {
+                key: sampler[key]
+                for key in (
+                    "steps",
+                    "cfg",
+                    "sampler_name",
+                    "scheduler",
+                    "denoise",
+                )
+            },
+            {
+                "steps": 18,
+                "cfg": 4.5,
+                "sampler_name": "euler",
+                "scheduler": "normal",
+                "denoise": 0.8,
+            },
+        )
+        self.assertEqual(
+            lifecycle,
+            [("create", None), ("before", "patched_model"), ("close",)],
+        )
+        metadata = json.loads(result["result"][2])
+        self.assertTrue(
+            metadata["extensions"]["hook_data"]["tests.sampling#0"][
+                "sampling_override"
+            ]
+        )
 
     def test_generator_reencodes_first_pass_when_decoded_image_size_needs_correction(self):
         context = self._context()

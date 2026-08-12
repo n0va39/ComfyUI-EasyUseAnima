@@ -74,7 +74,6 @@ class AIOSaveOutputStage:
         )
         workflow_prompt = request.workflow.workflow_prompt
         extra_pnginfo = request.workflow.extra_pnginfo
-
         save_ui: dict[str, Any] = {}
         if save_settings.get("enabled"):
             if save_settings.get("backend") == "image_saver":
@@ -116,7 +115,6 @@ class AIOSaveOutputStage:
                         dict[str, Any],
                         save_result_dict["ui"],
                     )
-
         final_preview = cast(
             list[dict[str, Any]],
             self.runtime.tag_images(
@@ -145,7 +143,6 @@ class AIOSaveOutputStage:
         ):
             state.previews[-1] = final_preview[0]
             final_preview = final_preview[1:]
-
         metadata = {
             "schema": "easyuse_anima_aio_generation_result",
             "version": 1,
@@ -164,11 +161,11 @@ class AIOSaveOutputStage:
                 request.prompts.prompt_data
             ),
         }
-        metadata_json = json.dumps(
-            metadata,
-            ensure_ascii=False,
-            sort_keys=True,
-        )
+        if state.extensions:
+            metadata["extensions"] = self.runtime.json_safe(
+                state.extensions
+            )
+        metadata_json = json.dumps(metadata, ensure_ascii=False, sort_keys=True)
         ui: dict[str, Any] = {
             "status": ["generated"],
             "width": [int(state.width)],

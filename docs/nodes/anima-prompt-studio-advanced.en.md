@@ -50,6 +50,9 @@ body only shows the current wildcard mode, seed, and seed control summary.
 - The live workflow keeps original wildcard text and the next seed state.
 - Saved-image workflows store expanded text in `재현` mode.
 - When NAIA fill is also enabled, NAIA text is applied before wildcard expansion.
+- When a wildcard in an Advanced v2 positive field emits a `<lora:...>` tag,
+  the tag becomes structured LoRA data. A connected `Anima AiO Generator`
+  applies it after the existing LoRA stack.
 
 See the [Wildcard Guide](../wildcards.en.md) for syntax.
 

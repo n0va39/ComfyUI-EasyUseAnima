@@ -181,6 +181,7 @@ class AIOSaveOutputStageTests(unittest.TestCase):
             list(metadata["stages"]),
             ["first_pass", "postprocess"],
         )
+        self.assertNotIn("extensions", metadata)
         self.assertEqual(output["ui"]["status"], ["generated"])
         self.assertEqual(output["ui"]["width"], [96])
         self.assertEqual(output["ui"]["height"], [144])
@@ -307,6 +308,27 @@ class AIOSaveOutputStageTests(unittest.TestCase):
         )
         metadata = json.loads(stage.output["result"][2])
         self.assertEqual(metadata["lora_stack"], applied_loras)
+
+    def test_hook_extension_metadata_is_serialized_without_changing_core_stages(self):
+        state = _state()
+        state.extensions = {
+            "hooks": [{"hook_id": "example.brightness", "ordinal": 0}],
+            "hook_data": {"example.brightness#0": {"strength": 0.9}},
+        }
+        stage = AIOSaveOutputStage(
+            runtime=_runtime(),
+            applied_loras=[],
+            preview_run_id="node-7:run",
+        )
+
+        stage.run(_request(save_enabled=False), state)
+
+        metadata = json.loads(stage.output["result"][2])
+        self.assertEqual(metadata["extensions"], state.extensions)
+        self.assertEqual(
+            list(metadata["stages"]),
+            ["first_pass", "postprocess"],
+        )
 
     def test_invalid_save_ui_falls_back_and_reconciles_last_detailer_preview(self):
         previews = [
