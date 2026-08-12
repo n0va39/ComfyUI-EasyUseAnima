@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import os
+import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import patch
@@ -19,6 +20,7 @@ from easyuse_anima.nodes.wildcard_nodes import (
     EasyUseAnimaWildcardLora,
 )
 from easyuse_anima.registration import NODE_CLASS_MAPPINGS
+from easyuse_anima.settings import repository as settings_repository
 from easyuse_anima.settings import service as settings_service
 from easyuse_anima.settings.schema import (
     COMFY_SETTING_KEYS,
@@ -261,6 +263,72 @@ class LoraPromptNodeIntegrationTests(unittest.TestCase):
         self.assertNotIn(
             "<lora:",
             prompt_data["outputs"]["positive_prompt"].lower(),
+        )
+
+    def test_advanced_v2_applies_lora_emitted_by_file_wildcard_through_aio(self):
+        source = "subject, __prompt_lora__"
+        fields = [_field("positive", source)]
+        input_stack = [("base.safetensors", 0.9, 0.8)]
+
+        with tempfile.TemporaryDirectory() as temp:
+            wildcard_root = Path(temp)
+            (wildcard_root / "prompt_lora.txt").write_text(
+                "<lora:styles/wildcard-style:0.7:0.4>\n",
+                encoding="utf-8",
+            )
+            with (
+                patch.object(
+                    settings_repository,
+                    "get_settings",
+                    return_value={"wildcard.extra_paths": str(wildcard_root)},
+                ),
+                patch.object(
+                    prompt_syntax,
+                    "_lora_combo_values",
+                    return_value=[
+                        "None",
+                        "styles/wildcard-style.safetensors",
+                    ],
+                ),
+            ):
+                output = EasyUseAnimaPromptStudioAdvancedV2().build(
+                    **_advanced_build_kwargs(fields)
+                )
+                prompt_data = output["result"][0]
+                normalized, effective_stack = prompt_lora._prepare_aio_prompt_loras(
+                    prompt_data,
+                    input_stack,
+                    normalize_prompt_data=lambda value: value,
+                )
+
+        self.assertIs(normalized, prompt_data)
+        self.assertEqual(prompt_data["saved_fields"][0]["text"], source)
+        self.assertEqual(prompt_data["wildcard"]["used_keys"], ["prompt_lora"])
+        self.assertEqual(prompt_data["positive_prompt"], "subject")
+        self.assertEqual(prompt_data["fields"][0]["text"], "subject")
+        self.assertEqual(
+            prompt_data["lora"],
+            {
+                "syntax": "a1111",
+                "directives": [
+                    {
+                        "name": "styles/wildcard-style",
+                        "strength_model": 0.7,
+                        "strength_clip": 0.4,
+                    }
+                ],
+            },
+        )
+        self.assertEqual(
+            effective_stack,
+            [
+                *input_stack,
+                (
+                    os.path.join("styles", "wildcard-style.safetensors"),
+                    0.7,
+                    0.4,
+                ),
+            ],
         )
 
     def test_advanced_lora_reuses_advanced_contract_and_appends_stack(self):
