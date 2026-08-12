@@ -75,6 +75,66 @@ def _definition_type():
     return _BrightnessDefinition
 
 
+@lru_cache(maxsize=1)
+def _sampling_definition_type():
+    from easyuse_anima.extensions.aio import (
+        AIO_HOOK_API_VERSION,
+        AioHookDescriptor,
+        AioHookPatch,
+        AioHookPoint,
+        AioHookSessionBase,
+        AioStage,
+        AioStagePhase,
+    )
+
+    before_first_pass = frozenset({
+        AioHookPoint(AioStage.FIRST_PASS, AioStagePhase.BEFORE)
+    })
+
+    class _SamplingSession(AioHookSessionBase):
+        def __init__(self, settings: dict[str, object]) -> None:
+            self._settings = settings
+
+        def before_stage(self, event):
+            del event
+            return AioHookPatch(
+                settings={"sampler": self._settings},
+                metadata={"sampler_override": self._settings},
+            )
+
+    @dataclass(frozen=True, slots=True)
+    class _SamplingDefinition:
+        steps: int
+        cfg: float
+        sampler_name: str
+        scheduler: str
+        denoise: float
+
+        def _settings(self) -> dict[str, object]:
+            return {
+                "steps": self.steps,
+                "cfg": self.cfg,
+                "sampler_name": self.sampler_name,
+                "scheduler": self.scheduler,
+                "denoise": self.denoise,
+            }
+
+        def describe(self):
+            return AioHookDescriptor(
+                hook_id="example.sampling-settings",
+                hook_version="1.0.0",
+                api_version=AIO_HOOK_API_VERSION,
+                points=before_first_pass,
+                fingerprint=self._settings(),
+            )
+
+        def create_session(self, context):
+            del context
+            return _SamplingSession(self._settings())
+
+    return _SamplingDefinition
+
+
 class ExampleEasyUseAnimaBrightnessHook:
     DESCRIPTION = (
         "Example AiO hook that multiplies the final image without changing shape."
@@ -102,12 +162,51 @@ class ExampleEasyUseAnimaBrightnessHook:
         return (definition_type(float(strength), bool(emit_preview)),)
 
 
+class ExampleEasyUseAnimaSamplingSettingsHook:
+    DESCRIPTION = (
+        "Example AiO hook that overrides allowlisted first-pass sampler settings."
+    )
+
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "steps": ("INT", {"default": 24, "min": 1, "max": 10000}),
+                "cfg": ("FLOAT", {"default": 5.0, "min": 0.0, "max": 100.0}),
+                "sampler_name": ("STRING", {"default": "euler"}),
+                "scheduler": ("STRING", {"default": "normal"}),
+                "denoise": ("FLOAT", {"default": 1.0, "min": 0.0, "max": 1.0}),
+            }
+        }
+
+    RETURN_TYPES = (EASYUSE_ANIMA_AIO_HOOK_TYPE,)
+    RETURN_NAMES = ("aio_hook",)
+    FUNCTION = "build"
+    CATEGORY = "Example/EasyUse Anima"
+
+    def build(self, steps, cfg, sampler_name, scheduler, denoise):
+        definition_type = _sampling_definition_type()
+        return (definition_type(
+            int(steps),
+            float(cfg),
+            str(sampler_name),
+            str(scheduler),
+            float(denoise),
+        ),)
+
+
 NODE_CLASS_MAPPINGS = {
     "ExampleEasyUseAnimaBrightnessHook": ExampleEasyUseAnimaBrightnessHook,
+    "ExampleEasyUseAnimaSamplingSettingsHook": (
+        ExampleEasyUseAnimaSamplingSettingsHook
+    ),
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
     "ExampleEasyUseAnimaBrightnessHook": "Example AiO Brightness Hook",
+    "ExampleEasyUseAnimaSamplingSettingsHook": (
+        "Example AiO Sampling Settings Hook"
+    ),
 }
 
 __all__ = ["NODE_CLASS_MAPPINGS", "NODE_DISPLAY_NAME_MAPPINGS"]

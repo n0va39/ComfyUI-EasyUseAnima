@@ -8,10 +8,14 @@ from types import SimpleNamespace
 from easyuse_anima.extensions.aio import (
     EASYUSE_ANIMA_AIO_HOOK_TYPE,
     AioHookPatch,
+    AioHookPoint,
     AioStage,
     AioStagePhase,
 )
-from examples.third_party_aio_hook import ExampleEasyUseAnimaBrightnessHook
+from examples.third_party_aio_hook import (
+    ExampleEasyUseAnimaBrightnessHook,
+    ExampleEasyUseAnimaSamplingSettingsHook,
+)
 
 
 class _Image:
@@ -96,6 +100,44 @@ class AioHookExampleTests(unittest.TestCase):
         )
         self.assertEqual(patch.metadata["strength"], 0.75)
         self.assertEqual(services.previews[0][2], "brightness")
+
+    def test_copyable_sampling_example_uses_first_pass_settings_patch(self):
+        definition = ExampleEasyUseAnimaSamplingSettingsHook().build(
+            18,
+            4.5,
+            "euler",
+            "normal",
+            0.8,
+        )[0]
+        descriptor = definition.describe()
+        session = definition.create_session(SimpleNamespace())
+        patch = session.before_stage(SimpleNamespace())
+
+        self.assertEqual(
+            descriptor.points,
+            frozenset({
+                AioHookPoint(
+                    AioStage.FIRST_PASS,
+                    AioStagePhase.BEFORE,
+                )
+            }),
+        )
+        self.assertEqual(
+            patch.settings,
+            {
+                "sampler": {
+                    "steps": 18,
+                    "cfg": 4.5,
+                    "sampler_name": "euler",
+                    "scheduler": "normal",
+                    "denoise": 0.8,
+                }
+            },
+        )
+        self.assertEqual(
+            patch.metadata["sampler_override"],
+            patch.settings["sampler"],
+        )
 
 
 if __name__ == "__main__":

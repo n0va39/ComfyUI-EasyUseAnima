@@ -4,7 +4,20 @@ import unittest
 from dataclasses import dataclass
 from types import SimpleNamespace
 
-from easyuse_anima.aio.generation_pipeline import GenerationState
+from easyuse_anima.aio.generation_normalization import (
+    _normalize_aio_generation_settings,
+)
+from easyuse_anima.aio.generation_pipeline import (
+    ConditioningBundle,
+    GenerationRequest,
+    GenerationState,
+    PromptExecutionData,
+    ResourceBundle,
+    WorkflowContext,
+)
+from easyuse_anima.aio.generation_settings import (
+    _aio_generation_config_from_dict,
+)
 from easyuse_anima.aio.hooks import (
     AioHookRun,
     aio_hook_change_token,
@@ -32,6 +45,9 @@ from easyuse_anima.nodes.aio_hook_nodes import EasyUseAnimaAIOHookCombine
 POSTPROCESS_POINTS = frozenset({
     AioHookPoint(AioStage.POSTPROCESS, AioStagePhase.BEFORE),
     AioHookPoint(AioStage.POSTPROCESS, AioStagePhase.AFTER),
+})
+FIRST_PASS_POINTS = frozenset({
+    AioHookPoint(AioStage.FIRST_PASS, AioStagePhase.BEFORE),
 })
 
 
@@ -145,6 +161,68 @@ def _request():
     )
 
 
+def _sampling_request() -> GenerationRequest:
+    config = _aio_generation_config_from_dict(
+        _normalize_aio_generation_settings("{}")
+    )
+    return GenerationRequest(
+        config=config,
+        prompts=PromptExecutionData(
+            prompt_data={},
+            positive_prompt="positive",
+            negative_prompt="negative",
+            quality_tags="quality",
+            quality_negative="quality-negative",
+            metadata_positive_prompt="positive",
+            metadata_negative_prompt="negative",
+            use_anima_mod_guidance=False,
+            use_negative_anima_mod_guidance=False,
+        ),
+        resources=ResourceBundle(
+            base_model="base-model",
+            base_clip="base-clip",
+            model_with_lora="lora-model",
+            model="sample-model",
+            clip="clip",
+            vae="vae",
+            applied_loras=(),
+        ),
+        conditioning=ConditioningBundle("positive", "negative"),
+        workflow=WorkflowContext(
+            input_context={},
+            lora_stack=None,
+            workflow_prompt=None,
+            extra_pnginfo=None,
+            unique_id=23,
+            cache_scope="23",
+        ),
+    )
+
+
+class _FirstPassStage:
+    name = "first_pass"
+
+    def __init__(self, log):
+        self.log = log
+
+    def validate(self, request, capabilities):
+        self.log.append(("validate", request.resources.model, capabilities))
+
+    def run(self, request, state):
+        sampler = request.config.sampler.to_dict()
+        self.log.append((
+            "stage",
+            request.resources.model,
+            sampler["steps"],
+            sampler["cfg"],
+            sampler["sampler_name"],
+            sampler["scheduler"],
+            sampler["denoise"],
+        ))
+        state.latent = "latent"
+        state.image = _Image("first-pass")
+
+
 class AioHookRuntimeTests(unittest.TestCase):
     def test_public_contract_and_combine_node_preserve_socket_order(self):
         self.assertIs(AioHookDescriptor, InternalAioHookDescriptor)
@@ -155,7 +233,10 @@ class AioHookRuntimeTests(unittest.TestCase):
 
         self.assertEqual(AIO_HOOK_API_VERSION, 1)
         self.assertEqual(EASYUSE_ANIMA_AIO_HOOK_TYPE, "EASYUSE_ANIMA_AIO_HOOK")
-        self.assertEqual(list(AioStage), [AioStage.POSTPROCESS])
+        self.assertEqual(
+            list(AioStage),
+            [AioStage.FIRST_PASS, AioStage.POSTPROCESS],
+        )
         self.assertEqual(chain.definitions, (first, second))
         input_types = EasyUseAnimaAIOHookCombine.INPUT_TYPES()
         self.assertEqual(list(input_types["required"]), ["hook_a", "hook_b"])
@@ -352,6 +433,146 @@ class AioHookRuntimeTests(unittest.TestCase):
         )
         self.assertFalse(unstable)
         self.assertIsNone(unstable_token)
+
+    def test_first_pass_hooks_chain_model_and_allowlisted_sampler_settings(self):
+        class SamplingSession(AioHookSessionBase):
+            def before_stage(self, event):
+                log.append((
+                    "before",
+                    event.state.model,
+                    event.request.settings["sampler"]["sampler_name"],
+                ))
+                return AioHookPatch(
+                    model="third-party-model",
+                    settings={
+                        "sampler": {
+                            "steps": 19,
+                            "cfg": 4.25,
+                            "sampler_name": "euler",
+                            "scheduler": "normal",
+                            "denoise": 0.75,
+                        }
+                    },
+                    metadata={"sampling_override": True},
+                )
+
+        class SamplingDefinition(_Definition):
+            def create_session(self, context):
+                del context
+                return SamplingSession()
+
+        class FinalSamplingSession(AioHookSessionBase):
+            def before_stage(self, event):
+                log.append((
+                    "before-final",
+                    event.state.model,
+                    event.request.settings["sampler"]["steps"],
+                ))
+                return AioHookPatch(
+                    model="final-model",
+                    settings={"sampler": {"steps": 21}},
+                    metadata={"final_override": True},
+                )
+
+        class FinalSamplingDefinition(_Definition):
+            def create_session(self, context):
+                del context
+                return FinalSamplingSession()
+
+        log = []
+        request = _sampling_request()
+        state = GenerationState(None, None, 64, 96)
+        with AioHookRun(
+            prepare_aio_hook(combine_aio_hooks(
+                SamplingDefinition(
+                    "example.sampling",
+                    log,
+                    points=FIRST_PASS_POINTS,
+                ),
+                FinalSamplingDefinition(
+                    "example.sampling-final",
+                    log,
+                    points=FIRST_PASS_POINTS,
+                ),
+            )),
+            request,
+            state,
+            "run-id",
+            None,
+        ) as hook_run:
+            updated = hook_run.run_stage(
+                _FirstPassStage(log),
+                request,
+                state,
+                {"sampler_backend": "comfy_ksampler"},
+            )
+
+        self.assertEqual(request.resources.model, "sample-model")
+        self.assertEqual(updated.resources.model, "final-model")
+        self.assertEqual(
+            log,
+            [
+                (
+                    "validate",
+                    "sample-model",
+                    {"sampler_backend": "comfy_ksampler"},
+                ),
+                ("before", "sample-model", request.config.sampler.sampler_name),
+                ("before-final", "third-party-model", 19),
+                (
+                    "stage",
+                    "final-model",
+                    21,
+                    4.25,
+                    "euler",
+                    "normal",
+                    0.75,
+                ),
+            ],
+        )
+        self.assertEqual(state.image.name, "first-pass")
+        self.assertTrue(
+            state.extensions["hook_data"]["example.sampling#0"][
+                "sampling_override"
+            ]
+        )
+        self.assertTrue(
+            state.extensions["hook_data"]["example.sampling-final#0"][
+                "final_override"
+            ]
+        )
+
+    def test_first_pass_settings_patch_rejects_sampler_backend_override(self):
+        class InvalidSession(AioHookSessionBase):
+            def before_stage(self, event):
+                del event
+                return AioHookPatch(
+                    settings={"sampler": {"backend": "spectrum_integrated"}}
+                )
+
+        class InvalidDefinition(_Definition):
+            def create_session(self, context):
+                del context
+                return InvalidSession()
+
+        request = _sampling_request()
+        state = GenerationState(None, None, 64, 96)
+        with self.assertRaisesRegex(
+            AioHookContractError,
+            "cannot override sampler settings: backend",
+        ):
+            with AioHookRun(
+                prepare_aio_hook(InvalidDefinition(
+                    "example.invalid-settings",
+                    [],
+                    points=FIRST_PASS_POINTS,
+                )),
+                request,
+                state,
+                "run-id",
+                None,
+            ) as hook_run:
+                hook_run.run_stage(_FirstPassStage([]), request, state, {})
 
     def test_shape_change_is_rejected_and_cleanup_runs(self):
         class InvalidSession(_Session):

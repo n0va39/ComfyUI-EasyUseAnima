@@ -21,9 +21,10 @@
 ## 확장 hook
 
 `aio_hook`은 연결하지 않아도 기존 생성과 저장 동작이 그대로 유지되는 선택
-입력입니다. 현재 v1은 최종 postprocess의 before/after callback과 같은 shape의
-`IMAGE`, 확장 metadata, 선택적 preview만 공개합니다. hook으로 바뀐 `IMAGE`는
-Generator의 `LATENT`와 일치하도록 다시 인코딩되지 않습니다.
+입력입니다. 현재 v1은 `first_pass/before`의 MODEL·sampler allowlist patch와 최종
+postprocess의 before/after callback, 같은 shape의 `IMAGE`, 확장 metadata, 선택적
+preview를 공개합니다. postprocess hook으로 바뀐 `IMAGE`는 Generator의 `LATENT`와
+일치하도록 다시 인코딩되지 않습니다.
 
 직접 hook 노드를 만들려면 [AiO Hook API v1 개발 가이드](../extensions/aio-hooks.ko.md)와
 [복사 가능한 예제](../../examples/third_party_aio_hook/)를 참고하세요.

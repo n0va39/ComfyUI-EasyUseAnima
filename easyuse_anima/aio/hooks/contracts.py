@@ -17,6 +17,7 @@ JsonValue: TypeAlias = JsonScalar | list["JsonValue"] | dict[str, "JsonValue"]
 class AioStage(str, Enum):
     """Stage identifiers dispatched by AiO Hook API v1."""
 
+    FIRST_PASS = "first_pass"
     POSTPROCESS = "postprocess"
 
 
@@ -56,8 +57,10 @@ UNSET = _UnsetType()
 
 @dataclass(frozen=True, slots=True, kw_only=True)
 class AioHookPatch:
-    """A shape-preserving image replacement and namespaced metadata additions."""
+    """Stage-scoped model, settings, image, and metadata changes."""
 
+    model: object = UNSET
+    settings: Mapping[str, JsonValue] = field(default_factory=dict)
     image: object = UNSET
     metadata: Mapping[str, JsonValue] = field(default_factory=dict)
 
@@ -80,6 +83,7 @@ class AioHookStateView:
     height: int
     metadata: Mapping[str, object]
     extension_metadata: Mapping[str, object]
+    model: object | None = None
 
 
 class AioHookServices(Protocol):

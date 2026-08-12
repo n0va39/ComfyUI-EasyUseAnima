@@ -65,7 +65,7 @@ from .generation_save_output_stage import (
 )
 from .generation_settings import _aio_generation_config_from_dict
 from .generation_upscale_stage import AIOUpscaleStage, UpscaleRuntime
-from .hooks import prepare_aio_hook, run_aio_postprocess_hook_stage
+from .hooks import AioHookRun, AioStage, prepare_aio_hook
 from .input_context import _require_easy_use_anima_input
 from .legacy_detailer import (
     run_aio_detailer_stage as _run_aio_detailer_stage_impl,
@@ -693,6 +693,7 @@ def _run_aio_generation_pipeline(
             cache_scope=cache_scope,
         ),
     )
+    first_pass_hook_enabled = any(point.stage is AioStage.FIRST_PASS for prepared in prepared_aio_hook for point in prepared.points)
     first_pass_stage = AIOFirstPassStage(
         runtime=FirstPassRuntime(
             get_cache=_get_aio_first_pass_cache,
@@ -705,6 +706,7 @@ def _run_aio_generation_pipeline(
         ),
         cache_key=first_pass_cache_key,
         use_mod_guidance=base_use_mod_guidance,
+        use_cache=not first_pass_hook_enabled,
         add_preview=(
             preview_collector.add
             if preview_settings["intermediate_images"]
@@ -712,112 +714,103 @@ def _run_aio_generation_pipeline(
         ),
     )
     try:
-        first_pass_stage.validate(
-            generation_request,
-            {"sampler_backend": sampler_backend},
-        )
-        first_pass_stage.run(generation_request, generation_state)
-        if will_run_highres:
-            highres_stage_model = stage_models.resolve("highres")
-            model_patches_by_stage["highres"] = list(
-                stage_models.patch_ids("highres")
+        with AioHookRun(prepared_aio_hook, generation_request, generation_state, preview_run_id, preview_collector.add) as hook_run:
+            hook_run.run_stage(first_pass_stage, generation_request, generation_state, {"sampler_backend": sampler_backend})
+            if will_run_highres:
+                highres_stage_model = stage_models.resolve("highres")
+                model_patches_by_stage["highres"] = list(
+                    stage_models.patch_ids("highres")
+                )
+                highres_model, highres_use_mod_guidance = (
+                    variants_for(highres_stage_model).for_backend(highres_backend)
+                )
+            else:
+                highres_model, highres_use_mod_guidance = first_pass_model, False
+            highres_request = replace(
+                generation_request,
+                resources=replace(
+                    generation_request.resources,
+                    model=highres_model,
+                ),
             )
-            highres_model, highres_use_mod_guidance = (
-                variants_for(highres_stage_model).for_backend(highres_backend)
+            highres_stage = AIOHighresStage(
+                runtime=HighresRuntime(
+                    run_highres=_run_aio_highres_stage,
+                ),
+                use_mod_guidance=highres_use_mod_guidance,
+                add_preview=preview_collector.add,
+                preview_before_detailer=will_run_detailer,
             )
-        else:
-            highres_model, highres_use_mod_guidance = first_pass_model, False
-        highres_request = replace(
-            generation_request,
-            resources=replace(
-                generation_request.resources,
-                model=highres_model,
-            ),
-        )
-        highres_stage = AIOHighresStage(
-            runtime=HighresRuntime(
-                run_highres=_run_aio_highres_stage,
-            ),
-            use_mod_guidance=highres_use_mod_guidance,
-            add_preview=preview_collector.add,
-            preview_before_detailer=will_run_detailer,
-        )
-        highres_stage.validate(
-            highres_request,
-            {"sampler_backend": highres_backend},
-        )
-        highres_stage.run(highres_request, generation_state)
-        if will_run_detailer:
-            detailer_stage_model = stage_models.resolve("detailer")
-            model_patches_by_stage["detailer"] = list(
-                stage_models.patch_ids("detailer")
+            highres_stage.validate(
+                highres_request,
+                {"sampler_backend": highres_backend},
             )
-            detailer_model = variants_for(detailer_stage_model).standalone_model()
-        else:
-            detailer_model = first_pass_model
-        detailer_request = replace(
-            generation_request,
-            resources=replace(
-                generation_request.resources,
-                model=detailer_model,
-            ),
-        )
-        detailer_stage = AIODetailerStage(
-            runtime=DetailerRuntime(
-                run_detailer=_run_aio_detailer_stage,
-                image_size=_image_tensor_size,
-            ),
-            add_preview=preview_collector.add,
-        )
-        detailer_stage.validate(detailer_request, {})
-        detailer_stage.run(detailer_request, generation_state)
-        if will_run_usdu:
-            upscale_stage_model = stage_models.resolve("upscale")
-            model_patches_by_stage["upscale"] = list(
-                stage_models.patch_ids("upscale")
+            highres_stage.run(highres_request, generation_state)
+            if will_run_detailer:
+                detailer_stage_model = stage_models.resolve("detailer")
+                model_patches_by_stage["detailer"] = list(
+                    stage_models.patch_ids("detailer")
+                )
+                detailer_model = variants_for(detailer_stage_model).standalone_model()
+            else:
+                detailer_model = first_pass_model
+            detailer_request = replace(
+                generation_request,
+                resources=replace(
+                    generation_request.resources,
+                    model=detailer_model,
+                ),
             )
-            upscale_model = variants_for(upscale_stage_model).standalone_model()
-        else:
-            upscale_model = first_pass_model
-        upscale_request = replace(
-            generation_request,
-            resources=replace(
-                generation_request.resources,
-                model=upscale_model,
-            ),
-        )
-        upscale_stage = AIOUpscaleStage(
-            runtime=UpscaleRuntime(
-                run_upscale=_run_aio_upscale_stage,
-                image_size=_image_tensor_size,
-                encode_image=_encode_image_with_comfy_vae,
-            ),
-            exclude_positive_quality=can_apply_standalone_mod_guidance,
-            exclude_negative_quality=(
-                can_apply_standalone_mod_guidance
-                and use_negative_anima_mod_guidance
-            ),
-            add_preview=preview_collector.add,
-        )
-        upscale_stage.validate(upscale_request, {})
-        upscale_stage.run(upscale_request, generation_state)
-        postprocess_stage = AIOPostprocessStage(
-            runtime=PostprocessRuntime(
-                run_postprocess=_run_aio_postprocess_stage,
-                as_bool=_as_bool,
-                image_size=_image_tensor_size,
-                encode_image=_encode_image_with_comfy_vae,
-            ),
-            will_run_postprocess=will_run_postprocess,
-            add_preview=preview_collector.add,
-        )
-        run_aio_postprocess_hook_stage(
-            prepared_aio_hook, generation_request,
-            generation_state,
-            preview_run_id,
-            preview_collector.add,
-            postprocess_stage,
-        )
+            detailer_stage = AIODetailerStage(
+                runtime=DetailerRuntime(
+                    run_detailer=_run_aio_detailer_stage,
+                    image_size=_image_tensor_size,
+                ),
+                add_preview=preview_collector.add,
+            )
+            detailer_stage.validate(detailer_request, {})
+            detailer_stage.run(detailer_request, generation_state)
+            if will_run_usdu:
+                upscale_stage_model = stage_models.resolve("upscale")
+                model_patches_by_stage["upscale"] = list(
+                    stage_models.patch_ids("upscale")
+                )
+                upscale_model = variants_for(upscale_stage_model).standalone_model()
+            else:
+                upscale_model = first_pass_model
+            upscale_request = replace(
+                generation_request,
+                resources=replace(
+                    generation_request.resources,
+                    model=upscale_model,
+                ),
+            )
+            upscale_stage = AIOUpscaleStage(
+                runtime=UpscaleRuntime(
+                    run_upscale=_run_aio_upscale_stage,
+                    image_size=_image_tensor_size,
+                    encode_image=_encode_image_with_comfy_vae,
+                ),
+                exclude_positive_quality=can_apply_standalone_mod_guidance,
+                exclude_negative_quality=(
+                    can_apply_standalone_mod_guidance
+                    and use_negative_anima_mod_guidance
+                ),
+                add_preview=preview_collector.add,
+            )
+            upscale_stage.validate(upscale_request, {})
+            upscale_stage.run(upscale_request, generation_state)
+            postprocess_stage = AIOPostprocessStage(
+                runtime=PostprocessRuntime(
+                    run_postprocess=_run_aio_postprocess_stage,
+                    as_bool=_as_bool,
+                    image_size=_image_tensor_size,
+                    encode_image=_encode_image_with_comfy_vae,
+                ),
+                will_run_postprocess=will_run_postprocess,
+                add_preview=preview_collector.add,
+            )
+            generation_request = hook_run.run_stage(postprocess_stage, generation_request, generation_state, {})
     finally:
         model_registry.close()
     save_output_stage = AIOSaveOutputStage(

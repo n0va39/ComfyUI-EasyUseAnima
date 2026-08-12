@@ -21,10 +21,10 @@ Prompt Studio, so the generator UI does not expose prompt fields.
 ## Extension hooks
 
 `aio_hook` is optional; leaving it disconnected preserves existing generation
-and save behavior. Version 1 exposes only final postprocess before/after
-callbacks, same-shape `IMAGE` patches, extension metadata, and optional previews.
-A hook-modified `IMAGE` is not re-encoded to make the Generator's `LATENT`
-output match it.
+and save behavior. Version 1 exposes first-pass MODEL and allowlisted sampler
+patches, final postprocess before/after callbacks, same-shape `IMAGE` patches,
+extension metadata, and optional previews. A postprocess hook-modified `IMAGE`
+is not re-encoded to make the Generator's `LATENT` output match it.
 
 To build a hook node, see the [AiO Hook API v1 developer guide](../extensions/aio-hooks.en.md)
 and the [copyable example](../../examples/third_party_aio_hook/).

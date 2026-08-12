@@ -6062,6 +6062,23 @@
       },
       {
         "alias": null,
+        "bound_name": "replace",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "dataclasses:replace",
+        "kind": "static_from",
+        "line": 10,
+        "name": "replace",
+        "optional": false,
+        "requested": "dataclasses",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/hooks/runtime.py"
+      },
+      {
+        "alias": null,
         "bound_name": "MappingProxyType",
         "branch_context": [],
         "classification": "external",
@@ -6096,6 +6113,24 @@
       },
       {
         "alias": null,
+        "bound_name": "_normalize_aio_generation_settings",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": "..generation_normalization:_normalize_aio_generation_settings",
+        "kind": "static_from",
+        "line": 14,
+        "name": "_normalize_aio_generation_settings",
+        "optional": false,
+        "requested": "..generation_normalization",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/hooks/runtime.py",
+        "target": "easyuse_anima/aio/generation_normalization.py"
+      },
+      {
+        "alias": null,
         "bound_name": "GenerationCapabilities",
         "branch_context": [],
         "classification": "internal",
@@ -6103,7 +6138,7 @@
         "conditional": false,
         "imported": "..generation_pipeline:GenerationCapabilities",
         "kind": "static_from",
-        "line": 14,
+        "line": 15,
         "name": "GenerationCapabilities",
         "optional": false,
         "requested": "..generation_pipeline",
@@ -6121,7 +6156,7 @@
         "conditional": false,
         "imported": "..generation_pipeline:GenerationRequest",
         "kind": "static_from",
-        "line": 14,
+        "line": 15,
         "name": "GenerationRequest",
         "optional": false,
         "requested": "..generation_pipeline",
@@ -6139,7 +6174,7 @@
         "conditional": false,
         "imported": "..generation_pipeline:GenerationStage",
         "kind": "static_from",
-        "line": 14,
+        "line": 15,
         "name": "GenerationStage",
         "optional": false,
         "requested": "..generation_pipeline",
@@ -6157,7 +6192,7 @@
         "conditional": false,
         "imported": "..generation_pipeline:GenerationState",
         "kind": "static_from",
-        "line": 14,
+        "line": 15,
         "name": "GenerationState",
         "optional": false,
         "requested": "..generation_pipeline",
@@ -6168,6 +6203,24 @@
       },
       {
         "alias": null,
+        "bound_name": "_aio_generation_config_from_dict",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": "..generation_settings:_aio_generation_config_from_dict",
+        "kind": "static_from",
+        "line": 21,
+        "name": "_aio_generation_config_from_dict",
+        "optional": false,
+        "requested": "..generation_settings",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/hooks/runtime.py",
+        "target": "easyuse_anima/aio/generation_settings.py"
+      },
+      {
+        "alias": null,
         "bound_name": "AIO_HOOK_API_VERSION",
         "branch_context": [],
         "classification": "internal",
@@ -6175,7 +6228,7 @@
         "conditional": false,
         "imported": ".contracts:AIO_HOOK_API_VERSION",
         "kind": "static_from",
-        "line": 20,
+        "line": 22,
         "name": "AIO_HOOK_API_VERSION",
         "optional": false,
         "requested": ".contracts",
@@ -6193,7 +6246,7 @@
         "conditional": false,
         "imported": ".contracts:AioHookChain",
         "kind": "static_from",
-        "line": 20,
+        "line": 22,
         "name": "AioHookChain",
         "optional": false,
         "requested": ".contracts",
@@ -6211,7 +6264,7 @@
         "conditional": false,
         "imported": ".contracts:AioHookContractError",
         "kind": "static_from",
-        "line": 20,
+        "line": 22,
         "name": "AioHookContractError",
         "optional": false,
         "requested": ".contracts",
@@ -6229,7 +6282,7 @@
         "conditional": false,
         "imported": ".contracts:AioHookDescriptor",
         "kind": "static_from",
-        "line": 20,
+        "line": 22,
         "name": "AioHookDescriptor",
         "optional": false,
         "requested": ".contracts",
@@ -6247,7 +6300,7 @@
         "conditional": false,
         "imported": ".contracts:AioHookExecutionError",
         "kind": "static_from",
-        "line": 20,
+        "line": 22,
         "name": "AioHookExecutionError",
         "optional": false,
         "requested": ".contracts",
@@ -6265,7 +6318,7 @@
         "conditional": false,
         "imported": ".contracts:AioHookPatch",
         "kind": "static_from",
-        "line": 20,
+        "line": 22,
         "name": "AioHookPatch",
         "optional": false,
         "requested": ".contracts",
@@ -6283,7 +6336,7 @@
         "conditional": false,
         "imported": ".contracts:AioHookPoint",
         "kind": "static_from",
-        "line": 20,
+        "line": 22,
         "name": "AioHookPoint",
         "optional": false,
         "requested": ".contracts",
@@ -6301,7 +6354,7 @@
         "conditional": false,
         "imported": ".contracts:AioHookRequestView",
         "kind": "static_from",
-        "line": 20,
+        "line": 22,
         "name": "AioHookRequestView",
         "optional": false,
         "requested": ".contracts",
@@ -6319,7 +6372,7 @@
         "conditional": false,
         "imported": ".contracts:AioHookServices",
         "kind": "static_from",
-        "line": 20,
+        "line": 22,
         "name": "AioHookServices",
         "optional": false,
         "requested": ".contracts",
@@ -6337,7 +6390,7 @@
         "conditional": false,
         "imported": ".contracts:AioHookSessionContext",
         "kind": "static_from",
-        "line": 20,
+        "line": 22,
         "name": "AioHookSessionContext",
         "optional": false,
         "requested": ".contracts",
@@ -6355,7 +6408,7 @@
         "conditional": false,
         "imported": ".contracts:AioHookStateView",
         "kind": "static_from",
-        "line": 20,
+        "line": 22,
         "name": "AioHookStateView",
         "optional": false,
         "requested": ".contracts",
@@ -6373,7 +6426,7 @@
         "conditional": false,
         "imported": ".contracts:AioStage",
         "kind": "static_from",
-        "line": 20,
+        "line": 22,
         "name": "AioStage",
         "optional": false,
         "requested": ".contracts",
@@ -6391,7 +6444,7 @@
         "conditional": false,
         "imported": ".contracts:AioStageEvent",
         "kind": "static_from",
-        "line": 20,
+        "line": 22,
         "name": "AioStageEvent",
         "optional": false,
         "requested": ".contracts",
@@ -6409,7 +6462,7 @@
         "conditional": false,
         "imported": ".contracts:AioStagePhase",
         "kind": "static_from",
-        "line": 20,
+        "line": 22,
         "name": "AioStagePhase",
         "optional": false,
         "requested": ".contracts",
@@ -6427,7 +6480,7 @@
         "conditional": false,
         "imported": ".contracts:UNSET",
         "kind": "static_from",
-        "line": 20,
+        "line": 22,
         "name": "UNSET",
         "optional": false,
         "requested": ".contracts",
@@ -7579,15 +7632,15 @@
       },
       {
         "alias": null,
-        "bound_name": "prepare_aio_hook",
+        "bound_name": "AioHookRun",
         "branch_context": [],
         "classification": "internal",
         "column": 0,
         "conditional": false,
-        "imported": ".hooks:prepare_aio_hook",
+        "imported": ".hooks:AioHookRun",
         "kind": "static_from",
         "line": 68,
-        "name": "prepare_aio_hook",
+        "name": "AioHookRun",
         "optional": false,
         "requested": ".hooks",
         "role": "ordinary",
@@ -7597,15 +7650,33 @@
       },
       {
         "alias": null,
-        "bound_name": "run_aio_postprocess_hook_stage",
+        "bound_name": "AioStage",
         "branch_context": [],
         "classification": "internal",
         "column": 0,
         "conditional": false,
-        "imported": ".hooks:run_aio_postprocess_hook_stage",
+        "imported": ".hooks:AioStage",
         "kind": "static_from",
         "line": 68,
-        "name": "run_aio_postprocess_hook_stage",
+        "name": "AioStage",
+        "optional": false,
+        "requested": ".hooks",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/legacy_generation.py",
+        "target": "easyuse_anima/aio/hooks/__init__.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "prepare_aio_hook",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".hooks:prepare_aio_hook",
+        "kind": "static_from",
+        "line": 68,
+        "name": "prepare_aio_hook",
         "optional": false,
         "requested": ".hooks",
         "role": "ordinary",
@@ -41135,7 +41206,15 @@
       },
       {
         "from": "easyuse_anima/aio/hooks/runtime.py",
+        "to": "easyuse_anima/aio/generation_normalization.py"
+      },
+      {
+        "from": "easyuse_anima/aio/hooks/runtime.py",
         "to": "easyuse_anima/aio/generation_pipeline.py"
+      },
+      {
+        "from": "easyuse_anima/aio/hooks/runtime.py",
+        "to": "easyuse_anima/aio/generation_settings.py"
       },
       {
         "from": "easyuse_anima/aio/hooks/runtime.py",
@@ -44981,25 +45060,25 @@
         "functions": [
           {
             "async": false,
-            "end_line": 76,
+            "end_line": 77,
             "kind": "method",
-            "line": 67,
+            "line": 68,
             "loc": 10,
             "qualified_name": "AIOFirstPassStage.validate"
           },
           {
             "async": false,
-            "end_line": 148,
+            "end_line": 153,
             "kind": "method",
-            "line": 78,
-            "loc": 71,
+            "line": 79,
+            "loc": 75,
             "qualified_name": "AIOFirstPassStage.run"
           }
         ],
         "is_package": false,
-        "loc": 151,
+        "loc": 156,
         "module": "easyuse_anima.aio.generation_first_pass",
-        "normalized_git_blob_sha1": "11ec6d78c68d3ec0c0ab46dd1397434a5679d459",
+        "normalized_git_blob_sha1": "1ecbb56234a9eb7423076a5951b0da10bbae4d3a",
         "path": "easyuse_anima/aio/generation_first_pass.py",
         "top_level": {
           "class_count": 2,
@@ -46146,43 +46225,27 @@
         "functions": [
           {
             "async": false,
-            "end_line": 51,
+            "end_line": 52,
             "kind": "method",
-            "line": 50,
+            "line": 51,
             "loc": 2,
             "qualified_name": "_UnsetType.__repr__"
           },
           {
             "async": false,
-            "end_line": 93,
+            "end_line": 97,
             "kind": "method",
-            "line": 88,
+            "line": 92,
             "loc": 6,
             "qualified_name": "AioHookServices.emit_preview"
           },
           {
             "async": false,
-            "end_line": 95,
+            "end_line": 99,
             "kind": "method",
-            "line": 95,
+            "line": 99,
             "loc": 1,
             "qualified_name": "AioHookServices.register_cleanup"
-          },
-          {
-            "async": false,
-            "end_line": 116,
-            "kind": "method",
-            "line": 116,
-            "loc": 1,
-            "qualified_name": "AioHookSession.before_stage"
-          },
-          {
-            "async": false,
-            "end_line": 118,
-            "kind": "method",
-            "line": 118,
-            "loc": 1,
-            "qualified_name": "AioHookSession.after_stage"
           },
           {
             "async": false,
@@ -46190,15 +46253,23 @@
             "kind": "method",
             "line": 120,
             "loc": 1,
-            "qualified_name": "AioHookSession.close"
+            "qualified_name": "AioHookSession.before_stage"
           },
           {
             "async": false,
-            "end_line": 128,
+            "end_line": 122,
             "kind": "method",
-            "line": 126,
-            "loc": 3,
-            "qualified_name": "AioHookSessionBase.before_stage"
+            "line": 122,
+            "loc": 1,
+            "qualified_name": "AioHookSession.after_stage"
+          },
+          {
+            "async": false,
+            "end_line": 124,
+            "kind": "method",
+            "line": 124,
+            "loc": 1,
+            "qualified_name": "AioHookSession.close"
           },
           {
             "async": false,
@@ -46206,45 +46277,53 @@
             "kind": "method",
             "line": 130,
             "loc": 3,
-            "qualified_name": "AioHookSessionBase.after_stage"
+            "qualified_name": "AioHookSessionBase.before_stage"
           },
           {
             "async": false,
-            "end_line": 135,
+            "end_line": 136,
             "kind": "method",
             "line": 134,
-            "loc": 2,
-            "qualified_name": "AioHookSessionBase.close"
+            "loc": 3,
+            "qualified_name": "AioHookSessionBase.after_stage"
           },
           {
             "async": false,
             "end_line": 139,
             "kind": "method",
-            "line": 139,
+            "line": 138,
+            "loc": 2,
+            "qualified_name": "AioHookSessionBase.close"
+          },
+          {
+            "async": false,
+            "end_line": 143,
+            "kind": "method",
+            "line": 143,
             "loc": 1,
             "qualified_name": "AioHookDefinition.describe"
           },
           {
             "async": false,
-            "end_line": 141,
+            "end_line": 145,
             "kind": "method",
-            "line": 141,
+            "line": 145,
             "loc": 1,
             "qualified_name": "AioHookDefinition.create_session"
           },
           {
             "async": false,
-            "end_line": 172,
+            "end_line": 176,
             "kind": "function",
-            "line": 161,
+            "line": 165,
             "loc": 12,
             "qualified_name": "combine_aio_hooks"
           }
         ],
         "is_package": false,
-        "loc": 198,
+        "loc": 202,
         "module": "easyuse_anima.aio.hooks.contracts",
-        "normalized_git_blob_sha1": "82a62e4dbcc91a0e3fd30624e6b6177f6e8051c7",
+        "normalized_git_blob_sha1": "4403c57fd5ee23c4d882c737972d122c20293bdd",
         "path": "easyuse_anima/aio/hooks/contracts.py",
         "top_level": {
           "class_count": 18,
@@ -46256,238 +46335,246 @@
         "functions": [
           {
             "async": false,
-            "end_line": 85,
+            "end_line": 96,
             "kind": "function",
-            "line": 67,
+            "line": 78,
             "loc": 19,
             "qualified_name": "_json_value"
           },
           {
             "async": false,
-            "end_line": 99,
+            "end_line": 110,
             "kind": "function",
-            "line": 88,
+            "line": 99,
             "loc": 12,
             "qualified_name": "_bounded_json_value"
           },
           {
             "async": false,
-            "end_line": 126,
+            "end_line": 137,
             "kind": "function",
-            "line": 102,
+            "line": 113,
             "loc": 25,
             "qualified_name": "_flatten_hook_value"
           },
           {
             "async": false,
-            "end_line": 118,
+            "end_line": 129,
             "kind": "function",
-            "line": 106,
+            "line": 117,
             "loc": 13,
             "qualified_name": "_flatten_hook_value.visit"
           },
           {
             "async": false,
-            "end_line": 163,
+            "end_line": 174,
             "kind": "function",
-            "line": 129,
+            "line": 140,
             "loc": 35,
             "qualified_name": "_copy_points"
           },
           {
             "async": false,
-            "end_line": 223,
+            "end_line": 234,
             "kind": "function",
-            "line": 166,
+            "line": 177,
             "loc": 58,
             "qualified_name": "_prepare_definition"
           },
           {
             "async": false,
-            "end_line": 232,
+            "end_line": 243,
             "kind": "function",
-            "line": 226,
+            "line": 237,
             "loc": 7,
             "qualified_name": "prepare_aio_hook"
           },
           {
             "async": false,
-            "end_line": 256,
+            "end_line": 267,
             "kind": "function",
-            "line": 235,
+            "line": 246,
             "loc": 22,
             "qualified_name": "aio_hook_change_token"
           },
           {
             "async": false,
-            "end_line": 266,
+            "end_line": 277,
             "kind": "function",
-            "line": 259,
+            "line": 270,
             "loc": 8,
             "qualified_name": "_freeze"
           },
           {
             "async": false,
-            "end_line": 276,
+            "end_line": 287,
             "kind": "function",
-            "line": 269,
+            "line": 280,
             "loc": 8,
             "qualified_name": "_image_shape"
           },
           {
             "async": false,
-            "end_line": 282,
+            "end_line": 293,
             "kind": "method",
-            "line": 280,
+            "line": 291,
             "loc": 3,
             "qualified_name": "_RunHookServices.__init__"
           },
           {
             "async": false,
-            "end_line": 290,
+            "end_line": 301,
             "kind": "method",
-            "line": 284,
+            "line": 295,
             "loc": 7,
             "qualified_name": "_RunHookServices.emit_preview"
           },
           {
             "async": false,
-            "end_line": 293,
+            "end_line": 304,
             "kind": "method",
-            "line": 292,
+            "line": 303,
             "loc": 2,
             "qualified_name": "_RunHookServices.register_cleanup"
           },
           {
             "async": false,
-            "end_line": 314,
+            "end_line": 325,
             "kind": "method",
-            "line": 299,
+            "line": 310,
             "loc": 16,
             "qualified_name": "AioHookRun.__init__"
           },
           {
             "async": false,
-            "end_line": 359,
+            "end_line": 370,
             "kind": "method",
-            "line": 316,
+            "line": 327,
             "loc": 44,
             "qualified_name": "AioHookRun.__enter__"
           },
           {
             "async": false,
-            "end_line": 367,
+            "end_line": 378,
             "kind": "method",
-            "line": 361,
+            "line": 372,
             "loc": 7,
             "qualified_name": "AioHookRun.__exit__"
           },
           {
             "async": false,
-            "end_line": 376,
+            "end_line": 387,
             "kind": "method",
-            "line": 369,
+            "line": 380,
             "loc": 8,
             "qualified_name": "AioHookRun._request_view"
           },
           {
             "async": false,
-            "end_line": 395,
+            "end_line": 406,
             "kind": "method",
-            "line": 378,
+            "line": 389,
             "loc": 18,
             "qualified_name": "AioHookRun._descriptor_summary"
           },
           {
             "async": false,
-            "end_line": 407,
+            "end_line": 420,
             "kind": "method",
-            "line": 397,
-            "loc": 11,
+            "line": 408,
+            "loc": 13,
             "qualified_name": "AioHookRun._state_view"
           },
           {
             "async": false,
-            "end_line": 445,
+            "end_line": 466,
             "kind": "method",
-            "line": 409,
-            "loc": 37,
+            "line": 422,
+            "loc": 45,
             "qualified_name": "AioHookRun._dispatch"
           },
           {
             "async": false,
-            "end_line": 504,
+            "end_line": 570,
             "kind": "method",
-            "line": 447,
-            "loc": 58,
+            "line": 468,
+            "loc": 103,
             "qualified_name": "AioHookRun._apply_patch"
           },
           {
             "async": false,
-            "end_line": 517,
+            "end_line": 620,
             "kind": "method",
-            "line": 506,
+            "line": 572,
+            "loc": 49,
+            "qualified_name": "AioHookRun._apply_settings_patch"
+          },
+          {
+            "async": false,
+            "end_line": 633,
+            "kind": "method",
+            "line": 622,
             "loc": 12,
             "qualified_name": "AioHookRun.run_stage"
           },
           {
             "async": false,
-            "end_line": 549,
+            "end_line": 665,
             "kind": "method",
-            "line": 519,
+            "line": 635,
             "loc": 31,
             "qualified_name": "AioHookRun.emit_preview"
           },
           {
             "async": false,
-            "end_line": 559,
+            "end_line": 675,
             "kind": "method",
-            "line": 551,
+            "line": 667,
             "loc": 9,
             "qualified_name": "AioHookRun.register_cleanup"
           },
           {
             "async": false,
-            "end_line": 565,
+            "end_line": 681,
             "kind": "method",
-            "line": 561,
+            "line": 677,
             "loc": 5,
             "qualified_name": "AioHookRun._ensure_open"
           },
           {
             "async": false,
-            "end_line": 574,
+            "end_line": 690,
             "kind": "method",
-            "line": 567,
+            "line": 683,
             "loc": 8,
             "qualified_name": "AioHookRun._close_preserving"
           },
           {
             "async": false,
-            "end_line": 603,
+            "end_line": 719,
             "kind": "method",
-            "line": 576,
+            "line": 692,
             "loc": 28,
             "qualified_name": "AioHookRun.close"
           },
           {
             "async": false,
-            "end_line": 623,
+            "end_line": 739,
             "kind": "function",
-            "line": 606,
+            "line": 722,
             "loc": 18,
             "qualified_name": "run_aio_postprocess_hook_stage"
           }
         ],
         "is_package": false,
-        "loc": 626,
+        "loc": 742,
         "module": "easyuse_anima.aio.hooks.runtime",
-        "normalized_git_blob_sha1": "53837ef01dd7bcfb27821237fb5c3b2f08b0344f",
+        "normalized_git_blob_sha1": "e5a0be4565bb53b2b8d598d4e94ad7608437b74f",
         "path": "easyuse_anima/aio/hooks/runtime.py",
         "top_level": {
           "class_count": 4,
           "function_count": 10,
-          "global_count": 6
+          "global_count": 8
         }
       },
       {
@@ -46655,10 +46742,10 @@
           },
           {
             "async": false,
-            "end_line": 837,
+            "end_line": 830,
             "kind": "function",
             "line": 456,
-            "loc": 382,
+            "loc": 375,
             "qualified_name": "_run_aio_generation_pipeline"
           },
           {
@@ -46671,9 +46758,9 @@
           }
         ],
         "is_package": false,
-        "loc": 840,
+        "loc": 833,
         "module": "easyuse_anima.aio.legacy_generation",
-        "normalized_git_blob_sha1": "9abfbff166110b1591408a39158b06598e03b524",
+        "normalized_git_blob_sha1": "0873162191ffa54e86033f9082dac6ab65d151b1",
         "path": "easyuse_anima/aio/legacy_generation.py",
         "top_level": {
           "class_count": 0,
@@ -59227,6 +59314,17 @@
         "branch_context": [],
         "classification": "external",
         "conditional": false,
+        "imported": "dataclasses:replace",
+        "kind": "static_from",
+        "line": 10,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/hooks/runtime.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
         "imported": "types:MappingProxyType",
         "kind": "static_from",
         "line": 11,
@@ -68156,7 +68254,7 @@
         "column": 1,
         "context": "decorator:AioHookPoint",
         "kind": "import_time_call",
-        "line": 28,
+        "line": 29,
         "module": "easyuse_anima/aio/hooks/contracts.py",
         "scope": "<module>"
       },
@@ -68165,7 +68263,7 @@
         "column": 1,
         "context": "decorator:AioHookDescriptor",
         "kind": "import_time_call",
-        "line": 36,
+        "line": 37,
         "module": "easyuse_anima/aio/hooks/contracts.py",
         "scope": "<module>"
       },
@@ -68174,7 +68272,7 @@
         "column": 38,
         "context": "assign:points",
         "kind": "import_time_call",
-        "line": 42,
+        "line": 43,
         "module": "easyuse_anima/aio/hooks/contracts.py",
         "scope": "AioHookDescriptor"
       },
@@ -68183,7 +68281,7 @@
         "column": 8,
         "context": "assign:UNSET",
         "kind": "import_time_call",
-        "line": 54,
+        "line": 55,
         "module": "easyuse_anima/aio/hooks/contracts.py",
         "scope": "<module>"
       },
@@ -68192,16 +68290,25 @@
         "column": 1,
         "context": "decorator:AioHookPatch",
         "kind": "import_time_call",
-        "line": 57,
+        "line": 58,
         "module": "easyuse_anima/aio/hooks/contracts.py",
         "scope": "<module>"
       },
       {
         "callee": "field",
         "column": 40,
+        "context": "assign:settings",
+        "kind": "import_time_call",
+        "line": 63,
+        "module": "easyuse_anima/aio/hooks/contracts.py",
+        "scope": "AioHookPatch"
+      },
+      {
+        "callee": "field",
+        "column": 40,
         "context": "assign:metadata",
         "kind": "import_time_call",
-        "line": 62,
+        "line": 65,
         "module": "easyuse_anima/aio/hooks/contracts.py",
         "scope": "AioHookPatch"
       },
@@ -68210,7 +68317,7 @@
         "column": 1,
         "context": "decorator:AioHookRequestView",
         "kind": "import_time_call",
-        "line": 65,
+        "line": 68,
         "module": "easyuse_anima/aio/hooks/contracts.py",
         "scope": "<module>"
       },
@@ -68219,7 +68326,7 @@
         "column": 1,
         "context": "decorator:AioHookStateView",
         "kind": "import_time_call",
-        "line": 74,
+        "line": 77,
         "module": "easyuse_anima/aio/hooks/contracts.py",
         "scope": "<module>"
       },
@@ -68228,7 +68335,7 @@
         "column": 1,
         "context": "decorator:AioHookSessionContext",
         "kind": "import_time_call",
-        "line": 98,
+        "line": 102,
         "module": "easyuse_anima/aio/hooks/contracts.py",
         "scope": "<module>"
       },
@@ -68237,7 +68344,7 @@
         "column": 1,
         "context": "decorator:AioStageEvent",
         "kind": "import_time_call",
-        "line": 105,
+        "line": 109,
         "module": "easyuse_anima/aio/hooks/contracts.py",
         "scope": "<module>"
       },
@@ -68246,7 +68353,7 @@
         "column": 1,
         "context": "decorator:AioHookChain",
         "kind": "import_time_call",
-        "line": 144,
+        "line": 148,
         "module": "easyuse_anima/aio/hooks/contracts.py",
         "scope": "<module>"
       },
@@ -68255,7 +68362,7 @@
         "column": 9,
         "context": "assign:logger",
         "kind": "import_time_call",
-        "line": 38,
+        "line": 40,
         "module": "easyuse_anima/aio/hooks/runtime.py",
         "scope": "<module>"
       },
@@ -68264,25 +68371,52 @@
         "column": 20,
         "context": "assign:_SUPPORTED_POINTS",
         "kind": "import_time_call",
-        "line": 40,
-        "module": "easyuse_anima/aio/hooks/runtime.py",
-        "scope": "<module>"
-      },
-      {
-        "callee": "AioHookPoint",
-        "column": 4,
-        "context": "assign:_SUPPORTED_POINTS",
-        "kind": "import_time_call",
-        "line": 41,
-        "module": "easyuse_anima/aio/hooks/runtime.py",
-        "scope": "<module>"
-      },
-      {
-        "callee": "AioHookPoint",
-        "column": 4,
-        "context": "assign:_SUPPORTED_POINTS",
-        "kind": "import_time_call",
         "line": 42,
+        "module": "easyuse_anima/aio/hooks/runtime.py",
+        "scope": "<module>"
+      },
+      {
+        "callee": "AioHookPoint",
+        "column": 4,
+        "context": "assign:_SUPPORTED_POINTS",
+        "kind": "import_time_call",
+        "line": 43,
+        "module": "easyuse_anima/aio/hooks/runtime.py",
+        "scope": "<module>"
+      },
+      {
+        "callee": "AioHookPoint",
+        "column": 4,
+        "context": "assign:_SUPPORTED_POINTS",
+        "kind": "import_time_call",
+        "line": 44,
+        "module": "easyuse_anima/aio/hooks/runtime.py",
+        "scope": "<module>"
+      },
+      {
+        "callee": "AioHookPoint",
+        "column": 4,
+        "context": "assign:_SUPPORTED_POINTS",
+        "kind": "import_time_call",
+        "line": 45,
+        "module": "easyuse_anima/aio/hooks/runtime.py",
+        "scope": "<module>"
+      },
+      {
+        "callee": "frozenset",
+        "column": 32,
+        "context": "assign:_FIRST_PASS_SETTINGS_SECTIONS",
+        "kind": "import_time_call",
+        "line": 47,
+        "module": "easyuse_anima/aio/hooks/runtime.py",
+        "scope": "<module>"
+      },
+      {
+        "callee": "frozenset",
+        "column": 31,
+        "context": "assign:_FIRST_PASS_SAMPLER_SETTINGS",
+        "kind": "import_time_call",
+        "line": 48,
         "module": "easyuse_anima/aio/hooks/runtime.py",
         "scope": "<module>"
       },
@@ -68291,7 +68425,7 @@
         "column": 14,
         "context": "assign:_HOOK_ID_RE",
         "kind": "import_time_call",
-        "line": 46,
+        "line": 57,
         "module": "easyuse_anima/aio/hooks/runtime.py",
         "scope": "<module>"
       },
@@ -68300,7 +68434,7 @@
         "column": 1,
         "context": "decorator:_PreparedHook",
         "kind": "import_time_call",
-        "line": 49,
+        "line": 60,
         "module": "easyuse_anima/aio/hooks/runtime.py",
         "scope": "<module>"
       },
@@ -68309,7 +68443,7 @@
         "column": 1,
         "context": "decorator:_ActiveHook",
         "kind": "import_time_call",
-        "line": 59,
+        "line": 70,
         "module": "easyuse_anima/aio/hooks/runtime.py",
         "scope": "<module>"
       },

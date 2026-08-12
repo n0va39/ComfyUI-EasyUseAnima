@@ -7,16 +7,18 @@ import logging
 import math
 import re
 from collections.abc import Callable, Mapping
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from types import MappingProxyType
 from typing import cast
 
+from ..generation_normalization import _normalize_aio_generation_settings
 from ..generation_pipeline import (
     GenerationCapabilities,
     GenerationRequest,
     GenerationStage,
     GenerationState,
 )
+from ..generation_settings import _aio_generation_config_from_dict
 from .contracts import (
     AIO_HOOK_API_VERSION,
     UNSET,
@@ -38,8 +40,17 @@ from .contracts import (
 logger = logging.getLogger("ComfyUI-EasyUseAnima")
 
 _SUPPORTED_POINTS = frozenset({
+    AioHookPoint(AioStage.FIRST_PASS, AioStagePhase.BEFORE),
     AioHookPoint(AioStage.POSTPROCESS, AioStagePhase.BEFORE),
     AioHookPoint(AioStage.POSTPROCESS, AioStagePhase.AFTER),
+})
+_FIRST_PASS_SETTINGS_SECTIONS = frozenset({"sampler"})
+_FIRST_PASS_SAMPLER_SETTINGS = frozenset({
+    "steps",
+    "cfg",
+    "sampler_name",
+    "scheduler",
+    "denoise",
 })
 _MAX_FINGERPRINT_BYTES = 16 * 1024
 _MAX_METADATA_BYTES = 64 * 1024
@@ -395,7 +406,9 @@ class AioHookRun:
         }
 
     def _state_view(self) -> AioHookStateView:
+        resources = getattr(self._request, "resources", None)
         return AioHookStateView(
+            model=getattr(resources, "model", None),
             image=self._state.image,
             width=self._state.width,
             height=self._state.height,
@@ -406,7 +419,13 @@ class AioHookRun:
             ),
         )
 
-    def _dispatch(self, stage: AioStage, phase: AioStagePhase) -> None:
+    def _dispatch(
+        self,
+        stage: AioStage,
+        phase: AioStagePhase,
+        request: GenerationRequest,
+    ) -> GenerationRequest:
+        self._request = request
         point = AioHookPoint(stage, phase)
         matching = [
             active for active in self._active if point in active.prepared.points
@@ -435,7 +454,8 @@ class AioHookRun:
                 )
             try:
                 patch = callback(event)
-                self._apply_patch(active, point, patch)
+                request = self._apply_patch(active, point, patch, request)
+                self._request = request
             except AioHookContractError:
                 raise
             except Exception as exc:
@@ -443,22 +463,67 @@ class AioHookRun:
                     f"AiO hook {active.prepared.hook_id} v{active.prepared.hook_version} "
                     f"failed at {stage.value}/{phase.value}: {exc}"
                 ) from exc
+        return request
 
     def _apply_patch(
         self,
         active: _ActiveHook,
         point: AioHookPoint,
         patch: object,
-    ) -> None:
+        request: GenerationRequest,
+    ) -> GenerationRequest:
         if patch is None:
-            return
+            return request
         if not isinstance(patch, AioHookPatch):
             raise AioHookContractError(
                 f"AiO hook {active.prepared.hook_id} returned "
                 f"{type(patch).__name__} at {point.stage.value}/{point.phase.value}; "
                 "expected AioHookPatch or None"
             )
+        first_pass_before = AioHookPoint(
+            AioStage.FIRST_PASS,
+            AioStagePhase.BEFORE,
+        )
+        if patch.model is not UNSET:
+            if point != first_pass_before:
+                raise AioHookContractError(
+                    f"AiO hook {active.prepared.hook_id} returned a model at "
+                    f"{point.stage.value}/{point.phase.value}; model patches are "
+                    "allowed only at first_pass/before"
+                )
+            if patch.model is None:
+                raise AioHookContractError(
+                    f"AiO hook {active.prepared.hook_id} returned a null model"
+                )
+            resources = getattr(request, "resources", None)
+            if resources is None or not hasattr(resources, "model"):
+                raise AioHookContractError(
+                    f"AiO hook {active.prepared.hook_id} cannot patch a model "
+                    "because the stage request has no model resource"
+                )
+            request = replace(
+                request,
+                resources=replace(resources, model=patch.model),
+            )
+        if not isinstance(patch.settings, Mapping):
+            raise AioHookContractError(
+                f"AiO hook {active.prepared.hook_id} settings must be a mapping"
+            )
+        if patch.settings:
+            if point != first_pass_before:
+                raise AioHookContractError(
+                    f"AiO hook {active.prepared.hook_id} returned settings at "
+                    f"{point.stage.value}/{point.phase.value}; settings patches "
+                    "are allowed only at first_pass/before"
+                )
+            request = self._apply_settings_patch(active, patch.settings, request)
         if patch.image is not UNSET:
+            if point.stage is not AioStage.POSTPROCESS:
+                raise AioHookContractError(
+                    f"AiO hook {active.prepared.hook_id} returned an image at "
+                    f"{point.stage.value}/{point.phase.value}; image patches are "
+                    "allowed only at postprocess/before or postprocess/after"
+                )
             if patch.image is None:
                 raise AioHookContractError(
                     f"AiO hook {active.prepared.hook_id} returned a null image"
@@ -502,6 +567,57 @@ class AioHookRun:
                     + ", ".join(duplicates)
                 )
             existing.update(copied)
+        return request
+
+    def _apply_settings_patch(
+        self,
+        active: _ActiveHook,
+        value: Mapping[str, object],
+        request: GenerationRequest,
+    ) -> GenerationRequest:
+        copied = cast(
+            dict[str, object],
+            _bounded_json_value(
+                value,
+                f"AiO hook {active.prepared.hook_id} settings",
+                _MAX_FINGERPRINT_BYTES,
+            ),
+        )
+        unknown_sections = sorted(copied.keys() - _FIRST_PASS_SETTINGS_SECTIONS)
+        if unknown_sections:
+            raise AioHookContractError(
+                f"AiO hook {active.prepared.hook_id} cannot override settings "
+                "sections: " + ", ".join(unknown_sections)
+            )
+        sampler_patch = copied.get("sampler", {})
+        if not isinstance(sampler_patch, Mapping):
+            raise AioHookContractError(
+                f"AiO hook {active.prepared.hook_id} settings.sampler must be a mapping"
+            )
+        unknown_sampler = sorted(
+            sampler_patch.keys() - _FIRST_PASS_SAMPLER_SETTINGS
+        )
+        if unknown_sampler:
+            raise AioHookContractError(
+                f"AiO hook {active.prepared.hook_id} cannot override sampler "
+                "settings: " + ", ".join(unknown_sampler)
+            )
+        settings = cast(dict[str, object], request.config.to_dict())
+        current_sampler = settings.get("sampler")
+        if not isinstance(current_sampler, Mapping):
+            raise AioHookContractError("AiO generation sampler settings are invalid")
+        settings["sampler"] = {
+            **current_sampler,
+            **sampler_patch,
+        }
+        try:
+            normalized = _normalize_aio_generation_settings(settings)
+            config = _aio_generation_config_from_dict(normalized)
+        except Exception as exc:
+            raise AioHookContractError(
+                f"AiO hook {active.prepared.hook_id} returned invalid sampler settings: {exc}"
+            ) from exc
+        return replace(request, config=config)
 
     def run_stage(
         self,
@@ -509,12 +625,12 @@ class AioHookRun:
         request: GenerationRequest,
         state: GenerationState,
         capabilities: GenerationCapabilities,
-    ) -> None:
+    ) -> GenerationRequest:
         stage_id = AioStage(stage.name)
         stage.validate(request, capabilities)
-        self._dispatch(stage_id, AioStagePhase.BEFORE)
+        request = self._dispatch(stage_id, AioStagePhase.BEFORE, request)
         stage.run(request, state)
-        self._dispatch(stage_id, AioStagePhase.AFTER)
+        return self._dispatch(stage_id, AioStagePhase.AFTER, request)
 
     def emit_preview(
         self,

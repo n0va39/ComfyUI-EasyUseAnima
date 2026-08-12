@@ -20,7 +20,7 @@
   "module_exceptions": [
     {
       "path": "easyuse_anima/aio/legacy_generation.py",
-      "baseline_loc": 840,
+      "baseline_loc": 833,
       "owner_issue": 188,
       "decomposition_boundary": "Move legacy stage orchestration only along existing stage-port calls while preserving root monkeypatch seams."
     },
@@ -66,7 +66,7 @@
     {
       "path": "easyuse_anima/aio/legacy_generation.py",
       "qualified_name": "_run_aio_generation_pipeline",
-      "baseline_loc": 382,
+      "baseline_loc": 375,
       "owner_issue": 188,
       "decomposition_boundary": "Move legacy pipeline stages only through existing stage ports while preserving call and error order."
     },

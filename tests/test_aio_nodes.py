@@ -2501,6 +2501,99 @@ class AIOGeneratorRuntimeTests(unittest.TestCase):
             metadata["extensions"]["hook_data"]["tests.metadata#0"]["integration"]
         )
 
+    def test_generator_applies_first_pass_hook_model_and_sampler_overrides(self):
+        context = self._context()
+        lifecycle = []
+
+        class SamplingSession(AioHookSessionBase):
+            def before_stage(self, event):
+                lifecycle.append(("before", event.state.model))
+                return AioHookPatch(
+                    model="third_party_model",
+                    settings={
+                        "sampler": {
+                            "steps": 18,
+                            "cfg": 4.5,
+                            "sampler_name": "euler",
+                            "scheduler": "normal",
+                            "denoise": 0.8,
+                        }
+                    },
+                    metadata={"sampling_override": True},
+                )
+
+            def close(self):
+                lifecycle.append(("close",))
+
+        class SamplingHook:
+            def describe(self):
+                return AioHookDescriptor(
+                    hook_id="tests.sampling",
+                    hook_version="1",
+                    points=frozenset({
+                        AioHookPoint(
+                            AioStage.FIRST_PASS,
+                            AioStagePhase.BEFORE,
+                        )
+                    }),
+                    fingerprint={"test": "sampling"},
+                )
+
+            def create_session(self, hook_context):
+                lifecycle.append(("create", hook_context.request.node_id))
+                return SamplingSession()
+
+        with (
+            patch.object(legacy_generation, "_load_aio_resources_from_input_context", return_value=("base_model", "base_clip", "vae")),
+            patch.object(legacy_generation, "_apply_aio_lora_stack", return_value=("lora_model", "lora_clip", [])),
+            patch.object(legacy_generation, "_apply_aio_stage_model_patch_plan", return_value="patched_model"),
+            patch.object(legacy_generation, "_advanced_outputs_from_prompt_data", return_value=("p", "n", "q", "qn", False, False, "", "", 512, 768)),
+            patch.object(legacy_generation, "_encode_prompt_data_positive_conditioning", return_value="positive"),
+            patch_comfy_helper(aio_nodes, "_encode_with_comfy_clip", return_value="negative"),
+            patch.object(legacy_generation, "_generate_empty_latent_with_comfy", return_value="latent_image"),
+            patch.object(legacy_generation, "_sample_latent_with_aio_backend", return_value="latent") as sample,
+            patch.object(legacy_generation, "_decode_latent_with_comfy", return_value="image"),
+            patch.object(legacy_generation, "_save_image_with_image_saver", return_value={"ui": {"images": [{"filename": "hook.webp"}]}}),
+            patch.object(legacy_generation, "_cleanup_aio_ephemeral_model"),
+        ):
+            result = aio_nodes.EasyUseAnimaAIOGenerator().generate(
+                context,
+                generation_settings=json.dumps({"save": {"enabled": True}}),
+                aio_hook=SamplingHook(),
+            )
+
+        sampler = sample.call_args.args[5]
+        self.assertEqual(sample.call_args.args[0], "third_party_model")
+        self.assertEqual(
+            {
+                key: sampler[key]
+                for key in (
+                    "steps",
+                    "cfg",
+                    "sampler_name",
+                    "scheduler",
+                    "denoise",
+                )
+            },
+            {
+                "steps": 18,
+                "cfg": 4.5,
+                "sampler_name": "euler",
+                "scheduler": "normal",
+                "denoise": 0.8,
+            },
+        )
+        self.assertEqual(
+            lifecycle,
+            [("create", None), ("before", "patched_model"), ("close",)],
+        )
+        metadata = json.loads(result["result"][2])
+        self.assertTrue(
+            metadata["extensions"]["hook_data"]["tests.sampling#0"][
+                "sampling_override"
+            ]
+        )
+
     def test_generator_reencodes_first_pass_when_decoded_image_size_needs_correction(self):
         context = self._context()
 
