@@ -148,6 +148,7 @@ def _normalize_aio_seed_request(
 def aio_seed_execution(
     *,
     unique_id: object,
+    extra_pnginfo: object = None,
     normalized_seed: int,
     after_generate: str,
     fallback_execution_seed: Callable[[], int] = _new_aio_compatibility_seed,
@@ -159,6 +160,7 @@ def aio_seed_execution(
     identity = resolve_seed_execution_identity(
         AIO_GENERATOR_SEED_FEATURE,
         unique_id=unique_id,
+        extra_pnginfo=extra_pnginfo,
     )
     if identity is None:
         yield _aio_compatibility_execution(
@@ -200,13 +202,18 @@ def prompt_studio_seed_execution(
     *,
     feature: str,
     unique_id: object,
+    extra_pnginfo: object = None,
     seed: int,
     after_generate: str,
     fallback_next_seed: Callable[[], int],
 ) -> Generator[PromptStudioSeedExecution, None, None]:
     """Use the process service when host identity exists, otherwise run compatibly."""
 
-    identity = resolve_seed_execution_identity(feature, unique_id=unique_id)
+    identity = resolve_seed_execution_identity(
+        feature,
+        unique_id=unique_id,
+        extra_pnginfo=extra_pnginfo,
+    )
     if identity is None:
         yield PromptStudioSeedExecution(
             execution_seed=seed,

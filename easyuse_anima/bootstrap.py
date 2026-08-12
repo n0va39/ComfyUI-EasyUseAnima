@@ -412,6 +412,8 @@ def initialize(
                     _LOGGER.exception(
                         "EasyUse Anima translation cleanup failed during startup rollback."
                     )
+                finally:
+                    runtime._cleanup_plan.abandon()
             raise
 
 

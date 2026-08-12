@@ -24,6 +24,7 @@ def authoritative_seed(**_kwargs):
 
 def passthrough_expansion(fields, seed, _mode):
     return fields, {
+        "changed": False,
         "seed": seed,
         "used_keys": (),
         "missing_keys": (),
@@ -45,6 +46,7 @@ class PromptStudioSeedCutoverTests(unittest.TestCase):
                 self.assertNotEqual(changed, changed)
 
     def test_advanced_uses_authoritative_execution_and_next_seed(self):
+        extra_pnginfo = {"workflow": {"id": "workflow-advanced"}}
         with (
             patch.object(
                 prompt_advanced_nodes,
@@ -65,6 +67,7 @@ class PromptStudioSeedCutoverTests(unittest.TestCase):
                 "[]",
                 wildcard_seed=7,
                 wildcard_seed_after_generate="increment",
+                extra_pnginfo=extra_pnginfo,
                 unique_id="41",
             )
 
@@ -73,6 +76,10 @@ class PromptStudioSeedCutoverTests(unittest.TestCase):
         self.assertEqual(payload["wildcard_seed"], 10)
         self.assertEqual(expand.call_args.args[1], 9)
         session.assert_called_once()
+        self.assertIs(
+            session.call_args.kwargs["extra_pnginfo"],
+            extra_pnginfo,
+        )
 
     def test_advanced_emits_explicit_linked_and_naia_execution_deltas(self):
         fields = [
@@ -189,6 +196,7 @@ class PromptStudioSeedCutoverTests(unittest.TestCase):
 
     def test_advanced_v2_keeps_one_session_through_structured_output(self):
         expansion_seeds: list[int] = []
+        extra_pnginfo = {"workflow": {"id": "workflow-advanced-v2"}}
 
         def record_expansion(fields, seed, mode):
             expansion_seeds.append(seed)
@@ -214,6 +222,7 @@ class PromptStudioSeedCutoverTests(unittest.TestCase):
                 "[]",
                 wildcard_seed=7,
                 wildcard_seed_after_generate="increment",
+                extra_pnginfo=extra_pnginfo,
                 unique_id="42",
             )
 
@@ -221,11 +230,77 @@ class PromptStudioSeedCutoverTests(unittest.TestCase):
         prompt_data = result["result"][0]
         self.assertEqual(payload["wildcard_execution_seed"], 9)
         self.assertEqual(payload["wildcard_seed"], 10)
-        self.assertEqual(expansion_seeds, [9, 9])
+        self.assertEqual(expansion_seeds, [9])
         self.assertEqual(prompt_data["parameters"]["wildcard_seed"], 9)
         session.assert_called_once()
+        self.assertIs(
+            session.call_args.kwargs["extra_pnginfo"],
+            extra_pnginfo,
+        )
+
+    def test_advanced_v2_reuses_first_effective_field_snapshot(self):
+        fields = [{
+            "id": "positive_general",
+            "pane": "positive",
+            "type": "general",
+            "text": "saved fallback",
+            "enabled": True,
+        }]
+        expansion_results = iter((
+            (
+                [{**fields[0], "text": "old snapshot"}],
+                {
+                    "changed": True,
+                    "used_keys": ("old-key",),
+                    "missing_keys": ("old-missing",),
+                },
+            ),
+            (
+                [{**fields[0], "text": "new snapshot"}],
+                {
+                    "changed": True,
+                    "used_keys": ("new-key",),
+                    "missing_keys": ("new-missing",),
+                },
+            ),
+        ))
+
+        def changing_expansion(expand_fields, _seed, _mode):
+            self.assertEqual(expand_fields[0]["text"], "{cat|dog}")
+            return next(expansion_results)
+
+        with patch.object(
+            prompt_advanced_nodes,
+            "_expand_advanced_wildcard_fields",
+            side_effect=changing_expansion,
+        ) as expand:
+            result = EasyUseAnimaPromptStudioAdvancedV2().build(
+                False,
+                False,
+                False,
+                False,
+                json.dumps(fields),
+                wildcard_seed=17,
+                wildcard_seed_after_generate="fixed",
+                field_positive_general="{cat|dog}",
+            )
+
+        prompt_data = result["result"][0]
+        self.assertEqual(expand.call_count, 1)
+        self.assertEqual(prompt_data["positive_prompt"], "old snapshot")
+        self.assertEqual(prompt_data["global_prompt"], "old snapshot")
+        self.assertEqual(prompt_data["fields"][0]["text"], "old snapshot")
+        self.assertEqual(
+            prompt_data["field_inputs"],
+            {"field_positive_general": "{cat|dog}"},
+        )
+        self.assertEqual(prompt_data["wildcard"]["used_keys"], ["old-key"])
+        self.assertEqual(prompt_data["wildcard"]["missing_keys"], ["old-missing"])
+        parameter_fields = json.loads(prompt_data["parameters"]["advanced_fields"])
+        self.assertEqual(parameter_fields[0]["text"], "saved fallback")
 
     def test_regional_uses_authoritative_execution_and_next_seed(self):
+        extra_pnginfo = {"workflow": {"id": "workflow-regional"}}
         with (
             patch.object(
                 regional_nodes,
@@ -243,6 +318,7 @@ class PromptStudioSeedCutoverTests(unittest.TestCase):
                 "",
                 wildcard_seed=7,
                 wildcard_seed_after_generate="increment",
+                extra_pnginfo=extra_pnginfo,
                 unique_id="43",
             )
 
@@ -251,6 +327,10 @@ class PromptStudioSeedCutoverTests(unittest.TestCase):
         self.assertEqual(payload["wildcard_seed"], 10)
         self.assertEqual(expand.call_args.args[1], 9)
         session.assert_called_once()
+        self.assertIs(
+            session.call_args.kwargs["extra_pnginfo"],
+            extra_pnginfo,
+        )
 
     def test_advanced_real_service_advances_then_fixed_replays_saved_seed(self):
         service = InMemorySeedReservationService()
