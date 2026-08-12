@@ -47336,37 +47336,45 @@
         "functions": [
           {
             "async": false,
-            "end_line": 166,
+            "end_line": 20,
             "kind": "function",
             "line": 7,
+            "loc": 14,
+            "qualified_name": "_usdu_flash_attention_error"
+          },
+          {
+            "async": false,
+            "end_line": 182,
+            "kind": "function",
+            "line": 23,
             "loc": 160,
             "qualified_name": "run_aio_usdu_upscale_stage"
           },
           {
             "async": false,
-            "end_line": 235,
+            "end_line": 251,
             "kind": "function",
-            "line": 169,
+            "line": 185,
             "loc": 67,
             "qualified_name": "run_aio_resshift_upscale_stage"
           },
           {
             "async": false,
-            "end_line": 293,
+            "end_line": 309,
             "kind": "function",
-            "line": 238,
+            "line": 254,
             "loc": 56,
             "qualified_name": "run_aio_upscale_stage"
           }
         ],
         "is_package": false,
-        "loc": 296,
+        "loc": 312,
         "module": "easyuse_anima.aio.legacy_upscale",
-        "normalized_git_blob_sha1": "7ff9a3ac88221798428f378b39886d94e0b55d6e",
+        "normalized_git_blob_sha1": "0cd18ac029c50eab60a3a1f50329667ca418641c",
         "path": "easyuse_anima/aio/legacy_upscale.py",
         "top_level": {
           "class_count": 0,
-          "function_count": 3,
+          "function_count": 4,
           "global_count": 1
         }
       },

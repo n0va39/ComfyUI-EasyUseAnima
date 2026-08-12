@@ -10,7 +10,7 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
 
-from easyuse_anima.aio import generation_normalization, legacy_generation
+from easyuse_anima.aio import generation_normalization, legacy_generation, legacy_upscale
 from easyuse_anima.aio.generation_lifecycle import StageModelPatchPlan
 from easyuse_anima.extensions.aio import AioHookExecutionError
 from easyuse_anima.nodes import aio_nodes
@@ -1370,6 +1370,89 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
         result = execute({}, default_trace)
         self.assertIs(result[0], output)
         self.assertEqual(result[1]["prompt_mode"], "full")
+
+    def test_usdu_stage_reclassifies_flash_attention_errors_after_cleanup(self):
+        trace = []
+        original = ImportError(
+            "Flash attention not found. Install either FA2 ('flash_attn') or FA3."
+        )
+
+        class Logger:
+            def info(self, *args):
+                return None
+
+        class FailingUSDU:
+            def upscale(self, **kwargs):
+                trace.append("upscale")
+                raise original
+
+        helpers = {
+            "_require_custom_node_class": lambda *args: FailingUSDU,
+            "_load_upscale_model_with_comfy": lambda name: object(),
+            "_aio_stage_sampler_settings": lambda *args, **kwargs: {
+                "seed": 1,
+                "steps": 2,
+                "cfg": 3.0,
+                "sampler_name": "euler",
+                "scheduler": "simple",
+                "denoise": 0.4,
+            },
+            "_as_float": lambda value, default: default,
+            "_as_int": lambda value, default: default,
+            "_as_bool": lambda value, default: default,
+            "_aio_usdu_tile_plan": lambda *args: {
+                "auto": False,
+                "tile_width": 512,
+                "tile_height": 512,
+            },
+            "logger": Logger(),
+            "_aio_usdu_conditioning": lambda *args: (object(), object()),
+            "_apply_aio_spectrum_model_patches_for_comfy_sampler": (
+                lambda *args: object()
+            ),
+            "_resolve_aio_runtime_seed": lambda value: 1,
+            "_cleanup_aio_ephemeral_model": (
+                lambda current, base: trace.append("cleanup")
+            ),
+            "AIO_USDU_PROMPT_FULL": "full",
+        }
+
+        with patch.multiple(legacy_generation, **helpers):
+            with self.assertRaises(RuntimeError) as raised:
+                legacy_generation._run_aio_usdu_upscale_stage(
+                    object(),
+                    object(),
+                    object(),
+                    object(),
+                    object(),
+                    object(),
+                    {},
+                    {"usdu": {}},
+                )
+
+        self.assertEqual(trace, ["upscale", "cleanup"])
+        self.assertIs(raised.exception.__cause__, original)
+        message = str(raised.exception)
+        self.assertIn("AiO Upscale > USDU", message)
+        self.assertIn("does not enable FlashAttention by default", message)
+        self.assertIn("--use-flash-attention", message)
+        self.assertIn("Patch Flash Attention", message)
+        self.assertIn("SageAttention", message)
+        self.assertIn(str(original), message)
+
+    def test_usdu_flash_attention_classifier_accepts_display_and_module_names(self):
+        for message in (
+            "Flash attention does not support attention masks",
+            "No module named 'flash_attn'",
+        ):
+            with self.subTest(message=message):
+                diagnostic = legacy_upscale._usdu_flash_attention_error(
+                    RuntimeError(message)
+                )
+                self.assertIsInstance(diagnostic, RuntimeError)
+        self.assertIsNone(
+            legacy_upscale._usdu_flash_attention_error(RuntimeError("upscale failed"))
+        )
 
     def test_resshift_stage_preserves_provider_argument_and_metadata_order(self):
         trace = []
