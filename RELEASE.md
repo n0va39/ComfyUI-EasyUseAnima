@@ -1,5 +1,42 @@
 # Release Notes
 
+## 1.1.1
+
+### Added
+
+- Easy Use Anima Input and Anima AiO Generator can now load the 40-block
+  Anima 2.9B model without the external ComfyUI-Anima-2.9B custom node.
+- Anima AiO Generator can automatically adapt compatible LoRA stacks trained
+  for the original 28-block ANIMA model when Anima 2.9B is selected.
+- Anima 2.9B LoRA Stack Loader provides an explicit path for applying regular
+  ANIMA LoRA stacks to the expanded model.
+
+### Fixed
+
+- AiO Upscale now identifies an externally enabled FlashAttention backend when
+  it causes a USDU failure and explains which ComfyUI or KJNodes setting to
+  disable.
+
+### Compatibility
+
+- Legacy LoRA adaptation does not copy learned weights into the 12 newly added
+  blocks. It reconnects the LoRA weights only to the new positions of the 28
+  blocks inherited from the original ANIMA model, leaving the added blocks at
+  their native Anima 2.9B behavior.
+- This is a structural compatibility conversion, not retraining. The visual
+  effect can differ from the original model, and a LoRA trained specifically
+  for Anima 2.9B remains the recommended option for best results.
+- Existing workflows and the original 28-block ANIMA loading path remain
+  compatible. Ambiguous partial legacy LoRAs require the dedicated Anima 2.9B
+  LoRA Stack Loader instead of automatic AiO detection.
+
+### Update
+
+- After updating, restart ComfyUI and hard-refresh the browser.
+- Select the Anima 2.9B diffusion model in Easy Use Anima Input. Existing
+  compatible LoRA stacks connected to AiO are adapted automatically; use the
+  dedicated loader when an older LoRA has a partial or ambiguous block layout.
+
 ## 1.1.0
 
 ### Added
