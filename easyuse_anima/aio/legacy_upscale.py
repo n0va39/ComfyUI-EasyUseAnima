@@ -7,7 +7,7 @@ from typing import Any
 def _usdu_flash_attention_error(error: Exception) -> RuntimeError | None:
     message = str(error).strip()
     normalized = message.lower().replace(" ", "").replace("-", "").replace("_", "")
-    if "flashattention" not in normalized:
+    if "flashattention" not in normalized and "flashattn" not in normalized:
         return None
     original = message or type(error).__name__
     return RuntimeError(

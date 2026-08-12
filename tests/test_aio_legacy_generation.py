@@ -10,7 +10,7 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
 
-from easyuse_anima.aio import generation_normalization, legacy_generation
+from easyuse_anima.aio import generation_normalization, legacy_generation, legacy_upscale
 from easyuse_anima.aio.generation_lifecycle import StageModelPatchPlan
 from easyuse_anima.extensions.aio import AioHookExecutionError
 from easyuse_anima.nodes import aio_nodes
@@ -1439,6 +1439,20 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
         self.assertIn("Patch Flash Attention", message)
         self.assertIn("SageAttention", message)
         self.assertIn(str(original), message)
+
+    def test_usdu_flash_attention_classifier_accepts_display_and_module_names(self):
+        for message in (
+            "Flash attention does not support attention masks",
+            "No module named 'flash_attn'",
+        ):
+            with self.subTest(message=message):
+                diagnostic = legacy_upscale._usdu_flash_attention_error(
+                    RuntimeError(message)
+                )
+                self.assertIsInstance(diagnostic, RuntimeError)
+        self.assertIsNone(
+            legacy_upscale._usdu_flash_attention_error(RuntimeError("upscale failed"))
+        )
 
     def test_resshift_stage_preserves_provider_argument_and_metadata_order(self):
         trace = []

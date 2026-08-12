@@ -46875,7 +46875,7 @@
         "is_package": false,
         "loc": 312,
         "module": "easyuse_anima.aio.legacy_upscale",
-        "normalized_git_blob_sha1": "085cda9f202ca69d4cb767fb8066a153d8b7b16f",
+        "normalized_git_blob_sha1": "0cd18ac029c50eab60a3a1f50329667ca418641c",
         "path": "easyuse_anima/aio/legacy_upscale.py",
         "top_level": {
           "class_count": 0,
