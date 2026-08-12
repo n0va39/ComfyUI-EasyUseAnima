@@ -30,6 +30,7 @@ from .mutation import (
 from .repository import (
     InvalidProfileDataError,
     _ProfileRepository,
+    _profile_json_candidates,
     _profile_list_item,
     _read_profile_json,
     _sanitize_profile_name,
@@ -98,7 +99,7 @@ def _find_aio_profile_path(
         (
             path
             for path in sorted(
-                root.glob("*.json"),
+                _profile_json_candidates(root),
                 key=lambda item: (item.name.casefold(), item.name),
             )
             if _windows_profile_filename_identity(path.stem) == expected
@@ -130,7 +131,7 @@ def _list_aio_profiles(profile_dir: Path | None = None) -> list[dict]:
     return [
         _profile_list_item(PROFILE_KIND_AIO, path)
         for path in sorted(
-            repository.profile_dir.glob("*.json"),
+            _profile_json_candidates(repository.profile_dir),
             key=lambda item: item.stem.casefold(),
         )
     ]

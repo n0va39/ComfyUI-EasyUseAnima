@@ -1,5 +1,6 @@
 import asyncio
 import json
+import stat
 import sys
 import tempfile
 import threading
@@ -422,6 +423,40 @@ class LoraProfileStorageTests(unittest.TestCase):
             for name in ("../outside", r"C:\outside", r"\\server\share\outside"):
                 with self.subTest(name=name):
                     self.assertEqual(api.lora_profiles._lora_profile_path(name, root).parent, root)
+
+    def test_linked_profile_outside_root_is_ignored_without_mutation(self):
+        api = load_api_module()
+        with tempfile.TemporaryDirectory() as tmp:
+            base = Path(tmp)
+            root = base / "profiles"
+            outside = base / "outside"
+            root.mkdir()
+            outside.mkdir()
+            with patch.object(api.lora_profiles, "LORA_PROFILE_DIR", outside):
+                external = api.lora_profiles._save_lora_profile(
+                    "Linked",
+                    {"profile_data": {"1": {"style_prompt": "outside"}}},
+                )
+            external_path = outside / "Linked.json"
+            before = external_path.read_bytes()
+            try:
+                (root / "Linked.json").symlink_to(external_path)
+            except (NotImplementedError, OSError) as exc:
+                self.skipTest(f"file symlinks are unavailable: {exc}")
+
+            with patch.object(api.lora_profiles, "LORA_PROFILE_DIR", root):
+                self.assertEqual(api.lora_profiles._list_lora_profiles(), [])
+                with self.assertRaises(FileNotFoundError):
+                    api.lora_profiles._load_lora_profile("Linked")
+                with self.assertRaises(ValueError):
+                    api.lora_profiles._save_lora_profile(
+                        "Linked",
+                        {"profile_data": {"1": {"style_prompt": "changed"}}},
+                        overwrite=True,
+                        **profile_tokens(external),
+                    )
+
+            self.assertEqual(external_path.read_bytes(), before)
 
     def test_empty_lora_profile_name_is_rejected(self):
         api = load_api_module()

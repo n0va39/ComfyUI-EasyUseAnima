@@ -45,6 +45,16 @@ _Callback = Callable[..., Any]
 
 
 @dataclass(frozen=True)
+class _AdvancedExecutionSnapshot:
+    effective_fields_json: str
+    saved_fields_json: str
+    effective_field_inputs: tuple[tuple[str, str], ...]
+    wildcard_changed: bool
+    wildcard_used_keys: tuple[str, ...]
+    wildcard_missing_keys: tuple[str, ...]
+
+
+@dataclass(frozen=True)
 class _AdvancedBuildRequest:
     use_naia: bool
     consume_naia_on_queue: bool
@@ -64,6 +74,7 @@ class _AdvancedBuildRequest:
     unique_id: Any
     seed_execution: PromptStudioSeedExecution | None
     field_inputs: dict[str, Any]
+    execution_capture: Callable[[_AdvancedExecutionSnapshot], None] | None = None
 
 
 @dataclass(frozen=True)
@@ -237,6 +248,15 @@ def _finish_advanced_build(
     })
     fields_json = _advanced_fields_json(state.saved_fields)
     ui_fields_json = _advanced_fields_json(ui_fields)
+    if request.execution_capture is not None:
+        request.execution_capture(_AdvancedExecutionSnapshot(
+            effective_fields_json=_advanced_fields_json(state.effective_fields),
+            saved_fields_json=fields_json,
+            effective_field_inputs=tuple(state.effective_field_inputs.items()),
+            wildcard_changed=bool(effective_wildcard["changed"]),
+            wildcard_used_keys=tuple(effective_wildcard["used_keys"]),
+            wildcard_missing_keys=tuple(effective_wildcard["missing_keys"]),
+        ))
     if state.live_use_naia or state.metadata_updates:
         bindings.update_metadata_fields(
             request.workflow_prompt,
@@ -277,6 +297,7 @@ def _build_prompt_studio_advanced(
         else bindings.seed_execution(
             feature=PROMPT_STUDIO_ADVANCED_SEED_FEATURE,
             unique_id=request.unique_id,
+            extra_pnginfo=request.extra_pnginfo,
             seed=state.wildcard_seed_value,
             after_generate=state.wildcard_seed_control,
             fallback_next_seed=lambda: bindings.next_seed(

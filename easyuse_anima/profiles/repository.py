@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import json
+import os
 import re
+import stat
 from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
@@ -58,6 +60,38 @@ class _ProfileRepository:
 
 def _windows_profile_filename_identity(name: str) -> str:
     return normalize_profile_filename_identity(name)
+
+
+def _profile_json_candidates(profile_dir: Path) -> tuple[Path, ...]:
+    """Return regular JSON files that remain inside the configured directory."""
+
+    if not profile_dir.is_dir():
+        return ()
+    root = profile_dir.resolve(strict=False)
+    root_identity = os.path.normcase(os.path.normpath(str(root)))
+    candidates: list[Path] = []
+    reparse_flag = getattr(stat, "FILE_ATTRIBUTE_REPARSE_POINT", 0x400)
+    for candidate in profile_dir.glob("*.json"):
+        try:
+            candidate_stat = candidate.lstat()
+        except OSError:
+            continue
+        file_attributes = getattr(candidate_stat, "st_file_attributes", 0)
+        if (
+            stat.S_ISLNK(candidate_stat.st_mode)
+            or not stat.S_ISREG(candidate_stat.st_mode)
+            or bool(reparse_flag and file_attributes & reparse_flag)
+        ):
+            continue
+        try:
+            resolved = candidate.resolve(strict=True)
+            resolved_identity = os.path.normcase(os.path.normpath(str(resolved)))
+            if os.path.commonpath((root_identity, resolved_identity)) != root_identity:
+                continue
+        except (OSError, ValueError):
+            continue
+        candidates.append(resolved)
+    return tuple(candidates)
 
 
 def _sanitize_profile_name(name: str) -> str:

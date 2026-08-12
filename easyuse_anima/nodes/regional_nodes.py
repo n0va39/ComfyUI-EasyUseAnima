@@ -338,6 +338,7 @@ class EasyUseAnimaPromptStudioRegional:
         with prompt_studio_seed_execution(
             feature=PROMPT_STUDIO_REGIONAL_SEED_FEATURE,
             unique_id=unique_id,
+            extra_pnginfo=extra_pnginfo,
             seed=wildcard_seed_value,
             after_generate=wildcard_effective_seed_control,
             fallback_next_seed=lambda: next_seed(

@@ -66,6 +66,12 @@ class _RuntimeCleanupPlan:
         if first_error is not None:
             raise first_error
 
+    def abandon(self) -> None:
+        """Mark the plan closed without running its callbacks."""
+
+        with self._lock:
+            self._closed = True
+
 
 @dataclass(frozen=True, slots=True)
 class RuntimeServices:

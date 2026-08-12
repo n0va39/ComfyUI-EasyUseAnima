@@ -122,35 +122,33 @@ class EasyUseAnimaNAIARandomPrompt:
             "use_naia_settings": ("BOOLEAN", {
                 "default": True,
                 "tooltip": (
-                    "true: use NAIA desktop Prompt Engineering settings. "
-                    "false: send this node's pre/post/auto_hide and preprocessing options."
+                    "Legacy hidden workflow-schema compatibility value. EasyUse Anima Settings "
+                    "globally controls whether desktop Prompt Engineering overrides are sent."
                 ),
             }),
             "pre_prompt": ("STRING", {
                 "multiline": True,
                 "default": "",
                 "placeholder": "pre_prompt",
-                "tooltip": "Used only when use_naia_settings is false.",
+                "tooltip": "Legacy hidden workflow-schema compatibility value; configure the global EasyUse Anima NAIA settings.",
             }),
             "post_prompt": ("STRING", {
                 "multiline": True,
                 "default": "",
                 "placeholder": "post_prompt",
-                "tooltip": "Used only when use_naia_settings is false.",
+                "tooltip": "Legacy hidden workflow-schema compatibility value; configure the global EasyUse Anima NAIA settings.",
             }),
             "auto_hide": ("STRING", {
                 "multiline": True,
                 "default": "",
                 "placeholder": "auto_hide",
-                "tooltip": "Used only when use_naia_settings is false.",
+                "tooltip": "Legacy hidden workflow-schema compatibility value; configure the global EasyUse Anima NAIA settings.",
             }),
         }
 
         pp_tooltip = (
-            "Used only when use_naia_settings is false.\n"
-            "skip: do not send this key\n"
-            "on: remove this category\n"
-            "off: explicitly keep this category"
+            "Legacy hidden workflow-schema compatibility value. Configure preprocessing in "
+            "the global EasyUse Anima NAIA settings."
         )
         for key in PREPROCESSING_KEYS:
             required[key] = (PP_STATE_CHOICES, {
@@ -162,11 +160,11 @@ class EasyUseAnimaNAIARandomPrompt:
 
         required["host"] = ("STRING", {
             "default": DEFAULT_HOST,
-            "tooltip": "NAIA Remote API host.",
+            "tooltip": "Legacy hidden workflow-schema compatibility value; the global EasyUse Anima NAIA host is used.",
         })
         required["port"] = ("INT", {
             "default": DEFAULT_PORT, "min": 1, "max": 65535,
-            "tooltip": "NAIA Remote API port.",
+            "tooltip": "Legacy hidden workflow-schema compatibility value; the global EasyUse Anima NAIA port is used.",
         })
         return {
             "required": required,

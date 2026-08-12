@@ -212,6 +212,53 @@ class NaiaSettingsTests(unittest.TestCase):
             {"remove_author": True, "e621_auto_boost": False},
         )
 
+    def test_frozen_signature_tracks_global_settings_not_legacy_node_values(self):
+        node = EasyUseAnimaNAIARandomPrompt()
+        current_settings = settings()
+        signature = node._make_signature(
+            "input prompt",
+            True,
+            "input negative",
+            True,
+            832,
+            True,
+            1216,
+            True,
+            current_settings["use_naia_settings"],
+            current_settings["pre_prompt"],
+            current_settings["post_prompt"],
+            current_settings["auto_hide"],
+            current_settings["host"],
+            current_settings["port"],
+            current_settings["preprocessing"],
+        )
+        frozen = request_kwargs(
+            freeze_naia_output=True,
+            cached_prompt="saved prompt",
+            cached_negative_prompt="saved negative",
+            cached_width=1024,
+            cached_height=1024,
+            cached_signature=signature,
+        )
+
+        with patch.object(naia_nodes, "resolve_naia_settings", lambda: current_settings):
+            baseline = node.IS_CHANGED(**frozen)
+            legacy_changed = node.IS_CHANGED(**{
+                **frozen,
+                "use_naia_settings": False,
+                "pre_prompt": "different node pre",
+                "post_prompt": "different node post",
+                "auto_hide": "different node hide",
+                "host": "different-node-host",
+                "port": 6553,
+                "remove_author": "off",
+            })
+            current_settings["host"] = "different-settings-host"
+            global_changed = node.IS_CHANGED(**frozen)
+
+        self.assertEqual(legacy_changed, baseline)
+        self.assertNotEqual(global_changed, global_changed)
+
     def test_request_preserves_disabled_and_matching_frozen_shortcuts(self):
         node = EasyUseAnimaNAIARandomPrompt()
         current_settings = settings()
