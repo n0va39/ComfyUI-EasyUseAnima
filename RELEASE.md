@@ -1,5 +1,119 @@
 # Release Notes
 
+## 1.1.0
+
+### Added
+
+- Prompt Studio Advanced V2 can now recognize A1111 and LoraManager-style
+  LoRA tags after wildcard expansion, keep them in structured Prompt Data, and
+  let Anima AiO Generator apply them automatically.
+- Anima Prompt Studio Advanced LoRA and Anima Wildcard LoRA provide additive
+  LoRA-enabled variants with LORA_STACK input and output sockets.
+- LoRA fields now offer installed-LoRA autocomplete from `<:` and `<<:`, close
+  completed tags automatically, and use a dedicated configurable highlight
+  color.
+- The public AiO Hook v1 API can replace the first-pass MODEL and override the
+  allowed first-pass sampler settings: steps, CFG, sampler, scheduler, and
+  denoise.
+
+### Fixed
+
+- LoRA tags returned by wildcard files are extracted from the same Prompt
+  Studio Advanced V2 execution snapshot and reach AiO without a second
+  wildcard expansion.
+- LoRA parsing and highlighting remain separate from `<|>` and `<|...|>`
+  prompt syntax.
+
+### Compatibility
+
+- Existing workflows, node identifiers, settings, profiles, and socket order
+  remain compatible. The new LoRA nodes and AiO Hook controls are additive.
+- Existing LORA_STACK entries remain first and prompt-derived LoRAs are
+  appended in source order.
+- AiO applies prompt-derived LoRAs only from structured Prompt Data; it does
+  not reinterpret an unrelated raw positive prompt.
+
+### Update
+
+- After updating, restart ComfyUI and hard-refresh the browser.
+- To apply a wildcard-produced LoRA in AiO, route the prompt through Prompt
+  Studio Advanced V2 or one of the new LoRA-enabled nodes.
+
+## 1.0.3
+
+### Fixed
+
+- Prompt Corrector and Prompt Builder now use the same selected autocomplete
+  data as Prompt Studio for character, series/work, artist, and learned tags.
+- Recognized character and work tags are no longer reported as unknown or
+  ordered after artist tags.
+- If the selected autocomplete data cannot be read, Prompt Corrector and Prompt
+  Builder fall back to the existing built-in rules.
+
+### Compatibility
+
+- Existing workflows, node inputs and outputs, settings, artist overrides and
+  exclusions, and the natural-language unknown-tag policy remain compatible.
+
+### Update
+
+- After updating, restart ComfyUI.
+
+## 1.0.2
+
+### Fixed
+
+- Prompt Corrector now treats an explicit `@artist` tag as a known artist when
+  artist validation is disabled, so it is no longer reported as unknown while
+  also being moved into the artist section.
+- Prompt Studio Classic, Advanced, Advanced V2, and Regional highlights no
+  longer apply cached classification from earlier text after paste or rapid
+  text replacement.
+
+### Compatibility
+
+- Existing workflows, prompt text, artist overrides and exclusions, settings,
+  public node identifiers, and socket order remain compatible.
+- General tags and natural-language prompt phrases keep the existing unknown
+  tag policy.
+
+### Update
+
+- After updating, restart ComfyUI and hard-refresh the browser.
+
+## 1.0.1
+
+### Fixed
+
+- AiO and LoRA profile files are now kept inside their designated profile
+  folders, including on Windows paths and when symbolic links are present.
+- Increment Each and Decrement Each seed state is now isolated per workflow so
+  one workflow does not advance another workflow's sequence. Legacy or headless
+  callers without a workflow id retain the previous shared behavior.
+- Prompt Studio Advanced V2 now uses one wildcard snapshot throughout a queued
+  execution so every projected field reflects the same expansion.
+- A failed startup attempt can no longer leave stale cleanup state that shuts
+  down services used by a successful retry.
+
+### Changed
+
+- Documentation and tooltips now clarify that NAIA Random Prompt uses the
+  global EasyUse Anima Settings contract.
+- Bundled release workflows now report the current package name, version, and
+  release filename consistently.
+
+### Compatibility
+
+- Existing workflows, profiles, settings, public node identifiers, and socket
+  order remain compatible.
+- Legacy and headless seed callers without a workflow id keep their previous
+  process-shared sequence behavior.
+
+### Update
+
+- After updating, restart ComfyUI. A browser hard refresh is not required for
+  these fixes.
+
 ## 1.0.0
 
 ### Changed

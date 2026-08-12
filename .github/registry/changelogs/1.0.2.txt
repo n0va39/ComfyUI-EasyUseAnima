@@ -1,0 +1,9 @@
+EasyUse Anima 1.0.2 fixes Prompt Corrector artist recognition and stale Prompt Studio highlights after paste.
+
+Changes:
+1. Explicit @artist tags are kept in the artist section without also being reported as unknown when artist validation is disabled.
+2. Prompt Studio Classic, Advanced, Advanced V2, and Regional highlights no longer reuse classification from earlier text after paste or rapid replacement.
+3. Existing artist overrides, exclusions, prompt ordering, workflow data, and the unknown-tag policy for general or natural-language text remain compatible.
+
+Action required:
+After updating, restart ComfyUI and hard-refresh the browser.
