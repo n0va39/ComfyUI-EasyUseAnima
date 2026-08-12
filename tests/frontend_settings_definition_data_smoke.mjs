@@ -91,6 +91,7 @@ const expectedInternalKeys = {
   "EasyUseAnima.Prompt.AutocompleteDetectNaturalSentences": "autocomplete.detect_natural_sentences",
   "EasyUseAnima.Prompt.AutocompletePreviewCompletion": "autocomplete.preview_completion",
   "EasyUseAnima.Prompt.AutocompletePreviewClosingBrackets": "autocomplete.preview_closing_brackets",
+  "EasyUseAnima.Prompt.LoraAutocomplete": "prompt_studio.lora_autocomplete",
   "EasyUseAnima.Prompt.TypoIndicator": "prompt_studio.typo_indicator",
   "EasyUseAnima.Prompt.WeightSyntaxUnderline": "prompt_studio.weight_syntax_underline",
   "EasyUseAnima.Prompt.SelectionParenthesisWeight": "prompt_studio.selection_parenthesis_weight",

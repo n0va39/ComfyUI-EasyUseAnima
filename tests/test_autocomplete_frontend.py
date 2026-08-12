@@ -521,6 +521,7 @@ class AutocompleteFrontendBoundaryTests(unittest.TestCase):
             dependency_entries,
             {
                 "fetchJson: easyuseAnimaFetchJson",
+                "normalizeLoraSearchText",
                 "normalizeWildcardSearchText",
                 "getLimit: () => maxResults",
             },
@@ -528,9 +529,12 @@ class AutocompleteFrontendBoundaryTests(unittest.TestCase):
 
         for moved_declaration in (
             "cache",
+            "loraItemsCache",
             "wildcardItemsCache",
             "search",
+            "loadLoraItems",
             "loadWildcardItems",
+            "searchLoras",
             "searchWildcards",
         ):
             with self.subTest(moved_declaration=moved_declaration):
@@ -541,8 +545,10 @@ class AutocompleteFrontendBoundaryTests(unittest.TestCase):
                 )
 
         self.assertNotIn("/easyuse_anima/autocomplete", entry_source)
+        self.assertNotIn("/easyuse_anima/loras", entry_source)
         self.assertNotIn("/easyuse_anima/wildcards", entry_source)
         self.assertEqual(entry_source.count("autocompleteData.search("), 1)
+        self.assertEqual(entry_source.count("autocompleteData.searchLoras("), 1)
         self.assertEqual(
             entry_source.count("autocompleteData.searchWildcards("),
             1,
@@ -582,12 +588,15 @@ class AutocompleteFrontendBoundaryTests(unittest.TestCase):
             "artistCompletionText",
             "autocompleteQuery",
             "completionEditRangeContract",
+            "currentLoraToken",
             "currentToken",
             "currentWildcardToken",
             "isCaretInComment",
             "isCaretInPromptTranslationMarker",
+            "loraAutocompleteQuery",
             "normalizeAutocompleteArtistPrefix",
             "normalizeAutocompleteCommitMode",
+            "normalizeLoraSearchText",
             "normalizeWildcardSearchText",
             "parseAutocompleteText",
             "planAutocompleteInsertion",
@@ -597,6 +606,7 @@ class AutocompleteFrontendBoundaryTests(unittest.TestCase):
         expected_imports = {
             "artistCompletionText",
             "autocompleteQuery",
+            "currentLoraToken as currentAutocompleteLoraToken",
             "currentToken as currentAutocompleteToken",
             "currentWildcardToken as currentAutocompleteWildcardToken",
             "isCaretInComment",
@@ -604,8 +614,10 @@ class AutocompleteFrontendBoundaryTests(unittest.TestCase):
                 "isCaretInPromptTranslationMarker "
                 "as caretInPromptTranslationMarker"
             ),
+            "loraAutocompleteQuery",
             "normalizeAutocompleteArtistPrefix",
             "normalizeAutocompleteCommitMode",
+            "normalizeLoraSearchText",
             "normalizeWildcardSearchText",
             "parseAutocompleteText",
             "planAutocompleteInsertion",
@@ -658,8 +670,10 @@ class AutocompleteFrontendBoundaryTests(unittest.TestCase):
             "artistCompletionText",
             "autocompleteQuery",
             "isCaretInComment",
+            "loraAutocompleteQuery",
             "normalizeAutocompleteArtistPrefix",
             "normalizeAutocompleteCommitMode",
+            "normalizeLoraSearchText",
             "normalizeWildcardSearchText",
             "parseAutocompleteText",
             "planAutocompleteInsertion",

@@ -1817,6 +1817,187 @@
     },
     {
       "category": "EasyUse Anima/Prompt",
+      "class_name": "EasyUseAnimaPromptStudioAdvancedLora",
+      "display_name": "Anima Prompt Studio Advanced LoRA",
+      "function": "build",
+      "id": "EasyUseAnimaPromptStudioAdvancedLora",
+      "input_sections": [
+        {
+          "entries": [
+            {
+              "config": {
+                "default": false
+              },
+              "name": "use_naia",
+              "type": "BOOLEAN"
+            },
+            {
+              "config": {
+                "default": true
+              },
+              "name": "consume_naia_on_queue",
+              "type": "BOOLEAN"
+            },
+            {
+              "config": {
+                "default": false
+              },
+              "name": "use_anima_mod_guidance",
+              "type": "BOOLEAN"
+            },
+            {
+              "config": {
+                "default": "1024"
+              },
+              "name": "resolution_bucket",
+              "type": "STRING"
+            },
+            {
+              "config": {
+                "default": "1024 * 1024 (1:1)"
+              },
+              "name": "resolution_size",
+              "type": "STRING"
+            },
+            {
+              "config": {
+                "default": 1024,
+                "max": 8192,
+                "min": 32,
+                "step": 32
+              },
+              "name": "resolution_custom_width",
+              "type": "INT"
+            },
+            {
+              "config": {
+                "default": 1024,
+                "max": 8192,
+                "min": 32,
+                "step": 32
+              },
+              "name": "resolution_custom_height",
+              "type": "INT"
+            },
+            {
+              "config": {
+                "default": false
+              },
+              "name": "pin_trigger_tags_to_front",
+              "type": "BOOLEAN"
+            },
+            {
+              "config": {
+                "default": "[{\"id\":\"positive_quality\",\"pane\":\"positive\",\"type\":\"quality\",\"label\":\"Quality Tags\",\"text\":\"newest, masterpiece, best quality, score_8, score_7:, highres, absurdres, very aesthetic\",\"height\":72,\"enabled\":true},{\"id\":\"positive_artist\",\"pane\":\"positive\",\"type\":\"artist\",\"label\":\"Artist Tags\",\"text\":\"\",\"height\":72,\"enabled\":true},{\"id\":\"positive_trigger\",\"pane\":\"positive\",\"type\":\"trigger\",\"label\":\"Trigger Words\",\"text\":\"\",\"height\":72,\"enabled\":true,\"pin\":true},{\"id\":\"positive_general\",\"pane\":\"positive\",\"type\":\"general\",\"label\":\"General Tags\",\"text\":\"\",\"height\":150,\"enabled\":true},{\"id\":\"positive_trailing\",\"pane\":\"positive\",\"type\":\"general\",\"label\":\"General Tags\",\"text\":\"location, (A highly aesthetic Pixiv style illustration, clean composition, high-quality digital art, detailed background, sharp focus on facial expressions.:0.6)\",\"height\":72,\"enabled\":true},{\"id\":\"negative_general\",\"pane\":\"negative\",\"type\":\"general\",\"label\":\"General Tags\",\"text\":\"\",\"height\":120,\"enabled\":true}]",
+                "multiline": true
+              },
+              "name": "advanced_fields",
+              "type": "STRING"
+            },
+            {
+              "config": {
+                "default": false
+              },
+              "name": "use_negative_anima_mod_guidance",
+              "type": "BOOLEAN"
+            },
+            {
+              "config": {
+                "default": "일반"
+              },
+              "name": "wildcard_mode",
+              "type": [
+                "일반",
+                "순차"
+              ]
+            },
+            {
+              "config": {
+                "default": 0,
+                "max": 18446744073709551615,
+                "min": 0
+              },
+              "name": "wildcard_seed",
+              "type": "INT"
+            },
+            {
+              "config": {
+                "default": "fixed"
+              },
+              "name": "wildcard_seed_after_generate",
+              "type": [
+                "fixed",
+                "randomize",
+                "increment",
+                "decrement"
+              ]
+            }
+          ],
+          "name": "required"
+        },
+        {
+          "entries": [
+            {
+              "config": {
+                "forceInput": true
+              },
+              "name": "lora_stack",
+              "type": "LORA_STACK"
+            }
+          ],
+          "name": "optional"
+        },
+        {
+          "entries": [
+            {
+              "config": {},
+              "name": "workflow_prompt",
+              "type": "PROMPT"
+            },
+            {
+              "config": {},
+              "name": "extra_pnginfo",
+              "type": "EXTRA_PNGINFO"
+            },
+            {
+              "config": {},
+              "name": "unique_id",
+              "type": "UNIQUE_ID"
+            }
+          ],
+          "name": "hidden"
+        }
+      ],
+      "output_node": false,
+      "return_names": [
+        "positive_prompt",
+        "negative_prompt",
+        "anima_mod_guidance_quality_tags",
+        "anima_mod_guidance_negative_prompt",
+        "use_anima_mod_guidance",
+        "use_negative_anima_mod_guidance",
+        "metadata_prompt",
+        "metadata_negative_prompt",
+        "width",
+        "height",
+        "LORA_STACK"
+      ],
+      "return_types": [
+        "STRING",
+        "STRING",
+        "STRING",
+        "STRING",
+        "BOOLEAN",
+        "BOOLEAN",
+        "STRING",
+        "STRING",
+        "INT",
+        "INT",
+        "LORA_STACK"
+      ]
+    },
+    {
+      "category": "EasyUse Anima/Prompt",
       "class_name": "EasyUseAnimaPromptStudioAdvancedV2",
       "display_name": "Anima Prompt Studio Advanced v2",
       "function": "build",
@@ -2333,6 +2514,101 @@
       "return_types": [
         "STRING",
         "INT"
+      ]
+    },
+    {
+      "category": "EasyUse Anima/Prompt",
+      "class_name": "EasyUseAnimaWildcardLora",
+      "display_name": "Anima Wildcard LoRA",
+      "function": "generate",
+      "id": "EasyUseAnimaWildcardLora",
+      "input_sections": [
+        {
+          "entries": [
+            {
+              "config": {
+                "default": "",
+                "multiline": true
+              },
+              "name": "text",
+              "type": "STRING"
+            },
+            {
+              "config": {
+                "default": "",
+                "multiline": true
+              },
+              "name": "populated_text",
+              "type": "STRING"
+            },
+            {
+              "config": {
+                "default": "일반"
+              },
+              "name": "mode",
+              "type": [
+                "일반",
+                "고정",
+                "순차",
+                "재현"
+              ]
+            },
+            {
+              "config": {
+                "control_after_generate": true,
+                "default": 0,
+                "max": 18446744073709551615,
+                "min": 0
+              },
+              "name": "seed",
+              "type": "INT"
+            }
+          ],
+          "name": "required"
+        },
+        {
+          "entries": [
+            {
+              "config": {},
+              "name": "workflow_prompt",
+              "type": "PROMPT"
+            },
+            {
+              "config": {},
+              "name": "extra_pnginfo",
+              "type": "EXTRA_PNGINFO"
+            },
+            {
+              "config": {},
+              "name": "unique_id",
+              "type": "UNIQUE_ID"
+            }
+          ],
+          "name": "hidden"
+        },
+        {
+          "entries": [
+            {
+              "config": {
+                "forceInput": true
+              },
+              "name": "lora_stack",
+              "type": "LORA_STACK"
+            }
+          ],
+          "name": "optional"
+        }
+      ],
+      "output_node": false,
+      "return_names": [
+        "text",
+        "seed",
+        "LORA_STACK"
+      ],
+      "return_types": [
+        "STRING",
+        "INT",
+        "LORA_STACK"
       ]
     }
   ],

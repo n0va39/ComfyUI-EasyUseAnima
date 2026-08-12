@@ -15,9 +15,11 @@ function inlineModule(source) {
 
 const constantsUrl = inlineModule(`
   export const ADVANCED_NODE_TYPE = "EasyUseAnimaPromptStudioAdvanced";
+  export const ADVANCED_LORA_NODE_TYPE = "EasyUseAnimaPromptStudioAdvancedLora";
   export const ADVANCED_V2_NODE_TYPE = "EasyUseAnimaPromptStudioAdvancedV2";
   export const EXTEND_NODE_TYPE = "EasyUseAnimaPromptStudioExtend";
   export const NODE_TYPE = "EasyUseAnimaPromptStudio";
+  export const WILDCARD_LORA_NODE_TYPE = "EasyUseAnimaWildcardLora";
   export const WILDCARD_NODE_TYPE = "EasyUseAnimaWildcard";
 `);
 const hostHookRegistryUrl = inlineModule(`

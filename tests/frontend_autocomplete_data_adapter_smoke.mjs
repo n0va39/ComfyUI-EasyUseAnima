@@ -114,9 +114,11 @@ const adapter = dataAdapterModule.createAutocompleteDataAdapter({
 });
 
 assert.deepEqual(Object.keys(adapter).sort(), [
+  "clearLoras",
   "clearResults",
   "clearWildcards",
   "search",
+  "searchLoras",
   "searchWildcards",
   "syncSourceSettings",
 ]);
@@ -750,5 +752,45 @@ assert.equal(
   "wildcard source changes must abort the pending source fetch",
 );
 await obsoleteWildcardAssertion;
+
+let loraCatalogFetches = 0;
+const loraAdapter = dataAdapterModule.createAutocompleteDataAdapter({
+  fetchJson: async (url) => {
+    assert.equal(url, "/easyuse_anima/loras");
+    loraCatalogFetches += 1;
+    return {
+      loras: [
+        "styles/portrait.safetensors",
+        "characters/hero.safetensors",
+        "styles/landscape.safetensors",
+      ],
+    };
+  },
+  normalizeWildcardSearchText: textModel.normalizeWildcardSearchText,
+  normalizeLoraSearchText: textModel.normalizeLoraSearchText,
+  getLimit: () => 2,
+});
+assert.deepEqual(await loraAdapter.searchLoras("STYLES\\"), [
+  {
+    tag: "styles/portrait.safetensors",
+    category: "lora",
+    count: 0,
+    kind: "lora",
+  },
+  {
+    tag: "styles/landscape.safetensors",
+    category: "lora",
+    count: 0,
+    kind: "lora",
+  },
+]);
+assert.deepEqual(
+  (await loraAdapter.searchLoras("hero")).map((entry) => entry.tag),
+  ["characters/hero.safetensors"],
+);
+assert.equal(loraCatalogFetches, 1, "LoRA queries must share the installed-LoRA catalog");
+loraAdapter.clearLoras();
+await loraAdapter.searchLoras("portrait");
+assert.equal(loraCatalogFetches, 2, "clearing the LoRA catalog must allow a fresh inventory read");
 
 console.log("Autocomplete data adapter smoke passed.");

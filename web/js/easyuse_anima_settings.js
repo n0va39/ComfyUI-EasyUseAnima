@@ -56,6 +56,9 @@ const TEXT = {
     autocompletePreviewClosingBrackets: "Preview closing brackets",
     autocompletePreviewClosingBracketsTip:
       "When typing an opening prompt bracket, insert the closing bracket at the caret like an editor pair. Autocomplete previews may show closing brackets, but suggestions do not force-close multi-item groups.",
+    loraAutocomplete: "LoRA autocomplete in LoRA-capable Prompt Studio nodes",
+    loraAutocompleteTip:
+      "Typing <: in Advanced v2, Advanced LoRA, or Wildcard LoRA shows installed LoRAs. Committing a suggestion inserts a complete <lora:name:1.0> tag and selects the strength.",
     selectionParenthesisWeight: "Add weight when wrapping a selection",
     selectionParenthesisWeightTip:
       "When closing-bracket preview is enabled, wrapping selected text with ( inserts :1 and selects the weight. Existing top-level numeric weights are preserved.",
@@ -187,6 +190,9 @@ const TEXT = {
     autocompletePreviewClosingBrackets: "닫는 괄호 미리입력",
     autocompletePreviewClosingBracketsTip:
       "여는 프롬프트 괄호를 입력하면 IDE처럼 닫는 괄호를 커서 오른쪽에 넣습니다. 자동완성 미리보기에는 닫는 괄호가 보일 수 있지만, 여러 항목을 넣는 그룹을 후보 적용만으로 강제 종료하지는 않습니다.",
+    loraAutocomplete: "LoRA 지원 Prompt Studio 노드의 LoRA 자동완성",
+    loraAutocompleteTip:
+      "Advanced v2, Advanced LoRA, Wildcard LoRA에서 <:를 입력하면 설치된 LoRA를 제안합니다. 후보를 적용하면 <lora:이름:1.0> 태그를 >까지 완성하고 강도를 선택합니다.",
     selectionParenthesisWeight: "선택 영역 괄호에 가중치 추가",
     selectionParenthesisWeightTip:
       "닫는 괄호 미리입력이 켜져 있을 때 선택한 텍스트를 (로 감싸면 :1을 추가하고 숫자를 선택합니다. 기존 최상위 숫자 가중치는 유지합니다.",
@@ -318,6 +324,9 @@ const TEXT = {
     autocompletePreviewClosingBrackets: "閉じ括弧を先に入力",
     autocompletePreviewClosingBracketsTip:
       "プロンプトの開き括弧を入力したとき、エディタのペア入力のように閉じ括弧をキャレット右側へ入れます。自動補完プレビューには閉じ括弧を表示できますが、候補確定だけでは複数項目グループを強制終了しません。",
+    loraAutocomplete: "LoRA 対応 Prompt Studio ノードの LoRA 自動補完",
+    loraAutocompleteTip:
+      "Advanced v2、Advanced LoRA、Wildcard LoRA で <: を入力するとインストール済み LoRA を候補表示します。確定すると <lora:name:1.0> を > まで挿入し、強度を選択します。",
     selectionParenthesisWeight: "選択範囲を括弧で囲むとき重みを追加",
     selectionParenthesisWeightTip:
       "閉じ括弧の先行入力が有効なとき、選択したテキストを ( で囲むと :1 を追加して数値を選択します。既存のトップレベル数値重みは維持します。",
@@ -449,6 +458,9 @@ const TEXT = {
     autocompletePreviewClosingBrackets: "预填闭合括号",
     autocompletePreviewClosingBracketsTip:
       "输入提示词开括号时，像 IDE 一样在光标右侧插入闭合括号。自动补全预览可以显示闭合括号，但确认候选不会强制结束可包含多项的分组。",
+    loraAutocomplete: "支持 LoRA 的 Prompt Studio 节点自动补全",
+    loraAutocompleteTip:
+      "在 Advanced v2、Advanced LoRA 或 Wildcard LoRA 中输入 <: 会显示已安装的 LoRA。确认后会插入完整的 <lora:name:1.0> 标签并选中强度。",
     selectionParenthesisWeight: "括起选区时添加权重",
     selectionParenthesisWeightTip:
       "启用预填闭合括号后，用 ( 包裹所选文本会追加 :1 并选中数值。已有的顶层数值权重会保留。",

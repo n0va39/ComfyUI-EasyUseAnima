@@ -86,6 +86,10 @@ def public_settings() -> _PublicSettings:
             "prompt_studio.selection_parenthesis_weight",
             DEFAULT_SETTINGS["prompt_studio.selection_parenthesis_weight"],
         ),
+        "prompt_studio.lora_autocomplete": settings.get(
+            "prompt_studio.lora_autocomplete",
+            DEFAULT_SETTINGS["prompt_studio.lora_autocomplete"],
+        ),
         "prompt_studio.comment_italic": settings.get(
             "prompt_studio.comment_italic",
             DEFAULT_SETTINGS["prompt_studio.comment_italic"],
