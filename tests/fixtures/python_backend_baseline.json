@@ -8453,6 +8453,24 @@
       },
       {
         "alias": null,
+        "bound_name": "_apply_anima_29b_aio_lora_stack",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": "..anima_29b.lora:_apply_anima_29b_aio_lora_stack",
+        "kind": "static_from",
+        "line": 9,
+        "name": "_apply_anima_29b_aio_lora_stack",
+        "optional": false,
+        "requested": "..anima_29b.lora",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/model_preparation.py",
+        "target": "easyuse_anima/anima_29b/lora.py"
+      },
+      {
+        "alias": null,
         "bound_name": "_stable_change_key",
         "branch_context": [],
         "classification": "internal",
@@ -8460,7 +8478,7 @@
         "conditional": false,
         "imported": "..common.serialization:_stable_change_key",
         "kind": "static_from",
-        "line": 9,
+        "line": 10,
         "name": "_stable_change_key",
         "optional": false,
         "requested": "..common.serialization",
@@ -8478,7 +8496,7 @@
         "conditional": false,
         "imported": "..common.values:_as_bool",
         "kind": "static_from",
-        "line": 10,
+        "line": 11,
         "name": "_as_bool",
         "optional": false,
         "requested": "..common.values",
@@ -8496,7 +8514,7 @@
         "conditional": false,
         "imported": "..common.values:_as_float",
         "kind": "static_from",
-        "line": 10,
+        "line": 11,
         "name": "_as_float",
         "optional": false,
         "requested": "..common.values",
@@ -8514,7 +8532,7 @@
         "conditional": false,
         "imported": "..common.values:_as_int",
         "kind": "static_from",
-        "line": 10,
+        "line": 11,
         "name": "_as_int",
         "optional": false,
         "requested": "..common.values",
@@ -8532,7 +8550,7 @@
         "conditional": false,
         "imported": "..infrastructure.comfy.invocation:_call_with_supported_kwargs",
         "kind": "static_from",
-        "line": 11,
+        "line": 12,
         "name": "_call_with_supported_kwargs",
         "optional": false,
         "requested": "..infrastructure.comfy.invocation",
@@ -8550,7 +8568,7 @@
         "conditional": false,
         "imported": "..infrastructure.comfy.invocation:_node_output_tuple",
         "kind": "static_from",
-        "line": 11,
+        "line": 12,
         "name": "_node_output_tuple",
         "optional": false,
         "requested": "..infrastructure.comfy.invocation",
@@ -8568,7 +8586,7 @@
         "conditional": false,
         "imported": "..infrastructure.comfy.wiring:resolve_comfy_host_helper",
         "kind": "static_from",
-        "line": 15,
+        "line": 16,
         "name": "resolve_comfy_host_helper",
         "optional": false,
         "requested": "..infrastructure.comfy.wiring",
@@ -8586,7 +8604,7 @@
         "conditional": false,
         "imported": "..lora.prompt_syntax:_normalize_lora_stack",
         "kind": "static_from",
-        "line": 16,
+        "line": 17,
         "name": "_normalize_lora_stack",
         "optional": false,
         "requested": "..lora.prompt_syntax",
@@ -8604,7 +8622,7 @@
         "conditional": false,
         "imported": ".generation_lifecycle:StageModelPatchPlan",
         "kind": "static_from",
-        "line": 17,
+        "line": 18,
         "name": "StageModelPatchPlan",
         "optional": false,
         "requested": ".generation_lifecycle",
@@ -8622,7 +8640,7 @@
         "conditional": false,
         "imported": ".generation_migrations:AIO_GENERATION_STAGE_IDS",
         "kind": "static_from",
-        "line": 18,
+        "line": 19,
         "name": "AIO_GENERATION_STAGE_IDS",
         "optional": false,
         "requested": ".generation_migrations",
@@ -8640,7 +8658,7 @@
         "conditional": false,
         "imported": ".generation_migrations:AIO_MODEL_PATCH_ORDER_REVISION",
         "kind": "static_from",
-        "line": 18,
+        "line": 19,
         "name": "AIO_MODEL_PATCH_ORDER_REVISION",
         "optional": false,
         "requested": ".generation_migrations",
@@ -8658,7 +8676,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 474
+            "line": 479
           }
         ],
         "classification": "external",
@@ -8666,7 +8684,7 @@
         "conditional": true,
         "imported": "comfy.model_management",
         "kind": "static_import",
-        "line": 475,
+        "line": 480,
         "name": null,
         "optional": true,
         "requested": "comfy.model_management",
@@ -9894,6 +9912,24 @@
       },
       {
         "alias": null,
+        "bound_name": "_load_model_with_anima_29b_support",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": "..anima_29b.architecture:_load_model_with_anima_29b_support",
+        "kind": "static_from",
+        "line": 7,
+        "name": "_load_model_with_anima_29b_support",
+        "optional": false,
+        "requested": "..anima_29b.architecture",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/resources.py",
+        "target": "easyuse_anima/anima_29b/architecture.py"
+      },
+      {
+        "alias": null,
         "bound_name": "_as_int",
         "branch_context": [],
         "classification": "internal",
@@ -9901,7 +9937,7 @@
         "conditional": false,
         "imported": "..common.values:_as_int",
         "kind": "static_from",
-        "line": 7,
+        "line": 8,
         "name": "_as_int",
         "optional": false,
         "requested": "..common.values",
@@ -9919,7 +9955,7 @@
         "conditional": false,
         "imported": "..common.values:_choice",
         "kind": "static_from",
-        "line": 7,
+        "line": 8,
         "name": "_choice",
         "optional": false,
         "requested": "..common.values",
@@ -9937,7 +9973,7 @@
         "conditional": false,
         "imported": "..image.sam3:_sam3_context",
         "kind": "static_from",
-        "line": 8,
+        "line": 9,
         "name": "_sam3_context",
         "optional": false,
         "requested": "..image.sam3",
@@ -9955,7 +9991,7 @@
         "conditional": false,
         "imported": "..infrastructure.comfy.invocation:_node_output_tuple",
         "kind": "static_from",
-        "line": 9,
+        "line": 10,
         "name": "_node_output_tuple",
         "optional": false,
         "requested": "..infrastructure.comfy.invocation",
@@ -9973,7 +10009,7 @@
         "conditional": false,
         "imported": "..infrastructure.comfy.resources:_comfy_clip_loader_types",
         "kind": "static_from",
-        "line": 10,
+        "line": 11,
         "name": "_comfy_clip_loader_types",
         "optional": false,
         "requested": "..infrastructure.comfy.resources",
@@ -9991,7 +10027,7 @@
         "conditional": false,
         "imported": "..infrastructure.comfy.resources:_comfy_diffusion_model_names",
         "kind": "static_from",
-        "line": 13,
+        "line": 14,
         "name": "_comfy_diffusion_model_names",
         "optional": false,
         "requested": "..infrastructure.comfy.resources",
@@ -10009,7 +10045,7 @@
         "conditional": false,
         "imported": "..infrastructure.comfy.resources:_comfy_text_encoder_names",
         "kind": "static_from",
-        "line": 16,
+        "line": 17,
         "name": "_comfy_text_encoder_names",
         "optional": false,
         "requested": "..infrastructure.comfy.resources",
@@ -10027,7 +10063,7 @@
         "conditional": false,
         "imported": "..infrastructure.comfy.resources:_comfy_vae_names",
         "kind": "static_from",
-        "line": 19,
+        "line": 20,
         "name": "_comfy_vae_names",
         "optional": false,
         "requested": "..infrastructure.comfy.resources",
@@ -10045,7 +10081,7 @@
         "conditional": false,
         "imported": "..infrastructure.comfy.resources:_folder_path_names",
         "kind": "static_from",
-        "line": 22,
+        "line": 23,
         "name": "_folder_path_names",
         "optional": false,
         "requested": "..infrastructure.comfy.resources",
@@ -10063,7 +10099,7 @@
         "conditional": false,
         "imported": "..infrastructure.comfy.wiring:resolve_comfy_host_helper",
         "kind": "static_from",
-        "line": 23,
+        "line": 24,
         "name": "resolve_comfy_host_helper",
         "optional": false,
         "requested": "..infrastructure.comfy.wiring",
@@ -10081,7 +10117,7 @@
         "conditional": false,
         "imported": ".generation_normalization:_merge_versioned_settings",
         "kind": "static_from",
-        "line": 24,
+        "line": 25,
         "name": "_merge_versioned_settings",
         "optional": false,
         "requested": ".generation_normalization",
@@ -10099,7 +10135,7 @@
         "conditional": false,
         "imported": ".input_defaults:AIO_INPUT_DEFAULT_SETTINGS",
         "kind": "static_from",
-        "line": 25,
+        "line": 26,
         "name": "AIO_INPUT_DEFAULT_SETTINGS",
         "optional": false,
         "requested": ".input_defaults",
@@ -10117,7 +10153,7 @@
         "conditional": false,
         "imported": ".input_defaults:ANIMA_CLIP_DEVICES",
         "kind": "static_from",
-        "line": 25,
+        "line": 26,
         "name": "ANIMA_CLIP_DEVICES",
         "optional": false,
         "requested": ".input_defaults",
@@ -10135,7 +10171,7 @@
         "conditional": false,
         "imported": ".input_defaults:ANIMA_CLIP_TYPES",
         "kind": "static_from",
-        "line": 25,
+        "line": 26,
         "name": "ANIMA_CLIP_TYPES",
         "optional": false,
         "requested": ".input_defaults",
@@ -10153,7 +10189,7 @@
         "conditional": false,
         "imported": ".input_defaults:ANIMA_DEFAULT_CLIP_CANDIDATES",
         "kind": "static_from",
-        "line": 25,
+        "line": 26,
         "name": "ANIMA_DEFAULT_CLIP_CANDIDATES",
         "optional": false,
         "requested": ".input_defaults",
@@ -10171,7 +10207,7 @@
         "conditional": false,
         "imported": ".input_defaults:ANIMA_DEFAULT_DIFFUSION_MODEL_CANDIDATES",
         "kind": "static_from",
-        "line": 25,
+        "line": 26,
         "name": "ANIMA_DEFAULT_DIFFUSION_MODEL_CANDIDATES",
         "optional": false,
         "requested": ".input_defaults",
@@ -10189,7 +10225,7 @@
         "conditional": false,
         "imported": ".input_defaults:ANIMA_DEFAULT_VAE_CANDIDATES",
         "kind": "static_from",
-        "line": 25,
+        "line": 26,
         "name": "ANIMA_DEFAULT_VAE_CANDIDATES",
         "optional": false,
         "requested": ".input_defaults",
@@ -10207,7 +10243,7 @@
         "conditional": false,
         "imported": ".input_defaults:ANIMA_UNET_WEIGHT_DTYPES",
         "kind": "static_from",
-        "line": 25,
+        "line": 26,
         "name": "ANIMA_UNET_WEIGHT_DTYPES",
         "optional": false,
         "requested": ".input_defaults",
@@ -10225,7 +10261,7 @@
         "conditional": false,
         "imported": ".input_defaults:EASY_USE_ANIMA_INPUT_SCHEMA",
         "kind": "static_from",
-        "line": 25,
+        "line": 26,
         "name": "EASY_USE_ANIMA_INPUT_SCHEMA",
         "optional": false,
         "requested": ".input_defaults",
@@ -10243,7 +10279,7 @@
         "conditional": false,
         "imported": ".input_defaults:EASY_USE_ANIMA_INPUT_SETTINGS_VERSION",
         "kind": "static_from",
-        "line": 25,
+        "line": 26,
         "name": "EASY_USE_ANIMA_INPUT_SETTINGS_VERSION",
         "optional": false,
         "requested": ".input_defaults",
@@ -10259,7 +10295,7 @@
           {
             "branch": "body",
             "kind": "if",
-            "line": 212,
+            "line": 218,
             "type_checking": false
           },
           {
@@ -10267,7 +10303,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 213
+            "line": 219
           }
         ],
         "classification": "external",
@@ -10275,7 +10311,7 @@
         "conditional": true,
         "imported": "comfy_extras.nodes_upscale_model:UpscaleModelLoader",
         "kind": "static_from",
-        "line": 214,
+        "line": 220,
         "name": "UpscaleModelLoader",
         "optional": true,
         "requested": "comfy_extras.nodes_upscale_model",
@@ -10913,6 +10949,324 @@
         "scope": "<module>",
         "source": "easyuse_anima/aio/usdu.py",
         "target": "easyuse_anima/image/geometry.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "annotations",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "__future__:annotations",
+        "kind": "static_from",
+        "line": 3,
+        "name": "annotations",
+        "optional": false,
+        "requested": "__future__",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/anima_29b/architecture.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "contextmanager",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "contextlib:contextmanager",
+        "kind": "static_from",
+        "line": 5,
+        "name": "contextmanager",
+        "optional": false,
+        "requested": "contextlib",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/anima_29b/architecture.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "wraps",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "functools:wraps",
+        "kind": "static_from",
+        "line": 6,
+        "name": "wraps",
+        "optional": false,
+        "requested": "functools",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/anima_29b/architecture.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "RLock",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "threading:RLock",
+        "kind": "static_from",
+        "line": 7,
+        "name": "RLock",
+        "optional": false,
+        "requested": "threading",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/anima_29b/architecture.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "get_ident",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "threading:get_ident",
+        "kind": "static_from",
+        "line": 7,
+        "name": "get_ident",
+        "optional": false,
+        "requested": "threading",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/anima_29b/architecture.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "model_detection",
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": true,
+            "kind": "try",
+            "line": 66
+          }
+        ],
+        "classification": "external",
+        "column": 8,
+        "conditional": true,
+        "imported": "comfy:model_detection",
+        "kind": "static_from",
+        "line": 67,
+        "name": "model_detection",
+        "optional": true,
+        "requested": "comfy",
+        "role": "optional_dependency",
+        "scope": "_scoped_anima_29b_model_detection",
+        "source": "easyuse_anima/anima_29b/architecture.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "annotations",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "__future__:annotations",
+        "kind": "static_from",
+        "line": 3,
+        "name": "annotations",
+        "optional": false,
+        "requested": "__future__",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/anima_29b/lora.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "logging",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "logging",
+        "kind": "static_import",
+        "line": 5,
+        "name": null,
+        "optional": false,
+        "requested": "logging",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/anima_29b/lora.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "re",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "re",
+        "kind": "static_import",
+        "line": 6,
+        "name": null,
+        "optional": false,
+        "requested": "re",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/anima_29b/lora.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "Mapping",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "collections.abc:Mapping",
+        "kind": "static_from",
+        "line": 7,
+        "name": "Mapping",
+        "optional": false,
+        "requested": "collections.abc",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/anima_29b/lora.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "Any",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "typing:Any",
+        "kind": "static_from",
+        "line": 8,
+        "name": "Any",
+        "optional": false,
+        "requested": "typing",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/anima_29b/lora.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "_call_with_supported_kwargs",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": "..infrastructure.comfy.invocation:_call_with_supported_kwargs",
+        "kind": "static_from",
+        "line": 10,
+        "name": "_call_with_supported_kwargs",
+        "optional": false,
+        "requested": "..infrastructure.comfy.invocation",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/anima_29b/lora.py",
+        "target": "easyuse_anima/infrastructure/comfy/invocation.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "ANIMA_29B_LEGACY_BLOCK_MAP",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".architecture:ANIMA_29B_LEGACY_BLOCK_MAP",
+        "kind": "static_from",
+        "line": 11,
+        "name": "ANIMA_29B_LEGACY_BLOCK_MAP",
+        "optional": false,
+        "requested": ".architecture",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/anima_29b/lora.py",
+        "target": "easyuse_anima/anima_29b/architecture.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "ANIMA_BASE_BLOCK_COUNT",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".architecture:ANIMA_BASE_BLOCK_COUNT",
+        "kind": "static_from",
+        "line": 11,
+        "name": "ANIMA_BASE_BLOCK_COUNT",
+        "optional": false,
+        "requested": ".architecture",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/anima_29b/lora.py",
+        "target": "easyuse_anima/anima_29b/architecture.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "_is_anima_29b_model",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".architecture:_is_anima_29b_model",
+        "kind": "static_from",
+        "line": 11,
+        "name": "_is_anima_29b_model",
+        "optional": false,
+        "requested": ".architecture",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/anima_29b/lora.py",
+        "target": "easyuse_anima/anima_29b/architecture.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "folder_paths",
+        "branch_context": [],
+        "classification": "external",
+        "column": 4,
+        "conditional": false,
+        "imported": "folder_paths",
+        "kind": "static_import",
+        "line": 115,
+        "name": null,
+        "optional": false,
+        "requested": "folder_paths",
+        "role": "ordinary",
+        "scope": "_load_lora_file",
+        "source": "easyuse_anima/anima_29b/lora.py"
+      },
+      {
+        "alias": "comfy_utils",
+        "bound_name": "comfy_utils",
+        "branch_context": [],
+        "classification": "external",
+        "column": 4,
+        "conditional": false,
+        "imported": "comfy:utils",
+        "kind": "static_from",
+        "line": 116,
+        "name": "utils",
+        "optional": false,
+        "requested": "comfy",
+        "role": "ordinary",
+        "scope": "_load_lora_file",
+        "source": "easyuse_anima/anima_29b/lora.py"
+      },
+      {
+        "alias": "comfy_sd",
+        "bound_name": "comfy_sd",
+        "branch_context": [],
+        "classification": "external",
+        "column": 4,
+        "conditional": false,
+        "imported": "comfy:sd",
+        "kind": "static_from",
+        "line": 167,
+        "name": "sd",
+        "optional": false,
+        "requested": "comfy",
+        "role": "ordinary",
+        "scope": "_apply_anima_29b_lora_stack",
+        "source": "easyuse_anima/anima_29b/lora.py"
       },
       {
         "alias": null,
@@ -20377,6 +20731,77 @@
         "scope": "<module>",
         "source": "easyuse_anima/nodes/aio_nodes.py",
         "target": "easyuse_anima/nodes/seed_adapters.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "annotations",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "__future__:annotations",
+        "kind": "static_from",
+        "line": 3,
+        "name": "annotations",
+        "optional": false,
+        "requested": "__future__",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/nodes/anima_29b_nodes.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "ANIMA_29B_LORA_LAYOUT_LEGACY",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": "..anima_29b.lora:ANIMA_29B_LORA_LAYOUT_LEGACY",
+        "kind": "static_from",
+        "line": 5,
+        "name": "ANIMA_29B_LORA_LAYOUT_LEGACY",
+        "optional": false,
+        "requested": "..anima_29b.lora",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/nodes/anima_29b_nodes.py",
+        "target": "easyuse_anima/anima_29b/lora.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "_apply_anima_29b_lora_stack",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": "..anima_29b.lora:_apply_anima_29b_lora_stack",
+        "kind": "static_from",
+        "line": 5,
+        "name": "_apply_anima_29b_lora_stack",
+        "optional": false,
+        "requested": "..anima_29b.lora",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/nodes/anima_29b_nodes.py",
+        "target": "easyuse_anima/anima_29b/lora.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "_normalize_lora_stack",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": "..lora.prompt_syntax:_normalize_lora_stack",
+        "kind": "static_from",
+        "line": 9,
+        "name": "_normalize_lora_stack",
+        "optional": false,
+        "requested": "..lora.prompt_syntax",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/nodes/anima_29b_nodes.py",
+        "target": "easyuse_anima/lora/prompt_syntax.py"
       },
       {
         "alias": null,
@@ -35727,6 +36152,24 @@
       },
       {
         "alias": null,
+        "bound_name": "EasyUseAnima29BLoraStackLoader",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".nodes.anima_29b_nodes:EasyUseAnima29BLoraStackLoader",
+        "kind": "static_from",
+        "line": 5,
+        "name": "EasyUseAnima29BLoraStackLoader",
+        "optional": false,
+        "requested": ".nodes.anima_29b_nodes",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/registration.py",
+        "target": "easyuse_anima/nodes/anima_29b_nodes.py"
+      },
+      {
+        "alias": null,
         "bound_name": "EasyUseAnimaDetailerAlignHook",
         "branch_context": [],
         "classification": "internal",
@@ -35734,7 +36177,7 @@
         "conditional": false,
         "imported": ".nodes.image_nodes:EasyUseAnimaDetailerAlignHook",
         "kind": "static_from",
-        "line": 5,
+        "line": 6,
         "name": "EasyUseAnimaDetailerAlignHook",
         "optional": false,
         "requested": ".nodes.image_nodes",
@@ -35752,7 +36195,7 @@
         "conditional": false,
         "imported": ".nodes.image_nodes:EasyUseAnimaImageScaleByMultiple",
         "kind": "static_from",
-        "line": 5,
+        "line": 6,
         "name": "EasyUseAnimaImageScaleByMultiple",
         "optional": false,
         "requested": ".nodes.image_nodes",
@@ -35770,7 +36213,7 @@
         "conditional": false,
         "imported": ".nodes.lora_nodes:EasyUseAnimaLoraPreset",
         "kind": "static_from",
-        "line": 9,
+        "line": 10,
         "name": "EasyUseAnimaLoraPreset",
         "optional": false,
         "requested": ".nodes.lora_nodes",
@@ -35788,7 +36231,7 @@
         "conditional": false,
         "imported": ".nodes.naia_nodes:EasyUseAnimaNAIARandomPrompt",
         "kind": "static_from",
-        "line": 10,
+        "line": 11,
         "name": "EasyUseAnimaNAIARandomPrompt",
         "optional": false,
         "requested": ".nodes.naia_nodes",
@@ -35806,7 +36249,7 @@
         "conditional": false,
         "imported": ".nodes.prompt_advanced_nodes:EasyUseAnimaPromptStudioAdvanced",
         "kind": "static_from",
-        "line": 11,
+        "line": 12,
         "name": "EasyUseAnimaPromptStudioAdvanced",
         "optional": false,
         "requested": ".nodes.prompt_advanced_nodes",
@@ -35824,7 +36267,7 @@
         "conditional": false,
         "imported": ".nodes.prompt_advanced_nodes:EasyUseAnimaPromptStudioAdvancedV2",
         "kind": "static_from",
-        "line": 11,
+        "line": 12,
         "name": "EasyUseAnimaPromptStudioAdvancedV2",
         "optional": false,
         "requested": ".nodes.prompt_advanced_nodes",
@@ -35842,7 +36285,7 @@
         "conditional": false,
         "imported": ".nodes.prompt_data_nodes:EasyUseAnimaArtistMixConditioning",
         "kind": "static_from",
-        "line": 15,
+        "line": 16,
         "name": "EasyUseAnimaArtistMixConditioning",
         "optional": false,
         "requested": ".nodes.prompt_data_nodes",
@@ -35860,7 +36303,7 @@
         "conditional": false,
         "imported": ".nodes.prompt_data_nodes:EasyUseAnimaPromptDataConditioning",
         "kind": "static_from",
-        "line": 15,
+        "line": 16,
         "name": "EasyUseAnimaPromptDataConditioning",
         "optional": false,
         "requested": ".nodes.prompt_data_nodes",
@@ -35878,7 +36321,7 @@
         "conditional": false,
         "imported": ".nodes.prompt_data_nodes:EasyUseAnimaPromptDataUnpack",
         "kind": "static_from",
-        "line": 15,
+        "line": 16,
         "name": "EasyUseAnimaPromptDataUnpack",
         "optional": false,
         "requested": ".nodes.prompt_data_nodes",
@@ -35896,7 +36339,7 @@
         "conditional": false,
         "imported": ".nodes.prompt_lora_nodes:EasyUseAnimaPromptStudioAdvancedLora",
         "kind": "static_from",
-        "line": 20,
+        "line": 21,
         "name": "EasyUseAnimaPromptStudioAdvancedLora",
         "optional": false,
         "requested": ".nodes.prompt_lora_nodes",
@@ -35914,7 +36357,7 @@
         "conditional": false,
         "imported": ".nodes.prompt_nodes:EasyUseAnimaPromptBuilder",
         "kind": "static_from",
-        "line": 21,
+        "line": 22,
         "name": "EasyUseAnimaPromptBuilder",
         "optional": false,
         "requested": ".nodes.prompt_nodes",
@@ -35932,7 +36375,7 @@
         "conditional": false,
         "imported": ".nodes.prompt_nodes:EasyUseAnimaPromptCorrector",
         "kind": "static_from",
-        "line": 21,
+        "line": 22,
         "name": "EasyUseAnimaPromptCorrector",
         "optional": false,
         "requested": ".nodes.prompt_nodes",
@@ -35950,7 +36393,7 @@
         "conditional": false,
         "imported": ".nodes.prompt_nodes:EasyUseAnimaPromptCorrectorSimple",
         "kind": "static_from",
-        "line": 21,
+        "line": 22,
         "name": "EasyUseAnimaPromptCorrectorSimple",
         "optional": false,
         "requested": ".nodes.prompt_nodes",
@@ -35968,7 +36411,7 @@
         "conditional": false,
         "imported": ".nodes.prompt_nodes:EasyUseAnimaPromptStudio",
         "kind": "static_from",
-        "line": 21,
+        "line": 22,
         "name": "EasyUseAnimaPromptStudio",
         "optional": false,
         "requested": ".nodes.prompt_nodes",
@@ -35986,7 +36429,7 @@
         "conditional": false,
         "imported": ".nodes.regional_nodes:EasyUseAnimaPromptStudioRegional",
         "kind": "static_from",
-        "line": 27,
+        "line": 28,
         "name": "EasyUseAnimaPromptStudioRegional",
         "optional": false,
         "requested": ".nodes.regional_nodes",
@@ -36004,7 +36447,7 @@
         "conditional": false,
         "imported": ".nodes.regional_nodes:EasyUseAnimaRegionalConditioning",
         "kind": "static_from",
-        "line": 27,
+        "line": 28,
         "name": "EasyUseAnimaRegionalConditioning",
         "optional": false,
         "requested": ".nodes.regional_nodes",
@@ -36022,7 +36465,7 @@
         "conditional": false,
         "imported": ".nodes.wildcard_nodes:EasyUseAnimaWildcard",
         "kind": "static_from",
-        "line": 31,
+        "line": 32,
         "name": "EasyUseAnimaWildcard",
         "optional": false,
         "requested": ".nodes.wildcard_nodes",
@@ -36040,7 +36483,7 @@
         "conditional": false,
         "imported": ".nodes.wildcard_nodes:EasyUseAnimaWildcardLora",
         "kind": "static_from",
-        "line": 31,
+        "line": 32,
         "name": "EasyUseAnimaWildcardLora",
         "optional": false,
         "requested": ".nodes.wildcard_nodes",
@@ -41447,6 +41890,10 @@
       },
       {
         "from": "easyuse_anima/aio/model_preparation.py",
+        "to": "easyuse_anima/anima_29b/lora.py"
+      },
+      {
+        "from": "easyuse_anima/aio/model_preparation.py",
         "to": "easyuse_anima/common/serialization.py"
       },
       {
@@ -41555,6 +42002,10 @@
       },
       {
         "from": "easyuse_anima/aio/resources.py",
+        "to": "easyuse_anima/anima_29b/architecture.py"
+      },
+      {
+        "from": "easyuse_anima/aio/resources.py",
         "to": "easyuse_anima/common/values.py"
       },
       {
@@ -41616,6 +42067,14 @@
       {
         "from": "easyuse_anima/aio/usdu.py",
         "to": "easyuse_anima/image/geometry.py"
+      },
+      {
+        "from": "easyuse_anima/anima_29b/lora.py",
+        "to": "easyuse_anima/anima_29b/architecture.py"
+      },
+      {
+        "from": "easyuse_anima/anima_29b/lora.py",
+        "to": "easyuse_anima/infrastructure/comfy/invocation.py"
       },
       {
         "from": "easyuse_anima/api/application.py",
@@ -42128,6 +42587,14 @@
       {
         "from": "easyuse_anima/nodes/aio_nodes.py",
         "to": "easyuse_anima/seed/reservation.py"
+      },
+      {
+        "from": "easyuse_anima/nodes/anima_29b_nodes.py",
+        "to": "easyuse_anima/anima_29b/lora.py"
+      },
+      {
+        "from": "easyuse_anima/nodes/anima_29b_nodes.py",
+        "to": "easyuse_anima/lora/prompt_syntax.py"
       },
       {
         "from": "easyuse_anima/nodes/artist_mix_conditioning_adapter.py",
@@ -42967,6 +43434,10 @@
       },
       {
         "from": "easyuse_anima/registration.py",
+        "to": "easyuse_anima/nodes/anima_29b_nodes.py"
+      },
+      {
+        "from": "easyuse_anima/registration.py",
         "to": "easyuse_anima/nodes/image_nodes.py"
       },
       {
@@ -43526,6 +43997,24 @@
       {
         "cyclic": false,
         "modules": [
+          "easyuse_anima/anima_29b/__init__.py"
+        ]
+      },
+      {
+        "cyclic": false,
+        "modules": [
+          "easyuse_anima/anima_29b/architecture.py"
+        ]
+      },
+      {
+        "cyclic": false,
+        "modules": [
+          "easyuse_anima/anima_29b/lora.py"
+        ]
+      },
+      {
+        "cyclic": false,
+        "modules": [
           "easyuse_anima/api/__init__.py"
         ]
       },
@@ -43917,6 +44406,12 @@
         "cyclic": false,
         "modules": [
           "easyuse_anima/nodes/aio_nodes.py"
+        ]
+      },
+      {
+        "cyclic": false,
+        "modules": [
+          "easyuse_anima/nodes/anima_29b_nodes.py"
         ]
       },
       {
@@ -44384,7 +44879,7 @@
     ]
   },
   "inventory": {
-    "module_count": 191,
+    "module_count": 195,
     "modules": [
       {
         "functions": [
@@ -46879,201 +47374,201 @@
         "functions": [
           {
             "async": false,
-            "end_line": 50,
+            "end_line": 51,
             "kind": "function",
-            "line": 37,
+            "line": 38,
             "loc": 14,
             "qualified_name": "_aio_safe_pag_in_stage"
           },
           {
             "async": false,
-            "end_line": 60,
+            "end_line": 61,
             "kind": "function",
-            "line": 53,
+            "line": 54,
             "loc": 8,
             "qualified_name": "_aio_sage_attention_mode"
           },
           {
             "async": false,
-            "end_line": 75,
+            "end_line": 76,
             "kind": "function",
-            "line": 63,
+            "line": 64,
             "loc": 13,
             "qualified_name": "_aio_sage_attention_in_stage"
           },
           {
             "async": false,
-            "end_line": 90,
+            "end_line": 91,
             "kind": "function",
-            "line": 78,
+            "line": 79,
             "loc": 13,
             "qualified_name": "_aio_stage_kj_settings"
           },
           {
             "async": false,
-            "end_line": 96,
+            "end_line": 97,
             "kind": "function",
-            "line": 93,
+            "line": 94,
             "loc": 4,
             "qualified_name": "_missing_host_helper"
           },
           {
             "async": false,
-            "end_line": 104,
+            "end_line": 105,
             "kind": "function",
-            "line": 99,
+            "line": 100,
             "loc": 6,
             "qualified_name": "_find_comfy_node_class"
           },
           {
             "async": false,
-            "end_line": 116,
+            "end_line": 117,
             "kind": "function",
-            "line": 107,
+            "line": 108,
             "loc": 10,
             "qualified_name": "_require_custom_node_class"
           },
           {
             "async": false,
-            "end_line": 128,
+            "end_line": 129,
             "kind": "function",
-            "line": 119,
+            "line": 120,
             "loc": 10,
             "qualified_name": "_require_any_custom_node_class"
           },
           {
             "async": false,
-            "end_line": 164,
+            "end_line": 165,
             "kind": "function",
-            "line": 131,
+            "line": 132,
             "loc": 34,
             "qualified_name": "_require_aio_sage_attention_class"
           },
           {
             "async": false,
-            "end_line": 185,
+            "end_line": 186,
             "kind": "function",
-            "line": 167,
+            "line": 168,
             "loc": 19,
             "qualified_name": "_patch_model_sampling_aura_flow"
           },
           {
             "async": false,
-            "end_line": 219,
+            "end_line": 220,
             "kind": "function",
-            "line": 188,
+            "line": 189,
             "loc": 32,
             "qualified_name": "_apply_aio_kj_non_compile_patches"
           },
           {
             "async": false,
-            "end_line": 248,
+            "end_line": 249,
             "kind": "function",
-            "line": 222,
+            "line": 223,
             "loc": 27,
             "qualified_name": "_apply_aio_kj_torch_compile_patch"
           },
           {
             "async": false,
-            "end_line": 253,
+            "end_line": 254,
             "kind": "function",
-            "line": 251,
+            "line": 252,
             "loc": 3,
             "qualified_name": "_apply_aio_kj_model_patches"
           },
           {
             "async": false,
-            "end_line": 322,
+            "end_line": 323,
             "kind": "function",
-            "line": 256,
+            "line": 257,
             "loc": 67,
             "qualified_name": "_aio_stage_model_patch_plan"
           },
           {
             "async": false,
-            "end_line": 357,
+            "end_line": 358,
             "kind": "function",
-            "line": 325,
+            "line": 326,
             "loc": 33,
             "qualified_name": "_apply_aio_stage_model_patch_plan"
           },
           {
             "async": false,
-            "end_line": 362,
+            "end_line": 363,
             "kind": "function",
-            "line": 360,
+            "line": 361,
             "loc": 3,
             "qualified_name": "_apply_aio_model_patches"
           },
           {
             "async": false,
-            "end_line": 375,
+            "end_line": 376,
             "kind": "function",
-            "line": 365,
+            "line": 366,
             "loc": 11,
             "qualified_name": "_aio_lora_stack_signature"
           },
           {
             "async": false,
-            "end_line": 410,
+            "end_line": 415,
             "kind": "function",
-            "line": 378,
-            "loc": 33,
+            "line": 379,
+            "loc": 37,
             "qualified_name": "_apply_aio_lora_stack"
           },
           {
             "async": false,
-            "end_line": 434,
+            "end_line": 439,
             "kind": "function",
-            "line": 413,
+            "line": 418,
             "loc": 22,
             "qualified_name": "_apply_aio_anima_dave_patch"
           },
           {
             "async": false,
-            "end_line": 459,
+            "end_line": 464,
             "kind": "function",
-            "line": 437,
+            "line": 442,
             "loc": 23,
             "qualified_name": "_apply_aio_safe_pag_patch"
           },
           {
             "async": false,
-            "end_line": 484,
+            "end_line": 489,
             "kind": "function",
-            "line": 462,
+            "line": 467,
             "loc": 23,
             "qualified_name": "_cleanup_aio_ephemeral_model"
           },
           {
             "async": false,
-            "end_line": 545,
+            "end_line": 550,
             "kind": "function",
-            "line": 487,
+            "line": 492,
             "loc": 59,
             "qualified_name": "_apply_aio_spectrum_correction_patch_for_comfy_sampler"
           },
           {
             "async": false,
-            "end_line": 592,
+            "end_line": 597,
             "kind": "function",
-            "line": 548,
+            "line": 553,
             "loc": 45,
             "qualified_name": "_apply_aio_spectrum_forecast_patch_for_comfy_sampler"
           },
           {
             "async": false,
-            "end_line": 610,
+            "end_line": 615,
             "kind": "function",
-            "line": 595,
+            "line": 600,
             "loc": 16,
             "qualified_name": "_apply_aio_spectrum_model_patches_for_comfy_sampler"
           }
         ],
         "is_package": false,
-        "loc": 613,
+        "loc": 618,
         "module": "easyuse_anima.aio.model_preparation",
-        "normalized_git_blob_sha1": "1e8374f3e9bc816edfa1d60c1369bd88fc8fc129",
+        "normalized_git_blob_sha1": "bf7c225f4b9d586102816c633d0f531ffb2e6001",
         "path": "easyuse_anima/aio/model_preparation.py",
         "top_level": {
           "class_count": 0,
@@ -47591,145 +48086,153 @@
         "functions": [
           {
             "async": false,
-            "end_line": 41,
+            "end_line": 42,
             "kind": "function",
-            "line": 38,
+            "line": 39,
             "loc": 4,
             "qualified_name": "_missing_host_helper"
           },
           {
             "async": false,
-            "end_line": 49,
+            "end_line": 50,
             "kind": "function",
-            "line": 44,
+            "line": 45,
             "loc": 6,
             "qualified_name": "_find_comfy_node_class"
           },
           {
             "async": false,
-            "end_line": 82,
+            "end_line": 83,
             "kind": "function",
-            "line": 52,
+            "line": 53,
             "loc": 31,
             "qualified_name": "_normalize_aio_input_settings"
           },
           {
             "async": false,
-            "end_line": 89,
+            "end_line": 90,
             "kind": "function",
-            "line": 85,
+            "line": 86,
             "loc": 5,
             "qualified_name": "_comfy_diffusion_model_names"
           },
           {
             "async": false,
-            "end_line": 96,
+            "end_line": 97,
             "kind": "function",
-            "line": 92,
+            "line": 93,
             "loc": 5,
             "qualified_name": "_comfy_text_encoder_names"
           },
           {
             "async": false,
-            "end_line": 104,
+            "end_line": 105,
             "kind": "function",
-            "line": 99,
+            "line": 100,
             "loc": 6,
             "qualified_name": "_comfy_vae_names"
           },
           {
             "async": false,
-            "end_line": 111,
+            "end_line": 112,
             "kind": "function",
-            "line": 107,
+            "line": 108,
             "loc": 5,
             "qualified_name": "_comfy_clip_loader_types"
           },
           {
             "async": false,
-            "end_line": 128,
+            "end_line": 129,
             "kind": "function",
-            "line": 114,
+            "line": 115,
             "loc": 15,
             "qualified_name": "_preferred_name_default"
           },
           {
             "async": false,
-            "end_line": 132,
+            "end_line": 133,
             "kind": "function",
-            "line": 131,
+            "line": 132,
             "loc": 2,
             "qualified_name": "_preferred_checkpoint_default"
           },
           {
             "async": false,
-            "end_line": 138,
+            "end_line": 139,
             "kind": "function",
-            "line": 135,
+            "line": 136,
             "loc": 4,
             "qualified_name": "_preferred_clip_type_default"
           },
           {
             "async": false,
-            "end_line": 149,
+            "end_line": 150,
             "kind": "function",
-            "line": 141,
+            "line": 142,
             "loc": 9,
             "qualified_name": "_load_checkpoint_with_comfy"
           },
           {
             "async": false,
-            "end_line": 163,
+            "end_line": 169,
             "kind": "function",
-            "line": 152,
-            "loc": 12,
+            "line": 153,
+            "loc": 17,
             "qualified_name": "_load_diffusion_model_with_comfy"
           },
           {
             "async": false,
-            "end_line": 177,
+            "end_line": 167,
             "kind": "function",
-            "line": 166,
+            "line": 161,
+            "loc": 7,
+            "qualified_name": "_load_diffusion_model_with_comfy.load_model"
+          },
+          {
+            "async": false,
+            "end_line": 183,
+            "kind": "function",
+            "line": 172,
             "loc": 12,
             "qualified_name": "_load_vae_with_comfy"
           },
           {
             "async": false,
-            "end_line": 201,
+            "end_line": 207,
             "kind": "function",
-            "line": 180,
+            "line": 186,
             "loc": 22,
             "qualified_name": "_load_clip_with_comfy"
           },
           {
             "async": false,
-            "end_line": 230,
+            "end_line": 236,
             "kind": "function",
-            "line": 204,
+            "line": 210,
             "loc": 27,
             "qualified_name": "_load_upscale_model_with_comfy"
           },
           {
             "async": false,
-            "end_line": 239,
+            "end_line": 245,
             "kind": "function",
-            "line": 233,
+            "line": 239,
             "loc": 7,
             "qualified_name": "_load_aio_sam3_context"
           },
           {
             "async": false,
-            "end_line": 288,
+            "end_line": 294,
             "kind": "function",
-            "line": 242,
+            "line": 248,
             "loc": 47,
             "qualified_name": "_load_aio_resources_from_input_context"
           }
         ],
         "is_package": false,
-        "loc": 291,
+        "loc": 297,
         "module": "easyuse_anima.aio.resources",
-        "normalized_git_blob_sha1": "9ff098a3d36070b9ad87a8810b08dc7e5ac002a1",
+        "normalized_git_blob_sha1": "f63385eb8ecb993ed0190e9e13f186a9fccd4588",
         "path": "easyuse_anima/aio/resources.py",
         "top_level": {
           "class_count": 0,
@@ -48055,6 +48558,183 @@
           "class_count": 0,
           "function_count": 2,
           "global_count": 1
+        }
+      },
+      {
+        "functions": [],
+        "is_package": true,
+        "loc": 3,
+        "module": "easyuse_anima.anima_29b",
+        "normalized_git_blob_sha1": "d79d7b870ba5571fba66fcf29dec107626786ef2",
+        "path": "easyuse_anima/anima_29b/__init__.py",
+        "top_level": {
+          "class_count": 0,
+          "function_count": 0,
+          "global_count": 1
+        }
+      },
+      {
+        "functions": [
+          {
+            "async": false,
+            "end_line": 47,
+            "kind": "function",
+            "line": 35,
+            "loc": 13,
+            "qualified_name": "_state_dict_anima_block_count"
+          },
+          {
+            "async": false,
+            "end_line": 59,
+            "kind": "function",
+            "line": 50,
+            "loc": 10,
+            "qualified_name": "_patch_anima_29b_detected_config"
+          },
+          {
+            "async": false,
+            "end_line": 95,
+            "kind": "function",
+            "line": 62,
+            "loc": 34,
+            "qualified_name": "_scoped_anima_29b_model_detection"
+          },
+          {
+            "async": false,
+            "end_line": 88,
+            "kind": "function",
+            "line": 79,
+            "loc": 10,
+            "qualified_name": "_scoped_anima_29b_model_detection.detect_unet_config"
+          },
+          {
+            "async": false,
+            "end_line": 102,
+            "kind": "function",
+            "line": 98,
+            "loc": 5,
+            "qualified_name": "_anima_unet_config"
+          },
+          {
+            "async": false,
+            "end_line": 111,
+            "kind": "function",
+            "line": 105,
+            "loc": 7,
+            "qualified_name": "_is_anima_29b_model"
+          },
+          {
+            "async": false,
+            "end_line": 124,
+            "kind": "function",
+            "line": 114,
+            "loc": 11,
+            "qualified_name": "_reload_anima_29b_model"
+          },
+          {
+            "async": false,
+            "end_line": 147,
+            "kind": "function",
+            "line": 127,
+            "loc": 21,
+            "qualified_name": "_install_anima_29b_cached_reload"
+          },
+          {
+            "async": false,
+            "end_line": 153,
+            "kind": "function",
+            "line": 150,
+            "loc": 4,
+            "qualified_name": "_load_model_with_anima_29b_support"
+          }
+        ],
+        "is_package": false,
+        "loc": 156,
+        "module": "easyuse_anima.anima_29b.architecture",
+        "normalized_git_blob_sha1": "5d2eaca0343c92a50e6a1c632eb86cdc8b46723c",
+        "path": "easyuse_anima/anima_29b/architecture.py",
+        "top_level": {
+          "class_count": 0,
+          "function_count": 8,
+          "global_count": 6
+        }
+      },
+      {
+        "functions": [
+          {
+            "async": false,
+            "end_line": 42,
+            "kind": "function",
+            "line": 34,
+            "loc": 9,
+            "qualified_name": "_anima_lora_block_match"
+          },
+          {
+            "async": false,
+            "end_line": 51,
+            "kind": "function",
+            "line": 45,
+            "loc": 7,
+            "qualified_name": "_anima_lora_block_indices"
+          },
+          {
+            "async": false,
+            "end_line": 66,
+            "kind": "function",
+            "line": 54,
+            "loc": 13,
+            "qualified_name": "_remap_legacy_anima_lora_key"
+          },
+          {
+            "async": false,
+            "end_line": 111,
+            "kind": "function",
+            "line": 69,
+            "loc": 43,
+            "qualified_name": "_prepare_anima_29b_lora_state_dict"
+          },
+          {
+            "async": false,
+            "end_line": 133,
+            "kind": "function",
+            "line": 114,
+            "loc": 20,
+            "qualified_name": "_load_lora_file"
+          },
+          {
+            "async": false,
+            "end_line": 143,
+            "kind": "function",
+            "line": 136,
+            "loc": 8,
+            "qualified_name": "_model_patch_entry_count"
+          },
+          {
+            "async": false,
+            "end_line": 226,
+            "kind": "function",
+            "line": 146,
+            "loc": 81,
+            "qualified_name": "_apply_anima_29b_lora_stack"
+          },
+          {
+            "async": false,
+            "end_line": 237,
+            "kind": "function",
+            "line": 229,
+            "loc": 9,
+            "qualified_name": "_apply_anima_29b_aio_lora_stack"
+          }
+        ],
+        "is_package": false,
+        "loc": 240,
+        "module": "easyuse_anima.anima_29b.lora",
+        "normalized_git_blob_sha1": "1b10331bf23cd73078c80c0bf74af4ec0bc068b4",
+        "path": "easyuse_anima/anima_29b/lora.py",
+        "top_level": {
+          "class_count": 0,
+          "function_count": 8,
+          "global_count": 6
         }
       },
       {
@@ -52446,6 +53126,36 @@
         "functions": [
           {
             "async": false,
+            "end_line": 46,
+            "kind": "method",
+            "line": 25,
+            "loc": 22,
+            "qualified_name": "EasyUseAnima29BLoraStackLoader.INPUT_TYPES"
+          },
+          {
+            "async": false,
+            "end_line": 60,
+            "kind": "method",
+            "line": 53,
+            "loc": 8,
+            "qualified_name": "EasyUseAnima29BLoraStackLoader.apply"
+          }
+        ],
+        "is_package": false,
+        "loc": 63,
+        "module": "easyuse_anima.nodes.anima_29b_nodes",
+        "normalized_git_blob_sha1": "c3660e6d3cbe6533bb3981945b0dce299383ae40",
+        "path": "easyuse_anima/nodes/anima_29b_nodes.py",
+        "top_level": {
+          "class_count": 1,
+          "function_count": 0,
+          "global_count": 1
+        }
+      },
+      {
+        "functions": [
+          {
+            "async": false,
             "end_line": 140,
             "kind": "function",
             "line": 32,
@@ -55702,9 +56412,9 @@
       {
         "functions": [],
         "is_package": false,
-        "loc": 81,
+        "loc": 84,
         "module": "easyuse_anima.registration",
-        "normalized_git_blob_sha1": "906e975290ed0d39c23b925699c0e553b768584e",
+        "normalized_git_blob_sha1": "d961fe016c6b59835fff949744e1260381d03de1",
         "path": "easyuse_anima/registration.py",
         "top_level": {
           "class_count": 0,
@@ -59649,14 +60359,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 474
+            "line": 479
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "comfy.model_management",
         "kind": "static_import",
-        "line": 475,
+        "line": 480,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/aio/model_preparation.py"
@@ -60110,7 +60820,7 @@
           {
             "branch": "body",
             "kind": "if",
-            "line": 212,
+            "line": 218,
             "type_checking": false
           },
           {
@@ -60118,14 +60828,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 213
+            "line": 219
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "comfy_extras.nodes_upscale_model:UpscaleModelLoader",
         "kind": "static_from",
-        "line": 214,
+        "line": 220,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/aio/resources.py"
@@ -60316,6 +61026,168 @@
         "optional": false,
         "role": "ordinary",
         "source": "easyuse_anima/aio/usdu.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "__future__:annotations",
+        "kind": "static_from",
+        "line": 3,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/anima_29b/architecture.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "contextlib:contextmanager",
+        "kind": "static_from",
+        "line": 5,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/anima_29b/architecture.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "functools:wraps",
+        "kind": "static_from",
+        "line": 6,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/anima_29b/architecture.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "threading:RLock",
+        "kind": "static_from",
+        "line": 7,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/anima_29b/architecture.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "threading:get_ident",
+        "kind": "static_from",
+        "line": 7,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/anima_29b/architecture.py"
+      },
+      {
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": true,
+            "kind": "try",
+            "line": 66
+          }
+        ],
+        "classification": "external",
+        "conditional": true,
+        "imported": "comfy:model_detection",
+        "kind": "static_from",
+        "line": 67,
+        "optional": true,
+        "role": "optional_dependency",
+        "source": "easyuse_anima/anima_29b/architecture.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "__future__:annotations",
+        "kind": "static_from",
+        "line": 3,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/anima_29b/lora.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "logging",
+        "kind": "static_import",
+        "line": 5,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/anima_29b/lora.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "re",
+        "kind": "static_import",
+        "line": 6,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/anima_29b/lora.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "collections.abc:Mapping",
+        "kind": "static_from",
+        "line": 7,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/anima_29b/lora.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "typing:Any",
+        "kind": "static_from",
+        "line": 8,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/anima_29b/lora.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "folder_paths",
+        "kind": "static_import",
+        "line": 115,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/anima_29b/lora.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "comfy:utils",
+        "kind": "static_from",
+        "line": 116,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/anima_29b/lora.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "comfy:sd",
+        "kind": "static_from",
+        "line": 167,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/anima_29b/lora.py"
       },
       {
         "branch_context": [],
@@ -63078,6 +63950,17 @@
         "optional": false,
         "role": "ordinary",
         "source": "easyuse_anima/nodes/aio_nodes.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "__future__:annotations",
+        "kind": "static_from",
+        "line": 3,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/nodes/anima_29b_nodes.py"
       },
       {
         "branch_context": [],
@@ -66293,14 +67176,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 474
+            "line": 479
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "comfy.model_management",
         "kind": "static_import",
-        "line": 475,
+        "line": 480,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/aio/model_preparation.py"
@@ -66424,7 +67307,7 @@
           {
             "branch": "body",
             "kind": "if",
-            "line": 212,
+            "line": 218,
             "type_checking": false
           },
           {
@@ -66432,17 +67315,36 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 213
+            "line": 219
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "comfy_extras.nodes_upscale_model:UpscaleModelLoader",
         "kind": "static_from",
-        "line": 214,
+        "line": 220,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/aio/resources.py"
+      },
+      {
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": true,
+            "kind": "try",
+            "line": 66
+          }
+        ],
+        "classification": "external",
+        "conditional": true,
+        "imported": "comfy:model_detection",
+        "kind": "static_from",
+        "line": 67,
+        "optional": true,
+        "role": "optional_dependency",
+        "source": "easyuse_anima/anima_29b/architecture.py"
       },
       {
         "branch_context": [
@@ -67291,6 +68193,9 @@
       "easyuse_anima/aio/torch_compile_diagnostics.py",
       "easyuse_anima/aio/torch_compile_recommendation.py",
       "easyuse_anima/aio/usdu.py",
+      "easyuse_anima/anima_29b/__init__.py",
+      "easyuse_anima/anima_29b/architecture.py",
+      "easyuse_anima/anima_29b/lora.py",
       "easyuse_anima/api/__init__.py",
       "easyuse_anima/api/application.py",
       "easyuse_anima/api/application_compatibility.py",
@@ -67357,6 +68262,7 @@
       "easyuse_anima/nodes/__init__.py",
       "easyuse_anima/nodes/aio_hook_nodes.py",
       "easyuse_anima/nodes/aio_nodes.py",
+      "easyuse_anima/nodes/anima_29b_nodes.py",
       "easyuse_anima/nodes/artist_mix_conditioning_adapter.py",
       "easyuse_anima/nodes/image_nodes.py",
       "easyuse_anima/nodes/input_types.py",
@@ -67482,6 +68388,9 @@
       "easyuse_anima/aio/torch_compile_diagnostics.py",
       "easyuse_anima/aio/torch_compile_recommendation.py",
       "easyuse_anima/aio/usdu.py",
+      "easyuse_anima/anima_29b/__init__.py",
+      "easyuse_anima/anima_29b/architecture.py",
+      "easyuse_anima/anima_29b/lora.py",
       "easyuse_anima/api/__init__.py",
       "easyuse_anima/api/application.py",
       "easyuse_anima/api/application_compatibility.py",
@@ -67550,6 +68459,7 @@
       "easyuse_anima/nodes/__init__.py",
       "easyuse_anima/nodes/aio_hook_nodes.py",
       "easyuse_anima/nodes/aio_nodes.py",
+      "easyuse_anima/nodes/anima_29b_nodes.py",
       "easyuse_anima/nodes/artist_mix_conditioning_adapter.py",
       "easyuse_anima/nodes/image_nodes.py",
       "easyuse_anima/nodes/input_types.py",
@@ -68595,7 +69505,7 @@
         "column": 9,
         "context": "assign:logger",
         "kind": "import_time_call",
-        "line": 23,
+        "line": 24,
         "module": "easyuse_anima/aio/model_preparation.py",
         "scope": "<module>"
       },
@@ -68651,6 +69561,69 @@
         "kind": "import_time_call",
         "line": 28,
         "module": "easyuse_anima/aio/preview.py",
+        "scope": "<module>"
+      },
+      {
+        "callee": "tuple",
+        "column": 29,
+        "context": "assign:ANIMA_29B_LEGACY_BLOCK_MAP",
+        "kind": "import_time_call",
+        "line": 26,
+        "module": "easyuse_anima/anima_29b/architecture.py",
+        "scope": "<module>"
+      },
+      {
+        "callee": "range",
+        "column": 23,
+        "context": "assign:ANIMA_29B_LEGACY_BLOCK_MAP",
+        "kind": "import_time_call",
+        "line": 28,
+        "module": "easyuse_anima/anima_29b/architecture.py",
+        "scope": "<module>"
+      },
+      {
+        "callee": "RLock",
+        "column": 18,
+        "context": "assign:_DETECTION_LOCK",
+        "kind": "import_time_call",
+        "line": 32,
+        "module": "easyuse_anima/anima_29b/architecture.py",
+        "scope": "<module>"
+      },
+      {
+        "callee": "re.compile",
+        "column": 24,
+        "context": "assign:_ANIMA_FLAT_BLOCK_KEY",
+        "kind": "import_time_call",
+        "line": 20,
+        "module": "easyuse_anima/anima_29b/lora.py",
+        "scope": "<module>"
+      },
+      {
+        "callee": "re.compile",
+        "column": 4,
+        "context": "assign:_ANIMA_DOTTED_BLOCK_KEYS",
+        "kind": "import_time_call",
+        "line": 24,
+        "module": "easyuse_anima/anima_29b/lora.py",
+        "scope": "<module>"
+      },
+      {
+        "callee": "re.compile",
+        "column": 4,
+        "context": "assign:_ANIMA_DOTTED_BLOCK_KEYS",
+        "kind": "import_time_call",
+        "line": 28,
+        "module": "easyuse_anima/anima_29b/lora.py",
+        "scope": "<module>"
+      },
+      {
+        "callee": "logging.getLogger",
+        "column": 9,
+        "context": "assign:logger",
+        "kind": "import_time_call",
+        "line": 31,
+        "module": "easyuse_anima/anima_29b/lora.py",
         "scope": "<module>"
       },
       {
@@ -70147,19 +71120,19 @@
       },
       {
         "kind": "dict",
-        "line": 33,
+        "line": 34,
         "module": "easyuse_anima/registration.py",
         "name": "NODE_CLASS_MAPPINGS"
       },
       {
         "kind": "dict",
-        "line": 57,
+        "line": 59,
         "module": "easyuse_anima/registration.py",
         "name": "NODE_DISPLAY_NAME_MAPPINGS"
       },
       {
         "kind": "list",
-        "line": 81,
+        "line": 84,
         "module": "easyuse_anima/registration.py",
         "name": "__all__"
       },
@@ -70263,6 +71236,15 @@
         "line": 255,
         "module": "easyuse_anima/aio/first_pass_cache.py",
         "name": "_DEFAULT_AIO_FIRST_PASS_CACHE"
+      },
+      {
+        "categories": [
+          "lock"
+        ],
+        "initializer": "RLock",
+        "line": 32,
+        "module": "easyuse_anima/anima_29b/architecture.py",
+        "name": "_DETECTION_LOCK"
       },
       {
         "categories": [

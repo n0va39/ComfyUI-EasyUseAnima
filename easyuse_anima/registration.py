@@ -2,6 +2,7 @@
 
 from .nodes.aio_hook_nodes import EasyUseAnimaAIOHookCombine
 from .nodes.aio_nodes import EasyUseAnimaAIOGenerator, EasyUseAnimaInput
+from .nodes.anima_29b_nodes import EasyUseAnima29BLoraStackLoader
 from .nodes.image_nodes import (
     EasyUseAnimaDetailerAlignHook,
     EasyUseAnimaImageScaleByMultiple,
@@ -31,6 +32,7 @@ from .nodes.regional_nodes import (
 from .nodes.wildcard_nodes import EasyUseAnimaWildcard, EasyUseAnimaWildcardLora
 
 NODE_CLASS_MAPPINGS = {
+    "EasyUseAnima29BLoraStackLoader": EasyUseAnima29BLoraStackLoader,
     "EasyUseAnimaAIOGenerator": EasyUseAnimaAIOGenerator,
     "EasyUseAnimaAIOHookCombine": EasyUseAnimaAIOHookCombine,
     "EasyUseAnimaDetailerAlignHook": EasyUseAnimaDetailerAlignHook,
@@ -55,6 +57,7 @@ NODE_CLASS_MAPPINGS = {
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
+    "EasyUseAnima29BLoraStackLoader": "Anima 2.9B LoRA Stack Loader",
     "EasyUseAnimaAIOGenerator": "Anima AiO Generator",
     "EasyUseAnimaAIOHookCombine": "Anima AiO Hook Combine",
     "EasyUseAnimaDetailerAlignHook": "Anima Detailer Align Hook",

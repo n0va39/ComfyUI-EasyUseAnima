@@ -2,7 +2,7 @@
   "schema_version": 1,
   "baseline_commit": "a0b0dc1f599fcf01ec0f25fc75a23f7524f165ab",
   "inventory": {
-    "expected_files": 210,
+    "expected_files": 211,
     "manual_matrix_source": "tests/fixtures/python_test_ownership_contract.v1.json",
     "patterns": [
       "tests/**/*.json",
@@ -1540,6 +1540,17 @@
         "aio"
       ],
       "purpose": "Direct Python unittest contract for test aio wheel."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_anima_29b.py",
+      "path": "tests/test_anima_29b.py",
+      "production_groups": [
+        "anima_29b"
+      ],
+      "purpose": "Direct Python unittest contract for Anima 2.9B architecture and LoRA compatibility."
     },
     {
       "execution_mode": "unittest",

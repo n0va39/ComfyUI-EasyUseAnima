@@ -820,6 +820,34 @@
       }
     }
   },
+  "EasyUseAnima29BLoraStackLoader": {
+    "display_name": "Anima 2.9B LoRA スタックローダー",
+    "description": "通常の28ブロック Anima LoRA スタックを、Anima 2.9B の継承ブロック位置へ実験的に再マッピングします。元モデルと結果が異なる可能性があるため、ネイティブ2.9B LoRA の学習を推奨します。",
+    "inputs": {
+      "model": {
+        "name": "モデル",
+        "tooltip": "Easy Use Anima で読み込んだ40ブロック Anima 2.9B 拡散モデルです。"
+      },
+      "clip": {
+        "name": "CLIP",
+        "tooltip": "Anima モデルと組み合わせる CLIP モデルです。"
+      },
+      "lora_stack": {
+        "name": "LoRA スタック",
+        "tooltip": "順番に実験的な再マッピングを行って適用する通常の28ブロック Anima LoRA スタックです。"
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "モデル",
+        "tooltip": "レガシー LoRA ブロックを実験的に再マッピングした Anima 2.9B モデルです。"
+      },
+      "1": {
+        "name": "CLIP",
+        "tooltip": "テキストエンコーダーの LoRA パッチを適用した CLIP モデルです。"
+      }
+    }
+  },
   "EasyUseAnimaLoraPreset": {
     "display_name": "Anima LoRA プリセット",
     "description": "複数の ANIMA LoRA プリセットプロファイルを保存し、LoRA スタックとトリガーワードを作成し、プロファイルデータをワークフローに保持します。",
