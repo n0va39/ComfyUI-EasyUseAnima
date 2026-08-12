@@ -157,6 +157,19 @@ const PROMPT_STUDIO_COLORS = {
       zh: "__name__、3#__name__、{a|b|c} 等通配符语法。",
     },
   },
+  lora: {
+    en: "LoRA syntax",
+    ko: "LoRA 구문",
+    ja: "LoRA 構文",
+    zh: "LoRA 语法",
+    color: "#e879f9",
+    tip: {
+      en: "A1111/LoraManager syntax such as <lora:name:model_strength> and the <: autocomplete trigger.",
+      ko: "<lora:이름:모델강도> 같은 A1111/LoraManager 구문과 <: 자동완성 트리거입니다.",
+      ja: "<lora:name:model_strength> 形式の A1111/LoraManager 構文と <: 自動補完トリガーです。",
+      zh: "<lora:name:model_strength> 形式的 A1111/LoraManager 语法和 <: 自动补全触发器。",
+    },
+  },
   comment: {
     en: "Comment",
     ko: "주석",
@@ -223,6 +236,7 @@ const PROMPT_STUDIO_COLOR_GROUPS = [
       "natural",
       "translation",
       "wildcard",
+      "lora",
       "comment",
     ],
   },

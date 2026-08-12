@@ -1058,5 +1058,54 @@
         "tooltip": "NAIA 높이 또는 우회/미덮어쓰기 상태의 원본 입력입니다."
       }
     }
+  },
+  "EasyUseAnimaPromptStudioAdvancedLora": {
+    "display_name": "Anima 프롬프트 스튜디오 고급 LoRA",
+    "description": "기존 고급 Prompt Studio와 같은 편집·와일드카드 동작에 A1111 <lora:name:weight> 태그 추출과 LoRA 스택 입출력을 추가합니다.",
+    "inputs": {
+      "use_naia": {"name": "NAIA 사용"},
+      "consume_naia_on_queue": {"name": "NAIA 1회 적용"},
+      "use_anima_mod_guidance": {"name": "Mod Guidance 사용"},
+      "resolution_bucket": {"name": "해상도 버킷"},
+      "resolution_size": {"name": "해상도 크기"},
+      "resolution_custom_width": {"name": "커스텀 너비"},
+      "resolution_custom_height": {"name": "커스텀 높이"},
+      "pin_trigger_tags_to_front": {"name": "트리거 앞 고정"},
+      "advanced_fields": {"name": "고급 필드"},
+      "use_negative_anima_mod_guidance": {"name": "부정 Mod Guidance 사용"},
+      "wildcard_mode": {"name": "와일드카드 모드"},
+      "wildcard_seed": {"name": "와일드카드 시드"},
+      "wildcard_seed_after_generate": {"name": "와일드카드 시드 생성 후 제어"},
+      "lora_stack": {"name": "LoRA 스택", "tooltip": "기존 스택 뒤에 긍정 필드에서 추출한 LoRA를 순서대로 추가합니다."}
+    },
+    "outputs": {
+      "0": {"name": "긍정 프롬프트"},
+      "1": {"name": "부정 프롬프트"},
+      "2": {"name": "Mod Guidance 품질 태그"},
+      "3": {"name": "Mod Guidance 부정 프롬프트"},
+      "4": {"name": "Mod Guidance 사용"},
+      "5": {"name": "부정 Mod Guidance 사용"},
+      "6": {"name": "메타데이터 프롬프트"},
+      "7": {"name": "메타데이터 부정 프롬프트"},
+      "8": {"name": "너비"},
+      "9": {"name": "높이"},
+      "10": {"name": "LORA_STACK", "tooltip": "입력 스택과 프롬프트 태그 LoRA를 합친 스택입니다."}
+    }
+  },
+  "EasyUseAnimaWildcardLora": {
+    "display_name": "Anima 와일드카드 LoRA",
+    "description": "기존 Anima 와일드카드와 같은 확장·populated_text 동작에 A1111 LoRA 태그 추출과 LoRA 스택 입출력을 추가합니다.",
+    "inputs": {
+      "text": {"name": "텍스트"},
+      "populated_text": {"name": "채워진 텍스트"},
+      "mode": {"name": "모드"},
+      "seed": {"name": "시드"},
+      "lora_stack": {"name": "LoRA 스택", "tooltip": "기존 스택 뒤에 와일드카드 확장 결과의 LoRA를 순서대로 추가합니다."}
+    },
+    "outputs": {
+      "0": {"name": "텍스트"},
+      "1": {"name": "시드"},
+      "2": {"name": "LORA_STACK", "tooltip": "입력 스택과 확장된 프롬프트 태그 LoRA를 합친 스택입니다."}
+    }
   }
 }

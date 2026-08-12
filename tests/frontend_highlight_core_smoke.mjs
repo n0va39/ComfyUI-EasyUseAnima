@@ -66,5 +66,25 @@ assert(
 );
 assert(regional("__한글__", [wildcardToken]).includes("section:wildcard"), "Regional syntax priority changed");
 assert(modular("__한글__", [wildcardToken]).includes('<token section="general">'), "Modular token priority changed");
+assert(
+  regional("<lora:styles/portrait.safetensors:0.8>", []).includes("section:lora"),
+  "Canonical LoRA syntax was not highlighted separately",
+);
+assert(
+  regional("<<lora:styles/portrait:0.8:0.6>", []).includes("section:lora"),
+  "Tolerated doubled LoRA opener was not highlighted separately",
+);
+assert(regional("<:portrait", []).includes("section:lora"), "LoRA autocomplete trigger was not highlighted");
+assert(
+  modular(
+    "<lora:styles/portrait:1.0>",
+    [{ token: "<lora:styles/portrait:1.0>", base: "<lora:styles/portrait:1.0>", section: "unknown" }],
+  ).includes("section:lora"),
+  "LoRA syntax must keep priority over backend tag classification",
+);
+assert(
+  !regional("<|> <|> <|start_of_text|>", []).includes("section:lora"),
+  "Angle-pipe tags must not be classified as LoRA syntax",
+);
 
 console.log("Highlight core smoke passed.");

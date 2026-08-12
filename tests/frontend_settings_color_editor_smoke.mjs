@@ -103,9 +103,10 @@ const SYNTAX_LABELS = [
   "Natural language",
   "Translation marker",
   "Wildcard",
+  "LoRA syntax",
   "Comment",
 ];
-const SYNTAX_DEFAULTS = ["#cbd5e1", "#22d3ee", "#c084fc", "#9ca3af"];
+const SYNTAX_DEFAULTS = ["#cbd5e1", "#22d3ee", "#c084fc", "#e879f9", "#9ca3af"];
 
 const document = createFakeDocument();
 const internalValues = new Map([

@@ -106,6 +106,7 @@ const expectedIds = [
   "EasyUseAnima.Prompt.AutocompleteDetectNaturalSentences",
   "EasyUseAnima.Prompt.AutocompletePreviewCompletion",
   "EasyUseAnima.Prompt.AutocompletePreviewClosingBrackets",
+  "EasyUseAnima.Prompt.LoraAutocomplete",
   "EasyUseAnima.Prompt.SelectionParenthesisWeight",
   "EasyUseAnima.Prompt.TranslationProvider",
   "EasyUseAnima.Prompt.TranslationSource",
@@ -138,7 +139,7 @@ const expectedIds = [
 ];
 
 assert.deepEqual(settings.map((item) => item.id), expectedIds);
-assert.equal(settings.length, 55);
+assert.equal(settings.length, 56);
 assert.equal(new Set(expectedIds).size, settings.length, "Setting IDs must be unique");
 assert.ok(
   settings.every((item) => item.category[0] === "EASY USE ANIMA"),
@@ -240,6 +241,7 @@ const expectedRegularSchemas = new Map([
   ["EasyUseAnima.Prompt.AutocompleteDetectNaturalSentences", schema("boolean", true)],
   ["EasyUseAnima.Prompt.AutocompletePreviewCompletion", schema("boolean", false)],
   ["EasyUseAnima.Prompt.AutocompletePreviewClosingBrackets", schema("boolean", false)],
+  ["EasyUseAnima.Prompt.LoraAutocomplete", schema("boolean", true)],
   ["EasyUseAnima.Prompt.SelectionParenthesisWeight", schema("boolean", false)],
   [
     "EasyUseAnima.Prompt.TranslationProvider",
