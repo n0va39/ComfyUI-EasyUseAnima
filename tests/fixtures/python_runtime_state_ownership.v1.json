@@ -163,6 +163,18 @@
       "thread_safety": "One RLock protects enabled/generation/cache/order/metrics publication and mutation."
     },
     {
+      "categories": ["lock", "model_detection_patch"],
+      "cleanup": "The scoped context always restores ComfyUI's original detector before releasing the lock; the lock itself remains for process lifetime.",
+      "id": "anima-29b-detection-scope",
+      "lifetime": "Process lifetime from module import; detector replacement is limited to the owning thread and one AiO diffusion-model load scope.",
+      "module": "easyuse_anima/anima_29b/architecture.py",
+      "owner": "easyuse_anima.anima_29b.architecture._DETECTION_LOCK",
+      "symbols": ["_DETECTION_LOCK"],
+      "target_phase": "anima-29b-complete",
+      "test_evidence": ["tests/test_anima_29b.py"],
+      "thread_safety": "One RLock serializes temporary detector replacement, while owner-thread gating sends concurrent external callers directly to the original detector."
+    },
+    {
       "categories": ["async_limiter", "lock", "weak_registry"],
       "cleanup": "Weak loop keys and weak semaphore values self-expire; no explicit process shutdown hook.",
       "id": "api-file-io-limiters",

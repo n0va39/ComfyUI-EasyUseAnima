@@ -6,6 +6,7 @@ import inspect
 import logging
 from typing import Any
 
+from ..anima_29b.lora import _apply_anima_29b_aio_lora_stack
 from ..common.serialization import _stable_change_key
 from ..common.values import _as_bool, _as_float, _as_int
 from ..infrastructure.comfy.invocation import (
@@ -379,6 +380,10 @@ def _apply_aio_lora_stack(model, clip, lora_stack):
     entries = _normalize_aio_lora_stack(lora_stack)
     if not entries:
         return model, clip, []
+
+    model_specific_result = _apply_anima_29b_aio_lora_stack(model, clip, entries)
+    if model_specific_result is not None:
+        return model_specific_result
 
     loader_cls = _find_comfy_node_class("LoraLoader")
     if loader_cls is None:

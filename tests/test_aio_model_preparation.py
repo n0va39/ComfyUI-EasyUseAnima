@@ -58,6 +58,33 @@ class AIOModelPreparationMoveTests(unittest.TestCase):
         self.assertIs(result_clip, original_clip)
         self.assertEqual(applied, [])
 
+    def test_anima_29b_lora_hook_claims_stack_before_core_loader(self):
+        hook_result = ("anima-29b-model", "anima-29b-clip", [{"name": "legacy"}])
+        with (
+            patch.object(
+                model_preparation,
+                "_apply_anima_29b_aio_lora_stack",
+                return_value=hook_result,
+            ) as apply_hook,
+            patch_comfy_helper(
+                model_preparation,
+                "_find_comfy_node_class",
+                side_effect=AssertionError("core LoraLoader must not run"),
+            ),
+        ):
+            result = model_preparation._apply_aio_lora_stack(
+                "model",
+                "clip",
+                [("legacy.safetensors", 0.8, 0.6)],
+            )
+
+        self.assertEqual(result, hook_result)
+        apply_hook.assert_called_once_with(
+            "model",
+            "clip",
+            [("legacy.safetensors", 0.8, 0.6)],
+        )
+
     def test_model_patch_aggregate_uses_canonical_subcalls_in_order(self):
         trace: list[tuple[str, object]] = []
         replacement_dave = Mock(

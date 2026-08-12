@@ -303,7 +303,7 @@ class CompletedPackageImportBoundaryTests(unittest.TestCase):
         }
         contract_groups = self.contract["groups"]
 
-        self.assertEqual(len(contract_groups), 17)
+        self.assertEqual(len(contract_groups), 18)
         self.assertEqual(
             {
                 group["group"]: list(group["production_paths"])
@@ -317,6 +317,7 @@ class CompletedPackageImportBoundaryTests(unittest.TestCase):
                 for group in contract_groups
             },
             {
+                "anima_29b": "feature-service",
                 "aio": "feature-service",
                 "api": "http-adapter",
                 "autocomplete": "feature-service",
