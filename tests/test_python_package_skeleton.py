@@ -12,6 +12,8 @@ PACKAGE_MODULES = (
     "easyuse_anima",
     "easyuse_anima.bootstrap",
     "easyuse_anima.errors",
+    "easyuse_anima.extensions",
+    "easyuse_anima.extensions.aio",
     "easyuse_anima.workflow",
     "easyuse_anima.aio",
     "easyuse_anima.aio.conditioning",
@@ -41,6 +43,9 @@ PACKAGE_MODULES = (
     "easyuse_anima.aio.input_context",
     "easyuse_anima.aio.generation_migrations",
     "easyuse_anima.aio.generation_settings",
+    "easyuse_anima.aio.hooks",
+    "easyuse_anima.aio.hooks.contracts",
+    "easyuse_anima.aio.hooks.runtime",
     "easyuse_anima.aio.resources",
     "easyuse_anima.aio.usdu",
     "easyuse_anima.api",
@@ -88,6 +93,7 @@ PACKAGE_MODULES = (
     "easyuse_anima.lora",
     "easyuse_anima.naia",
     "easyuse_anima.nodes",
+    "easyuse_anima.nodes.aio_hook_nodes",
     "easyuse_anima.nodes.aio_nodes",
     "easyuse_anima.nodes.input_types",
     "easyuse_anima.nodes.prompt_advanced_nodes",
@@ -133,6 +139,90 @@ PACKAGE_MODULES = (
 
 
 class PythonPackageSkeletonTests(unittest.TestCase):
+    def test_comfy_package_load_rejects_a_conflicting_canonical_package(self):
+        script = f"""
+import importlib.util
+import sys
+from pathlib import Path
+from types import ModuleType
+
+root = Path({str(ROOT)!r})
+package_name = "codex_conflicting_nodepack"
+sys.modules["easyuse_anima"] = ModuleType("easyuse_anima")
+spec = importlib.util.spec_from_file_location(
+    package_name,
+    root / "__init__.py",
+    submodule_search_locations=[str(root)],
+)
+if spec is None or spec.loader is None:
+    raise RuntimeError("could not create root package spec")
+package = importlib.util.module_from_spec(spec)
+sys.modules[package_name] = package
+try:
+    spec.loader.exec_module(package)
+except RuntimeError as error:
+    if "Conflicting canonical EasyUse Anima backend package" not in str(error):
+        raise
+else:
+    raise AssertionError("conflicting canonical package was accepted")
+print("canonical-extension-conflict: rejected")
+"""
+        result = subprocess.run(
+            [sys.executable, "-I", "-B", "-c", script],
+            cwd=ROOT,
+            check=False,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            timeout=15,
+        )
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn("canonical-extension-conflict: rejected", result.stdout)
+
+    def test_comfy_package_load_publishes_one_canonical_extension_identity(self):
+        script = f"""
+import importlib.util
+import sys
+from pathlib import Path
+
+root = Path({str(ROOT)!r})
+package_name = "codex_probe_nodepack"
+spec = importlib.util.spec_from_file_location(
+    package_name,
+    root / "__init__.py",
+    submodule_search_locations=[str(root)],
+)
+if spec is None or spec.loader is None:
+    raise RuntimeError("could not create root package spec")
+package = importlib.util.module_from_spec(spec)
+sys.modules[package_name] = package
+spec.loader.exec_module(package)
+
+from easyuse_anima.extensions.aio import AioHookDescriptor as PublicDescriptor
+
+internal = sys.modules[
+    f"{{package_name}}.easyuse_anima.aio.hooks.contracts"
+]
+if sys.modules["easyuse_anima"] is not sys.modules[
+    f"{{package_name}}.easyuse_anima"
+]:
+    raise AssertionError("canonical package alias does not preserve identity")
+if PublicDescriptor is not internal.AioHookDescriptor:
+    raise AssertionError("public descriptor identity differs from runtime contract")
+print("canonical-extension-identity: ok")
+"""
+        result = subprocess.run(
+            [sys.executable, "-I", "-B", "-c", script],
+            cwd=ROOT,
+            check=False,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            timeout=15,
+        )
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn("canonical-extension-identity: ok", result.stdout)
+
     def test_direct_imports_have_empty_surface_and_no_runtime_side_effects(self):
         script = f"""
 import importlib
@@ -349,6 +439,65 @@ print(json.dumps({{
             "ResourceBundle",
             "WorkflowContext",
         ]
+        aio_hook_contract_all = [
+            "AIO_HOOK_API_VERSION",
+            "EASYUSE_ANIMA_AIO_HOOK_TYPE",
+            "AioHookChain",
+            "AioHookContractError",
+            "AioHookDefinition",
+            "AioHookDescriptor",
+            "AioHookError",
+            "AioHookExecutionError",
+            "AioHookPatch",
+            "AioHookPoint",
+            "AioHookRequestView",
+            "AioHookServices",
+            "AioHookSession",
+            "AioHookSessionBase",
+            "AioHookSessionContext",
+            "AioHookStateView",
+            "AioStage",
+            "AioStageEvent",
+            "AioStagePhase",
+            "JsonValue",
+            "UNSET",
+            "combine_aio_hooks",
+        ]
+        expected_all[
+            PACKAGE_MODULES.index("easyuse_anima.aio.hooks.contracts")
+        ] = aio_hook_contract_all
+        expected_all[
+            PACKAGE_MODULES.index("easyuse_anima.extensions.aio")
+        ] = aio_hook_contract_all
+        expected_all[PACKAGE_MODULES.index("easyuse_anima.aio.hooks")] = [
+            "AIO_HOOK_API_VERSION",
+            "EASYUSE_ANIMA_AIO_HOOK_TYPE",
+            "AioHookChain",
+            "AioHookContractError",
+            "AioHookDefinition",
+            "AioHookDescriptor",
+            "AioHookError",
+            "AioHookExecutionError",
+            "AioHookPatch",
+            "AioHookPoint",
+            "AioHookRequestView",
+            "AioHookRun",
+            "AioHookServices",
+            "AioHookSession",
+            "AioHookSessionBase",
+            "AioHookSessionContext",
+            "AioHookStateView",
+            "AioStage",
+            "AioStageEvent",
+            "AioStagePhase",
+            "aio_hook_change_token",
+            "combine_aio_hooks",
+            "prepare_aio_hook",
+            "run_aio_postprocess_hook_stage",
+        ]
+        expected_all[
+            PACKAGE_MODULES.index("easyuse_anima.nodes.aio_hook_nodes")
+        ] = ["EasyUseAnimaAIOHookCombine"]
         expected_all[PACKAGE_MODULES.index("easyuse_anima.nodes.aio_nodes")] = [
             "EasyUseAnimaInput",
             "EasyUseAnimaAIOGenerator",

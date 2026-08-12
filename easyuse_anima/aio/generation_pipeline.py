@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 from dataclasses import dataclass, field
-from typing import Protocol, TypeAlias
+from typing import ClassVar, Protocol, TypeAlias
 
 from .generation_settings import AIOGenerationConfig
 
@@ -23,6 +23,10 @@ def _new_metadata() -> dict[str, object]:
 
 def _new_previews() -> list[dict[str, object]]:
     return []
+
+
+def _new_extensions() -> dict[str, object]:
+    return {}
 
 
 @dataclass(frozen=True, slots=True)
@@ -82,13 +86,14 @@ class GenerationState:
     height: int
     metadata: dict[str, object] = field(default_factory=_new_metadata)
     previews: list[dict[str, object]] = field(default_factory=_new_previews)
+    extensions: dict[str, object] = field(default_factory=_new_extensions)
 
 
 GenerationCapabilities: TypeAlias = Mapping[str, object]
 
 
 class GenerationStage(Protocol):
-    name: str
+    name: ClassVar[str]
 
     def validate(
         self,

@@ -2,9 +2,11 @@
 
 const NODE_TYPE = "EasyUseAnimaPromptStudio";
 const ADVANCED_NODE_TYPE = "EasyUseAnimaPromptStudioAdvanced";
+const ADVANCED_LORA_NODE_TYPE = "EasyUseAnimaPromptStudioAdvancedLora";
 const ADVANCED_V2_NODE_TYPE = "EasyUseAnimaPromptStudioAdvancedV2";
 const EXTEND_NODE_TYPE = "EasyUseAnimaPromptStudioExtend";
 const WILDCARD_NODE_TYPE = "EasyUseAnimaWildcard";
+const WILDCARD_LORA_NODE_TYPE = "EasyUseAnimaWildcardLora";
 const FIELD_NAMES = [
   "lora_trigger_tags",
   "quality_tags",
@@ -55,6 +57,7 @@ const PROMPT_STUDIO_TEXT = {
     "section.natural": "Natural language",
     "section.translation": "Translation marker",
     "section.wildcard": "Wildcard",
+    "section.lora": "LoRA syntax",
     "section.syntax": "Syntax error",
     "section.unknown": "Unknown",
     "tag.generic": "tag",
@@ -202,6 +205,7 @@ const PROMPT_STUDIO_TEXT = {
     "section.natural": "자연어",
     "section.translation": "번역 구문",
     "section.wildcard": "와일드카드",
+    "section.lora": "LoRA 구문",
     "section.syntax": "문법 오류",
     "section.unknown": "미확인",
     "tag.generic": "태그",
@@ -349,6 +353,7 @@ const PROMPT_STUDIO_TEXT = {
     "section.natural": "自然文",
     "section.translation": "翻訳構文",
     "section.wildcard": "ワイルドカード",
+    "section.lora": "LoRA 構文",
     "section.syntax": "構文エラー",
     "section.unknown": "不明",
     "tag.generic": "タグ",
@@ -496,6 +501,7 @@ const PROMPT_STUDIO_TEXT = {
     "section.natural": "自然语言",
     "section.translation": "翻译语法",
     "section.wildcard": "通配符",
+    "section.lora": "LoRA 语法",
     "section.syntax": "语法错误",
     "section.unknown": "未知",
     "tag.generic": "标签",
@@ -670,6 +676,7 @@ const SECTION_STYLES = {
   natural: { label: "자연어", color: "#cbd5e1", background: "rgba(71, 85, 105, 0.16)", weight: 400 },
   translation: { label: "번역 구문", color: "#22d3ee", background: "rgba(8, 145, 178, 0.22)", weight: 700 },
   wildcard: { label: "와일드카드", color: "#c084fc", background: "rgba(126, 34, 206, 0.24)", weight: 700 },
+  lora: { label: "LoRA 구문", color: "#e879f9", background: "rgba(192, 38, 211, 0.22)", weight: 700 },
   comment: { label: "주석", color: "#9ca3af", background: "rgba(156, 163, 175, 0.14)", weight: 400, italic: true },
   syntax: { label: "문법 오류", color: "#f87171", background: "transparent", underline: true, weight: 400 },
   unknown: { label: "미확인", color: "#cbd5e1", background: "transparent", underline: true, weight: 400 },
@@ -688,6 +695,7 @@ const LEGEND_ITEMS = [
   "natural",
   "translation",
   "wildcard",
+  "lora",
   "comment",
   "syntax",
   "artist_unknown",
@@ -986,9 +994,11 @@ const ADVANCED_DEFAULT_FIELDS = [
 export {
   NODE_TYPE,
   ADVANCED_NODE_TYPE,
+  ADVANCED_LORA_NODE_TYPE,
   ADVANCED_V2_NODE_TYPE,
   EXTEND_NODE_TYPE,
   WILDCARD_NODE_TYPE,
+  WILDCARD_LORA_NODE_TYPE,
   FIELD_NAMES,
   EXTEND_FIELD_NAMES,
   EXTEND_VISIBLE_SLOTS_PROPERTY,

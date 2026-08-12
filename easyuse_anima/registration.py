@@ -1,5 +1,6 @@
 """Pure ComfyUI node mapping composition for EasyUse Anima."""
 
+from .nodes.aio_hook_nodes import EasyUseAnimaAIOHookCombine
 from .nodes.aio_nodes import EasyUseAnimaAIOGenerator, EasyUseAnimaInput
 from .nodes.image_nodes import (
     EasyUseAnimaDetailerAlignHook,
@@ -16,6 +17,7 @@ from .nodes.prompt_data_nodes import (
     EasyUseAnimaPromptDataConditioning,
     EasyUseAnimaPromptDataUnpack,
 )
+from .nodes.prompt_lora_nodes import EasyUseAnimaPromptStudioAdvancedLora
 from .nodes.prompt_nodes import (
     EasyUseAnimaPromptBuilder,
     EasyUseAnimaPromptCorrector,
@@ -26,10 +28,11 @@ from .nodes.regional_nodes import (
     EasyUseAnimaPromptStudioRegional,
     EasyUseAnimaRegionalConditioning,
 )
-from .nodes.wildcard_nodes import EasyUseAnimaWildcard
+from .nodes.wildcard_nodes import EasyUseAnimaWildcard, EasyUseAnimaWildcardLora
 
 NODE_CLASS_MAPPINGS = {
     "EasyUseAnimaAIOGenerator": EasyUseAnimaAIOGenerator,
+    "EasyUseAnimaAIOHookCombine": EasyUseAnimaAIOHookCombine,
     "EasyUseAnimaDetailerAlignHook": EasyUseAnimaDetailerAlignHook,
     "EasyUseAnimaArtistMixConditioning": EasyUseAnimaArtistMixConditioning,
     "EasyUseAnimaInput": EasyUseAnimaInput,
@@ -43,14 +46,17 @@ NODE_CLASS_MAPPINGS = {
     "EasyUseAnimaPromptCorrectorSimple": EasyUseAnimaPromptCorrectorSimple,
     "EasyUseAnimaPromptStudio": EasyUseAnimaPromptStudio,
     "EasyUseAnimaPromptStudioAdvanced": EasyUseAnimaPromptStudioAdvanced,
+    "EasyUseAnimaPromptStudioAdvancedLora": EasyUseAnimaPromptStudioAdvancedLora,
     "EasyUseAnimaPromptStudioAdvancedV2": EasyUseAnimaPromptStudioAdvancedV2,
     "EasyUseAnimaPromptStudioRegional": EasyUseAnimaPromptStudioRegional,
     "EasyUseAnimaRegionalConditioning": EasyUseAnimaRegionalConditioning,
     "EasyUseAnimaWildcard": EasyUseAnimaWildcard,
+    "EasyUseAnimaWildcardLora": EasyUseAnimaWildcardLora,
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
     "EasyUseAnimaAIOGenerator": "Anima AiO Generator",
+    "EasyUseAnimaAIOHookCombine": "Anima AiO Hook Combine",
     "EasyUseAnimaDetailerAlignHook": "Anima Detailer Align Hook",
     "EasyUseAnimaArtistMixConditioning": "Anima Artist Mix Conditioning",
     "EasyUseAnimaInput": "Easy Use Anima Input",
@@ -64,10 +70,12 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "EasyUseAnimaPromptCorrectorSimple": "Anima Prompt Corrector Simple",
     "EasyUseAnimaPromptStudio": "Anima Prompt Studio",
     "EasyUseAnimaPromptStudioAdvanced": "Anima Prompt Studio Advanced",
+    "EasyUseAnimaPromptStudioAdvancedLora": "Anima Prompt Studio Advanced LoRA",
     "EasyUseAnimaPromptStudioAdvancedV2": "Anima Prompt Studio Advanced v2",
     "EasyUseAnimaPromptStudioRegional": "Anima Prompt Studio Regional",
     "EasyUseAnimaRegionalConditioning": "Anima Regional Conditioning",
     "EasyUseAnimaWildcard": "Anima Wildcard",
+    "EasyUseAnimaWildcardLora": "Anima Wildcard LoRA",
 }
 
 __all__ = ["NODE_CLASS_MAPPINGS", "NODE_DISPLAY_NAME_MAPPINGS"]

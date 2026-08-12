@@ -64,15 +64,14 @@ from ..settings.service import (
 from ..wildcard.seed import next_seed
 from ..wildcard.service import wildcard_sources_signature
 from ..workflow import _get_workflow_node
+from . import prompt_advanced_v2_execution as _advanced_v2
 from .input_types import _FlexibleOptionalInputType
 from .naia_nodes import EasyUseAnimaNAIARandomPrompt
 from .prompt_advanced_execution import (
     _AdvancedBuildRequest,
     _AdvancedExecutionBindings,
     _AdvancedExecutionSnapshot,
-    _AdvancedV2BuildRequest,
     _build_prompt_studio_advanced,
-    _build_prompt_studio_advanced_v2,
 )
 from .seed_adapters import (
     PROMPT_STUDIO_ADVANCED_SEED_FEATURE,
@@ -397,6 +396,7 @@ class EasyUseAnimaPromptStudioAdvanced:
             post_random=_post_random,
             parse_random_response=_parse_random_response,
             resolve_naia_resolution=_resolve_naia_resolution,
+            transform_fields=getattr(self, "_transform_effective_fields", None),
         )
         return _build_prompt_studio_advanced(request, bindings)
 
@@ -704,7 +704,7 @@ class EasyUseAnimaPromptStudioAdvancedV2(EasyUseAnimaPromptStudioAdvanced):
             seed_execution=_seed_execution,
             field_inputs=field_inputs,
         )
-        request = _AdvancedV2BuildRequest(
+        request = _advanced_v2._AdvancedV2BuildRequest(
             base=base_request,
             artist_mix_mode=artist_mix_mode,
             artist_mix_start_percent=artist_mix_start_percent,
@@ -716,7 +716,7 @@ class EasyUseAnimaPromptStudioAdvancedV2(EasyUseAnimaPromptStudioAdvanced):
             artist_mix_dominant_isolation=artist_mix_dominant_isolation,
             artist_mix_dominant_threshold=artist_mix_dominant_threshold,
         )
-        return _build_prompt_studio_advanced_v2(
+        return _advanced_v2._build_prompt_studio_advanced_v2(
             request,
             base_build=super().build,
             input_types=self.INPUT_TYPES,

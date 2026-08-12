@@ -3,8 +3,8 @@
   "baseline_commit": "39997c5423847d4280737f0d78d353d3c6273e07",
   "inventory_owner": {
     "path": "tests/fixtures/python_backend_baseline.json",
-    "expected_baseline_files": 183,
-    "expected_target_files": 181
+    "expected_baseline_files": 189,
+    "expected_target_files": 191
   },
   "linked_contracts": {
     "compatibility_registry": "docs/architecture/python-compatibility-shims.md",
@@ -672,6 +672,73 @@
       "size_exception_verdicts": []
     },
     {
+      "path": "easyuse_anima/aio/hooks/__init__.py",
+      "role": "aio-hook-facade",
+      "owner_group": "aio",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/aio/hooks/__init__.py",
+          "role": "aio-hook-facade",
+          "owner_group": "aio"
+        }
+      ],
+      "direct_contracts": [
+        "tests/test_aio_hook_runtime.py"
+      ],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/aio/hooks/contracts.py",
+      "role": "aio-hook-contracts",
+      "owner_group": "aio",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/aio/hooks/contracts.py",
+          "role": "aio-hook-contracts",
+          "owner_group": "aio"
+        }
+      ],
+      "direct_contracts": [
+        "tests/test_aio_hook_runtime.py",
+        "tests/test_python_package_skeleton.py"
+      ],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/aio/hooks/runtime.py",
+      "role": "aio-hook-runtime",
+      "owner_group": "aio",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/aio/hooks/runtime.py",
+          "role": "aio-hook-runtime",
+          "owner_group": "aio"
+        }
+      ],
+      "direct_contracts": [
+        "tests/test_aio_hook_runtime.py"
+      ],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
       "path": "easyuse_anima/aio/input_context.py",
       "role": "aio-feature-module",
       "owner_group": "aio",
@@ -765,19 +832,26 @@
       "path": "easyuse_anima/aio/model_preparation.py",
       "role": "aio-feature-module",
       "owner_group": "aio",
-      "disposition": "cohesive_retain",
+      "disposition": "split",
       "status": "complete",
       "targets": [
         {
           "path": "easyuse_anima/aio/model_preparation.py",
           "role": "aio-feature-module",
           "owner_group": "aio"
+        },
+        {
+          "path": "easyuse_anima/aio/prompt_lora.py",
+          "role": "aio-prompt-lora-adapter",
+          "owner_group": "aio"
         }
       ],
-      "direct_contracts": [],
+      "direct_contracts": [
+        "tests/test_lora_prompt_syntax.py"
+      ],
       "compatibility_registry_key": null,
-      "task_id": null,
-      "rollback_unit": null,
+      "task_id": "ISSUE-645",
+      "rollback_unit": "Revert the cohesive Issue #645 AiO prompt-LoRA adapter split.",
       "replacement_owner": null,
       "size_exception_verdicts": []
     },
@@ -1792,6 +1866,51 @@
       "size_exception_verdicts": []
     },
     {
+      "path": "easyuse_anima/extensions/__init__.py",
+      "role": "package-facade",
+      "owner_group": "extensions",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/extensions/__init__.py",
+          "role": "package-facade",
+          "owner_group": "extensions"
+        }
+      ],
+      "direct_contracts": [
+        "tests/test_python_package_skeleton.py"
+      ],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/extensions/aio.py",
+      "role": "public-extension-api",
+      "owner_group": "extensions",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/extensions/aio.py",
+          "role": "public-extension-api",
+          "owner_group": "extensions"
+        }
+      ],
+      "direct_contracts": [
+        "tests/test_aio_hook_runtime.py",
+        "tests/test_python_package_skeleton.py"
+      ],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
       "path": "easyuse_anima/image/__init__.py",
       "role": "package-facade",
       "owner_group": "image",
@@ -2176,19 +2295,26 @@
       "path": "easyuse_anima/lora/metadata.py",
       "role": "lora-feature-module",
       "owner_group": "lora",
-      "disposition": "cohesive_retain",
+      "disposition": "split",
       "status": "complete",
       "targets": [
         {
           "path": "easyuse_anima/lora/metadata.py",
           "role": "lora-feature-module",
           "owner_group": "lora"
+        },
+        {
+          "path": "easyuse_anima/lora/prompt_syntax.py",
+          "role": "lora-prompt-syntax",
+          "owner_group": "lora"
         }
       ],
-      "direct_contracts": [],
+      "direct_contracts": [
+        "tests/test_lora_prompt_syntax.py"
+      ],
       "compatibility_registry_key": null,
-      "task_id": null,
-      "rollback_unit": null,
+      "task_id": "ISSUE-645",
+      "rollback_unit": "Revert the cohesive Issue #645 LoRA prompt-syntax split.",
       "replacement_owner": null,
       "size_exception_verdicts": []
     },
@@ -2286,6 +2412,29 @@
         }
       ],
       "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/nodes/aio_hook_nodes.py",
+      "role": "comfyui-node-adapter",
+      "owner_group": "nodes",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/nodes/aio_hook_nodes.py",
+          "role": "comfyui-node-adapter",
+          "owner_group": "nodes"
+        }
+      ],
+      "direct_contracts": [
+        "tests/test_aio_hook_runtime.py",
+        "tests/test_node_contracts.py"
+      ],
       "compatibility_registry_key": null,
       "task_id": null,
       "rollback_unit": null,
@@ -2440,23 +2589,29 @@
           "path": "easyuse_anima/nodes/prompt_advanced_nodes.py",
           "role": "prompt-advanced-node-schema-adapter",
           "owner_group": "nodes"
+        },
+        {
+          "path": "easyuse_anima/nodes/prompt_advanced_v2_execution.py",
+          "role": "prompt-advanced-v2-execution-adapter",
+          "owner_group": "nodes"
+        },
+        {
+          "path": "easyuse_anima/nodes/prompt_lora_nodes.py",
+          "role": "prompt-lora-node-adapter",
+          "owner_group": "nodes"
         }
       ],
       "direct_contracts": [
+        "tests/test_lora_prompt_syntax.py",
         "tests/test_node_contracts.py",
         "tests/test_prompt_studio_seed_cutover.py",
         "tests/test_workflows.py"
       ],
       "compatibility_registry_key": null,
-      "task_id": "PTC-07A",
-      "rollback_unit": "Revert the cohesive PTC-07A advanced node-adapter Move PR.",
+      "task_id": "PTC-07A/ISSUE-645",
+      "rollback_unit": "Revert the relevant PTC-07A or Issue #645 advanced node-adapter split.",
       "replacement_owner": null,
       "size_exception_verdicts": [
-        {
-          "id": "module:easyuse_anima/nodes/prompt_advanced_execution.py",
-          "verdict": "split",
-          "final_owner": "easyuse_anima/nodes/prompt_advanced_execution.py"
-        },
         {
           "id": "module:easyuse_anima/nodes/prompt_advanced_nodes.py",
           "verdict": "split",

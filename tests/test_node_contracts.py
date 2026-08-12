@@ -289,6 +289,11 @@ def _deterministic_comfy_inputs():
 def _loaded_package_entrypoint():
     package_name = "_easyuse_anima_contract_entrypoint"
     package_prefix = f"{package_name}."
+    canonical_modules = {
+        name: module
+        for name, module in tuple(sys.modules.items())
+        if name == "easyuse_anima" or name.startswith("easyuse_anima.")
+    }
     if any(name == package_name or name.startswith(package_prefix) for name in sys.modules):
         raise AssertionError(f"Synthetic package namespace is already loaded: {package_name}")
 
@@ -332,6 +337,8 @@ def _loaded_package_entrypoint():
     )
     bootstrap = None
 
+    for name in canonical_modules:
+        sys.modules.pop(name, None)
     try:
         with (
             patch.dict(
@@ -359,6 +366,9 @@ def _loaded_package_entrypoint():
             for name in list(sys.modules):
                 if name == package_name or name.startswith(package_prefix):
                     sys.modules.pop(name, None)
+                elif name == "easyuse_anima" or name.startswith("easyuse_anima."):
+                    sys.modules.pop(name, None)
+            sys.modules.update(canonical_modules)
 
 
 def _node_contract(node_id: str, class_name: str, display_name: str) -> dict:

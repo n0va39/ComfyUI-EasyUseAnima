@@ -527,6 +527,45 @@ export function currentWildcardToken(value, caret) {
   };
 }
 
+export function currentLoraToken(value, caret) {
+  const text = String(value || "");
+  const safeCaret = clamp(
+    caret == null ? text.length : Number(caret),
+    0,
+    text.length,
+  );
+  const beforeCaret = text.slice(0, safeCaret);
+  const triggerStart = beforeCaret.lastIndexOf("<:");
+  if (triggerStart < 0 || isEscaped(text, triggerStart)) {
+    return null;
+  }
+  const start = triggerStart > 0 && text[triggerStart - 1] === "<"
+    ? triggerStart - 1
+    : triggerStart;
+  if (beforeCaret.lastIndexOf(">") > start) {
+    return null;
+  }
+  const query = text.slice(triggerStart + 2, safeCaret);
+  if (/[,:<>\r\n]/.test(query)) {
+    return null;
+  }
+  const closing = text.indexOf(">", safeCaret);
+  if (closing >= 0 && /[,:<>\r\n]/.test(text.slice(safeCaret, closing))) {
+    return null;
+  }
+  const end = closing >= 0 ? closing + 1 : safeCaret;
+  return {
+    value: text,
+    start,
+    end,
+    caret: safeCaret,
+    segment: text.slice(start, end),
+    query,
+    lora: true,
+    active: true,
+  };
+}
+
 export function isCaretInPromptTranslationMarker(value, caret) {
   const text = String(value || "");
   const safeCaret = caret == null ? text.length : Number(caret);
@@ -630,11 +669,28 @@ export function wildcardAutocompleteQuery(token) {
   };
 }
 
+export function loraAutocompleteQuery(token) {
+  return {
+    query: normalizeLoraSearchText(token?.query),
+    artistOnly: false,
+    category: "lora",
+    kind: "lora",
+  };
+}
+
 export function normalizeWildcardSearchText(value) {
   return String(value || "")
     .normalize("NFKC")
     .replaceAll("\\", "/")
     .replace(/[ _]+/g, "-")
+    .trim()
+    .toLocaleLowerCase();
+}
+
+export function normalizeLoraSearchText(value) {
+  return String(value || "")
+    .normalize("NFKC")
+    .replaceAll("\\", "/")
     .trim()
     .toLocaleLowerCase();
 }
@@ -756,6 +812,30 @@ export function planAutocompleteInsertion(token, insert, options = {}) {
   const fallbackStart = clamp(Number(token.start) || 0, 0, sourceValue.length);
   const fallbackEnd = tokenRange(token.end, fallbackStart, sourceValue.length);
   const insertedText = String(insert || "");
+  if (token.lora) {
+    const strength = /:([^:>]*)>$/.exec(insertedText);
+    const selectionStartOffset = strength
+      ? strength.index + 1
+      : insertedText.length;
+    const selectionEndOffset = strength
+      ? selectionStartOffset + strength[1].length
+      : selectionStartOffset;
+    return {
+      start: fallbackStart,
+      end: fallbackEnd,
+      replacement: insertedText,
+      caretOffset: selectionEndOffset,
+      selectionStartOffset,
+      selectionEndOffset,
+      prefix: "",
+      suffix: "",
+      consumeAfter: 0,
+      caretExtra: 0,
+      preservedSuffix: sourceValue.slice(fallbackEnd),
+      modeUsed: "lora",
+      editRange: "lora",
+    };
+  }
   if (token.wildcard) {
     return {
       start: fallbackStart,

@@ -20,7 +20,7 @@
   "module_exceptions": [
     {
       "path": "easyuse_anima/aio/legacy_generation.py",
-      "baseline_loc": 842,
+      "baseline_loc": 833,
       "owner_issue": 188,
       "decomposition_boundary": "Move legacy stage orchestration only along existing stage-port calls while preserving root monkeypatch seams."
     },
@@ -35,12 +35,6 @@
       "baseline_loc": 415,
       "owner_issue": 188,
       "decomposition_boundary": "Split filesystem primitives only if lock, compare-and-swap, atomic replace, and recovery ordering remain one transaction contract."
-    },
-    {
-      "path": "easyuse_anima/nodes/prompt_advanced_execution.py",
-      "baseline_loc": 506,
-      "owner_issue": 188,
-      "decomposition_boundary": "Keep typed Advanced build requests, call-time seams, and v1/v2 execution ordering together through PTC-07A."
     },
     {
       "path": "easyuse_anima/nodes/prompt_advanced_nodes.py",
@@ -65,14 +59,14 @@
     {
       "path": "easyuse_anima/aio/generation_save_output_stage.py",
       "qualified_name": "AIOSaveOutputStage.run",
-      "baseline_loc": 141,
+      "baseline_loc": 138,
       "owner_issue": 188,
       "decomposition_boundary": "Separate save backend dispatch from result assembly only with identical output and disabled-save behavior."
     },
     {
       "path": "easyuse_anima/aio/legacy_generation.py",
       "qualified_name": "_run_aio_generation_pipeline",
-      "baseline_loc": 385,
+      "baseline_loc": 375,
       "owner_issue": 188,
       "decomposition_boundary": "Move legacy pipeline stages only through existing stage ports while preserving call and error order."
     },

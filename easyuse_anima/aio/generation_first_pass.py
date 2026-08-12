@@ -60,6 +60,7 @@ class AIOFirstPassStage:
     runtime: FirstPassRuntime
     cache_key: str
     use_mod_guidance: bool
+    use_cache: bool = True
     add_preview: FirstPassPreview | None = None
 
     name: ClassVar[str] = "first_pass"
@@ -92,7 +93,11 @@ class AIOFirstPassStage:
             else ""
         )
 
-        cached_first_pass = self.runtime.get_cache(self.cache_key)
+        cached_first_pass = (
+            self.runtime.get_cache(self.cache_key)
+            if self.use_cache
+            else None
+        )
         cache_hit = cached_first_pass is not None
         if cached_first_pass is not None:
             latent, image = cached_first_pass
@@ -129,7 +134,7 @@ class AIOFirstPassStage:
                 request.resources.vae,
                 image,
             )
-        if not cache_hit or resized:
+        if self.use_cache and (not cache_hit or resized):
             try:
                 self.runtime.put_cache(self.cache_key, latent, image)
             except Exception as exc:

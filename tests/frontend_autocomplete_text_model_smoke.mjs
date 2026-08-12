@@ -12,12 +12,15 @@ assert.deepEqual(Object.keys(textModel).sort(), [
   "artistCompletionText",
   "autocompleteQuery",
   "completionEditRangeContract",
+  "currentLoraToken",
   "currentToken",
   "currentWildcardToken",
   "isCaretInComment",
   "isCaretInPromptTranslationMarker",
+  "loraAutocompleteQuery",
   "normalizeAutocompleteArtistPrefix",
   "normalizeAutocompleteCommitMode",
+  "normalizeLoraSearchText",
   "normalizeWildcardSearchText",
   "parseAutocompleteText",
   "planAutocompleteInsertion",
@@ -29,12 +32,15 @@ const {
   artistCompletionText,
   autocompleteQuery,
   completionEditRangeContract,
+  currentLoraToken,
   currentToken,
   currentWildcardToken,
   isCaretInComment,
   isCaretInPromptTranslationMarker,
+  loraAutocompleteQuery,
   normalizeAutocompleteArtistPrefix,
   normalizeAutocompleteCommitMode,
+  normalizeLoraSearchText,
   normalizeWildcardSearchText,
   parseAutocompleteText,
   planAutocompleteInsertion,
@@ -638,6 +644,55 @@ assert.equal(
 );
 assert.equal(currentWildcardToken("__bad,query", "__bad,query".length), null);
 assert.equal(currentWildcardToken("__bad\nquery", "__bad\nquery".length), null);
+
+assert.deepEqual(loraAutocompleteQuery({ query: " Style\\Portrait " }), {
+  query: "style/portrait",
+  artistOnly: false,
+  category: "lora",
+  kind: "lora",
+});
+assert.equal(normalizeLoraSearchText("Ｓｔｙｌｅ\\Portrait"), "style/portrait");
+assert.deepEqual(
+  {
+    query: currentLoraToken("<:", 2)?.query,
+    active: currentLoraToken("<:", 2)?.active,
+  },
+  { query: "", active: true },
+);
+const loraTrigger = currentLoraToken("prefix, <:Style/Por", "prefix, <:Style/Por".length);
+assert.ok(loraTrigger);
+assert.equal(loraTrigger.query, "Style/Por");
+assert.equal(currentLoraToken("<:closed>", "<:closed>".length), null);
+assert.equal(currentLoraToken("<:bad:strength", "<:bad:strength".length), null);
+assert.equal(currentLoraToken("<:bad,query", "<:bad,query".length), null);
+assert.equal(currentLoraToken("\\<:escaped", "\\<:escaped".length), null);
+assert.equal(currentLoraToken("<|> <|>", "<|> <|>".length), null);
+assert.equal(
+  currentLoraToken("<|start_of_text|>", "<|start_of_text|>".length),
+  null,
+);
+
+const closedLoraToken = currentLoraToken("<:old>", "<:old".length);
+const completedLora = appliedPlan(
+  closedLoraToken,
+  "<lora:styles/portrait.safetensors:1.0>",
+);
+assert.equal(completedLora.value, "<lora:styles/portrait.safetensors:1.0>");
+assert.equal(
+  completedLora.value.slice(
+    completedLora.start + completedLora.selectionStartOffset,
+    completedLora.start + completedLora.selectionEndOffset,
+  ),
+  "1.0",
+);
+assert.equal(completedLora.value.at(-1), ">");
+assert.equal(
+  appliedPlan(
+    currentLoraToken("<<:old", "<<:old".length),
+    "<lora:styles/portrait.safetensors:1.0>",
+  ).value,
+  "<lora:styles/portrait.safetensors:1.0>",
+);
 
 const marker = "before %{inside} after";
 assert.equal(

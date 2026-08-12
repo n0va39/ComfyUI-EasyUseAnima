@@ -2,7 +2,7 @@
   "schema_version": 1,
   "baseline_commit": "a0b0dc1f599fcf01ec0f25fc75a23f7524f165ab",
   "inventory": {
-    "expected_files": 207,
+    "expected_files": 210,
     "manual_matrix_source": "tests/fixtures/python_test_ownership_contract.v1.json",
     "patterns": [
       "tests/**/*.json",
@@ -1275,6 +1275,30 @@
       "execution_mode": "unittest",
       "generated": false,
       "kind": "test",
+      "owner": "tests/test_aio_hook_example.py",
+      "path": "tests/test_aio_hook_example.py",
+      "production_groups": [
+        "extensions"
+      ],
+      "purpose": "Direct Python unittest contract for the copyable third party aio hook example."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_aio_hook_runtime.py",
+      "path": "tests/test_aio_hook_runtime.py",
+      "production_groups": [
+        "aio",
+        "extensions",
+        "nodes"
+      ],
+      "purpose": "Direct Python unittest contract for aio hook validation dispatch cleanup and caching."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
       "owner": "tests/test_aio_legacy_generation.py",
       "path": "tests/test_aio_legacy_generation.py",
       "production_groups": [
@@ -1707,6 +1731,23 @@
         "profiles"
       ],
       "purpose": "Direct Python unittest contract for test lora profiles."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_lora_prompt_syntax.py",
+      "path": "tests/test_lora_prompt_syntax.py",
+      "production_groups": [
+        "aio",
+        "autocomplete",
+        "lora",
+        "nodes",
+        "prompt",
+        "settings",
+        "wildcard"
+      ],
+      "purpose": "Direct contract for shared LoRA prompt syntax, node adapters, Prompt Data, AiO consumption, and autocomplete settings."
     },
     {
       "execution_mode": "unittest",

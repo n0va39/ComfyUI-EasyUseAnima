@@ -1,11 +1,13 @@
 // @ts-check
 
 import {
+  ADVANCED_LORA_NODE_TYPE,
   ADVANCED_NODE_TYPE,
   ADVANCED_V2_NODE_TYPE,
   EXTEND_NODE_TYPE,
   NODE_TYPE,
   WILDCARD_NODE_TYPE,
+  WILDCARD_LORA_NODE_TYPE,
 } from "./constants.js";
 import {
   registerHostHookCallbacks,
@@ -16,15 +18,21 @@ const ADVANCED_SAVE_SYNC_OWNER = Symbol.for(
 );
 
 function isAdvancedNodeName(name) {
-  return name === ADVANCED_NODE_TYPE || name === ADVANCED_V2_NODE_TYPE;
+  return name === ADVANCED_NODE_TYPE
+    || name === ADVANCED_LORA_NODE_TYPE
+    || name === ADVANCED_V2_NODE_TYPE;
 }
 
 function isAdvancedNode(node) {
   return isAdvancedNodeName(node?.type) || isAdvancedNodeName(node?.comfyClass);
 }
 
+function isWildcardNodeName(name) {
+  return name === WILDCARD_NODE_TYPE || name === WILDCARD_LORA_NODE_TYPE;
+}
+
 function isWildcardNode(node) {
-  return node?.type === WILDCARD_NODE_TYPE || node?.comfyClass === WILDCARD_NODE_TYPE;
+  return isWildcardNodeName(node?.type) || isWildcardNodeName(node?.comfyClass);
 }
 
 function isExtendNode(node) {
@@ -35,7 +43,7 @@ function isPromptStudioNodeName(name) {
   return name === NODE_TYPE
     || isAdvancedNodeName(name)
     || name === EXTEND_NODE_TYPE
-    || name === WILDCARD_NODE_TYPE;
+    || isWildcardNodeName(name);
 }
 
 function registerPromptStudioNodeHooks(nodeType, nodeData, hooks) {
@@ -49,7 +57,7 @@ function registerPromptStudioNodeHooks(nodeType, nodeData, hooks) {
 
   const nodeName = nodeData.name;
   const isAdvanced = isAdvancedNodeName(nodeName);
-  const isWildcard = nodeName === WILDCARD_NODE_TYPE;
+  const isWildcard = isWildcardNodeName(nodeName);
 
   const onNodeCreated = nodeType.prototype.onNodeCreated;
   nodeType.prototype.onNodeCreated = function () {
@@ -220,6 +228,7 @@ export {
   isExtendNode,
   isPromptStudioNodeName,
   isWildcardNode,
+  isWildcardNodeName,
   installAdvancedSaveSync,
   registerPromptStudioNodeHooks,
   syncAdvancedNodes,

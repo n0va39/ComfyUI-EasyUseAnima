@@ -1,5 +1,6 @@
 import asyncio
 import json
+import stat
 import sys
 import tempfile
 import threading
