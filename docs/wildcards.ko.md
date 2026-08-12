@@ -117,8 +117,26 @@ __style/anime__
 `N::candidate`는 가중치 후보입니다. 일반 채우기에서는 가중치 기반 선택에
 사용되고, 순차 모드에서는 후보 1개로 계산한 뒤 `N::` prefix만 제거됩니다.
 
-`<lora:name:weight>` 형식은 텍스트로 보존합니다. EasyUse Anima 와일드카드는
-MODEL/CLIP에 LoRA를 직접 적용하지 않습니다.
+와일드카드 확장기는 `<lora:name:weight>` 또는
+`<lora:name:model_weight:clip_weight>` 형식을 텍스트로 보존합니다. 확장된 태그의
+처리는 연결한 노드에 따라 달라집니다.
+
+- `Anima Prompt Studio Advanced v2`의 양성 필드에서 나온 LoRA 태그는
+  `EASYUSE_ANIMA_PROMPT_DATA`의 구조화된 LoRA 정보로 변환되며, `Anima AiO
+  Generator`가 기존 LoRA stack 뒤에 적용합니다.
+- `Anima Prompt Studio Advanced LoRA`와 `Anima Wildcard LoRA`는 입력 LoRA stack
+  뒤에 확장 결과를 추가해 출력합니다.
+- 일반 `Anima Wildcard` 노드는 문자열만 출력하므로 MODEL/CLIP에 LoRA를 직접
+  적용하지 않습니다.
+
+예를 들어 `prompt_lora.txt`의 한 후보가 다음과 같다면:
+
+```text
+<lora:styles/my-style:0.7:0.4>
+```
+
+Prompt Studio Advanced v2의 양성 필드에서 `__prompt_lora__`를 사용했을 때 확장된
+LoRA 태그는 최종 프롬프트 문자열에서 제거되고 구조화된 LoRA 정보로 전달됩니다.
 
 ## 모드
 
