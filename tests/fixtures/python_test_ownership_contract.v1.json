@@ -91,6 +91,30 @@
       }
     },
     {
+      "name": "anima_29b",
+      "production_paths": [
+        "easyuse_anima/anima_29b/"
+      ],
+      "owners": {
+        "adapter_api_node_integration": [
+          "tests/test_anima_29b.py"
+        ],
+        "live_host": [
+          "@matrix:dual-canvas-live"
+        ],
+        "migration_compatibility": [
+          "tests/test_anima_29b.py"
+        ],
+        "package_archive": [
+          "@matrix:package-import-closure",
+          "@matrix:registry-archive-closure"
+        ],
+        "pure_service_unit": [
+          "tests/test_anima_29b.py"
+        ]
+      }
+    },
+    {
       "name": "api",
       "production_paths": [
         "easyuse_anima/api/"

@@ -820,6 +820,34 @@
       }
     }
   },
+  "EasyUseAnima29BLoraStackLoader": {
+    "display_name": "Anima 2.9B LoRA 堆栈加载器",
+    "description": "将普通的28层 Anima LoRA 堆栈实验性地重映射到 Anima 2.9B 的继承层位置。结果可能与原模型不同，建议训练原生2.9B LoRA。",
+    "inputs": {
+      "model": {
+        "name": "模型",
+        "tooltip": "由 Easy Use Anima 加载的40层 Anima 2.9B 扩散模型。"
+      },
+      "clip": {
+        "name": "CLIP",
+        "tooltip": "与 Anima 模型配套使用的 CLIP 模型。"
+      },
+      "lora_stack": {
+        "name": "LoRA 堆栈",
+        "tooltip": "按顺序进行实验性重映射并应用的普通28层 Anima LoRA 堆栈。"
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "模型",
+        "tooltip": "已实验性重映射旧版 LoRA 层的 Anima 2.9B 模型。"
+      },
+      "1": {
+        "name": "CLIP",
+        "tooltip": "已应用文本编码器 LoRA 补丁的 CLIP 模型。"
+      }
+    }
+  },
   "EasyUseAnimaLoraPreset": {
     "display_name": "Anima LoRA 预设",
     "description": "保存多个 ANIMA LoRA 预设配置，构建 LoRA 堆栈和触发词，并在工作流中保留配置数据。",

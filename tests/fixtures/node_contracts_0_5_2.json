@@ -140,6 +140,44 @@
   ],
   "nodes": [
     {
+      "category": "EasyUse Anima/LoRA",
+      "class_name": "EasyUseAnima29BLoraStackLoader",
+      "display_name": "Anima 2.9B LoRA Stack Loader",
+      "function": "apply",
+      "id": "EasyUseAnima29BLoraStackLoader",
+      "input_sections": [
+        {
+          "entries": [
+            {
+              "config": {},
+              "name": "model",
+              "type": "MODEL"
+            },
+            {
+              "config": {},
+              "name": "clip",
+              "type": "CLIP"
+            },
+            {
+              "config": {},
+              "name": "lora_stack",
+              "type": "LORA_STACK"
+            }
+          ],
+          "name": "required"
+        }
+      ],
+      "output_node": false,
+      "return_names": [
+        "model",
+        "clip"
+      ],
+      "return_types": [
+        "MODEL",
+        "CLIP"
+      ]
+    },
+    {
       "category": "EasyUse Anima/AiO",
       "class_name": "EasyUseAnimaAIOGenerator",
       "display_name": "Anima AiO Generator",

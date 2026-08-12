@@ -146,6 +146,40 @@ class AIOResourceMoveTests(unittest.TestCase):
             ):
                 aio_resources._load_diffusion_model_with_comfy("unet.safetensors")
 
+    def test_diffusion_loader_runs_inside_anima_29b_support_boundary(self):
+        trace: list[str] = []
+
+        class UNETLoader:
+            def load_unet(self, *_args):
+                trace.append("core-loader")
+                return ("model",)
+
+        def support_boundary(loader):
+            trace.append("boundary-enter")
+            model = loader()
+            trace.append("boundary-exit")
+            return f"wrapped-{model}"
+
+        with (
+            patch_comfy_helper(
+                aio_resources,
+                "_find_comfy_node_class",
+                return_value=UNETLoader,
+            ),
+            patch.object(
+                aio_resources,
+                "_load_model_with_anima_29b_support",
+                side_effect=support_boundary,
+            ) as support,
+        ):
+            result = aio_resources._load_diffusion_model_with_comfy(
+                "anima-2.9b.safetensors"
+            )
+
+        self.assertEqual(result, "wrapped-model")
+        self.assertEqual(trace, ["boundary-enter", "core-loader", "boundary-exit"])
+        support.assert_called_once()
+
     def test_upscale_loader_keeps_blank_validation_and_call_time_lookup(self):
         with self.assertRaisesRegex(
             RuntimeError,
