@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from ..anima_29b.architecture import _load_model_with_anima_29b_support
 from ..common.values import _as_int, _choice
 from ..image.sam3 import _sam3_context
 from ..infrastructure.comfy.invocation import _node_output_tuple
@@ -157,10 +158,15 @@ def _load_diffusion_model_with_comfy(unet_name: str, weight_dtype: str = "defaul
     method = getattr(loader, "load_unet", None)
     if method is None:
         raise RuntimeError("[EasyUseAnima] UNETLoader does not expose load_unet.")
-    values = _node_output_tuple(method(str(unet_name), str(weight_dtype or "default")))
-    if not values:
-        raise RuntimeError("[EasyUseAnima] UNETLoader returned no MODEL.")
-    return values[0]
+    def load_model():
+        values = _node_output_tuple(
+            method(str(unet_name), str(weight_dtype or "default"))
+        )
+        if not values:
+            raise RuntimeError("[EasyUseAnima] UNETLoader returned no MODEL.")
+        return values[0]
+
+    return _load_model_with_anima_29b_support(load_model)
 
 
 def _load_vae_with_comfy(vae_name: str):

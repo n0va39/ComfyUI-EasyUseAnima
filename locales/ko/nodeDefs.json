@@ -835,6 +835,34 @@
       }
     }
   },
+  "EasyUseAnima29BLoraStackLoader": {
+    "display_name": "Anima 2.9B LoRA 스택 로더",
+    "description": "일반 28블록 Anima LoRA 스택을 Anima 2.9B의 원본 계승 블록 위치에 실험적으로 재매핑합니다. 원본 모델과 결과가 다를 수 있으며 네이티브 2.9B LoRA 학습을 권장합니다.",
+    "inputs": {
+      "model": {
+        "name": "모델",
+        "tooltip": "Easy Use Anima로 로드한 40블록 Anima 2.9B 확산 모델입니다."
+      },
+      "clip": {
+        "name": "CLIP",
+        "tooltip": "Anima 모델과 함께 사용하는 CLIP 모델입니다."
+      },
+      "lora_stack": {
+        "name": "LoRA 스택",
+        "tooltip": "순서대로 실험적 재매핑 후 적용할 일반 28블록 Anima LoRA 스택입니다."
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "모델",
+        "tooltip": "기존 LoRA 블록이 실험적으로 재매핑된 Anima 2.9B 모델입니다."
+      },
+      "1": {
+        "name": "CLIP",
+        "tooltip": "텍스트 인코더 LoRA 패치가 적용된 CLIP 모델입니다."
+      }
+    }
+  },
   "EasyUseAnimaLoraPreset": {
     "display_name": "Anima LoRA 프리셋",
     "description": "여러 ANIMA LoRA 프리셋 프로필을 저장하고, LoRA 스택과 트리거 워드를 만들며, 프로필 데이터를 워크플로우에 보존합니다.",

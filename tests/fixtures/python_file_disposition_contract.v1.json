@@ -4,7 +4,7 @@
   "inventory_owner": {
     "path": "tests/fixtures/python_backend_baseline.json",
     "expected_baseline_files": 189,
-    "expected_target_files": 191
+    "expected_target_files": 195
   },
   "linked_contracts": {
     "compatibility_registry": "docs/architecture/python-compatibility-shims.md",
@@ -2522,19 +2522,41 @@
       "path": "easyuse_anima/nodes/lora_nodes.py",
       "role": "comfyui-node-adapter",
       "owner_group": "nodes",
-      "disposition": "cohesive_retain",
+      "disposition": "split",
       "status": "complete",
       "targets": [
+        {
+          "path": "easyuse_anima/anima_29b/__init__.py",
+          "role": "anima-29b-package",
+          "owner_group": "anima_29b"
+        },
+        {
+          "path": "easyuse_anima/anima_29b/architecture.py",
+          "role": "anima-29b-architecture",
+          "owner_group": "anima_29b"
+        },
+        {
+          "path": "easyuse_anima/anima_29b/lora.py",
+          "role": "anima-29b-lora-service",
+          "owner_group": "anima_29b"
+        },
+        {
+          "path": "easyuse_anima/nodes/anima_29b_nodes.py",
+          "role": "anima-29b-node-adapter",
+          "owner_group": "nodes"
+        },
         {
           "path": "easyuse_anima/nodes/lora_nodes.py",
           "role": "comfyui-node-adapter",
           "owner_group": "nodes"
         }
       ],
-      "direct_contracts": [],
+      "direct_contracts": [
+        "tests/test_anima_29b.py"
+      ],
       "compatibility_registry_key": null,
-      "task_id": null,
-      "rollback_unit": null,
+      "task_id": "ANIMA-29B",
+      "rollback_unit": "Revert the isolated Anima 2.9B architecture, LoRA service, and node adapter split.",
       "replacement_owner": null,
       "size_exception_verdicts": []
     },
