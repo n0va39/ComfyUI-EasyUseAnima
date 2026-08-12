@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from contextlib import contextmanager
 from functools import wraps
-from threading import RLock
+from threading import RLock, get_ident
 
 ANIMA_BASE_BLOCK_COUNT = 28
 ANIMA_29B_BLOCK_COUNT = 40
@@ -74,10 +74,13 @@ def _scoped_anima_29b_model_detection():
         if not callable(previous):
             yield
             return
+        owner_thread = get_ident()
 
         @wraps(previous)
         def detect_unet_config(state_dict, key_prefix, *args, **kwargs):
             config = previous(state_dict, key_prefix, *args, **kwargs)
+            if get_ident() != owner_thread:
+                return config
             return _patch_anima_29b_detected_config(
                 config,
                 state_dict,
@@ -108,9 +111,16 @@ def _is_anima_29b_model(model) -> bool:
     )
 
 
-def _reload_anima_29b_model(factory, factory_args, **kwargs):
+def _reload_anima_29b_model(
+    factory,
+    factory_args,
+    factory_result_index=None,
+    **kwargs,
+):
     with _scoped_anima_29b_model_detection():
         model = factory(*factory_args, **kwargs)
+    if factory_result_index is not None:
+        model = model[factory_result_index]
     return _install_anima_29b_cached_reload(model)
 
 
@@ -120,16 +130,19 @@ def _install_anima_29b_cached_reload(model):
     if not _is_anima_29b_model(model):
         return model
     cached = getattr(model, "cached_patcher_init", None)
-    if not isinstance(cached, tuple) or len(cached) != 2:
+    if not isinstance(cached, tuple) or len(cached) not in {2, 3}:
         return model
-    factory, factory_args = cached
+    factory, factory_args, *selector = cached
     if factory is _reload_anima_29b_model:
         return model
     if not callable(factory) or not isinstance(factory_args, (list, tuple)):
         return model
+    factory_result_index = selector[0] if selector else None
+    if factory_result_index is not None and not isinstance(factory_result_index, int):
+        return model
     model.cached_patcher_init = (
         _reload_anima_29b_model,
-        (factory, tuple(factory_args)),
+        (factory, tuple(factory_args), factory_result_index),
     )
     return model
 

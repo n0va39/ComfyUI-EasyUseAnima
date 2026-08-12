@@ -11020,6 +11020,23 @@
       },
       {
         "alias": null,
+        "bound_name": "get_ident",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "threading:get_ident",
+        "kind": "static_from",
+        "line": 7,
+        "name": "get_ident",
+        "optional": false,
+        "requested": "threading",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/anima_29b/architecture.py"
+      },
+      {
+        "alias": null,
         "bound_name": "model_detection",
         "branch_context": [
           {
@@ -11243,7 +11260,7 @@
         "conditional": false,
         "imported": "comfy:sd",
         "kind": "static_from",
-        "line": 157,
+        "line": 167,
         "name": "sd",
         "optional": false,
         "requested": "comfy",
@@ -48576,65 +48593,65 @@
           },
           {
             "async": false,
-            "end_line": 92,
+            "end_line": 95,
             "kind": "function",
             "line": 62,
-            "loc": 31,
+            "loc": 34,
             "qualified_name": "_scoped_anima_29b_model_detection"
           },
           {
             "async": false,
-            "end_line": 85,
+            "end_line": 88,
             "kind": "function",
-            "line": 78,
-            "loc": 8,
+            "line": 79,
+            "loc": 10,
             "qualified_name": "_scoped_anima_29b_model_detection.detect_unet_config"
           },
           {
             "async": false,
-            "end_line": 99,
+            "end_line": 102,
             "kind": "function",
-            "line": 95,
+            "line": 98,
             "loc": 5,
             "qualified_name": "_anima_unet_config"
           },
           {
             "async": false,
-            "end_line": 108,
+            "end_line": 111,
             "kind": "function",
-            "line": 102,
+            "line": 105,
             "loc": 7,
             "qualified_name": "_is_anima_29b_model"
           },
           {
             "async": false,
-            "end_line": 114,
+            "end_line": 124,
             "kind": "function",
-            "line": 111,
-            "loc": 4,
+            "line": 114,
+            "loc": 11,
             "qualified_name": "_reload_anima_29b_model"
           },
           {
             "async": false,
-            "end_line": 134,
+            "end_line": 147,
             "kind": "function",
-            "line": 117,
-            "loc": 18,
+            "line": 127,
+            "loc": 21,
             "qualified_name": "_install_anima_29b_cached_reload"
           },
           {
             "async": false,
-            "end_line": 140,
+            "end_line": 153,
             "kind": "function",
-            "line": 137,
+            "line": 150,
             "loc": 4,
             "qualified_name": "_load_model_with_anima_29b_support"
           }
         ],
         "is_package": false,
-        "loc": 143,
+        "loc": 156,
         "module": "easyuse_anima.anima_29b.architecture",
-        "normalized_git_blob_sha1": "0794dd06dc05e5b7985121edc0d2fce93be2f0c1",
+        "normalized_git_blob_sha1": "5d2eaca0343c92a50e6a1c632eb86cdc8b46723c",
         "path": "easyuse_anima/anima_29b/architecture.py",
         "top_level": {
           "class_count": 0,
@@ -48686,29 +48703,37 @@
           },
           {
             "async": false,
-            "end_line": 198,
+            "end_line": 143,
             "kind": "function",
             "line": 136,
-            "loc": 63,
+            "loc": 8,
+            "qualified_name": "_model_patch_entry_count"
+          },
+          {
+            "async": false,
+            "end_line": 226,
+            "kind": "function",
+            "line": 146,
+            "loc": 81,
             "qualified_name": "_apply_anima_29b_lora_stack"
           },
           {
             "async": false,
-            "end_line": 209,
+            "end_line": 237,
             "kind": "function",
-            "line": 201,
+            "line": 229,
             "loc": 9,
             "qualified_name": "_apply_anima_29b_aio_lora_stack"
           }
         ],
         "is_package": false,
-        "loc": 212,
+        "loc": 240,
         "module": "easyuse_anima.anima_29b.lora",
-        "normalized_git_blob_sha1": "042a5a925c2b772610a64a49472cacf0ffa1cc28",
+        "normalized_git_blob_sha1": "1b10331bf23cd73078c80c0bf74af4ec0bc068b4",
         "path": "easyuse_anima/anima_29b/lora.py",
         "top_level": {
           "class_count": 0,
-          "function_count": 7,
+          "function_count": 8,
           "global_count": 6
         }
       },
@@ -61047,6 +61072,17 @@
         "source": "easyuse_anima/anima_29b/architecture.py"
       },
       {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "threading:get_ident",
+        "kind": "static_from",
+        "line": 7,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/anima_29b/architecture.py"
+      },
+      {
         "branch_context": [
           {
             "branch": "body",
@@ -61148,7 +61184,7 @@
         "conditional": false,
         "imported": "comfy:sd",
         "kind": "static_from",
-        "line": 157,
+        "line": 167,
         "optional": false,
         "role": "ordinary",
         "source": "easyuse_anima/anima_29b/lora.py"

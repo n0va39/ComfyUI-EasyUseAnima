@@ -3,6 +3,7 @@ from __future__ import annotations
 import sys
 import types
 import unittest
+from concurrent.futures import ThreadPoolExecutor
 from unittest.mock import Mock, patch
 
 from easyuse_anima.anima_29b import architecture, lora
@@ -115,6 +116,33 @@ class Anima29BArchitectureTests(unittest.TestCase):
             28,
         )
 
+    def test_detection_patch_does_not_change_concurrent_loader_threads(self):
+        def base_detect(_state_dict, _prefix):
+            return {"image_model": "anima", "num_blocks": 28}
+
+        modules = _fake_comfy_modules(detect_unet_config=base_detect)
+        model_detection = modules["comfy.model_detection"]
+        state_dict = {
+            f"diffusion_model.blocks.{index}.self_attn.qkv_proj.weight": object()
+            for index in range(40)
+        }
+
+        with patch.dict(sys.modules, modules):
+            with architecture._scoped_anima_29b_model_detection():
+                local = model_detection.detect_unet_config(
+                    state_dict,
+                    "diffusion_model.",
+                )
+                with ThreadPoolExecutor(max_workers=1) as executor:
+                    concurrent = executor.submit(
+                        model_detection.detect_unet_config,
+                        state_dict,
+                        "diffusion_model.",
+                    ).result()
+
+        self.assertEqual(local["num_blocks"], 40)
+        self.assertEqual(concurrent["num_blocks"], 28)
+
     def test_cached_disk_reload_reenters_scoped_detection(self):
         def base_detect(_state_dict, _prefix, metadata=None):
             return {"image_model": "anima", "num_blocks": 28}
@@ -150,6 +178,34 @@ class Anima29BArchitectureTests(unittest.TestCase):
             architecture._reload_anima_29b_model,
         )
         self.assertIs(model_detection.detect_unet_config, base_detect)
+
+    def test_cached_reload_preserves_factory_result_selector(self):
+        modules = _fake_comfy_modules(
+            detect_unet_config=lambda _state_dict, _prefix: {
+                "image_model": "anima",
+                "num_blocks": 28,
+            }
+        )
+
+        def core_reload(_path, **_kwargs):
+            first = _model_with_blocks(28)
+            second = _model_with_blocks(40)
+            second.cached_patcher_init = (core_reload, ("checkpoint.safetensors",), 1)
+            return first, second
+
+        model = _model_with_blocks(40)
+        model.cached_patcher_init = (core_reload, ("checkpoint.safetensors",), 1)
+
+        with patch.dict(sys.modules, modules):
+            loaded = architecture._install_anima_29b_cached_reload(model)
+            cached_factory, cached_args = loaded.cached_patcher_init
+            fresh = cached_factory(*cached_args, disable_dynamic=True)
+
+        self.assertEqual(fresh.model.model_config.unet_config["num_blocks"], 40)
+        self.assertIs(
+            fresh.cached_patcher_init[0],
+            architecture._reload_anima_29b_model,
+        )
 
 
 class Anima29BLoraTests(unittest.TestCase):
@@ -324,6 +380,45 @@ class Anima29BLoraTests(unittest.TestCase):
                 [("legacy.safetensors", 1.0, 1.0)],
             )
         )
+
+    def test_legacy_loader_rejects_when_comfy_accepts_no_model_patches(self):
+        state_dict = {
+            "lora_unet_blocks_0_unknown.lora_down.weight": "down",
+        }
+
+        def load_torch_file(_path, safe_load=True, return_metadata=True):
+            return state_dict, None
+
+        def load_lora_for_models(
+            model,
+            clip,
+            _converted,
+            _strength_model,
+            _strength_clip,
+            lora_metadata=None,
+        ):
+            fresh = _model_with_blocks(40)
+            fresh.patches = dict(model.patches)
+            return fresh, clip
+
+        folder_paths = types.ModuleType("folder_paths")
+        folder_paths.get_full_path_or_raise = lambda _kind, name: name
+        modules = _fake_comfy_modules(
+            load_torch_file=load_torch_file,
+            load_lora=load_lora_for_models,
+        )
+        modules["folder_paths"] = folder_paths
+        model = _model_with_blocks(40)
+        model.patches = {}
+
+        with patch.dict(sys.modules, modules):
+            with self.assertRaisesRegex(RuntimeError, "accepted no legacy"):
+                lora._apply_anima_29b_lora_stack(
+                    model,
+                    "clip",
+                    [("unsupported.safetensors", 1.0, 0.0)],
+                    source_layout=lora.ANIMA_29B_LORA_LAYOUT_LEGACY,
+                )
 
 
 class Anima29BNodeTests(unittest.TestCase):

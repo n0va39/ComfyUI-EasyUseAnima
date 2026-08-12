@@ -133,6 +133,16 @@ def _load_lora_file(lora_name: str):
     return state_dict, metadata
 
 
+def _model_patch_entry_count(model) -> int | None:
+    patches = getattr(model, "patches", None)
+    if not isinstance(patches, Mapping):
+        return None
+    return sum(
+        len(entries) if isinstance(entries, (list, tuple)) else 1
+        for entries in patches.values()
+    )
+
+
 def _apply_anima_29b_lora_stack(
     model,
     clip,
@@ -161,10 +171,16 @@ def _apply_anima_29b_lora_stack(
     applied: list[dict[str, Any]] = []
     for name, model_strength, clip_strength in active_entries:
         state_dict, metadata = _load_lora_file(name)
+        block_indices = _anima_lora_block_indices(state_dict)
+        legacy_model_layout = bool(block_indices) and (
+            source_layout == ANIMA_29B_LORA_LAYOUT_LEGACY
+            or block_indices == set(range(ANIMA_BASE_BLOCK_COUNT))
+        )
         converted, remapped_count = _prepare_anima_29b_lora_state_dict(
             state_dict,
             source_layout,
         )
+        model_patch_count_before = _model_patch_entry_count(patched_model)
         result = _call_with_supported_kwargs(
             comfy_sd.load_lora_for_models,
             (
@@ -182,6 +198,18 @@ def _apply_anima_29b_lora_stack(
                 "[EasyUseAnima] ComfyUI LoRA loader returned no MODEL/CLIP pair."
             )
         patched_model, patched_clip = result[0], result[1]
+        model_patch_count_after = _model_patch_entry_count(patched_model)
+        if (
+            legacy_model_layout
+            and model_strength != 0
+            and model_patch_count_before is not None
+            and model_patch_count_after is not None
+            and model_patch_count_after <= model_patch_count_before
+        ):
+            raise RuntimeError(
+                "[EasyUseAnima] ComfyUI accepted no legacy Anima 2.9B MODEL "
+                f"patches from LoRA: {name}"
+            )
         if remapped_count:
             logger.info(
                 "[EasyUseAnima] Anima 2.9B remapped %d legacy LoRA keys for %s.",
