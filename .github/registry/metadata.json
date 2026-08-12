@@ -19,8 +19,28 @@
   },
   "versions": [
     {
-      "version": "1.0.0",
+      "version": "1.1.0",
       "deprecated": false,
+      "changelog_file": "changelogs/1.1.0.txt"
+    },
+    {
+      "version": "1.0.3",
+      "deprecated": true,
+      "changelog_file": "changelogs/1.0.3.txt"
+    },
+    {
+      "version": "1.0.2",
+      "deprecated": true,
+      "changelog_file": "changelogs/1.0.2.txt"
+    },
+    {
+      "version": "1.0.1",
+      "deprecated": true,
+      "changelog_file": "changelogs/1.0.1.txt"
+    },
+    {
+      "version": "1.0.0",
+      "deprecated": true,
       "changelog_file": "changelogs/1.0.0.txt"
     },
     {

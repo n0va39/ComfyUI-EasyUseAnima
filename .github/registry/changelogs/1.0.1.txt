@@ -1,0 +1,12 @@
+EasyUse Anima 1.0.1 fixes profile boundaries, workflow seed ownership, queue-consistent wildcards, and startup recovery.
+
+Changes:
+1. AiO and LoRA profile files are kept inside their designated profile folders, including on Windows paths and when symbolic links are present.
+2. Increment Each and Decrement Each seed state is isolated per workflow. Legacy or headless callers without a workflow id retain the previous shared behavior.
+3. Prompt Studio Advanced V2 uses one wildcard snapshot throughout each queued execution so projected fields stay consistent.
+4. Failed startup attempts no longer leave stale cleanup state that can shut down services used by a successful retry.
+5. Documentation and tooltips clarify that NAIA Random Prompt uses the global EasyUse Anima Settings contract.
+6. Bundled release workflows report the current package name, version, and release filename consistently.
+
+Action required:
+After updating, restart ComfyUI. A browser hard refresh is not required for this update.
