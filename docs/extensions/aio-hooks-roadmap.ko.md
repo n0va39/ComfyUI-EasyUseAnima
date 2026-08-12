@@ -1,8 +1,8 @@
 # AiO Hook 기능 로드맵
 
-> 기준일: 2026-08-02
+> 기준일: 2026-08-12
 > 추적 이슈: [#622](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/622)
-> 상태: [PR #623](https://github.com/n0va39/ComfyUI-EasyUseAnima/pull/623)으로 `dev`에 포함된 써드파티 postprocess prototype 기준. 아직 공개 릴리즈에는 포함되지 않았습니다.
+> 상태: [PR #623](https://github.com/n0va39/ComfyUI-EasyUseAnima/pull/623)의 postprocess prototype과 후속 first-pass control 확장 기준. 아직 공개 릴리즈에는 포함되지 않았습니다.
 
 이 문서는 현재 `dev` prototype으로 만들 수 있는 기능, 승격에 사용한 검증,
 그리고 이후 확장 후보를 구분합니다. 공개 사용 계약은
@@ -26,6 +26,9 @@
 | 명시적 연결 | Generator의 optional `aio_hook` socket으로만 활성화. 자동 검색이나 monkeypatch 없음 |
 | 형제 노드팩 로드 순서 | provider는 모듈 최상위 import를 피하고 node 실행 시 공개 API를 지연 import |
 | postprocess 전·후 실행 | `POSTPROCESS / BEFORE`, `POSTPROCESS / AFTER` callback |
+| first-pass 실행 전 | `FIRST_PASS / BEFORE`에서 실제 sampling MODEL과 allowlist sampler 설정을 patch |
+| MODEL patch | provider가 `event.state.model`을 새 MODEL로 바꿔 해당 first pass에 적용 |
+| sampler 설정 override | `steps`, `cfg`, `sampler_name`, `scheduler`, `denoise`만 허용. backend와 seed는 제외 |
 | 이미지 후처리 | 이전과 같은 tensor shape를 유지하는 `IMAGE` 교체. 색보정, LUT, 톤·감마, 샤픈, 워터마크 등에 사용 |
 | 확장 metadata | `extensions.hook_data.<hook_id>#<ordinal>` 아래 JSON-safe 기록 추가 |
 | 미리보기 | hook이 처리 중간 이미지를 AiO preview transport로 보낼 수 있음 |
@@ -34,6 +37,7 @@
 | Hook 조합 | `Anima AiO Hook Combine`에서 2~4개 provider를 연결 순서대로 조합 |
 | 결정적 순서 | before는 A→B, after/session close는 B→A, cleanup은 전역 LIFO |
 | 캐시 변경 감지 | JSON-safe `fingerprint`를 Generator `IS_CHANGED`에 포함. 없으면 보수적으로 재실행 |
+| first-pass cache 안전성 | `FIRST_PASS / BEFORE` Hook 연결 시 공유 first-pass cache를 우회 |
 | fail-closed 오류 | 잘못된 descriptor, patch, shape, metadata 또는 provider 예외에서 저장을 정상 완료로 위장하지 않음 |
 | no-hook 호환 | Hook 미연결 시 기존 Generator 출력·metadata·cache signature 경로를 유지 |
 
@@ -116,7 +120,7 @@ adapter로 합치지 않습니다.
 
 다음은 Hook callback보다 소유권이 큰 기능이므로 별도 계약을 우선합니다.
 
-- sampling 알고리즘 또는 scheduler 전체 교체
+- custom sampler object 또는 sampling backend 전체 교체
 - mandatory stage 건너뛰기·재배열·교체
 - 비동기/background job과 외부 queue orchestration
 - 새로운 save backend나 파일 라우팅
@@ -140,9 +144,10 @@ adapter로 합치지 않습니다.
 
 1. [완료] 현재 postprocess prototype의 package/live gate 완료
 2. [완료] [PR #623](https://github.com/n0va39/ComfyUI-EasyUseAnima/pull/623)을 review하고 `dev`에 병합
-3. Impact `DETAILER_HOOK` 호환을 독립 PR로 구현
-4. save/metadata와 post-detailer/upscale stage를 작은 PR로 확장
-5. cache-sensitive stage는 실제 cache isolation evidence 후 하나씩 추가
-6. public v1 사용 사례가 쌓인 뒤에만 v2 또는 별도 provider 필요성 검토
+3. `FIRST_PASS / BEFORE` MODEL·sampler allowlist와 cache bypass를 독립 검증
+4. Impact `DETAILER_HOOK` 호환을 독립 PR로 구현
+5. save/metadata와 post-detailer/upscale stage를 작은 PR로 확장
+6. 다른 cache-sensitive stage는 실제 cache isolation evidence 후 하나씩 추가
+7. public v1 사용 사례가 쌓인 뒤에만 v2 또는 별도 provider 필요성 검토
 
 각 단계의 구현·검증·미실행 항목은 #622와 해당 PR 본문에 함께 기록합니다.

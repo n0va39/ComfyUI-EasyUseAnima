@@ -1,8 +1,8 @@
 # AiO Hook feature roadmap
 
-> Baseline: 2026-08-02
+> Baseline: 2026-08-12
 > Tracking issue: [#622](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/622)
-> Status: available on `dev` as the third-party postprocess prototype from [PR #623](https://github.com/n0va39/ComfyUI-EasyUseAnima/pull/623); not yet in a public release.
+> Status: covers the postprocess prototype from [PR #623](https://github.com/n0va39/ComfyUI-EasyUseAnima/pull/623) and its follow-up first-pass controls; not yet in a public release.
 
 This roadmap separates what the current `dev` prototype can do, the evidence
 that promoted it, and later extension candidates.
@@ -26,6 +26,9 @@ and `easyuse_anima.extensions.aio`.
 | Explicit connection | Optional Generator `aio_hook` socket only; no discovery or monkeypatching |
 | Sibling load order | Providers avoid top-level imports and load the public API when the node executes |
 | Postprocess callbacks | `POSTPROCESS / BEFORE` and `POSTPROCESS / AFTER` |
+| Before first pass | Patch the sampling MODEL and allowlisted sampler settings at `FIRST_PASS / BEFORE` |
+| MODEL patch | Replace `event.state.model` for that first-pass sampling call |
+| Sampler settings override | Only `steps`, `cfg`, `sampler_name`, `scheduler`, and `denoise`; no backend or seed override |
 | Image postprocessing | Same-shape `IMAGE` replacement for color, tone, gamma, sharpen, LUT, or watermark operations |
 | Extension metadata | JSON-safe values under `extensions.hook_data.<hook_id>#<ordinal>` |
 | Preview emission | Send intermediate hook images through the AiO preview transport |
@@ -34,6 +37,7 @@ and `easyuse_anima.extensions.aio`.
 | Composition | Combine two to four providers in socket order |
 | Deterministic order | A→B before; B→A after/session close; global LIFO cleanup |
 | Cache change detection | JSON-safe `fingerprint` participates in Generator `IS_CHANGED`; missing fingerprints rerun conservatively |
+| First-pass cache safety | A `FIRST_PASS / BEFORE` hook bypasses the shared first-pass cache |
 | Fail closed | Invalid descriptors, patches, shapes, metadata, and provider exceptions stop the run |
 | No-hook compatibility | The disconnected output, metadata, and cache-signature path remains unchanged |
 
@@ -90,7 +94,7 @@ validation for them.
 
 ## Better served by separate providers
 
-- Replacing the sampling algorithm or scheduler
+- Replacing the sampling backend or injecting a custom sampler object
 - Skipping, reordering, or replacing mandatory stages
 - Async/background jobs and external queue orchestration
 - New save backends or file routing
@@ -114,9 +118,10 @@ These should become distinct contracts such as `SamplingBackendProvider`,
 
 1. [Done] Finish package/live evidence for the postprocess prototype.
 2. [Done] Review and merge [PR #623](https://github.com/n0va39/ComfyUI-EasyUseAnima/pull/623) into `dev`.
-3. Implement Impact `DETAILER_HOOK` compatibility independently.
-4. Add save/metadata and post-detailer/upscale stages in small PRs.
-5. Add cache-sensitive stages only after cache-isolation evidence.
-6. Consider v2 or separate providers only after real v1 usage accumulates.
+3. Validate the `FIRST_PASS / BEFORE` MODEL/sampler allowlist and cache bypass independently.
+4. Implement Impact `DETAILER_HOOK` compatibility independently.
+5. Add save/metadata and post-detailer/upscale stages in small PRs.
+6. Add other cache-sensitive stages only after cache-isolation evidence.
+7. Consider v2 or separate providers only after real v1 usage accumulates.
 
 Record implementation, validation, and unverified surfaces in #622 and each PR.

@@ -2,9 +2,10 @@
 
 AiO Hook is a server-side Python contract for connecting features from another
 custom node pack to the explicit `aio_hook` socket on `Anima AiO Generator`.
-Version 1 only supports final postprocess image adjustment, extension metadata,
-and optional previews. Model loading, conditioning, sampling, latent mutation,
-and saving are not public hook contracts.
+Version 1 supports replacing the sampling MODEL and selected sampler settings at
+`first_pass/before`, plus final postprocess image adjustment, extension metadata,
+and optional previews. Conditioning, latent mutation, saving, and sampling
+backend replacement are not public hook contracts.
 
 A runnable minimal node pack is available under
 [`examples/third_party_aio_hook`](../../examples/third_party_aio_hook/).
@@ -15,15 +16,16 @@ A runnable minimal node pack is available under
 | --- | --- |
 | Socket type | `EASYUSE_ANIMA_AIO_HOOK` |
 | Public import | `easyuse_anima.extensions.aio` |
-| Hook points | `postprocess/before`, `postprocess/after` |
-| Patch fields | Same-shape `IMAGE`, JSON-safe metadata |
+| Hook points | `first_pass/before`, `postprocess/before`, `postprocess/after` |
+| Patch fields | First-pass `MODEL` and sampler settings, same-shape `IMAGE`, JSON-safe metadata |
 | Composition | before: A → B, core, after: B → A |
 | Failure policy | Invalid contracts and plugin failures fail the generation |
 | Cache contract | JSON-safe `fingerprint`; `None` always reports changed |
 
-`AioStage` only contains the stage that v1 actually dispatches. Declare each
-supported pair with `AioHookPoint(stage, phase)`; stages and phases are not
-combined as a Cartesian product.
+`AioStage` contains only `FIRST_PASS` and `POSTPROCESS`, which the runtime
+actually dispatches. Supported pairs are `first_pass/before` and
+`postprocess/before·after`. Declare each pair explicitly with
+`AioHookPoint(stage, phase)`.
 
 ## Minimal implementation
 
@@ -94,23 +96,23 @@ and [server node properties](https://docs.comfy.org/custom-nodes/backend/server_
 A definition is lightweight configuration that may be inspected before a run.
 
 - `describe()` must be side-effect free and stable for the same configuration.
-- `create_session(context)` creates state for one postprocess execution.
+- `create_session(context)` creates state for one Generator execution.
 - Acquire run resources in the session, not the definition. Release them with
   `close()` or `context.services.register_cleanup(callback)`.
 - Do not assume a session is reused across generation runs.
 
 The Generator validates the complete descriptor chain before opening heavy
-model or VAE resources. Sessions are created immediately before postprocess and
-closed before save output. Earlier sampler, Highres, or Detailer failures never
-create a session. A partial creation failure still unwinds registered cleanup
-callbacks and already-created sessions in reverse order.
+model or VAE resources. Sessions are created immediately before first pass and
+closed after postprocess, before save output. Sampler, Highres, Detailer, and
+postprocess failures still unwind sessions and cleanup callbacks in reverse
+order. A partial creation failure also unwinds resources already registered.
 
 ## Events and patches
 
 `AioStageEvent` provides immutable views:
 
 - `event.request`: normalized mode, node ID, and generation settings
-- `event.state`: current image, dimensions, core metadata, and extension metadata
+- `event.state`: current stage model, image, dimensions, core metadata, and extension metadata
 - `event.services.emit_preview(stage, image, label=None)`: optional preview
 - `event.services.register_cleanup(callback)`: global reverse-registration (LIFO) cleanup
 
@@ -118,10 +120,51 @@ Do not mutate dictionaries in the views or modify the input image in place.
 Return a new `AioHookPatch`. A v1 image patch must have the same readable tensor
 shape as the previous image; normal ComfyUI `IMAGE` tensors use BHWC layout.
 
-Important: a hook changes the Generator's `IMAGE` output only. The `LATENT`
-output remains the last latent produced by the core pipeline and is not
-re-encoded to match the hook image. Connect `IMAGE` when downstream code needs
-the exact final pixels.
+### First-pass MODEL and sampler settings
+
+At `first_pass/before`, pass `event.state.model` through a provider-owned patch
+function and return the new MODEL with `AioHookPatch(model=...)`. The same
+patch may override only these keys under its `settings["sampler"]` section:
+
+```text
+steps, cfg, sampler_name, scheduler, denoise
+```
+
+```python
+class MySession(AioHookSessionBase):
+    def before_stage(self, event):
+        # A provider-owned patch function returns a new MODEL.
+        model = apply_my_model_patch(event.state.model, strength=0.7)
+        return AioHookPatch(
+            model=model,
+            settings={
+                "sampler": {
+                    "steps": 24,
+                    "cfg": 4.5,
+                    "sampler_name": "euler",
+                    "scheduler": "normal",
+                    "denoise": 1.0,
+                }
+            },
+            metadata={"model_patch": "my_patch_v1"},
+        )
+```
+
+MODEL and settings patches are accepted only at `first_pass/before`. With a
+combined chain, each provider sees the MODEL/settings returned by earlier
+providers. A hook-affected first pass bypasses the shared first-pass cache so a
+cached latent/image cannot skip the provider's model patch. The returned MODEL
+is used for first-pass sampling only; it does not automatically replace the
+separate Highres, Detailer, or Upscale stage models.
+
+`backend`, `seed`, nested Spectrum/SPD/DCW options, and arbitrary top-level
+sections fail closed. Custom sampler objects or complete sampling backend
+replacement require a separate provider contract.
+
+Important: a postprocess image patch changes the Generator's `IMAGE` output
+only. The `LATENT` output remains the last latent produced by the core pipeline
+and is not re-encoded to match the postprocess hook image. Connect `IMAGE` when
+downstream code needs the exact final pixels.
 
 Metadata is stored below
 `extensions.hook_data["<hook_id>#<ordinal>"]`. Each patch must provide a
@@ -164,7 +207,8 @@ fingerprint={
 
 Do not include tensors, models, open files, callbacks, per-run IDs, or other
 mutable/non-JSON values. Use `None` if a stable fingerprint is impossible. The
-Generator then reports itself changed so an old result is not reused.
+Generator then reports itself changed so an old result is not reused. Hooks
+using `first_pass/before` also bypass the shared first-pass cache.
 
 ## Error handling
 
@@ -191,6 +235,8 @@ Only install and connect providers whose source and code you trust.
   the top level of a sibling node pack.
 - Use a stable, namespaced ASCII `hook_id`.
 - Keep image operations out-of-place and shape-preserving.
+- Return MODEL patches only at `first_pass/before` and avoid mutating the core MODEL in place.
+- Keep sampler overrides inside the documented allowlist.
 - Include every output-affecting setting in `fingerprint`.
 - Export the producer node through `NODE_CLASS_MAPPINGS`, then restart ComfyUI.
 - Check Combine socket order when multiple hooks interact.

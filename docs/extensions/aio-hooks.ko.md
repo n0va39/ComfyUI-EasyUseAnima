@@ -1,10 +1,11 @@
 # AiO Hook API v1 개발 가이드
 
 AiO Hook은 다른 커스텀 노드팩이 `Anima AiO Generator`의 명시적인
-`aio_hook` 소켓에 기능을 연결하는 서버 측 Python 계약입니다. v1은 최종
-postprocess 경계에서 이미지를 보정하거나 확장 메타데이터·미리보기를 추가하는
-용도만 지원합니다. 모델 로딩, conditioning, sampler, latent, 저장 동작은 공개
-hook 계약에 포함되지 않습니다.
+`aio_hook` 소켓에 기능을 연결하는 서버 측 Python 계약입니다. v1은
+`first_pass/before`에서 샘플링 MODEL과 제한된 sampler 설정을 바꾸고, 최종
+postprocess 경계에서 이미지를 보정하거나 확장 메타데이터·미리보기를 추가할 수
+있습니다. conditioning, latent, 저장 동작과 sampling backend 교체는 공개 hook
+계약에 포함되지 않습니다.
 
 바로 실행 가능한 최소 노드팩은
 [`examples/third_party_aio_hook`](../../examples/third_party_aio_hook/)에 있습니다.
@@ -15,15 +16,15 @@ hook 계약에 포함되지 않습니다.
 | --- | --- |
 | 소켓 타입 | `EASYUSE_ANIMA_AIO_HOOK` |
 | 공개 import | `easyuse_anima.extensions.aio` |
-| hook point | `postprocess/before`, `postprocess/after` |
-| 반환 patch | 같은 shape의 `IMAGE`, JSON-safe metadata |
+| hook point | `first_pass/before`, `postprocess/before`, `postprocess/after` |
+| 반환 patch | first pass `MODEL`·sampler 설정, 같은 shape의 `IMAGE`, JSON-safe metadata |
 | 조합 순서 | before: A → B, core, after: B → A |
 | 실패 정책 | 잘못된 계약이나 plugin 예외가 있으면 생성을 실패시킴 |
 | 캐시 계약 | JSON-safe `fingerprint`; `None`이면 매번 변경된 것으로 취급 |
 
-`AioStage`에는 실제로 dispatch되는 `POSTPROCESS`만 있습니다. stage와 phase의
-임의 조합 대신 `AioHookPoint(stage, phase)`를 각각 선언해야 합니다. 이 방식은
-아직 호출되지 않는 미래 지점을 실수로 공개 계약처럼 사용하지 않게 합니다.
+`AioStage`에는 실제로 dispatch되는 `FIRST_PASS`와 `POSTPROCESS`만 있습니다.
+지원되는 phase는 `first_pass/before`, `postprocess/before·after`입니다. stage와
+phase의 임의 조합 대신 `AioHookPoint(stage, phase)`를 각각 선언해야 합니다.
 
 ## 최소 구현
 
@@ -96,24 +97,24 @@ ComfyUI가 노드를 발견하도록 노드팩의 `__init__.py`에서 고유한 
 definition은 workflow 실행 전에도 호출될 수 있는 가벼운 설정 객체입니다.
 
 - `describe()`는 부작용 없이 같은 설정에 대해 같은 descriptor를 반환해야 합니다.
-- `create_session(context)`는 실제 한 번의 postprocess 실행을 위한 상태를 만듭니다.
+- `create_session(context)`는 실제 한 번의 Generator 실행을 위한 상태를 만듭니다.
 - 파일, 핸들, 임시 캐시 같은 실행 자원은 definition에 두지 말고 session에서
   만들고 `close()` 또는 `context.services.register_cleanup(callback)`으로
   정리합니다.
 - session은 한 번의 생성 실행 밖에서 재사용된다고 가정하지 마세요.
 
 Generator는 descriptor 전체를 모델·VAE 같은 무거운 자원을 열기 전에
-검증합니다. session은 postprocess 직전에만 만들며, after callback이 끝나면
-저장 단계로 넘어가기 전에 닫습니다. 따라서 그보다 앞선 sampler/Highres/Detailer
-실패에는 session이 생성되지 않습니다. session 생성 도중 실패해도 이미 등록된
-cleanup과 앞선 session은 역순으로 정리됩니다.
+검증합니다. session은 first pass 직전에 만들고 postprocess callback이 끝난 뒤
+저장 단계로 넘어가기 전에 닫습니다. sampler, Highres, Detailer 또는 postprocess가
+실패해도 생성된 session과 cleanup은 역순으로 정리됩니다. session 생성 도중
+실패해도 이미 등록된 cleanup과 앞선 session은 역순으로 정리됩니다.
 
 ## event와 patch
 
 `AioStageEvent`는 변경할 수 없는 view를 제공합니다.
 
 - `event.request`: normalized mode, node ID, generation settings
-- `event.state`: 현재 `image`, width, height, core metadata, extension metadata
+- `event.state`: 현재 stage의 `model`, `image`, width, height, core metadata, extension metadata
 - `event.services.emit_preview(stage, image, label=None)`: 선택적 중간 미리보기
 - `event.services.register_cleanup(callback)`: run 종료 시 전역 등록 역순(LIFO) 정리
 
@@ -121,10 +122,51 @@ cleanup과 앞선 session은 역순으로 정리됩니다.
 새 `AioHookPatch`를 반환하세요. v1 image patch는 이전 image와 동일하고 읽을 수
 있는 tensor shape를 가져야 합니다. 일반적인 ComfyUI `IMAGE` shape는 BHWC입니다.
 
-중요: hook이 바꾸는 것은 Generator의 `IMAGE` 출력뿐입니다. `LATENT` 출력은
-core pipeline이 마지막으로 만든 latent이며 hook 결과 image와 일치하도록 다시
-인코딩되지 않습니다. 정확한 최종 픽셀이 필요한 downstream에는 `IMAGE` 출력을
-연결하세요.
+### first pass MODEL과 sampler 설정
+
+`first_pass/before`에서는 `event.state.model`을 provider의 patch 함수에 전달하고
+새 MODEL을 `AioHookPatch(model=...)`로 반환할 수 있습니다. 같은 patch의
+`settings`는 `sampler` section 아래 다음 key만 덮어쓸 수 있습니다.
+
+```text
+steps, cfg, sampler_name, scheduler, denoise
+```
+
+```python
+class MySession(AioHookSessionBase):
+    def before_stage(self, event):
+        # Provider가 소유한 patch 함수는 새 MODEL을 반환해야 합니다.
+        model = apply_my_model_patch(event.state.model, strength=0.7)
+        return AioHookPatch(
+            model=model,
+            settings={
+                "sampler": {
+                    "steps": 24,
+                    "cfg": 4.5,
+                    "sampler_name": "euler",
+                    "scheduler": "normal",
+                    "denoise": 1.0,
+                }
+            },
+            metadata={"model_patch": "my_patch_v1"},
+        )
+```
+
+MODEL과 settings patch는 `first_pass/before`에서만 허용됩니다. 여러 provider를
+연결하면 앞 provider의 MODEL/settings 결과를 뒤 provider가 봅니다. Hook이 영향을
+주는 first pass는 공유 first-pass cache를 우회하므로, fingerprint가 없거나 설정이
+바뀌어도 기존 latent/image가 MODEL patch를 건너뛰지 않습니다. 반환 MODEL은 해당
+first pass의 샘플링 입력이며, Highres/Detailer/Upscale의 별도 stage MODEL까지
+자동으로 교체하지 않습니다.
+
+`backend`, `seed`, Spectrum/SPD/DCW 내부 설정과 임의 top-level section은
+fail-closed로 거부합니다. custom sampler object나 sampling backend 전체 교체가
+필요하면 별도 provider 계약이 필요합니다.
+
+중요: postprocess image patch가 바꾸는 것은 Generator의 `IMAGE` 출력뿐입니다.
+`LATENT` 출력은 core pipeline이 마지막으로 만든 latent이며 postprocess hook 결과
+image와 일치하도록 다시 인코딩되지 않습니다. 정확한 최종 픽셀이 필요한
+downstream에는 `IMAGE` 출력을 연결하세요.
 
 metadata는 hook별 `extensions.hook_data["<hook_id>#<ordinal>"]` 아래에 저장됩니다.
 각 patch의 metadata는 JSON-safe dict여야 하고 최대 64 KiB입니다. 같은 hook이
@@ -168,7 +210,7 @@ fingerprint={
 tensor, model, 열린 파일, callback, 세션별 ID처럼 mutable하거나 JSON으로
 직렬화할 수 없는 값은 넣지 마세요. 안정적인 fingerprint를 만들 수 없으면
 `None`을 사용하세요. 이 경우 AiO Generator의 `IS_CHANGED`는 항상 변경으로
-처리되어 오래된 결과를 재사용하지 않습니다.
+처리됩니다. `first_pass/before` Hook은 별도의 공유 first-pass cache도 우회합니다.
 
 ## 오류 처리
 
@@ -195,6 +237,8 @@ AiO Hook은 sandbox가 아닙니다. provider 노드팩은 EasyUse Anima 및 Com
   지연 import합니다.
 - `hook_id`는 노드팩 namespace를 포함한 안정적인 ASCII ID로 정합니다.
 - image 연산은 out-of-place이고 shape를 보존하는지 확인합니다.
+- MODEL patch는 `first_pass/before`에서만 반환하고 in-place core MODEL 변경을 피합니다.
+- sampler override key가 공개 allowlist에 포함되는지 확인합니다.
 - `fingerprint`에 모든 출력 영향 설정이 들어가는지 확인합니다.
 - `NODE_CLASS_MAPPINGS`에 출력 노드를 등록하고 ComfyUI를 재시작합니다.
 - 여러 hook의 순서가 중요하면 `Anima AiO Hook Combine`의 socket 순서를 확인합니다.
