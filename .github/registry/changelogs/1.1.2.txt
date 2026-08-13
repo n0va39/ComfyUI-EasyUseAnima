@@ -1,0 +1,10 @@
+EasyUse Anima 1.1.2 fixes long file-backed wildcard prompts.
+
+Changes:
+1. Long wildcard lines containing many comma-separated tags and natural-language text now expand instead of falling back to the wildcard filename.
+2. Prompt Corrector now receives the expanded content rather than normalizing an unresolved token such as __name__ into a filename-like phrase.
+3. Recursive wildcard expansions retain growth protection, and all expanded output remains bounded by absolute size, depth, replacement, and cycle limits.
+4. Existing wildcard syntax, sequential/random selection, seeds, workflows, and public node contracts remain compatible.
+
+Action required:
+After updating, restart ComfyUI. Existing wildcard files do not need to be rewritten.
