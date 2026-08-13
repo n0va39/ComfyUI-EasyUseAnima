@@ -1,5 +1,29 @@
 # Release Notes
 
+## 1.1.2
+
+### Fixed
+
+- Long file-backed wildcard candidates containing many comma-separated tags
+  and natural-language text now expand normally instead of falling back to the
+  wildcard filename.
+- Prompt Studio Advanced v2 now passes the expanded wildcard content to Prompt
+  Corrector, preventing an unresolved token such as `__name__` from becoming a
+  filename-like phrase.
+
+### Safety and Compatibility
+
+- The relative growth guard remains active for candidates that can recursively
+  expand, while terminal file contents are bounded by the existing absolute
+  output, depth, replacement-count, and cycle limits.
+- Existing wildcard syntax, sequential/random selection, seeds, workflows, and
+  public node contracts remain compatible.
+
+### Update
+
+- After updating, restart ComfyUI. Existing wildcard files do not need to be
+  rewritten.
+
 ## 1.1.1
 
 ### Added
