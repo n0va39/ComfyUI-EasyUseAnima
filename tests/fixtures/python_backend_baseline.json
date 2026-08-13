@@ -57988,153 +57988,161 @@
           },
           {
             "async": false,
-            "end_line": 219,
+            "end_line": 221,
             "kind": "method",
             "line": 216,
+            "loc": 6,
+            "qualified_name": "_Replacement.can_expand"
+          },
+          {
+            "async": false,
+            "end_line": 226,
+            "kind": "method",
+            "line": 223,
             "loc": 4,
             "qualified_name": "_Replacement.materialize"
           },
           {
             "async": false,
-            "end_line": 229,
+            "end_line": 236,
             "kind": "method",
-            "line": 223,
+            "line": 230,
             "loc": 7,
             "qualified_name": "_ExpansionState.__init__"
           },
           {
             "async": false,
-            "end_line": 233,
+            "end_line": 240,
             "kind": "method",
-            "line": 231,
+            "line": 238,
             "loc": 3,
             "qualified_name": "_ExpansionState.begin_pass"
           },
           {
             "async": false,
-            "end_line": 237,
+            "end_line": 244,
             "kind": "method",
-            "line": 235,
+            "line": 242,
             "loc": 3,
             "qualified_name": "_ExpansionState.stop"
           },
           {
             "async": false,
-            "end_line": 257,
+            "end_line": 264,
             "kind": "method",
-            "line": 239,
+            "line": 246,
             "loc": 19,
             "qualified_name": "_ExpansionState.candidate"
           },
           {
             "async": false,
-            "end_line": 294,
+            "end_line": 302,
             "kind": "method",
-            "line": 259,
-            "loc": 36,
+            "line": 266,
+            "loc": 37,
             "qualified_name": "_ExpansionState._replacement_limit_reason"
           },
           {
             "async": false,
-            "end_line": 337,
+            "end_line": 345,
             "kind": "method",
-            "line": 296,
+            "line": 304,
             "loc": 42,
             "qualified_name": "_ExpansionState.replace_matches"
           },
           {
             "async": false,
-            "end_line": 353,
+            "end_line": 361,
             "kind": "function",
-            "line": 340,
+            "line": 348,
             "loc": 14,
             "qualified_name": "_expand_multiselect_options"
           },
           {
             "async": false,
-            "end_line": 404,
+            "end_line": 412,
             "kind": "function",
-            "line": 356,
+            "line": 364,
             "loc": 49,
             "qualified_name": "_replace_dynamic"
           },
           {
             "async": false,
-            "end_line": 402,
+            "end_line": 410,
             "kind": "function",
-            "line": 362,
+            "line": 370,
             "loc": 41,
             "qualified_name": "_replace_dynamic.replace"
           },
           {
             "async": false,
-            "end_line": 430,
+            "end_line": 438,
             "kind": "function",
-            "line": 407,
+            "line": 415,
             "loc": 24,
             "qualified_name": "_replace_quantified_wildcards"
           },
           {
             "async": false,
-            "end_line": 428,
+            "end_line": 436,
             "kind": "function",
-            "line": 413,
+            "line": 421,
             "loc": 16,
             "qualified_name": "_replace_quantified_wildcards.replace"
           },
           {
             "async": false,
-            "end_line": 451,
+            "end_line": 459,
             "kind": "function",
-            "line": 433,
+            "line": 441,
             "loc": 19,
             "qualified_name": "_replace_file_wildcards"
           },
           {
             "async": false,
-            "end_line": 449,
+            "end_line": 457,
             "kind": "function",
-            "line": 439,
+            "line": 447,
             "loc": 11,
             "qualified_name": "_replace_file_wildcards.replace"
           },
           {
             "async": false,
-            "end_line": 460,
+            "end_line": 468,
             "kind": "function",
-            "line": 454,
+            "line": 462,
             "loc": 7,
             "qualified_name": "has_wildcard_syntax"
           },
           {
             "async": false,
-            "end_line": 472,
+            "end_line": 480,
             "kind": "function",
-            "line": 463,
+            "line": 471,
             "loc": 10,
             "qualified_name": "_bounded_output_prefix"
           },
           {
             "async": false,
-            "end_line": 480,
+            "end_line": 488,
             "kind": "function",
-            "line": 475,
+            "line": 483,
             "loc": 6,
             "qualified_name": "_expansion_state_signature"
           },
           {
             "async": false,
-            "end_line": 595,
+            "end_line": 603,
             "kind": "function",
-            "line": 491,
+            "line": 499,
             "loc": 105,
             "qualified_name": "_expand_snapshot_texts"
           }
         ],
         "is_package": false,
-        "loc": 595,
+        "loc": 603,
         "module": "easyuse_anima.wildcard.expansion",
-        "normalized_git_blob_sha1": "943f80770883575c05b1d09b2c0db66c218678b9",
+        "normalized_git_blob_sha1": "fee70c95714c0047f8b78cce1ab20765fd8cac5b",
         "path": "easyuse_anima/wildcard/expansion.py",
         "top_level": {
           "class_count": 6,
