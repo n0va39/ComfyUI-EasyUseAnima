@@ -213,6 +213,13 @@ class _Replacement:
             len(self.parts) - 1,
         )
 
+    @property
+    def can_expand(self) -> bool:
+        values = self.parts
+        if len(self.parts) > 1 and self.separator:
+            values = (*values, self.separator)
+        return any(has_wildcard_syntax(value) for value in values)
+
     def materialize(self) -> str:
         if len(self.parts) == 1:
             return self.parts[0]
@@ -284,13 +291,14 @@ class _ExpansionState:
             or projected_bytes > self.budget.max_output_chars
         ):
             return "max_output_chars"
-        growth = self.budget.max_growth_per_pass
-        if (
-            projected_chars > math.floor(max(1, self._pass_base_chars) * growth)
-            or projected_bytes
-            > math.floor(max(1, self._pass_base_bytes) * growth)
-        ):
-            return "max_growth_per_pass"
+        if replacement.can_expand:
+            growth = self.budget.max_growth_per_pass
+            if (
+                projected_chars > math.floor(max(1, self._pass_base_chars) * growth)
+                or projected_bytes
+                > math.floor(max(1, self._pass_base_bytes) * growth)
+            ):
+                return "max_growth_per_pass"
         return None
 
     def replace_matches(
