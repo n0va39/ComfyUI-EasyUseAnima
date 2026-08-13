@@ -644,7 +644,12 @@ class WildcardCanonicalContractTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
             (root / "unicode.txt").write_text(f"{'가' * 5}\n", encoding="utf-8")
-            (root / "growth.txt").write_text(f"{'x' * 21}\n", encoding="utf-8")
+            (root / "terminal.txt").write_text(f"{'x' * 21}\n", encoding="utf-8")
+            (root / "growth.txt").write_text(
+                f"{'x' * 13}__leaf__\n",
+                encoding="utf-8",
+            )
+            (root / "leaf.txt").write_text("done\n", encoding="utf-8")
 
             output_limited = expand_wildcards(
                 "__unicode__",
@@ -652,7 +657,16 @@ class WildcardCanonicalContractTests(unittest.TestCase):
                 roots=[root],
                 budget=WildcardExpansionBudget(max_output_chars=12),
             )
-            growth_limited = expand_wildcards(
+            terminal = expand_wildcards(
+                "__terminal__",
+                seed=0,
+                roots=[root],
+                budget=WildcardExpansionBudget(
+                    max_output_chars=100,
+                    max_growth_per_pass=2.0,
+                ),
+            )
+            recursive_growth_limited = expand_wildcards(
                 "__growth__",
                 seed=0,
                 roots=[root],
@@ -667,9 +681,15 @@ class WildcardCanonicalContractTests(unittest.TestCase):
         self.assertEqual(output_limited.replacement_count, 0)
         self.assertLessEqual(len(output_limited.text), 12)
         self.assertLessEqual(len(output_limited.text.encode("utf-8")), 12)
-        self.assertEqual(growth_limited.text, "__growth__")
-        self.assertEqual(growth_limited.limit_reason, "max_growth_per_pass")
-        self.assertEqual(growth_limited.replacement_count, 0)
+        self.assertEqual(terminal.text, "x" * 21)
+        self.assertIsNone(terminal.limit_reason)
+        self.assertEqual(terminal.replacement_count, 1)
+        self.assertEqual(recursive_growth_limited.text, "__growth__")
+        self.assertEqual(
+            recursive_growth_limited.limit_reason,
+            "max_growth_per_pass",
+        )
+        self.assertEqual(recursive_growth_limited.replacement_count, 0)
 
     def test_random_mode_uses_numpy_pcg64_golden_outputs(self):
         selector = wildcard_selector._Selector(7, sequential=False)
@@ -1427,6 +1447,61 @@ class WildcardNodeTests(unittest.TestCase):
         self.assertIn(first[0]["text"], {"rose", "tulip", "sunflower"})
         self.assertNotEqual(first[0]["text"], "samples/flower")
         self.assertEqual(source_fields[0]["text"], "__samples/flower__")
+
+    def test_prompt_studio_advanced_v2_expands_long_terminal_file_candidate(self):
+        long_prompt = ", ".join(
+            [
+                "newest",
+                "masterpiece",
+                "1girl",
+                "solo",
+                *[f"descriptive tag {index}" for index in range(100)],
+                "An intelligent girl watches the city lights while the rain falls softly.",
+            ]
+        )
+        fields = [{
+            "id": "positive_general",
+            "pane": "positive",
+            "type": "general",
+            "label": "General Tags",
+            "text": "__long_prompt__",
+            "height": 120,
+            "enabled": True,
+        }]
+
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            (root / "long_prompt.txt").write_text(
+                f"{long_prompt}\n",
+                encoding="utf-8",
+            )
+
+            def expand_from_test_root(texts, *, seed, mode):
+                return expand_wildcard_texts(texts, seed=seed, mode=mode, roots=[root])
+
+            with patch.object(
+                prompt_advanced,
+                "expand_wildcard_texts",
+                side_effect=expand_from_test_root,
+            ):
+                output = EasyUseAnimaPromptStudioAdvancedV2().build(
+                    False,
+                    True,
+                    False,
+                    False,
+                    json.dumps(fields),
+                    wildcard_mode="sequential",
+                    wildcard_seed=0,
+                    wildcard_seed_after_generate="fixed",
+                )
+
+        prompt_data = output["result"][0]
+        self.assertGreater(len(long_prompt), len("__long_prompt__") * 8)
+        self.assertEqual(prompt_data["fields"][0]["text"], long_prompt)
+        self.assertNotEqual(prompt_data["positive_prompt"], "long prompt")
+        self.assertIn("descriptive tag 99", prompt_data["positive_prompt"])
+        self.assertIn("An intelligent girl watches", prompt_data["positive_prompt"])
+        self.assertEqual(prompt_data["wildcard"]["used_keys"], ["long_prompt"])
 
     def test_prompt_studio_sequential_seed_selects_and_wraps_in_order(self):
         fields = [{
