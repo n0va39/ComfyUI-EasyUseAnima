@@ -25,6 +25,10 @@ from .generation_defaults import (
     AIO_GENERATION_DEFAULT_SETTINGS,
     AIO_GENERATION_SETTINGS_SCHEMA,
     AIO_GENERATION_SETTINGS_VERSION,
+    AIO_SAMPLER_CFG_MAX,
+    AIO_SAMPLER_CFG_MIN,
+    AIO_SAMPLER_STEPS_MAX,
+    AIO_SAMPLER_STEPS_MIN,
     AIO_SPECIAL_SEED_RANDOM,
 )
 
@@ -238,8 +242,20 @@ def normalize_sampler_settings(
         SEED_CONTROL_FIXED,
     )
     defaults = AIO_GENERATION_DEFAULT_SETTINGS["sampler"]
-    sampler["steps"] = max(1, min(75, as_int(sampler.get("steps"), defaults["steps"])))
-    sampler["cfg"] = max(1.0, min(10.0, as_float(sampler.get("cfg"), defaults["cfg"])))
+    sampler["steps"] = max(
+        AIO_SAMPLER_STEPS_MIN,
+        min(
+            AIO_SAMPLER_STEPS_MAX,
+            as_int(sampler.get("steps"), defaults["steps"]),
+        ),
+    )
+    sampler["cfg"] = max(
+        AIO_SAMPLER_CFG_MIN,
+        min(
+            AIO_SAMPLER_CFG_MAX,
+            as_float(sampler.get("cfg"), defaults["cfg"]),
+        ),
+    )
     sampler["denoise"] = max(
         0.0,
         min(1.0, as_float(sampler.get("denoise"), defaults["denoise"])),

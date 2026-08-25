@@ -60,6 +60,14 @@ async function flushPromises() {
 
 const stageDialogModule = await import(dataModule("../web/js/aio/stage_settings_dialogs.js"));
 const settingsModule = await import(dataModule("../web/js/aio/settings.js"));
+const numericLimits = {
+  samplerSteps: { min: 1, max: 10000 },
+  samplerCfg: { min: 0, max: 100 },
+  auraFlowShift: { min: 0, max: 100 },
+  highresScaleBy: { min: 0.01, max: 8 },
+  upscaleScaleBy: { min: 0.05, max: 4 },
+  resolution: { min: 64, max: 16384 },
+};
 assert.deepEqual(
   Object.keys(stageDialogModule),
   ["aioCreateStageSettingsDialogs"],
@@ -303,6 +311,7 @@ function createFixture({
       defaultGenerationSettings: defaultSettings,
       fallbackSamplerNames: ["euler", "er_sde"],
       fallbackSchedulerNames: ["simple", "karras"],
+      numericLimits,
       mergeDefaults: settingsModule.aioMergeDefaults,
       clampNumber,
       normalizeUsduAutoTileRange,
@@ -449,8 +458,11 @@ function createFixture({
   assert.equal(control(dialog, "Multiple").value, "64");
   assert.equal(control(dialog, "Max long edge").value, "4096");
   assert.equal(control(dialog, "Steps").value, "33");
+  assert.equal(control(dialog, "Steps").max, "10000");
   assert.equal(control(dialog, "Follow main sampler").checked, true);
   assert.equal(control(dialog, "CFG").value, "7.5");
+  assert.equal(control(dialog, "CFG").min, "0");
+  assert.equal(control(dialog, "CFG").max, "100");
   assert.equal(control(dialog, "Sampler").value, "custom_sampler");
   assert.equal(control(dialog, "Scheduler").value, "custom_scheduler");
   assert.equal(control(dialog, "Denoise").value, "0.44");
@@ -496,7 +508,7 @@ function createFixture({
   await flushPromises();
   const applyDialog = fixture.dialogs[1];
   control(applyDialog, "Scale by").value = "9";
-  control(applyDialog, "Steps").value = "0";
+  control(applyDialog, "Steps").value = "120";
   control(applyDialog, "CFG").value = "20";
   control(applyDialog, "Denoise").value = "-1";
   control(applyDialog, "Follow main sampler").checked = false;
@@ -505,8 +517,8 @@ function createFixture({
   assert.equal(fixture.renders.length, 1);
   assert.deepEqual(applyDialog.trace.slice(-3), ["write", "render", "remove"]);
   assert.equal(fixture.node.settings.highres.scale_by, 8);
-  assert.equal(fixture.node.settings.highres.steps, 1);
-  assert.equal(fixture.node.settings.highres.cfg, 10);
+  assert.equal(fixture.node.settings.highres.steps, 120);
+  assert.equal(fixture.node.settings.highres.cfg, 20);
   assert.equal(fixture.node.settings.highres.denoise, 0);
   assert.equal(fixture.node.settings.highres.inherit_sampler_settings, false);
   assert.equal(fixture.node.settings.highres.spectrum.enabled, false);
@@ -647,7 +659,7 @@ function createFixture({
   assert.equal(fixture.node.settings.upscale.enabled, true);
   assert.equal(fixture.node.settings.upscale.backend, "usdu");
   assert.equal(fixture.node.settings.upscale.scale_by, 4);
-  assert.equal(fixture.node.settings.upscale.steps, 1000);
+  assert.equal(fixture.node.settings.upscale.steps, 2000);
   assert.equal(fixture.node.settings.upscale.denoise, 1);
   assert.equal(fixture.node.settings.upscale.inherit_sampler_settings, true);
   assert.equal(fixture.node.settings.upscale.usdu.prompt_mode, "no_general");
