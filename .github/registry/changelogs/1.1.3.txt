@@ -1,0 +1,9 @@
+EasyUse Anima 1.1.3 improves autocomplete boundaries and AiO manual numeric input.
+
+Changes:
+1. Autocomplete no longer opens after the caret has moved beyond a completed weighted prompt group such as (tag:1.2).
+2. Anima AiO Generator keeps compact slider ranges for convenient adjustment while accepting manually entered values across the larger ranges supported by generation, Highres, Detailer, Upscale, and USDU settings.
+3. Existing slider behavior, saved workflows, generation settings, profiles, public node identifiers, and socket order remain compatible.
+
+Action required:
+After updating, restart ComfyUI and hard-refresh the browser.

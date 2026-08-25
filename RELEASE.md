@@ -1,5 +1,24 @@
 # Release Notes
 
+## 1.1.3
+
+### Fixed
+
+- Autocomplete no longer opens after the caret has moved beyond a completed
+  weighted prompt group such as `(tag:1.2)`.
+- Anima AiO Generator numeric controls keep their compact slider ranges while
+  accepting and preserving manually entered values across the larger ranges
+  supported by generation, Highres, Detailer, Upscale, and USDU settings.
+
+### Compatibility
+
+- Existing slider behavior, saved workflows, generation settings, profiles,
+  public node identifiers, and socket order remain compatible.
+
+### Update
+
+- After updating, restart ComfyUI and hard-refresh the browser.
+
 ## 1.1.2
 
 ### Fixed
