@@ -638,6 +638,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
                 "specialSeedRandom: GENERATOR_SPECIAL_SEED_RANDOM,",
                 "fallbackSamplerNames: GENERATOR_FALLBACK_SAMPLER_NAMES,",
                 "fallbackSchedulerNames: GENERATOR_FALLBACK_SCHEDULER_NAMES,",
+                "numericLimits: GENERATOR_NUMERIC_LIMITS,",
                 "mergeDefaults,",
                 "normalizeSeedControl,",
                 "normalizeSeedValue,",

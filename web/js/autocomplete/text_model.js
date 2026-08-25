@@ -461,7 +461,7 @@ export function currentToken(value, caret, options = {}) {
   const legacyRaw = text.slice(segmentStart, safeCaret);
   const segment = text.slice(segmentStart, segmentEnd);
   const strictActive = safeCaret >= replaceStart && safeCaret <= replaceEnd && queryEnd > replaceStart;
-  const legacyActive = legacyRaw.trim().length > 0;
+  const legacyActive = strictActive && legacyRaw.trim().length > 0;
   const useStrictToken = options.previewCompletion === true;
   return {
     value: text,

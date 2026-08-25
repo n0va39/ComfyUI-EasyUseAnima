@@ -717,6 +717,33 @@ class PromptBuilderTests(unittest.TestCase):
             "1girl, long hair",
         )
 
+    def test_prompt_studio_normalizes_multiline_fields_to_prompt_commas(self):
+        prompt = "1girl\r\nlong hair\n\nblue eyes"
+
+        studio_output = EasyUseAnimaPromptStudio().build(
+            False,
+            False,
+            "",
+            "",
+            "",
+            prompt,
+            "",
+        )
+
+        self.assertEqual(
+            studio_output["result"],
+            (
+                "1girl, long hair, blue eyes",
+                "",
+                False,
+                "1girl, long hair, blue eyes",
+            ),
+        )
+        self.assertEqual(
+            studio_output["ui"]["prompt_studio_inputs"][0]["prompt"],
+            prompt,
+        )
+
     def test_prompt_studio_advanced_defaults_include_negative_output(self):
         result = EasyUseAnimaPromptStudioAdvanced().build(
             False,

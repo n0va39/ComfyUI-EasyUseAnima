@@ -52,6 +52,14 @@ function listenerCapture(options = false) {
 
 const panelModule = await import(dataModule("../web/js/aio/generator_panel_runtime.js"));
 const settingsModule = await import(dataModule("../web/js/aio/settings.js"));
+const numericLimits = {
+  samplerSteps: { min: 1, max: 10000 },
+  samplerCfg: { min: 0, max: 100 },
+  auraFlowShift: { min: 0, max: 100 },
+  highresScaleBy: { min: 0.01, max: 8 },
+  upscaleScaleBy: { min: 0.05, max: 4 },
+  resolution: { min: 64, max: 16384 },
+};
 assert.deepEqual(
   Object.keys(panelModule),
   ["aioCreateGeneratorPanelRuntime"],
@@ -336,6 +344,7 @@ function createFixture() {
     specialSeedRandom: settingsModule.AIO_GENERATOR_SPECIAL_SEED_RANDOM,
     fallbackSamplerNames: ["er_sde", "euler"],
     fallbackSchedulerNames: ["simple", "karras"],
+    numericLimits,
     mergeDefaults: settingsModule.aioMergeDefaults,
     normalizeSeedControl: settingsModule.aioNormalizeSeedControl,
     normalizeSeedValue: settingsModule.aioNormalizeSeedValue,
@@ -769,6 +778,69 @@ function assertOwnerDocumentListenerCount(fixture, expected, message) {
   assertOwnerDocumentListenerCount(otherFixture, 0, "current panel rerender must restore baseline");
   otherFixture.runtime.disposePanel(otherNode);
   assert.equal(otherFixture.document.querySelectorAll("[data-aio-info-tooltip]").length, 0);
+}
+
+{
+  const rangeFixture = createFixture();
+  const rangeSettings = clone(rangeFixture.defaultSettings);
+  rangeSettings.sampler.steps = 120;
+  rangeSettings.sampler.cfg = 25;
+  rangeSettings.model_patches.aura_flow.shift = 18;
+  rangeSettings.highres.enabled = true;
+  rangeSettings.highres.scale_by = 0.5;
+  rangeSettings.highres.steps = 120;
+  rangeSettings.upscale.enabled = true;
+  rangeSettings.upscale.backend = "usdu";
+  rangeSettings.upscale.scale_by = 0.5;
+  rangeSettings.upscale.steps = 2000;
+  rangeSettings.upscale.usdu.auto_tile_size = true;
+  rangeSettings.upscale.usdu.auto_tile_target = 9000;
+  const rangeNode = createOwnerTestNode(rangeFixture, rangeSettings);
+  rangeFixture.runtime.ensurePanel(rangeNode);
+  const panel = rangeNode.__easyuseAnimaGeneratorPanelEl;
+  const settingsScroll = panel.querySelector(".easyuse-anima-aio-node-settings-scroll");
+
+  const stepsControl = findField(panel, "text:label.steps").children[0];
+  const stepsInput = stepsControl.children[0];
+  const stepsTrack = stepsControl.children[1];
+  assert.equal(stepsInput.value, "120");
+  assert.equal(stepsInput.min, "1");
+  assert.equal(stepsInput.max, "10000");
+  assert.equal(stepsTrack.children[1].style.width, "100%");
+  stepsInput.value = "130";
+  stepsInput.emit("input");
+  assert.equal(rangeNode.widgetValues.steps, 130);
+  assert.equal(stepsInput.value, "130");
+  const trackRect = stepsTrack.getBoundingClientRect();
+  stepsTrack.emit("pointerdown", {
+    pointerId: 91,
+    clientX: trackRect.left + trackRect.width,
+  });
+  rangeFixture.dispatchWindow("pointerup", { stopPropagation() {} });
+  assert.equal(rangeNode.widgetValues.steps, 75);
+  assert.equal(stepsInput.value, "75");
+
+  const shiftInput = findField(panel, "text:label.shift").children[0].children[0];
+  assert.equal(shiftInput.value, "18");
+  assert.equal(shiftInput.min, "0");
+  assert.equal(shiftInput.max, "100");
+
+  const highresBlock = settingsScroll.children[1];
+  const highresScaleInput = findField(highresBlock, "text:label.scaleBy").children[0].children[0];
+  const highresStepsInput = findField(highresBlock, "text:label.steps").children[0].children[0];
+  assert.equal(highresScaleInput.value, "0.5");
+  assert.equal(highresScaleInput.min, "0.01");
+  assert.equal(highresScaleInput.max, "8");
+  assert.equal(highresStepsInput.value, "120");
+
+  const upscaleBlock = settingsScroll.children[3];
+  const upscaleStepsInput = findField(upscaleBlock, "text:label.steps").children[0].children[0];
+  const autoTileTargetInput = findField(upscaleBlock, "text:field.autoTileTarget").children[0].children[0];
+  assert.equal(upscaleStepsInput.value, "2000");
+  assert.equal(upscaleStepsInput.max, "10000");
+  assert.equal(autoTileTargetInput.value, "9000");
+  assert.equal(autoTileTargetInput.max, "16384");
+  rangeFixture.runtime.disposePanel(rangeNode);
 }
 
 const fixture = createFixture();

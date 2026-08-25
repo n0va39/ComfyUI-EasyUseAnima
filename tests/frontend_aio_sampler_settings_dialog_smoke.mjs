@@ -84,6 +84,14 @@ async function flushPromises() {
 
 const samplerDialogModule = await import(dataModule("../web/js/aio/sampler_settings_dialog.js"));
 const settingsModule = await import(dataModule("../web/js/aio/settings.js"));
+const numericLimits = {
+  samplerSteps: { min: 1, max: 10000 },
+  samplerCfg: { min: 0, max: 100 },
+  auraFlowShift: { min: 0, max: 100 },
+  highresScaleBy: { min: 0.01, max: 8 },
+  upscaleScaleBy: { min: 0.05, max: 4 },
+  resolution: { min: 64, max: 16384 },
+};
 assert.deepEqual(
   Object.keys(samplerDialogModule),
   ["aioCreateSamplerSettingsDialog"],
@@ -367,6 +375,7 @@ function createFixture({
       specialSeedRandom: settingsModule.AIO_GENERATOR_SPECIAL_SEED_RANDOM,
       fallbackSamplerNames: ["euler", "er_sde"],
       fallbackSchedulerNames: ["simple", "sgm_uniform"],
+      numericLimits,
       mergeDefaults,
       normalizeSeedControl: settingsModule.aioNormalizeSeedControl,
       normalizeSeedValue: settingsModule.aioNormalizeSeedValue,
@@ -538,7 +547,11 @@ function createFixture({
   assert.equal(controlIn(base, "Seed").value, "1234");
   assert.equal(controlIn(base, "Seed mode").value, "increment");
   assert.equal(controlIn(base, "Steps").value, "47");
+  assert.equal(controlIn(base, "Steps").min, "1");
+  assert.equal(controlIn(base, "Steps").max, "10000");
   assert.equal(controlIn(base, "CFG").value, "6.5");
+  assert.equal(controlIn(base, "CFG").min, "0");
+  assert.equal(controlIn(base, "CFG").max, "100");
   assert.equal(controlIn(base, "Denoise").value, "0.55");
   assert.equal(controlIn(sampler, "Mode").value, "spectrum_mod_guidance_advanced");
   assert.equal(controlIn(sampler, "Sampler").value, "custom_sampler");
@@ -911,7 +924,7 @@ for (const testCase of [
 
   controlIn(base, "Seed").value = String(settingsModule.AIO_GENERATOR_MAX_SEED + 100);
   setSelectValue(controlIn(base, "Seed mode"), "");
-  controlIn(base, "Steps").value = "0";
+  controlIn(base, "Steps").value = "120";
   controlIn(base, "CFG").value = "99";
   controlIn(base, "Denoise").value = "-1";
   setSelectValue(controlIn(sampler, "Sampler"), "");
@@ -935,8 +948,8 @@ for (const testCase of [
   assert.equal(written.sampler.backend, "spectrum_spd_speed");
   assert.equal(written.sampler.seed, settingsModule.AIO_GENERATOR_MAX_SEED);
   assert.equal(written.sampler.seed_after_generate, "fixed");
-  assert.equal(written.sampler.steps, 1);
-  assert.equal(written.sampler.cfg, 10);
+  assert.equal(written.sampler.steps, 120);
+  assert.equal(written.sampler.cfg, 99);
   assert.equal(written.sampler.denoise, 0);
   assert.equal(written.sampler.sampler_name, fixture.defaultSettings.sampler.sampler_name);
   assert.equal(written.sampler.scheduler, fixture.defaultSettings.sampler.scheduler);
@@ -968,8 +981,8 @@ for (const testCase of [
   });
   assert.deepEqual(JSON.parse(fixture.node.widgets[0].value), written);
   assert.equal(fixture.applyVisibleCalls[0].sampler.seed, settingsModule.AIO_GENERATOR_MAX_SEED);
-  assert.equal(fixture.node.visible.steps, 1);
-  assert.equal(fixture.node.visible.cfg, 10);
+  assert.equal(fixture.node.visible.steps, 120);
+  assert.equal(fixture.node.visible.cfg, 99);
   assert.equal(fixture.node.visible.denoise, 0);
 }
 

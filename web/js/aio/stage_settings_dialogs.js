@@ -22,6 +22,7 @@
  * @property {any} defaultGenerationSettings
  * @property {any[]} fallbackSamplerNames
  * @property {any[]} fallbackSchedulerNames
+ * @property {any} numericLimits
  * @property {(defaults: any, current: any) => any} mergeDefaults
  * @property {(value: any, fallback: number, min: number, max: number) => number} clampNumber
  * @property {(value: any) => any} normalizeUsduAutoTileRange
@@ -97,6 +98,7 @@ export function aioCreateStageSettingsDialogs(dependencies) {
     defaultGenerationSettings: DEFAULT_GENERATION_SETTINGS,
     fallbackSamplerNames: GENERATOR_FALLBACK_SAMPLER_NAMES,
     fallbackSchedulerNames: GENERATOR_FALLBACK_SCHEDULER_NAMES,
+    numericLimits: GENERATOR_NUMERIC_LIMITS,
     mergeDefaults,
     clampNumber: clampGeneratorNumber,
     normalizeUsduAutoTileRange: normalizeGeneratorUsduAutoTileRange,
@@ -255,6 +257,8 @@ export function aioCreateStageSettingsDialogs(dependencies) {
     image.append(Object.assign(document.createElement("h3"), { textContent: aioStaticText("Image Scale") }));
     const enabled = field(image, "Enable highres", checkbox(highres.enabled));
     const scaleBy = field(image, "Scale by", numberInput(highres.scale_by, "0.01"));
+    scaleBy.min = String(GENERATOR_NUMERIC_LIMITS.highresScaleBy.min);
+    scaleBy.max = String(GENERATOR_NUMERIC_LIMITS.highresScaleBy.max);
     const upscaleMethod = field(image, "Method", selectInput(["bicubic", "nearest-exact", "bilinear", "area", "lanczos"], highres.upscale_method));
     const multiple = field(image, "Multiple", selectInput(["8", "16", "32", "64"], highres.multiple));
     const maxLongEdge = field(image, "Max long edge", numberInput(highres.max_long_edge, "32"));
@@ -263,8 +267,8 @@ export function aioCreateStageSettingsDialogs(dependencies) {
     sampler.className = "easyuse-anima-aio-section";
     sampler.append(Object.assign(document.createElement("h3"), { textContent: aioStaticText("Highres Sampler") }));
     const steps = field(sampler, "Steps", numberInput(highres.steps, "1"));
-    steps.min = "1";
-    steps.max = "75";
+    steps.min = String(GENERATOR_NUMERIC_LIMITS.samplerSteps.min);
+    steps.max = String(GENERATOR_NUMERIC_LIMITS.samplerSteps.max);
     const effectiveInherit = !!highres.inherit_sampler_settings;
     const inheritSampler = field(
       sampler,
@@ -277,8 +281,8 @@ export function aioCreateStageSettingsDialogs(dependencies) {
     dependencyWarning.hidden = true;
     sampler.append(dependencyWarning);
     const cfg = field(sampler, "CFG", numberInput(highres.cfg, "0.1"));
-    cfg.min = "1";
-    cfg.max = "10";
+    cfg.min = String(GENERATOR_NUMERIC_LIMITS.samplerCfg.min);
+    cfg.max = String(GENERATOR_NUMERIC_LIMITS.samplerCfg.max);
     const samplerName = field(
       sampler,
       "Sampler",
@@ -327,13 +331,28 @@ export function aioCreateStageSettingsDialogs(dependencies) {
       next.highres = {
         ...next.highres,
         enabled: enabled.checked,
-        scale_by: clampGeneratorNumber(scaleBy.value, DEFAULT_GENERATION_SETTINGS.highres.scale_by, 0.01, 8),
+        scale_by: clampGeneratorNumber(
+          scaleBy.value,
+          DEFAULT_GENERATION_SETTINGS.highres.scale_by,
+          GENERATOR_NUMERIC_LIMITS.highresScaleBy.min,
+          GENERATOR_NUMERIC_LIMITS.highresScaleBy.max,
+        ),
         upscale_method: upscaleMethod.value || "bicubic",
         multiple: multiple.value || "32",
         max_long_edge: Math.trunc(clampGeneratorNumber(maxLongEdge.value, 2560, 0, 16384)),
-        steps: Math.trunc(clampGeneratorNumber(steps.value, 20, 1, 75)),
+        steps: Math.trunc(clampGeneratorNumber(
+          steps.value,
+          20,
+          GENERATOR_NUMERIC_LIMITS.samplerSteps.min,
+          GENERATOR_NUMERIC_LIMITS.samplerSteps.max,
+        )),
         inherit_sampler_settings: inheritSampler.checked,
-        cfg: clampGeneratorNumber(cfg.value, 8, 1, 10),
+        cfg: clampGeneratorNumber(
+          cfg.value,
+          8,
+          GENERATOR_NUMERIC_LIMITS.samplerCfg.min,
+          GENERATOR_NUMERIC_LIMITS.samplerCfg.max,
+        ),
         sampler_name: samplerName.value || "euler",
         scheduler: scheduler.value || "simple",
         denoise: clampGeneratorNumber(denoise.value, DEFAULT_GENERATION_SETTINGS.highres.denoise, 0, 1),
@@ -377,8 +396,8 @@ export function aioCreateStageSettingsDialogs(dependencies) {
     usduSection.className = "easyuse-anima-aio-section";
     usduSection.append(Object.assign(document.createElement("h3"), { textContent: aioStaticText("USDU Upscale") }));
     const scaleBy = field(usduSection, "Scale by", numberInput(upscale.scale_by, "0.05"), "tip.upscaleScale");
-    scaleBy.min = "0.05";
-    scaleBy.max = "4";
+    scaleBy.min = String(GENERATOR_NUMERIC_LIMITS.upscaleScaleBy.min);
+    scaleBy.max = String(GENERATOR_NUMERIC_LIMITS.upscaleScaleBy.max);
     const upscaleModel = field(
       usduSection,
       "Upscale model",
@@ -423,6 +442,10 @@ export function aioCreateStageSettingsDialogs(dependencies) {
     const inheritSampler = field(usduSampler, "Follow main sampler", checkbox(upscale.inherit_sampler_settings), "tip.highresFollow");
     const steps = field(usduSampler, "Steps", numberInput(upscale.steps, "1"), "tip.steps");
     const cfg = field(usduSampler, "CFG", numberInput(upscale.cfg, "0.1"), "tip.cfg");
+    steps.min = String(GENERATOR_NUMERIC_LIMITS.samplerSteps.min);
+    steps.max = String(GENERATOR_NUMERIC_LIMITS.samplerSteps.max);
+    cfg.min = String(GENERATOR_NUMERIC_LIMITS.samplerCfg.min);
+    cfg.max = String(GENERATOR_NUMERIC_LIMITS.samplerCfg.max);
     const samplerName = field(
       usduSampler,
       "Sampler",
@@ -570,10 +593,25 @@ export function aioCreateStageSettingsDialogs(dependencies) {
         ...next.upscale,
         enabled: enabled.checked && missingPacks.length === 0,
         backend: backend.value || "usdu",
-        scale_by: clampGeneratorNumber(scaleBy.value, DEFAULT_GENERATION_SETTINGS.upscale.scale_by, 0.05, 4),
-        steps: Math.trunc(clampGeneratorNumber(steps.value, DEFAULT_GENERATION_SETTINGS.upscale.steps, 1, 1000)),
+        scale_by: clampGeneratorNumber(
+          scaleBy.value,
+          DEFAULT_GENERATION_SETTINGS.upscale.scale_by,
+          GENERATOR_NUMERIC_LIMITS.upscaleScaleBy.min,
+          GENERATOR_NUMERIC_LIMITS.upscaleScaleBy.max,
+        ),
+        steps: Math.trunc(clampGeneratorNumber(
+          steps.value,
+          DEFAULT_GENERATION_SETTINGS.upscale.steps,
+          GENERATOR_NUMERIC_LIMITS.samplerSteps.min,
+          GENERATOR_NUMERIC_LIMITS.samplerSteps.max,
+        )),
         inherit_sampler_settings: inheritSampler.checked,
-        cfg: clampGeneratorNumber(cfg.value, DEFAULT_GENERATION_SETTINGS.upscale.cfg, 0, 100),
+        cfg: clampGeneratorNumber(
+          cfg.value,
+          DEFAULT_GENERATION_SETTINGS.upscale.cfg,
+          GENERATOR_NUMERIC_LIMITS.samplerCfg.min,
+          GENERATOR_NUMERIC_LIMITS.samplerCfg.max,
+        ),
         sampler_name: samplerName.value || "euler",
         scheduler: scheduler.value || "simple",
         denoise: clampGeneratorNumber(denoise.value, DEFAULT_GENERATION_SETTINGS.upscale.denoise, 0, 1),
@@ -583,11 +621,36 @@ export function aioCreateStageSettingsDialogs(dependencies) {
           auto_tile_size: autoTile.checked,
           prompt_mode: promptMode.value || "full",
           mode_type: modeType.value || "Linear",
-          auto_tile_target: Math.trunc(clampGeneratorNumber(autoTileTarget.value, 1024, 64, 16384)),
-          auto_tile_min: Math.trunc(clampGeneratorNumber(autoTileMin.value, 512, 64, 16384)),
-          auto_tile_max: Math.trunc(clampGeneratorNumber(autoTileMax.value, 2048, 64, 16384)),
-          tile_width: Math.trunc(clampGeneratorNumber(tileWidth.value, 512, 64, 16384)),
-          tile_height: Math.trunc(clampGeneratorNumber(tileHeight.value, 512, 64, 16384)),
+          auto_tile_target: Math.trunc(clampGeneratorNumber(
+            autoTileTarget.value,
+            1024,
+            GENERATOR_NUMERIC_LIMITS.resolution.min,
+            GENERATOR_NUMERIC_LIMITS.resolution.max,
+          )),
+          auto_tile_min: Math.trunc(clampGeneratorNumber(
+            autoTileMin.value,
+            512,
+            GENERATOR_NUMERIC_LIMITS.resolution.min,
+            GENERATOR_NUMERIC_LIMITS.resolution.max,
+          )),
+          auto_tile_max: Math.trunc(clampGeneratorNumber(
+            autoTileMax.value,
+            2048,
+            GENERATOR_NUMERIC_LIMITS.resolution.min,
+            GENERATOR_NUMERIC_LIMITS.resolution.max,
+          )),
+          tile_width: Math.trunc(clampGeneratorNumber(
+            tileWidth.value,
+            512,
+            GENERATOR_NUMERIC_LIMITS.resolution.min,
+            GENERATOR_NUMERIC_LIMITS.resolution.max,
+          )),
+          tile_height: Math.trunc(clampGeneratorNumber(
+            tileHeight.value,
+            512,
+            GENERATOR_NUMERIC_LIMITS.resolution.min,
+            GENERATOR_NUMERIC_LIMITS.resolution.max,
+          )),
           mask_blur: Math.trunc(clampGeneratorNumber(maskBlur.value, 8, 0, 64)),
           tile_padding: Math.trunc(clampGeneratorNumber(tilePadding.value, 32, 0, 16384)),
           seam_fix_mode: seamFix.value || "None",

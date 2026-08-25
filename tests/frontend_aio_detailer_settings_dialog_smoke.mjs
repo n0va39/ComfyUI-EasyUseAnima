@@ -74,6 +74,14 @@ async function flushPromises() {
 
 const detailerDialogModule = await import(dataModule("../web/js/aio/detailer_settings_dialog.js"));
 const settingsModule = await import(dataModule("../web/js/aio/settings.js"));
+const numericLimits = {
+  samplerSteps: { min: 1, max: 10000 },
+  samplerCfg: { min: 0, max: 100 },
+  auraFlowShift: { min: 0, max: 100 },
+  highresScaleBy: { min: 0.01, max: 8 },
+  upscaleScaleBy: { min: 0.05, max: 4 },
+  resolution: { min: 64, max: 16384 },
+};
 assert.deepEqual(
   Object.keys(detailerDialogModule),
   ["aioCreateDetailerSettingsDialog"],
@@ -412,6 +420,7 @@ function createFixture({
       defaultGenerationSettings: defaultSettings,
       fallbackSamplerNames: ["euler", "er_sde"],
       fallbackSchedulerNames: ["simple", "sgm_uniform"],
+      numericLimits,
       mergeDefaults,
       clampNumber,
       normalizeDetailerOrder,
@@ -631,6 +640,9 @@ function createFixture({
   tabByLabel(dialog, "Portrait Detailer").emit("click");
   editor = activeEditor(dialog);
   controlIn(editor, "Prompt").value = "new portrait prompt";
+  assert.equal(controlIn(editor, "Steps").max, "10000");
+  assert.equal(controlIn(editor, "CFG").min, "0");
+  assert.equal(controlIn(editor, "CFG").max, "100");
   controlIn(editor, "Steps").value = "100";
   controlIn(editor, "CFG").value = "0";
   controlIn(editor, "Denoise").value = "2";
@@ -664,8 +676,8 @@ function createFixture({
   assert.equal(Object.hasOwn(fixture.node.settings.detailer, "custom_9"), false, "Stale custom key must be deleted");
   assert.equal(fixture.node.settings.detailer.custom_2.label, "Portrait Detailer");
   assert.equal(fixture.node.settings.detailer.custom_2.detect_prompt, "new portrait prompt");
-  assert.equal(fixture.node.settings.detailer.custom_2.steps, 75);
-  assert.equal(fixture.node.settings.detailer.custom_2.cfg, 1);
+  assert.equal(fixture.node.settings.detailer.custom_2.steps, 100);
+  assert.equal(fixture.node.settings.detailer.custom_2.cfg, 0);
   assert.equal(fixture.node.settings.detailer.custom_2.denoise, 1);
   assert.equal(fixture.node.settings.detailer.custom_2.inherit_sampler_settings, false);
   assert.equal(fixture.node.settings.detailer.custom_2.guide_size_for, true);

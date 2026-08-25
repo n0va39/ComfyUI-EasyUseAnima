@@ -27,6 +27,7 @@
  * @property {number} specialSeedRandom
  * @property {any[]} fallbackSamplerNames
  * @property {any[]} fallbackSchedulerNames
+ * @property {any} numericLimits
  * @property {(defaults: any, current: any) => any} mergeDefaults
  * @property {(value: any) => string} normalizeSeedControl
  * @property {(value: any, fallback: number) => number} normalizeSeedValue
@@ -166,6 +167,7 @@ export function aioCreateSamplerSettingsDialog(dependencies) {
     specialSeedRandom: GENERATOR_SPECIAL_SEED_RANDOM,
     fallbackSamplerNames: GENERATOR_FALLBACK_SAMPLER_NAMES,
     fallbackSchedulerNames: GENERATOR_FALLBACK_SCHEDULER_NAMES,
+    numericLimits: GENERATOR_NUMERIC_LIMITS,
     mergeDefaults,
     normalizeSeedControl,
     normalizeSeedValue,
@@ -303,11 +305,11 @@ export function aioCreateSamplerSettingsDialog(dependencies) {
       selectInput(GENERATOR_SEED_CONTROLS, normalizeSeedControl(settings.sampler.seed_after_generate))
     );
     const steps = field(base, "Steps", numberInput(settings.sampler.steps));
-    steps.min = "1";
-    steps.max = "75";
+    steps.min = String(GENERATOR_NUMERIC_LIMITS.samplerSteps.min);
+    steps.max = String(GENERATOR_NUMERIC_LIMITS.samplerSteps.max);
     const cfg = field(base, "CFG", numberInput(settings.sampler.cfg, "0.1"));
-    cfg.min = "1";
-    cfg.max = "10";
+    cfg.min = String(GENERATOR_NUMERIC_LIMITS.samplerCfg.min);
+    cfg.max = String(GENERATOR_NUMERIC_LIMITS.samplerCfg.max);
     const denoise = field(base, "Denoise", numberInput(settings.sampler.denoise, "0.01"));
 
     const sampler = makeSection("Sampler Backend");
@@ -524,8 +526,18 @@ export function aioCreateSamplerSettingsDialog(dependencies) {
         : selectedBackend;
       next.sampler.seed = normalizeSeedValue(seed.value, GENERATOR_SPECIAL_SEED_RANDOM);
       next.sampler.seed_after_generate = normalizeSeedControl(seedControl.value);
-      next.sampler.steps = Math.trunc(clampGeneratorNumber(steps.value, DEFAULT_GENERATION_SETTINGS.sampler.steps, 1, 75));
-      next.sampler.cfg = clampGeneratorNumber(cfg.value, DEFAULT_GENERATION_SETTINGS.sampler.cfg, 1, 10);
+      next.sampler.steps = Math.trunc(clampGeneratorNumber(
+        steps.value,
+        DEFAULT_GENERATION_SETTINGS.sampler.steps,
+        GENERATOR_NUMERIC_LIMITS.samplerSteps.min,
+        GENERATOR_NUMERIC_LIMITS.samplerSteps.max,
+      ));
+      next.sampler.cfg = clampGeneratorNumber(
+        cfg.value,
+        DEFAULT_GENERATION_SETTINGS.sampler.cfg,
+        GENERATOR_NUMERIC_LIMITS.samplerCfg.min,
+        GENERATOR_NUMERIC_LIMITS.samplerCfg.max,
+      );
       next.sampler.denoise = clampGeneratorNumber(denoise.value, DEFAULT_GENERATION_SETTINGS.sampler.denoise, 0, 1);
       next.sampler.sampler_name = samplerName.value || DEFAULT_GENERATION_SETTINGS.sampler.sampler_name;
       next.sampler.scheduler = scheduler.value || DEFAULT_GENERATION_SETTINGS.sampler.scheduler;
