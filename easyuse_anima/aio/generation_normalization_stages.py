@@ -11,6 +11,10 @@ from .generation_defaults import (
     AIO_GENERATION_DEFAULT_SETTINGS,
     AIO_RESHIFT_DTYPES,
     AIO_RESHIFT_SCALES,
+    AIO_SAMPLER_CFG_MAX,
+    AIO_SAMPLER_CFG_MIN,
+    AIO_SAMPLER_STEPS_MAX,
+    AIO_SAMPLER_STEPS_MIN,
     AIO_USDU_MODE_TYPES,
     AIO_USDU_PROMPT_MODES,
     AIO_USDU_PROMPT_NO_GENERAL,
@@ -107,9 +111,15 @@ def _normalize_highres_settings(
     highres["upscale_method"] = choice(highres.get("upscale_method"), IMAGE_UPSCALE_METHODS, defaults["upscale_method"])
     highres["multiple"] = choice(highres.get("multiple"), IMAGE_SCALE_MULTIPLES, defaults["multiple"])
     highres["max_long_edge"] = max(0, min(16384, as_int(highres.get("max_long_edge"), defaults["max_long_edge"])))
-    highres["steps"] = max(1, min(75, as_int(highres.get("steps"), defaults["steps"])))
+    highres["steps"] = max(
+        AIO_SAMPLER_STEPS_MIN,
+        min(AIO_SAMPLER_STEPS_MAX, as_int(highres.get("steps"), defaults["steps"])),
+    )
     highres["inherit_sampler_settings"] = as_bool(highres.get("inherit_sampler_settings"), defaults["inherit_sampler_settings"])
-    highres["cfg"] = max(1.0, min(10.0, as_float(highres.get("cfg"), defaults["cfg"])))
+    highres["cfg"] = max(
+        AIO_SAMPLER_CFG_MIN,
+        min(AIO_SAMPLER_CFG_MAX, as_float(highres.get("cfg"), defaults["cfg"])),
+    )
     highres["sampler_name"] = choice(highres.get("sampler_name"), sampler_names(), defaults["sampler_name"])
     highres["scheduler"] = choice(highres.get("scheduler"), scheduler_names(), defaults["scheduler"])
     highres["denoise"] = max(0.0, min(1.0, as_float(highres.get("denoise"), defaults["denoise"])))
@@ -134,9 +144,15 @@ def _normalize_upscale_settings(
     defaults = AIO_GENERATION_DEFAULT_SETTINGS["upscale"]
     upscale["backend"] = choice(upscale.get("backend"), AIO_FINAL_UPSCALE_BACKENDS, defaults["backend"])
     upscale["scale_by"] = max(0.05, min(4.0, as_float(upscale.get("scale_by"), defaults["scale_by"])))
-    upscale["steps"] = max(1, min(1000, as_int(upscale.get("steps"), defaults["steps"])))
+    upscale["steps"] = max(
+        AIO_SAMPLER_STEPS_MIN,
+        min(AIO_SAMPLER_STEPS_MAX, as_int(upscale.get("steps"), defaults["steps"])),
+    )
     upscale["inherit_sampler_settings"] = as_bool(upscale.get("inherit_sampler_settings"), defaults["inherit_sampler_settings"])
-    upscale["cfg"] = max(0.0, min(100.0, as_float(upscale.get("cfg"), defaults["cfg"])))
+    upscale["cfg"] = max(
+        AIO_SAMPLER_CFG_MIN,
+        min(AIO_SAMPLER_CFG_MAX, as_float(upscale.get("cfg"), defaults["cfg"])),
+    )
     upscale["sampler_name"] = choice(upscale.get("sampler_name"), sampler_names(), defaults["sampler_name"])
     upscale["scheduler"] = choice(upscale.get("scheduler"), scheduler_names(), defaults["scheduler"])
     upscale["denoise"] = max(0.0, min(1.0, as_float(upscale.get("denoise"), defaults["denoise"])))
@@ -268,9 +284,15 @@ def _normalize_detailer_settings(
         target["guide_size"] = max(64, min(4096, as_int(target.get("guide_size"), defaults["guide_size"])))
         target["guide_size_for"] = as_bool(target.get("guide_size_for"), defaults["guide_size_for"])
         target["max_size"] = max(64, min(8192, as_int(target.get("max_size"), defaults["max_size"])))
-        target["steps"] = max(1, min(75, as_int(target.get("steps"), defaults["steps"])))
+        target["steps"] = max(
+            AIO_SAMPLER_STEPS_MIN,
+            min(AIO_SAMPLER_STEPS_MAX, as_int(target.get("steps"), defaults["steps"])),
+        )
         target["inherit_sampler_settings"] = as_bool(target.get("inherit_sampler_settings"), defaults["inherit_sampler_settings"])
-        target["cfg"] = max(1.0, min(10.0, as_float(target.get("cfg"), defaults["cfg"])))
+        target["cfg"] = max(
+            AIO_SAMPLER_CFG_MIN,
+            min(AIO_SAMPLER_CFG_MAX, as_float(target.get("cfg"), defaults["cfg"])),
+        )
         target["sampler_name"] = choice(target.get("sampler_name"), sampler_names(), defaults["sampler_name"])
         target["scheduler"] = choice(target.get("scheduler"), impact_scheduler_names(), defaults["scheduler"])
         target["denoise"] = max(0.0, min(1.0, as_float(target.get("denoise"), defaults["denoise"])))

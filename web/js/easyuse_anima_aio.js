@@ -131,6 +131,14 @@ const GENERATOR_SPECIAL_SEEDS = [
   GENERATOR_SPECIAL_SEED_INCREMENT,
   GENERATOR_SPECIAL_SEED_DECREMENT,
 ];
+const GENERATOR_NUMERIC_LIMITS = Object.freeze({
+  samplerSteps: Object.freeze({ min: 1, max: 10000 }),
+  samplerCfg: Object.freeze({ min: 0, max: 100 }),
+  auraFlowShift: Object.freeze({ min: 0, max: 100 }),
+  highresScaleBy: Object.freeze({ min: 0.01, max: 8 }),
+  upscaleScaleBy: Object.freeze({ min: 0.05, max: 4 }),
+  resolution: Object.freeze({ min: 64, max: 16384 }),
+});
 const GENERATOR_VUE_NODE_CLASS = "easyuse-anima-aio-hide-native-live-preview";
 const GENERATOR_FALLBACK_SAMPLER_NAMES = [
   "er_sde",
@@ -466,8 +474,8 @@ const AIO_TEXT = {
     "tip.randomEach": "Set seed to -1 so each backend execution uses a new random seed.",
     "tip.newFixed": "Generate a concrete random seed now and keep it fixed.",
     "tip.useLast": "Reuse the last seed accepted by a completed backend execution.",
-    "tip.steps": "Main sampler steps. The compact slider range is 1 to 75.",
-    "tip.cfg": "Main classifier-free guidance scale. Range is 1.0 to 10.0.",
+    "tip.steps": "Main sampler steps. The compact slider stays at 1 to 75; manual entry accepts 1 to 10000.",
+    "tip.cfg": "Main classifier-free guidance scale. The compact slider stays at 1.0 to 10.0; manual entry accepts 0 to 100.",
     "tip.shift": "AuraFlow model sampling shift. Always applied; 3.0 is the Anima model-recommended default.",
     "tip.denoise": "Main denoise strength for the first sampling pass.",
     "tip.sampler": "Main ComfyUI sampler name used by the first pass.",
@@ -821,8 +829,8 @@ const AIO_TEXT = {
     "tip.randomEach": "시드를 -1로 설정해 실행할 때마다 새 랜덤 시드를 사용합니다.",
     "tip.newFixed": "지금 랜덤 시드를 하나 생성하고 고정값으로 사용합니다.",
     "tip.useLast": "이 노드에서 마지막으로 완료된 백엔드 실행의 실제 시드를 다시 사용합니다.",
-    "tip.steps": "1차 샘플러 스텝입니다. 기본 슬라이더 범위는 1부터 75까지입니다.",
-    "tip.cfg": "1차 CFG 값입니다. 범위는 1.0부터 10.0까지입니다.",
+    "tip.steps": "1차 샘플러 스텝입니다. 슬라이더는 1~75를 유지하며 수동 입력은 1~10000을 허용합니다.",
+    "tip.cfg": "1차 CFG 값입니다. 슬라이더는 1.0~10.0을 유지하며 수동 입력은 0~100을 허용합니다.",
     "tip.shift": "AuraFlow 모델 샘플링 시프트입니다. 항상 적용되며 3.0이 Anima 모델 권장 기본값입니다.",
     "tip.denoise": "1차 샘플링 디노이즈 강도입니다.",
     "tip.sampler": "1차 패스에 사용할 ComfyUI 샘플러 이름입니다.",
@@ -954,8 +962,8 @@ const AIO_TEXT = {
     "tip.randomEach": "シードを -1 にして、バックエンド実行ごとに新しいランダムシードを使います。",
     "tip.newFixed": "今ランダムシードを生成し、固定値として使います。",
     "tip.useLast": "このノードで最後に完了した実行の実シードを再利用します。",
-    "tip.steps": "一回目サンプラーのステップです。範囲は 1 から 75 です。",
-    "tip.cfg": "一回目の CFG 値です。範囲は 1.0 から 10.0 です。",
+    "tip.steps": "一回目サンプラーのステップです。スライダーは 1～75 のまま、手動入力は 1～10000 を受け付けます。",
+    "tip.cfg": "一回目の CFG 値です。スライダーは 1.0～10.0 のまま、手動入力は 0～100 を受け付けます。",
     "tip.shift": "AuraFlow のモデルサンプリングシフトです。常に適用され、3.0 が Anima model 推奨既定値です。",
     "tip.denoise": "一回目サンプリングのデノイズ強度です。",
     "tip.sampler": "一回目に使う ComfyUI サンプラー名です。",
@@ -1069,8 +1077,8 @@ const AIO_TEXT = {
     "tip.randomEach": "将种子设为 -1，让每次后端执行使用新的随机种子。",
     "tip.newFixed": "立即生成一个随机种子并固定使用。",
     "tip.useLast": "复用此节点上次完成执行时后端接受的真实种子。",
-    "tip.steps": "第一次采样步数。紧凑滑条范围为 1 到 75。",
-    "tip.cfg": "第一次 CFG 值。范围为 1.0 到 10.0。",
+    "tip.steps": "第一次采样步数。滑条保持 1 到 75，手动输入可使用 1 到 10000。",
+    "tip.cfg": "第一次 CFG 值。滑条保持 1.0 到 10.0，手动输入可使用 0 到 100。",
     "tip.shift": "AuraFlow 模型采样 Shift。始终应用，3.0 是 Anima model 推荐默认值。",
     "tip.denoise": "第一次采样的降噪强度。",
     "tip.sampler": "第一次使用的 ComfyUI 采样器名称。",
@@ -3517,8 +3525,18 @@ function normalizeGeneratorInputValues(node, settings = DEFAULT_GENERATION_SETTI
   const merged = mergeDefaults(DEFAULT_GENERATION_SETTINGS, settings);
   return {
     seed: normalizeSeedValue(widgetValue(node, "seed", merged.sampler.seed)),
-    steps: Math.trunc(clampGeneratorNumber(widgetValue(node, "steps", merged.sampler.steps), DEFAULT_GENERATION_SETTINGS.sampler.steps, 1, 75)),
-    cfg: clampGeneratorNumber(widgetValue(node, "cfg", merged.sampler.cfg), DEFAULT_GENERATION_SETTINGS.sampler.cfg, 1.0, 10.0),
+    steps: Math.trunc(clampGeneratorNumber(
+      widgetValue(node, "steps", merged.sampler.steps),
+      DEFAULT_GENERATION_SETTINGS.sampler.steps,
+      GENERATOR_NUMERIC_LIMITS.samplerSteps.min,
+      GENERATOR_NUMERIC_LIMITS.samplerSteps.max,
+    )),
+    cfg: clampGeneratorNumber(
+      widgetValue(node, "cfg", merged.sampler.cfg),
+      DEFAULT_GENERATION_SETTINGS.sampler.cfg,
+      GENERATOR_NUMERIC_LIMITS.samplerCfg.min,
+      GENERATOR_NUMERIC_LIMITS.samplerCfg.max,
+    ),
     sampler_name: String(widgetValue(node, "sampler_name", merged.sampler.sampler_name) || merged.sampler.sampler_name),
     scheduler: String(widgetValue(node, "scheduler", merged.sampler.scheduler) || merged.sampler.scheduler),
     denoise: clampGeneratorNumber(widgetValue(node, "denoise", merged.sampler.denoise), DEFAULT_GENERATION_SETTINGS.sampler.denoise, 0.0, 1.0),
@@ -3543,8 +3561,8 @@ function mergeVisibleGeneratorSettings(node, settings) {
   next.model_patches.aura_flow.shift = clampGeneratorNumber(
     next.model_patches.aura_flow.shift,
     DEFAULT_GENERATION_SETTINGS.model_patches.aura_flow.shift,
-    1.0,
-    10.0,
+    GENERATOR_NUMERIC_LIMITS.auraFlowShift.min,
+    GENERATOR_NUMERIC_LIMITS.auraFlowShift.max,
   );
   next.save.enabled = inputs.save_image;
   next.save.backend = ["image_saver", "comfy_save_image"].includes(next.save.backend)
@@ -3932,6 +3950,7 @@ const {
     defaultGenerationSettings: DEFAULT_GENERATION_SETTINGS,
     fallbackSamplerNames: GENERATOR_FALLBACK_SAMPLER_NAMES,
     fallbackSchedulerNames: GENERATOR_FALLBACK_SCHEDULER_NAMES,
+    numericLimits: GENERATOR_NUMERIC_LIMITS,
     mergeDefaults,
     clampNumber: clampGeneratorNumber,
     normalizeUsduAutoTileRange: normalizeGeneratorUsduAutoTileRange,
@@ -3979,6 +3998,7 @@ const openDetailerSettings = aioCreateDetailerSettingsDialog({
     defaultGenerationSettings: DEFAULT_GENERATION_SETTINGS,
     fallbackSamplerNames: GENERATOR_FALLBACK_SAMPLER_NAMES,
     fallbackSchedulerNames: GENERATOR_FALLBACK_SCHEDULER_NAMES,
+    numericLimits: GENERATOR_NUMERIC_LIMITS,
     mergeDefaults,
     clampNumber: clampGeneratorNumber,
     normalizeDetailerOrder,
@@ -4030,6 +4050,7 @@ const openSamplerSettings = aioCreateSamplerSettingsDialog({
     specialSeedRandom: GENERATOR_SPECIAL_SEED_RANDOM,
     fallbackSamplerNames: GENERATOR_FALLBACK_SAMPLER_NAMES,
     fallbackSchedulerNames: GENERATOR_FALLBACK_SCHEDULER_NAMES,
+    numericLimits: GENERATOR_NUMERIC_LIMITS,
     mergeDefaults,
     normalizeSeedControl,
     normalizeSeedValue,
@@ -4116,6 +4137,7 @@ const openAdvancedSettings = aioCreateAdvancedSettingsDialog({
   },
   settingsCore: {
     defaultGenerationSettings: DEFAULT_GENERATION_SETTINGS,
+    numericLimits: GENERATOR_NUMERIC_LIMITS,
     mergeDefaults,
     clampNumber: clampGeneratorNumber,
   },
@@ -4223,6 +4245,7 @@ const generatorPanelRuntime = aioCreateGeneratorPanelRuntime({
     specialSeedRandom: GENERATOR_SPECIAL_SEED_RANDOM,
     fallbackSamplerNames: GENERATOR_FALLBACK_SAMPLER_NAMES,
     fallbackSchedulerNames: GENERATOR_FALLBACK_SCHEDULER_NAMES,
+    numericLimits: GENERATOR_NUMERIC_LIMITS,
     mergeDefaults,
     normalizeSeedControl,
     normalizeSeedValue,

@@ -20,6 +20,7 @@
 /**
  * @typedef {object} AioAdvancedDialogSettingsCore
  * @property {any} defaultGenerationSettings
+ * @property {any} numericLimits
  * @property {(defaults: any, current: any) => any} mergeDefaults
  * @property {(value: any, fallback: number, min: number, max: number) => number} clampNumber
  */
@@ -188,6 +189,7 @@ export function aioCreateAdvancedSettingsDialog(dependencies) {
   } = text;
   const {
     defaultGenerationSettings: DEFAULT_GENERATION_SETTINGS,
+    numericLimits: GENERATOR_NUMERIC_LIMITS,
     mergeDefaults,
     clampNumber: clampGeneratorNumber,
   } = settingsCore;
@@ -258,8 +260,8 @@ export function aioCreateAdvancedSettingsDialog(dependencies) {
       numberInput(settings.model_patches.aura_flow.shift, "0.5"),
       "tip.shift",
     );
-    auraShift.min = "1";
-    auraShift.max = "10";
+    auraShift.min = String(GENERATOR_NUMERIC_LIMITS.auraFlowShift.min);
+    auraShift.max = String(GENERATOR_NUMERIC_LIMITS.auraFlowShift.max);
 
     const dave = makeSubsection("Anima DAVE");
     const daveEnabled = field(dave, "Use DAVE", checkbox(settings.model_patches.dave.enabled), "tip.daveEnabled");
@@ -950,8 +952,8 @@ export function aioCreateAdvancedSettingsDialog(dependencies) {
       next.model_patches.aura_flow.shift = clampGeneratorNumber(
         auraShift.value,
         DEFAULT_GENERATION_SETTINGS.model_patches.aura_flow.shift,
-        1,
-        10,
+        GENERATOR_NUMERIC_LIMITS.auraFlowShift.min,
+        GENERATOR_NUMERIC_LIMITS.auraFlowShift.max,
       );
       next.model_patches.dave.enabled = daveEnabled.checked && optionalDependencyAvailable("dave");
       next.model_patches.dave.mask = daveMask.value || "dave_alpha.npz";

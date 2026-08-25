@@ -4,6 +4,8 @@ from collections.abc import Callable
 from typing import Any
 
 from .generation_defaults import (
+    AIO_AURA_FLOW_SHIFT_MAX,
+    AIO_AURA_FLOW_SHIFT_MIN,
     AIO_GENERATION_DEFAULT_SETTINGS,
     AIO_GENERATION_STAGE_IDS,
 )
@@ -108,7 +110,13 @@ def _normalize_dave_settings(
         aura_flow = {}
         model_patches["aura_flow"] = aura_flow
     aura_flow.pop("enabled", None)
-    aura_flow["shift"] = max(1.0, min(10.0, as_float(aura_flow.get("shift"), 3.0)))
+    aura_flow["shift"] = max(
+        AIO_AURA_FLOW_SHIFT_MIN,
+        min(
+            AIO_AURA_FLOW_SHIFT_MAX,
+            as_float(aura_flow.get("shift"), 3.0),
+        ),
+    )
 
     dave = model_patches.setdefault("dave", {})
     if not isinstance(dave, dict):

@@ -25,6 +25,7 @@
  * @property {any} defaultGenerationSettings
  * @property {any[]} fallbackSamplerNames
  * @property {any[]} fallbackSchedulerNames
+ * @property {any} numericLimits
  * @property {(defaults: any, current: any) => any} mergeDefaults
  * @property {(value: any, fallback: number, min: number, max: number) => number} clampNumber
  * @property {(order: any, detailer?: any) => string[]} normalizeDetailerOrder
@@ -103,6 +104,7 @@ export function aioCreateDetailerSettingsDialog(dependencies) {
     defaultGenerationSettings: DEFAULT_GENERATION_SETTINGS,
     fallbackSamplerNames: GENERATOR_FALLBACK_SAMPLER_NAMES,
     fallbackSchedulerNames: GENERATOR_FALLBACK_SCHEDULER_NAMES,
+    numericLimits: GENERATOR_NUMERIC_LIMITS,
     mergeDefaults,
     clampNumber: clampGeneratorNumber,
     normalizeDetailerOrder,
@@ -179,8 +181,8 @@ export function aioCreateDetailerSettingsDialog(dependencies) {
     );
     const maxSize = field(detail, "Max size", numberInput(target.max_size, "8"));
     const steps = field(detail, "Steps", numberInput(target.steps, "1"));
-    steps.min = "1";
-    steps.max = "75";
+    steps.min = String(GENERATOR_NUMERIC_LIMITS.samplerSteps.min);
+    steps.max = String(GENERATOR_NUMERIC_LIMITS.samplerSteps.max);
     const inheritSampler = field(
       detail,
       "Follow main sampler",
@@ -188,8 +190,8 @@ export function aioCreateDetailerSettingsDialog(dependencies) {
       "tip.detailerFollow",
     );
     const cfg = field(detail, "CFG", numberInput(target.cfg, "0.1"));
-    cfg.min = "1";
-    cfg.max = "10";
+    cfg.min = String(GENERATOR_NUMERIC_LIMITS.samplerCfg.min);
+    cfg.max = String(GENERATOR_NUMERIC_LIMITS.samplerCfg.max);
     const samplerName = field(detail, "Sampler", selectInput(widgetOptions(node, "sampler_name", GENERATOR_FALLBACK_SAMPLER_NAMES), target.sampler_name));
     const scheduler = field(detail, "Scheduler", selectInput(widgetOptions(node, "scheduler", GENERATOR_FALLBACK_SCHEDULER_NAMES), target.scheduler));
     const denoise = field(detail, "Denoise", numberInput(target.denoise, "0.01"));
@@ -242,9 +244,19 @@ export function aioCreateDetailerSettingsDialog(dependencies) {
           guide_size: Number(guideSize.value || defaults.guide_size),
           guide_size_for: guideSizeFor.value === "bbox",
           max_size: Number(maxSize.value || defaults.max_size),
-          steps: Math.trunc(clampGeneratorNumber(steps.value, defaults.steps, 1, 75)),
+          steps: Math.trunc(clampGeneratorNumber(
+            steps.value,
+            defaults.steps,
+            GENERATOR_NUMERIC_LIMITS.samplerSteps.min,
+            GENERATOR_NUMERIC_LIMITS.samplerSteps.max,
+          )),
           inherit_sampler_settings: inheritSampler.checked,
-          cfg: clampGeneratorNumber(cfg.value, defaults.cfg, 1, 10),
+          cfg: clampGeneratorNumber(
+            cfg.value,
+            defaults.cfg,
+            GENERATOR_NUMERIC_LIMITS.samplerCfg.min,
+            GENERATOR_NUMERIC_LIMITS.samplerCfg.max,
+          ),
           sampler_name: samplerName.value || defaults.sampler_name,
           scheduler: scheduler.value || defaults.scheduler,
           denoise: clampGeneratorNumber(denoise.value, defaults.denoise, 0, 1),
