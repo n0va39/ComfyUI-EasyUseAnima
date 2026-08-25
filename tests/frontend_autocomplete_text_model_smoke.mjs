@@ -551,8 +551,29 @@ const legacyAtClosing = currentToken(
 );
 assert.equal(strictAtClosing.active, false);
 assert.equal(strictAtClosing.query, "@old_name");
-assert.equal(legacyAtClosing.active, true);
+assert.equal(legacyAtClosing.active, false);
 assert.equal(legacyAtClosing.query, weightedValue);
+
+const multiTagWeightValue = "(blue eyes, long hair:1.2)";
+const multiTagWeightCaret = multiTagWeightValue.indexOf(":");
+for (const previewCompletion of [false, true]) {
+  const insideWeight = currentToken(multiTagWeightValue, multiTagWeightCaret, {
+    detectNaturalSentences: true,
+    previewCompletion,
+  });
+  assert.equal(insideWeight.active, true);
+  assert.equal(autocompleteQuery(insideWeight).query, "long hair");
+  assert.equal(
+    appliedPlan(insideWeight, "short hair").value,
+    "(blue eyes, short hair:1.2)",
+  );
+
+  const afterClosing = currentToken(multiTagWeightValue, multiTagWeightValue.length, {
+    detectNaturalSentences: true,
+    previewCompletion,
+  });
+  assert.equal(afterClosing.active, false);
+}
 
 const escapedLiteral = "\\(blue archive\\)";
 const escapedToken = currentToken(
