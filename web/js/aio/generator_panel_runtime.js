@@ -49,6 +49,7 @@ function closeGeneratorInfoTooltipOwner(document) {
  * @property {number} specialSeedRandom
  * @property {any[]} fallbackSamplerNames
  * @property {any[]} fallbackSchedulerNames
+ * @property {any} numericLimits
  * @property {(defaults: any, current: any) => any} mergeDefaults
  * @property {(value: any) => string} normalizeSeedControl
  * @property {(value: any, fallback?: number) => number} normalizeSeedValue
@@ -164,6 +165,7 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
     specialSeedRandom: GENERATOR_SPECIAL_SEED_RANDOM,
     fallbackSamplerNames: GENERATOR_FALLBACK_SAMPLER_NAMES,
     fallbackSchedulerNames: GENERATOR_FALLBACK_SCHEDULER_NAMES,
+    numericLimits: GENERATOR_NUMERIC_LIMITS,
     mergeDefaults,
     normalizeSeedControl,
     normalizeSeedValue,
@@ -859,28 +861,35 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
   }
 
   function createDomSliderNumberControl(node, name, value, options = {}) {
-    const min = Number(options.min ?? 0);
-    const max = Number(options.max ?? 100);
+    const sliderMin = Number(options.min ?? 0);
+    const sliderMax = Number(options.max ?? 100);
+    const inputMin = Number(options.inputMin ?? sliderMin);
+    const inputMax = Number(options.inputMax ?? sliderMax);
     const step = Number(options.step ?? 1);
     const decimals = Number(options.decimals ?? 0);
-    const clamp = (next) => Math.max(min, Math.min(max, Number(next)));
+    const clamp = (next, min, max) => {
+      const parsed = Number(next);
+      return Math.max(min, Math.min(max, Number.isFinite(parsed) ? parsed : min));
+    };
     const snap = (next) => {
-      const clamped = clamp(next);
+      const clamped = clamp(next, sliderMin, sliderMax);
       if (!Number.isFinite(step) || step <= 0) {
         return clamped;
       }
-      return min + Math.round((clamped - min) / step) * step;
+      return sliderMin + Math.round((clamped - sliderMin) / step) * step;
     };
     const round = (next) => {
       const factor = 10 ** decimals;
-      return Math.round(clamp(snap(next)) * factor) / factor;
+      return Math.round(next * factor) / factor;
     };
-    const currentValue = round(value);
+    const normalizeInput = (next) => round(clamp(next, inputMin, inputMax));
+    const normalizeSlider = (next) => round(snap(next));
+    const currentValue = normalizeInput(value);
     const wrapper = document.createElement("div");
     wrapper.className = "easyuse-anima-aio-node-slider-control";
     const input = numberInput(currentValue, String(step));
-    input.min = String(min);
-    input.max = String(max);
+    input.min = String(inputMin);
+    input.max = String(inputMax);
     const track = document.createElement("div");
     track.className = "easyuse-anima-aio-node-slider-track";
     const rail = document.createElement("div");
@@ -894,8 +903,10 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
     const normalizeValue = typeof options.normalize === "function"
       ? options.normalize
       : (next) => (name === "steps" ? Math.trunc(next) : next);
-    const commit = (nextValue) => {
-      const next = round(nextValue);
+    const commit = (nextValue, source = "input") => {
+      const next = source === "slider"
+        ? normalizeSlider(nextValue)
+        : normalizeInput(nextValue);
       input.value = String(next);
       const normalized = normalizeValue(next);
       if (typeof options.onCommit === "function") {
@@ -909,8 +920,10 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
       markNodeDirty(node);
     };
     const updateSlider = () => {
-      const next = round(input.value || currentValue);
-      const percent = max <= min ? 0 : ((next - min) / (max - min)) * 100;
+      const next = normalizeInput(input.value || currentValue);
+      const percent = sliderMax <= sliderMin
+        ? 0
+        : ((next - sliderMin) / (sliderMax - sliderMin)) * 100;
       const clampedPercent = Math.max(0, Math.min(100, percent));
       fill.style.width = `${clampedPercent}%`;
       thumb.style.left = `${clampedPercent}%`;
@@ -918,7 +931,9 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
     const valueFromPointer = (pointerEvent) => {
       const rect = track.getBoundingClientRect();
       const relative = rect.width > 0 ? (pointerEvent.clientX - rect.left) / rect.width : 0;
-      return round(min + Math.max(0, Math.min(1, relative)) * (max - min));
+      return normalizeSlider(
+        sliderMin + Math.max(0, Math.min(1, relative)) * (sliderMax - sliderMin),
+      );
     };
 
     input.addEventListener("input", () => commit(input.value));
@@ -956,7 +971,7 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
         }
         moveEvent.preventDefault();
         moveEvent.stopPropagation();
-        commit(valueFromPointer(moveEvent));
+        commit(valueFromPointer(moveEvent), "slider");
       }
       function finish(finishEvent) {
         finishEvent?.stopPropagation?.();
@@ -967,7 +982,7 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
       window.addEventListener("pointerup", finish, true);
       window.addEventListener("pointercancel", finish, true);
       window.addEventListener("blur", finish, true);
-      commit(valueFromPointer(event));
+      commit(valueFromPointer(event), "slider");
     });
     wrapper.append(input, track);
     updateSlider();
@@ -1541,6 +1556,8 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
         createDomSliderNumberControl(node, "steps", settings.sampler.steps, {
           min: 1,
           max: 75,
+          inputMin: GENERATOR_NUMERIC_LIMITS.samplerSteps.min,
+          inputMax: GENERATOR_NUMERIC_LIMITS.samplerSteps.max,
           step: 1,
           decimals: 0,
         }),
@@ -1552,6 +1569,8 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
         createDomSliderNumberControl(node, "cfg", settings.sampler.cfg, {
           min: 1,
           max: 10,
+          inputMin: GENERATOR_NUMERIC_LIMITS.samplerCfg.min,
+          inputMax: GENERATOR_NUMERIC_LIMITS.samplerCfg.max,
           step: 0.1,
           decimals: 1,
         }),
@@ -1566,6 +1585,8 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
           {
             min: 1,
             max: 10,
+            inputMin: GENERATOR_NUMERIC_LIMITS.auraFlowShift.min,
+            inputMax: GENERATOR_NUMERIC_LIMITS.auraFlowShift.max,
             step: 0.5,
             decimals: 1,
           },
@@ -1661,7 +1682,14 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
           createDomSettingsSliderNumberControl(
             node,
             settings.highres.scale_by,
-            { min: 1, max: 4, step: 0.05, decimals: 2 },
+            {
+              min: 1,
+              max: 4,
+              inputMin: GENERATOR_NUMERIC_LIMITS.highresScaleBy.min,
+              inputMax: GENERATOR_NUMERIC_LIMITS.highresScaleBy.max,
+              step: 0.05,
+              decimals: 2,
+            },
             (nextSettings, value) => {
               nextSettings.highres ||= {};
               nextSettings.highres.scale_by = value;
@@ -1675,7 +1703,14 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
           createDomSettingsSliderNumberControl(
             node,
             settings.highres.steps,
-            { min: 1, max: 75, step: 1, decimals: 0 },
+            {
+              min: 1,
+              max: 75,
+              inputMin: GENERATOR_NUMERIC_LIMITS.samplerSteps.min,
+              inputMax: GENERATOR_NUMERIC_LIMITS.samplerSteps.max,
+              step: 1,
+              decimals: 0,
+            },
             (nextSettings, value) => {
               nextSettings.highres ||= {};
               nextSettings.highres.steps = Math.trunc(value);
@@ -1832,7 +1867,14 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
               createDomSettingsSliderNumberControl(
                 node,
                 target.steps,
-                { min: 1, max: 75, step: 1, decimals: 0 },
+                {
+                  min: 1,
+                  max: 75,
+                  inputMin: GENERATOR_NUMERIC_LIMITS.samplerSteps.min,
+                  inputMax: GENERATOR_NUMERIC_LIMITS.samplerSteps.max,
+                  step: 1,
+                  decimals: 0,
+                },
                 (nextSettings, value) => {
                   nextSettings.detailer ||= {};
                   nextSettings.detailer[targetName] ||= {};
@@ -1910,7 +1952,14 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
             createDomSettingsSliderNumberControl(
               node,
               settings.upscale.scale_by,
-              { min: 1, max: 4, step: 0.05, decimals: 2 },
+              {
+                min: 1,
+                max: 4,
+                inputMin: GENERATOR_NUMERIC_LIMITS.upscaleScaleBy.min,
+                inputMax: GENERATOR_NUMERIC_LIMITS.upscaleScaleBy.max,
+                step: 0.05,
+                decimals: 2,
+              },
               (nextSettings, value) => {
                 nextSettings.upscale ||= {};
                 nextSettings.upscale.scale_by = value;
@@ -1924,7 +1973,14 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
             createDomSettingsSliderNumberControl(
               node,
               settings.upscale.steps,
-              { min: 1, max: 75, step: 1, decimals: 0 },
+              {
+                min: 1,
+                max: 75,
+                inputMin: GENERATOR_NUMERIC_LIMITS.samplerSteps.min,
+                inputMax: GENERATOR_NUMERIC_LIMITS.samplerSteps.max,
+                step: 1,
+                decimals: 0,
+              },
               (nextSettings, value) => {
                 nextSettings.upscale ||= {};
                 nextSettings.upscale.steps = Math.trunc(value);
@@ -1972,7 +2028,14 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
               createDomSettingsSliderNumberControl(
                 node,
                 usdu.auto_tile_target,
-                { min: 256, max: 2048, step: 64, decimals: 0 },
+                {
+                  min: 256,
+                  max: 2048,
+                  inputMin: GENERATOR_NUMERIC_LIMITS.resolution.min,
+                  inputMax: GENERATOR_NUMERIC_LIMITS.resolution.max,
+                  step: 64,
+                  decimals: 0,
+                },
                 (nextSettings, value) => {
                   setGeneratorUsduAutoTileTarget(nextSettings, value);
                 },

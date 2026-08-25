@@ -80,6 +80,14 @@ async function flushPromises() {
 const advancedDialogModule = await import(dataModule("../web/js/aio/advanced_settings_dialog.js"));
 const recommendationModule = await import(dataModule("../web/js/aio/torch_compile_recommendation.js"));
 const settingsModule = await import(dataModule("../web/js/aio/settings.js"));
+const numericLimits = {
+  samplerSteps: { min: 1, max: 10000 },
+  samplerCfg: { min: 0, max: 100 },
+  auraFlowShift: { min: 0, max: 100 },
+  highresScaleBy: { min: 0.01, max: 8 },
+  upscaleScaleBy: { min: 0.05, max: 4 },
+  resolution: { min: 64, max: 16384 },
+};
 assert.deepEqual(
   Object.keys(advancedDialogModule),
   ["aioCreateAdvancedSettingsDialog"],
@@ -369,6 +377,7 @@ function createFixture({
     },
     settingsCore: {
       defaultGenerationSettings: defaultSettings,
+      numericLimits,
       mergeDefaults,
       clampNumber,
     },
@@ -546,8 +555,8 @@ function createFixture({
     [torchDetails, "Debug keys", true],
     [torchDetails, "Disable dynamic VRAM", false],
   ]);
-  assert.equal(controlIn(modelPatches, "AuraFlow shift").min, "1");
-  assert.equal(controlIn(modelPatches, "AuraFlow shift").max, "10");
+  assert.equal(controlIn(modelPatches, "AuraFlow shift").min, "0");
+  assert.equal(controlIn(modelPatches, "AuraFlow shift").max, "100");
   assert.equal(controlIn(safePag, "Safe PAG scale").min, "0");
   assert.equal(controlIn(safePag, "Safe PAG scale").max, "100");
   assert.equal(rowByLabel(sage, "Allow compile").style.display, "");
@@ -684,7 +693,7 @@ function createFixture({
   assert.deepEqual(
     fixture.clampCalls,
     [
-      ["99", 3, 1, 10],
+      ["99", 3, 0, 100],
       ["101", 4, 0, 100],
       ["-1", 0.75, 0, 1],
       ["2", 0, 0, 1],
@@ -697,7 +706,7 @@ function createFixture({
   const written = fixture.node.settings;
   assert.equal(written.negpip.mode, "on");
   assert.equal(written.negpip.future_negpip_key, "keep-negpip");
-  assert.equal(written.model_patches.aura_flow.shift, 10);
+  assert.equal(written.model_patches.aura_flow.shift, 99);
   assert.equal(Object.hasOwn(written.model_patches.aura_flow, "enabled"), false);
   assert.deepEqual(
     {

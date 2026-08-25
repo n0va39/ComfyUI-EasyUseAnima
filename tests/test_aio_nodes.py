@@ -829,7 +829,7 @@ class AIOSettingsStorageTests(unittest.TestCase):
         self.assertNotIn("enabled", settings["model_patches"]["aura_flow"])
         self.assertEqual(settings["model_patches"]["aura_flow"]["shift"], 4.5)
 
-    def test_main_sampler_values_are_clamped_to_ui_ranges(self):
+    def test_sampler_values_use_comfy_runtime_ranges_instead_of_slider_ranges(self):
         settings = generation_normalization._normalize_aio_generation_settings(json.dumps({
             "sampler": {
                 "steps": 120,
@@ -842,23 +842,64 @@ class AIOSettingsStorageTests(unittest.TestCase):
             },
         }))
 
-        self.assertEqual(settings["sampler"]["steps"], 75)
-        self.assertEqual(settings["sampler"]["cfg"], 10.0)
-        self.assertEqual(settings["model_patches"]["aura_flow"]["shift"], 10.0)
+        self.assertEqual(settings["sampler"]["steps"], 120)
+        self.assertEqual(settings["sampler"]["cfg"], 25.0)
+        self.assertEqual(settings["model_patches"]["aura_flow"]["shift"], 18.0)
 
         settings = generation_normalization._normalize_aio_generation_settings(json.dumps({
             "sampler": {
-                "cfg": 0,
+                "steps": 12000,
+                "cfg": 125,
             },
             "model_patches": {
                 "aura_flow": {
-                    "shift": 0,
+                    "shift": 125,
                 },
             },
         }))
 
-        self.assertEqual(settings["sampler"]["cfg"], 1.0)
-        self.assertEqual(settings["model_patches"]["aura_flow"]["shift"], 1.0)
+        self.assertEqual(settings["sampler"]["steps"], 10000)
+        self.assertEqual(settings["sampler"]["cfg"], 100.0)
+        self.assertEqual(settings["model_patches"]["aura_flow"]["shift"], 100.0)
+
+        settings = generation_normalization._normalize_aio_generation_settings(json.dumps({
+            "sampler": {"cfg": -1},
+            "model_patches": {"aura_flow": {"shift": -1}},
+        }))
+
+        self.assertEqual(settings["sampler"]["cfg"], 0.0)
+        self.assertEqual(settings["model_patches"]["aura_flow"]["shift"], 0.0)
+
+    def test_stage_sampler_values_preserve_manual_entries_beyond_slider_ranges(self):
+        settings = generation_normalization._normalize_aio_generation_settings(json.dumps({
+            "highres": {
+                "scale_by": 0.5,
+                "steps": 120,
+                "cfg": 25,
+            },
+            "upscale": {
+                "scale_by": 0.5,
+                "steps": 2000,
+                "cfg": 25,
+                "usdu": {"auto_tile_target": 9000},
+            },
+            "detailer": {
+                "face": {
+                    "steps": 120,
+                    "cfg": 25,
+                },
+            },
+        }))
+
+        self.assertEqual(settings["highres"]["scale_by"], 0.5)
+        self.assertEqual(settings["highres"]["steps"], 120)
+        self.assertEqual(settings["highres"]["cfg"], 25.0)
+        self.assertEqual(settings["upscale"]["scale_by"], 0.5)
+        self.assertEqual(settings["upscale"]["steps"], 2000)
+        self.assertEqual(settings["upscale"]["cfg"], 25.0)
+        self.assertEqual(settings["upscale"]["usdu"]["auto_tile_target"], 9000)
+        self.assertEqual(settings["detailer"]["face"]["steps"], 120)
+        self.assertEqual(settings["detailer"]["face"]["cfg"], 25.0)
 
     def test_default_settings_json_is_compact_dict_storage(self):
         value = aio_nodes._aio_generation_settings_json()
