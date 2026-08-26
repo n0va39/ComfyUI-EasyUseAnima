@@ -107,7 +107,10 @@ def _find_comfy_node_class(node_id: str, comfy_nodes=None):
         except Exception:
             pass
     for module in list(sys.modules.values()):
-        mappings = getattr(module, "NODE_CLASS_MAPPINGS", None)
+        try:
+            mappings = getattr(module, "NODE_CLASS_MAPPINGS", None)
+        except Exception:
+            continue
         if isinstance(mappings, dict):
             cls = mappings.get(node_id)
             if cls is not None:
@@ -156,7 +159,10 @@ def _find_loaded_node_class(
         return cls
 
     for module in list(sys.modules.values()):
-        mappings = getattr(module, "NODE_CLASS_MAPPINGS", None)
+        try:
+            mappings = getattr(module, "NODE_CLASS_MAPPINGS", None)
+        except Exception:
+            continue
         if isinstance(mappings, dict):
             cls = mappings.get(node_id)
             if cls is not None:

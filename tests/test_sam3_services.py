@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+import sys
 import unittest
-from types import SimpleNamespace
+from types import ModuleType, SimpleNamespace
 from unittest.mock import Mock, patch
 
 from easyuse_anima.image import sam3 as sam3_service
@@ -83,6 +84,48 @@ class SAM3ServiceTests(unittest.TestCase):
         ) as find:
             self.assertIs(sam3_service._find_impact_detailer_class(), sentinel)
         find.assert_called_once_with("DetailerForEach")
+
+    def test_impact_lookup_skips_loaded_modules_with_failing_attribute_access(self):
+        class FailingModule(ModuleType):
+            def __getattr__(self, _name):
+                raise ImportError("_C_flashattention unavailable")
+
+        detailer_class = type("DetailerAfterFailure", (), {})
+        mask_to_segs_class = type("MaskToSEGSAfterFailure", (), {})
+        failing_module = FailingModule("xformers._C_flashattention")
+        loaded_module = ModuleType("easyuse_anima_test_impact_after_failure")
+        loaded_module.NODE_CLASS_MAPPINGS = {
+            "DetailerForEach": detailer_class,
+            "MaskToSEGS": mask_to_segs_class,
+        }
+
+        with (
+            patch_comfy_helper(
+                sam3_service,
+                "_find_comfy_node_mapping_class",
+                return_value=None,
+            ),
+            patch_comfy_helper(
+                sam3_service,
+                "_find_comfy_node_class",
+                return_value=None,
+            ),
+            patch.dict(
+                sys.modules,
+                {
+                    failing_module.__name__: failing_module,
+                    loaded_module.__name__: loaded_module,
+                },
+            ),
+        ):
+            self.assertIs(
+                sam3_service._find_impact_detailer_class(),
+                detailer_class,
+            )
+            self.assertIs(
+                sam3_service._find_impact_mask_to_segs_class(),
+                mask_to_segs_class,
+            )
 
     def test_detailer_missing_host_helper_error_is_preserved(self):
         with self.assertRaisesRegex(

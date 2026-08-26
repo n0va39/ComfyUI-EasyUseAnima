@@ -36,7 +36,10 @@ def _find_impact_detailer_class():
         return cls
 
     for module in list(sys.modules.values()):
-        mappings = getattr(module, "NODE_CLASS_MAPPINGS", None)
+        try:
+            mappings = getattr(module, "NODE_CLASS_MAPPINGS", None)
+        except Exception:
+            continue
         if isinstance(mappings, dict):
             cls = mappings.get("DetailerForEach")
             if cls is not None:
@@ -86,7 +89,10 @@ def _find_impact_mask_to_segs_class():
         return cls
 
     for module in list(sys.modules.values()):
-        mappings = getattr(module, "NODE_CLASS_MAPPINGS", None)
+        try:
+            mappings = getattr(module, "NODE_CLASS_MAPPINGS", None)
+        except Exception:
+            continue
         if isinstance(mappings, dict):
             cls = mappings.get("MaskToSEGS")
             if cls is not None:
