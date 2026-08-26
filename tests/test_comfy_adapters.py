@@ -125,6 +125,41 @@ class ComfyCapabilityAdapterTests(unittest.TestCase):
                 loaded_class,
             )
 
+    def test_node_discovery_skips_loaded_modules_with_failing_attribute_access(self):
+        class FailingModule(types.ModuleType):
+            def __getattr__(self, _name):
+                raise ImportError("_C_flashattention unavailable")
+
+        loaded_class = type("LoadedAfterFailure", (), {})
+        failing_module = FailingModule("xformers._C_flashattention")
+        loaded_module = types.ModuleType("easyuse_anima_test_loaded_after_failure")
+        loaded_module.NODE_CLASS_MAPPINGS = {"LoadedAfterFailure": loaded_class}
+
+        with patch.dict(
+            sys.modules,
+            {
+                failing_module.__name__: failing_module,
+                loaded_module.__name__: loaded_module,
+            },
+        ):
+            self.assertIs(
+                capabilities._find_comfy_node_class("LoadedAfterFailure"),
+                loaded_class,
+            )
+            self.assertIs(
+                capabilities._find_loaded_node_class(
+                    "LoadedAfterFailure",
+                    lambda _node_id: None,
+                ),
+                loaded_class,
+            )
+            self.assertIsNone(
+                capabilities._find_loaded_node_class(
+                    "MissingAfterFailure",
+                    lambda _node_id: None,
+                )
+            )
+
     def test_required_node_errors_and_candidate_order_are_preserved(self):
         found_class = type("FoundNode", (), {})
         calls = []

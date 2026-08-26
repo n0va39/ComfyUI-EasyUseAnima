@@ -17573,7 +17573,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 45
+            "line": 48
           }
         ],
         "classification": "external",
@@ -17581,7 +17581,7 @@
         "conditional": true,
         "imported": "impact.impact_pack:DetailerForEach",
         "kind": "static_from",
-        "line": 46,
+        "line": 49,
         "name": "DetailerForEach",
         "optional": true,
         "requested": "impact.impact_pack",
@@ -17598,7 +17598,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 51
+            "line": 54
           }
         ],
         "classification": "external",
@@ -17606,7 +17606,7 @@
         "conditional": true,
         "imported": "modules.impact.impact_pack:DetailerForEach",
         "kind": "static_from",
-        "line": 52,
+        "line": 55,
         "name": "DetailerForEach",
         "optional": true,
         "requested": "modules.impact.impact_pack",
@@ -17623,7 +17623,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 71
+            "line": 74
           }
         ],
         "classification": "external",
@@ -17631,37 +17631,12 @@
         "conditional": true,
         "imported": "comfy_extras.nodes_sam3:SAM3_Detect",
         "kind": "static_from",
-        "line": 72,
+        "line": 75,
         "name": "SAM3_Detect",
         "optional": true,
         "requested": "comfy_extras.nodes_sam3",
         "role": "optional_dependency",
         "scope": "_find_sam3_detect_class",
-        "source": "easyuse_anima/image/sam3.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "MaskToSEGS",
-        "branch_context": [
-          {
-            "branch": "body",
-            "handles_import_failure": true,
-            "has_import_fallback_handler": false,
-            "kind": "try",
-            "line": 95
-          }
-        ],
-        "classification": "external",
-        "column": 8,
-        "conditional": true,
-        "imported": "impact.segs_nodes:MaskToSEGS",
-        "kind": "static_from",
-        "line": 96,
-        "name": "MaskToSEGS",
-        "optional": true,
-        "requested": "impact.segs_nodes",
-        "role": "optional_dependency",
-        "scope": "_find_impact_mask_to_segs_class",
         "source": "easyuse_anima/image/sam3.py"
       },
       {
@@ -17679,12 +17654,12 @@
         "classification": "external",
         "column": 8,
         "conditional": true,
-        "imported": "modules.impact.segs_nodes:MaskToSEGS",
+        "imported": "impact.segs_nodes:MaskToSEGS",
         "kind": "static_from",
         "line": 102,
         "name": "MaskToSEGS",
         "optional": true,
-        "requested": "modules.impact.segs_nodes",
+        "requested": "impact.segs_nodes",
         "role": "optional_dependency",
         "scope": "_find_impact_mask_to_segs_class",
         "source": "easyuse_anima/image/sam3.py"
@@ -17704,12 +17679,12 @@
         "classification": "external",
         "column": 8,
         "conditional": true,
-        "imported": "impact.impact_pack:MaskToSEGS",
+        "imported": "modules.impact.segs_nodes:MaskToSEGS",
         "kind": "static_from",
         "line": 108,
         "name": "MaskToSEGS",
         "optional": true,
-        "requested": "impact.impact_pack",
+        "requested": "modules.impact.segs_nodes",
         "role": "optional_dependency",
         "scope": "_find_impact_mask_to_segs_class",
         "source": "easyuse_anima/image/sam3.py"
@@ -17729,9 +17704,34 @@
         "classification": "external",
         "column": 8,
         "conditional": true,
-        "imported": "modules.impact.impact_pack:MaskToSEGS",
+        "imported": "impact.impact_pack:MaskToSEGS",
         "kind": "static_from",
         "line": 114,
+        "name": "MaskToSEGS",
+        "optional": true,
+        "requested": "impact.impact_pack",
+        "role": "optional_dependency",
+        "scope": "_find_impact_mask_to_segs_class",
+        "source": "easyuse_anima/image/sam3.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "MaskToSEGS",
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": false,
+            "kind": "try",
+            "line": 119
+          }
+        ],
+        "classification": "external",
+        "column": 8,
+        "conditional": true,
+        "imported": "modules.impact.impact_pack:MaskToSEGS",
+        "kind": "static_from",
+        "line": 120,
         "name": "MaskToSEGS",
         "optional": true,
         "requested": "modules.impact.impact_pack",
@@ -17748,7 +17748,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 158
+            "line": 164
           }
         ],
         "classification": "external",
@@ -17756,7 +17756,7 @@
         "conditional": true,
         "imported": "torch",
         "kind": "static_import",
-        "line": 159,
+        "line": 165,
         "name": null,
         "optional": true,
         "requested": "torch",
@@ -51722,89 +51722,89 @@
           },
           {
             "async": false,
-            "end_line": 61,
+            "end_line": 64,
             "kind": "function",
             "line": 33,
-            "loc": 29,
+            "loc": 32,
             "qualified_name": "_find_impact_detailer_class"
           },
           {
             "async": false,
-            "end_line": 80,
+            "end_line": 83,
             "kind": "function",
-            "line": 64,
+            "line": 67,
             "loc": 17,
             "qualified_name": "_find_sam3_detect_class"
           },
           {
             "async": false,
-            "end_line": 123,
+            "end_line": 129,
             "kind": "function",
-            "line": 83,
-            "loc": 41,
+            "line": 86,
+            "loc": 44,
             "qualified_name": "_find_impact_mask_to_segs_class"
           },
           {
             "async": false,
-            "end_line": 139,
+            "end_line": 145,
             "kind": "function",
-            "line": 126,
+            "line": 132,
             "loc": 14,
             "qualified_name": "_format_sam3_detection_prompt"
           },
           {
             "async": false,
-            "end_line": 148,
+            "end_line": 154,
             "kind": "function",
-            "line": 142,
+            "line": 148,
             "loc": 7,
             "qualified_name": "_sam3_context"
           },
           {
             "async": false,
-            "end_line": 154,
+            "end_line": 160,
             "kind": "function",
-            "line": 151,
+            "line": 157,
             "loc": 4,
             "qualified_name": "_context_value"
           },
           {
             "async": false,
-            "end_line": 167,
+            "end_line": 173,
             "kind": "function",
-            "line": 157,
+            "line": 163,
             "loc": 11,
             "qualified_name": "_empty_mask_for_image"
           },
           {
             "async": false,
-            "end_line": 171,
+            "end_line": 177,
             "kind": "function",
-            "line": 170,
+            "line": 176,
             "loc": 2,
             "qualified_name": "_empty_segs_for_image"
           },
           {
             "async": false,
-            "end_line": 178,
+            "end_line": 184,
             "kind": "function",
-            "line": 174,
+            "line": 180,
             "loc": 5,
             "qualified_name": "_segs_has_items"
           },
           {
             "async": false,
-            "end_line": 189,
+            "end_line": 195,
             "kind": "function",
-            "line": 181,
+            "line": 187,
             "loc": 9,
             "qualified_name": "_call_impact_detailer"
           }
         ],
         "is_package": false,
-        "loc": 192,
+        "loc": 198,
         "module": "easyuse_anima.image.sam3",
-        "normalized_git_blob_sha1": "bac169cbcdb61f3b6a30c5dc62515425dce3a3de",
+        "normalized_git_blob_sha1": "72ed87ef0f19e9123519b70d064da33b695e58dd",
         "path": "easyuse_anima/image/sam3.py",
         "top_level": {
           "class_count": 0,
@@ -51996,41 +51996,41 @@
           },
           {
             "async": false,
-            "end_line": 115,
+            "end_line": 118,
             "kind": "function",
             "line": 97,
-            "loc": 19,
+            "loc": 22,
             "qualified_name": "_find_comfy_node_class"
           },
           {
             "async": false,
-            "end_line": 130,
+            "end_line": 133,
             "kind": "function",
-            "line": 118,
+            "line": 121,
             "loc": 13,
             "qualified_name": "_require_custom_node_class"
           },
           {
             "async": false,
-            "end_line": 147,
+            "end_line": 150,
             "kind": "function",
-            "line": 133,
+            "line": 136,
             "loc": 15,
             "qualified_name": "_require_any_custom_node_class"
           },
           {
             "async": false,
-            "end_line": 164,
+            "end_line": 170,
             "kind": "function",
-            "line": 150,
-            "loc": 15,
+            "line": 153,
+            "loc": 18,
             "qualified_name": "_find_loaded_node_class"
           }
         ],
         "is_package": false,
-        "loc": 167,
+        "loc": 173,
         "module": "easyuse_anima.infrastructure.comfy.capabilities",
-        "normalized_git_blob_sha1": "3dec2d43ac366bb66bc1e8ca89a2698b58fcd7b9",
+        "normalized_git_blob_sha1": "ef9f4594c33367905545c8ac3b8e5a1a6f973ca8",
         "path": "easyuse_anima/infrastructure/comfy/capabilities.py",
         "top_level": {
           "class_count": 0,
@@ -62810,14 +62810,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 45
+            "line": 48
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "impact.impact_pack:DetailerForEach",
         "kind": "static_from",
-        "line": 46,
+        "line": 49,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/image/sam3.py"
@@ -62829,14 +62829,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 51
+            "line": 54
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "modules.impact.impact_pack:DetailerForEach",
         "kind": "static_from",
-        "line": 52,
+        "line": 55,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/image/sam3.py"
@@ -62848,33 +62848,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 71
+            "line": 74
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "comfy_extras.nodes_sam3:SAM3_Detect",
         "kind": "static_from",
-        "line": 72,
-        "optional": true,
-        "role": "optional_dependency",
-        "source": "easyuse_anima/image/sam3.py"
-      },
-      {
-        "branch_context": [
-          {
-            "branch": "body",
-            "handles_import_failure": true,
-            "has_import_fallback_handler": false,
-            "kind": "try",
-            "line": 95
-          }
-        ],
-        "classification": "external",
-        "conditional": true,
-        "imported": "impact.segs_nodes:MaskToSEGS",
-        "kind": "static_from",
-        "line": 96,
+        "line": 75,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/image/sam3.py"
@@ -62891,7 +62872,7 @@
         ],
         "classification": "external",
         "conditional": true,
-        "imported": "modules.impact.segs_nodes:MaskToSEGS",
+        "imported": "impact.segs_nodes:MaskToSEGS",
         "kind": "static_from",
         "line": 102,
         "optional": true,
@@ -62910,7 +62891,7 @@
         ],
         "classification": "external",
         "conditional": true,
-        "imported": "impact.impact_pack:MaskToSEGS",
+        "imported": "modules.impact.segs_nodes:MaskToSEGS",
         "kind": "static_from",
         "line": 108,
         "optional": true,
@@ -62929,7 +62910,7 @@
         ],
         "classification": "external",
         "conditional": true,
-        "imported": "modules.impact.impact_pack:MaskToSEGS",
+        "imported": "impact.impact_pack:MaskToSEGS",
         "kind": "static_from",
         "line": 114,
         "optional": true,
@@ -62943,14 +62924,33 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 158
+            "line": 119
+          }
+        ],
+        "classification": "external",
+        "conditional": true,
+        "imported": "modules.impact.impact_pack:MaskToSEGS",
+        "kind": "static_from",
+        "line": 120,
+        "optional": true,
+        "role": "optional_dependency",
+        "source": "easyuse_anima/image/sam3.py"
+      },
+      {
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": false,
+            "kind": "try",
+            "line": 164
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "torch",
         "kind": "static_import",
-        "line": 159,
+        "line": 165,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/image/sam3.py"
@@ -67625,14 +67625,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 45
+            "line": 48
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "impact.impact_pack:DetailerForEach",
         "kind": "static_from",
-        "line": 46,
+        "line": 49,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/image/sam3.py"
@@ -67644,14 +67644,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 51
+            "line": 54
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "modules.impact.impact_pack:DetailerForEach",
         "kind": "static_from",
-        "line": 52,
+        "line": 55,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/image/sam3.py"
@@ -67663,33 +67663,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 71
+            "line": 74
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "comfy_extras.nodes_sam3:SAM3_Detect",
         "kind": "static_from",
-        "line": 72,
-        "optional": true,
-        "role": "optional_dependency",
-        "source": "easyuse_anima/image/sam3.py"
-      },
-      {
-        "branch_context": [
-          {
-            "branch": "body",
-            "handles_import_failure": true,
-            "has_import_fallback_handler": false,
-            "kind": "try",
-            "line": 95
-          }
-        ],
-        "classification": "external",
-        "conditional": true,
-        "imported": "impact.segs_nodes:MaskToSEGS",
-        "kind": "static_from",
-        "line": 96,
+        "line": 75,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/image/sam3.py"
@@ -67706,7 +67687,7 @@
         ],
         "classification": "external",
         "conditional": true,
-        "imported": "modules.impact.segs_nodes:MaskToSEGS",
+        "imported": "impact.segs_nodes:MaskToSEGS",
         "kind": "static_from",
         "line": 102,
         "optional": true,
@@ -67725,7 +67706,7 @@
         ],
         "classification": "external",
         "conditional": true,
-        "imported": "impact.impact_pack:MaskToSEGS",
+        "imported": "modules.impact.segs_nodes:MaskToSEGS",
         "kind": "static_from",
         "line": 108,
         "optional": true,
@@ -67744,7 +67725,7 @@
         ],
         "classification": "external",
         "conditional": true,
-        "imported": "modules.impact.impact_pack:MaskToSEGS",
+        "imported": "impact.impact_pack:MaskToSEGS",
         "kind": "static_from",
         "line": 114,
         "optional": true,
@@ -67758,14 +67739,33 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 158
+            "line": 119
+          }
+        ],
+        "classification": "external",
+        "conditional": true,
+        "imported": "modules.impact.impact_pack:MaskToSEGS",
+        "kind": "static_from",
+        "line": 120,
+        "optional": true,
+        "role": "optional_dependency",
+        "source": "easyuse_anima/image/sam3.py"
+      },
+      {
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": false,
+            "kind": "try",
+            "line": 164
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "torch",
         "kind": "static_import",
-        "line": 159,
+        "line": 165,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/image/sam3.py"
