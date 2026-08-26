@@ -1,0 +1,9 @@
+EasyUse Anima 1.1.4 improves compatibility with other installed custom nodes during startup.
+
+Changes:
+1. EasyUse Anima no longer stops node discovery when an unrelated loaded module raises an import error while its node mappings are inspected.
+2. SAM3 and Impact Pack fallback discovery skips only the failing third-party module and continues searching available compatible nodes.
+3. Existing node identifiers, inputs, outputs, workflows, dependencies, and discovery order remain unchanged.
+
+Action required:
+After updating, restart ComfyUI.
