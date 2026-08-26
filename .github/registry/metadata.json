@@ -19,8 +19,13 @@
   },
   "versions": [
     {
-      "version": "1.1.3",
+      "version": "1.1.4",
       "deprecated": false,
+      "changelog_file": "changelogs/1.1.4.txt"
+    },
+    {
+      "version": "1.1.3",
+      "deprecated": true,
       "changelog_file": "changelogs/1.1.3.txt"
     },
     {

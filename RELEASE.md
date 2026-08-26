@@ -1,5 +1,26 @@
 # Release Notes
 
+## 1.1.4
+
+### Fixed
+
+- EasyUse Anima no longer stops loading or compatible-node discovery when an
+  unrelated loaded module raises an import error while its node mappings are
+  inspected.
+- SAM3 and Impact Pack fallback discovery now skips only the failing
+  third-party module and continues searching the remaining available modules.
+
+### Compatibility
+
+- This improves coexistence with custom nodes such as SeedVR2 when an optional
+  xformers FlashAttention module is unavailable or fails during inspection.
+- Existing node identifiers, inputs, outputs, workflows, dependencies, and
+  discovery order remain unchanged.
+
+### Update
+
+- After updating, restart ComfyUI.
+
 ## 1.1.3
 
 ### Fixed
