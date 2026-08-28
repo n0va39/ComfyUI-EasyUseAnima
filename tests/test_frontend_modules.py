@@ -3437,6 +3437,9 @@ class FrontendModuleStructureTests(unittest.TestCase):
         widgets_source = (
             PROMPT_STUDIO_MODULES / "widgets.js"
         ).read_text(encoding="utf-8")
+        highlight_ui_source = (
+            PROMPT_STUDIO_MODULES / "highlight_ui.js"
+        ).read_text(encoding="utf-8")
         runner_source = (
             ROOT / "tools" / "check_frontend.ps1"
         ).read_text(encoding="utf-8")
@@ -3461,6 +3464,9 @@ class FrontendModuleStructureTests(unittest.TestCase):
         self.assertIn("widget?.element", widgets_source)
         self.assertIn('candidate?.querySelector?.("textarea, input")', widgets_source)
         self.assertIn("input.isConnected !== false", widgets_source)
+        self.assertIn("findHighlightInput(widget)", highlight_ui_source)
+        self.assertNotIn("widget?.inputEl?.value", highlight_ui_source)
+        self.assertNotIn("__easyuseAnimaExecutedText", highlight_ui_source)
 
         resolver_source = (
             PROMPT_STUDIO_MODULES / "studio_input_resolver.js"
