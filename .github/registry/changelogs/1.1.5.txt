@@ -1,0 +1,10 @@
+EasyUse Anima 1.1.5 keeps Prompt Studio highlights aligned with pasted multiline text.
+
+Changes:
+1. Prompt Studio highlights now follow the current visible editor text after a long prompt is pasted or replaced.
+2. Comment-line emphasis keeps the same font metrics as the input text, so headings and long translated lines no longer shift the overlay.
+3. Saved Node 2.0 workflows reconnect Prompt Studio highlights when their text inputs finish loading after the node.
+4. Existing prompts, settings, workflows, node identifiers, inputs, and outputs remain compatible.
+
+Action required:
+After updating, restart ComfyUI and hard-refresh the browser.
