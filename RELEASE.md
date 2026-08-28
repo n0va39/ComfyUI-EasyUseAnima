@@ -1,5 +1,28 @@
 # Release Notes
 
+## 1.1.5
+
+### Fixed
+
+- Prompt Studio highlights now stay on the same lines as the editable text
+  after pasting or replacing long multiline prompts.
+- Comment-line emphasis no longer changes glyph width, preventing headings and
+  long translated lines from shifting the remaining highlight overlay.
+- Saved Node 2.0 workflows now reconnect Prompt Studio highlights when their
+  text inputs finish loading after the node itself.
+
+### Compatibility
+
+- Prompt Studio Classic, Advanced, Advanced V2, and Regional keep their
+  existing prompts, settings, saved workflows, node identifiers, inputs, and
+  outputs.
+- The existing comment highlight setting is preserved and now uses
+  layout-neutral background emphasis.
+
+### Update
+
+- After updating, restart ComfyUI and hard-refresh the browser.
+
 ## 1.1.4
 
 ### Fixed
