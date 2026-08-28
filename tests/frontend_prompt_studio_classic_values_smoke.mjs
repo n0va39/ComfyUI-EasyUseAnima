@@ -36,7 +36,7 @@ const settingsUrl = inlineModule(`
 `);
 const highlightWidgetsUrl = inlineModule(`
   export function findInputEl(widget) {
-    return widget?.inputEl || null;
+    return widget?.__easyuseAnimaStudioInput || widget?.inputEl || null;
   }
   export function isWidgetInputLinked(node, name) {
     return node?.inputs?.some((input) => input?.name === name && input?.link != null) || false;
@@ -119,6 +119,26 @@ assert.equal(
   displayText(classicNode, classicPrompt),
   "current classic edit",
   "stale Classic result replaced linked-input presentation",
+);
+
+// Node 2.0 keeps the live native textarea on the shared Prompt Studio seam,
+// not on the legacy inputEl property. Paste rendering must follow that live
+// control even before the host widget value catches up, and retired execution
+// presentation state must never override the current editor text.
+const node2Input = { value: "first pasted line\nsecond pasted line" };
+const node2Prompt = {
+  name: "prompt",
+  value: "stale widget value",
+  __easyuseAnimaStudioInput: node2Input,
+  __easyuseAnimaExecutedText: "retired execution value",
+};
+const node2Node = {
+  inputs: [{ name: "prompt", link: 23 }],
+};
+assert.equal(
+  displayText(node2Node, node2Prompt),
+  node2Input.value,
+  "Node 2.0 pasted text must own the visible highlight overlay",
 );
 
 // QSTATE-04A Extend preservation fixture: submitted slot text, visibility, and

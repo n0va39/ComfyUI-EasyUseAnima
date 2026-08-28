@@ -225,7 +225,7 @@ const SECTION_STYLES = {
   natural: { label: "Natural language", color: "#cbd5e1", background: "rgba(71, 85, 105, 0.16)", weight: 400 },
   translation: { label: "Translation marker", color: "#22d3ee", background: "rgba(8, 145, 178, 0.22)", weight: 700 },
   wildcard: { label: "Wildcard", color: "#c084fc", background: "rgba(126, 34, 206, 0.24)", weight: 700 },
-  comment: { label: "Comment", color: "#9ca3af", background: "rgba(156, 163, 175, 0.14)", weight: 400, italic: true },
+  comment: { label: "Comment", color: "#9ca3af", background: "rgba(156, 163, 175, 0.14)", weight: 400 },
   syntax: { label: "Syntax error", color: "#f87171", background: "transparent", underline: true, weight: 400 },
   unknown: { label: "Unknown", color: "#cbd5e1", background: "transparent", underline: true, weight: 400 },
 };
@@ -1048,15 +1048,13 @@ function sectionLabel(section) {
 function tokenStyle(token) {
   const style = SECTION_STYLES[token?.section] || SECTION_STYLES.unknown;
   const opacity = token?.learned || token?.section === "count" ? 1 : 0.88;
+  // Match the native textarea's glyph metrics; token styles are paint-only.
   const rules = [
     `color: ${style.color}`,
     `opacity: ${opacity}`,
   ];
   if (style.background && style.background !== "transparent") {
     rules.push(`background: ${style.background}`, "border-radius: 3px");
-  }
-  if (style.italic) {
-    rules.push("font-style: italic");
   }
   if (style.underline && !token?.weighted) {
     rules.push(

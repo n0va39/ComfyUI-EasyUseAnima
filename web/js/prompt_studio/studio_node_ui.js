@@ -20,6 +20,9 @@ import {
   findWidget,
 } from "./widgets.js";
 
+const STUDIO_INPUT_RETRY_LIMIT = 50;
+const STUDIO_INPUT_RETRY_DELAY_MS = 80;
+
 function hookStudioNode(node, attempt = 0, hooks = {}) {
   const {
     applyExtendSlotVisibility = () => {},
@@ -164,8 +167,11 @@ function hookStudioNode(node, attempt = 0, hooks = {}) {
     layoutExtendPromptWidgets(node);
   }
   refreshNodeSize(node);
-  if (pendingInput && attempt < 12) {
-    setTimeout(() => hookStudioNode(node, attempt + 1, hooks), 80);
+  if (pendingInput && attempt < STUDIO_INPUT_RETRY_LIMIT) {
+    setTimeout(
+      () => hookStudioNode(node, attempt + 1, hooks),
+      STUDIO_INPUT_RETRY_DELAY_MS,
+    );
   }
 }
 

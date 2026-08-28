@@ -677,7 +677,7 @@ const SECTION_STYLES = {
   translation: { label: "번역 구문", color: "#22d3ee", background: "rgba(8, 145, 178, 0.22)", weight: 700 },
   wildcard: { label: "와일드카드", color: "#c084fc", background: "rgba(126, 34, 206, 0.24)", weight: 700 },
   lora: { label: "LoRA 구문", color: "#e879f9", background: "rgba(192, 38, 211, 0.22)", weight: 700 },
-  comment: { label: "주석", color: "#9ca3af", background: "rgba(156, 163, 175, 0.14)", weight: 400, italic: true },
+  comment: { label: "주석", color: "#9ca3af", background: "rgba(156, 163, 175, 0.14)", weight: 400 },
   syntax: { label: "문법 오류", color: "#f87171", background: "transparent", underline: true, weight: 400 },
   unknown: { label: "미확인", color: "#cbd5e1", background: "transparent", underline: true, weight: 400 },
 };
