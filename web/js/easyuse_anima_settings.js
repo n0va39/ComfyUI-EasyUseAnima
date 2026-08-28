@@ -161,7 +161,9 @@ const TEXT = {
     underlineWeightSyntax: "Underline weight syntax",
     underlineWeightSyntaxTip:
       "Underline weighted prompt syntax such as (tag:1.2) and Artist Mix groups like [[artist_a, artist_b:0.7]].",
-    italicizeComments: "Italicize comment lines",
+    italicizeComments: "Emphasize comment lines",
+    italicizeCommentsTip:
+      "Uses color and background only so wrapped comments stay aligned with the native text cursor.",
     useDesktopNaia: "Use NAIA desktop Prompt Engineering settings",
   },
   ko: {
@@ -295,7 +297,9 @@ const TEXT = {
     underlineWeightSyntax: "가중치 문법 밑줄 표시",
     underlineWeightSyntaxTip:
       "(tag:1.2) 같은 프롬프트 가중치와 [[artist_a, artist_b:0.7]] 같은 Artist Mix 그룹 문법에 밑줄을 표시합니다.",
-    italicizeComments: "주석 라인 이탤릭체",
+    italicizeComments: "주석 라인 강조",
+    italicizeCommentsTip:
+      "색상과 배경만 사용하여 줄바꿈된 주석도 실제 입력 커서와 정렬되게 유지합니다.",
     useDesktopNaia: "NAIA 데스크톱 Prompt Engineering 설정 사용",
   },
   ja: {
@@ -429,7 +433,9 @@ const TEXT = {
     underlineWeightSyntax: "重み構文に下線を表示",
     underlineWeightSyntaxTip:
       "(tag:1.2) のようなプロンプト重み構文と [[artist_a, artist_b:0.7]] のような Artist Mix グループ構文に下線を表示します。",
-    italicizeComments: "コメント行を斜体にする",
+    italicizeComments: "コメント行を強調",
+    italicizeCommentsTip:
+      "色と背景だけを使い、折り返したコメントを実際の入力カーソルと揃えます。",
     useDesktopNaia: "NAIA デスクトップ Prompt Engineering 設定を使用",
   },
   zh: {
@@ -563,7 +569,9 @@ const TEXT = {
     underlineWeightSyntax: "为权重语法显示下划线",
     underlineWeightSyntaxTip:
       "为 (tag:1.2) 等提示词权重语法和 [[artist_a, artist_b:0.7]] 等 Artist Mix 分组语法显示下划线。",
-    italicizeComments: "注释行使用斜体",
+    italicizeComments: "强调注释行",
+    italicizeCommentsTip:
+      "仅使用颜色和背景，使换行后的注释与实际输入光标保持对齐。",
     useDesktopNaia: "使用 NAIA 桌面 Prompt Engineering 设置",
   },
 };

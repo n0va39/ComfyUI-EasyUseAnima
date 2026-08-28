@@ -14,7 +14,6 @@ import {
 } from "./highlight_revision.js";
 import {
   findInputEl,
-  isWidgetInputLinked,
 } from "./widgets.js";
 
 /** @typedef {import("./types.js").PromptStudioInputElement} PromptStudioInputElement */
@@ -27,11 +26,8 @@ function findHighlightInput(widget) {
   return findInputEl(widget);
 }
 
-function displayText(node, widget) {
-  if (isWidgetInputLinked(node, widget.name) && widget.__easyuseAnimaExecutedText != null) {
-    return String(widget.__easyuseAnimaExecutedText);
-  }
-  return String(widget?.inputEl?.value ?? widget?.value ?? "");
+function displayText(_node, widget, input = findHighlightInput(widget)) {
+  return String(input?.value ?? widget?.value ?? "");
 }
 
 function updateHighlight(node, widget, tokens = widget.__easyuseAnimaTokens || [], forceCopyMetrics = false) {
@@ -49,7 +45,7 @@ function updateHighlight(node, widget, tokens = widget.__easyuseAnimaTokens || [
     copyInputTextMetrics(input, overlay);
   }
   syncOverlayBounds(input, overlay);
-  const value = displayText(node, widget);
+  const value = displayText(node, widget, input);
   const currentTokens = highlightTokensForText(
     value,
     widget.__easyuseAnimaLastClassifiedText,
