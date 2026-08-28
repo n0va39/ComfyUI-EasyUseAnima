@@ -3437,6 +3437,21 @@ class FrontendModuleStructureTests(unittest.TestCase):
         widgets_source = (
             PROMPT_STUDIO_MODULES / "widgets.js"
         ).read_text(encoding="utf-8")
+        highlight_ui_source = (
+            PROMPT_STUDIO_MODULES / "highlight_ui.js"
+        ).read_text(encoding="utf-8")
+        highlight_source = (
+            PROMPT_STUDIO_MODULES / "highlight.js"
+        ).read_text(encoding="utf-8")
+        settings_source = (
+            PROMPT_STUDIO_MODULES / "settings.js"
+        ).read_text(encoding="utf-8")
+        studio_node_ui_source = (
+            PROMPT_STUDIO_MODULES / "studio_node_ui.js"
+        ).read_text(encoding="utf-8")
+        regional_source = PROMPT_STUDIO_REGIONAL_ADAPTER_JS.read_text(
+            encoding="utf-8"
+        )
         runner_source = (
             ROOT / "tools" / "check_frontend.ps1"
         ).read_text(encoding="utf-8")
@@ -3461,6 +3476,33 @@ class FrontendModuleStructureTests(unittest.TestCase):
         self.assertIn("widget?.element", widgets_source)
         self.assertIn('candidate?.querySelector?.("textarea, input")', widgets_source)
         self.assertIn("input.isConnected !== false", widgets_source)
+        self.assertIn("findHighlightInput(widget)", highlight_ui_source)
+        self.assertNotIn("widget?.inputEl?.value", highlight_ui_source)
+        self.assertNotIn("__easyuseAnimaExecutedText", highlight_ui_source)
+        self.assertIn("PROMPT_STUDIO_SETTINGS.commentEmphasis", highlight_source)
+        self.assertIn("commentEmphasis: true", settings_source)
+        metric_css_rules = (
+            "font:",
+            "font-family:",
+            "font-size:",
+            "font-style:",
+            "font-weight:",
+            "letter-spacing:",
+            "line-height:",
+            "word-spacing:",
+        )
+        for source in (highlight_source, regional_source):
+            token_style_source = source.split("function tokenStyle", 1)[1].split(
+                "function tokenTitle", 1
+            )[0]
+            for css_rule in metric_css_rules:
+                with self.subTest(surface="token-style", css_rule=css_rule):
+                    self.assertNotIn(css_rule, token_style_source)
+        self.assertNotIn("italic: true", regional_source)
+
+        self.assertIn("const STUDIO_INPUT_RETRY_LIMIT = 50", studio_node_ui_source)
+        self.assertIn("const STUDIO_INPUT_RETRY_DELAY_MS = 80", studio_node_ui_source)
+        self.assertNotIn("attempt < 12", studio_node_ui_source)
 
         resolver_source = (
             PROMPT_STUDIO_MODULES / "studio_input_resolver.js"

@@ -40,15 +40,17 @@ async function classifyPrompt(text) {
 function tokenStyle(token) {
   const style = SECTION_STYLES[token?.section] || SECTION_STYLES.unknown;
   const opacity = token?.learned || token?.section === "count" ? 1 : 0.88;
+  // Token spans must stay paint-only. The native textarea owns glyph metrics,
+  // caret positions, and wrapping; per-token font changes make them diverge.
   const rules = [
     `color: ${style.color}`,
     `opacity: ${opacity}`,
   ];
-  if (style.background && style.background !== "transparent") {
+  const showBackground = style.background
+    && style.background !== "transparent"
+    && (token?.section !== "comment" || PROMPT_STUDIO_SETTINGS.commentEmphasis);
+  if (showBackground) {
     rules.push(`background: ${style.background}`, "border-radius: 3px");
-  }
-  if (style.italic && PROMPT_STUDIO_SETTINGS.commentItalic) {
-    rules.push("font-style: italic");
   }
   if (style.underline && PROMPT_STUDIO_SETTINGS.typoIndicator && !token?.weighted) {
     rules.push(
