@@ -283,6 +283,7 @@ export function createEasyUseAnimaSettings(dependencies) {
       section: "PromptStudio",
       group: t("highlightBehavior"),
       name: t("italicizeComments"),
+      tooltip: t("italicizeCommentsTip"),
       type: "boolean",
       defaultValue: true,
     }),

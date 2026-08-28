@@ -17,7 +17,9 @@ import {
 const PROMPT_STUDIO_SETTINGS = {
   typoIndicator: true,
   weightSyntaxUnderline: false,
-  commentItalic: true,
+  // Keep the legacy setting key, but use it only for paint-only emphasis.
+  // Per-token font changes can wrap differently from the native textarea.
+  commentEmphasis: true,
   fontOverride: false,
   fontFamily: "",
   fontSize: PROMPT_STUDIO_FONT_SIZE_DEFAULT,
@@ -52,7 +54,7 @@ function applyPromptStudioTextStyle(input) {
 function applyPromptStudioSettings(settings, { hideTrainedTagTooltip = null } = {}) {
   PROMPT_STUDIO_SETTINGS.typoIndicator = settings?.["prompt_studio.typo_indicator"] !== "false";
   PROMPT_STUDIO_SETTINGS.weightSyntaxUnderline = settings?.["prompt_studio.weight_syntax_underline"] === "true";
-  PROMPT_STUDIO_SETTINGS.commentItalic = settings?.["prompt_studio.comment_italic"] !== "false";
+  PROMPT_STUDIO_SETTINGS.commentEmphasis = settings?.["prompt_studio.comment_italic"] !== "false";
   PROMPT_STUDIO_SETTINGS.trainedTagTooltip = settings?.["prompt_studio.trained_tag_tooltip"] !== "false";
   if (!PROMPT_STUDIO_SETTINGS.trainedTagTooltip) {
     hideTrainedTagTooltip?.();
