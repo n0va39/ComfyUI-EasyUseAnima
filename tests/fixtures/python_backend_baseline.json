@@ -9418,7 +9418,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 88
+            "line": 89
           }
         ],
         "classification": "external",
@@ -9426,7 +9426,7 @@
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 89,
+        "line": 90,
         "name": null,
         "optional": true,
         "requested": "folder_paths",
@@ -9443,7 +9443,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 111
+            "line": 112
           }
         ],
         "classification": "external",
@@ -9451,7 +9451,7 @@
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 112,
+        "line": 113,
         "name": null,
         "optional": true,
         "requested": "folder_paths",
@@ -9468,7 +9468,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 428
+            "line": 423
           }
         ],
         "classification": "external",
@@ -9476,7 +9476,7 @@
         "conditional": true,
         "imported": "comfy.cli_args:args",
         "kind": "static_from",
-        "line": 429,
+        "line": 424,
         "name": "args",
         "optional": true,
         "requested": "comfy.cli_args",
@@ -9493,7 +9493,7 @@
         "conditional": false,
         "imported": "PIL:ExifTags",
         "kind": "static_from",
-        "line": 445,
+        "line": 440,
         "name": "ExifTags",
         "optional": false,
         "requested": "PIL",
@@ -9510,7 +9510,7 @@
         "conditional": false,
         "imported": "PIL:Image",
         "kind": "static_from",
-        "line": 445,
+        "line": 440,
         "name": "Image",
         "optional": false,
         "requested": "PIL",
@@ -9525,7 +9525,7 @@
           {
             "branch": "body",
             "kind": "if",
-            "line": 500,
+            "line": 495,
             "type_checking": false
           }
         ],
@@ -9534,7 +9534,7 @@
         "conditional": true,
         "imported": "PIL.PngImagePlugin:PngInfo",
         "kind": "static_from",
-        "line": 501,
+        "line": 496,
         "name": "PngInfo",
         "optional": false,
         "requested": "PIL.PngImagePlugin",
@@ -9551,7 +9551,7 @@
         "conditional": false,
         "imported": "numpy",
         "kind": "static_import",
-        "line": 530,
+        "line": 525,
         "name": null,
         "optional": false,
         "requested": "numpy",
@@ -9568,7 +9568,7 @@
         "conditional": false,
         "imported": "PIL:Image",
         "kind": "static_from",
-        "line": 531,
+        "line": 526,
         "name": "Image",
         "optional": false,
         "requested": "PIL",
@@ -9890,6 +9890,23 @@
       },
       {
         "alias": null,
+        "bound_name": "Mapping",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "collections.abc:Mapping",
+        "kind": "static_from",
+        "line": 8,
+        "name": "Mapping",
+        "optional": false,
+        "requested": "collections.abc",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/output.py"
+      },
+      {
+        "alias": null,
         "bound_name": "dataclass",
         "branch_context": [],
         "classification": "external",
@@ -9897,7 +9914,7 @@
         "conditional": false,
         "imported": "dataclasses:dataclass",
         "kind": "static_from",
-        "line": 8,
+        "line": 9,
         "name": "dataclass",
         "optional": false,
         "requested": "dataclasses",
@@ -9914,7 +9931,7 @@
         "conditional": false,
         "imported": "datetime:datetime",
         "kind": "static_from",
-        "line": 9,
+        "line": 10,
         "name": "datetime",
         "optional": false,
         "requested": "datetime",
@@ -9931,7 +9948,7 @@
         "conditional": false,
         "imported": "pathlib:Path",
         "kind": "static_from",
-        "line": 10,
+        "line": 11,
         "name": "Path",
         "optional": false,
         "requested": "pathlib",
@@ -9948,7 +9965,7 @@
         "conditional": false,
         "imported": "pathlib:PurePosixPath",
         "kind": "static_from",
-        "line": 10,
+        "line": 11,
         "name": "PurePosixPath",
         "optional": false,
         "requested": "pathlib",
@@ -9965,7 +9982,7 @@
         "conditional": false,
         "imported": "pathlib:PureWindowsPath",
         "kind": "static_from",
-        "line": 10,
+        "line": 11,
         "name": "PureWindowsPath",
         "optional": false,
         "requested": "pathlib",
@@ -9982,7 +9999,7 @@
         "conditional": false,
         "imported": "typing:Any",
         "kind": "static_from",
-        "line": 11,
+        "line": 12,
         "name": "Any",
         "optional": false,
         "requested": "typing",
@@ -9999,7 +10016,7 @@
         "conditional": false,
         "imported": "..common.values:_as_bool",
         "kind": "static_from",
-        "line": 13,
+        "line": 14,
         "name": "_as_bool",
         "optional": false,
         "requested": "..common.values",
@@ -10017,7 +10034,7 @@
         "conditional": false,
         "imported": "..common.values:_as_float",
         "kind": "static_from",
-        "line": 13,
+        "line": 14,
         "name": "_as_float",
         "optional": false,
         "requested": "..common.values",
@@ -10035,7 +10052,7 @@
         "conditional": false,
         "imported": "..common.values:_as_int",
         "kind": "static_from",
-        "line": 13,
+        "line": 14,
         "name": "_as_int",
         "optional": false,
         "requested": "..common.values",
@@ -10053,7 +10070,7 @@
         "conditional": false,
         "imported": "..infrastructure.comfy.wiring:resolve_comfy_host_helper",
         "kind": "static_from",
-        "line": 14,
+        "line": 15,
         "name": "resolve_comfy_host_helper",
         "optional": false,
         "requested": "..infrastructure.comfy.wiring",
@@ -10071,7 +10088,7 @@
         "conditional": false,
         "imported": "..lora.preset:_format_strength",
         "kind": "static_from",
-        "line": 15,
+        "line": 16,
         "name": "_format_strength",
         "optional": false,
         "requested": "..lora.preset",
@@ -10089,7 +10106,7 @@
         "conditional": false,
         "imported": ".generation_defaults:AIO_GENERATION_DEFAULT_SETTINGS",
         "kind": "static_from",
-        "line": 16,
+        "line": 17,
         "name": "AIO_GENERATION_DEFAULT_SETTINGS",
         "optional": false,
         "requested": ".generation_defaults",
@@ -10107,7 +10124,7 @@
         "conditional": false,
         "imported": ".native_image_output:NativeImageMetadata",
         "kind": "static_from",
-        "line": 17,
+        "line": 18,
         "name": "NativeImageMetadata",
         "optional": false,
         "requested": ".native_image_output",
@@ -10125,7 +10142,7 @@
         "conditional": false,
         "imported": ".native_image_output:_build_native_metadata",
         "kind": "static_from",
-        "line": 17,
+        "line": 18,
         "name": "_build_native_metadata",
         "optional": false,
         "requested": ".native_image_output",
@@ -10143,7 +10160,7 @@
         "conditional": false,
         "imported": ".native_image_output:_comfy_metadata_enabled",
         "kind": "static_from",
-        "line": 17,
+        "line": 18,
         "name": "_comfy_metadata_enabled",
         "optional": false,
         "requested": ".native_image_output",
@@ -10161,7 +10178,7 @@
         "conditional": false,
         "imported": ".native_image_output:_fetch_civitai_autov3_hash",
         "kind": "static_from",
-        "line": 17,
+        "line": 18,
         "name": "_fetch_civitai_autov3_hash",
         "optional": false,
         "requested": ".native_image_output",
@@ -10179,7 +10196,7 @@
         "conditional": false,
         "imported": ".native_image_output:_save_native_images",
         "kind": "static_from",
-        "line": 17,
+        "line": 18,
         "name": "_save_native_images",
         "optional": false,
         "requested": ".native_image_output",
@@ -10197,7 +10214,7 @@
         "conditional": false,
         "imported": ".output_settings:_normalize_aio_civitai_hash_fetchers",
         "kind": "static_from",
-        "line": 24,
+        "line": 25,
         "name": "_normalize_aio_civitai_hash_fetchers",
         "optional": false,
         "requested": ".output_settings",
@@ -10215,7 +10232,7 @@
         "conditional": false,
         "imported": ".output_settings:_normalize_aio_hash_bundles",
         "kind": "static_from",
-        "line": 27,
+        "line": 28,
         "name": "_normalize_aio_hash_bundles",
         "optional": false,
         "requested": ".output_settings",
@@ -10233,7 +10250,7 @@
         "conditional": false,
         "imported": ".sampling:_resolve_aio_runtime_seed",
         "kind": "static_from",
-        "line": 30,
+        "line": 31,
         "name": "_resolve_aio_runtime_seed",
         "optional": false,
         "requested": ".sampling",
@@ -10251,7 +10268,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 78
+            "line": 79
           }
         ],
         "classification": "external",
@@ -10259,7 +10276,7 @@
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 79,
+        "line": 80,
         "name": null,
         "optional": true,
         "requested": "folder_paths",
@@ -10276,7 +10293,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 156
+            "line": 157
           }
         ],
         "classification": "external",
@@ -10284,7 +10301,7 @@
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 157,
+        "line": 158,
         "name": null,
         "optional": true,
         "requested": "folder_paths",
@@ -10301,7 +10318,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 404
+            "line": 405
           }
         ],
         "classification": "external",
@@ -10309,7 +10326,7 @@
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 405,
+        "line": 406,
         "name": null,
         "optional": true,
         "requested": "folder_paths",
@@ -48795,230 +48812,230 @@
         "functions": [
           {
             "async": false,
-            "end_line": 67,
+            "end_line": 68,
             "kind": "method",
-            "line": 65,
+            "line": 66,
             "loc": 3,
             "qualified_name": "_ResourceHash.short_hash"
           },
           {
             "async": false,
-            "end_line": 84,
+            "end_line": 85,
             "kind": "function",
-            "line": 78,
+            "line": 79,
             "loc": 7,
             "qualified_name": "_compact_json"
           },
           {
             "async": false,
-            "end_line": 93,
+            "end_line": 94,
             "kind": "function",
-            "line": 87,
+            "line": 88,
             "loc": 7,
             "qualified_name": "_supported_model_extensions"
           },
           {
             "async": false,
-            "end_line": 99,
+            "end_line": 100,
             "kind": "function",
-            "line": 96,
+            "line": 97,
             "loc": 4,
             "qualified_name": "_resource_name"
           },
           {
             "async": false,
-            "end_line": 105,
+            "end_line": 106,
             "kind": "function",
-            "line": 102,
+            "line": 103,
             "loc": 4,
             "qualified_name": "_lora_metadata_name"
           },
           {
             "async": false,
-            "end_line": 135,
+            "end_line": 136,
             "kind": "function",
-            "line": 108,
+            "line": 109,
             "loc": 28,
             "qualified_name": "_resolve_resource_path"
           },
           {
             "async": false,
-            "end_line": 145,
+            "end_line": 146,
             "kind": "function",
-            "line": 138,
+            "line": 139,
             "loc": 8,
             "qualified_name": "_hash_file_revision"
           },
           {
             "async": false,
-            "end_line": 150,
+            "end_line": 151,
             "kind": "function",
-            "line": 148,
+            "line": 149,
             "loc": 3,
             "qualified_name": "_hash_file"
           },
           {
             "async": false,
-            "end_line": 217,
+            "end_line": 218,
             "kind": "function",
-            "line": 153,
+            "line": 154,
             "loc": 65,
             "qualified_name": "_local_resource_hashes"
           },
           {
             "async": false,
-            "end_line": 291,
+            "end_line": 286,
             "kind": "function",
-            "line": 220,
-            "loc": 72,
+            "line": 221,
+            "loc": 66,
             "qualified_name": "_manual_resource_hashes"
           },
           {
             "async": false,
-            "end_line": 301,
+            "end_line": 296,
             "kind": "function",
-            "line": 294,
+            "line": 289,
             "loc": 8,
             "qualified_name": "_clean_prompt_for_remix"
           },
           {
             "async": false,
-            "end_line": 299,
+            "end_line": 294,
             "kind": "function",
-            "line": 297,
+            "line": 292,
             "loc": 3,
             "qualified_name": "_clean_prompt_for_remix.simplify_embedding"
           },
           {
             "async": false,
-            "end_line": 314,
+            "end_line": 309,
             "kind": "function",
-            "line": 304,
+            "line": 299,
             "loc": 11,
             "qualified_name": "_civitai_sampler_name"
           },
           {
             "async": false,
-            "end_line": 340,
+            "end_line": 335,
             "kind": "function",
-            "line": 317,
+            "line": 312,
             "loc": 24,
             "qualified_name": "_civitai_resource_entries"
           },
           {
             "async": false,
-            "end_line": 424,
+            "end_line": 419,
             "kind": "function",
-            "line": 343,
+            "line": 338,
             "loc": 82,
             "qualified_name": "_build_native_metadata"
           },
           {
             "async": false,
-            "end_line": 433,
+            "end_line": 428,
             "kind": "function",
-            "line": 427,
+            "line": 422,
             "loc": 7,
             "qualified_name": "_comfy_metadata_enabled"
           },
           {
             "async": false,
-            "end_line": 437,
+            "end_line": 432,
             "kind": "function",
-            "line": 436,
+            "line": 431,
             "loc": 2,
             "qualified_name": "_encode_user_comment"
           },
           {
             "async": false,
-            "end_line": 457,
+            "end_line": 452,
             "kind": "function",
-            "line": 440,
+            "line": 435,
             "loc": 18,
             "qualified_name": "_build_exif_bytes"
           },
           {
             "async": false,
-            "end_line": 526,
+            "end_line": 521,
             "kind": "function",
-            "line": 460,
+            "line": 455,
             "loc": 67,
             "qualified_name": "_serialize_metadata"
           },
           {
             "async": false,
-            "end_line": 548,
+            "end_line": 543,
             "kind": "function",
-            "line": 529,
+            "line": 524,
             "loc": 20,
             "qualified_name": "_tensor_to_pil"
           },
           {
             "async": false,
-            "end_line": 595,
+            "end_line": 590,
             "kind": "function",
-            "line": 551,
+            "line": 546,
             "loc": 45,
             "qualified_name": "_allocate_filenames"
           },
           {
             "async": false,
-            "end_line": 563,
+            "end_line": 558,
             "kind": "function",
-            "line": 559,
+            "line": 554,
             "loc": 5,
             "qualified_name": "_allocate_filenames.occupied"
           },
           {
             "async": false,
-            "end_line": 613,
+            "end_line": 608,
             "kind": "function",
-            "line": 598,
+            "line": 593,
             "loc": 16,
             "qualified_name": "_atomic_save_image"
           },
           {
             "async": false,
-            "end_line": 628,
+            "end_line": 623,
             "kind": "function",
-            "line": 616,
+            "line": 611,
             "loc": 13,
             "qualified_name": "_atomic_write_text"
           },
           {
             "async": false,
-            "end_line": 665,
+            "end_line": 660,
             "kind": "function",
-            "line": 631,
+            "line": 626,
             "loc": 35,
             "qualified_name": "_resolve_native_output_folder"
           },
           {
             "async": false,
-            "end_line": 688,
+            "end_line": 683,
             "kind": "function",
-            "line": 668,
+            "line": 663,
             "loc": 21,
             "qualified_name": "_image_save_options"
           },
           {
             "async": false,
-            "end_line": 796,
+            "end_line": 791,
             "kind": "function",
-            "line": 691,
+            "line": 686,
             "loc": 106,
             "qualified_name": "_save_native_images"
           }
         ],
         "is_package": false,
-        "loc": 799,
+        "loc": 794,
         "module": "easyuse_anima.aio.native_image_output",
-        "normalized_git_blob_sha1": "7f18d8e8bb77d959ec735cfe37b7d8ec0b83b7e3",
+        "normalized_git_blob_sha1": "9d3891695083f95ac80cd9cd79070141912cae07",
         "path": "easyuse_anima/aio/native_image_output.py",
         "top_level": {
           "class_count": 3,
           "function_count": 24,
-          "global_count": 13
+          "global_count": 14
         }
       },
       {
@@ -49239,113 +49256,113 @@
         "functions": [
           {
             "async": false,
-            "end_line": 66,
+            "end_line": 67,
             "kind": "function",
-            "line": 63,
+            "line": 64,
             "loc": 4,
             "qualified_name": "_missing_host_helper"
           },
           {
             "async": false,
-            "end_line": 74,
+            "end_line": 75,
             "kind": "function",
-            "line": 69,
+            "line": 70,
             "loc": 6,
             "qualified_name": "_find_comfy_node_class"
           },
           {
             "async": false,
-            "end_line": 95,
+            "end_line": 96,
             "kind": "function",
-            "line": 77,
+            "line": 78,
             "loc": 19,
             "qualified_name": "_comfy_output_directory"
           },
           {
             "async": false,
-            "end_line": 123,
+            "end_line": 124,
             "kind": "function",
-            "line": 98,
+            "line": 99,
             "loc": 26,
             "qualified_name": "_output_path_parts"
           },
           {
             "async": false,
-            "end_line": 150,
+            "end_line": 151,
             "kind": "function",
-            "line": 126,
+            "line": 127,
             "loc": 25,
             "qualified_name": "_validated_output_subpath"
           },
           {
             "async": false,
-            "end_line": 163,
+            "end_line": 164,
             "kind": "function",
-            "line": 153,
+            "line": 154,
             "loc": 11,
             "qualified_name": "_image_saver_model_names"
           },
           {
             "async": false,
-            "end_line": 170,
+            "end_line": 171,
             "kind": "function",
-            "line": 166,
+            "line": 167,
             "loc": 5,
             "qualified_name": "_image_saver_timestamp"
           },
           {
             "async": false,
-            "end_line": 234,
+            "end_line": 235,
             "kind": "function",
-            "line": 173,
+            "line": 174,
             "loc": 62,
             "qualified_name": "_render_image_saver_template"
           },
           {
             "async": false,
-            "end_line": 196,
+            "end_line": 197,
             "kind": "function",
-            "line": 195,
+            "line": 196,
             "loc": 2,
             "qualified_name": "_render_image_saver_template.replace_time"
           },
           {
             "async": false,
-            "end_line": 204,
+            "end_line": 205,
             "kind": "function",
-            "line": 198,
+            "line": 199,
             "loc": 7,
             "qualified_name": "_render_image_saver_template.replace_counter"
           },
           {
             "async": false,
-            "end_line": 324,
+            "end_line": 325,
             "kind": "function",
-            "line": 237,
+            "line": 238,
             "loc": 88,
             "qualified_name": "_resolve_image_saver_runtime"
           },
           {
             "async": false,
-            "end_line": 382,
+            "end_line": 383,
             "kind": "function",
-            "line": 327,
+            "line": 328,
             "loc": 56,
             "qualified_name": "_aio_image_saver_civitai_hash_fetcher_entries"
           },
           {
             "async": false,
-            "end_line": 396,
+            "end_line": 397,
             "kind": "function",
-            "line": 385,
+            "line": 386,
             "loc": 12,
             "qualified_name": "_aio_image_saver_additional_hashes"
           },
           {
             "async": false,
-            "end_line": 412,
+            "end_line": 413,
             "kind": "function",
-            "line": 399,
+            "line": 400,
             "loc": 14,
             "qualified_name": "_aio_lora_metadata_name"
           },
@@ -49353,8 +49370,8 @@
             "async": false,
             "end_line": 431,
             "kind": "function",
-            "line": 415,
-            "loc": 17,
+            "line": 416,
+            "loc": 16,
             "qualified_name": "_aio_prompt_with_lora_metadata"
           },
           {
@@ -49385,7 +49402,7 @@
         "is_package": false,
         "loc": 570,
         "module": "easyuse_anima.aio.output",
-        "normalized_git_blob_sha1": "0f860735924f10c92c8e9177713e50a73da84cce",
+        "normalized_git_blob_sha1": "baea382362d328c96a4f6d9752150eaec4b53cc1",
         "path": "easyuse_anima/aio/output.py",
         "top_level": {
           "class_count": 1,
@@ -62254,14 +62271,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 88
+            "line": 89
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 89,
+        "line": 90,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/aio/native_image_output.py"
@@ -62273,14 +62290,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 111
+            "line": 112
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 112,
+        "line": 113,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/aio/native_image_output.py"
@@ -62292,14 +62309,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 428
+            "line": 423
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "comfy.cli_args:args",
         "kind": "static_from",
-        "line": 429,
+        "line": 424,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/aio/native_image_output.py"
@@ -62310,7 +62327,7 @@
         "conditional": false,
         "imported": "PIL:ExifTags",
         "kind": "static_from",
-        "line": 445,
+        "line": 440,
         "optional": false,
         "role": "ordinary",
         "source": "easyuse_anima/aio/native_image_output.py"
@@ -62321,7 +62338,7 @@
         "conditional": false,
         "imported": "PIL:Image",
         "kind": "static_from",
-        "line": 445,
+        "line": 440,
         "optional": false,
         "role": "ordinary",
         "source": "easyuse_anima/aio/native_image_output.py"
@@ -62331,7 +62348,7 @@
           {
             "branch": "body",
             "kind": "if",
-            "line": 500,
+            "line": 495,
             "type_checking": false
           }
         ],
@@ -62339,7 +62356,7 @@
         "conditional": true,
         "imported": "PIL.PngImagePlugin:PngInfo",
         "kind": "static_from",
-        "line": 501,
+        "line": 496,
         "optional": false,
         "role": "ordinary",
         "source": "easyuse_anima/aio/native_image_output.py"
@@ -62350,7 +62367,7 @@
         "conditional": false,
         "imported": "numpy",
         "kind": "static_import",
-        "line": 530,
+        "line": 525,
         "optional": false,
         "role": "ordinary",
         "source": "easyuse_anima/aio/native_image_output.py"
@@ -62361,7 +62378,7 @@
         "conditional": false,
         "imported": "PIL:Image",
         "kind": "static_from",
-        "line": 531,
+        "line": 526,
         "optional": false,
         "role": "ordinary",
         "source": "easyuse_anima/aio/native_image_output.py"
@@ -62502,7 +62519,7 @@
         "branch_context": [],
         "classification": "external",
         "conditional": false,
-        "imported": "dataclasses:dataclass",
+        "imported": "collections.abc:Mapping",
         "kind": "static_from",
         "line": 8,
         "optional": false,
@@ -62513,7 +62530,7 @@
         "branch_context": [],
         "classification": "external",
         "conditional": false,
-        "imported": "datetime:datetime",
+        "imported": "dataclasses:dataclass",
         "kind": "static_from",
         "line": 9,
         "optional": false,
@@ -62524,9 +62541,20 @@
         "branch_context": [],
         "classification": "external",
         "conditional": false,
-        "imported": "pathlib:Path",
+        "imported": "datetime:datetime",
         "kind": "static_from",
         "line": 10,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/output.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "pathlib:Path",
+        "kind": "static_from",
+        "line": 11,
         "optional": false,
         "role": "ordinary",
         "source": "easyuse_anima/aio/output.py"
@@ -62537,7 +62565,7 @@
         "conditional": false,
         "imported": "pathlib:PurePosixPath",
         "kind": "static_from",
-        "line": 10,
+        "line": 11,
         "optional": false,
         "role": "ordinary",
         "source": "easyuse_anima/aio/output.py"
@@ -62548,7 +62576,7 @@
         "conditional": false,
         "imported": "pathlib:PureWindowsPath",
         "kind": "static_from",
-        "line": 10,
+        "line": 11,
         "optional": false,
         "role": "ordinary",
         "source": "easyuse_anima/aio/output.py"
@@ -62559,7 +62587,7 @@
         "conditional": false,
         "imported": "typing:Any",
         "kind": "static_from",
-        "line": 11,
+        "line": 12,
         "optional": false,
         "role": "ordinary",
         "source": "easyuse_anima/aio/output.py"
@@ -62571,14 +62599,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 78
+            "line": 79
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 79,
+        "line": 80,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/aio/output.py"
@@ -62590,14 +62618,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 156
+            "line": 157
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 157,
+        "line": 158,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/aio/output.py"
@@ -62609,14 +62637,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 404
+            "line": 405
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 405,
+        "line": 406,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/aio/output.py"
@@ -69324,14 +69352,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 88
+            "line": 89
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 89,
+        "line": 90,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/aio/native_image_output.py"
@@ -69343,14 +69371,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 111
+            "line": 112
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 112,
+        "line": 113,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/aio/native_image_output.py"
@@ -69362,14 +69390,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 428
+            "line": 423
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "comfy.cli_args:args",
         "kind": "static_from",
-        "line": 429,
+        "line": 424,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/aio/native_image_output.py"
@@ -69381,14 +69409,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 78
+            "line": 79
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 79,
+        "line": 80,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/aio/output.py"
@@ -69400,14 +69428,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 156
+            "line": 157
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 157,
+        "line": 158,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/aio/output.py"
@@ -69419,14 +69447,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 404
+            "line": 405
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 405,
+        "line": 406,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/aio/output.py"
@@ -71838,10 +71866,19 @@
       },
       {
         "callee": "re.compile",
+        "column": 15,
+        "context": "assign:_HEX_HASH_RE",
+        "kind": "import_time_call",
+        "line": 35,
+        "module": "easyuse_anima/aio/native_image_output.py",
+        "scope": "<module>"
+      },
+      {
+        "callee": "re.compile",
         "column": 14,
         "context": "assign:_CONTROL_RE",
         "kind": "import_time_call",
-        "line": 35,
+        "line": 36,
         "module": "easyuse_anima/aio/native_image_output.py",
         "scope": "<module>"
       },
@@ -71850,7 +71887,7 @@
         "column": 13,
         "context": "assign:_SAVE_LOCK",
         "kind": "import_time_call",
-        "line": 36,
+        "line": 37,
         "module": "easyuse_anima/aio/native_image_output.py",
         "scope": "<module>"
       },
@@ -71859,7 +71896,7 @@
         "column": 25,
         "context": "assign:_CIVITAI_SAMPLER_NAMES",
         "kind": "import_time_call",
-        "line": 38,
+        "line": 39,
         "module": "easyuse_anima/aio/native_image_output.py",
         "scope": "<module>"
       },
@@ -71868,7 +71905,7 @@
         "column": 1,
         "context": "decorator:NativeImageMetadata",
         "kind": "import_time_call",
-        "line": 50,
+        "line": 51,
         "module": "easyuse_anima/aio/native_image_output.py",
         "scope": "<module>"
       },
@@ -71877,7 +71914,7 @@
         "column": 1,
         "context": "decorator:_ResourceHash",
         "kind": "import_time_call",
-        "line": 57,
+        "line": 58,
         "module": "easyuse_anima/aio/native_image_output.py",
         "scope": "<module>"
       },
@@ -71886,7 +71923,7 @@
         "column": 1,
         "context": "decorator:_SerializedMetadata",
         "kind": "import_time_call",
-        "line": 70,
+        "line": 71,
         "module": "easyuse_anima/aio/native_image_output.py",
         "scope": "<module>"
       },
@@ -71895,7 +71932,7 @@
         "column": 1,
         "context": "decorator:_hash_file_revision",
         "kind": "import_time_call",
-        "line": 138,
+        "line": 139,
         "module": "easyuse_anima/aio/native_image_output.py",
         "scope": "<module>"
       },
@@ -71931,7 +71968,7 @@
         "column": 9,
         "context": "assign:logger",
         "kind": "import_time_call",
-        "line": 32,
+        "line": 33,
         "module": "easyuse_anima/aio/output.py",
         "scope": "<module>"
       },
@@ -71940,7 +71977,7 @@
         "column": 30,
         "context": "assign:_IMAGE_SAVER_CUSTOM_TIME_RE",
         "kind": "import_time_call",
-        "line": 35,
+        "line": 36,
         "module": "easyuse_anima/aio/output.py",
         "scope": "<module>"
       },
@@ -71949,7 +71986,7 @@
         "column": 33,
         "context": "assign:_IMAGE_SAVER_CUSTOM_COUNTER_RE",
         "kind": "import_time_call",
-        "line": 36,
+        "line": 37,
         "module": "easyuse_anima/aio/output.py",
         "scope": "<module>"
       },
@@ -71958,7 +71995,7 @@
         "column": 21,
         "context": "assign:_OUTPUT_CONTROL_RE",
         "kind": "import_time_call",
-        "line": 37,
+        "line": 38,
         "module": "easyuse_anima/aio/output.py",
         "scope": "<module>"
       },
@@ -71967,7 +72004,7 @@
         "column": 1,
         "context": "decorator:_ImageSaverRuntime",
         "kind": "import_time_call",
-        "line": 41,
+        "line": 42,
         "module": "easyuse_anima/aio/output.py",
         "scope": "<module>"
       },
@@ -73668,7 +73705,7 @@
           "lock"
         ],
         "initializer": "threading.Lock",
-        "line": 36,
+        "line": 37,
         "module": "easyuse_anima/aio/native_image_output.py",
         "name": "_SAVE_LOCK"
       },

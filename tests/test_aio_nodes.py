@@ -1195,10 +1195,10 @@ class AIONativeImageSaverTests(unittest.TestCase):
                 width=768,
                 height=1024,
                 sampler_settings=generation_normalization._normalize_aio_generation_settings("{}")["sampler"],
-                applied_loras=[
+                applied_loras=(
                     {"name": "styles\\foo.safetensors", "strength_model": 0.75, "strength_clip": 1.0},
                     {"name": "bar", "strength_model": 1.0, "strength_clip": 1.0},
-                ],
+                ),
                 resource_info={"unet_name": "anima"},
                 workflow_prompt=None,
                 extra_pnginfo=None,

@@ -394,7 +394,9 @@ class RegistryScannerSafetyTests(unittest.TestCase):
 
         self.assertIn("docs/development/registry-scanner-safety.md", entry)
         self.assertIn("comfy node validate", safety)
-        self.assertIn("NAIA `requests.post`", safety)
+        self.assertIn('rg -n "requests\\.post" easyuse_anima/naia/client.py', safety)
+        self.assertIn("easyuse_anima/naia/client.py", safety)
+        self.assertNotIn("nodes.py prompt_translation.py settings.py api.py", safety)
         self.assertIn("same-authority", safety)
         self.assertIn("ComfyUI output root", safety)
         self.assertIn("issue #679", safety)

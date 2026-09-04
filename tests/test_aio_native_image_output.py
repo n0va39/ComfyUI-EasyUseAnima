@@ -198,14 +198,17 @@ class AIONativeImageOutputTests(unittest.TestCase):
     def test_manual_hash_parser_rejects_ambiguous_and_non_finite_entries(self):
         with self.assertLogs("ComfyUI-EasyUseAnima", level="WARNING"):
             resources = native._manual_resource_hashes(
-                "valid:ABCDEF1234,ambiguous:name:hash,bad:ABCDEF1234:nan,weighted:1234567890:0.25"
+                "valid:ABCDEF1234,numeric:1234567890,DEADBEEF12:0.5,"
+                "ambiguous:name:hash,bad:FEEDFACE12:nan,weighted:CAFEBABE10:0.25"
             )
 
         self.assertEqual(
             [(item.display_name, item.sha256, item.weight) for item in resources],
             [
                 ("valid", "ABCDEF1234", None),
-                ("weighted", "1234567890", 0.25),
+                ("numeric", "1234567890", None),
+                ("manual1", "DEADBEEF12", 0.5),
+                ("weighted", "CAFEBABE10", 0.25),
             ],
         )
 

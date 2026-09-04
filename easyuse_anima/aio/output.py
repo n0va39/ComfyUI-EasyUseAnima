@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 import os
 import re
+from collections.abc import Mapping
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path, PurePosixPath, PureWindowsPath
@@ -414,10 +415,9 @@ def _aio_lora_metadata_name(name: str) -> str:
 
 def _aio_prompt_with_lora_metadata(prompt: str, applied_loras) -> str:
     tags: list[str] = []
-    if not isinstance(applied_loras, list):
-        applied_loras = []
-    for item in applied_loras:
-        if not isinstance(item, dict):
+    values = applied_loras if isinstance(applied_loras, (list, tuple)) else ()
+    for item in values:
+        if not isinstance(item, Mapping):
             continue
         name = _aio_lora_metadata_name(str(item.get("name") or ""))
         if not name:

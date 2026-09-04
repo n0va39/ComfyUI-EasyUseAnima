@@ -32,6 +32,7 @@ _USER_COMMENT_PREFIX = b"UNICODE\0"
 _LORA_TAG_RE = re.compile(r"<lora:([^>:]+)(?::([^>]+))?>", re.IGNORECASE)
 _EMBEDDING_RE = re.compile(r"embedding:([^,\s()]+)", re.IGNORECASE)
 _SAFE_HASH_RE = re.compile(r"^[A-Za-z0-9_-]{1,128}$")
+_HEX_HASH_RE = re.compile(r"^[0-9A-Fa-f]{8,128}$")
 _CONTROL_RE = re.compile(r"[\x00-\x1f\x7f]")
 _SAVE_LOCK = threading.Lock()
 
@@ -228,50 +229,44 @@ def _manual_resource_hashes(value: str) -> list[_ResourceHash]:
             continue
         pieces = [part.strip() for part in entry.split(":")]
         if not all(pieces):
-            logger.warning(
-                "[EasyUseAnima] Skipping malformed additional Civitai hash entry: %r",
-                entry,
-            )
+            logger.warning("[EasyUseAnima] Skipping malformed additional Civitai hash entry: %r", entry)
             continue
-
+        if len(pieces) > 3:
+            logger.warning("[EasyUseAnima] Skipping ambiguous additional Civitai hash entry: %r", entry)
+            continue
         weight: float | None = None
-        if len(pieces) >= 2:
+        if len(pieces) == 3:
             try:
                 weight = float(pieces[-1])
             except ValueError:
-                pass
-            else:
-                if not math.isfinite(weight):
-                    logger.warning(
-                        "[EasyUseAnima] Skipping non-finite additional Civitai hash weight: %r",
-                        entry,
-                    )
+                logger.warning("[EasyUseAnima] Skipping ambiguous additional Civitai hash entry: %r", entry)
+                continue
+            if not math.isfinite(weight):
+                logger.warning("[EasyUseAnima] Skipping non-finite additional Civitai hash weight: %r", entry)
+                continue
+            name, hash_value = pieces[0], pieces[1]
+        elif len(pieces) == 2:
+            first, second = pieces
+            try:
+                shorthand_weight = float(second)
+            except ValueError:
+                shorthand_weight = None
+            if shorthand_weight is not None and _HEX_HASH_RE.fullmatch(first):
+                if not math.isfinite(shorthand_weight):
+                    logger.warning("[EasyUseAnima] Skipping non-finite additional Civitai hash weight: %r", entry)
                     continue
-                pieces = pieces[:-1]
-
-        if len(pieces) > 2:
-            logger.warning(
-                "[EasyUseAnima] Skipping ambiguous additional Civitai hash entry: %r",
-                entry,
-            )
-            continue
-
-        if len(pieces) == 1:
+                unnamed_index += 1
+                name = f"manual{unnamed_index}"
+                hash_value = first
+                weight = shorthand_weight
+            else:
+                name, hash_value = first, second
+        else:
             unnamed_index += 1
             name = f"manual{unnamed_index}"
             hash_value = pieces[0]
-        else:
-            name = ":".join(pieces[:-1]).strip()
-            hash_value = pieces[-1]
-        if (
-            not name
-            or _CONTROL_RE.search(name)
-            or not _SAFE_HASH_RE.fullmatch(hash_value)
-        ):
-            logger.warning(
-                "[EasyUseAnima] Skipping invalid additional Civitai hash entry: %r",
-                entry,
-            )
+        if not name or _CONTROL_RE.search(name) or not _SAFE_HASH_RE.fullmatch(hash_value):
+            logger.warning("[EasyUseAnima] Skipping invalid additional Civitai hash entry: %r", entry)
             continue
         normalized_hash = hash_value.casefold()
         if normalized_hash in seen_hashes:

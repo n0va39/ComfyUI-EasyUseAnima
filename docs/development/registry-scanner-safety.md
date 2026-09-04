@@ -93,8 +93,8 @@ verified to preserve `README.md`, `README.en.md`, and `README.ko.md`.
 Run from the repository root:
 
 ```powershell
-rg -n "importlib\.import_module|__import__\(|eval\(|exec\(|os\.system|subprocess|pickle\.loads|marshal\.loads|base64\.b64decode|GOOGLE_TRANSLATION_API_KEY|os\.environ" nodes.py prompt_translation.py settings.py api.py __init__.py
-rg -n "requests\.post" nodes.py prompt_translation.py settings.py api.py
+rg -n "importlib\.import_module|__import__\(|eval\(|exec\(|os\.system|subprocess|pickle\.loads|marshal\.loads|base64\.b64decode|GOOGLE_TRANSLATION_API_KEY|os\.environ" __init__.py easyuse_anima -g "*.py"
+rg -n "requests\.post" easyuse_anima/naia/client.py
 rg -n "requests\.get" easyuse_anima/aio/native_civitai.py
 rg -n "fetch\(|XMLHttpRequest|new Function|eval\(" web/js -g "!easyuse_anima_api.js"
 git diff --check
@@ -104,9 +104,9 @@ node --check web/js/easyuse_anima_settings.js
 comfy node validate
 ```
 
-Expected exception: `nodes.py` contains one NAIA `requests.post` call. It must
-remain timeout-bound, localhost-only by default, and guarded by the explicit
-remote API allow setting.
+Expected exception: `easyuse_anima/naia/client.py` contains one NAIA
+`requests.post` call. It must remain timeout-bound, localhost-only by default,
+and guarded by the explicit remote API allow setting.
 
 Expected exception: `easyuse_anima/aio/native_civitai.py` contains one
 `requests.get` call. It must remain fixed to the Civitai HTTPS API, disabled by
