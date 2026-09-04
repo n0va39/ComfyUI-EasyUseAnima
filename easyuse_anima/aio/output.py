@@ -21,6 +21,8 @@ from .native_image_output import (
     _build_native_metadata,
     _comfy_metadata_enabled,
     _fetch_civitai_autov3_hash,
+    _is_windows_safe_output_component,
+    _sanitize_native_output_filename,
     _save_native_images,
 )
 from .native_metadata_budget import _validate_parameter_sources
@@ -119,6 +121,7 @@ def _output_path_parts(value: str, *, field: str, allow_empty: bool) -> list[str
         not parts
         or any(part in {".", ".."} for part in parts)
         or any(":" in part for part in parts)
+        or any(not _is_windows_safe_output_component(part) for part in parts)
     ):
         raise RuntimeError(
             f"[EasyUseAnima] AiO save {field} must stay within the ComfyUI output directory."
@@ -289,6 +292,7 @@ def _resolve_image_saver_runtime(
     )
     if not rendered_filename:
         rendered_filename = _image_saver_timestamp(now, time_format)
+    rendered_filename = _sanitize_native_output_filename(rendered_filename)
     output_root = _comfy_output_directory()
     safe_path = _validated_output_subpath(
         rendered_path,

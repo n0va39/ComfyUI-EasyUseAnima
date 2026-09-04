@@ -841,6 +841,60 @@ class AIONativeImageOutputTests(unittest.TestCase):
                                 workflow,
                             )
 
+    def test_png_jpeg_and_webp_publish_sanitized_windows_filenames(self):
+        metadata = native.NativeImageMetadata("parameters", "", {})
+        pixels = np.zeros((2, 2, 3), dtype=np.float32)
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            for extension in ("png", "jpeg", "webp"):
+                with self.subTest(extension=extension):
+                    result = native._save_native_images(
+                        [FakeTensor(pixels)],
+                        output_root=root,
+                        path=extension,
+                        filename='bad<>:"|?*name. ',
+                        extension=extension,
+                        quality_jpeg_or_webp=80,
+                        lossless_webp=False,
+                        optimize_png=False,
+                        embed_workflow=False,
+                        save_workflow_as_json=False,
+                        metadata=metadata,
+                        prompt=None,
+                        extra_pnginfo=None,
+                    )
+
+                    image_record = result["ui"]["images"][0]
+                    self.assertEqual(image_record["filename"], f"badname.{extension}")
+                    self.assertTrue((root / extension / f"badname.{extension}").is_file())
+
+    def test_native_writer_rejects_windows_reserved_filename_before_publication(self):
+        metadata = native.NativeImageMetadata("parameters", "", {})
+        pixels = np.zeros((2, 2, 3), dtype=np.float32)
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            for filename in ("NUL.txt", "con", "aux.log", "CON?"):
+                with self.subTest(filename=filename), self.assertRaisesRegex(
+                    RuntimeError, "invalid on Windows"
+                ):
+                    native._save_native_images(
+                        [FakeTensor(pixels)],
+                        output_root=root,
+                        path="",
+                        filename=filename,
+                        extension="png",
+                        quality_jpeg_or_webp=80,
+                        lossless_webp=False,
+                        optimize_png=False,
+                        embed_workflow=False,
+                        save_workflow_as_json=False,
+                        metadata=metadata,
+                        prompt=None,
+                        extra_pnginfo=None,
+                    )
+
+            self.assertEqual(list(root.iterdir()), [])
+
     def test_png_extra_metadata_cannot_override_owned_parameters_or_prompt(self):
         metadata = native.NativeImageMetadata("owned parameters", "", {})
         pixels = np.zeros((2, 2, 3), dtype=np.float32)
@@ -1250,7 +1304,16 @@ class AIONativeImageOutputTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp) / "output"
             outside = Path(temp) / "outside"
-            for unsafe_path in ("../outside", "nested/../outside", "/absolute", "C:\\absolute"):
+            for unsafe_path in (
+                "../outside",
+                "nested/../outside",
+                "/absolute",
+                "C:\\absolute",
+                "nested/bad?folder",
+                "nested/CON",
+                "nested/aux.txt",
+                "nested/trailing./child",
+            ):
                 with self.subTest(path=unsafe_path), self.assertRaisesRegex(
                     RuntimeError, "output directory"
                 ):
