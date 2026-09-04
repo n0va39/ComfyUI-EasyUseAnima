@@ -91,21 +91,58 @@ metadata; runtime dispatch uses stable internal keys plus `detailer.order`.
 
 ## Saving And Reproducibility
 
-Save Options are enabled by default and use the `ComfyUI-Image-Saver` backend.
-Keep `Embed workflow` enabled when saved images should reload into the same
-generation setup. Civitai Hash Fetcher rows store username, model name, and
-version, then pass `model_name:AutoV3` into Image Saver `additional_hashes`.
+Save Options are enabled by default and use EasyUse's native output backend.
+The serialized backend ID remains `image_saver` so existing workflows and
+profiles keep loading, but `ComfyUI-Image-Saver` is no longer required.
+
+PNG, JPEG, and WebP all store an A1111-style `parameters` block. PNG stores the
+ComfyUI prompt and workflow as text chunks; JPEG and WebP use the same EXIF
+Make/Model representation. Keep `Embed workflow` enabled when saved images
+should reload into the same generation setup. ComfyUI handles PNG/WebP itself;
+EasyUse adds a bounded JPEG-only file handler that loads its embedded workflow
+first and falls back to the embedded API prompt. Non-JPEG files and malformed
+or metadata-free JPEGs remain with ComfyUI's existing handler, and EasyUse
+automatically delegates if the host gains native JPEG metadata support. Enable
+`Save workflow JSON` for a sidecar copy. If a JPEG workflow exceeds EXIF's size
+limit, EasyUse preserves the A1111 metadata and writes the workflow sidecar
+automatically instead of leaving a partially written image. Open that `.json`
+sidecar directly; the JPEG no longer contains the removed workflow.
+
+Metadata is bounded independently of ComfyUI's request-size setting: A1111
+parameters are limited to 512 KiB, prompt JSON to 2 MiB, workflow JSON to 4 MiB,
+embedded metadata to 8 MiB per image, and repeated batch metadata to 64 MiB per
+save. JSON also has depth, item, string, and `extra_pnginfo` key limits. An
+oversized payload fails before image publication instead of producing a partial
+or unexpectedly large output.
+
+WebP is lossy when `Lossless WebP` is off; `JPEG/WebP quality` controls its
+quality/file-size tradeoff. When lossless mode is on, WebP preserves the pixel
+values supplied to the saver.
 
 Saved metadata uses first-pass sampler values for `Steps`, `CFG`, `Sampler`,
 `Scheduler`, `Seed`, and `Denoise`. `Size` uses the final image resolution after
-Highres and Detailer. LoRAs applied through `lora_stack` are appended to the
-Image Saver metadata prompt as `<lora:name:weight>` tokens so Image Saver can
-write Civitai LoRA resources and weights.
+Highres and Detailer. EasyUse hashes the locally resolved diffusion model,
+applied `lora_stack` files, and `embedding:name` references in either prompt.
+Embedding subdirectories and `(embedding:name:0.8)` attention weights are
+supported; missing, unsafe, or ambiguous inventory names are skipped.
+
+SHA-256 results use an in-memory cache plus a bounded, atomic cache under the
+ComfyUI user-data directory, with progress shown for uncached files. EasyUse
+never creates cache files beside model resources. Locally calculated hashes are
+shortened for A1111 compatibility; validated manual hash values are preserved
+and cannot replace the locally owned `model` hash. `Civitai data` is disabled by
+default; explicitly enable it to enrich local and manual hashes through fixed
+`https://civitai.com/api/v1` endpoints. A short-hash result is accepted only
+when the response contains an exact matching file hash. Failures are logged and
+do not block image saving. Hash Fetcher and local/manual enrichment share a
+12-second, 16-request budget per save; remaining lookups are skipped when
+either limit is reached. Civitai Hash Fetcher rows likewise store username,
+model name, and version and add `model_name:AutoV3` entries.
 
 ## Required Node Packs
 
 - Required: `ComfyUI-EasyUseAnima`
-- Sample workflow defaults: `ComfyUI-Spectrum-KSampler`, `ComfyUI-Image-Saver`
+- Sample workflow defaults: `ComfyUI-Spectrum-KSampler`
 - Optional features: `ComfyUI-KJNodes` for SageAttention/Torch Compile, `ComfyUI-Impact-Pack` for the AiO SAM3 detailer path, `ComfyUI-Anima-DAVE` for the Anima DAVE model patch
 
 When an optional node pack is not installed, the related UI is locked and queue

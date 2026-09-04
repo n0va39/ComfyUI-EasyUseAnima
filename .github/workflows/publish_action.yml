@@ -24,42 +24,57 @@ on:
           - "true"
           - "false"
 
+permissions:
+  contents: read
+
 jobs:
   publish-node:
     name: Publish Custom Node to registry
     runs-on: ubuntu-latest
     steps:
       - name: Check out code
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Install uv
         if: ${{ inputs.mode == 'publish' }}
-        uses: astral-sh/setup-uv@v5
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+        with:
+          version: latest-known
+          enable-cache: false
 
       - name: Extract Registry changelog
         if: ${{ inputs.mode == 'publish' }}
+        env:
+          RELEASE_VERSION: ${{ inputs.version }}
         run: |
           python .github/scripts/extract_release_changelog.py \
-            --version "${{ inputs.version }}" \
+            --version "$RELEASE_VERSION" \
             --output "$RUNNER_TEMP/comfy-node-changelog.md"
 
       - name: Validate node package
         if: ${{ inputs.mode == 'publish' }}
         run: |
-          uvx --from comfy-cli comfy --skip-prompt node validate
+          uvx --from comfy-cli==1.20.0 comfy --skip-prompt node validate
 
       - name: Publish Custom Node
         if: ${{ inputs.mode == 'publish' }}
         env:
           REGISTRY_ACCESS_TOKEN: ${{ secrets.REGISTRY_ACCESS_TOKEN }}
         run: |
-          uvx --from comfy-cli comfy --skip-prompt node publish \
+          uvx --from comfy-cli==1.20.0 comfy --skip-prompt node publish \
             --token "$REGISTRY_ACCESS_TOKEN" \
             --changelog-file "$RUNNER_TEMP/comfy-node-changelog.md"
 
-      - name: Sync existing Registry metadata
-        if: ${{ inputs.mode == 'metadata' }}
+      - name: Preview existing Registry metadata
+        if: ${{ inputs.mode == 'metadata' && inputs.dry_run == 'true' }}
+        run: |
+          python .github/scripts/sync_comfy_registry_metadata.py --dry-run true
+
+      - name: Apply existing Registry metadata
+        if: ${{ inputs.mode == 'metadata' && inputs.dry_run == 'false' }}
         env:
           REGISTRY_ACCESS_TOKEN: ${{ secrets.REGISTRY_ACCESS_TOKEN }}
         run: |
-          python .github/scripts/sync_comfy_registry_metadata.py --dry-run "${{ inputs.dry_run }}"
+          python .github/scripts/sync_comfy_registry_metadata.py --dry-run false

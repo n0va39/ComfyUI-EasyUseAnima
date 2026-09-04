@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import re
+import tomllib
 import unittest
 from pathlib import Path
 
@@ -27,8 +28,23 @@ RELEASE_WORKFLOWS = (
 )
 EXAMPLE_WORKFLOW_DIR = ROOT / "docs" / "example_workflows"
 EXAMPLE_WORKFLOWS = tuple(sorted(EXAMPLE_WORKFLOW_DIR.glob("*.json")))
-AIO_GENERATOR_WORKFLOW = EXAMPLE_WORKFLOW_DIR / "EasyUse_Anima_AiO_generator_release_ko.json"
-ANIMA_EASY_USE_WORKFLOW = EXAMPLE_WORKFLOW_DIR / "ANIMA_Easy_Use_workflow_v1_release_ko.json"
+AIO_NATIVE_OUTPUT_WORKFLOWS = (
+    EXAMPLE_WORKFLOW_DIR / "EasyUse_Anima_AiO_generator_release_ko.json",
+    EXAMPLE_WORKFLOW_DIR / "ANIMA_Easy_Use_workflow_v1_release_ko.json",
+    EXAMPLE_WORKFLOW_DIR / "ANIMA_Easy_Use_workflow_v1_release_en.json",
+)
+CURRENT_README_NATIVE_OUTPUT_CONTRACTS = (
+    (
+        ROOT / "README.en.md",
+        "EasyUse's native output backend handles PNG, JPEG, and WebP",
+        "`ComfyUI-Image-Saver` is not required by AiO Save Options.",
+    ),
+    (
+        ROOT / "README.ko.md",
+        "EasyUse 네이티브 출력 backend가 PNG, JPEG, WebP 저장",
+        "AiO Save Options에 `ComfyUI-Image-Saver`는 필요하지 않습니다.",
+    ),
+)
 MOJIBAKE_LATIN1_RE = re.compile(r"[\u0080-\u00ff]")
 PACKAGE_VERSION_RE = re.compile(r"^\d+\.\d+\.\d+(?:[.-][0-9A-Za-z]+)*$")
 
@@ -147,8 +163,22 @@ class ReleaseWorkflowTests(unittest.TestCase):
                 self.assertIsInstance(package_version, str)
                 self.assertRegex(package_version, PACKAGE_VERSION_RE)
 
+    def test_current_aio_samples_match_current_package_version(self):
+        project = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
+        current_version = project["project"]["version"]
+
+        for workflow_path in AIO_NATIVE_OUTPUT_WORKFLOWS:
+            with self.subTest(path=workflow_path.name):
+                metadata = (
+                    load_workflow(workflow_path)
+                    .get("extra", {})
+                    .get("easyuse_anima_workflow")
+                )
+                self.assertIsInstance(metadata, dict)
+                self.assertEqual(metadata.get("package_version"), current_version)
+
     def test_aio_generator_samples_list_required_node_packs(self):
-        for workflow_path in (AIO_GENERATOR_WORKFLOW, ANIMA_EASY_USE_WORKFLOW):
+        for workflow_path in AIO_NATIVE_OUTPUT_WORKFLOWS:
             with self.subTest(path=workflow_path.name):
                 workflow = load_workflow(workflow_path)
                 metadata = workflow.get("extra", {}).get("easyuse_anima_workflow")
@@ -157,7 +187,7 @@ class ReleaseWorkflowTests(unittest.TestCase):
                 self.assertIsInstance(packs, list)
                 names = {str(item.get("name")) for item in packs if isinstance(item, dict)}
                 self.assertIn("ComfyUI-Spectrum-KSampler", names)
-                self.assertIn("ComfyUI-Image-Saver", names)
+                self.assertNotIn("ComfyUI-Image-Saver", names)
                 self.assertIn("ComfyUI-Anima-DAVE", names)
                 self.assertIn("ComfyUI-KJNodes", names)
                 self.assertIn("ComfyUI-Impact-Pack", names)
@@ -167,13 +197,49 @@ class ReleaseWorkflowTests(unittest.TestCase):
                     if isinstance(item, dict)
                 }
                 self.assertTrue(required["ComfyUI-Spectrum-KSampler"])
-                self.assertTrue(required["ComfyUI-Image-Saver"])
                 self.assertFalse(required["ComfyUI-Anima-DAVE"])
                 self.assertFalse(required["ComfyUI-KJNodes"])
                 self.assertFalse(required["ComfyUI-Impact-Pack"])
                 self.assertEqual(
                     metadata.get("sampler_paths"),
                     ["comfy_ksampler", "spectrum_mod_guidance_advanced", "spectrum_spd_speed"],
+                )
+
+    def test_current_readmes_use_native_aio_output_contract(self):
+        image_saver_repository = "https://github.com/alexopus/ComfyUI-Image-Saver"
+        for (
+            path,
+            native_contract,
+            no_dependency_contract,
+        ) in CURRENT_README_NATIVE_OUTPUT_CONTRACTS:
+            with self.subTest(path=path.name):
+                text = path.read_text(encoding="utf-8")
+                normalized = " ".join(text.split())
+                self.assertIn(native_contract, normalized)
+                self.assertIn(no_dependency_contract, normalized)
+                self.assertNotIn(image_saver_repository, text)
+
+    def test_current_aio_samples_keep_remote_civitai_enrichment_opt_in(self):
+        for workflow_path in AIO_NATIVE_OUTPUT_WORKFLOWS:
+            with self.subTest(path=workflow_path.name):
+                workflow = load_workflow(workflow_path)
+                generators = [
+                    node
+                    for node in workflow.get("nodes", [])
+                    if node.get("type") == "EasyUseAnimaAIOGenerator"
+                ]
+                self.assertEqual(len(generators), 1)
+                widgets = generators[0].get("widgets_values") or []
+                self.assertTrue(widgets)
+                settings = json.loads(widgets[0])
+                image_saver = settings["save"]["image_saver"]
+                self.assertFalse(image_saver["download_civitai_data"])
+                self.assertFalse(
+                    any(
+                        bool(row.get("enabled"))
+                        for row in image_saver["civitai_hash_fetchers"]
+                        if isinstance(row, dict)
+                    )
                 )
 
     def test_example_workflows_do_not_contain_local_release_blockers(self):

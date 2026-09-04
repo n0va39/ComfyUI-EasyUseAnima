@@ -7,6 +7,13 @@
   `78ad02337313f95d5512d3014cabc428fcdce255`
 - State: VALIDATED
 
+Follow-up issue [#678](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/678)
+replaces the `image_saver` helper's third-party implementation while preserving
+this stage order and compatibility ID. See
+[Native AiO image output](native-image-output.md) for the current format,
+metadata, network, and filesystem contract. The remainder of this document is
+the historical A169-07 connection record.
+
 A169-07 connects the existing inline Save/output boundary to the stage Protocol.
 It does not move or change either save backend helper, preview helper, serializer
 or outer cleanup ownership.

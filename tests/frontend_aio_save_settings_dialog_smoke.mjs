@@ -406,12 +406,12 @@ function createFixture({ settings = {}, available = {}, deferLoads = false } = {
   assert.equal(dialog.title, "Save Options");
   assert.equal(
     dialog.subtitle,
-    "Image Saver requires ComfyUI-Image-Saver. Selecting an unavailable backend shows its required node pack.",
+    "EasyUse native output saves A1111 metadata and ComfyUI workflows in PNG, JPEG, and WebP.",
   );
   assert.ok(dialog.body.classList.contains("easyuse-anima-aio-save-body"));
   const main = sectionByHeading(dialog.body, "Save Backend");
-  const files = sectionByHeading(dialog.body, "Image Saver Files");
-  const metadata = sectionByHeading(dialog.body, "Image Saver Metadata");
+  const files = sectionByHeading(dialog.body, "Native Image Files");
+  const metadata = sectionByHeading(dialog.body, "Native Image Metadata");
   assert.equal(controlIn(main, "Save image").checked, true);
   assert.equal(controlIn(main, "Backend").value, "image_saver");
   assert.equal(controlIn(files, "Filename").value, "configured-name");
@@ -490,41 +490,20 @@ function createFixture({ settings = {}, available = {}, deferLoads = false } = {
   fixture.openSaveSettings(fixture.node);
   const dialog = fixture.dialogs[0];
   const main = sectionByHeading(dialog.body, "Save Backend");
-  const files = sectionByHeading(dialog.body, "Image Saver Files");
-  const metadata = sectionByHeading(dialog.body, "Image Saver Metadata");
+  const files = sectionByHeading(dialog.body, "Native Image Files");
+  const metadata = sectionByHeading(dialog.body, "Native Image Metadata");
   const backend = controlIn(main, "Backend");
-  const imageSaverOption = backend.options.find((option) => option.value === "image_saver");
-  const warning = find(
-    main,
-    (element) => element.classList.contains("easyuse-anima-aio-warning"),
-  );
-  assert.ok(imageSaverOption);
-  assert.ok(warning);
-  assert.equal(imageSaverOption.disabled, false);
-  assert.equal(imageSaverOption.textContent, "image_saver");
+  const nativeOption = backend.options.find((option) => option.value === "image_saver");
+  assert.ok(nativeOption);
+  assert.equal(nativeOption.disabled, false);
+  assert.equal(nativeOption.textContent, "EasyUse Native");
   assert.equal(backend.value, "image_saver");
-  assert.equal(warning.hidden, true);
-  assert.equal(fixture.loadCalls.length, 1);
-
-  fixture.availabilityState.imageSaver = false;
+  assert.equal(fixture.loadCalls.length, 0, "Native output must not query optional node packs");
   fixture.resolveLoads();
   await flushPromises();
-  assert.equal(imageSaverOption.disabled, false, "Missing backend remains selectable for an explicit notice");
-  assert.equal(imageSaverOption.textContent, "image_saver (pack:imageSaver missing)");
-  assert.equal(backend.value, "comfy_save_image", "Missing Image Saver must select the built-in fallback");
-  assert.equal(warning.hidden, false);
-  assert.equal(
-    warning.textContent,
-    'format:warning.optionalDependencyMissing:{"backend":"image_saver","pack":"pack:imageSaver"}',
-  );
-  assert.deepEqual(fixture.notifications, [], "Async dependency refresh must stay silent");
-  backend.value = "image_saver";
-  backend.emit("change");
-  assert.deepEqual(fixture.notifications, [{
-    backend: "image_saver",
-    keys: ["imageSaver"],
-  }]);
-  assert.equal(backend.value, "comfy_save_image");
+  assert.equal(backend.value, "image_saver");
+  assert.deepEqual(fixture.notifications, []);
+  backend.value = "comfy_save_image";
 
   controlIn(main, "Save image").checked = false;
   controlIn(files, "Filename").value = "";
@@ -646,6 +625,89 @@ function createFixture({ settings = {}, available = {}, deferLoads = false } = {
   assert.deepEqual(fixture.visibleApplies[0], fixture.node.settings);
   assert.deepEqual(fixture.writes[0], fixture.node.settings);
   assert.deepEqual(JSON.parse(fixture.node.widgets[0].value), fixture.node.settings);
+}
+
+{
+  const oversizedBundle = "é".repeat(4097);
+  const emojiModelName = "😀".repeat(200);
+  const hashRowsSource = [
+    oversizedBundle,
+    true,
+    1,
+    ...Array.from({ length: 35 }, (_, index) => `Bundle-${index}:HASH`),
+  ];
+  const civitaiRowsSource = [
+    { enabled: true, username: "bad\nuser", model_name: "ignored", version: "" },
+    { enabled: true, username: "bad\u202Euser", model_name: "ignored", version: "" },
+    { enabled: true, username: "bad\uD800user", model_name: "ignored", version: "" },
+    { enabled: true, username: 123, model_name: "ignored", version: "" },
+    { enabled: true, username: "creator", model_name: emojiModelName, version: "v1" },
+    ...Array.from({ length: 35 }, (_, index) => ({
+      enabled: true,
+      username: "creator",
+      model_name: `Model ${index}`,
+      version: "v1",
+    })),
+  ];
+
+  for (const encode of [(value) => value, (value) => JSON.stringify(value)]) {
+    const settings = configuredSettings();
+    settings.save.image_saver.additional_hash_bundles = encode(hashRowsSource);
+    settings.save.image_saver.civitai_hash_fetchers = encode(civitaiRowsSource);
+    const fixture = createFixture({ settings });
+    fixture.openSaveSettings(fixture.node);
+    await flushPromises();
+
+    const dialog = fixture.dialogs[0];
+    const metadata = sectionByHeading(dialog.body, "Native Image Metadata");
+    const hashEditor = controlIn(metadata, "Manual hash bundles");
+    const civitaiEditor = controlIn(metadata, "Civitai Hash Fetchers");
+    assert.equal(hashRows(hashEditor).length, 32, "saved hash hydration must stop at 32 valid rows");
+    assert.equal(civitaiRows(civitaiEditor).length, 32, "saved Civitai hydration must stop at 32 valid rows");
+    assert.equal(hashValue(hashRows(hashEditor)[0]).value, "Bundle-0:HASH");
+    assert.equal(hashValue(hashRows(hashEditor).at(-1)).value, "Bundle-31:HASH");
+    assert.equal(hashValue(hashRows(hashEditor)[0]).maxLength, 8192);
+    assert.equal(
+      civitaiInputs(civitaiRows(civitaiEditor)[0])[2].value,
+      emojiModelName,
+      "200 non-BMP code points must match the Python 200-character/800-byte contract",
+    );
+
+    addRow(hashEditor, "button.addHashBundle");
+    addRow(civitaiEditor, "button.addCivitaiFetcher");
+    assert.equal(hashRows(hashEditor).length, 32, "hash add must honor the DOM row limit");
+    assert.equal(civitaiRows(civitaiEditor).length, 32, "Civitai add must honor the DOM row limit");
+
+    hashValue(hashRows(hashEditor)[0]).value = oversizedBundle;
+    action(dialog, "button.apply").emit("click");
+    assert.equal(fixture.node.settings.save.image_saver.additional_hash_bundles.length, 31);
+    assert.equal(
+      fixture.node.settings.save.image_saver.additional_hash_bundles.includes(oversizedBundle),
+      false,
+      "programmatic oversized textarea values must not bypass byte validation",
+    );
+  }
+}
+
+{
+  const settings = configuredSettings();
+  const oversizedJson = "x".repeat((512 * 1024) + 1);
+  settings.save.image_saver.additional_hash_bundles = oversizedJson;
+  settings.save.image_saver.civitai_hash_fetchers = oversizedJson;
+  const fixture = createFixture({ settings });
+  fixture.openSaveSettings(fixture.node);
+  await flushPromises();
+  const metadata = sectionByHeading(fixture.dialogs[0].body, "Native Image Metadata");
+  assert.equal(
+    hashRows(controlIn(metadata, "Manual hash bundles")).length,
+    1,
+    "oversized hash JSON must be rejected before creating saved rows",
+  );
+  assert.equal(
+    civitaiRows(controlIn(metadata, "Civitai Hash Fetchers")).length,
+    1,
+    "oversized Civitai JSON must be rejected before creating saved rows",
+  );
 }
 
 console.log("AiO Save settings dialog smoke passed.");

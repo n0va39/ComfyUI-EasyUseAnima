@@ -48,14 +48,23 @@ updating a release branch that will be scanned by Registry automation.
 - SAM3 and Impact Pack integrations must use explicit optional imports for known
   classes. Do not dynamically import user-provided module names.
 - AiO output templates are expanded inside EasyUse Anima and checked against
-  the ComfyUI output root before either core `SaveImage` or an optional saver is
-  called. Do not forward an unexpanded path template to a third-party saver.
+  the ComfyUI output root before either core `SaveImage` or the native output
+  backend is called.
+- Native Civitai enrichment is disabled by default. `Civitai data` is the
+  explicit opt-in, and `easyuse_anima/aio/native_civitai.py` owns the only
+  fixed-host GET boundary used by native image output. All fetcher and resource
+  requests in one save share a 12-second deadline and a 16-call budget; budget
+  exhaustion skips optional enrichment without failing image output.
+- Native image metadata has explicit parameters, prompt, workflow,
+  `extra_pnginfo`, depth/item/string, per-image, and per-save batch limits.
+  Limit failures must occur before image publication and must not be replaced
+  with unbounded fallback sidecars.
 - AiO ResShift execution is fail-closed before optional-node lookup. Its saved
   settings remain readable, but re-enabling the adapter requires the safe
   loader contract tracked in issue #679.
-- Replacing the Image Saver dependency with a native EasyUse output backend is
-  tracked separately in issue #678 so format, workflow, metadata, and Civitai
-  compatibility can be reviewed independently from the 1.1.6 security fix.
+- The native EasyUse output backend tracked in issue #678 owns format,
+  workflow, metadata, and Civitai compatibility without calling the external
+  Image Saver node pack.
 
 ## Archive Surface
 
@@ -90,8 +99,9 @@ verified to preserve `README.md`, `README.en.md`, and `README.ko.md`.
 Run from the repository root:
 
 ```powershell
-rg -n "importlib\.import_module|__import__\(|eval\(|exec\(|os\.system|subprocess|pickle\.loads|marshal\.loads|base64\.b64decode|GOOGLE_TRANSLATION_API_KEY|os\.environ" nodes.py prompt_translation.py settings.py api.py __init__.py
-rg -n "requests\.post" nodes.py prompt_translation.py settings.py api.py
+rg -n "importlib\.import_module|__import__\(|eval\(|exec\(|os\.system|subprocess|pickle\.loads|marshal\.loads|base64\.b64decode|GOOGLE_TRANSLATION_API_KEY|os\.environ" __init__.py easyuse_anima -g "*.py"
+rg -n "requests\.post" easyuse_anima/naia/client.py
+rg -n "requests\.get" easyuse_anima/aio/native_civitai.py
 rg -n "fetch\(|XMLHttpRequest|new Function|eval\(" web/js -g "!easyuse_anima_api.js"
 git diff --check
 python -m unittest discover -s tests
@@ -100,6 +110,12 @@ node --check web/js/easyuse_anima_settings.js
 comfy node validate
 ```
 
-Expected exception: `nodes.py` contains one NAIA `requests.post` call. It must
-remain timeout-bound, localhost-only by default, and guarded by the explicit
-remote API allow setting.
+Expected exception: `easyuse_anima/naia/client.py` contains one NAIA
+`requests.post` call. It must remain timeout-bound, localhost-only by default,
+and guarded by the explicit remote API allow setting.
+
+Expected exception: `easyuse_anima/aio/native_civitai.py` contains one
+`requests.get` call. It must remain fixed to the Civitai HTTPS API, disabled by
+default behind `Civitai data`, redirect-disabled, timeout-bound, and size-bound.
+It must also remain behind the per-save deadline/call budget and the bounded
+process-wide draining-request slot.

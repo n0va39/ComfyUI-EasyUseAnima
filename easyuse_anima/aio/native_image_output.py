@@ -1,0 +1,722 @@
+"""EasyUse-owned image output, A1111 metadata, and Civitai hash helpers."""
+
+from __future__ import annotations
+
+import json
+import logging
+import re
+import threading
+from collections.abc import Iterable, Iterator, Mapping, Sequence
+from contextlib import ExitStack, contextmanager
+from dataclasses import dataclass
+from pathlib import Path, PurePosixPath, PureWindowsPath
+from types import MappingProxyType
+
+from .native_civitai import (
+    CivitaiLookupBudget,
+    CivitaiLookupBudgetExhausted,
+    _fetch_civitai_resource_by_hash,
+)
+from .native_civitai import (
+    _fetch_civitai_autov3_hash as _fetch_civitai_autov3_hash,
+)
+from .native_metadata_budget import (
+    _MAX_PARAMETERS_BYTES,
+    _metadata_text_size,
+    _prepare_metadata_payload,
+    _sidecar_required_and_validate_batch,
+    _validate_embedded_metadata_size,
+    _validate_parameter_sources,
+)
+from .native_output_directories import (
+    OutputDirectoryIntegrityError,
+    prepare_output_directory,
+    resolve_output_directory,
+)
+from .native_output_publication import (
+    OutputDirectoryBinding,
+    PublicationCollision,
+    publish_image_transaction,
+)
+from .native_resource_hashes import (
+    _EMBEDDING_RE,
+    _HEX_HASH_RE,
+    _local_resource_hashes,
+    _manual_resource_hashes,
+    _resource_name,
+    _ResourceHash,
+)
+
+logger = logging.getLogger("ComfyUI-EasyUseAnima")
+
+_JPEG_EXIF_LIMIT = 65_000
+_MAX_REMOTE_RESOURCES = 32
+_USER_COMMENT_PREFIX = b"UNICODE\0"
+_LORA_TAG_RE = re.compile(r"<lora:([^>:]+)(?::([^>]+))?>", re.IGNORECASE)
+_CONTROL_RE = re.compile(r"[\x00-\x1f\x7f]")
+_WINDOWS_INVALID_COMPONENT_RE = re.compile(r'[<>:"|?*\x00-\x1f\x7f]')
+_WINDOWS_RESERVED_COMPONENTS = frozenset(
+    {"con", "prn", "aux", "nul", "conin$", "conout$"}
+    | {f"com{index}" for index in (*range(1, 10), "¹", "²", "³")}
+    | {f"lpt{index}" for index in (*range(1, 10), "¹", "²", "³")}
+)
+_SAVE_LOCK = threading.Lock()
+
+_CIVITAI_SAMPLER_NAMES = MappingProxyType({
+    "euler_ancestral": "Euler a", "euler": "Euler",
+    "lms": "LMS", "heun": "Heun",
+    "dpm_2": "DPM2", "dpm_2_ancestral": "DPM2 a",
+    "dpmpp_2s_ancestral": "DPM++ 2S a", "dpmpp_2m": "DPM++ 2M",
+    "dpmpp_sde": "DPM++ SDE", "dpmpp_2m_sde": "DPM++ 2M SDE",
+    "dpmpp_3m_sde": "DPM++ 3M SDE", "dpm_fast": "DPM fast",
+    "dpm_adaptive": "DPM adaptive", "ddim": "DDIM",
+    "plms": "PLMS", "uni_pc_bh2": "UniPC", "uni_pc": "UniPC", "lcm": "LCM",
+})
+
+
+@dataclass(frozen=True, slots=True)
+class NativeImageMetadata:
+    parameters: str
+    final_hashes: str
+    hashes: dict[str, str]
+
+
+@dataclass(frozen=True, slots=True)
+class _SerializedMetadata:
+    pnginfo: object | None
+    exif_bytes: bytes | None
+    workflow_json: str | None
+    force_workflow_sidecar: bool
+    embedded_size_bytes: int
+    sidecar_size_bytes: int
+
+
+def _compact_json(value: object, *, ascii_only: bool) -> str:
+    return json.dumps(
+        value,
+        allow_nan=False,
+        ensure_ascii=ascii_only,
+        separators=(",", ":"),
+    )
+
+
+def _clean_prompt_for_remix(prompt: str) -> str:
+    value = _LORA_TAG_RE.sub("", str(prompt or ""))
+
+    def simplify_embedding(match: re.Match[str]) -> str:
+        name = match.group(1).replace("\\", "/").rsplit("/", 1)[-1]
+        return f"embedding:{name}"
+
+    return re.sub(r"\s{2,}", " ", _EMBEDDING_RE.sub(simplify_embedding, value)).strip()
+
+
+def _civitai_sampler_name(sampler_name: str, scheduler_name: str) -> str:
+    sampler = str(sampler_name or "").replace("_gpu", "")
+    scheduler = str(scheduler_name or "normal")
+    mapped = _CIVITAI_SAMPLER_NAMES.get(sampler, sampler)
+    if scheduler == "karras":
+        return f"{mapped} Karras"
+    if scheduler == "exponential":
+        return f"{mapped} Exponential"
+    if scheduler != "normal" and sampler not in _CIVITAI_SAMPLER_NAMES:
+        return f"{sampler}_{scheduler}"
+    return mapped
+
+
+def _civitai_resource_entries(
+    resources: Sequence[_ResourceHash],
+    *,
+    budget: CivitaiLookupBudget | None = None,
+) -> list[dict[str, str | float | int]]:
+    entries: list[dict[str, str | float | int]] = []
+    seen_hashes: set[str] = set()
+    seen_identifiers: set[str] = set()
+    attempts = 0
+    for resource in resources:
+        normalized_hash = resource.sha256.casefold()
+        if (
+            not _HEX_HASH_RE.fullmatch(normalized_hash)
+            or normalized_hash in seen_hashes
+        ):
+            continue
+        if attempts >= _MAX_REMOTE_RESOURCES:
+            break
+        seen_hashes.add(normalized_hash)
+        attempts += 1
+        try:
+            if budget is None:
+                descriptor = _fetch_civitai_resource_by_hash(resource.sha256)
+            else:
+                descriptor = _fetch_civitai_resource_by_hash(
+                    resource.sha256,
+                    budget=budget,
+                )
+        except CivitaiLookupBudgetExhausted as exc:
+            logger.warning(
+                "[EasyUseAnima] Civitai resource enrichment budget ended; "
+                "saving with available metadata: %s",
+                exc,
+            )
+            break
+        if descriptor is None:
+            continue
+        entry: dict[str, str | float | int] = {}
+        if descriptor.model_name:
+            entry["modelName"] = descriptor.model_name
+        if descriptor.version_name:
+            entry["versionName"] = descriptor.version_name
+        if resource.weight is not None:
+            entry["weight"] = resource.weight
+        if descriptor.air:
+            entry["air"] = descriptor.air
+            identifier = f"air:{descriptor.air.casefold()}"
+        elif descriptor.model_version_id is not None:
+            entry["modelVersionId"] = descriptor.model_version_id
+            identifier = f"version:{descriptor.model_version_id}"
+        else:
+            continue
+        if identifier not in seen_identifiers:
+            seen_identifiers.add(identifier)
+            entries.append(entry)
+    return entries
+
+
+def _build_native_metadata(
+    *,
+    modelname: str,
+    positive: str,
+    negative: str,
+    width: int,
+    height: int,
+    seed: int,
+    steps: int,
+    cfg: float,
+    sampler_name: str,
+    scheduler_name: str,
+    denoise: float,
+    clip_skip: int,
+    custom: str,
+    additional_hashes: str,
+    applied_loras: object,
+    download_civitai_data: bool,
+    easy_remix: bool,
+    civitai_budget: CivitaiLookupBudget | None = None,
+) -> NativeImageMetadata:
+    _validate_parameter_sources(
+        modelname,
+        positive,
+        negative,
+        custom,
+        additional_hashes,
+    )
+    local_resources = _local_resource_hashes(
+        modelname,
+        applied_loras,
+        (positive, negative),
+    )
+    manual_resources = _manual_resource_hashes(additional_hashes)
+    resources = [*local_resources, *manual_resources]
+
+    hashes: dict[str, str] = {}
+    final_parts: list[str] = []
+    seen_hashes: set[str] = set()
+    seen_metadata_keys: set[str] = set()
+    for resource in resources:
+        metadata_hash = resource.metadata_hash
+        normalized_hash = resource.sha256.casefold()
+        normalized_key = resource.metadata_key.casefold()
+        if (
+            not metadata_hash
+            or normalized_hash in seen_hashes
+            or normalized_key in seen_metadata_keys
+        ):
+            if normalized_key in seen_metadata_keys and resource.preserve_hash:
+                logger.warning(
+                    "[EasyUseAnima] Skipping manual hash %r because that metadata key "
+                    "was already emitted; verified local resources and the first "
+                    "manual entry take precedence.",
+                    resource.metadata_key,
+                )
+            continue
+        seen_hashes.add(normalized_hash)
+        seen_metadata_keys.add(normalized_key)
+        hashes[resource.metadata_key] = metadata_hash
+        weight = (
+            f":{resource.weight:g}"
+            if resource.weight is not None
+            else ""
+        )
+        final_parts.append(f"{resource.display_name}:{metadata_hash}{weight}")
+
+    model_hash = hashes.get("model", "")
+    visible_positive = (
+        _clean_prompt_for_remix(positive) if easy_remix else str(positive or "").strip()
+    )
+    visible_negative = (
+        _clean_prompt_for_remix(negative) if easy_remix else str(negative or "").strip()
+    )
+    lines = [visible_positive] if visible_positive else []
+    if visible_negative:
+        lines.append(f"Negative prompt: {visible_negative}")
+    fields = [
+        f"Steps: {steps}",
+        f"Sampler: {_civitai_sampler_name(sampler_name, scheduler_name)}",
+        f"CFG scale: {cfg}",
+        f"Seed: {seed}",
+        f"Size: {width}x{height}",
+    ]
+    if denoise != 1.0:
+        fields.append(f"Denoising strength: {denoise:g}")
+    if clip_skip:
+        fields.append(f"Clip skip: {abs(clip_skip)}")
+    if str(custom or "").strip():
+        fields.append(str(custom).strip().strip(", "))
+    if model_hash:
+        fields.append(f"Model hash: {model_hash}")
+    fields.append(f"Model: {_resource_name(modelname)}")
+    if hashes:
+        fields.append(f"Hashes: {_compact_json(hashes, ascii_only=False)}")
+    fields.append("Version: ComfyUI")
+    if download_civitai_data:
+        civitai_resources = _civitai_resource_entries(
+            resources,
+            budget=civitai_budget,
+        )
+        if civitai_resources:
+            fields.append(
+                f"Civitai resources: {_compact_json(civitai_resources, ascii_only=False)}"
+            )
+    lines.append(", ".join(fields))
+    parameters = "\n".join(lines)
+    _metadata_text_size(
+        parameters,
+        label="A1111 parameters",
+        limit=_MAX_PARAMETERS_BYTES,
+    )
+    return NativeImageMetadata(
+        parameters=parameters,
+        final_hashes=",".join(final_parts),
+        hashes=hashes,
+    )
+
+
+def _comfy_metadata_enabled() -> bool:
+    try:
+        from comfy.cli_args import args  # type: ignore
+
+        return not bool(getattr(args, "disable_metadata"))
+    except Exception:
+        return False
+
+
+def _encode_user_comment(value: str) -> bytes:
+    return _USER_COMMENT_PREFIX + str(value or "").encode("utf-16-be")
+
+
+def _build_exif_bytes(
+    parameters: str,
+    prompt_json: str | None,
+    extra_json: Sequence[tuple[str, str]],
+) -> bytes:
+    from PIL import ExifTags, Image  # pyright: ignore[reportMissingImports]
+
+    exif = Image.Exif()
+    if parameters:
+        exif.get_ifd(ExifTags.IFD.Exif)[0x9286] = _encode_user_comment(parameters)
+    if prompt_json is not None:
+        exif[0x0110] = f"prompt:{prompt_json}"
+    for index, (key, value) in enumerate(extra_json):
+        tag = 0x010F - index
+        if tag <= 0:
+            break
+        exif[tag] = f"{key}:{value}"
+    return exif.tobytes()
+
+
+def _serialize_metadata(
+    *,
+    extension: str,
+    parameters: str,
+    prompt: object | None,
+    extra_pnginfo: Mapping[str, object] | None,
+    embed_workflow: bool,
+    save_workflow_as_json: bool,
+    write_metadata: bool,
+) -> _SerializedMetadata:
+    if not write_metadata:
+        return _SerializedMetadata(None, None, None, False, 0, 0)
+
+    payload = _prepare_metadata_payload(
+        parameters=parameters,
+        prompt=prompt,
+        extra_pnginfo=extra_pnginfo,
+        embed_workflow=embed_workflow,
+        save_workflow_as_json=save_workflow_as_json,
+    )
+
+    if extension == "png":
+        from PIL.PngImagePlugin import PngInfo  # pyright: ignore[reportMissingImports]
+
+        pnginfo = PngInfo()
+        if parameters:
+            pnginfo.add_text("parameters", parameters)
+        if payload.prompt_json is not None:
+            pnginfo.add_text("prompt", payload.prompt_json)
+        for key, value in payload.extra_json:
+            pnginfo.add_text(key, value)
+        return _SerializedMetadata(
+            pnginfo,
+            None,
+            payload.workflow_json,
+            False,
+            payload.embedded_size,
+            payload.workflow_json_size,
+        )
+
+    exif_bytes = _build_exif_bytes(
+        parameters,
+        payload.prompt_json,
+        payload.extra_json,
+    )
+    force_sidecar = False
+    if extension in {"jpg", "jpeg"} and len(exif_bytes) > _JPEG_EXIF_LIMIT:
+        exif_bytes = _build_exif_bytes(parameters, None, payload.extra_json)
+        if len(exif_bytes) > _JPEG_EXIF_LIMIT:
+            exif_bytes = _build_exif_bytes(parameters, None, ())
+            payload.ensure_workflow_sidecar()
+            force_sidecar = payload.workflow_json is not None
+        if len(exif_bytes) > _JPEG_EXIF_LIMIT:
+            raise RuntimeError(
+                "[EasyUseAnima] A1111 metadata is too large for JPEG EXIF; use PNG/WebP or shorten the prompt."
+            )
+        logger.warning(
+            "[EasyUseAnima] JPEG workflow metadata exceeded EXIF limits; preserving A1111 parameters and writing a workflow JSON sidecar."
+        )
+    _validate_embedded_metadata_size(len(exif_bytes))
+    return _SerializedMetadata(
+        None,
+        exif_bytes,
+        payload.workflow_json,
+        force_sidecar,
+        len(exif_bytes),
+        payload.workflow_json_size,
+    )
+
+
+def _tensor_to_pil(image: object):
+    import numpy as np  # pyright: ignore[reportMissingImports]
+    from PIL import Image  # pyright: ignore[reportMissingImports]
+
+    value = image
+    detach = getattr(value, "detach", None)
+    if callable(detach):
+        value = detach()
+    cpu = getattr(value, "cpu", None)
+    if callable(cpu):
+        value = cpu()
+    numpy_method = getattr(value, "numpy", None)
+    array = numpy_method() if callable(numpy_method) else np.asarray(value)
+    array = np.asarray(array)
+    if array.ndim == 3 and array.shape[-1] == 1:
+        array = array[..., 0]
+    if array.ndim not in {2, 3}:
+        raise RuntimeError("[EasyUseAnima] AiO image output must be an HxW or HxWxC tensor.")
+    pixels = np.clip(array * 255.0, 0, 255).astype(np.uint8)
+    return Image.fromarray(pixels)
+
+
+def _is_windows_safe_output_component(value: str) -> bool:
+    text = str(value or "")
+    if (
+        not text
+        or text in {".", ".."}
+        or text.endswith((" ", "."))
+        or _WINDOWS_INVALID_COMPONENT_RE.search(text)
+    ):
+        return False
+    device_name = text.split(".", 1)[0].rstrip(" ").casefold()
+    return device_name not in _WINDOWS_RESERVED_COMPONENTS
+
+
+def _sanitize_native_output_filename(value: str) -> str:
+    text = str(value or "").strip()
+    if "/" in text or "\\" in text:
+        raise RuntimeError(
+            "[EasyUseAnima] AiO save filename must be a single filename component."
+        )
+    text = _WINDOWS_INVALID_COMPONENT_RE.sub("", text).rstrip(" .")
+    if not _is_windows_safe_output_component(text):
+        raise RuntimeError("[EasyUseAnima] AiO save filename is invalid on Windows.")
+    return text
+
+
+def _allocate_filenames(
+    output_folder: Path,
+    filename: str,
+    extension: str,
+    count: int,
+    *,
+    sidecar_required: bool,
+    allow_plain: bool = True,
+) -> list[str]:
+    def occupied(name: str) -> bool:
+        image_path = output_folder / name
+        return image_path.exists() or (
+            sidecar_required and image_path.with_suffix(".json").exists()
+        )
+
+    plain = f"{filename}.{extension}"
+    if count == 1 and allow_plain and not occupied(plain):
+        return [plain]
+
+    patterns = [
+        re.compile(
+            rf"^{re.escape(filename)}_(\d+)\.{re.escape(extension)}$",
+            re.IGNORECASE,
+        )
+    ]
+    if sidecar_required:
+        patterns.append(
+            re.compile(rf"^{re.escape(filename)}_(\d+)\.json$", re.IGNORECASE)
+        )
+    suffixes: list[int] = []
+    for existing in output_folder.iterdir():
+        if not existing.is_file():
+            continue
+        for pattern in patterns:
+            match = pattern.fullmatch(existing.name)
+            if match is not None:
+                suffixes.append(int(match.group(1)))
+                break
+    suffix = max(suffixes, default=0) + 1
+    names: list[str] = []
+    while len(names) < count:
+        candidate = f"{filename}_{suffix:02d}.{extension}"
+        if not occupied(candidate):
+            names.append(candidate)
+        suffix += 1
+    return names
+
+
+def _native_output_path_parts(path: str) -> list[str]:
+    raw_path = str(path or "").strip()
+    if len(raw_path) > 1024 or _CONTROL_RE.search(raw_path):
+        raise RuntimeError("[EasyUseAnima] AiO save path is invalid.")
+    posix_path = PurePosixPath(raw_path)
+    windows_path = PureWindowsPath(raw_path)
+    parts = [part for part in re.split(r"[\\/]", raw_path) if part]
+    if (
+        posix_path.is_absolute()
+        or windows_path.drive
+        or windows_path.root
+        or any(
+            part in {".", ".."}
+            or ":" in part
+            or not _is_windows_safe_output_component(part)
+            for part in parts
+        )
+    ):
+        raise RuntimeError(
+            "[EasyUseAnima] AiO save path must stay within the ComfyUI output directory."
+        )
+    return parts
+
+
+def _resolve_native_output_folder(output_root: Path, path: str) -> tuple[Path, Path]:
+    parts = _native_output_path_parts(path)
+
+    try:
+        resolved = resolve_output_directory(output_root, parts)
+    except OutputDirectoryIntegrityError as exc:
+        raise RuntimeError(
+            "[EasyUseAnima] AiO save output directory could not be bound safely."
+        ) from exc
+    return resolved, Path(*parts)
+
+
+@contextmanager
+def _bound_native_output_directory(
+    output_root: Path,
+    parts: Sequence[str],
+) -> Iterator[tuple[Path, OutputDirectoryBinding]]:
+    with ExitStack() as stack:
+        try:
+            prepared = stack.enter_context(
+                prepare_output_directory(output_root, parts)
+            )
+        except OutputDirectoryIntegrityError as exc:
+            raise RuntimeError(
+                "[EasyUseAnima] AiO save output directory could not be bound safely."
+            ) from exc
+        directory = stack.enter_context(
+            OutputDirectoryBinding(
+                prepared.path,
+                expected_identity=prepared.identity,
+                directory_descriptor=prepared.directory_descriptor,
+                windows_handle=prepared.windows_handle,
+            )
+        )
+        yield prepared.path, directory
+
+
+def _image_save_options(
+    image_format: str,
+    *,
+    quality: int,
+    lossless_webp: bool,
+    optimize_png: bool,
+    serialized: _SerializedMetadata,
+) -> dict[str, object]:
+    if image_format == "PNG":
+        return {"optimize": bool(optimize_png), "pnginfo": serialized.pnginfo}
+    if image_format == "WEBP":
+        options: dict[str, object] = {
+            "quality": quality,
+            "lossless": bool(lossless_webp),
+            "method": 4,
+        }
+    else:
+        options = {"quality": quality, "optimize": True}
+    if serialized.exif_bytes:
+        options["exif"] = serialized.exif_bytes
+    return options
+
+
+def _validated_sidecar_requirement(
+    serialized: _SerializedMetadata,
+    save_workflow_as_json: bool,
+    batch_count: int,
+) -> bool:
+    return _sidecar_required_and_validate_batch(
+        workflow_json=serialized.workflow_json,
+        force_workflow_sidecar=serialized.force_workflow_sidecar,
+        save_workflow_as_json=save_workflow_as_json,
+        embedded_size=serialized.embedded_size_bytes,
+        sidecar_size=serialized.sidecar_size_bytes,
+        batch_count=batch_count,
+    )
+
+
+def _save_native_images(
+    images: Iterable[object],
+    *,
+    output_root: Path,
+    path: str,
+    filename: str,
+    extension: str,
+    quality_jpeg_or_webp: int,
+    lossless_webp: bool,
+    optimize_png: bool,
+    embed_workflow: bool,
+    save_workflow_as_json: bool,
+    metadata: NativeImageMetadata,
+    prompt: object | None,
+    extra_pnginfo: Mapping[str, object] | None,
+    metadata_enabled: bool | None = None,
+) -> dict[str, object]:
+    batch = list(images)
+    if not batch:
+        raise RuntimeError("[EasyUseAnima] AiO image output received an empty image batch.")
+
+    safe_extension = str(extension or "").casefold()
+    if safe_extension not in {"png", "jpg", "jpeg", "webp"}:
+        raise RuntimeError("[EasyUseAnima] AiO save extension is invalid.")
+    safe_filename = _sanitize_native_output_filename(filename)
+    if len(f"{safe_filename}.{safe_extension}") > 255:
+        raise RuntimeError("[EasyUseAnima] AiO save filename is invalid.")
+    path_parts = _native_output_path_parts(path)
+    relative_folder = Path(*path_parts)
+
+    write_metadata = (
+        _comfy_metadata_enabled()
+        if metadata_enabled is None
+        else bool(metadata_enabled)
+    )
+    serialized = _serialize_metadata(
+        extension=safe_extension,
+        parameters=metadata.parameters,
+        prompt=prompt,
+        extra_pnginfo=extra_pnginfo,
+        embed_workflow=embed_workflow,
+        save_workflow_as_json=save_workflow_as_json,
+        write_metadata=write_metadata,
+    )
+    quality = max(1, min(100, int(quality_jpeg_or_webp)))
+    image_format = {
+        "png": "PNG",
+        "jpg": "JPEG",
+        "jpeg": "JPEG",
+        "webp": "WEBP",
+    }[safe_extension]
+    results: list[dict[str, str]] = []
+    sidecar_required = _validated_sidecar_requirement(
+        serialized, save_workflow_as_json, len(batch)
+    )
+    with _SAVE_LOCK, _bound_native_output_directory(output_root, path_parts) as (resolved_folder, directory):
+        pending_names = _allocate_filenames(
+            resolved_folder,
+            safe_filename,
+            safe_extension,
+            len(batch),
+            sidecar_required=sidecar_required,
+        )
+        collision_count = 0
+        index = 0
+        while index < len(batch):
+            image_value = batch[index]
+            final_name = pending_names[index]
+            image = _tensor_to_pil(image_value)
+            if image_format == "JPEG" and getattr(image, "mode", "") not in {"RGB", "L"}:
+                image = image.convert("RGB")
+            options = _image_save_options(
+                image_format,
+                quality=quality,
+                lossless_webp=lossless_webp,
+                optimize_png=optimize_png,
+                serialized=serialized,
+            )
+            try:
+                publish_image_transaction(
+                    directory,
+                    image,
+                    target_name=final_name,
+                    image_format=image_format,
+                    options=options,
+                    sidecar_text=(
+                        serialized.workflow_json
+                        if sidecar_required
+                        else None
+                    ),
+                )
+            except PublicationCollision:
+                collision_count += 1
+                if collision_count > 64:
+                    raise RuntimeError(
+                        "[EasyUseAnima] AiO output names kept changing during save."
+                    ) from None
+                directory.assert_current()
+                pending_names[index:] = _allocate_filenames(
+                    resolved_folder,
+                    safe_filename,
+                    safe_extension,
+                    len(batch) - index,
+                    sidecar_required=sidecar_required,
+                    allow_plain=len(batch) == 1,
+                )
+                continue
+            results.append(
+                {
+                    "filename": final_name,
+                    "subfolder": "" if str(relative_folder) == "." else relative_folder.as_posix(),
+                    "type": "output",
+                }
+            )
+            index += 1
+
+    return {
+        "ui": {"images": results},
+        "result": (metadata.final_hashes, metadata.parameters),
+    }
+
+
+__all__ = ()

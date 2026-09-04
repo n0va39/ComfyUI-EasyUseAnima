@@ -87,6 +87,10 @@ function createFixture(options = {}) {
       handleDenoisePreviewEvent: callbacks.handleDenoisePreviewEvent,
       handleExecutingEvent: callbacks.handleExecutingEvent,
       clearDenoisePreviews: callbacks.clearDenoisePreviews,
+      installJpegWorkflowImport() {
+        trace.push("installJpegWorkflowImport");
+        return true;
+      },
       installSeedRuntime() {
         trace.push("installSeedRuntime");
         return true;
@@ -240,7 +244,7 @@ function createNodeType(trace, options = {}) {
   );
   await Promise.resolve();
 
-  assert.deepEqual(fixture.trace.slice(0, 14), [
+  assert.deepEqual(fixture.trace.slice(0, 15), [
     "ensureStyle",
     "installWheelForwarder",
     "watchLocale",
@@ -252,6 +256,7 @@ function createNodeType(trace, options = {}) {
     "event:execution_error:false",
     "event:execution_interrupted:false",
     "event:execution_success:false",
+    "installJpegWorkflowImport",
     "installSeedRuntime",
     "loadSamplerOptions",
     "loadUserProfiles",
@@ -506,6 +511,7 @@ function createNodeType(trace, options = {}) {
     "ensureStyle",
     "installWheelForwarder",
     "watchLocale",
+    "installJpegWorkflowImport",
   ]) {
     assert.equal(
       combinedTrace.filter((item) => item === completedStep).length,
