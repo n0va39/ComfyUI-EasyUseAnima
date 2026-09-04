@@ -27,6 +27,10 @@ from .native_metadata_budget import (
     _validate_embedded_metadata_size,
     _validate_parameter_sources,
 )
+from .native_output_directories import (
+    OutputDirectoryIntegrityError,
+    resolve_output_directory,
+)
 from .native_output_publication import (
     OutputDirectoryBinding,
     PublicationCollision,
@@ -514,24 +518,13 @@ def _resolve_native_output_folder(output_root: Path, path: str) -> tuple[Path, P
             "[EasyUseAnima] AiO save path must stay within the ComfyUI output directory."
         )
 
-    root = Path(output_root).resolve(strict=False)
-    root.mkdir(parents=True, exist_ok=True)
-    root = root.resolve(strict=True)
-    candidate = root.joinpath(*parts).resolve(strict=False)
     try:
-        candidate.relative_to(root)
-    except ValueError as exc:
+        resolved = resolve_output_directory(output_root, parts)
+    except OutputDirectoryIntegrityError as exc:
         raise RuntimeError(
-            "[EasyUseAnima] AiO save path must stay within the ComfyUI output directory."
+            "[EasyUseAnima] AiO save output directory could not be bound safely."
         ) from exc
-    candidate.mkdir(parents=True, exist_ok=True)
-    resolved = candidate.resolve(strict=True)
-    try:
-        return resolved, resolved.relative_to(root)
-    except ValueError as exc:
-        raise RuntimeError(
-            "[EasyUseAnima] AiO save path must stay within the ComfyUI output directory."
-        ) from exc
+    return resolved, Path(*parts)
 
 
 def _image_save_options(
