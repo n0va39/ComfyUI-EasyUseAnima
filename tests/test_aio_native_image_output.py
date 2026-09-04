@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import subprocess
 import sys
 import tempfile
 import types
@@ -1667,6 +1668,263 @@ class AIONativeImageOutputTests(unittest.TestCase):
                     workflow,
                 )
 
+    def test_image_commit_failure_removes_transaction_owned_sidecar(self):
+        metadata = native.NativeImageMetadata("parameters", "", {})
+        pixels = np.zeros((2, 2, 3), dtype=np.float32)
+        original = publication.OutputDirectoryBinding.link_no_replace
+        commit_order = []
+
+        def fail_image_commit(directory, temporary, target_name):
+            commit_order.append(target_name)
+            if target_name == "image.png":
+                raise OSError("image commit failed")
+            return original(directory, temporary, target_name)
+
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            with (
+                patch.object(
+                    publication.OutputDirectoryBinding,
+                    "link_no_replace",
+                    new=fail_image_commit,
+                ),
+                self.assertRaisesRegex(OSError, "image commit failed"),
+            ):
+                native._save_native_images(
+                    [FakeTensor(pixels)],
+                    output_root=root,
+                    path="",
+                    filename="image",
+                    extension="png",
+                    quality_jpeg_or_webp=80,
+                    lossless_webp=False,
+                    optimize_png=False,
+                    embed_workflow=True,
+                    save_workflow_as_json=True,
+                    metadata=metadata,
+                    prompt=None,
+                    extra_pnginfo={"workflow": {"nodes": []}},
+                )
+
+            self.assertEqual(commit_order, ["image.json", "image.png"])
+            self.assertFalse((root / "image.json").exists())
+            self.assertFalse((root / "image.png").exists())
+
+    def test_unconfirmed_image_cleanup_preserves_required_sidecar(self):
+        metadata = native.NativeImageMetadata("parameters", "", {})
+        pixels = np.zeros((2, 2, 3), dtype=np.float32)
+        original_link = publication.OutputDirectoryBinding.link_no_replace
+        original_unlink = publication.OutputDirectoryBinding._unlink_name
+
+        def fail_after_image_publish(directory, temporary, target_name):
+            identity = original_link(directory, temporary, target_name)
+            if target_name == "image.png":
+                raise OSError("failure after image publication")
+            return identity
+
+        def keep_locked_image(directory, name):
+            if name == "image.png":
+                raise PermissionError("image is locked")
+            return original_unlink(directory, name)
+
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            with (
+                patch.object(
+                    publication.OutputDirectoryBinding,
+                    "link_no_replace",
+                    new=fail_after_image_publish,
+                ),
+                patch.object(
+                    publication.OutputDirectoryBinding,
+                    "_unlink_name",
+                    new=keep_locked_image,
+                ),
+                patch.object(publication, "_delete_windows_file_handle"),
+                self.assertLogs("ComfyUI-EasyUseAnima", level="WARNING"),
+                self.assertRaisesRegex(OSError, "failure after image publication"),
+            ):
+                native._save_native_images(
+                    [FakeTensor(pixels)],
+                    output_root=root,
+                    path="",
+                    filename="image",
+                    extension="png",
+                    quality_jpeg_or_webp=80,
+                    lossless_webp=False,
+                    optimize_png=False,
+                    embed_workflow=True,
+                    save_workflow_as_json=True,
+                    metadata=metadata,
+                    prompt=None,
+                    extra_pnginfo={"workflow": {"nodes": []}},
+                )
+
+            self.assertTrue((root / "image.png").is_file())
+            self.assertEqual(
+                json.loads((root / "image.json").read_text(encoding="utf-8")),
+                {"nodes": []},
+            )
+
+    def test_abrupt_exit_after_first_commit_cannot_expose_image_without_sidecar(self):
+        script = """
+import os
+import sys
+from pathlib import Path
+
+from PIL import Image
+from easyuse_anima.aio import native_output_publication as publication
+
+root = Path(sys.argv[1])
+with publication.OutputDirectoryBinding(root) as directory:
+    original = directory.link_no_replace
+
+    def exit_after_first_commit(temporary, target_name):
+        original(temporary, target_name)
+        os._exit(73)
+
+    directory.link_no_replace = exit_after_first_commit
+    publication.publish_image_transaction(
+        directory,
+        Image.new("RGB", (1, 1)),
+        target_name="image.png",
+        image_format="PNG",
+        options={},
+        sidecar_text='{"nodes":[]}\\n',
+    )
+"""
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            completed = subprocess.run(
+                [sys.executable, "-c", script, str(root)],
+                cwd=Path(__file__).resolve().parents[1],
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+
+            self.assertEqual(completed.returncode, 73, completed.stderr)
+            self.assertFalse((root / "image.png").exists())
+            self.assertEqual(
+                json.loads((root / "image.json").read_text(encoding="utf-8")),
+                {"nodes": []},
+            )
+
+    @unittest.skipUnless(os.name == "nt", "Windows handle-close ordering")
+    def test_windows_second_exit_during_async_rollback_cannot_leave_image_visible(self):
+        script = """
+import os
+import sys
+from pathlib import Path
+
+from PIL import Image
+from easyuse_anima.aio import native_output_publication as publication
+
+root = Path(sys.argv[1])
+original_close = publication._OpenTemporary.close
+close_count = 0
+
+def exit_after_first_rollback_close(temporary):
+    global close_count
+    original_close(temporary)
+    close_count += 1
+    if close_count == 1:
+        os._exit(74)
+
+publication._OpenTemporary.close = exit_after_first_rollback_close
+with publication.OutputDirectoryBinding(root) as directory:
+    original_link = directory.link_no_replace
+    link_count = 0
+
+    def interrupt_after_second_commit(temporary, target_name):
+        global link_count
+        identity = original_link(temporary, target_name)
+        link_count += 1
+        if link_count == 2:
+            raise KeyboardInterrupt
+        return identity
+
+    directory.link_no_replace = interrupt_after_second_commit
+    publication.publish_image_transaction(
+        directory,
+        Image.new("RGB", (1, 1)),
+        target_name="image.png",
+        image_format="PNG",
+        options={},
+        sidecar_text='{"nodes":[]}\\n',
+    )
+"""
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            completed = subprocess.run(
+                [sys.executable, "-c", script, str(root)],
+                cwd=Path(__file__).resolve().parents[1],
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+
+            self.assertEqual(completed.returncode, 74, completed.stderr)
+            self.assertFalse((root / "image.png").exists())
+
+    @unittest.skipIf(os.name == "nt", "POSIX final-name rollback ordering")
+    def test_posix_second_exit_during_async_rollback_cannot_leave_image_visible(self):
+        script = """
+import os
+import sys
+from pathlib import Path
+
+from PIL import Image
+from easyuse_anima.aio import native_output_publication as publication
+
+root = Path(sys.argv[1])
+original_remove = publication.OutputDirectoryBinding._remove_name_if_owned
+remove_count = 0
+
+def exit_after_first_final_remove(directory, name, identity):
+    global remove_count
+    removed = original_remove(directory, name, identity)
+    remove_count += 1
+    if remove_count == 1:
+        os._exit(75)
+    return removed
+
+publication.OutputDirectoryBinding._remove_name_if_owned = exit_after_first_final_remove
+with publication.OutputDirectoryBinding(root) as directory:
+    original_link = directory.link_no_replace
+    link_count = 0
+
+    def interrupt_after_second_commit(temporary, target_name):
+        global link_count
+        identity = original_link(temporary, target_name)
+        link_count += 1
+        if link_count == 2:
+            raise KeyboardInterrupt
+        return identity
+
+    directory.link_no_replace = interrupt_after_second_commit
+    publication.publish_image_transaction(
+        directory,
+        Image.new("RGB", (1, 1)),
+        target_name="image.png",
+        image_format="PNG",
+        options={},
+        sidecar_text='{"nodes":[]}\\n',
+    )
+"""
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            completed = subprocess.run(
+                [sys.executable, "-c", script, str(root)],
+                cwd=Path(__file__).resolve().parents[1],
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+
+            self.assertEqual(completed.returncode, 75, completed.stderr)
+            self.assertFalse((root / "image.png").exists())
+
     def test_late_last_batch_collision_keeps_suffix_naming(self):
         metadata = native.NativeImageMetadata("parameters", "", {})
         pixels = np.zeros((2, 2, 3), dtype=np.float32)
@@ -1847,7 +2105,7 @@ class AIONativeImageOutputTests(unittest.TestCase):
                         directory_link.unlink()
                     moved.rename(directory_link)
 
-    def test_sidecar_failure_removes_just_committed_image(self):
+    def test_sidecar_write_failure_prevents_image_commit(self):
         metadata = native.NativeImageMetadata("parameters", "", {})
         pixels = np.zeros((2, 2, 3), dtype=np.float32)
         with tempfile.TemporaryDirectory() as temp:

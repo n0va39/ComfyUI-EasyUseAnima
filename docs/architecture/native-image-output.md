@@ -197,7 +197,17 @@ handle without replacement, retains a directory handle during the transaction,
 and verifies the committed file handle's final parent before accepting it.
 Temporary-name replacement and output-directory identity changes abort the
 transaction. If either member of an image/sidecar pair fails, only files whose
-identity belongs to that transaction are removed.
+identity belongs to that transaction are removed. Rollback removes or confirms
+replacement of the image before removing its sidecar; if image removal cannot
+be confirmed, the required sidecar is preserved.
+
+When a workflow sidecar is required, the sidecar is published first and the
+image is the final visibility commit. A normal image-commit failure removes the
+transaction-owned sidecar. An abrupt process exit between the two commits may
+leave an orphan sidecar, but cannot expose an image whose required workflow is
+missing. The writer flushes language-runtime buffers before publication; it
+does not request file or directory durability barriers, so this ordering is not
+a guarantee against storage loss or reordering after a sudden power failure.
 
 The UI result retains ComfyUI's normal image record shape:
 `filename`, output-root-relative `subfolder`, and `type: output`.
