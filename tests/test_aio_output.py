@@ -30,6 +30,26 @@ def fake_folder_paths(output_root: str) -> types.ModuleType:
     return module
 
 
+def render_output_template(pattern: str, *, custom: str) -> str:
+    return output._render_image_saver_template(
+        pattern,
+        now=datetime(2026, 9, 4, 12, 34, 56),
+        width=1024,
+        height=1024,
+        seed=11,
+        modelname="anima.safetensors",
+        counter=7,
+        time_format="%Y-%m-%d-%H%M%S",
+        sampler_name="euler",
+        steps=28,
+        cfg=5.0,
+        scheduler_name="normal",
+        denoise=1.0,
+        clip_skip=-2,
+        custom=custom,
+    )
+
+
 class AIOOutputMoveTests(unittest.TestCase):
     def test_output_functions_are_owned_by_canonical_modules(self):
         for name in (
@@ -509,6 +529,30 @@ class AIOOutputMoveTests(unittest.TestCase):
         self.assertEqual(result, "saved")
         self.assertEqual(save.call_args.kwargs["path"], "renders/2026/09")
         self.assertEqual(save.call_args.kwargs["filename"], "safe_007_anima")
+
+    def test_template_expansion_rejects_before_oversized_literal_replace(self):
+        class ReplaceTrap(str):
+            def replace(self, *_args, **_kwargs):
+                raise AssertionError("oversized replacement must not be materialized")
+
+        pattern = ReplaceTrap("%custom" * 128)
+        with self.assertRaisesRegex(RuntimeError, "template result is too long"):
+            output._bounded_template_replace(pattern, "%custom", "abcdefghi")
+
+        with patch.object(
+            output,
+            "_bounded_template_replace",
+            wraps=output._bounded_template_replace,
+        ) as bounded_replace:
+            with self.assertRaisesRegex(RuntimeError, "template result is too long"):
+                render_output_template("%custom" * 128, custom="abcdefghi")
+        bounded_replace.assert_any_call(ANY, "%custom", "abcdefghi")
+
+    def test_template_expansion_accepts_exact_result_budget(self):
+        rendered = render_output_template("%custom" * 128, custom="abcdefgh")
+
+        self.assertEqual(rendered, "abcdefgh" * 128)
+        self.assertEqual(len(rendered), 1024)
 
     def test_image_saver_sanitizes_windows_filename_before_native_writer(self):
         settings = {

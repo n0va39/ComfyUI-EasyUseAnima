@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 import os
 import re
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path, PurePosixPath, PureWindowsPath
@@ -40,6 +40,8 @@ _IMAGE_SAVER_SAFE_TIME_FORMAT = "%Y-%m-%d-%H%M%S"
 _IMAGE_SAVER_CUSTOM_TIME_RE = re.compile(r"%time_format<([^>]*)>")
 _IMAGE_SAVER_CUSTOM_COUNTER_RE = re.compile(r"%counter<([0-9]+)>")
 _OUTPUT_CONTROL_RE = re.compile(r"[\x00-\x1f\x7f]")
+_MAX_OUTPUT_TEMPLATE_LENGTH = 1024
+_MAX_OUTPUT_TIME_FORMAT_LENGTH = 256
 _MAX_CIVITAI_HASH_FETCHERS = 32
 
 
@@ -176,6 +178,43 @@ def _image_saver_timestamp(now: datetime, time_format: str) -> str:
         return now.strftime(_IMAGE_SAVER_SAFE_TIME_FORMAT)
 
 
+def _bounded_template_replace(value: str, token: str, replacement: str) -> str:
+    count = value.count(token)
+    if not count:
+        return value
+    result_length = len(value) + count * (len(replacement) - len(token))
+    if result_length > _MAX_OUTPUT_TEMPLATE_LENGTH:
+        raise RuntimeError("[EasyUseAnima] AiO save template result is too long.")
+    return value.replace(token, replacement)
+
+
+def _bounded_template_sub(
+    pattern: re.Pattern[str],
+    replacement: Callable[[re.Match[str]], str],
+    value: str,
+) -> str:
+    pieces: list[str] = []
+    cursor = 0
+    result_length = 0
+    matched = False
+    for match in pattern.finditer(value):
+        matched = True
+        literal = value[cursor : match.start()]
+        rendered = replacement(match)
+        result_length += len(literal) + len(rendered)
+        if result_length > _MAX_OUTPUT_TEMPLATE_LENGTH:
+            raise RuntimeError("[EasyUseAnima] AiO save template result is too long.")
+        pieces.extend((literal, rendered))
+        cursor = match.end()
+    if not matched:
+        return value
+    tail = value[cursor:]
+    if result_length + len(tail) > _MAX_OUTPUT_TEMPLATE_LENGTH:
+        raise RuntimeError("[EasyUseAnima] AiO save template result is too long.")
+    pieces.append(tail)
+    return "".join(pieces)
+
+
 def _render_image_saver_template(
     pattern: str,
     *,
@@ -195,7 +234,10 @@ def _render_image_saver_template(
     custom: str,
 ) -> str:
     value = str(pattern or "")
-    if len(value) > 1024 or len(str(time_format or "")) > 256:
+    if (
+        len(value) > _MAX_OUTPUT_TEMPLATE_LENGTH
+        or len(str(time_format or "")) > _MAX_OUTPUT_TIME_FORMAT_LENGTH
+    ):
         raise RuntimeError("[EasyUseAnima] AiO save template is too long.")
 
     def replace_time(match: re.Match[str]) -> str:
@@ -210,8 +252,8 @@ def _render_image_saver_template(
         return f"{counter:0{padding}d}"
 
     model_filename, base_model_name = _image_saver_model_names(modelname)
-    value = _IMAGE_SAVER_CUSTOM_TIME_RE.sub(replace_time, value)
-    value = _IMAGE_SAVER_CUSTOM_COUNTER_RE.sub(replace_counter, value)
+    value = _bounded_template_sub(_IMAGE_SAVER_CUSTOM_TIME_RE, replace_time, value)
+    value = _bounded_template_sub(_IMAGE_SAVER_CUSTOM_COUNTER_RE, replace_counter, value)
     replacements = (
         ("%date", _image_saver_timestamp(now, "%Y-%m-%d")),
         ("%time", _image_saver_timestamp(now, time_format)),
@@ -230,12 +272,12 @@ def _render_image_saver_template(
         ("%custom", custom),
     )
     for token, replacement in replacements:
-        value = value.replace(token, replacement)
+        value = _bounded_template_replace(value, token, replacement)
     if "%" in value:
         raise RuntimeError(
             "[EasyUseAnima] AiO save template contains an unsupported placeholder."
         )
-    if len(value) > 1024:
+    if len(value) > _MAX_OUTPUT_TEMPLATE_LENGTH:
         raise RuntimeError("[EasyUseAnima] AiO save template result is too long.")
     return value
 
