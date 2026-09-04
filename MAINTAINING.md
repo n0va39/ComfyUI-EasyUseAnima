@@ -162,61 +162,30 @@ workflow to avoid accidental Registry publishing while release metadata is being
 edited. Trigger it from GitHub Actions with `workflow_dispatch`.
 
 The checked-in workflow accepts a required `mode`, an optional `version`, and
-a `dry_run` switch used by metadata mode. Its release-relevant shape is shown
-below; `.github/workflows/publish_action.yml` remains the executable source of
-truth:
+a `dry_run` switch used by metadata mode. Treat
+`.github/workflows/publish_action.yml` and
+`.github/workflows/registry_metadata.yml` as the only executable sources of
+truth; do not copy their full YAML into maintainer documentation.
 
-```yaml
-name: Publish to Comfy registry
+Preserve these release-control security invariants when updating either
+workflow:
 
-on:
-  workflow_dispatch:
-    inputs:
-      mode:
-        type: choice
-        options: [publish, metadata]
-      version:
-        required: false
-      dry_run:
-        type: choice
-        options: [true, false]
-
-jobs:
-  publish-node:
-    name: Publish Custom Node to registry
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check out code
-        uses: actions/checkout@v4
-      - name: Install uv
-        if: ${{ inputs.mode == 'publish' }}
-        uses: astral-sh/setup-uv@v5
-      - name: Extract Registry changelog
-        if: ${{ inputs.mode == 'publish' }}
-        run: |
-          python .github/scripts/extract_release_changelog.py \
-            --version "${{ inputs.version }}" \
-            --output "$RUNNER_TEMP/comfy-node-changelog.md"
-      - name: Validate node package
-        if: ${{ inputs.mode == 'publish' }}
-        run: |
-          uvx --from comfy-cli comfy --skip-prompt node validate
-      - name: Publish Custom Node
-        if: ${{ inputs.mode == 'publish' }}
-        env:
-          REGISTRY_ACCESS_TOKEN: ${{ secrets.REGISTRY_ACCESS_TOKEN }}
-        run: |
-          uvx --from comfy-cli comfy --skip-prompt node publish \
-            --token "$REGISTRY_ACCESS_TOKEN" \
-            --changelog-file "$RUNNER_TEMP/comfy-node-changelog.md"
-      - name: Sync existing metadata
-        if: ${{ inputs.mode == 'metadata' }}
-        env:
-          REGISTRY_ACCESS_TOKEN: ${{ secrets.REGISTRY_ACCESS_TOKEN }}
-        run: |
-          python .github/scripts/sync_comfy_registry_metadata.py \
-            --dry-run "${{ inputs.dry_run }}"
-```
+- `workflow_dispatch` is the only trigger. Never add an automatic publish
+  trigger as part of routine dependency maintenance.
+- Pin every third-party action to a reviewed full commit SHA and keep its
+  human-readable release version in a comment. The selected action releases
+  must use a currently supported GitHub Actions runtime.
+- Set workflow permissions explicitly to read-only, and disable persisted
+  checkout credentials.
+- Pin the `comfy-cli` version used for validation and publishing so both steps
+  execute the same reviewed release.
+- Pass free-form dispatch inputs through step environment variables. Never
+  interpolate them directly into a `run` script.
+- Do not expose `REGISTRY_ACCESS_TOKEN` to metadata dry-runs. Only the publish
+  step and an explicitly selected metadata-apply step may receive the secret.
+- Keep setup/download caching disabled in the publish control plane unless a
+  separately reviewed change establishes an equivalent cache-poisoning
+  boundary.
 
 For a new version, merge the validated release metadata to protected `main`,
 create and read back the matching immutable annotated tag, then dispatch
