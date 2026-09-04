@@ -98,6 +98,7 @@ export function aioCreateExtensionRuntime(dependencies) {
       loadSamplerOptions,
       loadUserProfiles,
       warnUserProfiles,
+      installJpegWorkflowImport,
       installSeedRuntime,
       disposeSeedRuntime,
     },
@@ -167,6 +168,9 @@ export function aioCreateExtensionRuntime(dependencies) {
         });
         runExtensionSetupStep(setupState, "execution-success-listener", () => {
           api.addEventListener("execution_success", clearDenoisePreviews);
+        });
+        runExtensionSetupStep(setupState, "jpeg-workflow-import", () => {
+          installJpegWorkflowImport();
         });
         runExtensionSetupStep(setupState, "seed-runtime", () => {
           installSeedRuntime();

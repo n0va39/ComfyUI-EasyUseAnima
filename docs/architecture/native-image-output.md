@@ -5,6 +5,8 @@
 - Publication owner: `easyuse_anima.aio.native_output_publication`
 - Remote metadata owner: `easyuse_anima.aio.native_civitai`
 - Metadata budget owner: `easyuse_anima.aio.native_metadata_budget`
+- JPEG import owners: `web/js/aio/jpeg_workflow_metadata.js` and
+  `web/js/aio/jpeg_workflow_import.js`
 
 The AiO Generator owns its rich image output path. It no longer imports or
 looks up `ComfyUI-Image-Saver`. Existing settings remain compatible: the
@@ -30,6 +32,30 @@ the redundant execution prompt. If the payload is still too large, it removes
 the embedded workflow, preserves the A1111 block, and forces the JSON sidecar
 before any image is committed. If the A1111 block alone is too large, the save
 fails without publishing an image.
+
+## JPEG restore contract
+
+ComfyUI frontend v1.49.6 does not route `image/jpeg` through its workflow
+metadata parser. EasyUse therefore wraps the current `app.handleFile` function
+with a chain-preserving JPEG-only adapter. A JPEG with valid EasyUse EXIF loads
+the workflow first, or the API prompt when no valid workflow is present. The
+filename, open source, and deferred-warning option are forwarded to the same
+ComfyUI graph/API loaders used by the stock handler.
+
+The adapter reads at most the first 256 KiB, accepts only a bounded JPEG APP1
+EXIF segment, and rejects TIFF directories above 256 entries or field values
+above 65,535 bytes. Invalid offsets, truncated segments, malformed JSON,
+metadata-free JPEGs, and every non-JPEG input delegate to the exact previous
+handler with the original receiver and arguments. PNG and WebP therefore stay
+on ComfyUI's native parser path. Installation is idempotent and is skipped when
+the host exposes a native `getJpegMetadata` capability or declares JPEG in its
+handler metadata MIME types; the same capability is checked again for each
+file so a later host upgrade also wins.
+
+When the writer moves an oversized JPEG workflow to a JSON sidecar, the image
+does not contain that workflow. Load the same-stem `.json` file directly to
+restore it; dropping only the JPEG cannot reconstruct data that was deliberately
+removed from EXIF.
 
 ## Metadata resource budgets
 

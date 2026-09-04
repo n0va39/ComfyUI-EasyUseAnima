@@ -36,6 +36,7 @@ import {
 } from "./aio/torch_compile_recommendation.js";
 import { aioMarkMissingDependencyControl } from "./aio/dependency_controls.js";
 import { aioCreateNativePreviewRuntime } from "./aio/native_preview_runtime.js";
+import { aioInstallJpegWorkflowImport } from "./aio/jpeg_workflow_import.js";
 import {
   aioCreateExtensionRuntime,
   aioListAttachedGeneratorNodes,
@@ -4482,6 +4483,9 @@ const aioExtensionRuntime = aioCreateExtensionRuntime({
     disposeSeedRuntime: disposeAioSeedRuntime,
     warnUserProfiles(error) {
       console.warn("[EasyUseAnima] Failed to load AiO user profiles.", error);
+    },
+    installJpegWorkflowImport() {
+      aioInstallJpegWorkflowImport(app);
     },
   },
   nodes: {

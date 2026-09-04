@@ -94,11 +94,16 @@ Save Options는 기본적으로 켜져 있고 EasyUse 네이티브 출력 backen
 
 PNG, JPEG, WebP 모두 A1111 방식의 사람이 읽기 쉬운 `parameters` 블럭을
 저장합니다. PNG는 ComfyUI prompt와 workflow를 text chunk에, JPEG/WebP는
-ComfyUI가 읽을 수 있는 EXIF Make/Model 표현에 저장합니다. 저장 이미지에서
-같은 설정을 다시 불러오려면 `Embed workflow`를 유지하세요. `Save workflow
-JSON`을 켜면 별도 sidecar도 저장합니다. JPEG workflow가 EXIF 크기 한도를
-넘으면 A1111 메타데이터는 보존하고 workflow JSON sidecar를 자동으로 남기므로
-메타데이터가 빠진 부분 저장 파일을 만들지 않습니다.
+EXIF Make/Model 표현에 저장합니다. 저장 이미지에서 같은 설정을 다시
+불러오려면 `Embed workflow`를 유지하세요. PNG/WebP는 ComfyUI가 직접 읽고,
+JPEG는 EasyUse의 크기 제한된 전용 파일 handler가 embedded workflow를 먼저
+불러온 뒤 없으면 API prompt를 사용합니다. JPEG가 아니거나 metadata가 없거나
+손상된 경우에는 기존 ComfyUI handler로 그대로 넘기며, ComfyUI가 native JPEG
+metadata 지원을 제공하면 자동으로 그 경로에 위임합니다. `Save workflow JSON`을
+켜면 별도 sidecar도 저장합니다. JPEG workflow가 EXIF 크기 한도를 넘으면
+A1111 메타데이터는 보존하고 workflow JSON sidecar를 자동으로 남기므로
+메타데이터가 빠진 부분 저장 파일을 만들지 않습니다. 이 경우 JPEG 안에는
+제거된 workflow가 없으므로 같은 이름의 `.json` sidecar를 직접 여세요.
 
 `Lossless WebP`가 꺼져 있으면 WebP를 손실 압축으로 저장하며, `JPEG/WebP
 quality`로 화질과 파일 크기의 균형을 조절합니다. lossless 모드에서는 saver에
