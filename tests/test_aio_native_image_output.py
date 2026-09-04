@@ -17,6 +17,7 @@ from PIL import ExifTags, Image
 from easyuse_anima.aio import native_civitai as civitai
 from easyuse_anima.aio import native_image_output as native
 from easyuse_anima.aio import native_metadata_budget as metadata_budget
+from easyuse_anima.aio import native_output_directories as directories
 from easyuse_anima.aio import native_output_publication as publication
 from easyuse_anima.aio import native_resource_hashes as resources
 
@@ -63,6 +64,34 @@ def decode_user_comment(value: bytes) -> str:
 
 def exif_user_comment(exif: Image.Exif) -> bytes:
     return exif.get_ifd(ExifTags.IFD.Exif)[0x9286]
+
+
+def create_directory_link(link: Path, target: Path) -> None:
+    failure: OSError | None = None
+    try:
+        os.symlink(target, link, target_is_directory=True)
+        return
+    except OSError as exc:
+        if os.name != "nt":
+            raise
+        failure = exc
+    result = subprocess.run(
+        ["cmd.exe", "/d", "/c", "mklink", "/J", str(link), str(target)],
+        check=False,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        timeout=10,
+    )
+    if result.returncode != 0:
+        assert failure is not None
+        raise failure
+
+
+def remove_directory_link(link: Path) -> None:
+    if link.is_symlink():
+        link.unlink()
+    else:
+        link.rmdir()
 
 
 class AIONativeImageOutputTests(unittest.TestCase):
@@ -1582,6 +1611,221 @@ class AIONativeImageOutputTests(unittest.TestCase):
                         extra_pnginfo=None,
                     )
             self.assertFalse(outside.exists())
+
+    def test_output_directory_creation_reuses_parent_bound_nested_tree(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp) / "output"
+
+            resolved, relative = native._resolve_native_output_folder(
+                root,
+                "nested/deeper",
+            )
+            reused, reused_relative = native._resolve_native_output_folder(
+                root,
+                "nested/deeper",
+            )
+
+            self.assertEqual(resolved, (root / "nested" / "deeper").resolve())
+            self.assertEqual(reused, resolved)
+            self.assertEqual(relative, Path("nested", "deeper"))
+            self.assertEqual(reused_relative, relative)
+            self.assertTrue(resolved.is_dir())
+
+    def test_output_directory_creation_rejects_link_component(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp) / "output"
+            outside = Path(temp) / "outside"
+            root.mkdir()
+            outside.mkdir()
+            link = root / "linked"
+            try:
+                create_directory_link(link, outside)
+            except OSError as exc:
+                self.skipTest(f"directory links are unavailable: {exc}")
+
+            try:
+                with self.assertRaisesRegex(RuntimeError, "bound safely"):
+                    native._resolve_native_output_folder(root, "linked/child")
+
+                self.assertFalse((outside / "child").exists())
+            finally:
+                remove_directory_link(link)
+
+    def test_output_directory_failure_never_removes_preexisting_parent(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp) / "output"
+            existing = root / "existing"
+            existing.mkdir(parents=True)
+            verify_name = (
+                "_verify_windows_path_identity"
+                if os.name == "nt"
+                else "_verify_posix_path_identity"
+            )
+            original = getattr(directories, verify_name)
+
+            def reject_final(path, handle):
+                original(path, handle)
+                if path.name == "created":
+                    raise directories.OutputDirectoryIntegrityError(
+                        "injected final verification failure"
+                    )
+
+            with (
+                patch.object(directories, verify_name, new=reject_final),
+                self.assertRaises(directories.OutputDirectoryIntegrityError),
+            ):
+                directories.resolve_output_directory(
+                    root,
+                    ("existing", "created"),
+                )
+
+            self.assertTrue(existing.is_dir())
+            self.assertEqual(
+                (existing / "created").exists(),
+                os.name != "nt",
+            )
+
+    def test_posix_post_open_verification_closes_child_descriptor(self):
+        failure = directories.OutputDirectoryIntegrityError(
+            "injected parent identity change"
+        )
+        close = Mock()
+        with (
+            patch.object(directories.os, "open", return_value=4321),
+            patch.object(directories.os, "close", close),
+            patch.object(
+                directories,
+                "_verify_posix_path_identity",
+                side_effect=(None, failure),
+            ),
+            self.assertRaisesRegex(
+                directories.OutputDirectoryIntegrityError,
+                "injected parent identity change",
+            ),
+        ):
+            directories._open_or_create_posix_directory(
+                1234,
+                "child",
+                expected_parent=Path("parent"),
+            )
+
+        close.assert_called_once_with(4321)
+
+    def test_parent_bound_creation_cannot_follow_replaced_component(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp) / "output"
+            nested = root / "nested"
+            outside = Path(temp) / "outside"
+            moved = outside / "moved"
+            nested.mkdir(parents=True)
+            outside.mkdir()
+            helper_name = (
+                "_open_or_create_windows_directory"
+                if os.name == "nt"
+                else "_open_or_create_posix_directory"
+            )
+            original = getattr(directories, helper_name)
+            swapped = False
+            rename_blocked = False
+
+            def swap_then_open(parent, name, **kwargs):
+                nonlocal rename_blocked, swapped
+                if name == "leaf" and not swapped:
+                    try:
+                        nested.rename(moved)
+                    except OSError:
+                        rename_blocked = True
+                    else:
+                        nested.mkdir()
+                        swapped = True
+                return original(parent, name, **kwargs)
+
+            try:
+                with patch.object(directories, helper_name, new=swap_then_open):
+                    try:
+                        resolved = directories.resolve_output_directory(
+                            root,
+                            ("nested", "leaf"),
+                        )
+                    except directories.OutputDirectoryIntegrityError:
+                        self.assertTrue(swapped)
+                    else:
+                        self.assertTrue(rename_blocked)
+                        self.assertEqual(resolved, nested / "leaf")
+                self.assertFalse((outside / "leaf").exists())
+                self.assertFalse((moved / "leaf").exists())
+                if swapped:
+                    self.assertTrue(nested.is_dir())
+                    self.assertEqual(list(nested.iterdir()), [])
+            finally:
+                if swapped:
+                    nested.rmdir()
+                    moved.rename(nested)
+
+    def test_prepared_identity_survives_publication_handoff(self):
+        metadata = native.NativeImageMetadata("parameters", "", {})
+        pixels = np.zeros((2, 2, 3), dtype=np.float32)
+        original_enter = publication.OutputDirectoryBinding.__enter__
+
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp) / "output"
+            outside = Path(temp) / "outside"
+            moved = outside / "moved"
+            outside.mkdir()
+            replaced = False
+            rename_blocked = False
+
+            def replace_then_enter(binding):
+                nonlocal rename_blocked, replaced
+                if binding.path.name == "images" and not replaced:
+                    try:
+                        binding.path.rename(moved)
+                    except OSError:
+                        rename_blocked = True
+                    else:
+                        binding.path.mkdir()
+                        replaced = True
+                return original_enter(binding)
+
+            try:
+                with patch.object(
+                    publication.OutputDirectoryBinding,
+                    "__enter__",
+                    new=replace_then_enter,
+                ):
+                    try:
+                        result = native._save_native_images(
+                            [FakeTensor(pixels)],
+                            output_root=root,
+                            path="images",
+                            filename="image",
+                            extension="png",
+                            quality_jpeg_or_webp=80,
+                            lossless_webp=False,
+                            optimize_png=False,
+                            embed_workflow=False,
+                            save_workflow_as_json=False,
+                            metadata=metadata,
+                            prompt=None,
+                            extra_pnginfo=None,
+                        )
+                    except publication.PublicationIntegrityError:
+                        self.assertTrue(replaced)
+                    else:
+                        self.assertTrue(rename_blocked)
+                        self.assertEqual(
+                            result["ui"]["images"][0]["filename"],
+                            "image.png",
+                        )
+
+                self.assertFalse((outside / "image.png").exists())
+                self.assertFalse((moved / "image.png").exists())
+                if replaced:
+                    self.assertEqual(list((root / "images").iterdir()), [])
+            finally:
+                if replaced:
+                    (root / "images").rmdir()
+                    moved.rename(root / "images")
 
     def test_workflow_sidecar_participates_in_collision_allocation(self):
         metadata = native.NativeImageMetadata("parameters", "", {})

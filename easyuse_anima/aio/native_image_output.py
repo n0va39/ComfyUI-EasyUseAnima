@@ -6,7 +6,8 @@ import json
 import logging
 import re
 import threading
-from collections.abc import Iterable, Mapping, Sequence
+from collections.abc import Iterable, Iterator, Mapping, Sequence
+from contextlib import ExitStack, contextmanager
 from dataclasses import dataclass
 from pathlib import Path, PurePosixPath, PureWindowsPath
 from types import MappingProxyType
@@ -26,6 +27,11 @@ from .native_metadata_budget import (
     _sidecar_required_and_validate_batch,
     _validate_embedded_metadata_size,
     _validate_parameter_sources,
+)
+from .native_output_directories import (
+    OutputDirectoryIntegrityError,
+    prepare_output_directory,
+    resolve_output_directory,
 )
 from .native_output_publication import (
     OutputDirectoryBinding,
@@ -492,7 +498,7 @@ def _allocate_filenames(
     return names
 
 
-def _resolve_native_output_folder(output_root: Path, path: str) -> tuple[Path, Path]:
+def _native_output_path_parts(path: str) -> list[str]:
     raw_path = str(path or "").strip()
     if len(raw_path) > 1024 or _CONTROL_RE.search(raw_path):
         raise RuntimeError("[EasyUseAnima] AiO save path is invalid.")
@@ -513,25 +519,44 @@ def _resolve_native_output_folder(output_root: Path, path: str) -> tuple[Path, P
         raise RuntimeError(
             "[EasyUseAnima] AiO save path must stay within the ComfyUI output directory."
         )
+    return parts
 
-    root = Path(output_root).resolve(strict=False)
-    root.mkdir(parents=True, exist_ok=True)
-    root = root.resolve(strict=True)
-    candidate = root.joinpath(*parts).resolve(strict=False)
+
+def _resolve_native_output_folder(output_root: Path, path: str) -> tuple[Path, Path]:
+    parts = _native_output_path_parts(path)
+
     try:
-        candidate.relative_to(root)
-    except ValueError as exc:
+        resolved = resolve_output_directory(output_root, parts)
+    except OutputDirectoryIntegrityError as exc:
         raise RuntimeError(
-            "[EasyUseAnima] AiO save path must stay within the ComfyUI output directory."
+            "[EasyUseAnima] AiO save output directory could not be bound safely."
         ) from exc
-    candidate.mkdir(parents=True, exist_ok=True)
-    resolved = candidate.resolve(strict=True)
-    try:
-        return resolved, resolved.relative_to(root)
-    except ValueError as exc:
-        raise RuntimeError(
-            "[EasyUseAnima] AiO save path must stay within the ComfyUI output directory."
-        ) from exc
+    return resolved, Path(*parts)
+
+
+@contextmanager
+def _bound_native_output_directory(
+    output_root: Path,
+    parts: Sequence[str],
+) -> Iterator[tuple[Path, OutputDirectoryBinding]]:
+    with ExitStack() as stack:
+        try:
+            prepared = stack.enter_context(
+                prepare_output_directory(output_root, parts)
+            )
+        except OutputDirectoryIntegrityError as exc:
+            raise RuntimeError(
+                "[EasyUseAnima] AiO save output directory could not be bound safely."
+            ) from exc
+        directory = stack.enter_context(
+            OutputDirectoryBinding(
+                prepared.path,
+                expected_identity=prepared.identity,
+                directory_descriptor=prepared.directory_descriptor,
+                windows_handle=prepared.windows_handle,
+            )
+        )
+        yield prepared.path, directory
 
 
 def _image_save_options(
@@ -599,7 +624,8 @@ def _save_native_images(
     safe_filename = _sanitize_native_output_filename(filename)
     if len(f"{safe_filename}.{safe_extension}") > 255:
         raise RuntimeError("[EasyUseAnima] AiO save filename is invalid.")
-    resolved_folder, relative_folder = _resolve_native_output_folder(output_root, path)
+    path_parts = _native_output_path_parts(path)
+    relative_folder = Path(*path_parts)
 
     write_metadata = (
         _comfy_metadata_enabled()
@@ -626,7 +652,7 @@ def _save_native_images(
     sidecar_required = _validated_sidecar_requirement(
         serialized, save_workflow_as_json, len(batch)
     )
-    with _SAVE_LOCK, OutputDirectoryBinding(resolved_folder) as directory:
+    with _SAVE_LOCK, _bound_native_output_directory(output_root, path_parts) as (resolved_folder, directory):
         pending_names = _allocate_filenames(
             resolved_folder,
             safe_filename,
