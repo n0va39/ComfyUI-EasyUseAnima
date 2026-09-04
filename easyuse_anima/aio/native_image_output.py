@@ -4,9 +4,7 @@ from __future__ import annotations
 
 import json
 import logging
-import os
 import re
-import tempfile
 import threading
 from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass
@@ -19,6 +17,11 @@ from .native_civitai import (
 )
 from .native_civitai import (
     _fetch_civitai_resource_by_hash,
+)
+from .native_output_publication import (
+    OutputDirectoryBinding,
+    PublicationCollision,
+    publish_image_transaction,
 )
 from .native_resource_hashes import (
     _EMBEDDING_RE,
@@ -372,6 +375,7 @@ def _allocate_filenames(
     count: int,
     *,
     sidecar_required: bool,
+    allow_plain: bool = True,
 ) -> list[str]:
     def occupied(name: str) -> bool:
         image_path = output_folder / name
@@ -380,7 +384,7 @@ def _allocate_filenames(
         )
 
     plain = f"{filename}.{extension}"
-    if count == 1 and not occupied(plain):
+    if count == 1 and allow_plain and not occupied(plain):
         return [plain]
 
     patterns = [
@@ -410,39 +414,6 @@ def _allocate_filenames(
             names.append(candidate)
         suffix += 1
     return names
-
-
-def _atomic_save_image(image: object, target: Path, *, image_format: str, options: dict[str, object]) -> None:
-    descriptor, temporary_name = tempfile.mkstemp(
-        prefix=".easyuse-anima-",
-        suffix=".tmp",
-        dir=target.parent,
-    )
-    os.close(descriptor)
-    temporary = Path(temporary_name)
-    try:
-        save = getattr(image, "save", None)
-        if not callable(save):
-            raise RuntimeError("[EasyUseAnima] Pillow image writer is unavailable.")
-        save(str(temporary), format=image_format, **options)
-        os.replace(temporary, target)
-    finally:
-        temporary.unlink(missing_ok=True)
-
-
-def _atomic_write_text(target: Path, value: str) -> None:
-    descriptor, temporary_name = tempfile.mkstemp(
-        prefix=".easyuse-anima-",
-        suffix=".tmp",
-        dir=target.parent,
-    )
-    temporary = Path(temporary_name)
-    try:
-        with os.fdopen(descriptor, "w", encoding="utf-8", newline="\n") as handle:
-            handle.write(value)
-        os.replace(temporary, target)
-    finally:
-        temporary.unlink(missing_ok=True)
 
 
 def _resolve_native_output_folder(output_root: Path, path: str) -> tuple[Path, Path]:
@@ -560,15 +531,19 @@ def _save_native_images(
     sidecar_required = serialized.workflow_json is not None and (
         save_workflow_as_json or serialized.force_workflow_sidecar
     )
-    with _SAVE_LOCK:
-        names = _allocate_filenames(
+    with _SAVE_LOCK, OutputDirectoryBinding(resolved_folder) as directory:
+        pending_names = _allocate_filenames(
             resolved_folder,
             filename,
             safe_extension,
             len(batch),
             sidecar_required=sidecar_required,
         )
-        for image_value, final_name in zip(batch, names, strict=True):
+        collision_count = 0
+        index = 0
+        while index < len(batch):
+            image_value = batch[index]
+            final_name = pending_names[index]
             image = _tensor_to_pil(image_value)
             if image_format == "JPEG" and getattr(image, "mode", "") not in {"RGB", "L"}:
                 image = image.convert("RGB")
@@ -579,26 +554,35 @@ def _save_native_images(
                 optimize_png=optimize_png,
                 serialized=serialized,
             )
-
-            target = resolved_folder / final_name
-            image_committed = False
             try:
-                _atomic_save_image(
+                publish_image_transaction(
+                    directory,
                     image,
-                    target,
+                    target_name=final_name,
                     image_format=image_format,
                     options=options,
+                    sidecar_text=(
+                        serialized.workflow_json
+                        if sidecar_required
+                        else None
+                    ),
                 )
-                image_committed = True
-                if sidecar_required and serialized.workflow_json is not None:
-                    _atomic_write_text(
-                        target.with_suffix(".json"),
-                        serialized.workflow_json,
-                    )
-            except Exception:
-                if image_committed:
-                    target.unlink(missing_ok=True)
-                raise
+            except PublicationCollision:
+                collision_count += 1
+                if collision_count > 64:
+                    raise RuntimeError(
+                        "[EasyUseAnima] AiO output names kept changing during save."
+                    ) from None
+                directory.assert_current()
+                pending_names[index:] = _allocate_filenames(
+                    resolved_folder,
+                    filename,
+                    safe_extension,
+                    len(batch) - index,
+                    sidecar_required=sidecar_required,
+                    allow_plain=len(batch) == 1,
+                )
+                continue
             results.append(
                 {
                     "filename": final_name,
@@ -606,6 +590,7 @@ def _save_native_images(
                     "type": "output",
                 }
             )
+            index += 1
 
     return {
         "ui": {"images": results},

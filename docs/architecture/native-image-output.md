@@ -2,6 +2,7 @@
 
 - Owner issue: [#678](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/678)
 - Runtime owner: `easyuse_anima.aio.native_image_output`
+- Publication owner: `easyuse_anima.aio.native_output_publication`
 - Remote metadata owner: `easyuse_anima.aio.native_civitai`
 
 The AiO Generator owns its rich image output path. It no longer imports or
@@ -87,10 +88,19 @@ rechecks the created folder's resolved path before use.
 
 Batch and collision suffixes are allocated while holding a process lock. When
 a workflow sidecar is required, both the image and JSON names participate in
-collision checks. Images and sidecars are completed in same-directory temporary
-files and atomically replaced. If a requested sidecar fails after the image is
-committed, the just-created image is removed so the call does not report a
-partial save.
+collision checks. A late image or sidecar target is never overwritten: the
+transaction treats it as a collision, preserves that file, reallocates the
+remaining suffixes, and retries up to a bounded limit.
+
+Images and sidecars are encoded through descriptors that stay open from
+exclusive temporary-file creation through commit. Pillow never reopens a
+temporary pathname. POSIX publication uses a bound directory descriptor and
+same-directory no-replace hard links. Windows publication renames the open file
+handle without replacement, retains a directory handle during the transaction,
+and verifies the committed file handle's final parent before accepting it.
+Temporary-name replacement and output-directory identity changes abort the
+transaction. If either member of an image/sidecar pair fails, only files whose
+identity belongs to that transaction are removed.
 
 The UI result retains ComfyUI's normal image record shape:
 `filename`, output-root-relative `subfolder`, and `type: output`.
