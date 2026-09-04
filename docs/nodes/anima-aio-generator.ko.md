@@ -106,12 +106,19 @@ quality`로 화질과 파일 크기의 균형을 조절합니다. lossless 모�
 
 저장 메타데이터의 `Steps`, `CFG`, `Sampler`, `Scheduler`, `Seed`, `Denoise`는
 1차 샘플러 값을 사용합니다. `Size`는 Highres와 Detailer 이후의 최종 해상도를
-사용합니다. EasyUse는 로컬에서 확인된 diffusion model과 실제 적용된
-`lora_stack` 파일을 메모리에서 SHA-256으로 계산하여 Civitai 호환 short hash를
-저장하며, 모델 파일 옆에는 hash cache 파일을 만들지 않습니다. 수동 hash
-bundle도 계속 지원합니다. `Civitai data`는 기본적으로 꺼져 있으며, 명시적으로
-켜면 고정된 `https://civitai.com/api/v1` endpoint로 로컬 hash 정보를 보강합니다.
-조회에 실패해도 이미지 저장은 계속됩니다. Civitai Hash Fetcher 항목도 username,
+사용합니다. EasyUse는 로컬에서 확인된 diffusion model, 실제 적용된
+`lora_stack`, 양쪽 prompt의 `embedding:name` 참조를 SHA-256으로 계산합니다.
+embedding 하위 폴더와 `(embedding:name:0.8)` 가중치를 지원하며, 존재하지 않거나
+안전하지 않거나 이름이 모호한 항목은 건너뜁니다.
+
+SHA-256 결과는 메모리 cache와 ComfyUI user-data 폴더 내부의 제한된 원자적
+cache를 사용하고, cache가 없는 파일은 계산 진행률을 표시합니다. 모델, LoRA,
+embedding 파일 옆에는 cache 파일을 만들지 않습니다. 로컬 hash는 A1111 호환
+길이로 줄이지만 검증된 수동 hash 값은 그대로 보존하며, 로컬 `model` hash를
+덮어쓸 수 없습니다. `Civitai data`는 기본적으로 꺼져 있으며, 명시적으로 켜면
+고정된 `https://civitai.com/api/v1` endpoint로 로컬 및 수동 hash 정보를
+보강합니다. 짧은 hash는 응답 파일의 hash와 정확히 일치할 때만 사용합니다.
+조회 실패는 이미지 저장을 막지 않습니다. Civitai Hash Fetcher 항목도 username,
 model name, version을 사용해 `model_name:AutoV3` 항목을 추가합니다.
 
 ## 필요 노드팩

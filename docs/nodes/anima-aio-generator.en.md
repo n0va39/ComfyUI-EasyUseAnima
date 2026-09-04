@@ -109,14 +109,21 @@ values supplied to the saver.
 
 Saved metadata uses first-pass sampler values for `Steps`, `CFG`, `Sampler`,
 `Scheduler`, `Seed`, and `Denoise`. `Size` uses the final image resolution after
-Highres and Detailer. EasyUse hashes the locally resolved diffusion model and
-applied `lora_stack` files with SHA-256 in memory, writes their Civitai-compatible
-short hashes, and never creates cache files beside model files. Manual hash
-bundles remain supported. `Civitai data` is disabled by default; explicitly
-enable it to enrich those local hashes through fixed
-`https://civitai.com/api/v1` endpoints. Failures are logged and do not block
-image saving. Civitai Hash Fetcher rows likewise store username, model name,
-and version and add `model_name:AutoV3` entries.
+Highres and Detailer. EasyUse hashes the locally resolved diffusion model,
+applied `lora_stack` files, and `embedding:name` references in either prompt.
+Embedding subdirectories and `(embedding:name:0.8)` attention weights are
+supported; missing, unsafe, or ambiguous inventory names are skipped.
+
+SHA-256 results use an in-memory cache plus a bounded, atomic cache under the
+ComfyUI user-data directory, with progress shown for uncached files. EasyUse
+never creates cache files beside model resources. Locally calculated hashes are
+shortened for A1111 compatibility; validated manual hash values are preserved
+and cannot replace the locally owned `model` hash. `Civitai data` is disabled by
+default; explicitly enable it to enrich local and manual hashes through fixed
+`https://civitai.com/api/v1` endpoints. A short-hash result is accepted only
+when the response contains an exact matching file hash. Failures are logged and
+do not block image saving. Civitai Hash Fetcher rows likewise store username,
+model name, and version and add `model_name:AutoV3` entries.
 
 ## Required Node Packs
 

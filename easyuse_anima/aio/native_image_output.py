@@ -2,17 +2,14 @@
 
 from __future__ import annotations
 
-import hashlib
 import json
 import logging
-import math
 import os
 import re
 import tempfile
 import threading
 from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass
-from functools import lru_cache
 from pathlib import Path, PurePosixPath, PureWindowsPath
 from types import MappingProxyType
 from typing import cast
@@ -20,19 +17,24 @@ from typing import cast
 from .native_civitai import (
     _fetch_civitai_autov3_hash as _fetch_civitai_autov3_hash,
 )
-from .native_civitai import _fetch_civitai_resource_by_hash
+from .native_civitai import (
+    _fetch_civitai_resource_by_hash,
+)
+from .native_resource_hashes import (
+    _EMBEDDING_RE,
+    _HEX_HASH_RE,
+    _local_resource_hashes,
+    _manual_resource_hashes,
+    _resource_name,
+    _ResourceHash,
+)
 
 logger = logging.getLogger("ComfyUI-EasyUseAnima")
 
 _JPEG_EXIF_LIMIT = 65_000
 _MAX_REMOTE_RESOURCES = 32
-_MAX_MANUAL_HASHES = 30
-_MAX_MANUAL_HASH_TEXT = 8_192
 _USER_COMMENT_PREFIX = b"UNICODE\0"
 _LORA_TAG_RE = re.compile(r"<lora:([^>:]+)(?::([^>]+))?>", re.IGNORECASE)
-_EMBEDDING_RE = re.compile(r"embedding:([^,\s()]+)", re.IGNORECASE)
-_SAFE_HASH_RE = re.compile(r"^[A-Za-z0-9_-]{1,128}$")
-_HEX_HASH_RE = re.compile(r"^[0-9A-Fa-f]{8,128}$")
 _CONTROL_RE = re.compile(r"[\x00-\x1f\x7f]")
 _SAVE_LOCK = threading.Lock()
 
@@ -56,19 +58,6 @@ class NativeImageMetadata:
 
 
 @dataclass(frozen=True, slots=True)
-class _ResourceHash:
-    display_name: str
-    metadata_key: str
-    path: Path | None
-    sha256: str
-    weight: float | None = None
-
-    @property
-    def short_hash(self) -> str:
-        return self.sha256[:10]
-
-
-@dataclass(frozen=True, slots=True)
 class _SerializedMetadata:
     pnginfo: object | None
     exif_bytes: bytes | None
@@ -83,207 +72,6 @@ def _compact_json(value: object, *, ascii_only: bool) -> str:
         ensure_ascii=ascii_only,
         separators=(",", ":"),
     )
-
-
-def _supported_model_extensions() -> set[str]:
-    try:
-        import folder_paths  # type: ignore
-
-        return set(getattr(folder_paths, "supported_pt_extensions", ())) | {".gguf"}
-    except Exception:
-        return {".safetensors", ".pt", ".ckpt", ".bin", ".pth", ".gguf"}
-
-
-def _resource_name(value: str) -> str:
-    filename = str(value or "").strip().replace("\\", "/").strip("/").rsplit("/", 1)[-1]
-    stem, extension = os.path.splitext(filename)
-    return stem if extension.casefold() in _supported_model_extensions() else filename
-
-
-def _lora_metadata_name(value: str) -> str:
-    normalized = str(value or "").strip().replace("\\", "/").strip("/")
-    stem, extension = os.path.splitext(normalized)
-    return stem if extension.casefold() in _supported_model_extensions() else normalized
-
-
-def _resolve_resource_path(folder_names: Sequence[str], name: str) -> Path | None:
-    if not str(name or "").strip():
-        return None
-    try:
-        import folder_paths  # type: ignore
-    except Exception:
-        return None
-
-    get_full_path = getattr(folder_paths, "get_full_path", None)
-    if not callable(get_full_path):
-        return None
-    for folder_name in folder_names:
-        try:
-            value = get_full_path(folder_name, name)
-        except Exception as exc:
-            logger.warning(
-                "[EasyUseAnima] Could not resolve %s resource %r: %s",
-                folder_name,
-                name,
-                exc,
-            )
-            continue
-        if not value:
-            continue
-        path = Path(str(value)).resolve(strict=False)
-        if path.is_file():
-            return path
-    return None
-
-
-@lru_cache(maxsize=128)
-def _hash_file_revision(path_text: str, size: int, modified_ns: int) -> str:
-    del size, modified_ns
-    digest = hashlib.sha256()
-    with Path(path_text).open("rb") as handle:
-        for block in iter(lambda: handle.read(1024 * 1024), b""):
-            digest.update(block)
-    return digest.hexdigest()
-
-
-def _hash_file(path: Path) -> str:
-    stat = path.stat()
-    return _hash_file_revision(str(path), stat.st_size, stat.st_mtime_ns)
-
-
-def _local_resource_hashes(
-    modelname: str,
-    applied_loras: object,
-) -> list[_ResourceHash]:
-    resources: list[_ResourceHash] = []
-    model_path = _resolve_resource_path(("diffusion_models", "checkpoints"), modelname)
-    if model_path is not None:
-        try:
-            resources.append(
-                _ResourceHash(
-                    display_name=_resource_name(modelname),
-                    metadata_key="model",
-                    path=model_path,
-                    sha256=_hash_file(model_path),
-                )
-            )
-        except OSError as exc:
-            logger.warning(
-                "[EasyUseAnima] Could not hash model %r; continuing without its hash: %s",
-                modelname,
-                exc,
-            )
-
-    values = applied_loras if isinstance(applied_loras, (list, tuple)) else ()
-    seen_names: set[str] = set()
-    for item in values:
-        if not isinstance(item, Mapping):
-            continue
-        source_name = str(item.get("name") or "").strip()
-        metadata_name = _lora_metadata_name(source_name)
-        if not metadata_name or metadata_name.casefold() in seen_names:
-            continue
-        seen_names.add(metadata_name.casefold())
-        lora_path = _resolve_resource_path(("loras",), source_name)
-        if lora_path is None:
-            logger.warning(
-                "[EasyUseAnima] Could not locate LoRA %r; continuing without its Civitai hash.",
-                source_name,
-            )
-            continue
-        try:
-            strength = float(item.get("strength_model", 1.0))
-        except (TypeError, ValueError):
-            strength = 1.0
-        if not math.isfinite(strength):
-            strength = 1.0
-        try:
-            sha256 = _hash_file(lora_path)
-        except OSError as exc:
-            logger.warning(
-                "[EasyUseAnima] Could not hash LoRA %r; continuing without its hash: %s",
-                source_name,
-                exc,
-            )
-            continue
-        resources.append(
-            _ResourceHash(
-                display_name=metadata_name,
-                metadata_key=f"LORA:{metadata_name}",
-                path=lora_path,
-                sha256=sha256,
-                weight=strength,
-            )
-        )
-    return resources
-
-
-def _manual_resource_hashes(value: str) -> list[_ResourceHash]:
-    text = str(value or "")[:_MAX_MANUAL_HASH_TEXT]
-    resources: list[_ResourceHash] = []
-    unnamed_index = 0
-    seen_hashes: set[str] = set()
-    for raw_entry in text.replace("\r", "\n").replace("\n", ",").split(","):
-        entry = raw_entry.strip()
-        if not entry:
-            continue
-        pieces = [part.strip() for part in entry.split(":")]
-        if not all(pieces):
-            logger.warning("[EasyUseAnima] Skipping malformed additional Civitai hash entry: %r", entry)
-            continue
-        if len(pieces) > 3:
-            logger.warning("[EasyUseAnima] Skipping ambiguous additional Civitai hash entry: %r", entry)
-            continue
-        weight: float | None = None
-        if len(pieces) == 3:
-            try:
-                weight = float(pieces[-1])
-            except ValueError:
-                logger.warning("[EasyUseAnima] Skipping ambiguous additional Civitai hash entry: %r", entry)
-                continue
-            if not math.isfinite(weight):
-                logger.warning("[EasyUseAnima] Skipping non-finite additional Civitai hash weight: %r", entry)
-                continue
-            name, hash_value = pieces[0], pieces[1]
-        elif len(pieces) == 2:
-            first, second = pieces
-            try:
-                shorthand_weight = float(second)
-            except ValueError:
-                shorthand_weight = None
-            if shorthand_weight is not None and _HEX_HASH_RE.fullmatch(first):
-                if not math.isfinite(shorthand_weight):
-                    logger.warning("[EasyUseAnima] Skipping non-finite additional Civitai hash weight: %r", entry)
-                    continue
-                unnamed_index += 1
-                name = f"manual{unnamed_index}"
-                hash_value = first
-                weight = shorthand_weight
-            else:
-                name, hash_value = first, second
-        else:
-            unnamed_index += 1
-            name = f"manual{unnamed_index}"
-            hash_value = pieces[0]
-        if not name or _CONTROL_RE.search(name) or not _SAFE_HASH_RE.fullmatch(hash_value):
-            logger.warning("[EasyUseAnima] Skipping invalid additional Civitai hash entry: %r", entry)
-            continue
-        normalized_hash = hash_value.casefold()
-        if normalized_hash in seen_hashes:
-            continue
-        seen_hashes.add(normalized_hash)
-        resources.append(
-            _ResourceHash(
-                display_name=name,
-                metadata_key=name,
-                path=None,
-                sha256=hash_value,
-                weight=weight,
-            )
-        )
-        if len(resources) >= _MAX_MANUAL_HASHES:
-            break
-    return resources
 
 
 def _clean_prompt_for_remix(prompt: str) -> str:
@@ -313,9 +101,20 @@ def _civitai_resource_entries(
     resources: Sequence[_ResourceHash],
 ) -> list[dict[str, str | float | int]]:
     entries: list[dict[str, str | float | int]] = []
-    for resource in resources[:_MAX_REMOTE_RESOURCES]:
-        if len(resource.sha256) != 64:
+    seen_hashes: set[str] = set()
+    seen_identifiers: set[str] = set()
+    attempts = 0
+    for resource in resources:
+        normalized_hash = resource.sha256.casefold()
+        if (
+            not _HEX_HASH_RE.fullmatch(normalized_hash)
+            or normalized_hash in seen_hashes
+        ):
             continue
+        if attempts >= _MAX_REMOTE_RESOURCES:
+            break
+        seen_hashes.add(normalized_hash)
+        attempts += 1
         descriptor = _fetch_civitai_resource_by_hash(resource.sha256)
         if descriptor is None:
             continue
@@ -328,9 +127,14 @@ def _civitai_resource_entries(
             entry["weight"] = resource.weight
         if descriptor.air:
             entry["air"] = descriptor.air
+            identifier = f"air:{descriptor.air.casefold()}"
         elif descriptor.model_version_id is not None:
             entry["modelVersionId"] = descriptor.model_version_id
-        if "air" in entry or "modelVersionId" in entry:
+            identifier = f"version:{descriptor.model_version_id}"
+        else:
+            continue
+        if identifier not in seen_identifiers:
+            seen_identifiers.add(identifier)
             entries.append(entry)
     return entries
 
@@ -355,26 +159,44 @@ def _build_native_metadata(
     download_civitai_data: bool,
     easy_remix: bool,
 ) -> NativeImageMetadata:
-    local_resources = _local_resource_hashes(modelname, applied_loras)
+    local_resources = _local_resource_hashes(
+        modelname,
+        applied_loras,
+        (positive, negative),
+    )
     manual_resources = _manual_resource_hashes(additional_hashes)
     resources = [*local_resources, *manual_resources]
 
     hashes: dict[str, str] = {}
     final_parts: list[str] = []
     seen_hashes: set[str] = set()
+    seen_metadata_keys: set[str] = set()
     for resource in resources:
-        short_hash = resource.short_hash
-        normalized_hash = short_hash.casefold()
-        if not short_hash or normalized_hash in seen_hashes:
+        metadata_hash = resource.metadata_hash
+        normalized_hash = resource.sha256.casefold()
+        normalized_key = resource.metadata_key.casefold()
+        if (
+            not metadata_hash
+            or normalized_hash in seen_hashes
+            or normalized_key in seen_metadata_keys
+        ):
+            if normalized_key in seen_metadata_keys and resource.preserve_hash:
+                logger.warning(
+                    "[EasyUseAnima] Skipping manual hash %r because that metadata key "
+                    "was already emitted; verified local resources and the first "
+                    "manual entry take precedence.",
+                    resource.metadata_key,
+                )
             continue
         seen_hashes.add(normalized_hash)
-        hashes[resource.metadata_key] = short_hash
+        seen_metadata_keys.add(normalized_key)
+        hashes[resource.metadata_key] = metadata_hash
         weight = (
             f":{resource.weight:g}"
             if resource.weight is not None
             else ""
         )
-        final_parts.append(f"{resource.display_name}:{short_hash}{weight}")
+        final_parts.append(f"{resource.display_name}:{metadata_hash}{weight}")
 
     model_hash = hashes.get("model", "")
     visible_positive = (
@@ -406,7 +228,7 @@ def _build_native_metadata(
         fields.append(f"Hashes: {_compact_json(hashes, ascii_only=False)}")
     fields.append("Version: ComfyUI")
     if download_civitai_data:
-        civitai_resources = _civitai_resource_entries(local_resources)
+        civitai_resources = _civitai_resource_entries(resources)
         if civitai_resources:
             fields.append(
                 f"Civitai resources: {_compact_json(civitai_resources, ascii_only=False)}"

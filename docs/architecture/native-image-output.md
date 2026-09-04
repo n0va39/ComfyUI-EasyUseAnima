@@ -41,12 +41,26 @@ denoising strength when applicable, clip skip, custom text, model name, model
 hash, resource hashes, optional Civitai resource identifiers, and
 `Version: ComfyUI`.
 
-The selected diffusion model and applied LoRAs are resolved only through
-ComfyUI's model inventory. SHA-256 values are cached in memory by resolved path,
-size, and modification time; no cache file is written beside a model. The
-first ten hash characters are written in the A1111/Civitai-compatible fields.
-Manual hash and hash-bundle settings remain supported without accepting file
-paths.
+The selected diffusion model, applied LoRAs, and `embedding:name` references in
+the positive or negative prompt are resolved only through ComfyUI's model
+inventory. Embedding subdirectories are supported; an extension may be omitted,
+but an ambiguous basename or path-like value containing traversal components is
+not hashed. ComfyUI's prompt parser supplies embedding attention weights, such
+as `0.8` in `(embedding:styles/example:0.8)`.
+
+SHA-256 values keep a 128-entry process cache and a bounded cross-session cache
+at `easyuse_anima/cache/resource-hashes.v1.json` under ComfyUI's user-data
+directory. Cache keys contain an opaque digest of the resolved path rather than
+the path itself. A hit must match size, modification/change timestamps, device,
+and file identity; uncached reads report byte progress through ComfyUI. Cache
+files are size/schema validated and atomically replaced. Corruption or write
+failure causes a safe recomputation, and no cache file is written beside a
+model, LoRA, or embedding.
+
+Locally calculated SHA-256 values use the first ten characters in the
+A1111/Civitai-compatible fields. Manual hash and hash-bundle settings preserve
+the supplied validated value, do not accept file paths, and cannot claim the
+reserved locally owned `model` key.
 
 Local hashes do not require network access. `Civitai data` is disabled by
 default; explicitly enabling it adds remote resource descriptors, and enabled
@@ -57,8 +71,10 @@ Civitai Hash Fetcher rows resolve an AutoV3 value. Both paths use fixed
 - redirects are disabled and normal TLS verification remains enabled;
 - connect/read timeouts are bounded;
 - response bodies are streamed with a 2 MiB hard limit;
-- one save performs remote enrichment for at most 32 local resources and processes at most 32 enabled hash-fetcher rows;
+- one save performs remote enrichment for at most 32 distinct local or manual resources and processes at most 32 enabled hash-fetcher rows;
 - remote names and identifiers are length/control-character validated;
+- a by-hash response is accepted only when one returned file contains an exact
+  match for the requested full or short hexadecimal hash;
 - successful lookups cache only a small validated hash string or descriptor in memory;
 - transport, HTTP, size, and parse failures are logged as metadata misses and
   never block image saving.

@@ -9034,7 +9034,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 59
+            "line": 80
           }
         ],
         "classification": "external",
@@ -9042,7 +9042,7 @@
         "conditional": true,
         "imported": "requests",
         "kind": "static_import",
-        "line": 60,
+        "line": 81,
         "name": null,
         "optional": true,
         "requested": "requests",
@@ -9069,23 +9069,6 @@
       },
       {
         "alias": null,
-        "bound_name": "hashlib",
-        "branch_context": [],
-        "classification": "external",
-        "column": 0,
-        "conditional": false,
-        "imported": "hashlib",
-        "kind": "static_import",
-        "line": 5,
-        "name": null,
-        "optional": false,
-        "requested": "hashlib",
-        "role": "ordinary",
-        "scope": "<module>",
-        "source": "easyuse_anima/aio/native_image_output.py"
-      },
-      {
-        "alias": null,
         "bound_name": "json",
         "branch_context": [],
         "classification": "external",
@@ -9093,7 +9076,7 @@
         "conditional": false,
         "imported": "json",
         "kind": "static_import",
-        "line": 6,
+        "line": 5,
         "name": null,
         "optional": false,
         "requested": "json",
@@ -9110,27 +9093,10 @@
         "conditional": false,
         "imported": "logging",
         "kind": "static_import",
-        "line": 7,
+        "line": 6,
         "name": null,
         "optional": false,
         "requested": "logging",
-        "role": "ordinary",
-        "scope": "<module>",
-        "source": "easyuse_anima/aio/native_image_output.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "math",
-        "branch_context": [],
-        "classification": "external",
-        "column": 0,
-        "conditional": false,
-        "imported": "math",
-        "kind": "static_import",
-        "line": 8,
-        "name": null,
-        "optional": false,
-        "requested": "math",
         "role": "ordinary",
         "scope": "<module>",
         "source": "easyuse_anima/aio/native_image_output.py"
@@ -9144,7 +9110,7 @@
         "conditional": false,
         "imported": "os",
         "kind": "static_import",
-        "line": 9,
+        "line": 7,
         "name": null,
         "optional": false,
         "requested": "os",
@@ -9161,7 +9127,7 @@
         "conditional": false,
         "imported": "re",
         "kind": "static_import",
-        "line": 10,
+        "line": 8,
         "name": null,
         "optional": false,
         "requested": "re",
@@ -9178,7 +9144,7 @@
         "conditional": false,
         "imported": "tempfile",
         "kind": "static_import",
-        "line": 11,
+        "line": 9,
         "name": null,
         "optional": false,
         "requested": "tempfile",
@@ -9195,7 +9161,7 @@
         "conditional": false,
         "imported": "threading",
         "kind": "static_import",
-        "line": 12,
+        "line": 10,
         "name": null,
         "optional": false,
         "requested": "threading",
@@ -9212,7 +9178,7 @@
         "conditional": false,
         "imported": "collections.abc:Iterable",
         "kind": "static_from",
-        "line": 13,
+        "line": 11,
         "name": "Iterable",
         "optional": false,
         "requested": "collections.abc",
@@ -9229,7 +9195,7 @@
         "conditional": false,
         "imported": "collections.abc:Mapping",
         "kind": "static_from",
-        "line": 13,
+        "line": 11,
         "name": "Mapping",
         "optional": false,
         "requested": "collections.abc",
@@ -9246,7 +9212,7 @@
         "conditional": false,
         "imported": "collections.abc:Sequence",
         "kind": "static_from",
-        "line": 13,
+        "line": 11,
         "name": "Sequence",
         "optional": false,
         "requested": "collections.abc",
@@ -9263,27 +9229,10 @@
         "conditional": false,
         "imported": "dataclasses:dataclass",
         "kind": "static_from",
-        "line": 14,
+        "line": 12,
         "name": "dataclass",
         "optional": false,
         "requested": "dataclasses",
-        "role": "ordinary",
-        "scope": "<module>",
-        "source": "easyuse_anima/aio/native_image_output.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "lru_cache",
-        "branch_context": [],
-        "classification": "external",
-        "column": 0,
-        "conditional": false,
-        "imported": "functools:lru_cache",
-        "kind": "static_from",
-        "line": 15,
-        "name": "lru_cache",
-        "optional": false,
-        "requested": "functools",
         "role": "ordinary",
         "scope": "<module>",
         "source": "easyuse_anima/aio/native_image_output.py"
@@ -9297,7 +9246,7 @@
         "conditional": false,
         "imported": "pathlib:Path",
         "kind": "static_from",
-        "line": 16,
+        "line": 13,
         "name": "Path",
         "optional": false,
         "requested": "pathlib",
@@ -9314,7 +9263,7 @@
         "conditional": false,
         "imported": "pathlib:PurePosixPath",
         "kind": "static_from",
-        "line": 16,
+        "line": 13,
         "name": "PurePosixPath",
         "optional": false,
         "requested": "pathlib",
@@ -9331,7 +9280,7 @@
         "conditional": false,
         "imported": "pathlib:PureWindowsPath",
         "kind": "static_from",
-        "line": 16,
+        "line": 13,
         "name": "PureWindowsPath",
         "optional": false,
         "requested": "pathlib",
@@ -9348,7 +9297,7 @@
         "conditional": false,
         "imported": "types:MappingProxyType",
         "kind": "static_from",
-        "line": 17,
+        "line": 14,
         "name": "MappingProxyType",
         "optional": false,
         "requested": "types",
@@ -9365,7 +9314,7 @@
         "conditional": false,
         "imported": "typing:cast",
         "kind": "static_from",
-        "line": 18,
+        "line": 15,
         "name": "cast",
         "optional": false,
         "requested": "typing",
@@ -9382,7 +9331,7 @@
         "conditional": false,
         "imported": ".native_civitai:_fetch_civitai_autov3_hash",
         "kind": "static_from",
-        "line": 20,
+        "line": 17,
         "name": "_fetch_civitai_autov3_hash",
         "optional": false,
         "requested": ".native_civitai",
@@ -9400,7 +9349,7 @@
         "conditional": false,
         "imported": ".native_civitai:_fetch_civitai_resource_by_hash",
         "kind": "static_from",
-        "line": 23,
+        "line": 20,
         "name": "_fetch_civitai_resource_by_hash",
         "optional": false,
         "requested": ".native_civitai",
@@ -9411,53 +9360,111 @@
       },
       {
         "alias": null,
-        "bound_name": "folder_paths",
-        "branch_context": [
-          {
-            "branch": "body",
-            "handles_import_failure": true,
-            "has_import_fallback_handler": false,
-            "kind": "try",
-            "line": 89
-          }
-        ],
-        "classification": "external",
-        "column": 8,
-        "conditional": true,
-        "imported": "folder_paths",
-        "kind": "static_import",
-        "line": 90,
-        "name": null,
-        "optional": true,
-        "requested": "folder_paths",
-        "role": "optional_dependency",
-        "scope": "_supported_model_extensions",
-        "source": "easyuse_anima/aio/native_image_output.py"
+        "bound_name": "_EMBEDDING_RE",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".native_resource_hashes:_EMBEDDING_RE",
+        "kind": "static_from",
+        "line": 23,
+        "name": "_EMBEDDING_RE",
+        "optional": false,
+        "requested": ".native_resource_hashes",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/native_image_output.py",
+        "target": "easyuse_anima/aio/native_resource_hashes.py"
       },
       {
         "alias": null,
-        "bound_name": "folder_paths",
-        "branch_context": [
-          {
-            "branch": "body",
-            "handles_import_failure": true,
-            "has_import_fallback_handler": false,
-            "kind": "try",
-            "line": 112
-          }
-        ],
-        "classification": "external",
-        "column": 8,
-        "conditional": true,
-        "imported": "folder_paths",
-        "kind": "static_import",
-        "line": 113,
-        "name": null,
-        "optional": true,
-        "requested": "folder_paths",
-        "role": "optional_dependency",
-        "scope": "_resolve_resource_path",
-        "source": "easyuse_anima/aio/native_image_output.py"
+        "bound_name": "_HEX_HASH_RE",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".native_resource_hashes:_HEX_HASH_RE",
+        "kind": "static_from",
+        "line": 23,
+        "name": "_HEX_HASH_RE",
+        "optional": false,
+        "requested": ".native_resource_hashes",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/native_image_output.py",
+        "target": "easyuse_anima/aio/native_resource_hashes.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "_ResourceHash",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".native_resource_hashes:_ResourceHash",
+        "kind": "static_from",
+        "line": 23,
+        "name": "_ResourceHash",
+        "optional": false,
+        "requested": ".native_resource_hashes",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/native_image_output.py",
+        "target": "easyuse_anima/aio/native_resource_hashes.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "_local_resource_hashes",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".native_resource_hashes:_local_resource_hashes",
+        "kind": "static_from",
+        "line": 23,
+        "name": "_local_resource_hashes",
+        "optional": false,
+        "requested": ".native_resource_hashes",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/native_image_output.py",
+        "target": "easyuse_anima/aio/native_resource_hashes.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "_manual_resource_hashes",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".native_resource_hashes:_manual_resource_hashes",
+        "kind": "static_from",
+        "line": 23,
+        "name": "_manual_resource_hashes",
+        "optional": false,
+        "requested": ".native_resource_hashes",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/native_image_output.py",
+        "target": "easyuse_anima/aio/native_resource_hashes.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "_resource_name",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".native_resource_hashes:_resource_name",
+        "kind": "static_from",
+        "line": 23,
+        "name": "_resource_name",
+        "optional": false,
+        "requested": ".native_resource_hashes",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/native_image_output.py",
+        "target": "easyuse_anima/aio/native_resource_hashes.py"
       },
       {
         "alias": null,
@@ -9468,7 +9475,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 423
+            "line": 245
           }
         ],
         "classification": "external",
@@ -9476,7 +9483,7 @@
         "conditional": true,
         "imported": "comfy.cli_args:args",
         "kind": "static_from",
-        "line": 424,
+        "line": 246,
         "name": "args",
         "optional": true,
         "requested": "comfy.cli_args",
@@ -9493,7 +9500,7 @@
         "conditional": false,
         "imported": "PIL:ExifTags",
         "kind": "static_from",
-        "line": 440,
+        "line": 262,
         "name": "ExifTags",
         "optional": false,
         "requested": "PIL",
@@ -9510,7 +9517,7 @@
         "conditional": false,
         "imported": "PIL:Image",
         "kind": "static_from",
-        "line": 440,
+        "line": 262,
         "name": "Image",
         "optional": false,
         "requested": "PIL",
@@ -9525,7 +9532,7 @@
           {
             "branch": "body",
             "kind": "if",
-            "line": 495,
+            "line": 317,
             "type_checking": false
           }
         ],
@@ -9534,7 +9541,7 @@
         "conditional": true,
         "imported": "PIL.PngImagePlugin:PngInfo",
         "kind": "static_from",
-        "line": 496,
+        "line": 318,
         "name": "PngInfo",
         "optional": false,
         "requested": "PIL.PngImagePlugin",
@@ -9551,7 +9558,7 @@
         "conditional": false,
         "imported": "numpy",
         "kind": "static_import",
-        "line": 525,
+        "line": 347,
         "name": null,
         "optional": false,
         "requested": "numpy",
@@ -9568,13 +9575,519 @@
         "conditional": false,
         "imported": "PIL:Image",
         "kind": "static_from",
-        "line": 526,
+        "line": 348,
         "name": "Image",
         "optional": false,
         "requested": "PIL",
         "role": "ordinary",
         "scope": "_tensor_to_pil",
         "source": "easyuse_anima/aio/native_image_output.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "annotations",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "__future__:annotations",
+        "kind": "static_from",
+        "line": 3,
+        "name": "annotations",
+        "optional": false,
+        "requested": "__future__",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/native_resource_hashes.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "hashlib",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "hashlib",
+        "kind": "static_import",
+        "line": 5,
+        "name": null,
+        "optional": false,
+        "requested": "hashlib",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/native_resource_hashes.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "json",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "json",
+        "kind": "static_import",
+        "line": 6,
+        "name": null,
+        "optional": false,
+        "requested": "json",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/native_resource_hashes.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "logging",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "logging",
+        "kind": "static_import",
+        "line": 7,
+        "name": null,
+        "optional": false,
+        "requested": "logging",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/native_resource_hashes.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "math",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "math",
+        "kind": "static_import",
+        "line": 8,
+        "name": null,
+        "optional": false,
+        "requested": "math",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/native_resource_hashes.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "os",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "os",
+        "kind": "static_import",
+        "line": 9,
+        "name": null,
+        "optional": false,
+        "requested": "os",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/native_resource_hashes.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "re",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "re",
+        "kind": "static_import",
+        "line": 10,
+        "name": null,
+        "optional": false,
+        "requested": "re",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/native_resource_hashes.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "tempfile",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "tempfile",
+        "kind": "static_import",
+        "line": 11,
+        "name": null,
+        "optional": false,
+        "requested": "tempfile",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/native_resource_hashes.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "threading",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "threading",
+        "kind": "static_import",
+        "line": 12,
+        "name": null,
+        "optional": false,
+        "requested": "threading",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/native_resource_hashes.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "Iterable",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "collections.abc:Iterable",
+        "kind": "static_from",
+        "line": 13,
+        "name": "Iterable",
+        "optional": false,
+        "requested": "collections.abc",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/native_resource_hashes.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "Mapping",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "collections.abc:Mapping",
+        "kind": "static_from",
+        "line": 13,
+        "name": "Mapping",
+        "optional": false,
+        "requested": "collections.abc",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/native_resource_hashes.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "Sequence",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "collections.abc:Sequence",
+        "kind": "static_from",
+        "line": 13,
+        "name": "Sequence",
+        "optional": false,
+        "requested": "collections.abc",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/native_resource_hashes.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "dataclass",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "dataclasses:dataclass",
+        "kind": "static_from",
+        "line": 14,
+        "name": "dataclass",
+        "optional": false,
+        "requested": "dataclasses",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/native_resource_hashes.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "lru_cache",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "functools:lru_cache",
+        "kind": "static_from",
+        "line": 15,
+        "name": "lru_cache",
+        "optional": false,
+        "requested": "functools",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/native_resource_hashes.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "Path",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "pathlib:Path",
+        "kind": "static_from",
+        "line": 16,
+        "name": "Path",
+        "optional": false,
+        "requested": "pathlib",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/native_resource_hashes.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "PurePosixPath",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "pathlib:PurePosixPath",
+        "kind": "static_from",
+        "line": 16,
+        "name": "PurePosixPath",
+        "optional": false,
+        "requested": "pathlib",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/native_resource_hashes.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "PureWindowsPath",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "pathlib:PureWindowsPath",
+        "kind": "static_from",
+        "line": 16,
+        "name": "PureWindowsPath",
+        "optional": false,
+        "requested": "pathlib",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/native_resource_hashes.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "cast",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "typing:cast",
+        "kind": "static_from",
+        "line": 17,
+        "name": "cast",
+        "optional": false,
+        "requested": "typing",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/native_resource_hashes.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "folder_paths",
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": false,
+            "kind": "try",
+            "line": 53
+          }
+        ],
+        "classification": "external",
+        "column": 8,
+        "conditional": true,
+        "imported": "folder_paths",
+        "kind": "static_import",
+        "line": 54,
+        "name": null,
+        "optional": true,
+        "requested": "folder_paths",
+        "role": "optional_dependency",
+        "scope": "_supported_model_extensions",
+        "source": "easyuse_anima/aio/native_resource_hashes.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "folder_paths",
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": false,
+            "kind": "try",
+            "line": 76
+          }
+        ],
+        "classification": "external",
+        "column": 8,
+        "conditional": true,
+        "imported": "folder_paths",
+        "kind": "static_import",
+        "line": 77,
+        "name": null,
+        "optional": true,
+        "requested": "folder_paths",
+        "role": "optional_dependency",
+        "scope": "_resolve_resource_path",
+        "source": "easyuse_anima/aio/native_resource_hashes.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "folder_paths",
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": false,
+            "kind": "try",
+            "line": 104
+          }
+        ],
+        "classification": "external",
+        "column": 8,
+        "conditional": true,
+        "imported": "folder_paths",
+        "kind": "static_import",
+        "line": 105,
+        "name": null,
+        "optional": true,
+        "requested": "folder_paths",
+        "role": "optional_dependency",
+        "scope": "_hash_cache_path",
+        "source": "easyuse_anima/aio/native_resource_hashes.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "ProgressBar",
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": false,
+            "kind": "try",
+            "line": 224
+          }
+        ],
+        "classification": "external",
+        "column": 8,
+        "conditional": true,
+        "imported": "comfy.utils:ProgressBar",
+        "kind": "static_from",
+        "line": 225,
+        "name": "ProgressBar",
+        "optional": true,
+        "requested": "comfy.utils",
+        "role": "optional_dependency",
+        "scope": "_new_hash_progress",
+        "source": "easyuse_anima/aio/native_resource_hashes.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "folder_paths",
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": false,
+            "kind": "try",
+            "line": 391
+          }
+        ],
+        "classification": "external",
+        "column": 8,
+        "conditional": true,
+        "imported": "folder_paths",
+        "kind": "static_import",
+        "line": 392,
+        "name": null,
+        "optional": true,
+        "requested": "folder_paths",
+        "role": "optional_dependency",
+        "scope": "_inventory_resource_name",
+        "source": "easyuse_anima/aio/native_resource_hashes.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "escape_important",
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": false,
+            "kind": "try",
+            "line": 444
+          }
+        ],
+        "classification": "external",
+        "column": 8,
+        "conditional": true,
+        "imported": "comfy.sd1_clip:escape_important",
+        "kind": "static_from",
+        "line": 445,
+        "name": "escape_important",
+        "optional": true,
+        "requested": "comfy.sd1_clip",
+        "role": "optional_dependency",
+        "scope": "_weighted_prompt_segments",
+        "source": "easyuse_anima/aio/native_resource_hashes.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "token_weights",
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": false,
+            "kind": "try",
+            "line": 444
+          }
+        ],
+        "classification": "external",
+        "column": 8,
+        "conditional": true,
+        "imported": "comfy.sd1_clip:token_weights",
+        "kind": "static_from",
+        "line": 445,
+        "name": "token_weights",
+        "optional": true,
+        "requested": "comfy.sd1_clip",
+        "role": "optional_dependency",
+        "scope": "_weighted_prompt_segments",
+        "source": "easyuse_anima/aio/native_resource_hashes.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "unescape_important",
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": false,
+            "kind": "try",
+            "line": 444
+          }
+        ],
+        "classification": "external",
+        "column": 8,
+        "conditional": true,
+        "imported": "comfy.sd1_clip:unescape_important",
+        "kind": "static_from",
+        "line": 445,
+        "name": "unescape_important",
+        "optional": true,
+        "requested": "comfy.sd1_clip",
+        "role": "optional_dependency",
+        "scope": "_weighted_prompt_segments",
+        "source": "easyuse_anima/aio/native_resource_hashes.py"
       },
       {
         "alias": null,
@@ -43059,6 +43572,10 @@
         "to": "easyuse_anima/aio/native_civitai.py"
       },
       {
+        "from": "easyuse_anima/aio/native_image_output.py",
+        "to": "easyuse_anima/aio/native_resource_hashes.py"
+      },
+      {
         "from": "easyuse_anima/aio/negpip.py",
         "to": "easyuse_anima/aio/generation_values.py"
       },
@@ -45087,6 +45604,12 @@
       {
         "cyclic": false,
         "modules": [
+          "easyuse_anima/aio/native_resource_hashes.py"
+        ]
+      },
+      {
+        "cyclic": false,
+        "modules": [
           "easyuse_anima/aio/negpip.py"
         ]
       },
@@ -46041,7 +46564,7 @@
     ]
   },
   "inventory": {
-    "module_count": 197,
+    "module_count": 198,
     "modules": [
       {
         "functions": [
@@ -48750,292 +49273,410 @@
         "functions": [
           {
             "async": false,
-            "end_line": 38,
+            "end_line": 40,
             "kind": "function",
-            "line": 32,
+            "line": 34,
             "loc": 7,
             "qualified_name": "_remote_text"
           },
           {
             "async": false,
-            "end_line": 48,
+            "end_line": 50,
             "kind": "function",
-            "line": 41,
+            "line": 43,
             "loc": 8,
             "qualified_name": "_positive_int"
           },
           {
             "async": false,
-            "end_line": 120,
+            "end_line": 69,
             "kind": "function",
-            "line": 51,
+            "line": 53,
+            "loc": 17,
+            "qualified_name": "_response_proves_hash"
+          },
+          {
+            "async": false,
+            "end_line": 141,
+            "kind": "function",
+            "line": 72,
             "loc": 70,
             "qualified_name": "_request_civitai_json"
           },
           {
             "async": false,
-            "end_line": 147,
+            "end_line": 170,
             "kind": "function",
-            "line": 123,
-            "loc": 25,
+            "line": 144,
+            "loc": 27,
             "qualified_name": "_cached_civitai_resource_by_hash"
           },
           {
             "async": false,
-            "end_line": 165,
+            "end_line": 188,
             "kind": "function",
-            "line": 150,
+            "line": 173,
             "loc": 16,
             "qualified_name": "_fetch_civitai_resource_by_hash"
           },
           {
             "async": false,
-            "end_line": 256,
+            "end_line": 279,
             "kind": "function",
-            "line": 168,
+            "line": 191,
             "loc": 89,
             "qualified_name": "_fetch_civitai_autov3_hash"
           }
         ],
         "is_package": false,
-        "loc": 259,
+        "loc": 282,
         "module": "easyuse_anima.aio.native_civitai",
-        "normalized_git_blob_sha1": "c0be61eccc8ba683ff2b4f746da62fed37b4a813",
+        "normalized_git_blob_sha1": "17eede629aa37731c706f801fc5ddd4f7f161d5e",
         "path": "easyuse_anima/aio/native_civitai.py",
         "top_level": {
           "class_count": 1,
-          "function_count": 6,
-          "global_count": 7
+          "function_count": 7,
+          "global_count": 9
         }
       },
       {
         "functions": [
           {
             "async": false,
-            "end_line": 68,
-            "kind": "method",
-            "line": 66,
-            "loc": 3,
-            "qualified_name": "_ResourceHash.short_hash"
-          },
-          {
-            "async": false,
-            "end_line": 85,
+            "end_line": 74,
             "kind": "function",
-            "line": 79,
+            "line": 68,
             "loc": 7,
             "qualified_name": "_compact_json"
           },
           {
             "async": false,
-            "end_line": 94,
+            "end_line": 84,
             "kind": "function",
-            "line": 88,
-            "loc": 7,
-            "qualified_name": "_supported_model_extensions"
-          },
-          {
-            "async": false,
-            "end_line": 100,
-            "kind": "function",
-            "line": 97,
-            "loc": 4,
-            "qualified_name": "_resource_name"
-          },
-          {
-            "async": false,
-            "end_line": 106,
-            "kind": "function",
-            "line": 103,
-            "loc": 4,
-            "qualified_name": "_lora_metadata_name"
-          },
-          {
-            "async": false,
-            "end_line": 136,
-            "kind": "function",
-            "line": 109,
-            "loc": 28,
-            "qualified_name": "_resolve_resource_path"
-          },
-          {
-            "async": false,
-            "end_line": 146,
-            "kind": "function",
-            "line": 139,
-            "loc": 8,
-            "qualified_name": "_hash_file_revision"
-          },
-          {
-            "async": false,
-            "end_line": 151,
-            "kind": "function",
-            "line": 149,
-            "loc": 3,
-            "qualified_name": "_hash_file"
-          },
-          {
-            "async": false,
-            "end_line": 218,
-            "kind": "function",
-            "line": 154,
-            "loc": 65,
-            "qualified_name": "_local_resource_hashes"
-          },
-          {
-            "async": false,
-            "end_line": 286,
-            "kind": "function",
-            "line": 221,
-            "loc": 66,
-            "qualified_name": "_manual_resource_hashes"
-          },
-          {
-            "async": false,
-            "end_line": 296,
-            "kind": "function",
-            "line": 289,
+            "line": 77,
             "loc": 8,
             "qualified_name": "_clean_prompt_for_remix"
           },
           {
             "async": false,
-            "end_line": 294,
+            "end_line": 82,
             "kind": "function",
-            "line": 292,
+            "line": 80,
             "loc": 3,
             "qualified_name": "_clean_prompt_for_remix.simplify_embedding"
           },
           {
             "async": false,
-            "end_line": 309,
+            "end_line": 97,
             "kind": "function",
-            "line": 299,
+            "line": 87,
             "loc": 11,
             "qualified_name": "_civitai_sampler_name"
           },
           {
             "async": false,
-            "end_line": 335,
+            "end_line": 139,
             "kind": "function",
-            "line": 312,
-            "loc": 24,
+            "line": 100,
+            "loc": 40,
             "qualified_name": "_civitai_resource_entries"
           },
           {
             "async": false,
-            "end_line": 419,
+            "end_line": 241,
             "kind": "function",
-            "line": 338,
-            "loc": 82,
+            "line": 142,
+            "loc": 100,
             "qualified_name": "_build_native_metadata"
           },
           {
             "async": false,
-            "end_line": 428,
+            "end_line": 250,
             "kind": "function",
-            "line": 422,
+            "line": 244,
             "loc": 7,
             "qualified_name": "_comfy_metadata_enabled"
           },
           {
             "async": false,
-            "end_line": 432,
+            "end_line": 254,
             "kind": "function",
-            "line": 431,
+            "line": 253,
             "loc": 2,
             "qualified_name": "_encode_user_comment"
           },
           {
             "async": false,
-            "end_line": 452,
+            "end_line": 274,
             "kind": "function",
-            "line": 435,
+            "line": 257,
             "loc": 18,
             "qualified_name": "_build_exif_bytes"
           },
           {
             "async": false,
-            "end_line": 521,
+            "end_line": 343,
             "kind": "function",
-            "line": 455,
+            "line": 277,
             "loc": 67,
             "qualified_name": "_serialize_metadata"
           },
           {
             "async": false,
-            "end_line": 543,
+            "end_line": 365,
             "kind": "function",
-            "line": 524,
+            "line": 346,
             "loc": 20,
             "qualified_name": "_tensor_to_pil"
           },
           {
             "async": false,
-            "end_line": 590,
+            "end_line": 412,
             "kind": "function",
-            "line": 546,
+            "line": 368,
             "loc": 45,
             "qualified_name": "_allocate_filenames"
           },
           {
             "async": false,
-            "end_line": 558,
+            "end_line": 380,
             "kind": "function",
-            "line": 554,
+            "line": 376,
             "loc": 5,
             "qualified_name": "_allocate_filenames.occupied"
           },
           {
             "async": false,
-            "end_line": 608,
+            "end_line": 430,
             "kind": "function",
-            "line": 593,
+            "line": 415,
             "loc": 16,
             "qualified_name": "_atomic_save_image"
           },
           {
             "async": false,
-            "end_line": 623,
+            "end_line": 445,
             "kind": "function",
-            "line": 611,
+            "line": 433,
             "loc": 13,
             "qualified_name": "_atomic_write_text"
           },
           {
             "async": false,
-            "end_line": 660,
+            "end_line": 482,
             "kind": "function",
-            "line": 626,
+            "line": 448,
             "loc": 35,
             "qualified_name": "_resolve_native_output_folder"
           },
           {
             "async": false,
-            "end_line": 683,
+            "end_line": 505,
             "kind": "function",
-            "line": 663,
+            "line": 485,
             "loc": 21,
             "qualified_name": "_image_save_options"
           },
           {
             "async": false,
-            "end_line": 791,
+            "end_line": 613,
             "kind": "function",
-            "line": 686,
+            "line": 508,
             "loc": 106,
             "qualified_name": "_save_native_images"
           }
         ],
         "is_package": false,
-        "loc": 794,
+        "loc": 616,
         "module": "easyuse_anima.aio.native_image_output",
-        "normalized_git_blob_sha1": "9d3891695083f95ac80cd9cd79070141912cae07",
+        "normalized_git_blob_sha1": "667b61622af439d90ba47cd102665ea1e8533fc0",
         "path": "easyuse_anima/aio/native_image_output.py",
         "top_level": {
-          "class_count": 3,
-          "function_count": 24,
-          "global_count": 14
+          "class_count": 2,
+          "function_count": 16,
+          "global_count": 9
+        }
+      },
+      {
+        "functions": [
+          {
+            "async": false,
+            "end_line": 49,
+            "kind": "method",
+            "line": 47,
+            "loc": 3,
+            "qualified_name": "_ResourceHash.metadata_hash"
+          },
+          {
+            "async": false,
+            "end_line": 58,
+            "kind": "function",
+            "line": 52,
+            "loc": 7,
+            "qualified_name": "_supported_model_extensions"
+          },
+          {
+            "async": false,
+            "end_line": 64,
+            "kind": "function",
+            "line": 61,
+            "loc": 4,
+            "qualified_name": "_resource_name"
+          },
+          {
+            "async": false,
+            "end_line": 70,
+            "kind": "function",
+            "line": 67,
+            "loc": 4,
+            "qualified_name": "_lora_metadata_name"
+          },
+          {
+            "async": false,
+            "end_line": 100,
+            "kind": "function",
+            "line": 73,
+            "loc": 28,
+            "qualified_name": "_resolve_resource_path"
+          },
+          {
+            "async": false,
+            "end_line": 122,
+            "kind": "function",
+            "line": 103,
+            "loc": 20,
+            "qualified_name": "_hash_cache_path"
+          },
+          {
+            "async": false,
+            "end_line": 178,
+            "kind": "function",
+            "line": 125,
+            "loc": 54,
+            "qualified_name": "_read_hash_cache"
+          },
+          {
+            "async": false,
+            "end_line": 215,
+            "kind": "function",
+            "line": 181,
+            "loc": 35,
+            "qualified_name": "_atomic_write_hash_cache"
+          },
+          {
+            "async": false,
+            "end_line": 220,
+            "kind": "function",
+            "line": 218,
+            "loc": 3,
+            "qualified_name": "_hash_cache_key"
+          },
+          {
+            "async": false,
+            "end_line": 229,
+            "kind": "function",
+            "line": 223,
+            "loc": 7,
+            "qualified_name": "_new_hash_progress"
+          },
+          {
+            "async": false,
+            "end_line": 239,
+            "kind": "function",
+            "line": 232,
+            "loc": 8,
+            "qualified_name": "_stat_revision"
+          },
+          {
+            "async": false,
+            "end_line": 286,
+            "kind": "function",
+            "line": 242,
+            "loc": 45,
+            "qualified_name": "_calculate_file_sha256"
+          },
+          {
+            "async": false,
+            "end_line": 352,
+            "kind": "function",
+            "line": 289,
+            "loc": 64,
+            "qualified_name": "_hash_file_revision"
+          },
+          {
+            "async": false,
+            "end_line": 358,
+            "kind": "function",
+            "line": 355,
+            "loc": 4,
+            "qualified_name": "_hash_file"
+          },
+          {
+            "async": false,
+            "end_line": 377,
+            "kind": "function",
+            "line": 361,
+            "loc": 17,
+            "qualified_name": "_safe_inventory_name"
+          },
+          {
+            "async": false,
+            "end_line": 384,
+            "kind": "function",
+            "line": 380,
+            "loc": 5,
+            "qualified_name": "_without_supported_extension"
+          },
+          {
+            "async": false,
+            "end_line": 439,
+            "kind": "function",
+            "line": 387,
+            "loc": 53,
+            "qualified_name": "_inventory_resource_name"
+          },
+          {
+            "async": false,
+            "end_line": 464,
+            "kind": "function",
+            "line": 442,
+            "loc": 23,
+            "qualified_name": "_weighted_prompt_segments"
+          },
+          {
+            "async": false,
+            "end_line": 509,
+            "kind": "function",
+            "line": 467,
+            "loc": 43,
+            "qualified_name": "_embedding_resource_hashes"
+          },
+          {
+            "async": false,
+            "end_line": 578,
+            "kind": "function",
+            "line": 512,
+            "loc": 67,
+            "qualified_name": "_local_resource_hashes"
+          },
+          {
+            "async": false,
+            "end_line": 653,
+            "kind": "function",
+            "line": 581,
+            "loc": 73,
+            "qualified_name": "_manual_resource_hashes"
+          }
+        ],
+        "is_package": false,
+        "loc": 656,
+        "module": "easyuse_anima.aio.native_resource_hashes",
+        "normalized_git_blob_sha1": "7bbc99cc120dcb1ead20d12d1cf69f6aa8a527b6",
+        "path": "easyuse_anima/aio/native_resource_hashes.py",
+        "top_level": {
+          "class_count": 1,
+          "function_count": 20,
+          "global_count": 17
         }
       },
       {
@@ -62043,14 +62684,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 59
+            "line": 80
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "requests",
         "kind": "static_import",
-        "line": 60,
+        "line": 81,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/aio/native_civitai.py"
@@ -62070,7 +62711,7 @@
         "branch_context": [],
         "classification": "external",
         "conditional": false,
-        "imported": "hashlib",
+        "imported": "json",
         "kind": "static_import",
         "line": 5,
         "optional": false,
@@ -62081,7 +62722,7 @@
         "branch_context": [],
         "classification": "external",
         "conditional": false,
-        "imported": "json",
+        "imported": "logging",
         "kind": "static_import",
         "line": 6,
         "optional": false,
@@ -62092,7 +62733,7 @@
         "branch_context": [],
         "classification": "external",
         "conditional": false,
-        "imported": "logging",
+        "imported": "os",
         "kind": "static_import",
         "line": 7,
         "optional": false,
@@ -62103,7 +62744,7 @@
         "branch_context": [],
         "classification": "external",
         "conditional": false,
-        "imported": "math",
+        "imported": "re",
         "kind": "static_import",
         "line": 8,
         "optional": false,
@@ -62114,7 +62755,7 @@
         "branch_context": [],
         "classification": "external",
         "conditional": false,
-        "imported": "os",
+        "imported": "tempfile",
         "kind": "static_import",
         "line": 9,
         "optional": false,
@@ -62125,7 +62766,7 @@
         "branch_context": [],
         "classification": "external",
         "conditional": false,
-        "imported": "re",
+        "imported": "threading",
         "kind": "static_import",
         "line": 10,
         "optional": false,
@@ -62136,31 +62777,9 @@
         "branch_context": [],
         "classification": "external",
         "conditional": false,
-        "imported": "tempfile",
-        "kind": "static_import",
-        "line": 11,
-        "optional": false,
-        "role": "ordinary",
-        "source": "easyuse_anima/aio/native_image_output.py"
-      },
-      {
-        "branch_context": [],
-        "classification": "external",
-        "conditional": false,
-        "imported": "threading",
-        "kind": "static_import",
-        "line": 12,
-        "optional": false,
-        "role": "ordinary",
-        "source": "easyuse_anima/aio/native_image_output.py"
-      },
-      {
-        "branch_context": [],
-        "classification": "external",
-        "conditional": false,
         "imported": "collections.abc:Iterable",
         "kind": "static_from",
-        "line": 13,
+        "line": 11,
         "optional": false,
         "role": "ordinary",
         "source": "easyuse_anima/aio/native_image_output.py"
@@ -62171,7 +62790,7 @@
         "conditional": false,
         "imported": "collections.abc:Mapping",
         "kind": "static_from",
-        "line": 13,
+        "line": 11,
         "optional": false,
         "role": "ordinary",
         "source": "easyuse_anima/aio/native_image_output.py"
@@ -62182,7 +62801,7 @@
         "conditional": false,
         "imported": "collections.abc:Sequence",
         "kind": "static_from",
-        "line": 13,
+        "line": 11,
         "optional": false,
         "role": "ordinary",
         "source": "easyuse_anima/aio/native_image_output.py"
@@ -62193,18 +62812,7 @@
         "conditional": false,
         "imported": "dataclasses:dataclass",
         "kind": "static_from",
-        "line": 14,
-        "optional": false,
-        "role": "ordinary",
-        "source": "easyuse_anima/aio/native_image_output.py"
-      },
-      {
-        "branch_context": [],
-        "classification": "external",
-        "conditional": false,
-        "imported": "functools:lru_cache",
-        "kind": "static_from",
-        "line": 15,
+        "line": 12,
         "optional": false,
         "role": "ordinary",
         "source": "easyuse_anima/aio/native_image_output.py"
@@ -62215,7 +62823,7 @@
         "conditional": false,
         "imported": "pathlib:Path",
         "kind": "static_from",
-        "line": 16,
+        "line": 13,
         "optional": false,
         "role": "ordinary",
         "source": "easyuse_anima/aio/native_image_output.py"
@@ -62226,7 +62834,7 @@
         "conditional": false,
         "imported": "pathlib:PurePosixPath",
         "kind": "static_from",
-        "line": 16,
+        "line": 13,
         "optional": false,
         "role": "ordinary",
         "source": "easyuse_anima/aio/native_image_output.py"
@@ -62237,7 +62845,7 @@
         "conditional": false,
         "imported": "pathlib:PureWindowsPath",
         "kind": "static_from",
-        "line": 16,
+        "line": 13,
         "optional": false,
         "role": "ordinary",
         "source": "easyuse_anima/aio/native_image_output.py"
@@ -62248,7 +62856,7 @@
         "conditional": false,
         "imported": "types:MappingProxyType",
         "kind": "static_from",
-        "line": 17,
+        "line": 14,
         "optional": false,
         "role": "ordinary",
         "source": "easyuse_anima/aio/native_image_output.py"
@@ -62259,7 +62867,7 @@
         "conditional": false,
         "imported": "typing:cast",
         "kind": "static_from",
-        "line": 18,
+        "line": 15,
         "optional": false,
         "role": "ordinary",
         "source": "easyuse_anima/aio/native_image_output.py"
@@ -62271,52 +62879,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 89
-          }
-        ],
-        "classification": "external",
-        "conditional": true,
-        "imported": "folder_paths",
-        "kind": "static_import",
-        "line": 90,
-        "optional": true,
-        "role": "optional_dependency",
-        "source": "easyuse_anima/aio/native_image_output.py"
-      },
-      {
-        "branch_context": [
-          {
-            "branch": "body",
-            "handles_import_failure": true,
-            "has_import_fallback_handler": false,
-            "kind": "try",
-            "line": 112
-          }
-        ],
-        "classification": "external",
-        "conditional": true,
-        "imported": "folder_paths",
-        "kind": "static_import",
-        "line": 113,
-        "optional": true,
-        "role": "optional_dependency",
-        "source": "easyuse_anima/aio/native_image_output.py"
-      },
-      {
-        "branch_context": [
-          {
-            "branch": "body",
-            "handles_import_failure": true,
-            "has_import_fallback_handler": false,
-            "kind": "try",
-            "line": 423
+            "line": 245
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "comfy.cli_args:args",
         "kind": "static_from",
-        "line": 424,
+        "line": 246,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/aio/native_image_output.py"
@@ -62327,7 +62897,7 @@
         "conditional": false,
         "imported": "PIL:ExifTags",
         "kind": "static_from",
-        "line": 440,
+        "line": 262,
         "optional": false,
         "role": "ordinary",
         "source": "easyuse_anima/aio/native_image_output.py"
@@ -62338,7 +62908,7 @@
         "conditional": false,
         "imported": "PIL:Image",
         "kind": "static_from",
-        "line": 440,
+        "line": 262,
         "optional": false,
         "role": "ordinary",
         "source": "easyuse_anima/aio/native_image_output.py"
@@ -62348,7 +62918,7 @@
           {
             "branch": "body",
             "kind": "if",
-            "line": 495,
+            "line": 317,
             "type_checking": false
           }
         ],
@@ -62356,7 +62926,7 @@
         "conditional": true,
         "imported": "PIL.PngImagePlugin:PngInfo",
         "kind": "static_from",
-        "line": 496,
+        "line": 318,
         "optional": false,
         "role": "ordinary",
         "source": "easyuse_anima/aio/native_image_output.py"
@@ -62367,7 +62937,7 @@
         "conditional": false,
         "imported": "numpy",
         "kind": "static_import",
-        "line": 525,
+        "line": 347,
         "optional": false,
         "role": "ordinary",
         "source": "easyuse_anima/aio/native_image_output.py"
@@ -62378,10 +62948,360 @@
         "conditional": false,
         "imported": "PIL:Image",
         "kind": "static_from",
-        "line": 526,
+        "line": 348,
         "optional": false,
         "role": "ordinary",
         "source": "easyuse_anima/aio/native_image_output.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "__future__:annotations",
+        "kind": "static_from",
+        "line": 3,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/native_resource_hashes.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "hashlib",
+        "kind": "static_import",
+        "line": 5,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/native_resource_hashes.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "json",
+        "kind": "static_import",
+        "line": 6,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/native_resource_hashes.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "logging",
+        "kind": "static_import",
+        "line": 7,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/native_resource_hashes.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "math",
+        "kind": "static_import",
+        "line": 8,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/native_resource_hashes.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "os",
+        "kind": "static_import",
+        "line": 9,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/native_resource_hashes.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "re",
+        "kind": "static_import",
+        "line": 10,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/native_resource_hashes.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "tempfile",
+        "kind": "static_import",
+        "line": 11,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/native_resource_hashes.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "threading",
+        "kind": "static_import",
+        "line": 12,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/native_resource_hashes.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "collections.abc:Iterable",
+        "kind": "static_from",
+        "line": 13,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/native_resource_hashes.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "collections.abc:Mapping",
+        "kind": "static_from",
+        "line": 13,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/native_resource_hashes.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "collections.abc:Sequence",
+        "kind": "static_from",
+        "line": 13,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/native_resource_hashes.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "dataclasses:dataclass",
+        "kind": "static_from",
+        "line": 14,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/native_resource_hashes.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "functools:lru_cache",
+        "kind": "static_from",
+        "line": 15,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/native_resource_hashes.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "pathlib:Path",
+        "kind": "static_from",
+        "line": 16,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/native_resource_hashes.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "pathlib:PurePosixPath",
+        "kind": "static_from",
+        "line": 16,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/native_resource_hashes.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "pathlib:PureWindowsPath",
+        "kind": "static_from",
+        "line": 16,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/native_resource_hashes.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "typing:cast",
+        "kind": "static_from",
+        "line": 17,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/native_resource_hashes.py"
+      },
+      {
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": false,
+            "kind": "try",
+            "line": 53
+          }
+        ],
+        "classification": "external",
+        "conditional": true,
+        "imported": "folder_paths",
+        "kind": "static_import",
+        "line": 54,
+        "optional": true,
+        "role": "optional_dependency",
+        "source": "easyuse_anima/aio/native_resource_hashes.py"
+      },
+      {
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": false,
+            "kind": "try",
+            "line": 76
+          }
+        ],
+        "classification": "external",
+        "conditional": true,
+        "imported": "folder_paths",
+        "kind": "static_import",
+        "line": 77,
+        "optional": true,
+        "role": "optional_dependency",
+        "source": "easyuse_anima/aio/native_resource_hashes.py"
+      },
+      {
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": false,
+            "kind": "try",
+            "line": 104
+          }
+        ],
+        "classification": "external",
+        "conditional": true,
+        "imported": "folder_paths",
+        "kind": "static_import",
+        "line": 105,
+        "optional": true,
+        "role": "optional_dependency",
+        "source": "easyuse_anima/aio/native_resource_hashes.py"
+      },
+      {
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": false,
+            "kind": "try",
+            "line": 224
+          }
+        ],
+        "classification": "external",
+        "conditional": true,
+        "imported": "comfy.utils:ProgressBar",
+        "kind": "static_from",
+        "line": 225,
+        "optional": true,
+        "role": "optional_dependency",
+        "source": "easyuse_anima/aio/native_resource_hashes.py"
+      },
+      {
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": false,
+            "kind": "try",
+            "line": 391
+          }
+        ],
+        "classification": "external",
+        "conditional": true,
+        "imported": "folder_paths",
+        "kind": "static_import",
+        "line": 392,
+        "optional": true,
+        "role": "optional_dependency",
+        "source": "easyuse_anima/aio/native_resource_hashes.py"
+      },
+      {
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": false,
+            "kind": "try",
+            "line": 444
+          }
+        ],
+        "classification": "external",
+        "conditional": true,
+        "imported": "comfy.sd1_clip:escape_important",
+        "kind": "static_from",
+        "line": 445,
+        "optional": true,
+        "role": "optional_dependency",
+        "source": "easyuse_anima/aio/native_resource_hashes.py"
+      },
+      {
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": false,
+            "kind": "try",
+            "line": 444
+          }
+        ],
+        "classification": "external",
+        "conditional": true,
+        "imported": "comfy.sd1_clip:token_weights",
+        "kind": "static_from",
+        "line": 445,
+        "optional": true,
+        "role": "optional_dependency",
+        "source": "easyuse_anima/aio/native_resource_hashes.py"
+      },
+      {
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": false,
+            "kind": "try",
+            "line": 444
+          }
+        ],
+        "classification": "external",
+        "conditional": true,
+        "imported": "comfy.sd1_clip:unescape_important",
+        "kind": "static_from",
+        "line": 445,
+        "optional": true,
+        "role": "optional_dependency",
+        "source": "easyuse_anima/aio/native_resource_hashes.py"
       },
       {
         "branch_context": [],
@@ -69333,14 +70253,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 59
+            "line": 80
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "requests",
         "kind": "static_import",
-        "line": 60,
+        "line": 81,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/aio/native_civitai.py"
@@ -69352,55 +70272,169 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 89
-          }
-        ],
-        "classification": "external",
-        "conditional": true,
-        "imported": "folder_paths",
-        "kind": "static_import",
-        "line": 90,
-        "optional": true,
-        "role": "optional_dependency",
-        "source": "easyuse_anima/aio/native_image_output.py"
-      },
-      {
-        "branch_context": [
-          {
-            "branch": "body",
-            "handles_import_failure": true,
-            "has_import_fallback_handler": false,
-            "kind": "try",
-            "line": 112
-          }
-        ],
-        "classification": "external",
-        "conditional": true,
-        "imported": "folder_paths",
-        "kind": "static_import",
-        "line": 113,
-        "optional": true,
-        "role": "optional_dependency",
-        "source": "easyuse_anima/aio/native_image_output.py"
-      },
-      {
-        "branch_context": [
-          {
-            "branch": "body",
-            "handles_import_failure": true,
-            "has_import_fallback_handler": false,
-            "kind": "try",
-            "line": 423
+            "line": 245
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "comfy.cli_args:args",
         "kind": "static_from",
-        "line": 424,
+        "line": 246,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/aio/native_image_output.py"
+      },
+      {
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": false,
+            "kind": "try",
+            "line": 53
+          }
+        ],
+        "classification": "external",
+        "conditional": true,
+        "imported": "folder_paths",
+        "kind": "static_import",
+        "line": 54,
+        "optional": true,
+        "role": "optional_dependency",
+        "source": "easyuse_anima/aio/native_resource_hashes.py"
+      },
+      {
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": false,
+            "kind": "try",
+            "line": 76
+          }
+        ],
+        "classification": "external",
+        "conditional": true,
+        "imported": "folder_paths",
+        "kind": "static_import",
+        "line": 77,
+        "optional": true,
+        "role": "optional_dependency",
+        "source": "easyuse_anima/aio/native_resource_hashes.py"
+      },
+      {
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": false,
+            "kind": "try",
+            "line": 104
+          }
+        ],
+        "classification": "external",
+        "conditional": true,
+        "imported": "folder_paths",
+        "kind": "static_import",
+        "line": 105,
+        "optional": true,
+        "role": "optional_dependency",
+        "source": "easyuse_anima/aio/native_resource_hashes.py"
+      },
+      {
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": false,
+            "kind": "try",
+            "line": 224
+          }
+        ],
+        "classification": "external",
+        "conditional": true,
+        "imported": "comfy.utils:ProgressBar",
+        "kind": "static_from",
+        "line": 225,
+        "optional": true,
+        "role": "optional_dependency",
+        "source": "easyuse_anima/aio/native_resource_hashes.py"
+      },
+      {
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": false,
+            "kind": "try",
+            "line": 391
+          }
+        ],
+        "classification": "external",
+        "conditional": true,
+        "imported": "folder_paths",
+        "kind": "static_import",
+        "line": 392,
+        "optional": true,
+        "role": "optional_dependency",
+        "source": "easyuse_anima/aio/native_resource_hashes.py"
+      },
+      {
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": false,
+            "kind": "try",
+            "line": 444
+          }
+        ],
+        "classification": "external",
+        "conditional": true,
+        "imported": "comfy.sd1_clip:escape_important",
+        "kind": "static_from",
+        "line": 445,
+        "optional": true,
+        "role": "optional_dependency",
+        "source": "easyuse_anima/aio/native_resource_hashes.py"
+      },
+      {
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": false,
+            "kind": "try",
+            "line": 444
+          }
+        ],
+        "classification": "external",
+        "conditional": true,
+        "imported": "comfy.sd1_clip:token_weights",
+        "kind": "static_from",
+        "line": 445,
+        "optional": true,
+        "role": "optional_dependency",
+        "source": "easyuse_anima/aio/native_resource_hashes.py"
+      },
+      {
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": false,
+            "kind": "try",
+            "line": 444
+          }
+        ],
+        "classification": "external",
+        "conditional": true,
+        "imported": "comfy.sd1_clip:unescape_important",
+        "kind": "static_from",
+        "line": 445,
+        "optional": true,
+        "role": "optional_dependency",
+        "source": "easyuse_anima/aio/native_resource_hashes.py"
       },
       {
         "branch_context": [
@@ -70435,6 +71469,7 @@
       "easyuse_anima/aio/model_preparation.py",
       "easyuse_anima/aio/native_civitai.py",
       "easyuse_anima/aio/native_image_output.py",
+      "easyuse_anima/aio/native_resource_hashes.py",
       "easyuse_anima/aio/negpip.py",
       "easyuse_anima/aio/output.py",
       "easyuse_anima/aio/output_settings.py",
@@ -70632,6 +71667,7 @@
       "easyuse_anima/aio/model_preparation.py",
       "easyuse_anima/aio/native_civitai.py",
       "easyuse_anima/aio/native_image_output.py",
+      "easyuse_anima/aio/native_resource_hashes.py",
       "easyuse_anima/aio/negpip.py",
       "easyuse_anima/aio/output.py",
       "easyuse_anima/aio/output_settings.py",
@@ -71779,7 +72815,7 @@
         "column": 14,
         "context": "assign:_CONTROL_RE",
         "kind": "import_time_call",
-        "line": 17,
+        "line": 18,
         "module": "easyuse_anima/aio/native_civitai.py",
         "scope": "<module>"
       },
@@ -71788,7 +72824,16 @@
         "column": 16,
         "context": "assign:_SAFE_HASH_RE",
         "kind": "import_time_call",
-        "line": 18,
+        "line": 19,
+        "module": "easyuse_anima/aio/native_civitai.py",
+        "scope": "<module>"
+      },
+      {
+        "callee": "re.compile",
+        "column": 18,
+        "context": "assign:_LOOKUP_HASH_RE",
+        "kind": "import_time_call",
+        "line": 20,
         "module": "easyuse_anima/aio/native_civitai.py",
         "scope": "<module>"
       },
@@ -71797,7 +72842,7 @@
         "column": 15,
         "context": "assign:_SAFE_AIR_RE",
         "kind": "import_time_call",
-        "line": 19,
+        "line": 21,
         "module": "easyuse_anima/aio/native_civitai.py",
         "scope": "<module>"
       },
@@ -71806,7 +72851,7 @@
         "column": 1,
         "context": "decorator:CivitaiResourceDescriptor",
         "kind": "import_time_call",
-        "line": 22,
+        "line": 24,
         "module": "easyuse_anima/aio/native_civitai.py",
         "scope": "<module>"
       },
@@ -71815,7 +72860,7 @@
         "column": 1,
         "context": "decorator:_cached_civitai_resource_by_hash",
         "kind": "import_time_call",
-        "line": 123,
+        "line": 144,
         "module": "easyuse_anima/aio/native_civitai.py",
         "scope": "<module>"
       },
@@ -71824,7 +72869,7 @@
         "column": 1,
         "context": "decorator:_fetch_civitai_autov3_hash",
         "kind": "import_time_call",
-        "line": 168,
+        "line": 191,
         "module": "easyuse_anima/aio/native_civitai.py",
         "scope": "<module>"
       },
@@ -71833,7 +72878,7 @@
         "column": 9,
         "context": "assign:logger",
         "kind": "import_time_call",
-        "line": 25,
+        "line": 32,
         "module": "easyuse_anima/aio/native_image_output.py",
         "scope": "<module>"
       },
@@ -71842,34 +72887,7 @@
         "column": 15,
         "context": "assign:_LORA_TAG_RE",
         "kind": "import_time_call",
-        "line": 32,
-        "module": "easyuse_anima/aio/native_image_output.py",
-        "scope": "<module>"
-      },
-      {
-        "callee": "re.compile",
-        "column": 16,
-        "context": "assign:_EMBEDDING_RE",
-        "kind": "import_time_call",
-        "line": 33,
-        "module": "easyuse_anima/aio/native_image_output.py",
-        "scope": "<module>"
-      },
-      {
-        "callee": "re.compile",
-        "column": 16,
-        "context": "assign:_SAFE_HASH_RE",
-        "kind": "import_time_call",
-        "line": 34,
-        "module": "easyuse_anima/aio/native_image_output.py",
-        "scope": "<module>"
-      },
-      {
-        "callee": "re.compile",
-        "column": 15,
-        "context": "assign:_HEX_HASH_RE",
-        "kind": "import_time_call",
-        "line": 35,
+        "line": 37,
         "module": "easyuse_anima/aio/native_image_output.py",
         "scope": "<module>"
       },
@@ -71878,7 +72896,7 @@
         "column": 14,
         "context": "assign:_CONTROL_RE",
         "kind": "import_time_call",
-        "line": 36,
+        "line": 38,
         "module": "easyuse_anima/aio/native_image_output.py",
         "scope": "<module>"
       },
@@ -71887,7 +72905,7 @@
         "column": 13,
         "context": "assign:_SAVE_LOCK",
         "kind": "import_time_call",
-        "line": 37,
+        "line": 39,
         "module": "easyuse_anima/aio/native_image_output.py",
         "scope": "<module>"
       },
@@ -71896,7 +72914,7 @@
         "column": 25,
         "context": "assign:_CIVITAI_SAMPLER_NAMES",
         "kind": "import_time_call",
-        "line": 39,
+        "line": 41,
         "module": "easyuse_anima/aio/native_image_output.py",
         "scope": "<module>"
       },
@@ -71905,16 +72923,7 @@
         "column": 1,
         "context": "decorator:NativeImageMetadata",
         "kind": "import_time_call",
-        "line": 51,
-        "module": "easyuse_anima/aio/native_image_output.py",
-        "scope": "<module>"
-      },
-      {
-        "callee": "dataclass",
-        "column": 1,
-        "context": "decorator:_ResourceHash",
-        "kind": "import_time_call",
-        "line": 58,
+        "line": 53,
         "module": "easyuse_anima/aio/native_image_output.py",
         "scope": "<module>"
       },
@@ -71923,8 +72932,89 @@
         "column": 1,
         "context": "decorator:_SerializedMetadata",
         "kind": "import_time_call",
-        "line": 71,
+        "line": 60,
         "module": "easyuse_anima/aio/native_image_output.py",
+        "scope": "<module>"
+      },
+      {
+        "callee": "logging.getLogger",
+        "column": 9,
+        "context": "assign:logger",
+        "kind": "import_time_call",
+        "line": 19,
+        "module": "easyuse_anima/aio/native_resource_hashes.py",
+        "scope": "<module>"
+      },
+      {
+        "callee": "re.compile",
+        "column": 16,
+        "context": "assign:_EMBEDDING_RE",
+        "kind": "import_time_call",
+        "line": 29,
+        "module": "easyuse_anima/aio/native_resource_hashes.py",
+        "scope": "<module>"
+      },
+      {
+        "callee": "re.compile",
+        "column": 16,
+        "context": "assign:_SAFE_HASH_RE",
+        "kind": "import_time_call",
+        "line": 30,
+        "module": "easyuse_anima/aio/native_resource_hashes.py",
+        "scope": "<module>"
+      },
+      {
+        "callee": "re.compile",
+        "column": 15,
+        "context": "assign:_HEX_HASH_RE",
+        "kind": "import_time_call",
+        "line": 31,
+        "module": "easyuse_anima/aio/native_resource_hashes.py",
+        "scope": "<module>"
+      },
+      {
+        "callee": "re.compile",
+        "column": 13,
+        "context": "assign:_SHA256_RE",
+        "kind": "import_time_call",
+        "line": 32,
+        "module": "easyuse_anima/aio/native_resource_hashes.py",
+        "scope": "<module>"
+      },
+      {
+        "callee": "re.compile",
+        "column": 14,
+        "context": "assign:_CONTROL_RE",
+        "kind": "import_time_call",
+        "line": 33,
+        "module": "easyuse_anima/aio/native_resource_hashes.py",
+        "scope": "<module>"
+      },
+      {
+        "callee": "frozenset",
+        "column": 26,
+        "context": "assign:_RESERVED_METADATA_KEYS",
+        "kind": "import_time_call",
+        "line": 34,
+        "module": "easyuse_anima/aio/native_resource_hashes.py",
+        "scope": "<module>"
+      },
+      {
+        "callee": "threading.Lock",
+        "column": 19,
+        "context": "assign:_HASH_CACHE_LOCK",
+        "kind": "import_time_call",
+        "line": 35,
+        "module": "easyuse_anima/aio/native_resource_hashes.py",
+        "scope": "<module>"
+      },
+      {
+        "callee": "dataclass",
+        "column": 1,
+        "context": "decorator:_ResourceHash",
+        "kind": "import_time_call",
+        "line": 38,
+        "module": "easyuse_anima/aio/native_resource_hashes.py",
         "scope": "<module>"
       },
       {
@@ -71932,8 +73022,8 @@
         "column": 1,
         "context": "decorator:_hash_file_revision",
         "kind": "import_time_call",
-        "line": 139,
-        "module": "easyuse_anima/aio/native_image_output.py",
+        "line": 289,
+        "module": "easyuse_anima/aio/native_resource_hashes.py",
         "scope": "<module>"
       },
       {
@@ -73705,9 +74795,18 @@
           "lock"
         ],
         "initializer": "threading.Lock",
-        "line": 37,
+        "line": 39,
         "module": "easyuse_anima/aio/native_image_output.py",
         "name": "_SAVE_LOCK"
+      },
+      {
+        "categories": [
+          "lock"
+        ],
+        "initializer": "threading.Lock",
+        "line": 35,
+        "module": "easyuse_anima/aio/native_resource_hashes.py",
+        "name": "_HASH_CACHE_LOCK"
       },
       {
         "categories": [

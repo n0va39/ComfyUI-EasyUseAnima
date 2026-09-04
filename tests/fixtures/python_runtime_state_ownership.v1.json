@@ -271,16 +271,28 @@
       "thread_safety": "functools.lru_cache serializes cache access with its internal lock; duplicate in-flight HTTP reads may occur without corrupting cache state."
     },
     {
-      "categories": ["cache", "lock"],
-      "cleanup": "No production reset; the revision-keyed SHA-256 cache is bounded to 128 entries and the save lock owns no disposable resource.",
+      "categories": ["lock"],
+      "cleanup": "No production reset; the save lock owns no disposable resource.",
       "id": "native-image-output-runtime",
-      "lifetime": "Process lifetime from module import; one save lock coordinates filename allocation and atomic publication, while the bounded cache retains completed file hashes by path, size, and modification time.",
+      "lifetime": "Process lifetime from module import; one save lock coordinates filename allocation and publication.",
       "module": "easyuse_anima/aio/native_image_output.py",
       "owner": "easyuse_anima.aio.native_image_output",
-      "symbols": ["_SAVE_LOCK", "_hash_file_revision"],
+      "symbols": ["_SAVE_LOCK"],
       "target_phase": "native-image-output-complete",
       "test_evidence": ["tests/test_aio_native_image_output.py"],
-      "thread_safety": "The module Lock serializes output-name reservation and publication; functools.lru_cache provides its own lock for bounded hash-cache access."
+      "thread_safety": "The module Lock serializes output-name reservation and publication."
+    },
+    {
+      "categories": ["cache", "lock", "persistent_cache"],
+      "cleanup": "No production reset; the in-memory revision cache and persistent hash cache are each bounded to 128 entries, and the persistent JSON document is capped at 1 MiB.",
+      "id": "native-resource-hash-runtime",
+      "lifetime": "Process lifetime from module import for the lock and in-memory LRU; the validated persistent cache survives restarts under the ComfyUI user directory.",
+      "module": "easyuse_anima/aio/native_resource_hashes.py",
+      "owner": "easyuse_anima.aio.native_resource_hashes",
+      "symbols": ["_HASH_CACHE_LOCK", "_hash_file_revision"],
+      "target_phase": "native-image-metadata-parity-complete",
+      "test_evidence": ["tests/test_aio_native_image_output.py"],
+      "thread_safety": "The module Lock serializes persistent cache load and publication; functools.lru_cache provides its own lock for bounded process-cache access."
     },
     {
       "categories": ["directory_initialization", "import_effect", "route_registration"],
