@@ -15,6 +15,7 @@ from PIL import ExifTags, Image
 
 from easyuse_anima.aio import native_civitai as civitai
 from easyuse_anima.aio import native_image_output as native
+from easyuse_anima.aio import native_output_publication as publication
 from easyuse_anima.aio import native_resource_hashes as resources
 
 
@@ -1033,13 +1034,247 @@ class AIONativeImageOutputTests(unittest.TestCase):
                 workflow,
             )
 
+    def test_late_image_and_sidecar_targets_are_preserved_and_reallocated(self):
+        metadata = native.NativeImageMetadata("parameters", "", {})
+        pixels = np.zeros((2, 2, 3), dtype=np.float32)
+        workflow = {"nodes": []}
+        original = publication.OutputDirectoryBinding.link_no_replace
+
+        for collision_name in ("image.png", "image.json"):
+            with self.subTest(collision_name=collision_name), tempfile.TemporaryDirectory() as temp:
+                root = Path(temp)
+                injected = False
+
+                def collide_once(directory, temporary, target_name):
+                    nonlocal injected
+                    if not injected and target_name == collision_name:
+                        injected = True
+                        (directory.path / target_name).write_bytes(b"late owner")
+                    return original(directory, temporary, target_name)
+
+                with patch.object(
+                    publication.OutputDirectoryBinding,
+                    "link_no_replace",
+                    new=collide_once,
+                ):
+                    result = native._save_native_images(
+                        [FakeTensor(pixels)],
+                        output_root=root,
+                        path="",
+                        filename="image",
+                        extension="png",
+                        quality_jpeg_or_webp=80,
+                        lossless_webp=False,
+                        optimize_png=False,
+                        embed_workflow=True,
+                        save_workflow_as_json=True,
+                        metadata=metadata,
+                        prompt=None,
+                        extra_pnginfo={"workflow": workflow},
+                    )
+
+                self.assertTrue(injected)
+                self.assertEqual(
+                    (root / collision_name).read_bytes(),
+                    b"late owner",
+                )
+                self.assertEqual(
+                    result["ui"]["images"][0]["filename"],
+                    "image_01.png",
+                )
+                self.assertTrue((root / "image_01.png").is_file())
+                self.assertEqual(
+                    json.loads((root / "image_01.json").read_text("utf-8")),
+                    workflow,
+                )
+
+    def test_late_last_batch_collision_keeps_suffix_naming(self):
+        metadata = native.NativeImageMetadata("parameters", "", {})
+        pixels = np.zeros((2, 2, 3), dtype=np.float32)
+        original = publication.OutputDirectoryBinding.link_no_replace
+        injected = False
+
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+
+            def collide_on_second(directory, temporary, target_name):
+                nonlocal injected
+                if not injected and target_name == "batch_02.webp":
+                    injected = True
+                    (directory.path / target_name).write_bytes(b"late owner")
+                return original(directory, temporary, target_name)
+
+            with patch.object(
+                publication.OutputDirectoryBinding,
+                "link_no_replace",
+                new=collide_on_second,
+            ):
+                result = native._save_native_images(
+                    [FakeTensor(pixels), FakeTensor(pixels)],
+                    output_root=root,
+                    path="",
+                    filename="batch",
+                    extension="webp",
+                    quality_jpeg_or_webp=80,
+                    lossless_webp=False,
+                    optimize_png=False,
+                    embed_workflow=False,
+                    save_workflow_as_json=False,
+                    metadata=metadata,
+                    prompt=None,
+                    extra_pnginfo=None,
+                )
+
+            self.assertTrue(injected)
+            self.assertEqual(
+                [item["filename"] for item in result["ui"]["images"]],
+                ["batch_01.webp", "batch_03.webp"],
+            )
+            self.assertEqual((root / "batch_02.webp").read_bytes(), b"late owner")
+            self.assertFalse((root / "batch.webp").exists())
+
+    def test_open_temporary_name_swap_is_blocked_or_rejected(self):
+        metadata = native.NativeImageMetadata("parameters", "", {})
+        pixels = np.zeros((2, 2, 3), dtype=np.float32)
+        original = publication.OutputDirectoryBinding.assert_temporary_identity
+        call_count = 0
+        replaced = False
+
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            outside = root / "outside.bin"
+            outside.write_bytes(b"outside owner")
+
+            def swap_after_encoding(directory, temporary):
+                nonlocal call_count, replaced
+                call_count += 1
+                if call_count == 2:
+                    temporary_path = directory.path / temporary.name
+                    try:
+                        temporary_path.unlink()
+                        os.symlink(outside, temporary_path)
+                        replaced = True
+                    except OSError:
+                        pass
+                return original(directory, temporary)
+
+            context = patch.object(
+                publication.OutputDirectoryBinding,
+                "assert_temporary_identity",
+                new=swap_after_encoding,
+            )
+            if os.name == "nt":
+                with context:
+                    result = native._save_native_images(
+                        [FakeTensor(pixels)],
+                        output_root=root,
+                        path="images",
+                        filename="image",
+                        extension="png",
+                        quality_jpeg_or_webp=80,
+                        lossless_webp=False,
+                        optimize_png=False,
+                        embed_workflow=False,
+                        save_workflow_as_json=False,
+                        metadata=metadata,
+                        prompt=None,
+                        extra_pnginfo=None,
+                    )
+                self.assertFalse(replaced)
+                self.assertEqual(result["ui"]["images"][0]["filename"], "image.png")
+            else:
+                with context, self.assertRaises(publication.PublicationIntegrityError):
+                    native._save_native_images(
+                        [FakeTensor(pixels)],
+                        output_root=root,
+                        path="images",
+                        filename="image",
+                        extension="png",
+                        quality_jpeg_or_webp=80,
+                        lossless_webp=False,
+                        optimize_png=False,
+                        embed_workflow=False,
+                        save_workflow_as_json=False,
+                        metadata=metadata,
+                        prompt=None,
+                        extra_pnginfo=None,
+                    )
+                self.assertTrue(replaced)
+            self.assertEqual(outside.read_bytes(), b"outside owner")
+            self.assertEqual(list((root / "images").glob("*.tmp")), [])
+
+    def test_bound_output_directory_blocks_or_rejects_link_swap(self):
+        metadata = native.NativeImageMetadata("parameters", "", {})
+        pixels = np.zeros((2, 2, 3), dtype=np.float32)
+        original = native.publish_image_transaction
+
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp) / "output"
+            outside = Path(temp) / "outside"
+            outside.mkdir()
+            moved = root / "moved"
+            swapped = False
+
+            def swap_directory(directory, image, **kwargs):
+                nonlocal swapped
+                try:
+                    directory.path.rename(moved)
+                except OSError:
+                    return original(directory, image, **kwargs)
+                try:
+                    os.symlink(outside, directory.path, target_is_directory=True)
+                except OSError:
+                    swapped = True
+                    return original(directory, image, **kwargs)
+                swapped = True
+                return original(directory, image, **kwargs)
+
+            try:
+                context = patch.object(
+                    native,
+                    "publish_image_transaction",
+                    new=swap_directory,
+                )
+                try:
+                    with context:
+                        result = native._save_native_images(
+                            [FakeTensor(pixels)],
+                            output_root=root,
+                            path="images",
+                            filename="image",
+                            extension="png",
+                            quality_jpeg_or_webp=80,
+                            lossless_webp=False,
+                            optimize_png=False,
+                            embed_workflow=False,
+                            save_workflow_as_json=False,
+                            metadata=metadata,
+                            prompt=None,
+                            extra_pnginfo=None,
+                        )
+                except publication.PublicationIntegrityError:
+                    self.assertTrue(swapped)
+                else:
+                    self.assertFalse(swapped)
+                    self.assertEqual(
+                        result["ui"]["images"][0]["filename"],
+                        "image.png",
+                    )
+                self.assertEqual(list(outside.iterdir()), [])
+            finally:
+                if swapped:
+                    directory_link = root / "images"
+                    if directory_link.is_symlink():
+                        directory_link.unlink()
+                    moved.rename(directory_link)
+
     def test_sidecar_failure_removes_just_committed_image(self):
         metadata = native.NativeImageMetadata("parameters", "", {})
         pixels = np.zeros((2, 2, 3), dtype=np.float32)
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
             with (
-                patch.object(native, "_atomic_write_text", side_effect=OSError("disk full")),
+                patch.object(publication, "_write_text", side_effect=OSError("disk full")),
                 self.assertRaisesRegex(OSError, "disk full"),
             ):
                 native._save_native_images(
