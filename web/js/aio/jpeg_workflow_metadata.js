@@ -114,8 +114,12 @@ function parseExifPayload(payload) {
     return undefined;
   }
 
-  let workflowText;
-  let promptText;
+  let canonicalWorkflow;
+  let canonicalPrompt;
+  let sawCanonicalWorkflow = false;
+  let sawCanonicalPrompt = false;
+  let workflowAliasText;
+  let promptAliasText;
   for (let index = 0; index < entryCount; index += 1) {
     const entryOffset = entriesOffset + index * 12;
     const type = view.getUint16(entryOffset + 2, littleEndian);
@@ -131,16 +135,34 @@ function parseExifPayload(payload) {
     );
     if (!field) continue;
     const text = decodeAscii(field);
+    if (text.startsWith("workflow:")) {
+      sawCanonicalWorkflow = true;
+      if (canonicalWorkflow === undefined) {
+        canonicalWorkflow = parseMetadataObject(text.slice("workflow:".length));
+      }
+      continue;
+    }
+    if (text.startsWith("prompt:")) {
+      sawCanonicalPrompt = true;
+      if (canonicalPrompt === undefined) {
+        canonicalPrompt = parseMetadataObject(text.slice("prompt:".length));
+      }
+      continue;
+    }
     const lower = text.toLowerCase();
-    if (workflowText === undefined && lower.startsWith("workflow:")) {
-      workflowText = text.slice("workflow:".length);
-    } else if (promptText === undefined && lower.startsWith("prompt:")) {
-      promptText = text.slice("prompt:".length);
+    if (workflowAliasText === undefined && lower.startsWith("workflow:")) {
+      workflowAliasText = text.slice("workflow:".length);
+    } else if (promptAliasText === undefined && lower.startsWith("prompt:")) {
+      promptAliasText = text.slice("prompt:".length);
     }
   }
 
-  const workflow = parseMetadataObject(workflowText);
-  const prompt = parseMetadataObject(promptText);
+  const workflow = sawCanonicalWorkflow
+    ? canonicalWorkflow
+    : parseMetadataObject(workflowAliasText);
+  const prompt = sawCanonicalPrompt
+    ? canonicalPrompt
+    : parseMetadataObject(promptAliasText);
   if (workflow === undefined && prompt === undefined) return undefined;
   return { workflow, prompt };
 }

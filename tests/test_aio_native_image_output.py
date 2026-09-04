@@ -1040,37 +1040,58 @@ class AIONativeImageOutputTests(unittest.TestCase):
             with self.subTest(component=component):
                 self.assertTrue(native._is_windows_safe_output_component(component))
 
-    def test_png_extra_metadata_cannot_override_owned_parameters_or_prompt(self):
+    def test_png_extra_metadata_case_variants_cannot_override_owned_keys(self):
         metadata = native.NativeImageMetadata("owned parameters", "", {})
         pixels = np.zeros((2, 2, 3), dtype=np.float32)
         prompt = {"owned": True}
         workflow = {"nodes": []}
+        forged_workflow = {"nodes": [{"id": "forged"}]}
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
-            native._save_native_images(
-                [FakeTensor(pixels)],
-                output_root=root,
-                path="",
-                filename="reserved-keys",
-                extension="png",
-                quality_jpeg_or_webp=80,
-                lossless_webp=False,
-                optimize_png=False,
-                embed_workflow=True,
-                save_workflow_as_json=False,
-                metadata=metadata,
-                prompt=prompt,
-                extra_pnginfo={
-                    "workflow": workflow,
-                    "parameters": "forged parameters",
-                    "prompt": {"forged": True},
-                },
-            )
+            with self.assertLogs("ComfyUI-EasyUseAnima", level="WARNING"):
+                native._save_native_images(
+                    [FakeTensor(pixels)],
+                    output_root=root,
+                    path="",
+                    filename="reserved-keys",
+                    extension="png",
+                    quality_jpeg_or_webp=80,
+                    lossless_webp=False,
+                    optimize_png=False,
+                    embed_workflow=True,
+                    save_workflow_as_json=False,
+                    metadata=metadata,
+                    prompt=prompt,
+                    extra_pnginfo={
+                        "Workflow": forged_workflow,
+                        "WORKFLOW": forged_workflow,
+                        "Prompt": {"forged": True},
+                        "PARAMETERS": "forged parameters",
+                        "workflow:": forged_workflow,
+                        "Prompt:alias": {"forged": True},
+                        "PARAMETERS:alias": "forged parameters",
+                        "workflow": workflow,
+                        "parameters": "forged parameters",
+                        "prompt": {"forged": True},
+                        "unrelated": {"kept": True},
+                    },
+                )
 
             with Image.open(root / "reserved-keys.png") as saved:
                 self.assertEqual(saved.info["parameters"], metadata.parameters)
                 self.assertEqual(json.loads(saved.info["prompt"]), prompt)
                 self.assertEqual(json.loads(saved.info["workflow"]), workflow)
+                self.assertEqual(json.loads(saved.info["unrelated"]), {"kept": True})
+                for alias in (
+                    "Workflow",
+                    "WORKFLOW",
+                    "Prompt",
+                    "PARAMETERS",
+                    "workflow:",
+                    "Prompt:alias",
+                    "PARAMETERS:alias",
+                ):
+                    self.assertNotIn(alias, saved.info)
 
     def test_lossy_webp_uses_quality_while_lossless_webp_preserves_pixels(self):
         rng = np.random.default_rng(7)

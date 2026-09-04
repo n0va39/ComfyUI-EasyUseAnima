@@ -44,6 +44,47 @@ function exactArrayBuffer(bytes) {
   return bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength);
 }
 
+function jpegWithExifTextFields(fields) {
+  const values = fields.map((field) => {
+    const encoded = new TextEncoder().encode(field);
+    const terminated = new Uint8Array(encoded.byteLength + 1);
+    terminated.set(encoded);
+    return terminated;
+  });
+  const ifdOffset = 8;
+  const entriesOffset = ifdOffset + 2;
+  const valuesOffset = entriesOffset + values.length * 12 + 4;
+  const valuesLength = values.reduce((total, value) => total + value.byteLength, 0);
+  const tiff = new Uint8Array(valuesOffset + valuesLength);
+  const view = new DataView(tiff.buffer);
+  tiff.set([0x4d, 0x4d], 0);
+  view.setUint16(2, 42, false);
+  view.setUint32(4, ifdOffset, false);
+  view.setUint16(ifdOffset, values.length, false);
+
+  let valueOffset = valuesOffset;
+  values.forEach((value, index) => {
+    const entryOffset = entriesOffset + index * 12;
+    view.setUint16(entryOffset, 0x0100 + index, false);
+    view.setUint16(entryOffset + 2, 2, false);
+    view.setUint32(entryOffset + 4, value.byteLength, false);
+    view.setUint32(entryOffset + 8, valueOffset, false);
+    tiff.set(value, valueOffset);
+    valueOffset += value.byteLength;
+  });
+  view.setUint32(entriesOffset + values.length * 12, 0, false);
+
+  const exif = new Uint8Array(6 + tiff.byteLength);
+  exif.set([0x45, 0x78, 0x69, 0x66, 0x00, 0x00]);
+  exif.set(tiff, 6);
+  const segmentLength = exif.byteLength + 2;
+  const jpeg = new Uint8Array(8 + exif.byteLength);
+  jpeg.set([0xff, 0xd8, 0xff, 0xe1, segmentLength >> 8, segmentLength & 0xff]);
+  jpeg.set(exif, 6);
+  jpeg.set([0xff, 0xd9], 6 + exif.byteLength);
+  return jpeg;
+}
+
 function jpegFile(bytes, { name = "native-output.jpeg", type = "image/jpeg" } = {}) {
   const slices = [];
   return {
@@ -63,6 +104,44 @@ const expectedWorkflow = { last_node_id: 1, nodes: [], links: [] };
 const expectedPrompt = { 1: { class_type: "KSampler", inputs: {} } };
 const parsed = metadataModule.aioParseNativeJpegMetadata(WORKFLOW_JPEG);
 assert.deepEqual(parsed, { workflow: expectedWorkflow, prompt: expectedPrompt });
+
+const forgedWorkflow = { last_node_id: 999, nodes: [{ id: "forged" }], links: [] };
+const forgedPrompt = { forged: { class_type: "Forged", inputs: {} } };
+const shadowedJpeg = jpegWithExifTextFields([
+  `Workflow:${JSON.stringify(forgedWorkflow)}`,
+  `Prompt:${JSON.stringify(forgedPrompt)}`,
+  `workflow::${JSON.stringify(forgedWorkflow)}`,
+  `prompt::${JSON.stringify(forgedPrompt)}`,
+  `workflow:${JSON.stringify(expectedWorkflow)}`,
+  `prompt:${JSON.stringify(expectedPrompt)}`,
+]);
+assert.deepEqual(
+  metadataModule.aioParseNativeJpegMetadata(shadowedJpeg),
+  { workflow: expectedWorkflow, prompt: expectedPrompt },
+  "exact canonical metadata must win even when aliases appear first",
+);
+
+const aliasOnlyJpeg = jpegWithExifTextFields([
+  `WORKFLOW:${JSON.stringify(forgedWorkflow)}`,
+  `PROMPT:${JSON.stringify(forgedPrompt)}`,
+]);
+assert.deepEqual(
+  metadataModule.aioParseNativeJpegMetadata(aliasOnlyJpeg),
+  { workflow: forgedWorkflow, prompt: forgedPrompt },
+  "alias-only legacy metadata must remain readable",
+);
+
+const malformedCanonicalJpeg = jpegWithExifTextFields([
+  `Workflow:${JSON.stringify(forgedWorkflow)}`,
+  `Prompt:${JSON.stringify(forgedPrompt)}`,
+  "workflow:not-json",
+  "prompt:not-json",
+]);
+assert.equal(
+  metadataModule.aioParseNativeJpegMetadata(malformedCanonicalJpeg),
+  undefined,
+  "malformed exact metadata must block fallback to case-variant aliases",
+);
 
 const malformedWorkflow = Buffer.from(WORKFLOW_JPEG);
 const workflowPrefix = Buffer.from("workflow:{", "utf8");
