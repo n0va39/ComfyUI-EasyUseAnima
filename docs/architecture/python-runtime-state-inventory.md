@@ -45,6 +45,9 @@ E-01 drift gate until classified.
 | `atomic-json-path-locks` | filesystem atomic JSON per-path lock registry shared by direct/factory stores | guard plus per-path `RLock`; no clear | E-03b complete |
 | `bootstrap-initialize-state` | bootstrap default runtime, wildcard completion, executor, atexit, and terminal state | shared initialize/shutdown `Lock`; expected-identity detach and once-only cleanup | E-09 complete; E-09c audited |
 | `filesystem-runtime-paths` | import-resolved package/user-data paths projected into the default RuntimeConfig | immutable after import; bootstrap composition does not re-resolve | E-02c complete |
+| `native-civitai-lookup-cache` | native image metadata owns two bounded successful-result LRU caches for Civitai lookups | `functools.lru_cache`; transport and parse failures are not cached | native image output complete |
+| `native-image-output-runtime` | native image output owns one process save lock | serializes output-name reservation and publication; no reset | native image output complete |
+| `native-resource-hash-runtime` | native resource hashing owns a bounded process LRU and validated persistent cache under the ComfyUI user directory | persistent-cache `Lock`, atomic JSON replacement, 128-entry and 1 MiB bounds; no reset | native image metadata parity complete |
 | `package-bootstrap-effect` | root import invokes bootstrap route/directory initialization | bootstrap `Lock`; retry behavior plus once-registered terminal `atexit` shutdown | E-09 complete; E-09c audited |
 | `profile-directory-mutation-coordinator` | canonical process coordinator with weak per-directory locks | guard plus per-directory `RLock`; weak expiry | E-03d complete |
 | prompt warning-dedupe entries | Conditioning owns the canonical process warning set; the callerless Artist Mix duplicate is removed | canonical set remains process-lifetime with its accepted benign race | E-09 complete; E-09c audited |

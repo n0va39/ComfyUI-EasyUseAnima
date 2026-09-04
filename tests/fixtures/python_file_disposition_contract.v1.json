@@ -4,7 +4,7 @@
   "inventory_owner": {
     "path": "tests/fixtures/python_backend_baseline.json",
     "expected_baseline_files": 191,
-    "expected_target_files": 197
+    "expected_target_files": 198
   },
   "linked_contracts": {
     "compatibility_registry": "docs/architecture/python-compatibility-shims.md",
@@ -881,12 +881,17 @@
       "path": "easyuse_anima/aio/native_image_output.py",
       "role": "aio-native-image-output",
       "owner_group": "aio",
-      "disposition": "cohesive_retain",
+      "disposition": "split",
       "status": "complete",
       "targets": [
         {
           "path": "easyuse_anima/aio/native_image_output.py",
           "role": "aio-native-image-output",
+          "owner_group": "aio"
+        },
+        {
+          "path": "easyuse_anima/aio/native_resource_hashes.py",
+          "role": "aio-native-resource-hashes",
           "owner_group": "aio"
         }
       ],
@@ -894,8 +899,8 @@
         "tests/test_aio_native_image_output.py"
       ],
       "compatibility_registry_key": null,
-      "task_id": null,
-      "rollback_unit": null,
+      "task_id": "ISSUE-689",
+      "rollback_unit": "Revert the cohesive Issue #689 native resource metadata and hash-owner split.",
       "replacement_owner": null,
       "size_exception_verdicts": []
     },

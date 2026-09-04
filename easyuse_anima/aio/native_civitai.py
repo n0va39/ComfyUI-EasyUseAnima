@@ -14,8 +14,10 @@ logger = logging.getLogger("ComfyUI-EasyUseAnima")
 
 _CIVITAI_API_ROOT = "https://civitai.com/api/v1"
 _CIVITAI_RESPONSE_LIMIT = 2 * 1024 * 1024
+_MAX_REMOTE_FILES = 256
 _CONTROL_RE = re.compile(r"[\x00-\x1f\x7f]")
 _SAFE_HASH_RE = re.compile(r"^[A-Za-z0-9_-]{1,128}$")
+_LOOKUP_HASH_RE = re.compile(r"^[0-9a-f]{8,128}$")
 _SAFE_AIR_RE = re.compile(r"^urn:air:[A-Za-z0-9][A-Za-z0-9._~:@%+\-]{0,503}$")
 
 
@@ -46,6 +48,25 @@ def _positive_int(value: object) -> int | None:
         return None
     result = int(text)
     return result if result > 0 else None
+
+
+def _response_proves_hash(data: Mapping[str, object], normalized_hash: str) -> bool:
+    """Require an exact file-hash match before trusting a by-hash response."""
+
+    files = data.get("files")
+    if not isinstance(files, list):
+        return False
+    for item in files[:_MAX_REMOTE_FILES]:
+        if not isinstance(item, Mapping):
+            continue
+        hashes = item.get("hashes")
+        if not isinstance(hashes, Mapping):
+            continue
+        for value in hashes.values():
+            candidate = _remote_text(value, max_length=128).casefold()
+            if candidate == normalized_hash:
+                return True
+    return False
 
 
 def _request_civitai_json(
@@ -122,11 +143,13 @@ def _request_civitai_json(
 
 @lru_cache(maxsize=128)
 def _cached_civitai_resource_by_hash(
-    normalized_sha256: str,
+    normalized_hash: str,
 ) -> CivitaiResourceDescriptor | None:
     data = _request_civitai_json(
-        f"{_CIVITAI_API_ROOT}/model-versions/by-hash/{normalized_sha256}"
+        f"{_CIVITAI_API_ROOT}/model-versions/by-hash/{normalized_hash}"
     )
+    if not _response_proves_hash(data, normalized_hash):
+        return None
     air = _remote_text(data.get("air"))
     if air and not _SAFE_AIR_RE.fullmatch(air):
         air = ""
@@ -148,10 +171,10 @@ def _cached_civitai_resource_by_hash(
 
 
 def _fetch_civitai_resource_by_hash(
-    sha256: str,
+    resource_hash: str,
 ) -> CivitaiResourceDescriptor | None:
-    normalized = str(sha256 or "").strip().casefold()
-    if not re.fullmatch(r"[0-9a-f]{64}", normalized):
+    normalized = str(resource_hash or "").strip().casefold()
+    if not _LOOKUP_HASH_RE.fullmatch(normalized):
         return None
     try:
         return _cached_civitai_resource_by_hash(normalized)
