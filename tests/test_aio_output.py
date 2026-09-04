@@ -1,13 +1,15 @@
 from __future__ import annotations
 
+import json
 import sys
 import tempfile
 import types
 import unittest
 from datetime import datetime
 from pathlib import Path
-from unittest.mock import Mock, patch
+from unittest.mock import ANY, Mock, patch
 
+from easyuse_anima.aio import native_civitai as civitai
 from easyuse_anima.aio import output, output_settings
 from easyuse_anima.aio.generation_defaults import AIO_GENERATION_DEFAULT_SETTINGS
 from tests.comfy_host_fakes import patch_comfy_helper
@@ -155,6 +157,122 @@ class AIOOutputMoveTests(unittest.TestCase):
         self.assertEqual(len(entries), output._MAX_CIVITAI_HASH_FETCHERS)
         self.assertEqual(fetch.call_count, output._MAX_CIVITAI_HASH_FETCHERS)
         self.assertIn("ignoring 5 excess rows", "\n".join(logs.output))
+
+    def test_repeated_civitai_timeouts_stop_at_the_shared_call_budget(self):
+        civitai._fetch_civitai_autov3_hash.cache_clear()
+        budget = civitai.CivitaiLookupBudget(
+            timeout_seconds=100.0,
+            http_call_limit=3,
+        )
+        transport = Mock(side_effect=TimeoutError("socket stalled"))
+        settings = {
+            "civitai_hash_fetchers": [
+                {
+                    "enabled": True,
+                    "username": "creator",
+                    "model_name": f"timeout-{index}",
+                    "version": "",
+                }
+                for index in range(5)
+            ]
+        }
+
+        with (
+            patch.object(civitai, "_default_civitai_transport", transport),
+            self.assertLogs("ComfyUI-EasyUseAnima", level="WARNING") as logs,
+        ):
+            self.assertEqual(
+                output._aio_image_saver_civitai_hash_fetcher_entries(
+                    settings,
+                    budget=budget,
+                ),
+                [],
+            )
+
+        self.assertEqual(transport.call_count, 3)
+        self.assertEqual(budget.calls_started, 3)
+        self.assertIn("HTTP-call budget", "\n".join(logs.output))
+
+    def test_fetcher_and_resource_enrichment_share_budget_and_still_save(self):
+        civitai._fetch_civitai_autov3_hash.cache_clear()
+        civitai._cached_civitai_resource_by_hash.cache_clear()
+        budget = civitai.CivitaiLookupBudget(
+            timeout_seconds=100.0,
+            http_call_limit=3,
+        )
+
+        def response(payload):
+            value = Mock(status_code=200, headers={})
+            value.iter_content.return_value = [
+                json.dumps(payload).encode("utf-8")
+            ]
+            return value
+
+        def transport(endpoint, *, params, timeout):
+            self.assertGreater(timeout[0], 0)
+            self.assertGreater(timeout[1], 0)
+            if endpoint.endswith("/models"):
+                self.assertEqual(params["query"], "Shared Model")
+                return response({
+                    "items": [{
+                        "name": "Shared Model",
+                        "modelVersions": [{"id": 11, "name": "v1"}],
+                    }]
+                })
+            if endpoint.endswith("/model-versions/11"):
+                return response({
+                    "files": [{"hashes": {"AutoV3": "ABCDEF1234"}}]
+                })
+            self.assertTrue(endpoint.endswith("/by-hash/deadbeef12"))
+            return response({
+                "id": 22,
+                "name": "manual-v1",
+                "model": {"name": "Manual Resource"},
+                "files": [{"hashes": {"AutoV3": "DEADBEEF12"}}],
+            })
+
+        settings = {
+            "image_saver": {
+                **AIO_GENERATION_DEFAULT_SETTINGS["save"]["image_saver"],
+                "filename": "budgeted",
+                "path": "EasyUseAnima/Test",
+                "additional_hashes": "Manual:DEADBEEF12",
+                "download_civitai_data": True,
+                "civitai_hash_fetchers": [{
+                    "enabled": True,
+                    "username": "Creator",
+                    "model_name": "Shared Model",
+                    "version": "v1",
+                }],
+            }
+        }
+
+        with tempfile.TemporaryDirectory() as temp:
+            with (
+                patch.dict(sys.modules, {"folder_paths": fake_folder_paths(temp)}),
+                patch.object(output, "CivitaiLookupBudget", return_value=budget),
+                patch.object(civitai, "_default_civitai_transport", side_effect=transport) as request,
+                patch.object(output, "_save_native_images", return_value="saved") as save,
+                self.assertLogs("ComfyUI-EasyUseAnima", level="WARNING") as logs,
+            ):
+                result = output._save_image_with_image_saver(
+                    images="images",
+                    save_settings=settings,
+                    positive_prompt="prompt",
+                    negative_prompt="",
+                    width=64,
+                    height=64,
+                    sampler_settings={"seed": 1},
+                    resource_info={"unet_name": ""},
+                )
+
+        self.assertEqual(result, "saved")
+        self.assertEqual(request.call_count, 3)
+        self.assertEqual(budget.calls_started, 3)
+        metadata = save.call_args.kwargs["metadata"]
+        self.assertIn("Manual:DEADBEEF12", metadata.final_hashes)
+        self.assertIn('"modelVersionId":22', metadata.parameters)
+        self.assertIn("HTTP-call budget", "\n".join(logs.output))
 
     def test_additional_hash_and_lora_metadata_use_canonical_helpers(self):
         with (
@@ -329,6 +447,7 @@ class AIOOutputMoveTests(unittest.TestCase):
             applied_loras=[{"name": "x", "strength_model": 1}],
             download_civitai_data=save_settings["image_saver"]["download_civitai_data"],
             easy_remix=save_settings["image_saver"]["easy_remix"],
+            civitai_budget=ANY,
         )
         save.assert_called_once_with(
             "images",

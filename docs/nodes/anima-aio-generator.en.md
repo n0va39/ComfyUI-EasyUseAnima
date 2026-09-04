@@ -122,7 +122,9 @@ and cannot replace the locally owned `model` hash. `Civitai data` is disabled by
 default; explicitly enable it to enrich local and manual hashes through fixed
 `https://civitai.com/api/v1` endpoints. A short-hash result is accepted only
 when the response contains an exact matching file hash. Failures are logged and
-do not block image saving. Civitai Hash Fetcher rows likewise store username,
+do not block image saving. Hash Fetcher and local/manual enrichment share a
+12-second, 16-request budget per save; remaining lookups are skipped when
+either limit is reached. Civitai Hash Fetcher rows likewise store username,
 model name, and version and add `model_name:AutoV3` entries.
 
 ## Required Node Packs

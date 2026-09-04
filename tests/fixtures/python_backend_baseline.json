@@ -8942,6 +8942,57 @@
       },
       {
         "alias": null,
+        "bound_name": "threading",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "threading",
+        "kind": "static_import",
+        "line": 8,
+        "name": null,
+        "optional": false,
+        "requested": "threading",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/native_civitai.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "time",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "time",
+        "kind": "static_import",
+        "line": 9,
+        "name": null,
+        "optional": false,
+        "requested": "time",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/native_civitai.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "Callable",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "collections.abc:Callable",
+        "kind": "static_from",
+        "line": 10,
+        "name": "Callable",
+        "optional": false,
+        "requested": "collections.abc",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/native_civitai.py"
+      },
+      {
+        "alias": null,
         "bound_name": "Mapping",
         "branch_context": [],
         "classification": "external",
@@ -8949,10 +9000,27 @@
         "conditional": false,
         "imported": "collections.abc:Mapping",
         "kind": "static_from",
-        "line": 8,
+        "line": 10,
         "name": "Mapping",
         "optional": false,
         "requested": "collections.abc",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/native_civitai.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "ContextVar",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "contextvars:ContextVar",
+        "kind": "static_from",
+        "line": 11,
+        "name": "ContextVar",
+        "optional": false,
+        "requested": "contextvars",
         "role": "ordinary",
         "scope": "<module>",
         "source": "easyuse_anima/aio/native_civitai.py"
@@ -8966,8 +9034,25 @@
         "conditional": false,
         "imported": "dataclasses:dataclass",
         "kind": "static_from",
-        "line": 9,
+        "line": 12,
         "name": "dataclass",
+        "optional": false,
+        "requested": "dataclasses",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/native_civitai.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "field",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "dataclasses:field",
+        "kind": "static_from",
+        "line": 12,
+        "name": "field",
         "optional": false,
         "requested": "dataclasses",
         "role": "ordinary",
@@ -8983,7 +9068,7 @@
         "conditional": false,
         "imported": "functools:lru_cache",
         "kind": "static_from",
-        "line": 10,
+        "line": 13,
         "name": "lru_cache",
         "optional": false,
         "requested": "functools",
@@ -9000,7 +9085,7 @@
         "conditional": false,
         "imported": "typing:Any",
         "kind": "static_from",
-        "line": 11,
+        "line": 14,
         "name": "Any",
         "optional": false,
         "requested": "typing",
@@ -9017,7 +9102,7 @@
         "conditional": false,
         "imported": "typing:cast",
         "kind": "static_from",
-        "line": 11,
+        "line": 14,
         "name": "cast",
         "optional": false,
         "requested": "typing",
@@ -9028,26 +9113,18 @@
       {
         "alias": null,
         "bound_name": "requests",
-        "branch_context": [
-          {
-            "branch": "body",
-            "handles_import_failure": true,
-            "has_import_fallback_handler": false,
-            "kind": "try",
-            "line": 80
-          }
-        ],
+        "branch_context": [],
         "classification": "external",
-        "column": 8,
-        "conditional": true,
+        "column": 4,
+        "conditional": false,
         "imported": "requests",
         "kind": "static_import",
-        "line": 81,
+        "line": 152,
         "name": null,
-        "optional": true,
+        "optional": false,
         "requested": "requests",
-        "role": "optional_dependency",
-        "scope": "_request_civitai_json",
+        "role": "ordinary",
+        "scope": "_default_civitai_transport",
         "source": "easyuse_anima/aio/native_civitai.py"
       },
       {
@@ -9289,16 +9366,34 @@
         "source": "easyuse_anima/aio/native_image_output.py"
       },
       {
-        "alias": "_fetch_civitai_autov3_hash",
-        "bound_name": "_fetch_civitai_autov3_hash",
+        "alias": null,
+        "bound_name": "CivitaiLookupBudget",
         "branch_context": [],
         "classification": "internal",
         "column": 0,
         "conditional": false,
-        "imported": ".native_civitai:_fetch_civitai_autov3_hash",
+        "imported": ".native_civitai:CivitaiLookupBudget",
         "kind": "static_from",
         "line": 15,
-        "name": "_fetch_civitai_autov3_hash",
+        "name": "CivitaiLookupBudget",
+        "optional": false,
+        "requested": ".native_civitai",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/native_image_output.py",
+        "target": "easyuse_anima/aio/native_civitai.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "CivitaiLookupBudgetExhausted",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".native_civitai:CivitaiLookupBudgetExhausted",
+        "kind": "static_from",
+        "line": 15,
+        "name": "CivitaiLookupBudgetExhausted",
         "optional": false,
         "requested": ".native_civitai",
         "role": "ordinary",
@@ -9315,8 +9410,26 @@
         "conditional": false,
         "imported": ".native_civitai:_fetch_civitai_resource_by_hash",
         "kind": "static_from",
-        "line": 18,
+        "line": 15,
         "name": "_fetch_civitai_resource_by_hash",
+        "optional": false,
+        "requested": ".native_civitai",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/native_image_output.py",
+        "target": "easyuse_anima/aio/native_civitai.py"
+      },
+      {
+        "alias": "_fetch_civitai_autov3_hash",
+        "bound_name": "_fetch_civitai_autov3_hash",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".native_civitai:_fetch_civitai_autov3_hash",
+        "kind": "static_from",
+        "line": 20,
+        "name": "_fetch_civitai_autov3_hash",
         "optional": false,
         "requested": ".native_civitai",
         "role": "ordinary",
@@ -9333,7 +9446,7 @@
         "conditional": false,
         "imported": ".native_output_publication:OutputDirectoryBinding",
         "kind": "static_from",
-        "line": 21,
+        "line": 23,
         "name": "OutputDirectoryBinding",
         "optional": false,
         "requested": ".native_output_publication",
@@ -9351,7 +9464,7 @@
         "conditional": false,
         "imported": ".native_output_publication:PublicationCollision",
         "kind": "static_from",
-        "line": 21,
+        "line": 23,
         "name": "PublicationCollision",
         "optional": false,
         "requested": ".native_output_publication",
@@ -9369,7 +9482,7 @@
         "conditional": false,
         "imported": ".native_output_publication:publish_image_transaction",
         "kind": "static_from",
-        "line": 21,
+        "line": 23,
         "name": "publish_image_transaction",
         "optional": false,
         "requested": ".native_output_publication",
@@ -9387,7 +9500,7 @@
         "conditional": false,
         "imported": ".native_resource_hashes:_EMBEDDING_RE",
         "kind": "static_from",
-        "line": 26,
+        "line": 28,
         "name": "_EMBEDDING_RE",
         "optional": false,
         "requested": ".native_resource_hashes",
@@ -9405,7 +9518,7 @@
         "conditional": false,
         "imported": ".native_resource_hashes:_HEX_HASH_RE",
         "kind": "static_from",
-        "line": 26,
+        "line": 28,
         "name": "_HEX_HASH_RE",
         "optional": false,
         "requested": ".native_resource_hashes",
@@ -9423,7 +9536,7 @@
         "conditional": false,
         "imported": ".native_resource_hashes:_ResourceHash",
         "kind": "static_from",
-        "line": 26,
+        "line": 28,
         "name": "_ResourceHash",
         "optional": false,
         "requested": ".native_resource_hashes",
@@ -9441,7 +9554,7 @@
         "conditional": false,
         "imported": ".native_resource_hashes:_local_resource_hashes",
         "kind": "static_from",
-        "line": 26,
+        "line": 28,
         "name": "_local_resource_hashes",
         "optional": false,
         "requested": ".native_resource_hashes",
@@ -9459,7 +9572,7 @@
         "conditional": false,
         "imported": ".native_resource_hashes:_manual_resource_hashes",
         "kind": "static_from",
-        "line": 26,
+        "line": 28,
         "name": "_manual_resource_hashes",
         "optional": false,
         "requested": ".native_resource_hashes",
@@ -9477,7 +9590,7 @@
         "conditional": false,
         "imported": ".native_resource_hashes:_resource_name",
         "kind": "static_from",
-        "line": 26,
+        "line": 28,
         "name": "_resource_name",
         "optional": false,
         "requested": ".native_resource_hashes",
@@ -9495,7 +9608,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 248
+            "line": 270
           }
         ],
         "classification": "external",
@@ -9503,7 +9616,7 @@
         "conditional": true,
         "imported": "comfy.cli_args:args",
         "kind": "static_from",
-        "line": 249,
+        "line": 271,
         "name": "args",
         "optional": true,
         "requested": "comfy.cli_args",
@@ -9520,7 +9633,7 @@
         "conditional": false,
         "imported": "PIL:ExifTags",
         "kind": "static_from",
-        "line": 265,
+        "line": 287,
         "name": "ExifTags",
         "optional": false,
         "requested": "PIL",
@@ -9537,7 +9650,7 @@
         "conditional": false,
         "imported": "PIL:Image",
         "kind": "static_from",
-        "line": 265,
+        "line": 287,
         "name": "Image",
         "optional": false,
         "requested": "PIL",
@@ -9552,7 +9665,7 @@
           {
             "branch": "body",
             "kind": "if",
-            "line": 320,
+            "line": 342,
             "type_checking": false
           }
         ],
@@ -9561,7 +9674,7 @@
         "conditional": true,
         "imported": "PIL.PngImagePlugin:PngInfo",
         "kind": "static_from",
-        "line": 321,
+        "line": 343,
         "name": "PngInfo",
         "optional": false,
         "requested": "PIL.PngImagePlugin",
@@ -9578,7 +9691,7 @@
         "conditional": false,
         "imported": "numpy",
         "kind": "static_import",
-        "line": 350,
+        "line": 372,
         "name": null,
         "optional": false,
         "requested": "numpy",
@@ -9595,7 +9708,7 @@
         "conditional": false,
         "imported": "PIL:Image",
         "kind": "static_from",
-        "line": 351,
+        "line": 373,
         "name": "Image",
         "optional": false,
         "requested": "PIL",
@@ -11058,6 +11171,42 @@
       },
       {
         "alias": null,
+        "bound_name": "CivitaiLookupBudget",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".native_civitai:CivitaiLookupBudget",
+        "kind": "static_from",
+        "line": 18,
+        "name": "CivitaiLookupBudget",
+        "optional": false,
+        "requested": ".native_civitai",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/output.py",
+        "target": "easyuse_anima/aio/native_civitai.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "CivitaiLookupBudgetExhausted",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".native_civitai:CivitaiLookupBudgetExhausted",
+        "kind": "static_from",
+        "line": 18,
+        "name": "CivitaiLookupBudgetExhausted",
+        "optional": false,
+        "requested": ".native_civitai",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/output.py",
+        "target": "easyuse_anima/aio/native_civitai.py"
+      },
+      {
+        "alias": null,
         "bound_name": "NativeImageMetadata",
         "branch_context": [],
         "classification": "internal",
@@ -11065,7 +11214,7 @@
         "conditional": false,
         "imported": ".native_image_output:NativeImageMetadata",
         "kind": "static_from",
-        "line": 18,
+        "line": 19,
         "name": "NativeImageMetadata",
         "optional": false,
         "requested": ".native_image_output",
@@ -11083,7 +11232,7 @@
         "conditional": false,
         "imported": ".native_image_output:_build_native_metadata",
         "kind": "static_from",
-        "line": 18,
+        "line": 19,
         "name": "_build_native_metadata",
         "optional": false,
         "requested": ".native_image_output",
@@ -11101,7 +11250,7 @@
         "conditional": false,
         "imported": ".native_image_output:_comfy_metadata_enabled",
         "kind": "static_from",
-        "line": 18,
+        "line": 19,
         "name": "_comfy_metadata_enabled",
         "optional": false,
         "requested": ".native_image_output",
@@ -11119,7 +11268,7 @@
         "conditional": false,
         "imported": ".native_image_output:_fetch_civitai_autov3_hash",
         "kind": "static_from",
-        "line": 18,
+        "line": 19,
         "name": "_fetch_civitai_autov3_hash",
         "optional": false,
         "requested": ".native_image_output",
@@ -11137,7 +11286,7 @@
         "conditional": false,
         "imported": ".native_image_output:_save_native_images",
         "kind": "static_from",
-        "line": 18,
+        "line": 19,
         "name": "_save_native_images",
         "optional": false,
         "requested": ".native_image_output",
@@ -11155,7 +11304,7 @@
         "conditional": false,
         "imported": ".output_settings:_normalize_aio_civitai_hash_fetchers",
         "kind": "static_from",
-        "line": 25,
+        "line": 26,
         "name": "_normalize_aio_civitai_hash_fetchers",
         "optional": false,
         "requested": ".output_settings",
@@ -11173,7 +11322,7 @@
         "conditional": false,
         "imported": ".output_settings:_normalize_aio_hash_bundles",
         "kind": "static_from",
-        "line": 28,
+        "line": 29,
         "name": "_normalize_aio_hash_bundles",
         "optional": false,
         "requested": ".output_settings",
@@ -11191,7 +11340,7 @@
         "conditional": false,
         "imported": ".sampling:_resolve_aio_runtime_seed",
         "kind": "static_from",
-        "line": 31,
+        "line": 32,
         "name": "_resolve_aio_runtime_seed",
         "optional": false,
         "requested": ".sampling",
@@ -11209,7 +11358,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 79
+            "line": 80
           }
         ],
         "classification": "external",
@@ -11217,7 +11366,7 @@
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 80,
+        "line": 81,
         "name": null,
         "optional": true,
         "requested": "folder_paths",
@@ -11234,7 +11383,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 157
+            "line": 158
           }
         ],
         "classification": "external",
@@ -11242,7 +11391,7 @@
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 158,
+        "line": 159,
         "name": null,
         "optional": true,
         "requested": "folder_paths",
@@ -11259,7 +11408,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 405
+            "line": 436
           }
         ],
         "classification": "external",
@@ -11267,7 +11416,7 @@
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 406,
+        "line": 437,
         "name": null,
         "optional": true,
         "requested": "folder_paths",
@@ -44025,6 +44174,10 @@
       },
       {
         "from": "easyuse_anima/aio/output.py",
+        "to": "easyuse_anima/aio/native_civitai.py"
+      },
+      {
+        "from": "easyuse_anima/aio/output.py",
         "to": "easyuse_anima/aio/native_image_output.py"
       },
       {
@@ -49711,207 +49864,263 @@
         "functions": [
           {
             "async": false,
-            "end_line": 40,
+            "end_line": 48,
+            "kind": "method",
+            "line": 45,
+            "loc": 4,
+            "qualified_name": "CivitaiLookupBudget.calls_started"
+          },
+          {
+            "async": false,
+            "end_line": 66,
+            "kind": "method",
+            "line": 50,
+            "loc": 17,
+            "qualified_name": "CivitaiLookupBudget.reserve_http_call"
+          },
+          {
+            "async": false,
+            "end_line": 77,
+            "kind": "method",
+            "line": 68,
+            "loc": 10,
+            "qualified_name": "CivitaiLookupBudget.require_time_remaining"
+          },
+          {
+            "async": false,
+            "end_line": 114,
             "kind": "function",
-            "line": 34,
+            "line": 108,
             "loc": 7,
             "qualified_name": "_remote_text"
           },
           {
             "async": false,
-            "end_line": 50,
+            "end_line": 124,
             "kind": "function",
-            "line": 43,
+            "line": 117,
             "loc": 8,
             "qualified_name": "_positive_int"
           },
           {
             "async": false,
-            "end_line": 69,
+            "end_line": 143,
             "kind": "function",
-            "line": 53,
+            "line": 127,
             "loc": 17,
             "qualified_name": "_response_proves_hash"
           },
           {
             "async": false,
-            "end_line": 141,
+            "end_line": 164,
             "kind": "function",
-            "line": 72,
-            "loc": 70,
+            "line": 146,
+            "loc": 19,
+            "qualified_name": "_default_civitai_transport"
+          },
+          {
+            "async": false,
+            "end_line": 217,
+            "kind": "function",
+            "line": 167,
+            "loc": 51,
+            "qualified_name": "_read_civitai_response"
+          },
+          {
+            "async": false,
+            "end_line": 291,
+            "kind": "function",
+            "line": 220,
+            "loc": 72,
             "qualified_name": "_request_civitai_json"
           },
           {
             "async": false,
-            "end_line": 170,
+            "end_line": 265,
             "kind": "function",
-            "line": 144,
+            "line": 245,
+            "loc": 21,
+            "qualified_name": "_request_civitai_json.worker"
+          },
+          {
+            "async": false,
+            "end_line": 320,
+            "kind": "function",
+            "line": 294,
             "loc": 27,
             "qualified_name": "_cached_civitai_resource_by_hash"
           },
           {
             "async": false,
-            "end_line": 188,
+            "end_line": 350,
             "kind": "function",
-            "line": 173,
-            "loc": 16,
+            "line": 323,
+            "loc": 28,
             "qualified_name": "_fetch_civitai_resource_by_hash"
           },
           {
             "async": false,
-            "end_line": 279,
+            "end_line": 426,
             "kind": "function",
-            "line": 191,
-            "loc": 89,
+            "line": 353,
+            "loc": 74,
+            "qualified_name": "_cached_civitai_autov3_hash"
+          },
+          {
+            "async": false,
+            "end_line": 472,
+            "kind": "function",
+            "line": 429,
+            "loc": 44,
             "qualified_name": "_fetch_civitai_autov3_hash"
           }
         ],
         "is_package": false,
-        "loc": 282,
+        "loc": 482,
         "module": "easyuse_anima.aio.native_civitai",
-        "normalized_git_blob_sha1": "17eede629aa37731c706f801fc5ddd4f7f161d5e",
+        "normalized_git_blob_sha1": "d7c632c631d1f5878ce26dfb01a1ec365aacd2d6",
         "path": "easyuse_anima/aio/native_civitai.py",
         "top_level": {
-          "class_count": 1,
-          "function_count": 7,
-          "global_count": 9
+          "class_count": 4,
+          "function_count": 10,
+          "global_count": 13
         }
       },
       {
         "functions": [
           {
             "async": false,
-            "end_line": 77,
+            "end_line": 79,
             "kind": "function",
-            "line": 71,
+            "line": 73,
             "loc": 7,
             "qualified_name": "_compact_json"
           },
           {
             "async": false,
-            "end_line": 87,
+            "end_line": 89,
             "kind": "function",
-            "line": 80,
+            "line": 82,
             "loc": 8,
             "qualified_name": "_clean_prompt_for_remix"
           },
           {
             "async": false,
-            "end_line": 85,
+            "end_line": 87,
             "kind": "function",
-            "line": 83,
+            "line": 85,
             "loc": 3,
             "qualified_name": "_clean_prompt_for_remix.simplify_embedding"
           },
           {
             "async": false,
-            "end_line": 100,
+            "end_line": 102,
             "kind": "function",
-            "line": 90,
+            "line": 92,
             "loc": 11,
             "qualified_name": "_civitai_sampler_name"
           },
           {
             "async": false,
-            "end_line": 142,
+            "end_line": 160,
             "kind": "function",
-            "line": 103,
-            "loc": 40,
+            "line": 105,
+            "loc": 56,
             "qualified_name": "_civitai_resource_entries"
           },
           {
             "async": false,
-            "end_line": 244,
+            "end_line": 266,
             "kind": "function",
-            "line": 145,
-            "loc": 100,
+            "line": 163,
+            "loc": 104,
             "qualified_name": "_build_native_metadata"
           },
           {
             "async": false,
-            "end_line": 253,
+            "end_line": 275,
             "kind": "function",
-            "line": 247,
+            "line": 269,
             "loc": 7,
             "qualified_name": "_comfy_metadata_enabled"
           },
           {
             "async": false,
-            "end_line": 257,
+            "end_line": 279,
             "kind": "function",
-            "line": 256,
+            "line": 278,
             "loc": 2,
             "qualified_name": "_encode_user_comment"
           },
           {
             "async": false,
-            "end_line": 277,
+            "end_line": 299,
             "kind": "function",
-            "line": 260,
+            "line": 282,
             "loc": 18,
             "qualified_name": "_build_exif_bytes"
           },
           {
             "async": false,
-            "end_line": 346,
+            "end_line": 368,
             "kind": "function",
-            "line": 280,
+            "line": 302,
             "loc": 67,
             "qualified_name": "_serialize_metadata"
           },
           {
             "async": false,
-            "end_line": 368,
+            "end_line": 390,
             "kind": "function",
-            "line": 349,
+            "line": 371,
             "loc": 20,
             "qualified_name": "_tensor_to_pil"
           },
           {
             "async": false,
-            "end_line": 416,
+            "end_line": 438,
             "kind": "function",
-            "line": 371,
+            "line": 393,
             "loc": 46,
             "qualified_name": "_allocate_filenames"
           },
           {
             "async": false,
-            "end_line": 384,
+            "end_line": 406,
             "kind": "function",
-            "line": 380,
+            "line": 402,
             "loc": 5,
             "qualified_name": "_allocate_filenames.occupied"
           },
           {
             "async": false,
-            "end_line": 453,
+            "end_line": 475,
             "kind": "function",
-            "line": 419,
+            "line": 441,
             "loc": 35,
             "qualified_name": "_resolve_native_output_folder"
           },
           {
             "async": false,
-            "end_line": 476,
+            "end_line": 498,
             "kind": "function",
-            "line": 456,
+            "line": 478,
             "loc": 21,
             "qualified_name": "_image_save_options"
           },
           {
             "async": false,
-            "end_line": 598,
+            "end_line": 620,
             "kind": "function",
-            "line": 479,
+            "line": 501,
             "loc": 120,
             "qualified_name": "_save_native_images"
           }
         ],
         "is_package": false,
-        "loc": 601,
+        "loc": 623,
         "module": "easyuse_anima.aio.native_image_output",
-        "normalized_git_blob_sha1": "b914d3cbbdaddcb25c4482024cc1a010789d7e57",
+        "normalized_git_blob_sha1": "4db8ba4629832457a014a975a56f75e5411175dc",
         "path": "easyuse_anima/aio/native_image_output.py",
         "top_level": {
           "class_count": 2,
@@ -50557,153 +50766,153 @@
         "functions": [
           {
             "async": false,
-            "end_line": 67,
+            "end_line": 68,
             "kind": "function",
-            "line": 64,
+            "line": 65,
             "loc": 4,
             "qualified_name": "_missing_host_helper"
           },
           {
             "async": false,
-            "end_line": 75,
+            "end_line": 76,
             "kind": "function",
-            "line": 70,
+            "line": 71,
             "loc": 6,
             "qualified_name": "_find_comfy_node_class"
           },
           {
             "async": false,
-            "end_line": 96,
+            "end_line": 97,
             "kind": "function",
-            "line": 78,
+            "line": 79,
             "loc": 19,
             "qualified_name": "_comfy_output_directory"
           },
           {
             "async": false,
-            "end_line": 124,
+            "end_line": 125,
             "kind": "function",
-            "line": 99,
+            "line": 100,
             "loc": 26,
             "qualified_name": "_output_path_parts"
           },
           {
             "async": false,
-            "end_line": 151,
+            "end_line": 152,
             "kind": "function",
-            "line": 127,
+            "line": 128,
             "loc": 25,
             "qualified_name": "_validated_output_subpath"
           },
           {
             "async": false,
-            "end_line": 164,
+            "end_line": 165,
             "kind": "function",
-            "line": 154,
+            "line": 155,
             "loc": 11,
             "qualified_name": "_image_saver_model_names"
           },
           {
             "async": false,
-            "end_line": 171,
+            "end_line": 172,
             "kind": "function",
-            "line": 167,
+            "line": 168,
             "loc": 5,
             "qualified_name": "_image_saver_timestamp"
           },
           {
             "async": false,
-            "end_line": 235,
+            "end_line": 236,
             "kind": "function",
-            "line": 174,
+            "line": 175,
             "loc": 62,
             "qualified_name": "_render_image_saver_template"
           },
           {
             "async": false,
-            "end_line": 197,
+            "end_line": 198,
             "kind": "function",
-            "line": 196,
+            "line": 197,
             "loc": 2,
             "qualified_name": "_render_image_saver_template.replace_time"
           },
           {
             "async": false,
-            "end_line": 205,
+            "end_line": 206,
             "kind": "function",
-            "line": 199,
+            "line": 200,
             "loc": 7,
             "qualified_name": "_render_image_saver_template.replace_counter"
           },
           {
             "async": false,
-            "end_line": 325,
+            "end_line": 326,
             "kind": "function",
-            "line": 238,
+            "line": 239,
             "loc": 88,
             "qualified_name": "_resolve_image_saver_runtime"
           },
           {
             "async": false,
-            "end_line": 383,
+            "end_line": 404,
             "kind": "function",
-            "line": 328,
-            "loc": 56,
+            "line": 329,
+            "loc": 76,
             "qualified_name": "_aio_image_saver_civitai_hash_fetcher_entries"
           },
           {
             "async": false,
-            "end_line": 397,
+            "end_line": 428,
             "kind": "function",
-            "line": 386,
-            "loc": 12,
+            "line": 407,
+            "loc": 22,
             "qualified_name": "_aio_image_saver_additional_hashes"
           },
           {
             "async": false,
-            "end_line": 413,
+            "end_line": 444,
             "kind": "function",
-            "line": 400,
+            "line": 431,
             "loc": 14,
             "qualified_name": "_aio_lora_metadata_name"
           },
           {
             "async": false,
-            "end_line": 431,
+            "end_line": 462,
             "kind": "function",
-            "line": 416,
+            "line": 447,
             "loc": 16,
             "qualified_name": "_aio_prompt_with_lora_metadata"
           },
           {
             "async": false,
-            "end_line": 456,
+            "end_line": 487,
             "kind": "function",
-            "line": 434,
+            "line": 465,
             "loc": 23,
             "qualified_name": "_save_image_with_comfy"
           },
           {
             "async": false,
-            "end_line": 468,
+            "end_line": 499,
             "kind": "function",
-            "line": 459,
+            "line": 490,
             "loc": 10,
             "qualified_name": "_aio_save_filename_prefix"
           },
           {
             "async": false,
-            "end_line": 567,
+            "end_line": 603,
             "kind": "function",
-            "line": 471,
-            "loc": 97,
+            "line": 502,
+            "loc": 102,
             "qualified_name": "_save_image_with_image_saver"
           }
         ],
         "is_package": false,
-        "loc": 570,
+        "loc": 606,
         "module": "easyuse_anima.aio.output",
-        "normalized_git_blob_sha1": "baea382362d328c96a4f6d9752150eaec4b53cc1",
+        "normalized_git_blob_sha1": "86c82ec2c0860e15bf1aba4046a61cc2ea645ed8",
         "path": "easyuse_anima/aio/output.py",
         "top_level": {
           "class_count": 1,
@@ -63286,8 +63495,8 @@
         "branch_context": [],
         "classification": "external",
         "conditional": false,
-        "imported": "collections.abc:Mapping",
-        "kind": "static_from",
+        "imported": "threading",
+        "kind": "static_import",
         "line": 8,
         "optional": false,
         "role": "ordinary",
@@ -63297,8 +63506,8 @@
         "branch_context": [],
         "classification": "external",
         "conditional": false,
-        "imported": "dataclasses:dataclass",
-        "kind": "static_from",
+        "imported": "time",
+        "kind": "static_import",
         "line": 9,
         "optional": false,
         "role": "ordinary",
@@ -63308,7 +63517,7 @@
         "branch_context": [],
         "classification": "external",
         "conditional": false,
-        "imported": "functools:lru_cache",
+        "imported": "collections.abc:Callable",
         "kind": "static_from",
         "line": 10,
         "optional": false,
@@ -63319,7 +63528,18 @@
         "branch_context": [],
         "classification": "external",
         "conditional": false,
-        "imported": "typing:Any",
+        "imported": "collections.abc:Mapping",
+        "kind": "static_from",
+        "line": 10,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/native_civitai.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "contextvars:ContextVar",
         "kind": "static_from",
         "line": 11,
         "optional": false,
@@ -63330,30 +63550,66 @@
         "branch_context": [],
         "classification": "external",
         "conditional": false,
-        "imported": "typing:cast",
+        "imported": "dataclasses:dataclass",
         "kind": "static_from",
-        "line": 11,
+        "line": 12,
         "optional": false,
         "role": "ordinary",
         "source": "easyuse_anima/aio/native_civitai.py"
       },
       {
-        "branch_context": [
-          {
-            "branch": "body",
-            "handles_import_failure": true,
-            "has_import_fallback_handler": false,
-            "kind": "try",
-            "line": 80
-          }
-        ],
+        "branch_context": [],
         "classification": "external",
-        "conditional": true,
+        "conditional": false,
+        "imported": "dataclasses:field",
+        "kind": "static_from",
+        "line": 12,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/native_civitai.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "functools:lru_cache",
+        "kind": "static_from",
+        "line": 13,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/native_civitai.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "typing:Any",
+        "kind": "static_from",
+        "line": 14,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/native_civitai.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "typing:cast",
+        "kind": "static_from",
+        "line": 14,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/native_civitai.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
         "imported": "requests",
         "kind": "static_import",
-        "line": 81,
-        "optional": true,
-        "role": "optional_dependency",
+        "line": 152,
+        "optional": false,
+        "role": "ordinary",
         "source": "easyuse_anima/aio/native_civitai.py"
       },
       {
@@ -63517,14 +63773,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 248
+            "line": 270
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "comfy.cli_args:args",
         "kind": "static_from",
-        "line": 249,
+        "line": 271,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/aio/native_image_output.py"
@@ -63535,7 +63791,7 @@
         "conditional": false,
         "imported": "PIL:ExifTags",
         "kind": "static_from",
-        "line": 265,
+        "line": 287,
         "optional": false,
         "role": "ordinary",
         "source": "easyuse_anima/aio/native_image_output.py"
@@ -63546,7 +63802,7 @@
         "conditional": false,
         "imported": "PIL:Image",
         "kind": "static_from",
-        "line": 265,
+        "line": 287,
         "optional": false,
         "role": "ordinary",
         "source": "easyuse_anima/aio/native_image_output.py"
@@ -63556,7 +63812,7 @@
           {
             "branch": "body",
             "kind": "if",
-            "line": 320,
+            "line": 342,
             "type_checking": false
           }
         ],
@@ -63564,7 +63820,7 @@
         "conditional": true,
         "imported": "PIL.PngImagePlugin:PngInfo",
         "kind": "static_from",
-        "line": 321,
+        "line": 343,
         "optional": false,
         "role": "ordinary",
         "source": "easyuse_anima/aio/native_image_output.py"
@@ -63575,7 +63831,7 @@
         "conditional": false,
         "imported": "numpy",
         "kind": "static_import",
-        "line": 350,
+        "line": 372,
         "optional": false,
         "role": "ordinary",
         "source": "easyuse_anima/aio/native_image_output.py"
@@ -63586,7 +63842,7 @@
         "conditional": false,
         "imported": "PIL:Image",
         "kind": "static_from",
-        "line": 351,
+        "line": 373,
         "optional": false,
         "role": "ordinary",
         "source": "easyuse_anima/aio/native_image_output.py"
@@ -64421,14 +64677,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 79
+            "line": 80
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 80,
+        "line": 81,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/aio/output.py"
@@ -64440,14 +64696,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 157
+            "line": 158
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 158,
+        "line": 159,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/aio/output.py"
@@ -64459,14 +64715,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 405
+            "line": 436
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 406,
+        "line": 437,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/aio/output.py"
@@ -71155,33 +71411,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 80
-          }
-        ],
-        "classification": "external",
-        "conditional": true,
-        "imported": "requests",
-        "kind": "static_import",
-        "line": 81,
-        "optional": true,
-        "role": "optional_dependency",
-        "source": "easyuse_anima/aio/native_civitai.py"
-      },
-      {
-        "branch_context": [
-          {
-            "branch": "body",
-            "handles_import_failure": true,
-            "has_import_fallback_handler": false,
-            "kind": "try",
-            "line": 248
+            "line": 270
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "comfy.cli_args:args",
         "kind": "static_from",
-        "line": 249,
+        "line": 271,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/aio/native_image_output.py"
@@ -71345,14 +71582,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 79
+            "line": 80
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 80,
+        "line": 81,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/aio/output.py"
@@ -71364,14 +71601,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 157
+            "line": 158
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 158,
+        "line": 159,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/aio/output.py"
@@ -71383,14 +71620,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 405
+            "line": 436
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 406,
+        "line": 437,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/aio/output.py"
@@ -73710,7 +73947,7 @@
         "column": 9,
         "context": "assign:logger",
         "kind": "import_time_call",
-        "line": 13,
+        "line": 16,
         "module": "easyuse_anima/aio/native_civitai.py",
         "scope": "<module>"
       },
@@ -73719,7 +73956,7 @@
         "column": 14,
         "context": "assign:_CONTROL_RE",
         "kind": "import_time_call",
-        "line": 18,
+        "line": 23,
         "module": "easyuse_anima/aio/native_civitai.py",
         "scope": "<module>"
       },
@@ -73728,7 +73965,7 @@
         "column": 16,
         "context": "assign:_SAFE_HASH_RE",
         "kind": "import_time_call",
-        "line": 19,
+        "line": 24,
         "module": "easyuse_anima/aio/native_civitai.py",
         "scope": "<module>"
       },
@@ -73737,7 +73974,7 @@
         "column": 18,
         "context": "assign:_LOOKUP_HASH_RE",
         "kind": "import_time_call",
-        "line": 20,
+        "line": 25,
         "module": "easyuse_anima/aio/native_civitai.py",
         "scope": "<module>"
       },
@@ -73746,7 +73983,61 @@
         "column": 15,
         "context": "assign:_SAFE_AIR_RE",
         "kind": "import_time_call",
-        "line": 21,
+        "line": 26,
+        "module": "easyuse_anima/aio/native_civitai.py",
+        "scope": "<module>"
+      },
+      {
+        "callee": "threading.BoundedSemaphore",
+        "column": 24,
+        "context": "assign:_CIVITAI_REQUEST_SLOT",
+        "kind": "import_time_call",
+        "line": 27,
+        "module": "easyuse_anima/aio/native_civitai.py",
+        "scope": "<module>"
+      },
+      {
+        "callee": "dataclass",
+        "column": 1,
+        "context": "decorator:CivitaiLookupBudget",
+        "kind": "import_time_call",
+        "line": 34,
+        "module": "easyuse_anima/aio/native_civitai.py",
+        "scope": "<module>"
+      },
+      {
+        "callee": "field",
+        "column": 30,
+        "context": "assign:_deadline",
+        "kind": "import_time_call",
+        "line": 41,
+        "module": "easyuse_anima/aio/native_civitai.py",
+        "scope": "CivitaiLookupBudget"
+      },
+      {
+        "callee": "field",
+        "column": 26,
+        "context": "assign:_calls_started",
+        "kind": "import_time_call",
+        "line": 42,
+        "module": "easyuse_anima/aio/native_civitai.py",
+        "scope": "CivitaiLookupBudget"
+      },
+      {
+        "callee": "field",
+        "column": 17,
+        "context": "assign:_lock",
+        "kind": "import_time_call",
+        "line": 43,
+        "module": "easyuse_anima/aio/native_civitai.py",
+        "scope": "CivitaiLookupBudget"
+      },
+      {
+        "callee": "ContextVar",
+        "column": 65,
+        "context": "assign:_ACTIVE_CIVITAI_BUDGET",
+        "kind": "import_time_call",
+        "line": 80,
         "module": "easyuse_anima/aio/native_civitai.py",
         "scope": "<module>"
       },
@@ -73755,25 +74046,70 @@
         "column": 1,
         "context": "decorator:CivitaiResourceDescriptor",
         "kind": "import_time_call",
-        "line": 24,
+        "line": 86,
         "module": "easyuse_anima/aio/native_civitai.py",
         "scope": "<module>"
+      },
+      {
+        "callee": "dataclass",
+        "column": 1,
+        "context": "decorator:_CivitaiModelLookup",
+        "kind": "import_time_call",
+        "line": 96,
+        "module": "easyuse_anima/aio/native_civitai.py",
+        "scope": "<module>"
+      },
+      {
+        "callee": "field",
+        "column": 20,
+        "context": "assign:username",
+        "kind": "import_time_call",
+        "line": 103,
+        "module": "easyuse_anima/aio/native_civitai.py",
+        "scope": "_CivitaiModelLookup"
+      },
+      {
+        "callee": "field",
+        "column": 22,
+        "context": "assign:model_name",
+        "kind": "import_time_call",
+        "line": 104,
+        "module": "easyuse_anima/aio/native_civitai.py",
+        "scope": "_CivitaiModelLookup"
+      },
+      {
+        "callee": "field",
+        "column": 19,
+        "context": "assign:version",
+        "kind": "import_time_call",
+        "line": 105,
+        "module": "easyuse_anima/aio/native_civitai.py",
+        "scope": "_CivitaiModelLookup"
       },
       {
         "callee": "lru_cache",
         "column": 1,
         "context": "decorator:_cached_civitai_resource_by_hash",
         "kind": "import_time_call",
-        "line": 144,
+        "line": 294,
         "module": "easyuse_anima/aio/native_civitai.py",
         "scope": "<module>"
       },
       {
         "callee": "lru_cache",
         "column": 1,
-        "context": "decorator:_fetch_civitai_autov3_hash",
+        "context": "decorator:_cached_civitai_autov3_hash",
         "kind": "import_time_call",
-        "line": 191,
+        "line": 353,
+        "module": "easyuse_anima/aio/native_civitai.py",
+        "scope": "<module>"
+      },
+      {
+        "callee": "setattr",
+        "column": 0,
+        "context": "expression",
+        "kind": "import_time_call",
+        "line": 475,
         "module": "easyuse_anima/aio/native_civitai.py",
         "scope": "<module>"
       },
@@ -73782,7 +74118,7 @@
         "column": 9,
         "context": "assign:logger",
         "kind": "import_time_call",
-        "line": 35,
+        "line": 37,
         "module": "easyuse_anima/aio/native_image_output.py",
         "scope": "<module>"
       },
@@ -73791,7 +74127,7 @@
         "column": 15,
         "context": "assign:_LORA_TAG_RE",
         "kind": "import_time_call",
-        "line": 40,
+        "line": 42,
         "module": "easyuse_anima/aio/native_image_output.py",
         "scope": "<module>"
       },
@@ -73800,7 +74136,7 @@
         "column": 14,
         "context": "assign:_CONTROL_RE",
         "kind": "import_time_call",
-        "line": 41,
+        "line": 43,
         "module": "easyuse_anima/aio/native_image_output.py",
         "scope": "<module>"
       },
@@ -73809,7 +74145,7 @@
         "column": 13,
         "context": "assign:_SAVE_LOCK",
         "kind": "import_time_call",
-        "line": 42,
+        "line": 44,
         "module": "easyuse_anima/aio/native_image_output.py",
         "scope": "<module>"
       },
@@ -73818,7 +74154,7 @@
         "column": 25,
         "context": "assign:_CIVITAI_SAMPLER_NAMES",
         "kind": "import_time_call",
-        "line": 44,
+        "line": 46,
         "module": "easyuse_anima/aio/native_image_output.py",
         "scope": "<module>"
       },
@@ -73827,7 +74163,7 @@
         "column": 1,
         "context": "decorator:NativeImageMetadata",
         "kind": "import_time_call",
-        "line": 56,
+        "line": 58,
         "module": "easyuse_anima/aio/native_image_output.py",
         "scope": "<module>"
       },
@@ -73836,7 +74172,7 @@
         "column": 1,
         "context": "decorator:_SerializedMetadata",
         "kind": "import_time_call",
-        "line": 63,
+        "line": 65,
         "module": "easyuse_anima/aio/native_image_output.py",
         "scope": "<module>"
       },
@@ -73989,7 +74325,7 @@
         "column": 9,
         "context": "assign:logger",
         "kind": "import_time_call",
-        "line": 33,
+        "line": 34,
         "module": "easyuse_anima/aio/output.py",
         "scope": "<module>"
       },
@@ -73998,7 +74334,7 @@
         "column": 30,
         "context": "assign:_IMAGE_SAVER_CUSTOM_TIME_RE",
         "kind": "import_time_call",
-        "line": 36,
+        "line": 37,
         "module": "easyuse_anima/aio/output.py",
         "scope": "<module>"
       },
@@ -74007,7 +74343,7 @@
         "column": 33,
         "context": "assign:_IMAGE_SAVER_CUSTOM_COUNTER_RE",
         "kind": "import_time_call",
-        "line": 37,
+        "line": 38,
         "module": "easyuse_anima/aio/output.py",
         "scope": "<module>"
       },
@@ -74016,7 +74352,7 @@
         "column": 21,
         "context": "assign:_OUTPUT_CONTROL_RE",
         "kind": "import_time_call",
-        "line": 38,
+        "line": 39,
         "module": "easyuse_anima/aio/output.py",
         "scope": "<module>"
       },
@@ -74025,7 +74361,7 @@
         "column": 1,
         "context": "decorator:_ImageSaverRuntime",
         "kind": "import_time_call",
-        "line": 42,
+        "line": 43,
         "module": "easyuse_anima/aio/output.py",
         "scope": "<module>"
       },
@@ -75726,7 +76062,7 @@
           "lock"
         ],
         "initializer": "threading.Lock",
-        "line": 42,
+        "line": 44,
         "module": "easyuse_anima/aio/native_image_output.py",
         "name": "_SAVE_LOCK"
       },
