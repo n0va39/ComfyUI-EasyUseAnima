@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import sys
+import types
 import unittest
 from pathlib import Path
 from unittest.mock import Mock, patch
@@ -988,6 +989,21 @@ class AIOSettingsStorageTests(unittest.TestCase):
 
 class AIONativeImageSaverTests(unittest.TestCase):
     def setUp(self):
+        comfy_module = types.ModuleType("comfy")
+        comfy_module.__path__ = []
+        cli_args_module = types.ModuleType("comfy.cli_args")
+        cli_args_module.args = types.SimpleNamespace(disable_metadata=False)
+        comfy_module.cli_args = cli_args_module
+        cli_args_patch = patch.dict(
+            sys.modules,
+            {
+                "comfy": comfy_module,
+                "comfy.cli_args": cli_args_module,
+            },
+        )
+        cli_args_patch.start()
+        self.addCleanup(cli_args_patch.stop)
+
         output_directory_patch = patch.object(
             output,
             "_comfy_output_directory",
