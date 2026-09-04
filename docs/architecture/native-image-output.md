@@ -2,6 +2,7 @@
 
 - Owner issue: [#678](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/678)
 - Runtime owner: `easyuse_anima.aio.native_image_output`
+- Output-directory owner: `easyuse_anima.aio.native_output_directories`
 - Publication owner: `easyuse_anima.aio.native_output_publication`
 - Remote metadata owner: `easyuse_anima.aio.native_civitai`
 - Metadata budget owner: `easyuse_anima.aio.native_metadata_budget`
@@ -171,8 +172,34 @@ Civitai Hash Fetcher rows resolve an AutoV3 value. Both paths use fixed
 ## Filesystem and failure contract
 
 Templates are expanded before output-path validation. Both the output subfolder
-and filename must remain relative to the active ComfyUI output root. The writer
-rechecks the created folder's resolved path before use.
+and filename must remain relative to the active ComfyUI output root. After
+canonicalizing the host-provided output-root anchor, each missing root suffix
+and user subfolder component is opened or created relative to the already-open
+parent. POSIX uses directory descriptors with no-follow opens; Windows uses a
+parent directory handle, relative `NtCreateFile`, and reparse-point opens so a
+link or junction is inspected and rejected rather than traversed. The final
+root and output-folder names must still resolve to the identities held open by
+the transaction before publication begins. Those descriptors and handles stay
+open through filename allocation and publication, and their exact identity is
+transferred into the publication binding instead of being reduced to a path.
+
+Windows directory handles deny delete sharing for the complete setup and
+publication lifetime, which prevents another opener from renaming or replacing
+an opened component. If Windows setup fails, cleanup walks only directories
+created by that setup in reverse order and requests deletion through each
+created directory handle itself. A pre-existing directory or a replacement
+with a different identity is retained.
+
+Portable POSIX APIs cannot atomically compare a directory inode and remove its
+name. POSIX therefore closes descriptors but deliberately retains any empty
+directories created before a setup failure; it never risks deleting a
+replacement based on an earlier identity check. Parent names and identities are
+rechecked immediately before and after every descent. A process running as the
+same OS principal can still rename an already-open directory after a successful
+check; POSIX provides no portable non-cooperative rename lock. The held
+descriptor remains the capability for the originally approved directory, and
+the path/identity handoff check prevents a replacement name from becoming the
+publication target.
 
 Template inputs and rendered results are limited to 1,024 characters, and the
 time-format setting is limited to 256 characters. Every custom time, padded
