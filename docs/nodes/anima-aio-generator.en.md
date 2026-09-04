@@ -103,6 +103,13 @@ enabled when saved images should reload into the same generation setup. Enable
 limit, EasyUse preserves the A1111 metadata and writes the workflow sidecar
 automatically instead of leaving a partially written image.
 
+Metadata is bounded independently of ComfyUI's request-size setting: A1111
+parameters are limited to 512 KiB, prompt JSON to 2 MiB, workflow JSON to 4 MiB,
+embedded metadata to 8 MiB per image, and repeated batch metadata to 64 MiB per
+save. JSON also has depth, item, string, and `extra_pnginfo` key limits. An
+oversized payload fails before image publication instead of producing a partial
+or unexpectedly large output.
+
 WebP is lossy when `Lossless WebP` is off; `JPEG/WebP quality` controls its
 quality/file-size tradeoff. When lossless mode is on, WebP preserves the pixel
 values supplied to the saver.

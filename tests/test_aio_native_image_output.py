@@ -15,6 +15,7 @@ from PIL import ExifTags, Image
 
 from easyuse_anima.aio import native_civitai as civitai
 from easyuse_anima.aio import native_image_output as native
+from easyuse_anima.aio import native_metadata_budget as metadata_budget
 from easyuse_anima.aio import native_output_publication as publication
 from easyuse_anima.aio import native_resource_hashes as resources
 
@@ -987,6 +988,227 @@ class AIONativeImageOutputTests(unittest.TestCase):
             self.assertEqual(result["ui"]["images"][0]["filename"], "image-only.png")
             self.assertTrue((root / "image-only.png").is_file())
             self.assertFalse((root / "image-only.json").exists())
+
+    def test_metadata_byte_limits_accept_boundary_and_reject_next_byte(self):
+        with patch.object(metadata_budget, "_MAX_PARAMETERS_BYTES", 16):
+            serialized = native._serialize_metadata(
+                extension="png",
+                parameters="x" * 16,
+                prompt=None,
+                extra_pnginfo=None,
+                embed_workflow=False,
+                save_workflow_as_json=False,
+                write_metadata=True,
+            )
+            self.assertEqual(serialized.embedded_size_bytes, 16)
+            with self.assertRaisesRegex(
+                metadata_budget.MetadataLimitError,
+                "A1111 parameters",
+            ):
+                native._serialize_metadata(
+                    extension="png",
+                    parameters="x" * 17,
+                    prompt=None,
+                    extra_pnginfo=None,
+                    embed_workflow=False,
+                    save_workflow_as_json=False,
+                    write_metadata=True,
+                )
+
+        with patch.object(metadata_budget, "_MAX_PROMPT_JSON_BYTES", 12):
+            native._serialize_metadata(
+                extension="png",
+                parameters="",
+                prompt="x" * 10,
+                extra_pnginfo=None,
+                embed_workflow=True,
+                save_workflow_as_json=False,
+                write_metadata=True,
+            )
+            with self.assertRaisesRegex(
+                metadata_budget.MetadataLimitError,
+                "prompt JSON",
+            ):
+                native._serialize_metadata(
+                    extension="png",
+                    parameters="",
+                    prompt="x" * 11,
+                    extra_pnginfo=None,
+                    embed_workflow=True,
+                    save_workflow_as_json=False,
+                    write_metadata=True,
+                )
+
+        with patch.object(metadata_budget, "_MAX_WORKFLOW_JSON_BYTES", 12):
+            serialized = native._serialize_metadata(
+                extension="png",
+                parameters="",
+                prompt=None,
+                extra_pnginfo={"workflow": "x" * 10},
+                embed_workflow=True,
+                save_workflow_as_json=False,
+                write_metadata=True,
+            )
+            self.assertIsNone(
+                serialized.workflow_json,
+                "embedded PNG workflow must not retain an unrequested pretty sidecar copy",
+            )
+            with self.assertRaisesRegex(
+                metadata_budget.MetadataLimitError,
+                "workflow JSON",
+            ):
+                native._serialize_metadata(
+                    extension="png",
+                    parameters="",
+                    prompt=None,
+                    extra_pnginfo={"workflow": "x" * 11},
+                    embed_workflow=True,
+                    save_workflow_as_json=False,
+                    write_metadata=True,
+                )
+
+    def test_metadata_structure_limits_depth_items_and_extra_keys(self):
+        deeply_nested = {"level": {"level": {"level": True}}}
+        with (
+            patch.object(metadata_budget, "_MAX_JSON_DEPTH", 2),
+            self.assertRaisesRegex(metadata_budget.MetadataLimitError, "level"),
+        ):
+            native._serialize_metadata(
+                extension="png",
+                parameters="",
+                prompt=None,
+                extra_pnginfo={"workflow": deeply_nested},
+                embed_workflow=True,
+                save_workflow_as_json=False,
+                write_metadata=True,
+            )
+
+        with (
+            patch.object(metadata_budget, "_MAX_JSON_ITEMS", 5),
+            self.assertRaisesRegex(metadata_budget.MetadataLimitError, "item"),
+        ):
+            native._serialize_metadata(
+                extension="png",
+                parameters="",
+                prompt=list(range(5)),
+                extra_pnginfo=None,
+                embed_workflow=True,
+                save_workflow_as_json=False,
+                write_metadata=True,
+            )
+
+        with (
+            patch.object(metadata_budget, "_MAX_JSON_STRING_BYTES", 4),
+            self.assertRaisesRegex(metadata_budget.MetadataLimitError, "string"),
+        ):
+            native._serialize_metadata(
+                extension="png",
+                parameters="",
+                prompt="12345",
+                extra_pnginfo=None,
+                embed_workflow=True,
+                save_workflow_as_json=False,
+                write_metadata=True,
+            )
+
+        with (
+            patch.object(metadata_budget, "_MAX_EXTRA_PNGINFO_KEYS", 2),
+            self.assertRaisesRegex(metadata_budget.MetadataLimitError, "key"),
+        ):
+            native._serialize_metadata(
+                extension="png",
+                parameters="",
+                prompt=None,
+                extra_pnginfo={"workflow": {}, "one": 1, "two": 2},
+                embed_workflow=True,
+                save_workflow_as_json=False,
+                write_metadata=True,
+            )
+
+        with (
+            patch.object(metadata_budget, "_MAX_EXTRA_PNGINFO_JSON_BYTES", 20),
+            self.assertRaisesRegex(
+                metadata_budget.MetadataLimitError,
+                "extra_pnginfo",
+            ),
+        ):
+            native._serialize_metadata(
+                extension="png",
+                parameters="",
+                prompt=None,
+                extra_pnginfo={"one": "x" * 8, "two": "y" * 8},
+                embed_workflow=True,
+                save_workflow_as_json=False,
+                write_metadata=True,
+            )
+
+    def test_batch_metadata_budget_rejects_before_image_encoding(self):
+        metadata = native.NativeImageMetadata("x" * 10, "", {})
+        pixels = np.zeros((2, 2, 3), dtype=np.float32)
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            with (
+                patch.object(metadata_budget, "_MAX_SAVE_METADATA_BYTES", 19),
+                patch.object(
+                    native,
+                    "_tensor_to_pil",
+                    side_effect=AssertionError("must reject before image encoding"),
+                ) as encode,
+                self.assertRaisesRegex(
+                    metadata_budget.MetadataLimitError,
+                    "batch metadata",
+                ),
+            ):
+                native._save_native_images(
+                    [FakeTensor(pixels), FakeTensor(pixels)],
+                    output_root=root,
+                    path="",
+                    filename="batch-limit",
+                    extension="png",
+                    quality_jpeg_or_webp=80,
+                    lossless_webp=False,
+                    optimize_png=False,
+                    embed_workflow=False,
+                    save_workflow_as_json=False,
+                    metadata=metadata,
+                    prompt=None,
+                    extra_pnginfo=None,
+                )
+
+            encode.assert_not_called()
+            self.assertEqual(list(root.iterdir()), [])
+
+    def test_jpeg_fallback_rejects_oversized_pretty_sidecar_before_publication(self):
+        metadata = native.NativeImageMetadata("parameters", "", {})
+        workflow = {"nodes": list(range(20))}
+        pixels = np.zeros((2, 2, 3), dtype=np.float32)
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            with (
+                patch.object(native, "_JPEG_EXIF_LIMIT", 20),
+                patch.object(metadata_budget, "_MAX_WORKFLOW_JSON_BYTES", 100),
+                self.assertRaisesRegex(
+                    metadata_budget.MetadataLimitError,
+                    "workflow JSON sidecar",
+                ),
+            ):
+                native._save_native_images(
+                    [FakeTensor(pixels)],
+                    output_root=root,
+                    path="",
+                    filename="jpeg-limit",
+                    extension="jpeg",
+                    quality_jpeg_or_webp=90,
+                    lossless_webp=False,
+                    optimize_png=False,
+                    embed_workflow=True,
+                    save_workflow_as_json=False,
+                    metadata=metadata,
+                    prompt=None,
+                    extra_pnginfo={"workflow": workflow},
+                )
+
+            self.assertEqual(list(root.iterdir()), [])
 
     def test_large_jpeg_workflow_falls_back_to_json_before_image_commit(self):
         metadata = native.NativeImageMetadata("short parameters", "", {})

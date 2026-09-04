@@ -4,6 +4,7 @@
 - Runtime owner: `easyuse_anima.aio.native_image_output`
 - Publication owner: `easyuse_anima.aio.native_output_publication`
 - Remote metadata owner: `easyuse_anima.aio.native_civitai`
+- Metadata budget owner: `easyuse_anima.aio.native_metadata_budget`
 
 The AiO Generator owns its rich image output path. It no longer imports or
 looks up `ComfyUI-Image-Saver`. Existing settings remain compatible: the
@@ -29,6 +30,30 @@ the redundant execution prompt. If the payload is still too large, it removes
 the embedded workflow, preserves the A1111 block, and forces the JSON sidecar
 before any image is committed. If the A1111 block alone is too large, the save
 fails without publishing an image.
+
+## Metadata resource budgets
+
+Workflow-controlled metadata is validated before Pillow or the publication
+transaction receives it. JSON validation is iterative and rejects circular
+data, nesting deeper than 64 levels, more than 100,000 values/keys, or any
+single string above 1 MiB. Serialization uses bounded `iterencode` output rather
+than materializing an already-known oversized JSON string.
+
+| Payload | Limit |
+| --- | ---: |
+| A1111 parameters | 512 KiB |
+| execution prompt JSON | 2 MiB |
+| workflow JSON, embedded or sidecar | 4 MiB |
+| aggregate `extra_pnginfo` JSON | 6 MiB and 128 top-level keys |
+| embedded metadata per image | 8 MiB |
+| embedded plus sidecar metadata per save batch | 64 MiB |
+
+Cross-field and batch limits count repeated metadata for every image. Exceeding
+a limit fails the save before image encoding/publication instead of silently
+writing partial metadata. JPEG may still drop optional embedded prompt/extras
+and preserve its workflow in a bounded sidecar. PNG and WebP retain no separate
+pretty workflow string when a sidecar was not requested; their one compact
+workflow representation is reused for embedded metadata.
 
 ComfyUI's global `disable_metadata` flag suppresses A1111, prompt, workflow,
 and sidecar metadata. It also skips local hashing and Civitai requests; the

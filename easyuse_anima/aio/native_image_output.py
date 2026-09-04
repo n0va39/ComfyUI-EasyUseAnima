@@ -10,7 +10,6 @@ from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path, PurePosixPath, PureWindowsPath
 from types import MappingProxyType
-from typing import cast
 
 from .native_civitai import (
     CivitaiLookupBudget,
@@ -19,6 +18,14 @@ from .native_civitai import (
 )
 from .native_civitai import (
     _fetch_civitai_autov3_hash as _fetch_civitai_autov3_hash,
+)
+from .native_metadata_budget import (
+    _MAX_PARAMETERS_BYTES,
+    _metadata_text_size,
+    _prepare_metadata_payload,
+    _sidecar_required_and_validate_batch,
+    _validate_embedded_metadata_size,
+    _validate_parameter_sources,
 )
 from .native_output_publication import (
     OutputDirectoryBinding,
@@ -68,6 +75,8 @@ class _SerializedMetadata:
     exif_bytes: bytes | None
     workflow_json: str | None
     force_workflow_sidecar: bool
+    embedded_size_bytes: int
+    sidecar_size_bytes: int
 
 
 def _compact_json(value: object, *, ascii_only: bool) -> str:
@@ -181,6 +190,13 @@ def _build_native_metadata(
     easy_remix: bool,
     civitai_budget: CivitaiLookupBudget | None = None,
 ) -> NativeImageMetadata:
+    _validate_parameter_sources(
+        modelname,
+        positive,
+        negative,
+        custom,
+        additional_hashes,
+    )
     local_resources = _local_resource_hashes(
         modelname,
         applied_loras,
@@ -259,8 +275,14 @@ def _build_native_metadata(
                 f"Civitai resources: {_compact_json(civitai_resources, ascii_only=False)}"
             )
     lines.append(", ".join(fields))
+    parameters = "\n".join(lines)
+    _metadata_text_size(
+        parameters,
+        label="A1111 parameters",
+        limit=_MAX_PARAMETERS_BYTES,
+    )
     return NativeImageMetadata(
-        parameters="\n".join(lines),
+        parameters=parameters,
         final_hashes=",".join(final_parts),
         hashes=hashes,
     )
@@ -310,34 +332,15 @@ def _serialize_metadata(
     write_metadata: bool,
 ) -> _SerializedMetadata:
     if not write_metadata:
-        return _SerializedMetadata(None, None, None, False)
+        return _SerializedMetadata(None, None, None, False, 0, 0)
 
-    workflow = (
-        extra_pnginfo.get("workflow")
-        if isinstance(extra_pnginfo, Mapping)
-        else None
+    payload = _prepare_metadata_payload(
+        parameters=parameters,
+        prompt=prompt,
+        extra_pnginfo=extra_pnginfo,
+        embed_workflow=embed_workflow,
+        save_workflow_as_json=save_workflow_as_json,
     )
-    workflow_json = (
-        json.dumps(workflow, allow_nan=False, ensure_ascii=False, indent=2)
-        if workflow is not None and (embed_workflow or save_workflow_as_json)
-        else None
-    )
-    prompt_json = (
-        _compact_json(prompt, ascii_only=True)
-        if embed_workflow and prompt is not None
-        else None
-    )
-    extra_json: list[tuple[str, str]] = []
-    if embed_workflow:
-        for key, value in cast(Mapping[str, object], extra_pnginfo or {}).items():
-            key_text = str(key)
-            if key_text in {"parameters", "prompt"}:
-                logger.warning(
-                    "[EasyUseAnima] Ignoring reserved extra_pnginfo key %r.",
-                    key_text,
-                )
-                continue
-            extra_json.append((key_text, _compact_json(value, ascii_only=True)))
 
     if extension == "png":
         from PIL.PngImagePlugin import PngInfo  # pyright: ignore[reportMissingImports]
@@ -345,19 +348,31 @@ def _serialize_metadata(
         pnginfo = PngInfo()
         if parameters:
             pnginfo.add_text("parameters", parameters)
-        if prompt_json is not None:
-            pnginfo.add_text("prompt", prompt_json)
-        for key, value in extra_json:
+        if payload.prompt_json is not None:
+            pnginfo.add_text("prompt", payload.prompt_json)
+        for key, value in payload.extra_json:
             pnginfo.add_text(key, value)
-        return _SerializedMetadata(pnginfo, None, workflow_json, False)
+        return _SerializedMetadata(
+            pnginfo,
+            None,
+            payload.workflow_json,
+            False,
+            payload.embedded_size,
+            payload.workflow_json_size,
+        )
 
-    exif_bytes = _build_exif_bytes(parameters, prompt_json, extra_json)
+    exif_bytes = _build_exif_bytes(
+        parameters,
+        payload.prompt_json,
+        payload.extra_json,
+    )
     force_sidecar = False
     if extension in {"jpg", "jpeg"} and len(exif_bytes) > _JPEG_EXIF_LIMIT:
-        exif_bytes = _build_exif_bytes(parameters, None, extra_json)
+        exif_bytes = _build_exif_bytes(parameters, None, payload.extra_json)
         if len(exif_bytes) > _JPEG_EXIF_LIMIT:
             exif_bytes = _build_exif_bytes(parameters, None, ())
-            force_sidecar = workflow_json is not None
+            payload.ensure_workflow_sidecar()
+            force_sidecar = payload.workflow_json is not None
         if len(exif_bytes) > _JPEG_EXIF_LIMIT:
             raise RuntimeError(
                 "[EasyUseAnima] A1111 metadata is too large for JPEG EXIF; use PNG/WebP or shorten the prompt."
@@ -365,7 +380,15 @@ def _serialize_metadata(
         logger.warning(
             "[EasyUseAnima] JPEG workflow metadata exceeded EXIF limits; preserving A1111 parameters and writing a workflow JSON sidecar."
         )
-    return _SerializedMetadata(None, exif_bytes, workflow_json, force_sidecar)
+    _validate_embedded_metadata_size(len(exif_bytes))
+    return _SerializedMetadata(
+        None,
+        exif_bytes,
+        payload.workflow_json,
+        force_sidecar,
+        len(exif_bytes),
+        payload.workflow_json_size,
+    )
 
 
 def _tensor_to_pil(image: object):
@@ -498,6 +521,21 @@ def _image_save_options(
     return options
 
 
+def _validated_sidecar_requirement(
+    serialized: _SerializedMetadata,
+    save_workflow_as_json: bool,
+    batch_count: int,
+) -> bool:
+    return _sidecar_required_and_validate_batch(
+        workflow_json=serialized.workflow_json,
+        force_workflow_sidecar=serialized.force_workflow_sidecar,
+        save_workflow_as_json=save_workflow_as_json,
+        embedded_size=serialized.embedded_size_bytes,
+        sidecar_size=serialized.sidecar_size_bytes,
+        batch_count=batch_count,
+    )
+
+
 def _save_native_images(
     images: Iterable[object],
     *,
@@ -550,8 +588,8 @@ def _save_native_images(
         "webp": "WEBP",
     }[safe_extension]
     results: list[dict[str, str]] = []
-    sidecar_required = serialized.workflow_json is not None and (
-        save_workflow_as_json or serialized.force_workflow_sidecar
+    sidecar_required = _validated_sidecar_requirement(
+        serialized, save_workflow_as_json, len(batch)
     )
     with _SAVE_LOCK, OutputDirectoryBinding(resolved_folder) as directory:
         pending_names = _allocate_filenames(
