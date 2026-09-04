@@ -1,6 +1,5 @@
 import asyncio
 import json
-import stat
 import sys
 import tempfile
 import threading
@@ -30,6 +29,12 @@ def load_api_module():
 class JsonRequest:
     def __init__(self, payload):
         self.payload = payload
+        self.headers = {
+            "Content-Type": "application/json",
+            "Host": "127.0.0.1:8188",
+            "Origin": "http://127.0.0.1:8188",
+            "Sec-Fetch-Site": "same-origin",
+        }
 
     async def json(self):
         return self.payload

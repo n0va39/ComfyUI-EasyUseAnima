@@ -8,9 +8,13 @@ import unittest
 from contextlib import contextmanager
 from pathlib import Path
 from types import SimpleNamespace
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
-from easyuse_anima.aio import generation_normalization, legacy_generation, legacy_upscale
+from easyuse_anima.aio import (
+    generation_normalization,
+    legacy_generation,
+    legacy_upscale,
+)
 from easyuse_anima.aio.generation_lifecycle import StageModelPatchPlan
 from easyuse_anima.extensions.aio import AioHookExecutionError
 from easyuse_anima.nodes import aio_nodes
@@ -1454,262 +1458,41 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
             legacy_upscale._usdu_flash_attention_error(RuntimeError("upscale failed"))
         )
 
-    def test_resshift_stage_preserves_provider_argument_and_metadata_order(self):
-        trace = []
-        image = _Token("image")
-        output = _Token("output")
-        model = _Token("resshift_model")
-        sampler_settings = {"seed": "seed-input"}
-        upscale_settings = {
-            "resshift": {
-                "scale": "x4",
-                "student_name": "student.ckpt",
-                "dtype": "fp32",
-                "chop": "1024",
-                "overlap": "96",
-                "tile_batch": "2",
-            }
-        }
-
-        class Loader:
-            def __init__(self):
-                trace.append("construct:loader")
-
-            def load(self, *args):
-                trace.append(("call", "load", args))
-                return "loader-result"
-
-        class Upscaler:
-            def __init__(self):
-                trace.append("construct:upscaler")
-
-            def upscale(self, *args):
-                trace.append(("call", "upscale", args))
-                return "upscale-result"
-
-        def require(node_id, node_pack, install_hint):
-            trace.append(("call", "_require_custom_node_class", node_id))
-            self.assertEqual(node_pack, "ComfyUI-Distilled-ResShift")
-            self.assertEqual(
-                install_hint,
-                "Required for AiO Generator final Upscale > ResShift.",
-            )
-            return Loader if node_id == "ResShiftLoader" else Upscaler
-
-        tuple_results = iter(((model,), (output,)))
-
-        def node_output_tuple(value):
-            trace.append(("call", "_node_output_tuple", value))
-            return next(tuple_results)
-
-        def resolve_seed(value):
-            trace.append(("call", "_resolve_aio_runtime_seed", value))
-            return 321
-
-        def as_int(value, default):
-            trace.append(("call", "_as_int", value, default))
-            return int(value)
-
-        def image_size(value, fallback_width, fallback_height):
-            trace.append(("call", "_image_tensor_size"))
-            self.assertIs(value, output)
-            self.assertEqual((fallback_width, fallback_height), (0, 0))
-            return 2048, 3072
-
+    def test_resshift_stage_fails_closed_before_optional_loader_resolution(self):
         helpers = {
-            "_require_custom_node_class": require,
-            "_node_output_tuple": node_output_tuple,
-            "_resolve_aio_runtime_seed": resolve_seed,
-            "_as_int": as_int,
-            "_image_tensor_size": image_size,
+            "_require_custom_node_class": Mock(
+                side_effect=AssertionError("must not resolve ResShift nodes")
+            ),
+            "_node_output_tuple": Mock(
+                side_effect=AssertionError("must not inspect node output")
+            ),
+            "_resolve_aio_runtime_seed": Mock(
+                side_effect=AssertionError("must not resolve seed")
+            ),
+            "_as_int": Mock(side_effect=AssertionError("must not parse settings")),
+            "_image_tensor_size": Mock(
+                side_effect=AssertionError("must not inspect image")
+            ),
         }
 
         with patch.multiple(legacy_generation, **helpers):
-            result = legacy_generation._run_aio_resshift_upscale_stage(
-                image,
-                sampler_settings,
-                upscale_settings,
-                "unused-quality",
-                "unused-negative",
-                {"unused": True},
-                True,
-                True,
-            )
-
-        self.assertIs(result[0], output)
-        self.assertEqual(
-            result[1],
-            {
-                "enabled": True,
-                "backend": "resshift",
-                "width": 2048,
-                "height": 3072,
-                "scale": "x4",
-            },
-        )
-        self.assertEqual(
-            list(result[1]),
-            ["enabled", "backend", "width", "height", "scale"],
-        )
-        self.assertEqual(
-            trace,
-            [
-                ("call", "_require_custom_node_class", "ResShiftLoader"),
-                ("call", "_require_custom_node_class", "ResShiftUpscale"),
-                "construct:loader",
-                (
-                    "call",
-                    "load",
-                    ("x4", "student.ckpt", "fp32"),
-                ),
-                ("call", "_node_output_tuple", "loader-result"),
-                "construct:upscaler",
-                ("call", "_resolve_aio_runtime_seed", "seed-input"),
-                ("call", "_as_int", "1024", 512),
-                ("call", "_as_int", "96", 64),
-                ("call", "_as_int", "2", 4),
-                (
-                    "call",
-                    "upscale",
-                    (model, image, 321, 1024, 96, 2),
-                ),
-                ("call", "_node_output_tuple", "upscale-result"),
-                ("call", "_image_tensor_size"),
-            ],
-        )
-
-    def test_resshift_stage_preserves_failure_boundaries(self):
-        image = _Token("image")
-
-        def execute(helpers, trace):
-            with patch.multiple(legacy_generation, **helpers):
-                return legacy_generation._run_aio_resshift_upscale_stage(
-                    image,
-                    {"seed": 7},
-                    {"resshift": {}},
+            with self.assertRaisesRegex(
+                RuntimeError,
+                r"AiO ResShift is disabled.*issue #679",
+            ):
+                legacy_generation._run_aio_resshift_upscale_stage(
+                    _Token("image"),
+                    {"seed": "attacker-controlled"},
+                    {
+                        "resshift": {
+                            "student_name": "untrusted.ckpt",
+                            "scale": "x4",
+                        }
+                    },
                 )
 
-        first_provider_trace = []
-
-        def fail_first_provider(*args):
-            first_provider_trace.append("require:loader")
-            raise LookupError("provider failed")
-
-        with self.assertRaisesRegex(LookupError, "provider failed"):
-            execute(
-                {"_require_custom_node_class": fail_first_provider},
-                first_provider_trace,
-            )
-        self.assertEqual(
-            first_provider_trace,
-            ["require:loader"],
-        )
-
-        missing_load_trace = []
-
-        class MissingLoad:
-            def __init__(self):
-                missing_load_trace.append("construct:loader")
-
-        class UnusedUpscaler:
-            def __init__(self):
-                missing_load_trace.append("construct:upscaler")
-
-        def missing_load_provider(node_id, *args):
-            missing_load_trace.append(f"require:{node_id}")
-            return MissingLoad if node_id == "ResShiftLoader" else UnusedUpscaler
-
-        with self.assertRaisesRegex(
-            RuntimeError,
-            r"^\[EasyUseAnima\] ResShiftLoader does not expose load\(\)\.$",
-        ):
-            execute(
-                {"_require_custom_node_class": missing_load_provider},
-                missing_load_trace,
-            )
-        self.assertEqual(
-            missing_load_trace,
-            [
-                "require:ResShiftLoader",
-                "require:ResShiftUpscale",
-                "construct:loader",
-            ],
-        )
-
-        empty_model_trace = []
-
-        class EmptyLoader:
-            def load(self, *args):
-                empty_model_trace.append("load")
-                return "loader-result"
-
-        class NeverConstructedUpscaler:
-            def __init__(self):
-                empty_model_trace.append("construct:upscaler")
-
-        def empty_model_provider(node_id, *args):
-            return EmptyLoader if node_id == "ResShiftLoader" else NeverConstructedUpscaler
-
-        def empty_tuple(value):
-            empty_model_trace.append(f"tuple:{value}")
-            return ()
-
-        with self.assertRaisesRegex(
-            RuntimeError,
-            r"^\[EasyUseAnima\] ResShiftLoader returned no RESSHIFT_MODEL\.$",
-        ):
-            execute(
-                {
-                    "_require_custom_node_class": empty_model_provider,
-                    "_node_output_tuple": empty_tuple,
-                },
-                empty_model_trace,
-            )
-        self.assertNotIn("construct:upscaler", empty_model_trace)
-
-        seed_failure_trace = []
-
-        class Loader:
-            def load(self, *args):
-                seed_failure_trace.append("load")
-                return "loader-result"
-
-        class Upscaler:
-            def __init__(self):
-                seed_failure_trace.append("construct:upscaler")
-
-            def upscale(self, *args):
-                seed_failure_trace.append("upscale")
-                return "upscale-result"
-
-        def provider(node_id, *args):
-            return Loader if node_id == "ResShiftLoader" else Upscaler
-
-        tuple_results = iter(((object(),), (object(),)))
-
-        def tuple_helper(value):
-            seed_failure_trace.append(f"tuple:{value}")
-            return next(tuple_results)
-
-        def fail_seed(value):
-            seed_failure_trace.append("seed")
-            raise ValueError("seed failed")
-
-        with self.assertRaisesRegex(ValueError, "seed failed"):
-            execute(
-                {
-                    "_require_custom_node_class": provider,
-                    "_node_output_tuple": tuple_helper,
-                    "_resolve_aio_runtime_seed": fail_seed,
-                },
-                seed_failure_trace,
-            )
-        self.assertIn("construct:upscaler", seed_failure_trace)
-        self.assertEqual(
-            seed_failure_trace[-1:],
-            ["seed"],
-        )
-        self.assertNotIn("upscale", seed_failure_trace)
+        for helper in helpers.values():
+            helper.assert_not_called()
 
     def test_upscale_dispatcher_preserves_lazy_branch_and_exception_contract(self):
         model = _Token("model")

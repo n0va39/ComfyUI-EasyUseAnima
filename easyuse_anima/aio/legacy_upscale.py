@@ -198,57 +198,26 @@ def run_aio_resshift_upscale_stage(
     as_int: Callable[..., int],
     image_tensor_size: Callable[..., tuple[int, int]],
 ) -> tuple[Any, dict[str, Any]]:
-    resshift_settings = upscale_settings.get("resshift", {})
-    if not isinstance(resshift_settings, dict):
-        resshift_settings = {}
-    loader_cls = require_custom_node_class(
-        "ResShiftLoader",
-        "ComfyUI-Distilled-ResShift",
-        "Required for AiO Generator final Upscale > ResShift.",
+    del (
+        image,
+        sampler_settings,
+        upscale_settings,
+        quality_tags,
+        quality_neg,
+        prompt_data,
+        exclude_positive_quality,
+        exclude_negative_quality,
+        require_custom_node_class,
+        node_output_tuple,
+        resolve_runtime_seed,
+        as_int,
+        image_tensor_size,
     )
-    upscale_cls = require_custom_node_class(
-        "ResShiftUpscale",
-        "ComfyUI-Distilled-ResShift",
-        "Required for AiO Generator final Upscale > ResShift.",
+    raise RuntimeError(
+        "[EasyUseAnima] AiO ResShift is disabled because the current optional "
+        "loader does not provide a safe checkpoint-loading boundary. Use USDU "
+        "for final upscale; safe re-enable work is tracked in GitHub issue #679."
     )
-    loader = loader_cls()
-    load = getattr(loader, "load", None)
-    if load is None:
-        raise RuntimeError("[EasyUseAnima] ResShiftLoader does not expose load().")
-    model_values = node_output_tuple(
-        load(
-            str(resshift_settings.get("scale") or "x2"),
-            str(resshift_settings.get("student_name") or "(auto-download)"),
-            str(resshift_settings.get("dtype") or "bf16"),
-        )
-    )
-    if not model_values:
-        raise RuntimeError("[EasyUseAnima] ResShiftLoader returned no RESSHIFT_MODEL.")
-    upscaler = upscale_cls()
-    upscale = getattr(upscaler, "upscale", None)
-    if upscale is None:
-        raise RuntimeError("[EasyUseAnima] ResShiftUpscale does not expose upscale().")
-    values = node_output_tuple(
-        upscale(
-            model_values[0],
-            image,
-            resolve_runtime_seed(sampler_settings.get("seed")),
-            as_int(resshift_settings.get("chop"), 512),
-            as_int(resshift_settings.get("overlap"), 64),
-            as_int(resshift_settings.get("tile_batch"), 4),
-        )
-    )
-    if not values:
-        raise RuntimeError("[EasyUseAnima] ResShiftUpscale returned no IMAGE.")
-    output = values[0]
-    width, height = image_tensor_size(output, 0, 0)
-    return output, {
-        "enabled": True,
-        "backend": "resshift",
-        "width": int(width),
-        "height": int(height),
-        "scale": str(resshift_settings.get("scale") or "x2"),
-    }
 
 
 def run_aio_upscale_stage(
