@@ -55,6 +55,10 @@ updating a release branch that will be scanned by Registry automation.
   fixed-host GET boundary used by native image output. All fetcher and resource
   requests in one save share a 12-second deadline and a 16-call budget; budget
   exhaustion skips optional enrichment without failing image output.
+- Native image metadata has explicit parameters, prompt, workflow,
+  `extra_pnginfo`, depth/item/string, per-image, and per-save batch limits.
+  Limit failures must occur before image publication and must not be replaced
+  with unbounded fallback sidecars.
 - AiO ResShift execution is fail-closed before optional-node lookup. Its saved
   settings remain readable, but re-enabling the adapter requires the safe
   loader contract tracked in issue #679.

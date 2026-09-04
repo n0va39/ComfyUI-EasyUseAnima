@@ -60,9 +60,9 @@ class PythonFileDispositionContractTests(unittest.TestCase):
         self.assertEqual(checker.check_repository(ROOT, CONTRACT_PATH), [])
         contract = self.validate(self.document)
         self.assertEqual(contract["expected_baseline_files"], 191)
-        self.assertEqual(contract["expected_target_files"], 199)
+        self.assertEqual(contract["expected_target_files"], 200)
         self.assertEqual(len(contract["entries"]), 191)
-        self.assertEqual(len(contract["target_paths"]), 199)
+        self.assertEqual(len(contract["target_paths"]), 200)
 
     def test_inventory_requires_every_source_exactly_once(self):
         missing = copy.deepcopy(self.document)
