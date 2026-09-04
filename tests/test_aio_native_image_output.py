@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import sys
 import tempfile
 import types
@@ -14,6 +15,7 @@ from PIL import ExifTags, Image
 
 from easyuse_anima.aio import native_civitai as civitai
 from easyuse_anima.aio import native_image_output as native
+from easyuse_anima.aio import native_resource_hashes as resources
 
 
 class FakeTensor:
@@ -30,7 +32,12 @@ class FakeTensor:
         return self.value
 
 
-def fake_folder_paths(files: dict[tuple[str, str], Path]) -> types.ModuleType:
+def fake_folder_paths(
+    files: dict[tuple[str, str], Path],
+    *,
+    filenames: dict[str, list[str]] | None = None,
+    user_directory: Path | None = None,
+) -> types.ModuleType:
     module = types.ModuleType("folder_paths")
     module.supported_pt_extensions = {
         ".safetensors",
@@ -40,6 +47,9 @@ def fake_folder_paths(files: dict[tuple[str, str], Path]) -> types.ModuleType:
         ".pth",
     }
     module.get_full_path = lambda folder, name: str(files[(folder, name)]) if (folder, name) in files else None
+    module.get_filename_list = lambda folder: list((filenames or {}).get(folder, []))
+    if user_directory is not None:
+        module.get_user_directory = lambda: str(user_directory)
     return module
 
 
@@ -54,7 +64,7 @@ def exif_user_comment(exif: Image.Exif) -> bytes:
 
 class AIONativeImageOutputTests(unittest.TestCase):
     def setUp(self):
-        native._hash_file_revision.cache_clear()
+        resources._hash_file_revision.cache_clear()
         civitai._fetch_civitai_autov3_hash.cache_clear()
         civitai._cached_civitai_resource_by_hash.cache_clear()
 
@@ -121,6 +131,193 @@ class AIONativeImageOutputTests(unittest.TestCase):
             resource_files,
             {"anima.safetensors", "style.safetensors"},
             "hashing must not write cache files beside model resources",
+        )
+
+    def test_embedding_hashes_use_comfy_inventory_weights_and_safe_matching(self):
+        self.assertEqual(resources._safe_inventory_name("/absolute/embed.pt"), "")
+        self.assertEqual(resources._safe_inventory_name(r"C:\outside\embed.pt"), "")
+        self.assertEqual(resources._safe_inventory_name("../outside.pt"), "")
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            easy_path = root / "easy.pt"
+            negative_path = root / "bad.safetensors"
+            duplicate_one = root / "duplicate-one.pt"
+            duplicate_two = root / "duplicate-two.pt"
+            easy_path.write_bytes(b"easy embedding")
+            negative_path.write_bytes(b"negative embedding")
+            duplicate_one.write_bytes(b"duplicate one")
+            duplicate_two.write_bytes(b"duplicate two")
+            folder_paths = fake_folder_paths(
+                {
+                    ("embeddings", "sub/easy.pt"): easy_path,
+                    ("embeddings", "negative/bad.safetensors"): negative_path,
+                    ("embeddings", "one/duplicate.pt"): duplicate_one,
+                    ("embeddings", "two/duplicate.pt"): duplicate_two,
+                },
+                filenames={
+                    "embeddings": [
+                        "sub/easy.pt",
+                        "negative/bad.safetensors",
+                        "one/duplicate.pt",
+                        "two/duplicate.pt",
+                    ]
+                },
+            )
+            comfy = types.ModuleType("comfy")
+            sd1_clip = types.ModuleType("comfy.sd1_clip")
+            sd1_clip.escape_important = lambda value: value
+            sd1_clip.unescape_important = lambda value: value
+
+            def token_weights(value, _default):
+                if "sub/easy" in value:
+                    return [
+                        ("embedding:sub/easy", 0.65),
+                        ("embedding:../outside", 1.0),
+                        ("embedding:duplicate", 1.0),
+                    ]
+                return [
+                    ("embedding:negative/bad", 1.25),
+                    ("embedding:sub/easy", 2.0),
+                ]
+
+            sd1_clip.token_weights = token_weights
+            comfy.sd1_clip = sd1_clip
+            with (
+                patch.dict(
+                    sys.modules,
+                    {
+                        "folder_paths": folder_paths,
+                        "comfy": comfy,
+                        "comfy.sd1_clip": sd1_clip,
+                    },
+                ),
+                self.assertLogs("ComfyUI-EasyUseAnima", level="WARNING"),
+            ):
+                metadata = native._build_native_metadata(
+                    modelname="",
+                    positive="(embedding:sub/easy:0.65), embedding:../outside, embedding:duplicate",
+                    negative="embedding:negative/bad",
+                    width=1,
+                    height=1,
+                    seed=1,
+                    steps=1,
+                    cfg=1.0,
+                    sampler_name="euler",
+                    scheduler_name="normal",
+                    denoise=1.0,
+                    clip_skip=0,
+                    custom="",
+                    additional_hashes="",
+                    applied_loras=[],
+                    download_civitai_data=False,
+                    easy_remix=True,
+                )
+
+        easy_hash = hashlib.sha256(b"easy embedding").hexdigest()[:10]
+        negative_hash = hashlib.sha256(b"negative embedding").hexdigest()[:10]
+        self.assertEqual(
+            metadata.hashes,
+            {
+                "embed:sub/easy": easy_hash,
+                "embed:negative/bad": negative_hash,
+            },
+        )
+        self.assertEqual(
+            metadata.final_hashes,
+            f"sub/easy:{easy_hash}:0.65,negative/bad:{negative_hash}:1.25",
+        )
+        self.assertIn("embedding:easy", metadata.parameters)
+        self.assertNotIn("embed:duplicate", metadata.hashes)
+
+    def test_manual_hashes_preserve_values_and_cannot_replace_local_model_hash(self):
+        first = "ABCDEF1234AAAAAA"
+        second = "ABCDEF1234BBBBBB"
+        with tempfile.TemporaryDirectory() as temp:
+            model_path = Path(temp) / "anima.safetensors"
+            model_path.write_bytes(b"verified model")
+            folder_paths = fake_folder_paths({
+                ("diffusion_models", "anima.safetensors"): model_path,
+            })
+            with (
+                patch.dict(sys.modules, {"folder_paths": folder_paths}),
+                self.assertLogs("ComfyUI-EasyUseAnima", level="WARNING"),
+            ):
+                metadata = native._build_native_metadata(
+                    modelname="anima.safetensors",
+                    positive="",
+                    negative="",
+                    width=1,
+                    height=1,
+                    seed=1,
+                    steps=1,
+                    cfg=1.0,
+                    sampler_name="euler",
+                    scheduler_name="normal",
+                    denoise=1.0,
+                    clip_skip=0,
+                    custom="",
+                    additional_hashes=(
+                        f"first:{first},second:{second},MODEL:DEADBEEF12,"
+                        "duplicate:AAAABBBB12,duplicate:CCCCDDDD34"
+                    ),
+                    applied_loras=[],
+                    download_civitai_data=False,
+                    easy_remix=False,
+                )
+
+        model_hash = hashlib.sha256(b"verified model").hexdigest()[:10]
+        self.assertEqual(metadata.hashes["model"], model_hash)
+        self.assertNotIn("MODEL", metadata.hashes)
+        self.assertEqual(metadata.hashes["first"], first)
+        self.assertEqual(metadata.hashes["second"], second)
+        self.assertEqual(metadata.hashes["duplicate"], "AAAABBBB12")
+        self.assertIn(f"first:{first}", metadata.final_hashes)
+        self.assertIn(f"second:{second}", metadata.final_hashes)
+
+    def test_manual_full_and_short_hashes_receive_proven_civitai_descriptors(self):
+        full_hash = "a" * 64
+        short_hash = "ABCDEF1234"
+
+        def descriptor(resource_hash):
+            identifier = 1 if resource_hash == full_hash else 2
+            return civitai.CivitaiResourceDescriptor(
+                model_name=f"Resource {identifier}",
+                version_name=f"v{identifier}",
+                air="",
+                model_version_id=identifier,
+            )
+
+        with patch.object(
+            native,
+            "_fetch_civitai_resource_by_hash",
+            side_effect=descriptor,
+        ) as fetch:
+            metadata = native._build_native_metadata(
+                modelname="",
+                positive="",
+                negative="",
+                width=1,
+                height=1,
+                seed=1,
+                steps=1,
+                cfg=1.0,
+                sampler_name="euler",
+                scheduler_name="normal",
+                denoise=1.0,
+                clip_skip=0,
+                custom="",
+                additional_hashes=f"Full:{full_hash}:0.4,Auto:{short_hash}:0.7",
+                applied_loras=[],
+                download_civitai_data=True,
+                easy_remix=False,
+            )
+
+        self.assertEqual([call.args[0] for call in fetch.call_args_list], [full_hash, short_hash])
+        self.assertEqual(metadata.hashes["Full"], full_hash)
+        self.assertEqual(metadata.hashes["Auto"], short_hash)
+        self.assertIn(
+            'Civitai resources: [{"modelName":"Resource 1","versionName":"v1","weight":0.4,"modelVersionId":1},{"modelName":"Resource 2","versionName":"v2","weight":0.7,"modelVersionId":2}]',
+            metadata.parameters,
         )
 
     def test_civitai_resource_lookup_is_opt_in_and_keeps_hashes(self):
@@ -197,13 +394,13 @@ class AIONativeImageOutputTests(unittest.TestCase):
 
     def test_manual_hash_parser_rejects_ambiguous_and_non_finite_entries(self):
         with self.assertLogs("ComfyUI-EasyUseAnima", level="WARNING"):
-            resources = native._manual_resource_hashes(
+            parsed_resources = resources._manual_resource_hashes(
                 "valid:ABCDEF1234,numeric:1234567890,DEADBEEF12:0.5,"
                 "ambiguous:name:hash,bad:FEEDFACE12:nan,weighted:CAFEBABE10:0.25"
             )
 
         self.assertEqual(
-            [(item.display_name, item.sha256, item.weight) for item in resources],
+            [(item.display_name, item.sha256, item.weight) for item in parsed_resources],
             [
                 ("valid", "ABCDEF1234", None),
                 ("numeric", "1234567890", None),
@@ -326,10 +523,15 @@ class AIONativeImageOutputTests(unittest.TestCase):
             "name": "v1",
             "air": "urn:air:sdxl:checkpoint:civitai:1@123",
             "model": {"name": "Anima"},
+            "files": [{"hashes": {"SHA256": "b" * 64}}],
             "images": [{"url": "x" * 100_000}],
         }
-        with patch.object(civitai, "_request_civitai_json", return_value=remote):
+        with patch.object(civitai, "_request_civitai_json", return_value=remote) as request:
             descriptor = civitai._fetch_civitai_resource_by_hash("b" * 64)
+            self.assertEqual(
+                civitai._fetch_civitai_resource_by_hash("b" * 64),
+                descriptor,
+            )
 
         self.assertEqual(
             descriptor,
@@ -341,13 +543,202 @@ class AIONativeImageOutputTests(unittest.TestCase):
             ),
         )
         self.assertFalse(hasattr(descriptor, "images"))
+        request.assert_called_once()
 
         civitai._cached_civitai_resource_by_hash.cache_clear()
         remote["air"] = "urn:air:invalid value"
+        remote["files"] = [{"hashes": {"SHA256": "c" * 64}}]
         with patch.object(civitai, "_request_civitai_json", return_value=remote):
             descriptor = civitai._fetch_civitai_resource_by_hash("c" * 64)
         self.assertEqual(descriptor.air, "")
         self.assertEqual(descriptor.model_version_id, 123)
+
+    def test_civitai_resource_lookup_requires_exact_hash_proof(self):
+        remote = {
+            "id": 123,
+            "name": "v1",
+            "model": {"name": "Anima"},
+            "files": [{"hashes": {"AutoV3": "ABCDEF1234"}}],
+        }
+        with patch.object(civitai, "_request_civitai_json", return_value=remote):
+            descriptor = civitai._fetch_civitai_resource_by_hash("abcdef1234")
+        self.assertEqual(descriptor.model_version_id, 123)
+
+        civitai._cached_civitai_resource_by_hash.cache_clear()
+        with patch.object(civitai, "_request_civitai_json", return_value=remote):
+            self.assertIsNone(civitai._fetch_civitai_resource_by_hash("deadbeef12"))
+
+        civitai._cached_civitai_resource_by_hash.cache_clear()
+        malformed = {**remote, "files": [{"hashes": ["ABCDEF1234"]}]}
+        with patch.object(civitai, "_request_civitai_json", return_value=malformed):
+            self.assertIsNone(civitai._fetch_civitai_resource_by_hash("abcdef1234"))
+
+        with patch.object(civitai, "_request_civitai_json") as request:
+            self.assertIsNone(civitai._fetch_civitai_resource_by_hash("not-a-hash"))
+        request.assert_not_called()
+
+    def test_civitai_resource_enrichment_attempts_are_bounded(self):
+        resource_items = [
+            resources._ResourceHash(
+                display_name=f"resource-{index}",
+                metadata_key=f"resource-{index}",
+                path=None,
+                sha256=f"{index + 1:064x}",
+                preserve_hash=True,
+            )
+            for index in range(native._MAX_REMOTE_RESOURCES + 5)
+        ]
+        with patch.object(
+            native,
+            "_fetch_civitai_resource_by_hash",
+            return_value=None,
+        ) as fetch:
+            self.assertEqual(native._civitai_resource_entries(resource_items), [])
+
+        self.assertEqual(fetch.call_count, native._MAX_REMOTE_RESOURCES)
+
+    def test_persistent_hash_cache_reuses_revision_and_reports_uncached_progress(self):
+        progress_updates = []
+
+        class ProgressBar:
+            def __init__(self, total):
+                self.total = total
+
+            def update_absolute(self, value, total):
+                progress_updates.append((value, total, self.total))
+
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            user_directory = root / "user"
+            model_directory = root / "models"
+            user_directory.mkdir()
+            model_directory.mkdir()
+            model_path = model_directory / "model.safetensors"
+            first_bytes = b"first revision"
+            second_bytes = b"other revision"
+            self.assertEqual(len(first_bytes), len(second_bytes))
+            model_path.write_bytes(first_bytes)
+            folder_paths = fake_folder_paths({}, user_directory=user_directory)
+            comfy = types.ModuleType("comfy")
+            comfy_utils = types.ModuleType("comfy.utils")
+            comfy_utils.ProgressBar = ProgressBar
+            comfy.utils = comfy_utils
+            with patch.dict(
+                sys.modules,
+                {
+                    "folder_paths": folder_paths,
+                    "comfy": comfy,
+                    "comfy.utils": comfy_utils,
+                },
+            ):
+                first = resources._hash_file(model_path)
+                cache_path = (
+                    user_directory
+                    / "easyuse_anima"
+                    / "cache"
+                    / resources._HASH_CACHE_FILENAME
+                )
+                self.assertTrue(cache_path.is_file())
+                self.assertEqual(
+                    {path.name for path in model_directory.iterdir()},
+                    {"model.safetensors"},
+                )
+                self.assertEqual(progress_updates[-1][0], len(first_bytes))
+
+                resources._hash_file_revision.cache_clear()
+                with patch.object(
+                    resources,
+                    "_calculate_file_sha256",
+                    side_effect=AssertionError("persistent cache miss"),
+                ):
+                    self.assertEqual(resources._hash_file(model_path), first)
+
+                original_stat = model_path.stat()
+                replacement = model_directory / "replacement.tmp"
+                replacement.write_bytes(second_bytes)
+                os.utime(
+                    replacement,
+                    ns=(original_stat.st_atime_ns, original_stat.st_mtime_ns),
+                )
+                os.replace(replacement, model_path)
+                os.utime(
+                    model_path,
+                    ns=(original_stat.st_atime_ns, original_stat.st_mtime_ns),
+                )
+                replaced_stat = model_path.stat()
+                self.assertEqual(replaced_stat.st_size, original_stat.st_size)
+                self.assertEqual(replaced_stat.st_mtime_ns, original_stat.st_mtime_ns)
+                resources._hash_file_revision.cache_clear()
+                calculate = resources._calculate_file_sha256
+                with patch.object(
+                    resources,
+                    "_calculate_file_sha256",
+                    wraps=calculate,
+                ) as recalculated:
+                    second = resources._hash_file(model_path)
+                self.assertNotEqual(second, first)
+                self.assertEqual(second, hashlib.sha256(second_bytes).hexdigest())
+                recalculated.assert_called_once()
+
+                cache_path.write_text("not-json", encoding="utf-8")
+                resources._hash_file_revision.cache_clear()
+                with (
+                    patch.object(
+                        resources,
+                        "_calculate_file_sha256",
+                        wraps=calculate,
+                    ) as recomputed,
+                    self.assertLogs("ComfyUI-EasyUseAnima", level="WARNING"),
+                ):
+                    self.assertEqual(resources._hash_file(model_path), second)
+                recomputed.assert_called_once()
+                self.assertEqual(
+                    json.loads(cache_path.read_text(encoding="utf-8"))["version"],
+                    resources._HASH_CACHE_SCHEMA,
+                )
+
+    def test_persistent_hash_cache_is_bounded_and_write_failures_are_nonfatal(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            user_directory = root / "user"
+            user_directory.mkdir()
+            paths = []
+            for index in range(3):
+                path = root / f"resource-{index}.safetensors"
+                path.write_bytes(f"resource-{index}".encode("ascii"))
+                paths.append(path)
+            folder_paths = fake_folder_paths({}, user_directory=user_directory)
+            with (
+                patch.dict(sys.modules, {"folder_paths": folder_paths}),
+                patch.object(resources, "_HASH_CACHE_MAX_ENTRIES", 2),
+            ):
+                for path in paths:
+                    resources._hash_file(path)
+                cache_path = (
+                    user_directory
+                    / "easyuse_anima"
+                    / "cache"
+                    / resources._HASH_CACHE_FILENAME
+                )
+                payload = json.loads(cache_path.read_text(encoding="utf-8"))
+                self.assertEqual(len(payload["entries"]), 2)
+
+                resources._hash_file_revision.cache_clear()
+                uncached_path = root / "write-failure.safetensors"
+                uncached_path.write_bytes(b"still returns a hash")
+                with (
+                    patch.object(
+                        resources,
+                        "_atomic_write_hash_cache",
+                        side_effect=OSError("read-only user directory"),
+                    ),
+                    self.assertLogs("ComfyUI-EasyUseAnima", level="WARNING"),
+                ):
+                    result = resources._hash_file(uncached_path)
+                self.assertEqual(
+                    result,
+                    hashlib.sha256(b"still returns a hash").hexdigest(),
+                )
 
     def test_png_jpeg_and_webp_round_trip_a1111_and_comfy_workflow_metadata(self):
         metadata = native.NativeImageMetadata(
