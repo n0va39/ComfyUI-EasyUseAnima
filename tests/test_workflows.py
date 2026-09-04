@@ -32,6 +32,18 @@ AIO_NATIVE_OUTPUT_WORKFLOWS = (
     EXAMPLE_WORKFLOW_DIR / "ANIMA_Easy_Use_workflow_v1_release_ko.json",
     EXAMPLE_WORKFLOW_DIR / "ANIMA_Easy_Use_workflow_v1_release_en.json",
 )
+CURRENT_README_NATIVE_OUTPUT_CONTRACTS = (
+    (
+        ROOT / "README.en.md",
+        "EasyUse's native output backend handles PNG, JPEG, and WebP",
+        "`ComfyUI-Image-Saver` is not required by AiO Save Options.",
+    ),
+    (
+        ROOT / "README.ko.md",
+        "EasyUse 네이티브 출력 backend가 PNG, JPEG, WebP 저장",
+        "AiO Save Options에 `ComfyUI-Image-Saver`는 필요하지 않습니다.",
+    ),
+)
 MOJIBAKE_LATIN1_RE = re.compile(r"[\u0080-\u00ff]")
 PACKAGE_VERSION_RE = re.compile(r"^\d+\.\d+\.\d+(?:[.-][0-9A-Za-z]+)*$")
 
@@ -177,6 +189,20 @@ class ReleaseWorkflowTests(unittest.TestCase):
                     metadata.get("sampler_paths"),
                     ["comfy_ksampler", "spectrum_mod_guidance_advanced", "spectrum_spd_speed"],
                 )
+
+    def test_current_readmes_use_native_aio_output_contract(self):
+        image_saver_repository = "https://github.com/alexopus/ComfyUI-Image-Saver"
+        for (
+            path,
+            native_contract,
+            no_dependency_contract,
+        ) in CURRENT_README_NATIVE_OUTPUT_CONTRACTS:
+            with self.subTest(path=path.name):
+                text = path.read_text(encoding="utf-8")
+                normalized = " ".join(text.split())
+                self.assertIn(native_contract, normalized)
+                self.assertIn(no_dependency_contract, normalized)
+                self.assertNotIn(image_saver_repository, text)
 
     def test_current_aio_samples_keep_remote_civitai_enrichment_opt_in(self):
         for workflow_path in AIO_NATIVE_OUTPUT_WORKFLOWS:

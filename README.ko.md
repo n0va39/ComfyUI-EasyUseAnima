@@ -85,8 +85,10 @@ Detailer, 미리보기, 이미지 저장을 한 노드에서 처리합니다. �
 기본 노드 화면에서는 seed, steps, CFG, shift, denoise, sampler, scheduler,
 Highres, Detailer, Preview, Save만 조작합니다. 모델 패치와 최적화는
 `Advanced Options`, 저장 메타데이터는 `Save Options`, 이미지 비교와 피드는
-Preview 설정에서 관리합니다. 저장은 기본 ON이며, Image Saver를 사용하면
-workflow embed와 Civitai/LoRA metadata 저장까지 한 번에 처리할 수 있습니다.
+Preview 설정에서 관리합니다. 저장은 기본 ON입니다. EasyUse 네이티브 출력
+backend가 PNG, JPEG, WebP 저장, workflow embed/JSON sidecar, A1111 metadata,
+Civitai 호환 model/LoRA hash를 같은 출력 경로에서 처리합니다. AiO Save
+Options에 `ComfyUI-Image-Saver`는 필요하지 않습니다.
 
 자세한 설정 기준: [Anima AiO Generator 문서](docs/nodes/anima-aio-generator.ko.md)
 
@@ -197,7 +199,6 @@ dependency이므로 `pyproject.toml`의 Python dependencies에는 넣지 않습�
 - [ComfyUI-KJNodes](https://github.com/kijai/ComfyUI-KJNodes): Torch Compile, SageAttention 등 최적화 옵션에 사용합니다.
 - [ComfyUI-Impact-Pack](https://github.com/ltdrdata/ComfyUI-Impact-Pack): Impact detailer, AiO SAM3 detailer 흐름에 필요합니다.
 - [ComfyUI-Lora-Manager](https://github.com/willmiao/ComfyUI-Lora-Manager): LoRA trigger word와 metadata 관리에 권장합니다.
-- [ComfyUI-Image-Saver](https://github.com/alexopus/ComfyUI-Image-Saver): AiO Save Options에서 workflow embed, Civitai/LoRA metadata 저장에 사용합니다.
 - [ComfyUI-Anima-DAVE](https://github.com/sorryhyun/ComfyUI-Anima-DAVE): 생성 다양성을 위한 선택 model patch입니다.
 
 Python dependency 설치:
