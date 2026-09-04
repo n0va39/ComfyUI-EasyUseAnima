@@ -13,6 +13,21 @@ RELEASE_PATH = ROOT / "RELEASE.md"
 
 
 class RegistryReleaseCopyTests(unittest.TestCase):
+    def test_historical_registry_omissions_are_explicit_and_not_synced(self) -> None:
+        metadata = json.loads(METADATA_PATH.read_text(encoding="utf-8"))
+        synced_versions = {item["version"] for item in metadata["versions"]}
+        omissions = metadata.get("omitted_versions", [])
+
+        self.assertIn("0.6.1", {item["version"] for item in omissions})
+        for item in omissions:
+            with self.subTest(version=item.get("version")):
+                self.assertEqual(set(item), {"version", "reason"})
+                self.assertNotIn(item["version"], synced_versions)
+                self.assertTrue(item["reason"].strip())
+                self.assertTrue(
+                    (METADATA_PATH.parent / "changelogs" / f"{item['version']}.txt").is_file()
+                )
+
     def test_only_current_registry_version_is_not_deprecated(self) -> None:
         project = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
         current_version = project["project"]["version"]
