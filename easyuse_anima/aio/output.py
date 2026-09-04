@@ -15,6 +15,7 @@ from ..common.values import _as_bool, _as_float, _as_int
 from ..infrastructure.comfy.wiring import resolve_comfy_host_helper
 from ..lora.preset import _format_strength
 from .generation_defaults import AIO_GENERATION_DEFAULT_SETTINGS
+from .native_civitai import CivitaiLookupBudget, CivitaiLookupBudgetExhausted
 from .native_image_output import (
     NativeImageMetadata,
     _build_native_metadata,
@@ -327,6 +328,8 @@ def _resolve_image_saver_runtime(
 
 def _aio_image_saver_civitai_hash_fetcher_entries(
     image_saver: dict[str, Any],
+    *,
+    budget: CivitaiLookupBudget | None = None,
 ) -> list[str]:
     enabled_settings = [
         item
@@ -357,9 +360,27 @@ def _aio_image_saver_civitai_hash_fetcher_entries(
                 "[EasyUseAnima] Civitai Hash Fetcher requires both username and model_name."
             )
         try:
-            hash_text = str(
-                _fetch_civitai_autov3_hash(username, model_name, version) or ""
-            ).strip()
+            if budget is None:
+                fetched_hash = _fetch_civitai_autov3_hash(
+                    username,
+                    model_name,
+                    version,
+                )
+            else:
+                fetched_hash = _fetch_civitai_autov3_hash(
+                    username,
+                    model_name,
+                    version,
+                    budget=budget,
+                )
+            hash_text = str(fetched_hash or "").strip()
+        except CivitaiLookupBudgetExhausted as exc:
+            logger.warning(
+                "[EasyUseAnima] Civitai Hash Fetcher budget ended; "
+                "saving with available metadata: %s",
+                exc,
+            )
+            break
         except Exception as exc:
             logger.warning(
                 "[EasyUseAnima] Civitai Hash Fetcher failed for username=%r model=%r version=%r; skipping metadata hash: %s",
@@ -383,7 +404,11 @@ def _aio_image_saver_civitai_hash_fetcher_entries(
     return entries
 
 
-def _aio_image_saver_additional_hashes(image_saver: dict[str, Any]) -> str:
+def _aio_image_saver_additional_hashes(
+    image_saver: dict[str, Any],
+    *,
+    budget: CivitaiLookupBudget | None = None,
+) -> str:
     parts = []
     base = str(image_saver.get("additional_hashes") or "").strip(" ,\n\r\t")
     if base:
@@ -391,9 +416,15 @@ def _aio_image_saver_additional_hashes(image_saver: dict[str, Any]) -> str:
     parts.extend(
         _normalize_aio_hash_bundles(image_saver.get("additional_hash_bundles"))
     )
-    parts.extend(
-        _aio_image_saver_civitai_hash_fetcher_entries(image_saver)
-    )
+    if budget is None:
+        parts.extend(_aio_image_saver_civitai_hash_fetcher_entries(image_saver))
+    else:
+        parts.extend(
+            _aio_image_saver_civitai_hash_fetcher_entries(
+                image_saver,
+                budget=budget,
+            )
+        )
     return ",".join(part for part in parts if part)
 
 
@@ -490,6 +521,7 @@ def _save_image_with_image_saver(
     )
 
     if _comfy_metadata_enabled():
+        civitai_budget = CivitaiLookupBudget()
         save_prompt_metadata = _as_bool(
             runtime.settings.get("save_prompt_metadata"),
             runtime.defaults["save_prompt_metadata"],
@@ -522,12 +554,16 @@ def _save_image_with_image_saver(
             denoise=runtime.denoise,
             clip_skip=runtime.clip_skip,
             custom=runtime.custom,
-            additional_hashes=_aio_image_saver_additional_hashes(runtime.settings),
+            additional_hashes=_aio_image_saver_additional_hashes(
+                runtime.settings,
+                budget=civitai_budget,
+            ),
             applied_loras=applied_loras,
             download_civitai_data=download_civitai_data,
             easy_remix=_as_bool(
                 runtime.settings.get("easy_remix"), runtime.defaults["easy_remix"]
             ),
+            civitai_budget=civitai_budget,
         )
     else:
         metadata = NativeImageMetadata(parameters="", final_hashes="", hashes={})

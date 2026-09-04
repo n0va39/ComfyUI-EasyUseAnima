@@ -70,13 +70,23 @@ Civitai Hash Fetcher rows resolve an AutoV3 value. Both paths use fixed
 
 - no user-provided URL is accepted;
 - redirects are disabled and normal TLS verification remains enabled;
-- connect/read timeouts are bounded;
+- connect/read timeouts are bounded, and all Civitai paths in one save share a
+  12-second wall-clock deadline plus a 16-request HTTP-call budget;
 - response bodies are streamed with a 2 MiB hard limit;
-- one save performs remote enrichment for at most 32 distinct local or manual resources and processes at most 32 enabled hash-fetcher rows;
+- one AutoV3 row consumes one call for model search and, when matched, one more
+  for its selected version; those calls share the same budget as local/manual
+  resource enrichment;
+- once either budget ends, remaining remote lookups are skipped and the image
+  is still saved with hashes and metadata already available;
+- a timed-out transport may finish on one daemon worker, but a process-wide
+  single request slot prevents abandoned slow streams from accumulating;
+- one save considers at most 32 distinct local or manual resources and at most
+  32 enabled hash-fetcher rows before the stricter shared budgets apply;
 - remote names and identifiers are length/control-character validated;
 - a by-hash response is accepted only when one returned file contains an exact
   match for the requested full or short hexadecimal hash;
-- successful lookups cache only a small validated hash string or descriptor in memory;
+- successful lookups cache only a small validated hash string or descriptor in
+  memory, after whitespace trimming and case normalization of cache keys;
 - transport, HTTP, size, and parse failures are logged as metadata misses and
   never block image saving.
 

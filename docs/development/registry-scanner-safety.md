@@ -52,7 +52,9 @@ updating a release branch that will be scanned by Registry automation.
   backend is called.
 - Native Civitai enrichment is disabled by default. `Civitai data` is the
   explicit opt-in, and `easyuse_anima/aio/native_civitai.py` owns the only
-  fixed-host GET boundary used by native image output.
+  fixed-host GET boundary used by native image output. All fetcher and resource
+  requests in one save share a 12-second deadline and a 16-call budget; budget
+  exhaustion skips optional enrichment without failing image output.
 - AiO ResShift execution is fail-closed before optional-node lookup. Its saved
   settings remain readable, but re-enabling the adapter requires the safe
   loader contract tracked in issue #679.
@@ -111,3 +113,5 @@ and guarded by the explicit remote API allow setting.
 Expected exception: `easyuse_anima/aio/native_civitai.py` contains one
 `requests.get` call. It must remain fixed to the Civitai HTTPS API, disabled by
 default behind `Civitai data`, redirect-disabled, timeout-bound, and size-bound.
+It must also remain behind the per-save deadline/call budget and the bounded
+process-wide draining-request slot.

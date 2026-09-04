@@ -433,10 +433,18 @@ class AIONativeImageOutputTests(unittest.TestCase):
                 "Target Model",
                 "v2",
             )
+            cached_variant = civitai._fetch_civitai_autov3_hash(
+                " CREATOR ",
+                " target model ",
+                " V2 ",
+            )
 
         self.assertEqual(result, "ABCDEF1234")
+        self.assertEqual(cached_variant, result)
+        self.assertEqual(len(calls), 2, "normalized lookup variants must reuse the cache")
         self.assertEqual(calls[0][0], "https://civitai.com/api/v1/models")
         self.assertEqual(calls[0][1]["username"], "creator")
+        self.assertEqual(calls[0][1]["query"], "Target Model")
         self.assertEqual(calls[1], (
             "https://civitai.com/api/v1/model-versions/11",
             None,
@@ -499,6 +507,44 @@ class AIONativeImageOutputTests(unittest.TestCase):
             self.assertRaisesRegex(RuntimeError, "size limit"),
         ):
             civitai._request_civitai_json("https://civitai.com/api/v1/models")
+        response.close.assert_called_once_with()
+
+    def test_civitai_slow_stream_stops_at_shared_wall_clock_deadline(self):
+        class Clock:
+            now = 0.0
+
+            def __call__(self):
+                return self.now
+
+        clock = Clock()
+        response = Mock(status_code=200, headers={})
+
+        def chunks(*, chunk_size):
+            self.assertEqual(chunk_size, 64 * 1024)
+            yield b'{"items":'
+            clock.now = 6.0
+            yield b"[]}"
+
+        response.iter_content.side_effect = chunks
+        transport = Mock(return_value=response)
+        budget = civitai.CivitaiLookupBudget(
+            timeout_seconds=5.0,
+            http_call_limit=4,
+            clock=clock,
+        )
+
+        with self.assertRaisesRegex(
+            civitai.CivitaiLookupBudgetExhausted,
+            "deadline",
+        ):
+            civitai._request_civitai_json(
+                "https://civitai.com/api/v1/models",
+                budget=budget,
+                transport=transport,
+            )
+
+        self.assertEqual(budget.calls_started, 1)
+        self.assertEqual(transport.call_args.kwargs["timeout"], (3.05, 5.0))
         response.close.assert_called_once_with()
 
     def test_civitai_response_cleanup_failure_does_not_discard_valid_metadata(self):
