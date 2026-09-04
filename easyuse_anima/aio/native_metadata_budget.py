@@ -26,6 +26,7 @@ _MAX_SAVE_METADATA_BYTES = 64 * 1024 * 1024
 
 _TEXT_CHUNK_CHARACTERS = 64 * 1024
 _CONTROL_RE = re.compile(r"[\x00-\x1f\x7f]")
+_RESERVED_EXTRA_PNGINFO_KEYS = frozenset({"parameters", "prompt", "workflow"})
 
 
 class MetadataLimitError(RuntimeError):
@@ -290,7 +291,8 @@ def _prepare_metadata_payload(
         _validate_extra_pnginfo_count(extra_values)
         for key, value in extra_values.items():
             key_text = _extra_pnginfo_key(key)
-            if key_text in {"parameters", "prompt"}:
+            canonical_key = key_text.casefold()
+            if canonical_key in _RESERVED_EXTRA_PNGINFO_KEYS and key_text != "workflow":
                 logger.warning(
                     "[EasyUseAnima] Ignoring reserved extra_pnginfo key %r.",
                     key_text,

@@ -50468,126 +50468,126 @@
         "functions": [
           {
             "async": false,
-            "end_line": 45,
+            "end_line": 46,
             "kind": "function",
-            "line": 35,
+            "line": 36,
             "loc": 11,
             "qualified_name": "_utf8_size"
           },
           {
             "async": false,
-            "end_line": 61,
+            "end_line": 62,
             "kind": "function",
-            "line": 48,
+            "line": 49,
             "loc": 14,
             "qualified_name": "_scalar_size"
           },
           {
             "async": false,
-            "end_line": 149,
+            "end_line": 150,
             "kind": "function",
-            "line": 64,
+            "line": 65,
             "loc": 86,
             "qualified_name": "_validate_json_structure"
           },
           {
             "async": false,
-            "end_line": 81,
+            "end_line": 82,
             "kind": "function",
-            "line": 75,
+            "line": 76,
             "loc": 7,
             "qualified_name": "_validate_json_structure.add_bytes"
           },
           {
             "async": false,
-            "end_line": 187,
+            "end_line": 188,
             "kind": "function",
-            "line": 152,
+            "line": 153,
             "loc": 36,
             "qualified_name": "_json_dumps_limited"
           },
           {
             "async": false,
-            "end_line": 191,
+            "end_line": 192,
             "kind": "function",
-            "line": 190,
+            "line": 191,
             "loc": 2,
             "qualified_name": "_metadata_text_size"
           },
           {
             "async": false,
-            "end_line": 207,
+            "end_line": 208,
             "kind": "function",
-            "line": 194,
+            "line": 195,
             "loc": 14,
             "qualified_name": "_validate_parameter_sources"
           },
           {
             "async": false,
-            "end_line": 217,
+            "end_line": 218,
             "kind": "function",
-            "line": 210,
+            "line": 211,
             "loc": 8,
             "qualified_name": "_extra_pnginfo_key"
           },
           {
             "async": false,
-            "end_line": 224,
+            "end_line": 225,
             "kind": "function",
-            "line": 220,
+            "line": 221,
             "loc": 5,
             "qualified_name": "_validate_extra_pnginfo_count"
           },
           {
             "async": false,
-            "end_line": 245,
+            "end_line": 246,
             "kind": "method",
-            "line": 236,
+            "line": 237,
             "loc": 10,
             "qualified_name": "_PreparedMetadataPayload.ensure_workflow_sidecar"
           },
           {
             "async": false,
-            "end_line": 336,
+            "end_line": 338,
             "kind": "function",
-            "line": 248,
-            "loc": 89,
+            "line": 249,
+            "loc": 90,
             "qualified_name": "_prepare_metadata_payload"
           },
           {
             "async": false,
-            "end_line": 344,
+            "end_line": 346,
             "kind": "function",
-            "line": 339,
+            "line": 341,
             "loc": 6,
             "qualified_name": "_validate_embedded_metadata_size"
           },
           {
             "async": false,
-            "end_line": 352,
+            "end_line": 354,
             "kind": "function",
-            "line": 347,
+            "line": 349,
             "loc": 6,
             "qualified_name": "_validate_save_metadata_size"
           },
           {
             "async": false,
-            "end_line": 371,
+            "end_line": 373,
             "kind": "function",
-            "line": 355,
+            "line": 357,
             "loc": 17,
             "qualified_name": "_sidecar_required_and_validate_batch"
           }
         ],
         "is_package": false,
-        "loc": 374,
+        "loc": 376,
         "module": "easyuse_anima.aio.native_metadata_budget",
-        "normalized_git_blob_sha1": "6f901c4ecd75af20318a224d58b7a1a15d32b3b0",
+        "normalized_git_blob_sha1": "3aa5b9f2eca5e46a414d4b3c1dcbe4ce63d11c5f",
         "path": "easyuse_anima/aio/native_metadata_budget.py",
         "top_level": {
           "class_count": 2,
           "function_count": 12,
-          "global_count": 15
+          "global_count": 16
         }
       },
       {
@@ -74855,11 +74855,20 @@
         "scope": "<module>"
       },
       {
+        "callee": "frozenset",
+        "column": 31,
+        "context": "assign:_RESERVED_EXTRA_PNGINFO_KEYS",
+        "kind": "import_time_call",
+        "line": 29,
+        "module": "easyuse_anima/aio/native_metadata_budget.py",
+        "scope": "<module>"
+      },
+      {
         "callee": "dataclass",
         "column": 1,
         "context": "decorator:_PreparedMetadataPayload",
         "kind": "import_time_call",
-        "line": 227,
+        "line": 228,
         "module": "easyuse_anima/aio/native_metadata_budget.py",
         "scope": "<module>"
       },
