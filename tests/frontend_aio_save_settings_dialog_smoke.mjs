@@ -627,4 +627,87 @@ function createFixture({ settings = {}, available = {}, deferLoads = false } = {
   assert.deepEqual(JSON.parse(fixture.node.widgets[0].value), fixture.node.settings);
 }
 
+{
+  const oversizedBundle = "é".repeat(4097);
+  const emojiModelName = "😀".repeat(200);
+  const hashRowsSource = [
+    oversizedBundle,
+    true,
+    1,
+    ...Array.from({ length: 35 }, (_, index) => `Bundle-${index}:HASH`),
+  ];
+  const civitaiRowsSource = [
+    { enabled: true, username: "bad\nuser", model_name: "ignored", version: "" },
+    { enabled: true, username: "bad\u202Euser", model_name: "ignored", version: "" },
+    { enabled: true, username: "bad\uD800user", model_name: "ignored", version: "" },
+    { enabled: true, username: 123, model_name: "ignored", version: "" },
+    { enabled: true, username: "creator", model_name: emojiModelName, version: "v1" },
+    ...Array.from({ length: 35 }, (_, index) => ({
+      enabled: true,
+      username: "creator",
+      model_name: `Model ${index}`,
+      version: "v1",
+    })),
+  ];
+
+  for (const encode of [(value) => value, (value) => JSON.stringify(value)]) {
+    const settings = configuredSettings();
+    settings.save.image_saver.additional_hash_bundles = encode(hashRowsSource);
+    settings.save.image_saver.civitai_hash_fetchers = encode(civitaiRowsSource);
+    const fixture = createFixture({ settings });
+    fixture.openSaveSettings(fixture.node);
+    await flushPromises();
+
+    const dialog = fixture.dialogs[0];
+    const metadata = sectionByHeading(dialog.body, "Native Image Metadata");
+    const hashEditor = controlIn(metadata, "Manual hash bundles");
+    const civitaiEditor = controlIn(metadata, "Civitai Hash Fetchers");
+    assert.equal(hashRows(hashEditor).length, 32, "saved hash hydration must stop at 32 valid rows");
+    assert.equal(civitaiRows(civitaiEditor).length, 32, "saved Civitai hydration must stop at 32 valid rows");
+    assert.equal(hashValue(hashRows(hashEditor)[0]).value, "Bundle-0:HASH");
+    assert.equal(hashValue(hashRows(hashEditor).at(-1)).value, "Bundle-31:HASH");
+    assert.equal(hashValue(hashRows(hashEditor)[0]).maxLength, 8192);
+    assert.equal(
+      civitaiInputs(civitaiRows(civitaiEditor)[0])[2].value,
+      emojiModelName,
+      "200 non-BMP code points must match the Python 200-character/800-byte contract",
+    );
+
+    addRow(hashEditor, "button.addHashBundle");
+    addRow(civitaiEditor, "button.addCivitaiFetcher");
+    assert.equal(hashRows(hashEditor).length, 32, "hash add must honor the DOM row limit");
+    assert.equal(civitaiRows(civitaiEditor).length, 32, "Civitai add must honor the DOM row limit");
+
+    hashValue(hashRows(hashEditor)[0]).value = oversizedBundle;
+    action(dialog, "button.apply").emit("click");
+    assert.equal(fixture.node.settings.save.image_saver.additional_hash_bundles.length, 31);
+    assert.equal(
+      fixture.node.settings.save.image_saver.additional_hash_bundles.includes(oversizedBundle),
+      false,
+      "programmatic oversized textarea values must not bypass byte validation",
+    );
+  }
+}
+
+{
+  const settings = configuredSettings();
+  const oversizedJson = "x".repeat((512 * 1024) + 1);
+  settings.save.image_saver.additional_hash_bundles = oversizedJson;
+  settings.save.image_saver.civitai_hash_fetchers = oversizedJson;
+  const fixture = createFixture({ settings });
+  fixture.openSaveSettings(fixture.node);
+  await flushPromises();
+  const metadata = sectionByHeading(fixture.dialogs[0].body, "Native Image Metadata");
+  assert.equal(
+    hashRows(controlIn(metadata, "Manual hash bundles")).length,
+    1,
+    "oversized hash JSON must be rejected before creating saved rows",
+  );
+  assert.equal(
+    civitaiRows(controlIn(metadata, "Civitai Hash Fetchers")).length,
+    1,
+    "oversized Civitai JSON must be rejected before creating saved rows",
+  );
+}
+
 console.log("AiO Save settings dialog smoke passed.");
