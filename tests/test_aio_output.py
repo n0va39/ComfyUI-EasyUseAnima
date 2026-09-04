@@ -128,10 +128,40 @@ class AIOOutputMoveTests(unittest.TestCase):
             output_settings._normalize_aio_hash_bundles(json.dumps(bundles + ["ignored"])),
             bundles,
         )
+        over_limit_integer_json = "[" + ("9" * 5_000) + "]"
+        self.assertEqual(
+            output_settings._normalize_aio_hash_bundles(over_limit_integer_json),
+            [],
+        )
+        self.assertEqual(
+            output_settings._normalize_aio_civitai_hash_fetchers(
+                over_limit_integer_json
+            ),
+            [],
+        )
+        with patch.object(
+            output_settings.json,
+            "loads",
+            side_effect=ValueError("numeric conversion limit"),
+        ):
+            self.assertEqual(
+                output_settings._normalize_aio_hash_bundles("[123]"),
+                [],
+            )
+            self.assertEqual(
+                output_settings._normalize_aio_civitai_hash_fetchers("[123]"),
+                [],
+            )
         oversized_bundle = "é" * ((output_settings._MAX_HASH_BUNDLE_BYTES // 2) + 1)
         self.assertEqual(
             output_settings._normalize_aio_hash_bundles(
                 [oversized_bundle, "Kept:HASH"]
+            ),
+            ["Kept:HASH"],
+        )
+        self.assertEqual(
+            output_settings._normalize_aio_hash_bundles(
+                [True, 1.0, "Kept:HASH"]
             ),
             ["Kept:HASH"],
         )
@@ -172,12 +202,32 @@ class AIOOutputMoveTests(unittest.TestCase):
                 ),
                 [],
             )
+        emoji_field = "😀" * output_settings._MAX_CIVITAI_FIELD_CHARACTERS
+        self.assertEqual(
+            output_settings._normalize_aio_civitai_hash_fetchers(
+                [{"username": "creator", "model_name": emoji_field}]
+            ),
+            [{
+                "enabled": True,
+                "username": "creator",
+                "model_name": emoji_field,
+                "version": "",
+            }],
+        )
         self.assertEqual(
             output_settings._normalize_aio_civitai_hash_fetchers(
                 [{"username": "bad\nuser", "model_name": "model"}]
             ),
             [],
         )
+        for invalid_field in ("bad\u202euser", "bad\ud800user", 123):
+            with self.subTest(invalid_field=repr(invalid_field)):
+                self.assertEqual(
+                    output_settings._normalize_aio_civitai_hash_fetchers(
+                        [{"username": invalid_field, "model_name": "model"}]
+                    ),
+                    [],
+                )
 
     def test_hash_join_budget_preserves_complete_prefix(self):
         first = "A:" + ("a" * (output._MAX_JOINED_HASH_BYTES - 2))
@@ -200,7 +250,7 @@ class AIOOutputMoveTests(unittest.TestCase):
     def test_civitai_failure_logs_are_bounded_and_control_safe(self):
         username = "u" * output_settings._MAX_CIVITAI_FIELD_CHARACTERS
         model_name = "m" * output_settings._MAX_CIVITAI_FIELD_CHARACTERS
-        failure = "remote\nerror:" + ("z" * 300)
+        failure = "remote\nerror:\u0085\u2028\u2029\u202e" + ("z" * 300)
         with (
             patch.object(
                 output,
@@ -225,7 +275,9 @@ class AIOOutputMoveTests(unittest.TestCase):
         self.assertNotIn(username, rendered)
         self.assertNotIn(model_name, rendered)
         self.assertNotIn("remote\nerror", rendered)
-        self.assertIn("remote?error", rendered)
+        for unsafe in ("\u0085", "\u2028", "\u2029", "\u202e"):
+            self.assertNotIn(unsafe, rendered)
+        self.assertIn("remote?error:????", rendered)
         self.assertIn("...", rendered)
 
     def test_civitai_hashes_preserve_order_success_and_soft_skip_paths(self):

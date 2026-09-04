@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import json
-import re
+import unicodedata
 from typing import Any
 
 from ..common.values import _as_bool
@@ -14,7 +14,7 @@ _MAX_SAVED_HASH_JSON_BYTES = 512 * 1024
 _MAX_HASH_BUNDLE_BYTES = 8 * 1024
 _MAX_CIVITAI_FIELD_CHARACTERS = 200
 _MAX_CIVITAI_FIELD_BYTES = 800
-_CONTROL_RE = re.compile(r"[\x00-\x1f\x7f]")
+_UNSAFE_TEXT_CATEGORIES = frozenset({"Cc", "Cf", "Cs", "Zl", "Zp"})
 
 
 def _fits_utf8_limit(value: str, *, max_characters: int, max_bytes: int) -> bool:
@@ -36,8 +36,10 @@ def _load_saved_list(value, *, fallback_plain_text: bool) -> list[Any] | None:
             return None
         try:
             value = json.loads(value or "[]")
-        except (json.JSONDecodeError, RecursionError):
+        except json.JSONDecodeError:
             value = [value] if fallback_plain_text else None
+        except (RecursionError, ValueError):
+            value = None
     return value if isinstance(value, list) else None
 
 
@@ -51,9 +53,9 @@ def _bounded_scalar_text(
 ) -> str | None:
     if value is None:
         return ""
-    if not isinstance(value, (str, bool, int, float)):
+    if not isinstance(value, str):
         return None
-    text = str(value)
+    text = value
     if not _fits_utf8_limit(
         text,
         max_characters=max_characters,
@@ -61,7 +63,10 @@ def _bounded_scalar_text(
     ):
         return None
     text = text.strip(strip_characters) if strip_characters is not None else text.strip()
-    if reject_controls and _CONTROL_RE.search(text):
+    if reject_controls and any(
+        unicodedata.category(character) in _UNSAFE_TEXT_CATEGORIES
+        for character in text
+    ):
         return None
     if not _fits_utf8_limit(
         text,

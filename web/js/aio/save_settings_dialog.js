@@ -6,8 +6,7 @@ const MAX_SAVED_HASH_JSON_BYTES = 512 * 1024;
 const MAX_HASH_BUNDLE_BYTES = 8 * 1024;
 const MAX_CIVITAI_FIELD_CHARACTERS = 200;
 const MAX_CIVITAI_FIELD_BYTES = 800;
-const UTF8_ENCODER = new TextEncoder();
-const CONTROL_RE = /[\x00-\x1f\x7f]/;
+const UNSAFE_TEXT_RE = /[\p{Cc}\p{Cf}\p{Zl}\p{Zp}]/u;
 
 /**
  * @param {string} value
@@ -16,8 +15,26 @@ const CONTROL_RE = /[\x00-\x1f\x7f]/;
  * @returns {boolean}
  */
 function fitsUtf8Limit(value, maxCharacters, maxBytes) {
-  return value.length <= maxCharacters
-    && UTF8_ENCODER.encode(value).byteLength <= maxBytes;
+  if (value.length > maxBytes) return false;
+  let characters = 0;
+  let bytes = 0;
+  for (let index = 0; index < value.length; index += 1) {
+    const first = value.charCodeAt(index);
+    let codePoint = first;
+    if (first >= 0xD800 && first <= 0xDBFF) {
+      const second = value.charCodeAt(index + 1);
+      if (!(second >= 0xDC00 && second <= 0xDFFF)) return false;
+      codePoint = 0x10000 + ((first - 0xD800) * 0x400) + (second - 0xDC00);
+      index += 1;
+    } else if (first >= 0xDC00 && first <= 0xDFFF) {
+      return false;
+    }
+    characters += 1;
+    if (characters > maxCharacters) return false;
+    bytes += codePoint <= 0x7F ? 1 : codePoint <= 0x7FF ? 2 : codePoint <= 0xFFFF ? 3 : 4;
+    if (bytes > maxBytes) return false;
+  }
+  return true;
 }
 
 /**
@@ -48,8 +65,8 @@ function savedList(value, fallbackPlainText) {
  */
 function boundedScalarText(value, maxCharacters, maxBytes, stripHashEdges = false) {
   if (value == null) return "";
-  if (!["string", "boolean", "number"].includes(typeof value)) return null;
-  const raw = String(value);
+  if (typeof value !== "string") return null;
+  const raw = value;
   if (!fitsUtf8Limit(raw, maxCharacters, maxBytes)) return null;
   const text = stripHashEdges
     ? raw.trim().replace(/^[,\s]+|[,\s]+$/g, "")
@@ -180,7 +197,7 @@ export function aioCreateSaveSettingsDialog(dependencies) {
           MAX_CIVITAI_FIELD_BYTES,
         )
       ));
-      if (fields.some((fieldValue) => fieldValue == null || CONTROL_RE.test(fieldValue))) {
+      if (fields.some((fieldValue) => fieldValue == null || UNSAFE_TEXT_RE.test(fieldValue))) {
         continue;
       }
       const [username, modelName, version] = fields;
@@ -297,9 +314,6 @@ export function aioCreateSaveSettingsDialog(dependencies) {
       const username = textInput(value.username || "");
       const modelName = textInput(value.model_name || "");
       const version = textInput(value.version || "");
-      username.maxLength = MAX_CIVITAI_FIELD_CHARACTERS;
-      modelName.maxLength = MAX_CIVITAI_FIELD_CHARACTERS;
-      version.maxLength = MAX_CIVITAI_FIELD_CHARACTERS;
       username.placeholder = "N0VA39";
       modelName.placeholder = "Anima All in One workflow";
       version.placeholder = "";

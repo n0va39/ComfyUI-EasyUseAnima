@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 import os
 import re
+import unicodedata
 from collections.abc import Callable, Iterator, Mapping
 from dataclasses import dataclass
 from datetime import datetime
@@ -50,6 +51,7 @@ _STRFTIME_DIRECTIVE_PREFIX_CHARS = frozenset("-_0^#:EO0123456789")
 _MAX_CIVITAI_HASH_FETCHERS = _MAX_SAVED_HASH_ROWS
 _MAX_JOINED_HASH_BYTES = 8 * 1024
 _MAX_CIVITAI_LOG_CHARACTERS = 80
+_UNSAFE_LOG_CATEGORIES = frozenset({"Cc", "Cf", "Cs", "Zl", "Zp"})
 
 
 @dataclass(frozen=True, slots=True)
@@ -559,10 +561,15 @@ def _safe_civitai_log_value(value) -> str:
         text = str(value or "")
     except Exception:
         return "<unprintable>"
-    text = _OUTPUT_CONTROL_RE.sub("?", text)
-    if len(text) <= _MAX_CIVITAI_LOG_CHARACTERS:
-        return text
-    return f"{text[:_MAX_CIVITAI_LOG_CHARACTERS]}..."
+    truncated = len(text) > _MAX_CIVITAI_LOG_CHARACTERS
+    text = text[:_MAX_CIVITAI_LOG_CHARACTERS]
+    text = "".join(
+        "?"
+        if unicodedata.category(character) in _UNSAFE_LOG_CATEGORIES
+        else character
+        for character in text
+    )
+    return f"{text}..." if truncated else text
 
 
 def _join_aio_hash_parts(parts) -> str:

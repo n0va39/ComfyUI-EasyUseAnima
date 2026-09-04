@@ -629,12 +629,19 @@ function createFixture({ settings = {}, available = {}, deferLoads = false } = {
 
 {
   const oversizedBundle = "é".repeat(4097);
+  const emojiModelName = "😀".repeat(200);
   const hashRowsSource = [
     oversizedBundle,
+    true,
+    1,
     ...Array.from({ length: 35 }, (_, index) => `Bundle-${index}:HASH`),
   ];
   const civitaiRowsSource = [
     { enabled: true, username: "bad\nuser", model_name: "ignored", version: "" },
+    { enabled: true, username: "bad\u202Euser", model_name: "ignored", version: "" },
+    { enabled: true, username: "bad\uD800user", model_name: "ignored", version: "" },
+    { enabled: true, username: 123, model_name: "ignored", version: "" },
+    { enabled: true, username: "creator", model_name: emojiModelName, version: "v1" },
     ...Array.from({ length: 35 }, (_, index) => ({
       enabled: true,
       username: "creator",
@@ -660,7 +667,11 @@ function createFixture({ settings = {}, available = {}, deferLoads = false } = {
     assert.equal(hashValue(hashRows(hashEditor)[0]).value, "Bundle-0:HASH");
     assert.equal(hashValue(hashRows(hashEditor).at(-1)).value, "Bundle-31:HASH");
     assert.equal(hashValue(hashRows(hashEditor)[0]).maxLength, 8192);
-    assert.equal(civitaiInputs(civitaiRows(civitaiEditor)[0])[1].maxLength, 200);
+    assert.equal(
+      civitaiInputs(civitaiRows(civitaiEditor)[0])[2].value,
+      emojiModelName,
+      "200 non-BMP code points must match the Python 200-character/800-byte contract",
+    );
 
     addRow(hashEditor, "button.addHashBundle");
     addRow(civitaiEditor, "button.addCivitaiFetcher");
