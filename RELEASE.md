@@ -17,8 +17,9 @@
 
 - Native output filenames, templates, and subdirectories are validated for the
   active ComfyUI output folder, including Windows-specific unsafe names.
-- Image and workflow-sidecar publication now avoids exposing incomplete output
-  pairs, while metadata, hash, and optional Civitai work have explicit limits.
+- When a JSON workflow sidecar is requested, it is published before the image
+  so an image is not exposed while its sidecar is still missing. Metadata,
+  hash, and optional Civitai work also have explicit limits.
 - Reserved EXIF fields and the selected metadata privacy setting remain stable
   throughout each save operation.
 
