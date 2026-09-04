@@ -4,7 +4,7 @@ import json
 import sys
 import unittest
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 from easyuse_anima.aio import (
     conditioning,
@@ -986,7 +986,7 @@ class AIOSettingsStorageTests(unittest.TestCase):
         self.assertEqual(settings["detailer"]["eye"]["label"], "Eye Detailer")
 
 
-class AIOImageSaverDependencyTests(unittest.TestCase):
+class AIONativeImageSaverTests(unittest.TestCase):
     def setUp(self):
         output_directory_patch = patch.object(
             output,
@@ -996,34 +996,46 @@ class AIOImageSaverDependencyTests(unittest.TestCase):
         output_directory_patch.start()
         self.addCleanup(output_directory_patch.stop)
 
-    def test_missing_image_saver_dependency_names_required_node_pack(self):
-        with patch_comfy_helper(aio_nodes, "_find_comfy_node_class", return_value=None):
-            with self.assertRaisesRegex(RuntimeError, "ComfyUI-Image-Saver"):
-                output._save_image_with_image_saver(
-                    images=None,
-                    save_settings=generation_normalization._normalize_aio_generation_settings("{}")["save"],
-                    positive_prompt="positive",
-                    negative_prompt="negative",
-                    width=512,
-                    height=512,
-                    sampler_settings=generation_defaults.AIO_GENERATION_DEFAULT_SETTINGS["sampler"],
-                    resource_info={},
-                    workflow_prompt=None,
-                    extra_pnginfo=None,
-                )
+    def test_native_saver_does_not_resolve_external_image_saver_node(self):
+        metadata = object()
+        find = Mock(side_effect=AssertionError("must not resolve an external saver"))
+        with (
+            patch.object(output, "_find_comfy_node_class", find),
+            patch.object(output, "_build_native_metadata", return_value=metadata),
+            patch.object(
+                output,
+                "_save_native_images",
+                return_value={"ui": {"images": [{"filename": "native.webp"}]}},
+            ) as save,
+        ):
+            result = output._save_image_with_image_saver(
+                images=None,
+                save_settings=generation_normalization._normalize_aio_generation_settings("{}")["save"],
+                positive_prompt="positive",
+                negative_prompt="negative",
+                width=512,
+                height=512,
+                sampler_settings=generation_defaults.AIO_GENERATION_DEFAULT_SETTINGS["sampler"],
+                resource_info={},
+                workflow_prompt=None,
+                extra_pnginfo=None,
+            )
+
+        find.assert_not_called()
+        save.assert_called_once()
+        self.assertEqual(result["ui"]["images"][0]["filename"], "native.webp")
 
     def test_image_saver_additional_hash_bundles_are_combined_at_runtime(self):
         fetch_calls = []
 
-        class FakeCivitaiHashFetcher:
-            def get_autov3_hash(self, username, model_name, version=""):
-                fetch_calls.append((username, model_name, version))
-                return ("ABCDEF1234",)
+        def fetch_hash(username, model_name, version=""):
+            fetch_calls.append((username, model_name, version))
+            return "ABCDEF1234"
 
-        with patch_comfy_helper(
-            aio_nodes,
-            "_find_comfy_node_class",
-            return_value=FakeCivitaiHashFetcher,
+        with patch.object(
+            output,
+            "_fetch_civitai_autov3_hash",
+            side_effect=fetch_hash,
         ):
             result = output._aio_image_saver_additional_hashes({
                 "additional_hashes": "Base:AAAAAAAA",
@@ -1048,14 +1060,10 @@ class AIOImageSaverDependencyTests(unittest.TestCase):
         self.assertEqual(fetch_calls, [("N0VA39", "Anima All in One workflow", "")])
 
     def test_image_saver_civitai_hash_fetcher_api_errors_are_skipped(self):
-        class FakeCivitaiHashFetcher:
-            def get_autov3_hash(self, username, model_name, version=""):
-                return ("Error: API request failed with status 503",)
-
-        with patch_comfy_helper(
-            aio_nodes,
-            "_find_comfy_node_class",
-            return_value=FakeCivitaiHashFetcher,
+        with patch.object(
+            output,
+            "_fetch_civitai_autov3_hash",
+            return_value=None,
         ):
             with self.assertLogs("ComfyUI-EasyUseAnima", level="WARNING") as logs:
                 result = output._aio_image_saver_additional_hashes({
@@ -1074,14 +1082,10 @@ class AIOImageSaverDependencyTests(unittest.TestCase):
         self.assertIn("skipping metadata hash", "\n".join(logs.output))
 
     def test_image_saver_civitai_hash_fetcher_exceptions_are_skipped(self):
-        class FakeCivitaiHashFetcher:
-            def get_autov3_hash(self, username, model_name, version=""):
-                raise RuntimeError("temporary upstream failure")
-
-        with patch_comfy_helper(
-            aio_nodes,
-            "_find_comfy_node_class",
-            return_value=FakeCivitaiHashFetcher,
+        with patch.object(
+            output,
+            "_fetch_civitai_autov3_hash",
+            side_effect=RuntimeError("temporary upstream failure"),
         ):
             with self.assertLogs("ComfyUI-EasyUseAnima", level="WARNING") as logs:
                 result = output._aio_image_saver_additional_hashes({
@@ -1099,18 +1103,7 @@ class AIOImageSaverDependencyTests(unittest.TestCase):
         self.assertEqual(result, "Base:AAAAAAAA")
         self.assertIn("temporary upstream failure", "\n".join(logs.output))
 
-    def test_image_saver_save_files_receives_workflow_metadata_flags(self):
-        calls = []
-
-        class FakeImageSaver:
-            def save_files(self, **kwargs):
-                calls.append(kwargs)
-                return {"ui": {"images": [{"filename": "preview.webp"}]}}
-
-        class FakeCivitaiHashFetcher:
-            def get_autov3_hash(self, username, model_name, version=""):
-                return ("ABCDEF1234",)
-
+    def test_native_saver_receives_workflow_metadata_flags(self):
         settings = generation_normalization._normalize_aio_generation_settings(json.dumps({
             "save": {
                 "enabled": True,
@@ -1136,17 +1129,23 @@ class AIOImageSaverDependencyTests(unittest.TestCase):
                 },
             },
         }))
-
-        def fake_find(node_id):
-            return {
-                "Image Saver": FakeImageSaver,
-                "Civitai Hash Fetcher (Image Saver)": FakeCivitaiHashFetcher,
-            }.get(node_id)
-
-        with patch_comfy_helper(
-            aio_nodes,
-            "_find_comfy_node_class",
-            side_effect=fake_find,
+        metadata = object()
+        with (
+            patch.object(
+                output,
+                "_fetch_civitai_autov3_hash",
+                return_value="ABCDEF1234",
+            ),
+            patch.object(
+                output,
+                "_build_native_metadata",
+                return_value=metadata,
+            ) as build,
+            patch.object(
+                output,
+                "_save_native_images",
+                return_value={"ui": {"images": [{"filename": "preview.webp"}]}},
+            ) as save,
         ):
             result = output._save_image_with_image_saver(
                 images="images",
@@ -1162,33 +1161,31 @@ class AIOImageSaverDependencyTests(unittest.TestCase):
             )
 
         self.assertEqual(result["ui"]["images"][0]["filename"], "preview.webp")
-        self.assertEqual(calls[0]["filename"], "sample")
-        self.assertEqual(calls[0]["path"], "EasyUseAnima/Test")
-        self.assertTrue(calls[0]["embed_workflow"])
-        self.assertTrue(calls[0]["save_workflow_as_json"])
-        self.assertEqual(calls[0]["positive"], "positive")
-        self.assertEqual(calls[0]["negative"], "negative")
-        self.assertFalse(calls[0]["show_preview"])
-        self.assertEqual(calls[0]["modelname"], "anima")
-        self.assertEqual(calls[0]["width"], 768)
-        self.assertEqual(calls[0]["height"], 1024)
+        self.assertEqual(save.call_args.kwargs["filename"], "sample")
+        self.assertEqual(save.call_args.kwargs["path"], "EasyUseAnima/Test")
+        self.assertTrue(save.call_args.kwargs["embed_workflow"])
+        self.assertTrue(save.call_args.kwargs["save_workflow_as_json"])
+        self.assertIs(save.call_args.kwargs["metadata"], metadata)
+        self.assertEqual(save.call_args.kwargs["prompt"], {"1": {}})
+        self.assertEqual(save.call_args.kwargs["extra_pnginfo"], {"workflow": {}})
+        self.assertEqual(build.call_args.kwargs["positive"], "positive")
+        self.assertEqual(build.call_args.kwargs["negative"], "negative")
+        self.assertEqual(build.call_args.kwargs["modelname"], "anima")
+        self.assertEqual(build.call_args.kwargs["width"], 768)
+        self.assertEqual(build.call_args.kwargs["height"], 1024)
         self.assertEqual(
-            calls[0]["additional_hashes"],
+            build.call_args.kwargs["additional_hashes"],
             "Base:AAAAAAAA,LoraA:BBBBBBBB:0.8,CCCCCCCC:1.0,Anima All in One workflow:ABCDEF1234",
         )
 
     def test_image_saver_metadata_prompt_includes_applied_loras(self):
-        calls = []
-
-        class FakeImageSaver:
-            def save_files(self, **kwargs):
-                calls.append(kwargs)
-                return {"ui": {"images": [{"filename": "preview.webp"}]}}
-
-        with patch_comfy_helper(
-            aio_nodes,
-            "_find_comfy_node_class",
-            return_value=FakeImageSaver,
+        with (
+            patch.object(output, "_build_native_metadata", return_value=object()) as build,
+            patch.object(
+                output,
+                "_save_native_images",
+                return_value={"ui": {"images": [{"filename": "preview.webp"}]}},
+            ),
         ):
             output._save_image_with_image_saver(
                 images="images",
@@ -1207,17 +1204,10 @@ class AIOImageSaverDependencyTests(unittest.TestCase):
                 extra_pnginfo=None,
             )
 
-        self.assertIn("<lora:styles/foo:0.75>", calls[0]["positive"])
-        self.assertIn("<lora:bar:1>", calls[0]["positive"])
+        self.assertIn("<lora:styles/foo:0.75>", build.call_args.kwargs["positive"])
+        self.assertIn("<lora:bar:1>", build.call_args.kwargs["positive"])
 
     def test_image_saver_can_skip_prompt_metadata(self):
-        calls = []
-
-        class FakeImageSaver:
-            def save_files(self, **kwargs):
-                calls.append(kwargs)
-                return {"ui": {"images": [{"filename": "preview.webp"}]}}
-
         settings = generation_normalization._normalize_aio_generation_settings(json.dumps({
             "save": {
                 "image_saver": {
@@ -1226,10 +1216,13 @@ class AIOImageSaverDependencyTests(unittest.TestCase):
             },
         }))
 
-        with patch_comfy_helper(
-            aio_nodes,
-            "_find_comfy_node_class",
-            return_value=FakeImageSaver,
+        with (
+            patch.object(output, "_build_native_metadata", return_value=object()) as build,
+            patch.object(
+                output,
+                "_save_native_images",
+                return_value={"ui": {"images": [{"filename": "preview.webp"}]}},
+            ) as save,
         ):
             output._save_image_with_image_saver(
                 images="images",
@@ -1247,10 +1240,10 @@ class AIOImageSaverDependencyTests(unittest.TestCase):
                 extra_pnginfo={"workflow": {}},
             )
 
-        self.assertEqual(calls[0]["positive"], "")
-        self.assertEqual(calls[0]["negative"], "")
-        self.assertEqual(calls[0]["prompt"], {"1": {}})
-        self.assertEqual(calls[0]["extra_pnginfo"], {"workflow": {}})
+        self.assertEqual(build.call_args.kwargs["positive"], "")
+        self.assertEqual(build.call_args.kwargs["negative"], "")
+        self.assertEqual(save.call_args.kwargs["prompt"], {"1": {}})
+        self.assertEqual(save.call_args.kwargs["extra_pnginfo"], {"workflow": {}})
 
 
 class AIOLoraStackTests(unittest.TestCase):

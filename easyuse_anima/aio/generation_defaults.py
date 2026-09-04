@@ -461,7 +461,7 @@ AIO_GENERATION_DEFAULT_SETTINGS = {
             "additional_hashes": "",
             "additional_hash_bundles": [],
             "civitai_hash_fetchers": [],
-            "download_civitai_data": True,
+            "download_civitai_data": False,
             "easy_remix": True,
             "custom": "",
         },

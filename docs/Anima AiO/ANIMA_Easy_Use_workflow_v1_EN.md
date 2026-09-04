@@ -53,7 +53,6 @@ Node packs required for the base generation path:
 | --- | --- |
 | [ComfyUI-EasyUseAnima](https://github.com/n0va39/ComfyUI-EasyUseAnima) | Prompt Studio Advanced v2, LoRA Preset, Easy Use Anima Input, AiO Generator |
 | [ComfyUI-Spectrum-KSampler](https://github.com/sorryhyun/ComfyUI-Spectrum-KSampler) | Default sampler backend and Spectrum optimization |
-| [ComfyUI-Image-Saver](https://github.com/alexopus/ComfyUI-Image-Saver) | WebP saving, workflow embedding, Civitai/LoRA metadata |
 
 Strongly recommended or optional node packs:
 
@@ -64,8 +63,9 @@ Strongly recommended or optional node packs:
 | [ComfyUI-Impact-Pack](https://github.com/ltdrdata/ComfyUI-Impact-Pack) | SAM3, MaskToSEGS, DetailerForEach based Detailer |
 | [ComfyUI-Anima-DAVE](https://github.com/sorryhyun/ComfyUI-Anima-DAVE) | Optional model patch for generation diversity |
 
-`ComfyUI-EasyUseAnima` 0.2.2 or newer is required. If an optional node pack is
-missing, the related UI is locked or disabled before queueing.
+This workflow expects a `ComfyUI-EasyUseAnima` release that includes EasyUse
+native output. If an optional node pack is missing, the related UI is locked or
+disabled before queueing.
 
 ## LoRA Preset
 
@@ -174,14 +174,19 @@ Preview settings can show intermediate images, compare stages, and update the
 image feed. These settings affect only the node UI. They do not change saved
 image metadata.
 
-Save Options are enabled by default. The default backend is Image Saver, which
-handles WebP output, embedded workflow data, and Civitai/LoRA metadata.
+Save Options are enabled by default. The default backend is EasyUse native
+output, which handles PNG/JPEG/WebP, embedded workflows/JSON sidecars,
+A1111 metadata, and Civitai-compatible hashes without `ComfyUI-Image-Saver`.
+Turn off `Lossless WebP` to use lossy WebP controlled by `JPEG/WebP quality`.
+Remote `Civitai data` enrichment is off by default; enable it explicitly when
+you want fixed-host Civitai API lookups. Local model and LoRA hashes do not
+require this option.
 
 Saved metadata uses:
 
 - `Steps`, `CFG`, `Sampler`, `Scheduler`, `Seed`, `Denoise`: first-pass sampler values
 - `Size`: final resolution after Highres and Detailer
-- `lora_stack`: passed to Image Saver metadata as `<lora:name:weight>` tokens
+- `lora_stack`: records each applied file's SHA-256 short hash and weight
 
 Keep `Embed workflow` enabled if you want saved images to reload back into the
 same workflow setup.
@@ -190,8 +195,9 @@ same workflow setup.
 
 - If sampler or scheduler queue validation reports `Value not in list`, check
   your installed `ComfyUI-Spectrum-KSampler` version and the sampler list in ComfyUI.
-- If Image Saver fails, check whether `ComfyUI-Image-Saver` is installed and
-  whether Save Options are using the expected backend.
+- If native saving fails, check the output-relative path, filename template,
+  and image format in Save Options. Civitai lookup failures are warnings; local
+  hashes and image saving continue.
 - If a LoRA file is missing, disable that row or run `FIX`.
 - If an optional node pack is missing, disable the related feature or install
   the node pack and restart ComfyUI.

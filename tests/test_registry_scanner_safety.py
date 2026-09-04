@@ -27,6 +27,8 @@ EXPECTED_PYTHON_PACKAGE_FILES = {
     "easyuse_anima/aio/generation_migrations.py",
     "easyuse_anima/aio/generation_settings.py",
     "easyuse_anima/aio/model_preparation.py",
+    "easyuse_anima/aio/native_civitai.py",
+    "easyuse_anima/aio/native_image_output.py",
     "easyuse_anima/aio/output.py",
     "easyuse_anima/aio/preview.py",
     "easyuse_anima/aio/resources.py",
@@ -396,4 +398,7 @@ class RegistryScannerSafetyTests(unittest.TestCase):
         self.assertIn("same-authority", safety)
         self.assertIn("ComfyUI output root", safety)
         self.assertIn("issue #679", safety)
+        self.assertIn("Civitai data", safety)
+        self.assertIn("native_civitai.py", safety)
+        self.assertIn('rg -n "requests\\.get"', safety)
         self.assertIn('web/js -g "!easyuse_anima_api.js"', safety)
