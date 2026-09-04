@@ -1,5 +1,63 @@
 // @ts-check
 
+const MAX_SAVED_HASH_ROWS = 32;
+const MAX_SAVED_HASH_CANDIDATES = 64;
+const MAX_SAVED_HASH_JSON_BYTES = 512 * 1024;
+const MAX_HASH_BUNDLE_BYTES = 8 * 1024;
+const MAX_CIVITAI_FIELD_CHARACTERS = 200;
+const MAX_CIVITAI_FIELD_BYTES = 800;
+const UTF8_ENCODER = new TextEncoder();
+const CONTROL_RE = /[\x00-\x1f\x7f]/;
+
+/**
+ * @param {string} value
+ * @param {number} maxCharacters
+ * @param {number} maxBytes
+ * @returns {boolean}
+ */
+function fitsUtf8Limit(value, maxCharacters, maxBytes) {
+  return value.length <= maxCharacters
+    && UTF8_ENCODER.encode(value).byteLength <= maxBytes;
+}
+
+/**
+ * @param {any} value
+ * @param {boolean} fallbackPlainText
+ * @returns {any[] | null}
+ */
+function savedList(value, fallbackPlainText) {
+  if (typeof value === "string") {
+    if (!fitsUtf8Limit(value, MAX_SAVED_HASH_JSON_BYTES, MAX_SAVED_HASH_JSON_BYTES)) {
+      return null;
+    }
+    try {
+      value = JSON.parse(value || "[]");
+    } catch {
+      value = fallbackPlainText ? [value] : null;
+    }
+  }
+  return Array.isArray(value) ? value : null;
+}
+
+/**
+ * @param {any} value
+ * @param {number} maxCharacters
+ * @param {number} maxBytes
+ * @param {boolean} stripHashEdges
+ * @returns {string | null}
+ */
+function boundedScalarText(value, maxCharacters, maxBytes, stripHashEdges = false) {
+  if (value == null) return "";
+  if (!["string", "boolean", "number"].includes(typeof value)) return null;
+  const raw = String(value);
+  if (!fitsUtf8Limit(raw, maxCharacters, maxBytes)) return null;
+  const text = stripHashEdges
+    ? raw.trim().replace(/^[,\s]+|[,\s]+$/g, "")
+    : raw.trim();
+  if (!fitsUtf8Limit(text, maxCharacters, maxBytes)) return null;
+  return text;
+}
+
 /**
  * @typedef {object} AioSaveDialogControls
  * @property {(title: any, subtitle: any) => {backdrop: any, body: any, actions: any}} createDialog
@@ -92,41 +150,50 @@ export function aioCreateSaveSettingsDialog(dependencies) {
     renderPanel: renderGeneratorPanel,
   } = nodeAdapter;
   function normalizeImageSaverHashBundles(value) {
-    if (typeof value === "string") {
-      try {
-        return normalizeImageSaverHashBundles(JSON.parse(value || "[]"));
-      } catch {
-        return value.trim() ? [value.trim()] : [];
-      }
+    const values = savedList(value, true);
+    if (!values) return [];
+    const bundles = [];
+    for (const item of values.slice(0, MAX_SAVED_HASH_CANDIDATES)) {
+      const text = boundedScalarText(
+        item,
+        MAX_HASH_BUNDLE_BYTES,
+        MAX_HASH_BUNDLE_BYTES,
+        true,
+      );
+      if (!text) continue;
+      bundles.push(text);
+      if (bundles.length >= MAX_SAVED_HASH_ROWS) break;
     }
-    if (!Array.isArray(value)) {
-      return [];
-    }
-    return value
-      .map((item) => String(item ?? "").trim().replace(/^[,\s]+|[,\s]+$/g, ""))
-      .filter(Boolean);
+    return bundles;
   }
 
   function normalizeImageSaverCivitaiHashFetchers(value) {
-    if (typeof value === "string") {
-      try {
-        return normalizeImageSaverCivitaiHashFetchers(JSON.parse(value || "[]"));
-      } catch {
-        return [];
+    const values = savedList(value, false);
+    if (!values) return [];
+    const fetchers = [];
+    for (const item of values.slice(0, MAX_SAVED_HASH_CANDIDATES)) {
+      if (!item || typeof item !== "object" || Array.isArray(item)) continue;
+      const fields = ["username", "model_name", "version"].map((fieldName) => (
+        boundedScalarText(
+          item[fieldName],
+          MAX_CIVITAI_FIELD_CHARACTERS,
+          MAX_CIVITAI_FIELD_BYTES,
+        )
+      ));
+      if (fields.some((fieldValue) => fieldValue == null || CONTROL_RE.test(fieldValue))) {
+        continue;
       }
-    }
-    if (!Array.isArray(value)) {
-      return [];
-    }
-    return value
-      .filter((item) => item && typeof item === "object" && !Array.isArray(item))
-      .map((item) => ({
+      const [username, modelName, version] = fields;
+      if (!username && !modelName && !version) continue;
+      fetchers.push({
         enabled: asBool(item.enabled, true),
-        username: String(item.username || "").trim(),
-        model_name: String(item.model_name || "").trim(),
-        version: String(item.version || "").trim(),
-      }))
-      .filter((item) => item.username || item.model_name || item.version);
+        username,
+        model_name: modelName,
+        version,
+      });
+      if (fetchers.length >= MAX_SAVED_HASH_ROWS) break;
+    }
+    return fetchers;
   }
 
   function createImageSaverHashBundleEditor(initialBundles) {
@@ -139,9 +206,13 @@ export function aioCreateSaveSettingsDialog(dependencies) {
     addButton.textContent = aioText("button.addHashBundle");
 
     const addRow = (value = "") => {
+      if (list.querySelectorAll(".easyuse-anima-aio-hash-bundle-row").length >= MAX_SAVED_HASH_ROWS) {
+        return;
+      }
       const row = document.createElement("div");
       row.className = "easyuse-anima-aio-hash-bundle-row";
       const textarea = textareaInput(value);
+      textarea.maxLength = MAX_HASH_BUNDLE_BYTES;
       textarea.placeholder = "Name:HASH, HASH:Weight, Name:HASH:Weight";
       applyTooltip(textarea, "tip.hashBundles");
       const remove = document.createElement("button");
@@ -169,9 +240,9 @@ export function aioCreateSaveSettingsDialog(dependencies) {
     return {
       element: wrapper,
       values() {
-        return [...list.querySelectorAll("textarea")]
-          .map((textarea) => String(textarea.value || "").trim().replace(/^[,\s]+|[,\s]+$/g, ""))
-          .filter(Boolean);
+        return normalizeImageSaverHashBundles(
+          [...list.querySelectorAll("textarea")].map((textarea) => textarea.value),
+        );
       },
     };
   }
@@ -200,6 +271,9 @@ export function aioCreateSaveSettingsDialog(dependencies) {
     };
 
     const addRow = (value = {}) => {
+      if (list.querySelectorAll(".easyuse-anima-aio-civitai-fetcher-row").length >= MAX_SAVED_HASH_ROWS) {
+        return;
+      }
       const row = document.createElement("div");
       row.className = "easyuse-anima-aio-civitai-fetcher-row";
       applyTooltip(row, "tip.civitaiHashFetchers");
@@ -223,6 +297,9 @@ export function aioCreateSaveSettingsDialog(dependencies) {
       const username = textInput(value.username || "");
       const modelName = textInput(value.model_name || "");
       const version = textInput(value.version || "");
+      username.maxLength = MAX_CIVITAI_FIELD_CHARACTERS;
+      modelName.maxLength = MAX_CIVITAI_FIELD_CHARACTERS;
+      version.maxLength = MAX_CIVITAI_FIELD_CHARACTERS;
       username.placeholder = "N0VA39";
       modelName.placeholder = "Anima All in One workflow";
       version.placeholder = "";
@@ -260,21 +337,22 @@ export function aioCreateSaveSettingsDialog(dependencies) {
     return {
       element: wrapper,
       values() {
-        return [...list.querySelectorAll(".easyuse-anima-aio-civitai-fetcher-row")]
-          .map((row) => {
-            const inputs = row.querySelectorAll("input");
-            const enabled = inputs[0]?.checked !== false;
-            const username = String(inputs[1]?.value || "").trim();
-            const modelName = String(inputs[2]?.value || "").trim();
-            const version = String(inputs[3]?.value || "").trim();
-            return {
-              enabled,
-              username,
-              model_name: modelName,
-              version,
-            };
-          })
-          .filter((item) => item.username || item.model_name || item.version);
+        return normalizeImageSaverCivitaiHashFetchers(
+          [...list.querySelectorAll(".easyuse-anima-aio-civitai-fetcher-row")]
+            .map((row) => {
+              const inputs = row.querySelectorAll("input");
+              const enabled = inputs[0]?.checked !== false;
+              const username = String(inputs[1]?.value || "").trim();
+              const modelName = String(inputs[2]?.value || "").trim();
+              const version = String(inputs[3]?.value || "").trim();
+              return {
+                enabled,
+                username,
+                model_name: modelName,
+                version,
+              };
+            }),
+        );
       },
     };
   }

@@ -127,6 +127,15 @@ A1111/Civitai-compatible fields. Manual hash and hash-bundle settings preserve
 the supplied validated value, do not accept file paths, and cannot claim the
 reserved locally owned `model` key.
 
+Saved hash-bundle and Civitai-fetcher JSON is limited to 512 KiB before parsing.
+Normalization examines at most 64 candidates and retains the first 32 valid
+rows in order. A hash-bundle row and the final joined hash text are each limited
+to 8 KiB of UTF-8; joining keeps only complete comma-delimited rows. Civitai
+fields remain limited to 200 characters and 800 UTF-8 bytes and reject control
+characters. The Save dialog applies the same limits before creating controls or
+serializing edited rows. Failure logs replace controls and show no more than 80
+characters from an untrusted field or exception.
+
 Local hashes do not require network access. `Civitai data` is disabled by
 default; explicitly enabling it adds remote resource descriptors, and enabled
 Civitai Hash Fetcher rows resolve an AutoV3 value. Both paths use fixed

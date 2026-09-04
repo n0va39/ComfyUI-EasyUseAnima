@@ -27,11 +27,15 @@ from .native_image_output import (
 )
 from .native_metadata_budget import _validate_parameter_sources
 from .output_settings import (
+    _MAX_SAVED_HASH_ROWS,
+)
+from .output_settings import (
     _normalize_aio_civitai_hash_fetchers as _normalize_aio_civitai_hash_fetchers,
 )
 from .output_settings import (
     _normalize_aio_hash_bundles as _normalize_aio_hash_bundles,
 )
+from .output_settings import _normalize_aio_hash_text as _normalize_aio_hash_text
 from .sampling import _resolve_aio_runtime_seed
 
 logger = logging.getLogger("ComfyUI-EasyUseAnima")
@@ -43,7 +47,9 @@ _OUTPUT_CONTROL_RE = re.compile(r"[\x00-\x1f\x7f]")
 _MAX_OUTPUT_TEMPLATE_LENGTH = 1024
 _MAX_OUTPUT_TIME_FORMAT_LENGTH = 256
 _STRFTIME_DIRECTIVE_PREFIX_CHARS = frozenset("-_0^#:EO0123456789")
-_MAX_CIVITAI_HASH_FETCHERS = 32
+_MAX_CIVITAI_HASH_FETCHERS = _MAX_SAVED_HASH_ROWS
+_MAX_JOINED_HASH_BYTES = 8 * 1024
+_MAX_CIVITAI_LOG_CHARACTERS = 80
 
 
 @dataclass(frozen=True, slots=True)
@@ -475,25 +481,25 @@ def _aio_image_saver_civitai_hash_fetcher_entries(
     *,
     budget: CivitaiLookupBudget | None = None,
 ) -> list[str]:
-    enabled_settings = [
-        item
-        for item in _normalize_aio_civitai_hash_fetchers(
-            image_saver.get("civitai_hash_fetchers")
-        )
-        if _as_bool(item.get("enabled"), True)
-    ]
-    if len(enabled_settings) > _MAX_CIVITAI_HASH_FETCHERS:
+    raw_settings = image_saver.get("civitai_hash_fetchers")
+    if isinstance(raw_settings, list) and len(raw_settings) > _MAX_CIVITAI_HASH_FETCHERS:
         logger.warning(
             "[EasyUseAnima] Civitai Hash Fetcher row limit is %s; ignoring %s excess rows.",
             _MAX_CIVITAI_HASH_FETCHERS,
-            len(enabled_settings) - _MAX_CIVITAI_HASH_FETCHERS,
+            len(raw_settings) - _MAX_CIVITAI_HASH_FETCHERS,
         )
-    fetcher_settings = enabled_settings[:_MAX_CIVITAI_HASH_FETCHERS]
-    if not fetcher_settings:
+    enabled_settings = [
+        item
+        for item in _normalize_aio_civitai_hash_fetchers(
+            raw_settings
+        )
+        if _as_bool(item.get("enabled"), True)
+    ]
+    if not enabled_settings:
         return []
 
     entries: list[str] = []
-    for item in fetcher_settings:
+    for item in enabled_settings:
         username = str(item.get("username") or "").strip()
         model_name = str(item.get("model_name") or "").strip()
         version = str(item.get("version") or "").strip()
@@ -522,30 +528,59 @@ def _aio_image_saver_civitai_hash_fetcher_entries(
             logger.warning(
                 "[EasyUseAnima] Civitai Hash Fetcher budget ended; "
                 "saving with available metadata: %s",
-                exc,
+                _safe_civitai_log_value(exc),
             )
             break
         except Exception as exc:
             logger.warning(
                 "[EasyUseAnima] Civitai Hash Fetcher failed for username=%r model=%r version=%r; skipping metadata hash: %s",
-                username,
-                model_name,
-                version,
-                exc,
+                _safe_civitai_log_value(username),
+                _safe_civitai_log_value(model_name),
+                _safe_civitai_log_value(version),
+                _safe_civitai_log_value(exc),
             )
             continue
         if not hash_text:
             logger.warning(
                 "[EasyUseAnima] Civitai Hash Fetcher returned no usable hash for username=%r model=%r version=%r; "
                 "skipping metadata hash: %s",
-                username,
-                model_name,
-                version,
+                _safe_civitai_log_value(username),
+                _safe_civitai_log_value(model_name),
+                _safe_civitai_log_value(version),
                 "empty hash",
             )
             continue
         entries.append(f"{model_name}:{hash_text}")
     return entries
+
+
+def _safe_civitai_log_value(value) -> str:
+    try:
+        text = str(value or "")
+    except Exception:
+        return "<unprintable>"
+    text = _OUTPUT_CONTROL_RE.sub("?", text)
+    if len(text) <= _MAX_CIVITAI_LOG_CHARACTERS:
+        return text
+    return f"{text[:_MAX_CIVITAI_LOG_CHARACTERS]}..."
+
+
+def _join_aio_hash_parts(parts) -> str:
+    kept: list[str] = []
+    used_bytes = 0
+    for part in parts:
+        if not isinstance(part, str) or not part:
+            continue
+        try:
+            part_bytes = len(part.encode("utf-8"))
+        except UnicodeEncodeError:
+            continue
+        required_bytes = part_bytes + int(bool(kept))
+        if used_bytes + required_bytes > _MAX_JOINED_HASH_BYTES:
+            break
+        kept.append(part)
+        used_bytes += required_bytes
+    return ",".join(kept)
 
 
 def _aio_image_saver_additional_hashes(
@@ -554,7 +589,7 @@ def _aio_image_saver_additional_hashes(
     budget: CivitaiLookupBudget | None = None,
 ) -> str:
     parts = []
-    base = str(image_saver.get("additional_hashes") or "").strip(" ,\n\r\t")
+    base = _normalize_aio_hash_text(image_saver.get("additional_hashes"))
     if base:
         parts.append(base)
     parts.extend(
@@ -569,7 +604,7 @@ def _aio_image_saver_additional_hashes(
                 budget=budget,
             )
         )
-    return ",".join(part for part in parts if part)
+    return _join_aio_hash_parts(parts)
 
 
 def _aio_lora_metadata_name(name: str) -> str:

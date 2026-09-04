@@ -60,6 +60,7 @@ def render_output_template(
 class AIOOutputMoveTests(unittest.TestCase):
     def test_output_functions_are_owned_by_canonical_modules(self):
         for name in (
+            "_normalize_aio_hash_text",
             "_normalize_aio_hash_bundles",
             "_normalize_aio_civitai_hash_fetchers",
         ):
@@ -105,6 +106,127 @@ class AIOOutputMoveTests(unittest.TestCase):
         )
         self.assertEqual(bool_calls, [("yes", True), ("no", True)])
         self.assertEqual(output_settings._normalize_aio_civitai_hash_fetchers("not-json"), [])
+
+    def test_saved_hash_normalizers_bound_json_rows_candidates_and_fields(self):
+        class ExplosiveText:
+            def __str__(self):
+                raise AssertionError("out-of-budget row must not be stringified")
+
+        bundles = [f"Bundle-{index}:HASH" for index in range(output_settings._MAX_SAVED_HASH_ROWS)]
+        self.assertEqual(
+            output_settings._normalize_aio_hash_bundles(bundles + [ExplosiveText()]),
+            bundles,
+        )
+        self.assertEqual(
+            output_settings._normalize_aio_hash_bundles(
+                ([None] * output_settings._MAX_SAVED_HASH_CANDIDATES)
+                + [ExplosiveText()]
+            ),
+            [],
+        )
+        self.assertEqual(
+            output_settings._normalize_aio_hash_bundles(json.dumps(bundles + ["ignored"])),
+            bundles,
+        )
+        oversized_bundle = "é" * ((output_settings._MAX_HASH_BUNDLE_BYTES // 2) + 1)
+        self.assertEqual(
+            output_settings._normalize_aio_hash_bundles(
+                [oversized_bundle, "Kept:HASH"]
+            ),
+            ["Kept:HASH"],
+        )
+        with patch.object(output_settings.json, "loads") as loads:
+            self.assertEqual(
+                output_settings._normalize_aio_hash_bundles(
+                    "x" * (output_settings._MAX_SAVED_HASH_JSON_BYTES + 1)
+                ),
+                [],
+            )
+        loads.assert_not_called()
+
+        fetchers = [
+            {
+                "enabled": True,
+                "username": "creator",
+                "model_name": f"model-{index}",
+                "version": "v1",
+            }
+            for index in range(output_settings._MAX_SAVED_HASH_ROWS)
+        ]
+        self.assertEqual(
+            output_settings._normalize_aio_civitai_hash_fetchers(
+                fetchers + [{"model_name": ExplosiveText()}]
+            ),
+            fetchers,
+        )
+        self.assertEqual(
+            output_settings._normalize_aio_civitai_hash_fetchers(
+                json.dumps(fetchers + [{"model_name": "ignored"}])
+            ),
+            fetchers,
+        )
+        with patch.object(output_settings, "_MAX_CIVITAI_FIELD_BYTES", 4):
+            self.assertEqual(
+                output_settings._normalize_aio_civitai_hash_fetchers(
+                    [{"username": "ééé", "model_name": "model"}]
+                ),
+                [],
+            )
+        self.assertEqual(
+            output_settings._normalize_aio_civitai_hash_fetchers(
+                [{"username": "bad\nuser", "model_name": "model"}]
+            ),
+            [],
+        )
+
+    def test_hash_join_budget_preserves_complete_prefix(self):
+        first = "A:" + ("a" * (output._MAX_JOINED_HASH_BYTES - 2))
+        self.assertEqual(
+            output._join_aio_hash_parts([first, "Second:HASH"]),
+            first,
+        )
+        self.assertLessEqual(
+            len(output._join_aio_hash_parts([first, "Second:HASH"]).encode("utf-8")),
+            output._MAX_JOINED_HASH_BYTES,
+        )
+        self.assertEqual(
+            output._aio_image_saver_additional_hashes({
+                "additional_hashes": "x" * (output_settings._MAX_HASH_BUNDLE_BYTES + 1),
+                "additional_hash_bundles": ["Kept:HASH"],
+            }),
+            "Kept:HASH",
+        )
+
+    def test_civitai_failure_logs_are_bounded_and_control_safe(self):
+        username = "u" * output_settings._MAX_CIVITAI_FIELD_CHARACTERS
+        model_name = "m" * output_settings._MAX_CIVITAI_FIELD_CHARACTERS
+        failure = "remote\nerror:" + ("z" * 300)
+        with (
+            patch.object(
+                output,
+                "_fetch_civitai_autov3_hash",
+                side_effect=RuntimeError(failure),
+            ),
+            self.assertLogs("ComfyUI-EasyUseAnima", level="WARNING") as logs,
+        ):
+            self.assertEqual(
+                output._aio_image_saver_civitai_hash_fetcher_entries({
+                    "civitai_hash_fetchers": [{
+                        "enabled": True,
+                        "username": username,
+                        "model_name": model_name,
+                        "version": "v1",
+                    }]
+                }),
+                [],
+            )
+
+        rendered = "\n".join(logs.output)
+        self.assertNotIn(username, rendered)
+        self.assertNotIn(model_name, rendered)
+        self.assertNotIn("remote\nerror", rendered)
+        self.assertIn("remote?error", rendered)
+        self.assertIn("...", rendered)
 
     def test_civitai_hashes_preserve_order_success_and_soft_skip_paths(self):
         calls = []
