@@ -13,10 +13,12 @@ from types import MappingProxyType
 from typing import cast
 
 from .native_civitai import (
-    _fetch_civitai_autov3_hash as _fetch_civitai_autov3_hash,
+    CivitaiLookupBudget,
+    CivitaiLookupBudgetExhausted,
+    _fetch_civitai_resource_by_hash,
 )
 from .native_civitai import (
-    _fetch_civitai_resource_by_hash,
+    _fetch_civitai_autov3_hash as _fetch_civitai_autov3_hash,
 )
 from .native_output_publication import (
     OutputDirectoryBinding,
@@ -102,6 +104,8 @@ def _civitai_sampler_name(sampler_name: str, scheduler_name: str) -> str:
 
 def _civitai_resource_entries(
     resources: Sequence[_ResourceHash],
+    *,
+    budget: CivitaiLookupBudget | None = None,
 ) -> list[dict[str, str | float | int]]:
     entries: list[dict[str, str | float | int]] = []
     seen_hashes: set[str] = set()
@@ -118,7 +122,21 @@ def _civitai_resource_entries(
             break
         seen_hashes.add(normalized_hash)
         attempts += 1
-        descriptor = _fetch_civitai_resource_by_hash(resource.sha256)
+        try:
+            if budget is None:
+                descriptor = _fetch_civitai_resource_by_hash(resource.sha256)
+            else:
+                descriptor = _fetch_civitai_resource_by_hash(
+                    resource.sha256,
+                    budget=budget,
+                )
+        except CivitaiLookupBudgetExhausted as exc:
+            logger.warning(
+                "[EasyUseAnima] Civitai resource enrichment budget ended; "
+                "saving with available metadata: %s",
+                exc,
+            )
+            break
         if descriptor is None:
             continue
         entry: dict[str, str | float | int] = {}
@@ -161,6 +179,7 @@ def _build_native_metadata(
     applied_loras: object,
     download_civitai_data: bool,
     easy_remix: bool,
+    civitai_budget: CivitaiLookupBudget | None = None,
 ) -> NativeImageMetadata:
     local_resources = _local_resource_hashes(
         modelname,
@@ -231,7 +250,10 @@ def _build_native_metadata(
         fields.append(f"Hashes: {_compact_json(hashes, ascii_only=False)}")
     fields.append("Version: ComfyUI")
     if download_civitai_data:
-        civitai_resources = _civitai_resource_entries(resources)
+        civitai_resources = _civitai_resource_entries(
+            resources,
+            budget=civitai_budget,
+        )
         if civitai_resources:
             fields.append(
                 f"Civitai resources: {_compact_json(civitai_resources, ascii_only=False)}"
