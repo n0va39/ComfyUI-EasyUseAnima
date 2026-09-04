@@ -304,11 +304,27 @@ def _windows_file_is_in_directory(
 class OutputDirectoryBinding:
     """Keep publication anchored to one verified output directory identity."""
 
-    def __init__(self, path: Path):
+    def __init__(
+        self,
+        path: Path,
+        *,
+        expected_identity: tuple[int, int] | None = None,
+        directory_descriptor: int | None = None,
+        windows_handle: int | None = None,
+    ):
+        if directory_descriptor is not None and windows_handle is not None:
+            raise ValueError("only one prepared directory handle may be supplied")
         self.path = Path(path)
+        self._expected_identity = (
+            None
+            if expected_identity is None
+            else _FileIdentity(*expected_identity)
+        )
         self._identity: _FileIdentity | None = None
-        self._directory_descriptor: int | None = None
-        self._windows_handle: int | None = None
+        self._directory_descriptor = directory_descriptor
+        self._windows_handle = windows_handle
+        self._owns_directory_descriptor = directory_descriptor is None
+        self._owns_windows_handle = windows_handle is None
 
     def __enter__(self) -> OutputDirectoryBinding:
         resolved = self.path.resolve(strict=True)
@@ -320,19 +336,34 @@ class OutputDirectoryBinding:
         if not stat_module.S_ISDIR(current.st_mode):
             raise PublicationIntegrityError("output path is not a directory")
         self._identity = _file_identity(current)
+        if (
+            self._expected_identity is not None
+            and self._identity != self._expected_identity
+        ):
+            raise PublicationIntegrityError(
+                "output directory changed before publication ownership"
+            )
 
         try:
             if os.name == "nt":
-                self._windows_handle = _open_windows_directory_guard(self.path)
+                if self._windows_handle is None:
+                    self._windows_handle = _open_windows_directory_guard(self.path)
+                elif os.path.normcase(
+                    os.path.normpath(str(_windows_handle_path(self._windows_handle)))
+                ) != os.path.normcase(os.path.normpath(str(self.path))):
+                    raise PublicationIntegrityError(
+                        "prepared output directory moved before publication"
+                    )
             elif all(
                 operation in os.supports_dir_fd
                 for operation in (os.link, os.open, os.stat, os.unlink)
             ) and os.link in os.supports_follow_symlinks:
-                flags = os.O_RDONLY
-                flags |= getattr(os, "O_DIRECTORY", 0)
-                flags |= getattr(os, "O_CLOEXEC", 0)
-                flags |= getattr(os, "O_NOFOLLOW", 0)
-                self._directory_descriptor = os.open(self.path, flags)
+                if self._directory_descriptor is None:
+                    flags = os.O_RDONLY
+                    flags |= getattr(os, "O_DIRECTORY", 0)
+                    flags |= getattr(os, "O_CLOEXEC", 0)
+                    flags |= getattr(os, "O_NOFOLLOW", 0)
+                    self._directory_descriptor = os.open(self.path, flags)
                 if (
                     _file_identity(os.fstat(self._directory_descriptor))
                     != self._identity
@@ -352,11 +383,12 @@ class OutputDirectoryBinding:
     def close(self) -> None:
         descriptor = self._directory_descriptor
         self._directory_descriptor = None
-        if descriptor is not None:
+        if descriptor is not None and self._owns_directory_descriptor:
             os.close(descriptor)
         handle = self._windows_handle
         self._windows_handle = None
-        _close_windows_handle(handle)
+        if self._owns_windows_handle:
+            _close_windows_handle(handle)
 
     def assert_current(self) -> None:
         if self._identity is None:

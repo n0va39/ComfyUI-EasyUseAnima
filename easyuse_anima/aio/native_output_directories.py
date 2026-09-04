@@ -6,7 +6,8 @@ import ctypes
 import logging
 import os
 import stat as stat_module
-from collections.abc import Sequence
+from collections.abc import Iterator, Sequence
+from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -18,6 +19,16 @@ class OutputDirectoryIntegrityError(OSError):
 
 
 @dataclass(frozen=True, slots=True)
+class PreparedOutputDirectory:
+    """A verified output directory whose ancestry handles remain open."""
+
+    path: Path
+    identity: tuple[int, int]
+    directory_descriptor: int | None = None
+    windows_handle: int | None = None
+
+
+@dataclass(frozen=True, slots=True)
 class _DirectoryIdentity:
     device: int
     inode: int
@@ -26,10 +37,6 @@ class _DirectoryIdentity:
 @dataclass(slots=True)
 class _PosixDirectory:
     descriptor: int
-    parent_descriptor: int
-    name: str
-    identity: _DirectoryIdentity
-    created: bool
 
 
 @dataclass(slots=True)
@@ -61,7 +68,7 @@ def _existing_anchor(path: Path) -> tuple[Path, tuple[str, ...]]:
 
 
 def _require_posix_directory_operations() -> None:
-    required = (os.open, os.mkdir, os.rmdir, os.stat)
+    required = (os.open, os.mkdir, os.stat)
     if (
         any(operation not in os.supports_dir_fd for operation in required)
         or not getattr(os, "O_DIRECTORY", 0)
@@ -91,27 +98,28 @@ def _assert_posix_directory(descriptor: int) -> _DirectoryIdentity:
 def _open_or_create_posix_directory(
     parent_descriptor: int,
     name: str,
-) -> tuple[int, bool]:
+    *,
+    expected_parent: Path,
+) -> int:
     flags = _posix_directory_flags()
+    _verify_posix_path_identity(expected_parent, parent_descriptor)
     try:
-        return os.open(name, flags, dir_fd=parent_descriptor), False
+        descriptor = os.open(name, flags, dir_fd=parent_descriptor)
     except FileNotFoundError:
-        pass
-
-    try:
-        os.mkdir(name, 0o777, dir_fd=parent_descriptor)
-    except FileExistsError:
-        return os.open(name, flags, dir_fd=parent_descriptor), False
-
-    try:
-        return os.open(name, flags, dir_fd=parent_descriptor), True
-    except BaseException:
-        # The name may have been replaced after mkdir. Without an opened identity,
-        # retaining the empty directory is safer than deleting a foreign object.
-        raise
+        _verify_posix_path_identity(expected_parent, parent_descriptor)
+        try:
+            os.mkdir(name, 0o777, dir_fd=parent_descriptor)
+        except FileExistsError:
+            pass
+        descriptor = os.open(name, flags, dir_fd=parent_descriptor)
+    _verify_posix_path_identity(expected_parent, parent_descriptor)
+    return descriptor
 
 
-def _verify_posix_path_identity(path: Path, descriptor: int) -> None:
+def _verify_posix_path_identity(
+    path: Path,
+    descriptor: int,
+) -> _DirectoryIdentity:
     opened = _assert_posix_directory(descriptor)
     try:
         named = path.stat(follow_symlinks=False)
@@ -129,46 +137,28 @@ def _verify_posix_path_identity(path: Path, descriptor: int) -> None:
         raise OutputDirectoryIntegrityError(
             "output directory changed during creation"
         )
+    return opened
 
 
-def _cleanup_posix_directories(entries: list[_PosixDirectory]) -> None:
+def _close_posix_directories(entries: list[_PosixDirectory]) -> None:
     for entry in reversed(entries):
-        try:
-            if entry.created:
-                try:
-                    named = os.stat(
-                        entry.name,
-                        dir_fd=entry.parent_descriptor,
-                        follow_symlinks=False,
-                    )
-                except FileNotFoundError:
-                    named = None
-                if (
-                    named is not None
-                    and stat_module.S_ISDIR(named.st_mode)
-                    and not stat_module.S_ISLNK(named.st_mode)
-                    and _identity_from_stat(named) == entry.identity
-                    and _assert_posix_directory(entry.descriptor) == entry.identity
-                ):
-                    os.rmdir(entry.name, dir_fd=entry.parent_descriptor)
-        except OSError as exc:
-            logger.warning(
-                "[EasyUseAnima] Native output directory cleanup failed (%s).",
-                type(exc).__name__,
-            )
-        finally:
-            os.close(entry.descriptor)
+        os.close(entry.descriptor)
 
 
+@contextmanager
 def _resolve_posix_directory(
     anchor: Path,
     root_parts: tuple[str, ...],
     output_parts: tuple[str, ...],
-) -> Path:
+) -> Iterator[PreparedOutputDirectory]:
     _require_posix_directory_operations()
-    anchor_descriptor = os.open(anchor, _posix_directory_flags())
+    try:
+        anchor_descriptor = os.open(anchor, _posix_directory_flags())
+    except OSError as exc:
+        raise OutputDirectoryIntegrityError(
+            "output directory anchor could not be opened safely"
+        ) from exc
     entries: list[_PosixDirectory] = []
-    succeeded = False
     expected_root = anchor.joinpath(*root_parts)
     expected_final = expected_root.joinpath(*output_parts)
     try:
@@ -178,22 +168,20 @@ def _resolve_posix_directory(
         root_descriptor = anchor_descriptor
         all_parts = root_parts + output_parts
         for index, name in enumerate(all_parts):
-            descriptor, created = _open_or_create_posix_directory(
+            expected_parent = anchor.joinpath(*all_parts[:index])
+            descriptor = _open_or_create_posix_directory(
                 current_descriptor,
                 name,
+                expected_parent=expected_parent,
             )
             try:
-                identity = _assert_posix_directory(descriptor)
+                _assert_posix_directory(descriptor)
             except BaseException:
                 os.close(descriptor)
                 raise
             entries.append(
                 _PosixDirectory(
                     descriptor=descriptor,
-                    parent_descriptor=current_descriptor,
-                    name=name,
-                    identity=identity,
-                    created=created,
                 )
             )
             current_descriptor = descriptor
@@ -207,21 +195,34 @@ def _resolve_posix_directory(
                 "output directory anchor changed during creation"
             )
         _verify_posix_path_identity(expected_root, root_descriptor)
-        _verify_posix_path_identity(expected_final, current_descriptor)
-        succeeded = True
-        return expected_final
+        final_identity = _verify_posix_path_identity(
+            expected_final,
+            current_descriptor,
+        )
+        prepared = PreparedOutputDirectory(
+            path=expected_final,
+            identity=(final_identity.device, final_identity.inode),
+            directory_descriptor=current_descriptor,
+        )
     except OutputDirectoryIntegrityError:
+        _close_posix_directories(entries)
+        os.close(anchor_descriptor)
         raise
     except OSError as exc:
+        _close_posix_directories(entries)
+        os.close(anchor_descriptor)
         raise OutputDirectoryIntegrityError(
             "output directory could not be created safely"
         ) from exc
+    except BaseException:
+        _close_posix_directories(entries)
+        os.close(anchor_descriptor)
+        raise
+
+    try:
+        yield prepared
     finally:
-        if succeeded:
-            for entry in reversed(entries):
-                os.close(entry.descriptor)
-        else:
-            _cleanup_posix_directories(entries)
+        _close_posix_directories(entries)
         os.close(anchor_descriptor)
 
 
@@ -249,6 +250,7 @@ def _open_windows_anchor(
     path: Path,
     *,
     allow_child_creation: bool = False,
+    share_delete: bool = False,
 ) -> int:
     from ctypes import wintypes
 
@@ -269,7 +271,9 @@ def _open_windows_anchor(
     file_traverse = 0x0020
     file_read_attributes = 0x0080
     synchronize = 0x00100000
-    share_all = 0x00000001 | 0x00000002 | 0x00000004
+    share_read_write = 0x00000001 | 0x00000002
+    if share_delete:
+        share_read_write |= 0x00000004
     open_existing = 3
     backup_semantics = 0x02000000
     open_reparse_point = 0x00200000
@@ -284,7 +288,7 @@ def _open_windows_anchor(
     handle = create_file(
         _windows_extended_path(path),
         desired_access,
-        share_all,
+        share_read_write,
         None,
         open_existing,
         backup_semantics | open_reparse_point,
@@ -375,7 +379,7 @@ def _nt_open_relative_directory(
             ctypes.byref(status_block),
             None,
             0x00000010,
-            0x00000001 | 0x00000002 | 0x00000004,
+            0x00000001 | 0x00000002,
             2 if create else 1,
             0x00000001 | 0x00000020 | 0x00200000,
             None,
@@ -520,11 +524,14 @@ def _same_windows_path(left: Path, right: Path) -> bool:
     )
 
 
-def _verify_windows_path_identity(path: Path, handle: int) -> None:
+def _verify_windows_path_identity(
+    path: Path,
+    handle: int,
+) -> _DirectoryIdentity:
     opened_identity = _assert_windows_directory(handle)
     verification_handle: int | None = None
     try:
-        verification_handle = _open_windows_anchor(path)
+        verification_handle = _open_windows_anchor(path, share_delete=True)
         if _assert_windows_directory(verification_handle) != opened_identity:
             raise OutputDirectoryIntegrityError(
                 "output directory changed during creation"
@@ -533,6 +540,12 @@ def _verify_windows_path_identity(path: Path, handle: int) -> None:
             raise OutputDirectoryIntegrityError(
                 "output directory moved during creation"
             )
+        named = path.stat(follow_symlinks=False)
+        if not stat_module.S_ISDIR(named.st_mode):
+            raise OutputDirectoryIntegrityError(
+                "output directory name is not a directory"
+            )
+        return _identity_from_stat(named)
     except OutputDirectoryIntegrityError:
         raise
     except OSError as exc:
@@ -586,18 +599,23 @@ def _cleanup_windows_directories(entries: list[_WindowsDirectory]) -> None:
             _close_windows_handle(entry.handle)
 
 
+def _close_windows_directories(entries: list[_WindowsDirectory]) -> None:
+    for entry in reversed(entries):
+        _close_windows_handle(entry.handle)
+
+
+@contextmanager
 def _resolve_windows_directory(
     anchor: Path,
     root_parts: tuple[str, ...],
     output_parts: tuple[str, ...],
-) -> Path:
+) -> Iterator[PreparedOutputDirectory]:
     all_parts = root_parts + output_parts
     anchor_handle = _open_windows_anchor(
         anchor,
         allow_child_creation=bool(all_parts),
     )
     entries: list[_WindowsDirectory] = []
-    succeeded = False
     expected_root = anchor.joinpath(*root_parts)
     expected_final = expected_root.joinpath(*output_parts)
     try:
@@ -640,32 +658,60 @@ def _resolve_windows_directory(
                 "output directory anchor changed during creation"
             )
         _verify_windows_path_identity(expected_root, root_handle)
-        _verify_windows_path_identity(expected_final, current_handle)
-        succeeded = True
-        return _windows_handle_path(current_handle)
+        final_identity = _verify_windows_path_identity(
+            expected_final,
+            current_handle,
+        )
+        prepared = PreparedOutputDirectory(
+            path=_windows_handle_path(current_handle),
+            identity=(final_identity.device, final_identity.inode),
+            windows_handle=current_handle,
+        )
     except OutputDirectoryIntegrityError:
+        _cleanup_windows_directories(entries)
+        _close_windows_handle(anchor_handle)
         raise
     except OSError as exc:
+        _cleanup_windows_directories(entries)
+        _close_windows_handle(anchor_handle)
         raise OutputDirectoryIntegrityError(
             "output directory could not be created safely"
         ) from exc
-    finally:
-        if succeeded:
-            for entry in reversed(entries):
-                _close_windows_handle(entry.handle)
-        else:
-            _cleanup_windows_directories(entries)
+    except BaseException:
+        _cleanup_windows_directories(entries)
         _close_windows_handle(anchor_handle)
+        raise
+
+    try:
+        yield prepared
+    finally:
+        _close_windows_directories(entries)
+        _close_windows_handle(anchor_handle)
+
+
+@contextmanager
+def prepare_output_directory(
+    output_root: Path,
+    parts: Sequence[str],
+) -> Iterator[PreparedOutputDirectory]:
+    """Hold the verified root-to-output chain open for the caller's operation."""
+
+    anchor, root_parts = _existing_anchor(Path(output_root))
+    output_parts = tuple(str(part) for part in parts)
+    resolver = (
+        _resolve_windows_directory
+        if os.name == "nt"
+        else _resolve_posix_directory
+    )
+    with resolver(anchor, root_parts, output_parts) as prepared:
+        yield prepared
 
 
 def resolve_output_directory(output_root: Path, parts: Sequence[str]) -> Path:
     """Create ``parts`` beneath ``output_root`` while holding each parent open."""
 
-    anchor, root_parts = _existing_anchor(Path(output_root))
-    output_parts = tuple(str(part) for part in parts)
-    if os.name == "nt":
-        return _resolve_windows_directory(anchor, root_parts, output_parts)
-    return _resolve_posix_directory(anchor, root_parts, output_parts)
+    with prepare_output_directory(output_root, parts) as prepared:
+        return prepared.path
 
 
 __all__ = ()
