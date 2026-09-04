@@ -14,6 +14,9 @@ CHECKOUT_PIN = "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0
 SETUP_UV_PIN = "astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1"
 COMFY_CLI_SPEC = "comfy-cli==1.20.0"
 REGISTRY_SECRET_EXPRESSION = "${{ secrets.REGISTRY_ACCESS_TOKEN }}"
+VERSION_INPUT_REFERENCE = re.compile(
+    r"(?:github\.event\.)?inputs(?:\.version|\[\s*['\"]version['\"]\s*\])"
+)
 
 
 def _mapping_block(document: str, key: str, indent: int) -> str:
@@ -70,11 +73,16 @@ def _named_steps(workflow: str) -> dict[str, str]:
     return named
 
 
+def _step_uses(block: str) -> str | None:
+    match = re.search(r"(?m)^\s+(?:-\s+)?uses:\s*([^\s#]+)", block)
+    return match.group(1) if match else None
+
+
 def _run_blocks(workflow: str) -> list[str]:
     lines = workflow.splitlines(keepends=True)
     blocks: list[str] = []
     for start, line in enumerate(lines):
-        match = re.match(r"^(?P<indent> +)run:\s*.*$", line)
+        match = re.match(r"^(?P<indent> +)(?:-\s+)?run:\s*.*$", line)
         if not match:
             continue
         indent = len(match.group("indent"))
@@ -92,6 +100,14 @@ def _run_blocks(workflow: str) -> list[str]:
 
 
 class RegistryWorkflowTests(unittest.TestCase):
+    def test_parser_covers_inline_step_mappings(self) -> None:
+        inline_checkout = f"      - uses: actions/checkout@{'a' * 40}\n"
+        self.assertEqual(_step_uses(inline_checkout), f"actions/checkout@{'a' * 40}")
+
+        inline_run = "      - run: echo '${{inputs.version}}'\n"
+        self.assertEqual(_run_blocks(inline_run), [inline_run])
+        self.assertIsNotNone(VERSION_INPUT_REFERENCE.search(_run_blocks(inline_run)[0]))
+
     def test_workflows_keep_manual_read_only_checkout_boundary(self) -> None:
         for path in WORKFLOWS:
             with self.subTest(path=path.name):
@@ -122,7 +138,7 @@ class RegistryWorkflowTests(unittest.TestCase):
                 checkout_steps = [
                     block
                     for _, block in _step_blocks(workflow)
-                    if re.search(r"(?m)^\s+uses: actions/checkout@", block)
+                    if (_step_uses(block) or "").startswith("actions/checkout@")
                 ]
                 self.assertEqual(len(checkout_steps), 1)
                 checkout_options = _direct_mapping(
@@ -149,9 +165,9 @@ class RegistryWorkflowTests(unittest.TestCase):
         extract_env = _direct_mapping(_mapping_block(extract, "env", 8), 10)
         self.assertEqual(extract_env, {"RELEASE_VERSION": "${{ inputs.version }}"})
         self.assertIn('--version "$RELEASE_VERSION"', extract)
-        self.assertEqual(workflow.count("${{ inputs.version }}"), 1)
+        self.assertEqual(VERSION_INPUT_REFERENCE.findall(workflow), ["inputs.version"])
         for run_block in _run_blocks(workflow):
-            self.assertNotIn("inputs.version", run_block)
+            self.assertIsNone(VERSION_INPUT_REFERENCE.search(run_block), run_block)
 
     def test_registry_secret_is_absent_from_dry_run_steps(self) -> None:
         publish_workflow = PUBLISH_WORKFLOW.read_text(encoding="utf-8")
