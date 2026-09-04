@@ -17,6 +17,12 @@
       "workflow"
     ]
   },
+  "omitted_versions": [
+    {
+      "version": "0.6.1",
+      "reason": "GitHub-only historical release with no Comfy Registry row; do not backfill without a separate security review."
+    }
+  ],
   "versions": [
     {
       "version": "1.2.0",
@@ -82,11 +88,6 @@
       "version": "0.6.2",
       "deprecated": true,
       "changelog_file": "changelogs/0.6.2.txt"
-    },
-    {
-      "version": "0.6.1",
-      "deprecated": true,
-      "changelog_file": "changelogs/0.6.1.txt"
     },
     {
       "version": "0.6.0",
