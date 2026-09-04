@@ -1,13 +1,29 @@
 from __future__ import annotations
 
 import sys
+import tempfile
 import types
 import unittest
+from datetime import datetime
 from unittest.mock import Mock, patch
 
 from easyuse_anima.aio import output, output_settings
 from easyuse_anima.aio.generation_defaults import AIO_GENERATION_DEFAULT_SETTINGS
 from tests.comfy_host_fakes import patch_comfy_helper
+
+
+def fake_folder_paths(output_root: str) -> types.ModuleType:
+    module = types.ModuleType("folder_paths")
+    module.output_directory = output_root
+    module.get_output_directory = Mock(return_value=output_root)
+    module.supported_pt_extensions = {
+        ".safetensors",
+        ".pt",
+        ".ckpt",
+        ".bin",
+        ".pth",
+    }
+    return module
 
 
 class AIOOutputMoveTests(unittest.TestCase):
@@ -174,14 +190,18 @@ class AIOOutputMoveTests(unittest.TestCase):
                 calls.append((args, kwargs))
                 return {"ui": {"images": ["saved"]}}
 
-        with patch_comfy_helper(
-            output,
-            "_find_comfy_node_class",
-            return_value=SaveImage,
-        ) as find:
-            result = output._save_image_with_comfy(
-                "images", "", workflow_prompt="prompt", extra_pnginfo={"workflow": True}
-            )
+        with tempfile.TemporaryDirectory() as temp:
+            with (
+                patch.dict(sys.modules, {"folder_paths": fake_folder_paths(temp)}),
+                patch_comfy_helper(
+                    output,
+                    "_find_comfy_node_class",
+                    return_value=SaveImage,
+                ) as find,
+            ):
+                result = output._save_image_with_comfy(
+                    "images", "", workflow_prompt="prompt", extra_pnginfo={"workflow": True}
+                )
 
         find.assert_called_once_with("SaveImage")
         self.assertEqual(
@@ -189,6 +209,20 @@ class AIOOutputMoveTests(unittest.TestCase):
             [(('images', "EasyUseAnima/AiO"), {"prompt": "prompt", "extra_pnginfo": {"workflow": True}})],
         )
         self.assertEqual(result, {"ui": {"images": ["saved"]}})
+
+    def test_comfy_save_rejects_output_traversal_before_node_lookup(self):
+        find = Mock(side_effect=AssertionError("must reject before node lookup"))
+        with tempfile.TemporaryDirectory() as temp:
+            with (
+                patch.dict(sys.modules, {"folder_paths": fake_folder_paths(temp)}),
+                patch_comfy_helper(output, "_find_comfy_node_class", find),
+            ):
+                for prefix in ("../outside", "..\\outside", "C:\\outside", "/outside"):
+                    with self.subTest(prefix=prefix):
+                        with self.assertRaisesRegex(RuntimeError, "output directory"):
+                            output._save_image_with_comfy("images", prefix)
+
+        find.assert_not_called()
 
     def test_filename_prefix_uses_call_time_defaults_without_path_drift(self):
         defaults = {"save": {"image_saver": {"path": "Default/Path", "filename": "default_name"}}}
@@ -220,44 +254,46 @@ class AIOOutputMoveTests(unittest.TestCase):
             }
         }
         seed = Mock(return_value=987654321)
-        with (
-            patch_comfy_helper(
-                output,
-                "_require_custom_node_class",
-                return_value=ImageSaver,
-            ),
-            patch.object(output, "_resolve_aio_runtime_seed", seed),
-            patch.object(
-                output,
-                "_aio_prompt_with_lora_metadata",
-                return_value="positive <lora:x:1>",
-            ),
-            patch.object(
-                output,
-                "_aio_image_saver_additional_hashes",
-                return_value="Base:A,Model:B",
-            ),
-        ):
-            result = output._save_image_with_image_saver(
-                images="images",
-                save_settings=save_settings,
-                positive_prompt="positive",
-                negative_prompt="negative",
-                width=768,
-                height=1024,
-                sampler_settings={
-                    "steps": 30,
-                    "cfg": 6.5,
-                    "sampler_name": "euler",
-                    "scheduler": "normal",
-                    "seed": -1,
-                    "denoise": 0.8,
-                },
-                applied_loras=[{"name": "x", "strength_model": 1}],
-                resource_info={"unet_name": "anima.safetensors"},
-                workflow_prompt={"1": {}},
-                extra_pnginfo={"workflow": {}},
-            )
+        with tempfile.TemporaryDirectory() as temp:
+            with (
+                patch.dict(sys.modules, {"folder_paths": fake_folder_paths(temp)}),
+                patch_comfy_helper(
+                    output,
+                    "_require_custom_node_class",
+                    return_value=ImageSaver,
+                ),
+                patch.object(output, "_resolve_aio_runtime_seed", seed),
+                patch.object(
+                    output,
+                    "_aio_prompt_with_lora_metadata",
+                    return_value="positive <lora:x:1>",
+                ),
+                patch.object(
+                    output,
+                    "_aio_image_saver_additional_hashes",
+                    return_value="Base:A,Model:B",
+                ),
+            ):
+                result = output._save_image_with_image_saver(
+                    images="images",
+                    save_settings=save_settings,
+                    positive_prompt="positive",
+                    negative_prompt="negative",
+                    width=768,
+                    height=1024,
+                    sampler_settings={
+                        "steps": 30,
+                        "cfg": 6.5,
+                        "sampler_name": "euler",
+                        "scheduler": "normal",
+                        "seed": -1,
+                        "denoise": 0.8,
+                    },
+                    applied_loras=[{"name": "x", "strength_model": 1}],
+                    resource_info={"unet_name": "anima.safetensors"},
+                    workflow_prompt={"1": {}},
+                    extra_pnginfo={"workflow": {}},
+                )
 
         self.assertEqual(result, "saved")
         seed.assert_called_once_with(-1)
@@ -296,6 +332,96 @@ class AIOOutputMoveTests(unittest.TestCase):
                 "extra_pnginfo": {"workflow": {}},
             },
         )
+
+    def test_image_saver_renders_templates_before_forwarding_safe_values(self):
+        calls = []
+
+        class ImageSaver:
+            def save_files(self, **kwargs):
+                calls.append(kwargs)
+                return "saved"
+
+        settings = {
+            "image_saver": {
+                **AIO_GENERATION_DEFAULT_SETTINGS["save"]["image_saver"],
+                "path": "renders/%time_format<%Y/%m>",
+                "filename": "%custom_%counter<03>_%basemodelname",
+                "custom": "safe",
+                "counter": 7,
+            }
+        }
+        fixed_now = datetime(2026, 9, 4, 12, 34, 56)
+
+        class FixedDateTime:
+            @staticmethod
+            def now():
+                return fixed_now
+
+        with tempfile.TemporaryDirectory() as temp:
+            with (
+                patch.dict(sys.modules, {"folder_paths": fake_folder_paths(temp)}),
+                patch_comfy_helper(
+                    output,
+                    "_require_custom_node_class",
+                    return_value=ImageSaver,
+                ),
+                patch.object(output, "datetime", FixedDateTime),
+                patch.object(output, "_resolve_aio_runtime_seed", return_value=11),
+            ):
+                result = output._save_image_with_image_saver(
+                    images="images",
+                    save_settings=settings,
+                    positive_prompt="positive",
+                    negative_prompt="negative",
+                    width=768,
+                    height=1024,
+                    sampler_settings={"seed": 11},
+                    resource_info={"unet_name": "models/anima.safetensors"},
+                )
+
+        self.assertEqual(result, "saved")
+        self.assertEqual(calls[0]["path"], "renders/2026/09")
+        self.assertEqual(calls[0]["filename"], "safe_007_anima")
+        self.assertEqual(calls[0]["time_format"], "%Y-%m-%d-%H%M%S")
+
+    def test_image_saver_rejects_expanded_output_escape_before_dependency_lookup(self):
+        cases = (
+            {"path": "../../outside"},
+            {"path": "..\\..\\outside"},
+            {"path": "C:\\outside"},
+            {"path": "/outside"},
+            {"path": "%custom", "custom": "../../outside"},
+            {"path": "%time", "time_format": "../outside"},
+            {"filename": "%custom", "custom": "../outside"},
+        )
+        require = Mock(side_effect=AssertionError("must reject before dependency lookup"))
+        with tempfile.TemporaryDirectory() as temp:
+            for override in cases:
+                settings = {
+                    "image_saver": {
+                        **AIO_GENERATION_DEFAULT_SETTINGS["save"]["image_saver"],
+                        **override,
+                    }
+                }
+                with self.subTest(override=override):
+                    with (
+                        patch.dict(sys.modules, {"folder_paths": fake_folder_paths(temp)}),
+                        patch_comfy_helper(output, "_require_custom_node_class", require),
+                        patch.object(output, "_resolve_aio_runtime_seed", return_value=11),
+                    ):
+                        with self.assertRaisesRegex(RuntimeError, "output directory|single filename"):
+                            output._save_image_with_image_saver(
+                                images="images",
+                                save_settings=settings,
+                                positive_prompt="positive",
+                                negative_prompt="negative",
+                                width=768,
+                                height=1024,
+                                sampler_settings={"seed": 11},
+                                resource_info={"unet_name": "anima.safetensors"},
+                            )
+
+        require.assert_not_called()
 
 
 if __name__ == "__main__":

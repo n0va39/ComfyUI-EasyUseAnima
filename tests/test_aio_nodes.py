@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import sys
 import unittest
+from pathlib import Path
 from unittest.mock import patch
 
 from easyuse_anima.aio import (
@@ -10,8 +11,8 @@ from easyuse_anima.aio import (
     first_pass_cache,
     generation_defaults,
     generation_normalization,
-    input_defaults,
     input_context,
+    input_defaults,
     legacy_generation,
     model_preparation,
     output,
@@ -20,7 +21,6 @@ from easyuse_anima.aio import (
     sampling,
     usdu,
 )
-from easyuse_anima.nodes import aio_nodes
 from easyuse_anima.extensions.aio import (
     AioHookDescriptor,
     AioHookPatch,
@@ -29,6 +29,7 @@ from easyuse_anima.extensions.aio import (
     AioStage,
     AioStagePhase,
 )
+from easyuse_anima.nodes import aio_nodes
 from easyuse_anima.prompt.data import PROMPT_DATA_TYPE
 from easyuse_anima.wildcard.seed import SEED_CONTROL_FIXED
 from tests.comfy_host_fakes import (
@@ -986,6 +987,15 @@ class AIOSettingsStorageTests(unittest.TestCase):
 
 
 class AIOImageSaverDependencyTests(unittest.TestCase):
+    def setUp(self):
+        output_directory_patch = patch.object(
+            output,
+            "_comfy_output_directory",
+            return_value=Path.cwd() / ".test-output",
+        )
+        output_directory_patch.start()
+        self.addCleanup(output_directory_patch.stop)
+
     def test_missing_image_saver_dependency_names_required_node_pack(self):
         with patch_comfy_helper(aio_nodes, "_find_comfy_node_class", return_value=None):
             with self.assertRaisesRegex(RuntimeError, "ComfyUI-Image-Saver"):
@@ -2401,7 +2411,7 @@ class AIOFinalUpscaleStageTests(unittest.TestCase):
         self.assertIn("USDU sampler: steps=20", log_text)
         cleanup.assert_called_once_with("stage_model", "model")
 
-    def test_upscale_stage_runs_only_resshift_when_selected(self):
+    def test_upscale_stage_rejects_resshift_before_optional_node_lookup(self):
         settings = generation_normalization._normalize_aio_generation_settings(json.dumps({
             "sampler": {
                 "seed": 321,
@@ -2419,56 +2429,35 @@ class AIOFinalUpscaleStageTests(unittest.TestCase):
                 },
             },
         }))
-        calls = {}
-
-        class FakeLoader:
-            def load(self, scale, student_name, dtype):
-                calls["loader"] = (scale, student_name, dtype)
-                return ("resshift_model",)
-
-        class FakeUpscale:
-            def upscale(self, *args):
-                calls["upscale"] = args
-                return (AIOFinalUpscaleStageTests._Image(2048, 3072),)
-
-        def fake_require(node_id, *_args):
-            if node_id == "ResShiftLoader":
-                return FakeLoader
-            if node_id == "ResShiftUpscale":
-                return FakeUpscale
-            raise AssertionError(f"unexpected node lookup: {node_id}")
 
         input_image = self._Image(512, 768)
         with (
             patch_comfy_helper(
                 aio_nodes,
                 "_require_custom_node_class",
-                side_effect=fake_require,
+                side_effect=AssertionError("must not resolve ResShift nodes"),
             ) as require,
             patch.object(legacy_generation, "_load_upscale_model_with_comfy") as load_upscale,
             patch.object(legacy_generation, "_apply_aio_spectrum_model_patches_for_comfy_sampler") as patch_stage,
         ):
-            image, metadata = legacy_generation._run_aio_upscale_stage(
-                "model",
-                "clip",
-                "vae",
-                "positive",
-                "negative",
-                input_image,
-                settings["sampler"],
-                settings["upscale"],
-            )
+            with self.assertRaisesRegex(
+                RuntimeError,
+                r"AiO ResShift is disabled.*issue #679",
+            ):
+                legacy_generation._run_aio_upscale_stage(
+                    "model",
+                    "clip",
+                    "vae",
+                    "positive",
+                    "negative",
+                    input_image,
+                    settings["sampler"],
+                    settings["upscale"],
+                )
 
-        self.assertIsInstance(image, self._Image)
-        self.assertEqual(require.call_count, 2)
+        require.assert_not_called()
         load_upscale.assert_not_called()
         patch_stage.assert_not_called()
-        self.assertEqual(calls["loader"], ("x4", "student.ckpt", "fp32"))
-        self.assertEqual(calls["upscale"][0], "resshift_model")
-        self.assertIs(calls["upscale"][1], input_image)
-        self.assertEqual(calls["upscale"][2:], (321, 1024, 96, 2))
-        self.assertEqual(metadata["backend"], "resshift")
-        self.assertEqual(metadata["scale"], "x4")
 
 
 class AIOGeneratorRuntimeTests(unittest.TestCase):
