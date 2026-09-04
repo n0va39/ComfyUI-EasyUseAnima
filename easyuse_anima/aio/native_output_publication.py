@@ -626,18 +626,18 @@ def publish_image_transaction(
             _write_text(sidecar_temporary, sidecar_text)
             directory.assert_temporary_identity(sidecar_temporary)
 
-        image_identity = directory.link_no_replace(
-            image_temporary,
-            target_name,
-        )
         if sidecar_temporary is not None:
             sidecar_identity = directory.link_no_replace(
                 sidecar_temporary,
                 sidecar_name,
             )
-        image_temporary.keep()
+        image_identity = directory.link_no_replace(
+            image_temporary,
+            target_name,
+        )
         if sidecar_temporary is not None:
             sidecar_temporary.keep()
+        image_temporary.keep()
     except Exception:
         if os.name != "nt" and sidecar_identity is not None:
             directory._remove_name_if_owned(sidecar_name, sidecar_identity)
@@ -650,9 +650,9 @@ def publish_image_transaction(
         image_temporary.close()
 
     try:
-        directory.assert_published_identity(target_name, image_identity)
         if sidecar_identity is not None:
             directory.assert_published_identity(sidecar_name, sidecar_identity)
+        directory.assert_published_identity(target_name, image_identity)
     except Exception:
         if sidecar_identity is not None:
             directory._remove_name_if_owned(sidecar_name, sidecar_identity)

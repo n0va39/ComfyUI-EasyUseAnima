@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import subprocess
 import sys
 import tempfile
 import types
@@ -1667,6 +1668,92 @@ class AIONativeImageOutputTests(unittest.TestCase):
                     workflow,
                 )
 
+    def test_image_commit_failure_removes_transaction_owned_sidecar(self):
+        metadata = native.NativeImageMetadata("parameters", "", {})
+        pixels = np.zeros((2, 2, 3), dtype=np.float32)
+        original = publication.OutputDirectoryBinding.link_no_replace
+        commit_order = []
+
+        def fail_image_commit(directory, temporary, target_name):
+            commit_order.append(target_name)
+            if target_name == "image.png":
+                raise OSError("image commit failed")
+            return original(directory, temporary, target_name)
+
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            with (
+                patch.object(
+                    publication.OutputDirectoryBinding,
+                    "link_no_replace",
+                    new=fail_image_commit,
+                ),
+                self.assertRaisesRegex(OSError, "image commit failed"),
+            ):
+                native._save_native_images(
+                    [FakeTensor(pixels)],
+                    output_root=root,
+                    path="",
+                    filename="image",
+                    extension="png",
+                    quality_jpeg_or_webp=80,
+                    lossless_webp=False,
+                    optimize_png=False,
+                    embed_workflow=True,
+                    save_workflow_as_json=True,
+                    metadata=metadata,
+                    prompt=None,
+                    extra_pnginfo={"workflow": {"nodes": []}},
+                )
+
+            self.assertEqual(commit_order, ["image.json", "image.png"])
+            self.assertFalse((root / "image.json").exists())
+            self.assertFalse((root / "image.png").exists())
+
+    def test_abrupt_exit_after_first_commit_cannot_expose_image_without_sidecar(self):
+        script = """
+import os
+import sys
+from pathlib import Path
+
+from PIL import Image
+from easyuse_anima.aio import native_output_publication as publication
+
+root = Path(sys.argv[1])
+with publication.OutputDirectoryBinding(root) as directory:
+    original = directory.link_no_replace
+
+    def exit_after_first_commit(temporary, target_name):
+        original(temporary, target_name)
+        os._exit(73)
+
+    directory.link_no_replace = exit_after_first_commit
+    publication.publish_image_transaction(
+        directory,
+        Image.new("RGB", (1, 1)),
+        target_name="image.png",
+        image_format="PNG",
+        options={},
+        sidecar_text='{"nodes":[]}\\n',
+    )
+"""
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            completed = subprocess.run(
+                [sys.executable, "-c", script, str(root)],
+                cwd=Path(__file__).resolve().parents[1],
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+
+            self.assertEqual(completed.returncode, 73, completed.stderr)
+            self.assertFalse((root / "image.png").exists())
+            self.assertEqual(
+                json.loads((root / "image.json").read_text(encoding="utf-8")),
+                {"nodes": []},
+            )
+
     def test_late_last_batch_collision_keeps_suffix_naming(self):
         metadata = native.NativeImageMetadata("parameters", "", {})
         pixels = np.zeros((2, 2, 3), dtype=np.float32)
@@ -1847,7 +1934,7 @@ class AIONativeImageOutputTests(unittest.TestCase):
                         directory_link.unlink()
                     moved.rename(directory_link)
 
-    def test_sidecar_failure_removes_just_committed_image(self):
+    def test_sidecar_write_failure_prevents_image_commit(self):
         metadata = native.NativeImageMetadata("parameters", "", {})
         pixels = np.zeros((2, 2, 3), dtype=np.float32)
         with tempfile.TemporaryDirectory() as temp:

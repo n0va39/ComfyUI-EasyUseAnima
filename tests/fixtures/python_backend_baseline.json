@@ -50890,7 +50890,7 @@
         "is_package": false,
         "loc": 663,
         "module": "easyuse_anima.aio.native_output_publication",
-        "normalized_git_blob_sha1": "1bdf09ecd20d1f0a1efc159e3b02a9f030c73a01",
+        "normalized_git_blob_sha1": "ebce2732a1c87007ca667cc3f6c102ea7e18c0e8",
         "path": "easyuse_anima/aio/native_output_publication.py",
         "top_level": {
           "class_count": 5,
