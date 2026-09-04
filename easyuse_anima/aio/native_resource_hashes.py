@@ -23,7 +23,7 @@ _HASH_CACHE_SCHEMA = 1
 _HASH_CACHE_MAX_BYTES = 1024 * 1024
 _HASH_CACHE_MAX_ENTRIES = 128
 _HASH_CACHE_FILENAME = "resource-hashes.v1.json"
-_MAX_LOCAL_EMBEDDINGS = 32
+_MAX_LOCAL_RESOURCE_ATTEMPTS = 32
 _MAX_MANUAL_HASHES = 30
 _MAX_MANUAL_HASH_TEXT = 8_192
 _EMBEDDING_RE = re.compile(r"embedding:([^,\s():]+)", re.IGNORECASE)
@@ -47,6 +47,33 @@ class _ResourceHash:
     @property
     def metadata_hash(self) -> str:
         return self.sha256 if self.preserve_hash else self.sha256[:10]
+
+
+@dataclass(slots=True)
+class _LocalResourceAttemptBudget:
+    limit: int = _MAX_LOCAL_RESOURCE_ATTEMPTS
+    used: int = 0
+    warned: bool = False
+
+    def consume(self) -> bool:
+        if self.used >= self.limit:
+            if not self.warned:
+                logger.warning(
+                    "[EasyUseAnima] Ignoring local resource references beyond the "
+                    "%d-attempt limit.",
+                    self.limit,
+                )
+                self.warned = True
+            return False
+        self.used += 1
+        return True
+
+
+@dataclass(frozen=True, slots=True)
+class _ResourceInventoryIndex:
+    exact: Mapping[str, tuple[str, ...]]
+    stems: Mapping[str, tuple[str, ...]]
+    basenames: Mapping[str, tuple[str, ...]]
 
 
 def _supported_model_extensions() -> set[str]:
@@ -303,7 +330,13 @@ def _hash_file_revision(
         if cache_path is not None:
             try:
                 entries = _read_hash_cache(cache_path)
-            except (OSError, UnicodeError, ValueError, json.JSONDecodeError) as exc:
+            except (
+                OSError,
+                RecursionError,
+                UnicodeError,
+                ValueError,
+                json.JSONDecodeError,
+            ) as exc:
                 logger.warning(
                     "[EasyUseAnima] Ignoring invalid persistent resource hash cache (%s).",
                     type(exc).__name__,
@@ -384,10 +417,7 @@ def _without_supported_extension(value: str) -> str:
     return value
 
 
-def _inventory_resource_name(folder_name: str, requested_name: str) -> str | None:
-    requested = _safe_inventory_name(requested_name)
-    if not requested:
-        return None
+def _inventory_resource_index(folder_name: str) -> _ResourceInventoryIndex | None:
     try:
         import folder_paths  # type: ignore
     except Exception:
@@ -397,11 +427,11 @@ def _inventory_resource_name(folder_name: str, requested_name: str) -> str | Non
         return None
     try:
         values = cast(Iterable[object], get_filename_list(folder_name))
-        inventory = [
+        inventory = tuple(
             safe_name
             for value in values
             if (safe_name := _safe_inventory_name(value))
-        ]
+        )
     except Exception as exc:
         logger.warning(
             "[EasyUseAnima] Could not read the %s inventory: %s",
@@ -410,25 +440,38 @@ def _inventory_resource_name(folder_name: str, requested_name: str) -> str | Non
         )
         return None
 
+    exact: dict[str, list[str]] = {}
+    stems: dict[str, list[str]] = {}
+    basenames: dict[str, list[str]] = {}
+    for name in inventory:
+        stem = _without_supported_extension(name)
+        exact.setdefault(name.casefold(), []).append(name)
+        stems.setdefault(stem.casefold(), []).append(name)
+        basenames.setdefault(PurePosixPath(stem).name.casefold(), []).append(name)
+    return _ResourceInventoryIndex(
+        exact={key: tuple(names) for key, names in exact.items()},
+        stems={key: tuple(names) for key, names in stems.items()},
+        basenames={key: tuple(names) for key, names in basenames.items()},
+    )
+
+
+def _inventory_resource_name(
+    inventory: _ResourceInventoryIndex,
+    requested_name: str,
+) -> str | None:
+    requested = _safe_inventory_name(requested_name)
+    if not requested:
+        return None
     requested_folded = requested.casefold()
-    exact = [name for name in inventory if name.casefold() == requested_folded]
-    if len(exact) == 1:
-        return exact[0]
+    exact_matches = inventory.exact.get(requested_folded, ())
+    if len(exact_matches) == 1:
+        return exact_matches[0]
     requested_stem = _without_supported_extension(requested).casefold()
-    stem_matches = [
-        name
-        for name in inventory
-        if _without_supported_extension(name).casefold() == requested_stem
-    ]
+    stem_matches = inventory.stems.get(requested_stem, ())
     if len(stem_matches) == 1:
         return stem_matches[0]
     if "/" not in requested:
-        basename_matches = [
-            name
-            for name in inventory
-            if PurePosixPath(_without_supported_extension(name)).name.casefold()
-            == requested_stem
-        ]
+        basename_matches = inventory.basenames.get(requested_stem, ())
         if len(basename_matches) == 1:
             return basename_matches[0]
         if len(basename_matches) > 1:
@@ -464,48 +507,66 @@ def _weighted_prompt_segments(prompt: str) -> Iterable[tuple[str, float]]:
     return tuple(segments)
 
 
-def _embedding_resource_hashes(prompts: Sequence[str]) -> list[_ResourceHash]:
-    resources: list[_ResourceHash] = []
-    seen_names: set[str] = set()
+def _embedding_resource_hashes(
+    prompts: Sequence[str],
+    budget: _LocalResourceAttemptBudget,
+) -> list[_ResourceHash]:
+    requests: list[tuple[str, float]] = []
+    seen_requests: set[str] = set()
     for prompt in prompts:
         for segment, weight in _weighted_prompt_segments(prompt):
             for match in _EMBEDDING_RE.finditer(segment):
-                if len(resources) >= _MAX_LOCAL_EMBEDDINGS:
-                    logger.warning(
-                        "[EasyUseAnima] Ignoring embedding references beyond the %d-resource limit.",
-                        _MAX_LOCAL_EMBEDDINGS,
-                    )
-                    return resources
                 requested_name = match.group(1)
-                inventory_name = _inventory_resource_name("embeddings", requested_name)
-                if inventory_name is None:
+                request_key = requested_name.strip().replace("\\", "/").casefold()
+                if not request_key or request_key in seen_requests:
                     continue
-                metadata_name = _lora_metadata_name(inventory_name)
-                normalized_name = metadata_name.casefold()
-                if not metadata_name or normalized_name in seen_names:
-                    continue
-                path = _resolve_resource_path(("embeddings",), inventory_name)
-                if path is None:
-                    continue
-                try:
-                    sha256 = _hash_file(path)
-                except OSError as exc:
-                    logger.warning(
-                        "[EasyUseAnima] Could not hash embedding %r; continuing without its hash: %s",
-                        inventory_name,
-                        exc,
-                    )
-                    continue
-                seen_names.add(normalized_name)
-                resources.append(
-                    _ResourceHash(
-                        display_name=metadata_name,
-                        metadata_key=f"embed:{metadata_name}",
-                        path=path,
-                        sha256=sha256,
-                        weight=weight,
-                    )
-                )
+                seen_requests.add(request_key)
+                if not budget.consume():
+                    return _resolve_embedding_resource_hashes(requests)
+                requests.append((requested_name, weight))
+    return _resolve_embedding_resource_hashes(requests)
+
+
+def _resolve_embedding_resource_hashes(
+    requests: Sequence[tuple[str, float]],
+) -> list[_ResourceHash]:
+    resources: list[_ResourceHash] = []
+    if not requests:
+        return resources
+    inventory = _inventory_resource_index("embeddings")
+    if inventory is None:
+        return resources
+    seen_names: set[str] = set()
+    for requested_name, weight in requests:
+        inventory_name = _inventory_resource_name(inventory, requested_name)
+        if inventory_name is None:
+            continue
+        metadata_name = _lora_metadata_name(inventory_name)
+        normalized_name = metadata_name.casefold()
+        if not metadata_name or normalized_name in seen_names:
+            continue
+        path = _resolve_resource_path(("embeddings",), inventory_name)
+        if path is None:
+            continue
+        try:
+            sha256 = _hash_file(path)
+        except OSError as exc:
+            logger.warning(
+                "[EasyUseAnima] Could not hash embedding %r; continuing without its hash: %s",
+                inventory_name,
+                exc,
+            )
+            continue
+        seen_names.add(normalized_name)
+        resources.append(
+            _ResourceHash(
+                display_name=metadata_name,
+                metadata_key=f"embed:{metadata_name}",
+                path=path,
+                sha256=sha256,
+                weight=weight,
+            )
+        )
     return resources
 
 
@@ -515,7 +576,13 @@ def _local_resource_hashes(
     prompts: Sequence[str] = (),
 ) -> list[_ResourceHash]:
     resources: list[_ResourceHash] = []
-    model_path = _resolve_resource_path(("diffusion_models", "checkpoints"), modelname)
+    budget = _LocalResourceAttemptBudget()
+    model_path = None
+    if str(modelname or "").strip() and budget.consume():
+        model_path = _resolve_resource_path(
+            ("diffusion_models", "checkpoints"),
+            modelname,
+        )
     if model_path is not None:
         try:
             resources.append(
@@ -543,6 +610,8 @@ def _local_resource_hashes(
         if not metadata_name or metadata_name.casefold() in seen_names:
             continue
         seen_names.add(metadata_name.casefold())
+        if not budget.consume():
+            break
         lora_path = _resolve_resource_path(("loras",), source_name)
         if lora_path is None:
             logger.warning(
@@ -574,7 +643,7 @@ def _local_resource_hashes(
                 weight=strength,
             )
         )
-    resources.extend(_embedding_resource_hashes(prompts))
+    resources.extend(_embedding_resource_hashes(prompts, budget))
     return resources
 
 

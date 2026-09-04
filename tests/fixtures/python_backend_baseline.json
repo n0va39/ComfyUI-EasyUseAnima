@@ -10649,7 +10649,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 53
+            "line": 80
           }
         ],
         "classification": "external",
@@ -10657,7 +10657,7 @@
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 54,
+        "line": 81,
         "name": null,
         "optional": true,
         "requested": "folder_paths",
@@ -10674,7 +10674,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 76
+            "line": 103
           }
         ],
         "classification": "external",
@@ -10682,7 +10682,7 @@
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 77,
+        "line": 104,
         "name": null,
         "optional": true,
         "requested": "folder_paths",
@@ -10699,7 +10699,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 104
+            "line": 131
           }
         ],
         "classification": "external",
@@ -10707,7 +10707,7 @@
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 105,
+        "line": 132,
         "name": null,
         "optional": true,
         "requested": "folder_paths",
@@ -10724,7 +10724,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 224
+            "line": 251
           }
         ],
         "classification": "external",
@@ -10732,7 +10732,7 @@
         "conditional": true,
         "imported": "comfy.utils:ProgressBar",
         "kind": "static_from",
-        "line": 225,
+        "line": 252,
         "name": "ProgressBar",
         "optional": true,
         "requested": "comfy.utils",
@@ -10749,7 +10749,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 391
+            "line": 421
           }
         ],
         "classification": "external",
@@ -10757,12 +10757,12 @@
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 392,
+        "line": 422,
         "name": null,
         "optional": true,
         "requested": "folder_paths",
         "role": "optional_dependency",
-        "scope": "_inventory_resource_name",
+        "scope": "_inventory_resource_index",
         "source": "easyuse_anima/aio/native_resource_hashes.py"
       },
       {
@@ -10774,7 +10774,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 444
+            "line": 487
           }
         ],
         "classification": "external",
@@ -10782,7 +10782,7 @@
         "conditional": true,
         "imported": "comfy.sd1_clip:escape_important",
         "kind": "static_from",
-        "line": 445,
+        "line": 488,
         "name": "escape_important",
         "optional": true,
         "requested": "comfy.sd1_clip",
@@ -10799,7 +10799,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 444
+            "line": 487
           }
         ],
         "classification": "external",
@@ -10807,7 +10807,7 @@
         "conditional": true,
         "imported": "comfy.sd1_clip:token_weights",
         "kind": "static_from",
-        "line": 445,
+        "line": 488,
         "name": "token_weights",
         "optional": true,
         "requested": "comfy.sd1_clip",
@@ -10824,7 +10824,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 444
+            "line": 487
           }
         ],
         "classification": "external",
@@ -10832,7 +10832,7 @@
         "conditional": true,
         "imported": "comfy.sd1_clip:unescape_important",
         "kind": "static_from",
-        "line": 445,
+        "line": 488,
         "name": "unescape_important",
         "optional": true,
         "requested": "comfy.sd1_clip",
@@ -50806,173 +50806,197 @@
           },
           {
             "async": false,
-            "end_line": 58,
+            "end_line": 69,
+            "kind": "method",
+            "line": 58,
+            "loc": 12,
+            "qualified_name": "_LocalResourceAttemptBudget.consume"
+          },
+          {
+            "async": false,
+            "end_line": 85,
             "kind": "function",
-            "line": 52,
+            "line": 79,
             "loc": 7,
             "qualified_name": "_supported_model_extensions"
           },
           {
             "async": false,
-            "end_line": 64,
+            "end_line": 91,
             "kind": "function",
-            "line": 61,
+            "line": 88,
             "loc": 4,
             "qualified_name": "_resource_name"
           },
           {
             "async": false,
-            "end_line": 70,
+            "end_line": 97,
             "kind": "function",
-            "line": 67,
+            "line": 94,
             "loc": 4,
             "qualified_name": "_lora_metadata_name"
           },
           {
             "async": false,
-            "end_line": 100,
+            "end_line": 127,
             "kind": "function",
-            "line": 73,
+            "line": 100,
             "loc": 28,
             "qualified_name": "_resolve_resource_path"
           },
           {
             "async": false,
-            "end_line": 122,
+            "end_line": 149,
             "kind": "function",
-            "line": 103,
+            "line": 130,
             "loc": 20,
             "qualified_name": "_hash_cache_path"
           },
           {
             "async": false,
-            "end_line": 178,
+            "end_line": 205,
             "kind": "function",
-            "line": 125,
+            "line": 152,
             "loc": 54,
             "qualified_name": "_read_hash_cache"
           },
           {
             "async": false,
-            "end_line": 215,
+            "end_line": 242,
             "kind": "function",
-            "line": 181,
+            "line": 208,
             "loc": 35,
             "qualified_name": "_atomic_write_hash_cache"
           },
           {
             "async": false,
-            "end_line": 220,
+            "end_line": 247,
             "kind": "function",
-            "line": 218,
+            "line": 245,
             "loc": 3,
             "qualified_name": "_hash_cache_key"
           },
           {
             "async": false,
-            "end_line": 229,
+            "end_line": 256,
             "kind": "function",
-            "line": 223,
+            "line": 250,
             "loc": 7,
             "qualified_name": "_new_hash_progress"
           },
           {
             "async": false,
-            "end_line": 239,
+            "end_line": 266,
             "kind": "function",
-            "line": 232,
+            "line": 259,
             "loc": 8,
             "qualified_name": "_stat_revision"
           },
           {
             "async": false,
-            "end_line": 286,
+            "end_line": 313,
             "kind": "function",
-            "line": 242,
+            "line": 269,
             "loc": 45,
             "qualified_name": "_calculate_file_sha256"
           },
           {
             "async": false,
-            "end_line": 352,
+            "end_line": 385,
             "kind": "function",
-            "line": 289,
-            "loc": 64,
+            "line": 316,
+            "loc": 70,
             "qualified_name": "_hash_file_revision"
           },
           {
             "async": false,
-            "end_line": 358,
+            "end_line": 391,
             "kind": "function",
-            "line": 355,
+            "line": 388,
             "loc": 4,
             "qualified_name": "_hash_file"
           },
           {
             "async": false,
-            "end_line": 377,
+            "end_line": 410,
             "kind": "function",
-            "line": 361,
+            "line": 394,
             "loc": 17,
             "qualified_name": "_safe_inventory_name"
           },
           {
             "async": false,
-            "end_line": 384,
+            "end_line": 417,
             "kind": "function",
-            "line": 380,
+            "line": 413,
             "loc": 5,
             "qualified_name": "_without_supported_extension"
           },
           {
             "async": false,
-            "end_line": 439,
+            "end_line": 455,
             "kind": "function",
-            "line": 387,
-            "loc": 53,
+            "line": 420,
+            "loc": 36,
+            "qualified_name": "_inventory_resource_index"
+          },
+          {
+            "async": false,
+            "end_line": 482,
+            "kind": "function",
+            "line": 458,
+            "loc": 25,
             "qualified_name": "_inventory_resource_name"
           },
           {
             "async": false,
-            "end_line": 464,
+            "end_line": 507,
             "kind": "function",
-            "line": 442,
+            "line": 485,
             "loc": 23,
             "qualified_name": "_weighted_prompt_segments"
           },
           {
             "async": false,
-            "end_line": 509,
+            "end_line": 527,
             "kind": "function",
-            "line": 467,
-            "loc": 43,
+            "line": 510,
+            "loc": 18,
             "qualified_name": "_embedding_resource_hashes"
           },
           {
             "async": false,
-            "end_line": 578,
+            "end_line": 570,
             "kind": "function",
-            "line": 512,
-            "loc": 67,
+            "line": 530,
+            "loc": 41,
+            "qualified_name": "_resolve_embedding_resource_hashes"
+          },
+          {
+            "async": false,
+            "end_line": 647,
+            "kind": "function",
+            "line": 573,
+            "loc": 75,
             "qualified_name": "_local_resource_hashes"
           },
           {
             "async": false,
-            "end_line": 653,
+            "end_line": 722,
             "kind": "function",
-            "line": 581,
+            "line": 650,
             "loc": 73,
             "qualified_name": "_manual_resource_hashes"
           }
         ],
         "is_package": false,
-        "loc": 656,
+        "loc": 725,
         "module": "easyuse_anima.aio.native_resource_hashes",
-        "normalized_git_blob_sha1": "7bbc99cc120dcb1ead20d12d1cf69f6aa8a527b6",
+        "normalized_git_blob_sha1": "a35f7fb2873d419f5f40781b75de9b230464eb9b",
         "path": "easyuse_anima/aio/native_resource_hashes.py",
         "top_level": {
-          "class_count": 1,
-          "function_count": 20,
+          "class_count": 3,
+          "function_count": 22,
           "global_count": 17
         }
       },
@@ -64810,14 +64834,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 53
+            "line": 80
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 54,
+        "line": 81,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/aio/native_resource_hashes.py"
@@ -64829,14 +64853,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 76
+            "line": 103
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 77,
+        "line": 104,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/aio/native_resource_hashes.py"
@@ -64848,14 +64872,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 104
+            "line": 131
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 105,
+        "line": 132,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/aio/native_resource_hashes.py"
@@ -64867,14 +64891,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 224
+            "line": 251
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "comfy.utils:ProgressBar",
         "kind": "static_from",
-        "line": 225,
+        "line": 252,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/aio/native_resource_hashes.py"
@@ -64886,14 +64910,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 391
+            "line": 421
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 392,
+        "line": 422,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/aio/native_resource_hashes.py"
@@ -64905,14 +64929,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 444
+            "line": 487
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "comfy.sd1_clip:escape_important",
         "kind": "static_from",
-        "line": 445,
+        "line": 488,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/aio/native_resource_hashes.py"
@@ -64924,14 +64948,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 444
+            "line": 487
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "comfy.sd1_clip:token_weights",
         "kind": "static_from",
-        "line": 445,
+        "line": 488,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/aio/native_resource_hashes.py"
@@ -64943,14 +64967,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 444
+            "line": 487
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "comfy.sd1_clip:unescape_important",
         "kind": "static_from",
-        "line": 445,
+        "line": 488,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/aio/native_resource_hashes.py"
@@ -71924,14 +71948,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 53
+            "line": 80
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 54,
+        "line": 81,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/aio/native_resource_hashes.py"
@@ -71943,14 +71967,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 76
+            "line": 103
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 77,
+        "line": 104,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/aio/native_resource_hashes.py"
@@ -71962,14 +71986,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 104
+            "line": 131
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 105,
+        "line": 132,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/aio/native_resource_hashes.py"
@@ -71981,14 +72005,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 224
+            "line": 251
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "comfy.utils:ProgressBar",
         "kind": "static_from",
-        "line": 225,
+        "line": 252,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/aio/native_resource_hashes.py"
@@ -72000,14 +72024,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 391
+            "line": 421
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 392,
+        "line": 422,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/aio/native_resource_hashes.py"
@@ -72019,14 +72043,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 444
+            "line": 487
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "comfy.sd1_clip:escape_important",
         "kind": "static_from",
-        "line": 445,
+        "line": 488,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/aio/native_resource_hashes.py"
@@ -72038,14 +72062,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 444
+            "line": 487
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "comfy.sd1_clip:token_weights",
         "kind": "static_from",
-        "line": 445,
+        "line": 488,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/aio/native_resource_hashes.py"
@@ -72057,14 +72081,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 444
+            "line": 487
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "comfy.sd1_clip:unescape_important",
         "kind": "static_from",
-        "line": 445,
+        "line": 488,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/aio/native_resource_hashes.py"
@@ -74844,11 +74868,29 @@
         "scope": "<module>"
       },
       {
+        "callee": "dataclass",
+        "column": 1,
+        "context": "decorator:_LocalResourceAttemptBudget",
+        "kind": "import_time_call",
+        "line": 52,
+        "module": "easyuse_anima/aio/native_resource_hashes.py",
+        "scope": "<module>"
+      },
+      {
+        "callee": "dataclass",
+        "column": 1,
+        "context": "decorator:_ResourceInventoryIndex",
+        "kind": "import_time_call",
+        "line": 72,
+        "module": "easyuse_anima/aio/native_resource_hashes.py",
+        "scope": "<module>"
+      },
+      {
         "callee": "lru_cache",
         "column": 1,
         "context": "decorator:_hash_file_revision",
         "kind": "import_time_call",
-        "line": 289,
+        "line": 316,
         "module": "easyuse_anima/aio/native_resource_hashes.py",
         "scope": "<module>"
       },
