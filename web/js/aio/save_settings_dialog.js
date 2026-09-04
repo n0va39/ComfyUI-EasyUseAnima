@@ -38,28 +38,18 @@
  */
 
 /**
- * @typedef {object} AioSaveDialogDependencyAdapter
- * @property {(key: string) => boolean} available
- * @property {(key: string) => string} pack
- * @property {(control: any, missing: boolean, message?: string) => void} markMissingControl
- * @property {(backend: string, keys: string[]) => boolean} notifyMissing
- * @property {(options?: Record<string, any>) => Promise<any>} load
- */
-
-/**
  * @typedef {object} AioSaveSettingsDialogDependencies
  * @property {any} document
  * @property {AioSaveDialogControls} controls
  * @property {AioSaveDialogText} text
  * @property {AioSaveDialogSettingsCore} settingsCore
  * @property {AioSaveDialogNodeAdapter} nodeAdapter
- * @property {AioSaveDialogDependencyAdapter} dependencyAdapter
  */
 
 /**
- * Own the Save settings dialog, Image Saver hash editors, normalization, and
- * Apply/Cancel lifecycle. Extension registration, dependency discovery,
- * generator-panel rendering, and durable storage remain adapters.
+ * Own the Save settings dialog, native output hash editors, normalization, and
+ * Apply/Cancel lifecycle. Extension registration, generator-panel rendering,
+ * and durable storage remain adapters.
  *
  * @param {AioSaveSettingsDialogDependencies} dependencies
  * @returns {(node: any) => void}
@@ -71,7 +61,6 @@ export function aioCreateSaveSettingsDialog(dependencies) {
     text,
     settingsCore,
     nodeAdapter,
-    dependencyAdapter,
   } = dependencies;
   const {
     createDialog,
@@ -102,14 +91,6 @@ export function aioCreateSaveSettingsDialog(dependencies) {
     writeSettings,
     renderPanel: renderGeneratorPanel,
   } = nodeAdapter;
-  const {
-    available: optionalDependencyAvailable,
-    pack: optionalDependencyPack,
-    markMissingControl: aioMarkMissingDependencyControl,
-    notifyMissing: notifyMissingDependency,
-    load: loadGeneratorOptionalDependencies,
-  } = dependencyAdapter;
-
   function normalizeImageSaverHashBundles(value) {
     if (typeof value === "string") {
       try {
@@ -307,7 +288,7 @@ export function aioCreateSaveSettingsDialog(dependencies) {
     );
     const { backdrop, body, actions } = createDialog(
       "Save Options",
-      "Image Saver requires ComfyUI-Image-Saver. Selecting an unavailable backend shows its required node pack."
+      "EasyUse native output saves A1111 metadata and ComfyUI workflows in PNG, JPEG, and WebP."
     );
     body.classList.add("easyuse-anima-aio-save-body");
     const main = document.createElement("section");
@@ -317,50 +298,15 @@ export function aioCreateSaveSettingsDialog(dependencies) {
     const backend = field(
       main,
       "Backend",
-      selectInput(["image_saver", "comfy_save_image"], settings.save.backend || "image_saver"),
+      selectInput([
+        { value: "image_saver", label: "EasyUse Native" },
+        "comfy_save_image",
+      ], settings.save.backend || "image_saver"),
     );
-    const dependencyWarning = document.createElement("div");
-    dependencyWarning.className = "easyuse-anima-aio-warning";
-    dependencyWarning.hidden = true;
-    main.append(dependencyWarning);
-    const refreshSaveDependencyLocks = () => {
-      const imageSaverMissing = !optionalDependencyAvailable("imageSaver");
-      for (const option of Array.from(backend.options)) {
-        if (option.value === "image_saver") {
-          option.disabled = false;
-          option.textContent = imageSaverMissing
-            ? `image_saver (${optionalDependencyPack("imageSaver")} missing)`
-            : "image_saver";
-          option.classList?.toggle("easyuse-anima-aio-missing-option", imageSaverMissing);
-          option.title = imageSaverMissing
-            ? aioFormat("warning.optionalDependencyMissing", {
-                backend: "image_saver",
-                pack: optionalDependencyPack("imageSaver"),
-              })
-            : "";
-        }
-      }
-      if (imageSaverMissing && backend.value === "image_saver") {
-        backend.value = "comfy_save_image";
-        dependencyWarning.hidden = false;
-        dependencyWarning.textContent = aioFormat("warning.optionalDependencyMissing", {
-          backend: "image_saver",
-          pack: optionalDependencyPack("imageSaver"),
-        });
-      } else {
-        dependencyWarning.hidden = true;
-        dependencyWarning.textContent = "";
-      }
-      aioMarkMissingDependencyControl(
-        backend,
-        imageSaverMissing && backend.value === "image_saver",
-        dependencyWarning.textContent,
-      );
-    };
 
     const files = document.createElement("section");
     files.className = "easyuse-anima-aio-section full";
-    files.append(Object.assign(document.createElement("h3"), { textContent: aioStaticText("Image Saver Files") }));
+    files.append(Object.assign(document.createElement("h3"), { textContent: aioStaticText("Native Image Files") }));
     const filename = field(files, "Filename", textInput(imageSaver.filename));
     const path = field(files, "Path", textInput(imageSaver.path));
     const extension = field(files, "Extension", selectInput(["webp", "png", "jpeg", "jpg"], imageSaver.extension));
@@ -371,7 +317,7 @@ export function aioCreateSaveSettingsDialog(dependencies) {
 
     const metadata = document.createElement("section");
     metadata.className = "easyuse-anima-aio-section full";
-    metadata.append(Object.assign(document.createElement("h3"), { textContent: aioStaticText("Image Saver Metadata") }));
+    metadata.append(Object.assign(document.createElement("h3"), { textContent: aioStaticText("Native Image Metadata") }));
     const timeFormat = field(metadata, "Time format", textInput(imageSaver.time_format));
     const clipSkip = field(metadata, "Clip skip", numberInput(imageSaver.clip_skip, "1"));
     const embedWorkflow = field(metadata, "Embed workflow", checkbox(imageSaver.embed_workflow));
@@ -386,15 +332,6 @@ export function aioCreateSaveSettingsDialog(dependencies) {
     const easyRemix = field(metadata, "Easy remix", checkbox(imageSaver.easy_remix));
     const custom = field(metadata, "Custom metadata", textareaInput(imageSaver.custom));
     body.append(main, files, metadata);
-    backend.addEventListener("change", () => {
-      if (backend.value === "image_saver" && !optionalDependencyAvailable("imageSaver")) {
-        notifyMissingDependency("image_saver", ["imageSaver"]);
-        backend.value = "comfy_save_image";
-      }
-      refreshSaveDependencyLocks();
-    });
-    refreshSaveDependencyLocks();
-    loadGeneratorOptionalDependencies().then(refreshSaveDependencyLocks);
 
     const cancel = document.createElement("button");
     cancel.textContent = aioText("button.cancel");

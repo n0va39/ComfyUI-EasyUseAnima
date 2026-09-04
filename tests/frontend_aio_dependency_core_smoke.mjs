@@ -34,8 +34,8 @@ assert(
   "Spectrum Mod Guidance must keep its optional-dependency mapping",
 );
 assert(
-  AIO_OPTIONAL_DEPENDENCY_SPECS.imageSaver.nodeId === "Image Saver",
-  "The Image Saver object-info node id must remain stable",
+  !Object.hasOwn(AIO_OPTIONAL_DEPENDENCY_SPECS, "imageSaver"),
+  "EasyUse native image output must not advertise an external Image Saver dependency",
 );
 assert(
   AIO_OPTIONAL_DEPENDENCY_SPECS.checkpointLoader.nodeId === "CheckpointLoaderSimple",
@@ -193,8 +193,8 @@ assert(
 );
 
 assert(
-  aioOptionalDependencyPack("imageSaver") === "ComfyUI-Image-Saver",
-  "Known dependencies must expose their pack label",
+  aioOptionalDependencyPack("imageSaver") === "imageSaver",
+  "Removed Image Saver dependencies must use the unknown-key fallback",
 );
 assert(
   aioOptionalDependencyPack("custom", queriedSpecs) === "custom",

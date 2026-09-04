@@ -509,6 +509,19 @@ class AIOGenerationSettingsManifestTests(unittest.TestCase):
         self.assertEqual(manifest["settings"]["version"], generation_defaults.AIO_GENERATION_SETTINGS_VERSION)
         self.assertEqual(manifest["default"], generation_defaults.AIO_GENERATION_DEFAULT_SETTINGS)
 
+    def test_civitai_network_enrichment_is_opt_in_without_rewriting_saved_opt_in(self):
+        image_saver_defaults = generation_defaults.AIO_GENERATION_DEFAULT_SETTINGS[
+            "save"
+        ]["image_saver"]
+        self.assertFalse(image_saver_defaults["download_civitai_data"])
+
+        with _deterministic_capabilities():
+            normalized = generation_normalization._normalize_aio_generation_settings(
+                {"save": {"image_saver": {"download_civitai_data": True}}}
+            )
+
+        self.assertTrue(normalized["save"]["image_saver"]["download_civitai_data"])
+
     def test_every_manifest_default_leaf_is_owned_by_typed_config(self):
         manifest = _manifest()
         missing: list[str] = []

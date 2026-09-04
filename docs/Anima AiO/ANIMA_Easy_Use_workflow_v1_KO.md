@@ -53,7 +53,6 @@ workflow 안의 안내 노트에도 모델 다운로드 링크가 들어 있습�
 | --- | --- |
 | [ComfyUI-EasyUseAnima](https://github.com/n0va39/ComfyUI-EasyUseAnima) | Prompt Studio Advanced v2, LoRA Preset, Easy Use Anima Input, AiO Generator |
 | [ComfyUI-Spectrum-KSampler](https://github.com/sorryhyun/ComfyUI-Spectrum-KSampler) | 기본 sampler backend와 Spectrum 최적화 |
-| [ComfyUI-Image-Saver](https://github.com/alexopus/ComfyUI-Image-Saver) | WebP 저장, workflow embed, Civitai/LoRA metadata 저장 |
 
 사용하면 좋은 노드팩:
 
@@ -64,8 +63,9 @@ workflow 안의 안내 노트에도 모델 다운로드 링크가 들어 있습�
 | [ComfyUI-Impact-Pack](https://github.com/ltdrdata/ComfyUI-Impact-Pack) | SAM3, MaskToSEGS, DetailerForEach 기반 Detailer |
 | [ComfyUI-Anima-DAVE](https://github.com/sorryhyun/ComfyUI-Anima-DAVE) | 생성 다양성을 위한 선택 model patch |
 
-`ComfyUI-EasyUseAnima`는 0.2.2 이상이 필요합니다. 선택 노드팩이 없으면 관련 UI는
-잠기거나 Queue 직전에 비활성화됩니다.
+이 workflow는 EasyUse 네이티브 출력이 포함된 `ComfyUI-EasyUseAnima` 배포판을
+기준으로 합니다. 선택 노드팩이 없으면 관련 UI는 잠기거나 Queue 직전에
+비활성화됩니다.
 
 ## LoRA 프리셋
 
@@ -168,14 +168,19 @@ Detailer:
 Preview 섹션은 생성 중간 이미지, 이전 단계와 비교, image feed를 표시할 수 있습니다.
 이 설정은 노드 UI에만 적용되고 저장 이미지 metadata는 바꾸지 않습니다.
 
-Save Options는 기본 ON입니다. 기본 backend는 Image Saver이며, WebP 저장,
-workflow embed, Civitai/LoRA metadata 저장을 함께 처리합니다.
+Save Options는 기본 ON입니다. 기본 backend는 EasyUse 네이티브 출력이며,
+`ComfyUI-Image-Saver` 없이 PNG/JPEG/WebP 저장, workflow embed/JSON sidecar,
+A1111 metadata와 Civitai 호환 hash 저장을 함께 처리합니다. `Lossless WebP`를
+끄면 `JPEG/WebP quality` 값으로 손실 WebP를 저장할 수 있습니다.
+원격 `Civitai data` 보강은 기본적으로 꺼져 있으며, 고정 Civitai API 조회가
+필요할 때만 명시적으로 켭니다. 로컬 모델과 LoRA hash 저장에는 이 옵션이
+필요하지 않습니다.
 
 저장 metadata 기준:
 
 - `Steps`, `CFG`, `Sampler`, `Scheduler`, `Seed`, `Denoise`: 1차 샘플러 값
 - `Size`: Highres/Detailer 이후 최종 해상도
-- `lora_stack`: `<lora:name:weight>` 형식으로 Image Saver metadata에 전달
+- `lora_stack`: 실제 적용된 파일의 SHA-256 short hash와 weight를 metadata에 기록
 
 `Embed workflow`를 유지하면 저장된 이미지에서 workflow를 다시 불러와 같은 설정으로
 재생성할 수 있습니다.
@@ -184,8 +189,9 @@ workflow embed, Civitai/LoRA metadata 저장을 함께 처리합니다.
 
 - `Value not in list`가 sampler/scheduler에서 발생하면 설치된
   `ComfyUI-Spectrum-KSampler` 버전과 ComfyUI sampler 목록을 확인합니다.
-- Image Saver 관련 오류가 나면 `ComfyUI-Image-Saver` 설치 여부와 Save Options
-  backend 설정을 확인합니다.
+- 네이티브 저장이 실패하면 Save Options의 output 하위 경로, 파일명 template,
+  이미지 형식을 확인합니다. Civitai 조회 실패는 경고만 남기고 로컬 hash와 이미지
+  저장은 계속됩니다.
 - LoRA 파일을 찾지 못하면 해당 row를 끄거나 `FIX`를 실행합니다.
 - 선택 노드팩이 없는데 관련 기능을 켠 경우, 해당 기능을 끄거나 노드팩을 설치한 뒤
   ComfyUI를 재시작합니다.

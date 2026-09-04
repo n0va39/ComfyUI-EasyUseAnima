@@ -406,12 +406,12 @@ function createFixture({ settings = {}, available = {}, deferLoads = false } = {
   assert.equal(dialog.title, "Save Options");
   assert.equal(
     dialog.subtitle,
-    "Image Saver requires ComfyUI-Image-Saver. Selecting an unavailable backend shows its required node pack.",
+    "EasyUse native output saves A1111 metadata and ComfyUI workflows in PNG, JPEG, and WebP.",
   );
   assert.ok(dialog.body.classList.contains("easyuse-anima-aio-save-body"));
   const main = sectionByHeading(dialog.body, "Save Backend");
-  const files = sectionByHeading(dialog.body, "Image Saver Files");
-  const metadata = sectionByHeading(dialog.body, "Image Saver Metadata");
+  const files = sectionByHeading(dialog.body, "Native Image Files");
+  const metadata = sectionByHeading(dialog.body, "Native Image Metadata");
   assert.equal(controlIn(main, "Save image").checked, true);
   assert.equal(controlIn(main, "Backend").value, "image_saver");
   assert.equal(controlIn(files, "Filename").value, "configured-name");
@@ -490,41 +490,20 @@ function createFixture({ settings = {}, available = {}, deferLoads = false } = {
   fixture.openSaveSettings(fixture.node);
   const dialog = fixture.dialogs[0];
   const main = sectionByHeading(dialog.body, "Save Backend");
-  const files = sectionByHeading(dialog.body, "Image Saver Files");
-  const metadata = sectionByHeading(dialog.body, "Image Saver Metadata");
+  const files = sectionByHeading(dialog.body, "Native Image Files");
+  const metadata = sectionByHeading(dialog.body, "Native Image Metadata");
   const backend = controlIn(main, "Backend");
-  const imageSaverOption = backend.options.find((option) => option.value === "image_saver");
-  const warning = find(
-    main,
-    (element) => element.classList.contains("easyuse-anima-aio-warning"),
-  );
-  assert.ok(imageSaverOption);
-  assert.ok(warning);
-  assert.equal(imageSaverOption.disabled, false);
-  assert.equal(imageSaverOption.textContent, "image_saver");
+  const nativeOption = backend.options.find((option) => option.value === "image_saver");
+  assert.ok(nativeOption);
+  assert.equal(nativeOption.disabled, false);
+  assert.equal(nativeOption.textContent, "EasyUse Native");
   assert.equal(backend.value, "image_saver");
-  assert.equal(warning.hidden, true);
-  assert.equal(fixture.loadCalls.length, 1);
-
-  fixture.availabilityState.imageSaver = false;
+  assert.equal(fixture.loadCalls.length, 0, "Native output must not query optional node packs");
   fixture.resolveLoads();
   await flushPromises();
-  assert.equal(imageSaverOption.disabled, false, "Missing backend remains selectable for an explicit notice");
-  assert.equal(imageSaverOption.textContent, "image_saver (pack:imageSaver missing)");
-  assert.equal(backend.value, "comfy_save_image", "Missing Image Saver must select the built-in fallback");
-  assert.equal(warning.hidden, false);
-  assert.equal(
-    warning.textContent,
-    'format:warning.optionalDependencyMissing:{"backend":"image_saver","pack":"pack:imageSaver"}',
-  );
-  assert.deepEqual(fixture.notifications, [], "Async dependency refresh must stay silent");
-  backend.value = "image_saver";
-  backend.emit("change");
-  assert.deepEqual(fixture.notifications, [{
-    backend: "image_saver",
-    keys: ["imageSaver"],
-  }]);
-  assert.equal(backend.value, "comfy_save_image");
+  assert.equal(backend.value, "image_saver");
+  assert.deepEqual(fixture.notifications, []);
+  backend.value = "comfy_save_image";
 
   controlIn(main, "Save image").checked = false;
   controlIn(files, "Filename").value = "";

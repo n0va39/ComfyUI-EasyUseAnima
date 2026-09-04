@@ -5,6 +5,7 @@ import tempfile
 import types
 import unittest
 from datetime import datetime
+from pathlib import Path
 from unittest.mock import Mock, patch
 
 from easyuse_anima.aio import output, output_settings
@@ -78,16 +79,15 @@ class AIOOutputMoveTests(unittest.TestCase):
     def test_civitai_hashes_preserve_order_success_and_soft_skip_paths(self):
         calls = []
 
-        class Fetcher:
-            def get_autov3_hash(self, username, model_name, version):
-                calls.append((username, model_name, version))
-                if model_name == "raises":
-                    raise RuntimeError("temporary")
-                return {
-                    "empty": ("No matching model",),
-                    "good": ("ABC123",),
-                    "last": ("XYZ789",),
-                }[model_name]
+        def fetch(username, model_name, version):
+            calls.append((username, model_name, version))
+            if model_name == "raises":
+                raise RuntimeError("temporary")
+            return {
+                "empty": None,
+                "good": "ABC123",
+                "last": "XYZ789",
+            }[model_name]
 
         settings = {
             "civitai_hash_fetchers": [
@@ -99,11 +99,11 @@ class AIOOutputMoveTests(unittest.TestCase):
             ]
         }
         with (
-            patch_comfy_helper(
+            patch.object(
                 output,
-                "_require_custom_node_class",
-                return_value=Fetcher,
-            ) as require,
+                "_fetch_civitai_autov3_hash",
+                side_effect=fetch,
+            ) as fetch_mock,
             patch.object(output.logger, "warning") as warning,
         ):
             result = output._aio_image_saver_civitai_hash_fetcher_entries(settings)
@@ -113,33 +113,48 @@ class AIOOutputMoveTests(unittest.TestCase):
             calls,
             [("u", "good", "v1"), ("u", "empty", ""), ("u", "raises", ""), ("u", "last", "v2")],
         )
-        self.assertEqual(require.call_count, 1)
+        self.assertEqual(fetch_mock.call_count, 4)
         self.assertEqual(warning.call_count, 2)
 
     def test_civitai_empty_and_hard_error_paths_keep_dependency_boundaries(self):
-        require = Mock(side_effect=AssertionError("must not resolve dependency"))
-        with patch_comfy_helper(output, "_require_custom_node_class", require):
+        fetch = Mock(side_effect=AssertionError("must not make a network lookup"))
+        with patch.object(output, "_fetch_civitai_autov3_hash", fetch):
             self.assertEqual(
                 output._aio_image_saver_civitai_hash_fetcher_entries(
                     {"civitai_hash_fetchers": [{"enabled": False, "username": "u", "model_name": "m"}]}
                 ),
                 [],
             )
-        require.assert_not_called()
+        fetch.assert_not_called()
 
-        class Fetcher:
-            def get_autov3_hash(self, *_args):
-                return ("unused",)
-
-        with patch_comfy_helper(
-            output,
-            "_require_custom_node_class",
-            return_value=Fetcher,
-        ):
+        with patch.object(output, "_fetch_civitai_autov3_hash", fetch):
             with self.assertRaisesRegex(RuntimeError, "both username and model_name"):
                 output._aio_image_saver_civitai_hash_fetcher_entries(
                     {"civitai_hash_fetchers": [{"enabled": True, "username": "u", "version": "v"}]}
                 )
+        fetch.assert_not_called()
+
+    def test_civitai_hash_fetcher_rows_are_bounded(self):
+        settings = {
+            "civitai_hash_fetchers": [
+                {
+                    "enabled": True,
+                    "username": "creator",
+                    "model_name": f"model-{index}",
+                    "version": "",
+                }
+                for index in range(output._MAX_CIVITAI_HASH_FETCHERS + 5)
+            ]
+        }
+        with (
+            patch.object(output, "_fetch_civitai_autov3_hash", return_value="ABC") as fetch,
+            self.assertLogs("ComfyUI-EasyUseAnima", level="WARNING") as logs,
+        ):
+            entries = output._aio_image_saver_civitai_hash_fetcher_entries(settings)
+
+        self.assertEqual(len(entries), output._MAX_CIVITAI_HASH_FETCHERS)
+        self.assertEqual(fetch.call_count, output._MAX_CIVITAI_HASH_FETCHERS)
+        self.assertIn("ignoring 5 excess rows", "\n".join(logs.output))
 
     def test_additional_hash_and_lora_metadata_use_canonical_helpers(self):
         with (
@@ -233,14 +248,7 @@ class AIOOutputMoveTests(unittest.TestCase):
             )
             self.assertEqual(output._aio_save_filename_prefix({"image_saver": "invalid"}), "Default/Path/default_name")
 
-    def test_image_saver_preserves_exact_kwargs_and_resolves_special_seed_once(self):
-        calls = []
-
-        class ImageSaver:
-            def save_files(self, **kwargs):
-                calls.append(kwargs)
-                return "saved"
-
+    def test_native_image_saver_preserves_settings_and_resolves_special_seed_once(self):
         save_settings = {
             "image_saver": {
                 **AIO_GENERATION_DEFAULT_SETTINGS["save"]["image_saver"],
@@ -254,14 +262,10 @@ class AIOOutputMoveTests(unittest.TestCase):
             }
         }
         seed = Mock(return_value=987654321)
+        metadata = object()
         with tempfile.TemporaryDirectory() as temp:
             with (
                 patch.dict(sys.modules, {"folder_paths": fake_folder_paths(temp)}),
-                patch_comfy_helper(
-                    output,
-                    "_require_custom_node_class",
-                    return_value=ImageSaver,
-                ),
                 patch.object(output, "_resolve_aio_runtime_seed", seed),
                 patch.object(
                     output,
@@ -273,6 +277,16 @@ class AIOOutputMoveTests(unittest.TestCase):
                     "_aio_image_saver_additional_hashes",
                     return_value="Base:A,Model:B",
                 ),
+                patch.object(
+                    output,
+                    "_build_native_metadata",
+                    return_value=metadata,
+                ) as build,
+                patch.object(
+                    output,
+                    "_save_native_images",
+                    return_value="saved",
+                ) as save,
             ):
                 result = output._save_image_with_image_saver(
                     images="images",
@@ -297,50 +311,42 @@ class AIOOutputMoveTests(unittest.TestCase):
 
         self.assertEqual(result, "saved")
         seed.assert_called_once_with(-1)
-        self.assertEqual(
-            calls[0],
-            {
-                "images": "images",
-                "filename": "frame",
-                "path": "EasyUseAnima/Test",
-                "extension": "webp",
-                "steps": 30,
-                "cfg": 6.5,
-                "modelname": "anima.safetensors",
-                "sampler_name": "euler",
-                "scheduler_name": "normal",
-                "positive": "positive <lora:x:1>",
-                "negative": "negative",
-                "seed_value": 987654321,
-                "width": 768,
-                "height": 1024,
-                "lossless_webp": save_settings["image_saver"]["lossless_webp"],
-                "quality_jpeg_or_webp": 100,
-                "optimize_png": save_settings["image_saver"]["optimize_png"],
-                "counter": 0,
-                "denoise": 0.8,
-                "clip_skip": save_settings["image_saver"]["clip_skip"],
-                "time_format": save_settings["image_saver"]["time_format"],
-                "save_workflow_as_json": save_settings["image_saver"]["save_workflow_as_json"],
-                "embed_workflow": save_settings["image_saver"]["embed_workflow"],
-                "additional_hashes": "Base:A,Model:B",
-                "download_civitai_data": save_settings["image_saver"]["download_civitai_data"],
-                "easy_remix": save_settings["image_saver"]["easy_remix"],
-                "show_preview": False,
-                "custom": save_settings["image_saver"]["custom"],
-                "prompt": {"1": {}},
-                "extra_pnginfo": {"workflow": {}},
-            },
+        build.assert_called_once_with(
+            modelname="anima.safetensors",
+            positive="positive <lora:x:1>",
+            negative="negative",
+            width=768,
+            height=1024,
+            seed=987654321,
+            steps=30,
+            cfg=6.5,
+            sampler_name="euler",
+            scheduler_name="normal",
+            denoise=0.8,
+            clip_skip=save_settings["image_saver"]["clip_skip"],
+            custom=save_settings["image_saver"]["custom"],
+            additional_hashes="Base:A,Model:B",
+            applied_loras=[{"name": "x", "strength_model": 1}],
+            download_civitai_data=save_settings["image_saver"]["download_civitai_data"],
+            easy_remix=save_settings["image_saver"]["easy_remix"],
+        )
+        save.assert_called_once_with(
+            "images",
+            output_root=Path(temp).resolve(),
+            filename="frame",
+            path="EasyUseAnima/Test",
+            extension="webp",
+            lossless_webp=save_settings["image_saver"]["lossless_webp"],
+            quality_jpeg_or_webp=100,
+            optimize_png=save_settings["image_saver"]["optimize_png"],
+            save_workflow_as_json=save_settings["image_saver"]["save_workflow_as_json"],
+            embed_workflow=save_settings["image_saver"]["embed_workflow"],
+            metadata=metadata,
+            prompt={"1": {}},
+            extra_pnginfo={"workflow": {}},
         )
 
     def test_image_saver_renders_templates_before_forwarding_safe_values(self):
-        calls = []
-
-        class ImageSaver:
-            def save_files(self, **kwargs):
-                calls.append(kwargs)
-                return "saved"
-
         settings = {
             "image_saver": {
                 **AIO_GENERATION_DEFAULT_SETTINGS["save"]["image_saver"],
@@ -360,13 +366,14 @@ class AIOOutputMoveTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp:
             with (
                 patch.dict(sys.modules, {"folder_paths": fake_folder_paths(temp)}),
-                patch_comfy_helper(
-                    output,
-                    "_require_custom_node_class",
-                    return_value=ImageSaver,
-                ),
                 patch.object(output, "datetime", FixedDateTime),
                 patch.object(output, "_resolve_aio_runtime_seed", return_value=11),
+                patch.object(output, "_build_native_metadata", return_value=object()),
+                patch.object(
+                    output,
+                    "_save_native_images",
+                    return_value="saved",
+                ) as save,
             ):
                 result = output._save_image_with_image_saver(
                     images="images",
@@ -380,9 +387,49 @@ class AIOOutputMoveTests(unittest.TestCase):
                 )
 
         self.assertEqual(result, "saved")
-        self.assertEqual(calls[0]["path"], "renders/2026/09")
-        self.assertEqual(calls[0]["filename"], "safe_007_anima")
-        self.assertEqual(calls[0]["time_format"], "%Y-%m-%d-%H%M%S")
+        self.assertEqual(save.call_args.kwargs["path"], "renders/2026/09")
+        self.assertEqual(save.call_args.kwargs["filename"], "safe_007_anima")
+
+    def test_metadata_disabled_skips_hashing_and_civitai_work(self):
+        settings = {
+            "image_saver": {
+                **AIO_GENERATION_DEFAULT_SETTINGS["save"]["image_saver"],
+                "filename": "frame",
+                "path": "EasyUseAnima/Test",
+            }
+        }
+        with tempfile.TemporaryDirectory() as temp:
+            with (
+                patch.dict(sys.modules, {"folder_paths": fake_folder_paths(temp)}),
+                patch.object(output, "_comfy_metadata_enabled", return_value=False),
+                patch.object(output, "_resolve_aio_runtime_seed", return_value=11),
+                patch.object(output, "_build_native_metadata") as build,
+                patch.object(output, "_aio_image_saver_additional_hashes") as hashes,
+                patch.object(
+                    output,
+                    "_save_native_images",
+                    return_value="saved",
+                ) as save,
+            ):
+                result = output._save_image_with_image_saver(
+                    images="images",
+                    save_settings=settings,
+                    positive_prompt="positive",
+                    negative_prompt="negative",
+                    width=768,
+                    height=1024,
+                    sampler_settings={"seed": 11},
+                    applied_loras=[{"name": "x.safetensors", "strength_model": 1}],
+                    resource_info={"unet_name": "anima.safetensors"},
+                )
+
+        self.assertEqual(result, "saved")
+        build.assert_not_called()
+        hashes.assert_not_called()
+        metadata = save.call_args.kwargs["metadata"]
+        self.assertEqual(metadata.parameters, "")
+        self.assertEqual(metadata.final_hashes, "")
+        self.assertEqual(metadata.hashes, {})
 
     def test_image_saver_rejects_expanded_output_escape_before_dependency_lookup(self):
         cases = (
@@ -394,7 +441,7 @@ class AIOOutputMoveTests(unittest.TestCase):
             {"path": "%time", "time_format": "../outside"},
             {"filename": "%custom", "custom": "../outside"},
         )
-        require = Mock(side_effect=AssertionError("must reject before dependency lookup"))
+        save = Mock(side_effect=AssertionError("must reject before native writer"))
         with tempfile.TemporaryDirectory() as temp:
             for override in cases:
                 settings = {
@@ -406,7 +453,7 @@ class AIOOutputMoveTests(unittest.TestCase):
                 with self.subTest(override=override):
                     with (
                         patch.dict(sys.modules, {"folder_paths": fake_folder_paths(temp)}),
-                        patch_comfy_helper(output, "_require_custom_node_class", require),
+                        patch.object(output, "_save_native_images", save),
                         patch.object(output, "_resolve_aio_runtime_seed", return_value=11),
                     ):
                         with self.assertRaisesRegex(RuntimeError, "output directory|single filename"):
@@ -421,7 +468,7 @@ class AIOOutputMoveTests(unittest.TestCase):
                                 resource_info={"unet_name": "anima.safetensors"},
                             )
 
-        require.assert_not_called()
+        save.assert_not_called()
 
 
 if __name__ == "__main__":

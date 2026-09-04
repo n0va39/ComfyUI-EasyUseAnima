@@ -1499,12 +1499,17 @@ class FrontendModuleStructureTests(unittest.TestCase):
             "applyVisibleSettings: applyVisibleGeneratorSettings,",
             "writeSettings,",
             "renderPanel: renderGeneratorPanel,",
+        ):
+            with self.subTest(composition_dependency=expected):
+                self.assertIn(expected, composition)
+        for removed_dependency in (
             "available: optionalDependencyAvailable,",
             "pack: optionalDependencyPack,",
             "load: loadGeneratorOptionalDependencies,",
         ):
-            with self.subTest(composition_dependency=expected):
-                self.assertIn(expected, composition)
+            with self.subTest(removed_dependency=removed_dependency):
+                self.assertNotIn(removed_dependency, composition)
+        self.assertNotIn("optionalDependencies", source)
         sampler_composition = entry_source.index("const openSamplerSettings")
         advanced_composition = entry_source.index("const openAdvancedSettings")
         self.assertLess(sampler_composition, composition_start)
