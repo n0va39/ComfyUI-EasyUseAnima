@@ -291,8 +291,16 @@ assert(
     && AIO_DEFAULT_GENERATION_SETTINGS.sampler.steps === 32
     && AIO_DEFAULT_GENERATION_SETTINGS.sampler.cfg === 5
     && AIO_DEFAULT_GENERATION_SETTINGS.negpip.mode === "off"
-    && AIO_DEFAULT_GENERATION_SETTINGS.preview.feed_count === 12,
+    && AIO_DEFAULT_GENERATION_SETTINGS.preview.feed_count === 12
+    && AIO_DEFAULT_GENERATION_SETTINGS.save.image_saver.download_civitai_data === false,
   "AiO generation defaults must retain their serialized baseline",
+);
+const explicitCivitaiOptIn = aioMergeDefaults(AIO_DEFAULT_GENERATION_SETTINGS, {
+  save: { image_saver: { download_civitai_data: true } },
+});
+assert(
+  explicitCivitaiOptIn.save.image_saver.download_civitai_data === true,
+  "Explicit saved Civitai opt-in must survive default merging",
 );
 assertJsonEqual(
   generationManifest.shape.fields.negpip.fields.mode.enum,

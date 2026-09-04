@@ -747,7 +747,7 @@
         "dit_corrections": {"enabled": false, "dcw_mode": "off", "dcw_lambda": 0.02, "dcw_band_mask": "LL", "dcw_calibrator": "(auto-download default)", "smc_cfg": false, "adaptive_smc_alpha": 0.0, "smc_cfg_lambda": 6.0, "cfgpp": false, "cfgpp_lambda": 0.0, "fsg": false, "fsg_band_lo": 0.59, "fsg_band_hi": 0.75, "fsg_k": 3, "fsg_d_sigma": 0.1, "fsg_gamma": 0.0, "replace_existing_cfg": false}
       }
     },
-    "save": {"enabled": true, "backend": "image_saver", "image_saver": {"filename": "%time_%basemodelname", "path": "EasyUseAnima/AiO", "extension": "webp", "lossless_webp": false, "quality_jpeg_or_webp": 97, "optimize_png": true, "counter": 0, "clip_skip": 0, "time_format": "%Y-%m-%d-%H%M%S", "save_workflow_as_json": false, "embed_workflow": true, "save_prompt_metadata": true, "additional_hashes": "", "additional_hash_bundles": [], "civitai_hash_fetchers": [], "download_civitai_data": true, "easy_remix": true, "custom": ""}},
+    "save": {"enabled": true, "backend": "image_saver", "image_saver": {"filename": "%time_%basemodelname", "path": "EasyUseAnima/AiO", "extension": "webp", "lossless_webp": false, "quality_jpeg_or_webp": 97, "optimize_png": true, "counter": 0, "clip_skip": 0, "time_format": "%Y-%m-%d-%H%M%S", "save_workflow_as_json": false, "embed_workflow": true, "save_prompt_metadata": true, "additional_hashes": "", "additional_hash_bundles": [], "civitai_hash_fetchers": [], "download_civitai_data": false, "easy_remix": true, "custom": ""}},
     "preview": {"intermediate_images": false, "compare_previous": false, "image_feed": true, "feed_count": 12}
   }
 }

@@ -29,10 +29,6 @@ export const AIO_OPTIONAL_DEPENDENCY_SPECS = {
     nodeId: "CLIPNegPip",
     pack: "ComfyUI-ppm",
   },
-  imageSaver: {
-    nodeId: "Image Saver",
-    pack: "ComfyUI-Image-Saver",
-  },
   upscaleModelLoader: {
     nodeId: "UpscaleModelLoader",
     pack: "ComfyUI built-in upscale model loader",

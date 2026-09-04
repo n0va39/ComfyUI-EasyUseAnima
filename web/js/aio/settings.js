@@ -434,7 +434,7 @@ export const AIO_DEFAULT_GENERATION_SETTINGS = {
       additional_hashes: "",
       additional_hash_bundles: [],
       civitai_hash_fetchers: [],
-      download_civitai_data: true,
+      download_civitai_data: false,
       easy_remix: true,
       custom: "",
     },

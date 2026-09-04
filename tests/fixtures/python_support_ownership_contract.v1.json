@@ -2,7 +2,7 @@
   "schema_version": 1,
   "baseline_commit": "a0b0dc1f599fcf01ec0f25fc75a23f7524f165ab",
   "inventory": {
-    "expected_files": 211,
+    "expected_files": 212,
     "manual_matrix_source": "tests/fixtures/python_test_ownership_contract.v1.json",
     "patterns": [
       "tests/**/*.json",
@@ -1316,6 +1316,17 @@
         "aio"
       ],
       "purpose": "Direct Python unittest contract for test aio model preparation."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_aio_native_image_output.py",
+      "path": "tests/test_aio_native_image_output.py",
+      "production_groups": [
+        "aio"
+      ],
+      "purpose": "Direct Python unittest contract for native image output, metadata, hashing, and Civitai lookup."
     },
     {
       "execution_mode": "unittest",

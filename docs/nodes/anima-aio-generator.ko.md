@@ -88,22 +88,36 @@ Detailer Settings는 Face/Eye 같은 처리 블럭을 탭으로 보여줍니다.
 
 ## 저장과 재현성
 
-Save Options는 기본적으로 켜져 있고 `ComfyUI-Image-Saver` backend를 사용합니다.
-`Embed workflow`를 유지하면 저장된 이미지에서 workflow를 다시 불러와 같은
-설정을 재생성할 수 있습니다. Civitai Hash Fetcher 항목은 username, model name,
-version을 저장하고 Image Saver의 `additional_hashes`에 `model_name:AutoV3`
-형식으로 전달합니다.
+Save Options는 기본적으로 켜져 있고 EasyUse 네이티브 출력 backend를 사용합니다.
+기존 workflow와 profile의 호환성을 위해 직렬화된 backend ID는 `image_saver`로
+유지하지만, 더 이상 `ComfyUI-Image-Saver`를 설치할 필요는 없습니다.
+
+PNG, JPEG, WebP 모두 A1111 방식의 사람이 읽기 쉬운 `parameters` 블럭을
+저장합니다. PNG는 ComfyUI prompt와 workflow를 text chunk에, JPEG/WebP는
+ComfyUI가 읽을 수 있는 EXIF Make/Model 표현에 저장합니다. 저장 이미지에서
+같은 설정을 다시 불러오려면 `Embed workflow`를 유지하세요. `Save workflow
+JSON`을 켜면 별도 sidecar도 저장합니다. JPEG workflow가 EXIF 크기 한도를
+넘으면 A1111 메타데이터는 보존하고 workflow JSON sidecar를 자동으로 남기므로
+메타데이터가 빠진 부분 저장 파일을 만들지 않습니다.
+
+`Lossless WebP`가 꺼져 있으면 WebP를 손실 압축으로 저장하며, `JPEG/WebP
+quality`로 화질과 파일 크기의 균형을 조절합니다. lossless 모드에서는 saver에
+전달된 픽셀 값을 보존합니다.
 
 저장 메타데이터의 `Steps`, `CFG`, `Sampler`, `Scheduler`, `Seed`, `Denoise`는
 1차 샘플러 값을 사용합니다. `Size`는 Highres와 Detailer 이후의 최종 해상도를
-사용합니다. `lora_stack`으로 적용된 LoRA는 저장 시 Image Saver 메타데이터
-프롬프트에 `<lora:name:weight>` 형식으로 전달되어 Civitai LoRA resource와
-weight 저장에 사용됩니다.
+사용합니다. EasyUse는 로컬에서 확인된 diffusion model과 실제 적용된
+`lora_stack` 파일을 메모리에서 SHA-256으로 계산하여 Civitai 호환 short hash를
+저장하며, 모델 파일 옆에는 hash cache 파일을 만들지 않습니다. 수동 hash
+bundle도 계속 지원합니다. `Civitai data`는 기본적으로 꺼져 있으며, 명시적으로
+켜면 고정된 `https://civitai.com/api/v1` endpoint로 로컬 hash 정보를 보강합니다.
+조회에 실패해도 이미지 저장은 계속됩니다. Civitai Hash Fetcher 항목도 username,
+model name, version을 사용해 `model_name:AutoV3` 항목을 추가합니다.
 
 ## 필요 노드팩
 
 - 필수: `ComfyUI-EasyUseAnima`
-- 샘플 워크플로우 기본값: `ComfyUI-Spectrum-KSampler`, `ComfyUI-Image-Saver`
+- 샘플 워크플로우 기본값: `ComfyUI-Spectrum-KSampler`
 - 선택 기능: `ComfyUI-KJNodes` (SageAttention, Torch Compile), `ComfyUI-Impact-Pack` (AiO SAM3 detailer 경로), `ComfyUI-Anima-DAVE` (Anima DAVE 모델 패치)
 
 선택 노드팩이 설치되어 있지 않으면 해당 UI는 잠기고, Queue 직전에도 해당

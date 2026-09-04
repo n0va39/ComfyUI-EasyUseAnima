@@ -793,7 +793,13 @@ class AIOFrontendSourceTests(unittest.TestCase):
         self.assertIn("generatorOptionalDependencyState.loading = null", load_body)
         self.assertEqual(
             source.count("load: loadGeneratorOptionalDependencies,"),
-            5,
+            4,
+        )
+        save_start = source.index("const openSaveSettings = aioCreateSaveSettingsDialog({")
+        save_end = source.index("const openAdvancedSettings", save_start)
+        self.assertNotIn(
+            "load: loadGeneratorOptionalDependencies,",
+            source[save_start:save_end],
         )
         self.assertNotIn("loadOptionalDependencies:", source)
         self.assertNotIn("generatorQueueRuntime", source)

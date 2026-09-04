@@ -3,8 +3,8 @@
   "baseline_commit": "39997c5423847d4280737f0d78d353d3c6273e07",
   "inventory_owner": {
     "path": "tests/fixtures/python_backend_baseline.json",
-    "expected_baseline_files": 189,
-    "expected_target_files": 195
+    "expected_baseline_files": 191,
+    "expected_target_files": 197
   },
   "linked_contracts": {
     "compatibility_registry": "docs/architecture/python-compatibility-shims.md",
@@ -852,6 +852,50 @@
       "compatibility_registry_key": null,
       "task_id": "ISSUE-645",
       "rollback_unit": "Revert the cohesive Issue #645 AiO prompt-LoRA adapter split.",
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/aio/native_civitai.py",
+      "role": "aio-civitai-metadata-client",
+      "owner_group": "aio",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/aio/native_civitai.py",
+          "role": "aio-civitai-metadata-client",
+          "owner_group": "aio"
+        }
+      ],
+      "direct_contracts": [
+        "tests/test_aio_native_image_output.py"
+      ],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/aio/native_image_output.py",
+      "role": "aio-native-image-output",
+      "owner_group": "aio",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/aio/native_image_output.py",
+          "role": "aio-native-image-output",
+          "owner_group": "aio"
+        }
+      ],
+      "direct_contracts": [
+        "tests/test_aio_native_image_output.py"
+      ],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
       "replacement_owner": null,
       "size_exception_verdicts": []
     },

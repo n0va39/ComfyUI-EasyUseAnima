@@ -50,8 +50,8 @@ The workflow metadata lists required node packs under
 `extra.easyuse_anima_workflow.required_node_packs`.
 
 The default execution path uses split ANIMA model loading, LoRA Stack routing,
-`spectrum_mod_guidance_advanced` sampling, Image Saver WebP output, embedded
-workflow metadata, and the AiO node's preview feed.
+`spectrum_mod_guidance_advanced` sampling, EasyUse native lossy WebP output,
+embedded workflow/A1111 metadata, and the AiO node's preview feed.
 
 ## AiO Generator Example
 
@@ -60,16 +60,16 @@ workflow metadata, and the AiO node's preview feed.
 
 This workflow wires `Anima Prompt Studio Advanced v2` into `Easy Use Anima
 Input`, then sends the dedicated context into `Anima AiO Generator`. The sample
-uses the `spectrum_mod_guidance_advanced` sampler path and Image Saver metadata
-embedding. Required node-pack information is stored in
+uses the `spectrum_mod_guidance_advanced` sampler path and EasyUse native
+workflow/A1111 metadata embedding. Required node-pack information is stored in
 `extra.easyuse_anima_workflow.required_node_packs`.
 
 The AiO generator sample uses the 0.2.3 defaults: first-pass steps `32`,
 sampler `er_sde`, scheduler `simple`, AuraFlow shift `3.0`, Highres scale
 `1.5`, and Highres denoise `0.25`.
 
-Required sample defaults are `ComfyUI-EasyUseAnima`,
-`ComfyUI-Spectrum-KSampler`, and `ComfyUI-Image-Saver`. Optional features are
+Required sample defaults are `ComfyUI-EasyUseAnima` and
+`ComfyUI-Spectrum-KSampler`. Optional features are
 listed in the same metadata with `required_for_sample: false`, including
 `ComfyUI-Anima-DAVE`, `ComfyUI-KJNodes`, and `ComfyUI-Impact-Pack`.
 

@@ -91,21 +91,37 @@ metadata; runtime dispatch uses stable internal keys plus `detailer.order`.
 
 ## Saving And Reproducibility
 
-Save Options are enabled by default and use the `ComfyUI-Image-Saver` backend.
-Keep `Embed workflow` enabled when saved images should reload into the same
-generation setup. Civitai Hash Fetcher rows store username, model name, and
-version, then pass `model_name:AutoV3` into Image Saver `additional_hashes`.
+Save Options are enabled by default and use EasyUse's native output backend.
+The serialized backend ID remains `image_saver` so existing workflows and
+profiles keep loading, but `ComfyUI-Image-Saver` is no longer required.
+
+PNG, JPEG, and WebP all store an A1111-style `parameters` block. PNG stores the
+ComfyUI prompt and workflow as text chunks; JPEG and WebP use the same EXIF
+Make/Model representation that ComfyUI understands. Keep `Embed workflow`
+enabled when saved images should reload into the same generation setup. Enable
+`Save workflow JSON` for a sidecar copy. If a JPEG workflow exceeds EXIF's size
+limit, EasyUse preserves the A1111 metadata and writes the workflow sidecar
+automatically instead of leaving a partially written image.
+
+WebP is lossy when `Lossless WebP` is off; `JPEG/WebP quality` controls its
+quality/file-size tradeoff. When lossless mode is on, WebP preserves the pixel
+values supplied to the saver.
 
 Saved metadata uses first-pass sampler values for `Steps`, `CFG`, `Sampler`,
 `Scheduler`, `Seed`, and `Denoise`. `Size` uses the final image resolution after
-Highres and Detailer. LoRAs applied through `lora_stack` are appended to the
-Image Saver metadata prompt as `<lora:name:weight>` tokens so Image Saver can
-write Civitai LoRA resources and weights.
+Highres and Detailer. EasyUse hashes the locally resolved diffusion model and
+applied `lora_stack` files with SHA-256 in memory, writes their Civitai-compatible
+short hashes, and never creates cache files beside model files. Manual hash
+bundles remain supported. `Civitai data` is disabled by default; explicitly
+enable it to enrich those local hashes through fixed
+`https://civitai.com/api/v1` endpoints. Failures are logged and do not block
+image saving. Civitai Hash Fetcher rows likewise store username, model name,
+and version and add `model_name:AutoV3` entries.
 
 ## Required Node Packs
 
 - Required: `ComfyUI-EasyUseAnima`
-- Sample workflow defaults: `ComfyUI-Spectrum-KSampler`, `ComfyUI-Image-Saver`
+- Sample workflow defaults: `ComfyUI-Spectrum-KSampler`
 - Optional features: `ComfyUI-KJNodes` for SageAttention/Torch Compile, `ComfyUI-Impact-Pack` for the AiO SAM3 detailer path, `ComfyUI-Anima-DAVE` for the Anima DAVE model patch
 
 When an optional node pack is not installed, the related UI is locked and queue
