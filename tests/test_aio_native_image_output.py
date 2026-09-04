@@ -69,6 +69,84 @@ class AIONativeImageOutputTests(unittest.TestCase):
         resources._hash_file_revision.cache_clear()
         civitai._fetch_civitai_autov3_hash.cache_clear()
         civitai._cached_civitai_resource_by_hash.cache_clear()
+        comfy_module = types.ModuleType("comfy")
+        comfy_module.__path__ = []
+        cli_args_module = types.ModuleType("comfy.cli_args")
+        cli_args_module.args = types.SimpleNamespace(disable_metadata=False)
+        comfy_module.cli_args = cli_args_module
+        cli_args_patch = patch.dict(
+            sys.modules,
+            {
+                "comfy": comfy_module,
+                "comfy.cli_args": cli_args_module,
+            },
+        )
+        cli_args_patch.start()
+        self.addCleanup(cli_args_patch.stop)
+
+    def test_comfy_metadata_setting_fails_closed_on_import_or_access_error(self):
+        for disable_metadata, expected in ((False, True), (True, False)):
+            cli_args_module = types.ModuleType("comfy.cli_args")
+            cli_args_module.args = types.SimpleNamespace(
+                disable_metadata=disable_metadata
+            )
+            with patch.dict(sys.modules, {"comfy.cli_args": cli_args_module}):
+                self.assertIs(native._comfy_metadata_enabled(), expected)
+
+        missing_attribute_module = types.ModuleType("comfy.cli_args")
+        missing_attribute_module.args = object()
+        with patch.dict(
+            sys.modules,
+            {"comfy.cli_args": missing_attribute_module},
+        ):
+            self.assertFalse(native._comfy_metadata_enabled())
+
+        class RaisingArgs:
+            @property
+            def disable_metadata(self):
+                raise RuntimeError("setting access failed")
+
+        raising_module = types.ModuleType("comfy.cli_args")
+        raising_module.args = RaisingArgs()
+        with patch.dict(sys.modules, {"comfy.cli_args": raising_module}):
+            self.assertFalse(native._comfy_metadata_enabled())
+
+        with patch.dict(sys.modules, {"comfy.cli_args": None}):
+            self.assertFalse(native._comfy_metadata_enabled())
+
+    def test_disabled_metadata_snapshot_writes_image_only_without_rereading_flag(self):
+        metadata = native.NativeImageMetadata("parameters", "hashes", {"model": "abc"})
+        pixels = np.zeros((2, 2, 3), dtype=np.float32)
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            with patch.object(
+                native,
+                "_comfy_metadata_enabled",
+                side_effect=AssertionError("explicit snapshot must not be reread"),
+            ):
+                result = native._save_native_images(
+                    [FakeTensor(pixels)],
+                    output_root=root,
+                    path="",
+                    filename="private",
+                    extension="png",
+                    quality_jpeg_or_webp=80,
+                    lossless_webp=False,
+                    optimize_png=False,
+                    embed_workflow=True,
+                    save_workflow_as_json=True,
+                    metadata=metadata,
+                    prompt={"1": {"class_type": "Test"}},
+                    extra_pnginfo={"workflow": {"nodes": []}},
+                    metadata_enabled=False,
+                )
+
+            image_path = root / result["ui"]["images"][0]["filename"]
+            with Image.open(image_path) as saved:
+                self.assertNotIn("parameters", saved.info)
+                self.assertNotIn("prompt", saved.info)
+                self.assertNotIn("workflow", saved.info)
+            self.assertFalse(image_path.with_suffix(".json").exists())
 
     def test_a1111_metadata_contains_local_model_lora_and_manual_civitai_hashes(self):
         with tempfile.TemporaryDirectory() as temp:
