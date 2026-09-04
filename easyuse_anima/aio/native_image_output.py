@@ -298,9 +298,9 @@ def _comfy_metadata_enabled() -> bool:
     try:
         from comfy.cli_args import args  # type: ignore
 
-        return not bool(getattr(args, "disable_metadata", False))
+        return not bool(getattr(args, "disable_metadata"))
     except Exception:
-        return True
+        return False
 
 
 def _encode_user_comment(value: str) -> bytes:
@@ -587,6 +587,7 @@ def _save_native_images(
     metadata: NativeImageMetadata,
     prompt: object | None,
     extra_pnginfo: Mapping[str, object] | None,
+    metadata_enabled: bool | None = None,
 ) -> dict[str, object]:
     batch = list(images)
     if not batch:
@@ -600,6 +601,11 @@ def _save_native_images(
         raise RuntimeError("[EasyUseAnima] AiO save filename is invalid.")
     resolved_folder, relative_folder = _resolve_native_output_folder(output_root, path)
 
+    write_metadata = (
+        _comfy_metadata_enabled()
+        if metadata_enabled is None
+        else bool(metadata_enabled)
+    )
     serialized = _serialize_metadata(
         extension=safe_extension,
         parameters=metadata.parameters,
@@ -607,7 +613,7 @@ def _save_native_images(
         extra_pnginfo=extra_pnginfo,
         embed_workflow=embed_workflow,
         save_workflow_as_json=save_workflow_as_json,
-        write_metadata=_comfy_metadata_enabled(),
+        write_metadata=write_metadata,
     )
     quality = max(1, min(100, int(quality_jpeg_or_webp)))
     image_format = {

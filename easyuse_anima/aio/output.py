@@ -706,7 +706,8 @@ def _save_image_with_image_saver(
         resource_info=resource_info,
     )
 
-    if _comfy_metadata_enabled():
+    metadata_enabled = _comfy_metadata_enabled()
+    if metadata_enabled:
         _validate_parameter_sources(
             positive_prompt,
             negative_prompt,
@@ -791,6 +792,7 @@ def _save_image_with_image_saver(
         metadata=metadata,
         prompt=workflow_prompt,
         extra_pnginfo=extra_pnginfo,
+        metadata_enabled=metadata_enabled,
     )
 
 
