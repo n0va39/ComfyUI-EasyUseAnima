@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 import os
 import re
-from collections.abc import Callable, Mapping
+from collections.abc import Callable, Iterator, Mapping
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path, PurePosixPath, PureWindowsPath
@@ -42,6 +42,7 @@ _IMAGE_SAVER_CUSTOM_COUNTER_RE = re.compile(r"%counter<([0-9]+)>")
 _OUTPUT_CONTROL_RE = re.compile(r"[\x00-\x1f\x7f]")
 _MAX_OUTPUT_TEMPLATE_LENGTH = 1024
 _MAX_OUTPUT_TIME_FORMAT_LENGTH = 256
+_STRFTIME_DIRECTIVE_PREFIX_CHARS = frozenset("-_0^#:EO0123456789")
 _MAX_CIVITAI_HASH_FETCHERS = 32
 
 
@@ -171,26 +172,115 @@ def _image_saver_model_names(modelname: str) -> tuple[str, str]:
     return filename, basename
 
 
-def _image_saver_timestamp(now: datetime, time_format: str) -> str:
+def _iter_strftime_segments(time_format: str) -> Iterator[tuple[str, bool]]:
+    cursor = 0
+    while cursor < len(time_format):
+        percent = time_format.find("%", cursor)
+        if percent < 0:
+            yield time_format[cursor:], False
+            return
+        if percent > cursor:
+            yield time_format[cursor:percent], False
+
+        end = percent + 1
+        if end < len(time_format) and time_format[end] == "%":
+            end += 1
+        else:
+            while (
+                end < len(time_format)
+                and time_format[end] in _STRFTIME_DIRECTIVE_PREFIX_CHARS
+            ):
+                end += 1
+            if end < len(time_format):
+                end += 1
+        yield time_format[percent:end], True
+        cursor = end
+
+
+def _render_strftime_bounded(
+    now: datetime,
+    time_format: str,
+    max_length: int,
+) -> str:
+    pieces: list[str] = []
+    result_length = 0
+    for segment, is_directive in _iter_strftime_segments(time_format):
+        remaining = max_length - result_length
+        if remaining < 0:
+            raise RuntimeError("[EasyUseAnima] AiO save template result is too long.")
+        if is_directive:
+            if any(
+                int(width) > remaining
+                for width in re.findall(r"[0-9]+", segment[1:])
+            ):
+                raise RuntimeError(
+                    "[EasyUseAnima] AiO save template result is too long."
+                )
+            rendered = now.strftime(segment)
+        else:
+            rendered = segment
+        if len(rendered) > remaining:
+            raise RuntimeError("[EasyUseAnima] AiO save template result is too long.")
+        pieces.append(rendered)
+        result_length += len(rendered)
+    return "".join(pieces)
+
+
+def _bounded_image_saver_timestamp(
+    now: datetime,
+    time_format: str,
+    max_length: int,
+) -> str:
     try:
-        return now.strftime(time_format)
+        return _render_strftime_bounded(now, time_format, max_length)
     except (OSError, ValueError):
-        return now.strftime(_IMAGE_SAVER_SAFE_TIME_FORMAT)
+        return _render_strftime_bounded(
+            now,
+            _IMAGE_SAVER_SAFE_TIME_FORMAT,
+            max_length,
+        )
 
 
-def _bounded_template_replace(value: str, token: str, replacement: str) -> str:
+def _bounded_integer_text(value: int, max_length: int, *, padding: int = 0) -> str:
+    sign_length = int(value < 0)
+    digit_limit = max_length - sign_length
+    if digit_limit < 1 or padding > max_length or abs(value) >= 10**digit_limit:
+        raise RuntimeError("[EasyUseAnima] AiO save template result is too long.")
+    rendered = f"{value:0{padding}d}" if padding else str(value)
+    if len(rendered) > max_length:
+        raise RuntimeError("[EasyUseAnima] AiO save template result is too long.")
+    return rendered
+
+
+def _bounded_template_replace_with(
+    value: str,
+    token: str,
+    replacement: Callable[[int], str],
+) -> str:
     count = value.count(token)
     if not count:
         return value
-    result_length = len(value) + count * (len(replacement) - len(token))
-    if result_length > _MAX_OUTPUT_TEMPLATE_LENGTH:
+    fixed_length = len(value) - count * len(token)
+    if fixed_length > _MAX_OUTPUT_TEMPLATE_LENGTH:
         raise RuntimeError("[EasyUseAnima] AiO save template result is too long.")
-    return value.replace(token, replacement)
+    replacement_limit = (_MAX_OUTPUT_TEMPLATE_LENGTH - fixed_length) // count
+    rendered = replacement(replacement_limit)
+    if len(rendered) > replacement_limit:
+        raise RuntimeError("[EasyUseAnima] AiO save template result is too long.")
+    return value.replace(token, rendered)
+
+
+def _bounded_template_replace(value: str, token: str, replacement: str) -> str:
+    return _bounded_template_replace_with(
+        value,
+        token,
+        lambda _max_length: replacement,
+    )
 
 
 def _bounded_template_sub(
     pattern: re.Pattern[str],
-    replacement: Callable[[re.Match[str]], str],
+    replacement: Callable[[re.Match[str], int], str],
     value: str,
 ) -> str:
     pieces: list[str] = []
@@ -200,11 +290,14 @@ def _bounded_template_sub(
     for match in pattern.finditer(value):
         matched = True
         literal = value[cursor : match.start()]
-        rendered = replacement(match)
-        result_length += len(literal) + len(rendered)
-        if result_length > _MAX_OUTPUT_TEMPLATE_LENGTH:
+        replacement_limit = _MAX_OUTPUT_TEMPLATE_LENGTH - result_length - len(literal)
+        if replacement_limit < 0:
+            raise RuntimeError("[EasyUseAnima] AiO save template result is too long.")
+        rendered = replacement(match, replacement_limit)
+        if len(rendered) > replacement_limit:
             raise RuntimeError("[EasyUseAnima] AiO save template result is too long.")
         pieces.extend((literal, rendered))
+        result_length += len(literal) + len(rendered)
         cursor = match.end()
     if not matched:
         return value
@@ -240,39 +333,39 @@ def _render_image_saver_template(
     ):
         raise RuntimeError("[EasyUseAnima] AiO save template is too long.")
 
-    def replace_time(match: re.Match[str]) -> str:
-        return _image_saver_timestamp(now, match.group(1))
+    def replace_time(match: re.Match[str], max_length: int) -> str:
+        return _bounded_image_saver_timestamp(now, match.group(1), max_length)
 
-    def replace_counter(match: re.Match[str]) -> str:
+    def replace_counter(match: re.Match[str], max_length: int) -> str:
         padding = int(match.group(1))
         if padding > 32:
             raise RuntimeError(
                 "[EasyUseAnima] AiO save counter padding must be 32 or less."
             )
-        return f"{counter:0{padding}d}"
+        return _bounded_integer_text(counter, max_length, padding=padding)
 
     model_filename, base_model_name = _image_saver_model_names(modelname)
     value = _bounded_template_sub(_IMAGE_SAVER_CUSTOM_TIME_RE, replace_time, value)
     value = _bounded_template_sub(_IMAGE_SAVER_CUSTOM_COUNTER_RE, replace_counter, value)
     replacements = (
-        ("%date", _image_saver_timestamp(now, "%Y-%m-%d")),
-        ("%time", _image_saver_timestamp(now, time_format)),
-        ("%model", model_filename),
-        ("%width", str(width)),
-        ("%height", str(height)),
-        ("%seed", str(seed)),
-        ("%counter", str(counter)),
-        ("%sampler_name", sampler_name),
-        ("%steps", str(steps)),
-        ("%cfg", str(cfg)),
-        ("%scheduler_name", scheduler_name),
-        ("%basemodelname", base_model_name),
-        ("%denoise", str(denoise)),
-        ("%clip_skip", str(clip_skip)),
-        ("%custom", custom),
+        ("%date", lambda limit: _bounded_image_saver_timestamp(now, "%Y-%m-%d", limit)),
+        ("%time", lambda limit: _bounded_image_saver_timestamp(now, time_format, limit)),
+        ("%model", lambda _limit: model_filename),
+        ("%width", lambda limit: _bounded_integer_text(width, limit)),
+        ("%height", lambda limit: _bounded_integer_text(height, limit)),
+        ("%seed", lambda limit: _bounded_integer_text(seed, limit)),
+        ("%counter", lambda limit: _bounded_integer_text(counter, limit)),
+        ("%sampler_name", lambda _limit: sampler_name),
+        ("%steps", lambda limit: _bounded_integer_text(steps, limit)),
+        ("%cfg", lambda _limit: str(cfg)),
+        ("%scheduler_name", lambda _limit: scheduler_name),
+        ("%basemodelname", lambda _limit: base_model_name),
+        ("%denoise", lambda _limit: str(denoise)),
+        ("%clip_skip", lambda limit: _bounded_integer_text(clip_skip, limit)),
+        ("%custom", lambda _limit: custom),
     )
     for token, replacement in replacements:
-        value = _bounded_template_replace(value, token, replacement)
+        value = _bounded_template_replace_with(value, token, replacement)
     if "%" in value:
         raise RuntimeError(
             "[EasyUseAnima] AiO save template contains an unsupported placeholder."
@@ -333,7 +426,11 @@ def _resolve_image_saver_runtime(
         **template_values,
     )
     if not rendered_filename:
-        rendered_filename = _image_saver_timestamp(now, time_format)
+        rendered_filename = _bounded_image_saver_timestamp(
+            now,
+            time_format,
+            _MAX_OUTPUT_TEMPLATE_LENGTH,
+        )
     rendered_filename = _sanitize_native_output_filename(rendered_filename)
     output_root = _comfy_output_directory()
     safe_path = _validated_output_subpath(

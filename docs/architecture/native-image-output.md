@@ -156,8 +156,11 @@ rechecks the created folder's resolved path before use.
 Template inputs and rendered results are limited to 1,024 characters, and the
 time-format setting is limited to 256 characters. Every custom time, padded
 counter, and fixed placeholder substitution checks its projected result length
-before constructing that intermediate string, so repeated large replacement
-values cannot amplify beyond the accepted template budget.
+before constructing that intermediate string. Time formats are rendered in
+bounded segments after rejecting excessive numeric field widths, and integer
+placeholders verify their decimal digit count before string formatting. Repeated
+large replacement values therefore cannot amplify beyond the accepted template
+budget.
 
 Batch and collision suffixes are allocated while holding a process lock. When
 a workflow sidecar is required, both the image and JSON names participate in

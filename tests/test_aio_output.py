@@ -30,16 +30,23 @@ def fake_folder_paths(output_root: str) -> types.ModuleType:
     return module
 
 
-def render_output_template(pattern: str, *, custom: str) -> str:
+def render_output_template(
+    pattern: str,
+    *,
+    custom: str,
+    now=None,
+    counter: int = 7,
+    time_format: str = "%Y-%m-%d-%H%M%S",
+) -> str:
     return output._render_image_saver_template(
         pattern,
-        now=datetime(2026, 9, 4, 12, 34, 56),
+        now=now or datetime(2026, 9, 4, 12, 34, 56),
         width=1024,
         height=1024,
         seed=11,
         modelname="anima.safetensors",
-        counter=7,
-        time_format="%Y-%m-%d-%H%M%S",
+        counter=counter,
+        time_format=time_format,
         sampler_name="euler",
         steps=28,
         cfg=5.0,
@@ -541,18 +548,87 @@ class AIOOutputMoveTests(unittest.TestCase):
 
         with patch.object(
             output,
-            "_bounded_template_replace",
-            wraps=output._bounded_template_replace,
+            "_bounded_template_replace_with",
+            wraps=output._bounded_template_replace_with,
         ) as bounded_replace:
             with self.assertRaisesRegex(RuntimeError, "template result is too long"):
                 render_output_template("%custom" * 128, custom="abcdefghi")
-        bounded_replace.assert_any_call(ANY, "%custom", "abcdefghi")
+        self.assertTrue(
+            any(call.args[1] == "%custom" for call in bounded_replace.call_args_list)
+        )
 
     def test_template_expansion_accepts_exact_result_budget(self):
         rendered = render_output_template("%custom" * 128, custom="abcdefgh")
 
         self.assertEqual(rendered, "abcdefgh" * 128)
         self.assertEqual(len(rendered), 1024)
+
+    def test_template_time_width_is_rejected_before_strftime(self):
+        class StrftimeTrap:
+            def __init__(self):
+                self.calls = []
+
+            def strftime(self, time_format):
+                self.calls.append(time_format)
+                raise AssertionError("oversized field width must not reach strftime")
+
+        for pattern, time_format in (
+            ("%time_format<%9999Y>", "%Y-%m-%d"),
+            ("%time", "%9999Y"),
+        ):
+            now = StrftimeTrap()
+            with self.subTest(pattern=pattern), self.assertRaisesRegex(
+                RuntimeError, "template result is too long"
+            ):
+                render_output_template(
+                    pattern,
+                    custom="",
+                    now=now,
+                    time_format=time_format,
+                )
+            self.assertEqual(now.calls, [])
+
+        fallback_now = StrftimeTrap()
+
+        class FixedDateTime:
+            @staticmethod
+            def now():
+                return fallback_now
+
+        settings = {
+            "image_saver": {
+                **AIO_GENERATION_DEFAULT_SETTINGS["save"]["image_saver"],
+                "filename": "%custom",
+                "custom": "",
+                "time_format": "%9999Y",
+            }
+        }
+        with patch.object(output, "datetime", FixedDateTime), self.assertRaisesRegex(
+            RuntimeError, "template result is too long"
+        ):
+            output._resolve_image_saver_runtime(
+                settings,
+                width=1024,
+                height=1024,
+                sampler_settings={"seed": 11},
+                resource_info=None,
+            )
+        self.assertEqual(fallback_now.calls, [])
+
+    def test_template_counter_is_rejected_before_decimal_formatting(self):
+        class FormatTrap(int):
+            def __str__(self):
+                raise AssertionError("oversized counter must not be stringified")
+
+            def __format__(self, _format_spec):
+                raise AssertionError("oversized counter must not be formatted")
+
+        counter = FormatTrap(10**1024)
+        for pattern in ("%counter", "%counter<03>"):
+            with self.subTest(pattern=pattern), self.assertRaisesRegex(
+                RuntimeError, "template result is too long"
+            ):
+                render_output_template(pattern, custom="", counter=counter)
 
     def test_image_saver_sanitizes_windows_filename_before_native_writer(self):
         settings = {
