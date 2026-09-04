@@ -112,7 +112,11 @@ def _open_or_create_posix_directory(
         except FileExistsError:
             pass
         descriptor = os.open(name, flags, dir_fd=parent_descriptor)
-    _verify_posix_path_identity(expected_parent, parent_descriptor)
+    try:
+        _verify_posix_path_identity(expected_parent, parent_descriptor)
+    except BaseException:
+        os.close(descriptor)
+        raise
     return descriptor
 
 

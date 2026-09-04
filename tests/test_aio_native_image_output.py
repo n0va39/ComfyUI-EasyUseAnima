@@ -1685,6 +1685,32 @@ class AIONativeImageOutputTests(unittest.TestCase):
                 os.name != "nt",
             )
 
+    def test_posix_post_open_verification_closes_child_descriptor(self):
+        failure = directories.OutputDirectoryIntegrityError(
+            "injected parent identity change"
+        )
+        close = Mock()
+        with (
+            patch.object(directories.os, "open", return_value=4321),
+            patch.object(directories.os, "close", close),
+            patch.object(
+                directories,
+                "_verify_posix_path_identity",
+                side_effect=(None, failure),
+            ),
+            self.assertRaisesRegex(
+                directories.OutputDirectoryIntegrityError,
+                "injected parent identity change",
+            ),
+        ):
+            directories._open_or_create_posix_directory(
+                1234,
+                "child",
+                expected_parent=Path("parent"),
+            )
+
+        close.assert_called_once_with(4321)
+
     def test_parent_bound_creation_cannot_follow_replaced_component(self):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp) / "output"
