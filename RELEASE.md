@@ -1,5 +1,42 @@
 # Release Notes
 
+## 1.2.0
+
+### Added
+
+- Anima AiO Generator can now save PNG, JPEG/JPG, lossy WebP, and lossless
+  WebP images directly without requiring ComfyUI-Image-Saver.
+- Native saves can include A1111-style generation parameters, embedded ComfyUI
+  prompt and workflow data, and optional matching JSON workflow sidecars.
+- Saved metadata can include local model, LoRA, and embedding hashes, manually
+  supplied hashes, and optional bounded Civitai hash enrichment.
+- EasyUse-generated JPEG images can restore their embedded ComfyUI workflows
+  when opened in ComfyUI.
+
+### Fixed
+
+- Native output filenames, templates, and subdirectories are validated for the
+  active ComfyUI output folder, including Windows-specific unsafe names.
+- Image and workflow-sidecar publication now avoids exposing incomplete output
+  pairs, while metadata, hash, and optional Civitai work have explicit limits.
+- Reserved EXIF fields and the selected metadata privacy setting remain stable
+  throughout each save operation.
+
+### Compatibility
+
+- Existing AiO workflows and profiles keep their saved `image_saver`
+  compatibility key, which is now presented as EasyUse Native. No migration is
+  required.
+- AiO native saving no longer imports or looks up ComfyUI-Image-Saver. A
+  workflow that explicitly contains standalone nodes from that project still
+  requires it.
+- Remote Civitai enrichment remains opt-in. Local and manually supplied hashes
+  do not require a remote request.
+
+### Update
+
+- After updating, restart ComfyUI and hard-refresh the browser.
+
 ## 1.1.6
 
 ### Fixed
