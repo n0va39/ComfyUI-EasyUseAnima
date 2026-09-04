@@ -4,7 +4,7 @@
   "inventory_owner": {
     "path": "tests/fixtures/python_backend_baseline.json",
     "expected_baseline_files": 191,
-    "expected_target_files": 198
+    "expected_target_files": 199
   },
   "linked_contracts": {
     "compatibility_registry": "docs/architecture/python-compatibility-shims.md",
@@ -890,6 +890,11 @@
           "owner_group": "aio"
         },
         {
+          "path": "easyuse_anima/aio/native_output_publication.py",
+          "role": "aio-native-output-publication",
+          "owner_group": "aio"
+        },
+        {
           "path": "easyuse_anima/aio/native_resource_hashes.py",
           "role": "aio-native-resource-hashes",
           "owner_group": "aio"
@@ -899,8 +904,8 @@
         "tests/test_aio_native_image_output.py"
       ],
       "compatibility_registry_key": null,
-      "task_id": "ISSUE-689",
-      "rollback_unit": "Revert the cohesive Issue #689 native resource metadata and hash-owner split.",
+      "task_id": "ISSUE-689-694",
+      "rollback_unit": "Revert the cohesive Issue #689 resource split and Issue #694 publication extraction.",
       "replacement_owner": null,
       "size_exception_verdicts": []
     },
