@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import re
+import tomllib
 import unittest
 from pathlib import Path
 
@@ -161,6 +162,20 @@ class ReleaseWorkflowTests(unittest.TestCase):
                 package_version = metadata.get("package_version")
                 self.assertIsInstance(package_version, str)
                 self.assertRegex(package_version, PACKAGE_VERSION_RE)
+
+    def test_current_aio_samples_match_current_package_version(self):
+        project = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
+        current_version = project["project"]["version"]
+
+        for workflow_path in AIO_NATIVE_OUTPUT_WORKFLOWS:
+            with self.subTest(path=workflow_path.name):
+                metadata = (
+                    load_workflow(workflow_path)
+                    .get("extra", {})
+                    .get("easyuse_anima_workflow")
+                )
+                self.assertIsInstance(metadata, dict)
+                self.assertEqual(metadata.get("package_version"), current_version)
 
     def test_aio_generator_samples_list_required_node_packs(self):
         for workflow_path in AIO_NATIVE_OUTPUT_WORKFLOWS:
