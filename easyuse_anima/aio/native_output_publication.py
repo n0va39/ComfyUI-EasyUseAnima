@@ -37,6 +37,7 @@ class _OpenTemporary:
     name: str
     descriptor: int
     identity: _FileIdentity
+    publication_target: str | None = None
     retain_on_close: bool = False
 
     def binary_writer(self) -> BinaryIO:
@@ -45,20 +46,35 @@ class _OpenTemporary:
     def keep(self) -> None:
         self.retain_on_close = True
 
-    def close(self) -> None:
+    def close(self) -> bool:
         if self.descriptor < 0:
-            return
+            return True
         descriptor = self.descriptor
         self.descriptor = -1
         if os.name == "nt":
             if not self.retain_on_close:
                 _delete_windows_file_handle(descriptor)
             os.close(descriptor)
-            if not self.retain_on_close:
-                self.directory._remove_temporary_name(self.name, self.identity)
-        else:
-            self.directory._remove_temporary_name(self.name, self.identity)
-            os.close(descriptor)
+            if self.retain_on_close:
+                return True
+            target_removed = (
+                self.publication_target is None
+                or self.directory._remove_name_if_owned(
+                    self.publication_target,
+                    self.identity,
+                )
+            )
+            temporary_removed = self.directory._remove_temporary_name(
+                self.name,
+                self.identity,
+            )
+            return target_removed and temporary_removed
+        temporary_removed = self.directory._remove_temporary_name(
+            self.name,
+            self.identity,
+        )
+        os.close(descriptor)
+        return temporary_removed
 
 
 def _file_identity(stat_result: os.stat_result) -> _FileIdentity:
@@ -383,7 +399,7 @@ class OutputDirectoryBinding:
         self,
         name: str,
         identity: _FileIdentity,
-    ) -> None:
+    ) -> bool:
         try:
             current = self._stat_name(name)
             if (
@@ -391,19 +407,21 @@ class OutputDirectoryBinding:
                 and _file_identity(current) == identity
             ):
                 self._unlink_name(name)
+            return True
         except FileNotFoundError:
-            return
+            return True
         except OSError as exc:
             logger.warning(
                 "[EasyUseAnima] Native output cleanup failed (%s).",
                 type(exc).__name__,
             )
+            return False
 
     def _remove_temporary_name(
         self,
         name: str,
         identity: _FileIdentity,
-    ) -> None:
+    ) -> bool:
         try:
             current = self._stat_name(name)
             if (
@@ -414,13 +432,15 @@ class OutputDirectoryBinding:
                 )
             ):
                 self._unlink_name(name)
+            return True
         except FileNotFoundError:
-            return
+            return True
         except OSError as exc:
             logger.warning(
                 "[EasyUseAnima] Native temporary cleanup failed (%s).",
                 type(exc).__name__,
             )
+            return False
 
     def create_temporary(self) -> _OpenTemporary:
         self.assert_current()
@@ -496,6 +516,7 @@ class OutputDirectoryBinding:
     ) -> _FileIdentity:
         self.assert_current()
         self.assert_temporary_identity(temporary)
+        temporary.publication_target = target_name
         try:
             if os.name == "nt":
                 if self._windows_handle is None:
@@ -513,7 +534,6 @@ class OutputDirectoryBinding:
                     raise PublicationIntegrityError(
                         "published output escaped its bound directory"
                     )
-                temporary.name = target_name
                 if _file_identity(os.fstat(temporary.descriptor)) != temporary.identity:
                     raise PublicationIntegrityError(
                         "published output handle changed during publication"
@@ -612,6 +632,9 @@ def publish_image_transaction(
     sidecar_temporary: _OpenTemporary | None = None
     image_identity: _FileIdentity | None = None
     sidecar_identity: _FileIdentity | None = None
+    image_publish_started = False
+    sidecar_publish_started = False
+    image_rollback_confirmed = True
     sidecar_name = str(Path(target_name).with_suffix(".json"))
     try:
         _write_image(
@@ -626,37 +649,76 @@ def publish_image_transaction(
             _write_text(sidecar_temporary, sidecar_text)
             directory.assert_temporary_identity(sidecar_temporary)
 
+        if sidecar_temporary is not None:
+            sidecar_publish_started = True
+            sidecar_identity = directory.link_no_replace(
+                sidecar_temporary,
+                sidecar_name,
+            )
+        image_publish_started = True
         image_identity = directory.link_no_replace(
             image_temporary,
             target_name,
         )
         if sidecar_temporary is not None:
-            sidecar_identity = directory.link_no_replace(
-                sidecar_temporary,
-                sidecar_name,
-            )
-        image_temporary.keep()
-        if sidecar_temporary is not None:
             sidecar_temporary.keep()
-    except Exception:
-        if os.name != "nt" and sidecar_identity is not None:
-            directory._remove_name_if_owned(sidecar_name, sidecar_identity)
-        if os.name != "nt" and image_identity is not None:
-            directory._remove_name_if_owned(target_name, image_identity)
+        image_temporary.keep()
+    except BaseException:
+        if os.name != "nt" and image_publish_started:
+            image_rollback_confirmed = directory._remove_name_if_owned(
+                target_name,
+                image_temporary.identity,
+            )
+        if (
+            os.name != "nt"
+            and image_rollback_confirmed
+            and sidecar_publish_started
+            and sidecar_temporary is not None
+        ):
+            directory._remove_name_if_owned(
+                sidecar_name,
+                sidecar_temporary.identity,
+            )
         raise
     finally:
-        if sidecar_temporary is not None:
-            sidecar_temporary.close()
-        image_temporary.close()
+        if image_temporary.retain_on_close and sidecar_temporary is not None:
+            try:
+                sidecar_temporary.close()
+            finally:
+                image_temporary.close()
+        else:
+            try:
+                image_cleanup_confirmed = image_temporary.close()
+            except BaseException:
+                if (
+                    os.name == "nt"
+                    and sidecar_identity is not None
+                    and sidecar_temporary is not None
+                ):
+                    sidecar_temporary.keep()
+                if sidecar_temporary is not None:
+                    sidecar_temporary.close()
+                raise
+            if sidecar_temporary is not None:
+                if (
+                    os.name == "nt"
+                    and not image_cleanup_confirmed
+                    and sidecar_identity is not None
+                ):
+                    sidecar_temporary.keep()
+                sidecar_temporary.close()
 
     try:
-        directory.assert_published_identity(target_name, image_identity)
         if sidecar_identity is not None:
             directory.assert_published_identity(sidecar_name, sidecar_identity)
-    except Exception:
-        if sidecar_identity is not None:
+        directory.assert_published_identity(target_name, image_identity)
+    except BaseException:
+        image_rollback_confirmed = directory._remove_name_if_owned(
+            target_name,
+            image_identity,
+        )
+        if image_rollback_confirmed and sidecar_identity is not None:
             directory._remove_name_if_owned(sidecar_name, sidecar_identity)
-        directory._remove_name_if_owned(target_name, image_identity)
         raise
 
 
