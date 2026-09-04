@@ -232,31 +232,40 @@ class AIONativeImageOutputTests(unittest.TestCase):
         self.assertNotIn("embed:duplicate", metadata.hashes)
 
     def test_embedding_lookup_attempts_are_deduplicated_bounded_and_indexed_once(self):
-        folder_paths = fake_folder_paths(
-            {},
-            filenames={
-                "embeddings": [f"known/{index}.pt" for index in range(1_000)]
-            },
-        )
-        get_filename_list = Mock(wraps=folder_paths.get_filename_list)
-        folder_paths.get_filename_list = get_filename_list
-        prompt = ", ".join(
-            ["embedding:missing"] * 10
-            + [f"embedding:missing-{index}" for index in range(40)]
-        )
+        with tempfile.TemporaryDirectory() as temp:
+            target = Path(temp) / "target.pt"
+            target.write_bytes(b"target embedding")
+            folder_paths = fake_folder_paths(
+                {("embeddings", "known/target.pt"): target},
+                filenames={
+                    "embeddings": [f"known/{index}.pt" for index in range(1_000)]
+                    + ["known/target.pt"]
+                },
+            )
+            get_filename_list = Mock(wraps=folder_paths.get_filename_list)
+            folder_paths.get_filename_list = get_filename_list
+            prompt = ", ".join(
+                ["embedding:missing"] * 40
+                + [f"embedding:missing-{index}" for index in range(30)]
+                + ["embedding:known/target"]
+            )
 
-        with (
-            patch.dict(sys.modules, {"folder_paths": folder_paths}),
-            patch.object(
-                resources,
-                "_inventory_resource_name",
-                wraps=resources._inventory_resource_name,
-            ) as match_inventory,
-            self.assertLogs("ComfyUI-EasyUseAnima", level="WARNING"),
-        ):
-            result = resources._local_resource_hashes("", [], (prompt,))
+            with (
+                patch.dict(sys.modules, {"folder_paths": folder_paths}),
+                patch.object(
+                    resources,
+                    "_inventory_resource_name",
+                    wraps=resources._inventory_resource_name,
+                ) as match_inventory,
+            ):
+                result = resources._local_resource_hashes("", [], (prompt,))
 
-        self.assertEqual(result, [])
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0].metadata_key, "embed:known/target")
+        self.assertEqual(
+            result[0].sha256,
+            hashlib.sha256(b"target embedding").hexdigest(),
+        )
         get_filename_list.assert_called_once_with("embeddings")
         self.assertEqual(
             match_inventory.call_count,
