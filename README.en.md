@@ -86,9 +86,11 @@ Basic wiring:
 The compact node surface exposes seed, steps, CFG, shift, denoise, sampler,
 scheduler, Highres, Detailer, Preview, and Save. Model patches and optimization
 belong in `Advanced Options`, save metadata belongs in `Save Options`, and image
-comparison/feed controls live in Preview settings. Saving is enabled by default;
-with Image Saver, workflow embedding and Civitai/LoRA metadata are handled in
-the same output path.
+comparison/feed controls live in Preview settings. Saving is enabled by default.
+EasyUse's native output backend handles PNG, JPEG, and WebP, workflow
+embedding/JSON sidecars, A1111 metadata, and Civitai-compatible model/LoRA
+hashes in the same output path. `ComfyUI-Image-Saver` is not required by AiO
+Save Options.
 
 Detailed settings: [Anima AiO Generator guide](docs/nodes/anima-aio-generator.en.md)
 
@@ -200,7 +202,6 @@ Related node packs:
 - [ComfyUI-KJNodes](https://github.com/kijai/ComfyUI-KJNodes): Used for optimization options such as Torch Compile and SageAttention.
 - [ComfyUI-Impact-Pack](https://github.com/ltdrdata/ComfyUI-Impact-Pack): Required for Impact detailer and AiO SAM3 detailer flows.
 - [ComfyUI-Lora-Manager](https://github.com/willmiao/ComfyUI-Lora-Manager): Recommended for LoRA trigger-word and metadata management.
-- [ComfyUI-Image-Saver](https://github.com/alexopus/ComfyUI-Image-Saver): Used by AiO Save Options for workflow embedding and Civitai/LoRA metadata.
 - [ComfyUI-Anima-DAVE](https://github.com/sorryhyun/ComfyUI-Anima-DAVE): Optional model patch for generation diversity.
 
 Install Python dependency:
