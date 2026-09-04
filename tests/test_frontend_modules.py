@@ -82,6 +82,11 @@ AIO_NATIVE_PREVIEW_RUNTIME_JS = AIO_MODULES / "native_preview_runtime.js"
 AIO_NATIVE_PREVIEW_RUNTIME_SMOKE = (
     ROOT / "tests" / "frontend_aio_native_preview_runtime_smoke.mjs"
 )
+AIO_JPEG_WORKFLOW_METADATA_JS = AIO_MODULES / "jpeg_workflow_metadata.js"
+AIO_JPEG_WORKFLOW_IMPORT_JS = AIO_MODULES / "jpeg_workflow_import.js"
+AIO_JPEG_WORKFLOW_IMPORT_SMOKE = (
+    ROOT / "tests" / "frontend_aio_jpeg_workflow_import_smoke.mjs"
+)
 AIO_STAGE_SETTINGS_DIALOGS_JS = AIO_MODULES / "stage_settings_dialogs.js"
 AIO_STAGE_SETTINGS_DIALOGS_SMOKE = (
     ROOT / "tests" / "frontend_aio_stage_settings_dialogs_smoke.mjs"
@@ -538,6 +543,8 @@ class FrontendModuleStructureTests(unittest.TestCase):
             "clearDenoisePreviews: clearGeneratorDenoisePreviews,",
             "loadSamplerOptions: loadGeneratorSamplerOptions,",
             "loadUserProfiles: loadGeneratorUserProfiles,",
+            "installJpegWorkflowImport() {",
+            "aioInstallJpegWorkflowImport(app);",
             "suppressDefaultPreview: suppressGeneratorDefaultPreview,",
             "hookInputNode,",
             "hookGeneratorNode,",
@@ -1206,6 +1213,39 @@ class FrontendModuleStructureTests(unittest.TestCase):
         self.assertTrue(AIO_NATIVE_PREVIEW_RUNTIME_SMOKE.is_file())
         self.assertIn(
             r'node "tests\frontend_aio_native_preview_runtime_smoke.mjs"',
+            frontend_check_source,
+        )
+
+    def test_aio_jpeg_workflow_import_is_bounded_and_chain_preserving(self):
+        metadata_source = AIO_JPEG_WORKFLOW_METADATA_JS.read_text(encoding="utf-8")
+        import_source = AIO_JPEG_WORKFLOW_IMPORT_JS.read_text(encoding="utf-8")
+        entry_source = AIO_JS.read_text(encoding="utf-8")
+        frontend_check_source = FRONTEND_CHECK_SCRIPT.read_text(encoding="utf-8")
+
+        self.assertTrue(metadata_source.startswith("// @ts-check\n"))
+        self.assertTrue(import_source.startswith("// @ts-check\n"))
+        self.assertIn("const JPEG_SCAN_LIMIT_BYTES = 256 * 1024;", metadata_source)
+        self.assertIn("const IFD_ENTRY_LIMIT = 256;", metadata_source)
+        self.assertIn("source.subarray(0, JPEG_SCAN_LIMIT_BYTES)", metadata_source)
+        self.assertIn("Reflect.apply(previous, this, [file, ...args])", import_source)
+        self.assertIn("getJpegMetadata", import_source)
+        self.assertIn("previous[JPEG_IMPORT_MARKER]", import_source)
+        self.assertIn("nodes.length > 0 && nodes.every", import_source)
+        self.assertIn('typeof candidate.class_type === "string"', import_source)
+        self.assertIn("metadataObject(candidate.inputs)", import_source)
+        self.assertIn("return await Reflect.apply(receiver.loadGraphData", import_source)
+        self.assertIn("return await Reflect.apply(receiver.loadApiJson", import_source)
+        self.assertIn("trying prompt fallback", import_source)
+        self.assertIn("delegating to ComfyUI", import_source)
+        self.assertIn(
+            'import { aioInstallJpegWorkflowImport } from "./aio/jpeg_workflow_import.js";',
+            entry_source,
+        )
+        self.assertIn("installJpegWorkflowImport() {", entry_source)
+        self.assertEqual(entry_source.count("app.registerExtension("), 1)
+        self.assertTrue(AIO_JPEG_WORKFLOW_IMPORT_SMOKE.is_file())
+        self.assertIn(
+            r'node "tests\frontend_aio_jpeg_workflow_import_smoke.mjs"',
             frontend_check_source,
         )
 
@@ -3776,6 +3816,10 @@ class FrontendModuleStructureTests(unittest.TestCase):
         )
         self.assertIn(
             r'& node "tests\frontend_aio_native_preview_runtime_smoke.mjs"',
+            source,
+        )
+        self.assertIn(
+            r'& node "tests\frontend_aio_jpeg_workflow_import_smoke.mjs"',
             source,
         )
         self.assertIn(

@@ -97,11 +97,16 @@ profiles keep loading, but `ComfyUI-Image-Saver` is no longer required.
 
 PNG, JPEG, and WebP all store an A1111-style `parameters` block. PNG stores the
 ComfyUI prompt and workflow as text chunks; JPEG and WebP use the same EXIF
-Make/Model representation that ComfyUI understands. Keep `Embed workflow`
-enabled when saved images should reload into the same generation setup. Enable
+Make/Model representation. Keep `Embed workflow` enabled when saved images
+should reload into the same generation setup. ComfyUI handles PNG/WebP itself;
+EasyUse adds a bounded JPEG-only file handler that loads its embedded workflow
+first and falls back to the embedded API prompt. Non-JPEG files and malformed
+or metadata-free JPEGs remain with ComfyUI's existing handler, and EasyUse
+automatically delegates if the host gains native JPEG metadata support. Enable
 `Save workflow JSON` for a sidecar copy. If a JPEG workflow exceeds EXIF's size
 limit, EasyUse preserves the A1111 metadata and writes the workflow sidecar
-automatically instead of leaving a partially written image.
+automatically instead of leaving a partially written image. Open that `.json`
+sidecar directly; the JPEG no longer contains the removed workflow.
 
 Metadata is bounded independently of ComfyUI's request-size setting: A1111
 parameters are limited to 512 KiB, prompt JSON to 2 MiB, workflow JSON to 4 MiB,
