@@ -10,6 +10,7 @@ from pathlib import Path
 from unittest.mock import ANY, Mock, patch
 
 from easyuse_anima.aio import native_civitai as civitai
+from easyuse_anima.aio import native_metadata_budget as metadata_budget
 from easyuse_anima.aio import output, output_settings
 from easyuse_anima.aio.generation_defaults import AIO_GENERATION_DEFAULT_SETTINGS
 from tests.comfy_host_fakes import patch_comfy_helper
@@ -549,6 +550,39 @@ class AIOOutputMoveTests(unittest.TestCase):
         self.assertEqual(metadata.parameters, "")
         self.assertEqual(metadata.final_hashes, "")
         self.assertEqual(metadata.hashes, {})
+
+    def test_oversized_prompt_is_rejected_before_lora_metadata_expansion(self):
+        settings = {
+            "image_saver": {
+                **AIO_GENERATION_DEFAULT_SETTINGS["save"]["image_saver"],
+                "filename": "frame",
+                "path": "EasyUseAnima/Test",
+            }
+        }
+        with tempfile.TemporaryDirectory() as temp:
+            with (
+                patch.dict(sys.modules, {"folder_paths": fake_folder_paths(temp)}),
+                patch.object(
+                    output,
+                    "_validate_parameter_sources",
+                    side_effect=metadata_budget.MetadataLimitError("too large"),
+                ),
+                patch.object(output, "_aio_prompt_with_lora_metadata") as expand,
+                patch.object(output, "_save_native_images") as save,
+                self.assertRaises(metadata_budget.MetadataLimitError),
+            ):
+                output._save_image_with_image_saver(
+                    images="images",
+                    save_settings=settings,
+                    positive_prompt="oversized",
+                    negative_prompt="",
+                    width=512,
+                    height=512,
+                    sampler_settings={"seed": 1},
+                )
+
+        expand.assert_not_called()
+        save.assert_not_called()
 
     def test_image_saver_rejects_expanded_output_escape_before_dependency_lookup(self):
         cases = (

@@ -4,7 +4,7 @@
   "inventory_owner": {
     "path": "tests/fixtures/python_backend_baseline.json",
     "expected_baseline_files": 191,
-    "expected_target_files": 199
+    "expected_target_files": 200
   },
   "linked_contracts": {
     "compatibility_registry": "docs/architecture/python-compatibility-shims.md",
@@ -890,6 +890,11 @@
           "owner_group": "aio"
         },
         {
+          "path": "easyuse_anima/aio/native_metadata_budget.py",
+          "role": "aio-native-metadata-budget",
+          "owner_group": "aio"
+        },
+        {
           "path": "easyuse_anima/aio/native_output_publication.py",
           "role": "aio-native-output-publication",
           "owner_group": "aio"
@@ -904,8 +909,8 @@
         "tests/test_aio_native_image_output.py"
       ],
       "compatibility_registry_key": null,
-      "task_id": "ISSUE-689-694",
-      "rollback_unit": "Revert the cohesive Issue #689 resource split and Issue #694 publication extraction.",
+      "task_id": "ISSUE-689-694-696",
+      "rollback_unit": "Revert the cohesive Issue #689 resource split, Issue #694 publication extraction, and Issue #696 metadata-budget extraction.",
       "replacement_owner": null,
       "size_exception_verdicts": []
     },

@@ -23,6 +23,7 @@ from .native_image_output import (
     _fetch_civitai_autov3_hash,
     _save_native_images,
 )
+from .native_metadata_budget import _validate_parameter_sources
 from .output_settings import (
     _normalize_aio_civitai_hash_fetchers as _normalize_aio_civitai_hash_fetchers,
 )
@@ -521,6 +522,11 @@ def _save_image_with_image_saver(
     )
 
     if _comfy_metadata_enabled():
+        _validate_parameter_sources(
+            positive_prompt,
+            negative_prompt,
+            runtime.custom,
+        )
         civitai_budget = CivitaiLookupBudget()
         save_prompt_metadata = _as_bool(
             runtime.settings.get("save_prompt_metadata"),
