@@ -12,16 +12,27 @@ on:
           - "true"
           - "false"
 
+permissions:
+  contents: read
+
 jobs:
   sync-registry-metadata:
     name: Sync node description and version changelogs
     runs-on: ubuntu-latest
     steps:
       - name: Check out code
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
-      - name: Sync metadata
+      - name: Preview metadata sync
+        if: ${{ inputs.dry_run == 'true' }}
+        run: |
+          python .github/scripts/sync_comfy_registry_metadata.py --dry-run true
+
+      - name: Apply metadata sync
+        if: ${{ inputs.dry_run == 'false' }}
         env:
           REGISTRY_ACCESS_TOKEN: ${{ secrets.REGISTRY_ACCESS_TOKEN }}
         run: |
-          python .github/scripts/sync_comfy_registry_metadata.py --dry-run "${{ inputs.dry_run }}"
+          python .github/scripts/sync_comfy_registry_metadata.py --dry-run false
