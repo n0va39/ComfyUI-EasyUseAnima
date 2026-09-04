@@ -1,5 +1,31 @@
 # Release Notes
 
+## 1.1.6
+
+### Fixed
+
+- State-changing EasyUse Anima HTTP routes now accept only same-origin JSON
+  requests, reducing exposure to cross-site requests from untrusted pages.
+- AiO Image Saver paths are validated after supported template expansion and
+  must remain inside ComfyUI's active output directory.
+- Wildcard listing is now read-only and no longer creates a directory or
+  sample file as a side effect.
+- The AiO ResShift stage now fails closed before loading an external
+  checkpoint. Use USDU while a safe ResShift loader contract is developed.
+
+### Compatibility
+
+- Existing node identifiers, inputs, outputs, profiles, saved workflows, and
+  valid Image Saver templates remain compatible.
+- Saved ResShift settings are preserved, but selecting ResShift will show an
+  explanatory error instead of running the unsafe legacy loader path.
+- Cross-origin or non-JSON tools that call EasyUse Anima's state-changing HTTP
+  routes must move to a same-origin JSON integration.
+
+### Update
+
+- After updating, restart ComfyUI.
+
 ## 1.1.5
 
 ### Fixed
