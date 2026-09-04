@@ -5,7 +5,6 @@ import subprocess
 import unittest
 from pathlib import Path
 
-
 ROOT = Path(__file__).resolve().parents[1]
 AUTOCOMPLETE_ENTRY = ROOT / "web" / "js" / "easyuse_anima_autocomplete.js"
 EXPECTED_AUTOCOMPLETE_MODULES = {
@@ -189,6 +188,8 @@ class RegistryScannerSafetyTests(unittest.TestCase):
             "subprocess",
             "pickle.loads",
             "marshal.loads",
+            "torch.load(",
+            "yaml.load(",
             "base64.b64decode",
             "GOOGLE_TRANSLATION_API_KEY",
             "os.environ",
@@ -392,4 +393,7 @@ class RegistryScannerSafetyTests(unittest.TestCase):
         self.assertIn("docs/development/registry-scanner-safety.md", entry)
         self.assertIn("comfy node validate", safety)
         self.assertIn("NAIA `requests.post`", safety)
+        self.assertIn("same-authority", safety)
+        self.assertIn("ComfyUI output root", safety)
+        self.assertIn("issue #679", safety)
         self.assertIn('web/js -g "!easyuse_anima_api.js"', safety)

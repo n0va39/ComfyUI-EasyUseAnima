@@ -2,12 +2,107 @@ from __future__ import annotations
 
 import json
 import uuid
-from typing import Any, Mapping
+from collections.abc import Mapping
+from typing import Any
+from urllib.parse import urlsplit
 
 from .errors import ApiContractError, _field_error
 
+_JSON_CONTENT_TYPE = "application/json"
+
+
+def _request_header(request, name: str) -> str:
+    headers = getattr(request, "headers", None)
+    if headers is None:
+        return ""
+    try:
+        value = headers.get(name, "")
+    except (AttributeError, TypeError):
+        return ""
+    return str(value or "").strip()
+
+
+def _origin_authority(value: str) -> tuple[str, int | None] | None:
+    try:
+        parsed = urlsplit(value)
+        port = parsed.port
+    except (TypeError, ValueError):
+        return None
+    if (
+        parsed.scheme.casefold() not in {"http", "https"}
+        or not parsed.hostname
+        or parsed.username is not None
+        or parsed.password is not None
+        or parsed.path not in {"", "/"}
+        or parsed.query
+        or parsed.fragment
+    ):
+        return None
+    if port is None:
+        port = 443 if parsed.scheme.casefold() == "https" else 80
+    return parsed.hostname.rstrip(".").casefold(), port
+
+
+def _host_authority(value: str, origin: str) -> tuple[str, int | None] | None:
+    try:
+        parsed = urlsplit(f"//{value}")
+        port = parsed.port
+    except (TypeError, ValueError):
+        return None
+    if (
+        not parsed.hostname
+        or parsed.username is not None
+        or parsed.password is not None
+        or parsed.path
+        or parsed.query
+        or parsed.fragment
+    ):
+        return None
+    if port is None:
+        try:
+            origin_scheme = urlsplit(origin).scheme.casefold()
+        except (TypeError, ValueError):
+            return None
+        port = 443 if origin_scheme == "https" else 80
+    return parsed.hostname.rstrip(".").casefold(), port
+
+
+def validate_same_origin_json_request(request) -> None:
+    """Reject browser-reachable POSTs before parsing or side effects."""
+
+    fetch_site = _request_header(request, "Sec-Fetch-Site").casefold()
+    if fetch_site and fetch_site != "same-origin":
+        raise ApiContractError(
+            403,
+            "cross_origin_request",
+            "Request must come from the current ComfyUI origin.",
+        )
+
+    origin = _request_header(request, "Origin")
+    host = _request_header(request, "Host")
+    if (
+        not origin
+        or not host
+        or _origin_authority(origin) != _host_authority(host, origin)
+    ):
+        raise ApiContractError(
+            403,
+            "cross_origin_request",
+            "Request must come from the current ComfyUI origin.",
+        )
+
+    content_type = _request_header(request, "Content-Type")
+    media_type = content_type.partition(";")[0].strip().casefold()
+    if media_type != _JSON_CONTENT_TYPE:
+        raise ApiContractError(
+            415,
+            "json_content_type_required",
+            "Request Content-Type must be application/json.",
+        )
+
 
 async def parse_json_object(request) -> dict[str, Any]:
+    validate_same_origin_json_request(request)
     try:
         data = await request.json()
     except (json.JSONDecodeError, UnicodeDecodeError, ValueError) as exc:

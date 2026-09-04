@@ -130,10 +130,7 @@ def resolve_wildcard_roots(extra_paths: str | None = None) -> list[Path]:
             seen.add(key)
             roots.append(root)
 
-    try:
-        default_root = ensure_default_wildcard_root().resolve()
-    except OSError:
-        default_root = default_wildcard_root().resolve()
+    default_root = default_wildcard_root().resolve()
     default_key = os.path.normcase(str(default_root))
     if default_key not in seen:
         roots.append(default_root)

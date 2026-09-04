@@ -384,6 +384,15 @@ class WildcardCanonicalContractTests(unittest.TestCase):
                 self.assertEqual(root, Path(temp) / "wildcards")
                 self.assertTrue((root / DEFAULT_TEST_WILDCARD_FILE).is_file())
 
+    def test_resolving_roots_does_not_create_files(self):
+        with tempfile.TemporaryDirectory() as temp:
+            default_root = Path(temp) / "wildcards"
+            with patch.object(wildcard_sources, "USER_DATA_DIR", Path(temp)):
+                roots = wildcard_sources.resolve_wildcard_roots("")
+
+            self.assertEqual(roots, [default_root.resolve()])
+            self.assertFalse(default_root.exists())
+
     def test_empty_text_batch_returns_before_snapshot_lifecycle(self):
         with patch.object(
             wildcard_service,
