@@ -100,14 +100,20 @@ but an ambiguous basename or path-like value containing traversal components is
 not hashed. ComfyUI's prompt parser supplies embedding attention weights, such
 as `0.8` in `(embedding:styles/example:0.8)`.
 
+One save performs at most 32 unique local resource lookup/hash attempts across
+the selected model, applied LoRAs, and embedding references. Missing resources
+consume the same budget as successful lookups, repeated embedding requests are
+deduplicated before lookup, and the ComfyUI embedding inventory is indexed once
+per save.
+
 SHA-256 values keep a 128-entry process cache and a bounded cross-session cache
 at `easyuse_anima/cache/resource-hashes.v1.json` under ComfyUI's user-data
 directory. Cache keys contain an opaque digest of the resolved path rather than
 the path itself. A hit must match size, modification/change timestamps, device,
 and file identity; uncached reads report byte progress through ComfyUI. Cache
 files are size/schema validated and atomically replaced. Corruption or write
-failure causes a safe recomputation, and no cache file is written beside a
-model, LoRA, or embedding.
+failure, including excessively nested JSON, causes a safe recomputation, and no
+cache file is written beside a model, LoRA, or embedding.
 
 Locally calculated SHA-256 values use the first ten characters in the
 A1111/Civitai-compatible fields. Manual hash and hash-bundle settings preserve
