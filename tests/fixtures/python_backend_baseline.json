@@ -50880,17 +50880,17 @@
           },
           {
             "async": false,
-            "end_line": 660,
+            "end_line": 679,
             "kind": "function",
             "line": 600,
-            "loc": 61,
+            "loc": 80,
             "qualified_name": "publish_image_transaction"
           }
         ],
         "is_package": false,
-        "loc": 663,
+        "loc": 682,
         "module": "easyuse_anima.aio.native_output_publication",
-        "normalized_git_blob_sha1": "ebce2732a1c87007ca667cc3f6c102ea7e18c0e8",
+        "normalized_git_blob_sha1": "8fdb40e34f8e511029f440cad59b891d1af535bf",
         "path": "easyuse_anima/aio/native_output_publication.py",
         "top_level": {
           "class_count": 5,

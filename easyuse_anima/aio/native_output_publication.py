@@ -612,6 +612,8 @@ def publish_image_transaction(
     sidecar_temporary: _OpenTemporary | None = None
     image_identity: _FileIdentity | None = None
     sidecar_identity: _FileIdentity | None = None
+    image_publish_started = False
+    sidecar_publish_started = False
     sidecar_name = str(Path(target_name).with_suffix(".json"))
     try:
         _write_image(
@@ -627,10 +629,12 @@ def publish_image_transaction(
             directory.assert_temporary_identity(sidecar_temporary)
 
         if sidecar_temporary is not None:
+            sidecar_publish_started = True
             sidecar_identity = directory.link_no_replace(
                 sidecar_temporary,
                 sidecar_name,
             )
+        image_publish_started = True
         image_identity = directory.link_no_replace(
             image_temporary,
             target_name,
@@ -638,25 +642,40 @@ def publish_image_transaction(
         if sidecar_temporary is not None:
             sidecar_temporary.keep()
         image_temporary.keep()
-    except Exception:
-        if os.name != "nt" and sidecar_identity is not None:
-            directory._remove_name_if_owned(sidecar_name, sidecar_identity)
-        if os.name != "nt" and image_identity is not None:
-            directory._remove_name_if_owned(target_name, image_identity)
+    except BaseException:
+        if os.name != "nt" and image_publish_started:
+            directory._remove_name_if_owned(target_name, image_temporary.identity)
+        if (
+            os.name != "nt"
+            and sidecar_publish_started
+            and sidecar_temporary is not None
+        ):
+            directory._remove_name_if_owned(
+                sidecar_name,
+                sidecar_temporary.identity,
+            )
         raise
     finally:
-        if sidecar_temporary is not None:
-            sidecar_temporary.close()
-        image_temporary.close()
+        if image_temporary.retain_on_close and sidecar_temporary is not None:
+            try:
+                sidecar_temporary.close()
+            finally:
+                image_temporary.close()
+        else:
+            try:
+                image_temporary.close()
+            finally:
+                if sidecar_temporary is not None:
+                    sidecar_temporary.close()
 
     try:
         if sidecar_identity is not None:
             directory.assert_published_identity(sidecar_name, sidecar_identity)
         directory.assert_published_identity(target_name, image_identity)
-    except Exception:
+    except BaseException:
+        directory._remove_name_if_owned(target_name, image_identity)
         if sidecar_identity is not None:
             directory._remove_name_if_owned(sidecar_name, sidecar_identity)
-        directory._remove_name_if_owned(target_name, image_identity)
         raise
 
 

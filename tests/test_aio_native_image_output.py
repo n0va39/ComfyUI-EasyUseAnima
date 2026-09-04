@@ -1754,6 +1754,62 @@ with publication.OutputDirectoryBinding(root) as directory:
                 {"nodes": []},
             )
 
+    def test_second_exit_during_async_rollback_cannot_leave_image_visible(self):
+        script = """
+import os
+import sys
+from pathlib import Path
+
+from PIL import Image
+from easyuse_anima.aio import native_output_publication as publication
+
+root = Path(sys.argv[1])
+original_close = publication._OpenTemporary.close
+close_count = 0
+
+def exit_after_first_rollback_close(temporary):
+    global close_count
+    original_close(temporary)
+    close_count += 1
+    if close_count == 1:
+        os._exit(74)
+
+publication._OpenTemporary.close = exit_after_first_rollback_close
+with publication.OutputDirectoryBinding(root) as directory:
+    original_link = directory.link_no_replace
+    link_count = 0
+
+    def interrupt_after_second_commit(temporary, target_name):
+        global link_count
+        identity = original_link(temporary, target_name)
+        link_count += 1
+        if link_count == 2:
+            raise KeyboardInterrupt
+        return identity
+
+    directory.link_no_replace = interrupt_after_second_commit
+    publication.publish_image_transaction(
+        directory,
+        Image.new("RGB", (1, 1)),
+        target_name="image.png",
+        image_format="PNG",
+        options={},
+        sidecar_text='{"nodes":[]}\\n',
+    )
+"""
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            completed = subprocess.run(
+                [sys.executable, "-c", script, str(root)],
+                cwd=Path(__file__).resolve().parents[1],
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+
+            self.assertEqual(completed.returncode, 74, completed.stderr)
+            self.assertFalse((root / "image.png").exists())
+
     def test_late_last_batch_collision_keeps_suffix_naming(self):
         metadata = native.NativeImageMetadata("parameters", "", {})
         pixels = np.zeros((2, 2, 3), dtype=np.float32)
