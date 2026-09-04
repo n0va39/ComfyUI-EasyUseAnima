@@ -58,6 +58,22 @@ def render_output_template(
 
 
 class AIOOutputMoveTests(unittest.TestCase):
+    def setUp(self):
+        comfy_module = types.ModuleType("comfy")
+        comfy_module.__path__ = []
+        cli_args_module = types.ModuleType("comfy.cli_args")
+        cli_args_module.args = types.SimpleNamespace(disable_metadata=False)
+        comfy_module.cli_args = cli_args_module
+        cli_args_patch = patch.dict(
+            sys.modules,
+            {
+                "comfy": comfy_module,
+                "comfy.cli_args": cli_args_module,
+            },
+        )
+        cli_args_patch.start()
+        self.addCleanup(cli_args_patch.stop)
+
     def test_output_functions_are_owned_by_canonical_modules(self):
         for name in (
             "_normalize_aio_hash_text",
@@ -665,6 +681,7 @@ class AIOOutputMoveTests(unittest.TestCase):
             metadata=metadata,
             prompt={"1": {}},
             extra_pnginfo={"workflow": {}},
+            metadata_enabled=True,
         )
 
     def test_image_saver_renders_templates_before_forwarding_safe_values(self):
@@ -848,7 +865,11 @@ class AIOOutputMoveTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp:
             with (
                 patch.dict(sys.modules, {"folder_paths": fake_folder_paths(temp)}),
-                patch.object(output, "_comfy_metadata_enabled", return_value=False),
+                patch.object(
+                    output,
+                    "_comfy_metadata_enabled",
+                    side_effect=[False, True],
+                ) as metadata_flag,
                 patch.object(output, "_resolve_aio_runtime_seed", return_value=11),
                 patch.object(output, "_build_native_metadata") as build,
                 patch.object(output, "_aio_image_saver_additional_hashes") as hashes,
@@ -877,6 +898,8 @@ class AIOOutputMoveTests(unittest.TestCase):
         self.assertEqual(metadata.parameters, "")
         self.assertEqual(metadata.final_hashes, "")
         self.assertEqual(metadata.hashes, {})
+        self.assertEqual(metadata_flag.call_count, 1)
+        self.assertIs(save.call_args.kwargs["metadata_enabled"], False)
 
     def test_oversized_prompt_is_rejected_before_lora_metadata_expansion(self):
         settings = {

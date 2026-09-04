@@ -90,7 +90,10 @@ workflow representation is reused for embedded metadata.
 
 ComfyUI's global `disable_metadata` flag suppresses A1111, prompt, workflow,
 and sidecar metadata. It also skips local hashing and Civitai requests; the
-image encoder still writes the selected format.
+image encoder still writes the selected format. EasyUse Anima snapshots this
+flag once at the start of each save transaction and reuses that decision for
+metadata preparation and image/sidecar serialization. If the ComfyUI setting
+cannot be imported or read, metadata is treated as disabled.
 
 ## A1111 and Civitai metadata
 

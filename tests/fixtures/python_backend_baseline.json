@@ -50516,17 +50516,17 @@
           },
           {
             "async": false,
-            "end_line": 687,
+            "end_line": 693,
             "kind": "function",
             "line": 575,
-            "loc": 113,
+            "loc": 119,
             "qualified_name": "_save_native_images"
           }
         ],
         "is_package": false,
-        "loc": 690,
+        "loc": 696,
         "module": "easyuse_anima.aio.native_image_output",
-        "normalized_git_blob_sha1": "14a5cfb66c8fe87f85cf03fd9a8b5fb5dadd9f60",
+        "normalized_git_blob_sha1": "116e960254ee5ffecf61c8b74b0d3b6b931c1a2e",
         "path": "easyuse_anima/aio/native_image_output.py",
         "top_level": {
           "class_count": 2,
@@ -51522,17 +51522,17 @@
           },
           {
             "async": false,
-            "end_line": 794,
+            "end_line": 796,
             "kind": "function",
             "line": 688,
-            "loc": 107,
+            "loc": 109,
             "qualified_name": "_save_image_with_image_saver"
           }
         ],
         "is_package": false,
-        "loc": 797,
+        "loc": 799,
         "module": "easyuse_anima.aio.output",
-        "normalized_git_blob_sha1": "eace1458be47f30e547470d0678f51f30e303abd",
+        "normalized_git_blob_sha1": "bc32a08be80dacafd65ff38baddc1d22eb1d0fa4",
         "path": "easyuse_anima/aio/output.py",
         "top_level": {
           "class_count": 1,
