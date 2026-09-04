@@ -50,9 +50,9 @@ _LORA_TAG_RE = re.compile(r"<lora:([^>:]+)(?::([^>]+))?>", re.IGNORECASE)
 _CONTROL_RE = re.compile(r"[\x00-\x1f\x7f]")
 _WINDOWS_INVALID_COMPONENT_RE = re.compile(r'[<>:"|?*\x00-\x1f\x7f]')
 _WINDOWS_RESERVED_COMPONENTS = frozenset(
-    {"con", "prn", "aux", "nul"}
-    | {f"com{index}" for index in range(1, 10)}
-    | {f"lpt{index}" for index in range(1, 10)}
+    {"con", "prn", "aux", "nul", "conin$", "conout$"}
+    | {f"com{index}" for index in (*range(1, 10), "¹", "²", "³")}
+    | {f"lpt{index}" for index in (*range(1, 10), "¹", "²", "³")}
 )
 _SAVE_LOCK = threading.Lock()
 

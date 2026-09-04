@@ -990,7 +990,16 @@ class AIONativeImageOutputTests(unittest.TestCase):
         pixels = np.zeros((2, 2, 3), dtype=np.float32)
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
-            for filename in ("NUL.txt", "con", "aux.log", "CON?"):
+            for filename in (
+                "NUL.txt",
+                "con",
+                "aux.log",
+                "CON?",
+                "Com¹.txt",
+                "lPT³.bin",
+                "CONIN$.png",
+                "conout$",
+            ):
                 with self.subTest(filename=filename), self.assertRaisesRegex(
                     RuntimeError, "invalid on Windows"
                 ):
@@ -1011,6 +1020,25 @@ class AIONativeImageOutputTests(unittest.TestCase):
                     )
 
             self.assertEqual(list(root.iterdir()), [])
+
+    def test_windows_output_component_recognizes_exact_dos_device_aliases(self):
+        for device_name in (
+            "COM¹",
+            "COM²",
+            "COM³",
+            "LPT¹",
+            "LPT²",
+            "LPT³",
+            "CONIN$",
+            "CONOUT$",
+        ):
+            for component in (device_name, f"{device_name.lower()}.txt"):
+                with self.subTest(component=component):
+                    self.assertFalse(native._is_windows_safe_output_component(component))
+
+        for component in ("COM⁴", "LPT⁹", "CONIN-data", "résumé"):
+            with self.subTest(component=component):
+                self.assertTrue(native._is_windows_safe_output_component(component))
 
     def test_png_extra_metadata_cannot_override_owned_parameters_or_prompt(self):
         metadata = native.NativeImageMetadata("owned parameters", "", {})
@@ -1429,6 +1457,10 @@ class AIONativeImageOutputTests(unittest.TestCase):
                 "nested/bad?folder",
                 "nested/CON",
                 "nested/aux.txt",
+                "nested/COM²",
+                "nested/LPT¹.log",
+                "nested/conin$",
+                "nested/CONOUT$.txt",
                 "nested/trailing./child",
             ):
                 with self.subTest(path=unsafe_path), self.assertRaisesRegex(

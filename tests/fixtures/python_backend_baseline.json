@@ -50422,7 +50422,7 @@
         "is_package": false,
         "loc": 690,
         "module": "easyuse_anima.aio.native_image_output",
-        "normalized_git_blob_sha1": "def9e3abde59a6803c710f45bd376a35fdb70ae0",
+        "normalized_git_blob_sha1": "14a5cfb66c8fe87f85cf03fd9a8b5fb5dadd9f60",
         "path": "easyuse_anima/aio/native_image_output.py",
         "top_level": {
           "class_count": 2,
@@ -74680,7 +74680,7 @@
       },
       {
         "callee": "range",
-        "column": 34,
+        "column": 36,
         "context": "assign:_WINDOWS_RESERVED_COMPONENTS",
         "kind": "import_time_call",
         "line": 54,
@@ -74689,7 +74689,7 @@
       },
       {
         "callee": "range",
-        "column": 34,
+        "column": 36,
         "context": "assign:_WINDOWS_RESERVED_COMPONENTS",
         "kind": "import_time_call",
         "line": 55,
