@@ -510,6 +510,39 @@ class AIOOutputMoveTests(unittest.TestCase):
         self.assertEqual(save.call_args.kwargs["path"], "renders/2026/09")
         self.assertEqual(save.call_args.kwargs["filename"], "safe_007_anima")
 
+    def test_image_saver_sanitizes_windows_filename_before_native_writer(self):
+        settings = {
+            "image_saver": {
+                **AIO_GENERATION_DEFAULT_SETTINGS["save"]["image_saver"],
+                "path": "EasyUseAnima/Test",
+                "filename": 'bad<>:"|?*name. ',
+            }
+        }
+        with tempfile.TemporaryDirectory() as temp:
+            with (
+                patch.dict(sys.modules, {"folder_paths": fake_folder_paths(temp)}),
+                patch.object(output, "_resolve_aio_runtime_seed", return_value=11),
+                patch.object(output, "_build_native_metadata", return_value=object()),
+                patch.object(
+                    output,
+                    "_save_native_images",
+                    return_value="saved",
+                ) as save,
+            ):
+                result = output._save_image_with_image_saver(
+                    images="images",
+                    save_settings=settings,
+                    positive_prompt="positive",
+                    negative_prompt="negative",
+                    width=768,
+                    height=1024,
+                    sampler_settings={"seed": 11},
+                    resource_info={"unet_name": "anima.safetensors"},
+                )
+
+        self.assertEqual(result, "saved")
+        self.assertEqual(save.call_args.kwargs["filename"], "badname")
+
     def test_metadata_disabled_skips_hashing_and_civitai_work(self):
         settings = {
             "image_saver": {
@@ -590,9 +623,14 @@ class AIOOutputMoveTests(unittest.TestCase):
             {"path": "..\\..\\outside"},
             {"path": "C:\\outside"},
             {"path": "/outside"},
+            {"path": "safe/bad?folder"},
+            {"path": "safe/CON"},
+            {"path": "safe/aux.txt"},
+            {"path": "safe/trailing./child"},
             {"path": "%custom", "custom": "../../outside"},
             {"path": "%time", "time_format": "../outside"},
             {"filename": "%custom", "custom": "../outside"},
+            {"filename": "NUL.txt"},
         )
         save = Mock(side_effect=AssertionError("must reject before native writer"))
         with tempfile.TemporaryDirectory() as temp:
@@ -609,7 +647,10 @@ class AIOOutputMoveTests(unittest.TestCase):
                         patch.object(output, "_save_native_images", save),
                         patch.object(output, "_resolve_aio_runtime_seed", return_value=11),
                     ):
-                        with self.assertRaisesRegex(RuntimeError, "output directory|single filename"):
+                        with self.assertRaisesRegex(
+                            RuntimeError,
+                            "output directory|single filename|invalid on Windows",
+                        ):
                             output._save_image_with_image_saver(
                                 images="images",
                                 save_settings=settings,
