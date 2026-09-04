@@ -114,8 +114,10 @@ function parseExifPayload(payload) {
     return undefined;
   }
 
-  let canonicalWorkflowText;
-  let canonicalPromptText;
+  let canonicalWorkflow;
+  let canonicalPrompt;
+  let sawCanonicalWorkflow = false;
+  let sawCanonicalPrompt = false;
   let workflowAliasText;
   let promptAliasText;
   for (let index = 0; index < entryCount; index += 1) {
@@ -133,12 +135,18 @@ function parseExifPayload(payload) {
     );
     if (!field) continue;
     const text = decodeAscii(field);
-    if (canonicalWorkflowText === undefined && text.startsWith("workflow:")) {
-      canonicalWorkflowText = text.slice("workflow:".length);
+    if (text.startsWith("workflow:")) {
+      sawCanonicalWorkflow = true;
+      if (canonicalWorkflow === undefined) {
+        canonicalWorkflow = parseMetadataObject(text.slice("workflow:".length));
+      }
       continue;
     }
-    if (canonicalPromptText === undefined && text.startsWith("prompt:")) {
-      canonicalPromptText = text.slice("prompt:".length);
+    if (text.startsWith("prompt:")) {
+      sawCanonicalPrompt = true;
+      if (canonicalPrompt === undefined) {
+        canonicalPrompt = parseMetadataObject(text.slice("prompt:".length));
+      }
       continue;
     }
     const lower = text.toLowerCase();
@@ -149,14 +157,12 @@ function parseExifPayload(payload) {
     }
   }
 
-  const workflowText = canonicalWorkflowText === undefined
-    ? workflowAliasText
-    : canonicalWorkflowText;
-  const promptText = canonicalPromptText === undefined
-    ? promptAliasText
-    : canonicalPromptText;
-  const workflow = parseMetadataObject(workflowText);
-  const prompt = parseMetadataObject(promptText);
+  const workflow = sawCanonicalWorkflow
+    ? canonicalWorkflow
+    : parseMetadataObject(workflowAliasText);
+  const prompt = sawCanonicalPrompt
+    ? canonicalPrompt
+    : parseMetadataObject(promptAliasText);
   if (workflow === undefined && prompt === undefined) return undefined;
   return { workflow, prompt };
 }

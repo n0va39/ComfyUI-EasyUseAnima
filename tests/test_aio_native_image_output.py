@@ -1067,6 +1067,9 @@ class AIONativeImageOutputTests(unittest.TestCase):
                         "WORKFLOW": forged_workflow,
                         "Prompt": {"forged": True},
                         "PARAMETERS": "forged parameters",
+                        "workflow:": forged_workflow,
+                        "Prompt:alias": {"forged": True},
+                        "PARAMETERS:alias": "forged parameters",
                         "workflow": workflow,
                         "parameters": "forged parameters",
                         "prompt": {"forged": True},
@@ -1079,7 +1082,15 @@ class AIONativeImageOutputTests(unittest.TestCase):
                 self.assertEqual(json.loads(saved.info["prompt"]), prompt)
                 self.assertEqual(json.loads(saved.info["workflow"]), workflow)
                 self.assertEqual(json.loads(saved.info["unrelated"]), {"kept": True})
-                for alias in ("Workflow", "WORKFLOW", "Prompt", "PARAMETERS"):
+                for alias in (
+                    "Workflow",
+                    "WORKFLOW",
+                    "Prompt",
+                    "PARAMETERS",
+                    "workflow:",
+                    "Prompt:alias",
+                    "PARAMETERS:alias",
+                ):
                     self.assertNotIn(alias, saved.info)
 
     def test_lossy_webp_uses_quality_while_lossless_webp_preserves_pixels(self):

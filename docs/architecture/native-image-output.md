@@ -25,7 +25,9 @@ at `save.image_saver`. The UI presents that compatibility ID as
 The writer owns the `parameters` and `prompt` metadata keys. Matching keys in
 `extra_pnginfo` are compared case-insensitively and ignored so caller-provided
 aliases cannot replace the A1111 block, serialized ComfyUI prompt, or canonical
-lowercase `workflow`. Unrelated extra metadata is preserved.
+lowercase `workflow`. Keys beginning with an owned name plus `:` are reserved
+too because EXIF serializes the key and JSON value with that delimiter.
+Unrelated extra metadata is preserved.
 
 `Save workflow JSON` writes the workflow as a same-stem UTF-8 JSON sidecar for
 all formats. If JPEG EXIF would exceed its safe size, serialization first drops
@@ -50,7 +52,9 @@ metadata-free JPEGs, and every non-JPEG input delegate to the exact previous
 handler with the original receiver and arguments. PNG and WebP therefore stay
 on ComfyUI's native parser path. Exact lowercase `workflow:` and `prompt:` EXIF
 fields take priority over case-insensitive compatibility aliases regardless of
-directory order. Installation is idempotent and is skipped when
+directory order. Malformed exact candidates do not hide a later valid exact
+field, but the presence of any exact candidate disables alias fallback for that
+field. Installation is idempotent and is skipped when
 the host exposes a native `getJpegMetadata` capability or declares JPEG in its
 handler metadata MIME types; the same capability is checked again for each
 file so a later host upgrade also wins.

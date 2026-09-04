@@ -110,6 +110,8 @@ const forgedPrompt = { forged: { class_type: "Forged", inputs: {} } };
 const shadowedJpeg = jpegWithExifTextFields([
   `Workflow:${JSON.stringify(forgedWorkflow)}`,
   `Prompt:${JSON.stringify(forgedPrompt)}`,
+  `workflow::${JSON.stringify(forgedWorkflow)}`,
+  `prompt::${JSON.stringify(forgedPrompt)}`,
   `workflow:${JSON.stringify(expectedWorkflow)}`,
   `prompt:${JSON.stringify(expectedPrompt)}`,
 ]);
@@ -127,6 +129,18 @@ assert.deepEqual(
   metadataModule.aioParseNativeJpegMetadata(aliasOnlyJpeg),
   { workflow: forgedWorkflow, prompt: forgedPrompt },
   "alias-only legacy metadata must remain readable",
+);
+
+const malformedCanonicalJpeg = jpegWithExifTextFields([
+  `Workflow:${JSON.stringify(forgedWorkflow)}`,
+  `Prompt:${JSON.stringify(forgedPrompt)}`,
+  "workflow:not-json",
+  "prompt:not-json",
+]);
+assert.equal(
+  metadataModule.aioParseNativeJpegMetadata(malformedCanonicalJpeg),
+  undefined,
+  "malformed exact metadata must block fallback to case-variant aliases",
 );
 
 const malformedWorkflow = Buffer.from(WORKFLOW_JPEG);
