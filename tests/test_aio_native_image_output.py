@@ -231,6 +231,86 @@ class AIONativeImageOutputTests(unittest.TestCase):
         self.assertIn("embedding:easy", metadata.parameters)
         self.assertNotIn("embed:duplicate", metadata.hashes)
 
+    def test_embedding_lookup_attempts_are_deduplicated_bounded_and_indexed_once(self):
+        with tempfile.TemporaryDirectory() as temp:
+            target = Path(temp) / "target.pt"
+            target.write_bytes(b"target embedding")
+            folder_paths = fake_folder_paths(
+                {("embeddings", "known/target.pt"): target},
+                filenames={
+                    "embeddings": [f"known/{index}.pt" for index in range(1_000)]
+                    + ["known/target.pt"]
+                },
+            )
+            get_filename_list = Mock(wraps=folder_paths.get_filename_list)
+            folder_paths.get_filename_list = get_filename_list
+            prompt = ", ".join(
+                ["embedding:missing"] * 40
+                + [f"embedding:missing-{index}" for index in range(30)]
+                + ["embedding:known/target"]
+            )
+
+            with (
+                patch.dict(sys.modules, {"folder_paths": folder_paths}),
+                patch.object(
+                    resources,
+                    "_inventory_resource_name",
+                    wraps=resources._inventory_resource_name,
+                ) as match_inventory,
+            ):
+                result = resources._local_resource_hashes("", [], (prompt,))
+
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0].metadata_key, "embed:known/target")
+        self.assertEqual(
+            result[0].sha256,
+            hashlib.sha256(b"target embedding").hexdigest(),
+        )
+        get_filename_list.assert_called_once_with("embeddings")
+        self.assertEqual(
+            match_inventory.call_count,
+            resources._MAX_LOCAL_RESOURCE_ATTEMPTS,
+        )
+
+    def test_local_resource_attempt_budget_includes_model_loras_before_embeddings(self):
+        folder_paths = fake_folder_paths({}, filenames={"embeddings": ["unused.pt"]})
+        get_filename_list = Mock(wraps=folder_paths.get_filename_list)
+        folder_paths.get_filename_list = get_filename_list
+        applied_loras = [
+            {
+                "name": f"style-{index}.safetensors",
+                "strength_model": 1.0,
+            }
+            for index in range(40)
+        ]
+        resolved_path = Path("resource.safetensors")
+
+        with (
+            patch.dict(sys.modules, {"folder_paths": folder_paths}),
+            patch.object(
+                resources,
+                "_resolve_resource_path",
+                return_value=resolved_path,
+            ) as resolve_resource,
+            patch.object(resources, "_hash_file", return_value="a" * 64) as hash_file,
+            self.assertLogs("ComfyUI-EasyUseAnima", level="WARNING"),
+        ):
+            result = resources._local_resource_hashes(
+                "model.safetensors",
+                applied_loras,
+                ("embedding:unused",),
+            )
+
+        self.assertEqual(len(result), resources._MAX_LOCAL_RESOURCE_ATTEMPTS)
+        self.assertEqual(result[0].metadata_key, "model")
+        self.assertEqual(result[-1].metadata_key, "LORA:style-30")
+        self.assertEqual(
+            resolve_resource.call_count,
+            resources._MAX_LOCAL_RESOURCE_ATTEMPTS,
+        )
+        self.assertEqual(hash_file.call_count, resources._MAX_LOCAL_RESOURCE_ATTEMPTS)
+        get_filename_list.assert_not_called()
+
     def test_manual_hashes_preserve_values_and_cannot_replace_local_model_hash(self):
         first = "ABCDEF1234AAAAAA"
         second = "ABCDEF1234BBBBBB"
@@ -787,6 +867,43 @@ class AIONativeImageOutputTests(unittest.TestCase):
                     result,
                     hashlib.sha256(b"still returns a hash").hexdigest(),
                 )
+
+    def test_deeply_nested_persistent_hash_cache_is_recomputed_and_replaced(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            user_directory = root / "user"
+            user_directory.mkdir()
+            model_path = root / "model.safetensors"
+            model_path.write_bytes(b"verified model")
+            cache_path = (
+                user_directory
+                / "easyuse_anima"
+                / "cache"
+                / resources._HASH_CACHE_FILENAME
+            )
+            cache_path.parent.mkdir(parents=True)
+            depth = sys.getrecursionlimit() * 4
+            cache_path.write_text("[" * depth + "0" + "]" * depth, encoding="utf-8")
+            folder_paths = fake_folder_paths({}, user_directory=user_directory)
+            calculate = resources._calculate_file_sha256
+
+            with (
+                patch.dict(sys.modules, {"folder_paths": folder_paths}),
+                patch.object(
+                    resources,
+                    "_calculate_file_sha256",
+                    wraps=calculate,
+                ) as recomputed,
+                self.assertLogs("ComfyUI-EasyUseAnima", level="WARNING") as logs,
+            ):
+                result = resources._hash_file(model_path)
+
+            self.assertEqual(result, hashlib.sha256(b"verified model").hexdigest())
+            recomputed.assert_called_once()
+            self.assertTrue(any("RecursionError" in entry for entry in logs.output))
+            replacement = json.loads(cache_path.read_text(encoding="utf-8"))
+            self.assertEqual(replacement["version"], resources._HASH_CACHE_SCHEMA)
+            self.assertEqual(len(replacement["entries"]), 1)
 
     def test_png_jpeg_and_webp_round_trip_a1111_and_comfy_workflow_metadata(self):
         metadata = native.NativeImageMetadata(
