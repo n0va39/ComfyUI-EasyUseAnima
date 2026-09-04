@@ -84,10 +84,20 @@ class FakeHTTPException(Exception):
 
 
 class JsonRequest:
-    def __init__(self, payload=None, *, error=None, query=None):
+    DEFAULT_HEADERS = {
+        "Content-Type": "application/json",
+        "Host": "127.0.0.1:8188",
+        "Origin": "http://127.0.0.1:8188",
+        "Sec-Fetch-Site": "same-origin",
+    }
+
+    def __init__(self, payload=None, *, error=None, query=None, headers=None):
         self.payload = payload
         self.error = error
         self.query = query or {}
+        self.headers = dict(
+            self.DEFAULT_HEADERS if headers is None else headers
+        )
 
     async def json(self):
         if self.error is not None:
@@ -3255,6 +3265,74 @@ class ApiRequestContractTests(unittest.TestCase):
         "/easyuse_anima/aio_profiles/rename",
         "/easyuse_anima/lora_profiles/fix",
     )
+
+    def test_all_json_routes_reject_cross_origin_requests_before_submit(self):
+        api, routes = load_api_routes()
+        cases = (
+            {
+                "Content-Type": "application/json",
+                "Host": "127.0.0.1:8188",
+                "Origin": "https://attacker.example",
+                "Sec-Fetch-Site": "cross-site",
+            },
+            {
+                "Content-Type": "application/json",
+                "Host": "127.0.0.1:8188",
+                "Origin": "https://attacker.example",
+            },
+            {
+                "Content-Type": "application/json",
+                "Host": "127.0.0.1:8188",
+            },
+        )
+
+        with (
+            patch.object(asyncio, "to_thread") as submit,
+            patch.object(api.application.translation_executor, "execute") as translate,
+        ):
+            for route in self.POST_ROUTES:
+                for headers in cases:
+                    with self.subTest(route=route, headers=headers):
+                        response = asyncio.run(
+                            routes.handlers[route](
+                                JsonRequest({}, headers=headers)
+                            )
+                        )
+                        self.assertEqual(response["status"], 403)
+                        self.assertEqual(
+                            response["payload"]["code"],
+                            "cross_origin_request",
+                        )
+
+            submit.assert_not_called()
+            translate.assert_not_called()
+
+    def test_all_json_routes_require_application_json_before_submit(self):
+        api, routes = load_api_routes()
+        headers = {
+            "Content-Type": "text/plain",
+            "Host": "127.0.0.1:8188",
+            "Origin": "http://127.0.0.1:8188",
+            "Sec-Fetch-Site": "same-origin",
+        }
+
+        with (
+            patch.object(asyncio, "to_thread") as submit,
+            patch.object(api.application.translation_executor, "execute") as translate,
+        ):
+            for route in self.POST_ROUTES:
+                with self.subTest(route=route):
+                    response = asyncio.run(
+                        routes.handlers[route](JsonRequest({}, headers=headers))
+                    )
+                    self.assertEqual(response["status"], 415)
+                    self.assertEqual(
+                        response["payload"]["code"],
+                        "json_content_type_required",
+                    )
+
+            submit.assert_not_called()
+            translate.assert_not_called()
 
     def test_all_json_routes_reject_malformed_and_non_object_bodies_before_submit(self):
         api, routes = load_api_routes()

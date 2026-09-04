@@ -17,6 +17,25 @@ updating a release branch that will be scanned by Registry automation.
   execute response text.
 - Remote HTTP endpoints must be disabled by default or guarded by an explicit
   allow setting. Localhost-only defaults are preferred.
+- Do not deserialize model data with direct `torch.load`, pickle, marshal, or
+  another executable object format. Route model resources through ComfyUI's
+  inventoried loaders and their safe-loading contract.
+- Validate a user-controlled output path after every supported template has
+  been expanded. The resolved destination must remain below ComfyUI's active
+  output directory before any saver or optional node is resolved.
+
+## Request Side-Effect Boundary
+
+- Every EasyUse Anima POST route parses its body through
+  `easyuse_anima.api.requests.parse_json_object`.
+- The shared parser requires `application/json`, a same-authority
+  `Origin`/`Host` pair, and rejects a provided `Sec-Fetch-Site` value unless it
+  is `same-origin` before parsing or dispatching work.
+- GET handlers must not create, rename, or delete user-managed data. Startup
+  bootstrap code owns default wildcard-directory creation; wildcard reads only
+  resolve the configured paths.
+- New side-effecting routes must inherit this boundary rather than parsing a
+  request body directly.
 
 ## EasyUse Anima Rules
 
@@ -28,6 +47,15 @@ updating a release branch that will be scanned by Registry automation.
   `Anima SAM3 Context` and `Anima SAM3 Detailer` nodes are not shipped.
 - SAM3 and Impact Pack integrations must use explicit optional imports for known
   classes. Do not dynamically import user-provided module names.
+- AiO output templates are expanded inside EasyUse Anima and checked against
+  the ComfyUI output root before either core `SaveImage` or an optional saver is
+  called. Do not forward an unexpanded path template to a third-party saver.
+- AiO ResShift execution is fail-closed before optional-node lookup. Its saved
+  settings remain readable, but re-enabling the adapter requires the safe
+  loader contract tracked in issue #679.
+- Replacing the Image Saver dependency with a native EasyUse output backend is
+  tracked separately in issue #678 so format, workflow, metadata, and Civitai
+  compatibility can be reviewed independently from the 1.1.6 security fix.
 
 ## Archive Surface
 
