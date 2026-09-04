@@ -48,6 +48,12 @@ _MAX_REMOTE_RESOURCES = 32
 _USER_COMMENT_PREFIX = b"UNICODE\0"
 _LORA_TAG_RE = re.compile(r"<lora:([^>:]+)(?::([^>]+))?>", re.IGNORECASE)
 _CONTROL_RE = re.compile(r"[\x00-\x1f\x7f]")
+_WINDOWS_INVALID_COMPONENT_RE = re.compile(r'[<>:"|?*\x00-\x1f\x7f]')
+_WINDOWS_RESERVED_COMPONENTS = frozenset(
+    {"con", "prn", "aux", "nul"}
+    | {f"com{index}" for index in range(1, 10)}
+    | {f"lpt{index}" for index in range(1, 10)}
+)
 _SAVE_LOCK = threading.Lock()
 
 _CIVITAI_SAMPLER_NAMES = MappingProxyType({
@@ -413,6 +419,31 @@ def _tensor_to_pil(image: object):
     return Image.fromarray(pixels)
 
 
+def _is_windows_safe_output_component(value: str) -> bool:
+    text = str(value or "")
+    if (
+        not text
+        or text in {".", ".."}
+        or text.endswith((" ", "."))
+        or _WINDOWS_INVALID_COMPONENT_RE.search(text)
+    ):
+        return False
+    device_name = text.split(".", 1)[0].rstrip(" ").casefold()
+    return device_name not in _WINDOWS_RESERVED_COMPONENTS
+
+
+def _sanitize_native_output_filename(value: str) -> str:
+    text = str(value or "").strip()
+    if "/" in text or "\\" in text:
+        raise RuntimeError(
+            "[EasyUseAnima] AiO save filename must be a single filename component."
+        )
+    text = _WINDOWS_INVALID_COMPONENT_RE.sub("", text).rstrip(" .")
+    if not _is_windows_safe_output_component(text):
+        raise RuntimeError("[EasyUseAnima] AiO save filename is invalid on Windows.")
+    return text
+
+
 def _allocate_filenames(
     output_folder: Path,
     filename: str,
@@ -472,7 +503,12 @@ def _resolve_native_output_folder(output_root: Path, path: str) -> tuple[Path, P
         posix_path.is_absolute()
         or windows_path.drive
         or windows_path.root
-        or any(part in {".", ".."} or ":" in part for part in parts)
+        or any(
+            part in {".", ".."}
+            or ":" in part
+            or not _is_windows_safe_output_component(part)
+            for part in parts
+        )
     ):
         raise RuntimeError(
             "[EasyUseAnima] AiO save path must stay within the ComfyUI output directory."
@@ -559,15 +595,8 @@ def _save_native_images(
     safe_extension = str(extension or "").casefold()
     if safe_extension not in {"png", "jpg", "jpeg", "webp"}:
         raise RuntimeError("[EasyUseAnima] AiO save extension is invalid.")
-    if (
-        not filename
-        or filename in {".", ".."}
-        or len(f"{filename}.{safe_extension}") > 255
-        or "/" in filename
-        or "\\" in filename
-        or ":" in filename
-        or _CONTROL_RE.search(filename)
-    ):
+    safe_filename = _sanitize_native_output_filename(filename)
+    if len(f"{safe_filename}.{safe_extension}") > 255:
         raise RuntimeError("[EasyUseAnima] AiO save filename is invalid.")
     resolved_folder, relative_folder = _resolve_native_output_folder(output_root, path)
 
@@ -594,7 +623,7 @@ def _save_native_images(
     with _SAVE_LOCK, OutputDirectoryBinding(resolved_folder) as directory:
         pending_names = _allocate_filenames(
             resolved_folder,
-            filename,
+            safe_filename,
             safe_extension,
             len(batch),
             sidecar_required=sidecar_required,
@@ -636,7 +665,7 @@ def _save_native_images(
                 directory.assert_current()
                 pending_names[index:] = _allocate_filenames(
                     resolved_folder,
-                    filename,
+                    safe_filename,
                     safe_extension,
                     len(batch) - index,
                     sidecar_required=sidecar_required,
