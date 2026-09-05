@@ -503,7 +503,7 @@ def _apply_aio_spectrum_correction_patch_for_comfy_sampler(
     patch_cls = _require_custom_node_class(
         "DiTCFGFSGPatch",
         "ComfyUI-Spectrum-KSampler",
-        "Repository: https://github.com/blepping/ComfyUI-Spectrum-KSampler",
+        "Repository: https://github.com/sorryhyun/ComfyUI-Spectrum-KSampler",
     )
     use_smc = _as_bool(corrections.get("smc_cfg"), False)
     use_cfgpp = _as_bool(corrections.get("cfgpp"), False)
@@ -562,7 +562,7 @@ def _apply_aio_spectrum_forecast_patch_for_comfy_sampler(
     node_id, patch_cls = _require_any_custom_node_class(
         ("DiTSpectrumPatchAdvanced", "DiTSpectrumPatch"),
         "ComfyUI-Spectrum-KSampler",
-        "Repository: https://github.com/blepping/ComfyUI-Spectrum-KSampler",
+        "Repository: https://github.com/sorryhyun/ComfyUI-Spectrum-KSampler",
     )
     patcher = patch_cls()
     patch = getattr(patcher, "patch", None)
