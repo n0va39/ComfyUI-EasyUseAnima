@@ -1405,44 +1405,53 @@ class AIOSamplerDependencyTests(unittest.TestCase):
         self.assertNotIn("compat_policy", calls[0])
 
     def test_missing_spectrum_model_patch_dependency_names_required_node_pack(self):
-        settings = generation_normalization._normalize_aio_generation_settings(json.dumps({
-            "sampler": {
-                "backend": "comfy_ksampler",
-                "spectrum": {
-                    "enabled": True,
-                },
-            },
-        }))
+        for feature in ("spectrum", "dit_corrections"):
+            with self.subTest(feature=feature):
+                settings = generation_normalization._normalize_aio_generation_settings(json.dumps({
+                    "sampler": {
+                        "backend": "comfy_ksampler",
+                        "spectrum": {"enabled": feature == "spectrum"},
+                        "dit_corrections": {"enabled": feature == "dit_corrections"},
+                    },
+                }))
 
-        with patch_comfy_helper(aio_nodes, "_find_comfy_node_class", return_value=None):
-            with self.assertRaisesRegex(RuntimeError, "ComfyUI-Spectrum-KSampler"):
-                model_preparation._apply_aio_spectrum_model_patches_for_comfy_sampler(
-                    "base_model",
-                    "clip",
-                    "positive",
-                    settings["sampler"],
+                with patch_comfy_helper(aio_nodes, "_find_comfy_node_class", return_value=None):
+                    with self.assertRaisesRegex(RuntimeError, "ComfyUI-Spectrum-KSampler") as missing:
+                        model_preparation._apply_aio_spectrum_model_patches_for_comfy_sampler(
+                            "base_model",
+                            "clip",
+                            "positive",
+                            settings["sampler"],
+                        )
+                self.assertIn(
+                    "https://github.com/sorryhyun/ComfyUI-Spectrum-KSampler",
+                    str(missing.exception),
                 )
 
     def test_missing_spectrum_sampler_dependency_names_required_node_pack(self):
-        settings = generation_normalization._normalize_aio_generation_settings(json.dumps({
-            "sampler": {
-                "backend": "spectrum_mod_guidance_advanced",
-            },
-        }))
+        for backend in ("spectrum_mod_guidance_advanced", "spectrum_spd_speed"):
+            with self.subTest(backend=backend):
+                settings = generation_normalization._normalize_aio_generation_settings(json.dumps({
+                    "sampler": {"backend": backend},
+                }))
 
-        with patch_comfy_helper(aio_nodes, "_find_comfy_node_class", return_value=None):
-            with self.assertRaisesRegex(RuntimeError, "ComfyUI-Spectrum-KSampler"):
-                sampling._sample_latent_with_aio_backend(
-                    model=None,
-                    clip=None,
-                    positive=None,
-                    negative=None,
-                    latent_image=None,
-                    sampler_settings=settings["sampler"],
-                    mod_guidance_settings=settings["mod_guidance"],
-                    use_mod_guidance=True,
-                    quality_tags="quality",
-                    quality_neg="negative quality",
+                with patch_comfy_helper(aio_nodes, "_find_comfy_node_class", return_value=None):
+                    with self.assertRaisesRegex(RuntimeError, "ComfyUI-Spectrum-KSampler") as missing:
+                        sampling._sample_latent_with_aio_backend(
+                            model=None,
+                            clip=None,
+                            positive=None,
+                            negative=None,
+                            latent_image=None,
+                            sampler_settings=settings["sampler"],
+                            mod_guidance_settings=settings["mod_guidance"],
+                            use_mod_guidance=True,
+                            quality_tags="quality",
+                            quality_neg="negative quality",
+                        )
+                self.assertIn(
+                    "https://github.com/sorryhyun/ComfyUI-Spectrum-KSampler",
+                    str(missing.exception),
                 )
 
     def test_spectrum_advanced_sampler_filters_unsupported_keywords(self):

@@ -128,7 +128,7 @@ def _sample_latent_with_spectrum_mod_guidance_advanced(
     sampler_cls = _require_custom_node_class(
         "SpectrumKSamplerAdvanced",
         "ComfyUI-Spectrum-KSampler",
-        "Repository: https://github.com/blepping/ComfyUI-Spectrum-KSampler",
+        "Repository: https://github.com/sorryhyun/ComfyUI-Spectrum-KSampler",
     )
     spectrum = sampler_settings.get("spectrum", {})
     if not isinstance(spectrum, dict):
@@ -254,7 +254,7 @@ def _sample_latent_with_spectrum_spd(
     spd_cls = _require_custom_node_class(
         "SpectrumSPDKSampler",
         "ComfyUI-Spectrum-KSampler",
-        "Repository: https://github.com/blepping/ComfyUI-Spectrum-KSampler",
+        "Repository: https://github.com/sorryhyun/ComfyUI-Spectrum-KSampler",
     )
     spd = sampler_settings.get("spd", {})
     if not isinstance(spd, dict):
