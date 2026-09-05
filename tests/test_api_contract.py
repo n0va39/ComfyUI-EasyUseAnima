@@ -3284,6 +3284,17 @@ class ApiRequestContractTests(unittest.TestCase):
                 "Content-Type": "application/json",
                 "Host": "127.0.0.1:8188",
             },
+            {
+                "Content-Type": "application/json",
+                "Host": "invalid/authority",
+                "Origin": "null",
+            },
+            {
+                "Content-Type": "application/json",
+                "Host": "127.0.0.1:invalid",
+                "Origin": "http://127.0.0.1:invalid",
+                "Sec-Fetch-Site": "same-origin",
+            },
         )
 
         with (
@@ -3293,11 +3304,12 @@ class ApiRequestContractTests(unittest.TestCase):
             for route in self.POST_ROUTES:
                 for headers in cases:
                     with self.subTest(route=route, headers=headers):
-                        response = asyncio.run(
-                            routes.handlers[route](
-                                JsonRequest({}, headers=headers)
+                        request = JsonRequest({}, headers=headers)
+                        with patch.object(request, "json", wraps=request.json) as parse_body:
+                            response = asyncio.run(
+                                routes.handlers[route](request)
                             )
-                        )
+                            parse_body.assert_not_awaited()
                         self.assertEqual(response["status"], 403)
                         self.assertEqual(
                             response["payload"]["code"],

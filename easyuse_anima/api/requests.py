@@ -80,10 +80,12 @@ def validate_same_origin_json_request(request) -> None:
 
     origin = _request_header(request, "Origin")
     host = _request_header(request, "Host")
+    origin_authority = _origin_authority(origin)
+    host_authority = _host_authority(host, origin)
     if (
-        not origin
-        or not host
-        or _origin_authority(origin) != _host_authority(host, origin)
+        origin_authority is None
+        or host_authority is None
+        or origin_authority != host_authority
     ):
         raise ApiContractError(
             403,
