@@ -73,6 +73,11 @@ function cssPixel(value) {
  */
 function hasVisibleVerticalScrollbar(input, style) {
   const overflowY = String(style.overflowY || "").trim().toLowerCase();
+  // Node 2.0 reserves a stable gutter even while autosizing hides the scrollbar.
+  if (String(style.scrollbarGutter || "").includes("stable")
+    && ["auto", "scroll", "hidden"].includes(overflowY)) {
+    return true;
+  }
   if (overflowY === "scroll") {
     return true;
   }

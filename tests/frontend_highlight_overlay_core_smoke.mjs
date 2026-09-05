@@ -83,6 +83,20 @@ assert(
   overlayScrollbarPadding(noScrollbarInput, style).right === "4px",
   "Auto overflow without content overflow must not reserve a scrollbar gutter",
 );
+for (const overflowY of ["auto", "hidden"]) {
+  const stableStyle = { ...style, overflowY, scrollbarGutter: "stable" };
+  const stablePadding = overlayScrollbarPadding(noScrollbarInput, stableStyle);
+  assert(stablePadding.right === "22px", "A stable gutter must survive autosizing without overflow");
+  const inputContentWidth = noScrollbarInput.clientWidth
+    - Number.parseFloat(stableStyle.paddingLeft)
+    - Number.parseFloat(stableStyle.paddingRight);
+  const overlayContentWidth = noScrollbarInput.offsetWidth
+    - Number.parseFloat(stableStyle.borderLeftWidth)
+    - Number.parseFloat(stableStyle.borderRightWidth)
+    - Number.parseFloat(stableStyle.paddingLeft)
+    - Number.parseFloat(stablePadding.right);
+  assert(inputContentWidth === overlayContentWidth, "Node 2.0 stable gutter must preserve wrap width");
+}
 assert(
   JSON.stringify(overlayBounds(input)) === JSON.stringify({
     left: "8px",
