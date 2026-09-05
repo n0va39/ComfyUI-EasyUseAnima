@@ -83,10 +83,49 @@ assert.deepEqual(
   ),
   {
     left: 760,
-    top: 792,
+    top: 704,
     width: 260,
     maxHeight: 56,
   },
 );
+
+for (const fixture of [
+  {
+    name: "caret below the clipped editor viewport",
+    input: rect(100, 200, 420, 1800),
+    caret: rect(240, 1137.61, 1, 14),
+    top: 656,
+    maxHeight: 56,
+  },
+  {
+    name: "caret above the viewport after scrolling",
+    input: rect(100, -400, 420, 600),
+    caret: rect(240, -300, 1, 20),
+    top: 4,
+    maxHeight: 280,
+  },
+  {
+    name: "lower edge with enough room for normal placement",
+    input: rect(100, 500, 420, 160),
+    caret: rect(240, 590, 1, 24),
+    top: 650,
+    maxHeight: 62,
+  },
+  {
+    name: "lower edge requiring the minimum menu budget",
+    input: rect(100, 500, 420, 160),
+    caret: rect(240, 630, 1, 24),
+    top: 656,
+    maxHeight: 56,
+  },
+]) {
+  const viewport = { width: 1280, height: 720 };
+  const popup = calculateAutocompletePopupGeometry(fixture.input, fixture.caret, viewport, 18);
+  assert.equal(popup.top, fixture.top, fixture.name);
+  assert.equal(popup.maxHeight, fixture.maxHeight, fixture.name);
+  assert.ok(popup.top >= 4, `${fixture.name}: popup must remain below the top margin`);
+  assert.ok(popup.maxHeight >= 56, `${fixture.name}: popup must retain its minimum height budget`);
+  assert.ok(popup.top + popup.maxHeight <= viewport.height - 8, `${fixture.name}: popup must fit above the bottom margin`);
+}
 
 console.log("frontend autocomplete popup geometry smoke passed");
