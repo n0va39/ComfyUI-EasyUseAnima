@@ -75,13 +75,18 @@ def _aligned_size_near_scale(
         for candidate_height in height_candidates:
             if max_long_edge > 0 and max(candidate_width, candidate_height) > max_long_edge:
                 continue
-            if scale > 1.0 and max_long_edge > source_long_edge:
-                if candidate_width <= source_width or candidate_height <= source_height:
-                    continue
             applied_scale = (candidate_width / source_width + candidate_height / source_height) / 2.0
             candidates.append((candidate_width, candidate_height, applied_scale))
     if not candidates:
         return None
+
+    if scale > 1.0 and max_long_edge > source_long_edge:
+        upscaled_candidates = [
+            item for item in candidates
+            if item[0] > source_width and item[1] > source_height
+        ]
+        if upscaled_candidates:
+            candidates = upscaled_candidates
 
     source_ratio = source_width / source_height
     return min(

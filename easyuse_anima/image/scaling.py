@@ -38,6 +38,8 @@ def _image_scale_by_multiple_size(
     scale = _scale_by_value(scale_by, 1.0)
     max_long_edge = _max_long_edge_value(max_long_edge)
     alignment = _alignment_value(multiple)
+    if alignment is not None and 0 < max_long_edge < alignment:
+        raise ValueError(f"max_long_edge must be 0 or at least the selected multiple ({alignment}).")
     if alignment is None:
         applied_scale = scale
         if max_long_edge > 0:

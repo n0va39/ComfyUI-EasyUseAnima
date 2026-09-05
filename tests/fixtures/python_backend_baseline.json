@@ -56374,17 +56374,17 @@
           },
           {
             "async": false,
-            "end_line": 94,
+            "end_line": 99,
             "kind": "function",
             "line": 48,
-            "loc": 47,
+            "loc": 52,
             "qualified_name": "_aligned_size_near_scale"
           }
         ],
         "is_package": false,
-        "loc": 97,
+        "loc": 102,
         "module": "easyuse_anima.image.geometry",
-        "normalized_git_blob_sha1": "a754b98a8dce7dca3db29f66b9c62f4932f5f64e",
+        "normalized_git_blob_sha1": "6aba23be0740d196431450d5234a7e6597bfd45a",
         "path": "easyuse_anima/image/geometry.py",
         "top_level": {
           "class_count": 0,
@@ -56576,25 +56576,25 @@
           },
           {
             "async": false,
-            "end_line": 122,
+            "end_line": 124,
             "kind": "function",
             "line": 29,
-            "loc": 94,
+            "loc": 96,
             "qualified_name": "_image_scale_by_multiple_size"
           },
           {
             "async": false,
-            "end_line": 148,
+            "end_line": 150,
             "kind": "function",
-            "line": 125,
+            "line": 127,
             "loc": 24,
             "qualified_name": "_normalize_image_scale_options"
           }
         ],
         "is_package": false,
-        "loc": 154,
+        "loc": 156,
         "module": "easyuse_anima.image.scaling",
-        "normalized_git_blob_sha1": "722adb621f513abe24ed98c25b8845ee34868e65",
+        "normalized_git_blob_sha1": "9e4456fedf22d0737c62a9dc64046fb05b2155aa",
         "path": "easyuse_anima/image/scaling.py",
         "top_level": {
           "class_count": 0,

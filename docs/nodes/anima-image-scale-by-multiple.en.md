@@ -29,6 +29,9 @@ prefer 32-multiple dimensions.
 - `multiple=32` is the safe default for ANIMA/Spectrum Highres flows.
 - When `max_long_edge` is greater than 0, the node chooses the closest valid
   size that does not exceed that long-edge limit.
+- If no aligned upscale fits the limit, a smaller aligned size is selected.
+  A positive limit below the selected multiple reports an input error because
+  no valid size exists.
 - The final size and actual ratio are returned as `width`, `height`, and
   `applied_scale`.
 
