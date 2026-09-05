@@ -181,6 +181,19 @@ def _civitai_resource_entries(
     return entries
 
 
+def _resource_weight_fields(resources: Sequence[_ResourceHash], hashes: Mapping[str, str]) -> list[str]:
+    weights: dict[str, float] = {}
+    seen: set[str] = set()
+    for resource in resources:
+        key = resource.metadata_key
+        if key in seen or hashes.get(key) != resource.metadata_hash:
+            continue
+        seen.add(key)
+        if resource.weight is not None:
+            weights[key] = resource.weight
+    return [f"Resource weights: {_compact_json(weights, ascii_only=False)}"] if weights else []
+
+
 def _build_native_metadata(
     *,
     modelname: str,
@@ -201,6 +214,7 @@ def _build_native_metadata(
     download_civitai_data: bool,
     easy_remix: bool,
     civitai_budget: CivitaiLookupBudget | None = None,
+    include_resource_weights: bool = False,
 ) -> NativeImageMetadata:
     _validate_parameter_sources(
         modelname,
@@ -276,6 +290,8 @@ def _build_native_metadata(
     fields.append(f"Model: {_resource_name(modelname)}")
     if hashes:
         fields.append(f"Hashes: {_compact_json(hashes, ascii_only=False)}")
+    if include_resource_weights:
+        fields.extend(_resource_weight_fields(resources, hashes))
     fields.append("Version: ComfyUI")
     if download_civitai_data:
         civitai_resources = _civitai_resource_entries(

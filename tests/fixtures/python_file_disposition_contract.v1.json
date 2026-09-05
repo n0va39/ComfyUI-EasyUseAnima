@@ -4,7 +4,7 @@
   "inventory_owner": {
     "path": "tests/fixtures/python_backend_baseline.json",
     "expected_baseline_files": 191,
-    "expected_target_files": 202
+    "expected_target_files": 204
   },
   "linked_contracts": {
     "compatibility_registry": "docs/architecture/python-compatibility-shims.md",
@@ -859,21 +859,27 @@
       "path": "easyuse_anima/aio/native_civitai.py",
       "role": "aio-civitai-metadata-client",
       "owner_group": "aio",
-      "disposition": "cohesive_retain",
+      "disposition": "split",
       "status": "complete",
       "targets": [
         {
           "path": "easyuse_anima/aio/native_civitai.py",
           "role": "aio-civitai-metadata-client",
           "owner_group": "aio"
+        },
+        {
+          "path": "easyuse_anima/aio/civitai_lookup.py",
+          "role": "aio-civitai-resource-lookup",
+          "owner_group": "aio"
         }
       ],
       "direct_contracts": [
-        "tests/test_aio_native_image_output.py"
+        "tests/test_aio_native_image_output.py",
+        "tests/test_civitai_lookup_nodes.py"
       ],
       "compatibility_registry_key": null,
-      "task_id": null,
-      "rollback_unit": null,
+      "task_id": "IMAGE-METADATA-CIVITAI",
+      "rollback_unit": "Revert standalone Civitai hash and AIR lookup while retaining the existing AiO transport.",
       "replacement_owner": null,
       "size_exception_verdicts": []
     },
@@ -2541,9 +2547,15 @@
           "path": "easyuse_anima/nodes/image_output_nodes.py",
           "role": "comfyui-node-adapter",
           "owner_group": "nodes"
+        },
+        {
+          "path": "easyuse_anima/nodes/civitai_nodes.py",
+          "role": "comfyui-node-adapter",
+          "owner_group": "nodes"
         }
       ],
       "direct_contracts": [
+        "tests/test_civitai_lookup_nodes.py",
         "tests/test_image_output_nodes.py"
       ],
       "compatibility_registry_key": null,

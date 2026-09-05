@@ -115,6 +115,217 @@
         "requested": "__future__",
         "role": "ordinary",
         "scope": "<module>",
+        "source": "easyuse_anima/aio/civitai_lookup.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "re",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "re",
+        "kind": "static_import",
+        "line": 5,
+        "name": null,
+        "optional": false,
+        "requested": "re",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/civitai_lookup.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "Mapping",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "collections.abc:Mapping",
+        "kind": "static_from",
+        "line": 6,
+        "name": "Mapping",
+        "optional": false,
+        "requested": "collections.abc",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/civitai_lookup.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "dataclass",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "dataclasses:dataclass",
+        "kind": "static_from",
+        "line": 7,
+        "name": "dataclass",
+        "optional": false,
+        "requested": "dataclasses",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/civitai_lookup.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "lru_cache",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "functools:lru_cache",
+        "kind": "static_from",
+        "line": 8,
+        "name": "lru_cache",
+        "optional": false,
+        "requested": "functools",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/civitai_lookup.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "_CIVITAI_API_ROOT",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".native_civitai:_CIVITAI_API_ROOT",
+        "kind": "static_from",
+        "line": 10,
+        "name": "_CIVITAI_API_ROOT",
+        "optional": false,
+        "requested": ".native_civitai",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/civitai_lookup.py",
+        "target": "easyuse_anima/aio/native_civitai.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "_CONTROL_RE",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".native_civitai:_CONTROL_RE",
+        "kind": "static_from",
+        "line": 10,
+        "name": "_CONTROL_RE",
+        "optional": false,
+        "requested": ".native_civitai",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/civitai_lookup.py",
+        "target": "easyuse_anima/aio/native_civitai.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "_LOOKUP_HASH_RE",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".native_civitai:_LOOKUP_HASH_RE",
+        "kind": "static_from",
+        "line": 10,
+        "name": "_LOOKUP_HASH_RE",
+        "optional": false,
+        "requested": ".native_civitai",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/civitai_lookup.py",
+        "target": "easyuse_anima/aio/native_civitai.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "_MAX_REMOTE_FILES",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".native_civitai:_MAX_REMOTE_FILES",
+        "kind": "static_from",
+        "line": 10,
+        "name": "_MAX_REMOTE_FILES",
+        "optional": false,
+        "requested": ".native_civitai",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/civitai_lookup.py",
+        "target": "easyuse_anima/aio/native_civitai.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "_positive_int",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".native_civitai:_positive_int",
+        "kind": "static_from",
+        "line": 10,
+        "name": "_positive_int",
+        "optional": false,
+        "requested": ".native_civitai",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/civitai_lookup.py",
+        "target": "easyuse_anima/aio/native_civitai.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "_remote_text",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".native_civitai:_remote_text",
+        "kind": "static_from",
+        "line": 10,
+        "name": "_remote_text",
+        "optional": false,
+        "requested": ".native_civitai",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/civitai_lookup.py",
+        "target": "easyuse_anima/aio/native_civitai.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "_request_civitai_json",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".native_civitai:_request_civitai_json",
+        "kind": "static_from",
+        "line": 10,
+        "name": "_request_civitai_json",
+        "optional": false,
+        "requested": ".native_civitai",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/civitai_lookup.py",
+        "target": "easyuse_anima/aio/native_civitai.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "annotations",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "__future__:annotations",
+        "kind": "static_from",
+        "line": 3,
+        "name": "annotations",
+        "optional": false,
+        "requested": "__future__",
+        "role": "ordinary",
+        "scope": "<module>",
         "source": "easyuse_anima/aio/conditioning.py"
       },
       {
@@ -9804,7 +10015,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 304
+            "line": 320
           }
         ],
         "classification": "external",
@@ -9812,7 +10023,7 @@
         "conditional": true,
         "imported": "comfy.cli_args:args",
         "kind": "static_from",
-        "line": 305,
+        "line": 321,
         "name": "args",
         "optional": true,
         "requested": "comfy.cli_args",
@@ -9829,7 +10040,7 @@
         "conditional": false,
         "imported": "PIL:ExifTags",
         "kind": "static_from",
-        "line": 321,
+        "line": 337,
         "name": "ExifTags",
         "optional": false,
         "requested": "PIL",
@@ -9846,7 +10057,7 @@
         "conditional": false,
         "imported": "PIL:Image",
         "kind": "static_from",
-        "line": 321,
+        "line": 337,
         "name": "Image",
         "optional": false,
         "requested": "PIL",
@@ -9861,7 +10072,7 @@
           {
             "branch": "body",
             "kind": "if",
-            "line": 357,
+            "line": 373,
             "type_checking": false
           }
         ],
@@ -9870,7 +10081,7 @@
         "conditional": true,
         "imported": "PIL.PngImagePlugin:PngInfo",
         "kind": "static_from",
-        "line": 358,
+        "line": 374,
         "name": "PngInfo",
         "optional": false,
         "requested": "PIL.PngImagePlugin",
@@ -9887,7 +10098,7 @@
         "conditional": false,
         "imported": "numpy",
         "kind": "static_import",
-        "line": 407,
+        "line": 423,
         "name": null,
         "optional": false,
         "requested": "numpy",
@@ -9904,7 +10115,7 @@
         "conditional": false,
         "imported": "PIL:Image",
         "kind": "static_from",
-        "line": 408,
+        "line": 424,
         "name": "Image",
         "optional": false,
         "requested": "PIL",
@@ -24170,6 +24381,58 @@
         "requested": "__future__",
         "role": "ordinary",
         "scope": "<module>",
+        "source": "easyuse_anima/nodes/civitai_nodes.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "math",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "math",
+        "kind": "static_import",
+        "line": 5,
+        "name": null,
+        "optional": false,
+        "requested": "math",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/nodes/civitai_nodes.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "lookup_civitai_identifier",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": "..aio.civitai_lookup:lookup_civitai_identifier",
+        "kind": "static_from",
+        "line": 7,
+        "name": "lookup_civitai_identifier",
+        "optional": false,
+        "requested": "..aio.civitai_lookup",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/nodes/civitai_nodes.py",
+        "target": "easyuse_anima/aio/civitai_lookup.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "annotations",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "__future__:annotations",
+        "kind": "static_from",
+        "line": 3,
+        "name": "annotations",
+        "optional": false,
+        "requested": "__future__",
+        "role": "ordinary",
+        "scope": "<module>",
         "source": "easyuse_anima/nodes/image_nodes.py"
       },
       {
@@ -24394,7 +24657,7 @@
         "conditional": false,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 147,
+        "line": 153,
         "name": null,
         "optional": false,
         "requested": "folder_paths",
@@ -39287,6 +39550,24 @@
       },
       {
         "alias": null,
+        "bound_name": "EasyUseAnimaCivitaiLookup",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".nodes.civitai_nodes:EasyUseAnimaCivitaiLookup",
+        "kind": "static_from",
+        "line": 6,
+        "name": "EasyUseAnimaCivitaiLookup",
+        "optional": false,
+        "requested": ".nodes.civitai_nodes",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/registration.py",
+        "target": "easyuse_anima/nodes/civitai_nodes.py"
+      },
+      {
+        "alias": null,
         "bound_name": "EasyUseAnimaDetailerAlignHook",
         "branch_context": [],
         "classification": "internal",
@@ -39294,7 +39575,7 @@
         "conditional": false,
         "imported": ".nodes.image_nodes:EasyUseAnimaDetailerAlignHook",
         "kind": "static_from",
-        "line": 6,
+        "line": 7,
         "name": "EasyUseAnimaDetailerAlignHook",
         "optional": false,
         "requested": ".nodes.image_nodes",
@@ -39312,7 +39593,7 @@
         "conditional": false,
         "imported": ".nodes.image_nodes:EasyUseAnimaImageScaleByMultiple",
         "kind": "static_from",
-        "line": 6,
+        "line": 7,
         "name": "EasyUseAnimaImageScaleByMultiple",
         "optional": false,
         "requested": ".nodes.image_nodes",
@@ -39330,7 +39611,7 @@
         "conditional": false,
         "imported": ".nodes.image_output_nodes:EasyUseAnimaImageMetadata",
         "kind": "static_from",
-        "line": 10,
+        "line": 11,
         "name": "EasyUseAnimaImageMetadata",
         "optional": false,
         "requested": ".nodes.image_output_nodes",
@@ -39348,7 +39629,7 @@
         "conditional": false,
         "imported": ".nodes.image_output_nodes:EasyUseAnimaSaveImage",
         "kind": "static_from",
-        "line": 10,
+        "line": 11,
         "name": "EasyUseAnimaSaveImage",
         "optional": false,
         "requested": ".nodes.image_output_nodes",
@@ -39366,7 +39647,7 @@
         "conditional": false,
         "imported": ".nodes.lora_nodes:EasyUseAnimaLoraPreset",
         "kind": "static_from",
-        "line": 11,
+        "line": 12,
         "name": "EasyUseAnimaLoraPreset",
         "optional": false,
         "requested": ".nodes.lora_nodes",
@@ -39384,7 +39665,7 @@
         "conditional": false,
         "imported": ".nodes.naia_nodes:EasyUseAnimaNAIARandomPrompt",
         "kind": "static_from",
-        "line": 12,
+        "line": 13,
         "name": "EasyUseAnimaNAIARandomPrompt",
         "optional": false,
         "requested": ".nodes.naia_nodes",
@@ -39402,7 +39683,7 @@
         "conditional": false,
         "imported": ".nodes.prompt_advanced_nodes:EasyUseAnimaPromptStudioAdvanced",
         "kind": "static_from",
-        "line": 13,
+        "line": 14,
         "name": "EasyUseAnimaPromptStudioAdvanced",
         "optional": false,
         "requested": ".nodes.prompt_advanced_nodes",
@@ -39420,7 +39701,7 @@
         "conditional": false,
         "imported": ".nodes.prompt_advanced_nodes:EasyUseAnimaPromptStudioAdvancedV2",
         "kind": "static_from",
-        "line": 13,
+        "line": 14,
         "name": "EasyUseAnimaPromptStudioAdvancedV2",
         "optional": false,
         "requested": ".nodes.prompt_advanced_nodes",
@@ -39438,7 +39719,7 @@
         "conditional": false,
         "imported": ".nodes.prompt_data_nodes:EasyUseAnimaArtistMixConditioning",
         "kind": "static_from",
-        "line": 17,
+        "line": 18,
         "name": "EasyUseAnimaArtistMixConditioning",
         "optional": false,
         "requested": ".nodes.prompt_data_nodes",
@@ -39456,7 +39737,7 @@
         "conditional": false,
         "imported": ".nodes.prompt_data_nodes:EasyUseAnimaPromptDataConditioning",
         "kind": "static_from",
-        "line": 17,
+        "line": 18,
         "name": "EasyUseAnimaPromptDataConditioning",
         "optional": false,
         "requested": ".nodes.prompt_data_nodes",
@@ -39474,7 +39755,7 @@
         "conditional": false,
         "imported": ".nodes.prompt_data_nodes:EasyUseAnimaPromptDataUnpack",
         "kind": "static_from",
-        "line": 17,
+        "line": 18,
         "name": "EasyUseAnimaPromptDataUnpack",
         "optional": false,
         "requested": ".nodes.prompt_data_nodes",
@@ -39492,7 +39773,7 @@
         "conditional": false,
         "imported": ".nodes.prompt_lora_nodes:EasyUseAnimaPromptStudioAdvancedLora",
         "kind": "static_from",
-        "line": 22,
+        "line": 23,
         "name": "EasyUseAnimaPromptStudioAdvancedLora",
         "optional": false,
         "requested": ".nodes.prompt_lora_nodes",
@@ -39510,7 +39791,7 @@
         "conditional": false,
         "imported": ".nodes.prompt_nodes:EasyUseAnimaPromptBuilder",
         "kind": "static_from",
-        "line": 23,
+        "line": 24,
         "name": "EasyUseAnimaPromptBuilder",
         "optional": false,
         "requested": ".nodes.prompt_nodes",
@@ -39528,7 +39809,7 @@
         "conditional": false,
         "imported": ".nodes.prompt_nodes:EasyUseAnimaPromptCorrector",
         "kind": "static_from",
-        "line": 23,
+        "line": 24,
         "name": "EasyUseAnimaPromptCorrector",
         "optional": false,
         "requested": ".nodes.prompt_nodes",
@@ -39546,7 +39827,7 @@
         "conditional": false,
         "imported": ".nodes.prompt_nodes:EasyUseAnimaPromptCorrectorSimple",
         "kind": "static_from",
-        "line": 23,
+        "line": 24,
         "name": "EasyUseAnimaPromptCorrectorSimple",
         "optional": false,
         "requested": ".nodes.prompt_nodes",
@@ -39564,7 +39845,7 @@
         "conditional": false,
         "imported": ".nodes.prompt_nodes:EasyUseAnimaPromptStudio",
         "kind": "static_from",
-        "line": 23,
+        "line": 24,
         "name": "EasyUseAnimaPromptStudio",
         "optional": false,
         "requested": ".nodes.prompt_nodes",
@@ -39582,7 +39863,7 @@
         "conditional": false,
         "imported": ".nodes.regional_nodes:EasyUseAnimaPromptStudioRegional",
         "kind": "static_from",
-        "line": 29,
+        "line": 30,
         "name": "EasyUseAnimaPromptStudioRegional",
         "optional": false,
         "requested": ".nodes.regional_nodes",
@@ -39600,7 +39881,7 @@
         "conditional": false,
         "imported": ".nodes.regional_nodes:EasyUseAnimaRegionalConditioning",
         "kind": "static_from",
-        "line": 29,
+        "line": 30,
         "name": "EasyUseAnimaRegionalConditioning",
         "optional": false,
         "requested": ".nodes.regional_nodes",
@@ -39618,7 +39899,7 @@
         "conditional": false,
         "imported": ".nodes.wildcard_nodes:EasyUseAnimaWildcard",
         "kind": "static_from",
-        "line": 33,
+        "line": 34,
         "name": "EasyUseAnimaWildcard",
         "optional": false,
         "requested": ".nodes.wildcard_nodes",
@@ -39636,7 +39917,7 @@
         "conditional": false,
         "imported": ".nodes.wildcard_nodes:EasyUseAnimaWildcardLora",
         "kind": "static_from",
-        "line": 33,
+        "line": 34,
         "name": "EasyUseAnimaWildcardLora",
         "optional": false,
         "requested": ".nodes.wildcard_nodes",
@@ -44618,6 +44899,10 @@
         "to": "easyuse_anima/seed/__init__.py"
       },
       {
+        "from": "easyuse_anima/aio/civitai_lookup.py",
+        "to": "easyuse_anima/aio/native_civitai.py"
+      },
+      {
         "from": "easyuse_anima/aio/conditioning.py",
         "to": "easyuse_anima/aio/generation_defaults.py"
       },
@@ -45794,6 +46079,10 @@
         "to": "easyuse_anima/prompt/fields.py"
       },
       {
+        "from": "easyuse_anima/nodes/civitai_nodes.py",
+        "to": "easyuse_anima/aio/civitai_lookup.py"
+      },
+      {
         "from": "easyuse_anima/nodes/image_nodes.py",
         "to": "easyuse_anima/image/detailer.py"
       },
@@ -46627,6 +46916,10 @@
       },
       {
         "from": "easyuse_anima/registration.py",
+        "to": "easyuse_anima/nodes/civitai_nodes.py"
+      },
+      {
+        "from": "easyuse_anima/registration.py",
         "to": "easyuse_anima/nodes/image_nodes.py"
       },
       {
@@ -46927,6 +47220,12 @@
         "cyclic": false,
         "modules": [
           "easyuse_anima/aio/__init__.py"
+        ]
+      },
+      {
+        "cyclic": false,
+        "modules": [
+          "easyuse_anima/aio/civitai_lookup.py"
         ]
       },
       {
@@ -47652,6 +47951,12 @@
       {
         "cyclic": false,
         "modules": [
+          "easyuse_anima/nodes/civitai_nodes.py"
+        ]
+      },
+      {
+        "cyclic": false,
+        "modules": [
           "easyuse_anima/nodes/image_nodes.py"
         ]
       },
@@ -48114,7 +48419,7 @@
     ]
   },
   "inventory": {
-    "module_count": 202,
+    "module_count": 204,
     "modules": [
       {
         "functions": [
@@ -48162,6 +48467,52 @@
           "class_count": 0,
           "function_count": 0,
           "global_count": 1
+        }
+      },
+      {
+        "functions": [
+          {
+            "async": false,
+            "end_line": 60,
+            "kind": "function",
+            "line": 40,
+            "loc": 21,
+            "qualified_name": "_lookup_civitai_file"
+          },
+          {
+            "async": false,
+            "end_line": 76,
+            "kind": "function",
+            "line": 63,
+            "loc": 14,
+            "qualified_name": "_lookup_trigger_words"
+          },
+          {
+            "async": false,
+            "end_line": 130,
+            "kind": "function",
+            "line": 79,
+            "loc": 52,
+            "qualified_name": "_cached_civitai_lookup"
+          },
+          {
+            "async": false,
+            "end_line": 147,
+            "kind": "function",
+            "line": 133,
+            "loc": 15,
+            "qualified_name": "lookup_civitai_identifier"
+          }
+        ],
+        "is_package": false,
+        "loc": 147,
+        "module": "easyuse_anima.aio.civitai_lookup",
+        "normalized_git_blob_sha1": "e14c01bfcb739a287b03b1d51b97fc59f5b45ac7",
+        "path": "easyuse_anima/aio/civitai_lookup.py",
+        "top_level": {
+          "class_count": 1,
+          "function_count": 4,
+          "global_count": 2
         }
       },
       {
@@ -50989,141 +51340,149 @@
           },
           {
             "async": false,
-            "end_line": 300,
+            "end_line": 194,
             "kind": "function",
             "line": 184,
-            "loc": 117,
+            "loc": 11,
+            "qualified_name": "_resource_weight_fields"
+          },
+          {
+            "async": false,
+            "end_line": 316,
+            "kind": "function",
+            "line": 197,
+            "loc": 120,
             "qualified_name": "_build_native_metadata"
           },
           {
             "async": false,
-            "end_line": 309,
+            "end_line": 325,
             "kind": "function",
-            "line": 303,
+            "line": 319,
             "loc": 7,
             "qualified_name": "_comfy_metadata_enabled"
           },
           {
             "async": false,
-            "end_line": 313,
+            "end_line": 329,
             "kind": "function",
-            "line": 312,
+            "line": 328,
             "loc": 2,
             "qualified_name": "_encode_user_comment"
           },
           {
             "async": false,
-            "end_line": 333,
+            "end_line": 349,
             "kind": "function",
-            "line": 316,
+            "line": 332,
             "loc": 18,
             "qualified_name": "_build_exif_bytes"
           },
           {
             "async": false,
-            "end_line": 403,
+            "end_line": 419,
             "kind": "function",
-            "line": 336,
+            "line": 352,
             "loc": 68,
             "qualified_name": "_serialize_metadata"
           },
           {
             "async": false,
-            "end_line": 425,
+            "end_line": 441,
             "kind": "function",
-            "line": 406,
+            "line": 422,
             "loc": 20,
             "qualified_name": "_tensor_to_pil"
           },
           {
             "async": false,
-            "end_line": 438,
+            "end_line": 454,
             "kind": "function",
-            "line": 428,
+            "line": 444,
             "loc": 11,
             "qualified_name": "_is_windows_safe_output_component"
           },
           {
             "async": false,
-            "end_line": 450,
+            "end_line": 466,
             "kind": "function",
-            "line": 441,
+            "line": 457,
             "loc": 10,
             "qualified_name": "_sanitize_native_output_filename"
           },
           {
             "async": false,
-            "end_line": 497,
+            "end_line": 513,
             "kind": "function",
-            "line": 453,
+            "line": 469,
             "loc": 45,
             "qualified_name": "_allocate_filenames"
           },
           {
             "async": false,
-            "end_line": 466,
+            "end_line": 482,
             "kind": "function",
-            "line": 462,
+            "line": 478,
             "loc": 5,
             "qualified_name": "_allocate_filenames.occupied"
           },
           {
             "async": false,
-            "end_line": 521,
+            "end_line": 537,
             "kind": "function",
-            "line": 500,
+            "line": 516,
             "loc": 22,
             "qualified_name": "_native_output_path_parts"
           },
           {
             "async": false,
-            "end_line": 533,
+            "end_line": 549,
             "kind": "function",
-            "line": 524,
+            "line": 540,
             "loc": 10,
             "qualified_name": "_resolve_native_output_folder"
           },
           {
             "async": false,
-            "end_line": 558,
+            "end_line": 574,
             "kind": "function",
-            "line": 536,
+            "line": 552,
             "loc": 23,
             "qualified_name": "_bound_native_output_directory"
           },
           {
             "async": false,
-            "end_line": 581,
+            "end_line": 597,
             "kind": "function",
-            "line": 561,
+            "line": 577,
             "loc": 21,
             "qualified_name": "_image_save_options"
           },
           {
             "async": false,
-            "end_line": 596,
+            "end_line": 612,
             "kind": "function",
-            "line": 584,
+            "line": 600,
             "loc": 13,
             "qualified_name": "_validated_sidecar_requirement"
           },
           {
             "async": false,
-            "end_line": 718,
+            "end_line": 734,
             "kind": "function",
-            "line": 599,
+            "line": 615,
             "loc": 120,
             "qualified_name": "_save_native_images"
           }
         ],
         "is_package": false,
-        "loc": 721,
+        "loc": 737,
         "module": "easyuse_anima.aio.native_image_output",
-        "normalized_git_blob_sha1": "889e0b2f33f764749f787ebb302f080e0de32f7a",
+        "normalized_git_blob_sha1": "e5e9a61b23e456ae0dcf56edfacade1efd6b2e59",
         "path": "easyuse_anima/aio/native_image_output.py",
         "top_level": {
           "class_count": 2,
-          "function_count": 19,
+          "function_count": 20,
           "global_count": 11
         }
       },
@@ -57705,6 +58064,36 @@
         "functions": [
           {
             "async": false,
+            "end_line": 34,
+            "kind": "method",
+            "line": 19,
+            "loc": 16,
+            "qualified_name": "EasyUseAnimaCivitaiLookup.INPUT_TYPES"
+          },
+          {
+            "async": false,
+            "end_line": 70,
+            "kind": "method",
+            "line": 53,
+            "loc": 18,
+            "qualified_name": "EasyUseAnimaCivitaiLookup.lookup"
+          }
+        ],
+        "is_package": false,
+        "loc": 70,
+        "module": "easyuse_anima.nodes.civitai_nodes",
+        "normalized_git_blob_sha1": "056060034da22d5e78ec365efb8f453393f09381",
+        "path": "easyuse_anima/nodes/civitai_nodes.py",
+        "top_level": {
+          "class_count": 1,
+          "function_count": 0,
+          "global_count": 0
+        }
+      },
+      {
+        "functions": [
+          {
+            "async": false,
             "end_line": 60,
             "kind": "method",
             "line": 30,
@@ -57751,49 +58140,49 @@
         "functions": [
           {
             "async": false,
-            "end_line": 62,
+            "end_line": 64,
             "kind": "method",
-            "line": 37,
-            "loc": 26,
+            "line": 35,
+            "loc": 30,
             "qualified_name": "EasyUseAnimaImageMetadata.INPUT_TYPES"
           },
           {
             "async": false,
-            "end_line": 71,
+            "end_line": 73,
             "kind": "method",
-            "line": 69,
+            "line": 71,
             "loc": 3,
             "qualified_name": "EasyUseAnimaImageMetadata.IS_CHANGED"
           },
           {
             "async": false,
-            "end_line": 95,
+            "end_line": 98,
             "kind": "method",
-            "line": 73,
-            "loc": 23,
+            "line": 75,
+            "loc": 24,
             "qualified_name": "EasyUseAnimaImageMetadata.build"
           },
           {
             "async": false,
-            "end_line": 135,
+            "end_line": 140,
             "kind": "method",
-            "line": 108,
-            "loc": 28,
+            "line": 111,
+            "loc": 30,
             "qualified_name": "EasyUseAnimaSaveImage.INPUT_TYPES"
           },
           {
             "async": false,
-            "end_line": 169,
+            "end_line": 173,
             "kind": "method",
-            "line": 142,
-            "loc": 28,
+            "line": 147,
+            "loc": 27,
             "qualified_name": "EasyUseAnimaSaveImage.save_images"
           }
         ],
         "is_package": false,
-        "loc": 172,
+        "loc": 176,
         "module": "easyuse_anima.nodes.image_output_nodes",
-        "normalized_git_blob_sha1": "212baae13d7c9cc8629fb8f783996b1995f12953",
+        "normalized_git_blob_sha1": "e01b51086be4043b67999fff9fa89c8190574434",
         "path": "easyuse_anima/nodes/image_output_nodes.py",
         "top_level": {
           "class_count": 3,
@@ -60993,9 +61382,9 @@
       {
         "functions": [],
         "is_package": false,
-        "loc": 89,
+        "loc": 92,
         "module": "easyuse_anima.registration",
-        "normalized_git_blob_sha1": "f2115847bb27e00b6735b106c1a19c2ac4872c4a",
+        "normalized_git_blob_sha1": "7d04c242a6c32ebbf3e3620d0fccabf517d9151d",
         "path": "easyuse_anima/registration.py",
         "top_level": {
           "class_count": 0,
@@ -63371,6 +63760,61 @@
         "line": 3,
         "optional": false,
         "role": "ordinary",
+        "source": "easyuse_anima/aio/civitai_lookup.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "re",
+        "kind": "static_import",
+        "line": 5,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/civitai_lookup.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "collections.abc:Mapping",
+        "kind": "static_from",
+        "line": 6,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/civitai_lookup.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "dataclasses:dataclass",
+        "kind": "static_from",
+        "line": 7,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/civitai_lookup.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "functools:lru_cache",
+        "kind": "static_from",
+        "line": 8,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/civitai_lookup.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "__future__:annotations",
+        "kind": "static_from",
+        "line": 3,
+        "optional": false,
+        "role": "ordinary",
         "source": "easyuse_anima/aio/conditioning.py"
       },
       {
@@ -65324,14 +65768,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 304
+            "line": 320
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "comfy.cli_args:args",
         "kind": "static_from",
-        "line": 305,
+        "line": 321,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/aio/native_image_output.py"
@@ -65342,7 +65786,7 @@
         "conditional": false,
         "imported": "PIL:ExifTags",
         "kind": "static_from",
-        "line": 321,
+        "line": 337,
         "optional": false,
         "role": "ordinary",
         "source": "easyuse_anima/aio/native_image_output.py"
@@ -65353,7 +65797,7 @@
         "conditional": false,
         "imported": "PIL:Image",
         "kind": "static_from",
-        "line": 321,
+        "line": 337,
         "optional": false,
         "role": "ordinary",
         "source": "easyuse_anima/aio/native_image_output.py"
@@ -65363,7 +65807,7 @@
           {
             "branch": "body",
             "kind": "if",
-            "line": 357,
+            "line": 373,
             "type_checking": false
           }
         ],
@@ -65371,7 +65815,7 @@
         "conditional": true,
         "imported": "PIL.PngImagePlugin:PngInfo",
         "kind": "static_from",
-        "line": 358,
+        "line": 374,
         "optional": false,
         "role": "ordinary",
         "source": "easyuse_anima/aio/native_image_output.py"
@@ -65382,7 +65826,7 @@
         "conditional": false,
         "imported": "numpy",
         "kind": "static_import",
-        "line": 407,
+        "line": 423,
         "optional": false,
         "role": "ordinary",
         "source": "easyuse_anima/aio/native_image_output.py"
@@ -65393,7 +65837,7 @@
         "conditional": false,
         "imported": "PIL:Image",
         "kind": "static_from",
-        "line": 408,
+        "line": 424,
         "optional": false,
         "role": "ordinary",
         "source": "easyuse_anima/aio/native_image_output.py"
@@ -70068,6 +70512,28 @@
         "line": 3,
         "optional": false,
         "role": "ordinary",
+        "source": "easyuse_anima/nodes/civitai_nodes.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "math",
+        "kind": "static_import",
+        "line": 5,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/nodes/civitai_nodes.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "__future__:annotations",
+        "kind": "static_from",
+        "line": 3,
+        "optional": false,
+        "role": "ordinary",
         "source": "easyuse_anima/nodes/image_nodes.py"
       },
       {
@@ -70109,7 +70575,7 @@
         "conditional": false,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 147,
+        "line": 153,
         "optional": false,
         "role": "ordinary",
         "source": "easyuse_anima/nodes/image_output_nodes.py"
@@ -73303,14 +73769,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 304
+            "line": 320
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "comfy.cli_args:args",
         "kind": "static_from",
-        "line": 305,
+        "line": 321,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/aio/native_image_output.py"
@@ -74467,6 +74933,7 @@
       "__init__.py",
       "easyuse_anima/__init__.py",
       "easyuse_anima/aio/__init__.py",
+      "easyuse_anima/aio/civitai_lookup.py",
       "easyuse_anima/aio/conditioning.py",
       "easyuse_anima/aio/first_pass_cache.py",
       "easyuse_anima/aio/generation_defaults.py",
@@ -74587,6 +75054,7 @@
       "easyuse_anima/nodes/aio_nodes.py",
       "easyuse_anima/nodes/anima_29b_nodes.py",
       "easyuse_anima/nodes/artist_mix_conditioning_adapter.py",
+      "easyuse_anima/nodes/civitai_nodes.py",
       "easyuse_anima/nodes/image_nodes.py",
       "easyuse_anima/nodes/image_output_nodes.py",
       "easyuse_anima/nodes/input_types.py",
@@ -74669,6 +75137,7 @@
       "__init__.py",
       "easyuse_anima/__init__.py",
       "easyuse_anima/aio/__init__.py",
+      "easyuse_anima/aio/civitai_lookup.py",
       "easyuse_anima/aio/conditioning.py",
       "easyuse_anima/aio/first_pass_cache.py",
       "easyuse_anima/aio/generation_defaults.py",
@@ -74791,6 +75260,7 @@
       "easyuse_anima/nodes/aio_nodes.py",
       "easyuse_anima/nodes/anima_29b_nodes.py",
       "easyuse_anima/nodes/artist_mix_conditioning_adapter.py",
+      "easyuse_anima/nodes/civitai_nodes.py",
       "easyuse_anima/nodes/image_nodes.py",
       "easyuse_anima/nodes/image_output_nodes.py",
       "easyuse_anima/nodes/input_types.py",
@@ -74893,6 +75363,33 @@
         "kind": "import_time_call",
         "line": 42,
         "module": "__init__.py",
+        "scope": "<module>"
+      },
+      {
+        "callee": "re.compile",
+        "column": 28,
+        "context": "assign:_VERSIONED_CIVITAI_AIR_RE",
+        "kind": "import_time_call",
+        "line": 20,
+        "module": "easyuse_anima/aio/civitai_lookup.py",
+        "scope": "<module>"
+      },
+      {
+        "callee": "dataclass",
+        "column": 1,
+        "context": "decorator:CivitaiLookupFields",
+        "kind": "import_time_call",
+        "line": 27,
+        "module": "easyuse_anima/aio/civitai_lookup.py",
+        "scope": "<module>"
+      },
+      {
+        "callee": "lru_cache",
+        "column": 1,
+        "context": "decorator:_cached_civitai_lookup",
+        "kind": "import_time_call",
+        "line": 79,
+        "module": "easyuse_anima/aio/civitai_lookup.py",
         "scope": "<module>"
       },
       {
@@ -78009,19 +78506,19 @@
       },
       {
         "kind": "dict",
-        "line": 35,
+        "line": 36,
         "module": "easyuse_anima/registration.py",
         "name": "NODE_CLASS_MAPPINGS"
       },
       {
         "kind": "dict",
-        "line": 62,
+        "line": 64,
         "module": "easyuse_anima/registration.py",
         "name": "NODE_DISPLAY_NAME_MAPPINGS"
       },
       {
         "kind": "list",
-        "line": 89,
+        "line": 92,
         "module": "easyuse_anima/registration.py",
         "name": "__all__"
       },

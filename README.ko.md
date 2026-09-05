@@ -132,6 +132,7 @@ Options에 `ComfyUI-Image-Saver`는 필요하지 않습니다.
 | [Anima AiO Generator](docs/nodes/anima-aio-generator.ko.md) | `EasyUse Anima/AiO` | prompt data context를 받아 샘플링, Highres, Detailer, 미리보기, 저장을 한 노드에서 실행합니다. |
 | [Anima Image Scale By Multiple](docs/nodes/anima-image-scale-by-multiple.ko.md) | `EasyUse Anima/Image` | 원본 비율을 유지하면서 Highres에 안전한 유효 배율과 크기 배수로 이미지를 확대합니다. |
 | [Easy Save Image / Easy Image Metadata](docs/nodes/easy-image-output.ko.md) | `EasyUse Anima/Image` | 모든 확산 모델에서 별도 메타데이터 노드를 선택적으로 연결해 PNG/JPEG/WebP로 저장합니다. |
+| [Easy Civitai 조회](docs/nodes/easy-image-output.ko.md) | `EasyUse Anima/Image` | 파일 해시 또는 AIR로 모델·버전 정보를 조회하고 A1111 메타데이터에 연결할 해시를 출력합니다. |
 | [Anima Detailer Align Hook](docs/nodes/anima-detailer-align-hook.ko.md) | `EasyUse Anima/Detailer` | Impact detailer crop sampling 크기를 지정 배수로 정렬합니다. |
 
 ## 공통 프론트엔드 기능

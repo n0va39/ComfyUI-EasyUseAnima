@@ -1123,7 +1123,7 @@
   },
   "EasyUseAnimaSaveImage": {
     "display_name": "Easy 画像保存",
-    "description": "PNG、JPEG、WebPで画像を保存します。メタデータ入力が未接続の場合は画素のみを保存し、既存ファイルは連番で保持します。",
+    "description": "PNG、JPEG、WebPで保存します。ワークフロー埋め込みとJSON保存をここで設定し、A1111生成情報は任意のEXIFソケットに接続します。",
     "inputs": {
       "images": {
         "name": "画像"
@@ -1148,6 +1148,12 @@
       },
       "exif_metadata": {
         "name": "EXIFメタデータ"
+      },
+      "embed_workflow": {
+        "name": "ワークフローを埋め込む"
+      },
+      "save_workflow_as_json": {
+        "name": "ワークフローJSONを保存"
       }
     }
   },
@@ -1191,11 +1197,8 @@
       "custom": {
         "name": "追加テキスト"
       },
-      "embed_workflow": {
-        "name": "ワークフローを埋め込む"
-      },
-      "save_workflow_as_json": {
-        "name": "ワークフローJSONを保存"
+      "additional_hashes": {
+        "name": "追加ハッシュ"
       }
     },
     "outputs": {
@@ -1204,6 +1207,41 @@
       },
       "1": {
         "name": "生成パラメーター"
+      }
+    }
+  },
+  "EasyUseAnimaCivitaiLookup": {
+    "display_name": "Easy Civitai 検索",
+    "description": "Civitaiのハッシュまたはバージョン付きAIRからモデル情報を取得します。画像やモデルはダウンロードしません。",
+    "inputs": {
+      "identifier": {
+        "name": "ハッシュまたはAIR"
+      },
+      "weight": {
+        "name": "重み"
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "AutoV3ハッシュ"
+      },
+      "1": {
+        "name": "SHA256"
+      },
+      "2": {
+        "name": "AIR"
+      },
+      "3": {
+        "name": "モデル名"
+      },
+      "4": {
+        "name": "バージョン名"
+      },
+      "5": {
+        "name": "トリガーワード"
+      },
+      "6": {
+        "name": "追加ハッシュ"
       }
     }
   }

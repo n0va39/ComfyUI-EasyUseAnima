@@ -1123,7 +1123,7 @@
   },
   "EasyUseAnimaSaveImage": {
     "display_name": "Easy 保存图像",
-    "description": "以 PNG、JPEG、WebP 保存图像。未连接元数据输入时仅保存像素，并通过编号保留已有文件。",
+    "description": "保存 PNG、JPEG、WebP。在此设置工作流嵌入和 JSON 保存，可通过 EXIF 接口连接 A1111 生成信息。",
     "inputs": {
       "images": {
         "name": "图像"
@@ -1148,6 +1148,12 @@
       },
       "exif_metadata": {
         "name": "EXIF元数据"
+      },
+      "embed_workflow": {
+        "name": "嵌入工作流"
+      },
+      "save_workflow_as_json": {
+        "name": "保存工作流JSON"
       }
     }
   },
@@ -1191,11 +1197,8 @@
       "custom": {
         "name": "额外文本"
       },
-      "embed_workflow": {
-        "name": "嵌入工作流"
-      },
-      "save_workflow_as_json": {
-        "name": "保存工作流JSON"
+      "additional_hashes": {
+        "name": "附加哈希"
       }
     },
     "outputs": {
@@ -1204,6 +1207,41 @@
       },
       "1": {
         "name": "生成参数"
+      }
+    }
+  },
+  "EasyUseAnimaCivitaiLookup": {
+    "display_name": "Easy Civitai 查询",
+    "description": "通过 Civitai 哈希或含版本的 AIR 查询模型信息，不下载图像或模型文件。",
+    "inputs": {
+      "identifier": {
+        "name": "哈希或 AIR"
+      },
+      "weight": {
+        "name": "权重"
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "AutoV3 哈希"
+      },
+      "1": {
+        "name": "SHA256"
+      },
+      "2": {
+        "name": "AIR"
+      },
+      "3": {
+        "name": "模型名称"
+      },
+      "4": {
+        "name": "版本名称"
+      },
+      "5": {
+        "name": "触发词"
+      },
+      "6": {
+        "name": "附加哈希"
       }
     }
   }

@@ -3,6 +3,7 @@
 from .nodes.aio_hook_nodes import EasyUseAnimaAIOHookCombine
 from .nodes.aio_nodes import EasyUseAnimaAIOGenerator, EasyUseAnimaInput
 from .nodes.anima_29b_nodes import EasyUseAnima29BLoraStackLoader
+from .nodes.civitai_nodes import EasyUseAnimaCivitaiLookup
 from .nodes.image_nodes import (
     EasyUseAnimaDetailerAlignHook,
     EasyUseAnimaImageScaleByMultiple,
@@ -41,6 +42,7 @@ NODE_CLASS_MAPPINGS = {
     "EasyUseAnimaInput": EasyUseAnimaInput,
     "EasyUseAnimaImageScaleByMultiple": EasyUseAnimaImageScaleByMultiple,
     "EasyUseAnimaImageMetadata": EasyUseAnimaImageMetadata,
+    "EasyUseAnimaCivitaiLookup": EasyUseAnimaCivitaiLookup,
     "EasyUseAnimaSaveImage": EasyUseAnimaSaveImage,
     "EasyUseAnimaLoraPreset": EasyUseAnimaLoraPreset,
     "EasyUseAnimaNAIARandomPrompt": EasyUseAnimaNAIARandomPrompt,
@@ -68,6 +70,7 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "EasyUseAnimaInput": "Easy Use Anima Input",
     "EasyUseAnimaImageScaleByMultiple": "Anima Image Scale By Multiple",
     "EasyUseAnimaImageMetadata": "Easy Image Metadata",
+    "EasyUseAnimaCivitaiLookup": "Easy Civitai Lookup",
     "EasyUseAnimaSaveImage": "Easy Save Image",
     "EasyUseAnimaLoraPreset": "Anima LoRA Preset",
     "EasyUseAnimaNAIARandomPrompt": "Anima NAIA Random Prompt",
