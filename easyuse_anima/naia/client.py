@@ -81,6 +81,17 @@ def _build_naia_random_url(host: str, port: int, allow_remote_api: bool = False)
     return f"http://{url_host}:{int(port)}/api/comfyui/random"
 
 
+def _reject_naia_redirect(response, **_kwargs):
+    # Requests prepares the next request even with allow_redirects=False.
+    # Reject before it parses an untrusted Location header.
+    if 300 <= response.status_code < 400:
+        try:
+            response.close()
+        finally:
+            raise RuntimeError("[EasyUse Anima] NAIA API redirects are not allowed.") from None
+    return response
+
+
 def _post_random(host: str, port: int, body: dict, allow_remote_api: bool = False) -> dict:
     try:
         import requests
@@ -94,12 +105,10 @@ def _post_random(host: str, port: int, body: dict, allow_remote_api: bool = Fals
         # JSON and is never executed as code.
         response = requests.post(
             url, json=body, timeout=HTTP_TIMEOUT, allow_redirects=False,
+            hooks={"response": _reject_naia_redirect},
         )
     except requests.RequestException as exc:
         raise RuntimeError(f"[EasyUse Anima] NAIA API request failed: {exc}")
-
-    if 300 <= response.status_code < 400:
-        raise RuntimeError("[EasyUse Anima] NAIA API redirects are not allowed.")
 
     if not response.ok:
         raise RuntimeError(

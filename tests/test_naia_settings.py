@@ -1,5 +1,6 @@
 import json
 import unittest
+from io import BytesIO
 from unittest.mock import patch
 
 import requests
@@ -27,6 +28,7 @@ class NaiaResponseAdapter(BaseAdapter):
         self.status_code = status_code
         self.location = location
         self.requests = []
+        self.responses = []
 
     def send(self, request, **kwargs):
         self.requests.append(request)
@@ -36,7 +38,8 @@ class NaiaResponseAdapter(BaseAdapter):
         response.status_code = self.status_code if len(self.requests) == 1 else 200
         if len(self.requests) == 1 and self.location is not None:
             response.headers["Location"] = self.location
-        response._content = json.dumps(self.payload).encode("utf-8")
+        response.raw = BytesIO(json.dumps(self.payload).encode("utf-8"))
+        self.responses.append(response)
         return response
 
     def close(self):
@@ -426,12 +429,18 @@ class NaiaSettingsTests(unittest.TestCase):
 
     def test_naia_rejects_redirects_without_forwarding_prompt(self):
         body = {"prompt": "synthetic prompt"}
-        for status_code in (307, 308):
-            with self.subTest(status_code=status_code):
+        cases = (
+            (307, "https://outside.invalid/collect"),
+            (308, "https://outside.invalid/collect"),
+            (307, "http://[redirect-secret]/collect"),
+            (308, "http://[redirect-secret]/collect"),
+        )
+        for status_code, location in cases:
+            with self.subTest(status_code=status_code, location=location):
                 adapter = NaiaResponseAdapter(
                     {"ok": True, "prompt": "redirect response body"},
                     status_code=status_code,
-                    location="https://outside.invalid/collect",
+                    location=location,
                 )
                 with requests.Session() as session:
                     session.trust_env = False
@@ -446,6 +455,7 @@ class NaiaSettingsTests(unittest.TestCase):
                     "[EasyUse Anima] NAIA API redirects are not allowed.",
                 )
                 self.assertEqual(len(adapter.requests), 1)
+                self.assertTrue(adapter.responses[0].raw.closed)
                 self.assertEqual(
                     adapter.requests[0].url,
                     "http://127.0.0.1:7243/api/comfyui/random",

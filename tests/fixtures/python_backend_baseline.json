@@ -22946,7 +22946,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": true,
             "kind": "try",
-            "line": 85
+            "line": 96
           }
         ],
         "classification": "external",
@@ -22954,7 +22954,7 @@
         "conditional": true,
         "imported": "requests",
         "kind": "static_import",
-        "line": 86,
+        "line": 97,
         "name": null,
         "optional": true,
         "requested": "requests",
@@ -57665,29 +57665,37 @@
           },
           {
             "async": false,
-            "end_line": 115,
+            "end_line": 92,
             "kind": "function",
             "line": 84,
-            "loc": 32,
+            "loc": 9,
+            "qualified_name": "_reject_naia_redirect"
+          },
+          {
+            "async": false,
+            "end_line": 124,
+            "kind": "function",
+            "line": 95,
+            "loc": 30,
             "qualified_name": "_post_random"
           },
           {
             "async": false,
-            "end_line": 137,
+            "end_line": 146,
             "kind": "function",
-            "line": 118,
+            "line": 127,
             "loc": 20,
             "qualified_name": "_parse_random_response"
           }
         ],
         "is_package": false,
-        "loc": 139,
+        "loc": 148,
         "module": "easyuse_anima.naia.client",
-        "normalized_git_blob_sha1": "e76fc35cb049111dabab6b06891568a576e78700",
+        "normalized_git_blob_sha1": "2c6f8ceb97f40a854550e8a6c31003411bc32221",
         "path": "easyuse_anima/naia/client.py",
         "top_level": {
           "class_count": 0,
-          "function_count": 6,
+          "function_count": 7,
           "global_count": 13
         }
       },
@@ -70293,14 +70301,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": true,
             "kind": "try",
-            "line": 85
+            "line": 96
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "requests",
         "kind": "static_import",
-        "line": 86,
+        "line": 97,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/naia/client.py"
@@ -74668,14 +74676,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": true,
             "kind": "try",
-            "line": 85
+            "line": 96
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "requests",
         "kind": "static_import",
-        "line": 86,
+        "line": 97,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/naia/client.py"
