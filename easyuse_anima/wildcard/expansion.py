@@ -32,7 +32,7 @@ DYNAMIC_RE = re.compile(r"(?<![\\%])\{((?:[^{}]|(?<=\\)[{}])*?)(?<!\\)\}")
 WILDCARD_RE = re.compile(r"__(?P<keyword>[\w.\-+/*\\]+?)__", re.IGNORECASE)
 WILDCARD_FULL_RE = re.compile(r"^__(?P<keyword>[\w.\-+/*\\]+?)__$", re.IGNORECASE)
 WILDCARD_QUANTIFIER_RE = re.compile(
-    r"(?P<quantifier>\d+)#__(?P<keyword>[\w.\-+/*\\]+?)__",
+    r"(?<!\d)(?P<quantifier>\d+)#__(?P<keyword>[\w.\-+/*\\]+?)__",
     re.IGNORECASE,
 )
 COUNT_SPEC_RE = re.compile(
@@ -505,7 +505,9 @@ def _expand_snapshot_texts(
     lanes: list[_ExpansionLane] = []
     for source in sources:
         state = _ExpansionState(expansion_budget)
-        cleaned = COMMENT_RE.sub("", source)
+        # Without a comment marker the regex cannot remove anything. Skip its
+        # repeated whitespace scans while keeping the shared regex contract.
+        cleaned = COMMENT_RE.sub("", source) if "#" in source else source
         if (
             len(cleaned) > expansion_budget.max_output_chars
             or _utf8_length(cleaned) > expansion_budget.max_output_chars

@@ -1120,5 +1120,91 @@
       "1": {"name": "種子"},
       "2": {"name": "LORA_STACK"}
     }
+  },
+  "EasyUseAnimaSaveImage": {
+    "display_name": "Easy 儲存影像",
+    "description": "以 PNG、JPEG、WebP 儲存影像。未連接中繼資料輸入時只儲存像素，並透過編號保留既有檔案。",
+    "inputs": {
+      "images": {
+        "name": "影像"
+      },
+      "path": {
+        "name": "儲存資料夾"
+      },
+      "filename": {
+        "name": "檔案名稱"
+      },
+      "extension": {
+        "name": "副檔名"
+      },
+      "quality": {
+        "name": "品質"
+      },
+      "lossless_webp": {
+        "name": "WebP無損"
+      },
+      "optimize_png": {
+        "name": "PNG最佳化"
+      },
+      "exif_metadata": {
+        "name": "EXIF中繼資料"
+      }
+    }
+  },
+  "EasyUseAnimaImageMetadata": {
+    "display_name": "Easy 影像中繼資料",
+    "description": "建立適用於任何擴散模型的 A1111 相容中繼資料。請將相同的最終影像連接至儲存節點。遵循 ComfyUI 的停用中繼資料設定。",
+    "inputs": {
+      "images": {
+        "name": "影像"
+      },
+      "positive": {
+        "name": "正向提示詞"
+      },
+      "negative": {
+        "name": "負向提示詞"
+      },
+      "modelname": {
+        "name": "模型名稱"
+      },
+      "seed": {
+        "name": "種子"
+      },
+      "steps": {
+        "name": "步數"
+      },
+      "cfg": {
+        "name": "CFG"
+      },
+      "sampler_name": {
+        "name": "採樣器"
+      },
+      "scheduler_name": {
+        "name": "排程器"
+      },
+      "denoise": {
+        "name": "降噪"
+      },
+      "clip_skip": {
+        "name": "CLIP跳過"
+      },
+      "custom": {
+        "name": "額外文字"
+      },
+      "embed_workflow": {
+        "name": "嵌入工作流程"
+      },
+      "save_workflow_as_json": {
+        "name": "儲存工作流程JSON"
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "EXIF中繼資料"
+      },
+      "1": {
+        "name": "生成參數"
+      }
+    }
   }
 }

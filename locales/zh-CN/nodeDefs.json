@@ -1120,5 +1120,91 @@
       "1": {"name": "种子"},
       "2": {"name": "LORA_STACK"}
     }
+  },
+  "EasyUseAnimaSaveImage": {
+    "display_name": "Easy 保存图像",
+    "description": "以 PNG、JPEG、WebP 保存图像。未连接元数据输入时仅保存像素，并通过编号保留已有文件。",
+    "inputs": {
+      "images": {
+        "name": "图像"
+      },
+      "path": {
+        "name": "保存文件夹"
+      },
+      "filename": {
+        "name": "文件名"
+      },
+      "extension": {
+        "name": "扩展名"
+      },
+      "quality": {
+        "name": "质量"
+      },
+      "lossless_webp": {
+        "name": "WebP无损"
+      },
+      "optimize_png": {
+        "name": "PNG优化"
+      },
+      "exif_metadata": {
+        "name": "EXIF元数据"
+      }
+    }
+  },
+  "EasyUseAnimaImageMetadata": {
+    "display_name": "Easy 图像元数据",
+    "description": "创建适用于任何扩散模型的 A1111 兼容元数据。请将相同的最终图像连接至保存节点。遵循 ComfyUI 的禁用元数据设置。",
+    "inputs": {
+      "images": {
+        "name": "图像"
+      },
+      "positive": {
+        "name": "正向提示词"
+      },
+      "negative": {
+        "name": "负向提示词"
+      },
+      "modelname": {
+        "name": "模型名称"
+      },
+      "seed": {
+        "name": "种子"
+      },
+      "steps": {
+        "name": "步数"
+      },
+      "cfg": {
+        "name": "CFG"
+      },
+      "sampler_name": {
+        "name": "采样器"
+      },
+      "scheduler_name": {
+        "name": "调度器"
+      },
+      "denoise": {
+        "name": "降噪"
+      },
+      "clip_skip": {
+        "name": "CLIP跳过"
+      },
+      "custom": {
+        "name": "额外文本"
+      },
+      "embed_workflow": {
+        "name": "嵌入工作流"
+      },
+      "save_workflow_as_json": {
+        "name": "保存工作流JSON"
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "EXIF元数据"
+      },
+      "1": {
+        "name": "生成参数"
+      }
+    }
   }
 }

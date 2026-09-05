@@ -2,7 +2,7 @@
   "schema_version": 1,
   "baseline_commit": "a0b0dc1f599fcf01ec0f25fc75a23f7524f165ab",
   "inventory": {
-    "expected_files": 214,
+    "expected_files": 215,
     "manual_matrix_source": "tests/fixtures/python_test_ownership_contract.v1.json",
     "patterns": [
       "tests/**/*.json",
@@ -1709,6 +1709,18 @@
         "settings"
       ],
       "purpose": "Direct Python unittest contract for test frontend settings."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_image_output_nodes.py",
+      "path": "tests/test_image_output_nodes.py",
+      "production_groups": [
+        "aio",
+        "nodes"
+      ],
+      "purpose": "Standalone image saver and metadata node contracts, privacy, format roundtrip and output containment."
     },
     {
       "execution_mode": "unittest",

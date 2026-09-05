@@ -279,7 +279,7 @@ def resolve_lora_preset_strength_drag_pixels(
                 )
             )
         )
-    except (TypeError, ValueError):
+    except (TypeError, ValueError, OverflowError):
         value = int(DEFAULT_SETTINGS["lora_preset.strength_drag_pixels"])
     return max(1, min(100, value))
 
@@ -319,7 +319,7 @@ def resolve_prompt_studio_font_size(settings: _SettingsRead | None = None) -> in
                 )
             )
         )
-    except (TypeError, ValueError):
+    except (TypeError, ValueError, OverflowError):
         value = int(DEFAULT_SETTINGS["prompt_studio.font_size"])
     return max(8, min(24, value))
 
@@ -451,7 +451,7 @@ def resolve_naia_resolution_max_long_edge(
                 )
             )
         )
-    except (TypeError, ValueError):
+    except (TypeError, ValueError, OverflowError):
         value = int(DEFAULT_SETTINGS["naia.resolution_max_long_edge"])
     if value <= 0:
         return 0

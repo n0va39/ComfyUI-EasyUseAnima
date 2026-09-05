@@ -1120,5 +1120,91 @@
       "1": {"name": "シード"},
       "2": {"name": "LORA_STACK"}
     }
+  },
+  "EasyUseAnimaSaveImage": {
+    "display_name": "Easy 画像保存",
+    "description": "PNG、JPEG、WebPで画像を保存します。メタデータ入力が未接続の場合は画素のみを保存し、既存ファイルは連番で保持します。",
+    "inputs": {
+      "images": {
+        "name": "画像"
+      },
+      "path": {
+        "name": "保存フォルダー"
+      },
+      "filename": {
+        "name": "ファイル名"
+      },
+      "extension": {
+        "name": "拡張子"
+      },
+      "quality": {
+        "name": "品質"
+      },
+      "lossless_webp": {
+        "name": "WebP可逆圧縮"
+      },
+      "optimize_png": {
+        "name": "PNG最適化"
+      },
+      "exif_metadata": {
+        "name": "EXIFメタデータ"
+      }
+    }
+  },
+  "EasyUseAnimaImageMetadata": {
+    "display_name": "Easy 画像メタデータ",
+    "description": "任意の拡散モデル用のA1111互換メタデータを作成します。同じ最終画像を保存ノードにも接続してください。ComfyUIのメタデータ無効設定に従います。",
+    "inputs": {
+      "images": {
+        "name": "画像"
+      },
+      "positive": {
+        "name": "ポジティブプロンプト"
+      },
+      "negative": {
+        "name": "ネガティブプロンプト"
+      },
+      "modelname": {
+        "name": "モデル名"
+      },
+      "seed": {
+        "name": "シード"
+      },
+      "steps": {
+        "name": "ステップ数"
+      },
+      "cfg": {
+        "name": "CFG"
+      },
+      "sampler_name": {
+        "name": "サンプラー"
+      },
+      "scheduler_name": {
+        "name": "スケジューラー"
+      },
+      "denoise": {
+        "name": "ノイズ除去"
+      },
+      "clip_skip": {
+        "name": "CLIPスキップ"
+      },
+      "custom": {
+        "name": "追加テキスト"
+      },
+      "embed_workflow": {
+        "name": "ワークフローを埋め込む"
+      },
+      "save_workflow_as_json": {
+        "name": "ワークフローJSONを保存"
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "EXIFメタデータ"
+      },
+      "1": {
+        "name": "生成パラメーター"
+      }
+    }
   }
 }

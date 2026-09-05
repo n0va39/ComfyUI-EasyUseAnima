@@ -479,16 +479,15 @@ def _allocate_filenames(
         patterns.append(
             re.compile(rf"^{re.escape(filename)}_(\d+)\.json$", re.IGNORECASE)
         )
-    suffixes: list[int] = []
+    highest_suffix = 0
     for existing in output_folder.iterdir():
-        if not existing.is_file():
-            continue
         for pattern in patterns:
             match = pattern.fullmatch(existing.name)
             if match is not None:
-                suffixes.append(int(match.group(1)))
+                if existing.is_file():
+                    highest_suffix = max(highest_suffix, int(match.group(1)))
                 break
-    suffix = max(suffixes, default=0) + 1
+    suffix = highest_suffix + 1
     names: list[str] = []
     while len(names) < count:
         candidate = f"{filename}_{suffix:02d}.{extension}"

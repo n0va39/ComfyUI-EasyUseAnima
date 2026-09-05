@@ -4,7 +4,7 @@
   "inventory_owner": {
     "path": "tests/fixtures/python_backend_baseline.json",
     "expected_baseline_files": 191,
-    "expected_target_files": 201
+    "expected_target_files": 202
   },
   "linked_contracts": {
     "compatibility_registry": "docs/architecture/python-compatibility-shims.md",
@@ -2529,19 +2529,26 @@
       "path": "easyuse_anima/nodes/image_nodes.py",
       "role": "comfyui-node-adapter",
       "owner_group": "nodes",
-      "disposition": "cohesive_retain",
+      "disposition": "split",
       "status": "complete",
       "targets": [
         {
           "path": "easyuse_anima/nodes/image_nodes.py",
           "role": "comfyui-node-adapter",
           "owner_group": "nodes"
+        },
+        {
+          "path": "easyuse_anima/nodes/image_output_nodes.py",
+          "role": "comfyui-node-adapter",
+          "owner_group": "nodes"
         }
       ],
-      "direct_contracts": [],
+      "direct_contracts": [
+        "tests/test_image_output_nodes.py"
+      ],
       "compatibility_registry_key": null,
-      "task_id": null,
-      "rollback_unit": null,
+      "task_id": "IMAGE-OUTPUT-NODES",
+      "rollback_unit": "Revert the standalone image output node addition.",
       "replacement_owner": null,
       "size_exception_verdicts": []
     },

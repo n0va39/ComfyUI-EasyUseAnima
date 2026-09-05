@@ -318,6 +318,7 @@
       ],
       "owners": {
         "adapter_api_node_integration": [
+          "tests/test_image_output_nodes.py",
           "tests/test_node_contracts.py"
         ],
         "live_host": [

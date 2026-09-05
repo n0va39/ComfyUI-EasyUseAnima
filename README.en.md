@@ -133,6 +133,7 @@ Mode details: [Anima Artist Mix Conditioning guide](docs/nodes/anima-artist-mix-
 | [Easy Use Anima Input](docs/nodes/anima-aio-generator.en.md) | `EasyUse Anima/AiO` | Bundles prompt data plus ANIMA diffusion model, VAE, and CLIP selections into an AiO context. |
 | [Anima AiO Generator](docs/nodes/anima-aio-generator.en.md) | `EasyUse Anima/AiO` | Runs sampling, Highres, Detailer, preview, and saving from the prompt-data context. |
 | [Anima Image Scale By Multiple](docs/nodes/anima-image-scale-by-multiple.en.md) | `EasyUse Anima/Image` | Scales images to Highres-safe valid multiples while preserving the original aspect ratio. |
+| [Easy Save Image / Easy Image Metadata](docs/nodes/easy-image-output.en.md) | `EasyUse Anima/Image` | Saves PNG/JPEG/WebP with a separate optional metadata node; works with any diffusion model. |
 | [Anima Detailer Align Hook](docs/nodes/anima-detailer-align-hook.en.md) | `EasyUse Anima/Detailer` | Aligns Impact detailer crop sampling sizes to a selected multiple. |
 
 ## Shared Front-End Features
