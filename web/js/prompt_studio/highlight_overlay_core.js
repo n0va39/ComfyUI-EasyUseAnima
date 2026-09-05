@@ -73,6 +73,11 @@ function cssPixel(value) {
  */
 function hasVisibleVerticalScrollbar(input, style) {
   const overflowY = String(style.overflowY || "").trim().toLowerCase();
+  // Node 2.0 reserves a stable gutter even while autosizing hides the scrollbar.
+  if (String(style.scrollbarGutter || "").includes("stable")
+    && ["auto", "scroll", "hidden"].includes(overflowY)) {
+    return true;
+  }
   if (overflowY === "scroll") {
     return true;
   }
@@ -178,8 +183,10 @@ function highlightOverlayPreviewHtml(value, tokens, preview, renderHighlightedTe
  * @param {Object} dependencies
  * @param {HighlightTextRenderer} dependencies.renderHighlightedText
  * @param {(value: unknown) => string} dependencies.escapeHtml
+ * @param {() => string} [dependencies.getRenderKey]
  */
-function createHighlightOverlayRenderer({ renderHighlightedText, escapeHtml }) {
+function createHighlightOverlayRenderer({ renderHighlightedText, escapeHtml, getRenderKey = () => "" }) {
+  const cache = new WeakMap();
   /**
    * @param {unknown} value
    * @param {Array<any>} tokens
@@ -188,13 +195,35 @@ function createHighlightOverlayRenderer({ renderHighlightedText, escapeHtml }) {
    */
   return function highlightOverlayHtml(value, tokens, placeholder = "", input = null) {
     const text = String(value || "");
+    const tokenIdentity = tokens?.length ? tokens : null;
+    const preview = input?.__easyuseAnimaAutocompletePreview;
+    const previewKey = [
+      preview?.sourceValue, preview?.value, preview?.color,
+      preview?.candidateStart, preview?.candidateEnd, preview?.ghostStart, preview?.ghostEnd,
+    ];
+    const renderKey = getRenderKey();
+    const previous = input ? cache.get(input) : null;
+    if (previous && previous.text === text
+      && previous.tokens === tokenIdentity && previous.placeholder === placeholder
+      && previous.renderKey === renderKey
+      && previewKey.every((part, index) => part === previous.previewKey[index])) {
+      return previous.html;
+    }
+    const html = render(text, tokens, placeholder, preview);
+    if (input) {
+      cache.set(input, { text, tokens: tokenIdentity, placeholder, previewKey, renderKey, html });
+    }
+    return html;
+  };
+
+  function render(text, tokens, placeholder, preview) {
     if (!text) {
       return `<span style="opacity: 0.45">${escapeHtml(placeholder)}</span>`;
     }
     const previewHtml = highlightOverlayPreviewHtml(
       text,
       tokens,
-      input?.__easyuseAnimaAutocompletePreview,
+      preview,
       renderHighlightedText,
       escapeHtml,
     );
@@ -203,7 +232,20 @@ function createHighlightOverlayRenderer({ renderHighlightedText, escapeHtml }) {
     }
     const html = renderHighlightedText(text, tokens);
     return text.endsWith("\n") ? `${html} ` : html;
-  };
+  }
+}
+
+// Each overlay has one content owner; comparing our last string avoids a DOM
+// serialization read and preserves the existing nodes on caret/geometry updates.
+const overlayContents = new WeakMap();
+
+/** @param {HTMLElement} overlay @param {string} html */
+function setHighlightOverlayHtml(overlay, html) {
+  if (overlayContents.get(overlay) === html) {
+    return;
+  }
+  overlay.innerHTML = html;
+  overlayContents.set(overlay, html);
 }
 
 /**
@@ -253,5 +295,6 @@ export {
   createHighlightOverlayRenderer,
   overlayBounds,
   overlayScrollbarPadding,
+  setHighlightOverlayHtml,
   syncOverlayBounds,
 };

@@ -4,6 +4,7 @@ import {
   copyInputTextMetrics,
   ensureHighlightOverlay,
   highlightOverlayHtml,
+  setHighlightOverlayHtml,
   syncOverlayBounds,
 } from "./highlight.js";
 import {
@@ -44,14 +45,16 @@ function updateHighlight(node, widget, tokens = widget.__easyuseAnimaTokens || [
   if (forceCopyMetrics) {
     copyInputTextMetrics(input, overlay);
   }
-  syncOverlayBounds(input, overlay);
   const value = displayText(node, widget, input);
   const currentTokens = highlightTokensForText(
     value,
     widget.__easyuseAnimaLastClassifiedText,
     tokens,
   );
-  overlay.innerHTML = highlightOverlayHtml(value, currentTokens, input.placeholder || "", input);
+  setHighlightOverlayHtml(overlay, highlightOverlayHtml(
+    value, currentTokens, input.placeholder || "", input,
+  ));
+  syncOverlayBounds(input, overlay);
 }
 
 export {

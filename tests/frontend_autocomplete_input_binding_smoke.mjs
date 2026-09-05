@@ -839,4 +839,149 @@ function replacementBinding(input, state, owner, registry, controller) {
   assert.equal(focusedHooks[0].options.scope, "easyuse");
 }
 
+{
+  const geometryModule = await import(dataModule("../web/js/autocomplete/popup_geometry.js"));
+  const sourceBetween = (start, end) => {
+    const startIndex = entrySource.indexOf(start);
+    const endIndex = entrySource.indexOf(end, startIndex);
+    assert.ok(startIndex >= 0 && endIndex > startIndex);
+    return entrySource.slice(startIndex, endIndex);
+  };
+  const schedulerSource = sourceBetween("function refreshActiveAutocomplete", "\nfunction inputTypeName");
+  const scrollSource = sourceBetween("function handleAutocompleteScroll", "\nfunction hookNode");
+  const positionSource = sourceBetween("function positionPopup", "\nfunction scrollActiveAutocompleteItemIntoView");
+  const settingsSource = sourceBetween("function handleAutocompleteSettingsUpdated", "\nfunction disposeAutocompleteEntryInputs");
+  const disposeSource = sourceBetween("function disposeAutocompleteEntryUi", "\nautocompleteEntryLifecycle =");
+  const schedulerDeclarations = entrySource.match(/^let activeRefresh\w* = .*;$/gm).join("\n");
+
+  function createScrollRuntime() {
+    const calls = { caret: 0, refresh: 0, preview: 0, hide: 0, invalidations: 0 };
+    const frames = new Map();
+    let nextFrame = 0;
+    const input = new FakeInput();
+    input.getBoundingClientRect = () => ({ left: 100, top: 100, width: 400, height: 120, right: 500, bottom: 220 });
+    const document = { activeElement: input, getElementById: () => null };
+    const popup = {
+      style: {},
+      hidden: false,
+      contains: (target) => target === popup,
+      remove() {},
+    };
+    const preview = { value: "blue hair" };
+    input.__easyuseAnimaAutocompletePreview = preview;
+    const state = { input, index: 3, suggestions: [{ tag: "blue hair" }], enabled: true };
+    const autocompleteData = { invalidated: false, syncSourceSettings() { return this.invalidated; } };
+    const runtime = new Function(
+      "dependencies",
+      `"use strict";
+      const { document, window, state, popupFixture, calls, frames, requestAnimationFrame,
+        cancelAnimationFrame, caretClientRect, calculateAutocompletePopupGeometry,
+        autocompleteData } = dependencies;
+      let activeState = state;
+      let popup = popupFixture;
+      let middlePanForwardCleanup = null;
+      ${schedulerDeclarations}
+      const pruneDisconnectedAutocompleteInputs = () => {};
+      const autocompleteEnabledForState = (current) => current.enabled;
+      const ensurePopup = () => popup;
+      const hidePopup = () => { calls.hide += 1; activeState = null; popupFixture.hidden = true; };
+      const invalidateAutocompleteDataRequests = () => { calls.invalidations += 1; hidePopup(); };
+      ${positionSource}
+      ${schedulerSource}
+      ${scrollSource}
+      ${settingsSource}
+      ${disposeSource}
+      state.reposition = () => positionPopup(state.input);
+      state.refresh = () => { calls.refresh += 1; positionPopup(state.input); calls.preview += 1; };
+      return {
+        scroll: handleAutocompleteScroll,
+        wheel: handleAutocompleteWheel,
+        settings: handleAutocompleteSettingsUpdated,
+        refresh: scheduleActiveRefresh,
+        dismiss: hidePopup,
+        dispose: disposeAutocompleteEntryUi,
+      };`,
+    )({
+      document,
+      window: { innerWidth: 1200, innerHeight: 900 },
+      state,
+      popupFixture: popup,
+      calls,
+      frames,
+      requestAnimationFrame(callback) { frames.set(++nextFrame, callback); return nextFrame; },
+      cancelAnimationFrame(handle) { frames.delete(handle); },
+      caretClientRect() { calls.caret += 1; return { left: 140, top: 130, width: 1, height: 20, right: 141, bottom: 150 }; },
+      calculateAutocompletePopupGeometry: geometryModule.calculateAutocompletePopupGeometry,
+      autocompleteData,
+    });
+    return {
+      runtime, calls, document, input, state, popup, preview, frames, autocompleteData,
+      flushFrame() {
+        const callbacks = [...frames.values()];
+        frames.clear();
+        for (const callback of callbacks) callback();
+      },
+    };
+  }
+
+  const scroll = createScrollRuntime();
+  const originalSuggestions = scroll.state.suggestions;
+  for (let index = 0; index < 30; index += 1) {
+    scroll.runtime.wheel({ target: scroll.input });
+    scroll.runtime.scroll({ target: scroll.input });
+  }
+  assert.equal(scroll.frames.size, 1, "wheel and scroll bursts must share one frame");
+  scroll.flushFrame();
+  assert.equal(scroll.calls.caret, 1, "scrolling an unchanged query must measure caret geometry only once");
+  assert.equal(scroll.calls.refresh, 0, "scrolling must not refresh searches or cancel pending controller work");
+  assert.equal(scroll.calls.preview, 0, "scrolling must not regenerate autocomplete preview");
+  assert.equal(scroll.state.index, 3, "scrolling must preserve the selected suggestion");
+  assert.equal(scroll.state.suggestions, originalSuggestions);
+  assert.equal(scroll.input.__easyuseAnimaAutocompletePreview, scroll.preview);
+  assert.ok(scroll.popup.style.top, "the popup must still follow the caret");
+
+  scroll.runtime.scroll({ target: scroll.popup });
+  scroll.runtime.wheel({ target: scroll.popup });
+  assert.equal(scroll.frames.size, 0, "scrolling inside the suggestion menu must not reposition it");
+
+  for (const order of [["settings", "scroll"], ["scroll", "settings"]]) {
+    const mixed = createScrollRuntime();
+    for (const event of order) mixed.runtime[event]({ target: mixed.input, detail: {} });
+    mixed.flushFrame();
+    assert.equal(mixed.calls.refresh, 1, "settings refresh must survive coalescing with a scroll event");
+    assert.equal(mixed.calls.caret, 1, "a full refresh must let its controller own popup positioning");
+    assert.equal(mixed.calls.preview, 1, "non-data settings refresh must retain preview updates");
+  }
+
+  for (const deactivate of [
+    (fixture) => fixture.runtime.dismiss(),
+    (fixture) => { fixture.document.activeElement = null; },
+    (fixture) => { fixture.state.enabled = false; },
+  ]) {
+    const hidden = createScrollRuntime();
+    hidden.runtime.scroll({ target: hidden.input });
+    deactivate(hidden);
+    hidden.flushFrame();
+    assert.equal(hidden.calls.caret, 0, "a queued scroll must not position a dismissed or inactive popup");
+    assert.equal(hidden.calls.refresh, 0, "a queued scroll must not reopen a dismissed or inactive popup");
+    assert.equal(hidden.popup.hidden, true);
+  }
+
+  const invalidated = createScrollRuntime();
+  invalidated.runtime.scroll({ target: invalidated.input });
+  invalidated.autocompleteData.invalidated = true;
+  invalidated.runtime.settings({ detail: {} });
+  invalidated.flushFrame();
+  assert.equal(invalidated.calls.invalidations, 1, "source changes must retain data invalidation routing");
+  assert.equal(invalidated.calls.caret, 0, "queued scrolling must not restore invalidated suggestions");
+
+  const disposed = createScrollRuntime();
+  disposed.runtime.refresh();
+  disposed.runtime.scroll({ target: disposed.input });
+  disposed.runtime.dispose();
+  assert.equal(disposed.frames.size, 0, "entry disposal must cancel the shared refresh frame");
+  disposed.flushFrame();
+  assert.equal(disposed.calls.caret, 0);
+}
+
 console.log("Autocomplete input binding smoke passed.");
