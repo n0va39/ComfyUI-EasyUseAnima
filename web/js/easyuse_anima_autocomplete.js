@@ -519,6 +519,7 @@ function ensureStyle() {
   style.textContent = `
     .easyuse-anima-autocomplete {
       position: fixed;
+      box-sizing: border-box;
       z-index: 100000;
       max-width: 520px;
       min-width: 280px;

@@ -91,7 +91,11 @@ export function calculateAutocompletePopupGeometry(
     inputRect.bottom,
   );
   const left = clamp(caretLeft, 4, Math.max(4, viewport.width - width - 4));
-  const top = caretBottom + lineHeight + 12;
+  const top = clamp(
+    caretBottom + lineHeight + 12,
+    4,
+    Math.max(4, viewport.height - 8 - 56),
+  );
   const maxHeight = Math.max(56, viewport.height - top - 8);
   return {
     left,
