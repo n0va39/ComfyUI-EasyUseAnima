@@ -53,12 +53,13 @@ class ImageOutputNodeTests(unittest.TestCase):
         self.assertEqual(list(self.root.iterdir()), [])
 
     def test_png_metadata_workflow_sidecar_and_collision_roundtrip(self):
-        metadata, parameters = self.metadata(save_workflow_as_json=True)
+        metadata, parameters = self.metadata()
         workflow = {"nodes": [], "extra": {"title": "메타데이터"}}
         prompt = {"1": {"class_type": "EasyUseAnimaSaveImage", "inputs": {}}}
         args = dict(
             path="album/session", filename="image", exif_metadata=metadata,
             prompt=prompt, extra_pnginfo={"workflow": workflow},
+            save_workflow_as_json=True,
         )
         first = self.saved_path(self.saver.save_images(self.images, **args))
         with Image.open(first) as image:
@@ -73,12 +74,12 @@ class ImageOutputNodeTests(unittest.TestCase):
         self.assertEqual(first.read_bytes(), original)
 
     def test_jpeg_and_webp_unicode_exif_roundtrip(self):
-        metadata, parameters = self.metadata(embed_workflow=False)
+        metadata, parameters = self.metadata()
         for extension in ("jpg", "jpeg", "webp"):
             with self.subTest(extension=extension):
                 saved = self.saved_path(self.saver.save_images(
                     self.images, extension=extension, exif_metadata=metadata,
-                    lossless_webp=True,
+                    lossless_webp=True, embed_workflow=False,
                 ))
                 with Image.open(saved) as image:
                     comment = image.getexif().get_ifd(ExifTags.IFD.Exif)[0x9286]
@@ -86,12 +87,13 @@ class ImageOutputNodeTests(unittest.TestCase):
                     self.assertEqual(comment[8:].decode("utf-16-be"), parameters)
                     self.assertNotIn(0x0110, image.getexif())
 
-    def test_disconnected_metadata_saves_pixels_only_even_with_hidden_workflow(self):
+    def test_disabled_save_options_and_disconnected_metadata_save_pixels_only(self):
         for extension in ("png", "jpeg", "webp"):
             with self.subTest(extension=extension):
                 saved = self.saved_path(self.saver.save_images(
                     self.images, extension=extension, prompt={"private": "prompt"},
                     extra_pnginfo={"workflow": {"nodes": []}},
+                    embed_workflow=False, save_workflow_as_json=False,
                 ))
                 with Image.open(saved) as image:
                     self.assertNotIn("parameters", image.info)
@@ -101,7 +103,7 @@ class ImageOutputNodeTests(unittest.TestCase):
                 self.assertFalse(saved.with_suffix(".json").exists())
 
     def test_global_privacy_skips_builder_and_suppresses_cached_metadata_at_save(self):
-        previous_metadata, _ = self.metadata(save_workflow_as_json=True)
+        previous_metadata, _ = self.metadata()
         with patch.object(output, "_comfy_metadata_enabled", return_value=False):
             with patch.object(output, "_build_native_metadata") as build:
                 metadata, parameters = self.metadata()
@@ -112,11 +114,56 @@ class ImageOutputNodeTests(unittest.TestCase):
             saved = self.saved_path(self.saver.save_images(
                 self.images, exif_metadata=previous_metadata,
                 extra_pnginfo={"workflow": {"nodes": []}},
+                embed_workflow=True, save_workflow_as_json=True,
             ))
         with Image.open(saved) as image:
             self.assertNotIn("parameters", image.info)
             self.assertNotIn("workflow", image.info)
         self.assertFalse(saved.with_suffix(".json").exists())
+
+    def test_workflow_saving_is_independent_of_a1111_metadata(self):
+        workflow = {"nodes": [], "extra": {"title": "워크플로우"}}
+        for extension in ("png", "jpeg", "webp"):
+            for embed_workflow in (False, True):
+                with self.subTest(extension=extension, embed=embed_workflow):
+                    saved = self.saved_path(self.saver.save_images(
+                        self.images, extension=extension, embed_workflow=embed_workflow,
+                        save_workflow_as_json=True, prompt={"1": {"inputs": {}}},
+                        extra_pnginfo={"workflow": workflow},
+                    ))
+                    self.assertEqual(json.loads(saved.with_suffix(".json").read_text("utf-8")), workflow)
+                    with Image.open(saved) as image:
+                        self.assertNotIn("parameters", image.info)
+                        if extension == "png":
+                            self.assertEqual("workflow" in image.info, embed_workflow)
+                        else:
+                            self.assertEqual(0x0110 in image.getexif(), embed_workflow)
+
+    def test_metadata_retains_only_generation_data_and_accepts_lookup_hashes(self):
+        metadata, parameters = self.metadata(additional_hashes="Resource:abcdef1234:0.5")
+        self.assertIn('"Resource":"abcdef1234"', parameters)
+        self.assertIn('Resource weights: {"Resource":0.5}', parameters)
+        self.assertEqual(metadata.__slots__, ("metadata",))
+        inputs = self.metadata_node.INPUT_TYPES()
+        self.assertNotIn("hidden", inputs)
+        self.assertNotIn("embed_workflow", inputs["required"])
+        self.assertNotIn("save_workflow_as_json", inputs["required"])
+        self.assertTrue(inputs["optional"]["additional_hashes"][1]["forceInput"])
+
+    def test_lookup_weight_survives_image_save_without_workflow_or_network(self):
+        metadata, parameters = self.metadata(additional_hashes="Resource:abcdef1234:-0.75")
+        self.assertIn('Resource weights: {"Resource":-0.75}', parameters)
+        for extension in ("png", "jpeg", "webp"):
+            with self.subTest(extension=extension):
+                saved = self.saved_path(self.saver.save_images(
+                    self.images, extension=extension, exif_metadata=metadata,
+                    embed_workflow=False, save_workflow_as_json=False,
+                ))
+                with Image.open(saved) as image:
+                    stored = image.info["parameters"] if extension == "png" else (
+                        image.getexif().get_ifd(ExifTags.IFD.Exif)[0x9286][8:].decode("utf-16-be")
+                    )
+                    self.assertEqual(stored, parameters)
 
     def test_unsafe_paths_and_literal_metadata_are_rejected_before_writing(self):
         for path in ("../escape", "/absolute", "C:\\outside", "safe/../../escape"):

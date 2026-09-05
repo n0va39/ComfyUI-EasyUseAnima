@@ -1138,7 +1138,7 @@
   },
   "EasyUseAnimaSaveImage": {
     "display_name": "Easy 이미지 저장",
-    "description": "PNG, JPEG, WebP로 이미지를 저장합니다. 메타데이터 소켓을 연결하지 않으면 픽셀만 저장하며 기존 파일은 번호를 붙여 보존합니다.",
+    "description": "PNG, JPEG, WebP로 이미지를 저장합니다. 워크플로우 포함과 JSON 저장을 여기에서 설정하고, A1111 생성 정보는 선택적 EXIF 소켓으로 연결합니다.",
     "inputs": {
       "images": {
         "name": "이미지"
@@ -1163,6 +1163,12 @@
       },
       "exif_metadata": {
         "name": "EXIF 메타데이터"
+      },
+      "embed_workflow": {
+        "name": "워크플로우 포함"
+      },
+      "save_workflow_as_json": {
+        "name": "워크플로우 JSON 저장"
       }
     }
   },
@@ -1206,11 +1212,8 @@
       "custom": {
         "name": "추가 텍스트"
       },
-      "embed_workflow": {
-        "name": "워크플로우 포함"
-      },
-      "save_workflow_as_json": {
-        "name": "워크플로우 JSON 저장"
+      "additional_hashes": {
+        "name": "추가 해시"
       }
     },
     "outputs": {
@@ -1219,6 +1222,41 @@
       },
       "1": {
         "name": "생성 파라미터"
+      }
+    }
+  },
+  "EasyUseAnimaCivitaiLookup": {
+    "display_name": "Easy Civitai 조회",
+    "description": "Civitai 해시 또는 버전이 포함된 AIR로 모델 정보를 조회합니다. 이미지나 모델 파일은 다운로드하지 않습니다.",
+    "inputs": {
+      "identifier": {
+        "name": "해시 또는 AIR"
+      },
+      "weight": {
+        "name": "가중치"
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "AutoV3 해시"
+      },
+      "1": {
+        "name": "SHA256"
+      },
+      "2": {
+        "name": "AIR"
+      },
+      "3": {
+        "name": "모델 이름"
+      },
+      "4": {
+        "name": "버전 이름"
+      },
+      "5": {
+        "name": "트리거 단어"
+      },
+      "6": {
+        "name": "추가 해시"
       }
     }
   }

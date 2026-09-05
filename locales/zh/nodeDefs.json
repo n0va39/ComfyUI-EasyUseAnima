@@ -1123,7 +1123,7 @@
   },
   "EasyUseAnimaSaveImage": {
     "display_name": "Easy 儲存影像",
-    "description": "以 PNG、JPEG、WebP 儲存影像。未連接中繼資料輸入時只儲存像素，並透過編號保留既有檔案。",
+    "description": "儲存 PNG、JPEG、WebP。在此設定工作流程嵌入和 JSON 儲存，可透過 EXIF 接口連接 A1111 生成資訊。",
     "inputs": {
       "images": {
         "name": "影像"
@@ -1148,6 +1148,12 @@
       },
       "exif_metadata": {
         "name": "EXIF中繼資料"
+      },
+      "embed_workflow": {
+        "name": "嵌入工作流程"
+      },
+      "save_workflow_as_json": {
+        "name": "儲存工作流程JSON"
       }
     }
   },
@@ -1191,11 +1197,8 @@
       "custom": {
         "name": "額外文字"
       },
-      "embed_workflow": {
-        "name": "嵌入工作流程"
-      },
-      "save_workflow_as_json": {
-        "name": "儲存工作流程JSON"
+      "additional_hashes": {
+        "name": "附加雜湊"
       }
     },
     "outputs": {
@@ -1204,6 +1207,41 @@
       },
       "1": {
         "name": "生成參數"
+      }
+    }
+  },
+  "EasyUseAnimaCivitaiLookup": {
+    "display_name": "Easy Civitai 查詢",
+    "description": "透過 Civitai 雜湊或含版本的 AIR 查詢模型資訊，不下載圖像或模型檔案。",
+    "inputs": {
+      "identifier": {
+        "name": "雜湊或 AIR"
+      },
+      "weight": {
+        "name": "權重"
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "AutoV3 雜湊"
+      },
+      "1": {
+        "name": "SHA256"
+      },
+      "2": {
+        "name": "AIR"
+      },
+      "3": {
+        "name": "模型名稱"
+      },
+      "4": {
+        "name": "版本名稱"
+      },
+      "5": {
+        "name": "觸發詞"
+      },
+      "6": {
+        "name": "附加雜湊"
       }
     }
   }

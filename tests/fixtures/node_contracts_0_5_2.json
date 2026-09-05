@@ -758,23 +758,21 @@
               },
               "name": "custom",
               "type": "STRING"
-            },
-            {
-              "config": {
-                "default": true
-              },
-              "name": "embed_workflow",
-              "type": "BOOLEAN"
-            },
-            {
-              "config": {
-                "default": false
-              },
-              "name": "save_workflow_as_json",
-              "type": "BOOLEAN"
             }
           ],
           "name": "required"
+        },
+        {
+          "entries": [
+            {
+              "config": {
+                "forceInput": true
+              },
+              "name": "additional_hashes",
+              "type": "STRING"
+            }
+          ],
+          "name": "optional"
         }
       ],
       "output_node": false,
@@ -784,6 +782,62 @@
       ],
       "return_types": [
         "EASYUSE_IMAGE_METADATA",
+        "STRING"
+      ]
+    },
+    {
+      "category": "EasyUse Anima/Image",
+      "class_name": "EasyUseAnimaCivitaiLookup",
+      "display_name": "Easy Civitai Lookup",
+      "function": "lookup",
+      "id": "EasyUseAnimaCivitaiLookup",
+      "input_sections": [
+        {
+          "entries": [
+            {
+              "config": {
+                "default": "",
+                "multiline": false
+              },
+              "name": "identifier",
+              "type": "STRING"
+            }
+          ],
+          "name": "required"
+        },
+        {
+          "entries": [
+            {
+              "config": {
+                "default": 1.0,
+                "max": 100.0,
+                "min": -100.0,
+                "step": 0.01
+              },
+              "name": "weight",
+              "type": "FLOAT"
+            }
+          ],
+          "name": "optional"
+        }
+      ],
+      "output_node": false,
+      "return_names": [
+        "autov3_hash",
+        "sha256",
+        "air",
+        "model_name",
+        "version_name",
+        "trigger_words",
+        "additional_hashes"
+      ],
+      "return_types": [
+        "STRING",
+        "STRING",
+        "STRING",
+        "STRING",
+        "STRING",
+        "STRING",
         "STRING"
       ]
     },
@@ -846,6 +900,20 @@
                 "default": false
               },
               "name": "optimize_png",
+              "type": "BOOLEAN"
+            },
+            {
+              "config": {
+                "default": true
+              },
+              "name": "embed_workflow",
+              "type": "BOOLEAN"
+            },
+            {
+              "config": {
+                "default": false
+              },
+              "name": "save_workflow_as_json",
               "type": "BOOLEAN"
             }
           ],

@@ -2,7 +2,7 @@
   "schema_version": 1,
   "baseline_commit": "a0b0dc1f599fcf01ec0f25fc75a23f7524f165ab",
   "inventory": {
-    "expected_files": 215,
+    "expected_files": 217,
     "manual_matrix_source": "tests/fixtures/python_test_ownership_contract.v1.json",
     "patterns": [
       "tests/**/*.json",
@@ -804,6 +804,18 @@
         "cross-cutting"
       ],
       "purpose": "Deterministic Node smoke contract for frontend host hook registry smoke."
+    },
+    {
+      "execution_mode": "node-smoke",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/frontend_image_output_migration_smoke.mjs",
+      "path": "tests/frontend_image_output_migration_smoke.mjs",
+      "production_groups": [
+        "aio",
+        "nodes"
+      ],
+      "purpose": "Preserve saved metadata workflow options when moving controls to image savers."
     },
     {
       "execution_mode": "node-smoke",
@@ -1641,6 +1653,18 @@
         "autocomplete"
       ],
       "purpose": "Direct Python unittest contract for test autocomplete service."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_civitai_lookup_nodes.py",
+      "path": "tests/test_civitai_lookup_nodes.py",
+      "production_groups": [
+        "aio",
+        "nodes"
+      ],
+      "purpose": "Civitai hash and AIR identity, bounded result caching and node lookup contracts."
     },
     {
       "execution_mode": "unittest",

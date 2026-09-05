@@ -16,8 +16,6 @@ from ..aio.native_image_output import (
 @dataclass(frozen=True, slots=True)
 class _ImageMetadataInput:
     metadata: NativeImageMetadata
-    embed_workflow: bool
-    save_workflow_as_json: bool
 
 
 class EasyUseAnimaImageMetadata:
@@ -30,7 +28,7 @@ class EasyUseAnimaImageMetadata:
         "ComfyUI's disable-metadata setting suppresses metadata and resource hashing."
     )
     OUTPUT_TOOLTIPS = (
-        "Generation metadata and workflow options for Easy Save Image.",
+        "A1111 generation metadata only; workflow saving is configured on Easy Save Image.",
         "Human-readable A1111 generation parameters.",
     )
 
@@ -56,8 +54,12 @@ class EasyUseAnimaImageMetadata:
                 "denoise": ("FLOAT", {"default": 1.0, "min": 0.0, "max": 1.0, "step": 0.01}),
                 "clip_skip": ("INT", {"default": 0, "min": 0, "max": 256}),
                 "custom": ("STRING", {"default": "", "multiline": True}),
-                "embed_workflow": ("BOOLEAN", {"default": True}),
-                "save_workflow_as_json": ("BOOLEAN", {"default": False}),
+            },
+            "optional": {
+                "additional_hashes": ("STRING", {
+                    "forceInput": True,
+                    "tooltip": "Optional name:hash:weight entries from Easy Civitai Lookup.",
+                }),
             },
         }
 
@@ -73,8 +75,8 @@ class EasyUseAnimaImageMetadata:
     def build(
         self, images, positive="", negative="", modelname="", seed=0,
         steps=20, cfg=7.0, sampler_name="euler", scheduler_name="normal",
-        denoise=1.0, clip_skip=0, custom="", embed_workflow=True,
-        save_workflow_as_json=False,
+        denoise=1.0, clip_skip=0, custom="", additional_hashes="",
+        **_legacy_workflow_options,
     ):
         shape = getattr(images, "shape", ())
         if len(shape) != 4 or any(int(size) <= 0 for size in shape):
@@ -86,11 +88,12 @@ class EasyUseAnimaImageMetadata:
                 width=int(shape[2]), height=int(shape[1]), seed=seed,
                 steps=steps, cfg=cfg, sampler_name=sampler_name,
                 scheduler_name=scheduler_name, denoise=denoise,
-                clip_skip=clip_skip, custom=custom, additional_hashes="",
+                clip_skip=clip_skip, custom=custom, additional_hashes=additional_hashes,
                 applied_loras=None, download_civitai_data=False, easy_remix=False,
+                include_resource_weights=True,
             )
         return (
-            _ImageMetadataInput(metadata, bool(embed_workflow), bool(save_workflow_as_json)),
+            _ImageMetadataInput(metadata),
             metadata.parameters,
         )
 
@@ -100,8 +103,8 @@ class EasyUseAnimaSaveImage:
 
     DESCRIPTION = (
         "Saves images to ComfyUI's output directory using PNG, JPEG or WebP. "
-        "Connect Easy Image Metadata to exif_metadata to include generation data "
-        "and its selected workflow options. An unconnected socket saves pixels only. "
+        "Connect Easy Image Metadata to exif_metadata to include A1111 generation data. "
+        "Workflow embedding and JSON sidecars are controlled here independently. "
         "Existing files are preserved by allocating a numbered filename."
     )
 
@@ -125,10 +128,12 @@ class EasyUseAnimaSaveImage:
                 "optimize_png": ("BOOLEAN", {
                     "default": False, "tooltip": "Use slower PNG compression to reduce file size.",
                 }),
+                "embed_workflow": ("BOOLEAN", {"default": True}),
+                "save_workflow_as_json": ("BOOLEAN", {"default": False}),
             },
             "optional": {
                 "exif_metadata": ("EASYUSE_IMAGE_METADATA", {
-                    "tooltip": "Optional metadata from Easy Image Metadata. Disconnect to save pixels only.",
+                    "tooltip": "Optional A1111 metadata from Easy Image Metadata. Workflow options are independent.",
                 }),
             },
             "hidden": {"prompt": "PROMPT", "extra_pnginfo": "EXTRA_PNGINFO"},
@@ -142,20 +147,19 @@ class EasyUseAnimaSaveImage:
     def save_images(
         self, images, path="", filename="Easy", extension="png", quality=95,
         lossless_webp=False, optimize_png=False, exif_metadata=None,
-        prompt=None, extra_pnginfo=None,
+        prompt=None, extra_pnginfo=None, embed_workflow=True,
+        save_workflow_as_json=False,
     ):
         import folder_paths  # type: ignore
 
         if exif_metadata is not None and not isinstance(exif_metadata, _ImageMetadataInput):
             raise ValueError("[EasyUseAnima] Connect Easy Image Metadata to exif_metadata.")
-        metadata_enabled = _comfy_metadata_enabled() and exif_metadata is not None
+        metadata_enabled = _comfy_metadata_enabled() and bool(
+            exif_metadata is not None or embed_workflow or save_workflow_as_json
+        )
         metadata = NativeImageMetadata(parameters="", final_hashes="", hashes={})
-        embed_workflow = False
-        save_workflow_as_json = False
         if metadata_enabled and exif_metadata is not None:
             metadata = exif_metadata.metadata
-            embed_workflow = exif_metadata.embed_workflow
-            save_workflow_as_json = exif_metadata.save_workflow_as_json
         result = _save_native_images(
             images, output_root=Path(folder_paths.get_output_directory()),
             path=path, filename=filename, extension=extension,
