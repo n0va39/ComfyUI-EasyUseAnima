@@ -95,6 +95,28 @@ def remove_directory_link(link: Path) -> None:
 
 
 class AIONativeImageOutputTests(unittest.TestCase):
+    def test_filename_allocation_stats_only_matching_names(self):
+        entries = []
+        for index in range(2000):
+            entry = Mock()
+            entry.name = f"unrelated_{index}.png"
+            entries.append(entry)
+        for name, is_file in (("render_07.png", True), ("render_09.json", True), ("render_20.png", False)):
+            entry = Mock()
+            entry.name = name
+            entry.is_file.return_value = is_file
+            entries.append(entry)
+        with tempfile.TemporaryDirectory() as temp:
+            with patch.object(Path, "iterdir", return_value=iter(entries)):
+                names = native._allocate_filenames(
+                    Path(temp), "render", "png", 2, sidecar_required=True,
+                )
+        self.assertEqual(names, ["render_10.png", "render_11.png"])
+        for entry in entries[:2000]:
+            entry.is_file.assert_not_called()
+        for entry in entries[2000:]:
+            entry.is_file.assert_called_once_with()
+
     def setUp(self):
         resources._hash_file_revision.cache_clear()
         civitai._fetch_civitai_autov3_hash.cache_clear()

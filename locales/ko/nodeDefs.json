@@ -1135,5 +1135,91 @@
       "1": {"name": "시드"},
       "2": {"name": "LORA_STACK", "tooltip": "입력 스택과 확장된 프롬프트 태그 LoRA를 합친 스택입니다."}
     }
+  },
+  "EasyUseAnimaSaveImage": {
+    "display_name": "Easy 이미지 저장",
+    "description": "PNG, JPEG, WebP로 이미지를 저장합니다. 메타데이터 소켓을 연결하지 않으면 픽셀만 저장하며 기존 파일은 번호를 붙여 보존합니다.",
+    "inputs": {
+      "images": {
+        "name": "이미지"
+      },
+      "path": {
+        "name": "저장 폴더"
+      },
+      "filename": {
+        "name": "파일 이름"
+      },
+      "extension": {
+        "name": "확장자"
+      },
+      "quality": {
+        "name": "품질"
+      },
+      "lossless_webp": {
+        "name": "WebP 무손실"
+      },
+      "optimize_png": {
+        "name": "PNG 최적화"
+      },
+      "exif_metadata": {
+        "name": "EXIF 메타데이터"
+      }
+    }
+  },
+  "EasyUseAnimaImageMetadata": {
+    "display_name": "Easy 이미지 메타데이터",
+    "description": "모든 확산 모델에서 사용할 수 있는 A1111 호환 메타데이터입니다. 같은 최종 이미지를 저장 노드에도 연결하세요. ComfyUI의 메타데이터 비활성화 설정을 따릅니다.",
+    "inputs": {
+      "images": {
+        "name": "이미지"
+      },
+      "positive": {
+        "name": "긍정 프롬프트"
+      },
+      "negative": {
+        "name": "부정 프롬프트"
+      },
+      "modelname": {
+        "name": "모델 이름"
+      },
+      "seed": {
+        "name": "시드"
+      },
+      "steps": {
+        "name": "스텝 수"
+      },
+      "cfg": {
+        "name": "CFG"
+      },
+      "sampler_name": {
+        "name": "샘플러"
+      },
+      "scheduler_name": {
+        "name": "스케줄러"
+      },
+      "denoise": {
+        "name": "디노이즈"
+      },
+      "clip_skip": {
+        "name": "CLIP 스킵"
+      },
+      "custom": {
+        "name": "추가 텍스트"
+      },
+      "embed_workflow": {
+        "name": "워크플로우 포함"
+      },
+      "save_workflow_as_json": {
+        "name": "워크플로우 JSON 저장"
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "EXIF 메타데이터"
+      },
+      "1": {
+        "name": "생성 파라미터"
+      }
+    }
   }
 }

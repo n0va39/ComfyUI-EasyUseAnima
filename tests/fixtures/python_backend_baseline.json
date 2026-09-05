@@ -24277,6 +24277,146 @@
         "requested": "__future__",
         "role": "ordinary",
         "scope": "<module>",
+        "source": "easyuse_anima/nodes/image_output_nodes.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "dataclass",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "dataclasses:dataclass",
+        "kind": "static_from",
+        "line": 5,
+        "name": "dataclass",
+        "optional": false,
+        "requested": "dataclasses",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/nodes/image_output_nodes.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "Path",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "pathlib:Path",
+        "kind": "static_from",
+        "line": 6,
+        "name": "Path",
+        "optional": false,
+        "requested": "pathlib",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/nodes/image_output_nodes.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "NativeImageMetadata",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": "..aio.native_image_output:NativeImageMetadata",
+        "kind": "static_from",
+        "line": 8,
+        "name": "NativeImageMetadata",
+        "optional": false,
+        "requested": "..aio.native_image_output",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/nodes/image_output_nodes.py",
+        "target": "easyuse_anima/aio/native_image_output.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "_build_native_metadata",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": "..aio.native_image_output:_build_native_metadata",
+        "kind": "static_from",
+        "line": 8,
+        "name": "_build_native_metadata",
+        "optional": false,
+        "requested": "..aio.native_image_output",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/nodes/image_output_nodes.py",
+        "target": "easyuse_anima/aio/native_image_output.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "_comfy_metadata_enabled",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": "..aio.native_image_output:_comfy_metadata_enabled",
+        "kind": "static_from",
+        "line": 8,
+        "name": "_comfy_metadata_enabled",
+        "optional": false,
+        "requested": "..aio.native_image_output",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/nodes/image_output_nodes.py",
+        "target": "easyuse_anima/aio/native_image_output.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "_save_native_images",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": "..aio.native_image_output:_save_native_images",
+        "kind": "static_from",
+        "line": 8,
+        "name": "_save_native_images",
+        "optional": false,
+        "requested": "..aio.native_image_output",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/nodes/image_output_nodes.py",
+        "target": "easyuse_anima/aio/native_image_output.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "folder_paths",
+        "branch_context": [],
+        "classification": "external",
+        "column": 8,
+        "conditional": false,
+        "imported": "folder_paths",
+        "kind": "static_import",
+        "line": 147,
+        "name": null,
+        "optional": false,
+        "requested": "folder_paths",
+        "role": "ordinary",
+        "scope": "EasyUseAnimaSaveImage.save_images",
+        "source": "easyuse_anima/nodes/image_output_nodes.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "annotations",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "__future__:annotations",
+        "kind": "static_from",
+        "line": 3,
+        "name": "annotations",
+        "optional": false,
+        "requested": "__future__",
+        "role": "ordinary",
+        "scope": "<module>",
         "source": "easyuse_anima/nodes/input_types.py"
       },
       {
@@ -39183,6 +39323,42 @@
       },
       {
         "alias": null,
+        "bound_name": "EasyUseAnimaImageMetadata",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".nodes.image_output_nodes:EasyUseAnimaImageMetadata",
+        "kind": "static_from",
+        "line": 10,
+        "name": "EasyUseAnimaImageMetadata",
+        "optional": false,
+        "requested": ".nodes.image_output_nodes",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/registration.py",
+        "target": "easyuse_anima/nodes/image_output_nodes.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "EasyUseAnimaSaveImage",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".nodes.image_output_nodes:EasyUseAnimaSaveImage",
+        "kind": "static_from",
+        "line": 10,
+        "name": "EasyUseAnimaSaveImage",
+        "optional": false,
+        "requested": ".nodes.image_output_nodes",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/registration.py",
+        "target": "easyuse_anima/nodes/image_output_nodes.py"
+      },
+      {
+        "alias": null,
         "bound_name": "EasyUseAnimaLoraPreset",
         "branch_context": [],
         "classification": "internal",
@@ -39190,7 +39366,7 @@
         "conditional": false,
         "imported": ".nodes.lora_nodes:EasyUseAnimaLoraPreset",
         "kind": "static_from",
-        "line": 10,
+        "line": 11,
         "name": "EasyUseAnimaLoraPreset",
         "optional": false,
         "requested": ".nodes.lora_nodes",
@@ -39208,7 +39384,7 @@
         "conditional": false,
         "imported": ".nodes.naia_nodes:EasyUseAnimaNAIARandomPrompt",
         "kind": "static_from",
-        "line": 11,
+        "line": 12,
         "name": "EasyUseAnimaNAIARandomPrompt",
         "optional": false,
         "requested": ".nodes.naia_nodes",
@@ -39226,7 +39402,7 @@
         "conditional": false,
         "imported": ".nodes.prompt_advanced_nodes:EasyUseAnimaPromptStudioAdvanced",
         "kind": "static_from",
-        "line": 12,
+        "line": 13,
         "name": "EasyUseAnimaPromptStudioAdvanced",
         "optional": false,
         "requested": ".nodes.prompt_advanced_nodes",
@@ -39244,7 +39420,7 @@
         "conditional": false,
         "imported": ".nodes.prompt_advanced_nodes:EasyUseAnimaPromptStudioAdvancedV2",
         "kind": "static_from",
-        "line": 12,
+        "line": 13,
         "name": "EasyUseAnimaPromptStudioAdvancedV2",
         "optional": false,
         "requested": ".nodes.prompt_advanced_nodes",
@@ -39262,7 +39438,7 @@
         "conditional": false,
         "imported": ".nodes.prompt_data_nodes:EasyUseAnimaArtistMixConditioning",
         "kind": "static_from",
-        "line": 16,
+        "line": 17,
         "name": "EasyUseAnimaArtistMixConditioning",
         "optional": false,
         "requested": ".nodes.prompt_data_nodes",
@@ -39280,7 +39456,7 @@
         "conditional": false,
         "imported": ".nodes.prompt_data_nodes:EasyUseAnimaPromptDataConditioning",
         "kind": "static_from",
-        "line": 16,
+        "line": 17,
         "name": "EasyUseAnimaPromptDataConditioning",
         "optional": false,
         "requested": ".nodes.prompt_data_nodes",
@@ -39298,7 +39474,7 @@
         "conditional": false,
         "imported": ".nodes.prompt_data_nodes:EasyUseAnimaPromptDataUnpack",
         "kind": "static_from",
-        "line": 16,
+        "line": 17,
         "name": "EasyUseAnimaPromptDataUnpack",
         "optional": false,
         "requested": ".nodes.prompt_data_nodes",
@@ -39316,7 +39492,7 @@
         "conditional": false,
         "imported": ".nodes.prompt_lora_nodes:EasyUseAnimaPromptStudioAdvancedLora",
         "kind": "static_from",
-        "line": 21,
+        "line": 22,
         "name": "EasyUseAnimaPromptStudioAdvancedLora",
         "optional": false,
         "requested": ".nodes.prompt_lora_nodes",
@@ -39334,7 +39510,7 @@
         "conditional": false,
         "imported": ".nodes.prompt_nodes:EasyUseAnimaPromptBuilder",
         "kind": "static_from",
-        "line": 22,
+        "line": 23,
         "name": "EasyUseAnimaPromptBuilder",
         "optional": false,
         "requested": ".nodes.prompt_nodes",
@@ -39352,7 +39528,7 @@
         "conditional": false,
         "imported": ".nodes.prompt_nodes:EasyUseAnimaPromptCorrector",
         "kind": "static_from",
-        "line": 22,
+        "line": 23,
         "name": "EasyUseAnimaPromptCorrector",
         "optional": false,
         "requested": ".nodes.prompt_nodes",
@@ -39370,7 +39546,7 @@
         "conditional": false,
         "imported": ".nodes.prompt_nodes:EasyUseAnimaPromptCorrectorSimple",
         "kind": "static_from",
-        "line": 22,
+        "line": 23,
         "name": "EasyUseAnimaPromptCorrectorSimple",
         "optional": false,
         "requested": ".nodes.prompt_nodes",
@@ -39388,7 +39564,7 @@
         "conditional": false,
         "imported": ".nodes.prompt_nodes:EasyUseAnimaPromptStudio",
         "kind": "static_from",
-        "line": 22,
+        "line": 23,
         "name": "EasyUseAnimaPromptStudio",
         "optional": false,
         "requested": ".nodes.prompt_nodes",
@@ -39406,7 +39582,7 @@
         "conditional": false,
         "imported": ".nodes.regional_nodes:EasyUseAnimaPromptStudioRegional",
         "kind": "static_from",
-        "line": 28,
+        "line": 29,
         "name": "EasyUseAnimaPromptStudioRegional",
         "optional": false,
         "requested": ".nodes.regional_nodes",
@@ -39424,7 +39600,7 @@
         "conditional": false,
         "imported": ".nodes.regional_nodes:EasyUseAnimaRegionalConditioning",
         "kind": "static_from",
-        "line": 28,
+        "line": 29,
         "name": "EasyUseAnimaRegionalConditioning",
         "optional": false,
         "requested": ".nodes.regional_nodes",
@@ -39442,7 +39618,7 @@
         "conditional": false,
         "imported": ".nodes.wildcard_nodes:EasyUseAnimaWildcard",
         "kind": "static_from",
-        "line": 32,
+        "line": 33,
         "name": "EasyUseAnimaWildcard",
         "optional": false,
         "requested": ".nodes.wildcard_nodes",
@@ -39460,7 +39636,7 @@
         "conditional": false,
         "imported": ".nodes.wildcard_nodes:EasyUseAnimaWildcardLora",
         "kind": "static_from",
-        "line": 32,
+        "line": 33,
         "name": "EasyUseAnimaWildcardLora",
         "optional": false,
         "requested": ".nodes.wildcard_nodes",
@@ -44351,7 +44527,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 95
+            "line": 102
           }
         ],
         "classification": "external",
@@ -44359,7 +44535,7 @@
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 96,
+        "line": 103,
         "name": null,
         "optional": true,
         "requested": "folder_paths",
@@ -44374,7 +44550,7 @@
           {
             "branch": "body",
             "kind": "if",
-            "line": 115,
+            "line": 122,
             "type_checking": false
           }
         ],
@@ -44383,7 +44559,7 @@
         "conditional": true,
         "imported": "..settings.repository:get_settings",
         "kind": "static_from",
-        "line": 116,
+        "line": 123,
         "name": "get_settings",
         "optional": false,
         "requested": "..settings.repository",
@@ -45634,6 +45810,10 @@
         "to": "easyuse_anima/image/upscale.py"
       },
       {
+        "from": "easyuse_anima/nodes/image_output_nodes.py",
+        "to": "easyuse_anima/aio/native_image_output.py"
+      },
+      {
         "from": "easyuse_anima/nodes/lora_nodes.py",
         "to": "easyuse_anima/common/serialization.py"
       },
@@ -46448,6 +46628,10 @@
       {
         "from": "easyuse_anima/registration.py",
         "to": "easyuse_anima/nodes/image_nodes.py"
+      },
+      {
+        "from": "easyuse_anima/registration.py",
+        "to": "easyuse_anima/nodes/image_output_nodes.py"
       },
       {
         "from": "easyuse_anima/registration.py",
@@ -47474,6 +47658,12 @@
       {
         "cyclic": false,
         "modules": [
+          "easyuse_anima/nodes/image_output_nodes.py"
+        ]
+      },
+      {
+        "cyclic": false,
+        "modules": [
           "easyuse_anima/nodes/input_types.py"
         ]
       },
@@ -47924,7 +48114,7 @@
     ]
   },
   "inventory": {
-    "module_count": 201,
+    "module_count": 202,
     "modules": [
       {
         "functions": [
@@ -50863,10 +51053,10 @@
           },
           {
             "async": false,
-            "end_line": 498,
+            "end_line": 497,
             "kind": "function",
             "line": 453,
-            "loc": 46,
+            "loc": 45,
             "qualified_name": "_allocate_filenames"
           },
           {
@@ -50879,57 +51069,57 @@
           },
           {
             "async": false,
-            "end_line": 522,
+            "end_line": 521,
             "kind": "function",
-            "line": 501,
+            "line": 500,
             "loc": 22,
             "qualified_name": "_native_output_path_parts"
           },
           {
             "async": false,
-            "end_line": 534,
+            "end_line": 533,
             "kind": "function",
-            "line": 525,
+            "line": 524,
             "loc": 10,
             "qualified_name": "_resolve_native_output_folder"
           },
           {
             "async": false,
-            "end_line": 559,
+            "end_line": 558,
             "kind": "function",
-            "line": 537,
+            "line": 536,
             "loc": 23,
             "qualified_name": "_bound_native_output_directory"
           },
           {
             "async": false,
-            "end_line": 582,
+            "end_line": 581,
             "kind": "function",
-            "line": 562,
+            "line": 561,
             "loc": 21,
             "qualified_name": "_image_save_options"
           },
           {
             "async": false,
-            "end_line": 597,
+            "end_line": 596,
             "kind": "function",
-            "line": 585,
+            "line": 584,
             "loc": 13,
             "qualified_name": "_validated_sidecar_requirement"
           },
           {
             "async": false,
-            "end_line": 719,
+            "end_line": 718,
             "kind": "function",
-            "line": 600,
+            "line": 599,
             "loc": 120,
             "qualified_name": "_save_native_images"
           }
         ],
         "is_package": false,
-        "loc": 722,
+        "loc": 721,
         "module": "easyuse_anima.aio.native_image_output",
-        "normalized_git_blob_sha1": "88c939725262d6c39a329418b9424e167e37c167",
+        "normalized_git_blob_sha1": "889e0b2f33f764749f787ebb302f080e0de32f7a",
         "path": "easyuse_anima/aio/native_image_output.py",
         "top_level": {
           "class_count": 2,
@@ -57561,6 +57751,60 @@
         "functions": [
           {
             "async": false,
+            "end_line": 62,
+            "kind": "method",
+            "line": 37,
+            "loc": 26,
+            "qualified_name": "EasyUseAnimaImageMetadata.INPUT_TYPES"
+          },
+          {
+            "async": false,
+            "end_line": 71,
+            "kind": "method",
+            "line": 69,
+            "loc": 3,
+            "qualified_name": "EasyUseAnimaImageMetadata.IS_CHANGED"
+          },
+          {
+            "async": false,
+            "end_line": 95,
+            "kind": "method",
+            "line": 73,
+            "loc": 23,
+            "qualified_name": "EasyUseAnimaImageMetadata.build"
+          },
+          {
+            "async": false,
+            "end_line": 135,
+            "kind": "method",
+            "line": 108,
+            "loc": 28,
+            "qualified_name": "EasyUseAnimaSaveImage.INPUT_TYPES"
+          },
+          {
+            "async": false,
+            "end_line": 169,
+            "kind": "method",
+            "line": 142,
+            "loc": 28,
+            "qualified_name": "EasyUseAnimaSaveImage.save_images"
+          }
+        ],
+        "is_package": false,
+        "loc": 172,
+        "module": "easyuse_anima.nodes.image_output_nodes",
+        "normalized_git_blob_sha1": "212baae13d7c9cc8629fb8f783996b1995f12953",
+        "path": "easyuse_anima/nodes/image_output_nodes.py",
+        "top_level": {
+          "class_count": 3,
+          "function_count": 0,
+          "global_count": 1
+        }
+      },
+      {
+        "functions": [
+          {
+            "async": false,
             "end_line": 10,
             "kind": "method",
             "line": 9,
@@ -60749,9 +60993,9 @@
       {
         "functions": [],
         "is_package": false,
-        "loc": 84,
+        "loc": 89,
         "module": "easyuse_anima.registration",
-        "normalized_git_blob_sha1": "d961fe016c6b59835fff949744e1260381d03de1",
+        "normalized_git_blob_sha1": "f2115847bb27e00b6735b106c1a19c2ac4872c4a",
         "path": "easyuse_anima/registration.py",
         "top_level": {
           "class_count": 0,
@@ -61806,7 +62050,7 @@
         "is_package": false,
         "loc": 512,
         "module": "easyuse_anima.settings.service",
-        "normalized_git_blob_sha1": "19e210340c8f9928e85398495d261e0d3cf95d9e",
+        "normalized_git_blob_sha1": "bc2ec13ee2884d939892df1397ee6b726322975e",
         "path": "easyuse_anima/settings/service.py",
         "top_level": {
           "class_count": 0,
@@ -62461,17 +62705,17 @@
           },
           {
             "async": false,
-            "end_line": 603,
+            "end_line": 605,
             "kind": "function",
             "line": 499,
-            "loc": 105,
+            "loc": 107,
             "qualified_name": "_expand_snapshot_texts"
           }
         ],
         "is_package": false,
-        "loc": 603,
+        "loc": 605,
         "module": "easyuse_anima.wildcard.expansion",
-        "normalized_git_blob_sha1": "fee70c95714c0047f8b78cce1ab20765fd8cac5b",
+        "normalized_git_blob_sha1": "769d8cc38280348af3ec52dcbab0dcd25be74758",
         "path": "easyuse_anima/wildcard/expansion.py",
         "top_level": {
           "class_count": 6,
@@ -62867,166 +63111,182 @@
         "functions": [
           {
             "async": false,
-            "end_line": 53,
+            "end_line": 60,
             "kind": "method",
-            "line": 51,
+            "line": 58,
             "loc": 3,
             "qualified_name": "_WildcardSourceFile.cache_key"
           },
           {
             "async": false,
-            "end_line": 68,
+            "end_line": 75,
             "kind": "method",
-            "line": 62,
+            "line": 69,
             "loc": 7,
             "qualified_name": "_WildcardSourceState.cache_key"
           },
           {
             "async": false,
-            "end_line": 72,
+            "end_line": 79,
             "kind": "function",
-            "line": 71,
+            "line": 78,
             "loc": 2,
             "qualified_name": "default_wildcard_root"
           },
           {
             "async": false,
-            "end_line": 82,
+            "end_line": 89,
             "kind": "function",
-            "line": 75,
+            "line": 82,
             "loc": 8,
             "qualified_name": "ensure_default_wildcard_root"
           },
           {
             "async": false,
-            "end_line": 91,
+            "end_line": 98,
             "kind": "function",
-            "line": 85,
+            "line": 92,
             "loc": 7,
             "qualified_name": "parse_wildcard_extra_paths"
           },
           {
             "async": false,
-            "end_line": 103,
+            "end_line": 110,
             "kind": "function",
-            "line": 94,
+            "line": 101,
             "loc": 10,
             "qualified_name": "_comfy_base_path"
           },
           {
             "async": false,
-            "end_line": 111,
+            "end_line": 118,
             "kind": "function",
-            "line": 106,
+            "line": 113,
             "loc": 6,
             "qualified_name": "_resolve_path"
           },
           {
             "async": false,
-            "end_line": 137,
+            "end_line": 144,
             "kind": "function",
-            "line": 114,
+            "line": 121,
             "loc": 24,
             "qualified_name": "resolve_wildcard_roots"
           },
           {
             "async": false,
-            "end_line": 149,
+            "end_line": 156,
             "kind": "function",
-            "line": 140,
+            "line": 147,
             "loc": 10,
             "qualified_name": "_normalize_wildcard_key"
           },
           {
             "async": false,
-            "end_line": 156,
+            "end_line": 163,
             "kind": "function",
-            "line": 152,
+            "line": 159,
             "loc": 5,
             "qualified_name": "_read_text_file"
           },
           {
             "async": false,
-            "end_line": 170,
+            "end_line": 177,
             "kind": "function",
-            "line": 159,
+            "line": 166,
             "loc": 12,
             "qualified_name": "_parse_option"
           },
           {
             "async": false,
-            "end_line": 182,
+            "end_line": 189,
             "kind": "function",
-            "line": 173,
+            "line": 180,
             "loc": 10,
             "qualified_name": "_options_from_lines"
           },
           {
             "async": false,
-            "end_line": 188,
+            "end_line": 195,
             "kind": "function",
-            "line": 185,
+            "line": 192,
             "loc": 4,
             "qualified_name": "_stringify_yaml_scalar"
           },
           {
             "async": false,
-            "end_line": 228,
+            "end_line": 252,
             "kind": "function",
-            "line": 191,
-            "loc": 38,
+            "line": 202,
+            "loc": 51,
+            "qualified_name": "_validate_yaml_source"
+          },
+          {
+            "async": false,
+            "end_line": 250,
+            "kind": "function",
+            "line": 208,
+            "loc": 43,
+            "qualified_name": "_validate_yaml_source.visit"
+          },
+          {
+            "async": false,
+            "end_line": 293,
+            "kind": "function",
+            "line": 255,
+            "loc": 39,
             "qualified_name": "_yaml_entries"
           },
           {
             "async": false,
-            "end_line": 225,
+            "end_line": 290,
             "kind": "function",
-            "line": 194,
+            "line": 259,
             "loc": 32,
             "qualified_name": "_yaml_entries.collect"
           },
           {
             "async": false,
-            "end_line": 239,
+            "end_line": 308,
             "kind": "function",
-            "line": 231,
-            "loc": 9,
+            "line": 296,
+            "loc": 13,
             "qualified_name": "_load_yaml_entries"
           },
           {
             "async": false,
-            "end_line": 258,
+            "end_line": 327,
             "kind": "function",
-            "line": 242,
+            "line": 311,
             "loc": 17,
             "qualified_name": "_load_wildcard_file"
           },
           {
             "async": false,
-            "end_line": 265,
+            "end_line": 334,
             "kind": "function",
-            "line": 261,
+            "line": 330,
             "loc": 5,
             "qualified_name": "_wildcard_root_identity"
           },
           {
             "async": false,
-            "end_line": 304,
+            "end_line": 373,
             "kind": "function",
-            "line": 268,
+            "line": 337,
             "loc": 37,
             "qualified_name": "_scan_wildcard_sources"
           }
         ],
         "is_package": false,
-        "loc": 304,
+        "loc": 373,
         "module": "easyuse_anima.wildcard.sources",
-        "normalized_git_blob_sha1": "e0ef3c0646c34000e75d0c1bb043c7d6302032f0",
+        "normalized_git_blob_sha1": "8a80df0abb0494d3a208a8e322d670fad96816f9",
         "path": "easyuse_anima/wildcard/sources.py",
         "top_level": {
-          "class_count": 2,
-          "function_count": 16,
-          "global_count": 7
+          "class_count": 3,
+          "function_count": 17,
+          "global_count": 11
         }
       },
       {
@@ -69819,6 +70079,50 @@
         "line": 3,
         "optional": false,
         "role": "ordinary",
+        "source": "easyuse_anima/nodes/image_output_nodes.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "dataclasses:dataclass",
+        "kind": "static_from",
+        "line": 5,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/nodes/image_output_nodes.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "pathlib:Path",
+        "kind": "static_from",
+        "line": 6,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/nodes/image_output_nodes.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "folder_paths",
+        "kind": "static_import",
+        "line": 147,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/nodes/image_output_nodes.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "__future__:annotations",
+        "kind": "static_from",
+        "line": 3,
+        "optional": false,
+        "role": "ordinary",
         "source": "easyuse_anima/nodes/input_types.py"
       },
       {
@@ -72945,14 +73249,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 95
+            "line": 102
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 96,
+        "line": 103,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/wildcard/sources.py"
@@ -74145,14 +74449,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 95
+            "line": 102
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 96,
+        "line": 103,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/wildcard/sources.py"
@@ -74284,6 +74588,7 @@
       "easyuse_anima/nodes/anima_29b_nodes.py",
       "easyuse_anima/nodes/artist_mix_conditioning_adapter.py",
       "easyuse_anima/nodes/image_nodes.py",
+      "easyuse_anima/nodes/image_output_nodes.py",
       "easyuse_anima/nodes/input_types.py",
       "easyuse_anima/nodes/lora_nodes.py",
       "easyuse_anima/nodes/naia_nodes.py",
@@ -74487,6 +74792,7 @@
       "easyuse_anima/nodes/anima_29b_nodes.py",
       "easyuse_anima/nodes/artist_mix_conditioning_adapter.py",
       "easyuse_anima/nodes/image_nodes.py",
+      "easyuse_anima/nodes/image_output_nodes.py",
       "easyuse_anima/nodes/input_types.py",
       "easyuse_anima/nodes/lora_nodes.py",
       "easyuse_anima/nodes/naia_nodes.py",
@@ -76696,6 +77002,15 @@
         "scope": "<module>"
       },
       {
+        "callee": "dataclass",
+        "column": 1,
+        "context": "decorator:_ImageMetadataInput",
+        "kind": "import_time_call",
+        "line": 16,
+        "module": "easyuse_anima/nodes/image_output_nodes.py",
+        "scope": "<module>"
+      },
+      {
         "callee": "_AnyType",
         "column": 12,
         "context": "assign:_ANY_TYPE",
@@ -77420,7 +77735,7 @@
         "column": 19,
         "context": "assign:WEIGHT_PREFIX_RE",
         "kind": "import_time_call",
-        "line": 36,
+        "line": 43,
         "module": "easyuse_anima/wildcard/sources.py",
         "scope": "<module>"
       },
@@ -77429,7 +77744,7 @@
         "column": 1,
         "context": "decorator:_WildcardSourceFile",
         "kind": "import_time_call",
-        "line": 42,
+        "line": 49,
         "module": "easyuse_anima/wildcard/sources.py",
         "scope": "<module>"
       },
@@ -77438,7 +77753,7 @@
         "column": 1,
         "context": "decorator:_WildcardSourceState",
         "kind": "import_time_call",
-        "line": 56,
+        "line": 63,
         "module": "easyuse_anima/wildcard/sources.py",
         "scope": "<module>"
       }
@@ -77694,19 +78009,19 @@
       },
       {
         "kind": "dict",
-        "line": 34,
+        "line": 35,
         "module": "easyuse_anima/registration.py",
         "name": "NODE_CLASS_MAPPINGS"
       },
       {
         "kind": "dict",
-        "line": 59,
+        "line": 62,
         "module": "easyuse_anima/registration.py",
         "name": "NODE_DISPLAY_NAME_MAPPINGS"
       },
       {
         "kind": "list",
-        "line": 84,
+        "line": 89,
         "module": "easyuse_anima/registration.py",
         "name": "__all__"
       },

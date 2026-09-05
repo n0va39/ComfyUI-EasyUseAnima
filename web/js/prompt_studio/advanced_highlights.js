@@ -42,15 +42,20 @@ function advancedTextarea(textarea) {
 }
 
 function advancedHighlightState(node, field) {
-  node.__easyuseAnimaAdvancedHighlightStates ||= {};
+  let states = node.__easyuseAnimaAdvancedHighlightStates;
+  if (!states || Object.getPrototypeOf(states) !== null) {
+    // Saved field IDs are arbitrary keys, including JavaScript prototype names.
+    states = Object.assign(Object.create(null), states);
+    node.__easyuseAnimaAdvancedHighlightStates = states;
+  }
   const id = String(field?.id || "field");
-  node.__easyuseAnimaAdvancedHighlightStates[id] ||= {
+  states[id] ||= {
     seq: 0,
     lastText: "",
     pendingText: null,
     tokens: [],
   };
-  return node.__easyuseAnimaAdvancedHighlightStates[id];
+  return states[id];
 }
 
 function updateAdvancedFieldHighlight(node, field, textarea, tokens = null, forceCopyMetrics = false) {

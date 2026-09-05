@@ -22,6 +22,13 @@ DEFAULT_TEST_WILDCARD_TEXT = (
 )
 WILDCARD_EXTENSIONS = {".txt", ".yaml", ".yml"}
 
+# Per-source limits apply before creating options. Reference/character costs
+# include temporary aggregates and every published parent alias, not only leaves.
+MAX_YAML_SOURCE_DEPTH = 64
+MAX_YAML_SOURCE_VISITS = 65_536
+MAX_YAML_SOURCE_OPTION_REFERENCES = 65_536
+MAX_YAML_SOURCE_OUTPUT_CHARACTERS = 8 * 1024 * 1024
+
 __all__ = (
     "WILDCARD_DIR_NAME",
     "DEFAULT_TEST_WILDCARD_FILE",
@@ -188,7 +195,65 @@ def _stringify_yaml_scalar(value) -> str:
     return "" if value is None else str(value)
 
 
+class _YamlSourceLimitError(ValueError):
+    """A YAML source cannot be materialized within the per-source budget."""
+
+
+def _validate_yaml_source(data, prefix: str) -> None:
+    visits = 0
+    option_references = 0
+    characters = len(prefix)
+    active: set[int] = set()
+
+    def visit(value, path_prefix: str, depth: int, copies: int, publish: bool):
+        nonlocal visits, option_references, characters
+        visits += 1
+        if visits > MAX_YAML_SOURCE_VISITS or depth > MAX_YAML_SOURCE_DEPTH:
+            raise _YamlSourceLimitError("YAML traversal budget exceeded")
+        if isinstance(value, (dict, list)):
+            identity = id(value)
+            if identity in active:
+                raise _YamlSourceLimitError("Cyclic YAML alias")
+            active.add(identity)
+            copies += 1 + int(publish and bool(path_prefix))
+            if isinstance(value, dict):
+                for raw_key, child in value.items():
+                    visits += 1
+                    if visits > MAX_YAML_SOURCE_VISITS:
+                        raise _YamlSourceLimitError("YAML traversal budget exceeded")
+                    key = _normalize_wildcard_key(raw_key)
+                    if key is None:
+                        continue
+                    characters += len(key) + len(path_prefix) + bool(path_prefix)
+                    if characters > MAX_YAML_SOURCE_OUTPUT_CHARACTERS:
+                        raise _YamlSourceLimitError("YAML output budget exceeded")
+                    child_prefix = f"{path_prefix}/{key}" if path_prefix else key
+                    visit(child, child_prefix, depth + 1, copies, True)
+            else:
+                for item in value:
+                    visit(item, path_prefix, depth + 1, copies, False)
+            active.remove(identity)
+            return
+
+        text = _stringify_yaml_scalar(value).strip()
+        if text:
+            # Dictionary scalars have their own collect frame; list scalars
+            # append directly to the containing frame. Shared aliases are
+            # charged on each visit so explicit duplicate weights stay intact.
+            references = copies + (1 + int(bool(path_prefix)) if publish else 0)
+            option_references += references
+            characters += len(text) * references
+            if (
+                option_references > MAX_YAML_SOURCE_OPTION_REFERENCES
+                or characters > MAX_YAML_SOURCE_OUTPUT_CHARACTERS
+            ):
+                raise _YamlSourceLimitError("YAML output budget exceeded")
+
+    visit(data, prefix, 0, 0, True)
+
+
 def _yaml_entries(data, prefix: str = "") -> dict[str, list[WildcardOption]]:
+    _validate_yaml_source(data, prefix)
     entries: dict[str, list[WildcardOption]] = {}
 
     def collect(
@@ -236,7 +301,11 @@ def _load_yaml_entries(path: Path) -> dict[str, list[WildcardOption]]:
         data = yaml.safe_load(text)
     except Exception:
         return {}
-    return _yaml_entries(data)
+    try:
+        return _yaml_entries(data)
+    except _YamlSourceLimitError:
+        # Keep the malformed-YAML policy: skip this source, retaining siblings.
+        return {}
 
 
 def _load_wildcard_file(

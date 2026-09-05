@@ -653,6 +653,235 @@
       ]
     },
     {
+      "category": "EasyUse Anima/Image",
+      "class_name": "EasyUseAnimaImageMetadata",
+      "display_name": "Easy Image Metadata",
+      "function": "build",
+      "id": "EasyUseAnimaImageMetadata",
+      "input_sections": [
+        {
+          "entries": [
+            {
+              "config": {},
+              "name": "images",
+              "type": "IMAGE"
+            },
+            {
+              "config": {
+                "default": "",
+                "multiline": true
+              },
+              "name": "positive",
+              "type": "STRING"
+            },
+            {
+              "config": {
+                "default": "",
+                "multiline": true
+              },
+              "name": "negative",
+              "type": "STRING"
+            },
+            {
+              "config": {
+                "default": ""
+              },
+              "name": "modelname",
+              "type": "STRING"
+            },
+            {
+              "config": {
+                "control_after_generate": false,
+                "default": 0,
+                "max": 18446744073709551615,
+                "min": 0
+              },
+              "name": "seed",
+              "type": "INT"
+            },
+            {
+              "config": {
+                "default": 20,
+                "max": 10000,
+                "min": 1
+              },
+              "name": "steps",
+              "type": "INT"
+            },
+            {
+              "config": {
+                "default": 7.0,
+                "max": 100.0,
+                "min": 0.0,
+                "step": 0.1
+              },
+              "name": "cfg",
+              "type": "FLOAT"
+            },
+            {
+              "config": {
+                "default": "euler"
+              },
+              "name": "sampler_name",
+              "type": "STRING"
+            },
+            {
+              "config": {
+                "default": "normal"
+              },
+              "name": "scheduler_name",
+              "type": "STRING"
+            },
+            {
+              "config": {
+                "default": 1.0,
+                "max": 1.0,
+                "min": 0.0,
+                "step": 0.01
+              },
+              "name": "denoise",
+              "type": "FLOAT"
+            },
+            {
+              "config": {
+                "default": 0,
+                "max": 256,
+                "min": 0
+              },
+              "name": "clip_skip",
+              "type": "INT"
+            },
+            {
+              "config": {
+                "default": "",
+                "multiline": true
+              },
+              "name": "custom",
+              "type": "STRING"
+            },
+            {
+              "config": {
+                "default": true
+              },
+              "name": "embed_workflow",
+              "type": "BOOLEAN"
+            },
+            {
+              "config": {
+                "default": false
+              },
+              "name": "save_workflow_as_json",
+              "type": "BOOLEAN"
+            }
+          ],
+          "name": "required"
+        }
+      ],
+      "output_node": false,
+      "return_names": [
+        "exif_metadata",
+        "parameters"
+      ],
+      "return_types": [
+        "EASYUSE_IMAGE_METADATA",
+        "STRING"
+      ]
+    },
+    {
+      "category": "EasyUse Anima/Image",
+      "class_name": "EasyUseAnimaSaveImage",
+      "display_name": "Easy Save Image",
+      "function": "save_images",
+      "id": "EasyUseAnimaSaveImage",
+      "input_sections": [
+        {
+          "entries": [
+            {
+              "config": {},
+              "name": "images",
+              "type": "IMAGE"
+            },
+            {
+              "config": {
+                "default": ""
+              },
+              "name": "path",
+              "type": "STRING"
+            },
+            {
+              "config": {
+                "default": "Easy"
+              },
+              "name": "filename",
+              "type": "STRING"
+            },
+            {
+              "config": {},
+              "name": "extension",
+              "type": [
+                "png",
+                "jpg",
+                "jpeg",
+                "webp"
+              ]
+            },
+            {
+              "config": {
+                "default": 95,
+                "max": 100,
+                "min": 1
+              },
+              "name": "quality",
+              "type": "INT"
+            },
+            {
+              "config": {
+                "default": false
+              },
+              "name": "lossless_webp",
+              "type": "BOOLEAN"
+            },
+            {
+              "config": {
+                "default": false
+              },
+              "name": "optimize_png",
+              "type": "BOOLEAN"
+            }
+          ],
+          "name": "required"
+        },
+        {
+          "entries": [
+            {
+              "config": {},
+              "name": "exif_metadata",
+              "type": "EASYUSE_IMAGE_METADATA"
+            }
+          ],
+          "name": "optional"
+        },
+        {
+          "entries": [
+            {
+              "config": {},
+              "name": "prompt",
+              "type": "PROMPT"
+            },
+            {
+              "config": {},
+              "name": "extra_pnginfo",
+              "type": "EXTRA_PNGINFO"
+            }
+          ],
+          "name": "hidden"
+        }
+      ],
+      "output_node": true,
+      "return_names": null,
+      "return_types": []
+    },
+    {
       "category": "EasyUse Anima/LoRA",
       "class_name": "EasyUseAnimaLoraPreset",
       "display_name": "Anima LoRA Preset",

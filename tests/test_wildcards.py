@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+import asyncio
 import inspect
 import json
 import tempfile
 import threading
+import time
 import unittest
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
@@ -43,6 +45,165 @@ from easyuse_anima.wildcard.sources import (
     DEFAULT_TEST_WILDCARD_FILE,
     ensure_default_wildcard_root,
 )
+
+
+class WildcardSourceBudgetTests(unittest.TestCase):
+    @staticmethod
+    def _load_yaml(text):
+        with patch.object(wildcard_sources, "_read_text_file", return_value=text):
+            return wildcard_sources._load_yaml_entries(Path("budget.yaml"))
+
+    def test_numeric_failure_scan_is_bounded_through_both_callers(self):
+        text = "1" * 16_000
+        with patch.object(wildcard_service, "resolve_wildcard_roots", return_value=()):
+            started = time.perf_counter()
+            output = EasyUseAnimaWildcard().generate(
+                text=text, populated_text="", mode="순차", seed=0,
+            )
+            fields, _diagnostics = prompt_advanced._expand_advanced_wildcard_fields(
+                [{"text": text}], seed=0, mode="일반",
+            )
+            elapsed = time.perf_counter() - started
+        self.assertEqual(output["result"][0], text)
+        self.assertEqual(fields, [{"text": text}])
+        # The old unanchored failure scans take seconds at this input size;
+        # the bounded scans leave ample headroom below this generous ceiling.
+        self.assertLess(elapsed, 1.0)
+
+    def test_quantifier_keeps_whole_counts_and_unicode_digits(self):
+        for text, count in (
+            ("prefix12#__colors__", "12"),
+            ("1tag2#__colors__", "2"),
+            ("٣#__colors__", "٣"),
+        ):
+            with self.subTest(text=text):
+                matches = list(wildcard_expansion.WILDCARD_QUANTIFIER_RE.finditer(text))
+                self.assertEqual(len(matches), 1)
+                self.assertEqual(matches[0].group("quantifier"), count)
+                self.assertEqual(matches[0].group("keyword"), "colors")
+
+    def test_comment_and_blank_line_output_contract_is_unchanged(self):
+        for source, expected in (
+            ("\n\n  # comment\nkeep", "keep"),
+            ("keep\n \n\t# comment\n\nend", "keep\n\nend"),
+            ("\n \nkeep\n\n", "\n \nkeep\n\n"),
+            ("keep # inline\n", "keep # inline\n"),
+        ):
+            with self.subTest(source=source):
+                result = expand_wildcards(source, roots=(), mode="sequential")
+                self.assertEqual(result.text, expected)
+
+    def test_comment_free_fast_path_preserves_text_expansion_and_budget(self):
+        with patch.object(
+            wildcard_expansion, "COMMENT_RE", wraps=wildcard_expansion.COMMENT_RE,
+        ) as comment:
+            for source, expected in (
+                ("\n" * 16_000, "\n" * 16_000),
+                ("\t\r\n\u2003prompt\n\n", "\t\r\n\u2003prompt\n\n"),
+                ("{red|red}", "red"),
+            ):
+                with self.subTest(source=source[:40]):
+                    result = expand_wildcards(source, roots=(), mode="sequential")
+                    self.assertEqual(result.text, expected)
+            result = expand_wildcards(
+                "가나다", roots=(), mode="sequential",
+                budget=WildcardExpansionBudget(max_output_chars=8),
+            )
+            self.assertEqual(result.text, "가나")
+            self.assertEqual(result.limit_reason, "max_output_chars")
+            comment.sub.assert_not_called()
+
+    def test_alias_cycles_and_fanout_are_skipped_before_any_option(self):
+        fanout = "a0: &a0 [leaf]\n" + "".join(
+            f"a{level}: &a{level} [" + ", ".join([f"*a{level - 1}"] * 10) + "]\n"
+            for level in range(1, 6)
+        )
+        for text in ("loop: &loop [*loop]\n", "loop: &loop {child: *loop}\n", fanout):
+            with self.subTest(text=text), patch.object(wildcard_sources, "_parse_option") as parse:
+                self.assertEqual(self._load_yaml(text), {})
+                parse.assert_not_called()
+
+    def test_each_budget_rejects_the_entire_source_before_options(self):
+        cases = (
+            ("MAX_YAML_SOURCE_DEPTH", 2, "root: [[[leaf]]]"),
+            ("MAX_YAML_SOURCE_VISITS", 4, "root: [[], [], []]"),
+            ("MAX_YAML_SOURCE_OPTION_REFERENCES", 4, "root: [leaf, leaf]"),
+            ("MAX_YAML_SOURCE_OUTPUT_CHARACTERS", 16, "root: [abcdefgh]"),
+        )
+        for constant, limit, text in cases:
+            with (
+                self.subTest(constant=constant),
+                patch.object(wildcard_sources, constant, limit),
+                patch.object(wildcard_sources, "_parse_option") as parse,
+            ):
+                self.assertEqual(self._load_yaml(text), {})
+                parse.assert_not_called()
+
+    def test_output_budget_boundary_includes_parent_copies_and_weight_text(self):
+        text = 'root: ["2::red", "2::red"]'
+        # Each leaf occurs in root aggregate, child aggregate and published
+        # alias: 6 references, plus key length 4 + weighted text 6 * 6 = 40.
+        with patch.multiple(
+            wildcard_sources,
+            MAX_YAML_SOURCE_OPTION_REFERENCES=6,
+            MAX_YAML_SOURCE_OUTPUT_CHARACTERS=40,
+        ):
+            entries = self._load_yaml(text)
+            self.assertEqual(
+                entries["root"], [wildcard_models.WildcardOption("red", 2.0)] * 2,
+            )
+            for constant, limit in (
+                ("MAX_YAML_SOURCE_OPTION_REFERENCES", 5),
+                ("MAX_YAML_SOURCE_OUTPUT_CHARACTERS", 39),
+            ):
+                with self.subTest(constant=constant), patch.object(wildcard_sources, constant, limit):
+                    self.assertEqual(self._load_yaml(text), {})
+
+    def test_normal_aliases_duplicates_and_nested_keys_preserve_outputs(self):
+        entries = self._load_yaml(
+            'shared: &shared ["2::red", blue, blue]\n'
+            "copy: *shared\n"
+            "root:\n  branch-a:\n    leaf: [same, same]\n"
+            "  branch-b:\n    leaf: [same]\n"
+        )
+        self.assertEqual(set(entries), {
+            "shared", "copy", "root", "root/branch-a", "root/branch-a/leaf",
+            "root/branch-b", "root/branch-b/leaf",
+        })
+        self.assertEqual(entries["shared"], [
+            wildcard_models.WildcardOption("red", 2.0),
+            wildcard_models.WildcardOption("blue"),
+            wildcard_models.WildcardOption("blue"),
+        ])
+        self.assertEqual(entries["copy"], entries["shared"])
+        for key, count in (("root", 3), ("root/branch-a", 2), ("root/branch-b", 1)):
+            self.assertEqual(entries[key], [wildcard_models.WildcardOption("same")] * count)
+
+    def test_registered_route_keeps_valid_sibling_when_yaml_source_is_skipped(self):
+        from tests.test_api_contract import JsonRequest, load_api_routes
+
+        api, routes = load_api_routes()
+        source = api.wildcard_sources
+        root = Path.cwd()
+        texts = {"valid.yaml": "colors: [red, blue]\n", "bad.yaml": "loop: &loop [*loop]\n"}
+        state = source._WildcardSourceState(
+            (root,), (str(root),), tuple(
+                source._WildcardSourceFile(0, str(root), name, root / name, 1, len(text))
+                for name, text in texts.items()
+            ),
+        )
+        with (
+            patch.object(api.application.dependencies.settings, "public_settings", return_value={}),
+            patch.object(
+                api.application.dependencies.wildcard_autocomplete,
+                "resolve_wildcard_roots", return_value=[root],
+            ),
+            patch.object(source, "_scan_wildcard_sources", return_value=state),
+            patch.object(source, "_read_text_file", side_effect=lambda path: texts[path.name]),
+        ):
+            response = asyncio.run(routes.handlers["/easyuse_anima/wildcards"](JsonRequest()))
+        self.assertEqual(response.status, 200)
+        self.assertEqual(response["payload"]["items"], ["colors"])
 
 
 class WildcardSnapshotStoreTests(unittest.TestCase):

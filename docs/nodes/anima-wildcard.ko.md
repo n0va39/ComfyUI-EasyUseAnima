@@ -22,6 +22,11 @@ ComfyUI/user/__easyuse_anima/wildcards/easyuse_anima_test.txt
 ComfyUI Settings의 EasyUse Anima `Wildcard` 섹션에서 기존 사용자 와일드카드
 폴더를 추가 경로로 등록할 수 있습니다.
 
+순환 참조나 과도한 확장이 있는 YAML 파일은 개별적으로 건너뜁니다. 파일별 한도는
+깊이 64, 순회 65,536회, 부모 별칭을 포함한 옵션 참조 65,536개,
+누적 출력 8,388,608자입니다. 큰 라이브러리는 작은 파일로 나누세요.
+정상적인 중복 옵션의 선택 가중치는 유지합니다.
+
 ## 문법
 
 자주 쓰는 문법:
