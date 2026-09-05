@@ -57665,25 +57665,25 @@
           },
           {
             "async": false,
-            "end_line": 110,
+            "end_line": 115,
             "kind": "function",
             "line": 84,
-            "loc": 27,
+            "loc": 32,
             "qualified_name": "_post_random"
           },
           {
             "async": false,
-            "end_line": 132,
+            "end_line": 137,
             "kind": "function",
-            "line": 113,
+            "line": 118,
             "loc": 20,
             "qualified_name": "_parse_random_response"
           }
         ],
         "is_package": false,
-        "loc": 134,
+        "loc": 139,
         "module": "easyuse_anima.naia.client",
-        "normalized_git_blob_sha1": "38aa1aa65bb2d20a1adc5db7a2f21c43d055ef39",
+        "normalized_git_blob_sha1": "e76fc35cb049111dabab6b06891568a576e78700",
         "path": "easyuse_anima/naia/client.py",
         "top_level": {
           "class_count": 0,
