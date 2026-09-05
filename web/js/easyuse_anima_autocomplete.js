@@ -215,6 +215,7 @@ let promptStudioLoraAutocomplete = true;
 let popup = null;
 let activeState = null;
 let activeRefreshFrame = null;
+let activeRefreshNeedsUpdate = false;
 let middlePanForwardCleanup = null;
 const autocompleteInputOwner = {};
 const hookedAutocompleteInputs = new Set();
@@ -518,6 +519,7 @@ function ensureStyle() {
   style.textContent = `
     .easyuse-anima-autocomplete {
       position: fixed;
+      box-sizing: border-box;
       z-index: 100000;
       max-width: 520px;
       min-width: 280px;
@@ -625,23 +627,29 @@ function invalidateAutocompleteDataRequests() {
   }
 }
 
-function refreshActiveAutocomplete() {
+function refreshActiveAutocomplete(positionOnly = false) {
   pruneDisconnectedAutocompleteInputs();
   if (!activeState?.input || document.activeElement !== activeState.input || !autocompleteEnabledForState(activeState)) {
     hidePopup();
     return;
   }
-  activeState.reposition?.();
-  activeState.refresh?.();
+  if (positionOnly) {
+    activeState.reposition?.();
+  } else {
+    activeState.refresh?.();
+  }
 }
 
-function scheduleActiveRefresh() {
+function scheduleActiveRefresh({ positionOnly = false } = {}) {
+  activeRefreshNeedsUpdate ||= !positionOnly;
   if (activeRefreshFrame != null) {
-    cancelAnimationFrame(activeRefreshFrame);
+    return;
   }
   activeRefreshFrame = requestAnimationFrame(() => {
     activeRefreshFrame = null;
-    refreshActiveAutocomplete();
+    const refreshPositionOnly = !activeRefreshNeedsUpdate;
+    activeRefreshNeedsUpdate = false;
+    refreshActiveAutocomplete(refreshPositionOnly);
   });
 }
 
@@ -1810,14 +1818,14 @@ function handleAutocompleteScroll(event) {
   if (popup?.contains(event.target)) {
     return;
   }
-  scheduleActiveRefresh();
+  scheduleActiveRefresh({ positionOnly: true });
 }
 
 function handleAutocompleteWheel(event) {
   if (popup?.contains(event.target)) {
     return;
   }
-  scheduleActiveRefresh();
+  scheduleActiveRefresh({ positionOnly: true });
 }
 
 function hookNode(node, nodeData, attempt = 0) {
@@ -1946,6 +1954,7 @@ function disposeAutocompleteEntryUi() {
     cancelAnimationFrame(activeRefreshFrame);
     activeRefreshFrame = null;
   }
+  activeRefreshNeedsUpdate = false;
   middlePanForwardCleanup?.();
   middlePanForwardCleanup = null;
   hidePopup();

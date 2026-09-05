@@ -15,6 +15,7 @@ import {
 } from "./utils.js";
 
 const PROMPT_STUDIO_SETTINGS = {
+  renderRevision: 0,
   typoIndicator: true,
   weightSyntaxUnderline: false,
   // Keep the legacy setting key, but use it only for paint-only emphasis.
@@ -52,6 +53,7 @@ function applyPromptStudioTextStyle(input) {
 }
 
 function applyPromptStudioSettings(settings, { hideTrainedTagTooltip = null } = {}) {
+  PROMPT_STUDIO_SETTINGS.renderRevision += 1;
   PROMPT_STUDIO_SETTINGS.typoIndicator = settings?.["prompt_studio.typo_indicator"] !== "false";
   PROMPT_STUDIO_SETTINGS.weightSyntaxUnderline = settings?.["prompt_studio.weight_syntax_underline"] === "true";
   PROMPT_STUDIO_SETTINGS.commentEmphasis = settings?.["prompt_studio.comment_italic"] !== "false";
