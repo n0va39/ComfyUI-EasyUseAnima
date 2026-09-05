@@ -1,6 +1,7 @@
 // @ts-check
 
 import { easyuseAnimaClassifyPrompt } from "../easyuse_anima_api.js";
+import { easyuseAnimaLanguage } from "../easyuse_anima_i18n.js";
 import {
   SECTION_STYLES,
   AUTOCOMPLETE_TOOLTIP_SECTIONS,
@@ -23,6 +24,7 @@ import {
   createHighlightOverlayRenderer,
   overlayBounds,
   overlayScrollbarPadding,
+  setHighlightOverlayHtml,
   syncOverlayBounds,
 } from "./highlight_overlay_core.js";
 
@@ -148,6 +150,7 @@ const renderHighlightedText = createPromptHighlightRenderer({
 const highlightOverlayHtml = createHighlightOverlayRenderer({
   escapeHtml,
   renderHighlightedText,
+  getRenderKey: () => `${easyuseAnimaLanguage()}:${PROMPT_STUDIO_SETTINGS.renderRevision}`,
 });
 
 function requestOverlaySync(input, forceCopyMetrics = false) {
@@ -257,6 +260,7 @@ function ensureHighlightOverlay(input) {
 }
 
 let promptHighlightRefreshRaf = 0;
+let promptHighlightRefreshTimer = null;
 
 function refreshConnectedHighlightOverlays(applyTextStyle) {
   const inputs = Array.from(document.querySelectorAll(".easyuse-anima-highlight-input"));
@@ -329,13 +333,17 @@ function refreshConnectedHighlightOverlays(applyTextStyle) {
 }
 
 function requestConnectedHighlightOverlayRefresh(applyTextStyle) {
+  clearTimeout(promptHighlightRefreshTimer);
+  promptHighlightRefreshTimer = setTimeout(() => {
+    promptHighlightRefreshTimer = null;
+    refreshConnectedHighlightOverlays(applyTextStyle);
+  }, 80);
   if (promptHighlightRefreshRaf) {
     return;
   }
   promptHighlightRefreshRaf = requestAnimationFrame(() => {
     promptHighlightRefreshRaf = 0;
     refreshConnectedHighlightOverlays(applyTextStyle);
-    setTimeout(() => refreshConnectedHighlightOverlays(applyTextStyle), 80);
   });
 }
 
@@ -402,5 +410,6 @@ export {
   renderHighlightedText,
   requestConnectedHighlightOverlayRefresh,
   requestOverlaySync,
+  setHighlightOverlayHtml,
   syncOverlayBounds,
 };
