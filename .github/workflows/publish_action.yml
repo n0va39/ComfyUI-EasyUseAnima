@@ -12,7 +12,7 @@ on:
           - "publish"
           - "metadata"
       version:
-        description: "Optional version to publish. Uses .github/registry/changelogs first, then RELEASE.md."
+        description: "Optional expected package version. Must match pyproject.toml; leave blank to use it."
         required: false
         default: ""
       dry_run:
