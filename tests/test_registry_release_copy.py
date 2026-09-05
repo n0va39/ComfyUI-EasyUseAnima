@@ -1,7 +1,11 @@
 from __future__ import annotations
 
+import contextlib
+import importlib.util
+import io
 import json
 import re
+import tempfile
 import tomllib
 import unittest
 from pathlib import Path
@@ -10,6 +14,54 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 METADATA_PATH = ROOT / ".github" / "registry" / "metadata.json"
 RELEASE_PATH = ROOT / "RELEASE.md"
+
+
+class RegistryPublishVersionTests(unittest.TestCase):
+    def setUp(self) -> None:
+        spec = importlib.util.spec_from_file_location(
+            "extract_release_changelog", ROOT / ".github/scripts/extract_release_changelog.py",
+        )
+        self.extractor = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(self.extractor)
+        directory = tempfile.TemporaryDirectory()
+        self.addCleanup(directory.cleanup)
+        self.root = Path(directory.name)
+        self.pyproject = self.root / "pyproject.toml"
+        self.pyproject.write_text('[project]\nversion = "3.2.1"\n', encoding="utf-8")
+        self.changelogs = self.root / "changelogs"
+        self.changelogs.mkdir()
+        (self.changelogs / "3.2.1.txt").write_text("Current release notes\n", encoding="utf-8")
+        (self.changelogs / "3.2.0.txt").write_text("Older release notes\n", encoding="utf-8")
+        self.output = self.root / "output.txt"
+
+    def _run(self, version: str | None = None) -> int:
+        arguments = [
+            "--pyproject", str(self.pyproject),
+            "--registry-changelog-dir", str(self.changelogs),
+            "--output", str(self.output),
+        ]
+        if version is not None:
+            arguments.extend(["--version", version])
+        with contextlib.redirect_stdout(io.StringIO()):
+            return self.extractor.main(arguments)
+
+    def test_omitted_or_matching_version_extracts_package_changelog(self) -> None:
+        for version in (None, "", "3.2.1", " 3.2.1 "):
+            with self.subTest(version=version):
+                self.assertEqual(self._run(version), 0)
+                self.assertEqual(self.output.read_text(encoding="utf-8"), "Current release notes\n")
+
+    def test_mismatched_version_cannot_overwrite_output_with_old_changelog(self) -> None:
+        self.output.write_text("Existing output\n", encoding="utf-8")
+        with self.assertRaisesRegex(ValueError, "does not match.*3.2.1"):
+            self._run("3.2.0")
+        self.assertEqual(self.output.read_text(encoding="utf-8"), "Existing output\n")
+
+    def test_explicit_version_cannot_skip_package_identity(self) -> None:
+        self.pyproject.unlink()
+        with self.assertRaises(FileNotFoundError):
+            self._run("3.2.1")
+        self.assertFalse(self.output.exists())
 
 
 class RegistryReleaseCopyTests(unittest.TestCase):

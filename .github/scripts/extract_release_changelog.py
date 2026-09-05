@@ -74,11 +74,16 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--release", type=Path, default=Path("RELEASE.md"))
     parser.add_argument("--metadata", type=Path, default=Path(".github/registry/metadata.json"))
     parser.add_argument("--registry-changelog-dir", type=Path, default=Path(".github/registry/changelogs"))
-    parser.add_argument("--version", default="", help="Version to extract. Defaults to pyproject version.")
+    parser.add_argument("--version", default="", help="Expected package version. Must match pyproject.toml.")
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args(argv)
 
-    version = args.version.strip() or _pyproject_version(args.pyproject)
+    package_version = _pyproject_version(args.pyproject)
+    version = args.version.strip() or package_version
+    if version != package_version:
+        raise ValueError(
+            f"Requested version {version} does not match package version {package_version}"
+        )
     changelog = (
         _registry_changelog_file(args.registry_changelog_dir, version)
         or _metadata_changelog(args.metadata, version)
