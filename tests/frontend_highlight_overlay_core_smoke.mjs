@@ -11,6 +11,7 @@ const {
   createHighlightOverlayRenderer,
   overlayBounds,
   overlayScrollbarPadding,
+  setHighlightOverlayHtml,
   syncOverlayBounds,
 } = await import(coreUrl);
 
@@ -149,3 +150,66 @@ assert(
 );
 
 console.log("Highlight overlay core smoke passed.");
+
+// Repeated caret/geometry changes reuse HTML; every presentation input still
+// invalidates it, including mutable preview objects and settings/locale changes.
+let renderCalls = 0;
+let language = "en";
+let settingsRevision = 0;
+let color = "red";
+const cachedRender = createHighlightOverlayRenderer({
+  escapeHtml,
+  renderHighlightedText(text, tokens) {
+    renderCalls += 1;
+    return `<mark lang="${language}" style="color:${color}">${escapeHtml(text)}:${tokens?.[0]?.section || ""}</mark>`;
+  },
+  getRenderKey: () => `${language}:${settingsRevision}`,
+});
+const cachedInput = {};
+const classifiedTokens = [{ section: "general" }];
+const firstHtml = cachedRender("cat", classifiedTokens, "", cachedInput);
+for (let i = 0; i < 30; i++) {
+  assert(cachedRender("cat", classifiedTokens, "", cachedInput) === firstHtml, "Unchanged rendering differed");
+}
+assert(renderCalls === 1, "Unchanged caret events must not repeat token rendering");
+cachedRender("cat", [], "", cachedInput);
+const emptyCalls = renderCalls;
+cachedRender("cat", [], "", cachedInput);
+assert(renderCalls === emptyCalls, "Fresh empty token arrays must share the unclassified cache");
+assert(cachedRender("dog", [], "", cachedInput).includes("dog"), "Edits must invalidate cached text immediately");
+assert(cachedRender("dog", [{ section: "artist" }], "", cachedInput).includes("artist"), "Classification changes must repaint");
+language = "ko";
+assert(cachedRender("dog", [], "", cachedInput).includes('lang="ko"'), "Locale changes must repaint unchanged text");
+color = "blue";
+settingsRevision += 1;
+assert(cachedRender("dog", [], "", cachedInput).includes("color:blue"), "Settings refresh must repaint");
+assert(cachedRender("", [], "first", cachedInput).includes("first"), "Placeholder missing");
+assert(cachedRender("", [], "second", cachedInput).includes("second"), "Placeholder changes must repaint");
+cachedInput.__easyuseAnimaAutocompletePreview = {
+  sourceValue: "cat", value: "cathedral", candidateStart: 0, candidateEnd: 9,
+  ghostStart: 3, ghostEnd: 9, color: "red",
+};
+const firstPreview = cachedRender("cat", [], "", cachedInput);
+cachedInput.__easyuseAnimaAutocompletePreview.color = "green";
+assert(cachedRender("cat", [], "", cachedInput) !== firstPreview, "In-place preview mutation must invalidate");
+cachedInput.__easyuseAnimaAutocompletePreview.sourceValue = "old text";
+assert(!cachedRender("cat", [], "", cachedInput).includes("hedral"), "Stale preview must disappear");
+delete cachedInput.__easyuseAnimaAutocompletePreview;
+const beforeNewInput = renderCalls;
+cachedRender("cat", [], "", {});
+assert(renderCalls === beforeNewInput + 1, "Replacement inputs must get their own render");
+
+let writes = 0;
+const ownedOverlay = {
+  get innerHTML() { throw new Error("Unchanged content must not serialize the DOM"); },
+  set innerHTML(value) { writes += 1; this.content = value; },
+};
+setHighlightOverlayHtml(ownedOverlay, firstHtml);
+for (let i = 0; i < 30; i++) setHighlightOverlayHtml(ownedOverlay, firstHtml);
+assert(writes === 1, "Unchanged HTML must preserve existing child nodes");
+setHighlightOverlayHtml(ownedOverlay, "changed");
+assert(writes === 2 && ownedOverlay.content === "changed", "Changed HTML must replace old content");
+const replacementOverlay = { set innerHTML(value) { writes += 1; } };
+setHighlightOverlayHtml(replacementOverlay, "changed");
+assert(writes === 3, "A reconnected overlay must receive content even when text is unchanged");
+console.log("Highlight overlay render cache and DOM identity smoke passed.");

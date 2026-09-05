@@ -1,11 +1,12 @@
 // @ts-check
 
 import { easyuseAnimaClassifyPrompt, easyuseAnimaGetSettings } from "../../easyuse_anima_api.js";
-import { easyuseAnimaText } from "../../easyuse_anima_i18n.js";
+import { easyuseAnimaLanguage, easyuseAnimaText } from "../../easyuse_anima_i18n.js";
 import { createPromptHighlightRenderer } from "../highlight_core.js";
 import {
   copyInputTextMetrics,
   createHighlightOverlayRenderer,
+  setHighlightOverlayHtml,
   syncOverlayBounds,
 } from "../highlight_overlay_core.js";
 import {
@@ -231,6 +232,7 @@ const SECTION_STYLES = {
 };
 
 const PROMPT_STUDIO_COMMON_SETTINGS = {
+  renderRevision: 0,
   weightSyntaxUnderline: false,
   trainedTagTooltip: true,
 };
@@ -971,6 +973,7 @@ function parseColorSettings(value) {
 }
 
 function applyPromptStudioCommonSettings(settings) {
+  PROMPT_STUDIO_COMMON_SETTINGS.renderRevision += 1;
   PROMPT_STUDIO_COMMON_SETTINGS.weightSyntaxUnderline =
     settings?.["prompt_studio.weight_syntax_underline"] === "true";
   PROMPT_STUDIO_COMMON_SETTINGS.trainedTagTooltip =
@@ -1152,6 +1155,7 @@ const renderHighlightedText = createPromptHighlightRenderer({
 const highlightOverlayHtml = createHighlightOverlayRenderer({
   escapeHtml,
   renderHighlightedText,
+  getRenderKey: () => `${easyuseAnimaLanguage()}:${PROMPT_STUDIO_COMMON_SETTINGS.renderRevision}`,
 });
 
 export function requestPromptStudioOverlaySync(input, forceCopyMetrics = false) {
@@ -1298,13 +1302,15 @@ export function updatePromptStudioFieldHighlight(node, field, textarea, tokens =
   if (forceCopyMetrics) {
     copyInputTextMetrics(textarea, overlay);
   }
-  syncOverlayBounds(textarea, overlay);
   const currentTokens = highlightTokensForText(
     value,
     state.lastText,
     tokens || state.tokens || [],
   );
-  overlay.innerHTML = highlightOverlayHtml(value, currentTokens, textarea.placeholder || "", textarea);
+  setHighlightOverlayHtml(overlay, highlightOverlayHtml(
+    value, currentTokens, textarea.placeholder || "", textarea,
+  ));
+  syncOverlayBounds(textarea, overlay);
 }
 
 export function schedulePromptStudioFieldHighlight(node, field, textarea, { namespace = "variant" } = {}) {

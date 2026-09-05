@@ -10,6 +10,7 @@ import {
   highlightOverlayHtml,
   overlayBounds,
   overlayScrollbarPadding,
+  setHighlightOverlayHtml,
   syncOverlayBounds,
 } from "./highlight.js";
 import {
@@ -71,13 +72,15 @@ function updateAdvancedFieldHighlight(node, field, textarea, tokens = null, forc
   if (forceCopyMetrics) {
     copyInputTextMetrics(textarea, overlay);
   }
-  syncOverlayBounds(textarea, overlay);
   const currentTokens = highlightTokensForText(
     value,
     state.lastText,
     tokens || state.tokens || [],
   );
-  overlay.innerHTML = highlightOverlayHtml(value, currentTokens, textarea.placeholder || "", textarea);
+  setHighlightOverlayHtml(overlay, highlightOverlayHtml(
+    value, currentTokens, textarea.placeholder || "", textarea,
+  ));
+  syncOverlayBounds(textarea, overlay);
 }
 
 function scheduleAdvancedFieldHighlight(node, field, textarea) {
@@ -215,12 +218,9 @@ function refreshAdvancedHighlights(node, { classify = true, forceCopyMetrics = f
     if (overlay.style.height !== height) overlay.style.height = height;
     if (overlay.style.paddingRight !== padding.right) overlay.style.paddingRight = padding.right;
     if (overlay.style.paddingBottom !== padding.bottom) overlay.style.paddingBottom = padding.bottom;
+    setHighlightOverlayHtml(overlay, htmlContent);
     if (overlay.scrollTop !== scrollTop) overlay.scrollTop = scrollTop;
     if (overlay.scrollLeft !== scrollLeft) overlay.scrollLeft = scrollLeft;
-
-    if (overlay.innerHTML !== htmlContent) {
-      overlay.innerHTML = htmlContent;
-    }
 
     if (classify && (state.lastText !== value || !Array.isArray(state.tokens))) {
       scheduleAdvancedFieldHighlight(node, field, textarea);
@@ -244,6 +244,7 @@ function scheduleAdvancedHighlights(node, options = {}) {
   requestAnimationFrame(() => {
     node.__easyuseAnimaAdvancedHighlightScheduled = false;
     const refreshOptions = node.__easyuseAnimaAdvancedHighlightOptions || {};
+    node.__easyuseAnimaAdvancedHighlightOptions = null;
     refreshAdvancedHighlights(node, refreshOptions);
     requestAnimationFrame(() => refreshAdvancedHighlights(node, { classify: false, forceCopyMetrics: refreshOptions.forceCopyMetrics === true }));
   });

@@ -29,6 +29,7 @@ const highlightUrl = inlineModule(`
   export function copyInputTextMetrics() {}
   export function ensureHighlightOverlay() { return null; }
   export function highlightOverlayHtml() { return ""; }
+  export function setHighlightOverlayHtml(overlay, html) { overlay.innerHTML = html; }
   export function syncOverlayBounds() {}
 `);
 const settingsUrl = inlineModule(`
