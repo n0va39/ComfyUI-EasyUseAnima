@@ -92,9 +92,14 @@ def _post_random(host: str, port: int, body: dict, allow_remote_api: bool = Fals
         # Explicit user-configured NAIA API call. Default use is localhost-only;
         # remote hosts require allow_remote_api=True. The response is parsed as
         # JSON and is never executed as code.
-        response = requests.post(url, json=body, timeout=HTTP_TIMEOUT)
+        response = requests.post(
+            url, json=body, timeout=HTTP_TIMEOUT, allow_redirects=False,
+        )
     except requests.RequestException as exc:
         raise RuntimeError(f"[EasyUse Anima] NAIA API request failed: {exc}")
+
+    if 300 <= response.status_code < 400:
+        raise RuntimeError("[EasyUse Anima] NAIA API redirects are not allowed.")
 
     if not response.ok:
         raise RuntimeError(

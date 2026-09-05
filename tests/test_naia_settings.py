@@ -1,5 +1,10 @@
+import json
 import unittest
 from unittest.mock import patch
+
+import requests
+from requests.adapters import BaseAdapter
+from requests.models import Response
 
 from easyuse_anima.naia import random_prompt as naia_random_prompt
 from easyuse_anima.naia.client import (
@@ -9,10 +14,33 @@ from easyuse_anima.naia.client import (
     _build_naia_random_url,
     _fit_to_1mp,
     _parse_random_response,
+    _post_random,
 )
 from easyuse_anima.naia.resolution import _advanced_resolution_from_selection
 from easyuse_anima.nodes import naia_nodes
 from easyuse_anima.nodes.naia_nodes import EasyUseAnimaNAIARandomPrompt
+
+
+class NaiaResponseAdapter(BaseAdapter):
+    def __init__(self, payload, *, status_code=200, location=None):
+        self.payload = payload
+        self.status_code = status_code
+        self.location = location
+        self.requests = []
+
+    def send(self, request, **kwargs):
+        self.requests.append(request)
+        response = Response()
+        response.request = request
+        response.url = request.url
+        response.status_code = self.status_code if len(self.requests) == 1 else 200
+        if len(self.requests) == 1 and self.location is not None:
+            response.headers["Location"] = self.location
+        response._content = json.dumps(self.payload).encode("utf-8")
+        return response
+
+    def close(self):
+        pass
 
 
 def settings(**overrides):
@@ -395,6 +423,64 @@ class NaiaSettingsTests(unittest.TestCase):
             with self.subTest(host=host):
                 with self.assertRaisesRegex(RuntimeError, "hostname or IP address"):
                     _build_naia_random_url(host, 7243, allow_remote_api=True)
+
+    def test_naia_rejects_redirects_without_forwarding_prompt(self):
+        body = {"prompt": "synthetic prompt"}
+        for status_code in (307, 308):
+            with self.subTest(status_code=status_code):
+                adapter = NaiaResponseAdapter(
+                    {"ok": True, "prompt": "redirect response body"},
+                    status_code=status_code,
+                    location="https://outside.invalid/collect",
+                )
+                with requests.Session() as session:
+                    session.trust_env = False
+                    session.mount("http://", adapter)
+                    session.mount("https://", adapter)
+                    with patch.object(requests, "post", session.post):
+                        with self.assertRaises(RuntimeError) as raised:
+                            _post_random("127.0.0.1", 7243, body)
+
+                self.assertEqual(
+                    str(raised.exception),
+                    "[EasyUse Anima] NAIA API redirects are not allowed.",
+                )
+                self.assertEqual(len(adapter.requests), 1)
+                self.assertEqual(
+                    adapter.requests[0].url,
+                    "http://127.0.0.1:7243/api/comfyui/random",
+                )
+                self.assertEqual(json.loads(adapter.requests[0].body), body)
+
+    def test_naia_direct_local_and_enabled_remote_requests_keep_success(self):
+        payload = {
+            "ok": True,
+            "prompt": "generated prompt",
+            "negative_prompt": "generated negative",
+            "width": 1024,
+            "height": 1024,
+        }
+        body = {"prompt": "synthetic prompt"}
+        for host, allow_remote in (("127.0.0.1", False), ("naia.example", True)):
+            with self.subTest(host=host, allow_remote=allow_remote):
+                adapter = NaiaResponseAdapter(payload)
+                with requests.Session() as session:
+                    session.trust_env = False
+                    session.mount("http://", adapter)
+                    session.mount("https://", adapter)
+                    with patch.object(requests, "post", session.post):
+                        result = _post_random(
+                            host, 7243, body, allow_remote_api=allow_remote,
+                        )
+
+                self.assertEqual(result, payload)
+                self.assertEqual(len(adapter.requests), 1)
+                self.assertEqual(adapter.requests[0].method, "POST")
+                self.assertEqual(
+                    adapter.requests[0].url,
+                    f"http://{host}:7243/api/comfyui/random",
+                )
+                self.assertEqual(json.loads(adapter.requests[0].body), body)
 
 
 if __name__ == "__main__":
