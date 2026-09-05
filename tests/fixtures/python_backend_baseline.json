@@ -53471,65 +53471,65 @@
           },
           {
             "async": false,
-            "end_line": 101,
+            "end_line": 103,
             "kind": "function",
             "line": 70,
-            "loc": 32,
+            "loc": 34,
             "qualified_name": "validate_same_origin_json_request"
           },
           {
             "async": true,
-            "end_line": 120,
+            "end_line": 122,
             "kind": "function",
-            "line": 104,
+            "line": 106,
             "loc": 17,
             "qualified_name": "parse_json_object"
           },
           {
             "async": false,
-            "end_line": 137,
+            "end_line": 139,
             "kind": "function",
-            "line": 123,
+            "line": 125,
             "loc": 15,
             "qualified_name": "json_object"
           },
           {
             "async": false,
-            "end_line": 157,
+            "end_line": 159,
             "kind": "function",
-            "line": 140,
+            "line": 142,
             "loc": 18,
             "qualified_name": "json_string"
           },
           {
             "async": false,
-            "end_line": 171,
+            "end_line": 173,
             "kind": "function",
-            "line": 160,
+            "line": 162,
             "loc": 12,
             "qualified_name": "json_boolean"
           },
           {
             "async": false,
-            "end_line": 191,
+            "end_line": 193,
             "kind": "function",
-            "line": 174,
+            "line": 176,
             "loc": 18,
             "qualified_name": "json_integer"
           },
           {
             "async": false,
-            "end_line": 211,
+            "end_line": 213,
             "kind": "function",
-            "line": 194,
+            "line": 196,
             "loc": 18,
             "qualified_name": "json_uuid_string"
           }
         ],
         "is_package": false,
-        "loc": 221,
+        "loc": 223,
         "module": "easyuse_anima.api.requests",
-        "normalized_git_blob_sha1": "8ed4b07094f18fde0711c0eff73719d3d1d9332a",
+        "normalized_git_blob_sha1": "9cabc63faa543b3710e2a6667499b10ee4d1b828",
         "path": "easyuse_anima/api/requests.py",
         "top_level": {
           "class_count": 0,
