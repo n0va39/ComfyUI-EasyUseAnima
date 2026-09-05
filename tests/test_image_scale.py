@@ -78,6 +78,49 @@ class ImageScaleByMultipleTests(unittest.TestCase):
             ["image", "scale_by", "upscale_method", "multiple", "max_long_edge"],
         )
 
+    def test_max_long_edge_wins_when_no_aligned_upscale_fits(self):
+        width, height, _ = _image_scale_by_multiple_size(
+            2010, 1000, 1.2, "64", max_long_edge=2016,
+        )
+
+        self.assertEqual((width, height), (1984, 1024))
+
+    def test_max_long_edge_below_multiple_is_rejected(self):
+        with self.assertRaisesRegex(ValueError, "max_long_edge.*64"):
+            _image_scale_by_multiple_size(1024, 1024, 1.5, "64", 32)
+
+    def test_positive_limits_and_multiples_hold_for_varied_source_sizes(self):
+        for source in ((150, 75), (1000, 777), (2010, 1000), (2040, 2030)):
+            for multiple in (8, 16, 32, 64):
+                for limit in (multiple, 160, 2016, 2044):
+                    for scale in (0.01, 0.75, 1.01, 1.2, 8.0):
+                        with self.subTest(source=source, multiple=multiple, limit=limit, scale=scale):
+                            width, height, _ = _image_scale_by_multiple_size(
+                                *source, scale, str(multiple), limit,
+                            )
+                            self.assertLessEqual(max(width, height), limit)
+                            self.assertGreater(min(width, height), 0)
+                            self.assertEqual(width % multiple, 0)
+                            self.assertEqual(height % multiple, 0)
+
+    def test_node_honors_limit_before_allocating_resized_image(self):
+        try:
+            import torch
+        except ModuleNotFoundError:
+            self.skipTest("torch is not installed in this test environment")
+
+        image = torch.zeros((1, 75, 150, 3), dtype=torch.float32)
+        output, width, height, _ = EasyUseAnimaImageScaleByMultiple().upscale(
+            image, scale_by=1.2, multiple="64", max_long_edge=160,
+        )
+        self.assertEqual((width, height), (128, 64))
+        self.assertEqual(tuple(output.shape), (1, 64, 128, 3))
+
+        with patch("easyuse_anima.image.upscale._common_upscale_image") as resize:
+            with self.assertRaisesRegex(ValueError, "max_long_edge.*64"):
+                EasyUseAnimaImageScaleByMultiple().upscale(image, multiple="64", max_long_edge=32)
+        resize.assert_not_called()
+
     def test_shifted_widget_values_are_normalized(self):
         self.assertEqual(
             _normalize_image_scale_options("32", "32", "bicubic"),
