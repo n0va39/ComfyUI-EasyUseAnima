@@ -1,0 +1,16 @@
+EasyUse Anima 1.2.1 fixes AiO image workflow replay when generation settings change between runs.
+
+Changes:
+1. Newly generated AiO images store the actual seed and settings used for that image. Changing the next run's settings no longer changes the saved image's replay settings.
+2. Final AiO previews and image downloads retain embedded workflow data when metadata saving is enabled. Random-seed generations no longer fail while saving their workflow metadata.
+3. Loading an image and reconnecting its settings input preserves the new connection until that AiO completes another generation.
+4. Chained LoRA Presets read trigger words from the correct subfolder, including when different folders contain LoRAs with the same filename.
+5. Saved generation parameters reflect the sampler values actually used, and empty prompts remain empty.
+6. Prompt Studio redraw and scrolling behavior is improved, final maximum-long-edge resizing is corrected, and missing Spectrum guidance points to the correct installation page.
+7. NAIA requests reject redirects, and requests with invalid origin or host information are rejected.
+
+Compatibility:
+Existing nodes, profiles, workflows, and metadata privacy settings remain compatible. Image workflows use a fixed actual seed for replay; choose a different seed or random mode to continue making variations. The fix applies to newly generated images and cannot reconstruct incorrect metadata in older files. Use the AiO panel's supported seed range: seeds above 2^50 and workflows reusing one shared subgraph definition across multiple instances still have replay limitations. Matching JSON sidecars remain necessary when a JPEG workflow exceeds the EXIF size limit. Reproduction requires the same model, LoRA and prompt resources and compatible generation settings.
+
+Action required:
+After updating, restart ComfyUI and hard-refresh the browser.
