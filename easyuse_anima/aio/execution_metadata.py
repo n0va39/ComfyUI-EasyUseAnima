@@ -189,6 +189,12 @@ def _record_matches_workflow(extra_pnginfo, node_id: str, settings: dict[str, An
 def snapshot_aio_prompt(workflow_prompt: object | None, extra_pnginfo: object | None) -> Any:
     """Apply recorded executions to a private API prompt copy at a save boundary."""
     prompt_copy = copy.deepcopy(workflow_prompt)
+    if isinstance(prompt_copy, dict):
+        for node in prompt_copy.values():
+            if isinstance(node, dict):
+                # ComfyUI adds this cache marker while evaluating IS_CHANGED;
+                # it can contain NaN and is not part of the submitted inputs.
+                node.pop("is_changed", None)
     workflow = _workflow(extra_pnginfo)
     if workflow is None:
         return prompt_copy

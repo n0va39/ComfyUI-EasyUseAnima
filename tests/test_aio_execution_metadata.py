@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import copy
 import json
+import math
 import unittest
 
 from easyuse_anima.aio.execution_metadata import (
@@ -71,6 +72,30 @@ def _connect_settings(graph, node_id, link_id, *, source_id="settings_source", o
 
 
 class AIOExecutionMetadataTests(unittest.TestCase):
+    def test_prompt_snapshot_removes_runtime_cache_markers_without_mutating_source_or_inputs(self):
+        prompt, _ = _graph(7)
+        prompt["7"]["is_changed"] = [float("nan")]
+        prompt["8"] = {
+            "class_type": "OtherNode",
+            "is_changed": float("nan"),
+            "inputs": {"is_changed": "user input", "images": ["7", 0], "value": 42},
+        }
+        saved_prompt = snapshot_aio_prompt(prompt, None)
+        self.assertNotIn("is_changed", saved_prompt["7"])
+        self.assertNotIn("is_changed", saved_prompt["8"])
+        self.assertTrue(math.isnan(prompt["7"]["is_changed"][0]))
+        self.assertTrue(math.isnan(prompt["8"]["is_changed"]))
+        self.assertEqual(saved_prompt["7"]["inputs"], prompt["7"]["inputs"])
+        self.assertEqual(saved_prompt["8"]["inputs"], prompt["8"]["inputs"])
+        self.assertEqual(json.loads(json.dumps(saved_prompt, allow_nan=False)), saved_prompt)
+
+    def test_prompt_snapshot_preserves_nonfinite_user_input_for_strict_json_rejection(self):
+        prompt = {"7": {"class_type": "OtherNode", "is_changed": [float("nan")], "inputs": {"value": float("nan")}}}
+        saved_prompt = snapshot_aio_prompt(prompt, None)
+        self.assertTrue(math.isnan(saved_prompt["7"]["inputs"]["value"]))
+        with self.assertRaises(ValueError):
+            json.dumps(saved_prompt, allow_nan=False)
+
     def test_execution_settings_replace_only_own_saved_widget_and_api_input(self):
         prompt, extra = _graph(7, 8)
         original_prompt = copy.deepcopy(prompt)

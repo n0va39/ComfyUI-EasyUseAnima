@@ -2410,7 +2410,7 @@ class AIOExecutionMetadataReadbackTests(unittest.TestCase):
                 with self.subTest(extension=extension, sidecar_fallback=sidecar_fallback):
                     prompt = {"7": {"class_type": "EasyUseAnimaAIOGenerator", "inputs": {
                         "easy_use_anima_input": ["source", 0],
-                    }}}
+                    }, "is_changed": [float("nan")]}}
                     extra = {"workflow": {"nodes": [{
                         "id": 7, "type": "EasyUseAnimaAIOGenerator", "widgets_values": [],
                     }]}}
@@ -2466,6 +2466,7 @@ class AIOExecutionMetadataReadbackTests(unittest.TestCase):
                                     saved_prompt = json.loads(str(exif[0x0110]).removeprefix("prompt:"))
                                     saved_workflow = json.loads(str(exif[0x010F]).removeprefix("workflow:"))
                         if not sidecar_fallback:
+                            self.assertNotIn("is_changed", saved_prompt["7"])
                             self.assertEqual(json.loads(saved_prompt["7"]["inputs"]["generation_settings"]), expected_settings)
                             self.assertEqual(saved_prompt["7"]["inputs"]["easy_use_anima_input"], ["source", 0])
                         replay_settings = json.loads(saved_workflow["nodes"][0]["widgets_values"][0])

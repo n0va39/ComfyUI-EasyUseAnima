@@ -48859,25 +48859,25 @@
           },
           {
             "async": false,
-            "end_line": 208,
+            "end_line": 214,
             "kind": "function",
             "line": 189,
-            "loc": 20,
+            "loc": 26,
             "qualified_name": "snapshot_aio_prompt"
           },
           {
             "async": false,
-            "end_line": 257,
+            "end_line": 263,
             "kind": "function",
-            "line": 211,
+            "line": 217,
             "loc": 47,
             "qualified_name": "snapshot_aio_execution_metadata"
           }
         ],
         "is_package": false,
-        "loc": 260,
+        "loc": 266,
         "module": "easyuse_anima.aio.execution_metadata",
-        "normalized_git_blob_sha1": "34ed58540b39451cd7a16e687d3acebb6779b9ae",
+        "normalized_git_blob_sha1": "9c17fce38f642c1b5fea10487396ef501b540b24",
         "path": "easyuse_anima/aio/execution_metadata.py",
         "top_level": {
           "class_count": 0,
