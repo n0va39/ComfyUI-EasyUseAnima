@@ -1,5 +1,39 @@
 # Release Notes
 
+## 1.2.1
+
+### Fixed
+
+- Newly generated AiO images store the actual seed and settings used for each
+  image, including when you change settings between consecutive generations.
+- Final AiO previews and downloaded images retain workflow metadata when enabled.
+  Random-seed generations no longer fail during workflow metadata saving.
+- Reconnecting a saved workflow's settings input preserves the new connection
+  until that AiO completes another generation.
+- Chained LoRA Presets read trigger words from the correct subfolder, including
+  when separate folders contain LoRAs with the same filename.
+- Saved generation parameters reflect the sampler values actually used. Empty
+  positive and negative prompts remain empty.
+- Prompt Studio redraw and scrolling behavior is improved. Final maximum-long-edge
+  resizing and the missing Spectrum installation link are corrected.
+- NAIA requests reject redirects, and invalid origin or host values are rejected.
+
+### Compatibility
+
+- Existing nodes, profiles, workflows, and metadata privacy settings are preserved.
+- Image workflows use a fixed actual seed for replay. Change the seed or select
+  a random mode to continue generating variations after loading an image.
+- The fix applies to newly generated images; incorrect metadata in older files
+  cannot be reconstructed automatically. Keep the same model, LoRA and prompt
+  resources for reproduction.
+- Seeds above 2^50 and multiple instances of one shared subgraph definition still
+  have replay limitations. Large JPEG workflows still require their matching JSON
+  sidecars when the EXIF size limit is exceeded.
+
+### Update
+
+- After updating, restart ComfyUI and hard-refresh the browser.
+
 ## 1.2.0
 
 ### Added
