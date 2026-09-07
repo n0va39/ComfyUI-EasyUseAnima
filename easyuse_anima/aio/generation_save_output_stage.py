@@ -148,13 +148,17 @@ class AIOSaveOutputStage:
             ),
         )
         if not final_preview:
+            preview_embeds_workflow = (
+                save_settings.get("backend") != "image_saver"
+                or save_settings.get("image_saver", {}).get("embed_workflow", True)
+            )
             final_preview = cast(
                 list[dict[str, Any]],
                 self.runtime.save_temp_preview(
                     state.image,
                     "final",
-                    workflow_prompt=workflow_prompt,
-                    extra_pnginfo=extra_pnginfo,
+                    workflow_prompt=workflow_prompt if preview_embeds_workflow else None,
+                    extra_pnginfo=extra_pnginfo if preview_embeds_workflow else None,
                 ),
             )
         if (

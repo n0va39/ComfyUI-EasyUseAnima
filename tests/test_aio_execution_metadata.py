@@ -283,6 +283,27 @@ class AIOExecutionMetadataTests(unittest.TestCase):
         self.assertEqual(json.loads(saved_prompt["left:7"]["inputs"]["generation_settings"])["sampler"]["seed"], 37)
         self.assertEqual(json.loads(saved_prompt["right:7"]["inputs"]["generation_settings"])["sampler"]["seed"], -1)
 
+    def test_nested_target_retains_shared_ancestor_protection(self):
+        for shared_ancestor in (False, True):
+            with self.subTest(shared_ancestor=shared_ancestor):
+                prompt, extra = _graph("left:middle:7")
+                inner = extra["workflow"]["nodes"][0]
+                inner["id"] = 7
+                original_inner = copy.deepcopy(inner)
+                extra["workflow"]["nodes"] = [{"id": "left", "type": "outer-definition"}]
+                if shared_ancestor:
+                    extra["workflow"]["nodes"].append({"id": "right", "type": "outer-definition"})
+                extra["workflow"]["definitions"] = {"subgraphs": [
+                    {"id": "outer-definition", "nodes": [{"id": "middle", "type": "inner-definition"}]},
+                    {"id": "inner-definition", "nodes": [inner]},
+                ]}
+                saved_prompt, _ = snapshot_aio_execution_metadata(prompt, extra, "left:middle:7", _settings(37), {})
+                if shared_ancestor:
+                    self.assertEqual(inner, original_inner)
+                else:
+                    self.assertEqual(json.loads(inner["widgets_values"][0])["sampler"]["seed"], 37)
+                self.assertEqual(json.loads(saved_prompt["left:middle:7"]["inputs"]["generation_settings"])["sampler"]["seed"], 37)
+
 
 if __name__ == "__main__":
     unittest.main()

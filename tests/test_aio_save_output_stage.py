@@ -119,6 +119,19 @@ def _runtime(**overrides) -> SaveOutputRuntime:
 
 
 class AIOSaveOutputStageTests(unittest.TestCase):
+    def test_temp_final_respects_local_workflow_embedding_opt_out(self):
+        request = _request(save_enabled=False, save_backend="image_saver")
+        settings = request.config.to_dict()
+        settings["save"]["image_saver"]["embed_workflow"] = False
+        request = replace(request, config=_aio_generation_config_from_dict(settings))
+        captured = []
+        stage = AIOSaveOutputStage(
+            runtime=_runtime(save_temp_preview=lambda *_args, **kwargs: captured.append(kwargs) or []),
+            applied_loras=[], preview_run_id="private-preview",
+        )
+        stage.run(request, _state())
+        self.assertEqual(captured, [{"workflow_prompt": None, "extra_pnginfo": None}])
+
     def test_disabled_save_uses_temp_final_preview_and_builds_output(self):
         trace: list[str] = []
 

@@ -8,7 +8,6 @@ import json
 from typing import Any
 
 from ..common.values import _single_value
-from ..workflow import _get_workflow_node
 
 _AIO_NODE_TYPE = "EasyUseAnimaAIOGenerator"
 _EXECUTIONS_KEY = "easyuse_anima_executions"
@@ -72,41 +71,49 @@ def _workflow(extra_pnginfo):
     return workflow if isinstance(workflow, dict) else None
 
 
-def _editable_workflow_graph(extra_pnginfo, node_id: str):
+def _workflow_metadata_target(extra_pnginfo, node_id: str):
     workflow = _workflow(extra_pnginfo)
     if workflow is None:
-        return None
+        return None, None, False
     parts = node_id.split(":")
-    if len(parts) == 1:
-        return workflow
     definitions = workflow.get("definitions")
     subgraphs = definitions.get("subgraphs") if isinstance(definitions, dict) else None
     if not isinstance(subgraphs, list):
-        return None
+        subgraphs = []
     graphs = [workflow, *(graph for graph in subgraphs if isinstance(graph, dict))]
-    containing_graph = None
-    for index in range(1, len(parts)):
-        parent = _get_workflow_node(extra_pnginfo, ":".join(parts[:index]))
-        if not isinstance(parent, dict):
-            return None
-        graph_type = parent.get("type")
+    containing_graph = workflow
+    editable = True
+    for index, individual_id in enumerate(parts):
+        nodes = containing_graph.get("nodes")
+        if not isinstance(nodes, list):
+            return None, None, False
+        node = next(
+            (item for item in nodes if isinstance(item, dict) and str(item.get("id")) == individual_id),
+            None,
+        )
+        if node is None:
+            return None, None, False
+        if index == len(parts) - 1:
+            return containing_graph, node, editable
+        graph_type = node.get("type")
         # A shared definition cannot express different per-instance widget or
         # link values. Keep it intact instead of changing another instance.
         instances = sum(
             1
             for graph in graphs
-            for node in graph.get("nodes", [])
-            if isinstance(node, dict) and node.get("type") == graph_type
+            if isinstance(graph.get("nodes"), list)
+            for candidate in graph["nodes"]
+            if isinstance(candidate, dict) and candidate.get("type") == graph_type
         )
         if instances != 1:
-            return None
+            editable = False
         containing_graph = next(
             (graph for graph in subgraphs if isinstance(graph, dict) and str(graph.get("id")) == str(graph_type)),
             None,
         )
         if containing_graph is None:
-            return None
-    return containing_graph
+            return None, None, False
+    return None, None, False
 
 
 def _link_details(link):
@@ -161,7 +168,7 @@ def _freeze_connected_settings(graph, node) -> None:
 
 
 def _record_matches_workflow(extra_pnginfo, node_id: str, settings: dict[str, Any]) -> bool:
-    node = _get_workflow_node(extra_pnginfo, node_id)
+    _, node, _ = _workflow_metadata_target(extra_pnginfo, node_id)
     if not isinstance(node, dict) or node.get("type") != _AIO_NODE_TYPE:
         return False
     values = node.get("widgets_values")
@@ -224,9 +231,8 @@ def snapshot_aio_execution_metadata(
     node_id = str(node_id)
     workflow = _workflow(extra_pnginfo)
     if workflow is not None:
-        node = _get_workflow_node(extra_pnginfo, node_id)
-        graph = _editable_workflow_graph(extra_pnginfo, node_id)
-        if isinstance(node, dict) and node.get("type") == _AIO_NODE_TYPE and graph is not None:
+        graph, node, editable = _workflow_metadata_target(extra_pnginfo, node_id)
+        if isinstance(node, dict) and node.get("type") == _AIO_NODE_TYPE and graph is not None and editable:
             values = node.get("widgets_values", [])
             if isinstance(values, list):
                 node["widgets_values"] = [_settings_json(settings), *values[1:]]

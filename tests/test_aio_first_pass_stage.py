@@ -76,6 +76,28 @@ def _unexpected(*_args, **_kwargs):
 
 
 class AIOFirstPassStageTests(unittest.TestCase):
+    def test_spd_records_the_effective_euler_sampler(self):
+        request = _request()
+        normalized = _normalize_aio_generation_settings(json.dumps({
+            "sampler": {"backend": "spectrum_spd_speed", "sampler_name": "er_sde", "seed": 123},
+        }))
+        request = replace(request, config=_aio_generation_config_from_dict(normalized))
+        observed = []
+        runtime = FirstPassRuntime(
+            get_cache=lambda _key: None,
+            put_cache=lambda *_args: None,
+            generate_empty_latent=lambda *_args: "latent",
+            sample_latent=lambda *_args: observed.append(_args[5]) or "sampled",
+            decode_latent=lambda *_args: "image",
+            resize_image=lambda image, *_args: (image, False),
+            encode_image=_unexpected,
+        )
+        state = GenerationState(None, None, 64, 96)
+        AIOFirstPassStage(runtime=runtime, cache_key="spd", use_mod_guidance=False).run(request, state)
+        self.assertEqual(observed[0]["sampler_name"], "euler")
+        self.assertEqual(observed[0], state.metadata["first_pass"]["sampler"])
+        self.assertEqual(request.config.sampler.to_dict()["sampler_name"], "er_sde")
+
     def test_hook_affected_first_pass_can_bypass_shared_cache(self):
         calls = []
         runtime = FirstPassRuntime(

@@ -665,24 +665,6 @@
       },
       {
         "alias": null,
-        "bound_name": "_get_workflow_node",
-        "branch_context": [],
-        "classification": "internal",
-        "column": 0,
-        "conditional": false,
-        "imported": "..workflow:_get_workflow_node",
-        "kind": "static_from",
-        "line": 11,
-        "name": "_get_workflow_node",
-        "optional": false,
-        "requested": "..workflow",
-        "role": "ordinary",
-        "scope": "<module>",
-        "source": "easyuse_anima/aio/execution_metadata.py",
-        "target": "easyuse_anima/workflow.py"
-      },
-      {
-        "alias": null,
         "bound_name": "annotations",
         "branch_context": [],
         "classification": "external",
@@ -45129,10 +45111,6 @@
         "to": "easyuse_anima/common/values.py"
       },
       {
-        "from": "easyuse_anima/aio/execution_metadata.py",
-        "to": "easyuse_anima/workflow.py"
-      },
-      {
         "from": "easyuse_anima/aio/first_pass_cache.py",
         "to": "easyuse_anima/aio/generation_migrations.py"
       },
@@ -48793,113 +48771,113 @@
         "functions": [
           {
             "async": false,
-            "end_line": 19,
+            "end_line": 18,
             "kind": "function",
-            "line": 18,
+            "line": 17,
             "loc": 2,
             "qualified_name": "_settings_json"
           },
           {
             "async": false,
-            "end_line": 30,
+            "end_line": 29,
             "kind": "function",
-            "line": 22,
+            "line": 21,
             "loc": 9,
             "qualified_name": "_update_prompt_snapshot"
           },
           {
             "async": false,
-            "end_line": 36,
+            "end_line": 35,
             "kind": "function",
-            "line": 33,
+            "line": 32,
             "loc": 4,
             "qualified_name": "_prompt_settings_input"
           },
           {
             "async": false,
-            "end_line": 45,
+            "end_line": 44,
             "kind": "function",
-            "line": 39,
+            "line": 38,
             "loc": 7,
             "qualified_name": "_parsed_settings_input"
           },
           {
             "async": false,
-            "end_line": 55,
+            "end_line": 54,
             "kind": "function",
-            "line": 48,
+            "line": 47,
             "loc": 8,
             "qualified_name": "_source_input_fingerprint"
           },
           {
             "async": false,
-            "end_line": 64,
+            "end_line": 63,
             "kind": "function",
-            "line": 58,
+            "line": 57,
             "loc": 7,
             "qualified_name": "_record_matches_prompt"
           },
           {
             "async": false,
-            "end_line": 72,
+            "end_line": 71,
             "kind": "function",
-            "line": 67,
+            "line": 66,
             "loc": 6,
             "qualified_name": "_workflow"
           },
           {
             "async": false,
-            "end_line": 109,
+            "end_line": 116,
             "kind": "function",
-            "line": 75,
-            "loc": 35,
-            "qualified_name": "_editable_workflow_graph"
+            "line": 74,
+            "loc": 43,
+            "qualified_name": "_workflow_metadata_target"
           },
           {
             "async": false,
-            "end_line": 117,
+            "end_line": 124,
             "kind": "function",
-            "line": 112,
+            "line": 119,
             "loc": 6,
             "qualified_name": "_link_details"
           },
           {
             "async": false,
-            "end_line": 160,
+            "end_line": 167,
             "kind": "function",
-            "line": 120,
+            "line": 127,
             "loc": 41,
             "qualified_name": "_freeze_connected_settings"
           },
           {
             "async": false,
-            "end_line": 179,
+            "end_line": 186,
             "kind": "function",
-            "line": 163,
+            "line": 170,
             "loc": 17,
             "qualified_name": "_record_matches_workflow"
           },
           {
             "async": false,
-            "end_line": 201,
+            "end_line": 208,
             "kind": "function",
-            "line": 182,
+            "line": 189,
             "loc": 20,
             "qualified_name": "snapshot_aio_prompt"
           },
           {
             "async": false,
-            "end_line": 251,
+            "end_line": 257,
             "kind": "function",
-            "line": 204,
-            "loc": 48,
+            "line": 211,
+            "loc": 47,
             "qualified_name": "snapshot_aio_execution_metadata"
           }
         ],
         "is_package": false,
-        "loc": 254,
+        "loc": 260,
         "module": "easyuse_anima.aio.execution_metadata",
-        "normalized_git_blob_sha1": "4efa6ade8b48ecd549c651dcdda11ef753118782",
+        "normalized_git_blob_sha1": "34ed58540b39451cd7a16e687d3acebb6779b9ae",
         "path": "easyuse_anima/aio/execution_metadata.py",
         "top_level": {
           "class_count": 0,
@@ -50452,17 +50430,17 @@
           },
           {
             "async": false,
-            "end_line": 188,
+            "end_line": 192,
             "kind": "method",
             "line": 51,
-            "loc": 138,
+            "loc": 142,
             "qualified_name": "AIOSaveOutputStage.run"
           }
         ],
         "is_package": false,
-        "loc": 191,
+        "loc": 195,
         "module": "easyuse_anima.aio.generation_save_output_stage",
-        "normalized_git_blob_sha1": "72d6c9f8d3ec7daa1ef5263ab596cd559e7bb9a5",
+        "normalized_git_blob_sha1": "727470568ab19512b343ec5da8ca86611c208e62",
         "path": "easyuse_anima/aio/generation_save_output_stage.py",
         "top_level": {
           "class_count": 2,
@@ -75789,7 +75767,7 @@
         "column": 17,
         "context": "assign:_MISSING_INPUT",
         "kind": "import_time_call",
-        "line": 15,
+        "line": 14,
         "module": "easyuse_anima/aio/execution_metadata.py",
         "scope": "<module>"
       },
