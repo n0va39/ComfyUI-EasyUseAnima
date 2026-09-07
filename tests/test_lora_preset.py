@@ -130,7 +130,7 @@ class LoraPresetTests(unittest.TestCase):
         ]
 
         def lora_info(name):
-            if name == "existing":
+            if name == "folder/existing.safetensors":
                 return name, ["@existing"]
             return name, ["@new"]
 
@@ -164,6 +164,49 @@ class LoraPresetTests(unittest.TestCase):
             _lora_manager_trigger_words_from_metadata(metadata),
             ["@First", "@second", "@third"],
         )
+
+    def test_chained_stack_reads_subdirectory_metadata_without_basename_collisions(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            def write_lora(relative_name, trigger):
+                lora_path = os.path.join(temp_dir, relative_name)
+                os.makedirs(os.path.dirname(lora_path), exist_ok=True)
+                with open(lora_path, "wb"):
+                    pass
+                metadata_path = os.path.splitext(lora_path)[0] + ".metadata.json"
+                with open(metadata_path, "w", encoding="utf-8") as handle:
+                    json.dump({"trainedWords": [trigger]}, handle)
+
+            def get_full_path(_category, name):
+                path = os.path.join(temp_dir, name.replace("\\", os.sep).replace("/", os.sep))
+                return path if os.path.isfile(path) else None
+
+            write_lora("style/foo.safetensors", "@style")
+            write_lora("other/foo.safetensors", "@other")
+            folder_paths = SimpleNamespace(
+                get_full_path=get_full_path,
+                get_folder_paths=lambda _category: [temp_dir],
+            )
+            with patch.dict(sys.modules, {"folder_paths": folder_paths, "py.utils.utils": None}):
+                direct = unwrap_result(EasyUseAnimaLoraPreset().build(
+                    style_prompt="",
+                    profile_index=1,
+                    loras=json.dumps([
+                        {"name": "style/foo.safetensors", "strength": 0.8, "strengthTwo": 0.7},
+                        {"name": "other/foo.safetensors", "strength": 0.4, "strengthTwo": 0.3},
+                    ]),
+                ))
+                self.assertEqual(direct[2], "@style, @other")
+                for root_collision in (False, True):
+                    with self.subTest(root_collision=root_collision):
+                        if root_collision:
+                            write_lora("foo.safetensors", "@root")
+                        chained = unwrap_result(EasyUseAnimaLoraPreset().build(
+                            style_prompt="",
+                            profile_index=1,
+                            lora_stack=direct[1],
+                        ))
+                        self.assertEqual(chained[1], direct[1])
+                        self.assertEqual(chained[2], "@style, @other")
 
     def test_metadata_trigger_word_keys_follow_root_patch_and_restore_defaults(self):
         metadata = {

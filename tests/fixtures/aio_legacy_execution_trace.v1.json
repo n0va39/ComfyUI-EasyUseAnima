@@ -108,7 +108,12 @@
               "enabled": false
             },
             "first_pass": {
-              "cache_hit": false
+              "cache_hit": false,
+              "sampler": {
+                "backend": "comfy_ksampler",
+                "seed": 17,
+                "cfg": null
+              }
             },
             "highres": {
               "enabled": false
@@ -294,7 +299,12 @@
               "enabled": false
             },
             "first_pass": {
-              "cache_hit": false
+              "cache_hit": false,
+              "sampler": {
+                "backend": "comfy_ksampler",
+                "seed": 17,
+                "cfg": null
+              }
             },
             "highres": {
               "enabled": false

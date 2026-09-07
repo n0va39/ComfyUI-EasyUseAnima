@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import copy
 import hashlib
 import json
 import os
@@ -8,6 +9,7 @@ import sys
 import tempfile
 import types
 import unittest
+from contextlib import nullcontext
 from pathlib import Path
 from unittest.mock import Mock, patch
 
@@ -20,6 +22,7 @@ from easyuse_anima.aio import native_metadata_budget as metadata_budget
 from easyuse_anima.aio import native_output_directories as directories
 from easyuse_anima.aio import native_output_publication as publication
 from easyuse_anima.aio import native_resource_hashes as resources
+from easyuse_anima.aio.execution_metadata import snapshot_aio_execution_metadata
 
 
 class FakeTensor:
@@ -2396,6 +2399,84 @@ with publication.OutputDirectoryBinding(root) as directory:
                     extra_pnginfo={"workflow": {"nodes": []}},
                 )
             self.assertFalse((root / "image.png").exists())
+
+
+class AIOExecutionMetadataReadbackTests(unittest.TestCase):
+    def test_saved_files_replay_each_execution_and_overlay_downstream_prompt(self):
+        pixels = np.zeros((8, 8, 3), dtype=np.float32)
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            for extension, sidecar_fallback in (("png", False), ("webp", False), ("jpeg", False), ("jpeg", True)):
+                with self.subTest(extension=extension, sidecar_fallback=sidecar_fallback):
+                    prompt = {"7": {"class_type": "EasyUseAnimaAIOGenerator", "inputs": {
+                        "easy_use_anima_input": ["source", 0],
+                    }, "is_changed": [float("nan")]}}
+                    extra = {"workflow": {"nodes": [{
+                        "id": 7, "type": "EasyUseAnimaAIOGenerator", "widgets_values": [],
+                    }]}}
+                    if sidecar_fallback:
+                        extra["workflow"]["padding"] = "x" * 70_000
+                    committed = {}
+                    for seed, cfg, steps, scale in ((101, 5.5, 23, 1.5), (202, 7.0, 37, 2.0)):
+                        settings = {
+                            "schema": "easyuse_anima_aio_generation_settings", "version": 4,
+                            "sampler": {"seed": -1, "seed_after_generate": "randomize",
+                                        "steps": steps, "cfg": cfg, "sampler_name": "euler",
+                                        "scheduler": "normal", "denoise": 1.0},
+                            "highres": {"enabled": True, "scale_by": scale, "denoise": 0.25},
+                        }
+                        prompt["7"]["inputs"]["generation_settings"] = json.dumps(settings)
+                        original_prompt = copy.deepcopy(prompt)
+                        settings["sampler"]["seed"] = seed
+                        snapshot_aio_execution_metadata(
+                            prompt, extra, "7", settings, {"stages": {"first_pass": {"sampler": settings["sampler"]}}},
+                        )
+                        expected_settings = copy.deepcopy(settings)
+                        expected_settings["sampler"]["seed_after_generate"] = "fixed"
+                        parameters = f"prompt\nSteps: {steps}, CFG scale: {cfg}, Seed: {seed}"
+                        metadata = native.NativeImageMetadata(parameters, "", {})
+                        folder = f"{extension}-{'sidecar' if sidecar_fallback else 'embedded'}"
+                        log_context = self.assertLogs("ComfyUI-EasyUseAnima", level="WARNING") if sidecar_fallback else nullcontext()
+                        with log_context:
+                            result = native._save_native_images(
+                                [FakeTensor(pixels)], output_root=root, path=folder, filename="image",
+                                extension=extension, quality_jpeg_or_webp=80, lossless_webp=False,
+                                optimize_png=False, embed_workflow=True, save_workflow_as_json=False,
+                                metadata=metadata, prompt=prompt, extra_pnginfo=extra, metadata_enabled=True,
+                            )
+                        image_path = root / folder / result["ui"]["images"][0]["filename"]
+                        self.assertNotIn(image_path, committed)
+                        self.assertEqual(prompt, original_prompt)
+                        with Image.open(image_path) as saved:
+                            if extension == "png":
+                                self.assertEqual(saved.info["parameters"], parameters)
+                                saved_prompt = json.loads(saved.info["prompt"])
+                                saved_workflow = json.loads(saved.info["workflow"])
+                            else:
+                                exif = saved.getexif()
+                                self.assertEqual(decode_user_comment(exif_user_comment(exif)), parameters)
+                                if sidecar_fallback:
+                                    self.assertNotIn(0x010F, exif)
+                                    self.assertNotIn(0x0110, exif)
+                                    sidecar = image_path.with_suffix(".json")
+                                    self.assertNotIn(sidecar, committed)
+                                    saved_workflow = json.loads(sidecar.read_text("utf-8"))
+                                    committed[sidecar] = sidecar.read_bytes()
+                                else:
+                                    saved_prompt = json.loads(str(exif[0x0110]).removeprefix("prompt:"))
+                                    saved_workflow = json.loads(str(exif[0x010F]).removeprefix("workflow:"))
+                        if not sidecar_fallback:
+                            self.assertNotIn("is_changed", saved_prompt["7"])
+                            self.assertEqual(json.loads(saved_prompt["7"]["inputs"]["generation_settings"]), expected_settings)
+                            self.assertEqual(saved_prompt["7"]["inputs"]["easy_use_anima_input"], ["source", 0])
+                        replay_settings = json.loads(saved_workflow["nodes"][0]["widgets_values"][0])
+                        self.assertEqual(replay_settings, expected_settings)
+                        record = saved_workflow["extra"]["easyuse_anima_executions"]["7"]
+                        self.assertEqual(record["generation_settings"], expected_settings)
+                        self.assertEqual(record["execution"]["stages"]["first_pass"]["sampler"], settings["sampler"])
+                        committed[image_path] = image_path.read_bytes()
+                        for saved_path, expected_bytes in committed.items():
+                            self.assertEqual(saved_path.read_bytes(), expected_bytes)
 
 
 if __name__ == "__main__":
