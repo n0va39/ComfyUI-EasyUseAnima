@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import copy
 import json
 import unittest
 from dataclasses import replace
@@ -329,6 +330,82 @@ class AIOSaveOutputStageTests(unittest.TestCase):
             list(metadata["stages"]),
             ["first_pass", "postprocess"],
         )
+
+    def test_successive_saves_freeze_actual_settings_without_mutating_prompt(self):
+        cases = (
+            (-1, 101, "randomize", 23, 5.5, "euler", "normal", 1.0, True, 1.5),
+            (202, 202, "increment", 37, 7.0, "dpmpp_2m", "karras", 0.75, True, 2.0),
+            (303, 303, "fixed", 19, 4.0, "heun", "simple", 0.9, False, 1.25),
+        )
+        for backend in ("image_saver", "comfy_save_image", "temp"):
+            with self.subTest(backend=backend):
+                captured = []
+
+                def save(*_args, **kwargs):
+                    captured.append(kwargs)
+                    return {"ui": {"images": [{"filename": "saved.png", "type": "output"}]}}
+
+                def save_temp(*_args, **kwargs):
+                    captured.append(kwargs)
+                    return [{"filename": "saved-temp.png", "type": "temp"}]
+
+                prompt = {"7": {"class_type": "EasyUseAnimaAIOGenerator", "inputs": {
+                    "easy_use_anima_input": ["source", 0],
+                }}}
+                extra = {"workflow": {"nodes": [{
+                    "id": 7, "type": "EasyUseAnimaAIOGenerator", "widgets_values": [],
+                }]}}
+                base = _request(save_enabled=backend != "temp", save_backend=backend)
+                base = replace(base, workflow=replace(
+                    base.workflow, workflow_prompt=prompt, extra_pnginfo=extra, unique_id="7",
+                ))
+                stage = AIOSaveOutputStage(
+                    runtime=_runtime(save_image_saver=save, save_comfy=save, save_temp_preview=save_temp),
+                    applied_loras=[], preview_run_id="7:run",
+                )
+                expected_snapshots = []
+                for queued_seed, actual_seed, control, steps, cfg, name, scheduler, denoise, highres, scale in cases:
+                    settings = base.config.to_dict()
+                    settings["sampler"].update({
+                        "seed": queued_seed, "seed_after_generate": control,
+                        "steps": steps, "cfg": cfg, "sampler_name": name,
+                        "scheduler": scheduler, "denoise": denoise,
+                    })
+                    settings["highres"].update({
+                        "enabled": highres, "scale_by": scale, "steps": steps + 2,
+                        "inherit_sampler_settings": False, "cfg": cfg + 1,
+                        "sampler_name": name, "scheduler": scheduler, "denoise": 0.25,
+                    })
+                    prompt["7"]["inputs"]["generation_settings"] = json.dumps(settings)
+                    extra["workflow"]["nodes"][0]["widgets_values"] = [json.dumps(settings)]
+                    original_prompt = copy.deepcopy(prompt)
+                    settings["sampler"]["seed"] = actual_seed
+                    request = replace(base, config=_aio_generation_config_from_dict(settings))
+                    state = _state()
+                    actual_sampler = {**request.config.sampler.to_dict(), "cfg": 1.0, "sampler_name": "euler"}
+                    state.metadata["first_pass"]["sampler"] = actual_sampler
+                    state.metadata["highres"] = {"enabled": highres, "sampler": {"steps": steps + 2}}
+                    stage.run(request, state)
+
+                    saved = captured[-1]
+                    saved_settings = json.loads(saved["workflow_prompt"]["7"]["inputs"]["generation_settings"])
+                    expected_settings = request.config.to_dict()
+                    expected_settings["sampler"]["seed_after_generate"] = "fixed"
+                    self.assertEqual(saved_settings, expected_settings)
+                    workflow = saved["extra_pnginfo"]["workflow"]
+                    self.assertEqual(json.loads(workflow["nodes"][0]["widgets_values"][0]), saved_settings)
+                    replay = _normalize_aio_generation_settings(workflow["nodes"][0]["widgets_values"][0])
+                    self.assertEqual((replay["sampler"]["seed"], replay["sampler"]["seed_after_generate"]), (actual_seed, "fixed"))
+                    record = workflow["extra"]["easyuse_anima_executions"]["7"]
+                    self.assertEqual(record["execution"]["stages"], state.metadata)
+                    if backend == "image_saver":
+                        self.assertEqual(saved["sampler_settings"], actual_sampler)
+                    self.assertEqual(prompt, original_prompt)
+                    self.assertIsNot(saved["workflow_prompt"], prompt)
+                    self.assertIsNot(saved["extra_pnginfo"], extra)
+                    expected_snapshots.append(copy.deepcopy(saved))
+                    self.assertEqual(captured, expected_snapshots)
+                self.assertEqual(len(captured), len(cases))
 
     def test_invalid_save_ui_falls_back_and_reconciles_last_detailer_preview(self):
         previews = [

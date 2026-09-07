@@ -133,16 +133,18 @@ class AIOFirstPassStageTests(unittest.TestCase):
             encode_image=_unexpected,
         )
 
+        state = GenerationState(latent=None, image=None, width=64, height=96)
         AIOFirstPassStage(
             runtime=runtime,
             cache_key="turbo-cache",
             use_mod_guidance=True,
         ).run(
             request,
-            GenerationState(latent=None, image=None, width=64, height=96),
+            state,
         )
 
         self.assertEqual(observed, [(1.0, "prompt_data", True)])
+        self.assertEqual(state.metadata["first_pass"]["sampler"]["cfg"], 1.0)
         self.assertEqual(request.config.sampler.to_dict()["cfg"], saved_cfg)
         self.assertEqual(
             request.config.mod_guidance.to_dict(),
@@ -227,7 +229,9 @@ class AIOFirstPassStageTests(unittest.TestCase):
         self.assertEqual(state.latent, "sampled-latent")
         self.assertEqual(state.image, "decoded-image")
         self.assertEqual((state.width, state.height), (64, 96))
-        self.assertEqual(state.metadata, {"first_pass": {"cache_hit": False}})
+        self.assertEqual(state.metadata, {"first_pass": {
+            "cache_hit": False, "sampler": request.config.sampler.to_dict(),
+        }})
         self.assertEqual(preview, [("first_pass", "decoded-image")])
 
     def test_cache_hit_is_no_sampling_path_and_does_not_republish(self):
@@ -269,7 +273,9 @@ class AIOFirstPassStageTests(unittest.TestCase):
         )
         self.assertEqual(state.latent, "cached-latent")
         self.assertEqual(state.image, "cached-image")
-        self.assertEqual(state.metadata, {"first_pass": {"cache_hit": True}})
+        self.assertEqual(state.metadata, {"first_pass": {
+            "cache_hit": True, "sampler": _request().config.sampler.to_dict(),
+        }})
 
     def test_resize_reencodes_and_cache_write_failure_remains_non_fatal(self):
         trace: list[str] = []
@@ -319,7 +325,9 @@ class AIOFirstPassStageTests(unittest.TestCase):
         )
         self.assertEqual(state.latent, "resized-latent")
         self.assertEqual(state.image, "resized-image")
-        self.assertEqual(state.metadata, {"first_pass": {"cache_hit": True}})
+        self.assertEqual(state.metadata, {"first_pass": {
+            "cache_hit": True, "sampler": _request().config.sampler.to_dict(),
+        }})
 
     def test_validation_rejects_unsupported_mode_before_runtime_calls(self):
         request = _request()

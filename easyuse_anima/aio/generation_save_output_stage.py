@@ -6,6 +6,7 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import Any, ClassVar, TypeAlias, cast
 
+from .execution_metadata import snapshot_aio_execution_metadata
 from .generation_pipeline import (
     GenerationCapabilities,
     GenerationRequest,
@@ -56,9 +57,12 @@ class AIOSaveOutputStage:
             dict[str, Any],
             request.config.save.to_dict(),
         )
+        first_pass = cast(dict[str, Any], state.metadata.get("first_pass", {}))
         sampler = cast(
             dict[str, Any],
-            request.config.sampler.to_dict(),
+            first_pass.get(
+                "sampler", request.config.sampler.to_dict()
+            ),
         )
         generation_settings = cast(
             dict[str, Any],
@@ -72,8 +76,27 @@ class AIOSaveOutputStage:
             dict[str, Any],
             context.get("resource_info", {}),
         )
-        workflow_prompt = request.workflow.workflow_prompt
-        extra_pnginfo = request.workflow.extra_pnginfo
+        metadata = {
+            "schema": "easyuse_anima_aio_generation_result",
+            "version": 1,
+            "width": int(state.width),
+            "height": int(state.height),
+            "resource_info": self.runtime.json_safe(resource_info),
+            "input_settings": self.runtime.json_safe(context.get("input_settings", {})),
+            "lora_stack": self.runtime.json_safe(self.applied_loras),
+            "generation_settings": self.runtime.json_safe(generation_settings),
+            "stages": self.runtime.json_safe(state.metadata),
+            "prompt_data": self.runtime.json_safe(request.prompts.prompt_data),
+        }
+        if state.extensions:
+            metadata["extensions"] = self.runtime.json_safe(state.extensions)
+        workflow_prompt, extra_pnginfo = snapshot_aio_execution_metadata(
+            request.workflow.workflow_prompt,
+            request.workflow.extra_pnginfo,
+            request.workflow.unique_id,
+            generation_settings,
+            metadata,
+        )
         save_ui: dict[str, Any] = {}
         if save_settings.get("enabled"):
             if save_settings.get("backend") == "image_saver":
@@ -143,28 +166,6 @@ class AIOSaveOutputStage:
         ):
             state.previews[-1] = final_preview[0]
             final_preview = final_preview[1:]
-        metadata = {
-            "schema": "easyuse_anima_aio_generation_result",
-            "version": 1,
-            "width": int(state.width),
-            "height": int(state.height),
-            "resource_info": self.runtime.json_safe(resource_info),
-            "input_settings": self.runtime.json_safe(
-                context.get("input_settings", {})
-            ),
-            "lora_stack": self.runtime.json_safe(self.applied_loras),
-            "generation_settings": self.runtime.json_safe(
-                generation_settings
-            ),
-            "stages": self.runtime.json_safe(state.metadata),
-            "prompt_data": self.runtime.json_safe(
-                request.prompts.prompt_data
-            ),
-        }
-        if state.extensions:
-            metadata["extensions"] = self.runtime.json_safe(
-                state.extensions
-            )
         metadata_json = json.dumps(metadata, ensure_ascii=False, sort_keys=True)
         ui: dict[str, Any] = {
             "status": ["generated"],

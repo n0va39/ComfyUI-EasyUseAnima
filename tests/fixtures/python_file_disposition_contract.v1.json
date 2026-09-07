@@ -4,7 +4,7 @@
   "inventory_owner": {
     "path": "tests/fixtures/python_backend_baseline.json",
     "expected_baseline_files": 191,
-    "expected_target_files": 204
+    "expected_target_files": 205
   },
   "linked_contracts": {
     "compatibility_registry": "docs/architecture/python-compatibility-shims.md",
@@ -587,9 +587,14 @@
       "path": "easyuse_anima/aio/generation_save_output_stage.py",
       "role": "aio-pipeline-stage",
       "owner_group": "aio",
-      "disposition": "cohesive_retain",
+      "disposition": "split",
       "status": "complete",
       "targets": [
+        {
+          "path": "easyuse_anima/aio/execution_metadata.py",
+          "role": "aio-execution-metadata-snapshot",
+          "owner_group": "aio"
+        },
         {
           "path": "easyuse_anima/aio/generation_save_output_stage.py",
           "role": "aio-pipeline-stage",
@@ -597,11 +602,13 @@
         }
       ],
       "direct_contracts": [
+        "tests/test_aio_execution_metadata.py",
+        "tests/test_aio_save_output_stage.py",
         "tests/test_aio_stage_pipeline_contract.py"
       ],
       "compatibility_registry_key": null,
-      "task_id": null,
-      "rollback_unit": null,
+      "task_id": "Issue-783",
+      "rollback_unit": "Revert the AiO execution metadata snapshot patch as one unit.",
       "replacement_owner": null,
       "size_exception_verdicts": [
         {

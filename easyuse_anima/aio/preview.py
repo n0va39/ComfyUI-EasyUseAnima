@@ -11,6 +11,11 @@ from ..common.values import _single_value
 from ..image.geometry import _image_tensor_size
 from ..infrastructure.comfy.wiring import resolve_comfy_host_helper
 from ..prompt.data import _prompt_data_json_safe
+from .native_image_output import (
+    _comfy_metadata_enabled,
+    _serialize_metadata,
+    _validated_sidecar_requirement,
+)
 
 AIO_PREVIEW_STAGE_LABELS = {
     "first_pass": "First pass",
@@ -134,6 +139,23 @@ def _save_aio_temp_preview_image(
     extra_pnginfo=None,
 ) -> list[dict[str, Any]]:
     width, height = _image_tensor_size(image, 0, 0)
+    metadata_options: dict[str, Any] = {}
+    write_metadata = stage == "final" and _comfy_metadata_enabled()
+    if write_metadata:
+        # Validate before the pixel-save fallback so metadata limits cannot be
+        # bypassed by retrying the same payload through ComfyUI PreviewImage.
+        serialized = _serialize_metadata(
+            extension=AIO_PREVIEW_CACHE_FORMAT,
+            parameters="",
+            prompt=workflow_prompt,
+            extra_pnginfo=extra_pnginfo,
+            embed_workflow=True,
+            save_workflow_as_json=False,
+            write_metadata=True,
+        )
+        _validated_sidecar_requirement(serialized, False, len(image))
+        if serialized.exif_bytes:
+            metadata_options["exif"] = serialized.exif_bytes
     try:
         import folder_paths  # type: ignore
         import numpy as np  # type: ignore
@@ -166,6 +188,7 @@ def _save_aio_temp_preview_image(
                 format="WEBP",
                 quality=AIO_PREVIEW_CACHE_QUALITY,
                 method=4,
+                **metadata_options,
             )
             results.append(
                 {
@@ -205,8 +228,8 @@ def _save_aio_temp_preview_image(
         result = save_images(
             image,
             filename_prefix=f"EasyUseAnima_AiO_{stage}",
-            prompt=workflow_prompt,
-            extra_pnginfo=extra_pnginfo,
+            prompt=workflow_prompt if write_metadata else None,
+            extra_pnginfo=extra_pnginfo if write_metadata else None,
         )
     except TypeError:
         try:

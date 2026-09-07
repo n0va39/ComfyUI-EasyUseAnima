@@ -3407,7 +3407,10 @@ function generatorImageUrl(image) {
   if (!params.has("filename")) {
     return "";
   }
-  params.set("preview", "webp;90");
+  // Browser image save/open must retain final-image workflow metadata.
+  if (image.type !== "output" && image.stage !== "final") {
+    params.set("preview", "webp;90");
+  }
   const path = `/view?${params.toString()}`;
   return typeof api?.apiURL === "function" ? api.apiURL(path) : path;
 }
