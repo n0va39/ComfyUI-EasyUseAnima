@@ -10211,7 +10211,7 @@
           {
             "branch": "body",
             "kind": "if",
-            "line": 374,
+            "line": 376,
             "type_checking": false
           }
         ],
@@ -10220,7 +10220,7 @@
         "conditional": true,
         "imported": "PIL.PngImagePlugin:PngInfo",
         "kind": "static_from",
-        "line": 375,
+        "line": 377,
         "name": "PngInfo",
         "optional": false,
         "requested": "PIL.PngImagePlugin",
@@ -10237,7 +10237,7 @@
         "conditional": false,
         "imported": "numpy",
         "kind": "static_import",
-        "line": 424,
+        "line": 426,
         "name": null,
         "optional": false,
         "requested": "numpy",
@@ -10254,7 +10254,7 @@
         "conditional": false,
         "imported": "PIL:Image",
         "kind": "static_from",
-        "line": 425,
+        "line": 427,
         "name": "Image",
         "optional": false,
         "requested": "PIL",
@@ -13103,7 +13103,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 159
+            "line": 164
           }
         ],
         "classification": "external",
@@ -13111,7 +13111,7 @@
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 160,
+        "line": 165,
         "name": null,
         "optional": true,
         "requested": "folder_paths",
@@ -13128,7 +13128,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 159
+            "line": 164
           }
         ],
         "classification": "external",
@@ -13136,7 +13136,7 @@
         "conditional": true,
         "imported": "numpy",
         "kind": "static_import",
-        "line": 161,
+        "line": 166,
         "name": null,
         "optional": true,
         "requested": "numpy",
@@ -13153,7 +13153,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 159
+            "line": 164
           }
         ],
         "classification": "external",
@@ -13161,7 +13161,7 @@
         "conditional": true,
         "imported": "PIL:Image",
         "kind": "static_from",
-        "line": 162,
+        "line": 167,
         "name": "Image",
         "optional": true,
         "requested": "PIL",
@@ -50430,17 +50430,25 @@
           },
           {
             "async": false,
-            "end_line": 192,
+            "end_line": 179,
             "kind": "method",
             "line": 51,
-            "loc": 142,
+            "loc": 129,
             "qualified_name": "AIOSaveOutputStage.run"
+          },
+          {
+            "async": false,
+            "end_line": 199,
+            "kind": "method",
+            "line": 181,
+            "loc": 19,
+            "qualified_name": "AIOSaveOutputStage._execution_metadata"
           }
         ],
         "is_package": false,
-        "loc": 195,
+        "loc": 202,
         "module": "easyuse_anima.aio.generation_save_output_stage",
-        "normalized_git_blob_sha1": "727470568ab19512b343ec5da8ca86611c208e62",
+        "normalized_git_blob_sha1": "97ce472212853d03e7bb2371c0af93427937f3a2",
         "path": "easyuse_anima/aio/generation_save_output_stage.py",
         "top_level": {
           "class_count": 2,
@@ -51696,89 +51704,89 @@
           },
           {
             "async": false,
-            "end_line": 420,
+            "end_line": 422,
             "kind": "function",
             "line": 353,
-            "loc": 68,
+            "loc": 70,
             "qualified_name": "_serialize_metadata"
           },
           {
             "async": false,
-            "end_line": 442,
+            "end_line": 444,
             "kind": "function",
-            "line": 423,
+            "line": 425,
             "loc": 20,
             "qualified_name": "_tensor_to_pil"
           },
           {
             "async": false,
-            "end_line": 455,
+            "end_line": 457,
             "kind": "function",
-            "line": 445,
+            "line": 447,
             "loc": 11,
             "qualified_name": "_is_windows_safe_output_component"
           },
           {
             "async": false,
-            "end_line": 467,
+            "end_line": 469,
             "kind": "function",
-            "line": 458,
+            "line": 460,
             "loc": 10,
             "qualified_name": "_sanitize_native_output_filename"
           },
           {
             "async": false,
-            "end_line": 514,
+            "end_line": 516,
             "kind": "function",
-            "line": 470,
+            "line": 472,
             "loc": 45,
             "qualified_name": "_allocate_filenames"
           },
           {
             "async": false,
-            "end_line": 483,
+            "end_line": 485,
             "kind": "function",
-            "line": 479,
+            "line": 481,
             "loc": 5,
             "qualified_name": "_allocate_filenames.occupied"
           },
           {
             "async": false,
-            "end_line": 538,
+            "end_line": 540,
             "kind": "function",
-            "line": 517,
+            "line": 519,
             "loc": 22,
             "qualified_name": "_native_output_path_parts"
           },
           {
             "async": false,
-            "end_line": 550,
+            "end_line": 552,
             "kind": "function",
-            "line": 541,
+            "line": 543,
             "loc": 10,
             "qualified_name": "_resolve_native_output_folder"
           },
           {
             "async": false,
-            "end_line": 575,
+            "end_line": 577,
             "kind": "function",
-            "line": 553,
+            "line": 555,
             "loc": 23,
             "qualified_name": "_bound_native_output_directory"
           },
           {
             "async": false,
-            "end_line": 598,
+            "end_line": 600,
             "kind": "function",
-            "line": 578,
+            "line": 580,
             "loc": 21,
             "qualified_name": "_image_save_options"
           },
           {
             "async": false,
-            "end_line": 613,
+            "end_line": 615,
             "kind": "function",
-            "line": 601,
+            "line": 603,
             "loc": 13,
             "qualified_name": "_validated_sidecar_requirement"
           },
@@ -51786,15 +51794,15 @@
             "async": false,
             "end_line": 737,
             "kind": "function",
-            "line": 616,
-            "loc": 122,
+            "line": 618,
+            "loc": 120,
             "qualified_name": "_save_native_images"
           }
         ],
         "is_package": false,
         "loc": 740,
         "module": "easyuse_anima.aio.native_image_output",
-        "normalized_git_blob_sha1": "c79b14d5e686a027ba5ad8c138ddbf555c065b0e",
+        "normalized_git_blob_sha1": "15b94b1e450ac5736c3e094695bb12610617b31c",
         "path": "easyuse_anima/aio/native_image_output.py",
         "top_level": {
           "class_count": 2,
@@ -53212,21 +53220,29 @@
           },
           {
             "async": false,
-            "end_line": 256,
+            "end_line": 145,
             "kind": "function",
             "line": 134,
-            "loc": 123,
+            "loc": 12,
+            "qualified_name": "_final_preview_metadata_options"
+          },
+          {
+            "async": false,
+            "end_line": 261,
+            "kind": "function",
+            "line": 148,
+            "loc": 114,
             "qualified_name": "_save_aio_temp_preview_image"
           }
         ],
         "is_package": false,
-        "loc": 259,
+        "loc": 264,
         "module": "easyuse_anima.aio.preview",
-        "normalized_git_blob_sha1": "7e8451892f12384d4a9d8ec976c588c0b16ab19f",
+        "normalized_git_blob_sha1": "e5fe36f8c3643f1d9d8cbe3cfdd374800ddb3f49",
         "path": "easyuse_anima/aio/preview.py",
         "top_level": {
           "class_count": 0,
-          "function_count": 7,
+          "function_count": 8,
           "global_count": 6
         }
       },
@@ -66186,7 +66202,7 @@
           {
             "branch": "body",
             "kind": "if",
-            "line": 374,
+            "line": 376,
             "type_checking": false
           }
         ],
@@ -66194,7 +66210,7 @@
         "conditional": true,
         "imported": "PIL.PngImagePlugin:PngInfo",
         "kind": "static_from",
-        "line": 375,
+        "line": 377,
         "optional": false,
         "role": "ordinary",
         "source": "easyuse_anima/aio/native_image_output.py"
@@ -66205,7 +66221,7 @@
         "conditional": false,
         "imported": "numpy",
         "kind": "static_import",
-        "line": 424,
+        "line": 426,
         "optional": false,
         "role": "ordinary",
         "source": "easyuse_anima/aio/native_image_output.py"
@@ -66216,7 +66232,7 @@
         "conditional": false,
         "imported": "PIL:Image",
         "kind": "static_from",
-        "line": 425,
+        "line": 427,
         "optional": false,
         "role": "ordinary",
         "source": "easyuse_anima/aio/native_image_output.py"
@@ -67608,14 +67624,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 159
+            "line": 164
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 160,
+        "line": 165,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/aio/preview.py"
@@ -67627,14 +67643,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 159
+            "line": 164
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "numpy",
         "kind": "static_import",
-        "line": 161,
+        "line": 166,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/aio/preview.py"
@@ -67646,14 +67662,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 159
+            "line": 164
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "PIL:Image",
         "kind": "static_from",
-        "line": 162,
+        "line": 167,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/aio/preview.py"
@@ -74403,14 +74419,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 159
+            "line": 164
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 160,
+        "line": 165,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/aio/preview.py"
@@ -74422,14 +74438,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 159
+            "line": 164
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "numpy",
         "kind": "static_import",
-        "line": 161,
+        "line": 166,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/aio/preview.py"
@@ -74441,14 +74457,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 159
+            "line": 164
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "PIL:Image",
         "kind": "static_from",
-        "line": 162,
+        "line": 167,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/aio/preview.py"

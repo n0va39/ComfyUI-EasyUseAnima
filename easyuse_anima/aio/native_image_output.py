@@ -360,6 +360,8 @@ def _serialize_metadata(
     save_workflow_as_json: bool,
     write_metadata: bool,
 ) -> _SerializedMetadata:
+    if write_metadata and (embed_workflow or save_workflow_as_json):
+        prompt = snapshot_aio_prompt(prompt, extra_pnginfo)
     if not write_metadata:
         return _SerializedMetadata(None, None, None, False, 0, 0)
 
@@ -648,8 +650,6 @@ def _save_native_images(
         if metadata_enabled is None
         else bool(metadata_enabled)
     )
-    if write_metadata and (embed_workflow or save_workflow_as_json):
-        prompt = snapshot_aio_prompt(prompt, extra_pnginfo)
     serialized = _serialize_metadata(
         extension=safe_extension,
         parameters=metadata.parameters,

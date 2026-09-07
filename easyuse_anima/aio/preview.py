@@ -131,6 +131,20 @@ def _send_aio_preview_event(
         )
 
 
+def _final_preview_metadata_options(batch_size, workflow_prompt, extra_pnginfo):
+    serialized = _serialize_metadata(
+        extension=AIO_PREVIEW_CACHE_FORMAT,
+        parameters="",
+        prompt=workflow_prompt,
+        extra_pnginfo=extra_pnginfo,
+        embed_workflow=True,
+        save_workflow_as_json=False,
+        write_metadata=True,
+    )
+    _validated_sidecar_requirement(serialized, False, batch_size)
+    return {"exif": serialized.exif_bytes} if serialized.exif_bytes else {}
+
+
 def _save_aio_temp_preview_image(
     image,
     stage: str,
@@ -144,18 +158,9 @@ def _save_aio_temp_preview_image(
     if write_metadata:
         # Validate before the pixel-save fallback so metadata limits cannot be
         # bypassed by retrying the same payload through ComfyUI PreviewImage.
-        serialized = _serialize_metadata(
-            extension=AIO_PREVIEW_CACHE_FORMAT,
-            parameters="",
-            prompt=workflow_prompt,
-            extra_pnginfo=extra_pnginfo,
-            embed_workflow=True,
-            save_workflow_as_json=False,
-            write_metadata=True,
+        metadata_options = _final_preview_metadata_options(
+            len(image), workflow_prompt, extra_pnginfo,
         )
-        _validated_sidecar_requirement(serialized, False, len(image))
-        if serialized.exif_bytes:
-            metadata_options["exif"] = serialized.exif_bytes
     try:
         import folder_paths  # type: ignore
         import numpy as np  # type: ignore

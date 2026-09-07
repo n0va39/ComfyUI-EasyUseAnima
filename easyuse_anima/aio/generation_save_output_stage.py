@@ -76,20 +76,7 @@ class AIOSaveOutputStage:
             dict[str, Any],
             context.get("resource_info", {}),
         )
-        metadata = {
-            "schema": "easyuse_anima_aio_generation_result",
-            "version": 1,
-            "width": int(state.width),
-            "height": int(state.height),
-            "resource_info": self.runtime.json_safe(resource_info),
-            "input_settings": self.runtime.json_safe(context.get("input_settings", {})),
-            "lora_stack": self.runtime.json_safe(self.applied_loras),
-            "generation_settings": self.runtime.json_safe(generation_settings),
-            "stages": self.runtime.json_safe(state.metadata),
-            "prompt_data": self.runtime.json_safe(request.prompts.prompt_data),
-        }
-        if state.extensions:
-            metadata["extensions"] = self.runtime.json_safe(state.extensions)
+        metadata = self._execution_metadata(request, state)
         workflow_prompt, extra_pnginfo = snapshot_aio_execution_metadata(
             request.workflow.workflow_prompt,
             request.workflow.extra_pnginfo,
@@ -190,6 +177,26 @@ class AIOSaveOutputStage:
             "ui": ui,
             "result": (state.image, state.latent, metadata_json),
         }
+
+    def _execution_metadata(
+        self, request: GenerationRequest, state: GenerationState,
+    ) -> dict[str, Any]:
+        context = request.workflow.input_context
+        metadata = {
+            "schema": "easyuse_anima_aio_generation_result",
+            "version": 1,
+            "width": int(state.width),
+            "height": int(state.height),
+            "resource_info": self.runtime.json_safe(context.get("resource_info", {})),
+            "input_settings": self.runtime.json_safe(context.get("input_settings", {})),
+            "lora_stack": self.runtime.json_safe(self.applied_loras),
+            "generation_settings": self.runtime.json_safe(request.config.to_dict()),
+            "stages": self.runtime.json_safe(state.metadata),
+            "prompt_data": self.runtime.json_safe(request.prompts.prompt_data),
+        }
+        if state.extensions:
+            metadata["extensions"] = self.runtime.json_safe(state.extensions)
+        return metadata
 
 
 __all__ = ()
