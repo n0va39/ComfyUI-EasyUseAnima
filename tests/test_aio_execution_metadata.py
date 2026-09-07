@@ -183,6 +183,44 @@ class AIOExecutionMetadataTests(unittest.TestCase):
         equivalent_source["7"]["inputs"]["generation_settings"] = json.loads(prompt["7"]["inputs"]["generation_settings"])
         self.assertEqual(snapshot_aio_prompt(equivalent_source, saved_extra), saved_prompt)
 
+    def test_reconnected_settings_preserve_new_source_until_own_execution_completes(self):
+        for object_link in (False, True):
+            with self.subTest(object_link=object_link):
+                prompt, extra = _graph(7, 8)
+                source, target = _connect_settings(extra["workflow"], 8, 201, object_link=object_link)
+                source["widgets_values"] = [json.dumps(_settings(29))]
+                prompt["settings_source"] = {"class_type": "PrimitiveString", "inputs": {
+                    "value": source["widgets_values"][0],
+                }}
+                prompt["8"]["inputs"]["generation_settings"] = ["settings_source", 0]
+                snapshot_aio_execution_metadata(prompt, extra, "8", _settings(29), {})
+                self.assertIsNone(target["inputs"][1]["link"])
+
+                # Reopen the image, reconnect the same source, and edit only it.
+                target["inputs"][1]["link"] = 202
+                source["outputs"][0]["links"] = [202]
+                link = [202, "settings_source", 0, 8, 1, "STRING"]
+                if object_link:
+                    link = dict(zip(("id", "origin_id", "origin_slot", "target_id", "target_slot", "type"), link))
+                extra["workflow"]["links"].append(link)
+                source["widgets_values"] = [json.dumps(_settings(99))]
+                prompt["settings_source"]["inputs"]["value"] = source["widgets_values"][0]
+                original_prompt = copy.deepcopy(prompt)
+                original_extra = copy.deepcopy(extra)
+
+                self.assertEqual(snapshot_aio_prompt(prompt, extra), original_prompt)
+                self.assertEqual(extra, original_extra)
+                # Another output branch can save before this AiO runs again.
+                earlier_prompt, earlier_extra = snapshot_aio_execution_metadata(prompt, extra, "7", _settings(17), {})
+                self.assertEqual(earlier_prompt["8"], original_prompt["8"])
+                self.assertEqual(earlier_extra["workflow"]["nodes"][1], original_extra["workflow"]["nodes"][1])
+
+                completed_prompt, completed_extra = snapshot_aio_execution_metadata(prompt, extra, "8", _settings(99), {})
+                self.assertEqual(json.loads(completed_prompt["8"]["inputs"]["generation_settings"])["sampler"]["seed"], 99)
+                self.assertIsNone(completed_extra["workflow"]["nodes"][1]["inputs"][1]["link"])
+                self.assertEqual(snapshot_aio_prompt(prompt, extra), completed_prompt)
+                self.assertEqual(prompt, original_prompt)
+
     def test_late_mutations_cannot_rewrite_handed_off_snapshots_or_records(self):
         prompt, extra = _graph(7)
         settings = _settings()

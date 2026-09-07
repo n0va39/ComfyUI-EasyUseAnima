@@ -171,6 +171,18 @@ def _record_matches_workflow(extra_pnginfo, node_id: str, settings: dict[str, An
     _, node, _ = _workflow_metadata_target(extra_pnginfo, node_id)
     if not isinstance(node, dict) or node.get("type") != _AIO_NODE_TYPE:
         return False
+    inputs = node.get("inputs")
+    if isinstance(inputs, list):
+        for input_info in inputs:
+            if not isinstance(input_info, dict) or input_info.get("link") is None:
+                continue
+            widget = input_info.get("widget")
+            if input_info.get("name") == "generation_settings" or (
+                isinstance(widget, dict) and widget.get("name") == "generation_settings"
+            ):
+                # A reconnected source can change while the frozen widget stays
+                # unchanged. This node's next completed execution freezes it again.
+                return False
     values = node.get("widgets_values")
     if isinstance(values, list) and values:
         stored = values[0]
