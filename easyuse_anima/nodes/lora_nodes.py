@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import os
-
 from ..common.serialization import _stable_change_key
 from ..common.values import _as_bool
 from ..lora.metadata import (
@@ -115,8 +113,7 @@ class EasyUseAnimaLoraPreset:
         if lora_stack:
             stack.extend(lora_stack)
             for lora_path, _model_strength, _clip_strength in lora_stack:
-                lora_base = os.path.splitext(os.path.basename(str(lora_path).replace("\\", "/")))[0]
-                _path, existing_trigger_words = _get_lora_info(lora_base)
+                _path, existing_trigger_words = _get_lora_info(str(lora_path).replace("\\", "/"))
                 trigger_words.extend(existing_trigger_words)
 
         seen: set[tuple[str, float, float]] = set()

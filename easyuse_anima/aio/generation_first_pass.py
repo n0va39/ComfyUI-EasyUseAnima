@@ -83,6 +83,8 @@ class AIOFirstPassStage:
     ) -> None:
         sampler = cast(dict[str, Any], request.config.sampler.to_dict())
         sampler["cfg"] = request.config.negpip.effective_cfg(sampler.get("cfg"))
+        if sampler["backend"] == "spectrum_spd_speed":
+            sampler["sampler_name"] = "euler"
         mod_guidance = cast(
             dict[str, Any],
             request.config.mod_guidance.to_dict(),
@@ -145,7 +147,7 @@ class AIOFirstPassStage:
 
         state.latent = latent
         state.image = image
-        state.metadata[self.name] = {"cache_hit": cache_hit}
+        state.metadata[self.name] = {"cache_hit": cache_hit, "sampler": sampler}
         if (
             request.config.preview.intermediate_images
             and self.add_preview is not None

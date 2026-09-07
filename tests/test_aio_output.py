@@ -10,6 +10,7 @@ from pathlib import Path
 from unittest.mock import ANY, Mock, patch
 
 from easyuse_anima.aio import native_civitai as civitai
+from easyuse_anima.aio import native_image_output
 from easyuse_anima.aio import native_metadata_budget as metadata_budget
 from easyuse_anima.aio import output, output_settings
 from easyuse_anima.aio.generation_defaults import AIO_GENERATION_DEFAULT_SETTINGS
@@ -727,6 +728,34 @@ class AIOOutputMoveTests(unittest.TestCase):
         self.assertEqual(result, "saved")
         self.assertEqual(save.call_args.kwargs["path"], "renders/2026/09")
         self.assertEqual(save.call_args.kwargs["filename"], "safe_007_anima")
+
+    def test_native_image_metadata_preserves_explicit_empty_prompts(self):
+        settings = {"image_saver": {
+            **AIO_GENERATION_DEFAULT_SETTINGS["save"]["image_saver"],
+            "filename": "empty-prompt", "path": "Test", "extension": "png",
+            "save_prompt_metadata": True, "download_civitai_data": False,
+            "easy_remix": False,
+        }}
+        with tempfile.TemporaryDirectory() as temp:
+            with (
+                patch.dict(sys.modules, {"folder_paths": fake_folder_paths(temp)}),
+                patch.object(native_image_output, "_local_resource_hashes", return_value=[]),
+                patch.object(output, "_save_native_images", return_value="saved") as save,
+            ):
+                result = output._save_image_with_image_saver(
+                    images="images", save_settings=settings,
+                    positive_prompt="", negative_prompt="",
+                    width=768, height=1024,
+                    sampler_settings={"seed": 17, "steps": 9, "cfg": 1.0,
+                                      "sampler_name": "euler", "scheduler": "normal"},
+                    applied_loras=[], resource_info={"unet_name": "anima.safetensors"},
+                )
+        self.assertEqual(result, "saved")
+        parameters = save.call_args.kwargs["metadata"].parameters
+        self.assertTrue(parameters.startswith("Steps: 9, Sampler:"), parameters)
+        self.assertNotIn("unknown", parameters.lower())
+        self.assertNotIn("Negative prompt:", parameters)
+        self.assertIn("CFG scale: 1.0, Seed: 17", parameters)
 
     def test_template_expansion_rejects_before_oversized_literal_replace(self):
         class ReplaceTrap(str):

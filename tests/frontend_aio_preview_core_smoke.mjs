@@ -16,6 +16,50 @@ function assertJsonEqual(actual, expected, message) {
 }
 
 const preview = await import(dataModule("../web/js/aio/preview.js"));
+
+{
+  const entrySource = readFileSync(
+    new URL("../web/js/easyuse_anima_aio.js", import.meta.url),
+    "utf8",
+  );
+  const start = entrySource.indexOf("function generatorImageUrl(");
+  const end = entrySource.indexOf("\nfunction isSpecialSeed(", start);
+  assert(start >= 0 && end > start, "The panel image URL adapter must be available");
+  const source = `const api = { apiURL: (path) => "/comfy" + path };\n`
+    + entrySource.slice(start, end)
+    + "\nexport { generatorImageUrl };";
+  const { generatorImageUrl } = await import(
+    `data:text/javascript;base64,${Buffer.from(source).toString("base64")}`
+  );
+  for (const extension of ["png", "jpg", "webp"]) {
+    const filename = `final image.${extension}`;
+    const url = new URL(generatorImageUrl({
+      filename, subfolder: "EasyUseAnima/AiO", type: "output", stage: "final",
+    }), "https://comfy.invalid");
+    assert(url.pathname === "/comfy/view", "Output URLs must preserve the ComfyUI base path");
+    assertJsonEqual(
+      Object.fromEntries(url.searchParams),
+      { filename, subfolder: "EasyUseAnima/AiO", type: "output" },
+      "Saving or opening a final panel image must fetch its original bytes and metadata",
+    );
+  }
+  const finalTemp = new URL(generatorImageUrl({
+    filename: "final.webp", subfolder: "", type: "temp", stage: "final",
+  }), "https://comfy.invalid");
+  assertJsonEqual(
+    Object.fromEntries(finalTemp.searchParams),
+    { filename: "final.webp", type: "temp" },
+    "Final images must retain embedded workflow metadata when saving to output is disabled",
+  );
+  const intermediate = new URL(generatorImageUrl({
+    filename: "first_pass.webp", type: "temp", stage: "first_pass",
+  }), "https://comfy.invalid");
+  assert(
+    intermediate.searchParams.get("preview") === "webp;90",
+    "Temporary intermediate images must retain compressed preview requests",
+  );
+}
+
 const {
   aioAppendPreviewFeed,
   aioCreatePreviewProgressTracker,
