@@ -7,3 +7,36 @@
 - 검증: 연속 생성 설정 변경/실행 스냅샷 불변성/파일 메타데이터 read-back, LoRA 하위 폴더 중복 이름, 출력 원본 URL; 공식 focused runner와 최종 full, 격리된 ComfyUI v0.34.0에서 Legacy Canvas/Node 2.0 저장 및 재로드 경계.
 - 완료: 확인된 결함 수정, 검증과 한계 기록, dev 대상 Draft PR 및 Issue 연결. main/배포/사용자 인스턴스 변경은 범위 밖이다.
 - 중단 조건: 공식 테스트 환경 갱신 실패는 환경 문제로 분리한다. 외부 모델/LoRA/와일드카드 파일의 변경이나 GPU 비결정성은 동일 이미지 보장의 전제 조건으로 명시한다.
+
+## 수정 결과
+
+- 저장 시점에 실행별 설정을 분리 복사하고, 실제 해석된 시드와 재생성용 `fixed` 제어를 workflow 위젯과 저장용 API prompt에 기록한다. 실행 중인 PROMPT와 다음 실행의 UI 설정은 보존한다.
+- 이전 이미지에서 불러온 실행 기록은 현재 입력과 일치할 때만 저장용 API에 반영한다. 설정 입력이 연결된 경우 저장된 workflow에서 해당 연결만 실행값으로 고정한다.
+- 최종 temp 미리보기에도 메타데이터를 포함하며, 출력 열기/다운로드 URL은 원본 바이트를 요청한다. 메타데이터 비활성화와 중간 미리보기 동작은 보존한다.
+- 실제 샘플러 호출값을 실행 기록과 A1111 파라미터에 반영하고, 비어 있는 프롬프트를 유지한다. ComfyUI가 추가한 최상위 `is_changed` 캐시 표식은 저장용 사본에서만 제외한다. 랜덤 실행의 `NaN` 표식 때문에 엄격한 JSON 직렬화가 실패하던 실제 런타임 문제를 해결한다.
+- 연결된 LoRA Preset의 트리거 조회에서 전체 상대 경로를 유지한다. 서로 다른 하위 폴더의 동명 LoRA를 혼동하거나 트리거를 누락하는 문제를 수정하며, 적용 순서와 model/clip 가중치는 보존한다.
+
+## 검증 기록 (2026-09-07)
+
+최종 코드 후보 `c00c5eff92b7236a082c5a1a66cab28401b17a22` 기준이다. 이후 변경은 이 검증 기록뿐이다.
+
+- 공식 full runner: Python 1,682개 통과, 기존 skip 3개. JavaScript 125개 및 TypeScript 6.0.3 검사 통과, `git diff --check` 통과.
+- focused 회귀 검사: 연속 실행과 실행 후 설정 변경, 저장 사본 불변성, 오래된 UI/API 실행 기록, 연결 입력과 단일 중첩 subgraph, 공유 정의 보존, 캐시 표식 제거, LoRA 경로/트리거, 원본 이미지 URL을 확인했다.
+- 실제 Pillow read-back: PNG/WebP/JPEG 및 JPEG 크기 초과 sidecar에서 실행 설정을 확인했다. 최종 temp WebP의 배치별 기록, 메타데이터 opt-out과 제한 초과 처리도 검사했다.
+- 공식 nodepack은 352개 파일로 생성해 격리 테스트 인스턴스에 설치했다. 실제 서버는 ComfyUI v0.34.0 (`12d5279438bfefc058a269eae805ceab6047777f`), frontend 1.49.6, Python 3.12.13, PyTorch 2.12.1+cu130, RTX 5070 Ti였다.
+- 공개 한국어 AiO 샘플의 6개 노드, 모델과 LoRA 7개를 사용했다. 생성 비용을 줄이기 위해 기본 해상도는 384×512로 조정하고, 시드/스텝/CFG/샘플러/스케줄러/Highres를 두 실행 사이에 실제 UI에서 변경했다.
+
+| 실행 | 실제 저장 설정 | PNG 재로드 및 재생성 | RGB 픽셀 SHA-256 |
+| --- | --- | --- | --- |
+| A: 랜덤 시드 요청 | seed 784435166335536, 6 steps, CFG 4.5, er_sde / sgm_uniform, Highres off, 384×512 | Legacy Canvas에서 원본 PNG 직접 열기, 서버 재시작 후 캐시 없이 재생성: 일치 | `fc3cae0a4c9ef269d4e3701a42e19d811dc01f1d8f5356f3cf100db9cb3e68f9` |
+| B: 설정 변경 후 생성 | seed 456, 9 steps, CFG 6.2, euler / normal, Highres 1.5× / 19 steps / denoise 0.25, 576×768 | Node 2.0에서 원본 PNG 직접 열기, 캐시 없이 재생성: 일치 | `c2187dd7c15ab67c36191f16c39c2f44c639426d05b96639e3792a9449fff06e` |
+
+네 번의 실제 생성 모두 first-pass cache miss였다. 각 PNG의 workflow 위젯, 실행 기록, 저장 API prompt의 설정이 일치했고, 실제 시드와 A1111 파라미터가 일치했다. 다음 생성용 UI 시드가 바뀐 뒤에도 앞선 파일의 실행값은 유지됐다. 브라우저의 실제 출력 이미지 URL에 손실 변환용 `preview` 인자가 없음을 확인했다. 기존 초기화 오류와 테스트 서버 재시작 때의 연결 오류 외에 새 콘솔 오류는 없었다. 테스트 후 Node 2.0 설정을 원래 값으로 복원했다.
+
+## 남은 범위
+
+- `2^50` 초과 시드는 기존 UI 제한과 JavaScript 정밀도 때문에 재로드 시 바뀔 수 있다. 저장 메타데이터는 실제 백엔드 값을 보존하지만 전체 UI 숫자 계약의 수정은 별도 Issue #784에서 추적한다.
+- 같은 subgraph 정의를 여러 인스턴스가 공유하면 하나의 정의에 서로 다른 실행별 위젯 값을 표현할 수 없다. 다른 인스턴스를 손상시키지 않도록 공유 정의는 보존하며, 이 경우 전체 UI workflow 재현은 이번 보장 범위에 포함하지 않는다.
+- 외부 모델·LoRA·와일드카드·번역 리소스 및 GPU/attention 환경 변경에 따른 출력 차이는 별도 조건이다. 파일 자체를 이미지에 포함하지 않는다. JPEG는 손실 형식이며 EXIF 용량 초과 시 기존 sidecar 방식이 필요하다.
+- AiO 저장과 Easy Save Image의 저장용 API 사본을 보정한다. 외부/기본 SaveImage의 API PROMPT를 전역 변조하지 않으며, 공유 EXTRA_PNGINFO의 workflow에는 완료된 실행값을 전달한다.
+- 사용자 인스턴스 설치, main merge, GitHub Release 및 Registry publish는 수행하지 않았다.
