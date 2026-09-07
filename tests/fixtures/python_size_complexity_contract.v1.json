@@ -59,7 +59,7 @@
     {
       "path": "easyuse_anima/aio/generation_save_output_stage.py",
       "qualified_name": "AIOSaveOutputStage.run",
-      "baseline_loc": 138,
+      "baseline_loc": 129,
       "owner_issue": 188,
       "decomposition_boundary": "Separate save backend dispatch from result assembly only with identical output and disabled-save behavior."
     },
