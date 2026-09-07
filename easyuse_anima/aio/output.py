@@ -720,13 +720,13 @@ def _save_image_with_image_saver(
         )
         metadata_positive = (
             _aio_prompt_with_lora_metadata(
-                str(positive_prompt or "unknown"), applied_loras
+                str(positive_prompt or ""), applied_loras
             )
             if save_prompt_metadata
             else ""
         )
         metadata_negative = (
-            str(negative_prompt or "unknown") if save_prompt_metadata else ""
+            str(negative_prompt or "") if save_prompt_metadata else ""
         )
         download_civitai_data = _as_bool(
             runtime.settings.get("download_civitai_data"),

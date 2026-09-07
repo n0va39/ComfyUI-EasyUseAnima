@@ -364,6 +364,109 @@
         "requested": "__future__",
         "role": "ordinary",
         "scope": "<module>",
+        "source": "easyuse_anima/aio/execution_metadata.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "copy",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "copy",
+        "kind": "static_import",
+        "line": 5,
+        "name": null,
+        "optional": false,
+        "requested": "copy",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/execution_metadata.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "hashlib",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "hashlib",
+        "kind": "static_import",
+        "line": 6,
+        "name": null,
+        "optional": false,
+        "requested": "hashlib",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/execution_metadata.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "json",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "json",
+        "kind": "static_import",
+        "line": 7,
+        "name": null,
+        "optional": false,
+        "requested": "json",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/execution_metadata.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "Any",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "typing:Any",
+        "kind": "static_from",
+        "line": 8,
+        "name": "Any",
+        "optional": false,
+        "requested": "typing",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/execution_metadata.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "_single_value",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": "..common.values:_single_value",
+        "kind": "static_from",
+        "line": 10,
+        "name": "_single_value",
+        "optional": false,
+        "requested": "..common.values",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/execution_metadata.py",
+        "target": "easyuse_anima/common/values.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "annotations",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "__future__:annotations",
+        "kind": "static_from",
+        "line": 3,
+        "name": "annotations",
+        "optional": false,
+        "requested": "__future__",
+        "role": "ordinary",
+        "scope": "<module>",
         "source": "easyuse_anima/aio/first_pass_cache.py"
       },
       {
@@ -4782,6 +4885,24 @@
       },
       {
         "alias": null,
+        "bound_name": "snapshot_aio_execution_metadata",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".execution_metadata:snapshot_aio_execution_metadata",
+        "kind": "static_from",
+        "line": 9,
+        "name": "snapshot_aio_execution_metadata",
+        "optional": false,
+        "requested": ".execution_metadata",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/generation_save_output_stage.py",
+        "target": "easyuse_anima/aio/execution_metadata.py"
+      },
+      {
+        "alias": null,
         "bound_name": "GenerationCapabilities",
         "branch_context": [],
         "classification": "internal",
@@ -4789,7 +4910,7 @@
         "conditional": false,
         "imported": ".generation_pipeline:GenerationCapabilities",
         "kind": "static_from",
-        "line": 9,
+        "line": 10,
         "name": "GenerationCapabilities",
         "optional": false,
         "requested": ".generation_pipeline",
@@ -4807,7 +4928,7 @@
         "conditional": false,
         "imported": ".generation_pipeline:GenerationRequest",
         "kind": "static_from",
-        "line": 9,
+        "line": 10,
         "name": "GenerationRequest",
         "optional": false,
         "requested": ".generation_pipeline",
@@ -4825,7 +4946,7 @@
         "conditional": false,
         "imported": ".generation_pipeline:GenerationState",
         "kind": "static_from",
-        "line": 9,
+        "line": 10,
         "name": "GenerationState",
         "optional": false,
         "requested": ".generation_pipeline",
@@ -9401,6 +9522,24 @@
       },
       {
         "alias": null,
+        "bound_name": "snapshot_aio_prompt",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".execution_metadata:snapshot_aio_prompt",
+        "kind": "static_from",
+        "line": 15,
+        "name": "snapshot_aio_prompt",
+        "optional": false,
+        "requested": ".execution_metadata",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/native_image_output.py",
+        "target": "easyuse_anima/aio/execution_metadata.py"
+      },
+      {
+        "alias": null,
         "bound_name": "CivitaiLookupBudget",
         "branch_context": [],
         "classification": "internal",
@@ -9408,7 +9547,7 @@
         "conditional": false,
         "imported": ".native_civitai:CivitaiLookupBudget",
         "kind": "static_from",
-        "line": 15,
+        "line": 16,
         "name": "CivitaiLookupBudget",
         "optional": false,
         "requested": ".native_civitai",
@@ -9426,7 +9565,7 @@
         "conditional": false,
         "imported": ".native_civitai:CivitaiLookupBudgetExhausted",
         "kind": "static_from",
-        "line": 15,
+        "line": 16,
         "name": "CivitaiLookupBudgetExhausted",
         "optional": false,
         "requested": ".native_civitai",
@@ -9444,7 +9583,7 @@
         "conditional": false,
         "imported": ".native_civitai:_fetch_civitai_resource_by_hash",
         "kind": "static_from",
-        "line": 15,
+        "line": 16,
         "name": "_fetch_civitai_resource_by_hash",
         "optional": false,
         "requested": ".native_civitai",
@@ -9462,7 +9601,7 @@
         "conditional": false,
         "imported": ".native_civitai:_fetch_civitai_autov3_hash",
         "kind": "static_from",
-        "line": 20,
+        "line": 21,
         "name": "_fetch_civitai_autov3_hash",
         "optional": false,
         "requested": ".native_civitai",
@@ -9480,7 +9619,7 @@
         "conditional": false,
         "imported": ".native_metadata_budget:_MAX_PARAMETERS_BYTES",
         "kind": "static_from",
-        "line": 23,
+        "line": 24,
         "name": "_MAX_PARAMETERS_BYTES",
         "optional": false,
         "requested": ".native_metadata_budget",
@@ -9498,7 +9637,7 @@
         "conditional": false,
         "imported": ".native_metadata_budget:_metadata_text_size",
         "kind": "static_from",
-        "line": 23,
+        "line": 24,
         "name": "_metadata_text_size",
         "optional": false,
         "requested": ".native_metadata_budget",
@@ -9516,7 +9655,7 @@
         "conditional": false,
         "imported": ".native_metadata_budget:_prepare_metadata_payload",
         "kind": "static_from",
-        "line": 23,
+        "line": 24,
         "name": "_prepare_metadata_payload",
         "optional": false,
         "requested": ".native_metadata_budget",
@@ -9534,7 +9673,7 @@
         "conditional": false,
         "imported": ".native_metadata_budget:_sidecar_required_and_validate_batch",
         "kind": "static_from",
-        "line": 23,
+        "line": 24,
         "name": "_sidecar_required_and_validate_batch",
         "optional": false,
         "requested": ".native_metadata_budget",
@@ -9552,7 +9691,7 @@
         "conditional": false,
         "imported": ".native_metadata_budget:_validate_embedded_metadata_size",
         "kind": "static_from",
-        "line": 23,
+        "line": 24,
         "name": "_validate_embedded_metadata_size",
         "optional": false,
         "requested": ".native_metadata_budget",
@@ -9570,7 +9709,7 @@
         "conditional": false,
         "imported": ".native_metadata_budget:_validate_parameter_sources",
         "kind": "static_from",
-        "line": 23,
+        "line": 24,
         "name": "_validate_parameter_sources",
         "optional": false,
         "requested": ".native_metadata_budget",
@@ -9588,7 +9727,7 @@
         "conditional": false,
         "imported": ".native_output_directories:OutputDirectoryIntegrityError",
         "kind": "static_from",
-        "line": 31,
+        "line": 32,
         "name": "OutputDirectoryIntegrityError",
         "optional": false,
         "requested": ".native_output_directories",
@@ -9606,7 +9745,7 @@
         "conditional": false,
         "imported": ".native_output_directories:prepare_output_directory",
         "kind": "static_from",
-        "line": 31,
+        "line": 32,
         "name": "prepare_output_directory",
         "optional": false,
         "requested": ".native_output_directories",
@@ -9624,7 +9763,7 @@
         "conditional": false,
         "imported": ".native_output_directories:resolve_output_directory",
         "kind": "static_from",
-        "line": 31,
+        "line": 32,
         "name": "resolve_output_directory",
         "optional": false,
         "requested": ".native_output_directories",
@@ -9642,7 +9781,7 @@
         "conditional": false,
         "imported": ".native_output_publication:OutputDirectoryBinding",
         "kind": "static_from",
-        "line": 36,
+        "line": 37,
         "name": "OutputDirectoryBinding",
         "optional": false,
         "requested": ".native_output_publication",
@@ -9660,7 +9799,7 @@
         "conditional": false,
         "imported": ".native_output_publication:PublicationCollision",
         "kind": "static_from",
-        "line": 36,
+        "line": 37,
         "name": "PublicationCollision",
         "optional": false,
         "requested": ".native_output_publication",
@@ -9678,7 +9817,7 @@
         "conditional": false,
         "imported": ".native_output_publication:publish_image_transaction",
         "kind": "static_from",
-        "line": 36,
+        "line": 37,
         "name": "publish_image_transaction",
         "optional": false,
         "requested": ".native_output_publication",
@@ -9696,7 +9835,7 @@
         "conditional": false,
         "imported": ".native_resource_hashes:_EMBEDDING_RE",
         "kind": "static_from",
-        "line": 41,
+        "line": 42,
         "name": "_EMBEDDING_RE",
         "optional": false,
         "requested": ".native_resource_hashes",
@@ -9714,7 +9853,7 @@
         "conditional": false,
         "imported": ".native_resource_hashes:_HEX_HASH_RE",
         "kind": "static_from",
-        "line": 41,
+        "line": 42,
         "name": "_HEX_HASH_RE",
         "optional": false,
         "requested": ".native_resource_hashes",
@@ -9732,7 +9871,7 @@
         "conditional": false,
         "imported": ".native_resource_hashes:_ResourceHash",
         "kind": "static_from",
-        "line": 41,
+        "line": 42,
         "name": "_ResourceHash",
         "optional": false,
         "requested": ".native_resource_hashes",
@@ -9750,7 +9889,7 @@
         "conditional": false,
         "imported": ".native_resource_hashes:_local_resource_hashes",
         "kind": "static_from",
-        "line": 41,
+        "line": 42,
         "name": "_local_resource_hashes",
         "optional": false,
         "requested": ".native_resource_hashes",
@@ -9768,7 +9907,7 @@
         "conditional": false,
         "imported": ".native_resource_hashes:_manual_resource_hashes",
         "kind": "static_from",
-        "line": 41,
+        "line": 42,
         "name": "_manual_resource_hashes",
         "optional": false,
         "requested": ".native_resource_hashes",
@@ -9786,7 +9925,7 @@
         "conditional": false,
         "imported": ".native_resource_hashes:_resource_name",
         "kind": "static_from",
-        "line": 41,
+        "line": 42,
         "name": "_resource_name",
         "optional": false,
         "requested": ".native_resource_hashes",
@@ -9804,7 +9943,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 304
+            "line": 305
           }
         ],
         "classification": "external",
@@ -9812,7 +9951,7 @@
         "conditional": true,
         "imported": "comfy.cli_args:args",
         "kind": "static_from",
-        "line": 305,
+        "line": 306,
         "name": "args",
         "optional": true,
         "requested": "comfy.cli_args",
@@ -9829,7 +9968,7 @@
         "conditional": false,
         "imported": "PIL:ExifTags",
         "kind": "static_from",
-        "line": 321,
+        "line": 322,
         "name": "ExifTags",
         "optional": false,
         "requested": "PIL",
@@ -9846,7 +9985,7 @@
         "conditional": false,
         "imported": "PIL:Image",
         "kind": "static_from",
-        "line": 321,
+        "line": 322,
         "name": "Image",
         "optional": false,
         "requested": "PIL",
@@ -9861,7 +10000,7 @@
           {
             "branch": "body",
             "kind": "if",
-            "line": 357,
+            "line": 360,
             "type_checking": false
           }
         ],
@@ -9870,7 +10009,7 @@
         "conditional": true,
         "imported": "PIL.PngImagePlugin:PngInfo",
         "kind": "static_from",
-        "line": 358,
+        "line": 361,
         "name": "PngInfo",
         "optional": false,
         "requested": "PIL.PngImagePlugin",
@@ -9887,7 +10026,7 @@
         "conditional": false,
         "imported": "numpy",
         "kind": "static_import",
-        "line": 407,
+        "line": 410,
         "name": null,
         "optional": false,
         "requested": "numpy",
@@ -9904,7 +10043,7 @@
         "conditional": false,
         "imported": "PIL:Image",
         "kind": "static_from",
-        "line": 408,
+        "line": 411,
         "name": "Image",
         "optional": false,
         "requested": "PIL",
@@ -12642,6 +12781,60 @@
       },
       {
         "alias": null,
+        "bound_name": "_comfy_metadata_enabled",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".native_image_output:_comfy_metadata_enabled",
+        "kind": "static_from",
+        "line": 14,
+        "name": "_comfy_metadata_enabled",
+        "optional": false,
+        "requested": ".native_image_output",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/preview.py",
+        "target": "easyuse_anima/aio/native_image_output.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "_serialize_metadata",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".native_image_output:_serialize_metadata",
+        "kind": "static_from",
+        "line": 14,
+        "name": "_serialize_metadata",
+        "optional": false,
+        "requested": ".native_image_output",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/preview.py",
+        "target": "easyuse_anima/aio/native_image_output.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "_validated_sidecar_requirement",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".native_image_output:_validated_sidecar_requirement",
+        "kind": "static_from",
+        "line": 14,
+        "name": "_validated_sidecar_requirement",
+        "optional": false,
+        "requested": ".native_image_output",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/preview.py",
+        "target": "easyuse_anima/aio/native_image_output.py"
+      },
+      {
+        "alias": null,
         "bound_name": "folder_paths",
         "branch_context": [
           {
@@ -12649,7 +12842,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 46
+            "line": 51
           }
         ],
         "classification": "external",
@@ -12657,7 +12850,7 @@
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 47,
+        "line": 52,
         "name": null,
         "optional": true,
         "requested": "folder_paths",
@@ -12674,7 +12867,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 108
+            "line": 113
           }
         ],
         "classification": "external",
@@ -12682,7 +12875,7 @@
         "conditional": true,
         "imported": "server:PromptServer",
         "kind": "static_from",
-        "line": 109,
+        "line": 114,
         "name": "PromptServer",
         "optional": true,
         "requested": "server",
@@ -12699,7 +12892,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 137
+            "line": 164
           }
         ],
         "classification": "external",
@@ -12707,7 +12900,7 @@
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 138,
+        "line": 165,
         "name": null,
         "optional": true,
         "requested": "folder_paths",
@@ -12724,7 +12917,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 137
+            "line": 164
           }
         ],
         "classification": "external",
@@ -12732,7 +12925,7 @@
         "conditional": true,
         "imported": "numpy",
         "kind": "static_import",
-        "line": 139,
+        "line": 166,
         "name": null,
         "optional": true,
         "requested": "numpy",
@@ -12749,7 +12942,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 137
+            "line": 164
           }
         ],
         "classification": "external",
@@ -12757,7 +12950,7 @@
         "conditional": true,
         "imported": "PIL:Image",
         "kind": "static_from",
-        "line": 140,
+        "line": 167,
         "name": "Image",
         "optional": true,
         "requested": "PIL",
@@ -24298,23 +24491,6 @@
       },
       {
         "alias": null,
-        "bound_name": "os",
-        "branch_context": [],
-        "classification": "external",
-        "column": 0,
-        "conditional": false,
-        "imported": "os",
-        "kind": "static_import",
-        "line": 5,
-        "name": null,
-        "optional": false,
-        "requested": "os",
-        "role": "ordinary",
-        "scope": "<module>",
-        "source": "easyuse_anima/nodes/lora_nodes.py"
-      },
-      {
-        "alias": null,
         "bound_name": "_stable_change_key",
         "branch_context": [],
         "classification": "internal",
@@ -24322,7 +24498,7 @@
         "conditional": false,
         "imported": "..common.serialization:_stable_change_key",
         "kind": "static_from",
-        "line": 7,
+        "line": 5,
         "name": "_stable_change_key",
         "optional": false,
         "requested": "..common.serialization",
@@ -24340,7 +24516,7 @@
         "conditional": false,
         "imported": "..common.values:_as_bool",
         "kind": "static_from",
-        "line": 8,
+        "line": 6,
         "name": "_as_bool",
         "optional": false,
         "requested": "..common.values",
@@ -24358,7 +24534,7 @@
         "conditional": false,
         "imported": "..lora.metadata:_apply_lora_syntax_format",
         "kind": "static_from",
-        "line": 9,
+        "line": 7,
         "name": "_apply_lora_syntax_format",
         "optional": false,
         "requested": "..lora.metadata",
@@ -24376,7 +24552,7 @@
         "conditional": false,
         "imported": "..lora.metadata:_get_lora_info",
         "kind": "static_from",
-        "line": 9,
+        "line": 7,
         "name": "_get_lora_info",
         "optional": false,
         "requested": "..lora.metadata",
@@ -24394,7 +24570,7 @@
         "conditional": false,
         "imported": "..lora.metadata:_lora_combo_values",
         "kind": "static_from",
-        "line": 9,
+        "line": 7,
         "name": "_lora_combo_values",
         "optional": false,
         "requested": "..lora.metadata",
@@ -24412,7 +24588,7 @@
         "conditional": false,
         "imported": "..lora.metadata:_lora_model_exists",
         "kind": "static_from",
-        "line": 9,
+        "line": 7,
         "name": "_lora_model_exists",
         "optional": false,
         "requested": "..lora.metadata",
@@ -24430,7 +24606,7 @@
         "conditional": false,
         "imported": "..lora.metadata:_lora_stack_name",
         "kind": "static_from",
-        "line": 9,
+        "line": 7,
         "name": "_lora_stack_name",
         "optional": false,
         "requested": "..lora.metadata",
@@ -24448,7 +24624,7 @@
         "conditional": false,
         "imported": "..lora.metadata:_missing_lora_display_name",
         "kind": "static_from",
-        "line": 9,
+        "line": 7,
         "name": "_missing_lora_display_name",
         "optional": false,
         "requested": "..lora.metadata",
@@ -24466,7 +24642,7 @@
         "conditional": false,
         "imported": "..lora.metadata:_raise_missing_loras",
         "kind": "static_from",
-        "line": 9,
+        "line": 7,
         "name": "_raise_missing_loras",
         "optional": false,
         "requested": "..lora.metadata",
@@ -24484,7 +24660,7 @@
         "conditional": false,
         "imported": "..lora.preset:_correct_style_prompt",
         "kind": "static_from",
-        "line": 18,
+        "line": 16,
         "name": "_correct_style_prompt",
         "optional": false,
         "requested": "..lora.preset",
@@ -24502,7 +24678,7 @@
         "conditional": false,
         "imported": "..lora.preset:_format_strength",
         "kind": "static_from",
-        "line": 18,
+        "line": 16,
         "name": "_format_strength",
         "optional": false,
         "requested": "..lora.preset",
@@ -24520,7 +24696,7 @@
         "conditional": false,
         "imported": "..lora.preset:_select_profile_values",
         "kind": "static_from",
-        "line": 18,
+        "line": 16,
         "name": "_select_profile_values",
         "optional": false,
         "requested": "..lora.preset",
@@ -24538,7 +24714,7 @@
         "conditional": false,
         "imported": ".input_types:_ANY_TYPE",
         "kind": "static_from",
-        "line": 19,
+        "line": 17,
         "name": "_ANY_TYPE",
         "optional": false,
         "requested": ".input_types",
@@ -24556,7 +24732,7 @@
         "conditional": false,
         "imported": ".input_types:_FlexibleOptionalInputType",
         "kind": "static_from",
-        "line": 19,
+        "line": 17,
         "name": "_FlexibleOptionalInputType",
         "optional": false,
         "requested": ".input_types",
@@ -44470,6 +44646,10 @@
         "to": "easyuse_anima/prompt/data.py"
       },
       {
+        "from": "easyuse_anima/aio/execution_metadata.py",
+        "to": "easyuse_anima/common/values.py"
+      },
+      {
         "from": "easyuse_anima/aio/first_pass_cache.py",
         "to": "easyuse_anima/aio/generation_migrations.py"
       },
@@ -44648,6 +44828,10 @@
       {
         "from": "easyuse_anima/aio/generation_sampling.py",
         "to": "easyuse_anima/aio/generation_values.py"
+      },
+      {
+        "from": "easyuse_anima/aio/generation_save_output_stage.py",
+        "to": "easyuse_anima/aio/execution_metadata.py"
       },
       {
         "from": "easyuse_anima/aio/generation_save_output_stage.py",
@@ -44891,6 +45075,10 @@
       },
       {
         "from": "easyuse_anima/aio/native_image_output.py",
+        "to": "easyuse_anima/aio/execution_metadata.py"
+      },
+      {
+        "from": "easyuse_anima/aio/native_image_output.py",
         "to": "easyuse_anima/aio/native_civitai.py"
       },
       {
@@ -44976,6 +45164,10 @@
       {
         "from": "easyuse_anima/aio/postprocess.py",
         "to": "easyuse_anima/naia/client.py"
+      },
+      {
+        "from": "easyuse_anima/aio/preview.py",
+        "to": "easyuse_anima/aio/native_image_output.py"
       },
       {
         "from": "easyuse_anima/aio/preview.py",
@@ -46754,6 +46946,12 @@
       {
         "cyclic": false,
         "modules": [
+          "easyuse_anima/aio/execution_metadata.py"
+        ]
+      },
+      {
+        "cyclic": false,
+        "modules": [
           "easyuse_anima/aio/first_pass_cache.py"
         ]
       },
@@ -47924,7 +48122,7 @@
     ]
   },
   "inventory": {
-    "module_count": 201,
+    "module_count": 202,
     "modules": [
       {
         "functions": [
@@ -48026,6 +48224,124 @@
           "class_count": 0,
           "function_count": 5,
           "global_count": 1
+        }
+      },
+      {
+        "functions": [
+          {
+            "async": false,
+            "end_line": 18,
+            "kind": "function",
+            "line": 17,
+            "loc": 2,
+            "qualified_name": "_settings_json"
+          },
+          {
+            "async": false,
+            "end_line": 29,
+            "kind": "function",
+            "line": 21,
+            "loc": 9,
+            "qualified_name": "_update_prompt_snapshot"
+          },
+          {
+            "async": false,
+            "end_line": 35,
+            "kind": "function",
+            "line": 32,
+            "loc": 4,
+            "qualified_name": "_prompt_settings_input"
+          },
+          {
+            "async": false,
+            "end_line": 44,
+            "kind": "function",
+            "line": 38,
+            "loc": 7,
+            "qualified_name": "_parsed_settings_input"
+          },
+          {
+            "async": false,
+            "end_line": 54,
+            "kind": "function",
+            "line": 47,
+            "loc": 8,
+            "qualified_name": "_source_input_fingerprint"
+          },
+          {
+            "async": false,
+            "end_line": 63,
+            "kind": "function",
+            "line": 57,
+            "loc": 7,
+            "qualified_name": "_record_matches_prompt"
+          },
+          {
+            "async": false,
+            "end_line": 71,
+            "kind": "function",
+            "line": 66,
+            "loc": 6,
+            "qualified_name": "_workflow"
+          },
+          {
+            "async": false,
+            "end_line": 116,
+            "kind": "function",
+            "line": 74,
+            "loc": 43,
+            "qualified_name": "_workflow_metadata_target"
+          },
+          {
+            "async": false,
+            "end_line": 124,
+            "kind": "function",
+            "line": 119,
+            "loc": 6,
+            "qualified_name": "_link_details"
+          },
+          {
+            "async": false,
+            "end_line": 167,
+            "kind": "function",
+            "line": 127,
+            "loc": 41,
+            "qualified_name": "_freeze_connected_settings"
+          },
+          {
+            "async": false,
+            "end_line": 198,
+            "kind": "function",
+            "line": 170,
+            "loc": 29,
+            "qualified_name": "_record_matches_workflow"
+          },
+          {
+            "async": false,
+            "end_line": 226,
+            "kind": "function",
+            "line": 201,
+            "loc": 26,
+            "qualified_name": "snapshot_aio_prompt"
+          },
+          {
+            "async": false,
+            "end_line": 275,
+            "kind": "function",
+            "line": 229,
+            "loc": 47,
+            "qualified_name": "snapshot_aio_execution_metadata"
+          }
+        ],
+        "is_package": false,
+        "loc": 278,
+        "module": "easyuse_anima.aio.execution_metadata",
+        "normalized_git_blob_sha1": "242e1536ae91b7f5f71d8240623952873eaef55b",
+        "path": "easyuse_anima/aio/execution_metadata.py",
+        "top_level": {
+          "class_count": 0,
+          "function_count": 13,
+          "global_count": 4
         }
       },
       {
@@ -48677,17 +48993,17 @@
           },
           {
             "async": false,
-            "end_line": 153,
+            "end_line": 155,
             "kind": "method",
             "line": 79,
-            "loc": 75,
+            "loc": 77,
             "qualified_name": "AIOFirstPassStage.run"
           }
         ],
         "is_package": false,
-        "loc": 156,
+        "loc": 158,
         "module": "easyuse_anima.aio.generation_first_pass",
-        "normalized_git_blob_sha1": "1ecbb56234a9eb7423076a5951b0da10bbae4d3a",
+        "normalized_git_blob_sha1": "da3852f775ecb0ae690eae98b252d22210f47d60",
         "path": "easyuse_anima/aio/generation_first_pass.py",
         "top_level": {
           "class_count": 2,
@@ -49565,25 +49881,33 @@
         "functions": [
           {
             "async": false,
-            "end_line": 48,
+            "end_line": 49,
             "kind": "method",
-            "line": 39,
+            "line": 40,
             "loc": 10,
             "qualified_name": "AIOSaveOutputStage.validate"
           },
           {
             "async": false,
-            "end_line": 187,
+            "end_line": 179,
             "kind": "method",
-            "line": 50,
-            "loc": 138,
+            "line": 51,
+            "loc": 129,
             "qualified_name": "AIOSaveOutputStage.run"
+          },
+          {
+            "async": false,
+            "end_line": 199,
+            "kind": "method",
+            "line": 181,
+            "loc": 19,
+            "qualified_name": "AIOSaveOutputStage._execution_metadata"
           }
         ],
         "is_package": false,
-        "loc": 190,
+        "loc": 202,
         "module": "easyuse_anima.aio.generation_save_output_stage",
-        "normalized_git_blob_sha1": "609b57b7602e65180d089a61bb2d893c5f8554da",
+        "normalized_git_blob_sha1": "97ce472212853d03e7bb2371c0af93427937f3a2",
         "path": "easyuse_anima/aio/generation_save_output_stage.py",
         "top_level": {
           "class_count": 2,
@@ -50759,177 +51083,177 @@
         "functions": [
           {
             "async": false,
-            "end_line": 100,
+            "end_line": 101,
             "kind": "function",
-            "line": 94,
+            "line": 95,
             "loc": 7,
             "qualified_name": "_compact_json"
           },
           {
             "async": false,
-            "end_line": 110,
+            "end_line": 111,
             "kind": "function",
-            "line": 103,
+            "line": 104,
             "loc": 8,
             "qualified_name": "_clean_prompt_for_remix"
           },
           {
             "async": false,
-            "end_line": 108,
+            "end_line": 109,
             "kind": "function",
-            "line": 106,
+            "line": 107,
             "loc": 3,
             "qualified_name": "_clean_prompt_for_remix.simplify_embedding"
           },
           {
             "async": false,
-            "end_line": 123,
+            "end_line": 124,
             "kind": "function",
-            "line": 113,
+            "line": 114,
             "loc": 11,
             "qualified_name": "_civitai_sampler_name"
           },
           {
             "async": false,
-            "end_line": 181,
+            "end_line": 182,
             "kind": "function",
-            "line": 126,
+            "line": 127,
             "loc": 56,
             "qualified_name": "_civitai_resource_entries"
           },
           {
             "async": false,
-            "end_line": 300,
+            "end_line": 301,
             "kind": "function",
-            "line": 184,
+            "line": 185,
             "loc": 117,
             "qualified_name": "_build_native_metadata"
           },
           {
             "async": false,
-            "end_line": 309,
+            "end_line": 310,
             "kind": "function",
-            "line": 303,
+            "line": 304,
             "loc": 7,
             "qualified_name": "_comfy_metadata_enabled"
           },
           {
             "async": false,
-            "end_line": 313,
+            "end_line": 314,
             "kind": "function",
-            "line": 312,
+            "line": 313,
             "loc": 2,
             "qualified_name": "_encode_user_comment"
           },
           {
             "async": false,
-            "end_line": 333,
+            "end_line": 334,
             "kind": "function",
-            "line": 316,
+            "line": 317,
             "loc": 18,
             "qualified_name": "_build_exif_bytes"
           },
           {
             "async": false,
-            "end_line": 403,
+            "end_line": 406,
             "kind": "function",
-            "line": 336,
-            "loc": 68,
+            "line": 337,
+            "loc": 70,
             "qualified_name": "_serialize_metadata"
           },
           {
             "async": false,
-            "end_line": 425,
+            "end_line": 428,
             "kind": "function",
-            "line": 406,
+            "line": 409,
             "loc": 20,
             "qualified_name": "_tensor_to_pil"
           },
           {
             "async": false,
-            "end_line": 438,
+            "end_line": 441,
             "kind": "function",
-            "line": 428,
+            "line": 431,
             "loc": 11,
             "qualified_name": "_is_windows_safe_output_component"
           },
           {
             "async": false,
-            "end_line": 450,
+            "end_line": 453,
             "kind": "function",
-            "line": 441,
+            "line": 444,
             "loc": 10,
             "qualified_name": "_sanitize_native_output_filename"
           },
           {
             "async": false,
-            "end_line": 498,
+            "end_line": 501,
             "kind": "function",
-            "line": 453,
+            "line": 456,
             "loc": 46,
             "qualified_name": "_allocate_filenames"
           },
           {
             "async": false,
-            "end_line": 466,
+            "end_line": 469,
             "kind": "function",
-            "line": 462,
+            "line": 465,
             "loc": 5,
             "qualified_name": "_allocate_filenames.occupied"
           },
           {
             "async": false,
-            "end_line": 522,
+            "end_line": 525,
             "kind": "function",
-            "line": 501,
+            "line": 504,
             "loc": 22,
             "qualified_name": "_native_output_path_parts"
           },
           {
             "async": false,
-            "end_line": 534,
+            "end_line": 537,
             "kind": "function",
-            "line": 525,
+            "line": 528,
             "loc": 10,
             "qualified_name": "_resolve_native_output_folder"
           },
           {
             "async": false,
-            "end_line": 559,
+            "end_line": 562,
             "kind": "function",
-            "line": 537,
+            "line": 540,
             "loc": 23,
             "qualified_name": "_bound_native_output_directory"
           },
           {
             "async": false,
-            "end_line": 582,
+            "end_line": 585,
             "kind": "function",
-            "line": 562,
+            "line": 565,
             "loc": 21,
             "qualified_name": "_image_save_options"
           },
           {
             "async": false,
-            "end_line": 597,
+            "end_line": 600,
             "kind": "function",
-            "line": 585,
+            "line": 588,
             "loc": 13,
             "qualified_name": "_validated_sidecar_requirement"
           },
           {
             "async": false,
-            "end_line": 719,
+            "end_line": 722,
             "kind": "function",
-            "line": 600,
+            "line": 603,
             "loc": 120,
             "qualified_name": "_save_native_images"
           }
         ],
         "is_package": false,
-        "loc": 722,
+        "loc": 725,
         "module": "easyuse_anima.aio.native_image_output",
-        "normalized_git_blob_sha1": "88c939725262d6c39a329418b9424e167e37c167",
+        "normalized_git_blob_sha1": "8807f577725d2724c734cc03b6fc68c89e5e7772",
         "path": "easyuse_anima/aio/native_image_output.py",
         "top_level": {
           "class_count": 2,
@@ -52149,7 +52473,7 @@
         "is_package": false,
         "loc": 799,
         "module": "easyuse_anima.aio.output",
-        "normalized_git_blob_sha1": "bc32a08be80dacafd65ff38baddc1d22eb1d0fa4",
+        "normalized_git_blob_sha1": "ab61ef9afcab5163f2dc8c6a16b0a8fe5914e5d9",
         "path": "easyuse_anima/aio/output.py",
         "top_level": {
           "class_count": 1,
@@ -52299,69 +52623,77 @@
         "functions": [
           {
             "async": false,
-            "end_line": 34,
+            "end_line": 39,
             "kind": "function",
-            "line": 31,
+            "line": 36,
             "loc": 4,
             "qualified_name": "_missing_host_helper"
           },
           {
             "async": false,
-            "end_line": 42,
+            "end_line": 47,
             "kind": "function",
-            "line": 37,
+            "line": 42,
             "loc": 6,
             "qualified_name": "_find_comfy_node_class"
           },
           {
             "async": false,
-            "end_line": 55,
+            "end_line": 60,
             "kind": "function",
-            "line": 45,
+            "line": 50,
             "loc": 11,
             "qualified_name": "_aio_preview_base_directory"
           },
           {
             "async": false,
-            "end_line": 70,
+            "end_line": 75,
             "kind": "function",
-            "line": 58,
+            "line": 63,
             "loc": 13,
             "qualified_name": "_aio_preview_file_size_bytes"
           },
           {
             "async": false,
-            "end_line": 96,
+            "end_line": 101,
             "kind": "function",
-            "line": 73,
+            "line": 78,
             "loc": 24,
             "qualified_name": "_tag_aio_preview_images"
           },
           {
             "async": false,
-            "end_line": 126,
+            "end_line": 131,
             "kind": "function",
-            "line": 99,
+            "line": 104,
             "loc": 28,
             "qualified_name": "_send_aio_preview_event"
           },
           {
             "async": false,
-            "end_line": 233,
+            "end_line": 145,
             "kind": "function",
-            "line": 129,
-            "loc": 105,
+            "line": 134,
+            "loc": 12,
+            "qualified_name": "_final_preview_metadata_options"
+          },
+          {
+            "async": false,
+            "end_line": 261,
+            "kind": "function",
+            "line": 148,
+            "loc": 114,
             "qualified_name": "_save_aio_temp_preview_image"
           }
         ],
         "is_package": false,
-        "loc": 236,
+        "loc": 264,
         "module": "easyuse_anima.aio.preview",
-        "normalized_git_blob_sha1": "d0ca10ee0a6b34a64941711899e1534a3b60bb34",
+        "normalized_git_blob_sha1": "e5fe36f8c3643f1d9d8cbe3cfdd374800ddb3f49",
         "path": "easyuse_anima/aio/preview.py",
         "top_level": {
           "class_count": 0,
-          "function_count": 7,
+          "function_count": 8,
           "global_count": 6
         }
       },
@@ -57615,33 +57947,33 @@
         "functions": [
           {
             "async": false,
-            "end_line": 73,
+            "end_line": 71,
             "kind": "method",
-            "line": 37,
+            "line": 35,
             "loc": 37,
             "qualified_name": "EasyUseAnimaLoraPreset.INPUT_TYPES"
           },
           {
             "async": false,
-            "end_line": 85,
+            "end_line": 83,
             "kind": "method",
-            "line": 80,
+            "line": 78,
             "loc": 6,
             "qualified_name": "EasyUseAnimaLoraPreset.IS_CHANGED"
           },
           {
             "async": false,
-            "end_line": 182,
+            "end_line": 179,
             "kind": "method",
-            "line": 87,
-            "loc": 96,
+            "line": 85,
+            "loc": 95,
             "qualified_name": "EasyUseAnimaLoraPreset.build"
           }
         ],
         "is_package": false,
-        "loc": 185,
+        "loc": 182,
         "module": "easyuse_anima.nodes.lora_nodes",
-        "normalized_git_blob_sha1": "66ff2418a84f1c3dcb9697aa9743567c05a332a3",
+        "normalized_git_blob_sha1": "0b399fa8e63f162aea2c275971b0a9a092ed046f",
         "path": "easyuse_anima/nodes/lora_nodes.py",
         "top_level": {
           "class_count": 1,
@@ -63152,6 +63484,61 @@
         "line": 3,
         "optional": false,
         "role": "ordinary",
+        "source": "easyuse_anima/aio/execution_metadata.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "copy",
+        "kind": "static_import",
+        "line": 5,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/execution_metadata.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "hashlib",
+        "kind": "static_import",
+        "line": 6,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/execution_metadata.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "json",
+        "kind": "static_import",
+        "line": 7,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/execution_metadata.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "typing:Any",
+        "kind": "static_from",
+        "line": 8,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/execution_metadata.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "__future__:annotations",
+        "kind": "static_from",
+        "line": 3,
+        "optional": false,
+        "role": "ordinary",
         "source": "easyuse_anima/aio/first_pass_cache.py"
       },
       {
@@ -65072,14 +65459,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 304
+            "line": 305
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "comfy.cli_args:args",
         "kind": "static_from",
-        "line": 305,
+        "line": 306,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/aio/native_image_output.py"
@@ -65090,7 +65477,7 @@
         "conditional": false,
         "imported": "PIL:ExifTags",
         "kind": "static_from",
-        "line": 321,
+        "line": 322,
         "optional": false,
         "role": "ordinary",
         "source": "easyuse_anima/aio/native_image_output.py"
@@ -65101,7 +65488,7 @@
         "conditional": false,
         "imported": "PIL:Image",
         "kind": "static_from",
-        "line": 321,
+        "line": 322,
         "optional": false,
         "role": "ordinary",
         "source": "easyuse_anima/aio/native_image_output.py"
@@ -65111,7 +65498,7 @@
           {
             "branch": "body",
             "kind": "if",
-            "line": 357,
+            "line": 360,
             "type_checking": false
           }
         ],
@@ -65119,7 +65506,7 @@
         "conditional": true,
         "imported": "PIL.PngImagePlugin:PngInfo",
         "kind": "static_from",
-        "line": 358,
+        "line": 361,
         "optional": false,
         "role": "ordinary",
         "source": "easyuse_anima/aio/native_image_output.py"
@@ -65130,7 +65517,7 @@
         "conditional": false,
         "imported": "numpy",
         "kind": "static_import",
-        "line": 407,
+        "line": 410,
         "optional": false,
         "role": "ordinary",
         "source": "easyuse_anima/aio/native_image_output.py"
@@ -65141,7 +65528,7 @@
         "conditional": false,
         "imported": "PIL:Image",
         "kind": "static_from",
-        "line": 408,
+        "line": 411,
         "optional": false,
         "role": "ordinary",
         "source": "easyuse_anima/aio/native_image_output.py"
@@ -66495,14 +66882,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 46
+            "line": 51
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 47,
+        "line": 52,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/aio/preview.py"
@@ -66514,14 +66901,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 108
+            "line": 113
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "server:PromptServer",
         "kind": "static_from",
-        "line": 109,
+        "line": 114,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/aio/preview.py"
@@ -66533,14 +66920,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 137
+            "line": 164
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 138,
+        "line": 165,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/aio/preview.py"
@@ -66552,14 +66939,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 137
+            "line": 164
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "numpy",
         "kind": "static_import",
-        "line": 139,
+        "line": 166,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/aio/preview.py"
@@ -66571,14 +66958,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 137
+            "line": 164
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "PIL:Image",
         "kind": "static_from",
-        "line": 140,
+        "line": 167,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/aio/preview.py"
@@ -69844,17 +70231,6 @@
         "branch_context": [],
         "classification": "external",
         "conditional": false,
-        "imported": "os",
-        "kind": "static_import",
-        "line": 5,
-        "optional": false,
-        "role": "ordinary",
-        "source": "easyuse_anima/nodes/lora_nodes.py"
-      },
-      {
-        "branch_context": [],
-        "classification": "external",
-        "conditional": false,
         "imported": "__future__:annotations",
         "kind": "static_from",
         "line": 3,
@@ -73007,14 +73383,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 304
+            "line": 305
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "comfy.cli_args:args",
         "kind": "static_from",
-        "line": 305,
+        "line": 306,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/aio/native_image_output.py"
@@ -73235,14 +73611,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 46
+            "line": 51
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 47,
+        "line": 52,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/aio/preview.py"
@@ -73254,14 +73630,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 108
+            "line": 113
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "server:PromptServer",
         "kind": "static_from",
-        "line": 109,
+        "line": 114,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/aio/preview.py"
@@ -73273,14 +73649,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 137
+            "line": 164
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 138,
+        "line": 165,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/aio/preview.py"
@@ -73292,14 +73668,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 137
+            "line": 164
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "numpy",
         "kind": "static_import",
-        "line": 139,
+        "line": 166,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/aio/preview.py"
@@ -73311,14 +73687,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 137
+            "line": 164
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "PIL:Image",
         "kind": "static_from",
-        "line": 140,
+        "line": 167,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/aio/preview.py"
@@ -74172,6 +74548,7 @@
       "easyuse_anima/__init__.py",
       "easyuse_anima/aio/__init__.py",
       "easyuse_anima/aio/conditioning.py",
+      "easyuse_anima/aio/execution_metadata.py",
       "easyuse_anima/aio/first_pass_cache.py",
       "easyuse_anima/aio/generation_defaults.py",
       "easyuse_anima/aio/generation_detailer.py",
@@ -74373,6 +74750,7 @@
       "easyuse_anima/__init__.py",
       "easyuse_anima/aio/__init__.py",
       "easyuse_anima/aio/conditioning.py",
+      "easyuse_anima/aio/execution_metadata.py",
       "easyuse_anima/aio/first_pass_cache.py",
       "easyuse_anima/aio/generation_defaults.py",
       "easyuse_anima/aio/generation_detailer.py",
@@ -74595,6 +74973,15 @@
         "kind": "import_time_call",
         "line": 42,
         "module": "__init__.py",
+        "scope": "<module>"
+      },
+      {
+        "callee": "object",
+        "column": 17,
+        "context": "assign:_MISSING_INPUT",
+        "kind": "import_time_call",
+        "line": 14,
+        "module": "easyuse_anima/aio/execution_metadata.py",
         "scope": "<module>"
       },
       {
@@ -75250,7 +75637,7 @@
         "column": 1,
         "context": "decorator:SaveOutputRuntime",
         "kind": "import_time_call",
-        "line": 20,
+        "line": 21,
         "module": "easyuse_anima/aio/generation_save_output_stage.py",
         "scope": "<module>"
       },
@@ -75259,7 +75646,7 @@
         "column": 1,
         "context": "decorator:AIOSaveOutputStage",
         "kind": "import_time_call",
-        "line": 30,
+        "line": 31,
         "module": "easyuse_anima/aio/generation_save_output_stage.py",
         "scope": "<module>"
       },
@@ -75268,7 +75655,7 @@
         "column": 36,
         "context": "assign:output",
         "kind": "import_time_call",
-        "line": 35,
+        "line": 36,
         "module": "easyuse_anima/aio/generation_save_output_stage.py",
         "scope": "AIOSaveOutputStage"
       },
@@ -75718,7 +76105,7 @@
         "column": 9,
         "context": "assign:logger",
         "kind": "import_time_call",
-        "line": 50,
+        "line": 51,
         "module": "easyuse_anima/aio/native_image_output.py",
         "scope": "<module>"
       },
@@ -75727,7 +76114,7 @@
         "column": 15,
         "context": "assign:_LORA_TAG_RE",
         "kind": "import_time_call",
-        "line": 55,
+        "line": 56,
         "module": "easyuse_anima/aio/native_image_output.py",
         "scope": "<module>"
       },
@@ -75736,7 +76123,7 @@
         "column": 14,
         "context": "assign:_CONTROL_RE",
         "kind": "import_time_call",
-        "line": 56,
+        "line": 57,
         "module": "easyuse_anima/aio/native_image_output.py",
         "scope": "<module>"
       },
@@ -75745,7 +76132,7 @@
         "column": 32,
         "context": "assign:_WINDOWS_INVALID_COMPONENT_RE",
         "kind": "import_time_call",
-        "line": 57,
+        "line": 58,
         "module": "easyuse_anima/aio/native_image_output.py",
         "scope": "<module>"
       },
@@ -75754,16 +76141,7 @@
         "column": 31,
         "context": "assign:_WINDOWS_RESERVED_COMPONENTS",
         "kind": "import_time_call",
-        "line": 58,
-        "module": "easyuse_anima/aio/native_image_output.py",
-        "scope": "<module>"
-      },
-      {
-        "callee": "range",
-        "column": 36,
-        "context": "assign:_WINDOWS_RESERVED_COMPONENTS",
-        "kind": "import_time_call",
-        "line": 60,
+        "line": 59,
         "module": "easyuse_anima/aio/native_image_output.py",
         "scope": "<module>"
       },
@@ -75777,11 +76155,20 @@
         "scope": "<module>"
       },
       {
+        "callee": "range",
+        "column": 36,
+        "context": "assign:_WINDOWS_RESERVED_COMPONENTS",
+        "kind": "import_time_call",
+        "line": 62,
+        "module": "easyuse_anima/aio/native_image_output.py",
+        "scope": "<module>"
+      },
+      {
         "callee": "threading.Lock",
         "column": 13,
         "context": "assign:_SAVE_LOCK",
         "kind": "import_time_call",
-        "line": 63,
+        "line": 64,
         "module": "easyuse_anima/aio/native_image_output.py",
         "scope": "<module>"
       },
@@ -75790,7 +76177,7 @@
         "column": 25,
         "context": "assign:_CIVITAI_SAMPLER_NAMES",
         "kind": "import_time_call",
-        "line": 65,
+        "line": 66,
         "module": "easyuse_anima/aio/native_image_output.py",
         "scope": "<module>"
       },
@@ -75799,7 +76186,7 @@
         "column": 1,
         "context": "decorator:NativeImageMetadata",
         "kind": "import_time_call",
-        "line": 77,
+        "line": 78,
         "module": "easyuse_anima/aio/native_image_output.py",
         "scope": "<module>"
       },
@@ -75808,7 +76195,7 @@
         "column": 1,
         "context": "decorator:_SerializedMetadata",
         "kind": "import_time_call",
-        "line": 84,
+        "line": 85,
         "module": "easyuse_anima/aio/native_image_output.py",
         "scope": "<module>"
       },
@@ -76141,7 +76528,7 @@
         "column": 9,
         "context": "assign:logger",
         "kind": "import_time_call",
-        "line": 28,
+        "line": 33,
         "module": "easyuse_anima/aio/preview.py",
         "scope": "<module>"
       },
@@ -77498,7 +77885,7 @@
       },
       {
         "kind": "dict",
-        "line": 15,
+        "line": 20,
         "module": "easyuse_anima/aio/preview.py",
         "name": "AIO_PREVIEW_STAGE_LABELS"
       },
@@ -77824,7 +78211,7 @@
           "lock"
         ],
         "initializer": "threading.Lock",
-        "line": 63,
+        "line": 64,
         "module": "easyuse_anima/aio/native_image_output.py",
         "name": "_SAVE_LOCK"
       },

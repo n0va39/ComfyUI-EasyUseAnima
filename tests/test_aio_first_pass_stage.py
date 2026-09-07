@@ -76,6 +76,28 @@ def _unexpected(*_args, **_kwargs):
 
 
 class AIOFirstPassStageTests(unittest.TestCase):
+    def test_spd_records_the_effective_euler_sampler(self):
+        request = _request()
+        normalized = _normalize_aio_generation_settings(json.dumps({
+            "sampler": {"backend": "spectrum_spd_speed", "sampler_name": "er_sde", "seed": 123},
+        }))
+        request = replace(request, config=_aio_generation_config_from_dict(normalized))
+        observed = []
+        runtime = FirstPassRuntime(
+            get_cache=lambda _key: None,
+            put_cache=lambda *_args: None,
+            generate_empty_latent=lambda *_args: "latent",
+            sample_latent=lambda *_args: observed.append(_args[5]) or "sampled",
+            decode_latent=lambda *_args: "image",
+            resize_image=lambda image, *_args: (image, False),
+            encode_image=_unexpected,
+        )
+        state = GenerationState(None, None, 64, 96)
+        AIOFirstPassStage(runtime=runtime, cache_key="spd", use_mod_guidance=False).run(request, state)
+        self.assertEqual(observed[0]["sampler_name"], "euler")
+        self.assertEqual(observed[0], state.metadata["first_pass"]["sampler"])
+        self.assertEqual(request.config.sampler.to_dict()["sampler_name"], "er_sde")
+
     def test_hook_affected_first_pass_can_bypass_shared_cache(self):
         calls = []
         runtime = FirstPassRuntime(
@@ -133,16 +155,18 @@ class AIOFirstPassStageTests(unittest.TestCase):
             encode_image=_unexpected,
         )
 
+        state = GenerationState(latent=None, image=None, width=64, height=96)
         AIOFirstPassStage(
             runtime=runtime,
             cache_key="turbo-cache",
             use_mod_guidance=True,
         ).run(
             request,
-            GenerationState(latent=None, image=None, width=64, height=96),
+            state,
         )
 
         self.assertEqual(observed, [(1.0, "prompt_data", True)])
+        self.assertEqual(state.metadata["first_pass"]["sampler"]["cfg"], 1.0)
         self.assertEqual(request.config.sampler.to_dict()["cfg"], saved_cfg)
         self.assertEqual(
             request.config.mod_guidance.to_dict(),
@@ -227,7 +251,9 @@ class AIOFirstPassStageTests(unittest.TestCase):
         self.assertEqual(state.latent, "sampled-latent")
         self.assertEqual(state.image, "decoded-image")
         self.assertEqual((state.width, state.height), (64, 96))
-        self.assertEqual(state.metadata, {"first_pass": {"cache_hit": False}})
+        self.assertEqual(state.metadata, {"first_pass": {
+            "cache_hit": False, "sampler": request.config.sampler.to_dict(),
+        }})
         self.assertEqual(preview, [("first_pass", "decoded-image")])
 
     def test_cache_hit_is_no_sampling_path_and_does_not_republish(self):
@@ -269,7 +295,9 @@ class AIOFirstPassStageTests(unittest.TestCase):
         )
         self.assertEqual(state.latent, "cached-latent")
         self.assertEqual(state.image, "cached-image")
-        self.assertEqual(state.metadata, {"first_pass": {"cache_hit": True}})
+        self.assertEqual(state.metadata, {"first_pass": {
+            "cache_hit": True, "sampler": _request().config.sampler.to_dict(),
+        }})
 
     def test_resize_reencodes_and_cache_write_failure_remains_non_fatal(self):
         trace: list[str] = []
@@ -319,7 +347,9 @@ class AIOFirstPassStageTests(unittest.TestCase):
         )
         self.assertEqual(state.latent, "resized-latent")
         self.assertEqual(state.image, "resized-image")
-        self.assertEqual(state.metadata, {"first_pass": {"cache_hit": True}})
+        self.assertEqual(state.metadata, {"first_pass": {
+            "cache_hit": True, "sampler": _request().config.sampler.to_dict(),
+        }})
 
     def test_validation_rejects_unsupported_mode_before_runtime_calls(self):
         request = _request()

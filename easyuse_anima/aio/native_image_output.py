@@ -12,6 +12,7 @@ from dataclasses import dataclass
 from pathlib import Path, PurePosixPath, PureWindowsPath
 from types import MappingProxyType
 
+from .execution_metadata import snapshot_aio_prompt
 from .native_civitai import (
     CivitaiLookupBudget,
     CivitaiLookupBudgetExhausted,
@@ -343,6 +344,8 @@ def _serialize_metadata(
     save_workflow_as_json: bool,
     write_metadata: bool,
 ) -> _SerializedMetadata:
+    if write_metadata and (embed_workflow or save_workflow_as_json):
+        prompt = snapshot_aio_prompt(prompt, extra_pnginfo)
     if not write_metadata:
         return _SerializedMetadata(None, None, None, False, 0, 0)
 
