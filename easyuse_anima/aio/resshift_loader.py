@@ -136,7 +136,7 @@ def load_local_resshift_model(loader_class: Any, settings: dict[str, Any]) -> An
     incompatible = vqgan.load_state_dict(vqgan_state, strict=False)
     if incompatible.missing_keys:
         raise ValueError("[EasyUseAnima] ResShift VQGAN checkpoint is missing required weights.")
-    vqgan.to(device=offload_device, dtype=dtype).eval().requires_grad_(False)
+    vqgan.to(device=offload_device, dtype=dtype).train(False).requires_grad_(False)
     bundle = torch.nn.Module()
     bundle.add_module("student", student)
     bundle.add_module("vqgan", vqgan)

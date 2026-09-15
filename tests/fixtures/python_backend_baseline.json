@@ -54071,7 +54071,7 @@
         "is_package": false,
         "loc": 149,
         "module": "easyuse_anima.aio.resshift_loader",
-        "normalized_git_blob_sha1": "ff8dc0b1e463e64ebca662e8c7fedf7420b21d82",
+        "normalized_git_blob_sha1": "dc1cf46775b453a75e56f111327104614b95def5",
         "path": "easyuse_anima/aio/resshift_loader.py",
         "top_level": {
           "class_count": 0,
