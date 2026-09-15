@@ -26,9 +26,9 @@
     },
     {
       "path": "easyuse_anima/bootstrap.py",
-      "baseline_loc": 450,
+      "baseline_loc": 464,
       "owner_issue": 187,
-      "decomposition_boundary": "E-09 lifecycle lock, initialization, cleanup plan, rollback, and terminal shutdown remain one bootstrap owner."
+      "decomposition_boundary": "E-09 lifecycle lock, initialization, cleanup plan, rollback, and terminal shutdown remain one bootstrap owner. Issue #677 adds 14 lines for the single startup NAIA policy read and fail-closed handling; parsing and transport stay in the NAIA owner, while immutable RuntimeConfig installation stays here."
     },
     {
       "path": "easyuse_anima/infrastructure/filesystem/atomic_json.py",
