@@ -8897,6 +8897,24 @@
       },
       {
         "alias": null,
+        "bound_name": "load_local_resshift_model",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".resshift_loader:load_local_resshift_model",
+        "kind": "static_from",
+        "line": 6,
+        "name": "load_local_resshift_model",
+        "optional": false,
+        "requested": ".resshift_loader",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/legacy_upscale.py",
+        "target": "easyuse_anima/aio/resshift_loader.py"
+      },
+      {
+        "alias": null,
         "bound_name": "annotations",
         "branch_context": [],
         "classification": "external",
@@ -13682,6 +13700,193 @@
         "role": "optional_dependency",
         "scope": "_load_upscale_model_with_comfy",
         "source": "easyuse_anima/aio/resources.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "annotations",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "__future__:annotations",
+        "kind": "static_from",
+        "line": 7,
+        "name": "annotations",
+        "optional": false,
+        "requested": "__future__",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/resshift_loader.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "sys",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "sys",
+        "kind": "static_import",
+        "line": 9,
+        "name": null,
+        "optional": false,
+        "requested": "sys",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/resshift_loader.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "Path",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "pathlib:Path",
+        "kind": "static_from",
+        "line": 10,
+        "name": "Path",
+        "optional": false,
+        "requested": "pathlib",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/resshift_loader.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "PureWindowsPath",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "pathlib:PureWindowsPath",
+        "kind": "static_from",
+        "line": 10,
+        "name": "PureWindowsPath",
+        "optional": false,
+        "requested": "pathlib",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/resshift_loader.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "Any",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "typing:Any",
+        "kind": "static_from",
+        "line": 11,
+        "name": "Any",
+        "optional": false,
+        "requested": "typing",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/resshift_loader.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "folder_paths",
+        "branch_context": [],
+        "classification": "external",
+        "column": 4,
+        "conditional": false,
+        "imported": "folder_paths",
+        "kind": "static_import",
+        "line": 81,
+        "name": null,
+        "optional": false,
+        "requested": "folder_paths",
+        "role": "ordinary",
+        "scope": "load_local_resshift_model",
+        "source": "easyuse_anima/aio/resshift_loader.py"
+      },
+      {
+        "alias": "management",
+        "bound_name": "management",
+        "branch_context": [],
+        "classification": "external",
+        "column": 4,
+        "conditional": false,
+        "imported": "comfy.model_management",
+        "kind": "static_import",
+        "line": 108,
+        "name": null,
+        "optional": false,
+        "requested": "comfy.model_management",
+        "role": "ordinary",
+        "scope": "load_local_resshift_model",
+        "source": "easyuse_anima/aio/resshift_loader.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "torch",
+        "branch_context": [],
+        "classification": "external",
+        "column": 4,
+        "conditional": false,
+        "imported": "torch",
+        "kind": "static_import",
+        "line": 109,
+        "name": null,
+        "optional": false,
+        "requested": "torch",
+        "role": "ordinary",
+        "scope": "load_local_resshift_model",
+        "source": "easyuse_anima/aio/resshift_loader.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "ModelPatcher",
+        "branch_context": [],
+        "classification": "external",
+        "column": 4,
+        "conditional": false,
+        "imported": "comfy.model_patcher:ModelPatcher",
+        "kind": "static_from",
+        "line": 110,
+        "name": "ModelPatcher",
+        "optional": false,
+        "requested": "comfy.model_patcher",
+        "role": "ordinary",
+        "scope": "load_local_resshift_model",
+        "source": "easyuse_anima/aio/resshift_loader.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "load_torch_file",
+        "branch_context": [],
+        "classification": "external",
+        "column": 4,
+        "conditional": false,
+        "imported": "comfy.utils:load_torch_file",
+        "kind": "static_from",
+        "line": 111,
+        "name": "load_torch_file",
+        "optional": false,
+        "requested": "comfy.utils",
+        "role": "ordinary",
+        "scope": "load_local_resshift_model",
+        "source": "easyuse_anima/aio/resshift_loader.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "VQModelTorch",
+        "branch_context": [],
+        "classification": "external",
+        "column": 4,
+        "conditional": false,
+        "imported": "resshift.ldm.models.autoencoder:VQModelTorch",
+        "kind": "static_from",
+        "line": 112,
+        "name": "VQModelTorch",
+        "optional": false,
+        "requested": "resshift.ldm.models.autoencoder",
+        "role": "ordinary",
+        "scope": "load_local_resshift_model",
+        "source": "easyuse_anima/aio/resshift_loader.py"
       },
       {
         "alias": null,
@@ -45853,6 +46058,10 @@
         "to": "easyuse_anima/prompt/data.py"
       },
       {
+        "from": "easyuse_anima/aio/legacy_upscale.py",
+        "to": "easyuse_anima/aio/resshift_loader.py"
+      },
+      {
         "from": "easyuse_anima/aio/model_preparation.py",
         "to": "easyuse_anima/aio/generation_lifecycle.py"
       },
@@ -48085,6 +48294,12 @@
       {
         "cyclic": false,
         "modules": [
+          "easyuse_anima/aio/resshift_loader.py"
+        ]
+      },
+      {
+        "cyclic": false,
+        "modules": [
           "easyuse_anima/aio/sampling.py"
         ]
       },
@@ -49009,7 +49224,7 @@
     ]
   },
   "inventory": {
-    "module_count": 206,
+    "module_count": 207,
     "modules": [
       {
         "functions": [
@@ -51576,57 +51791,57 @@
           },
           {
             "async": false,
-            "end_line": 371,
+            "end_line": 372,
             "kind": "function",
             "line": 347,
-            "loc": 25,
+            "loc": 26,
             "qualified_name": "_run_aio_resshift_upscale_stage"
           },
           {
             "async": false,
-            "end_line": 408,
+            "end_line": 409,
             "kind": "function",
-            "line": 374,
+            "line": 375,
             "loc": 35,
             "qualified_name": "_run_aio_upscale_stage"
           },
           {
             "async": false,
-            "end_line": 433,
+            "end_line": 434,
             "kind": "function",
-            "line": 411,
+            "line": 412,
             "loc": 23,
             "qualified_name": "_run_aio_legacy_generation"
           },
           {
             "async": false,
-            "end_line": 453,
+            "end_line": 454,
             "kind": "function",
-            "line": 436,
+            "line": 437,
             "loc": 18,
             "qualified_name": "_run_aio_normalized_legacy_generation"
           },
           {
             "async": false,
-            "end_line": 830,
+            "end_line": 831,
             "kind": "function",
-            "line": 456,
+            "line": 457,
             "loc": 375,
             "qualified_name": "_run_aio_generation_pipeline"
           },
           {
             "async": false,
-            "end_line": 597,
+            "end_line": 598,
             "kind": "function",
-            "line": 574,
+            "line": 575,
             "loc": 24,
             "qualified_name": "_run_aio_generation_pipeline.variants_for"
           }
         ],
         "is_package": false,
-        "loc": 833,
+        "loc": 834,
         "module": "easyuse_anima.aio.legacy_generation",
-        "normalized_git_blob_sha1": "0873162191ffa54e86033f9082dac6ab65d151b1",
+        "normalized_git_blob_sha1": "3954ee756f392ba86f3e028618e234bea8ddb290",
         "path": "easyuse_anima/aio/legacy_generation.py",
         "top_level": {
           "class_count": 0,
@@ -51638,41 +51853,41 @@
         "functions": [
           {
             "async": false,
-            "end_line": 20,
+            "end_line": 22,
             "kind": "function",
-            "line": 7,
+            "line": 9,
             "loc": 14,
             "qualified_name": "_usdu_flash_attention_error"
           },
           {
             "async": false,
-            "end_line": 182,
+            "end_line": 184,
             "kind": "function",
-            "line": 23,
+            "line": 25,
             "loc": 160,
             "qualified_name": "run_aio_usdu_upscale_stage"
           },
           {
             "async": false,
-            "end_line": 220,
+            "end_line": 235,
             "kind": "function",
-            "line": 185,
-            "loc": 36,
+            "line": 187,
+            "loc": 49,
             "qualified_name": "run_aio_resshift_upscale_stage"
           },
           {
             "async": false,
-            "end_line": 278,
+            "end_line": 293,
             "kind": "function",
-            "line": 223,
+            "line": 238,
             "loc": 56,
             "qualified_name": "run_aio_upscale_stage"
           }
         ],
         "is_package": false,
-        "loc": 281,
+        "loc": 296,
         "module": "easyuse_anima.aio.legacy_upscale",
-        "normalized_git_blob_sha1": "e1c57bbb96541c9a42e516395ab4bf252fba141c",
+        "normalized_git_blob_sha1": "88728df158196831417c16ce48ad8a949d111d15",
         "path": "easyuse_anima/aio/legacy_upscale.py",
         "top_level": {
           "class_count": 0,
@@ -53816,6 +54031,52 @@
           "class_count": 0,
           "function_count": 17,
           "global_count": 1
+        }
+      },
+      {
+        "functions": [
+          {
+            "async": false,
+            "end_line": 50,
+            "kind": "function",
+            "line": 21,
+            "loc": 30,
+            "qualified_name": "resolve_model_path"
+          },
+          {
+            "async": false,
+            "end_line": 59,
+            "kind": "function",
+            "line": 53,
+            "loc": 7,
+            "qualified_name": "_state_dict"
+          },
+          {
+            "async": false,
+            "end_line": 76,
+            "kind": "function",
+            "line": 62,
+            "loc": 15,
+            "qualified_name": "_student_data"
+          },
+          {
+            "async": false,
+            "end_line": 149,
+            "kind": "function",
+            "line": 79,
+            "loc": 71,
+            "qualified_name": "load_local_resshift_model"
+          }
+        ],
+        "is_package": false,
+        "loc": 149,
+        "module": "easyuse_anima.aio.resshift_loader",
+        "normalized_git_blob_sha1": "ff8dc0b1e463e64ebca662e8c7fedf7420b21d82",
+        "path": "easyuse_anima/aio/resshift_loader.py",
+        "top_level": {
+          "class_count": 0,
+          "function_count": 4,
+          "global_count": 3
         }
       },
       {
@@ -68208,6 +68469,127 @@
         "conditional": false,
         "imported": "__future__:annotations",
         "kind": "static_from",
+        "line": 7,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/resshift_loader.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "sys",
+        "kind": "static_import",
+        "line": 9,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/resshift_loader.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "pathlib:Path",
+        "kind": "static_from",
+        "line": 10,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/resshift_loader.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "pathlib:PureWindowsPath",
+        "kind": "static_from",
+        "line": 10,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/resshift_loader.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "typing:Any",
+        "kind": "static_from",
+        "line": 11,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/resshift_loader.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "folder_paths",
+        "kind": "static_import",
+        "line": 81,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/resshift_loader.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "comfy.model_management",
+        "kind": "static_import",
+        "line": 108,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/resshift_loader.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "torch",
+        "kind": "static_import",
+        "line": 109,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/resshift_loader.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "comfy.model_patcher:ModelPatcher",
+        "kind": "static_from",
+        "line": 110,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/resshift_loader.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "comfy.utils:load_torch_file",
+        "kind": "static_from",
+        "line": 111,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/resshift_loader.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "resshift.ldm.models.autoencoder:VQModelTorch",
+        "kind": "static_from",
+        "line": 112,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/resshift_loader.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "__future__:annotations",
+        "kind": "static_from",
         "line": 3,
         "optional": false,
         "role": "ordinary",
@@ -75944,6 +76326,7 @@
       "easyuse_anima/aio/preview.py",
       "easyuse_anima/aio/prompt_lora.py",
       "easyuse_anima/aio/resources.py",
+      "easyuse_anima/aio/resshift_loader.py",
       "easyuse_anima/aio/sampling.py",
       "easyuse_anima/aio/torch_compile_diagnostics.py",
       "easyuse_anima/aio/torch_compile_recommendation.py",
@@ -76150,6 +76533,7 @@
       "easyuse_anima/aio/preview.py",
       "easyuse_anima/aio/prompt_lora.py",
       "easyuse_anima/aio/resources.py",
+      "easyuse_anima/aio/resshift_loader.py",
       "easyuse_anima/aio/sampling.py",
       "easyuse_anima/aio/torch_compile_diagnostics.py",
       "easyuse_anima/aio/torch_compile_recommendation.py",
@@ -79300,6 +79684,18 @@
         "line": 20,
         "module": "easyuse_anima/aio/preview.py",
         "name": "AIO_PREVIEW_STAGE_LABELS"
+      },
+      {
+        "kind": "set",
+        "line": 18,
+        "module": "easyuse_anima/aio/resshift_loader.py",
+        "name": "CHECKPOINT_EXTENSIONS"
+      },
+      {
+        "kind": "dict",
+        "line": 13,
+        "module": "easyuse_anima/aio/resshift_loader.py",
+        "name": "DEFAULT_STUDENTS"
       },
       {
         "kind": "list",

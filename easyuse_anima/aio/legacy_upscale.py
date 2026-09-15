@@ -3,6 +3,8 @@ from __future__ import annotations
 from collections.abc import Callable
 from typing import Any
 
+from .resshift_loader import load_local_resshift_model
+
 
 def _usdu_flash_attention_error(error: Exception) -> RuntimeError | None:
     message = str(error).strip()
@@ -197,27 +199,40 @@ def run_aio_resshift_upscale_stage(
     resolve_runtime_seed: Callable[..., int],
     as_int: Callable[..., int],
     image_tensor_size: Callable[..., tuple[int, int]],
+    cleanup_model: Callable[..., None],
 ) -> tuple[Any, dict[str, Any]]:
-    del (
-        image,
-        sampler_settings,
-        upscale_settings,
-        quality_tags,
-        quality_neg,
-        prompt_data,
-        exclude_positive_quality,
-        exclude_negative_quality,
-        require_custom_node_class,
-        node_output_tuple,
-        resolve_runtime_seed,
-        as_int,
-        image_tensor_size,
+    resshift_settings = upscale_settings.get("resshift", {})
+    if not isinstance(resshift_settings, dict):
+        resshift_settings = {}
+    loader_cls = require_custom_node_class(
+        "ResShiftLoader", "ComfyUI-Distilled-ResShift",
+        "Required for AiO Generator final Upscale > ResShift.",
     )
-    raise RuntimeError(
-        "[EasyUseAnima] AiO ResShift is disabled because the current optional "
-        "loader does not provide a safe checkpoint-loading boundary. Use USDU "
-        "for final upscale; safe re-enable work is tracked in GitHub issue #679."
+    upscale_cls = require_custom_node_class(
+        "ResShiftUpscale", "ComfyUI-Distilled-ResShift",
+        "Required for AiO Generator final Upscale > ResShift.",
     )
+    upscale = getattr(upscale_cls(), "upscale", None)
+    if not callable(upscale):
+        raise RuntimeError("[EasyUseAnima] ResShiftUpscale does not expose upscale().")
+    model = load_local_resshift_model(loader_cls, resshift_settings)
+    try:
+        values = node_output_tuple(upscale(
+            model, image, resolve_runtime_seed(sampler_settings.get("seed")),
+            as_int(resshift_settings.get("chop"), 512),
+            as_int(resshift_settings.get("overlap"), 64),
+            as_int(resshift_settings.get("tile_batch"), 4),
+        ))
+        if not values:
+            raise RuntimeError("[EasyUseAnima] ResShiftUpscale returned no IMAGE.")
+        output = values[0]
+        width, height = image_tensor_size(output, 0, 0)
+        return output, {
+            "enabled": True, "backend": "resshift", "width": int(width),
+            "height": int(height), "scale": str(resshift_settings.get("scale") or "x2"),
+        }
+    finally:
+        cleanup_model(model.patcher)
 
 
 def run_aio_upscale_stage(

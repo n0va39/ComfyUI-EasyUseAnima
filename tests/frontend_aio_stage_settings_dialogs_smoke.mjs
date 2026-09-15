@@ -711,4 +711,25 @@ function createFixture({
   );
 }
 
+{
+  const fixture = createFixture({
+    choiceOptions: { "resShiftLoader:student_name": ["(auto-download)", "student.safetensors"] },
+    deferLoads: true,
+    settings: { upscale: { backend: "resshift", resshift: { student_name: "(auto-download)" } } },
+  });
+  fixture.runtime.openUpscaleSettings(fixture.node);
+  const dialog = fixture.dialogs[0];
+  const student = control(dialog, "Student");
+  const assertDefault = () => {
+    assert.equal(student.value, "(auto-download)");
+    assert.equal(student.options.find((option) => option.value === "(auto-download)").textContent, "static:Installed default student");
+  };
+  assertDefault();
+  fixture.resolveLoads();
+  await flushPromises();
+  assertDefault();
+  action(dialog, "button.apply").emit("click");
+  assert.equal(JSON.parse(fixture.node.widgets[0].value).upscale.resshift.student_name, "(auto-download)");
+}
+
 console.log("AiO stage settings dialogs smoke passed.");
