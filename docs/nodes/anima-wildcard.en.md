@@ -22,6 +22,11 @@ ComfyUI/user/__easyuse_anima/wildcards/easyuse_anima_test.txt
 Existing user wildcard folders can be registered in ComfyUI Settings under the
 EasyUse Anima `Wildcard` section.
 
+YAML sources with cyclic references or excessive expansion are skipped individually.
+Limits per file are 64 levels, 65,536 traversal visits, 65,536 option references
+including parent aliases, and 8,388,608 accumulated output characters. Split
+large libraries into smaller files. Valid repeated options retain their selection weight.
+
 ## Syntax
 
 Common syntax:

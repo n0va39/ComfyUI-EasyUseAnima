@@ -10,7 +10,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 from tests.api_test_support import load_canonical_api_application
-from tests.test_api_contract import load_api_routes as load_canonical_api_routes
+from tests.test_api_contract import JsonRequest, load_api_routes as load_canonical_api_routes
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -24,20 +24,6 @@ def profile_tokens(profile: dict) -> dict:
 
 def load_api_module():
     return load_canonical_api_routes(register=False)[0]
-
-
-class JsonRequest:
-    def __init__(self, payload):
-        self.payload = payload
-        self.headers = {
-            "Content-Type": "application/json",
-            "Host": "127.0.0.1:8188",
-            "Origin": "http://127.0.0.1:8188",
-            "Sec-Fetch-Site": "same-origin",
-        }
-
-    async def json(self):
-        return self.payload
 
 
 def load_api_routes():
@@ -852,7 +838,7 @@ class AutocompleteApiRouteTests(unittest.TestCase):
             for raw_limit, expected_limit in (("51", 51), ("100", 100), ("bad", 51)):
                 with self.subTest(raw_limit=raw_limit):
                     response = asyncio.run(
-                        handler(types.SimpleNamespace(query={"q": "match", "limit": raw_limit}))
+                        handler(JsonRequest(query={"q": "match", "limit": raw_limit}))
                     )
                     self.assertEqual(response["status"], 200)
                     self.assertEqual(len(response["payload"]["results"]), expected_limit)

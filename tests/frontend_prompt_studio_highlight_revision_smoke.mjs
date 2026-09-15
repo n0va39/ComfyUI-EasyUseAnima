@@ -1,4 +1,5 @@
 import { readFileSync } from "node:fs";
+import { deepStrictEqual } from "node:assert/strict";
 
 const source = readFileSync(
   new URL("../web/js/prompt_studio/highlight_revision.js", import.meta.url),
@@ -105,7 +106,7 @@ for (const dependency of [
   advancedSource = advancedSource.replace(JSON.stringify(dependency), JSON.stringify(highlightFixtureUrl));
 }
 const advancedUrl = `data:text/javascript;base64,${Buffer.from(advancedSource).toString("base64")}`;
-const { scheduleAdvancedHighlights } = await import(advancedUrl);
+const { advancedHighlightState, scheduleAdvancedFieldHighlight, scheduleAdvancedHighlights } = await import(advancedUrl);
 
 const previousTextareaClass = globalThis.HTMLTextAreaElement;
 class MockTextarea {
@@ -118,7 +119,73 @@ class MockTextarea {
   }
 }
 globalThis.HTMLTextAreaElement = MockTextarea;
+const prototypeTargets = [Object.prototype, Object, Object.prototype.toString];
+const prototypeSnapshots = prototypeTargets.map((target) => Object.getOwnPropertyDescriptors(target));
+function assertPrototypesUnchanged() {
+  prototypeTargets.forEach((target, index) => {
+    deepStrictEqual(
+      Object.getOwnPropertyDescriptors(target),
+      prototypeSnapshots[index],
+      "Saved field IDs must not write highlight state onto shared JavaScript prototypes",
+    );
+  });
+}
+const flushClassification = () => new Promise((resolve) => setImmediate(resolve));
+
 try {
+  for (const id of ["__proto__", "constructor", "toString", "positive_general_1"]) {
+    const nodeA = { __easyuseAnimaAdvancedHighlightStates: {} };
+    const nodeB = {};
+    const fieldA = { id };
+    const fieldB = { id };
+    const textareaA = new MockTextarea();
+    const textareaB = new MockTextarea();
+    scheduleAdvancedFieldHighlight(nodeA, fieldA, textareaA);
+    scheduleAdvancedFieldHighlight(nodeB, fieldB, textareaB);
+    assertPrototypesUnchanged();
+    const stateA = advancedHighlightState(nodeA, fieldA);
+    const stateB = advancedHighlightState(nodeB, fieldB);
+    assert(stateA !== stateB && stateA.tokens !== stateB.tokens, "Each node must own its field state");
+    assert(fieldA.id === id && fieldB.id === id, "Saved field IDs must remain unchanged");
+    assert(
+      Object.hasOwn(nodeA.__easyuseAnimaAdvancedHighlightStates, id)
+        && Object.hasOwn(nodeB.__easyuseAnimaAdvancedHighlightStates, id),
+      "Both existing and new state stores must own reserved field IDs",
+    );
+
+    textareaA.value = `${id} node A`;
+    textareaB.value = `${id} node B`;
+    const firstRequest = requests.length;
+    scheduleAdvancedFieldHighlight(nodeA, fieldA, textareaA);
+    scheduleAdvancedFieldHighlight(nodeB, fieldB, textareaB);
+    assert(requests.length === firstRequest + 2, "Both node callers must request classification");
+    const tokensForA = [{ token: textareaA.value, section: "general" }];
+    const tokensForB = [{ token: textareaB.value, section: "general" }];
+    requests[firstRequest + 1].resolve(tokensForB);
+    await flushClassification();
+    assert(stateA.pendingText === textareaA.value, "The other node result must not clear a pending request");
+    requests[firstRequest].resolve(tokensForA);
+    await flushClassification();
+    assert(stateA.tokens === tokensForA && stateB.tokens === tokensForB, "Results must stay isolated by node");
+    assert(stateA.lastText === textareaA.value && stateB.lastText === textareaB.value, "Each result must retain its own text");
+    assert(stateA.seq === 1 && stateB.seq === 1, "Reserved IDs must have normal request sequencing");
+    assert(stateA.pendingText === null && stateB.pendingText === null, "Finished requests must clear their own pending state");
+    assert(JSON.parse(textareaA.overlay.innerHTML).tokens[0].token === textareaA.value, "The actual caller must render its result");
+    const requestCount = requests.length;
+    scheduleAdvancedFieldHighlight(nodeA, fieldA, textareaA);
+    assert(requests.length === requestCount, "Unchanged text must reuse cached classification");
+    assert(advancedHighlightState(nodeA, fieldA) === stateA, "Repeated lookup must reuse field state");
+    assertPrototypesUnchanged();
+  }
+
+  const cachedState = { seq: 7, lastText: "cached", pendingText: null, tokens: tokensA };
+  const cachedNode = { __easyuseAnimaAdvancedHighlightStates: { positive_general_1: cachedState } };
+  const requestCount = requests.length;
+  scheduleAdvancedFieldHighlight(cachedNode, { id: "positive_general_1" }, new MockTextarea("cached"));
+  assert(advancedHighlightState(cachedNode, { id: "positive_general_1" }) === cachedState, "Existing ordinary field state must keep its identity");
+  assert(requests.length === requestCount, "Existing ordinary field caches must not be reclassified");
+  assertPrototypesUnchanged();
+
   const previousRequestFrame = globalThis.requestAnimationFrame;
   const frames = [];
   globalThis.requestAnimationFrame = (callback) => frames.push(callback);
@@ -133,12 +200,9 @@ try {
       fields: [field],
       editor: { querySelectorAll: () => [textarea] },
     };
-    node.__easyuseAnimaAdvancedHighlightStates = {
-      [field.id]: {
-        seq: 0, lastText: textarea.value, pendingText: null,
-        tokens: [{ token: textarea.value, section: "general" }],
-      },
-    };
+    const state = advancedHighlightState(node, field);
+    state.lastText = textarea.value;
+    state.tokens = [{ token: textarea.value, section: "general" }];
     const beforeSettings = { renders: renders.length, metrics: metricCopies.length, requests: requests.length };
     scheduleAdvancedHighlights(node, { classify: false, forceCopyMetrics: true });
     scheduleAdvancedHighlights(node, { classify: false });

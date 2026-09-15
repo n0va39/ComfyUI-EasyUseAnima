@@ -3,9 +3,11 @@ from __future__ import annotations
 import asyncio
 import json
 import uuid
+from collections.abc import Mapping
 from functools import wraps
-from typing import Any, Mapping, cast
+from typing import Any, cast
 
+from .errors import ApiContractError
 
 REQUEST_ID_HEADER = "X-Request-ID"
 _SENSITIVE_RESPONSE_MARKER = "_easyuse_anima_sensitive_response"
@@ -211,6 +213,7 @@ def build_request_correlator(
     correlate,
     get_logger,
     error_response,
+    validate_access,
 ):
     """Build the root-compatible cancellation and correlation boundary."""
 
@@ -223,9 +226,15 @@ def build_request_correlator(
         async def correlated_handler(request):
             request_id = create_id()
             try:
+                validate_access(request)
                 response = await handler(request)
             except asyncio.CancelledError:
                 raise
+            except ApiContractError as exc:
+                response = error_response(exc.status, exc.code, exc.message)
+                _attach_no_store_header(response)
+                if exc.status == 401:
+                    response.headers["WWW-Authenticate"] = 'Basic realm="EasyUseAnima", charset="UTF-8"'
             except Exception as exc:
                 if isinstance(exc, get_http_exception_type()):
                     if sensitive_response:

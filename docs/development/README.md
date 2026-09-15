@@ -1,5 +1,9 @@
 # EasyUse Anima Development Entry
 
+현재 일반 기능·의존성 계획은 [1.3.0 개발 계획](1.3.0.md)과 연결된 이슈에서
+추적합니다. 아래 FC/PTC 상태와 1.0.0 release queue는 과거 구조 개편의 기록이며,
+새 작업의 실행 큐로 재개하지 않습니다. 적용되는 보존 계약은 계속 유지합니다.
+
 Use this file as the first development-doc entry point for a new Codex session. Read
 only the current READY or event task and its direct owners; do not reopen a completed
 lane when neither exists.

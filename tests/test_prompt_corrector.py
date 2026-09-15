@@ -3682,6 +3682,32 @@ class SettingsTests(unittest.TestCase):
         self.assertEqual(resolve_prompt_studio_font_size({"prompt_studio.font_size": "99"}), 24)
         self.assertEqual(resolve_prompt_studio_font_size({"prompt_studio.font_size": "bad"}), 12)
 
+    def test_non_finite_numeric_settings_recover_existing_saved_values(self):
+        from easyuse_anima.api.routes.settings import build_settings_payloads
+        from easyuse_anima.settings import service
+
+        keys = (
+            "prompt_studio.font_size",
+            "lora_preset.strength_drag_pixels",
+            "naia.resolution_max_long_edge",
+        )
+        for key in keys:
+            for value in ("1e309", "-1e309", "inf", "-inf", "nan"):
+                with self.subTest(key=key, value=value):
+                    stored = {key: value}
+                    with patch.object(service, "get_settings", return_value=stored):
+                        read, save = build_settings_payloads(
+                            public_settings=service.public_settings,
+                            save_setting=stored.__setitem__,
+                        )
+                        expected = int(service.DEFAULT_SETTINGS[key])
+                        self.assertEqual(read()[key], expected)
+                        result = save(key, value)
+                        self.assertEqual(result["status"], "ok")
+                        self.assertEqual(result[key], expected)
+                        self.assertEqual(read()[key], expected)
+                        self.assertEqual(stored[key], value)
+
     def test_prompt_studio_font_family_strips_css_control_chars(self):
         self.assertEqual(
             resolve_prompt_studio_font_family({"prompt_studio.font_family": 'Arial; color:red\n'}),

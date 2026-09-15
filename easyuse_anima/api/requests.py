@@ -1,5 +1,10 @@
 from __future__ import annotations
 
+import base64
+import binascii
+import hashlib
+import hmac
+import ipaddress
 import json
 import uuid
 from collections.abc import Mapping
@@ -9,6 +14,66 @@ from urllib.parse import urlsplit
 from .errors import ApiContractError, _field_error
 
 _JSON_CONTENT_TYPE = "application/json"
+
+
+def api_token_digest(token: str) -> bytes | None:
+    """Snapshot an operator secret, never a web-writable setting or user file."""
+    return hashlib.sha256(token.encode("utf-8")).digest() if token else None
+
+
+def _is_loopback(value: str) -> bool:
+    try:
+        address = ipaddress.ip_address(value)
+        if isinstance(address, ipaddress.IPv6Address) and address.ipv4_mapped:
+            address = address.ipv4_mapped
+        return address.is_loopback
+    except ValueError:
+        return False
+
+
+def validate_api_access(request, expected_digest: bytes | None) -> None:
+    """Local trust requires the socket peer AND a literal local Host.
+
+    A configured secret always requires HTTP Basic authentication, even for a
+    loopback proxy. Forwarded headers and Comfy user selectors grant no access.
+    """
+    if expected_digest is not None:
+        authorization = _request_header(request, "Authorization")
+        scheme, _, credentials = authorization.partition(" ")
+        try:
+            decoded = base64.b64decode(credentials, validate=True).decode("utf-8")
+        except (binascii.Error, UnicodeDecodeError, ValueError):
+            decoded = ""
+        username, _, token = decoded.partition(":")
+        supplied_digest = api_token_digest(token)
+        if (
+            scheme.casefold() == "basic"
+            and username == "easyuse"
+            and supplied_digest is not None
+            and hmac.compare_digest(supplied_digest, expected_digest)
+        ):
+            return
+        raise ApiContractError(
+            401, "api_authentication_required",
+            "EasyUse API authentication is required. Use the easyuse username and the server's API token.",
+        )
+
+    transport = getattr(request, "transport", None)
+    peer = transport.get_extra_info("peername") if transport is not None else None
+    authority = _host_authority(_request_header(request, "Host"), "http://localhost")
+    if (
+        isinstance(peer, (tuple, list)) and peer and _is_loopback(str(peer[0]))
+        and authority is not None
+        and (authority[0] == "localhost" or _is_loopback(authority[0]))
+        and not any(_request_header(request, header) for header in (
+            "Forwarded", "X-Forwarded-For", "X-Forwarded-Host", "X-Forwarded-Proto",
+        ))
+    ):
+        return
+    raise ApiContractError(
+        403, "local_api_access_required",
+        "Use a local ComfyUI address, or configure EASYUSE_ANIMA_API_TOKEN for remote API access.",
+    )
 
 
 def _request_header(request, name: str) -> str:
