@@ -1244,5 +1244,53 @@
         "name": "追加ハッシュ"
       }
     }
+  },
+  "EasyAnimaSafePAG": {
+    "display_name": "Easy Anima Safe PAG",
+    "description": "Anima 系 MODEL に Safe PAG を適用します。追加モデルや外部ノードパックは不要で、実行後に attention を復元します。",
+    "inputs": {
+      "model": {
+        "name": "model",
+        "tooltip": "Anima/Cosmos/Predict2 系 MODEL 入力。"
+      },
+      "scale": {
+        "name": "PAG 強度",
+        "tooltip": "補正強度。0 は入力 MODEL をそのまま返します。"
+      },
+      "block_indices": {
+        "name": "ブロック番号",
+        "tooltip": "カンマまたは範囲を指定します。例: 18、18-20。"
+      },
+      "perturbation_strength": {
+        "name": "attention 変形強度",
+        "tooltip": "0 は通常の attention、1 は完全な value/identity 経路です。"
+      },
+      "head_indices": {
+        "name": "head 番号",
+        "tooltip": "空欄で全 attention head を選択します。"
+      },
+      "start_percent": {
+        "name": "開始割合",
+        "tooltip": "サンプリング進行率 0～1 の開始位置。"
+      },
+      "end_percent": {
+        "name": "終了割合",
+        "tooltip": "サンプリング進行率 0～1 の終了位置。"
+      },
+      "rescale": {
+        "name": "再調整強度",
+        "tooltip": "過度な補正コントラストを抑える量。"
+      },
+      "rescale_mode": {
+        "name": "再調整モード",
+        "tooltip": "full: CFG 結果基準、partial: positive 予測基準。"
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "model",
+        "tooltip": "Anima 系 MODEL に Safe PAG を適用します。追加モデルや外部ノードパックは不要で、実行後に attention を復元します。"
+      }
+    }
   }
 }
