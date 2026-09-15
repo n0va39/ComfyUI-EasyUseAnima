@@ -22,7 +22,7 @@ Registry-facing integration defaults:
   also require an operator-approved endpoint and `EasyUse Anima -> NAIA ->
   Allow remote API`. See [NAIA connection setup](#naia-connection-setup).
 - Prompt translation defaults to off. Google Translate must be selected
-  explicitly, and this node pack does not read API keys from environment
+  explicitly, and this node pack does not read external service API keys from environment
   variables.
 - The AiO SAM3 detailer path uses explicit optional imports for ComfyUI's
   built-in SAM3 detector and Impact Pack classes. It does not dynamically load
@@ -214,6 +214,10 @@ pip install -r requirements.txt
 ```
 
 ComfyUI restart is required after installing or updating this node pack.
+
+## EasyUse API access
+
+Local ComfyUI at a loopback address needs no extra login. Remote or proxy access requires EASYUSE_ANIMA_API_TOKEN at startup and HTTP Basic authentication with username easyuse. First visit /easyuse_anima/settings on the same ComfyUI origin to authenticate in the browser, then return to ComfyUI. Use HTTPS for remote access. See [API access setup and scope](docs/api-access.md).
 
 ## NAIA connection setup
 

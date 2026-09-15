@@ -7,23 +7,9 @@ import time
 import unittest
 from unittest.mock import patch
 
-from tests.test_api_contract import load_api_routes as load_canonical_api_routes
+from tests.test_api_contract import JsonRequest, load_api_routes as load_canonical_api_routes
 
 ROUTE = "/easyuse_anima/translate_prompt"
-
-
-class JsonRequest:
-    def __init__(self, payload):
-        self.payload = payload
-        self.headers = {
-            "Content-Type": "application/json",
-            "Host": "127.0.0.1:8188",
-            "Origin": "http://127.0.0.1:8188",
-            "Sec-Fetch-Site": "same-origin",
-        }
-
-    async def json(self):
-        return self.payload
 
 
 def load_api_routes():

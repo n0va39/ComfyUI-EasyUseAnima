@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import ast
 import asyncio
+import base64
 import gc
 import json
 import re
@@ -91,12 +92,15 @@ class JsonRequest:
         "Sec-Fetch-Site": "same-origin",
     }
 
-    def __init__(self, payload=None, *, error=None, query=None, headers=None):
+    def __init__(self, payload=None, *, error=None, query=None, headers=None, peer="127.0.0.1"):
         self.payload = payload
         self.error = error
         self.query = query or {}
         self.headers = dict(
             self.DEFAULT_HEADERS if headers is None else headers
+        )
+        self.transport = types.SimpleNamespace(
+            get_extra_info=lambda name: (peer, 54321) if name == "peername" else None
         )
 
     async def json(self):
@@ -148,6 +152,98 @@ def profile_directory_owner(api, directory_name):
     if directory_name == "LORA_PROFILE_DIR":
         return api.lora_profiles
     raise AssertionError(f"Unknown profile directory: {directory_name}")
+
+
+class ApiAccessTests(unittest.TestCase):
+    def test_all_registered_routes_deny_nonlocal_before_work(self):
+        api, routes = load_api_routes()
+        self.addCleanup(api.application.translation_executor.shutdown)
+        with patch.object(api.application.dependencies.request, "run_file_io") as work:
+            for path, handler in routes.handlers.items():
+                for peer, host in (("192.0.2.25", "127.0.0.1:8188"),
+                                   ("127.0.0.1", "attacker.example:8188")):
+                    with self.subTest(path=path, peer=peer):
+                        request = JsonRequest({}, peer=peer)
+                        request.headers.update(Host=host, Origin=f"http://{host}")
+                        response = asyncio.run(handler(request))
+                        self.assertEqual(response.status, 403)
+                        self.assertEqual(response["payload"]["code"], "local_api_access_required")
+                        self.assertEqual(response.headers["Cache-Control"], "no-store")
+            work.assert_not_called()
+
+    def test_local_access_requires_socket_and_rejects_forwarded_claims(self):
+        api, _ = load_api_routes()
+        self.addCleanup(api.application.translation_executor.shutdown)
+        for peer, host in (("127.0.0.1", "localhost:8188"), ("::1", "[::1]:8188"),
+                           ("::ffff:127.0.0.1", "127.0.0.1:8188")):
+            request = JsonRequest(peer=peer)
+            request.headers["Host"] = host
+            api.requests.validate_api_access(request, None)
+        for header in ("Forwarded", "X-Forwarded-For", "X-Forwarded-Host", "X-Forwarded-Proto"):
+            request = JsonRequest()
+            request.headers[header] = "127.0.0.1"
+            with self.assertRaises(Exception) as caught:
+                api.requests.validate_api_access(request, None)
+            self.assertEqual(caught.exception.code, "local_api_access_required")
+        request = JsonRequest()
+        request.transport = None
+        with self.assertRaises(Exception):
+            api.requests.validate_api_access(request, None)
+
+    def test_token_required_for_every_peer_and_never_echoed(self):
+        api, routes = load_api_routes()
+        self.addCleanup(api.application.translation_executor.shutdown)
+        owner = sys.modules[api.application.compatibility.parts.__class__.__module__]
+        token = "test-only-operator-token:with-colon"
+        config = types.SimpleNamespace(api_token_digest=api.requests.api_token_digest(token))
+        credentials = base64.b64encode(f"easyuse:{token}".encode()).decode()
+        handler = routes.handlers["/easyuse_anima/aio_profiles/delete"]
+        result = {"status": "ok", "deleted": "Example"}
+        with (
+            patch.object(owner, "get_runtime", return_value=types.SimpleNamespace(config=config)),
+            patch.object(api.application.dependencies.request, "run_file_io", return_value=result) as work,
+        ):
+            for peer in ("127.0.0.1", "192.0.2.25"):
+                for authorization in ("", "Basic !!!", "Bearer " + credentials,
+                                      "Basic " + base64.b64encode(b"other:wrong").decode()):
+                    request = JsonRequest({"name": "Example"}, peer=peer)
+                    request.headers["Authorization"] = authorization
+                    response = asyncio.run(handler(request))
+                    self.assertEqual(response.status, 401)
+                    self.assertIn("Basic", response.headers["WWW-Authenticate"])
+                    self.assertNotIn(token, response.text)
+            work.assert_not_called()
+            request = JsonRequest({"name": "Example"}, peer="192.0.2.25")
+            request.headers["Authorization"] = "Basic " + credentials
+            response = asyncio.run(handler(request))
+            self.assertEqual(response.status, 200)
+            work.assert_called_once()
+            work.reset_mock()
+            request.headers["Origin"] = "https://other.example"
+            response = asyncio.run(handler(request))
+            self.assertEqual(response.status, 403)
+            work.assert_not_called()
+
+    def test_unavailable_runtime_never_falls_back_to_local_access(self):
+        api, routes = load_api_routes()
+        self.addCleanup(api.application.translation_executor.shutdown)
+        owner = sys.modules[api.application.compatibility.parts.__class__.__module__]
+        with patch.object(owner, "get_runtime", side_effect=RuntimeError("private details")):
+            response = asyncio.run(routes.handlers["/easyuse_anima/settings"](JsonRequest()))
+        self.assertEqual(response.status, 503)
+        self.assertNotIn("private details", response.text)
+
+    def test_bootstrap_captures_token_outside_settings_and_repr(self):
+        api, _ = load_api_routes()
+        self.addCleanup(api.application.translation_executor.shutdown)
+        with patch.dict(api.bootstrap.os.environ, {"EASYUSE_ANIMA_API_TOKEN": "first-secret"}):
+            config = api.bootstrap._load_runtime_config()
+        with patch.dict(api.bootstrap.os.environ, {"EASYUSE_ANIMA_API_TOKEN": "changed-secret"}):
+            self.assertEqual(config.api_token_digest, api.requests.api_token_digest("first-secret"))
+        self.assertNotIn("api_token_digest", repr(config))
+        self.assertNotIn("first-secret", repr(config))
+        with self.assertRaises(AttributeError):
+            config.api_token_digest = None
 
 
 class ApiRouteRegistrationOwnerTests(unittest.TestCase):
@@ -3313,7 +3409,9 @@ class ApiRequestContractTests(unittest.TestCase):
                         self.assertEqual(response["status"], 403)
                         self.assertEqual(
                             response["payload"]["code"],
-                            "cross_origin_request",
+                            "local_api_access_required"
+                            if headers.get("Host") in ("invalid/authority", "127.0.0.1:invalid")
+                            else "cross_origin_request",
                         )
 
             submit.assert_not_called()

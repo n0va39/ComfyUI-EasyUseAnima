@@ -9,6 +9,7 @@ from collections.abc import Callable
 
 from .aio.first_pass_cache import _DEFAULT_AIO_FIRST_PASS_CACHE
 from .api.application import _build_api_application
+from .api.requests import api_token_digest
 from .api.routes.aio_profile_mutations import (
     build_aio_profile_mutation_handlers as _build_aio_profile_mutation_handlers,
 )
@@ -128,6 +129,9 @@ def _load_runtime_config() -> RuntimeConfig:
         package_data_dir=PACKAGE_DATA_DIR,
         user_data_dir=USER_DATA_DIR,
         naia_endpoints=naia_endpoints,
+        api_token_digest=api_token_digest(
+            os.environ.get("EASYUSE_ANIMA_API_TOKEN", "")
+        ),
     )
 
 

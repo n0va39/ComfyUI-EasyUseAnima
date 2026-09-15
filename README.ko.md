@@ -22,7 +22,7 @@ Registry 기준 외부 연동 기본값:
   host는 운영자의 접속 대상 승인과 `EasyUse Anima -> NAIA -> 원격 API 허용`이
   모두 필요합니다. [NAIA 연결 설정](#naia-연결-설정)을 참고하세요.
 - 프롬프트 번역 기본값은 OFF입니다. Google 번역은 명시적으로 선택해야 하며,
-  이 노드팩은 환경 변수에서 API key를 자동으로 읽지 않습니다.
+  이 노드팩은 환경 변수에서 외부 서비스의 API key를 자동으로 읽지 않습니다.
 - AiO SAM3 detailer 경로는 ComfyUI 내장 SAM3 detector와 Impact Pack class를
   명시적 선택 import로만 사용합니다. 사용자가 지정한 module 이름을 동적으로
   load하지 않습니다.
@@ -210,6 +210,10 @@ pip install -r requirements.txt
 ```
 
 노드팩 설치 또는 업데이트 후 ComfyUI를 재시작해야 합니다.
+
+## EasyUse API 접속
+
+로컬 ComfyUI는 127.0.0.1, localhost, IPv6 loopback 주소로 사용하면 추가 로그인이 필요 없습니다. 원격·프록시 사용은 시작 환경의 EASYUSE_ANIMA_API_TOKEN과 HTTP Basic 인증이 필요합니다. 사용자 이름은 easyuse, 비밀번호는 지정한 토큰입니다. 브라우저에서는 먼저 같은 ComfyUI 주소의 /easyuse_anima/settings를 열어 인증한 뒤 돌아오세요. 원격 연결에는 HTTPS를 사용합니다. [접속 설정과 범위](docs/api-access.md)를 참고하세요.
 
 ## NAIA 연결 설정
 

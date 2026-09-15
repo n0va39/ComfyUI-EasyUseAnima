@@ -25,6 +25,7 @@ class RuntimeConfig:
     package_data_dir: Path
     user_data_dir: Path
     naia_endpoints: tuple[tuple[str, int, str], ...] = DEFAULT_NAIA_ENDPOINTS
+    api_token_digest: bytes | None = field(default=None, repr=False)
 
 
 class Clock(Protocol):

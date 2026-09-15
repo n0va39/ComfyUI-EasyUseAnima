@@ -10,7 +10,7 @@ from collections.abc import Generator, Mapping
 from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
-from types import ModuleType
+from types import ModuleType, SimpleNamespace
 from typing import Any
 
 
@@ -82,6 +82,12 @@ def load_canonical_api_application(
 
     with replace_sys_modules({"server": server, "aiohttp": aiohttp}):
         bootstrap = importlib.import_module(f"{prefix}.bootstrap")
+        # Route tests compose without starting services. Supply only the
+        # immutable local access configuration; transport checks stay real.
+        compatibility = importlib.import_module(f"{prefix}.api.application_compatibility")
+        compatibility.get_runtime = lambda: SimpleNamespace(
+            config=SimpleNamespace(api_token_digest=None)
+        )
         application = bootstrap._compose_api_application(
             logger=logging.getLogger(f"{prefix}.api"),
             publish_routes=lambda _target: None,

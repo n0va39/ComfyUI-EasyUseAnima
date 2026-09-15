@@ -73,6 +73,8 @@ class ComfyHostWiringTests(unittest.TestCase):
             access_files,
             {
                 "easyuse_anima/api/application.py",
+                # The API composition owner reads immutable access policy.
+                "easyuse_anima/api/application_compatibility.py",
                 "easyuse_anima/infrastructure/comfy/wiring.py",
                 "easyuse_anima/nodes/seed_adapters.py",
                 "easyuse_anima/runtime.py",

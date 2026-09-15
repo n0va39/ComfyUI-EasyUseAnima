@@ -206,8 +206,15 @@ class RegistryScannerSafetyTests(unittest.TestCase):
             for pattern in patterns:
                 with self.subTest(filename=filename, pattern=pattern):
                     if filename == "easyuse_anima/bootstrap.py" and pattern == "os.environ":
-                        self.assertEqual(source.count(pattern), 1)
+                        self.assertEqual(source.count(pattern), 2)
                         self.assertIn('os.environ.get("EASYUSE_ANIMA_NAIA_ENDPOINTS", "")', source)
+                        self.assertIn('os.environ.get("EASYUSE_ANIMA_API_TOKEN", "")', source)
+                        continue
+                    if filename == "easyuse_anima/api/requests.py" and pattern == "base64.b64decode":
+                        # HTTP Basic credentials use Base64 by protocol; this
+                        # explicit decoder neither loads nor executes code.
+                        self.assertEqual(source.count(pattern), 1)
+                        self.assertIn('base64.b64decode(credentials, validate=True).decode("utf-8")', source)
                         continue
                     self.assertNotIn(pattern, source)
 

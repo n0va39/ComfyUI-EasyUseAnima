@@ -8,6 +8,7 @@ helpers for ComfyUI.
 
 - [한국어 문서](README.ko.md)
 - [English documentation](README.en.md)
+- [Local and authenticated remote API access](docs/api-access.md)
 
 ## Anima AiO Workflow
 
