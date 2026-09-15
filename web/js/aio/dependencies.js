@@ -22,8 +22,8 @@ export const AIO_OPTIONAL_DEPENDENCY_SPECS = {
     pack: "ComfyUI-Anima-DAVE",
   },
   safePag: {
-    nodeId: "AnimaSafePAG",
-    pack: "Anima Safe PAG",
+    nodeId: "EasyAnimaSafePAG",
+    pack: "EasyUse Anima (built-in Safe PAG)",
   },
   ppmNegPip: {
     nodeId: "CLIPNegPip",

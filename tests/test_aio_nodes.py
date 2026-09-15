@@ -1691,11 +1691,9 @@ class AIOSamplerDependencyTests(unittest.TestCase):
             },
         }))
 
-        with patch_comfy_helper(
-            aio_nodes,
-            "_require_custom_node_class",
-            return_value=FakeAnimaSafePAG,
-        ):
+        with patch.dict(sys.modules, {
+            "easyuse_anima.aio.safe_pag": types.SimpleNamespace(NativeSafePAG=FakeAnimaSafePAG),
+        }):
             result = model_preparation._apply_aio_safe_pag_patch("base_model", settings["model_patches"]["safe_pag"])
 
         self.assertEqual(result, "safe_pag_model")

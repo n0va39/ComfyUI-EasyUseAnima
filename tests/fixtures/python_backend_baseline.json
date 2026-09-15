@@ -9180,6 +9180,24 @@
         "target": "easyuse_anima/aio/generation_migrations.py"
       },
       {
+        "alias": null,
+        "bound_name": "NativeSafePAG",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 4,
+        "conditional": false,
+        "imported": ".safe_pag:NativeSafePAG",
+        "kind": "static_from",
+        "line": 443,
+        "name": "NativeSafePAG",
+        "optional": false,
+        "requested": ".safe_pag",
+        "role": "ordinary",
+        "scope": "_apply_aio_safe_pag_patch",
+        "source": "easyuse_anima/aio/model_preparation.py",
+        "target": "easyuse_anima/aio/safe_pag.py"
+      },
+      {
         "alias": "model_management",
         "bound_name": "model_management",
         "branch_context": [
@@ -9188,7 +9206,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 479
+            "line": 476
           }
         ],
         "classification": "external",
@@ -9196,7 +9214,7 @@
         "conditional": true,
         "imported": "comfy.model_management",
         "kind": "static_import",
-        "line": 480,
+        "line": 477,
         "name": null,
         "optional": true,
         "requested": "comfy.model_management",
@@ -13682,6 +13700,142 @@
         "role": "optional_dependency",
         "scope": "_load_upscale_model_with_comfy",
         "source": "easyuse_anima/aio/resources.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "contextmanager",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "contextlib:contextmanager",
+        "kind": "static_from",
+        "line": 7,
+        "name": "contextmanager",
+        "optional": false,
+        "requested": "contextlib",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/safe_pag.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "ContextVar",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "contextvars:ContextVar",
+        "kind": "static_from",
+        "line": 8,
+        "name": "ContextVar",
+        "optional": false,
+        "requested": "contextvars",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/safe_pag.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "RLock",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "threading:RLock",
+        "kind": "static_from",
+        "line": 9,
+        "name": "RLock",
+        "optional": false,
+        "requested": "threading",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/safe_pag.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "MethodType",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "types:MethodType",
+        "kind": "static_from",
+        "line": 10,
+        "name": "MethodType",
+        "optional": false,
+        "requested": "types",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/safe_pag.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "Any",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "typing:Any",
+        "kind": "static_from",
+        "line": 11,
+        "name": "Any",
+        "optional": false,
+        "requested": "typing",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/safe_pag.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "torch",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "torch",
+        "kind": "static_import",
+        "line": 13,
+        "name": null,
+        "optional": false,
+        "requested": "torch",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/safe_pag.py"
+      },
+      {
+        "alias": "F",
+        "bound_name": "F",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "torch.nn.functional",
+        "kind": "static_import",
+        "line": 14,
+        "name": null,
+        "optional": false,
+        "requested": "torch.nn.functional",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/safe_pag.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "comfy",
+        "branch_context": [],
+        "classification": "external",
+        "column": 4,
+        "conditional": false,
+        "imported": "comfy.samplers",
+        "kind": "static_import",
+        "line": 18,
+        "name": null,
+        "optional": false,
+        "requested": "comfy.samplers",
+        "role": "ordinary",
+        "scope": "_calculate_condition_batch",
+        "source": "easyuse_anima/aio/safe_pag.py"
       },
       {
         "alias": null,
@@ -30238,6 +30392,24 @@
       },
       {
         "alias": null,
+        "bound_name": "NativeSafePAG",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 8,
+        "conditional": false,
+        "imported": "..aio.safe_pag:NativeSafePAG",
+        "kind": "static_from",
+        "line": 74,
+        "name": "NativeSafePAG",
+        "optional": false,
+        "requested": "..aio.safe_pag",
+        "role": "ordinary",
+        "scope": "EasyAnimaSafePAG.patch",
+        "source": "easyuse_anima/nodes/safe_pag_nodes.py",
+        "target": "easyuse_anima/aio/safe_pag.py"
+      },
+      {
+        "alias": null,
         "bound_name": "annotations",
         "branch_context": [],
         "classification": "external",
@@ -40400,6 +40572,24 @@
       },
       {
         "alias": null,
+        "bound_name": "EasyAnimaSafePAG",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".nodes.safe_pag_nodes:EasyAnimaSafePAG",
+        "kind": "static_from",
+        "line": 34,
+        "name": "EasyAnimaSafePAG",
+        "optional": false,
+        "requested": ".nodes.safe_pag_nodes",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/registration.py",
+        "target": "easyuse_anima/nodes/safe_pag_nodes.py"
+      },
+      {
+        "alias": null,
         "bound_name": "EasyUseAnimaWildcard",
         "branch_context": [],
         "classification": "internal",
@@ -40407,7 +40597,7 @@
         "conditional": false,
         "imported": ".nodes.wildcard_nodes:EasyUseAnimaWildcard",
         "kind": "static_from",
-        "line": 34,
+        "line": 35,
         "name": "EasyUseAnimaWildcard",
         "optional": false,
         "requested": ".nodes.wildcard_nodes",
@@ -40425,7 +40615,7 @@
         "conditional": false,
         "imported": ".nodes.wildcard_nodes:EasyUseAnimaWildcardLora",
         "kind": "static_from",
-        "line": 34,
+        "line": 35,
         "name": "EasyUseAnimaWildcardLora",
         "optional": false,
         "requested": ".nodes.wildcard_nodes",
@@ -45862,6 +46052,10 @@
       },
       {
         "from": "easyuse_anima/aio/model_preparation.py",
+        "to": "easyuse_anima/aio/safe_pag.py"
+      },
+      {
+        "from": "easyuse_anima/aio/model_preparation.py",
         "to": "easyuse_anima/anima_29b/lora.py"
       },
       {
@@ -47005,6 +47199,10 @@
         "to": "easyuse_anima/workflow.py"
       },
       {
+        "from": "easyuse_anima/nodes/safe_pag_nodes.py",
+        "to": "easyuse_anima/aio/safe_pag.py"
+      },
+      {
         "from": "easyuse_anima/nodes/seed_adapters.py",
         "to": "easyuse_anima/aio/generation_defaults.py"
       },
@@ -47527,6 +47725,10 @@
       {
         "from": "easyuse_anima/registration.py",
         "to": "easyuse_anima/nodes/regional_nodes.py"
+      },
+      {
+        "from": "easyuse_anima/registration.py",
+        "to": "easyuse_anima/nodes/safe_pag_nodes.py"
       },
       {
         "from": "easyuse_anima/registration.py",
@@ -48085,6 +48287,12 @@
       {
         "cyclic": false,
         "modules": [
+          "easyuse_anima/aio/safe_pag.py"
+        ]
+      },
+      {
+        "cyclic": false,
+        "modules": [
           "easyuse_anima/aio/sampling.py"
         ]
       },
@@ -48631,6 +48839,12 @@
       {
         "cyclic": false,
         "modules": [
+          "easyuse_anima/nodes/safe_pag_nodes.py"
+        ]
+      },
+      {
+        "cyclic": false,
+        "modules": [
           "easyuse_anima/nodes/seed_adapters.py"
         ]
       },
@@ -49009,7 +49223,7 @@
     ]
   },
   "inventory": {
-    "module_count": 206,
+    "module_count": 208,
     "modules": [
       {
         "functions": [
@@ -51836,49 +52050,49 @@
           },
           {
             "async": false,
-            "end_line": 464,
+            "end_line": 461,
             "kind": "function",
             "line": 442,
-            "loc": 23,
+            "loc": 20,
             "qualified_name": "_apply_aio_safe_pag_patch"
           },
           {
             "async": false,
-            "end_line": 489,
+            "end_line": 486,
             "kind": "function",
-            "line": 467,
+            "line": 464,
             "loc": 23,
             "qualified_name": "_cleanup_aio_ephemeral_model"
           },
           {
             "async": false,
-            "end_line": 550,
+            "end_line": 547,
             "kind": "function",
-            "line": 492,
+            "line": 489,
             "loc": 59,
             "qualified_name": "_apply_aio_spectrum_correction_patch_for_comfy_sampler"
           },
           {
             "async": false,
-            "end_line": 597,
+            "end_line": 594,
             "kind": "function",
-            "line": 553,
+            "line": 550,
             "loc": 45,
             "qualified_name": "_apply_aio_spectrum_forecast_patch_for_comfy_sampler"
           },
           {
             "async": false,
-            "end_line": 615,
+            "end_line": 612,
             "kind": "function",
-            "line": 600,
+            "line": 597,
             "loc": 16,
             "qualified_name": "_apply_aio_spectrum_model_patches_for_comfy_sampler"
           }
         ],
         "is_package": false,
-        "loc": 618,
+        "loc": 615,
         "module": "easyuse_anima.aio.model_preparation",
-        "normalized_git_blob_sha1": "537177c6bcd423c622da1b749a62baaa91293338",
+        "normalized_git_blob_sha1": "6b087e785f268e3d82751c26bdaa050a399bc34d",
         "path": "easyuse_anima/aio/model_preparation.py",
         "top_level": {
           "class_count": 0,
@@ -53815,6 +54029,204 @@
         "top_level": {
           "class_count": 0,
           "function_count": 17,
+          "global_count": 1
+        }
+      },
+      {
+        "functions": [
+          {
+            "async": false,
+            "end_line": 26,
+            "kind": "function",
+            "line": 17,
+            "loc": 10,
+            "qualified_name": "_calculate_condition_batch"
+          },
+          {
+            "async": false,
+            "end_line": 32,
+            "kind": "function",
+            "line": 29,
+            "loc": 4,
+            "qualified_name": "_sigma_to_float"
+          },
+          {
+            "async": false,
+            "end_line": 42,
+            "kind": "function",
+            "line": 35,
+            "loc": 8,
+            "qualified_name": "_sigma_active"
+          },
+          {
+            "async": false,
+            "end_line": 54,
+            "kind": "function",
+            "line": 45,
+            "loc": 10,
+            "qualified_name": "_percent_range_to_sigmas"
+          },
+          {
+            "async": false,
+            "end_line": 82,
+            "kind": "function",
+            "line": 57,
+            "loc": 26,
+            "qualified_name": "_parse_indices"
+          },
+          {
+            "async": false,
+            "end_line": 88,
+            "kind": "function",
+            "line": 85,
+            "loc": 4,
+            "qualified_name": "_parse_optional_indices"
+          },
+          {
+            "async": false,
+            "end_line": 101,
+            "kind": "function",
+            "line": 91,
+            "loc": 11,
+            "qualified_name": "_get_anima_blocks"
+          },
+          {
+            "async": false,
+            "end_line": 121,
+            "kind": "function",
+            "line": 104,
+            "loc": 18,
+            "qualified_name": "_expand_cond_labels"
+          },
+          {
+            "async": false,
+            "end_line": 135,
+            "kind": "function",
+            "line": 124,
+            "loc": 12,
+            "qualified_name": "_project_attention"
+          },
+          {
+            "async": false,
+            "end_line": 145,
+            "kind": "function",
+            "line": 138,
+            "loc": 8,
+            "qualified_name": "_sdpa_attention"
+          },
+          {
+            "async": false,
+            "end_line": 158,
+            "kind": "function",
+            "line": 148,
+            "loc": 11,
+            "qualified_name": "_lerp_heads"
+          },
+          {
+            "async": false,
+            "end_line": 164,
+            "kind": "function",
+            "line": 161,
+            "loc": 4,
+            "qualified_name": "_soft_pag_attention"
+          },
+          {
+            "async": false,
+            "end_line": 193,
+            "kind": "function",
+            "line": 167,
+            "loc": 27,
+            "qualified_name": "_make_pag_compute_attention"
+          },
+          {
+            "async": false,
+            "end_line": 191,
+            "kind": "function",
+            "line": 170,
+            "loc": 22,
+            "qualified_name": "_make_pag_compute_attention.compute_attention"
+          },
+          {
+            "async": false,
+            "end_line": 244,
+            "kind": "function",
+            "line": 201,
+            "loc": 44,
+            "qualified_name": "_patch_anima_attention"
+          },
+          {
+            "async": false,
+            "end_line": 260,
+            "kind": "function",
+            "line": 247,
+            "loc": 14,
+            "qualified_name": "_rescale_guidance"
+          },
+          {
+            "async": false,
+            "end_line": 301,
+            "kind": "method",
+            "line": 264,
+            "loc": 38,
+            "qualified_name": "_PAGRun.__init__"
+          },
+          {
+            "async": false,
+            "end_line": 304,
+            "kind": "method",
+            "line": 303,
+            "loc": 2,
+            "qualified_name": "_PAGRun.default_calc"
+          },
+          {
+            "async": false,
+            "end_line": 320,
+            "kind": "method",
+            "line": 306,
+            "loc": 15,
+            "qualified_name": "_PAGRun.calc_with_previous_if_possible"
+          },
+          {
+            "async": false,
+            "end_line": 392,
+            "kind": "method",
+            "line": 322,
+            "loc": 71,
+            "qualified_name": "_PAGRun.calc_cond_batch_with_pag"
+          },
+          {
+            "async": false,
+            "end_line": 354,
+            "kind": "function",
+            "line": 339,
+            "loc": 16,
+            "qualified_name": "_PAGRun.calc_cond_batch_with_pag.pag_model_wrapper"
+          },
+          {
+            "async": false,
+            "end_line": 428,
+            "kind": "method",
+            "line": 394,
+            "loc": 35,
+            "qualified_name": "_PAGRun.post_cfg_function"
+          },
+          {
+            "async": false,
+            "end_line": 465,
+            "kind": "method",
+            "line": 432,
+            "loc": 34,
+            "qualified_name": "NativeSafePAG.patch"
+          }
+        ],
+        "is_package": false,
+        "loc": 465,
+        "module": "easyuse_anima.aio.safe_pag",
+        "normalized_git_blob_sha1": "b00612eee34b06900b6e517bf62ff24c8208c7d1",
+        "path": "easyuse_anima/aio/safe_pag.py",
+        "top_level": {
+          "class_count": 2,
+          "function_count": 15,
           "global_count": 1
         }
       },
@@ -59804,6 +60216,36 @@
         "functions": [
           {
             "async": false,
+            "end_line": 55,
+            "kind": "method",
+            "line": 14,
+            "loc": 42,
+            "qualified_name": "EasyAnimaSafePAG.INPUT_TYPES"
+          },
+          {
+            "async": false,
+            "end_line": 86,
+            "kind": "method",
+            "line": 62,
+            "loc": 25,
+            "qualified_name": "EasyAnimaSafePAG.patch"
+          }
+        ],
+        "is_package": false,
+        "loc": 86,
+        "module": "easyuse_anima.nodes.safe_pag_nodes",
+        "normalized_git_blob_sha1": "2cfcda2931085d68fc8787c512f6075bd12a308d",
+        "path": "easyuse_anima/nodes/safe_pag_nodes.py",
+        "top_level": {
+          "class_count": 1,
+          "function_count": 0,
+          "global_count": 0
+        }
+      },
+      {
+        "functions": [
+          {
+            "async": false,
             "end_line": 66,
             "kind": "method",
             "line": 51,
@@ -62192,9 +62634,9 @@
       {
         "functions": [],
         "is_package": false,
-        "loc": 92,
+        "loc": 95,
         "module": "easyuse_anima.registration",
-        "normalized_git_blob_sha1": "7d04c242a6c32ebbf3e3620d0fccabf517d9151d",
+        "normalized_git_blob_sha1": "8526b48e1b4c4f70e9a934582b3344fd6efcef84",
         "path": "easyuse_anima/registration.py",
         "top_level": {
           "class_count": 0,
@@ -66273,14 +66715,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 479
+            "line": 476
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "comfy.model_management",
         "kind": "static_import",
-        "line": 480,
+        "line": 477,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/aio/model_preparation.py"
@@ -68201,6 +68643,94 @@
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/aio/resources.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "contextlib:contextmanager",
+        "kind": "static_from",
+        "line": 7,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/safe_pag.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "contextvars:ContextVar",
+        "kind": "static_from",
+        "line": 8,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/safe_pag.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "threading:RLock",
+        "kind": "static_from",
+        "line": 9,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/safe_pag.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "types:MethodType",
+        "kind": "static_from",
+        "line": 10,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/safe_pag.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "typing:Any",
+        "kind": "static_from",
+        "line": 11,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/safe_pag.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "torch",
+        "kind": "static_import",
+        "line": 13,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/safe_pag.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "torch.nn.functional",
+        "kind": "static_import",
+        "line": 14,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/safe_pag.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "comfy.samplers",
+        "kind": "static_import",
+        "line": 18,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/safe_pag.py"
       },
       {
         "branch_context": [],
@@ -74714,14 +75244,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 479
+            "line": 476
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "comfy.model_management",
         "kind": "static_import",
-        "line": 480,
+        "line": 477,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/aio/model_preparation.py"
@@ -75944,6 +76474,7 @@
       "easyuse_anima/aio/preview.py",
       "easyuse_anima/aio/prompt_lora.py",
       "easyuse_anima/aio/resources.py",
+      "easyuse_anima/aio/safe_pag.py",
       "easyuse_anima/aio/sampling.py",
       "easyuse_anima/aio/torch_compile_diagnostics.py",
       "easyuse_anima/aio/torch_compile_recommendation.py",
@@ -76035,6 +76566,7 @@
       "easyuse_anima/nodes/prompt_nodes.py",
       "easyuse_anima/nodes/regional_conditioning_adapter.py",
       "easyuse_anima/nodes/regional_nodes.py",
+      "easyuse_anima/nodes/safe_pag_nodes.py",
       "easyuse_anima/nodes/seed_adapters.py",
       "easyuse_anima/nodes/wildcard_nodes.py",
       "easyuse_anima/profiles/__init__.py",
@@ -76150,6 +76682,7 @@
       "easyuse_anima/aio/preview.py",
       "easyuse_anima/aio/prompt_lora.py",
       "easyuse_anima/aio/resources.py",
+      "easyuse_anima/aio/safe_pag.py",
       "easyuse_anima/aio/sampling.py",
       "easyuse_anima/aio/torch_compile_diagnostics.py",
       "easyuse_anima/aio/torch_compile_recommendation.py",
@@ -76243,6 +76776,7 @@
       "easyuse_anima/nodes/prompt_nodes.py",
       "easyuse_anima/nodes/regional_conditioning_adapter.py",
       "easyuse_anima/nodes/regional_nodes.py",
+      "easyuse_anima/nodes/safe_pag_nodes.py",
       "easyuse_anima/nodes/seed_adapters.py",
       "easyuse_anima/nodes/wildcard_nodes.py",
       "easyuse_anima/profiles/__init__.py",
@@ -77918,6 +78452,15 @@
         "scope": "<module>"
       },
       {
+        "callee": "RLock",
+        "column": 18,
+        "context": "assign:_ATTENTION_LOCK",
+        "kind": "import_time_call",
+        "line": 198,
+        "module": "easyuse_anima/aio/safe_pag.py",
+        "scope": "<module>"
+      },
+      {
         "callee": "tuple",
         "column": 29,
         "context": "assign:ANIMA_29B_LEGACY_BLOCK_MAP",
@@ -79501,19 +80044,19 @@
       },
       {
         "kind": "dict",
-        "line": 36,
+        "line": 37,
         "module": "easyuse_anima/registration.py",
         "name": "NODE_CLASS_MAPPINGS"
       },
       {
         "kind": "dict",
-        "line": 64,
+        "line": 66,
         "module": "easyuse_anima/registration.py",
         "name": "NODE_DISPLAY_NAME_MAPPINGS"
       },
       {
         "kind": "list",
-        "line": 92,
+        "line": 95,
         "module": "easyuse_anima/registration.py",
         "name": "__all__"
       },
@@ -79635,6 +80178,15 @@
         "line": 35,
         "module": "easyuse_anima/aio/native_resource_hashes.py",
         "name": "_HASH_CACHE_LOCK"
+      },
+      {
+        "categories": [
+          "lock"
+        ],
+        "initializer": "RLock",
+        "line": 198,
+        "module": "easyuse_anima/aio/safe_pag.py",
+        "name": "_ATTENTION_LOCK"
       },
       {
         "categories": [
