@@ -4,6 +4,8 @@
 
 ### Fixed
 
+- EasyUse APIs now check local access before running handlers. Remote access
+  requires a startup credential, including profile and settings operations.
 - NAIA connections now stay within the destinations approved when ComfyUI
   starts. Changing host, port, or remote-access settings cannot grant access to
   another service.
@@ -16,6 +18,9 @@
 ### Compatibility
 
 - Existing node IDs, workflows, profiles, and saved settings remain readable.
+- Local ComfyUI at a loopback address needs no extra login. Remote/proxy use
+  requires `EASYUSE_ANIMA_API_TOKEN` and HTTP Basic authentication. See
+  [API access setup](docs/api-access.md).
 - Local NAIA at `127.0.0.1:7243` or `[::1]:7243` needs no extra setup.
   `localhost` connects to `127.0.0.1`.
 - Other addresses or ports, including saved LAN connections, require the
