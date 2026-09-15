@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import atexit
 import logging
+import os
 import threading
 import time
 from collections.abc import Callable
@@ -56,6 +57,7 @@ from .autocomplete.dataset import _DEFAULT_AUTOCOMPLETE_SNAPSHOTS
 from .autocomplete.index import _DEFAULT_AUTOCOMPLETE_INDEX_STORE
 from .autocomplete.service import _AutocompleteService
 from .infrastructure.comfy.provider import DefaultComfyHostProvider
+from .naia.endpoint_policy import parse_naia_endpoint_policy
 from .runtime import (
     RuntimeConfig,
     RuntimeServices,
@@ -110,10 +112,22 @@ def _load_runtime_config() -> RuntimeConfig:
         USER_DATA_DIR,
     )
 
+    try:
+        # Non-secret operator policy is captured once, outside web settings.
+        naia_endpoints = parse_naia_endpoint_policy(
+            os.environ.get("EASYUSE_ANIMA_NAIA_ENDPOINTS", "")
+        )
+    except ValueError:
+        naia_endpoints = ()
+        _LOGGER.warning(
+            "Invalid EASYUSE_ANIMA_NAIA_ENDPOINTS; NAIA requests are disabled."
+        )
+
     return RuntimeConfig(
         package_root=PACKAGE_ROOT,
         package_data_dir=PACKAGE_DATA_DIR,
         user_data_dir=USER_DATA_DIR,
+        naia_endpoints=naia_endpoints,
     )
 
 

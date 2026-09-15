@@ -2,6 +2,12 @@
 
 ## Status and authority
 
+1.2.2 supersedes this document's treatment of NAIA web settings as sufficient
+network authority. [The NAIA endpoint policy](../naia-network-policy.md) now
+requires immutable operator-approved destinations at transport. The trusted
+deployment model still applies to ComfyUI access and other settings; this does
+not introduce an authentication service or a diagnostics endpoint.
+
 - Issue: [#199](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/199).
 - Base: `7e8b323007b4ae3d858eeae273f647f9f0233fba` (`origin/dev`, merged PR #588).
 - Type: production-free deployment, capability, sensitivity, and redaction audit.

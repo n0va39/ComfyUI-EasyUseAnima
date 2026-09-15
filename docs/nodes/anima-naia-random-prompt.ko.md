@@ -32,6 +32,6 @@ NAIA remote API에서 prompt, negative prompt, width, height를 받아오는 노
 기존 workflow schema 호환성을 위해 노드는 `use_naia_settings`, `pre_prompt`,
 `post_prompt`, `auto_hide`, 전처리, `host`, `port` 입력 이름을 계속 선언합니다.
 frontend는 이 호환성 값을 숨기며 backend는 저장된 값을 사용하지 않습니다.
-endpoint, Prompt Engineering과 원격 API 권한은 전역 EasyUse Anima 설정에서
-구성합니다. 전역 `원격 API 허용` 보안 설정을 켜지 않으면 원격 host는 계속
-차단됩니다.
+endpoint, Prompt Engineering과 원격 API 사용 여부는 전역 EasyUse Anima 설정에서
+구성합니다. 원격 host와 기본값 외 로컬 포트는 운영자의 시작 시 허용 목록에도
+등록해야 합니다. [NAIA 연결 정책](../naia-network-policy.md)을 참고하세요.

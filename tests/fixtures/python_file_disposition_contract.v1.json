@@ -3,8 +3,8 @@
   "baseline_commit": "39997c5423847d4280737f0d78d353d3c6273e07",
   "inventory_owner": {
     "path": "tests/fixtures/python_backend_baseline.json",
-    "expected_baseline_files": 191,
-    "expected_target_files": 205
+    "expected_baseline_files": 192,
+    "expected_target_files": 206
   },
   "linked_contracts": {
     "compatibility_registry": "docs/architecture/python-compatibility-shims.md",
@@ -2449,6 +2449,26 @@
         }
       ],
       "direct_contracts": [],
+      "compatibility_registry_key": null,
+      "task_id": null,
+      "rollback_unit": null,
+      "replacement_owner": null,
+      "size_exception_verdicts": []
+    },
+    {
+      "path": "easyuse_anima/naia/endpoint_policy.py",
+      "role": "naia-feature-module",
+      "owner_group": "naia",
+      "disposition": "cohesive_retain",
+      "status": "complete",
+      "targets": [
+        {
+          "path": "easyuse_anima/naia/endpoint_policy.py",
+          "role": "naia-feature-module",
+          "owner_group": "naia"
+        }
+      ],
+      "direct_contracts": ["tests/test_naia_endpoint_policy.py"],
       "compatibility_registry_key": null,
       "task_id": null,
       "rollback_unit": null,

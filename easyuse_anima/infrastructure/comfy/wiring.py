@@ -15,6 +15,14 @@ from .invocation import _encode_with_comfy_clip
 from .provider import DefaultComfyHostProvider
 
 
+def resolve_naia_endpoints() -> tuple[tuple[str, int, str], ...] | None:
+    """Read immutable bootstrap policy; no-host tooling has local defaults only."""
+    try:
+        return get_runtime().config.naia_endpoints
+    except RuntimeError:
+        return None
+
+
 def _default_max_resolution() -> int:
     return DefaultComfyHostProvider().max_resolution()
 

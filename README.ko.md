@@ -19,8 +19,8 @@ import하거나 덮어쓰지 않으므로, 두 노드팩을 동시에 설치할 
 Registry 기준 외부 연동 기본값:
 
 - NAIA 호출은 선택 기능입니다. 기본 host는 `127.0.0.1`이며, 로컬이 아닌
-  host는 `EasyUse Anima -> NAIA -> 원격 API 허용`을 켜야만 사용할 수
-  있습니다.
+  host는 운영자의 접속 대상 승인과 `EasyUse Anima -> NAIA -> 원격 API 허용`이
+  모두 필요합니다. [NAIA 연결 설정](#naia-연결-설정)을 참고하세요.
 - 프롬프트 번역 기본값은 OFF입니다. Google 번역은 명시적으로 선택해야 하며,
   이 노드팩은 환경 변수에서 API key를 자동으로 읽지 않습니다.
 - AiO SAM3 detailer 경로는 ComfyUI 내장 SAM3 detector와 Impact Pack class를
@@ -172,7 +172,7 @@ ComfyUI Settings:
 - NAIA 요청 host, port, Prompt Engineering option, preprocessing option을
   EasyUse Anima settings panel에서 설정합니다.
 - NAIA 요청은 기본적으로 localhost에만 허용됩니다. 신뢰하는 원격 NAIA
-  endpoint를 사용할 때만 `원격 API 허용`을 켜세요.
+  endpoint를 시작 시 허용 목록에 등록한 뒤 `원격 API 허용`을 켜세요.
 - EasyUse Anima는 별도 언어 설정을 저장하지 않습니다. 노드 정보, 입력/출력
   힌트, 설정창, 커스텀 DOM 버튼과 툴팁은 ComfyUI 기본 언어 설정을 따릅니다.
 - Prompt metadata filter word는 metadata prompt output에만 적용됩니다.
@@ -188,8 +188,8 @@ ComfyUI Settings:
 ## 요구 사항
 
 NAIA는 `comfyui-naia-bridge`가 사용하는 ComfyUI API를 노출해야 합니다.
-기본 권장 endpoint는 localhost이며, 원격 NAIA endpoint는 `원격 API 허용`
-설정이 켜져 있어야 사용할 수 있습니다.
+기본 권장 endpoint는 localhost이며, 원격 NAIA endpoint는 아래 시작 시 허용
+목록과 `원격 API 허용` 설정이 모두 필요합니다.
 
 AiO Generator의 선택 SAM3 detailer 경로는 실행 시점에 `ComfyUI-Impact-Pack`이
 필요합니다. 이것은 Python package dependency가 아니라 ComfyUI custom node
@@ -210,6 +210,33 @@ pip install -r requirements.txt
 ```
 
 노드팩 설치 또는 업데이트 후 ComfyUI를 재시작해야 합니다.
+
+## NAIA 연결 설정
+
+로컬 `127.0.0.1:7243` 또는 `[::1]:7243`은 추가 설정 없이 사용할 수 있습니다.
+`localhost`는 DNS 조회 없이 `127.0.0.1`에 연결됩니다. 기존에 저장한 원격
+연결을 포함해 다른 주소·포트는 **ComfyUI 시작 전에 운영자가 승인**해야 합니다.
+저장된 설정과 워크플로우 형식은 유지됩니다.
+
+예를 들어 ComfyUI를 실행할 PowerShell 창에서 아래 값을 설정한 뒤, 같은 창에서
+평소 쓰는 ComfyUI 실행 파일을 실행합니다.
+
+```powershell
+$env:EASYUSE_ANIMA_NAIA_ENDPOINTS = '[{"host":"192.168.0.2","port":7243}]'
+```
+
+주소는 실제 NAIA PC의 IP로 바꾸세요. 도메인을 쓰려면 승인된 숫자 IP도 지정합니다.
+예: `{"host":"naia.lan","port":7243,"address":"192.168.0.2"}`.
+호출은 DNS 조회 없이 이 IP에 연결합니다. IPv6 로컬 연결은 `[::1]`을 명시하고,
+로컬에서 다른 포트를 쓰는 경우에도 허용 목록에 등록합니다. 이후 EasyUse Anima
+설정에서 같은 host·port를 선택하고, 원격 host에는 `원격 API 허용`을 켭니다.
+
+허용 목록은 ComfyUI 설정이나 사용자 데이터 파일이 아닌 프로세스 시작 환경 변수이며,
+변경 후 재시작이 필요합니다. 형식이 잘못되면 수정할 때까지 NAIA 호출을 차단합니다.
+NAIA는 환경 변수 프록시와 `.netrc` 인증 정보를 자동 사용하지 않습니다. 기존 HTTP
+전송은 신뢰하는 로컬·LAN NAIA 용도로 사용하며, ComfyUI의 접속 통제는 계속 필요합니다.
+
+추가 예시는 [연결 정책 안내](docs/naia-network-policy.md)를 참고하세요.
 
 ## 설치
 
