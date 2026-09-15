@@ -5,6 +5,7 @@
 - Output-directory owner: `easyuse_anima.aio.native_output_directories`
 - Publication owner: `easyuse_anima.aio.native_output_publication`
 - Remote metadata owner: `easyuse_anima.aio.native_civitai`
+- Standalone hash/AIR lookup owner: `easyuse_anima.aio.civitai_lookup`
 - Metadata budget owner: `easyuse_anima.aio.native_metadata_budget`
 - JPEG import owners: `web/js/aio/jpeg_workflow_metadata.js` and
   `web/js/aio/jpeg_workflow_import.js`
@@ -14,6 +15,19 @@ looks up `ComfyUI-Image-Saver`. Existing settings remain compatible: the
 serialized backend ID is still `image_saver`, and its settings object remains
 at `save.image_saver`. The UI presents that compatibility ID as
 `EasyUse Native`.
+
+The standalone Easy Image Metadata adapter returns A1111 generation data only;
+Easy Save Image owns workflow embedding and JSON sidecars through its hidden
+execution inputs. Its workflow options work without an EXIF metadata connection.
+Changing these options does not enter the metadata builder's cache key or result.
+Pre-release workflow files move their two trailing metadata controls to connected
+savers during graph configuration; API prompts move those inputs explicitly.
+
+Easy Civitai Lookup resolves an exact file hash or versioned Civitai AIR with the
+existing fixed-host, bounded HTTP transport. Its separate 128-entry cache retains
+immutable selected text fields, excluding previews, raw responses and failures.
+It supplies an `additional_hashes` string to the metadata adapter without adding
+network calls to the builder or changing existing AiO enrichment behavior.
 
 ## Format contract
 

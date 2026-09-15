@@ -24,6 +24,7 @@ from ..autocomplete.search import search_autocomplete as _canonical_search_autoc
 from ..profiles import aio as _aio_profiles
 from ..profiles import mutation as _profile_mutation
 from ..profiles import repository as _profile_repository
+from ..runtime import get_runtime
 from . import responses as _api_responses
 from . import router as _api_router
 from .dependencies import (
@@ -38,6 +39,8 @@ from .dependencies import (
 from .dependencies import (
     _read_application_dependency as _read,
 )
+from .errors import ApiContractError
+from .requests import validate_api_access
 from .responses import (
     attach_request_id_header,
     correlate_response,
@@ -177,6 +180,15 @@ def _build_runtime_autocomplete_parts():
 
 
 def _build_http_compatibility_parts(*, logger: Any) -> _HttpCompatibilityParts:
+    def validate_access(request):
+        try:
+            digest = get_runtime().config.api_token_digest
+        except RuntimeError:
+            raise ApiContractError(
+                503, "api_unavailable", "EasyUse API is not initialized."
+            ) from None
+        validate_api_access(request, digest)
+
     error_response = _api_responses.build_error_response(
         json_response=_late_attr("host", "web", "json_response"),
         build_error_payload=lambda code, message, **kwargs: error_payload(
@@ -195,6 +207,7 @@ def _build_http_compatibility_parts(*, logger: Any) -> _HttpCompatibilityParts:
         correlate=correlate_response,
         get_logger=lambda: logger,
         error_response=_late("request", "error_response"),
+        validate_access=validate_access,
     )
     resolve_lora_preview_path = (
         _api_lora_preview_routes.build_lora_preview_path_resolver(

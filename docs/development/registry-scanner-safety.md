@@ -15,8 +15,11 @@ updating a release branch that will be scanned by Registry automation.
   Users should configure external providers intentionally.
 - Network calls must have a timeout, must parse responses as data, and must not
   execute response text.
-- Remote HTTP endpoints must be disabled by default or guarded by an explicit
-  allow setting. Localhost-only defaults are preferred.
+- Mutable web settings must not grant network permission. NAIA host/port
+  selections require the independent immutable startup allowlist at transport.
+- The only environment read is bootstrap's non-secret
+  `EASYUSE_ANIMA_NAIA_ENDPOINTS` policy. No runtime re-read, credential discovery,
+  web-writable policy file, or automatic settings-to-allowlist migration is used.
 - Do not deserialize model data with direct `torch.load`, pickle, marshal, or
   another executable object format. Route model resources through ComfyUI's
   inventoried loaders and their safe-loading contract.
@@ -40,7 +43,10 @@ updating a release branch that will be scanned by Registry automation.
 ## EasyUse Anima Rules
 
 - NAIA API calls default to `127.0.0.1`. Non-local hosts require
-  `EasyUseAnima.NAIA.AllowRemoteAPI`.
+  `EasyUseAnima.NAIA.AllowRemoteAPI` and an operator-approved host/port/IP entry.
+  Standard loopback defaults allow port 7243 only. Transport uses the approved
+  numeric address, a validated Host header, and `Session.trust_env = False`.
+  Failed responses never expose raw response bodies or transport error text.
 - Prompt translation defaults to `off`. Google translation requires explicit
   provider selection and uses the optional `googletrans` dependency only.
 - AiO SAM3 support must stay internal to AiO settings. Public standalone
@@ -100,7 +106,7 @@ Run from the repository root:
 
 ```powershell
 rg -n "importlib\.import_module|__import__\(|eval\(|exec\(|os\.system|subprocess|pickle\.loads|marshal\.loads|base64\.b64decode|GOOGLE_TRANSLATION_API_KEY|os\.environ" __init__.py easyuse_anima -g "*.py"
-rg -n "requests\.post" easyuse_anima/naia/client.py
+rg -n "session\.post" easyuse_anima/naia/client.py
 rg -n "requests\.get" easyuse_anima/aio/native_civitai.py
 rg -n "fetch\(|XMLHttpRequest|new Function|eval\(" web/js -g "!easyuse_anima_api.js"
 git diff --check
@@ -111,8 +117,8 @@ comfy node validate
 ```
 
 Expected exception: `easyuse_anima/naia/client.py` contains one NAIA
-`requests.post` call. It must remain timeout-bound, localhost-only by default,
-and guarded by the explicit remote API allow setting.
+`session.post` call. It must remain timeout-bound, localhost-only by default,
+redirect-disabled, and guarded by the immutable operator endpoint policy.
 
 Expected exception: `easyuse_anima/aio/native_civitai.py` contains one
 `requests.get` call. It must remain fixed to the Civitai HTTPS API, disabled by

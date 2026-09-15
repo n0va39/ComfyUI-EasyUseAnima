@@ -5,6 +5,8 @@ from __future__ import annotations
 import re
 from math import sqrt
 
+from ..infrastructure.comfy.wiring import resolve_naia_endpoints
+from .endpoint_policy import DEFAULT_NAIA_ENDPOINTS, normalize_naia_host
 
 DEFAULT_HOST = "127.0.0.1"
 DEFAULT_PORT = 7243
@@ -63,22 +65,30 @@ def _fit_to_1mp(width: int, height: int) -> tuple[int, int]:
 
 
 def _is_local_naia_host(host: str) -> bool:
-    return str(host or "").strip().strip("[]").lower() in NAIA_LOCAL_HOSTS
+    return normalize_naia_host(host) in NAIA_LOCAL_HOSTS
 
 
 def _build_naia_random_url(host: str, port: int, allow_remote_api: bool = False) -> str:
-    host_value = str(host or DEFAULT_HOST).strip() or DEFAULT_HOST
-    if any(token in host_value for token in ("://", "/", "\\", "?", "#", "@")) or re.search(r"\s", host_value):
-        raise RuntimeError("[EasyUse Anima] NAIA host must be a hostname or IP address, not a URL.")
+    try:
+        host_value = normalize_naia_host(host or DEFAULT_HOST)
+    except ValueError:
+        raise RuntimeError("[EasyUse Anima] NAIA host must be a hostname or IP address, not a URL.") from None
     if not allow_remote_api and not _is_local_naia_host(host_value):
         raise RuntimeError(
             "[EasyUse Anima] Remote NAIA API access is disabled. "
             "Enable 'Allow remote API' in EasyUse Anima NAIA settings to use a non-local host."
         )
-    url_host = host_value
-    if ":" in host_value and not host_value.startswith("["):
-        url_host = f"[{host_value}]"
-    return f"http://{url_host}:{int(port)}/api/comfyui/random"
+    endpoints = resolve_naia_endpoints()
+    if endpoints is None:
+        endpoints = DEFAULT_NAIA_ENDPOINTS
+    for approved_host, approved_port, address in endpoints:
+        if host_value == approved_host and type(port) is int and port == approved_port:
+            url_host = f"[{address}]" if ":" in address else address
+            return f"http://{url_host}:{port}/api/comfyui/random"
+    raise RuntimeError(
+        "[EasyUse Anima] NAIA endpoint is not approved by the ComfyUI operator. "
+        "Configure EASYUSE_ANIMA_NAIA_ENDPOINTS before starting ComfyUI."
+    )
 
 
 def _reject_naia_redirect(response, **_kwargs):
@@ -99,28 +109,31 @@ def _post_random(host: str, port: int, body: dict, allow_remote_api: bool = Fals
         raise RuntimeError("[EasyUse Anima] requests is not installed. Install requirements.txt.")
 
     url = _build_naia_random_url(host, port, allow_remote_api=allow_remote_api)
+    host_value = normalize_naia_host(host or DEFAULT_HOST)
+    authority = f"[{host_value}]:{port}" if ":" in host_value else f"{host_value}:{port}"
+    # Localhost-only defaults; allow_remote_api=True is a user preference and
+    # cannot expand the operator allowlist. Do not inherit proxies or netrc.
     try:
-        # Explicit user-configured NAIA API call. Default use is localhost-only;
-        # remote hosts require allow_remote_api=True. The response is parsed as
-        # JSON and is never executed as code.
-        response = requests.post(
-            url, json=body, timeout=HTTP_TIMEOUT, allow_redirects=False,
-            hooks={"response": _reject_naia_redirect},
-        )
-    except requests.RequestException as exc:
-        raise RuntimeError(f"[EasyUse Anima] NAIA API request failed: {exc}")
+        with requests.Session() as session:
+            session.trust_env = False
+            with session.post(
+                url, json=body, timeout=HTTP_TIMEOUT, allow_redirects=False,
+                headers={"Host": authority},
+                hooks={"response": _reject_naia_redirect},
+            ) as response:
+                if not response.ok:
+                    raise RuntimeError(
+                        f"[EasyUse Anima] NAIA API error HTTP {response.status_code}."
+                    )
+                try:
+                    data = response.json()
+                except ValueError:
+                    raise RuntimeError("[EasyUse Anima] NAIA API returned invalid JSON.") from None
+    except requests.RequestException:
+        raise RuntimeError("[EasyUse Anima] NAIA API request failed.") from None
 
-    if not response.ok:
-        raise RuntimeError(
-            f"[EasyUse Anima] NAIA API error HTTP {response.status_code}: {response.text[:300]}"
-        )
-    try:
-        data = response.json()
-    except ValueError:
-        raise RuntimeError(f"[EasyUse Anima] NAIA API returned non-JSON: {response.text[:300]}")
-
-    if not data.get("ok", True):
-        raise RuntimeError(f"[EasyUse Anima] NAIA API returned error: {data}")
+    if not isinstance(data, dict) or not data.get("ok", True):
+        raise RuntimeError("[EasyUse Anima] NAIA API returned an error response.")
     return data
 
 

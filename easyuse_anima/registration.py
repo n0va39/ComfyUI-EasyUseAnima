@@ -3,10 +3,12 @@
 from .nodes.aio_hook_nodes import EasyUseAnimaAIOHookCombine
 from .nodes.aio_nodes import EasyUseAnimaAIOGenerator, EasyUseAnimaInput
 from .nodes.anima_29b_nodes import EasyUseAnima29BLoraStackLoader
+from .nodes.civitai_nodes import EasyUseAnimaCivitaiLookup
 from .nodes.image_nodes import (
     EasyUseAnimaDetailerAlignHook,
     EasyUseAnimaImageScaleByMultiple,
 )
+from .nodes.image_output_nodes import EasyUseAnimaImageMetadata, EasyUseAnimaSaveImage
 from .nodes.lora_nodes import EasyUseAnimaLoraPreset
 from .nodes.naia_nodes import EasyUseAnimaNAIARandomPrompt
 from .nodes.prompt_advanced_nodes import (
@@ -39,6 +41,9 @@ NODE_CLASS_MAPPINGS = {
     "EasyUseAnimaArtistMixConditioning": EasyUseAnimaArtistMixConditioning,
     "EasyUseAnimaInput": EasyUseAnimaInput,
     "EasyUseAnimaImageScaleByMultiple": EasyUseAnimaImageScaleByMultiple,
+    "EasyUseAnimaImageMetadata": EasyUseAnimaImageMetadata,
+    "EasyUseAnimaCivitaiLookup": EasyUseAnimaCivitaiLookup,
+    "EasyUseAnimaSaveImage": EasyUseAnimaSaveImage,
     "EasyUseAnimaLoraPreset": EasyUseAnimaLoraPreset,
     "EasyUseAnimaNAIARandomPrompt": EasyUseAnimaNAIARandomPrompt,
     "EasyUseAnimaPromptDataConditioning": EasyUseAnimaPromptDataConditioning,
@@ -64,6 +69,9 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "EasyUseAnimaArtistMixConditioning": "Anima Artist Mix Conditioning",
     "EasyUseAnimaInput": "Easy Use Anima Input",
     "EasyUseAnimaImageScaleByMultiple": "Anima Image Scale By Multiple",
+    "EasyUseAnimaImageMetadata": "Easy Image Metadata",
+    "EasyUseAnimaCivitaiLookup": "Easy Civitai Lookup",
+    "EasyUseAnimaSaveImage": "Easy Save Image",
     "EasyUseAnimaLoraPreset": "Anima LoRA Preset",
     "EasyUseAnimaNAIARandomPrompt": "Anima NAIA Random Prompt",
     "EasyUseAnimaPromptDataConditioning": "Anima Prompt Data Conditioning",

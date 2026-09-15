@@ -33,6 +33,6 @@ The node still declares the legacy `use_naia_settings`, `pre_prompt`,
 `post_prompt`, `auto_hide`, preprocessing, `host`, and `port` input names so
 existing workflows keep the same schema. The front-end hides these compatibility
 values and the backend does not use their stored values. Configure the endpoint,
-Prompt Engineering, and remote API permission in the global EasyUse Anima
-Settings. Remote hosts remain blocked unless the global `Allow Remote API`
-security setting is enabled.
+Prompt Engineering, and remote API preference in the global EasyUse Anima
+Settings. Remote hosts also require the operator's startup allowlist; custom
+local ports require approval as well. See [NAIA connection policy](../naia-network-policy.md).

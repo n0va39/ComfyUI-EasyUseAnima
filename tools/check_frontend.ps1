@@ -29,6 +29,11 @@ try {
         }
     }
 
+    & node "tests\frontend_image_output_migration_smoke.mjs"
+    if ($LASTEXITCODE -ne 0) {
+        throw "Image output workflow migration smoke failed with exit code $LASTEXITCODE."
+    }
+
     & node "tests\frontend_highlight_core_smoke.mjs"
     if ($LASTEXITCODE -ne 0) {
         throw "Frontend highlight core smoke failed with exit code $LASTEXITCODE."

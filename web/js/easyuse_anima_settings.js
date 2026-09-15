@@ -123,7 +123,7 @@ const TEXT = {
     naiaEndpoint: "Connection",
     naiaAllowRemoteApi: "Allow remote API",
     naiaAllowRemoteApiTip:
-      "OFF keeps NAIA API calls localhost-only. Turn ON only for a trusted remote NAIA endpoint.",
+      "OFF keeps NAIA local. Remote addresses and non-default ports also require the operator's startup allowlist. Turning this ON cannot approve a new destination. See README: NAIA connection setup.",
     naiaPromptEngineering: "Prompt Engineering",
     naiaDesktopPromptEngineeringTip:
       "ON: ComfyUI does not send Prompt Engineering override values and NAIA 2.0 uses its own desktop settings. OFF: ComfyUI sends the values below as overrides for this request.",
@@ -259,7 +259,7 @@ const TEXT = {
     naiaEndpoint: "연결",
     naiaAllowRemoteApi: "원격 API 허용",
     naiaAllowRemoteApiTip:
-      "OFF이면 NAIA API 호출은 localhost로만 제한됩니다. 신뢰하는 원격 NAIA endpoint를 쓸 때만 켜세요.",
+      "OFF이면 로컬 NAIA만 사용합니다. 원격 주소와 기본값 외 포트는 운영자의 시작 시 허용 목록에도 등록해야 합니다. 이 설정만 켜서는 새 주소가 허용되지 않습니다. README의 NAIA 연결 설정을 참고하세요.",
     naiaPromptEngineering: "Prompt Engineering",
     naiaDesktopPromptEngineeringTip:
       "ON: ComfyUI의 Prompt Engineering override 값을 보내지 않고 NAIA 2.0 프로그램의 자체 설정을 사용합니다. OFF: 아래 ComfyUI 설정값을 이번 요청의 override로 NAIA에 보냅니다.",
@@ -395,7 +395,7 @@ const TEXT = {
     naiaEndpoint: "接続",
     naiaAllowRemoteApi: "リモート API を許可",
     naiaAllowRemoteApiTip:
-      "OFF の場合、NAIA API 呼び出しは localhost のみに制限されます。信頼できるリモート NAIA endpoint を使う場合だけ ON にしてください。",
+      "OFF はローカル NAIA のみ使用します。リモートアドレスと標準以外のポートは、起動時の管理者許可リストへの登録も必要です。ON だけでは新しい接続先は許可されません。README の NAIA 接続設定を参照してください。",
     naiaPromptEngineering: "Prompt Engineering",
     naiaDesktopPromptEngineeringTip:
       "ON: ComfyUI の Prompt Engineering override 値を送信せず、NAIA 2.0 アプリの設定を使用します。OFF: 下の ComfyUI 設定値をこのリクエストの override として NAIA に送信します。",
@@ -531,7 +531,7 @@ const TEXT = {
     naiaEndpoint: "连接",
     naiaAllowRemoteApi: "允许远程 API",
     naiaAllowRemoteApiTip:
-      "OFF 时 NAIA API 调用仅限 localhost。只有使用可信远程 NAIA endpoint 时才开启。",
+      "OFF 仅使用本地 NAIA。远程地址和非默认端口还需加入管理员的启动允许列表。仅开启此设置不会授权新地址。请参阅 README 的 NAIA 连接设置。",
     naiaPromptEngineering: "Prompt Engineering",
     naiaDesktopPromptEngineeringTip:
       "ON：ComfyUI 不发送 Prompt Engineering override 值，NAIA 2.0 使用自己的桌面设置。OFF：将下方 ComfyUI 设置值作为本次请求的 override 发送给 NAIA。",

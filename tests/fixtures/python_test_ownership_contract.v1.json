@@ -73,7 +73,8 @@
       ],
       "owners": {
         "adapter_api_node_integration": [
-          "tests/test_aio_nodes.py"
+          "tests/test_aio_nodes.py",
+          "tests/test_civitai_lookup_nodes.py"
         ],
         "live_host": [
           "@matrix:dual-canvas-live"
@@ -306,6 +307,7 @@
           "@matrix:registry-archive-closure"
         ],
         "pure_service_unit": [
+          "tests/test_naia_endpoint_policy.py",
           "tests/test_naia_settings.py"
         ]
       }
@@ -318,6 +320,8 @@
       ],
       "owners": {
         "adapter_api_node_integration": [
+          "tests/test_civitai_lookup_nodes.py",
+          "tests/test_image_output_nodes.py",
           "tests/test_node_contracts.py"
         ],
         "live_host": [
