@@ -1,5 +1,34 @@
 # Release Notes
 
+## 1.2.2
+
+### Fixed
+
+- NAIA connections now stay within the destinations approved when ComfyUI
+  starts. Changing host, port, or remote-access settings cannot grant access to
+  another service.
+- NAIA connects to an approved numeric address and does not inherit environment
+  proxies or automatic credentials. Redirects remain blocked, and connection
+  errors no longer include remote response bodies.
+- Includes the 1.2.1 corrections for image workflow saving, actual execution
+  seed/settings, final preview metadata, and LoRA subfolder lookup.
+
+### Compatibility
+
+- Existing node IDs, workflows, profiles, and saved settings remain readable.
+- Local NAIA at `127.0.0.1:7243` or `[::1]:7243` needs no extra setup.
+  `localhost` connects to `127.0.0.1`.
+- Other addresses or ports, including saved LAN connections, require the
+  `EASYUSE_ANIMA_NAIA_ENDPOINTS` startup allowlist. Non-local hosts also require
+  `Allow remote API`. See [NAIA connection setup](docs/naia-network-policy.md).
+- Metadata fixes apply to newly generated images. The seed, shared-subgraph,
+  and large-JPEG sidecar limitations listed for 1.2.1 still apply.
+
+### Update
+
+- Configure any custom NAIA destination before starting ComfyUI, then restart
+  ComfyUI and hard-refresh the browser.
+
 ## 1.2.1
 
 ### Fixed
