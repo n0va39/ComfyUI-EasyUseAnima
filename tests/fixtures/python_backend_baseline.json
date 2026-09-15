@@ -15651,6 +15651,24 @@
         "target": "easyuse_anima/profiles/repository.py"
       },
       {
+        "alias": null,
+        "bound_name": "get_runtime",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": "..runtime:get_runtime",
+        "kind": "static_from",
+        "line": 27,
+        "name": "get_runtime",
+        "optional": false,
+        "requested": "..runtime",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/api/application_compatibility.py",
+        "target": "easyuse_anima/runtime.py"
+      },
+      {
         "alias": "_api_responses",
         "bound_name": "_api_responses",
         "branch_context": [],
@@ -15659,7 +15677,7 @@
         "conditional": false,
         "imported": ".:responses",
         "kind": "static_from",
-        "line": 27,
+        "line": 28,
         "name": "responses",
         "optional": false,
         "requested": ".",
@@ -15677,7 +15695,7 @@
         "conditional": false,
         "imported": ".:router",
         "kind": "static_from",
-        "line": 28,
+        "line": 29,
         "name": "router",
         "optional": false,
         "requested": ".",
@@ -15695,7 +15713,7 @@
         "conditional": false,
         "imported": ".dependencies:_late_application_attribute",
         "kind": "static_from",
-        "line": 29,
+        "line": 30,
         "name": "_late_application_attribute",
         "optional": false,
         "requested": ".dependencies",
@@ -15713,7 +15731,7 @@
         "conditional": false,
         "imported": ".dependencies:_late_application_dependency",
         "kind": "static_from",
-        "line": 32,
+        "line": 33,
         "name": "_late_application_dependency",
         "optional": false,
         "requested": ".dependencies",
@@ -15731,7 +15749,7 @@
         "conditional": false,
         "imported": ".dependencies:_late_application_value",
         "kind": "static_from",
-        "line": 35,
+        "line": 36,
         "name": "_late_application_value",
         "optional": false,
         "requested": ".dependencies",
@@ -15749,7 +15767,7 @@
         "conditional": false,
         "imported": ".dependencies:_read_application_dependency",
         "kind": "static_from",
-        "line": 38,
+        "line": 39,
         "name": "_read_application_dependency",
         "optional": false,
         "requested": ".dependencies",
@@ -15760,6 +15778,42 @@
       },
       {
         "alias": null,
+        "bound_name": "ApiContractError",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".errors:ApiContractError",
+        "kind": "static_from",
+        "line": 42,
+        "name": "ApiContractError",
+        "optional": false,
+        "requested": ".errors",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/api/application_compatibility.py",
+        "target": "easyuse_anima/api/errors.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "validate_api_access",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".requests:validate_api_access",
+        "kind": "static_from",
+        "line": 43,
+        "name": "validate_api_access",
+        "optional": false,
+        "requested": ".requests",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/api/application_compatibility.py",
+        "target": "easyuse_anima/api/requests.py"
+      },
+      {
+        "alias": null,
         "bound_name": "attach_request_id_header",
         "branch_context": [],
         "classification": "internal",
@@ -15767,7 +15821,7 @@
         "conditional": false,
         "imported": ".responses:attach_request_id_header",
         "kind": "static_from",
-        "line": 41,
+        "line": 44,
         "name": "attach_request_id_header",
         "optional": false,
         "requested": ".responses",
@@ -15785,7 +15839,7 @@
         "conditional": false,
         "imported": ".responses:correlate_response",
         "kind": "static_from",
-        "line": 41,
+        "line": 44,
         "name": "correlate_response",
         "optional": false,
         "requested": ".responses",
@@ -15803,7 +15857,7 @@
         "conditional": false,
         "imported": ".responses:error_payload",
         "kind": "static_from",
-        "line": 41,
+        "line": 44,
         "name": "error_payload",
         "optional": false,
         "requested": ".responses",
@@ -15821,7 +15875,7 @@
         "conditional": false,
         "imported": ".routes:autocomplete",
         "kind": "static_from",
-        "line": 46,
+        "line": 49,
         "name": "autocomplete",
         "optional": false,
         "requested": ".routes",
@@ -15839,7 +15893,7 @@
         "conditional": false,
         "imported": ".routes:long_text_settings",
         "kind": "static_from",
-        "line": 47,
+        "line": 50,
         "name": "long_text_settings",
         "optional": false,
         "requested": ".routes",
@@ -15857,7 +15911,7 @@
         "conditional": false,
         "imported": ".routes:lora_preview",
         "kind": "static_from",
-        "line": 48,
+        "line": 51,
         "name": "lora_preview",
         "optional": false,
         "requested": ".routes",
@@ -15875,7 +15929,7 @@
         "conditional": false,
         "imported": ".routes:settings",
         "kind": "static_from",
-        "line": 49,
+        "line": 52,
         "name": "settings",
         "optional": false,
         "requested": ".routes",
@@ -15893,7 +15947,7 @@
         "conditional": false,
         "imported": ".routes:wildcards",
         "kind": "static_from",
-        "line": 50,
+        "line": 53,
         "name": "wildcards",
         "optional": false,
         "requested": ".routes",
@@ -15911,7 +15965,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": true,
             "kind": "try",
-            "line": 117
+            "line": 120
           }
         ],
         "classification": "external",
@@ -15919,7 +15973,7 @@
         "conditional": true,
         "imported": "server",
         "kind": "static_import",
-        "line": 118,
+        "line": 121,
         "name": null,
         "optional": true,
         "requested": "server",
@@ -15936,7 +15990,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": true,
             "kind": "try",
-            "line": 117
+            "line": 120
           }
         ],
         "classification": "external",
@@ -15944,7 +15998,7 @@
         "conditional": true,
         "imported": "aiohttp:web",
         "kind": "static_from",
-        "line": 119,
+        "line": 122,
         "name": "web",
         "optional": true,
         "requested": "aiohttp",
@@ -16477,6 +16531,91 @@
       },
       {
         "alias": null,
+        "bound_name": "base64",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "base64",
+        "kind": "static_import",
+        "line": 3,
+        "name": null,
+        "optional": false,
+        "requested": "base64",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/api/requests.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "binascii",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "binascii",
+        "kind": "static_import",
+        "line": 4,
+        "name": null,
+        "optional": false,
+        "requested": "binascii",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/api/requests.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "hashlib",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "hashlib",
+        "kind": "static_import",
+        "line": 5,
+        "name": null,
+        "optional": false,
+        "requested": "hashlib",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/api/requests.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "hmac",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "hmac",
+        "kind": "static_import",
+        "line": 6,
+        "name": null,
+        "optional": false,
+        "requested": "hmac",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/api/requests.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "ipaddress",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "ipaddress",
+        "kind": "static_import",
+        "line": 7,
+        "name": null,
+        "optional": false,
+        "requested": "ipaddress",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/api/requests.py"
+      },
+      {
+        "alias": null,
         "bound_name": "json",
         "branch_context": [],
         "classification": "external",
@@ -16484,7 +16623,7 @@
         "conditional": false,
         "imported": "json",
         "kind": "static_import",
-        "line": 3,
+        "line": 8,
         "name": null,
         "optional": false,
         "requested": "json",
@@ -16501,7 +16640,7 @@
         "conditional": false,
         "imported": "uuid",
         "kind": "static_import",
-        "line": 4,
+        "line": 9,
         "name": null,
         "optional": false,
         "requested": "uuid",
@@ -16518,7 +16657,7 @@
         "conditional": false,
         "imported": "collections.abc:Mapping",
         "kind": "static_from",
-        "line": 5,
+        "line": 10,
         "name": "Mapping",
         "optional": false,
         "requested": "collections.abc",
@@ -16535,7 +16674,7 @@
         "conditional": false,
         "imported": "typing:Any",
         "kind": "static_from",
-        "line": 6,
+        "line": 11,
         "name": "Any",
         "optional": false,
         "requested": "typing",
@@ -16552,7 +16691,7 @@
         "conditional": false,
         "imported": "urllib.parse:urlsplit",
         "kind": "static_from",
-        "line": 7,
+        "line": 12,
         "name": "urlsplit",
         "optional": false,
         "requested": "urllib.parse",
@@ -16569,7 +16708,7 @@
         "conditional": false,
         "imported": ".errors:ApiContractError",
         "kind": "static_from",
-        "line": 9,
+        "line": 14,
         "name": "ApiContractError",
         "optional": false,
         "requested": ".errors",
@@ -16587,7 +16726,7 @@
         "conditional": false,
         "imported": ".errors:_field_error",
         "kind": "static_from",
-        "line": 9,
+        "line": 14,
         "name": "_field_error",
         "optional": false,
         "requested": ".errors",
@@ -16666,6 +16805,23 @@
       },
       {
         "alias": null,
+        "bound_name": "Mapping",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "collections.abc:Mapping",
+        "kind": "static_from",
+        "line": 6,
+        "name": "Mapping",
+        "optional": false,
+        "requested": "collections.abc",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/api/responses.py"
+      },
+      {
+        "alias": null,
         "bound_name": "wraps",
         "branch_context": [],
         "classification": "external",
@@ -16673,7 +16829,7 @@
         "conditional": false,
         "imported": "functools:wraps",
         "kind": "static_from",
-        "line": 6,
+        "line": 7,
         "name": "wraps",
         "optional": false,
         "requested": "functools",
@@ -16690,25 +16846,8 @@
         "conditional": false,
         "imported": "typing:Any",
         "kind": "static_from",
-        "line": 7,
+        "line": 8,
         "name": "Any",
-        "optional": false,
-        "requested": "typing",
-        "role": "ordinary",
-        "scope": "<module>",
-        "source": "easyuse_anima/api/responses.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "Mapping",
-        "branch_context": [],
-        "classification": "external",
-        "column": 0,
-        "conditional": false,
-        "imported": "typing:Mapping",
-        "kind": "static_from",
-        "line": 7,
-        "name": "Mapping",
         "optional": false,
         "requested": "typing",
         "role": "ordinary",
@@ -16724,13 +16863,31 @@
         "conditional": false,
         "imported": "typing:cast",
         "kind": "static_from",
-        "line": 7,
+        "line": 8,
         "name": "cast",
         "optional": false,
         "requested": "typing",
         "role": "ordinary",
         "scope": "<module>",
         "source": "easyuse_anima/api/responses.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "ApiContractError",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".errors:ApiContractError",
+        "kind": "static_from",
+        "line": 10,
+        "name": "ApiContractError",
+        "optional": false,
+        "requested": ".errors",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/api/responses.py",
+        "target": "easyuse_anima/api/errors.py"
       },
       {
         "alias": null,
@@ -19173,6 +19330,23 @@
       },
       {
         "alias": null,
+        "bound_name": "os",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "os",
+        "kind": "static_import",
+        "line": 5,
+        "name": null,
+        "optional": false,
+        "requested": "os",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/bootstrap.py"
+      },
+      {
+        "alias": null,
         "bound_name": "threading",
         "branch_context": [],
         "classification": "external",
@@ -19180,7 +19354,7 @@
         "conditional": false,
         "imported": "threading",
         "kind": "static_import",
-        "line": 5,
+        "line": 6,
         "name": null,
         "optional": false,
         "requested": "threading",
@@ -19197,7 +19371,7 @@
         "conditional": false,
         "imported": "time",
         "kind": "static_import",
-        "line": 6,
+        "line": 7,
         "name": null,
         "optional": false,
         "requested": "time",
@@ -19214,7 +19388,7 @@
         "conditional": false,
         "imported": "collections.abc:Callable",
         "kind": "static_from",
-        "line": 7,
+        "line": 8,
         "name": "Callable",
         "optional": false,
         "requested": "collections.abc",
@@ -19231,7 +19405,7 @@
         "conditional": false,
         "imported": ".aio.first_pass_cache:_DEFAULT_AIO_FIRST_PASS_CACHE",
         "kind": "static_from",
-        "line": 9,
+        "line": 10,
         "name": "_DEFAULT_AIO_FIRST_PASS_CACHE",
         "optional": false,
         "requested": ".aio.first_pass_cache",
@@ -19249,7 +19423,7 @@
         "conditional": false,
         "imported": ".api.application:_build_api_application",
         "kind": "static_from",
-        "line": 10,
+        "line": 11,
         "name": "_build_api_application",
         "optional": false,
         "requested": ".api.application",
@@ -19257,6 +19431,24 @@
         "scope": "<module>",
         "source": "easyuse_anima/bootstrap.py",
         "target": "easyuse_anima/api/application.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "api_token_digest",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".api.requests:api_token_digest",
+        "kind": "static_from",
+        "line": 12,
+        "name": "api_token_digest",
+        "optional": false,
+        "requested": ".api.requests",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/bootstrap.py",
+        "target": "easyuse_anima/api/requests.py"
       },
       {
         "alias": "_build_aio_profile_mutation_handlers",
@@ -19267,7 +19459,7 @@
         "conditional": false,
         "imported": ".api.routes.aio_profile_mutations:build_aio_profile_mutation_handlers",
         "kind": "static_from",
-        "line": 11,
+        "line": 13,
         "name": "build_aio_profile_mutation_handlers",
         "optional": false,
         "requested": ".api.routes.aio_profile_mutations",
@@ -19285,7 +19477,7 @@
         "conditional": false,
         "imported": ".api.routes.aio_torch_compile:build_aio_torch_compile_recommend_handler",
         "kind": "static_from",
-        "line": 14,
+        "line": 16,
         "name": "build_aio_torch_compile_recommend_handler",
         "optional": false,
         "requested": ".api.routes.aio_torch_compile",
@@ -19303,7 +19495,7 @@
         "conditional": false,
         "imported": ".api.routes.autocomplete:build_autocomplete_handlers",
         "kind": "static_from",
-        "line": 17,
+        "line": 19,
         "name": "build_autocomplete_handlers",
         "optional": false,
         "requested": ".api.routes.autocomplete",
@@ -19321,7 +19513,7 @@
         "conditional": false,
         "imported": ".api.routes.autocomplete:build_classify_prompt_handler",
         "kind": "static_from",
-        "line": 20,
+        "line": 22,
         "name": "build_classify_prompt_handler",
         "optional": false,
         "requested": ".api.routes.autocomplete",
@@ -19339,7 +19531,7 @@
         "conditional": false,
         "imported": ".api.routes.long_text_settings:build_long_text_settings_handlers",
         "kind": "static_from",
-        "line": 23,
+        "line": 25,
         "name": "build_long_text_settings_handlers",
         "optional": false,
         "requested": ".api.routes.long_text_settings",
@@ -19357,7 +19549,7 @@
         "conditional": false,
         "imported": ".api.routes.lora_catalog:build_loras_handler",
         "kind": "static_from",
-        "line": 26,
+        "line": 28,
         "name": "build_loras_handler",
         "optional": false,
         "requested": ".api.routes.lora_catalog",
@@ -19375,7 +19567,7 @@
         "conditional": false,
         "imported": ".api.routes.lora_preview:build_lora_preview_handler",
         "kind": "static_from",
-        "line": 27,
+        "line": 29,
         "name": "build_lora_preview_handler",
         "optional": false,
         "requested": ".api.routes.lora_preview",
@@ -19393,7 +19585,7 @@
         "conditional": false,
         "imported": ".api.routes.lora_profile_fix:build_lora_profile_fix_handler",
         "kind": "static_from",
-        "line": 30,
+        "line": 32,
         "name": "build_lora_profile_fix_handler",
         "optional": false,
         "requested": ".api.routes.lora_profile_fix",
@@ -19411,7 +19603,7 @@
         "conditional": false,
         "imported": ".api.routes.profile_lists:build_profile_list_handlers",
         "kind": "static_from",
-        "line": 33,
+        "line": 35,
         "name": "build_profile_list_handlers",
         "optional": false,
         "requested": ".api.routes.profile_lists",
@@ -19429,7 +19621,7 @@
         "conditional": false,
         "imported": ".api.routes.profile_loads:build_profile_load_handlers",
         "kind": "static_from",
-        "line": 36,
+        "line": 38,
         "name": "build_profile_load_handlers",
         "optional": false,
         "requested": ".api.routes.profile_loads",
@@ -19447,7 +19639,7 @@
         "conditional": false,
         "imported": ".api.routes.profile_saves:build_profile_save_handlers",
         "kind": "static_from",
-        "line": 39,
+        "line": 41,
         "name": "build_profile_save_handlers",
         "optional": false,
         "requested": ".api.routes.profile_saves",
@@ -19465,7 +19657,7 @@
         "conditional": false,
         "imported": ".api.routes.settings:build_settings_handlers",
         "kind": "static_from",
-        "line": 42,
+        "line": 44,
         "name": "build_settings_handlers",
         "optional": false,
         "requested": ".api.routes.settings",
@@ -19483,7 +19675,7 @@
         "conditional": false,
         "imported": ".api.routes.translation:build_translate_prompt_handler",
         "kind": "static_from",
-        "line": 43,
+        "line": 45,
         "name": "build_translate_prompt_handler",
         "optional": false,
         "requested": ".api.routes.translation",
@@ -19501,7 +19693,7 @@
         "conditional": false,
         "imported": ".api.routes.translation:build_translation_runtime",
         "kind": "static_from",
-        "line": 46,
+        "line": 48,
         "name": "build_translation_runtime",
         "optional": false,
         "requested": ".api.routes.translation",
@@ -19519,7 +19711,7 @@
         "conditional": false,
         "imported": ".api.routes.translation_execution:PromptTranslationRouteExecutor",
         "kind": "static_from",
-        "line": 49,
+        "line": 51,
         "name": "PromptTranslationRouteExecutor",
         "optional": false,
         "requested": ".api.routes.translation_execution",
@@ -19537,7 +19729,7 @@
         "conditional": false,
         "imported": ".api.routes.wildcards:build_wildcards_handler",
         "kind": "static_from",
-        "line": 52,
+        "line": 54,
         "name": "build_wildcards_handler",
         "optional": false,
         "requested": ".api.routes.wildcards",
@@ -19555,7 +19747,7 @@
         "conditional": false,
         "imported": ".autocomplete.dataset:_DEFAULT_AUTOCOMPLETE_SNAPSHOTS",
         "kind": "static_from",
-        "line": 55,
+        "line": 57,
         "name": "_DEFAULT_AUTOCOMPLETE_SNAPSHOTS",
         "optional": false,
         "requested": ".autocomplete.dataset",
@@ -19573,7 +19765,7 @@
         "conditional": false,
         "imported": ".autocomplete.index:_DEFAULT_AUTOCOMPLETE_INDEX_STORE",
         "kind": "static_from",
-        "line": 56,
+        "line": 58,
         "name": "_DEFAULT_AUTOCOMPLETE_INDEX_STORE",
         "optional": false,
         "requested": ".autocomplete.index",
@@ -19591,7 +19783,7 @@
         "conditional": false,
         "imported": ".autocomplete.service:_AutocompleteService",
         "kind": "static_from",
-        "line": 57,
+        "line": 59,
         "name": "_AutocompleteService",
         "optional": false,
         "requested": ".autocomplete.service",
@@ -19609,7 +19801,7 @@
         "conditional": false,
         "imported": ".infrastructure.comfy.provider:DefaultComfyHostProvider",
         "kind": "static_from",
-        "line": 58,
+        "line": 60,
         "name": "DefaultComfyHostProvider",
         "optional": false,
         "requested": ".infrastructure.comfy.provider",
@@ -19620,6 +19812,24 @@
       },
       {
         "alias": null,
+        "bound_name": "parse_naia_endpoint_policy",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".naia.endpoint_policy:parse_naia_endpoint_policy",
+        "kind": "static_from",
+        "line": 61,
+        "name": "parse_naia_endpoint_policy",
+        "optional": false,
+        "requested": ".naia.endpoint_policy",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/bootstrap.py",
+        "target": "easyuse_anima/naia/endpoint_policy.py"
+      },
+      {
+        "alias": null,
         "bound_name": "RuntimeConfig",
         "branch_context": [],
         "classification": "internal",
@@ -19627,7 +19837,7 @@
         "conditional": false,
         "imported": ".runtime:RuntimeConfig",
         "kind": "static_from",
-        "line": 59,
+        "line": 62,
         "name": "RuntimeConfig",
         "optional": false,
         "requested": ".runtime",
@@ -19645,7 +19855,7 @@
         "conditional": false,
         "imported": ".runtime:RuntimeServices",
         "kind": "static_from",
-        "line": 59,
+        "line": 62,
         "name": "RuntimeServices",
         "optional": false,
         "requested": ".runtime",
@@ -19663,7 +19873,7 @@
         "conditional": false,
         "imported": ".runtime:_RuntimeCleanupPlan",
         "kind": "static_from",
-        "line": 59,
+        "line": 62,
         "name": "_RuntimeCleanupPlan",
         "optional": false,
         "requested": ".runtime",
@@ -19681,7 +19891,7 @@
         "conditional": false,
         "imported": ".runtime:_detach_runtime",
         "kind": "static_from",
-        "line": 59,
+        "line": 62,
         "name": "_detach_runtime",
         "optional": false,
         "requested": ".runtime",
@@ -19699,7 +19909,7 @@
         "conditional": false,
         "imported": ".runtime:install_runtime",
         "kind": "static_from",
-        "line": 59,
+        "line": 62,
         "name": "install_runtime",
         "optional": false,
         "requested": ".runtime",
@@ -19717,7 +19927,7 @@
         "conditional": false,
         "imported": ".seed.service:InMemorySeedReservationService",
         "kind": "static_from",
-        "line": 66,
+        "line": 69,
         "name": "InMemorySeedReservationService",
         "optional": false,
         "requested": ".seed.service",
@@ -19735,7 +19945,7 @@
         "conditional": false,
         "imported": ".translation.contracts:PromptTranslationError",
         "kind": "static_from",
-        "line": 67,
+        "line": 70,
         "name": "PromptTranslationError",
         "optional": false,
         "requested": ".translation.contracts",
@@ -19753,7 +19963,7 @@
         "conditional": false,
         "imported": ".translation.contracts:PromptTranslationLimitError",
         "kind": "static_from",
-        "line": 67,
+        "line": 70,
         "name": "PromptTranslationLimitError",
         "optional": false,
         "requested": ".translation.contracts",
@@ -19771,7 +19981,7 @@
         "conditional": false,
         "imported": ".translation.contracts:TranslationBusyError",
         "kind": "static_from",
-        "line": 67,
+        "line": 70,
         "name": "TranslationBusyError",
         "optional": false,
         "requested": ".translation.contracts",
@@ -19789,7 +19999,7 @@
         "conditional": false,
         "imported": ".translation.contracts:TranslationCancelledError",
         "kind": "static_from",
-        "line": 67,
+        "line": 70,
         "name": "TranslationCancelledError",
         "optional": false,
         "requested": ".translation.contracts",
@@ -19807,7 +20017,7 @@
         "conditional": false,
         "imported": ".translation.contracts:TranslationMarkerCountError",
         "kind": "static_from",
-        "line": 67,
+        "line": 70,
         "name": "TranslationMarkerCountError",
         "optional": false,
         "requested": ".translation.contracts",
@@ -19825,7 +20035,7 @@
         "conditional": false,
         "imported": ".translation.contracts:TranslationMarkerSizeError",
         "kind": "static_from",
-        "line": 67,
+        "line": 70,
         "name": "TranslationMarkerSizeError",
         "optional": false,
         "requested": ".translation.contracts",
@@ -19843,7 +20053,7 @@
         "conditional": false,
         "imported": ".translation.contracts:TranslationProviderUnavailableError",
         "kind": "static_from",
-        "line": 67,
+        "line": 70,
         "name": "TranslationProviderUnavailableError",
         "optional": false,
         "requested": ".translation.contracts",
@@ -19861,7 +20071,7 @@
         "conditional": false,
         "imported": ".translation.contracts:TranslationTimeoutError",
         "kind": "static_from",
-        "line": 67,
+        "line": 70,
         "name": "TranslationTimeoutError",
         "optional": false,
         "requested": ".translation.contracts",
@@ -19879,7 +20089,7 @@
         "conditional": false,
         "imported": ".translation.contracts:TranslationTotalSizeError",
         "kind": "static_from",
-        "line": 67,
+        "line": 70,
         "name": "TranslationTotalSizeError",
         "optional": false,
         "requested": ".translation.contracts",
@@ -19897,7 +20107,7 @@
         "conditional": false,
         "imported": ".translation.contracts:TranslationUpstreamError",
         "kind": "static_from",
-        "line": 67,
+        "line": 70,
         "name": "TranslationUpstreamError",
         "optional": false,
         "requested": ".translation.contracts",
@@ -19915,7 +20125,7 @@
         "conditional": false,
         "imported": ".translation.ports:PromptTranslationPort",
         "kind": "static_from",
-        "line": 79,
+        "line": 82,
         "name": "PromptTranslationPort",
         "optional": false,
         "requested": ".translation.ports",
@@ -19933,7 +20143,7 @@
         "conditional": false,
         "imported": ".translation.service:BoundedTranslationCache",
         "kind": "static_from",
-        "line": 80,
+        "line": 83,
         "name": "BoundedTranslationCache",
         "optional": false,
         "requested": ".translation.service",
@@ -19951,7 +20161,7 @@
         "conditional": false,
         "imported": ".translation.service:PromptTranslationService",
         "kind": "static_from",
-        "line": 80,
+        "line": 83,
         "name": "PromptTranslationService",
         "optional": false,
         "requested": ".translation.service",
@@ -19969,7 +20179,7 @@
         "conditional": false,
         "imported": ".translation.service:_install_default_translation_service",
         "kind": "static_from",
-        "line": 80,
+        "line": 83,
         "name": "_install_default_translation_service",
         "optional": false,
         "requested": ".translation.service",
@@ -19987,7 +20197,7 @@
         "conditional": false,
         "imported": ".translation.service:_restore_default_translation_service",
         "kind": "static_from",
-        "line": 80,
+        "line": 83,
         "name": "_restore_default_translation_service",
         "optional": false,
         "requested": ".translation.service",
@@ -20005,7 +20215,7 @@
         "conditional": false,
         "imported": ".wildcard.snapshot:_DEFAULT_WILDCARD_SNAPSHOTS",
         "kind": "static_from",
-        "line": 86,
+        "line": 89,
         "name": "_DEFAULT_WILDCARD_SNAPSHOTS",
         "optional": false,
         "requested": ".wildcard.snapshot",
@@ -20023,7 +20233,7 @@
         "conditional": false,
         "imported": ".wildcard.sources:ensure_default_wildcard_root",
         "kind": "static_from",
-        "line": 87,
+        "line": 90,
         "name": "ensure_default_wildcard_root",
         "optional": false,
         "requested": ".wildcard.sources",
@@ -20041,7 +20251,7 @@
         "conditional": false,
         "imported": ".infrastructure.filesystem.paths:PACKAGE_DATA_DIR",
         "kind": "static_from",
-        "line": 107,
+        "line": 110,
         "name": "PACKAGE_DATA_DIR",
         "optional": false,
         "requested": ".infrastructure.filesystem.paths",
@@ -20059,7 +20269,7 @@
         "conditional": false,
         "imported": ".infrastructure.filesystem.paths:PACKAGE_ROOT",
         "kind": "static_from",
-        "line": 107,
+        "line": 110,
         "name": "PACKAGE_ROOT",
         "optional": false,
         "requested": ".infrastructure.filesystem.paths",
@@ -20077,7 +20287,7 @@
         "conditional": false,
         "imported": ".infrastructure.filesystem.paths:USER_DATA_DIR",
         "kind": "static_from",
-        "line": 107,
+        "line": 110,
         "name": "USER_DATA_DIR",
         "optional": false,
         "requested": ".infrastructure.filesystem.paths",
@@ -20095,7 +20305,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 125
+            "line": 143
           }
         ],
         "classification": "external",
@@ -20103,7 +20313,7 @@
         "conditional": true,
         "imported": "nodes",
         "kind": "static_import",
-        "line": 126,
+        "line": 144,
         "name": null,
         "optional": true,
         "requested": "nodes",
@@ -23132,6 +23342,60 @@
       },
       {
         "alias": null,
+        "bound_name": "resolve_naia_endpoints",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": "..infrastructure.comfy.wiring:resolve_naia_endpoints",
+        "kind": "static_from",
+        "line": 8,
+        "name": "resolve_naia_endpoints",
+        "optional": false,
+        "requested": "..infrastructure.comfy.wiring",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/naia/client.py",
+        "target": "easyuse_anima/infrastructure/comfy/wiring.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "DEFAULT_NAIA_ENDPOINTS",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".endpoint_policy:DEFAULT_NAIA_ENDPOINTS",
+        "kind": "static_from",
+        "line": 9,
+        "name": "DEFAULT_NAIA_ENDPOINTS",
+        "optional": false,
+        "requested": ".endpoint_policy",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/naia/client.py",
+        "target": "easyuse_anima/naia/endpoint_policy.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "normalize_naia_host",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".endpoint_policy:normalize_naia_host",
+        "kind": "static_from",
+        "line": 9,
+        "name": "normalize_naia_host",
+        "optional": false,
+        "requested": ".endpoint_policy",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/naia/client.py",
+        "target": "easyuse_anima/naia/endpoint_policy.py"
+      },
+      {
+        "alias": null,
         "bound_name": "requests",
         "branch_context": [
           {
@@ -23139,7 +23403,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": true,
             "kind": "try",
-            "line": 96
+            "line": 106
           }
         ],
         "classification": "external",
@@ -23147,13 +23411,81 @@
         "conditional": true,
         "imported": "requests",
         "kind": "static_import",
-        "line": 97,
+        "line": 107,
         "name": null,
         "optional": true,
         "requested": "requests",
         "role": "optional_dependency",
         "scope": "_post_random",
         "source": "easyuse_anima/naia/client.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "annotations",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "__future__:annotations",
+        "kind": "static_from",
+        "line": 3,
+        "name": "annotations",
+        "optional": false,
+        "requested": "__future__",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/naia/endpoint_policy.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "ipaddress",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "ipaddress",
+        "kind": "static_import",
+        "line": 5,
+        "name": null,
+        "optional": false,
+        "requested": "ipaddress",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/naia/endpoint_policy.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "json",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "json",
+        "kind": "static_import",
+        "line": 6,
+        "name": null,
+        "optional": false,
+        "requested": "json",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/naia/endpoint_policy.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "re",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "re",
+        "kind": "static_import",
+        "line": 7,
+        "name": null,
+        "optional": false,
+        "requested": "re",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/naia/endpoint_policy.py"
       },
       {
         "alias": null,
@@ -40277,6 +40609,24 @@
       },
       {
         "alias": null,
+        "bound_name": "DEFAULT_NAIA_ENDPOINTS",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".naia.endpoint_policy:DEFAULT_NAIA_ENDPOINTS",
+        "kind": "static_from",
+        "line": 14,
+        "name": "DEFAULT_NAIA_ENDPOINTS",
+        "optional": false,
+        "requested": ".naia.endpoint_policy",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/runtime.py",
+        "target": "easyuse_anima/naia/endpoint_policy.py"
+      },
+      {
+        "alias": null,
         "bound_name": "SeedReservationService",
         "branch_context": [],
         "classification": "internal",
@@ -40284,7 +40634,7 @@
         "conditional": false,
         "imported": ".seed.reservation:SeedReservationService",
         "kind": "static_from",
-        "line": 14,
+        "line": 15,
         "name": "SeedReservationService",
         "optional": false,
         "requested": ".seed.reservation",
@@ -40302,7 +40652,7 @@
         "conditional": false,
         "imported": ".translation.ports:PromptTranslationPort",
         "kind": "static_from",
-        "line": 15,
+        "line": 16,
         "name": "PromptTranslationPort",
         "optional": false,
         "requested": ".translation.ports",
@@ -40320,7 +40670,7 @@
         "conditional": false,
         "imported": ".wildcard.ports:WildcardSnapshotPort",
         "kind": "static_from",
-        "line": 16,
+        "line": 17,
         "name": "WildcardSnapshotPort",
         "optional": false,
         "requested": ".wildcard.ports",
@@ -45820,6 +46170,14 @@
       },
       {
         "from": "easyuse_anima/api/application_compatibility.py",
+        "to": "easyuse_anima/api/errors.py"
+      },
+      {
+        "from": "easyuse_anima/api/application_compatibility.py",
+        "to": "easyuse_anima/api/requests.py"
+      },
+      {
+        "from": "easyuse_anima/api/application_compatibility.py",
         "to": "easyuse_anima/api/responses.py"
       },
       {
@@ -45871,6 +46229,10 @@
         "to": "easyuse_anima/profiles/repository.py"
       },
       {
+        "from": "easyuse_anima/api/application_compatibility.py",
+        "to": "easyuse_anima/runtime.py"
+      },
+      {
         "from": "easyuse_anima/api/application_routes.py",
         "to": "easyuse_anima/api/application_compatibility.py"
       },
@@ -45892,6 +46254,10 @@
       },
       {
         "from": "easyuse_anima/api/requests.py",
+        "to": "easyuse_anima/api/errors.py"
+      },
+      {
+        "from": "easyuse_anima/api/responses.py",
         "to": "easyuse_anima/api/errors.py"
       },
       {
@@ -45984,6 +46350,10 @@
       },
       {
         "from": "easyuse_anima/bootstrap.py",
+        "to": "easyuse_anima/api/requests.py"
+      },
+      {
+        "from": "easyuse_anima/bootstrap.py",
         "to": "easyuse_anima/api/routes/aio_profile_mutations.py"
       },
       {
@@ -46057,6 +46427,10 @@
       {
         "from": "easyuse_anima/bootstrap.py",
         "to": "easyuse_anima/infrastructure/filesystem/paths.py"
+      },
+      {
+        "from": "easyuse_anima/bootstrap.py",
+        "to": "easyuse_anima/naia/endpoint_policy.py"
       },
       {
         "from": "easyuse_anima/bootstrap.py",
@@ -46181,6 +46555,14 @@
       {
         "from": "easyuse_anima/lora/prompt_syntax.py",
         "to": "easyuse_anima/lora/metadata.py"
+      },
+      {
+        "from": "easyuse_anima/naia/client.py",
+        "to": "easyuse_anima/infrastructure/comfy/wiring.py"
+      },
+      {
+        "from": "easyuse_anima/naia/client.py",
+        "to": "easyuse_anima/naia/endpoint_policy.py"
       },
       {
         "from": "easyuse_anima/naia/random_prompt.py",
@@ -47164,6 +47546,10 @@
       },
       {
         "from": "easyuse_anima/runtime.py",
+        "to": "easyuse_anima/naia/endpoint_policy.py"
+      },
+      {
+        "from": "easyuse_anima/runtime.py",
         "to": "easyuse_anima/seed/reservation.py"
       },
       {
@@ -48107,6 +48493,12 @@
       {
         "cyclic": false,
         "modules": [
+          "easyuse_anima/naia/endpoint_policy.py"
+        ]
+      },
+      {
+        "cyclic": false,
+        "modules": [
           "easyuse_anima/naia/random_prompt.py"
         ]
       },
@@ -48617,7 +49009,7 @@
     ]
   },
   "inventory": {
-    "module_count": 205,
+    "module_count": 206,
     "modules": [
       {
         "functions": [
@@ -53994,97 +54386,105 @@
         "functions": [
           {
             "async": false,
-            "end_line": 122,
+            "end_line": 125,
             "kind": "function",
-            "line": 116,
+            "line": 119,
             "loc": 7,
             "qualified_name": "_resolve_host_modules"
           },
           {
             "async": false,
-            "end_line": 176,
+            "end_line": 179,
             "kind": "function",
-            "line": 125,
+            "line": 128,
             "loc": 52,
             "qualified_name": "_build_runtime_autocomplete_parts"
           },
           {
             "async": false,
-            "end_line": 132,
+            "end_line": 135,
             "kind": "function",
-            "line": 126,
+            "line": 129,
             "loc": 7,
             "qualified_name": "_build_runtime_autocomplete_parts.runtime_autocomplete"
           },
           {
             "async": false,
-            "end_line": 138,
+            "end_line": 141,
             "kind": "function",
-            "line": 134,
+            "line": 137,
             "loc": 5,
             "qualified_name": "_build_runtime_autocomplete_parts.resolve_autocomplete_source_path"
           },
           {
             "async": false,
-            "end_line": 144,
+            "end_line": 147,
             "kind": "function",
-            "line": 140,
+            "line": 143,
             "loc": 5,
             "qualified_name": "_build_runtime_autocomplete_parts.available_autocomplete_sources"
           },
           {
             "async": false,
-            "end_line": 150,
+            "end_line": 153,
             "kind": "function",
-            "line": 146,
+            "line": 149,
             "loc": 5,
             "qualified_name": "_build_runtime_autocomplete_parts.autocomplete_status"
           },
           {
             "async": false,
-            "end_line": 161,
+            "end_line": 164,
             "kind": "function",
-            "line": 152,
+            "line": 155,
             "loc": 10,
             "qualified_name": "_build_runtime_autocomplete_parts.search_autocomplete"
           },
           {
             "async": false,
-            "end_line": 167,
+            "end_line": 170,
             "kind": "function",
-            "line": 163,
+            "line": 166,
             "loc": 5,
             "qualified_name": "_build_runtime_autocomplete_parts.classify_prompt_text"
           },
           {
             "async": false,
-            "end_line": 238,
+            "end_line": 251,
             "kind": "function",
-            "line": 179,
-            "loc": 60,
+            "line": 182,
+            "loc": 70,
             "qualified_name": "_build_http_compatibility_parts"
           },
           {
             "async": false,
-            "end_line": 290,
+            "end_line": 190,
             "kind": "function",
-            "line": 241,
+            "line": 183,
+            "loc": 8,
+            "qualified_name": "_build_http_compatibility_parts.validate_access"
+          },
+          {
+            "async": false,
+            "end_line": 303,
+            "kind": "function",
+            "line": 254,
             "loc": 50,
             "qualified_name": "_build_payload_compatibility_parts"
           },
           {
             "async": false,
-            "end_line": 351,
+            "end_line": 364,
             "kind": "function",
-            "line": 293,
+            "line": 306,
             "loc": 59,
             "qualified_name": "_build_application_compatibility"
           }
         ],
         "is_package": false,
-        "loc": 354,
+        "loc": 367,
         "module": "easyuse_anima.api.application_compatibility",
-        "normalized_git_blob_sha1": "fc5229cd34401a1e09b0ca96ee96fb8929e661da",
+        "normalized_git_blob_sha1": "ea3793eec1a72a892ac543deb1dfe2064d851912",
         "path": "easyuse_anima/api/application_compatibility.py",
         "top_level": {
           "class_count": 4,
@@ -54328,93 +54728,117 @@
         "functions": [
           {
             "async": false,
-            "end_line": 22,
+            "end_line": 21,
             "kind": "function",
-            "line": 14,
+            "line": 19,
+            "loc": 3,
+            "qualified_name": "api_token_digest"
+          },
+          {
+            "async": false,
+            "end_line": 31,
+            "kind": "function",
+            "line": 24,
+            "loc": 8,
+            "qualified_name": "_is_loopback"
+          },
+          {
+            "async": false,
+            "end_line": 76,
+            "kind": "function",
+            "line": 34,
+            "loc": 43,
+            "qualified_name": "validate_api_access"
+          },
+          {
+            "async": false,
+            "end_line": 87,
+            "kind": "function",
+            "line": 79,
             "loc": 9,
             "qualified_name": "_request_header"
           },
           {
             "async": false,
-            "end_line": 43,
+            "end_line": 108,
             "kind": "function",
-            "line": 25,
+            "line": 90,
             "loc": 19,
             "qualified_name": "_origin_authority"
           },
           {
             "async": false,
-            "end_line": 67,
+            "end_line": 132,
             "kind": "function",
-            "line": 46,
+            "line": 111,
             "loc": 22,
             "qualified_name": "_host_authority"
           },
           {
             "async": false,
-            "end_line": 103,
+            "end_line": 168,
             "kind": "function",
-            "line": 70,
+            "line": 135,
             "loc": 34,
             "qualified_name": "validate_same_origin_json_request"
           },
           {
             "async": true,
-            "end_line": 122,
+            "end_line": 187,
             "kind": "function",
-            "line": 106,
+            "line": 171,
             "loc": 17,
             "qualified_name": "parse_json_object"
           },
           {
             "async": false,
-            "end_line": 139,
+            "end_line": 204,
             "kind": "function",
-            "line": 125,
+            "line": 190,
             "loc": 15,
             "qualified_name": "json_object"
           },
           {
             "async": false,
-            "end_line": 159,
+            "end_line": 224,
             "kind": "function",
-            "line": 142,
+            "line": 207,
             "loc": 18,
             "qualified_name": "json_string"
           },
           {
             "async": false,
-            "end_line": 173,
+            "end_line": 238,
             "kind": "function",
-            "line": 162,
+            "line": 227,
             "loc": 12,
             "qualified_name": "json_boolean"
           },
           {
             "async": false,
-            "end_line": 193,
+            "end_line": 258,
             "kind": "function",
-            "line": 176,
+            "line": 241,
             "loc": 18,
             "qualified_name": "json_integer"
           },
           {
             "async": false,
-            "end_line": 213,
+            "end_line": 278,
             "kind": "function",
-            "line": 196,
+            "line": 261,
             "loc": 18,
             "qualified_name": "json_uuid_string"
           }
         ],
         "is_package": false,
-        "loc": 223,
+        "loc": 288,
         "module": "easyuse_anima.api.requests",
-        "normalized_git_blob_sha1": "9cabc63faa543b3710e2a6667499b10ee4d1b828",
+        "normalized_git_blob_sha1": "f603bfc2189aad7da2b30abe902cf77a65b0adf9",
         "path": "easyuse_anima/api/requests.py",
         "top_level": {
           "class_count": 0,
-          "function_count": 10,
+          "function_count": 13,
           "global_count": 2
         }
       },
@@ -54422,121 +54846,121 @@
         "functions": [
           {
             "async": false,
-            "end_line": 50,
+            "end_line": 52,
             "kind": "function",
-            "line": 35,
+            "line": 37,
             "loc": 16,
             "qualified_name": "error_payload"
           },
           {
             "async": false,
-            "end_line": 56,
+            "end_line": 58,
             "kind": "function",
-            "line": 53,
+            "line": 55,
             "loc": 4,
             "qualified_name": "create_request_id"
           },
           {
             "async": false,
-            "end_line": 65,
+            "end_line": 67,
             "kind": "function",
-            "line": 59,
+            "line": 61,
             "loc": 7,
             "qualified_name": "attach_request_id_header"
           },
           {
             "async": false,
-            "end_line": 72,
+            "end_line": 74,
             "kind": "function",
-            "line": 68,
+            "line": 70,
             "loc": 5,
             "qualified_name": "_attach_no_store_header"
           },
           {
             "async": false,
-            "end_line": 94,
+            "end_line": 96,
             "kind": "function",
-            "line": 75,
+            "line": 77,
             "loc": 20,
             "qualified_name": "correlate_response"
           },
           {
             "async": false,
-            "end_line": 112,
+            "end_line": 114,
             "kind": "function",
-            "line": 97,
+            "line": 99,
             "loc": 16,
             "qualified_name": "build_error_response"
           },
           {
             "async": false,
-            "end_line": 110,
+            "end_line": 112,
             "kind": "function",
-            "line": 100,
+            "line": 102,
             "loc": 11,
             "qualified_name": "build_error_response._error_response"
           },
           {
             "async": false,
-            "end_line": 126,
+            "end_line": 128,
             "kind": "function",
-            "line": 115,
+            "line": 117,
             "loc": 12,
             "qualified_name": "build_contract_error_response"
           },
           {
             "async": false,
-            "end_line": 124,
+            "end_line": 126,
             "kind": "function",
-            "line": 118,
+            "line": 120,
             "loc": 7,
             "qualified_name": "build_contract_error_response._contract_error_response"
           },
           {
             "async": false,
-            "end_line": 203,
+            "end_line": 205,
             "kind": "function",
-            "line": 129,
+            "line": 131,
             "loc": 75,
             "qualified_name": "build_profile_error_response"
           },
           {
             "async": false,
-            "end_line": 201,
+            "end_line": 203,
             "kind": "function",
-            "line": 160,
+            "line": 162,
             "loc": 42,
             "qualified_name": "build_profile_error_response._profile_error_response"
           },
           {
             "async": false,
-            "end_line": 251,
+            "end_line": 260,
             "kind": "function",
-            "line": 206,
-            "loc": 46,
+            "line": 208,
+            "loc": 53,
             "qualified_name": "build_request_correlator"
           },
           {
             "async": false,
-            "end_line": 249,
+            "end_line": 258,
             "kind": "function",
-            "line": 217,
-            "loc": 33,
+            "line": 220,
+            "loc": 39,
             "qualified_name": "build_request_correlator._request_correlated"
           },
           {
             "async": true,
-            "end_line": 246,
+            "end_line": 255,
             "kind": "function",
-            "line": 222,
-            "loc": 25,
+            "line": 225,
+            "loc": 31,
             "qualified_name": "build_request_correlator._request_correlated.correlated_handler"
           }
         ],
         "is_package": false,
-        "loc": 260,
+        "loc": 269,
         "module": "easyuse_anima.api.responses",
-        "normalized_git_blob_sha1": "26440d8794e12895d044460246bc9934ea18cd80",
+        "normalized_git_blob_sha1": "ea3d7d13d72e62b823fc79485afac118c689894e",
         "path": "easyuse_anima/api/responses.py",
         "top_level": {
           "class_count": 0,
@@ -56225,153 +56649,153 @@
         "functions": [
           {
             "async": false,
-            "end_line": 103,
+            "end_line": 106,
             "kind": "method",
-            "line": 102,
+            "line": 105,
             "loc": 2,
             "qualified_name": "_SystemClock.monotonic"
           },
           {
             "async": false,
-            "end_line": 117,
+            "end_line": 135,
             "kind": "function",
-            "line": 106,
-            "loc": 12,
+            "line": 109,
+            "loc": 27,
             "qualified_name": "_load_runtime_config"
           },
           {
             "async": false,
-            "end_line": 121,
+            "end_line": 139,
             "kind": "function",
-            "line": 120,
+            "line": 138,
             "loc": 2,
             "qualified_name": "_missing_comfy_nodes"
           },
           {
             "async": false,
-            "end_line": 129,
+            "end_line": 147,
             "kind": "function",
-            "line": 124,
+            "line": 142,
             "loc": 6,
             "qualified_name": "_load_comfy_nodes"
           },
           {
             "async": false,
-            "end_line": 133,
+            "end_line": 151,
             "kind": "function",
-            "line": 132,
+            "line": 150,
             "loc": 2,
             "qualified_name": "_discard_selected_route_table"
           },
           {
             "async": false,
-            "end_line": 146,
+            "end_line": 164,
             "kind": "function",
-            "line": 136,
+            "line": 154,
             "loc": 11,
             "qualified_name": "build_settings_route_group"
           },
           {
             "async": false,
-            "end_line": 161,
+            "end_line": 179,
             "kind": "function",
-            "line": 149,
+            "line": 167,
             "loc": 13,
             "qualified_name": "build_wildcard_autocomplete_route_group"
           },
           {
             "async": false,
-            "end_line": 171,
+            "end_line": 189,
             "kind": "function",
-            "line": 164,
+            "line": 182,
             "loc": 8,
             "qualified_name": "build_translation_route_handler"
           },
           {
             "async": false,
-            "end_line": 210,
+            "end_line": 228,
             "kind": "function",
-            "line": 174,
+            "line": 192,
             "loc": 37,
             "qualified_name": "build_translation_route_runtime"
           },
           {
             "async": false,
-            "end_line": 222,
+            "end_line": 240,
             "kind": "function",
-            "line": 213,
+            "line": 231,
             "loc": 10,
             "qualified_name": "build_aio_torch_compile_route_handler"
           },
           {
             "async": false,
-            "end_line": 235,
+            "end_line": 253,
             "kind": "function",
-            "line": 225,
+            "line": 243,
             "loc": 11,
             "qualified_name": "build_lora_read_route_group"
           },
           {
             "async": false,
-            "end_line": 248,
+            "end_line": 266,
             "kind": "function",
-            "line": 238,
+            "line": 256,
             "loc": 11,
             "qualified_name": "build_profile_list_route_group"
           },
           {
             "async": false,
-            "end_line": 267,
+            "end_line": 285,
             "kind": "function",
-            "line": 251,
+            "line": 269,
             "loc": 17,
             "qualified_name": "build_profile_route_group"
           },
           {
             "async": false,
-            "end_line": 282,
+            "end_line": 300,
             "kind": "function",
-            "line": 270,
+            "line": 288,
             "loc": 13,
             "qualified_name": "_compose_api_application"
           },
           {
             "async": false,
-            "end_line": 417,
+            "end_line": 435,
             "kind": "function",
-            "line": 285,
+            "line": 303,
             "loc": 133,
             "qualified_name": "initialize"
           },
           {
             "async": false,
-            "end_line": 330,
+            "end_line": 348,
             "kind": "function",
-            "line": 324,
+            "line": 342,
             "loc": 7,
             "qualified_name": "initialize.restore_translation_facade"
           },
           {
             "async": false,
-            "end_line": 429,
+            "end_line": 447,
             "kind": "function",
-            "line": 420,
+            "line": 438,
             "loc": 10,
             "qualified_name": "_initialize_package"
           },
           {
             "async": false,
-            "end_line": 447,
+            "end_line": 465,
             "kind": "function",
-            "line": 432,
+            "line": 450,
             "loc": 16,
             "qualified_name": "shutdown"
           }
         ],
         "is_package": false,
-        "loc": 450,
+        "loc": 468,
         "module": "easyuse_anima.bootstrap",
-        "normalized_git_blob_sha1": "fa71ac5c5c005dc2993e1a71ce6a8b8ddb58238a",
+        "normalized_git_blob_sha1": "dcb4f28078c5d751b6c63faf9f1160305a83e321",
         "path": "easyuse_anima/bootstrap.py",
         "top_level": {
           "class_count": 1,
@@ -57290,19 +57714,11 @@
         "functions": [
           {
             "async": false,
-            "end_line": 19,
-            "kind": "function",
-            "line": 18,
-            "loc": 2,
-            "qualified_name": "_default_max_resolution"
-          },
-          {
-            "async": false,
             "end_line": 23,
             "kind": "function",
-            "line": 22,
-            "loc": 2,
-            "qualified_name": "_default_node_class"
+            "line": 18,
+            "loc": 6,
+            "qualified_name": "resolve_naia_endpoints"
           },
           {
             "async": false,
@@ -57310,7 +57726,7 @@
             "kind": "function",
             "line": 26,
             "loc": 2,
-            "qualified_name": "_default_node_mapping_class"
+            "qualified_name": "_default_max_resolution"
           },
           {
             "async": false,
@@ -57318,49 +57734,65 @@
             "kind": "function",
             "line": 30,
             "loc": 2,
+            "qualified_name": "_default_node_class"
+          },
+          {
+            "async": false,
+            "end_line": 35,
+            "kind": "function",
+            "line": 34,
+            "loc": 2,
+            "qualified_name": "_default_node_mapping_class"
+          },
+          {
+            "async": false,
+            "end_line": 39,
+            "kind": "function",
+            "line": 38,
+            "loc": 2,
             "qualified_name": "_default_loaded_node_class"
           },
           {
             "async": false,
-            "end_line": 44,
+            "end_line": 52,
             "kind": "function",
-            "line": 34,
+            "line": 42,
             "loc": 11,
             "qualified_name": "_default_require_custom_node_class"
           },
           {
             "async": false,
-            "end_line": 57,
+            "end_line": 65,
             "kind": "function",
-            "line": 47,
+            "line": 55,
             "loc": 11,
             "qualified_name": "_default_require_any_custom_node_class"
           },
           {
             "async": false,
-            "end_line": 65,
+            "end_line": 73,
             "kind": "function",
-            "line": 60,
+            "line": 68,
             "loc": 6,
             "qualified_name": "_default_encode_with_comfy_clip"
           },
           {
             "async": false,
-            "end_line": 128,
+            "end_line": 136,
             "kind": "function",
-            "line": 68,
+            "line": 76,
             "loc": 61,
             "qualified_name": "resolve_comfy_host_helper"
           }
         ],
         "is_package": false,
-        "loc": 131,
+        "loc": 139,
         "module": "easyuse_anima.infrastructure.comfy.wiring",
-        "normalized_git_blob_sha1": "1c85416ba8e8385f497e4d2ae3567d9830a8d248",
+        "normalized_git_blob_sha1": "002a466bcea9f8cbcd9ec7b278650fcafa1208c2",
         "path": "easyuse_anima/infrastructure/comfy/wiring.py",
         "top_level": {
           "class_count": 0,
-          "function_count": 8,
+          "function_count": 9,
           "global_count": 1
         }
       },
@@ -57965,70 +58397,108 @@
         "functions": [
           {
             "async": false,
-            "end_line": 45,
+            "end_line": 47,
             "kind": "function",
-            "line": 40,
+            "line": 42,
             "loc": 6,
             "qualified_name": "_clean_prompt"
           },
           {
             "async": false,
-            "end_line": 62,
+            "end_line": 64,
             "kind": "function",
-            "line": 48,
+            "line": 50,
             "loc": 15,
             "qualified_name": "_fit_to_1mp"
           },
           {
             "async": false,
-            "end_line": 66,
+            "end_line": 68,
             "kind": "function",
-            "line": 65,
+            "line": 67,
             "loc": 2,
             "qualified_name": "_is_local_naia_host"
           },
           {
             "async": false,
-            "end_line": 81,
+            "end_line": 91,
             "kind": "function",
-            "line": 69,
-            "loc": 13,
+            "line": 71,
+            "loc": 21,
             "qualified_name": "_build_naia_random_url"
           },
           {
             "async": false,
-            "end_line": 92,
+            "end_line": 102,
             "kind": "function",
-            "line": 84,
+            "line": 94,
             "loc": 9,
             "qualified_name": "_reject_naia_redirect"
           },
           {
             "async": false,
-            "end_line": 124,
+            "end_line": 137,
             "kind": "function",
-            "line": 95,
-            "loc": 30,
+            "line": 105,
+            "loc": 33,
             "qualified_name": "_post_random"
           },
           {
             "async": false,
-            "end_line": 146,
+            "end_line": 159,
             "kind": "function",
-            "line": 127,
+            "line": 140,
             "loc": 20,
             "qualified_name": "_parse_random_response"
           }
         ],
         "is_package": false,
-        "loc": 148,
+        "loc": 161,
         "module": "easyuse_anima.naia.client",
-        "normalized_git_blob_sha1": "2c6f8ceb97f40a854550e8a6c31003411bc32221",
+        "normalized_git_blob_sha1": "0384bd9b2217aa51d2696482a00a5e286d16f8fc",
         "path": "easyuse_anima/naia/client.py",
         "top_level": {
           "class_count": 0,
           "function_count": 7,
           "global_count": 13
+        }
+      },
+      {
+        "functions": [
+          {
+            "async": false,
+            "end_line": 35,
+            "kind": "function",
+            "line": 19,
+            "loc": 17,
+            "qualified_name": "normalize_naia_host"
+          },
+          {
+            "async": false,
+            "end_line": 48,
+            "kind": "function",
+            "line": 38,
+            "loc": 11,
+            "qualified_name": "_connection_address"
+          },
+          {
+            "async": false,
+            "end_line": 85,
+            "kind": "function",
+            "line": 51,
+            "loc": 35,
+            "qualified_name": "parse_naia_endpoint_policy"
+          }
+        ],
+        "is_package": false,
+        "loc": 88,
+        "module": "easyuse_anima.naia.endpoint_policy",
+        "normalized_git_blob_sha1": "4290463da09ec7c54c5b678601cf49fe9dd41ff1",
+        "path": "easyuse_anima/naia/endpoint_policy.py",
+        "top_level": {
+          "class_count": 0,
+          "function_count": 3,
+          "global_count": 4
         }
       },
       {
@@ -61736,81 +62206,81 @@
         "functions": [
           {
             "async": false,
-            "end_line": 31,
+            "end_line": 34,
             "kind": "method",
-            "line": 31,
+            "line": 34,
             "loc": 1,
             "qualified_name": "Clock.monotonic"
           },
           {
             "async": false,
-            "end_line": 37,
+            "end_line": 40,
             "kind": "method",
-            "line": 37,
+            "line": 40,
             "loc": 1,
             "qualified_name": "RuntimeResource.close"
           },
           {
             "async": false,
-            "end_line": 51,
+            "end_line": 54,
             "kind": "method",
-            "line": 45,
+            "line": 48,
             "loc": 7,
             "qualified_name": "_RuntimeCleanupPlan.__init__"
           },
           {
             "async": false,
-            "end_line": 67,
+            "end_line": 70,
             "kind": "method",
-            "line": 53,
+            "line": 56,
             "loc": 15,
             "qualified_name": "_RuntimeCleanupPlan.close"
           },
           {
             "async": false,
-            "end_line": 73,
+            "end_line": 76,
             "kind": "method",
-            "line": 69,
+            "line": 72,
             "loc": 5,
             "qualified_name": "_RuntimeCleanupPlan.abandon"
           },
           {
             "async": false,
-            "end_line": 97,
+            "end_line": 100,
             "kind": "method",
-            "line": 94,
+            "line": 97,
             "loc": 4,
             "qualified_name": "RuntimeServices.close"
           },
           {
             "async": false,
-            "end_line": 116,
+            "end_line": 119,
             "kind": "function",
-            "line": 103,
+            "line": 106,
             "loc": 14,
             "qualified_name": "install_runtime"
           },
           {
             "async": false,
-            "end_line": 125,
+            "end_line": 128,
             "kind": "function",
-            "line": 119,
+            "line": 122,
             "loc": 7,
             "qualified_name": "get_runtime"
           },
           {
             "async": false,
-            "end_line": 136,
+            "end_line": 139,
             "kind": "function",
-            "line": 128,
+            "line": 131,
             "loc": 9,
             "qualified_name": "_detach_runtime"
           }
         ],
         "is_package": false,
-        "loc": 146,
+        "loc": 149,
         "module": "easyuse_anima.runtime",
-        "normalized_git_blob_sha1": "c2419297a577d22567d1674f2fc9f152fe0d9103",
+        "normalized_git_blob_sha1": "575ccbccef4c0e0cda61b886032560e4af9f86ac",
         "path": "easyuse_anima/runtime.py",
         "top_level": {
           "class_count": 5,
@@ -68176,14 +68646,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": true,
             "kind": "try",
-            "line": 117
+            "line": 120
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "server",
         "kind": "static_import",
-        "line": 118,
+        "line": 121,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/api/application_compatibility.py"
@@ -68195,14 +68665,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": true,
             "kind": "try",
-            "line": 117
+            "line": 120
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "aiohttp:web",
         "kind": "static_from",
-        "line": 119,
+        "line": 122,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/api/application_compatibility.py"
@@ -68398,7 +68868,7 @@
         "branch_context": [],
         "classification": "external",
         "conditional": false,
-        "imported": "json",
+        "imported": "base64",
         "kind": "static_import",
         "line": 3,
         "optional": false,
@@ -68409,7 +68879,7 @@
         "branch_context": [],
         "classification": "external",
         "conditional": false,
-        "imported": "uuid",
+        "imported": "binascii",
         "kind": "static_import",
         "line": 4,
         "optional": false,
@@ -68420,9 +68890,64 @@
         "branch_context": [],
         "classification": "external",
         "conditional": false,
+        "imported": "hashlib",
+        "kind": "static_import",
+        "line": 5,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/api/requests.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "hmac",
+        "kind": "static_import",
+        "line": 6,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/api/requests.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "ipaddress",
+        "kind": "static_import",
+        "line": 7,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/api/requests.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "json",
+        "kind": "static_import",
+        "line": 8,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/api/requests.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "uuid",
+        "kind": "static_import",
+        "line": 9,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/api/requests.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
         "imported": "collections.abc:Mapping",
         "kind": "static_from",
-        "line": 5,
+        "line": 10,
         "optional": false,
         "role": "ordinary",
         "source": "easyuse_anima/api/requests.py"
@@ -68433,7 +68958,7 @@
         "conditional": false,
         "imported": "typing:Any",
         "kind": "static_from",
-        "line": 6,
+        "line": 11,
         "optional": false,
         "role": "ordinary",
         "source": "easyuse_anima/api/requests.py"
@@ -68444,7 +68969,7 @@
         "conditional": false,
         "imported": "urllib.parse:urlsplit",
         "kind": "static_from",
-        "line": 7,
+        "line": 12,
         "optional": false,
         "role": "ordinary",
         "source": "easyuse_anima/api/requests.py"
@@ -68497,7 +69022,7 @@
         "branch_context": [],
         "classification": "external",
         "conditional": false,
-        "imported": "functools:wraps",
+        "imported": "collections.abc:Mapping",
         "kind": "static_from",
         "line": 6,
         "optional": false,
@@ -68508,7 +69033,7 @@
         "branch_context": [],
         "classification": "external",
         "conditional": false,
-        "imported": "typing:Any",
+        "imported": "functools:wraps",
         "kind": "static_from",
         "line": 7,
         "optional": false,
@@ -68519,9 +69044,9 @@
         "branch_context": [],
         "classification": "external",
         "conditional": false,
-        "imported": "typing:Mapping",
+        "imported": "typing:Any",
         "kind": "static_from",
-        "line": 7,
+        "line": 8,
         "optional": false,
         "role": "ordinary",
         "source": "easyuse_anima/api/responses.py"
@@ -68532,7 +69057,7 @@
         "conditional": false,
         "imported": "typing:cast",
         "kind": "static_from",
-        "line": 7,
+        "line": 8,
         "optional": false,
         "role": "ordinary",
         "source": "easyuse_anima/api/responses.py"
@@ -69330,7 +69855,7 @@
         "branch_context": [],
         "classification": "external",
         "conditional": false,
-        "imported": "threading",
+        "imported": "os",
         "kind": "static_import",
         "line": 5,
         "optional": false,
@@ -69341,7 +69866,7 @@
         "branch_context": [],
         "classification": "external",
         "conditional": false,
-        "imported": "time",
+        "imported": "threading",
         "kind": "static_import",
         "line": 6,
         "optional": false,
@@ -69352,9 +69877,20 @@
         "branch_context": [],
         "classification": "external",
         "conditional": false,
+        "imported": "time",
+        "kind": "static_import",
+        "line": 7,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/bootstrap.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
         "imported": "collections.abc:Callable",
         "kind": "static_from",
-        "line": 7,
+        "line": 8,
         "optional": false,
         "role": "ordinary",
         "source": "easyuse_anima/bootstrap.py"
@@ -69366,14 +69902,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 125
+            "line": 143
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "nodes",
         "kind": "static_import",
-        "line": 126,
+        "line": 144,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/bootstrap.py"
@@ -70688,17 +71224,61 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": true,
             "kind": "try",
-            "line": 96
+            "line": 106
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "requests",
         "kind": "static_import",
-        "line": 97,
+        "line": 107,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/naia/client.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "__future__:annotations",
+        "kind": "static_from",
+        "line": 3,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/naia/endpoint_policy.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "ipaddress",
+        "kind": "static_import",
+        "line": 5,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/naia/endpoint_policy.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "json",
+        "kind": "static_import",
+        "line": 6,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/naia/endpoint_policy.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "re",
+        "kind": "static_import",
+        "line": 7,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/naia/endpoint_policy.py"
       },
       {
         "branch_context": [],
@@ -74520,14 +75100,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": true,
             "kind": "try",
-            "line": 117
+            "line": 120
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "server",
         "kind": "static_import",
-        "line": 118,
+        "line": 121,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/api/application_compatibility.py"
@@ -74539,14 +75119,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": true,
             "kind": "try",
-            "line": 117
+            "line": 120
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "aiohttp:web",
         "kind": "static_from",
-        "line": 119,
+        "line": 122,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/api/application_compatibility.py"
@@ -74577,14 +75157,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 125
+            "line": 143
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "nodes",
         "kind": "static_import",
-        "line": 126,
+        "line": 144,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/bootstrap.py"
@@ -75052,14 +75632,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": true,
             "kind": "try",
-            "line": 96
+            "line": 106
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "requests",
         "kind": "static_import",
-        "line": 97,
+        "line": 107,
         "optional": true,
         "role": "optional_dependency",
         "source": "easyuse_anima/naia/client.py"
@@ -75432,6 +76012,7 @@
       "easyuse_anima/lora/prompt_syntax.py",
       "easyuse_anima/naia/__init__.py",
       "easyuse_anima/naia/client.py",
+      "easyuse_anima/naia/endpoint_policy.py",
       "easyuse_anima/naia/random_prompt.py",
       "easyuse_anima/naia/resolution.py",
       "easyuse_anima/nodes/__init__.py",
@@ -75639,6 +76220,7 @@
       "easyuse_anima/lora/prompt_syntax.py",
       "easyuse_anima/naia/__init__.py",
       "easyuse_anima/naia/client.py",
+      "easyuse_anima/naia/endpoint_policy.py",
       "easyuse_anima/naia/random_prompt.py",
       "easyuse_anima/naia/resolution.py",
       "easyuse_anima/nodes/__init__.py",
@@ -77421,7 +78003,7 @@
         "column": 1,
         "context": "decorator:ApiApplicationCompatibilityParts",
         "kind": "import_time_call",
-        "line": 53,
+        "line": 56,
         "module": "easyuse_anima/api/application_compatibility.py",
         "scope": "<module>"
       },
@@ -77430,7 +78012,7 @@
         "column": 1,
         "context": "decorator:_ApiApplicationCompatibilityBuild",
         "kind": "import_time_call",
-        "line": 86,
+        "line": 89,
         "module": "easyuse_anima/api/application_compatibility.py",
         "scope": "<module>"
       },
@@ -77439,7 +78021,7 @@
         "column": 1,
         "context": "decorator:_HttpCompatibilityParts",
         "kind": "import_time_call",
-        "line": 92,
+        "line": 95,
         "module": "easyuse_anima/api/application_compatibility.py",
         "scope": "<module>"
       },
@@ -77448,7 +78030,7 @@
         "column": 1,
         "context": "decorator:_PayloadCompatibilityParts",
         "kind": "import_time_call",
-        "line": 102,
+        "line": 105,
         "module": "easyuse_anima/api/application_compatibility.py",
         "scope": "<module>"
       },
@@ -77736,7 +78318,7 @@
         "column": 10,
         "context": "assign:_LOGGER",
         "kind": "import_time_call",
-        "line": 89,
+        "line": 92,
         "module": "easyuse_anima/bootstrap.py",
         "scope": "<module>"
       },
@@ -77745,7 +78327,7 @@
         "column": 14,
         "context": "assign:_API_LOGGER",
         "kind": "import_time_call",
-        "line": 90,
+        "line": 93,
         "module": "easyuse_anima/bootstrap.py",
         "scope": "<module>"
       },
@@ -77754,7 +78336,7 @@
         "column": 19,
         "context": "assign:_INITIALIZE_LOCK",
         "kind": "import_time_call",
-        "line": 91,
+        "line": 94,
         "module": "easyuse_anima/bootstrap.py",
         "scope": "<module>"
       },
@@ -77862,7 +78444,7 @@
         "column": 19,
         "context": "assign:_HASH_COMMENT_RE",
         "kind": "import_time_call",
-        "line": 36,
+        "line": 38,
         "module": "easyuse_anima/naia/client.py",
         "scope": "<module>"
       },
@@ -77871,8 +78453,17 @@
         "column": 18,
         "context": "assign:_MULTI_COMMA_RE",
         "kind": "import_time_call",
-        "line": 37,
+        "line": 39,
         "module": "easyuse_anima/naia/client.py",
+        "scope": "<module>"
+      },
+      {
+        "callee": "re.compile",
+        "column": 14,
+        "context": "assign:_HOST_LABEL",
+        "kind": "import_time_call",
+        "line": 15,
+        "module": "easyuse_anima/naia/endpoint_policy.py",
         "scope": "<module>"
       },
       {
@@ -78330,16 +78921,25 @@
         "column": 1,
         "context": "decorator:RuntimeConfig",
         "kind": "import_time_call",
-        "line": 19,
+        "line": 20,
         "module": "easyuse_anima/runtime.py",
         "scope": "<module>"
+      },
+      {
+        "callee": "field",
+        "column": 37,
+        "context": "assign:api_token_digest",
+        "kind": "import_time_call",
+        "line": 28,
+        "module": "easyuse_anima/runtime.py",
+        "scope": "RuntimeConfig"
       },
       {
         "callee": "dataclass",
         "column": 1,
         "context": "decorator:RuntimeServices",
         "kind": "import_time_call",
-        "line": 76,
+        "line": 79,
         "module": "easyuse_anima/runtime.py",
         "scope": "<module>"
       },
@@ -78348,7 +78948,7 @@
         "column": 41,
         "context": "assign:_cleanup_plan",
         "kind": "import_time_call",
-        "line": 88,
+        "line": 91,
         "module": "easyuse_anima/runtime.py",
         "scope": "RuntimeServices"
       },
@@ -78757,7 +79357,7 @@
       },
       {
         "kind": "list",
-        "line": 450,
+        "line": 468,
         "module": "easyuse_anima/bootstrap.py",
         "name": "__all__"
       },
@@ -78787,19 +79387,19 @@
       },
       {
         "kind": "set",
-        "line": 11,
+        "line": 13,
         "module": "easyuse_anima/naia/client.py",
         "name": "NAIA_LOCAL_HOSTS"
       },
       {
         "kind": "list",
-        "line": 34,
+        "line": 36,
         "module": "easyuse_anima/naia/client.py",
         "name": "PP_STATE_CHOICES"
       },
       {
         "kind": "list",
-        "line": 17,
+        "line": 19,
         "module": "easyuse_anima/naia/client.py",
         "name": "PREPROCESSING_KEYS"
       },
@@ -79059,7 +79659,7 @@
           "lock"
         ],
         "initializer": "threading.Lock",
-        "line": 91,
+        "line": 94,
         "module": "easyuse_anima/bootstrap.py",
         "name": "_INITIALIZE_LOCK"
       },

@@ -307,6 +307,7 @@
           "@matrix:registry-archive-closure"
         ],
         "pure_service_unit": [
+          "tests/test_naia_endpoint_policy.py",
           "tests/test_naia_settings.py"
         ]
       }

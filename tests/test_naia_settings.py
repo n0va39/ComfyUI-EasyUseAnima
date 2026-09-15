@@ -8,6 +8,8 @@ from requests.adapters import BaseAdapter
 from requests.models import Response
 
 from easyuse_anima.naia import random_prompt as naia_random_prompt
+from easyuse_anima.naia import client as naia_client
+from easyuse_anima.naia.endpoint_policy import DEFAULT_NAIA_ENDPOINTS
 from easyuse_anima.naia.client import (
     LATENT_ALIGN,
     NAI_1MP,
@@ -408,7 +410,7 @@ class NaiaSettingsTests(unittest.TestCase):
         )
         self.assertEqual(
             _build_naia_random_url("localhost", 7243),
-            "http://localhost:7243/api/comfyui/random",
+            "http://127.0.0.1:7243/api/comfyui/random",
         )
         self.assertEqual(
             _build_naia_random_url("::1", 7243),
@@ -416,10 +418,15 @@ class NaiaSettingsTests(unittest.TestCase):
         )
         with self.assertRaisesRegex(RuntimeError, "Remote NAIA API access is disabled"):
             _build_naia_random_url("192.168.0.2", 7243)
-        self.assertEqual(
-            _build_naia_random_url("192.168.0.2", 7243, allow_remote_api=True),
-            "http://192.168.0.2:7243/api/comfyui/random",
-        )
+        with self.assertRaisesRegex(RuntimeError, "not approved"):
+            _build_naia_random_url("192.168.0.2", 7243, allow_remote_api=True)
+        with patch.object(naia_client, "resolve_naia_endpoints", return_value=(
+            ("192.168.0.2", 7243, "192.168.0.2"),
+        )):
+            self.assertEqual(
+                _build_naia_random_url("192.168.0.2", 7243, allow_remote_api=True),
+                "http://192.168.0.2:7243/api/comfyui/random",
+            )
 
     def test_naia_random_url_rejects_url_like_host_values(self):
         for host in ("http://127.0.0.1", "127.0.0.1/api", "host name"):
@@ -446,7 +453,7 @@ class NaiaSettingsTests(unittest.TestCase):
                     session.trust_env = False
                     session.mount("http://", adapter)
                     session.mount("https://", adapter)
-                    with patch.object(requests, "post", session.post):
+                    with patch.object(requests, "Session", return_value=session):
                         with self.assertRaises(RuntimeError) as raised:
                             _post_random("127.0.0.1", 7243, body)
 
@@ -478,7 +485,13 @@ class NaiaSettingsTests(unittest.TestCase):
                     session.trust_env = False
                     session.mount("http://", adapter)
                     session.mount("https://", adapter)
-                    with patch.object(requests, "post", session.post):
+                    with (
+                        patch.object(requests, "Session", return_value=session),
+                        patch.object(naia_client, "resolve_naia_endpoints", return_value=(
+                            *DEFAULT_NAIA_ENDPOINTS,
+                            ("naia.example", 7243, "192.168.0.2"),
+                        )),
+                    ):
                         result = _post_random(
                             host, 7243, body, allow_remote_api=allow_remote,
                         )
@@ -488,7 +501,7 @@ class NaiaSettingsTests(unittest.TestCase):
                 self.assertEqual(adapter.requests[0].method, "POST")
                 self.assertEqual(
                     adapter.requests[0].url,
-                    f"http://{host}:7243/api/comfyui/random",
+                    f"http://{'192.168.0.2' if allow_remote else host}:7243/api/comfyui/random",
                 )
                 self.assertEqual(json.loads(adapter.requests[0].body), body)
 

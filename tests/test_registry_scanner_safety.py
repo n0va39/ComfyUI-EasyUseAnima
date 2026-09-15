@@ -205,6 +205,17 @@ class RegistryScannerSafetyTests(unittest.TestCase):
             source = source_path.read_text(encoding="utf-8")
             for pattern in patterns:
                 with self.subTest(filename=filename, pattern=pattern):
+                    if filename == "easyuse_anima/bootstrap.py" and pattern == "os.environ":
+                        self.assertEqual(source.count(pattern), 2)
+                        self.assertIn('os.environ.get("EASYUSE_ANIMA_NAIA_ENDPOINTS", "")', source)
+                        self.assertIn('os.environ.get("EASYUSE_ANIMA_API_TOKEN", "")', source)
+                        continue
+                    if filename == "easyuse_anima/api/requests.py" and pattern == "base64.b64decode":
+                        # HTTP Basic credentials use Base64 by protocol; this
+                        # explicit decoder neither loads nor executes code.
+                        self.assertEqual(source.count(pattern), 1)
+                        self.assertIn('base64.b64decode(credentials, validate=True).decode("utf-8")', source)
+                        continue
                     self.assertNotIn(pattern, source)
 
     def test_naia_is_only_documented_runtime_post_call(self):
@@ -215,13 +226,13 @@ class RegistryScannerSafetyTests(unittest.TestCase):
         matches = []
         for filename in runtime_files:
             source = (ROOT / filename).read_text(encoding="utf-8")
-            if "requests.post" in source:
+            if "session.post" in source:
                 matches.append(filename)
 
         self.assertEqual(matches, ["easyuse_anima/naia/client.py"])
         source = (ROOT / "easyuse_anima" / "naia" / "client.py").read_text(encoding="utf-8")
         self.assertIn("allow_remote_api=True", source)
-        self.assertIn("localhost-only", source)
+        self.assertIn("Localhost-only", source)
         self.assertIn("timeout=HTTP_TIMEOUT", source)
 
     def test_comfyignore_excludes_development_scanner_surface(self):
@@ -394,7 +405,7 @@ class RegistryScannerSafetyTests(unittest.TestCase):
 
         self.assertIn("docs/development/registry-scanner-safety.md", entry)
         self.assertIn("comfy node validate", safety)
-        self.assertIn('rg -n "requests\\.post" easyuse_anima/naia/client.py', safety)
+        self.assertIn('rg -n "session\\.post" easyuse_anima/naia/client.py', safety)
         self.assertIn("easyuse_anima/naia/client.py", safety)
         self.assertNotIn("nodes.py prompt_translation.py settings.py api.py", safety)
         self.assertIn("same-authority", safety)

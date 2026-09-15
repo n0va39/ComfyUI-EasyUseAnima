@@ -11,6 +11,7 @@ from typing import Protocol
 from .aio.ports import AIOFirstPassCachePort
 from .autocomplete.ports import AutocompletePort
 from .infrastructure.comfy.provider import ComfyHostProvider
+from .naia.endpoint_policy import DEFAULT_NAIA_ENDPOINTS
 from .seed.reservation import SeedReservationService
 from .translation.ports import PromptTranslationPort
 from .wildcard.ports import WildcardSnapshotPort
@@ -18,11 +19,13 @@ from .wildcard.ports import WildcardSnapshotPort
 
 @dataclass(frozen=True, slots=True)
 class RuntimeConfig:
-    """Process paths resolved by a bootstrap-owned config loader."""
+    """Process paths and network policy resolved by the bootstrap config loader."""
 
     package_root: Path
     package_data_dir: Path
     user_data_dir: Path
+    naia_endpoints: tuple[tuple[str, int, str], ...] = DEFAULT_NAIA_ENDPOINTS
+    api_token_digest: bytes | None = field(default=None, repr=False)
 
 
 class Clock(Protocol):

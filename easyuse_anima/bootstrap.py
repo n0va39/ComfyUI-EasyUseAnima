@@ -2,12 +2,14 @@ from __future__ import annotations
 
 import atexit
 import logging
+import os
 import threading
 import time
 from collections.abc import Callable
 
 from .aio.first_pass_cache import _DEFAULT_AIO_FIRST_PASS_CACHE
 from .api.application import _build_api_application
+from .api.requests import api_token_digest
 from .api.routes.aio_profile_mutations import (
     build_aio_profile_mutation_handlers as _build_aio_profile_mutation_handlers,
 )
@@ -56,6 +58,7 @@ from .autocomplete.dataset import _DEFAULT_AUTOCOMPLETE_SNAPSHOTS
 from .autocomplete.index import _DEFAULT_AUTOCOMPLETE_INDEX_STORE
 from .autocomplete.service import _AutocompleteService
 from .infrastructure.comfy.provider import DefaultComfyHostProvider
+from .naia.endpoint_policy import parse_naia_endpoint_policy
 from .runtime import (
     RuntimeConfig,
     RuntimeServices,
@@ -110,10 +113,25 @@ def _load_runtime_config() -> RuntimeConfig:
         USER_DATA_DIR,
     )
 
+    try:
+        # Non-secret operator policy is captured once, outside web settings.
+        naia_endpoints = parse_naia_endpoint_policy(
+            os.environ.get("EASYUSE_ANIMA_NAIA_ENDPOINTS", "")
+        )
+    except ValueError:
+        naia_endpoints = ()
+        _LOGGER.warning(
+            "Invalid EASYUSE_ANIMA_NAIA_ENDPOINTS; NAIA requests are disabled."
+        )
+
     return RuntimeConfig(
         package_root=PACKAGE_ROOT,
         package_data_dir=PACKAGE_DATA_DIR,
         user_data_dir=USER_DATA_DIR,
+        naia_endpoints=naia_endpoints,
+        api_token_digest=api_token_digest(
+            os.environ.get("EASYUSE_ANIMA_API_TOKEN", "")
+        ),
     )
 
 

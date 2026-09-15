@@ -19,9 +19,10 @@ Reference baseline:
 Registry-facing integration defaults:
 
 - NAIA calls are optional. The default host is `127.0.0.1`, and non-local hosts
-  are blocked unless `EasyUse Anima -> NAIA -> Allow remote API` is enabled.
+  also require an operator-approved endpoint and `EasyUse Anima -> NAIA ->
+  Allow remote API`. See [NAIA connection setup](#naia-connection-setup).
 - Prompt translation defaults to off. Google Translate must be selected
-  explicitly, and this node pack does not read API keys from environment
+  explicitly, and this node pack does not read external service API keys from environment
   variables.
 - The AiO SAM3 detailer path uses explicit optional imports for ComfyUI's
   built-in SAM3 detector and Impact Pack classes. It does not dynamically load
@@ -174,7 +175,7 @@ ComfyUI Settings:
 - NAIA request host, port, Prompt Engineering options, and preprocessing options
   are configured in the EasyUse Anima settings panel.
 - NAIA requests are localhost-only by default. Enable `Allow remote API` only
-  for a trusted remote NAIA endpoint.
+  for an endpoint in the operator's startup allowlist.
 - EasyUse Anima does not store its own language setting. Node info, input/output
   hints, settings entries, custom DOM buttons, and tooltips follow the ComfyUI
   language setting.
@@ -191,8 +192,8 @@ ComfyUI Settings:
 ## Requirements
 
 NAIA must expose the ComfyUI API used by `comfyui-naia-bridge`. Localhost is the
-default and recommended endpoint; remote NAIA endpoints require the explicit
-`Allow remote API` setting.
+default and recommended endpoint; remote NAIA endpoints require the startup
+allowlist described below and the `Allow remote API` setting.
 
 The AiO generator's optional SAM3 detailer path requires `ComfyUI-Impact-Pack`
 at runtime. This is a ComfyUI custom-node dependency, not a Python package
@@ -213,6 +214,38 @@ pip install -r requirements.txt
 ```
 
 ComfyUI restart is required after installing or updating this node pack.
+
+## EasyUse API access
+
+Local ComfyUI at a loopback address needs no extra login. Remote or proxy access requires EASYUSE_ANIMA_API_TOKEN at startup and HTTP Basic authentication with username easyuse. First visit /easyuse_anima/settings on the same ComfyUI origin to authenticate in the browser, then return to ComfyUI. Use HTTPS for remote access. See [API access setup and scope](docs/api-access.md).
+
+## NAIA connection setup
+
+Local NAIA at `127.0.0.1:7243` or `[::1]:7243` works without extra setup.
+`localhost` connects directly to `127.0.0.1`. Other addresses or ports require
+operator approval **before ComfyUI starts**, including previously saved remote
+connections. Existing settings and workflows remain readable.
+
+For example, set this in the PowerShell window that launches ComfyUI, then run
+your usual ComfyUI launcher from that same window:
+
+```powershell
+$env:EASYUSE_ANIMA_NAIA_ENDPOINTS = '[{"host":"192.168.0.2","port":7243}]'
+```
+
+Use your NAIA machine's actual address. For a hostname, also supply its approved
+numeric `address`, for example `{"host":"naia.lan","port":7243,"address":"192.168.0.2"}`.
+Requests connect to that IP without DNS lookup. Use `[::1]` explicitly for IPv6
+loopback; add an entry for any custom local port. Then select the same host/port
+in EasyUse Anima settings and enable `Allow remote API` for a remote host.
+
+The allowlist is a process-start environment value, not a ComfyUI setting or a
+user-data file. Changes require a restart. Invalid entries disable NAIA calls
+until corrected. NAIA does not inherit environment proxies or `.netrc`
+credentials. Existing HTTP transport remains intended for a trusted local/LAN
+NAIA service; keep ComfyUI behind your normal access-control boundary.
+
+See [the connection policy](docs/naia-network-policy.md) for additional examples.
 
 ## Installation
 
