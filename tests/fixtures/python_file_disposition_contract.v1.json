@@ -4,7 +4,7 @@
   "inventory_owner": {
     "path": "tests/fixtures/python_backend_baseline.json",
     "expected_baseline_files": 192,
-    "expected_target_files": 206
+    "expected_target_files": 207
   },
   "linked_contracts": {
     "compatibility_registry": "docs/architecture/python-compatibility-shims.md",
@@ -806,12 +806,18 @@
           "path": "easyuse_anima/aio/legacy_upscale.py",
           "role": "aio-legacy-upscale-adapter",
           "owner_group": "aio"
+        },
+        {
+          "path": "easyuse_anima/aio/resshift_loader.py",
+          "role": "aio-safe-resshift-model-loader",
+          "owner_group": "aio"
         }
       ],
       "direct_contracts": [
         "tests/test_aio_legacy_generation.py",
         "tests/test_aio_nodes.py",
-        "tests/test_aio_stage_pipeline_contract.py"
+        "tests/test_aio_stage_pipeline_contract.py",
+        "tests/test_resshift_loader.py"
       ],
       "compatibility_registry_key": null,
       "task_id": "PTC-03",

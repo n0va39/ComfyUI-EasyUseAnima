@@ -15,6 +15,7 @@ from easyuse_anima.aio import (
     input_context,
     input_defaults,
     legacy_generation,
+    legacy_upscale,
     model_preparation,
     output,
     postprocess,
@@ -2429,7 +2430,7 @@ class AIOFinalUpscaleStageTests(unittest.TestCase):
         self.assertIn("USDU sampler: steps=20", log_text)
         cleanup.assert_called_once_with("stage_model", "model")
 
-    def test_upscale_stage_rejects_resshift_before_optional_node_lookup(self):
+    def test_upscale_stage_uses_safe_resshift_model_without_usdu_or_sampling_patch(self):
         settings = generation_normalization._normalize_aio_generation_settings(json.dumps({
             "sampler": {
                 "seed": 321,
@@ -2449,20 +2450,22 @@ class AIOFinalUpscaleStageTests(unittest.TestCase):
         }))
 
         input_image = self._Image(512, 768)
+        output_image = self._Image(2048, 3072)
+        model = types.SimpleNamespace(patcher=object())
+        upscaler = Mock()
+        upscaler.upscale.return_value = (output_image,)
         with (
             patch_comfy_helper(
                 aio_nodes,
                 "_require_custom_node_class",
-                side_effect=AssertionError("must not resolve ResShift nodes"),
+                return_value=Mock(return_value=upscaler),
             ) as require,
+            patch.object(legacy_upscale, "load_local_resshift_model", return_value=model) as safe_load,
+            patch.object(legacy_generation, "_cleanup_aio_ephemeral_model") as cleanup,
             patch.object(legacy_generation, "_load_upscale_model_with_comfy") as load_upscale,
             patch.object(legacy_generation, "_apply_aio_spectrum_model_patches_for_comfy_sampler") as patch_stage,
         ):
-            with self.assertRaisesRegex(
-                RuntimeError,
-                r"AiO ResShift is disabled.*issue #679",
-            ):
-                legacy_generation._run_aio_upscale_stage(
+            result = legacy_generation._run_aio_upscale_stage(
                     "model",
                     "clip",
                     "vae",
@@ -2473,7 +2476,11 @@ class AIOFinalUpscaleStageTests(unittest.TestCase):
                     settings["upscale"],
                 )
 
-        require.assert_not_called()
+        self.assertIs(result[0], output_image)
+        self.assertEqual([call.args[0] for call in require.call_args_list], ["ResShiftLoader", "ResShiftUpscale"])
+        safe_load.assert_called_once_with(require.return_value, settings["upscale"]["resshift"])
+        upscaler.upscale.assert_called_once_with(model, input_image, 321, 1024, 96, 2)
+        cleanup.assert_called_once_with(model.patcher)
         load_upscale.assert_not_called()
         patch_stage.assert_not_called()
 

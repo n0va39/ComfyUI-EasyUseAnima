@@ -2,7 +2,7 @@
   "schema_version": 1,
   "baseline_commit": "a0b0dc1f599fcf01ec0f25fc75a23f7524f165ab",
   "inventory": {
-    "expected_files": 220,
+    "expected_files": 221,
     "manual_matrix_source": "tests/fixtures/python_test_ownership_contract.v1.json",
     "patterns": [
       "tests/**/*.json",
@@ -2269,6 +2269,17 @@
         "cross-cutting"
       ],
       "purpose": "Direct Python unittest contract for Registry workflow security boundaries."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_resshift_loader.py",
+      "path": "tests/test_resshift_loader.py",
+      "production_groups": [
+        "aio"
+      ],
+      "purpose": "ResShift inventory containment, safe checkpoint reads and external model construction."
     },
     {
       "execution_mode": "unittest",

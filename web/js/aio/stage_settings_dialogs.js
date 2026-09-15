@@ -474,6 +474,14 @@ export function aioCreateStageSettingsDialogs(dependencies) {
       ),
       "tip.resshiftStudent",
     );
+    const labelInstalledDefault = () => {
+      for (const option of Array.from(student.options)) {
+        if (option.value === "(auto-download)") {
+          option.textContent = aioStaticText("Installed default student");
+        }
+      }
+    };
+    labelInstalledDefault();
     const dtype = field(resshiftSection, "Dtype", selectInput(["bf16", "fp32"], resshift.dtype || "bf16"), "tip.resshiftDtype");
     const chop = field(resshiftSection, "Chop", numberInput(resshift.chop, "256"), "tip.resshiftTiling");
     const overlap = field(resshiftSection, "Overlap", numberInput(resshift.overlap, "16"), "tip.resshiftTiling");
@@ -572,6 +580,7 @@ export function aioCreateStageSettingsDialogs(dependencies) {
           ["(auto-download)"],
         ),
       );
+      labelInstalledDefault();
       refreshDependencyLocks();
     });
 
