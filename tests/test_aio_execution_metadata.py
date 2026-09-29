@@ -72,6 +72,20 @@ def _connect_settings(graph, node_id, link_id, *, source_id="settings_source", o
 
 
 class AIOExecutionMetadataTests(unittest.TestCase):
+    def test_uint64_replay_settings_use_lossless_json_scalars(self):
+        for seed in (39, 2**50 + 1, 2**53 + 1, 2**64 - 1):
+            with self.subTest(seed=seed):
+                prompt, extra = _graph(7)
+                original = _settings(seed)
+                saved_prompt, saved_extra = snapshot_aio_execution_metadata(prompt, extra, 7, original, {})
+                settings = json.loads(saved_prompt["7"]["inputs"]["generation_settings"])
+                expected = str(seed) if seed > 2**53 - 1 else seed
+                self.assertEqual(settings["sampler"]["seed"], expected)
+                self.assertEqual(int(settings["sampler"]["seed"]), seed)
+                self.assertEqual(json.loads(saved_extra["workflow"]["nodes"][0]["widgets_values"][0]), settings)
+                self.assertEqual(snapshot_aio_prompt(saved_prompt, saved_extra), saved_prompt)
+                self.assertEqual(original["sampler"]["seed"], seed)
+
     def test_prompt_snapshot_removes_runtime_cache_markers_without_mutating_source_or_inputs(self):
         prompt, _ = _graph(7)
         prompt["7"]["is_changed"] = [float("nan")]

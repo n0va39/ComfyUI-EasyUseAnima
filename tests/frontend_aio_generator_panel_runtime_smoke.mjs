@@ -1443,6 +1443,26 @@ assert.equal(node.settings.sampler.seed, 777);
 assert.equal(node.settings.sampler.seed_after_generate, "fixed");
 assert.equal(seedLast.disabled, true);
 
+for (const largeSeed of ["1125899906842625", "9007199254740993", "18446744073709551615"]) {
+  seedInput.value = largeSeed;
+  seedInput.emit("input");
+  assert.equal(String(node.settings.sampler.seed), largeSeed);
+  node.__easyuseAnimaLastExecutedSeed = largeSeed;
+  seedLast.emit("click");
+  assert.equal(String(node.settings.sampler.seed), largeSeed);
+  assert.equal(node.settings.sampler.seed_after_generate, "fixed");
+  assert.equal(seedLast.disabled, true);
+}
+let invalidSeedMessage = "";
+seedInput.setCustomValidity = (message) => { invalidSeedMessage = message; };
+seedInput.value = "18446744073709551616";
+seedInput.emit("input");
+assert.match(invalidSeedMessage, /18446744073709551615/);
+assert.equal(node.settings.sampler.seed, "18446744073709551615");
+seedInput.value = "777";
+seedInput.emit("input");
+node.__easyuseAnimaLastExecutedSeed = 777;
+
 const highresBlock = settingsScroll.children[1];
 const highresToggle = highresBlock.children[0].children[1].children[1].children[0];
 highresToggle.checked = false;

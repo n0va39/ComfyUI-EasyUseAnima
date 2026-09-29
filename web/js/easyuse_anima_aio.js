@@ -102,6 +102,7 @@ import {
   AIO_DEFAULT_GENERATION_SETTINGS as DEFAULT_GENERATION_SETTINGS,
   AIO_DEFAULT_INPUT_SETTINGS as DEFAULT_INPUT_SETTINGS,
   AIO_GENERATOR_MAX_SEED as GENERATOR_MAX_SEED,
+  AIO_GENERATOR_UINT64_MAX_SEED,
   AIO_GENERATOR_SEED_CONTROLS as GENERATOR_SEED_CONTROLS,
   AIO_GENERATOR_SPECIAL_SEED_DECREMENT as GENERATOR_SPECIAL_SEED_DECREMENT,
   AIO_GENERATOR_SPECIAL_SEED_INCREMENT as GENERATOR_SPECIAL_SEED_INCREMENT,
@@ -4404,7 +4405,7 @@ const aioExecutedEventContext = createExecutedEventContext(api, {
 aioSeedTransaction = createAioSeedTransaction({
   owner: aioSeedQueueOwner,
   executedContext: aioExecutedEventContext,
-  maximum: GENERATOR_MAX_SEED,
+  maximum: AIO_GENERATOR_UINT64_MAX_SEED,
   findWidget,
   readSelection: (node) => {
     const settings = generatorSettings(node);

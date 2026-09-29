@@ -30859,6 +30859,24 @@
       },
       {
         "alias": null,
+        "bound_name": "SEED_MAX_UINT64",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": "..seed.reservation:SEED_MAX_UINT64",
+        "kind": "static_from",
+        "line": 19,
+        "name": "SEED_MAX_UINT64",
+        "optional": false,
+        "requested": "..seed.reservation",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/nodes/seed_adapters.py",
+        "target": "easyuse_anima/seed/reservation.py"
+      },
+      {
+        "alias": null,
         "bound_name": "SEED_OVERFLOW_CLAMP",
         "branch_context": [],
         "classification": "internal",
@@ -49688,17 +49706,17 @@
           },
           {
             "async": false,
-            "end_line": 275,
+            "end_line": 280,
             "kind": "function",
             "line": 229,
-            "loc": 47,
+            "loc": 52,
             "qualified_name": "snapshot_aio_execution_metadata"
           }
         ],
         "is_package": false,
-        "loc": 278,
+        "loc": 283,
         "module": "easyuse_anima.aio.execution_metadata",
-        "normalized_git_blob_sha1": "242e1536ae91b7f5f71d8240623952873eaef55b",
+        "normalized_git_blob_sha1": "590b4543024a03a72945d0540319eed53663437b",
         "path": "easyuse_anima/aio/execution_metadata.py",
         "top_level": {
           "class_count": 0,
@@ -60515,77 +60533,85 @@
         "functions": [
           {
             "async": false,
-            "end_line": 66,
+            "end_line": 67,
             "kind": "method",
-            "line": 51,
+            "line": 52,
             "loc": 16,
             "qualified_name": "AioSeedExecution.ui_payload"
           },
           {
             "async": false,
-            "end_line": 78,
+            "end_line": 79,
             "kind": "function",
-            "line": 77,
+            "line": 78,
             "loc": 2,
             "qualified_name": "_new_aio_compatibility_seed"
           },
           {
             "async": false,
-            "end_line": 87,
+            "end_line": 88,
             "kind": "function",
-            "line": 81,
+            "line": 82,
             "loc": 7,
             "qualified_name": "_aio_fallback_execution_seed"
           },
           {
             "async": false,
-            "end_line": 104,
+            "end_line": 106,
             "kind": "function",
-            "line": 90,
-            "loc": 15,
+            "line": 91,
+            "loc": 16,
             "qualified_name": "_aio_fallback_next_seed"
           },
           {
             "async": false,
-            "end_line": 127,
+            "end_line": 129,
             "kind": "function",
-            "line": 107,
+            "line": 109,
             "loc": 21,
             "qualified_name": "_aio_compatibility_execution"
           },
           {
             "async": false,
-            "end_line": 144,
+            "end_line": 139,
             "kind": "function",
-            "line": 130,
+            "line": 132,
+            "loc": 8,
+            "qualified_name": "_aio_next_seed_max"
+          },
+          {
+            "async": false,
+            "end_line": 156,
+            "kind": "function",
+            "line": 142,
             "loc": 15,
             "qualified_name": "_normalize_aio_seed_request"
           },
           {
             "async": false,
-            "end_line": 197,
+            "end_line": 209,
             "kind": "function",
-            "line": 147,
+            "line": 159,
             "loc": 51,
             "qualified_name": "aio_seed_execution"
           },
           {
             "async": false,
-            "end_line": 248,
+            "end_line": 260,
             "kind": "function",
-            "line": 200,
+            "line": 212,
             "loc": 49,
             "qualified_name": "prompt_studio_seed_execution"
           }
         ],
         "is_package": false,
-        "loc": 259,
+        "loc": 271,
         "module": "easyuse_anima.nodes.seed_adapters",
-        "normalized_git_blob_sha1": "9dc2260b85a827762adb9a12eb689596c5836cf4",
+        "normalized_git_blob_sha1": "b75de913a947a0e02964a08be705ac8012a0d060",
         "path": "easyuse_anima/nodes/seed_adapters.py",
         "top_level": {
           "class_count": 2,
-          "function_count": 7,
+          "function_count": 8,
           "global_count": 5
         }
       },
@@ -60740,81 +60766,81 @@
           },
           {
             "async": false,
-            "end_line": 124,
+            "end_line": 129,
             "kind": "function",
             "line": 111,
-            "loc": 14,
+            "loc": 19,
             "qualified_name": "_normalize_aio_profile_payload"
           },
           {
             "async": false,
-            "end_line": 137,
+            "end_line": 142,
             "kind": "function",
-            "line": 127,
+            "line": 132,
             "loc": 11,
             "qualified_name": "_list_aio_profiles"
           },
           {
             "async": false,
-            "end_line": 143,
+            "end_line": 148,
             "kind": "function",
-            "line": 140,
+            "line": 145,
             "loc": 4,
             "qualified_name": "_validate_aio_profile_size"
           },
           {
             "async": false,
-            "end_line": 204,
+            "end_line": 209,
             "kind": "function",
-            "line": 146,
+            "line": 151,
             "loc": 59,
             "qualified_name": "_save_aio_profile"
           },
           {
             "async": false,
-            "end_line": 221,
+            "end_line": 226,
             "kind": "function",
-            "line": 207,
+            "line": 212,
             "loc": 15,
             "qualified_name": "_normalize_stored_aio_profile_payload"
           },
           {
             "async": false,
-            "end_line": 233,
+            "end_line": 238,
             "kind": "function",
-            "line": 224,
+            "line": 229,
             "loc": 10,
             "qualified_name": "_load_aio_profile"
           },
           {
             "async": false,
-            "end_line": 270,
+            "end_line": 275,
             "kind": "function",
-            "line": 236,
+            "line": 241,
             "loc": 35,
             "qualified_name": "_delete_aio_profile"
           },
           {
             "async": false,
-            "end_line": 370,
+            "end_line": 375,
             "kind": "function",
-            "line": 273,
+            "line": 278,
             "loc": 98,
             "qualified_name": "_rename_aio_profile"
           },
           {
             "async": false,
-            "end_line": 390,
+            "end_line": 395,
             "kind": "function",
-            "line": 373,
+            "line": 378,
             "loc": 18,
             "qualified_name": "_rename_aio_profile_payload"
           }
         ],
         "is_package": false,
-        "loc": 393,
+        "loc": 398,
         "module": "easyuse_anima.profiles.aio",
-        "normalized_git_blob_sha1": "f39453f1f737d821b7fa9f70418a64516cdc28f6",
+        "normalized_git_blob_sha1": "a488d84cddf79f8d6944f75c20114d340509ecd5",
         "path": "easyuse_anima/profiles/aio.py",
         "top_level": {
           "class_count": 0,
@@ -79523,7 +79549,7 @@
         "column": 1,
         "context": "decorator:AioSeedExecution",
         "kind": "import_time_call",
-        "line": 41,
+        "line": 42,
         "module": "easyuse_anima/nodes/seed_adapters.py",
         "scope": "<module>"
       },
@@ -79532,7 +79558,7 @@
         "column": 1,
         "context": "decorator:PromptStudioSeedExecution",
         "kind": "import_time_call",
-        "line": 69,
+        "line": 70,
         "module": "easyuse_anima/nodes/seed_adapters.py",
         "scope": "<module>"
       },

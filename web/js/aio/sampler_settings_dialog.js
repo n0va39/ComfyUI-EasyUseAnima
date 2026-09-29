@@ -30,7 +30,7 @@
  * @property {any} numericLimits
  * @property {(defaults: any, current: any) => any} mergeDefaults
  * @property {(value: any) => string} normalizeSeedControl
- * @property {(value: any, fallback: number) => number} normalizeSeedValue
+ * @property {(value: any, fallback: number) => number | string} normalizeSeedValue
  * @property {(value: any, fallback: number, min: number, max: number) => number} clampNumber
  */
 
@@ -298,7 +298,9 @@ export function aioCreateSamplerSettingsDialog(dependencies) {
     };
 
     const base = makeSection("Base Parameters");
-    const seed = field(base, "Seed", numberInput(settings.sampler.seed));
+    const seed = field(base, "Seed", textInput(settings.sampler.seed));
+    seed.inputMode = "numeric";
+    seed.addEventListener("input", () => seed.setCustomValidity(""));
     const seedControl = field(
       base,
       "Seed mode",
@@ -524,7 +526,13 @@ export function aioCreateSamplerSettingsDialog(dependencies) {
         && !optionalDependencyAvailable(selectedBackendDependency)
         ? "comfy_ksampler"
         : selectedBackend;
-      next.sampler.seed = normalizeSeedValue(seed.value, GENERATOR_SPECIAL_SEED_RANDOM);
+      try {
+        next.sampler.seed = normalizeSeedValue(seed.value, GENERATOR_SPECIAL_SEED_RANDOM);
+      } catch (error) {
+        seed.setCustomValidity(String(error.message));
+        seed.reportValidity();
+        return;
+      }
       next.sampler.seed_after_generate = normalizeSeedControl(seedControl.value);
       next.sampler.steps = Math.trunc(clampGeneratorNumber(
         steps.value,
