@@ -49688,17 +49688,17 @@
           },
           {
             "async": false,
-            "end_line": 275,
+            "end_line": 280,
             "kind": "function",
             "line": 229,
-            "loc": 47,
+            "loc": 52,
             "qualified_name": "snapshot_aio_execution_metadata"
           }
         ],
         "is_package": false,
-        "loc": 278,
+        "loc": 283,
         "module": "easyuse_anima.aio.execution_metadata",
-        "normalized_git_blob_sha1": "242e1536ae91b7f5f71d8240623952873eaef55b",
+        "normalized_git_blob_sha1": "590b4543024a03a72945d0540319eed53663437b",
         "path": "easyuse_anima/aio/execution_metadata.py",
         "top_level": {
           "class_count": 0,
@@ -60740,81 +60740,81 @@
           },
           {
             "async": false,
-            "end_line": 124,
+            "end_line": 129,
             "kind": "function",
             "line": 111,
-            "loc": 14,
+            "loc": 19,
             "qualified_name": "_normalize_aio_profile_payload"
           },
           {
             "async": false,
-            "end_line": 137,
+            "end_line": 142,
             "kind": "function",
-            "line": 127,
+            "line": 132,
             "loc": 11,
             "qualified_name": "_list_aio_profiles"
           },
           {
             "async": false,
-            "end_line": 143,
+            "end_line": 148,
             "kind": "function",
-            "line": 140,
+            "line": 145,
             "loc": 4,
             "qualified_name": "_validate_aio_profile_size"
           },
           {
             "async": false,
-            "end_line": 204,
+            "end_line": 209,
             "kind": "function",
-            "line": 146,
+            "line": 151,
             "loc": 59,
             "qualified_name": "_save_aio_profile"
           },
           {
             "async": false,
-            "end_line": 221,
+            "end_line": 226,
             "kind": "function",
-            "line": 207,
+            "line": 212,
             "loc": 15,
             "qualified_name": "_normalize_stored_aio_profile_payload"
           },
           {
             "async": false,
-            "end_line": 233,
+            "end_line": 238,
             "kind": "function",
-            "line": 224,
+            "line": 229,
             "loc": 10,
             "qualified_name": "_load_aio_profile"
           },
           {
             "async": false,
-            "end_line": 270,
+            "end_line": 275,
             "kind": "function",
-            "line": 236,
+            "line": 241,
             "loc": 35,
             "qualified_name": "_delete_aio_profile"
           },
           {
             "async": false,
-            "end_line": 370,
+            "end_line": 375,
             "kind": "function",
-            "line": 273,
+            "line": 278,
             "loc": 98,
             "qualified_name": "_rename_aio_profile"
           },
           {
             "async": false,
-            "end_line": 390,
+            "end_line": 395,
             "kind": "function",
-            "line": 373,
+            "line": 378,
             "loc": 18,
             "qualified_name": "_rename_aio_profile_payload"
           }
         ],
         "is_package": false,
-        "loc": 393,
+        "loc": 398,
         "module": "easyuse_anima.profiles.aio",
-        "normalized_git_blob_sha1": "f39453f1f737d821b7fa9f70418a64516cdc28f6",
+        "normalized_git_blob_sha1": "27775ea7bbd805ec8df0271b9d2a6fc79b1cfce7",
         "path": "easyuse_anima/profiles/aio.py",
         "top_level": {
           "class_count": 0,

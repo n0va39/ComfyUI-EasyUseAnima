@@ -279,6 +279,7 @@ function runtimePayload({
 function createRuntimeFixture({
   requestedSeed = 7,
   storedAfterGenerate = "increment",
+  maximum = AIO_EDITABLE_MAXIMUM,
 } = {}) {
   const api = new FakeApi();
   const owner = queueModule.createQueueUiTransactionOwner();
@@ -298,7 +299,7 @@ function createRuntimeFixture({
   runtime = seedModule.createAioSeedTransaction({
     owner,
     executedContext: context,
-    maximum: AIO_EDITABLE_MAXIMUM,
+    maximum,
     findWidget(candidate, name) {
       return candidate.widgets.find((widget) => widget.name === name);
     },
@@ -778,3 +779,21 @@ assert.deepEqual(AIO_SEED_INTENT_CONTRACT, {
 });
 
 console.log("AiO executed seed runtime smoke passed.");
+
+for (const [seed, next, control] of [
+  [1125899906842625, 1125899906842625, "fixed"],
+  ["9007199254740993", "9007199254740994", "increment"],
+  ["18446744073709551615", "18446744073709551614", "decrement"],
+  ["18446744073709551615", 0, "increment"],
+]) {
+  const fixture = createRuntimeFixture({requestedSeed: seed, storedAfterGenerate: control, maximum: "18446744073709551615"});
+  fixture.capture("large");
+  const payload = runtimePayload({requestedSeed: seed, storedAfterGenerate: control, executionSeed: seed, nextSeed: next});
+  assert.equal(await fixture.execute("large", payload), true);
+  assert.deepEqual(fixture.lastPublications, [seed]);
+  assert.deepEqual(fixture.editablePublications, [next]);
+  fixture.capture("stale-large");
+  fixture.edit({seed: 39});
+  await fixture.execute("stale-large", runtimePayload({requestedSeed: next, storedAfterGenerate: control, executionSeed: next, nextSeed: next}));
+  assert.equal(fixture.selection.requestedSeed, 39);
+}

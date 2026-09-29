@@ -52,7 +52,7 @@ function closeGeneratorInfoTooltipOwner(document) {
  * @property {any} numericLimits
  * @property {(defaults: any, current: any) => any} mergeDefaults
  * @property {(value: any) => string} normalizeSeedControl
- * @property {(value: any, fallback?: number) => number} normalizeSeedValue
+ * @property {(value: any, fallback?: number) => number | string} normalizeSeedValue
  * @property {(value: any, fallback: number, min: number, max: number) => number} clampNumber
  * @property {(usdu: any) => any} normalizeUsduAutoTileRange
  * @property {(settings: any, value: number) => void} setUsduAutoTileTarget
@@ -70,7 +70,7 @@ function closeGeneratorInfoTooltipOwner(document) {
  * @property {(node: any, name: string, fallback: any) => any} widgetValue
  * @property {(node: any, name: string, fallback: any[]) => any[]} widgetOptions
  * @property {(node: any, name: string, value: any) => void} setWidgetValueIfChanged
- * @property {(node: any, seed: number, afterGenerate?: string | null) => void} commitSeedValue
+ * @property {(node: any, seed: number | string, afterGenerate?: string | null) => void} commitSeedValue
  * @property {(node: any) => void} markDirty
  * @property {() => void} ensureStyle
  * @property {(node: any, options?: Record<string, any>) => void} suppressDefaultPreview
@@ -845,10 +845,24 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
 
   function createDomNumberControl(node, name, value, step = "1") {
     const input = numberInput(value, step);
+    if (name === "seed") {
+      input.type = "text";
+      input.inputMode = "numeric";
+      input.addEventListener("change", () => input.reportValidity());
+    }
     input.addEventListener("input", () => {
-      const nextValue = name === "seed"
-        ? normalizeSeedValue(input.value, GENERATOR_SPECIAL_SEED_RANDOM)
-        : Number(input.value || 0);
+      let nextValue;
+      try {
+        nextValue = name === "seed"
+          ? normalizeSeedValue(input.value, GENERATOR_SPECIAL_SEED_RANDOM)
+          : Number(input.value || 0);
+      } catch (error) {
+        input.setCustomValidity(String(error.message));
+        input.setAttribute("aria-invalid", "true");
+        return;
+      }
+      input.setCustomValidity?.("");
+      input.removeAttribute?.("aria-invalid");
       setWidgetValueIfChanged(node, name, nextValue);
       syncGeneratorSettingsFromVisible(node);
       updateGeneratorDomSummary(node);
@@ -1131,7 +1145,7 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
     const lastButton = panel.querySelector("[data-aio-seed-last]");
     if (lastButton) {
       const hasLastSeed = lastSeed != null;
-      lastButton.disabled = !hasLastSeed || Number(lastSeed) === currentSeed;
+      lastButton.disabled = !hasLastSeed || String(lastSeed) === String(currentSeed);
       lastButton.textContent = hasLastSeed
         ? aioFormat("button.useLast", { seed: lastSeed })
         : aioText("button.useLastNone");

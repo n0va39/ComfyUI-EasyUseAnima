@@ -45,6 +45,15 @@ def load_api_routes():
 
 
 class AIOProfileStorageTests(unittest.TestCase):
+    def test_large_seed_profile_response_is_lossless_without_mutating_input(self):
+        api = load_api_module()
+        for seed in (39, 2**50 + 1, 2**53 + 1, 2**64 - 1):
+            source = {"settings": {"sampler": {"seed": seed}}}
+            result = api.aio_profiles._normalize_aio_profile_payload("Large Seed", source)
+            expected = str(seed) if seed > 2**53 - 1 else seed
+            self.assertEqual(result["settings"]["sampler"]["seed"], expected)
+            self.assertEqual(source["settings"]["sampler"]["seed"], seed)
+
     def test_application_profile_dependencies_use_canonical_owners(self):
         api = load_api_module()
         dependencies = api.application.dependencies.profiles
