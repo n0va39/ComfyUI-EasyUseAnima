@@ -40,3 +40,20 @@
   existing release-copy contract. Its 1.2.2 deprecation is a future sync plan,
   not a live Registry change. Do not apply metadata sync before the new release
   is published and its status is checked.
+
+## Preparation verification (2026-09-29)
+
+- Candidate `88968f854ac9`: Registry release-copy 4 tests, publish-version
+  extraction 3 tests, release workflow 12 tests passed through the focused runner.
+  The publish-version test first hit sandbox temporary-directory ACL denial;
+  the one permitted same-command non-sandbox retry passed.
+- Only current sample `package_version` labels changed; workflow topology and
+  all settings remain identical. Added local links and `git diff --check` passed.
+- The publication extractor produced exactly the reviewed 1.3.0 plain-text file.
+  Live read-only lookup of Registry 1.3.0 returned HTTP 404 (not yet published).
+- `registry_nodepack.ps1 -Action Pack -Target None -ComfyCliSpec comfy-cli==1.20.0`
+  ran official `comfy node validate` and `comfy node pack` successfully: 358
+  packaged files, 500 tracked files excluded. Archive version is 1.3.0; Safe PAG
+  LICENSE/NOTICE are present; tests/development docs/cache are excluded.
+- No runtime files changed relative to `fb8c26589f5f8f3efb05df45f3e489da2856f12b`.
+  The ledger-only follow-up does not invalidate package or runtime evidence.
