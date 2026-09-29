@@ -27,6 +27,12 @@ Registry 기준 외부 연동 기본값:
   명시적 선택 import로만 사용합니다. 사용자가 지정한 module 이름을 동적으로
   load하지 않습니다.
 
+## 1.3.0 사용 안내
+
+- Safe PAG는 내장 기능입니다. 별도 연결에는 [Easy Anima Safe PAG](docs/nodes/easy-anima-safe-pag.ko.md)를 사용하며 원본 노드와 공존합니다.
+- ResShift는 외부 팩과 로컬 Student/VQGAN이 필요합니다. 자동 다운로드는 하지 않습니다. [모델 설치 안내](docs/nodes/anima-aio-generator.ko.md#resshift-최종-업스케일)를 참고하세요.
+- AiO 큰 시드는 정확한 10진 문자열로 저장·재로드합니다. 기존 랜덤 범위는 유지하며, 이미 손상된 과거 시드는 복구할 수 없습니다.
+
 ## 문서 진입점
 
 - 노드별 상세 설명: [노드 문서](docs/nodes/README.ko.md)

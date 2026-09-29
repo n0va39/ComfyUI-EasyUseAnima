@@ -368,6 +368,7 @@ def _run_aio_resshift_upscale_stage(
         resolve_runtime_seed=_resolve_aio_runtime_seed,
         as_int=_as_int,
         image_tensor_size=_image_tensor_size,
+        cleanup_model=_cleanup_aio_ephemeral_model,
     )
 
 

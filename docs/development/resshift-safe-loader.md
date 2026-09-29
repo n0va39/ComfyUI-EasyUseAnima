@@ -1,0 +1,112 @@
+# ResShift safe local model adapter (#679)
+
+## Task card
+
+- Class: ADAPTER. Base: `acd53db04bff571601a92efe379da4459b29176b` (dev).
+- Goal: run AiO ResShift using locally selected checkpoints and ComfyUI safe loading.
+- Owner: https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/679
+- Allowed: ResShift loader/stage adapter, existing student selector labels, direct tests,
+  backend inventory, and ResShift integration documentation.
+- Preserve: node IDs, `upscale.resshift` keys, scale/dtype/tile/seed meanings, external
+  inference, USDU and other stages. Spectrum remains an external dependency.
+- Checks: model inventory containment, safe loading of both networks, metadata,
+  missing/malformed models, stage dispatch and fixed-seed output; existing frontend
+  dialog tests; full, package closure and isolated GPU/two-canvas smoke.
+- Stop: do not fall back to unsafe deserialization, downloads or another backend.
+  Report an unsupported external API/model or failed environment check explicitly.
+- No release/version change or user-instance installation.
+
+## Integration decision
+
+### Dev integration task (2026-09-29)
+
+- Continue PR #792 from `1a88f9240043c3c35c0e5fef1852e961221b10b6`;
+  merge Safe PAG dev base `2183b10244e74e66996ead4b6bdcaa8d7de905fd`.
+- Scope: resolve additive documentation and ownership inventory conflicts,
+  regenerate analyzer metrics, preserve both feature implementations, then squash
+  #792 into dev after final combined validation. DAVE remains deferred.
+- Checks: merged ownership contract, ResShift loader and stage, native Safe PAG,
+  final full on latest stable; reuse unchanged per-feature GPU/canvas evidence
+  and check ResShift host loading on the updated stable environment.
+- Stop on lost node/settings contracts, unsafe loader fallback, unexpected
+  remote changes or failed required validation. Main/releases/user installs are outside scope.
+
+The existing optional ResShift pack still owns the network definitions, inference
+configuration and `ResShiftUpscale.upscale` operation. EasyUse owns selection and
+safe checkpoint loading. For #679, this is a narrow exception to delegating model
+loading to the external public node method: that method also performs downloads
+and delegates checkpoint loading without an explicit safe-loading contract.
+No upstream network implementation or model weights are copied into this package.
+
+Both checkpoints must exist in ComfyUI's registered `resshift` model folders.
+The student comes from the existing Student selector. The companion VQGAN file is
+`autoencoder_vq_f4.pth`. Existing `(auto-download)` settings resolve locally to
+`rsd_student_18k.safetensors` for x2 or `rsd_student_final.safetensors` for x4.
+No network request is made by the AiO adapter, including when a file is missing.
+Select the scale matching the student's training scale, as in the external node.
+
+The adapter uses `comfy.utils.load_torch_file(..., safe_load=True)` for student
+and VQGAN weights, including safetensors metadata and compatible weights-only
+PyTorch checkpoints. Unsupported pickle objects fail without unsafe retry.
+Paths must match the registered inventory and remain inside a registered root.
+
+ResShift's own code/assets retain their licenses: its wrapper is CC BY-NC-SA 4.0
+with an academic-use statement, and its vendored network and weights have S-Lab
+non-commercial terms. Installing/selecting those separately does not change their
+terms or relicense them under EasyUse's MIT license.
+
+## Validation
+
+### ComfyUI 0.27.0 compatibility (2026-09-29)
+
+- Isolated compatibility checkout `v0.27.0` / `bb131be9e83d2f773c90f1d6f1e4b248a498c8c5`,
+  separate pinned venv, PyTorch 2.12.1+cu130 and RTX 5070 Ti. User instance untouched.
+- The same installed candidate package and pinned external provider were used.
+  Actual AiO ResShift x2 stage produced finite 256x256 pixels from 128x128 input,
+  twice identically with seed 39. Tensor SHA-256:
+  `b9e174c77e9967b2cf1ec19075eab645b3dff0270acf75f427c9bef5265bc992`.
+- VQGAN reads used `weights_only=True`; external loader/download helpers were
+  never called. The actual old core safe loader rejected the unsupported pickle.
+- This is ResShift-stage compatibility evidence; x4 GPU remains unverified.
+
+### Combined dev candidate (2026-09-29)
+
+- Candidate `c0eaa62215c07b02189d5c90918468a5d679bb72` includes Safe PAG
+  from dev and the ResShift restoration. Conflict resolution changed documentation,
+  additive ownership inventories and generated metrics; both runtime implementations
+  and the ResShift frontend are unchanged from their validated feature candidates.
+- Latest stable ComfyUI 0.37.0: required full passed, 1,716 Python tests
+  (3 skipped), 125 JavaScript files and all static/ownership/scanner checks.
+- Focused loader (10), final upscale (7) and native Safe PAG (10) tests passed.
+  The combined runtime package contains 358 files and was installed only into
+  the isolated Codex test instance.
+- Installed-package GPU probe on PyTorch 2.12.1+cu130 / RTX 5070 Ti:
+  real x2 Student, 128x128 -> 256x256, finite output and exact fixed-seed repeat.
+  Both VQGAN reads used `weights_only=True`; external loader/download calls
+  remained zero, and the actual core safe loader rejected an unsupported pickle.
+- Existing two-canvas and saved-workflow replay evidence below remains applicable
+  to the unchanged frontend/stage implementation. The refreshed GPU probe checks
+  the ResShift stage, not a full Anima generation. x4 GPU remains unverified.
+
+### Feature validation (2026-09-15)
+
+- External provider: `sorryhyun/ComfyUI-Distilled-ResShift` at
+  `628fb063669a071b3957406a351b0b8ed48e335f`. The installed node, inference helper
+  and VQGAN constructor match that source (normalized line endings).
+- ComfyUI 0.35.0, PyTorch 2.12.1+cu130, RTX 5070 Ti: real x2 student,
+  128x128 -> 256x256, finite output and exactly equal fixed-seed rerun.
+- Real VQGAN reads used `weights_only=True`; external loader/download helpers
+  were instrumented to fail if called and were never called. An unsupported
+  pickle object was rejected by the actual ComfyUI safe loader.
+- x4 dispatch/configuration remains supported, but an x4 checkpoint has not been
+  run in this validation. Model selection must match the trained scale.
+- Full: 1,706 Python tests passed (3 skipped), frontend checks passed for 125 JS
+  files, and all repository static/ownership/scanner checks passed.
+- The runtime package was installed into the isolated test instance. Legacy Canvas
+  and Node 2.0 both preserve the selected student, scale and dtype through dialog
+  apply, workflow save/reload and prompt serialization; no browser page errors.
+- A temporary diagnostic node called the actual AiO ResShift stage in the server
+  queue, followed by core SaveImage. This checks the changed upscale stage, not a
+  full Anima generation. Saved prompt/workflow inputs matched; an uncached replay
+  of the saved inputs produced identical 256x256 pixels from a 128x128 image.
+  Reopening the saved PNG in the actual frontend restored the same stage inputs.

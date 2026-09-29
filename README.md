@@ -14,6 +14,7 @@ helpers for ComfyUI.
 
 - [Korean README quick guide](README.ko.md#빠른-가이드-anima-aio-생성-흐름)
 - [English README quick guide](README.en.md#quick-guide-anima-aio-generation)
+- [Easy Anima Safe PAG](docs/nodes/easy-anima-safe-pag.en.md)
 - [Anima AiO Generator node guide](docs/nodes/anima-aio-generator.en.md)
 - [ANIMA Easy Use workflow v1 guide](docs/Anima%20AiO/ANIMA_Easy_Use_workflow_v1_KO.md)
 - [ANIMA Easy Use workflow v1 JSON](docs/example_workflows/ANIMA_Easy_Use_workflow_v1_release_ko.json)

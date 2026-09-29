@@ -88,6 +88,30 @@ def _aio_contract_missing_identity_execution(
 
 
 class SeedAdapterTests(unittest.TestCase):
+    def test_large_concrete_seeds_keep_exact_next_value_and_legacy_random_range(self):
+        maximum = 2**64 - 1
+        for use_service in (False, True):
+            for seed in (39, 2**50, 2**50 + 1, 2**53 + 1, maximum):
+                for control in ("fixed", "increment", "decrement", "randomize"):
+                    with self.subTest(service=use_service, seed=seed, control=control):
+                        draws = []
+                        def draw(bound):
+                            draws.append(bound)
+                            return 23
+                        service = InMemorySeedReservationService(random_seed=draw)
+                        identity = SeedExecutionIdentity("test:large", "request:large") if use_service else None
+                        with (
+                            patch("easyuse_anima.nodes.seed_adapters.resolve_seed_execution_identity", return_value=identity),
+                            patch("easyuse_anima.nodes.seed_adapters.get_runtime", return_value=SimpleNamespace(seed_reservations=service)),
+                            aio_seed_execution(unique_id="1", normalized_seed=seed, after_generate=control, random_next_seed=lambda: 23) as result,
+                        ):
+                            limit = maximum if seed > 2**50 else 2**50
+                            expected = {"fixed": seed, "increment": min(seed + 1, limit), "decrement": max(seed - 1, 0), "randomize": 23}[control]
+                            self.assertEqual(result.execution_seed, seed)
+                            self.assertEqual(result.next_seed, expected)
+                            if use_service and control == "randomize":
+                                self.assertEqual(draws, [2**50 + 1])
+
     def test_aio_missing_identity_contract_normalizes_before_fallback(self):
         self.assertEqual(
             AIO_CONTRACT_NORMALIZATION_OWNER,

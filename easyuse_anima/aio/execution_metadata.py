@@ -242,6 +242,11 @@ def snapshot_aio_execution_metadata(
     settings = copy.deepcopy(generation_settings)
     sampler = settings.get("sampler")
     if isinstance(sampler, dict):
+        seed = sampler.get("seed")
+        if isinstance(seed, int) and seed > (1 << 53) - 1:
+            # JSON numbers above this boundary lose precision in browser imports.
+            # Generation normalization already accepts decimal strings as uint64.
+            sampler["seed"] = str(seed)
         sampler["seed_after_generate"] = "fixed"
     node_id = _single_value(unique_id)
     if node_id is None:

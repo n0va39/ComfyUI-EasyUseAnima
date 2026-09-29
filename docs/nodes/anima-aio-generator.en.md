@@ -89,7 +89,36 @@ Detailer Settings show Face/Eye processing blocks as tabs. Each tab can be
 renamed and moved left or right to change execution order. Tab names are UI
 metadata; runtime dispatch uses stable internal keys plus `detailer.order`.
 
+## ResShift Final Upscale
+
+Select **Upscale > ResShift > Student**, then choose an installed checkpoint and
+its matching x2/x4 scale. Install `ComfyUI-Distilled-ResShift` separately and put
+the student plus `autoencoder_vq_f4.pth` in a registered `models/resshift` folder.
+The default student filenames are `rsd_student_18k.safetensors` (x2) and
+`rsd_student_final.safetensors` (x4).
+
+AiO reads both models through ComfyUI's safe checkpoint loader and performs no
+automatic download. **Installed default student** preserves the old
+`(auto-download)` saved value but requires the matching file to already exist.
+A missing or unsupported model produces an error; no other backend is selected.
+Existing scale, precision, seed and tiling settings keep their meanings.
+
+The external ResShift code and weights retain their academic/non-commercial
+license restrictions; they are not bundled or relicensed by EasyUse.
+See [the loading contract](../development/resshift-safe-loader.md).
+The x2 path was exercised on ComfyUI 0.27.0 and 0.37.0; x4 GPU execution
+remains unverified.
+
 ## Saving And Reproducibility
+
+AiO accepts exact integer seeds through `18446744073709551615`. Seeds above
+`9007199254740991` are serialized as decimal strings. External API producers
+should use a quoted value such as `"seed":"18446744073709551615"` inside
+`generation_settings`. Random range and `-1/-2/-3` controls are unchanged.
+Explicit large seeds increment/decrement within uint64 bounds; ordinary seeds
+keep their previous bounds. Invalid or already imprecise numbers are rejected.
+Already corrupted values cannot be recovered. Multiple instances of one shared
+subgraph still cannot all restore distinct execution seeds from an image UI workflow.
 
 Save Options are enabled by default and use EasyUse's native output backend.
 The serialized backend ID remains `image_saver` so existing workflows and
@@ -140,6 +169,10 @@ either limit is reached. Civitai Hash Fetcher rows likewise store username,
 model name, and version and add `model_name:AutoV3` entries.
 
 ## Required Node Packs
+
+Safe PAG is built into EasyUse Anima. Its existing settings and stage scope are
+preserved; the external Anima Safe PAG pack is no longer required for AiO.
+For standalone workflows, use [Easy Anima Safe PAG](easy-anima-safe-pag.en.md).
 
 - Required: `ComfyUI-EasyUseAnima`
 - Sample workflow defaults: `ComfyUI-Spectrum-KSampler`

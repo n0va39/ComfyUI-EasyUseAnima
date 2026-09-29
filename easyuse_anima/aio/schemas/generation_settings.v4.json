@@ -182,10 +182,10 @@
         "maximum": "18446744073709551615"
       },
       "frontend": {
-        "operation": "javascript-number-then-trunc-and-clamp",
-        "invalid": "supplied-fallback",
+        "operation": "exact-integer-number-or-decimal-string-above-js-safe-integer",
+        "invalid": "reject-without-changing-seed",
         "minimum": -3,
-        "maximum": 1125899906842624
+        "maximum": "18446744073709551615"
       }
     }
   },
@@ -469,7 +469,7 @@
         "unknown_fields": "preserve",
         "fields": {
           "backend": {"type": "string", "coercion": "choice", "enum": ["comfy_ksampler", "spectrum_mod_guidance_advanced", "spectrum_spd_speed"]},
-          "seed": {"type": "integer", "coercion": "surface-specific-seed", "minimum": -3, "maximum_by_surface": {"backend": "18446744073709551615", "frontend": 1125899906842624}},
+          "seed": {"type": "integer", "coercion": "surface-specific-seed", "minimum": -3, "maximum_by_surface": {"backend": "18446744073709551615", "frontend": "18446744073709551615"}},
           "seed_after_generate": {"type": "string", "coercion": "choice", "enum": ["fixed", "randomize", "increment", "decrement"]},
           "steps": {"type": "integer", "coercion": "backend_integer", "minimum": 1, "maximum": 10000},
           "cfg": {"type": "number", "coercion": "backend_number", "minimum": 0.0, "maximum": 100.0},

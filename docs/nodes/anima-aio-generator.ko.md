@@ -86,7 +86,31 @@ Detailer Settings는 Face/Eye 같은 처리 블럭을 탭으로 보여줍니다.
 탭 이름은 UI 정리용 메타데이터이며, 실제 실행은 안정적인 내부 키와
 `detailer.order`를 사용합니다.
 
+## ResShift 최종 업스케일
+
+**Upscale > ResShift > Student**에서 설치된 Student와 학습 배율에 맞는 x2/x4를
+선택합니다. `ComfyUI-Distilled-ResShift`를 별도로 설치하고, ComfyUI에 등록된
+`models/resshift` 폴더에 Student와 `autoencoder_vq_f4.pth`를 넣으세요.
+기본 Student 파일명은 x2의 `rsd_student_18k.safetensors`, x4의
+`rsd_student_final.safetensors`입니다.
+
+AiO는 두 모델을 ComfyUI 안전 로더로 읽으며 자동 다운로드하지 않습니다.
+**Installed default student**는 기존 `(auto-download)` 저장값을 유지하지만
+해당 파일을 미리 설치해야 합니다. 모델이 없거나 지원하지 않는 형식이면 오류를
+표시하며 다른 업스케일러로 자동 변경하지 않습니다. 외부 ResShift 코드와 모델의
+학술·비상업 라이선스 조건은 계속 적용되며 EasyUse에 포함하거나 재라이선스하지 않습니다.
+x2는 ComfyUI 0.27.0·0.37.0에서 확인했으며 x4 GPU 실행은 아직 확인하지 않았습니다.
+
 ## 저장과 재현성
+
+시드는 `0`부터 `18446744073709551615`까지 정확한 정수로 입력할 수 있습니다.
+`9007199254740991`을 넘는 시드는 저장 JSON에서 10진 문자열로 표현합니다.
+외부 API에서도 `generation_settings` 안에 `"seed":"18446744073709551615"`처럼
+전달하세요. 일반 시드와 랜덤 범위, `-1/-2/-3` 동작은 유지됩니다. 명시적인 큰 시드는
+uint64 범위에서 증가·감소하며, 일반 시드의 기존 상한 동작은 유지합니다.
+범위를 벗어나거나 이미 정밀도를 잃은 숫자는 다른 값으로 바꾸지 않고 거부합니다.
+과거 파일에 이미 잘못 저장된 숫자는 복구할 수 없습니다. 같은 subgraph 정의를 여러
+인스턴스가 공유할 때 실행별 시드를 이미지 UI workflow로 모두 복원하는 제한도 남아 있습니다.
 
 Save Options는 기본적으로 켜져 있고 EasyUse 네이티브 출력 backend를 사용합니다.
 기존 workflow와 profile의 호환성을 위해 직렬화된 backend ID는 `image_saver`로
@@ -127,6 +151,11 @@ embedding 파일 옆에는 cache 파일을 만들지 않습니다. 로컬 hash�
 model name, version을 사용해 `model_name:AutoV3` 항목을 추가합니다.
 
 ## 필요 노드팩
+
+Safe PAG는 EasyUse에 내장되어 AiO에서는 외부 Safe PAG 팩이 필요 없습니다.
+별도 워크플로우에서는 [Easy Anima Safe PAG](easy-anima-safe-pag.ko.md)를 사용하세요.
+원본 `AnimaSafePAG`는 덮어쓰지 않으며, 원본 노드가 들어 있는 워크플로우는
+사용자가 노드를 교체하기 전까지 원본 팩이 필요합니다. DAVE와 Spectrum은 외부 연동을 유지합니다.
 
 - 필수: `ComfyUI-EasyUseAnima`
 - 샘플 워크플로우 기본값: `ComfyUI-Spectrum-KSampler`

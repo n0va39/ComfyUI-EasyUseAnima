@@ -946,7 +946,7 @@ for (const testCase of [
   assert.equal(fixture.applyVisibleCalls.length, 1);
   const written = fixture.node.settings;
   assert.equal(written.sampler.backend, "spectrum_spd_speed");
-  assert.equal(written.sampler.seed, settingsModule.AIO_GENERATOR_MAX_SEED);
+  assert.equal(written.sampler.seed, settingsModule.AIO_GENERATOR_MAX_SEED + 100);
   assert.equal(written.sampler.seed_after_generate, "fixed");
   assert.equal(written.sampler.steps, 120);
   assert.equal(written.sampler.cfg, 99);
@@ -980,7 +980,7 @@ for (const testCase of [
     unsupported_image: "opaque-image-ref",
   });
   assert.deepEqual(JSON.parse(fixture.node.widgets[0].value), written);
-  assert.equal(fixture.applyVisibleCalls[0].sampler.seed, settingsModule.AIO_GENERATOR_MAX_SEED);
+  assert.equal(fixture.applyVisibleCalls[0].sampler.seed, settingsModule.AIO_GENERATOR_MAX_SEED + 100);
   assert.equal(fixture.node.visible.steps, 120);
   assert.equal(fixture.node.visible.cfg, 99);
   assert.equal(fixture.node.visible.denoise, 0);

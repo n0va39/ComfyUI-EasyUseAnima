@@ -38,7 +38,7 @@ function isRecord(value) {
   return value !== null && typeof value === "object";
 }
 
-/** @param {unknown} value @param {number} maximum */
+/** @param {unknown} value @param {number | string} maximum */
 function editableSeed(value, maximum) {
   if (typeof value !== "string" || !/^(?:0|[1-9]\d*)$/.test(value)) {
     return null;
@@ -48,13 +48,13 @@ function editableSeed(value, maximum) {
     if (parsed > BigInt(maximum)) {
       return null;
     }
-    return Number(parsed);
+    return parsed <= BigInt(Number.MAX_SAFE_INTEGER) ? Number(parsed) : String(parsed);
   } catch {
     return null;
   }
 }
 
-/** @param {unknown} value @param {number} maximum */
+/** @param {unknown} value @param {number | string} maximum */
 function requestedSeed(value, maximum) {
   if (typeof value !== "string") {
     return null;
@@ -65,17 +65,18 @@ function requestedSeed(value, maximum) {
   return editableSeed(value, maximum);
 }
 
-/** @param {unknown} value @param {number} maximum */
+/** @param {unknown} value @param {number | string} maximum */
 function normalizeSelectionSnapshot(value, maximum) {
   if (!isRecord(value)) {
     return null;
   }
-  const seed = Number(value?.requestedSeed);
+  if (typeof value.requestedSeed === "number" && !Number.isSafeInteger(value.requestedSeed)) {
+    return null;
+  }
+  const seed = requestedSeed(String(value.requestedSeed), maximum);
   const storedAfterGenerate = String(value?.storedAfterGenerate || "");
   if (
-    !Number.isSafeInteger(seed)
-    || seed < -3
-    || seed > maximum
+    seed == null
     || !AIO_SEED_CONTROLS.has(storedAfterGenerate)
   ) {
     return null;
@@ -93,7 +94,7 @@ function sameSelection(left, right) {
   );
 }
 
-/** @param {unknown} message @param {number} maximum */
+/** @param {unknown} message @param {number | string} maximum */
 function parsePayload(message, maximum) {
   const items = isRecord(message) && Array.isArray(message.easyuse_anima_aio_seed)
     ? message.easyuse_anima_aio_seed
@@ -120,7 +121,7 @@ function parsePayload(message, maximum) {
   ) {
     return null;
   }
-  const selection = SPECIAL_SELECTION_BY_TOKEN.get(normalizedRequestedSeed)
+  const selection = SPECIAL_SELECTION_BY_TOKEN.get(Number(normalizedRequestedSeed))
     || "concrete";
   const effectiveAfterGenerate = String(payload.effective_after_generate || "");
   if (
@@ -153,11 +154,11 @@ function parsePayload(message, maximum) {
  * @param {{
  *   owner: ReturnType<import("../lifecycle/queue_ui_transaction.js").createQueueUiTransactionOwner>,
  *   executedContext: ReturnType<import("../lifecycle/executed_event_context.js").createExecutedEventContext>,
- *   maximum: number,
+ *   maximum: number | string,
  *   findWidget: (node: any, name: string) => any,
  *   readSelection: (node: any) => unknown,
- *   publishLastSeed: (node: any, seed: number) => unknown,
- *   publishConcreteNextSeed: (node: any, seed: number) => unknown,
+ *   publishLastSeed: (node: any, seed: number | string) => unknown,
+ *   publishConcreteNextSeed: (node: any, seed: number | string) => unknown,
  * }} options
  */
 export function createAioSeedTransaction(options) {
@@ -173,8 +174,8 @@ export function createAioSeedTransaction(options) {
   if (
     !owner
     || !executedContext
-    || !Number.isSafeInteger(maximum)
-    || maximum < 0
+    || !/^\d+$/.test(String(maximum))
+    || (typeof maximum === "number" && !Number.isSafeInteger(maximum))
     || typeof findWidget !== "function"
     || typeof readSelection !== "function"
     || typeof publishLastSeed !== "function"
