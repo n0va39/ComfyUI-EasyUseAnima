@@ -784,7 +784,7 @@ for (const [seed, next, control] of [
   [1125899906842625, 1125899906842625, "fixed"],
   ["9007199254740993", "9007199254740994", "increment"],
   ["18446744073709551615", "18446744073709551614", "decrement"],
-  ["18446744073709551615", 0, "increment"],
+  ["18446744073709551615", "18446744073709551615", "increment"],
 ]) {
   const fixture = createRuntimeFixture({requestedSeed: seed, storedAfterGenerate: control, maximum: "18446744073709551615"});
   fixture.capture("large");

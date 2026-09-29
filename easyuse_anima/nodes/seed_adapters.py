@@ -18,6 +18,7 @@ from ..seed.execution_identity import resolve_seed_execution_identity
 from ..seed.execution_session import seed_execution_session
 from ..seed.reservation import (
     SEED_CONTROL_FIXED,
+    SEED_MAX_UINT64,
     SEED_OVERFLOW_CLAMP,
     SEED_OVERFLOW_WRAP,
     SEED_RESERVATION_CONTRACT_VERSION,
@@ -96,9 +97,10 @@ def _aio_fallback_next_seed(
         return execution_seed
     if after_generate == SEED_SELECTION_RANDOMIZE:
         return random_seed()
-    bounded_seed = min(execution_seed, AIO_GENERATOR_MAX_EDITABLE_SEED)
+    maximum = _aio_next_seed_max(execution_seed, after_generate)
+    bounded_seed = min(execution_seed, maximum)
     if after_generate == SEED_SELECTION_INCREMENT:
-        return min(bounded_seed + 1, AIO_GENERATOR_MAX_EDITABLE_SEED)
+        return min(bounded_seed + 1, maximum)
     if after_generate == SEED_SELECTION_DECREMENT:
         return max(bounded_seed - 1, 0)
     raise ValueError(f"Unsupported AiO seed control: {after_generate}")
@@ -127,6 +129,16 @@ def _aio_compatibility_execution(
     )
 
 
+def _aio_next_seed_max(seed: int, after_generate: str) -> int:
+    # Preserve the existing random and ordinary-seed range. Explicit large seeds
+    # step within uint64 instead of being reset to the old editable maximum.
+    if seed > AIO_GENERATOR_MAX_EDITABLE_SEED and after_generate in (
+        SEED_SELECTION_INCREMENT, SEED_SELECTION_DECREMENT,
+    ):
+        return SEED_MAX_UINT64
+    return AIO_GENERATOR_MAX_EDITABLE_SEED
+
+
 def _normalize_aio_seed_request(
     normalized_seed: int,
     after_generate: str,
@@ -136,7 +148,7 @@ def _normalize_aio_seed_request(
         request_id="aio:pending",
         normalized_seed=normalized_seed,
         after_generate=cast(SeedControl, after_generate),
-        next_seed_max=AIO_GENERATOR_MAX_EDITABLE_SEED,
+        next_seed_max=_aio_next_seed_max(normalized_seed, after_generate),
         overflow=SEED_OVERFLOW_CLAMP,
     )
     if request.selection != SEED_SELECTION_CONCRETE:
