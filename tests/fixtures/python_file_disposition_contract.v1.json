@@ -4,7 +4,7 @@
   "inventory_owner": {
     "path": "tests/fixtures/python_backend_baseline.json",
     "expected_baseline_files": 192,
-    "expected_target_files": 206
+    "expected_target_files": 208
   },
   "linked_contracts": {
     "compatibility_registry": "docs/architecture/python-compatibility-shims.md",
@@ -851,10 +851,16 @@
           "path": "easyuse_anima/aio/prompt_lora.py",
           "role": "aio-prompt-lora-adapter",
           "owner_group": "aio"
+        },
+        {
+          "path": "easyuse_anima/aio/safe_pag.py",
+          "role": "aio-safe-pag-engine",
+          "owner_group": "aio"
         }
       ],
       "direct_contracts": [
-        "tests/test_lora_prompt_syntax.py"
+        "tests/test_lora_prompt_syntax.py",
+        "tests/test_native_safe_pag.py"
       ],
       "compatibility_registry_key": null,
       "task_id": "ISSUE-645",
@@ -2468,7 +2474,9 @@
           "owner_group": "naia"
         }
       ],
-      "direct_contracts": ["tests/test_naia_endpoint_policy.py"],
+      "direct_contracts": [
+        "tests/test_naia_endpoint_policy.py"
+      ],
       "compatibility_registry_key": null,
       "task_id": null,
       "rollback_unit": null,
@@ -3437,19 +3445,26 @@
       "path": "easyuse_anima/registration.py",
       "role": "node-registration-owner",
       "owner_group": "nodes",
-      "disposition": "cohesive_retain",
+      "disposition": "split",
       "status": "complete",
       "targets": [
         {
           "path": "easyuse_anima/registration.py",
           "role": "node-registration-owner",
           "owner_group": "nodes"
+        },
+        {
+          "path": "easyuse_anima/nodes/safe_pag_nodes.py",
+          "role": "node-adapter",
+          "owner_group": "nodes"
         }
       ],
-      "direct_contracts": [],
+      "direct_contracts": [
+        "tests/test_native_safe_pag.py"
+      ],
       "compatibility_registry_key": null,
-      "task_id": null,
-      "rollback_unit": null,
+      "task_id": "ISSUE-766",
+      "rollback_unit": "Revert the cohesive native Safe PAG engine and standalone registration change.",
       "replacement_owner": null,
       "size_exception_verdicts": []
     },

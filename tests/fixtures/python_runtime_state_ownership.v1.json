@@ -437,6 +437,25 @@
       "target_phase": "E-06b-complete",
       "test_evidence": ["tests/test_python_wildcard_runtime_contract.py", "tests/test_wildcards.py"],
       "thread_safety": "The private owner instance owns one Condition protecting publication, LRU mutation, admission, wait, notification, and completed-cache clear."
+    },
+    {
+      "id": "native-safe-pag-attention-scope",
+      "categories": [
+        "lock",
+        "temporary_attention_patch"
+      ],
+      "module": "easyuse_anima/aio/safe_pag.py",
+      "owner": "easyuse_anima.aio.safe_pag._ATTENTION_LOCK",
+      "symbols": [
+        "_ATTENTION_LOCK"
+      ],
+      "lifetime": "Process lifetime lock; attention mutation is bounded by one condition-batch call.",
+      "cleanup": "Finally restores original instance attributes, including setup failure and interruption. Per-model prediction is consumed in post-CFG.",
+      "thread_safety": "RLock serializes native patches; owner tokens preserve concurrent sibling inference, with ContextVar prediction per execution context.",
+      "target_phase": "issue-766-complete",
+      "test_evidence": [
+        "tests/test_native_safe_pag.py"
+      ]
     }
   ],
   "ignored_mutable_global_names": ["__all__"],

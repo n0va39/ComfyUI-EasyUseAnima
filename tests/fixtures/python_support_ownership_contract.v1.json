@@ -2,7 +2,7 @@
   "schema_version": 1,
   "baseline_commit": "a0b0dc1f599fcf01ec0f25fc75a23f7524f165ab",
   "inventory": {
-    "expected_files": 220,
+    "expected_files": 222,
     "manual_matrix_source": "tests/fixtures/python_test_ownership_contract.v1.json",
     "patterns": [
       "tests/**/*.json",
@@ -216,6 +216,18 @@
         "nodes"
       ],
       "purpose": "Deterministic contract fixture input for comfy host compatibility.v1."
+    },
+    {
+      "path": "tests/fixtures/native_safe_pag_parity.json",
+      "kind": "test_fixture",
+      "owner": "tests/test_native_safe_pag.py",
+      "production_groups": [
+        "aio",
+        "nodes"
+      ],
+      "purpose": "Native Safe PAG numerical parity, registration and temporary attention lifecycle for #766.",
+      "execution_mode": "fixture-input",
+      "generated": false
     },
     {
       "execution_mode": "fixture-input",
@@ -1875,6 +1887,18 @@
         "settings"
       ],
       "purpose": "Direct Python unittest contract for test naia settings."
+    },
+    {
+      "path": "tests/test_native_safe_pag.py",
+      "kind": "test",
+      "owner": "tests/test_native_safe_pag.py",
+      "production_groups": [
+        "aio",
+        "nodes"
+      ],
+      "purpose": "Native Safe PAG numerical parity, registration and temporary attention lifecycle for #766.",
+      "execution_mode": "unittest",
+      "generated": false
     },
     {
       "execution_mode": "unittest",

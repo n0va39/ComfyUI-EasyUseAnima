@@ -1244,5 +1244,53 @@
         "name": "附加雜湊"
       }
     }
+  },
+  "EasyAnimaSafePAG": {
+    "display_name": "Easy Anima Safe PAG",
+    "description": "對 Anima 系列 MODEL 套用 Safe PAG。不需要額外模型或外部節點套件，執行後會還原 attention。",
+    "inputs": {
+      "model": {
+        "name": "model",
+        "tooltip": "Anima/Cosmos/Predict2 系列 MODEL 輸入。"
+      },
+      "scale": {
+        "name": "PAG 強度",
+        "tooltip": "校正強度。0 會直接傳回輸入 MODEL。"
+      },
+      "block_indices": {
+        "name": "區塊編號",
+        "tooltip": "以逗號或範圍指定，例如 18 或 18-20。"
+      },
+      "perturbation_strength": {
+        "name": "attention 擾動強度",
+        "tooltip": "0 為一般 attention，1 為完整 value/identity 路徑。"
+      },
+      "head_indices": {
+        "name": "head 編號",
+        "tooltip": "留空以選取所有 attention head。"
+      },
+      "start_percent": {
+        "name": "開始比例",
+        "tooltip": "採樣進度 0～1 的開始位置。"
+      },
+      "end_percent": {
+        "name": "結束比例",
+        "tooltip": "採樣進度 0～1 的結束位置。"
+      },
+      "rescale": {
+        "name": "重調整強度",
+        "tooltip": "降低過度校正對比與能量的量。"
+      },
+      "rescale_mode": {
+        "name": "重調整模式",
+        "tooltip": "full: 以 CFG 結果為準；partial: 以 positive 預測為準。"
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "model",
+        "tooltip": "對 Anima 系列 MODEL 套用 Safe PAG。不需要額外模型或外部節點套件，執行後會還原 attention。"
+      }
+    }
   }
 }

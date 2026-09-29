@@ -440,14 +440,11 @@ def _apply_aio_anima_dave_patch(model, dave_settings: dict[str, Any]):
 
 
 def _apply_aio_safe_pag_patch(model, safe_pag_settings: dict[str, Any]):
-    safe_pag_cls = _require_custom_node_class(
-        "AnimaSafePAG",
-        "Anima Safe PAG",
-        "Repository: https://github.com/iljung1106/comfyui-anima-safe-pag",
-    )
+    from .safe_pag import NativeSafePAG
+
     if not isinstance(safe_pag_settings, dict):
         safe_pag_settings = {}
-    result = safe_pag_cls().patch(
+    result = NativeSafePAG().patch(
         model,
         _as_float(safe_pag_settings.get("scale"), 4.0),
         str(safe_pag_settings.get("block_indices") or "18"),

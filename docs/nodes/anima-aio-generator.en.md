@@ -141,6 +141,10 @@ model name, and version and add `model_name:AutoV3` entries.
 
 ## Required Node Packs
 
+Safe PAG is built into EasyUse Anima. Its existing settings and stage scope are
+preserved; the external Anima Safe PAG pack is no longer required for AiO.
+For standalone workflows, use [Easy Anima Safe PAG](easy-anima-safe-pag.en.md).
+
 - Required: `ComfyUI-EasyUseAnima`
 - Sample workflow defaults: `ComfyUI-Spectrum-KSampler`
 - Optional features: `ComfyUI-KJNodes` for SageAttention/Torch Compile, `ComfyUI-Impact-Pack` for the AiO SAM3 detailer path, `ComfyUI-Anima-DAVE` for the Anima DAVE model patch
