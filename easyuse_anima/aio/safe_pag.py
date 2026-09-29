@@ -164,6 +164,11 @@ def _soft_pag_attention(attn_module, q, k, v, strength, heads):
     return _project_attention(attn_module, weak)
 
 
+def _peek_tensor(value):
+    # New ComfyUI passes single-use containers; original_compute owns consumption.
+    return value.peek() if hasattr(value, "peek") else value
+
+
 def _make_pag_compute_attention(
     attn_module, original_compute, pag_index, perturbation_strength, head_indices, token
 ):
@@ -171,7 +176,8 @@ def _make_pag_compute_attention(
         transformer_options = transformer_options or {}
         if transformer_options.get("easyuse_anima_safe_pag_token") is not token:
             return original_compute(q, k, v, transformer_options=transformer_options)
-        labels = _expand_cond_labels(transformer_options, q.shape[0], q.device)
+        q_tensor = _peek_tensor(q)
+        labels = _expand_cond_labels(transformer_options, q_tensor.shape[0], q_tensor.device)
         if labels is None:
             return original_compute(q, k, v, transformer_options=transformer_options)
 
@@ -180,7 +186,7 @@ def _make_pag_compute_attention(
             return original_compute(q, k, v, transformer_options=transformer_options)
 
         perturbed = _soft_pag_attention(
-            self, q, k, v, perturbation_strength, head_indices
+            self, q_tensor, _peek_tensor(k), _peek_tensor(v), perturbation_strength, head_indices
         )
         if bool(pag_mask.all()):
             return perturbed

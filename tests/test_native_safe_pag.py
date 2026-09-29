@@ -103,6 +103,58 @@ def run_post(model, outputs, sigma=0.6):
 
 
 class NativeSafePAGTests(unittest.TestCase):
+    def test_tensor_container_preserves_consumption_and_mixed_batch_parity(self):
+        class Container:
+            def __init__(self, value):
+                self.value = value
+                self.takes = 0
+
+            def peek(self):
+                if self.value is None:
+                    raise AssertionError("container already consumed")
+                return self.value
+
+            def take(self):
+                value = self.peek()
+                self.value = None
+                self.takes += 1
+                return value
+
+        token = object()
+        attention = Attention()
+        tensors_in = tensors(4)
+        normal = attention.compute_attention(*tensors_in)
+        perturbed = safe_pag._soft_pag_attention(attention, *tensors_in, 0.75, [0])
+        for wrapped in (False, True):
+            for labels in (None, [0], [2], [0, 2], [0, 1, 2]):
+                for owned in (False, True):
+                    with self.subTest(wrapped=wrapped, labels=labels, owned=owned):
+                        inputs = tuple(Container(t) for t in tensors_in) if wrapped else tensors_in
+                        calls = []
+
+                        def original(q, k, v, transformer_options=None):
+                            for actual, expected in zip((q, k, v), inputs):
+                                self.assertIs(actual, expected)
+                            calls.append(True)
+                            values = tuple(t.take() for t in (q, k, v)) if wrapped else (q, k, v)
+                            return attention.compute_attention(*values)
+
+                        compute = safe_pag._make_pag_compute_attention(attention, original, 2, 0.75, [0], token)
+                        options = {"cond_or_uncond": labels}
+                        if owned:
+                            options["easyuse_anima_safe_pag_token"] = token
+                        actual = compute(*inputs, transformer_options=options)
+                        expected = normal.clone()
+                        if owned and labels == [2]:
+                            expected = perturbed
+                        elif owned and labels == [0, 2]:
+                            expected[2:] = perturbed[2:]
+                        torch.testing.assert_close(actual, expected)
+                        consumes = not (owned and labels == [2])
+                        self.assertEqual(len(calls), int(consumes))
+                        if wrapped:
+                            self.assertEqual([t.takes for t in inputs], [int(consumes)] * 3)
+
     def test_frozen_upstream_attention_and_rescale_parity(self):
         fixture = json.loads(
             (Path(__file__).parent / "fixtures/native_safe_pag_parity.json").read_text()

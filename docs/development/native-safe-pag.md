@@ -19,7 +19,57 @@
 The user explicitly authorized this implementation and the separately named
 standalone node on 2026-09-15, extending #766's AiO-only scope.
 
-## Implementation and validation (2026-09-15)
+## Attention container compatibility task (2026-09-29)
+
+- Base: `fcd17d81ccbd1d9ba49a8a9daff6a5d938a18c6f`, continuing PR #793.
+- Scope: native attention adapter, direct regression tests, provenance and validation records.
+- Preserve: tensor arithmetic, token isolation, upstream container ownership, node IDs and saved settings.
+- Fix: inspect containers with `peek()` only for PAG; pass the original objects to normal attention.
+- Checks: tensor/container parity for absent, invalid, normal, PAG-only and mixed labels; native focused suite; full and latest-stable host smoke.
+- Stop: failed host/dependency update or changed attention contract beyond this adapter.
+
+### Validation (2026-09-29)
+
+Runtime source SHA-256 (LF):
+`edc88a909c5471f160ee0f8c8dcec078943bac12d50c76702b3d6a3fb46b9657`.
+
+- Focused native suite: 10 tests passed. The new regression covers tensor and
+  single-use container inputs, ownership tokens, absent/invalid labels, normal,
+  PAG-only and mixed batches, original object identity and consumption counts.
+- Final workspace `check_custom_node.ps1 -Profile full`: 1,705 Python tests,
+  3 existing skips; frontend checks for 125 JavaScript files and TypeScript
+  6.0.3; import, size, ownership and diff gates passed. The first run found only
+  stale analyzer source metrics; regenerated the snapshot, passed its exact
+  focused test, then passed full. No gate or baseline allowance was weakened.
+- Official `comfy-cli==1.20.0` package: 357 files, installed in the isolated
+  stable test instance with the previous install retained. Installed engine
+  hash matches the source; MIT LICENSE and updated NOTICE are included.
+
+| Core | Actual boundary and result |
+|---|---|
+| v0.27.0 (`bb131be9e83d2f773c90f1d6f1e4b248a498c8c5`) | Separate compatibility checkout/venv with its pinned frontend 1.45.20, kitchen 0.2.16 and aimdo 0.4.10; `pip check` passed. Real `Attention.forward` tensor path and 28-block GPU generation passed. |
+| Latest stable v0.37.0 (`73c9bad4d21e7addbe1d13bc92eee0f1431b017d`) | Frontend 1.52.7. Its Predict2 caller still passes tensors. Packaged standalone and actual AiO API image generation passed; `/object_info` proved `EasyAnimaSafePAG` and original `AnimaSafePAG` register from distinct packs. |
+| Development snapshot `a7169322485d0049380fb207fa17e9fb3ec40486` | Real container-based `Attention.forward` reproduced the original `AttributeError`. Patched native attention and 28-block GPU generation passed. This is supplementary development-branch evidence, not the official stable release. |
+
+GPU probes used RTX 5070 Ti, Python 3.12.13, PyTorch 2.12.1+cu130,
+`anima_baseV10`, 256x256, seed 39, Euler/simple, 3 steps, CFG 3.
+On both v0.27.0 and the development snapshot, the standalone and AiO leaf
+latents exactly matched the pinned original with only the reported `peek()`
+adaptation applied. Original attention references were restored. The v0.27.0
+venv reuses unpinned dependencies from the Codex test environment while its
+version-pinned packages are installed locally; no user environment was changed.
+This proves within-version parity, not identical output across core versions.
+
+The direct GPU harnesses emitted ComfyUI `ModelPatcher.__del__` warnings during
+interpreter teardown after assertions completed; API generation on the stable
+server completed successfully. These are separate from the fixed attention error.
+
+No frontend/serialization code changed in this follow-up; the earlier Legacy
+Canvas/Node 2.0 evidence remains the UI evidence. Real 40-block generation,
+optimized Torch Compile and multi-GPU remain unverified. DAVE is deferred by
+the user's 2026-09-29 decision; existing external behavior is unchanged.
+
+## Earlier implementation evidence (2026-09-15)
 
 Code candidate: `02486544a45d` (subsequent validation-record changes are docs only).
 

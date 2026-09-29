@@ -17,6 +17,8 @@ objects and native reapplication; isolated concurrent sibling calls with an owne
 token and scoped lock; made prediction state local to an execution context; kept
 zero-scale identity and lazy host imports. Existing sampler callbacks remain in
 the chain. Temporary instance attributes are removed if absent before inference.
+New ComfyUI attention containers are inspected with non-consuming `peek()` for
+PAG math; the original containers are passed unchanged to normal attention.
 
 Tests use frozen numerical outputs generated from the source above. The MIT
 license and this provenance file ship alongside the implementation.

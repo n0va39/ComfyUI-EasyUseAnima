@@ -54132,101 +54132,109 @@
           },
           {
             "async": false,
-            "end_line": 193,
+            "end_line": 169,
             "kind": "function",
             "line": 167,
-            "loc": 27,
+            "loc": 3,
+            "qualified_name": "_peek_tensor"
+          },
+          {
+            "async": false,
+            "end_line": 199,
+            "kind": "function",
+            "line": 172,
+            "loc": 28,
             "qualified_name": "_make_pag_compute_attention"
           },
           {
             "async": false,
-            "end_line": 191,
+            "end_line": 197,
             "kind": "function",
-            "line": 170,
-            "loc": 22,
+            "line": 175,
+            "loc": 23,
             "qualified_name": "_make_pag_compute_attention.compute_attention"
           },
           {
             "async": false,
-            "end_line": 244,
+            "end_line": 250,
             "kind": "function",
-            "line": 201,
+            "line": 207,
             "loc": 44,
             "qualified_name": "_patch_anima_attention"
           },
           {
             "async": false,
-            "end_line": 260,
+            "end_line": 266,
             "kind": "function",
-            "line": 247,
+            "line": 253,
             "loc": 14,
             "qualified_name": "_rescale_guidance"
           },
           {
             "async": false,
-            "end_line": 301,
+            "end_line": 307,
             "kind": "method",
-            "line": 264,
+            "line": 270,
             "loc": 38,
             "qualified_name": "_PAGRun.__init__"
           },
           {
             "async": false,
-            "end_line": 304,
+            "end_line": 310,
             "kind": "method",
-            "line": 303,
+            "line": 309,
             "loc": 2,
             "qualified_name": "_PAGRun.default_calc"
           },
           {
             "async": false,
-            "end_line": 320,
+            "end_line": 326,
             "kind": "method",
-            "line": 306,
+            "line": 312,
             "loc": 15,
             "qualified_name": "_PAGRun.calc_with_previous_if_possible"
           },
           {
             "async": false,
-            "end_line": 392,
+            "end_line": 398,
             "kind": "method",
-            "line": 322,
+            "line": 328,
             "loc": 71,
             "qualified_name": "_PAGRun.calc_cond_batch_with_pag"
           },
           {
             "async": false,
-            "end_line": 354,
+            "end_line": 360,
             "kind": "function",
-            "line": 339,
+            "line": 345,
             "loc": 16,
             "qualified_name": "_PAGRun.calc_cond_batch_with_pag.pag_model_wrapper"
           },
           {
             "async": false,
-            "end_line": 428,
+            "end_line": 434,
             "kind": "method",
-            "line": 394,
+            "line": 400,
             "loc": 35,
             "qualified_name": "_PAGRun.post_cfg_function"
           },
           {
             "async": false,
-            "end_line": 465,
+            "end_line": 471,
             "kind": "method",
-            "line": 432,
+            "line": 438,
             "loc": 34,
             "qualified_name": "NativeSafePAG.patch"
           }
         ],
         "is_package": false,
-        "loc": 465,
+        "loc": 471,
         "module": "easyuse_anima.aio.safe_pag",
-        "normalized_git_blob_sha1": "b00612eee34b06900b6e517bf62ff24c8208c7d1",
+        "normalized_git_blob_sha1": "7176eda87cd5b0a8a0721143dd6262096407c8e4",
         "path": "easyuse_anima/aio/safe_pag.py",
         "top_level": {
           "class_count": 2,
-          "function_count": 15,
+          "function_count": 16,
           "global_count": 1
         }
       },
@@ -78456,7 +78464,7 @@
         "column": 18,
         "context": "assign:_ATTENTION_LOCK",
         "kind": "import_time_call",
-        "line": 198,
+        "line": 204,
         "module": "easyuse_anima/aio/safe_pag.py",
         "scope": "<module>"
       },
@@ -80184,7 +80192,7 @@
           "lock"
         ],
         "initializer": "RLock",
-        "line": 198,
+        "line": 204,
         "module": "easyuse_anima/aio/safe_pag.py",
         "name": "_ATTENTION_LOCK"
       },
