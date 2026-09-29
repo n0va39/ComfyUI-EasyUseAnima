@@ -8,6 +8,8 @@ Use this file as the first development-doc entry point for a new Codex session. 
 only the current READY or event task and its direct owners; do not reopen a completed
 lane when neither exists.
 
+[1.3.0 release preparation and validation ledger](release-1.3.0.md).
+
 ## Read order
 
 1. `docs/development/current-policies.md`

@@ -21,6 +21,7 @@ shared settings, start with the top-level [README](../../README.en.md).
 | Anima LoRA Preset | Stores and outputs LoRA profiles, style prompts, and trigger words | [Guide](anima-lora-preset.en.md) |
 | Easy Use Anima Input | Bundles ANIMA diffusion model, VAE, CLIP, and prompt data into an AiO context | [Guide](anima-aio-generator.en.md) |
 | Anima AiO Generator | Runs sampling, Highres, Detailer, and saving from the prompt-data context | [Guide](anima-aio-generator.en.md) |
+| Easy Anima Safe PAG | Built-in Safe PAG model guidance without the external pack | [Guide](easy-anima-safe-pag.en.md) |
 | Anima AiO Hook Combine | Composes AiO extension hooks in middleware order | [Developer guide](../extensions/aio-hooks.en.md) |
 | Anima Image Scale By Multiple | Scales images to valid size multiples while preserving the original aspect ratio | [Guide](anima-image-scale-by-multiple.en.md) |
 | Anima Detailer Align Hook | Aligns Impact detailer crop sampling sizes | [Guide](anima-detailer-align-hook.en.md) |

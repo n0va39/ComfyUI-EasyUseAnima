@@ -28,6 +28,12 @@ Registry-facing integration defaults:
   built-in SAM3 detector and Impact Pack classes. It does not dynamically load
   user-provided module names.
 
+## Using 1.3.0
+
+- Safe PAG is built in. Use [Easy Anima Safe PAG](docs/nodes/easy-anima-safe-pag.en.md) in standalone workflows; the original node remains separate.
+- ResShift needs its external pack and locally installed Student/VQGAN models. It performs no automatic download. See [model setup](docs/nodes/anima-aio-generator.en.md#resshift-final-upscale).
+- AiO large seeds use exact decimal strings for storage and replay. Random range is unchanged; previously corrupted values cannot be recovered.
+
 ## Documentation Entry Points
 
 - Per-node details: [Node Guide](docs/nodes/README.en.md)

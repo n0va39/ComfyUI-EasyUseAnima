@@ -23,3 +23,7 @@ Reapplying the native node replaces its own correction instead of stacking it.
 
 Safe PAG is intended for Anima-family models, not a generic image upscaler.
 Upstream source and license: [provenance](../../third_party/anima-safe-pag/NOTICE.md).
+
+The 28-block path was exercised on ComfyUI 0.27.0 and 0.37.0, plus a development
+snapshot using attention containers. Actual 40-block GPU generation, optimized
+Torch Compile and multi-GPU combinations remain unverified.
