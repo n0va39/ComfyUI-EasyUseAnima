@@ -140,6 +140,110 @@
   ],
   "nodes": [
     {
+      "category": "EasyUse Anima/Model Patches",
+      "class_name": "EasyAnimaSafePAG",
+      "display_name": "Easy Anima Safe PAG",
+      "function": "patch",
+      "id": "EasyAnimaSafePAG",
+      "input_sections": [
+        {
+          "entries": [
+            {
+              "config": {},
+              "name": "model",
+              "type": "MODEL"
+            },
+            {
+              "config": {
+                "default": 4.0,
+                "max": 100.0,
+                "min": 0.0,
+                "round": 0.01,
+                "step": 0.1
+              },
+              "name": "scale",
+              "type": "FLOAT"
+            },
+            {
+              "config": {
+                "default": "18",
+                "multiline": false
+              },
+              "name": "block_indices",
+              "type": "STRING"
+            },
+            {
+              "config": {
+                "default": 0.75,
+                "max": 1.0,
+                "min": 0.0,
+                "round": 0.001,
+                "step": 0.01
+              },
+              "name": "perturbation_strength",
+              "type": "FLOAT"
+            },
+            {
+              "config": {
+                "default": "",
+                "multiline": false
+              },
+              "name": "head_indices",
+              "type": "STRING"
+            },
+            {
+              "config": {
+                "default": 0.0,
+                "max": 1.0,
+                "min": 0.0,
+                "step": 0.001
+              },
+              "name": "start_percent",
+              "type": "FLOAT"
+            },
+            {
+              "config": {
+                "default": 0.7,
+                "max": 1.0,
+                "min": 0.0,
+                "step": 0.001
+              },
+              "name": "end_percent",
+              "type": "FLOAT"
+            },
+            {
+              "config": {
+                "default": 0.2,
+                "max": 1.0,
+                "min": 0.0,
+                "step": 0.01
+              },
+              "name": "rescale",
+              "type": "FLOAT"
+            },
+            {
+              "config": {
+                "default": "full"
+              },
+              "name": "rescale_mode",
+              "type": [
+                "full",
+                "partial"
+              ]
+            }
+          ],
+          "name": "required"
+        }
+      ],
+      "output_node": false,
+      "return_names": [
+        "model"
+      ],
+      "return_types": [
+        "MODEL"
+      ]
+    },
+    {
       "category": "EasyUse Anima/LoRA",
       "class_name": "EasyUseAnima29BLoraStackLoader",
       "display_name": "Anima 2.9B LoRA Stack Loader",

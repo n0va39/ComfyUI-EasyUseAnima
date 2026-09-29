@@ -1,0 +1,14 @@
+EasyUse Anima 1.3.0 adds built-in Safe PAG, restores local ResShift upscaling, and preserves large AiO seeds when reopening saved images.
+
+Changes:
+1. AiO Safe PAG no longer requires the external Safe PAG pack. Standalone workflows can use Easy Anima Safe PAG, which coexists with the original AnimaSafePAG node.
+2. Safe PAG handles older tensor attention and newer AttentionTensorContainer inputs, preventing the missing shape error.
+3. AiO ResShift uses separately installed local Student and VQGAN models through ComfyUI safe loading. It does not download model files automatically.
+4. AiO preserves exact seeds through 18446744073709551615 across editing, profiles, saved-image workflows, execution results and Use Last. Large seeds use decimal strings to avoid rounding; the random range and -1/-2/-3 controls are unchanged.
+
+Compatibility:
+Existing node IDs, settings and workflows remain readable. Workflows containing the original standalone AnimaSafePAG still need its pack until that node is replaced. DAVE and Spectrum remain external dependencies. ResShift requires ComfyUI-Distilled-ResShift and retains the external code/model license restrictions.
+Previously corrupted seed values cannot be reconstructed. Shared-subgraph instances still have per-execution replay limitations, and oversized JPEG workflows require their JSON sidecars. Safe PAG actual 40-block GPU generation, optimized Torch Compile or multi-GPU, and ResShift x4 GPU remain unverified.
+
+Action required:
+Restart ComfyUI and hard-refresh the browser after updating. For ResShift, place the matching student and autoencoder_vq_f4.pth in a registered models/resshift folder. Default student names are rsd_student_18k.safetensors for x2 and rsd_student_final.safetensors for x4. The old auto-download selection now uses these locally installed files. External API producers should encode AiO sampler seeds above 9007199254740991 as quoted decimal strings inside generation_settings.

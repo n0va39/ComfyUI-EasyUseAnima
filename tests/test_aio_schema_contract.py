@@ -1052,7 +1052,7 @@ class AIOGenerationSettingsManifestTests(unittest.TestCase):
         seed_contract = shape_fields["sampler"]["fields"]["seed"]
         frontend_source = FRONTEND_SETTINGS_PATH.read_text(encoding="utf-8")
         frontend_seed_match = re.search(
-            r"export const AIO_GENERATOR_MAX_SEED = (?P<value>\d+);",
+            r'export const AIO_GENERATOR_UINT64_MAX_SEED = "(?P<value>\d+)";' ,
             frontend_source,
         )
 
@@ -1132,7 +1132,7 @@ class AIOGenerationSettingsManifestTests(unittest.TestCase):
         self.assertIsNotNone(frontend_seed_match)
         self.assertEqual(
             seed_contract["maximum_by_surface"]["frontend"],
-            int(frontend_seed_match.group("value")),
+            frontend_seed_match.group("value"),
         )
 
     def test_manifest_is_tracked_registry_included_and_present_in_head_archive(self):

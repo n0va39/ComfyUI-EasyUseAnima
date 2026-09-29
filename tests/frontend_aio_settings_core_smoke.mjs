@@ -694,7 +694,7 @@ assert(
 );
 assert(
   generationManifest.shape.fields.sampler.fields.seed.minimum === AIO_GENERATOR_SPECIAL_SEED_DECREMENT
-    && generationManifest.shape.fields.sampler.fields.seed.maximum_by_surface.frontend === AIO_GENERATOR_MAX_SEED,
+    && generationManifest.shape.fields.sampler.fields.seed.maximum_by_surface.frontend === settingsModule.AIO_GENERATOR_UINT64_MAX_SEED,
   "Manifest frontend seed bounds must match the current settings core",
 );
 assert(
@@ -702,19 +702,24 @@ assert(
     && aioNormalizeSeedControl("invalid") === "fixed",
   "Seed controls must trim valid values and fall back to fixed",
 );
-assert(aioNormalizeSeedValue("12.9") === 12, "Seed values must truncate finite numbers");
-assert(
-  aioNormalizeSeedValue("invalid", 77) === 77,
-  "Invalid seed values must use the supplied fallback",
-);
-assert(
-  aioNormalizeSeedValue(-999) === AIO_GENERATOR_SPECIAL_SEED_DECREMENT,
-  "Seeds below the rgthree decrement sentinel must clamp to -3",
-);
-assert(
-  aioNormalizeSeedValue(AIO_GENERATOR_MAX_SEED + 100) === AIO_GENERATOR_MAX_SEED,
-  "Seeds above ComfyUI's supported range must clamp to the maximum",
-);
+for (const invalid of ["12.9", "invalid", -999, "18446744073709551616", Number("9007199254740993")]) {
+  let rejected = false;
+  try { aioNormalizeSeedValue(invalid); } catch { rejected = true; }
+  assert(rejected, `Invalid or imprecise seed must be rejected: ${invalid}`);
+}
+for (const seed of ["39", "1125899906842625", "9007199254740993", "18446744073709551615"]) {
+  const expected = BigInt(seed) <= BigInt(Number.MAX_SAFE_INTEGER) ? Number(seed) : seed;
+  assert(aioNormalizeSeedValue(seed) === expected, "Decimal seed must remain exact");
+  for (const literal of [seed, JSON.stringify(seed)]) {
+    const parsed = aioParseSettingsValue(`{"sampler":{"seed":${literal}}}`, AIO_DEFAULT_GENERATION_SETTINGS);
+    assert(aioNormalizeSeedValue(parsed.sampler.seed) === expected, "Legacy and string seed JSON must round trip");
+    const restored = aioParseSettingsValue(JSON.stringify(parsed), AIO_DEFAULT_GENERATION_SETTINGS);
+    assert(String(restored.sampler.seed) === seed, "Saved settings preserve every digit");
+  }
+}
+const quotedSeedText = JSON.stringify({sampler: {seed: 39}, note: '"seed":9007199254740993'});
+assert(aioParseSettingsValue(quotedSeedText, AIO_DEFAULT_GENERATION_SETTINGS).note === '"seed":9007199254740993', "String content must not be rewritten");
+assert(aioNormalizeSeedValue(AIO_GENERATOR_MAX_SEED + 100) === AIO_GENERATOR_MAX_SEED + 100, "Concrete seeds may exceed the unchanged random range");
 
 const previewSettings = {
   save: {

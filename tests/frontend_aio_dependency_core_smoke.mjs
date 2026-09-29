@@ -44,6 +44,10 @@ assert(
 
 const directCheckpointChoices = ["anima.safetensors", "portrait.safetensors"];
 assert(
+  AIO_OPTIONAL_DEPENDENCY_SPECS.safePag.nodeId === "EasyAnimaSafePAG",
+  "AiO Safe PAG must resolve the built-in node, independently of AnimaSafePAG",
+);
+assert(
   JSON.stringify(aioChoiceSpecValues(directCheckpointChoices))
     === JSON.stringify(directCheckpointChoices),
   "Direct CheckpointLoaderSimple choice lists must stay intact",

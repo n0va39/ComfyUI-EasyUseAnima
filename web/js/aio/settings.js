@@ -5,6 +5,7 @@ export const AIO_GENERATOR_SPECIAL_SEED_RANDOM = -1;
 export const AIO_GENERATOR_SPECIAL_SEED_INCREMENT = -2;
 export const AIO_GENERATOR_SPECIAL_SEED_DECREMENT = -3;
 export const AIO_GENERATOR_MAX_SEED = 1125899906842624;
+export const AIO_GENERATOR_UINT64_MAX_SEED = "18446744073709551615";
 export const AIO_GENERATION_STAGE_IDS = ["first_pass", "highres", "detailer", "upscale"];
 
 export const AIO_DEFAULT_GENERATION_SETTINGS = {
@@ -601,7 +602,18 @@ export function aioMigrateGeneratorPostprocessSettings(settings) {
 
 export function aioParseSettingsValue(rawValue, defaults) {
   try {
-    const rawParsed = JSON.parse(rawValue || "{}");
+    // Match whole JSON strings as well as integer properties, so text containing
+    // escaped seed-looking snippets is never rewritten. Legacy settings JSON can
+    // still contain exact Python uint64 literals: protect them before JSON.parse.
+    const source = defaults === AIO_DEFAULT_GENERATION_SETTINGS
+      ? (rawValue || "{}").replace(
+        /("(?:\\.|[^"\\])*")(\s*:\s*)(-?\d+)(?=\s*[,}])|"(?:\\.|[^"\\])*"/g,
+        (match, key, separator, integer) => key && JSON.parse(key) === "seed"
+          && BigInt(integer) > BigInt(Number.MAX_SAFE_INTEGER)
+          ? `${key}${separator}"${integer}"` : match,
+      )
+      : rawValue || "{}";
+    const rawParsed = JSON.parse(source);
     const incoming = defaults === AIO_DEFAULT_GENERATION_SETTINGS
       ? aioMigrateGenerationSettingsVersion(rawParsed)
       : rawParsed;
@@ -620,11 +632,18 @@ export function aioNormalizeSeedControl(value) {
 }
 
 export function aioNormalizeSeedValue(value, fallback = AIO_GENERATOR_SPECIAL_SEED_RANDOM) {
-  const numberValue = Number(value);
-  if (!Number.isFinite(numberValue)) {
+  if (value == null) {
     return fallback;
   }
-  return Math.max(AIO_GENERATOR_SPECIAL_SEED_DECREMENT, Math.min(AIO_GENERATOR_MAX_SEED, Math.trunc(numberValue)));
+  if ((typeof value === "number" && !Number.isSafeInteger(value))
+    || !/^-?\d+$/.test(String(value).trim())) {
+    throw new RangeError("Seed must be an exact integer; enter large seeds as decimal text.");
+  }
+  const integer = BigInt(String(value).trim());
+  if (integer < -3n || integer > BigInt(AIO_GENERATOR_UINT64_MAX_SEED)) {
+    throw new RangeError("Seed must be -3, -2, -1 or an integer from 0 to 18446744073709551615.");
+  }
+  return integer <= BigInt(Number.MAX_SAFE_INTEGER) ? Number(integer) : String(integer);
 }
 
 function clampNumber(value, fallback, min, max) {

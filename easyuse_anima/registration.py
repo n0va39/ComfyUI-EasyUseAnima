@@ -31,9 +31,11 @@ from .nodes.regional_nodes import (
     EasyUseAnimaPromptStudioRegional,
     EasyUseAnimaRegionalConditioning,
 )
+from .nodes.safe_pag_nodes import EasyAnimaSafePAG
 from .nodes.wildcard_nodes import EasyUseAnimaWildcard, EasyUseAnimaWildcardLora
 
 NODE_CLASS_MAPPINGS = {
+    "EasyAnimaSafePAG": EasyAnimaSafePAG,
     "EasyUseAnima29BLoraStackLoader": EasyUseAnima29BLoraStackLoader,
     "EasyUseAnimaAIOGenerator": EasyUseAnimaAIOGenerator,
     "EasyUseAnimaAIOHookCombine": EasyUseAnimaAIOHookCombine,
@@ -62,6 +64,7 @@ NODE_CLASS_MAPPINGS = {
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
+    "EasyAnimaSafePAG": "Easy Anima Safe PAG",
     "EasyUseAnima29BLoraStackLoader": "Anima 2.9B LoRA Stack Loader",
     "EasyUseAnimaAIOGenerator": "Anima AiO Generator",
     "EasyUseAnimaAIOHookCombine": "Anima AiO Hook Combine",

@@ -1863,6 +1863,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
             "AIO_DEFAULT_GENERATION_SETTINGS",
             "AIO_DEFAULT_INPUT_SETTINGS",
             "AIO_GENERATOR_MAX_SEED",
+            "AIO_GENERATOR_UINT64_MAX_SEED",
             "AIO_GENERATOR_SEED_CONTROLS",
             "AIO_GENERATOR_SPECIAL_SEED_DECREMENT",
             "AIO_GENERATOR_SPECIAL_SEED_INCREMENT",
