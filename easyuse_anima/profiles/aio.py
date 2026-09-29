@@ -115,7 +115,7 @@ def _normalize_aio_profile_payload(name: str, data: dict) -> dict:
         raise ValueError("Profile settings must be an object")
     sampler = settings.get("sampler")
     seed = sampler.get("seed") if isinstance(sampler, dict) else None
-    if isinstance(seed, int) and seed > (1 << 53) - 1:
+    if isinstance(sampler, dict) and isinstance(seed, int) and seed > (1 << 53) - 1:
         # Preserve old numeric profile files when their response is parsed by JS.
         settings = {**settings, "sampler": {**sampler, "seed": str(seed)}}
     payload = {

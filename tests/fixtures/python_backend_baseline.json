@@ -60814,7 +60814,7 @@
         "is_package": false,
         "loc": 398,
         "module": "easyuse_anima.profiles.aio",
-        "normalized_git_blob_sha1": "27775ea7bbd805ec8df0271b9d2a6fc79b1cfce7",
+        "normalized_git_blob_sha1": "a488d84cddf79f8d6944f75c20114d340509ecd5",
         "path": "easyuse_anima/profiles/aio.py",
         "top_level": {
           "class_count": 0,
