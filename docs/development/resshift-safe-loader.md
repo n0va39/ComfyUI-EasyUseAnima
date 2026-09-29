@@ -57,6 +57,27 @@ terms or relicense them under EasyUse's MIT license.
 
 ## Validation
 
+### Combined dev candidate (2026-09-29)
+
+- Candidate `c0eaa62215c07b02189d5c90918468a5d679bb72` includes Safe PAG
+  from dev and the ResShift restoration. Conflict resolution changed documentation,
+  additive ownership inventories and generated metrics; both runtime implementations
+  and the ResShift frontend are unchanged from their validated feature candidates.
+- Latest stable ComfyUI 0.37.0: required full passed, 1,716 Python tests
+  (3 skipped), 125 JavaScript files and all static/ownership/scanner checks.
+- Focused loader (10), final upscale (7) and native Safe PAG (10) tests passed.
+  The combined runtime package contains 358 files and was installed only into
+  the isolated Codex test instance.
+- Installed-package GPU probe on PyTorch 2.12.1+cu130 / RTX 5070 Ti:
+  real x2 Student, 128x128 -> 256x256, finite output and exact fixed-seed repeat.
+  Both VQGAN reads used `weights_only=True`; external loader/download calls
+  remained zero, and the actual core safe loader rejected an unsupported pickle.
+- Existing two-canvas and saved-workflow replay evidence below remains applicable
+  to the unchanged frontend/stage implementation. The refreshed GPU probe checks
+  the ResShift stage, not a full Anima generation. x4 GPU remains unverified.
+
+### Feature validation (2026-09-15)
+
 - External provider: `sorryhyun/ComfyUI-Distilled-ResShift` at
   `628fb063669a071b3957406a351b0b8ed48e335f`. The installed node, inference helper
   and VQGAN constructor match that source (normalized line endings).
