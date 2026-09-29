@@ -1259,5 +1259,53 @@
         "name": "추가 해시"
       }
     }
+  },
+  "EasyAnimaSafePAG": {
+    "display_name": "Easy Anima Safe PAG",
+    "description": "Anima 계열 MODEL에 Safe PAG를 적용합니다. 추가 모델이나 외부 노드팩이 필요하지 않으며 실행 후 attention을 복원합니다.",
+    "inputs": {
+      "model": {
+        "name": "model",
+        "tooltip": "Anima/Cosmos/Predict2 계열 MODEL 입력."
+      },
+      "scale": {
+        "name": "PAG 강도",
+        "tooltip": "보정 강도. 0이면 입력 MODEL을 그대로 반환합니다."
+      },
+      "block_indices": {
+        "name": "블록 번호",
+        "tooltip": "쉼표 또는 범위로 지정합니다. 예: 18 또는 18-20."
+      },
+      "perturbation_strength": {
+        "name": "attention 변형 강도",
+        "tooltip": "0은 일반 attention, 1은 완전한 value/identity 경로입니다."
+      },
+      "head_indices": {
+        "name": "head 번호",
+        "tooltip": "비우면 모든 attention head를 대상으로 합니다."
+      },
+      "start_percent": {
+        "name": "시작 비율",
+        "tooltip": "샘플링 진행률 0~1 중 적용 시작 위치."
+      },
+      "end_percent": {
+        "name": "종료 비율",
+        "tooltip": "샘플링 진행률 0~1 중 적용 종료 위치."
+      },
+      "rescale": {
+        "name": "재조정 강도",
+        "tooltip": "과도한 보정 대비와 에너지를 줄이는 양."
+      },
+      "rescale_mode": {
+        "name": "재조정 모드",
+        "tooltip": "full: CFG 결과 기준, partial: positive 예측 기준."
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "model",
+        "tooltip": "Anima 계열 MODEL에 Safe PAG를 적용합니다. 추가 모델이나 외부 노드팩이 필요하지 않으며 실행 후 attention을 복원합니다."
+      }
+    }
   }
 }

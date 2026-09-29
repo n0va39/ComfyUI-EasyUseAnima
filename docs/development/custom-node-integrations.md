@@ -23,6 +23,9 @@ KJNodes, DAVE, or Impact Pack detailer stages.
   The [ResShift safe local loader](resshift-safe-loader.md) is the #679 exception:
   EasyUse loads local weights safely and uses the installed provider's architecture
   constructors and public upscale method; network code and weights remain external.
+  The explicit #766/user-authorized exception adopts the small MIT Safe PAG
+  implementation with its shipped license/provenance. AiO and `EasyAnimaSafePAG`
+  share that engine; the original external node ID is not registered here.
 - Keep the integration setting in versioned keyed JSON, not positional widget
   storage. Add a nested settings object for the feature, for example
   `model_patches.dave` or `model_patches.kj`.

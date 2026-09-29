@@ -18,6 +18,19 @@
 
 ## Integration decision
 
+### Dev integration task (2026-09-29)
+
+- Continue PR #792 from `1a88f9240043c3c35c0e5fef1852e961221b10b6`;
+  merge Safe PAG dev base `2183b10244e74e66996ead4b6bdcaa8d7de905fd`.
+- Scope: resolve additive documentation and ownership inventory conflicts,
+  regenerate analyzer metrics, preserve both feature implementations, then squash
+  #792 into dev after final combined validation. DAVE remains deferred.
+- Checks: merged ownership contract, ResShift loader and stage, native Safe PAG,
+  final full on latest stable; reuse unchanged per-feature GPU/canvas evidence
+  and check ResShift host loading on the updated stable environment.
+- Stop on lost node/settings contracts, unsafe loader fallback, unexpected
+  remote changes or failed required validation. Main/releases/user installs are outside scope.
+
 The existing optional ResShift pack still owns the network definitions, inference
 configuration and `ResShiftUpscale.upscale` operation. EasyUse owns selection and
 safe checkpoint loading. For #679, this is a narrow exception to delegating model
