@@ -1,5 +1,47 @@
 # Release Notes
 
+## 1.3.0
+
+### Added
+
+- AiO Safe PAG runs without the external Safe PAG pack. The standalone
+  **Easy Anima Safe PAG** node uses a separate ID and coexists with the original.
+- AiO ResShift upscaling is available again using separately installed Student
+  and VQGAN models through ComfyUI safe checkpoint loading.
+
+### Fixed
+
+- Safe PAG supports older tensor attention and newer `AttentionTensorContainer`
+  inputs, avoiding the missing `shape` error.
+- AiO keeps exact seeds through `18446744073709551615` across input, profiles,
+  execution results, Use Last and saved-image workflow reloads. Large seeds use
+  decimal strings instead of rounded JavaScript numbers.
+
+### Compatibility
+
+- Existing node IDs, settings keys and workflows remain readable. Random seed
+  range and `-1/-2/-3` behavior are unchanged. Explicit large seeds increment or
+  decrement within uint64 bounds; ordinary seeds retain their previous bounds.
+- Workflows using the original `AnimaSafePAG` still require its pack until users
+  explicitly replace that node. DAVE and Spectrum remain external.
+- ResShift performs no automatic downloads. Its external code/model license
+  restrictions remain, and the matching trained scale must be selected.
+- Already corrupted seeds cannot be recovered. Shared-subgraph instance replay
+  and oversized JPEG sidecar limitations still apply.
+- Safe PAG actual 40-block GPU generation, optimized Torch Compile, multi-GPU
+  and ResShift x4 GPU remain unverified. See the node guides for supported paths.
+
+### Update
+
+- Restart ComfyUI and hard-refresh the browser.
+- For ResShift, install `ComfyUI-Distilled-ResShift` separately and place the
+  student plus `autoencoder_vq_f4.pth` in a registered `models/resshift` folder.
+  Default students: `rsd_student_18k.safetensors` (x2),
+  `rsd_student_final.safetensors` (x4). The old `(auto-download)` selection uses
+  these local files. See the [ResShift guide](docs/nodes/anima-aio-generator.en.md#resshift-final-upscale).
+- External API producers should quote AiO sampler seeds above `9007199254740991`
+  as decimal strings inside `generation_settings` to preserve every digit.
+
 ## 1.2.2
 
 ### Fixed

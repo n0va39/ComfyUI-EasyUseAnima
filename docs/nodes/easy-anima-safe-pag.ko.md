@@ -17,3 +17,7 @@ AiO의 기존 Safe PAG 설정과 적용 단계는 같은 내장 엔진을 사용
 내장 노드를 연속 적용하면 앞서 적용한 내장 Safe PAG 보정을 교체합니다.
 
 [원본 출처와 라이선스](../../third_party/anima-safe-pag/NOTICE.md)
+
+ComfyUI 0.27.0과 0.37.0의 기존 텐서 attention, 컨테이너 attention을 사용하는
+개발 버전에서 28-block 모델 실행을 확인했습니다. 실제 40-block GPU 생성,
+최적화된 Torch Compile, multi-GPU 조합은 아직 확인하지 않았습니다.

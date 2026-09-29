@@ -57,6 +57,18 @@ terms or relicense them under EasyUse's MIT license.
 
 ## Validation
 
+### ComfyUI 0.27.0 compatibility (2026-09-29)
+
+- Isolated compatibility checkout `v0.27.0` / `bb131be9e83d2f773c90f1d6f1e4b248a498c8c5`,
+  separate pinned venv, PyTorch 2.12.1+cu130 and RTX 5070 Ti. User instance untouched.
+- The same installed candidate package and pinned external provider were used.
+  Actual AiO ResShift x2 stage produced finite 256x256 pixels from 128x128 input,
+  twice identically with seed 39. Tensor SHA-256:
+  `b9e174c77e9967b2cf1ec19075eab645b3dff0270acf75f427c9bef5265bc992`.
+- VQGAN reads used `weights_only=True`; external loader/download helpers were
+  never called. The actual old core safe loader rejected the unsupported pickle.
+- This is ResShift-stage compatibility evidence; x4 GPU remains unverified.
+
 ### Combined dev candidate (2026-09-29)
 
 - Candidate `c0eaa62215c07b02189d5c90918468a5d679bb72` includes Safe PAG
