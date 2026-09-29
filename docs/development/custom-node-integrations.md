@@ -20,6 +20,9 @@ KJNodes, DAVE, or Impact Pack detailer stages.
   clear missing-pack error that names the required node pack and repository.
 - Do not copy upstream node internals into EasyUse Anima. Delegate to the node's
   public node method such as `patch`, `sample`, `save_files`, or `doit`.
+  The [ResShift safe local loader](resshift-safe-loader.md) is the #679 exception:
+  EasyUse loads local weights safely and uses the installed provider's architecture
+  constructors and public upscale method; network code and weights remain external.
   The explicit #766/user-authorized exception adopts the small MIT Safe PAG
   implementation with its shipped license/provenance. AiO and `EasyAnimaSafePAG`
   share that engine; the original external node ID is not registered here.

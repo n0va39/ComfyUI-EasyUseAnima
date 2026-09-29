@@ -20,9 +20,9 @@
   "module_exceptions": [
     {
       "path": "easyuse_anima/aio/legacy_generation.py",
-      "baseline_loc": 833,
+      "baseline_loc": 834,
       "owner_issue": 188,
-      "decomposition_boundary": "Move legacy stage orchestration only along existing stage-port calls while preserving root monkeypatch seams."
+      "decomposition_boundary": "Move legacy stage orchestration only along existing stage-port calls while preserving root monkeypatch seams. Issue #679 adds one injected cleanup callback line; safe ResShift model loading lives in its own adapter."
     },
     {
       "path": "easyuse_anima/bootstrap.py",

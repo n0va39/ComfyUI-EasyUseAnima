@@ -89,6 +89,24 @@ Detailer Settings show Face/Eye processing blocks as tabs. Each tab can be
 renamed and moved left or right to change execution order. Tab names are UI
 metadata; runtime dispatch uses stable internal keys plus `detailer.order`.
 
+## ResShift Final Upscale
+
+Select **Upscale > ResShift > Student**, then choose an installed checkpoint and
+its matching x2/x4 scale. Install `ComfyUI-Distilled-ResShift` separately and put
+the student plus `autoencoder_vq_f4.pth` in a registered `models/resshift` folder.
+The default student filenames are `rsd_student_18k.safetensors` (x2) and
+`rsd_student_final.safetensors` (x4).
+
+AiO reads both models through ComfyUI's safe checkpoint loader and performs no
+automatic download. **Installed default student** preserves the old
+`(auto-download)` saved value but requires the matching file to already exist.
+A missing or unsupported model produces an error; no other backend is selected.
+Existing scale, precision, seed and tiling settings keep their meanings.
+
+The external ResShift code and weights retain their academic/non-commercial
+license restrictions; they are not bundled or relicensed by EasyUse.
+See [the loading contract](../development/resshift-safe-loader.md).
+
 ## Saving And Reproducibility
 
 Save Options are enabled by default and use EasyUse's native output backend.

@@ -1458,41 +1458,43 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
             legacy_upscale._usdu_flash_attention_error(RuntimeError("upscale failed"))
         )
 
-    def test_resshift_stage_fails_closed_before_optional_loader_resolution(self):
-        helpers = {
-            "_require_custom_node_class": Mock(
-                side_effect=AssertionError("must not resolve ResShift nodes")
-            ),
-            "_node_output_tuple": Mock(
-                side_effect=AssertionError("must not inspect node output")
-            ),
-            "_resolve_aio_runtime_seed": Mock(
-                side_effect=AssertionError("must not resolve seed")
-            ),
-            "_as_int": Mock(side_effect=AssertionError("must not parse settings")),
-            "_image_tensor_size": Mock(
-                side_effect=AssertionError("must not inspect image")
-            ),
-        }
-
-        with patch.multiple(legacy_generation, **helpers):
-            with self.assertRaisesRegex(
-                RuntimeError,
-                r"AiO ResShift is disabled.*issue #679",
-            ):
+    def test_resshift_safe_loader_failure_never_reaches_upscale(self):
+        upscaler = Mock()
+        loader_cls = Mock(side_effect=AssertionError("must not instantiate unsafe loader"))
+        with (
+            patch.object(legacy_generation, "_require_custom_node_class", side_effect=[loader_cls, Mock(return_value=upscaler)]),
+            patch.object(legacy_upscale, "load_local_resshift_model", side_effect=ValueError("unsafe model name")) as load,
+        ):
+            with self.assertRaisesRegex(ValueError, "unsafe model name"):
                 legacy_generation._run_aio_resshift_upscale_stage(
-                    _Token("image"),
-                    {"seed": "attacker-controlled"},
-                    {
-                        "resshift": {
-                            "student_name": "untrusted.ckpt",
-                            "scale": "x4",
-                        }
-                    },
+                    _Token("image"), {"seed": 39},
+                    {"resshift": {"student_name": "../untrusted.ckpt", "scale": "x4"}},
                 )
+        load.assert_called_once()
+        loader_cls.assert_not_called()
+        upscaler.upscale.assert_not_called()
 
-        for helper in helpers.values():
-            helper.assert_not_called()
+    def test_resshift_success_failure_and_interrupt_cleanup(self):
+        model = SimpleNamespace(patcher=object())
+        for error in (None, RuntimeError("inference failed"), KeyboardInterrupt()):
+            with self.subTest(error=error):
+                upscaler = Mock()
+                upscaler.upscale.side_effect = error
+                upscaler.upscale.return_value = ("image",)
+                with (
+                    patch.object(legacy_generation, "_require_custom_node_class", return_value=Mock(return_value=upscaler)),
+                    patch.object(legacy_upscale, "load_local_resshift_model", return_value=model),
+                    patch.object(legacy_generation, "_cleanup_aio_ephemeral_model") as cleanup,
+                    patch.object(legacy_generation, "_image_tensor_size", return_value=(256, 512)),
+                ):
+                    if error is None:
+                        result = legacy_generation._run_aio_resshift_upscale_stage("input", {"seed": 39}, {})
+                        self.assertEqual(result[0], "image")
+                        self.assertEqual(result[1]["scale"], "x2")
+                    else:
+                        with self.assertRaises(type(error)):
+                            legacy_generation._run_aio_resshift_upscale_stage("input", {"seed": 39}, {})
+                cleanup.assert_called_once_with(model.patcher)
 
     def test_upscale_dispatcher_preserves_lazy_branch_and_exception_contract(self):
         model = _Token("model")

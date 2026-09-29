@@ -31,6 +31,11 @@
       "symbols": ["_COMMON_VALUES"]
     },
     {
+      "module": "easyuse_anima/aio/resshift_loader.py",
+      "reason": "Static local default filenames and supported checkpoint extensions; never mutated at runtime.",
+      "symbols": ["CHECKPOINT_EXTENSIONS", "DEFAULT_STUDENTS"]
+    },
+    {
       "module": "easyuse_anima/autocomplete/dataset.py",
       "reason": "Source and category metadata; distinct from the runtime snapshot cache.",
       "symbols": [
