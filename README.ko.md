@@ -27,6 +27,10 @@ Registry 기준 외부 연동 기본값:
   명시적 선택 import로만 사용합니다. 사용자가 지정한 module 이름을 동적으로
   load하지 않습니다.
 
+## 1.4.0 사용 안내
+
+- LoRA 프리셋의 각 행에 T+/T− 버튼이 추가되었습니다. LoRA 강도를 유지하면서 트리거워드 사용 여부를 선택합니다. 기존 프로필은 기본적으로 켜진 상태입니다. [LoRA 프리셋 안내](docs/nodes/anima-lora-preset.ko.md)를 참고하세요.
+
 ## 1.3.0 사용 안내
 
 - Safe PAG는 내장 기능입니다. 별도 연결에는 [Easy Anima Safe PAG](docs/nodes/easy-anima-safe-pag.ko.md)를 사용하며 원본 노드와 공존합니다.

@@ -45,6 +45,7 @@ function normalizeLoraEntry(value) {
   return {
     name: String(value?.name || ""),
     on: value?.on !== false,
+    use_trigger_words: value?.use_trigger_words !== false,
     strength: Number(value?.strength ?? 1),
     strengthTwo: value?.strengthTwo ?? null,
   };
@@ -182,6 +183,18 @@ function fakeContext() {
 const profileWidget = new runtime.ProfileBarWidget();
 const headerWidget = new runtime.LoraHeaderWidget();
 const rowWidget = new runtime.LoraRowWidget(0);
+{
+  const node = makeNode();
+  const row = new runtime.LoraRowWidget(0);
+  row.draw(fakeContext(), node, 520, 0, 24);
+  const [x, y] = row.hitAreas.trigger;
+  assert.equal(row.mouse({ type: "pointerdown", button: 0 }, [x + 2, y + 2], node), true);
+  assert.equal(node.loras[0].use_trigger_words, false);
+  assert.equal(node.loras[0].on, true);
+  assert.equal(node.loras[0].strength, 1);
+  assert.equal(row.mouse({ type: "pointerdown", button: 0 }, [x + 2, y + 2], node), true);
+  assert.equal(node.loras[0].use_trigger_words, true);
+}
 const addWidget = new runtime.AddLoraWidget();
 for (const widget of [profileWidget, headerWidget, rowWidget, addWidget]) {
   assert.equal(widget.type, "custom");

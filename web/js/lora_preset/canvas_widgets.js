@@ -622,6 +622,14 @@ export function createLoraPresetCanvasWidgets(dependencies) {
       this.hitAreas.toggle = drawToggle(ctx, rowX, rowY, rowH, lora.on !== false);
       let posX = rowX + this.hitAreas.toggle[2] + inner;
 
+      // Keep this control visible even when the name/strength area is compact.
+      this.hitAreas.trigger = [posX, rowY, 22, rowH];
+      ctx.fillStyle = lora.use_trigger_words === false ? "#777" : "#8ed0a2";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(lora.use_trigger_words === false ? "T−" : "T+", posX + 11, midY);
+      posX += 22 + inner;
+
       if (lora.on === false) {
         ctx.globalAlpha = getCanvas().editor_alpha * 0.4;
       }
@@ -740,6 +748,10 @@ export function createLoraPresetCanvasWidgets(dependencies) {
       }
       if (pointInArea(pos, this.hitAreas.toggle)) {
         updateLoraEntry(node, this.index, { on: lora.on === false });
+        return true;
+      }
+      if (pointInArea(pos, this.hitAreas.trigger)) {
+        updateLoraEntry(node, this.index, { use_trigger_words: lora.use_trigger_words === false });
         return true;
       }
       const fixPending = isLoraFixPending(node, this.index);

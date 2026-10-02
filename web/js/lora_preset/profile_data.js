@@ -76,6 +76,7 @@ export function normalizeLoraEntry(entry) {
   return {
     name,
     on: entry?.on ?? entry?.active ?? true,
+    ...(entry?.use_trigger_words === false ? { use_trigger_words: false } : {}),
     strength,
     strengthTwo: Number.isFinite(strengthTwo) ? strengthTwo : null,
   };

@@ -59765,17 +59765,17 @@
           },
           {
             "async": false,
-            "end_line": 179,
+            "end_line": 180,
             "kind": "method",
             "line": 85,
-            "loc": 95,
+            "loc": 96,
             "qualified_name": "EasyUseAnimaLoraPreset.build"
           }
         ],
         "is_package": false,
-        "loc": 182,
+        "loc": 183,
         "module": "easyuse_anima.nodes.lora_nodes",
-        "normalized_git_blob_sha1": "0b399fa8e63f162aea2c275971b0a9a092ed046f",
+        "normalized_git_blob_sha1": "f8286d12bcfa7571de6860f27df2df19d827690a",
         "path": "easyuse_anima/nodes/lora_nodes.py",
         "top_level": {
           "class_count": 1,

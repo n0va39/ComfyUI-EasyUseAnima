@@ -149,7 +149,8 @@ class EasyUseAnimaLoraPreset:
 
             _lora_path, lora_trigger_words = _get_lora_info(lora_name)
             stack.append((stack_lora_name, model_strength, clip_strength))
-            trigger_words.extend(lora_trigger_words)
+            if _as_bool(lora.get("use_trigger_words", True), True):
+                trigger_words.extend(lora_trigger_words)
             active_loras.append((active_lora_name, model_strength, clip_strength))
 
         _raise_missing_loras(selected_index, missing_loras)
