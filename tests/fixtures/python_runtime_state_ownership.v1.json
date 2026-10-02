@@ -461,6 +461,25 @@
       "test_evidence": [
         "tests/test_native_safe_pag.py"
       ]
+    },
+    {
+      "id": "native-safe-pag-attention-scope",
+      "categories": [
+        "lock",
+        "temporary_attention_patch"
+      ],
+      "module": "easyuse_anima/aio/ipadapter_lifecycle.py",
+      "owner": "easyuse_anima.aio.ipadapter_lifecycle._LOCK",
+      "symbols": [
+        "_LOCK"
+      ],
+      "lifetime": "Process lifetime lock; model mutation is bounded by one sampler call.",
+      "cleanup": "Finally restores external IP modules, pre-hooks, forward, layer identities and encoder placements.",
+      "thread_safety": "RLock serializes calls through this integration; unrelated concurrent model mutation is unsupported.",
+      "target_phase": "issue-800",
+      "test_evidence": [
+        "tests/test_aio_ipadapter_hook.py"
+      ]
     }
   ],
   "ignored_mutable_global_names": ["__all__"],
