@@ -1,0 +1,12 @@
+EasyUse Anima 1.4.0 adds per-LoRA trigger-word controls to Anima LoRA Preset.
+
+Changes:
+1. Click T+/T− beside a LoRA, or use its context menu, to include or exclude its trigger words without changing the LoRA's enabled state or model and CLIP strengths.
+2. Each profile and saved workflow remembers the trigger-word choice.
+3. Existing profiles and workflows keep trigger words enabled by default. Node IDs, output sockets, LoRA stacks and style prompts are unchanged.
+
+Compatibility:
+This release provides the preset's own trigger-word toggle. Direct integration with TriggerWord Toggle (LoraManager) is not included.
+
+Action required:
+Restart ComfyUI and hard-refresh the browser after updating. T+ includes that LoRA's trigger words; T− excludes them. Save the profile after changing the toggle to reuse the choice.

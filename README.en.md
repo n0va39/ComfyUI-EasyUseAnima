@@ -28,6 +28,10 @@ Registry-facing integration defaults:
   built-in SAM3 detector and Impact Pack classes. It does not dynamically load
   user-provided module names.
 
+## Using 1.4.0
+
+- LoRA Preset now has a T+/T− button on each row to include or exclude trigger words without changing LoRA strength. Existing profiles default to on. See the [LoRA Preset guide](docs/nodes/anima-lora-preset.en.md).
+
 ## Using 1.3.0
 
 - Safe PAG is built in. Use [Easy Anima Safe PAG](docs/nodes/easy-anima-safe-pag.en.md) in standalone workflows; the original node remains separate.
