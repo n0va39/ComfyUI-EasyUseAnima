@@ -9,8 +9,8 @@ from .nodes.image_nodes import (
     EasyUseAnimaImageScaleByMultiple,
 )
 from .nodes.image_output_nodes import EasyUseAnimaImageMetadata, EasyUseAnimaSaveImage
-from .nodes.lora_nodes import EasyUseAnimaLoraPreset
 from .nodes.ipadapter_nodes import EasyAnimaIPAdapterHook
+from .nodes.lora_nodes import EasyUseAnimaLoraPreset
 from .nodes.naia_nodes import EasyUseAnimaNAIARandomPrompt
 from .nodes.prompt_advanced_nodes import (
     EasyUseAnimaPromptStudioAdvanced,

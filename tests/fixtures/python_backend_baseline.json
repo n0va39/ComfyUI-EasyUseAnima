@@ -7273,7 +7273,7 @@
         "conditional": false,
         "imported": ".ipadapter_lifecycle:temporary_ipadapter",
         "kind": "static_from",
-        "line": 13,
+        "line": 17,
         "name": "temporary_ipadapter",
         "optional": false,
         "requested": ".ipadapter_lifecycle",
@@ -7291,7 +7291,7 @@
         "conditional": false,
         "imported": ".ipadapter_lifecycle:validate_clean_model",
         "kind": "static_from",
-        "line": 13,
+        "line": 17,
         "name": "validate_clean_model",
         "optional": false,
         "requested": ".ipadapter_lifecycle",
@@ -7309,7 +7309,7 @@
         "conditional": false,
         "imported": "comfy.model_patcher",
         "kind": "static_import",
-        "line": 61,
+        "line": 64,
         "name": null,
         "optional": false,
         "requested": "comfy.model_patcher",
@@ -7326,7 +7326,7 @@
         "conditional": false,
         "imported": "torch",
         "kind": "static_import",
-        "line": 92,
+        "line": 95,
         "name": null,
         "optional": false,
         "requested": "torch",
@@ -7343,7 +7343,7 @@
         "conditional": false,
         "imported": "comfy.patcher_extension:WrappersMP",
         "kind": "static_from",
-        "line": 93,
+        "line": 96,
         "name": "WrappersMP",
         "optional": false,
         "requested": "comfy.patcher_extension",
@@ -40911,24 +40911,6 @@
       },
       {
         "alias": null,
-        "bound_name": "EasyUseAnimaLoraPreset",
-        "branch_context": [],
-        "classification": "internal",
-        "column": 0,
-        "conditional": false,
-        "imported": ".nodes.lora_nodes:EasyUseAnimaLoraPreset",
-        "kind": "static_from",
-        "line": 12,
-        "name": "EasyUseAnimaLoraPreset",
-        "optional": false,
-        "requested": ".nodes.lora_nodes",
-        "role": "ordinary",
-        "scope": "<module>",
-        "source": "easyuse_anima/registration.py",
-        "target": "easyuse_anima/nodes/lora_nodes.py"
-      },
-      {
-        "alias": null,
         "bound_name": "EasyAnimaIPAdapterHook",
         "branch_context": [],
         "classification": "internal",
@@ -40936,7 +40918,7 @@
         "conditional": false,
         "imported": ".nodes.ipadapter_nodes:EasyAnimaIPAdapterHook",
         "kind": "static_from",
-        "line": 13,
+        "line": 12,
         "name": "EasyAnimaIPAdapterHook",
         "optional": false,
         "requested": ".nodes.ipadapter_nodes",
@@ -40944,6 +40926,24 @@
         "scope": "<module>",
         "source": "easyuse_anima/registration.py",
         "target": "easyuse_anima/nodes/ipadapter_nodes.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "EasyUseAnimaLoraPreset",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".nodes.lora_nodes:EasyUseAnimaLoraPreset",
+        "kind": "static_from",
+        "line": 13,
+        "name": "EasyUseAnimaLoraPreset",
+        "optional": false,
+        "requested": ".nodes.lora_nodes",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/registration.py",
+        "target": "easyuse_anima/nodes/lora_nodes.py"
       },
       {
         "alias": null,
@@ -52365,81 +52365,81 @@
         "functions": [
           {
             "async": false,
-            "end_line": 38,
+            "end_line": 41,
             "kind": "function",
-            "line": 21,
+            "line": 24,
             "loc": 18,
             "qualified_name": "resolve_apply"
           },
           {
             "async": false,
-            "end_line": 53,
+            "end_line": 56,
             "kind": "function",
-            "line": 41,
+            "line": 44,
             "loc": 13,
             "qualified_name": "validate_options"
           },
           {
             "async": false,
-            "end_line": 58,
+            "end_line": 61,
             "kind": "method",
-            "line": 57,
+            "line": 60,
             "loc": 2,
             "qualified_name": "IPAdapterSample.__init__"
           },
           {
             "async": false,
-            "end_line": 84,
+            "end_line": 87,
             "kind": "method",
-            "line": 60,
+            "line": 63,
             "loc": 25,
             "qualified_name": "IPAdapterSample.__call__"
           },
           {
             "async": false,
-            "end_line": 89,
+            "end_line": 92,
             "kind": "method",
-            "line": 88,
+            "line": 91,
             "loc": 2,
             "qualified_name": "IPAdapterSession.__init__"
           },
           {
             "async": false,
-            "end_line": 122,
+            "end_line": 125,
             "kind": "method",
-            "line": 91,
+            "line": 94,
             "loc": 32,
             "qualified_name": "IPAdapterSession.before_stage"
           },
           {
             "async": false,
-            "end_line": 130,
+            "end_line": 133,
             "kind": "method",
-            "line": 126,
+            "line": 129,
             "loc": 5,
             "qualified_name": "IPAdapterHook.__init__"
           },
           {
             "async": false,
-            "end_line": 138,
+            "end_line": 141,
             "kind": "method",
-            "line": 132,
+            "line": 135,
             "loc": 7,
             "qualified_name": "IPAdapterHook.describe"
           },
           {
             "async": false,
-            "end_line": 141,
+            "end_line": 144,
             "kind": "method",
-            "line": 140,
+            "line": 143,
             "loc": 2,
             "qualified_name": "IPAdapterHook.create_session"
           }
         ],
         "is_package": false,
-        "loc": 144,
+        "loc": 147,
         "module": "easyuse_anima.aio.ipadapter_hook",
-        "normalized_git_blob_sha1": "cd76f3605e65a592e30ecf08fe95b715839f188a",
+        "normalized_git_blob_sha1": "1795a46a18a62f41d19cea7f2b1f7d5f14e14a71",
         "path": "easyuse_anima/aio/ipadapter_hook.py",
         "top_level": {
           "class_count": 3,
@@ -52451,25 +52451,25 @@
         "functions": [
           {
             "async": false,
-            "end_line": 43,
+            "end_line": 42,
             "kind": "function",
-            "line": 19,
+            "line": 18,
             "loc": 25,
             "qualified_name": "validate_clean_model"
           },
           {
             "async": false,
-            "end_line": 93,
+            "end_line": 92,
             "kind": "function",
-            "line": 46,
+            "line": 45,
             "loc": 48,
             "qualified_name": "temporary_ipadapter"
           }
         ],
         "is_package": false,
-        "loc": 96,
+        "loc": 95,
         "module": "easyuse_anima.aio.ipadapter_lifecycle",
-        "normalized_git_blob_sha1": "caa630b518c5addae594a9019d0b2d6c00e89750",
+        "normalized_git_blob_sha1": "2bd175a58c15c873fa8aa8d4078df41c9f44ef94",
         "path": "easyuse_anima/aio/ipadapter_lifecycle.py",
         "top_level": {
           "class_count": 0,
@@ -63505,7 +63505,7 @@
         "is_package": false,
         "loc": 98,
         "module": "easyuse_anima.registration",
-        "normalized_git_blob_sha1": "f48c41032884eccf635ece86a8b014c9bfe79ba5",
+        "normalized_git_blob_sha1": "ae382b502111daea37cdf49326f872f6fae53cc3",
         "path": "easyuse_anima/registration.py",
         "top_level": {
           "class_count": 0,
@@ -67462,7 +67462,7 @@
         "conditional": false,
         "imported": "comfy.model_patcher",
         "kind": "static_import",
-        "line": 61,
+        "line": 64,
         "optional": false,
         "role": "ordinary",
         "source": "easyuse_anima/aio/ipadapter_hook.py"
@@ -67473,7 +67473,7 @@
         "conditional": false,
         "imported": "torch",
         "kind": "static_import",
-        "line": 92,
+        "line": 95,
         "optional": false,
         "role": "ordinary",
         "source": "easyuse_anima/aio/ipadapter_hook.py"
@@ -67484,7 +67484,7 @@
         "conditional": false,
         "imported": "comfy.patcher_extension:WrappersMP",
         "kind": "static_from",
-        "line": 93,
+        "line": 96,
         "optional": false,
         "role": "ordinary",
         "source": "easyuse_anima/aio/ipadapter_hook.py"
@@ -78943,7 +78943,7 @@
         "column": 8,
         "context": "assign:_LOCK",
         "kind": "import_time_call",
-        "line": 7,
+        "line": 6,
         "module": "easyuse_anima/aio/ipadapter_lifecycle.py",
         "scope": "<module>"
       },
@@ -78952,7 +78952,7 @@
         "column": 11,
         "context": "assign:_MISSING",
         "kind": "import_time_call",
-        "line": 8,
+        "line": 7,
         "module": "easyuse_anima/aio/ipadapter_lifecycle.py",
         "scope": "<module>"
       },
@@ -81304,7 +81304,7 @@
           "lock"
         ],
         "initializer": "RLock",
-        "line": 7,
+        "line": 6,
         "module": "easyuse_anima/aio/ipadapter_lifecycle.py",
         "name": "_LOCK"
       },

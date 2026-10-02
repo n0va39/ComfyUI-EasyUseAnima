@@ -7,11 +7,14 @@ from typing import Any, cast
 
 from ..infrastructure.comfy.capabilities import _find_comfy_node_class
 from .hooks.contracts import (
-    AioHookDescriptor, AioHookPatch, AioHookPoint, AioHookSessionBase,
-    AioStage, AioStagePhase,
+    AioHookDescriptor,
+    AioHookPatch,
+    AioHookPoint,
+    AioHookSessionBase,
+    AioStage,
+    AioStagePhase,
 )
 from .ipadapter_lifecycle import temporary_ipadapter, validate_clean_model
-
 
 UPSTREAM_COMMIT = "6b77cd0c367d76402174ace2be50d3cb6aa77855"
 _SOURCE_SHA256 = "521ce9082fa803419851820f4768fb550c0bc0f334c8d1d08199111920fd77be"

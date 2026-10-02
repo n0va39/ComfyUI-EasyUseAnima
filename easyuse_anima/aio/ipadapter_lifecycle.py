@@ -3,7 +3,6 @@
 from contextlib import contextmanager
 from threading import RLock
 
-
 _LOCK = RLock()
 _MISSING = object()
 _MODEL_ATTRS = ("shared_ip_k_proj", "shared_ip_v_proj", "shared_ip_q_proj")
