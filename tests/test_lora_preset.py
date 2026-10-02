@@ -24,6 +24,39 @@ def unwrap_ui(response):
 
 
 class LoraPresetTests(unittest.TestCase):
+    def test_trigger_toggle_preserves_stack_style_and_legacy_defaults(self):
+        rows = [
+            {"name": "legacy.safetensors", "strength": 0.7},
+            {"name": "silent.safetensors", "strength": 0.5, "use_trigger_words": False},
+            {"name": "disabled.safetensors", "on": False},
+        ]
+        with (
+            patch.object(lora_nodes, "_get_lora_info", side_effect=lambda name: (name, [name + "_word"])),
+            patch.object(lora_nodes, "_lora_model_exists", return_value=True),
+        ):
+            result = unwrap_result(EasyUseAnimaLoraPreset().build(
+                style_prompt="style", profile_index=1, profile_count=1,
+                loras=json.dumps(rows), lora_stack=[("upstream.safetensors", 1, 1)],
+            ))
+        self.assertEqual(result[0], "style")
+        self.assertEqual(len(result[1]), 3)
+        self.assertEqual(result[2], "upstream.safetensors_word, legacy.safetensors_word")
+        self.assertIn("silent:0.5", result[3])
+
+    def test_all_triggers_off_keeps_lora_and_outputs_empty_string(self):
+        with (
+            patch.object(lora_nodes, "_get_lora_info", return_value=("foo.safetensors", ["word"])),
+            patch.object(lora_nodes, "_lora_model_exists", return_value=True),
+        ):
+            result = unwrap_result(EasyUseAnimaLoraPreset().build(
+                style_prompt="", profile_index=1,
+                profile_data=json.dumps({"1": {"loras": [
+                    {"name": "foo.safetensors", "use_trigger_words": False},
+                ]}}),
+            ))
+        self.assertEqual(result[1], [("foo.safetensors", 1.0, 1.0)])
+        self.assertEqual(result[2], "")
+
     def test_lora_combo_values_always_include_none_first(self):
         folder_paths = SimpleNamespace(
             get_filename_list=lambda _category: [

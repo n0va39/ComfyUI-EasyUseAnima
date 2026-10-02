@@ -39,3 +39,8 @@ ANIMA workflow에서 재사용할 LoRA/style profile을 저장하는 노드입�
 
 LoRA Manager 방식 metadata JSON sidecar가 있으면 trigger word를 읽고, 중복 제거
 후 쉼표로 구분된 문자열로 출력합니다.
+
+- 각 LoRA 행의 `T+` / `T−`를 클릭하면 해당 LoRA의 트리거워드 사용을
+  켜거나 끕니다. 우클릭 메뉴의 `트리거워드 사용`으로도 설정할 수 있습니다.
+- 트리거만 꺼도 LoRA와 강도는 유지됩니다. LoRA 자체를 끄면 트리거도 제외됩니다.
+- 이 설정은 프로필과 워크플로우에 저장됩니다. 기존 프로필은 기본적으로 사용합니다.

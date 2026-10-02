@@ -45,6 +45,14 @@ const {
 } = profileData;
 
 assert.equal(MAX_PROFILES, 16);
+assert.equal(normalizeLoraEntry({ name: "old" }).use_trigger_words, undefined);
+assert.equal(normalizeLoraEntry({ name: "new", use_trigger_words: false }).use_trigger_words, false);
+assert.equal(normalizeLoraEntry({ name: "new", use_trigger_words: true }).use_trigger_words, undefined);
+assert.equal(
+  profileSnapshot({ loras: [{ name: "old" }] }),
+  profileSnapshot({ loras: [{ name: "old", use_trigger_words: true }] }),
+  "the new default must not mark legacy saved profiles modified",
+);
 assert.deepEqual(WIDGET_INDEX, {
   stylePrompt: 0,
   profileIndex: 1,
