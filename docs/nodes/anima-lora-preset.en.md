@@ -38,3 +38,9 @@ This node stores reusable LoRA/style profiles for ANIMA workflows.
 
 When LoRA Manager-style metadata JSON sidecars are available, trigger words are
 read, deduplicated, and output as a comma-separated string.
+
+- Click `T+` / `T−` on a LoRA row, or use `Use trigger words` in its context
+  menu, to enable or disable that LoRA's trigger words.
+- Disabling triggers preserves LoRA weights and strengths. Disabling the LoRA
+  excludes its triggers too. The setting is saved with profiles and workflows;
+  older profiles default to enabled.
