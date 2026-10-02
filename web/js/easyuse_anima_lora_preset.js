@@ -97,6 +97,7 @@ const LORA_PRESET_TEXT = {
     "lora.chooseTitle": "Choose a LoRA",
     "lora.search": "Search LoRA",
     "lora.allShort": "All",
+    "lora.useTriggerWords": "Use trigger words (T+/T−)",
     "lora.toggleAll": "Toggle All",
     "lora.strengthShort": "Str",
     "lora.strength": "Strength",
@@ -137,6 +138,7 @@ const LORA_PRESET_TEXT = {
     "lora.chooseTitle": "LoRA 선택",
     "lora.search": "LoRA 검색",
     "lora.allShort": "전체",
+    "lora.useTriggerWords": "트리거워드 사용 (T+/T−)",
     "lora.toggleAll": "전체 토글",
     "lora.strengthShort": "강도",
     "lora.strength": "강도",
@@ -177,6 +179,7 @@ const LORA_PRESET_TEXT = {
     "lora.chooseTitle": "LoRA を選択",
     "lora.search": "LoRA 検索",
     "lora.allShort": "全て",
+    "lora.useTriggerWords": "トリガーワードを使用 (T+/T−)",
     "lora.toggleAll": "全て切替",
     "lora.strengthShort": "強度",
     "lora.strength": "強度",
@@ -217,6 +220,7 @@ const LORA_PRESET_TEXT = {
     "lora.chooseTitle": "选择 LoRA",
     "lora.search": "搜索 LoRA",
     "lora.allShort": "全部",
+    "lora.useTriggerWords": "使用触发词 (T+/T−)",
     "lora.toggleAll": "全部切换",
     "lora.strengthShort": "强度",
     "lora.strength": "强度",
@@ -782,6 +786,11 @@ function openLoraEntryMenu(node, event, index) {
    *   callback: () => void,
    * }>} */
   const items = [
+    {
+      content: `${lora.use_trigger_words === false ? "☐" : "☑"} ${lpText("lora.useTriggerWords")}`,
+      callback: () => updateLoraEntry(node, index, { use_trigger_words: lora.use_trigger_words === false }),
+    },
+    null,
     {
       content: lpText("lora.moveUp"),
       disabled: index <= 0,
