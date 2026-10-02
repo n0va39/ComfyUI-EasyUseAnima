@@ -4,7 +4,7 @@
   "inventory_owner": {
     "path": "tests/fixtures/python_backend_baseline.json",
     "expected_baseline_files": 192,
-    "expected_target_files": 209
+    "expected_target_files": 212
   },
   "linked_contracts": {
     "compatibility_registry": "docs/architecture/python-compatibility-shims.md",
@@ -727,21 +727,32 @@
       "path": "easyuse_anima/aio/hooks/runtime.py",
       "role": "aio-hook-runtime",
       "owner_group": "aio",
-      "disposition": "cohesive_retain",
+      "disposition": "split",
       "status": "complete",
       "targets": [
         {
           "path": "easyuse_anima/aio/hooks/runtime.py",
           "role": "aio-hook-runtime",
           "owner_group": "aio"
+        },
+        {
+          "path": "easyuse_anima/aio/ipadapter_hook.py",
+          "role": "aio-hook-runtime",
+          "owner_group": "aio"
+        },
+        {
+          "path": "easyuse_anima/aio/ipadapter_lifecycle.py",
+          "role": "aio-hook-runtime",
+          "owner_group": "aio"
         }
       ],
       "direct_contracts": [
-        "tests/test_aio_hook_runtime.py"
+        "tests/test_aio_hook_runtime.py",
+        "tests/test_aio_ipadapter_hook.py"
       ],
       "compatibility_registry_key": null,
-      "task_id": null,
-      "rollback_unit": null,
+      "task_id": "ISSUE-800",
+      "rollback_unit": "Revert the optional AiO IP-Adapter integration.",
       "replacement_owner": null,
       "size_exception_verdicts": []
     },
@@ -2533,22 +2544,28 @@
       "path": "easyuse_anima/nodes/aio_hook_nodes.py",
       "role": "comfyui-node-adapter",
       "owner_group": "nodes",
-      "disposition": "cohesive_retain",
+      "disposition": "split",
       "status": "complete",
       "targets": [
         {
           "path": "easyuse_anima/nodes/aio_hook_nodes.py",
           "role": "comfyui-node-adapter",
           "owner_group": "nodes"
+        },
+        {
+          "path": "easyuse_anima/nodes/ipadapter_nodes.py",
+          "role": "comfyui-node-adapter",
+          "owner_group": "nodes"
         }
       ],
       "direct_contracts": [
         "tests/test_aio_hook_runtime.py",
+        "tests/test_aio_ipadapter_hook.py",
         "tests/test_node_contracts.py"
       ],
       "compatibility_registry_key": null,
-      "task_id": null,
-      "rollback_unit": null,
+      "task_id": "ISSUE-800",
+      "rollback_unit": "Revert the optional AiO IP-Adapter integration.",
       "replacement_owner": null,
       "size_exception_verdicts": []
     },
