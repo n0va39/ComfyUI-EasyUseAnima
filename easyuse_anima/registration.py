@@ -10,6 +10,7 @@ from .nodes.image_nodes import (
 )
 from .nodes.image_output_nodes import EasyUseAnimaImageMetadata, EasyUseAnimaSaveImage
 from .nodes.lora_nodes import EasyUseAnimaLoraPreset
+from .nodes.ipadapter_nodes import EasyAnimaIPAdapterHook
 from .nodes.naia_nodes import EasyUseAnimaNAIARandomPrompt
 from .nodes.prompt_advanced_nodes import (
     EasyUseAnimaPromptStudioAdvanced,
@@ -35,6 +36,7 @@ from .nodes.safe_pag_nodes import EasyAnimaSafePAG
 from .nodes.wildcard_nodes import EasyUseAnimaWildcard, EasyUseAnimaWildcardLora
 
 NODE_CLASS_MAPPINGS = {
+    "EasyAnimaIPAdapterHook": EasyAnimaIPAdapterHook,
     "EasyAnimaSafePAG": EasyAnimaSafePAG,
     "EasyUseAnima29BLoraStackLoader": EasyUseAnima29BLoraStackLoader,
     "EasyUseAnimaAIOGenerator": EasyUseAnimaAIOGenerator,
@@ -64,6 +66,7 @@ NODE_CLASS_MAPPINGS = {
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
+    "EasyAnimaIPAdapterHook": "Easy Anima IP-Adapter Hook",
     "EasyAnimaSafePAG": "Easy Anima Safe PAG",
     "EasyUseAnima29BLoraStackLoader": "Anima 2.9B LoRA Stack Loader",
     "EasyUseAnimaAIOGenerator": "Anima AiO Generator",

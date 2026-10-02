@@ -1307,5 +1307,43 @@
         "tooltip": "Anima 계열 MODEL에 Safe PAG를 적용합니다. 추가 모델이나 외부 노드팩이 필요하지 않으며 실행 후 attention을 복원합니다."
       }
     }
+  },
+  "EasyAnimaIPAdapterHook": {
+    "display_name": "Easy Anima IP-Adapter 훅",
+    "description": "LuciferTC IP-Adapter Loader와 참조 이미지를 AiO 첫 생성 단계에 연결합니다. 검토된 외부 노드 버전, 28블록 Anima, CUDA가 필요합니다.",
+    "inputs": {
+      "ip_adapter": {
+        "name": "IP-Adapter"
+      },
+      "ref_image": {
+        "name": "참조 이미지"
+      },
+      "strength": {
+        "name": "강도"
+      },
+      "ref_image_size": {
+        "name": "참조 이미지 크기"
+      },
+      "siglip_layer": {
+        "name": "SigLIP 계층"
+      },
+      "ip_cfg_scale": {
+        "name": "IP CFG 배율"
+      },
+      "ip_cfg_separate": {
+        "name": "독립 IP CFG"
+      },
+      "gray_null": {
+        "name": "회색 null 이미지"
+      },
+      "use_lora": {
+        "name": "IP 체크포인트 LoRA 사용"
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "AiO 훅"
+      }
+    }
   }
 }
