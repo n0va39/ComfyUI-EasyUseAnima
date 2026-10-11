@@ -37,7 +37,13 @@ class AutocompletePublicStatusPayload(TypedDict):
     mtime: float
 
 
-class AutocompletePublicStatusResultPayload(AutocompletePublicStatusPayload):
+class _AutocompleteStatusErrorPayload(TypedDict, total=False):
+    error: str
+
+
+class AutocompletePublicStatusResultPayload(
+    AutocompletePublicStatusPayload, _AutocompleteStatusErrorPayload
+):
     source: str
     source_label: str
     sources: list[AutocompletePublicSourcePayload]

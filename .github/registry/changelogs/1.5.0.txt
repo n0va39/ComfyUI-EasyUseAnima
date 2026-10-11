@@ -1,0 +1,12 @@
+EasyUse Anima 1.5.0 adds custom autocomplete CSV selection and optional reference-image guidance for AiO.
+
+Changes:
+1. Store a UTF-8 CSV in ComfyUI/user/__easyuse_anima/autocomplete/, refresh the browser and choose Custom: filename.csv under Settings > EasyUse Anima > Autocomplete CSV. The selected file supplies tag search and Prompt Studio highlighting without modifying bundled data or merging files.
+2. Easy Anima IP-Adapter Hook connects a separately installed LuciferTC Anima IP-Adapter Loader and one reference image to AiO's aio_hook input. Guidance affects only the first pass; later Highres, Detailer and Upscale stages keep their existing models. External code and weights are not bundled or automatically installed.
+
+Compatibility:
+Existing workflows, profiles and bundled CSV choices remain compatible. Custom CSVs follow the configured ComfyUI user directory, must be regular files directly in the designated folder and cannot exceed 64 MiB. Removed or renamed selections fall back to the default Danbooru source.
+IP-Adapter requires the supported upstream revision, 28-block Anima, one RGB reference, batch 1, default CUDA and standard ComfyUI sampling/CFG. Start with --disable-dynamic-vram and enough VRAM for the full model. Anima 2.9B/40-block, Compile, multi-GPU, Spectrum acceleration and conflicting model patches are unsupported. See the IP-Adapter guide for the exact external revision and checkpoint restrictions. Workflows without the hook need no external pack.
+
+Action required:
+Restart ComfyUI and hard-refresh the browser after updating. Copy your CSV into the user folder and select it in Settings. For optional reference guidance, follow the IP-Adapter guide to install the external pack and models, then connect its Loader and your reference image to Easy Anima IP-Adapter Hook.

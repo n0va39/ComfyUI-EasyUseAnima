@@ -169,7 +169,9 @@ class SettingsFrontendTests(unittest.TestCase):
             r"readInternalSetting\s*,\s*"
             r"loadLongTextSettings\s*,\s*"
             r"saveLongTextSettings\s*,\s*"
-            r"loadInitialSettings\s*,?\s*"
+            r"loadInitialSettings\s*,\s*"
+            r"loadAutocompleteSources\s*,\s*"
+            r"autocompleteOptions\s*,?\s*"
             r"\}\s*=\s*createSettingsRuntime"
             r"\(\{(?P<dependencies>.*?)\}\);",
             entry_source,
@@ -242,6 +244,7 @@ class SettingsFrontendTests(unittest.TestCase):
         self.assertRegex(
             setup_match.group("body"),
             r"settingsWindow\.__easyuseAnimaSettings\s*=\s*await\s+loadInitialSettings\(\);"
+            r"\s*await\s+loadAutocompleteSources\(\);"
             r"\s*addSettingsFallback\(\);",
         )
         self.assertTrue(SETTINGS_RUNTIME_SMOKE.is_file())
@@ -786,6 +789,7 @@ class SettingsFrontendTests(unittest.TestCase):
             {
                 "text: t",
                 "localeLabel: label",
+                "autocompleteOptions",
                 "updateInternalSetting",
                 "createLongTextEditorButton",
                 "createPromptStudioColorEditorButton",

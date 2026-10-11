@@ -65,6 +65,8 @@ assert.deepEqual(Object.keys(runtime), [
   "loadLongTextSettings",
   "saveLongTextSettings",
   "loadInitialSettings",
+  "loadAutocompleteSources",
+  "autocompleteOptions",
 ]);
 assert.equal(state, undefined, "Factory creation must not create state");
 assert.deepEqual(setStateCalls, []);
@@ -226,3 +228,24 @@ assert.equal(notifyCalls.length, notifyCountBeforeInitialLoad);
 assert.equal(initialCalls.length, 2);
 
 console.log("Settings runtime smoke passed.");
+
+const customKey = "custom:" + "a".repeat(64);
+fetchImplementation = async () => ({ sources: [
+  { key: customKey, label: "Custom: 내 태그.csv", exists: true },
+  { key: "custom:../secret.csv", label: "invalid", exists: true },
+  { key: "custom:" + "b".repeat(64), label: "missing", exists: false },
+] });
+await runtime.loadAutocompleteSources();
+assert.equal(fetchCalls.at(-1).route, "/easyuse_anima/autocomplete_status");
+assert.deepEqual(runtime.autocompleteOptions(["builtin"]), [
+  { text: "builtin", value: "builtin" },
+  { text: "Custom: 내 태그.csv", value: customKey },
+]);
+state = { "autocomplete.source": customKey };
+fetchImplementation = async () => { throw new Error("offline"); };
+await runtime.loadAutocompleteSources();
+assert.deepEqual(runtime.autocompleteOptions(["builtin"]), [
+  { text: "builtin", value: "builtin" },
+  { text: "Custom CSV (unavailable)", value: customKey },
+]);
+assert.equal(state["autocomplete.source"], customKey, "Unavailable files must not overwrite the saved choice");
