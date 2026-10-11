@@ -27,6 +27,11 @@ Registry 기준 외부 연동 기본값:
   명시적 선택 import로만 사용합니다. 사용자가 지정한 module 이름을 동적으로
   load하지 않습니다.
 
+## 1.5.0 사용 안내
+
+- UTF-8 CSV를 `ComfyUI/user/__easyuse_anima/autocomplete/`에 저장하고 브라우저를 새로고침한 뒤 설정에서 선택할 수 있습니다. [CSV 가이드](docs/autocomplete-csv.ko.md)를 참고하세요.
+- [Easy Anima IP-Adapter Hook](docs/nodes/anima-ipadapter-hook.ko.md)으로 AiO 첫 패스에 참조 이미지 가이드를 선택적으로 적용할 수 있습니다. 호환되는 외부 팩과 모델의 별도 설치, 28블록 Anima, batch 1, 정적 CUDA 로딩이 필요하므로 사용 전 가이드의 지원 범위를 확인하세요.
+
 ## 1.4.0 사용 안내
 
 - LoRA 프리셋의 각 행에 T+/T− 버튼이 추가되었습니다. LoRA 강도를 유지하면서 트리거워드 사용 여부를 선택합니다. 기존 프로필은 기본적으로 켜진 상태입니다. [LoRA 프리셋 안내](docs/nodes/anima-lora-preset.ko.md)를 참고하세요.

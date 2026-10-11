@@ -1,5 +1,45 @@
 # Release Notes
 
+## 1.5.0
+
+### Added
+
+- Choose a custom autocomplete CSV from Settings without editing bundled files.
+  Put a UTF-8 CSV in `ComfyUI/user/__easyuse_anima/autocomplete/`, refresh the
+  browser, and select `Custom: filename.csv`. The selected file supplies tag
+  search and Prompt Studio highlighting; files are not merged.
+- **Easy Anima IP-Adapter Hook** connects a separately installed LuciferTC
+  Anima IP-Adapter Loader and reference image to AiO's `aio_hook` input.
+  Reference guidance applies to the first pass only; Highres, Detailer and
+  Upscale keep their existing models. External code and weights are not bundled
+  or automatically installed.
+
+### Fixed
+
+- Custom autocomplete data can stay in the ComfyUI user directory across node
+  pack updates, without requiring changes to bundled CSV files.
+
+### Compatibility
+
+- Existing node IDs, workflows, profiles and bundled CSV choices stay compatible.
+  CSV storage follows `--user-directory` when configured. Only regular CSVs
+  directly in the designated folder, up to 64 MiB, are accepted. If a selected
+  file is removed or renamed, the default Danbooru source is used until another
+  available file is selected. See the [CSV guide](docs/autocomplete-csv.en.md).
+- IP-Adapter support is limited to the reviewed upstream revision, 28-block
+  Anima, one RGB reference, batch 1, the default CUDA device and standard
+  ComfyUI sampling/CFG. Start with `--disable-dynamic-vram` and enough VRAM to
+  load the model fully. Anima 2.9B/40-block, Compile, multi-GPU, Spectrum
+  acceleration and conflicting model patches are unsupported. See the
+  [IP-Adapter guide](docs/nodes/anima-ipadapter-hook.en.md) for installation and
+  checkpoint restrictions. Workflows without this hook need no external pack.
+
+### Update
+
+- Restart ComfyUI and hard-refresh the browser after updating. To use a custom
+  CSV, copy it into the user folder and choose it in Settings. To use reference
+  guidance, install the optional IP-Adapter pack and models described in its guide.
+
 ## 1.4.0
 
 ### Added
