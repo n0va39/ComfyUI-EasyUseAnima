@@ -7055,6 +7055,338 @@
       },
       {
         "alias": null,
+        "bound_name": "hashlib",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "hashlib",
+        "kind": "static_import",
+        "line": 3,
+        "name": null,
+        "optional": false,
+        "requested": "hashlib",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/ipadapter_hook.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "inspect",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "inspect",
+        "kind": "static_import",
+        "line": 4,
+        "name": null,
+        "optional": false,
+        "requested": "inspect",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/ipadapter_hook.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "Path",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "pathlib:Path",
+        "kind": "static_from",
+        "line": 5,
+        "name": "Path",
+        "optional": false,
+        "requested": "pathlib",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/ipadapter_hook.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "Any",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "typing:Any",
+        "kind": "static_from",
+        "line": 6,
+        "name": "Any",
+        "optional": false,
+        "requested": "typing",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/ipadapter_hook.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "cast",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "typing:cast",
+        "kind": "static_from",
+        "line": 6,
+        "name": "cast",
+        "optional": false,
+        "requested": "typing",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/ipadapter_hook.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "_find_comfy_node_class",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": "..infrastructure.comfy.capabilities:_find_comfy_node_class",
+        "kind": "static_from",
+        "line": 8,
+        "name": "_find_comfy_node_class",
+        "optional": false,
+        "requested": "..infrastructure.comfy.capabilities",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/ipadapter_hook.py",
+        "target": "easyuse_anima/infrastructure/comfy/capabilities.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "AioHookDescriptor",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".hooks.contracts:AioHookDescriptor",
+        "kind": "static_from",
+        "line": 9,
+        "name": "AioHookDescriptor",
+        "optional": false,
+        "requested": ".hooks.contracts",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/ipadapter_hook.py",
+        "target": "easyuse_anima/aio/hooks/contracts.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "AioHookPatch",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".hooks.contracts:AioHookPatch",
+        "kind": "static_from",
+        "line": 9,
+        "name": "AioHookPatch",
+        "optional": false,
+        "requested": ".hooks.contracts",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/ipadapter_hook.py",
+        "target": "easyuse_anima/aio/hooks/contracts.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "AioHookPoint",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".hooks.contracts:AioHookPoint",
+        "kind": "static_from",
+        "line": 9,
+        "name": "AioHookPoint",
+        "optional": false,
+        "requested": ".hooks.contracts",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/ipadapter_hook.py",
+        "target": "easyuse_anima/aio/hooks/contracts.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "AioHookSessionBase",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".hooks.contracts:AioHookSessionBase",
+        "kind": "static_from",
+        "line": 9,
+        "name": "AioHookSessionBase",
+        "optional": false,
+        "requested": ".hooks.contracts",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/ipadapter_hook.py",
+        "target": "easyuse_anima/aio/hooks/contracts.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "AioStage",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".hooks.contracts:AioStage",
+        "kind": "static_from",
+        "line": 9,
+        "name": "AioStage",
+        "optional": false,
+        "requested": ".hooks.contracts",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/ipadapter_hook.py",
+        "target": "easyuse_anima/aio/hooks/contracts.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "AioStagePhase",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".hooks.contracts:AioStagePhase",
+        "kind": "static_from",
+        "line": 9,
+        "name": "AioStagePhase",
+        "optional": false,
+        "requested": ".hooks.contracts",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/ipadapter_hook.py",
+        "target": "easyuse_anima/aio/hooks/contracts.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "temporary_ipadapter",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".ipadapter_lifecycle:temporary_ipadapter",
+        "kind": "static_from",
+        "line": 17,
+        "name": "temporary_ipadapter",
+        "optional": false,
+        "requested": ".ipadapter_lifecycle",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/ipadapter_hook.py",
+        "target": "easyuse_anima/aio/ipadapter_lifecycle.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "validate_clean_model",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".ipadapter_lifecycle:validate_clean_model",
+        "kind": "static_from",
+        "line": 17,
+        "name": "validate_clean_model",
+        "optional": false,
+        "requested": ".ipadapter_lifecycle",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/ipadapter_hook.py",
+        "target": "easyuse_anima/aio/ipadapter_lifecycle.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "comfy",
+        "branch_context": [],
+        "classification": "external",
+        "column": 8,
+        "conditional": false,
+        "imported": "comfy.model_patcher",
+        "kind": "static_import",
+        "line": 64,
+        "name": null,
+        "optional": false,
+        "requested": "comfy.model_patcher",
+        "role": "ordinary",
+        "scope": "IPAdapterSample.__call__",
+        "source": "easyuse_anima/aio/ipadapter_hook.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "torch",
+        "branch_context": [],
+        "classification": "external",
+        "column": 8,
+        "conditional": false,
+        "imported": "torch",
+        "kind": "static_import",
+        "line": 95,
+        "name": null,
+        "optional": false,
+        "requested": "torch",
+        "role": "ordinary",
+        "scope": "IPAdapterSession.before_stage",
+        "source": "easyuse_anima/aio/ipadapter_hook.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "WrappersMP",
+        "branch_context": [],
+        "classification": "external",
+        "column": 8,
+        "conditional": false,
+        "imported": "comfy.patcher_extension:WrappersMP",
+        "kind": "static_from",
+        "line": 96,
+        "name": "WrappersMP",
+        "optional": false,
+        "requested": "comfy.patcher_extension",
+        "role": "ordinary",
+        "scope": "IPAdapterSession.before_stage",
+        "source": "easyuse_anima/aio/ipadapter_hook.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "contextmanager",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "contextlib:contextmanager",
+        "kind": "static_from",
+        "line": 3,
+        "name": "contextmanager",
+        "optional": false,
+        "requested": "contextlib",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/ipadapter_lifecycle.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "RLock",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "threading:RLock",
+        "kind": "static_from",
+        "line": 4,
+        "name": "RLock",
+        "optional": false,
+        "requested": "threading",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/ipadapter_lifecycle.py"
+      },
+      {
+        "alias": null,
         "bound_name": "annotations",
         "branch_context": [],
         "classification": "external",
@@ -25568,6 +25900,42 @@
       },
       {
         "alias": null,
+        "bound_name": "EASYUSE_ANIMA_AIO_HOOK_TYPE",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": "..aio.hooks.contracts:EASYUSE_ANIMA_AIO_HOOK_TYPE",
+        "kind": "static_from",
+        "line": 3,
+        "name": "EASYUSE_ANIMA_AIO_HOOK_TYPE",
+        "optional": false,
+        "requested": "..aio.hooks.contracts",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/nodes/ipadapter_nodes.py",
+        "target": "easyuse_anima/aio/hooks/contracts.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "IPAdapterHook",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": "..aio.ipadapter_hook:IPAdapterHook",
+        "kind": "static_from",
+        "line": 4,
+        "name": "IPAdapterHook",
+        "optional": false,
+        "requested": "..aio.ipadapter_hook",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/nodes/ipadapter_nodes.py",
+        "target": "easyuse_anima/aio/ipadapter_hook.py"
+      },
+      {
+        "alias": null,
         "bound_name": "annotations",
         "branch_context": [],
         "classification": "external",
@@ -40543,6 +40911,24 @@
       },
       {
         "alias": null,
+        "bound_name": "EasyAnimaIPAdapterHook",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".nodes.ipadapter_nodes:EasyAnimaIPAdapterHook",
+        "kind": "static_from",
+        "line": 12,
+        "name": "EasyAnimaIPAdapterHook",
+        "optional": false,
+        "requested": ".nodes.ipadapter_nodes",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/registration.py",
+        "target": "easyuse_anima/nodes/ipadapter_nodes.py"
+      },
+      {
+        "alias": null,
         "bound_name": "EasyUseAnimaLoraPreset",
         "branch_context": [],
         "classification": "internal",
@@ -40550,7 +40936,7 @@
         "conditional": false,
         "imported": ".nodes.lora_nodes:EasyUseAnimaLoraPreset",
         "kind": "static_from",
-        "line": 12,
+        "line": 13,
         "name": "EasyUseAnimaLoraPreset",
         "optional": false,
         "requested": ".nodes.lora_nodes",
@@ -40568,7 +40954,7 @@
         "conditional": false,
         "imported": ".nodes.naia_nodes:EasyUseAnimaNAIARandomPrompt",
         "kind": "static_from",
-        "line": 13,
+        "line": 14,
         "name": "EasyUseAnimaNAIARandomPrompt",
         "optional": false,
         "requested": ".nodes.naia_nodes",
@@ -40586,7 +40972,7 @@
         "conditional": false,
         "imported": ".nodes.prompt_advanced_nodes:EasyUseAnimaPromptStudioAdvanced",
         "kind": "static_from",
-        "line": 14,
+        "line": 15,
         "name": "EasyUseAnimaPromptStudioAdvanced",
         "optional": false,
         "requested": ".nodes.prompt_advanced_nodes",
@@ -40604,7 +40990,7 @@
         "conditional": false,
         "imported": ".nodes.prompt_advanced_nodes:EasyUseAnimaPromptStudioAdvancedV2",
         "kind": "static_from",
-        "line": 14,
+        "line": 15,
         "name": "EasyUseAnimaPromptStudioAdvancedV2",
         "optional": false,
         "requested": ".nodes.prompt_advanced_nodes",
@@ -40622,7 +41008,7 @@
         "conditional": false,
         "imported": ".nodes.prompt_data_nodes:EasyUseAnimaArtistMixConditioning",
         "kind": "static_from",
-        "line": 18,
+        "line": 19,
         "name": "EasyUseAnimaArtistMixConditioning",
         "optional": false,
         "requested": ".nodes.prompt_data_nodes",
@@ -40640,7 +41026,7 @@
         "conditional": false,
         "imported": ".nodes.prompt_data_nodes:EasyUseAnimaPromptDataConditioning",
         "kind": "static_from",
-        "line": 18,
+        "line": 19,
         "name": "EasyUseAnimaPromptDataConditioning",
         "optional": false,
         "requested": ".nodes.prompt_data_nodes",
@@ -40658,7 +41044,7 @@
         "conditional": false,
         "imported": ".nodes.prompt_data_nodes:EasyUseAnimaPromptDataUnpack",
         "kind": "static_from",
-        "line": 18,
+        "line": 19,
         "name": "EasyUseAnimaPromptDataUnpack",
         "optional": false,
         "requested": ".nodes.prompt_data_nodes",
@@ -40676,7 +41062,7 @@
         "conditional": false,
         "imported": ".nodes.prompt_lora_nodes:EasyUseAnimaPromptStudioAdvancedLora",
         "kind": "static_from",
-        "line": 23,
+        "line": 24,
         "name": "EasyUseAnimaPromptStudioAdvancedLora",
         "optional": false,
         "requested": ".nodes.prompt_lora_nodes",
@@ -40694,7 +41080,7 @@
         "conditional": false,
         "imported": ".nodes.prompt_nodes:EasyUseAnimaPromptBuilder",
         "kind": "static_from",
-        "line": 24,
+        "line": 25,
         "name": "EasyUseAnimaPromptBuilder",
         "optional": false,
         "requested": ".nodes.prompt_nodes",
@@ -40712,7 +41098,7 @@
         "conditional": false,
         "imported": ".nodes.prompt_nodes:EasyUseAnimaPromptCorrector",
         "kind": "static_from",
-        "line": 24,
+        "line": 25,
         "name": "EasyUseAnimaPromptCorrector",
         "optional": false,
         "requested": ".nodes.prompt_nodes",
@@ -40730,7 +41116,7 @@
         "conditional": false,
         "imported": ".nodes.prompt_nodes:EasyUseAnimaPromptCorrectorSimple",
         "kind": "static_from",
-        "line": 24,
+        "line": 25,
         "name": "EasyUseAnimaPromptCorrectorSimple",
         "optional": false,
         "requested": ".nodes.prompt_nodes",
@@ -40748,7 +41134,7 @@
         "conditional": false,
         "imported": ".nodes.prompt_nodes:EasyUseAnimaPromptStudio",
         "kind": "static_from",
-        "line": 24,
+        "line": 25,
         "name": "EasyUseAnimaPromptStudio",
         "optional": false,
         "requested": ".nodes.prompt_nodes",
@@ -40766,7 +41152,7 @@
         "conditional": false,
         "imported": ".nodes.regional_nodes:EasyUseAnimaPromptStudioRegional",
         "kind": "static_from",
-        "line": 30,
+        "line": 31,
         "name": "EasyUseAnimaPromptStudioRegional",
         "optional": false,
         "requested": ".nodes.regional_nodes",
@@ -40784,7 +41170,7 @@
         "conditional": false,
         "imported": ".nodes.regional_nodes:EasyUseAnimaRegionalConditioning",
         "kind": "static_from",
-        "line": 30,
+        "line": 31,
         "name": "EasyUseAnimaRegionalConditioning",
         "optional": false,
         "requested": ".nodes.regional_nodes",
@@ -40802,7 +41188,7 @@
         "conditional": false,
         "imported": ".nodes.safe_pag_nodes:EasyAnimaSafePAG",
         "kind": "static_from",
-        "line": 34,
+        "line": 35,
         "name": "EasyAnimaSafePAG",
         "optional": false,
         "requested": ".nodes.safe_pag_nodes",
@@ -40820,7 +41206,7 @@
         "conditional": false,
         "imported": ".nodes.wildcard_nodes:EasyUseAnimaWildcard",
         "kind": "static_from",
-        "line": 35,
+        "line": 36,
         "name": "EasyUseAnimaWildcard",
         "optional": false,
         "requested": ".nodes.wildcard_nodes",
@@ -40838,7 +41224,7 @@
         "conditional": false,
         "imported": ".nodes.wildcard_nodes:EasyUseAnimaWildcardLora",
         "kind": "static_from",
-        "line": 35,
+        "line": 36,
         "name": "EasyUseAnimaWildcardLora",
         "optional": false,
         "requested": ".nodes.wildcard_nodes",
@@ -46122,6 +46508,18 @@
         "to": "easyuse_anima/prompt/data.py"
       },
       {
+        "from": "easyuse_anima/aio/ipadapter_hook.py",
+        "to": "easyuse_anima/aio/hooks/contracts.py"
+      },
+      {
+        "from": "easyuse_anima/aio/ipadapter_hook.py",
+        "to": "easyuse_anima/aio/ipadapter_lifecycle.py"
+      },
+      {
+        "from": "easyuse_anima/aio/ipadapter_hook.py",
+        "to": "easyuse_anima/infrastructure/comfy/capabilities.py"
+      },
+      {
         "from": "easyuse_anima/aio/legacy_generation.py",
         "to": "easyuse_anima/aio/conditioning.py"
       },
@@ -47098,6 +47496,14 @@
         "to": "easyuse_anima/aio/native_image_output.py"
       },
       {
+        "from": "easyuse_anima/nodes/ipadapter_nodes.py",
+        "to": "easyuse_anima/aio/hooks/contracts.py"
+      },
+      {
+        "from": "easyuse_anima/nodes/ipadapter_nodes.py",
+        "to": "easyuse_anima/aio/ipadapter_hook.py"
+      },
+      {
         "from": "easyuse_anima/nodes/lora_nodes.py",
         "to": "easyuse_anima/common/serialization.py"
       },
@@ -47927,6 +48333,10 @@
       },
       {
         "from": "easyuse_anima/registration.py",
+        "to": "easyuse_anima/nodes/ipadapter_nodes.py"
+      },
+      {
+        "from": "easyuse_anima/registration.py",
         "to": "easyuse_anima/nodes/lora_nodes.py"
       },
       {
@@ -48401,6 +48811,18 @@
         "cyclic": false,
         "modules": [
           "easyuse_anima/aio/input_defaults.py"
+        ]
+      },
+      {
+        "cyclic": false,
+        "modules": [
+          "easyuse_anima/aio/ipadapter_hook.py"
+        ]
+      },
+      {
+        "cyclic": false,
+        "modules": [
+          "easyuse_anima/aio/ipadapter_lifecycle.py"
         ]
       },
       {
@@ -49006,6 +49428,12 @@
       {
         "cyclic": false,
         "modules": [
+          "easyuse_anima/nodes/ipadapter_nodes.py"
+        ]
+      },
+      {
+        "cyclic": false,
+        "modules": [
           "easyuse_anima/nodes/lora_nodes.py"
         ]
       },
@@ -49456,7 +49884,7 @@
     ]
   },
   "inventory": {
-    "module_count": 209,
+    "module_count": 212,
     "modules": [
       {
         "functions": [
@@ -51931,6 +52359,122 @@
           "class_count": 0,
           "function_count": 0,
           "global_count": 10
+        }
+      },
+      {
+        "functions": [
+          {
+            "async": false,
+            "end_line": 41,
+            "kind": "function",
+            "line": 24,
+            "loc": 18,
+            "qualified_name": "resolve_apply"
+          },
+          {
+            "async": false,
+            "end_line": 56,
+            "kind": "function",
+            "line": 44,
+            "loc": 13,
+            "qualified_name": "validate_options"
+          },
+          {
+            "async": false,
+            "end_line": 61,
+            "kind": "method",
+            "line": 60,
+            "loc": 2,
+            "qualified_name": "IPAdapterSample.__init__"
+          },
+          {
+            "async": false,
+            "end_line": 87,
+            "kind": "method",
+            "line": 63,
+            "loc": 25,
+            "qualified_name": "IPAdapterSample.__call__"
+          },
+          {
+            "async": false,
+            "end_line": 92,
+            "kind": "method",
+            "line": 91,
+            "loc": 2,
+            "qualified_name": "IPAdapterSession.__init__"
+          },
+          {
+            "async": false,
+            "end_line": 125,
+            "kind": "method",
+            "line": 94,
+            "loc": 32,
+            "qualified_name": "IPAdapterSession.before_stage"
+          },
+          {
+            "async": false,
+            "end_line": 133,
+            "kind": "method",
+            "line": 129,
+            "loc": 5,
+            "qualified_name": "IPAdapterHook.__init__"
+          },
+          {
+            "async": false,
+            "end_line": 141,
+            "kind": "method",
+            "line": 135,
+            "loc": 7,
+            "qualified_name": "IPAdapterHook.describe"
+          },
+          {
+            "async": false,
+            "end_line": 144,
+            "kind": "method",
+            "line": 143,
+            "loc": 2,
+            "qualified_name": "IPAdapterHook.create_session"
+          }
+        ],
+        "is_package": false,
+        "loc": 147,
+        "module": "easyuse_anima.aio.ipadapter_hook",
+        "normalized_git_blob_sha1": "1795a46a18a62f41d19cea7f2b1f7d5f14e14a71",
+        "path": "easyuse_anima/aio/ipadapter_hook.py",
+        "top_level": {
+          "class_count": 3,
+          "function_count": 2,
+          "global_count": 4
+        }
+      },
+      {
+        "functions": [
+          {
+            "async": false,
+            "end_line": 42,
+            "kind": "function",
+            "line": 18,
+            "loc": 25,
+            "qualified_name": "validate_clean_model"
+          },
+          {
+            "async": false,
+            "end_line": 92,
+            "kind": "function",
+            "line": 45,
+            "loc": 48,
+            "qualified_name": "temporary_ipadapter"
+          }
+        ],
+        "is_package": false,
+        "loc": 95,
+        "module": "easyuse_anima.aio.ipadapter_lifecycle",
+        "normalized_git_blob_sha1": "2bd175a58c15c873fa8aa8d4078df41c9f44ef94",
+        "path": "easyuse_anima/aio/ipadapter_lifecycle.py",
+        "top_level": {
+          "class_count": 0,
+          "function_count": 2,
+          "global_count": 7
         }
       },
       {
@@ -59749,6 +60293,36 @@
         "functions": [
           {
             "async": false,
+            "end_line": 26,
+            "kind": "method",
+            "line": 14,
+            "loc": 13,
+            "qualified_name": "EasyAnimaIPAdapterHook.INPUT_TYPES"
+          },
+          {
+            "async": false,
+            "end_line": 41,
+            "kind": "method",
+            "line": 33,
+            "loc": 9,
+            "qualified_name": "EasyAnimaIPAdapterHook.build"
+          }
+        ],
+        "is_package": false,
+        "loc": 44,
+        "module": "easyuse_anima.nodes.ipadapter_nodes",
+        "normalized_git_blob_sha1": "cbf32d46d531eef606683d6164a86352eae25e79",
+        "path": "easyuse_anima/nodes/ipadapter_nodes.py",
+        "top_level": {
+          "class_count": 1,
+          "function_count": 0,
+          "global_count": 1
+        }
+      },
+      {
+        "functions": [
+          {
+            "async": false,
             "end_line": 71,
             "kind": "method",
             "line": 35,
@@ -62929,9 +63503,9 @@
       {
         "functions": [],
         "is_package": false,
-        "loc": 95,
+        "loc": 98,
         "module": "easyuse_anima.registration",
-        "normalized_git_blob_sha1": "8526b48e1b4c4f70e9a934582b3344fd6efcef84",
+        "normalized_git_blob_sha1": "ae382b502111daea37cdf49326f872f6fae53cc3",
         "path": "easyuse_anima/registration.py",
         "top_level": {
           "class_count": 0,
@@ -66826,6 +67400,116 @@
         "optional": false,
         "role": "ordinary",
         "source": "easyuse_anima/aio/input_context.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "hashlib",
+        "kind": "static_import",
+        "line": 3,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/ipadapter_hook.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "inspect",
+        "kind": "static_import",
+        "line": 4,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/ipadapter_hook.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "pathlib:Path",
+        "kind": "static_from",
+        "line": 5,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/ipadapter_hook.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "typing:Any",
+        "kind": "static_from",
+        "line": 6,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/ipadapter_hook.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "typing:cast",
+        "kind": "static_from",
+        "line": 6,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/ipadapter_hook.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "comfy.model_patcher",
+        "kind": "static_import",
+        "line": 64,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/ipadapter_hook.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "torch",
+        "kind": "static_import",
+        "line": 95,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/ipadapter_hook.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "comfy.patcher_extension:WrappersMP",
+        "kind": "static_from",
+        "line": 96,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/ipadapter_hook.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "contextlib:contextmanager",
+        "kind": "static_from",
+        "line": 3,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/ipadapter_lifecycle.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "threading:RLock",
+        "kind": "static_from",
+        "line": 4,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/ipadapter_lifecycle.py"
       },
       {
         "branch_context": [],
@@ -76872,6 +77556,8 @@
       "easyuse_anima/aio/hooks/runtime.py",
       "easyuse_anima/aio/input_context.py",
       "easyuse_anima/aio/input_defaults.py",
+      "easyuse_anima/aio/ipadapter_hook.py",
+      "easyuse_anima/aio/ipadapter_lifecycle.py",
       "easyuse_anima/aio/legacy_detailer.py",
       "easyuse_anima/aio/legacy_generation.py",
       "easyuse_anima/aio/legacy_upscale.py",
@@ -76972,6 +77658,7 @@
       "easyuse_anima/nodes/image_nodes.py",
       "easyuse_anima/nodes/image_output_nodes.py",
       "easyuse_anima/nodes/input_types.py",
+      "easyuse_anima/nodes/ipadapter_nodes.py",
       "easyuse_anima/nodes/lora_nodes.py",
       "easyuse_anima/nodes/naia_nodes.py",
       "easyuse_anima/nodes/prompt_advanced_execution.py",
@@ -77081,6 +77768,8 @@
       "easyuse_anima/aio/hooks/runtime.py",
       "easyuse_anima/aio/input_context.py",
       "easyuse_anima/aio/input_defaults.py",
+      "easyuse_anima/aio/ipadapter_hook.py",
+      "easyuse_anima/aio/ipadapter_lifecycle.py",
       "easyuse_anima/aio/legacy_detailer.py",
       "easyuse_anima/aio/legacy_generation.py",
       "easyuse_anima/aio/legacy_upscale.py",
@@ -77183,6 +77872,7 @@
       "easyuse_anima/nodes/image_nodes.py",
       "easyuse_anima/nodes/image_output_nodes.py",
       "easyuse_anima/nodes/input_types.py",
+      "easyuse_anima/nodes/ipadapter_nodes.py",
       "easyuse_anima/nodes/lora_nodes.py",
       "easyuse_anima/nodes/naia_nodes.py",
       "easyuse_anima/nodes/prompt_advanced_execution.py",
@@ -78246,6 +78936,24 @@
         "kind": "import_time_call",
         "line": 70,
         "module": "easyuse_anima/aio/hooks/runtime.py",
+        "scope": "<module>"
+      },
+      {
+        "callee": "RLock",
+        "column": 8,
+        "context": "assign:_LOCK",
+        "kind": "import_time_call",
+        "line": 6,
+        "module": "easyuse_anima/aio/ipadapter_lifecycle.py",
+        "scope": "<module>"
+      },
+      {
+        "callee": "object",
+        "column": 11,
+        "context": "assign:_MISSING",
+        "kind": "import_time_call",
+        "line": 7,
+        "module": "easyuse_anima/aio/ipadapter_lifecycle.py",
         "scope": "<module>"
       },
       {
@@ -80474,19 +81182,19 @@
       },
       {
         "kind": "dict",
-        "line": 37,
+        "line": 38,
         "module": "easyuse_anima/registration.py",
         "name": "NODE_CLASS_MAPPINGS"
       },
       {
         "kind": "dict",
-        "line": 66,
+        "line": 68,
         "module": "easyuse_anima/registration.py",
         "name": "NODE_DISPLAY_NAME_MAPPINGS"
       },
       {
         "kind": "list",
-        "line": 95,
+        "line": 98,
         "module": "easyuse_anima/registration.py",
         "name": "__all__"
       },
@@ -80590,6 +81298,15 @@
         "line": 255,
         "module": "easyuse_anima/aio/first_pass_cache.py",
         "name": "_DEFAULT_AIO_FIRST_PASS_CACHE"
+      },
+      {
+        "categories": [
+          "lock"
+        ],
+        "initializer": "RLock",
+        "line": 6,
+        "module": "easyuse_anima/aio/ipadapter_lifecycle.py",
+        "name": "_LOCK"
       },
       {
         "categories": [

@@ -140,6 +140,97 @@
   ],
   "nodes": [
     {
+      "category": "EasyUse Anima/AiO/Extensions",
+      "class_name": "EasyAnimaIPAdapterHook",
+      "display_name": "Easy Anima IP-Adapter Hook",
+      "function": "build",
+      "id": "EasyAnimaIPAdapterHook",
+      "input_sections": [
+        {
+          "entries": [
+            {
+              "config": {},
+              "name": "ip_adapter",
+              "type": "ANIMA_IP_ADAPTER"
+            },
+            {
+              "config": {},
+              "name": "ref_image",
+              "type": "IMAGE"
+            },
+            {
+              "config": {
+                "default": 1.0,
+                "max": 2.0,
+                "min": 0.0,
+                "step": 0.05
+              },
+              "name": "strength",
+              "type": "FLOAT"
+            },
+            {
+              "config": {
+                "default": 512,
+                "max": 2048,
+                "min": 224,
+                "step": 16
+              },
+              "name": "ref_image_size",
+              "type": "INT"
+            },
+            {
+              "config": {
+                "default": -1,
+                "max": 24,
+                "min": -1
+              },
+              "name": "siglip_layer",
+              "type": "INT"
+            },
+            {
+              "config": {
+                "default": 4.0,
+                "max": 10.0,
+                "min": 1.0,
+                "step": 0.05
+              },
+              "name": "ip_cfg_scale",
+              "type": "FLOAT"
+            },
+            {
+              "config": {
+                "default": false
+              },
+              "name": "ip_cfg_separate",
+              "type": "BOOLEAN"
+            },
+            {
+              "config": {
+                "default": false
+              },
+              "name": "gray_null",
+              "type": "BOOLEAN"
+            },
+            {
+              "config": {
+                "default": true
+              },
+              "name": "use_lora",
+              "type": "BOOLEAN"
+            }
+          ],
+          "name": "required"
+        }
+      ],
+      "output_node": false,
+      "return_names": [
+        "aio_hook"
+      ],
+      "return_types": [
+        "EASYUSE_ANIMA_AIO_HOOK"
+      ]
+    },
+    {
       "category": "EasyUse Anima/Model Patches",
       "class_name": "EasyAnimaSafePAG",
       "display_name": "Easy Anima Safe PAG",
