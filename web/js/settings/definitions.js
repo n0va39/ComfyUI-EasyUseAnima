@@ -18,6 +18,7 @@ import { easyuseAnimaInitialAutocompleteSource } from "../easyuse_anima_i18n.js"
  * @property {(...args: any[]) => HTMLElement} createWildcardExtraPathsEditor
  * @property {(...args: any[]) => HTMLElement} createNaiaResolutionModeEditor
  * @property {(...args: any[]) => HTMLElement} createNaiaResolutionScaleEditor
+ * @property {(bundled: string[]) => any[]} [autocompleteOptions]
  */
 
 /**
@@ -29,7 +30,7 @@ import { easyuseAnimaInitialAutocompleteSource } from "../easyuse_anima_i18n.js"
  * @property {string} [tooltip]
  * @property {any} type
  * @property {any} defaultValue
- * @property {any[]} [options]
+ * @property {any[] | (() => any[])} [options]
  * @property {Record<string, any>} [attrs]
  * @property {(value: any) => void} [onChange]
  */
@@ -60,6 +61,7 @@ export function createEasyUseAnimaSettings(dependencies) {
     createWildcardExtraPathsEditor,
     createNaiaResolutionModeEditor,
     createNaiaResolutionScaleEditor,
+    autocompleteOptions,
   } = dependencies;
 
   /**
@@ -123,7 +125,12 @@ export function createEasyUseAnimaSettings(dependencies) {
       tooltip: t("autocompleteCsvTip"),
       type: "combo",
       defaultValue: easyuseAnimaInitialAutocompleteSource,
-      options: [
+      options: autocompleteOptions ? () => autocompleteOptions([
+        "dbr_danbooru_2025_09_01",
+        "dbr_e621_2025_09_01",
+        "dbr_danbooru_e621_merged_2025_09_01",
+        "localsmile_kr_wiki",
+      ]) : [
         "dbr_danbooru_2025_09_01",
         "dbr_e621_2025_09_01",
         "dbr_danbooru_e621_merged_2025_09_01",

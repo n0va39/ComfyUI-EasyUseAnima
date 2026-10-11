@@ -128,18 +128,37 @@ Artist tags are treated as artist-category data.
 These rules are shared by autocomplete insertion, Prompt Studio preview, and
 prompt correction output so the three views do not disagree.
 
-## Developer CSV Format
+## Add a Custom CSV
 
-The current settings UI uses the maintained bundled CSV source. It does not
-provide a user-facing arbitrary CSV path picker.
+1. Create `__easyuse_anima/autocomplete/` inside the ComfyUI user directory.
+   The default location is `ComfyUI/user/__easyuse_anima/autocomplete/`.
+   With `--user-directory`, use that configured user directory instead.
+2. Save a UTF-8 CSV such as `my_tags.csv` directly in this folder.
+3. Refresh the browser, then select `Custom: my_tags.csv` under
+   **Settings → EasyUse Anima → Autocomplete CSV**.
 
-When adding a new source in code, use UTF-8 or UTF-8 with BOM. Two formats are
-supported.
+One selected file is used, without merging it with a bundled CSV. Custom files
+are stored separately from nodepack updates. This uses the existing instance-wide
+EasyUse Anima settings; it does not introduce per-user access control.
+
+File changes are detected on the next server request. Refresh the browser to
+clear its search cache too. If a selected file is removed or renamed, the saved
+choice is preserved but the default Danbooru source is used. Select the new file
+again after renaming it.
+
+Only regular `.csv` files directly in this folder are accepted. Subfolders,
+symlinks, hard links, junctions, and files over 64 MiB are excluded. Arbitrary path
+input, URL downloads, and web upload/edit/delete operations are not supported.
+Files are parsed only as CSV data. Invalid UTF-8/CSV cannot be searched, but the
+source chooser remains available.
+
+## CSV Format
+
+Use UTF-8 or UTF-8 with BOM. Two formats are supported.
 
 Four-column format without a header:
 
 ```csv
-tag,category,count,description
 long hair,0,100,"[Fashion] long hair"
 artist name,1,80,"[Artist] artist description"
 ```

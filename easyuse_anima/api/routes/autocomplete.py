@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import csv
 from collections.abc import Callable
 from pathlib import Path
 from typing import Protocol, cast
@@ -38,6 +39,24 @@ class _ClassifyPromptText(Protocol):
     ) -> AutocompleteClassificationPayload: ...
 
 
+def _read_source_status(
+    source_key: str,
+    path: Path,
+    autocomplete_status: Callable[[Path], AutocompleteStatusPayload],
+    public_status: Callable[[object], dict[str, object]],
+) -> tuple[AutocompletePublicStatusPayload, str | None]:
+    try:
+        return cast(AutocompletePublicStatusPayload, public_status(autocomplete_status(path))), None
+    except (OSError, ValueError, csv.Error):
+        if not source_key.startswith("custom:"):
+            raise
+        # Keep the source chooser usable without exposing local exception paths.
+        return (
+            {"exists": False, "count": 0, "mtime": 0},
+            "Custom CSV could not be read. Check its UTF-8 CSV format.",
+        )
+
+
 def build_autocomplete_payloads(
     *,
     resolve_autocomplete_source: Callable[[], str],
@@ -64,10 +83,8 @@ def build_autocomplete_payloads(
     def _autocomplete_status_payload_sync() -> AutocompletePublicStatusResultPayload:
         selected_source = resolve_autocomplete_source()
         source_key, path = resolve_autocomplete_source_path(selected_source)
-        status = cast(
-            AutocompletePublicStatusPayload,
-            public_autocomplete_status(autocomplete_status(path)),
-        )
+        status: AutocompletePublicStatusPayload
+        status, error = _read_source_status(source_key, path, autocomplete_status, public_autocomplete_status)
         sources: list[AutocompletePublicSourcePayload] = []
         source_label = source_key
         for source in available_autocomplete_sources(source_key):
@@ -82,12 +99,15 @@ def build_autocomplete_payloads(
             sources.append(public_source)
             if public_source.get("selected"):
                 source_label = str(public_source.get("label") or source_key)
-        return {
+        result: AutocompletePublicStatusResultPayload = {
             **status,
             "source": source_key,
             "source_label": source_label,
             "sources": sources,
         }
+        if error is not None:
+            result["error"] = error
+        return result
 
     def _public_autocomplete_status(status: object) -> dict[str, object]:
         public_status = (

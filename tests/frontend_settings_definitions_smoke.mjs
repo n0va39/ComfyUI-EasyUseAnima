@@ -394,3 +394,13 @@ assert.equal(
 );
 
 console.log("Settings definitions smoke passed.");
+
+let customOptions = [{ text: "Custom: tags.csv", value: "custom:" + "a".repeat(64) }];
+const dynamic = definitionsModule.createEasyUseAnimaSettings({
+  ...dependencies,
+  autocompleteOptions: (bundled) => [...bundled, ...customOptions],
+}).find((item) => item.id === "EasyUseAnima.Prompt.AutocompleteSource");
+assert.equal(typeof dynamic.options, "function");
+assert.equal(dynamic.options().at(-1).text, "Custom: tags.csv");
+customOptions = [];
+assert.equal(dynamic.options().length, 4, "Options must reflect the current source catalog");
