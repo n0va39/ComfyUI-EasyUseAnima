@@ -62,7 +62,7 @@ const TEXT = {
     selectionParenthesisWeight: "Add weight when wrapping a selection",
     selectionParenthesisWeightTip:
       "When closing-bracket preview is enabled, wrapping selected text with ( inserts :1 and selects the weight. Existing top-level numeric weights are preserved.",
-    autocompleteCsvTip: "Select which bundled CSV powers autocomplete and tag highlighting. The merged Danbooru+e621 source may have category merge issues.",
+    autocompleteCsvTip: "Select a bundled or custom CSV for autocomplete and tag highlighting. Put UTF-8 CSVs in user/__easyuse_anima/autocomplete/ and refresh the browser. The merged source may have category merge issues.",
     autocompleteLimitTip: "",
     highlightBehavior: "Highlight behavior",
     highlightColor: "Highlight color",
@@ -198,7 +198,7 @@ const TEXT = {
     selectionParenthesisWeight: "선택 영역 괄호에 가중치 추가",
     selectionParenthesisWeightTip:
       "닫는 괄호 미리입력이 켜져 있을 때 선택한 텍스트를 (로 감싸면 :1을 추가하고 숫자를 선택합니다. 기존 최상위 숫자 가중치는 유지합니다.",
-    autocompleteCsvTip: "자동완성과 태그 하이라이트에 사용할 번들 CSV를 선택합니다. Danbooru+e621 병합 소스는 카테고리 병합 오류 가능성이 있습니다.",
+    autocompleteCsvTip: "자동완성과 태그 하이라이트에 사용할 CSV를 선택합니다. 사용자 CSV는 user/__easyuse_anima/autocomplete/에 UTF-8로 저장하고 브라우저를 새로고침하세요. 병합 소스는 카테고리 병합 오류 가능성이 있습니다.",
     autocompleteLimitTip: "",
     highlightBehavior: "하이라이트 동작",
     highlightColor: "하이라이트 색상",
@@ -334,7 +334,7 @@ const TEXT = {
     selectionParenthesisWeight: "選択範囲を括弧で囲むとき重みを追加",
     selectionParenthesisWeightTip:
       "閉じ括弧の先行入力が有効なとき、選択したテキストを ( で囲むと :1 を追加して数値を選択します。既存のトップレベル数値重みは維持します。",
-    autocompleteCsvTip: "自動補完とタグハイライトに使用する同梱 CSV を選択します。Danbooru+e621 の統合ソースにはカテゴリ統合エラーの可能性があります。",
+    autocompleteCsvTip: "自動補完とタグハイライトの CSV を選択します。カスタム UTF-8 CSV を user/__easyuse_anima/autocomplete/ に保存し、ブラウザーを再読み込みしてください。統合ソースにはカテゴリ統合エラーの可能性があります。",
     autocompleteLimitTip: "",
     highlightBehavior: "ハイライト動作",
     highlightColor: "ハイライト色",
@@ -470,7 +470,7 @@ const TEXT = {
     selectionParenthesisWeight: "括起选区时添加权重",
     selectionParenthesisWeightTip:
       "启用预填闭合括号后，用 ( 包裹所选文本会追加 :1 并选中数值。已有的顶层数值权重会保留。",
-    autocompleteCsvTip: "选择用于自动补全和标签高亮的内置 CSV。Danbooru+e621 合并来源可能存在分类合并错误。",
+    autocompleteCsvTip: "选择用于自动补全和标签高亮的 CSV。将自定义 UTF-8 CSV 放入 user/__easyuse_anima/autocomplete/ 后刷新浏览器。合并来源可能存在分类合并错误。",
     autocompleteLimitTip: "",
     highlightBehavior: "高亮行为",
     highlightColor: "高亮颜色",
@@ -594,6 +594,8 @@ const {
   loadLongTextSettings,
   saveLongTextSettings,
   loadInitialSettings,
+  loadAutocompleteSources,
+  autocompleteOptions,
 } = createSettingsRuntime({
   getSettingsState: () => settingsWindow.__easyuseAnimaSettings,
   setSettingsState: (value) => {
@@ -648,6 +650,7 @@ const createPromptStudioColorEditorButton =
   });
 
 const EASYUSE_ANIMA_SETTINGS = createEasyUseAnimaSettings({
+  autocompleteOptions,
   text: t,
   localeLabel: label,
   updateInternalSetting,
@@ -676,6 +679,7 @@ app.registerExtension({
   settings: EASYUSE_ANIMA_SETTINGS,
   async setup() {
     settingsWindow.__easyuseAnimaSettings = await loadInitialSettings();
+    await loadAutocompleteSources();
     addSettingsFallback();
   },
 });
