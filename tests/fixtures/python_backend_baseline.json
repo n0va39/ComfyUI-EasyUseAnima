@@ -7055,6 +7055,338 @@
       },
       {
         "alias": null,
+        "bound_name": "hashlib",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "hashlib",
+        "kind": "static_import",
+        "line": 3,
+        "name": null,
+        "optional": false,
+        "requested": "hashlib",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/ipadapter_hook.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "inspect",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "inspect",
+        "kind": "static_import",
+        "line": 4,
+        "name": null,
+        "optional": false,
+        "requested": "inspect",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/ipadapter_hook.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "Path",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "pathlib:Path",
+        "kind": "static_from",
+        "line": 5,
+        "name": "Path",
+        "optional": false,
+        "requested": "pathlib",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/ipadapter_hook.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "Any",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "typing:Any",
+        "kind": "static_from",
+        "line": 6,
+        "name": "Any",
+        "optional": false,
+        "requested": "typing",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/ipadapter_hook.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "cast",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "typing:cast",
+        "kind": "static_from",
+        "line": 6,
+        "name": "cast",
+        "optional": false,
+        "requested": "typing",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/ipadapter_hook.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "_find_comfy_node_class",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": "..infrastructure.comfy.capabilities:_find_comfy_node_class",
+        "kind": "static_from",
+        "line": 8,
+        "name": "_find_comfy_node_class",
+        "optional": false,
+        "requested": "..infrastructure.comfy.capabilities",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/ipadapter_hook.py",
+        "target": "easyuse_anima/infrastructure/comfy/capabilities.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "AioHookDescriptor",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".hooks.contracts:AioHookDescriptor",
+        "kind": "static_from",
+        "line": 9,
+        "name": "AioHookDescriptor",
+        "optional": false,
+        "requested": ".hooks.contracts",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/ipadapter_hook.py",
+        "target": "easyuse_anima/aio/hooks/contracts.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "AioHookPatch",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".hooks.contracts:AioHookPatch",
+        "kind": "static_from",
+        "line": 9,
+        "name": "AioHookPatch",
+        "optional": false,
+        "requested": ".hooks.contracts",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/ipadapter_hook.py",
+        "target": "easyuse_anima/aio/hooks/contracts.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "AioHookPoint",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".hooks.contracts:AioHookPoint",
+        "kind": "static_from",
+        "line": 9,
+        "name": "AioHookPoint",
+        "optional": false,
+        "requested": ".hooks.contracts",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/ipadapter_hook.py",
+        "target": "easyuse_anima/aio/hooks/contracts.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "AioHookSessionBase",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".hooks.contracts:AioHookSessionBase",
+        "kind": "static_from",
+        "line": 9,
+        "name": "AioHookSessionBase",
+        "optional": false,
+        "requested": ".hooks.contracts",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/ipadapter_hook.py",
+        "target": "easyuse_anima/aio/hooks/contracts.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "AioStage",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".hooks.contracts:AioStage",
+        "kind": "static_from",
+        "line": 9,
+        "name": "AioStage",
+        "optional": false,
+        "requested": ".hooks.contracts",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/ipadapter_hook.py",
+        "target": "easyuse_anima/aio/hooks/contracts.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "AioStagePhase",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".hooks.contracts:AioStagePhase",
+        "kind": "static_from",
+        "line": 9,
+        "name": "AioStagePhase",
+        "optional": false,
+        "requested": ".hooks.contracts",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/ipadapter_hook.py",
+        "target": "easyuse_anima/aio/hooks/contracts.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "temporary_ipadapter",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".ipadapter_lifecycle:temporary_ipadapter",
+        "kind": "static_from",
+        "line": 17,
+        "name": "temporary_ipadapter",
+        "optional": false,
+        "requested": ".ipadapter_lifecycle",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/ipadapter_hook.py",
+        "target": "easyuse_anima/aio/ipadapter_lifecycle.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "validate_clean_model",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".ipadapter_lifecycle:validate_clean_model",
+        "kind": "static_from",
+        "line": 17,
+        "name": "validate_clean_model",
+        "optional": false,
+        "requested": ".ipadapter_lifecycle",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/ipadapter_hook.py",
+        "target": "easyuse_anima/aio/ipadapter_lifecycle.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "comfy",
+        "branch_context": [],
+        "classification": "external",
+        "column": 8,
+        "conditional": false,
+        "imported": "comfy.model_patcher",
+        "kind": "static_import",
+        "line": 64,
+        "name": null,
+        "optional": false,
+        "requested": "comfy.model_patcher",
+        "role": "ordinary",
+        "scope": "IPAdapterSample.__call__",
+        "source": "easyuse_anima/aio/ipadapter_hook.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "torch",
+        "branch_context": [],
+        "classification": "external",
+        "column": 8,
+        "conditional": false,
+        "imported": "torch",
+        "kind": "static_import",
+        "line": 95,
+        "name": null,
+        "optional": false,
+        "requested": "torch",
+        "role": "ordinary",
+        "scope": "IPAdapterSession.before_stage",
+        "source": "easyuse_anima/aio/ipadapter_hook.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "WrappersMP",
+        "branch_context": [],
+        "classification": "external",
+        "column": 8,
+        "conditional": false,
+        "imported": "comfy.patcher_extension:WrappersMP",
+        "kind": "static_from",
+        "line": 96,
+        "name": "WrappersMP",
+        "optional": false,
+        "requested": "comfy.patcher_extension",
+        "role": "ordinary",
+        "scope": "IPAdapterSession.before_stage",
+        "source": "easyuse_anima/aio/ipadapter_hook.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "contextmanager",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "contextlib:contextmanager",
+        "kind": "static_from",
+        "line": 3,
+        "name": "contextmanager",
+        "optional": false,
+        "requested": "contextlib",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/ipadapter_lifecycle.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "RLock",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "threading:RLock",
+        "kind": "static_from",
+        "line": 4,
+        "name": "RLock",
+        "optional": false,
+        "requested": "threading",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/ipadapter_lifecycle.py"
+      },
+      {
+        "alias": null,
         "bound_name": "annotations",
         "branch_context": [],
         "classification": "external",
@@ -17318,6 +17650,23 @@
       },
       {
         "alias": null,
+        "bound_name": "csv",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "csv",
+        "kind": "static_import",
+        "line": 3,
+        "name": null,
+        "optional": false,
+        "requested": "csv",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/api/routes/autocomplete.py"
+      },
+      {
+        "alias": null,
         "bound_name": "Callable",
         "branch_context": [],
         "classification": "external",
@@ -17325,7 +17674,7 @@
         "conditional": false,
         "imported": "collections.abc:Callable",
         "kind": "static_from",
-        "line": 3,
+        "line": 4,
         "name": "Callable",
         "optional": false,
         "requested": "collections.abc",
@@ -17342,7 +17691,7 @@
         "conditional": false,
         "imported": "pathlib:Path",
         "kind": "static_from",
-        "line": 4,
+        "line": 5,
         "name": "Path",
         "optional": false,
         "requested": "pathlib",
@@ -17359,7 +17708,7 @@
         "conditional": false,
         "imported": "typing:Protocol",
         "kind": "static_from",
-        "line": 5,
+        "line": 6,
         "name": "Protocol",
         "optional": false,
         "requested": "typing",
@@ -17376,7 +17725,7 @@
         "conditional": false,
         "imported": "typing:cast",
         "kind": "static_from",
-        "line": 5,
+        "line": 6,
         "name": "cast",
         "optional": false,
         "requested": "typing",
@@ -17393,7 +17742,7 @@
         "conditional": false,
         "imported": "...autocomplete.contracts:AutocompleteClassificationPayload",
         "kind": "static_from",
-        "line": 7,
+        "line": 8,
         "name": "AutocompleteClassificationPayload",
         "optional": false,
         "requested": "...autocomplete.contracts",
@@ -17411,7 +17760,7 @@
         "conditional": false,
         "imported": "...autocomplete.contracts:AutocompletePublicClassificationPayload",
         "kind": "static_from",
-        "line": 7,
+        "line": 8,
         "name": "AutocompletePublicClassificationPayload",
         "optional": false,
         "requested": "...autocomplete.contracts",
@@ -17429,7 +17778,7 @@
         "conditional": false,
         "imported": "...autocomplete.contracts:AutocompletePublicSearchPayload",
         "kind": "static_from",
-        "line": 7,
+        "line": 8,
         "name": "AutocompletePublicSearchPayload",
         "optional": false,
         "requested": "...autocomplete.contracts",
@@ -17447,7 +17796,7 @@
         "conditional": false,
         "imported": "...autocomplete.contracts:AutocompletePublicSourcePayload",
         "kind": "static_from",
-        "line": 7,
+        "line": 8,
         "name": "AutocompletePublicSourcePayload",
         "optional": false,
         "requested": "...autocomplete.contracts",
@@ -17465,7 +17814,7 @@
         "conditional": false,
         "imported": "...autocomplete.contracts:AutocompletePublicStatusPayload",
         "kind": "static_from",
-        "line": 7,
+        "line": 8,
         "name": "AutocompletePublicStatusPayload",
         "optional": false,
         "requested": "...autocomplete.contracts",
@@ -17483,7 +17832,7 @@
         "conditional": false,
         "imported": "...autocomplete.contracts:AutocompletePublicStatusResultPayload",
         "kind": "static_from",
-        "line": 7,
+        "line": 8,
         "name": "AutocompletePublicStatusResultPayload",
         "optional": false,
         "requested": "...autocomplete.contracts",
@@ -17501,7 +17850,7 @@
         "conditional": false,
         "imported": "...autocomplete.contracts:AutocompleteSearchPayload",
         "kind": "static_from",
-        "line": 7,
+        "line": 8,
         "name": "AutocompleteSearchPayload",
         "optional": false,
         "requested": "...autocomplete.contracts",
@@ -17519,7 +17868,7 @@
         "conditional": false,
         "imported": "...autocomplete.contracts:AutocompleteSourcePayload",
         "kind": "static_from",
-        "line": 7,
+        "line": 8,
         "name": "AutocompleteSourcePayload",
         "optional": false,
         "requested": "...autocomplete.contracts",
@@ -17537,7 +17886,7 @@
         "conditional": false,
         "imported": "...autocomplete.contracts:AutocompleteStatusPayload",
         "kind": "static_from",
-        "line": 7,
+        "line": 8,
         "name": "AutocompleteStatusPayload",
         "optional": false,
         "requested": "...autocomplete.contracts",
@@ -18229,6 +18578,126 @@
         "requested": "__future__",
         "role": "ordinary",
         "scope": "<module>",
+        "source": "easyuse_anima/autocomplete/custom_sources.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "hashlib",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "hashlib",
+        "kind": "static_import",
+        "line": 5,
+        "name": null,
+        "optional": false,
+        "requested": "hashlib",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/autocomplete/custom_sources.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "io",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "io",
+        "kind": "static_import",
+        "line": 6,
+        "name": null,
+        "optional": false,
+        "requested": "io",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/autocomplete/custom_sources.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "os",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "os",
+        "kind": "static_import",
+        "line": 7,
+        "name": null,
+        "optional": false,
+        "requested": "os",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/autocomplete/custom_sources.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "stat",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "stat",
+        "kind": "static_import",
+        "line": 8,
+        "name": null,
+        "optional": false,
+        "requested": "stat",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/autocomplete/custom_sources.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "Path",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "pathlib:Path",
+        "kind": "static_from",
+        "line": 9,
+        "name": "Path",
+        "optional": false,
+        "requested": "pathlib",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/autocomplete/custom_sources.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "USER_DATA_DIR",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": "..infrastructure.filesystem.paths:USER_DATA_DIR",
+        "kind": "static_from",
+        "line": 11,
+        "name": "USER_DATA_DIR",
+        "optional": false,
+        "requested": "..infrastructure.filesystem.paths",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/autocomplete/custom_sources.py",
+        "target": "easyuse_anima/infrastructure/filesystem/paths.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "annotations",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "__future__:annotations",
+        "kind": "static_from",
+        "line": 3,
+        "name": "annotations",
+        "optional": false,
+        "requested": "__future__",
+        "role": "ordinary",
+        "scope": "<module>",
         "source": "easyuse_anima/autocomplete/dataset.py"
       },
       {
@@ -18505,6 +18974,78 @@
         "scope": "<module>",
         "source": "easyuse_anima/autocomplete/dataset.py",
         "target": "easyuse_anima/autocomplete/contracts.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "custom_csv_sources",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".custom_sources:custom_csv_sources",
+        "kind": "static_from",
+        "line": 20,
+        "name": "custom_csv_sources",
+        "optional": false,
+        "requested": ".custom_sources",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/autocomplete/dataset.py",
+        "target": "easyuse_anima/autocomplete/custom_sources.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "is_custom_csv",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".custom_sources:is_custom_csv",
+        "kind": "static_from",
+        "line": 20,
+        "name": "is_custom_csv",
+        "optional": false,
+        "requested": ".custom_sources",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/autocomplete/dataset.py",
+        "target": "easyuse_anima/autocomplete/custom_sources.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "read_custom_csv",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".custom_sources:read_custom_csv",
+        "kind": "static_from",
+        "line": 20,
+        "name": "read_custom_csv",
+        "optional": false,
+        "requested": ".custom_sources",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/autocomplete/dataset.py",
+        "target": "easyuse_anima/autocomplete/custom_sources.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "validate_custom_csv",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".custom_sources:validate_custom_csv",
+        "kind": "static_from",
+        "line": 20,
+        "name": "validate_custom_csv",
+        "optional": false,
+        "requested": ".custom_sources",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/autocomplete/dataset.py",
+        "target": "easyuse_anima/autocomplete/custom_sources.py"
       },
       {
         "alias": null,
@@ -25565,6 +26106,42 @@
         "role": "ordinary",
         "scope": "<module>",
         "source": "easyuse_anima/nodes/input_types.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "EASYUSE_ANIMA_AIO_HOOK_TYPE",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": "..aio.hooks.contracts:EASYUSE_ANIMA_AIO_HOOK_TYPE",
+        "kind": "static_from",
+        "line": 3,
+        "name": "EASYUSE_ANIMA_AIO_HOOK_TYPE",
+        "optional": false,
+        "requested": "..aio.hooks.contracts",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/nodes/ipadapter_nodes.py",
+        "target": "easyuse_anima/aio/hooks/contracts.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "IPAdapterHook",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": "..aio.ipadapter_hook:IPAdapterHook",
+        "kind": "static_from",
+        "line": 4,
+        "name": "IPAdapterHook",
+        "optional": false,
+        "requested": "..aio.ipadapter_hook",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/nodes/ipadapter_nodes.py",
+        "target": "easyuse_anima/aio/ipadapter_hook.py"
       },
       {
         "alias": null,
@@ -40543,6 +41120,24 @@
       },
       {
         "alias": null,
+        "bound_name": "EasyAnimaIPAdapterHook",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".nodes.ipadapter_nodes:EasyAnimaIPAdapterHook",
+        "kind": "static_from",
+        "line": 12,
+        "name": "EasyAnimaIPAdapterHook",
+        "optional": false,
+        "requested": ".nodes.ipadapter_nodes",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/registration.py",
+        "target": "easyuse_anima/nodes/ipadapter_nodes.py"
+      },
+      {
+        "alias": null,
         "bound_name": "EasyUseAnimaLoraPreset",
         "branch_context": [],
         "classification": "internal",
@@ -40550,7 +41145,7 @@
         "conditional": false,
         "imported": ".nodes.lora_nodes:EasyUseAnimaLoraPreset",
         "kind": "static_from",
-        "line": 12,
+        "line": 13,
         "name": "EasyUseAnimaLoraPreset",
         "optional": false,
         "requested": ".nodes.lora_nodes",
@@ -40568,7 +41163,7 @@
         "conditional": false,
         "imported": ".nodes.naia_nodes:EasyUseAnimaNAIARandomPrompt",
         "kind": "static_from",
-        "line": 13,
+        "line": 14,
         "name": "EasyUseAnimaNAIARandomPrompt",
         "optional": false,
         "requested": ".nodes.naia_nodes",
@@ -40586,7 +41181,7 @@
         "conditional": false,
         "imported": ".nodes.prompt_advanced_nodes:EasyUseAnimaPromptStudioAdvanced",
         "kind": "static_from",
-        "line": 14,
+        "line": 15,
         "name": "EasyUseAnimaPromptStudioAdvanced",
         "optional": false,
         "requested": ".nodes.prompt_advanced_nodes",
@@ -40604,7 +41199,7 @@
         "conditional": false,
         "imported": ".nodes.prompt_advanced_nodes:EasyUseAnimaPromptStudioAdvancedV2",
         "kind": "static_from",
-        "line": 14,
+        "line": 15,
         "name": "EasyUseAnimaPromptStudioAdvancedV2",
         "optional": false,
         "requested": ".nodes.prompt_advanced_nodes",
@@ -40622,7 +41217,7 @@
         "conditional": false,
         "imported": ".nodes.prompt_data_nodes:EasyUseAnimaArtistMixConditioning",
         "kind": "static_from",
-        "line": 18,
+        "line": 19,
         "name": "EasyUseAnimaArtistMixConditioning",
         "optional": false,
         "requested": ".nodes.prompt_data_nodes",
@@ -40640,7 +41235,7 @@
         "conditional": false,
         "imported": ".nodes.prompt_data_nodes:EasyUseAnimaPromptDataConditioning",
         "kind": "static_from",
-        "line": 18,
+        "line": 19,
         "name": "EasyUseAnimaPromptDataConditioning",
         "optional": false,
         "requested": ".nodes.prompt_data_nodes",
@@ -40658,7 +41253,7 @@
         "conditional": false,
         "imported": ".nodes.prompt_data_nodes:EasyUseAnimaPromptDataUnpack",
         "kind": "static_from",
-        "line": 18,
+        "line": 19,
         "name": "EasyUseAnimaPromptDataUnpack",
         "optional": false,
         "requested": ".nodes.prompt_data_nodes",
@@ -40676,7 +41271,7 @@
         "conditional": false,
         "imported": ".nodes.prompt_lora_nodes:EasyUseAnimaPromptStudioAdvancedLora",
         "kind": "static_from",
-        "line": 23,
+        "line": 24,
         "name": "EasyUseAnimaPromptStudioAdvancedLora",
         "optional": false,
         "requested": ".nodes.prompt_lora_nodes",
@@ -40694,7 +41289,7 @@
         "conditional": false,
         "imported": ".nodes.prompt_nodes:EasyUseAnimaPromptBuilder",
         "kind": "static_from",
-        "line": 24,
+        "line": 25,
         "name": "EasyUseAnimaPromptBuilder",
         "optional": false,
         "requested": ".nodes.prompt_nodes",
@@ -40712,7 +41307,7 @@
         "conditional": false,
         "imported": ".nodes.prompt_nodes:EasyUseAnimaPromptCorrector",
         "kind": "static_from",
-        "line": 24,
+        "line": 25,
         "name": "EasyUseAnimaPromptCorrector",
         "optional": false,
         "requested": ".nodes.prompt_nodes",
@@ -40730,7 +41325,7 @@
         "conditional": false,
         "imported": ".nodes.prompt_nodes:EasyUseAnimaPromptCorrectorSimple",
         "kind": "static_from",
-        "line": 24,
+        "line": 25,
         "name": "EasyUseAnimaPromptCorrectorSimple",
         "optional": false,
         "requested": ".nodes.prompt_nodes",
@@ -40748,7 +41343,7 @@
         "conditional": false,
         "imported": ".nodes.prompt_nodes:EasyUseAnimaPromptStudio",
         "kind": "static_from",
-        "line": 24,
+        "line": 25,
         "name": "EasyUseAnimaPromptStudio",
         "optional": false,
         "requested": ".nodes.prompt_nodes",
@@ -40766,7 +41361,7 @@
         "conditional": false,
         "imported": ".nodes.regional_nodes:EasyUseAnimaPromptStudioRegional",
         "kind": "static_from",
-        "line": 30,
+        "line": 31,
         "name": "EasyUseAnimaPromptStudioRegional",
         "optional": false,
         "requested": ".nodes.regional_nodes",
@@ -40784,7 +41379,7 @@
         "conditional": false,
         "imported": ".nodes.regional_nodes:EasyUseAnimaRegionalConditioning",
         "kind": "static_from",
-        "line": 30,
+        "line": 31,
         "name": "EasyUseAnimaRegionalConditioning",
         "optional": false,
         "requested": ".nodes.regional_nodes",
@@ -40802,7 +41397,7 @@
         "conditional": false,
         "imported": ".nodes.safe_pag_nodes:EasyAnimaSafePAG",
         "kind": "static_from",
-        "line": 34,
+        "line": 35,
         "name": "EasyAnimaSafePAG",
         "optional": false,
         "requested": ".nodes.safe_pag_nodes",
@@ -40820,7 +41415,7 @@
         "conditional": false,
         "imported": ".nodes.wildcard_nodes:EasyUseAnimaWildcard",
         "kind": "static_from",
-        "line": 35,
+        "line": 36,
         "name": "EasyUseAnimaWildcard",
         "optional": false,
         "requested": ".nodes.wildcard_nodes",
@@ -40838,7 +41433,7 @@
         "conditional": false,
         "imported": ".nodes.wildcard_nodes:EasyUseAnimaWildcardLora",
         "kind": "static_from",
-        "line": 35,
+        "line": 36,
         "name": "EasyUseAnimaWildcardLora",
         "optional": false,
         "requested": ".nodes.wildcard_nodes",
@@ -46122,6 +46717,18 @@
         "to": "easyuse_anima/prompt/data.py"
       },
       {
+        "from": "easyuse_anima/aio/ipadapter_hook.py",
+        "to": "easyuse_anima/aio/hooks/contracts.py"
+      },
+      {
+        "from": "easyuse_anima/aio/ipadapter_hook.py",
+        "to": "easyuse_anima/aio/ipadapter_lifecycle.py"
+      },
+      {
+        "from": "easyuse_anima/aio/ipadapter_hook.py",
+        "to": "easyuse_anima/infrastructure/comfy/capabilities.py"
+      },
+      {
         "from": "easyuse_anima/aio/legacy_generation.py",
         "to": "easyuse_anima/aio/conditioning.py"
       },
@@ -46710,8 +47317,16 @@
         "to": "easyuse_anima/translation/markers.py"
       },
       {
+        "from": "easyuse_anima/autocomplete/custom_sources.py",
+        "to": "easyuse_anima/infrastructure/filesystem/paths.py"
+      },
+      {
         "from": "easyuse_anima/autocomplete/dataset.py",
         "to": "easyuse_anima/autocomplete/contracts.py"
+      },
+      {
+        "from": "easyuse_anima/autocomplete/dataset.py",
+        "to": "easyuse_anima/autocomplete/custom_sources.py"
       },
       {
         "from": "easyuse_anima/autocomplete/dataset.py",
@@ -47096,6 +47711,14 @@
       {
         "from": "easyuse_anima/nodes/image_output_nodes.py",
         "to": "easyuse_anima/aio/native_image_output.py"
+      },
+      {
+        "from": "easyuse_anima/nodes/ipadapter_nodes.py",
+        "to": "easyuse_anima/aio/hooks/contracts.py"
+      },
+      {
+        "from": "easyuse_anima/nodes/ipadapter_nodes.py",
+        "to": "easyuse_anima/aio/ipadapter_hook.py"
       },
       {
         "from": "easyuse_anima/nodes/lora_nodes.py",
@@ -47927,6 +48550,10 @@
       },
       {
         "from": "easyuse_anima/registration.py",
+        "to": "easyuse_anima/nodes/ipadapter_nodes.py"
+      },
+      {
+        "from": "easyuse_anima/registration.py",
         "to": "easyuse_anima/nodes/lora_nodes.py"
       },
       {
@@ -48406,6 +49033,18 @@
       {
         "cyclic": false,
         "modules": [
+          "easyuse_anima/aio/ipadapter_hook.py"
+        ]
+      },
+      {
+        "cyclic": false,
+        "modules": [
+          "easyuse_anima/aio/ipadapter_lifecycle.py"
+        ]
+      },
+      {
+        "cyclic": false,
+        "modules": [
           "easyuse_anima/aio/legacy_detailer.py"
         ]
       },
@@ -48736,6 +49375,12 @@
       {
         "cyclic": false,
         "modules": [
+          "easyuse_anima/autocomplete/custom_sources.py"
+        ]
+      },
+      {
+        "cyclic": false,
+        "modules": [
           "easyuse_anima/autocomplete/dataset.py"
         ]
       },
@@ -49001,6 +49646,12 @@
         "cyclic": false,
         "modules": [
           "easyuse_anima/nodes/input_types.py"
+        ]
+      },
+      {
+        "cyclic": false,
+        "modules": [
+          "easyuse_anima/nodes/ipadapter_nodes.py"
         ]
       },
       {
@@ -49456,7 +50107,7 @@
     ]
   },
   "inventory": {
-    "module_count": 209,
+    "module_count": 213,
     "modules": [
       {
         "functions": [
@@ -51931,6 +52582,122 @@
           "class_count": 0,
           "function_count": 0,
           "global_count": 10
+        }
+      },
+      {
+        "functions": [
+          {
+            "async": false,
+            "end_line": 41,
+            "kind": "function",
+            "line": 24,
+            "loc": 18,
+            "qualified_name": "resolve_apply"
+          },
+          {
+            "async": false,
+            "end_line": 56,
+            "kind": "function",
+            "line": 44,
+            "loc": 13,
+            "qualified_name": "validate_options"
+          },
+          {
+            "async": false,
+            "end_line": 61,
+            "kind": "method",
+            "line": 60,
+            "loc": 2,
+            "qualified_name": "IPAdapterSample.__init__"
+          },
+          {
+            "async": false,
+            "end_line": 87,
+            "kind": "method",
+            "line": 63,
+            "loc": 25,
+            "qualified_name": "IPAdapterSample.__call__"
+          },
+          {
+            "async": false,
+            "end_line": 92,
+            "kind": "method",
+            "line": 91,
+            "loc": 2,
+            "qualified_name": "IPAdapterSession.__init__"
+          },
+          {
+            "async": false,
+            "end_line": 125,
+            "kind": "method",
+            "line": 94,
+            "loc": 32,
+            "qualified_name": "IPAdapterSession.before_stage"
+          },
+          {
+            "async": false,
+            "end_line": 133,
+            "kind": "method",
+            "line": 129,
+            "loc": 5,
+            "qualified_name": "IPAdapterHook.__init__"
+          },
+          {
+            "async": false,
+            "end_line": 141,
+            "kind": "method",
+            "line": 135,
+            "loc": 7,
+            "qualified_name": "IPAdapterHook.describe"
+          },
+          {
+            "async": false,
+            "end_line": 144,
+            "kind": "method",
+            "line": 143,
+            "loc": 2,
+            "qualified_name": "IPAdapterHook.create_session"
+          }
+        ],
+        "is_package": false,
+        "loc": 147,
+        "module": "easyuse_anima.aio.ipadapter_hook",
+        "normalized_git_blob_sha1": "1795a46a18a62f41d19cea7f2b1f7d5f14e14a71",
+        "path": "easyuse_anima/aio/ipadapter_hook.py",
+        "top_level": {
+          "class_count": 3,
+          "function_count": 2,
+          "global_count": 4
+        }
+      },
+      {
+        "functions": [
+          {
+            "async": false,
+            "end_line": 42,
+            "kind": "function",
+            "line": 18,
+            "loc": 25,
+            "qualified_name": "validate_clean_model"
+          },
+          {
+            "async": false,
+            "end_line": 92,
+            "kind": "function",
+            "line": 45,
+            "loc": 48,
+            "qualified_name": "temporary_ipadapter"
+          }
+        ],
+        "is_package": false,
+        "loc": 95,
+        "module": "easyuse_anima.aio.ipadapter_lifecycle",
+        "normalized_git_blob_sha1": "2bd175a58c15c873fa8aa8d4078df41c9f44ef94",
+        "path": "easyuse_anima/aio/ipadapter_lifecycle.py",
+        "top_level": {
+          "class_count": 0,
+          "function_count": 2,
+          "global_count": 7
         }
       },
       {
@@ -55822,117 +56589,125 @@
         "functions": [
           {
             "async": false,
-            "end_line": 28,
+            "end_line": 29,
             "kind": "method",
-            "line": 21,
+            "line": 22,
             "loc": 8,
             "qualified_name": "_SearchAutocomplete.__call__"
           },
           {
             "async": false,
-            "end_line": 38,
+            "end_line": 39,
             "kind": "method",
-            "line": 32,
+            "line": 33,
             "loc": 7,
             "qualified_name": "_ClassifyPromptText.__call__"
           },
           {
             "async": false,
-            "end_line": 158,
+            "end_line": 57,
             "kind": "function",
-            "line": 41,
-            "loc": 118,
+            "line": 42,
+            "loc": 16,
+            "qualified_name": "_read_source_status"
+          },
+          {
+            "async": false,
+            "end_line": 178,
+            "kind": "function",
+            "line": 60,
+            "loc": 119,
             "qualified_name": "build_autocomplete_payloads"
           },
           {
             "async": false,
-            "end_line": 90,
+            "end_line": 110,
             "kind": "function",
-            "line": 64,
-            "loc": 27,
+            "line": 83,
+            "loc": 28,
             "qualified_name": "build_autocomplete_payloads._autocomplete_status_payload_sync"
           },
           {
             "async": false,
-            "end_line": 99,
+            "end_line": 119,
             "kind": "function",
-            "line": 92,
+            "line": 112,
             "loc": 8,
             "qualified_name": "build_autocomplete_payloads._public_autocomplete_status"
           },
           {
             "async": false,
-            "end_line": 111,
+            "end_line": 131,
             "kind": "function",
-            "line": 101,
+            "line": 121,
             "loc": 11,
             "qualified_name": "build_autocomplete_payloads._public_autocomplete_payload"
           },
           {
             "async": false,
-            "end_line": 138,
+            "end_line": 158,
             "kind": "function",
-            "line": 113,
+            "line": 133,
             "loc": 26,
             "qualified_name": "build_autocomplete_payloads._search_autocomplete_payload_sync"
           },
           {
             "async": false,
-            "end_line": 150,
+            "end_line": 170,
             "kind": "function",
-            "line": 140,
+            "line": 160,
             "loc": 11,
             "qualified_name": "build_autocomplete_payloads._classify_prompt_payload_sync"
           },
           {
             "async": false,
-            "end_line": 191,
+            "end_line": 211,
             "kind": "function",
-            "line": 161,
+            "line": 181,
             "loc": 31,
             "qualified_name": "build_autocomplete_handlers"
           },
           {
             "async": true,
-            "end_line": 173,
+            "end_line": 193,
             "kind": "function",
-            "line": 170,
+            "line": 190,
             "loc": 4,
             "qualified_name": "build_autocomplete_handlers.autocomplete_status_handler"
           },
           {
             "async": true,
-            "end_line": 189,
+            "end_line": 209,
             "kind": "function",
-            "line": 175,
+            "line": 195,
             "loc": 15,
             "qualified_name": "build_autocomplete_handlers.autocomplete_handler"
           },
           {
             "async": false,
-            "end_line": 224,
+            "end_line": 244,
             "kind": "function",
-            "line": 194,
+            "line": 214,
             "loc": 31,
             "qualified_name": "build_classify_prompt_handler"
           },
           {
             "async": true,
-            "end_line": 222,
+            "end_line": 242,
             "kind": "function",
-            "line": 207,
+            "line": 227,
             "loc": 16,
             "qualified_name": "build_classify_prompt_handler.classify_prompt_handler"
           }
         ],
         "is_package": false,
-        "loc": 230,
+        "loc": 250,
         "module": "easyuse_anima.api.routes.autocomplete",
-        "normalized_git_blob_sha1": "e3201a5938c1f264a6f5ca7a159a9fd3dc7ef466",
+        "normalized_git_blob_sha1": "8c82bbfb4e475bd0af3cb9a1558c91511d09cf72",
         "path": "easyuse_anima/api/routes/autocomplete.py",
         "top_level": {
           "class_count": 2,
-          "function_count": 3,
+          "function_count": 4,
           "global_count": 1
         }
       },
@@ -56624,12 +57399,12 @@
       {
         "functions": [],
         "is_package": false,
-        "loc": 99,
+        "loc": 105,
         "module": "easyuse_anima.autocomplete.contracts",
-        "normalized_git_blob_sha1": "e73153a038368dc5c5f4eb35b15e3ac69d069b7a",
+        "normalized_git_blob_sha1": "54ba8ba5b5b7fc78ff00bf95f08dfe5f033e79e9",
         "path": "easyuse_anima/autocomplete/contracts.py",
         "top_level": {
-          "class_count": 13,
+          "class_count": 14,
           "function_count": 0,
           "global_count": 1
         }
@@ -56638,265 +57413,327 @@
         "functions": [
           {
             "async": false,
-            "end_line": 160,
+            "end_line": 17,
+            "kind": "function",
+            "line": 16,
+            "loc": 2,
+            "qualified_name": "_root"
+          },
+          {
+            "async": false,
+            "end_line": 24,
+            "kind": "function",
+            "line": 20,
+            "loc": 5,
+            "qualified_name": "_plain_stat"
+          },
+          {
+            "async": false,
+            "end_line": 38,
+            "kind": "function",
+            "line": 27,
+            "loc": 12,
+            "qualified_name": "validate_custom_csv"
+          },
+          {
+            "async": false,
+            "end_line": 44,
+            "kind": "function",
+            "line": 41,
+            "loc": 4,
+            "qualified_name": "is_custom_csv"
+          },
+          {
+            "async": false,
+            "end_line": 65,
+            "kind": "function",
+            "line": 47,
+            "loc": 19,
+            "qualified_name": "custom_csv_sources"
+          },
+          {
+            "async": false,
+            "end_line": 82,
+            "kind": "function",
+            "line": 68,
+            "loc": 15,
+            "qualified_name": "read_custom_csv"
+          }
+        ],
+        "is_package": false,
+        "loc": 82,
+        "module": "easyuse_anima.autocomplete.custom_sources",
+        "normalized_git_blob_sha1": "bc1b266ade3bd51875f9558dc8b3575dff31f4c6",
+        "path": "easyuse_anima/autocomplete/custom_sources.py",
+        "top_level": {
+          "class_count": 0,
+          "function_count": 6,
+          "global_count": 1
+        }
+      },
+      {
+        "functions": [
+          {
+            "async": false,
+            "end_line": 166,
             "kind": "method",
-            "line": 159,
+            "line": 165,
             "loc": 2,
             "qualified_name": "_AutocompleteSnapshot.lookup"
           },
           {
             "async": false,
-            "end_line": 174,
+            "end_line": 180,
             "kind": "method",
-            "line": 168,
+            "line": 174,
             "loc": 7,
             "qualified_name": "_AutocompleteSnapshotStore.__init__"
           },
           {
             "async": false,
-            "end_line": 178,
+            "end_line": 184,
             "kind": "method",
-            "line": 176,
+            "line": 182,
             "loc": 3,
             "qualified_name": "_AutocompleteSnapshotStore.clear"
           },
           {
             "async": false,
-            "end_line": 188,
+            "end_line": 194,
             "kind": "method",
-            "line": 180,
+            "line": 186,
             "loc": 9,
             "qualified_name": "_AutocompleteSnapshotStore.cached_snapshot_for_key"
           },
           {
             "async": false,
-            "end_line": 240,
+            "end_line": 246,
             "kind": "method",
-            "line": 190,
+            "line": 196,
             "loc": 51,
             "qualified_name": "_AutocompleteSnapshotStore.snapshot_for_key"
           },
           {
             "async": false,
-            "end_line": 254,
+            "end_line": 264,
             "kind": "function",
-            "line": 246,
-            "loc": 9,
+            "line": 252,
+            "loc": 13,
             "qualified_name": "resolve_autocomplete_source"
           },
           {
             "async": false,
-            "end_line": 275,
+            "end_line": 295,
             "kind": "function",
-            "line": 257,
-            "loc": 19,
+            "line": 267,
+            "loc": 29,
             "qualified_name": "available_autocomplete_sources"
           },
           {
             "async": false,
-            "end_line": 283,
+            "end_line": 303,
             "kind": "function",
-            "line": 278,
+            "line": 298,
             "loc": 6,
             "qualified_name": "_normalize"
           },
           {
             "async": false,
-            "end_line": 290,
+            "end_line": 310,
             "kind": "function",
-            "line": 286,
+            "line": 306,
             "loc": 5,
             "qualified_name": "_display_description"
           },
           {
             "async": false,
-            "end_line": 308,
+            "end_line": 328,
             "kind": "function",
-            "line": 293,
+            "line": 313,
             "loc": 16,
             "qualified_name": "_category_from_description"
           },
           {
             "async": false,
-            "end_line": 315,
+            "end_line": 335,
             "kind": "function",
-            "line": 311,
+            "line": 331,
             "loc": 5,
             "qualified_name": "_safe_count"
           },
           {
             "async": false,
-            "end_line": 324,
+            "end_line": 344,
             "kind": "function",
-            "line": 318,
+            "line": 338,
             "loc": 7,
             "qualified_name": "_source_kind_from_path"
           },
           {
             "async": false,
-            "end_line": 337,
+            "end_line": 357,
             "kind": "function",
-            "line": 327,
+            "line": 347,
             "loc": 11,
             "qualified_name": "_normalize_category"
           },
           {
             "async": false,
-            "end_line": 363,
+            "end_line": 383,
             "kind": "function",
-            "line": 340,
+            "line": 360,
             "loc": 24,
             "qualified_name": "_entry_from_parts"
           },
           {
             "async": false,
-            "end_line": 370,
+            "end_line": 390,
             "kind": "function",
-            "line": 366,
+            "line": 386,
             "loc": 5,
             "qualified_name": "_looks_like_header"
           },
           {
             "async": false,
-            "end_line": 407,
+            "end_line": 430,
             "kind": "function",
-            "line": 373,
-            "loc": 35,
+            "line": 393,
+            "loc": 38,
             "qualified_name": "_load_entries"
           },
           {
             "async": false,
-            "end_line": 428,
+            "end_line": 451,
             "kind": "function",
-            "line": 410,
+            "line": 433,
             "loc": 19,
             "qualified_name": "_cache_key_from_resolved_path"
           },
           {
             "async": false,
-            "end_line": 432,
+            "end_line": 457,
             "kind": "function",
-            "line": 431,
-            "loc": 2,
+            "line": 454,
+            "loc": 4,
             "qualified_name": "_cache_key"
-          },
-          {
-            "async": false,
-            "end_line": 441,
-            "kind": "function",
-            "line": 435,
-            "loc": 7,
-            "qualified_name": "_build_snapshot"
-          },
-          {
-            "async": false,
-            "end_line": 445,
-            "kind": "function",
-            "line": 444,
-            "loc": 2,
-            "qualified_name": "_await_snapshot"
-          },
-          {
-            "async": false,
-            "end_line": 449,
-            "kind": "function",
-            "line": 448,
-            "loc": 2,
-            "qualified_name": "_snapshot_for_key"
           },
           {
             "async": false,
             "end_line": 466,
             "kind": "function",
-            "line": 452,
+            "line": 460,
+            "loc": 7,
+            "qualified_name": "_build_snapshot"
+          },
+          {
+            "async": false,
+            "end_line": 470,
+            "kind": "function",
+            "line": 469,
+            "loc": 2,
+            "qualified_name": "_await_snapshot"
+          },
+          {
+            "async": false,
+            "end_line": 474,
+            "kind": "function",
+            "line": 473,
+            "loc": 2,
+            "qualified_name": "_snapshot_for_key"
+          },
+          {
+            "async": false,
+            "end_line": 491,
+            "kind": "function",
+            "line": 477,
             "loc": 15,
             "qualified_name": "_snapshot_with_owner"
           },
           {
             "async": false,
-            "end_line": 473,
+            "end_line": 498,
             "kind": "function",
-            "line": 469,
+            "line": 494,
             "loc": 5,
             "qualified_name": "_snapshot"
           },
           {
             "async": false,
-            "end_line": 477,
+            "end_line": 502,
             "kind": "function",
-            "line": 476,
+            "line": 501,
             "loc": 2,
             "qualified_name": "_entries"
           },
           {
             "async": false,
-            "end_line": 481,
+            "end_line": 506,
             "kind": "function",
-            "line": 480,
+            "line": 505,
             "loc": 2,
             "qualified_name": "_entry_map"
           },
           {
             "async": false,
-            "end_line": 489,
+            "end_line": 514,
             "kind": "function",
-            "line": 484,
+            "line": 509,
             "loc": 6,
             "qualified_name": "autocomplete_entry_lookup"
           },
           {
             "async": false,
-            "end_line": 503,
+            "end_line": 528,
             "kind": "function",
-            "line": 492,
+            "line": 517,
             "loc": 12,
             "qualified_name": "_status_from_key"
           },
           {
             "async": false,
-            "end_line": 510,
+            "end_line": 535,
             "kind": "function",
-            "line": 506,
+            "line": 531,
             "loc": 5,
             "qualified_name": "_snapshot_status"
           },
           {
             "async": false,
-            "end_line": 516,
+            "end_line": 541,
             "kind": "function",
-            "line": 513,
+            "line": 538,
             "loc": 4,
             "qualified_name": "_cached_snapshot_for_key"
           },
           {
             "async": false,
-            "end_line": 531,
+            "end_line": 556,
             "kind": "function",
-            "line": 519,
+            "line": 544,
             "loc": 13,
             "qualified_name": "_builtin_manifest_entry_count"
           },
           {
             "async": false,
-            "end_line": 557,
+            "end_line": 582,
             "kind": "function",
-            "line": 534,
+            "line": 559,
             "loc": 24,
             "qualified_name": "_autocomplete_status_with_owner"
           },
           {
             "async": false,
-            "end_line": 567,
+            "end_line": 592,
             "kind": "function",
-            "line": 560,
+            "line": 585,
             "loc": 8,
             "qualified_name": "autocomplete_status"
           }
         ],
         "is_package": false,
-        "loc": 585,
+        "loc": 610,
         "module": "easyuse_anima.autocomplete.dataset",
-        "normalized_git_blob_sha1": "e32386db2ccfa9ad1ec52b1b7f32aec98607ec84",
+        "normalized_git_blob_sha1": "79d67be09a9d69c3056d50cb6095766888b3cdf4",
         "path": "easyuse_anima/autocomplete/dataset.py",
         "top_level": {
           "class_count": 7,
@@ -59743,6 +60580,36 @@
           "class_count": 2,
           "function_count": 0,
           "global_count": 2
+        }
+      },
+      {
+        "functions": [
+          {
+            "async": false,
+            "end_line": 26,
+            "kind": "method",
+            "line": 14,
+            "loc": 13,
+            "qualified_name": "EasyAnimaIPAdapterHook.INPUT_TYPES"
+          },
+          {
+            "async": false,
+            "end_line": 41,
+            "kind": "method",
+            "line": 33,
+            "loc": 9,
+            "qualified_name": "EasyAnimaIPAdapterHook.build"
+          }
+        ],
+        "is_package": false,
+        "loc": 44,
+        "module": "easyuse_anima.nodes.ipadapter_nodes",
+        "normalized_git_blob_sha1": "cbf32d46d531eef606683d6164a86352eae25e79",
+        "path": "easyuse_anima/nodes/ipadapter_nodes.py",
+        "top_level": {
+          "class_count": 1,
+          "function_count": 0,
+          "global_count": 1
         }
       },
       {
@@ -62929,9 +63796,9 @@
       {
         "functions": [],
         "is_package": false,
-        "loc": 95,
+        "loc": 98,
         "module": "easyuse_anima.registration",
-        "normalized_git_blob_sha1": "8526b48e1b4c4f70e9a934582b3344fd6efcef84",
+        "normalized_git_blob_sha1": "ae382b502111daea37cdf49326f872f6fae53cc3",
         "path": "easyuse_anima/registration.py",
         "top_level": {
           "class_count": 0,
@@ -66831,6 +67698,116 @@
         "branch_context": [],
         "classification": "external",
         "conditional": false,
+        "imported": "hashlib",
+        "kind": "static_import",
+        "line": 3,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/ipadapter_hook.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "inspect",
+        "kind": "static_import",
+        "line": 4,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/ipadapter_hook.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "pathlib:Path",
+        "kind": "static_from",
+        "line": 5,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/ipadapter_hook.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "typing:Any",
+        "kind": "static_from",
+        "line": 6,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/ipadapter_hook.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "typing:cast",
+        "kind": "static_from",
+        "line": 6,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/ipadapter_hook.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "comfy.model_patcher",
+        "kind": "static_import",
+        "line": 64,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/ipadapter_hook.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "torch",
+        "kind": "static_import",
+        "line": 95,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/ipadapter_hook.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "comfy.patcher_extension:WrappersMP",
+        "kind": "static_from",
+        "line": 96,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/ipadapter_hook.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "contextlib:contextmanager",
+        "kind": "static_from",
+        "line": 3,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/ipadapter_lifecycle.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "threading:RLock",
+        "kind": "static_from",
+        "line": 4,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/aio/ipadapter_lifecycle.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
         "imported": "__future__:annotations",
         "kind": "static_from",
         "line": 1,
@@ -70056,8 +71033,8 @@
         "branch_context": [],
         "classification": "external",
         "conditional": false,
-        "imported": "collections.abc:Callable",
-        "kind": "static_from",
+        "imported": "csv",
+        "kind": "static_import",
         "line": 3,
         "optional": false,
         "role": "ordinary",
@@ -70067,7 +71044,7 @@
         "branch_context": [],
         "classification": "external",
         "conditional": false,
-        "imported": "pathlib:Path",
+        "imported": "collections.abc:Callable",
         "kind": "static_from",
         "line": 4,
         "optional": false,
@@ -70078,7 +71055,7 @@
         "branch_context": [],
         "classification": "external",
         "conditional": false,
-        "imported": "typing:Protocol",
+        "imported": "pathlib:Path",
         "kind": "static_from",
         "line": 5,
         "optional": false,
@@ -70089,9 +71066,20 @@
         "branch_context": [],
         "classification": "external",
         "conditional": false,
+        "imported": "typing:Protocol",
+        "kind": "static_from",
+        "line": 6,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/api/routes/autocomplete.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
         "imported": "typing:cast",
         "kind": "static_from",
-        "line": 5,
+        "line": 6,
         "optional": false,
         "role": "ordinary",
         "source": "easyuse_anima/api/routes/autocomplete.py"
@@ -70367,6 +71355,72 @@
         "optional": false,
         "role": "ordinary",
         "source": "easyuse_anima/autocomplete/contracts.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "__future__:annotations",
+        "kind": "static_from",
+        "line": 3,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/autocomplete/custom_sources.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "hashlib",
+        "kind": "static_import",
+        "line": 5,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/autocomplete/custom_sources.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "io",
+        "kind": "static_import",
+        "line": 6,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/autocomplete/custom_sources.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "os",
+        "kind": "static_import",
+        "line": 7,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/autocomplete/custom_sources.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "stat",
+        "kind": "static_import",
+        "line": 8,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/autocomplete/custom_sources.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "pathlib:Path",
+        "kind": "static_from",
+        "line": 9,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/autocomplete/custom_sources.py"
       },
       {
         "branch_context": [],
@@ -76872,6 +77926,8 @@
       "easyuse_anima/aio/hooks/runtime.py",
       "easyuse_anima/aio/input_context.py",
       "easyuse_anima/aio/input_defaults.py",
+      "easyuse_anima/aio/ipadapter_hook.py",
+      "easyuse_anima/aio/ipadapter_lifecycle.py",
       "easyuse_anima/aio/legacy_detailer.py",
       "easyuse_anima/aio/legacy_generation.py",
       "easyuse_anima/aio/legacy_upscale.py",
@@ -76927,6 +77983,7 @@
       "easyuse_anima/autocomplete/__init__.py",
       "easyuse_anima/autocomplete/classification.py",
       "easyuse_anima/autocomplete/contracts.py",
+      "easyuse_anima/autocomplete/custom_sources.py",
       "easyuse_anima/autocomplete/dataset.py",
       "easyuse_anima/autocomplete/index.py",
       "easyuse_anima/autocomplete/ports.py",
@@ -76972,6 +78029,7 @@
       "easyuse_anima/nodes/image_nodes.py",
       "easyuse_anima/nodes/image_output_nodes.py",
       "easyuse_anima/nodes/input_types.py",
+      "easyuse_anima/nodes/ipadapter_nodes.py",
       "easyuse_anima/nodes/lora_nodes.py",
       "easyuse_anima/nodes/naia_nodes.py",
       "easyuse_anima/nodes/prompt_advanced_execution.py",
@@ -77081,6 +78139,8 @@
       "easyuse_anima/aio/hooks/runtime.py",
       "easyuse_anima/aio/input_context.py",
       "easyuse_anima/aio/input_defaults.py",
+      "easyuse_anima/aio/ipadapter_hook.py",
+      "easyuse_anima/aio/ipadapter_lifecycle.py",
       "easyuse_anima/aio/legacy_detailer.py",
       "easyuse_anima/aio/legacy_generation.py",
       "easyuse_anima/aio/legacy_upscale.py",
@@ -77136,6 +78196,7 @@
       "easyuse_anima/autocomplete/__init__.py",
       "easyuse_anima/autocomplete/classification.py",
       "easyuse_anima/autocomplete/contracts.py",
+      "easyuse_anima/autocomplete/custom_sources.py",
       "easyuse_anima/autocomplete/dataset.py",
       "easyuse_anima/autocomplete/index.py",
       "easyuse_anima/autocomplete/ports.py",
@@ -77183,6 +78244,7 @@
       "easyuse_anima/nodes/image_nodes.py",
       "easyuse_anima/nodes/image_output_nodes.py",
       "easyuse_anima/nodes/input_types.py",
+      "easyuse_anima/nodes/ipadapter_nodes.py",
       "easyuse_anima/nodes/lora_nodes.py",
       "easyuse_anima/nodes/naia_nodes.py",
       "easyuse_anima/nodes/prompt_advanced_execution.py",
@@ -78249,6 +79311,24 @@
         "scope": "<module>"
       },
       {
+        "callee": "RLock",
+        "column": 8,
+        "context": "assign:_LOCK",
+        "kind": "import_time_call",
+        "line": 6,
+        "module": "easyuse_anima/aio/ipadapter_lifecycle.py",
+        "scope": "<module>"
+      },
+      {
+        "callee": "object",
+        "column": 11,
+        "context": "assign:_MISSING",
+        "kind": "import_time_call",
+        "line": 7,
+        "module": "easyuse_anima/aio/ipadapter_lifecycle.py",
+        "scope": "<module>"
+      },
+      {
         "callee": "logging.getLogger",
         "column": 9,
         "context": "assign:logger",
@@ -79171,7 +80251,7 @@
         "column": 19,
         "context": "assign:_INLINE_SPACE_RE",
         "kind": "import_time_call",
-        "line": 91,
+        "line": 97,
         "module": "easyuse_anima/autocomplete/dataset.py",
         "scope": "<module>"
       },
@@ -79180,7 +80260,7 @@
         "column": 25,
         "context": "assign:_DESCRIPTION_PREFIX_RE",
         "kind": "import_time_call",
-        "line": 123,
+        "line": 129,
         "module": "easyuse_anima/autocomplete/dataset.py",
         "scope": "<module>"
       },
@@ -79189,7 +80269,7 @@
         "column": 1,
         "context": "decorator:AutocompleteEntry",
         "kind": "import_time_call",
-        "line": 135,
+        "line": 141,
         "module": "easyuse_anima/autocomplete/dataset.py",
         "scope": "<module>"
       },
@@ -79198,7 +80278,7 @@
         "column": 1,
         "context": "decorator:_AutocompleteCacheKey",
         "kind": "import_time_call",
-        "line": 145,
+        "line": 151,
         "module": "easyuse_anima/autocomplete/dataset.py",
         "scope": "<module>"
       },
@@ -79207,7 +80287,7 @@
         "column": 1,
         "context": "decorator:_AutocompleteSnapshot",
         "kind": "import_time_call",
-        "line": 153,
+        "line": 159,
         "module": "easyuse_anima/autocomplete/dataset.py",
         "scope": "<module>"
       },
@@ -79216,7 +80296,7 @@
         "column": 34,
         "context": "assign:_DEFAULT_AUTOCOMPLETE_SNAPSHOTS",
         "kind": "import_time_call",
-        "line": 243,
+        "line": 249,
         "module": "easyuse_anima/autocomplete/dataset.py",
         "scope": "<module>"
       },
@@ -80306,25 +81386,25 @@
       },
       {
         "kind": "dict",
-        "line": 60,
+        "line": 66,
         "module": "easyuse_anima/autocomplete/dataset.py",
         "name": "AUTOCOMPLETE_SOURCES"
       },
       {
         "kind": "dict",
-        "line": 94,
+        "line": 100,
         "module": "easyuse_anima/autocomplete/dataset.py",
         "name": "_DANBOORU_CATEGORY_NAMES"
       },
       {
         "kind": "dict",
-        "line": 103,
+        "line": 109,
         "module": "easyuse_anima/autocomplete/dataset.py",
         "name": "_E621_CATEGORY_NAMES"
       },
       {
         "kind": "dict",
-        "line": 114,
+        "line": 120,
         "module": "easyuse_anima/autocomplete/dataset.py",
         "name": "_MERGED_E621_CATEGORY_NAMES"
       },
@@ -80474,19 +81554,19 @@
       },
       {
         "kind": "dict",
-        "line": 37,
+        "line": 38,
         "module": "easyuse_anima/registration.py",
         "name": "NODE_CLASS_MAPPINGS"
       },
       {
         "kind": "dict",
-        "line": 66,
+        "line": 68,
         "module": "easyuse_anima/registration.py",
         "name": "NODE_DISPLAY_NAME_MAPPINGS"
       },
       {
         "kind": "list",
-        "line": 95,
+        "line": 98,
         "module": "easyuse_anima/registration.py",
         "name": "__all__"
       },
@@ -80590,6 +81670,15 @@
         "line": 255,
         "module": "easyuse_anima/aio/first_pass_cache.py",
         "name": "_DEFAULT_AIO_FIRST_PASS_CACHE"
+      },
+      {
+        "categories": [
+          "lock"
+        ],
+        "initializer": "RLock",
+        "line": 6,
+        "module": "easyuse_anima/aio/ipadapter_lifecycle.py",
+        "name": "_LOCK"
       },
       {
         "categories": [

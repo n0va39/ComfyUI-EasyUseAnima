@@ -2,7 +2,7 @@
   "schema_version": 1,
   "baseline_commit": "a0b0dc1f599fcf01ec0f25fc75a23f7524f165ab",
   "inventory": {
-    "expected_files": 223,
+    "expected_files": 225,
     "manual_matrix_source": "tests/fixtures/python_test_ownership_contract.v1.json",
     "patterns": [
       "tests/**/*.json",
@@ -1357,6 +1357,18 @@
       "execution_mode": "unittest",
       "generated": false,
       "kind": "test",
+      "owner": "tests/test_aio_ipadapter_hook.py",
+      "path": "tests/test_aio_ipadapter_hook.py",
+      "production_groups": [
+        "aio",
+        "nodes"
+      ],
+      "purpose": "Optional IP-Adapter dependency contract and sampling-scoped rollback on success, error and interruption."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
       "owner": "tests/test_aio_legacy_generation.py",
       "path": "tests/test_aio_legacy_generation.py",
       "production_groups": [
@@ -1734,6 +1746,18 @@
         "nodes"
       ],
       "purpose": "Direct Python unittest contract for test comfy host wiring."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_custom_autocomplete_csv.py",
+      "path": "tests/test_custom_autocomplete_csv.py",
+      "production_groups": [
+        "api",
+        "autocomplete"
+      ],
+      "purpose": "Custom CSV catalog confinement, selection, reload and safe status errors."
     },
     {
       "execution_mode": "unittest",

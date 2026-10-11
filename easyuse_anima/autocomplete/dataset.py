@@ -17,6 +17,12 @@ from typing import TypedDict
 
 from ..infrastructure.filesystem.paths import PACKAGE_DATA_DIR
 from .contracts import AutocompleteSourcePayload, AutocompleteStatusPayload
+from .custom_sources import (
+    custom_csv_sources,
+    is_custom_csv,
+    read_custom_csv,
+    validate_custom_csv,
+)
 
 DBR_TAG_ARCHIVE_SOURCE = "https://github.com/DraconicDragon/dbr-e621-lists-archive"
 
@@ -245,6 +251,10 @@ _DEFAULT_AUTOCOMPLETE_SNAPSHOTS = _AutocompleteSnapshotStore()
 
 def resolve_autocomplete_source(source: str | None = None) -> tuple[str, Path]:
     key = str(source or "").strip() or DEFAULT_AUTOCOMPLETE_SOURCE
+    if key.startswith("custom:"):
+        custom_path = custom_csv_sources().get(key)
+        if custom_path is not None:
+            return key, custom_path
     if key not in AUTOCOMPLETE_SOURCES:
         key = DEFAULT_AUTOCOMPLETE_SOURCE
     path = Path(AUTOCOMPLETE_SOURCES[key]["path"])
@@ -272,6 +282,16 @@ def available_autocomplete_sources(
                 "selected": key == selected_key,
             }
         )
+    for key, path in custom_csv_sources().items():
+        sources.append({
+            "key": key,
+            "label": f"Custom: {path.name}",
+            "source": "local",
+            "license": "",
+            "path": str(path),
+            "exists": True,
+            "selected": key == selected_key,
+        })
     return sources
 
 
@@ -376,7 +396,10 @@ def _load_entries(path: Path = AUTOCOMPLETE_CSV) -> tuple[AutocompleteEntry, ...
         return ()
     source_kind = _source_kind_from_path(path)
 
-    with path.open("r", encoding="utf-8-sig", newline="") as handle:
+    with (
+        read_custom_csv(path) if is_custom_csv(path)
+        else path.open("r", encoding="utf-8-sig", newline="")
+    ) as handle:
         reader = csv.reader(handle)
         rows = iter(reader)
         first_row = next(rows, None)
@@ -409,7 +432,7 @@ def _load_entries(path: Path = AUTOCOMPLETE_CSV) -> tuple[AutocompleteEntry, ...
 
 def _cache_key_from_resolved_path(path: Path) -> _AutocompleteCacheKey:
     try:
-        file_stat = path.stat()
+        file_stat = validate_custom_csv(path) if is_custom_csv(path) else path.stat()
     except (FileNotFoundError, NotADirectoryError):
         mtime_ns = _MISSING_FILE_STAT
         size = _MISSING_FILE_STAT
@@ -429,6 +452,8 @@ def _cache_key_from_resolved_path(path: Path) -> _AutocompleteCacheKey:
 
 
 def _cache_key(path: Path) -> _AutocompleteCacheKey:
+    if is_custom_csv(Path(path)):
+        return _cache_key_from_resolved_path(Path(path).absolute())
     return _cache_key_from_resolved_path(Path(path).resolve(strict=False))
 
 

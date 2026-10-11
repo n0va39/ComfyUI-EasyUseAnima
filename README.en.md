@@ -28,6 +28,11 @@ Registry-facing integration defaults:
   built-in SAM3 detector and Impact Pack classes. It does not dynamically load
   user-provided module names.
 
+## Using 1.5.0
+
+- Put your own UTF-8 CSV in `ComfyUI/user/__easyuse_anima/autocomplete/`, refresh the browser and select it in Settings. See the [CSV guide](docs/autocomplete-csv.en.md).
+- Add optional reference-image guidance to AiO's first pass with [Easy Anima IP-Adapter Hook](docs/nodes/anima-ipadapter-hook.en.md). It requires a separately installed compatible pack and models, 28-block Anima, batch 1 and static CUDA loading; see the guide before enabling it.
+
 ## Using 1.4.0
 
 - LoRA Preset now has a T+/T− button on each row to include or exclude trigger words without changing LoRA strength. Existing profiles default to on. See the [LoRA Preset guide](docs/nodes/anima-lora-preset.en.md).

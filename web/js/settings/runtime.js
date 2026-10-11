@@ -31,6 +31,29 @@ export function createSettingsRuntime(dependencies) {
     fetchJson,
     postJson,
   } = dependencies;
+  let customAutocompleteOptions = [];
+
+  async function loadAutocompleteSources() {
+    try {
+      const data = await fetchJson("/easyuse_anima/autocomplete_status", { fallbackJson: {} });
+      customAutocompleteOptions = (data.sources || [])
+        .filter((source) => source.exists && /^custom:[0-9a-f]{64}$/.test(source.key))
+        .map((source) => ({ text: source.label, value: source.key }));
+    } catch {
+      customAutocompleteOptions = [];
+    }
+  }
+
+  function autocompleteOptions(bundled) {
+    const options = bundled.map((value) => ({ text: value, value }));
+    options.push(...customAutocompleteOptions);
+    const selected = readInternalSetting("autocomplete.source", "");
+    if (/^custom:[0-9a-f]{64}$/.test(selected) && !options.some((item) => item.value === selected)) {
+      // Preserve the saved choice when a file is temporarily unavailable.
+      options.push({ text: "Custom CSV (unavailable)", value: selected });
+    }
+    return options;
+  }
 
   function ensureSettingsState() {
     let state = getSettingsState();
@@ -95,5 +118,7 @@ export function createSettingsRuntime(dependencies) {
     loadLongTextSettings,
     saveLongTextSettings,
     loadInitialSettings,
+    loadAutocompleteSources,
+    autocompleteOptions,
   };
 }

@@ -475,7 +475,7 @@ class PythonAutocompleteRuntimeContractTests(unittest.TestCase):
                     "source_label",
                     "sources",
                 },
-                set(),
+                {"error"},
             ),
             "AutocompleteSearchEntryPayload": (
                 {"tag", "category", "count", "description"},
