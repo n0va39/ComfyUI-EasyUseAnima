@@ -249,6 +249,27 @@ class AioIPAdapterHookTests(unittest.TestCase):
                 hook.create_session(None).before_stage(event)
         self.assert_clean(model, *before)
 
+    def test_non_anima_settings_or_actual_model_rejected_before_device_checks(self):
+        for family in ("moss_image", "krea2"):
+            for source in ("settings", "model"):
+                with self.subTest(family=family, source=source):
+                    model = Model()
+                    settings = {"sampler": {"backend": "comfy_ksampler"}}
+                    if source == "settings":
+                        settings["model_family"] = family
+                    else:
+                        model.model.model_config = SimpleNamespace(
+                            unet_config={"image_model": family},
+                        )
+                    event = SimpleNamespace(
+                        state=SimpleNamespace(model=model),
+                        request=SimpleNamespace(settings=settings),
+                    )
+                    with self.assertRaisesRegex(RuntimeError, "requires an Anima model and generator"):
+                        self.build().create_session(None).before_stage(event)
+                    self.assertEqual(model.wrappers, {})
+                    self.assertEqual(model.model_options, {"transformer_options": {}})
+
     def test_success_failures_and_interrupts_restore_partial_mutations_and_options(self):
         for where, error in ((None, None), ("apply", RuntimeError), ("apply", KeyboardInterrupt),
                              ("sample", RuntimeError), ("sample", KeyboardInterrupt)):

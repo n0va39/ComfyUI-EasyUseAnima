@@ -17,11 +17,20 @@ Euler / simple / shift 1.15이며 16배수 해상도를 사용합니다. shift�
 FLUX mu로 적용됩니다. RAW 모델은 별도의 steps·CFG·shift 설정이 필요합니다.
 [공식 Krea2 가이드](https://docs.comfy.org/tutorials/image/krea/krea-2)
 
-현재 MOSS/Krea2 지원 범위는 기본 txt2img, 코어 LoRA 로딩, 미리보기·후처리·저장입니다.
-Anima Mod Guidance, Artist Mix, NegPip, DAVE, Safe PAG, KJ 패치, AiO hook,
-Highres/Detailer/Upscale은 MOSS/Krea2에서 지원하지 않습니다. 지원하지 않는 설정은 실행 전에 오류로 안내합니다.
+MOSS/Krea2는 txt2img, 코어 LoRA 로딩, Artist Mix, Highres, SAM3 Detailer,
+USDU/ResShift Upscale, KJ SageAttention·FP16 accumulation,
+일반 AiO hook, 미리보기·후처리·저장을 지원합니다. 선택 기능의 외부 노드와
+로컬 모델은 별도로 필요합니다. Anima IP-Adapter hook은 Anima 전용입니다.
+Torch Compile은 Krea2에서 지원합니다. MOSS는 현재 네이티브 attention 및
+양자화 커널의 컴파일 호환성 문제로 비활성화되어 있습니다.
+MOSS NegPip은 네이티브 MOSS를 지원하는 ComfyUI-ppm이 필요하며, 실제 MODEL·CLIP
+패치가 적용됐는지 확인합니다. Krea2 NegPip은 아직 지원하지 않습니다.
+Anima Mod Guidance, DAVE, Safe PAG, Spectrum 가속 및 DiT 보정은 두 모델에서
+지원하지 않습니다. 이 제한은 Highres·Detailer·Upscale의 샘플링에도 적용됩니다.
 Spectrum 원본 2.12.1의 `MossSpectrumKSampler`는 별도 MOSS 로더의 구조·시간 스케일을
-사용하므로 ComfyUI 코어 MOSS 경로에는 연결하지 않습니다. 기존 Anima Spectrum 지원은 유지됩니다.
+사용하며, 범용 Spectrum 모델 패치도 Krea2의 출력 구조와 호환되지 않습니다.
+Upstream의 호환 패치가 검증된 뒤 가속을 연결하고, Mod Guidance는 해당 모델의
+학습된 adapter까지 지원될 때 별도로 추가합니다. 기존 Anima Spectrum 지원은 유지됩니다.
 
 카테고리: `EasyUse Anima/AiO`
 

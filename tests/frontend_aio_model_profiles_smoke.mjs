@@ -5,7 +5,7 @@ async function moduleAt(path) {
   const source = readFileSync(new URL(path, import.meta.url), "utf8");
   return import("data:text/javascript;base64," + Buffer.from(source).toString("base64"));
 }
-const { AIO_GENERATOR_MODEL_PROFILES, aioGeneratorModelProfile } = await moduleAt("../web/js/aio/model_profiles.js");
+const { AIO_GENERATOR_MODEL_PROFILES, aioGeneratorModelProfile, aioModelProfile } = await moduleAt("../web/js/aio/model_profiles.js");
 const {
   AIO_DEFAULT_GENERATION_SETTINGS,
   aioParseSettingsValue,
@@ -29,7 +29,21 @@ for (const [type, family, steps, cfg, shift, sampler] of expected) {
   assert.equal(settings.sampler.sampler_name, sampler);
   assert.equal(settings.sampler.scheduler, "simple");
   assert.deepEqual(parse(JSON.parse(aioSettingsToCompactJson(settings)), family), settings);
+  const caps = aioGeneratorModelProfile({ type }).capabilities;
+  assert.equal(caps.torchCompile, family !== "moss_image");
+  assert.ok(caps.highres && caps.detailer && caps.upscale && caps.kj && caps.artistMix && caps.hooks);
   if (family !== "anima") {
+    assert.equal(caps.spectrum, false);
+    assert.equal(caps.ditCorrections, false);
+    assert.equal(caps.negpip, family === "moss_image");
+    for (const stage of [settings.highres, settings.upscale, settings.detailer.face, settings.detailer.eye]) {
+      assert.equal(stage.steps, steps);
+      assert.equal(stage.cfg, cfg);
+      assert.equal(stage.sampler_name, sampler);
+      assert.equal(stage.scheduler, "simple");
+      assert.equal(stage.spectrum.enabled, false);
+      assert.equal(stage.dit_corrections.enabled, false);
+    }
     assert.equal(settings.mod_guidance.mode, "disabled");
     assert.equal(settings.artist_mix.mode, "off");
     assert.equal(settings.detailer.face.spectrum.enabled, false);
@@ -61,3 +75,11 @@ for (const hint of kreaResourceHints) {
   assert.ok(hint.includes("qwen_image_vae.safetensors"), "each locale must identify Krea2's compatible VAE");
   assert.ok(!hint.includes("FLUX.2"));
 }
+
+const explicit = parse({model_family: "moss_image", highres: {cfg: 7, spectrum: {enabled: true}}, detailer: {custom_1: {cfg: 8, spectrum: {enabled: true}}}}, "moss_image");
+assert.equal(explicit.highres.cfg, 7);
+assert.equal(explicit.highres.spectrum.enabled, true);
+assert.equal(explicit.detailer.custom_1.spectrum.enabled, true);
+
+assert.equal(aioModelProfile().family, "anima");
+assert.deepEqual(aioModelProfile("future-model"), {family: "future-model", label: "future-model", capabilities: {}});

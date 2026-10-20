@@ -37,8 +37,9 @@ The main workflow is:
 3. Run first pass, Highres, Detailer, preview, and saving through AiO Generator (Anima).
 
 Separate `AiO Generator (MOSS)` and `AiO Generator (Krea2)` nodes share the Input,
-seed and saving architecture. Their initial support is basic txt2img with core
-KSampler; see the [model-specific guide](docs/nodes/anima-aio-generator.en.md).
+seed and saving architecture, including compatible Highres, Detailer, Upscale,
+Artist Mix and KJ options. See the [model-specific guide](docs/nodes/anima-aio-generator.en.md)
+for optional dependencies and unsupported model patches.
 
 ## Demo Videos
 

@@ -23,6 +23,13 @@ class AIOModelProfile:
     scheduler: str
     resource_hint: str
     anima_features: bool = False
+    features: tuple[str, ...] = ()
+
+
+_COMMON_DIT_FEATURES = (
+    "highres", "detailer", "upscale", "sage_attention", "fp16_accumulation",
+    "artist_mix", "aio_hook",
+)
 
 
 AIO_MODEL_PROFILES = {
@@ -37,12 +44,14 @@ AIO_MODEL_PROFILES = {
         ("comfy_ksampler",),
         "ModelSamplingAuraFlow", 25, 2.5, 5.0, "er_sde", "simple",
         "native MOSS-Image diffusion model, Qwen3.5 9B encoder and FLUX.2 VAE",
+        features=(*_COMMON_DIT_FEATURES, "negpip"),
     ),
     "krea2": AIOModelProfile(
         "Krea2", "EasyUseKrea2AIOGenerator", "krea2", "EmptyLatentImage", 16,
         ("comfy_ksampler",),
         "ModelSamplingFlux", 8, 1.0, 1.15, "euler", "simple",
         "Krea2 diffusion model, Qwen3-VL 4B encoder and Qwen Image VAE",
+        features=(*_COMMON_DIT_FEATURES, "torch_compile"),
     ),
 }
 
@@ -66,8 +75,15 @@ def aio_model_defaults(defaults: dict[str, Any], family: str) -> dict[str, Any]:
         result["model_patches"]["aura_flow"]["shift"] = profile.shift
         result["mod_guidance"]["mode"] = "disabled"
         result["artist_mix"]["mode"] = "off"
-        for target in ("face", "eye"):
-            result["detailer"][target]["spectrum"]["enabled"] = False
+        for stage in (result["highres"], result["upscale"], *(
+            result["detailer"][target] for target in ("face", "eye")
+        )):
+            stage.update(
+                steps=profile.steps, cfg=profile.cfg,
+                sampler_name=profile.sampler_name, scheduler=profile.scheduler,
+            )
+            stage["spectrum"]["enabled"] = False
+            stage["dit_corrections"]["enabled"] = False
     return result
 
 
@@ -89,31 +105,42 @@ def validate_aio_model_settings(settings: dict[str, Any], *, aio_hook=None) -> N
     patches = settings["model_patches"]
     unsupported = []
     checks = {
-        "Mod Guidance": settings["mod_guidance"]["mode"] != "disabled",
-        "Artist Mix": settings["artist_mix"]["mode"] != "off",
-        "NegPip": settings["negpip"]["mode"] != "off",
-        "DAVE": patches["dave"]["enabled"],
-        "Safe PAG": patches["safe_pag"]["enabled"],
-        "SageAttention": patches["kj"]["sage_attention"] != "disabled",
-        "KJ FP16 accumulation": patches["kj"]["fp16_accumulation"],
-        "KJ Torch Compile": patches["kj"]["torch_compile"]["enabled"],
-        "Spectrum model patch": settings["sampler"]["spectrum"]["enabled"],
-        "DiT corrections": settings["sampler"]["dit_corrections"]["enabled"],
-        "Highres": settings["highres"]["enabled"],
-        "Upscale": settings["upscale"]["enabled"],
-        "AiO hook": aio_hook is not None,
+        "mod_guidance": ("Mod Guidance", settings["mod_guidance"]["mode"] != "disabled"),
+        "artist_mix": ("Artist Mix", settings["artist_mix"]["mode"] != "off"),
+        "negpip": ("NegPip", settings["negpip"]["mode"] != "off"),
+        "dave": ("DAVE", patches["dave"]["enabled"]),
+        "safe_pag": ("Safe PAG", patches["safe_pag"]["enabled"]),
+        "sage_attention": ("SageAttention", patches["kj"]["sage_attention"] != "disabled"),
+        "fp16_accumulation": ("KJ FP16 accumulation", patches["kj"]["fp16_accumulation"]),
+        "torch_compile": ("KJ Torch Compile", patches["kj"]["torch_compile"]["enabled"]),
+        "highres": ("Highres", settings["highres"]["enabled"]),
+        "upscale": ("Upscale", settings["upscale"]["enabled"]),
+        "detailer": ("Detailer", settings["detailer"]["enabled"]),
+        "aio_hook": ("AiO hook", aio_hook is not None),
     }
-    for name, enabled in checks.items():
-        if enabled:
+    for feature, (name, enabled) in checks.items():
+        if enabled and feature not in profile.features:
             unsupported.append(name)
-    if any(
-        isinstance(value, dict) and value.get("enabled")
-        for value in settings["detailer"].values()
-    ):
-        unsupported.append("Detailer")
+    # Check every active sampling stage, including user-created detailer blocks.
+    # Inactive saved values remain intact and do not drive execution.
+    stages = {"sampler": settings["sampler"]}
+    stages.update({
+        name: settings[name] for name in ("highres", "upscale")
+        if settings[name]["enabled"]
+        and (name != "upscale" or settings[name]["backend"] == "usdu")
+    })
+    if settings["detailer"]["enabled"]:
+        stages.update({
+            f"detailer.{name}": target for name, target in settings["detailer"].items()
+            if isinstance(target, dict) and target.get("enabled")
+        })
+    for stage_name, stage in stages.items():
+        for feature, label in (("spectrum", "Spectrum model patch"), ("dit_corrections", "DiT corrections")):
+            if stage[feature]["enabled"] and feature not in profile.features:
+                unsupported.append(f"{stage_name}: {label}")
     if unsupported:
         raise ValueError(
-            f"[EasyUseAnima] {profile.name} support is limited to basic txt2img. "
+            f"[EasyUseAnima] {profile.name} cannot use these model-specific features. "
             "Disable unsupported options: " + ", ".join(unsupported)
         )
 

@@ -1,5 +1,107 @@
 # Model-specific AiO generators
 
+## Compatible extras revision
+
+- Base: `7a9fc36`, continuing the same owned branch and worktree.
+- Goal: enable reviewed model-independent AiO stages and optional acceleration
+  for MOSS/Krea2 using explicit per-feature capabilities.
+- Allowed files: AiO profiles/validation/stage adapters, related frontend
+  controls/locales, focused tests and this guide.
+- Preserve: Anima behavior, fixed model node identities, saved explicit settings,
+  optional dependency loading, scoped patch cleanup and replay metadata.
+- Mod Guidance remains disabled for new families until upstream supplies matching
+  trained support. Spectrum acceleration requires a compatible upstream patch;
+  do not substitute an Anima forward or modify the external node pack.
+- Checks: nested capability rejection, stage/default contracts, GPU generation
+  and uncached replay, both canvas serializers, final repository full gate.
+- Completion: every enabled feature has direct contract evidence and appropriate
+  validation; explain incompatible or unavailable dependency boundaries.
+- Stop: native baseline regression, incompatible external contract, or shared
+  model mutation that cannot be scoped and restored.
+
+### Reviewed capability boundary
+
+Both native families use the shared Highres, SAM3/Impact Detailer and USDU/
+ResShift stages. These pass model-owned conditioning and VAE latents through
+Comfy sampling instead of assuming an Anima latent channel count. Impact's
+image detailer explicitly handles Wan-style 5D VAE output. KJ attention supports
+MOSS BND and Krea2 HND/GQA inputs; its compile block selection recognizes
+MOSS `layers` and Krea2 `blocks`, but GPU validation restricts TorchCompile to
+Krea2 because MOSS's native kernels do not currently compile. Artist Mix works on generic conditioning
+dimensions, and the hook protocol cannot change the model family or backend.
+The Anima IP-Adapter hook now checks the actual model family before patching.
+
+MOSS NegPip uses the optional [ComfyUI-ppm native adapter](https://github.com/pamparamm/ComfyUI-ppm/blob/bf69c9f9f8746d48cc0703a73bd7a2256b6c47fd/src/negpip/moss_negpip.py).
+Both returned MODEL and CLIP must carry upstream's successful-application
+marker. Older silent no-op versions are rejected. Krea2 has no reviewed PPM
+encoder/model dispatch and remains blocked.
+
+Anima DAVE/Safe PAG and trained Mod Guidance remain gated. Native MOSS has
+`layers` rather than the Anima DAVE block contract; Krea2's joint text/image
+tokens and the Anima DAVE mask need a separate numerical review. Neither
+architecture provides Safe PAG's Anima `self_attn.compute_attention` contract.
+
+Spectrum upstream remains at `1baeab6f` (2.12.1). Its
+[generic patch](https://github.com/sorryhyun/ComfyUI-Spectrum-KSampler/blob/1baeab6f9ee94a75011353c6ef41963888cc8979/spectrum.py#L1008)
+requires Anima head components (`final_layer`, `t_embedder`,
+`t_embedding_norm`, `unpatchify`) absent from native Krea2/MOSS. The MOSS-specific
+patch also misses native fused-head captures and uses a different timestep
+multiplier. Acceleration and DiT corrections are rejected at every active
+sampling stage, not just first pass. Turbo's 8 steps also offer no forecast
+steps with upstream's default warmup 6 plus actual tail 3. No external Spectrum
+source was modified or approximation silently substituted.
+
+### Compatible extras validation (2026-10-20)
+
+The final code passes `check_custom_node.ps1 -Profile full`: 1,761 Python tests
+(3 skipped), all frontend checks across 126 JavaScript files, and TypeScript
+6.0.3. Pyright retains its accepted 14-error baseline, with no new findings;
+Ruff remains report-only. The initial snapshot failure was resolved by updating
+only the two new nodes' default contracts; the Anima snapshot is unchanged.
+A separate read-only integration review found no actionable defect.
+
+GPU checks use isolated ComfyUI v0.42.1, frontend 1.55.18, PyTorch 2.12.1+cu130
+and an RTX 5070 Ti. Native MOSS SFT and Krea2 Turbo int8 weights are exercised:
+
+- Both models complete Highres (1024 to 1152), SAM3 detection and Impact crop
+  sampling, USDU (to 1440), and the shipped generic brightness hook.
+  Logs confirm actual detected-region sampling and nine USDU tiles.
+- Both saved PNG prompts execute again with new node IDs. The generator is
+  absent from the cached-node list; final RGB hashes match the original run:
+  MOSS `1f17ca26b8ff7d50d69346462a9a7b95f2afe02524b61148b887e52847102079`,
+  Krea2 `64d5fc3b8e65f1c76fef5d3793b1e957b0c39dae882319a64e29abf42c109051`.
+- Both models complete SageAttention auto plus FP16 accumulation, and Artist
+  Mix average with two artist entries. MOSS also completes native PPM NegPip
+  with a negative-weight token.
+- Krea2 completes ResShift x2 to 2048 pixels. Its first attempt correctly
+  rejected absent local weights; copying the existing shared weights into the
+  test inventory resolves the environment issue without a download.
+- Krea2 completes a two-step TorchCompile/Inductor smoke. MOSS with the default
+  Comfy Kitchen attention fails in Dynamo's FakeTensor/DLPack boundary; this is
+  an upstream attention/compiler combination, not a sampling-family mismatch.
+  Selecting KJ SageAttention gets past attention but fails on the fused
+  quantized `linear_input_act` kernel for the same FakeTensor boundary.
+  MOSS TorchCompile is therefore disabled in both the profile validator and
+  UI; its SageAttention and FP16 accumulation options remain available.
+
+Legacy Canvas and Node 2.0 both expose compatible controls and lock unsupported
+ones. UI save/reload preserves Krea2 Highres scale 1.125/4 steps and FP16
+accumulation. A new custom Krea2 detailer block starts at 8 steps, CFG 1,
+Euler/Simple with Spectrum disabled. Node 2.0 saves and reloads MOSS NegPip On.
+Existing explicitly saved stage values remain intact. The test canvas setting
+is restored to Legacy after validation.
+The saved Krea2 UI settings also execute through the API and produce the
+expected 1152-pixel Highres output. After all patch attempts, uncached ordinary
+generation again matches the earlier native baseline RGB hashes for both
+families, confirming that optional patches did not leak into the next run.
+
+These checks establish execution, serialization and replay compatibility, not
+image quality, acceleration benchmarks, all optional combinations, or Krea2
+RAW-weight validation. Mod Guidance, Spectrum/SPD, DiT corrections, Anima DAVE,
+Safe PAG and Anima IP-Adapter remain unavailable for the native new families.
+
+## Initial fixed-node contract
+
 - Task: separate Anima, MOSS and Krea2 generator nodes with shared execution
   architecture and explicit model profiles for future DiT families.
 - Base: dev `117e589eaeeb3c745fb528b55c9d7d834abdae17`.

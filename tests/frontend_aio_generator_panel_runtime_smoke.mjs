@@ -1970,7 +1970,7 @@ for (const [type, family] of [["EasyUseMossAIOGenerator", "moss_image"], ["EasyU
   assert.ok(findByAttribute(panel, "data-aio-model-requirements", ""));
   assert.equal(findByAttribute(panel, "data-aio-model-mismatch", ""), null);
   for (const key of ["highres.enabled", "detailer.enabled", "upscale.enabled"]) {
-    assert.equal(findByAttribute(panel, "data-aio-focus-key", key).disabled, true, key);
+    assert.equal(findByAttribute(panel, "data-aio-focus-key", key).disabled, false, key);
   }
   assert.equal(node.settings.model_patches.aura_flow.shift, family === "krea2" ? 1.15 : 5);
   if (family === "krea2") {

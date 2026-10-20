@@ -22,6 +22,7 @@
 
 /**
  * @typedef {object} AioSamplerDialogSettingsCore
+ * @property {(family?: string) => any} modelProfile
  * @property {any} defaultGenerationSettings
  * @property {any[]} seedControls
  * @property {number} specialSeedRandom
@@ -162,6 +163,7 @@ export function aioCreateSamplerSettingsDialog(dependencies) {
     applyTooltipText,
   } = text;
   const {
+    modelProfile,
     defaultGenerationSettings: DEFAULT_GENERATION_SETTINGS,
     seedControls: GENERATOR_SEED_CONTROLS,
     specialSeedRandom: GENERATOR_SPECIAL_SEED_RANDOM,
@@ -279,7 +281,9 @@ export function aioCreateSamplerSettingsDialog(dependencies) {
   function openSamplerSettings(node) {
     const widget = findWidget(node, GENERATOR_SETTINGS_WIDGET);
     const settings = mergeVisibleGeneratorSettings(node, parseSettings(widget, DEFAULT_GENERATION_SETTINGS, node));
-    const basicOnly = ["moss_image", "krea2"].includes(settings.model_family);
+    const profile = modelProfile(settings.model_family);
+    const capabilities = profile.capabilities;
+
     const { backdrop, body, actions } = createDialog(
       "Sampler Details",
       "Choose a sampler path for the selected model family. Unavailable paths show their required node pack."
@@ -316,7 +320,7 @@ export function aioCreateSamplerSettingsDialog(dependencies) {
     const denoise = field(base, "Denoise", numberInput(settings.sampler.denoise, "0.01"));
 
     const sampler = makeSection("Sampler Backend");
-    const backendValues = basicOnly ? ["comfy_ksampler"] : [
+    const backendValues = !capabilities.spectrum ? ["comfy_ksampler"] : [
       "comfy_ksampler",
       "spectrum_mod_guidance_advanced",
       "spectrum_spd_speed",
@@ -330,10 +334,10 @@ export function aioCreateSamplerSettingsDialog(dependencies) {
     dependencyWarning.className = "easyuse-anima-aio-warning";
     dependencyWarning.hidden = true;
     sampler.append(dependencyWarning);
-    if (basicOnly) {
+    if (!capabilities.spectrum) {
       const modelWarning = document.createElement("div");
       modelWarning.className = "easyuse-anima-aio-warning";
-      modelWarning.textContent = aioFormat("text.modelSpectrumUnsupported", { model: settings.model_family === "krea2" ? "Krea2" : "MOSS" });
+      modelWarning.textContent = aioFormat("text.modelSpectrumUnsupported", { model: profile.label });
       sampler.append(modelWarning);
     }
     const samplerName = field(
@@ -351,7 +355,7 @@ export function aioCreateSamplerSettingsDialog(dependencies) {
     const modMode = field(
       modGuidance,
       "Mode",
-      selectInput(basicOnly ? ["disabled"] : ["prompt_data", "enabled", "disabled"], settings.mod_guidance.mode),
+      selectInput(["prompt_data", "enabled", "disabled"], settings.mod_guidance.mode),
       "tip.modMode",
     );
     const modProfile = field(
@@ -369,7 +373,7 @@ export function aioCreateSamplerSettingsDialog(dependencies) {
     const modTaperScale = field(modAdvanced, "Taper scale", numberInput(settings.mod_guidance.advanced.mod_taper_scale, "0.05"));
     const modFinalW = field(modAdvanced, "Final W", numberInput(settings.mod_guidance.advanced.mod_final_w, "0.1"));
     sampler.append(modGuidance);
-    if (basicOnly) {
+    if (!capabilities.modGuidance) {
       for (const control of modGuidance.querySelectorAll("input, select, textarea, button")) {
         control.disabled = true;
       }
@@ -429,7 +433,7 @@ export function aioCreateSamplerSettingsDialog(dependencies) {
     const refreshBackendDetails = () => {
       const isComfy = backend.value === "comfy_ksampler";
       const isSpectrumAdvanced = backend.value === "spectrum_mod_guidance_advanced";
-      spectrum.classList.toggle("hidden", basicOnly || !(isComfy || isSpectrumAdvanced));
+      spectrum.classList.toggle("hidden", capabilities.spectrum && !(isComfy || isSpectrumAdvanced));
       spectrumPatchEnabled.parentElement.style.display = isComfy ? "" : "none";
       spectrumCompat.parentElement.style.display = isComfy ? "" : "none";
       modAdvanced.style.display = isSpectrumAdvanced ? "" : "none";
@@ -489,7 +493,7 @@ export function aioCreateSamplerSettingsDialog(dependencies) {
       applyNodeInputInfo(spdScale, "spectrumSpd", "spd_scale", "tip.spdScale");
       applyNodeInputInfo(spdSigma, "spectrumSpd", "spd_sigma", "tip.spdSigma");
       applyNodeInputInfo(spdSmc, "spectrumSpd", "adaptive_smc_alpha", "tip.smcAlpha");
-      if (spectrumPatchMissing && (spectrumPatchEnabled.checked || correctionsEnabled.checked)) {
+      if (capabilities.spectrum && spectrumPatchMissing && (spectrumPatchEnabled.checked || correctionsEnabled.checked)) {
         messages.push(aioFormat("warning.optionalDependencyMissing", {
           backend: "Spectrum Patch",
           pack: optionalDependencyPack("spectrumPatch"),
@@ -499,6 +503,12 @@ export function aioCreateSamplerSettingsDialog(dependencies) {
       }
       dependencyWarning.hidden = messages.length === 0;
       dependencyWarning.textContent = messages.join(" ");
+      if (!capabilities.spectrum) {
+        for (const control of spectrum.querySelectorAll("input, select, textarea, button")) {
+          control.disabled = true;
+          control.title = aioFormat("text.modelSpectrumUnsupported", { model: profile.label });
+        }
+      }
       refreshBackendDetails();
     };
     backend.addEventListener("change", () => {
@@ -561,7 +571,7 @@ export function aioCreateSamplerSettingsDialog(dependencies) {
       next.sampler.denoise = clampGeneratorNumber(denoise.value, DEFAULT_GENERATION_SETTINGS.sampler.denoise, 0, 1);
       next.sampler.sampler_name = samplerName.value || DEFAULT_GENERATION_SETTINGS.sampler.sampler_name;
       next.sampler.scheduler = scheduler.value || DEFAULT_GENERATION_SETTINGS.sampler.scheduler;
-      next.sampler.spectrum.enabled = !basicOnly && (
+      next.sampler.spectrum.enabled = capabilities.spectrum && (
         next.sampler.backend === "spectrum_mod_guidance_advanced"
         || (next.sampler.backend === "comfy_ksampler"
           && spectrumPatchEnabled.checked
@@ -580,7 +590,7 @@ export function aioCreateSamplerSettingsDialog(dependencies) {
       next.sampler.spd.adaptive_smc_alpha = Number(spdSmc.value || 0);
       next.sampler.spectrum_extra = spectrumExtra.values();
       next.sampler.spd_extra = spdExtra.values();
-      next.sampler.dit_corrections.enabled = !basicOnly && correctionsEnabled.checked
+      next.sampler.dit_corrections.enabled = capabilities.ditCorrections && correctionsEnabled.checked
         && optionalDependencyAvailable("spectrumPatch");
       next.sampler.dit_corrections.dcw_mode = dcwMode.value || "off";
       next.sampler.dit_corrections.dcw_lambda = Number(dcwLambda.value || 0.01);
@@ -591,7 +601,7 @@ export function aioCreateSamplerSettingsDialog(dependencies) {
       next.sampler.dit_corrections.cfgpp = cfgpp.checked;
       next.sampler.dit_corrections.cfgpp_lambda = Number(cfgppLambda.value || 0);
       next.sampler.dit_corrections.fsg = fsg.checked;
-      next.mod_guidance.mode = basicOnly ? "disabled" : modMode.value || "prompt_data";
+      next.mod_guidance.mode = modMode.value || "prompt_data";
       next.mod_guidance.profile = modProfile.value || "step_i8_skip27";
       next.mod_guidance.advanced.adapter = modAdapter.value || "(auto-download default)";
       next.mod_guidance.advanced.mod_w = Number(modW.value || 3);
@@ -600,6 +610,15 @@ export function aioCreateSamplerSettingsDialog(dependencies) {
       next.mod_guidance.advanced.mod_taper = Number(modTaper.value || 0);
       next.mod_guidance.advanced.mod_taper_scale = Number(modTaperScale.value || 0.25);
       next.mod_guidance.advanced.mod_final_w = Number(modFinalW.value || 0);
+      if (!capabilities.spectrum) {
+        next.sampler.backend = settings.sampler.backend;
+        next.sampler.spectrum = settings.sampler.spectrum;
+        next.sampler.spectrum_extra = settings.sampler.spectrum_extra;
+        next.sampler.spd = settings.sampler.spd;
+        next.sampler.spd_extra = settings.sampler.spd_extra;
+      }
+      if (!capabilities.ditCorrections) next.sampler.dit_corrections = settings.sampler.dit_corrections;
+      if (!capabilities.modGuidance) next.mod_guidance = settings.mod_guidance;
       applyVisibleGeneratorSettings(node, next);
       writeSettings(node, widget, next);
       renderGeneratorPanel(node);

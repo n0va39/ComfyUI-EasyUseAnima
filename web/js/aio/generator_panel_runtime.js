@@ -57,7 +57,7 @@ function closeGeneratorInfoTooltipOwner(document) {
  * @property {(usdu: any) => any} normalizeUsduAutoTileRange
  * @property {(settings: any, value: number) => void} setUsduAutoTileTarget
  * @property {(order: any, detailer?: any) => string[]} normalizeDetailerOrder
- * @property {(targetName: string) => any} detailerTargetDefaults
+ * @property {(targetName: string, family?: string) => any} detailerTargetDefaults
  * @property {(targetName: string, target: any, index?: number) => string} detailerTargetTitle
  */
 
@@ -1536,7 +1536,7 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
       mismatch.textContent = aioFormat("text.modelMismatch", { saved, model: modelProfile.label });
       samplerGrid.append(mismatch);
     }
-    if (modelProfile.basicOnly) {
+    if (modelProfile.family !== "anima") {
       const modelInfo = document.createElement("div");
       modelInfo.className = "easyuse-anima-aio-warning wide";
       modelInfo.setAttribute("data-aio-model-requirements", "");
@@ -1815,7 +1815,7 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
     if (settings.detailer.enabled) {
       const order = normalizeDetailerOrder(settings.detailer.order, settings.detailer);
       for (const [index, targetName] of order.entries()) {
-        const defaults = detailerTargetDefaults(targetName);
+        const defaults = detailerTargetDefaults(targetName, settings.model_family);
         const target = mergeDefaults(defaults, settings.detailer[targetName] || {});
         const targetBlock = document.createElement("div");
         targetBlock.className = "easyuse-anima-aio-node-stage-mini";
@@ -2121,8 +2121,8 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
     }
     postprocessBlock.append(postprocessBody);
 
-    if (modelProfile.basicOnly) {
-      for (const stage of [highresBlock, detailerBlock, upscaleBlock]) {
+    for (const [capability, stage] of [["highres", highresBlock], ["detailer", detailerBlock], ["upscale", upscaleBlock]]) {
+      if (!modelProfile.capabilities[capability]) {
         for (const control of stage.querySelectorAll("input, select, textarea, button")) {
           control.disabled = true;
           control.title = aioFormat("text.modelUnsupported", { model: modelProfile.label });

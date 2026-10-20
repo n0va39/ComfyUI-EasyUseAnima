@@ -24,7 +24,7 @@ import { createAioProfileApiClient } from "./aio/profile_api_client.js";
 import { aioCreateProfileDialogs } from "./aio/profile_dialogs.js";
 import { aioCreateProfileSettingsRuntime } from "./aio/profile_settings_runtime.js";
 import { aioCreateGeneratorPanelRuntime } from "./aio/generator_panel_runtime.js";
-import { AIO_GENERATOR_MODEL_PROFILES, aioGeneratorModelProfile } from "./aio/model_profiles.js";
+import { AIO_GENERATOR_MODEL_PROFILES, aioGeneratorModelProfile, aioModelProfile } from "./aio/model_profiles.js";
 import { createAioSeedTransaction } from "./aio/executed_seed_runtime.js";
 import { aioCreateStageSettingsDialogs } from "./aio/stage_settings_dialogs.js";
 import { aioCreateDetailerSettingsDialog } from "./aio/detailer_settings_dialog.js";
@@ -193,10 +193,11 @@ const AIO_TEXT = {
     "label.denoise": "Denoise",
     "label.sampler": "Sampler",
     "label.modelFamily": "Model family",
-    "text.modelUnsupported": "{model} currently supports first-pass KSampler only. Mod Guidance, Artist Mix, NegPip, DAVE, Safe PAG, KJ optimizations, Spectrum / SPD, corrections, hooks and later stages are unavailable.",
+    "text.modelUnsupported": "{model} supports Highres, Detailer, Upscale, Artist Mix, hooks and KJ optimizations. Mod Guidance, DAVE, Safe PAG, Spectrum / SPD and DiT corrections are unavailable.",
+    "text.modelTorchCompileUnsupported": "TorchCompile is unavailable for {model}. KJ SageAttention and FP16 accumulation remain available.",
     "text.modelSpectrumUnsupported": "Spectrum / SPD is currently unavailable for {model}. Use the core ComfyUI KSampler backend.",
-    "text.mossRequirements": "MOSS Image: select resources on the Input node — CLIP type moss_image, Qwen3.5-9B text encoder and FLUX.2 VAE. First pass only; Anima guidance, Artist Mix, NegPip, DAVE, Safe PAG and later stages are unavailable.",
-    "text.kreaRequirements": "Krea2: select CLIP type krea2, Qwen3-VL-4B and the qwen_image_vae.safetensors (Wan 2.1 VAE) on the Input node. Defaults target Krea2 Turbo: 8 steps, CFG 1, Euler / Simple, shift 1.15. Adjust sampling for RAW weights.",
+    "text.mossRequirements": "MOSS Image: select resources on the Input node — CLIP type moss_image, Qwen3.5-9B text encoder and FLUX.2 VAE. NegPip requires ComfyUI-ppm with native MOSS support. TorchCompile is unavailable for MOSS. KJ SageAttention and FP16 accumulation remain available.",
+    "text.kreaRequirements": "Krea2: select CLIP type krea2, Qwen3-VL-4B and the qwen_image_vae.safetensors (Wan 2.1 VAE) on the Input node. Defaults target Krea2 Turbo: 8 steps, CFG 1, Euler / Simple, shift 1.15. Adjust sampling for RAW weights. NegPip is unavailable for Krea2.",
     "text.modelMismatch": "Saved settings belong to {saved}. Use AiO Generator ({saved}); this {model} node cannot run them. Settings are preserved.",
     "label.scheduler": "Scheduler",
     "label.enabled": "Enabled",
@@ -555,10 +556,11 @@ const AIO_TEXT = {
     "label.denoise": "디노이즈",
     "label.sampler": "샘플러",
     "label.modelFamily": "모델 계열",
-    "text.modelUnsupported": "{model}는 현재 1차 KSampler 생성만 지원합니다. Mod Guidance, Artist Mix, NegPip, DAVE, Safe PAG, KJ 최적화, Spectrum / SPD, corrections, hooks 및 후속 단계는 지원하지 않습니다.",
+    "text.modelUnsupported": "{model}은 Highres, Detailer, Upscale, Artist Mix, hooks, KJ 최적화를 지원합니다. Mod Guidance, DAVE, Safe PAG, Spectrum / SPD 및 DiT 보정은 지원하지 않습니다.",
+    "text.modelTorchCompileUnsupported": "{model}에서는 TorchCompile을 지원하지 않습니다. KJ SageAttention과 FP16 accumulation은 사용할 수 있습니다.",
     "text.modelSpectrumUnsupported": "{model}에서는 현재 Spectrum / SPD를 지원하지 않습니다. ComfyUI 기본 KSampler를 사용하세요.",
-    "text.mossRequirements": "MOSS Image: Input 노드에서 CLIP 유형 moss_image, Qwen3.5-9B 텍스트 인코더, FLUX.2 VAE를 선택하세요. 1차 생성만 지원하며 Anima guidance, Artist Mix, NegPip, DAVE, Safe PAG 및 후속 단계는 지원하지 않습니다.",
-    "text.kreaRequirements": "Krea2: Input 노드에서 CLIP 유형 krea2, Qwen3-VL-4B, qwen_image_vae.safetensors (Wan 2.1 VAE)를 선택하세요. 기본값은 Krea2 Turbo용 8 steps, CFG 1, Euler / Simple, shift 1.15입니다. RAW 모델은 샘플링 설정을 조정하세요.",
+    "text.mossRequirements": "MOSS Image: Input 노드에서 CLIP 유형 moss_image, Qwen3.5-9B 텍스트 인코더, FLUX.2 VAE를 선택하세요. NegPip은 네이티브 MOSS를 지원하는 최신 ComfyUI-ppm이 필요합니다. MOSS에서는 TorchCompile을 지원하지 않습니다. KJ SageAttention과 FP16 accumulation은 사용할 수 있습니다.",
+    "text.kreaRequirements": "Krea2: Input 노드에서 CLIP 유형 krea2, Qwen3-VL-4B, qwen_image_vae.safetensors (Wan 2.1 VAE)를 선택하세요. 기본값은 Krea2 Turbo용 8 steps, CFG 1, Euler / Simple, shift 1.15입니다. RAW 모델은 샘플링 설정을 조정하세요. Krea2에서는 NegPip을 지원하지 않습니다.",
     "text.modelMismatch": "저장된 설정은 {saved}용입니다. AiO Generator ({saved})를 사용하세요. 이 {model} 노드에서는 실행할 수 없으며 설정은 보존됩니다.",
     "label.scheduler": "스케줄러",
     "label.enabled": "활성화",
@@ -917,10 +919,11 @@ const AIO_TEXT = {
     "label.denoise": "デノイズ",
     "label.sampler": "サンプラー",
     "label.modelFamily": "モデル系統",
-    "text.modelUnsupported": "{model} は first-pass KSampler のみ対応。Mod Guidance、Artist Mix、NegPip、DAVE、Safe PAG、KJ、Spectrum / SPD、corrections、hooks、後続ステージは未対応です。",
+    "text.modelUnsupported": "{model} は Highres、Detailer、Upscale、Artist Mix、hooks、KJ 最適化に対応。Mod Guidance、DAVE、Safe PAG、Spectrum / SPD、DiT corrections は未対応です。",
+    "text.modelTorchCompileUnsupported": "{model} は TorchCompile 未対応です。KJ SageAttention と FP16 accumulation は利用できます。",
     "text.modelSpectrumUnsupported": "{model} は現在 Spectrum / SPD に未対応です。ComfyUI 標準 KSampler を使用してください。",
-    "text.mossRequirements": "MOSS Image: Input で CLIP type moss_image、Qwen3.5-9B text encoder、FLUX.2 VAE を選択してください。First pass のみ。Anima guidance、Artist Mix、NegPip、DAVE、Safe PAG、後続ステージは未対応です。",
-    "text.kreaRequirements": "Krea2: Input で CLIP type krea2、Qwen3-VL-4B、qwen_image_vae.safetensors (Wan 2.1 VAE) を選択。初期値は Turbo 用: 8 steps、CFG 1、Euler / Simple、shift 1.15。RAW は調整してください。",
+    "text.mossRequirements": "MOSS Image: Input で CLIP type moss_image、Qwen3.5-9B text encoder、FLUX.2 VAE を選択してください。 NegPip は native MOSS 対応の ComfyUI-ppm が必要です。 MOSS は TorchCompile 未対応です。KJ SageAttention と FP16 accumulation は利用できます。",
+    "text.kreaRequirements": "Krea2: Input で CLIP type krea2、Qwen3-VL-4B、qwen_image_vae.safetensors (Wan 2.1 VAE) を選択。初期値は Turbo 用: 8 steps、CFG 1、Euler / Simple、shift 1.15。RAW は調整してください。 Krea2 は NegPip 未対応です。",
     "text.modelMismatch": "設定は {saved} 用です。AiO Generator ({saved}) を使ってください。{model} ノードでは実行できません。設定は保持されます。",
     "label.scheduler": "スケジューラー",
     "label.enabled": "有効",
@@ -1038,10 +1041,11 @@ const AIO_TEXT = {
     "label.denoise": "降噪",
     "label.sampler": "采样器",
     "label.modelFamily": "模型系列",
-    "text.modelUnsupported": "{model} 目前仅支持首次 KSampler 生成。不支持 Mod Guidance、Artist Mix、NegPip、DAVE、Safe PAG、KJ、Spectrum / SPD、corrections、hooks 和后续阶段。",
+    "text.modelUnsupported": "{model} 支持 Highres、Detailer、Upscale、Artist Mix、hooks 和 KJ 优化。不支持 Mod Guidance、DAVE、Safe PAG、Spectrum / SPD 和 DiT corrections。",
+    "text.modelTorchCompileUnsupported": "{model} 不支持 TorchCompile。KJ SageAttention 和 FP16 accumulation 仍可使用。",
     "text.modelSpectrumUnsupported": "{model} 目前不支持 Spectrum / SPD。请使用 ComfyUI 原生 KSampler。",
-    "text.mossRequirements": "MOSS Image：请在 Input 节点选择 CLIP type moss_image、Qwen3.5-9B 文本编码器和 FLUX.2 VAE。仅支持首次生成；不支持 Anima guidance、Artist Mix、NegPip、DAVE、Safe PAG 和后续阶段。",
-    "text.kreaRequirements": "Krea2：在 Input 节点选择 CLIP type krea2、Qwen3-VL-4B 和 qwen_image_vae.safetensors (Wan 2.1 VAE)。默认参数适用于 Turbo：8 steps、CFG 1、Euler / Simple、shift 1.15。RAW 模型需调整采样参数。",
+    "text.mossRequirements": "MOSS Image：请在 Input 节点选择 CLIP type moss_image、Qwen3.5-9B 文本编码器和 FLUX.2 VAE。 NegPip 需要支持原生 MOSS 的 ComfyUI-ppm。 MOSS 不支持 TorchCompile。KJ SageAttention 和 FP16 accumulation 仍可使用。",
+    "text.kreaRequirements": "Krea2：在 Input 节点选择 CLIP type krea2、Qwen3-VL-4B 和 qwen_image_vae.safetensors (Wan 2.1 VAE)。默认参数适用于 Turbo：8 steps、CFG 1、Euler / Simple、shift 1.15。RAW 模型需调整采样参数。 Krea2 不支持 NegPip。",
     "text.modelMismatch": "保存的设置属于 {saved}。请使用 AiO Generator ({saved})；此 {model} 节点无法运行这些设置，设置将保留。",
     "label.scheduler": "调度器",
     "label.enabled": "启用",
@@ -3485,10 +3489,9 @@ function isCustomDetailerTargetName(name) {
   return /^custom_\d+$/.test(String(name || ""));
 }
 
-function detailerTargetDefaults(targetName) {
-  const defaults = targetName === "eye"
-    ? DEFAULT_GENERATION_SETTINGS.detailer.eye
-    : DEFAULT_GENERATION_SETTINGS.detailer.face;
+function detailerTargetDefaults(targetName, family = "anima") {
+  const detailerDefaults = aioGenerationDefaultsForFamily(family).detailer;
+  const defaults = targetName === "eye" ? detailerDefaults.eye : detailerDefaults.face;
   const output = clone(defaults);
   if (isCustomDetailerTargetName(targetName)) {
     const suffix = String(targetName).split("_").pop();
@@ -3979,6 +3982,7 @@ const {
     format: aioFormat,
   },
   settingsCore: {
+    modelProfile: aioModelProfile,
     defaultGenerationSettings: DEFAULT_GENERATION_SETTINGS,
     fallbackSamplerNames: GENERATOR_FALLBACK_SAMPLER_NAMES,
     fallbackSchedulerNames: GENERATOR_FALLBACK_SCHEDULER_NAMES,
@@ -4077,6 +4081,7 @@ const openSamplerSettings = aioCreateSamplerSettingsDialog({
     applyTooltipText,
   },
   settingsCore: {
+    modelProfile: aioModelProfile,
     defaultGenerationSettings: DEFAULT_GENERATION_SETTINGS,
     seedControls: GENERATOR_SEED_CONTROLS,
     specialSeedRandom: GENERATOR_SPECIAL_SEED_RANDOM,
@@ -4161,6 +4166,7 @@ const openAdvancedSettings = aioCreateAdvancedSettingsDialog({
     format: aioFormat,
   },
   settingsCore: {
+    modelProfile: aioModelProfile,
     defaultGenerationSettings: DEFAULT_GENERATION_SETTINGS,
     numericLimits: GENERATOR_NUMERIC_LIMITS,
     mergeDefaults,

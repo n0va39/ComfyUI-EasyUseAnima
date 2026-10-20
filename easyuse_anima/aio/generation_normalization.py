@@ -120,10 +120,10 @@ def _is_aio_detailer_target_name(name: str) -> bool:
     return _stages_is_detailer_target_name(name, custom_re=_AIO_DETAILER_CUSTOM_RE)
 
 
-def _aio_detailer_target_defaults(target_name: str) -> dict[str, Any]:
+def _aio_detailer_target_defaults(target_name: str, *, model_family: str = "anima") -> dict[str, Any]:
     return _stages_detailer_target_defaults(
         target_name,
-        default_settings=AIO_GENERATION_DEFAULT_SETTINGS,
+        default_settings=aio_model_defaults(AIO_GENERATION_DEFAULT_SETTINGS, model_family),
         json_clone=_json_clone,
     )
 
@@ -257,7 +257,7 @@ def _normalize_aio_generation_settings(value, *, model_family: str | None = None
         impact_scheduler_names=_impact_scheduler_names,
         max_resolution_value=_comfy_max_resolution,
         target_order=_aio_detailer_target_order,
-        target_defaults=_aio_detailer_target_defaults,
+        target_defaults=lambda name: _aio_detailer_target_defaults(name, model_family=family),
         normalize_spectrum=_normalize_aio_spectrum_settings,
         normalize_corrections=_normalize_aio_dit_corrections_settings,
         normalize_hash_bundles=_normalize_aio_hash_bundles,

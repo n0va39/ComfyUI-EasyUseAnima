@@ -92,11 +92,15 @@ class IPAdapterSession(AioHookSessionBase):
         self.definition = definition
 
     def before_stage(self, event):
+        settings = cast(dict[str, Any], event.request.settings)
+        model = cast(Any, event.state.model)
+        config = getattr(getattr(getattr(model, "model", None), "model_config", None), "unet_config", {})
+        family = config.get("image_model") if isinstance(config, dict) else None
+        if settings.get("model_family", "anima") != "anima" or family not in (None, "anima"):
+            raise RuntimeError("Anima IP-Adapter Hook requires an Anima model and generator.")
         import torch  # type: ignore
         from comfy.patcher_extension import WrappersMP  # type: ignore
 
-        model = cast(Any, event.state.model)
-        settings = cast(dict[str, Any], event.request.settings)
         sampler = settings.get("sampler", {})
         if sampler.get("backend") != "comfy_ksampler" or sampler.get("spectrum", {}).get("enabled"):
             raise RuntimeError("IP-Adapter Hook currently requires the ComfyUI sampler with Spectrum disabled.")

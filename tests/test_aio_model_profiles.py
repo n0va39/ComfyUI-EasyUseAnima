@@ -92,8 +92,9 @@ class AIOModelProfileTests(unittest.TestCase):
             model_profiles.validate_aio_model_resources("krea2", {"resource_info": {"clip_type": "moss_image"}})
         with self.assertRaisesRegex(ValueError, "multiples of 16"):
             model_profiles.validate_aio_model_dimensions("krea2", 1000, 1024)
-        with self.assertRaisesRegex(ValueError, "Krea2.*basic txt2img"):
-            model_profiles.validate_aio_model_settings(self.settings(model_family="krea2", highres={"enabled": True}))
+        model_profiles.validate_aio_model_settings(
+            self.settings(model_family="krea2", highres={"enabled": True})
+        )
 
     def test_family_defaults_preserve_explicit_values_and_inactive_settings(self):
         original = copy.deepcopy(generation_defaults.AIO_GENERATION_DEFAULT_SETTINGS)
@@ -138,9 +139,6 @@ class AIOModelProfileTests(unittest.TestCase):
             ("model_patches", "kj", "torch_compile", "enabled"),
             ("sampler", "spectrum", "enabled"),
             ("sampler", "dit_corrections", "enabled"),
-            ("highres", "enabled"),
-            ("upscale", "enabled"),
-            ("detailer", "face", "enabled"),
         ):
             with self.subTest(path=path):
                 settings = self.settings()
@@ -150,8 +148,56 @@ class AIOModelProfileTests(unittest.TestCase):
                 target[path[-1]] = True
                 with self.assertRaisesRegex(ValueError, "unsupported options"):
                     model_profiles.validate_aio_model_settings(settings)
-        with self.assertRaisesRegex(ValueError, "AiO hook"):
-            model_profiles.validate_aio_model_settings(self.settings(), aio_hook=object())
+        model_profiles.validate_aio_model_settings(self.settings(), aio_hook=object())
+
+    def test_common_extras_are_allowed_and_use_family_defaults(self):
+        for family, steps, cfg in (("moss_image", 25, 2.5), ("krea2", 8, 1.0)):
+            settings = self.settings(
+                model_family=family, highres={"enabled": True},
+                upscale={"enabled": True}, detailer={"enabled": True, "custom_1": {"enabled": True}},
+                model_patches={"kj": {
+                    "sage_attention": "auto", "fp16_accumulation": True,
+                    "torch_compile": {"enabled": family == "krea2"},
+                }},
+            )
+            model_profiles.validate_aio_model_settings(settings, aio_hook=object())
+            for stage in (settings["highres"], settings["upscale"], settings["detailer"]["custom_1"]):
+                self.assertEqual(stage["steps"], steps)
+                self.assertEqual(stage["cfg"], cfg)
+                self.assertEqual(stage["scheduler"], "simple")
+                self.assertFalse(stage["spectrum"]["enabled"])
+
+    def test_nested_patches_cannot_bypass_family_validation(self):
+        for family in ("moss_image", "krea2"):
+            for section in ("highres", "upscale", "custom_1"):
+                for feature in ("spectrum", "dit_corrections"):
+                    with self.subTest(family=family, section=section, feature=feature):
+                        if section == "custom_1":
+                            override = {"detailer": {"enabled": True, section: {
+                                "enabled": True, feature: {"enabled": True},
+                            }}}
+                        else:
+                            override = {section: {"enabled": True, feature: {"enabled": True}}}
+                        settings = self.settings(model_family=family, **override)
+                        with self.assertRaisesRegex(ValueError, "unsupported options"):
+                            model_profiles.validate_aio_model_settings(settings)
+                        settings["detailer" if section == "custom_1" else section]["enabled"] = False
+                        model_profiles.validate_aio_model_settings(settings)
+
+    def test_explicit_stage_tuning_preserved_and_negpip_is_family_specific(self):
+        settings = self.settings(
+            model_family="krea2", highres={"steps": 31, "cfg": 4.5},
+            detailer={"custom_1": {"steps": 19, "cfg": 3.5}},
+        )
+        self.assertEqual(settings["highres"]["steps"], 31)
+        self.assertEqual(settings["highres"]["cfg"], 4.5)
+        self.assertEqual(settings["detailer"]["custom_1"]["steps"], 19)
+        self.assertEqual(settings["detailer"]["custom_1"]["cfg"], 3.5)
+        settings["negpip"]["mode"] = "on"
+        with self.assertRaisesRegex(ValueError, "NegPip"):
+            model_profiles.validate_aio_model_settings(settings)
+        settings["model_family"] = "moss_image"
+        model_profiles.validate_aio_model_settings(settings)
 
     def test_model_identity_clip_type_and_dimension_contract(self):
         def model(family):

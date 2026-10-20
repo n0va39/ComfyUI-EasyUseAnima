@@ -80,6 +80,7 @@ async function flushPromises() {
 const advancedDialogModule = await import(dataModule("../web/js/aio/advanced_settings_dialog.js"));
 const recommendationModule = await import(dataModule("../web/js/aio/torch_compile_recommendation.js"));
 const settingsModule = await import(dataModule("../web/js/aio/settings.js"));
+const modelProfilesModule = await import(dataModule("../web/js/aio/model_profiles.js"));
 const numericLimits = {
   samplerSteps: { min: 1, max: 10000 },
   samplerCfg: { min: 0, max: 100 },
@@ -376,6 +377,7 @@ function createFixture({
       format,
     },
     settingsCore: {
+      modelProfile: modelProfilesModule.aioModelProfile,
       defaultGenerationSettings: defaultSettings,
       numericLimits,
       mergeDefaults,
@@ -1453,14 +1455,18 @@ for (const family of ["moss_image", "krea2"]) {
   fixture.resolveLoads();
   await flushPromises();
   const dialog = fixture.dialogs[0];
-  for (const label of ["Conditioning", "Artist Mix"]) {
-    assert.ok(sectionByHeading(dialog.body, label).querySelectorAll("input, select, button").every((control) => control.disabled));
-  }
   const patches = sectionByHeading(dialog.body, "Model Patch / Optimization");
   const shift = controlIn(patches, family === "krea2" ? "FLUX shift (mu)" : "AuraFlow shift");
   assert.equal(shift.disabled, false);
-  for (const control of patches.querySelectorAll("input, select, button")) {
-    if (control !== shift) assert.equal(control.disabled, true, "MOSS unsupported patch controls stay locked after dependency resolution");
+  for (const label of ["Anima DAVE", "Anima Safe PAG"]) {
+    const section = subsectionByHeading(dialog.body, label);
+    assert.ok(section.querySelectorAll("input, select, button").every((control) => control.disabled));
+  }
+  const artist = sectionByHeading(dialog.body, "Artist Mix");
+  assert.ok(artist.querySelectorAll("input, select, button").some((control) => !control.disabled));
+  assert.equal(controlIn(subsectionByHeading(dialog.body, "SageAttention (KJNodes)"), "Mode").disabled, false);
+  if (family === "krea2") {
+    assert.ok(sectionByHeading(dialog.body, "Conditioning").querySelectorAll("input, select, button").every((control) => control.disabled));
   }
   shift.value = "6";
   action(dialog, "button.apply").emit("click");
@@ -1469,3 +1475,52 @@ for (const family of ["moss_image", "krea2"]) {
   assert.equal(fixture.node.settings.negpip.mode, "off");
 }
 console.log("AiO Advanced settings dialog smoke passed.");
+
+for (const family of ["moss_image", "krea2"]) {
+  const settings = settingsModule.aioGenerationDefaultsForFamily(family);
+  settings.model_patches.dave.enabled = true;
+  settings.model_patches.safe_pag.enabled = true;
+  if (family === "krea2") settings.negpip.mode = "turbo";
+  const fixture = createFixture({ settings, available: { dave: false, safePag: false }, deferLoads: true });
+  fixture.openAdvancedSettings(fixture.node);
+  fixture.resolveLoads();
+  await flushPromises();
+  const dialog = fixture.dialogs[0];
+  const patches = sectionByHeading(dialog.body, "Model Patch / Optimization");
+  assert.equal(controlIn(subsectionByHeading(dialog.body, "Anima DAVE"), "Use DAVE").checked, true);
+  const negpip = controlIn(sectionByHeading(dialog.body, "Conditioning"), "NegPip");
+  assert.equal(negpip.disabled, family === "krea2");
+  if (family === "moss_image") negpip.value = "on";
+  controlIn(patches, "KJNodes FP16 accum").checked = true;
+  controlIn(subsectionByHeading(dialog.body, "SageAttention (KJNodes)"), "Mode").value = "auto";
+  controlIn(patches, "Use Torch compile").checked = true;
+  controlIn(sectionByHeading(dialog.body, "Artist Mix"), "Mode").value = "prompt";
+  action(dialog, "button.apply").emit("click");
+  assert.equal(fixture.node.settings.model_patches.kj.fp16_accumulation, true);
+  assert.equal(fixture.node.settings.model_patches.kj.sage_attention, "auto");
+  assert.equal(fixture.node.settings.model_patches.kj.torch_compile.enabled, family !== "moss_image");
+  assert.equal(fixture.node.settings.artist_mix.mode, "prompt");
+  assert.equal(fixture.node.settings.negpip.mode, family === "moss_image" ? "on" : "turbo");
+  assert.deepEqual(fixture.node.settings.model_patches.dave, settings.model_patches.dave);
+  assert.deepEqual(fixture.node.settings.model_patches.safe_pag, settings.model_patches.safe_pag);
+}
+
+{
+  const settings = settingsModule.aioGenerationDefaultsForFamily("moss_image");
+  settings.model_patches.kj.torch_compile = { ...settings.model_patches.kj.torch_compile, enabled: true, backend: "saved_backend", future_option: "keep" };
+  const fixture = createFixture({ settings, deferLoads: true });
+  fixture.openAdvancedSettings(fixture.node);
+  fixture.resolveLoads();
+  await flushPromises();
+  const dialog = fixture.dialogs[0];
+  const torch = subsectionByHeading(dialog.body, "Torch Compile (KJNodes)");
+  assert.ok(torch.querySelectorAll("input, select, button").every((control) => control.disabled));
+  assert.equal(controlIn(torch, "Use Torch compile").checked, true, "saved unsupported compile state remains visible");
+  const recommendation = torchRecommendationControls(dialog);
+  assert.match(recommendation.status.textContent, /modelTorchCompileUnsupported/);
+  recommendation.button.emit("click");
+  await flushPromises();
+  assert.equal(fixture.recommendationCalls.length, 0);
+  action(dialog, "button.apply").emit("click");
+  assert.deepEqual(fixture.node.settings.model_patches.kj.torch_compile, settings.model_patches.kj.torch_compile);
+}

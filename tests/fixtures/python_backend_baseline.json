@@ -7380,7 +7380,7 @@
         "conditional": false,
         "imported": "torch",
         "kind": "static_import",
-        "line": 95,
+        "line": 101,
         "name": null,
         "optional": false,
         "requested": "torch",
@@ -7397,7 +7397,7 @@
         "conditional": false,
         "imported": "comfy.patcher_extension:WrappersMP",
         "kind": "static_from",
-        "line": 96,
+        "line": 102,
         "name": "WrappersMP",
         "optional": false,
         "requested": "comfy.patcher_extension",
@@ -51749,7 +51749,7 @@
         "is_package": false,
         "loc": 269,
         "module": "easyuse_anima.aio.generation_normalization",
-        "normalized_git_blob_sha1": "d3679eca7246f2daf6d06bd43d125e31cf8dbdc1",
+        "normalized_git_blob_sha1": "f2d344101674f6847089a47512ac0800be59c3e0",
         "path": "easyuse_anima/aio/generation_normalization.py",
         "top_level": {
           "class_count": 0,
@@ -52967,41 +52967,41 @@
           },
           {
             "async": false,
-            "end_line": 125,
+            "end_line": 129,
             "kind": "method",
             "line": 94,
-            "loc": 32,
+            "loc": 36,
             "qualified_name": "IPAdapterSession.before_stage"
           },
           {
             "async": false,
-            "end_line": 133,
+            "end_line": 137,
             "kind": "method",
-            "line": 129,
+            "line": 133,
             "loc": 5,
             "qualified_name": "IPAdapterHook.__init__"
           },
           {
             "async": false,
-            "end_line": 141,
+            "end_line": 145,
             "kind": "method",
-            "line": 135,
+            "line": 139,
             "loc": 7,
             "qualified_name": "IPAdapterHook.describe"
           },
           {
             "async": false,
-            "end_line": 144,
+            "end_line": 148,
             "kind": "method",
-            "line": 143,
+            "line": 147,
             "loc": 2,
             "qualified_name": "IPAdapterHook.create_session"
           }
         ],
         "is_package": false,
-        "loc": 147,
+        "loc": 151,
         "module": "easyuse_anima.aio.ipadapter_hook",
-        "normalized_git_blob_sha1": "1795a46a18a62f41d19cea7f2b1f7d5f14e14a71",
+        "normalized_git_blob_sha1": "e586714a70a4108da11efcf1c92c7bcffa3d17de",
         "path": "easyuse_anima/aio/ipadapter_hook.py",
         "top_level": {
           "class_count": 3,
@@ -53451,54 +53451,54 @@
         "functions": [
           {
             "async": false,
-            "end_line": 53,
+            "end_line": 62,
             "kind": "function",
-            "line": 50,
+            "line": 59,
             "loc": 4,
             "qualified_name": "aio_model_profile"
           },
           {
             "async": false,
-            "end_line": 71,
+            "end_line": 87,
             "kind": "function",
-            "line": 56,
-            "loc": 16,
+            "line": 65,
+            "loc": 23,
             "qualified_name": "aio_model_defaults"
-          },
-          {
-            "async": false,
-            "end_line": 118,
-            "kind": "function",
-            "line": 74,
-            "loc": 45,
-            "qualified_name": "validate_aio_model_settings"
-          },
-          {
-            "async": false,
-            "end_line": 138,
-            "kind": "function",
-            "line": 121,
-            "loc": 18,
-            "qualified_name": "validate_aio_model_resources"
           },
           {
             "async": false,
             "end_line": 145,
             "kind": "function",
-            "line": 141,
+            "line": 90,
+            "loc": 56,
+            "qualified_name": "validate_aio_model_settings"
+          },
+          {
+            "async": false,
+            "end_line": 165,
+            "kind": "function",
+            "line": 148,
+            "loc": 18,
+            "qualified_name": "validate_aio_model_resources"
+          },
+          {
+            "async": false,
+            "end_line": 172,
+            "kind": "function",
+            "line": 168,
             "loc": 5,
             "qualified_name": "validate_aio_model_dimensions"
           }
         ],
         "is_package": false,
-        "loc": 148,
+        "loc": 175,
         "module": "easyuse_anima.aio.model_profiles",
-        "normalized_git_blob_sha1": "101adfe8fa5e722324b0bd3e1c66a00986b2e1ac",
+        "normalized_git_blob_sha1": "c316bcb76539c04fb35ac1363624cf8e06892c2d",
         "path": "easyuse_anima/aio/model_profiles.py",
         "top_level": {
           "class_count": 1,
           "function_count": 5,
-          "global_count": 2
+          "global_count": 3
         }
       },
       {
@@ -54693,121 +54693,121 @@
           },
           {
             "async": false,
-            "end_line": 223,
+            "end_line": 242,
             "kind": "function",
             "line": 196,
-            "loc": 28,
+            "loc": 47,
             "qualified_name": "invoke_negpip_node"
           },
           {
             "async": false,
-            "end_line": 232,
+            "end_line": 251,
             "kind": "function",
-            "line": 226,
+            "line": 245,
             "loc": 7,
             "qualified_name": "_is_escaped"
           },
           {
             "async": false,
-            "end_line": 242,
+            "end_line": 261,
             "kind": "function",
-            "line": 235,
+            "line": 254,
             "loc": 8,
             "qualified_name": "_line_ending"
           },
           {
             "async": false,
-            "end_line": 250,
+            "end_line": 269,
             "kind": "function",
-            "line": 245,
+            "line": 264,
             "loc": 6,
             "qualified_name": "_turbo_prompt_error"
           },
           {
             "async": false,
-            "end_line": 274,
+            "end_line": 293,
             "kind": "function",
-            "line": 253,
+            "line": 272,
             "loc": 22,
             "qualified_name": "_strip_top_level_comments_and_validate"
           },
           {
             "async": false,
-            "end_line": 296,
+            "end_line": 315,
             "kind": "function",
-            "line": 277,
+            "line": 296,
             "loc": 20,
             "qualified_name": "_split_top_level_prompt_items"
           },
           {
             "async": false,
-            "end_line": 304,
+            "end_line": 323,
             "kind": "function",
-            "line": 299,
+            "line": 318,
             "loc": 6,
             "qualified_name": "_toggle_numeric_weight"
           },
           {
             "async": false,
-            "end_line": 316,
+            "end_line": 335,
             "kind": "function",
-            "line": 307,
+            "line": 326,
             "loc": 10,
             "qualified_name": "_derive_aio_negpip_turbo_negative_contribution"
           },
           {
             "async": false,
-            "end_line": 336,
+            "end_line": 355,
             "kind": "function",
-            "line": 319,
+            "line": 338,
             "loc": 18,
             "qualified_name": "_aio_negpip_execution_prompts"
           },
           {
             "async": false,
-            "end_line": 341,
+            "end_line": 360,
             "kind": "function",
-            "line": 339,
+            "line": 358,
             "loc": 3,
             "qualified_name": "_aio_negpip_turbo_fingerprint"
           },
           {
             "async": false,
-            "end_line": 358,
+            "end_line": 377,
             "kind": "function",
-            "line": 344,
+            "line": 363,
             "loc": 15,
             "qualified_name": "_aio_negpip_mode"
           },
           {
             "async": false,
-            "end_line": 389,
+            "end_line": 408,
             "kind": "function",
-            "line": 361,
+            "line": 380,
             "loc": 29,
             "qualified_name": "_aio_negpip_cache_signature"
           },
           {
             "async": false,
-            "end_line": 428,
+            "end_line": 447,
             "kind": "function",
-            "line": 392,
+            "line": 411,
             "loc": 37,
             "qualified_name": "_aio_negpip_metadata"
           },
           {
             "async": false,
-            "end_line": 445,
+            "end_line": 464,
             "kind": "function",
-            "line": 431,
+            "line": 450,
             "loc": 15,
             "qualified_name": "apply_aio_negpip"
           }
         ],
         "is_package": false,
-        "loc": 448,
+        "loc": 467,
         "module": "easyuse_anima.aio.negpip",
-        "normalized_git_blob_sha1": "91228ac2f26297dcab77b4893cdba3663f6ef5e8",
+        "normalized_git_blob_sha1": "cf6f0af760177c457319a6f219159994e9678cce",
         "path": "easyuse_anima/aio/negpip.py",
         "top_level": {
           "class_count": 1,
@@ -68175,7 +68175,7 @@
         "conditional": false,
         "imported": "torch",
         "kind": "static_import",
-        "line": 95,
+        "line": 101,
         "optional": false,
         "role": "ordinary",
         "source": "easyuse_anima/aio/ipadapter_hook.py"
@@ -68186,7 +68186,7 @@
         "conditional": false,
         "imported": "comfy.patcher_extension:WrappersMP",
         "kind": "static_from",
-        "line": 96,
+        "line": 102,
         "optional": false,
         "role": "ordinary",
         "source": "easyuse_anima/aio/ipadapter_hook.py"
@@ -79862,7 +79862,7 @@
         "column": 13,
         "context": "assign:AIO_MODEL_PROFILES",
         "kind": "import_time_call",
-        "line": 29,
+        "line": 36,
         "module": "easyuse_anima/aio/model_profiles.py",
         "scope": "<module>"
       },
@@ -79871,7 +79871,7 @@
         "column": 18,
         "context": "assign:AIO_MODEL_PROFILES",
         "kind": "import_time_call",
-        "line": 35,
+        "line": 42,
         "module": "easyuse_anima/aio/model_profiles.py",
         "scope": "<module>"
       },
@@ -79880,7 +79880,7 @@
         "column": 13,
         "context": "assign:AIO_MODEL_PROFILES",
         "kind": "import_time_call",
-        "line": 41,
+        "line": 49,
         "module": "easyuse_anima/aio/model_profiles.py",
         "scope": "<module>"
       },
@@ -81864,7 +81864,7 @@
       },
       {
         "kind": "dict",
-        "line": 28,
+        "line": 35,
         "module": "easyuse_anima/aio/model_profiles.py",
         "name": "AIO_MODEL_PROFILES"
       },

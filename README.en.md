@@ -112,8 +112,9 @@ Detailed settings: [AiO Generator (Anima) guide](docs/nodes/anima-aio-generator.
 
 `AiO Generator (MOSS)` and `AiO Generator (Krea2)` are separate fixed-model nodes
 using the same Input socket and shared settings/seed/save architecture. Their
-initial scope is basic txt2img with core KSampler; Anima patches, Spectrum,
-hooks and Highres/Detailer/Upscale are unavailable. Krea2 defaults target Turbo.
+compatible extras include Highres, Detailer, Upscale, Artist Mix, generic hooks
+and KJ execution options. Anima-specific patches and Spectrum remain unavailable;
+MOSS NegPip requires current ComfyUI-ppm. Krea2 defaults target Turbo.
 See the same guide for required encoders, VAEs and model-specific defaults.
 
 Compact release workflow:

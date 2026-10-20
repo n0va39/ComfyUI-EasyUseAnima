@@ -19,12 +19,21 @@ and shift 1.15, with dimensions divisible by 16. Shift uses Krea2's FLUX mu
 contract. RAW needs its own steps, CFG and shift settings.
 [Official Krea2 guide](https://docs.comfy.org/tutorials/image/krea/krea-2).
 
-Initial MOSS/Krea2 scope: basic txt2img, core LoRA loading, preview, postprocessing, and
-saving. Anima Mod Guidance, Artist Mix, NegPip, DAVE, Safe PAG, KJ patches, AiO
-hooks, Highres/Detailer/Upscale are unavailable and rejected before execution.
+MOSS/Krea2 support txt2img, core LoRA loading, Artist Mix, Highres, SAM3 Detailer,
+USDU/ResShift Upscale, KJ SageAttention/FP16 accumulation, generic
+AiO hooks, preview, postprocessing and saving. Optional features require their
+external nodes and local weights. The Anima IP-Adapter hook remains Anima-only.
+Torch Compile is available for Krea2. MOSS Torch Compile is disabled because
+the current native attention and quantized kernels fail compilation.
+MOSS NegPip requires native-MOSS-capable ComfyUI-ppm; both MODEL and CLIP must
+report successful patching. Krea2 NegPip remains unsupported.
+Anima Mod Guidance, DAVE, Safe PAG, Spectrum acceleration and DiT corrections
+remain unavailable for both families, including secondary sampling stages.
 Upstream Spectrum 2.12.1's `MossSpectrumKSampler` targets a different MOSS loader
-and time-embedding contract, so it is not used for native core MOSS. Existing
-Anima Spectrum support is preserved.
+and time-embedding contract. The generic Spectrum patch also cannot reconstruct
+Krea2's model output. Acceleration can be integrated after upstream supplies a
+compatible patch; Mod Guidance additionally needs trained family-specific
+support. Existing Anima Spectrum support is preserved.
 
 Category: `EasyUse Anima/AiO`
 

@@ -476,8 +476,11 @@ export function aioGenerationDefaultsForFamily(family = "anima") {
     defaults.model_patches.aura_flow.shift = family === "krea2" ? 1.15 : 5;
     defaults.mod_guidance.mode = "disabled";
     defaults.artist_mix.mode = "off";
-    defaults.detailer.face.spectrum.enabled = false;
-    defaults.detailer.eye.spectrum.enabled = false;
+    for (const stage of [defaults.highres, defaults.upscale, defaults.detailer.face, defaults.detailer.eye]) {
+      for (const key of ["steps", "cfg", "sampler_name", "scheduler"]) stage[key] = defaults.sampler[key];
+      stage.spectrum.enabled = false;
+      stage.dit_corrections.enabled = false;
+    }
   }
   return defaults;
 }
