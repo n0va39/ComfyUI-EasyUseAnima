@@ -1457,7 +1457,7 @@ for (const family of ["moss_image", "krea2"]) {
     assert.ok(sectionByHeading(dialog.body, label).querySelectorAll("input, select, button").every((control) => control.disabled));
   }
   const patches = sectionByHeading(dialog.body, "Model Patch / Optimization");
-  const shift = controlIn(patches, "AuraFlow shift");
+  const shift = controlIn(patches, family === "krea2" ? "FLUX shift (mu)" : "AuraFlow shift");
   assert.equal(shift.disabled, false);
   for (const control of patches.querySelectorAll("input, select, button")) {
     if (control !== shift) assert.equal(control.disabled, true, "MOSS unsupported patch controls stay locked after dependency resolution");

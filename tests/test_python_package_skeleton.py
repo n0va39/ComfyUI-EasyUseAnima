@@ -501,6 +501,8 @@ print(json.dumps({{
         expected_all[PACKAGE_MODULES.index("easyuse_anima.nodes.aio_nodes")] = [
             "EasyUseAnimaInput",
             "EasyUseAnimaAIOGenerator",
+            "EasyUseMossAIOGenerator",
+            "EasyUseKrea2AIOGenerator",
         ]
         expected_all[PACKAGE_MODULES.index("easyuse_anima.seed.service")] = [
             "InMemorySeedReservationService",

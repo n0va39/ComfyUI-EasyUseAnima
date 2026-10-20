@@ -256,7 +256,7 @@ export function aioCreateAdvancedSettingsDialog(dependencies) {
 
     const auraShift = field(
       modelPatches,
-      "AuraFlow shift",
+      settings.model_family === "krea2" ? "FLUX shift (mu)" : "AuraFlow shift",
       numberInput(settings.model_patches.aura_flow.shift, settings.model_family === "krea2" ? "0.01" : "0.5"),
       "tip.shift",
     );
