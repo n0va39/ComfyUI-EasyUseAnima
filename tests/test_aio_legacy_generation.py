@@ -2192,9 +2192,10 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
             self.assertIs(value, context)
             return value
 
-        def normalize_settings(value):
+        def normalize_settings(value, *, model_family):
             trace.append("normalize_settings")
             self.assertEqual(value, "settings-json")
+            self.assertEqual(model_family, "anima")
             return copy.deepcopy(settings)
 
         def typed_config(normalized_settings):

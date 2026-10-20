@@ -16,7 +16,7 @@
  *     clearTimeout: (timer: any) => void,
  *   },
  *   constants: {
- *     generatorNodeType: string,
+ *     generatorNodeType: string | string[],
  *     generatorVueNodeClass: string,
  *   },
  *   storeAdapter: {
@@ -61,6 +61,9 @@ export function aioCreateNativePreviewRuntime(dependencies) {
     generatorNodeType: GENERATOR_NODE_TYPE,
     generatorVueNodeClass: GENERATOR_VUE_NODE_CLASS,
   } = dependencies.constants;
+  const generatorNodeTypes = Array.isArray(GENERATOR_NODE_TYPE)
+    ? GENERATOR_NODE_TYPE : [GENERATOR_NODE_TYPE];
+
   const {
     getLegacyPreviewImages,
     loadDirectStoreModules,
@@ -777,7 +780,7 @@ export function aioCreateNativePreviewRuntime(dependencies) {
   function handleGeneratorPreviewEvent(event) {
     const detail = aioPreviewEventDetail(event);
     const node = findGeneratorNodeByQualifiedId(getGraph(), detail.node);
-    if (!node || node.type !== GENERATOR_NODE_TYPE || isGeneratorNativePreviewDisposed(node)) {
+    if (!node || !generatorNodeTypes.includes(node.type) || isGeneratorNativePreviewDisposed(node)) {
       return;
     }
     scheduleGeneratorNativeLivePreviewPurge(node, detail);
@@ -789,7 +792,7 @@ export function aioCreateNativePreviewRuntime(dependencies) {
   function findGeneratorNodeForDenoisePreview(detail) {
     for (const id of aioPreviewNodeIdsFromDetail(detail)) {
       const node = findGeneratorNodeByQualifiedId(getGraph(), id);
-      if (node?.type === GENERATOR_NODE_TYPE && !isGeneratorNativePreviewDisposed(node)) {
+      if (generatorNodeTypes.includes(node?.type) && !isGeneratorNativePreviewDisposed(node)) {
         return node;
       }
     }
@@ -820,7 +823,7 @@ export function aioCreateNativePreviewRuntime(dependencies) {
   function handleGeneratorExecutingEvent(event) {
     const nodeId = aioPreviewEventDetail(event);
     const node = findGeneratorNodeByQualifiedId(getGraph(), nodeId);
-    if (node?.type === GENERATOR_NODE_TYPE && !isGeneratorNativePreviewDisposed(node)) {
+    if (generatorNodeTypes.includes(node?.type) && !isGeneratorNativePreviewDisposed(node)) {
       clearGeneratorDenoisePreview(node, true);
       scheduleGeneratorDefaultPreviewSuppression(node);
     }
@@ -829,7 +832,7 @@ export function aioCreateNativePreviewRuntime(dependencies) {
   function clearGeneratorDenoisePreviews() {
     clearGeneratorPreviewProgress();
     for (const node of listGeneratorNodes()) {
-      if (node?.type === GENERATOR_NODE_TYPE && !isGeneratorNativePreviewDisposed(node)) {
+      if (generatorNodeTypes.includes(node?.type) && !isGeneratorNativePreviewDisposed(node)) {
         clearGeneratorDenoisePreview(node, true);
         scheduleGeneratorDefaultPreviewSuppression(node);
       }

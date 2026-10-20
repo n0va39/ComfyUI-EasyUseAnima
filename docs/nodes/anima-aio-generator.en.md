@@ -1,10 +1,45 @@
-# Anima AiO Generator
+# AiO Generator (Anima / MOSS / Krea2)
+
+Use separate `AiO Generator (Anima)`, `AiO Generator (MOSS)` and
+`AiO Generator (Krea2)` nodes. Each fixes its model family and owns its settings,
+while generation, seed and saving code remain shared. The existing Anima node ID
+and workflows are preserved. For the earlier MOSS development workflow, replace
+the generator with the MOSS node and transfer its `generation_settings` unchanged.
+Profiles from another model family cannot be applied.
+
+MOSS requires a core MOSS-capable ComfyUI build (validation target v0.42.1).
+Select a MOSS diffusion model, Qwen3.5 9B text encoder, CLIP type `moss_image`,
+and FLUX.2 VAE in Input. Defaults: 25 steps, CFG 2.5, er_sde, simple, shift 5.
+Width and height must be multiples of 16. Family selection does not download or
+replace the selected resource files.
+
+Krea2 uses a Krea2 diffusion model, Qwen3-VL 4B encoder, CLIP type `krea2` and
+`qwen_image_vae.safetensors`. Turbo defaults are 8 steps, CFG 1, Euler/simple
+and shift 1.15, with dimensions divisible by 16. Shift uses Krea2's FLUX mu
+contract. RAW needs its own steps, CFG and shift settings.
+[Official Krea2 guide](https://docs.comfy.org/tutorials/image/krea/krea-2).
+
+MOSS/Krea2 support txt2img, core LoRA loading, Artist Mix, Highres, SAM3 Detailer,
+USDU/ResShift Upscale, KJ SageAttention/FP16 accumulation, generic
+AiO hooks, preview, postprocessing and saving. Optional features require their
+external nodes and local weights. The Anima IP-Adapter hook remains Anima-only.
+Torch Compile is available for Krea2. MOSS Torch Compile is disabled because
+the current native attention and quantized kernels fail compilation.
+MOSS NegPip requires native-MOSS-capable ComfyUI-ppm; both MODEL and CLIP must
+report successful patching. Krea2 NegPip remains unsupported.
+Anima Mod Guidance, DAVE, Safe PAG, Spectrum acceleration and DiT corrections
+remain unavailable for both families, including secondary sampling stages.
+Upstream Spectrum 2.12.1's `MossSpectrumKSampler` targets a different MOSS loader
+and time-embedding contract. The generic Spectrum patch also cannot reconstruct
+Krea2's model output. Acceleration can be integrated after upstream supplies a
+compatible patch; Mod Guidance additionally needs trained family-specific
+support. Existing Anima Spectrum support is preserved.
 
 Category: `EasyUse Anima/AiO`
 
-![Anima AiO Generator](../images/aio-generator-node.png)
+![AiO Generator (Anima)](../images/aio-generator-node.png)
 
-`Anima AiO Generator` consumes the dedicated context from `Easy Use Anima Input`
+`AiO Generator (Anima)` consumes the dedicated context from `Easy Use Anima Input`
 and runs prompt encoding, first-pass sampling, optional Highres, optional
 Detailer, and image saving in one output node. Prompt editing stays upstream in
 Prompt Studio, so the generator UI does not expose prompt fields.

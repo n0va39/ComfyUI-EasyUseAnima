@@ -1,6 +1,11 @@
 {
   "declarative_mutable_globals": [
     {
+      "module": "easyuse_anima/aio/model_profiles.py",
+      "reason": "Reviewed model-family capability table; never mutated at runtime.",
+      "symbols": ["AIO_MODEL_PROFILES"]
+    },
+    {
       "module": "easyuse_anima/aio/generation_defaults.py",
       "reason": "Published generation defaults and special-seed lookup data; production treats both containers as immutable tables.",
       "symbols": ["AIO_GENERATION_DEFAULT_SETTINGS", "AIO_SPECIAL_SEEDS"]

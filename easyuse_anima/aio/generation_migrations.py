@@ -9,7 +9,7 @@ from ..errors import ValidationError
 from .generation_values import freeze_object, thaw_object
 
 AIO_GENERATION_SETTINGS_SCHEMA = "easyuse_anima_aio_generation_settings"
-AIO_GENERATION_SETTINGS_CURRENT_VERSION = 4
+AIO_GENERATION_SETTINGS_CURRENT_VERSION = 5
 AIO_GENERATION_STAGE_IDS = (
     "first_pass",
     "highres",
@@ -175,6 +175,17 @@ def _migrate_aio_generation_settings_v3_to_v4(
     return migrated
 
 
+def _migrate_aio_generation_settings_v4_to_v5(
+    source: Mapping[str, object],
+) -> Mapping[str, object]:
+    """Legacy workflows retain Anima settings and start with no inactive profiles."""
+    migrated = _copy_generation_settings(source)
+    migrated.setdefault("model_family", "anima")
+    migrated.setdefault("model_settings", {})
+    migrated["version"] = 5
+    return migrated
+
+
 AIO_GENERATION_MIGRATION_REGISTRY = (
     AIOGenerationMigrationRegistry()
     .with_step(
@@ -190,6 +201,11 @@ AIO_GENERATION_MIGRATION_REGISTRY = (
     .with_step(
         AIOGenerationMigrationStep(
             3, 4, _migrate_aio_generation_settings_v3_to_v4,
+        )
+    )
+    .with_step(
+        AIOGenerationMigrationStep(
+            4, 5, _migrate_aio_generation_settings_v4_to_v5,
         )
     )
 )

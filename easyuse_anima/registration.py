@@ -1,7 +1,12 @@
 """Pure ComfyUI node mapping composition for EasyUse Anima."""
 
 from .nodes.aio_hook_nodes import EasyUseAnimaAIOHookCombine
-from .nodes.aio_nodes import EasyUseAnimaAIOGenerator, EasyUseAnimaInput
+from .nodes.aio_nodes import (
+    EasyUseAnimaAIOGenerator,
+    EasyUseAnimaInput,
+    EasyUseKrea2AIOGenerator,
+    EasyUseMossAIOGenerator,
+)
 from .nodes.anima_29b_nodes import EasyUseAnima29BLoraStackLoader
 from .nodes.civitai_nodes import EasyUseAnimaCivitaiLookup
 from .nodes.image_nodes import (
@@ -40,6 +45,8 @@ NODE_CLASS_MAPPINGS = {
     "EasyAnimaSafePAG": EasyAnimaSafePAG,
     "EasyUseAnima29BLoraStackLoader": EasyUseAnima29BLoraStackLoader,
     "EasyUseAnimaAIOGenerator": EasyUseAnimaAIOGenerator,
+    "EasyUseMossAIOGenerator": EasyUseMossAIOGenerator,
+    "EasyUseKrea2AIOGenerator": EasyUseKrea2AIOGenerator,
     "EasyUseAnimaAIOHookCombine": EasyUseAnimaAIOHookCombine,
     "EasyUseAnimaDetailerAlignHook": EasyUseAnimaDetailerAlignHook,
     "EasyUseAnimaArtistMixConditioning": EasyUseAnimaArtistMixConditioning,
@@ -69,7 +76,9 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "EasyAnimaIPAdapterHook": "Easy Anima IP-Adapter Hook",
     "EasyAnimaSafePAG": "Easy Anima Safe PAG",
     "EasyUseAnima29BLoraStackLoader": "Anima 2.9B LoRA Stack Loader",
-    "EasyUseAnimaAIOGenerator": "Anima AiO Generator",
+    "EasyUseAnimaAIOGenerator": "AiO Generator (Anima)",
+    "EasyUseMossAIOGenerator": "AiO Generator (MOSS)",
+    "EasyUseKrea2AIOGenerator": "AiO Generator (Krea2)",
     "EasyUseAnimaAIOHookCombine": "Anima AiO Hook Combine",
     "EasyUseAnimaDetailerAlignHook": "Anima Detailer Align Hook",
     "EasyUseAnimaArtistMixConditioning": "Anima Artist Mix Conditioning",

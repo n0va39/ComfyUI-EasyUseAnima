@@ -8,8 +8,9 @@ import json
 from typing import Any
 
 from ..common.values import _single_value
+from .model_profiles import AIO_MODEL_PROFILES
 
-_AIO_NODE_TYPE = "EasyUseAnimaAIOGenerator"
+_AIO_NODE_TYPES = tuple(profile.node_type for profile in AIO_MODEL_PROFILES.values())
 _EXECUTIONS_KEY = "easyuse_anima_executions"
 _MISSING_INPUT = object()
 
@@ -22,7 +23,7 @@ def _update_prompt_snapshot(prompt, node_id: str, settings: dict[str, Any]) -> N
     if not isinstance(prompt, dict):
         return
     node = prompt.get(node_id)
-    if not isinstance(node, dict) or node.get("class_type") != _AIO_NODE_TYPE:
+    if not isinstance(node, dict) or node.get("class_type") not in _AIO_NODE_TYPES:
         return
     inputs = node.get("inputs")
     if isinstance(inputs, dict):
@@ -169,7 +170,7 @@ def _freeze_connected_settings(graph, node) -> None:
 
 def _record_matches_workflow(extra_pnginfo, node_id: str, settings: dict[str, Any]) -> bool:
     _, node, _ = _workflow_metadata_target(extra_pnginfo, node_id)
-    if not isinstance(node, dict) or node.get("type") != _AIO_NODE_TYPE:
+    if not isinstance(node, dict) or node.get("type") not in _AIO_NODE_TYPES:
         return False
     inputs = node.get("inputs")
     if isinstance(inputs, list):
@@ -255,7 +256,7 @@ def snapshot_aio_execution_metadata(
     workflow = _workflow(extra_pnginfo)
     if workflow is not None:
         graph, node, editable = _workflow_metadata_target(extra_pnginfo, node_id)
-        if isinstance(node, dict) and node.get("type") == _AIO_NODE_TYPE and graph is not None and editable:
+        if isinstance(node, dict) and node.get("type") in _AIO_NODE_TYPES and graph is not None and editable:
             values = node.get("widgets_values", [])
             if isinstance(values, list):
                 node["widgets_values"] = [_settings_json(settings), *values[1:]]

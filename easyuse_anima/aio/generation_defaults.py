@@ -43,6 +43,8 @@ AIO_AURA_FLOW_SHIFT_MAX = 100.0
 AIO_GENERATION_DEFAULT_SETTINGS = {
     "schema": AIO_GENERATION_SETTINGS_SCHEMA,
     "version": AIO_GENERATION_SETTINGS_VERSION,
+    "model_family": "anima",
+    "model_settings": {},
     "mode": "txt2img",
     "sampler": {
         "backend": "comfy_ksampler",

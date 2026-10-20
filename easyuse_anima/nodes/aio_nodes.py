@@ -26,6 +26,7 @@ from ..aio.input_defaults import (
 )
 from ..aio.legacy_generation import _run_aio_generation_pipeline
 from ..aio.model_preparation import _aio_lora_stack_signature
+from ..aio.model_profiles import aio_model_defaults
 from ..aio.resources import (
     _comfy_clip_loader_types,
     _comfy_diffusion_model_names,
@@ -57,9 +58,12 @@ def _aio_input_settings_json() -> str:
     )
 
 
-def _aio_generation_settings_json() -> str:
+def _aio_generation_settings_json(family: str = "anima") -> str:
     return json.dumps(
-        AIO_GENERATION_DEFAULT_SETTINGS,
+        (
+            AIO_GENERATION_DEFAULT_SETTINGS if family == "anima"
+            else aio_model_defaults(AIO_GENERATION_DEFAULT_SETTINGS, family)
+        ),
         ensure_ascii=False,
         separators=(",", ":"),
     )
@@ -207,6 +211,7 @@ class EasyUseAnimaAIOGenerator:
         "Sampled latent image.",
         "JSON metadata summary for debugging or downstream integration.",
     )
+    MODEL_FAMILY = "anima"
 
     @classmethod
     def INPUT_TYPES(cls):
@@ -223,7 +228,7 @@ class EasyUseAnimaAIOGenerator:
                     "STRING",
                     {
                         "multiline": True,
-                        "default": _aio_generation_settings_json(),
+                        "default": _aio_generation_settings_json(cls.MODEL_FAMILY),
                         "hidden": True,
                         "tooltip": "Hidden versioned JSON storage for popup generation settings. Keep this field serialized.",
                     },
@@ -268,7 +273,7 @@ class EasyUseAnimaAIOGenerator:
         **kwargs,
     ):
         settings = _normalize_aio_generation_settings(
-            generation_settings
+            generation_settings, model_family=cls.MODEL_FAMILY,
         )
         sampler = settings.get("sampler", {})
         if (
@@ -300,7 +305,9 @@ class EasyUseAnimaAIOGenerator:
         aio_hook=None,
     ):
         context = _require_easy_use_anima_input(easy_use_anima_input)
-        settings = _normalize_aio_generation_settings(generation_settings)
+        settings = _normalize_aio_generation_settings(
+            generation_settings, model_family=self.MODEL_FAMILY,
+        )
         sampler = settings["sampler"]
         with aio_seed_execution(
             unique_id=unique_id,
@@ -334,4 +341,34 @@ class EasyUseAnimaAIOGenerator:
             return output
 
 
-__all__ = ("EasyUseAnimaInput", "EasyUseAnimaAIOGenerator")
+class EasyUseMossAIOGenerator(EasyUseAnimaAIOGenerator):
+    """Fixed native MOSS adapter over the shared AiO execution lifecycle."""
+
+    MODEL_FAMILY = "moss_image"
+    DESCRIPTION = (
+        "MOSS txt2img with core ComfyUI KSampler. Use Easy Use Anima Input with "
+        "native MOSS-Image, Qwen3.5 9B, CLIP type moss_image and FLUX.2 VAE. "
+        "Supports Highres, SAM3 Detailer, USDU/ResShift, Artist Mix, generic AiO "
+        "hooks, SageAttention and FP16 accumulation. NegPip requires native-MOSS "
+        "ComfyUI-ppm support. Anima patches, Spectrum and TorchCompile are unavailable."
+    )
+
+
+class EasyUseKrea2AIOGenerator(EasyUseAnimaAIOGenerator):
+    """Fixed Krea2 adapter over the shared AiO execution lifecycle."""
+
+    MODEL_FAMILY = "krea2"
+    DESCRIPTION = (
+        "Krea2 txt2img with core ComfyUI KSampler. Defaults target Turbo: "
+        "8 steps, CFG 1, Euler/simple, native Flux shift 1.15. Use Easy Use Anima "
+        "Input with Krea2, Qwen3-VL 4B, CLIP type krea2 and Qwen Image VAE. "
+        "RAW requires its own sampling settings. Supports Highres, SAM3 Detailer, "
+        "USDU/ResShift, Artist Mix, generic AiO hooks and KJ optimizations. "
+        "Anima patches, Spectrum and NegPip are unavailable."
+    )
+
+
+__all__ = (
+    "EasyUseAnimaInput", "EasyUseAnimaAIOGenerator",
+    "EasyUseMossAIOGenerator", "EasyUseKrea2AIOGenerator",
+)

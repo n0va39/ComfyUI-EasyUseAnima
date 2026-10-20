@@ -1,10 +1,42 @@
-# Anima AiO Generator
+# AiO Generator (Anima / MOSS / Krea2)
+
+`AiO Generator (Anima)`, `AiO Generator (MOSS)`, `AiO Generator (Krea2)`는
+각각 고정된 모델용 노드입니다. 내부 생성·seed·저장 구조는 공유하지만 설정은
+노드별로 독립적입니다. 기존 Anima 노드 ID와 워크플로우는 유지됩니다.
+이전 MOSS 개발판 워크플로우는 생성 노드를 MOSS 노드로 교체하고 기존
+`generation_settings`를 그대로 옮기세요. 계열이 다른 프로필은 적용할 수 없습니다.
+
+MOSS는 ComfyUI 코어 지원 빌드(검증 기준 v0.42.1)가 필요합니다. Input에서 MOSS
+diffusion model, Qwen3.5 9B text encoder, CLIP type `moss_image`, FLUX.2 VAE를
+선택하세요. 기본값은 25 steps / CFG 2.5 / er_sde / simple / shift 5입니다.
+해상도 가로·세로는 16의 배수여야 하며 모델 선택만으로 파일을 자동 변경하거나 다운로드하지 않습니다.
+
+Krea2는 Input에서 Krea2 diffusion model, Qwen3-VL 4B encoder, CLIP type `krea2`,
+`qwen_image_vae.safetensors`를 선택하세요. Turbo 기본값은 8 steps / CFG 1 /
+Euler / simple / shift 1.15이며 16배수 해상도를 사용합니다. shift는 Krea2의
+FLUX mu로 적용됩니다. RAW 모델은 별도의 steps·CFG·shift 설정이 필요합니다.
+[공식 Krea2 가이드](https://docs.comfy.org/tutorials/image/krea/krea-2)
+
+MOSS/Krea2는 txt2img, 코어 LoRA 로딩, Artist Mix, Highres, SAM3 Detailer,
+USDU/ResShift Upscale, KJ SageAttention·FP16 accumulation,
+일반 AiO hook, 미리보기·후처리·저장을 지원합니다. 선택 기능의 외부 노드와
+로컬 모델은 별도로 필요합니다. Anima IP-Adapter hook은 Anima 전용입니다.
+Torch Compile은 Krea2에서 지원합니다. MOSS는 현재 네이티브 attention 및
+양자화 커널의 컴파일 호환성 문제로 비활성화되어 있습니다.
+MOSS NegPip은 네이티브 MOSS를 지원하는 ComfyUI-ppm이 필요하며, 실제 MODEL·CLIP
+패치가 적용됐는지 확인합니다. Krea2 NegPip은 아직 지원하지 않습니다.
+Anima Mod Guidance, DAVE, Safe PAG, Spectrum 가속 및 DiT 보정은 두 모델에서
+지원하지 않습니다. 이 제한은 Highres·Detailer·Upscale의 샘플링에도 적용됩니다.
+Spectrum 원본 2.12.1의 `MossSpectrumKSampler`는 별도 MOSS 로더의 구조·시간 스케일을
+사용하며, 범용 Spectrum 모델 패치도 Krea2의 출력 구조와 호환되지 않습니다.
+Upstream의 호환 패치가 검증된 뒤 가속을 연결하고, Mod Guidance는 해당 모델의
+학습된 adapter까지 지원될 때 별도로 추가합니다. 기존 Anima Spectrum 지원은 유지됩니다.
 
 카테고리: `EasyUse Anima/AiO`
 
-![Anima AiO Generator](../images/aio-generator-node.png)
+![AiO Generator (Anima)](../images/aio-generator-node.png)
 
-`Anima AiO Generator`는 `Easy Use Anima Input`에서 전달받은 전용 context를
+`AiO Generator (Anima)`는 `Easy Use Anima Input`에서 전달받은 전용 context를
 사용해 프롬프트 인코딩, 1차 샘플링, 선택적 Highres, 선택적 Detailer, 이미지
 저장을 한 노드에서 실행합니다. Prompt Studio에서 만든 prompt data는 upstream에서
 처리되므로 이 노드 UI에는 프롬프트 편집 항목이 없습니다.
@@ -13,7 +45,7 @@
 
 1. `Anima 프롬프트 스튜디오 고급 v2`의 prompt data를 `Easy Use Anima Input`에 연결합니다.
 2. `Easy Use Anima Input`에서 ANIMA diffusion model, VAE, CLIP을 각각 선택합니다.
-3. `Easy Use Anima Input` 출력을 `Anima AiO Generator`의 `easy use anima input`에 연결합니다.
+3. `Easy Use Anima Input` 출력을 `AiO Generator (Anima)`의 `easy use anima input`에 연결합니다.
 4. 필요하면 `Anima LoRA Preset`의 `LORA_STACK`을 `lora_stack`에 연결합니다.
 5. 다른 노드팩의 AiO 확장을 쓸 때만 `EASYUSE_ANIMA_AIO_HOOK` 출력을
    `aio_hook`에 연결합니다. 여러 hook은 `Anima AiO Hook Combine`으로 합칩니다.

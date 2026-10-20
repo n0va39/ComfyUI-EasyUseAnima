@@ -84,6 +84,7 @@ async function flushPromises() {
 
 const samplerDialogModule = await import(dataModule("../web/js/aio/sampler_settings_dialog.js"));
 const settingsModule = await import(dataModule("../web/js/aio/settings.js"));
+const modelProfilesModule = await import(dataModule("../web/js/aio/model_profiles.js"));
 const numericLimits = {
   samplerSteps: { min: 1, max: 10000 },
   samplerCfg: { min: 0, max: 100 },
@@ -370,6 +371,7 @@ function createFixture({
       applyTooltipText,
     },
     settingsCore: {
+      modelProfile: modelProfilesModule.aioModelProfile,
       defaultGenerationSettings: defaultSettings,
       seedControls: settingsModule.AIO_GENERATOR_SEED_CONTROLS,
       specialSeedRandom: settingsModule.AIO_GENERATOR_SPECIAL_SEED_RANDOM,
@@ -538,7 +540,7 @@ function createFixture({
   assert.equal(dialog.title, "Sampler Details");
   assert.equal(
     dialog.subtitle,
-    "Choose one of three sampler paths. Selecting an unavailable path shows its required node pack.",
+    "Choose a sampler path for the selected model family. Unavailable paths show their required node pack.",
   );
   const base = sectionByHeading(dialog, "Base Parameters");
   const sampler = sectionByHeading(dialog, "Sampler Backend");
@@ -986,4 +988,42 @@ for (const testCase of [
   assert.equal(fixture.node.visible.denoise, 0);
 }
 
+
+
+for (const family of ["moss_image", "krea2"]) {
+  const fixture = createFixture({ settings: settingsModule.aioGenerationDefaultsForFamily(family) });
+  fixture.openSamplerSettings(fixture.node);
+  await flushPromises();
+  const dialog = fixture.dialogs[0];
+  const sampler = sectionByHeading(dialog, "Sampler Backend");
+  assert.deepEqual(controlIn(sampler, "Mode").options.map((option) => option.value), ["comfy_ksampler"]);
+  const mod = sectionByHeading(dialog, "Mod Guidance");
+  assert.ok(mod.querySelectorAll("input, select").every((control) => control.disabled));
+  assert.equal(sectionByHeading(dialog, "Spectrum Patch / Advanced Sampler").classList.contains("hidden"), false);
+  assert.ok(findByText(dialog.body, `format:text.modelSpectrumUnsupported:${JSON.stringify({ model: family === "krea2" ? "Krea2" : "MOSS" })}`));
+  controlIn(sectionByHeading(dialog, "Base Parameters"), "CFG").value = "3.2";
+  action(dialog, "button.apply").emit("click");
+  assert.equal(fixture.node.settings.model_family, family);
+  assert.equal(fixture.node.settings.sampler.cfg, 3.2);
+  assert.equal(fixture.node.settings.sampler.spectrum.enabled, false);
+  assert.equal(fixture.node.settings.sampler.dit_corrections.enabled, false);
+  assert.equal(fixture.node.settings.mod_guidance.mode, "disabled");
+}
 console.log("AiO Sampler settings dialog smoke passed.");
+
+for (const family of ["moss_image", "krea2"]) {
+  const settings = settingsModule.aioGenerationDefaultsForFamily(family);
+  settings.sampler.spectrum.enabled = true;
+  settings.sampler.dit_corrections.enabled = true;
+  settings.mod_guidance.mode = "enabled";
+  const fixture = createFixture({settings});
+  fixture.openSamplerSettings(fixture.node);
+  await flushPromises();
+  const dialog = fixture.dialogs[0];
+  const spectrum = sectionByHeading(dialog, "Spectrum Patch / Advanced Sampler");
+  assert.ok(spectrum.querySelectorAll("input, select, textarea, button").every((control) => control.disabled));
+  action(dialog, "button.apply").emit("click");
+  assert.deepEqual(fixture.node.settings.sampler.spectrum, settings.sampler.spectrum);
+  assert.deepEqual(fixture.node.settings.sampler.dit_corrections, settings.sampler.dit_corrections);
+  assert.deepEqual(fixture.node.settings.mod_guidance, settings.mod_guidance);
+}

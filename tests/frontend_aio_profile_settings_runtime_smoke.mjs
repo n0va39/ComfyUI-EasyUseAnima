@@ -531,7 +531,9 @@ buttons.select.value = "builtin:normal";
 fixture.trace.length = 0;
 await buttons.apply.dispatch("click");
 assert.deepEqual(fixture.trace, [
+  "get-settings",
   "builtin-settings",
+  "get-settings",
   "merge",
   "migrate",
   "visible",
@@ -1200,3 +1202,23 @@ assert.equal(transientNode.__easyuseAnimaGeneratorProfileValue, "custom");
 assert.equal(Object.hasOwn(transientNode, "__easyuseAnimaGeneratorProfileFingerprint"), false);
 
 console.log("AiO profile settings runtime smoke passed.");
+
+for (const family of ["moss_image", "krea2"]) {
+  const fixture = createFixture();
+  const node = { settings: { model_family: family, sampler: { steps: 8 } } };
+  fixture.runtime.open(node);
+  const dialog = fixture.dialogs.at(-1);
+  const buttons = dialogButtons(dialog);
+  assert.ok(!profileOptions(buttons.select).some((group) => group.options?.some((option) => option.value.startsWith("builtin:"))), "Anima built-in presets are unavailable on other models");
+  const before = clone(node.settings);
+  buttons.select.value = "user:Anima";
+  fixture.apiQueues.loadProfile.push({ profile: { name: "Anima", settings: { sampler: { steps: 31 } } } });
+  await buttons.apply.dispatch("click");
+  assert.deepEqual(node.settings, before, "cross-family user profiles cannot replace node settings");
+  assert.match(fixture.alerts.at(-1), /belongs to anima/);
+  buttons.select.value = "user:Matching";
+  fixture.apiQueues.loadProfile.push({ profile: { name: "Matching", settings: { model_family: family, sampler: { steps: 9 } } } });
+  await buttons.apply.dispatch("click");
+  assert.equal(node.settings.model_family, family);
+  assert.equal(node.settings.sampler.steps, 9);
+}

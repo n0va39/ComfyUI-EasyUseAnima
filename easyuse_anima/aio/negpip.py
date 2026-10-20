@@ -196,6 +196,13 @@ def collect_negpip_contract(
 def invoke_negpip_node(node_class: Any, model: Any, clip: Any) -> tuple[Any, Any]:
     """Invoke one compatible public CLIPNegPip node call."""
 
+    config = getattr(getattr(getattr(model, "model", None), "model_config", None), "unet_config", {})
+    family = config.get("image_model") if isinstance(config, Mapping) else None
+    if family == "krea2":
+        raise RuntimeError(
+            "[EasyUseAnima] Krea2 NegPip is unsupported by the reviewed ComfyUI-ppm "
+            "adapter. Disable NegPip for Krea2."
+        )
     if node_class is None:
         raise RuntimeError(
             "[EasyUseAnima] Missing required custom node 'CLIPNegPip'. "
@@ -220,6 +227,18 @@ def invoke_negpip_node(node_class: Any, model: Any, clip: Any) -> tuple[Any, Any
         raise RuntimeError(
             "[EasyUseAnima] CLIPNegPip did not return cloned MODEL/CLIP outputs."
         )
+    if family == "moss_image":
+        model_options = getattr(values[0], "model_options", {})
+        clip_options = getattr(getattr(values[1], "patcher", None), "model_options", {})
+        if not all(
+            isinstance(options, Mapping) and options.get("ppm_negpip") is True
+            for options in (model_options, clip_options)
+        ):
+            raise RuntimeError(
+                "[EasyUseAnima] ComfyUI-ppm did not apply native MOSS NegPip to both "
+                "MODEL and CLIP. Update to a version supporting MOSS-Image and its "
+                "Qwen3.5 9B encoder, then restart ComfyUI, or disable NegPip."
+            )
     return values[0], values[1]
 
 
