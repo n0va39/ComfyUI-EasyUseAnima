@@ -734,16 +734,24 @@ function createFixture({
   assert.equal(JSON.parse(fixture.node.widgets[0].value).upscale.resshift.student_name, "(auto-download)");
 }
 
-console.log("AiO stage settings dialogs smoke passed.");
 
+
+modelProfilesModule.aioUpdateModelCapabilities({modelProfile_moss_image: {input: {required: {generation_settings: ["STRING", {aio_capabilities: {
+  contract_version: 1, model_family: "moss_image", features: {spectrum: {
+    supported: true, status: "available", stages: ["sampler"],
+    provider: "ComfyUI-Spectrum-KSampler", adapter: "NativeMossSpectrumPatch", reason_code: "",
+  }},
+}}]}}}});
+assert.equal(modelProfilesModule.aioModelProfile("moss_image").feature("spectrum", "sampler").supported, true);
 for (const family of ["moss_image", "krea2"]) {
   const settings = settingsModule.aioGenerationDefaultsForFamily(family);
   const fixture = createFixture({ settings, available: { spectrumPatch: true }, deferLoads: true });
-  for (const stage of ["highres", "upscale"]) {
-    const values = clone(settings[stage]);
+  for (const stage of ["highres", "detailer", "upscale"]) {
+    const stageSettings = stage === "detailer" ? settings.detailer.face : settings[stage];
+    const values = clone(stageSettings);
     values.spectrum.enabled = true;
     values.dit_corrections.enabled = true;
-    const editor = fixture.runtime.createStageOptimizationEditor(stage, values, settings[stage], family);
+    const editor = fixture.runtime.createStageOptimizationEditor(stage, values, stageSettings, family);
     fixture.resolveLoads();
     await flushPromises();
     assert.ok(editor.section.querySelectorAll("input, select, textarea, button").every((control) => control.disabled));
@@ -752,3 +760,6 @@ for (const family of ["moss_image", "krea2"]) {
     assert.ok(findByText(editor.section, `format:text.modelSpectrumUnsupported:${JSON.stringify({ model: family === "krea2" ? "Krea2" : "MOSS" })}`));
   }
 }
+
+modelProfilesModule.aioUpdateModelCapabilities({});
+console.log("AiO stage settings dialogs smoke passed.");

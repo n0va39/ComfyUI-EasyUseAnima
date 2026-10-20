@@ -77,7 +77,7 @@ WORKFLOW_SELECTIONS = (
     ),
 )
 WINDOWS_DRIVE_PATH_FRAGMENT = re.compile(r"(?:^|[\"'\s])[A-Za-z]:[\\/]")
-SERIALIZATION_IRRELEVANT_CONFIG_KEYS = frozenset({"tooltip"})
+SERIALIZATION_IRRELEVANT_CONFIG_KEYS = frozenset({"tooltip", "aio_capabilities"})
 
 
 def _assignment_value(tree: ast.Module, name: str) -> ast.AST:

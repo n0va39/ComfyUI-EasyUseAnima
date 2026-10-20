@@ -281,8 +281,25 @@ export function aioCreateSamplerSettingsDialog(dependencies) {
   function openSamplerSettings(node) {
     const widget = findWidget(node, GENERATOR_SETTINGS_WIDGET);
     const settings = mergeVisibleGeneratorSettings(node, parseSettings(widget, DEFAULT_GENERATION_SETTINGS, node));
-    const profile = modelProfile(settings.model_family);
-    const capabilities = profile.capabilities;
+    let profile = modelProfile(settings.model_family);
+    let capabilities = profile.capabilities;
+    let spectrumCapability = profile.feature("spectrum", "sampler");
+    const nativeMoss = profile.family === "moss_image";
+    const spectrumPatchKey = nativeMoss ? "spectrumNativeMoss" : "spectrumPatch";
+    const spectrumAvailable = () => spectrumCapability.supported
+      && (!nativeMoss || settings.sampler.backend === "comfy_ksampler")
+      && optionalDependencyAvailable(spectrumPatchKey);
+    const spectrumUnavailableText = () => {
+      const status = spectrumCapability.supported && !optionalDependencyAvailable(spectrumPatchKey)
+        ? "missing_dependency" : spectrumCapability.status;
+      const key = status === "missing_dependency"
+        ? "text.modelSpectrumMissing"
+        : status === "incompatible" ? "text.modelSpectrumIncompatible"
+          : spectrumCapability.reason_code === "stage_not_supported"
+            ? "text.modelSpectrumStageUnsupported"
+            : "text.modelSpectrumUnsupported";
+      return aioFormat(key, { model: profile.label });
+    };
 
     const { backdrop, body, actions } = createDialog(
       "Sampler Details",
@@ -334,12 +351,9 @@ export function aioCreateSamplerSettingsDialog(dependencies) {
     dependencyWarning.className = "easyuse-anima-aio-warning";
     dependencyWarning.hidden = true;
     sampler.append(dependencyWarning);
-    if (!capabilities.spectrum) {
-      const modelWarning = document.createElement("div");
-      modelWarning.className = "easyuse-anima-aio-warning";
-      modelWarning.textContent = aioFormat("text.modelSpectrumUnsupported", { model: profile.label });
-      sampler.append(modelWarning);
-    }
+    const modelWarning = document.createElement("div");
+    modelWarning.className = "easyuse-anima-aio-warning";
+    sampler.append(modelWarning);
     const samplerName = field(
       sampler,
       "Sampler",
@@ -413,7 +427,7 @@ export function aioCreateSamplerSettingsDialog(dependencies) {
       SPECTRUM_ADVANCED_KNOWN_INPUTS,
       settings.sampler.spectrum_extra || {},
     );
-    spectrum.append(spectrumExtra.section);
+    if (!nativeMoss) spectrum.append(spectrumExtra.section);
 
     const spd = makeSubsection("Spectrum + SPD / SPEED");
     const spdScale = field(spd, "Scale", numberInput(settings.sampler.spd.scale, "0.05"));
@@ -433,13 +447,18 @@ export function aioCreateSamplerSettingsDialog(dependencies) {
     const refreshBackendDetails = () => {
       const isComfy = backend.value === "comfy_ksampler";
       const isSpectrumAdvanced = backend.value === "spectrum_mod_guidance_advanced";
-      spectrum.classList.toggle("hidden", capabilities.spectrum && !(isComfy || isSpectrumAdvanced));
+      spectrum.classList.toggle("hidden", spectrumCapability.supported && !(isComfy || isSpectrumAdvanced));
       spectrumPatchEnabled.parentElement.style.display = isComfy ? "" : "none";
       spectrumCompat.parentElement.style.display = isComfy ? "" : "none";
       modAdvanced.style.display = isSpectrumAdvanced ? "" : "none";
       spd.classList.toggle("hidden", backend.value !== "spectrum_spd_speed");
     };
     const refreshDependencyLocks = () => {
+      profile = modelProfile(settings.model_family);
+      capabilities = profile.capabilities;
+      spectrumCapability = profile.feature("spectrum", "sampler");
+      modelWarning.hidden = nativeMoss ? spectrumAvailable() : spectrumCapability.supported;
+      modelWarning.textContent = spectrumUnavailableText();
       const messages = [];
       for (const option of Array.from(backend.options)) {
         const dependencyKey = AIO_BACKEND_DEPENDENCIES[option.value];
@@ -459,14 +478,14 @@ export function aioCreateSamplerSettingsDialog(dependencies) {
           backend.value = "comfy_ksampler";
         }
       }
-      const spectrumPatchMissing = !optionalDependencyAvailable("spectrumPatch");
+      const spectrumPatchMissing = !optionalDependencyAvailable(spectrumPatchKey);
       const spectrumPatchMessage = aioFormat("warning.optionalDependencyMissing", {
         backend: "Spectrum Patch",
-        pack: optionalDependencyPack("spectrumPatch"),
+        pack: optionalDependencyPack(spectrumPatchKey),
       });
       aioMarkMissingDependencyControl(spectrumPatchEnabled, spectrumPatchMissing, spectrumPatchMessage);
       aioMarkMissingDependencyControl(correctionsEnabled, spectrumPatchMissing, spectrumPatchMessage);
-      const spectrumInputDependency = backend.value === "comfy_ksampler" ? "spectrumPatch" : "spectrumAdvanced";
+      const spectrumInputDependency = backend.value === "comfy_ksampler" ? spectrumPatchKey : "spectrumAdvanced";
       const correctionInputDependency = backend.value === "comfy_ksampler" ? "spectrumCorrections" : "spectrumAdvanced";
       const spectrumControls = [
         [windowSize, "window_size", "tip.spectrumWindow"],
@@ -493,7 +512,7 @@ export function aioCreateSamplerSettingsDialog(dependencies) {
       applyNodeInputInfo(spdScale, "spectrumSpd", "spd_scale", "tip.spdScale");
       applyNodeInputInfo(spdSigma, "spectrumSpd", "spd_sigma", "tip.spdSigma");
       applyNodeInputInfo(spdSmc, "spectrumSpd", "adaptive_smc_alpha", "tip.smcAlpha");
-      if (capabilities.spectrum && spectrumPatchMissing && (spectrumPatchEnabled.checked || correctionsEnabled.checked)) {
+      if (!nativeMoss && capabilities.spectrum && spectrumPatchMissing && (spectrumPatchEnabled.checked || correctionsEnabled.checked)) {
         messages.push(aioFormat("warning.optionalDependencyMissing", {
           backend: "Spectrum Patch",
           pack: optionalDependencyPack("spectrumPatch"),
@@ -503,10 +522,17 @@ export function aioCreateSamplerSettingsDialog(dependencies) {
       }
       dependencyWarning.hidden = messages.length === 0;
       dependencyWarning.textContent = messages.join(" ");
-      if (!capabilities.spectrum) {
+      spectrumCompat.disabled = !spectrumCapability.supported || (nativeMoss && !spectrumAvailable());
+      if (!spectrumCapability.supported || (nativeMoss && !spectrumAvailable())) {
         for (const control of spectrum.querySelectorAll("input, select, textarea, button")) {
           control.disabled = true;
-          control.title = aioFormat("text.modelSpectrumUnsupported", { model: profile.label });
+          control.title = spectrumUnavailableText();
+        }
+      }
+      if (!capabilities.ditCorrections) {
+        for (const control of corrections.querySelectorAll("input, select, textarea, button")) {
+          control.disabled = true;
+          control.title = aioFormat("text.modelCorrectionsUnsupported", { model: profile.label });
         }
       }
       refreshBackendDetails();
@@ -520,8 +546,9 @@ export function aioCreateSamplerSettingsDialog(dependencies) {
       refreshDependencyLocks();
     });
     const guardSpectrumToggle = (control) => {
-      if (control.checked && !optionalDependencyAvailable("spectrumPatch")) {
-        notifyMissingDependency("Spectrum Patch", ["spectrumPatch"]);
+      const key = control === spectrumPatchEnabled ? spectrumPatchKey : "spectrumPatch";
+      if (control.checked && !optionalDependencyAvailable(key)) {
+        notifyMissingDependency("Spectrum Patch", [key]);
         control.checked = false;
       }
       refreshDependencyLocks();
@@ -540,6 +567,7 @@ export function aioCreateSamplerSettingsDialog(dependencies) {
     actions.append(cancel, apply);
     cancel.addEventListener("click", () => backdrop.remove());
     apply.addEventListener("click", () => {
+      refreshDependencyLocks();
       const next = mergeDefaults(DEFAULT_GENERATION_SETTINGS, settings);
       delete next.sampler.dave;
       const selectedBackend = backend.value || "comfy_ksampler";
@@ -571,11 +599,11 @@ export function aioCreateSamplerSettingsDialog(dependencies) {
       next.sampler.denoise = clampGeneratorNumber(denoise.value, DEFAULT_GENERATION_SETTINGS.sampler.denoise, 0, 1);
       next.sampler.sampler_name = samplerName.value || DEFAULT_GENERATION_SETTINGS.sampler.sampler_name;
       next.sampler.scheduler = scheduler.value || DEFAULT_GENERATION_SETTINGS.sampler.scheduler;
-      next.sampler.spectrum.enabled = capabilities.spectrum && (
+      next.sampler.spectrum.enabled = spectrumAvailable() && (
         next.sampler.backend === "spectrum_mod_guidance_advanced"
         || (next.sampler.backend === "comfy_ksampler"
           && spectrumPatchEnabled.checked
-          && optionalDependencyAvailable("spectrumPatch"))
+          && optionalDependencyAvailable(spectrumPatchKey))
       );
       next.sampler.spectrum.window_size = Number(windowSize.value || 2);
       next.sampler.spectrum.flex_window = Number(flexWindow.value || 0.25);
@@ -610,9 +638,15 @@ export function aioCreateSamplerSettingsDialog(dependencies) {
       next.mod_guidance.advanced.mod_taper = Number(modTaper.value || 0);
       next.mod_guidance.advanced.mod_taper_scale = Number(modTaperScale.value || 0.25);
       next.mod_guidance.advanced.mod_final_w = Number(modFinalW.value || 0);
-      if (!capabilities.spectrum) {
+      if (!spectrumCapability.supported || (nativeMoss && !spectrumAvailable())) {
         next.sampler.backend = settings.sampler.backend;
         next.sampler.spectrum = settings.sampler.spectrum;
+        next.sampler.spectrum_extra = settings.sampler.spectrum_extra;
+        next.sampler.spd = settings.sampler.spd;
+        next.sampler.spd_extra = settings.sampler.spd_extra;
+      }
+      if (nativeMoss) {
+        next.sampler.backend = settings.sampler.backend;
         next.sampler.spectrum_extra = settings.sampler.spectrum_extra;
         next.sampler.spd = settings.sampler.spd;
         next.sampler.spd_extra = settings.sampler.spd_extra;

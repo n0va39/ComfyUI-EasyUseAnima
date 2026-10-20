@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 
+from ..aio.capabilities import aio_capability_manifest
 from ..aio.generation_defaults import (
     AIO_GENERATION_DEFAULT_SETTINGS,
     AIO_SPECIAL_SEEDS,
@@ -229,6 +230,7 @@ class EasyUseAnimaAIOGenerator:
                     {
                         "multiline": True,
                         "default": _aio_generation_settings_json(cls.MODEL_FAMILY),
+                        "aio_capabilities": aio_capability_manifest(cls.MODEL_FAMILY),
                         "hidden": True,
                         "tooltip": "Hidden versioned JSON storage for popup generation settings. Keep this field serialized.",
                     },

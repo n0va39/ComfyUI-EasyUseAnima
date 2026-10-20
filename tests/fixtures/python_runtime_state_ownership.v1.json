@@ -1,6 +1,11 @@
 {
   "declarative_mutable_globals": [
     {
+      "module": "easyuse_anima/aio/capabilities.py",
+      "reason": "Reviewed feature policy and native provider ABI tables; never mutated at runtime.",
+      "symbols": ["NATIVE_MOSS_SPECTRUM_CONTRACT", "_MODEL_FEATURES"]
+    },
+    {
       "module": "easyuse_anima/aio/model_profiles.py",
       "reason": "Reviewed model-family capability table; never mutated at runtime.",
       "symbols": ["AIO_MODEL_PROFILES"]

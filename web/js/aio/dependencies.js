@@ -1,6 +1,10 @@
 // @ts-check
 
 export const AIO_OPTIONAL_DEPENDENCY_SPECS = {
+  spectrumNativeMoss: {
+    nodeId: "NativeMossSpectrumPatch",
+    pack: "ComfyUI-Spectrum-KSampler",
+  },
   spectrumAdvanced: {
     nodeId: "SpectrumKSamplerAdvanced",
     pack: "ComfyUI-Spectrum-KSampler",

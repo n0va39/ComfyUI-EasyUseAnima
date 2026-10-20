@@ -16,6 +16,7 @@ PACKAGE_MODULES = (
     "easyuse_anima.extensions.aio",
     "easyuse_anima.workflow",
     "easyuse_anima.aio",
+    "easyuse_anima.aio.capabilities",
     "easyuse_anima.aio.conditioning",
     "easyuse_anima.aio.first_pass_cache",
     "easyuse_anima.aio.legacy_generation",
