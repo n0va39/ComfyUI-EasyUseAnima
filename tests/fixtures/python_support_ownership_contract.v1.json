@@ -2,7 +2,7 @@
   "schema_version": 1,
   "baseline_commit": "a0b0dc1f599fcf01ec0f25fc75a23f7524f165ab",
   "inventory": {
-    "expected_files": 225,
+    "expected_files": 228,
     "manual_matrix_source": "tests/fixtures/python_test_ownership_contract.v1.json",
     "patterns": [
       "tests/**/*.json",
@@ -138,6 +138,18 @@
         "settings"
       ],
       "purpose": "Deterministic contract fixture input for aio generation settings surface coverage.v4."
+    },
+    {
+      "execution_mode": "fixture-input",
+      "generated": false,
+      "kind": "test_fixture",
+      "owner": "tests/test_aio_schema_contract.py",
+      "path": "tests/fixtures/aio_generation_settings_surface_coverage.v5.json",
+      "production_groups": [
+        "aio",
+        "settings"
+      ],
+      "purpose": "Version 5 model-family settings surface coverage."
     },
     {
       "execution_mode": "fixture-input",
@@ -548,6 +560,18 @@
         "runtime-bootstrap"
       ],
       "purpose": "Deterministic Node smoke contract for bounded native JPEG workflow import."
+    },
+    {
+      "execution_mode": "node-smoke",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/frontend_aio_settings_core_smoke.mjs",
+      "path": "tests/frontend_aio_model_profiles_smoke.mjs",
+      "production_groups": [
+        "aio",
+        "settings"
+      ],
+      "purpose": "Model-family tuning switch, inactive bank and shared seed contracts."
     },
     {
       "execution_mode": "node-smoke",
@@ -1386,6 +1410,18 @@
         "aio"
       ],
       "purpose": "Direct Python unittest contract for test aio model preparation."
+    },
+    {
+      "execution_mode": "unittest",
+      "generated": false,
+      "kind": "test",
+      "owner": "tests/test_aio_generation_settings.py",
+      "path": "tests/test_aio_model_profiles.py",
+      "production_groups": [
+        "aio",
+        "settings"
+      ],
+      "purpose": "Model-family defaults, native resource and latent contracts, unsupported feature gates."
     },
     {
       "execution_mode": "unittest",
