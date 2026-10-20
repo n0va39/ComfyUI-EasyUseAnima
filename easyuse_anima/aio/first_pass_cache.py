@@ -563,6 +563,8 @@ def _aio_first_pass_cache_key(
         settings.get("negpip"),
         negative_prompt=str(negative_prompt or ""),
     )
+    if settings.get("model_family", "anima") != "anima":
+        payload["model_family"] = settings["model_family"]
     if negpip_signature is not None:
         payload["negpip"] = negpip_signature
     return _stable_change_key(payload)

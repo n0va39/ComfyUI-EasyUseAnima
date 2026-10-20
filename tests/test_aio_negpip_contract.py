@@ -74,6 +74,9 @@ class NegPipExternalContractTests(unittest.TestCase):
             lambda _node_id: CompatibleCLIPNegPip
         )
         model = FakeValue()
+        model.model = SimpleNamespace(model_config=SimpleNamespace(
+            unet_config={"image_model": "anima"},
+        ))
         clip = FakeValue()
 
         patched_model, patched_clip = negpip_contract.invoke_negpip_node(
@@ -89,6 +92,57 @@ class NegPipExternalContractTests(unittest.TestCase):
         self.assertIsNot(patched_model, model)
         self.assertIsNot(patched_clip, clip)
         self.assertEqual((patched_model.patch_depth, patched_clip.patch_depth), (1, 1))
+
+    def test_moss_missing_or_older_dependency_fails_instead_of_silent_noop(self):
+        model, clip = FakeValue(), FakeValue()
+        model.model = SimpleNamespace(model_config=SimpleNamespace(
+            unet_config={"image_model": "moss_image"},
+        ))
+        with self.assertRaisesRegex(RuntimeError, "Missing required custom node"):
+            negpip_contract.invoke_negpip_node(None, model, clip)
+        self.assertEqual(CompatibleCLIPNegPip.calls, [])
+        with self.assertRaisesRegex(RuntimeError, "did not apply native MOSS NegPip"):
+            negpip_contract.invoke_negpip_node(CompatibleCLIPNegPip, model, clip)
+        self.assertEqual(CompatibleCLIPNegPip.calls, [{"model": model, "clip": clip}])
+
+    def test_moss_requires_success_markers_on_both_returned_objects(self):
+        model, clip = FakeValue(), FakeValue()
+        model.model = SimpleNamespace(model_config=SimpleNamespace(
+            unet_config={"image_model": "moss_image"},
+        ))
+        for model_applied, clip_applied in ((True, True), (True, False), (False, True)):
+            with self.subTest(model_applied=model_applied, clip_applied=clip_applied):
+                returned_model = SimpleNamespace(model_options={"ppm_negpip": model_applied})
+                returned_clip = SimpleNamespace(patcher=SimpleNamespace(
+                    model_options={"ppm_negpip": clip_applied},
+                ))
+
+                class MossCLIPNegPip(CompatibleCLIPNegPip):
+                    @classmethod
+                    def execute(cls, **kwargs):
+                        cls.calls.append(dict(kwargs))
+                        return SimpleNamespace(result=(returned_model, returned_clip))
+
+                if model_applied and clip_applied:
+                    self.assertEqual(
+                        negpip_contract.invoke_negpip_node(MossCLIPNegPip, model, clip),
+                        (returned_model, returned_clip),
+                    )
+                else:
+                    with self.assertRaisesRegex(RuntimeError, "both MODEL and CLIP"):
+                        negpip_contract.invoke_negpip_node(MossCLIPNegPip, model, clip)
+        self.assertEqual(len(CompatibleCLIPNegPip.calls), 3)
+        self.assertFalse(hasattr(model, "model_options"))
+        self.assertFalse(hasattr(clip, "patcher"))
+
+    def test_krea2_is_rejected_before_optional_node_invocation(self):
+        model = FakeValue()
+        model.model = SimpleNamespace(model_config=SimpleNamespace(
+            unet_config={"image_model": "krea2"},
+        ))
+        with self.assertRaisesRegex(RuntimeError, "Krea2 NegPip is unsupported"):
+            negpip_contract.invoke_negpip_node(CompatibleCLIPNegPip, model, FakeValue())
+        self.assertEqual(CompatibleCLIPNegPip.calls, [])
 
     def test_input_output_and_execute_drift_fail_closed_without_invocation(self):
         class InputDrift(CompatibleCLIPNegPip):

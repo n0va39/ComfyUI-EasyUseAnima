@@ -57,7 +57,7 @@ function closeGeneratorInfoTooltipOwner(document) {
  * @property {(usdu: any) => any} normalizeUsduAutoTileRange
  * @property {(settings: any, value: number) => void} setUsduAutoTileTarget
  * @property {(order: any, detailer?: any) => string[]} normalizeDetailerOrder
- * @property {(targetName: string) => any} detailerTargetDefaults
+ * @property {(targetName: string, family?: string) => any} detailerTargetDefaults
  * @property {(targetName: string, target: any, index?: number) => string} detailerTargetTitle
  */
 
@@ -66,6 +66,7 @@ function closeGeneratorInfoTooltipOwner(document) {
  * @property {(node: any) => any} getSettings
  * @property {(node: any, settings: any) => void} applyVisibleSettings
  * @property {(node: any, settings: any, markDirty?: boolean) => void} writeSettings
+ * @property {(node: any) => any} getModelProfile
  * @property {(node: any) => void} syncSettingsFromVisible
  * @property {(node: any, name: string, fallback: any) => any} widgetValue
  * @property {(node: any, name: string, fallback: any[]) => any[]} widgetOptions
@@ -180,6 +181,7 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
     getSettings: generatorSettings,
     applyVisibleSettings: applyVisibleGeneratorSettings,
     writeSettings: writeGeneratorSettingsFromState,
+    getModelProfile,
     syncSettingsFromVisible: syncGeneratorSettingsFromVisible,
     widgetValue,
     widgetOptions,
@@ -1520,6 +1522,29 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
     const samplerGrid = document.createElement("div");
     samplerGrid.className = "easyuse-anima-aio-node-sampler-grid";
 
+    const modelProfile = getModelProfile(node);
+    const modelIdentity = document.createElement("span");
+    modelIdentity.setAttribute("data-aio-model-family", modelProfile.family);
+    modelIdentity.textContent = modelProfile.label;
+    samplerGrid.append(createNodeField(aioText("label.modelFamily"), modelIdentity, "wide"));
+    if (settings.model_family !== modelProfile.family) {
+      const mismatch = document.createElement("div");
+      mismatch.className = "easyuse-anima-aio-warning wide";
+      mismatch.setAttribute("data-aio-model-mismatch", "");
+      const saved = settings.model_family === "moss_image" ? "MOSS"
+        : settings.model_family === "krea2" ? "Krea2" : settings.model_family;
+      mismatch.textContent = aioFormat("text.modelMismatch", { saved, model: modelProfile.label });
+      samplerGrid.append(mismatch);
+    }
+    if (modelProfile.family !== "anima") {
+      const modelInfo = document.createElement("div");
+      modelInfo.className = "easyuse-anima-aio-warning wide";
+      modelInfo.setAttribute("data-aio-model-requirements", "");
+      modelInfo.textContent = aioText(modelProfile.family === "krea2"
+        ? "text.kreaRequirements" : "text.mossRequirements");
+      samplerGrid.append(modelInfo);
+    }
+
     const seedBlock = document.createElement("div");
     const seedInput = createDomNumberControl(node, "seed", settings.sampler.seed);
     seedInput.setAttribute("data-aio-seed-input", "");
@@ -1601,8 +1626,8 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
             max: 10,
             inputMin: GENERATOR_NUMERIC_LIMITS.auraFlowShift.min,
             inputMax: GENERATOR_NUMERIC_LIMITS.auraFlowShift.max,
-            step: 0.5,
-            decimals: 1,
+            step: modelProfile.family === "krea2" ? 0.01 : 0.5,
+            decimals: modelProfile.family === "krea2" ? 2 : 1,
           },
           (nextSettings, value) => {
             nextSettings.model_patches.aura_flow ||= {};
@@ -1790,7 +1815,7 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
     if (settings.detailer.enabled) {
       const order = normalizeDetailerOrder(settings.detailer.order, settings.detailer);
       for (const [index, targetName] of order.entries()) {
-        const defaults = detailerTargetDefaults(targetName);
+        const defaults = detailerTargetDefaults(targetName, settings.model_family);
         const target = mergeDefaults(defaults, settings.detailer[targetName] || {});
         const targetBlock = document.createElement("div");
         targetBlock.className = "easyuse-anima-aio-node-stage-mini";
@@ -2096,6 +2121,14 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
     }
     postprocessBlock.append(postprocessBody);
 
+    for (const [capability, stage] of [["highres", highresBlock], ["detailer", detailerBlock], ["upscale", upscaleBlock]]) {
+      if (!modelProfile.capabilities[capability]) {
+        for (const control of stage.querySelectorAll("input, select, textarea, button")) {
+          control.disabled = true;
+          control.title = aioFormat("text.modelUnsupported", { model: modelProfile.label });
+        }
+      }
+    }
     settingsScroll.append(samplerGrid, highresBlock, detailerBlock, upscaleBlock, postprocessBlock);
 
     samplerCard.append(samplerHeader, settingsScroll);

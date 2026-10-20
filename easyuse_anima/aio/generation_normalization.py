@@ -34,6 +34,7 @@ from .generation_defaults import (
 )
 from .generation_defaults import AIO_SPECIAL_SEEDS as AIO_SPECIAL_SEEDS
 from .generation_migrations import migrate_aio_generation_settings
+from .model_profiles import aio_model_defaults
 from .generation_normalization_core import (
     merge_versioned_settings as _core_merge_versioned_settings,
 )
@@ -119,10 +120,10 @@ def _is_aio_detailer_target_name(name: str) -> bool:
     return _stages_is_detailer_target_name(name, custom_re=_AIO_DETAILER_CUSTOM_RE)
 
 
-def _aio_detailer_target_defaults(target_name: str) -> dict[str, Any]:
+def _aio_detailer_target_defaults(target_name: str, *, model_family: str = "anima") -> dict[str, Any]:
     return _stages_detailer_target_defaults(
         target_name,
-        default_settings=AIO_GENERATION_DEFAULT_SETTINGS,
+        default_settings=aio_model_defaults(AIO_GENERATION_DEFAULT_SETTINGS, model_family),
         json_clone=_json_clone,
     )
 
@@ -198,10 +199,21 @@ def _normalize_aio_dit_corrections_settings(
     )
 
 
-def _normalize_aio_generation_settings(value) -> dict[str, Any]:
+def _normalize_aio_generation_settings(value, *, model_family: str | None = None) -> dict[str, Any]:
+    incoming = _json_object(value)
+    if model_family is not None:
+        saved_family = incoming.get("model_family", model_family)
+        if saved_family != model_family:
+            raise ValueError(
+                f"[EasyUseAnima] This generator is fixed to {model_family}, but settings "
+                f"belong to {saved_family}. Use the matching model-specific AiO Generator "
+                "and transfer its generation_settings without changing the family."
+            )
+        incoming = {**incoming, "model_family": model_family}
+    family = incoming.get("model_family", "anima")
     settings = _merge_versioned_settings(
-        AIO_GENERATION_DEFAULT_SETTINGS,
-        _migrate_supported_aio_generation_settings(value),
+        aio_model_defaults(AIO_GENERATION_DEFAULT_SETTINGS, family),
+        _migrate_supported_aio_generation_settings(incoming),
     )
     _core_normalize_sampler_settings(
         settings,
@@ -245,7 +257,7 @@ def _normalize_aio_generation_settings(value) -> dict[str, Any]:
         impact_scheduler_names=_impact_scheduler_names,
         max_resolution_value=_comfy_max_resolution,
         target_order=_aio_detailer_target_order,
-        target_defaults=_aio_detailer_target_defaults,
+        target_defaults=lambda name: _aio_detailer_target_defaults(name, model_family=family),
         normalize_spectrum=_normalize_aio_spectrum_settings,
         normalize_corrections=_normalize_aio_dit_corrections_settings,
         normalize_hash_bundles=_normalize_aio_hash_bundles,

@@ -117,10 +117,13 @@ export function aioCreateExtensionRuntime(dependencies) {
     },
   } = dependencies;
 
+  const generatorNodeTypes = Array.isArray(GENERATOR_NODE_TYPE)
+    ? GENERATOR_NODE_TYPE : [GENERATOR_NODE_TYPE];
+
   function hookNode(node, nodeData) {
     if (nodeData.name === INPUT_NODE_TYPE) {
       hookInputNode(node);
-    } else if (nodeData.name === GENERATOR_NODE_TYPE) {
+    } else if (generatorNodeTypes.includes(nodeData.name)) {
       hookGeneratorNode(node);
       hookSeedNode(node);
     }
@@ -189,17 +192,17 @@ export function aioCreateExtensionRuntime(dependencies) {
       }
     },
     async beforeRegisterNodeDef(nodeType, nodeData) {
-      if (nodeData.name !== INPUT_NODE_TYPE && nodeData.name !== GENERATOR_NODE_TYPE) {
+      if (nodeData.name !== INPUT_NODE_TYPE && !generatorNodeTypes.includes(nodeData.name)) {
         return;
       }
-      const prototypeHookMarker = nodeData.name === GENERATOR_NODE_TYPE
+      const prototypeHookMarker = generatorNodeTypes.includes(nodeData.name)
         ? GENERATOR_PROTOTYPE_HOOK_MARKER
         : INPUT_PROTOTYPE_HOOK_MARKER;
       if (Object.prototype.hasOwnProperty.call(nodeType.prototype, prototypeHookMarker)) {
         return;
       }
       const patchedProperties = ["onNodeCreated", "onConfigure"];
-      if (nodeData.name === GENERATOR_NODE_TYPE) {
+      if (generatorNodeTypes.includes(nodeData.name)) {
         patchedProperties.push(
           "hideOutputImages",
           "onSerialize",
@@ -213,12 +216,12 @@ export function aioCreateExtensionRuntime(dependencies) {
         Object.getOwnPropertyDescriptor(nodeType.prototype, property),
       ]));
       try {
-        if (nodeData.name === GENERATOR_NODE_TYPE) {
+        if (generatorNodeTypes.includes(nodeData.name)) {
           nodeType.prototype.hideOutputImages = true;
         }
         const onNodeCreated = nodeType.prototype.onNodeCreated;
         nodeType.prototype.onNodeCreated = function () {
-          if (nodeData.name === GENERATOR_NODE_TYPE) {
+          if (generatorNodeTypes.includes(nodeData.name)) {
             suppressDefaultPreview(this, { markDirty: false });
           }
           const result = onNodeCreated?.apply(this, arguments);
@@ -227,7 +230,7 @@ export function aioCreateExtensionRuntime(dependencies) {
         };
         const onConfigure = nodeType.prototype.onConfigure;
         nodeType.prototype.onConfigure = function () {
-          if (nodeData.name === GENERATOR_NODE_TYPE) {
+          if (generatorNodeTypes.includes(nodeData.name)) {
             suppressDefaultPreview(this, { markDirty: false });
             disposeSeedNode(this, "reconfigure");
           }
@@ -235,7 +238,7 @@ export function aioCreateExtensionRuntime(dependencies) {
           hookNode(this, nodeData);
           return result;
         };
-        if (nodeData.name === GENERATOR_NODE_TYPE) {
+        if (generatorNodeTypes.includes(nodeData.name)) {
           const onSerialize = nodeType.prototype.onSerialize;
           nodeType.prototype.onSerialize = function (serialized) {
             const result = onSerialize?.apply(this, arguments);

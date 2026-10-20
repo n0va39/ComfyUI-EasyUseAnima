@@ -19,6 +19,7 @@
 
 /**
  * @typedef {object} AioAdvancedDialogSettingsCore
+ * @property {(family?: string) => any} modelProfile
  * @property {any} defaultGenerationSettings
  * @property {any} numericLimits
  * @property {(defaults: any, current: any) => any} mergeDefaults
@@ -188,6 +189,7 @@ export function aioCreateAdvancedSettingsDialog(dependencies) {
     format: aioFormat,
   } = text;
   const {
+    modelProfile,
     defaultGenerationSettings: DEFAULT_GENERATION_SETTINGS,
     numericLimits: GENERATOR_NUMERIC_LIMITS,
     mergeDefaults,
@@ -215,6 +217,8 @@ export function aioCreateAdvancedSettingsDialog(dependencies) {
   function openAdvancedSettings(node) {
     const widget = findWidget(node, GENERATOR_SETTINGS_WIDGET);
     const settings = generatorSettings(node);
+    const profile = modelProfile(settings.model_family);
+    const capabilities = profile.capabilities;
     const { backdrop, body, actions } = createDialog(
       "Advanced Options",
       "Advanced generation options stay in a popup and are serialized as versioned settings."
@@ -256,8 +260,8 @@ export function aioCreateAdvancedSettingsDialog(dependencies) {
 
     const auraShift = field(
       modelPatches,
-      "AuraFlow shift",
-      numberInput(settings.model_patches.aura_flow.shift, "0.5"),
+      settings.model_family === "krea2" ? "FLUX shift (mu)" : "AuraFlow shift",
+      numberInput(settings.model_patches.aura_flow.shift, settings.model_family === "krea2" ? "0.01" : "0.5"),
       "tip.shift",
     );
     auraShift.min = String(GENERATOR_NUMERIC_LIMITS.auraFlowShift.min);
@@ -652,7 +656,7 @@ export function aioCreateAdvancedSettingsDialog(dependencies) {
     let recommendationClosed = false;
     let recommendationPending = false;
     torchRecommendButton.addEventListener("click", () => {
-      if (recommendationClosed || recommendationPending) {
+      if (!capabilities.torchCompile || recommendationClosed || recommendationPending) {
         return;
       }
       recommendationPending = true;
@@ -885,6 +889,30 @@ export function aioCreateAdvancedSettingsDialog(dependencies) {
       refreshSageStageScope();
       refreshSageDetails();
       refreshTorchDetails();
+      if (!capabilities.torchCompile) {
+        torchCompileEnabled.checked = !!settings.model_patches.kj.torch_compile.enabled;
+        refreshTorchDetails();
+        const message = aioFormat("text.modelTorchCompileUnsupported", { model: profile.label });
+        for (const control of torch.querySelectorAll("input, select, textarea, button")) {
+          control.disabled = true;
+          control.title = message;
+        }
+        showTorchRecommendationStatus("unsupported", [message]);
+      }
+      if (!capabilities.dave) daveEnabled.checked = !!settings.model_patches.dave.enabled;
+      if (!capabilities.safePag) safePagEnabled.checked = !!settings.model_patches.safe_pag.enabled;
+      for (const [capability, section] of [["negpip", conditioning], ["dave", dave], ["safePag", safePag], ["kj", kj], ["artistMix", artistMix]]) {
+        if (!capabilities[capability]) {
+          for (const control of section.querySelectorAll("input, select, textarea, button")) {
+            control.disabled = true;
+            control.title = aioFormat("text.modelUnsupported", { model: profile.label });
+          }
+        }
+      }
+      if (!capabilities.negpip || !capabilities.dave || !capabilities.safePag) {
+        modelWarning.hidden = false;
+        modelWarning.textContent = aioFormat("text.modelUnsupported", { model: profile.label });
+      }
     };
     const guardToggle = (control, dependencyKey, backend) => {
       if (control.checked && !optionalDependencyAvailable(dependencyKey)) {
@@ -1020,6 +1048,12 @@ export function aioCreateAdvancedSettingsDialog(dependencies) {
       next.artist_mix.mode = artistMode.value || "prompt_data";
       next.artist_mix.start_percent = Number(artistStart.value || 0.5);
       next.artist_mix.strength_scale = Number(artistStrength.value || 1.0);
+      // Locked model-specific data remains intact for explicit correction or migration.
+      if (!capabilities.negpip) next.negpip = settings.negpip;
+      if (!capabilities.dave) next.model_patches.dave = settings.model_patches.dave;
+      if (!capabilities.safePag) next.model_patches.safe_pag = settings.model_patches.safe_pag;
+      if (!capabilities.artistMix) next.artist_mix = settings.artist_mix;
+      if (!capabilities.torchCompile) next.model_patches.kj.torch_compile = settings.model_patches.kj.torch_compile;
       writeSettings(node, widget, next);
       renderGeneratorPanel(node);
       backdrop.remove();

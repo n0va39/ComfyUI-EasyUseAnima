@@ -52,6 +52,7 @@ function listenerCapture(options = false) {
 
 const panelModule = await import(dataModule("../web/js/aio/generator_panel_runtime.js"));
 const settingsModule = await import(dataModule("../web/js/aio/settings.js"));
+const modelProfilesModule = await import(dataModule("../web/js/aio/model_profiles.js"));
 const numericLimits = {
   samplerSteps: { min: 1, max: 10000 },
   samplerCfg: { min: 0, max: 100 },
@@ -380,6 +381,7 @@ function createFixture() {
   };
 
   const nodeAdapter = {
+    getModelProfile: (node) => modelProfilesModule.aioGeneratorModelProfile(node) || modelProfilesModule.AIO_GENERATOR_MODEL_PROFILES.EasyUseAnimaAIOGenerator,
     getSettings(node) {
       dependencyCalls += 1;
       trace.push("get-settings");
@@ -1954,4 +1956,40 @@ assert.equal(
   "easyuse-anima-aio-node-preview-placeholder",
 );
 assert.equal(findByClass(reactivatedPanel, "easyuse-anima-aio-node-main") != null, true);
+
+
+for (const [type, family] of [["EasyUseMossAIOGenerator", "moss_image"], ["EasyUseKrea2AIOGenerator", "krea2"]]) {
+  const fixture = createFixture();
+  const node = createOwnerTestNode(fixture, settingsModule.aioGenerationDefaultsForFamily(family));
+  node.type = type;
+  fixture.runtime.ensurePanel(node);
+  const panel = node.__easyuseAnimaGeneratorPanelEl;
+  const identity = findByAttribute(panel, "data-aio-model-family", family);
+  assert.ok(identity);
+  assert.equal(identity.tagName, "SPAN", "model identity is fixed, not a dropdown");
+  assert.ok(findByAttribute(panel, "data-aio-model-requirements", ""));
+  assert.equal(findByAttribute(panel, "data-aio-model-mismatch", ""), null);
+  for (const key of ["highres.enabled", "detailer.enabled", "upscale.enabled"]) {
+    assert.equal(findByAttribute(panel, "data-aio-focus-key", key).disabled, false, key);
+  }
+  assert.equal(node.settings.model_patches.aura_flow.shift, family === "krea2" ? 1.15 : 5);
+  if (family === "krea2") {
+    const shiftInput = findField(panel, "text:label.shift").children[0].children[0];
+    assert.equal(shiftInput.value, "1.15");
+    assert.equal(shiftInput.step, "0.01");
+    shiftInput.value = "1.17";
+    shiftInput.emit("input");
+    assert.equal(node.settings.model_patches.aura_flow.shift, 1.17);
+  }
+  fixture.runtime.disposePanel(node);
+}
+{
+  const fixture = createFixture();
+  const node = createOwnerTestNode(fixture, settingsModule.aioGenerationDefaultsForFamily("moss_image"));
+  node.type = "EasyUseAnimaAIOGenerator";
+  fixture.runtime.ensurePanel(node);
+  assert.ok(findByAttribute(node.__easyuseAnimaGeneratorPanelEl, "data-aio-model-mismatch", ""));
+  assert.equal(node.settings.model_family, "moss_image", "foreign settings are never silently rewritten");
+  fixture.runtime.disposePanel(node);
+}
 console.log("AiO generator panel runtime smoke passed.");

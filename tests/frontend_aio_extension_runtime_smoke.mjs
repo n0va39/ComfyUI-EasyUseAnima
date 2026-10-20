@@ -65,7 +65,7 @@ function createFixture(options = {}) {
     api,
     constants: {
       inputNodeType: INPUT_NODE_TYPE,
-      generatorNodeType: GENERATOR_NODE_TYPE,
+      generatorNodeType: options.generatorNodeTypes || GENERATOR_NODE_TYPE,
       generatorPreviewEvent: GENERATOR_PREVIEW_EVENT,
     },
     setup: {
@@ -907,3 +907,18 @@ for (const hookCase of [
 }
 
 console.log("Frontend AiO extension runtime smoke passed.");
+
+for (const name of ["EasyUseAnimaAIOGenerator", "EasyUseMossAIOGenerator", "EasyUseKrea2AIOGenerator"]) {
+  const fixture = createFixture({ generatorNodeTypes: ["EasyUseAnimaAIOGenerator", "EasyUseMossAIOGenerator", "EasyUseKrea2AIOGenerator"] });
+  const { NodeType } = createNodeType(fixture.trace);
+  await fixture.runtime.beforeRegisterNodeDef(NodeType, { name });
+  const node = new NodeType();
+  node.onNodeCreated();
+  node.onSerialize({ marker: name });
+  node.onConfigure();
+  node.onRemoved();
+  assert.ok(fixture.trace.includes("hookGeneratorNode"), name);
+  assert.ok(fixture.trace.includes("hookSeedNode"), name);
+  assert.ok(fixture.trace.includes(`syncSerializedWidgets:${name}`), name);
+  assert.ok(fixture.trace.includes("disposeNativePreviewLifecycle"), name);
+}

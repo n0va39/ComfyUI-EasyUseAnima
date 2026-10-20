@@ -31,7 +31,7 @@
  * @property {(order: any, detailer?: any) => string[]} normalizeDetailerOrder
  * @property {(targetName: string) => boolean} isCustomDetailerTargetName
  * @property {(order: string[], detailer: any) => string} nextDetailerTargetName
- * @property {(targetName: string) => any} detailerTargetDefaults
+ * @property {(targetName: string, family?: string) => any} detailerTargetDefaults
  * @property {(targetName: string, target: any, index?: number) => string} detailerTargetTitle
  */
 
@@ -61,7 +61,7 @@
  * @property {AioDetailerDialogControls} controls
  * @property {AioDetailerDialogText} text
  * @property {AioDetailerDialogSettingsCore} settingsCore
- * @property {(title: any, values: any, defaults: any) => {section: any, values: () => any, setIntegratedMode?: (isIntegrated: boolean) => void}} stageOptimizationEditor
+ * @property {(title: any, values: any, defaults: any, family?: string) => {section: any, values: () => any, setIntegratedMode?: (isIntegrated: boolean) => void}} stageOptimizationEditor
  * @property {AioDetailerDialogNodeAdapter} nodeAdapter
  * @property {AioDetailerDialogDependencyAdapter} dependencyAdapter
  */
@@ -205,7 +205,7 @@ export function aioCreateDetailerSettingsDialog(dependencies) {
     const inpaintModel = field(detail, "Inpaint model", checkbox(target.inpaint_model));
     const tiledEncode = field(detail, "Tiled encode", checkbox(target.tiled_encode));
     const tiledDecode = field(detail, "Tiled decode", checkbox(target.tiled_decode));
-    const optimization = createStageOptimizationEditor(`${title} Optimization`, target, defaults);
+    const optimization = createStageOptimizationEditor(`${title} Optimization`, target, defaults, generatorSettings(node).model_family);
     const updateInheritedRows = () => {
       const display = inheritSampler.checked ? "none" : "";
       for (const control of [cfg, samplerName, scheduler]) {
@@ -328,7 +328,7 @@ export function aioCreateDetailerSettingsDialog(dependencies) {
 
     let editors = {};
     const createEditor = (targetName, values = null) => {
-      const defaults = detailerTargetDefaults(targetName);
+      const defaults = detailerTargetDefaults(targetName, settings.model_family);
       const targetValues = mergeDefaults(defaults, values || detailer[targetName] || {});
       return createDetailerTargetEditor(
         node,
@@ -368,7 +368,7 @@ export function aioCreateDetailerSettingsDialog(dependencies) {
     };
     const addTarget = () => {
       const targetName = nextDetailerTargetName(currentOrder, detailer);
-      const defaults = detailerTargetDefaults(targetName);
+      const defaults = detailerTargetDefaults(targetName, settings.model_family);
       const targetValues = {
         ...defaults,
         enabled: true,

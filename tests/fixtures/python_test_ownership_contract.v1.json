@@ -87,6 +87,7 @@
           "@matrix:registry-archive-closure"
         ],
         "pure_service_unit": [
+          "tests/test_aio_model_profiles.py",
           "tests/test_aio_stage_pipeline_contract.py"
         ]
       }

@@ -10,7 +10,9 @@ export const AIO_GENERATION_STAGE_IDS = ["first_pass", "highres", "detailer", "u
 
 export const AIO_DEFAULT_GENERATION_SETTINGS = {
   schema: "easyuse_anima_aio_generation_settings",
-  version: 4,
+  version: 5,
+  model_family: "anima",
+  model_settings: {},
   mode: "txt2img",
   sampler: {
     backend: "comfy_ksampler",
@@ -464,6 +466,25 @@ export function aioCloneJson(value) {
   return JSON.parse(JSON.stringify(value));
 }
 
+export function aioGenerationDefaultsForFamily(family = "anima") {
+  const defaults = aioCloneJson(AIO_DEFAULT_GENERATION_SETTINGS);
+  if (family === "moss_image" || family === "krea2") {
+    defaults.model_family = family;
+    defaults.sampler.steps = family === "krea2" ? 8 : 25;
+    defaults.sampler.cfg = family === "krea2" ? 1 : 2.5;
+    if (family === "krea2") defaults.sampler.sampler_name = "euler";
+    defaults.model_patches.aura_flow.shift = family === "krea2" ? 1.15 : 5;
+    defaults.mod_guidance.mode = "disabled";
+    defaults.artist_mix.mode = "off";
+    for (const stage of [defaults.highres, defaults.upscale, defaults.detailer.face, defaults.detailer.eye]) {
+      for (const key of ["steps", "cfg", "sampler_name", "scheduler"]) stage[key] = defaults.sampler[key];
+      stage.spectrum.enabled = false;
+      stage.dit_corrections.enabled = false;
+    }
+  }
+  return defaults;
+}
+
 export function aioMigrateGenerationSettingsVersion(value) {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
     return value;
@@ -519,6 +540,14 @@ export function aioMigrateGenerationSettingsVersion(value) {
       );
     }
     migrated.version = 4;
+  }
+  if (
+    migrated.schema === AIO_DEFAULT_GENERATION_SETTINGS.schema
+    && migrated.version === 4
+  ) {
+    migrated.model_family ??= "anima";
+    migrated.model_settings ??= {};
+    migrated.version = 5;
   }
   return migrated;
 }
@@ -600,7 +629,7 @@ export function aioMigrateGeneratorPostprocessSettings(settings) {
   return settings;
 }
 
-export function aioParseSettingsValue(rawValue, defaults) {
+export function aioParseSettingsValue(rawValue, defaults, modelFamily = "anima") {
   try {
     // Match whole JSON strings as well as integer properties, so text containing
     // escaped seed-looking snippets is never rewritten. Legacy settings JSON can
@@ -614,15 +643,27 @@ export function aioParseSettingsValue(rawValue, defaults) {
       )
       : rawValue || "{}";
     const rawParsed = JSON.parse(source);
+    // Infer only missing identity. Explicit foreign settings must survive so the
+    // node can show the mismatch and the backend can reject it without data loss.
+    if (defaults === AIO_DEFAULT_GENERATION_SETTINGS && rawParsed && typeof rawParsed === "object") {
+      rawParsed.model_family ??= modelFamily;
+    }
     const incoming = defaults === AIO_DEFAULT_GENERATION_SETTINGS
       ? aioMigrateGenerationSettingsVersion(rawParsed)
       : rawParsed;
-    const parsed = aioMergeDefaults(defaults, incoming);
+    const parsed = aioMergeDefaults(
+      defaults === AIO_DEFAULT_GENERATION_SETTINGS
+        ? aioGenerationDefaultsForFamily(incoming?.model_family)
+        : defaults,
+      incoming,
+    );
     return defaults === AIO_DEFAULT_GENERATION_SETTINGS
       ? aioMigrateGeneratorPostprocessSettings(parsed)
       : parsed;
   } catch {
-    return aioCloneJson(defaults);
+    return defaults === AIO_DEFAULT_GENERATION_SETTINGS
+      ? aioGenerationDefaultsForFamily(modelFamily)
+      : aioCloneJson(defaults);
   }
 }
 
@@ -680,7 +721,7 @@ export function aioNormalizeGeneratorPreviewSettings(settings) {
 
 export function aioSettingsToCompactJson(settings) {
   const next = aioMergeDefaults(
-    AIO_DEFAULT_GENERATION_SETTINGS,
+    aioGenerationDefaultsForFamily(settings?.model_family),
     aioMigrateGenerationSettingsVersion(settings),
   );
   delete next.save?.filename_prefix;

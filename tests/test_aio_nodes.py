@@ -60,9 +60,13 @@ def tearDownModule():
 
 class AIONodeContractTests(unittest.TestCase):
     def test_aio_nodes_are_the_canonical_public_adapters_in_both_import_modes(self):
+        expected_exports = (
+            "EasyUseAnimaInput", "EasyUseAnimaAIOGenerator",
+            "EasyUseMossAIOGenerator", "EasyUseKrea2AIOGenerator",
+        )
         self.assertEqual(
             aio_nodes.__all__,
-            ("EasyUseAnimaInput", "EasyUseAnimaAIOGenerator"),
+            expected_exports,
         )
         self.assertIs(
             aio_nodes._easy_use_anima_input_signature,
@@ -82,16 +86,14 @@ class AIONodeContractTests(unittest.TestCase):
             ]
             self.assertEqual(
                 canonical_module.__all__,
-                ("EasyUseAnimaInput", "EasyUseAnimaAIOGenerator"),
+                expected_exports,
             )
-            self.assertIs(
-                package_entrypoint.NODE_CLASS_MAPPINGS["EasyUseAnimaInput"],
-                canonical_module.EasyUseAnimaInput,
-            )
-            self.assertIs(
-                package_entrypoint.NODE_CLASS_MAPPINGS["EasyUseAnimaAIOGenerator"],
-                canonical_module.EasyUseAnimaAIOGenerator,
-            )
+            for node_type in expected_exports:
+                with self.subTest(node_type=node_type):
+                    self.assertIs(
+                        package_entrypoint.NODE_CLASS_MAPPINGS[node_type],
+                        getattr(canonical_module, node_type),
+                    )
             self.assertIs(
                 canonical_module._easy_use_anima_input_signature,
                 canonical_input_context._easy_use_anima_input_signature,
@@ -361,8 +363,8 @@ class AIONodeContractTests(unittest.TestCase):
     def test_generator_input_types_resolve_root_runtime_values_at_call_time(self):
         calls = []
 
-        def generation_settings_json():
-            calls.append("generation_settings_json")
+        def generation_settings_json(family):
+            calls.append(("generation_settings_json", family))
             return '{"schema":"generation-test"}'
 
         with patch.multiple(
@@ -370,9 +372,24 @@ class AIONodeContractTests(unittest.TestCase):
             EASY_USE_ANIMA_INPUT_TYPE="EASY_USE_ANIMA_INPUT_TEST",
             _aio_generation_settings_json=generation_settings_json,
         ):
-            input_types = aio_nodes.EasyUseAnimaAIOGenerator.INPUT_TYPES()
+            for node_class, family in (
+                (aio_nodes.EasyUseAnimaAIOGenerator, "anima"),
+                (aio_nodes.EasyUseMossAIOGenerator, "moss_image"),
+                (aio_nodes.EasyUseKrea2AIOGenerator, "krea2"),
+            ):
+                with self.subTest(family=family):
+                    input_types = node_class.INPUT_TYPES()
+                    self.assertEqual(calls[-1], ("generation_settings_json", family))
+                    self.assertEqual(
+                        input_types["required"]["generation_settings"][1]["default"],
+                        '{"schema":"generation-test"}',
+                    )
 
-        self.assertEqual(calls, ["generation_settings_json"])
+        self.assertEqual(calls, [
+            ("generation_settings_json", "anima"),
+            ("generation_settings_json", "moss_image"),
+            ("generation_settings_json", "krea2"),
+        ])
         self.assertEqual(
             input_types["required"]["easy_use_anima_input"][0],
             "EASY_USE_ANIMA_INPUT_TEST",
@@ -409,8 +426,8 @@ class AIONodeContractTests(unittest.TestCase):
             "future": {"kept": True},
         }
 
-        def normalize(value):
-            calls.append(("normalize", value))
+        def normalize(value, *, model_family):
+            calls.append(("normalize", value, model_family))
             return json.loads(json.dumps(normalized))
 
         def input_signature(value):
@@ -493,7 +510,7 @@ class AIONodeContractTests(unittest.TestCase):
         self.assertEqual(
             fixed_calls,
             [
-                ("normalize", "settings"),
+                ("normalize", "settings", "anima"),
                 ("input_signature", "context"),
                 ("lora_signature", "lora"),
                 ("hook_change_token", "hook"),
@@ -506,7 +523,7 @@ class AIONodeContractTests(unittest.TestCase):
         self.assertEqual(
             no_hook_calls,
             [
-                ("normalize", "settings"),
+                ("normalize", "settings", "anima"),
                 ("input_signature", "context"),
                 ("lora_signature", "lora"),
                 ("stable_key", no_hook_payload),
@@ -514,7 +531,7 @@ class AIONodeContractTests(unittest.TestCase):
         )
         self.assertNotEqual(special_result, special_result)
         self.assertNotEqual(advancing_result, advancing_result)
-        self.assertEqual(calls, [("normalize", "settings")])
+        self.assertEqual(calls, [("normalize", "settings", "anima")])
 
     def test_input_signature_and_validator_preserve_exact_contract(self):
         calls = []
