@@ -11,6 +11,9 @@ from easyuse_anima.aio import (
     legacy_generation, model_preparation, model_profiles, resources, sampling,
 )
 from tests.comfy_host_fakes import FakeComfyHostProvider, use_fake_comfy_host, patch_comfy_helper
+from easyuse_anima.nodes.aio_nodes import (
+    EasyUseAnimaAIOGenerator, EasyUseMossAIOGenerator, EasyUseKrea2AIOGenerator,
+)
 
 
 class AIOModelProfileTests(unittest.TestCase):
@@ -23,6 +26,74 @@ class AIOModelProfileTests(unittest.TestCase):
         return generation_normalization._normalize_aio_generation_settings(
             {"model_family": "moss_image", **overrides}
         )
+
+    def test_fixed_node_defaults_and_missing_family_restore(self):
+        for cls, family, steps, cfg, shift in (
+            (EasyUseAnimaAIOGenerator, "anima", 32, 5.0, 3.0),
+            (EasyUseMossAIOGenerator, "moss_image", 25, 2.5, 5.0),
+            (EasyUseKrea2AIOGenerator, "krea2", 8, 1.0, 1.15),
+        ):
+            with self.subTest(family=family):
+                defaults = json.loads(cls.INPUT_TYPES()["required"]["generation_settings"][1]["default"])
+                self.assertEqual(defaults["model_family"], family)
+                self.assertEqual(defaults["sampler"]["steps"], steps)
+                self.assertEqual(defaults["sampler"]["cfg"], cfg)
+                self.assertEqual(defaults["model_patches"]["aura_flow"]["shift"], shift)
+                restored = generation_normalization._normalize_aio_generation_settings(
+                    {"sampler": {"seed": 123, "steps": 17}}, model_family=cls.MODEL_FAMILY,
+                )
+                self.assertEqual(restored["model_family"], family)
+                self.assertEqual(restored["sampler"]["steps"], 17)
+                self.assertEqual(restored["sampler"]["cfg"], cfg)
+                self.assertEqual(restored["sampler"]["seed"], 123)
+                model_profiles.validate_aio_model_settings(restored)
+
+    def test_fixed_node_rejects_cross_family_before_loading(self):
+        for cls, other in (
+            (EasyUseAnimaAIOGenerator, "moss_image"),
+            (EasyUseMossAIOGenerator, "krea2"),
+            (EasyUseKrea2AIOGenerator, "anima"),
+        ):
+            with self.subTest(node=cls.__name__):
+                with self.assertRaisesRegex(ValueError, "matching model-specific"):
+                    cls.IS_CHANGED(generation_settings={"model_family": other})
+
+    def test_krea2_uses_flux_sampling_and_core_empty_latent(self):
+        settings = self.settings(model_family="krea2")
+        self.assertEqual(settings["sampler"]["sampler_name"], "euler")
+        model_profiles.validate_aio_model_settings(settings)
+        plan = model_preparation._aio_stage_model_patch_plan(settings, "first_pass")
+        self.assertEqual(plan.patch_ids, ("flux",))
+        patch_flux = Mock(return_value=("shifted",))
+        cls = Mock(return_value=SimpleNamespace(patch=patch_flux))
+        with patch_comfy_helper(model_preparation, "_find_comfy_node_class", return_value=cls) as find:
+            result = model_preparation._apply_aio_stage_model_patch_plan("base", plan)
+        find.assert_called_once_with("ModelSamplingFlux")
+        patch_flux.assert_called_once_with(
+            "base", max_shift=1.15, base_shift=1.15, width=1024, height=1024,
+        )
+        self.assertEqual(result, "shifted")
+        with patch.object(sampling, "_generate_empty_latent_with_comfy", return_value={"samples": "core"}) as generate:
+            self.assertEqual(
+                sampling._generate_empty_model_latent_with_comfy(1024, 768, model_family="krea2"),
+                {"samples": "core"},
+            )
+        generate.assert_called_once_with(1024, 768)
+
+    def test_krea2_rejects_moss_resources_and_unreviewed_features(self):
+        context = {"resource_info": {"clip_type": "krea2"}}
+        config = SimpleNamespace(unet_config={"image_model": "krea2"})
+        model = SimpleNamespace(model=SimpleNamespace(model_config=config))
+        model_profiles.validate_aio_model_resources("krea2", context, model=model)
+        config.unet_config["image_model"] = "moss_image"
+        with self.assertRaisesRegex(ValueError, "Krea2 diffusion model"):
+            model_profiles.validate_aio_model_resources("krea2", context, model=model)
+        with self.assertRaisesRegex(ValueError, "CLIP type 'krea2'"):
+            model_profiles.validate_aio_model_resources("krea2", {"resource_info": {"clip_type": "moss_image"}})
+        with self.assertRaisesRegex(ValueError, "multiples of 16"):
+            model_profiles.validate_aio_model_dimensions("krea2", 1000, 1024)
+        with self.assertRaisesRegex(ValueError, "Krea2.*basic txt2img"):
+            model_profiles.validate_aio_model_settings(self.settings(model_family="krea2", highres={"enabled": True}))
 
     def test_family_defaults_preserve_explicit_values_and_inactive_settings(self):
         original = copy.deepcopy(generation_defaults.AIO_GENERATION_DEFAULT_SETTINGS)

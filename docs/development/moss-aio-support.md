@@ -1,27 +1,32 @@
-# AiO model-family settings and MOSS
+# Model-specific AiO generators
 
-- Task: user-requested MOSS support with separate settings for future DiT families.
+- Task: separate Anima, MOSS and Krea2 generator nodes with shared execution
+  architecture and explicit model profiles for future DiT families.
 - Base: dev `117e589eaeeb3c745fb528b55c9d7d834abdae17`.
 - Branch: `codex/moss-aio-support`.
 - Scope: AiO model profiles, resource validation, latent and sampler adapters,
   generation settings/schema, related frontend controls, direct tests and docs.
 - Preserve: existing node IDs/sockets, old workflows/profiles defaulting to Anima,
   Anima sampling behavior, shared seed/output preferences, external dependency optionality.
-- Design: top-level settings are the active execution snapshot; `model_family`
-  selects a reviewed profile and `model_settings` stores inactive tuning snapshots.
-  Switching families saves/restores tuning without restoring an old seed/output path.
+- Current revision base: `27c948b`; continue the same owned implementation branch.
+- Design: each node class fixes its model family. Profiles own defaults, resource
+  identity, latent and sampling contracts. Shared generation/seed/metadata code
+  remains common. Top-level settings are authoritative; old `model_settings`
+  banks remain inert for data preservation. Explicit family/node mismatches fail
+  with a migration instruction rather than silently reinterpreting saved tuning.
 - Initial scope: MOSS txt2img with core KSampler. Upstream Spectrum 2.12.1
   uses an incompatible MOSS loader/time-embedding contract and remains gated. Unsupported Anima patches and secondary stages must fail before loading.
   No generic arbitrary plugin imports or changes to the maintained Spectrum source.
-- Focused checks: settings migration/round-trip, model identity and option validation,
-  latent dimensions, sampler arguments, cache identity, frontend family switching.
+- Focused checks: fixed node defaults and mismatch rejection, settings round-trip,
+  model identity, latent/sampling contracts, cache and replay identity, all three
+  frontend node registrations and both canvas serializers.
 - Gates: final full runner; isolated API/GPU; Legacy Canvas and Node 2.0 serialization.
 - Stop conditions: official baseline fails, external contract is incompatible,
   or existing Anima behavior changes. Diagnose before expanding support.
 - Excluded: release/version publishing, user-instance deployment, Layout editor,
   prompt expansion, and unverified secondary-stage enablement.
 
-## Validated behavior (2026-10-20)
+## Previous shared-selector validation (2026-10-20)
 
 Environment: ComfyUI v0.42.1 (`63be2f9b82ad0dac88a7ceaa28a9cf3154125a18`),
 frontend 1.55.18, Python 3.12.13, PyTorch 2.12.1+cu130, RTX 5070 Ti 16 GB.
@@ -81,14 +86,15 @@ before resource loading when an unsupported backend or patch is requested.
    Do not infer capabilities from a filename or enable Anima-specific patches.
 2. Add the same family/defaults to `web/js/aio/model_profiles.js` and
    `web/js/aio/settings.js`, its schema enum, and capability-specific controls.
-   Keep the existing top-level execution snapshot authoritative; inactive banks
-   must remain inert until an explicit UI switch.
-3. Add focused resource/latent/settings/cache checks and frontend switch/restore
+   Keep the existing top-level execution snapshot authoritative and legacy banks inert.
+3. Add a fixed-family subclass and registration with `AiO Generator (Model)` display
+   name, locale names and frontend registry entry. Metadata recognizes profile node IDs.
+4. Add focused resource/latent/settings/cache checks and frontend fixed-node/restore
    checks; update the schema and ownership contracts. Verify core-node parity,
    uncached replay and both canvas serializers before enabling the new family.
 
-Resource filenames stay on the Input node. Family switching changes tuning,
-not model filenames, seed, output path or common preview/postprocess preferences.
+Resource filenames stay on the shared Input node. Choosing a generator does not
+replace resource filenames or download models.
 
 The legacy orchestration size allowance grows by 15 module lines / 8 function lines
 for profile imports, validation calls and a latent callback binding. Model policy

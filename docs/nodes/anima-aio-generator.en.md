@@ -1,8 +1,11 @@
-# Anima AiO Generator
+# AiO Generator (Anima / MOSS / Krea2)
 
-Select **Model family** to switch between Anima and MOSS Image. Sampling, patches,
-and later generation stages are saved and restored per family. Seed, output paths,
-preview, and postprocessing remain shared. Existing workflows open as Anima.
+Use separate `AiO Generator (Anima)`, `AiO Generator (MOSS)` and
+`AiO Generator (Krea2)` nodes. Each fixes its model family and owns its settings,
+while generation, seed and saving code remain shared. The existing Anima node ID
+and workflows are preserved. For the earlier MOSS development workflow, replace
+the generator with the MOSS node and transfer its `generation_settings` unchanged.
+Profiles from another model family cannot be applied.
 
 MOSS requires a core MOSS-capable ComfyUI build (validation target v0.42.1).
 Select a MOSS diffusion model, Qwen3.5 9B text encoder, CLIP type `moss_image`,
@@ -10,7 +13,13 @@ and FLUX.2 VAE in Input. Defaults: 25 steps, CFG 2.5, er_sde, simple, shift 5.
 Width and height must be multiples of 16. Family selection does not download or
 replace the selected resource files.
 
-Initial MOSS scope: basic txt2img, core LoRA loading, preview, postprocessing, and
+Krea2 uses a Krea2 diffusion model, Qwen3-VL 4B encoder, CLIP type `krea2` and
+`qwen_image_vae.safetensors`. Turbo defaults are 8 steps, CFG 1, Euler/simple
+and shift 1.15, with dimensions divisible by 16. Shift uses Krea2's FLUX mu
+contract. RAW needs its own steps, CFG and shift settings.
+[Official Krea2 guide](https://docs.comfy.org/tutorials/image/krea/krea-2).
+
+Initial MOSS/Krea2 scope: basic txt2img, core LoRA loading, preview, postprocessing, and
 saving. Anima Mod Guidance, Artist Mix, NegPip, DAVE, Safe PAG, KJ patches, AiO
 hooks, Highres/Detailer/Upscale are unavailable and rejected before execution.
 Upstream Spectrum 2.12.1's `MossSpectrumKSampler` targets a different MOSS loader

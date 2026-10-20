@@ -10,20 +10,39 @@ from typing import Any
 @dataclass(frozen=True)
 class AIOModelProfile:
     name: str
+    node_type: str
     clip_type: str
     latent_node: str
     dimension_multiple: int
     sampler_backends: tuple[str, ...]
+    sampling_node: str
+    steps: int
+    cfg: float
+    shift: float
+    sampler_name: str
+    scheduler: str
+    resource_hint: str
+    anima_features: bool = False
 
 
 AIO_MODEL_PROFILES = {
     "anima": AIOModelProfile(
-        "Anima", "qwen_image", "EmptyLatentImage", 1,
+        "Anima", "EasyUseAnimaAIOGenerator", "qwen_image", "EmptyLatentImage", 1,
         ("comfy_ksampler", "spectrum_mod_guidance_advanced", "spectrum_spd_speed"),
+        "ModelSamplingAuraFlow", 32, 5.0, 3.0, "er_sde", "simple",
+        "Anima diffusion model, Qwen3 0.6B encoder and Qwen Image VAE", True,
     ),
     "moss_image": AIOModelProfile(
-        "MOSS-Image", "moss_image", "EmptyFlux2LatentImage", 16,
+        "MOSS", "EasyUseMossAIOGenerator", "moss_image", "EmptyFlux2LatentImage", 16,
         ("comfy_ksampler",),
+        "ModelSamplingAuraFlow", 25, 2.5, 5.0, "er_sde", "simple",
+        "native MOSS-Image diffusion model, Qwen3.5 9B encoder and FLUX.2 VAE",
+    ),
+    "krea2": AIOModelProfile(
+        "Krea2", "EasyUseKrea2AIOGenerator", "krea2", "EmptyLatentImage", 16,
+        ("comfy_ksampler",),
+        "ModelSamplingFlux", 8, 1.0, 1.15, "euler", "simple",
+        "Krea2 diffusion model, Qwen3-VL 4B encoder and Qwen Image VAE",
     ),
 }
 
@@ -36,12 +55,15 @@ def aio_model_profile(family: str = "anima") -> AIOModelProfile:
 
 def aio_model_defaults(defaults: dict[str, Any], family: str) -> dict[str, Any]:
     """Supply only missing settings; never replace a saved explicit tuning value."""
-    aio_model_profile(family)
+    profile = aio_model_profile(family)
     result = deepcopy(defaults)
     result["model_family"] = family
-    if family == "moss_image":
-        result["sampler"].update(steps=25, cfg=2.5)
-        result["model_patches"]["aura_flow"]["shift"] = 5.0
+    if not profile.anima_features:
+        result["sampler"].update(
+            steps=profile.steps, cfg=profile.cfg,
+            sampler_name=profile.sampler_name, scheduler=profile.scheduler,
+        )
+        result["model_patches"]["aura_flow"]["shift"] = profile.shift
         result["mod_guidance"]["mode"] = "disabled"
         result["artist_mix"]["mode"] = "off"
         for target in ("face", "eye"):
@@ -53,12 +75,16 @@ def validate_aio_model_settings(settings: dict[str, Any], *, aio_hook=None) -> N
     family = settings.get("model_family", "anima")
     profile = aio_model_profile(family)
     if settings["sampler"]["backend"] not in profile.sampler_backends:
-        raise ValueError(
-            f"[EasyUseAnima] {profile.name} does not support this sampler backend. "
+        detail = (
             "Native MOSS currently requires ComfyUI KSampler; upstream Spectrum "
             "2.12.1 targets a different MOSS loader and time-embedding contract."
+            if family == "moss_image" else "Use ComfyUI KSampler."
         )
-    if family == "anima":
+        raise ValueError(
+            f"[EasyUseAnima] {profile.name} does not support this sampler backend. "
+            + detail
+        )
+    if profile.anima_features:
         return
     patches = settings["model_patches"]
     unsupported = []
@@ -87,7 +113,7 @@ def validate_aio_model_settings(settings: dict[str, Any], *, aio_hook=None) -> N
         unsupported.append("Detailer")
     if unsupported:
         raise ValueError(
-            "[EasyUseAnima] MOSS-Image support is limited to basic txt2img. "
+            f"[EasyUseAnima] {profile.name} support is limited to basic txt2img. "
             "Disable unsupported options: " + ", ".join(unsupported)
         )
 
@@ -99,22 +125,24 @@ def validate_aio_model_resources(
     if family != "anima" and context.get("resource_info", {}).get("clip_type") != profile.clip_type:
         raise ValueError(
             f"[EasyUseAnima] {profile.name} requires CLIP type '{profile.clip_type}', "
-            "Qwen3.5 9B text encoder and FLUX.2 VAE in Easy Use Anima Input."
+            f"with {profile.resource_hint} in Easy Use Anima Input."
         )
     if model is None:
         return
     config = getattr(getattr(getattr(model, "model", None), "model_config", None), "unet_config", None)
     actual = config.get("image_model") if isinstance(config, dict) else None
-    if family == "moss_image" and actual != "moss_image":
-        raise ValueError("[EasyUseAnima] Selected MOSS-Image profile requires a native MOSS-Image diffusion model.")
-    if family == "anima" and actual == "moss_image":
-        raise ValueError("[EasyUseAnima] Select MOSS-Image in the AiO model-family settings for this model.")
+    if family != "anima" and actual != family:
+        raise ValueError(f"[EasyUseAnima] AiO Generator ({profile.name}) requires {profile.resource_hint}.")
+    if family == "anima" and actual in AIO_MODEL_PROFILES and actual != family:
+        target = aio_model_profile(actual)
+        raise ValueError(f"[EasyUseAnima] Select {target.name}: use AiO Generator ({target.name}) for this model.")
 
 
 def validate_aio_model_dimensions(family: str, width: int, height: int) -> None:
-    multiple = aio_model_profile(family).dimension_multiple
+    profile = aio_model_profile(family)
+    multiple = profile.dimension_multiple
     if family != "anima" and (width <= 0 or height <= 0 or width % multiple or height % multiple):
-        raise ValueError(f"[EasyUseAnima] MOSS-Image width and height must be positive multiples of {multiple}.")
+        raise ValueError(f"[EasyUseAnima] {profile.name} width and height must be positive multiples of {multiple}.")
 
 
 __all__ = ()

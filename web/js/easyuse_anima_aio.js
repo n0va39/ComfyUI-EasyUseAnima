@@ -24,7 +24,7 @@ import { createAioProfileApiClient } from "./aio/profile_api_client.js";
 import { aioCreateProfileDialogs } from "./aio/profile_dialogs.js";
 import { aioCreateProfileSettingsRuntime } from "./aio/profile_settings_runtime.js";
 import { aioCreateGeneratorPanelRuntime } from "./aio/generator_panel_runtime.js";
-import { aioSwitchModelFamily } from "./aio/model_profiles.js";
+import { AIO_GENERATOR_MODEL_PROFILES, aioGeneratorModelProfile } from "./aio/model_profiles.js";
 import { createAioSeedTransaction } from "./aio/executed_seed_runtime.js";
 import { aioCreateStageSettingsDialogs } from "./aio/stage_settings_dialogs.js";
 import { aioCreateDetailerSettingsDialog } from "./aio/detailer_settings_dialog.js";
@@ -121,7 +121,7 @@ import {
 } from "./aio/settings.js";
 
 const INPUT_NODE_TYPE = "EasyUseAnimaInput";
-const GENERATOR_NODE_TYPE = "EasyUseAnimaAIOGenerator";
+const GENERATOR_NODE_TYPES = Object.keys(AIO_GENERATOR_MODEL_PROFILES);
 const INPUT_SETTINGS_WIDGET = "input_settings";
 const GENERATOR_SETTINGS_WIDGET = "generation_settings";
 const GENERATOR_PROFILE_CUSTOM_VALUE = "custom";
@@ -193,9 +193,11 @@ const AIO_TEXT = {
     "label.denoise": "Denoise",
     "label.sampler": "Sampler",
     "label.modelFamily": "Model family",
-    "text.mossUnsupported": "MOSS Image currently supports first-pass KSampler only. Mod Guidance, Artist Mix, NegPip, DAVE, Safe PAG, KJ optimizations, Spectrum / SPD, corrections, hooks and later stages are unavailable.",
-    "text.mossSpectrumUnsupported": "Spectrum is unavailable for native ComfyUI MOSS Image models: the external MOSS Spectrum node expects a different model structure and timestep scale.",
+    "text.modelUnsupported": "{model} currently supports first-pass KSampler only. Mod Guidance, Artist Mix, NegPip, DAVE, Safe PAG, KJ optimizations, Spectrum / SPD, corrections, hooks and later stages are unavailable.",
+    "text.modelSpectrumUnsupported": "Spectrum / SPD is currently unavailable for {model}. Use the core ComfyUI KSampler backend.",
     "text.mossRequirements": "MOSS Image: select resources on the Input node — CLIP type moss_image, Qwen3.5-9B text encoder and FLUX.2 VAE. First pass only; Anima guidance, Artist Mix, NegPip, DAVE, Safe PAG and later stages are unavailable.",
+    "text.kreaRequirements": "Krea2: select CLIP type krea2, Qwen3-VL-4B and the qwen_image_vae.safetensors (Wan 2.1 VAE) on the Input node. Defaults target Krea2 Turbo: 8 steps, CFG 1, Euler / Simple, shift 1.15. Adjust sampling for RAW weights.",
+    "text.modelMismatch": "Saved settings belong to {saved}. Use AiO Generator ({saved}); this {model} node cannot run them. Settings are preserved.",
     "label.scheduler": "Scheduler",
     "label.enabled": "Enabled",
     "label.info": "More information",
@@ -484,7 +486,7 @@ const AIO_TEXT = {
     "tip.useLast": "Reuse the last seed accepted by a completed backend execution.",
     "tip.steps": "Main sampler steps. The compact slider stays at 1 to 75; manual entry accepts 1 to 10000.",
     "tip.cfg": "Main classifier-free guidance scale. The compact slider stays at 1.0 to 10.0; manual entry accepts 0 to 100.",
-    "tip.shift": "AuraFlow model sampling shift. Always applied. Defaults: Anima 3.0, MOSS Image 5.0.",
+    "tip.shift": "Model sampling shift. Always applied. Defaults: Anima 3.0, MOSS 5.0, Krea2 1.15.",
     "tip.denoise": "Main denoise strength for the first sampling pass.",
     "tip.sampler": "Main ComfyUI sampler name used by the first pass.",
     "tip.scheduler": "Main ComfyUI scheduler used by the first pass.",
@@ -553,9 +555,11 @@ const AIO_TEXT = {
     "label.denoise": "디노이즈",
     "label.sampler": "샘플러",
     "label.modelFamily": "모델 계열",
-    "text.mossUnsupported": "MOSS Image는 현재 1차 KSampler 생성만 지원합니다. Mod Guidance, Artist Mix, NegPip, DAVE, Safe PAG, KJ 최적화, Spectrum / SPD, corrections, hooks 및 후속 단계는 지원하지 않습니다.",
-    "text.mossSpectrumUnsupported": "ComfyUI 네이티브 MOSS Image에는 Spectrum을 지원하지 않습니다. 외부 MOSS Spectrum 노드가 기대하는 모델 구조와 시간 스케일이 다릅니다.",
+    "text.modelUnsupported": "{model}는 현재 1차 KSampler 생성만 지원합니다. Mod Guidance, Artist Mix, NegPip, DAVE, Safe PAG, KJ 최적화, Spectrum / SPD, corrections, hooks 및 후속 단계는 지원하지 않습니다.",
+    "text.modelSpectrumUnsupported": "{model}에서는 현재 Spectrum / SPD를 지원하지 않습니다. ComfyUI 기본 KSampler를 사용하세요.",
     "text.mossRequirements": "MOSS Image: Input 노드에서 CLIP 유형 moss_image, Qwen3.5-9B 텍스트 인코더, FLUX.2 VAE를 선택하세요. 1차 생성만 지원하며 Anima guidance, Artist Mix, NegPip, DAVE, Safe PAG 및 후속 단계는 지원하지 않습니다.",
+    "text.kreaRequirements": "Krea2: Input 노드에서 CLIP 유형 krea2, Qwen3-VL-4B, qwen_image_vae.safetensors (Wan 2.1 VAE)를 선택하세요. 기본값은 Krea2 Turbo용 8 steps, CFG 1, Euler / Simple, shift 1.15입니다. RAW 모델은 샘플링 설정을 조정하세요.",
+    "text.modelMismatch": "저장된 설정은 {saved}용입니다. AiO Generator ({saved})를 사용하세요. 이 {model} 노드에서는 실행할 수 없으며 설정은 보존됩니다.",
     "label.scheduler": "스케줄러",
     "label.enabled": "활성화",
     "label.info": "추가 정보",
@@ -844,7 +848,7 @@ const AIO_TEXT = {
     "tip.useLast": "이 노드에서 마지막으로 완료된 백엔드 실행의 실제 시드를 다시 사용합니다.",
     "tip.steps": "1차 샘플러 스텝입니다. 슬라이더는 1~75를 유지하며 수동 입력은 1~10000을 허용합니다.",
     "tip.cfg": "1차 CFG 값입니다. 슬라이더는 1.0~10.0을 유지하며 수동 입력은 0~100을 허용합니다.",
-    "tip.shift": "AuraFlow 모델 샘플링 시프트입니다. 항상 적용됩니다. 기본값: Anima 3.0, MOSS Image 5.0.",
+    "tip.shift": "모델 샘플링 시프트입니다. 항상 적용됩니다. 기본값: Anima 3.0, MOSS 5.0, Krea2 1.15.",
     "tip.denoise": "1차 샘플링 디노이즈 강도입니다.",
     "tip.sampler": "1차 패스에 사용할 ComfyUI 샘플러 이름입니다.",
     "tip.scheduler": "1차 패스에 사용할 ComfyUI 스케줄러입니다.",
@@ -913,9 +917,11 @@ const AIO_TEXT = {
     "label.denoise": "デノイズ",
     "label.sampler": "サンプラー",
     "label.modelFamily": "モデル系統",
-    "text.mossUnsupported": "MOSS Image は first-pass KSampler のみ対応。Mod Guidance、Artist Mix、NegPip、DAVE、Safe PAG、KJ、Spectrum / SPD、corrections、hooks、後続ステージは未対応です。",
-    "text.mossSpectrumUnsupported": "Native ComfyUI MOSS Image は Spectrum 未対応です。外部 MOSS Spectrum ノードは異なるモデル構造と timestep scale を必要とします。",
+    "text.modelUnsupported": "{model} は first-pass KSampler のみ対応。Mod Guidance、Artist Mix、NegPip、DAVE、Safe PAG、KJ、Spectrum / SPD、corrections、hooks、後続ステージは未対応です。",
+    "text.modelSpectrumUnsupported": "{model} は現在 Spectrum / SPD に未対応です。ComfyUI 標準 KSampler を使用してください。",
     "text.mossRequirements": "MOSS Image: Input で CLIP type moss_image、Qwen3.5-9B text encoder、FLUX.2 VAE を選択してください。First pass のみ。Anima guidance、Artist Mix、NegPip、DAVE、Safe PAG、後続ステージは未対応です。",
+    "text.kreaRequirements": "Krea2: Input で CLIP type krea2、Qwen3-VL-4B、qwen_image_vae.safetensors (Wan 2.1 VAE) を選択。初期値は Turbo 用: 8 steps、CFG 1、Euler / Simple、shift 1.15。RAW は調整してください。",
+    "text.modelMismatch": "設定は {saved} 用です。AiO Generator ({saved}) を使ってください。{model} ノードでは実行できません。設定は保持されます。",
     "label.scheduler": "スケジューラー",
     "label.enabled": "有効",
     "label.info": "詳細情報",
@@ -982,7 +988,7 @@ const AIO_TEXT = {
     "tip.useLast": "このノードで最後に完了した実行の実シードを再利用します。",
     "tip.steps": "一回目サンプラーのステップです。スライダーは 1～75 のまま、手動入力は 1～10000 を受け付けます。",
     "tip.cfg": "一回目の CFG 値です。スライダーは 1.0～10.0 のまま、手動入力は 0～100 を受け付けます。",
-    "tip.shift": "AuraFlow のモデルサンプリングシフトです。常に適用されます。既定値: Anima 3.0、MOSS Image 5.0。",
+    "tip.shift": "モデルサンプリングシフトです。常に適用されます。既定値: Anima 3.0、MOSS 5.0、Krea2 1.15。",
     "tip.denoise": "一回目サンプリングのデノイズ強度です。",
     "tip.sampler": "一回目に使う ComfyUI サンプラー名です。",
     "tip.scheduler": "一回目に使う ComfyUI スケジューラーです。",
@@ -1032,9 +1038,11 @@ const AIO_TEXT = {
     "label.denoise": "降噪",
     "label.sampler": "采样器",
     "label.modelFamily": "模型系列",
-    "text.mossUnsupported": "MOSS Image 目前仅支持首次 KSampler 生成。不支持 Mod Guidance、Artist Mix、NegPip、DAVE、Safe PAG、KJ、Spectrum / SPD、corrections、hooks 和后续阶段。",
-    "text.mossSpectrumUnsupported": "ComfyUI 原生 MOSS Image 不支持 Spectrum。外部 MOSS Spectrum 节点要求不同的模型结构和时间步缩放。",
+    "text.modelUnsupported": "{model} 目前仅支持首次 KSampler 生成。不支持 Mod Guidance、Artist Mix、NegPip、DAVE、Safe PAG、KJ、Spectrum / SPD、corrections、hooks 和后续阶段。",
+    "text.modelSpectrumUnsupported": "{model} 目前不支持 Spectrum / SPD。请使用 ComfyUI 原生 KSampler。",
     "text.mossRequirements": "MOSS Image：请在 Input 节点选择 CLIP type moss_image、Qwen3.5-9B 文本编码器和 FLUX.2 VAE。仅支持首次生成；不支持 Anima guidance、Artist Mix、NegPip、DAVE、Safe PAG 和后续阶段。",
+    "text.kreaRequirements": "Krea2：在 Input 节点选择 CLIP type krea2、Qwen3-VL-4B 和 qwen_image_vae.safetensors (Wan 2.1 VAE)。默认参数适用于 Turbo：8 steps、CFG 1、Euler / Simple、shift 1.15。RAW 模型需调整采样参数。",
+    "text.modelMismatch": "保存的设置属于 {saved}。请使用 AiO Generator ({saved})；此 {model} 节点无法运行这些设置，设置将保留。",
     "label.scheduler": "调度器",
     "label.enabled": "启用",
     "label.info": "更多信息",
@@ -1101,7 +1109,7 @@ const AIO_TEXT = {
     "tip.useLast": "复用此节点上次完成执行时后端接受的真实种子。",
     "tip.steps": "第一次采样步数。滑条保持 1 到 75，手动输入可使用 1 到 10000。",
     "tip.cfg": "第一次 CFG 值。滑条保持 1.0 到 10.0，手动输入可使用 0 到 100。",
-    "tip.shift": "AuraFlow 模型采样 Shift。始终应用。默认值：Anima 3.0，MOSS Image 5.0。",
+    "tip.shift": "模型采样 Shift。始终应用。默认值：Anima 3.0，MOSS 5.0、Krea2 1.15。",
     "tip.denoise": "第一次采样的降噪强度。",
     "tip.sampler": "第一次使用的 ComfyUI 采样器名称。",
     "tip.scheduler": "第一次使用的 ComfyUI 调度器。",
@@ -2267,11 +2275,8 @@ function hideWidget(widget) {
   }
 }
 
-function parseSettings(widget, defaults) {
-  if (!widget) {
-    return clone(defaults);
-  }
-  return aioParseSettingsValue(widget.value, defaults);
+function parseSettings(widget, defaults, node = null) {
+  return aioParseSettingsValue(widget?.value, defaults, aioGeneratorModelProfile(node)?.family);
 }
 
 function writeSettings(node, widget, value, markDirty = true) {
@@ -3617,7 +3622,7 @@ function syncGeneratorSettingsFromVisible(node) {
   writeSettings(
     node,
     widget,
-    mergeVisibleGeneratorSettings(node, parseSettings(widget, DEFAULT_GENERATION_SETTINGS)),
+    mergeVisibleGeneratorSettings(node, parseSettings(widget, DEFAULT_GENERATION_SETTINGS, node)),
     false
   );
 }
@@ -3762,7 +3767,7 @@ function installGeneratorWheelForwarder() {
 
 function generatorSettings(node) {
   const widget = findWidget(node, GENERATOR_SETTINGS_WIDGET);
-  return mergeVisibleGeneratorSettings(node, parseSettings(widget, DEFAULT_GENERATION_SETTINGS));
+  return mergeVisibleGeneratorSettings(node, parseSettings(widget, DEFAULT_GENERATION_SETTINGS, node));
 }
 
 function writeGeneratorSettingsFromState(node, settings, markDirty = true) {
@@ -3823,7 +3828,7 @@ function randomSeed() {
 
 
 function isGeneratorGraphNode(node) {
-  return node?.type === GENERATOR_NODE_TYPE || node?.comfyClass === GENERATOR_NODE_TYPE;
+  return !!aioGeneratorModelProfile(node);
 }
 
 function generatorGraphNodes() {
@@ -3879,6 +3884,7 @@ const generatorProfileRuntime = aioCreateProfileSettingsRuntime({
   },
   settingsCore: {
     defaultSettings: DEFAULT_GENERATION_SETTINGS,
+    defaultsForFamily: aioGenerationDefaultsForFamily,
     mergeDefaults,
     migratePostprocess: migrateGeneratorPostprocessSettings,
   },
@@ -4205,7 +4211,7 @@ const {
     clearTimeout: (timer) => clearTimeout(timer),
   },
   constants: {
-    generatorNodeType: GENERATOR_NODE_TYPE,
+    generatorNodeType: GENERATOR_NODE_TYPES,
     generatorVueNodeClass: GENERATOR_VUE_NODE_CLASS,
   },
   storeAdapter: {
@@ -4279,9 +4285,7 @@ const generatorPanelRuntime = aioCreateGeneratorPanelRuntime({
     getSettings: generatorSettings,
     applyVisibleSettings: applyVisibleGeneratorSettings,
     writeSettings: writeGeneratorSettingsFromState,
-    switchModelFamily: (settings, family) => aioSwitchModelFamily(
-      settings, family, aioGenerationDefaultsForFamily,
-    ),
+    getModelProfile: aioGeneratorModelProfile,
     syncSettingsFromVisible: syncGeneratorSettingsFromVisible,
     widgetValue,
     widgetOptions,
@@ -4491,7 +4495,7 @@ const aioExtensionRuntime = aioCreateExtensionRuntime({
   api,
   constants: {
     inputNodeType: INPUT_NODE_TYPE,
-    generatorNodeType: GENERATOR_NODE_TYPE,
+    generatorNodeType: GENERATOR_NODE_TYPES,
     generatorPreviewEvent: GENERATOR_PREVIEW_EVENT,
   },
   setup: {

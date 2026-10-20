@@ -154,6 +154,7 @@ const GENERATOR_VUE_NODE_CLASS = "easyuse-anima-aio-hide-native-live-preview";
 const NATIVE_HIDDEN_CLASS = "easyuse-anima-aio-native-live-preview-hidden";
 
 function createFixture({
+  generatorNodeTypes = GENERATOR_NODE_TYPE,
   storeMode = "direct",
   graph = graphFromNodes([]),
   generatorNodes = [],
@@ -235,7 +236,7 @@ function createFixture({
       clearTimeout: scheduler.clearTimeout,
     },
     constants: {
-      generatorNodeType: GENERATOR_NODE_TYPE,
+      generatorNodeType: generatorNodeTypes,
       generatorVueNodeClass: GENERATOR_VUE_NODE_CLASS,
     },
     storeAdapter: {
@@ -1603,3 +1604,11 @@ for (const [label, workflowStoreModule] of [
 }
 
 console.log("AiO native preview runtime smoke passed.");
+
+for (const type of ["EasyUseMossAIOGenerator", "EasyUseKrea2AIOGenerator"]) {
+  const node = { id: 42, type };
+  const fixture = createFixture({ graph: graphFromNodes([node]), generatorNodeTypes: ["EasyUseAnimaAIOGenerator", "EasyUseMossAIOGenerator", "EasyUseKrea2AIOGenerator"] });
+  fixture.runtime.handleGeneratorPreviewEvent({ detail: { node: "42", images: [{ filename: `${type}.png` }], run_id: "fixed-model" } });
+  await flushPromises();
+  assert.equal(fixture.calls.addImages.length, 1, type);
+}

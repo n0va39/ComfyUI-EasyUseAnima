@@ -468,11 +468,12 @@ export function aioCloneJson(value) {
 
 export function aioGenerationDefaultsForFamily(family = "anima") {
   const defaults = aioCloneJson(AIO_DEFAULT_GENERATION_SETTINGS);
-  if (family === "moss_image") {
+  if (family === "moss_image" || family === "krea2") {
     defaults.model_family = family;
-    defaults.sampler.steps = 25;
-    defaults.sampler.cfg = 2.5;
-    defaults.model_patches.aura_flow.shift = 5;
+    defaults.sampler.steps = family === "krea2" ? 8 : 25;
+    defaults.sampler.cfg = family === "krea2" ? 1 : 2.5;
+    if (family === "krea2") defaults.sampler.sampler_name = "euler";
+    defaults.model_patches.aura_flow.shift = family === "krea2" ? 1.15 : 5;
     defaults.mod_guidance.mode = "disabled";
     defaults.artist_mix.mode = "off";
     defaults.detailer.face.spectrum.enabled = false;
@@ -625,7 +626,7 @@ export function aioMigrateGeneratorPostprocessSettings(settings) {
   return settings;
 }
 
-export function aioParseSettingsValue(rawValue, defaults) {
+export function aioParseSettingsValue(rawValue, defaults, modelFamily = "anima") {
   try {
     // Match whole JSON strings as well as integer properties, so text containing
     // escaped seed-looking snippets is never rewritten. Legacy settings JSON can
@@ -639,6 +640,11 @@ export function aioParseSettingsValue(rawValue, defaults) {
       )
       : rawValue || "{}";
     const rawParsed = JSON.parse(source);
+    // Infer only missing identity. Explicit foreign settings must survive so the
+    // node can show the mismatch and the backend can reject it without data loss.
+    if (defaults === AIO_DEFAULT_GENERATION_SETTINGS && rawParsed && typeof rawParsed === "object") {
+      rawParsed.model_family ??= modelFamily;
+    }
     const incoming = defaults === AIO_DEFAULT_GENERATION_SETTINGS
       ? aioMigrateGenerationSettingsVersion(rawParsed)
       : rawParsed;
@@ -652,7 +658,9 @@ export function aioParseSettingsValue(rawValue, defaults) {
       ? aioMigrateGeneratorPostprocessSettings(parsed)
       : parsed;
   } catch {
-    return aioCloneJson(defaults);
+    return defaults === AIO_DEFAULT_GENERATION_SETTINGS
+      ? aioGenerationDefaultsForFamily(modelFamily)
+      : aioCloneJson(defaults);
   }
 }
 

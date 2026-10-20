@@ -32,16 +32,19 @@ execution은 기존 코드다.
 
 ## 정적 field 정책
 
-v5의 `model_family`는 `anima` 또는 `moss_image`다. 생략된 legacy 입력은 Anima로
-처리하며 알 수 없는 계열은 오류로 거부한다. `model_settings`는 계열별 비활성
-튜닝 snapshot을 보관하는 JSON object다. 실행은 항상 최상위의 활성 설정만 사용한다.
-bank 변경은 first-pass cache key에 포함하지 않으며, 활성 계열은 cache identity에 포함한다.
-UI의 명시적 계열 전환만 bank를 저장/복원한다. sampler seed와 seed-after-generate,
-save, preview, postprocess는 공유하고 모델 전환으로 덮어쓰지 않는다.
+v5의 `model_family`는 `anima`, `moss_image`, `krea2`다. 생성 노드 class가 계열을
+고정하며, 명시된 계열과 class가 다르면 저장된 튜닝을 재해석하지 않고 오류로 안내한다.
+생략된 계열은 해당 노드의 계열로 채운다. 기존 Anima node ID의 legacy 입력은
+계속 Anima다. 알 수 없는 계열은 오류로 거부한다. `model_settings`는 이전 개발판
+snapshot 보존용 JSON object이며 실행·UI에서 복원하지 않는다. 실행은 항상 최상위
+설정을 사용한다. bank 변경은 first-pass cache key에 포함하지 않으며 계열은 포함한다.
 v4→v5 migration은 기존 값에 손대지 않고 `model_family=anima`, `model_settings={}`를
-추가한다. 부분 MOSS 입력에는 해당 계열 기본값을 채우되 명시적으로 저장된 값을 보존한다.
+추가한다. 고정 노드 입력은 migration 전에 계열을 지정한다. 부분 MOSS/Krea2 입력에는
+해당 계열 기본값을 채우되 명시적으로 저장된 값을 보존한다.
 새 계열 추가는 `aio/model_profiles.py`의 프로필·기능 검증과 frontend의 대응 프로필,
-latent 계약, 실제 host 검증을 함께 확장한다.
+latent·sampling 계약, node adapter·등록, 실행 metadata 인식, 실제 host 검증을 함께 확장한다.
+Krea2는 FLUX sampling의 고정 mu를 사용한다. 저장 키 `model_patches.aura_flow.shift`는
+호환성을 위해 유지하며 실제 patch 선택은 모델 프로필이 소유한다.
 
 정규화 이후의 root는 object이며 다음 section을 갖는다.
 

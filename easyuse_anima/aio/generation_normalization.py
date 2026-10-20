@@ -199,8 +199,17 @@ def _normalize_aio_dit_corrections_settings(
     )
 
 
-def _normalize_aio_generation_settings(value) -> dict[str, Any]:
+def _normalize_aio_generation_settings(value, *, model_family: str | None = None) -> dict[str, Any]:
     incoming = _json_object(value)
+    if model_family is not None:
+        saved_family = incoming.get("model_family", model_family)
+        if saved_family != model_family:
+            raise ValueError(
+                f"[EasyUseAnima] This generator is fixed to {model_family}, but settings "
+                f"belong to {saved_family}. Use the matching model-specific AiO Generator "
+                "and transfer its generation_settings without changing the family."
+            )
+        incoming = {**incoming, "model_family": model_family}
     family = incoming.get("model_family", "anima")
     settings = _merge_versioned_settings(
         aio_model_defaults(AIO_GENERATION_DEFAULT_SETTINGS, family),

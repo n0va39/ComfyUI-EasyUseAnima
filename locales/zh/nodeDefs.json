@@ -552,7 +552,7 @@
     }
   },
   "EasyUseAnimaAIOGenerator": {
-    "display_name": "Anima AiO Generator",
+    "display_name": "AiO Generator (Anima)",
     "description": "Consumes the easy use anima input context and runs txt2img. Explicit AiO hooks currently run at the postprocess before/after boundary.",
     "inputs": {
       "easy_use_anima_input": {
@@ -1292,5 +1292,11 @@
         "tooltip": "對 Anima 系列 MODEL 套用 Safe PAG。不需要額外模型或外部節點套件，執行後會還原 attention。"
       }
     }
+  },
+  "EasyUseMossAIOGenerator": {
+    "display_name": "AiO Generator (MOSS)"
+  },
+  "EasyUseKrea2AIOGenerator": {
+    "display_name": "AiO Generator (Krea2)"
   }
 }

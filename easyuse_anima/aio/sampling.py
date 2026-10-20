@@ -79,6 +79,8 @@ def _generate_empty_latent_with_comfy(width: int, height: int):
 
 def _generate_empty_model_latent_with_comfy(width: int, height: int, *, model_family: str):
     profile = aio_model_profile(model_family)
+    if profile.latent_node == "EmptyLatentImage":
+        return _generate_empty_latent_with_comfy(width, height)
     latent_cls = _find_comfy_node_class(profile.latent_node)
     if latent_cls is None:
         raise RuntimeError(

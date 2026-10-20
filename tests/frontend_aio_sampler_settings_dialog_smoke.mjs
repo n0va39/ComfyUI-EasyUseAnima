@@ -988,8 +988,8 @@ for (const testCase of [
 
 
 
-{
-  const fixture = createFixture({ settings: settingsModule.aioGenerationDefaultsForFamily("moss_image") });
+for (const family of ["moss_image", "krea2"]) {
+  const fixture = createFixture({ settings: settingsModule.aioGenerationDefaultsForFamily(family) });
   fixture.openSamplerSettings(fixture.node);
   await flushPromises();
   const dialog = fixture.dialogs[0];
@@ -998,10 +998,10 @@ for (const testCase of [
   const mod = sectionByHeading(dialog, "Mod Guidance");
   assert.ok(mod.querySelectorAll("input, select").every((control) => control.disabled));
   assert.equal(sectionByHeading(dialog, "Spectrum Patch / Advanced Sampler").classList.contains("hidden"), true);
-  assert.ok(findByText(dialog.body, "text:text.mossSpectrumUnsupported"));
+  assert.ok(findByText(dialog.body, `format:text.modelSpectrumUnsupported:${JSON.stringify({ model: family === "krea2" ? "Krea2" : "MOSS" })}`));
   controlIn(sectionByHeading(dialog, "Base Parameters"), "CFG").value = "3.2";
   action(dialog, "button.apply").emit("click");
-  assert.equal(fixture.node.settings.model_family, "moss_image");
+  assert.equal(fixture.node.settings.model_family, family);
   assert.equal(fixture.node.settings.sampler.cfg, 3.2);
   assert.equal(fixture.node.settings.sampler.spectrum.enabled, false);
   assert.equal(fixture.node.settings.sampler.dit_corrections.enabled, false);

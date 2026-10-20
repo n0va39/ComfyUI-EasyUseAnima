@@ -552,7 +552,7 @@
     }
   },
   "EasyUseAnimaAIOGenerator": {
-    "display_name": "Anima AiO Generator",
+    "display_name": "AiO Generator (Anima)",
     "description": "easy use anima input 컨텍스트를 받아 기본 txt2img 생성 경로를 실행합니다. 명시적으로 연결한 AiO Hook은 현재 postprocess before/after 경계에서 실행됩니다.",
     "inputs": {
       "easy_use_anima_input": {
@@ -1345,5 +1345,11 @@
         "name": "AiO 훅"
       }
     }
+  },
+  "EasyUseMossAIOGenerator": {
+    "display_name": "AiO Generator (MOSS)"
+  },
+  "EasyUseKrea2AIOGenerator": {
+    "display_name": "AiO Generator (Krea2)"
   }
 }

@@ -423,11 +423,12 @@
       "default": "anima",
       "supported": [
         "anima",
-        "moss_image"
+        "moss_image",
+        "krea2"
       ],
       "active_settings": "top-level-fields",
       "model_settings": "inert-preserved-snapshots",
-      "restore": "explicit-frontend-family-switch-only"
+      "restore": "fixed-by-node-class; explicit-family-mismatch-rejected"
     }
   },
   "definitions": {
@@ -875,14 +876,15 @@
         "coercion": "model-family",
         "enum": [
           "anima",
-          "moss_image"
+          "moss_image",
+          "krea2"
         ]
       },
       "model_settings": {
         "type": "object",
         "coercion": "json-object-or-empty",
         "unknown_fields": "preserve",
-        "execution": "inert-until-explicit-frontend-family-switch"
+        "execution": "inert-preserved-legacy-snapshots"
       },
       "mode": {
         "type": "string",

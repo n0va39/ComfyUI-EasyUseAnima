@@ -1447,8 +1447,8 @@ function torchRecommendationControls(dialog) {
 
 
 
-{
-  const fixture = createFixture({ settings: settingsModule.aioGenerationDefaultsForFamily("moss_image"), deferLoads: true });
+for (const family of ["moss_image", "krea2"]) {
+  const fixture = createFixture({ settings: settingsModule.aioGenerationDefaultsForFamily(family), deferLoads: true });
   fixture.openAdvancedSettings(fixture.node);
   fixture.resolveLoads();
   await flushPromises();

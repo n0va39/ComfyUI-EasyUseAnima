@@ -66,7 +66,7 @@ function closeGeneratorInfoTooltipOwner(document) {
  * @property {(node: any) => any} getSettings
  * @property {(node: any, settings: any) => void} applyVisibleSettings
  * @property {(node: any, settings: any, markDirty?: boolean) => void} writeSettings
- * @property {(settings: any, family: string) => any} switchModelFamily
+ * @property {(node: any) => any} getModelProfile
  * @property {(node: any) => void} syncSettingsFromVisible
  * @property {(node: any, name: string, fallback: any) => any} widgetValue
  * @property {(node: any, name: string, fallback: any[]) => any[]} widgetOptions
@@ -181,7 +181,7 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
     getSettings: generatorSettings,
     applyVisibleSettings: applyVisibleGeneratorSettings,
     writeSettings: writeGeneratorSettingsFromState,
-    switchModelFamily,
+    getModelProfile,
     syncSettingsFromVisible: syncGeneratorSettingsFromVisible,
     widgetValue,
     widgetOptions,
@@ -1522,25 +1522,26 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
     const samplerGrid = document.createElement("div");
     samplerGrid.className = "easyuse-anima-aio-node-sampler-grid";
 
-    const modelFamily = selectInput([
-      { value: "anima", label: "Anima" },
-      { value: "moss_image", label: "MOSS Image" },
-    ], settings.model_family || "anima");
-    modelFamily.setAttribute("data-aio-model-family", "");
-    modelFamily.setAttribute("data-aio-focus-key", "model_family");
-    modelFamily.addEventListener("change", () => {
-      const next = switchModelFamily(generatorSettings(node), modelFamily.value);
-      applyVisibleGeneratorSettings(node, next);
-      writeGeneratorSettingsFromState(node, next);
-      // Preserve the active native select until its change event has completed.
-      scheduleGeneratorPanelFrame(node, "modelFamily", () => renderGeneratorPanel(node));
-    });
-    samplerGrid.append(createNodeField(aioText("label.modelFamily"), modelFamily, "wide"));
-    if (settings.model_family === "moss_image") {
+    const modelProfile = getModelProfile(node);
+    const modelIdentity = document.createElement("span");
+    modelIdentity.setAttribute("data-aio-model-family", modelProfile.family);
+    modelIdentity.textContent = modelProfile.label;
+    samplerGrid.append(createNodeField(aioText("label.modelFamily"), modelIdentity, "wide"));
+    if (settings.model_family !== modelProfile.family) {
+      const mismatch = document.createElement("div");
+      mismatch.className = "easyuse-anima-aio-warning wide";
+      mismatch.setAttribute("data-aio-model-mismatch", "");
+      const saved = settings.model_family === "moss_image" ? "MOSS"
+        : settings.model_family === "krea2" ? "Krea2" : settings.model_family;
+      mismatch.textContent = aioFormat("text.modelMismatch", { saved, model: modelProfile.label });
+      samplerGrid.append(mismatch);
+    }
+    if (modelProfile.basicOnly) {
       const modelInfo = document.createElement("div");
       modelInfo.className = "easyuse-anima-aio-warning wide";
       modelInfo.setAttribute("data-aio-model-requirements", "");
-      modelInfo.textContent = aioText("text.mossRequirements");
+      modelInfo.textContent = aioText(modelProfile.family === "krea2"
+        ? "text.kreaRequirements" : "text.mossRequirements");
       samplerGrid.append(modelInfo);
     }
 
@@ -1625,8 +1626,8 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
             max: 10,
             inputMin: GENERATOR_NUMERIC_LIMITS.auraFlowShift.min,
             inputMax: GENERATOR_NUMERIC_LIMITS.auraFlowShift.max,
-            step: 0.5,
-            decimals: 1,
+            step: modelProfile.family === "krea2" ? 0.01 : 0.5,
+            decimals: modelProfile.family === "krea2" ? 2 : 1,
           },
           (nextSettings, value) => {
             nextSettings.model_patches.aura_flow ||= {};
@@ -2120,11 +2121,11 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
     }
     postprocessBlock.append(postprocessBody);
 
-    if (settings.model_family === "moss_image") {
+    if (modelProfile.basicOnly) {
       for (const stage of [highresBlock, detailerBlock, upscaleBlock]) {
         for (const control of stage.querySelectorAll("input, select, textarea, button")) {
           control.disabled = true;
-          control.title = aioText("text.mossUnsupported");
+          control.title = aioFormat("text.modelUnsupported", { model: modelProfile.label });
         }
       }
     }

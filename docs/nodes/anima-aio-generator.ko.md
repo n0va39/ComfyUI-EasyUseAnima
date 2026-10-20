@@ -1,17 +1,25 @@
-# Anima AiO Generator
+# AiO Generator (Anima / MOSS / Krea2)
 
-AiO의 **모델 종류**에서 Anima와 MOSS Image를 선택할 수 있습니다. 모델을 전환하면
-샘플링·패치·후속 생성 단계의 설정을 계열별로 저장하고 복원합니다. seed와 저장 경로,
-미리보기·후처리는 공유합니다. 기존 워크플로우는 Anima로 열립니다.
+`AiO Generator (Anima)`, `AiO Generator (MOSS)`, `AiO Generator (Krea2)`는
+각각 고정된 모델용 노드입니다. 내부 생성·seed·저장 구조는 공유하지만 설정은
+노드별로 독립적입니다. 기존 Anima 노드 ID와 워크플로우는 유지됩니다.
+이전 MOSS 개발판 워크플로우는 생성 노드를 MOSS 노드로 교체하고 기존
+`generation_settings`를 그대로 옮기세요. 계열이 다른 프로필은 적용할 수 없습니다.
 
 MOSS는 ComfyUI 코어 지원 빌드(검증 기준 v0.42.1)가 필요합니다. Input에서 MOSS
 diffusion model, Qwen3.5 9B text encoder, CLIP type `moss_image`, FLUX.2 VAE를
 선택하세요. 기본값은 25 steps / CFG 2.5 / er_sde / simple / shift 5입니다.
 해상도 가로·세로는 16의 배수여야 하며 모델 선택만으로 파일을 자동 변경하거나 다운로드하지 않습니다.
 
-현재 MOSS 지원 범위는 기본 txt2img, 코어 LoRA 로딩, 미리보기·후처리·저장입니다.
+Krea2는 Input에서 Krea2 diffusion model, Qwen3-VL 4B encoder, CLIP type `krea2`,
+`qwen_image_vae.safetensors`를 선택하세요. Turbo 기본값은 8 steps / CFG 1 /
+Euler / simple / shift 1.15이며 16배수 해상도를 사용합니다. shift는 Krea2의
+FLUX mu로 적용됩니다. RAW 모델은 별도의 steps·CFG·shift 설정이 필요합니다.
+[공식 Krea2 가이드](https://docs.comfy.org/tutorials/image/krea/krea-2)
+
+현재 MOSS/Krea2 지원 범위는 기본 txt2img, 코어 LoRA 로딩, 미리보기·후처리·저장입니다.
 Anima Mod Guidance, Artist Mix, NegPip, DAVE, Safe PAG, KJ 패치, AiO hook,
-Highres/Detailer/Upscale은 MOSS에서 지원하지 않습니다. 지원하지 않는 설정은 실행 전에 오류로 안내합니다.
+Highres/Detailer/Upscale은 MOSS/Krea2에서 지원하지 않습니다. 지원하지 않는 설정은 실행 전에 오류로 안내합니다.
 Spectrum 원본 2.12.1의 `MossSpectrumKSampler`는 별도 MOSS 로더의 구조·시간 스케일을
 사용하므로 ComfyUI 코어 MOSS 경로에는 연결하지 않습니다. 기존 Anima Spectrum 지원은 유지됩니다.
 

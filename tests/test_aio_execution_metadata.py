@@ -72,6 +72,28 @@ def _connect_settings(graph, node_id, link_id, *, source_id="settings_source", o
 
 
 class AIOExecutionMetadataTests(unittest.TestCase):
+    def test_model_specific_nodes_freeze_execution_seed_and_family(self):
+        for node_type, family in (
+            ("EasyUseMossAIOGenerator", "moss_image"),
+            ("EasyUseKrea2AIOGenerator", "krea2"),
+        ):
+            with self.subTest(node_type=node_type):
+                prompt, extra = _graph(7)
+                prompt["7"]["class_type"] = node_type
+                extra["workflow"]["nodes"][0]["type"] = node_type
+                original = copy.deepcopy(prompt)
+                settings = _settings(123, version=5, model_family=family)
+                saved_prompt, saved_extra = snapshot_aio_execution_metadata(
+                    prompt, extra, 7, settings, {},
+                )
+                replay = json.loads(saved_prompt["7"]["inputs"]["generation_settings"])
+                self.assertEqual(replay["model_family"], family)
+                self.assertEqual(replay["sampler"]["seed"], 123)
+                self.assertEqual(replay["sampler"]["seed_after_generate"], "fixed")
+                self.assertEqual(json.loads(saved_extra["workflow"]["nodes"][0]["widgets_values"][0]), replay)
+                self.assertEqual(snapshot_aio_prompt(saved_prompt, saved_extra), saved_prompt)
+                self.assertEqual(prompt, original)
+
     def test_uint64_replay_settings_use_lossless_json_scalars(self):
         for seed in (39, 2**50 + 1, 2**53 + 1, 2**64 - 1):
             with self.subTest(seed=seed):

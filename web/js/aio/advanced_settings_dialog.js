@@ -257,7 +257,7 @@ export function aioCreateAdvancedSettingsDialog(dependencies) {
     const auraShift = field(
       modelPatches,
       "AuraFlow shift",
-      numberInput(settings.model_patches.aura_flow.shift, "0.5"),
+      numberInput(settings.model_patches.aura_flow.shift, settings.model_family === "krea2" ? "0.01" : "0.5"),
       "tip.shift",
     );
     auraShift.min = String(GENERATOR_NUMERIC_LIMITS.auraFlowShift.min);
@@ -885,15 +885,15 @@ export function aioCreateAdvancedSettingsDialog(dependencies) {
       refreshSageStageScope();
       refreshSageDetails();
       refreshTorchDetails();
-      if (settings.model_family === "moss_image") {
+      if (["moss_image", "krea2"].includes(settings.model_family)) {
         for (const section of [conditioning, dave, safePag, kj, artistMix]) {
           for (const control of section.querySelectorAll("input, select, textarea, button")) {
             control.disabled = true;
-            control.title = aioText("text.mossUnsupported");
+            control.title = aioFormat("text.modelUnsupported", { model: settings.model_family === "krea2" ? "Krea2" : "MOSS" });
           }
         }
         modelWarning.hidden = false;
-        modelWarning.textContent = aioText("text.mossUnsupported");
+        modelWarning.textContent = aioFormat("text.modelUnsupported", { model: settings.model_family === "krea2" ? "Krea2" : "MOSS" });
       }
     };
     const guardToggle = (control, dependencyKey, backend) => {

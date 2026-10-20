@@ -321,7 +321,8 @@ class FrontendModuleStructureTests(unittest.TestCase):
             re.findall(r"export function ([A-Za-z0-9_]+)\(", source),
             ["aioCreateProfileSettingsRuntime"],
         )
-        self.assertLessEqual(len(source.splitlines()), 480)
+        # Fixed model defaults and cross-family preset rejection stay in this owner.
+        self.assertLessEqual(len(source.splitlines()), 487)
         self.assertNotRegex(source, re.compile(r"^\s*import\s", re.MULTILINE))
         self.assertNotRegex(source, r"\b(?:window|app|api)\b")
         self.assertNotIn("fetch(", source)
@@ -388,6 +389,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
             ],
             "settingsCore": [
                 "defaultSettings: DEFAULT_GENERATION_SETTINGS,",
+                "defaultsForFamily: aioGenerationDefaultsForFamily,",
                 "mergeDefaults,",
                 "migratePostprocess: migrateGeneratorPostprocessSettings,",
             ],
@@ -530,7 +532,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
         for expected_wiring in (
             "api,",
             "inputNodeType: INPUT_NODE_TYPE,",
-            "generatorNodeType: GENERATOR_NODE_TYPE,",
+            "generatorNodeType: GENERATOR_NODE_TYPES,",
             "generatorPreviewEvent: GENERATOR_PREVIEW_EVENT,",
             "installWheelForwarder: installGeneratorWheelForwarder,",
             "watchLocale: easyuseAnimaWatchLocale,",
@@ -660,9 +662,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
                 "getSettings: generatorSettings,",
                 "applyVisibleSettings: applyVisibleGeneratorSettings,",
                 "writeSettings: writeGeneratorSettingsFromState,",
-                "switchModelFamily: (settings, family) => aioSwitchModelFamily(",
-                "settings, family, aioGenerationDefaultsForFamily,",
-                "),",
+                "getModelProfile: aioGeneratorModelProfile,",
                 "syncSettingsFromVisible: syncGeneratorSettingsFromVisible,",
                 "widgetValue,",
                 "widgetOptions,",
